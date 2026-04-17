@@ -1,0 +1,57 @@
+id: device_init_hfrco
+label: High Frequency RC Oscillator (HFRCO)
+package: platform_core
+description: >
+  Instantiate the component for High Frequency RC Oscillator (HFRCO)  initialization based on the provided frequency band.
+category: Services|Device Initialization|Peripherals
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: platform_core/platform/service/device_init/
+config_file:
+- path: config/s2/sdid205/38M/sl_device_init_hfrco_config.h
+  file_id: device_init_hfrco_config
+  condition: [bgm220sc12wga]
+- path: config/s2/sdid205/38M/sl_device_init_hfrco_config.h
+  file_id: device_init_hfrco_config
+  condition: [device_family_efr32fg22]
+- path: config/s2/sdid205/38M/sl_device_init_hfrco_config.h
+  file_id: device_init_hfrco_config
+  condition: [efr32bg22c112f352gm32]
+- path: config/s2/sdid205/38M/sl_device_init_hfrco_config.h
+  file_id: device_init_hfrco_config
+  condition: [efr32bg22c112f352gm40]
+- path: config/s2/sdid205/38M/sl_device_init_hfrco_config.h
+  file_id: device_init_hfrco_config
+  condition: [efr32bg22l122f352gm32]
+- path: config/s2/sl_device_init_hfrco_config.h
+  file_id: device_init_hfrco_config
+  condition: [device_series_2]
+  unless: [bgm220sc12wga, device_family_efr32fg22, efr32bg22c112f352gm32, efr32bg22c112f352gm40, efr32bg22l122f352gm32]
+include:
+- path: inc
+  file_list:
+  - path: sl_device_init_hfrco.h
+source:
+- path: src/sl_device_init_hfrco.c
+provides:
+- name: device_init_hfrco
+requires:
+- name: emlib_cmu
+- name: status
+template_contribution:
+- name: event_handler
+  value:
+    event: platform_init
+    include: sl_device_init_hfrco.h
+    handler: sl_device_init_hfrco
+  priority: -9700
+  condition: [sl_system, kernel]
+- name: device_init_clocks_present
+  value: hfrco
+- name: component_catalog
+  value: device_init_hfrco
+documentation:
+  docset: gecko-platform
+  document: platform-service/device-init-hfrco

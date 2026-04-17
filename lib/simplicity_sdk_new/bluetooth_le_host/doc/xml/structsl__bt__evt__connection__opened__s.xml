@@ -1,0 +1,166 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="structsl__bt__evt__connection__opened__s" kind="struct" language="C++" prot="public">
+    <compoundname>sl_bt_evt_connection_opened_s</compoundname>
+    <includes refid="sl__bt__api_8h" local="no">sl_bt_api.h</includes>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structsl__bt__evt__connection__opened__s_1ac8a4239b78d20b2ed3fb2c2a02cdaf78" prot="public" static="no" mutable="no">
+        <type><ref refid="structbd__addr" kindref="compound">bd_addr</ref></type>
+        <definition>bd_addr sl_bt_evt_connection_opened_s::address</definition>
+        <argsstring></argsstring>
+        <name>address</name>
+        <qualifiedname>sl_bt_evt_connection_opened_s::address</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Remote device address </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6389" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6389" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__connection__opened__s_1a6eb2e9fe1f08ed07af06ad1617506435" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_connection_opened_s::address_type</definition>
+        <argsstring></argsstring>
+        <name>address_type</name>
+        <qualifiedname>sl_bt_evt_connection_opened_s::address_type</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Enum <ref refid="group__sl__bt__gap_1gac8d5431d3062e47c5d51b9fb9f36c104" kindref="member">sl_bt_gap_address_type_t</ref>. Remote device address type. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_gap_public_address (0x0):</bold> Public device address</para>
+</listitem><listitem><para><bold>sl_bt_gap_static_address (0x1):</bold> Static device address</para>
+</listitem><listitem><para><bold>sl_bt_gap_random_resolvable_address (0x2):</bold> Resolvable private random address</para>
+</listitem><listitem><para><bold>sl_bt_gap_random_nonresolvable_address (0x3):</bold> Non-resolvable private random address</para>
+</listitem><listitem><para><bold>sl_bt_gap_public_address_resolved_from_rpa (0x4):</bold> Public identity address resolved from a resolvable private address (RPA)</para>
+</listitem><listitem><para><bold>sl_bt_gap_static_address_resolved_from_rpa (0x5):</bold> Static identity address resolved from a resolvable private address (RPA) </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6390" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6390" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__connection__opened__s_1a3cf30a5d1096e6be1a0f98fbffb24483" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_connection_opened_s::role</definition>
+        <argsstring></argsstring>
+        <name>role</name>
+        <qualifiedname>sl_bt_evt_connection_opened_s::role</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Enum <ref refid="group__sl__bt__connection_1gab7587d83e86c8d88ecd98f7d20af9ab6" kindref="member">sl_bt_connection_role_t</ref>. The role this device operates in the connection. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_connection_role_peripheral (0x0):</bold> The Peripheral role</para>
+</listitem><listitem><para><bold>sl_bt_connection_role_central (0x1):</bold> The Central role </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6407" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6407" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__connection__opened__s_1afb5a441b26268cf865770592f4f0f550" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_connection_opened_s::connection</definition>
+        <argsstring></argsstring>
+        <name>connection</name>
+        <qualifiedname>sl_bt_evt_connection_opened_s::connection</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Handle for new connection </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6413" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6413" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__connection__opened__s_1a765c8a73d8de7d993c3ba389e1906d3e" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_connection_opened_s::bonding</definition>
+        <argsstring></argsstring>
+        <name>bonding</name>
+        <qualifiedname>sl_bt_evt_connection_opened_s::bonding</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Bonding handle. Values:<itemizedlist>
+<listitem><para><bold>SL_BT_INVALID_BONDING_HANDLE (0xff):</bold> No bonding</para>
+</listitem><listitem><para><bold>Other:</bold> Bonding handle </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6414" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6414" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__connection__opened__s_1a4d8b0e79e32de5f937ce86a492d31435" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_connection_opened_s::advertiser</definition>
+        <argsstring></argsstring>
+        <name>advertiser</name>
+        <qualifiedname>sl_bt_evt_connection_opened_s::advertiser</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>The local advertising set that this connection was opened to. Values:<itemizedlist>
+<listitem><para><bold>SL_BT_INVALID_ADVERTISING_SET_HANDLE (0xff):</bold> Invalid value or not applicable. Ignore this field</para>
+</listitem><listitem><para><bold>Other:</bold> The advertising set handle </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6418" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6418" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__connection__opened__s_1a53bc9fd51dc39e762ae5227a3218894f" prot="public" static="no" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t sl_bt_evt_connection_opened_s::sync</definition>
+        <argsstring></argsstring>
+        <name>sync</name>
+        <qualifiedname>sl_bt_evt_connection_opened_s::sync</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>The sync handle if the local device is in the peripheral-role and the connection was opened via a Periodic Advertising with Responses (PAwR) train that the local device has synchronized to. Values:<itemizedlist>
+<listitem><para><bold>SL_BT_INVALID_SYNC_HANDLE (0xffff):</bold> The connection was not opened over a PAwR train that the local device is synchronized to</para>
+</listitem><listitem><para><bold>Other:</bold> The sync handle for the PAwR train that was used to open the connection </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6424" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6424" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Data structure of the opened event. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="2">
+        <label>bd_addr</label>
+        <link refid="structbd__addr"/>
+      </node>
+      <node id="1">
+        <label>sl_bt_evt_connection_opened_s</label>
+        <link refid="structsl__bt__evt__connection__opened__s"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>address</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6387" column="1" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6388" bodyend="6433"/>
+    <listofallmembers>
+      <member refid="structsl__bt__evt__connection__opened__s_1ac8a4239b78d20b2ed3fb2c2a02cdaf78" prot="public" virt="non-virtual"><scope>sl_bt_evt_connection_opened_s</scope><name>address</name></member>
+      <member refid="structsl__bt__evt__connection__opened__s_1a6eb2e9fe1f08ed07af06ad1617506435" prot="public" virt="non-virtual"><scope>sl_bt_evt_connection_opened_s</scope><name>address_type</name></member>
+      <member refid="structsl__bt__evt__connection__opened__s_1a4d8b0e79e32de5f937ce86a492d31435" prot="public" virt="non-virtual"><scope>sl_bt_evt_connection_opened_s</scope><name>advertiser</name></member>
+      <member refid="structsl__bt__evt__connection__opened__s_1a765c8a73d8de7d993c3ba389e1906d3e" prot="public" virt="non-virtual"><scope>sl_bt_evt_connection_opened_s</scope><name>bonding</name></member>
+      <member refid="structsl__bt__evt__connection__opened__s_1afb5a441b26268cf865770592f4f0f550" prot="public" virt="non-virtual"><scope>sl_bt_evt_connection_opened_s</scope><name>connection</name></member>
+      <member refid="structsl__bt__evt__connection__opened__s_1a3cf30a5d1096e6be1a0f98fbffb24483" prot="public" virt="non-virtual"><scope>sl_bt_evt_connection_opened_s</scope><name>role</name></member>
+      <member refid="structsl__bt__evt__connection__opened__s_1a53bc9fd51dc39e762ae5227a3218894f" prot="public" virt="non-virtual"><scope>sl_bt_evt_connection_opened_s</scope><name>sync</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

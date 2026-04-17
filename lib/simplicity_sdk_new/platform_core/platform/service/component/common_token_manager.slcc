@@ -1,0 +1,36 @@
+id: common_token_manager
+label: Common Token Manager
+package: platform_core
+description: >
+  The Common Token Manager provides a means to read and write manufacturing (static device and static secure) and
+  dynamic tokens such as manufacturing ID, channel number, transmit power, and various pieces of information
+  that the application needs to be persistent between device power cycles. The token system is
+  designed to abstract implementation details and simplify interacting with differing non-volatile systems.
+  The majority of tokens are stored in NVM3 where they can be rewritten.
+
+  The Common Token Manager, by default, provides static and dynamic token storage.
+
+  All the Static Device Tokens, Static Secure Tokens shall be stored as KLV object (KLV header + data) format in respective memory region.
+  The static device tokens are stored in SE MTP region, which is inherently secure and rollback protected.
+  The static secure tokens are stored in data region of flash and uses 128-bit AES-GCM mode to secure the data. The static secure region
+  has 4k reserved space at the end of flash and is configurable.
+  The dynamic tokens are stored in NVM3 region.
+category: Services|Token Manager
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+requires:
+- name: component_catalog
+- name: common_token_manager_core
+- name: common_token_manager_static
+- name: common_token_manager_dynamic
+provides:
+- name: common_token_manager
+template_contribution:
+- name: component_catalog
+  value: common_token_manager
+documentation:
+  docset: gecko-platform
+  document: platform-service/token-manager
+root_path: platform_core

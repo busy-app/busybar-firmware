@@ -1,0 +1,35 @@
+id: radio_config_long_preamble_device_family_fgm23
+label: Custom Radio Configuration for Range Test Dualband Ocelot
+package: proprietary_default_radio_confs
+description: Triggers Radio Configurator UI for setting a proper (Application - Die - RF Band) Custom Radio Configurator
+category: Platform|Radio Configuration
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+provides:
+- name: radio_config_long_preamble_device_family_fgm23
+- name: a_radio_config
+  allow_multiple: true
+ui_hints:
+  visibility: never
+template_contribution:
+- name: component_catalog
+  value: radio_config_simple_rail_singlephy
+config_file:
+- path: Base/simple_long_preamble/device_generic_family_efr32xg23/rf_band_868/rf39mhz/radio_settings.radioconf
+  file_id: radio_configuration_settings
+  directory: rail
+  condition:
+  - device_family_fgm23
+  - hardware_board_has_hfxo_freq_39mhz
+- path: Base/simple_long_preamble/device_generic_family_efr32xg23/rf_band_868/radio_settings.radioconf
+  file_id: radio_configuration_settings
+  directory: rail
+  condition:
+  - device_family_fgm23
+  unless:
+  - device_is_module
+  - hardware_board_has_hfxo_freq_39mhz
+
+root_path: proprietary_default_radio_confs

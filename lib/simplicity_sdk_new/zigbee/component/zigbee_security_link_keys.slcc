@@ -1,0 +1,68 @@
+id: zigbee_security_link_keys
+label: Security Link Keys
+package: zigbee
+category: Zigbee|Stack
+quality: production
+description: Provides management of APS link keys in the key table.  It is used by a trust center (coordinator) to manage link keys of devices in the network, or by non-trust-center devices wishing to manage partner link keys.
+
+provides:
+- name: zigbee_security_link_keys
+
+source:
+- path: stack/zigbee/aps-keys-full.c
+
+- path: stack/internal/src/ipc/zigbee_ipc_callback_events.c
+  condition:
+  - zigbee_use_ipc
+- path: stack/internal/src/baremetal/security_baremetal_callbacks.c
+  unless:
+  - zigbee_use_ipc
+  - native_host
+- path: stack/internal/src/ipc/security_ipc_callback_events.c
+  condition:
+  - zigbee_use_ipc
+- path: stack/internal/src/baremetal/security_baremetal_wrapper.c
+  unless:
+  - zigbee_use_ipc
+  - native_host
+- path: stack/internal/src/ipc/zigbee_ipc_callback_event_stub.c
+  condition:
+  - zigbee_use_ipc
+- path: stack/internal/src/ipc/security_ipc_command_messages.c
+  condition:
+  - zigbee_use_ipc
+include:
+- path: stack/include
+  file_list:
+  - path: security.h
+- path: stack/zigbee/
+  file_list:
+  - path: aps-keys-full.h
+  - path: aps-keys.h
+
+- path: stack/internal/src/ipc
+  file_list:
+  - path: security_ipc_callback_events.h
+  - path: security_ipc_command_messages.h
+  - path: zigbee_ipc_callback_events.h
+  - path: zigbee_ipc_command_messages.h
+  condition:
+  - zigbee_use_ipc
+- path: stack/internal/inc
+  file_list:
+  - path: security_internal_def.h
+config_file:
+- path: stack/config/component_config/sl_zigbee_security_link_keys_config.h
+
+template_contribution:
+- name: component_catalog
+  value: zigbee_security_link_keys
+
+
+documentation:
+  docset: zigbee
+  document: zigbee-af-api/security-link-keys
+metadata:
+  sbom:
+    license: MSLA
+root_path: zigbee

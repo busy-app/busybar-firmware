@@ -1,0 +1,18 @@
+id: mbedtls_base64
+package: security_mbedtls
+label: Base64 Encoding and Decoding
+description: >-
+  This component provides support for Base64 encoding and decoding using Mbed TLS.
+category: Platform|Security|Mbed TLS|Upper Layer
+quality: production
+provides:
+- name: mbedtls_base64
+requires:
+- name: mbedtls_core
+template_contribution:
+- name: mbedtls_config
+  value: MBEDTLS_BASE64_C
+metadata:
+  sbom:
+    reference: mbedtls_sbom
+root_path: security_mbedtls

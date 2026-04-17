@@ -1,0 +1,83 @@
+project_name: multithreading_application_soc
+package: wifi_app
+quality: production
+label: Wi-Fi - Multithreading Application (SoC)
+category: Example|Wi-Fi
+description: 'Enable multithreading with SiWx91x
+
+  '
+filter:
+- name: Wireless Technology
+  value:
+  - Wi-Fi
+- name: Project Difficulty
+  value:
+  - Beginner
+source:
+- path: app.c
+- path: station_embedded.c
+- path: ap_throughtput.c
+include:
+- path: .
+  file_list:
+  - path: app.h
+define:
+- name: SL_SI91X_PRINT_DBG_LOG
+component:
+- id: sl_main
+- id: freertos
+- id: freertos_heap_4
+- id: syscalls
+- id: si91x_memory_default_config
+- id: wiseconnect_common
+- id: wifi
+- id: sl_si91x_internal_stack
+- id: wifi_resources
+- id: network_manager
+- id: basic_network_config_manager
+- id: sl_si91x_mem_pool_buffers_with_quota
+- id: sl_si91x_asynchronous_socket
+- id: sl_si91x_socket
+- id: mqtt
+- id: bsd_socket
+requires:
+- name: device_needs_ram_execution
+  condition:
+  - si91x_common_flash
+toolchain_settings:
+- option: gcc_compiler_option
+  value: -Wall -Werror
+configuration:
+- name: SL_BOARD_ENABLE_VCOM
+  value: '1'
+readme:
+- path: readme.md
+other_file:
+- path: resources/readme/add_topic_name.png
+- path: resources/readme/connect.png
+- path: resources/readme/connect_subscribe.png
+- path: resources/readme/mqtt_server.png
+- path: resources/readme/mqtts_server.png
+- path: resources/readme/UDP_TX1.png
+- path: resources/readme/UDP_TX2.png
+- path: resources/readme/delete_connections.png
+- path: resources/readme/mqtt_explorer_msg.png
+- path: resources/readme/image217a.png
+- path: resources/readme/image217b.png
+- path: resources/readme/image217c.png
+- path: resources/readme/image217d.png
+- path: resources/readme/concurrent_soc_ncp.png
+ui_hints:
+  highlight:
+  - path: readme.md
+    focus: true
+post_build:
+  profile: wiseconnect_soc
+sdk_extension:
+- id: wiseconnect3_sdk
+  vendor: silabs
+  version: 4.0.1
+sdk:
+  id: simplicity_sdk
+  vendor: silabs
+  version: 2025.12.2

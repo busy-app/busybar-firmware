@@ -1,0 +1,19 @@
+id: "bluetooth_feature_channel_classification"
+label: Bluetooth Feature Channel Classification
+package: bluetooth_le_controller
+description: >
+  Provides the channel classification feature
+
+category: Bluetooth|Bluetooth LE Controller (Link Layer)
+quality: experimental
+provides:
+- name: "bluetooth_feature_channel_classification"
+requires:
+- name: bluetooth_controller
+template_contribution:
+- name: component_catalog
+  value: bluetooth_feature_channel_classification
+metadata:
+  sbom:
+    license: MSLA
+root_path: bluetooth_le_controller

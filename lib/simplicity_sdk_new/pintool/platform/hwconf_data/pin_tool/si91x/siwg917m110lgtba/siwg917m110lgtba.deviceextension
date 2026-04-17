@@ -1,0 +1,6 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<deviceextension:DocumentRoot xmlns:deviceextension="http://www.silabs.com/ss/hwconfig/deviceextension.ecore">
+  <deviceExtension id="pin_tool.wfm.si91x.siwg917m110lgtba.extension">
+    <!-- Metadata in this file is currently not present for Si91x device -->
+  </deviceExtension>
+</deviceextension:DocumentRoot>

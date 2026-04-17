@@ -1,0 +1,26 @@
+id: micriumos_common_platform_manager
+label: Micrium OS Common Platform Manager
+package: micriumos
+description: Micrium OS Common Platform Manager is required by some modules
+category: Services|Micrium|Common
+quality: production
+metadata:
+  sbom:
+    license: MSLA
+ui_hints:
+  visibility: never
+source:
+- path: source/platform_mgr/platform_mgr.c
+include:
+- path: source
+  file_list:
+  - path: platform_mgr/platform_mgr_priv.h
+- path: include
+  file_list:
+  - path: platform_mgr.h
+provides:
+- name: common_platform_manager
+requires:
+- name: common_core
+- name: common_collections
+root_path: micriumos/platform/micrium_os/common

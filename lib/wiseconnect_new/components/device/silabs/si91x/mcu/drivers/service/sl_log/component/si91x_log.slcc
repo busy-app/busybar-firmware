@@ -1,0 +1,35 @@
+id: si91x_log
+label: SL Log Si91x Core
+package: platform_siwx91x
+description: >
+   Debug Logger component for including si91x core files
+category: Device|Si91x|MCU|Service
+quality: evaluation
+metadata:
+  sbom:
+    license: Zlib
+provides:
+  - name: si91x_log
+  - name: log_platform_core
+requires:
+  - name: sl_ulp_timer
+    condition: [log_backend]
+ui_hints:
+  visibility: never
+root_path: components/device/silabs/si91x/mcu/drivers/service/sl_log
+source:
+  - path: src/sl_log_platform_specific.c  
+    condition: [log_backend]
+template_contribution:
+  - name: si91x_platform_core
+    value: 1
+define:
+  - name: SL_LOG_SI91X_PLATFORM_CORE
+    value: "1"
+    condition:
+      - log_backend
+  - name: SLI_CAPTIVE_CORE_PRESENT
+    value: "1"
+    condition:
+      - sl_si91x_wireless
+      - log_backend

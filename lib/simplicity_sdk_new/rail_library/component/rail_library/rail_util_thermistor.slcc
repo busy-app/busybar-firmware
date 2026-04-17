@@ -1,0 +1,16 @@
+id: rail_util_thermistor
+label: RAIL Utility, Thermistor Utility (RAIL 2.x)
+description: Utility to aid with RAIL thermistor conversions support
+package: rail_library
+category: Platform|Radio|RAIL 2.x
+quality: deprecated
+metadata:
+  sbom:
+    id: rail_util_thermistor
+    name: RAIL Utility, Thermistor Utility (RAIL 2.x)
+    license: Zlib
+provides:
+- name: rail2_util_thermistor
+requires:
+- name: sl_rail_util_thermistor
+root_path: rail_library

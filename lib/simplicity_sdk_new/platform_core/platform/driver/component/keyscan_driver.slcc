@@ -1,0 +1,39 @@
+id: keyscan_driver
+package: platform_core
+label: Keyscan
+description: Keyscan driver.
+category: Platform|Driver|KeyScan
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+provides:
+- name: keyscan_driver
+requires:
+- name: hal_generic_common
+- name: clock_manager_runtime
+- name: hal_keyscan
+- name: device_manager
+- name: status
+- name: gpio
+- name: slist
+include:
+- path: inc
+  file_list:
+  - path: keyscan_driver.h
+- path: src
+  file_list:
+  - path: keyscan_driver_hal.h
+source:
+- path: src/keyscan_driver.c
+- path: src/keyscan_driver_hal.c
+template_contribution:
+- name: event_handler
+  value:
+    event: driver_init
+    include: keyscan_driver.h
+    handler: sl_keyscan_driver_init
+config_file:
+- path: config/keyscan_driver_config.h
+  file_id: keyscan_driver_config
+root_path: platform_core/platform/driver/keyscan

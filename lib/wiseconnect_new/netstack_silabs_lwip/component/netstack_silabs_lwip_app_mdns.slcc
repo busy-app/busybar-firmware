@@ -1,0 +1,39 @@
+id: netstack_silabs_lwip_app_mdns
+label: "LWIP mDNS High Layer Application"
+package: netstack_silabs_lwip
+description: >
+  The LWIP mDNS high layer application specifically programmed with the lwIP low-level raw API,
+  multicast DNS lwip the MDNS responder does not have all features required by the standards.
+  It is however usable in normal cases - but watch out if many devices on the same network try
+  to use the same host/service instance names.
+category: Network Stack|LwIP|apps
+quality: production
+provides:
+- name: netstack_silabs_lwip_apps
+  allow_multiple: true
+- name: netstack_silabs_lwip_app_mdns
+requires:
+- name: netstack_silabs_lwip_core
+source:
+- path: lwip/src/apps/mdns/mdns.c
+- path: lwip/src/apps/mdns/mdns_domain.c
+- path: lwip/src/apps/mdns/mdns_out.c
+include:
+- path: lwip/src/include
+  file_list:
+  - path: lwip/apps/mdns.h
+  - path: lwip/apps/mdns_opts.h
+  - path: lwip/apps/mdns_priv.h
+  - path: lwip/apps/mdns_domain.h
+  - path: lwip/apps/mdns_out.h
+metadata:
+  sbom:
+    license: BSD-3-Clause
+    upstream:
+      name: lwip
+      version: 2.2.1
+      supplier: lwIP Developers
+      url: https://savannah.nongnu.org/projects/lwip/
+      package_url: https://github.com/lwip-tcpip/lwip/
+      comment: lwIP is a small independent implementation of the TCP/IP protocol suite.
+root_path: netstack_silabs_lwip/

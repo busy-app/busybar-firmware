@@ -1,0 +1,49 @@
+# This HAL applies to series 2 and 3 devices.
+id: hal_burtc
+label: BURTC
+package: platform_core
+description: >
+  Back-Up Real Time Counter (BURTC) peripheral API
+category: Platform|Peripheral|HAL
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+source:
+- path: src/sl_hal_burtc.c
+include:
+- path: inc
+  file_list:
+  - path: sl_hal_burtc.h
+provides:
+- name: hal_burtc
+- name: hal_generic_burtc
+  condition: [device_series_3]
+requires:
+- name: device
+- name: device_has_burtc
+- name: hal_common
+documentation:
+  docset: gecko-platform
+  document:
+  - page: platform-peripheral-efr32xg21/burtc
+    condition: [device_sdid_200]
+  - page: platform-peripheral-efr32xg22/burtc
+    condition: [device_sdid_205]
+  - page: platform-peripheral-efr32xg23/burtc
+    condition: [device_sdid_210]
+  - page: platform-peripheral-efr32xg24/burtc
+    condition: [device_sdid_215]
+  - page: platform-peripheral-efr32xg25/burtc
+    condition: [device_sdid_220]
+  - page: platform-peripheral-efr32xg26/burtc
+    condition: [device_sdid_225]
+  - page: platform-peripheral-efr32xg27/burtc
+    condition: [device_sdid_230]
+  - page: platform-peripheral-efr32xg28/burtc
+    condition: [device_sdid_235]
+  - page: platform-peripheral-efr32xg29/burtc
+    condition: [device_sdid_240]
+  - page: platform-peripheral-sixg301/burtc
+    condition: [device_generic_family_sixx301]
+root_path: platform_core/platform/peripheral

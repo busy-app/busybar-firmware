@@ -1,0 +1,269 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<project>
+    <gatt db_name="test_gattdb" generic_attribute_service="true" default="true" gatt_caching="true">
+
+         <!-- All capabilities in this database shall be declared in capabilities_declare node.-->
+         <!-- Max number of capabilities is 16. -->
+        <capabilities_declare>
+
+            <!-- A capability, identifier: 'cap_dimmable'; enabled by default -->
+            <capability enable="true">cap_dimmable</capability>
+
+            <!-- capability 'cap_color'; disabled by default -->
+            <capability enable="true">cap_color</capability>
+            
+            <capability enable="false">cap_tunnel</capability>
+
+            <capability enable="false">cap_empty</capability>
+
+        </capabilities_declare>
+    
+        <service uuid="1800" id="service_gap">
+            <capabilities>
+                <capability>cap_dimmable</capability>
+                <capability>cap_color</capability>
+                <capability>cap_tunnel</capability>
+            </capabilities>
+            <description>Generic Access Profile</description>
+            <characteristic uuid="2a00">
+                <properties read="true" const="true" />
+                <value>Gecko stack utest v2.9</value>
+            </characteristic>
+            <characteristic uuid="2a01">
+                <properties read="true" const="true" />
+                <value type="hex">4142</value>
+            </characteristic>
+        </service>
+        <service uuid="0bd51901-e7cb-469b-8e4d-2742f1ba77cc">
+            <capabilities>
+                <capability>cap_dimmable</capability>
+                <capability>cap_color</capability>
+                <capability>cap_tunnel</capability>
+            </capabilities>
+            <description>Primary service</description>
+            <include id="service_gap" />
+            <characteristic uuid="e7add801-b042-4876-aae1-112855353cc1" id="char_writable">
+                <description>Readable and writable characteristic</description>
+                <properties write="true" write_no_response="true" read="true"/>
+                <value type="hex">ffff</value>
+            </characteristic>
+            <characteristic uuid="e7add802-b042-4876-aae1-112855353cc1" id="char_read_only">
+                <description>Readable characteristic</description>
+                <properties write="false" read="true"/>
+                <value length="2"/>
+            </characteristic>
+            <characteristic uuid="e7add803-b042-4876-aae1-112855353cc1" id="char_write_only">
+                <description>Writable characteristic</description>
+                <properties write="true" read="false"/>
+                <value length="2"/>
+            </characteristic>
+            <characteristic uuid="e7add804-b042-4876-aae1-112855353cc1" id="char_notify">
+                <description>Characteristic which change of value is notified</description>
+                <properties notify="true"/>
+                <value length="2"/>
+            </characteristic>
+            <characteristic uuid="e7add805-b042-4876-aae1-112855353cc1" id="char_indicate">
+                <description>Characteristic which change of value is indicated</description>
+                <properties indicate="true"/>
+                <value length="2"/>
+            </characteristic>
+            <characteristic uuid="e7add806-b042-4876-aae1-112855353cc1" id="char_long1">
+                <description>Characteristic long value</description>
+                <properties write="true" read="true"/>
+                <value length="198"/>
+            </characteristic>
+            <characteristic uuid="e7add807-b042-4876-aae1-112855353cc1" id="char_long2">
+                <description>Characteristic long value</description>
+                <properties write="true" read="true"/>
+                <value length="512"/>
+            </characteristic>
+            <characteristic uuid="e7add808-b042-4876-aae1-112855353cc1" id="char_user">
+                <description>Characteristic user value</description>
+                <properties write="true" write_no_response="true" read="true" notify="true" indicate="true"/>
+                <value type="user"/>
+            </characteristic>
+            <characteristic uuid="e7add809-b042-4876-aae1-112855353cc1" id="char_security">
+                <description>Characteristic requires encryption, authentication and bonding</description>
+                <properties notify="true"
+                    encrypted_write="true" encrypted_read="true"
+                    authenticated_write="true" authenticated_read="true"
+                    bonded_write="true" bonded_read="true"/>
+                <value type="hex">c0ffee</value>
+            </characteristic>
+            <characteristic uuid="e7add80a-b042-4876-aae1-112855353cc1" id="char_varlen">
+                <description>Variable length characteristic</description>
+                <properties write="true" read="true"/>
+                <value length="10" variable_length="true"></value>
+            </characteristic>
+            <characteristic uuid="e7add80b-b042-4876-aae1-112855353cc1" id="char_user_ccc">
+                <description>Characteristic with user handled client config</description>
+                <descriptor uuid="2902">
+                    <properties write="true" read="true"/>
+                    <value type="user"/>
+                </descriptor>
+                <properties write="true" write_no_response="true" read="true" notify="true" indicate="true"/>
+                <value length="1"></value>
+            </characteristic>
+            <characteristic uuid="aa01" id="char_security_encryption">
+                <description>Characteristic requires encryption</description>
+                <properties write="true" write_no_response="true" read="true" encrypted_notify="true"
+                    encrypted_write="true" encrypted_read="true"/>
+                <value type="hex">c0ffee</value>
+            </characteristic>
+            <characteristic uuid="aa02" id="char_security_authentication">
+                <description>Characteristic requires authentication</description>
+                <properties write="true" write_no_response="true" read="true" authenticated_notify="true"
+                    authenticated_write="true" authenticated_read="true"/>
+                <value type="hex">c0ffee</value>
+            </characteristic>
+            <characteristic uuid="aa03" id="char_security_keysize">
+                <description>Characteristic requires authentication</description>
+                <properties write="true" write_no_response="true" read="true" notify="true"
+                    encrypted_write="true" encrypted_read="true"/>
+                <value type="hex">c0ffee</value>
+            </characteristic>
+            <characteristic uuid="aa04" id="char_security_keysize2">
+                <description>Characteristic requires authentication</description>
+                <properties write="true" write_no_response="true" read="true" notify="true"
+                    authenticated_write="true" authenticated_read="true"/>
+                <value type="hex">c0ffee</value>
+            </characteristic>
+        </service>
+        <service uuid="0bd51902-e7cb-469b-8e4d-2742f1ba77cc" id="service_3" type="secondary">
+            <capabilities>
+                <capability>cap_dimmable</capability>
+                <capability>cap_color</capability>
+                <capability>cap_tunnel</capability>
+            </capabilities>
+            <description>Include long UUID service test</description>
+            <include id="service_4" />
+            <include id="service_gap" />
+            <include id="service_5" />
+            <characteristic uuid="beef">
+                <properties read="true" const="true" />
+                <value>service3</value>
+            </characteristic>
+        </service>
+        <service uuid="0bd51903-e7cb-469b-8e4d-2742f1ba77cc" id="service_4"  type="secondary">
+            <capabilities>
+                <capability>cap_dimmable</capability>
+                <capability>cap_color</capability>
+                <capability>cap_tunnel</capability>
+            </capabilities>
+            <description>Long UUID 1 to include</description>
+            <characteristic uuid="beed">
+                <properties read="true" const="true" />
+                <value>service4</value>
+            </characteristic>
+        </service>
+        <service uuid="0bd51904-e7cb-469b-8e4d-2742f1ba77cc" id="service_5"  type="secondary">
+            <capabilities>
+                <capability>cap_dimmable</capability>
+                <capability>cap_color</capability>
+                <capability>cap_tunnel</capability>
+            </capabilities>
+            <description>Long UUID 2 to include</description>
+            <characteristic uuid="bada">
+                <properties read="true" const="true" />
+                <value>service5</value>
+            </characteristic>
+        </service>
+        <service uuid="0bd51908-e7cb-469b-8e4d-2742f1ba77cc" id="service_6" type="secondary">
+            <capabilities>
+                <capability>cap_dimmable</capability>
+                <capability>cap_color</capability>
+                <capability>cap_tunnel</capability>
+            </capabilities>
+            <description>Non-discoverable descriptor</description>
+            <characteristic uuid="0bd51909-e7cb-469b-8e4d-2742f1ba77cc">
+                <properties read="true"/>
+                <value type="user" />
+                <descriptor uuid="0bd5190a-e7cb-469b-8e4d-2742f1ba77cc">
+                    <properties discoverable="false" />
+                    <value type="user" />
+                </descriptor>
+                <descriptor uuid="0bd5190b-e7cb-469b-8e4d-2742f1ba77cc">
+                    <properties read="true" const="true" />
+                    <value>service_6d2</value>
+                </descriptor>
+                <descriptor uuid="0bd5190c-e7cb-469b-8e4d-2742f1ba77cc">
+                    <properties discoverable="false" />
+                    <value type="user" />
+                </descriptor>                
+            </characteristic>
+        </service>
+        <service uuid="0bd51a00-e7cb-469b-8e4d-2742f1ba77cc" id="service_7" type="secondary">
+            <capabilities>
+                <capability>cap_dimmable</capability>
+                <capability>cap_color</capability>
+                <capability>cap_tunnel</capability>
+            </capabilities>
+            <description>Char length parsing</description>
+            <characteristic uuid="0bd51a01-e7cb-469b-8e4d-2742f1ba77cc">
+                <properties read="true" write="true"/>
+                <value length="27">Too long value, fit by trimming</value>
+            </characteristic>
+            <characteristic uuid="0bd51a02-e7cb-469b-8e4d-2742f1ba77cc">
+                <properties read="true" write="true"/>
+                <value length="30">Too short value, pad zeros</value>
+            </characteristic>
+            <characteristic uuid="0bd51a03-e7cb-469b-8e4d-2742f1ba77cc">
+                <properties read="true" write="true"/>
+                <value variable_length="true" length="14">Too long value is trimed</value>
+            </characteristic>
+            <characteristic uuid="0bd51a04-e7cb-469b-8e4d-2742f1ba77cc">
+                <properties read="true" write="true"/>
+                <value length="50" variable_length="true">Too short value, no padding</value>
+            </characteristic>
+            <characteristic uuid="0bd51a05-e7cb-469b-8e4d-2742f1ba77cc">
+                <properties read="true" write="true"/>
+                <value max_length="100" variable_length="true">New max_length attribute</value>
+            </characteristic>
+        </service>
+        
+        <service uuid="ed15dbd1-7ed7-43ce-8746-26d31c0412a2" id="cap_test" advertise="true">
+
+            <!-- Capabilities of this service and its characteristics. -->
+            <capabilities>
+                <capability>cap_dimmable</capability>
+                <capability>cap_color</capability>
+            </capabilities>
+
+            <characteristic uuid="c01ed4c3-6318-4263-9d09-ae60668f1cd8" id="lock_control_point">
+
+                <!-- When no capability is specified on a characteristic node,
+                     the characteristic inherits capabilities of the parent service. -->
+                <!-- <capabilities></capabilities> -->
+
+                <properties read="true" write="true" write_no_response="true"/>
+                <value type="hex">00</value>
+            </characteristic>
+            
+            <characteristic uuid="1c8834b9-a69d-427b-b35f-308ba7b7a1d5" id="dimmable_point">
+
+                <!-- this capability node overrides the inheritance. -->
+                <capabilities>
+                    <capability>cap_dimmable</capability>
+                </capabilities>
+
+                <properties read="true" write="true" write_no_response="true"/>
+                <value type="hex">01</value>
+            </characteristic>
+
+            <characteristic uuid="6d2dede5-91f8-4dd3-8276-dbd967a5ac39" id="color_control_point">
+
+                <capabilities>
+                    <capability>cap_color</capability>
+                </capabilities>
+                <properties read="true" write="true" write_no_response="true" notify="true"/>
+                <value type="hex">02</value>
+                <descriptor uuid="8201cc72-2a90-40c6-b97a-4a116dd3d216">
+                    <properties write="true" read="true"/>
+                    <value type="hex">03</value>
+                </descriptor>
+            </characteristic>
+
+        </service>
+        
+    </gatt>
+</project>

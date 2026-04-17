@@ -1,0 +1,24 @@
+workspace_name: btmesh_soc_csr_generator_tz_workspace
+package: bluetooth_mesh_app
+label: Bluetooth Mesh - SoC CSR Generator (TrustZone)
+description: >
+  Certificate generating firmware workspace. Software is generating the device
+  EC key pair, the signing request for the device certificate, and other related
+  data. The generated data can be read out by the Central Authority.
+  This example utilizes TrustZone for storing keys.
+quality: experimental
+project:
+  - path: ../btmesh_soc_tz_secure_application/btmesh_soc_tz_secure_application.slcp
+    id: btmesh_soc_tz_secure_application
+    output: btmesh_soc_tz_secure_application
+  - path: btmesh_soc_csr_generator_tz.slcp
+    id: btmesh_soc_tz_nonsecure_application
+    output: btmesh_soc_csr_generator_tz
+  - path: ../../bootloader/bootloader-apploader-secure.slcp
+    id: bootloader-apploader-secure
+    output: bootloader-apploader-secure
+  - path: ../../bootloader/bootloader-apploader-nonsecure.slcp
+    id: bootloader-apploader-nonsecure
+    output: bootloader-apploader-nonsecure
+post_build:
+  path: "../../postbuild_profile/btmesh_tz_workspace.slpb"

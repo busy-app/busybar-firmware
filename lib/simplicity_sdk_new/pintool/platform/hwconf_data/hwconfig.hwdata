@@ -1,0 +1,167 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<model:MDescriptors xmlns:model="http://www.silabs.com/ss/Studio.ecore">
+  <descriptors>
+    <properties key="hardwareConfigData" value="pin_tool/bgm21"/>
+    <properties key="partCompatibility" value="mcu.arm.efr32.bg21.bgm.*"/>
+  </descriptors>
+  <descriptors>
+    <properties key="hardwareConfigData" value="pin_tool/bgm22"/>
+    <properties key="partCompatibility" value="mcu.arm.efr32.bg22.bgm.*"/>
+  </descriptors>
+  <descriptors>
+    <properties key="hardwareConfigData" value="pin_tool/efr32bg21"/>
+    <properties key="partCompatibility" value="mcu.arm.efr32.bg21.efr32.*"/>
+  </descriptors>
+  <descriptors>
+    <properties key="hardwareConfigData" value="pin_tool/efr32bg22"/>
+    <properties key="partCompatibility" value="mcu.arm.efr32.bg22.efr32.*"/>
+  </descriptors>
+  <descriptors>
+    <properties key="hardwareConfigData" value="pin_tool/efr32fg22"/>
+    <properties key="partCompatibility" value="mcu.arm.efr32.fg22.efr32.*"/>
+  </descriptors>
+  <descriptors>
+    <properties key="hardwareConfigData" value="pin_tool/efr32mg21"/>
+    <properties key="partCompatibility" value="mcu.arm.efr32.mg21.(efr32|rm).*"/>
+  </descriptors>
+  <descriptors>
+    <properties key="hardwareConfigData" value="pin_tool/efr32mg22"/>
+    <properties key="partCompatibility" value="mcu.arm.efr32.mg22.efr32.*"/>
+  </descriptors>
+  <descriptors>
+    <properties key="hardwareConfigData" value="pin_tool/mgm21"/>
+    <properties key="partCompatibility" value="mcu.arm.efr32.mg21.mgm.*"/>
+  </descriptors>
+  <descriptors>
+    <properties key="hardwareConfigData" value="pin_tool/mgm22"/>
+    <properties key="partCompatibility" value="mcu.arm.efr32.mg22.mgm.*"/>
+  </descriptors>
+  <descriptors>
+    <properties key="hardwareConfigData" value="pin_tool/efm32pg23"/>
+    <properties key="partCompatibility" value="mcu.arm.efm32.pg23.efm32.*"/>
+  </descriptors>
+  <descriptors>
+    <properties key="hardwareConfigData" value="pin_tool/efr32fg23"/>
+    <properties key="partCompatibility" value="mcu.arm.efr32.fg23.efr32.*"/>
+  </descriptors>
+  <descriptors>
+    <properties key="hardwareConfigData" value="pin_tool/efr32zg23"/>
+    <properties key="partCompatibility" value="mcu.arm.efr32.zg23.efr32.*"/>
+  </descriptors>
+  <descriptors>
+    <properties key="hardwareConfigData" value="pin_tool/zgm23"/>
+    <properties key="partCompatibility" value="mcu.arm.efr32.zg23.zgm.*"/>
+  </descriptors>
+  <descriptors>
+    <properties key="hardwareConfigData" value="pin_tool/efm32pg22"/>
+    <properties key="partCompatibility" value="mcu.arm.efm32.pg22.efm32.*"/>
+  </descriptors>
+  <descriptors>
+    <properties key="hardwareConfigData" value="pin_tool/efr32mg24"/>
+    <properties key="partCompatibility" value="mcu.arm.efr32.mg24.efr32.*"/>
+  </descriptors>
+  <descriptors>
+    <properties key="hardwareConfigData" value="pin_tool/mgm24"/>
+    <properties key="partCompatibility" value="mcu.arm.efr32.mg24.mgm.*"/>
+  </descriptors>
+  <descriptors>
+    <properties key="hardwareConfigData" value="pin_tool/efr32fg25"/>
+    <properties key="partCompatibility" value="mcu.arm.efr32.fg25.efr32.*"/>
+  </descriptors>
+  <descriptors>
+    <properties key="hardwareConfigData" value="pin_tool/bgm24"/>
+    <properties key="partCompatibility" value="mcu.arm.efr32.bg24.bgm.*"/>
+  </descriptors>
+  <descriptors>
+    <properties key="hardwareConfigData" value="pin_tool/efr32bg24"/>
+    <properties key="partCompatibility" value="mcu.arm.efr32.bg24.efr32.*"/>
+  </descriptors>
+  <descriptors>
+    <properties key="hardwareConfigData" value="pin_tool/efr32mr21"/>
+    <properties key="partCompatibility" value="mcu.arm.efr32.mr21.efr32.*"/>
+  </descriptors>
+  <descriptors>
+    <properties key="hardwareConfigData" value="pin_tool/efr32bg27"/>
+    <properties key="partCompatibility" value="mcu.arm.efr32.bg27.efr32.*"/>
+  </descriptors>
+  <descriptors>
+    <properties key="hardwareConfigData" value="pin_tool/efr32mg27"/>
+    <properties key="partCompatibility" value="mcu.arm.efr32.mg27.efr32.*"/>
+  </descriptors>
+  <descriptors>
+    <properties key="hardwareConfigData" value="pin_tool/fgm23"/>
+    <properties key="partCompatibility" value="mcu.arm.efr32.fg23.fgm.*"/>
+  </descriptors>
+  <descriptors>
+    <properties key="hardwareConfigData" value="pin_tool/efr32fg28"/>
+    <properties key="partCompatibility" value="mcu.arm.efr32.fg28.efr32.*"/>
+  </descriptors>
+  <descriptors>
+    <properties key="hardwareConfigData" value="pin_tool/efr32zg28"/>
+    <properties key="partCompatibility" value="mcu.arm.efr32.zg28.efr32.*"/>
+  </descriptors>
+  <descriptors>
+    <properties key="hardwareConfigData" value="pin_tool/efm32pg28"/>
+    <properties key="partCompatibility" value="mcu.arm.efm32.pg28.efm32.*"/>
+  </descriptors>
+  <descriptors>
+    <properties key="hardwareConfigData" value="pin_tool/efr32sg23"/>
+    <properties key="partCompatibility" value="mcu.arm.efr32.sg23.efr32.*"/>
+  </descriptors>
+  <descriptors>
+    <properties key="hardwareConfigData" value="pin_tool/efr32sg28"/>
+    <properties key="partCompatibility" value="mcu.arm.efr32.sg28.efr32.*"/>
+  </descriptors>
+  <descriptors>
+    <properties key="hardwareConfigData" value="pin_tool/sibg301"/>
+    <properties key="partCompatibility" value="mcu.arm.si.bg301.si.*"/>
+  </descriptors>
+  <descriptors>
+    <properties key="hardwareConfigData" value="pin_tool/simg301"/>
+    <properties key="partCompatibility" value="mcu.arm.si.mg301.si.*"/>
+  </descriptors>
+  <descriptors>
+    <properties key="hardwareConfigData" value="pin_tool/efm32pg26"/>
+    <properties key="partCompatibility" value="mcu.arm.efm32.pg26.efm32.*"/>
+  </descriptors>
+  <descriptors>
+    <properties key="hardwareConfigData" value="pin_tool/efr32bg26"/>
+    <properties key="partCompatibility" value="mcu.arm.efr32.bg26.efr32.*"/>
+  </descriptors>
+  <descriptors>
+    <properties key="hardwareConfigData" value="pin_tool/efr32mg26"/>
+    <properties key="partCompatibility" value="mcu.arm.efr32.mg26.efr32.*"/>
+  </descriptors>
+  <descriptors>
+    <properties key="hardwareConfigData" value="pin_tool/mgm26"/>
+    <properties key="partCompatibility" value="mcu.arm.efr32.mg26.mgm.*"/>
+  </descriptors>
+  <descriptors>
+    <properties key="hardwareConfigData" value="pin_tool/efr32bg29"/>
+    <properties key="partCompatibility" value="mcu.arm.efr32.bg29.efr32.*"/>
+  </descriptors>
+  <descriptors>
+    <properties key="hardwareConfigData" value="pin_tool/efr32mg29"/>
+    <properties key="partCompatibility" value="mcu.arm.efr32.mg29.efr32.*"/>
+  </descriptors>
+  <descriptors>
+    <properties key="hardwareConfigData" value="pin_tool/si91x"/>
+    <properties key="partCompatibility" value="mcu.arm.wfm.siwg917.*"/>
+  </descriptors>
+  <descriptors>
+    <properties key="hardwareConfigData" value="pin_tool/bgm26"/>
+    <properties key="partCompatibility" value="mcu.arm.efr32.bg26.bgm.*"/>
+  </descriptors>
+  <descriptors>
+    <properties key="hardwareConfigData" value="pin_tool/mgm27"/>
+    <properties key="partCompatibility" value="mcu.arm.efr32.mg27.mgm.*"/>
+  </descriptors>
+  <descriptors>
+    <properties key="hardwareConfigData" value="pin_tool/efr32fg2d"/>
+    <properties key="partCompatibility" value="mcu.arm.efr32.fg2d.efr32.*"/>
+  </descriptors>
+  <descriptors>
+    <properties key="hardwareConfigData" value="pin_tool/bgm27"/>
+    <properties key="partCompatibility" value="mcu.arm.efr32.bg27.bgm.*"/>
+  </descriptors>
+</model:MDescriptors>

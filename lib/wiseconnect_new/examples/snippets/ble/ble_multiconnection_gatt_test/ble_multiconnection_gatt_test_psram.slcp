@@ -1,0 +1,86 @@
+project_name: ble_multiconnection_gatt_test_psram
+package: bluetooth_le_siwx91x_app
+quality: production
+label: BLE - Multiconnection GATT Test (PSRAM)
+category: Example|BLE
+description: 'The Application demonstrates how to configure SiWx91x EVK in central/peripheral modes and then connect with multiple peripherals/centrals.
+
+  '
+filter:
+- name: Wireless Technology
+  value:
+  - BLE
+- name: Project Difficulty
+  value:
+  - Advanced
+source:
+- path: ble_device_info.c
+- path: ble_main_task.c
+- path: ble_subtasks.c
+- path: app.c
+include:
+- path: .
+  file_list:
+  - path: ble_device_info.h
+  - path: app.h
+  - path: ble_config.h
+define:
+- name: SL_SI91X_PRINT_DBG_LOG
+- name: SLI_SI91X_MCU_ENABLE_PSRAM_FEATURE
+component:
+- id: sl_main
+- id: freertos
+- id: freertos_heap_4
+- id: syscalls
+- id: si91x_memory_default_config
+- id: wiseconnect_common
+- id: wifi
+- id: sl_si91x_internal_stack
+- id: wifi_resources
+- id: network_manager
+- id: basic_network_config_manager
+- id: ble
+- id: psram_core
+- id: psram_aps6404l_sqh
+- id: text_segment_in_psram
+- id: data_segment_in_psram
+- id: sl_si91x_basic_buffers
+- id: sl_power_manager
+- id: wireless_wakeup_ulp_component
+requires:
+- name: device_needs_ram_execution
+  condition:
+  - si91x_common_flash
+toolchain_settings:
+- option: gcc_compiler_option
+  value: -Wall -Werror
+configuration:
+- name: SL_BOARD_ENABLE_VCOM
+  value: '1'
+readme:
+- path: readme.md
+other_file:
+- path: resources/readme/blemultigatt_soc_ncp.png
+- path: resources/readme/output_1.png
+- path: resources/readme/output_2.png
+- path: resources/readme/output_3.png
+- path: resources/readme/output_4.png
+- path: resources/readme/central_connected.png
+- path: resources/readme/central_scan.png
+- path: resources/readme/output_5.png
+- path: resources/readme/peripheral_connected.png
+- path: resources/readme/peripheral.png
+ui_hints:
+  highlight:
+  - path: readme.md
+    focus: true
+post_build:
+  profile: wiseconnect_soc
+sdk_extension:
+- id: wiseconnect3_sdk
+  vendor: silabs
+  version: 4.0.1
+sdk:
+  id: simplicity_sdk
+  vendor: silabs
+  version: 2025.12.2

@@ -1,0 +1,67 @@
+!!omap
+- id: brd2703a_a01
+- label: BRD2703A rev A01
+- package: boards
+- description: Board support for BRD2703A.
+- category: Platform|Board|Thunderboard
+- quality: production
+- metadata:
+    sbom:
+      license: Zlib
+- requires:
+  - name: efr32mg24b210f1536im48
+  - name: brd2703a_config
+- provides:
+  - name: brd2703a_revision
+  - name: brd2703a_a01
+  - name: hardware_board
+  - name: hardware_board_tb
+  - name: hardware_board_has_vcom
+  - name: hardware_board_has_vcom_hardware_flowcontrol
+  - name: board_config_clock_manager
+  - name: hardware_board_has_hfxo_freq_39mhz
+  - name: hardware_board_has_hfxo
+  - name: hardware_board_has_lfxo
+  - name: hardware_board_supports_rf_band_2400
+  - name: hardware_board_supports_1_rf_band
+  - name: hardware_board_default_rf_band
+  - name: hardware_board_default_rf_band_2400
+- recommends:
+  - id: iostream_eusart
+    instance:
+    - vcom
+    vendor: silabs
+  - id: bootloader_uart_driver
+    vendor: silabs
+  - id: simple_led
+    instance:
+    - led0
+    - led1
+    vendor: silabs
+  - id: simple_button
+    instance:
+    - btn0
+    - btn1
+    vendor: silabs
+- template_contribution: []
+- define:
+  - name: SL_BOARD_NAME
+    value: '"BRD2703A"'
+  - name: SL_BOARD_REV
+    value: '"A01"'
+  - name: HFXO_FREQ
+    value: 39000000
+  - name: HARDWARE_BOARD_SUPPORTS_RF_BAND_2400
+  - name: HARDWARE_BOARD_SUPPORTS_1_RF_BAND
+  - name: HARDWARE_BOARD_DEFAULT_RF_BAND_2400
+- tag:
+  - board:pn:BRD2703
+  - board:variant:A
+  - board:revision:A01
+  - board:device:efr32mg24b210f1536im48
+  - hardware:has:vcom
+  - hardware:has:vcom:vcom_hardware_flowcontrol
+  - hardware:has:pti
+  - hardware:has:led:2
+  - hardware:has:button:2
+- root_path: boards

@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="dir_334822590cf86d864e27f5e0d74d87d7" kind="dir">
+    <compoundname>components/device/silabs/si91x/wireless/crypto/hmac</compoundname>
+    <innerdir refid="dir_8f7d204dbe3684e50f4fab13b6ee6554">components/device/silabs/si91x/wireless/crypto/hmac/inc</innerdir>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="components/device/silabs/si91x/wireless/crypto/hmac/"/>
+  </compounddef>
+</doxygen>

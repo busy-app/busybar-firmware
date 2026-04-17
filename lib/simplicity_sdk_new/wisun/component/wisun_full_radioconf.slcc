@@ -1,0 +1,46 @@
+id: "wisun_full_radioconf"
+label: "Wi-SUN Full Radio Config"
+package: "wisun"
+category: "Wi-SUN"
+quality: "production"
+description: "Provide a radio configuration containing all Wi-SUN PHY and channels"
+
+
+ui_hints:
+  visibility: never
+
+provides:
+- name: a_radio_config
+
+config_file:
+- path: rail/device_sdid_210/868/radio_settings_full.radioconf
+  directory: rail
+  condition: [device_sdid_210, hardware_board_default_rf_band_868]
+- path: rail/device_sdid_210/470/radio_settings_full.radioconf
+  directory: rail
+  condition: [device_sdid_210, hardware_board_default_rf_band_470]
+- path: rail/device_sdid_220/915/radio_settings_full.radioconf
+  directory: rail
+  condition: [device_sdid_220, hardware_board_default_rf_band_915]
+- path: rail/device_sdid_220/868/radio_settings_full.radioconf
+  directory: rail
+  condition: [device_sdid_220, hardware_board_default_rf_band_868]
+- path: rail/device_sdid_220/470/radio_settings_full.radioconf
+  directory: rail
+  condition: [device_sdid_220, hardware_board_default_rf_band_470]
+- path: rail/device_sdid_235/radio_settings_full.radioconf
+  directory: rail
+  condition: [device_sdid_235]
+- path: rail/device_sdid_220/915/radio_settings_full.radioconf
+  directory: rail
+  condition: [device_sdid_220]
+  unless: [hardware_board]
+
+template_contribution:
+- name: component_catalog
+  value: wisun_full_radioconf
+
+metadata:
+  sbom:
+    license: MSLA
+root_path: wisun

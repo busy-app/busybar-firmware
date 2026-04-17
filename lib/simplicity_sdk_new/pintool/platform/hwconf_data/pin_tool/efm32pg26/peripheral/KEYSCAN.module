@@ -1,0 +1,32 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<module:DocumentRoot xmlns:module="http://www.silabs.com/ss/hwconfig/module.ecore">
+  <module id="pin_tool.efm32.efm32pg26.keyscan" label="KEYSCAN" name="KEYSCAN" description="" version="A">
+    <properties>
+      <stringProperty label="Type" id="type" defaultValue="keyscan" transient="true" hidden="true" readonly="true" description=""/>
+      <stringProperty label="Custom Peripheral Name" id="peripheral.name" description=""/>
+    </properties>
+    <propertyCategories>
+      <category label="KEYSCAN">
+        <subCategory label="">
+          <propertyRef refId="peripheral.name"/>
+        </subCategory>
+      </category>
+    </propertyCategories>
+    <signals>
+      <signal name="COL_OUT_0"/>
+      <signal name="COL_OUT_1"/>
+      <signal name="COL_OUT_2"/>
+      <signal name="COL_OUT_3"/>
+      <signal name="COL_OUT_4"/>
+      <signal name="COL_OUT_5"/>
+      <signal name="COL_OUT_6"/>
+      <signal name="COL_OUT_7"/>
+      <signal name="ROW_SENSE_0"/>
+      <signal name="ROW_SENSE_1"/>
+      <signal name="ROW_SENSE_2"/>
+      <signal name="ROW_SENSE_3"/>
+      <signal name="ROW_SENSE_4"/>
+      <signal name="ROW_SENSE_5"/>
+    </signals>
+  </module>
+</module:DocumentRoot>

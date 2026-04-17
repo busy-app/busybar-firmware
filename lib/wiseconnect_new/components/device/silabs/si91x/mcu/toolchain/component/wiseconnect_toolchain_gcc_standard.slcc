@@ -1,0 +1,29 @@
+id: wiseconnect_toolchain_gcc_standard
+label: GCC Toolchain Standard Linker
+package: platform_siwx91x
+description: Provides the GCC Standard linker file.
+category: Platform|Toolchain
+quality: production
+metadata:
+  sbom:
+   license: Zlib
+ui_hints:
+  visibility: never
+root_path: components/device/silabs/si91x/mcu/toolchain
+provides:
+  - name: wiseconnect_toolchain_gcc_standard
+  - name: toolchain_linker_type
+  - name: toolchain_gcc
+    condition: [device_si91x]
+template_file:
+  - path: linkerfile_psram_SoC.ld.jinja
+    condition: [wiseconnect_toolchain_psram_linker]
+  - path: linkerfile_SoC.ld.jinja
+    unless: [wiseconnect_toolchain_gcc_override, wiseconnect_toolchain_custom_linker, wiseconnect_toolchain_psram_linker]
+toolchain_settings:
+  - option: linkerfile
+    value: autogen/linkerfile_psram_SoC.ld
+    condition: [wiseconnect_toolchain_psram_linker]
+  - option: linkerfile
+    value: autogen/linkerfile_SoC.ld
+    unless: [wiseconnect_toolchain_gcc_override, wiseconnect_toolchain_custom_linker, wiseconnect_toolchain_psram_linker]

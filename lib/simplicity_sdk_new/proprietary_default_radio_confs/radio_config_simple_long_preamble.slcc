@@ -1,0 +1,531 @@
+id: radio_config_simple_long_preamble
+label: Custom Radio Configuration for simple long preamble application
+package: proprietary_default_radio_confs
+description: Triggers Radio Configurator UI for setting a proper (Application - Die - RF Band) Custom Radio Configurator
+category: Platform|Radio Configuration
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+provides:
+- name: radio_config_simple_long_preamble
+- name: a_radio_config
+  allow_multiple: true
+ui_hints:
+  visibility: never
+template_contribution:
+- name: component_catalog
+  value: radio_config_simple_long_preamble
+config_file:
+- path: Base/simple_long_preamble/device_generic_family_efr32xg22/rf_band_2400/radio_settings.radioconf
+  file_id: radio_configuration_settings
+  directory: rail
+  condition:
+  - device_has_radio_2g4hz
+  - device_generic_family_efr32xg22
+  unless:
+  - device_has_radio_subghz
+  - device_has_radio_dualband
+  - hardware_board_rb
+  - hardware_board_tb
+  - hardware_board_stk
+  - device_is_module
+  - device_generic_family_efr32xg21
+- path: Base/simple_long_preamble/device_generic_family_efr32xg23/rf_band_868/radio_settings.radioconf
+  file_id: radio_configuration_settings
+  directory: rail
+  condition:
+  - device_has_radio_subghz
+  - device_generic_family_efr32xg23
+  unless:
+  - hardware_board_rb
+  - hardware_board_tb
+  - hardware_board_stk
+  - device_is_module
+  - device_generic_family_efr32xg21
+- path: Base/simple_long_preamble/device_generic_family_efr32xg24/rf_band_2400/radio_settings.radioconf
+  file_id: radio_configuration_settings
+  directory: rail
+  condition:
+  - device_has_radio_2g4hz
+  - device_generic_family_efr32xg24
+  unless:
+  - device_has_radio_subghz
+  - device_has_radio_dualband
+  - hardware_board_rb
+  - hardware_board_tb
+  - hardware_board_stk
+  - device_is_module
+  - device_generic_family_efr32xg21
+- path: Base/simple_long_preamble/device_generic_family_efr32xg25/rf_band_868/radio_settings.radioconf
+  file_id: radio_configuration_settings
+  directory: rail
+  condition:
+  - device_has_radio_subghz
+  - device_generic_family_efr32xg25
+  unless:
+  - hardware_board_rb
+  - hardware_board_tb
+  - hardware_board_stk
+  - device_is_module
+  - device_generic_family_efr32xg21
+- path: Base/simple_long_preamble/device_generic_family_efr32xg26/rf_band_2400/radio_settings.radioconf
+  file_id: radio_configuration_settings
+  directory: rail
+  condition:
+  - device_has_radio_2g4hz
+  - device_generic_family_efr32xg26
+  unless:
+  - device_has_radio_subghz
+  - device_has_radio_dualband
+  - hardware_board_rb
+  - hardware_board_tb
+  - hardware_board_stk
+  - device_is_module
+  - device_generic_family_efr32xg21
+- path: Base/simple_long_preamble/device_generic_family_efr32xg27/rf_band_2400/radio_settings.radioconf
+  file_id: radio_configuration_settings
+  directory: rail
+  condition:
+  - device_has_radio_2g4hz
+  - device_generic_family_efr32xg27
+  unless:
+  - device_has_radio_subghz
+  - device_has_radio_dualband
+  - hardware_board_rb
+  - hardware_board_tb
+  - hardware_board_stk
+  - device_is_module
+  - device_generic_family_efr32xg21
+- path: Base/simple_long_preamble/device_generic_family_efr32xg28/rf_band_2400/radio_settings.radioconf
+  file_id: radio_configuration_settings
+  directory: rail
+  condition:
+  - device_has_radio_2g4hz
+  - device_generic_family_efr32xg28
+  unless:
+  - device_has_radio_subghz
+  - device_has_radio_dualband
+  - hardware_board_rb
+  - hardware_board_tb
+  - hardware_board_stk
+  - device_is_module
+  - device_generic_family_efr32xg21
+- path: Base/simple_long_preamble/device_generic_family_efr32xg28/rf_band_868/radio_settings.radioconf
+  file_id: radio_configuration_settings
+  directory: rail
+  condition:
+  - device_has_radio_subghz
+  - device_generic_family_efr32xg28
+  unless:
+  - hardware_board_rb
+  - hardware_board_tb
+  - hardware_board_stk
+  - device_is_module
+  - device_generic_family_efr32xg21
+- path: Base/simple_long_preamble/device_generic_family_efr32xg28/rf_band_868/radio_settings.radioconf
+  file_id: radio_configuration_settings
+  directory: rail
+  condition:
+  - device_has_radio_dualband
+  - device_generic_family_efr32xg28
+  unless:
+  - hardware_board_rb
+  - hardware_board_tb
+  - hardware_board_stk
+  - device_is_module
+  - device_generic_family_efr32xg21
+- path: Base/simple_long_preamble/device_generic_family_efr32xg29/rf_band_2400/radio_settings.radioconf
+  file_id: radio_configuration_settings
+  directory: rail
+  condition:
+  - device_has_radio_2g4hz
+  - device_generic_family_efr32xg29
+  unless:
+  - device_has_radio_subghz
+  - device_has_radio_dualband
+  - hardware_board_rb
+  - hardware_board_tb
+  - hardware_board_stk
+  - device_is_module
+  - device_generic_family_efr32xg21
+- path: Base/simple_long_preamble/device_generic_family_efr32xg2d/rf_band_868/radio_settings.radioconf
+  file_id: radio_configuration_settings
+  directory: rail
+  condition:
+  - device_has_radio_subghz
+  - device_generic_family_efr32xg2d
+  unless:
+  - hardware_board_rb
+  - hardware_board_tb
+  - hardware_board_stk
+  - device_is_module
+  - device_generic_family_efr32xg21
+- path: Base/simple_long_preamble/device_generic_family_sixx301/rf_band_2400/radio_settings.radioconf
+  file_id: radio_configuration_settings
+  directory: rail
+  condition:
+  - device_has_radio_2g4hz
+  - device_generic_family_sixx301
+  unless:
+  - device_has_radio_subghz
+  - device_has_radio_dualband
+  - hardware_board_rb
+  - hardware_board_tb
+  - hardware_board_stk
+  - device_is_module
+  - device_generic_family_efr32xg21
+- path: Base/simple_long_preamble/device_generic_family_efr32xg22/rf_band_2400/radio_settings.radioconf
+  file_id: radio_configuration_settings
+  directory: rail
+  condition:
+  - hardware_board_default_rf_band_2400
+  - device_generic_family_efr32xg22
+  unless:
+  - hardware_board_has_hfxo_freq_38.4mhz
+  - device_is_module
+  - device_generic_family_efr32xg21
+- path: Base/simple_long_preamble/device_generic_family_efr32xg22/rf_band_2400/rf384mhz/radio_settings.radioconf
+  file_id: radio_configuration_settings
+  directory: rail
+  condition:
+  - hardware_board_default_rf_band_2400
+  - device_generic_family_efr32xg22
+  - hardware_board_has_hfxo_freq_38.4mhz
+  unless:
+  - device_is_module
+  - device_generic_family_efr32xg21
+- path: Base/simple_long_preamble/device_generic_family_efr32xg23/rf_band_315/radio_settings.radioconf
+  file_id: radio_configuration_settings
+  directory: rail
+  condition:
+  - hardware_board_default_rf_band_315
+  - device_generic_family_efr32xg23
+  unless:
+  - hardware_board_has_hfxo_freq_39mhz
+  - device_is_module
+  - device_generic_family_efr32xg21
+- path: Base/simple_long_preamble/device_generic_family_efr32xg23/rf_band_315/rf39mhz/radio_settings.radioconf
+  file_id: radio_configuration_settings
+  directory: rail
+  condition:
+  - hardware_board_default_rf_band_315
+  - device_generic_family_efr32xg23
+  - hardware_board_has_hfxo_freq_39mhz
+  unless:
+  - device_is_module
+  - device_generic_family_efr32xg21
+- path: Base/simple_long_preamble/device_generic_family_efr32xg23/rf_band_434/radio_settings.radioconf
+  file_id: radio_configuration_settings
+  directory: rail
+  condition:
+  - hardware_board_default_rf_band_434
+  - device_generic_family_efr32xg23
+  unless:
+  - hardware_board_has_hfxo_freq_39mhz
+  - device_is_module
+  - device_generic_family_efr32xg21
+- path: Base/simple_long_preamble/device_generic_family_efr32xg23/rf_band_434/rf39mhz/radio_settings.radioconf
+  file_id: radio_configuration_settings
+  directory: rail
+  condition:
+  - hardware_board_default_rf_band_434
+  - device_generic_family_efr32xg23
+  - hardware_board_has_hfxo_freq_39mhz
+  unless:
+  - device_is_module
+  - device_generic_family_efr32xg21
+- path: Base/simple_long_preamble/device_generic_family_efr32xg23/rf_band_470/radio_settings.radioconf
+  file_id: radio_configuration_settings
+  directory: rail
+  condition:
+  - hardware_board_default_rf_band_470
+  - device_generic_family_efr32xg23
+  unless:
+  - hardware_board_has_hfxo_freq_39mhz
+  - device_is_module
+  - device_generic_family_efr32xg21
+- path: Base/simple_long_preamble/device_generic_family_efr32xg23/rf_band_470/rf39mhz/radio_settings.radioconf
+  file_id: radio_configuration_settings
+  directory: rail
+  condition:
+  - hardware_board_default_rf_band_470
+  - device_generic_family_efr32xg23
+  - hardware_board_has_hfxo_freq_39mhz
+  unless:
+  - device_is_module
+  - device_generic_family_efr32xg21
+- path: Base/simple_long_preamble/device_generic_family_efr32xg23/rf_band_868/radio_settings.radioconf
+  file_id: radio_configuration_settings
+  directory: rail
+  condition:
+  - hardware_board_default_rf_band_868
+  - device_generic_family_efr32xg23
+  unless:
+  - hardware_board_has_hfxo_freq_39mhz
+  - device_is_module
+  - device_generic_family_efr32xg21
+- path: Base/simple_long_preamble/device_generic_family_efr32xg23/rf_band_868/rf39mhz/radio_settings.radioconf
+  file_id: radio_configuration_settings
+  directory: rail
+  condition:
+  - hardware_board_default_rf_band_868
+  - device_generic_family_efr32xg23
+  - hardware_board_has_hfxo_freq_39mhz
+  unless:
+  - device_is_module
+  - device_generic_family_efr32xg21
+- path: Base/simple_long_preamble/device_generic_family_efr32xg24/rf_band_2400/radio_settings.radioconf
+  file_id: radio_configuration_settings
+  directory: rail
+  condition:
+  - hardware_board_default_rf_band_2400
+  - device_generic_family_efr32xg24
+  unless:
+  - hardware_board_has_hfxo_freq_39mhz
+  - hardware_board_has_hfxo_freq_40mhz
+  - device_is_module
+  - device_generic_family_efr32xg21
+- path: Base/simple_long_preamble/device_generic_family_efr32xg24/rf_band_2400/rf39mhz/radio_settings.radioconf
+  file_id: radio_configuration_settings
+  directory: rail
+  condition:
+  - hardware_board_default_rf_band_2400
+  - device_generic_family_efr32xg24
+  - hardware_board_has_hfxo_freq_39mhz
+  unless:
+  - device_is_module
+  - device_generic_family_efr32xg21
+- path: Base/simple_long_preamble/device_generic_family_efr32xg24/rf_band_2400/rf40mhz/radio_settings.radioconf
+  file_id: radio_configuration_settings
+  directory: rail
+  condition:
+  - hardware_board_default_rf_band_2400
+  - device_generic_family_efr32xg24
+  - hardware_board_has_hfxo_freq_40mhz
+  unless:
+  - device_is_module
+  - device_generic_family_efr32xg21
+- path: Base/simple_long_preamble/device_generic_family_efr32xg25/rf_band_470/radio_settings.radioconf
+  file_id: radio_configuration_settings
+  directory: rail
+  condition:
+  - hardware_board_default_rf_band_470
+  - device_generic_family_efr32xg25
+  unless:
+  - hardware_board_has_hfxo_freq_39mhz
+  - device_is_module
+  - device_generic_family_efr32xg21
+- path: Base/simple_long_preamble/device_generic_family_efr32xg25/rf_band_470/rf39mhz/radio_settings.radioconf
+  file_id: radio_configuration_settings
+  directory: rail
+  condition:
+  - hardware_board_default_rf_band_470
+  - device_generic_family_efr32xg25
+  - hardware_board_has_hfxo_freq_39mhz
+  unless:
+  - device_is_module
+  - device_generic_family_efr32xg21
+- path: Base/simple_long_preamble/device_generic_family_efr32xg25/rf_band_868/radio_settings.radioconf
+  file_id: radio_configuration_settings
+  directory: rail
+  condition:
+  - hardware_board_default_rf_band_868
+  - device_generic_family_efr32xg25
+  unless:
+  - hardware_board_has_hfxo_freq_39mhz
+  - device_is_module
+  - device_generic_family_efr32xg21
+- path: Base/simple_long_preamble/device_generic_family_efr32xg25/rf_band_868/rf39mhz/radio_settings.radioconf
+  file_id: radio_configuration_settings
+  directory: rail
+  condition:
+  - hardware_board_default_rf_band_868
+  - device_generic_family_efr32xg25
+  - hardware_board_has_hfxo_freq_39mhz
+  unless:
+  - device_is_module
+  - device_generic_family_efr32xg21
+- path: Base/simple_long_preamble/device_generic_family_efr32xg25/rf_band_915/radio_settings.radioconf
+  file_id: radio_configuration_settings
+  directory: rail
+  condition:
+  - hardware_board_default_rf_band_915
+  - device_generic_family_efr32xg25
+  unless:
+  - hardware_board_has_hfxo_freq_39mhz
+  - device_is_module
+  - device_generic_family_efr32xg21
+- path: Base/simple_long_preamble/device_generic_family_efr32xg25/rf_band_915/rf39mhz/radio_settings.radioconf
+  file_id: radio_configuration_settings
+  directory: rail
+  condition:
+  - hardware_board_default_rf_band_915
+  - device_generic_family_efr32xg25
+  - hardware_board_has_hfxo_freq_39mhz
+  unless:
+  - device_is_module
+  - device_generic_family_efr32xg21
+- path: Base/simple_long_preamble/device_generic_family_efr32xg26/rf_band_2400/radio_settings.radioconf
+  file_id: radio_configuration_settings
+  directory: rail
+  condition:
+  - hardware_board_default_rf_band_2400
+  - device_generic_family_efr32xg26
+  unless:
+  - hardware_board_has_hfxo_freq_39mhz
+  - hardware_board_has_hfxo_freq_40mhz
+  - hardware_board_has_hfxo_freq_38.4mhz
+  - device_is_module
+  - device_generic_family_efr32xg21
+- path: Base/simple_long_preamble/device_generic_family_efr32xg26/rf_band_2400/rf384mhz/radio_settings.radioconf
+  file_id: radio_configuration_settings
+  directory: rail
+  condition:
+  - hardware_board_default_rf_band_2400
+  - device_generic_family_efr32xg26
+  - hardware_board_has_hfxo_freq_38.4mhz
+  unless:
+  - device_is_module
+  - device_generic_family_efr32xg21
+- path: Base/simple_long_preamble/device_generic_family_efr32xg26/rf_band_2400/rf39mhz/radio_settings.radioconf
+  file_id: radio_configuration_settings
+  directory: rail
+  condition:
+  - hardware_board_default_rf_band_2400
+  - device_generic_family_efr32xg26
+  - hardware_board_has_hfxo_freq_39mhz
+  unless:
+  - device_is_module
+  - device_generic_family_efr32xg21
+- path: Base/simple_long_preamble/device_generic_family_efr32xg26/rf_band_2400/rf40mhz/radio_settings.radioconf
+  file_id: radio_configuration_settings
+  directory: rail
+  condition:
+  - hardware_board_default_rf_band_2400
+  - device_generic_family_efr32xg26
+  - hardware_board_has_hfxo_freq_40mhz
+  unless:
+  - device_is_module
+  - device_generic_family_efr32xg21
+- path: Base/simple_long_preamble/device_generic_family_efr32xg27/rf_band_2400/radio_settings.radioconf
+  file_id: radio_configuration_settings
+  directory: rail
+  condition:
+  - hardware_board_default_rf_band_2400
+  - device_generic_family_efr32xg27
+  unless:
+  - hardware_board_has_hfxo_freq_38.4mhz
+  - device_is_module
+  - device_generic_family_efr32xg21
+- path: Base/simple_long_preamble/device_generic_family_efr32xg27/rf_band_2400/rf384mhz/radio_settings.radioconf
+  file_id: radio_configuration_settings
+  directory: rail
+  condition:
+  - hardware_board_default_rf_band_2400
+  - device_generic_family_efr32xg27
+  - hardware_board_has_hfxo_freq_38.4mhz
+  unless:
+  - device_is_module
+  - device_generic_family_efr32xg21
+- path: Base/simple_long_preamble/device_generic_family_efr32xg28/rf_band_2400/radio_settings.radioconf
+  file_id: radio_configuration_settings
+  directory: rail
+  condition:
+  - hardware_board_default_rf_band_2400
+  - device_generic_family_efr32xg28
+  unless:
+  - hardware_board_has_hfxo_freq_39mhz
+  - device_is_module
+  - device_generic_family_efr32xg21
+- path: Base/simple_long_preamble/device_generic_family_efr32xg28/rf_band_2400/rf39mhz/radio_settings.radioconf
+  file_id: radio_configuration_settings
+  directory: rail
+  condition:
+  - hardware_board_default_rf_band_2400
+  - device_generic_family_efr32xg28
+  - hardware_board_has_hfxo_freq_39mhz
+  unless:
+  - device_is_module
+  - device_generic_family_efr32xg21
+- path: Base/simple_long_preamble/device_generic_family_efr32xg28/rf_band_868/radio_settings.radioconf
+  file_id: radio_configuration_settings
+  directory: rail
+  condition:
+  - hardware_board_default_rf_band_868
+  - device_generic_family_efr32xg28
+  unless:
+  - hardware_board_has_hfxo_freq_39mhz
+  - device_is_module
+  - device_generic_family_efr32xg21
+- path: Base/simple_long_preamble/device_generic_family_efr32xg28/rf_band_868/rf39mhz/radio_settings.radioconf
+  file_id: radio_configuration_settings
+  directory: rail
+  condition:
+  - hardware_board_default_rf_band_868
+  - device_generic_family_efr32xg28
+  - hardware_board_has_hfxo_freq_39mhz
+  unless:
+  - device_is_module
+  - device_generic_family_efr32xg21
+- path: Base/simple_long_preamble/device_generic_family_efr32xg29/rf_band_2400/radio_settings.radioconf
+  file_id: radio_configuration_settings
+  directory: rail
+  condition:
+  - hardware_board_default_rf_band_2400
+  - device_generic_family_efr32xg29
+  unless:
+  - hardware_board_has_hfxo_freq_38.4mhz
+  - device_is_module
+  - device_generic_family_efr32xg21
+- path: Base/simple_long_preamble/device_generic_family_efr32xg29/rf_band_2400/rf384mhz/radio_settings.radioconf
+  file_id: radio_configuration_settings
+  directory: rail
+  condition:
+  - hardware_board_default_rf_band_2400
+  - device_generic_family_efr32xg29
+  - hardware_board_has_hfxo_freq_38.4mhz
+  unless:
+  - device_is_module
+  - device_generic_family_efr32xg21
+- path: Base/simple_long_preamble/device_generic_family_efr32xg2d/rf_band_868/radio_settings.radioconf
+  file_id: radio_configuration_settings
+  directory: rail
+  condition:
+  - hardware_board_default_rf_band_868
+  - device_generic_family_efr32xg2d
+  unless:
+  - hardware_board_has_hfxo_freq_39mhz
+  - device_is_module
+  - device_generic_family_efr32xg21
+- path: Base/simple_long_preamble/device_generic_family_efr32xg2d/rf_band_868/rf39mhz/radio_settings.radioconf
+  file_id: radio_configuration_settings
+  directory: rail
+  condition:
+  - hardware_board_default_rf_band_868
+  - device_generic_family_efr32xg2d
+  - hardware_board_has_hfxo_freq_39mhz
+  unless:
+  - device_is_module
+  - device_generic_family_efr32xg21
+- path: Base/simple_long_preamble/device_generic_family_sixx301/rf_band_2400/radio_settings.radioconf
+  file_id: radio_configuration_settings
+  directory: rail
+  condition:
+  - hardware_board_default_rf_band_2400
+  - device_generic_family_sixx301
+  unless:
+  - hardware_board_has_hfxo_freq_38.4mhz
+  - device_is_module
+  - device_generic_family_efr32xg21
+- path: Base/simple_long_preamble/device_generic_family_sixx301/rf_band_2400/rf384mhz/radio_settings.radioconf
+  file_id: radio_configuration_settings
+  directory: rail
+  condition:
+  - hardware_board_default_rf_band_2400
+  - device_generic_family_sixx301
+  - hardware_board_has_hfxo_freq_38.4mhz
+  unless:
+  - device_is_module
+  - device_generic_family_efr32xg21
+root_path: proprietary_default_radio_confs

@@ -1,0 +1,59 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__CRYPTO__WRAP__TYPES" kind="group">
+    <compoundname>CRYPTO_WRAP_TYPES</compoundname>
+    <title>Types</title>
+    <innerclass refid="structsl__si91x__wrap__config__t" prot="public">sl_si91x_wrap_config_t</innerclass>
+      <sectiondef kind="enum">
+      <memberdef kind="enum" id="group__CRYPTO__WRAP__TYPES_1ga0e2790c70d45e976121f925ab9af9226" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_si91x_wrap_mode_t</name>
+        <enumvalue id="group__CRYPTO__WRAP__TYPES_1gga0e2790c70d45e976121f925ab9af9226a4b8fefb83b9043cd09fb9a5affa379ed" prot="public">
+          <name>SL_SI91X_WRAP_HMAC_SHA_1</name>
+          <initializer>= 1</initializer>
+          <briefdescription>
+<para>HMAC SHA 1 mode used for padding during wrap. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__WRAP__TYPES_1gga0e2790c70d45e976121f925ab9af9226ac84924d26a9e22a165f98d809a5605ab" prot="public">
+          <name>SL_SI91X_WRAP_HMAC_SHA_256</name>
+          <briefdescription>
+<para>HMAC SHA 256 used for padding during wrap. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__WRAP__TYPES_1gga0e2790c70d45e976121f925ab9af9226a97506b9f604388810116abb76308e7ae" prot="public">
+          <name>SL_SI91X_WRAP_HMAC_SHA_384</name>
+          <briefdescription>
+<para>HMAC SHA 384 mode used for padding during wrap. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__WRAP__TYPES_1gga0e2790c70d45e976121f925ab9af9226a06c566682c12b747ad2d642c6b01b8b1" prot="public">
+          <name>SL_SI91X_WRAP_HMAC_SHA_512</name>
+          <briefdescription>
+<para>HMAC SHA 512 mode used for padding during wrap. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/wrap/inc/sl_si91x_wrap.h" line="80" column="1" bodyfile="components/device/silabs/si91x/wireless/crypto/wrap/inc/sl_si91x_wrap.h" bodystart="80" bodyend="85"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para>This section provides a reference to the WRAP Crypto API types. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

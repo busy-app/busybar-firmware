@@ -1,0 +1,36 @@
+id: sli_crypto
+label: Accelerated Crypto Primitives
+package: security_mbedtls
+description: >-
+  This component provides hardware accelerated cryptographic primitives.
+category: Platform|Security|SLI Crypto
+quality: production
+ui_hints:
+  visibility: never
+provides:
+- name: sli_crypto
+requires:
+- name: device
+- name: code_classification
+- name: sli_crypto_s2
+  condition: [device_series_2]
+- name: sli_crypto_s3
+  condition: [device_series_3]
+
+define:
+- name: SL_CODE_COMPONENT_SLI_CRYPTO
+  value: sli_crypto
+
+template_contribution:
+- name: code_classification_components
+  value: sli_crypto
+- name: event_handler
+  value:
+    event: service_init
+    include: sli_crypto.h
+    handler: sli_crypto_init
+  priority: 2
+metadata:
+  sbom:
+    license: Zlib
+root_path: security_mbedtls

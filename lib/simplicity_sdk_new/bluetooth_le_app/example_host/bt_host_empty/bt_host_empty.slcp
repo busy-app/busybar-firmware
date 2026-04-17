@@ -1,0 +1,63 @@
+project_name: bt_host_empty
+package: bluetooth_le_app
+label: Bluetooth - Host Empty
+description: >
+  Reference implementation of an NCP (Network Co-Processor) host, which
+  typically runs on a central MCU without radio. It can connect to an NCP target
+  running the NCP Example via UART to access the Bluetooth stack on the target
+  and to control it using BGAPI.
+category: Bluetooth Examples
+quality: experimental
+
+filter:
+  - name: "Wireless Technology"
+    value: ["Bluetooth"]
+  - name: "Device Type"
+    value: ["Host"]
+  - name: "Project Difficulty"
+    value: ["Beginner"]
+
+component:
+  - id: toolchain_gcc
+  - id: native_host
+  - id: gatt_configuration
+  - id: ncp_gatt
+  - id: ncp_version
+  - id: host_main
+  - id: host_ncp
+  - id: app_log
+  - id: iostream_stdio
+  - id: app_assert
+
+source:
+  - path: app.c
+  - path: ../common/app_log/app_log_cli.c
+
+include:
+  - path: ../common/app_log
+    file_list:
+      - path: app_log_cli.h
+      
+configuration:
+  - name: APP_LOG_LEVEL_FILTER_DYNAMIC 
+    value: 1
+
+config_file:
+  - override:
+      component: gatt_configuration
+      file_id: gatt_configuration_file_id
+    path: gatt_configuration.btconf
+    directory: btconf
+
+readme:
+  - path: readme.md
+
+ui_hints:
+  highlight:
+    - path: config/btconf/gatt_configuration.btconf
+    - path: readme.md
+      focus: true
+
+tag:
+  - toolchain:gcc
+  - hwfilter:device:device_family_host

@@ -1,0 +1,33 @@
+id: restrictions_profile_all
+label: Restrictions - All Profile
+package: proprietary_default_radio_confs
+description: Limits the radio configurator to help compatibility with the example application. Removing it unlocks the disabled radio configurator profiles, but might result the application not able to send or receive messages over the radio.
+category: Platform|Radio Configuration
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: proprietary_default_radio_confs/restrictions
+requires:
+- name: rail_lib
+- name: device_has_radio
+- name: restrictions_profile_base
+- name: restrictions_profile_connect
+- name: restrictions_profile_connect_ofdm
+- name: restrictions_profile_long_range
+- name: restrictions_profile_sun
+- name: restrictions_profile_wisun_fan_1_0
+- name: restrictions_profile_wisun_fan_1_1
+- name: restrictions_profile_wisun_han
+- name: restrictions_profile_wisun_ofdm
+- name: restrictions_profile_wmbus
+- name: restrictions_profile_sigfox
+- name: restrictions_profile_sidewalk
+- name: restrictions_profile_ble
+- name: restrictions_profile_ieee802154
+- name: restrictions_profile_ieee802154_bpsk
+- name: restrictions_profile_ieee802154_oqpsk
+
+
+
+

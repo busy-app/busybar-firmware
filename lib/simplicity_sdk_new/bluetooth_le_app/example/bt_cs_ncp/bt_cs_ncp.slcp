@@ -1,0 +1,151 @@
+project_name: bt_cs_ncp
+package: bluetooth_le_app
+label: Bluetooth - NCP CS
+description: >
+  Network Co-Processor (NCP) target application for Channel Sounding (CS).
+  Runs the Bluetooth stack and provides access to it by exposing the
+  Bluetooth API (BGAPI) via UART connection. In addition to the standard
+  NCP features, it listens to Channel Sounding specific user messages,
+  and executes them. This application also features a CS Initiator with
+  Real Time Locating (RTL) library and a CS Reflector device role that can
+  be instantiated or deleted with the CS specific user messages.
+category: Bluetooth Examples
+quality: production
+
+filter:
+  - name: "Wireless Technology"
+    value: ["Bluetooth"]
+  - name: "Device Type"
+    value: ["NCP"]
+  - name: "Project Difficulty"
+    value: ["Beginner"]
+
+component:
+  - id: toolchain_gcc
+  - id: bluetooth_stack
+  - id: bluetooth_controller_anchor_selection
+  - id: bluetooth_feature_legacy_advertiser
+  - id: bluetooth_feature_extended_advertiser
+  - id: bluetooth_feature_periodic_advertiser
+  - id: bluetooth_feature_connection_role_central
+  - id: bluetooth_feature_connection_role_peripheral
+  - id: bluetooth_feature_gap
+  - id: bluetooth_feature_gatt
+  - id: bluetooth_feature_gatt_server
+  - id: bluetooth_feature_nvm
+  - id: bluetooth_feature_legacy_scanner
+  - id: bluetooth_feature_extended_scanner
+  - id: bluetooth_feature_sm
+  - id: bluetooth_feature_sync
+  - id: bluetooth_feature_system
+  - id: bluetooth_feature_dynamic_gattdb
+  - id: bluetooth_feature_test
+  - id: bluetooth_feature_cs
+  - id: bluetooth_utility_bgapi_trace
+  - id: ncp
+  - id: ncp_user_cmd
+  - id: uartdrv_usart
+    instance:
+      - vcom
+  - id: mpu
+  - id: sl_main
+  - id: clock_manager
+  - id: device_init
+  - id: rtllib
+  - id: rail_util_ble_cs_antenna_offset
+  - id: cs_reflector
+  - id: cs_initiator
+  - id: cs_result
+  - id: cs_antenna
+  - id: cs_acp
+  - id: iostream_bgapi_trace
+  - id: iostream_dummy
+    instance:
+      - mock
+  - id: simple_button
+    instance:
+      - btn0
+      - btn1
+
+source:
+  - path: app.c
+  - path: rtl_log.c
+  - path: extended_result.c
+
+include:
+  - path: .
+    file_list:
+      - path: rtl_log.h
+      - path: extended_result.h
+
+readme:
+  - path: readme.md
+
+config_file:
+  - path: config/app_config.h
+
+other_file:
+  - path: image/readme_img0.png
+
+configuration:
+  - name: SL_CLOCK_MANAGER_HFRCO_DPLL_EN
+    value: 1
+  - name: SL_CLOCK_MANAGER_DPLL_FREQ
+    value: 80000000
+  - name: SL_CLOCK_MANAGER_SYSCLK_SOURCE
+    value: CMU_SYSCLKCTRL_CLKSEL_HFRCODPLL
+  - name: SL_CLOCK_MANAGER_HFXO_FREQ
+    value: 40000000
+    unless:
+      - hardware_board
+  - name: SL_CLOCK_MANAGER_PCLK_DIVIDER
+    value: CMU_SYSCLKCTRL_PCLKPRESC_DIV2
+  - name: SL_STACK_SIZE
+    value: 3496
+  - name: SL_BT_CONFIG_BUFFER_SIZE
+    value: 10000
+  - name: SL_BT_CONFIG_USER_ADVERTISERS
+    value: 4
+  - name: SL_BT_CONFIG_MAX_CONNECTIONS
+    value: 4
+  - name: SL_BT_CONFIG_MAX_CS_PROCEDURES
+    value: 4
+  - name: SL_BT_CONTROLLER_SCANNER_RECEPTION_EARLY_ABORT
+    value: 1
+  - name: SL_BT_CONTROLLER_CONN_EVENT_LENGTH_EXTENSION
+    value: 1
+  - name: SL_BOARD_ENABLE_VCOM
+    value: 1
+  - name: SL_UARTDRV_USART_VCOM_FLOW_CONTROL_TYPE
+    value: uartdrvFlowControlHw
+  - name: SL_PSA_KEY_USER_SLOT_COUNT
+    value: "0"
+    condition:
+      - psa_crypto
+  - name: SL_BGAPI_TRACE_RTT_BUFFER_SIZE
+    value: 4096
+  - name: BUFFER_SIZE_UP
+    value: 4
+  - name: BUFFER_SIZE_DOWN
+    value: 4
+
+define:
+  - name: SLI_BGAPI_TRACE_DISABLE_AUTO_START
+    value: 1
+
+post_build:
+  - path: ../../postbuild_profile/bt_common_s2.slpb
+    condition: [device_series_2, bootloader_app_properties]
+
+tag:
+  - prebuilt_demo
+  - toolchain:gcc
+  - hwfilter:device:device_supports_bluetooth
+  - hwfilter:device:device_generic_family_efr32xg24
+  - hwfilter:board:hardware_board_has_hfxo_freq_40mhz
+  - hwfilter:ram:128k
+
+ui_hints:
+  highlight:
+    - path: readme.md
+      focus: true

@@ -1,0 +1,22 @@
+!!omap
+- id: brd4184a
+- label: BRD4184A
+- package: boards
+- description: Board support for BRD4184A.
+- category: Platform|Board|Thunderboard
+- quality: production
+- metadata:
+    sbom:
+      license: Zlib
+- requires:
+  - name: brd4184a_revision
+- provides:
+  - name: brd4184a
+  - name: hardware_board_from_tb
+  - name: hardware_board_from_sltb010a
+- recommends:
+  - id: brd4184a_a02
+    vendor: silabs
+- ui_hints:
+    visibility: never
+- root_path: boards

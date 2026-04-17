@@ -1,0 +1,34 @@
+id: "bluetooth_feature_power_control"
+label: "LE Power Control"
+package: bluetooth_le_controller
+description: >
+  In Bluetooth LE Power Control feature, the controller adjusts a connected peer
+  device’s transmit power level based on the received signal level.
+
+  When this feature is used by the application, the functionality is enabled and
+  will be automatically effective if the peer device supports this feature.
+
+  TX power changes on the local and peer device are reported to the application.
+  The "connection" class provides APIs to read the latest TX power of the local or
+  remote device. It also provides APIs to enable or disable TX power reporting.
+
+category: Bluetooth|Bluetooth LE Controller (Link Layer)|Additional Features
+quality: "production"
+config_file:
+- path: "config/sl_bt_power_control_config.h"
+requires:
+- name: "bluetooth_feature_connection"
+conflicts:
+- name: "bluetooth_feature_user_power_control"
+provides:
+- name: "bluetooth_feature_power_control"
+template_contribution:
+- name: component_catalog
+  value: bluetooth_feature_power_control
+documentation:
+  docset: bluetooth
+  document: bluetooth-stack-api/sl-bt-connection
+metadata:
+  sbom:
+    license: Zlib AND MSLA
+root_path: bluetooth_le_controller

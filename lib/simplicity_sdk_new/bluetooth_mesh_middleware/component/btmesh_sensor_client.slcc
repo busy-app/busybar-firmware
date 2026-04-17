@@ -1,0 +1,75 @@
+id: "btmesh_sensor_client"
+label: "Sensor Client"
+package: bluetooth_mesh_middleware
+description: >
+  Used to support the functionality of a node that can monitor sensor data and
+  configure a set of sensors on another node.
+
+  Sensor Client can connect to multiple Sensor Servers. It may operate on states
+  defined by Sensor Server model and Sensor Setup model via Sensor messages.
+
+  This component supports temperature, people count, and illuminance data. It
+  provides callback functions for receiving these data, for events, such as
+  when Sensor Server discovery has started, when a device is found.
+  There is an interface to change the current property listened to and request
+  data on said property.
+  This component is prepared for integration into SOC applications.
+
+  This can be a Low-Code component. The bare minimum for e.g. listening to
+  a broadcast sensor server data is calling sl_btmesh_sensor_client_update_registered_devices
+  on initialization and implementing the relevant weak callbacks. The provided
+  callbacks are the following:
+
+  void sl_btmesh_sensor_client_on_discovery_started
+
+  void sl_btmesh_sensor_client_on_new_device_found
+
+  void sl_btmesh_sensor_client_on_new_temperature_data
+
+  void sl_btmesh_sensor_client_on_new_people_count_data
+
+  void sl_btmesh_sensor_client_on_new_illuminance_data
+category: "Bluetooth Mesh|Models|Sensors"
+quality: "production"
+metadata:
+  sbom:
+    license: Zlib
+root_path: "bluetooth_mesh_middleware/common/btmesh_sensor_client"
+tag:
+- Low-Code
+
+source:
+- path: "sl_btmesh_sensor_client.c"
+include:
+- path: ""
+  file_list:
+  - path: "sl_btmesh_sensor_client.h"
+config_file:
+- path: "config/sl_btmesh_sensor_client_config.h"
+- path: btmesh_sensor_client.dcd
+  directory: btmeshconf
+provides:
+- name: "btmesh_sensor_client"
+requires:
+- name: "app_assert"
+- name: "app_btmesh_util"
+- name: "btmesh_role_init"
+- name: "app_btmesh_rta"
+- name: "btmesh_stack_node"
+- name: "btmesh_stack_sensor_client"
+- name: "sl_common"
+recommends:
+- id: "btmesh_provisionee"
+
+  vendor: silabs
+template_contribution:
+- name: "btmesh_on_event"
+  value:
+    include: "sl_btmesh_sensor_client.h"
+    function: "sl_btmesh_handle_sensor_client_on_event"
+
+validation_helper:
+- path: "../../script/validation/soc_ncp_compatibility.lua"
+documentation:
+  docset: btmesh
+  document: btmesh-service-api/btmesh-sensor-client

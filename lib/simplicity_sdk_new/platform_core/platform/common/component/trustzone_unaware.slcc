@@ -1,0 +1,15 @@
+id: trustzone_unaware
+label: TrustZone Unaware
+description: >
+  Used to signal that a project does not make active use of different TrustZone
+  security states.
+package: platform_core
+category: Platform|TrustZone
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+provides:
+- name: trustzone_unaware
+- name: trustzone_security_state
+root_path: platform_core

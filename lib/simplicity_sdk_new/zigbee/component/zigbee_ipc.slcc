@@ -1,0 +1,28 @@
+id: zigbee_ipc
+label: Zigbee IPC
+package: zigbee
+category: Zigbee
+quality: production
+description: >
+  This component adds support for interprocess communication on a Zigbee RTOS device.
+
+provides:
+- name: zigbee_use_ipc
+- name: zigbee_ipc
+
+requires:
+- name: cmsis_rtos2
+- name: event_system
+- name: memory_manager
+
+template_contribution:
+- name: component_catalog
+  value: zigbee_real_ipc
+
+recommends:
+- id: freertos
+  vendor: silabs
+metadata:
+  sbom:
+    license: MSLA
+root_path: zigbee

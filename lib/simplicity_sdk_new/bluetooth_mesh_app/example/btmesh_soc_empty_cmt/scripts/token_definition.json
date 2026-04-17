@@ -1,0 +1,9 @@
+[
+  {
+    "name": "MESH_TOKEN",
+    "page": "LOCKBITS",
+    "offset": "0x0480",
+    "sizeB": 256,
+    "description": "A 256-byte secure static token."
+  }
+]

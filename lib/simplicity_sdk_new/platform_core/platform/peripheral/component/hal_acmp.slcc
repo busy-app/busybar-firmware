@@ -1,0 +1,49 @@
+# This HAL applies to series 2 and 3 devices.
+id: hal_acmp
+label: ACMP
+package: platform_core
+description: >
+  ACMP Analog Comparator Peripheral API
+category: Platform|Peripheral|HAL
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+source:
+- path: src/sl_hal_acmp.c
+include:
+- path: inc
+  file_list:
+  - path: sl_hal_acmp.h
+provides:
+- name: hal_acmp
+- name: hal_generic_acmp
+  condition: [device_series_3]
+requires:
+- name: device
+- name: hal_system
+- name: device_has_acmp
+- name: enum
+- name: status
+documentation:
+  docset: gecko-platform
+  document:
+  - page: platform-peripheral-efr32xg21/acmp
+    condition: [device_sdid_200]
+  - page: platform-peripheral-efr32xg23/acmp
+    condition: [device_sdid_210]
+  - page: platform-peripheral-efr32xg24/acmp
+    condition: [device_sdid_215]
+  - page: platform-peripheral-efr32xg25/acmp
+    condition: [device_sdid_220]
+  - page: platform-peripheral-efr32xg26/acmp
+    condition: [device_sdid_225]
+  - page: platform-peripheral-efr32xg27/acmp
+    condition: [device_sdid_230]
+  - page: platform-peripheral-efr32xg28/acmp
+    condition: [device_sdid_235]
+  - page: platform-peripheral-efr32xg29/acmp
+    condition: [device_sdid_240]
+  - page: platform-peripheral-sixg301/acmp
+    condition: [device_generic_family_sixx301]
+root_path: platform_core/platform/peripheral

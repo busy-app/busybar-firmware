@@ -1,0 +1,16 @@
+id: iostream_uart_core_si91x
+package: platform_core
+label: 'IO Stream: SI91x UART Core'
+description: Core of IO Stream SI91X UART
+category: Services|IO Stream
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+ui_hints:
+  visibility: never
+provides:
+- name: iostream_uart_core_si91x
+requires:
+- name: iostream
+root_path: platform_core

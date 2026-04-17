@@ -1,0 +1,31 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygenindex xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="index.xsd" version="1.9.4" xml:lang="en-US">
+  <compound refid="doxygen__indexfile_8md" kind="file"><name>doxygen_indexfile.md</name>
+  </compound>
+  <compound refid="doxygen__template_8h" kind="file"><name>doxygen_template.h</name>
+  </compound>
+  <compound refid="sl__net__ping_8h" kind="file"><name>sl_net_ping.h</name>
+    <member refid="group__SL__PING__FUNCTIONS_1gabe41d48d834975a419264388851c40ff" kind="function"><name>sl_si91x_send_ping</name></member>
+  </compound>
+  <compound refid="group__SL__PING__APIS" kind="group"><name>SL_PING_APIS</name>
+  </compound>
+  <compound refid="group__SL__PING__FUNCTIONS" kind="group"><name>SL_PING_FUNCTIONS</name>
+    <member refid="group__SL__PING__FUNCTIONS_1gabe41d48d834975a419264388851c40ff" kind="function"><name>sl_si91x_send_ping</name></member>
+  </compound>
+  <compound refid="dir_409f97388efe006bc3438b95e9edef48" kind="dir"><name>components</name>
+  </compound>
+  <compound refid="dir_27278b313c1e696b0e5eca555051df01" kind="dir"><name>components/device</name>
+  </compound>
+  <compound refid="dir_334ec0f3be3b1de53e2e8570bc1d66ce" kind="dir"><name>components/device/silabs/si91x/wireless/icmp/docs</name>
+  </compound>
+  <compound refid="dir_2fe8fe6e0889fd649258ae794209be9c" kind="dir"><name>components/device/silabs/si91x/wireless/icmp</name>
+  </compound>
+  <compound refid="dir_55dfeb49a672d43a54ddda9a268f28f0" kind="dir"><name>components/device/silabs/si91x</name>
+  </compound>
+  <compound refid="dir_454898e28a47f76a8169dea9161d36d8" kind="dir"><name>components/device/silabs</name>
+  </compound>
+  <compound refid="dir_b778f1c827210fa554d9ec5c6399ea30" kind="dir"><name>components/device/silabs/si91x/wireless</name>
+  </compound>
+  <compound refid="indexpage" kind="page"><name>index</name>
+  </compound>
+</doxygenindex>

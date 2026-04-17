@@ -1,0 +1,46 @@
+id: gatt_service_device_information
+label: Device Information GATT Service (Legacy)
+package: bluetooth_le_middleware
+description: >
+  This component provides compatibility for projects upgraded from Bluetooth
+  stack version 9.x.x or earlier. It ensures these projects remain buildable
+  by replacing the Bluetooth stack version with a placeholder value. For new
+  projects, please use the 'Device Information GATT Service Override'
+  component instead.
+category: Bluetooth|Application|GATT Services
+metadata:
+  sbom:
+    license: Zlib
+quality: deprecated
+root_path: bluetooth_le_middleware/common/gatt_service_device_information_legacy
+tag:
+- No-Code
+source:
+- path: sl_gatt_service_device_information.c
+  project:
+    transfer_ownership: true
+- path: sl_gatt_service_device_information_warning.c
+  project:
+    transfer_ownership: true
+include:
+- path: .
+  file_list:
+  - path: sl_gatt_service_device_information.h
+other_file:
+- path: gatt_service_device_information_legacy.md
+  project:
+    transfer_ownership: true
+provides:
+- name: gatt_service_device_information
+requires:
+- name: bluetooth_stack
+- name: bluetooth_feature_gap
+- name: gatt_configuration
+- name: app_assert
+conflicts:
+- name: gatt_service_device_information_override
+template_contribution:
+- name: bluetooth_on_event
+  value:
+    include: sl_gatt_service_device_information.h
+    function: sl_gatt_service_device_information_on_event

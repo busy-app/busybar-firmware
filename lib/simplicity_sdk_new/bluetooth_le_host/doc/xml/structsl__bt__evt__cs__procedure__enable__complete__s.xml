@@ -1,0 +1,254 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="structsl__bt__evt__cs__procedure__enable__complete__s" kind="struct" language="C++" prot="public">
+    <compoundname>sl_bt_evt_cs_procedure_enable_complete_s</compoundname>
+    <includes refid="sl__bt__api_8h" local="no">sl_bt_api.h</includes>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structsl__bt__evt__cs__procedure__enable__complete__s_1a1680696352203a9257bca15c4c4f5553" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_cs_procedure_enable_complete_s::connection</definition>
+        <argsstring></argsstring>
+        <name>connection</name>
+        <qualifiedname>sl_bt_evt_cs_procedure_enable_complete_s::connection</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Connection handle </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="13328" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="13328" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__cs__procedure__enable__complete__s_1a759c93d8df8f1fe3f3e20edf5544bcb3" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_cs_procedure_enable_complete_s::config_id</definition>
+        <argsstring></argsstring>
+        <name>config_id</name>
+        <qualifiedname>sl_bt_evt_cs_procedure_enable_complete_s::config_id</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>CS configuration identifier.<itemizedlist>
+<listitem><para><bold>Range:</bold> 0 to 3 </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="13329" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="13329" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__cs__procedure__enable__complete__s_1ad5b26785141b9bb45b7f22ab445fa77d" prot="public" static="no" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t sl_bt_evt_cs_procedure_enable_complete_s::status</definition>
+        <argsstring></argsstring>
+        <name>status</name>
+        <qualifiedname>sl_bt_evt_cs_procedure_enable_complete_s::status</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>SL_STATUS_OK if successful. Error code otherwise. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="13331" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="13331" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__cs__procedure__enable__complete__s_1a032e00bf312c45dd20a9cddead2ddb00" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_cs_procedure_enable_complete_s::state</definition>
+        <argsstring></argsstring>
+        <name>state</name>
+        <qualifiedname>sl_bt_evt_cs_procedure_enable_complete_s::state</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Enum <ref refid="group__sl__bt__cs_1ga8fd875965cf4e392514a5f4f7769bb3d" kindref="member">sl_bt_cs_procedure_state_t</ref>. CS procedure enabled or disabled Values:<itemizedlist>
+<listitem><para><bold>sl_bt_cs_procedure_state_disabled (0x0):</bold> CS procedures are disabled</para>
+</listitem><listitem><para><bold>sl_bt_cs_procedure_state_enabled (0x1):</bold> CS procedures are enabled </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="13333" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="13333" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__cs__procedure__enable__complete__s_1a19b507a6cdf09a047e9522a1403056aa" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_cs_procedure_enable_complete_s::antenna_config</definition>
+        <argsstring></argsstring>
+        <name>antenna_config</name>
+        <qualifiedname>sl_bt_evt_cs_procedure_enable_complete_s::antenna_config</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Antenna configuration index<itemizedlist>
+<listitem><para><bold>Range:</bold> 0 to 7 </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="13339" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="13339" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__cs__procedure__enable__complete__s_1a6a21a0955213f44adad906bac7360843" prot="public" static="no" mutable="no">
+        <type>int8_t</type>
+        <definition>int8_t sl_bt_evt_cs_procedure_enable_complete_s::tx_power</definition>
+        <argsstring></argsstring>
+        <name>tx_power</name>
+        <qualifiedname>sl_bt_evt_cs_procedure_enable_complete_s::tx_power</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Transmit power level used in the transmission. Units: dBm.<itemizedlist>
+<listitem><para><bold>Range:</bold> -127 to +20</para>
+</listitem><listitem><para>Value: 0x07F. Transmit power level is unavailable </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="13341" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="13341" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__cs__procedure__enable__complete__s_1a9fc5a2a9eb563a1a5f329d064874ced8" prot="public" static="no" mutable="no">
+        <type>uint32_t</type>
+        <definition>uint32_t sl_bt_evt_cs_procedure_enable_complete_s::subevent_len</definition>
+        <argsstring></argsstring>
+        <name>subevent_len</name>
+        <qualifiedname>sl_bt_evt_cs_procedure_enable_complete_s::subevent_len</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Duration for each subevent in microseconds<itemizedlist>
+<listitem><para><bold>Range:</bold> 1250 to 3999999</para>
+</listitem><listitem><para>Time range: 1250 us to 4s </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="13347" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="13347" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__cs__procedure__enable__complete__s_1ac630a2b95add3b3cd56a4a1adde362ab" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_cs_procedure_enable_complete_s::subevents_per_event</definition>
+        <argsstring></argsstring>
+        <name>subevents_per_event</name>
+        <qualifiedname>sl_bt_evt_cs_procedure_enable_complete_s::subevents_per_event</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Number of subevents anchored off the same ACL connection event<itemizedlist>
+<listitem><para><bold>Range:</bold> 1 to 20 </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="13351" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="13351" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__cs__procedure__enable__complete__s_1ad9fcb05b75fa705be082b449ea23dccb" prot="public" static="no" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t sl_bt_evt_cs_procedure_enable_complete_s::subevent_interval</definition>
+        <argsstring></argsstring>
+        <name>subevent_interval</name>
+        <qualifiedname>sl_bt_evt_cs_procedure_enable_complete_s::subevent_interval</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Duration in microseconds between consecutive CS subevents anchored off the same ACL connection event. Units: 0.625 ms. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="13354" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="13354" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__cs__procedure__enable__complete__s_1a82149754a4e19e35661a739486c8d9dd" prot="public" static="no" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t sl_bt_evt_cs_procedure_enable_complete_s::event_interval</definition>
+        <argsstring></argsstring>
+        <name>event_interval</name>
+        <qualifiedname>sl_bt_evt_cs_procedure_enable_complete_s::event_interval</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Number of ACL connection events between consecutive CS event anchor points </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="13357" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="13357" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__cs__procedure__enable__complete__s_1aa860ff834bf6de32748c657105e17d0d" prot="public" static="no" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t sl_bt_evt_cs_procedure_enable_complete_s::procedure_interval</definition>
+        <argsstring></argsstring>
+        <name>procedure_interval</name>
+        <qualifiedname>sl_bt_evt_cs_procedure_enable_complete_s::procedure_interval</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Number of ACL connection events between consecutive CS procedure anchor points </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="13359" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="13359" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__cs__procedure__enable__complete__s_1a6815f582227457f6ef7eb5a1528a2d83" prot="public" static="no" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t sl_bt_evt_cs_procedure_enable_complete_s::procedure_count</definition>
+        <argsstring></argsstring>
+        <name>procedure_count</name>
+        <qualifiedname>sl_bt_evt_cs_procedure_enable_complete_s::procedure_count</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Number of procedures to continue until disabled. Maximum number of procedures to be scheduled.<itemizedlist>
+<listitem><para><bold>Range:</bold> 1 to 65535 </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="13361" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="13361" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__cs__procedure__enable__complete__s_1a87b4392b9851a26b24c8209c5bb12e42" prot="public" static="no" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t sl_bt_evt_cs_procedure_enable_complete_s::max_procedure_len</definition>
+        <argsstring></argsstring>
+        <name>max_procedure_len</name>
+        <qualifiedname>sl_bt_evt_cs_procedure_enable_complete_s::max_procedure_len</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Maximum duration for each measurement procedure. Value in units of 0.625 ms.<itemizedlist>
+<listitem><para><bold>Range:</bold> 1 to 65535</para>
+</listitem><listitem><para>Time: N x 0.625ms. <bold>N</bold> being the input.</para>
+</listitem><listitem><para>Time range: 0.625 ms to 40.959375 s. </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="13365" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="13365" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Data structure of the procedure_enable_complete event. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="13326" column="1" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="13327" bodyend="13372"/>
+    <listofallmembers>
+      <member refid="structsl__bt__evt__cs__procedure__enable__complete__s_1a19b507a6cdf09a047e9522a1403056aa" prot="public" virt="non-virtual"><scope>sl_bt_evt_cs_procedure_enable_complete_s</scope><name>antenna_config</name></member>
+      <member refid="structsl__bt__evt__cs__procedure__enable__complete__s_1a759c93d8df8f1fe3f3e20edf5544bcb3" prot="public" virt="non-virtual"><scope>sl_bt_evt_cs_procedure_enable_complete_s</scope><name>config_id</name></member>
+      <member refid="structsl__bt__evt__cs__procedure__enable__complete__s_1a1680696352203a9257bca15c4c4f5553" prot="public" virt="non-virtual"><scope>sl_bt_evt_cs_procedure_enable_complete_s</scope><name>connection</name></member>
+      <member refid="structsl__bt__evt__cs__procedure__enable__complete__s_1a82149754a4e19e35661a739486c8d9dd" prot="public" virt="non-virtual"><scope>sl_bt_evt_cs_procedure_enable_complete_s</scope><name>event_interval</name></member>
+      <member refid="structsl__bt__evt__cs__procedure__enable__complete__s_1a87b4392b9851a26b24c8209c5bb12e42" prot="public" virt="non-virtual"><scope>sl_bt_evt_cs_procedure_enable_complete_s</scope><name>max_procedure_len</name></member>
+      <member refid="structsl__bt__evt__cs__procedure__enable__complete__s_1a6815f582227457f6ef7eb5a1528a2d83" prot="public" virt="non-virtual"><scope>sl_bt_evt_cs_procedure_enable_complete_s</scope><name>procedure_count</name></member>
+      <member refid="structsl__bt__evt__cs__procedure__enable__complete__s_1aa860ff834bf6de32748c657105e17d0d" prot="public" virt="non-virtual"><scope>sl_bt_evt_cs_procedure_enable_complete_s</scope><name>procedure_interval</name></member>
+      <member refid="structsl__bt__evt__cs__procedure__enable__complete__s_1a032e00bf312c45dd20a9cddead2ddb00" prot="public" virt="non-virtual"><scope>sl_bt_evt_cs_procedure_enable_complete_s</scope><name>state</name></member>
+      <member refid="structsl__bt__evt__cs__procedure__enable__complete__s_1ad5b26785141b9bb45b7f22ab445fa77d" prot="public" virt="non-virtual"><scope>sl_bt_evt_cs_procedure_enable_complete_s</scope><name>status</name></member>
+      <member refid="structsl__bt__evt__cs__procedure__enable__complete__s_1ad9fcb05b75fa705be082b449ea23dccb" prot="public" virt="non-virtual"><scope>sl_bt_evt_cs_procedure_enable_complete_s</scope><name>subevent_interval</name></member>
+      <member refid="structsl__bt__evt__cs__procedure__enable__complete__s_1a9fc5a2a9eb563a1a5f329d064874ced8" prot="public" virt="non-virtual"><scope>sl_bt_evt_cs_procedure_enable_complete_s</scope><name>subevent_len</name></member>
+      <member refid="structsl__bt__evt__cs__procedure__enable__complete__s_1ac630a2b95add3b3cd56a4a1adde362ab" prot="public" virt="non-virtual"><scope>sl_bt_evt_cs_procedure_enable_complete_s</scope><name>subevents_per_event</name></member>
+      <member refid="structsl__bt__evt__cs__procedure__enable__complete__s_1a6a21a0955213f44adad906bac7360843" prot="public" virt="non-virtual"><scope>sl_bt_evt_cs_procedure_enable_complete_s</scope><name>tx_power</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

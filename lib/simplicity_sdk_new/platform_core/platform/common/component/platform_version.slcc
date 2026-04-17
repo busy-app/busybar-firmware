@@ -1,0 +1,18 @@
+id: platform_version
+label: Platform version
+package: platform_core
+description: Retrieve Platform version
+category: Platform|Utilities
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: platform_core/platform/common
+ui_hints:
+  visibility: never
+include:
+- path: inc
+  file_list:
+  - path: sl_platform_version.h
+provides:
+- name: platform_version

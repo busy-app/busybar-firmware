@@ -1,0 +1,7 @@
+parameters: []
+steps:
+  - task: convert
+    input:
+      - "{{bootloader_binary}}"
+      - "{{application_binary}}"
+    output: artifact/{{workspace_name}}.s37

@@ -1,0 +1,42 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__evt__gatt__server__execute__write__completed" kind="group">
+    <compoundname>sl_bt_evt_gatt_server_execute_write_completed</compoundname>
+    <title>sl_bt_evt_gatt_server_execute_write_completed</title>
+    <innerclass refid="structsl__bt__evt__gatt__server__execute__write__completed__s" prot="public">sl_bt_evt_gatt_server_execute_write_completed_s</innerclass>
+      <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="group__sl__bt__evt__gatt__server__execute__write__completed_1gacffc47c36b8916a8d51fa4257a875ce1" prot="public" static="no">
+        <type>struct <ref refid="structsl__bt__evt__gatt__server__execute__write__completed__s" kindref="compound">sl_bt_evt_gatt_server_execute_write_completed_s</ref></type>
+        <definition>typedef struct sl_bt_evt_gatt_server_execute_write_completed_s sl_bt_evt_gatt_server_execute_write_completed_t</definition>
+        <argsstring></argsstring>
+        <name>sl_bt_evt_gatt_server_execute_write_completed_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="10068" column="62" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="10068" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__evt__gatt__server__execute__write__completed_1ga025eb202f4120d8040611db566c3d6e6" prot="public" static="no">
+        <name>sl_bt_evt_gatt_server_execute_write_completed_id</name>
+        <initializer>0x040a00a0</initializer>
+        <briefdescription>
+<para>Identifier of the execute_write_completed event. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="10057" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="10057" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Indicates that the execute write command from a remote GATT client has completed with the given result. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

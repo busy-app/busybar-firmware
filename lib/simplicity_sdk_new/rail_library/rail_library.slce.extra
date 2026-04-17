@@ -1,0 +1,89 @@
+id: rail_library
+examples:
+sample_apps:
+description:
+dependencies:
+  - platform/6.0.0@silabs
+components:
+  - rail_lib
+  - rail_util_power_manager_init
+  - railapp_btc
+  - rail_util_rf_path_switch
+  - rail_util_coex_ble_cli
+  - sl_rail_util_protocol
+  - rail_util_init_core
+  - rail_util_pti
+  - rail_test_graphics
+  - rail_test_core
+  - rail_util_coulomb_counter
+  - sl_rail_util_sfm_sequencer
+  - rail_lib_multiprotocol_internal_chips_dummy
+  - sl_rail_util_power_manager_init
+  - rail_util_ble_cs_antenna_offset
+  - rail_util_thermistor
+  - sl_rail_util_mp_transition_time
+  - sl_rail_util_pti
+  - rail_lib_singleprotocol_alpha_chips_dummy
+  - rail_util_recommended
+  - rail_lib_singleprotocol
+  - sl_rail_util_standard_phys
+  - sl_rail_util_dma
+  - sl_rail_test_core
+  - sl_rail_util_coex
+  - rail_util_init
+  - sl_rail_util_ble_cs_antenna_offset
+  - rail_util_built_in_phys
+  - rail_util_aox
+  - rail_util_rf_path
+  - sl_rail_util_cs_gdcomp
+  - rail_util_ant_div_cli
+  - rail_util_ieee802154_stack_event
+  - rail_util_pa_nvm_configs
+  - sl_rail_util_ieee802154_phy_select
+  - sl_rail_util_mp_transition_time_override
+  - rail_lib_multiprotocol
+  - rail_util_ieee802154_high_speed
+  - sl_rail_util_thermistor
+  - sl_rail_util_pa
+  - rail_util_features
+  - sl_rail_util_aox
+  - rail_util_sequencer
+  - rail_util_coex
+  - sl_rail_util_init
+  - sl_rail_util_pa_tables
+  - sl_rail_util_load_devinfo
+  - rail_util_cs_gdcomp
+  - sl_rail_util_ieee802154_stack_event
+  - rail_util_callbacks
+  - rail_util_ieee802154_phy_select
+  - sl_rail_util_rssi
+  - railapp_malloc
+  - rail_util_coex_ieee802154_cli
+  - fem_util
+  - sl_rail_util_ble_cs
+  - rail_util_pa
+  - sl_rail_util_built_in_phys
+  - rail_lib_multiprotocol_alpha_chips_dummy
+  - rail_lib_singleprotocol_internal_chips_dummy
+  - rail_util_vdet
+  - rail_util_dma
+  - rail_util_rssi
+  - rail_util_ant_div
+  - rail_util_load_devinfo
+  - sl_rail_util_rf_path
+  - sl_railapp_malloc
+  - sl_rail_util_init_core
+  - sl_rail_util_rf_path_switch
+  - rail_util_coex_cli
+  - rail_util_ieee802154_fast_channel_switching
+  - rail_util_protocol
+  - sl_rail_util_ant_div
+  - sl_rail_util_sequencer
+  - rail_util_ble_cs
+  - rail_util_sfm_sequencer
+  - sl_rail_util_callbacks
+  - sl_rail_util_vdet
+extra_files:
+  - plugin/pa-conversions/sl_rail_util_pa_conversions_efr32_config.h
+git_extra_files: []
+git_path_mapping: []

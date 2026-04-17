@@ -1,0 +1,68 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__CRYPTO__ATTESTATION__FUNCTIONS" kind="group">
+    <compoundname>CRYPTO_ATTESTATION_FUNCTIONS</compoundname>
+    <title>Functions</title>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="group__CRYPTO__ATTESTATION__FUNCTIONS_1ga1b34e32bd04dbdf7b825d748e7f532d3" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_si91x_attestation_get_token</definition>
+        <argsstring>(uint8_t *token, uint16_t length, uint32_t *nonce)</argsstring>
+        <name>sl_si91x_attestation_get_token</name>
+        <param>
+          <type>uint8_t *</type>
+          <declname>token</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>length</declname>
+        </param>
+        <param>
+          <type>uint32_t *</type>
+          <declname>nonce</declname>
+        </param>
+        <briefdescription>
+<para>To process the nonce for the attestation token. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="out">token</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Buffer to store the attestation token. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">length</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Length of the token buffer. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">nonce</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Nonce value used for generating the attestation token. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>sl_status_t. For more information on status codes, see <ulink url="https://docs.silabs.com/gecko-platform/latest/platform-common/status">SL STATUS DOCUMENTATION</ulink> for further details. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/attestation/inc/sl_si91x_attestation.h" line="60" column="13" declfile="components/device/silabs/si91x/wireless/crypto/attestation/inc/sl_si91x_attestation.h" declline="60" declcolumn="13"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para>This section provides a reference to the Crypto API functions for device attestation. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

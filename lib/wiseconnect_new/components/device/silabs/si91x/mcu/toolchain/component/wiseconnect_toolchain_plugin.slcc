@@ -1,0 +1,32 @@
+id: wiseconnect_toolchain_plugin
+label: GCC Toolchain Support
+package: platform_siwx91x
+description: >
+  Toolchain support for GCC in Wiseconnect.
+  Selecting this component will also include the GCC Toolchain component.
+category: Device|Si91x|MCU|Toolchain
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: components/device/silabs/si91x/mcu/toolchain
+provides:
+  - name: wiseconnect_toolchain_plugin
+requires:
+  - name: wiseconnect_toolchain_gcc_standard
+  - name: toolchain_variant_arm
+  - name: si91x_stack_size_configuration
+library:
+  - system: gcc
+    unless:
+      - wiseconnect_toolchain_gcc_override
+  - system: nosys
+    unless:
+      - wiseconnect_toolchain_gcc_override
+  - system: c
+  - system: m
+toolchain_settings:
+  - option: gcc_linker_option
+    value: "-u _printf_float"
+  - option: gcc_compiler_option
+    value: "-mcpu=cortex-m4"

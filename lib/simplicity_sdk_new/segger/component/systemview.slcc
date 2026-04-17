@@ -1,0 +1,55 @@
+id: segger_systemview
+label: SEGGER SystemView
+package: segger
+description: SEGGER SystemView
+category: Third Party|Segger|System View
+quality: production
+metadata:
+  sbom:
+    license: Segger
+config_file:
+- path: systemview/Config/sl_systemview_config.h
+source:
+- path: systemview/SEGGER/SEGGER_SYSVIEW.c
+- path: systemview/init/SEGGER_SYSVIEW_Init.c
+include:
+- path: systemview/SEGGER
+  file_list:
+  - path: Global.h
+  - path: SEGGER_SYSVIEW.h
+  - path: SEGGER_SYSVIEW_ConfDefaults.h
+  - path: SEGGER_SYSVIEW_Int.h
+- path: systemview/init
+  file_list:
+  - path: SEGGER_SYSVIEW_Conf.h
+  - path: sl_sysview_custom_api.h
+provides:
+- name: segger_systemview
+- name: debug_event_output
+requires:
+- name: segger_rtt
+- name: sleeptimer
+- name: segger_systemview_micriumos
+  condition:
+  - micriumos
+- name: segger_systemview_freertos
+  condition:
+  - freertos
+validation_helper:
+- path: systemview/timestamp_source_validation.lua
+template_contribution:
+- name: event_handler
+  value:
+    event: platform_init
+    include: SEGGER_SYSVIEW.h
+    handler: SEGGER_SYSVIEW_Conf
+  priority: -9202
+- name: event_handler
+  value:
+    event: platform_init
+    include: SEGGER_SYSVIEW.h
+    handler: SEGGER_SYSVIEW_Start
+  priority: -9201
+- name: component_catalog
+  value: systemview_trace
+root_path: segger

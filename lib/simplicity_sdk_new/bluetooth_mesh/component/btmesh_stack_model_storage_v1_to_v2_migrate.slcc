@@ -1,0 +1,22 @@
+id: btmesh_stack_model_storage_v1_to_v2_migrate
+label: "Mesh model configuration data migration to current persistent storage format"
+package: bluetooth_mesh
+description: "Provides functionality to migrate Mesh model configuration data from the old (before SDK release 9.0.0) to the current format. This component is needed when upgrading a device running an old firmware with a firmware image that uses the new persistent storage format. "
+category: "Bluetooth Mesh|Stack"
+quality: "production"
+provides:
+- name: btmesh_stack_model_storage_v1_to_v2_migrate
+conflicts:
+- name: btmesh_stack_model_storage_v1
+requires:
+- name: btmesh_stack_model_storage_v2
+template_contribution:
+- name: btmesh_bgapi_class
+  value:
+    class: "model_migration"
+  priority: 3
+metadata:
+  sbom:
+    reference: btmesh_stack
+
+root_path: bluetooth_mesh

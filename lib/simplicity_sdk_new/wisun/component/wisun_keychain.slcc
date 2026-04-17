@@ -1,0 +1,31 @@
+id: wisun_keychain
+label: Wi-SUN keychain
+description: >
+  Wi-SUN keychain is an optional application component that simplifies certificate/private key handling.
+  It supports DDP credentials as well as built-in compilation time credentials.
+package: wisun
+category: Wi-SUN|Application
+quality: production
+
+
+provides:
+- name: wisun_keychain
+
+config_file:
+- path: plugin/config/sl_wisun_keychain_nvm_config.h
+
+template_file:
+- path: plugin/template/sl_wisun_keychain_builtin.c.jinja
+
+source:
+- path: plugin/sl_wisun_keychain.c
+
+include:
+- path: plugin/
+  file_list:
+  - path: sl_wisun_keychain.h
+
+metadata:
+  sbom:
+    license: MSLA
+root_path: wisun

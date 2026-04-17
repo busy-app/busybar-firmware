@@ -1,0 +1,49 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="structuint8array" kind="struct" language="C++" prot="public">
+    <compoundname>uint8array</compoundname>
+    <includes refid="sl__bgapi_8h" local="no">sl_bgapi.h</includes>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structuint8array_1a4698938af444ec839076786df946394d" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t uint8array::len</definition>
+        <argsstring></argsstring>
+        <name>len</name>
+        <qualifiedname>uint8array::len</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Number of bytes stored in <computeroutput>data</computeroutput> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" line="73" column="11" bodyfile="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" bodystart="73" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structuint8array_1a6d9567b478549b3de2320751b34b533f" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t uint8array::data[]</definition>
+        <argsstring>[]</argsstring>
+        <name>data</name>
+        <qualifiedname>uint8array::data</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Data bytes </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" line="74" column="11" bodyfile="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" bodystart="74" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Variable-length uint8_t array. Maximum length: 255. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" line="72" column="1" bodyfile="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" bodystart="72" bodyend="75"/>
+    <listofallmembers>
+      <member refid="structuint8array_1a6d9567b478549b3de2320751b34b533f" prot="public" virt="non-virtual"><scope>uint8array</scope><name>data</name></member>
+      <member refid="structuint8array_1a4698938af444ec839076786df946394d" prot="public" virt="non-virtual"><scope>uint8array</scope><name>len</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

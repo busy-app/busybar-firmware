@@ -1,0 +1,20 @@
+id: rtllib_printf
+label: Printf SBOM
+package: realtime_locationing
+category: Bluetooth|Direction Finding
+quality: production
+description: This component defines upstream Printf SBOM metadata.
+ui_hints:
+  visibility: never
+provides:
+- name: rtllib_printf
+metadata:
+  sbom:
+    license: MIT
+    upstream:
+      name: Printf
+      version: 4.0.0
+      supplier: Marco Paland
+      url: https://github.com/mpaland/printf
+      comment: This is a tiny but fully loaded printf, sprintf and (v)snprintf implementation.
+root_path: realtime_locationing

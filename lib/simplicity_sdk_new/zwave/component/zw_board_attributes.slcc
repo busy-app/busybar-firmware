@@ -1,0 +1,35 @@
+id: zw_board_attributes
+label: Z-Wave Board Definitions
+category: Z-Wave
+description: >
+  This component defines the board capabilities for Z-Wave applications. This helps the project
+  to determine which features are available on the board, such as having an RGB LED on the board.
+  This component only provides definitions and does not include any source files.
+package: zwave
+quality: production
+metadata:
+  sbom:
+    reference: zw_sbom_license
+provides:
+- name: zw_board_attributes
+- name: zw_board_has_no_rgb
+  condition: [brd2705a]
+- name: zw_board_has_no_rgb
+  condition: [brd4204a]
+- name: zw_board_has_no_rgb
+  condition: [brd4204b]
+- name: zw_board_has_no_rgb
+  condition: [brd4204c]
+- name: zw_board_has_no_rgb
+  condition: [brd4204d]
+- name: zw_board_has_no_rgb
+  condition: [brd4210a]
+- name: zw_board_has_no_rgb
+  condition: [brd4400b]
+- name: zw_board_has_no_rgb
+  condition: [brd4400c]
+- name: zw_board_has_no_rgb
+  condition: [brd4401b]
+- name: zw_board_has_no_rgb
+  condition: [brd4401c]
+root_path: zwave

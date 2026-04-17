@@ -1,0 +1,52 @@
+id: bluetooth_ncp_transport_cpc
+label: Bluetooth NCP Transport over CPC
+package: bluetooth_le_middleware
+description: >
+  Component that provides transport layer for Bluetooth NCP over CPC.
+
+category: Application|Utility
+metadata:
+  sbom:
+    license: Zlib
+quality: experimental
+root_path: bluetooth_le_middleware/common/ncp_transport
+tag:
+- No-Code
+config_file:
+- path: config/sl_bt_ncp_transport_cpc_config.h
+source:
+- path: sl_bt_ncp_transport_cpc.c
+include:
+- path: .
+  file_list:
+  - path: sl_bt_ncp_transport.h
+  - path: sli_bt_ncp_transport.h
+provides:
+- name: bluetooth_ncp_transport_cpc
+- name: bluetooth_ncp_transport
+requires:
+- name: component_catalog
+- name: cpc_core
+- name: cpc_secondary
+- name: app_rta
+- name: status
+- name: sl_common
+- name: sl_core
+template_contribution:
+- name: component_catalog
+  value: bluetooth_ncp_transport_cpc
+- name: component_catalog
+  value: bluetooth_ncp_transport
+- name: component_catalog
+  value: bluetooth_ncp
+- name: app_rta_init
+  value:
+    include: sli_bt_ncp_transport.h
+    handler: sli_bt_ncp_transport_init
+- name: app_rta_ready
+  value:
+    include: sli_bt_ncp_transport.h
+    handler: sli_bt_ncp_transport_rta_ready
+documentation:
+  docset: bluetooth
+  document: bluetooth-service-api/bluetooth-ncp-transport

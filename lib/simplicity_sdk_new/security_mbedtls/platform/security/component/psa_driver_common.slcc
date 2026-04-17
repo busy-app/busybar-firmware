@@ -1,0 +1,46 @@
+id: psa_driver_common
+package: security_mbedtls
+label: PSA Driver Common Source Code
+description: >-
+  This component includes the Silicon Labs PSA common drivers source code files.
+category: Platform|Security|PSA Crypto
+quality: production
+ui_hints:
+  visibility: never
+provides:
+- name: psa_driver_common
+
+requires:
+- name: psa_crypto_common
+  # psa_common_driver depends on 'mbedtls/build_info.h' via 'sli_psa_driver_features.h'
+  # 'mbedtls/build_info.h' includes MBEDTLS_CONFIG_FILE and is provided by mbedtls_source.slcc.
+  # We include mbedtls_core here which requires both mbedtls_source and mbedtls_config.
+  # mbedtls_config provides the actual MBEDTLS_CONFIG_FILE of the application.
+- name: mbedtls_core
+
+source:
+  # Common drivers
+- path: src/sli_psa_driver_init.c
+  unless: [trustzone_nonsecure]
+- path: src/sli_psa_driver_common.c
+  unless: [trustzone_nonsecure]
+- path: src/sli_se_version_dependencies.c
+  unless: [trustzone_nonsecure]
+
+include:
+- path: ../sl_mbedtls_support/inc
+  file_list:
+  - path: sl_psa_values.h
+  - path: sli_psa_crypto.h
+- path: inc
+  file_list:
+  - path: sli_psa_driver_common.h
+    unless: [trustzone_nonsecure]
+  - path: sli_se_version_dependencies.h
+    unless: [trustzone_nonsecure]
+  - path: sli_psa_driver_features.h
+
+metadata:
+  sbom:
+    license: Zlib
+root_path: security_mbedtls/platform/security/sl_component/sl_psa_driver

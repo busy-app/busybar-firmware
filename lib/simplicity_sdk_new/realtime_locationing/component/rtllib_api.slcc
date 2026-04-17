@@ -1,0 +1,20 @@
+id: rtllib_api
+label: Real-Time Locationing Library API
+package: realtime_locationing
+description: Real time locationing API
+category: Bluetooth|Direction Finding
+quality: production
+metadata:
+  sbom:
+    license: MSLA
+root_path: realtime_locationing/.
+provides:
+- name: rtllib_api
+include:
+- path: inc
+  file_list:
+  - path: sl_rtl_clib_api.h
+
+documentation:
+  docset: rtl-lib
+  document: modules

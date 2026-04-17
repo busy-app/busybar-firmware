@@ -1,0 +1,29 @@
+id: sensor_hub
+label: Sensor Hub
+package: platform_siwx91x
+description: >
+  Si91x Sensor Hub API. 
+category: Device|Si91x|MCU|Service
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+component_root_path: "components/device/silabs/si91x/mcu/drivers/service/sensorhub"
+template_file:
+  - path: linker_file/linkerfile_SoC.ld
+source:
+  - path: "src/sensor_hub.c"
+include:
+  - path: "inc"
+    file_list:
+    - path: "sensor_hub.h"
+    - path: "sensorhub_error_codes.h"
+provides:
+  - name: sensor_hub
+  - name: wiseconnect_toolchain_custom_linker
+requires:
+  - name: cmsis_i2c
+  - name: systemlevel_rtc
+toolchain_settings:
+  - option: linkerfile
+    value: autogen/linkerfile_SoC.ld

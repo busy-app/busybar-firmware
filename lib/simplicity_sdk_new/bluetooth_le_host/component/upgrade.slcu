@@ -1,0 +1,14 @@
+upgrade:
+  - sdk:
+      id: simplicity_sdk
+      version: "2025.6.0"
+    component:
+      - script: bluetooth_le_host/component/upgrade_bluetooth_feature_connection.lua
+        description: >
+          Verify Bluetooth connection role components
+      - trigger: bluetooth_feature_external_bonding_database
+        description: >
+          Component bluetooth_feature_external_bonding_database requires
+          psa_its component. Upgrade adds the required component.
+        add:
+          - psa_its

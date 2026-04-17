@@ -1,0 +1,52 @@
+id: memory_manager_redirect
+label: Memory Manager Redirect
+package: platform_core
+description: >
+  This component provides an API similar to the memory manager API but redirects
+  the memory management functions to use the standard library versions.
+  It is useful for components that do not yet support advanced memory management
+  features, such as long-term and short-term block allocation.
+category: Services|Memory Manager
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: platform_core/platform/service/memory_manager
+config_file:
+- path: config/sl_memory_manager_config.h
+include:
+- path: inc
+  file_list:
+  - path: sl_memory_manager.h
+  - path: sl_memory_manager_region.h
+- path: src
+  file_list:
+  - path: sli_memory_manager.h
+source:
+- path: src/sl_memory_manager_redirect.c
+- path: src/sl_memory_manager_pool.c
+provides:
+- name: memory_manager_redirect
+- name: memory_manager
+  condition: [device_si91x]
+- name: memory_manager
+  condition: [device_host]
+requires:
+- name: sl_core
+- name: sl_common
+- name: status
+- name: sl_si91x_memory_manager
+  condition: [device_si91x]
+- name: memory_manager_region
+  condition: [device_cortexm]
+- name: opn_device_host
+  condition: [device_host]
+conflicts:
+- name: memory_manager
+  condition: [device_series_2]
+- name: memory_manager
+  condition: [device_series_3]
+template_contribution:
+- name: component_catalog
+  value: si91x_soc_mode
+  condition: [device_si91x]

@@ -1,0 +1,62 @@
+id: in_place_ota_dfu
+label: In-Place OTA DFU
+package: bluetooth_le_middleware
+description: >
+  Component that provides in-place over-the-air (OTA) device firmware
+  update (DFU) functionality. In this solution, the application flash area is
+  used as a temporary storage for the update.
+
+  This is a Low-Code component because additional security measures might be
+  needed from user side for checking the correct security status. Our minimal
+  solution can be seen in
+
+  sl_bt_in_place_ota_dfu_security_status()
+
+  function in sl_bt_in_place_ota_dfu.c file.
+category: Bluetooth|Application|Firmware Update
+metadata:
+  sbom:
+    license: Zlib
+quality: production
+root_path: bluetooth_le_middleware/common/in_place_ota_dfu
+tag:
+- Low-Code
+config_file:
+- path: config/sl_bt_in_place_ota_dfu_config.h
+- path: in_place_ota_dfu.xml
+  directory: btconf
+include:
+- path: .
+  file_list:
+  - path: sl_bt_in_place_ota_dfu.h
+source:
+- path: sl_bt_in_place_ota_dfu.c
+provides:
+- name: in_place_ota_dfu
+conflicts:
+- name: app_ota_dfu
+- name: device_series_3    # Not supported on Series 3 devices
+requires:
+- name: app_assert
+- name: app_timer
+- name: apploader
+- name: apploader_util
+- name: bluetooth_feature_connection
+- name: bluetooth_feature_gatt_server
+- name: bluetooth_feature_system
+- name: bluetooth_stack
+- name: bootloader_interface
+- name: component_catalog
+- name: gatt_configuration
+- name: sl_common
+template_contribution:
+- name: component_catalog
+  value: in_place_ota_dfu
+- name: bluetooth_on_event
+  value:
+    include: sl_bt_in_place_ota_dfu.h
+    function: sl_bt_in_place_ota_dfu_on_event
+  priority: -9000
+documentation:
+  docset: bluetooth
+  document: bluetooth-service-api/in-place-ota-dfu

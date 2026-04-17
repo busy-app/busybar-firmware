@@ -1,0 +1,120 @@
+id: mqtt_at_commands
+package: wifi
+description: >
+  MQTT AT commands
+category: Service| AT Commands Autogen| MQTT AT commands
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+component_root_path: ./components/at_commands_auto_gen
+provides:
+  - name: mqtt_at_commands
+
+template_contribution:
+  - name: console_headers
+    value: "sl_mqtt_client_types.h"
+  - name: console_commands
+    value:
+      enable-nwp-mqtt:
+        handler: enable_nwp_mqtt_command_handler
+        arguments:
+          - "uint8"   # enable
+      net-cred-mqttclient:
+        handler: net_cred_mqttclient_command_handler
+        arguments:
+          - "uint32"  # credential-id
+          - "string"  # username
+          - "string"  # password
+      net-cred-signcert:
+        handler: net_cred_signcert_command_handler
+        arguments:
+          - "uint32"  # credential-id
+          - "uint32"  # ca-cert-len
+      mqtt-client-init:
+        handler: mqtt_client_init_command_handler
+      mqtt-client-conncfg:
+        handler: mqtt_client_conncfg_command_handler
+        arguments:
+          - "uint8"   # client-instance-id
+          - "uint32"  # ip-addr-type
+          - "string"  # ip-addr
+          - "uint16"  # port
+          - "uint16"  # connect-timeout
+          - "uint16"  # keep-alive-interval
+          - "uint16"  # keep-alive-retries
+          - "string"  # host-name
+          - "uint8"   # enable-sni
+          - "string"  # sni-host-name
+      mqtt-client-opt:
+        handler: mqtt_client_opt_command_handler
+        arguments:
+          - "uint8"   # client-instance-id
+          - "uint8"   # auto-reconnect
+          - "uint8"   # connect-retries
+          - "uint16"  # min-back-off-time
+          - "uint16"  # max-back-off-time
+          - "uint8"   # clean-session
+          - "uint8"   # mqtt-version
+          - "uint16"  # port
+          - "uint32"  # credential-id
+          - "string"  # client-id
+          - "uint32"  # tls-flag
+      mqtt-client-lwt:
+        handler: mqtt_client_lwt_command_handler
+        arguments:
+          - "uint8"   # client-instance-id
+          - "uint8"   # retained: Optional
+          - "uint8"   # qos: Optional
+          - "string"  # topic: Optional
+          - "uint32"  # content-length: Optional
+      mqtt-client-conn:
+        handler: mqtt_client_conn_command_handler
+        arguments:
+          - "uint8"   # client-instance-id
+          - "uint32"  # timeout
+      mqtt-client-discon:
+        handler: mqtt_client_discon_command_handler
+        arguments:
+          - "uint8"   # client-instance-id
+          - "uint32"  # timeout
+      mqtt-client-deinit:
+        handler: mqtt_client_deinit_command_handler
+        arguments:
+          - "uint8"   # client-instance-id
+      mqtt-client-sub:
+        handler: mqtt_client_sub_command_handler
+        arguments:
+          - "uint8"   # client-instance-id
+          - "uint8"   # qos
+          - "string"  # topic
+          - "uint32"  # timeout
+      mqtt-client-unsub:
+        handler: mqtt_client_unsub_command_handler
+        arguments:
+          - "uint8"   # client-instance-id
+          - "string"  # topic
+          - "uint32"  # timeout
+      mqtt-client-pub:
+        handler: mqtt_client_pub_command_handler
+        arguments:
+          - "uint8"   # client-instance-id
+          - "uint8"   # qos
+          - "uint16"  # id
+          - "uint8"   # retained
+          - "uint8"   # duplicate
+          - "string"  # topic
+          - "uint32"  # timeout
+          - "uint32"  # content-length
+      mqtt-client-conninfo:
+        handler: mqtt_client_conninfo_command_handler
+        arguments:
+          - "uint8"   # client-instance-id
+      mqtt-client-optinfo:
+        handler: mqtt_client_optinfo_command_handler
+        arguments:
+          - "uint8"   # client-instance-id
+      mqtt-client-subinfo:
+        handler: mqtt_client_subinfo_command_handler
+        arguments:
+          - "uint8"   # client-instance-id

@@ -1,0 +1,27 @@
+id: "bluetooth_feature_periodic_advertiser"
+label: "Periodic Advertising"
+package: bluetooth_le_controller
+description: >
+  This component, corresponding to the "periodic_advertiser" class in Bluetooth APIs,
+  provides the periodic advertising feature. Common advertising functionalities, e.g.,
+  advertising set creation, and address settings etc., are provided by its base
+  component <bluetooth_feature_advertiser>.
+category: Bluetooth|Bluetooth LE Controller (Link Layer)|Features with Commands and Events
+quality: "production"
+requires:
+- name: "bluetooth_controller"
+- name: "bluetooth_feature_advertiser"
+config_file:
+- path: "config/sl_bt_periodic_advertiser_config.h"
+provides:
+- name: "bluetooth_feature_periodic_advertiser"
+template_contribution:
+- name: component_catalog
+  value: bluetooth_feature_periodic_advertiser
+documentation:
+  docset: bluetooth
+  document: bluetooth-stack-api/sl-bt-periodic-advertiser
+metadata:
+  sbom:
+    license: Zlib AND MSLA
+root_path: bluetooth_le_controller

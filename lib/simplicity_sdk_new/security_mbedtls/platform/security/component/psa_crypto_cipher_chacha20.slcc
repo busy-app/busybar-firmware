@@ -1,0 +1,36 @@
+id: psa_crypto_cipher_chacha20
+package: security_mbedtls
+label: Chacha20 Stream Cipher
+description: >-
+  This component provides support for the ChaCha20 stream cipher in PSA Crypto.
+category: Platform|Security|PSA Crypto|Encryption
+quality: production
+provides:
+- name: psa_crypto_cipher_chacha20
+requires:
+- name: psa_crypto
+- name: mbedtls_chachapoly
+  condition: [device_security_se]
+- name: mbedtls_chachapoly
+  condition: [device_security_rot]
+- name: mbedtls_chachapoly
+  condition: [device_security_base]
+- name: mbedtls_chachapoly
+  condition: [device_generic_family_sixx301]
+template_contribution:
+- name: psa_crypto_config
+  value: PSA_WANT_KEY_TYPE_CHACHA20 1
+- name: psa_crypto_config
+  value: PSA_WANT_ALG_STREAM_CIPHER 1
+- name: psa_crypto_builtin_config
+  value: "MBEDTLS_PSA_BUILTIN_KEY_TYPE_CHACHA20 1"
+  condition: [mbedtls_chachapoly]
+- name: psa_crypto_builtin_config
+  value: "MBEDTLS_PSA_BUILTIN_ALG_STREAM_CIPHER 1"
+  condition: [mbedtls_chachapoly]
+documentation:
+  url: https://armmbed.github.io/mbed-crypto/html/api/ops/ciphers.html#c.PSA_ALG_STREAM_CIPHER
+metadata:
+  sbom:
+    reference: mbedtls_sbom
+root_path: security_mbedtls

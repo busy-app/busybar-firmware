@@ -1,0 +1,77 @@
+id: "wisun_cli_dmp"
+label: "CLI DMP"
+package: "wisun"
+description: "Adds Wi-SUN - BLE DMP functionality."
+category: "Wi-SUN|Utility"
+quality: "production"
+root_path: "wisun/./plugin/cli_dmp"
+provides:
+- name: "wisun_cli_dmp"
+requires:
+- name: "bluetooth_stack"
+- name: "gatt_configuration"
+- name: "gatt_service_device_information_override"
+- name: "bluetooth_feature_legacy_advertiser"
+- name: "bluetooth_feature_connection_role_peripheral"
+- name: "bluetooth_feature_gatt_server"
+- name: "bluetooth_feature_sm"
+- name: "bluetooth_feature_system"
+- name: "bluetooth_feature_extended_scanner"
+config_file:
+- override:
+    component: "gatt_configuration"
+    file_id: "gatt_configuration_file_id"
+    vendor: silabs
+  path: "config/gatt_configuration.btconf"
+  directory: "btconf"
+template_contribution:
+- name: "component_catalog"
+  value: "wisun_cli_dmp"
+- name: "cli_group"
+  value:
+    name: "ble"
+    help: "BLE commands"
+    shortcuts:
+    - name: "b"
+- name: "cli_command"
+  value:
+    group: "ble"
+    name: "start_adv"
+    handler: "app_ble_start_adv"
+    help: "Start BLE advertising"
+    shortcuts:
+    - name: "sta"
+    argument:
+    - type: uint32opt
+      help: "empty | [uint32] min adv interval [uint32] max adv interval"
+- name: "cli_command"
+  value:
+    group: "ble"
+    name: "stop_adv"
+    handler: "app_ble_stop_adv"
+    help: "Stop BLE advertising"
+    shortcuts:
+    - name: "sa"
+- name: "cli_command"
+  value:
+    group: "ble"
+    name: "start_scan"
+    handler: "app_ble_start_scan"
+    help: "Start BLE scanning"
+    shortcuts:
+    - name: "sts"
+    argument:
+    - type: uint16opt
+      help: "empty | [uint16] scan interval [uint16] scan window"
+- name: "cli_command"
+  value:
+    group: "ble"
+    name: "stop_scan"
+    handler: "app_ble_stop_scan"
+    help: "Stop BLE scanning"
+    shortcuts:
+    - name: "ss"
+
+metadata:
+  sbom:
+    license: MSLA

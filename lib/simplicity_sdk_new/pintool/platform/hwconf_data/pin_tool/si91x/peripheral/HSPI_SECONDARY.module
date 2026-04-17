@@ -1,0 +1,22 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<module:DocumentRoot xmlns:module="http://www.silabs.com/ss/hwconfig/module.ecore">
+  <module id="pin_tool.wfm.si91x.hspi_secondary" label="HSPI_SECONDARY" name="HSPI_SECONDARY" description="" version="A">
+    <properties>
+      <stringProperty label="Type" id="type" defaultValue="hspi_secondary" transient="true" hidden="true" readonly="true" description=""/>
+      <stringProperty label="Custom Peripheral Name" id="peripheral.name" description=""/>
+    </properties>
+    <propertyCategories>
+      <category label="HSPI_SECONDARY">
+        <subCategory label="">
+          <propertyRef refId="peripheral.name"/>
+        </subCategory>
+      </category>
+    </propertyCategories>
+    <signals>
+      <signal name="MISO"/>
+      <signal name="MOSI"/>
+      <signal name="SCK"/>
+      <signal name="CS"/>
+    </signals>
+  </module>
+</module:DocumentRoot>

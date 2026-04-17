@@ -1,0 +1,26 @@
+!!omap
+- id: pg26_pk2505a
+- label: PG26-PK2505A
+- package: boards
+- description: Kit BSP support for the PG26 Pro Kit.
+- category: Platform|Board|Kit|Pro Kit
+- quality: production
+- metadata:
+    sbom:
+      license: Zlib
+- requires:
+  - name: hardware_board_from_pg26-pk2505a
+- provides:
+  - name: hardware_kit
+  - name: hardware_kit_pk
+- define:
+  - name: SL_KIT_NAME
+    value: '"PG26-PK2505A"'
+  - name: SL_KIT_REV
+    value: '"A00"'
+- tag:
+  - kit:opn:PG26-PK2505A
+  - kit:pn:PK2505
+  - kit:variant:A
+  - kit:revision:A00
+- root_path: boards

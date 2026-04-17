@@ -1,0 +1,525 @@
+brd2102a:
+  hfxo_ctune: 120
+  lfxo_ctune: 32
+brd2102b:
+  hfxo_ctune: 120
+  lfxo_ctune: 32
+brd2204a:
+  hfxo_ctune: 132
+  lfxo_ctune: 70
+brd2204b:
+  hfxo_ctune: 132
+  lfxo_ctune: 70
+brd2204c:
+  hfxo_ctune: 132
+  lfxo_ctune: 70
+brd2207a:
+  hfxo_ctune: 132
+  lfxo_ctune: 70
+brd2500a:
+  hfxo_ctune: 322
+  lfxo_ctune: 32
+brd2500b:
+  hfxo_ctune: 240
+  lfxo_ctune: 21
+brd2501a:
+  hfxo_ctune: 322
+  lfxo_ctune: 32
+brd2501a:
+  hfxo_ctune: 240
+  lfxo_ctune: 21
+brd2504a:
+  hfxo_ctune: 140
+brd2505a:
+  lfxo_ctune: 35
+  hfxo_ctune: 96
+brd2506a:
+  hfxo_ctune: 114
+  lfxo_ctune: 38
+brd2600a:
+  hfxo_ctune: 107
+  lfxo_ctune: 38
+brd2601a:
+  hfxo_ctune: 140
+brd2601b:
+  hfxo_ctune: 140
+brd2606a:
+  hfxo_ctune: 82
+  lfxo_ctune: 44
+brd2703a:
+  hfxo_ctune: 100
+  lfxo_ctune: 37
+brd2705a:
+  hfxo_ctune: 100
+  lfxo_ctune: 35
+brd2710a:
+  hfxo_ctune: 121
+  lfxo_ctune: 42
+brd2719a:
+  hfxo_ctune: 173
+brd4100a:
+  hfxo_ctune: 340
+  lfxo_ctune: 32
+brd4101b:
+  hfxo_ctune: 341
+  lfxo_ctune: 32
+brd4103a:
+  hfxo_ctune: 364
+  lfxo_ctune: 32
+brd4104a:
+  hfxo_ctune: 335
+  lfxo_ctune: 32
+brd4108a:
+  hfxo_ctune: 121
+  lfxo_ctune: 42
+brd4109a:
+  hfxo_ctune: 120
+  lfxo_ctune: 37
+brd4110a:
+  hfxo_ctune: 120
+  lfxo_ctune: 37
+brd4111a:
+  hfxo_ctune: 120
+  lfxo_ctune: 37
+brd4113a:
+  hfxo_ctune: 120
+  lfxo_ctune: 37
+brd4115a:
+  hfxo_ctune: 105
+  lfxo_ctune: 42
+brd4116a:
+  hfxo_ctune: 90
+  lfxo_ctune: 44
+brd4117a:
+  hfxo_ctune: 103
+  lfxo_ctune: 37
+  #update the CTUNE once received, this is just to unblock RAIL team
+brd4117z:
+  hfxo_ctune: 103
+  lfxo_ctune: 37
+brd4118a:
+  hfxo_ctune: 82
+  lfxo_ctune: 37
+brd4115b:
+  hfxo_ctune: 103
+  lfxo_ctune: 38
+brd4120a:
+  hfxo_ctune: 101
+  lfxo_ctune: 42
+brd4122a:
+  hfxo_ctune: 103
+  lfxo_ctune: 36
+brd4122b:
+  hfxo_ctune: 103
+  lfxo_ctune: 36
+brd4150a:
+  hfxo_ctune: 342
+  lfxo_ctune: 32
+brd4150b:
+  hfxo_ctune: 333
+  lfxo_ctune: 32
+brd4150c:
+  hfxo_ctune: 333
+  lfxo_ctune: 32
+brd4151a:
+  hfxo_ctune: 347
+  lfxo_ctune: 32
+brd4152a:
+  hfxo_ctune: 322
+  lfxo_ctune: 32
+brd4153a:
+  hfxo_ctune: 348
+  lfxo_ctune: 32
+brd4154a:
+  hfxo_ctune: 326
+  lfxo_ctune: 32
+brd4155a:
+  hfxo_ctune: 344
+  lfxo_ctune: 32
+brd4158a:
+  hfxo_ctune: 331
+  lfxo_ctune: 32
+brd4159a:
+  hfxo_ctune: 346
+  lfxo_ctune: 32
+brd4160a:
+  hfxo_ctune: 346
+  lfxo_ctune: 32
+brd4161a:
+  hfxo_ctune: 327
+  lfxo_ctune: 32
+brd4162a:
+  hfxo_ctune: 330
+  lfxo_ctune: 32
+brd4163a:
+  hfxo_ctune: 331
+  lfxo_ctune: 32
+brd4164a:
+  hfxo_ctune: 327
+  lfxo_ctune: 32
+brd4165b:
+  hfxo_ctune: 341
+  lfxo_ctune: 32
+brd4166a:
+  hfxo_ctune: 332
+  lfxo_ctune: 32
+brd4166c:
+  hfxo_ctune: 332
+  lfxo_ctune: 32
+brd4167a:
+  hfxo_ctune: 332
+  lfxo_ctune: 32
+brd4168a:
+  hfxo_ctune: 330
+  lfxo_ctune: 32
+brd4169a:
+  hfxo_ctune: 338
+  lfxo_ctune: 32
+brd4169b:
+  hfxo_ctune: 333
+  lfxo_ctune: 32
+brd4170a:
+  hfxo_ctune: 340
+  lfxo_ctune: 32
+brd4171a:
+  hfxo_ctune: 133
+brd4172a:
+  hfxo_ctune: 340
+  lfxo_ctune: 32
+brd4172b:
+  hfxo_ctune: 340
+  lfxo_ctune: 32
+brd4173a:
+  hfxo_ctune: 338
+  lfxo_ctune: 32
+brd4174a:
+  hfxo_ctune: 339
+  lfxo_ctune: 32
+brd4174b:
+  hfxo_ctune: 339
+  lfxo_ctune: 32
+brd4175a:
+  hfxo_ctune: 336
+  lfxo_ctune: 32
+brd4176a:
+  hfxo_ctune: 120
+  lfxo_ctune: 79
+brd4178a:
+  hfxo_ctune: 330
+  lfxo_ctune: 32
+brd4179b:
+  hfxo_ctune: 133
+  lfxo_ctune: 79
+brd4180a:
+  hfxo_ctune: 129
+  lfxo_ctune: 79
+brd4180b:
+  hfxo_ctune: 129
+  lfxo_ctune: 37
+brd4180y:
+  hfxo_ctune: 129
+  lfxo_ctune: 37
+brd4180z:
+  hfxo_ctune: 129
+  lfxo_ctune: 37
+brd4181a:
+  hfxo_ctune: 133
+  lfxo_ctune: 79
+brd4181b:
+  hfxo_ctune: 133
+  lfxo_ctune: 37
+brd4181c:
+  hfxo_ctune: 130
+  lfxo_ctune: 37
+brd4182a:
+  hfxo_ctune: 120
+  lfxo_ctune: 37
+brd4183a:
+  hfxo_ctune: 120
+  lfxo_ctune: 37
+brd4183b:
+  hfxo_ctune: 120
+  lfxo_ctune: 37
+brd4183c:
+  hfxo_ctune: 112
+  lfxo_ctune: 38
+brd4184a:
+  hfxo_ctune: 120
+  lfxo_ctune: 37
+brd4184b:
+  hfxo_ctune: 120
+  lfxo_ctune: 37
+brd4185a:
+  hfxo_ctune: 120
+  lfxo_ctune: 37
+brd4186a:
+  hfxo_ctune: 87
+  lfxo_ctune: 36
+brd4186b:
+  hfxo_ctune: 87
+  lfxo_ctune: 36
+brd4186c:
+  hfxo_ctune: 87
+  lfxo_ctune: 36
+brd4186z:
+  hfxo_ctune: 95
+  lfxo_ctune: 42
+brd4187a:
+  hfxo_ctune: 95
+  lfxo_ctune: 44
+brd4187b:
+  hfxo_ctune: 95
+  lfxo_ctune: 44
+brd4187c:
+  hfxo_ctune: 95
+  lfxo_ctune: 44
+brd4188a:
+  hfxo_ctune: 93
+  lfxo_ctune: 44
+brd4188b:
+  hfxo_ctune: 93
+  lfxo_ctune: 44
+brd4190a:
+  hfxo_ctune: 357
+  lfxo_ctune: 63
+brd4191a:
+  hfxo_ctune: 140
+  lfxo_ctune: 63
+brd4194a:
+  hfxo_ctune: 120
+  lfxo_ctune: 37
+brd4195a:
+  hfxo_ctune: 130
+  lfxo_ctune: 37
+brd4195b:
+  hfxo_ctune: 129
+  lfxo_ctune: 42
+brd4196a:
+  hfxo_ctune: 130
+  lfxo_ctune: 37
+brd4196b:
+  hfxo_ctune: 126
+  lfxo_ctune: 42
+brd4197a:
+  hfxo_ctune: 95
+  lfxo_ctune: 44
+brd4198a:
+  hfxo_ctune: 96
+  lfxo_ctune: 38
+brd4198b:
+  hfxo_ctune: 38
+  lfxo_ctune: 40
+brd4199a:
+  hfxo_ctune: 88
+brd4199b:
+  hfxo_ctune: 36
+  lfxo_ctune: 38
+brd4201a:
+  hfxo_ctune: 343
+brd4201b:
+  hfxo_ctune: 343
+brd4201c:
+  hfxo_ctune: 343
+brd4201d:
+  hfxo_ctune: 343
+brd4203a:
+  hfxo_ctune: 333
+brd4204a:
+  hfxo_ctune: 120
+  lfxo_ctune: 37
+brd4204b:
+  hfxo_ctune: 121
+brd4204c:
+  hfxo_ctune: 121
+brd4204d:
+  hfxo_ctune: 121
+  lfxo_ctune: 38
+brd4206a:
+  hfxo_ctune: 343
+brd4208a:
+  hfxo_ctune: 357
+brd4209a:
+  hfxo_ctune: 361
+brd4210a:
+  hfxo_ctune: 106
+  lfxo_ctune: 38
+brd4210z:
+  hfxo_ctune: 125
+  lfxo_ctune: 42
+brd4250a:
+  hfxo_ctune: 338
+  lfxo_ctune: 32
+brd4250b:
+  hfxo_ctune: 344
+  lfxo_ctune: 32
+brd4251a:
+  hfxo_ctune: 340
+  lfxo_ctune: 32
+brd4251b:
+  hfxo_ctune: 340
+  lfxo_ctune: 32
+brd4251d:
+  hfxo_ctune: 334
+  lfxo_ctune: 32
+brd4252a:
+  hfxo_ctune: 341
+  lfxo_ctune: 32
+brd4253a:
+  hfxo_ctune: 323
+  lfxo_ctune: 32
+brd4254a:
+  hfxo_ctune: 343
+  lfxo_ctune: 32
+brd4255a:
+  hfxo_ctune: 345
+  lfxo_ctune: 32
+brd4256a:
+  hfxo_ctune: 349
+  lfxo_ctune: 32
+brd4257a:
+  hfxo_ctune: 357
+  lfxo_ctune: 32
+brd4257b:
+  hfxo_ctune: 340
+  lfxo_ctune: 32
+brd4258a:
+  hfxo_ctune: 338
+  lfxo_ctune: 32
+brd4258b:
+  hfxo_ctune: 340
+  lfxo_ctune: 32
+brd4259a:
+  hfxo_ctune: 338
+  lfxo_ctune: 32
+brd4263a:
+  hfxo_ctune: 120
+  lfxo_ctune: 37
+brd4263b:
+  hfxo_ctune: 111
+  lfxo_ctune: 38
+brd4263c:
+  hfxo_ctune: 111
+  lfxo_ctune: 38
+brd4264a:
+  hfxo_ctune: 120
+  lfxo_ctune: 37
+brd4264b:
+  hfxo_ctune: 115
+  lfxo_ctune: 38
+brd4264c:
+  hfxo_ctune: 115
+  lfxo_ctune: 38
+brd4264v:
+  hfxo_ctune: 121
+brd4265a:
+  hfxo_ctune: 118
+  lfxo_ctune: 42
+brd4265b:
+  hfxo_ctune: 118
+  lfxo_ctune: 42
+brd4266b:
+  hfxo_ctune: 140
+  lfxo_ctune: 63
+brd4267b:
+  hfxo_ctune: 140
+  lfxo_ctune: 63
+brd4269b:
+  hfxo_ctune: 140
+  lfxo_ctune: 63
+brd4270a:
+  hfxo_ctune: 92
+  lfxo_ctune: 38
+brd4270b:
+  hfxo_ctune: 92
+  lfxo_ctune: 38
+brd4271a:
+  hfxo_ctune: 93
+  lfxo_ctune: 38
+brd4272a:
+  hfxo_ctune: 93
+  lfxo_ctune: 38
+brd4273a:
+  hfxo_ctune: 105
+  lfxo_ctune: 36
+brd4274a:
+  hfxo_ctune: 105
+  lfxo_ctune: 36
+brd4276a:
+  hfxo_ctune: 103
+  lfxo_ctune: 38
+brd4277a:
+  hfxo_ctune: 120
+  lfxo_ctune: 40
+brd4278a:
+  hfxo_ctune: 120
+  lfxo_ctune: 40
+brd4329a:
+  hfxo_ctune: 137
+brd4332a:
+  lfxo_ctune: 127
+brd4400a:
+  hfxo_ctune: 96
+  lfxo_ctune: 37
+brd4400b:
+  hfxo_ctune: 96
+  lfxo_ctune: 37
+brd4400c:
+  hfxo_ctune: 112
+  lfxo_ctune: 44
+brd4401a:
+  hfxo_ctune: 99
+  lfxo_ctune: 39
+brd4401b:
+  hfxo_ctune: 99
+  lfxo_ctune: 39
+brd4401c:
+  hfxo_ctune: 115
+  lfxo_ctune: 44
+brd4401z:
+  hfxo_ctune: 113
+  lfxo_ctune: 44
+brd4402a:
+  hfxo_ctune: 132
+  lfxo_ctune: 37
+brd4402z:
+  hfxo_ctune: 132
+  lfxo_ctune: 37
+brd4402b:
+  hfxo_ctune: 141
+  lfxo_ctune: 42
+brd4402c:
+  hfxo_ctune: 141
+  lfxo_ctune: 42
+brd4403a:
+  hfxo_ctune: 135
+  lfxo_ctune: 38
+brd4403b:
+  hfxo_ctune: 125
+  lfxo_ctune: 42
+brd4403c:
+  hfxo_ctune: 125
+  lfxo_ctune: 42
+brd4406a:
+  hfxo_ctune: 49
+  lfxo_ctune: 38
+brd4407a:
+  hfxo_ctune: 225
+brd4408a:
+  hfxo_ctune: 209
+brd4411a:
+  hfxo_ctune: 140
+brd4412a:
+  hfxo_ctune: 125
+  lfxo_ctune: 38
+brd4413a:
+  hfxo_ctune: 129
+  lfxo_ctune: 42
+brd4414a:
+  hfxo_ctune: 119
+  lfxo_ctune: 34
+brd4415a:
+  hfxo_ctune: 120
+  lfxo_ctune: 37
+brd4420a:
+  hfxo_ctune: 133
+  lfxo_ctune: 32

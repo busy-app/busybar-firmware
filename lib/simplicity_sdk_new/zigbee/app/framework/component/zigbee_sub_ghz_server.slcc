@@ -1,0 +1,137 @@
+package: zigbee
+description: The Smart Energy Sub-GHz server monitors clients' and its own duty cycles. Once a Limited threshold is reached, the Sub-GHz server instructs the offending client to suspend sending any more ZCL messages for a certain period. On reaching the Critical threshold, the suspend ZCL messages command is broadcast to all clients.
+label: Sub-GHz Server
+quality: production
+id: zigbee_sub_ghz_server
+category: Zigbee|Cluster Library|Smart Energy
+provides:
+- name: zigbee_sub_ghz_server
+config_file:
+- path: app/framework/plugin/sub-ghz-server/config/sub-ghz-server-config.h
+source:
+- path: app/framework/plugin/sub-ghz-server/sub-ghz-server.c
+- path: app/framework/plugin/sub-ghz-server/sub-ghz-server-cli.c
+  condition:
+  - cli
+- path: app/framework/plugin/sub-ghz-server/sub-ghz-server-cb.c
+include:
+- path: app/framework/plugin/sub-ghz-server
+  file_list:
+  - path: sub-ghz-server.h
+template_contribution:
+- name: component_catalog
+  value: zigbee_sub_ghz_server
+- name: cluster_service
+  value:
+    cluster_id: '0x070B'
+    mfg_id: NOT_MFG_SPECIFIC
+    side: SERVER
+    service_function: sl_zigbee_af_sub_ghz_cluster_server_command_parse
+- name: zigbee_stack_callback
+  value:
+    callback_type: duty_cycle
+    function_name: sli_zigbee_af_sub_ghz_server_duty_cycle_callback
+- name: cli_group
+  value:
+    group: plugin
+    name: sub-ghz
+    help: sub-ghz related commands
+- name: cli_group
+  value:
+    group: sub-ghz
+    name: channel-change
+    help: channel-change related commands
+- name: cli_command
+  value:
+    group: channel-change
+    name: print
+    handler: sli_zigbee_af_sub_ghz_server_cli_channel_change_print
+    help: Print out the status of the sub-GHz channel change attribute.
+- name: cli_command
+  value:
+    group: channel-change
+    name: set
+    handler: sli_zigbee_af_sub_ghz_server_cli_channel_change_set
+    help: Set the status of the sub-GHz channel change attribute.
+    argument:
+    - type: uint32
+      help: Channel change attribute (bit mask)
+- name: cli_group
+  value:
+    group: sub-ghz
+    name: channel-mask
+    help: channel-mask related commands
+- name: cli_command
+  value:
+    group: channel-mask
+    name: print
+    handler: sli_zigbee_af_sub_ghz_server_cli_channel_mask_print
+    help: Print out the status of all sub-GHz channel masks.
+- name: cli_command
+  value:
+    group: channel-mask
+    name: set
+    handler: sli_zigbee_af_sub_ghz_server_cli_channel_mask_set
+    help: Set one or more sub-GHz channel mask(s).
+    argument:
+    - type: uint32
+      help: Channel 28 mask
+    - type: uint32
+      help: Channel 29 mask
+    - type: uint32
+      help: Channel 30 mask
+    - type: uint32
+      help: Channel 31 mask
+- name: cli_group
+  value:
+    group: sub-ghz
+    name: limits
+    help: limits related commands
+- name: cli_command
+  value:
+    group: limits
+    name: print
+    handler: sli_zigbee_af_sub_ghz_server_cli_duty_cycle_limits_print
+    help: Print the current Duty Cycle limits.
+- name: cli_command
+  value:
+    group: limits
+    name: set
+    handler: sli_zigbee_af_sub_ghz_server_cli_duty_cycle_limits_set
+    help: Set the Duty Cycle limits.
+    argument:
+    - type: uint16
+      help: Limited Duty Cycle state threshold in % * 100 (i.e. 150 = 1.5%)
+    - type: uint16
+      help: Critical Duty Cycle state threshold in % * 100
+    - type: uint16
+      help: Suspended Duty Cycle state threshold in % * 100
+- name: cli_command
+  value:
+    group: sub-ghz
+    name: suspend-zcl-messages
+    handler: sli_zigbee_af_sub_ghz_server_cli_suspend_zcl_messages
+    help: Send the SuspendZCLMessages command to the given client.
+    argument:
+    - type: uint16
+      help: Node ID of the given client
+    - type: uint8
+      help: Endpoint of the given client
+    - type: uint8
+      help: Period in minutes
+- name: cli_command
+  value:
+    group: sub-ghz
+    name: client-status
+    handler: sli_zigbee_af_sub_ghz_server_cli_client_status
+    help: Print the given Sub-GHZ given clients current status.
+    argument:
+    - type: uint16
+      help: Clients Node ID of the given client
+documentation:
+  docset: zigbee
+  document: zigbee-af-api/sub-ghz-server
+metadata:
+  sbom:
+    license: MSLA
+root_path: zigbee

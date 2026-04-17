@@ -1,0 +1,38 @@
+id: "wisun_stack_lfn"
+label: "Wi-SUN Stack LFN Support"
+description: >
+  Adds support for Limited Function Node (LFN) device type. This component
+  adds the necessary functionality and APIs for LFN, enabling low-power
+  operation. The application is responsible for configuring <power_manager>
+  and the peripherals appropriately for low energy mode operation.
+  For evaluation purposes only.
+package: "wisun"
+category: "Wi-SUN|Stack"
+quality: "evaluation"
+root_path: "wisun/./stack"
+
+requires:
+- name: "device_supports_wisun"
+- name: "wisun_stack"
+
+provides:
+- name: "wisun_stack_lfn"
+- name: "wisun_stack_device_type"
+  allow_multiple: true
+
+define:
+- name: "HAVE_LFN"
+- name: "HAVE_MODE_SWITCH"
+  unless: [device_sdid_210]
+
+documentation:
+  docset: wisun
+  document: wisun-stack-api/sl-wisun-lfn-api
+
+template_contribution:
+- name: component_catalog
+  value: wisun_lfn_device_support
+
+metadata:
+  sbom:
+    license: MSLA

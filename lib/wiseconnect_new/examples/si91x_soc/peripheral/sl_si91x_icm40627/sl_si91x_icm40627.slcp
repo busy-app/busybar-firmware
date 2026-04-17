@@ -1,0 +1,54 @@
+project_name: sl_si91x_icm40627
+package: platform_siwx91x_app
+description: "This application demonstrates how to configure and use the ICM40627 motion sensor, a 6-axis sensor that combines a 3-axis accelerometer and a 3-axis gyroscope. \nThe example covers how to initialize the sensor, configure its settings for various motion detection tasks, and retrieve sensor data for further processing, enabling motion-based applications.\n"
+category: example|peripheral
+quality: production
+label: sl_si91x_icm40627
+component:
+- id: sl_main
+- id: syscalls
+- id: si91x_memory_default_config
+- id: sl_icm40627
+- id: sleeptimer
+- id: sl_ssi
+- id: sl_ssi_instance
+  instance:
+  - ulp_primary
+- id: ssi_ulp_component
+source:
+- path: app.c
+- path: icm40627_example.c
+include:
+- path: .
+  file_list:
+  - path: app.h
+  - path: icm40627_example.h
+toolchain_settings:
+- option: gcc_compiler_option
+  value: -Wall -Werror
+other_file:
+- path: resources/readme/setupdiagram.png
+- path: resources/readme/output1.png
+configuration:
+- name: SL_SSI_DEVICE_MODE
+  value: SL_SSI_ULP_MASTER_ACTIVE
+- name: SL_SPI_BAUD
+  value: 5000000
+- name: SL_ULP_TIMER_DIRECTION
+  value: '1'
+ui_hints:
+  highlight:
+  - path: readme.md
+    focus: true
+readme:
+- path: readme.md
+post_build:
+  profile: wiseconnect_soc
+sdk_extension:
+- id: wiseconnect3_sdk
+  vendor: silabs
+  version: 4.0.1
+sdk:
+  id: simplicity_sdk
+  vendor: silabs
+  version: 2025.12.2

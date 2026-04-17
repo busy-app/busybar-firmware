@@ -1,0 +1,46 @@
+id: ot_ncp_spidrv
+label: NCP SPIDRV
+package: openthread
+category: OpenThread
+quality: production
+description: This component provides SPIDRV (SPI) support for the OpenThread stack. It requires that the OpenThread NCP component be included with the project. Currently only the OpenThread RCP stack is supported.
+provides:
+- name: ot_ncp_spidrv
+requires:
+- name: sl_core
+- name: gpio
+- name: device_gpio
+- name: gpiointerrupt
+  condition: [device_series_2]
+- name: emlib_ldma
+  condition: [device_series_2]
+- name: hal_gpio
+  condition: [device_series_3]
+- name: hal_ldma
+  condition: [device_series_3]
+- name: spidrv_core
+- name: clock_manager_runtime
+- name: ot_headers
+source:
+- path: platform-abstraction/efr32/spidrv_usart.c
+  condition: [device_series_2]
+- path: platform-abstraction/efr32/spidrv_eusart.c
+  condition: [device_series_3]
+config_file:
+- path: config/ot_ncp_spidrv/s2/sl_ncp_spidrv_usart_config.h
+  file_id: sl_ncp_spidrv_usart_config
+  condition: [device_series_2]
+- path: config/ot_ncp_spidrv/s3/sl_ncp_spidrv_eusart_config.h
+  file_id: sl_ncp_spidrv_eusart_config
+  condition: [device_series_3]
+define:
+- name: OPENTHREAD_CONFIG_NCP_HDLC_ENABLE
+  value: 0
+- name: OPENTHREAD_CONFIG_NCP_SPI_ENABLE
+  value: 1
+metadata:
+  sbom:
+    # BSD-3-Clause covers the files from platform-abstraction/efr32
+    # Zlib covers the files from config.
+    license: BSD-3-Clause AND Zlib
+root_path: openthread

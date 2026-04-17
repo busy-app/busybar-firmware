@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="ASCII"?>
+<model:MDescriptors xmlns:model="http://www.silabs.com/ss/Studio.ecore">
+  <descriptors name="wisun_ncp" label="Wi-SUN - NCP" description="The Wi-SUN Network Co-Processor (NCP) application provides a complete Wi-SUN network interface implementation for embedded devices. This project implements a Network Co-Processor architecture where the Wi-SUN stack runs on a dedicated radio microcontroller, communicating with a host processor through UART or CPC (Co-Processor Communication) interfaces.">
+    <properties key="namespace" value="template.uc"/>
+    <properties key="keywords" value="universal\ configurator"/>
+    <properties key="solutionReferenceId" value="wisun_ncp.slcp"/>
+    <properties key="projectFilePaths" value="wisun_ncp.slcp"/>
+    <properties key="readmeFiles" value="doc/readme.md"/>
+    <properties key="boardCompatibility" value="brd2705a brd4270a brd4270b brd4271a brd4272a brd4276a brd4400a brd4400b brd4400c brd4401a brd4401b brd4401c com.silabs.board.none"/>
+    <properties key="partCompatibility" value=".*efr32fg25.* .*efr32fg28.* .*efr32zg28.*"/>
+    <properties key="ideCompatibility" value="generic-template iar-embedded-workbench makefile-ide simplicity-ide visual-studio-code"/>
+    <properties key="toolchainCompatibility" value="gcc iar segger"/>
+    <properties key="category" value="Wi-SUN Examples"/>
+    <properties key="quality" value="PRODUCTION"/>
+    <properties key="stockConfigCompatibility" value="com.silabs.ss.framework.project.toolchain.core.default"/>
+    <properties key="filters" value="Device\ Type|NCP Project\ Difficulty|Advanced Wireless\ Technology|Wi-SUN"/>
+  </descriptors>
+</model:MDescriptors>

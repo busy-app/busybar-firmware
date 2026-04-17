@@ -1,0 +1,74 @@
+id: "wisun_br_common_library"
+label: "Wi-SUN Border Router Stack (Library)"
+package: "wisun"
+category: "Wi-SUN"
+quality: "production"
+description: "Provide Wi-SUN Border Router stack library"
+root_path: "wisun/./stack"
+
+requires:
+- name: "wisun_br_stack"
+
+provides:
+- name: "wisun_br_implementation"
+
+source:
+- path: "src/sl_wisun_regdb.c"
+  project:
+    transfer_ownership: true
+
+library:
+- path: "libwisun_border_router_efr32xg2x_gcc_debug.a"
+  condition:
+  - "toolchain_gcc"
+  - "device_sdid_220"
+  - "wisun_stack_debug"
+- path: "libwisun_border_router_efr32xg2x_gcc_debug.a"
+  condition:
+  - "toolchain_gcc"
+  - "device_sdid_235"
+  - "wisun_stack_debug"
+- path: "libwisun_border_router_efr32xg2x_iar_debug.a"
+  condition:
+  - "toolchain_iar"
+  - "device_sdid_220"
+  - "wisun_stack_debug"
+- path: "libwisun_border_router_efr32xg2x_iar_debug.a"
+  condition:
+  - "toolchain_iar"
+  - "device_sdid_235"
+  - "wisun_stack_debug"
+
+- path: "libwisun_border_router_efr32xg2x_gcc_release.a"
+  condition:
+  - "toolchain_gcc"
+  - "device_sdid_220"
+  unless:
+  - "wisun_stack_debug"
+- path: "libwisun_border_router_efr32xg2x_gcc_release.a"
+  condition:
+  - "toolchain_gcc"
+  - "device_sdid_235"
+  unless:
+  - "wisun_stack_debug"
+- path: "libwisun_border_router_efr32xg2x_iar_release.a"
+  condition:
+  - "toolchain_iar"
+  - "device_sdid_220"
+  unless:
+  - "wisun_stack_debug"
+- path: "libwisun_border_router_efr32xg2x_iar_release.a"
+  condition:
+  - "toolchain_iar"
+  - "device_sdid_235"
+  unless:
+  - "wisun_stack_debug"
+
+metadata:
+  sbom:
+    license: MSLA AND Apache-2.0
+    upstream:
+      name: Nanostack
+      version: 14.0.0
+      supplier: Pelion and affiliates
+      url: https://github.com/ARMmbed/mbed-os/tree/9957e7b4ae4315e6d1d2bc064c469e69fb34ff78/features/nanostack

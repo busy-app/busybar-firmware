@@ -1,0 +1,320 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__external__bondingdb" kind="group">
+    <compoundname>sl_bt_external_bondingdb</compoundname>
+    <title>External Bonding Database</title>
+    <innergroup refid="group__sl__bt__evt__external__bondingdb__data__request">sl_bt_evt_external_bondingdb_data_request</innergroup>
+    <innergroup refid="group__sl__bt__evt__external__bondingdb__data">sl_bt_evt_external_bondingdb_data</innergroup>
+    <innergroup refid="group__sl__bt__evt__external__bondingdb__data__ready">sl_bt_evt_external_bondingdb_data_ready</innergroup>
+    <innergroup refid="group__sl__bt__evt__external__bondingdb__local__irk__request">sl_bt_evt_external_bondingdb_local_irk_request</innergroup>
+    <innergroup refid="group__sl__bt__evt__external__bondingdb__local__irk">sl_bt_evt_external_bondingdb_local_irk</innergroup>
+      <sectiondef kind="enum">
+      <memberdef kind="enum" id="group__sl__bt__external__bondingdb_1ga57a8e1716515591b6934083d7807f1dc" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_bt_external_bondingdb_data_t</name>
+        <enumvalue id="group__sl__bt__external__bondingdb_1gga57a8e1716515591b6934083d7807f1dca6f30bd2eadf497ccc0e48ce649bb1c20" prot="public">
+          <name>sl_bt_external_bondingdb_data_remote_address</name>
+          <initializer>= 0x0</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x0) Identity address of the remote device, which a resolvable random address can be resolved to </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__external__bondingdb_1gga57a8e1716515591b6934083d7807f1dcacfcd4247ec843d238bd6a096ae186e3a" prot="public">
+          <name>sl_bt_external_bondingdb_data_remote_address_type</name>
+          <initializer>= 0x1</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x1) Type of the remote device identity address. Value 0 is public device address and 1 is static device address </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__external__bondingdb_1gga57a8e1716515591b6934083d7807f1dca7ebb7a7c0ff4147c66b4ea14a54e06c2" prot="public">
+          <name>sl_bt_external_bondingdb_data_remote_ltk</name>
+          <initializer>= 0x2</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x2) 16-byte Long Term Key (LTK) in little endian format used as central device. The value of this type must be stored securely. </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__external__bondingdb_1gga57a8e1716515591b6934083d7807f1dca15da8758f8617a979ae108ba424eb137" prot="public">
+          <name>sl_bt_external_bondingdb_data_local_ltk</name>
+          <initializer>= 0x3</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x3) 16-byte Long Term Key (LTK) in little endian format used as peripheral device. The value of this type must be stored securely. </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__external__bondingdb_1gga57a8e1716515591b6934083d7807f1dca204e5f7bc627f686b4912bf0f77f8df0" prot="public">
+          <name>sl_bt_external_bondingdb_data_remote_central_inf</name>
+          <initializer>= 0x4</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x4) Identification info used as a central device </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__external__bondingdb_1gga57a8e1716515591b6934083d7807f1dcab0200693105912636404470ddcc6f45f" prot="public">
+          <name>sl_bt_external_bondingdb_data_local_central_inf</name>
+          <initializer>= 0x5</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x5) Identification info used as a central device </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__external__bondingdb_1gga57a8e1716515591b6934083d7807f1dca1e284993424ea7e60b89302c6112c99f" prot="public">
+          <name>sl_bt_external_bondingdb_data_irk</name>
+          <initializer>= 0x6</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x6) 16-byte Identity Resolving Key (IRK) of the remote device in little endian format that is used for resolving its RPA addresses when the device is in privacy mode. The value of this type must be stored securely. </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__external__bondingdb_1gga57a8e1716515591b6934083d7807f1dcada64056686b773b8df08a6bfcde65bb1" prot="public">
+          <name>sl_bt_external_bondingdb_data_meta</name>
+          <initializer>= 0x7</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x7) Metadata about the bonding </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__external__bondingdb_1gga57a8e1716515591b6934083d7807f1dca227d8917e465ca2f8a502cd5e3a65355" prot="public">
+          <name>sl_bt_external_bondingdb_data_gatt_client_config</name>
+          <initializer>= 0x8</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x8) The remote GATT client characteristic configurations </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__external__bondingdb_1gga57a8e1716515591b6934083d7807f1dcaf4b1355669e95cf54742e1f68e56e617" prot="public">
+          <name>sl_bt_external_bondingdb_data_gatt_client_features</name>
+          <initializer>= 0x9</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x9) The remote GATT client supported features </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__external__bondingdb_1gga57a8e1716515591b6934083d7807f1dcac13dee4ad45788c67b22b615dccc920f" prot="public">
+          <name>sl_bt_external_bondingdb_data_gatt_db_hash</name>
+          <initializer>= 0xa</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0xa) Latest local GATT database hash value that the remote client has seen for GATT robust caching feature </para>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>These values define the bonding data types, which are stored in the persistent store. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="12020" column="1" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="12021" bodyend="12105"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="group__sl__bt__external__bondingdb_1ga466391986f5931598e6d14dc8b1dd391" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_external_bondingdb_set_data</definition>
+        <argsstring>(uint8_t connection, uint8_t type, size_t data_len, const uint8_t *data)</argsstring>
+        <name>sl_bt_external_bondingdb_set_data</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>connection</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>type</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>data_len</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>data</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Set bonding data of a connection from the external bonding database. When the Bluetooth stack needs bonding data, it will send the request to user application with a <ref refid="group__sl__bt__evt__external__bondingdb__data__request" kindref="compound">sl_bt_evt_external_bondingdb_data_request</ref> event that contains the requested data type. The application must respond to the request by sending data using this command.</para>
+<para>Send 0 length data to the stack with this command if the requested data is not available in the external bonding database.</para>
+<para>If no bonding data was provided to the stack when requested, it is possible to send such data later using this command. However, this is only allowed if no data was given earlier. Once data has been provided, it cannot be updated or replaced by sending new data. The first bonding data set this way must be <ref refid="group__sl__bt__external__bondingdb_1gga57a8e1716515591b6934083d7807f1dca7ebb7a7c0ff4147c66b4ea14a54e06c2" kindref="member">sl_bt_external_bondingdb_data_remote_ltk</ref> if the device has central role or <ref refid="group__sl__bt__external__bondingdb_1gga57a8e1716515591b6934083d7807f1dca15da8758f8617a979ae108ba424eb137" kindref="member">sl_bt_external_bondingdb_data_local_ltk</ref> if it has peripheral role. The Bluetooth stack will request the remaining data normally.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">connection</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Connection handle </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">type</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Enum <ref refid="group__sl__bt__external__bondingdb_1ga57a8e1716515591b6934083d7807f1dc" kindref="member">sl_bt_external_bondingdb_data_t</ref>. Bonding data type. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_external_bondingdb_data_remote_address (0x0):</bold> Identity address of the remote device, which a resolvable random address can be resolved to</para>
+</listitem><listitem><para><bold>sl_bt_external_bondingdb_data_remote_address_type (0x1):</bold> Type of the remote device identity address. Value 0 is public device address and 1 is static device address</para>
+</listitem><listitem><para><bold>sl_bt_external_bondingdb_data_remote_ltk (0x2):</bold> 16-byte Long Term Key (LTK) in little endian format used as central device. The value of this type must be stored securely.</para>
+</listitem><listitem><para><bold>sl_bt_external_bondingdb_data_local_ltk (0x3):</bold> 16-byte Long Term Key (LTK) in little endian format used as peripheral device. The value of this type must be stored securely.</para>
+</listitem><listitem><para><bold>sl_bt_external_bondingdb_data_remote_central_inf (0x4):</bold> Identification info used as a central device</para>
+</listitem><listitem><para><bold>sl_bt_external_bondingdb_data_local_central_inf (0x5):</bold> Identification info used as a central device</para>
+</listitem><listitem><para><bold>sl_bt_external_bondingdb_data_irk (0x6):</bold> 16-byte Identity Resolving Key (IRK) of the remote device in little endian format that is used for resolving its RPA addresses when the device is in privacy mode. The value of this type must be stored securely.</para>
+</listitem><listitem><para><bold>sl_bt_external_bondingdb_data_meta (0x7):</bold> Metadata about the bonding</para>
+</listitem><listitem><para><bold>sl_bt_external_bondingdb_data_gatt_client_config (0x8):</bold> The remote GATT client characteristic configurations</para>
+</listitem><listitem><para><bold>sl_bt_external_bondingdb_data_gatt_client_features (0x9):</bold> The remote GATT client supported features</para>
+</listitem><listitem><para><bold>sl_bt_external_bondingdb_data_gatt_db_hash (0xa):</bold> Latest local GATT database hash value that the remote client has seen for GATT robust caching feature </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">data_len</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Length of data in <computeroutput>data</computeroutput> </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">data</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Bonding data</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="12366" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="12366" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__external__bondingdb_1ga19b17942e966c54153f4df9ac5ebf554" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_external_bondingdb_set_local_irk</definition>
+        <argsstring>(size_t irk_len, const uint8_t *irk)</argsstring>
+        <name>sl_bt_external_bondingdb_set_local_irk</name>
+        <param>
+          <type>size_t</type>
+          <declname>irk_len</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>irk</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Set local Identity Resolving Key (IRK) data from the external bonding database. When the Bluetooth stack needs local IRK data, it will send the request to user application with a <ref refid="group__sl__bt__evt__external__bondingdb__local__irk__request" kindref="compound">sl_bt_evt_external_bondingdb_local_irk_request</ref> event. The application must respond to the request by sending data using this command.</para>
+<para>Send 0 length data to the stack with this command to generate a new local IRK if the local IRK data is not available in the external bonding database.</para>
+<para>It is possible to call this function again to replace the local IRK used by the Bluetooth stack. The application can either give the new key data or send 0 length data to generate a new key.</para>
+<para>If a new key is generated the stack will send it to the application to be stored persistently with a <ref refid="group__sl__bt__evt__external__bondingdb__local__irk" kindref="compound">sl_bt_evt_external_bondingdb_local_irk</ref> event.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">irk_len</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Length of data in <computeroutput>irk</computeroutput> </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">irk</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>16-byte local Identity Resolving Key (IRK) in little endian format or 0 bytes to generate a new key.</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="12396" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="12396" declcolumn="13"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__external__bondingdb_1gaf797de8eeb48cbef877c31c7bc4b4f16" prot="public" static="no">
+        <name>sl_bt_cmd_external_bondingdb_set_data_id</name>
+        <initializer>0x005c0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="12011" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="12011" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__external__bondingdb_1gad133a07112769423833574523838227a" prot="public" static="no">
+        <name>sl_bt_cmd_external_bondingdb_set_local_irk_id</name>
+        <initializer>0x015c0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="12012" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="12012" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__external__bondingdb_1ga1c96e831fbc8b056378a695b0a5a06a9" prot="public" static="no">
+        <name>sl_bt_rsp_external_bondingdb_set_data_id</name>
+        <initializer>0x005c0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="12013" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="12013" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__external__bondingdb_1ga7474a4076283024b666a68c00e04e88a" prot="public" static="no">
+        <name>sl_bt_rsp_external_bondingdb_set_local_irk_id</name>
+        <initializer>0x015c0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="12014" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="12014" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>External Bonding Database. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>Receive and respond to requests related to managing an external bonding database. When the application uses the bluetooth_feature_external_bonding_database feature, the Bluetooth stack and the application use the commands and events in this class to store and retrieve data from the persistent bonding storage.</para>
+<para>When this feature is used, the built-in bonding database (bluetooth_feature_builtin_bonding_database) and the address resolving in the Bluetooth stack are excluded. The user application and external bonding database are responsible for the following functionalities:<itemizedlist>
+<listitem><para>The external bonding database must be able to reliably and persistently store the bonding data and type tuples that are provided by the stack in the <ref refid="group__sl__bt__evt__external__bondingdb__data__request" kindref="compound">sl_bt_evt_external_bondingdb_data_request</ref> event. Data types <ref refid="group__sl__bt__external__bondingdb_1gga57a8e1716515591b6934083d7807f1dca6f30bd2eadf497ccc0e48ce649bb1c20" kindref="member">sl_bt_external_bondingdb_data_remote_address</ref> and <ref refid="group__sl__bt__external__bondingdb_1gga57a8e1716515591b6934083d7807f1dcacfcd4247ec843d238bd6a096ae186e3a" kindref="member">sl_bt_external_bondingdb_data_remote_address_type</ref> can be used by the application to identify the device, but they are not used by the stack and hence the stack will not ask for their values. Other data types in <ref refid="group__sl__bt__external__bondingdb_1ga57a8e1716515591b6934083d7807f1dc" kindref="member">sl_bt_external_bondingdb_data_t</ref> are needed by the Bluetooth Security Manager or GATT Server. The Long Term Keys (LTK) and Identity Resolving Keys (IRK) must be stored securely. When the database is on a separate host device, they must be securely transmitted between the host and target over the NCP transport. The application also needs to manage the bondings in the storage, e.g., delete a bonding when requested by the business logic.</para>
+</listitem><listitem><para>Manage a local RAM-based bookkeeping to keep track of open connections. At a minimum, the remote Bluetooth address address and address type must be stored in the bookkeeping when a <ref refid="group__sl__bt__evt__connection__opened" kindref="compound">sl_bt_evt_connection_opened</ref> event is received. If the remote Bluetooth device address is a resolvable private random (RPA) address, the application may perform address resolving using the IRK keys of the remote devices stored in the bonding database. Address resolving is required for identifying a connected device using an RPA address. When the scanner or periodic advertising synchronization feature is used, RPA addresses in advertisement report or sync events may need to be resolved if required by the business requirements.</para>
+</listitem><listitem><para>When the Bluetooth stack requires bonding data, it will send an <ref refid="group__sl__bt__evt__external__bondingdb__data__request" kindref="compound">sl_bt_evt_external_bondingdb_data_request</ref> event. The application must respond to the request by sending the data value using the <ref refid="group__sl__bt__external__bondingdb_1ga466391986f5931598e6d14dc8b1dd391" kindref="member">sl_bt_external_bondingdb_set_data</ref> command. The GATT server will pend the requests from the remote GATT client and encryption or bonding is not possible until all requested bonding data has been sent to the stack. The stack will send <ref refid="group__sl__bt__evt__external__bondingdb__data__ready" kindref="compound">sl_bt_evt_external_bondingdb_data_ready</ref> when it has received all the necessary bonding data from the application.</para>
+</listitem><listitem><para>If external local IRK option has been enabled in the component configuration, the application is also responsible for storing the local IRK. When the Bluetooth stack requires local IRK, it will send an <ref refid="group__sl__bt__evt__external__bondingdb__local__irk__request" kindref="compound">sl_bt_evt_external_bondingdb_local_irk_request</ref> event. The application must respond to the request by sending the data value using the <ref refid="group__sl__bt__external__bondingdb_1ga19b17942e966c54153f4df9ac5ebf554" kindref="member">sl_bt_external_bondingdb_set_local_irk</ref> command.</para>
+</listitem></itemizedlist>
+</para>
+<para>In this configuration, the value of <computeroutput>bonding</computeroutput> parameter in <ref refid="group__sl__bt__evt__advertiser__scan__request" kindref="compound">sl_bt_evt_advertiser_scan_request</ref>, <ref refid="group__sl__bt__evt__connection__opened" kindref="compound">sl_bt_evt_connection_opened</ref>, <ref refid="group__sl__bt__evt__sm__bonded" kindref="compound">sl_bt_evt_sm_bonded</ref>, <ref refid="group__sl__bt__evt__scanner__legacy__advertisement__report" kindref="compound">sl_bt_evt_scanner_legacy_advertisement_report</ref>, <ref refid="group__sl__bt__evt__scanner__extended__advertisement__report" kindref="compound">sl_bt_evt_scanner_extended_advertisement_report</ref>, <ref refid="group__sl__bt__evt__periodic__sync__opened" kindref="compound">sl_bt_evt_periodic_sync_opened</ref>, <ref refid="group__sl__bt__evt__pawr__sync__opened" kindref="compound">sl_bt_evt_pawr_sync_opened</ref>, <ref refid="group__sl__bt__evt__periodic__sync__transfer__received" kindref="compound">sl_bt_evt_periodic_sync_transfer_received</ref>, and <ref refid="group__sl__bt__evt__pawr__sync__transfer__received" kindref="compound">sl_bt_evt_pawr_sync_transfer_received</ref> is always SL_BT_INVALID_BONDING_HANDLE (0xff). Resolving the bonding handle is the responsibility of the external bonding database. Additionally, the following BGAPI commands are not available and will return the SL_STATUS_NOT_AVAILABLE error:<itemizedlist>
+<listitem><para><ref refid="group__sl__bt__sm_1ga29ac245e23a6715698072ec631f5c457" kindref="member">sl_bt_sm_delete_bonding</ref></para>
+</listitem><listitem><para><ref refid="group__sl__bt__sm_1ga12fa739726642637a21d8b1776818659" kindref="member">sl_bt_sm_get_bonding_handles</ref></para>
+</listitem><listitem><para><ref refid="group__sl__bt__sm_1ga955e0410627f3f939a493fb1894d8dc4" kindref="member">sl_bt_sm_get_bonding_details</ref></para>
+</listitem><listitem><para><ref refid="group__sl__bt__sm_1gad9331896c22adb49290ee7886ee96565" kindref="member">sl_bt_sm_find_bonding_by_address</ref></para>
+</listitem><listitem><para><ref refid="group__sl__bt__sm_1gaabf1490dd77c7dc64b3962bb07e87b72" kindref="member">sl_bt_sm_resolve_rpa</ref> </para>
+</listitem></itemizedlist>
+</para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,707 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__pawr__advertiser" kind="group">
+    <compoundname>sl_bt_pawr_advertiser</compoundname>
+    <title>PAwR Advertiser</title>
+    <innergroup refid="group__sl__bt__evt__pawr__advertiser__subevent__data__request">sl_bt_evt_pawr_advertiser_subevent_data_request</innergroup>
+    <innergroup refid="group__sl__bt__evt__pawr__advertiser__subevent__tx__failed">sl_bt_evt_pawr_advertiser_subevent_tx_failed</innergroup>
+    <innergroup refid="group__sl__bt__evt__pawr__advertiser__response__report">sl_bt_evt_pawr_advertiser_response_report</innergroup>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="group__sl__bt__pawr__advertiser_1ga3f5568699f9174b94bcac64aa9d39273" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_pawr_advertiser_start</definition>
+        <argsstring>(uint8_t advertising_set, uint16_t interval_min, uint16_t interval_max, uint32_t flags, uint8_t num_subevents, uint8_t subevent_interval, uint8_t response_slot_delay, uint8_t response_slot_spacing, uint8_t response_slots)</argsstring>
+        <name>sl_bt_pawr_advertiser_start</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>advertising_set</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>interval_min</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>interval_max</declname>
+        </param>
+        <param>
+          <type>uint32_t</type>
+          <declname>flags</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>num_subevents</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>subevent_interval</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>response_slot_delay</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>response_slot_spacing</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>response_slots</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Start PAwR advertising on the specified advertising set.</para>
+<para>According to the Bluetooth Core specification, PAwR advertising PDUs cannot be transmitted until at least one extended advertising event has been completed. If the application needs exact control over the extended advertising data and parameters, use the <ref refid="group__sl__bt__advertiser" kindref="compound">Advertiser</ref> class to configure the parameters of the advertising set and the <ref refid="group__sl__bt__extended__advertiser" kindref="compound">Extended Advertiser</ref> class to set or generate the desired extended advertising data payload. If the application does not configure the parameters or set the data, the default parameters and empty advertising data are used for the extended advertising.</para>
+<para>If the application has not already started extended advertising and the flag <ref refid="group__sl__bt__periodic__advertiser__flags_1ga17c966e284c2b95a771aefe9de0843c8" kindref="member">SL_BT_PERIODIC_ADVERTISER_AUTO_START_EXTENDED_ADVERTISING</ref> is set in <computeroutput>flags</computeroutput>, the stack will automatically start extended advertising with the parameters and extended advertising data currently configured to the advertising set. The application may stop the automatically started extended advertising using the <ref refid="group__sl__bt__advertiser_1gaa21542d22182e08604799e795c90db7b" kindref="member">sl_bt_advertiser_stop</ref> command.</para>
+<para>If the application has not already started extended advertising and the flag <ref refid="group__sl__bt__periodic__advertiser__flags_1ga17c966e284c2b95a771aefe9de0843c8" kindref="member">SL_BT_PERIODIC_ADVERTISER_AUTO_START_EXTENDED_ADVERTISING</ref> is not set in <computeroutput>flags</computeroutput>, the stack will momentarily start extended advertising with the parameters and extended advertising data currently configured to the advertising set. Unless the application starts extended advertising before the first extended advertising event has completed, the stack will automatically stop the momentary extended advertising after the first extended advertising event.</para>
+<para>PAwR advertising PDUs are transmitted on the secondary PHY configured for the advertising set with the <ref refid="group__sl__bt__extended__advertiser_1gac7a6395d280c76bb3396ce6182c9d1ca" kindref="member">sl_bt_extended_advertiser_set_phy</ref> command.</para>
+<para>To stop PAwR advertising, use <ref refid="group__sl__bt__pawr__advertiser_1gaf2c01f7020b11d74d243d0604a8b3fe3" kindref="member">sl_bt_pawr_advertiser_stop</ref> command.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">advertising_set</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The PAwR advertising set handle </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">interval_min</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>Minimum periodic advertising interval. Value in units of 1.25 ms.<itemizedlist>
+<listitem><para><bold>Range:</bold> 0x06 to 0xFFFF</para>
+</listitem><listitem><para>Time range: 7.5 ms to 81.92 s</para>
+</listitem><listitem><para><bold>Default</bold> : 100 ms </para>
+</listitem></itemizedlist>
+</para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">interval_max</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Maximum periodic advertising interval. Value in units of 1.25 ms.<itemizedlist>
+<listitem><para>Time range: 7.5 ms to 81.92 s</para>
+</listitem><listitem><para>Note: interval_max should be bigger than interval_min </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">flags</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Additional periodic advertising options. Value: 0 or bitmask of <ref refid="group__sl__bt__periodic__advertiser__flags" kindref="compound">Periodic Advertising Configuration Flags</ref> </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">num_subevents</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The number of subevents.<itemizedlist>
+<listitem><para><bold>Range:</bold> 0x01 to 0x80 </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">subevent_interval</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>Subevent interval. Value in units of 1.25 ms.<itemizedlist>
+<listitem><para><bold>Range:</bold> 0x06 to 0xFF</para>
+</listitem><listitem><para>Time range: 7.5 ms to 318.75 ms </para>
+</listitem></itemizedlist>
+</para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">response_slot_delay</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>Time between the advertising packet in a subevent and the first response slot. Value in units of 1.25 ms.<itemizedlist>
+<listitem><para><bold>Range:</bold> 0x01 to 0xFE</para>
+</listitem><listitem><para>Time range: 1.25 ms to 317.5 ms </para>
+</listitem></itemizedlist>
+</para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">response_slot_spacing</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>Time between response slots. Value in units of 0.125 ms.<itemizedlist>
+<listitem><para><bold>Range:</bold> 0x02 to 0xFF</para>
+</listitem><listitem><para>Time range: 0.25 ms to 31.875 ms </para>
+</listitem></itemizedlist>
+</para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">response_slots</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of subevent response slots.<itemizedlist>
+<listitem><para><bold>Range:</bold> 0x01 to 0xFF</para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="5991" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="5991" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__pawr__advertiser_1gad0d9c8cb421d6cc275d45cd42e581528" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_pawr_advertiser_change_parameters</definition>
+        <argsstring>(uint8_t advertising_set, uint16_t interval_min, uint16_t interval_max, uint32_t flags, uint8_t num_subevents, uint8_t subevent_interval, uint8_t response_slot_delay, uint8_t response_slot_spacing, uint8_t response_slots, uint8_t phy, uint8_t repeat_count)</argsstring>
+        <name>sl_bt_pawr_advertiser_change_parameters</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>advertising_set</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>interval_min</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>interval_max</declname>
+        </param>
+        <param>
+          <type>uint32_t</type>
+          <declname>flags</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>num_subevents</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>subevent_interval</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>response_slot_delay</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>response_slot_spacing</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>response_slots</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>phy</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>repeat_count</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Change the parameters of an active PAwR advertising train.</para>
+<para>Use this command to change the parameters of an active PAwR advertising train. Changing the parameters is considered a form of Periodic Advertising Synchronization Transfer (PAST). The sync information for the new parameters will be sent over the current PAwR train <computeroutput>repeat_count</computeroutput> times to the synced devices that listen to the specifiec subevents. If a device that has synchronized to the train has chosen not to synchronize to sync info received over the train (see commands <ref refid="group__sl__bt__past__receiver_1ga2389e44b37d0ccdbf186425c78158cc9" kindref="member">sl_bt_past_receiver_set_default_sync_receive_over_sync_parameters</ref> and <ref refid="group__sl__bt__past__receiver_1ga072017eb9b9c75d8bd4545a3d723ba84" kindref="member">sl_bt_past_receiver_set_sync_receive_over_sync_parameters</ref>) or fails to receive every transmission of the new sync info, the synchronized device will lose sync and needs to re-acquire it by scanning for sync (see <ref refid="group__sl__bt__sync__scanner" kindref="compound">Periodic Advertising Sync Scanner</ref>) or by receiving Periodic Advertising Synchronization Transfer (see <ref refid="group__sl__bt__past__receiver" kindref="compound">PAST Receiver</ref>).</para>
+<para>To stop PAwR advertising, use <ref refid="group__sl__bt__pawr__advertiser_1gaf2c01f7020b11d74d243d0604a8b3fe3" kindref="member">sl_bt_pawr_advertiser_stop</ref> command.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">advertising_set</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The PAwR advertising set handle </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">interval_min</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>The new value for minimum periodic advertising interval. Value in units of 1.25 ms.<itemizedlist>
+<listitem><para><bold>Range:</bold> 0x06 to 0xFFFF</para>
+</listitem><listitem><para>Time range: 7.5 ms to 81.92 s</para>
+</listitem><listitem><para><bold>Default</bold> : 100 ms </para>
+</listitem></itemizedlist>
+</para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">interval_max</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The new value for maximum periodic advertising interval. Value in units of 1.25 ms.<itemizedlist>
+<listitem><para>Time range: 7.5 ms to 81.92 s</para>
+</listitem><listitem><para>Note: interval_max should be bigger than interval_min </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">flags</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Additional periodic advertising options. Value: 0 or bitmask of <ref refid="group__sl__bt__periodic__advertiser__flags" kindref="compound">Periodic Advertising Configuration Flags</ref>. The following flags are valid for this command:<itemizedlist>
+<listitem><para><bold><ref refid="group__sl__bt__periodic__advertiser__flags_1gac93dcb4293040763a574d312b0f81029" kindref="member">SL_BT_PERIODIC_ADVERTISER_INCLUDE_TX_POWER</ref> (0x1):</bold> Include the TX power in advertising packets. </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">num_subevents</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The new value for the number of subevents.<itemizedlist>
+<listitem><para><bold>Range:</bold> 0x01 to 0x80 </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">subevent_interval</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>The new value for subevent interval. Value in units of 1.25 ms.<itemizedlist>
+<listitem><para><bold>Range:</bold> 0x06 to 0xFF</para>
+</listitem><listitem><para>Time range: 7.5 ms to 318.75 ms </para>
+</listitem></itemizedlist>
+</para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">response_slot_delay</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>The new value for time between the advertising packet in a subevent and the first response slot. Value in units of 1.25 ms.<itemizedlist>
+<listitem><para><bold>Range:</bold> 0x01 to 0xFE</para>
+</listitem><listitem><para>Time range: 1.25 ms to 317.5 ms </para>
+</listitem></itemizedlist>
+</para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">response_slot_spacing</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>The new value for time between response slots. Value in units of 0.125 ms.<itemizedlist>
+<listitem><para><bold>Range:</bold> 0x02 to 0xFF</para>
+</listitem><listitem><para>Time range: 0.25 ms to 31.875 ms </para>
+</listitem></itemizedlist>
+</para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">response_slots</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The new value for number of subevent response slots.<itemizedlist>
+<listitem><para><bold>Range:</bold> 0x01 to 0xFF </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">phy</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>Enum <ref refid="group__sl__bt__gap_1ga05ce4496a6f87de7c67a9e32d816727c" kindref="member">sl_bt_gap_phy_t</ref>. The new PHY on which the periodic advertising packets will be transmitted. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_gap_phy_1m (0x1):</bold> 1M PHY</para>
+</listitem><listitem><para><bold>sl_bt_gap_phy_2m (0x2):</bold> 2M PHY</para>
+</listitem><listitem><para><bold>sl_bt_gap_phy_coded (0x4):</bold> Coded PHY, 125k (S=8)</para>
+</listitem><listitem><para><bold>Default</bold> : <ref refid="group__sl__bt__gap_1gga05ce4496a6f87de7c67a9e32d816727ca3ae0bf1d99d33066af4b6eea4b55414e" kindref="member">sl_bt_gap_phy_1m</ref> </para>
+</listitem></itemizedlist>
+</para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">repeat_count</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The number of times the new train parameters are sent on all subevents before the new parameters are taken into use.<itemizedlist>
+<listitem><para><bold>Range:</bold> 0x06 to 0xFF</para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6080" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="6080" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__pawr__advertiser_1ga2d3e76e947a9678ebe4601c8b90be914" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_pawr_advertiser_set_subevent_data</definition>
+        <argsstring>(uint8_t advertising_set, uint8_t subevent, uint8_t response_slot_start, uint8_t response_slot_count, size_t adv_data_len, const uint8_t *adv_data)</argsstring>
+        <name>sl_bt_pawr_advertiser_set_subevent_data</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>advertising_set</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>subevent</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>response_slot_start</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>response_slot_count</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>adv_data_len</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>adv_data</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Set data to be sent in the specified subevent of an active PAwR train. Data is transmitted only once and is discarded after it has been transmitted.</para>
+<para>Data given to this command is passed to the Bluetooth controller, which will queue data and transmit it at the correct time. The application may always opportunistically try to queue more data with this command, but the controller may reject data and return an error if the queuing capacity is exceeded. In this case, the Bluetooth stack will trigger the <ref refid="group__sl__bt__evt__pawr__advertiser__subevent__data__request" kindref="compound">sl_bt_evt_pawr_advertiser_subevent_data_request</ref> event later when the controller is ready to accept more data.</para>
+<para>To ensure effective use of the available memory, applications are encouraged to observe the <ref refid="group__sl__bt__evt__pawr__advertiser__subevent__data__request" kindref="compound">sl_bt_evt_pawr_advertiser_subevent_data_request</ref> events and set data for the subevents that are being requested and for which the application has data to send. Applications should also note that PAwR is an unreliable transport and cannot guarantee delivery. If reliability is required, the application must implement an acknowledgment mechanism using response slots of the PAwR train and set subevent data again for a re-transmission if it was not successfully delivered.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">advertising_set</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The PAwR advertising set handle </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">subevent</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The subevent in which the data is to be sent </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">response_slot_start</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The first response slot to be used in this subevent </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">response_slot_count</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The number of response slots to be used </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">adv_data_len</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Length of data in <computeroutput>adv_data</computeroutput> </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">adv_data</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Data to be sent in the specified subevent</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise.</para>
+</simplesect>
+<bold>Events</bold> <itemizedlist>
+<listitem><para><ref refid="group__sl__bt__evt__pawr__advertiser__subevent__data__request" kindref="compound">sl_bt_evt_pawr_advertiser_subevent_data_request</ref> - This event is triggered when the Bluetooth stack is ready to accept more subevent data.</para>
+</listitem><listitem><para><ref refid="group__sl__bt__evt__pawr__advertiser__subevent__tx__failed" kindref="compound">sl_bt_evt_pawr_advertiser_subevent_tx_failed</ref> - This event is triggered if transmitting the subevent data has failed.</para>
+</listitem><listitem><para><ref refid="group__sl__bt__evt__pawr__advertiser__response__report" kindref="compound">sl_bt_evt_pawr_advertiser_response_report</ref> - If the subevent data was successfully transmitted, this event is triggered for each response slot that was marked as used in this subevent. </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6134" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="6134" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__pawr__advertiser_1gaf9bfde544c3a6c5598df4a87b174e83b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_pawr_advertiser_create_connection</definition>
+        <argsstring>(uint8_t advertising_set, uint8_t subevent, bd_addr address, uint8_t address_type, uint8_t *connection)</argsstring>
+        <name>sl_bt_pawr_advertiser_create_connection</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>advertising_set</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>subevent</declname>
+        </param>
+        <param>
+          <type><ref refid="structbd__addr" kindref="compound">bd_addr</ref></type>
+          <declname>address</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>address_type</declname>
+        </param>
+        <param>
+          <type>uint8_t *</type>
+          <declname>connection</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Initiate a connection request to a device that is synchronized to the specified active PAwR train. The connection is established on the secondary PHY configured for the advertising set with the <ref refid="group__sl__bt__extended__advertiser_1gac7a6395d280c76bb3396ce6182c9d1ca" kindref="member">sl_bt_extended_advertiser_set_phy</ref> command. The connection uses the parameters configured with command <ref refid="group__sl__bt__connection_1gac2453ab6efcbfc71b3bb23b3fffce1df" kindref="member">sl_bt_connection_set_default_parameters</ref>.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">advertising_set</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The PAwR advertising set handle </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">subevent</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The subevent in which the connection request is to be sent </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">address</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Address of the device to connect to </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">address_type</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Enum <ref refid="group__sl__bt__gap_1gac8d5431d3062e47c5d51b9fb9f36c104" kindref="member">sl_bt_gap_address_type_t</ref>. Address type of the device to connect to. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_gap_public_address (0x0):</bold> Public device address</para>
+</listitem><listitem><para><bold>sl_bt_gap_static_address (0x1):</bold> Static device address</para>
+</listitem><listitem><para><bold>sl_bt_gap_random_resolvable_address (0x2):</bold> Resolvable private random address</para>
+</listitem><listitem><para><bold>sl_bt_gap_random_nonresolvable_address (0x3):</bold> Non-resolvable private random address</para>
+</listitem><listitem><para><bold>sl_bt_gap_public_address_resolved_from_rpa (0x4):</bold> Public identity address resolved from a resolvable private address (RPA)</para>
+</listitem><listitem><para><bold>sl_bt_gap_static_address_resolved_from_rpa (0x5):</bold> Static identity address resolved from a resolvable private address (RPA) </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">connection</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Handle that will be assigned to the connection after the connection is established. This handle is valid only if the result code of this command is SL_STATUS_OK.</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise.</para>
+</simplesect>
+<bold>Events</bold> <itemizedlist>
+<listitem><para><ref refid="group__sl__bt__evt__connection__closed" kindref="compound">sl_bt_evt_connection_closed</ref> - This event is triggered if the connection failed to be created.</para>
+</listitem><listitem><para><ref refid="group__sl__bt__evt__connection__opened" kindref="compound">sl_bt_evt_connection_opened</ref> - This event is triggered after the connection is opened and indicates whether the devices are already bonded and the role of the device in this connection.</para>
+</listitem><listitem><para><ref refid="group__sl__bt__evt__connection__parameters" kindref="compound">sl_bt_evt_connection_parameters</ref> - This event indicates the connection parameters and security mode of the connection. </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6181" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="6181" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__pawr__advertiser_1gaf2c01f7020b11d74d243d0604a8b3fe3" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_pawr_advertiser_stop</definition>
+        <argsstring>(uint8_t advertising_set)</argsstring>
+        <name>sl_bt_pawr_advertiser_stop</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>advertising_set</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Stop PAwR advertising on an advertising set. Counterpart to <ref refid="group__sl__bt__pawr__advertiser_1ga3f5568699f9174b94bcac64aa9d39273" kindref="member">sl_bt_pawr_advertiser_start</ref>.</para>
+<para>This command does not affect the enable state of the advertising set, i.e., legacy or extended advertising is not stopped.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">advertising_set</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The PAwR advertising set handle</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6200" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="6200" declcolumn="13"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__pawr__advertiser_1ga7c6d058218d78e0b603ee17fb747c973" prot="public" static="no">
+        <name>sl_bt_cmd_pawr_advertiser_start_id</name>
+        <initializer>0x00550020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="5770" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="5770" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__pawr__advertiser_1gafcfc63d8e29b216792eaa63090e7dea5" prot="public" static="no">
+        <name>sl_bt_cmd_pawr_advertiser_change_parameters_id</name>
+        <initializer>0x04550020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="5771" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="5771" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__pawr__advertiser_1gadfce4ce0a27ba16b80942f0e713a7754" prot="public" static="no">
+        <name>sl_bt_cmd_pawr_advertiser_set_subevent_data_id</name>
+        <initializer>0x01550020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="5772" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="5772" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__pawr__advertiser_1gad68e7c875b9e39105dac5b8c97c8b578" prot="public" static="no">
+        <name>sl_bt_cmd_pawr_advertiser_create_connection_id</name>
+        <initializer>0x02550020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="5773" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="5773" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__pawr__advertiser_1gab5803246b575a75d3c9f66c7f9136412" prot="public" static="no">
+        <name>sl_bt_cmd_pawr_advertiser_stop_id</name>
+        <initializer>0x03550020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="5774" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="5774" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__pawr__advertiser_1gac8b4c8bc0413e85f1178fb47642adcf8" prot="public" static="no">
+        <name>sl_bt_rsp_pawr_advertiser_start_id</name>
+        <initializer>0x00550020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="5775" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="5775" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__pawr__advertiser_1ga5d993659e440882075aaf265f5126c7e" prot="public" static="no">
+        <name>sl_bt_rsp_pawr_advertiser_change_parameters_id</name>
+        <initializer>0x04550020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="5776" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="5776" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__pawr__advertiser_1ga95b8755524cf5f4eb05727f6308156b3" prot="public" static="no">
+        <name>sl_bt_rsp_pawr_advertiser_set_subevent_data_id</name>
+        <initializer>0x01550020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="5777" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="5777" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__pawr__advertiser_1ga6e3881237a7bf3c64de7e7e64e59beff" prot="public" static="no">
+        <name>sl_bt_rsp_pawr_advertiser_create_connection_id</name>
+        <initializer>0x02550020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="5778" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="5778" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__pawr__advertiser_1ga5c5a3785da561064f3b65d1004b1f0c3" prot="public" static="no">
+        <name>sl_bt_rsp_pawr_advertiser_stop_id</name>
+        <initializer>0x03550020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="5779" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="5779" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>PAwR Advertiser. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>Provides support for advertising with Periodic Advertising with Responses (PAwR) trains. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

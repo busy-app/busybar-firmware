@@ -1,0 +1,28 @@
+id: toolchain_variant_arm
+label: Toolchain for ARM
+package: platform_core
+description: Toolchain support for ARM devices
+category: Platform|Toolchain
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+tag:
+- toolchain:variant:arm
+provides:
+- name: toolchain_variant
+  condition: [device_arm]
+- name: toolchain_variant_arm
+toolchain_settings:
+- option: split_sections
+  value: enabled
+- option: nano_c_libs
+  value: enabled
+- option: device_type
+  value: embedded
+- option: gcc_assembler_option
+  value: -x assembler-with-cpp
+- option: llvm_assembler_option
+  value: -x assembler-with-cpp
+
+root_path: platform_core

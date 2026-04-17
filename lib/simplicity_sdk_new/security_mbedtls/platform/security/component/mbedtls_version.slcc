@@ -1,0 +1,22 @@
+id: mbedtls_version
+package: security_mbedtls
+label: Version Helpers
+description: >-
+  This component enables the Mbed TLS run-time version information API functions.
+category: Platform|Security|Mbed TLS|Utilities
+quality: production
+source:
+- path: platform/security/sl_component/sl_mbedtls_support/src/version_features.c
+provides:
+- name: mbedtls_version
+requires:
+- name: mbedtls_core
+template_contribution:
+- name: mbedtls_config
+  value: MBEDTLS_VERSION_C
+- name: mbedtls_config
+  value: MBEDTLS_VERSION_FEATURES
+metadata:
+  sbom:
+    reference: mbedtls_sbom
+root_path: security_mbedtls

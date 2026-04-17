@@ -1,0 +1,41 @@
+project_name: bt-bootloader-storage-single
+package: bluetooth_le_app
+quality: experimental
+label: Bootloader - SoC Storage
+description: >
+  This sample configuration of the Gecko bootloader configures the bootloader to use the flash to store firmware update images.
+  The storage configuration is set up to store a single firmware update image at a time, in a single storage slot.
+  The storage slot start address and size is calculated automatically based on the flash size and flash start address.
+  The SLOT_CUSTOM_CONFIG configuration option can be enabled to customize the slot configuration.
+
+category: Example|Bootloader
+filter:
+  - name: "Device Type"
+    value: ["SoC"]
+  - name: "Project Difficulty"
+    value: ["Advanced"]
+  - name: "MCU"
+    value: ["Bootloader"]
+
+component:
+  - id: btl_core
+  - id: bootloader_aes_sha_ecdsa
+  - id: btl_internal_storage
+  - id: btl_storage_slots
+  - id: btl_image_parser
+  - id: btl_common_storage_single
+  - id: bootloader_debug
+  - id: clock_manager
+  - id: btl_crc
+
+configuration:
+  - name: SLOT_CUSTOM_CONFIG
+    value: 0
+
+post_build:
+  - path: ../postbuild_profile/bt_dfu_btl.slpb
+
+tag:
+  - toolchain:gcc
+  - companion:application
+  - hwfilter:device:device_series_3

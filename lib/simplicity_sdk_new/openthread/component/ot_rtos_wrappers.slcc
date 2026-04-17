@@ -1,0 +1,62 @@
+id: ot_rtos_wrappers
+label: SL RTOS helper component
+package: openthread
+category: OpenThread
+quality: production
+description: This component provides wrapper functions for all openthread APIs allowing access to the thread stack in a multi-threaded environment.
+ui_hints:
+  visibility: never
+requires:
+- name: ot_stack
+- name: cmsis_rtos2
+recommends:
+- id: ot_stack_ftd
+  vendor: silabs
+- id: freertos
+  vendor: silabs
+- id: freertos_heap_3
+  vendor: silabs
+provides:
+- name: ot_rtos_wrappers
+
+library:
+- path: build/gcc/cortex-m33/cmake/sl-openthread-wrapper-library/Debug/libsl_openthread_wrapper.a
+  condition:
+  - toolchain_gcc
+  - cortexm33
+  - toolchain_lto
+  unless: []
+- path: build/gcc/cortex-m33/cmake/sl-openthread-wrapper-library/Release/libsl_openthread_wrapper.a
+  condition:
+  - toolchain_gcc
+  - cortexm33
+  unless:
+  - toolchain_lto
+- path: build/llvm/cortex-m33/cmake/sl-openthread-wrapper-library/Debug/libsl_openthread_wrapper.a
+  condition:
+  - toolchain_llvm
+  - cortexm33
+  - toolchain_lto
+  unless: []
+- path: build/llvm/cortex-m33/cmake/sl-openthread-wrapper-library/Release/libsl_openthread_wrapper.a
+  condition:
+  - toolchain_llvm
+  - cortexm33
+  unless:
+  - toolchain_lto
+other_file:
+- path: linker/ot-rtos-wrapper-options
+  project:
+    transfer_ownership: true
+    directory: linker_options
+toolchain_settings:
+- option: linker_option
+  value: '@$project/linker_options/ot-rtos-wrapper-options'
+  condition: [toolchain_gcc]
+- option: linker_option
+  value: '@$project/linker_options/ot-rtos-wrapper-options'
+  condition: [toolchain_llvm]
+metadata:
+  sbom:
+    license: Zlib
+root_path: openthread

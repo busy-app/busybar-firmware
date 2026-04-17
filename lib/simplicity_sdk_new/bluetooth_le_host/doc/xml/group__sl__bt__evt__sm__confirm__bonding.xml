@@ -1,0 +1,43 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__evt__sm__confirm__bonding" kind="group">
+    <compoundname>sl_bt_evt_sm_confirm_bonding</compoundname>
+    <title>sl_bt_evt_sm_confirm_bonding</title>
+    <innerclass refid="structsl__bt__evt__sm__confirm__bonding__s" prot="public">sl_bt_evt_sm_confirm_bonding_s</innerclass>
+      <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="group__sl__bt__evt__sm__confirm__bonding_1ga8c19dfc738fa26a07c166a72e5077d62" prot="public" static="no">
+        <type>struct <ref refid="structsl__bt__evt__sm__confirm__bonding__s" kindref="compound">sl_bt_evt_sm_confirm_bonding_s</ref></type>
+        <definition>typedef struct sl_bt_evt_sm_confirm_bonding_s sl_bt_evt_sm_confirm_bonding_t</definition>
+        <argsstring></argsstring>
+        <name>sl_bt_evt_sm_confirm_bonding_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11459" column="45" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="11459" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__evt__sm__confirm__bonding_1gab75a499b9404130df25802b7127df7ba" prot="public" static="no">
+        <name>sl_bt_evt_sm_confirm_bonding_id</name>
+        <initializer>0x090f00a0</initializer>
+        <briefdescription>
+<para>Identifier of the confirm_bonding event. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11440" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="11440" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Indicates a user request to display that the new bonding request is received and for the user to confirm the request. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>Use the command <ref refid="group__sl__bt__sm_1ga65b9b1763034e7658ad5bb85f7c393a9" kindref="member">sl_bt_sm_bonding_confirm</ref> to accept or reject the bonding request. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

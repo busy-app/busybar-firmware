@@ -1,0 +1,28 @@
+id: "bgapi_service_ncp_host"
+label: "BGAPI Service NCP Host"
+package: bgapi_protocol
+description: >
+  Provides the BGAPI Service API for NCP host.
+category: Bluetooth|Bluetooth Host (Stack)
+quality: "production"
+ui_hints:
+  visibility: never
+include:
+- path: inc
+  file_list:
+  - path: sl_bgapi_service_api.h
+  - path: sli_bgapi_service_api.h
+  - path: sl_bgapi_service_version.h
+source:
+- path: src/sl_bgapi_service_ncp_host_api.c
+requires:
+- name: bgapi_protocol
+provides:
+- name: bgapi_service_ncp_host
+template_contribution:
+- name: component_catalog
+  value: bgapi_service_ncp_host
+metadata:
+  sbom:
+    license: MSLA
+root_path: bgapi_protocol

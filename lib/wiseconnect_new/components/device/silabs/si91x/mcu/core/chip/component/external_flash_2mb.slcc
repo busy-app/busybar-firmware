@@ -1,0 +1,23 @@
+id: external_flash_2mb
+label: 2MB Flash (External)
+package: platform_siwx91x
+description: It is necessary to initialize this component, if the external flash connected to the SiWG91x part is of size 2MB.
+category: Device|Si91x|MCU|Flash
+quality: production
+provides:
+  - name: external_flash_2mb
+  - name: external_flash_implementation
+
+template_contribution:
+  - name: flash_present
+    value: 1
+# Default Memory configuration
+  - name: device_flash_addr
+    value: 136323072 # 0x0820 2000
+  - name: device_flash_size
+    value: 2097152
+  - name: flash_page_size
+    value: 256
+metadata:
+    sbom:
+      license: Zlib

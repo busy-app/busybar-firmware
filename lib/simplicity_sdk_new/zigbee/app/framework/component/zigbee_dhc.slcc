@@ -1,0 +1,343 @@
+package: zigbee
+description: Host/NCP-only component providing API for radio calibration values (RSSI offset, PA curve/table/mode, CTUNE).
+label: Dynamic Hardware Configuration
+quality: production
+id: zigbee_dhc
+category: Zigbee
+provides:
+- name: zigbee_dhc
+requires:
+- name: sl_rail_util_compatible_pa
+  condition: [device_cortexm]
+- name: clock_manager_oscillator_calibration_override
+  condition: [zigbee_ncp]
+source:
+- path: app/framework/plugin/dhc/dhc-ncp.c
+  condition:
+  - zigbee_ncp
+- path: app/framework/plugin/dhc/dhc-cli.c
+  condition:
+  - native_host
+  - cli
+- path: app/framework/plugin/dhc/dhc-parser.c
+  condition:
+  - native_host
+- path: app/framework/plugin/dhc/dhc-host-stubs.c
+  condition:
+  - native_host
+- path: submodules/cjson/cJSON.c
+  condition:
+  - native_host
+- path: app/em260/command-handlers-dynamic-hardware-configuration-generated.c
+  condition:
+  - zigbee_ncp
+- path: package_downloads/rail_library/plugin/pa-conversions/nvm/sl_rail_util_pa_nvm_configs.c
+  condition:
+  - zigbee_ncp
+include:
+- path: stack/include
+  file_list:
+  - path: sl_zigbee_dhc.h
+- path: app/framework/plugin/dhc
+  condition:
+  - native_host
+  file_list:
+  - path: dhc-parser.h
+- path: submodules/cjson
+  condition:
+  - native_host
+  file_list:
+  - path: cJSON.h
+- path: app/framework/plugin/dhc
+  condition:
+  - zigbee_ncp
+  file_list:
+  - path: dhc-ncp.h
+- path: package_downloads/rail_library/plugin/pa-conversions/nvm
+  condition:
+  - device_cortexm
+  file_list:
+  - path: sl_rail_util_pa_nvm_configs.h
+- path: package_downloads/rail_library/plugin/pa-conversions
+  condition:
+  - device_cortexm
+  file_list:
+  - path: pa_curve_types_efr32.h
+template_contribution:
+- name: component_catalog
+  value: zigbee_dhc
+- name: cli_group
+  value:
+    name: dhc
+    group: plugin
+- name: cli_command
+  condition:
+  - native_host
+  - cli
+  value:
+    group: dhc
+    name: apply
+    handler: sl_zigbee_af_dhc_cli_apply
+    help: Apply DHC configuration from JSON file.
+    argument:
+    - type: string
+      help: Must be 'file'
+    - type: string
+      help: Path to JSON configuration file
+- name: cli_command
+  condition:
+  - native_host
+  - cli
+  value:
+    group: dhc
+    name: validate
+    handler: sl_zigbee_af_dhc_cli_validate
+    help: Validate DHC configuration JSON.
+    argument:
+    - type: string
+      help: Must be 'file'
+    - type: string
+      help: Path to the JSON file to validate
+- name: cli_command
+  condition:
+  - native_host
+  - cli
+  value:
+    group: dhc
+    name: export
+    handler: sl_zigbee_af_dhc_cli_export
+    help: 'Export a minimal DHC JSON summary.'
+  # Read commands
+- name: cli_command
+  condition:
+  - native_host
+  - cli
+  value:
+    group: dhc
+    name: read-metadata
+    handler: sl_zigbee_af_dhc_cli_read_metadata
+    help: Read and print PA metadata.
+- name: cli_command
+  condition:
+  - native_host
+  - cli
+  value:
+    group: dhc
+    name: read-scalars
+    handler: sl_zigbee_af_dhc_cli_read_scalars
+    help: Read and print scalar values.
+- name: cli_command
+  condition:
+  - native_host
+  - cli
+  value:
+    group: dhc
+    name: read-versions
+    handler: sl_zigbee_af_dhc_cli_read_versions
+    help: Read and print DHC and PA versions.
+- name: cli_command
+  condition:
+  - native_host
+  - cli
+  value:
+    group: dhc
+    name: read-all
+    handler: sl_zigbee_af_dhc_cli_read_all
+    help: Read and print all DHC data.
+- name: cli_command
+  condition:
+  - native_host
+  - cli
+  value:
+    group: dhc
+    name: read-descriptor
+    handler: sl_zigbee_af_dhc_cli_read_descriptor
+    help: Read and print PA descriptor.
+    argument:
+    - type: uint8
+      help: PA descriptor index
+- name: cli_command
+  condition:
+  - native_host
+  - cli
+  value:
+    group: dhc
+    name: read-curve
+    handler: sl_zigbee_af_dhc_cli_read_curve
+    help: Read and print PA curve.
+    argument:
+    - type: uint8
+      help: PA descriptor index
+- name: cli_command
+  condition:
+  - native_host
+  - cli
+  value:
+    group: dhc
+    name: read-table
+    handler: sl_zigbee_af_dhc_cli_read_table
+    help: Read and print PA table.
+    argument:
+    - type: uint8
+      help: PA descriptor index
+- name: cli_command
+  condition:
+  - native_host
+  - cli
+  value:
+    group: dhc
+    name: read-segment
+    handler: sl_zigbee_af_dhc_cli_read_segment
+    help: Read and print PA curve segment.
+    argument:
+    - type: uint8
+      help: PA descriptor index
+    - type: uint8
+      help: Segment index within the curve
+  # Set commands
+- name: cli_command
+  condition:
+  - native_host
+  - cli
+  value:
+    group: dhc
+    name: set-descriptor
+    handler: sl_zigbee_af_dhc_cli_set_descriptor
+    help: Set PA descriptor parameters.
+    argument:
+    - type: uint8
+      help: PA descriptor index
+    - type: uint8
+      help: Algorithm (0 or 1)
+    - type: uint8
+      help: Segment/entry count
+    - type: int16
+      help: Minimum ddbm value
+    - type: int16
+      help: Maximum ddbm value
+- name: cli_command
+  condition:
+  - native_host
+  - cli
+  value:
+    group: dhc
+    name: set-segment
+    handler: sl_zigbee_af_dhc_cli_set_segment
+    help: Set PA curve segment parameters.
+    argument:
+    - type: uint8
+      help: PA descriptor index
+    - type: uint8
+      help: Segment index within the curve
+    - type: uint8
+      help: Maximum power level value
+    - type: int16
+      help: Slope value
+    - type: int16
+      help: Intercept value
+- name: cli_command
+  condition:
+  - native_host
+  - cli
+  value:
+    group: dhc
+    name: set-table
+    handler: sl_zigbee_af_dhc_cli_set_table
+    help: Set PA table entry.
+    argument:
+    - type: uint8
+      help: PA descriptor index
+    - type: uint8
+      help: Entry index
+    - type: int16
+      help: ddbm value
+- name: cli_command
+  condition:
+  - native_host
+  - cli
+  value:
+    group: dhc
+    name: set-scalar
+    handler: sl_zigbee_af_dhc_cli_set_scalar
+    help: Set scalar value (rssi_offset, pa_mode, or ctune).
+    argument:
+    - type: string
+      help: 'Scalar type: rssi_offset|pa_mode|ctune'
+    - type: int32
+      help: Value to set
+- name: cli_command
+  condition:
+  - native_host
+  - cli
+  value:
+    group: dhc
+    name: set-voltage
+    handler: sl_zigbee_af_dhc_cli_set_voltage
+    help: Set PA voltage.
+    argument:
+    - type: uint16
+      help: Voltage in millivolts
+- name: cli_command
+  condition:
+  - native_host
+  - cli
+  value:
+    group: dhc
+    name: set-signature
+    handler: sl_zigbee_af_dhc_cli_set_signature
+    help: Set PA metadata signature.
+    argument:
+    - type: uint32
+      help: 32-bit signature value (e.g. 0x5A584647 or decimal)
+- name: cli_command
+  condition:
+  - native_host
+  - cli
+  value:
+    group: dhc
+    name: set-dhc-version
+    handler: sl_zigbee_af_dhc_cli_set_dhc_version
+    help: Set DHC version.
+    argument:
+    - type: uint8
+      help: DHC version number
+- name: cli_command
+  condition:
+  - native_host
+  - cli
+  value:
+    group: dhc
+    name: recompute
+    handler: sl_zigbee_af_dhc_cli_recompute
+    help: Recompute signature.
+    argument:
+    - type: string
+      help: Must be a signature string
+- name: cli_command
+  condition:
+  - native_host
+  - cli
+  value:
+    group: dhc
+    name: raw
+    handler: sl_zigbee_af_dhc_cli_raw
+    help: Send raw binary frame bytes
+    argument:
+    - type: string
+      help: Hex bytes
+- name: cli_command
+  condition:
+  - native_host
+  - cli
+  value:
+    group: dhc
+    name: help
+    handler: sl_zigbee_af_dhc_cli_help_handler
+    help: Show CLI usage.
+other_file:
+- path: app/framework/plugin/dhc/readme.md
+- path: app/framework/plugin/dhc/configuration_sample.json
+metadata:
+  sbom:
+    license: MSLA
+root_path: zigbee

@@ -1,0 +1,171 @@
+id: esl_tag_core
+package: bluetooth_le_middleware
+label: ESL Tag core
+description: >
+  Implements the ESL Tag role of the Bluetooth Electronic Shelf Label Profile.
+  It contains the mandatory ESL Tag characteristics, only. Optional features
+  has to be added to the project as separate components, if needed. This
+  component implements all the core functionalities, while also declares the
+  interface of the optional features (and provides the WEAK implementations for
+  them).
+
+  This is a No-Code component, any additional feature can be added as a component.
+category: Bluetooth|Application|GATT Profiles
+metadata:
+  sbom:
+    license: Zlib
+quality: production
+tag:
+- No-Code
+config_file:
+- path: common/esl_tag_core/config/esl_tag_core.xml
+  file_id: esl_tag_core_service
+  directory: btconf
+  unless:
+  - device_family_host
+- path: common/esl_tag_core/config/esl_tag_core_config.h
+  file_id: esl_tag_core_config
+include:
+- path: common/esl_tag_core/inc
+  file_list:
+  - path: esl_tag_log.h
+    unless:
+    - device_family_host
+  - path: esl_tag_tlv.h
+  - path: esl_tag_core.h
+  - path: esl_tag_crypto.h
+    unless:
+    - device_family_host
+  - path: esl_tag_errors.h
+  - path: esl_tag_opcodes.h
+  - path: esl_tag_internal.h
+    unless:
+    - device_family_host
+  - path: esl_tag_response.h
+  - path: esl_tag_led_core.h
+  - path: esl_tag_image_core.h
+  - path: esl_tag_sensor_core.h
+  - path: esl_tag_display_core.h
+  - path: esl_tag_battery_internal.h
+    unless:
+    - device_family_host
+source:
+- path: common/esl_tag_core/src/esl_tag_log.c
+  unless:
+  - device_family_host
+- path: common/esl_tag_core/src/esl_tag_core.c
+  unless:
+  - device_family_host
+- path: common/esl_tag_core/src/esl_tag_crypto.c
+  unless:
+  - device_family_host
+- path: common/esl_tag_core/src/esl_tag_errors.c
+  unless:
+  - device_family_host
+- path: common/esl_tag_core/src/esl_tag_opcodes.c
+  unless:
+  - device_family_host
+- path: common/esl_tag_core/src/esl_tag_response.c
+  unless:
+  - device_family_host
+- path: common/esl_tag_core/src/esl_tag_led_core.c
+  unless:
+  - device_family_host
+- path: common/esl_tag_core/src/esl_tag_image_core.c
+  unless:
+  - device_family_host
+- path: common/esl_tag_core/src/esl_tag_sensor_core.c
+  unless:
+  - device_family_host
+- path: common/esl_tag_core/src/esl_tag_display_core.c
+  unless:
+  - device_family_host
+- path: common/esl_tag_core/src/esl_tag_battery_iadc.c
+  condition:
+  - device_has_iadc
+provides:
+- name: esl_tag_core
+requires:
+- name: bluetooth_stack
+  condition:
+  - device_cortexm
+- name: gatt_configuration
+  condition:
+  - device_cortexm
+- name: silabs_core_circular_queue
+  condition:
+  - device_cortexm
+- name: bluetooth_feature_gatt_server
+  condition:
+  - device_cortexm
+- name: bluetooth_feature_legacy_advertiser
+  condition:
+  - device_cortexm
+- name: bluetooth_feature_past_receiver
+  condition:
+  - device_cortexm
+- name: bluetooth_feature_connection_role_peripheral
+  condition:
+  - device_cortexm
+- name: bluetooth_feature_pawr_sync
+  condition:
+  - device_cortexm
+- name: bluetooth_feature_system
+  condition:
+  - device_cortexm
+- name: bluetooth_feature_sm
+  condition:
+  - device_cortexm
+- name: component_catalog
+  condition:
+  - device_cortexm
+- name: app_scheduler
+  condition:
+  - device_cortexm
+- name: power_manager
+  condition:
+  - device_cortexm
+- name: clock_manager_runtime
+  condition:
+  - device_cortexm
+- name: emlib_iadc
+  condition:
+  - device_has_iadc
+- name: ead_core
+- name: sl_common
+  condition:
+  - device_cortexm
+- name: sl_core
+  condition:
+  - device_cortexm
+template_contribution:
+- name: bluetooth_on_event
+  unless:
+  - device_family_host
+  value:
+    include: esl_tag_internal.h
+    function: esl_core_bt_on_event
+  priority: -8192
+- name: event_handler
+  unless:
+  - device_family_host
+  value:
+    event: internal_app_init
+    include: esl_tag_internal.h
+    handler: esl_core_init
+  priority: 8
+- name: event_handler
+  unless:
+  - device_family_host
+  value:
+    event: internal_app_process_action
+    include: esl_tag_internal.h
+    handler: esl_core_step
+validation_helper:
+- path: common/esl_tag_core/config/validator.lua
+  unless:
+  - device_family_host
+documentation:
+  docset: bluetooth
+  document: bluetooth-service-api/esl-tag-core
+root_path: bluetooth_le_middleware

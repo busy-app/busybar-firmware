@@ -1,0 +1,43 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__evt__pawr__sync__opened" kind="group">
+    <compoundname>sl_bt_evt_pawr_sync_opened</compoundname>
+    <title>sl_bt_evt_pawr_sync_opened</title>
+    <innerclass refid="structsl__bt__evt__pawr__sync__opened__s" prot="public">sl_bt_evt_pawr_sync_opened_s</innerclass>
+      <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="group__sl__bt__evt__pawr__sync__opened_1gaf92759bd61ccb5b87c25106ebba378f7" prot="public" static="no">
+        <type>struct <ref refid="structsl__bt__evt__pawr__sync__opened__s" kindref="compound">sl_bt_evt_pawr_sync_opened_s</ref></type>
+        <definition>typedef struct sl_bt_evt_pawr_sync_opened_s sl_bt_evt_pawr_sync_opened_t</definition>
+        <argsstring></argsstring>
+        <name>sl_bt_evt_pawr_sync_opened_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="5498" column="43" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="5498" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__evt__pawr__sync__opened_1ga6a5f4611144c42c0e43c2c5165ddb632" prot="public" static="no">
+        <name>sl_bt_evt_pawr_sync_opened_id</name>
+        <initializer>0x005400a0</initializer>
+        <briefdescription>
+<para>Identifier of the opened event. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="5416" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="5416" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Indicates that synchronization to a Periodic Advertising with Responses (PAwR) train has been opened by scanning. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>See command <ref refid="group__sl__bt__sync__scanner_1gafc4271a3a5784987925927e6aae8652b" kindref="member">sl_bt_sync_scanner_open</ref>. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,43 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__evt__gatt__service" kind="group">
+    <compoundname>sl_bt_evt_gatt_service</compoundname>
+    <title>sl_bt_evt_gatt_service</title>
+    <innerclass refid="structsl__bt__evt__gatt__service__s" prot="public">sl_bt_evt_gatt_service_s</innerclass>
+      <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="group__sl__bt__evt__gatt__service_1ga64bcd828e79491455be5cf6fd49fbc92" prot="public" static="no">
+        <type>struct <ref refid="structsl__bt__evt__gatt__service__s" kindref="compound">sl_bt_evt_gatt_service_s</ref></type>
+        <definition>typedef struct sl_bt_evt_gatt_service_s sl_bt_evt_gatt_service_t</definition>
+        <argsstring></argsstring>
+        <name>sl_bt_evt_gatt_service_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="8199" column="39" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="8199" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__evt__gatt__service_1ga2583e2c717d419a2fd6659513a13a296" prot="public" static="no">
+        <name>sl_bt_evt_gatt_service_id</name>
+        <initializer>0x010900a0</initializer>
+        <briefdescription>
+<para>Identifier of the service event. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="8187" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="8187" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Indicates that a GATT service in the remote GATT database was discovered. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>This event is generated after issuing either the <ref refid="group__sl__bt__gatt_1gae95e41c59f0cf582b4146a9799c462ec" kindref="member">sl_bt_gatt_discover_primary_services</ref> or <ref refid="group__sl__bt__gatt_1ga3d1fb78a2633169c54a9e26482cf7d70" kindref="member">sl_bt_gatt_discover_primary_services_by_uuid</ref> command. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

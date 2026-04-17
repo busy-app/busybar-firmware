@@ -1,0 +1,214 @@
+id: sl_si91x_led_917
+package: platform_siwx91x
+label: LED
+description: >
+  The Simple LED Driver provides an implementation of the Generic LED API. 
+  This driver supports controlling GPIO-based on/off type LEDs. 
+  This component is instantiable, but only two named instances—'led0' and 'led1'can be created.
+  For each instance a configuration is generated along with an initialization struct set according to this configuration.
+  Instances should be named only 'led0' or 'led1'.
+category: Device|Si91x|MCU|Hardware
+quality: production
+metadata:
+  sbom:
+    license: MSLA
+component_root_path: "components/device/silabs/si91x/mcu/drivers/hardware_drivers"
+instantiable:
+  prefix: instance
+config_file:
+  # Regular LED config - base case (non-dev, non-OPN)
+  - path: "led/config/sl_si91x_led_init_{{instance}}_config.h"
+    file_id: led_config
+    unless: [si917_dev_board, sl_si91x_rgb_led]
+  # Regular LED config - OPN with LED tag (sl_si91x_rgb_led is false/not added)
+  - path: "led/config/sl_si91x_led_init_{{instance}}_config.h"
+    file_id: led_config
+    condition: [opn_config]
+    unless: [si917_dev_board, sl_si91x_rgb_led]
+  # Regular LED config file - base case
+  - path: "led/config/sl_si91x_led_config.h"
+    unless: [si917_dev_board, sl_si91x_rgb_led]
+  # Regular LED config file - OPN with LED tag
+  - path: "led/config/sl_si91x_led_config.h"
+    condition: [opn_config]
+    unless: [si917_dev_board, sl_si91x_rgb_led]
+  # RGB LED config - dev_board only (always RGB LED for dev_board)
+  - path: "rgb_led/config/sl_si91x_rgb_led_config.h"
+    condition: [si917_dev_board]
+  # RGB LED config - OPN with RGB LED tag (sl_si91x_rgb_led is true/added)
+  - path: "rgb_led/config/sl_si91x_rgb_led_config.h"
+    condition: [opn_config, sl_si91x_rgb_led]
+    unless: [si917_prod_board, device_is_917_module_dev_kit]
+  # RGB LED instance config - dev_board only (always RGB LED for dev_board)
+  - path: "rgb_led/config/sl_si91x_rgb_led_init_{{instance}}_config.h"
+    file_id: rgb_led0_config
+    condition: [si917_dev_board]
+  # RGB LED instance config - OPN with RGB LED tag
+  - path: "rgb_led/config/sl_si91x_rgb_led_init_{{instance}}_config.h"
+    file_id: rgb_led0_config
+    condition: [opn_config, sl_si91x_rgb_led]
+    unless: [si917_prod_board, device_is_917_module_dev_kit]
+include:
+  # Regular LED header - base case
+  - path: led/inc
+    file_list:
+      - path: sl_si91x_led.h
+    unless: [si917_dev_board, sl_si91x_rgb_led]
+  # Regular LED header - OPN with LED tag
+  - path: led/inc
+    file_list:
+      - path: sl_si91x_led.h
+    condition: [opn_config]
+    unless: [si917_dev_board, sl_si91x_rgb_led]
+  # RGB LED header - dev_board only (always RGB LED for dev_board)
+  - path: rgb_led/inc
+    file_list:
+      - path: sl_si91x_rgb_led.h
+    condition: [si917_dev_board]
+  # RGB LED header - OPN with RGB LED tag
+  - path: rgb_led/inc
+    file_list:
+      - path: sl_si91x_rgb_led.h
+    condition: [opn_config, sl_si91x_rgb_led]
+    unless: [si917_prod_board, device_is_917_module_dev_kit]
+source:
+  # Regular LED source - base case
+  - path: led/src/sl_si91x_led.c
+    unless: [si917_dev_board, sl_si91x_rgb_led]
+  # Regular LED source - OPN with LED tag
+  - path: led/src/sl_si91x_led.c
+    condition: [opn_config]
+    unless: [si917_dev_board, sl_si91x_rgb_led]
+  # RGB LED source - dev_board only (always RGB LED for dev_board)
+  - path: rgb_led/src/sl_si91x_rgb_led.c
+    condition: [si917_dev_board]
+  # RGB LED source - OPN with RGB LED tag
+  - path: rgb_led/src/sl_si91x_rgb_led.c
+    condition: [opn_config, sl_si91x_rgb_led]
+    unless: [si917_prod_board, device_is_917_module_dev_kit]
+requires:
+  - name: sl_gpio
+  # Sleeptimer required for RGB LED on OPN boards (needed for PWM functionality)
+  # Note: Required even if sl_sysrtc is present, as RGB LED PWM takes precedence
+  - name: sleeptimer
+    condition: [opn_config, sl_si91x_rgb_led]
+  # Sleeptimer required when led/rgb_led component is used on dev boards
+  - name: sleeptimer
+    condition: [si917_dev_board, sl_si91x_led_917]
+provides:
+  - name: sl_si91x_led_917
+template_file:
+  # Regular LED instances - base case
+  - path: "led/inst/sl_si91x_led_instances.c.jinja"
+    unless: [si917_dev_board, sl_si91x_rgb_led]
+  # Regular LED instances - OPN with LED tag
+  - path: "led/inst/sl_si91x_led_instances.c.jinja"
+    condition: [opn_config]
+    unless: [si917_dev_board, sl_si91x_rgb_led]
+  # Regular LED instances header - base case
+  - path: "led/inst/sl_si91x_led_instances.h.jinja"
+    unless: [si917_dev_board, sl_si91x_rgb_led]
+  # Regular LED instances header - OPN with LED tag
+  - path: "led/inst/sl_si91x_led_instances.h.jinja"
+    condition: [opn_config]
+    unless: [si917_dev_board, sl_si91x_rgb_led]
+  # RGB LED instances - dev_board only (always RGB LED for dev_board)
+  - path: "rgb_led/inst/sl_si91x_rgb_led_instances.c.jinja"
+    condition: [si917_dev_board]
+  # RGB LED instances - OPN with RGB LED tag
+  - path: "rgb_led/inst/sl_si91x_rgb_led_instances.c.jinja"
+    condition: [opn_config, sl_si91x_rgb_led]
+    unless: [si917_prod_board, device_is_917_module_dev_kit]
+  # RGB LED instances header - dev_board only (always RGB LED for dev_board)
+  - path: "rgb_led/inst/sl_si91x_rgb_led_instances.h.jinja"
+    condition: [si917_dev_board]
+  # RGB LED instances header - OPN with RGB LED tag
+  - path: "rgb_led/inst/sl_si91x_rgb_led_instances.h.jinja"
+    condition: [opn_config, sl_si91x_rgb_led]
+    unless: [si917_prod_board, device_is_917_module_dev_kit]
+template_contribution:
+  # Regular LED instance contributions - base case
+  - name: simple_led_instance
+    value: "{{instance}}"
+    unless: [si917_dev_board, sl_si91x_rgb_led]
+  # Regular LED instance contributions - OPN with LED tag
+  - name: simple_led_instance
+    value: "{{instance}}"
+    condition: [opn_config]
+    unless: [si917_dev_board, sl_si91x_rgb_led]
+  # Component catalog - base case
+  - name: component_catalog
+    value: "{{instance}}"
+    unless: [si917_dev_board, sl_si91x_rgb_led]
+  # Component catalog - OPN with LED tag
+  - name: component_catalog
+    value: "{{instance}}"
+    condition: [opn_config]
+    unless: [si917_dev_board, sl_si91x_rgb_led]
+  # Component catalog simple_led - base case
+  - name: component_catalog
+    value: simple_led
+    unless: [si917_dev_board, sl_si91x_rgb_led]
+  # Component catalog simple_led - OPN with LED tag
+  - name: component_catalog
+    value: simple_led
+    condition: [opn_config]
+    unless: [si917_dev_board, sl_si91x_rgb_led]
+  # Component catalog simple_led_instance - base case
+  - name: component_catalog
+    value: "simple_led_{{instance}}"
+    unless: [si917_dev_board, sl_si91x_rgb_led]
+  # Component catalog simple_led_instance - OPN with LED tag
+  - name: component_catalog
+    value: "simple_led_{{instance}}"
+    condition: [opn_config]
+    unless: [si917_dev_board, sl_si91x_rgb_led]
+  # Event handler for regular LED - base case
+  - name: event_handler
+    value:
+      event: driver_init
+      include: sl_si91x_led_instances.h
+      handler: led_init_instances
+    unless: [si917_dev_board, sl_si91x_rgb_led]
+  # Event handler for regular LED - OPN with LED tag
+  - name: event_handler
+    value:
+      event: driver_init
+      include: sl_si91x_led_instances.h
+      handler: led_init_instances
+    condition: [opn_config]
+    unless: [si917_dev_board, sl_si91x_rgb_led]
+  # Event handler for RGB LED - dev_board only (always RGB LED for dev_board)
+  - name: event_handler
+    value:
+      event: driver_init
+      include: sl_si91x_rgb_led_instances.h
+      handler: rgb_led_init_instances
+    condition: [si917_dev_board]
+  # Event handler for RGB LED - OPN with RGB LED tag
+  - name: event_handler
+    value:
+      event: driver_init
+      include: sl_si91x_rgb_led_instances.h
+      handler: rgb_led_init_instances
+    condition: [opn_config, sl_si91x_rgb_led]
+    unless: [si917_prod_board, device_is_917_module_dev_kit]
+  # LED instance for RGB LED template - dev_board only (always RGB LED for dev_board)
+  - name: led_instance
+    value: "{{instance}}"
+    condition: [si917_dev_board]
+  # LED instance for RGB LED template - OPN with RGB LED tag
+  - name: led_instance
+    value: "{{instance}}"
+    condition: [opn_config, sl_si91x_rgb_led]
+    unless: [si917_prod_board, device_is_917_module_dev_kit]
+  # Component catalog for dev_board RGB LED
+  - name: component_catalog
+    value: "{{instance}}"
+    condition: [si917_dev_board]
+  - name: component_catalog
+    value: led
+    condition: [si917_dev_board]
+  - name: component_catalog
+    value: "led_{{instance}}"
+    condition: [si917_dev_board]

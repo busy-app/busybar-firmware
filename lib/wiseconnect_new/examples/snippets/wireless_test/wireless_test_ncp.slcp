@@ -1,0 +1,165 @@
+project_name: wireless_test_ncp
+package: multi_protocol_siwx91x_app
+quality: production
+label: wireless_test_ncp
+category: Example|Wi-Fi_BLE
+description: 'Demonstrates to run all commands individually
+
+  '
+filter:
+- name: Wireless Technology
+  value:
+  - Wi-Fi BLE
+- name: Project Difficulty
+  value:
+  - Beginner
+source:
+- path: demo.c
+- path: wifi_commands.c
+- path: ble_commands.c
+- path: device_commands.c
+- path: network_commands.c
+- path: bsd_socket_commands.c
+- path: iot_socket_commands.c
+- path: console_commands/src/console_argument_types.c
+- path: console_commands/src/console_command_database.c
+- path: console_commands/src/console_variable_database.c
+include:
+- path: .
+  file_list:
+  - path: app.h
+- path: config
+  file_list:
+  - path: ble_config.h
+- path: console_commands/inc
+  file_list:
+  - path: console_argument_types.h
+define:
+- name: SL_SI91X_CLI_CONSOLE_MAX_ARG_COUNT
+  value: 30
+- name: SLI_SI91X_OFFLOAD_NETWORK_STACK
+  value: 1
+- name: SL_SI91X_PRINT_DBG_LOG
+- name: SLI_SI91X_DBG_MIDDLEWARE_EN
+- name: SLI_SI91X_MCU_INTR_BASED_RX_ON_UART
+component:
+- id: sl_main
+- id: freertos
+- id: freertos_heap_4
+- id: device_init
+- id: spidrv
+  instance:
+  - exp
+- id: iostream_retarget_stdio
+- id: iostream_recommended_stream
+- id: iostream_stdlib_config
+- id: wiseconnect_common
+- id: wifi
+- id: ble
+- id: sl_si91x_internal_stack
+- id: sl_si91x_spi_bus
+- id: wifi_resources
+- id: network_manager
+- id: basic_network_config_manager
+- id: console
+- id: console_variables
+- id: iot_socket
+- id: sl_si91x_basic_buffers
+toolchain_settings:
+- option: gcc_compiler_option
+  value: -Wall -Werror
+configuration:
+- name: SL_BOARD_ENABLE_VCOM
+  value: '1'
+- name: configUSE_POSIX_ERRNO
+  value: '1'
+- name: configTOTAL_HEAP_SIZE
+  value: '51200'
+- name: configTIMER_TASK_PRIORITY
+  value: '55'
+- name: NVM3_DEFAULT_MAX_OBJECT_SIZE
+  value: '280'
+readme:
+- path: readme.md
+other_file:
+- path: resources/readme/clidemo_soc_ncp.png
+- path: resources/readme/build_output.png
+- path: resources/readme/help.png
+- path: resources/readme/prints.png
+- path: resources/readme/prints7.png
+- path: resources/readme/empty_data.png
+- path: resources/readme/tx_commands.png
+- path: resources/readme/tx_modes.png
+- path: resources/readme/rx_stats.png
+- path: resources/readme/rx_stats_prints.png
+- path: resources/readme/wifi_init.png
+- path: resources/readme/wifi_init_prints.png
+- path: resources/readme/scan_prints.png
+- path: resources/readme/wifi_connect.png
+- path: resources/readme/connect.png
+- path: resources/readme/deinit.png
+- path: resources/readme/picture1.png
+- path: resources/readme/picture2.png
+- path: resources/readme/picture4.png
+- path: resources/readme/picture8.png
+- path: resources/readme/picture9.png
+- path: resources/readme/picture10.png
+- path: resources/readme/picture5.png
+- path: resources/readme/picture6.png
+- path: resources/readme/AP_mode.png
+- path: resources/readme/CLI_PER_Rx.PNG
+- path: resources/readme/CLI_help.PNG
+- path: resources/readme/PER_Rx.PNG
+- path: resources/readme/Ready.PNG
+- path: resources/readme/SDK.png
+- path: resources/readme/ble_device_adv.png
+- path: resources/readme/ble_dtm_rx.png
+- path: resources/readme/ble_dtm_tx.png
+- path: resources/readme/ble_per_rx.png
+- path: resources/readme/ble_per_tx.png
+- path: resources/readme/ble_user_gain_tabe.png
+- path: resources/readme/build_project.png
+- path: resources/readme/cli_ble.png
+- path: resources/readme/cli_wifi_ble_setup.png
+- path: resources/readme/clidemo_ncp.png
+- path: resources/readme/clidemo_soc.png
+- path: resources/readme/concurrent_w.PNG
+- path: resources/readme/create_project1.png
+- path: resources/readme/create_project2.png
+- path: resources/readme/efr32.png
+- path: resources/readme/max_arg.PNG
+- path: resources/readme/ping_w.PNG
+- path: resources/readme/port_selection.png
+- path: resources/readme/port_selection_soc.png
+- path: resources/readme/powersave.PNG
+- path: resources/readme/prints1.png
+- path: resources/readme/run_project.png
+- path: resources/readme/sda_commands.png
+- path: resources/readme/sda_port_baud_selection.png
+- path: resources/readme/serial_port.png
+- path: resources/readme/serial_port_setup.png
+- path: resources/readme/setup_rf.png
+- path: resources/readme/soc_board_detection.png
+- path: resources/readme/sta.png
+- path: resources/readme/station.PNG
+- path: resources/readme/usb_to_uart.png
+- path: resources/readme/usb_to_uart_1.png
+- path: resources/readme/usb_to_uart_2.png
+- path: resources/readme/wifi_init-prints.png
+- path: resources/readme/xml.png
+- path: resources/readme/cli_wifi_ble_setup_ncp.png
+- path: resources/readme/sta_ncp.png
+- path: resources/readme/cli_ble_ncp.png
+- path: resources/readme/configure_static_ip_address.png
+ui_hints:
+  highlight:
+  - path: readme.md
+    focus: true
+sdk_extension:
+- id: wiseconnect3_sdk
+  vendor: silabs
+  version: 4.0.1
+sdk:
+  id: simplicity_sdk
+  vendor: silabs
+  version: 2025.12.2

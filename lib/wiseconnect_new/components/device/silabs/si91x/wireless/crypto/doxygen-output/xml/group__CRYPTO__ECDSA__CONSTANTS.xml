@@ -1,0 +1,206 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__CRYPTO__ECDSA__CONSTANTS" kind="group">
+    <compoundname>CRYPTO_ECDSA_CONSTANTS</compoundname>
+    <title>Constants</title>
+      <sectiondef kind="enum">
+      <memberdef kind="enum" id="group__CRYPTO__ECDSA__CONSTANTS_1gac22f70d4a1d9c6fd627b4b4e2b123a57" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_si91x_ecdsa_key_size_t</name>
+        <enumvalue id="group__CRYPTO__ECDSA__CONSTANTS_1ggac22f70d4a1d9c6fd627b4b4e2b123a57a1e0725e25ede366535b9ef8ccc77848e" prot="public">
+          <name>SL_SI91X_ECDSA_PRIV_KEY_SIZE_224</name>
+          <initializer>= 28</initializer>
+          <briefdescription>
+<para>Private key size of 224 bits. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__ECDSA__CONSTANTS_1ggac22f70d4a1d9c6fd627b4b4e2b123a57a91439460680159aff8b663f9188d0f5d" prot="public">
+          <name>SL_SI91X_ECDSA_PRIV_KEY_SIZE_256</name>
+          <initializer>= 32</initializer>
+          <briefdescription>
+<para>Private key size of 256 bits. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__ECDSA__CONSTANTS_1ggac22f70d4a1d9c6fd627b4b4e2b123a57ab295d52a8e1996d55a21c789f431a699" prot="public">
+          <name>SL_SI91X_ECDSA_PUB_KEY_SIZE_224</name>
+          <initializer>= 57</initializer>
+          <briefdescription>
+<para>Public key size of 57 bytes. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__ECDSA__CONSTANTS_1ggac22f70d4a1d9c6fd627b4b4e2b123a57a18cf7330b2f0bedb4e8fefae6297b8a9" prot="public">
+          <name>SL_SI91X_ECDSA_PUB_KEY_SIZE_256</name>
+          <initializer>= 65</initializer>
+          <briefdescription>
+<para>Public key size of 65 bytes. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>Enumeration defining ECDSA private and public key sizes. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>This enumeration defines the key sizes for private and public keys supported by the ECDSA algorithm on the SI91X device. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/ecdsa/inc/sl_si91x_ecdsa.h" line="48" column="1" bodyfile="components/device/silabs/si91x/wireless/crypto/ecdsa/inc/sl_si91x_ecdsa.h" bodystart="48" bodyend="53"/>
+      </memberdef>
+      <memberdef kind="enum" id="group__CRYPTO__ECDSA__CONSTANTS_1ga726017ce8f30df553274e46fd78b156c" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_si91x_crypto_ecdsa_mode_t</name>
+        <enumvalue id="group__CRYPTO__ECDSA__CONSTANTS_1gga726017ce8f30df553274e46fd78b156caad0a70989812505e855d8cb1b740c348" prot="public">
+          <name>SL_SI91X_GENERATE_ECC_KEY_PAIR</name>
+          <initializer>= 1</initializer>
+          <briefdescription>
+<para>Generate ECC private-public key pair. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__ECDSA__CONSTANTS_1gga726017ce8f30df553274e46fd78b156cac1c03708b8e50c3be97bc6906cadb023" prot="public">
+          <name>SL_SI91X_ECDSA_GENERATE_SIGN</name>
+          <briefdescription>
+<para>Generate signature. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__ECDSA__CONSTANTS_1gga726017ce8f30df553274e46fd78b156ca20625d90eeaaadee74094f85d91654a7" prot="public">
+          <name>SL_SI91X_ECDSA_VERIFY_SIGN</name>
+          <briefdescription>
+<para>Verify signature. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>Enumeration defining ECDSA operations. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>This enumeration defines the types of ECDSA operations supported, including generating ECC key pairs, generating signatures, and verifying signatures. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/ecdsa/inc/sl_si91x_ecdsa.h" line="61" column="1" bodyfile="components/device/silabs/si91x/wireless/crypto/ecdsa/inc/sl_si91x_ecdsa.h" bodystart="61" bodyend="65"/>
+      </memberdef>
+      <memberdef kind="enum" id="group__CRYPTO__ECDSA__CONSTANTS_1ga03914b286cf67384817919a1b73ee0c2" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_si91x_ecdsa_signature_size_t</name>
+        <enumvalue id="group__CRYPTO__ECDSA__CONSTANTS_1gga03914b286cf67384817919a1b73ee0c2a7dd529b23787326c7a11654061c38708" prot="public">
+          <name>SL_SI91X_ECDSA_SIGN_HALF_SIZE_P224R1</name>
+          <initializer>= 28</initializer>
+          <briefdescription>
+<para>Signature size of 224 bits divided by 2. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__ECDSA__CONSTANTS_1gga03914b286cf67384817919a1b73ee0c2a273d00fb8fba403efb0bc1a54ee1ba6f" prot="public">
+          <name>SL_SI91X_ECDSA_SIGN_HALF_SIZE_P256R1</name>
+          <initializer>= 32</initializer>
+          <briefdescription>
+<para>Signature size of 256 bits divided by 2. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__ECDSA__CONSTANTS_1gga03914b286cf67384817919a1b73ee0c2a006d6c7d14e0c72e4dbb39c9a8281a44" prot="public">
+          <name>SL_SI91X_ECDSA_SIGN_MAX_SIZE</name>
+          <initializer>= 128</initializer>
+          <briefdescription>
+<para>Maximum signature size supported. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>Enumeration defining ECDSA signature sizes supported by the SI91X device. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>This enumeration defines the signature sizes supported by the ECDSA algorithm on the SI91X device, including 224-bit and 256-bit sizes. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/ecdsa/inc/sl_si91x_ecdsa.h" line="73" column="1" bodyfile="components/device/silabs/si91x/wireless/crypto/ecdsa/inc/sl_si91x_ecdsa.h" bodystart="73" bodyend="77"/>
+      </memberdef>
+      <memberdef kind="enum" id="group__CRYPTO__ECDSA__CONSTANTS_1gaf51b39292ea7d10ec831e0fab1ad6ac2" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_si91x_crypto_ecc_curve_t</name>
+        <enumvalue id="group__CRYPTO__ECDSA__CONSTANTS_1ggaf51b39292ea7d10ec831e0fab1ad6ac2ac6813d6eb54dae3ded3ebbc11947bc36" prot="public">
+          <name>SL_SI91X_ECC_SECP224R1</name>
+          <initializer>= 14</initializer>
+          <briefdescription>
+<para>Values as provided by firmware. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__ECDSA__CONSTANTS_1ggaf51b39292ea7d10ec831e0fab1ad6ac2ae930da358a32c5959a2247e177a7efa5" prot="public">
+          <name>SL_SI91X_ECC_SECP256R1</name>
+          <initializer>= 7</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>Enumeration defining ECC curve types supported by the SI91X device. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>This enumeration defines the ECC curves supported by the ECDSA algorithm on the SI91X device, which includes ECC_SECP224R1, and ECC_SECP256R1. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/ecdsa/inc/sl_si91x_ecdsa.h" line="85" column="1" bodyfile="components/device/silabs/si91x/wireless/crypto/ecdsa/inc/sl_si91x_ecdsa.h" bodystart="85" bodyend="88"/>
+      </memberdef>
+      <memberdef kind="enum" id="group__CRYPTO__ECDSA__CONSTANTS_1ga36435fb2454fb634cc727c8330096255" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_si91x_crypto_ecdsa_sha_mode_t</name>
+        <enumvalue id="group__CRYPTO__ECDSA__CONSTANTS_1gga36435fb2454fb634cc727c8330096255aae4f7ff4d9ed377f97229c68004132f8" prot="public">
+          <name>SL_SI91X_ECDSA_SHA_256</name>
+          <initializer>= 1</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__ECDSA__CONSTANTS_1gga36435fb2454fb634cc727c8330096255ad2188a99adfcdd7d4c55b1fa0ed725af" prot="public">
+          <name>SL_SI91X_ECDSA_SHA_384</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__ECDSA__CONSTANTS_1gga36435fb2454fb634cc727c8330096255a4b14f9d860e6a23be02c0746eded3afd" prot="public">
+          <name>SL_SI91X_ECDSA_SHA_512</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>Enumeration defining the SHA modes supported by the ECDSA algorithm on the SI91X device. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>This enumeration defines the SHA modes supported for the ECDSA algorithm on the SI91X device, which includes SHA256, SHA384, and SHA512. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/ecdsa/inc/sl_si91x_ecdsa.h" line="96" column="1" bodyfile="components/device/silabs/si91x/wireless/crypto/ecdsa/inc/sl_si91x_ecdsa.h" bodystart="96" bodyend="100"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para>This section provides a reference to the ECDSA Crypto API constants. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

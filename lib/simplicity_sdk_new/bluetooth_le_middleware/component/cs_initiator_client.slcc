@@ -1,0 +1,33 @@
+id: cs_initiator_client
+package: bluetooth_le_middleware
+label: CS Initiator client
+description: >
+  Channel Sounding (CS) Initiator client. This component provides configuration
+  for the initiator component.
+category: Bluetooth|Application|Miscellaneous
+metadata:
+  sbom:
+    license: Zlib
+quality: production
+
+source:
+- path: common/cs_initiator/src/cs_initiator_client.c
+
+provides:
+- name: cs_initiator_client
+
+config_file:
+- path: common/cs_initiator/config/cs_initiator_config.h
+
+include:
+- path: common/cs_initiator/inc
+  file_list:
+  - path: cs_initiator_client.h
+- path: common/cs_common
+  file_list:
+  - path: cs_sync_antenna.h
+
+template_contribution:
+- name: component_catalog
+  value: cs_initiator_client
+root_path: bluetooth_le_middleware

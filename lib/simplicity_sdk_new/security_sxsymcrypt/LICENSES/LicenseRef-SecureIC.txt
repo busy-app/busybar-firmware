@@ -1,0 +1,17 @@
+# License
+
+This software is distributed by Silicon Laboratories Inc. pursuant to
+the terms of a license from Secure-IC SAS.  Secure-IC SAS is and shall
+remain the owner of the software. The following terms apply to your
+use of the software libraries:
+- You may make strictly necessary modifications to the software
+  libraries for the sole purpose of compilation and system integration.
+- Neither Silicon Laboratories Inc. nor Secure-IC SAS provide any
+  warranties and cannot be held liable for such modifications to the
+  software libraries.
+- You may not reverse-compile or reverse-engineer software provided
+  to you in object code form.
+- You may not redistribute the modified or unmodified software libraries.
+- You may not delete this file.
+- No other rights are granted to you under this license.
+

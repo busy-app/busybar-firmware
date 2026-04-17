@@ -1,0 +1,98 @@
+project_name: esl_ap
+package: bluetooth_le_app
+label: Bluetooth - ESL Access Point
+description: >
+  Bluetooth - ESL Access Point
+category: Bluetooth Examples
+quality: experimental
+
+filter:
+  - name: "Wireless Technology"
+    value: ["Bluetooth"]
+  - name: "Device Type"
+    value: ["Host"]
+  - name: "Project Difficulty"
+    value: ["Advanced"]
+
+component:
+  - id: toolchain_gcc
+  - id: native_host
+
+source:
+  - path: main.c
+
+other_file:
+  - path: air_compressor.py
+  - path: ap_cli.py
+  - path: ap_config.py
+  - path: ap_constants.py
+  - path: ap_core.py
+  - path: ap_core_commands.py
+  - path: ap_core_pawr.py
+  - path: ap_core_tag_commands.py
+  - path: ap_core_utils.py
+  - path: ap_core_event_handlers_auto.py
+  - path: ap_core_event_handlers_cli.py
+  - path: ap_core_event_handlers_common.py
+  - path: ap_core_event_handlers_demo.py
+  - path: ap_core_helpers.py
+  - path: ap_core_pawr_responses.py
+  - path: ap_core_scan.py
+  - path: ap_ead.py
+  - path: ap_json_helper.py
+  - path: ap_logger.py
+  - path: ap_response_parser.py
+  - path: ap_sensor.py
+  - path: ap_soft_timer.py
+  - path: app.py
+  - path: auto_importer.py
+  - path: esl_command.py
+  - path: esl_key_lib_test.py
+  - path: esl_key_lib_wrapper.py
+  - path: esl_key_lib.py
+  - path: esl_lib_test.py
+  - path: esl_lib_wrapper.py
+  - path: esl_lib.py
+  - path: esl_net_template.json
+  - path: esl_tag_db.py
+  - path: esl_tag.py
+  - path: font.otf
+  - path: image_converter.py
+  - path: qrcode_generator.py
+  - path: requirements.txt
+  - path: image/apple.png
+  - path: image/banana.png
+  - path: image/bread.png
+  - path: image/chicken.png
+  - path: image/croissant.png
+  - path: image/donut.png
+  - path: image/hamburger.png
+  - path: image/pineapple.png
+  - path: image/pizza.png
+  - path: image/skull.png
+  - path: image/steak.png
+  - path: readme/images/01_startup.png
+  - path: readme/images/02_provisioned.png
+  - path: readme/images/03_imageupdate.png
+  - path: readme/images/04_ledon.png
+  - path: readme/images/05_Create_host_AP_workspace.png
+  - path: readme/images/05_Prepare_host_AP_workspace.png
+  - path: readme/images/05_Select_host_AP_workspace.png
+  - path: readme/images/ap_start.png
+  - path: readme/images/auto-mode.png
+  - path: readme/images/python_install_windows.png
+  - path: readme/images/struct.png
+  - path: readme/images/terminal_help.png
+
+readme:
+  - path: readme/readme.md
+
+ui_hints:
+  highlight:
+    - path: readme/readme.md
+      focus: true
+
+tag:
+  - companion:esl_lib
+  - toolchain:gcc
+  - hwfilter:device:device_family_host

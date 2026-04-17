@@ -1,0 +1,18 @@
+id: linux_arch_arm64
+label: Linux OS (ARM64)
+package: devices
+description: OS component for ARM64/AArch64 Linux build targets.
+category: Platform|Device|Native
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+requires:
+- name: linux
+provides:
+- name: linux_arch
+- name: linux_arch_aarch64
+- name: aarch64
+tag:
+- device:opn:linux_arm64
+root_path: devices

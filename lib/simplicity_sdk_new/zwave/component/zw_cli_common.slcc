@@ -1,0 +1,55 @@
+id: zw_cli_common
+label: Z-Wave CLI Common Component
+category: Z-Wave|CLI
+description: >
+  This component provides common CLI (Command Line Interface), that can be used to send commands to the Z-wave device,
+  instead of using the buttons, e.g initiating learn mode on a device or performing a factory reset.
+  This component also provides functionalities for getting DSK and current region of the device.
+package: zwave
+quality: production
+metadata:
+  sbom:
+    reference: zw_sbom_license
+
+source:
+- path: "platform/SiliconLabs/components/zw_cli_common/zw_cli_common.c"
+include:
+- path: "platform/SiliconLabs/components/zw_cli_common/"
+  file_list:
+  - path: "zw_cli_common.h"
+provides:
+- name: zw_cli_common
+
+requires:
+- name: cli_recommended_instance
+- name: printf
+- name: iostream_recommended_stream
+- name: iostream_retarget_stdio
+- name: app_log
+
+template_contribution:
+#------------------ CLI commands ---------------------
+- name: cli_command
+  value:
+    name: set_learn_mode
+    handler: cli_set_learn_mode
+    help: Include / exclude the device into / from a z-wave network
+- name: cli_command
+  value:
+    name: factory_reset
+    handler: cli_factory_reset
+    help: Factory reset the device
+- name: cli_command
+  value:
+    name: get_dsk
+    handler: cli_get_dsk
+    help: Read the DSK, stored in the manufacturing token
+- name: cli_command
+  value:
+    name: get_region
+    handler: cli_get_region
+    help: Get the used region
+#------------------ Component Catalog ---------------------
+- name: component_catalog
+  value: zw_cli_common
+root_path: zwave

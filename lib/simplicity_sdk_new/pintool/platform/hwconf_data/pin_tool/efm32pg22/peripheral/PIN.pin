@@ -1,0 +1,29 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<pin:DocumentRoot xmlns:pin="http://www.silabs.com/ss/hwconfig/pin.ecore">
+  <pin id="pin_tool.efm32.efm32pg22.pin" label="Pin" name="Pin" description="" version="A" ioModePropertyId="pin.mode" skippedPropertyId="pin.reserve" labelPropertyId="pin.name">
+    <properties>
+      <stringProperty label="Type" id="type" defaultValue="gpio" transient="true" hidden="true" readonly="true" description=""/>
+      <stringProperty label="Custom Pin Name" id="pin.name" description=""/>
+      <boolProperty label="EM2 capable" id="capability.em2" readonly="true" transient="true" hidden="true" defaultValue="false"/>
+      <boolProperty label="EM4 capable" id="capability.em4" readonly="true" transient="true" hidden="true" defaultValue="false"/>
+      <boolProperty label="5V tolerant" id="capability.5v" readonly="true" transient="true" hidden="true" defaultValue="false"/>
+      <enumProperty label="Pin mode" id="pin.mode" description="" defaultValueIndex="0" hidden="true">
+        <enumValue value="Disabled"/>
+      </enumProperty>
+      <enumProperty label="Reserved as GPIO" id="pin.reserve" description="" defaultValueIndex="0" hidden="true">
+        <enumValue value="Not reserved"/>
+        <enumValue value="Reserved"/>
+      </enumProperty>
+      <boolProperty label="Generate LOC defines" id="generate.location" readonly="true" transient="true" hidden="true" defaultValue="false"/>
+    </properties>
+    <propertyCategories>
+      <category label="Port Pin">
+        <subCategory label="">
+          <propertyRef refId="pin.mode"/>
+          <propertyRef refId="pin.name"/>
+          <propertyRef refId="pin.reserve"/>
+        </subCategory>
+      </category>
+    </propertyCategories>
+  </pin>
+</pin:DocumentRoot>

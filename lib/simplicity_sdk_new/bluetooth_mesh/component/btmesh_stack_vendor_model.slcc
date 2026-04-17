@@ -1,0 +1,21 @@
+id: "btmesh_stack_vendor_model"
+label: "Vendor Model"
+package: bluetooth_mesh
+description: "Provides functionality to send and receive vendor-specific messages."
+category: "Bluetooth Mesh|Stack|Models"
+quality: "production"
+
+requires:
+- name: "btmesh_stack"
+- name: "btmesh_core"
+provides:
+- name: "btmesh_stack_vendor_model"
+template_contribution:
+- name: btmesh_bgapi_class
+  value:
+    class: "vendor_model"
+  priority: 1
+metadata:
+  sbom:
+    reference: btmesh_stack
+root_path: bluetooth_mesh

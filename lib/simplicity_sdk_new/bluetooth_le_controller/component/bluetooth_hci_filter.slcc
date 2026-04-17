@@ -1,0 +1,18 @@
+id: bluetooth_hci_filter
+label: HCI Extended Advertisment Filtering
+package: bluetooth_le_controller
+description: >
+  Provides API to create HCI event handler hooks to filter out events
+  that are passed to host stack
+category: Bluetooth|Host Controller Interface (HCI)
+quality: production
+include:
+- path: inc/
+  file_list:
+  - path: sl_btctrl_hci_event.h
+provides:
+- name: bluetooth_hci_filter
+metadata:
+  sbom:
+    license: MSLA
+root_path: bluetooth_le_controller

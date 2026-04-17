@@ -1,0 +1,27 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__evt__external__bondingdb__local__irk__request" kind="group">
+    <compoundname>sl_bt_evt_external_bondingdb_local_irk_request</compoundname>
+    <title>sl_bt_evt_external_bondingdb_local_irk_request</title>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__evt__external__bondingdb__local__irk__request_1ga6a0d9aeefb48fe7ea9ef986c10325482" prot="public" static="no">
+        <name>sl_bt_evt_external_bondingdb_local_irk_request_id</name>
+        <initializer>0x035c00a0</initializer>
+        <briefdescription>
+<para>Identifier of the local_irk_request event. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="12280" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="12280" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Indicates that the Bluetooth stack requests the local Identity Resolving Key (IRK) data from the external bonding database. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>The application must respond by setting local IRK data using the <ref refid="group__sl__bt__external__bondingdb_1ga19b17942e966c54153f4df9ac5ebf554" kindref="member">sl_bt_external_bondingdb_set_local_irk</ref> command. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

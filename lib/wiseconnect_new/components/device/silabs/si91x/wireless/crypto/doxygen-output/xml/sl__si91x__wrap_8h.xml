@@ -1,0 +1,335 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="sl__si91x__wrap_8h" kind="file" language="C++">
+    <compoundname>sl_si91x_wrap.h</compoundname>
+    <includes local="yes">sl_si91x_protocol_types.h</includes>
+    <includes refid="sl__si91x__crypto_8h" local="yes">sl_si91x_crypto.h</includes>
+    <includes local="yes">sl_status.h</includes>
+    <includes refid="sl__si91x__wrap__config_8h" local="yes">sl_si91x_wrap_config.h</includes>
+    <incdepgraph>
+      <node id="3">
+        <label>sl_si91x_crypto.h</label>
+        <link refid="sl__si91x__crypto_8h"/>
+      </node>
+      <node id="5">
+        <label>sl_si91x_wrap_config.h</label>
+        <link refid="sl__si91x__wrap__config_8h"/>
+      </node>
+      <node id="1">
+        <label>components/device/silabs/si91x/wireless/crypto/wrap/inc/sl_si91x_wrap.h</label>
+        <link refid="sl__si91x__wrap_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="4" relation="include">
+        </childnode>
+        <childnode refid="5" relation="include">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>sl_si91x_protocol_types.h</label>
+      </node>
+      <node id="4">
+        <label>sl_status.h</label>
+      </node>
+    </incdepgraph>
+    <innerclass refid="structsl__si91x__wrap__config__t" prot="public">sl_si91x_wrap_config_t</innerclass>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="sl__si91x__wrap_8h_1a96ffab12b51d25ae882bdef65ffd67a2" prot="public" static="no">
+        <name>SL_SI91X_HMAC_PADDING</name>
+        <initializer>BIT(0)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/wrap/inc/sl_si91x_wrap.h" line="43" column="9" bodyfile="components/device/silabs/si91x/wireless/crypto/wrap/inc/sl_si91x_wrap.h" bodystart="43" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="sl__si91x__wrap_8h_1ab6cd2ca3aeee12628a17ffbc74d11c20" prot="public" static="no">
+        <name>SL_SI91X_HMAC_512_BLOCK_SIZE</name>
+        <initializer>128</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/wrap/inc/sl_si91x_wrap.h" line="44" column="9" bodyfile="components/device/silabs/si91x/wireless/crypto/wrap/inc/sl_si91x_wrap.h" bodystart="44" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="sl__si91x__wrap_8h_1a97aa321872771851c4384ea45ff800dc" prot="public" static="no">
+        <name>SL_SI91X_HMAC_256_BLOCK_SIZE</name>
+        <initializer>64</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/wrap/inc/sl_si91x_wrap.h" line="45" column="9" bodyfile="components/device/silabs/si91x/wireless/crypto/wrap/inc/sl_si91x_wrap.h" bodystart="45" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="sl__si91x__wrap_8h_1a2236f6673f796f620b00ac6e9dfe84a9" prot="public" static="no">
+        <name>SL_SI91X_HMAC_512_BLOCK_SIZE_ALIGN</name>
+        <initializer>127</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/wrap/inc/sl_si91x_wrap.h" line="46" column="9" bodyfile="components/device/silabs/si91x/wireless/crypto/wrap/inc/sl_si91x_wrap.h" bodystart="46" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="sl__si91x__wrap_8h_1a2f1202985ae6dd64f952c97b25a6632c" prot="public" static="no">
+        <name>SL_SI91X_HMAC_256_BLOCK_SIZE_ALIGN</name>
+        <initializer>63</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/wrap/inc/sl_si91x_wrap.h" line="47" column="9" bodyfile="components/device/silabs/si91x/wireless/crypto/wrap/inc/sl_si91x_wrap.h" bodystart="47" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="sl__si91x__wrap_8h_1a9dc008c127240ccac1cab38fa27aefcb" prot="public" static="no">
+        <name>SL_SI91X_DEFAULT_16BYTE_ALIGN</name>
+        <initializer>15</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/wrap/inc/sl_si91x_wrap.h" line="48" column="9" bodyfile="components/device/silabs/si91x/wireless/crypto/wrap/inc/sl_si91x_wrap.h" bodystart="48" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="enum">
+      <memberdef kind="enum" id="group__CRYPTO__WRAP__TYPES_1ga0e2790c70d45e976121f925ab9af9226" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_si91x_wrap_mode_t</name>
+        <enumvalue id="group__CRYPTO__WRAP__TYPES_1gga0e2790c70d45e976121f925ab9af9226a4b8fefb83b9043cd09fb9a5affa379ed" prot="public">
+          <name>SL_SI91X_WRAP_HMAC_SHA_1</name>
+          <initializer>= 1</initializer>
+          <briefdescription>
+<para>HMAC SHA 1 mode used for padding during wrap. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__WRAP__TYPES_1gga0e2790c70d45e976121f925ab9af9226ac84924d26a9e22a165f98d809a5605ab" prot="public">
+          <name>SL_SI91X_WRAP_HMAC_SHA_256</name>
+          <briefdescription>
+<para>HMAC SHA 256 used for padding during wrap. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__WRAP__TYPES_1gga0e2790c70d45e976121f925ab9af9226a97506b9f604388810116abb76308e7ae" prot="public">
+          <name>SL_SI91X_WRAP_HMAC_SHA_384</name>
+          <briefdescription>
+<para>HMAC SHA 384 mode used for padding during wrap. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__WRAP__TYPES_1gga0e2790c70d45e976121f925ab9af9226a06c566682c12b747ad2d642c6b01b8b1" prot="public">
+          <name>SL_SI91X_WRAP_HMAC_SHA_512</name>
+          <briefdescription>
+<para>HMAC SHA 512 mode used for padding during wrap. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/wrap/inc/sl_si91x_wrap.h" line="80" column="1" bodyfile="components/device/silabs/si91x/wireless/crypto/wrap/inc/sl_si91x_wrap.h" bodystart="80" bodyend="85"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="group__CRYPTO__WRAP__FUNCTIONS_1gaa7799e73d94ecb19c899ea636c51aa1d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_si91x_wrap</definition>
+        <argsstring>(sl_si91x_wrap_config_t *config, uint8_t *output)</argsstring>
+        <name>sl_si91x_wrap</name>
+        <param>
+          <type><ref refid="structsl__si91x__wrap__config__t" kindref="compound">sl_si91x_wrap_config_t</ref> *</type>
+          <declname>config</declname>
+        </param>
+        <param>
+          <type>uint8_t *</type>
+          <declname>output</declname>
+        </param>
+        <briefdescription>
+<para>To get the wrapped version of the plain key. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">config</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Configuration object of type <ref refid="structsl__si91x__wrap__config__t" kindref="compound">sl_si91x_wrap_config_t</ref> </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">output</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Buffer to store the wrapped key. The size of this buffer must be a multiple of 16 bytes. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>sl_status_t. For more information on status codes, refer to <ulink url="https://docs.silabs.com/gecko-platform/latest/platform-common/status">SL STATUS DOCUMENTATION</ulink>. </para>
+</simplesect>
+<simplesect kind="note"><para>Security must be enabled on the device to use this API. Follow the detailed instructions in <bold>Section 5.5 - Enable Security Configurations in NWP and M4 Firmware Images</bold> of the <ulink url="https://www.silabs.com/documents/public/user-guides/ug574-siwx917-soc-manufacturing-utility-user-guide.pdf">UG574 SiWx917 SoC Manufacturing Utility User Guide</ulink>. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/wrap/inc/sl_si91x_wrap.h" line="112" column="13" declfile="components/device/silabs/si91x/wireless/crypto/wrap/inc/sl_si91x_wrap.h" declline="112" declcolumn="13"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>SL SI91X Wrap Header file. </para>
+    </briefdescription>
+    <detaileddescription>
+<sect1 id="sl__si91x__wrap_8h_1autotoc_md12">
+<title>License</title>
+<para><bold>Copyright 2023 Silicon Laboratories Inc. www.silabs.com</bold></para>
+<para>SPDX-License-Identifier: Zlib</para>
+<para>The licensor of this software is Silicon Laboratories Inc.</para>
+<para>This software is provided &apos;as-is&apos;, without any express or implied warranty. In no event will the authors be held liable for any damages arising from the use of this software.</para>
+<para>Permission is granted to anyone to use this software for any purpose, including commercial applications, and to alter it and redistribute it freely, subject to the following restrictions:</para>
+<para><orderedlist>
+<listitem><para>The origin of this software must not be misrepresented; you must not claim that you wrote the original software. If you use this software in a product, an acknowledgment in the product documentation would be appreciated but is not required.</para>
+</listitem><listitem><para>Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.</para>
+</listitem><listitem><para>This notice may not be removed or altered from any source distribution. </para>
+</listitem></orderedlist>
+</para>
+</sect1>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="comment">/***************************************************************************/</highlight><highlight class="normal"><sp/></highlight><highlight class="comment">/**</highlight></codeline>
+<codeline lineno="2"><highlight class="comment"><sp/>*<sp/>@file</highlight></codeline>
+<codeline lineno="3"><highlight class="comment"><sp/>*<sp/>@brief<sp/>SL<sp/>SI91X<sp/>Wrap<sp/>Header<sp/>file</highlight></codeline>
+<codeline lineno="4"><highlight class="comment"><sp/>*******************************************************************************</highlight></codeline>
+<codeline lineno="5"><highlight class="comment"><sp/>*<sp/>#<sp/>License</highlight></codeline>
+<codeline lineno="6"><highlight class="comment"><sp/>*<sp/>&lt;b&gt;Copyright<sp/>2023<sp/>Silicon<sp/>Laboratories<sp/>Inc.<sp/>www.silabs.com&lt;/b&gt;</highlight></codeline>
+<codeline lineno="7"><highlight class="comment"><sp/>*******************************************************************************</highlight></codeline>
+<codeline lineno="8"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="9"><highlight class="comment"><sp/>*<sp/>SPDX-License-Identifier:<sp/>Zlib</highlight></codeline>
+<codeline lineno="10"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="11"><highlight class="comment"><sp/>*<sp/>The<sp/>licensor<sp/>of<sp/>this<sp/>software<sp/>is<sp/>Silicon<sp/>Laboratories<sp/>Inc.</highlight></codeline>
+<codeline lineno="12"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="13"><highlight class="comment"><sp/>*<sp/>This<sp/>software<sp/>is<sp/>provided<sp/>&apos;as-is&apos;,<sp/>without<sp/>any<sp/>express<sp/>or<sp/>implied</highlight></codeline>
+<codeline lineno="14"><highlight class="comment"><sp/>*<sp/>warranty.<sp/>In<sp/>no<sp/>event<sp/>will<sp/>the<sp/>authors<sp/>be<sp/>held<sp/>liable<sp/>for<sp/>any<sp/>damages</highlight></codeline>
+<codeline lineno="15"><highlight class="comment"><sp/>*<sp/>arising<sp/>from<sp/>the<sp/>use<sp/>of<sp/>this<sp/>software.</highlight></codeline>
+<codeline lineno="16"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="17"><highlight class="comment"><sp/>*<sp/>Permission<sp/>is<sp/>granted<sp/>to<sp/>anyone<sp/>to<sp/>use<sp/>this<sp/>software<sp/>for<sp/>any<sp/>purpose,</highlight></codeline>
+<codeline lineno="18"><highlight class="comment"><sp/>*<sp/>including<sp/>commercial<sp/>applications,<sp/>and<sp/>to<sp/>alter<sp/>it<sp/>and<sp/>redistribute<sp/>it</highlight></codeline>
+<codeline lineno="19"><highlight class="comment"><sp/>*<sp/>freely,<sp/>subject<sp/>to<sp/>the<sp/>following<sp/>restrictions:</highlight></codeline>
+<codeline lineno="20"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="21"><highlight class="comment"><sp/>*<sp/>1.<sp/>The<sp/>origin<sp/>of<sp/>this<sp/>software<sp/>must<sp/>not<sp/>be<sp/>misrepresented;<sp/>you<sp/>must<sp/>not</highlight></codeline>
+<codeline lineno="22"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/>claim<sp/>that<sp/>you<sp/>wrote<sp/>the<sp/>original<sp/>software.<sp/>If<sp/>you<sp/>use<sp/>this<sp/>software</highlight></codeline>
+<codeline lineno="23"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/>in<sp/>a<sp/>product,<sp/>an<sp/>acknowledgment<sp/>in<sp/>the<sp/>product<sp/>documentation<sp/>would<sp/>be</highlight></codeline>
+<codeline lineno="24"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/>appreciated<sp/>but<sp/>is<sp/>not<sp/>required.</highlight></codeline>
+<codeline lineno="25"><highlight class="comment"><sp/>*<sp/>2.<sp/>Altered<sp/>source<sp/>versions<sp/>must<sp/>be<sp/>plainly<sp/>marked<sp/>as<sp/>such,<sp/>and<sp/>must<sp/>not<sp/>be</highlight></codeline>
+<codeline lineno="26"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/>misrepresented<sp/>as<sp/>being<sp/>the<sp/>original<sp/>software.</highlight></codeline>
+<codeline lineno="27"><highlight class="comment"><sp/>*<sp/>3.<sp/>This<sp/>notice<sp/>may<sp/>not<sp/>be<sp/>removed<sp/>or<sp/>altered<sp/>from<sp/>any<sp/>source<sp/>distribution.</highlight></codeline>
+<codeline lineno="28"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="29"><highlight class="comment"><sp/>******************************************************************************/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="30"><highlight class="normal"></highlight></codeline>
+<codeline lineno="31"><highlight class="normal"></highlight><highlight class="preprocessor">#pragma<sp/>once</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="32"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;sl_si91x_protocol_types.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="33"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;<ref refid="sl__si91x__crypto_8h" kindref="compound">sl_si91x_crypto.h</ref>&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="34"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;sl_status.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="35"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;<ref refid="sl__si91x__wrap__config_8h" kindref="compound">sl_si91x_wrap_config.h</ref>&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="36"><highlight class="normal"></highlight></codeline>
+<codeline lineno="37"><highlight class="normal"></highlight><highlight class="comment">/******************************************************</highlight></codeline>
+<codeline lineno="38"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Type<sp/>Definitions</highlight></codeline>
+<codeline lineno="39"><highlight class="comment"><sp/>******************************************************/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="40"><highlight class="normal"></highlight><highlight class="comment">/******************************************************</highlight></codeline>
+<codeline lineno="41"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Constants</highlight></codeline>
+<codeline lineno="42"><highlight class="comment"><sp/>******************************************************/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="43"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>SL_SI91X_HMAC_PADDING<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>BIT(0)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="44"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>SL_SI91X_HMAC_512_BLOCK_SIZE<sp/><sp/><sp/><sp/><sp/><sp/><sp/>128</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="45"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>SL_SI91X_HMAC_256_BLOCK_SIZE<sp/><sp/><sp/><sp/><sp/><sp/><sp/>64</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="46"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>SL_SI91X_HMAC_512_BLOCK_SIZE_ALIGN<sp/>127</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="47"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>SL_SI91X_HMAC_256_BLOCK_SIZE_ALIGN<sp/>63</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="48"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>SL_SI91X_DEFAULT_16BYTE_ALIGN<sp/><sp/><sp/><sp/><sp/><sp/>15</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="49"><highlight class="normal"></highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="50"><highlight class="comment">/**</highlight></codeline>
+<codeline lineno="51"><highlight class="comment"><sp/>*<sp/>@addtogroup<sp/>CRYPTO_WRAP_TYPES<sp/></highlight></codeline>
+<codeline lineno="52"><highlight class="comment"><sp/>*<sp/>@{<sp/></highlight></codeline>
+<codeline lineno="53"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="54"><highlight class="normal"></highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="55"><highlight class="comment">/**</highlight></codeline>
+<codeline lineno="56"><highlight class="comment"><sp/>*<sp/>@brief<sp/>Structure<sp/>defining<sp/>WRAP<sp/>configuration.</highlight></codeline>
+<codeline lineno="57"><highlight class="comment"><sp/>*<sp/></highlight></codeline>
+<codeline lineno="58"><highlight class="comment"><sp/>*<sp/>The<sp/>structure<sp/>defines<sp/>the<sp/>WRAP<sp/>configuration<sp/>required<sp/>for<sp/>the<sp/>operation,<sp/>which<sp/>includes<sp/></highlight></codeline>
+<codeline lineno="59"><highlight class="comment"><sp/>*<sp/>key<sp/>type,<sp/>key<sp/>size,<sp/>key<sp/>buffer,<sp/>and<sp/>so<sp/>on.</highlight></codeline>
+<codeline lineno="60"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="61" refid="structsl__si91x__wrap__config__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal">{</highlight></codeline>
+<codeline lineno="62" refid="structsl__si91x__wrap__config__t_1ac553dd50e88c211df75b1fa94cb088cb" refkind="member"><highlight class="normal"><sp/><sp/>uint32_t<sp/><ref refid="structsl__si91x__wrap__config__t_1ac553dd50e88c211df75b1fa94cb088cb" kindref="member">key_type</ref>;<sp/></highlight><highlight class="comment">///&lt;<sp/>Type<sp/>of<sp/>the<sp/>key<sp/>as<sp/>indicated<sp/>by<sp/>@ref<sp/>sl_si91x_crypto_key_type_t</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="63"><highlight class="normal"><sp/><sp/>uint16_t</highlight></codeline>
+<codeline lineno="64" refid="structsl__si91x__wrap__config__t_1a105a735b0a0d005c096133d87b26888d" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structsl__si91x__wrap__config__t_1a105a735b0a0d005c096133d87b26888d" kindref="member">padding</ref>;<sp/></highlight><highlight class="comment">///&lt;<sp/>Type<sp/>of<sp/>padding.<sp/>A<sp/>value<sp/>of<sp/>1<sp/>specifies<sp/>HMAC<sp/>padding,<sp/>whereas<sp/>a<sp/>value<sp/>of<sp/>0<sp/>specifies<sp/>PKCS7<sp/>padding.</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="65" refid="structsl__si91x__wrap__config__t_1afb3019cbad2bd6c17840c5b445e3ea17" refkind="member"><highlight class="normal"><sp/><sp/>uint16_t<sp/><ref refid="structsl__si91x__wrap__config__t_1afb3019cbad2bd6c17840c5b445e3ea17" kindref="member">hmac_sha_mode</ref>;<sp/></highlight><highlight class="comment">///&lt;<sp/>Specifies<sp/>HMAC<sp/>SHA<sp/>mode<sp/>if<sp/>HMAC<sp/>padding<sp/>is<sp/>enabled;<sp/>otherwise<sp/>reserved.</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="66" refid="structsl__si91x__wrap__config__t_1aef9137cbfae684f3e84344ea73103129" refkind="member"><highlight class="normal"><sp/><sp/>uint32_t<sp/><ref refid="structsl__si91x__wrap__config__t_1aef9137cbfae684f3e84344ea73103129" kindref="member">key_size</ref>;<sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">///&lt;<sp/>Size<sp/>of<sp/>the<sp/>key<sp/>in<sp/>bytes</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="67"><highlight class="normal"><sp/><sp/><ref refid="group__CRYPTO__CONSTANTS_1gaac5c8069f16fca3b9d5936ef034537de" kindref="member">sl_si91x_crypto_wrap_mode_t</ref></highlight></codeline>
+<codeline lineno="68" refid="structsl__si91x__wrap__config__t_1a99e07f6e359083070b52b491e8d5546a" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structsl__si91x__wrap__config__t_1a99e07f6e359083070b52b491e8d5546a" kindref="member">wrap_iv_mode</ref>;<sp/></highlight><highlight class="comment">///&lt;<sp/>Specifies<sp/>the<sp/>wrap<sp/>IV<sp/>mode.<sp/>IV<sp/>is<sp/>mandatory<sp/>for<sp/>@ref<sp/>SL_SI91X_WRAP_IV_CBC_MODE.</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="69" refid="structsl__si91x__wrap__config__t_1acf9b4ed77a2b2c7630425896ae5033f4" refkind="member"><highlight class="normal"><sp/><sp/>uint8_t<sp/>wrap_iv[<ref refid="group__CRYPTO__CONSTANTS_1ga3936c05c79c2c129da5eeaec5d7fbd3d" kindref="member">SL_SI91X_IV_SIZE</ref>];<sp/></highlight><highlight class="comment">///&lt;<sp/>Buffer<sp/>to<sp/>store<sp/>the<sp/>initialization<sp/>vector<sp/>(IV).</highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="70"><highlight class="comment"><sp/><sp/>/**</highlight></codeline>
+<codeline lineno="71"><highlight class="comment"><sp/><sp/><sp/>*<sp/>@brief<sp/>Key<sp/>or<sp/>plain<sp/>text<sp/>to<sp/>be<sp/>wrapped.</highlight></codeline>
+<codeline lineno="72"><highlight class="comment"><sp/><sp/><sp/>*<sp/>@note<sp/></highlight></codeline>
+<codeline lineno="73"><highlight class="comment"><sp/><sp/><sp/>*<sp/><sp/><sp/>-<sp/>By<sp/>default<sp/>@ref<sp/>SL_SI91X_WRAP_KEY_BUFFER_SIZE<sp/>is<sp/>set<sp/>to<sp/>1400<sp/>bytes.<sp/><sp/></highlight></codeline>
+<codeline lineno="74"><highlight class="comment"><sp/><sp/><sp/>*<sp/><sp/><sp/>-<sp/>To<sp/>configure<sp/>@ref<sp/>SL_SI91X_WRAP_KEY_BUFFER_SIZE,<sp/>use<sp/>the<sp/>configuration<sp/>wizard<sp/>in<sp/>the<sp/>Simplicity<sp/>Studio<sp/>for<sp/>the<sp/>Wrap<sp/>component.</highlight></codeline>
+<codeline lineno="75"><highlight class="comment"><sp/><sp/><sp/>*<sp/><sp/><sp/>-<sp/>Ensure<sp/>the<sp/>application<sp/>stack<sp/>size<sp/>is<sp/>sufficient<sp/>to<sp/>accommodate<sp/>the<sp/>@ref<sp/>SL_SI91X_WRAP_KEY_BUFFER_SIZE.</highlight></codeline>
+<codeline lineno="76"><highlight class="comment"><sp/><sp/><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="77" refid="structsl__si91x__wrap__config__t_1a7015e009817d8c76827f1ae665c15951" refkind="member"><highlight class="normal"><sp/><sp/>uint8_t<sp/>key_buffer[<ref refid="group__CRYPTO__CONSTANTS_1ga48eea85223bca71f449dcf9f2b5d11fb" kindref="member">SL_SI91X_WRAP_KEY_BUFFER_SIZE</ref>];</highlight></codeline>
+<codeline lineno="78"><highlight class="normal">}<sp/><ref refid="structsl__si91x__wrap__config__t" kindref="compound">sl_si91x_wrap_config_t</ref>;</highlight></codeline>
+<codeline lineno="79"><highlight class="normal"></highlight></codeline>
+<codeline lineno="80" refid="group__CRYPTO__WRAP__TYPES_1ga0e2790c70d45e976121f925ab9af9226" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">enum</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="81" refid="group__CRYPTO__WRAP__TYPES_1gga0e2790c70d45e976121f925ab9af9226a4b8fefb83b9043cd09fb9a5affa379ed" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="group__CRYPTO__WRAP__TYPES_1gga0e2790c70d45e976121f925ab9af9226a4b8fefb83b9043cd09fb9a5affa379ed" kindref="member">SL_SI91X_WRAP_HMAC_SHA_1</ref><sp/>=<sp/>1,<sp/></highlight><highlight class="comment">///&lt;<sp/>HMAC<sp/>SHA<sp/>1<sp/>mode<sp/>used<sp/>for<sp/>padding<sp/>during<sp/>wrap</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="82" refid="group__CRYPTO__WRAP__TYPES_1gga0e2790c70d45e976121f925ab9af9226ac84924d26a9e22a165f98d809a5605ab" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="group__CRYPTO__WRAP__TYPES_1gga0e2790c70d45e976121f925ab9af9226ac84924d26a9e22a165f98d809a5605ab" kindref="member">SL_SI91X_WRAP_HMAC_SHA_256</ref>,<sp/><sp/><sp/></highlight><highlight class="comment">///&lt;<sp/>HMAC<sp/>SHA<sp/>256<sp/>used<sp/>for<sp/>padding<sp/>during<sp/>wrap</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="83" refid="group__CRYPTO__WRAP__TYPES_1gga0e2790c70d45e976121f925ab9af9226a97506b9f604388810116abb76308e7ae" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="group__CRYPTO__WRAP__TYPES_1gga0e2790c70d45e976121f925ab9af9226a97506b9f604388810116abb76308e7ae" kindref="member">SL_SI91X_WRAP_HMAC_SHA_384</ref>,<sp/><sp/><sp/></highlight><highlight class="comment">///&lt;<sp/>HMAC<sp/>SHA<sp/>384<sp/>mode<sp/>used<sp/>for<sp/>padding<sp/>during<sp/>wrap</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="84"><highlight class="normal"><sp/><sp/><ref refid="group__CRYPTO__WRAP__TYPES_1gga0e2790c70d45e976121f925ab9af9226a06c566682c12b747ad2d642c6b01b8b1" kindref="member">SL_SI91X_WRAP_HMAC_SHA_512</ref><sp/><sp/><sp/><sp/></highlight><highlight class="comment">///&lt;<sp/>HMAC<sp/>SHA<sp/>512<sp/>mode<sp/>used<sp/>for<sp/>padding<sp/>during<sp/>wrap</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="85" refid="group__CRYPTO__WRAP__TYPES_1gga0e2790c70d45e976121f925ab9af9226a06c566682c12b747ad2d642c6b01b8b1" refkind="member"><highlight class="normal">}<sp/><ref refid="group__CRYPTO__WRAP__TYPES_1ga0e2790c70d45e976121f925ab9af9226" kindref="member">sl_si91x_wrap_mode_t</ref>;</highlight></codeline>
+<codeline lineno="86"><highlight class="normal"></highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="87"><highlight class="comment">/**<sp/>@}<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="88"><highlight class="normal"></highlight></codeline>
+<codeline lineno="89"><highlight class="normal"></highlight><highlight class="comment">/******************************************************</highlight></codeline>
+<codeline lineno="90"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Function<sp/>Declarations</highlight></codeline>
+<codeline lineno="91"><highlight class="comment">*******************************************************/</highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="92"><highlight class="comment">/**</highlight></codeline>
+<codeline lineno="93"><highlight class="comment"><sp/>*<sp/>@addtogroup<sp/>CRYPTO_WRAP_FUNCTIONS</highlight></codeline>
+<codeline lineno="94"><highlight class="comment"><sp/>*<sp/>@{<sp/></highlight></codeline>
+<codeline lineno="95"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="96"><highlight class="normal"></highlight></codeline>
+<codeline lineno="97"><highlight class="normal"></highlight><highlight class="comment">/***************************************************************************/</highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="98"><highlight class="comment">/**</highlight></codeline>
+<codeline lineno="99"><highlight class="comment"><sp/>*<sp/>@brief</highlight></codeline>
+<codeline lineno="100"><highlight class="comment"><sp/>*<sp/><sp/><sp/>To<sp/>get<sp/>the<sp/>wrapped<sp/>version<sp/>of<sp/>the<sp/>plain<sp/>key.</highlight></codeline>
+<codeline lineno="101"><highlight class="comment"><sp/>*<sp/>@param[in]<sp/>config<sp/></highlight></codeline>
+<codeline lineno="102"><highlight class="comment"><sp/>*<sp/><sp/><sp/>Configuration<sp/>object<sp/>of<sp/>type<sp/>@ref<sp/>sl_si91x_wrap_config_t</highlight></codeline>
+<codeline lineno="103"><highlight class="comment"><sp/>*<sp/>@param[out]<sp/>output<sp/></highlight></codeline>
+<codeline lineno="104"><highlight class="comment"><sp/>*<sp/><sp/><sp/>Buffer<sp/>to<sp/>store<sp/>the<sp/>wrapped<sp/>key.<sp/>The<sp/>size<sp/>of<sp/>this<sp/>buffer<sp/>must<sp/>be<sp/>a<sp/>multiple<sp/>of<sp/>16<sp/>bytes.</highlight></codeline>
+<codeline lineno="105"><highlight class="comment"><sp/>*<sp/>@return</highlight></codeline>
+<codeline lineno="106"><highlight class="comment"><sp/>*<sp/><sp/><sp/>sl_status_t.</highlight></codeline>
+<codeline lineno="107"><highlight class="comment"><sp/>*<sp/>For<sp/>more<sp/>information<sp/>on<sp/>status<sp/>codes,<sp/>refer<sp/>to<sp/></highlight></codeline>
+<codeline lineno="108"><highlight class="comment"><sp/>*<sp/>[SL<sp/>STATUS<sp/>DOCUMENTATION](https://docs.silabs.com/gecko-platform/latest/platform-common/status).</highlight></codeline>
+<codeline lineno="109"><highlight class="comment"><sp/>*<sp/>@note</highlight></codeline>
+<codeline lineno="110"><highlight class="comment"><sp/>*<sp/><sp/><sp/>Security<sp/>must<sp/>be<sp/>enabled<sp/>on<sp/>the<sp/>device<sp/>to<sp/>use<sp/>this<sp/>API.<sp/>Follow<sp/>the<sp/>detailed<sp/>instructions<sp/>in<sp/>**Section<sp/>5.5<sp/>-<sp/>Enable<sp/>Security<sp/>Configurations<sp/>in<sp/>NWP<sp/>and<sp/>M4<sp/>Firmware<sp/>Images**<sp/>of<sp/>the<sp/>[UG574<sp/>SiWx917<sp/>SoC<sp/>Manufacturing<sp/>Utility<sp/>User<sp/>Guide](https://www.silabs.com/documents/public/user-guides/ug574-siwx917-soc-manufacturing-utility-user-guide.pdf).</highlight></codeline>
+<codeline lineno="111"><highlight class="comment">******************************************************************************/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="112" refid="group__CRYPTO__WRAP__FUNCTIONS_1gaa7799e73d94ecb19c899ea636c51aa1d" refkind="member"><highlight class="normal">sl_status_t<sp/><ref refid="group__CRYPTO__WRAP__FUNCTIONS_1gaa7799e73d94ecb19c899ea636c51aa1d" kindref="member">sl_si91x_wrap</ref>(<ref refid="structsl__si91x__wrap__config__t" kindref="compound">sl_si91x_wrap_config_t</ref><sp/>*config,<sp/>uint8_t<sp/>*output);</highlight></codeline>
+<codeline lineno="113"><highlight class="normal"></highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="114"><highlight class="comment">/**<sp/>@}<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+    </programlisting>
+    <location file="components/device/silabs/si91x/wireless/crypto/wrap/inc/sl_si91x_wrap.h"/>
+  </compounddef>
+</doxygen>

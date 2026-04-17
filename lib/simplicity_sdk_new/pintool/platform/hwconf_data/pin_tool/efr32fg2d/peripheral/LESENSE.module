@@ -1,0 +1,37 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<module:DocumentRoot xmlns:module="http://www.silabs.com/ss/hwconfig/module.ecore">
+  <module id="pin_tool.efr32.efr32fg2d.lesense" label="LESENSE" name="LESENSE" description="" version="A">
+    <properties>
+      <stringProperty label="Type" id="type" defaultValue="lesense" transient="true" hidden="true" readonly="true" description=""/>
+      <stringProperty label="Custom Peripheral Name" id="peripheral.name" description=""/>
+    </properties>
+    <propertyCategories>
+      <category label="LESENSE">
+        <subCategory label="">
+          <propertyRef refId="peripheral.name"/>
+        </subCategory>
+      </category>
+    </propertyCategories>
+    <signals>
+      <signal name="CH0OUT"/>
+      <signal name="CH10OUT"/>
+      <signal name="CH11OUT"/>
+      <signal name="CH12OUT"/>
+      <signal name="CH13OUT"/>
+      <signal name="CH14OUT"/>
+      <signal name="CH15OUT"/>
+      <signal name="CH1OUT"/>
+      <signal name="CH2OUT"/>
+      <signal name="CH3OUT"/>
+      <signal name="CH4OUT"/>
+      <signal name="CH5OUT"/>
+      <signal name="CH6OUT"/>
+      <signal name="CH7OUT"/>
+      <signal name="CH8OUT"/>
+      <signal name="CH9OUT"/>
+      <signal name="EN_0"/>
+      <signal name="EN_1"/>
+      <signal name="EN_2"/>
+    </signals>
+  </module>
+</module:DocumentRoot>

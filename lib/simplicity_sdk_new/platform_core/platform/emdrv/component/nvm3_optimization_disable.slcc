@@ -1,0 +1,16 @@
+id: nvm3_optimization_disable
+label: NVM3 disable optimization
+package: platform_core
+description: >
+  This component disables NVM3 init and cache lookup time optimization.
+category: Services|NVM3
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+provides:
+- name: nvm3_optimization
+- name: nvm3_optimization_disable
+requires:
+- name: device_efx
+root_path: platform_core

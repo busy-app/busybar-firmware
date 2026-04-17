@@ -1,0 +1,33 @@
+id: sl_ulp_timer
+label: ULP Timer
+package: platform_siwx91x
+description: >
+  ULP Timer will works in ultra low power mode and is designed to consume very little power in comparison
+  to regular timers. It allows a microcontroller to generate interrupt periodically or one time depending 
+  on timer mode and can be configured either as a microsecond timer or as a counter depending on timer type.
+  This driver has total 4 instances and by default it installs ULP-Timer-0.
+  When you install this component, it will also be installing the  ULP-timer dependency component, 
+  which is the ULP-timer driver's implementation.
+category: Device|Si91x|MCU|Peripheral
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: "components/device/silabs/si91x/mcu/drivers/unified_api"
+ui_hints:
+  visibility: never
+source:
+  - path: "src/sl_si91x_ulp_timer.c"
+include:
+  - path: "inc"
+    file_list:
+    - path: "sl_si91x_ulp_timer.h"
+provides:
+  - name: sl_ulp_timer
+define:
+  - name: SL_ULP_TIMER
+requires:
+  - name: romdriver_timer
+documentation:
+    docset: wiseconnect
+    document: wiseconnect-api-reference-guide-si91x-peripherals/ulp-timer

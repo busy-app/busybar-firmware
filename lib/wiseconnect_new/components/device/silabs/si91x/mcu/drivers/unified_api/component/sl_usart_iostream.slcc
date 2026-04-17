@@ -1,0 +1,23 @@
+id: sl_usart_iostream
+label: 'IO Stream: USART'
+package: platform_siwx91x
+description: >
+  IO Stream  UART communication is often performed using lower-level programming, 
+  interacting directly with hardware registers or using dedicated UART libraries.
+  It is operates in asyncronous mode, it will send and receive data.
+  It performs communication over the virtual COM port (VCOM) in a bare metal environment using 
+  I/O stream service. The example will echo back any charaters it receives over the serial connection.
+category: Device|Si91x|MCU|Peripheral
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: "components/device/silabs/si91x/mcu/drivers/unified_api"
+define:
+   - name: IOSTREAM_USART
+     value: 1 
+provides:
+  - name: sl_usart_iostream
+requires:
+  - name: udma_linker_config
+  - name: sl_usart

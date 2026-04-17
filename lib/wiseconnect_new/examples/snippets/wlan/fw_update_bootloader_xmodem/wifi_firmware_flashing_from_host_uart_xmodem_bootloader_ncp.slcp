@@ -1,0 +1,76 @@
+project_name: wifi_firmware_flashing_from_host_uart_xmodem_bootloader_ncp
+package: wifi_app
+quality: production
+label: Firmware Update via Bootloader using Xmodem (NCP)
+category: Example|Wi-Fi
+description: 'Firmware flashing of Si91x device using host uart xmodem bootloader
+
+  '
+filter:
+- name: Wireless Technology
+  value:
+  - Wi-Fi
+- name: Project Difficulty
+  value:
+  - Beginner
+source:
+- path: app.c
+include:
+- path: .
+  file_list:
+  - path: app.h
+define:
+- name: SL_SI91X_PRINT_DBG_LOG
+- name: SL_SI91X_FAST_FW_UP
+component:
+- id: sl_main
+- id: freertos
+- id: freertos_heap_4
+- id: device_init
+- id: spidrv
+  instance:
+  - exp
+- id: iostream_retarget_stdio
+- id: iostream_rtt
+- id: iostream_stdlib_config
+- id: wiseconnect_common
+- id: wifi
+- id: sl_si91x_internal_stack
+- id: wifi_resources
+- id: sl_si91x_spi_bus
+- id: network_manager
+- id: basic_network_config_manager
+- id: sl_si91x_basic_buffers
+toolchain_settings:
+- option: gcc_compiler_option
+  value: -Wall -Werror
+configuration:
+- name: SL_BOARD_ENABLE_VCOM
+  value: '1'
+- name: configUSE_POSIX_ERRNO
+  value: '1'
+- name: configTOTAL_HEAP_SIZE
+  value: '51200'
+- name: configTIMER_TASK_PRIORITY
+  value: '55'
+readme:
+- path: readme.md
+other_file:
+- path: resources/readme/setup_ncp_soc.png
+- path: resources/readme/serial_port_settings_921600.png
+- path: resources/readme/commander-select-board.png
+- path: resources/readme/select-commander.png
+- path: resources/readme/serial_port_settings.png
+- path: resources/readme/rtt_console.png
+ui_hints:
+  highlight:
+  - path: readme.md
+    focus: true
+sdk_extension:
+- id: wiseconnect3_sdk
+  vendor: silabs
+  version: 4.0.1
+sdk:
+  id: simplicity_sdk
+  vendor: silabs
+  version: 2025.12.2

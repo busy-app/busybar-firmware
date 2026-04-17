@@ -1,0 +1,474 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="sl__si91x__ecdsa_8h" kind="file" language="C++">
+    <compoundname>sl_si91x_ecdsa.h</compoundname>
+    <includes refid="sl__si91x__crypto_8h" local="yes">sl_si91x_crypto.h</includes>
+    <includes local="yes">sl_status.h</includes>
+    <incdepgraph>
+      <node id="1">
+        <label>components/device/silabs/si91x/wireless/crypto/ecdsa/inc/sl_si91x_ecdsa.h</label>
+        <link refid="sl__si91x__ecdsa_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>sl_si91x_crypto.h</label>
+        <link refid="sl__si91x__crypto_8h"/>
+      </node>
+      <node id="3">
+        <label>sl_status.h</label>
+      </node>
+    </incdepgraph>
+    <innerclass refid="structsl__si91x__ecdsa__key__config__b0__t" prot="public">sl_si91x_ecdsa_key_config_b0_t</innerclass>
+    <innerclass refid="structsl__si91x__ecdsa__key__config__a0__t" prot="public">sl_si91x_ecdsa_key_config_a0_t</innerclass>
+    <innerclass refid="unionsl__si91x__ecdsa__key__config__t" prot="public">sl_si91x_ecdsa_key_config_t</innerclass>
+    <innerclass refid="structsl__si91x__ecdsa__config__t" prot="public">sl_si91x_ecdsa_config_t</innerclass>
+      <sectiondef kind="enum">
+      <memberdef kind="enum" id="group__CRYPTO__ECDSA__CONSTANTS_1gac22f70d4a1d9c6fd627b4b4e2b123a57" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_si91x_ecdsa_key_size_t</name>
+        <enumvalue id="group__CRYPTO__ECDSA__CONSTANTS_1ggac22f70d4a1d9c6fd627b4b4e2b123a57a1e0725e25ede366535b9ef8ccc77848e" prot="public">
+          <name>SL_SI91X_ECDSA_PRIV_KEY_SIZE_224</name>
+          <initializer>= 28</initializer>
+          <briefdescription>
+<para>Private key size of 224 bits. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__ECDSA__CONSTANTS_1ggac22f70d4a1d9c6fd627b4b4e2b123a57a91439460680159aff8b663f9188d0f5d" prot="public">
+          <name>SL_SI91X_ECDSA_PRIV_KEY_SIZE_256</name>
+          <initializer>= 32</initializer>
+          <briefdescription>
+<para>Private key size of 256 bits. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__ECDSA__CONSTANTS_1ggac22f70d4a1d9c6fd627b4b4e2b123a57ab295d52a8e1996d55a21c789f431a699" prot="public">
+          <name>SL_SI91X_ECDSA_PUB_KEY_SIZE_224</name>
+          <initializer>= 57</initializer>
+          <briefdescription>
+<para>Public key size of 57 bytes. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__ECDSA__CONSTANTS_1ggac22f70d4a1d9c6fd627b4b4e2b123a57a18cf7330b2f0bedb4e8fefae6297b8a9" prot="public">
+          <name>SL_SI91X_ECDSA_PUB_KEY_SIZE_256</name>
+          <initializer>= 65</initializer>
+          <briefdescription>
+<para>Public key size of 65 bytes. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>Enumeration defining ECDSA private and public key sizes. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>This enumeration defines the key sizes for private and public keys supported by the ECDSA algorithm on the SI91X device. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/ecdsa/inc/sl_si91x_ecdsa.h" line="48" column="1" bodyfile="components/device/silabs/si91x/wireless/crypto/ecdsa/inc/sl_si91x_ecdsa.h" bodystart="48" bodyend="53"/>
+      </memberdef>
+      <memberdef kind="enum" id="group__CRYPTO__ECDSA__CONSTANTS_1ga726017ce8f30df553274e46fd78b156c" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_si91x_crypto_ecdsa_mode_t</name>
+        <enumvalue id="group__CRYPTO__ECDSA__CONSTANTS_1gga726017ce8f30df553274e46fd78b156caad0a70989812505e855d8cb1b740c348" prot="public">
+          <name>SL_SI91X_GENERATE_ECC_KEY_PAIR</name>
+          <initializer>= 1</initializer>
+          <briefdescription>
+<para>Generate ECC private-public key pair. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__ECDSA__CONSTANTS_1gga726017ce8f30df553274e46fd78b156cac1c03708b8e50c3be97bc6906cadb023" prot="public">
+          <name>SL_SI91X_ECDSA_GENERATE_SIGN</name>
+          <briefdescription>
+<para>Generate signature. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__ECDSA__CONSTANTS_1gga726017ce8f30df553274e46fd78b156ca20625d90eeaaadee74094f85d91654a7" prot="public">
+          <name>SL_SI91X_ECDSA_VERIFY_SIGN</name>
+          <briefdescription>
+<para>Verify signature. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>Enumeration defining ECDSA operations. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>This enumeration defines the types of ECDSA operations supported, including generating ECC key pairs, generating signatures, and verifying signatures. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/ecdsa/inc/sl_si91x_ecdsa.h" line="61" column="1" bodyfile="components/device/silabs/si91x/wireless/crypto/ecdsa/inc/sl_si91x_ecdsa.h" bodystart="61" bodyend="65"/>
+      </memberdef>
+      <memberdef kind="enum" id="group__CRYPTO__ECDSA__CONSTANTS_1ga03914b286cf67384817919a1b73ee0c2" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_si91x_ecdsa_signature_size_t</name>
+        <enumvalue id="group__CRYPTO__ECDSA__CONSTANTS_1gga03914b286cf67384817919a1b73ee0c2a7dd529b23787326c7a11654061c38708" prot="public">
+          <name>SL_SI91X_ECDSA_SIGN_HALF_SIZE_P224R1</name>
+          <initializer>= 28</initializer>
+          <briefdescription>
+<para>Signature size of 224 bits divided by 2. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__ECDSA__CONSTANTS_1gga03914b286cf67384817919a1b73ee0c2a273d00fb8fba403efb0bc1a54ee1ba6f" prot="public">
+          <name>SL_SI91X_ECDSA_SIGN_HALF_SIZE_P256R1</name>
+          <initializer>= 32</initializer>
+          <briefdescription>
+<para>Signature size of 256 bits divided by 2. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__ECDSA__CONSTANTS_1gga03914b286cf67384817919a1b73ee0c2a006d6c7d14e0c72e4dbb39c9a8281a44" prot="public">
+          <name>SL_SI91X_ECDSA_SIGN_MAX_SIZE</name>
+          <initializer>= 128</initializer>
+          <briefdescription>
+<para>Maximum signature size supported. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>Enumeration defining ECDSA signature sizes supported by the SI91X device. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>This enumeration defines the signature sizes supported by the ECDSA algorithm on the SI91X device, including 224-bit and 256-bit sizes. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/ecdsa/inc/sl_si91x_ecdsa.h" line="73" column="1" bodyfile="components/device/silabs/si91x/wireless/crypto/ecdsa/inc/sl_si91x_ecdsa.h" bodystart="73" bodyend="77"/>
+      </memberdef>
+      <memberdef kind="enum" id="group__CRYPTO__ECDSA__CONSTANTS_1gaf51b39292ea7d10ec831e0fab1ad6ac2" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_si91x_crypto_ecc_curve_t</name>
+        <enumvalue id="group__CRYPTO__ECDSA__CONSTANTS_1ggaf51b39292ea7d10ec831e0fab1ad6ac2ac6813d6eb54dae3ded3ebbc11947bc36" prot="public">
+          <name>SL_SI91X_ECC_SECP224R1</name>
+          <initializer>= 14</initializer>
+          <briefdescription>
+<para>Values as provided by firmware. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__ECDSA__CONSTANTS_1ggaf51b39292ea7d10ec831e0fab1ad6ac2ae930da358a32c5959a2247e177a7efa5" prot="public">
+          <name>SL_SI91X_ECC_SECP256R1</name>
+          <initializer>= 7</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>Enumeration defining ECC curve types supported by the SI91X device. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>This enumeration defines the ECC curves supported by the ECDSA algorithm on the SI91X device, which includes ECC_SECP224R1, and ECC_SECP256R1. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/ecdsa/inc/sl_si91x_ecdsa.h" line="85" column="1" bodyfile="components/device/silabs/si91x/wireless/crypto/ecdsa/inc/sl_si91x_ecdsa.h" bodystart="85" bodyend="88"/>
+      </memberdef>
+      <memberdef kind="enum" id="group__CRYPTO__ECDSA__CONSTANTS_1ga36435fb2454fb634cc727c8330096255" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_si91x_crypto_ecdsa_sha_mode_t</name>
+        <enumvalue id="group__CRYPTO__ECDSA__CONSTANTS_1gga36435fb2454fb634cc727c8330096255aae4f7ff4d9ed377f97229c68004132f8" prot="public">
+          <name>SL_SI91X_ECDSA_SHA_256</name>
+          <initializer>= 1</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__ECDSA__CONSTANTS_1gga36435fb2454fb634cc727c8330096255ad2188a99adfcdd7d4c55b1fa0ed725af" prot="public">
+          <name>SL_SI91X_ECDSA_SHA_384</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__ECDSA__CONSTANTS_1gga36435fb2454fb634cc727c8330096255a4b14f9d860e6a23be02c0746eded3afd" prot="public">
+          <name>SL_SI91X_ECDSA_SHA_512</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>Enumeration defining the SHA modes supported by the ECDSA algorithm on the SI91X device. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>This enumeration defines the SHA modes supported for the ECDSA algorithm on the SI91X device, which includes SHA256, SHA384, and SHA512. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/ecdsa/inc/sl_si91x_ecdsa.h" line="96" column="1" bodyfile="components/device/silabs/si91x/wireless/crypto/ecdsa/inc/sl_si91x_ecdsa.h" bodystart="96" bodyend="100"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="group__CRYPTO__ECDSA__FUNCTIONS_1gaa1565119c0d5bf09d2770b357454c174" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_si91x_ecdsa</definition>
+        <argsstring>(sl_si91x_ecdsa_config_t *config, uint8_t *output)</argsstring>
+        <name>sl_si91x_ecdsa</name>
+        <param>
+          <type><ref refid="structsl__si91x__ecdsa__config__t" kindref="compound">sl_si91x_ecdsa_config_t</ref> *</type>
+          <declname>config</declname>
+        </param>
+        <param>
+          <type>uint8_t *</type>
+          <declname>output</declname>
+        </param>
+        <briefdescription>
+<para>To sign or verify the message according to the given configuration. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>This is a blocking API. <parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">config</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Configuration object of type <ref refid="structsl__si91x__ecdsa__config__t" kindref="compound">sl_si91x_ecdsa_config_t</ref> </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">output</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Buffer to store the output. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>sl_status_t. For more information on status codes, refer to <ulink url="https://docs.silabs.com/gecko-platform/latest/platform-common/status">SL STATUS DOCUMENTATION</ulink>. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/ecdsa/inc/sl_si91x_ecdsa.h" line="183" column="13" declfile="components/device/silabs/si91x/wireless/crypto/ecdsa/inc/sl_si91x_ecdsa.h" declline="183" declcolumn="13"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>SL SI91X ECDSA Header file. </para>
+    </briefdescription>
+    <detaileddescription>
+<sect1 id="sl__si91x__ecdsa_8h_1autotoc_md7">
+<title>License</title>
+<para><bold>Copyright 2024 Silicon Laboratories Inc. www.silabs.com</bold></para>
+<para>SPDX-License-Identifier: Zlib</para>
+<para>The licensor of this software is Silicon Laboratories Inc.</para>
+<para>This software is provided &apos;as-is&apos;, without any express or implied warranty. In no event will the authors be held liable for any damages arising from the use of this software.</para>
+<para>Permission is granted to anyone to use this software for any purpose, including commercial applications, and to alter it and redistribute it freely, subject to the following restrictions:</para>
+<para><orderedlist>
+<listitem><para>The origin of this software must not be misrepresented; you must not claim that you wrote the original software. If you use this software in a product, an acknowledgment in the product documentation would be appreciated but is not required.</para>
+</listitem><listitem><para>Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.</para>
+</listitem><listitem><para>This notice may not be removed or altered from any source distribution. </para>
+</listitem></orderedlist>
+</para>
+</sect1>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="comment">/***************************************************************************/</highlight><highlight class="normal"><sp/></highlight><highlight class="comment">/**</highlight></codeline>
+<codeline lineno="2"><highlight class="comment"><sp/>*<sp/>@file</highlight></codeline>
+<codeline lineno="3"><highlight class="comment"><sp/>*<sp/>@brief<sp/>SL<sp/>SI91X<sp/>ECDSA<sp/>Header<sp/>file</highlight></codeline>
+<codeline lineno="4"><highlight class="comment"><sp/>*******************************************************************************</highlight></codeline>
+<codeline lineno="5"><highlight class="comment"><sp/>*<sp/>#<sp/>License</highlight></codeline>
+<codeline lineno="6"><highlight class="comment"><sp/>*<sp/>&lt;b&gt;Copyright<sp/>2024<sp/>Silicon<sp/>Laboratories<sp/>Inc.<sp/>www.silabs.com&lt;/b&gt;</highlight></codeline>
+<codeline lineno="7"><highlight class="comment"><sp/>*******************************************************************************</highlight></codeline>
+<codeline lineno="8"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="9"><highlight class="comment"><sp/>*<sp/>SPDX-License-Identifier:<sp/>Zlib</highlight></codeline>
+<codeline lineno="10"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="11"><highlight class="comment"><sp/>*<sp/>The<sp/>licensor<sp/>of<sp/>this<sp/>software<sp/>is<sp/>Silicon<sp/>Laboratories<sp/>Inc.</highlight></codeline>
+<codeline lineno="12"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="13"><highlight class="comment"><sp/>*<sp/>This<sp/>software<sp/>is<sp/>provided<sp/>&apos;as-is&apos;,<sp/>without<sp/>any<sp/>express<sp/>or<sp/>implied</highlight></codeline>
+<codeline lineno="14"><highlight class="comment"><sp/>*<sp/>warranty.<sp/>In<sp/>no<sp/>event<sp/>will<sp/>the<sp/>authors<sp/>be<sp/>held<sp/>liable<sp/>for<sp/>any<sp/>damages</highlight></codeline>
+<codeline lineno="15"><highlight class="comment"><sp/>*<sp/>arising<sp/>from<sp/>the<sp/>use<sp/>of<sp/>this<sp/>software.</highlight></codeline>
+<codeline lineno="16"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="17"><highlight class="comment"><sp/>*<sp/>Permission<sp/>is<sp/>granted<sp/>to<sp/>anyone<sp/>to<sp/>use<sp/>this<sp/>software<sp/>for<sp/>any<sp/>purpose,</highlight></codeline>
+<codeline lineno="18"><highlight class="comment"><sp/>*<sp/>including<sp/>commercial<sp/>applications,<sp/>and<sp/>to<sp/>alter<sp/>it<sp/>and<sp/>redistribute<sp/>it</highlight></codeline>
+<codeline lineno="19"><highlight class="comment"><sp/>*<sp/>freely,<sp/>subject<sp/>to<sp/>the<sp/>following<sp/>restrictions:</highlight></codeline>
+<codeline lineno="20"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="21"><highlight class="comment"><sp/>*<sp/>1.<sp/>The<sp/>origin<sp/>of<sp/>this<sp/>software<sp/>must<sp/>not<sp/>be<sp/>misrepresented;<sp/>you<sp/>must<sp/>not</highlight></codeline>
+<codeline lineno="22"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/>claim<sp/>that<sp/>you<sp/>wrote<sp/>the<sp/>original<sp/>software.<sp/>If<sp/>you<sp/>use<sp/>this<sp/>software</highlight></codeline>
+<codeline lineno="23"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/>in<sp/>a<sp/>product,<sp/>an<sp/>acknowledgment<sp/>in<sp/>the<sp/>product<sp/>documentation<sp/>would<sp/>be</highlight></codeline>
+<codeline lineno="24"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/>appreciated<sp/>but<sp/>is<sp/>not<sp/>required.</highlight></codeline>
+<codeline lineno="25"><highlight class="comment"><sp/>*<sp/>2.<sp/>Altered<sp/>source<sp/>versions<sp/>must<sp/>be<sp/>plainly<sp/>marked<sp/>as<sp/>such,<sp/>and<sp/>must<sp/>not<sp/>be</highlight></codeline>
+<codeline lineno="26"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/>misrepresented<sp/>as<sp/>being<sp/>the<sp/>original<sp/>software.</highlight></codeline>
+<codeline lineno="27"><highlight class="comment"><sp/>*<sp/>3.<sp/>This<sp/>notice<sp/>may<sp/>not<sp/>be<sp/>removed<sp/>or<sp/>altered<sp/>from<sp/>any<sp/>source<sp/>distribution.</highlight></codeline>
+<codeline lineno="28"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="29"><highlight class="comment"><sp/>******************************************************************************/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="30"><highlight class="normal"></highlight></codeline>
+<codeline lineno="31"><highlight class="normal"></highlight><highlight class="preprocessor">#pragma<sp/>once</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="32"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;<ref refid="sl__si91x__crypto_8h" kindref="compound">sl_si91x_crypto.h</ref>&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="33"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;sl_status.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="34"><highlight class="normal"></highlight></codeline>
+<codeline lineno="35"><highlight class="normal"></highlight><highlight class="comment">/******************************************************</highlight></codeline>
+<codeline lineno="36"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Constants</highlight></codeline>
+<codeline lineno="37"><highlight class="comment"><sp/>******************************************************/</highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="38"><highlight class="comment">/**</highlight></codeline>
+<codeline lineno="39"><highlight class="comment"><sp/>*<sp/>@addtogroup<sp/>CRYPTO_ECDSA_CONSTANTS</highlight></codeline>
+<codeline lineno="40"><highlight class="comment"><sp/>*<sp/>@{<sp/></highlight></codeline>
+<codeline lineno="41"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="42"><highlight class="normal"></highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="43"><highlight class="comment">/**</highlight></codeline>
+<codeline lineno="44"><highlight class="comment"><sp/>*<sp/>@brief<sp/>Enumeration<sp/>defining<sp/>ECDSA<sp/>private<sp/>and<sp/>public<sp/>key<sp/>sizes.</highlight></codeline>
+<codeline lineno="45"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="46"><highlight class="comment"><sp/>*<sp/>This<sp/>enumeration<sp/>defines<sp/>the<sp/>key<sp/>sizes<sp/>for<sp/>private<sp/>and<sp/>public<sp/>keys<sp/>supported<sp/>by<sp/>the<sp/>ECDSA<sp/>algorithm<sp/>on<sp/>the<sp/>SI91X<sp/>device.</highlight></codeline>
+<codeline lineno="47"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="48" refid="group__CRYPTO__ECDSA__CONSTANTS_1gac22f70d4a1d9c6fd627b4b4e2b123a57" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">enum</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="49" refid="group__CRYPTO__ECDSA__CONSTANTS_1ggac22f70d4a1d9c6fd627b4b4e2b123a57a1e0725e25ede366535b9ef8ccc77848e" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="group__CRYPTO__ECDSA__CONSTANTS_1ggac22f70d4a1d9c6fd627b4b4e2b123a57a1e0725e25ede366535b9ef8ccc77848e" kindref="member">SL_SI91X_ECDSA_PRIV_KEY_SIZE_224</ref><sp/>=<sp/>28,<sp/></highlight><highlight class="comment">///&lt;<sp/>Private<sp/>key<sp/>size<sp/>of<sp/>224<sp/>bits</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="50" refid="group__CRYPTO__ECDSA__CONSTANTS_1ggac22f70d4a1d9c6fd627b4b4e2b123a57a91439460680159aff8b663f9188d0f5d" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="group__CRYPTO__ECDSA__CONSTANTS_1ggac22f70d4a1d9c6fd627b4b4e2b123a57a91439460680159aff8b663f9188d0f5d" kindref="member">SL_SI91X_ECDSA_PRIV_KEY_SIZE_256</ref><sp/>=<sp/>32,<sp/></highlight><highlight class="comment">///&lt;<sp/>Private<sp/>key<sp/>size<sp/>of<sp/>256<sp/>bits</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="51" refid="group__CRYPTO__ECDSA__CONSTANTS_1ggac22f70d4a1d9c6fd627b4b4e2b123a57ab295d52a8e1996d55a21c789f431a699" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="group__CRYPTO__ECDSA__CONSTANTS_1ggac22f70d4a1d9c6fd627b4b4e2b123a57ab295d52a8e1996d55a21c789f431a699" kindref="member">SL_SI91X_ECDSA_PUB_KEY_SIZE_224</ref><sp/><sp/>=<sp/>57,<sp/></highlight><highlight class="comment">///&lt;<sp/>Public<sp/>key<sp/>size<sp/>of<sp/>57<sp/>bytes</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="52"><highlight class="normal"><sp/><sp/><ref refid="group__CRYPTO__ECDSA__CONSTANTS_1ggac22f70d4a1d9c6fd627b4b4e2b123a57a18cf7330b2f0bedb4e8fefae6297b8a9" kindref="member">SL_SI91X_ECDSA_PUB_KEY_SIZE_256</ref><sp/><sp/>=<sp/>65<sp/><sp/></highlight><highlight class="comment">///&lt;<sp/>Public<sp/>key<sp/>size<sp/>of<sp/>65<sp/>bytes</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="53" refid="group__CRYPTO__ECDSA__CONSTANTS_1ggac22f70d4a1d9c6fd627b4b4e2b123a57a18cf7330b2f0bedb4e8fefae6297b8a9" refkind="member"><highlight class="normal">}<sp/><ref refid="group__CRYPTO__ECDSA__CONSTANTS_1gac22f70d4a1d9c6fd627b4b4e2b123a57" kindref="member">sl_si91x_ecdsa_key_size_t</ref>;</highlight></codeline>
+<codeline lineno="54"><highlight class="normal"></highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="55"><highlight class="comment">/**</highlight></codeline>
+<codeline lineno="56"><highlight class="comment"><sp/>*<sp/>@brief<sp/>Enumeration<sp/>defining<sp/>ECDSA<sp/>operations.</highlight></codeline>
+<codeline lineno="57"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="58"><highlight class="comment"><sp/>*<sp/>This<sp/>enumeration<sp/>defines<sp/>the<sp/>types<sp/>of<sp/>ECDSA<sp/>operations<sp/>supported,<sp/>including</highlight></codeline>
+<codeline lineno="59"><highlight class="comment"><sp/>*<sp/>generating<sp/>ECC<sp/>key<sp/>pairs,<sp/>generating<sp/>signatures,<sp/>and<sp/>verifying<sp/>signatures.</highlight></codeline>
+<codeline lineno="60"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="61" refid="group__CRYPTO__ECDSA__CONSTANTS_1ga726017ce8f30df553274e46fd78b156c" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">enum</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="62" refid="group__CRYPTO__ECDSA__CONSTANTS_1gga726017ce8f30df553274e46fd78b156caad0a70989812505e855d8cb1b740c348" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="group__CRYPTO__ECDSA__CONSTANTS_1gga726017ce8f30df553274e46fd78b156caad0a70989812505e855d8cb1b740c348" kindref="member">SL_SI91X_GENERATE_ECC_KEY_PAIR</ref><sp/>=<sp/>1,<sp/></highlight><highlight class="comment">///&lt;<sp/>Generate<sp/>ECC<sp/>private-public<sp/>key<sp/>pair</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="63" refid="group__CRYPTO__ECDSA__CONSTANTS_1gga726017ce8f30df553274e46fd78b156cac1c03708b8e50c3be97bc6906cadb023" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="group__CRYPTO__ECDSA__CONSTANTS_1gga726017ce8f30df553274e46fd78b156cac1c03708b8e50c3be97bc6906cadb023" kindref="member">SL_SI91X_ECDSA_GENERATE_SIGN</ref>,<sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">///&lt;<sp/>Generate<sp/>signature</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="64"><highlight class="normal"><sp/><sp/><ref refid="group__CRYPTO__ECDSA__CONSTANTS_1gga726017ce8f30df553274e46fd78b156ca20625d90eeaaadee74094f85d91654a7" kindref="member">SL_SI91X_ECDSA_VERIFY_SIGN</ref><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">///&lt;<sp/>Verify<sp/>signature</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="65" refid="group__CRYPTO__ECDSA__CONSTANTS_1gga726017ce8f30df553274e46fd78b156ca20625d90eeaaadee74094f85d91654a7" refkind="member"><highlight class="normal">}<sp/><ref refid="group__CRYPTO__ECDSA__CONSTANTS_1ga726017ce8f30df553274e46fd78b156c" kindref="member">sl_si91x_crypto_ecdsa_mode_t</ref>;</highlight></codeline>
+<codeline lineno="66"><highlight class="normal"></highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="67"><highlight class="comment">/**</highlight></codeline>
+<codeline lineno="68"><highlight class="comment"><sp/>*<sp/>@brief<sp/>Enumeration<sp/>defining<sp/>ECDSA<sp/>signature<sp/>sizes<sp/>supported<sp/>by<sp/>the<sp/>SI91X<sp/>device.</highlight></codeline>
+<codeline lineno="69"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="70"><highlight class="comment"><sp/>*<sp/>This<sp/>enumeration<sp/>defines<sp/>the<sp/>signature<sp/>sizes<sp/>supported<sp/>by<sp/>the<sp/>ECDSA</highlight></codeline>
+<codeline lineno="71"><highlight class="comment"><sp/>*<sp/>algorithm<sp/>on<sp/>the<sp/>SI91X<sp/>device,<sp/>including<sp/>224-bit<sp/>and<sp/>256-bit<sp/>sizes.</highlight></codeline>
+<codeline lineno="72"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="73" refid="group__CRYPTO__ECDSA__CONSTANTS_1ga03914b286cf67384817919a1b73ee0c2" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">enum</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="74" refid="group__CRYPTO__ECDSA__CONSTANTS_1gga03914b286cf67384817919a1b73ee0c2a7dd529b23787326c7a11654061c38708" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="group__CRYPTO__ECDSA__CONSTANTS_1gga03914b286cf67384817919a1b73ee0c2a7dd529b23787326c7a11654061c38708" kindref="member">SL_SI91X_ECDSA_SIGN_HALF_SIZE_P224R1</ref><sp/>=<sp/>28,<sp/><sp/></highlight><highlight class="comment">///&lt;<sp/>Signature<sp/>size<sp/>of<sp/>224<sp/>bits<sp/>divided<sp/>by<sp/>2</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="75" refid="group__CRYPTO__ECDSA__CONSTANTS_1gga03914b286cf67384817919a1b73ee0c2a273d00fb8fba403efb0bc1a54ee1ba6f" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="group__CRYPTO__ECDSA__CONSTANTS_1gga03914b286cf67384817919a1b73ee0c2a273d00fb8fba403efb0bc1a54ee1ba6f" kindref="member">SL_SI91X_ECDSA_SIGN_HALF_SIZE_P256R1</ref><sp/>=<sp/>32,<sp/><sp/></highlight><highlight class="comment">///&lt;<sp/>Signature<sp/>size<sp/>of<sp/>256<sp/>bits<sp/>divided<sp/>by<sp/>2</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="76" refid="group__CRYPTO__ECDSA__CONSTANTS_1gga03914b286cf67384817919a1b73ee0c2a006d6c7d14e0c72e4dbb39c9a8281a44" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="group__CRYPTO__ECDSA__CONSTANTS_1gga03914b286cf67384817919a1b73ee0c2a006d6c7d14e0c72e4dbb39c9a8281a44" kindref="member">SL_SI91X_ECDSA_SIGN_MAX_SIZE</ref><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>=<sp/>128,<sp/></highlight><highlight class="comment">///&lt;<sp/>Maximum<sp/>signature<sp/>size<sp/>supported</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="77"><highlight class="normal">}<sp/><ref refid="group__CRYPTO__ECDSA__CONSTANTS_1ga03914b286cf67384817919a1b73ee0c2" kindref="member">sl_si91x_ecdsa_signature_size_t</ref>;</highlight></codeline>
+<codeline lineno="78"><highlight class="normal"></highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="79"><highlight class="comment">/**</highlight></codeline>
+<codeline lineno="80"><highlight class="comment"><sp/>*<sp/>@brief<sp/>Enumeration<sp/>defining<sp/>ECC<sp/>curve<sp/>types<sp/>supported<sp/>by<sp/>the<sp/>SI91X<sp/>device.</highlight></codeline>
+<codeline lineno="81"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="82"><highlight class="comment"><sp/>*<sp/>This<sp/>enumeration<sp/>defines<sp/>the<sp/>ECC<sp/>curves<sp/>supported<sp/>by<sp/>the<sp/>ECDSA</highlight></codeline>
+<codeline lineno="83"><highlight class="comment"><sp/>*<sp/>algorithm<sp/>on<sp/>the<sp/>SI91X<sp/>device,<sp/>which<sp/>includes<sp/>ECC_SECP224R1,<sp/>and<sp/>ECC_SECP256R1.</highlight></codeline>
+<codeline lineno="84"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="85" refid="group__CRYPTO__ECDSA__CONSTANTS_1gaf51b39292ea7d10ec831e0fab1ad6ac2" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">enum</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="86" refid="group__CRYPTO__ECDSA__CONSTANTS_1ggaf51b39292ea7d10ec831e0fab1ad6ac2ac6813d6eb54dae3ded3ebbc11947bc36" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="group__CRYPTO__ECDSA__CONSTANTS_1ggaf51b39292ea7d10ec831e0fab1ad6ac2ac6813d6eb54dae3ded3ebbc11947bc36" kindref="member">SL_SI91X_ECC_SECP224R1</ref><sp/>=<sp/>14,<sp/></highlight><highlight class="comment">///&lt;<sp/>Values<sp/>as<sp/>provided<sp/>by<sp/>firmware</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="87"><highlight class="normal"><sp/><sp/>SL_SI91X_ECC_SECP256R1<sp/>=<sp/>7</highlight></codeline>
+<codeline lineno="88"><highlight class="normal">}<sp/><ref refid="group__CRYPTO__ECDSA__CONSTANTS_1gaf51b39292ea7d10ec831e0fab1ad6ac2" kindref="member">sl_si91x_crypto_ecc_curve_t</ref>;</highlight></codeline>
+<codeline lineno="89"><highlight class="normal"></highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="90"><highlight class="comment">/**</highlight></codeline>
+<codeline lineno="91"><highlight class="comment"><sp/>*<sp/>@brief<sp/>Enumeration<sp/>defining<sp/>the<sp/>SHA<sp/>modes<sp/>supported<sp/>by<sp/>the<sp/>ECDSA<sp/>algorithm<sp/>on<sp/>the<sp/>SI91X<sp/>device.</highlight></codeline>
+<codeline lineno="92"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="93"><highlight class="comment"><sp/>*<sp/>This<sp/>enumeration<sp/>defines<sp/>the<sp/>SHA<sp/>modes<sp/>supported<sp/>for<sp/>the<sp/>ECDSA</highlight></codeline>
+<codeline lineno="94"><highlight class="comment"><sp/>*<sp/>algorithm<sp/>on<sp/>the<sp/>SI91X<sp/>device,<sp/>which<sp/>includes<sp/>SHA256,<sp/>SHA384,<sp/>and<sp/>SHA512.</highlight></codeline>
+<codeline lineno="95"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="96" refid="group__CRYPTO__ECDSA__CONSTANTS_1ga36435fb2454fb634cc727c8330096255" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">enum</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="97"><highlight class="normal"><sp/><sp/>SL_SI91X_ECDSA_SHA_256<sp/>=<sp/>1,</highlight></codeline>
+<codeline lineno="98"><highlight class="normal"><sp/><sp/>SL_SI91X_ECDSA_SHA_384,</highlight></codeline>
+<codeline lineno="99"><highlight class="normal"><sp/><sp/>SL_SI91X_ECDSA_SHA_512,</highlight></codeline>
+<codeline lineno="100"><highlight class="normal">}<sp/><ref refid="group__CRYPTO__ECDSA__CONSTANTS_1ga36435fb2454fb634cc727c8330096255" kindref="member">sl_si91x_crypto_ecdsa_sha_mode_t</ref>;</highlight></codeline>
+<codeline lineno="101"><highlight class="normal"></highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="102"><highlight class="comment">/**<sp/>@}<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="103"><highlight class="normal"></highlight></codeline>
+<codeline lineno="104"><highlight class="normal"></highlight><highlight class="comment">/******************************************************</highlight></codeline>
+<codeline lineno="105"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Type<sp/>Definitions</highlight></codeline>
+<codeline lineno="106"><highlight class="comment"><sp/>******************************************************/</highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="107"><highlight class="comment">/**</highlight></codeline>
+<codeline lineno="108"><highlight class="comment"><sp/>*<sp/>@addtogroup<sp/>CRYPTO_ECDSA_TYPES<sp/></highlight></codeline>
+<codeline lineno="109"><highlight class="comment"><sp/>*<sp/>@{<sp/></highlight></codeline>
+<codeline lineno="110"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="111"><highlight class="normal"></highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="112"><highlight class="comment">/**</highlight></codeline>
+<codeline lineno="113"><highlight class="comment"><sp/>*<sp/>@brief<sp/>Structure<sp/>defining<sp/>ECDSA<sp/>key<sp/>configuration<sp/>for<sp/>non-B0<sp/>chip<sp/>versions.</highlight></codeline>
+<codeline lineno="114"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="115" refid="structsl__si91x__ecdsa__key__config__b0__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal">{</highlight></codeline>
+<codeline lineno="116" refid="structsl__si91x__ecdsa__key__config__b0__t_1ae7c9dd33c63d9134ef9ff4eef60c2c3a" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="group__CRYPTO__CONSTANTS_1gaa4ae5ba737ea708d60d4c58f83d6d7be" kindref="member">sl_si91x_crypto_key_type_t</ref><sp/><ref refid="structsl__si91x__ecdsa__key__config__b0__t_1ae7c9dd33c63d9134ef9ff4eef60c2c3a" kindref="member">key_type</ref>;<sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">///&lt;<sp/>Key<sp/>type<sp/>-<sp/>wrapped<sp/>or<sp/>plain</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="117" refid="structsl__si91x__ecdsa__key__config__b0__t_1a5e026fffa2e445d348050efed4986328" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="group__CRYPTO__ECDSA__CONSTANTS_1gac22f70d4a1d9c6fd627b4b4e2b123a57" kindref="member">sl_si91x_ecdsa_key_size_t</ref><sp/><ref refid="structsl__si91x__ecdsa__key__config__b0__t_1a5e026fffa2e445d348050efed4986328" kindref="member">key_size</ref>;<sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">///&lt;<sp/>ECC<sp/>key<sp/>size</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="118" refid="structsl__si91x__ecdsa__key__config__b0__t_1a683e7f41389ba3a057e7dedf3a76e739" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="group__CRYPTO__CONSTANTS_1gab2fb3cd3f463bc7fb4f94ae5e1c58352" kindref="member">sl_si91x_crypto_key_slot_t</ref><sp/><ref refid="structsl__si91x__ecdsa__key__config__b0__t_1a683e7f41389ba3a057e7dedf3a76e739" kindref="member">key_slot</ref>;<sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">///&lt;<sp/>Key<sp/>slot</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="119" refid="structsl__si91x__ecdsa__key__config__b0__t_1aeebf63bc6441706fd2419f191ddeca34" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="group__CRYPTO__CONSTANTS_1gaac5c8069f16fca3b9d5936ef034537de" kindref="member">sl_si91x_crypto_wrap_mode_t</ref><sp/><ref refid="structsl__si91x__ecdsa__key__config__b0__t_1aeebf63bc6441706fd2419f191ddeca34" kindref="member">wrap_iv_mode</ref>;<sp/></highlight><highlight class="comment">///&lt;<sp/>Wrap<sp/>mode<sp/>-<sp/>ECB<sp/>or<sp/>CBC</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="120" refid="structsl__si91x__ecdsa__key__config__b0__t_1a015b54c8662ec8f54080f6feee791842" refkind="member"><highlight class="normal"><sp/><sp/>uint8_t<sp/>wrap_iv[<ref refid="group__CRYPTO__CONSTANTS_1ga3936c05c79c2c129da5eeaec5d7fbd3d" kindref="member">SL_SI91X_IV_SIZE</ref>];<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">///&lt;<sp/>IV<sp/>used<sp/>in<sp/>SL_SI91X_AES_CBC<sp/>and<sp/>SL_SI91X_AES_CTR<sp/>modes</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="121" refid="structsl__si91x__ecdsa__key__config__b0__t_1af7689bc9e829a739e1fc6d938f68b9a0" refkind="member"><highlight class="normal"><sp/><sp/>uint32_t<sp/><ref refid="structsl__si91x__ecdsa__key__config__b0__t_1af7689bc9e829a739e1fc6d938f68b9a0" kindref="member">reserved</ref>;<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">///&lt;<sp/>Reserved<sp/>for<sp/>future<sp/>use</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="122"><highlight class="normal">}<sp/><ref refid="structsl__si91x__ecdsa__key__config__b0__t" kindref="compound">sl_si91x_ecdsa_key_config_b0_t</ref>;</highlight></codeline>
+<codeline lineno="123"><highlight class="normal"></highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="124"><highlight class="comment">/**</highlight></codeline>
+<codeline lineno="125"><highlight class="comment"><sp/>*<sp/>@brief<sp/>Structure<sp/>defining<sp/>ECDSA<sp/>key<sp/>configuration<sp/>for<sp/>B0<sp/>chip<sp/>versions.</highlight></codeline>
+<codeline lineno="126"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="127" refid="structsl__si91x__ecdsa__key__config__a0__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal">{</highlight></codeline>
+<codeline lineno="128" refid="structsl__si91x__ecdsa__key__config__a0__t_1ad3ba11bd0e21434a983f531b604ace6a" refkind="member"><highlight class="normal"><sp/><sp/>uint16_t<sp/><ref refid="structsl__si91x__ecdsa__key__config__a0__t_1ad3ba11bd0e21434a983f531b604ace6a" kindref="member">key_length</ref>;<sp/></highlight><highlight class="comment">///&lt;<sp/>Length<sp/>of<sp/>the<sp/>key</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="129"><highlight class="normal">}<sp/><ref refid="structsl__si91x__ecdsa__key__config__a0__t" kindref="compound">sl_si91x_ecdsa_key_config_a0_t</ref>;</highlight></codeline>
+<codeline lineno="130"><highlight class="normal"></highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="131"><highlight class="comment">/**</highlight></codeline>
+<codeline lineno="132"><highlight class="comment"><sp/>*<sp/>@brief<sp/>Union<sp/>holding<sp/>ECDSA<sp/>key<sp/>configuration<sp/>structures<sp/>for<sp/>B0,<sp/>and<sp/>non-B0<sp/>chip<sp/>versions.</highlight></codeline>
+<codeline lineno="133"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="134" refid="unionsl__si91x__ecdsa__key__config__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">union<sp/></highlight><highlight class="normal">{</highlight></codeline>
+<codeline lineno="135" refid="unionsl__si91x__ecdsa__key__config__t_1ac8270ef7ea62e17993e7320c97996410" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="structsl__si91x__ecdsa__key__config__a0__t" kindref="compound">sl_si91x_ecdsa_key_config_a0_t</ref><sp/><ref refid="unionsl__si91x__ecdsa__key__config__t_1ac8270ef7ea62e17993e7320c97996410" kindref="member">a0</ref>;<sp/></highlight><highlight class="comment">///&lt;<sp/>Key<sp/>configuration<sp/>for<sp/>non-B0<sp/>chip<sp/>versions</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="136" refid="unionsl__si91x__ecdsa__key__config__t_1ad885ceee00ba293a4788f1f3f50cd680" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="structsl__si91x__ecdsa__key__config__b0__t" kindref="compound">sl_si91x_ecdsa_key_config_b0_t</ref><sp/><ref refid="unionsl__si91x__ecdsa__key__config__t_1ad885ceee00ba293a4788f1f3f50cd680" kindref="member">b0</ref>;<sp/></highlight><highlight class="comment">///&lt;<sp/>Key<sp/>configuration<sp/>for<sp/>B0<sp/>chip<sp/>versions</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="137"><highlight class="normal">}<sp/><ref refid="unionsl__si91x__ecdsa__key__config__t" kindref="compound">sl_si91x_ecdsa_key_config_t</ref>;</highlight></codeline>
+<codeline lineno="138"><highlight class="normal"></highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="139"><highlight class="comment">/**</highlight></codeline>
+<codeline lineno="140"><highlight class="comment"><sp/>*<sp/>@brief<sp/>Structure<sp/>defining<sp/>ECDSA<sp/>configuration.</highlight></codeline>
+<codeline lineno="141"><highlight class="comment"><sp/>*<sp/></highlight></codeline>
+<codeline lineno="142"><highlight class="comment"><sp/>*<sp/>This<sp/>structure<sp/>defines<sp/>the<sp/>ECDSA<sp/>configuration<sp/>required<sp/>for<sp/>the<sp/>operation,<sp/>including<sp/></highlight></codeline>
+<codeline lineno="143"><highlight class="comment"><sp/>*<sp/>the<sp/>type<sp/>of<sp/>operation,<sp/>input<sp/>message,<sp/>length<sp/>of<sp/>the<sp/>input<sp/>message,<sp/>key<sp/>configuration<sp/>structure,<sp/>and<sp/>so<sp/>on.</highlight></codeline>
+<codeline lineno="144"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="145" refid="structsl__si91x__ecdsa__config__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal">{</highlight></codeline>
+<codeline lineno="146" refid="structsl__si91x__ecdsa__config__t_1abba88862f79bd9060a2788ddc332d0cc" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="group__CRYPTO__ECDSA__CONSTANTS_1ga726017ce8f30df553274e46fd78b156c" kindref="member">sl_si91x_crypto_ecdsa_mode_t</ref><sp/><ref refid="structsl__si91x__ecdsa__config__t_1abba88862f79bd9060a2788ddc332d0cc" kindref="member">ecdsa_operation</ref>;<sp/></highlight><highlight class="comment">///&lt;<sp/>Generate<sp/>ECC<sp/>key<sp/>pair,<sp/>sign,<sp/>or<sp/>verify</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="147" refid="structsl__si91x__ecdsa__config__t_1ad16155077dabb51b5d4173553bc51ed0" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="group__CRYPTO__ECDSA__CONSTANTS_1gaf51b39292ea7d10ec831e0fab1ad6ac2" kindref="member">sl_si91x_crypto_ecc_curve_t</ref><sp/><ref refid="structsl__si91x__ecdsa__config__t_1ad16155077dabb51b5d4173553bc51ed0" kindref="member">curve_id</ref>;<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">///&lt;<sp/>Curve<sp/>ID<sp/>for<sp/>ECDSA</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="148" refid="structsl__si91x__ecdsa__config__t_1a66d77aea4596f93f446f54dc8e68a958" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="group__CRYPTO__ECDSA__CONSTANTS_1ga36435fb2454fb634cc727c8330096255" kindref="member">sl_si91x_crypto_ecdsa_sha_mode_t</ref><sp/><ref refid="structsl__si91x__ecdsa__config__t_1a66d77aea4596f93f446f54dc8e68a958" kindref="member">sha_mode</ref>;<sp/><sp/><sp/><sp/></highlight><highlight class="comment">///&lt;<sp/>SHA<sp/>hashing<sp/>mode<sp/>of<sp/>the<sp/>input<sp/>message</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="149" refid="structsl__si91x__ecdsa__config__t_1ad40edca0609a6d890c58026cf25a5310" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint8_t<sp/>*<ref refid="structsl__si91x__ecdsa__config__t_1ad40edca0609a6d890c58026cf25a5310" kindref="member">private_key</ref>;<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">///&lt;<sp/>Pointer<sp/>to<sp/>the<sp/>private<sp/>key</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="150" refid="structsl__si91x__ecdsa__config__t_1a372141ba4d9ea5202bcf8a18becab091" refkind="member"><highlight class="normal"><sp/><sp/>uint8_t<sp/><ref refid="structsl__si91x__ecdsa__config__t_1a372141ba4d9ea5202bcf8a18becab091" kindref="member">private_key_length</ref>;<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">///&lt;<sp/>Length<sp/>of<sp/>the<sp/>private<sp/>key</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="151" refid="structsl__si91x__ecdsa__config__t_1a49037247af061f6f7d733e2b8caaa274" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint8_t<sp/>*<ref refid="structsl__si91x__ecdsa__config__t_1a49037247af061f6f7d733e2b8caaa274" kindref="member">public_key</ref>;<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">///&lt;<sp/>Pointer<sp/>to<sp/>the<sp/>public<sp/>key</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="152" refid="structsl__si91x__ecdsa__config__t_1af98ba1752232dd020325739e374d319b" refkind="member"><highlight class="normal"><sp/><sp/>uint8_t<sp/><ref refid="structsl__si91x__ecdsa__config__t_1af98ba1752232dd020325739e374d319b" kindref="member">public_key_length</ref>;<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">///&lt;<sp/>Length<sp/>of<sp/>the<sp/>public<sp/>key</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="153" refid="structsl__si91x__ecdsa__config__t_1a449a6b16423767b954ff60a84a594007" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint8_t<sp/>*<ref refid="structsl__si91x__ecdsa__config__t_1a449a6b16423767b954ff60a84a594007" kindref="member">signature</ref>;<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">///&lt;<sp/>Pointer<sp/>to<sp/>the<sp/>signature</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="154" refid="structsl__si91x__ecdsa__config__t_1a73e8f9f56c72602e68dc93d886bb2b3b" refkind="member"><highlight class="normal"><sp/><sp/>uint8_t<sp/><ref refid="structsl__si91x__ecdsa__config__t_1a73e8f9f56c72602e68dc93d886bb2b3b" kindref="member">signature_length</ref>;<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">///&lt;<sp/>Length<sp/>of<sp/>the<sp/>signature</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="155" refid="structsl__si91x__ecdsa__config__t_1afd3d4cc540a2c995b8f8895ff2da4fd0" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint8_t<sp/>*<ref refid="structsl__si91x__ecdsa__config__t_1afd3d4cc540a2c995b8f8895ff2da4fd0" kindref="member">msg</ref>;<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">///&lt;<sp/>Pointer<sp/>to<sp/>the<sp/>input<sp/>message</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="156" refid="structsl__si91x__ecdsa__config__t_1a0b0caa39b0ed0d7750cd477817afa2a1" refkind="member"><highlight class="normal"><sp/><sp/>uint32_t<sp/><ref refid="structsl__si91x__ecdsa__config__t_1a0b0caa39b0ed0d7750cd477817afa2a1" kindref="member">msg_length</ref>;<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">///&lt;<sp/>Length<sp/>of<sp/>the<sp/>message</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="157" refid="structsl__si91x__ecdsa__config__t_1a1697751d5cbc920c229245ce34b55a85" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="unionsl__si91x__ecdsa__key__config__t" kindref="compound">sl_si91x_ecdsa_key_config_t</ref><sp/><ref refid="structsl__si91x__ecdsa__config__t_1a1697751d5cbc920c229245ce34b55a85" kindref="member">key_config</ref>;<sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">///&lt;<sp/>Key<sp/>configuration</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="158"><highlight class="normal">}<sp/><ref refid="structsl__si91x__ecdsa__config__t" kindref="compound">sl_si91x_ecdsa_config_t</ref>;</highlight></codeline>
+<codeline lineno="159"><highlight class="normal"></highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="160"><highlight class="comment">/**<sp/>@}<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="161"><highlight class="normal"></highlight></codeline>
+<codeline lineno="162"><highlight class="normal"></highlight><highlight class="comment">/******************************************************</highlight></codeline>
+<codeline lineno="163"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Function<sp/>Declarations</highlight></codeline>
+<codeline lineno="164"><highlight class="comment">*******************************************************/</highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="165"><highlight class="comment">/**</highlight></codeline>
+<codeline lineno="166"><highlight class="comment"><sp/>*<sp/>@addtogroup<sp/>CRYPTO_ECDSA_FUNCTIONS</highlight></codeline>
+<codeline lineno="167"><highlight class="comment"><sp/>*<sp/>@{<sp/></highlight></codeline>
+<codeline lineno="168"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="169"><highlight class="normal"></highlight></codeline>
+<codeline lineno="170"><highlight class="normal"></highlight><highlight class="comment">/***************************************************************************/</highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="171"><highlight class="comment">/**</highlight></codeline>
+<codeline lineno="172"><highlight class="comment"><sp/>*<sp/>@brief<sp/></highlight></codeline>
+<codeline lineno="173"><highlight class="comment"><sp/>*<sp/><sp/><sp/>To<sp/>sign<sp/>or<sp/>verify<sp/>the<sp/>message<sp/>according<sp/>to<sp/>the<sp/>given<sp/>configuration.<sp/>This<sp/>is<sp/>a<sp/>blocking<sp/>API.</highlight></codeline>
+<codeline lineno="174"><highlight class="comment"><sp/>*<sp/>@param[in]<sp/>config<sp/></highlight></codeline>
+<codeline lineno="175"><highlight class="comment"><sp/>*<sp/><sp/><sp/>Configuration<sp/>object<sp/>of<sp/>type<sp/>@ref<sp/>sl_si91x_ecdsa_config_t</highlight></codeline>
+<codeline lineno="176"><highlight class="comment"><sp/>*<sp/>@param[out]<sp/>output<sp/></highlight></codeline>
+<codeline lineno="177"><highlight class="comment"><sp/>*<sp/><sp/><sp/>Buffer<sp/>to<sp/>store<sp/>the<sp/>output.</highlight></codeline>
+<codeline lineno="178"><highlight class="comment"><sp/>*<sp/>@return</highlight></codeline>
+<codeline lineno="179"><highlight class="comment"><sp/>*<sp/><sp/><sp/>sl_status_t.</highlight></codeline>
+<codeline lineno="180"><highlight class="comment"><sp/>*<sp/>For<sp/>more<sp/>information<sp/>on<sp/>status<sp/>codes,<sp/>refer<sp/>to<sp/></highlight></codeline>
+<codeline lineno="181"><highlight class="comment"><sp/>*<sp/>[SL<sp/>STATUS<sp/>DOCUMENTATION](https://docs.silabs.com/gecko-platform/latest/platform-common/status).</highlight></codeline>
+<codeline lineno="182"><highlight class="comment">******************************************************************************/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="183" refid="group__CRYPTO__ECDSA__FUNCTIONS_1gaa1565119c0d5bf09d2770b357454c174" refkind="member"><highlight class="normal">sl_status_t<sp/><ref refid="group__CRYPTO__ECDSA__FUNCTIONS_1gaa1565119c0d5bf09d2770b357454c174" kindref="member">sl_si91x_ecdsa</ref>(<ref refid="structsl__si91x__ecdsa__config__t" kindref="compound">sl_si91x_ecdsa_config_t</ref><sp/>*config,<sp/>uint8_t<sp/>*output);</highlight></codeline>
+<codeline lineno="184"><highlight class="normal"></highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="185"><highlight class="comment">/**<sp/>@}<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+    </programlisting>
+    <location file="components/device/silabs/si91x/wireless/crypto/ecdsa/inc/sl_si91x_ecdsa.h"/>
+  </compounddef>
+</doxygen>

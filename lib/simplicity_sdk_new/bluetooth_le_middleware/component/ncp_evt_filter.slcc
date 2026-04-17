@@ -1,0 +1,30 @@
+id: ncp_evt_filter
+label: NCP Event Filter Interface
+package: bluetooth_le_middleware
+description: "Component that provides the Bluetooth Network Co-Processor (NCP) Event Filter interface.\nThis is a No-Code component if used together with NCP Interface component."
+category: Bluetooth|NCP Interface
+metadata:
+  sbom:
+    license: Zlib
+quality: production
+root_path: bluetooth_le_middleware/common/ncp_evt_filter
+tag:
+- No-Code
+config_file:
+- path: config/sl_ncp_evt_filter_config.h
+source:
+- path: sl_ncp_evt_filter.c
+  unless: [bluetooth_api_ncp_host]
+include:
+- path: .
+  file_list:
+  - path: sl_ncp_evt_filter.h
+  - path: sl_ncp_evt_filter_common.h
+provides:
+- name: ncp_evt_filter
+requires:
+- name: bluetooth_api
+- name: status
+documentation:
+  docset: bluetooth
+  document: bluetooth-service-api/ncp-evt-filter

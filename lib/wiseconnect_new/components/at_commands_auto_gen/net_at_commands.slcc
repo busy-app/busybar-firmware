@@ -1,0 +1,126 @@
+id: net_at_commands
+package: wifi
+description: >
+  Network AT commands
+category: Service| AT Commands Autogen| Network AT commands
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+component_root_path: ./components/at_commands_auto_gen
+provides:
+  - name: net_at_commands
+
+template_contribution:
+  - name: console_commands
+    value:
+      net-init:
+        handler: net_init_command_handler
+        arguments:
+          - "uint8"
+      net-init?:
+        handler: net_init_check_command_handler
+      net-deinit:
+        handler: net_deinit_command_handler
+        arguments:
+          - "uint8"
+      net-up:
+        handler: net_up_command_handler
+        arguments:
+          - "uint8"
+          - "uint8"
+      net-down:
+        handler: net_down_command_handler
+        arguments:
+          - "uint8"
+      net-ping:
+        handler: sl_net_ping_command_handler
+        arguments:
+          - "string"
+          - "uint8"
+          - "uint16"
+      net-cred-wifipsk:
+        handler: net_cred_wifipsk_command_handler
+        arguments:
+          - "uint8"
+          - "string"
+      net-sta-cred:
+        handler: net_sta_credential_command_handler
+        arguments:
+          - "uint8"
+          - "string"
+          - "uint8"
+          - "uint8"
+          - "uint8"
+      net-sta-chan:
+        handler: net_sta_channel_command_handler
+        arguments:
+          - "uint8"
+          - "uint8"
+          - "uint8"
+          - "uint8"
+      net-sta-bss:
+        handler: net_sta_bss_command_handler
+        arguments:
+          - "uint8"
+          - "string"
+          - "uint8"
+      net-sta-opt:
+        handler: net_sta_options_command_handler
+        arguments:
+          - "uint8"
+          - "uint8"
+          - "uint16"
+          - "uint32"
+          - "uint8"
+      net-sta-ip:
+        handler: net_sta_ip_command_handler
+        arguments:
+          - "uint8"
+          - "uint8"
+          - "uint8"
+          - "string"
+          - "string"
+          - "string"
+          - "string"
+          - "string"
+      net-conf-ip:
+        handler: net_configure_ip_command_handler
+        arguments:
+          - "uint8"
+          - "uint8"
+          - "uint8"
+          - "string"
+          - "string"
+          - "string"
+          - "string"
+          - "string"
+          - "string"
+          - "string"
+          - "uint32"
+      net-dhcp-conf:
+        handler: net_dhcp_config_command_handler
+        arguments:
+          - "uint16"
+          - "uint16"
+          - "uint16"
+          - "uint16"
+          - "uint8"
+          - "uint8"
+      dns-resolve-hostname:
+        handler: dns_hostgetbyname_command_handler
+        arguments:
+          - "string"
+          - "uint32"
+          - "uint8"
+      http-otaf:
+        handler: http_otaf_upgrade_command_handler
+        arguments:
+          - "uint16"
+          - "string"
+          - "uint16"
+          - "string"
+          - "string"
+          - "string"
+          - "string"
+          - "string"

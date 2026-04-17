@@ -1,0 +1,43 @@
+id: sl_si91x_32khz_rc_calibration
+label: SL SI91X 32KHZ RC CALIBRATION
+package: platform_siwx91x
+metadata:
+  sbom:
+    license: Zlib
+description: >
+  This component enhances the accuracy of the internal 32kHz RC clock, with an added power penalty. It improves the accuracy of peripherals depending on the 32kHz RC clock. To maintain consistent precision, calibration is carried out every 30 minutes, even during sleep mode, utilizing the calendar alarm peripheral.
+  The calendar alarm peripheral plays a dual role: it ensures periodic triggers for calibration while simultaneously functioning as a standard alarm peripheral. A framework has been implemented to manage these events efficiently, ensuring seamless operation without compromising the alarm functionality. 
+  Notes: (Applicable only when the 32kHz RC calibration is enabled)
+  1. When 32kHz RC calibration is enabled, the M4 is active for 7.11 milliseconds every 30 minutes, consuming a current of 8.75 milliamperes.
+  2. When calibration is enabled, the user can either use the calendar peripheral or calendar wakeup. Using both simultaneously is not supported, as it may cause conflicts within the calibration framework's time management.
+  3. When calibration is enabled with the alarm wakeup source, calendar wakeup initialization occurs only once during service initialization, instead of before entering sleep mode.
+  4. During sleep, the system automatically wakes up when the calibration event is triggered.
+  5. When using the calendar wakeup source, the initial wakeup will encounter overhead due to wakeup path execution. However, this overhead will be mitigated in subsequent cycles.
+  6. This component is intended for use only when the 32kHz RC clock is supplied to the LF-FSM.
+  7. The 32kHz calibration feature is available exclusively in PS3 and PS4 states.
+  Limitations:
+  1. If the user configures the alarm as a wakeup source, the minimum configurable value is 10 milliseconds. 
+  2. In the current framework, calibration does not enhance the timing accuracy of the SysRTC and WDT.
+category: Device|Si91x|MCU|Core
+quality: production
+component_root_path: "components/device/silabs/si91x/mcu/core/common"
+source:
+  - path: "src/sli_si91x_32khz_rc_calibration.c"
+include:
+  - path: "inc"
+    file_list:
+      - path: "sli_si91x_32khz_rc_calibration.h"
+define:
+  - name: SL_SI91X_32KHZ_RC_CALIBRATION_ENABLED
+    value: '1'
+requires:
+  - name: calendar_ulp_component
+provides:
+  - name: sl_si91x_32khz_rc_calibration
+template_contribution:
+  - name: event_handler
+    value:
+      event: service_init
+      include: sli_si91x_32khz_rc_calibration.h
+      handler: sli_si91x_calibration_initialization
+    priority: -9

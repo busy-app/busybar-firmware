@@ -1,0 +1,18 @@
+!!omap
+- id: brd4264v_config
+- label: brd4264v config
+- description: Configuration files for BRD4264V
+- package: boards
+- category: Platform|Board|Config
+- quality: production
+- metadata:
+    sbom:
+      license: Zlib
+- ui_hints:
+    visibility: never
+- root_path: boards/hardware/board/config
+- requires:
+  - name: brd4264v
+- provides:
+  - name: brd4264v_config
+- config_file: []

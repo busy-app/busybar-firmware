@@ -1,0 +1,27 @@
+id: btmesh_stack_fw_list_cache_libraries_release
+ui_hints:
+  visibility: never
+package: bluetooth_mesh
+description: Release libraries for btmesh_stack_fw_list_cache
+category: Bluetooth Mesh|Stack
+quality: production
+provides:
+- name: btmesh_stack_fw_list_cache_libraries_release
+- name: btmesh_stack_fw_list_cache_libraries
+library:
+- path: build/gcc/cortex-m33/ble_mesh/model_dfu/release/libbtmesh_dfu_ncp_fw_list.a
+  condition:
+  - toolchain_gcc
+  - cortexm33
+- path: build/iar/cortex-m33/ble_mesh/model_dfu/release/libbtmesh_dfu_ncp_fw_list.a
+  condition:
+  - toolchain_iar
+  - cortexm33
+- path: build/llvm/cortex-m33/ble_mesh/model_dfu/release/libbtmesh_dfu_ncp_fw_list.a
+  condition:
+  - toolchain_llvm
+  - cortexm33
+metadata:
+  sbom:
+    reference: btmesh_stack_models
+root_path: bluetooth_mesh

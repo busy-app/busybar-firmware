@@ -1,0 +1,104 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__CRYPTO__THREAD__FUNCTIONS" kind="group">
+    <compoundname>CRYPTO_THREAD_FUNCTIONS</compoundname>
+    <title>Functions</title>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="group__CRYPTO__THREAD__FUNCTIONS_1ga9d8427af69aed30d206eca15dfca306a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>osSemaphoreId_t</type>
+        <definition>osSemaphoreId_t sl_si91x_crypto_threadsafety_init</definition>
+        <argsstring>(osSemaphoreId_t *mutex)</argsstring>
+        <name>sl_si91x_crypto_threadsafety_init</name>
+        <param>
+          <type>osSemaphoreId_t *</type>
+          <declname>mutex</declname>
+        </param>
+        <briefdescription>
+<para>To initialize the crypto semaphore for a particular crypto operation. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">mutex</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The crypto semaphore to be initialized. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>osSemaphoreId_t Semaphore ID. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/multithread/inc/sl_si91x_crypto_thread.h" line="124" column="17" declfile="components/device/silabs/si91x/wireless/crypto/multithread/inc/sl_si91x_crypto_thread.h" declline="124" declcolumn="17"/>
+      </memberdef>
+      <memberdef kind="function" id="group__CRYPTO__THREAD__FUNCTIONS_1ga27227706c866093d3d27ce71baf0c62a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>osStatus_t</type>
+        <definition>osStatus_t sl_si91x_crypto_mutex_acquire</definition>
+        <argsstring>(osSemaphoreId_t *mutex)</argsstring>
+        <name>sl_si91x_crypto_mutex_acquire</name>
+        <param>
+          <type>osSemaphoreId_t *</type>
+          <declname>mutex</declname>
+        </param>
+        <briefdescription>
+<para>To acquire the crypto semaphore for a particular crypto operation. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">mutex</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The crypto semaphore to be acquired. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>osStatus_t Status of the semaphore. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/multithread/inc/sl_si91x_crypto_thread.h" line="135" column="12" declfile="components/device/silabs/si91x/wireless/crypto/multithread/inc/sl_si91x_crypto_thread.h" declline="135" declcolumn="12"/>
+      </memberdef>
+      <memberdef kind="function" id="group__CRYPTO__THREAD__FUNCTIONS_1ga372a749320b84990f4b13bc2443c9df4" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>osStatus_t</type>
+        <definition>osStatus_t sl_si91x_crypto_mutex_release</definition>
+        <argsstring>(osSemaphoreId_t *mutex)</argsstring>
+        <name>sl_si91x_crypto_mutex_release</name>
+        <param>
+          <type>osSemaphoreId_t *</type>
+          <declname>mutex</declname>
+        </param>
+        <briefdescription>
+<para>To release the crypto semaphore for a particular crypto operation. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">mutex</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The crypto semaphore to be released. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>osStatus_t Status of the semaphore. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/multithread/inc/sl_si91x_crypto_thread.h" line="146" column="12" declfile="components/device/silabs/si91x/wireless/crypto/multithread/inc/sl_si91x_crypto_thread.h" declline="146" declcolumn="12"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para>This section provides a reference to the Crypto multithread management API functions. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

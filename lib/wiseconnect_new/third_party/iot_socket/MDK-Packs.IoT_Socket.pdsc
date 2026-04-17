@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<package schemaVersion="1.6" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="PACK.xsd">
+  <vendor>MDK-Packs</vendor>
+  <name>IoT_Socket</name>
+  <description>Simple IP Socket (BSD like)</description>
+  <!-- web download link -->
+  <url>https://github.com/MDK-Packs/Pack/raw/master/IoT_Socket/</url>
+  <license>LICENSE.txt</license>
+  <repository type="git">https://github.com/MDK-Packs/IoT_Socket.git</repository>
+  <releases>
+    <release version="1.3.1">
+      Updated IoT Socket implementation with lwIP:
+      - corrected iotSocketGetOpt/iotSocketSetOpt timeout options
+    </release>
+    <release version="1.3.0" date="2022-03-02">
+      Added custom IoT Socket component
+      Added IoT Socket Multiplexer component
+      Updated IoT Socket implementation with MDK Network:
+      - minor update in iotSocketGetSockName/iotSocketGetPeerName:
+        port may be retrieved also without address
+      - corrected iotSocketGetOpt/iotSocketSetOpt return value for invalid options
+      Updated IoT Socket implementation with lwIP:
+      - corrected iotSocketGetOpt/iotSocketSetOpt return value for invalid options
+      - corrected socket bind attribute handling in iotSocketBind
+    </release>
+    <release version="1.2.1" date="2020-07-13">
+      Updated IoT Socket implementation with lwIP:
+      - corrected iotSocketSend return value for non-blocking sockets
+    </release>
+    <release version="1.2.0" date="2020-04-22">
+      Updated IoT Socket API V1.2.0 (support for polling Socket Receive/Send)
+      Updated IoT Socket implementation with MDK Network
+      Added IoT Socket implementation with lwIP
+      Added IoT Socket API documentation
+    </release>
+    <release version="1.1.0" date="2019-04-02">
+      Updated IoT Socket API V1.1.0
+      Updated IoT Socket implementation with MDK Network
+      Added IoT Socket implementation with WiFi Driver
+    </release>
+    <release version="1.0.0" date="2018-05-28">
+      Initial release
+    </release>
+  </releases>
+  <apis>
+    <api Cclass="IoT Utility" Cgroup="Socket" Capiversion="1.2.0" exclusive="1">
+      <description>Simple IP Socket interface</description>
+      <files>
+        <file category="doc"    name="documentation/index.html"/>
+        <file category="header" name="include/iot_socket.h"/>
+      </files>
+    </api>
+  </apis>
+  <conditions>
+    <condition id="MDK Network BSD">
+      <description>MDK Network BSD Socket</description>
+      <accept Cbundle="MDK-Pro"    Cclass="Network" Cgroup="Socket"  Csub="BSD"        Cversion="7.9.0"/>
+      <accept Cbundle="MDK-Plus"   Cclass="Network" Cgroup="Socket"  Csub="BSD"        Cversion="7.9.0"/>
+      <accept Cbundle="MDK-Source" Cclass="Network" Cgroup="Socket"  Csub="BSD"        Cversion="7.9.0"/>
+    </condition>
+    <condition id="MDK Network DNS">
+      <description>MDK Network DNS Client</description>
+      <accept Cbundle="MDK-Pro"    Cclass="Network" Cgroup="Service" Csub="DNS Client" Cversion="7.9.0"/>
+      <accept Cbundle="MDK-Plus"   Cclass="Network" Cgroup="Service" Csub="DNS Client" Cversion="7.9.0"/>
+      <accept Cbundle="MDK-Source" Cclass="Network" Cgroup="Service" Csub="DNS Client" Cversion="7.9.0"/>
+    </condition>
+    <condition id="MDK Network Socket">
+      <description>MDK Network Socket</description>
+      <require condition="MDK Network BSD"/>
+      <require condition="MDK Network DNS"/>
+    </condition>
+    <condition id="lwIP Socket">
+      <description>lwIP Socket</description>
+      <require Cbundle="lwIP" Cclass="Network" Cgroup="CORE"/>
+    </condition>
+    <condition id="WiFi Driver Socket">
+      <description>WiFi Driver Socket</description>
+      <require Cclass="CMSIS Driver" Cgroup="WiFi" Capiversion="1.1.0"/>
+    </condition>
+  </conditions>
+  <components>
+    <component Cclass="IoT Utility" Cgroup="Socket" Csub="Custom" Capiversion="1.2.0" Cversion="1.0.0" custom="1">
+      <description>Access to #include iot_socket.h file and code template for custom implementation</description>
+      <RTE_Components_h>
+        <!-- the following content goes into file 'RTE_Components.h' -->
+        #define RTE_IoT_Socket                  /* IoT Socket */
+      </RTE_Components_h>
+      <files>
+        <file category="sourceC" name="template/iot_socket.c" attr="template" select="IoT Socket"/>
+      </files>
+    </component>
+    <component Cclass="IoT Utility" Cgroup="Socket" Csub="MDK Network" Capiversion="1.2.0" Cversion="1.2.1" condition="MDK Network Socket">
+      <description>IoT Socket implementation with MDK::Network</description>
+      <RTE_Components_h>
+        <!-- the following content goes into file 'RTE_Components.h' -->
+        #define RTE_IoT_Socket                  /* IoT Socket */
+        #define RTE_IoT_Socket_MDK_Network      /* IoT Socket: MDK::Network */
+      </RTE_Components_h>
+      <files>
+        <file category="sourceC" name="source/mdk_network/iot_socket.c"/>
+      </files>
+    </component>
+    <component Cclass="IoT Utility" Cgroup="Socket" Csub="lwIP" Capiversion="1.2.0" Cversion="1.0.4" condition="lwIP Socket">
+      <description>IoT Socket implementation with lwIP</description>
+      <RTE_Components_h>
+        <!-- the following content goes into file 'RTE_Components.h' -->
+        #define RTE_IoT_Socket                  /* IoT Socket */
+        #define RTE_IoT_Socket_lwIP             /* IoT Socket: lwIP */
+      </RTE_Components_h>
+      <files>
+        <file category="sourceC" name="source/lwip/iot_socket.c"/>
+      </files>
+    </component>
+    <component Cclass="IoT Utility" Cgroup="Socket" Csub="WiFi" Capiversion="1.2.0" Cversion="1.0.0" condition="WiFi Driver Socket">
+      <description>IoT Socket implementation with WiFi Driver</description>
+      <RTE_Components_h>
+        <!-- the following content goes into file 'RTE_Components.h' -->
+        #define RTE_IoT_Socket                  /* IoT Socket */
+        #define RTE_IoT_Socket_WiFi             /* IoT Socket: WiFi */
+      </RTE_Components_h>
+      <files>
+        <file category="sourceC" name="source/wifi/iot_socket.c"/>
+      </files>
+    </component>
+    <component Cclass="IoT Utility" Cgroup="Socket" Csub="Mux" Capiversion="1.2.0" Cversion="1.0.0">
+      <description>IoT Socket Multiplexer</description>
+      <RTE_Components_h>
+        <!-- the following content goes into file 'RTE_Components.h' -->
+        #define RTE_IoT_Socket                  /* IoT Socket */
+        #define RTE_IoT_Socket_Mux              /* IoT Socket: Mux */
+      </RTE_Components_h>
+      <files>
+        <file category="header"  name="include/iot_socket_mux.h"/>
+        <file category="sourceC" name="source/mux/iot_socket.c"/>
+      </files>
+    </component>
+  </components>
+</package>

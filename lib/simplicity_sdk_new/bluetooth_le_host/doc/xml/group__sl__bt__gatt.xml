@@ -1,0 +1,2119 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__gatt" kind="group">
+    <compoundname>sl_bt_gatt</compoundname>
+    <title>GATT Client</title>
+    <innergroup refid="group__sl__bt__evt__gatt__mtu__exchanged">sl_bt_evt_gatt_mtu_exchanged</innergroup>
+    <innergroup refid="group__sl__bt__evt__gatt__service">sl_bt_evt_gatt_service</innergroup>
+    <innergroup refid="group__sl__bt__evt__gatt__characteristic">sl_bt_evt_gatt_characteristic</innergroup>
+    <innergroup refid="group__sl__bt__evt__gatt__descriptor">sl_bt_evt_gatt_descriptor</innergroup>
+    <innergroup refid="group__sl__bt__evt__gatt__characteristic__value">sl_bt_evt_gatt_characteristic_value</innergroup>
+    <innergroup refid="group__sl__bt__evt__gatt__descriptor__value">sl_bt_evt_gatt_descriptor_value</innergroup>
+    <innergroup refid="group__sl__bt__evt__gatt__procedure__completed">sl_bt_evt_gatt_procedure_completed</innergroup>
+      <sectiondef kind="enum">
+      <memberdef kind="enum" id="group__sl__bt__gatt_1ga459acca869ec6d9edd49c57ff6357dd8" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_bt_gatt_att_opcode_t</name>
+        <enumvalue id="group__sl__bt__gatt_1gga459acca869ec6d9edd49c57ff6357dd8a23d515309f6f1157659e70566c123bb1" prot="public">
+          <name>sl_bt_gatt_read_by_type_request</name>
+          <initializer>= 0x8</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x8) Read by type request </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__gatt_1gga459acca869ec6d9edd49c57ff6357dd8a3fc828b0c74725fd064c202b86387ae3" prot="public">
+          <name>sl_bt_gatt_read_by_type_response</name>
+          <initializer>= 0x9</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x9) Read by type response </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__gatt_1gga459acca869ec6d9edd49c57ff6357dd8a3d1e1583c0de6a134833fc9197835102" prot="public">
+          <name>sl_bt_gatt_read_request</name>
+          <initializer>= 0xa</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0xa) Read request </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__gatt_1gga459acca869ec6d9edd49c57ff6357dd8a7033ed3b4a030ab70776d8e6ecbf362f" prot="public">
+          <name>sl_bt_gatt_read_response</name>
+          <initializer>= 0xb</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0xb) Read response </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__gatt_1gga459acca869ec6d9edd49c57ff6357dd8abba72fea01bc89a78032866f8efefe7a" prot="public">
+          <name>sl_bt_gatt_read_blob_request</name>
+          <initializer>= 0xc</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0xc) Read blob request </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__gatt_1gga459acca869ec6d9edd49c57ff6357dd8ae74bdc8f5d3c8f535b1842527458a324" prot="public">
+          <name>sl_bt_gatt_read_blob_response</name>
+          <initializer>= 0xd</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0xd) Read blob response </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__gatt_1gga459acca869ec6d9edd49c57ff6357dd8ae24d6db43518478cd506d9c1837dd820" prot="public">
+          <name>sl_bt_gatt_read_multiple_request</name>
+          <initializer>= 0xe</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0xe) Read multiple request </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__gatt_1gga459acca869ec6d9edd49c57ff6357dd8a8029859995866293b193d87cf9478937" prot="public">
+          <name>sl_bt_gatt_read_multiple_response</name>
+          <initializer>= 0xf</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0xf) Read multiple response </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__gatt_1gga459acca869ec6d9edd49c57ff6357dd8a51671dfd8baa4c957c17e79106d0002d" prot="public">
+          <name>sl_bt_gatt_write_request</name>
+          <initializer>= 0x12</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x12) Write request </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__gatt_1gga459acca869ec6d9edd49c57ff6357dd8ad1ac592ed693ac835cabb32cd8049b02" prot="public">
+          <name>sl_bt_gatt_write_response</name>
+          <initializer>= 0x13</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x13) Write response </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__gatt_1gga459acca869ec6d9edd49c57ff6357dd8aa762dfb3566f9069bf36d10fced2e2c1" prot="public">
+          <name>sl_bt_gatt_write_command</name>
+          <initializer>= 0x52</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x52) Write command </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__gatt_1gga459acca869ec6d9edd49c57ff6357dd8aa83dd06123197fb0e93ab07036ba9f0a" prot="public">
+          <name>sl_bt_gatt_prepare_write_request</name>
+          <initializer>= 0x16</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x16) Prepare write request </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__gatt_1gga459acca869ec6d9edd49c57ff6357dd8aea7552adb389b97492d9b8fc65b91433" prot="public">
+          <name>sl_bt_gatt_prepare_write_response</name>
+          <initializer>= 0x17</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x17) Prepare write response </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__gatt_1gga459acca869ec6d9edd49c57ff6357dd8adcc73fa81bc13dea5ac84383333ac136" prot="public">
+          <name>sl_bt_gatt_execute_write_request</name>
+          <initializer>= 0x18</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x18) Execute write request </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__gatt_1gga459acca869ec6d9edd49c57ff6357dd8a3069586bdf8f1b14728719d4f132290a" prot="public">
+          <name>sl_bt_gatt_execute_write_response</name>
+          <initializer>= 0x19</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x19) Execute write response </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__gatt_1gga459acca869ec6d9edd49c57ff6357dd8a7f887db09ea25336e773976671711099" prot="public">
+          <name>sl_bt_gatt_handle_value_notification</name>
+          <initializer>= 0x1b</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x1b) Notification </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__gatt_1gga459acca869ec6d9edd49c57ff6357dd8aea444b30c7d2924fc5098f7b870afa22" prot="public">
+          <name>sl_bt_gatt_handle_value_indication</name>
+          <initializer>= 0x1d</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x1d) Indication </para>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>These values indicate which attribute request or response has caused the event. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="8105" column="1" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="8106" bodyend="8126"/>
+      </memberdef>
+      <memberdef kind="enum" id="group__sl__bt__gatt_1gac09c2c4769fe66af0f7e590aff8de05b" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_bt_gatt_client_config_flag_t</name>
+        <enumvalue id="group__sl__bt__gatt_1ggac09c2c4769fe66af0f7e590aff8de05ba3e2698be4369fa757bb4912dd96f03f6" prot="public">
+          <name>sl_bt_gatt_disable</name>
+          <initializer>= 0x0</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x0) Disable notifications and indications </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__gatt_1ggac09c2c4769fe66af0f7e590aff8de05ba6087351d24a57eea15e21aaf57a71439" prot="public">
+          <name>sl_bt_gatt_notification</name>
+          <initializer>= 0x1</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x1) Notification </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__gatt_1ggac09c2c4769fe66af0f7e590aff8de05baab5eef2e4759ecd70a59f598f5f4aa8a" prot="public">
+          <name>sl_bt_gatt_indication</name>
+          <initializer>= 0x2</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x2) Indication </para>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>These values define whether the client is to receive notifications or indications from a remote GATT server. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="8132" column="1" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="8133" bodyend="8138"/>
+      </memberdef>
+      <memberdef kind="enum" id="group__sl__bt__gatt_1ga37ce8cc880b027b2817f78803eb7284d" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_bt_gatt_execute_write_flag_t</name>
+        <enumvalue id="group__sl__bt__gatt_1gga37ce8cc880b027b2817f78803eb7284da8e7499629d3feaed2a79c36307d2837b" prot="public">
+          <name>sl_bt_gatt_cancel</name>
+          <initializer>= 0x0</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x0) Cancel all queued writes </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__gatt_1gga37ce8cc880b027b2817f78803eb7284da9b25f1afdebac3956cc8e8f09f163c52" prot="public">
+          <name>sl_bt_gatt_commit</name>
+          <initializer>= 0x1</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x1) Commit all queued writes </para>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>These values define whether the GATT server is to cancel all queued writes or commit all queued writes to a remote database. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="8144" column="1" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="8145" bodyend="8148"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="group__sl__bt__gatt_1ga8acd415ed593fb75fcf408246293852f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_gatt_set_max_mtu</definition>
+        <argsstring>(uint16_t max_mtu, uint16_t *max_mtu_out)</argsstring>
+        <name>sl_bt_gatt_set_max_mtu</name>
+        <param>
+          <type>uint16_t</type>
+          <declname>max_mtu</declname>
+        </param>
+        <param>
+          <type>uint16_t *</type>
+          <declname>max_mtu_out</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Set the maximum size of ATT Message Transfer Units (MTU) in the host stack. The functionality is the same as <ref refid="group__sl__bt__gatt__server_1ga6b827756a80be7916589be437fc6fd2e" kindref="member">sl_bt_gatt_server_set_max_mtu</ref> and the setting applies to both GATT client and server.</para>
+<para>The value will be used as the maximum receive MTU size of the GATT client in ATT_EXCHANGE_MTU_REQ and maximum receive MTU size of the GATT server in ATT_EXCHANGE_MTU_RSP. The ATT_MTU on a connection is 23 when the connection is opened. The GATT client will automatically send an ATT_EXCHANGE_MTU_REQ after a connection is opened if the setting value is larger than 23.</para>
+<para>If the given value is too large according to the maximum BGAPI payload size, the host stack will select the maximum possible value.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">max_mtu</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>Maximum size of MTU in the host stack for GATT client and server<itemizedlist>
+<listitem><para><bold>Range:</bold> 23 to SL_BGAPI_MAX_PAYLOAD_SIZE - 7</para>
+</listitem><listitem><para><bold>Default</bold> : 247 </para>
+</listitem></itemizedlist>
+</para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">max_mtu_out</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The maximum size of MTU selected by the host stack</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="8387" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="8387" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__gatt_1gae95e41c59f0cf582b4146a9799c462ec" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_gatt_discover_primary_services</definition>
+        <argsstring>(uint8_t connection)</argsstring>
+        <name>sl_bt_gatt_discover_primary_services</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>connection</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Discover all primary services of a remote GATT database. This command generates a unique gatt_service event for every discovered primary service. Received <ref refid="group__sl__bt__evt__gatt__procedure__completed" kindref="compound">sl_bt_evt_gatt_procedure_completed</ref> event indicates that this GATT procedure has successfully completed or failed with an error.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">connection</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Connection handle</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise.</para>
+</simplesect>
+<bold>Events</bold> <itemizedlist>
+<listitem><para><ref refid="group__sl__bt__evt__gatt__service" kindref="compound">sl_bt_evt_gatt_service</ref> - Discovered service from remote GATT database</para>
+</listitem><listitem><para><ref refid="group__sl__bt__evt__gatt__procedure__completed" kindref="compound">sl_bt_evt_gatt_procedure_completed</ref> - Procedure was successfully completed or failed with an error. </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="8407" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="8407" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__gatt_1ga3d1fb78a2633169c54a9e26482cf7d70" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_gatt_discover_primary_services_by_uuid</definition>
+        <argsstring>(uint8_t connection, size_t uuid_len, const uint8_t *uuid)</argsstring>
+        <name>sl_bt_gatt_discover_primary_services_by_uuid</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>connection</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>uuid_len</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>uuid</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Discover primary services with the specified UUID in a remote GATT database. This command generates unique gatt_service event for every discovered primary service. Received <ref refid="group__sl__bt__evt__gatt__procedure__completed" kindref="compound">sl_bt_evt_gatt_procedure_completed</ref> event indicates that this GATT procedure was successfully completed or failed with an error.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">connection</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Connection handle </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">uuid_len</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Length of data in <computeroutput>uuid</computeroutput> </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">uuid</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Service UUID in little endian format</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise.</para>
+</simplesect>
+<bold>Events</bold> <itemizedlist>
+<listitem><para><ref refid="group__sl__bt__evt__gatt__service" kindref="compound">sl_bt_evt_gatt_service</ref> - Discovered service from remote GATT database.</para>
+</listitem><listitem><para><ref refid="group__sl__bt__evt__gatt__procedure__completed" kindref="compound">sl_bt_evt_gatt_procedure_completed</ref> - Procedure was successfully completed or failed with an error. </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="8429" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="8429" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__gatt_1gaeda4d6603d8ca67959461ff68df5eb08" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_gatt_find_included_services</definition>
+        <argsstring>(uint8_t connection, uint32_t service)</argsstring>
+        <name>sl_bt_gatt_find_included_services</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>connection</declname>
+        </param>
+        <param>
+          <type>uint32_t</type>
+          <declname>service</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Find the services that are included by a service in a remote GATT database. This command generates a unique gatt_service event for each included service. The received <ref refid="group__sl__bt__evt__gatt__procedure__completed" kindref="compound">sl_bt_evt_gatt_procedure_completed</ref> event indicates that this GATT procedure was successfully completed or failed with an error.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">connection</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Connection handle </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">service</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>GATT service handle. This value is normally received from the gatt_service event.</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise.</para>
+</simplesect>
+<bold>Events</bold> <itemizedlist>
+<listitem><para><ref refid="group__sl__bt__evt__gatt__service" kindref="compound">sl_bt_evt_gatt_service</ref> - Discovered service from remote GATT database.</para>
+</listitem><listitem><para><ref refid="group__sl__bt__evt__gatt__procedure__completed" kindref="compound">sl_bt_evt_gatt_procedure_completed</ref> - Procedure was successfully completed or failed with an error. </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="8453" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="8453" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__gatt_1ga46982679201ab309b2081775f1804ec5" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_gatt_discover_characteristics</definition>
+        <argsstring>(uint8_t connection, uint32_t service)</argsstring>
+        <name>sl_bt_gatt_discover_characteristics</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>connection</declname>
+        </param>
+        <param>
+          <type>uint32_t</type>
+          <declname>service</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Discover all characteristics of a GATT service from a remote GATT database. This command generates a unique gatt_characteristic event for every discovered characteristic. Received <ref refid="group__sl__bt__evt__gatt__procedure__completed" kindref="compound">sl_bt_evt_gatt_procedure_completed</ref> event indicates that this GATT procedure was successfully completed or failed with an error.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">connection</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Connection handle </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">service</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>GATT service handle. This value is normally received from the gatt_service event.</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise.</para>
+</simplesect>
+<bold>Events</bold> <itemizedlist>
+<listitem><para><ref refid="group__sl__bt__evt__gatt__characteristic" kindref="compound">sl_bt_evt_gatt_characteristic</ref> - Discovered characteristic from remote GATT database.</para>
+</listitem><listitem><para><ref refid="group__sl__bt__evt__gatt__procedure__completed" kindref="compound">sl_bt_evt_gatt_procedure_completed</ref> - Procedure was successfully completed or failed with an error. </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="8477" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="8477" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__gatt_1gae648cf008d821f5d469eb9e40176183c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_gatt_discover_characteristics_by_uuid</definition>
+        <argsstring>(uint8_t connection, uint32_t service, size_t uuid_len, const uint8_t *uuid)</argsstring>
+        <name>sl_bt_gatt_discover_characteristics_by_uuid</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>connection</declname>
+        </param>
+        <param>
+          <type>uint32_t</type>
+          <declname>service</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>uuid_len</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>uuid</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Discover all characteristics of a GATT service in a remote GATT database having the specified UUID. This command generates a unique gatt_characteristic event for every discovered characteristic having the specified UUID. Received <ref refid="group__sl__bt__evt__gatt__procedure__completed" kindref="compound">sl_bt_evt_gatt_procedure_completed</ref> event indicates that this GATT procedure was successfully completed or failed with an error.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">connection</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Connection handle </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">service</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>GATT service handle. This value is normally received from the gatt_service event. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">uuid_len</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Length of data in <computeroutput>uuid</computeroutput> </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">uuid</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Characteristic UUID in little endian format</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise.</para>
+</simplesect>
+<bold>Events</bold> <itemizedlist>
+<listitem><para><ref refid="group__sl__bt__evt__gatt__characteristic" kindref="compound">sl_bt_evt_gatt_characteristic</ref> - Discovered characteristic from remote GATT database.</para>
+</listitem><listitem><para><ref refid="group__sl__bt__evt__gatt__procedure__completed" kindref="compound">sl_bt_evt_gatt_procedure_completed</ref> - Procedure was successfully completed or failed with an error. </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="8504" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="8504" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__gatt_1ga4e78f1820bf6585294186e655b3bfcf3" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_gatt_discover_descriptors</definition>
+        <argsstring>(uint8_t connection, uint16_t characteristic)</argsstring>
+        <name>sl_bt_gatt_discover_descriptors</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>connection</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>characteristic</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Discover all descriptors in a remote GATT database starting from handle. It generates a unique gatt_descriptor event for every discovered descriptor. Received <ref refid="group__sl__bt__evt__gatt__procedure__completed" kindref="compound">sl_bt_evt_gatt_procedure_completed</ref> event indicates that this GATT procedure has successfully completed or failed with an error.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">connection</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Connection handle </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">characteristic</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>GATT characteristic handle. This value is normally received from the gatt_characteristic event.</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise.</para>
+</simplesect>
+<bold>Events</bold> <itemizedlist>
+<listitem><para><ref refid="group__sl__bt__evt__gatt__descriptor" kindref="compound">sl_bt_evt_gatt_descriptor</ref> - Discovered descriptor from remote GATT database.</para>
+</listitem><listitem><para><ref refid="group__sl__bt__evt__gatt__procedure__completed" kindref="compound">sl_bt_evt_gatt_procedure_completed</ref> - Procedure was successfully completed or failed with an error. </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="8529" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="8529" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__gatt_1gaa87871700fd30e648940b7f82548ca6c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_gatt_discover_characteristic_descriptors</definition>
+        <argsstring>(uint8_t connection, uint16_t start, uint16_t end)</argsstring>
+        <name>sl_bt_gatt_discover_characteristic_descriptors</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>connection</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>start</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>end</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Discover all descriptors of a GATT characteristic in a remote GATT database. It generates a unique gatt_descriptor event for every discovered descriptor. Received <ref refid="group__sl__bt__evt__gatt__procedure__completed" kindref="compound">sl_bt_evt_gatt_procedure_completed</ref> event indicates that this GATT procedure has successfully completed or failed with an error.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">connection</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Connection handle </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">start</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>GATT characteristic handle. This value is normally received from the gatt_characteristic event. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">end</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>GATT characteristic handle. This value is normally received from the gatt_characteristic event.</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise.</para>
+</simplesect>
+<bold>Events</bold> <itemizedlist>
+<listitem><para><ref refid="group__sl__bt__evt__gatt__descriptor" kindref="compound">sl_bt_evt_gatt_descriptor</ref> - Discovered descriptor from remote GATT database.</para>
+</listitem><listitem><para><ref refid="group__sl__bt__evt__gatt__procedure__completed" kindref="compound">sl_bt_evt_gatt_procedure_completed</ref> - Procedure was successfully completed or failed with an error. </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="8554" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="8554" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__gatt_1ga7d92298836408fba164c46cdb0e32b3d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_gatt_set_characteristic_notification</definition>
+        <argsstring>(uint8_t connection, uint16_t characteristic, uint8_t flags)</argsstring>
+        <name>sl_bt_gatt_set_characteristic_notification</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>connection</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>characteristic</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>flags</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Enable or disable the notifications and indications sent from a remote GATT server. This procedure discovers a characteristic client configuration descriptor and writes the related configuration flags to a remote GATT database. A received <ref refid="group__sl__bt__evt__gatt__procedure__completed" kindref="compound">sl_bt_evt_gatt_procedure_completed</ref> event indicates that this GATT procedure was successfully completed or that it failed with an error.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">connection</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Connection handle </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">characteristic</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>GATT characteristic handle. This value is normally received from the gatt_characteristic event. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">flags</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Enum <ref refid="group__sl__bt__gatt_1gac09c2c4769fe66af0f7e590aff8de05b" kindref="member">sl_bt_gatt_client_config_flag_t</ref>. Characteristic client configuration flags. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_gatt_disable (0x0):</bold> Disable notifications and indications</para>
+</listitem><listitem><para><bold>sl_bt_gatt_notification (0x1):</bold> Notification</para>
+</listitem><listitem><para><bold>sl_bt_gatt_indication (0x2):</bold> Indication</para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise.</para>
+</simplesect>
+<bold>Events</bold> <itemizedlist>
+<listitem><para><ref refid="group__sl__bt__evt__gatt__procedure__completed" kindref="compound">sl_bt_evt_gatt_procedure_completed</ref> - Procedure was successfully completed or failed with an error.</para>
+</listitem><listitem><para><ref refid="group__sl__bt__evt__gatt__characteristic__value" kindref="compound">sl_bt_evt_gatt_characteristic_value</ref> - If an indication or notification has been enabled for a characteristic, this event is triggered whenever an indication or notification is sent by the remote GATT server. The triggering conditions of the GATT server are defined by an upper level, for example by a profile. <bold>As a result, it is possible that no values are ever received, or that it may take time, depending on how the server is configured.</bold> </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="8590" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="8590" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__gatt_1ga691b8ffe8734ea853fe9315d0767db75" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_gatt_send_characteristic_confirmation</definition>
+        <argsstring>(uint8_t connection)</argsstring>
+        <name>sl_bt_gatt_send_characteristic_confirmation</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>connection</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Send a confirmation to a remote GATT server after receiving a characteristic indication. The <ref refid="group__sl__bt__evt__gatt__characteristic__value" kindref="compound">sl_bt_evt_gatt_characteristic_value</ref> event carries the <computeroutput>att_opcode</computeroutput> containing <ref refid="group__sl__bt__gatt_1gga459acca869ec6d9edd49c57ff6357dd8aea444b30c7d2924fc5098f7b870afa22" kindref="member">sl_bt_gatt_handle_value_indication</ref> (0x1d), which reveals that an indication has been received and must be confirmed with this command. The confirmation needs to be sent within 30 seconds, otherwise further GATT transactions are not allowed by the remote side.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">connection</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Connection handle</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="8608" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="8608" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__gatt_1ga875a2cfdfb8e5c6cad354b4c88846856" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_gatt_read_characteristic_value</definition>
+        <argsstring>(uint8_t connection, uint16_t characteristic)</argsstring>
+        <name>sl_bt_gatt_read_characteristic_value</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>connection</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>characteristic</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Read the value of a characteristic from a remote GATT database. A single <ref refid="group__sl__bt__evt__gatt__characteristic__value" kindref="compound">sl_bt_evt_gatt_characteristic_value</ref> is generated if the characteristic value fits in one ATT PDU. Otherwise, more than one <ref refid="group__sl__bt__evt__gatt__characteristic__value" kindref="compound">sl_bt_evt_gatt_characteristic_value</ref> event is generated because the firmware will automatically use the Read Long Characteristic Values procedure. A received <ref refid="group__sl__bt__evt__gatt__procedure__completed" kindref="compound">sl_bt_evt_gatt_procedure_completed</ref> event indicates that all data was read successfully or that an error response was received.</para>
+<para>Note that the GATT client does not verify if the requested attribute is a characteristic value. Therefore, before calling this command, ensure that the attribute handle is for a characteristic value, for example, by performing characteristic discovery.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">connection</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Connection handle </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">characteristic</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>GATT characteristic handle. This value is normally received from the gatt_characteristic event.</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise.</para>
+</simplesect>
+<bold>Events</bold> <itemizedlist>
+<listitem><para><ref refid="group__sl__bt__evt__gatt__characteristic__value" kindref="compound">sl_bt_evt_gatt_characteristic_value</ref> - Contains the data of a characteristic sent by the GATT Server.</para>
+</listitem><listitem><para><ref refid="group__sl__bt__evt__gatt__procedure__completed" kindref="compound">sl_bt_evt_gatt_procedure_completed</ref> - Procedure was successfully completed or failed with an error. </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="8638" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="8638" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__gatt_1gaf8ccce3c700fbfa4268ebb77dc300b78" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_gatt_read_characteristic_value_from_offset</definition>
+        <argsstring>(uint8_t connection, uint16_t characteristic, uint16_t offset, uint16_t maxlen)</argsstring>
+        <name>sl_bt_gatt_read_characteristic_value_from_offset</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>connection</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>characteristic</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>offset</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>maxlen</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Read a partial characteristic value with a specified offset and maximum length from a remote GATT database. It is equivalent to <ref refid="group__sl__bt__gatt_1ga875a2cfdfb8e5c6cad354b4c88846856" kindref="member">sl_bt_gatt_read_characteristic_value</ref> if both the offset and maximum length parameters are 0. A single <ref refid="group__sl__bt__evt__gatt__characteristic__value" kindref="compound">sl_bt_evt_gatt_characteristic_value</ref> event is generated if the value to read fits in one ATT PDU. Otherwise, more than one <ref refid="group__sl__bt__evt__gatt__characteristic__value" kindref="compound">sl_bt_evt_gatt_characteristic_value</ref> events are generated because the firmware will automatically use the Read Long Characteristic Values procedure. A received <ref refid="group__sl__bt__evt__gatt__procedure__completed" kindref="compound">sl_bt_evt_gatt_procedure_completed</ref> event indicates that all data was read successfully or that an error response was received.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">connection</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Connection handle </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">characteristic</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>GATT characteristic handle. This value is normally received from the gatt_characteristic event. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">offset</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Offset of the characteristic value </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">maxlen</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Maximum bytes to read. If this parameter is 0, all characteristic values starting at a given offset will be read.</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise.</para>
+</simplesect>
+<bold>Events</bold> <itemizedlist>
+<listitem><para><ref refid="group__sl__bt__evt__gatt__characteristic__value" kindref="compound">sl_bt_evt_gatt_characteristic_value</ref> - Contains data of a characteristic sent by the GATT Server.</para>
+</listitem><listitem><para><ref refid="group__sl__bt__evt__gatt__procedure__completed" kindref="compound">sl_bt_evt_gatt_procedure_completed</ref> - Procedure was successfully completed or failed with an error. </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="8669" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="8669" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__gatt_1ga1280056328305064307fee152f656623" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_gatt_read_multiple_characteristic_values</definition>
+        <argsstring>(uint8_t connection, size_t characteristic_list_len, const uint8_t *characteristic_list)</argsstring>
+        <name>sl_bt_gatt_read_multiple_characteristic_values</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>connection</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>characteristic_list_len</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>characteristic_list</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Read values of multiple characteristics from a remote GATT database at once. The GATT server returns values in one ATT PDU as the response. If the total set of values is greater than (ATT_MTU - 1) bytes in length, only the first (ATT_MTU - 1) bytes are included. A single <ref refid="group__sl__bt__evt__gatt__characteristic__value" kindref="compound">sl_bt_evt_gatt_characteristic_value</ref> event is generated, in which the characteristic is set to 0 and data in the value parameter is a concatenation of characteristic values in the order they were requested. The received <ref refid="group__sl__bt__evt__gatt__procedure__completed" kindref="compound">sl_bt_evt_gatt_procedure_completed</ref> event indicates either that this GATT procedure was successfully completed or failed with an error.</para>
+<para>Use this command only for characteristics values that have a known fixed size, except the last one that could have variable length.</para>
+<para>When the remote GATT server is from Silicon Labs Bluetooth stack, the server returns ATT Invalid PDU (0x04) if this command only reads one characteristic value. The server returns ATT Application Error 0x80 if this command reads the value of a user-type characteristic.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">connection</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Connection handle </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">characteristic_list_len</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Length of data in <computeroutput>characteristic_list</computeroutput> </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">characteristic_list</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>List of uint16 characteristic handles each in little endian format.</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise.</para>
+</simplesect>
+<bold>Events</bold> <itemizedlist>
+<listitem><para><ref refid="group__sl__bt__evt__gatt__characteristic__value" kindref="compound">sl_bt_evt_gatt_characteristic_value</ref> - A concatenation of characteristic values in the order they were requested</para>
+</listitem><listitem><para><ref refid="group__sl__bt__evt__gatt__procedure__completed" kindref="compound">sl_bt_evt_gatt_procedure_completed</ref> - Procedure was either successfully completed or failed with an error. </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="8708" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="8708" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__gatt_1ga5bbdba2c22ea0808e4de16e781894a9d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_gatt_read_variable_length_characteristic_values</definition>
+        <argsstring>(uint8_t connection, size_t characteristic_list_len, const uint8_t *characteristic_list)</argsstring>
+        <name>sl_bt_gatt_read_variable_length_characteristic_values</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>connection</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>characteristic_list_len</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>characteristic_list</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Read multiple variable-length characteristic values from a remote GATT database at once. The remote GATT server returns values in the order they were requested in one ATT PDU as the response. When the GATT client receives the response, it generates an <ref refid="group__sl__bt__evt__gatt__characteristic__value" kindref="compound">sl_bt_evt_gatt_characteristic_value</ref> event for each length-value tuple in the response that contains a characteristic value in full length. If data in the last tuple is truncated, it will be discarded by the host stack. A <ref refid="group__sl__bt__evt__gatt__procedure__completed" kindref="compound">sl_bt_evt_gatt_procedure_completed</ref> event indicates either that this GATT procedure was successfully completed or failed with an error.</para>
+<para>When the remote GATT server is from Silicon Labs Bluetooth stack, the server returns ATT Invalid PDU (0x04) if this command only reads one characteristic value.</para>
+<para>This command has following limitations in current SDK,<itemizedlist>
+<listitem><para>It cannot read all the requested characteristic values if the total length of length-value tuples is greater than the response PDU can take. The GATT client will discard a value in the response if the value is truncated.</para>
+</listitem><listitem><para>The characteristic handle is not correctly reported in an <ref refid="group__sl__bt__evt__gatt__characteristic__value" kindref="compound">sl_bt_evt_gatt_characteristic_value</ref> event generated from this procedure.</para>
+</listitem><listitem><para>When the remote GATT server is from Silicon Labs Bluetooth stack, the server returns ATT Application Error 0x80 if this command tries to read the value of a user-type characteristic.</para>
+</listitem></itemizedlist>
+</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">connection</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Connection handle </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">characteristic_list_len</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Length of data in <computeroutput>characteristic_list</computeroutput> </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">characteristic_list</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>List of uint16 characteristic handles each in little endian format.</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise.</para>
+</simplesect>
+<bold>Events</bold> <itemizedlist>
+<listitem><para><ref refid="group__sl__bt__evt__gatt__characteristic__value" kindref="compound">sl_bt_evt_gatt_characteristic_value</ref> - Generated for each length-value tuple in the response that contains a characteristic value in full length. The characteristic handle is set to 0 in this event.</para>
+</listitem><listitem><para><ref refid="group__sl__bt__evt__gatt__procedure__completed" kindref="compound">sl_bt_evt_gatt_procedure_completed</ref> - Procedure was either successfully completed or failed with an error. </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="8754" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="8754" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__gatt_1gaa0d581898bf4869cc80eeb040b2a8611" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_gatt_read_characteristic_value_by_uuid</definition>
+        <argsstring>(uint8_t connection, uint32_t service, size_t uuid_len, const uint8_t *uuid)</argsstring>
+        <name>sl_bt_gatt_read_characteristic_value_by_uuid</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>connection</declname>
+        </param>
+        <param>
+          <type>uint32_t</type>
+          <declname>service</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>uuid_len</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>uuid</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Read characteristic values of a service from a remote GATT database by giving the UUID of the characteristic and the handle of the service containing this characteristic. If multiple characteristic values are received in one ATT PDU, one <ref refid="group__sl__bt__evt__gatt__characteristic__value" kindref="compound">sl_bt_evt_gatt_characteristic_value</ref> event is generated for each value. If the first characteristic value does not fit in one ATT PDU, the firmware automatically uses the Read Long Characteristic Values procedure and generate more <ref refid="group__sl__bt__evt__gatt__characteristic__value" kindref="compound">sl_bt_evt_gatt_characteristic_value</ref> events until the value has been completely read. A received <ref refid="group__sl__bt__evt__gatt__procedure__completed" kindref="compound">sl_bt_evt_gatt_procedure_completed</ref> event indicates that all data was read successfully or that an error response was received.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">connection</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Connection handle </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">service</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>GATT service handle. This value is normally received from the gatt_service event. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">uuid_len</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Length of data in <computeroutput>uuid</computeroutput> </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">uuid</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Characteristic UUID in little endian format</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise.</para>
+</simplesect>
+<bold>Events</bold> <itemizedlist>
+<listitem><para><ref refid="group__sl__bt__evt__gatt__characteristic__value" kindref="compound">sl_bt_evt_gatt_characteristic_value</ref> - Contains the data of a characteristic sent by the GATT Server.</para>
+</listitem><listitem><para><ref refid="group__sl__bt__evt__gatt__procedure__completed" kindref="compound">sl_bt_evt_gatt_procedure_completed</ref> - Procedure was successfully completed or failed with an error. </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="8786" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="8786" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__gatt_1gafd574a7a8faebb498751f3f90fb975a5" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_gatt_write_characteristic_value</definition>
+        <argsstring>(uint8_t connection, uint16_t characteristic, size_t value_len, const uint8_t *value)</argsstring>
+        <name>sl_bt_gatt_write_characteristic_value</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>connection</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>characteristic</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>value_len</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Write the value of a characteristic in a remote GATT database. If the value length is greater than (ATT_MTU - 3) and does not fit in one ATT PDU, &quot;write
+long&quot; GATT procedure is used automatically. Received <ref refid="group__sl__bt__evt__gatt__procedure__completed" kindref="compound">sl_bt_evt_gatt_procedure_completed</ref> event indicates that all data was written successfully or that an error response was received.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">connection</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Connection handle </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">characteristic</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>GATT characteristic handle. This value is normally received from the gatt_characteristic event. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">value_len</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Length of data in <computeroutput>value</computeroutput> </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">value</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Characteristic value</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise.</para>
+</simplesect>
+<bold>Events</bold> <itemizedlist>
+<listitem><para><ref refid="group__sl__bt__evt__gatt__procedure__completed" kindref="compound">sl_bt_evt_gatt_procedure_completed</ref> - Procedure was successfully completed or failed with an error. </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="8812" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="8812" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__gatt_1ga2fb8049cafc0efc9f06bf2fae7c3c119" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_gatt_write_characteristic_value_without_response</definition>
+        <argsstring>(uint8_t connection, uint16_t characteristic, size_t value_len, const uint8_t *value, uint16_t *sent_len)</argsstring>
+        <name>sl_bt_gatt_write_characteristic_value_without_response</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>connection</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>characteristic</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>value_len</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>value</declname>
+        </param>
+        <param>
+          <type>uint16_t *</type>
+          <declname>sent_len</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Write the value of a characteristic in a remote GATT server. It does not generate an event. All failures on the server are ignored silently. For example, if an error is generated in the remote GATT server and the given value is not written into the database, no error message will be reported to the local GATT client. Note that this command can&apos;t be used to write long values. At most ATT_MTU - 3 number of bytes can be sent once.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">connection</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Connection handle </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">characteristic</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>GATT characteristic handle. This value is normally received from the gatt_characteristic event. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">value_len</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Length of data in <computeroutput>value</computeroutput> </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">value</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Characteristic value </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">sent_len</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The length of data sent to the remote GATT server</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="8836" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="8836" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__gatt_1ga11822aabde99210270f63636327ed0ee" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_gatt_prepare_characteristic_value_write</definition>
+        <argsstring>(uint8_t connection, uint16_t characteristic, uint16_t offset, size_t value_len, const uint8_t *value, uint16_t *sent_len)</argsstring>
+        <name>sl_bt_gatt_prepare_characteristic_value_write</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>connection</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>characteristic</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>offset</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>value_len</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>value</declname>
+        </param>
+        <param>
+          <type>uint16_t *</type>
+          <declname>sent_len</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Add a characteristic value to the write queue of a remote GATT server. It can be used when long attributes need to be written or a set of values needs to be written atomically. At most ATT_MTU - 5 number of bytes can be sent at one time. Writes are executed or canceled with the <ref refid="group__sl__bt__gatt_1ga55769ce8b00e91a6141dbb2aa09d4e77" kindref="member">sl_bt_gatt_execute_characteristic_value_write</ref> command. Whether the writes succeed or not is indicated in the response of the <ref refid="group__sl__bt__gatt_1ga55769ce8b00e91a6141dbb2aa09d4e77" kindref="member">sl_bt_gatt_execute_characteristic_value_write</ref> command.</para>
+<para>In all use cases where the amount of data to transfer fits into the BGAPI payload, use the command <ref refid="group__sl__bt__gatt_1gafd574a7a8faebb498751f3f90fb975a5" kindref="member">sl_bt_gatt_write_characteristic_value</ref> to write long values because it transparently performs the prepare_write and execute_write commands.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">connection</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Connection handle </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">characteristic</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>GATT characteristic handle. This value is normally received from the gatt_characteristic event. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">offset</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Offset of the characteristic value </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">value_len</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Length of data in <computeroutput>value</computeroutput> </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">value</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Value to write into the specified characteristic of the remote GATT database </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">sent_len</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The length of data sent to the remote GATT server</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise.</para>
+</simplesect>
+<bold>Events</bold> <itemizedlist>
+<listitem><para><ref refid="group__sl__bt__evt__gatt__procedure__completed" kindref="compound">sl_bt_evt_gatt_procedure_completed</ref> - Procedure was successfully completed or failed with an error. </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="8873" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="8873" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__gatt_1ga5d50f883c0424a733d9f5ebe1c0c6bc5" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_gatt_prepare_characteristic_value_reliable_write</definition>
+        <argsstring>(uint8_t connection, uint16_t characteristic, uint16_t offset, size_t value_len, const uint8_t *value, uint16_t *sent_len)</argsstring>
+        <name>sl_bt_gatt_prepare_characteristic_value_reliable_write</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>connection</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>characteristic</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>offset</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>value_len</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>value</declname>
+        </param>
+        <param>
+          <type>uint16_t *</type>
+          <declname>sent_len</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Add a characteristic value to the write queue of a remote GATT server and verify whether the value was correctly received by the server. Received <ref refid="group__sl__bt__evt__gatt__procedure__completed" kindref="compound">sl_bt_evt_gatt_procedure_completed</ref> event indicates that this GATT procedure was successfully completed or failed with an error. Specifically, error code 0x0194 (data_corrupted) will be returned if the value received from the GATT server&apos;s response fails to pass the reliable write verification. At most, ATT_MTU - 5 number of bytes can be sent at one time. Writes are executed or canceled with the <ref refid="group__sl__bt__gatt_1ga55769ce8b00e91a6141dbb2aa09d4e77" kindref="member">sl_bt_gatt_execute_characteristic_value_write</ref> command. Whether the writes succeed or not is indicated in the response of the <ref refid="group__sl__bt__gatt_1ga55769ce8b00e91a6141dbb2aa09d4e77" kindref="member">sl_bt_gatt_execute_characteristic_value_write</ref> command.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">connection</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Connection handle </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">characteristic</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>GATT characteristic handle. This value is normally received from the gatt_characteristic event. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">offset</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Offset of the characteristic value </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">value_len</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Length of data in <computeroutput>value</computeroutput> </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">value</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Value to write into the specified characteristic of the remote GATT database </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">sent_len</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The length of data sent to the remote GATT server</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise.</para>
+</simplesect>
+<bold>Events</bold> <itemizedlist>
+<listitem><para><ref refid="group__sl__bt__evt__gatt__procedure__completed" kindref="compound">sl_bt_evt_gatt_procedure_completed</ref> - Procedure was successfully completed or failed with an error. </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="8909" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="8909" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__gatt_1ga55769ce8b00e91a6141dbb2aa09d4e77" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_gatt_execute_characteristic_value_write</definition>
+        <argsstring>(uint8_t connection, uint8_t flags)</argsstring>
+        <name>sl_bt_gatt_execute_characteristic_value_write</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>connection</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>flags</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Commit or cancel previously queued writes to a long characteristic of a remote GATT server. Writes are sent to the queue with <ref refid="group__sl__bt__gatt_1ga11822aabde99210270f63636327ed0ee" kindref="member">sl_bt_gatt_prepare_characteristic_value_write</ref> command. Content, offset, and length of queued values are validated by this procedure. A received <ref refid="group__sl__bt__evt__gatt__procedure__completed" kindref="compound">sl_bt_evt_gatt_procedure_completed</ref> event indicates that all data was written successfully or that an error response was received.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">connection</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Connection handle </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">flags</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Enum <ref refid="group__sl__bt__gatt_1ga37ce8cc880b027b2817f78803eb7284d" kindref="member">sl_bt_gatt_execute_write_flag_t</ref>. Execute write flag. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_gatt_cancel (0x0):</bold> Cancel all queued writes</para>
+</listitem><listitem><para><bold>sl_bt_gatt_commit (0x1):</bold> Commit all queued writes</para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise.</para>
+</simplesect>
+<bold>Events</bold> <itemizedlist>
+<listitem><para><ref refid="group__sl__bt__evt__gatt__procedure__completed" kindref="compound">sl_bt_evt_gatt_procedure_completed</ref> - Procedure was successfully completed or failed with an error. </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="8938" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="8938" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__gatt_1gac154f2173eec80db460a927230214e83" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_gatt_read_descriptor_value</definition>
+        <argsstring>(uint8_t connection, uint16_t descriptor)</argsstring>
+        <name>sl_bt_gatt_read_descriptor_value</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>connection</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>descriptor</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Read the descriptor value of a characteristic in a remote GATT database. A single <ref refid="group__sl__bt__evt__gatt__descriptor__value" kindref="compound">sl_bt_evt_gatt_descriptor_value</ref> event is generated if the descriptor value fits in one ATT PDU. Otherwise, more than one <ref refid="group__sl__bt__evt__gatt__descriptor__value" kindref="compound">sl_bt_evt_gatt_descriptor_value</ref> events are generated because the firmware automatically uses the Read Long Characteristic Values procedure. A received <ref refid="group__sl__bt__evt__gatt__procedure__completed" kindref="compound">sl_bt_evt_gatt_procedure_completed</ref> event indicates that all data was read successfully or that an error response was received.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">connection</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Connection handle </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">descriptor</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>GATT characteristic descriptor handle</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise.</para>
+</simplesect>
+<bold>Events</bold> <itemizedlist>
+<listitem><para><ref refid="group__sl__bt__evt__gatt__descriptor__value" kindref="compound">sl_bt_evt_gatt_descriptor_value</ref> - Descriptor value received from the remote GATT server.</para>
+</listitem><listitem><para><ref refid="group__sl__bt__evt__gatt__procedure__completed" kindref="compound">sl_bt_evt_gatt_procedure_completed</ref> - Procedure was successfully completed or failed with an error. </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="8963" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="8963" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__gatt_1ga10bcb7ca88fb9244042fd812c454d68b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_gatt_write_descriptor_value</definition>
+        <argsstring>(uint8_t connection, uint16_t descriptor, size_t value_len, const uint8_t *value)</argsstring>
+        <name>sl_bt_gatt_write_descriptor_value</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>connection</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>descriptor</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>value_len</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Write the value of a characteristic descriptor in a remote GATT database. If the value length is greater than ATT_MTU - 3 and does not fit in one ATT PDU, &quot;write long&quot; GATT procedure is used automatically. Received <ref refid="group__sl__bt__evt__gatt__procedure__completed" kindref="compound">sl_bt_evt_gatt_procedure_completed</ref> event indicates either that all data was written successfully or that an error response was received.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">connection</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Connection handle </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">descriptor</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>GATT characteristic descriptor handle </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">value_len</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Length of data in <computeroutput>value</computeroutput> </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">value</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Descriptor value</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise.</para>
+</simplesect>
+<bold>Events</bold> <itemizedlist>
+<listitem><para><ref refid="group__sl__bt__evt__gatt__procedure__completed" kindref="compound">sl_bt_evt_gatt_procedure_completed</ref> - Procedure was successfully completed or failed with an error. </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="8986" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="8986" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__gatt_1ga7f34da593d613de7e32da463b6b4c230" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_gatt_get_mtu</definition>
+        <argsstring>(uint8_t connection, uint16_t *mtu)</argsstring>
+        <name>sl_bt_gatt_get_mtu</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>connection</declname>
+        </param>
+        <param>
+          <type>uint16_t *</type>
+          <declname>mtu</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Get the size of ATT Message Transfer Units (MTU) for a connection.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">connection</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Connection handle </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">mtu</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The maximum ATT_MTU used by the connection</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="9001" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="9001" declcolumn="13"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__gatt_1gabb965ea7fe8b808cdf5e4727586e8c12" prot="public" static="no">
+        <name>sl_bt_cmd_gatt_set_max_mtu_id</name>
+        <initializer>0x00090020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="8054" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="8054" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gatt_1ga5d4900af1eebfa6745cbf3c645c8fdfc" prot="public" static="no">
+        <name>sl_bt_cmd_gatt_discover_primary_services_id</name>
+        <initializer>0x01090020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="8055" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="8055" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gatt_1ga010a9f893c3125a609d85868e5dc747a" prot="public" static="no">
+        <name>sl_bt_cmd_gatt_discover_primary_services_by_uuid_id</name>
+        <initializer>0x02090020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="8056" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="8056" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gatt_1gad4364e6a8987a4da89f223568478574a" prot="public" static="no">
+        <name>sl_bt_cmd_gatt_find_included_services_id</name>
+        <initializer>0x10090020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="8057" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="8057" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gatt_1ga8ba79515469ff335ce3a90a6053d62dc" prot="public" static="no">
+        <name>sl_bt_cmd_gatt_discover_characteristics_id</name>
+        <initializer>0x03090020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="8058" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="8058" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gatt_1ga626311526af70f051867aee916d36426" prot="public" static="no">
+        <name>sl_bt_cmd_gatt_discover_characteristics_by_uuid_id</name>
+        <initializer>0x04090020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="8059" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="8059" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gatt_1ga78911d3aa411eace6808652c25e38b50" prot="public" static="no">
+        <name>sl_bt_cmd_gatt_discover_descriptors_id</name>
+        <initializer>0x06090020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="8060" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="8060" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gatt_1ga2b5f4d7c643804cddce651e05928103e" prot="public" static="no">
+        <name>sl_bt_cmd_gatt_discover_characteristic_descriptors_id</name>
+        <initializer>0x14090020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="8061" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="8061" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gatt_1ga261ebd319850ce91612511f8f4b2a732" prot="public" static="no">
+        <name>sl_bt_cmd_gatt_set_characteristic_notification_id</name>
+        <initializer>0x05090020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="8062" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="8062" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gatt_1ga904d1a294ee948f82660f578d8ddb2bd" prot="public" static="no">
+        <name>sl_bt_cmd_gatt_send_characteristic_confirmation_id</name>
+        <initializer>0x0d090020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="8063" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="8063" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gatt_1ga5e3892d0a5a312891f28b7eea86ffefa" prot="public" static="no">
+        <name>sl_bt_cmd_gatt_read_characteristic_value_id</name>
+        <initializer>0x07090020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="8064" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="8064" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gatt_1ga4f7662229ecb8c3e507453a9c4145188" prot="public" static="no">
+        <name>sl_bt_cmd_gatt_read_characteristic_value_from_offset_id</name>
+        <initializer>0x12090020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="8065" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="8065" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gatt_1ga3c84d4555051aeef66afb75bf66b448b" prot="public" static="no">
+        <name>sl_bt_cmd_gatt_read_multiple_characteristic_values_id</name>
+        <initializer>0x17090020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="8066" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="8066" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gatt_1gaccf9c8636ac61bc605bc1805185aadab" prot="public" static="no">
+        <name>sl_bt_cmd_gatt_read_variable_length_characteristic_values_id</name>
+        <initializer>0x18090020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="8067" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="8067" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gatt_1ga20c7d18a0af59895fdc17184f0324552" prot="public" static="no">
+        <name>sl_bt_cmd_gatt_read_characteristic_value_by_uuid_id</name>
+        <initializer>0x08090020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="8068" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="8068" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gatt_1gacea0d39da9e67422b23a485965f4102d" prot="public" static="no">
+        <name>sl_bt_cmd_gatt_write_characteristic_value_id</name>
+        <initializer>0x19090020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="8069" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="8069" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gatt_1gae4137b13d5b3553561494a681e75f685" prot="public" static="no">
+        <name>sl_bt_cmd_gatt_write_characteristic_value_without_response_id</name>
+        <initializer>0x1a090020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="8070" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="8070" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gatt_1gaa67640ecee117898644df8c7fd66e9fa" prot="public" static="no">
+        <name>sl_bt_cmd_gatt_prepare_characteristic_value_write_id</name>
+        <initializer>0x1b090020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="8071" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="8071" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gatt_1ga4f5993ee5a28b3624f58510fa8c12b3f" prot="public" static="no">
+        <name>sl_bt_cmd_gatt_prepare_characteristic_value_reliable_write_id</name>
+        <initializer>0x1c090020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="8072" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="8072" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gatt_1gab220f8b1bae603bcae35c67e7c06b6d7" prot="public" static="no">
+        <name>sl_bt_cmd_gatt_execute_characteristic_value_write_id</name>
+        <initializer>0x0c090020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="8073" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="8073" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gatt_1ga30543d17e8b5da407bdc93838615583f" prot="public" static="no">
+        <name>sl_bt_cmd_gatt_read_descriptor_value_id</name>
+        <initializer>0x0e090020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="8074" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="8074" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gatt_1gaf93739ff33672a0cf68b9144b6239780" prot="public" static="no">
+        <name>sl_bt_cmd_gatt_write_descriptor_value_id</name>
+        <initializer>0x1d090020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="8075" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="8075" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gatt_1ga100714f664d94e04dd43f8d25a1051f9" prot="public" static="no">
+        <name>sl_bt_cmd_gatt_get_mtu_id</name>
+        <initializer>0x15090020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="8076" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="8076" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gatt_1ga942035aae10d17b3e31ce3b745ed379e" prot="public" static="no">
+        <name>sl_bt_rsp_gatt_set_max_mtu_id</name>
+        <initializer>0x00090020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="8077" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="8077" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gatt_1gaa29fdf0e0aa1d25a92f0be42467d5d7b" prot="public" static="no">
+        <name>sl_bt_rsp_gatt_discover_primary_services_id</name>
+        <initializer>0x01090020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="8078" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="8078" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gatt_1gaf9ca5ef05ae978bfa15cbaf9d6c1c689" prot="public" static="no">
+        <name>sl_bt_rsp_gatt_discover_primary_services_by_uuid_id</name>
+        <initializer>0x02090020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="8079" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="8079" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gatt_1gad6fc712b23d6d05b32d77ab6b5b59d97" prot="public" static="no">
+        <name>sl_bt_rsp_gatt_find_included_services_id</name>
+        <initializer>0x10090020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="8080" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="8080" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gatt_1gab3482825d2f3f3272366622d277cdcb0" prot="public" static="no">
+        <name>sl_bt_rsp_gatt_discover_characteristics_id</name>
+        <initializer>0x03090020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="8081" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="8081" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gatt_1gaacd6e8ab95004385c6740a015eeb1ea4" prot="public" static="no">
+        <name>sl_bt_rsp_gatt_discover_characteristics_by_uuid_id</name>
+        <initializer>0x04090020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="8082" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="8082" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gatt_1gaf0e9853ae1d78e28f4826cb5603ea8f6" prot="public" static="no">
+        <name>sl_bt_rsp_gatt_discover_descriptors_id</name>
+        <initializer>0x06090020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="8083" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="8083" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gatt_1ga44131ce025e9f8f05c0c9db6ffb5d10b" prot="public" static="no">
+        <name>sl_bt_rsp_gatt_discover_characteristic_descriptors_id</name>
+        <initializer>0x14090020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="8084" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="8084" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gatt_1ga870488b6d930eea36eb9ae8158de77f7" prot="public" static="no">
+        <name>sl_bt_rsp_gatt_set_characteristic_notification_id</name>
+        <initializer>0x05090020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="8085" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="8085" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gatt_1gae072f930035b9185afaa8d15b3c832c8" prot="public" static="no">
+        <name>sl_bt_rsp_gatt_send_characteristic_confirmation_id</name>
+        <initializer>0x0d090020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="8086" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="8086" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gatt_1gac50f84b7dfea551a28f1c10916bb6960" prot="public" static="no">
+        <name>sl_bt_rsp_gatt_read_characteristic_value_id</name>
+        <initializer>0x07090020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="8087" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="8087" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gatt_1gabce853c84bd1c6249fd62f98cc5320ec" prot="public" static="no">
+        <name>sl_bt_rsp_gatt_read_characteristic_value_from_offset_id</name>
+        <initializer>0x12090020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="8088" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="8088" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gatt_1ga12b269acf1ba6b6e7a9bf43cf8b1144c" prot="public" static="no">
+        <name>sl_bt_rsp_gatt_read_multiple_characteristic_values_id</name>
+        <initializer>0x17090020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="8089" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="8089" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gatt_1gac49e67fa822f4a0dcf202cf452a88330" prot="public" static="no">
+        <name>sl_bt_rsp_gatt_read_variable_length_characteristic_values_id</name>
+        <initializer>0x18090020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="8090" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="8090" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gatt_1ga461290238aa178a464cb3149c261a7d8" prot="public" static="no">
+        <name>sl_bt_rsp_gatt_read_characteristic_value_by_uuid_id</name>
+        <initializer>0x08090020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="8091" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="8091" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gatt_1ga75b6f5ae610516a1656bf40dd6aff7fe" prot="public" static="no">
+        <name>sl_bt_rsp_gatt_write_characteristic_value_id</name>
+        <initializer>0x19090020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="8092" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="8092" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gatt_1ga3e4c7ae4eb04db4f960d9219ee54dc87" prot="public" static="no">
+        <name>sl_bt_rsp_gatt_write_characteristic_value_without_response_id</name>
+        <initializer>0x1a090020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="8093" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="8093" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gatt_1ga8adcb899b60ea773d6397dd3911be2c7" prot="public" static="no">
+        <name>sl_bt_rsp_gatt_prepare_characteristic_value_write_id</name>
+        <initializer>0x1b090020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="8094" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="8094" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gatt_1ga10b9239ed1e9e378ced78b200eea98c3" prot="public" static="no">
+        <name>sl_bt_rsp_gatt_prepare_characteristic_value_reliable_write_id</name>
+        <initializer>0x1c090020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="8095" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="8095" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gatt_1ga5ebfa5aa4253d752ac5e9432cf619e80" prot="public" static="no">
+        <name>sl_bt_rsp_gatt_execute_characteristic_value_write_id</name>
+        <initializer>0x0c090020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="8096" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="8096" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gatt_1ga79d2c11acab86e0fbe1fb1e193147e83" prot="public" static="no">
+        <name>sl_bt_rsp_gatt_read_descriptor_value_id</name>
+        <initializer>0x0e090020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="8097" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="8097" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gatt_1ga9fffceee5cf933ac493068c16a3a91ca" prot="public" static="no">
+        <name>sl_bt_rsp_gatt_write_descriptor_value_id</name>
+        <initializer>0x1d090020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="8098" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="8098" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gatt_1gadbc27360081eeba6004bdad52194ee2d" prot="public" static="no">
+        <name>sl_bt_rsp_gatt_get_mtu_id</name>
+        <initializer>0x15090020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="8099" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="8099" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>GATT Client. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>The commands and events in this class are used to browse and manage attributes in a remote GATT server. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

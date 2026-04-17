@@ -1,0 +1,320 @@
+upgrade:
+  - sdk:
+      id: simplicity_sdk
+      version: "2025.6.2"
+    component:
+      - trigger: sl_rail_sdk_simple_cpc
+        description: >
+          Simple RAIL CPC for NCP projects component has been modified, removed not needed requires.
+        remove:
+          - sl_rail_sdk_simple_cpc
+        add:
+          - sl_rail_sdk_simple_cpc
+      - trigger: sl_rail_sdk_simple_cpc_spi
+        description: >
+          Simple RAIL CPC for NCP projects (SPI) component has been modified, removed not needed requires.
+        remove:
+          - sl_rail_sdk_simple_cpc_spi
+        add:
+          - sl_rail_sdk_simple_cpc_spi
+  - sdk:
+      id: simplicity_sdk
+      version: "2024.12.0"
+    component:
+      - trigger: simple_rail_assistance
+        description: >
+          Simple RAIL Assistance component has been modified and moved.
+        remove:
+          - simple_rail_assistance
+        add:
+          - sl_rail_sdk_simple_assistance
+      - trigger: sl_duty_cycle_core
+        description: >
+          Flex - Duty Cycle Core component has been modified and moved.
+        remove:
+          - sl_duty_cycle_core
+        add:
+          - sl_rail_sdk_duty_cycle_core
+      - trigger: sl_flex_mode_switch
+        description: >
+          RAIL Wi-SUN Mode Switch component has been modified and moved.
+        remove:
+          - sl_flex_mode_switch
+        add:
+          - sl_rail_sdk_mode_switch
+      - trigger: sl_flex_rail_802154_support
+        description: >
+          Flex - RAIL IEEE 802.15.4 support component has been modified and moved.
+        remove:
+          - sl_flex_rail_802154_support
+        add:
+          - sl_rail_sdk_802154_support
+      - trigger: sl_flex_rail_ble_support
+        description: >
+          Flex - RAIL BLE support component has been modified and moved.
+        remove:
+          - sl_flex_rail_ble_support
+        add:
+          - sl_rail_sdk_ble_support
+      - trigger: sl_flex_rail_channel_selector
+        description: >
+          Flex - RAIL Channel Selector component has been modified and moved.
+        remove:
+          - sl_flex_rail_channel_selector
+        add:
+          - sl_rail_sdk_channel_selector
+      - trigger: sl_flex_rail_config
+        description: >
+          Simple RAIL configuration values component has been modified and moved.
+        remove:
+          - sl_flex_rail_config
+        add:
+          - sl_rail_sdk_fifo_size
+      - trigger: sl_flex_rail_package_assistant
+        description: >
+          Flex - RAIL Packaging Assistant component has been modified and moved.
+        remove:
+          - sl_flex_rail_package_assistant
+        add:
+          - sl_rail_sdk_packet_assistant
+      - trigger: sl_flex_rail_packet_asm
+        description: >
+          Flex - RAIL Standard packet assembler component has been modified and moved.
+        remove:
+          - sl_flex_rail_packet_asm
+        add:
+          - sl_rail_sdk_packet_asm
+      - trigger: sl_flex_rail_sleep
+        description: >
+          Flex - RAIL Power Manager Sleep component has been modified and moved.
+        remove:
+          - sl_flex_rail_sleep
+        add:
+          - sl_rail_sdk_sleep
+      - trigger: sl_flex_util_802154_init
+        description: >
+          Flex - RAIL IEEE 802.15.4 Initialization component has been modified and moved.
+        remove:
+          - sl_flex_util_802154_init
+        add:
+          - sl_rail_sdk_802154_support
+      - trigger: sl_flex_util_802154_protocol
+        description: >
+          Flex - RAIL IEEE 802.15.4 Protocol component has been modified and moved.
+        remove:
+          - sl_flex_util_802154_protocol
+        add:
+          - sl_rail_sdk_802154_support
+      - trigger: sl_flex_util_ble_init
+        description: >
+          Flex - RAIL BLE Initialization component has been modified and moved.
+        remove:
+          - sl_flex_util_ble_init
+        add:
+          - sl_rail_sdk_ble_support
+      - trigger: sl_flex_util_ble_protocol
+        description: >
+          Flex - RAIL BLE Protocol component has been modified and moved.
+        remove:
+          - sl_flex_util_ble_protocol
+        add:
+          - sl_rail_sdk_ble_support
+      - trigger: sl_light_switch_support
+        description: >
+          Flex - Light, Switch Support component has been modified and moved.
+        remove:
+          - sl_light_switch_support
+        add:
+          - sl_rail_sdk_light_switch_support
+      - trigger: sl_rail_simple_cpc
+        description: >
+          Simple RAIL CPC for NCP projects component has been modified and moved.
+        remove:
+          - sl_rail_simple_cpc
+        add:
+          - sl_rail_sdk_simple_cpc
+      - trigger: sl_rail_simple_cpc_spi
+        description: >
+          Simple RAIL CPC for NCP projects (SPI) component has been modified and moved.
+        remove:
+          - sl_rail_simple_cpc_spi
+        add:
+          - sl_rail_sdk_simple_cpc_spi
+      - trigger: sl_range_test_cli
+        description: >
+          Flex - Range Test CLI component has been modified and moved.
+        remove:
+          - sl_range_test_cli
+        add:
+          - sl_rail_sdk_range_test_cli
+      - trigger: sl_range_test_core
+        description: >
+          Flex - Range Test Core component has been modified and moved.
+        remove:
+          - sl_range_test_core
+        add:
+          - sl_rail_sdk_range_test_core
+      - trigger: sl_range_test_dmp_component
+        description: >
+          Flex - DMP Bluetooth for Range Test component has been modified and moved.
+        remove:
+          - sl_range_test_dmp_component
+        add:
+          - sl_rail_sdk_range_test_dmp_component
+      - trigger: sl_range_test_std_component
+        description: >
+          Flex - Standard phys for Range Test component has been modified and moved.
+        remove:
+          - sl_range_test_std_component
+        add:
+          - sl_rail_sdk_range_test_std_component
+      - trigger: sl_simple_rail_os
+        description: >
+          Flex - Simple OS Init files for RAIL Sample Apps component has been modified and moved.
+        remove:
+          - sl_simple_rail_os
+        add:
+          - sl_rail_sdk_simple_os
+      - trigger: sl_wmbus_packet_assembler
+        description: >
+          Wireless M-bus sensor packet assembler component has been modified and moved.
+        remove:
+          - sl_wmbus_packet_assembler
+        add:
+          - sl_rail_sdk_wmbus_packet_assembler
+      - trigger: sl_wmbus_sensor_cli
+        description: >
+          Wireless M-bus sensor CLI component has been modified and moved.
+        remove:
+          - sl_wmbus_sensor_cli
+        add:
+          - sl_rail_sdk_wmbus_sensor_cli
+      - trigger: sl_wmbus_sensor_core
+        description: >
+          Wireless M-bus sensor core component has been modified and moved.
+        remove:
+          - sl_wmbus_sensor_core
+        add:
+          - sl_rail_sdk_wmbus_sensor_core
+      - trigger: sl_wmbus_sensor_pulse_counter
+        description: >
+          Wireless M-bus button pulse counter component has been modified and moved.
+        remove:
+          - sl_wmbus_sensor_pulse_counter
+        add:
+          - sl_rail_sdk_wmbus_sensor_pulse_counter
+      - trigger: sl_wmbus_sensor_thermo_meter
+        description: >
+          Wireless M-bus thermo meter sensor component has been modified and moved.
+        remove:
+          - sl_wmbus_sensor_thermo_meter
+        add:
+          - sl_rail_sdk_wmbus_sensor_thermometer
+      - trigger: sl_wmbus_sensor_virtual_water_meter
+        description: >
+          Wireless M-bus virtual water meter sensor component has been modified and moved.
+        remove:
+          - sl_wmbus_sensor_virtual_water_meter
+        add:
+          - sl_rail_sdk_wmbus_sensor_virtual_water_meter
+      - trigger: sl_wmbus_support
+        description: >
+          Wireless M-bus support component has been modified and moved.
+        remove:
+          - sl_wmbus_support
+        add:
+          - sl_rail_sdk_wmbus_support
+      - trigger: sl_flex_images_for_lcd
+        description: >
+          Flex - LCD Images component has been modified and moved.
+        remove:
+          - sl_flex_images_for_lcd
+        add:
+          - sl_rail_sdk_images_for_lcd
+      - trigger: simple_rail_heartbeat
+        description: >
+          Simple RAIL Heartbeat component has been removed.
+        remove:
+          - simple_rail_heartbeat
+      - trigger: simple_rail_rx
+        description: >
+          Simple RAIL Rx component has been removed.
+        remove:
+          - simple_rail_rx
+      - trigger: simple_rail_rx_cli
+        description: >
+          Simple RAIL Rx CLI component has been removed.
+        remove:
+          - simple_rail_rx_cli
+      - trigger: simple_rail_tx
+        description: >
+          Simple RAIL Tx component has been removed.
+        remove:
+          - simple_rail_tx
+      - trigger: simple_rail_tx_cli
+        description: >
+          Simple RAIL Tx CLI component has been removed.
+        remove:
+          - simple_rail_tx_cli
+      - trigger: sl_simple_rail_stub
+        description: >
+          Simple RAIL Stub component has been removed.
+        remove:
+          - sl_simple_rail_stub
+    configuration:
+      - name: SL_FLEX_RAIL_RX_FIFO_SIZE
+        replacement: SL_RAIL_SDK_RX_FIFO_SIZE
+        description: >
+          Capacity of the RAIL RX FIFO configuration has been renamed.
+      - name: SL_FLEX_RAIL_TX_FIFO_SIZE
+        replacement: SL_RAIL_SDK_TX_FIFO_SIZE
+        description: >
+          Capacity of the RAIL TX FIFO configuration has been renamed.
+      - name: SL_FLEX_RAIL_FRAME_MAX_SIZE
+        replacement: SL_RAIL_SDK_FRAME_MAX_SIZE
+        description: >
+          Maximum size of size of the frame packet configuration has been renamed.
+      - name: PRINT_PACKAGE_INFO
+        replacement: PRINT_PACKET_INFO
+        description: >
+          Enable assistant log prints configuration has been renamed.
+      - name: SL_FLEX_UTIL_INIT_PROTOCOL_INSTANCE_DEFAULT
+        replacement: SL_RAIL_SDK_UTIL_INIT_PROTOCOL_INSTANCE_DEFAULT
+        description: >
+          Default Radio configuration has been renamed.
+      - name: SL_WMBUS_SENSOR_ACTIVE_SENSOR_ID
+        replacement: SL_RAIL_SDK_WMBUS_SENSOR_ACTIVE_SENSOR_ID
+        description: >
+          Default active sensor index configuration has been renamed.
+      - name: SL_WMBUS_SENSOR_PULSE_COUNTER_SLEEPTIMER_PRIORITY
+        replacement: SL_RAIL_SDK_WMBUS_SENSOR_PULSE_COUNTER_SLEEPTIMER_PRIORITY
+        description: >
+          Priority of the pulse counter sleep timer configuration has been renamed.
+      - name: SL_WMBUS_SENSOR_PULSE_COUNTER_SLEEPTIMER_TIMEOUT
+        replacement: SL_RAIL_SDK_WMBUS_SENSOR_PULSE_COUNTER_SLEEPTIMER_TIMEOUT
+        description: >
+          Timeout of the pulse counter sleep timer configuration has been renamed.
+      - name: SL_WMBUS_SENSOR_THERMO_METER_SLEEPTIMER_PRITORITY
+        replacement: SL_RAIL_SDK_WMBUS_SENSOR_THERMOMETER_SLEEPTIMER_PRIORITY
+        description: >
+          Priority of the thermo meter sleep timer configuration has been renamed.
+      - name: SL_WMBUS_SENSOR_THERMO_METER_SLEEPTIMER_TIMEOUT
+        replacement: SL_RAIL_SDK_WMBUS_SENSOR_THERMOMETER_SLEEPTIMER_TIMEOUT
+        description: >
+          Timeout of the thermo meter sleep timer configuration has been renamed.
+      - name: SL_WMBUS_SENSOR_VIRTUAL_WATER_METER_SLEEPTIMER_PRIORITY
+        replacement: SL_RAIL_SDK_WMBUS_SENSOR_VIRTUAL_WATER_METER_SLEEPTIMER_PRIORITY
+        description: >
+          Priority of the virtual water meter sleep timer configuration has been renamed.
+      - name: SL_WMBUS_SENSOR_VIRTUAL_WATER_METER_SLEEPTIMER_TIMEOUT
+        replacement: SL_RAIL_SDK_WMBUS_SENSOR_VIRTUAL_WATER_METER_SLEEPTIMER_TIMEOUT
+        description: >
+          Timeout of the virtual water meter sleep timer configuration has been renamed.
+      - name: SL_WMBUS_TYPE
+        replacement: SL_RAIL_SDK_WMBUS_TYPE
+        description: >
+          Wireless M-bus type configuration has been renamed.
+      - name: SL_WMBUS_ACCESSIBLILTY
+        replacement: SL_RAIL_SDK_WMBUS_ACCESSIBILITY
+        description: >
+          Wireless M-bus accessibility configuration has been renamed.

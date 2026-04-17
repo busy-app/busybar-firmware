@@ -1,0 +1,72 @@
+id: cpc_secondary
+label: Secondary Device (Co-Processor)
+package: cpc
+description: >
+  Co-Processor Communication (CPC) allows for communication between a Primary
+  and a secondary device using a single physical link. Both devices can have
+  multiple endpoints that both produce and consume data and CPC will handle
+  the multiplexing/demultiplexing of the data to the target. CPC also allows
+  for data encryption, mitigating the risks of transmitting data on an
+  unsecured physical data link.
+
+  This component implements the CPC Secondary device, allowing it to communicate
+  to a Primary device.
+category: Services|Co-Processor Communication|Secondary Device
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+
+config_file:
+- path: config/sl_cpc_config.h
+- path: config/sl_cpc_kernel_config.h
+  condition: [kernel]
+source:
+- path: src/sl_cpc_system_secondary.c
+- path: src/sl_cpc_system_secondary_efr.c
+  condition: [device_efx]
+- path: src/sl_cpc_system_secondary_91x.c
+  condition: [device_si91x]
+include:
+- path: inc
+  condition:
+  - cpc_core_v1
+  file_list:
+  - path: sl_cpc_secondary_init.h
+  - path: sli_cpc_system_secondary.h
+  - path: sli_cpc_bootloader.h
+
+provides:
+- name: cpc_secondary
+
+requires:
+- name: cpc_core
+- name: cpc_secondary_driver
+- name: cpc_security_secondary
+- name: cpc_validation_helpers
+  # Reset Reason Management
+- name: emlib_rmu
+  condition: [device_series_2]
+- name: hal_emu
+  condition: [device_series_3]
+- name: emlib_chip
+  condition: [device_series_2]
+
+recommends:
+- id: cpc_core
+  vendor: silabs
+- id: cpc_security_secondary
+
+  vendor: silabs
+template_file:
+- path: template/sl_cpc_instance_handles.h.jinja
+- path: template/sl_cpc_instance_handles.c.jinja
+
+template_contribution:
+- name: component_catalog
+  value: cpc_secondary
+
+documentation:
+  docset: gecko-platform
+  document: platform-cpc/cpc
+root_path: cpc

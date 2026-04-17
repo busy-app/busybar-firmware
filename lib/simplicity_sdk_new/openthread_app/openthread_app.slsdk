@@ -1,0 +1,25 @@
+#
+# openthread_app.slsdk
+#
+# This file lists Studio SDK properties pertaining to OpenThread sample applications.
+#
+# The version property should be updated to the release version on a
+# release branch, or it should be set to 0.0.0 otherwise. This is the
+# version that Studio displays for the loaded stack.
+#
+# Note: When adding the subLabel below with OpenThread version, please make
+# sure it is a valid GitHub version.  Avoid merge or local commit hashes.
+
+id=com.silabs.sdk.stack.openthread_app
+version=3.0.1.0
+label=OpenThread SDK
+description=OpenThread stack support for EFR32 devices
+prop.subLabel=OpenThread\\ 3.0.1.0\\ (GitHub-61e43cffb)
+
+prop.file.docsFile=documentation/slOpenThread_docContent.xml
+prop.file.templatesFile=openthread_production_templates.xml
+prop.file.demosFile=openthread_production_demos.xml
+prop.useGCCUserObjs=openthread
+prop.partCompatibility=.*efr32m[gr]2.* .*mgm2.* .*simg301.*
+prop.boardCompatibility=.*
+

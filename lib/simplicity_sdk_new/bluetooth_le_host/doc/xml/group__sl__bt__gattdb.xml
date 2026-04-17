@@ -1,0 +1,1786 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__gattdb" kind="group">
+    <compoundname>sl_bt_gattdb</compoundname>
+    <title>GATT Database</title>
+    <innergroup refid="group__sl__bt__gattdb__service__property__flags">GATT Service Property Flags</innergroup>
+    <innergroup refid="group__sl__bt__gattdb__security__requirements">GATT Attribute Security Requirement Flags</innergroup>
+    <innergroup refid="group__sl__bt__gattdb__flags">GATT Database Flags</innergroup>
+    <innergroup refid="group__sl__bt__gattdb__characteristic__properties">GATT Characteristic Property Flags</innergroup>
+    <innergroup refid="group__sl__bt__gattdb__descriptor__properties">GATT Descriptor Property Flags</innergroup>
+    <innergroup refid="group__sl__bt__gattdb__attribute__state">GATT Attribute State Flags</innergroup>
+      <sectiondef kind="enum">
+      <memberdef kind="enum" id="group__sl__bt__gattdb_1ga91d3c36ce798fd1c1bdf8af403dcc179" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_bt_gattdb_service_type_t</name>
+        <enumvalue id="group__sl__bt__gattdb_1gga91d3c36ce798fd1c1bdf8af403dcc179a24c18d61afe32af7c652256fbc999b7e" prot="public">
+          <name>sl_bt_gattdb_primary_service</name>
+          <initializer>= 0x0</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x0) Primary service </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__gattdb_1gga91d3c36ce798fd1c1bdf8af403dcc179a757c68d1188e774c4ee499da0373b0d0" prot="public">
+          <name>sl_bt_gattdb_secondary_service</name>
+          <initializer>= 0x1</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x1) Secondary service </para>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>This enum defines GATT service types. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="9065" column="1" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="9066" bodyend="9069"/>
+      </memberdef>
+      <memberdef kind="enum" id="group__sl__bt__gattdb_1gaeff5d21199ad8135d881399b5c862fef" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_bt_gattdb_attribute_category_t</name>
+        <enumvalue id="group__sl__bt__gattdb_1ggaeff5d21199ad8135d881399b5c862fefa27b1f94633b39ca59fe25693a4ddb574" prot="public">
+          <name>sl_bt_gattdb_category_service</name>
+          <initializer>= 0x1</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x1) The attribute is a service declaration </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__gattdb_1ggaeff5d21199ad8135d881399b5c862fefaa508baf5b1260bd8329864a29a2dfffe" prot="public">
+          <name>sl_bt_gattdb_category_include</name>
+          <initializer>= 0x2</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x2) The attribute is an include declaration </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__gattdb_1ggaeff5d21199ad8135d881399b5c862fefa8f9613d413b7c61f2d7f715d6e3204eb" prot="public">
+          <name>sl_bt_gattdb_category_characteristic_declaration</name>
+          <initializer>= 0x3</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x3) The attribute is a characteristic declaration </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__gattdb_1ggaeff5d21199ad8135d881399b5c862fefa20a13304b2b4d390f78b7d8cce6d78b6" prot="public">
+          <name>sl_bt_gattdb_category_characteristic_value</name>
+          <initializer>= 0x4</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x4) The attribute is a characteristic value </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__gattdb_1ggaeff5d21199ad8135d881399b5c862fefa986e954db4611592956e2b50b14fdb3e" prot="public">
+          <name>sl_bt_gattdb_category_descriptor</name>
+          <initializer>= 0x5</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x5) The attribute is a descriptor </para>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>This enum defines the high-level category of an attribute in the local GATT database. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="9075" column="1" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="9076" bodyend="9096"/>
+      </memberdef>
+      <memberdef kind="enum" id="group__sl__bt__gattdb_1gaff72bb90c32e77883d3a776d3aa78a51" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_bt_gattdb_value_type_t</name>
+        <enumvalue id="group__sl__bt__gattdb_1ggaff72bb90c32e77883d3a776d3aa78a51a3531dc4dd0cea01b297f60e3fd2b5f04" prot="public">
+          <name>sl_bt_gattdb_fixed_length_value</name>
+          <initializer>= 0x1</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x1) A fixed-length value managed by the local GATT server for responding the read and write requests of remote GATT clients </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__gattdb_1ggaff72bb90c32e77883d3a776d3aa78a51ab791bcf445cf4169df2a946d711ed726" prot="public">
+          <name>sl_bt_gattdb_variable_length_value</name>
+          <initializer>= 0x2</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x2) A variable-length value managed by the local GATT server for responding the read and write requests of remote GATT clients </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__gattdb_1ggaff72bb90c32e77883d3a776d3aa78a51ae4b8bc1c873f8d4bad0e92ab2ad62554" prot="public">
+          <name>sl_bt_gattdb_user_managed_value</name>
+          <initializer>= 0x3</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x3) A value managed by the user application for responding the read and write requests of remote GATT clients. </para>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>This enum defines characteristic and descriptor value types. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="9101" column="1" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="9102" bodyend="9117"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="group__sl__bt__gattdb_1ga33d351121d4c9ac2fef4a131c71de5e2" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_gattdb_new_session</definition>
+        <argsstring>(uint16_t *session)</argsstring>
+        <name>sl_bt_gattdb_new_session</name>
+        <param>
+          <type>uint16_t *</type>
+          <declname>session</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Start a new GATT database update session. If the operation is successful, the Bluetooth stack returns a session ID, with which the GATT database can be updated by calling other database management APIs of this class. Changes in the database are not immediately saved. Unsaved changes are invisible to a connected remote GATT client.</para>
+<para>After all changes were performed successfully, commit the changes using the <ref refid="group__sl__bt__gattdb_1ga7f3e4b0ac0c55a23499a993770d88d34" kindref="member">sl_bt_gattdb_commit</ref> command. The Bluetooth stack will save the changes and handle GATT caching as needed. Unsaved database changes can also be canceled by calling the <ref refid="group__sl__bt__gattdb_1ga0a1120ba72b56959371357be3ea6ce4b" kindref="member">sl_bt_gattdb_abort</ref> command. In either case, after a commit or abort command is called, the current session is closed and the session ID becomes invalid.</para>
+<para>Only one session is allowed at a time. Error SL_STATUS_ALREADY_EXISTS is returned if another session has been started already.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="out">session</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The database update session ID</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="9289" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="9289" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__gattdb_1gaa5ed7d70b76a59ef38a050ce030883b8" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_gattdb_add_service</definition>
+        <argsstring>(uint16_t session, uint8_t type, uint8_t property, size_t uuid_len, const uint8_t *uuid, uint16_t *service)</argsstring>
+        <name>sl_bt_gattdb_add_service</name>
+        <param>
+          <type>uint16_t</type>
+          <declname>session</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>type</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>property</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>uuid_len</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>uuid</declname>
+        </param>
+        <param>
+          <type>uint16_t *</type>
+          <declname>service</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Add a service into the local GATT database. When successful, the service is appended to the service list and is in stopped state. Use <ref refid="group__sl__bt__gattdb_1ga4281249ec84b03a8df91cab507f042bf" kindref="member">sl_bt_gattdb_start_service</ref> command to set it visible to remote GATT clients.</para>
+<para>The user application is not allowed to add the Generic Attribute Profile service. If the application needs GATT caching, enable the feature in the configuration of this component and the GATT server will handle GATT caching according to the procedures specified by the Bluetooth core specification.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">session</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The database update session ID </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">type</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Enum <ref refid="group__sl__bt__gattdb_1ga91d3c36ce798fd1c1bdf8af403dcc179" kindref="member">sl_bt_gattdb_service_type_t</ref>. The service type. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_gattdb_primary_service (0x0):</bold> Primary service</para>
+</listitem><listitem><para><bold>sl_bt_gattdb_secondary_service (0x1):</bold> Secondary service </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">property</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Service properties. Value: 0 or bit flag <ref refid="group__sl__bt__gattdb__service__property__flags_1ga0351aafe5e0e3faaae95a1e286acd99b" kindref="member">SL_BT_GATTDB_ADVERTISED_SERVICE</ref> </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">uuid_len</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Length of data in <computeroutput>uuid</computeroutput> </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">uuid</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The service UUID in little endian format </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">service</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The service declaration attribute handle. This handle is ensured valid in current session. It may change after the session if attributes have been inserted or deleted in front of it.</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="9318" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="9318" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__gattdb_1ga9eb742007904140d76071699d16a19e1" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_gattdb_remove_service</definition>
+        <argsstring>(uint16_t session, uint16_t service)</argsstring>
+        <name>sl_bt_gattdb_remove_service</name>
+        <param>
+          <type>uint16_t</type>
+          <declname>session</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>service</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Remove a service and its characteristics from the local GATT database.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">session</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The database update session ID </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">service</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The service declaration attribute handle of the service</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="9335" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="9335" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__gattdb_1ga5f748877ee2ac92e5f3c3fe82e06b1ee" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_gattdb_add_included_service</definition>
+        <argsstring>(uint16_t session, uint16_t service, uint16_t included_service, uint16_t *attribute)</argsstring>
+        <name>sl_bt_gattdb_add_included_service</name>
+        <param>
+          <type>uint16_t</type>
+          <declname>session</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>service</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>included_service</declname>
+        </param>
+        <param>
+          <type>uint16_t *</type>
+          <declname>attribute</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Add an included-service attribute to a service.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">session</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The database update session ID </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">service</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The service declaration attribute handle of the service which the included-service attribute is added to </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">included_service</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The service declaration attribute handle of the service to be included </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">attribute</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The included-service attribute handle. This handle is ensured valid in current session. It may change after the session if attributes have been inserted or deleted in front of it.</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="9353" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="9353" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__gattdb_1gabda1ed40f8d35486b6dcf2e340d02aad" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_gattdb_remove_included_service</definition>
+        <argsstring>(uint16_t session, uint16_t attribute)</argsstring>
+        <name>sl_bt_gattdb_remove_included_service</name>
+        <param>
+          <type>uint16_t</type>
+          <declname>session</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>attribute</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Remove an included-service attribute from a service.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">session</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The database update session ID </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">attribute</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The included-service attribute handle</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="9368" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="9368" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__gattdb_1gae8906f2354dfc81e0de9b37bc466ac46" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_gattdb_add_uuid16_characteristic</definition>
+        <argsstring>(uint16_t session, uint16_t service, uint16_t property, uint16_t security, uint8_t flag, sl_bt_uuid_16_t uuid, uint8_t value_type, uint16_t maxlen, size_t value_len, const uint8_t *value, uint16_t *characteristic)</argsstring>
+        <name>sl_bt_gattdb_add_uuid16_characteristic</name>
+        <param>
+          <type>uint16_t</type>
+          <declname>session</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>service</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>property</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>security</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>flag</declname>
+        </param>
+        <param>
+          <type><ref refid="structsl__bt__uuid__16__t" kindref="compound">sl_bt_uuid_16_t</ref></type>
+          <declname>uuid</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>value_type</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>maxlen</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>value_len</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>value</declname>
+        </param>
+        <param>
+          <type>uint16_t *</type>
+          <declname>characteristic</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Add a 16-bits UUID characteristic to a service. On success, the characteristic is appended to the characteristic list of the service and it inherits the started or stopped state of the service. In addition, it can be started and stopped separately with the <ref refid="group__sl__bt__gattdb_1ga255845126ea162b7f11fe19dc3ffc98c" kindref="member">sl_bt_gattdb_start_characteristic</ref> and <ref refid="group__sl__bt__gattdb_1ga1dd56bbbc5025f6c434ca3714a62c358" kindref="member">sl_bt_gattdb_stop_characteristic</ref> commands.</para>
+<para>If the <computeroutput>flag</computeroutput> parameter does not set <ref refid="group__sl__bt__gattdb__flags_1ga3d4d9f581a2e772fd39ead2059fbf3dc" kindref="member">SL_BT_GATTDB_NO_AUTO_CCCD</ref>, the stack will automatically add a Client Characteristic Configuration descriptor to this characteristic when it has the notify or indicate property. If <ref refid="group__sl__bt__gattdb__flags_1ga3d4d9f581a2e772fd39ead2059fbf3dc" kindref="member">SL_BT_GATTDB_NO_AUTO_CCCD</ref> is set, the user application should add the descriptor separately as needed.</para>
+<para>A Characteristic Extended Properties descriptor is automatically added if the reliable write property is set.</para>
+<para>Use the <ref refid="group__sl__bt__gattdb_1gaf7a6345dfa7305c3c30804eebcc561cd" kindref="member">sl_bt_gattdb_add_uuid128_characteristic</ref> command to add a 128-bits UUID characteristic.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">session</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The database update session ID </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">service</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The service declaration attribute handle of the service which the characteristic is added to </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">property</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Characteristic value properties. Value: bitmask of <ref refid="group__sl__bt__gattdb__characteristic__properties" kindref="compound">GATT Characteristic Property Flags</ref> </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">security</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Security requirement. Value: 0 or bitmask of <ref refid="group__sl__bt__gattdb__security__requirements" kindref="compound">GATT Attribute Security Requirement Flags</ref>. A security requirement flag for a property is ignored if the property is not set for the characteristic value. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">flag</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Option flags. Value: 0 or bitmask of <ref refid="group__sl__bt__gattdb__flags" kindref="compound">GATT Database Flags</ref>. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">uuid</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The 16-bits UUID in little endian format </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">value_type</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Enum <ref refid="group__sl__bt__gattdb_1gaff72bb90c32e77883d3a776d3aa78a51" kindref="member">sl_bt_gattdb_value_type_t</ref>. The value type. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_gattdb_fixed_length_value (0x1):</bold> A fixed-length value managed by the local GATT server for responding the read and write requests of remote GATT clients</para>
+</listitem><listitem><para><bold>sl_bt_gattdb_variable_length_value (0x2):</bold> A variable-length value managed by the local GATT server for responding the read and write requests of remote GATT clients</para>
+</listitem><listitem><para><bold>sl_bt_gattdb_user_managed_value (0x3):</bold> A value managed by the user application for responding the read and write requests of remote GATT clients. </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">maxlen</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The maximum length of the characteristic value. Ignored if <computeroutput>value_type</computeroutput> is <ref refid="group__sl__bt__gattdb_1ggaff72bb90c32e77883d3a776d3aa78a51ae4b8bc1c873f8d4bad0e92ab2ad62554" kindref="member">sl_bt_gattdb_user_managed_value</ref>. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">value_len</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Length of data in <computeroutput>value</computeroutput> </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">value</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The initial characteristic value. Length of this value must be less than or equal to <computeroutput>maxlen</computeroutput>. Ignored if <computeroutput>value_type</computeroutput> is <ref refid="group__sl__bt__gattdb_1ggaff72bb90c32e77883d3a776d3aa78a51ae4b8bc1c873f8d4bad0e92ab2ad62554" kindref="member">sl_bt_gattdb_user_managed_value</ref>. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">characteristic</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The characteristic value attribute handle. This handle is ensured valid in current session. It may change after the session if attributes have been inserted or deleted in front of it.</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="9427" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="9427" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__gattdb_1gaf7a6345dfa7305c3c30804eebcc561cd" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_gattdb_add_uuid128_characteristic</definition>
+        <argsstring>(uint16_t session, uint16_t service, uint16_t property, uint16_t security, uint8_t flag, uuid_128 uuid, uint8_t value_type, uint16_t maxlen, size_t value_len, const uint8_t *value, uint16_t *characteristic)</argsstring>
+        <name>sl_bt_gattdb_add_uuid128_characteristic</name>
+        <param>
+          <type>uint16_t</type>
+          <declname>session</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>service</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>property</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>security</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>flag</declname>
+        </param>
+        <param>
+          <type><ref refid="structuuid__128" kindref="compound">uuid_128</ref></type>
+          <declname>uuid</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>value_type</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>maxlen</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>value_len</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>value</declname>
+        </param>
+        <param>
+          <type>uint16_t *</type>
+          <declname>characteristic</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Add a 128-bits UUID characteristic to a service. When successful, the characteristic is appended to the characteristic list of the service and inherits the started or stopped state of the service. Additionally, it can be started and stopped separately with the <ref refid="group__sl__bt__gattdb_1ga255845126ea162b7f11fe19dc3ffc98c" kindref="member">sl_bt_gattdb_start_characteristic</ref> and <ref refid="group__sl__bt__gattdb_1ga1dd56bbbc5025f6c434ca3714a62c358" kindref="member">sl_bt_gattdb_stop_characteristic</ref> commands.</para>
+<para>If the <computeroutput>flag</computeroutput> parameter does not set <ref refid="group__sl__bt__gattdb__flags_1ga3d4d9f581a2e772fd39ead2059fbf3dc" kindref="member">SL_BT_GATTDB_NO_AUTO_CCCD</ref>, the stack will automatically add a Client Characteristic Configuration descriptor to this characteristic when it has the notify or indicate property. If <ref refid="group__sl__bt__gattdb__flags_1ga3d4d9f581a2e772fd39ead2059fbf3dc" kindref="member">SL_BT_GATTDB_NO_AUTO_CCCD</ref> is set, the user application should add the descriptor separately as needed.</para>
+<para>A Characteristic Extended Properties descriptor is automatically added if the reliable write property is set.</para>
+<para>Use the <ref refid="group__sl__bt__gattdb_1gae8906f2354dfc81e0de9b37bc466ac46" kindref="member">sl_bt_gattdb_add_uuid16_characteristic</ref> command to add a 16-bits UUID characteristic.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">session</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The database update session ID </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">service</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The service declaration attribute handle of the service which the characteristic is added to </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">property</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Characteristic value properties. Value: bitmask of <ref refid="group__sl__bt__gattdb__characteristic__properties" kindref="compound">GATT Characteristic Property Flags</ref> </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">security</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Security requirement. Value: 0 or bitmask of <ref refid="group__sl__bt__gattdb__security__requirements" kindref="compound">GATT Attribute Security Requirement Flags</ref>. A security requirement flag for a property is ignored if the property is not set for the characteristic value. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">flag</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Option flags. Value: 0 or bitmask of <ref refid="group__sl__bt__gattdb__flags" kindref="compound">GATT Database Flags</ref>. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">uuid</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The 128-bits UUID in little endian format </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">value_type</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Enum <ref refid="group__sl__bt__gattdb_1gaff72bb90c32e77883d3a776d3aa78a51" kindref="member">sl_bt_gattdb_value_type_t</ref>. The value type. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_gattdb_fixed_length_value (0x1):</bold> A fixed-length value managed by the local GATT server for responding the read and write requests of remote GATT clients</para>
+</listitem><listitem><para><bold>sl_bt_gattdb_variable_length_value (0x2):</bold> A variable-length value managed by the local GATT server for responding the read and write requests of remote GATT clients</para>
+</listitem><listitem><para><bold>sl_bt_gattdb_user_managed_value (0x3):</bold> A value managed by the user application for responding the read and write requests of remote GATT clients. </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">maxlen</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The maximum length of the characteristic value. Ignored if <computeroutput>value_type</computeroutput> is <ref refid="group__sl__bt__gattdb_1ggaff72bb90c32e77883d3a776d3aa78a51ae4b8bc1c873f8d4bad0e92ab2ad62554" kindref="member">sl_bt_gattdb_user_managed_value</ref>. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">value_len</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Length of data in <computeroutput>value</computeroutput> </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">value</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The initial characteristic value. Length of this value must be less than or equal to <computeroutput>maxlen</computeroutput>. Ignored if <computeroutput>value_type</computeroutput> is <ref refid="group__sl__bt__gattdb_1ggaff72bb90c32e77883d3a776d3aa78a51ae4b8bc1c873f8d4bad0e92ab2ad62554" kindref="member">sl_bt_gattdb_user_managed_value</ref>. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">characteristic</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The characteristic value attribute handle. This handle is ensured valid in current session. It may change after the session if attributes have been inserted or deleted in front of it.</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="9495" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="9495" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__gattdb_1ga1909f88315c8740e578ba2bc4f733ba0" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_gattdb_remove_characteristic</definition>
+        <argsstring>(uint16_t session, uint16_t characteristic)</argsstring>
+        <name>sl_bt_gattdb_remove_characteristic</name>
+        <param>
+          <type>uint16_t</type>
+          <declname>session</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>characteristic</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Remove a characteristic and its descriptors from a service.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">session</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The database update session ID </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">characteristic</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The characteristic value attribute handle of the characteristic</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="9518" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="9518" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__gattdb_1ga0587a0d1003c0f1f18b78f8026111388" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_gattdb_add_uuid16_descriptor</definition>
+        <argsstring>(uint16_t session, uint16_t characteristic, uint16_t property, uint16_t security, sl_bt_uuid_16_t uuid, uint8_t value_type, uint16_t maxlen, size_t value_len, const uint8_t *value, uint16_t *descriptor)</argsstring>
+        <name>sl_bt_gattdb_add_uuid16_descriptor</name>
+        <param>
+          <type>uint16_t</type>
+          <declname>session</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>characteristic</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>property</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>security</declname>
+        </param>
+        <param>
+          <type><ref refid="structsl__bt__uuid__16__t" kindref="compound">sl_bt_uuid_16_t</ref></type>
+          <declname>uuid</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>value_type</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>maxlen</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>value_len</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>value</declname>
+        </param>
+        <param>
+          <type>uint16_t *</type>
+          <declname>descriptor</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Add a 16-bits UUID descriptor to a characteristic. When successful, the descriptor is appended to the descriptor list of the characteristic and inherits the started or stopped state of the characteristic.</para>
+<para>This command does not support adding Characteristic Extended Properties descriptors. This descriptor is automatically added if the characteristic value has the reliable-write property or when a Characteristic User Description descriptor is added and the user description has the write property.</para>
+<para>Use the <ref refid="group__sl__bt__gattdb_1ga56ffa16478c17e3a15bfd3df9192cf57" kindref="member">sl_bt_gattdb_add_uuid128_descriptor</ref> command to add a 128-bits UUID descriptor.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">session</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The database update session ID </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">characteristic</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The characteristic value attribute handle of the characteristic the descriptor is added to </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">property</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The descriptor properties. Value: bitmask of <ref refid="group__sl__bt__gattdb__descriptor__properties" kindref="compound">GATT Descriptor Property Flags</ref> </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">security</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Security requirement. Value: 0 or bitmask of <ref refid="group__sl__bt__gattdb__security__requirements" kindref="compound">GATT Attribute Security Requirement Flags</ref>. A security requirement flag for a property is ignored if the property is not set for the descriptor. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">uuid</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The 16-bits UUID in little endian format </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">value_type</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Enum <ref refid="group__sl__bt__gattdb_1gaff72bb90c32e77883d3a776d3aa78a51" kindref="member">sl_bt_gattdb_value_type_t</ref>. The value type. Ignored if this is a Client Characteristic Configuration descriptor. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_gattdb_fixed_length_value (0x1):</bold> A fixed-length value managed by the local GATT server for responding the read and write requests of remote GATT clients</para>
+</listitem><listitem><para><bold>sl_bt_gattdb_variable_length_value (0x2):</bold> A variable-length value managed by the local GATT server for responding the read and write requests of remote GATT clients</para>
+</listitem><listitem><para><bold>sl_bt_gattdb_user_managed_value (0x3):</bold> A value managed by the user application for responding the read and write requests of remote GATT clients. </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">maxlen</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The maximum length of the descriptor value. Ignored if <computeroutput>value_type</computeroutput> is sl_bt_gattdb_user_managed_value, or if this is a Client Characteristic Configuration descriptor. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">value_len</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Length of data in <computeroutput>value</computeroutput> </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">value</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The initial descriptor value. Length of this value must be less than or equal to <computeroutput>maxlen</computeroutput>. Ingored if value type is <ref refid="group__sl__bt__gattdb_1ggaff72bb90c32e77883d3a776d3aa78a51ae4b8bc1c873f8d4bad0e92ab2ad62554" kindref="member">sl_bt_gattdb_user_managed_value</ref>, or if this is a Client Characteristic Configuration descriptor. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">descriptor</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The descriptor attribute handle. This handle is ensured valid in current session. It may change after the session if attributes have been inserted or deleted in front of it.</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="9572" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="9572" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__gattdb_1ga56ffa16478c17e3a15bfd3df9192cf57" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_gattdb_add_uuid128_descriptor</definition>
+        <argsstring>(uint16_t session, uint16_t characteristic, uint16_t property, uint16_t security, uuid_128 uuid, uint8_t value_type, uint16_t maxlen, size_t value_len, const uint8_t *value, uint16_t *descriptor)</argsstring>
+        <name>sl_bt_gattdb_add_uuid128_descriptor</name>
+        <param>
+          <type>uint16_t</type>
+          <declname>session</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>characteristic</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>property</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>security</declname>
+        </param>
+        <param>
+          <type><ref refid="structuuid__128" kindref="compound">uuid_128</ref></type>
+          <declname>uuid</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>value_type</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>maxlen</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>value_len</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>value</declname>
+        </param>
+        <param>
+          <type>uint16_t *</type>
+          <declname>descriptor</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Add a 128-bits UUID descriptor to a characteristic. When successful, the descriptor is appended to the descriptor list of the characteristic and inherits the started or stopped state of the characteristic.</para>
+<para>This command does not support adding Characteristic Extended Properties descriptors. This descriptor is automatically added if the characteristic value has the reliable-write property or when a Characteristic User Description descriptor is added and the user description has the write property.</para>
+<para>Use the <ref refid="group__sl__bt__gattdb_1ga0587a0d1003c0f1f18b78f8026111388" kindref="member">sl_bt_gattdb_add_uuid16_descriptor</ref> command to add a 16-bits UUID descriptor.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">session</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The database update session ID </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">characteristic</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The characteristic value attribute handle of the characteristic the descriptor is added to </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">property</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The descriptor properties. Value: bitmask of <ref refid="group__sl__bt__gattdb__descriptor__properties" kindref="compound">GATT Descriptor Property Flags</ref> </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">security</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Security requirement. Value: 0 or bitmask of <ref refid="group__sl__bt__gattdb__security__requirements" kindref="compound">GATT Attribute Security Requirement Flags</ref>. A security requirement flag for a property is ignored if the property is not set for the descriptor. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">uuid</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The 128-bits UUID in little endian format </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">value_type</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Enum <ref refid="group__sl__bt__gattdb_1gaff72bb90c32e77883d3a776d3aa78a51" kindref="member">sl_bt_gattdb_value_type_t</ref>. The value type. Ignored if this is a Client Characteristic Configuration descriptor. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_gattdb_fixed_length_value (0x1):</bold> A fixed-length value managed by the local GATT server for responding the read and write requests of remote GATT clients</para>
+</listitem><listitem><para><bold>sl_bt_gattdb_variable_length_value (0x2):</bold> A variable-length value managed by the local GATT server for responding the read and write requests of remote GATT clients</para>
+</listitem><listitem><para><bold>sl_bt_gattdb_user_managed_value (0x3):</bold> A value managed by the user application for responding the read and write requests of remote GATT clients. </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">maxlen</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The maximum length of the descriptor value. Ignored if <computeroutput>value_type</computeroutput> is sl_bt_gattdb_user_managed_value, or if this is a Client Characteristic Configuration descriptor. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">value_len</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Length of data in <computeroutput>value</computeroutput> </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">value</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The initial descriptor value. Length of this value must be less than or equal to <computeroutput>maxlen</computeroutput>. Ignored if value type is <ref refid="group__sl__bt__gattdb_1ggaff72bb90c32e77883d3a776d3aa78a51ae4b8bc1c873f8d4bad0e92ab2ad62554" kindref="member">sl_bt_gattdb_user_managed_value</ref>, or if this is a Client Characteristic Configuration descriptor. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">descriptor</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The descriptor attribute handle. This handle is ensured valid in current session. It may change after the session if attributes have been inserted or deleted in front of it.</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="9634" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="9634" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__gattdb_1ga17e454ff3e2a9288587a0654c1c25198" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_gattdb_remove_descriptor</definition>
+        <argsstring>(uint16_t session, uint16_t descriptor)</argsstring>
+        <name>sl_bt_gattdb_remove_descriptor</name>
+        <param>
+          <type>uint16_t</type>
+          <declname>session</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>descriptor</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Remove a descriptor from a characteristic.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">session</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The database update session ID </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">descriptor</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The descriptor handle</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="9655" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="9655" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__gattdb_1ga4281249ec84b03a8df91cab507f042bf" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_gattdb_start_service</definition>
+        <argsstring>(uint16_t session, uint16_t service)</argsstring>
+        <name>sl_bt_gattdb_start_service</name>
+        <param>
+          <type>uint16_t</type>
+          <declname>session</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>service</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Start a service, so that the service and its attributes including characteristics and descriptors become visible to remote GATT clients after this change has been committed.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">session</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The database update session ID </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">service</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The service declaration attribute handle of the service</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="9670" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="9670" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__gattdb_1ga301a2e2219d8f761707f8561938e6835" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_gattdb_stop_service</definition>
+        <argsstring>(uint16_t session, uint16_t service)</argsstring>
+        <name>sl_bt_gattdb_stop_service</name>
+        <param>
+          <type>uint16_t</type>
+          <declname>session</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>service</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Stop a service, so that the service and its attributes including characteristics and descriptors become invisible to remote GATT clients after this change has been committed.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">session</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The database update session ID </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">service</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The service declaration attribute handle of the service</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="9684" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="9684" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__gattdb_1ga255845126ea162b7f11fe19dc3ffc98c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_gattdb_start_characteristic</definition>
+        <argsstring>(uint16_t session, uint16_t characteristic)</argsstring>
+        <name>sl_bt_gattdb_start_characteristic</name>
+        <param>
+          <type>uint16_t</type>
+          <declname>session</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>characteristic</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Start a characteristic, so that the characteristic and its attributes become visible to remote GATT clients after this change has been committed. SL_STATUS_INVALID_STATE error is returned if the parent service is not started.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">session</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The database update session ID </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">characteristic</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The characteristic value attribute handle of the characteristic</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="9700" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="9700" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__gattdb_1ga1dd56bbbc5025f6c434ca3714a62c358" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_gattdb_stop_characteristic</definition>
+        <argsstring>(uint16_t session, uint16_t characteristic)</argsstring>
+        <name>sl_bt_gattdb_stop_characteristic</name>
+        <param>
+          <type>uint16_t</type>
+          <declname>session</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>characteristic</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Stop a characteristic, so that the characteristic and its attributes become invisible to remote GATT clients after this change has been committed.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">session</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The database update session ID </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">characteristic</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The characteristic value attribute handle of the characteristic</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="9715" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="9715" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__gattdb_1ga7f3e4b0ac0c55a23499a993770d88d34" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_gattdb_commit</definition>
+        <argsstring>(uint16_t session)</argsstring>
+        <name>sl_bt_gattdb_commit</name>
+        <param>
+          <type>uint16_t</type>
+          <declname>session</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Save all changes performed in the current session and close the session. The stack will assign final handles to new and affected attributes and handle GATT caching as needed. The stack removes the client characteristic configurations of non-connected GATT clients except the service-changed configuration. For connected GATT clients during this database change, the stack removes the configurations to the removed characteristics. The session ID, temporary attribute handles returned during this session, and other existing attribute handles that are after newly added or removed attributes are invalidated.</para>
+<para>Some attribute handles returned in this session may become invalid if attributes are not created in the order they present in the database. In this case, attribute handle cache of the database in the user application must be refreshed to avoid accidentally using an invalidated handle in subsequent operations.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">session</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The database update session ID</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="9741" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="9741" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__gattdb_1ga0a1120ba72b56959371357be3ea6ce4b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_gattdb_abort</definition>
+        <argsstring>(uint16_t session)</argsstring>
+        <name>sl_bt_gattdb_abort</name>
+        <param>
+          <type>uint16_t</type>
+          <declname>session</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Cancel all changes performed in the current session and close the session. The database remains in the same state it was in just before the session was started. The session ID and all temporary attribute handles returned during this session are invalidated.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">session</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The database update session ID</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="9755" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="9755" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__gattdb_1ga639beee614a09cb3d1c160c7781447ff" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_gattdb_get_attribute_state</definition>
+        <argsstring>(uint16_t attribute, uint8_t *state)</argsstring>
+        <name>sl_bt_gattdb_get_attribute_state</name>
+        <param>
+          <type>uint16_t</type>
+          <declname>attribute</declname>
+        </param>
+        <param>
+          <type>uint8_t *</type>
+          <declname>state</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Get the state of the given attribute.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">attribute</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Attribute handle </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">state</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>State of the given attribute. Value: bitmask of <ref refid="group__sl__bt__gattdb__attribute__state" kindref="compound">GATT Attribute State Flags</ref></para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="9768" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="9768" declcolumn="13"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__gattdb_1ga141e15417b765121dc7d5119438257da" prot="public" static="no">
+        <name>sl_bt_cmd_gattdb_new_session_id</name>
+        <initializer>0x00460020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="9025" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="9025" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gattdb_1ga0ba1a4c7c4edbaba1e0619521711694f" prot="public" static="no">
+        <name>sl_bt_cmd_gattdb_add_service_id</name>
+        <initializer>0x01460020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="9026" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="9026" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gattdb_1ga587b4460021582a761bb38acc82c5e6d" prot="public" static="no">
+        <name>sl_bt_cmd_gattdb_remove_service_id</name>
+        <initializer>0x02460020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="9027" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="9027" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gattdb_1ga2851bf9ac0e89c4ebc589f838f400ab3" prot="public" static="no">
+        <name>sl_bt_cmd_gattdb_add_included_service_id</name>
+        <initializer>0x03460020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="9028" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="9028" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gattdb_1gaf4f285c6e591a72442d3851f348d30e4" prot="public" static="no">
+        <name>sl_bt_cmd_gattdb_remove_included_service_id</name>
+        <initializer>0x04460020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="9029" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="9029" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gattdb_1ga1d7deb25e446229d20300d1ef12b1604" prot="public" static="no">
+        <name>sl_bt_cmd_gattdb_add_uuid16_characteristic_id</name>
+        <initializer>0x05460020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="9030" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="9030" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gattdb_1ga183ecf93317f7446c672c5ee6707d89b" prot="public" static="no">
+        <name>sl_bt_cmd_gattdb_add_uuid128_characteristic_id</name>
+        <initializer>0x06460020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="9031" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="9031" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gattdb_1ga82404aad2fae0f7b79034f6bd718e8db" prot="public" static="no">
+        <name>sl_bt_cmd_gattdb_remove_characteristic_id</name>
+        <initializer>0x07460020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="9032" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="9032" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gattdb_1ga7f92be0bee53d0724a43bd4a5bc20d03" prot="public" static="no">
+        <name>sl_bt_cmd_gattdb_add_uuid16_descriptor_id</name>
+        <initializer>0x08460020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="9033" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="9033" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gattdb_1ga65df5e9a73c191993fd41a907ec4fba5" prot="public" static="no">
+        <name>sl_bt_cmd_gattdb_add_uuid128_descriptor_id</name>
+        <initializer>0x09460020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="9034" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="9034" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gattdb_1ga4957625dbb6cfeb671901bf3b0e59cc6" prot="public" static="no">
+        <name>sl_bt_cmd_gattdb_remove_descriptor_id</name>
+        <initializer>0x0a460020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="9035" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="9035" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gattdb_1ga34624ed1043b55e2958268a81b75c391" prot="public" static="no">
+        <name>sl_bt_cmd_gattdb_start_service_id</name>
+        <initializer>0x0b460020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="9036" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="9036" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gattdb_1gacbed2540171dffcb2a70e164b0587efe" prot="public" static="no">
+        <name>sl_bt_cmd_gattdb_stop_service_id</name>
+        <initializer>0x0c460020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="9037" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="9037" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gattdb_1ga22ff8516223b2fd111de6eaf4dc651cb" prot="public" static="no">
+        <name>sl_bt_cmd_gattdb_start_characteristic_id</name>
+        <initializer>0x0d460020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="9038" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="9038" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gattdb_1ga019455cc154201886d0864fc5668cc6b" prot="public" static="no">
+        <name>sl_bt_cmd_gattdb_stop_characteristic_id</name>
+        <initializer>0x0e460020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="9039" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="9039" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gattdb_1gace5639ea9d505eb77fab46acd62764f1" prot="public" static="no">
+        <name>sl_bt_cmd_gattdb_commit_id</name>
+        <initializer>0x0f460020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="9040" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="9040" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gattdb_1ga1764b36eb21f9e1a3c3cc9c17633cd86" prot="public" static="no">
+        <name>sl_bt_cmd_gattdb_abort_id</name>
+        <initializer>0x10460020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="9041" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="9041" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gattdb_1gaea7131702337a4257a50c703df04e3b5" prot="public" static="no">
+        <name>sl_bt_cmd_gattdb_get_attribute_state_id</name>
+        <initializer>0x11460020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="9042" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="9042" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gattdb_1gae1c1826686a0f62677bc630a41f82966" prot="public" static="no">
+        <name>sl_bt_rsp_gattdb_new_session_id</name>
+        <initializer>0x00460020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="9043" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="9043" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gattdb_1ga47839da79e9198a555716f640aa822d7" prot="public" static="no">
+        <name>sl_bt_rsp_gattdb_add_service_id</name>
+        <initializer>0x01460020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="9044" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="9044" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gattdb_1gadce50525e060195a9a30b42a44641a15" prot="public" static="no">
+        <name>sl_bt_rsp_gattdb_remove_service_id</name>
+        <initializer>0x02460020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="9045" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="9045" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gattdb_1gabffe81f97c24448b13e6a4abd508d712" prot="public" static="no">
+        <name>sl_bt_rsp_gattdb_add_included_service_id</name>
+        <initializer>0x03460020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="9046" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="9046" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gattdb_1ga27c338406d75dea31c465c3a455d8b15" prot="public" static="no">
+        <name>sl_bt_rsp_gattdb_remove_included_service_id</name>
+        <initializer>0x04460020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="9047" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="9047" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gattdb_1gae39b21b38f4c311672c981659844fe1a" prot="public" static="no">
+        <name>sl_bt_rsp_gattdb_add_uuid16_characteristic_id</name>
+        <initializer>0x05460020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="9048" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="9048" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gattdb_1ga1e1238f1304cceac3858230baf07ec4b" prot="public" static="no">
+        <name>sl_bt_rsp_gattdb_add_uuid128_characteristic_id</name>
+        <initializer>0x06460020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="9049" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="9049" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gattdb_1ga31633720aee2ee38755f80edcbc1b100" prot="public" static="no">
+        <name>sl_bt_rsp_gattdb_remove_characteristic_id</name>
+        <initializer>0x07460020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="9050" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="9050" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gattdb_1ga174bce27e2bff923a78926309f66c96e" prot="public" static="no">
+        <name>sl_bt_rsp_gattdb_add_uuid16_descriptor_id</name>
+        <initializer>0x08460020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="9051" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="9051" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gattdb_1ga6473232b854ee262822e3f9214f6949c" prot="public" static="no">
+        <name>sl_bt_rsp_gattdb_add_uuid128_descriptor_id</name>
+        <initializer>0x09460020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="9052" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="9052" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gattdb_1ga417b9a95fc9daa925ec4bf4ccc929f48" prot="public" static="no">
+        <name>sl_bt_rsp_gattdb_remove_descriptor_id</name>
+        <initializer>0x0a460020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="9053" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="9053" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gattdb_1gace7a12f2f521a4a6feb10b71c3d62641" prot="public" static="no">
+        <name>sl_bt_rsp_gattdb_start_service_id</name>
+        <initializer>0x0b460020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="9054" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="9054" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gattdb_1gada9aa9588165d3fa2803b99d7993b9be" prot="public" static="no">
+        <name>sl_bt_rsp_gattdb_stop_service_id</name>
+        <initializer>0x0c460020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="9055" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="9055" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gattdb_1gae1abf77adf36ba6bb07c54db19cac8b4" prot="public" static="no">
+        <name>sl_bt_rsp_gattdb_start_characteristic_id</name>
+        <initializer>0x0d460020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="9056" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="9056" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gattdb_1ga6b58e2a2a3c3bde8699a2064b9f03827" prot="public" static="no">
+        <name>sl_bt_rsp_gattdb_stop_characteristic_id</name>
+        <initializer>0x0e460020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="9057" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="9057" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gattdb_1ga4941390d11ba4317472f0a8633db6dfb" prot="public" static="no">
+        <name>sl_bt_rsp_gattdb_commit_id</name>
+        <initializer>0x0f460020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="9058" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="9058" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gattdb_1ga59122361a9c4363979a29a9680b72b17" prot="public" static="no">
+        <name>sl_bt_rsp_gattdb_abort_id</name>
+        <initializer>0x10460020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="9059" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="9059" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gattdb_1ga9f6d4eba535e711695adc59491e0e8bd" prot="public" static="no">
+        <name>sl_bt_rsp_gattdb_get_attribute_state_id</name>
+        <initializer>0x11460020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="9060" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="9060" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>GATT Database. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>These commands and events are used for managing the local GATT database.</para>
+<para>Many commands in this class return the handles of created attributes. These handles may change during commit if attributes are not created in the order they present in the database. For example, when creating a new service using the <ref refid="group__sl__bt__gattdb_1gaa5ed7d70b76a59ef38a050ce030883b8" kindref="member">sl_bt_gattdb_add_service</ref> command, the service declaration handle returned from this command becomes invalid later when an attribute is added or removed in front of this service. If the user requires that the attribute handles returned from these commands must remain valid after the database update has been committed, attributes must be created in the order they present in the database. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

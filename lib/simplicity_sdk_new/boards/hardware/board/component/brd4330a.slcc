@@ -1,0 +1,64 @@
+!!omap
+- id: brd4330a
+- label: BRD4330A
+- package: boards
+- description: Board support for BRD4330A.
+- category: Platform|Board|Radio Board
+- quality: production
+- metadata:
+    sbom:
+      license: Zlib
+- requires:
+  - name: bgm220pc22hna
+  - name: brd4330a_config
+  - name: hardware_board_mainboard
+- provides:
+  - name: brd4330a
+  - name: hardware_board
+  - name: hardware_board_rb
+  - name: hardware_board_from_stk
+  - name: hardware_board_has_vcom
+  - name: hardware_board_has_vcom_hardware_flowcontrol
+  - name: hardware_board_supports_rf_band_2400
+  - name: hardware_board_supports_1_rf_band
+  - name: hardware_board_default_rf_band
+  - name: hardware_board_default_rf_band_2400
+- recommends:
+  - id: brd4001a
+    vendor: silabs
+  - id: iostream_eusart
+    instance:
+    - vcom
+    vendor: silabs
+  - id: bootloader_uart_driver
+    vendor: silabs
+  - id: simple_led
+    instance:
+    - led0
+    vendor: silabs
+  - id: simple_button
+    instance:
+    - btn0
+    vendor: silabs
+- template_contribution:
+  - name: board_default_init
+    value: sl_board_disable_vcom()
+- define:
+  - name: SL_BOARD_NAME
+    value: '"BRD4330A"'
+  - name: SL_BOARD_REV
+    value: '"A00"'
+  - name: HARDWARE_BOARD_SUPPORTS_RF_BAND_2400
+  - name: HARDWARE_BOARD_SUPPORTS_1_RF_BAND
+  - name: HARDWARE_BOARD_DEFAULT_RF_BAND_2400
+- tag:
+  - board:pn:BRD4330
+  - board:variant:A
+  - board:revision:A00
+  - board:device:bgm220pc22hna
+  - hardware:has:vcom
+  - hardware:has:vcom:vcom_hardware_flowcontrol
+  - hardware:has:pti
+  - hardware:has:led:1
+  - hardware:has:button:1
+- root_path: boards

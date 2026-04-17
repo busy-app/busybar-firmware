@@ -1,0 +1,129 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="structsl__bt__evt__system__boot__s" kind="struct" language="C++" prot="public">
+    <compoundname>sl_bt_evt_system_boot_s</compoundname>
+    <includes refid="sl__bt__api_8h" local="no">sl_bt_api.h</includes>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structsl__bt__evt__system__boot__s_1aeb43ee56e37953d93137aaee8917a313" prot="public" static="no" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t sl_bt_evt_system_boot_s::major</definition>
+        <argsstring></argsstring>
+        <name>major</name>
+        <qualifiedname>sl_bt_evt_system_boot_s::major</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Major release version </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="1000" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="1000" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__system__boot__s_1a9c53459fcf3ae220c3e9dfb2116cad71" prot="public" static="no" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t sl_bt_evt_system_boot_s::minor</definition>
+        <argsstring></argsstring>
+        <name>minor</name>
+        <qualifiedname>sl_bt_evt_system_boot_s::minor</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Minor release version </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="1001" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="1001" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__system__boot__s_1adb343bad65200493c042335d01f44656" prot="public" static="no" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t sl_bt_evt_system_boot_s::patch</definition>
+        <argsstring></argsstring>
+        <name>patch</name>
+        <qualifiedname>sl_bt_evt_system_boot_s::patch</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Patch release number </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="1002" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="1002" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__system__boot__s_1aa53312b842c0e111de2c1bf7848d457b" prot="public" static="no" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t sl_bt_evt_system_boot_s::build</definition>
+        <argsstring></argsstring>
+        <name>build</name>
+        <qualifiedname>sl_bt_evt_system_boot_s::build</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>This parameter is unused. Set to 0 always. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="1003" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="1003" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__system__boot__s_1a451a5208c22bc5870960ecb2a29e5f6a" prot="public" static="no" mutable="no">
+        <type>uint32_t</type>
+        <definition>uint32_t sl_bt_evt_system_boot_s::bootloader</definition>
+        <argsstring></argsstring>
+        <name>bootloader</name>
+        <qualifiedname>sl_bt_evt_system_boot_s::bootloader</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Bootloader version if a bootloader is present in the application. Set to 0 if bootloader is not present. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="1004" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="1004" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__system__boot__s_1a4caa6fdba4196ba7096c8b92f2b3f513" prot="public" static="no" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t sl_bt_evt_system_boot_s::hw</definition>
+        <argsstring></argsstring>
+        <name>hw</name>
+        <qualifiedname>sl_bt_evt_system_boot_s::hw</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Hardware type: the major chip revision number in the most significant byte and the minor revision in the least significant byte </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="1006" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="1006" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__system__boot__s_1ae2cb5cff5d63469694676871677d9196" prot="public" static="no" mutable="no">
+        <type>uint32_t</type>
+        <definition>uint32_t sl_bt_evt_system_boot_s::hash</definition>
+        <argsstring></argsstring>
+        <name>hash</name>
+        <qualifiedname>sl_bt_evt_system_boot_s::hash</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Version hash </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="1009" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="1009" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Data structure of the boot event. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="998" column="1" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="999" bodyend="1010"/>
+    <listofallmembers>
+      <member refid="structsl__bt__evt__system__boot__s_1a451a5208c22bc5870960ecb2a29e5f6a" prot="public" virt="non-virtual"><scope>sl_bt_evt_system_boot_s</scope><name>bootloader</name></member>
+      <member refid="structsl__bt__evt__system__boot__s_1aa53312b842c0e111de2c1bf7848d457b" prot="public" virt="non-virtual"><scope>sl_bt_evt_system_boot_s</scope><name>build</name></member>
+      <member refid="structsl__bt__evt__system__boot__s_1ae2cb5cff5d63469694676871677d9196" prot="public" virt="non-virtual"><scope>sl_bt_evt_system_boot_s</scope><name>hash</name></member>
+      <member refid="structsl__bt__evt__system__boot__s_1a4caa6fdba4196ba7096c8b92f2b3f513" prot="public" virt="non-virtual"><scope>sl_bt_evt_system_boot_s</scope><name>hw</name></member>
+      <member refid="structsl__bt__evt__system__boot__s_1aeb43ee56e37953d93137aaee8917a313" prot="public" virt="non-virtual"><scope>sl_bt_evt_system_boot_s</scope><name>major</name></member>
+      <member refid="structsl__bt__evt__system__boot__s_1a9c53459fcf3ae220c3e9dfb2116cad71" prot="public" virt="non-virtual"><scope>sl_bt_evt_system_boot_s</scope><name>minor</name></member>
+      <member refid="structsl__bt__evt__system__boot__s_1adb343bad65200493c042335d01f44656" prot="public" virt="non-virtual"><scope>sl_bt_evt_system_boot_s</scope><name>patch</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,31 @@
+id: sl_opamp
+label: OPAMP
+package: platform_siwx91x
+description: Opamp application to verify features Unity Gain Buffer or Voltage follower by giving input on the the SiWx917 SoC device.
+ui_hints:
+  visibility: never
+category: Device|Si91x|MCU|Peripheral
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: "components/device/silabs/si91x/mcu/drivers/unified_api"
+source:
+  - path: "src/sl_si91x_opamp.c"
+include:
+  - path: "inc"
+    file_list:
+    - path: "sl_si91x_opamp.h"
+provides:
+  - name: sl_opamp
+requires:
+  - name: rsilib_comparator
+  - name: romdriver_rng
+  - name: rsilib_clock_update
+  - name: rsilib_adc
+  - name: rsilib_opamp
+  - name: sl_gpio
+  - name: sl_dma
+documentation:
+    docset: wiseconnect
+    document: wiseconnect-api-reference-guide-si91x-peripherals/opamp

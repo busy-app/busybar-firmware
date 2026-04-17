@@ -1,0 +1,129 @@
+project_name: sleepy-demo-ssed
+label: OpenThread - SoC Sleepy Demo (SSED)
+package: openthread
+description: >
+  This is a sample application to demonstrate Synchronous Sleepy End Device (SSED) behaviour with CSL, using the EFR32's low power EM2 mode.
+category: OpenThread Examples
+quality: production
+
+component:
+  - id: sl_main
+  - id: ot_stack_mtd
+  - id: ot_cli_source
+  - id: ot_crash_handler
+  - id: iostream_recommended_console
+  - id: simple_button
+    instance:
+      - btn0
+      - btn1
+  - id: rail_util_pti
+  - id: power_manager
+  - id: bootloader_interface
+  - id: clock_manager
+  # Platform - Enable LTO for gcc by installing the following component
+  - id: toolchain_gcc_lto
+
+include:
+  - path: .
+    file_list:
+      - path: app.h
+
+source:
+  - path: app.c
+  - path: sleepy-ssed.c
+
+configuration:
+  - name: SL_BOARD_ENABLE_VCOM
+    value: 1
+  - name: SL_POWER_MANAGER_DEBUG
+    value: 1
+  - name: SL_IOSTREAM_USART_VCOM_RESTRICT_ENERGY_MODE_TO_ALLOW_RECEPTION
+    value: 0
+    condition: [iostream_usart]
+  - name: SL_IOSTREAM_EUSART_VCOM_RESTRICT_ENERGY_MODE_TO_ALLOW_RECEPTION
+    value: 0
+    condition: [iostream_eusart]
+  - name: SL_IOSTREAM_USART_VCOM_RX_BUFFER_SIZE
+    value: 128 # Increase from default 32
+    condition: [iostream_usart]
+  - name: SL_IOSTREAM_EUSART_VCOM_RX_BUFFER_SIZE
+    value: 128 # Increase from default 32
+    condition: [iostream_eusart]
+  - name: SL_MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
+    value: 1
+  - name: SL_MBEDTLS_KEY_EXCHANGE_PSK_ENABLED
+    value: 1
+  # This stack size is dependent on LTO optimization. In the cases, where LTO merges more than 1 functions in a single one
+  # (includes inlining) causing the stack to increase. This project wide configuration, it is recommended to ensure this
+  # configuration is updated with appropriate values based on the additional components installed and application code added.
+  - name: SL_STACK_SIZE
+    value: 6144
+    condition: [toolchain_lto]
+    unless: [freertos]
+  - name: SL_STACK_SIZE
+    value: 4608
+    condition: [freertos]
+    unless: [toolchain_lto]
+  - name: SL_STACK_SIZE
+    value: 5120
+    condition: [toolchain_lto, freertos]
+  - name: SL_STACK_SIZE
+    value: 5120
+    unless: [toolchain_lto, freertos]
+  # Stack size config end
+  - name: SL_MAIN_START_TASK_STACK_SIZE_BYTES
+    value: 4608
+    condition: [sl_main, freertos]
+  - name: SL_MAIN_START_TASK_STACK_SIZE_BYTES
+    value: 5120
+    condition: [sl_main]
+    unless: [freertos]
+  - name: OPENTHREAD_CONFIG_MAC_CSL_RECEIVER_ENABLE
+    value: 1
+  - name: OPENTHREAD_CONFIG_LOG_OUTPUT
+    value: OPENTHREAD_CONFIG_LOG_OUTPUT_PLATFORM_DEFINED
+    condition: [ot_rtt_log]
+  - name: BUFFER_SIZE_UP
+    value: 768
+    condition: [ot_rtt_log]
+  - name: BUFFER_SIZE_DOWN
+    value: 0
+    condition: [ot_rtt_log]
+  - name: CIRCULAR_QUEUE_LEN_MAX
+    value: 16
+  - name: SL_IOSTREAM_USART_VCOM_FLOW_CONTROL_TYPE
+    value: usartHwFlowControlCtsAndRts
+    condition: [iostream_usart]
+  - name: SL_IOSTREAM_EUSART_VCOM_FLOW_CONTROL_TYPE
+    value: SL_IOSTREAM_EUSART_UART_FLOW_CTRL_CTS_RTS
+    condition: [iostream_eusart]
+  - name: SL_OPENTHREAD_STACK_TASK_MEM_SIZE
+    value: 7168
+    condition: [toolchain_lto]
+  - name: configTOTAL_HEAP_SIZE
+    value: 16384
+    condition: [toolchain_lto, freertos]
+
+tag:
+  - prebuilt_demo
+  - hardware:component:button:2+
+  - hwfilter:device:device_supports_thread
+  - hwfilter:!device:device_family_efr32mr21
+  - hwfilter:board:simple_button:btn0
+  - hwfilter:board:simple_button:btn1
+  - toolchain:gcc
+readme:
+  - path: ./README.md
+
+filter:
+  - name: "Wireless Technology"
+    value: ["Thread"]
+  - name: "Device Type"
+    value: ["SoC"]
+  - name: "Project Difficulty"
+    value: ["Advanced"]
+
+ui_hints:
+  highlight:
+    - path: ./README.md
+      focus: true

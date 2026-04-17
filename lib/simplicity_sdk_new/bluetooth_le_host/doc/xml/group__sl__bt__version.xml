@@ -1,0 +1,71 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__version" kind="group">
+    <compoundname>sl_bt_version</compoundname>
+    <title>Bluetooth SDK version</title>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__version_1ga5d2a7dcd8cadd547bf5339828102c833" prot="public" static="no">
+        <name>SL_BT_VERSION_MAJOR</name>
+        <initializer>11</initializer>
+        <briefdescription>
+<para>The major number of Bluetooth SDK version. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>An increment indicates incompatible Bluetooth API changes. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_version.h" line="31" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_version.h" bodystart="31" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__version_1ga7181c131dceaeb031cc90bdaa5ecdc6c" prot="public" static="no">
+        <name>SL_BT_VERSION_MINOR</name>
+        <initializer>0</initializer>
+        <briefdescription>
+<para>The minor number of Bluetooth SDK version. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>An increment indicates new backwards compatible functionalities. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_version.h" line="38" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_version.h" bodystart="38" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__version_1gabdc3b1f3ef5b86303857c56b8c89e600" prot="public" static="no">
+        <name>SL_BT_VERSION_PATCH</name>
+        <initializer>1</initializer>
+        <briefdescription>
+<para>The patch number of Bluetooth SDK version. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>An increment indicates backwards compatible bug fixes. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_version.h" line="45" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_version.h" bodystart="45" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__version_1ga702d68a51ae68d689249900414058101" prot="public" static="no">
+        <name>SL_BT_VERSION_HASH</name>
+        <initializer>{0x0e,0x13,0x42,0x9e,0x7e,0x81,0xa9,0x5e,0x11,0x4b,0x50,0x53,0x10,0xa8,0xb7,0x16,0xde,0xe7,0xe9,0x36}</initializer>
+        <briefdescription>
+<para>The hash value of the build the Bluetooth SDK was created from. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_version.h" line="50" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_version.h" bodystart="50" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Bluetooth stack version definition. </para>
+    </briefdescription>
+    <detaileddescription>
+<sect1 id="group__sl__bt__version_1autotoc_md4">
+<title>License</title>
+<para><bold>Copyright 2022 Silicon Laboratories Inc. www.silabs.com</bold></para>
+<para>The licensor of this software is Silicon Laboratories Inc. Your use of this software is governed by the terms of Silicon Labs Master Software License Agreement (MSLA) available at www.silabs.com/about-us/legal/master-software-license-agreement. This software is distributed to you in Source Code format and is governed by the sections of the MSLA applicable to Source Code.</para>
+<para>Bluetooth SDK version information </para>
+</sect1>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

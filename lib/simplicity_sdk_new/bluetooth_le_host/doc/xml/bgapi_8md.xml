@@ -1,0 +1,111 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="bgapi_8md" kind="file" language="Markdown">
+    <compoundname>bgapi.md</compoundname>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline><highlight class="normal">\page<sp/>bgapi<sp/>BGAPI</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>BGAPI<sp/>message<sp/>header<sp/>format<sp/>{#bgapi_message_header_format}</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">The<sp/>BGAPI<sp/>message<sp/>header<sp/>is<sp/>the<sp/>first<sp/>4<sp/>bytes<sp/>of<sp/>a<sp/>BGAPI<sp/>message.<sp/>It</highlight></codeline>
+<codeline><highlight class="normal">consists<sp/>of<sp/>device<sp/>and<sp/>message<sp/>types,<sp/>IDs,<sp/>and<sp/>data<sp/>payload<sp/>length.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Byte<sp/>1<sp/>{#bgapi_message_header_byte1}</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>**Bits<sp/>0<sp/>-<sp/>2**:<sp/>Highest<sp/>3<sp/>bits<sp/>of<sp/>the<sp/>data<sp/>payload<sp/>length<sp/>field</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Bits<sp/>3<sp/>-<sp/>5**:<sp/>**Device<sp/>type**</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Bit<sp/>value<sp/>**000**:<sp/>Reserved<sp/>for<sp/>future<sp/>use</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Bit<sp/>value<sp/>**001**:<sp/>Reserved<sp/>for<sp/>future<sp/>use</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Bit<sp/>value<sp/>**010**:<sp/>Reserved<sp/>for<sp/>future<sp/>use</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Bit<sp/>value<sp/>**011**:<sp/>Reserved<sp/>for<sp/>future<sp/>use</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Bit<sp/>value<sp/>**100**:<sp/>Bluetooth<sp/>LE</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Bit<sp/>value<sp/>**101**:<sp/>Bluetooth<sp/>Mesh</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Bit<sp/>value<sp/>**110**:<sp/>BGAPI</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Bit<sp/>value<sp/>**111**:<sp/>Reserved<sp/>for<sp/>future<sp/>use</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Bit<sp/>6**:<sp/>**Encryption**</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Bit<sp/>value<sp/>**0**:<sp/>The<sp/>message<sp/>is<sp/>not<sp/>encrypted.</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Bit<sp/>value<sp/>**1**:<sp/>The<sp/>message<sp/>is<sp/>encrypted.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Bit<sp/>7**:<sp/>**Message<sp/>type**</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Bit<sp/>value<sp/>**0**:<sp/>The<sp/>message<sp/>is<sp/>a<sp/>command<sp/>or<sp/>a<sp/>response<sp/>to<sp/>command.</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Bit<sp/>value<sp/>**1**:<sp/>The<sp/>message<sp/>is<sp/>an<sp/>event.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Byte<sp/>2<sp/>{#bgapi_message_header_byte2}</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">This<sp/>byte<sp/>is<sp/>the<sp/>lowest<sp/>8<sp/>bits<sp/>of<sp/>the<sp/>data<sp/>payload<sp/>length<sp/>field.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Byte<sp/>3<sp/>{#bgapi_message_header_byte3}</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">This<sp/>byte<sp/>is<sp/>the<sp/>BGAPI<sp/>**class<sp/>ID**.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Byte<sp/>4<sp/>{#bgapi_message_header_byte4}</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">This<sp/>byte<sp/>is<sp/>the<sp/>**message<sp/>ID**<sp/>of<sp/>a<sp/>command,<sp/>response<sp/>or<sp/>event.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">A<sp/>device<sp/>type,<sp/>class<sp/>ID,<sp/>message<sp/>type<sp/>and<sp/>message<sp/>ID<sp/>together<sp/>construct<sp/>a</highlight></codeline>
+<codeline><highlight class="normal">unique<sp/>identifer<sp/>of<sp/>a<sp/>message<sp/>within<sp/>the<sp/>BGAPI<sp/>protocol.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Endianness<sp/>{#bgapi_endianness}</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">BGAPI<sp/>protocol<sp/>stores<sp/>data<sp/>in<sp/>little<sp/>endian.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Concurrency</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">When<sp/>the<sp/>application<sp/>runs<sp/>in<sp/>an<sp/>RTOS,<sp/>the<sp/>Bluetooth<sp/>RTOS<sp/>adaptation<sp/>component</highlight></codeline>
+<codeline><highlight class="normal">has<sp/>a<sp/>mechanism<sp/>to<sp/>synchronize<sp/>the<sp/>handling<sp/>of<sp/>individual<sp/>BGAPI<sp/>commands.</highlight></codeline>
+<codeline><highlight class="normal">Thus,<sp/>individual<sp/>BGAPI<sp/>commands<sp/>are<sp/>safe<sp/>to<sp/>be<sp/>called<sp/>from<sp/>multiple<sp/>threads</highlight></codeline>
+<codeline><highlight class="normal">when<sp/>the<sp/>Bluetooth<sp/>RTOS<sp/>adaptation<sp/>component<sp/>is<sp/>used.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">BGAPI<sp/>commands<sp/>cannot<sp/>be<sp/>called<sp/>from<sp/>interrupt<sp/>context.<sp/>Calling<sp/>a<sp/>command<sp/>from</highlight></codeline>
+<codeline><highlight class="normal">interrupt<sp/>context<sp/>may<sp/>delay<sp/>the<sp/>radio<sp/>activity.<sp/>Furthermore,<sp/>when<sp/>commands<sp/>are</highlight></codeline>
+<codeline><highlight class="normal">also<sp/>called<sp/>from<sp/>the<sp/>main<sp/>event<sp/>loop<sp/>or<sp/>an<sp/>RTOS<sp/>task<sp/>simultaneously,<sp/>concurrent</highlight></codeline>
+<codeline><highlight class="normal">BGAPI<sp/>calls<sp/>may<sp/>cause<sp/>memory<sp/>issues<sp/>in<sp/>the<sp/>stack.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Payload<sp/>Length<sp/>Calculation<sp/>{#bgapi_payload_length_calculation}</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Use<sp/>@ref<sp/>SL_BGAPI_MSG_LEN<sp/>to<sp/>calculate<sp/>the<sp/>payload<sp/>length<sp/>of<sp/>a<sp/>BGAPI<sp/>message.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Decode<sp/>a<sp/>BGAPI<sp/>Message<sp/>{#decode_bgapi_message}</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">On<sp/>an<sp/>NCP<sp/>host,<sp/>a<sp/>received<sp/>API<sp/>message<sp/>is<sp/>either<sp/>a<sp/>response<sp/>or<sp/>an<sp/>event.</highlight></codeline>
+<codeline><highlight class="normal">As<sp/>the<sp/>message<sp/>is<sp/>in<sp/>binary<sp/>format,<sp/>users<sp/>may<sp/>need<sp/>to<sp/>decode<sp/>the<sp/>binary<sp/>to</highlight></codeline>
+<codeline><highlight class="normal">its<sp/>corresponding<sp/>named<sp/>message<sp/>definition.<sp/>Following<sp/>method<sp/>can<sp/>be<sp/>used<sp/>to</highlight></codeline>
+<codeline><highlight class="normal">decode<sp/>a<sp/>message<sp/>binary<sp/>received<sp/>on<sp/>NCP<sp/>host:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>Find<sp/>out<sp/>the<sp/>device<sp/>type<sp/>from<sp/>@ref<sp/>bgapi_message_header_byte1<sp/>of<sp/>the<sp/>message<sp/>header.</highlight></codeline>
+<codeline><highlight class="normal">Go<sp/>to<sp/>the<sp/>BGAPI<sp/>message<sp/>summary<sp/>table<sp/>according<sp/>to<sp/>the<sp/>device<sp/>type.<sp/>The<sp/>table<sp/>may<sp/>be</highlight></codeline>
+<codeline><highlight class="normal">the<sp/>@ref<sp/>bgapi_message_summary<sp/>in<sp/>this<sp/>document,<sp/>or<sp/>a<sp/>table<sp/>in<sp/>another<sp/>API<sp/>reference</highlight></codeline>
+<codeline><highlight class="normal">manual.<sp/>Bluetooth<sp/>LE<sp/>and<sp/>Bluetooth<sp/>Mesh<sp/>APIs<sp/>have<sp/>separate<sp/>API<sp/>reference<sp/>manuals.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Find<sp/>out<sp/>the<sp/>message<sp/>type<sp/>of<sp/>the<sp/>message<sp/>from<sp/>bit<sp/>7<sp/>of<sp/>the<sp/>@ref<sp/>bgapi_message_header_byte1</highlight></codeline>
+<codeline><highlight class="normal">in<sp/>the<sp/>message<sp/>header.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Find<sp/>out<sp/>the<sp/>class<sp/>ID<sp/>which<sp/>is<sp/>the<sp/>@ref<sp/>bgapi_message_header_byte3<sp/>of<sp/>the<sp/>message</highlight></codeline>
+<codeline><highlight class="normal">header.<sp/>Together<sp/>with<sp/>the<sp/>message<sp/>type,<sp/>locate<sp/>either<sp/>the<sp/>command<sp/>or<sp/>event<sp/>message</highlight></codeline>
+<codeline><highlight class="normal">group<sp/>for<sp/>this<sp/>class.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Locate<sp/>the<sp/>row<sp/>in<sp/>the<sp/>message<sp/>group<sp/>according<sp/>to<sp/>the<sp/>message<sp/>ID<sp/>which<sp/>is<sp/>the</highlight></codeline>
+<codeline><highlight class="normal">@ref<sp/>bgapi_message_header_byte4<sp/>of<sp/>the<sp/>message<sp/>header.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>If<sp/>the<sp/>row<sp/>is<sp/>a<sp/>command,<sp/>the<sp/>decoded<sp/>message<sp/>is<sp/>a<sp/>response<sp/>to<sp/>this<sp/>command.<sp/>Go<sp/>to</highlight></codeline>
+<codeline><highlight class="normal">the<sp/>command<sp/>documentation.<sp/>The<sp/>5th<sp/>and<sp/>6th<sp/>bytes<sp/>of<sp/>the<sp/>binary<sp/>are<sp/>the<sp/>error<sp/>code<sp/>returned</highlight></codeline>
+<codeline><highlight class="normal">for<sp/>the<sp/>command.<sp/>Rest<sp/>data<sp/>of<sp/>the<sp/>binary<sp/>maps<sp/>to<sp/>the<sp/>[out]<sp/>parameters<sp/>of<sp/>the<sp/>command</highlight></codeline>
+<codeline><highlight class="normal">in<sp/>declaration<sp/>order.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>If<sp/>the<sp/>row<sp/>is<sp/>an<sp/>event,<sp/>go<sp/>to<sp/>the<sp/>event<sp/>documentation.<sp/>Data<sp/>starting<sp/>from</highlight></codeline>
+<codeline><highlight class="normal">the<sp/>5th<sp/>byte<sp/>maps<sp/>to<sp/>the<sp/>event<sp/>data<sp/>structure<sp/>fields<sp/>in<sp/>declaration<sp/>order.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>BGAPI<sp/>message<sp/>summary<sp/>{#bgapi_message_summary}</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">The<sp/>following<sp/>table<sp/>summarizes<sp/>the<sp/>class<sp/>and<sp/>message<sp/>IDs<sp/>of<sp/>commands<sp/>and<sp/>events</highlight></codeline>
+<codeline><highlight class="normal">in<sp/>the<sp/>BGAPI<sp/>protocol.<sp/>A<sp/>response<sp/>message<sp/>has<sp/>the<sp/>same<sp/>class<sp/>and<sp/>message<sp/>ID<sp/>as</highlight></codeline>
+<codeline><highlight class="normal">the<sp/>command<sp/>it<sp/>responds<sp/>to.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">The<sp/>table<sp/>also<sp/>shows<sp/>the<sp/>minimum<sp/>payload<sp/>length<sp/>for<sp/>each<sp/>message.</highlight></codeline>
+<codeline><highlight class="normal">Messages<sp/>that<sp/>have<sp/>an<sp/>array<sp/>parameter<sp/>can<sp/>have<sp/>longer<sp/>payload<sp/>length</highlight></codeline>
+<codeline><highlight class="normal">depending<sp/>on<sp/>the<sp/>length<sp/>of<sp/>the<sp/>array.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">&lt;!--<sp/>BGAPI<sp/>message<sp/>summary<sp/>table<sp/>is<sp/>generated<sp/>to<sp/>the<sp/>EXAMPLE_PATH<sp/>directory<sp/>--&gt;</highlight></codeline>
+<codeline><highlight class="normal">\includedoc<sp/>bgapi_message_id_table.html</highlight></codeline>
+    </programlisting>
+    <location file="doc/bgapi.md"/>
+  </compounddef>
+</doxygen>

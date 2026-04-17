@@ -1,0 +1,32 @@
+<HtermSequenceFile>
+    <ItemList>
+        <SequenceItem name="-- Commands --">
+            <description></description>
+            <sequence value="" />
+        </SequenceItem>
+        <SequenceItem name="info">
+            <description></description>
+            <sequence value="a[info] h[0D]" />
+        </SequenceItem>
+        <SequenceItem name="form">
+            <description></description>
+            <sequence value="a[form] h[0D]" />
+        </SequenceItem>
+		<SequenceItem name="leave">
+            <description></description>
+            <sequence value="a[leave] h[0D]" />
+        </SequenceItem>
+		<SequenceItem name="reset">
+            <description></description>
+            <sequence value="a[reset] h[0D]" />
+        </SequenceItem>
+		<SequenceItem name="set_channel">
+            <description></description>
+            <sequence value="a[set_channel 5] h[0D]" />
+        </SequenceItem>
+		<SequenceItem name="set_pan_id">
+            <description></description>
+            <sequence value="a[set_pan_id 0x1234] h[0D]" />
+        </SequenceItem>
+    </ItemList>
+</HtermSequenceFile>

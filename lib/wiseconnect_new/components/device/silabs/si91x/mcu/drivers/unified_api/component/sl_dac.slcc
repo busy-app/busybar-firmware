@@ -1,0 +1,39 @@
+id: sl_dac
+label: DAC
+package: platform_siwx91x
+description: >
+  The DAC Drivers can write at up to 5 Msps with a 10-Bit resolution. 
+  There are two types of data sampling functions: blocking and non-blocking.  
+  Non-blocking write data functions use DMA (FIFO mode) to write data 
+  and notify completion via callback functions.
+  DAC peripheral can also be run in ULP mode.
+  
+  When you install this component, it will also be installing the  DAC Core dependency, which is the DAC driver's implementation.
+category: Device|Si91x|MCU|Peripheral
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: "components/device/silabs/si91x/mcu/drivers/unified_api"
+config_file:
+  - path: config/sl_si91x_dac_config.h
+    file_id: dac_config
+source:
+  - path: "src/sl_si91x_dac.c"
+include:
+  - path: "inc"
+    file_list:
+    - path: "sl_si91x_dac.h"
+provides:
+  - name: sl_dac
+define:
+  - name: DAC_FIFO_MODE_EN
+  - name: SL_SI91X_DAC
+requires:
+  - name: rsilib_dac
+  - name: rsilib_adc
+  - name: rsilib_opamp
+  - name: sl_dma
+documentation:
+    docset: wiseconnect
+    document: wiseconnect-api-reference-guide-si91x-peripherals/dac

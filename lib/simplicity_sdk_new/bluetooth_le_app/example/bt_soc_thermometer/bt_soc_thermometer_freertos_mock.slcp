@@ -1,0 +1,122 @@
+project_name: bt_soc_thermometer_freertos_mock
+package: bluetooth_le_app
+label: Bluetooth - SoC Thermometer (Mock) FreeRTOS
+description: >
+  Implements a GATT Server with the Health Thermometer Profile, which enables a
+  Client device to connect and get temperature data. Temperature is read from
+  the Si7021 digital relative humidity and temperature sensor of the WSTK or of
+  the Thunderboard.
+category: Bluetooth Examples
+quality: production
+
+filter:
+  - name: "Wireless Technology"
+    value: ["Bluetooth"]
+  - name: "Device Type"
+    value: ["SoC"]
+  - name: "Project Difficulty"
+    value: ["Beginner"]
+
+component:
+  - id: freertos
+  - id: bluetooth_stack
+  - id: gatt_configuration
+  - id: gatt_service_device_information_override
+  - id: bluetooth_feature_legacy_advertiser
+  - id: bluetooth_feature_connection_role_peripheral
+  - id: bluetooth_feature_gatt_server
+  - id: bluetooth_feature_sm
+  - id: bluetooth_feature_system
+  - id: rail_util_pti
+  - id: cli
+    instance:
+      - example
+  - id: app_log
+  - id: app_assert
+  - id: printf
+  - id: app_timer
+  - id: health_thermometer
+  - id: sensor_rht_mock
+  - id: simple_button
+    instance:
+      - btn0
+  - id: mpu
+  - id: sl_main
+  - id: app_os_helper
+  - id: clock_manager
+  - id: device_init
+
+source:
+  - path: app.c
+
+include:
+  - path: .
+    file_list:
+      - path: app.h
+
+readme:
+  - path: readme_rtos.md
+
+config_file:
+  - override:
+      component: gatt_configuration
+      file_id: gatt_configuration_file_id
+    path: gatt_configuration.btconf
+    directory: btconf
+
+other_file:
+  - path: image/readme_img0.png
+  - path: image/readme_rtos_img0.png
+
+configuration:
+  - name: SL_STACK_SIZE
+    value: "2000"
+  - name: configTOTAL_HEAP_SIZE
+    value: "5000"
+  - name: configTIMER_TASK_STACK_DEPTH
+    value: "240"
+  - name: SL_BOARD_ENABLE_VCOM
+    value: "1"
+  - name: SL_IOSTREAM_USART_VCOM_RESTRICT_ENERGY_MODE_TO_ALLOW_RECEPTION
+    value: "0"
+    unless:
+      - cli
+  - name: SL_IOSTREAM_EUSART_VCOM_RESTRICT_ENERGY_MODE_TO_ALLOW_RECEPTION
+    value: "0"
+    unless:
+      - cli
+  - name: SL_CLI_EXAMPLE_TASK_STACK_SIZE
+    value: "250"
+  - name: SL_CLI_INPUT_BUFFER_SIZE
+    value: "32"
+  - name: SL_CLI_NUM_HISTORY_BYTES
+    value: "0"
+  - name: SL_PSA_KEY_USER_SLOT_COUNT
+    value: "0"
+    condition:
+      - psa_crypto
+
+template_contribution:
+  - name: cli_command
+    value:
+      name: hello
+      handler: hello
+      help: "hello"
+    condition:
+      - cli
+
+post_build:
+  - path: ../../postbuild_profile/bt_common_s2.slpb
+    condition: [device_series_2, bootloader_app_properties]
+
+tag:
+  - hwfilter:device:device_supports_bluetooth
+  - hwfilter:!device:device_generic_family_efr32xg22
+  - hwfilter:board:simple_button:btn0
+  - hwfilter:!board:hardware_board_has_tempsensor
+
+ui_hints:
+  highlight:
+    - path: config/btconf/gatt_configuration.btconf
+    - path: readme_rtos.md
+      focus: true

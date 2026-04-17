@@ -1,0 +1,42 @@
+id: gatt_service_lux
+label: Environment Sensing - Ambient Light GATT Service
+package: bluetooth_le_middleware
+description: >
+  Provides ambient light sensor data in GATT characteristics.
+  Designed for the Thunderboard smartphone app.
+category: Bluetooth|Application|GATT Services
+metadata:
+  sbom:
+    license: Zlib
+quality: production
+root_path: bluetooth_le_middleware/common/gatt_service_lux
+tag:
+- No-Code
+config_file:
+- path: config/sl_gatt_service_lux_config.h
+- path: gatt_service_lux.xml
+  directory: btconf
+source:
+- path: sl_gatt_service_lux.c
+include:
+- path: .
+  file_list:
+  - path: sl_gatt_service_lux.h
+provides:
+- name: gatt_service_lux
+requires:
+- name: bluetooth_stack
+- name: gatt_configuration
+- name: bluetooth_feature_gatt_server
+- name: app_assert
+- name: sl_common
+template_contribution:
+- name: bluetooth_on_event
+  value:
+    include: sl_gatt_service_lux.h
+    function: sl_gatt_service_lux_on_event
+- name: component_catalog
+  value: gatt_service_lux
+documentation:
+  docset: bluetooth
+  document: bluetooth-service-api/gatt-service-lux

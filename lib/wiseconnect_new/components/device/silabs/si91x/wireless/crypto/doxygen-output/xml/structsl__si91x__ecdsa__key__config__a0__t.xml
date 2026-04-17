@@ -1,0 +1,33 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="structsl__si91x__ecdsa__key__config__a0__t" kind="struct" language="C++" prot="public">
+    <compoundname>sl_si91x_ecdsa_key_config_a0_t</compoundname>
+    <includes refid="sl__si91x__ecdsa_8h" local="no">sl_si91x_ecdsa.h</includes>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structsl__si91x__ecdsa__key__config__a0__t_1ad3ba11bd0e21434a983f531b604ace6a" prot="public" static="no" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t sl_si91x_ecdsa_key_config_a0_t::key_length</definition>
+        <argsstring></argsstring>
+        <name>key_length</name>
+        <qualifiedname>sl_si91x_ecdsa_key_config_a0_t::key_length</qualifiedname>
+        <briefdescription>
+<para>Length of the key. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/ecdsa/inc/sl_si91x_ecdsa.h" line="128" column="12" bodyfile="components/device/silabs/si91x/wireless/crypto/ecdsa/inc/sl_si91x_ecdsa.h" bodystart="128" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Structure defining ECDSA key configuration for B0 chip versions. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="components/device/silabs/si91x/wireless/crypto/ecdsa/inc/sl_si91x_ecdsa.h" line="127" column="1" bodyfile="components/device/silabs/si91x/wireless/crypto/ecdsa/inc/sl_si91x_ecdsa.h" bodystart="127" bodyend="129"/>
+    <listofallmembers>
+      <member refid="structsl__si91x__ecdsa__key__config__a0__t_1ad3ba11bd0e21434a983f531b604ace6a" prot="public" virt="non-virtual"><scope>sl_si91x_ecdsa_key_config_a0_t</scope><name>key_length</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

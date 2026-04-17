@@ -1,0 +1,386 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__resolving__list" kind="group">
+    <compoundname>sl_bt_resolving_list</compoundname>
+    <title>Address Resolving List</title>
+      <sectiondef kind="enum">
+      <memberdef kind="enum" id="group__sl__bt__resolving__list_1gadc0d564b01ec80cdff8bfb5501bf0dce" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_bt_resolving_list_privacy_mode_t</name>
+        <enumvalue id="group__sl__bt__resolving__list_1ggadc0d564b01ec80cdff8bfb5501bf0dcea26a7a837818b5a1ecd36b4ec3f1ab2ad" prot="public">
+          <name>sl_bt_resolving_list_privacy_mode_network</name>
+          <initializer>= 0x0</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x0) Use Network Privacy Mode for the peer device </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__resolving__list_1ggadc0d564b01ec80cdff8bfb5501bf0dcea464b10cdc9972f94b943b928c88a5493" prot="public">
+          <name>sl_bt_resolving_list_privacy_mode_device</name>
+          <initializer>= 0x1</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x1) Use Device Privacy Mode for the peer device </para>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>Specifies the Privacy Mode used for a peer device in the Resolving List. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="12440" column="1" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="12441" bodyend="12447"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="group__sl__bt__resolving__list_1ga61a5e71e2ede28c0ff6a2132fd5ad8e1" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_resolving_list_add_device_by_bonding</definition>
+        <argsstring>(uint32_t bonding, uint8_t privacy_mode)</argsstring>
+        <name>sl_bt_resolving_list_add_device_by_bonding</name>
+        <param>
+          <type>uint32_t</type>
+          <declname>bonding</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>privacy_mode</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Add a device to the Resolving List based on its bonding handle.</para>
+<para>This command is not available if the application uses the external bonding database provided by the component bluetooth_feature_external_bonding_database. In that configuration the application can use the command <ref refid="group__sl__bt__resolving__list_1ga756f9d30cb9e86853a9c8d02048a61f9" kindref="member">sl_bt_resolving_list_add_device_by_address</ref> and provide the peer&apos;s identity address and its Identity Resolving Key (IRK).</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">bonding</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The bonding handle </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">privacy_mode</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>Enum <ref refid="group__sl__bt__resolving__list_1gadc0d564b01ec80cdff8bfb5501bf0dce" kindref="member">sl_bt_resolving_list_privacy_mode_t</ref>. The Privacy Mode to use for the peer device. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_resolving_list_privacy_mode_network (0x0):</bold> Use Network Privacy Mode for the peer device</para>
+</listitem><listitem><para><bold>sl_bt_resolving_list_privacy_mode_device (0x1):</bold> Use Device Privacy Mode for the peer device</para>
+</listitem></itemizedlist>
+</para>
+<para>Default: <ref refid="group__sl__bt__resolving__list_1ggadc0d564b01ec80cdff8bfb5501bf0dcea26a7a837818b5a1ecd36b4ec3f1ab2ad" kindref="member">sl_bt_resolving_list_privacy_mode_network</ref> (Use Network Privacy Mode for the peer device) </para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+<para><simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="12476" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="12476" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__resolving__list_1ga756f9d30cb9e86853a9c8d02048a61f9" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_resolving_list_add_device_by_address</definition>
+        <argsstring>(bd_addr address, uint8_t address_type, aes_key_128 key, uint8_t privacy_mode)</argsstring>
+        <name>sl_bt_resolving_list_add_device_by_address</name>
+        <param>
+          <type><ref refid="structbd__addr" kindref="compound">bd_addr</ref></type>
+          <declname>address</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>address_type</declname>
+        </param>
+        <param>
+          <type><ref refid="structaes__key__128" kindref="compound">aes_key_128</ref></type>
+          <declname>key</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>privacy_mode</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Add a device to the Resolving List based on its identity address and its Identity Resolving Key (IRK).</para>
+<para>This command is typically only needed when the application uses the external bonding database provided by the component bluetooth_feature_external_bonding_database. When the application uses the built-in bonding database, the command <ref refid="group__sl__bt__resolving__list_1ga61a5e71e2ede28c0ff6a2132fd5ad8e1" kindref="member">sl_bt_resolving_list_add_device_by_bonding</ref> is more convenient.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">address</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Bluetooth address of the peer device </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">address_type</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Enum <ref refid="group__sl__bt__gap_1gac8d5431d3062e47c5d51b9fb9f36c104" kindref="member">sl_bt_gap_address_type_t</ref>. The peer device address type. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_gap_public_address (0x0):</bold> Public device address</para>
+</listitem><listitem><para><bold>sl_bt_gap_static_address (0x1):</bold> Static device address </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">key</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Identity Resolving Key (IRK) of the peer device in little endian format. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">privacy_mode</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>Enum <ref refid="group__sl__bt__resolving__list_1gadc0d564b01ec80cdff8bfb5501bf0dce" kindref="member">sl_bt_resolving_list_privacy_mode_t</ref>. The Privacy Mode to use for the peer device. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_resolving_list_privacy_mode_network (0x0):</bold> Use Network Privacy Mode for the peer device</para>
+</listitem><listitem><para><bold>sl_bt_resolving_list_privacy_mode_device (0x1):</bold> Use Device Privacy Mode for the peer device</para>
+</listitem></itemizedlist>
+</para>
+<para>Default: <ref refid="group__sl__bt__resolving__list_1ggadc0d564b01ec80cdff8bfb5501bf0dcea26a7a837818b5a1ecd36b4ec3f1ab2ad" kindref="member">sl_bt_resolving_list_privacy_mode_network</ref> (Use Network Privacy Mode for the peer device) </para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+<para><simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="12512" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="12512" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__resolving__list_1ga9aaeb17573b914a8b60376145be60a06" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_resolving_list_remove_device_by_bonding</definition>
+        <argsstring>(uint32_t bonding)</argsstring>
+        <name>sl_bt_resolving_list_remove_device_by_bonding</name>
+        <param>
+          <type>uint32_t</type>
+          <declname>bonding</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Remove a device from the Resolving List based on its bonding handle.</para>
+<para>This command is not available if the application uses the external bonding database provided by the component bluetooth_feature_external_bonding_database. In that configuration the application can use the command <ref refid="group__sl__bt__resolving__list_1gaa53f57df176787845b4d8681aab654d1" kindref="member">sl_bt_resolving_list_remove_device_by_address</ref> and provide the peer&apos;s identity address.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">bonding</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The bonding handle</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="12533" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="12533" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__resolving__list_1gaa53f57df176787845b4d8681aab654d1" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_resolving_list_remove_device_by_address</definition>
+        <argsstring>(bd_addr address, uint8_t address_type)</argsstring>
+        <name>sl_bt_resolving_list_remove_device_by_address</name>
+        <param>
+          <type><ref refid="structbd__addr" kindref="compound">bd_addr</ref></type>
+          <declname>address</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>address_type</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Remove a device from the Resolving List based on its identity address.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">address</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Bluetooth address of the peer device </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">address_type</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Enum <ref refid="group__sl__bt__gap_1gac8d5431d3062e47c5d51b9fb9f36c104" kindref="member">sl_bt_gap_address_type_t</ref>. The peer device address type. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_gap_public_address (0x0):</bold> Public device address</para>
+</listitem><listitem><para><bold>sl_bt_gap_static_address (0x1):</bold> Static device address</para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="12548" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="12548" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__resolving__list_1ga5170d52a5a449272d3747b63d5854e98" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_resolving_list_remove_all_devices</definition>
+        <argsstring>(void)</argsstring>
+        <name>sl_bt_resolving_list_remove_all_devices</name>
+        <param>
+          <type>void</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Remove all devices from the Resolving List.</para>
+<para><simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="12559" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="12559" declcolumn="13"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__resolving__list_1ga7d5b77e2c203e226452def6af5115b3f" prot="public" static="no">
+        <name>sl_bt_cmd_resolving_list_add_device_by_bonding_id</name>
+        <initializer>0x005d0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="12425" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="12425" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__resolving__list_1ga66d4d6899fcb25a2ae6160deab48b434" prot="public" static="no">
+        <name>sl_bt_cmd_resolving_list_add_device_by_address_id</name>
+        <initializer>0x015d0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="12426" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="12426" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__resolving__list_1ga035f4d0c6789e25bc0e69b056ee0eb6a" prot="public" static="no">
+        <name>sl_bt_cmd_resolving_list_remove_device_by_bonding_id</name>
+        <initializer>0x025d0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="12427" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="12427" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__resolving__list_1gadd565aac290db327b52ce0b196031710" prot="public" static="no">
+        <name>sl_bt_cmd_resolving_list_remove_device_by_address_id</name>
+        <initializer>0x035d0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="12428" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="12428" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__resolving__list_1ga4867163820bd0558419fe5cf499191a8" prot="public" static="no">
+        <name>sl_bt_cmd_resolving_list_remove_all_devices_id</name>
+        <initializer>0x045d0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="12429" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="12429" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__resolving__list_1gabcc95231d06b9a3e3afed47aaf06a5e6" prot="public" static="no">
+        <name>sl_bt_rsp_resolving_list_add_device_by_bonding_id</name>
+        <initializer>0x005d0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="12430" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="12430" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__resolving__list_1gac67e276c23a4f1c7ab49d6c9c794a904" prot="public" static="no">
+        <name>sl_bt_rsp_resolving_list_add_device_by_address_id</name>
+        <initializer>0x015d0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="12431" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="12431" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__resolving__list_1gadee96492e0b3d2ef70b2c67c556bb469" prot="public" static="no">
+        <name>sl_bt_rsp_resolving_list_remove_device_by_bonding_id</name>
+        <initializer>0x025d0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="12432" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="12432" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__resolving__list_1ga4731e1b96805ab913ef9481e27cdf758" prot="public" static="no">
+        <name>sl_bt_rsp_resolving_list_remove_device_by_address_id</name>
+        <initializer>0x035d0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="12433" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="12433" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__resolving__list_1gabd247975c4d9844a61c009e6be0942e8" prot="public" static="no">
+        <name>sl_bt_rsp_resolving_list_remove_all_devices_id</name>
+        <initializer>0x045d0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="12434" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="12434" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Address Resolving List. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>Provides support for adding and removing devices from the Resolving List in controller-based privacy.</para>
+<para>Adding a peer device to the Resolving List allows the Bluetooth controller to resolve the address when the peer device is using privacy and is transmitting with a Resolvable Private Address (RPA). When the controller has resolved an address in a received Bluetooth packet such as an advertisement, the corresponding event will report the peer device&apos;s identity address even if a Resolvable Private Address was used over the air.</para>
+<para>When the application has added a peer device to the Resolving List, the application may use the peer device&apos;s identity address in commands such as <ref refid="group__sl__bt__connection_1gabb952445e50f64228b279fe9969001fe" kindref="member">sl_bt_connection_open</ref> or <ref refid="group__sl__bt__sync__scanner_1gafc4271a3a5784987925927e6aae8652b" kindref="member">sl_bt_sync_scanner_open</ref> even if the peer device is using privacy and is using a Resolvable Private Address over the air. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

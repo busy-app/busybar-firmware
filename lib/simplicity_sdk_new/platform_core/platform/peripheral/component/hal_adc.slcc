@@ -1,0 +1,33 @@
+# This HAL applies only to series 3 devices.
+id: hal_adc
+label: ADC
+package: platform_core
+description: >
+  ADC Successive Approximation Registers Peripheral API
+category: Platform|Peripheral|HAL
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+source:
+- path: src/sl_hal_adc.c
+include:
+- path: inc
+  file_list:
+  - path: sl_hal_adc.h
+provides:
+- name: hal_adc
+- name: hal_generic_adc
+  condition: [device_series_3]
+requires:
+- name: device
+- name: hal_system
+- name: device_has_adc
+- name: enum
+- name: status
+documentation:
+  docset: gecko-platform
+  document:
+  - page: platform-peripheral-sixg301/adc
+    condition: [device_generic_family_sixx301]
+root_path: platform_core/platform/peripheral

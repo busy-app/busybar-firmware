@@ -1,0 +1,12 @@
+id: rail_library_alpha_chips
+examples:
+sample_apps:
+description:
+dependencies:
+  - rail_library/3.0.1@silabs
+components:
+  - rail_lib_singleprotocol_alpha_chips
+  - rail_lib_multiprotocol_alpha_chips
+extra_files: []
+git_extra_files: []
+git_path_mapping: []

@@ -1,0 +1,36 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<module:DocumentRoot xmlns:module="http://www.silabs.com/ss/hwconfig/module.ecore">
+  <module id="pin_tool.si.simg301.gpio" label="GPIO" name="GPIO" description="" version="A">
+    <properties>
+      <stringProperty label="Type" id="type" defaultValue="gpio" transient="true" hidden="true" readonly="true" description=""/>
+      <stringProperty label="Custom Peripheral Name" id="peripheral.name" description=""/>
+    </properties>
+    <propertyCategories>
+      <category label="GPIO">
+        <subCategory label="">
+          <propertyRef refId="peripheral.name"/>
+        </subCategory>
+      </category>
+    </propertyCategories>
+    <signals>
+      <signal name="SWCLK"/>
+      <signal name="SWDIO"/>
+      <signal name="SWV"/>
+      <signal name="TDO"/>
+      <signal name="TRACEDATA0"/>
+      <signal name="TDI"/>
+      <signal name="TRACECLK"/>
+      <signal name="TRACEDATA1"/>
+      <signal name="EM4WU0"/>
+      <signal name="TRACEDATA2"/>
+      <signal name="TRACEDATA3"/>
+      <signal name="EM4WU3"/>
+      <signal name="EM4WU4"/>
+      <signal name="EM4WU6"/>
+      <signal name="EM4WU7"/>
+      <signal name="EM4WU8"/>
+      <signal name="EM4WU9"/>
+      <signal name="EM4WU10"/>
+    </signals>
+  </module>
+</module:DocumentRoot>

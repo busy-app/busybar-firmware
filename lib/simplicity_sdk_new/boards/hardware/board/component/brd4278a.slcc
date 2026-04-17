@@ -1,0 +1,21 @@
+!!omap
+- id: brd4278a
+- label: BRD4278A
+- package: boards
+- description: Board support for BRD4278A.
+- category: Platform|Board|Radio Board
+- quality: evaluation
+- metadata:
+    sbom:
+      license: Zlib
+- requires:
+  - name: brd4278a_revision
+- provides:
+  - name: brd4278a
+  - name: hardware_board_from_stk
+- recommends:
+  - id: brd4278a_a05
+    vendor: silabs
+- ui_hints:
+    visibility: never
+- root_path: boards

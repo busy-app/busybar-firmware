@@ -1,0 +1,39 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__resource__connection__tx__flags" kind="group">
+    <compoundname>sl_bt_resource_connection_tx_flags</compoundname>
+    <title>Connection TX status flags</title>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__resource__connection__tx__flags_1ga9d41051751a183fee0868821a31c9bfc" prot="public" static="no">
+        <name>SL_BT_RESOURCE_CONNECTION_TX_FLAGS_ERROR_PACKET_OVERFLOW</name>
+        <initializer>0x1</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>The number of TX packets queued on a connection has overflowed the <computeroutput>packet_count</computeroutput> that was effective at the time the connection opened. The packet count is configured with command <ref refid="group__sl__bt__resource_1gad776c2696303de220282839c6dcbf5f8" kindref="member">sl_bt_resource_enable_connection_tx_report</ref> and is valid for subsequent connections.</para>
+<para>When this bit is set, the <computeroutput>packet_count</computeroutput> returned by <ref refid="group__sl__bt__resource_1gac20e81967290607f606bac886edfd959" kindref="member">sl_bt_resource_get_connection_tx_status</ref> is correct, but <computeroutput>data_len</computeroutput> excludes the data bytes in the packets that overflowed the configured packet count. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="1883" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="1883" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__resource__connection__tx__flags_1gafd37e277849a57e07f8f5c2388d67e8b" prot="public" static="no">
+        <name>SL_BT_RESOURCE_CONNECTION_TX_FLAGS_ERROR_CORRUPT</name>
+        <initializer>0x2</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Internal inconsistency has been detected in the connection TX bookkeeping. When this bit is set, the application should consider both <computeroutput>packet_count</computeroutput> and <computeroutput>data_len</computeroutput> returned by <ref refid="group__sl__bt__resource_1gac20e81967290607f606bac886edfd959" kindref="member">sl_bt_resource_get_connection_tx_status</ref> to be unreliable. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="1893" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="1893" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para>Defines the connection TX status flags reported by <ref refid="group__sl__bt__resource_1gac20e81967290607f606bac886edfd959" kindref="member">sl_bt_resource_get_connection_tx_status</ref>. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

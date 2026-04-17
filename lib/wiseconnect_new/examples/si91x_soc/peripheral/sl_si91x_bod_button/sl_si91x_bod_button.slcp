@@ -1,0 +1,49 @@
+project_name: sl_si91x_bod_button
+package: platform_siwx91x_app
+description: 'Demonstrates using the BOD button feature to detect voltage changes with a button press.
+
+  '
+category: example|peripheral
+quality: production
+label: SI91x - BOD
+component:
+- id: sl_main
+- id: status
+- id: syscalls
+- id: si91x_memory_default_config
+- id: sl_bod
+source:
+- path: bod_button_example.c
+- path: app.c
+include:
+- path: .
+  file_list:
+  - path: app.h
+  - path: bod_button_example.h
+define:
+- name: RSI_M4_INTERFACE
+toolchain_settings:
+- option: gcc_compiler_option
+  value: -Wall -Werror
+other_file:
+- path: resources/readme/setupdiagram.png
+- path: resources/readme/bod_button_result_console.png
+- path: resources/uc_screen/bod_button_uc_screen.png
+provides:
+- name: si91x_soc
+ui_hints:
+  highlight:
+  - path: readme.md
+    focus: true
+readme:
+- path: readme.md
+post_build:
+  profile: wiseconnect_soc
+sdk_extension:
+- id: wiseconnect3_sdk
+  vendor: silabs
+  version: 4.0.1
+sdk:
+  id: simplicity_sdk
+  vendor: silabs
+  version: 2025.12.2

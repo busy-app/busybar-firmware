@@ -1,0 +1,72 @@
+id: sl_rail_util_cs_gdcomp
+label: RAIL Utility, CS Group Delay Compensation (RAIL 3)
+description: Utility to aid with loading CS group delay compensation tables
+package: rail_library
+category: Platform|Radio
+quality: production
+metadata:
+  sbom:
+    id: sl_rail_util_cs_gdcomp
+    name: RAIL Utility, CS Group Delay Compensation (RAIL 3)
+    license: Zlib
+ui_hints:
+  visibility: never
+provides:
+- name: sl_rail_util_cs_gdcomp
+- name: rail_util_cs_gdcomp
+requires:
+- name: rail_lib
+- name: component_catalog
+config_file:
+- path: plugin/cs/gdcomp/config/efr32xg24/sl_rail_util_cs_gdcomp_config.h
+  file_id: rail_util_cs_gdcomp
+  condition:
+  - device_sdid_215
+- path: plugin/cs/gdcomp/config/efr32xg26/sl_rail_util_cs_gdcomp_config.h
+  file_id: rail_util_cs_gdcomp
+  condition:
+  - device_sdid_225
+include:
+- path: plugin/cs/gdcomp
+  file_list:
+  - path: sl_rail_util_cs_gdcomp_tables.h
+define:
+- name: SL_RAIL_UTIL_CS_GDCOMP_LP_PA_DBM
+  value: '0'
+  condition:
+  - device_sdid_215
+  - device_pa_0dbm
+- name: SL_RAIL_UTIL_CS_GDCOMP_HP_PA_DBM
+  value: '10'
+  condition:
+  - device_sdid_215
+  - device_pa_10dbm
+- name: SL_RAIL_UTIL_CS_GDCOMP_HP_PA_DBM
+  value: '20'
+  condition:
+  - device_sdid_215
+  - device_pa_20dbm
+- name: SL_RAIL_UTIL_CS_GDCOMP_LP_PA_DBM
+  value: '0'
+  condition:
+  - device_sdid_225
+  - device_pa_0dbm
+- name: SL_RAIL_UTIL_CS_GDCOMP_HP_PA_DBM
+  value: '10'
+  condition:
+  - device_sdid_225
+  - device_pa_10dbm
+- name: SL_RAIL_UTIL_CS_GDCOMP_HP_PA_DBM
+  value: '20'
+  condition:
+  - device_sdid_225
+  - device_pa_20dbm
+source:
+- path: plugin/cs/gdcomp/sl_rail_util_cs_gdcomp.c
+- path: plugin/cs/gdcomp/sl_rail_util_cs_gdcomp_tables.c
+template_contribution:
+- name: component_catalog
+  value: sl_rail_util_cs_gdcomp
+- name: component_catalog
+  value: rail_util_cs_gdcomp
+root_path: rail_library

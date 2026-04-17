@@ -1,0 +1,59 @@
+id: psa_driver
+package: security_mbedtls
+label: Drivers for Crypto Acceleration
+description: >-
+  This component provides drivers for hardware accelerated crypto operations
+  using the PSA Crypto driver API.
+category: Platform|Security|PSA Crypto
+quality: production
+ui_hints:
+  visibility: never
+provides:
+- name: psa_driver
+
+requires:
+- name: psa_driver_common
+- name: psa_se_driver
+  condition: [device_has_semailbox, trustzone_unaware]
+- name: psa_se_driver
+  condition: [device_has_semailbox, trustzone_secure]
+
+- name: psa_vse_driver
+  condition: [device_has_cryptoacc, trustzone_secure]
+- name: psa_vse_driver
+  condition: [device_has_cryptoacc, trustzone_unaware]
+
+- name: psa_hostcrypto_driver
+  condition: [device_has_symcrypto, trustzone_unaware]
+
+  # Inclusion of source and config components depends on which TZ state we are
+  # targeting. For apps that do not make active use of TZ, a dummy state
+  # (trustzone_unaware) should be used.
+- name: trustzone_security_state
+
+  # Can be used to check whether or not certain platform components are included
+  # in the end-project.
+- name: component_catalog
+
+recommends:
+  # Assume that projects are TZ unaware unless a state is explicitly included.
+- id: trustzone_unaware
+
+  vendor: silabs
+template_contribution:
+- name: mbedtls_config
+  value: MBEDTLS_PSA_CRYPTO_DRIVERS
+  condition: [device_series_2]
+- name: mbedtls_config
+  value: MBEDTLS_PSA_CRYPTO_DRIVERS
+  condition: [device_series_3]
+
+- name: psa_crypto_builtin_config
+  value: MBEDTLS_PSA_BUILTIN_ALG_HMAC 1
+  condition: [device_series_2, mbedtls_sha512]
+  unless: [device_security_vault]
+
+metadata:
+  sbom:
+    license: Zlib
+root_path: security_mbedtls/platform/security/sl_component

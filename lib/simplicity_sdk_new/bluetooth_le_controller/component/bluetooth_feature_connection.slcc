@@ -1,0 +1,34 @@
+id: "bluetooth_feature_connection"
+label: "Connection"
+package: bluetooth_le_controller
+description: >
+  This component provides the functionality and configuration common to
+  Bluetooth connections in both Central and Peripheral role. The application
+  must also include <bluetooth_feature_connection_role_central> and/or
+  <bluetooth_feature_connection_role_peripheral> component to specify which
+  connection roles are needed by the application.
+category: Bluetooth|Bluetooth LE Controller (Link Layer)|Features with Commands and Events
+quality: "production"
+config_file:
+- path: "config/sl_bluetooth_connection_config.h"
+requires:
+- name: "bluetooth_controller"
+- name: "bluetooth_feature_connection_creation"
+- name: "bluetooth_feature_connection_role"
+provides:
+- name: "bluetooth_feature_connection"
+template_contribution:
+- name: component_catalog
+  value: bluetooth_feature_connection
+- name: bluetooth_controller_init
+  value:
+    include: "sl_bluetooth_connection_config.h"
+    function: sl_btctrl_init_conn()
+  priority: 5
+documentation:
+  docset: bluetooth
+  document: bluetooth-stack-api/sl-bt-connection
+metadata:
+  sbom:
+    license: Zlib AND MSLA
+root_path: bluetooth_le_controller

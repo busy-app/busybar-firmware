@@ -1,0 +1,29 @@
+id: bluetooth_le_siwx91x
+examples: []
+sample_apps: []
+description: ' '
+components:
+- ble
+extra_files:
+- bluetooth_le_siwx91x.slce
+- components/device/silabs/si91x/wireless/ble/ble.slcc
+- components/device/silabs/si91x/wireless/ble/src/rsi_common_apis.c
+- components/device/silabs/si91x/wireless/ble/src/sl_si91x_ble.c
+- components/device/silabs/si91x/wireless/ble/src/rsi_ble_gap_apis.c
+- components/device/silabs/si91x/wireless/ble/src/rsi_bt_common_apis.c
+- components/device/silabs/si91x/wireless/ble/src/rsi_ble_gatt_apis.c
+- components/device/silabs/si91x/wireless/ble/src/rsi_bt_ble.c
+- components/device/silabs/si91x/wireless/ble/src/rsi_utils.c
+- components/device/silabs/si91x/wireless/ble/inc/rsi_common.h
+- components/device/silabs/si91x/wireless/ble/inc/rsi_bt_common.h
+- components/device/silabs/si91x/wireless/ble/inc/rsi_ble_apis.h
+- components/device/silabs/si91x/wireless/ble/inc/rsi_common_apis.h
+- components/device/silabs/si91x/wireless/ble/inc/rsi_utils.h
+- components/device/silabs/si91x/wireless/ble/inc/rsi_ble.h
+- components/device/silabs/si91x/wireless/ble/inc/rsi_bt_common_config.h
+- components/device/silabs/si91x/wireless/ble/inc/rsi_bt_common_apis.h
+- components/device/silabs/si91x/wireless/ble/inc/sl_si91x_ble.h
+- components/device/silabs/si91x/wireless/ble/inc/rsi_user.h
+- components/device/silabs/si91x/wireless/ble/inc/rsi_ble_common_config.h
+git_extra_files: null
+git_path_mapping: null

@@ -1,0 +1,49 @@
+id: "apploader_lib_release"
+label: "AppLoader library for Gecko Bootloader"
+package: bluetooth_apploader
+description: >
+  Bluetooth AppLoader library for Gecko Bootloader with AppLoader OTA DFU plugin for series 2 devices.
+
+  AppLoader is a minimal version of the Bluetooth stack designed to enable device firmware updates over BLE connections
+  It allows to update application using in-place update where the old application is directly overwritten with the new one.
+category: Bluetooth|Apploader
+quality: "production"
+include:
+- path: "inc/"
+  file_list:
+  - path: "sl_apploader_lib_api.h"
+  - path: "sli_apploader_lib_adaptation.h"
+source:
+- path: "src/sli_apploader_lib_adaptation.c"
+requires:
+- name: device_supports_bluetooth
+- name: emlib
+- name: rail_lib
+- name: sl_rail_util_compatible_pa
+- name: sl_rail_util_built_in_phys
+- name: device_init
+- name: device_series_2
+
+provides:
+- name: "apploader_lib"
+- name: "wireless_stack"
+template_contribution:
+- name: component_catalog
+  value: apploader_lib
+library:
+- path: build/gcc/cortex-m33/release/libapploader.a
+  condition:
+  - toolchain_gcc
+  - cortexm33
+- path: build/iar/cortex-m33/release/libapploader.a
+  condition:
+  - toolchain_iar
+  - cortexm33
+- path: build/llvm/cortex-m33/release/libapploader.a
+  condition:
+  - toolchain_llvm
+  - cortexm33
+metadata:
+  sbom:
+    license: MSLA
+root_path: bluetooth_apploader

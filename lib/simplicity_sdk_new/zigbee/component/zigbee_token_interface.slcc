@@ -1,0 +1,43 @@
+id: zigbee_token_interface
+label: Stack Token Interface
+package: zigbee
+category: Zigbee|Utility
+quality: production
+description: This component provides token interface wrappers. This component can be used on an NCP node for the connected host to access the tokes using the APIs in this component.This component is useful for a NCP-Host backup and restore use-case where host reads and saves all the tokens from the connected NCP and restores back on a new NCP hardware.
+
+provides:
+- name: zigbee_token_interface
+
+requires:
+- name: common_token_manager
+
+include:
+- path: stack/include/
+  file_list:
+  - path: sl_zigbee_types.h
+
+- path: stack/internal/src/ipc
+  file_list:
+  - path: zigbee_ipc_callback_events.h
+  - path: zigbee_ipc_command_messages.h
+  condition:
+  - zigbee_use_ipc
+source:
+- path: app/em260/command-handlers-token-interface-generated.c
+  condition:
+  - zigbee_ncp
+- path: app/em260/command-handlers-token-interface.c
+  condition:
+  - zigbee_ncp
+- path: stack/platform/zigbee_token_interface.c
+template_contribution:
+- name: component_catalog
+  value: zigbee_token_interface
+
+documentation:
+  docset: zigbee
+  document: zigbee-af-api/zigbee-token-interface
+metadata:
+  sbom:
+    license: MSLA
+root_path: zigbee

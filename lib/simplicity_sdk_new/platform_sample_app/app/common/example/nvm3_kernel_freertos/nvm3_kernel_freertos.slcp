@@ -1,0 +1,103 @@
+project_name: nvm3_kernel_freertos
+package: platform
+quality: production
+label: Platform - NVM3 Kernel FreeRtos
+description: >
+  This example project demonstrates use of the NVM3 interface.
+  Using the command line interface, the user can write, read, delete and
+  repack NVM3 data objects through the serial connection. The number of
+  writes and deletes are tracked in counter objects.
+category: Example|Platform
+filter:
+  - name: "Device Type"
+    value: ["SoC"]
+  - name: "MCU"
+    value: ["32-bit MCU"]
+  - name: "Project Difficulty"
+    value: ["Beginner"]
+source:
+  - path: app.c
+  - path: nvm3_app.c
+include:
+  - path: .
+    file_list:
+    - path: app.h
+    - path: nvm3_app.h
+component:
+  - id: sl_main
+  - id: device_init
+  - id: clock_manager
+  - id: nvm3_source
+  - id: freertos
+  - id: cli
+    instance: [vcom]
+  - id: iostream_stdlib_config
+  - id: iostream_retarget_stdio
+  - id: iostream_recommended_stream
+define:
+  - name: DEBUG_EFM
+configuration:
+  - name: SL_BOARD_ENABLE_VCOM
+    value: 1
+  - name: NVM3_DEFAULT_MAX_OBJECT_SIZE
+    value: 1024
+  - name: SL_CLI_INPUT_BUFFER_SIZE
+    value: 256
+  - name: SL_CLI_TASK_STACK_SIZE
+    value: 2048
+template_contribution:
+  - name: cli_command
+    value:
+      name: write
+      handler: nvm3_app_write
+      help: "Write data to nvm3"
+      argument:
+        - type: uint32
+          help: "NVM3 Key"
+        - type: string
+          help: "Data to store"
+  - name: cli_command
+    value:
+      name: delete
+      handler: nvm3_app_delete
+      help: "Delete NVM3 data"
+      argument:
+        - type: uint32
+          help: "NVM3 Key"
+  - name: cli_command
+    value:
+      name: read
+      handler: nvm3_app_read
+      help: "Read data from nvm3"
+      argument:
+        - type: uint32
+          help: "NVM3 Key"
+  - name: cli_command
+    value:
+      name: display
+      handler: nvm3_app_display
+      help: "Display stored data and deleted keys"
+  - name: cli_command
+    value:
+      name: reset
+      handler: nvm3_app_reset
+      help: "Erase all NVM3 data"
+  - name: cli_command
+    value:
+      name: meminfo
+      handler: nvm3_app_get_mem_info
+      help: "Get current NVM3 memory info"
+  - name: cli_command
+    value:
+      name: repack
+      handler: nvm3_app_repack
+      help: "Repack NVM3 with custom headroom and repack count"
+      argument:
+        - type: uint32
+          help: "Repack headroom (bytes, max 4096)"
+        - type: uint32
+          help: "Repack count (min 1, max 10000)"
+readme:
+  - path: readme.md
+ui_hints:
+  highlight: readme.md

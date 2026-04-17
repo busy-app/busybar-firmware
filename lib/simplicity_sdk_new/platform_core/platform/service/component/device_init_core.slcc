@@ -1,0 +1,31 @@
+id: device_init_core
+label: Core
+package: platform_core
+description: >
+  This initialization configures the device to a state as similar to later  revisions as possible to improve software compatibility with newer parts.
+category: Services|Device Initialization|Peripherals
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+provides:
+- name: device_init_core
+requires:
+- name: device_series_2
+  condition: [device_efx]
+- name: emlib_chip
+  condition: [device_efx]
+template_contribution:
+- name: event_handler
+  value:
+    event: platform_init
+    include: em_chip.h
+    handler: CHIP_Init
+  priority: -9999
+  condition: [device_efx, sl_system, kernel]
+- name: component_catalog
+  value: device_init_core
+documentation:
+  docset: gecko-platform
+  document: platform-service/device-init
+root_path: platform_core

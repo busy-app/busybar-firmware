@@ -1,0 +1,59 @@
+id: ot_radio_source
+label: Radio
+package: openthread_stack
+category: OpenThread
+quality: production
+description: This component provides the OpenThread radio only support
+provides:
+- name: ot_radio
+requires:
+- name: ot_headers
+- name: cpp_support
+- name: ot_radio_ram_objects
+ui_hints:
+  visibility: never
+root_path: openthread_stack/util/third_party/openthread/src/core
+source:
+- path: api/diags_api.cpp
+  unless: ["ot_diags_stubs"]
+- path: api/error_api.cpp
+- path: api/instance_api.cpp
+- path: api/link_raw_api.cpp
+- path: api/logging_api.cpp
+- path: api/random_noncrypto_api.cpp
+- path: api/tasklet_api.cpp
+- path: common/binary_search.cpp
+- path: common/error.cpp
+- path: common/frame_builder.cpp
+- path: common/log.cpp
+- path: common/random.cpp
+- path: common/string.cpp
+- path: common/tasklet.cpp
+- path: common/timer.cpp
+- path: common/uptime.cpp
+- path: crypto/aes_ccm.cpp
+- path: crypto/aes_ecb.cpp
+- path: crypto/crypto_platform.cpp
+- path: crypto/storage.cpp
+- path: diags/factory_diags.cpp
+  unless: ["ot_diags_stubs"]
+- path: instance/instance.cpp
+- path: mac/link_raw.cpp
+- path: mac/mac_frame.cpp
+- path: mac/mac_header_ie.cpp
+- path: mac/mac_types.cpp
+- path: mac/sub_mac.cpp
+- path: mac/sub_mac_callbacks.cpp
+- path: mac/sub_mac_csl_receiver.cpp
+- path: radio/radio.cpp
+- path: radio/radio_callbacks.cpp
+- path: radio/radio_platform.cpp
+- path: thread/link_quality.cpp
+- path: utils/parse_cmdline.cpp
+- path: utils/power_calibration.cpp
+template_contribution:
+- name: application_type
+  value: "APPLICATION_TYPE_THREAD"
+metadata:
+  sbom:
+    reference: ot_sbom_openthread

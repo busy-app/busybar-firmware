@@ -1,0 +1,60 @@
+id: psa_crypto_ecdh
+package: security_mbedtls
+label: ECDH
+description: >-
+  This component provides support for key agreement with ECDH in PSA Crypto.
+category: Platform|Security|PSA Crypto|Key Exchange
+quality: production
+provides:
+- name: psa_crypto_ecdh
+requires:
+- name: psa_crypto_ecc
+- name: sl_si91x_psa_ecdh
+  condition: [device_si91x]
+- name: mbedtls_ecdh
+  condition: [device_si91x, psa_crypto_ecc_secp224r1]
+- name: mbedtls_ecdh
+  condition: [device_si91x, psa_crypto_ecc_secp384r1]
+- name: mbedtls_ecdh
+  condition: [device_si91x, psa_crypto_ecc_secp521r1]
+  # EFR32xG21 (SDID:200) does not support acceleration of the SECP224R1 curve.
+- name: mbedtls_ecdh
+  condition: [device_sdid_200, psa_crypto_ecc_secp224r1]
+- name: mbedtls_ecdh
+  condition: [device_security_se, psa_crypto_ecc_secp384r1]
+- name: mbedtls_ecdh
+  condition: [device_security_se, psa_crypto_ecc_secp521r1]
+- name: mbedtls_ecdh
+  condition: [device_security_rot, psa_crypto_ecc_secp384r1]
+- name: mbedtls_ecdh
+  condition: [device_security_rot, psa_crypto_ecc_secp521r1]
+- name: mbedtls_ecdh
+  condition: [device_security_rot, psa_crypto_ecc_curve25519]
+- name: mbedtls_ecdh
+  condition: [device_security_base, psa_crypto_ecc_secp384r1]
+- name: mbedtls_ecdh
+  condition: [device_security_base, psa_crypto_ecc_secp521r1]
+- name: mbedtls_ecdh
+  condition: [device_security_base, psa_crypto_ecc_curve25519]
+    # SIXX301 does not accelerate secp384r1
+- name: mbedtls_ecdh
+  condition: [device_generic_family_sixx301, psa_crypto_ecc_secp384r1]
+    # SIXX301 does not accelerate secp521r1
+- name: mbedtls_ecdh
+  condition: [device_generic_family_sixx301, psa_crypto_ecc_secp521r1]
+    # SIXX301 does not accelerate Montgomery curve448
+- name: mbedtls_ecdh
+  condition: [device_generic_family_sixx301, psa_crypto_ecc_curve448]
+
+template_contribution:
+- name: psa_crypto_config
+  value: PSA_WANT_ALG_ECDH 1
+- name: psa_crypto_builtin_config
+  value: "MBEDTLS_PSA_BUILTIN_ALG_ECDH 1"
+  condition: [mbedtls_ecdh]
+documentation:
+  url: https://armmbed.github.io/mbed-crypto/html/api/ops/ka.html#c.PSA_ALG_ECDH
+metadata:
+  sbom:
+    reference: mbedtls_sbom
+root_path: security_mbedtls

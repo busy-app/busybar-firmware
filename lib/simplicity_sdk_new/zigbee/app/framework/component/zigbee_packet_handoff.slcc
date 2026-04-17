@@ -1,0 +1,21 @@
+package: zigbee
+description: This component hooks directly into the stack and provides a mechanism to intercept packets and hand them off to other components as a flat buffer.  Required for components and applications implementing sl_zigbee_pre_incoming_packet_filter_cb/sl_zigbee_pre_outgoing_packet_filter_cb.
+label: Packet Handoff
+quality: production
+id: zigbee_packet_handoff
+category: Zigbee|Utility
+provides:
+- name: zigbee_packet_handoff
+config_file:
+- path: app/framework/plugin-soc/packet-handoff/config/packet-handoff-config.h
+source:
+- path: app/framework/plugin-soc/packet-handoff/packet-handoff.c
+- path: app/framework/plugin-soc/packet-handoff/packet-handoff-cb.c
+template_contribution:
+- name: component_catalog
+  value: zigbee_packet_handoff
+
+metadata:
+  sbom:
+    license: MSLA
+root_path: zigbee

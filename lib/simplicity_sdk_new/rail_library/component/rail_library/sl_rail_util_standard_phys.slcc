@@ -1,0 +1,179 @@
+id: sl_rail_util_standard_phys
+label: RAIL Utility, Standards based PHYs
+package: rail_library
+description: Radio configurations for standards based PHYs.
+category: Platform|Radio
+quality: production
+metadata:
+  sbom:
+    id: sl_rail_util_standard_phys
+    name: RAIL Utility, Standards based PHYs
+    license: Zlib
+provides:
+- name: sl_rail_util_standard_phys
+- name: a_radio_config
+requires:
+- name: rail_lib
+include:
+- path: chip/efr32/protocol_config/efr32xg21
+  condition: [device_sdid_200]
+  unless: [device_is_module]
+  file_list:
+  - path: ble_efr32xg21_configurator_out.h
+  - path: ieee802154_efr32xg21_configurator_out.h
+- path: chip/efr32/protocol_config/efr32xg22
+  condition: [device_sdid_205]
+  unless: [device_is_module]
+  file_list:
+  - path: ble_efr32xg22_configurator_out.h
+  - path: ieee802154_efr32xg22_configurator_out.h
+  - path: rfsense_ook_efr32xg22_configurator_out.h
+- path: chip/efr32/protocol_config/efr32xg23
+  condition: [device_sdid_210]
+  unless: [device_is_module]
+  file_list:
+  - path: ieee802154_efr32xg23_configurator_out.h
+  - path: sidewalk_efr32xg23_configurator_out.h
+  - path: zwave_efr32xg23_configurator_out.h
+- path: chip/efr32/protocol_config/efr32xg24
+  condition: [device_sdid_215]
+  unless: [device_is_module]
+  file_list:
+  - path: ble_efr32xg24_configurator_out.h
+  - path: ieee802154_efr32xg24_configurator_out.h
+  - path: rfsense_ook_efr32xg24_configurator_out.h
+- path: chip/efr32/protocol_config/efr32xg25
+  condition: [device_sdid_220]
+  unless: [device_is_module]
+  file_list:
+  - path: ieee802154_efr32xg25_configurator_out.h
+- path: chip/efr32/protocol_config/efr32xg26
+  condition: [device_sdid_225]
+  unless: [device_is_module]
+  file_list:
+  - path: ble_efr32xg26_configurator_out.h
+  - path: ieee802154_efr32xg26_configurator_out.h
+  - path: rfsense_ook_efr32xg26_configurator_out.h
+- path: chip/efr32/protocol_config/efr32xg27
+  condition: [device_sdid_230]
+  unless: [device_is_module]
+  file_list:
+  - path: ble_efr32xg27_configurator_out.h
+  - path: ieee802154_efr32xg27_configurator_out.h
+  - path: rfsense_ook_efr32xg27_configurator_out.h
+- path: chip/efr32/protocol_config/efr32xg28
+  condition: [device_sdid_235]
+  unless: [device_is_module]
+  file_list:
+  - path: ble_efr32xg28_configurator_out.h
+  - path: ieee802154_efr32xg28_configurator_out.h
+  - path: sidewalk_efr32xg28_configurator_out.h
+  - path: zwave_efr32xg28_configurator_out.h
+- path: chip/efr32/protocol_config/efr32xg29
+  condition: [device_sdid_240]
+  unless: [device_is_module]
+  file_list:
+  - path: ble_efr32xg29_configurator_out.h
+  - path: ieee802154_efr32xg29_configurator_out.h
+  - path: rfsense_ook_efr32xg29_configurator_out.h
+- path: chip/efr32/protocol_config/efr32xg2d
+  condition: [device_sdid_260]
+  unless: [device_is_module]
+  file_list:
+  - path: ieee802154_efr32xg2d_configurator_out.h
+  - path: sidewalk_efr32xg2d_configurator_out.h
+- path: chip/efr32/protocol_config/sixg301
+  condition: [device_generic_family_sixx301]
+  unless: [device_is_module]
+  file_list:
+  - path: ble_sixg301_configurator_out.h
+  - path: ieee802154_sixg301_configurator_out.h
+source:
+- path: chip/efr32/protocol_config/efr32xg21/ble_efr32xg21_configurator_out.c
+  condition: [device_sdid_200]
+  unless: [device_is_module]
+- path: chip/efr32/protocol_config/efr32xg21/ieee802154_efr32xg21_configurator_out.c
+  condition: [device_sdid_200]
+  unless: [device_is_module]
+- path: chip/efr32/protocol_config/efr32xg22/ble_efr32xg22_configurator_out.c
+  condition: [device_sdid_205]
+  unless: [device_is_module]
+- path: chip/efr32/protocol_config/efr32xg22/ieee802154_efr32xg22_configurator_out.c
+  condition: [device_sdid_205]
+  unless: [device_is_module]
+- path: chip/efr32/protocol_config/efr32xg22/rfsense_ook_efr32xg22_configurator_out.c
+  condition: [device_sdid_205]
+  unless: [device_is_module]
+- path: chip/efr32/protocol_config/efr32xg23/ieee802154_efr32xg23_configurator_out.c
+  condition: [device_sdid_210]
+  unless: [device_is_module]
+- path: chip/efr32/protocol_config/efr32xg23/sidewalk_efr32xg23_configurator_out.c
+  condition: [device_sdid_210]
+  unless: [device_is_module]
+- path: chip/efr32/protocol_config/efr32xg23/zwave_efr32xg23_configurator_out.c
+  condition: [device_sdid_210]
+  unless: [device_is_module]
+- path: chip/efr32/protocol_config/efr32xg24/ble_efr32xg24_configurator_out.c
+  condition: [device_sdid_215]
+  unless: [device_is_module]
+- path: chip/efr32/protocol_config/efr32xg24/ieee802154_efr32xg24_configurator_out.c
+  condition: [device_sdid_215]
+  unless: [device_is_module]
+- path: chip/efr32/protocol_config/efr32xg24/rfsense_ook_efr32xg24_configurator_out.c
+  condition: [device_sdid_215]
+  unless: [device_is_module]
+- path: chip/efr32/protocol_config/efr32xg25/ieee802154_efr32xg25_configurator_out.c
+  condition: [device_sdid_220]
+  unless: [device_is_module]
+- path: chip/efr32/protocol_config/efr32xg26/ble_efr32xg26_configurator_out.c
+  condition: [device_sdid_225]
+  unless: [device_is_module]
+- path: chip/efr32/protocol_config/efr32xg26/ieee802154_efr32xg26_configurator_out.c
+  condition: [device_sdid_225]
+  unless: [device_is_module]
+- path: chip/efr32/protocol_config/efr32xg26/rfsense_ook_efr32xg26_configurator_out.c
+  condition: [device_sdid_225]
+  unless: [device_is_module]
+- path: chip/efr32/protocol_config/efr32xg27/ble_efr32xg27_configurator_out.c
+  condition: [device_sdid_230]
+  unless: [device_is_module]
+- path: chip/efr32/protocol_config/efr32xg27/ieee802154_efr32xg27_configurator_out.c
+  condition: [device_sdid_230]
+  unless: [device_is_module]
+- path: chip/efr32/protocol_config/efr32xg27/rfsense_ook_efr32xg27_configurator_out.c
+  condition: [device_sdid_230]
+  unless: [device_is_module]
+- path: chip/efr32/protocol_config/efr32xg28/ble_efr32xg28_configurator_out.c
+  condition: [device_sdid_235]
+  unless: [device_is_module]
+- path: chip/efr32/protocol_config/efr32xg28/ieee802154_efr32xg28_configurator_out.c
+  condition: [device_sdid_235]
+  unless: [device_is_module]
+- path: chip/efr32/protocol_config/efr32xg28/sidewalk_efr32xg28_configurator_out.c
+  condition: [device_sdid_235]
+  unless: [device_is_module]
+- path: chip/efr32/protocol_config/efr32xg28/zwave_efr32xg28_configurator_out.c
+  condition: [device_sdid_235]
+  unless: [device_is_module]
+- path: chip/efr32/protocol_config/efr32xg29/ble_efr32xg29_configurator_out.c
+  condition: [device_sdid_240]
+  unless: [device_is_module]
+- path: chip/efr32/protocol_config/efr32xg29/ieee802154_efr32xg29_configurator_out.c
+  condition: [device_sdid_240]
+  unless: [device_is_module]
+- path: chip/efr32/protocol_config/efr32xg29/rfsense_ook_efr32xg29_configurator_out.c
+  condition: [device_sdid_240]
+  unless: [device_is_module]
+- path: chip/efr32/protocol_config/efr32xg2d/ieee802154_efr32xg2d_configurator_out.c
+  condition: [device_sdid_260]
+  unless: [device_is_module]
+- path: chip/efr32/protocol_config/efr32xg2d/sidewalk_efr32xg2d_configurator_out.c
+  condition: [device_sdid_260]
+  unless: [device_is_module]
+- path: chip/efr32/protocol_config/sixg301/ble_sixg301_configurator_out.c
+  condition: [device_generic_family_sixx301]
+  unless: [device_is_module]
+- path: chip/efr32/protocol_config/sixg301/ieee802154_sixg301_configurator_out.c
+  condition: [device_generic_family_sixx301]
+  unless: [device_is_module]
+root_path: rail_library

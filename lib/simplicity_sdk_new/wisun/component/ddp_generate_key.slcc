@@ -1,0 +1,34 @@
+id: ddp_generate_key
+label: DDP generate key
+description: |
+  This component provides a Dynamic Data Provisioning (DDP) command for
+  generating a PSA Crypto key.
+package: wisun
+category: Wi-SUN
+quality: evaluation
+metadata:
+  sbom:
+    license: MSLA
+ui_hints:
+  visibility: never
+root_path: wisun/./ddp
+provides:
+- name: ddp_generate_key
+requires:
+- name: ddp_common
+- name: psa_crypto
+- name: psa_its
+include:
+- path: inc
+  file_list:
+  - path: sl_ddp_generate_key.h
+source:
+- path: src/sl_ddp_generate_key.c
+define:
+- name: SL_DDP_GENERATE_KEY
+  value: 3
+template_contribution:
+- name: ddp_command
+  value:
+    id: SL_DDP_GENERATE_KEY
+    handler: sl_ddp_generate_key

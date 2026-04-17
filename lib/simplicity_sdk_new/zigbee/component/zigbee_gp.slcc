@@ -1,0 +1,110 @@
+id: zigbee_gp
+label: Green Power
+package: zigbee
+category: Zigbee|Stack
+quality: production
+description: Provides functionality for Green Power infrastructure devices.
+
+provides:
+- name: zigbee_gp
+
+requires:
+- name: zigbee_gp_implementation
+- name: zigbee_gp_library
+  condition:
+  - zigbee_use_release_libraries
+
+recommends:
+- id: zigbee_gp_library_internal
+  vendor: silabs
+
+include:
+- path: stack/include
+  file_list:
+  - path: gp-types.h
+- path: stack/gp
+  file_list:
+  - path: sli-gp-proxy-table.h
+  - path: sli-gp-sink-table.h
+- path: stack/include
+  file_list:
+  - path: gp-token-config.h
+  - path: gp-proxy-table.h
+  - path: gp-sink-table.h
+
+- path: stack/internal/inc
+  file_list:
+  - path: gp-proxy-table-internal-def.h
+  - path: gp-sink-table-internal-def.h
+  - path: gp-types-internal-def.h
+- path: stack/internal/src/ipc
+  file_list:
+  - path: gp-proxy-table-ipc-command-messages.h
+  - path: gp-sink-table-ipc-command-messages.h
+  - path: gp-types-ipc-command-messages.h
+  - path: zigbee_ipc_callback_events.h
+  - path: zigbee_ipc_command_messages.h
+  condition:
+  - zigbee_use_ipc
+source:
+- path: app/em260/command-handlers-green-power-generated.c
+  condition:
+  - zigbee_ncp
+- path: stack/internal/src/baremetal/gp-proxy-table-baremetal-wrapper.c
+  unless:
+  - zigbee_use_ipc
+  - native_host
+- path: stack/internal/src/baremetal/gp-types-baremetal-wrapper.c
+  unless:
+  - zigbee_use_ipc
+  - native_host
+- path: stack/internal/src/ipc/gp-types-ipc-command-messages.c
+  condition:
+  - zigbee_use_ipc
+- path: stack/internal/src/ipc/zigbee_ipc_callback_event_stub.c
+  condition:
+  - zigbee_use_ipc
+- path: stack/internal/src/ipc/gp-proxy-table-ipc-command-messages.c
+  condition:
+  - zigbee_use_ipc
+- path: stack/internal/src/baremetal/gp-sink-table-baremetal-wrapper.c
+  unless:
+  - zigbee_use_ipc
+  - native_host
+- path: stack/internal/src/ipc/zigbee_ipc_callback_events.c
+  condition:
+  - zigbee_use_ipc
+- path: stack/internal/src/ipc/gp-sink-table-ipc-command-messages.c
+  condition:
+  - zigbee_use_ipc
+config_file:
+- path: stack/config/component_config/sl_zigbee_green_power_config.h
+
+template_contribution:
+- name: component_catalog
+  value: zigbee_green_power
+- name: zigbee_stack_callback
+  value:
+    callback_type: d_gp_sent
+    function_name: sli_zigbee_af_d_gp_sent_callback
+  condition:
+  - zigbee_ncp
+- name: zigbee_stack_callback
+  value:
+    callback_type: gpep_incoming_message
+    function_name: sli_zigbee_af_gpep_incoming_message_callback
+  condition:
+  - zigbee_ncp
+- name: event_handler
+  value:
+    event: stack_init
+    include: gp-types.h
+    handler: sli_zigbee_gp_init_tokens
+  priority: -8923
+documentation:
+  docset: zigbee
+  document: zigbee-af-api/gp
+metadata:
+  sbom:
+    license: MSLA
+root_path: zigbee

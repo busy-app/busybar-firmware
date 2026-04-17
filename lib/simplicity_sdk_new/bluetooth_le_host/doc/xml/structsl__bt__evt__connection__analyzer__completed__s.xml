@@ -1,0 +1,49 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="structsl__bt__evt__connection__analyzer__completed__s" kind="struct" language="C++" prot="public">
+    <compoundname>sl_bt_evt_connection_analyzer_completed_s</compoundname>
+    <includes refid="sl__bt__api_8h" local="no">sl_bt_api.h</includes>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structsl__bt__evt__connection__analyzer__completed__s_1ac50ff7807ed495d65c864a9049fcd2ad" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_connection_analyzer_completed_s::analyzer</definition>
+        <argsstring></argsstring>
+        <name>analyzer</name>
+        <qualifiedname>sl_bt_evt_connection_analyzer_completed_s::analyzer</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>The handle of the connection analyzer </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16232" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="16232" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__connection__analyzer__completed__s_1a83b531e79717766bda18519975b29a8e" prot="public" static="no" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t sl_bt_evt_connection_analyzer_completed_s::reason</definition>
+        <argsstring></argsstring>
+        <name>reason</name>
+        <qualifiedname>sl_bt_evt_connection_analyzer_completed_s::reason</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>An sl_status_t code describing the reason of stopping the operation </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16233" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="16233" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Data structure of the completed event. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16230" column="1" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="16231" bodyend="16235"/>
+    <listofallmembers>
+      <member refid="structsl__bt__evt__connection__analyzer__completed__s_1ac50ff7807ed495d65c864a9049fcd2ad" prot="public" virt="non-virtual"><scope>sl_bt_evt_connection_analyzer_completed_s</scope><name>analyzer</name></member>
+      <member refid="structsl__bt__evt__connection__analyzer__completed__s_1a83b531e79717766bda18519975b29a8e" prot="public" virt="non-virtual"><scope>sl_bt_evt_connection_analyzer_completed_s</scope><name>reason</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,13 @@
+id: si91x_common_flash
+label: Common Flash Component
+package: platform_siwx91x
+description: >
+  Common Flash Component Provides common flash capabilities for the board, If the board supports common flashes install this component.
+category: Board|Flash
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+provides:
+  - name: si91x_common_flash
+  - name: sl_si91x_common_flash

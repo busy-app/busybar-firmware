@@ -1,0 +1,46 @@
+project_name: bootloader-storage-single-4096k
+package: bootloader
+quality: production
+label: Bootloader - SoC Storage (single OTA image of size 1540kB for 4MB flash)
+description: >
+  This sample configuration of the Gecko bootloader configures the bootloader to use the flash to store firmware update images. The storage configuration is set up to store a single firmware update image at a time, in a single storage slot. The storage slot is configured to start at address 0x011F8000 for device with 0x01000000 flash base, and have a size of 1540 kB. This can be configured on the "Storage" tab.
+
+category: Example|Bootloader
+filter:
+  - name: "Device Type"
+    value: ["SoC"]
+  - name: "Project Difficulty"
+    value: ["Advanced"]
+  - name: "MCU"
+    value: ["Bootloader"]
+
+
+component:
+  - id: btl_core
+  - id: btl_crc
+  - id: bootloader_aes_sha_ecdsa
+  - id: btl_internal_storage
+  - id: btl_storage_slots
+  - id: btl_image_parser
+  - id: btl_common_storage
+  - id: bootloader_debug
+  - id: clock_manager
+
+configuration:
+  - name: SLOT0_ENABLE
+    value: 1
+  - name: SLOT0_SIZE
+    value: 1576960
+  - name: SLOT0_START
+    value: 18841600
+  - name: BTL_STORAGE_BASE_ADDRESS
+    value: 18841600
+tag:
+  - hardware:device:flash:3904
+
+readme:
+  - path: readme.md
+ui_hints:
+  highlight: readme.md
+post_build:
+  profile: bootloader_series_2

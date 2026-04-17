@@ -1,0 +1,4 @@
+upgrade:
+  - sdk:
+      id: proprietary_default_radio_confs
+      version: "1.1.1"

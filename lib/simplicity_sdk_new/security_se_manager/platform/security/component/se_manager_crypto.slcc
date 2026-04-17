@@ -1,0 +1,54 @@
+id: se_manager_crypto
+label: Crypto
+package: security_se_manager
+description: >-
+  Driver implementations for interacting with the SE or Root Code on Series 2 devices.
+category: Platform|Security|SE Manager
+quality: production
+ui_hints:
+  visibility: never
+source:
+- path: src/sl_se_manager_cipher.c
+- path: src/sl_se_manager_entropy.c
+- path: src/sl_se_manager_hash.c
+- path: src/sl_se_manager_key_derivation.c
+- path: src/sl_se_manager_key_handling.c
+- path: src/sl_se_manager_signature.c
+- path: src/sl_se_manager_attestation.c
+- path: src/sli_se_manager_supplicant.c
+  condition: [device_has_wificmu]
+
+include:
+- path: inc
+  file_list:
+  - path: sl_se_manager_cipher.h
+  - path: sl_se_manager_defines.h
+  - path: sl_se_manager_entropy.h
+  - path: sl_se_manager_hash.h
+  - path: sl_se_manager_key_derivation.h
+  - path: sl_se_manager_key_handling.h
+  - path: sl_se_manager_signature.h
+  - path: sl_se_manager_attestation.h
+- path: inc
+  condition: [device_has_wificmu]
+  file_list:
+  - path: sli_se_manager_supplicant.h
+
+requires:
+- name: device
+- name: se_manager_mailbox
+- name: hal_generic_common
+  condition: [device_cortexm]
+- name: hal_generic_system
+  condition: [device_cortexm]
+- name: status
+- name: sli_crypto_ksu_manager
+  condition: [device_has_ksu]
+
+provides:
+- name: se_manager_crypto
+
+metadata:
+  sbom:
+    license: Zlib
+root_path: security_se_manager/platform/security/sl_component/se_manager

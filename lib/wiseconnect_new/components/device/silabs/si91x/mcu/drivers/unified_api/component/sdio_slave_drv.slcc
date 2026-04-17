@@ -1,0 +1,27 @@
+id: sdio_slave_drv
+label: SDIO Slave Driver
+package: platform_siwx91x
+description: >
+  This component provides access to the SDIO Slave driver. 
+category: Device|Si91x|MCU|Peripheral|SDIO Slave Driver
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: "components/device/silabs/si91x/mcu/drivers/unified_api"
+ui_hints:
+  visibility: never
+provides:
+  - name: sdio_slave_drv
+requires:
+  - name: romdriver_gpdma
+  - name: rsilib_gpdma
+source:
+  - path: src/sl_si91x_sdio_slave.c
+include:
+  - path: inc
+    file_list:
+      - path: sl_si91x_sdio_slave.h
+config_file:
+  - path: config/sl_si91x_sdio_slave_drv_config.h
+    file_id: sdio_slave_drv_config

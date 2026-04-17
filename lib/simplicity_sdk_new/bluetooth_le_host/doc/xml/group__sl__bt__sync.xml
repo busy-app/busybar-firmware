@@ -1,0 +1,348 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__sync" kind="group">
+    <compoundname>sl_bt_sync</compoundname>
+    <title>Synchronization</title>
+    <innergroup refid="group__sl__bt__evt__sync__closed">sl_bt_evt_sync_closed</innergroup>
+      <sectiondef kind="enum">
+      <memberdef kind="enum" id="group__sl__bt__sync_1ga4d6dbc6ce7a4dfc5ba8e473253161d30" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_bt_sync_reporting_mode_t</name>
+        <enumvalue id="group__sl__bt__sync_1gga4d6dbc6ce7a4dfc5ba8e473253161d30adb0e697ad0134cd6ccaa1afbbaf27260" prot="public">
+          <name>sl_bt_sync_report_none</name>
+          <initializer>= 0x0</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x0) Data received in periodic advertising trains is not reported to the application. </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__sync_1gga4d6dbc6ce7a4dfc5ba8e473253161d30aac59b61bf5411ed41d7079f22c122f8b" prot="public">
+          <name>sl_bt_sync_report_all</name>
+          <initializer>= 0x1</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x1) Data received in periodic advertising trains is reported to the application. </para>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>Specifies the mode for periodic advertising reports. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="4299" column="1" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="4300" bodyend="4305"/>
+      </memberdef>
+      <memberdef kind="enum" id="group__sl__bt__sync_1gacf10b05b3679bf358e10775bee5bcd60" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_bt_sync_advertiser_clock_accuracy_t</name>
+        <enumvalue id="group__sl__bt__sync_1ggacf10b05b3679bf358e10775bee5bcd60ad1fd26a5d7cce17adcfb968e80a73f31" prot="public">
+          <name>sl_bt_sync_clock_accuracy_500</name>
+          <initializer>= 0x1f4</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x1f4) Clock accuracy 500 ppm </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__sync_1ggacf10b05b3679bf358e10775bee5bcd60ac16d4c34f34fcada454bc3d9e72788a0" prot="public">
+          <name>sl_bt_sync_clock_accuracy_250</name>
+          <initializer>= 0xfa</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0xfa) Clock accuracy 250 ppm </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__sync_1ggacf10b05b3679bf358e10775bee5bcd60a13c496b240f1631d36d7c3f442d65adc" prot="public">
+          <name>sl_bt_sync_clock_accuracy_150</name>
+          <initializer>= 0x96</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x96) Clock accuracy 150 ppm </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__sync_1ggacf10b05b3679bf358e10775bee5bcd60a8ee87dbc3aa74cb7bd0de64e00df2cb0" prot="public">
+          <name>sl_bt_sync_clock_accuracy_100</name>
+          <initializer>= 0x64</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x64) Clock accuracy 100 ppm </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__sync_1ggacf10b05b3679bf358e10775bee5bcd60a4f4e283b15a84c02aba61c2b20b6ef91" prot="public">
+          <name>sl_bt_sync_clock_accuracy_75</name>
+          <initializer>= 0x4b</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x4b) Clock accuracy 75 ppm </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__sync_1ggacf10b05b3679bf358e10775bee5bcd60acb6c7e67037885dc1b4899e5605dab61" prot="public">
+          <name>sl_bt_sync_clock_accuracy_50</name>
+          <initializer>= 0x32</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x32) Clock accuracy 50 ppm </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__sync_1ggacf10b05b3679bf358e10775bee5bcd60a6f02d76ce4e49796868cba41ae057ab6" prot="public">
+          <name>sl_bt_sync_clock_accuracy_30</name>
+          <initializer>= 0x1e</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x1e) Clock accuracy 30 ppm </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__sync_1ggacf10b05b3679bf358e10775bee5bcd60a3679e701ffeb40d8adf9d8ddf08bb86b" prot="public">
+          <name>sl_bt_sync_clock_accuracy_20</name>
+          <initializer>= 0x14</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x14) Clock accuracy 20 ppm </para>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>These values indicate the advertiser clock accuracy in a periodic advertising synchronization. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="4311" column="1" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="4312" bodyend="4321"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="group__sl__bt__sync_1ga03017c6d7c17e5911886df498c1c6a33" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_sync_set_reporting_mode</definition>
+        <argsstring>(uint16_t sync, uint8_t reporting_mode)</argsstring>
+        <name>sl_bt_sync_set_reporting_mode</name>
+        <param>
+          <type>uint16_t</type>
+          <declname>sync</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>reporting_mode</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Set data reporting mode of the periodic advertising synchronization.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">sync</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Periodic advertising synchronization handle </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">reporting_mode</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Enum <ref refid="group__sl__bt__sync_1ga4d6dbc6ce7a4dfc5ba8e473253161d30" kindref="member">sl_bt_sync_reporting_mode_t</ref>. Specifies the mode for reporting data received in the periodic advertising train. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_sync_report_none (0x0):</bold> Data received in periodic advertising trains is not reported to the application.</para>
+</listitem><listitem><para><bold>sl_bt_sync_report_all (0x1):</bold> Data received in periodic advertising trains is reported to the application.</para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="4367" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="4367" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__sync_1ga6a07b03d27d0260c258d18f28791fbef" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_sync_update_sync_parameters</definition>
+        <argsstring>(uint16_t sync, uint16_t skip, uint16_t timeout)</argsstring>
+        <name>sl_bt_sync_update_sync_parameters</name>
+        <param>
+          <type>uint16_t</type>
+          <declname>sync</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>skip</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>timeout</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Update synchronization parameters for a periodic sync that was already established.</para>
+<para>When a sync is established by scanning (see <ref refid="group__sl__bt__sync__scanner" kindref="compound">Periodic Advertising Sync Scanner</ref>) or by receiving Periodic Advertising Synchronization Transfer (see <ref refid="group__sl__bt__past__receiver" kindref="compound">PAST Receiver</ref>), the sync gets the <computeroutput>skip</computeroutput> and <computeroutput>timeout</computeroutput> parameters that were configured in the corresponding class. The application can use this command <ref refid="group__sl__bt__sync_1ga6a07b03d27d0260c258d18f28791fbef" kindref="member">sl_bt_sync_update_sync_parameters</ref> to update the values of a sync that has been established. The application can for example update the values to better match the actual interval of the periodic advertising train, or to increase the <computeroutput>skip</computeroutput> value to minimize wakeups when power saving is prioritized over receiving every periodic advertisement.</para>
+<para>Irrespective of the value of the <computeroutput>skip</computeroutput> parameter, the Controller stops skipping packets if the skipping would cause a timeout.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">sync</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Periodic advertising synchronization handle </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">skip</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>The maximum number of periodic advertising packets that can be skipped after a successful receive.<itemizedlist>
+<listitem><para><bold>Range:</bold> 0x0000 to 0x01F3</para>
+</listitem><listitem><para><bold>Default</bold> : 0 </para>
+</listitem></itemizedlist>
+</para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">timeout</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>The maximum permitted time between successful receives. If this time is exceeded, synchronization is lost. Unit: 10 ms.<itemizedlist>
+<listitem><para><bold>Range:</bold> 0x000A to 0x4000</para>
+</listitem><listitem><para>Unit: 10 ms</para>
+</listitem><listitem><para>Time range: 100 ms to 163.84 s</para>
+</listitem><listitem><para><bold>Default</bold> : 1000 ms </para>
+</listitem></itemizedlist>
+</para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+<para><simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="4410" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="4410" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__sync_1ga628b8ea37bf3347475eb01b0971981aa" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_sync_close</definition>
+        <argsstring>(uint16_t sync)</argsstring>
+        <name>sl_bt_sync_close</name>
+        <param>
+          <type>uint16_t</type>
+          <declname>sync</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Close a periodic advertising synchronization or cancel an ongoing attempt of establishing a synchronization.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">sync</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Periodic advertising synchronization handle</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise.</para>
+</simplesect>
+<bold>Events</bold> <itemizedlist>
+<listitem><para><ref refid="group__sl__bt__evt__sync__closed" kindref="compound">sl_bt_evt_sync_closed</ref> - Triggered after a periodic advertising synchronization has been closed or canceled. </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="4428" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="4428" declcolumn="13"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__sync_1ga94ecc12d2efc8c4f39d7a6983b04269c" prot="public" static="no">
+        <name>sl_bt_cmd_sync_set_reporting_mode_id</name>
+        <initializer>0x03420020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="4289" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="4289" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__sync_1gac673a30466a537923ae1a7696fe90231" prot="public" static="no">
+        <name>sl_bt_cmd_sync_update_sync_parameters_id</name>
+        <initializer>0x04420020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="4290" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="4290" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__sync_1gabccfebee751169c6680fdf8f97c49cb6" prot="public" static="no">
+        <name>sl_bt_cmd_sync_close_id</name>
+        <initializer>0x01420020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="4291" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="4291" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__sync_1ga434ec6ebe4dd521a315c6645db8c26dd" prot="public" static="no">
+        <name>sl_bt_rsp_sync_set_reporting_mode_id</name>
+        <initializer>0x03420020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="4292" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="4292" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__sync_1ga6d8dbac3e28f2754c3b52b5ed839a080" prot="public" static="no">
+        <name>sl_bt_rsp_sync_update_sync_parameters_id</name>
+        <initializer>0x04420020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="4293" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="4293" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__sync_1gacd0318ab43c4be4e0c0af910d54d46ab" prot="public" static="no">
+        <name>sl_bt_rsp_sync_close_id</name>
+        <initializer>0x01420020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="4294" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="4294" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Synchronization. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>Provides the base functionality of periodic advertising synchronization. Use bluetooth_feature_sync_scanner and/or bluetooth_feature_past_receiver components to include the synchronization mechanisms that the application requires. Use bluetooth_feature_periodic_sync to include support for trains that do not have subevents or response slots, and/or bluetooth_feature_pawr_sync to include support for Periodic Advertising with Responses (PAwR) trains. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

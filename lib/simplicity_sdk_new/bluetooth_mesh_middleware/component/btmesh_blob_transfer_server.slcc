@@ -1,0 +1,56 @@
+id: btmesh_blob_transfer_server
+label: BLOB Transfer Server
+package: bluetooth_mesh_middleware
+description: >
+  Provides BT Mesh BLOB (Binary Large OBject) Transfer Server functionality,
+  defined in mesh specification.
+
+  The BLOB Transfer Server model is used to receive a BLOB from a BLOB Transfer
+  Client. The BLOB is delivered to a higher-layer application for further
+  processing once the transfer is complete.
+
+  This component is instantiable, meaning that several named instances can be
+  created. For each instance, a configuration header, an instance header and a
+  source file is generated to encapsulate functionalities and initialize and
+  manage the instance.
+  Each BLOB Transfer Server instance shall be assigned to different elements
+  by instance configuration in accordance with mesh specification.
+
+  Selecting this component will also include the BLOB Transfer Server Core
+  component, which is the implementation of the BLOB Transfer Server API.
+
+  This component is prepared for integration into SOC applications.
+
+  This is a Low-Code component. For example, the following weak callback
+  function is called when a BLOB transfer is completed:
+  void sl_btmesh_blob_transfer_server_transfer_done(sl_bt_uuid_64_t const *const blob_id)
+category: "Bluetooth Mesh|Models|Transport"
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: bluetooth_mesh_middleware/common/btmesh_blob_transfer_server
+tag:
+- Low-Code
+instantiable:
+  prefix: inst
+config_file:
+- path: btmesh_blob_transfer_server_{{instance}}.dcd
+  file_id: btmesh_blob_transfer_server_dcd
+  directory: btmeshconf
+- path: config/sl_btmesh_blob_transfer_server_{{instance}}_config.h
+  file_id: btmesh_blob_transfer_server_config
+requires:
+- name: btmesh_blob_transfer_server_core
+provides:
+- name: btmesh_blob_transfer_server
+template_contribution:
+- name: btmesh_blob_transfer_server_instance
+  value: "{{instance}}"
+- name: component_catalog
+  value: btmesh_blob_transfer_server
+- name: component_catalog
+  value: "btmesh_blob_transfer_server_{{instance}}"
+documentation:
+  docset: btmesh
+  document: btmesh-service-api/btmesh-blob-transfer-server

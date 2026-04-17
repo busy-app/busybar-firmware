@@ -1,0 +1,38 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__nvm__key__range" kind="group">
+    <compoundname>sl_bt_nvm_key_range</compoundname>
+    <title>Defined key ranges</title>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__nvm__key__range_1gad13d8f804b7eac2cf0a9f65208d5ed85" prot="public" static="no">
+        <name>SL_BT_NVM_KEY_RANGE_USER_MIN</name>
+        <initializer>0x4000</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>The low bound of the key range for storing user data in the Bluetooth region of NVM3 </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="10781" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="10781" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__nvm__key__range_1ga71dfbb66487c23e15130f4307493a3df" prot="public" static="no">
+        <name>SL_BT_NVM_KEY_RANGE_USER_MAX</name>
+        <initializer>0x5fff</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>The high bound of the key range for storing user data in the Bluetooth region of NVM3 </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="10785" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="10785" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para>Define key ranges in the Bluetooth region of NVM3 </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

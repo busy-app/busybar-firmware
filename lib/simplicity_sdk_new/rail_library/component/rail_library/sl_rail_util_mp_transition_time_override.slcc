@@ -1,0 +1,25 @@
+id: sl_rail_util_mp_transition_time_override
+label: RAIL Utility, Overrides the template_contributions in the sl_rail_util_mp_transition_time component
+description: Utility to allow a user to override the template_contributions in the sl_rail_util_mp_transition_time component
+package: rail_library
+category: Platform|Radio
+quality: production
+metadata:
+  sbom:
+    id: sl_rail_util_mp_transition_time_override
+    name: RAIL Utility, Overrides the template_contributions in the sl_rail_util_mp_transition_time component
+    license: Zlib
+documentation:
+  docset: rail
+  document: rail-api/sl-rail-util-mp-transition-time
+provides:
+- name: sl_rail_util_mp_transition_time_override
+requires:
+- name: device
+- name: rail_lib
+- name: sl_rail_util_mp_transition_time
+- name: component_catalog
+template_contribution:
+- name: component_catalog
+  value: sl_rail_util_mp_transition_time_override
+root_path: rail_library

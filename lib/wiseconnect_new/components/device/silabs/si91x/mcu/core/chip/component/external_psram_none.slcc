@@ -1,0 +1,16 @@
+id: external_psram_none
+label: No External PSRAM
+package: platform_siwx91x
+description: Excludes an external PSRAM from the SiWG91x part.
+category: Device|Si91x|MCU|PSRAM
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+provides:
+  - name: external_psram_none
+  - name: external_psram_implementation
+
+template_contribution:
+    - name: external_psram_present
+      value: 0

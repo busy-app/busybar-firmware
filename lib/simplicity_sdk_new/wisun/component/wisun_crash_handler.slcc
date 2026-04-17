@@ -1,0 +1,38 @@
+id: "wisun_crash_handler"
+label: "Wi-SUN crash handler plugin"
+description: "Wi-SUN crash handler"
+package: "wisun"
+category: "Wi-SUN|Application"
+quality: "production"
+
+
+requires:
+- name: "a_wisun_stack"
+- name: "emlib_rmu"
+
+define:
+- name: DEBUG_EFM_USER
+
+provides:
+- name: "wisun_crash_handler"
+
+include:
+- path: "plugin/"
+  file_list:
+  - path: "sl_wisun_crash_handler.h"
+
+source:
+- path: "plugin/sl_wisun_crash_handler.c"
+
+template_contribution:
+- name: component_catalog
+  value: wisun_crash_handler
+
+toolchain_settings:
+- option: gcc_linker_option
+  value: "-Wl,--wrap=__stack_chk_fail,--wrap=__assert_func"
+
+metadata:
+  sbom:
+    license: MSLA
+root_path: wisun

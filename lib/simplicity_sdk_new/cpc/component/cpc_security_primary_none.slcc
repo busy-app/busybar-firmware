@@ -1,0 +1,14 @@
+id: cpc_security_primary_none
+label: CPC SECURITY NONE
+package: cpc
+description: >
+  Disable Co-Processor Communication (CPC) security to reduce memory footprint. This is not  recommended, as the data exchanged between the Primary and Secondary devices will be sent in plain-text
+  over the physical link. 
+category: Services|Co-Processor Communication|Primary Device
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+provides:
+- name: cpc_security_primary
+root_path: cpc

@@ -1,0 +1,36 @@
+id: netstack_silabs_lwip_app_mqtt
+label: "LWIP MQTT High Layer Application"
+package: netstack_silabs_lwip
+description: >
+  The LWIP mqtt high layer application specifically programmed with the lwIP low-level raw API,
+  MQTT is a MQ Telemetry Transport is a lightweight publish-subscribe machine to machine network protocol.
+  It is designed for connections with remote locations that have devices with resource constraints or
+  limited network bandwidth. It must run over a transport protocol that provides ordered, lossless,
+  bi-directional connections typically, TCP/IP. It is an open OASIS standard and an ISO recommendation (ISO/IEC 20922).
+category: Network Stack|LwIP|apps
+quality: production
+provides:
+- name: netstack_silabs_lwip_apps
+  allow_multiple: true
+- name: netstack_silabs_lwip_app_mqtt
+requires:
+- name: netstack_silabs_lwip_core
+source:
+- path: lwip/src/apps/mqtt/mqtt.c
+include:
+- path: lwip/src/include
+  file_list:
+  - path: lwip/apps/mqtt.h
+  - path: lwip/apps/mqtt_opts.h
+  - path: lwip/apps/mqtt_priv.h
+metadata:
+  sbom:
+    license: BSD-3-Clause
+    upstream:
+      name: lwip
+      version: 2.2.1
+      supplier: lwIP Developers
+      url: https://savannah.nongnu.org/projects/lwip/
+      package_url: https://github.com/lwip-tcpip/lwip/
+      comment: lwIP is a small independent implementation of the TCP/IP protocol suite.
+root_path: netstack_silabs_lwip/

@@ -1,0 +1,24 @@
+id: cpc_gpio_expander_gpio_instance
+label: CPC GPIO Expander GPIO Instance
+package: cpc_gpio
+description: >
+  This component adds a General Purpose Input/Output (GPIO) instance to the  CPC GPIO expander, allowing it to be exposed to the Primary CPC device.
+category: Services|Co-Processor Communication|GPIO Expander
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+instantiable:
+  prefix: inst
+config_file:
+- path: config/sl_cpc_gpio_expander_gpio_{{instance}}_config.h
+  file_id: cpc_gpio_expander_gpio_config
+provides:
+- name: cpc_gpio_expander_gpio_instance
+  allow_multiple: true
+requires:
+- name: cpc_gpio_expander
+template_contribution:
+- name: cpc_gpio_expander_gpio_instance
+  value: '{{instance}}'
+root_path: cpc_gpio

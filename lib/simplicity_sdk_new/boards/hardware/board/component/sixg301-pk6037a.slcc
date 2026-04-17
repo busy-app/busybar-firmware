@@ -1,0 +1,26 @@
+!!omap
+- id: sixg301_pk6037a
+- label: SIXG301-PK6037A
+- package: boards
+- description: Kit BSP support for the SixG301 Wireless 2.4 GHz +10 dBm 4MB Flash Pro Kit.
+- category: Platform|Board|Kit|Pro Kit
+- quality: production
+- metadata:
+    sbom:
+      license: Zlib
+- requires:
+  - name: hardware_board_from_sixg301-pk6037a
+- provides:
+  - name: hardware_kit
+  - name: hardware_kit_pk
+- define:
+  - name: SL_KIT_NAME
+    value: '"SIXG301-PK6037A"'
+  - name: SL_KIT_REV
+    value: '"A01"'
+- tag:
+  - kit:opn:SixG301-PK6037A
+  - kit:pn:PK6037
+  - kit:variant:A
+  - kit:revision:A01
+- root_path: boards

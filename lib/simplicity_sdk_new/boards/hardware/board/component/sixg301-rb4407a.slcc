@@ -1,0 +1,26 @@
+!!omap
+- id: sixg301_rb4407a
+- label: SIXG301-RB4407A
+- package: boards
+- description: Kit BSP support for the SixG301 Wireless 2.4 GHz +10 dBm 4MB Flash Radio Board.
+- category: Platform|Board|Kit|Radio Board
+- quality: production
+- metadata:
+    sbom:
+      license: Zlib
+- requires:
+  - name: hardware_board_from_sixg301-rb4407a
+- provides:
+  - name: hardware_kit
+  - name: hardware_kit_rb
+- define:
+  - name: SL_KIT_NAME
+    value: '"SIXG301-RB4407A"'
+  - name: SL_KIT_REV
+    value: '"A03"'
+- tag:
+  - kit:opn:SixG301-RB4407A
+  - kit:pn:RB4407
+  - kit:variant:A
+  - kit:revision:A03
+- root_path: boards

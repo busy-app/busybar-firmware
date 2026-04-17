@@ -419,9 +419,12 @@ static FURI_ALWAYS_INLINE uint32_t osKernelGetTickCount(void) {
     return furi_get_tick();
 }
 
-// /// Get the RTOS kernel tick frequency.
-// /// \return frequency of the kernel tick in hertz, i.e. kernel ticks per second.
-// uint32_t osKernelGetTickFreq (void);
+/// Get the RTOS kernel tick frequency.
+/// \return frequency of the kernel tick in hertz, i.e. kernel ticks per second.
+//uint32_t osKernelGetTickFreq (void);
+static FURI_ALWAYS_INLINE uint32_t osKernelGetTickFreq(void) {
+    return furi_kernel_get_tick_frequency();
+}
 
 // /// Get the RTOS kernel system timer count.
 // /// \return RTOS kernel current system timer count as 32-bit value.
@@ -509,15 +512,23 @@ static FURI_ALWAYS_INLINE osStatus_t osThreadYield(void) {
     return osOK;
 }
 
-// /// Suspend execution of a thread.
-// /// \param[in]     thread_id     thread ID obtained by \ref osThreadNew or \ref osThreadGetId.
-// /// \return status code that indicates the execution status of the function.
-// osStatus_t osThreadSuspend (osThreadId_t thread_id);
+/// Suspend execution of a thread.
+/// \param[in]     thread_id     thread ID obtained by \ref osThreadNew or \ref osThreadGetId.
+/// \return status code that indicates the execution status of the function.
+//osStatus_t osThreadSuspend (osThreadId_t thread_id);
+static FURI_ALWAYS_INLINE osStatus_t osThreadSuspend(osThreadId_t thread_id) {
+    furi_thread_suspend((FuriThreadId)thread_id);
+    return osOK;
+}
 
-// /// Resume execution of a thread.
-// /// \param[in]     thread_id     thread ID obtained by \ref osThreadNew or \ref osThreadGetId.
-// /// \return status code that indicates the execution status of the function.
-// osStatus_t osThreadResume (osThreadId_t thread_id);
+/// Resume execution of a thread.
+/// \param[in]     thread_id     thread ID obtained by \ref osThreadNew or \ref osThreadGetId.
+/// \return status code that indicates the execution status of the function.
+//osStatus_t osThreadResume (osThreadId_t thread_id);
+static FURI_ALWAYS_INLINE osStatus_t osThreadResume(osThreadId_t thread_id) {
+    furi_thread_resume((FuriThreadId)thread_id);
+    return osOK;
+}
 
 // /// Detach a thread (thread storage can be reclaimed when thread terminates).
 // /// \param[in]     thread_id     thread ID obtained by \ref osThreadNew or \ref osThreadGetId.
@@ -742,7 +753,8 @@ static FURI_ALWAYS_INLINE osStatus_t osEventFlagsDelete(osEventFlagsId_t ef_id) 
 /// \return mutex ID for reference by other functions or NULL in case of error.
 static FURI_ALWAYS_INLINE osMutexId_t osMutexNew(const osMutexAttr_t* attr) {
     const uint32_t attr_bits = attr ? attr->attr_bits : 0;
-    const FuriMutexType type = attr_bits & osMutexRecursive ? FuriMutexTypeRecursive : FuriMutexTypeNormal;
+    const FuriMutexType type = attr_bits & osMutexRecursive ? FuriMutexTypeRecursive :
+                                                              FuriMutexTypeNormal;
     return (osMutexId_t)furi_mutex_alloc(type);
 }
 

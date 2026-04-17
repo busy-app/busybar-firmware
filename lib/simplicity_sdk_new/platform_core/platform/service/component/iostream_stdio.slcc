@@ -1,0 +1,40 @@
+id: iostream_stdio
+package: platform_core
+label: 'IO Stream: STDIO'
+description: IO Stream STDIO (Hostbased Only)
+category: Services|IO Stream|Driver
+quality: experimental
+metadata:
+  sbom:
+    license: Zlib
+ui_hints:
+  visibility: never
+root_path: platform_core/platform/service/iostream
+provides:
+- name: iostream_stdio
+- name: iostream_transport
+  allow_multiple: true
+- name: iostream_console_support
+  allow_multiple: true
+requires:
+- name: iostream
+include:
+- path: inc
+  file_list:
+  - path: sl_iostream_stdio.h
+source:
+- path: src/sl_iostream_stdio.c
+template_contribution:
+- name: iostream_instances
+  value: stdio
+- name: iostream_handles
+  value: stdio
+- name: event_handler
+  value:
+    event: iostream_instance_init_stage_1
+    include: sl_iostream_stdio.h
+    handler: sl_iostream_stdio_init
+- name: iostream_instance_info
+  value:
+    include: sl_iostream_stdio.h
+    handler: sl_iostream_instance_stdio_info

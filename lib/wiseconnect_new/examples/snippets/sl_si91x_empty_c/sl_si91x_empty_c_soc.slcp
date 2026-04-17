@@ -1,0 +1,47 @@
+project_name: sl_si91x_empty_c_soc
+package: platform_siwx91x_app
+quality: production
+label: Platform - Empty C Example
+description: 'Demonstrates how to create an empty configuration that can be used as a starting point to add components and functionality.
+
+  '
+category: Example|Platform
+filter:
+- name: Device Type
+  value:
+  - SoC
+- name: MCU
+  value:
+  - 32-bit MCU
+- name: Project Difficulty
+  value:
+  - Beginner
+source:
+- path: app.c
+include:
+- path: .
+  file_list:
+  - path: app.h
+component:
+- id: sl_main
+- id: syscalls
+- id: si91x_memory_default_config
+define:
+- name: SLI_SI91X_EMPTY_PROJECT
+toolchain_settings:
+- option: gcc_compiler_option
+  value: -Wall -Werror
+readme:
+- path: readme.md
+ui_hints:
+  highlight: readme.md
+post_build:
+  profile: wiseconnect_soc
+sdk_extension:
+- id: wiseconnect3_sdk
+  vendor: silabs
+  version: 4.0.1
+sdk:
+  id: simplicity_sdk
+  vendor: silabs
+  version: 2025.12.2

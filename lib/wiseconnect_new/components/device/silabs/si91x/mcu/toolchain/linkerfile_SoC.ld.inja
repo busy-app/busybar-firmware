@@ -1,0 +1,429 @@
+/***************************************************************************//**
+ * GCC Linker script for Silicon Labs devices
+ *******************************************************************************
+ * # License
+ * <b>Copyright 2020 Silicon Laboratories Inc. www.silabs.com</b>
+ *******************************************************************************
+ *
+ * SPDX-License-Identifier: Zlib
+ *
+ * The licensor of this software is Silicon Laboratories Inc.
+ *
+ * This software is provided 'as-is', without any express or implied
+ * warranty. In no event will the authors be held liable for any damages
+ * arising from the use of this software.
+ *
+ * Permission is granted to anyone to use this software for any purpose,
+ * including commercial applications, and to alter it and redistribute it
+ * freely, subject to the following restrictions:
+ *
+ * 1. The origin of this software must not be misrepresented; you must not
+ *    claim that you wrote the original software. If you use this software
+ *    in a product, an acknowledgment in the product documentation would be
+ *    appreciated but is not required.
+ * 2. Altered source versions must be plainly marked as such, and must not be
+ *    misrepresented as being the original software.
+ * 3. This notice may not be removed or altered from any source distribution.
+ *
+ ******************************************************************************/
+{%- set device = aggregate("silicon_labs.device") -%}
+{#-
+  Device specific sizes and addresses. These variables describes the physical
+  memory of the device.
+-#}
+{%- set sram_addr = first(device.ram_addr) -%}
+{%- set sram_size = first(device.ram_size) -%}
+{%- set flash_addr = first(device.flash_addr) -%}
+{%- set flash_size = first(device.flash_size) -%}
+{%- set flash_page_size = first(device.flash_page_size) -%}
+
+{%- if device.psram_present -%}
+	{%- set psram_addr = first(device.psram_addr) -%}
+	{%- set psram_size = first(device.psram_size) -%}
+{%- endif -%}
+
+{%- if device.udma_enable -%}
+  {%- set udma0_main_size = device.udma0_size -%}
+  {%- set udma0_start_addr = device.udma0 -%}
+  {%- set udma1_main_size = device.udma1_size -%}
+  {%- set udma1_start_addr = device.udma1 -%}
+{%- endif -%}
+
+{#- Application specific sizes. Here we start to calculate the application view of the physical memory. -#}
+{%- set app_flash_start = flash_addr -%}
+{%- set app_flash_end = flash_addr + flash_size -%}
+{%- set app_ram_start = sram_addr -%}
+{%- set app_ram_end = sram_addr + sram_size -%}
+
+{%- if device.psram_present -%}	
+	{%- set app_psram_start = device.psram_addr -%}
+	{%- if device.text_segment_in_psram -%}
+		{#- Adds 0x1000 offset (4096 in decimal) -#}
+		{%- set psram_start_offset = 4096 -%}
+		{%- set app_psram_start = device.psram_addr + psram_start_offset -%}
+	{%- endif -%}	
+	{%- set app_psram_end = device.psram_addr + device.psram_size -%}
+{%- endif -%}
+
+{#- Calculate application flash and ram size based on start and end address. -#}
+{%- set app_flash_size = app_flash_end - app_flash_start -%}
+{%- set app_ram_size = app_ram_end - app_ram_start -%}
+
+{%- if device.udma_enable -%}
+  {%- set udma_buffer = device.udma_buffer -%}
+  {%- set app_ram_size = app_ram_size - udma_buffer -%}
+  {%- set udma0_start_addr = app_ram_size -%}
+  {%- set udma1_start_addr = udma1_start_addr -  udma_buffer%}
+{%- endif -%}
+
+{%- if device.psram_present -%}	
+	{%- set app_psram_size = app_psram_end - app_psram_start -%}
+{%- endif -%}
+
+{%- set rtt = 0 -%}
+{% if device.linker_rtt_section -%}
+{%-   set rtt = 1 -%}
+{% endif -%}
+
+{%- if device.nvm3_size -%}
+	{%- set nvm_size = first(device.nvm3_size) -%}
+	{%- set app_flash_size = app_flash_size - nvm_size -%}
+{%- endif -%}
+
+MEMORY
+{
+{%- if device.flash_present %}
+   rom   (rx)  : ORIGIN = 0x{{ hex(app_flash_start) }}, LENGTH = 0x{{ hex(app_flash_size) }}
+{% endif %}
+   ram   (rwx) : ORIGIN = 0x{{ hex(app_ram_start) }}, LENGTH = 0x{{ hex(app_ram_size) }}
+{% if device.psram_present -%}
+   psram (rwx) : ORIGIN = 0x{{ hex(app_psram_start) }}, LENGTH = 0x{{ hex(app_psram_size) }}
+{%- endif %}
+}
+
+{%- if device.udma_enable %}
+MEMORY
+{
+	udma0   (rwx)  : ORIGIN = 0x{{ hex(udma0_start_addr) }}, LENGTH = 0x{{ hex(udma0_main_size) }}
+	udma1   (rwx)  : ORIGIN = 0x{{ hex(udma1_start_addr) }}, LENGTH = 0x{{ hex(udma1_main_size) }}
+}
+{%- endif %}
+
+{%- if device.psram_present and device.psram_linker_config_enabled -%}
+	_last_psram_location = ORIGIN(psram);
+	_last_ram_location = ORIGIN(ram);
+{%- endif -%}
+
+ENTRY(Reset_Handler)
+ 
+SECTIONS
+{
+	.text :
+	{
+		KEEP(*(.isr_vector))
+		{%- if not device.power_manager_ps2 %}
+		{%-    if device.ram_execution %}
+     	    KEEP(*(.reset_handler))
+			*(EXCLUDE_FILE(*sl_si91x_bus.c.o *sl_si91x_driver.c.o *sli_wifi_command_engine.c.o *sli_si91x_wifi_event_handler.c.o *rsi_deepsleep_soc.c.o *rsi_hal_mcu_m4_ram.c.o *rsi_hal_mcu_m4_rom.c.o *UDMA.c.o *sl_sleeptimer.c.o *sl_sleeptimer_hal_si91x_sysrtc.c.o *rsi_sysrtc.c.o *sl_si91x_low_power_tickless_mode.c.o *croutine.c.o *event_groups.c.o *list.c.o *queue.c.o *stream_buffer.c.o *tasks.c.o *timers.c.o *cmsis_os2.c.o *freertos_umm_malloc_host.c.o *malloc_buffers.c.o *sl_rsi_utility.c.o *port.c.o *heap_*.c.o) .text*)
+		    {%    else %}			
+		  *(EXCLUDE_FILE(*UDMA.o).text*)        
+			 KEEP(*(.init))
+			 KEEP(*(.fini))
+	        {% endif %}		
+	        {% endif %}	     	  	
+
+		{% if device.power_manager_ps2 %}
+		  *(EXCLUDE_FILE(  *cmsis_gcc.c.o *cmsis_os2.c.o *port.c.o *queue.c.o *sl_rsi_utility.c.o *tasks.c.o *clock_update.c.o *rsi_deepsleep_soc.c.o *rsi_egpio.c.o *rsi_ipmu.c.o *ipmu_apis.c.o *rsi_pll.c.o *rsi_power_save.c.o *rsi_ps_ram_func.c.o *rsi_system_config.c.o *rsi_time_period.c.o *rsi_ulpss_clk.c.o *system_si91x.c.o *sl_slist.c.o *strcmp.c.o *sl_si91x_power_manager.c.o *sli_si91x_power_manager.c.o *sl_si91x_power_manager_handler.c.o *sl_si91x_power_manager_debug.c.o *sli_si91x_power_manager_wakeup_init.c.o *sl_si91x_power_manager_wakeup_handler.c.o *sl_sleeptimer.c.o *sl_sleeptimer_hal_si91x_sysrtc.c.o *rsi_sysrtc.c.o *sl_si91x_low_power_tickless_mode.c.o *sl_core_cortexm.c.o *UDMA.c.o {% for c in debug_ps2 %}*{{c}} {% endfor %}{% for c in calendar_ps2 %}*{{c}} {% endfor %}{% for c in ulp_timer_ps2 %}*{{c}} {% endfor %}{% for c in wdt_ps2 %}*{{c}} {% endfor %}{% for c in adc_ps2 %}*{{c}} {% endfor %}{% for c in bod_ps2 %}*{{c}} {% endfor %}{% for c in comparator_ps2 %}*{{c}} {% endfor %}{% for c in cts_ps2 %}*{{c}} {% endfor %}{% for c in dac_ps2 %}*{{c}} {% endfor %}{% for c in dma_ps2 %}*{{c}} {% endfor %}{% for c in gpio_ps2 %}*{{c}} {% endfor %}{% for c in i2c_ps2 %}*{{c}} {% endfor %}{% for c in i2s_ps2 %}*{{c}} {% endfor %}{% for c in ir_ps2 %}*{{c}} {% endfor %}{% for c in ssi_ps2 %}*{{c}} {% endfor %}{% for c in sysrtc_ps2 %}*{{c}} {% endfor %}{% for c in usart_ps2 %}*{{c}} {% endfor %}{% for c in user_files_ps2 %}*{{c}} {% endfor %}) .text*)
+	
+		{%- endif %}
+
+		/* .ctors */
+		*crtbegin.c.o(.ctors)
+		*crtbegin?.c.o(.ctors)
+		*(EXCLUDE_FILE(*crtend?.c.o *crtend.c.o) .ctors)
+		*(SORT(.ctors.*))
+		*(.ctors)
+		
+		/* .dtors */
+		*crtbegin.c.o(.dtors)
+		*crtbegin?.c.o(.dtors)
+		*(EXCLUDE_FILE(*crtend?.c.o *crtend.c.o) .dtors)
+		*(SORT(.dtors.*))
+		*(.dtors)
+		
+		{%- if not device.power_manager_ps2 %}
+		*(.rodata*)
+		{%- endif %}
+		
+		KEEP(*(.eh_fram e*))
+					
+	{%- if device.flash_present %}			
+	} > rom 
+	{%- else %}			
+	} > ram 
+	{% endif %}	
+	
+	.ARM.extab : 
+	{
+		*(.ARM.extab* .gnu.linkonce.armextab.*)
+		
+	{%- if device.flash_present %}			
+	} > rom 
+	{%- else %}			
+	} > ram 
+	{% endif %}
+	
+	__exidx_start = .;
+	.ARM.exidx :
+	{
+		*(.ARM.exidx* .gnu.linkonce.armexidx.*)
+		
+	{%- if device.flash_present %}			
+	} > rom 
+	{%- else %}			
+	} > ram
+	{% endif %} 
+	__exidx_end = .;
+	__etext = .;
+	
+
+
+	/* _sidata is used in code startup code */
+	_sidata = __etext;
+
+	
+
+	
+	
+	.data :
+
+	{
+		__data_start__ = .;
+		
+		/* _sdata is used in startup code */
+		_sdata = __data_start__;
+		{%- if not device.power_manager_ps2 %}
+		{%- if device.ram_execution %}
+		KEEP(*(.ramVector))	
+		KEEP(*(.init))
+		KEEP(*(.fini))
+		*(.data*)
+		*rsi_hal_mcu_m4_ram.c.o(.text*)
+		*rsi_hal_mcu_m4_rom.c.o(.text*)
+		*sl_si91x_driver.c.o(.text*)
+		*sl_si91x_bus.c.o(.text*)
+		*UDMA.c.o(.text*)
+		*sl_sleeptimer.c.o(.text*)
+		*sl_sleeptimer_hal_si91x_sysrtc.c.o(.text*) 
+		*rsi_sysrtc.c.o(.text*)
+		*sl_si91x_low_power_tickless_mode.c.o(.text*)
+		*rsi_deepsleep_soc.c.o(.text*)
+		*croutine.c.o(.text*)
+		*event_groups.c.o(.text*)
+		*list.c.o(.text*)
+		*queue.c.o(.text*)
+		*cmsis_os2.c.o(.text*)
+		*stream_buffer.c.o(.text*)
+		*sli_si91x_wifi_event_handler.o(.text*)
+		*sli_wifi_command_engine.o(.text*)
+		*tasks.c.o(.text*)
+		*timers.c.o(.text*)
+		*freertos_umm_malloc_host.c.o(.text*)
+		*malloc_buffers.c.o(.text*)
+		*sl_rsi_utility.c.o(.text*)
+		*port.c.o(.text*)
+		*heap_*.c.o(.text*)
+		{%- else %}
+		*(.data*)
+		*UDMA.c.o(.text*)
+		{% endif %}
+		{% endif %}
+		{%- if power_manager_ps2 %}
+		KEEP(*(.ramVector))
+		*(.data*)
+		*(.rodata*)
+		KEEP(*(.init))
+		KEEP(*(.fini))
+		*cmsis_gcc.c.o(.text*)
+		*cmsis_os2.c.o(.text*)
+		*port.c.o(.text*)
+		*queue.c.o(.text*)
+		*sl_rsi_utility.c.o(.text*)
+		*tasks.c.o(.text*)
+		*clock_update.c.o(.text*)
+		*rsi_deepsleep_soc.c.o(.text*)
+		*rsi_egpio.c.o(.text*)
+		*rsi_ipmu.c.o(.text*)
+		*ipmu_apis.c.o(.text*)
+		*rsi_pll.c.o(.text*)
+		*rsi_power_save.c.o(.text*)
+		*rsi_ps_ram_func.c.o(.text*)
+		*rsi_system_config.c.o(.text*)
+		*rsi_time_period.c.o(.text*)
+		*rsi_ulpss_clk.c.o(.text*)
+		*system_si91x.c.o(.text*)
+		*sl_slist.c.o(.text*)
+		*strcmp.c.o(.text*)
+		*sl_si91x_power_manager.c.o(.text*)
+		*sli_si91x_power_manager.c.o(.text*)
+		*sl_si91x_power_manager_handler.c.o(.text*)
+		*sl_si91x_power_manager_debug.c.o(.text*)
+		*sli_si91x_power_manager_wakeup_init.c.o(.text*)
+		*sl_si91x_power_manager_wakeup_handler.c.o(.text*)
+		*sl_sleeptimer.c.o(.text*)
+		*sl_sleeptimer_hal_si91x_sysrtc.c.o(.text*) 
+		*rsi_sysrtc.c.o(.text*)
+		*sl_si91x_low_power_tickless_mode.c.o(.text*)
+		*sl_core_cortexm.c.o(.text*)
+		*UDMA.c.o(.text*)
+		{% for c in debug_ps2 %}*{{c}}(.text*)
+		{% endfor %}{% for c in calendar_ps2 %}*{{c}}(.text*)
+		{% endfor %}{% for c in ulp_timer_ps2 %}*{{c}}(.text*)
+		{% endfor %}{% for c in wdt_ps2 %}*{{c}}(.text*)
+		{% endfor %}{% for c in adc_ps2 %}*{{c}}(.text*)
+		{% endfor %}{% for c in bod_ps2 %}*{{c}}(.text*)
+		{% endfor %}{% for c in comparator_ps2 %}*{{c}}(.text*)
+		{% endfor %}{% for c in cts_ps2 %}*{{c}}(.text*)
+		{% endfor %}{% for c in dac_ps2 %}*{{c}}(.text*)
+		{% endfor %}{% for c in dma_ps2 %}*{{c}}(.text*)
+		{% endfor %}{% for c in gpio_ps2 %}*{{c}}(.text*)
+		{% endfor %}{% for c in i2c_ps2 %}*{{c}}(.text*)
+		{% endfor %}{% for c in i2s_ps2 %}*{{c}}(.text*)
+		{% endfor %}{% for c in ir_ps2 %}*{{c}}(.text*)
+		{% endfor %}{% for c in ssi_ps2 %}*{{c}}(.text*)
+		{% endfor %}{% for c in sysrtc_ps2 %}*{{c}}(.text*)
+		{% endfor %}{% for c in usart_ps2 %}*{{c}}(.text*)
+		{% endfor %}{% for c in user_files_ps2 %}*{{c}}(.text*)
+		{% endfor %}
+		{% endif %}
+		
+		. = ALIGN(4);
+		/* preinit data */
+		PROVIDE_HIDDEN (__preinit_array_start = .);
+		KEEP(*(.preinit_array))
+		PROVIDE_HIDDEN (__preinit_array_end = .);
+		
+		. = ALIGN(4);
+		/* init data */
+		
+		PROVIDE_HIDDEN (__init_array_start = .);
+		KEEP(*(SORT(.init_array.*)))
+		KEEP(*(.init_array))
+		PROVIDE_HIDDEN (__init_array_end = .);
+		
+		. = ALIGN(4);
+		/* finit data */
+		PROVIDE_HIDDEN (__fini_array_start = .);
+		KEEP(*(SORT(.fini_array.*)))
+		KEEP(*(.fini_array))
+		PROVIDE_HIDDEN (__fini_array_end = .);
+		
+		KEEP(*(.jcr*))
+		. = ALIGN(4);
+		/* All data end */
+		__data_end__ = .;
+		
+		/* _edata is used in startup code */
+		_edata = __data_end__;
+	{%- if device.flash_present %} 
+	} > ram AT> rom
+	{%- else %} 
+	} > ram
+	{% endif %}
+	
+	.bss (NOLOAD) :
+	{
+		. = ALIGN(4);
+		__bss_start__ = .;
+		*(.bss*)
+		*(COMMON)
+		. = ALIGN(4);
+		__bss_end__ = .;
+	} > ram 
+
+	
+	.stack (NOLOAD):
+	{
+		__StackLimit = .;
+		KEEP(*(.stack*))
+		. = ALIGN(4);
+		__StackTop = .;
+		PROVIDE(__stack = __StackTop);			
+	} > ram
+  	.heap (COPY):
+  	{
+		__HeapBase = .;
+		__end__ = .;
+		end = __end__;
+		_end = __end__;
+		KEEP(*(.heap*))
+		. = ORIGIN(ram) + LENGTH(ram);
+		__HeapLimit = .;			
+  	} > ram
+ 
+	__heap_size = __HeapLimit - __HeapBase;
+
+
+{%- if device.flash_present %}
+{%- if device.udma_enable %}
+	.udma_addr0 :
+	{
+		*(.udma_addr0*)
+	} > udma0 AT> rom
+
+	.udma_addr1 :
+	{
+		*(.udma_addr1*)		
+	} > udma1 AT> rom 
+{%- endif %}	
+{% endif %}
+
+{%- if device.nvm3_enable %}
+  __ram_end__ = 0x{{ hex(app_ram_start) }} + 0x{{ hex(app_ram_size) }};
+  __main_flash_end__ = 0x{{ hex(app_flash_start) }} + 0x{{ hex(app_flash_size) }};
+	   /* This is where we handle flash storage blocks. We use dummy sections for finding the configured
+   * block sizes and then "place" them at the end of flash when the size is known. */
+  .internal_storage1 (DSECT) : {
+    KEEP(*(.internal_storage1*))
+  } > rom
+  .nvm (DSECT) : {
+    KEEP(*(.simee*))
+  } > rom
+ 
+  linker_nvm_end = __main_flash_end__;
+  linker_nvm_begin = linker_nvm_end - SIZEOF(.nvm);
+  linker_nvm_size = SIZEOF(.nvm);
+  linker_storage_end = linker_nvm_begin;
+  __nvm3Base = linker_nvm_begin;	
+  linker_storage_begin = linker_storage_end - SIZEOF(.internal_storage1);
+  linker_storage_size = SIZEOF(.internal_storage1);
+  ASSERT((linker_storage_begin >= (__etext + SIZEOF(.data))), "FLASH memory overflowed !")
+ 
+{%- endif %}
+ 
+{%- if device.littlefs_enable %}
+{%- if device.nvm3_enable %}
+  __main_flash_end__ = linker_nvm_begin;
+{%- else %}
+  __main_flash_end__ = 0x{{ hex(app_flash_start) }} + 0x{{ hex(app_flash_size) }};
+{%- endif %}
+	   /* This is where we handle littlefs flash storage blocks. We use dummy sections for finding the configured
+   * block sizes and then "place" them at the end of flash when the size is known. */
+  .internal_storage2 (DSECT) : {
+    KEEP(*(.internal_storage2*))
+  } > rom
+  .littlefs (DSECT) : {
+    KEEP(*(.ltfs*))
+  } > rom
+ 
+  linker_littlefs_end = __main_flash_end__;
+  linker_littlefs_begin = linker_littlefs_end - SIZEOF(.littlefs);
+  linker_littlefs_size = SIZEOF(.littlefs);
+  linker_storage2_end = linker_littlefs_begin;
+  __littlefsBase = linker_littlefs_begin;
+  linker_storage2_begin = linker_storage2_end - SIZEOF(.internal_storage2);
+  linker_storage2_size = SIZEOF(.internal_storage2);
+  ASSERT((linker_storage2_begin >= (__etext + SIZEOF(.data))), "FLASH memory overflowed !")
+ 
+{%- endif %}   
+}

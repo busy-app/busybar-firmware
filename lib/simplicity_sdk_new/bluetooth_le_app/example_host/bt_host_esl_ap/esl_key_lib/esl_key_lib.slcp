@@ -1,0 +1,78 @@
+project_name: esl_key_lib
+package: bluetooth_le_app
+label: Bluetooth - ESL Key Library
+description: >
+  A cross-platform shared library designed for host integration in Bluetooth
+  LE Electronic Shelf Label systems. This project delivers a position-
+  independent dynamic extension that offering security key management
+  through a simple API, ensuring consistent behavior across Windows,
+  Linux, and macOS host environments.
+category: Bluetooth Examples
+quality: experimental
+
+filter:
+  - name: "Wireless Technology"
+    value: ["Bluetooth"]
+  - name: "Device Type"
+    value: ["Host"]
+  - name: "Project Difficulty"
+    value: ["Advanced"]
+
+component:
+  - id: toolchain_gcc
+  - id: esl_tag_core
+  - id: native_host
+  - id: app_log
+  - id: iostream_stdio
+  - id: bluetooth_api_ncp_host
+  - id: sl_common
+
+source:
+  - path: esl_key_lib.c
+
+include:
+  - path: .
+    file_list:
+      - path: esl_key_lib.h
+
+toolchain_settings:
+  - option: gcc_compiler_option
+    value: -fPIC
+  - option: gcc_compiler_option
+    value: -shared
+    unless:
+      - macos
+  - option: gcc_compiler_option
+    value: -static-libgcc -DWIN_DLL
+    condition:
+      - win32
+  - option: gcc_linker_option
+    value: -shared -fPIC
+  - option: gcc_linker_option
+    value: -static
+    condition:
+      - win32
+library:
+  - system: sqlite3
+  - system: pthread
+    unless:
+      - win32
+  - system: dl
+    unless:
+      - win32
+
+post_build:
+  - path: post_build/esl_lib_linux.slpb
+    condition:
+      - linux
+  - path: post_build/esl_lib_win32.slpb
+    condition:
+      - win32
+  - path: post_build/esl_lib_macos.slpb
+    condition:
+      - macos
+
+tag:
+  - companion:esl_ap
+  - toolchain:gcc
+  - hwfilter:device:device_family_host

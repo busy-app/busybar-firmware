@@ -1,0 +1,69 @@
+id: ot_coap_cert_libs
+label: OpenThread CoAP Certification Libraries
+package: openthread
+category: OpenThread
+quality: production
+description: >
+  Includes OpenThread stack libraries that could be used for certification by inheritance. Uses default certification configurations.
+  Note: Please refer to the release notes to verify if the SDK has been qualified for certification.
+provides:
+- name: ot_coap_cert_libs
+requires:
+- name: ot_cert_libs
+recommends:
+- id: ot_cert_libs
+  vendor: silabs
+define:
+- name: OPENTHREAD_CONFIG_COAP_API_ENABLE
+  value: 1
+- name: OPENTHREAD_CONFIG_COAP_OBSERVE_API_ENABLE
+  value: 1
+- name: OPENTHREAD_CONFIG_COAP_SECURE_API_ENABLE
+  value: 1
+library:
+- path: libs/libsl_ot_stack_ftd_coap_efr32mg21_gcc.a
+  condition:
+  - toolchain_gcc
+  - device_sdid_200
+  - ot_stack_ftd
+- path: libs/libsl_ot_stack_mtd_coap_efr32mg21_gcc.a
+  condition:
+  - toolchain_gcc
+  - device_sdid_200
+  - ot_stack_mtd
+- path: libs/libsl_ot_stack_ftd_coap_efr32mg24_gcc.a
+  condition:
+  - toolchain_gcc
+  - device_sdid_215
+  - ot_stack_ftd
+- path: libs/libsl_ot_stack_mtd_coap_efr32mg24_gcc.a
+  condition:
+  - toolchain_gcc
+  - device_sdid_215
+  - ot_stack_mtd
+- path: libs/libsl_ot_stack_ftd_coap_efr32mg26_gcc.a
+  condition:
+  - toolchain_gcc
+  - device_sdid_225
+  - ot_stack_ftd
+- path: libs/libsl_ot_stack_mtd_coap_efr32mg26_gcc.a
+  condition:
+  - toolchain_gcc
+  - device_sdid_225
+  - ot_stack_mtd
+- path: libs/libsl_ot_stack_ftd_coap_simg301_gcc.a
+  condition:
+  - toolchain_gcc
+  - device_generic_family_sixx301
+  - ot_stack_ftd
+- path: libs/libsl_ot_stack_mtd_coap_simg301_gcc.a
+  condition:
+  - toolchain_gcc
+  - device_generic_family_sixx301
+  - ot_stack_mtd
+metadata:
+  sbom:
+    # BSD-3-Clause covers the files included in the libraries from
+    # util/third_party/openthread and platform-abstraction/efr32.
+    license: BSD-3-Clause
+root_path: openthread

@@ -1,0 +1,103 @@
+id: "app_button_press"
+label: "Button Press"
+package: "platform_common_apps"
+description: >
+  The Button Press component is used for handling the button state, button states are:
+  1) Button is not pressed,
+  2) Button is pressed for a short duration,
+  3) Button is pressed for a medium duration,
+  4) Button is pressed for a long duration,
+  5) Button is pressed for a very long duration and
+  6) Button has just been pressed down.
+  Button press duration for various lengths is configurable.
+category: "Application|Utility"
+quality: "production"
+metadata:
+  sbom:
+    license: Zlib
+root_path: "platform_common_apps/app/common/util/app_button_press"
+config_file:
+- path: "config/app_button_press_config.h"
+source:
+- path: "app_button_press.c"
+include:
+- path: ""
+  file_list:
+  - path: "app_button_press.h"
+  - path: "app_button_press_internal.h"
+provides:
+- name: "app_button_press"
+requires:
+- name: "component_catalog"
+- name: "power_manager"
+- name: "sleeptimer"
+- name: "simple_button"
+- name: "app_rta"
+- name: "sl_common"
+
+template_contribution:
+- name: cli_command
+  value:
+    group: button
+    name: press
+    handler: button_press_from_cli
+    shortcuts:
+    - name: p
+    help: "Emulating a button press"
+    argument:
+    - type: uint8
+      help: "Button: 0: BTN0, 1+: BTN1"
+    - type: uint8
+      help: "Press and hold duration: 0 - short, 1- medium, 2 - long, 3+ - verylong"
+  condition:
+  - "cli"
+
+- name: cli_command
+  value:
+    group: button
+    name: hold
+    handler: button_hold_from_cli
+    shortcuts:
+    - name: h
+    help: "Emulates pressing and holding a button."
+    argument:
+    - type: uint8
+      help: "Button: 0: BTN0, 1+: BTN1"
+  condition:
+  - "cli"
+
+- name: cli_command
+  value:
+    group: button
+    name: release
+    handler: button_release_from_cli
+    shortcuts:
+    - name: r
+    help: "Emulates releasing a button."
+    argument:
+    - type: uint8
+      help: "Button: 0: BTN0, 1+: BTN1"
+  condition:
+  - "cli"
+
+- name: cli_group
+  value:
+    name: button
+    help: "Emulating button events (various type of button presses)."
+    shortcuts:
+    - name: btn
+    - name: b
+  condition:
+  - "cli"
+- name: app_rta_init
+  value:
+    include: app_button_press_internal.h
+    handler: app_button_press_init
+
+- name: event_handler
+  condition: [app_em4h_reset]
+  value:
+    event: platform_init
+    include: app_button_press.h
+    handler: app_button_press_check_wakeup_cause
+  priority: -9981   # Invoke before EM4H-Reset's app_unlatch_pin_retention

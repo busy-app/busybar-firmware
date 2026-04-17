@@ -1,0 +1,82 @@
+id: ot_cli_source
+label: CLI
+package: openthread_stack
+category: OpenThread
+quality: production
+description: This component provides the OpenThread CLI. It requires that an OpenThread stack component be included with the project. If no OpenThread stack component is chosen, it will default to using the OpenThread stack for a Full Thread Device (FTD).
+provides:
+- name: ot_cli
+requires:
+- name: ot_stack
+- name: ot_ble_cli
+  condition:
+  - bluetooth_stack
+recommends:
+- id: ot_stack_ftd
+  vendor: silabs
+include:
+- path: util/third_party/openthread/src
+- path: util/third_party/openthread/src/cli
+  file_list:
+  - path: cli.hpp
+  - path: cli_bbr.hpp
+  - path: cli_br.hpp
+  - path: cli_coap.hpp
+  - path: cli_coap_secure.hpp
+  - path: cli_commissioner.hpp
+  - path: cli_config.h
+  - path: cli_dataset.hpp
+  - path: cli_dns.hpp
+  - path: cli_history.hpp
+  - path: cli_joiner.hpp
+  - path: cli_link_metrics.hpp
+  - path: cli_mac_filter.hpp
+  - path: cli_mdns.hpp
+  - path: cli_mesh_diag.hpp
+  - path: cli_network_data.hpp
+  - path: cli_ping.hpp
+  - path: cli_srp_client.hpp
+  - path: cli_srp_server.hpp
+  - path: cli_tcat.hpp
+  - path: cli_tcp.hpp
+  - path: cli_udp.hpp
+  - path: cli_utils.hpp
+  - path: x509_cert_key.hpp
+source:
+- path: util/third_party/openthread/examples/apps/cli/cli_uart.cpp
+  unless:
+  - ot_ncp
+- path: util/third_party/openthread/src/cli/cli.cpp
+- path: util/third_party/openthread/src/cli/cli_bbr.cpp
+- path: util/third_party/openthread/src/cli/cli_br.cpp
+- path: util/third_party/openthread/src/cli/cli_coap.cpp
+- path: util/third_party/openthread/src/cli/cli_coap_secure.cpp
+- path: util/third_party/openthread/src/cli/cli_commissioner.cpp
+- path: util/third_party/openthread/src/cli/cli_dataset.cpp
+- path: util/third_party/openthread/src/cli/cli_dns.cpp
+- path: util/third_party/openthread/src/cli/cli_history.cpp
+- path: util/third_party/openthread/src/cli/cli_joiner.cpp
+- path: util/third_party/openthread/src/cli/cli_link_metrics.cpp
+- path: util/third_party/openthread/src/cli/cli_mac_filter.cpp
+- path: util/third_party/openthread/src/cli/cli_mdns.cpp
+- path: util/third_party/openthread/src/cli/cli_mesh_diag.cpp
+- path: util/third_party/openthread/src/cli/cli_network_data.cpp
+- path: util/third_party/openthread/src/cli/cli_ping.cpp
+- path: util/third_party/openthread/src/cli/cli_srp_client.cpp
+- path: util/third_party/openthread/src/cli/cli_srp_server.cpp
+- path: util/third_party/openthread/src/cli/cli_tcat.cpp
+- path: util/third_party/openthread/src/cli/cli_tcp.cpp
+- path: util/third_party/openthread/src/cli/cli_udp.cpp
+- path: util/third_party/openthread/src/cli/cli_utils.cpp
+template_contribution:
+- name: component_catalog
+  value: openthread_cli
+- name: ot_init
+  value: sl_ot_cli_init
+  priority: 20
+  unless:
+  - ot_ncp
+metadata:
+  sbom:
+    reference: ot_sbom_openthread
+root_path: openthread_stack

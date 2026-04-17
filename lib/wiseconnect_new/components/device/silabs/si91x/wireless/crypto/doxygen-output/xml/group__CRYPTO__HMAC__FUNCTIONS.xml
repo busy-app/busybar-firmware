@@ -1,0 +1,56 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__CRYPTO__HMAC__FUNCTIONS" kind="group">
+    <compoundname>CRYPTO_HMAC_FUNCTIONS</compoundname>
+    <title>Functions</title>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="group__CRYPTO__HMAC__FUNCTIONS_1ga2d9d28456662957d17921b3fda97b40d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_si91x_hmac</definition>
+        <argsstring>(const sl_si91x_hmac_config_t *config, uint8_t *output)</argsstring>
+        <name>sl_si91x_hmac</name>
+        <param>
+          <type>const <ref refid="structsl__si91x__hmac__config__t" kindref="compound">sl_si91x_hmac_config_t</ref> *</type>
+          <declname>config</declname>
+        </param>
+        <param>
+          <type>uint8_t *</type>
+          <declname>output</declname>
+        </param>
+        <briefdescription>
+<para>To compute the HMAC output for the given configuration. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>It is a blocking API. <parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">config</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Configuration object of type <ref refid="structsl__si91x__hmac__config__t" kindref="compound">sl_si91x_hmac_config_t</ref> </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">output</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Buffer to store the output. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>sl_status_t. For more information on status codes, refer to <ulink url="https://docs.silabs.com/gecko-platform/latest/platform-common/status">SL STATUS DOCUMENTATION</ulink>. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/hmac/inc/sl_si91x_hmac.h" line="152" column="13" declfile="components/device/silabs/si91x/wireless/crypto/hmac/inc/sl_si91x_hmac.h" declline="152" declcolumn="13"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para>This section provides a reference to the HMAC Crypto API functions. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

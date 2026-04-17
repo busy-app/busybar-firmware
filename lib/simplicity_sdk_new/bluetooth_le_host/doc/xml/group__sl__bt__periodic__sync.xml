@@ -1,0 +1,16 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__periodic__sync" kind="group">
+    <compoundname>sl_bt_periodic_sync</compoundname>
+    <title>Periodic Advertising without responses Synchronization</title>
+    <innergroup refid="group__sl__bt__evt__periodic__sync__opened">sl_bt_evt_periodic_sync_opened</innergroup>
+    <innergroup refid="group__sl__bt__evt__periodic__sync__transfer__received">sl_bt_evt_periodic_sync_transfer_received</innergroup>
+    <innergroup refid="group__sl__bt__evt__periodic__sync__report">sl_bt_evt_periodic_sync_report</innergroup>
+    <briefdescription>
+<para>Periodic Advertising without responses Synchronization. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>Provides events and control for synchronized periodic advertising trains that do not have subevents or response slots. Synchronization is achieved by scanning (see <ref refid="group__sl__bt__sync__scanner" kindref="compound">Periodic Advertising Sync Scanner</ref>) or by receiving Periodic Advertising Synchronization Transfer (see <ref refid="group__sl__bt__past__receiver" kindref="compound">PAST Receiver</ref>). </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

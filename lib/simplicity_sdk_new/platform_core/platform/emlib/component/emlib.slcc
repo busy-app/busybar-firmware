@@ -1,0 +1,75 @@
+id: emlib
+label: EMLIB Peripheral HAL
+package: platform_core
+description: >
+  The lowest level hardware abstraction layer for EFM32 microcontrollers,
+  EZR32/EFR32 SoCs and xGM modules.
+
+  This component will install all compatible EMLIB modules.
+category: Platform|Peripheral|EMLIB
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+provides:
+- name: emlib
+requires:
+- name: device
+- name: emlib_acmp
+  condition: [device_has_acmp]
+- name: emlib_burtc
+  condition: [device_has_burtc]
+- name: emlib_chip
+- name: emlib_cmu
+  condition: [device_has_cmu]
+- name: emlib_common
+- name: emlib_core
+- name: emlib_dbg
+- name: emlib_emu
+  condition: [device_has_emu]
+- name: emlib_eusart
+  condition: [device_has_euart]
+- name: emlib_gpcrc
+  condition: [device_has_gpcrc]
+- name: emlib_gpio
+  condition: [device_has_gpio]
+- name: emlib_i2c
+  condition: [device_has_i2c]
+- name: emlib_iadc
+  condition: [device_has_iadc]
+- name: emlib_lcd
+  condition: [device_has_lcd]
+- name: emlib_ldma
+  condition: [device_has_ldma]
+- name: emlib_lesense
+  condition: [device_has_lesense]
+- name: emlib_letimer
+  condition: [device_has_letimer]
+- name: emlib_msc
+  condition: [device_has_msc]
+- name: emlib_opamp
+  condition: [device_has_vdac]
+- name: emlib_pcnt
+  condition: [device_has_pcnt]
+- name: emlib_pdm
+  condition: [device_has_pdm]
+- name: emlib_prs
+  condition: [device_has_prs]
+- name: emlib_rmu
+  condition: [device_has_emu, device_series_2]
+- name: emlib_rtcc
+  condition: [device_has_rtcc]
+- name: emlib_smu
+  condition: [device_has_smu]
+- name: emlib_system
+- name: emlib_timer
+  condition: [device_has_timer]
+- name: emlib_usart
+  condition: [device_has_uart]
+- name: emlib_vdac
+  condition: [device_has_vdac]
+- name: emlib_wdog
+  condition: [device_has_wdog]
+conflicts:
+- name: device_series_3
+root_path: platform_core/platform/emlib

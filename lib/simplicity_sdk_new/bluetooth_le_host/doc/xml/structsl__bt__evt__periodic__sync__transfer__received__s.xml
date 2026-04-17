@@ -1,0 +1,234 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="structsl__bt__evt__periodic__sync__transfer__received__s" kind="struct" language="C++" prot="public">
+    <compoundname>sl_bt_evt_periodic_sync_transfer_received_s</compoundname>
+    <includes refid="sl__bt__api_8h" local="no">sl_bt_api.h</includes>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structsl__bt__evt__periodic__sync__transfer__received__s_1a6c91df3c511fec112f6cd3dfbf062660" prot="public" static="no" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t sl_bt_evt_periodic_sync_transfer_received_s::status</definition>
+        <argsstring></argsstring>
+        <name>status</name>
+        <qualifiedname>sl_bt_evt_periodic_sync_transfer_received_s::status</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>SL_STATUS_OK if synchronization was established. Other values indicate that the sync failed to get established. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="5269" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="5269" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__periodic__sync__transfer__received__s_1adbeb87ca66d91f93e3cbeeebe3cf9747" prot="public" static="no" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t sl_bt_evt_periodic_sync_transfer_received_s::sync</definition>
+        <argsstring></argsstring>
+        <name>sync</name>
+        <qualifiedname>sl_bt_evt_periodic_sync_transfer_received_s::sync</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Periodic advertising synchronization handle </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="5272" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="5272" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__periodic__sync__transfer__received__s_1ae176dcd543fe21d0e5e70459db1ffe4d" prot="public" static="no" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t sl_bt_evt_periodic_sync_transfer_received_s::service_data</definition>
+        <argsstring></argsstring>
+        <name>service_data</name>
+        <qualifiedname>sl_bt_evt_periodic_sync_transfer_received_s::service_data</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>A value provided by the peer device </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="5273" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="5273" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__periodic__sync__transfer__received__s_1a54bc34a3789d5a1dd8f950dbe6961fde" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_periodic_sync_transfer_received_s::connection</definition>
+        <argsstring></argsstring>
+        <name>connection</name>
+        <qualifiedname>sl_bt_evt_periodic_sync_transfer_received_s::connection</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Connection handle of the connection that transferred the sync info </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="5274" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="5274" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__periodic__sync__transfer__received__s_1ac830fb4aeb3a78ecfee472e4873e4c53" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_periodic_sync_transfer_received_s::adv_sid</definition>
+        <argsstring></argsstring>
+        <name>adv_sid</name>
+        <qualifiedname>sl_bt_evt_periodic_sync_transfer_received_s::adv_sid</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Advertising set identifier </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="5276" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="5276" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__periodic__sync__transfer__received__s_1a97a135677cc29a810837717b76328d64" prot="public" static="no" mutable="no">
+        <type><ref refid="structbd__addr" kindref="compound">bd_addr</ref></type>
+        <definition>bd_addr sl_bt_evt_periodic_sync_transfer_received_s::address</definition>
+        <argsstring></argsstring>
+        <name>address</name>
+        <qualifiedname>sl_bt_evt_periodic_sync_transfer_received_s::address</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Address of the advertiser </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="5277" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="5277" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__periodic__sync__transfer__received__s_1a727ef8cc7e2b6b4b55a37ceead6b1ba3" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_periodic_sync_transfer_received_s::address_type</definition>
+        <argsstring></argsstring>
+        <name>address_type</name>
+        <qualifiedname>sl_bt_evt_periodic_sync_transfer_received_s::address_type</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Enum <ref refid="group__sl__bt__gap_1gac8d5431d3062e47c5d51b9fb9f36c104" kindref="member">sl_bt_gap_address_type_t</ref>.</para>
+<para>Advertiser address type.</para>
+<para>If the application does not include the bluetooth_feature_use_accurate_api_address_types component, <computeroutput>address_type</computeroutput> uses the following values:<itemizedlist>
+<listitem><para><bold>0:</bold> Public address</para>
+</listitem><listitem><para><bold>1:</bold> Random address</para>
+</listitem></itemizedlist>
+</para>
+<para>If the application includes the bluetooth_feature_use_accurate_api_address_types component, <computeroutput>address_type</computeroutput> uses enum <ref refid="group__sl__bt__gap_1gac8d5431d3062e47c5d51b9fb9f36c104" kindref="member">sl_bt_gap_address_type_t</ref> values:<itemizedlist>
+<listitem><para><bold>sl_bt_gap_public_address (0x0):</bold> Public device address</para>
+</listitem><listitem><para><bold>sl_bt_gap_static_address (0x1):</bold> Static device address</para>
+</listitem><listitem><para><bold>sl_bt_gap_random_resolvable_address (0x2):</bold> Resolvable private random address</para>
+</listitem><listitem><para><bold>sl_bt_gap_random_nonresolvable_address (0x3):</bold> Non-resolvable private random address</para>
+</listitem><listitem><para><bold>sl_bt_gap_public_address_resolved_from_rpa (0x4):</bold> Public identity address resolved from a resolvable private address (RPA)</para>
+</listitem><listitem><para><bold>sl_bt_gap_static_address_resolved_from_rpa (0x5):</bold> Static identity address resolved from a resolvable private address (RPA) </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="5278" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="5278" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__periodic__sync__transfer__received__s_1a3e554f3d338bb344c7ec28e3712f2609" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_periodic_sync_transfer_received_s::adv_phy</definition>
+        <argsstring></argsstring>
+        <name>adv_phy</name>
+        <qualifiedname>sl_bt_evt_periodic_sync_transfer_received_s::adv_phy</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Enum <ref refid="group__sl__bt__gap_1ga05ce4496a6f87de7c67a9e32d816727c" kindref="member">sl_bt_gap_phy_t</ref>. The advertiser PHY. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_gap_phy_1m (0x1):</bold> 1M PHY</para>
+</listitem><listitem><para><bold>sl_bt_gap_phy_2m (0x2):</bold> 2M PHY</para>
+</listitem><listitem><para><bold>sl_bt_gap_phy_coded (0x4):</bold> Coded PHY, 125k (S=8) or 500k (S=2) </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="5308" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="5308" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__periodic__sync__transfer__received__s_1afb343d23361a051ffbd4cc6a3205259f" prot="public" static="no" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t sl_bt_evt_periodic_sync_transfer_received_s::adv_interval</definition>
+        <argsstring></argsstring>
+        <name>adv_interval</name>
+        <qualifiedname>sl_bt_evt_periodic_sync_transfer_received_s::adv_interval</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>The periodic advertising interval. Value in units of 1.25 ms<itemizedlist>
+<listitem><para><bold>Range:</bold> 0x06 to 0xFFFF</para>
+</listitem><listitem><para>Time range: 7.5 ms to 81.92 s </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="5314" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="5314" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__periodic__sync__transfer__received__s_1a90c514e6443384e85e98827cc5a8ad56" prot="public" static="no" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t sl_bt_evt_periodic_sync_transfer_received_s::clock_accuracy</definition>
+        <argsstring></argsstring>
+        <name>clock_accuracy</name>
+        <qualifiedname>sl_bt_evt_periodic_sync_transfer_received_s::clock_accuracy</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Enum <ref refid="group__sl__bt__sync_1gacf10b05b3679bf358e10775bee5bcd60" kindref="member">sl_bt_sync_advertiser_clock_accuracy_t</ref>. The advertiser clock accuracy. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="5319" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="5319" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__periodic__sync__transfer__received__s_1a74e3f5212773f0c7c937fc3c9c3f31ca" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_periodic_sync_transfer_received_s::bonding</definition>
+        <argsstring></argsstring>
+        <name>bonding</name>
+        <qualifiedname>sl_bt_evt_periodic_sync_transfer_received_s::bonding</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Bonding handle. Values:<itemizedlist>
+<listitem><para><bold>SL_BT_INVALID_BONDING_HANDLE (0xff):</bold> No bonding</para>
+</listitem><listitem><para><bold>Other:</bold> Bonding handle </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="5322" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="5322" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Data structure of the transfer_received event. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="2">
+        <label>bd_addr</label>
+        <link refid="structbd__addr"/>
+      </node>
+      <node id="1">
+        <label>sl_bt_evt_periodic_sync_transfer_received_s</label>
+        <link refid="structsl__bt__evt__periodic__sync__transfer__received__s"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>address</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="5267" column="1" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="5268" bodyend="5326"/>
+    <listofallmembers>
+      <member refid="structsl__bt__evt__periodic__sync__transfer__received__s_1a97a135677cc29a810837717b76328d64" prot="public" virt="non-virtual"><scope>sl_bt_evt_periodic_sync_transfer_received_s</scope><name>address</name></member>
+      <member refid="structsl__bt__evt__periodic__sync__transfer__received__s_1a727ef8cc7e2b6b4b55a37ceead6b1ba3" prot="public" virt="non-virtual"><scope>sl_bt_evt_periodic_sync_transfer_received_s</scope><name>address_type</name></member>
+      <member refid="structsl__bt__evt__periodic__sync__transfer__received__s_1afb343d23361a051ffbd4cc6a3205259f" prot="public" virt="non-virtual"><scope>sl_bt_evt_periodic_sync_transfer_received_s</scope><name>adv_interval</name></member>
+      <member refid="structsl__bt__evt__periodic__sync__transfer__received__s_1a3e554f3d338bb344c7ec28e3712f2609" prot="public" virt="non-virtual"><scope>sl_bt_evt_periodic_sync_transfer_received_s</scope><name>adv_phy</name></member>
+      <member refid="structsl__bt__evt__periodic__sync__transfer__received__s_1ac830fb4aeb3a78ecfee472e4873e4c53" prot="public" virt="non-virtual"><scope>sl_bt_evt_periodic_sync_transfer_received_s</scope><name>adv_sid</name></member>
+      <member refid="structsl__bt__evt__periodic__sync__transfer__received__s_1a74e3f5212773f0c7c937fc3c9c3f31ca" prot="public" virt="non-virtual"><scope>sl_bt_evt_periodic_sync_transfer_received_s</scope><name>bonding</name></member>
+      <member refid="structsl__bt__evt__periodic__sync__transfer__received__s_1a90c514e6443384e85e98827cc5a8ad56" prot="public" virt="non-virtual"><scope>sl_bt_evt_periodic_sync_transfer_received_s</scope><name>clock_accuracy</name></member>
+      <member refid="structsl__bt__evt__periodic__sync__transfer__received__s_1a54bc34a3789d5a1dd8f950dbe6961fde" prot="public" virt="non-virtual"><scope>sl_bt_evt_periodic_sync_transfer_received_s</scope><name>connection</name></member>
+      <member refid="structsl__bt__evt__periodic__sync__transfer__received__s_1ae176dcd543fe21d0e5e70459db1ffe4d" prot="public" virt="non-virtual"><scope>sl_bt_evt_periodic_sync_transfer_received_s</scope><name>service_data</name></member>
+      <member refid="structsl__bt__evt__periodic__sync__transfer__received__s_1a6c91df3c511fec112f6cd3dfbf062660" prot="public" virt="non-virtual"><scope>sl_bt_evt_periodic_sync_transfer_received_s</scope><name>status</name></member>
+      <member refid="structsl__bt__evt__periodic__sync__transfer__received__s_1adbeb87ca66d91f93e3cbeeebe3cf9747" prot="public" virt="non-virtual"><scope>sl_bt_evt_periodic_sync_transfer_received_s</scope><name>sync</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

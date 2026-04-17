@@ -1,0 +1,22 @@
+id: device_dma_hal
+label: Device Manager DMA HAL
+package: platform_core
+description: >
+  This component represent the DMA HAL layer of the Device Manager.
+category: Services|Device Manager
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+ui_hints:
+  visibility: never
+provides:
+- name: device_dma_hal
+requires:
+- name: device_clock
+root_path: platform_core/platform/service/device_manager
+source:
+- path: dma/sl_device_dma_s2.c
+  condition: [device_series_2]
+- path: dma/sl_device_dma_s3.c
+  condition: [device_series_3]

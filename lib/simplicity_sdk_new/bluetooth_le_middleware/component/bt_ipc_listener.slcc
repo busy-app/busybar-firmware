@@ -1,0 +1,45 @@
+id: bt_ipc_listener
+label: Bluetooth IPC Listener
+package: bluetooth_le_middleware
+description: >
+  Listens to Bluetooth events published by the Bluetooth Event System IPC
+  (inter-process communication) component.
+
+  This component subscribes the bluetooth event callbacks provided by the
+  application and other components to Bluetooth events. Creates an RTOS task
+  and calls the callbacks from that context.
+category: Bluetooth|Application|Miscellaneous
+metadata:
+  sbom:
+    license: Zlib
+quality: production
+tag:
+- No-Code
+root_path: bluetooth_le_middleware/common/bt_ipc_listener
+config_file:
+- path: config/bt_ipc_listener_config.h
+source:
+- path: bt_ipc_listener.c
+include:
+- path: .
+  file_list:
+  - path: bt_ipc_listener.h
+provides:
+- name: bt_ipc_listener
+requires:
+- name: status
+- name: sl_common
+- name: cmsis_rtos2
+- name: event_system
+- name: bluetooth_api
+- name: bluetooth_event_system_ipc
+- name: app_assert
+template_contribution:
+- name: component_catalog
+  value: bt_ipc_listener
+- name: event_handler
+  value:
+    event: internal_app_init
+    include: bt_ipc_listener.h
+    handler: bt_ipc_listener_init
+  priority: 10    # After app_log is initialized (in case of init assert).

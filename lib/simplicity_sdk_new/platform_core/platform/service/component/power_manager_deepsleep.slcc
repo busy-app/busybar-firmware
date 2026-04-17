@@ -1,0 +1,25 @@
+id: power_manager_deepsleep
+label: 'Power Manager: Deepsleep'
+package: platform_core
+description: |
+  Power Manager default configuration supporting deepsleep (EM2/EM3),
+  unless the project requires power_manager_no_deepsleep thus signifying
+  deepsleep is not required.
+category: Services|Power Manager
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+provides:
+- name: power_manager_deepsleep
+- name: power_manager_energy_mode_impl
+requires:
+- name: hfxo_manager
+  condition: [device_series_2]
+- name: power_manager
+template_contribution:
+- name: component_catalog
+  value: power_manager_deepsleep
+conflicts:
+- name: device_generic_family_sixx301
+root_path: platform_core

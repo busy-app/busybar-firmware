@@ -1,0 +1,83 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<demos>
+	<demo name="brd4180a.demo.ncp-spi" label="Zigbee - NCP ncp-spi">
+		<property key="blurb" value="Zigbee - NCP ncp-spi" />
+		<property key="partCompatibility" value=".*efr32mg21a020f1024im32.*" />
+		<property key="boardCompatibility" value="brd4180a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zigbee_app/demos/ncp-spi/ncp-spi-brd4180a.s37" />
+		<property key="readmeFiles" value="ncp/ncp-spi/readme.md" />
+		<property key="filters" value="Device\ Type|NCP Project\ Difficulty|Beginner Wireless\ Technology|Zigbee" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This network coprocessor (NCP) application supports communication with a host application over a SPI interface.  This NCP application can be built as configured, or optionally can be augmented with customized extensions for initialization, main loop processing, event definition/handling, and messaging with the host.</description>
+	</demo>
+	<demo name="brd4180a.demo.zigbee_ncp_uart_hw" label="Zigbee - NCP UartHw">
+		<property key="blurb" value="Zigbee - NCP UartHw" />
+		<property key="partCompatibility" value=".*efr32mg21a020f1024im32.*" />
+		<property key="boardCompatibility" value="brd4180a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zigbee_app/demos/zigbee_ncp_uart_hw/zigbee_ncp_uart_hw-brd4180a.s37" />
+		<property key="readmeFiles" value="ncp/zigbee_ncp_uart_hw/readme.md" />
+		<property key="filters" value="Device\ Type|NCP Project\ Difficulty|Advanced Wireless\ Technology|Zigbee" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This network coprocessor (NCP) application supports communication with a host application over a UART interface with hardware flow control. This NCP application can be built as configured, or optionally can be augmented with customized extensions for initialization, main loop processing, event definition/handling, and messaging with the host. To create a ECC-enabled application for the Smart Energy Profile, please download and extract the 'EmberZnet-Smart-Energy.zip' side-package over your installed SDK and add, depending on use-case, one of two new components ('CBKE 163k1'; 'CBKE 283k1') to your application.</description>
+	</demo>
+	<demo name="brd2703a.demo.zigbee_unified_test_harness" label="Zigbee - UnifiedTestHarness">
+		<property key="blurb" value="Zigbee - UnifiedTestHarness" />
+		<property key="partCompatibility" value=".*efr32mg24b210f1536im48.*" />
+		<property key="boardCompatibility" value="brd2703a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zigbee_app/demos/zigbee_unified_test_harness/zigbee_unified_test_harness-brd2703a.s37" />
+		<property key="readmeFiles" value="z3/zigbee_unified_test_harness/readme.md" />
+		<property key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Zigbee" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This is a Zigbee 3.0 Zigbee Unified Test Harness (ZUTH) dongle application.</description>
+	</demo>
+	<demo name="brd4186c.demo.zigbee_unified_test_harness" label="Zigbee - UnifiedTestHarness">
+		<property key="blurb" value="Zigbee - UnifiedTestHarness" />
+		<property key="partCompatibility" value=".*efr32mg24b210f1536im48.*" />
+		<property key="boardCompatibility" value="brd4186c" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zigbee_app/demos/zigbee_unified_test_harness/zigbee_unified_test_harness-brd4186c.s37" />
+		<property key="readmeFiles" value="z3/zigbee_unified_test_harness/readme.md" />
+		<property key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Zigbee" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This is a Zigbee 3.0 Zigbee Unified Test Harness (ZUTH) dongle application.</description>
+	</demo>
+	<demo name="brd4180a.demo.zigbee_z3_light" label="Zigbee - Z3Light">
+		<property key="blurb" value="Zigbee - Z3Light" />
+		<property key="partCompatibility" value=".*efr32mg21a020f1024im32.*" />
+		<property key="boardCompatibility" value="brd4180a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zigbee_app/demos/zigbee_z3_light/zigbee_z3_light-brd4180a.s37" />
+		<property key="readmeFiles" value="z3/zigbee_z3_light/readme.md" />
+		<property key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Zigbee" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This is a Zigbee 3.0 light application using NVM3 as the persistent storage.</description>
+	</demo>
+	<demo name="brd4180a.demo.zigbee_z3_switch" label="Zigbee - Z3Switch">
+		<property key="blurb" value="Zigbee - Z3Switch" />
+		<property key="partCompatibility" value=".*efr32mg21a020f1024im32.*" />
+		<property key="boardCompatibility" value="brd4180a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zigbee_app/demos/zigbee_z3_switch/zigbee_z3_switch-brd4180a.s37" />
+		<property key="readmeFiles" value="z3/zigbee_z3_switch/readme.md" />
+		<property key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Zigbee" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This is a Zigbee 3.0 switch application using NVM3 as the persistent storage. </description>
+	</demo>
+	<demo name="brd4180a.demo.zigbee_z4_light" label="Zigbee - Z4Light">
+		<property key="blurb" value="Zigbee - Z4Light" />
+		<property key="partCompatibility" value=".*efr32mg21a020f1024im32.*" />
+		<property key="boardCompatibility" value="brd4180a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zigbee_app/demos/zigbee_z4_light/zigbee_z4_light-brd4180a.s37" />
+		<property key="readmeFiles" value="z4/zigbee_z4_light/readme.md" />
+		<property key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Zigbee" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This is a Zigbee 4.0 light application using NVM3 as the persistent storage.</description>
+	</demo>
+	<demo name="brd4180a.demo.zigbee_z4_switch" label="Zigbee - Z4Switch">
+		<property key="blurb" value="Zigbee - Z4Switch" />
+		<property key="partCompatibility" value=".*efr32mg21a020f1024im32.*" />
+		<property key="boardCompatibility" value="brd4180a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zigbee_app/demos/zigbee_z4_switch/zigbee_z4_switch-brd4180a.s37" />
+		<property key="readmeFiles" value="z4/zigbee_z4_switch/readme.md" />
+		<property key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Zigbee" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This is a Zigbee 4.0 switch application using NVM3 as the persistent storage. </description>
+	</demo>
+</demos>

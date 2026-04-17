@@ -1,0 +1,74 @@
+project_name: sl_si91x_ulp_timer
+package: platform_siwx91x_app
+description: 'This application demonstrates ULP Timer functionality.
+
+  '
+category: example|peripheral
+quality: production
+label: SI91x - SL_ULP_Timer
+component:
+- id: sl_main
+- id: status
+- id: syscalls
+- id: si91x_memory_default_config
+- id: sllib_wireless_shutdown
+- id: ulp_timers_instance
+  instance:
+  - timer0
+- id: sl_ulp_timer
+- id: sl_si91x_led_917
+  instance:
+  - led0
+- id: sl_power_manager
+- id: debug_ulp_component
+- id: timer_ulp_component
+- id: pm_ps2_component
+define:
+- name: SLI_SI91X_MCU_ENABLE_RAM_BASED_EXECUTION
+- name: SL_SI91X_ULP_STATE_ENABLE
+source:
+- path: app.c
+- path: ulp_timer_example.c
+include:
+- path: .
+  file_list:
+  - path: ulp_timer_example.h
+  - path: app.h
+template_contribution:
+- name: user_files_ps2
+  value: ulp_timer_example.*
+- name: user_files_ps2
+  value: app.*
+- name: user_files_ps2
+  value: main.*
+- name: user_files_ps2
+  value: sl_system_process_action.*
+  condition:
+  - sl_system
+- name: user_files_ps2
+  value: sl_event_handler.*
+toolchain_settings:
+- option: gcc_compiler_option
+  value: -Wall -Werror
+other_file:
+- path: resources/readme/setupdiagram.png
+- path: resources/readme/image512d.png
+- path: resources/readme/image512f.png
+- path: resources/uc_screen/ulp_timer_uc_screen.png
+- path: resources/readme/output_ulp_timer.png
+ui_hints:
+  highlight:
+  - path: readme.md
+    focus: true
+readme:
+- path: readme.md
+post_build:
+  profile: wiseconnect_soc
+sdk_extension:
+- id: wiseconnect3_sdk
+  vendor: silabs
+  version: 4.0.1
+sdk:
+  id: simplicity_sdk
+  vendor: silabs
+  version: 2025.12.2

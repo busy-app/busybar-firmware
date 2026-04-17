@@ -1,0 +1,40 @@
+!!omap
+- id: test_opn
+- label: OPN testing component for internal use only
+- package: platform_siwx91x
+- quality: production
+- metadata:
+    sbom:
+      license: MSLA
+- category: Device|Si91x|MCU|Core
+- description: >
+    Si91x SoC OPN testing component for internal use only.
+- define:
+    - name: USER_CONFIGURATION_ENABLE
+      value: '1'
+    - name: SLI_SI91X_MCU_COMMON_FLASH_MODE
+      value: '1'
+- provides:
+    - name: test_opn
+- requires:
+    - name: si91x_common_flash
+    - name: external_flash_8mb
+      condition: [device_supports_external_flash]
+    - name: external_psram_8mb
+      condition: [device_supports_external_psram]
+- template_contribution:
+    - name: psram_present
+      value: 1 
+      condition: [device_supports_external_psram]
+    - name: external_psram_present
+      value: 1
+      condition: [device_supports_external_psram]
+    - name: device_psram_addr
+      value: 167772160 # 0x0A00_0000
+      condition: [device_supports_external_psram]
+    - name: device_psram_size
+      value: 8388608
+      condition: [device_supports_external_psram]       
+- toolchain_settings:
+    - option: gcc_compiler_option
+      value: -w

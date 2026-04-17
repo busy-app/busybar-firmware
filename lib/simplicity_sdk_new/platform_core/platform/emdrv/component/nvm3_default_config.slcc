@@ -1,0 +1,19 @@
+id: nvm3_default_config
+label: NVM3 Default Config
+package: platform_core
+description: >
+category: Services|NVM3
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+config_file:
+- path: platform/emdrv/nvm3/config/s2/nvm3_default_config.h
+  condition: [device_series_2]
+  unless: [trustzone_secure]
+- path: platform/emdrv/nvm3/config/s3/nvm3_default_config.h
+  condition: [device_series_3]
+  unless: [trustzone_secure]
+provides:
+- name: nvm3_default_config
+root_path: platform_core

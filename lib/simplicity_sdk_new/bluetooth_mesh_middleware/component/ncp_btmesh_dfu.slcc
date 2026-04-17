@@ -1,0 +1,37 @@
+id: ncp_btmesh_dfu
+label: NCP DFU Utility
+package: bluetooth_mesh_middleware
+description: >
+  Implements the Firmware Update Information Status message assembly, with
+  provided interfaces for setting FWIDs and URIs with indexing.
+  This component is prepared for integration into NCP applications.
+category: "Bluetooth Mesh|Utility"
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: bluetooth_mesh_middleware/common/ncp_btmesh_dfu
+source:
+- path: ncp_btmesh_dfu.c
+include:
+- path: ""
+  file_list:
+  - path: ncp_btmesh_dfu.h
+provides:
+- name: ncp_btmesh_dfu
+requires:
+- name: btmesh_core
+- name: btmesh_stack_fw_update_server
+- name: "ncp_btmesh_user_cmd"
+- name: memory_manager
+template_contribution:
+- name: ncp_cmd_to_target
+  value:
+    include: ncp_btmesh_dfu.h
+    function: sl_btmesh_ncp_dfu_handle_cmd
+  priority: -9
+validation_helper:
+- path: "../../script/validation/ncp_soc_compatibility.lua"
+documentation:
+  docset: btmesh
+  document: btmesh-service-api/ncp-btmesh-dfu

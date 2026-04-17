@@ -1,0 +1,117 @@
+id: wisun_fan_certification
+label: Wi-SUN CLI - FAN Certification
+description: >
+  Adds FAN certification support to Wi-SUN SoC CLI application. Provides all
+  the CLI commands and the test certificates required to run Wi-SUN FAN
+  certification test suite. Can only be used in Wi-SUN SoC CLI and Wi-SUN SoC
+  Border Router CLI applications.
+package: wisun
+category: Wi-SUN|Application|Wi-SUN CLI
+quality: production
+
+
+provides:
+- name: wisun_fan_certification
+
+requires:
+- name: wisun_keychain
+
+include:
+- path: plugin
+  file_list:
+  - path: sl_wisun_alliance_certificates.h
+  - path: sl_wisun_silabs_certificates.h
+
+template_contribution:
+- name: component_catalog
+  value: wisun_fan_certification
+
+- name: wisun_keychain_include
+  value:
+    path: sl_wisun_alliance_certificates.h
+
+- name: wisun_keychain_trustedca
+  value:
+    certificate: WISUN_ROOT_CERT
+- name: wisun_keychain_credential
+  value:
+    certificate: WISUN_DEVICE_CERT
+    key: WISUN_DEVICE_KEY
+  condition:
+  - wisun_stack
+  priority: 0
+- name: wisun_keychain_credential
+  value:
+    certificate: WISUN_BR_CERT
+    key: WISUN_BR_KEY
+  condition:
+  - wisun_br_stack
+  priority: 0
+
+- name: wisun_keychain_include
+  value:
+    path: sl_wisun_silabs_certificates.h
+
+- name: wisun_keychain_trustedca
+  value:
+    certificate: SILABS_ROOT_CERT
+- name: wisun_keychain_credential
+  value:
+    certificate: SILABS_DEVICE_CERT
+    key: SILABS_DEVICE_KEY
+  condition:
+  - wisun_stack
+  priority: 1
+- name: wisun_keychain_credential
+  value:
+    certificate: SILABS_BR_CERT
+    key: SILABS_BR_KEY
+  condition:
+  - wisun_br_stack
+  priority: 1
+
+- name: wisun_keychain_trustedca
+  value:
+    certificate: GLOBALSIGN_ROOT_CERT
+- name: wisun_keychain_trustedca
+  value:
+    certificate: GLOBALSIGN_MCA_CERT
+- name: wisun_keychain_trustedca
+  value:
+    certificate: GLOBALSIGN_MICA_CERT
+- name: wisun_keychain_credential
+  value:
+    certificate: GLOBALSIGN_DEVICE_CERT
+    key: GLOBALSIGN_DEVICE_KEY
+  condition:
+  - wisun_stack
+  priority: 2
+
+- name: wisun_keychain_trustedca
+  value:
+    certificate: WISEKEY_ROOT_CERT
+- name: wisun_keychain_trustedca
+  value:
+    certificate: WISEKEY_MCA_CERT
+- name: wisun_keychain_trustedca
+  value:
+    certificate: WISEKEY_MICA_CERT
+- name: wisun_keychain_credential
+  value:
+    certificate: WISEKEY_DEVICE_CERT
+    key: WISEKEY_DEVICE_KEY
+  condition:
+  - wisun_stack
+  priority: 3
+- name: wisun_keychain_credential
+  value:
+    certificate: WISEKEY_BR_CERT
+    key: WISEKEY_BR_KEY
+  condition:
+  - wisun_br_stack
+  priority: 3
+
+metadata:
+  sbom:
+    license: MSLA
+root_path: wisun

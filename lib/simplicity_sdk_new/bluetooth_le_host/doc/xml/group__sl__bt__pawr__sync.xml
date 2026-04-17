@@ -1,0 +1,221 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__pawr__sync" kind="group">
+    <compoundname>sl_bt_pawr_sync</compoundname>
+    <title>Periodic Advertising with responses Synchronization</title>
+    <innergroup refid="group__sl__bt__evt__pawr__sync__opened">sl_bt_evt_pawr_sync_opened</innergroup>
+    <innergroup refid="group__sl__bt__evt__pawr__sync__transfer__received">sl_bt_evt_pawr_sync_transfer_received</innergroup>
+    <innergroup refid="group__sl__bt__evt__pawr__sync__subevent__report">sl_bt_evt_pawr_sync_subevent_report</innergroup>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="group__sl__bt__pawr__sync_1ga29e4752f20ecb30867463c7dfb3a382d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_pawr_sync_set_sync_subevents</definition>
+        <argsstring>(uint16_t sync, size_t subevents_len, const uint8_t *subevents)</argsstring>
+        <name>sl_bt_pawr_sync_set_sync_subevents</name>
+        <param>
+          <type>uint16_t</type>
+          <declname>sync</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>subevents_len</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>subevents</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Specify the subevents that this device will synchronize to on the specified PAwR train.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">sync</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>PAwR synchronization handle </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">subevents_len</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Length of data in <computeroutput>subevents</computeroutput> </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">subevents</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Array of subevent indexes to synchronize to</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="5714" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="5714" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__pawr__sync_1ga5d5ff16e38a7fe4df466636781fc7469" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_pawr_sync_set_response_data</definition>
+        <argsstring>(uint16_t sync, uint16_t request_event, uint8_t request_subevent, uint8_t response_subevent, uint8_t response_slot, size_t response_data_len, const uint8_t *response_data)</argsstring>
+        <name>sl_bt_pawr_sync_set_response_data</name>
+        <param>
+          <type>uint16_t</type>
+          <declname>sync</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>request_event</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>request_subevent</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>response_subevent</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>response_slot</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>response_data_len</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>response_data</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Set the data to be sent in the specified response slot of a subevent of an active PAwR train.</para>
+<para>Use this command when the application receives the <ref refid="group__sl__bt__evt__pawr__sync__subevent__report" kindref="compound">sl_bt_evt_pawr_sync_subevent_report</ref> event and the application needs to send a response. The application needs to set the response data within the timing requirements implied by the parameters of the PAwR train that the device is synchronized to. If the response data is set too late, this command will fail with result SL_STATUS_BT_CTRL_ADVERTISING_TIMEOUT.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">sync</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>PAwR synchronization handle </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">request_event</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The periodic advertising event counter (paEventCounter) of the request. Set this parameter to the value of the <computeroutput>event_counter</computeroutput> field of the <ref refid="group__sl__bt__evt__pawr__sync__subevent__report_1ga6ee06fdb1be6495e21962c31f6beeceb" kindref="member">sl_bt_evt_pawr_sync_subevent_report_id</ref> event that the application is responding to. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">request_subevent</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The subevent of the request. Set this parameter to the value of the <computeroutput>subevent</computeroutput> field of the <ref refid="group__sl__bt__evt__pawr__sync__subevent__report_1ga6ee06fdb1be6495e21962c31f6beeceb" kindref="member">sl_bt_evt_pawr_sync_subevent_report_id</ref> event that the application is responding to. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">response_subevent</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The subevent in which the response is to be sent </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">response_slot</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The response slot in which the response is to be sent </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">response_data_len</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Length of data in <computeroutput>response_data</computeroutput> </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">response_data</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Data to be sent in the specified response slot. Maximum of 248 bytes of data can be set with this command.</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="5749" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="5749" declcolumn="13"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__pawr__sync_1gaba905f522eed8307defba9ce5b594414" prot="public" static="no">
+        <name>sl_bt_cmd_pawr_sync_set_sync_subevents_id</name>
+        <initializer>0x02540020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="5401" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="5401" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__pawr__sync_1gaf8e349158a43944eb1bf6382ae9531ec" prot="public" static="no">
+        <name>sl_bt_cmd_pawr_sync_set_response_data_id</name>
+        <initializer>0x03540020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="5402" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="5402" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__pawr__sync_1gaacf96fd218cb9d668cf02518d7e693b6" prot="public" static="no">
+        <name>sl_bt_rsp_pawr_sync_set_sync_subevents_id</name>
+        <initializer>0x02540020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="5403" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="5403" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__pawr__sync_1ga87bed0002d6927758f359bf8f121fb2d" prot="public" static="no">
+        <name>sl_bt_rsp_pawr_sync_set_response_data_id</name>
+        <initializer>0x03540020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="5404" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="5404" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Periodic Advertising with responses Synchronization. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>Provides events and control for synchronized Periodic Advertising with Responses (PAwR) trains. Synchronization is achieved by scanning (see <ref refid="group__sl__bt__sync__scanner" kindref="compound">Periodic Advertising Sync Scanner</ref>) or by receiving Periodic Advertising Synchronization Transfer (see <ref refid="group__sl__bt__past__receiver" kindref="compound">PAST Receiver</ref>). </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,374 @@
+project_name: connect_soc_ecdh_key_exchange
+label: "Connect - SoC ECDH Key Exchange"
+package: "connect_sdk_sample_app"
+description: >
+  This sample application demonstrates how to securely share a network key among
+  multiple devices using the Elliptic-curve Diffie-Hellman (ECDH) key agreement
+  protocol. By employing ECDH, two parties can establish a shared secret over an
+  insecure channel, which can then be used as a symmetric encryption key for
+  secure communication.
+category: Connect Examples
+quality: production
+
+#---------------- UC/UP components -------------------
+component:
+  - id: radio_config_simple_connect_singlephy
+  - id: sl_main
+  - id: clock_manager
+  - id: device_init
+  - id: board_control
+    condition: [hardware_board]
+  - id: app_log
+  - id: sl_rail_util_pti
+  # Connect components
+  - id: connect_app_framework_common
+  - id: connect_psa_security_library
+  - id: sl_connect_ecdh_key_exchange
+#---------------------- CLI --------------------------
+  - id: cli
+    instance:
+    - example
+#-----------Need while connect uses printf -----------
+  - id: printf
+  - id: iostream_recommended_stream
+  - id: iostream_retarget_stdio
+#------------Memory Protection Unit-------------------
+  - id: mpu
+#-------------- Restriction rules -------------------
+  - id: restrictions_profile_connect
+  - id: restrictions_profile_connect_ofdm
+  - id: restrictions_profile_long_range
+#-------------- Connect-RAIL DMP --------------------
+  - id: rail_lib_multiprotocol
+    condition:
+      - sl_connect_rail_dmp
+  - id: sl_rail_util_init
+    instance:
+      - inst0
+    condition:
+      - sl_connect_rail_dmp
+  - id: app_assert
+    condition:
+      - sl_connect_rail_dmp
+#----------------- Provide list ----------------------
+provides:
+  - name: simple_connect_singlephy_application
+#----------------- Require list ----------------------
+requires:
+  - name: a_radio_config
+  - name: radio_config_simple_connect_singlephy_device_family_fgm23
+    condition:
+      - "device_family_fgm23"
+
+#----------------- Project files ---------------------
+include:
+  - path: "."
+    file_list:
+      - path: "app_init.h"
+      - path: "app_process.h"
+      - path: "app.h"
+
+source:
+  - path: "app_init.c"
+  - path: "app_process.c"
+  - path: "app_cli.c"
+    condition:
+    - "cli"
+
+other_file:
+  - path: "../../script/connect_create_gbl_image.bat"
+  - path: "../../script/connect_create_gbl_image.sh"
+  - path: "hw_filter_tags.yaml"
+    condition:
+      - "add_hw_filter_to_project"
+
+readme:
+  - path: ../../documentation/example/connect_soc_ecdh_key_exchange/readme.md
+
+#----------------- Project macros --------------------
+
+#------------ Configuration overrides ----------------
+configuration:
+  - name: SL_BOARD_ENABLE_VCOM
+    value: "1"
+  - name: SL_CLI_LOCAL_ECHO
+    value: "(1)"
+  - name: SL_CLI_INPUT_BUFFER_SIZE
+    value: "(256)"
+  - name: SL_IOSTREAM_USART_VCOM_CONVERT_BY_DEFAULT_LF_TO_CRLF
+    value: "(1)"
+  - name: SL_IOSTREAM_USART_VCOM_FLOW_CONTROL_TYPE
+    value: "usartHwFlowControlCtsAndRts"
+  - name: SL_IOSTREAM_EUSART_VCOM_CONVERT_BY_DEFAULT_LF_TO_CRLF
+    value: "(1)"
+  - name: SL_IOSTREAM_EUSART_VCOM_FLOW_CONTROL_TYPE
+    value: "SL_IOSTREAM_EUSART_UART_FLOW_CTRL_CTS_RTS"
+  - name: APP_LOG_PREFIX_ENABLE
+    value: "0"
+  - name: "SL_STACK_SIZE"
+    value: "8192"
+    unless:
+    - kernel
+  - name: "SL_STACK_SIZE"
+    value: "10192"
+    condition:
+    - kernel
+  - name: configTOTAL_HEAP_SIZE
+    value: "9216"
+  - name: "EMBER_AF_PLUGIN_CMSIS_RTOS_CONNECT_STACK_SIZE"
+    value: "(800)"
+  - name: "EMBER_AF_PLUGIN_CMSIS_RTOS_APP_FRAMEWORK_STACK_SIZE"
+    value: "(1024)"
+  - name: "SL_CLI_EXAMPLE_TASK_STACK_SIZE"
+    value: "1024"
+
+#-------------- Connect-RAIL DMP --------------------
+  - name: "SL_RAIL_UTIL_INIT_INIT_COMPLETE_CALLBACK_INST0_ENABLE"
+    value: "1"
+    condition:
+      - "sl_connect_rail_dmp"
+  - name: "SL_RAIL_UTIL_INIT_RX_PACKET_QUEUE_INST0_ENTRIES"
+    value: "16"
+    condition:
+      - "sl_connect_rail_dmp"
+  - name: "SL_RAIL_UTIL_INIT_RX_FIFO_INST0_BYTES"
+    value: "128"
+    condition:
+      - "sl_connect_rail_dmp"
+  - name: "SL_RAIL_UTIL_INIT_TX_FIFO_INST0_BYTES"
+    value: "128"
+    condition:
+      - "sl_connect_rail_dmp"
+  - name: "SL_RAIL_UTIL_INIT_PROTOCOL_INST0_DEFAULT"
+    value: "SL_RAIL_UTIL_PROTOCOL_PROPRIETARY"
+    condition:
+      - "sl_connect_rail_dmp"
+  - name: "SL_RAIL_UTIL_INIT_PROTOCOL_PROPRIETARY_INST0_INDEX"
+    value: "1"
+    condition:
+      - "sl_connect_rail_dmp"
+  - name: "SL_RAIL_UTIL_INIT_TRANSITION_INST0_RX_SUCCESS"
+    value: "RAIL_RF_STATE_RX"
+    condition:
+      - "sl_connect_rail_dmp"
+  - name: "SL_RAIL_UTIL_INIT_TRANSITION_INST0_RX_ERROR"
+    value: "RAIL_RF_STATE_RX"
+    condition:
+      - "sl_connect_rail_dmp"
+  - name: "SL_RAIL_UTIL_INIT_EVENTS_INST0_ENABLE"
+    value: "1"
+    condition:
+      - "sl_connect_rail_dmp"
+  - name: "SL_RAIL_UTIL_INIT_EVENT_RX_PACKET_RECEIVED_INST0_ENABLE"
+    value: "1"
+    condition:
+      - "sl_connect_rail_dmp"
+  - name: "SL_RAIL_UTIL_INIT_EVENT_RX_FRAME_ERROR_INST0_ENABLE"
+    value: "1"
+    condition:
+      - "sl_connect_rail_dmp"
+  - name: "SL_RAIL_UTIL_INIT_EVENT_RX_PACKET_ABORTED_INST0_ENABLE"
+    value: "1"
+    condition:
+      - "sl_connect_rail_dmp"
+  - name: "SL_RAIL_UTIL_INIT_EVENT_RX_TIMEOUT_INST0_ENABLE"
+    value: "1"
+    condition:
+      - "sl_connect_rail_dmp"
+  - name: "SL_RAIL_UTIL_INIT_EVENT_TX_PACKET_SENT_INST0_ENABLE"
+    value: "1"
+    condition:
+      - "sl_connect_rail_dmp"
+  - name: "SL_RAIL_UTIL_INIT_EVENT_TX_ABORTED_INST0_ENABLE"
+    value: "1"
+    condition:
+      - "sl_connect_rail_dmp"
+  - name: "SL_RAIL_UTIL_INIT_EVENT_TX_BLOCKED_INST0_ENABLE"
+    value: "1"
+    condition:
+      - "sl_connect_rail_dmp"
+  - name: "SL_RAIL_UTIL_INIT_EVENT_TX_STARTED_INST0_ENABLE"
+    value: "1"
+    condition:
+      - "sl_connect_rail_dmp"
+  - name: "SL_RAIL_UTIL_INIT_EVENT_SCHEDULER_STATUS_INST0_ENABLE"
+    value: "1"
+    condition:
+      - "sl_connect_rail_dmp"
+  - name: "SL_RAIL_UTIL_INIT_PROTOCOLS_INST0_ENABLE"
+    value: "1"
+    condition:
+      - "sl_connect_rail_dmp"
+  - name: "SL_RAIL_UTIL_INIT_RADIO_CONFIG_SUPPORT_INST0_ENABLE"
+    value: "1"
+    condition:
+      - "sl_connect_rail_dmp"
+  - name: "SL_RAIL_UTIL_INIT_CALIBRATIONS_INST0_ENABLE"
+    value: "1"
+    condition:
+      - "sl_connect_rail_dmp"
+  - name: "SL_RAIL_UTIL_INIT_TRANSITIONS_INST0_ENABLE"
+    value: "0"
+    condition:
+      - "sl_connect_rail_dmp"
+  - name: "SL_RAIL_UTIL_CALLBACKS_ASSERT_FAILED_OVERRIDE"
+    value: "0"
+    condition:
+      - "sl_connect_rail_dmp"
+#----------------- Watchdog  -------------------------
+define:
+  - name: SL_CONNECT_DISABLE_WATCHDOG
+
+#--------------------- HWFILTER ------------------------
+tag:
+  - hwfilter:board:hardware:has:vcom
+  - hwfilter:board:hardware:has:pti
+  - hwfilter:ram:30k
+  - hwfilter:flash:244k
+
+#--------------------- Toolchain ------------------------
+toolchain_settings:
+  - option: optimize
+    value: debug
+#-------------- Template Contribution ----------------
+template_contribution:
+#------------------ CLI commands ---------------------
+  - name: cli_command
+    value:
+      name: info
+      handler: cli_info
+      help: "Show network parameters"
+  - name: cli_command
+    value:
+      name: leave
+      handler: cli_leave
+      help: "De-configure network"
+  - name: cli_command
+    value:
+      name: set_network_key
+      handler: cli_set_network_key
+      help: "Set an arbitrary network key"
+      argument:
+      - type: hex
+        help: "Network key"
+  - name: cli_command
+    value:
+      name: generate_random_network_key
+      handler: cli_generate_random_network_key
+      help: "Generate a random network key"
+  - name: cli_command
+    value:
+      name: send
+      handler: cli_send
+      help: "Send a message to the specified address"
+      argument:
+      - type: uint16
+        help: "Address"
+      - type: hex
+        help: "Message"
+  - name: cli_command
+    value:
+      name: commission
+      handler: cli_commission
+      help: "Configure the network, assign short address"
+      argument:
+      - type: uint16
+        help: "Address"
+  - name: cli_command
+    value:
+      name: request_network_key
+      handler: cli_request_network_key
+      help: "Initiate key exchange and retrieve the network key from a remote node"
+      argument:
+      - type: uint16
+        help: "Address"
+  - name: cli_command
+    value:
+      name: generate_key_pair
+      handler: cli_generate_key_pair
+      help: "Generate local public/private key pair"
+  - name: cli_command
+    value:
+      name: export_public_key
+      handler: cli_export_public_key
+      help: "Export public key for the specified key ID"
+      argument:
+      - type: uint32
+        help: "Key ID"
+  - name: cli_command
+    value:
+      name: generate_shared_key
+      handler: cli_generate_shared_key
+      help: "Generate the shared key from local and remote keys"
+      argument:
+      - type: uint32
+        help: "Key ID"
+      - type: hex
+        help: "Remote key"
+  - name: cli_command
+    value:
+      name: encrypt_message
+      handler: cli_encrypt_message
+      help: "Encrypt message with the provided key"
+      argument:
+      - type: uint32
+        help: "Key ID"
+      - type: hex
+        help: "Message"
+  - name: cli_command
+    value:
+      name: decrypt_message
+      handler: cli_decrypt_message
+      help: "Decrypt message with the provided key and iv"
+      argument:
+      - type: uint32
+        help: "Key ID"
+      - type: hex
+        help: "Initial vector"
+      - type: hex
+        help: "Message"
+  - name: cli_command
+    value:
+      name: destroy_key
+      handler: cli_destroy_key
+      help: "Destroy previously created key and free the resources"
+      argument:
+      - type: uint32
+        help: "Key ID"
+  - name: cli_command
+    value:
+      name: set_pan_id
+      handler: cli_set_pan_id
+      help: "Set the PAN ID of the node"
+      argument:
+      - type: uint16
+        help: "2 byte PAN ID"
+  - name: cli_command
+    value:
+      name: set_channel
+      handler: cli_set_channel
+      help: "Set the communication channel"
+      argument:
+      - type: uint16
+        help: "2 byte channel number"
+  - name: cli_command
+    value:
+      name: set_power
+      handler: cli_set_power
+      help: "Set the current transmit power"
+      argument:
+      - type: int16
+        help: "Tx power"
+
+ui_hints:
+  highlight:
+    - path: readme.md
+      focus: true
+
+filter:
+  - name: "Wireless Technology"
+    value: ["Connect"]
+  - name: "Device Type"
+    value: ["SoC"]
+  - name: "Project Difficulty"
+    value: ["Advanced"]

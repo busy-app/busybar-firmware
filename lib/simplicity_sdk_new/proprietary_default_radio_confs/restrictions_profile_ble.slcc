@@ -1,0 +1,31 @@
+id: restrictions_profile_ble
+label: Restrictions - BLE Profile
+package: proprietary_default_radio_confs
+description: Component provides profile_ble.restriction configuration files by logic
+category: Platform|Radio Configuration
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: proprietary_default_radio_confs/restrictions
+requires:
+- name: rail_lib
+- name: device_has_radio
+
+#------- Set provided component name
+provides:
+- name: restrictions_profile_ble
+
+#-------- Include restriction config json file --------
+#
+# BLE Profile restrictions
+#
+config_file:
+- path: profile_ble.restriction
+  directory: rail
+
+#-------- Hides Component for user in Studio ---------
+ui_hints:
+  visibility: never
+
+

@@ -1,0 +1,7 @@
+[options]
+compatibleVersion=ANY
+packageType=sdk
+releaseNotesUrl=https://docs.silabs.com/wiseconnect/4.0.1/sisdk-wifi-release-notes/sisdk-wifible-wifi-release-notes/
+sdkLtsTag=2025.12.2
+sdkLtsTags=['2025.12.2']
+subPackage=False

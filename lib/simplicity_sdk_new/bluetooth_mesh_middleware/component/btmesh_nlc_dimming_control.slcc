@@ -1,0 +1,25 @@
+id: "btmesh_nlc_dimming_control"
+label: "Dimming Control Profile"
+package: bluetooth_mesh_middleware
+description: >
+  BaDimming Control role in an NLC network. This component
+  includes other components needed for an SoC application to
+  act as a Dimming Control node in an NLC network, as
+  well as components providing the relevant metadata for the role.
+category: "Bluetooth Mesh|NLC"
+quality: "production"
+metadata:
+  sbom:
+    license: Zlib
+root_path: "bluetooth_mesh_middleware/common/btmesh_nlc_dimming_control"
+tag:
+- No-Code
+
+provides:
+- name: "btmesh_nlc_dimming_control"
+requires:
+- name: "btmesh_nlc_dimming_control_profile_metadata"
+- name: "btmesh_generic_level_client_ext"
+documentation:
+  docset: btmesh
+  document: btmesh-service-api/btmesh-nlc-dimming-control

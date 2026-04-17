@@ -1,0 +1,140 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__CRYPTO__SHA__CONSTANTS" kind="group">
+    <compoundname>CRYPTO_SHA_CONSTANTS</compoundname>
+    <title>Constants</title>
+      <sectiondef kind="enum">
+      <memberdef kind="enum" id="group__CRYPTO__SHA__CONSTANTS_1gada692ce5d96ff4fa4def0d4aeda2de2c" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_si91x_crypto_sha_mode_t</name>
+        <enumvalue id="group__CRYPTO__SHA__CONSTANTS_1ggada692ce5d96ff4fa4def0d4aeda2de2ca8f2ac63efe8775c11f06cc686382d6f3" prot="public">
+          <name>SL_SI91X_SHA_1</name>
+          <initializer>= 1</initializer>
+          <briefdescription>
+<para>SHA 1 mode. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__SHA__CONSTANTS_1ggada692ce5d96ff4fa4def0d4aeda2de2cad90f4ae983779072ed129a38db33b3c7" prot="public">
+          <name>SL_SI91X_SHA_256</name>
+          <briefdescription>
+<para>SHA 256 mode. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__SHA__CONSTANTS_1ggada692ce5d96ff4fa4def0d4aeda2de2cabbc9816178dca06cc6891d4776331413" prot="public">
+          <name>SL_SI91X_SHA_384</name>
+          <briefdescription>
+<para>SHA 384 mode. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__SHA__CONSTANTS_1ggada692ce5d96ff4fa4def0d4aeda2de2ca108b0267c6fbecd9803d1897745b9998" prot="public">
+          <name>SL_SI91X_SHA_512</name>
+          <briefdescription>
+<para>SHA 512 mode. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__SHA__CONSTANTS_1ggada692ce5d96ff4fa4def0d4aeda2de2ca5aa5b85d1674a653815d84c0590607fa" prot="public">
+          <name>SL_SI91X_SHA_224</name>
+          <briefdescription>
+<para>SHA 224 mode. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>Enumeration defining SHA modes supported by the SI91X device. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>This enumeration defines different SHA modes supported by the SI91X device, such as SHA1, SHA224, SHA256, SHA384, and SHA512 modes. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/sha/inc/sl_si91x_sha.h" line="50" column="1" bodyfile="components/device/silabs/si91x/wireless/crypto/sha/inc/sl_si91x_sha.h" bodystart="50" bodyend="56"/>
+      </memberdef>
+      <memberdef kind="enum" id="group__CRYPTO__SHA__CONSTANTS_1gad91977604ccf5c4aa71e01f20ea94db7" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_si91x_sha_length_t</name>
+        <enumvalue id="group__CRYPTO__SHA__CONSTANTS_1ggad91977604ccf5c4aa71e01f20ea94db7ad73fe1e5ccc369966da3f22c3b9c6721" prot="public">
+          <name>SL_SI91X_SHA_1_DIGEST_LEN</name>
+          <initializer>= 20</initializer>
+          <briefdescription>
+<para>Digest length for SHA 1. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__SHA__CONSTANTS_1ggad91977604ccf5c4aa71e01f20ea94db7a04bb5c309d9e6fdae52c6c8b167a971b" prot="public">
+          <name>SL_SI91X_SHA_256_DIGEST_LEN</name>
+          <initializer>= 32</initializer>
+          <briefdescription>
+<para>Digest length for SHA 256. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__SHA__CONSTANTS_1ggad91977604ccf5c4aa71e01f20ea94db7ac90a0b2b5509333b418d5784827084bb" prot="public">
+          <name>SL_SI91X_SHA_384_DIGEST_LEN</name>
+          <initializer>= 48</initializer>
+          <briefdescription>
+<para>Digest length for SHA 384. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__SHA__CONSTANTS_1ggad91977604ccf5c4aa71e01f20ea94db7a116a72d40b5ddbb7b459f786f70116d9" prot="public">
+          <name>SL_SI91X_SHA_512_DIGEST_LEN</name>
+          <initializer>= 64</initializer>
+          <briefdescription>
+<para>Digest length for SHA 512. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__SHA__CONSTANTS_1ggad91977604ccf5c4aa71e01f20ea94db7ace7c653f78c4689720eea2c0546c765c" prot="public">
+          <name>SL_SI91X_SHA_224_DIGEST_LEN</name>
+          <initializer>= 28</initializer>
+          <briefdescription>
+<para>Digest length for SHA 224. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>Enumeration defining digest lengths of SHA modes supported by the SI91X device. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>This enumeration defines digest lengths of different SHA modes supported by the SI91X device, including SHA1, SHA224, SHA256, SHA384, and SHA512 modes. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/sha/inc/sl_si91x_sha.h" line="64" column="1" bodyfile="components/device/silabs/si91x/wireless/crypto/sha/inc/sl_si91x_sha.h" bodystart="64" bodyend="70"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__CRYPTO__SHA__CONSTANTS_1ga036b5abc4f89d104a2bf5c25ac73757d" prot="public" static="no">
+        <name>SL_SI91X_SHA_LEN_INVALID</name>
+        <initializer>0</initializer>
+        <briefdescription>
+<para>SHA length is invalid. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/sha/inc/sl_si91x_sha.h" line="43" column="9" bodyfile="components/device/silabs/si91x/wireless/crypto/sha/inc/sl_si91x_sha.h" bodystart="43" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para>This section provides a reference to the SHA Crypto API constants. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

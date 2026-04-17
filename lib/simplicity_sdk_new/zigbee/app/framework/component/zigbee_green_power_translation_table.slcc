@@ -1,0 +1,43 @@
+package: zigbee
+description: A component implementing the translation table functionality of the Green Power cluster.
+label: Green Power Translation Table
+quality: production
+id: zigbee_green_power_translation_table
+category: Zigbee|Green Power
+provides:
+- name: zigbee_green_power_translation_table
+requires:
+- name: zigbee_green_power_server
+- name: zigbee_green_power_common
+config_file:
+- path: app/framework/plugin/green-power-translation-table/config/green-power-translation-table-config.h
+source:
+- path: app/framework/plugin/green-power-translation-table/green-power-translation-table.c
+- path: app/framework/plugin/green-power-translation-table/green-power-translation-table-cb.c
+include:
+- path: app/framework/plugin/green-power-translation-table
+  file_list:
+  - path: green-power-translation-table.h
+  - path: green-power-translation-table-tokens.h
+template_contribution:
+- name: component_catalog
+  value: zigbee_green_power_translation_table
+- name: zigbee_af_callback
+  value:
+    callback_type: local_data_init
+    function_name: sl_zigbee_af_green_power_translation_table_init_cb
+- name: zigbee_stack_callback
+  value:
+    callback_type: stack_status
+    function_name: sl_zigbee_af_green_power_translation_table_stack_status_cb
+- name: token_header
+  value: green-power-translation-table-tokens.h
+
+
+documentation:
+  docset: zigbee
+  document: zigbee-af-api/green-power-translation-table
+metadata:
+  sbom:
+    license: MSLA
+root_path: zigbee

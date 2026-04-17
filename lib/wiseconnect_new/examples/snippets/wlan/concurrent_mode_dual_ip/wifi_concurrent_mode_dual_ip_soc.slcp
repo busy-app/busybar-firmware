@@ -1,0 +1,63 @@
+project_name: wifi_concurrent_mode_dual_ip_soc
+package: wifi_app
+quality: production
+label: Wi-Fi - Concurrent Mode Dual IP (SoC)
+category: Example|Wi-Fi
+description: Start a Wi-Fi Access Point in IPv4 and IPv6 simultaneously with WPA2 security
+filter:
+- name: Wireless Technology
+  value:
+  - Wi-Fi
+- name: Project Difficulty
+  value:
+  - Beginner
+source:
+- path: app.c
+include:
+- path: .
+  file_list:
+  - path: app.h
+define:
+- name: SL_SI91X_PRINT_DBG_LOG
+- name: SLI_SI91X_ENABLE_IPV6
+component:
+- id: sl_main
+- id: freertos
+- id: freertos_heap_4
+- id: syscalls
+- id: si91x_memory_default_config
+- id: wiseconnect_common
+- id: wifi
+- id: sl_si91x_internal_stack
+- id: wifi_resources
+- id: network_manager
+- id: basic_network_config_manager
+- id: bsd_socket
+- id: sl_si91x_asynchronous_socket
+- id: sl_si91x_wireless
+- id: sl_si91x_mem_pool_buffers_with_quota
+toolchain_settings:
+- option: gcc_compiler_option
+  value: -Wall -Werror
+configuration:
+- name: SL_BOARD_ENABLE_VCOM
+  value: '1'
+readme:
+- path: readme.md
+other_file:
+- path: resources/readme/concurrent_dual_ip_ncp.png
+- path: resources/readme/application_console_output_ncp.png
+ui_hints:
+  highlight:
+  - path: readme.md
+    focus: true
+post_build:
+  profile: wiseconnect_soc
+sdk_extension:
+- id: wiseconnect3_sdk
+  vendor: silabs
+  version: 4.0.1
+sdk:
+  id: simplicity_sdk
+  vendor: silabs
+  version: 2025.12.2

@@ -1,0 +1,25 @@
+id: toolchain_gcc_lto
+label: Enable Link time optimization
+package: platform_core
+description: >
+  This component enables Link time optimization.
+  Please refer to the release notes of individual
+  protocols to know which supports LTO.
+category: Platform|Toolchain
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+provides:
+- name: toolchain_lto
+toolchain_settings:
+- option: link_time_optimization
+  value: "enabled"
+  unless:
+  - toolchain_gcc_lto_disable
+template_contribution:
+- name: component_catalog
+  value: toolchain_gcc_lto
+  unless:
+  - toolchain_gcc_lto_disable
+root_path: platform_core

@@ -1,0 +1,43 @@
+id: opamp_instance
+label: OPAMP Instance
+package: platform_siwx91x
+description: Operational Amplifier (OPAMP) peripheral features for the SiWx917 SoC device.This component provides a configurable OPAMP features that enables analog signal 
+  amplification and conditioning. Each features can be independently configured with specific gain settings, input and output configurations, and operational modes to support
+  various analog applications including signal buffering.
+  
+  OPAMP Supports instances.
+  Instances created must be named as opamp1, opamp2, opamp3.
+category: Device|Si91x|MCU|Peripheral
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+instantiable:
+  prefix: inst
+root_path: "components/device/silabs/si91x/mcu/drivers/unified_api"
+config_file:
+  - path: config/sl_si91x_opamp_common_config.h
+  - path: config/sl_si91x_opamp_{{instance}}_config.h
+    file_id: opamp_config
+provides:
+  - name: opamp_instances
+    allow_multiple: true
+template_file:
+  - path: init/sl_opamp_init.c.jinja
+  - path: init/sl_si91x_opamp_init.h.jinja
+template_contribution:
+  - name: opamp_instances
+    value: "{{instance}}"
+  - name: component_catalog
+    value: opamp
+  - name: component_catalog
+    value: "opamp_{{instance}}"
+  - name: event_handler
+    condition: [sl_opamp]
+    value:
+      event: driver_init
+      include: "sl_si91x_opamp_init.h"
+      handler: sl_opamp_init_instances
+requires:
+  - name: sl_opamp
+  - name: sl_dac

@@ -1,0 +1,124 @@
+id: zigbee_security_manager
+package: zigbee
+label: Zigbee Security Manager
+description: The Zigbee Security Manager utility handles Zigbee-specific security functions, which include key management and certain security operations.
+category: Zigbee|Utility
+quality: production
+
+provides:
+- name: zigbee_security_manager
+
+requires:
+- name: zigbee_key_storage
+
+# We recommend secure key storage on parts that support Secure Vault High
+# On all other parts, store keys the old way
+
+recommends:
+- id: zigbee_secure_key_storage
+  condition:
+  - device_security_vault
+  vendor: silabs
+- id: zigbee_classic_key_storage
+  condition:
+  - device_security_se
+  vendor: silabs
+- id: zigbee_classic_key_storage
+  condition:
+  - device_security_base
+  vendor: silabs
+- id: zigbee_classic_key_storage
+  condition:
+  - device_security_rot
+  vendor: silabs
+- id: zigbee_classic_key_storage
+  condition:
+  - operating_system
+  vendor: silabs
+- id: zigbee_classic_key_storage
+  condition:
+  - native
+  vendor: silabs
+- id: zigbee_classic_key_storage
+  condition:
+  - zigbee_simulation_or_zigbee_stack_unix
+
+  vendor: silabs
+include:
+- path: stack/include
+  file_list:
+  - path: zigbee-security-manager.h
+  - path: zigbee-security-manager-types.h
+  - path: security.h
+  - path: aes-mmo.h
+- path: stack/security/
+  file_list:
+  - path: zigbee-security-manager-internal.h
+  - path: zigbee-security-manager-vault-support.h
+
+- path: stack/internal/inc
+  file_list:
+  - path: aes-mmo-internal-def.h
+  - path: security_internal_def.h
+  - path: zigbee-security-manager-internal-def.h
+- path: stack/internal/src/ipc
+  file_list:
+  - path: aes-mmo-ipc-command-messages.h
+  - path: security_ipc_command_messages.h
+  - path: zigbee-security-manager-ipc-command-messages.h
+  - path: aes-mmo-ipc-command-messages.h
+  - path: security_ipc_callback_events.h
+  - path: security_ipc_command_messages.h
+  - path: zigbee-security-manager-ipc-command-messages.h
+  - path: zigbee_ipc_callback_events.h
+  - path: zigbee_ipc_command_messages.h
+  condition:
+  - zigbee_use_ipc
+source:
+- path: stack/security/zigbee-security-manager.c
+
+- path: stack/internal/src/baremetal/aes-mmo-baremetal-wrapper.c
+  unless:
+  - zigbee_use_ipc
+  - native_host
+- path: stack/internal/src/ipc/security_ipc_command_messages.c
+  condition:
+  - zigbee_use_ipc
+- path: stack/internal/src/baremetal/zigbee-security-manager-baremetal-wrapper.c
+  unless:
+  - zigbee_use_ipc
+  - native_host
+- path: stack/internal/src/ipc/security_ipc_callback_events.c
+  condition:
+  - zigbee_use_ipc
+- path: stack/internal/src/baremetal/security_baremetal_callbacks.c
+  unless:
+  - zigbee_use_ipc
+  - native_host
+- path: stack/internal/src/ipc/zigbee_ipc_callback_events.c
+  condition:
+  - zigbee_use_ipc
+- path: stack/internal/src/baremetal/security_baremetal_wrapper.c
+  unless:
+  - zigbee_use_ipc
+  - native_host
+- path: stack/internal/src/ipc/zigbee_ipc_callback_event_stub.c
+  condition:
+  - zigbee_use_ipc
+- path: stack/internal/src/ipc/aes-mmo-ipc-command-messages.c
+  condition:
+  - zigbee_use_ipc
+- path: stack/internal/src/ipc/zigbee-security-manager-ipc-command-messages.c
+  condition:
+  - zigbee_use_ipc
+template_contribution:
+- name: component_catalog
+  value: zigbee_security_manager
+
+documentation:
+  docset: zigbee
+  document: zigbee-af-api/zigbee-security-manager
+metadata:
+  sbom:
+    license: MSLA
+root_path: zigbee

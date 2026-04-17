@@ -1,0 +1,79 @@
+/***************************************************************************//**
+ * @file
+ * @brief Default slot configuration header for internal storage bootloader
+ *******************************************************************************
+ * # License
+ * <b>Copyright 2025 Silicon Laboratories Inc. www.silabs.com</b>
+ *******************************************************************************
+ *
+ * The licensor of this software is Silicon Laboratories Inc.  Your use of this
+ * software is governed by the terms of Silicon Labs Master Software License
+ * Agreement (MSLA) available at
+ * www.silabs.com/about-us/legal/master-software-license-agreement.  This
+ * software is distributed to you in Source Code format and is governed by the
+ * sections of the MSLA applicable to Source Code.
+ *
+ ******************************************************************************/
+
+{%- set flash_addr = device_flash_addr | first -%}
+{%- set flash_size = device_flash_size | first -%}
+{%- set flash_size_kb = flash_size // 1024 -%}
+
+{#- Lookup table to calculate internal storage slot start offset from device flash size -#}
+{#- Based on bootloader sample apps in platform/bootloader/sample-apps/bootloader-storage-internal-single* dirs -#}
+{%- set flash_size_kb_to_slot_offset = {
+    352: 163840,
+    512: 278528,
+    768: 376832,
+    1024: 540672,
+    1536: 786432,
+    1920: 950272,
+    2048: 1048576,
+    3200: 1638400
+} -%}
+{%- set slot_offset = flash_size_kb_to_slot_offset.get(flash_size_kb) -%}
+
+{#- Lookup table for internal storage slot sizes based on device flash size -#}
+{#- Based on bootloader sample apps in platform/bootloader/sample-apps/bootloader-storage-internal-single* dirs -#}
+{%- set flash_size_kb_to_slot_size = {
+    352: 147456,
+    512: 196608,
+    768: 376832,
+    1024: 458752,
+    1536: 737280,
+    1920: 966656,
+    2048: 1007616,
+    3200: 1589248
+} -%}
+{%- set slot_size = flash_size_kb_to_slot_size.get(flash_size_kb) %}
+
+#ifndef BTL_INTERNAL_STORAGE_SLOT_CFG_DEFAULT_H
+#define BTL_INTERNAL_STORAGE_SLOT_CFG_DEFAULT_H
+
+{%- if slot_offset is none or slot_size is none %}
+
+#error "Unsupported device flash size in automatic slot configuration: " \
+       "{{flash_size}} bytes ({{flash_size_kb}} kB). Configure storage slot " \
+       "manually in btl_storage_slot_cfg.h (SLOT_CUSTOM_CONFIG := 1)."
+
+{%- else %}
+
+// Disable Overlapping Slots
+#define SLOT_OVERLAP_ENABLE 0
+
+// Enable Slot 0
+#define SLOT0_ENABLE 1
+#define SLOT0_START  {{ flash_addr + slot_offset }}
+#define SLOT0_SIZE   {{ slot_size }}
+
+// Disable all other slots
+#define SLOT1_ENABLE 0
+#define SLOT1_START  0
+#define SLOT1_SIZE   0
+
+#define SLOT2_ENABLE 0
+#define SLOT2_START  0
+#define SLOT2_SIZE   0
+{%- endif %}
+
+#endif // BTL_INTERNAL_STORAGE_SLOT_CFG_DEFAULT_H

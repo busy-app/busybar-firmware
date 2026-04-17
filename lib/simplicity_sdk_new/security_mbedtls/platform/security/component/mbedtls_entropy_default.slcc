@@ -1,0 +1,33 @@
+id: mbedtls_entropy_default
+package: security_mbedtls
+label: Default Entropy Source
+description: >-
+  This component can be used in order to make sure that a suitable component for
+  an entropy source is included in the project. Depending on the device's
+  capabilities, this can be either a hardware (TRNG, Radio or ADC) source, or a
+  device-unique seed in non-volatile storage.
+category: Platform|Security|Mbed TLS|Randomness
+quality: production
+provides:
+- name: mbedtls_entropy_default
+requires:
+  # Require a default entropy source if we don't require one indirectly
+- name: mbedtls_entropy_source
+
+  # Require actual hardware sources as long as we have them
+- name: mbedtls_entropy_hardware
+  condition: [device_series_2]
+- name: mbedtls_entropy_hardware
+  condition: [device_generic_family_sixx301]
+recommends:
+  # recommend NV seed for resolution instead of ADC, since ADC
+  # requires taking ownership of the ADC peripheral
+- id: mbedtls_entropy_nvseed
+  vendor: silabs
+documentation:
+  docset: mbed-tls
+  document: group-rng-module
+metadata:
+  sbom:
+    reference: mbedtls_sbom
+root_path: security_mbedtls/platform/security

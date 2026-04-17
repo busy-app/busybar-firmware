@@ -1,0 +1,17 @@
+id: rail_util_ant_div_cli
+label: RAIL Utility, Antenna Diversity CLI (RAIL 2.x)
+description: Antenna Diversity CLI
+package: rail_library
+category: Platform|Radio|RAIL 2.x
+quality: deprecated
+metadata:
+  sbom:
+    id: rail_util_ant_div_cli
+    name: RAIL Utility, Antenna Diversity CLI (RAIL 2.x)
+    license: Zlib
+provides:
+- name: rail2_util_ant_div_cli
+requires:
+- name: rail_util_ant_div
+- name: sl_rail_util_ant_div_cli
+root_path: rail_library

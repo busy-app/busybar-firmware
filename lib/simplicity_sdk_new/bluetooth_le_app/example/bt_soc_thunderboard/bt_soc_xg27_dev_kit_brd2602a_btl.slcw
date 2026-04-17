@@ -1,0 +1,15 @@
+workspace_name: bt_soc_xg27_dev_kit_brd2602a_btl
+label: Bluetooth - SoC EFR32xG27 Dev Kit (BRD2602A) + AppLoader OTA DFU
+package: bluetooth_le_app
+description: >
+  Demonstrates the features of the EFR32xG27 Dev Kit Board.
+  Features can be evaluated with the Simplicity Connect mobile app.
+  Combined solution with application and bootloader projects.
+quality: production
+project:
+  - path: bt_soc_xg27_dev_kit_brd2602a.slcp
+    id: application
+  - path: ../../bootloader/bootloader-apploader.slcp
+    id: bootloader
+post_build:
+  path: ../../postbuild_profile/bt_dfu_ws.slpb

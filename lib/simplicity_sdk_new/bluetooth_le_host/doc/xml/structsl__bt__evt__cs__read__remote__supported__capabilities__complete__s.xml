@@ -1,0 +1,464 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="structsl__bt__evt__cs__read__remote__supported__capabilities__complete__s" kind="struct" language="C++" prot="public">
+    <compoundname>sl_bt_evt_cs_read_remote_supported_capabilities_complete_s</compoundname>
+    <includes refid="sl__bt__api_8h" local="no">sl_bt_api.h</includes>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structsl__bt__evt__cs__read__remote__supported__capabilities__complete__s_1a3e7a532aea0f8cd916ab27590ee8019e" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_cs_read_remote_supported_capabilities_complete_s::connection</definition>
+        <argsstring></argsstring>
+        <name>connection</name>
+        <qualifiedname>sl_bt_evt_cs_read_remote_supported_capabilities_complete_s::connection</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Connection handle </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="13665" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="13665" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__cs__read__remote__supported__capabilities__complete__s_1afee2e5e636bf77b0030be12c2faa27f2" prot="public" static="no" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t sl_bt_evt_cs_read_remote_supported_capabilities_complete_s::status</definition>
+        <argsstring></argsstring>
+        <name>status</name>
+        <qualifiedname>sl_bt_evt_cs_read_remote_supported_capabilities_complete_s::status</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>SL_STATUS_OK if successful. Error code otherwise. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="13666" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="13666" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__cs__read__remote__supported__capabilities__complete__s_1ada56c3432db91e7fba69000c4fcafa0a" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_cs_read_remote_supported_capabilities_complete_s::num_config</definition>
+        <argsstring></argsstring>
+        <name>num_config</name>
+        <qualifiedname>sl_bt_evt_cs_read_remote_supported_capabilities_complete_s::num_config</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>The number of CS configurations supported per connection.<itemizedlist>
+<listitem><para><bold>Range:</bold> 1 to 4 </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="13668" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="13668" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__cs__read__remote__supported__capabilities__complete__s_1a3dd1b16919838a16a7a7e5f88b2a8aa6" prot="public" static="no" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t sl_bt_evt_cs_read_remote_supported_capabilities_complete_s::max_consecutive_procedures</definition>
+        <argsstring></argsstring>
+        <name>max_consecutive_procedures</name>
+        <qualifiedname>sl_bt_evt_cs_read_remote_supported_capabilities_complete_s::max_consecutive_procedures</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>The maximum number of consecutive CS procedures supported.<itemizedlist>
+<listitem><para><bold>Range:</bold> 1 to 65535</para>
+</listitem><listitem><para><bold>0x00:</bold> Fixed number of consecutive procedures and for an indefinite number of procedures until termination </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="13671" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="13671" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__cs__read__remote__supported__capabilities__complete__s_1a4440defdb5c35229c07be9c3e9465748" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_cs_read_remote_supported_capabilities_complete_s::num_antennas</definition>
+        <argsstring></argsstring>
+        <name>num_antennas</name>
+        <qualifiedname>sl_bt_evt_cs_read_remote_supported_capabilities_complete_s::num_antennas</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>The number of antenna elements available for CS tone exchanges.<itemizedlist>
+<listitem><para><bold>Range:</bold> 1 to 4 </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="13679" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="13679" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__cs__read__remote__supported__capabilities__complete__s_1a878575ee53b0885e72cbfe7f2d95c926" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_cs_read_remote_supported_capabilities_complete_s::max_antenna_paths</definition>
+        <argsstring></argsstring>
+        <name>max_antenna_paths</name>
+        <qualifiedname>sl_bt_evt_cs_read_remote_supported_capabilities_complete_s::max_antenna_paths</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>The maximum number of antenna paths supported.<itemizedlist>
+<listitem><para><bold>Range:</bold> 1 to 4 </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="13682" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="13682" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__cs__read__remote__supported__capabilities__complete__s_1af73ae836002ef0cd27f26f243d1efda7" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_cs_read_remote_supported_capabilities_complete_s::roles</definition>
+        <argsstring></argsstring>
+        <name>roles</name>
+        <qualifiedname>sl_bt_evt_cs_read_remote_supported_capabilities_complete_s::roles</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>This value is a bitmask of flags to indicate which CS roles are supported by the controller. Flags:<itemizedlist>
+<listitem><para><bold>0x01, bit 0:</bold> Initiator role</para>
+</listitem><listitem><para><bold>0x02, bit 1:</bold> Reflector role </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="13685" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="13685" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__cs__read__remote__supported__capabilities__complete__s_1a127c3d0e549a21be69412eba8523a98e" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_cs_read_remote_supported_capabilities_complete_s::modes</definition>
+        <argsstring></argsstring>
+        <name>modes</name>
+        <qualifiedname>sl_bt_evt_cs_read_remote_supported_capabilities_complete_s::modes</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>This value is a bitmask of flags to indicate which optional CS modes are supported. Flags:<itemizedlist>
+<listitem><para><bold>0x01, bit 0:</bold> Mode 3 is supported </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="13692" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="13692" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__cs__read__remote__supported__capabilities__complete__s_1a14f442ce75e4a72cec84788f594d1124" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_cs_read_remote_supported_capabilities_complete_s::rtt_capability</definition>
+        <argsstring></argsstring>
+        <name>rtt_capability</name>
+        <qualifiedname>sl_bt_evt_cs_read_remote_supported_capabilities_complete_s::rtt_capability</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>This value is a bitmask of flags to indicate which Round Trip Time (RTT) CS capabilities accuracy requirement in <computeroutput>rtt_aa_only_n</computeroutput>, <computeroutput>rtt_sounding_n</computeroutput>, and <computeroutput>rtt_random_payload</computeroutput>. Flags:<itemizedlist>
+<listitem><para><bold>0x01, bit 0:</bold> 10 ns time-of-flight (ToF) precision requirement for <computeroutput>rtt_aa_only</computeroutput> if set; otherwise 150 ns ToF</para>
+</listitem><listitem><para><bold>0x02, bit 1:</bold> 10 ns ToF precision requirement for <computeroutput>rtt_sounding</computeroutput> if set; otherwise 150 ns ToF</para>
+</listitem><listitem><para><bold>0x04, bit 2:</bold> 10 ns ToF precision requirement for <computeroutput>rtt_random_payload</computeroutput> if set; otherwise 150 ns ToF </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="13697" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="13697" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__cs__read__remote__supported__capabilities__complete__s_1a76eb00fb2e7d1494c5ae8a2f064bacf0" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_cs_read_remote_supported_capabilities_complete_s::rtt_aa_only</definition>
+        <argsstring></argsstring>
+        <name>rtt_aa_only</name>
+        <qualifiedname>sl_bt_evt_cs_read_remote_supported_capabilities_complete_s::rtt_aa_only</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>The support status of RTT Access Address(AA) on the remote controller. When supported it establishes the number of SYNC changes needed to satisfy the precision requirements.<itemizedlist>
+<listitem><para><bold>Range:</bold> 1 to 255</para>
+</listitem><listitem><para>0x00: RTT AA Only is not supported </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="13715" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="13715" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__cs__read__remote__supported__capabilities__complete__s_1af5d609b1a077ae2a2400e9c2d9173df2" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_cs_read_remote_supported_capabilities_complete_s::rtt_sounding</definition>
+        <argsstring></argsstring>
+        <name>rtt_sounding</name>
+        <qualifiedname>sl_bt_evt_cs_read_remote_supported_capabilities_complete_s::rtt_sounding</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>The support status of RTT Sounding is supported on the remote controller. When supported it establishes the number of SYNC changes needed to satisfy the precision requirements.<itemizedlist>
+<listitem><para><bold>Range:</bold> 1 to 255</para>
+</listitem><listitem><para>0x00: RTT Sounding is not supported </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="13725" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="13725" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__cs__read__remote__supported__capabilities__complete__s_1ac32a5ea9208c2b7ca5857471ebf6f225" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_cs_read_remote_supported_capabilities_complete_s::rtt_random_payload</definition>
+        <argsstring></argsstring>
+        <name>rtt_random_payload</name>
+        <qualifiedname>sl_bt_evt_cs_read_remote_supported_capabilities_complete_s::rtt_random_payload</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>The support status of RTT Random Payload on the remote controller. When supported it establishes the number of SYNC changes needed to satisfy the precision requirements.<itemizedlist>
+<listitem><para><bold>Range:</bold> 1 to 255</para>
+</listitem><listitem><para>0x00: RTT Random Payload is not supported </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="13735" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="13735" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__cs__read__remote__supported__capabilities__complete__s_1a705e5173b777ca8d8a1cc287abb82567" prot="public" static="no" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t sl_bt_evt_cs_read_remote_supported_capabilities_complete_s::nadm_sounding_capability</definition>
+        <argsstring></argsstring>
+        <name>nadm_sounding_capability</name>
+        <qualifiedname>sl_bt_evt_cs_read_remote_supported_capabilities_complete_s::nadm_sounding_capability</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>This value is a bitmask of flags to indicate the support for reporting Normalized Attack Detector Metric (NADM) when a CS_SYNC with a sounding sequence is received. Flags:<itemizedlist>
+<listitem><para><bold>0x01, bit 0:</bold> Support for reporting Phase-based NADM when a CS_SYNC with sounding sequence is received </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="13744" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="13744" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__cs__read__remote__supported__capabilities__complete__s_1aa146b1a1ce406a71f0825c883891ce64" prot="public" static="no" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t sl_bt_evt_cs_read_remote_supported_capabilities_complete_s::nadm_random_capability</definition>
+        <argsstring></argsstring>
+        <name>nadm_random_capability</name>
+        <qualifiedname>sl_bt_evt_cs_read_remote_supported_capabilities_complete_s::nadm_random_capability</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>This value is a bitmask of flags to indicate the support for reporting Normalized Attack Detector Metric (NADM) when a CS_SYNC with a random sequence is received. Flags:<itemizedlist>
+<listitem><para><bold>0x01, bit 0:</bold> Support for reporting Phase-based NADM when a CS_SYNC with random sequence is received </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="13754" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="13754" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__cs__read__remote__supported__capabilities__complete__s_1a43166c24a2389cdf6602ddd82c808955" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_cs_read_remote_supported_capabilities_complete_s::cs_sync_phys</definition>
+        <argsstring></argsstring>
+        <name>cs_sync_phys</name>
+        <qualifiedname>sl_bt_evt_cs_read_remote_supported_capabilities_complete_s::cs_sync_phys</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>This value is a bitmask of flags to indicate which CS SYNC packages supported in an specific PHY. Flags:<itemizedlist>
+<listitem><para><bold>0x02, bit 1:</bold> LE 2M PHY CS SYNC packages are supported</para>
+</listitem><listitem><para><bold>0x04, bit 2:</bold> LE 2M PHY 2BT CS SYNC packages are supported </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="13763" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="13763" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__cs__read__remote__supported__capabilities__complete__s_1abe0e6772d235969730b103a3a6a21b42" prot="public" static="no" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t sl_bt_evt_cs_read_remote_supported_capabilities_complete_s::subfeatures</definition>
+        <argsstring></argsstring>
+        <name>subfeatures</name>
+        <qualifiedname>sl_bt_evt_cs_read_remote_supported_capabilities_complete_s::subfeatures</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>This value is a bitmask of flags to indicate which CS subfeatures are supported. Flags:<itemizedlist>
+<listitem><para><bold>0x02, bit 1:</bold> CS with no transmitter Frequency Actuation Error is supported</para>
+</listitem><listitem><para><bold>0x04, bit 2:</bold> CS Channel Selection Algorithm #3c is supported</para>
+</listitem><listitem><para><bold>0x08, bit 3:</bold> CS phase-based ranging from RTT sounding sequence is supported </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="13771" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="13771" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__cs__read__remote__supported__capabilities__complete__s_1ac8872ea236933a32f5c5aa0d4c658447" prot="public" static="no" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t sl_bt_evt_cs_read_remote_supported_capabilities_complete_s::t_ip1_times</definition>
+        <argsstring></argsstring>
+        <name>t_ip1_times</name>
+        <qualifiedname>sl_bt_evt_cs_read_remote_supported_capabilities_complete_s::t_ip1_times</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>This value is a bitmask of flags to indicate which time durations of Time for Interlude Period 1 (IP1) are supported. Flags:<itemizedlist>
+<listitem><para><bold>0x0001, bit 0:</bold> Time duration of 10 microseconds is supported</para>
+</listitem><listitem><para><bold>0x0002, bit 1:</bold> Time duration of 20 microseconds is supported</para>
+</listitem><listitem><para><bold>0x0004, bit 2:</bold> Time duration of 30 microseconds is supported</para>
+</listitem><listitem><para><bold>0x0008, bit 3:</bold> Time duration of 40 microseconds is supported</para>
+</listitem><listitem><para><bold>0x0010, bit 4:</bold> Time duration of 50 microseconds is supported</para>
+</listitem><listitem><para><bold>0x0020, bit 5:</bold> Time duration of 60 microseconds is supported</para>
+</listitem><listitem><para><bold>0x0040, bit 6:</bold> Time duration of 80 microseconds is supported </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="13783" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="13783" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__cs__read__remote__supported__capabilities__complete__s_1ac151a84d769257b03a7ad82a8ce76615" prot="public" static="no" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t sl_bt_evt_cs_read_remote_supported_capabilities_complete_s::t_ip2_times</definition>
+        <argsstring></argsstring>
+        <name>t_ip2_times</name>
+        <qualifiedname>sl_bt_evt_cs_read_remote_supported_capabilities_complete_s::t_ip2_times</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>This value is a bitmask of flags to indicate which time durations of Time for Interlude Period 2 (IP2) are supported. Flags:<itemizedlist>
+<listitem><para><bold>0x0001, bit 0:</bold> Time duration of 10 microseconds is supported</para>
+</listitem><listitem><para><bold>0x0002, bit 1:</bold> Time duration of 20 microseconds is supported</para>
+</listitem><listitem><para><bold>0x0004, bit 2:</bold> Time duration of 30 microseconds is supported</para>
+</listitem><listitem><para><bold>0x0008, bit 3:</bold> Time duration of 40 microseconds is supported</para>
+</listitem><listitem><para><bold>0x0010, bit 4:</bold> Time duration of 50 microseconds is supported</para>
+</listitem><listitem><para><bold>0x0020, bit 5:</bold> Time duration of 60 microseconds is supported</para>
+</listitem><listitem><para><bold>0x0040, bit 6:</bold> Time duration of 80 microseconds is supported </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="13808" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="13808" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__cs__read__remote__supported__capabilities__complete__s_1adba5574d42fe9c0070fc6b115e317372" prot="public" static="no" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t sl_bt_evt_cs_read_remote_supported_capabilities_complete_s::t_fcs_times</definition>
+        <argsstring></argsstring>
+        <name>t_fcs_times</name>
+        <qualifiedname>sl_bt_evt_cs_read_remote_supported_capabilities_complete_s::t_fcs_times</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>This value is a bitmask of flags to indicate which time durations of Time for Frequency Change Spacing (FCS) are supported. Flags:<itemizedlist>
+<listitem><para><bold>0x0001, bit 0:</bold> Time duration of 10 microseconds is supported</para>
+</listitem><listitem><para><bold>0x0002, bit 1:</bold> Time duration of 20 microseconds is supported</para>
+</listitem><listitem><para><bold>0x0004, bit 2:</bold> Time duration of 30 microseconds is supported</para>
+</listitem><listitem><para><bold>0x0008, bit 3:</bold> Time duration of 40 microseconds is supported</para>
+</listitem><listitem><para><bold>0x0010, bit 4:</bold> Time duration of 50 microseconds is supported</para>
+</listitem><listitem><para><bold>0x0020, bit 5:</bold> Time duration of 60 microseconds is supported</para>
+</listitem><listitem><para><bold>0x0040, bit 6:</bold> Time duration of 80 microseconds is supported</para>
+</listitem><listitem><para><bold>0x0080, bit 7:</bold> Time duration of 100 microseconds is supported</para>
+</listitem><listitem><para><bold>0x0100, bit 8:</bold> Time duration of 120 microseconds is supported </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="13833" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="13833" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__cs__read__remote__supported__capabilities__complete__s_1a2b3f8b87c90331cc571608f5853eb17d" prot="public" static="no" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t sl_bt_evt_cs_read_remote_supported_capabilities_complete_s::t_pm_times</definition>
+        <argsstring></argsstring>
+        <name>t_pm_times</name>
+        <qualifiedname>sl_bt_evt_cs_read_remote_supported_capabilities_complete_s::t_pm_times</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>This value is a bitmask of flags to indicate which time durations of Time for Phase Measurement (PM) are supported. Flags:<itemizedlist>
+<listitem><para><bold>0x0001, bit 0:</bold> Time duration of 10 microseconds is supported</para>
+</listitem><listitem><para><bold>0x0002, bit 1:</bold> Time duration of 20 microseconds is supported </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="13864" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="13864" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__cs__read__remote__supported__capabilities__complete__s_1a6e4429781b4110c4802596c9bc9ac688" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_cs_read_remote_supported_capabilities_complete_s::t_sw_times</definition>
+        <argsstring></argsstring>
+        <name>t_sw_times</name>
+        <qualifiedname>sl_bt_evt_cs_read_remote_supported_capabilities_complete_s::t_sw_times</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Time in microseconds for the antenna switch period of the CS tones.<itemizedlist>
+<listitem><para>Values: 0x00, 0x01, 0x02, 0x04 and 0x0A </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="13874" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="13874" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__cs__read__remote__supported__capabilities__complete__s_1a5bcc44b73e693eb75988c33632f0db67" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_cs_read_remote_supported_capabilities_complete_s::tx_snr_capability</definition>
+        <argsstring></argsstring>
+        <name>tx_snr_capability</name>
+        <qualifiedname>sl_bt_evt_cs_read_remote_supported_capabilities_complete_s::tx_snr_capability</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>This value is a bitmask of flags to indicate the supported SNR levels used in RTT packets. Flags:<itemizedlist>
+<listitem><para><bold>0x01, bit 0:</bold> 18 dB supported</para>
+</listitem><listitem><para><bold>0x02, bit 1:</bold> 21 dB supported</para>
+</listitem><listitem><para><bold>0x04, bit 2:</bold> 24 dB supported</para>
+</listitem><listitem><para><bold>0x08, bit 3:</bold> 27 dB supported</para>
+</listitem><listitem><para><bold>0x10, bit 4:</bold> 30 dB supported </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="13878" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="13878" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Data structure of the read_remote_supported_capabilities_complete event. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="13663" column="1" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="13664" bodyend="13891"/>
+    <listofallmembers>
+      <member refid="structsl__bt__evt__cs__read__remote__supported__capabilities__complete__s_1a3e7a532aea0f8cd916ab27590ee8019e" prot="public" virt="non-virtual"><scope>sl_bt_evt_cs_read_remote_supported_capabilities_complete_s</scope><name>connection</name></member>
+      <member refid="structsl__bt__evt__cs__read__remote__supported__capabilities__complete__s_1a43166c24a2389cdf6602ddd82c808955" prot="public" virt="non-virtual"><scope>sl_bt_evt_cs_read_remote_supported_capabilities_complete_s</scope><name>cs_sync_phys</name></member>
+      <member refid="structsl__bt__evt__cs__read__remote__supported__capabilities__complete__s_1a878575ee53b0885e72cbfe7f2d95c926" prot="public" virt="non-virtual"><scope>sl_bt_evt_cs_read_remote_supported_capabilities_complete_s</scope><name>max_antenna_paths</name></member>
+      <member refid="structsl__bt__evt__cs__read__remote__supported__capabilities__complete__s_1a3dd1b16919838a16a7a7e5f88b2a8aa6" prot="public" virt="non-virtual"><scope>sl_bt_evt_cs_read_remote_supported_capabilities_complete_s</scope><name>max_consecutive_procedures</name></member>
+      <member refid="structsl__bt__evt__cs__read__remote__supported__capabilities__complete__s_1a127c3d0e549a21be69412eba8523a98e" prot="public" virt="non-virtual"><scope>sl_bt_evt_cs_read_remote_supported_capabilities_complete_s</scope><name>modes</name></member>
+      <member refid="structsl__bt__evt__cs__read__remote__supported__capabilities__complete__s_1aa146b1a1ce406a71f0825c883891ce64" prot="public" virt="non-virtual"><scope>sl_bt_evt_cs_read_remote_supported_capabilities_complete_s</scope><name>nadm_random_capability</name></member>
+      <member refid="structsl__bt__evt__cs__read__remote__supported__capabilities__complete__s_1a705e5173b777ca8d8a1cc287abb82567" prot="public" virt="non-virtual"><scope>sl_bt_evt_cs_read_remote_supported_capabilities_complete_s</scope><name>nadm_sounding_capability</name></member>
+      <member refid="structsl__bt__evt__cs__read__remote__supported__capabilities__complete__s_1a4440defdb5c35229c07be9c3e9465748" prot="public" virt="non-virtual"><scope>sl_bt_evt_cs_read_remote_supported_capabilities_complete_s</scope><name>num_antennas</name></member>
+      <member refid="structsl__bt__evt__cs__read__remote__supported__capabilities__complete__s_1ada56c3432db91e7fba69000c4fcafa0a" prot="public" virt="non-virtual"><scope>sl_bt_evt_cs_read_remote_supported_capabilities_complete_s</scope><name>num_config</name></member>
+      <member refid="structsl__bt__evt__cs__read__remote__supported__capabilities__complete__s_1af73ae836002ef0cd27f26f243d1efda7" prot="public" virt="non-virtual"><scope>sl_bt_evt_cs_read_remote_supported_capabilities_complete_s</scope><name>roles</name></member>
+      <member refid="structsl__bt__evt__cs__read__remote__supported__capabilities__complete__s_1a76eb00fb2e7d1494c5ae8a2f064bacf0" prot="public" virt="non-virtual"><scope>sl_bt_evt_cs_read_remote_supported_capabilities_complete_s</scope><name>rtt_aa_only</name></member>
+      <member refid="structsl__bt__evt__cs__read__remote__supported__capabilities__complete__s_1a14f442ce75e4a72cec84788f594d1124" prot="public" virt="non-virtual"><scope>sl_bt_evt_cs_read_remote_supported_capabilities_complete_s</scope><name>rtt_capability</name></member>
+      <member refid="structsl__bt__evt__cs__read__remote__supported__capabilities__complete__s_1ac32a5ea9208c2b7ca5857471ebf6f225" prot="public" virt="non-virtual"><scope>sl_bt_evt_cs_read_remote_supported_capabilities_complete_s</scope><name>rtt_random_payload</name></member>
+      <member refid="structsl__bt__evt__cs__read__remote__supported__capabilities__complete__s_1af5d609b1a077ae2a2400e9c2d9173df2" prot="public" virt="non-virtual"><scope>sl_bt_evt_cs_read_remote_supported_capabilities_complete_s</scope><name>rtt_sounding</name></member>
+      <member refid="structsl__bt__evt__cs__read__remote__supported__capabilities__complete__s_1afee2e5e636bf77b0030be12c2faa27f2" prot="public" virt="non-virtual"><scope>sl_bt_evt_cs_read_remote_supported_capabilities_complete_s</scope><name>status</name></member>
+      <member refid="structsl__bt__evt__cs__read__remote__supported__capabilities__complete__s_1abe0e6772d235969730b103a3a6a21b42" prot="public" virt="non-virtual"><scope>sl_bt_evt_cs_read_remote_supported_capabilities_complete_s</scope><name>subfeatures</name></member>
+      <member refid="structsl__bt__evt__cs__read__remote__supported__capabilities__complete__s_1adba5574d42fe9c0070fc6b115e317372" prot="public" virt="non-virtual"><scope>sl_bt_evt_cs_read_remote_supported_capabilities_complete_s</scope><name>t_fcs_times</name></member>
+      <member refid="structsl__bt__evt__cs__read__remote__supported__capabilities__complete__s_1ac8872ea236933a32f5c5aa0d4c658447" prot="public" virt="non-virtual"><scope>sl_bt_evt_cs_read_remote_supported_capabilities_complete_s</scope><name>t_ip1_times</name></member>
+      <member refid="structsl__bt__evt__cs__read__remote__supported__capabilities__complete__s_1ac151a84d769257b03a7ad82a8ce76615" prot="public" virt="non-virtual"><scope>sl_bt_evt_cs_read_remote_supported_capabilities_complete_s</scope><name>t_ip2_times</name></member>
+      <member refid="structsl__bt__evt__cs__read__remote__supported__capabilities__complete__s_1a2b3f8b87c90331cc571608f5853eb17d" prot="public" virt="non-virtual"><scope>sl_bt_evt_cs_read_remote_supported_capabilities_complete_s</scope><name>t_pm_times</name></member>
+      <member refid="structsl__bt__evt__cs__read__remote__supported__capabilities__complete__s_1a6e4429781b4110c4802596c9bc9ac688" prot="public" virt="non-virtual"><scope>sl_bt_evt_cs_read_remote_supported_capabilities_complete_s</scope><name>t_sw_times</name></member>
+      <member refid="structsl__bt__evt__cs__read__remote__supported__capabilities__complete__s_1a5bcc44b73e693eb75988c33632f0db67" prot="public" virt="non-virtual"><scope>sl_bt_evt_cs_read_remote_supported_capabilities_complete_s</scope><name>tx_snr_capability</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

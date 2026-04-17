@@ -1,0 +1,34 @@
+id: ddp_inject_key
+label: DDP inject key
+description: |
+  This component provides a Dynamic Data Provisioning (DDP) command for
+  injecting a PSA Crypto key.
+package: wisun
+category: Wi-SUN
+quality: evaluation
+metadata:
+  sbom:
+    license: MSLA
+ui_hints:
+  visibility: never
+root_path: wisun/./ddp
+provides:
+- name: ddp_inject_key
+requires:
+- name: ddp_common
+- name: psa_crypto
+- name: psa_its
+include:
+- path: inc
+  file_list:
+  - path: sl_ddp_inject_key.h
+source:
+- path: src/sl_ddp_inject_key.c
+define:
+- name: SL_DDP_INJECT_KEY
+  value: 2
+template_contribution:
+- name: ddp_command
+  value:
+    id: SL_DDP_INJECT_KEY
+    handler: sl_ddp_inject_key

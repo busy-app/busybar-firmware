@@ -1,0 +1,62 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="structsl__bt__evt__external__bondingdb__data__request__s" kind="struct" language="C++" prot="public">
+    <compoundname>sl_bt_evt_external_bondingdb_data_request_s</compoundname>
+    <includes refid="sl__bt__api_8h" local="no">sl_bt_api.h</includes>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structsl__bt__evt__external__bondingdb__data__request__s_1a7bcf7f844298e3936d9b45844b03196c" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_external_bondingdb_data_request_s::connection</definition>
+        <argsstring></argsstring>
+        <name>connection</name>
+        <qualifiedname>sl_bt_evt_external_bondingdb_data_request_s::connection</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Connection handle </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="12129" column="11" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="12129" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__external__bondingdb__data__request__s_1a135ac300c386d0ffdec619a175dd184b" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_external_bondingdb_data_request_s::type</definition>
+        <argsstring></argsstring>
+        <name>type</name>
+        <qualifiedname>sl_bt_evt_external_bondingdb_data_request_s::type</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Enum <ref refid="group__sl__bt__external__bondingdb_1ga57a8e1716515591b6934083d7807f1dc" kindref="member">sl_bt_external_bondingdb_data_t</ref>. The requested bonding data type. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_external_bondingdb_data_remote_address (0x0):</bold> Identity address of the remote device, which a resolvable random address can be resolved to</para>
+</listitem><listitem><para><bold>sl_bt_external_bondingdb_data_remote_address_type (0x1):</bold> Type of the remote device identity address. Value 0 is public device address and 1 is static device address</para>
+</listitem><listitem><para><bold>sl_bt_external_bondingdb_data_remote_ltk (0x2):</bold> 16-byte Long Term Key (LTK) in little endian format used as central device. The value of this type must be stored securely.</para>
+</listitem><listitem><para><bold>sl_bt_external_bondingdb_data_local_ltk (0x3):</bold> 16-byte Long Term Key (LTK) in little endian format used as peripheral device. The value of this type must be stored securely.</para>
+</listitem><listitem><para><bold>sl_bt_external_bondingdb_data_remote_central_inf (0x4):</bold> Identification info used as a central device</para>
+</listitem><listitem><para><bold>sl_bt_external_bondingdb_data_local_central_inf (0x5):</bold> Identification info used as a central device</para>
+</listitem><listitem><para><bold>sl_bt_external_bondingdb_data_irk (0x6):</bold> 16-byte Identity Resolving Key (IRK) of the remote device in little endian format that is used for resolving its RPA addresses when the device is in privacy mode. The value of this type must be stored securely.</para>
+</listitem><listitem><para><bold>sl_bt_external_bondingdb_data_meta (0x7):</bold> Metadata about the bonding</para>
+</listitem><listitem><para><bold>sl_bt_external_bondingdb_data_gatt_client_config (0x8):</bold> The remote GATT client characteristic configurations</para>
+</listitem><listitem><para><bold>sl_bt_external_bondingdb_data_gatt_client_features (0x9):</bold> The remote GATT client supported features</para>
+</listitem><listitem><para><bold>sl_bt_external_bondingdb_data_gatt_db_hash (0xa):</bold> Latest local GATT database hash value that the remote client has seen for GATT robust caching feature </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="12130" column="11" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="12130" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Data structure of the data_request event. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="12127" column="1" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="12128" bodyend="12172"/>
+    <listofallmembers>
+      <member refid="structsl__bt__evt__external__bondingdb__data__request__s_1a7bcf7f844298e3936d9b45844b03196c" prot="public" virt="non-virtual"><scope>sl_bt_evt_external_bondingdb_data_request_s</scope><name>connection</name></member>
+      <member refid="structsl__bt__evt__external__bondingdb__data__request__s_1a135ac300c386d0ffdec619a175dd184b" prot="public" virt="non-virtual"><scope>sl_bt_evt_external_bondingdb_data_request_s</scope><name>type</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

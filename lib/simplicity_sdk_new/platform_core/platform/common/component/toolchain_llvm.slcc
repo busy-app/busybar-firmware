@@ -1,0 +1,51 @@
+id: toolchain_llvm
+label: LLVM Toolchain
+package: platform_core
+description: Toolchain profile for building with LLVM instead of GCC
+category: Platform|Toolchain
+quality: experimental
+tag:
+- toolchain:id:llvm
+metadata:
+  sbom:
+    license: Zlib
+provides:
+- name: toolchain
+- name: toolchain_llvm
+- name: toolchain_supports_arm
+requires:
+- name: toolchain_linker_type
+- name: toolchain_variant
+- name: memory_manager_region
+  condition: [device_cortexm]
+- name: sl_syscalls
+  condition: [device_cortexm]
+conflicts:
+- name: device_riscv
+- name: device_host
+recommends:
+- id: toolchain_gcc_standard
+  condition: [device_cortexm]
+  vendor: silabs
+library:
+- system: c
+- system: m
+- system: nosys
+- system: crt0-nosys
+toolchain_settings:
+- option: link_time_optimization
+  value: disabled
+  unless: [toolchain_lto]
+- option: linker_option
+  value: -nostartfiles
+  # As long as LLVM support requires custom GCC templates, trigger an error if not
+  # using the correct exporter templates. This will be fixed when SLC and SLT have
+  # implemented and released native LLVM support (slct mapping + llvm templates).
+- option: gcc_linker_option
+  value: "\nifndef LLVM_VERSION\n$(error Not using LLVM-compatible makefile template, please use updated SLC or provide custom template directory with --export-templates)\nendif\nLD_FLAGS += "
+define:
+- name: SLI_BUILT_WITH_LLVM
+template_contribution:
+- name: compiler_is_llvm
+  value: true
+root_path: platform_core

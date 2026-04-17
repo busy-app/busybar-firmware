@@ -1,0 +1,25 @@
+id: psa_crypto_cipher_ctr
+package: security_mbedtls
+label: CTR Mode
+description: >-
+  This component provides support for the CTR stream cipher mode in PSA Crypto.
+category: Platform|Security|PSA Crypto|Encryption
+quality: production
+provides:
+- name: psa_crypto_cipher_ctr
+requires:
+- name: psa_crypto_aes
+- name: sl_si91x_psa_aes
+  condition: [device_si91x]
+template_contribution:
+- name: psa_crypto_config
+  value: PSA_WANT_ALG_CTR 1
+- name: psa_crypto_builtin_config
+  value: "MBEDTLS_PSA_BUILTIN_ALG_CTR 1"
+  condition: [mbedtls_cipher_ctr]
+documentation:
+  url: https://armmbed.github.io/mbed-crypto/html/api/ops/ciphers.html#c.PSA_ALG_CTR
+metadata:
+  sbom:
+    reference: mbedtls_sbom
+root_path: security_mbedtls

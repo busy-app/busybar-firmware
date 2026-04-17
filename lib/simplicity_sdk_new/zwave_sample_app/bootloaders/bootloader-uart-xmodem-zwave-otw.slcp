@@ -1,0 +1,73 @@
+project_name: bootloader-uart-xmodem-zwave-otw
+package: zwave_sample_app
+quality: production
+label: Bootloader - NCP UART XMODEM (OTW for Z-Wave Applications)
+description: >
+  Standalone Bootloader using XMODEM-CRC over UART. The bootloader shows a menu,
+  where an XMODEM transfer can be started by sending ASCII '1', or the
+  application can be started by sending ASCII '2'. This is the recommended UART
+  bootloader for the EmberZNet and Connect protocol stacks. This bootloader was created
+  from the bootloader-uart-xmodem sample. Pay attention to the UART configuration when
+  using a custom board.
+category: Z-Wave|Bootloaders
+
+filter:
+  - name: "Device Type"
+    value: ["NCP"]
+  - name: "Project Difficulty"
+    value: ["Advanced"]
+  - name: "Wireless Technology"
+    value: ["Z-Wave"]
+  - name: "MCU"
+    value: ["Bootloader"]
+
+component:
+  - id: bootloader_core
+  - id: bootloader_crc
+  - id: bootloader_aes_sha_ecdsa
+  - id: bootloader_delay_driver
+  - id: bootloader_image_parser
+  - id: bootloader_token_management
+  - id: bootloader_serial_driver
+  - id: bootloader_xmodem_parser
+  - id: bootloader_uart_xmodem
+  - id: bootloader_debug
+  - id: bootloader_app_upgrade_version
+  - id: bootloader_compression_lzma
+
+requires:
+  - name: bootloader_compression_lzma
+
+configuration:
+  - name: SL_VCOM_ENABLE
+    value: 1
+  - name: BOOTLOADER_ENFORCE_SIGNED_UPGRADE
+    value: 1
+  - name: BOOTLOADER_WRITE_DISABLE
+    value: 1
+  - name: BOOTLOADER_VERSION_MAIN_CUSTOMER
+    value: 1
+  - name: APPLICATION_VERIFICATION_SKIP_EM4_RST
+    value: 1
+  - name: BOOTLOADER_FALLBACK_LEGACY_KEY
+    value: 1
+  - name: BTL_STORAGE_BASE_ADDRESS
+    value: 0x8044000
+
+config_file:
+  - path: config/btl_uart_driver_cfg_custom_board.h
+    override:
+      component: bootloader_uart_driver
+      file_id: btl_uart_driver_cfg
+      vendor: silabs
+    unless:
+      - hardware_board
+
+post_build:
+  profile: zwave_bootloader
+
+tag:
+  - prebuilt_demo
+  - hwfilter:device:device_supports_zwave
+  - hwfilter:!board:brd4205a
+  - toolchain:gcc

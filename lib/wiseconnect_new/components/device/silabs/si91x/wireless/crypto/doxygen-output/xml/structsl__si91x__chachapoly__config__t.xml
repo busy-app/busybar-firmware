@@ -1,0 +1,189 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="structsl__si91x__chachapoly__config__t" kind="struct" language="C++" prot="public">
+    <compoundname>sl_si91x_chachapoly_config_t</compoundname>
+    <includes refid="sl__si91x__chachapoly_8h" local="no">sl_si91x_chachapoly.h</includes>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structsl__si91x__chachapoly__config__t_1a34e236d13afdbd4c2050dfb7b8a6b9d1" prot="public" static="no" mutable="no">
+        <type><ref refid="group__CRYPTO__CHACHAPOLY__CONSTANTS_1gaca1e019835c27cef6dd0b254c6430e99" kindref="member">sl_si91x_chachapoly_type_t</ref></type>
+        <definition>sl_si91x_chachapoly_type_t sl_si91x_chachapoly_config_t::encrypt_decrypt</definition>
+        <argsstring></argsstring>
+        <name>encrypt_decrypt</name>
+        <qualifiedname>sl_si91x_chachapoly_config_t::encrypt_decrypt</qualifiedname>
+        <briefdescription>
+<para>Encryption or decryption. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/chachapoly/inc/sl_si91x_chachapoly.h" line="132" column="30" bodyfile="components/device/silabs/si91x/wireless/crypto/chachapoly/inc/sl_si91x_chachapoly.h" bodystart="132" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__si91x__chachapoly__config__t_1a7223f6e0bc7df0ea875fd34e31e7d6f2" prot="public" static="no" mutable="no">
+        <type><ref refid="group__CRYPTO__CHACHAPOLY__CONSTANTS_1ga915a39d925d0469a6d786e6902c12208" kindref="member">sl_si91x_chachapoly_mode_t</ref></type>
+        <definition>sl_si91x_chachapoly_mode_t sl_si91x_chachapoly_config_t::chachapoly_mode</definition>
+        <argsstring></argsstring>
+        <name>chachapoly_mode</name>
+        <qualifiedname>sl_si91x_chachapoly_config_t::chachapoly_mode</qualifiedname>
+        <briefdescription>
+<para>ChachaPoly mode. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/chachapoly/inc/sl_si91x_chachapoly.h" line="133" column="30" bodyfile="components/device/silabs/si91x/wireless/crypto/chachapoly/inc/sl_si91x_chachapoly.h" bodystart="133" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__si91x__chachapoly__config__t_1a9fa963150ff34961a61ab136b810b142" prot="public" static="no" mutable="no">
+        <type><ref refid="group__CRYPTO__CHACHAPOLY__CONSTANTS_1gaccec4293096edded87b75bc42930529a" kindref="member">sl_si91x_chachapoly_dma_use_t</ref></type>
+        <definition>sl_si91x_chachapoly_dma_use_t sl_si91x_chachapoly_config_t::dma_use</definition>
+        <argsstring></argsstring>
+        <name>dma_use</name>
+        <qualifiedname>sl_si91x_chachapoly_config_t::dma_use</qualifiedname>
+        <briefdescription>
+<para>DMA Disable or Enable. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/chachapoly/inc/sl_si91x_chachapoly.h" line="134" column="33" bodyfile="components/device/silabs/si91x/wireless/crypto/chachapoly/inc/sl_si91x_chachapoly.h" bodystart="134" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__si91x__chachapoly__config__t_1a0a6c715e9aa9578f75a789f65be464f4" prot="public" static="no" mutable="no">
+        <type>const uint8_t *</type>
+        <definition>const uint8_t* sl_si91x_chachapoly_config_t::msg</definition>
+        <argsstring></argsstring>
+        <name>msg</name>
+        <qualifiedname>sl_si91x_chachapoly_config_t::msg</qualifiedname>
+        <briefdescription>
+<para>Pointer to the input message. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/chachapoly/inc/sl_si91x_chachapoly.h" line="135" column="17" bodyfile="components/device/silabs/si91x/wireless/crypto/chachapoly/inc/sl_si91x_chachapoly.h" bodystart="135" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__si91x__chachapoly__config__t_1a2f3d398481ce68c7ad610919b1f9b868" prot="public" static="no" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t sl_si91x_chachapoly_config_t::msg_length</definition>
+        <argsstring></argsstring>
+        <name>msg_length</name>
+        <qualifiedname>sl_si91x_chachapoly_config_t::msg_length</qualifiedname>
+        <briefdescription>
+<para>Length of the message. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/chachapoly/inc/sl_si91x_chachapoly.h" line="136" column="12" bodyfile="components/device/silabs/si91x/wireless/crypto/chachapoly/inc/sl_si91x_chachapoly.h" bodystart="136" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__si91x__chachapoly__config__t_1a131da63024d930cd109d6afdcb77382b" prot="public" static="no" mutable="no">
+        <type>const uint8_t *</type>
+        <definition>const uint8_t* sl_si91x_chachapoly_config_t::nonce</definition>
+        <argsstring></argsstring>
+        <name>nonce</name>
+        <qualifiedname>sl_si91x_chachapoly_config_t::nonce</qualifiedname>
+        <briefdescription>
+<para>Pointer to the Initialization vector. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/chachapoly/inc/sl_si91x_chachapoly.h" line="137" column="17" bodyfile="components/device/silabs/si91x/wireless/crypto/chachapoly/inc/sl_si91x_chachapoly.h" bodystart="137" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__si91x__chachapoly__config__t_1a3a85e74591d0dfec8abc6bfdcde35035" prot="public" static="no" mutable="no">
+        <type>const uint8_t *</type>
+        <definition>const uint8_t* sl_si91x_chachapoly_config_t::ad</definition>
+        <argsstring></argsstring>
+        <name>ad</name>
+        <qualifiedname>sl_si91x_chachapoly_config_t::ad</qualifiedname>
+        <briefdescription>
+<para>Pointer to the additional data. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/chachapoly/inc/sl_si91x_chachapoly.h" line="138" column="17" bodyfile="components/device/silabs/si91x/wireless/crypto/chachapoly/inc/sl_si91x_chachapoly.h" bodystart="138" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__si91x__chachapoly__config__t_1a153caadfbaf2b2f86c769bec3f81097f" prot="public" static="no" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t sl_si91x_chachapoly_config_t::ad_length</definition>
+        <argsstring></argsstring>
+        <name>ad_length</name>
+        <qualifiedname>sl_si91x_chachapoly_config_t::ad_length</qualifiedname>
+        <briefdescription>
+<para>Length of the additional data. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/chachapoly/inc/sl_si91x_chachapoly.h" line="139" column="12" bodyfile="components/device/silabs/si91x/wireless/crypto/chachapoly/inc/sl_si91x_chachapoly.h" bodystart="139" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__si91x__chachapoly__config__t_1a6dab37ebe41864844afa0b26b3330dc5" prot="public" static="no" mutable="no">
+        <type><ref refid="unionsl__si91x__chachapoly__key__config__t" kindref="compound">sl_si91x_chachapoly_key_config_t</ref></type>
+        <definition>sl_si91x_chachapoly_key_config_t sl_si91x_chachapoly_config_t::key_config</definition>
+        <argsstring></argsstring>
+        <name>key_config</name>
+        <qualifiedname>sl_si91x_chachapoly_config_t::key_config</qualifiedname>
+        <briefdescription>
+<para>Key configuration. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/chachapoly/inc/sl_si91x_chachapoly.h" line="140" column="36" bodyfile="components/device/silabs/si91x/wireless/crypto/chachapoly/inc/sl_si91x_chachapoly.h" bodystart="140" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Structure defining ChaChaPoly configuration. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>This structure defines the ChaChaPoly configuration required for the operation which includes type of operation, input message, length of input message, key configuration structure, and so on. </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>sl_si91x_chachapoly_config_t</label>
+        <link refid="structsl__si91x__chachapoly__config__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>key_config</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>sl_si91x_chachapoly_key_config_a0_t</label>
+        <link refid="structsl__si91x__chachapoly__key__config__a0__t"/>
+      </node>
+      <node id="4">
+        <label>sl_si91x_chachapoly_key_config_b0_t</label>
+        <link refid="structsl__si91x__chachapoly__key__config__b0__t"/>
+      </node>
+      <node id="2">
+        <label>sl_si91x_chachapoly_key_config_t</label>
+        <link refid="unionsl__si91x__chachapoly__key__config__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>a0</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>b0</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="components/device/silabs/si91x/wireless/crypto/chachapoly/inc/sl_si91x_chachapoly.h" line="131" column="1" bodyfile="components/device/silabs/si91x/wireless/crypto/chachapoly/inc/sl_si91x_chachapoly.h" bodystart="131" bodyend="141"/>
+    <listofallmembers>
+      <member refid="structsl__si91x__chachapoly__config__t_1a3a85e74591d0dfec8abc6bfdcde35035" prot="public" virt="non-virtual"><scope>sl_si91x_chachapoly_config_t</scope><name>ad</name></member>
+      <member refid="structsl__si91x__chachapoly__config__t_1a153caadfbaf2b2f86c769bec3f81097f" prot="public" virt="non-virtual"><scope>sl_si91x_chachapoly_config_t</scope><name>ad_length</name></member>
+      <member refid="structsl__si91x__chachapoly__config__t_1a7223f6e0bc7df0ea875fd34e31e7d6f2" prot="public" virt="non-virtual"><scope>sl_si91x_chachapoly_config_t</scope><name>chachapoly_mode</name></member>
+      <member refid="structsl__si91x__chachapoly__config__t_1a9fa963150ff34961a61ab136b810b142" prot="public" virt="non-virtual"><scope>sl_si91x_chachapoly_config_t</scope><name>dma_use</name></member>
+      <member refid="structsl__si91x__chachapoly__config__t_1a34e236d13afdbd4c2050dfb7b8a6b9d1" prot="public" virt="non-virtual"><scope>sl_si91x_chachapoly_config_t</scope><name>encrypt_decrypt</name></member>
+      <member refid="structsl__si91x__chachapoly__config__t_1a6dab37ebe41864844afa0b26b3330dc5" prot="public" virt="non-virtual"><scope>sl_si91x_chachapoly_config_t</scope><name>key_config</name></member>
+      <member refid="structsl__si91x__chachapoly__config__t_1a0a6c715e9aa9578f75a789f65be464f4" prot="public" virt="non-virtual"><scope>sl_si91x_chachapoly_config_t</scope><name>msg</name></member>
+      <member refid="structsl__si91x__chachapoly__config__t_1a2f3d398481ce68c7ad610919b1f9b868" prot="public" virt="non-virtual"><scope>sl_si91x_chachapoly_config_t</scope><name>msg_length</name></member>
+      <member refid="structsl__si91x__chachapoly__config__t_1a131da63024d930cd109d6afdcb77382b" prot="public" virt="non-virtual"><scope>sl_si91x_chachapoly_config_t</scope><name>nonce</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

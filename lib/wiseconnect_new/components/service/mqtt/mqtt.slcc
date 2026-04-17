@@ -1,0 +1,35 @@
+id: mqtt
+package: wifi
+description: >
+  The MQTT Client provides an API to start an MQTT client service
+label: MQTT Client
+category: Service
+quality: production
+metadata:
+  sbom:
+    license: MSLA
+component_root_path: ./components/service/mqtt
+provides:
+- name: mqtt
+source:
+- path: si91x/sl_mqtt_client.c
+include:
+- path: inc
+- path: inc
+  file_list:
+    - path: sl_mqtt_client.h
+    - path: sl_mqtt_client_types.h
+
+define:
+- name: SLI_SI91X_EMBEDDED_MQTT_CLIENT
+
+requires:
+- name: sl_si91x_internal_stack
+
+template_contribution:
+- name: console_enums
+  value:
+    mqtt_qos_levels:
+      qos0: SL_MQTT_QOS_LEVEL_0
+      qos1: SL_MQTT_QOS_LEVEL_1
+      qos2: SL_MQTT_QOS_LEVEL_2

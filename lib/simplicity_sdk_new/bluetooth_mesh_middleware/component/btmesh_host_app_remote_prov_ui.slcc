@@ -1,0 +1,28 @@
+id: btmesh_host_app_remote_prov_ui
+label: BT Mesh Remote Provisioner UI Application Component
+package: bluetooth_mesh_middleware
+description: >
+  BT Mesh Remote Provisioner UI Application component provides user interface
+  functionality for remote provisioning applications in Bluetooth Mesh networks.
+category: Bluetooth Mesh|Host
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: bluetooth_mesh_middleware/common/btmesh_host_app_remote_prov_ui
+include:
+- path: .
+  file_list:
+  - path: btmesh_app_remote_prov_ui.h
+source:
+- path: btmesh_app_remote_prov_ui.c
+provides:
+- name: btmesh_host_app_remote_prov_ui
+requires:
+- name: btmesh_stack_api_ncp_host
+- name: btmesh_host_app_prov_ui
+- name: btmesh_host_app_remote_prov
+- name: component_catalog
+template_contribution:
+- name: component_catalog
+  value: btmesh_host_app_remote_prov_ui

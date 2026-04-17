@@ -1,0 +1,98 @@
+id: sleeptimer
+label: Sleep Timer
+package: platform_core
+description: >
+  The Sleeptimer driver provides software timers, delays, timekeeping and date
+  functionalities using a low-frequency real-time clock peripheral. Sleep Timer
+  uses one Hardware Timer and creates multiple software timer instances.
+  Sleep Timer can be used for creating timers which are tightly integrated with power
+  management. The Power Manager requires precision timing to have all clocks ready on
+  time, so that wakeup happens a little bit earlier to prepare the system to be ready
+  at the right time.
+  If SYSRTC is chosen as the Timer Peripheral used by Sleeptimer, the Peripheral
+  Reflex System (PRS) channel 1 and 2 will be used by Sleeptimer and become
+  unavailable.
+category: Services|Timers
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+config_file:
+- path: platform/service/sleeptimer/config/sl_sleeptimer_config.h
+  file_id: sleeptimer_config
+source:
+- path: platform/service/sleeptimer/src/sl_sleeptimer.c
+- path: platform/service/sleeptimer/src/sl_sleeptimer_hal_rtcc.c
+  condition: [device_has_rtcc]
+- path: platform/service/sleeptimer/src/sl_sleeptimer_hal_prortc.c
+  condition: [device_has_prortc]
+- path: platform/service/sleeptimer/src/sl_sleeptimer_hal_sysrtc.c
+  condition: [device_has_sysrtc]
+- path: platform/service/sleeptimer/src/sl_sleeptimer_hal_burtc.c
+  condition: [device_has_burtc]
+- path: platform/service/sleeptimer/src/sl_sleeptimer_hal_timer.c
+  condition: [device_has_timer, device_series_3]
+- path: platform/service/sleeptimer/src/sl_sleeptimer_hal_timer.c
+  condition: [device_has_timer, device_series_2]
+include:
+- path: platform/service/sleeptimer/inc
+  file_list:
+  - path: sl_sleeptimer.h
+  - path: sli_sleeptimer.h
+- path: platform/service/sleeptimer/src
+  file_list:
+  - path: sli_sleeptimer_hal.h
+provides:
+- name: sleeptimer
+requires:
+- name: atomic
+- name: status
+- name: sl_assert
+- name: sl_common
+- name: interrupt_manager
+  condition: [device_efx]
+- name: clock_manager_runtime
+  condition: [device_efx]
+- name: device_manager
+  condition: [device_efx]
+- name: hal_generic_common
+  condition: [device_efx]
+- name: sl_core
+- name: hal_generic_prs
+  condition: [device_has_sysrtc]
+- name: emlib_rtcc
+  condition: [device_has_rtcc]
+- name: hal_sysrtc
+  condition: [device_has_sysrtc]
+- name: emlib_burtc
+  condition: [device_has_burtc, device_series_2]
+- name: hal_generic_burtc
+  condition: [device_has_burtc, device_series_3]
+- name: hal_generic_timer
+  condition: [device_has_timer]
+- name: sleeptimer_si91x
+  condition: [device_si91x]
+- name: hostbased_sleeptimer
+  condition: [win32]
+- name: code_classification
+template_contribution:
+- name: event_handler
+  value:
+    event: service_init
+    include: sl_sleeptimer.h
+    handler: sl_sleeptimer_init
+  priority: -10
+  condition: [sl_system, kernel]
+- name: component_catalog
+  value: sleeptimer
+- name: code_classification_components
+  value: sleeptimer
+define:
+- name: SL_CODE_COMPONENT_SLEEPTIMER
+  value: sleeptimer
+validation_helper:
+- path: platform/service/sleeptimer/sleeptimer_peripheral_validation.lua
+documentation:
+  docset: gecko-platform
+  document: platform-service/sleeptimer
+root_path: platform_core

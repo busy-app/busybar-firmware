@@ -1,0 +1,84 @@
+project_name: wifi_station_ble_provisioning_ncp
+package: multi_protocol_siwx91x_app
+quality: production
+label: wifi_station_ble_provisioning_ncp
+category: Example|Wi-Fi_BLE
+description: 'This application explains how to connect to a Wi-Fi access point using BLE provisioning functionality.
+
+  '
+filter:
+- name: Wireless Technology
+  value:
+  - WiFi BLE
+- name: Project Difficulty
+  value:
+  - Intermediate
+source:
+- path: app.c
+- path: ble_app.c
+- path: wifi_app.c
+include:
+- path: .
+  file_list:
+  - path: app.h
+  - path: ble_config.h
+  - path: wifi_config.h
+define:
+- name: SL_SI91X_PRINT_DBG_LOG
+component:
+- id: sl_main
+- id: freertos
+- id: freertos_heap_4
+- id: device_init
+- id: spidrv
+  instance:
+  - exp
+- id: iostream_retarget_stdio
+- id: iostream_recommended_stream
+- id: iostream_stdlib_config
+- id: wiseconnect_common
+- id: ble
+- id: wifi
+- id: sl_si91x_internal_stack
+- id: sl_si91x_spi_bus
+- id: wifi_resources
+- id: network_manager
+- id: basic_network_config_manager
+- id: sl_si91x_basic_buffers
+toolchain_settings:
+- option: gcc_compiler_option
+  value: -Wall -Werror
+configuration:
+- name: SL_BOARD_ENABLE_VCOM
+  value: '1'
+- name: configUSE_POSIX_ERRNO
+  value: '1'
+- name: configTOTAL_HEAP_SIZE
+  value: '51200'
+- name: configTIMER_TASK_PRIORITY
+  value: '55'
+readme:
+- path: readme.md
+other_file:
+- path: resources/readme/image279wsbpa.png
+- path: resources/readme/image279wsbpancp.png
+- path: resources/readme/output1.png
+- path: resources/readme/output2.png
+- path: resources/readme/remote_screen1.png
+- path: resources/readme/remote_screen2.png
+- path: resources/readme/remote_screen3.png
+- path: resources/readme/remote_screen4.png
+- path: resources/readme/remote_screen5.png
+- path: resources/readme/remote_screen6.png
+ui_hints:
+  highlight:
+  - path: readme.md
+    focus: true
+sdk_extension:
+- id: wiseconnect3_sdk
+  vendor: silabs
+  version: 4.0.1
+sdk:
+  id: simplicity_sdk
+  vendor: silabs
+  version: 2025.12.2

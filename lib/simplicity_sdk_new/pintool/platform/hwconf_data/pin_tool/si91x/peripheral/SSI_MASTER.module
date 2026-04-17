@@ -1,0 +1,27 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<module:DocumentRoot xmlns:module="http://www.silabs.com/ss/hwconfig/module.ecore">
+  <module id="pin_tool.wfm.si91x.ssi_master" label="SSI_MASTER" name="SSI_MASTER" description="" version="A">
+    <properties>
+      <stringProperty label="Type" id="type" defaultValue="ssi_master" transient="true" hidden="true" readonly="true" description=""/>
+      <stringProperty label="Custom Peripheral Name" id="peripheral.name" description=""/>
+    </properties>
+    <propertyCategories>
+      <category label="SSI_MASTER">
+        <subCategory label="">
+          <propertyRef refId="peripheral.name"/>
+        </subCategory>
+      </category>
+    </propertyCategories>
+    <signals>
+      <signal name="DATA3"/>
+      <signal name="DATA2"/>
+      <signal name="MISO_DATA1"/>
+      <signal name="MOSI_DATA0"/>
+      <signal name="SCK_"/>
+      <signal name="CS0_"/>
+      <signal name="CS1_"/>
+      <signal name="CS2_"/>
+      <signal name="CS3_"/>
+    </signals>
+  </module>
+</module:DocumentRoot>

@@ -1,0 +1,14 @@
+id: iostream_recommended_console
+label: 'IO Stream: Recommended Stream for a console'
+package: platform_core
+description: IO Stream Recommended Stream
+category: Services|IO Stream
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: platform_core/platform/service/iostream
+provides:
+- name: iostream_recommended_console
+requires:
+- name: iostream_console_support

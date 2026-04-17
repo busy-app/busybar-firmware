@@ -1,0 +1,16 @@
+id: endianness
+label: Endianness Operations Library
+package: platform_core
+description: Library of different endianness operations
+category: Platform|Utilities
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: platform_core/platform/common
+include:
+- path: inc
+  file_list:
+  - path: sl_endianness.h
+provides:
+- name: endianness

@@ -1,0 +1,42 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__evt__cs__procedure__enable__complete" kind="group">
+    <compoundname>sl_bt_evt_cs_procedure_enable_complete</compoundname>
+    <title>sl_bt_evt_cs_procedure_enable_complete</title>
+    <innerclass refid="structsl__bt__evt__cs__procedure__enable__complete__s" prot="public">sl_bt_evt_cs_procedure_enable_complete_s</innerclass>
+      <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="group__sl__bt__evt__cs__procedure__enable__complete_1gac7f56b19e96db16e9f8b1fc0b840404a" prot="public" static="no">
+        <type>struct <ref refid="structsl__bt__evt__cs__procedure__enable__complete__s" kindref="compound">sl_bt_evt_cs_procedure_enable_complete_s</ref></type>
+        <definition>typedef struct sl_bt_evt_cs_procedure_enable_complete_s sl_bt_evt_cs_procedure_enable_complete_t</definition>
+        <argsstring></argsstring>
+        <name>sl_bt_evt_cs_procedure_enable_complete_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="13374" column="55" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="13374" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__evt__cs__procedure__enable__complete_1ga955de6a370fff367846b4153bc9dc7f8" prot="public" static="no">
+        <name>sl_bt_evt_cs_procedure_enable_complete_id</name>
+        <initializer>0x025900a0</initializer>
+        <briefdescription>
+<para>Identifier of the procedure_enable_complete event. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="13321" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="13321" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Indicates the controller has scheduled a new CS procedure measurement, as a result of <ref refid="group__sl__bt__cs_1ga2d98ac43233c5db0d7903400b2cadd2e" kindref="member">sl_bt_cs_procedure_enable</ref> command or disabled an ongoing, as a result of <ref refid="group__sl__bt__cs_1ga2d98ac43233c5db0d7903400b2cadd2e" kindref="member">sl_bt_cs_procedure_enable</ref> command. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

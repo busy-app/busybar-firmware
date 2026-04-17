@@ -1,0 +1,119 @@
+package: zigbee
+description: This plugin provides an implementation of a custom EZSP protocol. This plugin require the NCP to support custom EZSP commands. This is typically achieved by building the NCP image including the XNCP library. This plugin is NOT compatible with an system-on-a-chip (SOC) platform. This is is sample code that defines a protocol between a custom-built XNCP sample and a host.
+label: EZSP Custom Protocol
+quality: evaluation
+id: zigbee_custom_ezsp
+category: Zigbee|Utility
+toolchain_settings: []
+ui_hints: {}
+template_file: []
+provides:
+- name: zigbee_custom_ezsp
+requires:
+- name: zigbee_ezsp
+- name: device_host
+include:
+- path: app/framework/plugin-host/custom-ezsp
+  file_list:
+  - path: custom-ezsp.h
+- path: app/xncp
+  file_list:
+  - path: xncp-sample-custom-ezsp-protocol.h
+source:
+- path: app/framework/plugin-host/custom-ezsp/custom-ezsp.c
+- path: app/framework/plugin-host/custom-ezsp/custom-ezsp-cli.c
+  condition:
+  - cli
+template_contribution:
+- name: component_catalog
+  value: zigbee_custom_ezsp
+- name: cli_group
+  value:
+    name: custom-ezsp
+    group: plugin
+- name: cli_command
+  value:
+    group: custom-ezsp
+    name: set_mode
+    handler: sl_zigbee_af_custom_ezsp_set_power_mode_command
+    help: Modify the entry in the clients load control event table to opt in for a scheduled load control event.
+    argument:
+    - type: uint8
+      help: The power mode.
+- name: cli_command
+  value:
+    group: custom-ezsp
+    name: get_mode
+    handler: sl_zigbee_af_custom_ezsp_get_power_mode_command
+    help: Print the XNCPs current power mode.
+- name: cli_command
+  value:
+    group: custom-ezsp
+    name: add_cluster
+    handler: sl_zigbee_af_custom_ezsp_add_cluster_to_filtering_list_command
+    help: Add a cluster to the list that will be filtered by the XNCP.
+    argument:
+    - type: uint16
+      help: The cluster id.
+- name: cli_command
+  value:
+    group: custom-ezsp
+    name: rem_cluster
+    handler: sl_zigbee_af_custom_ezsp_remove_cluster_to_filtering_list_command
+    help: Remove a cluster from the list that is be filtered by the XNCP.
+    argument:
+    - type: uint16
+      help: The cluster id.
+- name: cli_command
+  value:
+    group: custom-ezsp
+    name: print_list
+    handler: sl_zigbee_af_custom_ezsp_print_cluster_filtering_list_command
+    help: Print the list of clusters filtered by the XNCP.
+- name: cli_command
+  value:
+    group: custom-ezsp
+    name: reports_on
+    handler: sl_zigbee_af_custom_ezsp_enable_reports_command
+    help: Enable reports from xncp
+    argument:
+    - type: uint16
+      help: The time.
+- name: cli_command
+  value:
+    group: custom-ezsp
+    name: reports_off
+    handler: sl_zigbee_af_custom_ezsp_disable_reports_command
+    help: Disable reports from xncp
+- name: cli_command
+  value:
+    group: custom-ezsp
+    name: set_token
+    handler: sl_zigbee_af_custom_ezsp_set_custom_token_command
+    help: Set custom token
+    argument:
+    - type: uint8
+      help: The node type.
+    - type: uint16
+      help: The node id.
+    - type: uint16
+      help: The pan id.
+- name: cli_command
+  value:
+    group: custom-ezsp
+    name: get_token
+    handler: sl_zigbee_af_custom_ezsp_get_custom_token_command
+    help: Get custom token
+- name: cli_command
+  value:
+    group: custom-ezsp
+    name: get_info
+    handler: sl_zigbee_af_custom_ezsp_get_x_ncp_info_command
+    help: Print the current info about the XNCP.
+documentation:
+  docset: zigbee
+  document: zigbee-af-api/custom-ezsp
+metadata:
+  sbom:
+    license: MSLA
+root_path: zigbee

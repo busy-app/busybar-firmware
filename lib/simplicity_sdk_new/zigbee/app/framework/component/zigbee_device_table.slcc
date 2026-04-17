@@ -1,0 +1,166 @@
+package: zigbee
+description: Simple C-based rules engine for demonstrating automatic control through a gateway.
+label: Device Table
+quality: evaluation
+id: zigbee_device_table
+category: Zigbee|Utility
+provides:
+- name: zigbee_device_table
+source:
+- path: app/framework/plugin/device-table/device-table.c
+- path: app/framework/plugin/device-table/device-table-cli.c
+  condition:
+  - cli
+- path: app/framework/plugin/device-table/device-table-discovery.c
+- path: app/framework/plugin/device-table/device-table-tracking.c
+- path: app/framework/plugin/device-table/device-table-cb.c
+include:
+- path: app/framework/plugin/device-table
+  file_list:
+  - path: device-table.h
+  - path: device-table-internal.h
+
+template_file:
+- path: app/framework/plugin/device-table/template/sl_zigbee_device_table_dispatcher.c.jinja
+
+template_contribution:
+- name: component_catalog
+  value: zigbee_device_table
+- name: zigbee_af_callback
+  value:
+    callback_type: event_init
+    function_name: sl_zigbee_af_device_table_init_cb
+- name: zigbee_af_callback
+  value:
+    callback_type: local_data_init
+    function_name: sl_zigbee_af_device_table_init_cb
+- name: zigbee_af_callback
+  value:
+    callback_type: init_done
+    function_name: sl_zigbee_af_device_table_init_cb
+- name: zigbee_af_callback
+  value:
+    callback_type: pre_command_received
+    function_name: sli_zigbee_af_device_table_pre_command_received_callback
+- name: zigbee_af_callback
+  value:
+    callback_type: pre_zdo_message_received
+    function_name: sli_zigbee_af_device_table_pre_zdo_message_received
+- name: zigbee_stack_callback
+  value:
+    callback_type: stack_status
+    function_name: sl_zigbee_af_device_table_stack_status_cb
+- name: cli_group
+  value:
+    group: plugin
+    name: device-table
+    help: device-table related commands.
+- name: cli_command
+  value:
+    group: device-table
+    name: disc
+    handler: sli_zigbee_af_device_table_discover_present_node_command
+    help: Forces a (re)discovery of the device based on the node ID.
+    argument:
+    - type: uint16
+      help: Node ID to discover
+- name: cli_command
+  value:
+    group: device-table
+    name: isend
+    handler: sli_zigbee_af_device_table_index_send_command
+    help: Sends to a device in the device table.
+    argument:
+    - type: uint16
+      help: Device table index
+- name: cli_command
+  value:
+    group: device-table
+    name: send
+    handler: sli_zigbee_af_device_table_send_command
+    help: Sends to a device in the device table.
+    argument:
+    - type: hex
+      help: EUI64 of device
+    - type: uint8
+      help: Endpoint of device
+- name: cli_command
+  value:
+    group: device-table
+    name: irepair
+    handler: sli_zigbee_af_device_table_index_route_repair_command
+    help: Kicks off device route repair.
+    argument:
+    - type: uint16
+      help: Device table index
+- name: cli_command
+  value:
+    group: device-table
+    name: repair
+    handler: sli_zigbee_af_device_table_route_repair_command
+    help: Kicks off device route repair.
+    argument:
+    - type: hex
+      help: EUI64 of device
+- name: cli_command
+  value:
+    group: device-table
+    name: iremove
+    handler: sli_zigbee_af_device_table_index_remove_command
+    help: Removes device from the device table.
+    argument:
+    - type: uint16
+      help: Device table index
+- name: cli_command
+  value:
+    group: device-table
+    name: remove
+    handler: sli_zigbee_af_device_table_remove_command
+    help: Removes device from the device table.
+    argument:
+    - type: hex
+      help: EUI64 of device
+- name: cli_command
+  value:
+    group: device-table
+    name: save
+    handler: sli_zigbee_af_device_table_save_command
+    help: Saves the file.
+- name: cli_command
+  value:
+    group: device-table
+    name: load
+    handler: sli_zigbee_af_device_table_load_command
+    help: Loads the file.
+- name: cli_command
+  value:
+    group: device-table
+    name: leave
+    handler: sli_zigbee_af_device_table_send_leave_command
+    help: Removes a device from the device table.
+    argument:
+    - type: hex
+      help: EUI64 of device
+- name: cli_command
+  value:
+    group: device-table
+    name: clear
+    handler: sl_zigbee_af_device_table_clear
+    help: Clears the device table.
+- name: cli_command
+  value:
+    group: device-table
+    name: print
+    handler: sl_zigbee_af_device_table_print_device_table
+- name: zigbee_stack_callback
+  value:
+    callback_type: trust_center_post_join
+    function_name: sli_zigbee_af_device_table_trust_center_join_callback
+
+documentation:
+  docset: zigbee
+  document: zigbee-af-api/device-table
+metadata:
+  sbom:
+    license: MSLA
+root_path: zigbee

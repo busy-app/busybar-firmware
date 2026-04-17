@@ -1,0 +1,26 @@
+id: zigbee_pro_router_stack_basic
+label: Pro Router Stack (Basic)
+package: zigbee
+category: Zigbee|Stack|Pro Core
+quality: evaluation
+description: Use the basic Zigbee PRO stack specifically for router devices (does not support high datarate phy or RAIL MUX, and stubs out code routers do not use).
+
+provides:
+- name: zigbee_pro_router_stack_basic
+requires:
+- name: zigbee_pro_router_stack_implementation
+- name: zigbee_pro_router_stack_library
+  condition:
+  - zigbee_use_release_libraries
+
+recommends:
+- id: zigbee_pro_router_stack_library_internal
+  vendor: silabs
+
+documentation:
+  docset: zigbee
+  document: zigbee-af-api/pro-stack
+metadata:
+  sbom:
+    license: MSLA
+root_path: zigbee

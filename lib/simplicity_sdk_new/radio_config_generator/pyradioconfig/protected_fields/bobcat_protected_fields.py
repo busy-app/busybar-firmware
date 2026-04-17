@@ -1,0 +1,132 @@
+from pyradioconfig.protected_fields.base_protected_fields import ProtectedFieldsBase
+
+
+class ProtectedFieldsBobcat(ProtectedFieldsBase):
+
+    """
+    PTE has two types of protected fields
+    1) cal
+    2) set and forget
+
+    For radio configurator,
+    1) Protect all PTE cal fields (do not write)
+    2) Ensure set and forget fields are same as PTE if radio configurator is also programming the values
+
+    For rail_script,
+    1) protect all PTE cal fields
+    2) Protect set and forget field, if register contains pte cal field or radio configurator writes to the field
+
+    """
+
+    PTE_PROTECTED_FIELD_DICT = {
+        'RAC_IFADCTRIM0_IFADCLDOSHUNTAMPLVL1': 'cal',
+        'RAC_IFADCTRIM0_IFADCLDOSHUNTAMPLVL2': 'cal',
+        'RAC_IFADCTRIM0_IFADCLDOSHUNTCURLVL1': 'cal',
+        'RAC_PACTRL_TXPASELPREDRVREGVDDPA': 'cal',
+        'SYNTH_DSMCTRLRX_REQORDERRX': 'cal',
+        'RAC_SYTRIM1_SYLODIVLDOTRIMCORERX': 'cal',
+        'RAC_VCOCTRL_VCODETAMPLITUDERX': 'cal',
+        'RAC_SYTRIM0_SYCHPCURRRX': 'cal',
+        'RAC_RX_SYCHPBIASTRIMBUFRX': 'cal',
+        'RAC_RX_SYPFDCHPLPENRX': 'cal',
+        'RAC_RX_SYPFDFPWENRX': 'cal',
+        'SYNTH_DSMCTRLTX_REQORDERTX': 'cal',
+        'SYNTH_DSMCTRLTX_MASHORDERTX': 'cal',
+        'SYNTH_DSMCTRLTX_LSBFORCETX': 'cal',
+        'SYNTH_DSMCTRLTX_DSMMODETX': 'cal',
+        'SYNTH_DSMCTRLTX_DITHERDSMINPUTTX': 'cal',
+        'RAC_SYMMDCTRL_SYMMDMODETX': 'cal',
+        'RAC_SYTRIM1_SYLODIVLDOTRIMCORETX': 'cal',
+        'RAC_VCOCTRL_VCODETAMPLITUDETX': 'cal',
+        'RAC_TX_SYCHPBIASTRIMBUFTX': 'cal',
+        'RAC_TX_SYPFDCHPLPENTX': 'cal',
+        'RAC_TX_SYPFDFPWENTX': 'cal',
+        'RAC_SYEN_SYCHPLPENTX': 'cal',
+        'RAC_SYTRIM0_SYCHPLEVPSRCTX': 'cal',
+        'RAC_SYTRIM0_SYCHPSRCENTX': 'cal',
+        'RAC_SYTRIM0_SYCHPCURRTX': 'cal',
+        'RAC_SYNTHENCTRL_MMDPOWERBALANCEDISABLE': 'cal',
+        'RAC_RX_LNAMIXENRFPKDLOTHRESH': 'cal',
+        'RAC_RX_LNAMIXLDOLOWCUR': 'cal',
+        'RAC_TX_TX0DBMENBLEEDPREDRVREG': 'cal',
+    }
+
+    # : List of fields found in PTE, but allow radio configurator to override the value
+    PTE_PROTECTED_FIELD_EXCEPTIONS = [
+    ]
+
+    # : List of fields protected by RAIL
+    RAIL_PROTECTED_FIELDS = [
+        'AGC_CTRL0_RSSISHIFT',
+        'AGC_CTRL1_CCATHRSH',
+        'FRC_RXCTRL_BUFRESTORERXABORTED',
+        'FRC_RXCTRL_BUFRESTOREFRAMEERROR',
+        'FRC_RXCTRL_BUFCLEAR',
+        'FRC_RXCTRL_TRACKABFRAME',
+        'FRC_RXCTRL_ACCEPTBLOCKERRORS',
+        'FRC_RXCTRL_ACCEPTCRCERRORS',
+        'FRC_RXCTRL_STORECRC',
+        'MODEM_IRCALCOEF_CIV',
+        'MODEM_IRCALCOEF_CRV',
+        'MODEM_IRCAL_MURSHF',
+        'MODEM_IRCAL_MUISHF',
+        'RAC_AUXADCTRIM_AUXADCRCTUNE',
+        'RAC_AUXADCTRIM_AUXADCLDOVREFTRIM',
+        'RAC_PATRIM0_TX0DBMTRIMBIASP',
+        'RAC_PATRIM0_TX0DBMTRIMBIASN',
+        'RAC_PATRIM1_TX0DBMTRIMREGVREF',
+        'RAC_PATRIM1_TX0DBMTRIMREGFB',
+        'RAC_RFBIASCAL_RFBIASCALVREF',
+        'RAC_RFBIASCAL_RFBIASCALBIAS',
+        'RAC_PRECTRL_PREREGTRIM',
+        'RAC_IFADCCAL_IFADCTUNERC',
+        'RAC_PGATRIM_PGACTUNE',
+        'SYNTH_LPFCTRL2RX_CALCRX',
+        'SYNTH_LPFCTRL2TX_CALCTX',
+        'SYNTH_VCDACCTRL_VCDACVAL',
+        'SYNTH_VCOGAIN_VCOKVCOARSE',
+        'SYNTH_VCOGAIN_VCOKVFINE',
+        'RAC_LNAMIXTRIM4_LNAMIXRFPKDCALCMHI',
+        'RAC_LNAMIXTRIM4_LNAMIXRFPKDCALCMLO',
+        'RAC_PGACTRL_PGAPOWERMODE',
+        'RAC_SYEN_SYENVCOBIAS',
+        'RAC_SYEN_SYENMMDREG',
+        'RAC_SYEN_SYENCHPREG',
+        'RAC_SYEN_SYENCHPREPLICA',
+        'RAC_SYEN_SYENMMDREPLICA1',
+        'RAC_SYEN_SYENVCOPFET',
+        'RAC_SYEN_SYENVCOREG',
+        'RAC_SYEN_SYCHPEN',
+        'RAC_SYTRIM1_SYLODIVTLO20DBM2G4DELAY',
+    ]
+
+    # : List of fields that are found in PTE list, but does not need to be protected by RAIL
+    RAIL_PROTECTED_FIELD_EXCEPTIONS = [
+        'RAC_PACTRL_TXPASELPREDRVREGVDDPA',
+        'SYNTH_DSMCTRLRX_REQORDERRX',
+        'RAC_VCOCTRL_VCODETAMPLITUDERX',
+        'RAC_VCOCTRL_VCODETAMPLITUDETX',
+        'RAC_SYTRIM0_SYCHPCURRRX',
+        'RAC_SYTRIM0_SYCHPLEVPSRCTX',
+        'RAC_SYTRIM0_SYCHPSRCENTX',
+        'RAC_SYTRIM0_SYCHPCURRTX',
+        'RAC_RX_SYCHPBIASTRIMBUFRX',
+        'RAC_RX_SYPFDCHPLPENRX',
+        'RAC_RX_SYPFDFPWENRX',
+        'RAC_RX_LNAMIXENRFPKDLOTHRESH',
+        'RAC_RX_LNAMIXLDOLOWCUR',
+        'SYNTH_DSMCTRLTX_REQORDERTX',
+        'SYNTH_DSMCTRLTX_MASHORDERTX',
+        'SYNTH_DSMCTRLTX_LSBFORCETX',
+        'SYNTH_DSMCTRLTX_DSMMODETX',
+        'SYNTH_DSMCTRLTX_DITHERDSMINPUTTX',
+        'RAC_SYMMDCTRL_SYMMDMODETX',
+        'RAC_TX_SYCHPBIASTRIMBUFTX',
+        'RAC_TX_SYPFDCHPLPENTX',
+        'RAC_TX_SYPFDFPWENTX',
+        'RAC_TX_TX0DBMENBLEEDPREDRVREG',
+        'RAC_SYNTHENCTRL_MMDPOWERBALANCEDISABLE',
+        'RAC_SYEN_SYCHPLPENTX',
+        'RAC_SYTRIM1_SYLODIVLDOTRIMCORERX',
+        'RAC_SYTRIM1_SYLODIVLDOTRIMCORETX',
+    ]

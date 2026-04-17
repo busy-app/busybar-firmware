@@ -1,0 +1,2152 @@
+package: zigbee
+description: This component brings in the necessary items to build a Zigbee Pro Compliance image. The Zigbee Pro Compliance image is a binary that is used to test and certify the networking stack.
+
+label: Compliance
+quality: evaluation
+id: zigbee_pro_compliance
+category: Zigbee|Compliance
+
+provides:
+- name: zigbee_pro_compliance
+
+requires:
+- name: zigbee_pro_stack_support
+- name: zigbee_enhanced_routing
+- name: zigbee_cli
+- name: zigbee_device_config
+- name: zigbee_fragmentation
+- name: zigbee_security_link_keys
+  # Adding following conditions to avoid having multiple pro-compliance.slcps for
+  # dualrail and railgb phys flavors. Following are the boards we use for
+  # R22 certifications for respective phy flavors.
+- name: zigbee_phy_2_4_subghz_switch_coordinator
+  condition:
+  - brd4197a
+
+define:
+- name: CONFIGURATION_HEADER
+  value: "\"app/test/pro-compliance-configuration.h\""
+- name: PRO_COMPLIANCE
+- name: MAC_TEST_COMMANDS_SUPPORT
+- name: SL_ZIGBEE_GOLDEN_UNIT
+
+source:
+  #- path: "app/util/serial/sl_zigbee_command_interpreter.c"
+- path: app/util/common/common.c
+- path: app/util/common/common-onboard.c
+- path: app/util/common/internal-common-simulation.c
+  condition:
+  - zigbee_simulation
+- path: app/util/common/library.c
+  # END App2
+
+  # START APP:PRO_COMPLIANCE
+- path: app/test/test-profile.c
+- path: app/test/security-common.c
+- path: app/test/zdo-common.c
+- path: app/test/groups-common.c
+- path: app/test/misc-common.c
+- path: app/test/pro-compliance.c
+- path: app/test/pro-compliance-stack-context.c
+- path: app/test/security-onboard.c
+- path: app/test/groups-onboard.c
+- path: app/test/test-profile-onboard.c
+- path: app/test/misc-onboard.c
+- path: app/test/multicast-utility.c
+- path: app/test/pro-compliance-common.c
+- path: app/test/pro-compliance-printing.c
+  # END APP:PRO_COMPLIANCE
+
+  # START APP_UTIL:COMMON_INTERNAL
+- path: app/util/common/internal-common.c
+- path: app/util/zigbee-framework/zigbee-device-common.c
+- path: app/util/zigbee-framework/zigbee-device-library.c
+  # END APP_UTIL:COMMON_INTERNAL
+
+   # START APP_UTIL:COUNTERS_CLI
+- path: app/util/counters/counters-cli.c
+  condition:
+  - cli
+  # END APP_UTIL:COUNTERS_CLI
+
+  # START APP_UTIL:COUNTERS_OTA
+- path: app/util/counters/counters-ota.c
+  # END APP_UTIL:COUNTERS_OTA
+
+  # START PLUGIN:STACK_PROTECTION_IAR
+  # TODO: figure out how to conditionally add stack-protection.c if and only if
+  # STACK_PROTECTION is supplied to the build command. My current understanding
+  # is that you do not supply macros to uc, but need to confirm. For now, do not
+  # add stack protection
+  #- path: "util/plugin/plugin-common/stack-protection-iar/stack-protection.c"
+  # END PLUGIN:STACK_PROTECTION_IAR
+- path: stack/internal/src/baremetal/pro_compliance_stack_interface_baremetal_wrapper.c
+  unless:
+  - zigbee_use_ipc
+- path: stack/internal/src/ipc/pro_compliance_stack_interface_ipc_command_messages.c
+  condition:
+  - zigbee_use_ipc
+include:
+#Include zigbee_internal package base to resolve some header includes
+- path: .
+- path: stack/include
+  file_list:
+  - path: pro_compliance_stack_interface.h
+- path: stack/internal/inc
+  file_list:
+  - path: pro_compliance_stack_interface_internal_def.h
+- path: stack/internal/src/ipc
+  file_list:
+  - path: pro_compliance_stack_interface_ipc_command_messages.h
+    condition:
+    - zigbee_use_ipc
+  # NOTE putting these here to build pro compliance with 'copy sources'
+  # platform headers
+- path: platform/base/phy/plugin/duty-cycle
+  file_list:
+  - path: duty-cycle.h
+- path: platform/service/token_manager/inc
+  file_list:
+  - path: sl_token_manager_defines.h
+  - path: sl_token_manager_api.h
+- path: platform/service/token_manager/legacy/inc
+  file_list:
+  - path: sl_token_manufacturing_generic.h
+  # stack headers
+- path: stack/core
+  file_list:
+  - path: sl_zigbee_stack.h
+  - path: sl_zigbee_multi_phy.h
+  - path: sli_zigbee_tlv_core.h
+- path: stack/config
+  file_list:
+  - path: token-cache.h
+- path: stack/framework
+  file_list:
+  - path: slx_zigbee_insecure_debug_key_trace.h
+  - path: packet-header.h
+  - path: zigbee-packet-header.h
+  - path: debug.h
+  - path: debug-message-type-gen.h
+  - path: debug-gen.h
+  - path: sli_zigbee_dynamic_commissioning.h
+  - path: eui64.h
+  - path: zigbee_debug_stack_on_host.h
+- path: stack/zigbee
+  file_list:
+  - path: aps-keys.h
+  - path: aps-retry.h
+  - path: aps-security-policy.h
+  - path: sli_zigbee_zdo_security.h
+  - path: aps-security.h
+  - path: zigbee-device.h
+  - path: trust-center-util.h
+  - path: stack-address-table.h
+  - path: aps-retry.h
+  - path: zigbee-dispatch.h
+  - path: application-support.h
+  - path: sli_zigbee_zdo_dlk_negotiation.h
+  - path: zigbee-dispatch.h
+  - path: application-support.h
+- path: stack/routing/zigbee
+  file_list:
+  - path: zigbee.h
+  - path: child-handling.h
+  - path: association.h
+  - path: network.h
+  - path: beacon-handling.h
+  - path: child.h
+  - path: management.h
+  - path: route-table.h
+  - path: id-assign.h
+  - path: route-error.h
+  - path: sl_zigbee_beacon_tlvs.h
+  - path: leave.h
+  - path: enhanced-beacon-request.h
+- path: stack/routing/neighbor
+  file_list:
+  - path: neighbor.h
+- path: stack/routing/util
+  file_list:
+  - path: retry.h
+  - path: broadcast.h
+- path: stack/security
+  file_list:
+  - path: aps-frame-counter-sync.h
+  - path: aps-keys-transient.h
+  - path: packet-validate.h
+  - path: security.h
+  - path: crypto.h
+  - path: sli_zigbee_dlk_negotiation.h
+- path: stack/mac
+  file_list:
+  - path: mac-info-element-parsing.h
+  - path: lower-mac-multi-phy.h
+  - path: mac-dispatch.h
+  - path: command.h
+  - path: zigbee-upper-mac.h
+  - path: mac.h
+  # app headers
+- path: app/test
+  file_list:
+  - path: pro-compliance.h
+  - path: pro-compliance-configuration.h
+  - path: pro-compliance-printing.h
+  - path: pro-compliance-common.h
+  - path: misc-common.h
+  - path: groups-common.h
+  - path: security-common.h
+  - path: test-profile.h
+  - path: zdo-common.h
+  - path: multiprotocol-sim.h
+  - path: mac-test-commands.h
+- path: app/util/common
+  file_list:
+  - path: common.h
+  - path: internal-common.h
+  - path: library.h
+- path: app/util/counters
+  file_list:
+  - path: counters-ota.h
+  - path: counters-cli.h
+- path: app/util/zigbee-framework
+  file_list:
+  - path: zigbee-device-library.h
+  - path: zigbee-device-common.h
+
+template_contribution:
+- name: component_catalog
+  value: zigbee_pro_compliance
+- name: event_handler
+  value:
+    event: stack_init
+    include: pro-compliance.h
+    handler: pro_compliance_app_rtos_task_init
+  priority: -8997
+  condition:
+  - cmsis_rtos2
+  # START AF Callbacks
+- name: zigbee_af_callback
+  value:
+    callback_type: event_init
+    function_name: sli_zigbee_af_pro_compliance_init_callback
+- name: zigbee_af_callback
+  value:
+    callback_type: init_done
+    function_name: sli_zigbee_af_pro_compliance_init_callback
+- name: zigbee_af_callback
+  value:
+    callback_type: tick
+    function_name: beaconSuppressionTick
+  # END AF Callbacks
+
+  # START Pro-compliance CLI Commands
+- name: cli_group
+  value:
+    name: plugin
+    help: Plugin related commands.
+- name: cli_command
+  value:
+    name: add_child
+    handler: addChildCommand
+    help: Add a child to the child table
+    argument:
+    - help: child short id
+      type: uint16
+    - help: child long id
+      type: hex
+    - help: enumerated 'node type' indicating ZC, ZR, ZED
+      type: uint8
+- name: cli_command
+  value:
+    name: add_endpoint
+    handler: addEndpointToGroupCommand
+    help: Add endpoint to the specified group
+    argument:
+    - type: uint8
+      help: endpoint id
+    - type: uint16
+      help: group id
+- name: cli_command
+  value:
+    name: add_route
+    handler: addRouteCommand
+    help: Add a route to the routing table
+    argument:
+    - help: destination node id
+      type: uint16
+    - help: next hop node id
+      type: uint16
+- name: cli_command
+  value:
+    name: add_transient_key
+    handler: addTransientKeys
+    help: Add a temporary TC Link Key for EUI
+    argument:
+    - help: partner eui64
+      type: hex
+    - help: 16-bytes of key data
+      type: hex
+- name: cli_group
+  value:
+    name: wildcard_za09
+    help: commands related to joining with the 'well-known' link key
+- name: cli_command
+  value:
+    group: wildcard_za09
+    name: open
+    help: adds the well-known key to a wildcard id to the transient link key table and keep it open
+    handler: openWildcardZa09JoinWindow
+- name: cli_command
+  value:
+    group: wildcard_za09
+    name: close
+    help: removes the wildcard za09 key from the transient key table
+    handler: closeWildcardZa09JoinWindow
+- name: cli_command
+  value:
+    name: addr_table
+    handler: addressTableCommand
+    help: Print the address table
+- name: cli_command
+  value:
+    name: ae64p
+    handler: ebrAddEuiandPower
+    help: add eui64 and power in ebr list
+    argument:
+    - help: beacon eui64
+      type: hex
+    - help: beacon power
+      type: int8
+- name: cli_command
+  value:
+    name: allow_joining
+    handler: allowJoiningCommand
+    help: Use short address in the next association response.
+    argument:
+    - help: short address to use in response
+      type: uint16
+- name: cli_command
+  value:
+    name: app_key_timeout
+    handler: applicationKeyTimeoutCommand
+    help: Sets TC link key timeout
+    argument:
+    - help: timeout in minutes
+      type: uint8
+- name: cli_command
+  value:
+    name: associate
+    handler: associateCommand
+    help: Associate to provided parent, PAN ID. Capabilities are used based on node type.
+    argument:
+    - help: short id of parent node
+      type: uint16
+    - help: pan id to join
+      type: uint16
+- name: cli_command
+  value:
+    name: assume_tc_concentrator_type
+    handler: assumeTcConcentratorTypeCommand
+    help: To configure non TC node to assume a concentrator type until it receive MTORR. The stack defaults to assume TC be a low RAM.
+    argument:
+    - help: concentrator type enumeration (see sl_zigbee_assume_trust_center_concentrator_type_t)
+      type: uint8
+- name: cli_command
+  value:
+    name: broadcasts
+    handler: broadcastTableCommand
+    help: Print the broadcast table
+- name: cli_command
+  value:
+    name: buffers
+    handler: freeBuffersCommand
+    help: Print number of free buffers
+- name: cli_command
+  value:
+    name: ccathresh
+    handler: ccaThresh
+    help: set CCA threshold
+    argument:
+    - type: uint8
+  condition:
+  - phy_dual
+- name: cli_command
+  value:
+    name: change_addr
+    handler: changeAddressCommand
+    help: Sends an unsolicited rejoin response to child from parent
+    argument:
+    - help: the 'old' short id of the child
+      type: uint16
+    - help: the 'new' short id for the child to use
+      type: uint16
+- name: cli_command
+  value:
+    name: set_network_security
+    handler: setNetworkSecurity
+    help: sets or clears network security
+    argument:
+    - help: boolean value for 'use_network_security'
+      type: uint8
+- name: cli_command
+  value:
+    name: change_pan
+    handler: changePanCommand
+    help: Sends a command to change PAN ID now
+    argument:
+    - help: new pan id
+      type: uint16
+- name: cli_command
+  value:
+    name: change_tx_mode
+    handler: changeTxMode
+    help: Change the mac TX mode between normal(0), request a grant(1), and complete hold off(2)
+    argument:
+    - type: uint8
+- name: cli_command
+  value:
+    name: check_outgoing_fc
+    handler: checkOutgoingFrameCounter
+    help: Check that the value of the outgoing frame counter variable falls in a given (inclusive) range
+    argument:
+    - help: min expected fc
+      type: uint32
+    - help: max expected fc
+      type: uint32
+- name: cli_command
+  value:
+    name: children
+    handler: childTableCommand
+    help: Print the child table
+- name: cli_command
+  value:
+    name: clear_groups
+    handler: clearGroupsCommand
+    help: Clear all groups
+- name: cli_command
+  value:
+    name: clear_keys
+    handler: clearKeysCommand
+    help: Clear all entries in the key table
+- name: cli_command
+  value:
+    name: clear_routes
+    handler: clearRouteTableCommand
+    help: Clear the routing table
+- name: cli_command
+  value:
+    name: clear_src_routes
+    handler: clearSourceTableCommand
+    help: Clear the source routing table
+- name: cli_command
+  value:
+    name: cnt_req
+    handler: sendCountersRequestCommand
+    help: Request stack counters from remote device
+    argument:
+    - help: target node id
+      type: uint16
+    - help: boolean 'clear counters'
+      type: uint8
+- name: cli_command
+  value:
+    name: commission
+    handler: setCommissionParameters
+    help: Set the commission parameters
+    argument:
+    - help: node type (router if 0, else coordinator)
+      type: uint8
+    - help: network manager id
+      type: uint16
+    - help: network update id
+      type: uint8
+    - help: channel mask (low, 0-15)
+      type: uint16
+    - help: channel mask (high, 16-31)
+      type: uint16
+    - help: preconfigured TC eui
+      type: hex
+- name: cli_command
+  value:
+    name: conc_act
+    handler: concentratorActionCommand
+    help: Execute a concentrator action
+    argument:
+    - type: uint8
+      help: type of action (0 = turn on source route discovery, 1 = turn off source route discovery, 2 = reschedule source route discovery, 3 = note route failure, 4 = note delivery failure)
+- name: cli_command
+  value:
+    name: dc
+    handler: printDcStats
+    help: print duty cycle stats
+  condition:
+  - phy_dual
+- name: cli_command
+  value:
+    name: dctest
+    handler: runDutyCycleTest
+    help: Runs the duty cycle test
+    argument:
+    - help: time accel value
+      type: uint16
+  condition:
+  - phy_dual
+- name: cli_command
+  value:
+    name: del_endpoint
+    handler: removeEndpointFromGroupCommand
+    help: Delete an endpoint from specified group
+    argument:
+    - help: endpoint
+      type: uint8
+    - help: group id
+      type: uint16
+- name: cli_command
+  value:
+    name: del_route
+    handler: deleteRouteCommand
+    help: Delete or deactivate a route in the routing table
+    argument:
+    - type: uint16
+- name: cli_command
+  value:
+    name: delay_polled_pkt_tx_ms
+    handler: delayNextPolledPacketTransmit
+    help: Add delay in milliseconds to transmit next polled packet to a sleepy device.
+    argument:
+    - type: uint8
+- name: cli_command
+  value:
+    name: delete_key
+    handler: deleteKeyCommand
+    help: Delete an entry in the key table
+    argument:
+    - type: hex
+- name: cli_command
+  value:
+    name: discoveries
+    handler: discoveryTableCommand
+    help: Print the discovery table
+- name: cli_command
+  value:
+    name: enable_mtorr_flow_control
+    handler: toggleMtorrFlowControl
+    help: Toggles the MTORR flow control by the stack
+    argument:
+    - type: uint8
+- name: cli_command
+  value:
+    name: enable_rx_print
+    handler: enableRxPrintCommand
+    help: Enable/disable printing RX messages
+    argument:
+    - type: uint8
+- name: cli_command
+  value:
+    name: enable_unknown_ie_ebr
+    handler: enableEnahncedBeaconRequestWithUnknownIEs
+    help: Enable enhanced beacon request with unknown information elements.
+    argument:
+    - type: uint8
+- name: cli_command
+  value:
+    name: erase_binds
+    handler: eraseBindingsCommand
+    help: Remove all local bindings
+- name: cli_command
+  value:
+    name: erase-child
+    handler: eraseChildCommand
+    help: Erase the child at the specificed index
+    argument:
+    - type: uint8
+- name: cli_command
+  value:
+    name: erase-child-table
+    handler: eraseChildTableCommand
+    help: Erase the child table
+- name: cli_command
+  value:
+    name: evict
+    handler: zigbeeEvictCommand
+    help: Kick device out of network, one way or another
+    argument:
+    - type: uint16
+    - type: hex
+    - type: uint8
+- name: cli_command
+  value:
+    name: form
+    handler: formNetworkCommand
+    help: Form a network
+    argument:
+    - type: uint8
+    - type: uint16
+    - type: int8
+- name: cli_command
+  value:
+    name: form_ext
+    handler: formNetworkCommand
+    help: Form a network with extended settings
+    argument:
+    - type: uint8
+    - type: uint16
+    - type: int8
+    - type: hex
+- name: cli_command
+  value:
+    name: frp_be64
+    handler: ebrFindOrRemovePowerByEui64
+    help: find or remove power value by eui64 from ebr list
+    argument:
+    - type: uint8
+    - type: hex
+- name: cli_command
+  value:
+    name: get_count
+    handler: packetCountCommand
+    help: Sends a 'get count' command to destination
+    argument:
+    - type: uint8
+      help: source endpoint
+    - type: uint16
+      help: destination short id
+    - type: uint8
+      help: destination endpoint
+    - type: uint16
+      help: aps send options
+- name: cli_command
+  value:
+    name: get_curr_dc
+    handler: getCurrentDutyCycle
+    help: Get current duty cycle of connected device.
+    argument:
+    - type: uint8
+- name: cli_command
+  value:
+    name: get_curr_nwk_index
+    handler: getCurrentNwkIndexCommand
+    help: Get the current network index
+- name: cli_command
+  value:
+    name: get_dc_limits
+    handler: getDutyCycleLimits
+    help: Get duty cycle limits.
+- name: cli_command
+  value:
+    name: get_dc_state
+    handler: getDutyCycleState
+    help: Get duty cycle state.
+- name: cli_command
+  value:
+    name: get_ext_bmask
+    handler: getExtendedSecurityBitmaskCommand
+    help: Prints the current extended security bitmask
+- name: cli_command
+  value:
+    name: get_security
+    handler: getSecurityCommand
+    help: Prints the current security settings
+- name: cli_command
+  value:
+    name: get_short_id
+    handler: getBindingShortId
+    help: returns short id of node with that index in the binding table
+    argument:
+    - type: uint16
+- name: cli_command
+  value:
+    name: groups
+    handler: displayGroupsCommand
+    help: Display APS groups
+- name: cli_command
+  value:
+    name: hash_key
+    handler: hashKey
+    help: Prints the hashed key for the passed device.
+    argument:
+    - type: hex
+    - type: hex
+  condition:
+  - zigbee_simulation
+- name: cli_command
+  value:
+    name: help
+    handler: helpCommand
+    help: Print the list of commands
+- name: cli_command
+  value:
+    name: ieee_addr_req
+    handler: ieeeAddressRequestCommand
+    help: Sends a unicast/broadcast ZDO ieee address request
+    argument:
+    - type: uint16
+    - type: uint8
+    - type: uint16
+- name: cli_command
+  value:
+    name: ieee_address
+    handler: addressRequestCommand
+    help: Send a ZDO IEEE address request
+    argument:
+    - type: uint16
+    - type: uint8
+- name: cli_command
+  value:
+    name: join
+    handler: joinNetworkCommand
+    help: Join a network as router
+    argument:
+    - type: uint8
+    - type: uint16
+    - type: int8
+- name: cli_command
+  value:
+    name: join_end
+    handler: joinNetworkCommand
+    help: Join a network as RxOnWhenIdle end  device
+    argument:
+    - type: uint8
+    - type: uint16
+    - type: int8
+- name: cli_command
+  value:
+    name: join_list
+    handler: joinListAddCommand
+    help: 'To add: 1, delete: 0, clear: 10, print: 20 with optional arg for {EUI64}.'
+    argument:
+    - type: uint8
+    - type: hexopt
+- name: cli_command
+  value:
+    name: join_method
+    handler: setJoinMethod
+    help: Set the method used for joining
+    argument:
+    - type: uint8
+- name: cli_command
+  value:
+    name: join_quietly
+    handler: joinQuietlyCommand
+    help: Joins a network without association or rejoin
+    argument:
+    - type: uint8
+    - type: int8
+    - type: hex
+    - type: uint16
+    - type: uint8
+    - type: uint16opt
+- name: cli_command
+  value:
+    name: join_sleepy
+    handler: joinNetworkCommand
+    help: Join a network as a sleepy end device
+    argument:
+    - type: uint8
+    - type: uint16
+    - type: int8
+- name: cli_command
+  value:
+    name: joinlistrequest
+    handler: joinListRequestCommand
+    help: send a request
+    argument:
+    - type: uint8
+- name: cli_command
+  value:
+    name: key_switch
+    handler: keySwitchCommand
+    help: Sends a network broadcast to switch to the new key
+- name: cli_command
+  value:
+    name: key_update
+    handler: keyUpdateCommand
+    help: Sets the Alt NWK key and sends that out to the specified target
+    argument:
+    - type: uint16
+    - type: hex
+- name: cli_command
+  value:
+    name: keys
+    handler: keysCommand
+    help: Print the key table
+    argument:
+    - type: stringopt
+- name: cli_command
+  value:
+    name: leave
+    handler: leaveNetworkCommand
+    help: Tell local node to Leave the network
+- name: cli_command
+  value:
+    name: leave_with_options
+    handler: leaveWithOptionsNetworkCommand
+    help: Tell local node to Leave the network with options
+    argument:
+    - type: uint8
+- name: cli_command
+  value:
+    name: libs
+    handler: printAllLibraryStatus
+    help: Prints the status of all Ember stack libraries
+  unless:
+  - zigbee_core_cli
+- name: cli_command
+  value:
+    name: link_key
+    handler: linkKeyCommand
+    help: Set a link key entry in the table
+    argument:
+    - type: hex
+      help: partner EUI64
+    - type: hex
+      help: key data
+- name: cli_command
+  value:
+    name: lpde
+    handler: lpdEventCommand
+    help: set lpd event time
+    argument:
+    - type: uint16
+  condition:
+  - phy_dual
+- name: cli_command
+  value:
+    name: mac_cert_mode
+    handler: enableMacCertficationTestMode
+    help: 'Enable 802.15.4 mac certification test mode, 1 : enable 0: disable. It is not persistent across reboots.'
+    argument:
+    - type: uint8
+- name: cli_command
+  value:
+    name: make_end_device_sleepy
+    handler: makeEndDeviceSleepy
+    help: Toggles an end device between sleepy and always-on. 0 makes it sleepy, 1 makes it always on
+    argument:
+    - type: uint8
+- name: cli_command
+  value:
+    name: many_to_one
+    handler: manyToOneCommand
+    help: Send a many-to-one route request
+    argument:
+    - type: uint8
+      help: boolean indicating is_high_ram_concentrator
+    - type: uint8
+      help: request radius
+- name: cli_command
+  value:
+    name: match_desc
+    handler: sendMatchRequestCommand
+    help: Send a Match Descriptor Request
+    argument:
+    - type: uint16
+      help: target short id
+    - type: uint16
+      help: profile id
+    - type: hex
+      help: supported incoming cluster list
+    - type: hex
+      help: supported outgoing cluster list
+    - type: uint16opt
+      help: aps options
+- name: cli_command
+  value:
+    name: modify_network_timeout_internal
+    handler: modifyNetworkTimeoutInternally
+    help: modify timeout request internally
+    argument:
+    - type: uint16
+    - type: uint8
+    - type: uint8
+- name: cli_command
+  value:
+    name: msg_buffer
+    handler: msgCommand
+    help: Sends a Msg buffer test request
+    argument:
+    - type: uint8
+      help: length of data being requested
+    - type: uint8
+      help: source endpoint
+    - type: uint16
+      help: destination short id
+    - type: uint8
+      help: destination endpoint
+    - type: uint16
+      help: aps send options
+- name: cli_command
+  value:
+    name: msg_buffer_ext
+    handler: msgCommandPayload
+    help: Send a Msg Buffer Test Request with an additional payload
+    argument:
+    - type: uint8
+      help: length of data being requested. also indicates the amount of data being sent
+    - type: uint8
+      help: source endpoint
+    - type: uint16
+      help: destination short id
+    - type: uint8
+      help: destination endpoint
+    - type: uint16
+      help: aps send options
+- name: cli_command
+  value:
+    name: msg_freeform
+    handler: msgCommand
+    help: Sends a Freeform MSG request
+    argument:
+    - type: uint8
+    - type: uint8
+    - type: uint16
+    - type: uint8
+    - type: uint16
+- name: cli_command
+  value:
+    name: msg_group
+    handler: msgCommand
+    help: Sends a Msg Buffer Test Group request
+    argument:
+    - type: uint8
+      help: length of data being requested. also indicates the amount of data being sent
+    - type: uint8
+      help: source endpoint
+    - type: uint16
+      help: destination short id
+    - type: uint8
+      help: destination endpoint
+    - type: uint16
+      help: aps send options
+    - type: uint16
+      help: optional group destination (default 0xFFFD), see msg_group
+- name: cli_command
+  value:
+    name: multi_start
+    handler: multiPhyStartCommand
+    help: Start second phy
+    argument:
+    - type: uint8
+    - type: uint8
+    - type: int8
+    - type: uint8opt
+  condition:
+  - zigbee_phy_2_4_subghz_switch_coordinator
+- name: cli_command
+  value:
+    name: multi_stop
+    handler: multiPhyStopCommand
+    help: Stop multi phy interface
+    argument:
+    - type: uint8opt
+  condition:
+  - zigbee_phy_2_4_subghz_switch_coordinator
+- name: cli_command
+  value:
+    name: neighbors
+    handler: neighborTableCommand
+    help: Print the neighbor table
+- name: cli_command
+  value:
+    name: node_desc
+    handler: sendNodeDescriptorRequest
+    help: Send a ZDO node descriptor request
+    argument:
+    - type: uint16
+    - type: uint16
+- name: cli_command
+  value:
+    name: node_rebooted
+    handler: printNodeRebootFlag
+    help: Prints 'nodeRebootFlag'
+- name: cli_command
+  value:
+    name: nodeid
+    handler: nodeIdCommand
+    help: Print the current node ID
+- name: cli_command
+  value:
+    name: non_encr_update_device
+    handler: acceptOnlyNonEncryptedUpdateDeviceCommand
+    help: Enables/disables the accepting of non-encrypted update device commands
+    argument:
+    - type: uint8
+- name: cli_command
+  value:
+    name: note_incoming
+    handler: noteIncomingCommand
+    help: Enable/disable note incoming
+    argument:
+    - type: uint8
+- name: cli_command
+  value:
+    name: nwk_address
+    handler: addressRequestCommand
+    help: Send a ZDO NWK address request
+    argument:
+    - type: hex
+    - type: uint8
+- name: cli_command
+  value:
+    name: nwk_init
+    handler: nwkInitCommand
+    help: Call sl_zigbee_network_init() with a passed value.
+    argument:
+    - type: uint16
+- name: cli_command
+  value:
+    name: nwk_tokens
+    handler: setNetworkTokensCommand
+    help: Sets the local NWK tokens
+    argument:
+    - type: uint8
+    - type: uint8
+    - type: uint8
+    - type: int8
+    - type: uint16
+    - type: uint16
+    - type: hex
+- name: cli_command
+  value:
+    name: nwk_update
+    handler: nwkUpdateCommand
+    help: Send a NWK update request
+    argument:
+    - type: uint16
+      help: target short id
+    - type: uint16
+      help: scan channels bitmask (lo bits)
+    - type: uint16
+      help: scan channel bitmask (hi bits)
+    - type: uint8
+      help: scan duration
+    - type: uint16
+      help: scan count or nwk manager address
+- name: cli_command
+  value:
+    name: option_bind_set
+    handler: optionBindingTableSetCommandZCP
+    help: sets binding locally
+    argument:
+    - type: uint8
+    - type: uint16
+    - type: uint8
+    - type: uint8
+    - type: hex
+- name: cli_command
+  value:
+    name: packet_validate
+    handler: packetValidateCommand
+    help: Enables/disables the packet validate library
+    argument:
+    - type: uint8
+- name: cli_command
+  value:
+    name: pan_conflict
+    handler: panConflictCommand
+    help: Sends an artificial PAN ID conflict to NWK Manager
+- name: cli_command
+  value:
+    name: parent
+    handler: parentInfoCommand
+    help: Print info about a child's parent
+- name: cli_command
+  value:
+    name: write_parent_token
+    handler: writeParentToken
+    help: Sets parent token to enable join quietly
+    argument:
+    - type: uint16
+    - type: hex
+- name: cli_command
+  value:
+    name: pebr_list
+    handler: printEbrPowerAndEuiList
+    help: Print enhance-beacon-request list contain eui64 and power
+- name: cli_command
+  value:
+    name: permit_joins
+    handler: permitJoiningCommand
+    help: Change the MAC permit join flag
+    argument:
+    - type: uint8
+- name: cli_command
+  value:
+    name: poll
+    handler: pollCommand
+    help: Set MAC data polling interval
+    argument:
+    - type: uint32
+- name: cli_command
+  value:
+    name: poll_all_once
+    handler: pollAllNetworksOnceCommand
+    help: The node polls once the parent on every network it is a sleepy
+- name: cli_command
+  value:
+    name: poll_long_once
+    handler: pollLongOnceCommand
+    help: Send data request to parent using its long address
+    argument:
+    - type: hexopt
+- name: cli_command
+  value:
+    name: poll_once
+    handler: pollOnceCommand
+    help: The end device polls the parent once
+- name: cli_command
+  value:
+    name: print_binds
+    handler: printBindingsCommand
+    help: Print binding table
+- name: cli_command
+  value:
+    name: print_ext_pan
+    handler: printExtPanIdCommand
+    help: Prints extended PAN ID
+- name: cli_command
+  value:
+    name: print_link_power
+    handler: printLinkPowerByNodeId
+    help: Print link power by provided short id
+    argument:
+    - type: uint16
+  condition:
+  - phy_dual
+- name: cli_command
+  value:
+    name: print_total_mtorrs_received
+    handler: printMtorrReceived
+    help: prints total MTORR's received
+- name: cli_command
+  value:
+    name: purge_mac_queue
+    handler: purgeMacQueueCommand
+    help: Removes the packets enqued in the indirect queue.
+- name: cli_command
+  value:
+    name: radio_params
+    handler: getRadioParameters
+    help: Print the radio parameters
+    argument:
+    - type: uint8opt
+- name: cli_command
+  value:
+    name: radio_sleep
+    handler: radioCommand
+    help: Put the radio to sleep
+- name: cli_command
+  value:
+    name: radio_wakeup
+    handler: radioCommand
+    help: Wake up the radio
+- name: cli_command
+  value:
+    name: reboot
+    handler: rebootCommand
+    help: Reboot the node
+- name: cli_command
+  value:
+    name: rejoin
+    handler: rejoinCommand
+    help: Execute a rejoin operation
+    argument:
+    - type: uint8
+      help: bool secure rejoin
+    - type: uint32
+      help: scan channels bitmask - 0 indicates current channel
+- name: cli_command
+  value:
+    name: rejoin_diff_device_type
+    handler: rejoinDiffDeviceType
+    help: Rejoin using a new device type
+    argument:
+    - type: uint8
+    - type: uint32
+    - type: uint8
+- name: cli_command
+  value:
+    name: remote_binds
+    handler: remoteBindingsCommand
+    help: Send a request to retrieve bindings of remote device
+    argument:
+    - type: uint16
+- name: cli_command
+  value:
+    name: request_key
+    handler: requestKeyCommand
+    help: Requests a key from the trust center
+    argument:
+    - type: hex
+      help: partner eui
+- name: cli_command
+  value:
+    name: verify_key
+    handler: verifyKeyCommand
+    help: Send a verify key to the partner
+    argument:
+    - type: uint16
+      help: partner short id
+    - type: hex
+      help: partner eui
+- name: cli_command
+  value:
+    name: request_key_option_encrypt
+    handler: requestKeyOptionEncryptCommand
+    help: Requests a key from the trust center with option unencrypted or encrypted
+    argument:
+    - type: hex
+      help: partner eui
+    - type: uint8
+      help: option unencrypted (0) or encrypted (1)
+- name: cli_command
+  value:
+    name: request_last_leave
+    handler: getLastLeaveReasonCommand
+    help: Gets last leave reason
+- name: cli_command
+  value:
+    name: request_policy
+    handler: requestPolicyCommand
+    help: Sets the key request policy on the TC for TC & application link keys
+    argument:
+    - type: uint8
+    - type: uint8
+- name: cli_command
+  value:
+    name: reset_count
+    handler: packetCountCommand
+    help: Sends a 'reset count' command to destination
+    argument:
+    - type: uint8
+    - type: uint16
+    - type: uint8
+    - type: uint16
+- name: cli_command
+  value:
+    name: reset_fc
+    handler: resetFrameCounterCommand
+    help: Reset local APS/NWK frame counters for inducing replay attacks
+    argument:
+    - type: uint8
+- name: cli_command
+  value:
+    name: reset_reboot_flag
+    handler: resetNodeRebootFlag
+    help: Clears 'nodeRebootFlag'
+- name: cli_command
+  value:
+    name: rm_neighbor
+    handler: reomveNeighborByNodeIdCommand
+    help: Remove neighbor by node Id
+    argument:
+    - type: uint16
+- name: cli_command
+  value:
+    name: route_error
+    handler: routeErrorCommand
+    help: Sends an arbitrary route error to the designated device.
+    argument:
+    - type: uint8
+      help: error code
+    - type: uint16
+      help: destination short id
+    - type: uint16
+      help: target node id
+    - type: hexopt
+      help: optional payload (encoded as tlvs)
+- name: cli_command
+  value:
+    name: routes
+    handler: routeTableCommand
+    help: Print the routing table
+- name: cli_command
+  value:
+    name: rx_encr_update_device
+    handler: acceptOnlyEncryptedUpdateDeviceCommand
+    help: Enables/disables the accepting of encrypted update device commands only
+    argument:
+    - type: uint8
+- name: cli_command
+  value:
+    name: rx_non_encr_update_device
+    handler: acceptOnlyNonEncryptedUpdateDeviceCommand
+    help: Enables/disables the accepting of non-encrypted update device commands only
+    argument:
+    - type: uint8
+- name: cli_command
+  value:
+    name: save_security
+    handler: writeSecurityToken
+    help: Save current security configurations into token
+- name: cli_command
+  value:
+    name: scan
+    handler: scanCommand
+    help: Starts an active scan
+    argument:
+      # TODO: we should make this as an optional argument,
+      # but UC doesn't support multiple optional arguments now (MCUDT-24611).
+    - type: uint8
+    - type: uint32opt
+- name: cli_command
+  value:
+    name: scan-active
+    handler: performScanning
+    help: Perform active scan on provided channel mask and duration.
+    argument:
+    - type: uint32
+    - type: uint8
+- name: cli_command
+  value:
+    name: scan-energy
+    handler: performScanning
+    help: Perform energy scan on provided channel mask and duration.
+    argument:
+    - type: uint32
+    - type: uint8
+- name: cli_command
+  value:
+    name: scan-orphan
+    handler: performScanning
+    help: Perform orphan scan on provided channel mask and duration.
+    argument:
+    - type: uint32
+    - type: uint8
+- name: cli_command
+  value:
+    name: send_beacons
+    handler: allowBeaconsCommand
+    help: Toggle beacon transmission
+    argument:
+    - type: uint8
+- name: cli_command
+  value:
+    name: send_bind
+    handler: sendBindUnbindCommand
+    help: Sends a ZDO bind command to target
+    argument:
+    - type: uint16
+      help: target short id
+    - type: hex
+      help: binding source EUI64
+    - type: uint8
+      help: binding source endpoint
+    - type: hex
+      help: binding destination EUI64
+    - type: uint16
+      help: binding destination endpoint
+    - type: uint16
+      help: binding cluster id
+    - type: uint8opt
+      help: optional use aps encryption
+- name: cli_command
+  value:
+    name: send_device_announce
+    handler: sendDeviceAnnounce
+    help: Sends a device announce with shortId and EUI
+    argument:
+    - type: uint16
+    - type: hex
+    - type: hex
+    - type: uint8
+- name: cli_command
+  value:
+    name: send_g_bind
+    handler: sendBindUnbindCommand
+    help: Sends a ZDO binding command for a group address
+    argument:
+    - type: uint16
+      help: target short id
+    - type: hex
+      help: binding source EUI64
+    - type: uint8
+      help: binding source endpoint
+    - type: hex
+      help: binding destination EUI64
+    - type: uint16
+      help: binding group address
+    - type: uint16
+      help: binding cluster id
+    - type: uint8opt
+      help: optional use aps encryption
+- name: cli_command
+  value:
+    name: send_g_unbi
+    handler: sendBindUnbindCommand
+    help: Sends a ZDO UN-binding command for a group address
+    argument:
+    - type: uint16
+      help: target short id
+    - type: hex
+      help: binding source EUI64
+    - type: uint8
+      help: binding source endpoint
+    - type: hex
+      help: binding destination EUI64
+    - type: uint16
+      help: binding group address
+    - type: uint16
+      help: binding cluster id
+    - type: uint8opt
+      help: optional use aps encryption
+- name: cli_command
+  value:
+    name: send_key
+    handler: sendKeyCommand
+    help: Sends an updated link key to the target node
+    argument:
+    - type: hex
+    - type: hex
+- name: cli_command
+  value:
+    name: send_leave
+    handler: sendLeaveRequestCommand
+    help: Send a NWK Leave request command to destination
+    argument:
+    - type: uint16
+    - type: hex
+- name: cli_command
+  value:
+    name: send_mac
+    handler: sendMacCommand
+    help: Transmit the given packet
+    argument:
+    - type: hex
+- name: cli_command
+  value:
+    name: send_multicast_hello
+    handler: sendMulticastHello
+    help: sends a multicast hello message
+- name: cli_command
+  value:
+    name: send_network_timeout_request
+    handler: sendNetworkTimeoutRequest
+    help: sends timeout request
+    argument:
+    - type: uint8
+- name: cli_command
+  value:
+    name: send_nwk_command
+    handler: sendNetworkCommand
+    help: Sends a NWK command frame to destination with optional payload
+    argument:
+    - type: uint8
+      help: network command id
+    - type: uint16
+      help: destination short id
+    - type: hexopt
+      help: (optional) payload bytes
+- name: cli_command
+  value:
+    name: send_options
+    handler: setSendOptionsCommand
+    help: Change default sending options
+    argument:
+    - type: uint8
+- name: cli_command
+  value:
+    name: send_packet
+    handler: sendPacketCommand
+    help: Sends a packet to destination
+    argument:
+    - type: uint8
+    - type: uint8
+    - type: uint8
+    - type: uint16
+    - type: uint16
+- name: cli_command
+  value:
+    name: send_packets
+    handler: sendPacketsCommand
+    help: Sends continuous packets to destination
+    argument:
+    - type: uint8
+      help: packet length
+    - type: uint16
+      help: total packet count
+    - type: uint16
+      help: packet interval (in ms?)
+    - type: uint8
+      help: max in flight packets
+    - type: uint8
+      help: source endpoint
+    - type: uint16
+      help: destination short address
+    - type: uint8
+      help: destination endpoint
+    - type: uint16
+      help: aps send options
+- name: cli_command
+  value:
+    name: set_passive_ack_config
+    handler: setPassiveAckConfig
+    help: Sets the broadcast table threshold for new broadcasts
+    argument:
+    - type: uint8
+    - type: uint8
+    condition:
+    - zigbee_simulation
+- name: cli_command
+  value:
+    name: send_parent_announce
+    handler: sendParentAnnounce
+    help: Send parent announce from provided child index
+    argument:
+    - type: uint8
+  condition:
+  - zigbee_pro_stack
+- name: cli_command
+  value:
+    name: send_permit_join_request
+    handler: sendPermitJoinRequest
+    help: Sends a permit join request to the short address requested
+    argument:
+    - type: uint16
+      help: destination short id
+- name: cli_command
+  value:
+    name: send_rand
+    handler: sendRandomPacketCommand
+    help: Sends a random packet with length
+    argument:
+    - type: uint8
+- name: cli_command
+  value:
+    name: send_raw_packet
+    handler: sendRawPacketCommand
+    help: Sends a RAW packet to the MAC layer for transmission
+    argument:
+    - type: hex
+- name: cli_command
+  value:
+    name: send_raw_packet_with_tag
+    handler: sendRawPacketCommandWithTag
+    help: Sends a RAW packet to the MAC layer for transmission with message tag is passed by the customer
+    argument:
+    - type: hex
+      help: raw packet
+    - type: uint8
+      help: messageTag passed by client must be greater than 0
+- name: cli_command
+  value:
+    name: send_remove
+    handler: sendRemoveDeviceCommand
+    help: Sends a remove device command to the target node
+    argument:
+    - type: uint16
+    - type: hex
+    - type: hex
+    - type: uint8
+- name: cli_command
+  value:
+    name: send_unbind
+    handler: sendBindUnbindCommand
+    help: Sends a ZDO UN-bind command to target
+    argument:
+    - type: uint16
+      help: target short id
+    - type: hex
+      help: binding source EUI64
+    - type: uint8
+      help: binding source endpoint
+    - type: hex
+      help: binding destination EUI64
+    - type: uint16
+      help: binding destination endpoint
+    - type: uint16
+      help: binding cluster id
+    - type: uint8opt
+      help: optional use aps encryption
+- name: cli_command
+  value:
+    name: send_update_device
+    handler: sendUpdateDeviceCommand
+    help: Sends an APS Update Device to the TC
+    argument:
+    - type: uint16
+    - type: hex
+    - type: uint8
+    - type: uint8
+- name: cli_command
+  value:
+    name: send_v_bind
+    handler: sendViaBind
+    help: Send to all recipients in binding table that match request
+    argument:
+    - type: uint8
+    - type: uint16
+    - type: uint8
+- name: cli_command
+  value:
+    name: ser_req
+    handler: serverRequestCommand
+    help: Send a ZDO System server Discovery Request
+    argument:
+    - type: uint16
+    - type: uint16
+- name: cli_command
+  value:
+    name: set_addr
+    handler: setAddressCommand
+    help: Sets the local node's short address.  Used to inject address conflicts
+    argument:
+    - type: uint16
+    - type: uint8
+- name: cli_command
+  value:
+    name: send_network_status_addr_conflict
+    handler: sendNetworkStatusAddressConflict
+    help: Used to inject address conflicts
+    argument:
+    - type: uint16
+      help: destination
+    - type: uint16
+      help: address to conflict
+- name: cli_command
+  value:
+    name: set_allow_rejoins
+    handler: setAllowRejoins
+    help: Set the Trust Center policy for allowRejoins
+    argument:
+    - type: uint8
+- name: cli_command
+  value:
+    name: set_beacon
+    handler: setBeaconCommand
+    help: Send beacon with provided payload
+    argument:
+    - type: hex
+- name: cli_command
+  value:
+    name: set_chan_power
+    handler: setChannelCommand
+    help: Set channel and Power
+    argument:
+    - type: uint8
+      help: channel
+    - type: int8opt
+      help: power
+- name: cli_command
+  value:
+    name: set_channel
+    handler: setChannelCommand
+    help: Set channel
+    argument:
+    - type: uint8
+- name: cli_command
+  value:
+    name: set_core_printing
+    handler: setCorePrintingEnable
+    help: Sets whether core printing statements will be displayed
+    argument:
+    - type: uint8
+- name: cli_command
+  value:
+    name: set_dc_limits
+    handler: setDutyCycleLimitsInStack
+    help: Set duty cycle limits in stack.
+    argument:
+    - type: uint16
+    - type: uint16
+    - type: uint16
+- name: cli_command
+  value:
+    name: set_silent_end_device_timeout
+    handler: setSilentEndDeviceTiemout
+    help: sets end device timeout values but does not send the timeout request over the air
+    argument:
+    - type: uint8
+      help: end device timeout values
+    - type: uint8
+      help: end device timeout shift
+    - type: uint8
+      help: end device configuration
+- name: cli_command
+  value:
+    name: set_end_device_timeout
+    handler: setEndDeviceTimeout
+    help: sets end device timeout values
+    argument:
+    - type: uint8
+      help: end device timeout values
+    - type: uint8
+      help: end device timeout shift
+    - type: uint8
+      help: end device configuration
+- name: cli_command
+  value:
+    name: set_eui
+    handler: setEui64
+    help: Sets local EUI64 (not persistent)
+    argument:
+    - type: hex
+- name: cli_command
+  value:
+    name: set_ext_bmask
+    handler: setExtendedSecurityBitmaskCommand
+    help: Sets the extended security bitmask
+    argument:
+    - type: uint16
+- name: cli_command
+  value:
+    name: set_ext_pan
+    handler: setExtPanIdCommand
+    help: Set extended PAN ID for forming/joining
+    argument:
+    - type: hex
+- name: cli_command
+  value:
+    name: set_fc
+    handler: setFrameCounterCommand
+    help: Set the frameCounter value
+    argument:
+    - type: uint32
+- name: cli_command
+  value:
+    name: set_fragment
+    handler: setFragmentsCommand
+    help: Sets fragmentation parameters
+    argument:
+    - type: uint8
+      help: max total message length
+    - type: uint8
+      help: window size (NOTE in most cases will be 1)
+    - type: uint8
+      help: fragment tx delay in milliseconds
+    - type: uint8
+      help: missed blocks - controls testing specific behavior. a bitmask where fragments corresponding to each bit is dropped (e.g. BIT(0) is the first fragment of the message, etc...)
+    - type: uint8
+      help: max fragment length (NOTE use 255 or 0xff to disable fragmentation)
+- name: cli_command
+  value:
+    name: set_ids
+    handler: setIdsCommand
+    help: Set the short address and the PAN ID. If short address is 0xFFFE then device chooses to send beacon with extended src addressing mode in response to beacon request. Also optional provision to use either custom/no beacon payload or zigbee beacon payload, default is custom/no beacon payload.
+    argument:
+    - type: uint16
+    - type: uint16
+    - type: uint8opt
+- name: cli_command
+  value:
+    name: set_keep_alive_support
+    handler: setKeepAliveSupport
+    help: sets keeps alive mechanism
+    argument:
+    - type: uint8
+- name: cli_command
+  value:
+    name: set_mac_retries
+    handler: setMacRetriesCommand
+    help: The maximum number of times the mac will attempt retransmission of an unacknowledged packet.
+    argument:
+    - type: uint8
+      help: max retries
+- name: cli_command
+  value:
+    name: set_network
+    handler: setNetworkCommand
+    help: Set the network index
+    argument:
+    - type: uint8
+- name: cli_command
+  value:
+    name: set_new_broadcast_entry_threshold
+    handler: setNewBroadcastEntryThreshold
+    help: Sets the broadcast table threshold for new broadcasts
+    argument:
+    - type: uint8
+- name: cli_command
+  value:
+    name: set_node_id
+    handler: setIdsCommand
+    help: Set the node id
+    argument:
+    - type: uint16
+- name: cli_command
+  value:
+    name: set_node_type
+    handler: setNodeTypeCommand
+    help: 'Set Node type, 1 : Coordinator 2: Router 3: End device 4: Sleepy End device.'
+    argument:
+    - type: uint8
+- name: cli_command
+  value:
+    name: set_pan_at_capacity
+    handler: setPanAtCapacityCommand
+    help: It sets the stack so that it responds to an association request with an association response with status = 0x01 = 'pan at capacity'.
+- name: cli_command
+  value:
+    name: set_pan_id
+    handler: setIdsCommand
+    help: Set the pan id
+    argument:
+    - type: uint16
+- name: cli_command
+  value:
+    name: set_parent_id
+    handler: setParentIdCommand
+    help: Set the parent id
+    argument:
+    - type: uint16
+- name: cli_command
+  value:
+    name: set_pending_channel
+    handler: setPendingNetworkUpdateChannel
+    help: Set pending channel to change to
+    argument:
+    - type: uint8
+- name: cli_command
+  value:
+    name: set_pending_panId
+    handler: setPendingNetworkUpdatePanId
+    help: Set pending network panId to change to
+    argument:
+    - type: uint16
+- name: cli_command
+  value:
+    name: set_profile
+    handler: setProfileIdCommand
+    help: Set the profile ID for initiated Test Profile messages.
+    argument:
+    - type: uint16
+- name: cli_command
+  value:
+    name: set_radius
+    handler: setRadiusCommand
+    help: Sets default broadcast radius
+    argument:
+    - type: uint8
+- name: cli_command
+  value:
+    name: set_route_record_policy
+    handler: routeRecordPolicyCommand
+    help: Set the route record policy
+    argument:
+    - type: uint8
+- name: cli_command
+  value:
+    name: set_security
+    handler: setSecurityCommand
+    help: Set the security parameters
+    argument:
+    - type: uint32
+      help: security settings bitmask (see sl_zigbee_initial_security_bitmask_t)
+    - type: hex
+      help: preconfigured key setting
+    - type: hex
+      help: network key setting
+    - type: uint8
+      help: network sequence number
+- name: cli_command
+  value:
+    name: show_src_routes
+    handler: showSourceRouteTableCommand
+    help: Show the source routing table
+  condition:
+  - zigbee_multi_network
+- name: cli_command
+  value:
+    name: simple_desc
+    handler: sendSimpleRequestCommand
+    help: Send a ZDO simple descriptor request
+    argument:
+    - type: uint16
+    - type: uint8
+- name: cli_command
+  value:
+    name: sleep_ok
+    handler: sleepOkCommand
+    help: Prints the bitmask indicating whether local device is allowed to sleep
+  condition:
+  - zigbee_simulation
+- name: cli_command
+  value:
+    name: slpd
+    handler: sendLPD
+    help: send link power delta
+    argument:
+    - type: uint8
+    - type: uint16
+    - type: uint8
+  condition:
+  - phy_dual
+- name: cli_command
+  value:
+    name: send_malformed_lpd
+    handler: sendMalformedLPD
+    help: send malformed link power delta
+    argument:
+    - type: uint16
+  condition:
+  - phy_dual
+- name: cli_command
+  value:
+    name: sniff
+    handler: sniffCommand
+    help: Turn on/off Sniffing (no address matching)
+    argument:
+    - type: uint8
+- name: cli_command
+  value:
+    name: spoofed_broadcast_msg_buffer
+    handler: spoofedBroadcastMsgCommand
+    help: spoofed broadcast
+    argument:
+    - type: uint8
+    - type: uint16
+    - type: uint8
+    - type: uint16
+    - type: uint8
+    - type: uint16
+    - type: uint8
+- name: cli_command
+  value:
+    name: stack_status
+    handler: printStackStatusCommand
+    help: Prints the current stack status
+- name: cli_command
+  value:
+    name: state
+    handler: stateCommand
+    help: Print the node's current state
+- name: cli_command
+  value:
+    name: stats
+    handler: statsCommand
+    help: Print debug stats
+- name: cli_command
+  value:
+    name: status
+    handler: statusCommandZCP
+    help: Print the node's current status
+- name: cli_command
+  value:
+    name: tc_policy
+    handler: setTrustCenterPolicyCommand
+    help: Set Trust Center Join Policy
+    argument:
+    - type: uint8
+- name: cli_command
+  value:
+    name: token_writing
+    handler: tokenWritingCommand
+    help: Turns on/off writing of NWK parameters to tokens
+    argument:
+    - type: uint8
+- name: cli_command
+  value:
+    name: tx_non_encr_update_device
+    handler: sendOnlyNonEncryptedUpdateDeviceCommand
+    help: Enables/disables the sending of non-encrypted update device commands only
+    argument:
+    - type: uint8
+- name: cli_command
+  value:
+    name: update_link_key
+    handler: updateLinkKey
+    help: Update the link key after joining
+- name: cli_command
+  value:
+    name: use_legacy_timeout_method
+    handler: useLegacyEndDeviceTimeoutMethod
+    help: Use legacy timeout method i.e. end device does not send network/keepalive timeout request
+    argument:
+    - type: uint8
+- name: cli_command
+  value:
+    name: use_negotiated_power
+    handler: makeUseofNegotiatedPower
+    help: Sets the flag to use either negotiated power by link power delta or fixed power value provided by user while forming/joining a network for packet transmissions on subghz interface.
+    argument:
+    - type: uint8
+  condition:
+  - phy_dual
+- name: cli_command
+  value:
+    name: version
+    handler: versionCommandZCP
+    help: Displays the running software version
+  unless:
+  - zigbee_core_cli
+- name: cli_command
+  value:
+    name: zdo_leave_req
+    handler: sendZdoLeaveRequest
+    help: Send a ZDO leave request
+    argument:
+    - type: uint16
+      help: target short id
+    - type: hex
+      help: target long id
+    - type: uint8
+      help: leave request flags
+    - type: uint16
+      help: aps send options
+- name: cli_command
+  value:
+    name: zdo_mgmt_lqi
+    handler: zdoMgmtLqiCommandZCP
+    help: Send a ZDO MGMT-LQI Request
+    argument:
+    - type: uint16
+      help: target short id
+    - type: uint8
+      help: lqi table index
+- name: cli_command
+  value:
+    name: zdo_request
+    handler: zdoRequestCommand
+    help: Send arbitrary ZDO request command
+    argument:
+    - type: uint16
+      help: request cluster id
+    - type: uint16
+      help: target device short id
+    - type: hexopt
+      help: optional payload bytes
+- name: cli_command
+  value:
+    name: zleave
+    handler: zigbeeLeaveCommand
+    help: Tell specified node to leave network
+    argument:
+    - type: uint8
+
+  # Commands for Crypto
+- name: cli_group
+  value:
+    name: crypto
+    help: Crypto related commands
+- name: cli_command
+  value:
+    name: enable
+    group: crypto
+    handler: enableCryptoTimingCommand
+    help: Enables crypto timing
+    argument:
+    - type: uint8
+- name: cli_command
+  value:
+    name: print-rx
+    group: crypto
+    handler: printCryptoTimingCommand
+    help: Prints the recorded crypto timing results for RX packets
+- name: cli_command
+  value:
+    name: print-tx
+    group: crypto
+    handler: printCryptoTimingCommand
+    help: Prints the recorded crypto timing results for TX packets
+- name: cli_command
+  value:
+    name: reset
+    group: crypto
+    handler: resetCryptoTimingCommand
+    help: Resets the crypto timing results
+- name: cli_command
+  value:
+    name: alias_send
+    handler: sendAliasMsg
+    help: Sends multicast frame to groupid 0xFABE with alias nwk address. argument 1 is sequence number, argument 2 is alias address
+    argument:
+    - type: uint8
+    - type: uint16
+- name: cli_command
+  value:
+    name: factory
+    handler: factoryResetCommand
+    help: Performs a factory reset
+- name: cli_command
+  value:
+    name: set_tx_power
+    handler: set_tx_power
+    help: Set absolute Tx power
+    argument:
+    - type: int8
+      help: absolute tx power
+- name: cli_command
+  value:
+    name: set_relative_tx_power
+    handler: set_relative_tx_power
+    help: Set relative Tx power
+    argument:
+    - type: int8
+      help: relative tx power
+- name: cli_command
+  value:
+    name: set_nwk_retries
+    handler: setNwkRetriesCommand
+    help: the maximum number of additional nwk retries
+    argument:
+    - type: uint8
+      help: the number of times a message will be retried at the network layer
+- name: cli_command
+  value:
+    name: set_data_poll_additional_retries
+    handler: setDataPollAdditionalRetries
+    help: the maximum number of additional data poll retries
+    argument:
+    - type: uint8
+      help: number of times a data poll will be retried
+- name: cli_command
+  value:
+    name: set_child_table_size
+    handler: setChildTableSize
+    help: Sets child table size
+    argument:
+    - type: uint8
+      help: sets child table size
+  condition:
+  - zigbee_pro_stack
+- name: cli_command
+  value:
+    name: send_aps_ack
+    handler: sendApsAckCommand
+    help: send an aps ack manually
+    argument:
+    - type: uint16
+      help: profile Id
+    - type: uint16
+      help: cluster Id
+    - type: uint8
+      help: source endpoint
+    - type: uint8
+      help: destination endpoint
+    - type: uint8
+      help: aps option
+    - type: uint16
+      help: destination
+    - type: uint8opt
+      help: sequence number
+- name: cli_command
+  value:
+    name: switch_context
+    handler: switchContextHandler
+    help: switch context between ZCP and BDB.
+    argument:
+    - type: uint8
+      help: 1 for ZCP, and 0 for BDB
+  condition:
+  - zigbee_system_common_app_framework
+- name: cli_command
+  value:
+    name: use_forced_association
+    handler: setForceAssociationHandler
+    help: Always use 802.15.4 MAC Association Requests when joining, even if the device being joined to supports Zigbee Network Commissioning.
+  condition:
+  - zigbee_system_common_app_framework
+- name: cli_command
+  value:
+    name: ignore_aps_ack_req
+    handler: ignoreApsAckReqCommand
+    help: Disable requesting APS ACKs in outgoing frames
+    argument:
+    - type: uint8
+      help: 1 - disable APS acknowledgement in outgoing frames, 0 - use default from higher layer
+  # END Pro-compliance CLI Commands
+metadata:
+  sbom:
+    license: MSLA
+root_path: zigbee

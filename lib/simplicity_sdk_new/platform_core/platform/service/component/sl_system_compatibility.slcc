@@ -1,0 +1,46 @@
+id: sl_system_compatibility
+label: System Setup Compatibility Layer (Baremetal Only)
+package: platform_core
+category: Services|System Setup
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: platform_core/platform/service/sl_main/sl_system_compatibility
+source:
+- path: src/sl_system_compatibility.c
+include:
+- path: inc
+  file_list:
+  - path: sl_system_init.h
+  - path: sl_system_process_action.h
+requires:
+- name: sl_main
+- name: custom_main
+provides:
+- name: sl_system_compatibility
+- name: sl_system_implementation
+conflicts:
+- name: kernel
+template_contribution:
+- name: component_catalog
+  value: sl_system_compatibility
+toolchain_settings:
+- option: gcc_linker_option
+  value: -Wl,--wrap=sl_system_init,--wrap=sl_system_process_action
+- option: llvm_linker_option
+  value: -Wl,--wrap=sl_system_init,--wrap=sl_system_process_action
+documentation:
+  docset: gecko-platform
+  document: platform-service/sl-system-compatibility
+description: |-
+  The System Setup Compatibility Layer component provides an aliased version
+  of the sl_system API in order to use System Setup (sl_main) with legacy
+  baremetal applications. What is meant by "legacy baremetal application"
+  is a baremetal application that was initially generated using the
+  System Setup (sl_system) component.
+
+  N.B. This component is intended for existing baremetal applications that 
+       upgrades their GSDK to 2025.6 or greater. 
+       When building a new project, use the System Setup (sl_main) component
+       directly instead.

@@ -1,0 +1,26 @@
+!!omap
+- id: wi_sun_pk6016a
+- label: WI-SUN-PK6016A
+- package: boards
+- description: Kit BSP support for the Wi-SUN FAN US/Japan Pro Kit.
+- category: Platform|Board|Kit|Pro Kit
+- quality: production
+- metadata:
+    sbom:
+      license: Zlib
+- requires:
+  - name: hardware_board_from_wi-sun-pk6016a
+- provides:
+  - name: hardware_kit
+  - name: hardware_kit_pk
+- define:
+  - name: SL_KIT_NAME
+    value: '"WI-SUN-PK6016A"'
+  - name: SL_KIT_REV
+    value: '"A02"'
+- tag:
+  - kit:opn:Wi-SUN-PK6016A
+  - kit:pn:PK6016
+  - kit:variant:A
+  - kit:revision:A02
+- root_path: boards

@@ -1,0 +1,71 @@
+package: zigbee
+description: A component implementing the server-side functionality of the Green Power cluster.
+label: Green Power Server
+quality: production
+id: zigbee_green_power_server
+category: Zigbee|Green Power
+provides:
+- name: zigbee_green_power_server
+requires:
+- name: zigbee_gp
+- name: zigbee_gp_util
+- name: zigbee_green_power_common
+
+config_file:
+- path: app/framework/plugin/green-power-server/config/green-power-server-config.h
+source:
+- path: app/framework/plugin/green-power-server/green-power-server.c
+- path: app/framework/plugin/green-power-server/green-power-server-gpd-cmd-maps.c
+- path: app/framework/plugin/green-power-server/green-power-security.c
+- path: app/framework/plugin/green-power-server/green-power-server-cb.c
+- path: app/framework/plugin/green-power-server/green-power-security-test-vectors.c
+include:
+- path: app/framework/plugin/green-power-server
+  file_list:
+  - path: green-power-server.h
+  - path: green-power-server-tokens.h
+- path: stack/include
+  file_list:
+  - path: gp-sink-table.h
+  # The green power server is capable of a pre-defined default translation and
+  # forwarding of GPDF commands without the support of the translation table
+  # component. This path is needed to ensure the structure definitions are
+  # available in absence of the translation table component.
+- path: app/framework/plugin/green-power-translation-table
+  file_list:
+  - path: green-power-translation-table.h
+template_contribution:
+- name: component_catalog
+  value: zigbee_green_power_server
+- name: cluster_service
+  value:
+    cluster_id: '0x0021'
+    mfg_id: NOT_MFG_SPECIFIC
+    side: SERVER
+    service_function: sl_zigbee_af_green_power_cluster_server_command_parse
+- name: zigbee_af_callback
+  value:
+    callback_type: event_init
+    function_name: sl_zigbee_af_green_power_server_init_cb
+- name: zigbee_af_callback
+  value:
+    callback_type: init_done
+    function_name: sl_zigbee_af_green_power_server_init_cb
+- name: zigbee_af_callback
+  value:
+    callback_type: retrieve_attribute_and_craft_response
+    function_name: sli_zigbee_af_green_power_server_retrieve_attribute_and_craft_response
+- name: zigbee_stack_callback
+  value:
+    callback_type: stack_status
+    function_name: sl_zigbee_af_green_power_server_stack_status_cb
+- name: token_header
+  value: green-power-server-tokens.h
+
+documentation:
+  docset: zigbee
+  document: zigbee-af-api/green-power-server
+metadata:
+  sbom:
+    license: MSLA
+root_path: zigbee

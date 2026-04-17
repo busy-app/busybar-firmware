@@ -1,0 +1,35 @@
+id: zigbee_pro_router_stack_with_high_datarate_phy
+label: Pro Router Stack with high datarate phy
+package: zigbee
+category: Zigbee|Stack|Pro Core
+quality: production
+description: The main Zigbee PRO Stack component for routers only for parsing, processing, generating and managing the Zigbee PRO stack messages and functionality.  It includes stubs for code only needed on end devices or coordinators. This includes the high datarate phy feature.
+
+provides:
+- name: zigbee_pro_router_stack_with_high_datarate_phy
+
+requires:
+- name: zigbee_pro_router_stack_with_high_datarate_phy_implementation
+- name: zigbee_pro_router_stack_with_high_datarate_phy_library
+  condition:
+  - zigbee_use_release_libraries
+- name: rail_util_ieee802154_high_speed_phy
+
+recommends:
+  # There is no special source_with_high_datarate_phy component.
+  # we just need to build with the HIGH_DATARATE_PHY define
+- id: zigbee_pro_router_stack_with_high_datarate_phy_library_internal
+  vendor: silabs
+
+define:
+- name: HIGH_DATARATE_PHY
+  condition:
+  - zigbee_high_datarate_phy
+
+documentation:
+  docset: zigbee
+  document: zigbee-af-api/pro-stack
+metadata:
+  sbom:
+    license: MSLA
+root_path: zigbee

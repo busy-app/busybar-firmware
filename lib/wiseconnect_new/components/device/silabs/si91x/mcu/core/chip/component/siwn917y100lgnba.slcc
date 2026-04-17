@@ -1,0 +1,26 @@
+!!omap
+- id: SIWN917Y100LGNBA
+- package: platform_siwx91x
+- description: Silicon Labs CMSIS-Device part headers for SIWN917Y100LGNBA.
+- category: Device|Si91x|MCU|Device Part|SIWG917
+- quality: production
+- metadata:
+    sbom:
+      license: MSLA
+- define:
+  - name: SIWN917Y100LGNBA
+    unless:
+    - device_content_override
+  - name: SLI_SI917
+    value: '1'
+  - name: SLI_SI917B0
+    value: '1'
+  - name: SLI_SI91X_MCU_CONFIG_RADIO_BOARD_VER2
+    value: '1'
+  - name: SL_SI91X_ACX_MODULE
+    value: '1'
+  - name: SLI_SI91X_DEVICE_WITH_INT_RF_SWITCH
+    value: '1'
+- provides:
+  - name: siwn917y100lgnba
+  - name: device_family_siwg917

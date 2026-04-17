@@ -1,0 +1,26 @@
+id: throughput
+package: bluetooth_le_middleware
+label: Throughput Test helper
+description: |-
+  Helper for throughput tests
+category: Bluetooth|Application|Test
+metadata:
+  sbom:
+    license: Zlib
+quality: production
+root_path: bluetooth_le_middleware/common/throughput
+tag:
+- No-Code
+include:
+- path: .
+  file_list:
+  - path: throughput_types.h
+  - path: throughput_common.h
+requires:
+- name: bluetooth_api
+provides:
+- name: throughput_types
+- name: throughput
+documentation:
+  docset: bluetooth
+  document: bluetooth-service-api/throughput

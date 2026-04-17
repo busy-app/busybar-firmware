@@ -1,0 +1,43 @@
+id: btmesh_host_conf
+label: BT Mesh Configurator Component
+package: bluetooth_mesh_middleware
+description: >
+  BT Mesh Configurator component provides configuration functionality for
+  managing Bluetooth Mesh network configuration.
+category: Bluetooth Mesh|Host
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: bluetooth_mesh_middleware/common/btmesh_host_conf
+include:
+- path: .
+  file_list:
+  - path: btmesh_conf.h
+  - path: btmesh_conf_distributor.h
+  - path: btmesh_conf_executor.h
+  - path: btmesh_conf_job.h
+  - path: btmesh_conf_task.h
+  - path: btmesh_conf_types.h
+config_file:
+- path: config/btmesh_conf_config.h
+source:
+- path: btmesh_conf.c
+- path: btmesh_conf_distributor.c
+- path: btmesh_conf_executor.c
+- path: btmesh_conf_job.c
+- path: btmesh_conf_task.c
+provides:
+- name: btmesh_host_conf
+requires:
+- name: btmesh_stack_api_ncp_host
+- name: component_catalog
+template_contribution:
+- name: component_catalog
+  value: btmesh_host_conf
+- name: event_handler
+  value:
+    event: internal_app_process_action
+    include: btmesh_conf.h
+    handler: btmesh_conf_step
+    priority: -9000

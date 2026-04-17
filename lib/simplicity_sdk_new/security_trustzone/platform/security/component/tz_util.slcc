@@ -1,0 +1,20 @@
+id: tz_util
+package: security_trustzone
+category: Platform|Security|TrustZone
+description: >-
+  This component provides includes utility files for TZ Secure and NonSecure applications.
+ui_hints:
+  visibility: never
+quality: production
+provides:
+- name: tz_util
+
+include:
+- path: sl_component/sl_trustzone/inc/common
+  file_list:
+  - path: sli_tz_util.h
+
+metadata:
+  sbom:
+    license: Zlib
+root_path: security_trustzone/platform/security

@@ -1,0 +1,31 @@
+project_name: empty_cpp
+package: platform
+quality: production
+label: Platform - Empty C++ Example
+description: >
+  This example project shows an empty configuration that can be used as a starting point to add components and functionality.
+category: Example|Platform
+filter:
+  - name: "Device Type"
+    value: ["SoC"]
+  - name: "MCU"
+    value: ["32-bit MCU"]
+  - name: "Project Difficulty"
+    value: ["Beginner"]
+source:
+  - path: app.cpp
+include:
+  - path: .
+    file_list:
+    - path: app.h
+component:
+  - id: sl_main
+  - id: device_init
+  - id: clock_manager
+  - id: cpp_support
+define:
+  - name: DEBUG_EFM
+readme:
+  - path: readme.md
+ui_hints:
+  highlight: readme.md

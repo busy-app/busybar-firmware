@@ -1,0 +1,32 @@
+project_name: bt-bootloader-uart-bgapi-s3
+package: bluetooth_le_app
+quality: experimental
+label: Bootloader - NCP BGAPI UART DFU (Series 3)
+description: >
+  Standalone Bootloader using the BGAPI protocol for UART DFU. This is the recommended UART bootloader for the BLE protocol stack.
+
+category: Example|Bootloader
+filter:
+  - name: "Device Type"
+    value: ["NCP"]
+  - name: "Project Difficulty"
+    value: ["Advanced"]
+  - name: "MCU"
+    value: ["Bootloader"]
+
+component:
+  - id: btl_core
+  - id: bootloader_bgapi_uartdfu
+  - id: bootloader_aes_sha_ecdsa
+  - id: bootloader_delay_driver
+  - id: btl_image_parser
+  - id: bootloader_debug
+  - id: bootloader_euart_driver
+
+post_build:
+  - path: ../postbuild_profile/bt_dfu_btl.slpb
+
+tag:
+  - toolchain:gcc
+  - companion:application
+  - hwfilter:device:device_series_3

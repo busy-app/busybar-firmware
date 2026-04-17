@@ -1,0 +1,36 @@
+id: btmesh_host_app_prov_cbp
+label: BT Mesh Provisioner CBP Application Component
+package: bluetooth_mesh_middleware
+description: >
+  BT Mesh Provisioner CBP (Certificate-Based Provisioning) Application component
+  provides certificate-based provisioning functionality for Bluetooth Mesh networks.
+category: Bluetooth Mesh|Host
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: bluetooth_mesh_middleware/common/btmesh_host_app_prov_cbp
+include:
+- path: .
+  file_list:
+  - path: btmesh_app_prov_cbp.h
+  - path: btmesh_app_certificate_validation.h
+source:
+- path: btmesh_app_prov_cbp.c
+- path: btmesh_app_certificate_validation.c
+provides:
+- name: btmesh_host_app_prov_cbp
+requires:
+- name: btmesh_stack_api_ncp_host
+- name: btmesh_host_app_prov
+- name: component_catalog
+library:
+- system: crypto
+  unless:
+  - macos
+- system: openssl
+  condition:
+  - macos
+template_contribution:
+- name: component_catalog
+  value: btmesh_host_app_prov_cbp

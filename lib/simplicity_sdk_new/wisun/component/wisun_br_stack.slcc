@@ -1,0 +1,98 @@
+id: "wisun_br_stack"
+label: "Wi-SUN Border Router Stack"
+description: >
+  Provides Wi-SUN border router stack functionalities.
+package: "wisun"
+category: "Wi-SUN"
+quality: "production"
+root_path: "wisun/./stack"
+
+requires:
+- name: "device_supports_wisun"
+- name: "rail_lib"
+- name: "rail_lib_multiprotocol"
+  condition: [bluetooth_stack]
+- name: "sl_rail_util_compatible_pa"
+- name: "sl_rail_util_pti"
+- name: "cmsis_rtos2"
+- name: "nvm3"
+- name: "slist"
+- name: "sl_common"
+- name: "wisun_crypto"
+- name: "mbedtls_tls_server"
+- name: "wisun_br_implementation"
+- name: "wisun_stack_ffn"
+- name: "event_system"
+- name: "errno"
+
+recommends:
+- id: "wisun_br_common_library"
+  vendor: silabs
+- id: "rail_lib_singleprotocol"
+
+  vendor: silabs
+provides:
+- name: "wisun_br_stack"
+- name: "a_wisun_stack"
+
+template_contribution:
+- name: "event_handler"
+  value:
+    event: "stack_init"
+    include: "sl_wisun_stack.h"
+    handler: "sl_wisun_stack_init"
+
+- name: component_catalog
+  value: wisun_br_stack
+
+include:
+- path: "inc/"
+  file_list:
+  - path: "sl_wisun_api.h"
+  - path: "sl_wisun_msg_api.h"
+  - path: "sl_wisun_common.h"
+  - path: "sl_wisun_connection_params_api.h"
+  - path: "sl_wisun_events.h"
+  - path: "sl_wisun_ip6string.h"
+  - path: "sl_wisun_lfn_params_api.h"
+  - path: "sl_wisun_regdb.h"
+  - path: "sl_wisun_regulation_api.h"
+  - path: "sl_wisun_stack.h"
+  - path: "sl_wisun_types.h"
+  - path: "sl_wisun_version.h"
+  - path: "sl_wisun_trace_api.h"
+  - path: "sli_wisun_internal_api.h"
+  - path: "sli_wisun_timer_service.h"
+  - path: "border_router/sl_wisun_br_api.h"
+  - path: "border_router/sl_wisun_br_msg_api.h"
+  - path: "border_router/sl_wisun_br_connection_params_api.h"
+  - path: "border_router/sl_wisun_br_lfn_params_api.h"
+- path: "inc/socket/"
+  file_list:
+  - path: "socket.h"
+- path: "inc/arpa/"
+  file_list:
+  - path: "inet.h"
+- path: "src/"
+  file_list:
+  - path: "sli_wisun_certificate.h"
+- path: "src/common/"
+  file_list:
+  - path: "bits.h"
+  - path: "endian.h"
+  - path: "int24.h"
+  - path: "iobuf.h"
+  - path: "math_utils.h"
+  - path: "pktbuf.h"
+  - path: "ns_list.h"
+  - path: "ns_types.h"
+  - path: "string_extra.h"
+
+metadata:
+  sbom:
+    license: MSLA AND Apache-2.0
+    upstream:
+      name: Nanostack
+      version: 14.0.0
+      supplier: Pelion and affiliates
+      url: https://github.com/ARMmbed/mbed-os/tree/9957e7b4ae4315e6d1d2bc064c469e69fb34ff78/features/nanostack

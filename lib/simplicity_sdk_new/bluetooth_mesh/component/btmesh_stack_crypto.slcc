@@ -1,0 +1,62 @@
+id: "btmesh_stack_crypto"
+label: "Bluetooth Mesh Stack Crypto"
+package: bluetooth_mesh
+description: "This component selects and configures the cryptographic components needed by the Bluetooth mesh stack, according to the device family's capabilities."
+category: "Bluetooth Mesh|Stack"
+quality: "production"
+template_contribution:
+# All devices except Lynx
+- name: psa_key_slots
+  value:
+    name: psa_key_slots_btmesh_stack
+    count: "(4 + 4 * (SL_BTMESH_CONFIG_MAX_NETKEYS + SL_BTMESH_CONFIG_MAX_FRIENDSHIPS) + 2 * SL_BTMESH_CONFIG_MAX_PROV_SESSIONS + SL_BTMESH_CONFIG_ITS_KEY_CACHE_SIZE)"
+  condition:
+  - psa_crypto
+  unless:
+  - "device_sdid_205"
+# Lynx based devices
+- name: psa_key_slots
+  value:
+    name: psa_key_slots_btmesh_stack
+    count: "(4 + 2 * SL_BTMESH_CONFIG_MAX_PROV_SESSIONS + SL_BTMESH_CONFIG_ITS_KEY_CACHE_SIZE)"
+  condition:
+  - psa_crypto
+  - "device_sdid_205"
+# Regular node
+- name: psa_its_files
+  value:
+    name: psa_its_files_btmesh_stack
+    count: "0x40"
+  condition:
+  - psa_crypto
+  unless:
+  - "btmesh_stack_provisioner"
+# Provisioner node
+- name: psa_its_files
+  value:
+    name: psa_its_files_btmesh_stack
+    count: "0x240"
+  condition:
+  - psa_crypto
+  - "btmesh_stack_provisioner"
+requires:
+- name: "psa_crypto"
+- name: "psa_crypto_cmac"
+- name: "psa_crypto_ccm"
+- name: "psa_crypto_cipher_ecb"
+- name: "psa_crypto_ecdh"
+- name: "psa_crypto_ecc_secp256r1"
+- name: "psa_its"
+- name: "psa_crypto_hmac"
+- name: "psa_crypto_sha256"
+- name: "psa_crypto_sha1"
+- name: "btmesh_stack_crypto_key_cache"
+provides:
+- name: "btmesh_stack_crypto"
+metadata:
+  sbom:
+    reference: btmesh_stack
+
+ui_hints:
+  visibility: never
+root_path: bluetooth_mesh

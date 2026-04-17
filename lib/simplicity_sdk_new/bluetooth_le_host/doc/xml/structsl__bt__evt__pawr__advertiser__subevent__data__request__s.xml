@@ -1,0 +1,65 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="structsl__bt__evt__pawr__advertiser__subevent__data__request__s" kind="struct" language="C++" prot="public">
+    <compoundname>sl_bt_evt_pawr_advertiser_subevent_data_request_s</compoundname>
+    <includes refid="sl__bt__api_8h" local="no">sl_bt_api.h</includes>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structsl__bt__evt__pawr__advertiser__subevent__data__request__s_1a2f5a16c2d530a57068a245684814c204" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_pawr_advertiser_subevent_data_request_s::advertising_set</definition>
+        <argsstring></argsstring>
+        <name>advertising_set</name>
+        <qualifiedname>sl_bt_evt_pawr_advertiser_subevent_data_request_s::advertising_set</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>The PAwR advertising set handle </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="5806" column="11" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="5806" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__pawr__advertiser__subevent__data__request__s_1a627a83d7cb41cc95614b3384e8a38a20" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_pawr_advertiser_subevent_data_request_s::subevent_start</definition>
+        <argsstring></argsstring>
+        <name>subevent_start</name>
+        <qualifiedname>sl_bt_evt_pawr_advertiser_subevent_data_request_s::subevent_start</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>The first subevent that data is requested for </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="5807" column="11" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="5807" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__pawr__advertiser__subevent__data__request__s_1a3421719497987f3a329fc0d8f4c8a09a" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_pawr_advertiser_subevent_data_request_s::subevent_data_count</definition>
+        <argsstring></argsstring>
+        <name>subevent_data_count</name>
+        <qualifiedname>sl_bt_evt_pawr_advertiser_subevent_data_request_s::subevent_data_count</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>The number of subevents that data is requested for </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="5809" column="11" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="5809" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Data structure of the subevent_data_request event. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="5804" column="1" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="5805" bodyend="5811"/>
+    <listofallmembers>
+      <member refid="structsl__bt__evt__pawr__advertiser__subevent__data__request__s_1a2f5a16c2d530a57068a245684814c204" prot="public" virt="non-virtual"><scope>sl_bt_evt_pawr_advertiser_subevent_data_request_s</scope><name>advertising_set</name></member>
+      <member refid="structsl__bt__evt__pawr__advertiser__subevent__data__request__s_1a3421719497987f3a329fc0d8f4c8a09a" prot="public" virt="non-virtual"><scope>sl_bt_evt_pawr_advertiser_subevent_data_request_s</scope><name>subevent_data_count</name></member>
+      <member refid="structsl__bt__evt__pawr__advertiser__subevent__data__request__s_1a627a83d7cb41cc95614b3384e8a38a20" prot="public" virt="non-virtual"><scope>sl_bt_evt_pawr_advertiser_subevent_data_request_s</scope><name>subevent_start</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

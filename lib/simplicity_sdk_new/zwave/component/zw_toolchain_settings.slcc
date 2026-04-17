@@ -1,0 +1,47 @@
+id: zw_toolchain_settings
+label: Z-Wave Production
+category: Z-Wave
+description: >
+  This component provides the toolchain settings for Z-Wave release and debug builds.
+package: zwave
+quality: production
+ui_hints:
+  visibility: never
+metadata:
+  sbom:
+    reference: zw_sbom_license
+provides:
+- name: zw_toolchain_settings
+requires:
+- name: toolchain_gcc
+- name: toolchain_gcc_standard
+- name: toolchain_lto
+  condition: [zw_release]
+toolchain_settings:
+- option: gcc_compiler_option
+  value: "-s"
+- option: gcc_compiler_option
+  value: "-fmerge-all-constants"
+- option: gcc_compiler_option
+  value: "-Wall"
+- option: gcc_compiler_option
+  value: "-Werror"
+  condition: [zw_release]
+- option: gcc_compiler_option
+  value: "-Wextra"
+- option: gcc_compiler_option
+  value: "-Werror=vla"
+  # Platform code is not strict ISO C compliant
+  # - option: gcc_compiler_option
+  #   value: "-Wpedantic"
+  # Platform code contains implicit conversions that may alter a value
+  # - option: gcc_compiler_option
+  #   value: "-Wconversion"
+  # Allow implicit function declaration until freertos has an integration hook
+- option: gcc_compiler_option
+  value: "-Wno-implicit-function-declaration"
+  condition: [zw_release]
+  # Linker flags
+- option: gcc_linker_option
+  value: "-Wl,--start-group -lgcc -lc -Wl,--end-group"
+root_path: zwave

@@ -1,0 +1,460 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="sl__si91x__crypto__thread_8h" kind="file" language="C++">
+    <compoundname>sl_si91x_crypto_thread.h</compoundname>
+    <includes local="no">string.h</includes>
+    <includes local="yes">cmsis_os2.h</includes>
+    <includes local="yes">sl_net.h</includes>
+    <includes local="yes">sl_wifi.h</includes>
+    <includes local="yes">sl_status.h</includes>
+    <incdepgraph>
+      <node id="1">
+        <label>components/device/silabs/si91x/wireless/crypto/multithread/inc/sl_si91x_crypto_thread.h</label>
+        <link refid="sl__si91x__crypto__thread_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="4" relation="include">
+        </childnode>
+        <childnode refid="5" relation="include">
+        </childnode>
+        <childnode refid="6" relation="include">
+        </childnode>
+      </node>
+      <node id="3">
+        <label>cmsis_os2.h</label>
+      </node>
+      <node id="4">
+        <label>sl_net.h</label>
+      </node>
+      <node id="6">
+        <label>sl_status.h</label>
+      </node>
+      <node id="5">
+        <label>sl_wifi.h</label>
+      </node>
+      <node id="2">
+        <label>string.h</label>
+      </node>
+    </incdepgraph>
+      <sectiondef kind="var">
+      <memberdef kind="variable" id="group__CRYPTO__THREAD__VARIABLES_1ga3c16897b5f491db3e044ab4c43259651" prot="public" static="no" mutable="no">
+        <type>osSemaphoreId_t</type>
+        <definition>osSemaphoreId_t crypto_aes_mutex</definition>
+        <argsstring></argsstring>
+        <name>crypto_aes_mutex</name>
+        <briefdescription>
+<para>Semaphore for AES crypto operations. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/multithread/inc/sl_si91x_crypto_thread.h" line="53" column="24" declfile="components/device/silabs/si91x/wireless/crypto/multithread/inc/sl_si91x_crypto_thread.h" declline="53" declcolumn="24"/>
+      </memberdef>
+      <memberdef kind="variable" id="group__CRYPTO__THREAD__VARIABLES_1gaf199fc0391c42280b8d014c792abf1ea" prot="public" static="no" mutable="no">
+        <type>osSemaphoreId_t</type>
+        <definition>osSemaphoreId_t crypto_ccm_mutex</definition>
+        <argsstring></argsstring>
+        <name>crypto_ccm_mutex</name>
+        <briefdescription>
+<para>Semaphore for CCM crypto operations. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/multithread/inc/sl_si91x_crypto_thread.h" line="58" column="24" declfile="components/device/silabs/si91x/wireless/crypto/multithread/inc/sl_si91x_crypto_thread.h" declline="58" declcolumn="24"/>
+      </memberdef>
+      <memberdef kind="variable" id="group__CRYPTO__THREAD__VARIABLES_1ga00df169f8046795041b560edea4ea482" prot="public" static="no" mutable="no">
+        <type>osSemaphoreId_t</type>
+        <definition>osSemaphoreId_t crypto_sha_mutex</definition>
+        <argsstring></argsstring>
+        <name>crypto_sha_mutex</name>
+        <briefdescription>
+<para>Semaphore for SHA crypto operations. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/multithread/inc/sl_si91x_crypto_thread.h" line="63" column="24" declfile="components/device/silabs/si91x/wireless/crypto/multithread/inc/sl_si91x_crypto_thread.h" declline="63" declcolumn="24"/>
+      </memberdef>
+      <memberdef kind="variable" id="group__CRYPTO__THREAD__VARIABLES_1ga8b7c610bb1cdfd24b094c00d023fc6cd" prot="public" static="no" mutable="no">
+        <type>osSemaphoreId_t</type>
+        <definition>osSemaphoreId_t crypto_gcm_mutex</definition>
+        <argsstring></argsstring>
+        <name>crypto_gcm_mutex</name>
+        <briefdescription>
+<para>Semaphore for GCM crypto operations. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/multithread/inc/sl_si91x_crypto_thread.h" line="68" column="24" declfile="components/device/silabs/si91x/wireless/crypto/multithread/inc/sl_si91x_crypto_thread.h" declline="68" declcolumn="24"/>
+      </memberdef>
+      <memberdef kind="variable" id="group__CRYPTO__THREAD__VARIABLES_1ga65d1c13cbd1048a1f12bae01404b8c9a" prot="public" static="no" mutable="no">
+        <type>osSemaphoreId_t</type>
+        <definition>osSemaphoreId_t crypto_chachapoly_mutex</definition>
+        <argsstring></argsstring>
+        <name>crypto_chachapoly_mutex</name>
+        <briefdescription>
+<para>Semaphore for ChaChaPoly crypto operations. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/multithread/inc/sl_si91x_crypto_thread.h" line="73" column="24" declfile="components/device/silabs/si91x/wireless/crypto/multithread/inc/sl_si91x_crypto_thread.h" declline="73" declcolumn="24"/>
+      </memberdef>
+      <memberdef kind="variable" id="group__CRYPTO__THREAD__VARIABLES_1ga0f5aa72dc91fba55722b43f3da731b75" prot="public" static="no" mutable="no">
+        <type>osSemaphoreId_t</type>
+        <definition>osSemaphoreId_t crypto_attestation_mutex</definition>
+        <argsstring></argsstring>
+        <name>crypto_attestation_mutex</name>
+        <briefdescription>
+<para>Semaphore for attestation crypto operations. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/multithread/inc/sl_si91x_crypto_thread.h" line="78" column="24" declfile="components/device/silabs/si91x/wireless/crypto/multithread/inc/sl_si91x_crypto_thread.h" declline="78" declcolumn="24"/>
+      </memberdef>
+      <memberdef kind="variable" id="group__CRYPTO__THREAD__VARIABLES_1ga0da20f880c4cffa28718debf029cba20" prot="public" static="no" mutable="no">
+        <type>osSemaphoreId_t</type>
+        <definition>osSemaphoreId_t crypto_ecdh_mutex</definition>
+        <argsstring></argsstring>
+        <name>crypto_ecdh_mutex</name>
+        <briefdescription>
+<para>Semaphore for ECDH crypto operations. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/multithread/inc/sl_si91x_crypto_thread.h" line="83" column="24" declfile="components/device/silabs/si91x/wireless/crypto/multithread/inc/sl_si91x_crypto_thread.h" declline="83" declcolumn="24"/>
+      </memberdef>
+      <memberdef kind="variable" id="group__CRYPTO__THREAD__VARIABLES_1ga0c0da60c64b22a28c9e426840f08b477" prot="public" static="no" mutable="no">
+        <type>osSemaphoreId_t</type>
+        <definition>osSemaphoreId_t crypto_ecdsa_mutex</definition>
+        <argsstring></argsstring>
+        <name>crypto_ecdsa_mutex</name>
+        <briefdescription>
+<para>Semaphore for ECDSA crypto operations. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/multithread/inc/sl_si91x_crypto_thread.h" line="88" column="24" declfile="components/device/silabs/si91x/wireless/crypto/multithread/inc/sl_si91x_crypto_thread.h" declline="88" declcolumn="24"/>
+      </memberdef>
+      <memberdef kind="variable" id="group__CRYPTO__THREAD__VARIABLES_1gaaa566764ab8f647c1c7c418172d59075" prot="public" static="no" mutable="no">
+        <type>osSemaphoreId_t</type>
+        <definition>osSemaphoreId_t crypto_hmac_mutex</definition>
+        <argsstring></argsstring>
+        <name>crypto_hmac_mutex</name>
+        <briefdescription>
+<para>Semaphore for HMAC crypto operations. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/multithread/inc/sl_si91x_crypto_thread.h" line="93" column="24" declfile="components/device/silabs/si91x/wireless/crypto/multithread/inc/sl_si91x_crypto_thread.h" declline="93" declcolumn="24"/>
+      </memberdef>
+      <memberdef kind="variable" id="group__CRYPTO__THREAD__VARIABLES_1gad2625b5e8947f7493dfbf9543bb9f153" prot="public" static="no" mutable="no">
+        <type>osSemaphoreId_t</type>
+        <definition>osSemaphoreId_t crypto_trng_mutex</definition>
+        <argsstring></argsstring>
+        <name>crypto_trng_mutex</name>
+        <briefdescription>
+<para>Semaphore for TRNG crypto operations. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/multithread/inc/sl_si91x_crypto_thread.h" line="98" column="24" declfile="components/device/silabs/si91x/wireless/crypto/multithread/inc/sl_si91x_crypto_thread.h" declline="98" declcolumn="24"/>
+      </memberdef>
+      <memberdef kind="variable" id="group__CRYPTO__THREAD__VARIABLES_1ga06632d2bfe0c25ef3e6730d3214a187c" prot="public" static="no" mutable="no">
+        <type>osStatus_t</type>
+        <definition>osStatus_t mutex_result</definition>
+        <argsstring></argsstring>
+        <name>mutex_result</name>
+        <briefdescription>
+<para>Status of the semaphore operations. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/multithread/inc/sl_si91x_crypto_thread.h" line="103" column="19" declfile="components/device/silabs/si91x/wireless/crypto/multithread/inc/sl_si91x_crypto_thread.h" declline="103" declcolumn="19"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="group__CRYPTO__THREAD__FUNCTIONS_1ga9d8427af69aed30d206eca15dfca306a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>osSemaphoreId_t</type>
+        <definition>osSemaphoreId_t sl_si91x_crypto_threadsafety_init</definition>
+        <argsstring>(osSemaphoreId_t *mutex)</argsstring>
+        <name>sl_si91x_crypto_threadsafety_init</name>
+        <param>
+          <type>osSemaphoreId_t *</type>
+          <declname>mutex</declname>
+        </param>
+        <briefdescription>
+<para>To initialize the crypto semaphore for a particular crypto operation. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">mutex</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The crypto semaphore to be initialized. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>osSemaphoreId_t Semaphore ID. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/multithread/inc/sl_si91x_crypto_thread.h" line="124" column="17" declfile="components/device/silabs/si91x/wireless/crypto/multithread/inc/sl_si91x_crypto_thread.h" declline="124" declcolumn="17"/>
+      </memberdef>
+      <memberdef kind="function" id="group__CRYPTO__THREAD__FUNCTIONS_1ga27227706c866093d3d27ce71baf0c62a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>osStatus_t</type>
+        <definition>osStatus_t sl_si91x_crypto_mutex_acquire</definition>
+        <argsstring>(osSemaphoreId_t *mutex)</argsstring>
+        <name>sl_si91x_crypto_mutex_acquire</name>
+        <param>
+          <type>osSemaphoreId_t *</type>
+          <declname>mutex</declname>
+        </param>
+        <briefdescription>
+<para>To acquire the crypto semaphore for a particular crypto operation. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">mutex</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The crypto semaphore to be acquired. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>osStatus_t Status of the semaphore. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/multithread/inc/sl_si91x_crypto_thread.h" line="135" column="12" declfile="components/device/silabs/si91x/wireless/crypto/multithread/inc/sl_si91x_crypto_thread.h" declline="135" declcolumn="12"/>
+      </memberdef>
+      <memberdef kind="function" id="group__CRYPTO__THREAD__FUNCTIONS_1ga372a749320b84990f4b13bc2443c9df4" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>osStatus_t</type>
+        <definition>osStatus_t sl_si91x_crypto_mutex_release</definition>
+        <argsstring>(osSemaphoreId_t *mutex)</argsstring>
+        <name>sl_si91x_crypto_mutex_release</name>
+        <param>
+          <type>osSemaphoreId_t *</type>
+          <declname>mutex</declname>
+        </param>
+        <briefdescription>
+<para>To release the crypto semaphore for a particular crypto operation. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">mutex</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The crypto semaphore to be released. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>osStatus_t Status of the semaphore. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/multithread/inc/sl_si91x_crypto_thread.h" line="146" column="12" declfile="components/device/silabs/si91x/wireless/crypto/multithread/inc/sl_si91x_crypto_thread.h" declline="146" declcolumn="12"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Top level application functions. </para>
+    </briefdescription>
+    <detaileddescription>
+<sect1 id="sl__si91x__crypto__thread_8h_1autotoc_md14">
+<title>License</title>
+<para><bold>Copyright 2025 Silicon Laboratories Inc. www.silabs.com</bold></para>
+<para>SPDX-License-Identifier: Zlib</para>
+<para>The licensor of this software is Silicon Laboratories Inc.</para>
+<para>This software is provided &apos;as-is&apos;, without any express or implied warranty. In no event will the authors be held liable for any damages arising from the use of this software.</para>
+<para>Permission is granted to anyone to use this software for any purpose, including commercial applications, and to alter it and redistribute it freely, subject to the following restrictions:</para>
+<para><orderedlist>
+<listitem><para>The origin of this software must not be misrepresented; you must not claim that you wrote the original software. If you use this software in a product, an acknowledgment in the product documentation would be appreciated but is not required.</para>
+</listitem><listitem><para>Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.</para>
+</listitem><listitem><para>This notice may not be removed or altered from any source distribution. </para>
+</listitem></orderedlist>
+</para>
+</sect1>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="comment">/***************************************************************************/</highlight><highlight class="normal"><sp/></highlight><highlight class="comment">/**</highlight></codeline>
+<codeline lineno="2"><highlight class="comment"><sp/>*<sp/>@file<sp/>sl_si91x_crypto_thread.h</highlight></codeline>
+<codeline lineno="3"><highlight class="comment"><sp/>*<sp/>@brief<sp/>Top<sp/>level<sp/>application<sp/>functions.</highlight></codeline>
+<codeline lineno="4"><highlight class="comment"><sp/>*******************************************************************************</highlight></codeline>
+<codeline lineno="5"><highlight class="comment"><sp/>*<sp/>#<sp/>License</highlight></codeline>
+<codeline lineno="6"><highlight class="comment"><sp/>*<sp/>&lt;b&gt;Copyright<sp/>2025<sp/>Silicon<sp/>Laboratories<sp/>Inc.<sp/>www.silabs.com&lt;/b&gt;</highlight></codeline>
+<codeline lineno="7"><highlight class="comment"><sp/>*******************************************************************************</highlight></codeline>
+<codeline lineno="8"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="9"><highlight class="comment"><sp/>*<sp/>SPDX-License-Identifier:<sp/>Zlib</highlight></codeline>
+<codeline lineno="10"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="11"><highlight class="comment"><sp/>*<sp/>The<sp/>licensor<sp/>of<sp/>this<sp/>software<sp/>is<sp/>Silicon<sp/>Laboratories<sp/>Inc.</highlight></codeline>
+<codeline lineno="12"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="13"><highlight class="comment"><sp/>*<sp/>This<sp/>software<sp/>is<sp/>provided<sp/>&apos;as-is&apos;,<sp/>without<sp/>any<sp/>express<sp/>or<sp/>implied</highlight></codeline>
+<codeline lineno="14"><highlight class="comment"><sp/>*<sp/>warranty.<sp/>In<sp/>no<sp/>event<sp/>will<sp/>the<sp/>authors<sp/>be<sp/>held<sp/>liable<sp/>for<sp/>any<sp/>damages</highlight></codeline>
+<codeline lineno="15"><highlight class="comment"><sp/>*<sp/>arising<sp/>from<sp/>the<sp/>use<sp/>of<sp/>this<sp/>software.</highlight></codeline>
+<codeline lineno="16"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="17"><highlight class="comment"><sp/>*<sp/>Permission<sp/>is<sp/>granted<sp/>to<sp/>anyone<sp/>to<sp/>use<sp/>this<sp/>software<sp/>for<sp/>any<sp/>purpose,</highlight></codeline>
+<codeline lineno="18"><highlight class="comment"><sp/>*<sp/>including<sp/>commercial<sp/>applications,<sp/>and<sp/>to<sp/>alter<sp/>it<sp/>and<sp/>redistribute<sp/>it</highlight></codeline>
+<codeline lineno="19"><highlight class="comment"><sp/>*<sp/>freely,<sp/>subject<sp/>to<sp/>the<sp/>following<sp/>restrictions:</highlight></codeline>
+<codeline lineno="20"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="21"><highlight class="comment"><sp/>*<sp/>1.<sp/>The<sp/>origin<sp/>of<sp/>this<sp/>software<sp/>must<sp/>not<sp/>be<sp/>misrepresented;<sp/>you<sp/>must<sp/>not</highlight></codeline>
+<codeline lineno="22"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/>claim<sp/>that<sp/>you<sp/>wrote<sp/>the<sp/>original<sp/>software.<sp/>If<sp/>you<sp/>use<sp/>this<sp/>software</highlight></codeline>
+<codeline lineno="23"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/>in<sp/>a<sp/>product,<sp/>an<sp/>acknowledgment<sp/>in<sp/>the<sp/>product<sp/>documentation<sp/>would<sp/>be</highlight></codeline>
+<codeline lineno="24"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/>appreciated<sp/>but<sp/>is<sp/>not<sp/>required.</highlight></codeline>
+<codeline lineno="25"><highlight class="comment"><sp/>*<sp/>2.<sp/>Altered<sp/>source<sp/>versions<sp/>must<sp/>be<sp/>plainly<sp/>marked<sp/>as<sp/>such,<sp/>and<sp/>must<sp/>not<sp/>be</highlight></codeline>
+<codeline lineno="26"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/>misrepresented<sp/>as<sp/>being<sp/>the<sp/>original<sp/>software.</highlight></codeline>
+<codeline lineno="27"><highlight class="comment"><sp/>*<sp/>3.<sp/>This<sp/>notice<sp/>may<sp/>not<sp/>be<sp/>removed<sp/>or<sp/>altered<sp/>from<sp/>any<sp/>source<sp/>distribution.</highlight></codeline>
+<codeline lineno="28"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="29"><highlight class="comment"><sp/>******************************************************************************/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="30"><highlight class="normal"></highlight></codeline>
+<codeline lineno="31"><highlight class="normal"></highlight><highlight class="preprocessor">#pragma<sp/>once</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="32"><highlight class="normal"></highlight></codeline>
+<codeline lineno="33"><highlight class="normal"></highlight><highlight class="comment">/******************************************************</highlight></codeline>
+<codeline lineno="34"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Includes</highlight></codeline>
+<codeline lineno="35"><highlight class="comment">*******************************************************/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="36"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;string.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="37"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;cmsis_os2.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="38"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;sl_net.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="39"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;sl_wifi.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="40"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;sl_status.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="41"><highlight class="normal"></highlight></codeline>
+<codeline lineno="42"><highlight class="normal"></highlight><highlight class="comment">/******************************************************</highlight></codeline>
+<codeline lineno="43"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Variable<sp/>Declarations</highlight></codeline>
+<codeline lineno="44"><highlight class="comment">*******************************************************/</highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="45"><highlight class="comment">/**</highlight></codeline>
+<codeline lineno="46"><highlight class="comment"><sp/>*<sp/>@addtogroup<sp/>CRYPTO_THREAD_VARIABLES</highlight></codeline>
+<codeline lineno="47"><highlight class="comment"><sp/>*<sp/>@{<sp/></highlight></codeline>
+<codeline lineno="48"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="49"><highlight class="normal"></highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="50"><highlight class="comment">/**</highlight></codeline>
+<codeline lineno="51"><highlight class="comment"><sp/>*<sp/>@brief<sp/>Semaphore<sp/>for<sp/>AES<sp/>crypto<sp/>operations.</highlight></codeline>
+<codeline lineno="52"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="53"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/>osSemaphoreId_t<sp/><ref refid="group__CRYPTO__THREAD__VARIABLES_1ga3c16897b5f491db3e044ab4c43259651" kindref="member">crypto_aes_mutex</ref>;</highlight></codeline>
+<codeline lineno="54"><highlight class="normal"></highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="55"><highlight class="comment">/**</highlight></codeline>
+<codeline lineno="56"><highlight class="comment"><sp/>*<sp/>@brief<sp/>Semaphore<sp/>for<sp/>CCM<sp/>crypto<sp/>operations.</highlight></codeline>
+<codeline lineno="57"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="58"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/>osSemaphoreId_t<sp/><ref refid="group__CRYPTO__THREAD__VARIABLES_1gaf199fc0391c42280b8d014c792abf1ea" kindref="member">crypto_ccm_mutex</ref>;</highlight></codeline>
+<codeline lineno="59"><highlight class="normal"></highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="60"><highlight class="comment">/**</highlight></codeline>
+<codeline lineno="61"><highlight class="comment"><sp/>*<sp/>@brief<sp/>Semaphore<sp/>for<sp/>SHA<sp/>crypto<sp/>operations.</highlight></codeline>
+<codeline lineno="62"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="63"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/>osSemaphoreId_t<sp/><ref refid="group__CRYPTO__THREAD__VARIABLES_1ga00df169f8046795041b560edea4ea482" kindref="member">crypto_sha_mutex</ref>;</highlight></codeline>
+<codeline lineno="64"><highlight class="normal"></highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="65"><highlight class="comment">/**</highlight></codeline>
+<codeline lineno="66"><highlight class="comment"><sp/>*<sp/>@brief<sp/>Semaphore<sp/>for<sp/>GCM<sp/>crypto<sp/>operations.</highlight></codeline>
+<codeline lineno="67"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="68"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/>osSemaphoreId_t<sp/><ref refid="group__CRYPTO__THREAD__VARIABLES_1ga8b7c610bb1cdfd24b094c00d023fc6cd" kindref="member">crypto_gcm_mutex</ref>;</highlight></codeline>
+<codeline lineno="69"><highlight class="normal"></highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="70"><highlight class="comment">/**</highlight></codeline>
+<codeline lineno="71"><highlight class="comment"><sp/>*<sp/>@brief<sp/>Semaphore<sp/>for<sp/>ChaChaPoly<sp/>crypto<sp/>operations.</highlight></codeline>
+<codeline lineno="72"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="73"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/>osSemaphoreId_t<sp/><ref refid="group__CRYPTO__THREAD__VARIABLES_1ga65d1c13cbd1048a1f12bae01404b8c9a" kindref="member">crypto_chachapoly_mutex</ref>;</highlight></codeline>
+<codeline lineno="74"><highlight class="normal"></highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="75"><highlight class="comment">/**</highlight></codeline>
+<codeline lineno="76"><highlight class="comment"><sp/>*<sp/>@brief<sp/>Semaphore<sp/>for<sp/>attestation<sp/>crypto<sp/>operations.</highlight></codeline>
+<codeline lineno="77"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="78"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/>osSemaphoreId_t<sp/><ref refid="group__CRYPTO__THREAD__VARIABLES_1ga0f5aa72dc91fba55722b43f3da731b75" kindref="member">crypto_attestation_mutex</ref>;</highlight></codeline>
+<codeline lineno="79"><highlight class="normal"></highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="80"><highlight class="comment">/**</highlight></codeline>
+<codeline lineno="81"><highlight class="comment"><sp/>*<sp/>@brief<sp/>Semaphore<sp/>for<sp/>ECDH<sp/>crypto<sp/>operations.</highlight></codeline>
+<codeline lineno="82"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="83"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/>osSemaphoreId_t<sp/><ref refid="group__CRYPTO__THREAD__VARIABLES_1ga0da20f880c4cffa28718debf029cba20" kindref="member">crypto_ecdh_mutex</ref>;</highlight></codeline>
+<codeline lineno="84"><highlight class="normal"></highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="85"><highlight class="comment">/**</highlight></codeline>
+<codeline lineno="86"><highlight class="comment"><sp/>*<sp/>@brief<sp/>Semaphore<sp/>for<sp/>ECDSA<sp/>crypto<sp/>operations.</highlight></codeline>
+<codeline lineno="87"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="88"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/>osSemaphoreId_t<sp/><ref refid="group__CRYPTO__THREAD__VARIABLES_1ga0c0da60c64b22a28c9e426840f08b477" kindref="member">crypto_ecdsa_mutex</ref>;</highlight></codeline>
+<codeline lineno="89"><highlight class="normal"></highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="90"><highlight class="comment">/**</highlight></codeline>
+<codeline lineno="91"><highlight class="comment"><sp/>*<sp/>@brief<sp/>Semaphore<sp/>for<sp/>HMAC<sp/>crypto<sp/>operations.</highlight></codeline>
+<codeline lineno="92"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="93"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/>osSemaphoreId_t<sp/><ref refid="group__CRYPTO__THREAD__VARIABLES_1gaaa566764ab8f647c1c7c418172d59075" kindref="member">crypto_hmac_mutex</ref>;</highlight></codeline>
+<codeline lineno="94"><highlight class="normal"></highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="95"><highlight class="comment">/**</highlight></codeline>
+<codeline lineno="96"><highlight class="comment"><sp/>*<sp/>@brief<sp/>Semaphore<sp/>for<sp/>TRNG<sp/>crypto<sp/>operations.</highlight></codeline>
+<codeline lineno="97"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="98"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/>osSemaphoreId_t<sp/><ref refid="group__CRYPTO__THREAD__VARIABLES_1gad2625b5e8947f7493dfbf9543bb9f153" kindref="member">crypto_trng_mutex</ref>;</highlight></codeline>
+<codeline lineno="99"><highlight class="normal"></highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="100"><highlight class="comment">/**</highlight></codeline>
+<codeline lineno="101"><highlight class="comment"><sp/>*<sp/>@brief<sp/>Status<sp/>of<sp/>the<sp/>semaphore<sp/>operations.</highlight></codeline>
+<codeline lineno="102"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="103"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/>osStatus_t<sp/><ref refid="group__CRYPTO__THREAD__VARIABLES_1ga06632d2bfe0c25ef3e6730d3214a187c" kindref="member">mutex_result</ref>;</highlight></codeline>
+<codeline lineno="104"><highlight class="normal"></highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="105"><highlight class="comment">/**<sp/>@}<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="106"><highlight class="normal"></highlight></codeline>
+<codeline lineno="107"><highlight class="normal"></highlight><highlight class="comment">/******************************************************</highlight></codeline>
+<codeline lineno="108"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Function<sp/>Declarations</highlight></codeline>
+<codeline lineno="109"><highlight class="comment">*******************************************************/</highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="110"><highlight class="comment">/**</highlight></codeline>
+<codeline lineno="111"><highlight class="comment"><sp/>*<sp/>@addtogroup<sp/>CRYPTO_THREAD_FUNCTIONS</highlight></codeline>
+<codeline lineno="112"><highlight class="comment"><sp/>*<sp/>@{<sp/></highlight></codeline>
+<codeline lineno="113"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="114"><highlight class="normal"></highlight></codeline>
+<codeline lineno="115"><highlight class="normal"></highlight><highlight class="comment">/***************************************************************************/</highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="116"><highlight class="comment">/**</highlight></codeline>
+<codeline lineno="117"><highlight class="comment"><sp/>*<sp/>@brief<sp/></highlight></codeline>
+<codeline lineno="118"><highlight class="comment"><sp/>*<sp/><sp/><sp/>To<sp/>initialize<sp/>the<sp/>crypto<sp/>semaphore<sp/>for<sp/>a<sp/>particular<sp/>crypto<sp/>operation.</highlight></codeline>
+<codeline lineno="119"><highlight class="comment"><sp/>*<sp/>@param[in]<sp/>mutex<sp/></highlight></codeline>
+<codeline lineno="120"><highlight class="comment"><sp/>*<sp/><sp/><sp/>The<sp/>crypto<sp/>semaphore<sp/>to<sp/>be<sp/>initialized.</highlight></codeline>
+<codeline lineno="121"><highlight class="comment"><sp/>*<sp/>@return</highlight></codeline>
+<codeline lineno="122"><highlight class="comment"><sp/>*<sp/><sp/><sp/>osSemaphoreId_t<sp/>Semaphore<sp/>ID.</highlight></codeline>
+<codeline lineno="123"><highlight class="comment">******************************************************************************/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="124" refid="group__CRYPTO__THREAD__FUNCTIONS_1ga9d8427af69aed30d206eca15dfca306a" refkind="member"><highlight class="normal">osSemaphoreId_t<sp/><ref refid="group__CRYPTO__THREAD__FUNCTIONS_1ga9d8427af69aed30d206eca15dfca306a" kindref="member">sl_si91x_crypto_threadsafety_init</ref>(osSemaphoreId_t<sp/>*mutex);</highlight></codeline>
+<codeline lineno="125"><highlight class="normal"></highlight></codeline>
+<codeline lineno="126"><highlight class="normal"></highlight><highlight class="comment">/***************************************************************************/</highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="127"><highlight class="comment">/**</highlight></codeline>
+<codeline lineno="128"><highlight class="comment"><sp/>*<sp/>@brief<sp/></highlight></codeline>
+<codeline lineno="129"><highlight class="comment"><sp/>*<sp/><sp/><sp/>To<sp/>acquire<sp/>the<sp/>crypto<sp/>semaphore<sp/>for<sp/>a<sp/>particular<sp/>crypto<sp/>operation.</highlight></codeline>
+<codeline lineno="130"><highlight class="comment"><sp/>*<sp/>@param[in]<sp/>mutex<sp/></highlight></codeline>
+<codeline lineno="131"><highlight class="comment"><sp/>*<sp/><sp/><sp/>The<sp/>crypto<sp/>semaphore<sp/>to<sp/>be<sp/>acquired.</highlight></codeline>
+<codeline lineno="132"><highlight class="comment"><sp/>*<sp/>@return</highlight></codeline>
+<codeline lineno="133"><highlight class="comment"><sp/>*<sp/><sp/><sp/>osStatus_t<sp/>Status<sp/>of<sp/>the<sp/>semaphore.</highlight></codeline>
+<codeline lineno="134"><highlight class="comment">******************************************************************************/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="135" refid="group__CRYPTO__THREAD__FUNCTIONS_1ga27227706c866093d3d27ce71baf0c62a" refkind="member"><highlight class="normal">osStatus_t<sp/><ref refid="group__CRYPTO__THREAD__FUNCTIONS_1ga27227706c866093d3d27ce71baf0c62a" kindref="member">sl_si91x_crypto_mutex_acquire</ref>(osSemaphoreId_t<sp/>*mutex);</highlight></codeline>
+<codeline lineno="136"><highlight class="normal"></highlight></codeline>
+<codeline lineno="137"><highlight class="normal"></highlight><highlight class="comment">/***************************************************************************/</highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="138"><highlight class="comment">/**</highlight></codeline>
+<codeline lineno="139"><highlight class="comment"><sp/>*<sp/>@brief<sp/></highlight></codeline>
+<codeline lineno="140"><highlight class="comment"><sp/>*<sp/><sp/><sp/>To<sp/>release<sp/>the<sp/>crypto<sp/>semaphore<sp/>for<sp/>a<sp/>particular<sp/>crypto<sp/>operation.</highlight></codeline>
+<codeline lineno="141"><highlight class="comment"><sp/>*<sp/>@param[in]<sp/>mutex<sp/></highlight></codeline>
+<codeline lineno="142"><highlight class="comment"><sp/>*<sp/><sp/><sp/>The<sp/>crypto<sp/>semaphore<sp/>to<sp/>be<sp/>released.</highlight></codeline>
+<codeline lineno="143"><highlight class="comment"><sp/>*<sp/>@return</highlight></codeline>
+<codeline lineno="144"><highlight class="comment"><sp/>*<sp/><sp/><sp/>osStatus_t<sp/>Status<sp/>of<sp/>the<sp/>semaphore.</highlight></codeline>
+<codeline lineno="145"><highlight class="comment">******************************************************************************/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="146" refid="group__CRYPTO__THREAD__FUNCTIONS_1ga372a749320b84990f4b13bc2443c9df4" refkind="member"><highlight class="normal">osStatus_t<sp/><ref refid="group__CRYPTO__THREAD__FUNCTIONS_1ga372a749320b84990f4b13bc2443c9df4" kindref="member">sl_si91x_crypto_mutex_release</ref>(osSemaphoreId_t<sp/>*mutex);</highlight></codeline>
+<codeline lineno="147"><highlight class="normal"></highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="148"><highlight class="comment">/**<sp/>@}<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+    </programlisting>
+    <location file="components/device/silabs/si91x/wireless/crypto/multithread/inc/sl_si91x_crypto_thread.h"/>
+  </compounddef>
+</doxygen>

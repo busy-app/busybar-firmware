@@ -1,0 +1,39 @@
+id: tz_non_secure_execution
+label: TrustZone Non-Secure Execution
+description: >
+  This Non-Secure execution component is designed to be the default
+  choice for any applications that do not implement a full TrustZone solution.  It ensures compatibility with prebuilt libraries, such as Rail,  and facilitates seamless integration.
+
+  The component transitions the application's execution mode to
+  Non-Secure, managing both Secure and Non-Secure environments.  The Secure portion is limited to startup operations, where  the core, peripherals, and memory are configured for Non-Secure  execution. Once transitioned, the application runs entirely in  the Non-Secure environment, only returning to the Secure world in  the event of a Secure Fault.
+
+  Note: This component is designed specifically for TrustZone-unaware
+  applications. It is not intended as a template or framework for
+  building Secure or Non-Secure applications. For those use cases,  refer to the `trustzone_secure` and `trustzone_nonsecure` components.
+package: platform_core
+category: Platform|TrustZone
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: platform_core/platform/common
+source:
+- path: src/sl_tz_non_secure_execution.c
+define:
+- name: SL_TZ_NON_SECURE_EXECUTION
+- name: configRUN_FREERTOS_SECURE_ONLY
+  value: 0
+- name: configENABLE_TRUSTZONE
+  value: 0
+provides:
+- name: tz_non_secure_execution
+- name: tz_execution
+requires:
+- name: device_series_3
+- name: trustzone_unaware
+- name: sl_common
+conflicts:
+- name: ram_only_execution
+template_contribution:
+- name: tz_non_secure_execution
+  value: 1

@@ -1,0 +1,43 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__evt__connection__closed" kind="group">
+    <compoundname>sl_bt_evt_connection_closed</compoundname>
+    <title>sl_bt_evt_connection_closed</title>
+    <innerclass refid="structsl__bt__evt__connection__closed__s" prot="public">sl_bt_evt_connection_closed_s</innerclass>
+      <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="group__sl__bt__evt__connection__closed_1gac2ab4dc6cae85507ad24fb48481d5759" prot="public" static="no">
+        <type>struct <ref refid="structsl__bt__evt__connection__closed__s" kindref="compound">sl_bt_evt_connection_closed_s</ref></type>
+        <definition>typedef struct sl_bt_evt_connection_closed_s sl_bt_evt_connection_closed_t</definition>
+        <argsstring></argsstring>
+        <name>sl_bt_evt_connection_closed_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6995" column="44" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6995" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__evt__connection__closed_1gab2ff7549250810d37eaa6f6e6828ed86" prot="public" static="no">
+        <name>sl_bt_evt_connection_closed_id</name>
+        <initializer>0x010600a0</initializer>
+        <briefdescription>
+<para>Identifier of the closed event. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6978" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6978" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Indicates that a connection was either closed or that no connection was established from a high duty cycle directed advertising. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>If the application includes the component bluetooth_feature_connection_statistics and the connection was successfully opened, the event <ref refid="group__sl__bt__evt__connection__statistics" kindref="compound">sl_bt_evt_connection_statistics</ref> is automatically triggered just before the connection closed event to provide the application with the final statistic values of the connection. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

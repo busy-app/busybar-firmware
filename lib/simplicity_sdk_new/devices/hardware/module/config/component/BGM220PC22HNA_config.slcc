@@ -1,0 +1,56 @@
+!!omap
+- id: BGM220PC22HNA_config
+- label: BGM220PC22HNA config
+- description: Configuration files for BGM220PC22HNA
+- package: devices
+- category: Platform|Device|BGM22|Config
+- quality: production
+- metadata:
+    sbom:
+      license: Zlib
+- ui_hints:
+    visibility: never
+- root_path: devices/hardware/module/config
+- requires:
+  - name: bgm220pc22hna
+- provides:
+  - name: BGM220PC22HNA_config
+- config_file:
+  - override:
+      component: clock_manager
+      file_id: clock_manager_oscillator_config
+      vendor: silabs
+    path: BGM220PC22HNA/sl_clock_manager_oscillator_config.h
+    unless:
+    - hardware_board
+  - override:
+      component: clock_manager
+      file_id: clock_manager_tree_config
+      vendor: silabs
+    path: BGM220PC22HNA/sl_clock_manager_tree_config.h
+    unless:
+    - hardware_board
+  - override:
+      component: device_init_hfxo
+      file_id: device_init_hfxo_config
+      vendor: silabs
+    path: BGM220PC22HNA/sl_device_init_hfxo_config.h
+    unless:
+    - hardware_board
+  - override:
+      component: device_init_lfxo
+      file_id: device_init_lfxo_config
+      vendor: silabs
+    path: BGM220PC22HNA/sl_device_init_lfxo_config.h
+    unless:
+    - hardware_board
+  - override:
+      component: rail_util_pa
+      file_id: rail_util_pa_config
+      vendor: silabs
+    path: BGM220PC22HNA/sl_rail_util_pa_config.h
+  - override:
+      component: sl_rail_util_pa
+      file_id: sl_rail_util_pa_config
+      vendor: silabs
+    path: BGM220PC22HNA/sl_rail_util_pa_config.h

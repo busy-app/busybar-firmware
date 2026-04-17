@@ -1,0 +1,66 @@
+upgrade:
+  - sdk:
+      id: simplicity_sdk
+      version: "4.3.0"
+    component:
+      - script: platform_core/platform/service/component/upgrade_component_power_manager.lua
+        description: >
+          Component power_manager_core now requires power_manager_energy_mode_impl. To satisfy the power_manager_energy_mode_impl requirement,
+          power_manager_core recommends power_manager_deepsleep signifying that the lowest energy mode is EM2 or
+          EM3, unless power_manager_no_deepsleep is added to the project signifying the lowest energy mode is restricted to EM1.
+    configuration:
+      - script: platform_core/platform/service/component/upgrade_configuration_power_manager.lua
+  - sdk:
+      id: simplicity_sdk
+      version: "2024.6.0"
+    component:
+      - trigger: device_init_emu
+        description: >
+          The components device_init_emu and power_manager are present in the current project. Component power_manager now
+          supports initializing the Energy Management Unit (EMU). Therefore the component device_init_emu is not needed and
+          will be removed from the project.
+        remove:
+          - device_init_emu
+      - trigger: device_init_nvic
+        description: >
+          In simplicity_sdk 2024.6.0, the device_init_nvic component is deprecated and replaced by interrupt_manager. The device_init_nvic component will be automatically replaced by interrupt_manager in your project.
+        add:
+          - interrupt_manager
+        remove:
+          - device_init_nvic
+      - trigger: ram_interrupt_vector_init
+        description: >
+          In simplicity_sdk 2024.6.0, the ram_interrupt_vector_init component is deprecated and replaced by interrupt_manager. The ram_interrupt_vector_init component will be automatically replaced by interrupt_manager_vector_table_in_ram in your project.
+        add:
+          - interrupt_manager_vector_table_in_ram
+        remove:
+          - ram_interrupt_vector_init
+      - trigger: legacy_bootloader_interface
+        description: >
+          In gecko_sdk 2024.6.0, the legacy_bootloader_interface component is deprecated and replaced by bootloader_interface. The legacy_bootloader_interface component will be automatically replaced by bootloader_interface in your project.
+        add:
+          - bootloader_interface
+        remove:
+          - legacy_bootloader_interface
+  - sdk:
+      id: simplicity_sdk
+      version: "2025.6.0"
+    component:
+      - script: platform_core/platform/service/component/upgrade_component_interrupt_manager.lua
+        description: >
+          The SL_INTERRUPT_MANAGER_S2_INTERRUPTS_IN_RAM config is deprecated and replaced by the interrupt_manager_vector_table_in_ram component.
+      - script: platform_core/platform/service/component/upgrade_sl_system.lua
+        description: >
+          In sisdk-2025.6.0 the sl_system component was deprecated and support for baremetal applications has been removed.
+          For baremetal applications sl_system_compatibility is now used for a seamless transition.
+          For RTOS applications you can manually upgrade your project to sl_main or add the define SL_SUPPRESS_DEPRECATION_WARNINGS_SDK_2025_6 to your project to keep sl_system until it is removed.
+          sl_system support for RTOS applications will be removed in sisdk-2026.6.0 and your project will need to upgrade to sl_main.
+      - trigger: ram_interrupt_vector_init
+        description: >
+          In simplicity_sdk 2024.6.0, the ram_interrupt_vector_init component was deprecated and replaced by interrupt_manager. The ram_interrupt_vector_init component will be automatically replaced by interrupt_manager_vector_table_in_ram in your project.
+        add:
+          - interrupt_manager_vector_table_in_ram
+        remove:
+          - ram_interrupt_vector_init
+    configuration:
+      - script: platform_core/platform/service/component/upgrade_configuration_interrupt_manager.lua

@@ -1,0 +1,25 @@
+id: coulomb_counter_dcdc
+package: platform_core
+label: Coulomb Counter DCDC
+description: Coulomb Counter DCDC driver.
+category: Platform|Driver
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: platform_core/platform/driver/coulomb
+source:
+- path: src/sl_coulomb_counter_hal_dcdc.c
+requires:
+- name: hal_dcdc_coulomb_counter
+- name: coulomb_counter
+- name: clock_manager_runtime
+provides:
+- name: coulomb_counter_driver_implementation
+- name: coulomb_counter_dcdc
+config_file:
+- path: config/dcdc/sl_coulomb_counter_config.h
+  file_id: sl_coulomb_counter_config
+documentation:
+  docset: gecko-platform
+  document: platform-driver/coulomb-counter

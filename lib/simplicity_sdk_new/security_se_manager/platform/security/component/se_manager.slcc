@@ -1,0 +1,108 @@
+id: se_manager
+label: SE Manager
+package: security_se_manager
+description: >-
+  Driver for interacting with the SE or Root Code on Series 2 devices. The
+  available functionality varies accross parts: device management utilities
+  are available on all parts; on parts with the SE subsystem, a low level
+  crypto API is available; finally, Vault High devices also include key storage
+  functionality.
+category: Platform|Security|SE Manager
+quality: production
+source:
+- path: src/sl_se_manager.c
+- path: src/sl_se_manager_util.c
+  unless: [trustzone_nonsecure]
+
+include:
+- path: inc
+  file_list:
+  - path: sl_se_manager.h
+  - path: sl_se_manager_defines.h
+  - path: sl_se_manager_types.h
+  - path: sl_se_manager_util.h
+  - path: sl_se_manager_key_handling.h
+    condition: [trustzone_nonsecure]
+  - path: sl_se_manager_key_derivation.h
+    condition: [trustzone_nonsecure]
+
+  # Internals.
+- path: inc
+  file_list:
+  - path: sli_se_manager_features.h
+  - path: sl_se_manager_internal_keys.h
+    unless: [trustzone_nonsecure]
+  - path: sli_se_manager_internal.h
+    unless: [trustzone_nonsecure]
+
+requires:
+- name: device
+- name: sl_common
+  condition: [native]
+- name: status
+- name: code_classification
+
+- name: se_manager_mailbox
+- name: hal_generic_common
+  condition: [device_cortexm]
+- name: sl_core
+  condition: [device_cortexm]
+- name: hal_generic_system
+  condition: [device_cortexm]
+
+- name: sli_psec_osal
+  condition: [device_cortexm]
+
+- name: se_manager_config
+  condition: [trustzone_unaware, device_cortexm]
+- name: se_manager_config
+  condition: [trustzone_secure, device_cortexm]
+
+  # Not implemented for the TZ SE Manager Service (but used by the PSA drivers).
+- name: se_manager_crypto
+  condition: [trustzone_unaware]
+- name: se_manager_crypto
+  condition: [trustzone_secure]
+
+  # Inclusion of source and config components depends on which TZ state we are
+  # targeting. For apps that do not make active use of TZ, a dummy state
+  # (trustzone_unaware) should be used.
+- name: trustzone_security_state
+
+- name: se_manager_device_data
+  condition: [device_series_3]
+- name: se_manager_extmem
+  condition: [device_series_3]
+
+provides:
+- name: se_manager
+
+recommends:
+  # Assume that projects are TZ unaware unless a state is explicitly included.
+- id: trustzone_unaware
+
+  vendor: silabs
+documentation:
+  docset: gecko-platform
+  document: service/api/group-sl-se-manager
+
+define:
+- name: SL_CODE_COMPONENT_SE_MANAGER
+  value: se_manager
+
+template_contribution:
+- name: component_catalog
+  value: se_manager
+- name: code_classification_components
+  value: se_manager
+- name: event_handler
+  value:
+    event: service_init
+    include: sl_se_manager.h
+    handler: sl_se_init
+  priority: 1
+
+metadata:
+  sbom:
+    license: Zlib
+root_path: security_se_manager/platform/security/sl_component/se_manager

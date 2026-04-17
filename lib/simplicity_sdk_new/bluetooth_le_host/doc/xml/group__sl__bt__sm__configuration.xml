@@ -1,0 +1,110 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__sm__configuration" kind="group">
+    <compoundname>sl_bt_sm_configuration</compoundname>
+    <title>Security Manager configuration flags</title>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__sm__configuration_1ga93b80fde2c2f52cb996acbfa075b3089" prot="public" static="no">
+        <name>SL_BT_SM_CONFIGURATION_MITM_REQUIRED</name>
+        <initializer>0x1</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Bonding requires authentication (Man-in-the-Middle protection). </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11252" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="11252" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__sm__configuration_1ga7c0d0d35872201e1d52b03ca30881db9" prot="public" static="no">
+        <name>SL_BT_SM_CONFIGURATION_BONDING_REQUIRED</name>
+        <initializer>0x2</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Encryption requires bonding. Note that this setting will also enable bonding. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11256" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="11256" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__sm__configuration_1ga92ba13176032507452f323e08a5103a7" prot="public" static="no">
+        <name>SL_BT_SM_CONFIGURATION_SC_ONLY</name>
+        <initializer>0x4</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Require secure connections pairing. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11259" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="11259" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__sm__configuration_1ga42bde0fc1f902a883de7782cdd30a533" prot="public" static="no">
+        <name>SL_BT_SM_CONFIGURATION_BONDING_REQUEST_REQUIRED</name>
+        <initializer>0x8</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Bonding requests need to be confirmed. Received bonding requests are notified by <ref refid="group__sl__bt__evt__sm__confirm__bonding" kindref="compound">sl_bt_evt_sm_confirm_bonding</ref>. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11263" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="11263" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__sm__configuration_1ga853acfda4cc30d181765ddece17b5173" prot="public" static="no">
+        <name>SL_BT_SM_CONFIGURATION_CONNECTIONS_FROM_BONDED_DEVICES_ONLY</name>
+        <initializer>0x10</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Allow connections only from bonded devices. This option is ignored when the application includes the bluetooth_feature_external_bonding_database feature. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11268" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="11268" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__sm__configuration_1gaa03d9ced4f6ae9f0a9988dd49f5aa0fc" prot="public" static="no">
+        <name>SL_BT_SM_CONFIGURATION_PREFER_MITM</name>
+        <initializer>0x20</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Prefer authenticated pairing when both options are possible based on the settings. Otherwise just works pairing is preferred. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11272" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="11272" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__sm__configuration_1ga5246ebe74642f47ff534884a5fc0f6ac" prot="public" static="no">
+        <name>SL_BT_SM_CONFIGURATION_OOB_FROM_BOTH_DEVICES_REQUIRED</name>
+        <initializer>0x40</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Require secure connections OOB data from both devices. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11275" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="11275" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__sm__configuration_1gaf9ec695385fc82b410064a45a965aa3a" prot="public" static="no">
+        <name>SL_BT_SM_CONFIGURATION_REJECT_DEBUG_KEYS</name>
+        <initializer>0x80</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Reject pairing if remote device uses debug keys. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11278" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="11278" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para>These values are used to configure security requirements. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

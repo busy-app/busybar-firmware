@@ -1,0 +1,81 @@
+project_name: wifi_concurrent_nat_ble_provisioning_soc
+package: multi_protocol_siwx91x_app
+quality: production
+label: Wi-Fi Coex - Wi-Fi Concurrent NAT with BLE Provisioning (SoC)
+category: Example|Wi-Fi_BLE
+description: 'This application demonstrates how to enable AP+STA interfaces in concurrent mode and how third-party Wi-Fi clients connected to the SiWG917 can access the internet through a third-party AP using NAT.
+
+  '
+filter:
+- name: Wireless Technology
+  value:
+  - WiFi BLE
+- name: Project Difficulty
+  value:
+  - Intermediate
+source:
+- path: app.c
+- path: ble_app.c
+- path: wifi_app.c
+include:
+- path: .
+  file_list:
+  - path: app.h
+  - path: ble_config.h
+  - path: wifi_config.h
+define:
+- name: SL_SI91X_PRINT_DBG_LOG
+component:
+- id: sl_main
+- id: freertos
+- id: freertos_heap_4
+- id: syscalls
+- id: si91x_memory_default_config
+- id: wiseconnect_common
+- id: ble
+- id: wifi
+- id: sl_si91x_internal_stack
+- id: wifi_resources
+- id: network_manager
+- id: basic_network_config_manager
+- id: sl_si91x_basic_buffers
+- id: bsd_socket
+- id: sl_si91x_asynchronous_socket
+requires:
+- name: device_needs_ram_execution
+  condition:
+  - si91x_common_flash
+toolchain_settings:
+- option: gcc_compiler_option
+  value: -Wall -Werror
+configuration:
+- name: SL_BOARD_ENABLE_VCOM
+  value: '1'
+readme:
+- path: readme.md
+other_file:
+- path: resources/readme/remote_screen1.png
+- path: resources/readme/remote_screen2.png
+- path: resources/readme/remote_screen3.png
+- path: resources/readme/remote_screen4.png
+- path: resources/readme/serial_log1.png
+- path: resources/readme/serial_log2.png
+- path: resources/readme/serial_log3.png
+- path: resources/readme/setup.png
+- path: resources/readme/TCP_TX.png
+- path: resources/readme/TCP_tx_console.png
+- path: resources/readme/UDP_tx_console.png
+ui_hints:
+  highlight:
+  - path: readme.md
+    focus: true
+post_build:
+  profile: wiseconnect_soc
+sdk_extension:
+- id: wiseconnect3_sdk
+  vendor: silabs
+  version: 4.0.1
+sdk:
+  id: simplicity_sdk
+  vendor: silabs
+  version: 2025.12.2

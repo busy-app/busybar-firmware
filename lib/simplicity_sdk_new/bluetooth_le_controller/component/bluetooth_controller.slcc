@@ -1,0 +1,54 @@
+id: bluetooth_controller
+label: Bluetooth Low Energy Controller
+package: bluetooth_le_controller
+description: |-
+  BLE controller to be used by a Bluetooth stack
+
+category: Bluetooth|Bluetooth LE Controller (Link Layer)
+quality: production
+config_file:
+- path: config/sl_btctrl_config.h
+- path: config/sl_btctrl_scheduler_priority_config.h
+provides:
+- name: bluetooth_controller
+- name: bluetooth_controller_release
+- name: wireless_stack
+  allow_multiple: true
+source:
+- path: src/sl_btctrl_init.c
+- path: src/sl_btctrl_init_tasklets.c
+- path: utils/baremetal/src/sl_btctrl_baremetal.c
+  unless:
+  - kernel
+  - bluetooth_stack
+include:
+- path: inc
+  file_list:
+  - path: sl_bt_ll_config.h
+  - path: sl_btctrl_callbacks.h
+  - path: sl_btctrl_linklayer.h
+  - path: sl_btctrl_linklayer_defs.h
+  - path: sl_btctrl_packets.h
+requires:
+- name: bluetooth_controller_libraries
+- name: bluetooth_controller_rtos_adaptation
+  condition:
+  - kernel
+- name: cmsis_rtos2
+  condition:
+  - kernel
+template_contribution:
+- name: event_handler
+  value:
+    event: stack_init
+    include: sl_btctrl_linklayer.h
+    handler: sl_btctrl_init
+  priority: 0
+  unless:
+  - bluetooth_stack
+- name: application_type
+  value: APPLICATION_TYPE_BLUETOOTH_APP
+metadata:
+  sbom:
+    license: MSLA
+root_path: bluetooth_le_controller

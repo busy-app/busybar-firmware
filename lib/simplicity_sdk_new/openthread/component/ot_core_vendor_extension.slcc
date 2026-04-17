@@ -1,0 +1,21 @@
+id: ot_core_vendor_extension
+label: Silicon Labs OpenThread Core Vendor Extension
+package: openthread
+category: OpenThread
+quality: production
+description: |-
+  This component implements ot::Extension::ExtensionBase for EFR32.
+  When used with the OT Crash Handler component, crash info will be printed after the OpenThread instance is initialized.
+provides:
+- name: ot_core_vendor_extension
+ui_hints:
+  visibility: never
+source:
+- path: src/core/vendor_extension.cpp
+define:
+- name: OPENTHREAD_ENABLE_VENDOR_EXTENSION
+  value: 1
+metadata:
+  sbom:
+    license: Zlib
+root_path: openthread

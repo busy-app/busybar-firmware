@@ -1,0 +1,29 @@
+id: sl_websocket_client
+package: wifi
+description: >
+  The WebSocket Client provides an API to create a WebSocket client, connect to a WebSocket server, and send/receive messages.
+label: WebSocket Client
+category: Service
+quality: production
+metadata:
+  sbom:
+    license: MSLA
+component_root_path: ./components/service/sl_websocket_client
+provides:
+- name: sl_websocket_client
+source:
+- path: src/sl_websocket_client.c
+- path: src/sli_websocket_client_sync.c
+include:
+- path: inc
+- path: inc
+  file_list:
+    - path: sl_websocket_client.h
+    - path: sl_websocket_client_types.h
+    - path: sli_websocket_client_sync.h
+
+requires:
+- name: sl_si91x_socket
+- name: bsd_socket
+- name: sl_si91x_asynchronous_socket
+

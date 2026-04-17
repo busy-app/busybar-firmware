@@ -1,0 +1,18 @@
+id: linux_arch_arm32
+label: Linux OS (ARMv7l)
+package: devices
+description: OS component for ARM32v7l Linux build targets.
+category: Platform|Device|Native
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+requires:
+- name: linux
+provides:
+- name: linux_arch
+- name: linux_arch_arm32v7
+- name: arm32v7
+tag:
+- device:opn:linux_arm32
+root_path: devices

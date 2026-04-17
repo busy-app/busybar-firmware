@@ -1,0 +1,73 @@
+id: at_power_manager
+package: wifi
+description: >
+  Power Manager AT commands
+category: Service| AT Commands Autogen| Power Manager AT commands
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+component_root_path: ./components/at_commands_auto_gen
+provides:
+  - name: at_power_manager
+define:
+  - name: SL_SI91X_ENABLE_LOWPWR_RET_LDO
+  - name: AT_M4_POWER_SAVE
+
+requires:
+  - name: sl_power_manager
+  - name: power_manager_config
+  - name: calendar_ulp_component
+  - name: wakeup_source_config
+  - name: wireless_wakeup_ulp_component
+  - name: device_needs_ram_execution
+    condition:
+      - si91x_common_flash
+
+template_contribution:
+  - name: console_headers
+    value: "rsi_wisemcu_hardware_setup.h"
+  - name: console_headers
+    value: "sl_si91x_host_interface.h"
+  - name: console_headers
+    value: "sl_si91x_driver.h"
+  - name: console_commands
+    value:
+      xtal-enable:
+        handler: m4_ta_secure_handshake_command_handler
+        arguments:
+          - "uint8"
+      m4-deep-sleep:
+        handler: m4_power_manager_deep_sleep_handler
+        arguments:
+          - "uint8"
+          - "uint32"
+      m4-power-manager:
+        handler: m4_power_manager_handler
+        arguments:
+          - "uint8"
+          - "uint32"
+      cal-start:
+        handler: power_manager_calender_start_handler
+        arguments:
+          - "uint32"
+      cal-stop:
+        handler: power_manager_calender_stop_handler
+      wifisys-wake-src:
+        handler: power_manager_set_wakeup_source_handler
+        arguments:
+          - "uint8"
+          - "uint32"
+      wifisys-psreq:
+        handler: power_manager_config_ps_requirement_handler
+        arguments:
+          - "uint8"
+          - "uint32"
+      wifisys-psreq?:
+        handler: power_manager_get_ps_requirement_table_handler
+      wifisys-ps?:
+        handler: power_manager_get_current_state_handler
+      wifisys-sleep:
+        handler: set_power_manager_sleep_handler
+      wifisys-standby:
+        handler: set_power_manager_standby_handler

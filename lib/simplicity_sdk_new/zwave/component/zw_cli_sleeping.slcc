@@ -1,0 +1,44 @@
+id: zw_cli_sleeping
+label: Z-Wave CLI Sleeping Component
+category: Z-Wave|CLI
+description: >
+  This component extends the zw_cli_common component with the ability to enable or disable sleeping, because the UART
+  peripheral is not available by default in the sleeping applications. If the user presses the reset button
+  on the device (or using `commander reset`), the device will wake up and the UART will be available for a short period
+  of time, which allows to disable sleeping with the 'sleeping' CLI commands provided by this component.
+package: zwave
+quality: production
+metadata:
+  sbom:
+    reference: zw_sbom_license
+
+source:
+- path: "platform/SiliconLabs/components/zw_cli_sleeping/zw_cli_sleeping.c"
+include:
+- path: "platform/SiliconLabs/components/zw_cli_sleeping/"
+  file_list:
+  - path: "zw_cli_sleeping.h"
+config_file:
+- path: "platform/SiliconLabs/components/zw_cli_sleeping/config/zw_cli_sleeping_config.h"
+  file_id: "zw_cli_sleeping_config"
+provides:
+- name: zw_cli_sleeping
+requires:
+- name: zw_cli_common
+- name: zw_shutdown_manager
+
+template_contribution:
+  #------------------ Template Contribution ---------------------
+- name: cli_command
+  condition: [zw_cli_common]
+  value:
+    name: sleeping
+    handler: cli_sleeping
+    help: Enable or disable sleeping
+    argument:
+    - type: string
+      help: "enable or disable"
+  #------------------ Template Contribution ---------------------
+- name: component_catalog
+  value: zw_cli_sleeping
+root_path: zwave

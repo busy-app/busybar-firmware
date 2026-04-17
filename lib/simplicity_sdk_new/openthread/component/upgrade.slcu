@@ -1,0 +1,67 @@
+upgrade:
+  - sdk:
+      id: simplicity_sdk
+      version: "4.4.0"
+    component:
+      - trigger: ot_thirdparty
+        description: >
+          The ot_thirdparty component has been deprecated. Replacing with ot_mbedtls directly.
+        remove:
+          - ot_thirdparty
+        add:
+          - ot_mbedtls
+      - script: openthread/component/script/upgrade_log_config.lua
+        description: >
+          The implementation for platform defined logging has been split into the ot_rtt_log component.
+          If a project configures for platform defined logging, this component must be included.
+
+  - sdk:
+      id: simplicity_sdk
+      version: "2024.6.0"
+    component:
+      - trigger: ot_rcp_gp_interface
+        description: >
+          The ot_rcp_gp_interface component has been renamed to ot_gp_interface.
+        remove:
+          - ot_rcp_gp_interface
+        add:
+          - ot_gp_interface
+    configuration:
+      - script: openthread/component/script/upgrade_task_priorities.lua
+      - script: openthread/component/script/upgrade_multipan_configs.lua
+        description: >
+          Enable OpenThread multiple static instance configuration options for MultiPAN application.
+
+  - sdk:
+      id: simplicity_sdk
+      version: "2024.12.0"
+    component:
+      - script: openthread/component/script/upgrade_diag_config.lua
+        description: >
+          Diagnostic configuration support has been moved to ot_diags component.
+
+  - sdk:
+      id: simplicity_sdk
+      version: "2025.6.0"
+    component:
+      - script: openthread/component/script/upgrade_sl_main_start_task_size.lua
+        description: >
+          SL_MAIN_START_TASK_STACK_SIZE_BYTES configuration could be added and adjusted in project files.
+      - script: openthread/component/script/upgrade_ot_sl_system_compatibility.lua
+        description: >
+          In sisdk-2025.6.0 the sl_system component was deprecated and support for baremetal applications has been removed.
+          For baremetal applications sl_system_compatibility is now used for a seamless transition.
+          For RTOS applications you can manually upgrade your project to sl_main or add the define SL_SUPPRESS_DEPRECATION_WARNINGS_SDK_2025_6 to your project to keep sl_system until it is removed.
+          sl_system support for RTOS applications will be removed in sisdk-2026.6.0 and your project will need to upgrade to sl_main.
+      - script: openthread/component/script/upgrade_ncp_cli_support.lua
+        description: >
+          Add CLI support to NCP applications.
+
+  - sdk:
+      id: simplicity_sdk
+      version: "2025.12.2"
+    configuration:
+      - script: openthread/component/script/upgrade_serial_task_stack_size.lua
+        description: >
+          Ensure SL_OPENTHREAD_SERIAL_TASK_MEM_SIZE is at least the required minimum in RTOS applications;
+          upgrade if less, leave unchanged if greater than or equal.

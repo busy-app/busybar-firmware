@@ -1,0 +1,17 @@
+workspace_name: bt_ncp_dfu_freertos_s2_btl
+label: Bluetooth - NCP DFU FreeRTOS (Series 2)
+package: bluetooth_le_app
+description: >
+  Network Co-Processor (NCP) target application with device firmware update.
+  Runs the Bluetooth stack dynamically and provides access to it via Bluetooth
+  API (BGAPI) using UART connection. NCP mode makes it possible to run your
+  application on a host controller or PC.
+  Combined solution with application and bootloader projects.
+quality: experimental
+project:
+  - path: bt_ncp_dfu_freertos.slcp
+    id: application
+  - path: ../../bootloader/bootloader-uart-bgapi-s2.slcp
+    id: bootloader
+post_build:
+  path: ../../postbuild_profile/bt_dfu_ws.slpb

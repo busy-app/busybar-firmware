@@ -1,0 +1,82 @@
+package: zigbee
+description: This component provides an API to add/remove a device from a list of known devices, and to record their list of endpoints and clusters. The list of devices is not persisted across reboots.
+label: Device Database
+quality: production
+id: zigbee_device_database
+category: Zigbee|Utility
+provides:
+- name: zigbee_device_database
+config_file:
+- path: app/framework/plugin/device-database/config/device-database-config.h
+source:
+- path: app/framework/plugin/device-database/device-database.c
+- path: app/framework/plugin/device-database/device-database-cli.c
+  condition:
+  - cli
+- path: app/framework/plugin/device-database/device-database-cb.c
+include:
+- path: app/framework/plugin/device-database
+  file_list:
+  - path: device-database.h
+template_contribution:
+- name: component_catalog
+  value: zigbee_device_database
+- name: zigbee_af_callback
+  value:
+    callback_type: local_data_init
+    function_name: sl_zigbee_af_device_database_init_cb
+- name: cli_group
+  value:
+    group: plugin
+    name: device-database
+    help: device-database related commands.
+- name: cli_command
+  value:
+    group: device-database
+    name: print-all
+    handler: sli_zigbee_af_device_database_print_all
+    help: Prints all devices in the database.
+- name: cli_group
+  value:
+    group: device-database
+    name: device
+    help: device related commands.
+- name: cli_command
+  value:
+    group: device
+    name: print
+    handler: sli_zigbee_af_device_database_print_device
+    help: Prints all the clusters and endpoints known about the specified device in the database.
+    argument:
+    - type: hex
+      help: The address of the device to be looked up (little endian)
+- name: cli_command
+  value:
+    group: device
+    name: erase
+    handler: sli_zigbee_af_device_database_erase
+    help: Erases the device with specified EUI64 from the database.
+    argument:
+    - type: hex
+      help: The address of the device to erase from the database
+- name: cli_command
+  value:
+    group: device
+    name: add-dummy
+    handler: sli_zigbee_af_device_database_add_dummy_device
+    help: Adds a device with specified EUI64 and a sequential number of clusters and endpoints.
+    argument:
+    - type: hex
+      help: The address of the dummy device to add
+    - type: uint8
+      help: The number of dummy endpoints to add
+    - type: uint16
+      help: The number of dummy clusters to add
+
+documentation:
+  docset: zigbee
+  document: zigbee-af-api/device-database
+metadata:
+  sbom:
+    license: MSLA
+root_path: zigbee

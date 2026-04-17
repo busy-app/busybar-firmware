@@ -1,0 +1,51 @@
+project_name: sl_si91x_usart_sync_master
+package: platform_siwx91x_app
+description: 'This application demonstrates the usage of the USART master mode for transmitting and receiving data in synchronous full-duplex mode.  It highlights how the USART module enables simultaneous, bidirectional data flow using a synchronized clock signal, ensuring efficient communication between devices.  This mode is ideal for applications where both transmitting and receiving of data need to occur at the same time with high data integrity.
+
+  '
+category: example|peripheral
+quality: production
+label: SI91x - SL_USART_SYNCHRONOUS_MASTER
+component:
+- id: sl_main
+- id: status
+- id: syscalls
+- id: si91x_memory_default_config
+- id: sl_usart
+source:
+- path: app.c
+- path: usart_sync_example.c
+include:
+- path: .
+  file_list:
+  - path: app.h
+  - path: usart_sync_example.h
+define:
+- name: SLI_SI91X_MCU_CONFIG_RADIO_BOARD_BASE_VER
+toolchain_settings:
+- option: gcc_compiler_option
+  value: -Wall -Werror
+other_file:
+- path: resources/readme/setupdiagram.png
+- path: resources/readme/image513d.png
+- path: resources/uc_screen/usart_uc.png
+- path: resources/readme/usart_master_console_output.png
+configuration:
+- name: SL_USART_MODE
+  value: SL_USART_MODE_SYNCHRONOUS_MASTER
+ui_hints:
+  highlight:
+  - path: readme.md
+    focus: true
+readme:
+- path: readme.md
+post_build:
+  profile: wiseconnect_soc
+sdk_extension:
+- id: wiseconnect3_sdk
+  vendor: silabs
+  version: 4.0.1
+sdk:
+  id: simplicity_sdk
+  vendor: silabs
+  version: 2025.12.2

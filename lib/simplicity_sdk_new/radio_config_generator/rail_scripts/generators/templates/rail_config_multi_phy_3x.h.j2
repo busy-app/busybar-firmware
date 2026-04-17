@@ -1,0 +1,89 @@
+{% extends "base.j2" %}
+{% block filename %}{{filename}}.h{% endblock %}
+{% block title %}{{title}} Header{% endblock %}
+{% block content %}
+#ifndef {{filename|upper}}_H
+#define {{filename|upper}}_H
+
+#include <stdint.h>
+#include "sl_rail_types.h"
+{%- if multiPhyConfig.commonStructures.modeSwitchPhyModeIds|length %}
+#include "sl_rail_ieee802154.h"
+{%- endif %}
+{%- if rail_internal and not rail_secondary_config %}
+#include "timing_state.h"
+{%- endif %}
+{{- "\n" -}}
+
+{%- if rail_internal %}
+{%- if multiPhyConfig.commonStructures.modemConfigEntriesBase|length > 0 %}
+{%- for modemConfigName, modemConfig in multiPhyConfig.commonStructures.modemConfigEntriesBase.items() %}
+extern const uint32_t sl_railcfg_{{modemConfigName}}[];
+{%- endfor %}
+{% endif %}
+
+{%- if multiPhyConfig.commonStructures.modemConfigEntries|length > 0 %}
+{%- for modemConfigName, modemConfig in multiPhyConfig.commonStructures.modemConfigEntries.items() %}
+extern const uint32_t sl_railcfg_{{modemConfigName}}[];
+{%- endfor %}
+{% endif %}
+
+{%- for multiPhyConfigEntryName, multiPhyConfigEntry in multiPhyConfig.multiPhyConfigEntries.items() %}
+{%- if multiPhyConfigEntry.phyName %}
+#define SL_RAILCFG_{{multiPhyConfigEntryName|upper}}_{{multiPhyConfigEntry.phyName|upper}}
+{%- endif %}
+{%- if multiPhyConfigEntry.profile %}
+#define SL_RAILCFG_{{multiPhyConfigEntryName|upper}}_PROFILE_{{multiPhyConfigEntry.profile|upper}}
+{%- endif %}
+extern const sl_rail_channel_config_t sl_railcfg_{{multiPhyConfigEntryName}}_channel_config;
+extern const sl_rail_channel_config_entry_t sl_railcfg_{{multiPhyConfigEntryName}}_channels[];
+{% endfor %}
+
+{%- else %}
+
+{%- set firstMultiPhyConfigEntryName, firstMultiPhyConfigEntryValue = multiPhyConfig.multiPhyConfigEntries|firstElement %}
+{%- set firstPhyConfigEntryName, firstPhyConfigEntryValue = firstMultiPhyConfigEntryValue.phyConfigEntries|firstElement %}
+#define SL_RAILCFG_XTAL_FREQUENCY {{firstPhyConfigEntryValue.xtalFrequency}}UL
+{{- "\n" -}}
+
+{%- if firstMultiPhyConfigEntryValue.phyName %}
+#define SL_RAILCFG_{{firstPhyConfigEntryName|upper}}_{{firstMultiPhyConfigEntryValue.phyName|upper}}
+{%- endif %}
+{%- if firstMultiPhyConfigEntryValue.profile %}
+#define SL_RAILCFG_{{firstPhyConfigEntryName|upper}}_PROFILE_{{firstMultiPhyConfigEntryValue.profile|upper}}
+{%- endif %}
+extern const sl_rail_channel_config_t *sl_railcfg_channel_configs[];
+{%- if not rail_internal -%}
+{%- if multiPhyConfig.commonStructures.rffpllConfigEntries.items()|length %}
+#define SL_RAILCFG_RFFPLL_CONFIG_PRESENT
+extern const sl_rail_rffpll_config_t *sl_railcfg_rffpll_config;
+{%- endif %}
+{%- endif %}
+{% endif -%}
+
+{%- if multiPhyConfig.commonStructures.modeSwitchPhyModeIds|length %}
+#define SL_RAILCFG_WISUN_MODESWITCHPHRS_ARRAY_SIZE {{multiPhyConfig.commonStructures.modeSwitchPhyModeIds|length}}
+extern const uint8_t sl_railcfg_wisun_mode_switch_phrs_length;
+extern const sl_rail_ieee802154_mode_switch_phr_t sl_railcfg_wisun_mode_switch_phrs[SL_RAILCFG_WISUN_MODESWITCHPHRS_ARRAY_SIZE];
+{% endif %}
+
+{%- for struct_name, struct_obj in multiPhyConfig.commonStructures.stackInfoProtocolTableEntries.items() %}
+{%- if struct_obj['enable'] == True %}
+typedef struct {{struct_name}} {
+  sl_rail_stack_info_common_t stack_info_common;
+{%- for field_name, field_value in struct_obj.items() %}
+  {%- if field_name != 'enable' %}
+  uint8_t {{field_name}};
+  {%- endif %}
+  {%- if field_name == 'wisunChannelParam' -%}
+  // wisun_operating_class for version=0, wisun_channel_plan_id for version=1
+  {%- endif %}
+{%- endfor %}
+} {{struct_name}}_t;
+{% endif %}
+{%- endfor %}
+
+{{- "\n" -}}
+#endif // {{filename|upper}}_H
+{{- "\n" -}}
+{%- endblock %}

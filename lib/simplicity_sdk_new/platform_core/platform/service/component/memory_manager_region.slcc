@@ -1,0 +1,32 @@
+id: memory_manager_region
+label: Memory Manager region
+package: platform_core
+description: >
+  This component provides configuration and getter functions for the C stack and heap for the supported toolchains.
+  For GCC, also adds support for _sbrk() for heap allocation. It is used in the newlib version of malloc().
+category: Services|Memory Manager
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: platform_core/platform/service/memory_manager
+config_file:
+- path: config/legacy/sl_memory_manager_region_config.h
+  unless: [sl_main]
+- path: config/legacy/sl_memory_manager_region_config.h
+  condition: [sl_main]
+  unless: [kernel]
+- path: config/rtos/sl_memory_manager_region_config.h
+  condition: [kernel, sl_main]
+include:
+- path: inc
+  file_list:
+  - path: sl_memory_manager_region.h
+source:
+- path: src/sl_memory_manager_region.c
+provides:
+- name: memory_manager_region
+requires:
+- name: device
+  condition: [device_cortexm]
+- name: component_catalog

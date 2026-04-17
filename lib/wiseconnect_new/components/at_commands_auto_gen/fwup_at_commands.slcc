@@ -1,0 +1,37 @@
+id: fwup_at_commands
+package: wifi
+description: >
+  Firmware Update AT commands
+category: Service| AT Commands Autogen| Firmware Update AT commands
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+component_root_path: ./components/at_commands_auto_gen
+provides:
+  - name: fwup_at_commands
+
+template_contribution:
+  - name: console_commands
+    value:
+      fwup-fast:
+        handler: fwup_fast_command_handler
+      fwup-start:
+        handler: fwup_start_command_handler
+        arguments:
+          - "uint16"    # rps-header-length
+      fwup-load:
+        handler: fwup_load_command_handler
+        arguments:
+          - "uint16"    # content-length
+      fwup-abort:
+        handler: fwup_abort_command_handler
+      fwup-otaf:
+        handler: fwup_otaf_command_handler
+        arguments:
+          - "string"    # server-ip
+          - "uint16"    # server-port
+          - "uint16"    # chunk-number
+          - "uint16"    # timeout
+          - "uint16"    # tcp-retry-count
+

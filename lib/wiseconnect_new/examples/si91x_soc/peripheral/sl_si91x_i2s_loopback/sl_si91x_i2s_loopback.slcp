@@ -1,0 +1,48 @@
+project_name: sl_si91x_i2s_loopback
+package: platform_siwx91x_app
+description: "This application demonstrates how to configure and use the I2S loopback on the Si91x SoC device. \nIt allows you to send and receive audio data within the device using the I2S interface, \nenabling a loopback test to verify the functionality of the I2S peripheral.\n"
+category: example|peripheral
+quality: production
+label: SI91x - SL_I2S_LOOPBACK
+component:
+- id: sl_main
+- id: status
+- id: syscalls
+- id: si91x_memory_default_config
+- id: i2s_instance
+  instance:
+  - i2s0
+source:
+- path: app.c
+- path: i2s_loopback_example.c
+include:
+- path: .
+  file_list:
+  - path: app.h
+  - path: i2s_loopback_example.h
+toolchain_settings:
+- option: gcc_compiler_option
+  value: -Wall -Werror
+define:
+- name: SYSCALLS_WRITE
+- name: I2S_LOOP_BACK
+other_file:
+- path: resources/readme/setupdiagram.png
+- path: resources/uc_screen/i2s_loopback_uc_screen.png
+- path: resources/readme/output.png
+ui_hints:
+  highlight:
+  - path: readme.md
+    focus: true
+readme:
+- path: readme.md
+post_build:
+  profile: wiseconnect_soc
+sdk_extension:
+- id: wiseconnect3_sdk
+  vendor: silabs
+  version: 4.0.1
+sdk:
+  id: simplicity_sdk
+  vendor: silabs
+  version: 2025.12.2

@@ -1,0 +1,28 @@
+id: bootloader_em4_gpio_retention
+label: EM4 GPIO Retention
+package: bootloader
+description: >
+  The Bootloader EM4 GPIO Retention component provides functionality to retain and restore GPIO states
+  specifically during OTA upgrades using EM4 sleep and wakeup cycles. It supports preserving GPIO configurations,
+  output states, and reset information during EM4 transitions for bootloader operations. The component uses BURAM
+  (Backup RAM) for storage and provides APIs for pin configuration, reset counter management, and
+  automatic GPIO restoration on wakeup. Features include BURAM-based reset reason tracking, configurable pin retention
+  (up to 16 pins), and seamless integration with existing bootloader reset mechanisms.
+category: Platform|Bootloader|Core
+quality: production
+source:
+- path: platform/bootloader/em4-gpio-retention/btl_em4_gpio_retention.c
+  condition: [device_series_2]
+include:
+- path: platform/bootloader/em4-gpio-retention
+  file_list:
+  - path: btl_em4_gpio_retention.h
+define:
+- name: BTL_EM4_GPIO_RETENTION
+  value: 1
+provides:
+- name: bootloader_em4_gpio_retention
+metadata:
+  sbom:
+    license: MSLA
+root_path: bootloader

@@ -1,0 +1,58 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__CRYPTO__GCM__FUNCTIONS" kind="group">
+    <compoundname>CRYPTO_GCM_FUNCTIONS</compoundname>
+    <title>Functions</title>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="group__CRYPTO__GCM__FUNCTIONS_1gaa7aa38fc2ee5bdd69c07a44b41d83c24" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_si91x_gcm</definition>
+        <argsstring>(sl_si91x_gcm_config_t *config, uint8_t *output)</argsstring>
+        <name>sl_si91x_gcm</name>
+        <param>
+          <type><ref refid="structsl__si91x__gcm__config__t" kindref="compound">sl_si91x_gcm_config_t</ref> *</type>
+          <declname>config</declname>
+        </param>
+        <param>
+          <type>uint8_t *</type>
+          <declname>output</declname>
+        </param>
+        <briefdescription>
+<para>To encrypt or decrypt the message according to the given configuration. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>This is a blocking API. <parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">config</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Configuration object of type <ref refid="structsl__si91x__gcm__config__t" kindref="compound">sl_si91x_gcm_config_t</ref> </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">output</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Buffer to store the output. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="note"><para>The maximum message length supported is 1400 bytes. The M4 receive buffer is limited to 1400 bytes, so both the packet length and expected output must stay within this limit. If the output exceeds 1400 bytes, the NWP will return an error. </para>
+</simplesect>
+<simplesect kind="return"><para>sl_status_t. For more information on status codes, refer to <ulink url="https://docs.silabs.com/gecko-platform/latest/platform-common/status">SL STATUS DOCUMENTATION</ulink>. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/gcm/inc/sl_si91x_gcm.h" line="181" column="13" declfile="components/device/silabs/si91x/wireless/crypto/gcm/inc/sl_si91x_gcm.h" declline="181" declcolumn="13"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para>This section provides a reference to the GCM Crypto API functions. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

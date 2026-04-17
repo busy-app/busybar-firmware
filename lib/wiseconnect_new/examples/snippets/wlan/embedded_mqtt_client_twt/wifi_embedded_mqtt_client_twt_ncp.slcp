@@ -1,0 +1,87 @@
+project_name: wifi_embedded_mqtt_client_twt_ncp
+package: wifi_app
+quality: production
+label: Wi-Fi - Embedded MQTT CLIENT TWT(NCP)
+category: Example|Wi-Fi
+description: 'Demonstrates how to build an MQTT client with TWT, power save configuration and connect to broker.
+
+  '
+filter:
+- name: Wireless Technology
+  value:
+  - Wi-Fi
+- name: Project Difficulty
+  value:
+  - Beginner
+source:
+- path: app.c
+include:
+- path: .
+  file_list:
+  - path: app.h
+define:
+- name: SL_SI91X_PRINT_DBG_LOG
+- name: SLI_SI91X_EMBEDDED_MQTT_CLIENT
+- name: SLI_SI91X_CONFIG_WIFI6_PARAMS
+- name: SLI_SI91X_ENABLE_TWT_FEATURE
+component:
+- id: sl_main
+- id: freertos
+- id: freertos_heap_4
+- id: device_init
+- id: spidrv
+  instance:
+  - exp
+- id: iostream_retarget_stdio
+- id: iostream_recommended_stream
+- id: iostream_stdlib_config
+- id: wiseconnect_common
+- id: wifi
+- id: sl_si91x_internal_stack
+- id: sl_si91x_spi_bus
+- id: wifi_resources
+- id: network_manager
+- id: basic_network_config_manager
+- id: mqtt
+- id: sl_si91x_basic_buffers
+toolchain_settings:
+- option: gcc_compiler_option
+  value: -Wall -Werror
+configuration:
+- name: SL_BOARD_ENABLE_VCOM
+  value: '1'
+- name: configUSE_POSIX_ERRNO
+  value: '1'
+- name: configTOTAL_HEAP_SIZE
+  value: '51200'
+- name: configTIMER_TASK_PRIORITY
+  value: '55'
+readme:
+- path: readme.md
+other_file:
+- path: resources/readme/add_topic_name.png
+- path: resources/readme/application_prints_soc_ncp.png
+- path: resources/readme/connect_subscribe.png
+- path: resources/readme/connect.png
+- path: resources/readme/delete_connections.png
+- path: resources/readme/embedded_mqtt_client_twt_setup_soc_ncp.png
+- path: resources/readme/energy_profiler_step_6.png
+- path: resources/readme/energy_profiler_step_7.png
+- path: resources/readme/mqtt_explorer_msg.png
+- path: resources/readme/mqtt_server.png
+- path: resources/readme/mqtts_server.png
+- path: resources/readme/outputs_2.png
+- path: resources/readme/publish_msg.png
+- path: resources/sdk_edit_warning.png
+ui_hints:
+  highlight:
+  - path: readme.md
+    focus: true
+sdk_extension:
+- id: wiseconnect3_sdk
+  vendor: silabs
+  version: 4.0.1
+sdk:
+  id: simplicity_sdk
+  vendor: silabs
+  version: 2025.12.2

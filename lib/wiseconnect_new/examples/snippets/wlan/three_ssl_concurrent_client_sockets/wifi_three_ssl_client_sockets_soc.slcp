@@ -1,0 +1,77 @@
+project_name: wifi_three_ssl_client_sockets_soc
+package: wifi_app
+quality: production
+label: Wi-Fi - Three TLS Concurrent Client Sockets (SoC)
+category: Example|Wi-Fi
+description: "This application demonstrates how SiWx91x will connect to three different SSL servers with three different set of SSL certificates  \n"
+filter:
+- name: Wireless Technology
+  value:
+  - Wi-Fi
+- name: Project Difficulty
+  value:
+  - Beginner
+source:
+- path: app.c
+include:
+- path: .
+  file_list:
+  - path: app.h
+define:
+- name: SL_SI91X_PRINT_DBG_LOG
+component:
+- id: sl_main
+- id: freertos
+- id: freertos_heap_4
+- id: sl_si91x_mem_pool_buffers_with_quota
+- id: syscalls
+- id: si91x_memory_default_config
+- id: wiseconnect_common
+- id: wifi
+- id: sl_si91x_internal_stack
+- id: wifi_resources
+- id: network_manager
+- id: basic_network_config_manager
+- id: bsd_socket
+- id: aws_sdk
+toolchain_settings:
+- option: gcc_compiler_option
+  value: -Wall -Werror
+configuration:
+- name: SL_BOARD_ENABLE_VCOM
+  value: '1'
+readme:
+- path: readme.md
+other_file:
+- path: resources/readme/ssl_server.png
+- path: resources/readme/two_ssl_servers.png
+- path: resources/readme/threesslsocketsoc_ncp.png
+- path: resources/readme/three_ssl_socket_output_1.png
+- path: resources/readme/aws_iot_mqtt_host_url_1.png
+- path: resources/readme/aws_create_thing_step1.png
+- path: resources/readme/aws_create_thing_step2.png
+- path: resources/readme/aws_create_thing_step3.png
+- path: resources/readme/aws_create_thing_step4.png
+- path: resources/readme/aws_create_thing_step5.png
+- path: resources/readme/aws_choosing_policy.png
+- path: resources/readme/aws_create_thing_attach_policy.png
+- path: resources/readme/aws_create_thing_policy_create.png
+- path: resources/readme/aws_thing_certificates_download.png
+requires:
+- name: device_needs_ram_execution
+  condition:
+  - si91x_common_flash
+ui_hints:
+  highlight:
+  - path: readme.md
+    focus: true
+post_build:
+  profile: wiseconnect_soc
+sdk_extension:
+- id: wiseconnect3_sdk
+  vendor: silabs
+  version: 4.0.1
+sdk:
+  id: simplicity_sdk
+  vendor: silabs
+  version: 2025.12.2

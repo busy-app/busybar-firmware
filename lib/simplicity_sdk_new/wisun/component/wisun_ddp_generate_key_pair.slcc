@@ -1,0 +1,35 @@
+id: wisun_ddp_generate_key_pair
+label: DDP generate Wi-SUN device key pair
+description: |
+  This component provides a Dynamic Data Provisioning (DDP) command for
+  generating a Wi-SUN device key pair.
+package: wisun
+category: Wi-SUN
+quality: evaluation
+
+provides:
+- name: wisun_ddp_generate_key_pair
+requires:
+- name: ddp_common
+- name: ddp_generate_key
+- name: emlib_system
+- name: psa_crypto_ecc_secp256r1
+include:
+- path: plugin
+  file_list:
+  - path: sl_wisun_ddp_generate_key_pair.h
+source:
+- path: plugin/sl_wisun_ddp_generate_key_pair.c
+define:
+- name: SL_WISUN_DDP_GENERATE_KEY_PAIR
+  value: 201
+template_contribution:
+- name: ddp_command
+  value:
+    id: SL_WISUN_DDP_GENERATE_KEY_PAIR
+    handler: sl_wisun_ddp_generate_key_pair
+
+metadata:
+  sbom:
+    license: MSLA
+root_path: wisun

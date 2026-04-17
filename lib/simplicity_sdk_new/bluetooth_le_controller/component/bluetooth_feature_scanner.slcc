@@ -1,0 +1,35 @@
+id: "bluetooth_feature_scanner"
+label: "Scanner Base Feature"
+package: bluetooth_le_controller
+description: >
+  The Bluetooth scanning component, corresponding to the "scanner" class
+  in Bluetooth APIs, is the base of legacy and extended scannings and it
+  provides functionalities that are common in legacy and extended scannings.
+
+  This component is implicitly brought in by the <bluetooth_feature_legacy_scanner>
+  component that enables scanning the advertisements using legacy advertising PDUs,
+  or the <bluetooth_feature_extended_scanner> component that enables scanning
+  the advertisements using legacy or extended advertising PDUs.
+category: Bluetooth|Bluetooth LE Controller (Link Layer)|Features with Commands and Events
+quality: "production"
+requires:
+- name: "bluetooth_controller"
+- name: "bluetooth_functionable_scanning"
+provides:
+- name: "bluetooth_feature_scanner"
+- name: "bluetooth_feature_central_connection"
+  allow_multiple: true
+- name: "bluetooth_feature_connection_creation"
+  allow_multiple: true
+template_contribution:
+- name: component_catalog
+  value: bluetooth_feature_scanner
+documentation:
+  docset: bluetooth
+  document: bluetooth-stack-api/sl-bt-scanner
+ui_hints:
+  visibility: never
+metadata:
+  sbom:
+    license: MSLA
+root_path: bluetooth_le_controller

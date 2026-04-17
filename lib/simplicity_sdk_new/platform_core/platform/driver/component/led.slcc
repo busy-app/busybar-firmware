@@ -1,0 +1,29 @@
+id: led
+label: Generic LED API
+package: platform_core
+description: >
+  This component provides a base LED functionality such as initialize, get and set state.
+  In addition, an LED driver implementation component such as the Simple LED component
+  can be included in the project to implement full LED handling.
+category: Platform|Driver|LED
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: platform_core/platform/driver/leddrv/
+source:
+- path: src/sl_led.c
+include:
+- path: inc
+  file_list:
+  - path: sl_led.h
+provides:
+- name: led
+requires:
+- name: hal_generic_common
+- name: clock_manager_runtime
+- name: status
+- name: component_catalog
+documentation:
+  docset: gecko-platform
+  document: platform-driver/led

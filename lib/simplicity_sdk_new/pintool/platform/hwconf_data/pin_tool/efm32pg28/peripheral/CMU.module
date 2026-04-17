@@ -1,0 +1,23 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<module:DocumentRoot xmlns:module="http://www.silabs.com/ss/hwconfig/module.ecore">
+  <module id="pin_tool.efm32.efm32pg28.cmu" label="CMU" name="CMU" description="" version="A">
+    <properties>
+      <stringProperty label="Type" id="type" defaultValue="cmu" transient="true" hidden="true" readonly="true" description=""/>
+      <stringProperty label="Custom Peripheral Name" id="peripheral.name" description=""/>
+    </properties>
+    <propertyCategories>
+      <category label="CMU">
+        <subCategory label="">
+          <propertyRef refId="peripheral.name"/>
+        </subCategory>
+      </category>
+    </propertyCategories>
+    <signals>
+      <signal name="CLKOUT2"/>
+      <signal name="CLKOUTHIDDEN"/>
+      <signal name="CLKIN0"/>
+      <signal name="CLKOUT0"/>
+      <signal name="CLKOUT1"/>
+    </signals>
+  </module>
+</module:DocumentRoot>

@@ -1,0 +1,25 @@
+id: sl_si91x_cpc_sdio
+label: sl_si91x_cpc_sdio
+package: platform_nwp_siwx91x
+description: >
+  Provides Co-Processor Communication (CPC) protocol service for SDIO driver.
+category: Device|Si91x|MCU|Service
+quality: experimental
+metadata:
+  sbom:
+    license: Zlib
+component_root_path: "components/device/silabs/si91x/mcu/drivers/service/cpc"
+provides:
+  - name: cpc_sdio_secondary_driver
+  - name: sl_si91x_cpc_sdio
+requires:
+  - name: sl_sdio_secondary
+  - name: sl_sdio_secondary_peripheral
+template_contribution:
+  - name: event_handler
+    value:
+      event: service_process_action
+      include: sl_cpc_drv_secondary_sdio_config.h
+      handler: sl_cpc_process_tx_rx
+
+

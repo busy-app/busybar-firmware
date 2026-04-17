@@ -1,0 +1,34 @@
+id: "btmesh_stack_si91x_rtos_adaptation"
+label: "Bluetooth Mesh RTOS Adaptation for Si91x"
+package: bluetooth_mesh
+description: >
+  Bluetooth Mesh RTOS adaptation for running the Bluetooth Mesh stack in a kernel on the Si91x family of devices.
+category: Btmesh|RTOS Adaptation
+quality: "production"
+ui_hints:
+  visibility: never
+config_file:
+- path: "config/sl_btmesh_si91x_rtos_config.h"
+include:
+- path: "inc/"
+  file_list:
+  - path: "sl_btmesh_si91x_rtos_adaptation.h"
+source:
+- path: "src/sl_btmesh_si91x_rtos_adaptation.c"
+requires:
+- name: btmesh_stack
+template_contribution:
+- name: component_catalog
+  value: btmesh_si91x_rtos_adaptation
+- name: event_handler
+  value:
+    event: stack_init
+    include: "sl_btmesh_si91x_rtos_adaptation.h"
+    handler: "sl_bt_rtos_init"
+  priority: -1000
+provides:
+- name: "btmesh_stack_si91x_rtos_adaptation"
+metadata:
+  sbom:
+    reference: btmesh_stack
+root_path: bluetooth_mesh

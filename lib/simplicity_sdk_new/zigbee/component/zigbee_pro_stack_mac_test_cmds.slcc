@@ -1,0 +1,49 @@
+id: zigbee_pro_stack_mac_test_cmds
+label: Pro Stack MAC Command Test
+package: zigbee
+category: Zigbee|Stack|Pro Core
+quality: evaluation
+description: Provides Zigbee PRO stack functionality along with mac command test functionality.
+
+provides:
+- name: zigbee_pro_stack_mac_test_cmds
+- name: zigbee_pro_stack
+- name: zigbee_pro_stack_support
+- name: 802_15_4_stack
+
+requires:
+- name: zigbee_pro_stack_mac_test_cmds_implementation
+- name: zigbee_pro_stack_mac_test_cmds_library
+  condition:
+  - zigbee_use_release_libraries
+- name: zigbee_stack_common
+- name: lower_mac_spinel
+  condition:
+  - zigbee_stack_unix
+
+- name: si446x_radio_driver
+  condition:
+  - zigbee_phy_2_4_subghz_switch_coordinator
+
+recommends:
+- id: zigbee_pro_stack_mac_test_cmds_library_internal
+  vendor: silabs
+
+include:
+- path: platform/base/phy/plugin/duty-cycle
+  file_list:
+  - path: duty-cycle.h
+config_file:
+- path: stack/config/component_config/sl_zigbee_pro_stack_config.h
+
+template_contribution:
+- name: component_catalog
+  value: zigbee_pro_stack_mac_test_cmds
+
+documentation:
+  docset: zigbee
+  document: zigbee-af-api/pro-stack-mac-test-cmds
+metadata:
+  sbom:
+    license: MSLA
+root_path: zigbee

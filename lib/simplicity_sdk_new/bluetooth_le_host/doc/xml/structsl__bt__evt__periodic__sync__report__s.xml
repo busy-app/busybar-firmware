@@ -1,0 +1,160 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="structsl__bt__evt__periodic__sync__report__s" kind="struct" language="C++" prot="public">
+    <compoundname>sl_bt_evt_periodic_sync_report_s</compoundname>
+    <includes refid="sl__bt__api_8h" local="no">sl_bt_api.h</includes>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structsl__bt__evt__periodic__sync__report__s_1ad5304796f0eabfb23f304c8a73647ad5" prot="public" static="no" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t sl_bt_evt_periodic_sync_report_s::sync</definition>
+        <argsstring></argsstring>
+        <name>sync</name>
+        <qualifiedname>sl_bt_evt_periodic_sync_report_s::sync</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Periodic advertising synchronization handle </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="5347" column="14" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="5347" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__periodic__sync__report__s_1a5f0281f1b013e26d589fd82836e86750" prot="public" static="no" mutable="no">
+        <type>int8_t</type>
+        <definition>int8_t sl_bt_evt_periodic_sync_report_s::tx_power</definition>
+        <argsstring></argsstring>
+        <name>tx_power</name>
+        <qualifiedname>sl_bt_evt_periodic_sync_report_s::tx_power</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>TX power value in the received packet header. Units: dBm<itemizedlist>
+<listitem><para><bold>Range:</bold> -127 to 126</para>
+</listitem><listitem><para>Value 127: information unavailable </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="5348" column="14" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="5348" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__periodic__sync__report__s_1add7bbfd36c6758db974b3592586468f0" prot="public" static="no" mutable="no">
+        <type>int8_t</type>
+        <definition>int8_t sl_bt_evt_periodic_sync_report_s::rssi</definition>
+        <argsstring></argsstring>
+        <name>rssi</name>
+        <qualifiedname>sl_bt_evt_periodic_sync_report_s::rssi</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Signal strength indicator (RSSI) in the latest received packet. Units: dBm<itemizedlist>
+<listitem><para><bold>Range:</bold> -127 to +20 </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="5353" column="14" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="5353" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__periodic__sync__report__s_1aec2a801fc04302a3124c740f51791df5" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_periodic_sync_report_s::cte_type</definition>
+        <argsstring></argsstring>
+        <name>cte_type</name>
+        <qualifiedname>sl_bt_evt_periodic_sync_report_s::cte_type</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>The CTE type<itemizedlist>
+<listitem><para><bold>0x00:</bold> AoA CTE</para>
+</listitem><listitem><para><bold>0x01:</bold> AoD CTE with 1us slots</para>
+</listitem><listitem><para><bold>0x02:</bold> AoD CTE with 2us slots</para>
+</listitem><listitem><para><bold>0xFF:</bold> No CTE </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="5356" column="14" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="5356" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__periodic__sync__report__s_1a116dcf4d698c0c99675c6c6a8eabb877" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_periodic_sync_report_s::data_status</definition>
+        <argsstring></argsstring>
+        <name>data_status</name>
+        <qualifiedname>sl_bt_evt_periodic_sync_report_s::data_status</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Data completeness:<itemizedlist>
+<listitem><para><bold>0:</bold> Complete</para>
+</listitem><listitem><para><bold>1:</bold> Incomplete, more data to come in new events</para>
+</listitem><listitem><para><bold>2:</bold> Incomplete, data truncated, no more to come </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="5361" column="14" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="5361" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__periodic__sync__report__s_1a8a5947c2b8b310144d18a74867c91911" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_periodic_sync_report_s::counter</definition>
+        <argsstring></argsstring>
+        <name>counter</name>
+        <qualifiedname>sl_bt_evt_periodic_sync_report_s::counter</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>The sequence number of this <ref refid="group__sl__bt__evt__periodic__sync__report" kindref="compound">sl_bt_evt_periodic_sync_report</ref> event as a monotonically increasing counter that wraps from 255 to 0. There is a single counter for this event type that starts from value 0 when the Bluetooth stack is started and is never reset while the stack is running. This counter can be used to detect if one or more <ref refid="group__sl__bt__evt__periodic__sync__report" kindref="compound">sl_bt_evt_periodic_sync_report</ref> events have been created by the stack but dropped due to problems such as temporarily running out of resources before the event reached the application. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="5367" column="14" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="5367" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__periodic__sync__report__s_1ab8a21a16ed690bd3606cf4962046be04" prot="public" static="no" mutable="no">
+        <type><ref refid="structuint8array" kindref="compound">uint8array</ref></type>
+        <definition>uint8array sl_bt_evt_periodic_sync_report_s::data</definition>
+        <argsstring></argsstring>
+        <name>data</name>
+        <qualifiedname>sl_bt_evt_periodic_sync_report_s::data</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Periodic advertising data </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="5379" column="14" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="5379" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Data structure of the report event. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>sl_bt_evt_periodic_sync_report_s</label>
+        <link refid="structsl__bt__evt__periodic__sync__report__s"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>data</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>uint8array</label>
+        <link refid="structuint8array"/>
+      </node>
+    </collaborationgraph>
+    <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="5345" column="1" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="5346" bodyend="5380"/>
+    <listofallmembers>
+      <member refid="structsl__bt__evt__periodic__sync__report__s_1a8a5947c2b8b310144d18a74867c91911" prot="public" virt="non-virtual"><scope>sl_bt_evt_periodic_sync_report_s</scope><name>counter</name></member>
+      <member refid="structsl__bt__evt__periodic__sync__report__s_1aec2a801fc04302a3124c740f51791df5" prot="public" virt="non-virtual"><scope>sl_bt_evt_periodic_sync_report_s</scope><name>cte_type</name></member>
+      <member refid="structsl__bt__evt__periodic__sync__report__s_1ab8a21a16ed690bd3606cf4962046be04" prot="public" virt="non-virtual"><scope>sl_bt_evt_periodic_sync_report_s</scope><name>data</name></member>
+      <member refid="structsl__bt__evt__periodic__sync__report__s_1a116dcf4d698c0c99675c6c6a8eabb877" prot="public" virt="non-virtual"><scope>sl_bt_evt_periodic_sync_report_s</scope><name>data_status</name></member>
+      <member refid="structsl__bt__evt__periodic__sync__report__s_1add7bbfd36c6758db974b3592586468f0" prot="public" virt="non-virtual"><scope>sl_bt_evt_periodic_sync_report_s</scope><name>rssi</name></member>
+      <member refid="structsl__bt__evt__periodic__sync__report__s_1ad5304796f0eabfb23f304c8a73647ad5" prot="public" virt="non-virtual"><scope>sl_bt_evt_periodic_sync_report_s</scope><name>sync</name></member>
+      <member refid="structsl__bt__evt__periodic__sync__report__s_1a5f0281f1b013e26d589fd82836e86750" prot="public" virt="non-virtual"><scope>sl_bt_evt_periodic_sync_report_s</scope><name>tx_power</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

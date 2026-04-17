@@ -1,0 +1,49 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__evt__connection__opened" kind="group">
+    <compoundname>sl_bt_evt_connection_opened</compoundname>
+    <title>sl_bt_evt_connection_opened</title>
+    <innerclass refid="structsl__bt__evt__connection__opened__s" prot="public">sl_bt_evt_connection_opened_s</innerclass>
+      <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="group__sl__bt__evt__connection__opened_1ga1e00c1de4e6b7f631f3b3b55ba86e04d" prot="public" static="no">
+        <type>struct <ref refid="structsl__bt__evt__connection__opened__s" kindref="compound">sl_bt_evt_connection_opened_s</ref></type>
+        <definition>typedef struct sl_bt_evt_connection_opened_s sl_bt_evt_connection_opened_t</definition>
+        <argsstring></argsstring>
+        <name>sl_bt_evt_connection_opened_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6435" column="44" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6435" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__evt__connection__opened_1gab0954438360a0ad230d641683fcf5c11" prot="public" static="no">
+        <name>sl_bt_evt_connection_opened_id</name>
+        <initializer>0x000600a0</initializer>
+        <briefdescription>
+<para>Identifier of the opened event. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6382" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6382" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Indicates that a new connection was opened. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>The specific semantics depend on the role of the device:<itemizedlist>
+<listitem><para>On the central device (parameter <computeroutput>role</computeroutput> set to <ref refid="group__sl__bt__connection_1ggab7587d83e86c8d88ecd98f7d20af9ab6a744e83e3bb7190bdea0cf752b528cfd9" kindref="member">sl_bt_connection_role_central</ref>) the event is triggered when the Link Layer has sent a connect request to the remote device.</para>
+</listitem><listitem><para>On the peripheral device (parameter <computeroutput>role</computeroutput> set to <ref refid="group__sl__bt__connection_1ggab7587d83e86c8d88ecd98f7d20af9ab6a4ef4abde4e72cb4a362bb7092c8b79f4" kindref="member">sl_bt_connection_role_peripheral</ref>) the event is triggered when the Link Layer has responded to the connect request of the remote device.</para>
+</listitem></itemizedlist>
+</para>
+<para>This event does not indicate the connection has been established (i.e., that a data packet was received within 6 connection intervals). If the connection is not established, an <ref refid="group__sl__bt__evt__connection__closed" kindref="compound">sl_bt_evt_connection_closed</ref> event will immediately follow.</para>
+<para>An open connection can be closed with <ref refid="group__sl__bt__connection_1ga7f55470c777dd3c65617d9493ea595c7" kindref="member">sl_bt_connection_close</ref> command by giving the connection handle obtained from this event. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,30 @@
+id: si91x_log_backend_uart
+label: SL Log Si91x Backend UART
+package: platform_siwx91x
+description: >
+   This component provides backend interface for si91x logger component
+category: Device|Si91x|MCU|Service
+quality: evaluation
+metadata:
+  sbom:
+    license: Zlib
+provides:
+  - name: si91x_log_backend_uart
+  - name: log_backend
+requires:
+  - name: sl_ulp_uart
+  - name: log
+  - name: log_platform_core
+recommends:
+  - id: si91x_log  
+root_path: components/device/silabs/si91x/mcu/drivers/service/sl_log
+source:
+  - path: src/sl_log_platform_backend.c
+config_file:
+  - path: config/sl_log_proprietary_config.h
+template_contribution:
+  - name: si91x_platform_backend
+    value: 1
+define:
+  - name: SL_LOG_SI91X_BACKEND
+    value: "1"

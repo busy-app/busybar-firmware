@@ -1,0 +1,34 @@
+id: cpc_journal_cli
+label: CPC Journal CLI Utility
+package: cpc
+description: >
+  The Co-Processor Communication (CPC) journal CLI utility allows the user
+  interact with the CPC journal component via CLI
+category: Services|Co-Processor Communication|CPC Journal CLI
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+
+provides:
+- name: cpc_journal_cli
+
+requires:
+- name: cpc_journal
+- name: iostream
+- name: cli
+
+template_contribution:
+- name: component_catalog
+  value: cpc_journal_cli
+
+- name: cli_command
+  value:
+    name: print_cpc_journal
+    handler: sl_cpc_journal_print_cmd_handler
+    help: Print the contents of the CPC journal in a CSV format
+
+documentation:
+  docset: gecko-platform
+  document: service/api/group-cpc
+root_path: cpc

@@ -1,0 +1,22 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<module:DocumentRoot xmlns:module="http://www.silabs.com/ss/hwconfig/module.ecore">
+  <module id="pin_tool.wfm.si91x.comp1" label="COMP1" name="COMP1" description="" version="A">
+    <properties>
+      <stringProperty label="Type" id="type" defaultValue="comp1" transient="true" hidden="true" readonly="true" description=""/>
+      <stringProperty label="Custom Peripheral Name" id="peripheral.name" description=""/>
+    </properties>
+    <propertyCategories>
+      <category label="COMP1">
+        <subCategory label="">
+          <propertyRef refId="peripheral.name"/>
+        </subCategory>
+      </category>
+    </propertyCategories>
+    <signals>
+      <signal name="COMP_P0"/>
+      <signal name="COMP_P1"/>
+      <signal name="COMP_N0"/>
+      <signal name="COMP_N1"/>
+    </signals>
+  </module>
+</module:DocumentRoot>

@@ -1,0 +1,29 @@
+id: bsd_socket
+package: wifi
+description: >
+  The BSD Socket provides an BSD-style TCP/IP communications API
+label: BSD Socket
+category: Service
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+component_root_path: ./components/service/bsd_socket
+provides:
+- name: bsd_socket
+source:
+- path: si91x_socket/sl_si91x_bsd_socket.c
+  condition: ["sl_si91x_internal_stack"]
+include:
+- path: inc
+- path: si91x_socket
+- path: si91x_socket
+  condition: ["sl_si91x_internal_stack"]
+- path: si91x_socket
+  file_list:
+    - path: sl_si91x_socket_support.h
+
+requires:
+- name: bsd_socket_api
+- name: sl_si91x_socket
+

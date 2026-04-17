@@ -1,0 +1,43 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__evt__pawr__sync__transfer__received" kind="group">
+    <compoundname>sl_bt_evt_pawr_sync_transfer_received</compoundname>
+    <title>sl_bt_evt_pawr_sync_transfer_received</title>
+    <innerclass refid="structsl__bt__evt__pawr__sync__transfer__received__s" prot="public">sl_bt_evt_pawr_sync_transfer_received_s</innerclass>
+      <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="group__sl__bt__evt__pawr__sync__transfer__received_1ga07cef334df6178d38e5df37632d0165e" prot="public" static="no">
+        <type>struct <ref refid="structsl__bt__evt__pawr__sync__transfer__received__s" kindref="compound">sl_bt_evt_pawr_sync_transfer_received_s</ref></type>
+        <definition>typedef struct sl_bt_evt_pawr_sync_transfer_received_s sl_bt_evt_pawr_sync_transfer_received_t</definition>
+        <argsstring></argsstring>
+        <name>sl_bt_evt_pawr_sync_transfer_received_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="5625" column="54" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="5625" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__evt__pawr__sync__transfer__received_1ga4069796ed8a000ed7f6f8c96de67b9ad" prot="public" static="no">
+        <name>sl_bt_evt_pawr_sync_transfer_received_id</name>
+        <initializer>0x015400a0</initializer>
+        <briefdescription>
+<para>Identifier of the transfer_received event. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="5514" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="5514" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Indicates that the device has either successfully synchronized or timed out while trying to synchronize after Periodic Advertising Synchronization Transfer (PAST) was received for a Periodic Advertising with Responses (PAwR) train. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>See <ref refid="group__sl__bt__past__receiver" kindref="compound">PAST Receiver</ref>. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

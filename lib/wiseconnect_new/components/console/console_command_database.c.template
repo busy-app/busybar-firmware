@@ -1,0 +1,31 @@
+/*******************************************************************************
+* @file  console_command_database.c.template
+* @brief 
+*******************************************************************************
+* # License
+* <b>Copyright 2023 Silicon Laboratories Inc. www.silabs.com</b>
+*******************************************************************************
+*
+* The licensor of this software is Silicon Laboratories Inc. Your use of this
+* software is governed by the terms of Silicon Labs Master Software License
+* Agreement (MSLA) available at
+* www.silabs.com/about-us/legal/master-software-license-agreement. This
+* software is distributed to you in Source Code format and is governed by the
+* sections of the MSLA applicable to Source Code.
+*
+******************************************************************************/
+
+#include "console.h"
+#include "console_argument_types.h"
+{% set __commands = aggregate("/console/commands") %}
+{% set __mapping = {"uint8": "UINT", "uint16": "UINT", "uint32": "UINT", "int": "INT", "int8": "INT", "int16": "INT", "int32": "INT", "string": "STRING", "mac": "MAC_ADDRESS", "ip": "IP_ADDRESS", "hex": "HEX", "*": "REMAINING_COMMAND_LINE"}  %}
+{% for a_name, a_command in __commands %}{% set name = a_name %}{% set command = a_command -%}{% set prefix = "" %}
+{% include "console_command_processing.template" -%}
+{% endfor -%}
+
+const console_database_t console_command_database =
+{
+    CONSOLE_DATABASE_ENTRIES(
+{% for name, command in __commands %}    	{ "{{name}}",    &_{{name}}_command },
+{%- endfor %}    )
+};

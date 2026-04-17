@@ -1,0 +1,15 @@
+id: mic_driver
+package: board_drivers
+label: Microphone
+description: >
+  Generic abstraction of microphone drivers
+category: Platform|Board Drivers
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+provides:
+- name: mic_driver
+requires:
+- name: mic_driver_implementation
+root_path: board_drivers

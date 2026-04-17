@@ -1,0 +1,60 @@
+project_name: sl_si91x_i2c_driver_follower
+package: platform_siwx91x_app
+description: 'This application demonstrates how to use the I2C interface on the Si91x SoC device utilizing blocking APIs.
+
+  '
+category: example|peripheral
+quality: production
+label: SI91x - SL_I2C_Driver_Follower
+component:
+- id: sl_main
+- id: status
+- id: syscalls
+- id: si91x_memory_default_config
+- id: sl_i2c
+- id: sl_gpio_peripheral
+- id: sl_dma
+- id: i2c_instance
+  instance:
+  - i2c2
+- id: sl_clock_manager
+source:
+- path: app.c
+- path: i2c_follower_example.c
+include:
+- path: .
+  file_list:
+  - path: app.h
+  - path: i2c_follower_example.h
+toolchain_settings:
+- option: gcc_compiler_option
+  value: -Wall -Werror
+other_file:
+- path: resources/readme/setupdiagram.png
+- path: resources/readme/image506d.png
+- path: resources/readme/image506e.png
+- path: resources/uc_screen/i2c_uc_screen.png
+- path: resources/readme/output.png
+configuration:
+- name: SL_I2C_I2C2_MODE
+  value: SL_I2C_FOLLOWER_MODE
+- name: SL_I2C_I2C1_MODE
+  value: SL_I2C_FOLLOWER_MODE
+- name: SL_I2C_I2C0_MODE
+  value: SL_I2C_FOLLOWER_MODE
+ui_hints:
+  highlight:
+  - path: readme.md
+    focus: true
+readme:
+- path: readme.md
+post_build:
+  profile: wiseconnect_soc
+sdk_extension:
+- id: wiseconnect3_sdk
+  vendor: silabs
+  version: 4.0.1
+sdk:
+  id: simplicity_sdk
+  vendor: silabs
+  version: 2025.12.2

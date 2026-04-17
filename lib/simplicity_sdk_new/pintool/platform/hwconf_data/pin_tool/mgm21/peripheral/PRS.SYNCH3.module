@@ -1,0 +1,19 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<module:DocumentRoot xmlns:module="http://www.silabs.com/ss/hwconfig/module.ecore">
+  <module id="pin_tool.efr32.mgm21.prs.synch3" label="PRS.SYNCH3" name="PRS.SYNCH3" description="" version="A">
+    <properties>
+      <stringProperty label="Type" id="type" defaultValue="prs" transient="true" hidden="true" readonly="true" description=""/>
+      <stringProperty label="Custom Peripheral Name" id="peripheral.name" description=""/>
+    </properties>
+    <propertyCategories>
+      <category label="PRS.SYNCH3">
+        <subCategory label="">
+          <propertyRef refId="peripheral.name"/>
+        </subCategory>
+      </category>
+    </propertyCategories>
+    <signals>
+      <signal name="SYNCH3"/>
+    </signals>
+  </module>
+</module:DocumentRoot>

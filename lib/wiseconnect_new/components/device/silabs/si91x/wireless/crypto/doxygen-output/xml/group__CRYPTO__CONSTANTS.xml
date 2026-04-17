@@ -1,0 +1,394 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__CRYPTO__CONSTANTS" kind="group">
+    <compoundname>CRYPTO_CONSTANTS</compoundname>
+    <title>Constants</title>
+      <sectiondef kind="enum">
+      <memberdef kind="enum" id="group__CRYPTO__CONSTANTS_1gab2fb3cd3f463bc7fb4f94ae5e1c58352" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_si91x_crypto_key_slot_t</name>
+        <enumvalue id="group__CRYPTO__CONSTANTS_1ggab2fb3cd3f463bc7fb4f94ae5e1c58352a0ff2257e963b4728d506a02e75728300" prot="public">
+          <name>SL_SI91X_KEY_SLOT_1</name>
+          <initializer>= 1</initializer>
+          <briefdescription>
+<para>M4 OTA key slot. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__CONSTANTS_1ggab2fb3cd3f463bc7fb4f94ae5e1c58352a8b2b6c0aab15d318b18cd6646fe07077" prot="public">
+          <name>SL_SI91X_KEY_SLOT_2</name>
+          <briefdescription>
+<para>M4 Public key slot. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>Enumeration defining different key slots for built-in keys supported by the SI91X device. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>This enumeration defines different key slots for built-in keys supported by the SI91X device. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/inc/sl_si91x_crypto.h" line="91" column="1" bodyfile="components/device/silabs/si91x/wireless/crypto/inc/sl_si91x_crypto.h" bodystart="91" bodyend="94"/>
+      </memberdef>
+      <memberdef kind="enum" id="group__CRYPTO__CONSTANTS_1ga6461b1ebbd4867d2f670b6c79e66b649" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_si91x_crypto_key_size_t</name>
+        <enumvalue id="group__CRYPTO__CONSTANTS_1gga6461b1ebbd4867d2f670b6c79e66b649a9acd2931412b3c2bd44c5a2ce9fd14e4" prot="public">
+          <name>SL_SI91X_KEY_SIZE_1</name>
+          <initializer>= 32</initializer>
+          <briefdescription>
+<para>M4 OTA key size. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__CONSTANTS_1gga6461b1ebbd4867d2f670b6c79e66b649aa2e6bb1cece4df212d1104a165a3f09a" prot="public">
+          <name>SL_SI91X_KEY_SIZE_2</name>
+          <initializer>= 96</initializer>
+          <briefdescription>
+<para>M4 Public key size. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>Enumeration defining different key sizes for built-in keys supported by the SI91X device. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>This enumeration defines different key sizes for built-in keys supported by the SI91X device, such as 32, and 96 bytes. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/inc/sl_si91x_crypto.h" line="102" column="1" bodyfile="components/device/silabs/si91x/wireless/crypto/inc/sl_si91x_crypto.h" bodystart="102" bodyend="105"/>
+      </memberdef>
+      <memberdef kind="enum" id="group__CRYPTO__CONSTANTS_1gaa4ae5ba737ea708d60d4c58f83d6d7be" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_si91x_crypto_key_type_t</name>
+        <enumvalue id="group__CRYPTO__CONSTANTS_1ggaa4ae5ba737ea708d60d4c58f83d6d7beaa684d25501a85326f0598635e8d27684" prot="public">
+          <name>SL_SI91X_TRANSPARENT_KEY</name>
+          <initializer>= 0</initializer>
+          <briefdescription>
+<para>Plain key. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__CONSTANTS_1ggaa4ae5ba737ea708d60d4c58f83d6d7bea112fe2d5446f908928117926da327fe1" prot="public">
+          <name>SL_SI91X_WRAPPED_KEY</name>
+          <briefdescription>
+<para>Wrapped version of the plain key. To use the wrapped keys, security should be enabled in the module. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__CONSTANTS_1ggaa4ae5ba737ea708d60d4c58f83d6d7bead6c025e071741da349fd924fbee045fd" prot="public">
+          <name>SL_SI91X_BUILT_IN_KEY</name>
+          <briefdescription>
+<para>Firmware built-in keys. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>Enumeration defining keys supported by the SI91X device. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>This enumeration defines different keys supported by the SI91X device, such as transparent key, wrapped key, and built-in keys. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/inc/sl_si91x_crypto.h" line="113" column="1" bodyfile="components/device/silabs/si91x/wireless/crypto/inc/sl_si91x_crypto.h" bodystart="113" bodyend="117"/>
+      </memberdef>
+      <memberdef kind="enum" id="group__CRYPTO__CONSTANTS_1gaac5c8069f16fca3b9d5936ef034537de" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_si91x_crypto_wrap_mode_t</name>
+        <enumvalue id="group__CRYPTO__CONSTANTS_1ggaac5c8069f16fca3b9d5936ef034537deac565feb5d012f480bc84374c73202867" prot="public">
+          <name>SL_SI91X_WRAP_IV_ECB_MODE</name>
+          <initializer>= 0</initializer>
+          <briefdescription>
+<para>Wrap IV using ECB mode. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__CONSTANTS_1ggaac5c8069f16fca3b9d5936ef034537dea2f64655874226f1d0b9fbd5da4c87048" prot="public">
+          <name>SL_SI91X_WRAP_IV_CBC_MODE</name>
+          <briefdescription>
+<para>Wrap IV using CBC mode. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>Enumeration defining Wrap IV modes supported by the SI91X device. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>This enumeration defines different modes supported by the SI91X device during the WRAP process, such as ECB and CBC modes. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/inc/sl_si91x_crypto.h" line="125" column="1" bodyfile="components/device/silabs/si91x/wireless/crypto/inc/sl_si91x_crypto.h" bodystart="125" bodyend="128"/>
+      </memberdef>
+      <memberdef kind="enum" id="group__CRYPTO__CONSTANTS_1ga6ad34a0b8e121a6a30c44909aaf2820f" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_si91x_crypto_algorithm_type_t</name>
+        <enumvalue id="group__CRYPTO__CONSTANTS_1gga6ad34a0b8e121a6a30c44909aaf2820faaa28d81449f4bae922bb5e79f6f06be6" prot="public">
+          <name>AES</name>
+          <initializer>= 2</initializer>
+          <briefdescription>
+<para>AES. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__CONSTANTS_1gga6ad34a0b8e121a6a30c44909aaf2820fa7c74ffad5ddce949f36534629bc5310c" prot="public">
+          <name>SHA</name>
+          <initializer>= 4</initializer>
+          <briefdescription>
+<para>SHA. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__CONSTANTS_1gga6ad34a0b8e121a6a30c44909aaf2820fa86af0475f3f6b2966e256784b6c9cb8b" prot="public">
+          <name>HMAC_SHA</name>
+          <initializer>= 5</initializer>
+          <briefdescription>
+<para>HMAC. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__CONSTANTS_1gga6ad34a0b8e121a6a30c44909aaf2820fa85000c9eddf9978c0e2261ea0fa53816" prot="public">
+          <name>DH</name>
+          <initializer>= 14</initializer>
+          <briefdescription>
+<para>DH. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__CONSTANTS_1gga6ad34a0b8e121a6a30c44909aaf2820fa451db34215a1733e42cce38b5a551c6e" prot="public">
+          <name>ECDH</name>
+          <initializer>= 15</initializer>
+          <briefdescription>
+<para>ECDH. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__CONSTANTS_1gga6ad34a0b8e121a6a30c44909aaf2820fae25059a23e46efa3f9c9c6ee6ee82fd3" prot="public">
+          <name>SHA3</name>
+          <initializer>= 16</initializer>
+          <briefdescription>
+<para>SHA3. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__CONSTANTS_1gga6ad34a0b8e121a6a30c44909aaf2820fa61c75f5aa833f31a972f4831179342e2" prot="public">
+          <name>CHACHAPOLY</name>
+          <initializer>= 17</initializer>
+          <briefdescription>
+<para>CHACHAPOLY. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__CONSTANTS_1gga6ad34a0b8e121a6a30c44909aaf2820fa313f9e8f1ff4fdfe84c642fdb62b8aab" prot="public">
+          <name>GCM</name>
+          <initializer>= 18</initializer>
+          <briefdescription>
+<para>GCM. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__CONSTANTS_1gga6ad34a0b8e121a6a30c44909aaf2820fa8e7838b96be55048186754b37db105dd" prot="public">
+          <name>WRAP</name>
+          <initializer>= 20</initializer>
+          <briefdescription>
+<para>WRAP. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__CONSTANTS_1gga6ad34a0b8e121a6a30c44909aaf2820fa2304b1adc71e45940228c5f362479770" prot="public">
+          <name>TRNG</name>
+          <initializer>= 21</initializer>
+          <briefdescription>
+<para>TRNG. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__CONSTANTS_1gga6ad34a0b8e121a6a30c44909aaf2820fa4742ab5add31bcbe14b900f9db45a012" prot="public">
+          <name>CCM</name>
+          <initializer>= 31</initializer>
+          <briefdescription>
+<para>CCM. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__CONSTANTS_1gga6ad34a0b8e121a6a30c44909aaf2820fa533fb8b894a39de8097e0ae397b7d61d" prot="public">
+          <name>ECDSA</name>
+          <initializer>= 32</initializer>
+          <briefdescription>
+<para>ECDSA. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>Enumeration defining crypto algorithms supported by the SI91X device. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>This enumeration defines different crypto algorithms supported by the SI91X device, including AES, SHA, HMAC_SHA, ECDH, and so on. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/inc/sl_si91x_crypto.h" line="136" column="1" bodyfile="components/device/silabs/si91x/wireless/crypto/inc/sl_si91x_crypto.h" bodystart="136" bodyend="149"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__CRYPTO__CONSTANTS_1ga51711f7644807c80a92f9fef873ec598" prot="public" static="no">
+        <name>SL_SI91X_MAX_DATA_SIZE_IN_BYTES</name>
+        <initializer>1400</initializer>
+        <briefdescription>
+<para>Maximum length of the message in bytes that can be handled in one go. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/inc/sl_si91x_crypto.h" line="44" column="9" bodyfile="components/device/silabs/si91x/wireless/crypto/inc/sl_si91x_crypto.h" bodystart="44" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__CRYPTO__CONSTANTS_1ga35e35e3e50e208dbc0bf0c71a72a6a26" prot="public" static="no">
+        <name>SL_SI91X_MAX_DATA_SIZE_IN_BYTES_FOR_CCM</name>
+        <initializer>1200</initializer>
+        <briefdescription>
+<para>Maximum length of the CCM message in bytes that can be handled in one go. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/inc/sl_si91x_crypto.h" line="49" column="9" bodyfile="components/device/silabs/si91x/wireless/crypto/inc/sl_si91x_crypto.h" bodystart="49" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__CRYPTO__CONSTANTS_1ga3711f91e5c2e6ea50f6d75036dff9e27" prot="public" static="no">
+        <name>SL_SI91X_MAX_DATA_SIZE_IN_BYTES_FOR_CHACHAPOLY</name>
+        <initializer>1200</initializer>
+        <briefdescription>
+<para>Maximum length of the CHACHAPOLY message in bytes that can be handled in one go. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/inc/sl_si91x_crypto.h" line="54" column="9" bodyfile="components/device/silabs/si91x/wireless/crypto/inc/sl_si91x_crypto.h" bodystart="54" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__CRYPTO__CONSTANTS_1ga3936c05c79c2c129da5eeaec5d7fbd3d" prot="public" static="no">
+        <name>SL_SI91X_IV_SIZE</name>
+        <initializer>16</initializer>
+        <briefdescription>
+<para>Length of the initialization vector in bytes. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/inc/sl_si91x_crypto.h" line="59" column="9" bodyfile="components/device/silabs/si91x/wireless/crypto/inc/sl_si91x_crypto.h" bodystart="59" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__CRYPTO__CONSTANTS_1ga70acbe34bfae6519370054a881bc1bb7" prot="public" static="no">
+        <name>SL_SI91X_KEY_BUFFER_SIZE</name>
+        <initializer>32</initializer>
+        <briefdescription>
+<para>Key size in bytes. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/inc/sl_si91x_crypto.h" line="64" column="9" bodyfile="components/device/silabs/si91x/wireless/crypto/inc/sl_si91x_crypto.h" bodystart="64" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__CRYPTO__CONSTANTS_1ga5b8939661c60bc78f84602e61caf3686" prot="public" static="no">
+        <name>SL_SI91X_MAX_DATA_SIZE_IN_BYTES_FOR_ECDSA</name>
+        <initializer>1000</initializer>
+        <briefdescription>
+<para>Maximum length of the ECDSA message in bytes that can be handled in one go. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/inc/sl_si91x_crypto.h" line="69" column="9" bodyfile="components/device/silabs/si91x/wireless/crypto/inc/sl_si91x_crypto.h" bodystart="69" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__CRYPTO__CONSTANTS_1ga5e5a14ca74c2cc47f71067ff1bba27ac" prot="public" static="no">
+        <name>FIRST_CHUNK</name>
+        <initializer>BIT(0)</initializer>
+        <briefdescription>
+<para>Indicator to pinpoint the first data segment undergoing processing within the API. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/inc/sl_si91x_crypto.h" line="74" column="9" bodyfile="components/device/silabs/si91x/wireless/crypto/inc/sl_si91x_crypto.h" bodystart="74" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__CRYPTO__CONSTANTS_1ga93c6dbc17a4845a4a9b816307748770a" prot="public" static="no">
+        <name>MIDDLE_CHUNK</name>
+        <initializer>BIT(1)</initializer>
+        <briefdescription>
+<para>Indicator to pinpoint the middle data segment undergoing processing within the API. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/inc/sl_si91x_crypto.h" line="79" column="9" bodyfile="components/device/silabs/si91x/wireless/crypto/inc/sl_si91x_crypto.h" bodystart="79" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__CRYPTO__CONSTANTS_1ga73a45e3fc7c2b833932177c1c8a1a92d" prot="public" static="no">
+        <name>LAST_CHUNK</name>
+        <initializer>BIT(2)</initializer>
+        <briefdescription>
+<para>Indicator to pinpoint the last data segment undergoing processing within the API. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/inc/sl_si91x_crypto.h" line="84" column="9" bodyfile="components/device/silabs/si91x/wireless/crypto/inc/sl_si91x_crypto.h" bodystart="84" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__CRYPTO__CONSTANTS_1ga48eea85223bca71f449dcf9f2b5d11fb" prot="public" static="no">
+        <name>SL_SI91X_WRAP_KEY_BUFFER_SIZE</name>
+        <initializer>1400</initializer>
+        <briefdescription>
+<para>Wrap key buffer size in bytes. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="note"><para><itemizedlist>
+<listitem><para>By default <ref refid="group__CRYPTO__CONSTANTS_1ga48eea85223bca71f449dcf9f2b5d11fb" kindref="member">SL_SI91X_WRAP_KEY_BUFFER_SIZE</ref> is set to 1400 bytes. <linebreak/>
+</para>
+</listitem><listitem><para>To configure <ref refid="group__CRYPTO__CONSTANTS_1ga48eea85223bca71f449dcf9f2b5d11fb" kindref="member">SL_SI91X_WRAP_KEY_BUFFER_SIZE</ref>, use the configuration wizard in Simplicity Studio for the Wrap component. </para>
+</listitem></itemizedlist>
+</para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/wrap/config/sl_si91x_wrap_config.h" line="50" column="9" bodyfile="components/device/silabs/si91x/wireless/crypto/wrap/config/sl_si91x_wrap_config.h" bodystart="50" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para>This section provides a reference to the Common Crypto API constants. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

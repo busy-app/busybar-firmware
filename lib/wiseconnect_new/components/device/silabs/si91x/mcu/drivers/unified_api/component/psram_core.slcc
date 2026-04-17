@@ -1,0 +1,49 @@
+id: psram_core
+label: PSRAM Core
+package: platform_siwx91x
+description: >
+  PSRAM (Pseudo Static Random Access Memory) is a random-access memory whose
+  internal structure is based on dynamic memory with refresh control signals
+  generated internally, in the standby mode, so that it can mimic the functionality
+  of a static memory. It combines the high density of DRAM with the ease-of-use
+  of true SRAM. The M4 core communicates with the PSRAM via Quad SPI interface.
+
+  The text segment, data segment, bss, heap and stack can be placed in PSRAM by
+  installing the respective components present under "PSRAM Linker Configurations".
+
+  Note: Do not install this component if the M4 is operating in PS2 state.
+category: Device|Si91x|MCU|Peripheral|PSRAM Driver
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: "components/device/silabs/si91x/mcu/drivers/unified_api"
+provides:
+  - name: psram_core
+requires:
+  - name: wiseconnect_toolchain_psram_linker
+  - name: psram_config
+  - name: rsilib_qspi
+  - name: systemlevel_pll
+  - name: device_supports_psram
+  - name: romdriver_clks
+  - name: romdriver_qspi
+  - name: udma_linker_config
+  - name: rsilib_dcache
+define:  
+  - name: SLI_SI91X_MCU_PSRAM_PRESENT
+  - name: SL_SI91X_REQUIRES_INTF_PLL
+source:
+  - path: src/sl_si91x_psram.c
+  - path: src/sl_si91x_psram_handle.c
+include:
+  - path: inc
+    file_list:
+      - path: sl_si91x_psram.h
+      - path: sl_si91x_psram_handle.h     
+config_file:
+  - path: config/sl_si91x_psram_pin_config.h
+    file_id: psram_pin_config
+documentation:
+    docset: wiseconnect
+    document: wiseconnect-api-reference-guide-si91x-peripherals/psram

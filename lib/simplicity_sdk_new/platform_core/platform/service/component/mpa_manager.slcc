@@ -1,0 +1,49 @@
+id: mpa_manager
+label: "MPA Manager"
+package: platform_core
+description: >
+  The Memory Protection and Attribute Manager provides a service to configure
+  a variety of memory regions with different qualifiers which are referred to
+  as mpa manager attributes. For example, it is possible to configure a memory
+  region as read-only, non-executable, non-cacheable or all three. See the API
+  documentation for more details for which attributes are available.
+
+  The mpa manager code is designed to be portable between different hardware
+  architectures.
+category: Services|MPA Manager
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: platform_core/platform/service/mpa_manager
+include:
+- path: inc
+  file_list:
+  - path: sl_mpa_manager.h
+- path: src
+  file_list:
+  - path: sli_mpa_manager_device.h
+source:
+- path: src/sl_mpa_manager.c
+provides:
+- name: mpa_manager
+requires:
+- name: component_catalog
+- name: sl_common
+- name: enum
+- name: status
+- name: slist
+- name: memory_manager
+- name: mpa_manager_arch
+template_contribution:
+- name: linker_mpu
+  value: true
+- name: component_catalog
+  value: mpa_manager
+- name: event_handler
+  value:
+    event: service_init
+    include: sl_mpa_manager.h
+    handler: sl_mpa_manager_init
+  priority: -2
+  condition: [sl_system, kernel]

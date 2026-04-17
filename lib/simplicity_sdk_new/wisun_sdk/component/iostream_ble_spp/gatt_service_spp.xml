@@ -1,0 +1,15 @@
+<gatt>
+    <!--Serial Port Profile (SPP)-->
+    <service advertise="true" id="spp" name="Serial Port Profile (SPP)" requirement="mandatory" sourceId="" type="primary" uuid="4880c12c-fdcb-4077-8920-a450d7f9b907">
+      <informativeText>Service used for the Serial Port Profile (SPP) communication</informativeText>
+      <!--SPP Data-->
+      <characteristic const="false" id="spp_data" name="SPP Data" sourceId="" uuid="fec26ec4-6d71-4442-9f81-55bc21d658d6">
+        <informativeText>SPP data characteristic</informativeText>
+        <value length="255" type="hex" variable_length="true">00</value>
+        <properties>
+          <write_no_response authenticated="false" bonded="false" encrypted="false"/>
+          <notify authenticated="false" bonded="false" encrypted="false"/>
+        </properties>
+      </characteristic>
+    </service>
+</gatt>

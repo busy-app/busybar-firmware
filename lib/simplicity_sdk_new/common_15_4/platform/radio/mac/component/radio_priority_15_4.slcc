@@ -1,0 +1,24 @@
+id: "radio_priority_15_4"
+label: "802.15.4 Unified radio scheduler priority"
+package: common_15_4
+category: 802.15.4|Radio
+quality: "production"
+description: "This component is used to configure the radio priorities of a 15.4 stack"
+provides:
+- name: "radio_priority_15_4"
+
+requires:
+- name: "rail_lib"
+- name: "radio_priority_configurator"
+
+config_file:
+- path: platform/radio/mac/config/sl_802154_radio_priority_config.h
+
+template_contribution:
+- name: component_catalog
+  value: radio_priority_15_4
+
+metadata:
+  sbom:
+    license: MSLA
+root_path: common_15_4

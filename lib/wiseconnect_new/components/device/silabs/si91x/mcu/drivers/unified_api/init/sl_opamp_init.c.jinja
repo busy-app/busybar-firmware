@@ -1,0 +1,66 @@
+/***************************************************************************//**
+ * @file sl_opamp_init.c.jinja
+ * @brief OPAMP Driver Instance Initialization
+ *******************************************************************************
+ * # License
+ * <b>Copyright 2025 Silicon Laboratories Inc. www.silabs.com</b>
+ *******************************************************************************
+ *
+ * SPDX-License-Identifier: Zlib
+ *
+ * The licensor of this software is Silicon Laboratories Inc.
+ *
+ * This software is provided 'as-is', without any express or implied
+ * warranty. In no event will the authors be held liable for any damages
+ * arising from the use of this software.
+ *
+ * Permission is granted to anyone to use this software for any purpose,
+ * including commercial applications, and to alter it and redistribute it
+ * freely, subject to the following restrictions:
+ *
+ * 1. The origin of this software must not be misrepresented; you must not
+ *    claim that you wrote the original software. If you use this software
+ *    in a product, an acknowledgment in the product documentation would be
+ *    appreciated but is not required.
+ * 2. Altered source versions must be plainly marked as such, and must not be
+ *    misrepresented as being the original software.
+ * 3. This notice may not be removed or altered from any source distribution.
+ *
+ ******************************************************************************/
+
+#include "sl_si91x_opamp.h"
+#include "sl_si91x_opamp_common_config.h"
+#include "sl_si91x_opamp_init.h"
+#include "sl_opamp_board.h"
+{% for inst in opamp_instances %}
+#include "sl_si91x_opamp_{{ inst }}_config.h"
+{% endfor %}
+
+{% for inst in opamp_instances %}
+sl_opamp_pin_config_t sl_{{ inst }}_pin_config = {
+#ifdef SL_{{ inst | upper }}_P_PORT
+        .vin_p_input    = SL_{{ inst | upper }}_P_PIN,
+#endif
+#ifdef SL_{{ inst | upper }}_N_PORT
+        .vin_n_input    = SL_{{ inst | upper }}_N_PIN,
+#endif
+#ifdef SL_{{ inst | upper }}_RES_PORT
+        .vin_res_input  = SL_{{ inst | upper }}_RES_PIN, 
+#endif		
+        .vout_output    = SL_{{ inst | upper }}_OUT_PIN,
+};   
+
+sl_opamp_config_t sl_{{ inst }}_feature = {
+        .opamp_number   = SL_OPAMP_{{ inst | upper }},
+        .features       = SL_OPAMP_{{ inst | upper }}_CONFIGURATION_SELECTION,
+};  
+{% endfor %}
+
+void sl_opamp_init_instances(void)
+{
+{% for inst in opamp_instances %}
+
+  sl_si91x_opamp_pin_init(&sl_{{ inst }}_pin_config);
+  
+  {% endfor %}
+}

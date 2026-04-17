@@ -1,0 +1,130 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="structsl__si91x__hmac__key__config__B0__t" kind="struct" language="C++" prot="public">
+    <compoundname>sl_si91x_hmac_key_config_B0_t</compoundname>
+    <includes refid="sl__si91x__hmac_8h" local="no">sl_si91x_hmac.h</includes>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structsl__si91x__hmac__key__config__B0__t_1af0cdf73da6cff9f2781feafcd447f7f6" prot="public" static="no" mutable="no">
+        <type><ref refid="group__CRYPTO__CONSTANTS_1gaa4ae5ba737ea708d60d4c58f83d6d7be" kindref="member">sl_si91x_crypto_key_type_t</ref></type>
+        <definition>sl_si91x_crypto_key_type_t sl_si91x_hmac_key_config_B0_t::key_type</definition>
+        <argsstring></argsstring>
+        <name>key_type</name>
+        <qualifiedname>sl_si91x_hmac_key_config_B0_t::key_type</qualifiedname>
+        <briefdescription>
+<para>Key type - wrapped or plain. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/hmac/inc/sl_si91x_hmac.h" line="97" column="30" bodyfile="components/device/silabs/si91x/wireless/crypto/hmac/inc/sl_si91x_hmac.h" bodystart="97" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__si91x__hmac__key__config__B0__t_1a808b8ac9b39b6e04484dce6515d7409a" prot="public" static="no" mutable="no">
+        <type>uint32_t</type>
+        <definition>uint32_t sl_si91x_hmac_key_config_B0_t::key_size</definition>
+        <argsstring></argsstring>
+        <name>key_size</name>
+        <qualifiedname>sl_si91x_hmac_key_config_B0_t::key_size</qualifiedname>
+        <briefdescription>
+<para>Key size. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/hmac/inc/sl_si91x_hmac.h" line="98" column="12" bodyfile="components/device/silabs/si91x/wireless/crypto/hmac/inc/sl_si91x_hmac.h" bodystart="98" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__si91x__hmac__key__config__B0__t_1a0cca52ebd200f96b7459d7b7856114c3" prot="public" static="no" mutable="no">
+        <type><ref refid="group__CRYPTO__CONSTANTS_1gab2fb3cd3f463bc7fb4f94ae5e1c58352" kindref="member">sl_si91x_crypto_key_slot_t</ref></type>
+        <definition>sl_si91x_crypto_key_slot_t sl_si91x_hmac_key_config_B0_t::key_slot</definition>
+        <argsstring></argsstring>
+        <name>key_slot</name>
+        <qualifiedname>sl_si91x_hmac_key_config_B0_t::key_slot</qualifiedname>
+        <briefdescription>
+<para>Key slot. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/hmac/inc/sl_si91x_hmac.h" line="99" column="30" bodyfile="components/device/silabs/si91x/wireless/crypto/hmac/inc/sl_si91x_hmac.h" bodystart="99" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__si91x__hmac__key__config__B0__t_1a7f6eac924421659fa28b7159490bee84" prot="public" static="no" mutable="no">
+        <type><ref refid="group__CRYPTO__CONSTANTS_1gaac5c8069f16fca3b9d5936ef034537de" kindref="member">sl_si91x_crypto_wrap_mode_t</ref></type>
+        <definition>sl_si91x_crypto_wrap_mode_t sl_si91x_hmac_key_config_B0_t::wrap_iv_mode</definition>
+        <argsstring></argsstring>
+        <name>wrap_iv_mode</name>
+        <qualifiedname>sl_si91x_hmac_key_config_B0_t::wrap_iv_mode</qualifiedname>
+        <briefdescription>
+<para>Wrap mode - ECB or CBC. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/hmac/inc/sl_si91x_hmac.h" line="100" column="31" bodyfile="components/device/silabs/si91x/wireless/crypto/hmac/inc/sl_si91x_hmac.h" bodystart="100" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__si91x__hmac__key__config__B0__t_1a8da89ab0f44d8f5ecd2c8070860b1fe3" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_si91x_hmac_key_config_B0_t::wrap_iv[SL_SI91X_IV_SIZE]</definition>
+        <argsstring>[SL_SI91X_IV_SIZE]</argsstring>
+        <name>wrap_iv</name>
+        <qualifiedname>sl_si91x_hmac_key_config_B0_t::wrap_iv</qualifiedname>
+        <briefdescription>
+<para>IV used for wrapping in SL_SI91X_AES_CBC and SL_SI91X_AES_CTR modes. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/hmac/inc/sl_si91x_hmac.h" line="101" column="11" bodyfile="components/device/silabs/si91x/wireless/crypto/hmac/inc/sl_si91x_hmac.h" bodystart="101" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__si91x__hmac__key__config__B0__t_1a698407bd708595e9040fadd7224b24a1" prot="public" static="no" mutable="no">
+        <type>uint8_t *</type>
+        <definition>uint8_t* sl_si91x_hmac_key_config_B0_t::key</definition>
+        <argsstring></argsstring>
+        <name>key</name>
+        <qualifiedname>sl_si91x_hmac_key_config_B0_t::key</qualifiedname>
+        <briefdescription>
+<para>Pointer to the key. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/hmac/inc/sl_si91x_hmac.h" line="102" column="11" bodyfile="components/device/silabs/si91x/wireless/crypto/hmac/inc/sl_si91x_hmac.h" bodystart="102" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__si91x__hmac__key__config__B0__t_1af27b0da188f9efebf6d3a21276094195" prot="public" static="no" mutable="no">
+        <type>uint32_t</type>
+        <definition>uint32_t sl_si91x_hmac_key_config_B0_t::reserved</definition>
+        <argsstring></argsstring>
+        <name>reserved</name>
+        <qualifiedname>sl_si91x_hmac_key_config_B0_t::reserved</qualifiedname>
+        <briefdescription>
+<para>Reserved for future use. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/hmac/inc/sl_si91x_hmac.h" line="103" column="12" bodyfile="components/device/silabs/si91x/wireless/crypto/hmac/inc/sl_si91x_hmac.h" bodystart="103" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Structure defining HMAC key configuration for B0 chip versions. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>The structure defines the key configuration for B0 chip versions, which includes the key type, key size, key slot, wrap mode, IV, key buffer, and reserved field. </para>
+    </detaileddescription>
+    <location file="components/device/silabs/si91x/wireless/crypto/hmac/inc/sl_si91x_hmac.h" line="96" column="1" bodyfile="components/device/silabs/si91x/wireless/crypto/hmac/inc/sl_si91x_hmac.h" bodystart="96" bodyend="104"/>
+    <listofallmembers>
+      <member refid="structsl__si91x__hmac__key__config__B0__t_1a698407bd708595e9040fadd7224b24a1" prot="public" virt="non-virtual"><scope>sl_si91x_hmac_key_config_B0_t</scope><name>key</name></member>
+      <member refid="structsl__si91x__hmac__key__config__B0__t_1a808b8ac9b39b6e04484dce6515d7409a" prot="public" virt="non-virtual"><scope>sl_si91x_hmac_key_config_B0_t</scope><name>key_size</name></member>
+      <member refid="structsl__si91x__hmac__key__config__B0__t_1a0cca52ebd200f96b7459d7b7856114c3" prot="public" virt="non-virtual"><scope>sl_si91x_hmac_key_config_B0_t</scope><name>key_slot</name></member>
+      <member refid="structsl__si91x__hmac__key__config__B0__t_1af0cdf73da6cff9f2781feafcd447f7f6" prot="public" virt="non-virtual"><scope>sl_si91x_hmac_key_config_B0_t</scope><name>key_type</name></member>
+      <member refid="structsl__si91x__hmac__key__config__B0__t_1af27b0da188f9efebf6d3a21276094195" prot="public" virt="non-virtual"><scope>sl_si91x_hmac_key_config_B0_t</scope><name>reserved</name></member>
+      <member refid="structsl__si91x__hmac__key__config__B0__t_1a8da89ab0f44d8f5ecd2c8070860b1fe3" prot="public" virt="non-virtual"><scope>sl_si91x_hmac_key_config_B0_t</scope><name>wrap_iv</name></member>
+      <member refid="structsl__si91x__hmac__key__config__B0__t_1a7f6eac924421659fa28b7159490bee84" prot="public" virt="non-virtual"><scope>sl_si91x_hmac_key_config_B0_t</scope><name>wrap_iv_mode</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

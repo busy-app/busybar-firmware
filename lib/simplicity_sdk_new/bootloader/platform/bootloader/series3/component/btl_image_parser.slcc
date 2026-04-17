@@ -1,0 +1,20 @@
+id: btl_image_parser
+label: Image Parser (Series-3)
+package: bootloader
+description: >
+  The Bootloader Image Parser component supports parsing GBL files based on the GBL file format specification.
+category: Platform|Bootloader|Core
+quality: production
+source:
+- path: platform/bootloader/series3/core/btl_bootload.c
+- path: platform/bootloader/series3/parser/gbl/btl_gbl_custom_tags.c
+- path: platform/bootloader/series3/parser/gbl/btl_gbl_parser.c
+provides:
+- name: btl_image_parser
+requires:
+- name: bootloader_aes_sha_ecdsa
+- name: btl_include_parser
+metadata:
+  sbom:
+    license: MSLA
+root_path: bootloader

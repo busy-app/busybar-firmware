@@ -1,0 +1,45 @@
+id: sli_crypto_ksu_manager
+label: KSU Manager
+package: security_mbedtls
+description: >-
+  This component implements the KSU Manager to manage the Key Slot Unit (KSU).
+category: Platform|Security|SLI Crypto
+quality: production
+ui_hints:
+  visibility: never
+source:
+- path: src/sli_crypto_ksu_manager.c
+
+include:
+- path: inc
+  file_list:
+  - path: sli_crypto_ksu_manager.h
+
+provides:
+- name: sli_crypto_ksu_manager
+
+requires:
+- name: device
+- name: device_series_3
+- name: se_manager
+- name: status
+- name: sl_assert
+- name: sxsymcrypt
+- name: device_has_ksu
+
+metadata:
+  sbom:
+    license: Zlib
+
+config_file:
+- path: config/sli_ksu_keyslots_config.h
+  file_id: sli_ksu_keyslots_config
+
+template_contribution:
+- name: event_handler
+  value:
+    event: service_init
+    include: sli_crypto_ksu_manager.h
+    handler: sli_ksu_init
+  priority: 3
+root_path: security_mbedtls/platform/security/sl_component/sli_crypto

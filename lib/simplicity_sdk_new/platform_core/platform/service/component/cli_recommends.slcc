@@ -1,0 +1,19 @@
+!!omap
+- id: cli_recommends
+- label: cli_recommends
+- description: CLI recommend
+- package: platform_core
+- category: Services|Command Line Interface
+- quality: production
+- metadata:
+    sbom:
+      license: Zlib
+- ui_hints:
+    visibility: never     #should not be used directly; required by cli_recommended_instance
+- provides:
+  - name: cli_recommends
+- recommends:
+  - id: cli
+    instance: [inst0]
+    vendor: silabs
+- root_path: platform_core

@@ -1,0 +1,98 @@
+project_name: bt_soc_cbap
+package: bluetooth_le_app
+label: Bluetooth - SoC Certificate Based Authentication and Pairing (Secure Vault)
+description: >
+  Demonstrates Certificate Based Authentication and Pairing over BLE.
+  This example utilizes Secure Vault for storing keys.
+category: Bluetooth Examples
+quality: experimental
+
+filter:
+  - name: "Wireless Technology"
+    value: ["Bluetooth"]
+  - name: "Device Type"
+    value: ["SoC"]
+  - name: "Project Difficulty"
+    value: ["Advanced"]
+
+component:
+  - id: bluetooth_stack
+  - id: gatt_configuration
+  - id: gatt_service_device_information_override
+  - id: bluetooth_feature_legacy_advertiser
+  - id: bluetooth_feature_connection_role_central
+  - id: bluetooth_feature_connection_role_peripheral
+  - id: bluetooth_feature_gatt
+  - id: bluetooth_feature_gatt_server
+  - id: bluetooth_feature_legacy_scanner
+  - id: bluetooth_feature_sm
+  - id: bluetooth_feature_system
+  - id: rail_util_pti
+  - id: app_log
+  - id: app_assert
+  - id: simple_led
+    instance:
+      - led0
+  - id: app_timer
+  - id: cbap
+  - id: sl_main
+  - id: clock_manager
+  - id: device_init
+
+source:
+  - path: app.c
+
+include:
+  - path: .
+    file_list:
+      - path: app.h
+
+config_file:
+  - path: config/cbap_config.h
+  - override:
+      component: gatt_configuration
+      file_id: gatt_configuration_file_id
+    path: gatt_configuration.btconf
+    directory: btconf
+
+readme:
+  - path: readme.md
+
+other_file:
+  - path: image/readme_img0.png
+  - path: image/readme_img1.png
+  - path: image/readme_img2.png
+
+configuration:
+  - name: SL_STACK_SIZE
+    value: "6200"
+  - name: SL_PSA_KEY_USER_SLOT_COUNT
+    value: "1"
+    condition:
+      - psa_crypto
+  - name: SL_BOARD_ENABLE_VCOM
+    value: "1"
+  - name: SL_IOSTREAM_USART_VCOM_RESTRICT_ENERGY_MODE_TO_ALLOW_RECEPTION
+    value: "0"
+  - name: SL_IOSTREAM_EUSART_VCOM_RESTRICT_ENERGY_MODE_TO_ALLOW_RECEPTION
+    value: "0"
+  - name: APP_LOG_LEVEL_FILTER_THRESHOLD
+    value: APP_LOG_LEVEL_INFO
+
+post_build:
+  - path: ../../postbuild_profile/bt_common_s2.slpb
+    condition: [device_series_2, bootloader_app_properties]
+
+tag:
+  - hwfilter:device:device_supports_bluetooth
+  - hwfilter:device:device_series_2
+  - hwfilter:device:device_security_vault
+  - hwfilter:board:simple_led:led0
+  - hwfilter:flash:512k
+  - hwfilter:ram:64k
+
+ui_hints:
+  highlight:
+    - path: config/btconf/gatt_configuration.btconf
+    - path: readme.md
+      focus: true

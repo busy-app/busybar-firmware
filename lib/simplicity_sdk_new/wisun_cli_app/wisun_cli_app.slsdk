@@ -1,0 +1,12 @@
+# Properties file for Simplicity Studio metadata
+# Package ID should prefer format: com.silabs.sdk.<package_name>
+id=com.silabs.sdk.wisun_cli_app
+
+version=2.11.0
+
+label=wisun_soc_cli_app
+description=Wi-SUN CLI Application
+
+# List of relative file paths to template xml files in this extension
+prop.file.templatesFile=wisun_cli_app_templates.xml
+prop.file.demosFile=wisun_cli_app_demos.xml

@@ -1,0 +1,33 @@
+id: simple_pwm_led_core
+label: Simple PWM LED Core
+package: platform_core
+description: >
+  The Simple PWM LED Driver provides an implementation of the Generic LED
+  API. This driver supports controlling LED sets and uses
+  Pulse Width Modulation (PWM) to set the intensity of each LED.
+  This component includes only the Simple PWM LED driver core.
+category: Platform|Driver|LED
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: platform_core/platform/driver/leddrv/
+ui_hints:
+  visibility: never
+include:
+- path: inc
+  file_list:
+  - path: sl_pwm_led.h
+source:
+- path: src/sl_pwm_led.c
+provides:
+- name: simple_pwm_led_core
+requires:
+- name: status
+- name: hal_generic_timer
+- name: gpio
+  condition:
+  - device_cortexm
+- name: hal_generic_common
+- name: clock_manager_runtime
+- name: device_manager

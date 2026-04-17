@@ -1,0 +1,78 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="structsl__bt__evt__gatt__descriptor__s" kind="struct" language="C++" prot="public">
+    <compoundname>sl_bt_evt_gatt_descriptor_s</compoundname>
+    <includes refid="sl__bt__api_8h" local="no">sl_bt_api.h</includes>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structsl__bt__evt__gatt__descriptor__s_1a963b1f27c457d8ce70f948f0185dd5e9" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_gatt_descriptor_s::connection</definition>
+        <argsstring></argsstring>
+        <name>connection</name>
+        <qualifiedname>sl_bt_evt_gatt_descriptor_s::connection</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Connection handle </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="8250" column="14" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="8250" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__gatt__descriptor__s_1a4d91feb5d985d6d7e81d96bc531c7f68" prot="public" static="no" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t sl_bt_evt_gatt_descriptor_s::descriptor</definition>
+        <argsstring></argsstring>
+        <name>descriptor</name>
+        <qualifiedname>sl_bt_evt_gatt_descriptor_s::descriptor</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>GATT characteristic descriptor handle </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="8251" column="14" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="8251" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__gatt__descriptor__s_1abd8a978d82456c6372b6d8df49f17bc5" prot="public" static="no" mutable="no">
+        <type><ref refid="structuint8array" kindref="compound">uint8array</ref></type>
+        <definition>uint8array sl_bt_evt_gatt_descriptor_s::uuid</definition>
+        <argsstring></argsstring>
+        <name>uuid</name>
+        <qualifiedname>sl_bt_evt_gatt_descriptor_s::uuid</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Descriptor UUID in little endian format </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="8252" column="14" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="8252" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Data structure of the descriptor event. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>sl_bt_evt_gatt_descriptor_s</label>
+        <link refid="structsl__bt__evt__gatt__descriptor__s"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>uuid</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>uint8array</label>
+        <link refid="structuint8array"/>
+      </node>
+    </collaborationgraph>
+    <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="8248" column="1" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="8249" bodyend="8253"/>
+    <listofallmembers>
+      <member refid="structsl__bt__evt__gatt__descriptor__s_1a963b1f27c457d8ce70f948f0185dd5e9" prot="public" virt="non-virtual"><scope>sl_bt_evt_gatt_descriptor_s</scope><name>connection</name></member>
+      <member refid="structsl__bt__evt__gatt__descriptor__s_1a4d91feb5d985d6d7e81d96bc531c7f68" prot="public" virt="non-virtual"><scope>sl_bt_evt_gatt_descriptor_s</scope><name>descriptor</name></member>
+      <member refid="structsl__bt__evt__gatt__descriptor__s_1abd8a978d82456c6372b6d8df49f17bc5" prot="public" virt="non-virtual"><scope>sl_bt_evt_gatt_descriptor_s</scope><name>uuid</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

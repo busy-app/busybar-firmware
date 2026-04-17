@@ -1,0 +1,202 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="structsl__bt__evt__cs__result__continue__s" kind="struct" language="C++" prot="public">
+    <compoundname>sl_bt_evt_cs_result_continue_s</compoundname>
+    <includes refid="sl__bt__api_8h" local="no">sl_bt_api.h</includes>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structsl__bt__evt__cs__result__continue__s_1afc84072c069f84f8f468cd025f071166" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_cs_result_continue_s::connection</definition>
+        <argsstring></argsstring>
+        <name>connection</name>
+        <qualifiedname>sl_bt_evt_cs_result_continue_s::connection</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Connection handle. Returns a SL_BT_INVALID_CONNECTION_HANDLE (0xFF) when triggered as a result of <ref refid="group__sl__bt__cs__test_1gaa66d7b45664c0c2e0b99db3946802ab2" kindref="member">sl_bt_cs_test_start</ref> command </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="13547" column="14" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="13547" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__cs__result__continue__s_1a808fbecd9b985ad7393b587e2802546f" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_cs_result_continue_s::config_id</definition>
+        <argsstring></argsstring>
+        <name>config_id</name>
+        <qualifiedname>sl_bt_evt_cs_result_continue_s::config_id</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>CS configuration identifier. This paremeter is ignored when the event is triggered as a result of <ref refid="group__sl__bt__cs__test_1gaa66d7b45664c0c2e0b99db3946802ab2" kindref="member">sl_bt_cs_test_start</ref> command.<itemizedlist>
+<listitem><para><bold>Range:</bold> 0 to 3 </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="13551" column="14" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="13551" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__cs__result__continue__s_1af8e5e0a6b55d5f733a4852c490bc43e0" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_cs_result_continue_s::procedure_done_status</definition>
+        <argsstring></argsstring>
+        <name>procedure_done_status</name>
+        <qualifiedname>sl_bt_evt_cs_result_continue_s::procedure_done_status</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Enum <ref refid="group__sl__bt__cs_1ga7eb16c89a888196a9c82fb85feb8d5a3" kindref="member">sl_bt_cs_done_status_t</ref>. Current status of the CS procedure Values:<itemizedlist>
+<listitem><para><bold>sl_bt_cs_done_status_complete (0x0):</bold> All results complete for the CS procedure or subevent</para>
+</listitem><listitem><para><bold>sl_bt_cs_done_status_partial_results_continue (0x1):</bold> Partial results with more to follow</para>
+</listitem><listitem><para><bold>sl_bt_cs_done_status_aborted (0xf):</bold> Current procedure and all subsequent subevents in the procedure aborted or current subevent aborted. </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="13556" column="14" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="13556" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__cs__result__continue__s_1abec37c0d165f74f995c99342ee31c181" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_cs_result_continue_s::subevent_done_status</definition>
+        <argsstring></argsstring>
+        <name>subevent_done_status</name>
+        <qualifiedname>sl_bt_evt_cs_result_continue_s::subevent_done_status</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Enum <ref refid="group__sl__bt__cs_1ga7eb16c89a888196a9c82fb85feb8d5a3" kindref="member">sl_bt_cs_done_status_t</ref>. Current status of the CS subevent Values:<itemizedlist>
+<listitem><para><bold>sl_bt_cs_done_status_complete (0x0):</bold> All results complete for the CS procedure or subevent</para>
+</listitem><listitem><para><bold>sl_bt_cs_done_status_partial_results_continue (0x1):</bold> Partial results with more to follow</para>
+</listitem><listitem><para><bold>sl_bt_cs_done_status_aborted (0xf):</bold> Current procedure and all subsequent subevents in the procedure aborted or current subevent aborted. </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="13570" column="14" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="13570" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__cs__result__continue__s_1a521c111f70ffab16b459c38688663bdd" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_cs_result_continue_s::abort_reason</definition>
+        <argsstring></argsstring>
+        <name>abort_reason</name>
+        <qualifiedname>sl_bt_evt_cs_result_continue_s::abort_reason</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Indicates the abort reason when the <computeroutput>procedure_done_status</computeroutput> or <computeroutput>subevent_done_status</computeroutput> is set to 0xF, otherwise the default value is set to zero.</para>
+<para>Bits 0-3 indicate the procedure abort reasons:</para>
+<para><itemizedlist>
+<listitem><para>0x0 = Report with no abort</para>
+</listitem><listitem><para>0x1 = Abort because of local Host or remote request</para>
+</listitem><listitem><para>0x2 = Abort because filtered channel map has less than 15 channels</para>
+</listitem><listitem><para>0x3 = Abort because the channel map update instant has passed</para>
+</listitem><listitem><para>0xF = Abort because of unspecified reasons</para>
+</listitem></itemizedlist>
+</para>
+<para>Bits 4-7 indicate the subevent done reasons:</para>
+<para><itemizedlist>
+<listitem><para>0x0 = Report with no abort</para>
+</listitem><listitem><para>0x1 = Abort because of local Host or remote request</para>
+</listitem><listitem><para>0x2 = Abort because no CS_SYNC (mode-0) received</para>
+</listitem><listitem><para>0x3 = Abort because of scheduling conflicts or limited resources</para>
+</listitem><listitem><para>0xF = Abort because of unspecified reasons </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="13584" column="14" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="13584" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__cs__result__continue__s_1a23a5542c381ccde14e004fafd8c6d17e" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_cs_result_continue_s::num_antenna_paths</definition>
+        <argsstring></argsstring>
+        <name>num_antenna_paths</name>
+        <qualifiedname>sl_bt_evt_cs_result_continue_s::num_antenna_paths</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Number of antenna paths supported by the local controller for the CS tone exchanges. The number of antenna paths used during the phase measurement stage of the CS step.<itemizedlist>
+<listitem><para><bold>Range:</bold> 1 to 4</para>
+</listitem><listitem><para>Value: 0. Phase measurement does not occur during the CS step, therefore ignored </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="13616" column="14" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="13616" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__cs__result__continue__s_1a1c3c2b32489d56078fb7067517eccaed" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_cs_result_continue_s::num_steps</definition>
+        <argsstring></argsstring>
+        <name>num_steps</name>
+        <qualifiedname>sl_bt_evt_cs_result_continue_s::num_steps</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Number of steps in the CS subevent for which results are reported.<itemizedlist>
+<listitem><para><bold>Range:</bold> 1 to 160 </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="13626" column="14" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="13626" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__cs__result__continue__s_1a6cc38fa59c84ef3c473c5184e341ac4d" prot="public" static="no" mutable="no">
+        <type><ref refid="structuint8array" kindref="compound">uint8array</ref></type>
+        <definition>uint8array sl_bt_evt_cs_result_continue_s::data</definition>
+        <argsstring></argsstring>
+        <name>data</name>
+        <qualifiedname>sl_bt_evt_cs_result_continue_s::data</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>The result data is structured as follows:<itemizedlist>
+<listitem><para>step_mode: 1 octet for each num_steps. Mode type. Range 0 to 3.</para>
+</listitem><listitem><para>step_channel: 1 octet for each num_steps. Channel index. Range 1 to 78.</para>
+</listitem><listitem><para>step_data_length: 1 octet for each num_steps. Length of mode and role specific information being reported. Range 0x00 to 0xFF.</para>
+</listitem><listitem><para>step_data: step_data_length octet for each corresponding steps in num_steps. </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="13629" column="14" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="13629" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Data structure of the result_continue event. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>sl_bt_evt_cs_result_continue_s</label>
+        <link refid="structsl__bt__evt__cs__result__continue__s"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>data</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>uint8array</label>
+        <link refid="structuint8array"/>
+      </node>
+    </collaborationgraph>
+    <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="13545" column="1" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="13546" bodyend="13643"/>
+    <listofallmembers>
+      <member refid="structsl__bt__evt__cs__result__continue__s_1a521c111f70ffab16b459c38688663bdd" prot="public" virt="non-virtual"><scope>sl_bt_evt_cs_result_continue_s</scope><name>abort_reason</name></member>
+      <member refid="structsl__bt__evt__cs__result__continue__s_1a808fbecd9b985ad7393b587e2802546f" prot="public" virt="non-virtual"><scope>sl_bt_evt_cs_result_continue_s</scope><name>config_id</name></member>
+      <member refid="structsl__bt__evt__cs__result__continue__s_1afc84072c069f84f8f468cd025f071166" prot="public" virt="non-virtual"><scope>sl_bt_evt_cs_result_continue_s</scope><name>connection</name></member>
+      <member refid="structsl__bt__evt__cs__result__continue__s_1a6cc38fa59c84ef3c473c5184e341ac4d" prot="public" virt="non-virtual"><scope>sl_bt_evt_cs_result_continue_s</scope><name>data</name></member>
+      <member refid="structsl__bt__evt__cs__result__continue__s_1a23a5542c381ccde14e004fafd8c6d17e" prot="public" virt="non-virtual"><scope>sl_bt_evt_cs_result_continue_s</scope><name>num_antenna_paths</name></member>
+      <member refid="structsl__bt__evt__cs__result__continue__s_1a1c3c2b32489d56078fb7067517eccaed" prot="public" virt="non-virtual"><scope>sl_bt_evt_cs_result_continue_s</scope><name>num_steps</name></member>
+      <member refid="structsl__bt__evt__cs__result__continue__s_1af8e5e0a6b55d5f733a4852c490bc43e0" prot="public" virt="non-virtual"><scope>sl_bt_evt_cs_result_continue_s</scope><name>procedure_done_status</name></member>
+      <member refid="structsl__bt__evt__cs__result__continue__s_1abec37c0d165f74f995c99342ee31c181" prot="public" virt="non-virtual"><scope>sl_bt_evt_cs_result_continue_s</scope><name>subevent_done_status</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

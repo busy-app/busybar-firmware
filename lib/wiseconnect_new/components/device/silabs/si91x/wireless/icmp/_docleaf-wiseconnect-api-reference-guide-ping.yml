@@ -1,0 +1,18 @@
+objectType: docLeaf
+id: wiseconnect-api-reference-guide-ping
+access: "public"
+status: "active"
+version: "4.0.1"
+authors:
+  - aji.gerdiman@silabs.com
+  - nik.vonhuben@silabs.com
+
+contentType: doxygen
+sourceDir: "doxygen-output/xml"
+title: "Ping"
+description: "Ping"
+
+menu:
+  items:
+    - index
+    - sl-ping-apis

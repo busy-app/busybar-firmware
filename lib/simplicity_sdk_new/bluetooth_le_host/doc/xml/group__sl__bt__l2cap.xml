@@ -1,0 +1,697 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__l2cap" kind="group">
+    <compoundname>sl_bt_l2cap</compoundname>
+    <title>L2CAP Connection Oriented Channels</title>
+    <innergroup refid="group__sl__bt__evt__l2cap__le__channel__open__request">sl_bt_evt_l2cap_le_channel_open_request</innergroup>
+    <innergroup refid="group__sl__bt__evt__l2cap__le__channel__open__response">sl_bt_evt_l2cap_le_channel_open_response</innergroup>
+    <innergroup refid="group__sl__bt__evt__l2cap__channel__data">sl_bt_evt_l2cap_channel_data</innergroup>
+    <innergroup refid="group__sl__bt__evt__l2cap__channel__credit">sl_bt_evt_l2cap_channel_credit</innergroup>
+    <innergroup refid="group__sl__bt__evt__l2cap__channel__closed">sl_bt_evt_l2cap_channel_closed</innergroup>
+    <innergroup refid="group__sl__bt__evt__l2cap__command__rejected">sl_bt_evt_l2cap_command_rejected</innergroup>
+      <sectiondef kind="enum">
+      <memberdef kind="enum" id="group__sl__bt__l2cap_1gae9842dbd44c2e083436b58bcd06cdb42" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_bt_l2cap_connection_result_t</name>
+        <enumvalue id="group__sl__bt__l2cap_1ggae9842dbd44c2e083436b58bcd06cdb42ac9cf1e0fa42f9d334727f0a95c63905a" prot="public">
+          <name>sl_bt_l2cap_connection_result_successful</name>
+          <initializer>= 0x0</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x0) Connection successful </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__l2cap_1ggae9842dbd44c2e083436b58bcd06cdb42ac8ab8e5881656aae4eabdf87a383b94b" prot="public">
+          <name>sl_bt_l2cap_connection_result_spsm_not_supported</name>
+          <initializer>= 0x2</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x2) Connection refused - SPSM not supported </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__l2cap_1ggae9842dbd44c2e083436b58bcd06cdb42a25defc9dc1aa75800216c5058ffcec84" prot="public">
+          <name>sl_bt_l2cap_connection_result_no_resources_available</name>
+          <initializer>= 0x4</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x4) Connection refused - no resources available </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__l2cap_1ggae9842dbd44c2e083436b58bcd06cdb42a8e146e00333f945bcf01d12964e95945" prot="public">
+          <name>sl_bt_l2cap_connection_result_insufficient_authentication</name>
+          <initializer>= 0x5</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x5) Connection refused - insufficient authentication </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__l2cap_1ggae9842dbd44c2e083436b58bcd06cdb42a2165a04e13774f7cdc55d7dec64b091f" prot="public">
+          <name>sl_bt_l2cap_connection_result_insufficient_authorization</name>
+          <initializer>= 0x6</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x6) Connection refused - insufficient authorization </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__l2cap_1ggae9842dbd44c2e083436b58bcd06cdb42ab0970f03863591be8d3c401d07a81c4a" prot="public">
+          <name>sl_bt_l2cap_connection_result_encryption_key_size_too_short</name>
+          <initializer>= 0x7</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x7) Connection refused - encryption key size too short </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__l2cap_1ggae9842dbd44c2e083436b58bcd06cdb42a105f546218f3d5928f4b379abc224d08" prot="public">
+          <name>sl_bt_l2cap_connection_result_insufficient_encryption</name>
+          <initializer>= 0x8</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x8) Connection refused - insufficient encryption </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__l2cap_1ggae9842dbd44c2e083436b58bcd06cdb42a70de4f1d3e687da0296bab5240c26876" prot="public">
+          <name>sl_bt_l2cap_connection_result_invalid_source_cid</name>
+          <initializer>= 0x9</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x9) Connection refused - invalid Source CID </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__l2cap_1ggae9842dbd44c2e083436b58bcd06cdb42acf7d93d75152b8269bcdaebf0d00b085" prot="public">
+          <name>sl_bt_l2cap_connection_result_source_cid_already_allocated</name>
+          <initializer>= 0xa</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0xa) Connection refused - Source CID already allocated </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__l2cap_1ggae9842dbd44c2e083436b58bcd06cdb42a4c9536cfee86cacb0a1956c5bc83ccd7" prot="public">
+          <name>sl_bt_l2cap_connection_result_unacceptable_parameters</name>
+          <initializer>= 0xb</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0xb) Connection refused - unacceptable parameters </para>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>Defines possible result values in the responses to credit based channel connection requests. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="14784" column="1" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="14785" bodyend="14850"/>
+      </memberdef>
+      <memberdef kind="enum" id="group__sl__bt__l2cap_1ga04c047b6f61188f5b77de18e9402ba5e" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_bt_l2cap_command_reject_reason_t</name>
+        <enumvalue id="group__sl__bt__l2cap_1gga04c047b6f61188f5b77de18e9402ba5ea6d94cc54389b4cd65176515f657739a8" prot="public">
+          <name>sl_bt_l2cap_command_not_understood</name>
+          <initializer>= 0x0</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x0) Command not understood e.g., unknown command code </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__l2cap_1gga04c047b6f61188f5b77de18e9402ba5ea61d3c21019eb3e76579c48f6f7865602" prot="public">
+          <name>sl_bt_l2cap_signaling_mtu_exceeded</name>
+          <initializer>= 0x1</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x1) Command size has exceeded the signaling MTU size </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__l2cap_1gga04c047b6f61188f5b77de18e9402ba5eadcb2204e881a7ae4dc383d3930378ff2" prot="public">
+          <name>sl_bt_l2cap_invalid_cid_request</name>
+          <initializer>= 0x2</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x2) An invalid CID is included in the command </para>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>Describes why a request command was rejected. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="14855" column="1" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="14856" bodyend="14863"/>
+      </memberdef>
+      <memberdef kind="enum" id="group__sl__bt__l2cap_1ga41d09e90ffacb07a18fcf20f6668a4cc" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_bt_l2cap_command_code_t</name>
+        <enumvalue id="group__sl__bt__l2cap_1gga41d09e90ffacb07a18fcf20f6668a4cca8f839566b869d25dbbb556cf508e23e2" prot="public">
+          <name>sl_bt_l2cap_disconnection_request</name>
+          <initializer>= 0x6</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x6) A disconnection request </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__l2cap_1gga41d09e90ffacb07a18fcf20f6668a4cca3e63fdf83590b42fb7b97d9ac9d8f40c" prot="public">
+          <name>sl_bt_l2cap_le_connection_request</name>
+          <initializer>= 0x14</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x14) An LE credit-based connection request </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__l2cap_1gga41d09e90ffacb07a18fcf20f6668a4cca78589707f6269295e7cc54980fece17a" prot="public">
+          <name>sl_bt_l2cap_flow_control_credit</name>
+          <initializer>= 0x16</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x16) A Flow Control Credit packet </para>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>Describes which of the request commands has been rejected. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="14868" column="1" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="14869" bodyend="14875"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="group__sl__bt__l2cap_1gab8c1a8f13e15e1511d6db2dca0bc6e5c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_l2cap_open_le_channel</definition>
+        <argsstring>(uint8_t connection, uint16_t spsm, uint16_t max_sdu, uint16_t max_pdu, uint16_t credit, uint16_t *cid)</argsstring>
+        <name>sl_bt_l2cap_open_le_channel</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>connection</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>spsm</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>max_sdu</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>max_pdu</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>credit</declname>
+        </param>
+        <param>
+          <type>uint16_t *</type>
+          <declname>cid</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Create and configure an L2CAP channel on a Bluetooth connection using the LE credit based connection request packet. Event <ref refid="group__sl__bt__evt__l2cap__le__channel__open__response" kindref="compound">sl_bt_evt_l2cap_le_channel_open_response</ref> or <ref refid="group__sl__bt__evt__l2cap__command__rejected" kindref="compound">sl_bt_evt_l2cap_command_rejected</ref> will be received after the peer device responded to the request.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">connection</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The connection handle </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">spsm</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The protocol/services implemented by the local channel endpoint </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">max_sdu</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>The Maximum Service Data Unit size the local channel endpoint can accept</para>
+<para><itemizedlist>
+<listitem><para><bold>Range:</bold> 23 to 65533 </para>
+</listitem></itemizedlist>
+</para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">max_pdu</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>The maximum PDU payload size the local channel endpoint can accept</para>
+<para><itemizedlist>
+<listitem><para><bold>Range:</bold> 23 to 252 </para>
+</listitem></itemizedlist>
+</para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">credit</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The initial credit value of the local channel endpoint, i.e., number of PDUs the peer channel endpoint can send </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">cid</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The channel identifier</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise.</para>
+</simplesect>
+<bold>Events</bold> <itemizedlist>
+<listitem><para><ref refid="group__sl__bt__evt__l2cap__command__rejected" kindref="compound">sl_bt_evt_l2cap_command_rejected</ref> - Triggered when the peer device rejected the connection request. Typically a legacy peer device that does not support the feature could send this response. When this event is received under the context of opening a channel using this command, the stack automatically closes the local channel and the user application should clean up the resources associated to the channel identifier.</para>
+</listitem><listitem><para><ref refid="group__sl__bt__evt__l2cap__le__channel__open__response" kindref="compound">sl_bt_evt_l2cap_le_channel_open_response</ref> - Triggered when an LE credit-based connection response has been received in response to this command. If the result code in <computeroutput>errorcode</computeroutput> of the event is not equal to <ref refid="group__sl__bt__l2cap_1ggae9842dbd44c2e083436b58bcd06cdb42ac9cf1e0fa42f9d334727f0a95c63905a" kindref="member">sl_bt_l2cap_connection_result_successful</ref>, it means that connection request was rejected by the peer device. In this case, the stack automatically closes the local channel and the user application should clean up the resources associated to the channel identifier.</para>
+</listitem><listitem><para><ref refid="group__sl__bt__evt__l2cap__channel__closed" kindref="compound">sl_bt_evt_l2cap_channel_closed</ref> - Triggered when an LE credit-based connection response has not been received within 30 seconds after this command has been issued. </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15120" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="15120" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__l2cap_1ga4e2fcca3a491c716b71584567667e095" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_l2cap_send_le_channel_open_response</definition>
+        <argsstring>(uint8_t connection, uint16_t cid, uint16_t max_sdu, uint16_t max_pdu, uint16_t credit, uint16_t errorcode)</argsstring>
+        <name>sl_bt_l2cap_send_le_channel_open_response</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>connection</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>cid</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>max_sdu</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>max_pdu</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>credit</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>errorcode</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Send an LE credit-based connection response to an LE credit-based connection request received in the <ref refid="group__sl__bt__evt__l2cap__le__channel__open__request" kindref="compound">sl_bt_evt_l2cap_le_channel_open_request</ref> event. Result code <ref refid="group__sl__bt__l2cap_1ggae9842dbd44c2e083436b58bcd06cdb42ac9cf1e0fa42f9d334727f0a95c63905a" kindref="member">sl_bt_l2cap_connection_result_successful</ref> in <computeroutput>errorcode</computeroutput> implies that the logical channel is established and data can be sent or received on the channel.</para>
+<para>To reject the connection request, use a result code other than sl_bt_l2cap_connection_result_successful in <computeroutput>errorcode</computeroutput>. Other parameters in this command are ignored in this case. The stack automatically closes the local channel and the user application should clean up the resources associated to the channel identifier.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">connection</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The connection handle </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">cid</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The channel identifier </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">max_sdu</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>The Maximum Service Data Unit size the local channel endpoint can accept</para>
+<para><itemizedlist>
+<listitem><para><bold>Range:</bold> 23 to 65533 </para>
+</listitem></itemizedlist>
+</para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">max_pdu</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>The maximum PDU payload size the local channel endpoint can accept</para>
+<para><itemizedlist>
+<listitem><para><bold>Range:</bold> 23 to 252 </para>
+</listitem></itemizedlist>
+</para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">credit</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The initial credit value of the local channel endpoint, i.e., number of PDUs that the peer channel endpoint can send </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">errorcode</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Enum <ref refid="group__sl__bt__l2cap_1gae9842dbd44c2e083436b58bcd06cdb42" kindref="member">sl_bt_l2cap_connection_result_t</ref>. An L2CAP error code as the outcome of the connection request</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15161" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="15161" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__l2cap_1ga54e17676579c29024fc01b08c76c46f0" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_l2cap_channel_send_data</definition>
+        <argsstring>(uint8_t connection, uint16_t cid, size_t data_len, const uint8_t *data)</argsstring>
+        <name>sl_bt_l2cap_channel_send_data</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>connection</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>cid</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>data_len</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>data</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Send data to the peer channel endpoint on a Bluetooth connection. If the SDU length is larger than max_pdu size or 250 bytes, the application should fragment the SDU into multiple K-frames and call this command once for each K-frame.</para>
+<para>The first K-frame of the SDU should start with 2 bytes of SDU length followed with payload. Therefore, the first K-frame contains PDU length minus 2 bytes of the actual payload. All subsequent K-frames of the same SDU contain PDU length of the payload. The sum of the payload lengths for K-frames should be equal to the specified SDU length.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">connection</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The connection handle </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">cid</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The channel identifier </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">data_len</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Length of data in <computeroutput>data</computeroutput> </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">data</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Data to be sent. The data length must not be greater than the lesser of the peer channel endpoint max_pdu and 252 bytes, which is the maximum data length this command can send.</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15191" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="15191" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__l2cap_1gaefdaeadf426c0657cd917a91bfe1a427" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_l2cap_channel_send_credit</definition>
+        <argsstring>(uint8_t connection, uint16_t cid, uint16_t credit)</argsstring>
+        <name>sl_bt_l2cap_channel_send_credit</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>connection</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>cid</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>credit</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Send flow control credits to the peer channel endpoint indicating that the local channel endpoint is capable of receiving more data.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">connection</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The connection handle </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">cid</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The channel identifier </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">credit</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>The credit value, i.e., the additional number of PDUs the peer channel endpoint can send</para>
+<para><itemizedlist>
+<listitem><para><bold>Range:</bold> 1 to 65535 </para>
+</listitem></itemizedlist>
+</para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+<para><simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15213" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="15213" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__l2cap_1ga524e3d7dbd73c5d98ea8332fb0f1fc1a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_l2cap_close_channel</definition>
+        <argsstring>(uint8_t connection, uint16_t cid)</argsstring>
+        <name>sl_bt_l2cap_close_channel</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>connection</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>cid</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Send a disconnect request to close a credit-based logical channel.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">connection</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The connection handle </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">cid</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The channel identifier</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise.</para>
+</simplesect>
+<bold>Events</bold> <itemizedlist>
+<listitem><para><ref refid="group__sl__bt__evt__l2cap__channel__closed" kindref="compound">sl_bt_evt_l2cap_channel_closed</ref> - Triggered when an credit-based logical channel is closed in response to this command. </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15231" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="15231" declcolumn="13"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__l2cap_1gace5a7ee306be59e96749853c10383dda" prot="public" static="no">
+        <name>sl_bt_cmd_l2cap_open_le_channel_id</name>
+        <initializer>0x01430020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="14769" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="14769" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__l2cap_1gae648e4f83950579ace3ce3c0c54a780a" prot="public" static="no">
+        <name>sl_bt_cmd_l2cap_send_le_channel_open_response_id</name>
+        <initializer>0x02430020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="14770" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="14770" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__l2cap_1gadf0af8dc5f0381ba587663b37f08ccd2" prot="public" static="no">
+        <name>sl_bt_cmd_l2cap_channel_send_data_id</name>
+        <initializer>0x03430020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="14771" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="14771" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__l2cap_1gaa51378557ff613c19f58b40571422755" prot="public" static="no">
+        <name>sl_bt_cmd_l2cap_channel_send_credit_id</name>
+        <initializer>0x04430020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="14772" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="14772" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__l2cap_1ga9698e40ecfe0c1f389f59e7542b554d4" prot="public" static="no">
+        <name>sl_bt_cmd_l2cap_close_channel_id</name>
+        <initializer>0x05430020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="14773" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="14773" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__l2cap_1ga233dfc62512a618c43561b484ce990bc" prot="public" static="no">
+        <name>sl_bt_rsp_l2cap_open_le_channel_id</name>
+        <initializer>0x01430020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="14774" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="14774" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__l2cap_1gaeab2bac3bfcb2c0053bd2f7af72fd8ed" prot="public" static="no">
+        <name>sl_bt_rsp_l2cap_send_le_channel_open_response_id</name>
+        <initializer>0x02430020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="14775" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="14775" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__l2cap_1ga1a247bc1c8e615c8b1cb068fc9eebeb8" prot="public" static="no">
+        <name>sl_bt_rsp_l2cap_channel_send_data_id</name>
+        <initializer>0x03430020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="14776" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="14776" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__l2cap_1gad72a10ee66366151af3cf7bb6b7859b7" prot="public" static="no">
+        <name>sl_bt_rsp_l2cap_channel_send_credit_id</name>
+        <initializer>0x04430020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="14777" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="14777" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__l2cap_1gafd45dd72242ae33a26baee1463b25bde" prot="public" static="no">
+        <name>sl_bt_rsp_l2cap_close_channel_id</name>
+        <initializer>0x05430020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="14778" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="14778" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>L2CAP Connection Oriented Channels. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>The commands and events in this class provide Logical Link Control and Adaptation Protocol (L2CAP) credit-based logical channels.</para>
+<para>An L2CAP credit-based logical channel is a logical link identified by a channel identifier in the assigned name space 0x40-0x7F for LE-U logical links (the <computeroutput>cid</computeroutput> parameter in the commands and events of this API class). These channels use a credit-based flow control mechanism. The credit can be configured at the channel opening and later dynamically updated on the channel.</para>
+<para>The Simplified Protocol/Service Multiplexer (SPSM) of a channel specifies the protocol or services the channel implements. It can be a value for a fixed service assigned by the Bluetooth SIG or a dynamically-allocated value and used with services defined in the GATT Server. The dynamically-assigned value may be used to support multiple implementations of a particular protocol. See the Bluetooth core specification for more details. The application specifies the SPSM value in a channel open request in the <computeroutput>spsm</computeroutput> parameter of the <ref refid="group__sl__bt__l2cap_1gab8c1a8f13e15e1511d6db2dca0bc6e5c" kindref="member">sl_bt_l2cap_open_le_channel</ref> command.</para>
+<para>Each of the local and peer channel endpoints must specify the maximum Service Data Unit (SDU) size (the &apos;MTU&apos; field of the L2CAP packets in the Bluetooth Core specification) that it can receive on the channel. The application specifies the maximum Service Data Unit size (the <computeroutput>max_sdu</computeroutput> parameter in commands and events) of the local channel endpoint.</para>
+<para>Each channel endpoint has a maximum PDU payload Size that the L2CAP layer can receive in a single data packet on the channel. The maximum PDU payload size supported by the stack for local channel endpoints is 252 bytes, which is the maximum data length the <ref refid="group__sl__bt__evt__l2cap__channel__data" kindref="compound">sl_bt_evt_l2cap_channel_data</ref> event can support. The application specifies the max PDU payload size (the <computeroutput>max_pdu</computeroutput> parameter in commands and events). Additionally, the application is responsible for handling the segmentation from SDU to PDU and reassembly from PDU to SDU. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

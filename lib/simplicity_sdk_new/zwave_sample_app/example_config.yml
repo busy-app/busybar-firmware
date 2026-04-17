@@ -1,0 +1,381 @@
+template:
+  series2_z_wave_boards: &series2_z_wave_boards
+    - brd2603a
+    - brd2705a
+    - brd4204a
+    - brd4204b
+    - brd4204c
+    - brd4204d
+    - brd4205b
+    - brd4210a
+    - brd4400b
+    - brd4400c
+    - brd4401b
+    - brd4401c
+  series2_z_wave_parts: &series2_z_wave_parts
+    - .*efr32zg23.*
+    - .*efr32zg28.*
+    - .*zgm23.*
+  z_wave_toolchains: &z_wave_toolchains
+    - gcc
+  z_wave_ides: &z_wave_ides
+    - makefile-ide
+    - simplicity-ide
+    - visual-studio-code
+    - visual-studio-code-cmake
+    - generic-template
+  # All boards and parts
+  # INFO: The current yaml version does not support the merge of the same key in the same level without any workaround.
+  #       So duplicate this list if you want to use it in the future
+  z_wave_boards: &z_wave_boards
+    # Series2 must be the same as *series2_z_wave_boards
+    - brd2603a
+    - brd2705a
+    - brd4204a
+    - brd4204b
+    - brd4204c
+    - brd4204d
+    - brd4205b
+    - brd4210a
+    - brd4400b
+    - brd4400c
+    - brd4401b
+    - brd4401c
+  z_wave_parts: &z_wave_parts
+    # Series2 must be the same as *series2_z_wave_parts
+    - .*efr32zg23.*
+    - .*efr32zg28.*
+    - .*zgm23.*
+  # ----------------------- Application and demo specific part -----------------------
+  demo_depricated_boards: &demo_depricated_boards
+    - brd4204a
+    - brd4204b
+    - brd4400a
+    - brd4400b
+    - brd4401a
+    - brd4401b
+  demo_sample_encrypt_key: &demo_sample_encrypt_key sample_apps/sample-keys/sample_encrypt.key
+  demo_sample_sign_key: &demo_sample_sign_key sample_apps/sample-keys/sample_sign.key-tokens.txt
+  demo_controller_encrypt_key: &demo_controller_encrypt_key sample_apps/controller-keys/sample_encrypt.key
+  demo_controller_sign_key: &demo_controller_sign_key sample_apps/controller-keys/sample_sign.key-tokens.txt
+  # If default description changes don't forget to update the demo variants
+  demo_default_description: &demo_default_description >
+    IMPORTANT: The default region for this firmware is EU. This region is only applied by SoC applications if the dedicated MFG_ZWAVE_COUNTRY_FREQ token is
+    empty (0xFF) when the application first starts up. If another region is needed, then the MFG_ZWAVE_COUNTRY_FREQ token
+    must be set with Simplicity Commander using the following command: `commander flash --tokengroup znet --token MFG_ZWAVE_COUNTRY_FREQ:{region_hex}`,
+    where the {region_hex} is the desired region. The available regions can be found in the `zpal_radio.h` file, such as REGION_EU.
+  demo_v255_description: &demo_v255_description >
+    This variant of demo is created for testing OTA update. The firmware is the same as the default variant, except the application version is set to '255.0.0'.
+    IMPORTANT: The default region for this firmware is EU. This region is only applied by SoC applications if the dedicated MFG_ZWAVE_COUNTRY_FREQ token is
+    empty (0xFF) when the application first starts up. If another region is needed, then the MFG_ZWAVE_COUNTRY_FREQ token
+    must be set with Simplicity Commander using the following command: `commander flash --tokengroup znet --token MFG_ZWAVE_COUNTRY_FREQ:{region_hex}`,
+    where the {region_hex} is the desired region. The available regions can be found in the `zpal_radio.h` file, such as REGION_EU.
+  demo_sapi_description: &demo_sapi_description >
+    IMPORTANT: By SerialAPI Application, the region is selected by the Host application.
+  demo_sapi_v255_description: &demo_sapi_v255_description >
+    This variant of demo is created for testing OTW update. The firmware is the same as the default variant, except the application version is set to '255.0.0'.
+    IMPORTANT: By SerialAPI Application, the region is selected by the Host application.
+  demo_otw_bootloader: &demo_otw_bootloader bootloader-uart-xmodem-zwave-otw
+  demo_ota_bootloader: &demo_ota_bootloader bootloader-storage-internal-single-zwave-ota
+  demo_default_variant: &demo_default_variant
+    - name: Default
+      label: (Default Region)
+      description: *demo_default_description
+      path_suffix: eu
+      board_blacklist: *demo_depricated_boards
+  demo_v255_variant: &demo_v255_variant
+    - name: v255
+      label: (Default Region v255)
+      description: *demo_v255_description
+      path_suffix: eu_v255
+      configuration:
+        - name: USE_USER_APP_VERSION
+          value: "1"
+        - name: APP_VERSION
+          value: "255"
+        - name: APP_REVISION
+          value: "0"
+        - name: APP_PATCH
+          value: "0"
+      board_blacklist: *demo_depricated_boards
+example:
+  #########################################################
+  # Production templates
+  #########################################################
+  #********************************************************
+  # *** NCP Applications ***
+  #********************************************************
+  # --- NCP Serial API Controller Examples ---
+  # Application
+  - path: sample_apps/zwave_ncp_serial_api/zwave_ncp_serial_api_controller.slcp
+    board_whitelist: *z_wave_boards
+    part_compatibility: *z_wave_parts
+    toolchain_compatibility: *z_wave_toolchains
+    ide_compatibility: *z_wave_ides
+  # Workspace
+  - path: workspaces/zwave_ncp_serial_api_controller_otw.slcw
+    board_whitelist: *z_wave_boards
+    part_compatibility: *z_wave_parts
+    toolchain_compatibility: *z_wave_toolchains
+    ide_compatibility: *z_wave_ides
+
+  # --- NCP Serial API End Device Examples ---
+  # Application
+  - path: sample_apps/zwave_ncp_serial_api/zwave_ncp_serial_api_end_device.slcp
+    board_whitelist: *z_wave_boards
+    part_compatibility: *z_wave_parts
+    toolchain_compatibility: *z_wave_toolchains
+    ide_compatibility: *z_wave_ides
+  # Workspace
+  - path: workspaces/zwave_ncp_serial_api_end_device_otw.slcw
+    board_whitelist: *z_wave_boards
+    part_compatibility: *z_wave_parts
+    toolchain_compatibility: *z_wave_toolchains
+    ide_compatibility: *z_wave_ides
+
+  # --- NCP Zniffer Examples ---
+  # Application
+  - path: sample_apps/zwave_ncp_zniffer/zwave_ncp_zniffer.slcp
+    board_whitelist: *z_wave_boards
+    part_compatibility: *z_wave_parts
+    toolchain_compatibility: *z_wave_toolchains
+    ide_compatibility: *z_wave_ides
+  # Workspace
+  - path: workspaces/zwave_ncp_zniffer_otw.slcw
+    board_whitelist: *z_wave_boards
+    part_compatibility: *z_wave_parts
+    toolchain_compatibility: *z_wave_toolchains
+    ide_compatibility: *z_wave_ides
+
+  #********************************************************
+  # *** SOC Applications ***
+  #********************************************************
+  # --- Door Lock Keypad Examples ---
+  # Application
+  - path: sample_apps/zwave_soc_door_lock_keypad/zwave_soc_door_lock_keypad.slcp
+    board_whitelist: *z_wave_boards
+    part_compatibility: *z_wave_parts
+    toolchain_compatibility: *z_wave_toolchains
+    ide_compatibility: *z_wave_ides
+  # Workspace
+  - path: workspaces/zwave_soc_door_lock_keypad_ota.slcw
+    board_whitelist: *z_wave_boards
+    part_compatibility: *z_wave_parts
+    toolchain_compatibility: *z_wave_toolchains
+    ide_compatibility: *z_wave_ides
+
+  # --- Led Bulb Examples ---
+  # Application
+  - path: sample_apps/zwave_soc_led_bulb/zwave_soc_led_bulb.slcp
+    board_whitelist: *z_wave_boards
+    part_compatibility: *z_wave_parts
+    toolchain_compatibility: *z_wave_toolchains
+    ide_compatibility: *z_wave_ides
+  # Workspace
+  - path: workspaces/zwave_soc_led_bulb_ota.slcw
+    board_whitelist: *z_wave_boards
+    part_compatibility: *z_wave_parts
+    toolchain_compatibility: *z_wave_toolchains
+    ide_compatibility: *z_wave_ides
+
+  # --- Multilevel Sensor Examples ---
+  # Application
+  - path: sample_apps/zwave_soc_multilevel_sensor/zwave_soc_multilevel_sensor.slcp
+    board_whitelist: *z_wave_boards
+    part_compatibility: *z_wave_parts
+    toolchain_compatibility: *z_wave_toolchains
+    ide_compatibility: *z_wave_ides
+  # Workspace
+  - path: workspaces/zwave_soc_multilevel_sensor_ota.slcw
+    board_whitelist: *z_wave_boards
+    part_compatibility: *z_wave_parts
+    toolchain_compatibility: *z_wave_toolchains
+    ide_compatibility: *z_wave_ides
+
+  # --- Power Strip Examples ---
+  # Application
+  - path: sample_apps/zwave_soc_power_strip/zwave_soc_power_strip.slcp
+    board_whitelist: *z_wave_boards
+    part_compatibility: *z_wave_parts
+    toolchain_compatibility: *z_wave_toolchains
+    ide_compatibility: *z_wave_ides
+  # Workspace
+  - path: workspaces/zwave_soc_power_strip_ota.slcw
+    board_whitelist: *z_wave_boards
+    part_compatibility: *z_wave_parts
+    toolchain_compatibility: *z_wave_toolchains
+    ide_compatibility: *z_wave_ides
+
+  # --- Sensor PIR Examples ---
+  # Application
+  - path: sample_apps/zwave_soc_sensor_pir/zwave_soc_sensor_pir.slcp
+    board_whitelist: *z_wave_boards
+    part_compatibility: *z_wave_parts
+    toolchain_compatibility: *z_wave_toolchains
+    ide_compatibility: *z_wave_ides
+  # Workspace
+  - path: workspaces/zwave_soc_sensor_pir_ota.slcw
+    board_whitelist: *z_wave_boards
+    part_compatibility: *z_wave_parts
+    toolchain_compatibility: *z_wave_toolchains
+    ide_compatibility: *z_wave_ides
+
+  # --- Switch On/Off Examples ---
+  # Application
+  - path: sample_apps/zwave_soc_switch_on_off/zwave_soc_switch_on_off.slcp
+    board_whitelist: *z_wave_boards
+    part_compatibility: *z_wave_parts
+    toolchain_compatibility: *z_wave_toolchains
+    ide_compatibility: *z_wave_ides
+  # Workspace
+  - path: workspaces/zwave_soc_switch_on_off_ota.slcw
+    board_whitelist: *z_wave_boards
+    part_compatibility: *z_wave_parts
+    toolchain_compatibility: *z_wave_toolchains
+    ide_compatibility: *z_wave_ides
+
+  # --- Wall Controller Examples ---
+  # Application
+  - path: sample_apps/zwave_soc_wall_controller/zwave_soc_wall_controller.slcp
+    board_whitelist: *z_wave_boards
+    part_compatibility: *z_wave_parts
+    toolchain_compatibility: *z_wave_toolchains
+    ide_compatibility: *z_wave_ides
+  # Workspace
+  - path: workspaces/zwave_soc_wall_controller_ota.slcw
+    board_whitelist: *z_wave_boards
+    part_compatibility: *z_wave_parts
+    toolchain_compatibility: *z_wave_toolchains
+    ide_compatibility: *z_wave_ides
+
+demo:
+  #############################################################################
+  # NCP Applications
+  #############################################################################
+  # ---------------------------------------------------------------------------
+  # Serial API Controller
+  # ---------------------------------------------------------------------------
+  - path: sample_apps/zwave_ncp_serial_api/zwave_ncp_serial_api_controller.slcp
+    signing_key: *demo_controller_sign_key
+    encryption_key: *demo_controller_encrypt_key
+    bootloader: *demo_otw_bootloader
+    variant:
+      - <<: *demo_default_variant
+        name: SerialAPIController_Default
+        description: *demo_sapi_description
+      - <<: *demo_v255_variant
+        name: SerialAPIController_v255
+        description: *demo_sapi_v255_description
+  # ---------------------------------------------------------------------------
+  # Serial API End Device
+  # ---------------------------------------------------------------------------
+  - path: sample_apps/zwave_ncp_serial_api/zwave_ncp_serial_api_end_device.slcp
+    signing_key: *demo_sample_sign_key
+    encryption_key: *demo_sample_encrypt_key
+    bootloader: *demo_otw_bootloader
+    variant:
+      - <<: *demo_default_variant
+        name: SerialAPIEndDevice_Default
+        description: *demo_sapi_description
+      - <<: *demo_v255_variant
+        name: SerialAPIEndDevice_v255
+        description: *demo_sapi_v255_description
+  # ---------------------------------------------------------------------------
+  # Zniffer
+  # ---------------------------------------------------------------------------
+  - path: sample_apps/zwave_ncp_zniffer/zwave_ncp_zniffer.slcp
+    signing_key: *demo_sample_sign_key
+    encryption_key: *demo_sample_encrypt_key
+    bootloader: *demo_otw_bootloader
+    variant:
+      # INFO: v255 version is not required because the Zniffer is developer tool, no need to OTW update
+      - <<: *demo_default_variant
+        name: Zniffer_Default
+        description: "IMPORTANT: By the NCP Zniffer Application, the region is selected by the Host application."
+  #############################################################################
+  # SOC Applications
+  #############################################################################
+  # ---------------------------------------------------------------------------
+  # Door Lock Keypad
+  # ---------------------------------------------------------------------------
+  - path: sample_apps/zwave_soc_door_lock_keypad/zwave_soc_door_lock_keypad.slcp
+    signing_key: *demo_sample_sign_key
+    encryption_key: *demo_sample_encrypt_key
+    bootloader: *demo_ota_bootloader
+    variant:
+      - <<: *demo_default_variant
+        name: DoorLockKeypad_Default
+      - <<: *demo_v255_variant
+        name: DoorLockKeypad_v255
+  # ---------------------------------------------------------------------------
+  # LED Bulb
+  # ---------------------------------------------------------------------------
+  - path: sample_apps/zwave_soc_led_bulb/zwave_soc_led_bulb.slcp
+    signing_key: *demo_sample_sign_key
+    encryption_key: *demo_sample_encrypt_key
+    bootloader: *demo_ota_bootloader
+    variant:
+      - <<: *demo_default_variant
+        name: LedBulb_Default
+      - <<: *demo_v255_variant
+        name: LedBulb_v255
+  # ---------------------------------------------------------------------------
+  # Multilevel Sensor
+  # ---------------------------------------------------------------------------
+  - path: sample_apps/zwave_soc_multilevel_sensor/zwave_soc_multilevel_sensor.slcp
+    signing_key: *demo_sample_sign_key
+    encryption_key: *demo_sample_encrypt_key
+    bootloader: *demo_ota_bootloader
+    variant:
+      - <<: *demo_default_variant
+        name: MultilevelSensor_Default
+      - <<: *demo_v255_variant
+        name: MultilevelSensor_v255
+  # ---------------------------------------------------------------------------
+  # Power Strip
+  # ---------------------------------------------------------------------------
+  - path: sample_apps/zwave_soc_power_strip/zwave_soc_power_strip.slcp
+    signing_key: *demo_sample_sign_key
+    encryption_key: *demo_sample_encrypt_key
+    bootloader: *demo_ota_bootloader
+    variant:
+      - <<: *demo_default_variant
+        name: PowerStrip_Default
+      - <<: *demo_v255_variant
+        name: PowerStrip_v255
+  # ---------------------------------------------------------------------------
+  # Sensor PIR
+  # ---------------------------------------------------------------------------
+  - path: sample_apps/zwave_soc_sensor_pir/zwave_soc_sensor_pir.slcp
+    signing_key: *demo_sample_sign_key
+    encryption_key: *demo_sample_encrypt_key
+    bootloader: *demo_ota_bootloader
+    variant:
+      - <<: *demo_default_variant
+        name: SensorPIR_Default
+      - <<: *demo_v255_variant
+        name: SensorPIR_v255
+  # ---------------------------------------------------------------------------
+  # Switch On/Off
+  # ---------------------------------------------------------------------------
+  - path: sample_apps/zwave_soc_switch_on_off/zwave_soc_switch_on_off.slcp
+    signing_key: *demo_sample_sign_key
+    encryption_key: *demo_sample_encrypt_key
+    bootloader: *demo_ota_bootloader
+    variant:
+      - <<: *demo_default_variant
+        name: SwitchOnOff_Default
+      - <<: *demo_v255_variant
+        name: SwitchOnOff_v255
+  # ---------------------------------------------------------------------------
+  # Wall Controller
+  # ---------------------------------------------------------------------------
+  - path: sample_apps/zwave_soc_wall_controller/zwave_soc_wall_controller.slcp
+    signing_key: *demo_sample_sign_key
+    encryption_key: *demo_sample_encrypt_key
+    bootloader: *demo_ota_bootloader
+    variant:
+      - <<: *demo_default_variant
+        name: WallController_Default
+      - <<: *demo_v255_variant
+        name: WallController_v255

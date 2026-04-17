@@ -1,0 +1,43 @@
+id: device_init_emu
+label: Energy Management Unit (EMU)
+package: platform_core
+description: >
+  Instantiate the component for Energy Management Unit (EMU) initialization  based on the provided component configuration. The EM4 behavior such as  voltage scaling levels, state retention, and clock operation can be configured
+  through this component for devices which support these features. This component
+  is not compatible with Power Manager. If Power Manager is present, EMU
+  initialization will be handled during Power Manager initialization.
+category: Services|Device Initialization|Peripherals
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: platform_core/platform/service/device_init
+config_file:
+- path: config/s2/sl_device_init_emu_config.h
+  condition: [device_series_2]
+include:
+- path: inc
+  file_list:
+  - path: sl_device_init_emu.h
+source:
+- path: src/sl_device_init_emu_s2.c
+  condition: [device_series_2]
+provides:
+- name: device_init_emu
+  condition: [device_series_2]
+requires:
+- name: emlib_emu
+- name: status
+template_contribution:
+- name: event_handler
+  value:
+    event: platform_init
+    include: sl_device_init_emu.h
+    handler: sl_device_init_emu
+  priority: -9400
+  condition: [sl_system, kernel]
+- name: component_catalog
+  value: device_init_emu
+documentation:
+  docset: gecko-platform
+  document: platform-service/device-init-emu

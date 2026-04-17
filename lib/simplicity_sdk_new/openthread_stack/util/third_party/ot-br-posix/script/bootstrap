@@ -1,0 +1,183 @@
+#!/bin/bash
+#
+#  Copyright (c) 2017, The OpenThread Authors.
+#  All rights reserved.
+#
+#  Redistribution and use in source and binary forms, with or without
+#  modification, are permitted provided that the following conditions are met:
+#  1. Redistributions of source code must retain the above copyright
+#     notice, this list of conditions and the following disclaimer.
+#  2. Redistributions in binary form must reproduce the above copyright
+#     notice, this list of conditions and the following disclaimer in the
+#     documentation and/or other materials provided with the distribution.
+#  3. Neither the name of the copyright holder nor the
+#     names of its contributors may be used to endorse or promote products
+#     derived from this software without specific prior written permission.
+#
+#  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+#  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+#  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+#  ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+#  LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+#  CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+#  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+#  INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+#  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+#  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+#  POSSIBILITY OF SUCH DAMAGE.
+#
+#   Description:
+#       This script resolves all dependencies.
+#
+
+# shellcheck source=script/_initrc
+. "$(dirname "$0")"/_initrc
+
+FIREWALL="${FIREWALL:-1}"
+
+OTBR_MDNS="${OTBR_MDNS:-openthread}"
+BACKBONE_ROUTER="${BACKBONE_ROUTER:-1}"
+OT_BACKBONE_CI="${OT_BACKBONE_CI:-0}"
+REFERENCE_DEVICE="${REFERENCE_DEVICE:-0}"
+
+install_packages_apt()
+{
+    sudo apt-get update
+    sudo apt-get install --no-install-recommends -y \
+        wget \
+        iproute2 \
+        iputils-ping \
+        libreadline-dev \
+        libncurses-dev
+
+    sudo apt-get install -y libgmock-dev libgtest-dev || echo 'WARNING: failed to install gtest and gmock!'
+
+    sudo apt-get install --no-install-recommends -y build-essential ninja-build cmake
+
+    sudo apt-get install --no-install-recommends -y rsyslog
+
+    # For DBus server
+    sudo apt-get install --no-install-recommends -y dbus libdbus-1-dev
+
+    # mDNS
+
+    # OT backbone CI tests require Avahi to publish records for testing.
+    if [[ ${OTBR_MDNS} == "avahi" || ${OT_BACKBONE_CI} == 1 ]]; then
+        sudo apt-get install --no-install-recommends -y avahi-daemon libavahi-client-dev libavahi-client3 libavahi-common-dev
+        # Increase the object number limit to rid of 'Too many objects' error
+        sudo sed -i 's/^#objects-per-client-max=[0-9]\+/objects-per-client-max=30000/' /etc/avahi/avahi-daemon.conf
+    fi
+
+    # Thread Certification tests require mDNSResponder ('dns-sd') to publish records for testing. Since the
+    # same image is used for reference OTBRs and for reference Linux hosts, this needs to be installed here.
+    if [[ ${OTBR_MDNS} == "mDNSResponder" || ${OT_BACKBONE_CI} == 1 || ${REFERENCE_DEVICE} == 1 ]]; then
+        (MDNS_RESPONDER_SOURCE_NAME=mDNSResponder-2600.100.147 \
+            && cd /tmp \
+            && wget -c --tries=3 --no-check-certificate -O "$MDNS_RESPONDER_SOURCE_NAME.tar.gz" \
+                "https://github.com/apple-oss-distributions/mDNSResponder/archive/refs/tags/$MDNS_RESPONDER_SOURCE_NAME.tar.gz" \
+            && rm -rf "/tmp/$MDNS_RESPONDER_SOURCE_NAME" \
+            && mkdir -p "$MDNS_RESPONDER_SOURCE_NAME" \
+            && tar xvf "$MDNS_RESPONDER_SOURCE_NAME.tar.gz" -C "$MDNS_RESPONDER_SOURCE_NAME" --overwrite --strip-components=1 \
+            && cd "/tmp/$MDNS_RESPONDER_SOURCE_NAME" \
+            && cd mDNSPosix \
+            && make os=linux tls=no && sudo make install os=linux tls=no)
+    fi
+
+    # nat64
+    sudo apt-get install --no-install-recommends -y iptables
+
+    sudo apt-get install --no-install-recommends -y bind9
+
+    # dhcpv6-pd
+    without DHCPV6_PD_REF || {
+        sudo apt-get install --no-install-recommends -y dhcpcd
+        sudo mkdir -p /etc/systemd/system/dhcpcd.service.d
+        # allow edit system config file eg. /etc/radvd.conf
+        sudo tee /etc/systemd/system/dhcpcd.service.d/custom.conf >/dev/null <<EOF
+[Service]
+ProtectSystem=false
+EOF
+        # reload dhcpcd daemon to activate the custom.conf
+        sudo systemctl daemon-reload
+        sudo apt-get install --no-install-recommends -y radvd
+    }
+
+    # libjsoncpp
+    sudo apt-get install --no-install-recommends -y libjsoncpp-dev
+
+    # reference device
+    without REFERENCE_DEVICE || sudo apt-get install --no-install-recommends -y radvd dnsutils iperf3 ndisc6
+
+    # any CI device
+    without OT_BACKBONE_CI || sudo apt-get install --no-install-recommends -y dnsutils avahi-utils
+
+    # backbone-router
+    without BACKBONE_ROUTER || sudo apt-get install --no-install-recommends -y libnetfilter-queue1 libnetfilter-queue-dev
+
+    # web dependencies
+    without WEB_GUI || command -v npm || sudo apt-get install --no-install-recommends -y nodejs npm
+
+    # firewall
+    sudo apt-get install -y ipset
+
+    # protobuf compiler
+    sudo apt-get install -y libprotobuf-dev protobuf-compiler
+}
+
+install_packages_opkg()
+{
+    die 'opkg not supported currently'
+}
+
+install_packages_rpm()
+{
+    if have dnf; then
+        PM=dnf
+    else
+        PM=yum
+    fi
+    sudo $PM install -y gcc gcc-c++
+    with RELEASE || sudo $PM install -y cmake ninja-build
+    sudo $PM install -y dbus-devel
+    sudo $PM install -y avahi avahi-devel
+    sudo $PM install -y iptables
+    sudo $PM install -y jsoncpp-devel
+    sudo $PM install -y wget
+    sudo $PM install -y protobuf protobuf-devel
+}
+
+install_packages_brew()
+{
+    brew install cmake dbus jsoncpp ninja googletest
+}
+
+install_packages_source()
+{
+    die 'source not supported currently'
+}
+
+install_packages()
+{
+    if have apt-get; then
+        install_packages_apt
+    elif have rpm; then
+        install_packages_rpm
+    elif have opkg; then
+        install_packages_opkg
+    elif have brew; then
+        install_packages_brew
+    else
+        install_packages_source
+    fi
+}
+
+main()
+{
+    . "$BEFORE_HOOK"
+    # TODO remove `|| true` after docker hub builder gets its git upgraded
+    git submodule update --init --recursive --depth 1 || true
+    install_packages
+    . "$AFTER_HOOK"
+}
+
+main

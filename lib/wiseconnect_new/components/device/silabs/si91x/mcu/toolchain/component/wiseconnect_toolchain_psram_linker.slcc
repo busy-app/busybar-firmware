@@ -1,0 +1,17 @@
+id: wiseconnect_toolchain_psram_linker
+label: Toolchain support for PSRAM Linker
+package: platform_siwx91x
+description: >
+  Selecting this will include the PSRAM Linker component.
+category: Device|Si91x|MCU|Toolchain
+ui_hints:
+  visibility: never
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: components/device/silabs/si91x/mcu/toolchain
+provides:
+  - name: wiseconnect_toolchain_psram_linker
+requires:
+  - name: wiseconnect_toolchain_plugin

@@ -1,0 +1,76 @@
+id: zigbee_pro_stack_alt_mac
+label: Pro Stack Alt MAC
+package: zigbee
+category: Zigbee|Stack|Pro Core
+quality: production
+description: Provides Zigbee PRO stack functionality along with APIs to interface with alternate MAC.
+
+provides:
+- name: zigbee_pro_stack_alt_mac
+- name: zigbee_pro_stack_support
+- name: 802_15_4_stack
+
+
+requires:
+- name: zigbee_pro_stack_alt_mac_implementation
+- name: zigbee_pro_stack_alt_mac_library
+  condition:
+  - zigbee_use_release_libraries
+- name: zigbee_stack_common
+- name: zigbee_phy_2_4
+
+recommends:
+- id: zigbee_pro_stack_alt_mac_library_internal
+  vendor: silabs
+
+include:
+- path: stack/include/
+  file_list:
+  - path: sl_zigbee_alternate_mac.h
+
+- path: stack/internal/src/ipc
+  file_list:
+  - path: sl_zigbee_alternate_mac_ipc_command_messages.h
+  - path: zigbee_ipc_callback_events.h
+  - path: zigbee_ipc_command_messages.h
+  condition:
+  - zigbee_use_ipc
+- path: stack/internal/inc
+  file_list:
+  - path: sl_zigbee_alternate_mac_internal_def.h
+config_file:
+- path: stack/config/component_config/sl_zigbee_pro_stack_config.h
+
+validation_helper:
+  # NCP doesn't have DEVICE_TYPE before it connects to Host
+  # so we don't run the validation script for NCP
+- path: component/scripts/zigbee_pro_stack_alt_mac_validation.lua
+  unless:
+  - zigbee_ncp
+
+template_contribution:
+- name: component_catalog
+  value: zigbee_pro_stack_alt_mac
+
+documentation:
+  docset: zigbee
+  document: zigbee-af-api/pro-stack-alt-mac
+
+source:
+- path: stack/internal/src/baremetal/sl_zigbee_alternate_mac_baremetal_wrapper.c
+  unless:
+  - zigbee_use_ipc
+  - native_host
+- path: stack/internal/src/ipc/zigbee_ipc_callback_event_stub.c
+  condition:
+  - zigbee_use_ipc
+- path: stack/internal/src/ipc/zigbee_ipc_callback_events.c
+  condition:
+  - zigbee_use_ipc
+- path: stack/internal/src/ipc/sl_zigbee_alternate_mac_ipc_command_messages.c
+  condition:
+  - zigbee_use_ipc
+metadata:
+  sbom:
+    license: MSLA
+root_path: zigbee

@@ -1,0 +1,62 @@
+id: sl_rail_util_mp_transition_time
+label: RAIL Utility, Initialize MP library switch time.
+description: Utility to set an appropriate switch time based on clock frequency.
+package: rail_library
+category: Platform|Radio
+quality: production
+metadata:
+  sbom:
+    id: sl_rail_util_mp_transition_time
+    name: RAIL Utility, Initialize MP library switch time.
+    license: Zlib
+documentation:
+  docset: rail
+  document: rail-api/sl-rail-util-mp-transition-time
+provides:
+- name: sl_rail_util_mp_transition_time
+requires:
+- name: device
+- name: rail_lib
+- name: clock_manager_runtime
+- name: component_catalog
+include:
+- path: plugin/sl_rail_util_mp_transition_time/
+  file_list:
+  - path: sl_rail_util_mp_transition_time.h
+  condition:
+  - device_series_3
+source:
+- path: plugin/sl_rail_util_mp_transition_time/sl_rail_util_mp_transition_time.c
+  condition:
+  - device_series_3
+template_file:
+- path: plugin/sl_rail_util_mp_transition_time/sl_rail_util_mp_transition_time_config.h.jinja
+template_contribution:
+  # SIXG301
+- name: sl_rail_util_mp_transition_time_table
+  value:
+    minimum_frequency_hz: "150000000, 38400000, 20000000, 10000000"
+    transition_time_us: "285, 415, 1000, 2000"
+  condition: [device_generic_family_sixx301]
+  unless: [sl_rail_util_mp_transition_time_override]
+
+  # Default
+- name: sl_rail_util_mp_transition_time_table
+  value:
+    minimum_frequency_hz: "38400000"
+    transition_time_us: "450"
+  condition: [device_series_3]
+  unless: [sl_rail_util_mp_transition_time_override, device_generic_family_sixx301]
+
+- name: event_handler
+  value:
+    event: stack_init
+    include: sl_rail_util_mp_transition_time.h
+    handler: sl_rail_util_mp_transition_time_init
+  priority: 1
+  condition:
+  - device_series_3
+
+- name: component_catalog
+  value: sl_rail_util_mp_transition_time
+root_path: rail_library

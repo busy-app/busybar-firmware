@@ -1,0 +1,67 @@
+id: common_token_manager_compatibility
+label: Common Token Manager Compatibility
+package: platform_core
+description: >
+  This component provides compatibility support for legacy token manager while using CTM.
+  On series-2 devices legacy token manager is supported for backward compatibility reasons,
+  which needs certain header files to be included, which are not needed by CTM. This component
+  provides the legacy compatibility while using CTM on Series-2 devices by including place holder header files.
+category: Services|Token Manager
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+provides:
+- name: wireless_stack
+  allow_multiple: true
+  condition: [device_series_2]
+- name: common_token_manager_compatibility
+  condition: [device_series_2]
+requires:
+- name: common_token_manager
+define:
+- name: SL_TOKEN_MANAGER_COMPATIBILITY
+  condition: [device_series_2]
+  unless: [zigbee_stack_common, connect_stack_common]
+- name: STACK_TYPES_HEADER
+  value: '"../stack/include/sl_zigbee_types.h"'
+  condition: [device_series_2]
+  unless: [zigbee_stack_common, connect_stack_common]
+- name: "PLATFORM_HEADER"
+  value: "\"platform-header.h\""
+  condition: [device_series_2]
+  unless: [zigbee_stack_common, connect_stack_common]
+include:
+- path: platform/service/token_manager/legacy/inc/stub/stack
+  condition: [device_series_2]
+  unless: [zigbee_stack_common, connect_stack_common]
+- path: platform/service/token_manager/legacy/inc/stub/
+  condition: [device_series_2]
+  unless: [zigbee_stack_common, connect_stack_common]
+  file_list:
+  - path: stack/include/sl_zigbee_types.h
+  - path: stack/config/token-stack.h
+- path: platform/service/token_manager/legacy/inc/stub/stack/config
+  condition: [device_series_2]
+  unless: [zigbee_stack_common, connect_stack_common]
+  file_list:
+  - path: sl_zigbee_configuration_defaults.h
+- path: platform/service/legacy_hal/inc/
+  condition: [device_series_2]
+  unless: [zigbee_stack_common, connect_stack_common]
+  file_list:
+  - path: hal.h
+  - path: micro-common.h
+  - path: micro-types.h
+  - path: micro.h
+  - path: random.h
+  - path: serial.h
+  - path: crc.h
+  - path: button.h
+  - path: led.h
+  - path: platform-header.h
+source:
+- path: platform/service/legacy_hal/src/token_legacy.c
+  condition: [device_series_2]
+  unless: [zigbee_stack_common, connect_stack_common]
+root_path: platform_core

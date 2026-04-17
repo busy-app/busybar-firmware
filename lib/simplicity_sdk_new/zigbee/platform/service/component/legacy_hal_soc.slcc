@@ -1,0 +1,141 @@
+id: legacy_hal_soc
+label: Legacy HAL SoC
+package: zigbee
+category: Services|Ember Legacy
+quality: production
+metadata:
+  sbom:
+    license: MSLA
+ui_hints:
+  visibility: never
+description: Legacy Ember HAL for SoCs.
+provides:
+- name: legacy_hal_soc
+requires:
+- name: component_catalog
+- name: device
+- name: device_init
+- name: rail_lib
+- name: sl_rail_util_compatible_pa
+- name: sleeptimer
+- name: power_manager
+- name: clock_manager_runtime
+- name: emlib_core
+  condition: [device_series_2]
+- name: emlib_chip
+  condition: [device_series_2]
+- name: emlib_wdog
+  condition: [device_series_2]
+- name: emlib_rmu
+  condition: [device_series_2]
+- name: hal_emu
+  condition: [device_series_3]
+- name: status
+- name: common_token_manager
+- name: legacy_hal_wdog
+  condition: [device_series_2]
+
+source:
+- path: platform/service/legacy_hal/src/crc.c
+- path: platform/service/legacy_hal/src/base-replacement.c
+- path: platform/service/legacy_hal/src/diagnostic.c
+- path: platform/service/legacy_hal/src/ember-phy.c
+- path: platform/service/legacy_hal/src/faults.s
+- path: platform/service/legacy_hal/src/random.c
+- path: platform/service/legacy_hal/src/token_legacy.c
+  condition:
+  - device_series_2
+include:
+- path: platform/service/legacy_hal/inc
+  file_list:
+  - path: asm.h
+  - path: bootloader-eeprom.h
+  - path: button.h
+  - path: crc.h
+  - path: efm32_micro.h
+  - path: em2xx-reset-defs.h
+  - path: emlib_config.h
+  - path: hal.h
+  - path: interrupts-efm32.h
+  - path: led.h
+  - path: micro-common.h
+  - path: micro-types.h
+  - path: micro.h
+  - path: platform-header.h
+  - path: random.h
+  - path: reset-def.h
+  - path: serial.h
+  - path: token-manufacturing-series-2.h
+  - path: token-manufacturing.h
+  - path: serial/serial.h
+  - path: cortexm3/diagnostic.h
+  - path: hal/hal.h
+  - path: sl_legacy_hal_integration_hooks.h
+  - path: em2xx-reset-defs.h
+  # Following paths and files provide stack files required to build legacy_hal
+  # in the absence of a stack.
+  # These paths and files won't be included if a stack is present.
+- path: platform/service/token_manager/legacy/test/
+  unless: [wireless_stack]
+  file_list:
+  - path: stack/include/sl_zigbee_types.h
+  - path: stack/config/token-stack.h
+- path: platform/service/token_manager/legacy/test/include
+  unless: [wireless_stack]
+  file_list:
+  - path: sl_zigbee_debug.h
+  - path: sl_zigbee.h
+  - path: error-def.h
+- path: platform/service/token_manager/legacy/test/stack
+  unless: [wireless_stack]
+- path: platform/service/token_manager/legacy/test/stack/config
+  unless: [wireless_stack]
+  file_list:
+  - path: sl_zigbee_configuration_defaults.h
+- path: platform/service/token_manager/legacy/test/stack/include
+  unless: [wireless_stack]
+  file_list:
+  - path: error.h
+config_file:
+- path: platform/service/legacy_hal/config/legacy_hal_config.h
+define:
+- name: PLATFORM_HEADER
+  value: "\"platform-header.h\""
+  unless:
+  - zigbee_host_simulation
+- name: CORTEXM3_EFM32_MICRO
+  condition:
+  - device_cortexm
+- name: CORTEXM3
+  condition:
+  - device_cortexm
+- name: CORTEXM3_EFR32
+  condition:
+  - device_cortexm
+- name: PHY_RAIL
+  condition:
+  - device_cortexm
+  unless:
+  - zigbee_phy_2_4_subghz_switch_coordinator
+- name: PHY_DUALRAIL
+  condition:
+  - device_cortexm
+  - zigbee_phy_2_4_subghz_switch_coordinator
+template_contribution:
+- name: event_handler
+  value:
+    event: platform_init
+    include: hal.h
+    handler: halInit
+  condition: [sl_system, kernel]
+- name: power_manager_handler
+  value:
+    event: sleep_on_isr_exit
+    include: sl_legacy_hal_integration_hooks.h
+    handler: sl_legacy_hal_sleep_on_isr_exit
+- name: component_catalog
+  value: legacy_hal_soc
+documentation:
+  docset: gecko-platform
+  document: platform-service/legacyhal
+root_path: zigbee

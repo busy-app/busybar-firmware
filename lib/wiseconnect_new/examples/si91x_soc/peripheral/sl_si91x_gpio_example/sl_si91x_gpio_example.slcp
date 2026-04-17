@@ -1,0 +1,42 @@
+project_name: sl_si91x_gpio_example
+package: platform_siwx91x_app
+description: "This application demonstrates how to toggle a GPIO pin for High Power (HP) instances and handle HP pin interrupts on the SiWx917 SoC device. \n"
+category: example|peripheral
+quality: production
+label: SI91x - SL_GPIO_EXAMPLE
+component:
+- id: sl_main
+- id: status
+- id: sl_gpio
+- id: syscalls
+- id: si91x_memory_default_config
+source:
+- path: app.c
+- path: gpio_example.c
+include:
+- path: .
+  file_list:
+  - path: app.h
+  - path: gpio_example.h
+toolchain_settings:
+- option: gcc_compiler_option
+  value: -Wall -Werror
+other_file:
+- path: resources/readme/setupdiagram.png
+- path: resources/readme/output.png
+ui_hints:
+  highlight:
+  - path: readme.md
+    focus: true
+readme:
+- path: readme.md
+post_build:
+  profile: wiseconnect_soc
+sdk_extension:
+- id: wiseconnect3_sdk
+  vendor: silabs
+  version: 4.0.1
+sdk:
+  id: simplicity_sdk
+  vendor: silabs
+  version: 2025.12.2

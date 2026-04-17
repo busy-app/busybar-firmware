@@ -1,0 +1,74 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="structsl__bt__evt__sm__bonded__s" kind="struct" language="C++" prot="public">
+    <compoundname>sl_bt_evt_sm_bonded_s</compoundname>
+    <includes refid="sl__bt__api_8h" local="no">sl_bt_api.h</includes>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structsl__bt__evt__sm__bonded__s_1a5102b1ab54016216afdc089d505fecdc" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_sm_bonded_s::connection</definition>
+        <argsstring></argsstring>
+        <name>connection</name>
+        <qualifiedname>sl_bt_evt_sm_bonded_s::connection</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Connection handle </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11382" column="11" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="11382" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__sm__bonded__s_1acaa9a289366b1aef796a33bc348a1ccb" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_sm_bonded_s::bonding</definition>
+        <argsstring></argsstring>
+        <name>bonding</name>
+        <qualifiedname>sl_bt_evt_sm_bonded_s::bonding</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Bonding handle. Values:<itemizedlist>
+<listitem><para><bold>SL_BT_INVALID_BONDING_HANDLE (0xff):</bold> Pairing completed without bonding - the pairing key will be discarded after disconnection.</para>
+</listitem><listitem><para><bold>Other:</bold> Procedure completed, pairing key stored with given bonding handle </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11383" column="11" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="11383" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__sm__bonded__s_1ae86a7f97fe361a6d88c764971c0f5bce" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_sm_bonded_s::security_mode</definition>
+        <argsstring></argsstring>
+        <name>security_mode</name>
+        <qualifiedname>sl_bt_evt_sm_bonded_s::security_mode</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Enum <ref refid="group__sl__bt__connection_1gaa978c6a4744e442da21c790679af4eae" kindref="member">sl_bt_connection_security_t</ref>. Connection security mode. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_connection_mode1_level2 (0x1):</bold> Unauthenticated pairing with encryption</para>
+</listitem><listitem><para><bold>sl_bt_connection_mode1_level3 (0x2):</bold> Authenticated pairing with encryption</para>
+</listitem><listitem><para><bold>sl_bt_connection_mode1_level4 (0x3):</bold> Authenticated Secure Connections pairing with encryption using a 128-bit strength encryption key </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11390" column="11" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="11390" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Data structure of the bonded event. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11380" column="1" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="11381" bodyend="11400"/>
+    <listofallmembers>
+      <member refid="structsl__bt__evt__sm__bonded__s_1acaa9a289366b1aef796a33bc348a1ccb" prot="public" virt="non-virtual"><scope>sl_bt_evt_sm_bonded_s</scope><name>bonding</name></member>
+      <member refid="structsl__bt__evt__sm__bonded__s_1a5102b1ab54016216afdc089d505fecdc" prot="public" virt="non-virtual"><scope>sl_bt_evt_sm_bonded_s</scope><name>connection</name></member>
+      <member refid="structsl__bt__evt__sm__bonded__s_1ae86a7f97fe361a6d88c764971c0f5bce" prot="public" virt="non-virtual"><scope>sl_bt_evt_sm_bonded_s</scope><name>security_mode</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

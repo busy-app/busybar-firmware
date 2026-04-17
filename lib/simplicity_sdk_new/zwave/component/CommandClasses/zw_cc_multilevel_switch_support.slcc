@@ -1,0 +1,32 @@
+id: zw_cc_multilevel_switch_support
+label: Multilevel Switch Command Class Support
+category: Z-Wave|Command Classes
+description: >
+  This component provides support for the Multilevel Switch Command Class commands, controlled by another device.
+  The Multilevel Switch Command Class is used to control devices with multilevel capability. This
+  command is used to request the supported Switch Types of a supporting device.
+  Note that this Command Class supports advanced configuration.
+  To use it, please make sure that configuration related to your project is added to cc_config file located in
+  <app_location>/config/cc_config/<app_name>.cc_config.
+  See DevTools/cc_configurator/README.md for more details.
+package: zwave
+quality: production
+metadata:
+  sbom:
+    reference: zw_sbom_license
+
+config_file:
+- path: sample_apps/config/cc_multilevel_switch/cc_multilevel_switch_support_config.h
+  file_id: cc_multilevel_switch_config
+source:
+- path: ZAF/CommandClasses/MultilevelSwitch/src/CC_MultilevelSwitch_Support.c
+- path: ZAF/CommandClasses/MultilevelSwitch/src/cc_multilevel_switch_support_io_weak.c
+  # Private header
+- path: ZAF/CommandClasses/MultilevelSwitch/src/cc_multilevel_switch_support_io.h
+include:
+- path: ZAF/CommandClasses/MultilevelSwitch/inc/
+  file_list:
+  - path: CC_MultilevelSwitch_Support.h
+provides:
+- name: zw_cc_multilevel_switch_support
+root_path: zwave

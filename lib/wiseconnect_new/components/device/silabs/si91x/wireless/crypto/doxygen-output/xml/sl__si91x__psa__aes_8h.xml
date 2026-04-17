@@ -1,0 +1,1601 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="sl__si91x__psa__aes_8h" kind="file" language="C++">
+    <compoundname>sl_si91x_psa_aes.h</compoundname>
+    <includes refid="sli__si91x__crypto__driver__functions_8h" local="yes">sli_si91x_crypto_driver_functions.h</includes>
+    <includes local="yes">string.h</includes>
+    <includes local="yes">sl_status.h</includes>
+    <includes refid="sl__si91x__crypto_8h" local="yes">sl_si91x_crypto.h</includes>
+    <includes refid="sl__si91x__aes_8h" local="yes">sl_si91x_aes.h</includes>
+    <incdepgraph>
+      <node id="8">
+        <label>sl_si91x_aes.h</label>
+        <link refid="sl__si91x__aes_8h"/>
+        <childnode refid="5" relation="include">
+        </childnode>
+        <childnode refid="4" relation="include">
+        </childnode>
+      </node>
+      <node id="1">
+        <label>components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_psa_aes.h</label>
+        <link refid="sl__si91x__psa__aes_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="7" relation="include">
+        </childnode>
+        <childnode refid="4" relation="include">
+        </childnode>
+        <childnode refid="5" relation="include">
+        </childnode>
+        <childnode refid="8" relation="include">
+        </childnode>
+      </node>
+      <node id="5">
+        <label>sl_si91x_crypto.h</label>
+        <link refid="sl__si91x__crypto_8h"/>
+      </node>
+      <node id="2">
+        <label>sli_si91x_crypto_driver_functions.h</label>
+        <link refid="sli__si91x__crypto__driver__functions_8h"/>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="4" relation="include">
+        </childnode>
+        <childnode refid="5" relation="include">
+        </childnode>
+        <childnode refid="6" relation="include">
+        </childnode>
+      </node>
+      <node id="3">
+        <label>psa/crypto.h</label>
+      </node>
+      <node id="4">
+        <label>sl_status.h</label>
+      </node>
+      <node id="6">
+        <label>sli_psa_driver_features.h</label>
+      </node>
+      <node id="7">
+        <label>string.h</label>
+      </node>
+    </incdepgraph>
+    <innerclass refid="structsli__si91x__crypto__cipher__operation__t" prot="public">sli_si91x_crypto_cipher_operation_t</innerclass>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="sl__si91x__psa__aes_8h_1ae96293999f0f774032a000a7835f60de" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>psa_status_t</type>
+        <definition>psa_status_t sli_si91x_crypto_cipher_encrypt</definition>
+        <argsstring>(const psa_key_attributes_t *attributes, const uint8_t *key_buffer, size_t key_buffer_size, psa_algorithm_t alg, const uint8_t *iv, size_t iv_length, const uint8_t *input, size_t input_length, uint8_t *output, size_t output_size, size_t *output_length)</argsstring>
+        <name>sli_si91x_crypto_cipher_encrypt</name>
+        <param>
+          <type>const psa_key_attributes_t *</type>
+          <declname>attributes</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>key_buffer</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>key_buffer_size</declname>
+        </param>
+        <param>
+          <type>psa_algorithm_t</type>
+          <declname>alg</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>iv</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>iv_length</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>input</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>input_length</declname>
+        </param>
+        <param>
+          <type>uint8_t *</type>
+          <declname>output</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>output_size</declname>
+        </param>
+        <param>
+          <type>size_t *</type>
+          <declname>output_length</declname>
+        </param>
+        <briefdescription>
+<para>Encrypt a message using a AES cipher. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="note"><para>The signature of this function is that of a PSA driver cipher_encrypt entry point. This function behaves as a cipher_encrypt entry point as defined in the PSA driver interface specification for transparent drivers.</para>
+</simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">attributes</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The attributes of the key to use for the operation. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">key_buffer</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The buffer containing the key context. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">key_buffer_size</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Size of the <computeroutput>key_buffer</computeroutput> buffer in bytes. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">alg</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The cipher algorithm to compute (<computeroutput>PSA_ALG_XXX</computeroutput> value such that PSA_ALG_IS_CIPHER(<computeroutput>alg</computeroutput>) is true). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">iv</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Buffer containing the IV for encryption. The IV has been generated by the core. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">iv_length</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Size of the <computeroutput>iv</computeroutput> in bytes. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">input</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Buffer containing the message to encrypt. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">input_length</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Size of the <computeroutput>input</computeroutput> buffer in bytes. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="inout">output</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Buffer where the output is to be written. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">output_size</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Size of the <computeroutput>output</computeroutput> buffer in bytes. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">output_length</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>On success, the number of bytes that make up the returned output. Initialized to zero by the core.</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<parameterlist kind="retval"><parameteritem>
+<parameternamelist>
+<parametername>PSA_SUCCESS</parametername>
+</parameternamelist>
+<parameterdescription>
+<para></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>PSA_ERROR_NOT_SUPPORTED</parametername>
+</parameternamelist>
+<parameterdescription>
+<para></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>PSA_ERROR_INSUFFICIENT_MEMORY</parametername>
+</parameternamelist>
+<parameterdescription>
+<para></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>PSA_ERROR_CORRUPTION_DETECTED</parametername>
+</parameternamelist>
+<parameterdescription>
+<para></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>PSA_ERROR_BUFFER_TOO_SMALL</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The size of the <computeroutput>output</computeroutput> buffer is too small. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>PSA_ERROR_INVALID_ARGUMENT</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The size <computeroutput>iv_length</computeroutput> is not acceptable for the chosen algorithm, or the chosen algorithm does not use an IV. The total input size passed to this operation is not valid for this particular algorithm. For example, the algorithm is a based on block cipher and requires a whole number of blocks, but the total input size is not a multiple of the block size. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>PSA_ERROR_INVALID_PADDING</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>This is a decryption operation for an algorithm that includes padding, and the ciphertext does not contain valid padding. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_psa_aes.h" line="86" column="14" declfile="components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_psa_aes.h" declline="86" declcolumn="14"/>
+      </memberdef>
+      <memberdef kind="function" id="sl__si91x__psa__aes_8h_1a8c56e59f150c49a819619f25502b557d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>psa_status_t</type>
+        <definition>psa_status_t sli_si91x_crypto_cipher_decrypt</definition>
+        <argsstring>(const psa_key_attributes_t *attributes, const uint8_t *key_buffer, size_t key_buffer_size, psa_algorithm_t alg, const uint8_t *input, size_t input_length, uint8_t *output, size_t output_size, size_t *output_length)</argsstring>
+        <name>sli_si91x_crypto_cipher_decrypt</name>
+        <param>
+          <type>const psa_key_attributes_t *</type>
+          <declname>attributes</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>key_buffer</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>key_buffer_size</declname>
+        </param>
+        <param>
+          <type>psa_algorithm_t</type>
+          <declname>alg</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>input</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>input_length</declname>
+        </param>
+        <param>
+          <type>uint8_t *</type>
+          <declname>output</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>output_size</declname>
+        </param>
+        <param>
+          <type>size_t *</type>
+          <declname>output_length</declname>
+        </param>
+        <briefdescription>
+<para>Decrypt a message using a AES cipher. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="note"><para>The signature of this function is that of a PSA driver cipher_encrypt entry point. This function behaves as a cipher_encrypt entry point as defined in the PSA driver interface specification for transparent drivers.</para>
+</simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">attributes</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The attributes of the key to use for the operation. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">key_buffer</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The buffer containing the key context. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">key_buffer_size</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Size of the <computeroutput>key_buffer</computeroutput> buffer in bytes. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">alg</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The cipher algorithm to compute (<computeroutput>PSA_ALG_XXX</computeroutput> value such that PSA_ALG_IS_CIPHER(<computeroutput>alg</computeroutput>) is true). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">input</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Buffer containing the message to decrypt. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">input_length</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Size of the <computeroutput>input</computeroutput> buffer in bytes. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">output</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Buffer where the output is to be written. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">output_size</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Size of the <computeroutput>output</computeroutput> buffer in bytes. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">output_length</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>On success, the number of bytes that make up the returned output. Initialized to zero by the core.</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<parameterlist kind="retval"><parameteritem>
+<parameternamelist>
+<parametername>PSA_SUCCESS</parametername>
+</parameternamelist>
+<parameterdescription>
+<para></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>PSA_ERROR_NOT_SUPPORTED</parametername>
+</parameternamelist>
+<parameterdescription>
+<para></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>PSA_ERROR_INSUFFICIENT_MEMORY</parametername>
+</parameternamelist>
+<parameterdescription>
+<para></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>PSA_ERROR_CORRUPTION_DETECTED</parametername>
+</parameternamelist>
+<parameterdescription>
+<para></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>PSA_ERROR_BUFFER_TOO_SMALL</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The size of the <computeroutput>output</computeroutput> buffer is too small. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>PSA_ERROR_INVALID_ARGUMENT</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The size <computeroutput>iv_length</computeroutput> is not acceptable for the chosen algorithm, or the chosen algorithm does not use an IV. The total input size passed to this operation is not valid for this particular algorithm. For example, the algorithm is a based on block cipher and requires a whole number of blocks, however the total input size is not a multiple of the block size. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>PSA_ERROR_INVALID_PADDING</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>This is a decryption operation for an algorithm which includes padding, and the ciphertext does not contain valid padding. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_psa_aes.h" line="137" column="14" declfile="components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_psa_aes.h" declline="137" declcolumn="14"/>
+      </memberdef>
+      <memberdef kind="function" id="sl__si91x__psa__aes_8h_1aa59a8cb88fb215e1da6886c91c33b75d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>psa_status_t</type>
+        <definition>psa_status_t sli_si91x_crypto_cipher_encrypt_setup</definition>
+        <argsstring>(sli_si91x_crypto_cipher_operation_t *operation, const psa_key_attributes_t *attributes, const uint8_t *key_buffer, size_t key_buffer_size, psa_algorithm_t alg)</argsstring>
+        <name>sli_si91x_crypto_cipher_encrypt_setup</name>
+        <param>
+          <type><ref refid="structsli__si91x__crypto__cipher__operation__t" kindref="compound">sli_si91x_crypto_cipher_operation_t</ref> *</type>
+          <declname>operation</declname>
+        </param>
+        <param>
+          <type>const psa_key_attributes_t *</type>
+          <declname>attributes</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>key_buffer</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>key_buffer_size</declname>
+        </param>
+        <param>
+          <type>psa_algorithm_t</type>
+          <declname>alg</declname>
+        </param>
+        <briefdescription>
+<para>Set the key for a multipart symmetric encryption operation. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="inout">operation</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The operation object to set up. It must have been initialized as per the documentation for #psa_cipher_operation_t and not yet in use. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>attributes</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Attributes of the key It must allow the usage #PSA_KEY_USAGE_ENCRYPT. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>key_buffer</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Buffer containing key data </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>key_buffer_size</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Size of key buffer in bytes </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>alg</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The cipher algorithm to compute (<computeroutput>PSA_ALG_XXX</computeroutput> value such that #PSA_ALG_IS_CIPHER(<computeroutput>alg</computeroutput>) is true).</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<parameterlist kind="retval"><parameteritem>
+<parameternamelist>
+<parametername>#PSA_SUCCESS</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Success. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>#PSA_ERROR_INVALID_HANDLE</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>\emptydescription </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>#PSA_ERROR_NOT_PERMITTED</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>\emptydescription </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>#PSA_ERROR_INVALID_ARGUMENT</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><computeroutput>key</computeroutput> is not compatible with <computeroutput>alg</computeroutput>. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>#PSA_ERROR_NOT_SUPPORTED</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><computeroutput>alg</computeroutput> is not supported or is not a cipher algorithm. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>#PSA_ERROR_INSUFFICIENT_MEMORY</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>\emptydescription </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>#PSA_ERROR_COMMUNICATION_FAILURE</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>\emptydescription </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>#PSA_ERROR_HARDWARE_FAILURE</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>\emptydescription </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>#PSA_ERROR_CORRUPTION_DETECTED</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>\emptydescription </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>#PSA_ERROR_STORAGE_FAILURE</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>\emptydescription </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>#PSA_ERROR_BAD_STATE.</parametername>
+</parameternamelist>
+<parameterdescription>
+<para></para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_psa_aes.h" line="175" column="14" declfile="components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_psa_aes.h" declline="175" declcolumn="14"/>
+      </memberdef>
+      <memberdef kind="function" id="sl__si91x__psa__aes_8h_1a7a3f9733532e39cae6adf9bda770cd1d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>psa_status_t</type>
+        <definition>psa_status_t sli_si91x_crypto_cipher_decrypt_setup</definition>
+        <argsstring>(sli_si91x_crypto_cipher_operation_t *operation, const psa_key_attributes_t *attributes, const uint8_t *key_buffer, size_t key_buffer_size, psa_algorithm_t alg)</argsstring>
+        <name>sli_si91x_crypto_cipher_decrypt_setup</name>
+        <param>
+          <type><ref refid="structsli__si91x__crypto__cipher__operation__t" kindref="compound">sli_si91x_crypto_cipher_operation_t</ref> *</type>
+          <declname>operation</declname>
+        </param>
+        <param>
+          <type>const psa_key_attributes_t *</type>
+          <declname>attributes</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>key_buffer</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>key_buffer_size</declname>
+        </param>
+        <param>
+          <type>psa_algorithm_t</type>
+          <declname>alg</declname>
+        </param>
+        <briefdescription>
+<para>Set the key for a multipart symmetric decryption operation. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="inout">operation</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The operation object to set up. It must have been initialized as per the documentation for #psa_cipher_operation_t and not yet in use. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>attributes</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Attributes of the key It must allow the usage #PSA_KEY_USAGE_DECRYPT. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>key_buffer</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Buffer containing key data </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>key_buffer_size</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Size of key buffer in bytes </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>alg</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The cipher algorithm to compute (<computeroutput>PSA_ALG_XXX</computeroutput> value such that #PSA_ALG_IS_CIPHER(<computeroutput>alg</computeroutput>) is true).</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<parameterlist kind="retval"><parameteritem>
+<parameternamelist>
+<parametername>#PSA_SUCCESS</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Success. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>#PSA_ERROR_INVALID_HANDLE</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>\emptydescription </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>#PSA_ERROR_NOT_PERMITTED</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>\emptydescription </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>#PSA_ERROR_INVALID_ARGUMENT</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><computeroutput>key</computeroutput> is not compatible with <computeroutput>alg</computeroutput>. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>#PSA_ERROR_NOT_SUPPORTED</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><computeroutput>alg</computeroutput> is not supported or is not a cipher algorithm. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>#PSA_ERROR_INSUFFICIENT_MEMORY</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>\emptydescription </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>#PSA_ERROR_COMMUNICATION_FAILURE</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>\emptydescription </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>#PSA_ERROR_HARDWARE_FAILURE</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>\emptydescription </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>#PSA_ERROR_CORRUPTION_DETECTED</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>\emptydescription </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>#PSA_ERROR_STORAGE_FAILURE</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>\emptydescription </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>#PSA_ERROR_BAD_STATE</parametername>
+</parameternamelist>
+<parameterdescription>
+<para></para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_psa_aes.h" line="209" column="14" declfile="components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_psa_aes.h" declline="209" declcolumn="14"/>
+      </memberdef>
+      <memberdef kind="function" id="sl__si91x__psa__aes_8h_1a1ddeb700bc52dd70584bd185d7b1409d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>psa_status_t</type>
+        <definition>psa_status_t sli_si91x_crypto_cipher_set_iv</definition>
+        <argsstring>(sli_si91x_crypto_cipher_operation_t *operation, const uint8_t *iv, size_t iv_length)</argsstring>
+        <name>sli_si91x_crypto_cipher_set_iv</name>
+        <param>
+          <type><ref refid="structsli__si91x__crypto__cipher__operation__t" kindref="compound">sli_si91x_crypto_cipher_operation_t</ref> *</type>
+          <declname>operation</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>iv</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>iv_length</declname>
+        </param>
+        <briefdescription>
+<para>Set the IV for a symmetric encryption or decryption operation. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>This function sets the IV (initialization vector), nonce or initial counter value for the encryption or decryption operation.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="inout">operation</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Active cipher operation. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">iv</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Buffer containing the IV to use. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>iv_length</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Size of the IV in bytes.</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<parameterlist kind="retval"><parameteritem>
+<parameternamelist>
+<parametername>#PSA_SUCCESS</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Success. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>#PSA_ERROR_INVALID_ARGUMENT</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The size of <computeroutput>iv</computeroutput> is not acceptable for the chosen algorithm, or the chosen algorithm does not use an IV. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>#PSA_ERROR_INSUFFICIENT_MEMORY</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>\emptydescription </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>#PSA_ERROR_COMMUNICATION_FAILURE</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>\emptydescription </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>#PSA_ERROR_HARDWARE_FAILURE</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>\emptydescription </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>#PSA_ERROR_CORRUPTION_DETECTED</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>\emptydescription </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>#PSA_ERROR_STORAGE_FAILURE</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>\emptydescription </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>#PSA_ERROR_BAD_STATE</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The operation state is not valid (it must be an active cipher encrypt operation, with no IV set) </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_psa_aes.h" line="238" column="14" declfile="components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_psa_aes.h" declline="238" declcolumn="14"/>
+      </memberdef>
+      <memberdef kind="function" id="sl__si91x__psa__aes_8h_1a32fc444b9c4b289edd40e04a38ad8874" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>psa_status_t</type>
+        <definition>psa_status_t sli_si91x_crypto_cipher_update</definition>
+        <argsstring>(sli_si91x_crypto_cipher_operation_t *operation, const uint8_t *input, size_t input_length, uint8_t *output, size_t output_size, size_t *output_length)</argsstring>
+        <name>sli_si91x_crypto_cipher_update</name>
+        <param>
+          <type><ref refid="structsli__si91x__crypto__cipher__operation__t" kindref="compound">sli_si91x_crypto_cipher_operation_t</ref> *</type>
+          <declname>operation</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>input</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>input_length</declname>
+        </param>
+        <param>
+          <type>uint8_t *</type>
+          <declname>output</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>output_size</declname>
+        </param>
+        <param>
+          <type>size_t *</type>
+          <declname>output_length</declname>
+        </param>
+        <briefdescription>
+<para>Encrypt or decrypt a message fragment in an active cipher operation. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="inout">operation</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Active cipher operation. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">input</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Buffer containing the message fragment to encrypt or decrypt. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>input_length</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Size of the <computeroutput>input</computeroutput> buffer in bytes. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">output</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Buffer where the output is to be written. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>output_size</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Size of the <computeroutput>output</computeroutput> buffer in bytes. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">output_length</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>On success, the number of bytes that make up the returned output.</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<parameterlist kind="retval"><parameteritem>
+<parameternamelist>
+<parametername>#PSA_SUCCESS</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Success. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>#PSA_ERROR_BUFFER_TOO_SMALL</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The size of the <computeroutput>output</computeroutput> buffer is too small. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>#PSA_ERROR_INSUFFICIENT_MEMORY</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>\emptydescription </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>#PSA_ERROR_COMMUNICATION_FAILURE</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>\emptydescription </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>#PSA_ERROR_HARDWARE_FAILURE</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>\emptydescription </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>#PSA_ERROR_CORRUPTION_DETECTED</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>\emptydescription </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>#PSA_ERROR_STORAGE_FAILURE</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>\emptydescription </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>#PSA_ERROR_BAD_STATE</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The operation state is not valid (it must be active, with an IV set if required for the algorithm) </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_psa_aes.h" line="266" column="14" declfile="components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_psa_aes.h" declline="266" declcolumn="14"/>
+      </memberdef>
+      <memberdef kind="function" id="sl__si91x__psa__aes_8h_1abf81f31d4e9f5ce9e69e9ed39e97419d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>psa_status_t</type>
+        <definition>psa_status_t sli_si91x_crypto_cipher_finish</definition>
+        <argsstring>(sli_si91x_crypto_cipher_operation_t *operation, uint8_t *output, size_t output_size, size_t *output_length)</argsstring>
+        <name>sli_si91x_crypto_cipher_finish</name>
+        <param>
+          <type><ref refid="structsli__si91x__crypto__cipher__operation__t" kindref="compound">sli_si91x_crypto_cipher_operation_t</ref> *</type>
+          <declname>operation</declname>
+        </param>
+        <param>
+          <type>uint8_t *</type>
+          <declname>output</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>output_size</declname>
+        </param>
+        <param>
+          <type>size_t *</type>
+          <declname>output_length</declname>
+        </param>
+        <briefdescription>
+<para>Finish encrypting or decrypting a message in a cipher operation. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="inout">operation</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Active cipher operation. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">output</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Buffer where the output is to be written. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>output_size</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Size of the <computeroutput>output</computeroutput> buffer in bytes. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">output_length</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>On success, the number of bytes that make up the returned output.</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<parameterlist kind="retval"><parameteritem>
+<parameternamelist>
+<parametername>#PSA_SUCCESS</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Success. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>#PSA_ERROR_INVALID_ARGUMENT</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The total input size passed to this operation is not valid for this particular algorithm. For example, the algorithm is a based on block cipher and requires a whole number of blocks, but the total input size is not a multiple of the block size. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>#PSA_ERROR_INVALID_PADDING</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>This is a decryption operation for an algorithm that includes padding, and the ciphertext does not contain valid padding. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>#PSA_ERROR_BUFFER_TOO_SMALL</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The size of the <computeroutput>output</computeroutput> buffer is too small. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>#PSA_ERROR_INSUFFICIENT_MEMORY</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>\emptydescription </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>#PSA_ERROR_COMMUNICATION_FAILURE</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>\emptydescription </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>#PSA_ERROR_HARDWARE_FAILURE</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>\emptydescription </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>#PSA_ERROR_CORRUPTION_DETECTED</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>\emptydescription </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>#PSA_ERROR_STORAGE_FAILURE</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>\emptydescription </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>#PSA_ERROR_BAD_STATE</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The operation state is not valid (it must be active, with an IV set if required for the algorithm) </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_psa_aes.h" line="302" column="14" declfile="components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_psa_aes.h" declline="302" declcolumn="14"/>
+      </memberdef>
+      <memberdef kind="function" id="sl__si91x__psa__aes_8h_1a36bb5f092d2e01f40075a63c3f114868" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>psa_status_t</type>
+        <definition>psa_status_t sli_si91x_crypto_cipher_abort</definition>
+        <argsstring>(sli_si91x_crypto_cipher_operation_t *operation)</argsstring>
+        <name>sli_si91x_crypto_cipher_abort</name>
+        <param>
+          <type><ref refid="structsli__si91x__crypto__cipher__operation__t" kindref="compound">sli_si91x_crypto_cipher_operation_t</ref> *</type>
+          <declname>operation</declname>
+        </param>
+        <briefdescription>
+<para>Abort a cipher operation. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Aborting an operation frees all associated resources except for the <computeroutput>operation</computeroutput> structure itself.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="inout">operation</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Initialized cipher operation.</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<parameterlist kind="retval"><parameteritem>
+<parameternamelist>
+<parametername>#PSA_SUCCESS</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>\emptydescription </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>#PSA_ERROR_COMMUNICATION_FAILURE</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>\emptydescription </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>#PSA_ERROR_HARDWARE_FAILURE</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>\emptydescription </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>#PSA_ERROR_CORRUPTION_DETECTED</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>\emptydescription </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>#PSA_ERROR_BAD_STATE</parametername>
+</parameternamelist>
+<parameterdescription>
+<para></para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_psa_aes.h" line="320" column="14" declfile="components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_psa_aes.h" declline="320" declcolumn="14"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="comment">/*******************************************************************************</highlight></codeline>
+<codeline lineno="2"><highlight class="comment"><sp/>*<sp/>@file<sp/><sp/>sl_si91x_psa_aes.h</highlight></codeline>
+<codeline lineno="3"><highlight class="comment"><sp/>*<sp/>@brief</highlight></codeline>
+<codeline lineno="4"><highlight class="comment"><sp/>*******************************************************************************</highlight></codeline>
+<codeline lineno="5"><highlight class="comment"><sp/>*<sp/>#<sp/>License</highlight></codeline>
+<codeline lineno="6"><highlight class="comment"><sp/>*<sp/>&lt;b&gt;Copyright<sp/>2025<sp/>Silicon<sp/>Laboratories<sp/>Inc.<sp/>www.silabs.com&lt;/b&gt;</highlight></codeline>
+<codeline lineno="7"><highlight class="comment"><sp/>*******************************************************************************</highlight></codeline>
+<codeline lineno="8"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="9"><highlight class="comment"><sp/>*<sp/>SPDX-License-Identifier:<sp/>Zlib</highlight></codeline>
+<codeline lineno="10"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="11"><highlight class="comment"><sp/>*<sp/>The<sp/>licensor<sp/>of<sp/>this<sp/>software<sp/>is<sp/>Silicon<sp/>Laboratories<sp/>Inc.</highlight></codeline>
+<codeline lineno="12"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="13"><highlight class="comment"><sp/>*<sp/>This<sp/>software<sp/>is<sp/>provided<sp/>&apos;as-is&apos;,<sp/>without<sp/>any<sp/>express<sp/>or<sp/>implied</highlight></codeline>
+<codeline lineno="14"><highlight class="comment"><sp/>*<sp/>warranty.<sp/>In<sp/>no<sp/>event<sp/>will<sp/>the<sp/>authors<sp/>be<sp/>held<sp/>liable<sp/>for<sp/>any<sp/>damages</highlight></codeline>
+<codeline lineno="15"><highlight class="comment"><sp/>*<sp/>arising<sp/>from<sp/>the<sp/>use<sp/>of<sp/>this<sp/>software.</highlight></codeline>
+<codeline lineno="16"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="17"><highlight class="comment"><sp/>*<sp/>Permission<sp/>is<sp/>granted<sp/>to<sp/>anyone<sp/>to<sp/>use<sp/>this<sp/>software<sp/>for<sp/>any<sp/>purpose,</highlight></codeline>
+<codeline lineno="18"><highlight class="comment"><sp/>*<sp/>including<sp/>commercial<sp/>applications,<sp/>and<sp/>to<sp/>alter<sp/>it<sp/>and<sp/>redistribute<sp/>it</highlight></codeline>
+<codeline lineno="19"><highlight class="comment"><sp/>*<sp/>freely,<sp/>subject<sp/>to<sp/>the<sp/>following<sp/>restrictions:</highlight></codeline>
+<codeline lineno="20"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="21"><highlight class="comment"><sp/>*<sp/>1.<sp/>The<sp/>origin<sp/>of<sp/>this<sp/>software<sp/>must<sp/>not<sp/>be<sp/>misrepresented;<sp/>you<sp/>must<sp/>not</highlight></codeline>
+<codeline lineno="22"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/>claim<sp/>that<sp/>you<sp/>wrote<sp/>the<sp/>original<sp/>software.<sp/>If<sp/>you<sp/>use<sp/>this<sp/>software</highlight></codeline>
+<codeline lineno="23"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/>in<sp/>a<sp/>product,<sp/>an<sp/>acknowledgment<sp/>in<sp/>the<sp/>product<sp/>documentation<sp/>would<sp/>be</highlight></codeline>
+<codeline lineno="24"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/>appreciated<sp/>but<sp/>is<sp/>not<sp/>required.</highlight></codeline>
+<codeline lineno="25"><highlight class="comment"><sp/>*<sp/>2.<sp/>Altered<sp/>source<sp/>versions<sp/>must<sp/>be<sp/>plainly<sp/>marked<sp/>as<sp/>such,<sp/>and<sp/>must<sp/>not<sp/>be</highlight></codeline>
+<codeline lineno="26"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/>misrepresented<sp/>as<sp/>being<sp/>the<sp/>original<sp/>software.</highlight></codeline>
+<codeline lineno="27"><highlight class="comment"><sp/>*<sp/>3.<sp/>This<sp/>notice<sp/>may<sp/>not<sp/>be<sp/>removed<sp/>or<sp/>altered<sp/>from<sp/>any<sp/>source<sp/>distribution.</highlight></codeline>
+<codeline lineno="28"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="29"><highlight class="comment"><sp/>******************************************************************************/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="30"><highlight class="normal"></highlight></codeline>
+<codeline lineno="31"><highlight class="normal"></highlight><highlight class="preprocessor">#ifndef<sp/>SL_SI91X_PSA_AES_H</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="32"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>SL_SI91X_PSA_AES_H</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="33"><highlight class="normal"></highlight></codeline>
+<codeline lineno="34"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;<ref refid="sli__si91x__crypto__driver__functions_8h" kindref="compound">sli_si91x_crypto_driver_functions.h</ref>&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="35"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;string.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="36"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;sl_status.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="37"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;<ref refid="sl__si91x__crypto_8h" kindref="compound">sl_si91x_crypto.h</ref>&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="38"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;<ref refid="sl__si91x__aes_8h" kindref="compound">sl_si91x_aes.h</ref>&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="39"><highlight class="normal"></highlight></codeline>
+<codeline lineno="40" refid="structsli__si91x__crypto__cipher__operation__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal">{</highlight></codeline>
+<codeline lineno="41" refid="structsli__si91x__crypto__cipher__operation__t_1a8c5651b2d6d547aaba193ca0394c2b09" refkind="member"><highlight class="normal"><sp/><sp/>psa_algorithm_t<sp/><ref refid="structsli__si91x__crypto__cipher__operation__t_1a8c5651b2d6d547aaba193ca0394c2b09" kindref="member">alg</ref>;<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//!&lt;<sp/>Algorithm<sp/>to<sp/>be<sp/>used<sp/>for<sp/>the<sp/>operation</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="42" refid="structsli__si91x__crypto__cipher__operation__t_1afc0519d65f88b1926a190fb116f569f7" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="structsli__si91x__psa__aes__multipart__config__t" kindref="compound">sli_si91x_psa_aes_multipart_config_t</ref><sp/><ref refid="structsli__si91x__crypto__cipher__operation__t_1afc0519d65f88b1926a190fb116f569f7" kindref="member">config</ref>;<sp/></highlight><highlight class="comment">//!&lt;<sp/>Configuration<sp/>for<sp/>the<sp/>operation</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="43"><highlight class="normal">}<sp/><ref refid="structsli__si91x__crypto__cipher__operation__t" kindref="compound">sli_si91x_crypto_cipher_operation_t</ref>;</highlight></codeline>
+<codeline lineno="44"><highlight class="normal"></highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="45"><highlight class="comment">/**<sp/>Encrypt<sp/>a<sp/>message<sp/>using<sp/>a<sp/>AES<sp/>cipher.</highlight></codeline>
+<codeline lineno="46"><highlight class="comment"><sp/>*<sp/>\note<sp/>The<sp/>signature<sp/>of<sp/>this<sp/>function<sp/>is<sp/>that<sp/>of<sp/>a<sp/>PSA<sp/>driver</highlight></codeline>
+<codeline lineno="47"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/>cipher_encrypt<sp/>entry<sp/>point.<sp/>This<sp/>function<sp/>behaves<sp/>as<sp/>a</highlight></codeline>
+<codeline lineno="48"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/>cipher_encrypt<sp/>entry<sp/>point<sp/>as<sp/>defined<sp/>in<sp/>the<sp/>PSA<sp/>driver</highlight></codeline>
+<codeline lineno="49"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/>interface<sp/>specification<sp/>for<sp/>transparent<sp/>drivers.</highlight></codeline>
+<codeline lineno="50"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="51"><highlight class="comment"><sp/>*<sp/>\param[in]<sp/>attributes<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>The<sp/>attributes<sp/>of<sp/>the<sp/>key<sp/>to<sp/>use<sp/>for<sp/>the</highlight></codeline>
+<codeline lineno="52"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>operation.</highlight></codeline>
+<codeline lineno="53"><highlight class="comment"><sp/>*<sp/>\param[in]<sp/>key_buffer<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>The<sp/>buffer<sp/>containing<sp/>the<sp/>key<sp/>context.</highlight></codeline>
+<codeline lineno="54"><highlight class="comment"><sp/>*<sp/>\param[in]<sp/>key_buffer_size<sp/><sp/><sp/>Size<sp/>of<sp/>the<sp/>\p<sp/>key_buffer<sp/>buffer<sp/>in<sp/>bytes.</highlight></codeline>
+<codeline lineno="55"><highlight class="comment"><sp/>*<sp/>\param[in]<sp/>alg<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>The<sp/>cipher<sp/>algorithm<sp/>to<sp/>compute</highlight></codeline>
+<codeline lineno="56"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>(\c<sp/>PSA_ALG_XXX<sp/>value<sp/>such<sp/>that</highlight></codeline>
+<codeline lineno="57"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>PSA_ALG_IS_CIPHER(\p<sp/>alg)<sp/>is<sp/>true).</highlight></codeline>
+<codeline lineno="58"><highlight class="comment"><sp/>*<sp/>\param[in]<sp/>iv<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Buffer<sp/>containing<sp/>the<sp/>IV<sp/>for<sp/>encryption.<sp/>The</highlight></codeline>
+<codeline lineno="59"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>IV<sp/>has<sp/>been<sp/>generated<sp/>by<sp/>the<sp/>core.</highlight></codeline>
+<codeline lineno="60"><highlight class="comment"><sp/>*<sp/>\param[in]<sp/>iv_length<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Size<sp/>of<sp/>the<sp/>\p<sp/>iv<sp/>in<sp/>bytes.</highlight></codeline>
+<codeline lineno="61"><highlight class="comment"><sp/>*<sp/>\param[in]<sp/>input<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Buffer<sp/>containing<sp/>the<sp/>message<sp/>to<sp/>encrypt.</highlight></codeline>
+<codeline lineno="62"><highlight class="comment"><sp/>*<sp/>\param[in]<sp/>input_length<sp/><sp/><sp/><sp/><sp/><sp/>Size<sp/>of<sp/>the<sp/>\p<sp/>input<sp/>buffer<sp/>in<sp/>bytes.</highlight></codeline>
+<codeline lineno="63"><highlight class="comment"><sp/>*<sp/>\param[in,out]<sp/>output<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Buffer<sp/>where<sp/>the<sp/>output<sp/>is<sp/>to<sp/>be<sp/>written.</highlight></codeline>
+<codeline lineno="64"><highlight class="comment"><sp/>*<sp/>\param[in]<sp/><sp/>output_size<sp/><sp/><sp/><sp/><sp/><sp/>Size<sp/>of<sp/>the<sp/>\p<sp/>output<sp/>buffer<sp/>in<sp/>bytes.</highlight></codeline>
+<codeline lineno="65"><highlight class="comment"><sp/>*<sp/>\param[out]<sp/>output_length<sp/><sp/><sp/><sp/>On<sp/>success,<sp/>the<sp/>number<sp/>of<sp/>bytes<sp/>that<sp/>make<sp/>up</highlight></codeline>
+<codeline lineno="66"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>the<sp/>returned<sp/>output.<sp/>Initialized<sp/>to<sp/>zero</highlight></codeline>
+<codeline lineno="67"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>by<sp/>the<sp/>core.</highlight></codeline>
+<codeline lineno="68"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="69"><highlight class="comment"><sp/>*<sp/>\retval<sp/>PSA_SUCCESS</highlight></codeline>
+<codeline lineno="70"><highlight class="comment"><sp/>*<sp/>\retval<sp/>PSA_ERROR_NOT_SUPPORTED</highlight></codeline>
+<codeline lineno="71"><highlight class="comment"><sp/>*<sp/>\retval<sp/>PSA_ERROR_INSUFFICIENT_MEMORY</highlight></codeline>
+<codeline lineno="72"><highlight class="comment"><sp/>*<sp/>\retval<sp/>PSA_ERROR_CORRUPTION_DETECTED</highlight></codeline>
+<codeline lineno="73"><highlight class="comment"><sp/>*<sp/>\retval<sp/>PSA_ERROR_BUFFER_TOO_SMALL</highlight></codeline>
+<codeline lineno="74"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>The<sp/>size<sp/>of<sp/>the<sp/>\p<sp/>output<sp/>buffer<sp/>is<sp/>too<sp/>small.</highlight></codeline>
+<codeline lineno="75"><highlight class="comment"><sp/>*<sp/>\retval<sp/>PSA_ERROR_INVALID_ARGUMENT</highlight></codeline>
+<codeline lineno="76"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>The<sp/>size<sp/>\p<sp/>iv_length<sp/>is<sp/>not<sp/>acceptable<sp/>for<sp/>the<sp/>chosen<sp/>algorithm,</highlight></codeline>
+<codeline lineno="77"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>or<sp/>the<sp/>chosen<sp/>algorithm<sp/>does<sp/>not<sp/>use<sp/>an<sp/>IV.</highlight></codeline>
+<codeline lineno="78"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>The<sp/>total<sp/>input<sp/>size<sp/>passed<sp/>to<sp/>this<sp/>operation<sp/>is<sp/>not<sp/>valid<sp/>for</highlight></codeline>
+<codeline lineno="79"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>this<sp/>particular<sp/>algorithm.<sp/>For<sp/>example,<sp/>the<sp/>algorithm<sp/>is<sp/>a<sp/>based</highlight></codeline>
+<codeline lineno="80"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>on<sp/>block<sp/>cipher<sp/>and<sp/>requires<sp/>a<sp/>whole<sp/>number<sp/>of<sp/>blocks,<sp/>but<sp/>the</highlight></codeline>
+<codeline lineno="81"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>total<sp/>input<sp/>size<sp/>is<sp/>not<sp/>a<sp/>multiple<sp/>of<sp/>the<sp/>block<sp/>size.</highlight></codeline>
+<codeline lineno="82"><highlight class="comment"><sp/>*<sp/>\retval<sp/>PSA_ERROR_INVALID_PADDING</highlight></codeline>
+<codeline lineno="83"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>This<sp/>is<sp/>a<sp/>decryption<sp/>operation<sp/>for<sp/>an<sp/>algorithm<sp/>that<sp/>includes</highlight></codeline>
+<codeline lineno="84"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>padding,<sp/>and<sp/>the<sp/>ciphertext<sp/>does<sp/>not<sp/>contain<sp/>valid<sp/>padding.</highlight></codeline>
+<codeline lineno="85"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="86"><highlight class="normal">psa_status_t<sp/>sli_si91x_crypto_cipher_encrypt(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>psa_key_attributes_t<sp/>*attributes,</highlight></codeline>
+<codeline lineno="87"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint8_t<sp/>*key_buffer,</highlight></codeline>
+<codeline lineno="88"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>key_buffer_size,</highlight></codeline>
+<codeline lineno="89"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>psa_algorithm_t<sp/>alg,</highlight></codeline>
+<codeline lineno="90"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint8_t<sp/>*iv,</highlight></codeline>
+<codeline lineno="91"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>iv_length,</highlight></codeline>
+<codeline lineno="92"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint8_t<sp/>*input,</highlight></codeline>
+<codeline lineno="93"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>input_length,</highlight></codeline>
+<codeline lineno="94"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>uint8_t<sp/>*output,</highlight></codeline>
+<codeline lineno="95"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>output_size,</highlight></codeline>
+<codeline lineno="96"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>*output_length);</highlight></codeline>
+<codeline lineno="97"><highlight class="normal"></highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="98"><highlight class="comment">/**<sp/>Decrypt<sp/>a<sp/>message<sp/>using<sp/>a<sp/>AES<sp/>cipher.</highlight></codeline>
+<codeline lineno="99"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="100"><highlight class="comment"><sp/>*<sp/>\note<sp/>The<sp/>signature<sp/>of<sp/>this<sp/>function<sp/>is<sp/>that<sp/>of<sp/>a<sp/>PSA<sp/>driver</highlight></codeline>
+<codeline lineno="101"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/>cipher_encrypt<sp/>entry<sp/>point.<sp/>This<sp/>function<sp/>behaves<sp/>as<sp/>a</highlight></codeline>
+<codeline lineno="102"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/>cipher_encrypt<sp/>entry<sp/>point<sp/>as<sp/>defined<sp/>in<sp/>the<sp/>PSA<sp/>driver</highlight></codeline>
+<codeline lineno="103"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/>interface<sp/>specification<sp/>for<sp/>transparent<sp/>drivers.</highlight></codeline>
+<codeline lineno="104"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="105"><highlight class="comment"><sp/>*<sp/>\param[in]<sp/><sp/>attributes<sp/><sp/><sp/><sp/><sp/><sp/><sp/>The<sp/>attributes<sp/>of<sp/>the<sp/>key<sp/>to<sp/>use<sp/>for<sp/>the</highlight></codeline>
+<codeline lineno="106"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>operation.</highlight></codeline>
+<codeline lineno="107"><highlight class="comment"><sp/>*<sp/>\param[in]<sp/><sp/>key_buffer<sp/><sp/><sp/><sp/><sp/><sp/><sp/>The<sp/>buffer<sp/>containing<sp/>the<sp/>key<sp/>context.</highlight></codeline>
+<codeline lineno="108"><highlight class="comment"><sp/>*<sp/>\param[in]<sp/><sp/>key_buffer_size<sp/><sp/>Size<sp/>of<sp/>the<sp/>\p<sp/>key_buffer<sp/>buffer<sp/>in<sp/>bytes.</highlight></codeline>
+<codeline lineno="109"><highlight class="comment"><sp/>*<sp/>\param[in]<sp/><sp/>alg<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>The<sp/>cipher<sp/>algorithm<sp/>to<sp/>compute</highlight></codeline>
+<codeline lineno="110"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>(\c<sp/>PSA_ALG_XXX<sp/>value<sp/>such<sp/>that</highlight></codeline>
+<codeline lineno="111"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>PSA_ALG_IS_CIPHER(\p<sp/>alg)<sp/>is<sp/>true).</highlight></codeline>
+<codeline lineno="112"><highlight class="comment"><sp/>*<sp/>\param[in]<sp/><sp/>input<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Buffer<sp/>containing<sp/>the<sp/>message<sp/>to<sp/>decrypt.</highlight></codeline>
+<codeline lineno="113"><highlight class="comment"><sp/>*<sp/>\param[in]<sp/><sp/>input_length<sp/><sp/><sp/><sp/><sp/>Size<sp/>of<sp/>the<sp/>\p<sp/>input<sp/>buffer<sp/>in<sp/>bytes.</highlight></codeline>
+<codeline lineno="114"><highlight class="comment"><sp/>*<sp/>\param[out]<sp/>output<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Buffer<sp/>where<sp/>the<sp/>output<sp/>is<sp/>to<sp/>be<sp/>written.</highlight></codeline>
+<codeline lineno="115"><highlight class="comment"><sp/>*<sp/>\param[in]<sp/><sp/>output_size<sp/><sp/><sp/><sp/><sp/><sp/>Size<sp/>of<sp/>the<sp/>\p<sp/>output<sp/>buffer<sp/>in<sp/>bytes.</highlight></codeline>
+<codeline lineno="116"><highlight class="comment"><sp/>*<sp/>\param[out]<sp/>output_length<sp/><sp/><sp/><sp/>On<sp/>success,<sp/>the<sp/>number<sp/>of<sp/>bytes<sp/>that<sp/>make<sp/>up</highlight></codeline>
+<codeline lineno="117"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>the<sp/>returned<sp/>output.<sp/>Initialized<sp/>to<sp/>zero</highlight></codeline>
+<codeline lineno="118"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>by<sp/>the<sp/>core.</highlight></codeline>
+<codeline lineno="119"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="120"><highlight class="comment"><sp/>*<sp/>\retval<sp/>PSA_SUCCESS</highlight></codeline>
+<codeline lineno="121"><highlight class="comment"><sp/>*<sp/>\retval<sp/>PSA_ERROR_NOT_SUPPORTED</highlight></codeline>
+<codeline lineno="122"><highlight class="comment"><sp/>*<sp/>\retval<sp/>PSA_ERROR_INSUFFICIENT_MEMORY</highlight></codeline>
+<codeline lineno="123"><highlight class="comment"><sp/>*<sp/>\retval<sp/>PSA_ERROR_CORRUPTION_DETECTED</highlight></codeline>
+<codeline lineno="124"><highlight class="comment"><sp/>*<sp/>\retval<sp/>PSA_ERROR_BUFFER_TOO_SMALL</highlight></codeline>
+<codeline lineno="125"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>The<sp/>size<sp/>of<sp/>the<sp/>\p<sp/>output<sp/>buffer<sp/>is<sp/>too<sp/>small.</highlight></codeline>
+<codeline lineno="126"><highlight class="comment"><sp/>*<sp/>\retval<sp/>PSA_ERROR_INVALID_ARGUMENT</highlight></codeline>
+<codeline lineno="127"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>The<sp/>size<sp/>\p<sp/>iv_length<sp/>is<sp/>not<sp/>acceptable<sp/>for<sp/>the<sp/>chosen<sp/>algorithm,</highlight></codeline>
+<codeline lineno="128"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>or<sp/>the<sp/>chosen<sp/>algorithm<sp/>does<sp/>not<sp/>use<sp/>an<sp/>IV.</highlight></codeline>
+<codeline lineno="129"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>The<sp/>total<sp/>input<sp/>size<sp/>passed<sp/>to<sp/>this<sp/>operation<sp/>is<sp/>not<sp/>valid<sp/>for</highlight></codeline>
+<codeline lineno="130"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>this<sp/>particular<sp/>algorithm.<sp/>For<sp/>example,<sp/>the<sp/>algorithm<sp/>is<sp/>a<sp/>based</highlight></codeline>
+<codeline lineno="131"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>on<sp/>block<sp/>cipher<sp/>and<sp/>requires<sp/>a<sp/>whole<sp/>number<sp/>of<sp/>blocks,<sp/>however<sp/>the</highlight></codeline>
+<codeline lineno="132"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>total<sp/>input<sp/>size<sp/>is<sp/>not<sp/>a<sp/>multiple<sp/>of<sp/>the<sp/>block<sp/>size.</highlight></codeline>
+<codeline lineno="133"><highlight class="comment"><sp/>*<sp/>\retval<sp/>PSA_ERROR_INVALID_PADDING</highlight></codeline>
+<codeline lineno="134"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>This<sp/>is<sp/>a<sp/>decryption<sp/>operation<sp/>for<sp/>an<sp/>algorithm<sp/>which<sp/>includes</highlight></codeline>
+<codeline lineno="135"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>padding,<sp/>and<sp/>the<sp/>ciphertext<sp/>does<sp/>not<sp/>contain<sp/>valid<sp/>padding.</highlight></codeline>
+<codeline lineno="136"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="137"><highlight class="normal">psa_status_t<sp/>sli_si91x_crypto_cipher_decrypt(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>psa_key_attributes_t<sp/>*attributes,</highlight></codeline>
+<codeline lineno="138"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint8_t<sp/>*key_buffer,</highlight></codeline>
+<codeline lineno="139"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>key_buffer_size,</highlight></codeline>
+<codeline lineno="140"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>psa_algorithm_t<sp/>alg,</highlight></codeline>
+<codeline lineno="141"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint8_t<sp/>*input,</highlight></codeline>
+<codeline lineno="142"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>input_length,</highlight></codeline>
+<codeline lineno="143"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>uint8_t<sp/>*output,</highlight></codeline>
+<codeline lineno="144"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>output_size,</highlight></codeline>
+<codeline lineno="145"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>*output_length);</highlight></codeline>
+<codeline lineno="146"><highlight class="normal"></highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="147"><highlight class="comment">/**<sp/>Set<sp/>the<sp/>key<sp/>for<sp/>a<sp/>multipart<sp/>symmetric<sp/>encryption<sp/>operation.</highlight></codeline>
+<codeline lineno="148"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="149"><highlight class="comment"><sp/>*<sp/>\param[in,out]<sp/>operation<sp/><sp/><sp/><sp/><sp/>The<sp/>operation<sp/>object<sp/>to<sp/>set<sp/>up.<sp/>It<sp/>must<sp/>have</highlight></codeline>
+<codeline lineno="150"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>been<sp/>initialized<sp/>as<sp/>per<sp/>the<sp/>documentation<sp/>for</highlight></codeline>
+<codeline lineno="151"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#psa_cipher_operation_t<sp/>and<sp/>not<sp/>yet<sp/>in<sp/>use.</highlight></codeline>
+<codeline lineno="152"><highlight class="comment"><sp/>*<sp/>\param<sp/>attributes<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Attributes<sp/>of<sp/>the<sp/>key</highlight></codeline>
+<codeline lineno="153"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>It<sp/>must<sp/>allow<sp/>the<sp/>usage<sp/>#PSA_KEY_USAGE_ENCRYPT.</highlight></codeline>
+<codeline lineno="154"><highlight class="comment"><sp/>*<sp/>\param<sp/>key_buffer<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Buffer<sp/>containing<sp/>key<sp/>data</highlight></codeline>
+<codeline lineno="155"><highlight class="comment"><sp/>*<sp/>\param<sp/>key_buffer_size<sp/><sp/><sp/><sp/><sp/><sp/><sp/>Size<sp/>of<sp/>key<sp/>buffer<sp/>in<sp/>bytes</highlight></codeline>
+<codeline lineno="156"><highlight class="comment"><sp/>*<sp/>\param<sp/>alg<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>The<sp/>cipher<sp/>algorithm<sp/>to<sp/>compute</highlight></codeline>
+<codeline lineno="157"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>(\c<sp/>PSA_ALG_XXX<sp/>value<sp/>such<sp/>that</highlight></codeline>
+<codeline lineno="158"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#PSA_ALG_IS_CIPHER(\p<sp/>alg)<sp/>is<sp/>true).</highlight></codeline>
+<codeline lineno="159"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="160"><highlight class="comment"><sp/>*<sp/>\retval<sp/>#PSA_SUCCESS</highlight></codeline>
+<codeline lineno="161"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Success.</highlight></codeline>
+<codeline lineno="162"><highlight class="comment"><sp/>*<sp/>\retval<sp/>#PSA_ERROR_INVALID_HANDLE<sp/>\emptydescription</highlight></codeline>
+<codeline lineno="163"><highlight class="comment"><sp/>*<sp/>\retval<sp/>#PSA_ERROR_NOT_PERMITTED<sp/>\emptydescription</highlight></codeline>
+<codeline lineno="164"><highlight class="comment"><sp/>*<sp/>\retval<sp/>#PSA_ERROR_INVALID_ARGUMENT</highlight></codeline>
+<codeline lineno="165"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>\p<sp/>key<sp/>is<sp/>not<sp/>compatible<sp/>with<sp/>\p<sp/>alg.</highlight></codeline>
+<codeline lineno="166"><highlight class="comment"><sp/>*<sp/>\retval<sp/>#PSA_ERROR_NOT_SUPPORTED</highlight></codeline>
+<codeline lineno="167"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>\p<sp/>alg<sp/>is<sp/>not<sp/>supported<sp/>or<sp/>is<sp/>not<sp/>a<sp/>cipher<sp/>algorithm.</highlight></codeline>
+<codeline lineno="168"><highlight class="comment"><sp/>*<sp/>\retval<sp/>#PSA_ERROR_INSUFFICIENT_MEMORY<sp/>\emptydescription</highlight></codeline>
+<codeline lineno="169"><highlight class="comment"><sp/>*<sp/>\retval<sp/>#PSA_ERROR_COMMUNICATION_FAILURE<sp/>\emptydescription</highlight></codeline>
+<codeline lineno="170"><highlight class="comment"><sp/>*<sp/>\retval<sp/>#PSA_ERROR_HARDWARE_FAILURE<sp/>\emptydescription</highlight></codeline>
+<codeline lineno="171"><highlight class="comment"><sp/>*<sp/>\retval<sp/>#PSA_ERROR_CORRUPTION_DETECTED<sp/>\emptydescription</highlight></codeline>
+<codeline lineno="172"><highlight class="comment"><sp/>*<sp/>\retval<sp/>#PSA_ERROR_STORAGE_FAILURE<sp/>\emptydescription</highlight></codeline>
+<codeline lineno="173"><highlight class="comment"><sp/>*<sp/>\retval<sp/>#PSA_ERROR_BAD_STATE.</highlight></codeline>
+<codeline lineno="174"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="175"><highlight class="normal">psa_status_t<sp/>sli_si91x_crypto_cipher_encrypt_setup(<ref refid="structsli__si91x__crypto__cipher__operation__t" kindref="compound">sli_si91x_crypto_cipher_operation_t</ref><sp/>*operation,</highlight></codeline>
+<codeline lineno="176"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>psa_key_attributes_t<sp/>*attributes,</highlight></codeline>
+<codeline lineno="177"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint8_t<sp/>*key_buffer,</highlight></codeline>
+<codeline lineno="178"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>key_buffer_size,</highlight></codeline>
+<codeline lineno="179"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>psa_algorithm_t<sp/>alg);</highlight></codeline>
+<codeline lineno="180"><highlight class="normal"></highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="181"><highlight class="comment">/**<sp/>Set<sp/>the<sp/>key<sp/>for<sp/>a<sp/>multipart<sp/>symmetric<sp/>decryption<sp/>operation.</highlight></codeline>
+<codeline lineno="182"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="183"><highlight class="comment"><sp/>*<sp/>\param[in,out]<sp/>operation<sp/><sp/><sp/><sp/><sp/>The<sp/>operation<sp/>object<sp/>to<sp/>set<sp/>up.<sp/>It<sp/>must<sp/>have</highlight></codeline>
+<codeline lineno="184"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>been<sp/>initialized<sp/>as<sp/>per<sp/>the<sp/>documentation<sp/>for</highlight></codeline>
+<codeline lineno="185"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#psa_cipher_operation_t<sp/>and<sp/>not<sp/>yet<sp/>in<sp/>use.</highlight></codeline>
+<codeline lineno="186"><highlight class="comment"><sp/>*<sp/>\param<sp/>attributes<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Attributes<sp/>of<sp/>the<sp/>key</highlight></codeline>
+<codeline lineno="187"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>It<sp/>must<sp/>allow<sp/>the<sp/>usage<sp/>#PSA_KEY_USAGE_DECRYPT.</highlight></codeline>
+<codeline lineno="188"><highlight class="comment"><sp/>*<sp/>\param<sp/>key_buffer<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Buffer<sp/>containing<sp/>key<sp/>data</highlight></codeline>
+<codeline lineno="189"><highlight class="comment"><sp/>*<sp/>\param<sp/>key_buffer_size<sp/><sp/><sp/><sp/><sp/><sp/><sp/>Size<sp/>of<sp/>key<sp/>buffer<sp/>in<sp/>bytes</highlight></codeline>
+<codeline lineno="190"><highlight class="comment"><sp/>*<sp/>\param<sp/>alg<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>The<sp/>cipher<sp/>algorithm<sp/>to<sp/>compute</highlight></codeline>
+<codeline lineno="191"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>(\c<sp/>PSA_ALG_XXX<sp/>value<sp/>such<sp/>that</highlight></codeline>
+<codeline lineno="192"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#PSA_ALG_IS_CIPHER(\p<sp/>alg)<sp/>is<sp/>true).</highlight></codeline>
+<codeline lineno="193"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="194"><highlight class="comment"><sp/>*<sp/>\retval<sp/>#PSA_SUCCESS</highlight></codeline>
+<codeline lineno="195"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Success.</highlight></codeline>
+<codeline lineno="196"><highlight class="comment"><sp/>*<sp/>\retval<sp/>#PSA_ERROR_INVALID_HANDLE<sp/>\emptydescription</highlight></codeline>
+<codeline lineno="197"><highlight class="comment"><sp/>*<sp/>\retval<sp/>#PSA_ERROR_NOT_PERMITTED<sp/>\emptydescription</highlight></codeline>
+<codeline lineno="198"><highlight class="comment"><sp/>*<sp/>\retval<sp/>#PSA_ERROR_INVALID_ARGUMENT</highlight></codeline>
+<codeline lineno="199"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>\p<sp/>key<sp/>is<sp/>not<sp/>compatible<sp/>with<sp/>\p<sp/>alg.</highlight></codeline>
+<codeline lineno="200"><highlight class="comment"><sp/>*<sp/>\retval<sp/>#PSA_ERROR_NOT_SUPPORTED</highlight></codeline>
+<codeline lineno="201"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>\p<sp/>alg<sp/>is<sp/>not<sp/>supported<sp/>or<sp/>is<sp/>not<sp/>a<sp/>cipher<sp/>algorithm.</highlight></codeline>
+<codeline lineno="202"><highlight class="comment"><sp/>*<sp/>\retval<sp/>#PSA_ERROR_INSUFFICIENT_MEMORY<sp/>\emptydescription</highlight></codeline>
+<codeline lineno="203"><highlight class="comment"><sp/>*<sp/>\retval<sp/>#PSA_ERROR_COMMUNICATION_FAILURE<sp/>\emptydescription</highlight></codeline>
+<codeline lineno="204"><highlight class="comment"><sp/>*<sp/>\retval<sp/>#PSA_ERROR_HARDWARE_FAILURE<sp/>\emptydescription</highlight></codeline>
+<codeline lineno="205"><highlight class="comment"><sp/>*<sp/>\retval<sp/>#PSA_ERROR_CORRUPTION_DETECTED<sp/>\emptydescription</highlight></codeline>
+<codeline lineno="206"><highlight class="comment"><sp/>*<sp/>\retval<sp/>#PSA_ERROR_STORAGE_FAILURE<sp/>\emptydescription</highlight></codeline>
+<codeline lineno="207"><highlight class="comment"><sp/>*<sp/>\retval<sp/>#PSA_ERROR_BAD_STATE</highlight></codeline>
+<codeline lineno="208"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="209"><highlight class="normal">psa_status_t<sp/>sli_si91x_crypto_cipher_decrypt_setup(<ref refid="structsli__si91x__crypto__cipher__operation__t" kindref="compound">sli_si91x_crypto_cipher_operation_t</ref><sp/>*operation,</highlight></codeline>
+<codeline lineno="210"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>psa_key_attributes_t<sp/>*attributes,</highlight></codeline>
+<codeline lineno="211"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint8_t<sp/>*key_buffer,</highlight></codeline>
+<codeline lineno="212"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>key_buffer_size,</highlight></codeline>
+<codeline lineno="213"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>psa_algorithm_t<sp/>alg);</highlight></codeline>
+<codeline lineno="214"><highlight class="normal"></highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="215"><highlight class="comment">/**<sp/>Set<sp/>the<sp/>IV<sp/>for<sp/>a<sp/>symmetric<sp/>encryption<sp/>or<sp/>decryption<sp/>operation.</highlight></codeline>
+<codeline lineno="216"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="217"><highlight class="comment"><sp/>*<sp/>This<sp/>function<sp/>sets<sp/>the<sp/>IV<sp/>(initialization<sp/>vector),<sp/>nonce</highlight></codeline>
+<codeline lineno="218"><highlight class="comment"><sp/>*<sp/>or<sp/>initial<sp/>counter<sp/>value<sp/>for<sp/>the<sp/>encryption<sp/>or<sp/>decryption<sp/>operation.</highlight></codeline>
+<codeline lineno="219"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="220"><highlight class="comment"><sp/>*<sp/>\param[in,out]<sp/>operation<sp/><sp/><sp/><sp/><sp/>Active<sp/>cipher<sp/>operation.</highlight></codeline>
+<codeline lineno="221"><highlight class="comment"><sp/>*<sp/>\param[in]<sp/>iv<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Buffer<sp/>containing<sp/>the<sp/>IV<sp/>to<sp/>use.</highlight></codeline>
+<codeline lineno="222"><highlight class="comment"><sp/>*<sp/>\param<sp/>iv_length<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Size<sp/>of<sp/>the<sp/>IV<sp/>in<sp/>bytes.</highlight></codeline>
+<codeline lineno="223"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="224"><highlight class="comment"><sp/>*<sp/>\retval<sp/>#PSA_SUCCESS</highlight></codeline>
+<codeline lineno="225"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Success.</highlight></codeline>
+<codeline lineno="226"><highlight class="comment"><sp/>*<sp/>\retval<sp/>#PSA_ERROR_INVALID_ARGUMENT</highlight></codeline>
+<codeline lineno="227"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>The<sp/>size<sp/>of<sp/>\p<sp/>iv<sp/>is<sp/>not<sp/>acceptable<sp/>for<sp/>the<sp/>chosen<sp/>algorithm,</highlight></codeline>
+<codeline lineno="228"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>or<sp/>the<sp/>chosen<sp/>algorithm<sp/>does<sp/>not<sp/>use<sp/>an<sp/>IV.</highlight></codeline>
+<codeline lineno="229"><highlight class="comment"><sp/>*<sp/>\retval<sp/>#PSA_ERROR_INSUFFICIENT_MEMORY<sp/>\emptydescription</highlight></codeline>
+<codeline lineno="230"><highlight class="comment"><sp/>*<sp/>\retval<sp/>#PSA_ERROR_COMMUNICATION_FAILURE<sp/>\emptydescription</highlight></codeline>
+<codeline lineno="231"><highlight class="comment"><sp/>*<sp/>\retval<sp/>#PSA_ERROR_HARDWARE_FAILURE<sp/>\emptydescription</highlight></codeline>
+<codeline lineno="232"><highlight class="comment"><sp/>*<sp/>\retval<sp/>#PSA_ERROR_CORRUPTION_DETECTED<sp/>\emptydescription</highlight></codeline>
+<codeline lineno="233"><highlight class="comment"><sp/>*<sp/>\retval<sp/>#PSA_ERROR_STORAGE_FAILURE<sp/>\emptydescription</highlight></codeline>
+<codeline lineno="234"><highlight class="comment"><sp/>*<sp/>\retval<sp/>#PSA_ERROR_BAD_STATE</highlight></codeline>
+<codeline lineno="235"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>The<sp/>operation<sp/>state<sp/>is<sp/>not<sp/>valid<sp/>(it<sp/>must<sp/>be<sp/>an<sp/>active<sp/>cipher</highlight></codeline>
+<codeline lineno="236"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>encrypt<sp/>operation,<sp/>with<sp/>no<sp/>IV<sp/>set)</highlight></codeline>
+<codeline lineno="237"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="238"><highlight class="normal">psa_status_t<sp/>sli_si91x_crypto_cipher_set_iv(<ref refid="structsli__si91x__crypto__cipher__operation__t" kindref="compound">sli_si91x_crypto_cipher_operation_t</ref><sp/>*operation,</highlight></codeline>
+<codeline lineno="239"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint8_t<sp/>*iv,</highlight></codeline>
+<codeline lineno="240"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>iv_length);</highlight></codeline>
+<codeline lineno="241"><highlight class="normal"></highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="242"><highlight class="comment">/**<sp/>Encrypt<sp/>or<sp/>decrypt<sp/>a<sp/>message<sp/>fragment<sp/>in<sp/>an<sp/>active<sp/>cipher<sp/>operation.</highlight></codeline>
+<codeline lineno="243"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="244"><highlight class="comment"><sp/>*<sp/>\param[in,out]<sp/>operation<sp/><sp/><sp/><sp/><sp/>Active<sp/>cipher<sp/>operation.</highlight></codeline>
+<codeline lineno="245"><highlight class="comment"><sp/>*<sp/>\param[in]<sp/>input<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Buffer<sp/>containing<sp/>the<sp/>message<sp/>fragment<sp/>to</highlight></codeline>
+<codeline lineno="246"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>encrypt<sp/>or<sp/>decrypt.</highlight></codeline>
+<codeline lineno="247"><highlight class="comment"><sp/>*<sp/>\param<sp/>input_length<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Size<sp/>of<sp/>the<sp/>\p<sp/>input<sp/>buffer<sp/>in<sp/>bytes.</highlight></codeline>
+<codeline lineno="248"><highlight class="comment"><sp/>*<sp/>\param[out]<sp/>output<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Buffer<sp/>where<sp/>the<sp/>output<sp/>is<sp/>to<sp/>be<sp/>written.</highlight></codeline>
+<codeline lineno="249"><highlight class="comment"><sp/>*<sp/>\param<sp/>output_size<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Size<sp/>of<sp/>the<sp/>\p<sp/>output<sp/>buffer<sp/>in<sp/>bytes.</highlight></codeline>
+<codeline lineno="250"><highlight class="comment"><sp/>*<sp/>\param[out]<sp/>output_length<sp/><sp/><sp/><sp/>On<sp/>success,<sp/>the<sp/>number<sp/>of<sp/>bytes</highlight></codeline>
+<codeline lineno="251"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>that<sp/>make<sp/>up<sp/>the<sp/>returned<sp/>output.</highlight></codeline>
+<codeline lineno="252"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="253"><highlight class="comment"><sp/>*<sp/>\retval<sp/>#PSA_SUCCESS</highlight></codeline>
+<codeline lineno="254"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Success.</highlight></codeline>
+<codeline lineno="255"><highlight class="comment"><sp/>*<sp/>\retval<sp/>#PSA_ERROR_BUFFER_TOO_SMALL</highlight></codeline>
+<codeline lineno="256"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>The<sp/>size<sp/>of<sp/>the<sp/>\p<sp/>output<sp/>buffer<sp/>is<sp/>too<sp/>small.</highlight></codeline>
+<codeline lineno="257"><highlight class="comment"><sp/>*<sp/>\retval<sp/>#PSA_ERROR_INSUFFICIENT_MEMORY<sp/>\emptydescription</highlight></codeline>
+<codeline lineno="258"><highlight class="comment"><sp/>*<sp/>\retval<sp/>#PSA_ERROR_COMMUNICATION_FAILURE<sp/>\emptydescription</highlight></codeline>
+<codeline lineno="259"><highlight class="comment"><sp/>*<sp/>\retval<sp/>#PSA_ERROR_HARDWARE_FAILURE<sp/>\emptydescription</highlight></codeline>
+<codeline lineno="260"><highlight class="comment"><sp/>*<sp/>\retval<sp/>#PSA_ERROR_CORRUPTION_DETECTED<sp/>\emptydescription</highlight></codeline>
+<codeline lineno="261"><highlight class="comment"><sp/>*<sp/>\retval<sp/>#PSA_ERROR_STORAGE_FAILURE<sp/>\emptydescription</highlight></codeline>
+<codeline lineno="262"><highlight class="comment"><sp/>*<sp/>\retval<sp/>#PSA_ERROR_BAD_STATE</highlight></codeline>
+<codeline lineno="263"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>The<sp/>operation<sp/>state<sp/>is<sp/>not<sp/>valid<sp/>(it<sp/>must<sp/>be<sp/>active,<sp/>with<sp/>an<sp/>IV<sp/>set</highlight></codeline>
+<codeline lineno="264"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>if<sp/>required<sp/>for<sp/>the<sp/>algorithm)</highlight></codeline>
+<codeline lineno="265"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="266"><highlight class="normal">psa_status_t<sp/>sli_si91x_crypto_cipher_update(<ref refid="structsli__si91x__crypto__cipher__operation__t" kindref="compound">sli_si91x_crypto_cipher_operation_t</ref><sp/>*operation,</highlight></codeline>
+<codeline lineno="267"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint8_t<sp/>*input,</highlight></codeline>
+<codeline lineno="268"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>input_length,</highlight></codeline>
+<codeline lineno="269"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>uint8_t<sp/>*output,</highlight></codeline>
+<codeline lineno="270"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>output_size,</highlight></codeline>
+<codeline lineno="271"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>*output_length);</highlight></codeline>
+<codeline lineno="272"><highlight class="normal"></highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="273"><highlight class="comment">/**<sp/>Finish<sp/>encrypting<sp/>or<sp/>decrypting<sp/>a<sp/>message<sp/>in<sp/>a<sp/>cipher<sp/>operation.</highlight></codeline>
+<codeline lineno="274"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="275"><highlight class="comment"><sp/>*<sp/>\param[in,out]<sp/>operation<sp/><sp/><sp/><sp/><sp/>Active<sp/>cipher<sp/>operation.</highlight></codeline>
+<codeline lineno="276"><highlight class="comment"><sp/>*<sp/>\param[out]<sp/>output<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Buffer<sp/>where<sp/>the<sp/>output<sp/>is<sp/>to<sp/>be<sp/>written.</highlight></codeline>
+<codeline lineno="277"><highlight class="comment"><sp/>*<sp/>\param<sp/>output_size<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Size<sp/>of<sp/>the<sp/>\p<sp/>output<sp/>buffer<sp/>in<sp/>bytes.</highlight></codeline>
+<codeline lineno="278"><highlight class="comment"><sp/>*<sp/>\param[out]<sp/>output_length<sp/><sp/><sp/><sp/>On<sp/>success,<sp/>the<sp/>number<sp/>of<sp/>bytes</highlight></codeline>
+<codeline lineno="279"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>that<sp/>make<sp/>up<sp/>the<sp/>returned<sp/>output.</highlight></codeline>
+<codeline lineno="280"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="281"><highlight class="comment"><sp/>*<sp/>\retval<sp/>#PSA_SUCCESS</highlight></codeline>
+<codeline lineno="282"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Success.</highlight></codeline>
+<codeline lineno="283"><highlight class="comment"><sp/>*<sp/>\retval<sp/>#PSA_ERROR_INVALID_ARGUMENT</highlight></codeline>
+<codeline lineno="284"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>The<sp/>total<sp/>input<sp/>size<sp/>passed<sp/>to<sp/>this<sp/>operation<sp/>is<sp/>not<sp/>valid<sp/>for</highlight></codeline>
+<codeline lineno="285"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>this<sp/>particular<sp/>algorithm.<sp/>For<sp/>example,<sp/>the<sp/>algorithm<sp/>is<sp/>a<sp/>based</highlight></codeline>
+<codeline lineno="286"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>on<sp/>block<sp/>cipher<sp/>and<sp/>requires<sp/>a<sp/>whole<sp/>number<sp/>of<sp/>blocks,<sp/>but<sp/>the</highlight></codeline>
+<codeline lineno="287"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>total<sp/>input<sp/>size<sp/>is<sp/>not<sp/>a<sp/>multiple<sp/>of<sp/>the<sp/>block<sp/>size.</highlight></codeline>
+<codeline lineno="288"><highlight class="comment"><sp/>*<sp/>\retval<sp/>#PSA_ERROR_INVALID_PADDING</highlight></codeline>
+<codeline lineno="289"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>This<sp/>is<sp/>a<sp/>decryption<sp/>operation<sp/>for<sp/>an<sp/>algorithm<sp/>that<sp/>includes</highlight></codeline>
+<codeline lineno="290"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>padding,<sp/>and<sp/>the<sp/>ciphertext<sp/>does<sp/>not<sp/>contain<sp/>valid<sp/>padding.</highlight></codeline>
+<codeline lineno="291"><highlight class="comment"><sp/>*<sp/>\retval<sp/>#PSA_ERROR_BUFFER_TOO_SMALL</highlight></codeline>
+<codeline lineno="292"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>The<sp/>size<sp/>of<sp/>the<sp/>\p<sp/>output<sp/>buffer<sp/>is<sp/>too<sp/>small.</highlight></codeline>
+<codeline lineno="293"><highlight class="comment"><sp/>*<sp/>\retval<sp/>#PSA_ERROR_INSUFFICIENT_MEMORY<sp/>\emptydescription</highlight></codeline>
+<codeline lineno="294"><highlight class="comment"><sp/>*<sp/>\retval<sp/>#PSA_ERROR_COMMUNICATION_FAILURE<sp/>\emptydescription</highlight></codeline>
+<codeline lineno="295"><highlight class="comment"><sp/>*<sp/>\retval<sp/>#PSA_ERROR_HARDWARE_FAILURE<sp/>\emptydescription</highlight></codeline>
+<codeline lineno="296"><highlight class="comment"><sp/>*<sp/>\retval<sp/>#PSA_ERROR_CORRUPTION_DETECTED<sp/>\emptydescription</highlight></codeline>
+<codeline lineno="297"><highlight class="comment"><sp/>*<sp/>\retval<sp/>#PSA_ERROR_STORAGE_FAILURE<sp/>\emptydescription</highlight></codeline>
+<codeline lineno="298"><highlight class="comment"><sp/>*<sp/>\retval<sp/>#PSA_ERROR_BAD_STATE</highlight></codeline>
+<codeline lineno="299"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>The<sp/>operation<sp/>state<sp/>is<sp/>not<sp/>valid<sp/>(it<sp/>must<sp/>be<sp/>active,<sp/>with<sp/>an<sp/>IV<sp/>set</highlight></codeline>
+<codeline lineno="300"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>if<sp/>required<sp/>for<sp/>the<sp/>algorithm)</highlight></codeline>
+<codeline lineno="301"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="302"><highlight class="normal">psa_status_t<sp/>sli_si91x_crypto_cipher_finish(<ref refid="structsli__si91x__crypto__cipher__operation__t" kindref="compound">sli_si91x_crypto_cipher_operation_t</ref><sp/>*operation,</highlight></codeline>
+<codeline lineno="303"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>uint8_t<sp/>*output,</highlight></codeline>
+<codeline lineno="304"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>output_size,</highlight></codeline>
+<codeline lineno="305"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>*output_length);</highlight></codeline>
+<codeline lineno="306"><highlight class="normal"></highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="307"><highlight class="comment">/**<sp/>Abort<sp/>a<sp/>cipher<sp/>operation.</highlight></codeline>
+<codeline lineno="308"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="309"><highlight class="comment"><sp/>*<sp/>Aborting<sp/>an<sp/>operation<sp/>frees<sp/>all<sp/>associated<sp/>resources<sp/>except<sp/>for<sp/>the</highlight></codeline>
+<codeline lineno="310"><highlight class="comment"><sp/>*<sp/>\p<sp/>operation<sp/>structure<sp/>itself.</highlight></codeline>
+<codeline lineno="311"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="312"><highlight class="comment"><sp/>*<sp/>\param[in,out]<sp/>operation<sp/><sp/><sp/><sp/><sp/>Initialized<sp/>cipher<sp/>operation.</highlight></codeline>
+<codeline lineno="313"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="314"><highlight class="comment"><sp/>*<sp/>\retval<sp/>#PSA_SUCCESS<sp/>\emptydescription</highlight></codeline>
+<codeline lineno="315"><highlight class="comment"><sp/>*<sp/>\retval<sp/>#PSA_ERROR_COMMUNICATION_FAILURE<sp/>\emptydescription</highlight></codeline>
+<codeline lineno="316"><highlight class="comment"><sp/>*<sp/>\retval<sp/>#PSA_ERROR_HARDWARE_FAILURE<sp/>\emptydescription</highlight></codeline>
+<codeline lineno="317"><highlight class="comment"><sp/>*<sp/>\retval<sp/>#PSA_ERROR_CORRUPTION_DETECTED<sp/>\emptydescription</highlight></codeline>
+<codeline lineno="318"><highlight class="comment"><sp/>*<sp/>\retval<sp/>#PSA_ERROR_BAD_STATE</highlight></codeline>
+<codeline lineno="319"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="320"><highlight class="normal">psa_status_t<sp/>sli_si91x_crypto_cipher_abort(<ref refid="structsli__si91x__crypto__cipher__operation__t" kindref="compound">sli_si91x_crypto_cipher_operation_t</ref><sp/>*operation);</highlight></codeline>
+<codeline lineno="321"><highlight class="normal"></highlight></codeline>
+<codeline lineno="322"><highlight class="normal"></highlight><highlight class="preprocessor">#endif<sp/></highlight><highlight class="comment">/*<sp/>SL_SI91X_PSA_AES_H<sp/>*/</highlight><highlight class="preprocessor"></highlight></codeline>
+    </programlisting>
+    <location file="components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_psa_aes.h"/>
+  </compounddef>
+</doxygen>

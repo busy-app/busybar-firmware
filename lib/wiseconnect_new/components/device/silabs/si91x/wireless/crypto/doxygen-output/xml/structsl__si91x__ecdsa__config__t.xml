@@ -1,0 +1,237 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="structsl__si91x__ecdsa__config__t" kind="struct" language="C++" prot="public">
+    <compoundname>sl_si91x_ecdsa_config_t</compoundname>
+    <includes refid="sl__si91x__ecdsa_8h" local="no">sl_si91x_ecdsa.h</includes>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structsl__si91x__ecdsa__config__t_1abba88862f79bd9060a2788ddc332d0cc" prot="public" static="no" mutable="no">
+        <type><ref refid="group__CRYPTO__ECDSA__CONSTANTS_1ga726017ce8f30df553274e46fd78b156c" kindref="member">sl_si91x_crypto_ecdsa_mode_t</ref></type>
+        <definition>sl_si91x_crypto_ecdsa_mode_t sl_si91x_ecdsa_config_t::ecdsa_operation</definition>
+        <argsstring></argsstring>
+        <name>ecdsa_operation</name>
+        <qualifiedname>sl_si91x_ecdsa_config_t::ecdsa_operation</qualifiedname>
+        <briefdescription>
+<para>Generate ECC key pair, sign, or verify. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/ecdsa/inc/sl_si91x_ecdsa.h" line="146" column="32" bodyfile="components/device/silabs/si91x/wireless/crypto/ecdsa/inc/sl_si91x_ecdsa.h" bodystart="146" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__si91x__ecdsa__config__t_1ad16155077dabb51b5d4173553bc51ed0" prot="public" static="no" mutable="no">
+        <type><ref refid="group__CRYPTO__ECDSA__CONSTANTS_1gaf51b39292ea7d10ec831e0fab1ad6ac2" kindref="member">sl_si91x_crypto_ecc_curve_t</ref></type>
+        <definition>sl_si91x_crypto_ecc_curve_t sl_si91x_ecdsa_config_t::curve_id</definition>
+        <argsstring></argsstring>
+        <name>curve_id</name>
+        <qualifiedname>sl_si91x_ecdsa_config_t::curve_id</qualifiedname>
+        <briefdescription>
+<para>Curve ID for ECDSA. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/ecdsa/inc/sl_si91x_ecdsa.h" line="147" column="31" bodyfile="components/device/silabs/si91x/wireless/crypto/ecdsa/inc/sl_si91x_ecdsa.h" bodystart="147" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__si91x__ecdsa__config__t_1a66d77aea4596f93f446f54dc8e68a958" prot="public" static="no" mutable="no">
+        <type><ref refid="group__CRYPTO__ECDSA__CONSTANTS_1ga36435fb2454fb634cc727c8330096255" kindref="member">sl_si91x_crypto_ecdsa_sha_mode_t</ref></type>
+        <definition>sl_si91x_crypto_ecdsa_sha_mode_t sl_si91x_ecdsa_config_t::sha_mode</definition>
+        <argsstring></argsstring>
+        <name>sha_mode</name>
+        <qualifiedname>sl_si91x_ecdsa_config_t::sha_mode</qualifiedname>
+        <briefdescription>
+<para>SHA hashing mode of the input message. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/ecdsa/inc/sl_si91x_ecdsa.h" line="148" column="36" bodyfile="components/device/silabs/si91x/wireless/crypto/ecdsa/inc/sl_si91x_ecdsa.h" bodystart="148" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__si91x__ecdsa__config__t_1ad40edca0609a6d890c58026cf25a5310" prot="public" static="no" mutable="no">
+        <type>const uint8_t *</type>
+        <definition>const uint8_t* sl_si91x_ecdsa_config_t::private_key</definition>
+        <argsstring></argsstring>
+        <name>private_key</name>
+        <qualifiedname>sl_si91x_ecdsa_config_t::private_key</qualifiedname>
+        <briefdescription>
+<para>Pointer to the private key. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/ecdsa/inc/sl_si91x_ecdsa.h" line="149" column="17" bodyfile="components/device/silabs/si91x/wireless/crypto/ecdsa/inc/sl_si91x_ecdsa.h" bodystart="149" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__si91x__ecdsa__config__t_1a372141ba4d9ea5202bcf8a18becab091" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_si91x_ecdsa_config_t::private_key_length</definition>
+        <argsstring></argsstring>
+        <name>private_key_length</name>
+        <qualifiedname>sl_si91x_ecdsa_config_t::private_key_length</qualifiedname>
+        <briefdescription>
+<para>Length of the private key. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/ecdsa/inc/sl_si91x_ecdsa.h" line="150" column="11" bodyfile="components/device/silabs/si91x/wireless/crypto/ecdsa/inc/sl_si91x_ecdsa.h" bodystart="150" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__si91x__ecdsa__config__t_1a49037247af061f6f7d733e2b8caaa274" prot="public" static="no" mutable="no">
+        <type>const uint8_t *</type>
+        <definition>const uint8_t* sl_si91x_ecdsa_config_t::public_key</definition>
+        <argsstring></argsstring>
+        <name>public_key</name>
+        <qualifiedname>sl_si91x_ecdsa_config_t::public_key</qualifiedname>
+        <briefdescription>
+<para>Pointer to the public key. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/ecdsa/inc/sl_si91x_ecdsa.h" line="151" column="17" bodyfile="components/device/silabs/si91x/wireless/crypto/ecdsa/inc/sl_si91x_ecdsa.h" bodystart="151" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__si91x__ecdsa__config__t_1af98ba1752232dd020325739e374d319b" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_si91x_ecdsa_config_t::public_key_length</definition>
+        <argsstring></argsstring>
+        <name>public_key_length</name>
+        <qualifiedname>sl_si91x_ecdsa_config_t::public_key_length</qualifiedname>
+        <briefdescription>
+<para>Length of the public key. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/ecdsa/inc/sl_si91x_ecdsa.h" line="152" column="11" bodyfile="components/device/silabs/si91x/wireless/crypto/ecdsa/inc/sl_si91x_ecdsa.h" bodystart="152" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__si91x__ecdsa__config__t_1a449a6b16423767b954ff60a84a594007" prot="public" static="no" mutable="no">
+        <type>const uint8_t *</type>
+        <definition>const uint8_t* sl_si91x_ecdsa_config_t::signature</definition>
+        <argsstring></argsstring>
+        <name>signature</name>
+        <qualifiedname>sl_si91x_ecdsa_config_t::signature</qualifiedname>
+        <briefdescription>
+<para>Pointer to the signature. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/ecdsa/inc/sl_si91x_ecdsa.h" line="153" column="17" bodyfile="components/device/silabs/si91x/wireless/crypto/ecdsa/inc/sl_si91x_ecdsa.h" bodystart="153" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__si91x__ecdsa__config__t_1a73e8f9f56c72602e68dc93d886bb2b3b" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_si91x_ecdsa_config_t::signature_length</definition>
+        <argsstring></argsstring>
+        <name>signature_length</name>
+        <qualifiedname>sl_si91x_ecdsa_config_t::signature_length</qualifiedname>
+        <briefdescription>
+<para>Length of the signature. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/ecdsa/inc/sl_si91x_ecdsa.h" line="154" column="11" bodyfile="components/device/silabs/si91x/wireless/crypto/ecdsa/inc/sl_si91x_ecdsa.h" bodystart="154" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__si91x__ecdsa__config__t_1afd3d4cc540a2c995b8f8895ff2da4fd0" prot="public" static="no" mutable="no">
+        <type>const uint8_t *</type>
+        <definition>const uint8_t* sl_si91x_ecdsa_config_t::msg</definition>
+        <argsstring></argsstring>
+        <name>msg</name>
+        <qualifiedname>sl_si91x_ecdsa_config_t::msg</qualifiedname>
+        <briefdescription>
+<para>Pointer to the input message. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/ecdsa/inc/sl_si91x_ecdsa.h" line="155" column="17" bodyfile="components/device/silabs/si91x/wireless/crypto/ecdsa/inc/sl_si91x_ecdsa.h" bodystart="155" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__si91x__ecdsa__config__t_1a0b0caa39b0ed0d7750cd477817afa2a1" prot="public" static="no" mutable="no">
+        <type>uint32_t</type>
+        <definition>uint32_t sl_si91x_ecdsa_config_t::msg_length</definition>
+        <argsstring></argsstring>
+        <name>msg_length</name>
+        <qualifiedname>sl_si91x_ecdsa_config_t::msg_length</qualifiedname>
+        <briefdescription>
+<para>Length of the message. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/ecdsa/inc/sl_si91x_ecdsa.h" line="156" column="12" bodyfile="components/device/silabs/si91x/wireless/crypto/ecdsa/inc/sl_si91x_ecdsa.h" bodystart="156" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__si91x__ecdsa__config__t_1a1697751d5cbc920c229245ce34b55a85" prot="public" static="no" mutable="no">
+        <type><ref refid="unionsl__si91x__ecdsa__key__config__t" kindref="compound">sl_si91x_ecdsa_key_config_t</ref></type>
+        <definition>sl_si91x_ecdsa_key_config_t sl_si91x_ecdsa_config_t::key_config</definition>
+        <argsstring></argsstring>
+        <name>key_config</name>
+        <qualifiedname>sl_si91x_ecdsa_config_t::key_config</qualifiedname>
+        <briefdescription>
+<para>Key configuration. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/ecdsa/inc/sl_si91x_ecdsa.h" line="157" column="31" bodyfile="components/device/silabs/si91x/wireless/crypto/ecdsa/inc/sl_si91x_ecdsa.h" bodystart="157" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Structure defining ECDSA configuration. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>This structure defines the ECDSA configuration required for the operation, including the type of operation, input message, length of the input message, key configuration structure, and so on. </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>sl_si91x_ecdsa_config_t</label>
+        <link refid="structsl__si91x__ecdsa__config__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>key_config</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>sl_si91x_ecdsa_key_config_a0_t</label>
+        <link refid="structsl__si91x__ecdsa__key__config__a0__t"/>
+      </node>
+      <node id="4">
+        <label>sl_si91x_ecdsa_key_config_b0_t</label>
+        <link refid="structsl__si91x__ecdsa__key__config__b0__t"/>
+      </node>
+      <node id="2">
+        <label>sl_si91x_ecdsa_key_config_t</label>
+        <link refid="unionsl__si91x__ecdsa__key__config__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>a0</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>b0</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="components/device/silabs/si91x/wireless/crypto/ecdsa/inc/sl_si91x_ecdsa.h" line="145" column="1" bodyfile="components/device/silabs/si91x/wireless/crypto/ecdsa/inc/sl_si91x_ecdsa.h" bodystart="145" bodyend="158"/>
+    <listofallmembers>
+      <member refid="structsl__si91x__ecdsa__config__t_1ad16155077dabb51b5d4173553bc51ed0" prot="public" virt="non-virtual"><scope>sl_si91x_ecdsa_config_t</scope><name>curve_id</name></member>
+      <member refid="structsl__si91x__ecdsa__config__t_1abba88862f79bd9060a2788ddc332d0cc" prot="public" virt="non-virtual"><scope>sl_si91x_ecdsa_config_t</scope><name>ecdsa_operation</name></member>
+      <member refid="structsl__si91x__ecdsa__config__t_1a1697751d5cbc920c229245ce34b55a85" prot="public" virt="non-virtual"><scope>sl_si91x_ecdsa_config_t</scope><name>key_config</name></member>
+      <member refid="structsl__si91x__ecdsa__config__t_1afd3d4cc540a2c995b8f8895ff2da4fd0" prot="public" virt="non-virtual"><scope>sl_si91x_ecdsa_config_t</scope><name>msg</name></member>
+      <member refid="structsl__si91x__ecdsa__config__t_1a0b0caa39b0ed0d7750cd477817afa2a1" prot="public" virt="non-virtual"><scope>sl_si91x_ecdsa_config_t</scope><name>msg_length</name></member>
+      <member refid="structsl__si91x__ecdsa__config__t_1ad40edca0609a6d890c58026cf25a5310" prot="public" virt="non-virtual"><scope>sl_si91x_ecdsa_config_t</scope><name>private_key</name></member>
+      <member refid="structsl__si91x__ecdsa__config__t_1a372141ba4d9ea5202bcf8a18becab091" prot="public" virt="non-virtual"><scope>sl_si91x_ecdsa_config_t</scope><name>private_key_length</name></member>
+      <member refid="structsl__si91x__ecdsa__config__t_1a49037247af061f6f7d733e2b8caaa274" prot="public" virt="non-virtual"><scope>sl_si91x_ecdsa_config_t</scope><name>public_key</name></member>
+      <member refid="structsl__si91x__ecdsa__config__t_1af98ba1752232dd020325739e374d319b" prot="public" virt="non-virtual"><scope>sl_si91x_ecdsa_config_t</scope><name>public_key_length</name></member>
+      <member refid="structsl__si91x__ecdsa__config__t_1a66d77aea4596f93f446f54dc8e68a958" prot="public" virt="non-virtual"><scope>sl_si91x_ecdsa_config_t</scope><name>sha_mode</name></member>
+      <member refid="structsl__si91x__ecdsa__config__t_1a449a6b16423767b954ff60a84a594007" prot="public" virt="non-virtual"><scope>sl_si91x_ecdsa_config_t</scope><name>signature</name></member>
+      <member refid="structsl__si91x__ecdsa__config__t_1a73e8f9f56c72602e68dc93d886bb2b3b" prot="public" virt="non-virtual"><scope>sl_si91x_ecdsa_config_t</scope><name>signature_length</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

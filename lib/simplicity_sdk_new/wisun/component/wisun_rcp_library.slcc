@@ -1,0 +1,53 @@
+id: wisun_rcp_library
+label: Wi-SUN Border Router RCP (Library)
+description: Provide Wi-SUN Border Router RCP library
+package: wisun
+category: "Wi-SUN|Application|Wi-SUN RCP"
+quality: production
+
+
+ui_hints:
+  visibility: never
+
+provides:
+- name: wisun_rcp_implementation
+
+# If someone directly include this component, ensure we also pull the common
+# data declared in wisun_rcp.slcc
+requires:
+- name: wisun_rcp
+
+library:
+- path: stack/libwisun_rcp_efr32xg2x_gcc_debug.a
+  condition:
+  - "device_series_2"
+  - "toolchain_gcc"
+  - "wisun_stack_debug"
+- path: stack/libwisun_rcp_efr32xg2x_iar_debug.a
+  condition:
+  - "device_series_2"
+  - "toolchain_iar"
+  - "wisun_stack_debug"
+
+- path: stack/libwisun_rcp_efr32xg2x_gcc_release.a
+  condition:
+  - "device_series_2"
+  - "toolchain_gcc"
+  unless:
+  - "wisun_stack_debug"
+- path: stack/libwisun_rcp_efr32xg2x_iar_release.a
+  condition:
+  - "device_series_2"
+  - "toolchain_iar"
+  unless:
+  - "wisun_stack_debug"
+
+metadata:
+  sbom:
+    license: MSLA AND Apache-2.0
+    upstream:
+      name: Nanostack
+      version: 14.0.0
+      supplier: Pelion and affiliates
+      url: https://github.com/ARMmbed/mbed-os/tree/9957e7b4ae4315e6d1d2bc064c469e69fb34ff78/features/nanostack
+root_path: wisun

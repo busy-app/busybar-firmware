@@ -1,0 +1,42 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__evt__sm__bonded" kind="group">
+    <compoundname>sl_bt_evt_sm_bonded</compoundname>
+    <title>sl_bt_evt_sm_bonded</title>
+    <innerclass refid="structsl__bt__evt__sm__bonded__s" prot="public">sl_bt_evt_sm_bonded_s</innerclass>
+      <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="group__sl__bt__evt__sm__bonded_1gaa32ddd96b3a33338f10d417f333a6830" prot="public" static="no">
+        <type>struct <ref refid="structsl__bt__evt__sm__bonded__s" kindref="compound">sl_bt_evt_sm_bonded_s</ref></type>
+        <definition>typedef struct sl_bt_evt_sm_bonded_s sl_bt_evt_sm_bonded_t</definition>
+        <argsstring></argsstring>
+        <name>sl_bt_evt_sm_bonded_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11402" column="36" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="11402" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__evt__sm__bonded_1gae02c52eb31a5d9978b1bf9bbf054657a" prot="public" static="no">
+        <name>sl_bt_evt_sm_bonded_id</name>
+        <initializer>0x030f00a0</initializer>
+        <briefdescription>
+<para>Identifier of the bonded event. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11375" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="11375" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Triggered when the pairing or bonding procedure is successfully completed. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,51 @@
+id: i2cspm_core
+package: platform_core
+label: I2CSPM Core
+description: >
+  This is an I2C Simple Polled Master driver that supports master mode with
+  a single bus-master only. It blocks while waiting for the transfer is
+  complete, polling for completion in EM0.
+
+
+  This component includes only the I2CSPM driver core. To configure and create
+  instances of this driver, the I2CSPM component should be included in the
+  project.
+category: Platform|Driver|I2C
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+ui_hints:
+  visibility: never
+root_path: platform_core/platform/driver/i2cspm
+provides:
+- name: i2cspm_core
+requires:
+- name: hal_generic_gpio
+- name: clock_manager_runtime
+- name: i2c_core
+- name: hal_generic_i2c
+- name: udelay
+- name: device_manager
+- name: hal_generic_common
+include:
+- path: inc
+  file_list:
+  - path: sl_i2cspm.h
+source:
+- path: src/sl_i2cspm.c
+template_file:
+- path: init/sl_i2cspm_init.c.jinja
+  condition: [i2cspm]
+- path: init/sl_i2cspm_instances.h.jinja
+  condition: [i2cspm]
+template_contribution:
+- name: event_handler
+  condition: [i2cspm]
+  value:
+    event: driver_init
+    include: sl_i2cspm_instances.h
+    handler: sl_i2cspm_init_instances
+documentation:
+  docset: gecko-platform
+  document: platform-driver/i2cspm

@@ -1,0 +1,47 @@
+id: ot_stack_tcp
+label: TCPlp implementation for OpenThread TCP API
+package: openthread_stack
+category: OpenThread
+quality: production
+description: This component provides the TCPlp implementation
+provides:
+- name: ot_stack_tcp
+- name: ot_stack_tcp_implementation
+requires:
+- name: ot_headers
+- name: ot_headers_tcp
+ui_hints:
+  visibility: never
+root_path: openthread_stack/util/third_party/openthread/third_party/tcplp
+source:
+- path: bsdtcp/cc/cc_newreno.c
+- path: bsdtcp/tcp_fastopen.c
+- path: bsdtcp/tcp_input.c
+- path: bsdtcp/tcp_output.c
+- path: bsdtcp/tcp_reass.c
+- path: bsdtcp/tcp_sack.c
+- path: bsdtcp/tcp_subr.c
+- path: bsdtcp/tcp_timer.c
+- path: bsdtcp/tcp_timewait.c
+- path: bsdtcp/tcp_usrreq.c
+- path: lib/bitmap.c
+- path: lib/cbuf.c
+- path: lib/lbuf.c
+
+toolchain_settings:
+- option: gcc_compiler_option
+  value: "-Wno-sign-compare"
+  unless: [ot_warnings_are_errors]
+- option: gcc_compiler_option
+  value: "-Wno-unused-parameter"
+  unless: [ot_warnings_are_errors]
+- option: llvm_compiler_option
+  value: "-Wno-sign-compare"
+  unless: [ot_warnings_are_errors]
+- option: llvm_compiler_option
+  value: "-Wno-unused-parameter"
+  unless: [ot_warnings_are_errors]
+
+metadata:
+  sbom:
+    reference: ot_sbom_tcplp

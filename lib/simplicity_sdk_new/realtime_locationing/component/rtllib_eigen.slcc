@@ -1,0 +1,20 @@
+id: rtllib_eigen
+label: Eigen SBOM
+package: realtime_locationing
+category: Bluetooth|Direction Finding
+quality: production
+description: This component defines upstream Eigen SBOM metadata.
+ui_hints:
+  visibility: never
+provides:
+- name: rtllib_eigen
+metadata:
+  sbom:
+    license: Mozilla Public License 2.0
+    upstream:
+      name: Eigen
+      supplier: Tuxfamily
+      version: 3.3.4
+      url: https://gitlab.com/libeigen/eigen
+      comment: "Eigen is a C++ template library for linear algebra: matrices, vectors, numerical solvers, and related algorithms."
+root_path: realtime_locationing

@@ -1,0 +1,29 @@
+id: tz_secure_nvm3_s
+package: security_trustzone
+label: Internal NVM3 support for TrustZone secure library
+description: >-
+  This component includes the NVM3 support needed internally by the TrustZone secure library when configured with ITS support.
+category: Platform|Security|TrustZone
+quality: production
+ui_hints:
+  visibility: never
+
+provides:
+- name: tz_secure_nvm3_s
+
+requires:
+- name: tz_service_common
+
+include:
+- path: inc/common
+  file_list:
+  - path: sli_tz_service_nvm3.h
+
+source:
+- path: src/sli_tz_service_nvm3_s.c
+
+
+metadata:
+  sbom:
+    license: Zlib
+root_path: security_trustzone/platform/security/sl_component/sl_trustzone

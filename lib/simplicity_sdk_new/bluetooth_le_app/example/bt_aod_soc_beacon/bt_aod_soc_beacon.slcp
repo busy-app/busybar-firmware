@@ -1,0 +1,72 @@
+project_name: bt_aod_soc_beacon
+package: bluetooth_le_app
+label: Bluetooth AoD - SoC Beacon
+description: >
+  This sample app demonstrates a CTE (Constant Tone Extension) transmitter
+  that can be used as a locator beacon in a Direction Finding setup estimating
+  Angle of Departure (AoD).
+category: Bluetooth AoX Examples
+quality: production
+
+filter:
+  - name: "Wireless Technology"
+    value: ["Bluetooth"]
+  - name: "Device Type"
+    value: ["SoC"]
+  - name: "Project Difficulty"
+    value: ["Advanced"]
+
+component:
+  - id: bluetooth_stack
+  - id: gatt_configuration
+  - id: gatt_service_device_information_override
+  - id: bluetooth_feature_aod_transmitter
+  - id: bluetooth_feature_legacy_advertiser
+  - id: bluetooth_feature_connection_role_peripheral
+  - id: bluetooth_feature_gatt
+  - id: bluetooth_feature_gatt_server
+  - id: bluetooth_feature_sm
+  - id: bluetooth_feature_system
+  - id: rail_util_pti
+  - id: app_assert
+  - id: mpu
+  - id: gatt_service_cte
+  - id: gatt_service_cte_silabs
+  - id: sl_main
+  - id: clock_manager
+  - id: device_init
+
+source:
+  - path: app.c
+
+config_file:
+  - override:
+      component: gatt_configuration
+      file_id: gatt_configuration_file_id
+    path: gatt_configuration.btconf
+    directory: btconf
+
+configuration:
+  - name: SL_STACK_SIZE
+    value: "2752"
+  - name: SL_PSA_KEY_USER_SLOT_COUNT
+    value: "0"
+    condition:
+      - psa_crypto
+
+post_build:
+  - path: ../../postbuild_profile/bt_common_s2.slpb
+    condition: [device_series_2, bootloader_app_properties]
+
+tag:
+  - prebuilt_demo
+  - hwfilter:device:device_supports_bluetooth
+  - hwfilter:device:device_series_2
+  - hwfilter:device:device_supports_bluetooth_cte
+  - hwfilter:device:device_supports_bluetooth_antenna_switching
+  - hwfilter:board:hardware_board_has_rfswitch_aox
+  - hwfilter:ram:32k
+
+ui_hints:
+  highlight:
+    - path: config/btconf/gatt_configuration.btconf

@@ -1,0 +1,42 @@
+/***************************************************************************//**
+ * @file sl_zigbee_device_table_dispatcher.c
+ * @brief ZigBee Device Table component dispatcher definitions.
+ *******************************************************************************
+ * # License
+ * <b>Copyright 2021 Silicon Laboratories Inc. www.silabs.com</b>
+ *******************************************************************************
+ *
+ * The licensor of this software is Silicon Laboratories Inc. Your use of this
+ * software is governed by the terms of Silicon Labs Master Software License
+ * Agreement (MSLA) available at
+ * www.silabs.com/about-us/legal/master-software-license-agreement. This
+ * software is distributed to you in Source Code format and is governed by the
+ * sections of the MSLA applicable to Source Code.
+ *
+ ******************************************************************************/
+
+#include PLATFORM_HEADER
+#include "stack/include/sl_zigbee.h"
+
+{# DEVICE_LEFT -#}
+{%- for cb in zigbee_af_device_table_callback %}
+{%- if cb['callback_type'] == "device_left" %}
+  void {{ cb['function_name'] }}(sl_802154_long_addr_t newNodeEui64);
+{%- endif %}
+{%- endfor %}
+
+void sli_zigbee_af_device_table_device_left_callback(sl_802154_long_addr_t newNodeEui64)
+{
+{% set found = false %}
+
+{%- for cb in zigbee_af_device_table_callback %}
+{%- if cb['callback_type'] == "device_left" %}
+{% set found = true %}
+  {{ cb['function_name'] }}(newNodeEui64);
+{%- endif %}
+{%- endfor %}
+
+{% if not found -%}
+(void)newNodeEui64;
+{% endif -%}
+}

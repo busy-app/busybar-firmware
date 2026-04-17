@@ -1,0 +1,22 @@
+id: si91x_device_init_nvic
+label: NVIC Interrupt Priorities Configuration for FreeRTOS
+package: platform_siwx91x
+description: >
+  Initializing NVIC Interrupt Priorities Configuration Component, NVIC Interrupt priorities of the Si91x SoC MCU are configured automatically during startup.
+  Note: This component needs to be used only for FreeRTOS.
+category: Device|Si91x|MCU|Core
+metadata:
+  sbom:
+    license: MSLA
+quality: production
+component_root_path: "components/device/silabs/si91x/mcu/core"
+include:
+  - path: "config"
+    file_list:
+    - path: "rsi_nvic_priorities_config.h"
+source:
+  - path: "config/src/rsi_nvic_priorities_config.c"
+provides:
+  - name: si91x_device_init_nvic
+requires:
+  - name: freertos_config

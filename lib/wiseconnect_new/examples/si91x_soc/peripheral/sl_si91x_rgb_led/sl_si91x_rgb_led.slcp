@@ -1,0 +1,47 @@
+project_name: sl_si91x_rgb_led
+package: platform_siwx91x_app
+description: 'This application demonstrates how to use RGB LED
+
+  '
+category: example|peripheral
+quality: production
+label: Si91x - RGB LED
+component:
+- id: sl_main
+- id: syscalls
+- id: si91x_memory_default_config
+- id: sl_si91x_rgb_led
+- id: sl_si91x_led_917
+  instance:
+  - led0
+source:
+- path: app.c
+- path: rgb_led.c
+include:
+- path: .
+  file_list:
+  - path: app.h
+  - path: rgb_led.h
+define:
+- name: SYSCALLS_WRITE
+toolchain_settings:
+- option: gcc_compiler_option
+  value: -Wall -Werror
+other_file:
+- path: resources/readme/setupdiagram.png
+ui_hints:
+  highlight:
+  - path: readme.md
+    focus: true
+readme:
+- path: readme.md
+post_build:
+  profile: wiseconnect_soc
+sdk_extension:
+- id: wiseconnect3_sdk
+  vendor: silabs
+  version: 4.0.1
+sdk:
+  id: simplicity_sdk
+  vendor: silabs
+  version: 2025.12.2

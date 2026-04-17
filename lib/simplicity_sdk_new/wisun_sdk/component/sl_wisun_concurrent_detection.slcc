@@ -1,0 +1,48 @@
+id: "sl_wisun_concurrent_detection"
+label: "Wi-SUN Concurrent Detection"
+package: "wisun_sdk"
+description: "Concurrent detection component for using concurrent detection functionality."
+category: "Wi-SUN|Wi-SUN Services"
+quality: "production"
+metadata:
+  sbom:
+    license: Zlib
+root_path: "wisun_sdk/component/concurrent_detection"
+provides:
+- name: sl_wisun_concurrent_detection
+
+source:
+- path: "sl_wisun_concurrent_detection_cli.c"
+  condition:
+  - "cli"
+
+ui_hints:
+  visibility: never
+#-------------- Template Contribution ----------------
+template_contribution:
+- name: "cli_group"
+  value:
+    name: "wisun"
+    help: "Wi-SUN commands"
+    shortcuts:
+    - name: "w"
+  condition:
+  - "cli"
+
+- name: "cli_command"
+  value:
+    group: "wisun"
+    name: "concurrent_detection"
+    handler: "app_concurrent_detection"
+    help: "configure concurrent detection: w cd"
+    shortcuts:
+    - name: "cd"
+    argument:
+    - type: uint8
+      help: "enable: 0=disabled, 1=enabled"
+  condition:
+  - "cli"
+
+#---------------- Component Catalog ------------------
+- name: component_catalog
+  value: wisun_concurrent_detection

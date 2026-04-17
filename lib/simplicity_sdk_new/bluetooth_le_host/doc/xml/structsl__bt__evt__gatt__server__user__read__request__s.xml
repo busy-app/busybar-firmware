@@ -1,0 +1,81 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="structsl__bt__evt__gatt__server__user__read__request__s" kind="struct" language="C++" prot="public">
+    <compoundname>sl_bt_evt_gatt_server_user_read_request_s</compoundname>
+    <includes refid="sl__bt__api_8h" local="no">sl_bt_api.h</includes>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structsl__bt__evt__gatt__server__user__read__request__s_1a139515e57a60740db36aa3e2cf04d35e" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_gatt_server_user_read_request_s::connection</definition>
+        <argsstring></argsstring>
+        <name>connection</name>
+        <qualifiedname>sl_bt_evt_gatt_server_user_read_request_s::connection</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Connection handle </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="9936" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="9936" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__gatt__server__user__read__request__s_1a4f3379eae08b2c9544a2b1a68b4afab0" prot="public" static="no" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t sl_bt_evt_gatt_server_user_read_request_s::characteristic</definition>
+        <argsstring></argsstring>
+        <name>characteristic</name>
+        <qualifiedname>sl_bt_evt_gatt_server_user_read_request_s::characteristic</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>GATT characteristic handle. This value is normally received from the gatt_characteristic event. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="9937" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="9937" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__gatt__server__user__read__request__s_1a979a5ffec478f170aba16021ab2eeece" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_gatt_server_user_read_request_s::att_opcode</definition>
+        <argsstring></argsstring>
+        <name>att_opcode</name>
+        <qualifiedname>sl_bt_evt_gatt_server_user_read_request_s::att_opcode</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Enum <ref refid="group__sl__bt__gatt_1ga459acca869ec6d9edd49c57ff6357dd8" kindref="member">sl_bt_gatt_att_opcode_t</ref>. Attribute opcode that informs the procedure from which the value was received. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="9940" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="9940" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__gatt__server__user__read__request__s_1a2cf3d881f97984ed4bc9679480b1f786" prot="public" static="no" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t sl_bt_evt_gatt_server_user_read_request_s::offset</definition>
+        <argsstring></argsstring>
+        <name>offset</name>
+        <qualifiedname>sl_bt_evt_gatt_server_user_read_request_s::offset</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Value offset </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="9943" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="9943" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Data structure of the user_read_request event. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="9934" column="1" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="9935" bodyend="9944"/>
+    <listofallmembers>
+      <member refid="structsl__bt__evt__gatt__server__user__read__request__s_1a979a5ffec478f170aba16021ab2eeece" prot="public" virt="non-virtual"><scope>sl_bt_evt_gatt_server_user_read_request_s</scope><name>att_opcode</name></member>
+      <member refid="structsl__bt__evt__gatt__server__user__read__request__s_1a4f3379eae08b2c9544a2b1a68b4afab0" prot="public" virt="non-virtual"><scope>sl_bt_evt_gatt_server_user_read_request_s</scope><name>characteristic</name></member>
+      <member refid="structsl__bt__evt__gatt__server__user__read__request__s_1a139515e57a60740db36aa3e2cf04d35e" prot="public" virt="non-virtual"><scope>sl_bt_evt_gatt_server_user_read_request_s</scope><name>connection</name></member>
+      <member refid="structsl__bt__evt__gatt__server__user__read__request__s_1a2cf3d881f97984ed4bc9679480b1f786" prot="public" virt="non-virtual"><scope>sl_bt_evt_gatt_server_user_read_request_s</scope><name>offset</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

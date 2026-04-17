@@ -1,0 +1,210 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<device:DocumentRoot xmlns:device="http://www.silabs.com/ss/hwconfig/device.ecore">
+  <device description="" label="siwg917m110lgtba" name="pin_tool.siwg917m110lgtba" partId="mcu.arm.wfm.siwg917m110lgtba" deviceExtensionIdRef="pin_tool.wfm.si91x.siwg917m110lgtba.extension" revision="A" singleMode="true">
+    <powerModel/>
+    <portIo componentIdRef="pin_tool.wfm.si91x.siwg917m110lgtba.portio" name="PORTIO" revision="A">
+      <crossBars/>
+      <interfaceToPinLists/>
+      <portBanks>
+        <portBank componentIdRef="pin_tool.wfm.si91x.port" displayName="Regular GPIO" name="HP" revision="A" index="0">
+          <pin componentIdRef="pin_tool.wfm.si91x.pin" displayName="GPIO_6" name="GPIO_6" index="6"/>
+          <pin componentIdRef="pin_tool.wfm.si91x.pin" displayName="GPIO_7" name="GPIO_7" index="7"/>
+          <pin componentIdRef="pin_tool.wfm.si91x.pin" displayName="GPIO_8" name="GPIO_8" index="8"/>
+          <pin componentIdRef="pin_tool.wfm.si91x.pin" displayName="GPIO_9" name="GPIO_9" index="9"/>
+          <pin componentIdRef="pin_tool.wfm.si91x.pin" displayName="GPIO_10" name="GPIO_10" index="10"/>
+          <pin componentIdRef="pin_tool.wfm.si91x.pin" displayName="GPIO_11" name="GPIO_11" index="11"/>
+          <pin componentIdRef="pin_tool.wfm.si91x.pin" displayName="GPIO_12" name="GPIO_12" index="12"/>
+          <pin componentIdRef="pin_tool.wfm.si91x.pin" displayName="GPIO_15" name="GPIO_15" index="15"/>
+          <pin componentIdRef="pin_tool.wfm.si91x.pin" displayName="GPIO_25" name="GPIO_25" index="25"/>
+          <pin componentIdRef="pin_tool.wfm.si91x.pin" displayName="GPIO_26" name="GPIO_26" index="26"/>
+          <pin componentIdRef="pin_tool.wfm.si91x.pin" displayName="GPIO_27" name="GPIO_27" index="27"/>
+          <pin componentIdRef="pin_tool.wfm.si91x.pin" displayName="GPIO_28" name="GPIO_28" index="28"/>
+          <pin componentIdRef="pin_tool.wfm.si91x.pin" displayName="GPIO_29" name="GPIO_29" index="29"/>
+          <pin componentIdRef="pin_tool.wfm.si91x.pin" displayName="GPIO_30" name="GPIO_30" index="30"/>
+          <pin componentIdRef="pin_tool.wfm.si91x.pin" displayName="GPIO_46" name="GPIO_46" index="46"/>
+          <pin componentIdRef="pin_tool.wfm.si91x.pin" displayName="GPIO_47" name="GPIO_47" index="47"/>
+          <pin componentIdRef="pin_tool.wfm.si91x.pin" displayName="GPIO_48" name="GPIO_48" index="48"/>
+          <pin componentIdRef="pin_tool.wfm.si91x.pin" displayName="GPIO_49" name="GPIO_49" index="49"/>
+          <pin componentIdRef="pin_tool.wfm.si91x.pin" displayName="GPIO_50" name="GPIO_50" index="50"/>
+          <pin componentIdRef="pin_tool.wfm.si91x.pin" displayName="GPIO_51" name="GPIO_51" index="51"/>
+          <pin componentIdRef="pin_tool.wfm.si91x.pin" displayName="GPIO_52" name="GPIO_52" index="52"/>
+          <pin componentIdRef="pin_tool.wfm.si91x.pin" displayName="GPIO_53" name="GPIO_53" index="53"/>
+          <pin componentIdRef="pin_tool.wfm.si91x.pin" displayName="GPIO_54" name="GPIO_54" index="54"/>
+          <pin componentIdRef="pin_tool.wfm.si91x.pin" displayName="GPIO_55" name="GPIO_55" index="55"/>
+          <pin componentIdRef="pin_tool.wfm.si91x.pin" displayName="GPIO_56" name="GPIO_56" index="56"/>
+          <pin componentIdRef="pin_tool.wfm.si91x.pin" displayName="GPIO_57" name="GPIO_57" index="57"/>
+          <pin componentIdRef="pin_tool.wfm.si91x.pin" displayName="GPIO_31" name="GPIO_31" index="31"/>
+          <pin componentIdRef="pin_tool.wfm.si91x.pin" displayName="GPIO_33" name="GPIO_33" index="33"/>
+          <pin componentIdRef="pin_tool.wfm.si91x.pin" displayName="GPIO_34" name="GPIO_34" index="34"/>
+          <pin componentIdRef="pin_tool.wfm.si91x.pin" displayName="GPIO_32" name="GPIO_32" index="32"/>
+        </portBank>
+        <portBank componentIdRef="pin_tool.wfm.si91x.port" displayName="ULP GPIO" name="ULP" revision="A" index="1">
+          <pin componentIdRef="pin_tool.wfm.si91x.pin" displayName="ULP_GPIO_0/GPIO_64" name="ULP_GPIO_0" index="0"/>
+          <pin componentIdRef="pin_tool.wfm.si91x.pin" displayName="ULP_GPIO_1/GPIO_65" name="ULP_GPIO_1" index="1"/>
+          <pin componentIdRef="pin_tool.wfm.si91x.pin" displayName="ULP_GPIO_2/GPIO_66" name="ULP_GPIO_2" index="2"/>
+          <pin componentIdRef="pin_tool.wfm.si91x.pin" displayName="ULP_GPIO_3/GPIO_67" name="ULP_GPIO_3" index="3"/>
+          <pin componentIdRef="pin_tool.wfm.si91x.pin" displayName="ULP_GPIO_4/GPIO_68" name="ULP_GPIO_4" index="4"/>
+          <pin componentIdRef="pin_tool.wfm.si91x.pin" displayName="ULP_GPIO_5/GPIO_69" name="ULP_GPIO_5" index="5"/>
+          <pin componentIdRef="pin_tool.wfm.si91x.pin" displayName="ULP_GPIO_6/GPIO_70" name="ULP_GPIO_6" index="6"/>
+          <pin componentIdRef="pin_tool.wfm.si91x.pin" displayName="ULP_GPIO_7/GPIO_71" name="ULP_GPIO_7" index="7"/>
+          <pin componentIdRef="pin_tool.wfm.si91x.pin" displayName="ULP_GPIO_8/GPIO_72" name="ULP_GPIO_8" index="8"/>
+          <pin componentIdRef="pin_tool.wfm.si91x.pin" displayName="ULP_GPIO_9/GPIO_73" name="ULP_GPIO_9" index="9"/>
+          <pin componentIdRef="pin_tool.wfm.si91x.pin" displayName="ULP_GPIO_10/GPIO_74" name="ULP_GPIO_10" index="10"/>
+          <pin componentIdRef="pin_tool.wfm.si91x.pin" displayName="ULP_GPIO_11/GPIO_75" name="ULP_GPIO_11" index="11"/>
+        </portBank>
+        <portBank componentIdRef="pin_tool.wfm.si91x.port" displayName="UULP VBAT GPIO" name="UULP_VBAT" revision="A" index="2">
+          <pin componentIdRef="pin_tool.wfm.si91x.pin" displayName="UULP_VBAT_GPIO_0" name="UULP_VBAT_GPIO_0" index="0"/>
+          <pin componentIdRef="pin_tool.wfm.si91x.pin" displayName="UULP_VBAT_GPIO_1" name="UULP_VBAT_GPIO_1" index="1"/>
+          <pin componentIdRef="pin_tool.wfm.si91x.pin" displayName="UULP_VBAT_GPIO_2" name="UULP_VBAT_GPIO_2" index="2"/>
+          <pin componentIdRef="pin_tool.wfm.si91x.pin" displayName="UULP_VBAT_GPIO_3" name="UULP_VBAT_GPIO_3" index="3"/>
+        </portBank>
+      </portBanks>
+    </portIo>
+    <pinOut description="84-pin QFN, 21x21" indicatorLocation="topleft" package="QFN" padDescription="GND" subtitle="(top view)">
+      <pin defaultLabel="GPIO_26" location="left:0" number="1" pinIndex="26" portBankIndex="0"/>
+      <pin defaultLabel="IO_VDD_3" location="left:1" number="2"/>
+      <pin defaultLabel="FLASH_IO_VDD" location="left:2" number="3"/>
+      <pin defaultLabel="C_VDD" location="left:3" number="4"/>
+      <pin defaultLabel="IO_VDD_1" location="left:4" number="5"/>
+      <pin defaultLabel="GPIO_10" location="left:5" number="6" pinIndex="10" portBankIndex="0"/>
+      <pin defaultLabel="GPIO_12" location="left:6" number="7" pinIndex="12" portBankIndex="0"/>
+      <pin defaultLabel="GPIO_11" location="left:7" number="8" pinIndex="11" portBankIndex="0"/>
+      <pin defaultLabel="GPIO_46" location="left:8" number="9" pinIndex="46" portBankIndex="0"/>
+      <pin defaultLabel="GPIO_51" location="left:9" number="10" pinIndex="51" portBankIndex="0"/>
+      <pin defaultLabel="GPIO_50" location="left:10" number="11" pinIndex="50" portBankIndex="0"/>
+      <pin defaultLabel="GPIO_49" location="left:11" number="12" pinIndex="49" portBankIndex="0"/>
+      <pin defaultLabel="GPIO_47" location="left:12" number="13" pinIndex="47" portBankIndex="0"/>
+      <pin defaultLabel="GPIO_48" location="left:13" number="14" pinIndex="48" portBankIndex="0"/>
+      <pin defaultLabel="RF_AVDD" location="left:14" number="15"/>
+      <pin defaultLabel="PA2G_AVDD" location="left:15" number="16"/>
+      <pin defaultLabel="RF_TX" location="left:16" number="17"/>
+      <pin defaultLabel="NC" location="left:17" number="18"/>
+      <pin defaultLabel="RF_RX" location="left:18" number="19"/>
+      <pin defaultLabel="UULP_VBAT_GPIO_0" location="left:19" number="20" pinIndex="0" portBankIndex="2"/>
+      <pin defaultLabel="RF_BLE_TX" location="left:20" number="21"/>
+      <pin defaultLabel="RF_VBAT" location="bottom:1" number="22"/>
+      <pin defaultLabel="RF_AVDD" location="bottom:2" number="23"/>
+      <pin defaultLabel="XTAL_OUT" location="bottom:3" number="24"/>
+      <pin defaultLabel="XTAL_IN" location="bottom:4" number="25"/>
+      <pin defaultLabel="RF_AVDD" location="bottom:5" number="26"/>
+      <pin defaultLabel="VOUTLDOAFE" location="bottom:6" number="27"/>
+      <pin defaultLabel="TRST" location="bottom:7" number="28"/>
+      <pin defaultLabel="IO_VDD_2" location="bottom:8" number="29"/>
+      <pin defaultLabel="JTAG_TMS_SWDIO/GPIO_33" location="bottom:9" number="30" pinIndex="33" portBankIndex="0"/>
+      <pin defaultLabel="JTAG_TDO_SWO/GPIO_34" location="bottom:10" number="31" pinIndex="34" portBankIndex="0"/>
+      <pin defaultLabel="JTAG_TCK_SWCLK/GPIO_31" location="bottom:11" number="32" pinIndex="31" portBankIndex="0"/>
+      <pin defaultLabel="JTAG_TDI/GPIO_32" location="bottom:12" number="33" pinIndex="32" portBankIndex="0"/>
+      <pin defaultLabel="C_VDD" location="bottom:13" number="34"/>
+      <pin defaultLabel="ULP_GPIO_11/GPIO_75" location="bottom:14" number="35" pinIndex="11" portBankIndex="1"/>
+      <pin defaultLabel="ULP_GPIO_5/GPIO_69" location="bottom:15" number="36" pinIndex="5" portBankIndex="1"/>
+      <pin defaultLabel="ULP_GPIO_7/GPIO_71" location="bottom:16" number="37" pinIndex="7" portBankIndex="1"/>
+      <pin defaultLabel="GPIO_8" location="bottom:17" number="38" pinIndex="8" portBankIndex="0"/>
+      <pin defaultLabel="GPIO_7" location="bottom:18" number="39" pinIndex="7" portBankIndex="0"/>
+      <pin defaultLabel="GPIO_9" location="bottom:19" number="40" pinIndex="9" portBankIndex="0"/>
+      <pin defaultLabel="GPIO_6" location="bottom:20" number="41" pinIndex="6" portBankIndex="0"/>
+      <pin defaultLabel="ULP_GPIO_6/GPIO_70" location="bottom:21" number="42" pinIndex="6" portBankIndex="1"/>
+      <pin defaultLabel="ULP_GPIO_10/GPIO_74" location="right:0" number="43" pinIndex="10" portBankIndex="1"/>
+      <pin defaultLabel="ULP_GPIO_4/GPIO_68" location="right:1" number="44" pinIndex="4" portBankIndex="1"/>
+      <pin defaultLabel="ULP_GPIO_9/GPIO_73" location="right:2" number="45" pinIndex="9" portBankIndex="1"/>
+      <pin defaultLabel="ULP_GPIO_1/GPIO_65" location="right:3" number="46" pinIndex="1" portBankIndex="1"/>
+      <pin defaultLabel="UULP_VBAT_GPIO_3" location="right:4" number="47" pinIndex="3" portBankIndex="2"/>
+      <pin defaultLabel="UULP_VOUTSCDC" location="right:5" number="48"/>
+      <pin defaultLabel="UULP_VBAT_1" location="right:6" number="49"/>
+      <pin defaultLabel="UULP_VBAT_GPIO_2" location="right:7" number="50" pinIndex="2" portBankIndex="2"/>
+      <pin defaultLabel="POC_IN" location="right:8" number="51"/>
+      <pin defaultLabel="POC_OUT" location="right:9" number="52"/>
+      <pin defaultLabel="UULP_VOUTSCDC_RETN" location="right:10" number="53"/>
+      <pin defaultLabel="XTAL_32KHZ_N" location="right:11" number="54"/>
+      <pin defaultLabel="XTAL_32KHZ_P" location="right:12" number="55"/>
+      <pin defaultLabel="UULP_VBAT_GPIO_1" location="right:13" number="56" pinIndex="1" portBankIndex="2"/>
+      <pin defaultLabel="UULP_VBAT_2" location="right:14" number="57"/>
+      <pin defaultLabel="FLY_P1" location="right:15" number="58"/>
+      <pin defaultLabel="RESET_N" location="right:16" number="59"/>
+      <pin defaultLabel="VOUBCKDC" location="right:17" number="60"/>
+      <pin defaultLabel="FLY_N1" location="right:18" number="61"/>
+      <pin defaultLabel="VINLDOSOC" location="right:19" number="62"/>
+      <pin defaultLabel="VINBCKDC" location="right:20" number="63"/>
+      <pin defaultLabel="VOUTLDOSOC" location="top:0" number="64"/>
+      <pin defaultLabel="VINLDO1P8" location="top:1" number="65"/>
+      <pin defaultLabel="ULP_GPIO_0/GPIO_64" location="top:2" number="66" pinIndex="0" portBankIndex="1"/>
+      <pin defaultLabel="VOUTLDO1P8" location="top:3" number="67"/>
+      <pin defaultLabel="ULP_GPIO_8/GPIO_72" location="top:4" number="68" pinIndex="8" portBankIndex="1"/>
+      <pin defaultLabel="ULP_IO_VDD" location="top:5" number="69"/>
+      <pin defaultLabel="ULP_GPIO_2/GPIO_66" location="top:6" number="70" pinIndex="2" portBankIndex="1"/>
+      <pin defaultLabel="AUX_AVDD" location="top:7" number="71"/>
+      <pin defaultLabel="GPIO_52" location="top:8" number="72" pinIndex="52" portBankIndex="0"/>
+      <pin defaultLabel="GPIO_53" location="top:9" number="73" pinIndex="53" portBankIndex="0"/>
+      <pin defaultLabel="GPIO_54" location="top:10" number="74" pinIndex="54" portBankIndex="0"/>
+      <pin defaultLabel="GPIO_55" location="top:11" number="75" pinIndex="55" portBankIndex="0"/>
+      <pin defaultLabel="GPIO_56" location="top:12" number="76" pinIndex="56" portBankIndex="0"/>
+      <pin defaultLabel="GPIO_57" location="top:13" number="77" pinIndex="57" portBankIndex="0"/>
+      <pin defaultLabel="GPIO_15" location="top:14" number="78" pinIndex="15" portBankIndex="0"/>
+      <pin defaultLabel="C_VDD" location="top:15" number="79"/>
+      <pin defaultLabel="GPIO_30" location="top:16" number="80" pinIndex="30" portBankIndex="0"/>
+      <pin defaultLabel="GPIO_27" location="top:17" number="81" pinIndex="27" portBankIndex="0"/>
+      <pin defaultLabel="GPIO_29" location="top:18" number="82" pinIndex="29" portBankIndex="0"/>
+      <pin defaultLabel="GPIO_25" location="top:19" number="83" pinIndex="25" portBankIndex="0"/>
+      <pin defaultLabel="GPIO_28" location="top:20" number="84" pinIndex="28" portBankIndex="0"/>
+    </pinOut>
+    <peripherals>
+      <peripheral componentIdRef="pin_tool.wfm.si91x.usart0" displayName="USART0" name="USART0" revision="A" category="Communications" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.wfm.si91x.uart1" displayName="UART1" name="UART1" revision="A" category="Communications" hidden="false"/> 
+      <peripheral componentIdRef="pin_tool.wfm.si91x.ulp_uart" displayName="ULP_UART" name="ULP_UART" revision="A" category="Communications" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.wfm.si91x.qei" displayName="QEI" name="QEI" revision="A" category="Communications" hidden="false"/> 
+      <peripheral componentIdRef="pin_tool.wfm.si91x.i2c0" displayName="I2C0" name="I2C0" revision="A" category="Communications" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.wfm.si91x.i2c1" displayName="I2C1" name="I2C1" revision="A" category="Communications" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.wfm.si91x.ulp_i2c" displayName="ULP_I2C" name="ULP_I2C" revision="A" category="Communications" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.wfm.si91x.ssi_master" displayName="SSI_MASTER" name="SSI_MASTER" revision="A" category="Communications" hidden="false"/> 
+      <peripheral componentIdRef="pin_tool.wfm.si91x.ssi_slave" displayName="SSI_SLAVE" name="SSI_SLAVE" revision="A" category="Communications" hidden="false"/> 
+      <peripheral componentIdRef="pin_tool.wfm.si91x.ulp_ssi" displayName="ULP_SSI" name="ULP_SSI" revision="A" category="Communications" hidden="false"/> 
+      <peripheral componentIdRef="pin_tool.wfm.si91x.gspi_master" displayName="GSPI_MASTER" name="GSPI_MASTER" revision="A" category="Communications" hidden="false"/> 
+      <peripheral componentIdRef="pin_tool.wfm.si91x.i2s0" displayName="I2S0" name="I2S0" revision="A" category="Communications" hidden="false"/> 
+      <peripheral componentIdRef="pin_tool.wfm.si91x.i2s_ulp" displayName="ULP_I2S" name="ULP_I2S" revision="A" category="Communications" hidden="false"/> 
+      <peripheral componentIdRef="pin_tool.wfm.si91x.sct" displayName="SCT" name="SCT" revision="A" category="Timers" hidden="false"/> 
+      <peripheral componentIdRef="pin_tool.wfm.si91x.pwm" displayName="PWM" name="PWM" revision="A" category="Other" hidden="false"/> 
+      <peripheral componentIdRef="pin_tool.wfm.si91x.pwm_ch0" displayName="PWM_CH0" name="PWM_CH0" revision="A" category="Other" hidden="false"/> 
+      <peripheral componentIdRef="pin_tool.wfm.si91x.pwm_ch1" displayName="PWM_CH1" name="PWM_CH1" revision="A" category="Other" hidden="false"/> 
+      <peripheral componentIdRef="pin_tool.wfm.si91x.pwm_ch2" displayName="PWM_CH2" name="PWM_CH2" revision="A" category="Other" hidden="false"/> 
+      <peripheral componentIdRef="pin_tool.wfm.si91x.pwm_ch3" displayName="PWM_CH3" name="PWM_CH3" revision="A" category="Other" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.wfm.si91x.sdc_ch1" displayName="SDC_CH1" name="SDC_CH1" revision="A" category="Analog" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.wfm.si91x.sdc_ch2" displayName="SDC_CH2" name="SDC_CH2" revision="A" category="Analog" hidden="false"/>	  
+      <peripheral componentIdRef="pin_tool.wfm.si91x.sdc_ch3" displayName="SDC_CH3" name="SDC_CH3" revision="A" category="Analog" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.wfm.si91x.sdc_ch4" displayName="SDC_CH4" name="SDC_CH4" revision="A" category="Analog" hidden="false"/>       
+      <peripheral componentIdRef="pin_tool.wfm.si91x.adc_ch1" displayName="ADC_CH1" name="ADC_CH1" revision="A" category="Analog" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.wfm.si91x.adc_ch2" displayName="ADC_CH2" name="ADC_CH2" revision="A" category="Analog" hidden="false"/>	  
+      <peripheral componentIdRef="pin_tool.wfm.si91x.adc_ch3" displayName="ADC_CH3" name="ADC_CH3" revision="A" category="Analog" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.wfm.si91x.adc_ch4" displayName="ADC_CH4" name="ADC_CH4" revision="A" category="Analog" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.wfm.si91x.adc_ch5" displayName="ADC_CH5" name="ADC_CH5" revision="A" category="Analog" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.wfm.si91x.adc_ch6" displayName="ADC_CH6" name="ADC_CH6" revision="A" category="Analog" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.wfm.si91x.adc_ch7" displayName="ADC_CH7" name="ADC_CH7" revision="A" category="Analog" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.wfm.si91x.adc_ch8" displayName="ADC_CH8" name="ADC_CH8" revision="A" category="Analog" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.wfm.si91x.adc_ch9" displayName="ADC_CH9" name="ADC_CH9" revision="A" category="Analog" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.wfm.si91x.adc_ch10" displayName="ADC_CH10" name="ADC_CH10" revision="A" category="Analog" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.wfm.si91x.adc_ch11" displayName="ADC_CH11" name="ADC_CH11" revision="A" category="Analog" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.wfm.si91x.adc_ch12" displayName="ADC_CH12" name="ADC_CH12" revision="A" category="Analog" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.wfm.si91x.adc_ch13" displayName="ADC_CH13" name="ADC_CH13" revision="A" category="Analog" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.wfm.si91x.adc_ch14" displayName="ADC_CH14" name="ADC_CH14" revision="A" category="Analog" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.wfm.si91x.adc_ch15" displayName="ADC_CH15" name="ADC_CH15" revision="A" category="Analog" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.wfm.si91x.adc_ch16" displayName="ADC_CH16" name="ADC_CH16" revision="A" category="Analog" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.wfm.si91x.comp1" displayName="COMP1" name="COMP1" revision="A" category="Analog" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.wfm.si91x.comp2" displayName="COMP2" name="COMP2" revision="A" category="Analog" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.wfm.si91x.dac" displayName="DAC0" name="DAC0" revision="A" category="Analog" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.wfm.si91x.dac" displayName="DAC1" name="DAC1" revision="A" category="Analog" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.wfm.si91x.sysrtc" displayName="SYSRTC" name="SYSRTC" revision="A" category="Other" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.wfm.si91x.uulp_module" displayName="UULP_VBAT_GPIO" name="UULP_VBAT_GPIO" revision="A" category="Other" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.wfm.si91x.sdio" displayName="SDIO" name="SDIO" revision="A" category="Other" hidden="false"/>
+	  <peripheral componentIdRef="pin_tool.wfm.si91x.gpio" displayName="GPIO" name="GPIO" revision="A" category="Other" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.wfm.si91x.hspi_secondary" displayName="HSPI_SECONDARY" name="HSPI_SECONDARY" revision="A" category="Communications" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.wfm.si91x.opamp1" displayName="OPAMP1" name="OPAMP1" revision="A" category="Other" hidden="false"/> 
+      <peripheral componentIdRef="pin_tool.wfm.si91x.opamp2" displayName="OPAMP2" name="OPAMP2" revision="A" category="Other" hidden="false"/> 
+      <peripheral componentIdRef="pin_tool.wfm.si91x.opamp3" displayName="OPAMP3" name="OPAMP3" revision="A" category="Other" hidden="false"/> 
+      <peripheral componentIdRef="pin_tool.wfm.si91x.mcu_clk_out" displayName="MCU_CLK_OUT" name="MCU_CLK_OUT" revision="A" category="Other" hidden="false"/> 
+    </peripherals>
+    <script uri="../../script/entrypoint.py">
+      <path>../../script</path>
+    </script>
+    <sourceMappings initialGroup="main_template">
+      <sourceMapping uri="../../script/generator/source_generator.srcmap"/>
+    </sourceMappings>
+  </device>
+</device:DocumentRoot>

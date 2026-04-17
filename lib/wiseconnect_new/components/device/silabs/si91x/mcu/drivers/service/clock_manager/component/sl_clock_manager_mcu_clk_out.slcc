@@ -1,0 +1,30 @@
+id: sl_clock_manager_mcu_clk_out
+label: Clock Manager MCU Clock Output
+package: platform_siwx91x
+description: >
+  Provides configuration and control for the MCU clock out.
+  This includes selecting the clock source, setting the output frequency, and
+  managing the GPIO pins used for the clock output.
+category: Device|Si91x|MCU|Service|Clock Manager
+metadata:
+  sbom:
+    license: Zlib
+quality: production
+component_root_path: "components/device/silabs/si91x/mcu/drivers/service/clock_manager"
+config_file:
+  - path: config/sl_si91x_clock_manager_mcu_clk_out_config.h
+    condition:
+      - sl_clock_manager
+requires:
+  - name: sl_gpio
+  - name: sl_clock_manager
+template_contribution:
+  - name: mcu_clock_out
+    value:
+      include:
+        name: sl_si91x_clock_manager_mcu_clk_out_config.h
+define:
+  - name: SL_SI91X_MCU_CLK_OUT_CONFIG
+    value: 1
+provides:
+  - name: sl_clock_manager_mcu_clk_out

@@ -1,0 +1,20 @@
+id: "btmesh_stack_diagnostic"
+label: "Diagnostic"
+package: bluetooth_mesh
+description: "Provides Bluetooth mesh Diagnostic Utilities. It provides the functionality that assist with diagnosing problems."
+category: "Bluetooth Mesh|Stack"
+quality: "production"
+
+requires:
+- name: "btmesh_stack"
+provides:
+- name: "btmesh_stack_diagnostic"
+template_contribution:
+- name: btmesh_bgapi_class
+  value:
+    class: "diagnostic"
+  priority: 1
+metadata:
+  sbom:
+    reference: btmesh_stack
+root_path: bluetooth_mesh

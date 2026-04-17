@@ -1,0 +1,156 @@
+project_name: bt_soc_xg24_dev_kit_brd2601b
+package: bluetooth_le_app
+label: Bluetooth - SoC EFR32xG24 Dev Kit (BRD2601B)
+description: >
+  Demonstrates the features of the EFR32xG24 Dev Kit Board.
+  This can be tested with the Simplicity Connect mobile app.
+category: Bluetooth Examples
+quality: production
+
+filter:
+  - name: "Wireless Technology"
+    value: ["Bluetooth"]
+  - name: "Device Type"
+    value: ["SoC"]
+  - name: "Project Difficulty"
+    value: ["Advanced"]
+
+component:
+  - id: brd2601b
+  - id: bluetooth_stack
+  - id: gatt_configuration
+  - id: gatt_service_device_information_override
+  - id: bluetooth_feature_legacy_advertiser
+  - id: bluetooth_feature_connection_role_peripheral
+  - id: bluetooth_feature_gatt_server
+  - id: bluetooth_feature_sm
+  - id: bluetooth_feature_system
+  - id: in_place_ota_dfu
+  - id: rail_util_pti
+  - id: app_log
+  - id: app_assert
+  - id: printf
+  - id: app_timer
+  - id: mpu
+  - id: power_supply
+
+  - id: gatt_service_aio
+  - id: gatt_service_battery
+  - id: gatt_service_hall
+  - id: gatt_service_imu
+  - id: gatt_service_lux
+  - id: gatt_service_pressure
+  - id: gatt_service_rgb
+  - id: gatt_service_rht
+  - id: gatt_service_sound
+  - id: sensor_lux
+  - id: sensor_rht
+  - id: si7210_driver
+  - id: imu_driver
+  - id: pressure_driver
+  - id: mic_driver
+
+  - id: i2cspm
+    instance:
+      - sensor
+  - id: simple_button
+    instance:
+      - btn0
+      - btn1
+  - id: simple_rgb_pwm_led
+    instance:
+      - rgb_led0
+  - id: sl_main
+  - id: clock_manager
+  - id: device_init
+
+source:
+  - path: advertise.c
+  - path: app.c
+  - path: brd2601b/rgbled.c
+  - path: driver/hall/sensor_hall.c
+  - path: driver/imu/sensor_imu.c
+  - path: driver/pressure/sensor_pressure.c
+  - path: driver/sound/sensor_sound.c
+
+include:
+  - path: .
+    file_list:
+      - path: advertise.h
+  - path: brd2601b
+    file_list:
+      - path: board.h
+  - path: driver/hall
+    file_list:
+      - path: sensor_hall.h
+  - path: driver/imu
+    file_list:
+      - path: sensor_imu.h
+  - path: driver/pressure
+    file_list:
+      - path: sensor_pressure.h
+  - path: driver/sound
+    file_list:
+      - path: sensor_sound.h
+
+readme:
+  - path: readme.md
+
+config_file:
+  - override:
+      component: gatt_configuration
+      file_id: gatt_configuration_file_id
+    path: gatt_configuration_dev_kit.btconf
+    directory: btconf
+
+other_file:
+  - path: image/readme_img0.png
+  - path: image/readme_img1.png
+  - path: image/readme_img2.png
+  - path: image/readme_img3.png
+  - path: image/readme_img4.png
+  - path: image/readme_img5.png
+
+configuration:
+  - name: SL_STACK_SIZE
+    value: "2752"
+  - name: SL_BOARD_ENABLE_VCOM
+    value: "1"
+  - name: SL_IOSTREAM_USART_VCOM_RESTRICT_ENERGY_MODE_TO_ALLOW_RECEPTION
+    value: "0"
+  - name: SL_IOSTREAM_EUSART_VCOM_RESTRICT_ENERGY_MODE_TO_ALLOW_RECEPTION
+    value: "0"
+  - name: SL_POWER_MANAGER_INIT_EMU_EM4_PIN_RETENTION_MODE
+    value: "EMU_EM4CTRL_EM4IORETMODE_EM4EXIT"
+  - name: SL_BOARD_ENABLE_SENSOR_RHT
+    value: "1"
+  - name: SL_BOARD_ENABLE_SENSOR_HALL
+    value: "1"
+  - name: SL_BOARD_ENABLE_SENSOR_PRESSURE
+    value: "1"
+  - name: SL_BOARD_ENABLE_SENSOR_IMU
+    value: "1"
+  - name: SL_BOARD_ENABLE_SENSOR_MICROPHONE
+    value: "1"
+  - name: SL_PSA_KEY_USER_SLOT_COUNT
+    value: "0"
+    condition:
+      - psa_crypto
+  - name: APP_LOG_NEW_LINE
+    value: "APP_LOG_NEW_LINE_RN"
+
+post_build:
+  - path: ../../postbuild_profile/bt_dfu_app_s2.slpb
+
+tag:
+  - prebuilt_demo
+  - companion:bootloader
+  - hardware:board_only
+  - hwfilter:board:brd2601b
+  - hwfilter:device:device_family_efr32mg24
+
+ui_hints:
+  highlight:
+    - path: config/btconf/gatt_configuration_dev_kit.btconf
+    - path: readme.md
+      focus: true

@@ -1,0 +1,105 @@
+project_name: wifi_aws_mqtt_soc
+package: wifi_app
+quality: production
+label: Wi-Fi - AWS IoT MQTT Client (SoC)
+category: Example|Wi-Fi
+description: 'Create an AWS IoT ''thing'' that interacts with AWS IoT Core using MQTT publish/subscribe
+
+  '
+filter:
+- name: Wireless Technology
+  value:
+  - Wi-Fi
+- name: Project Difficulty
+  value:
+  - Beginner
+source:
+- path: app.c
+include:
+- path: .
+  file_list:
+  - path: app.h
+define:
+- name: SL_SI91X_PRINT_DBG_LOG
+- name: SLI_SI91X_MCU_MOV_ROM_API_TO_FLASH
+component:
+- id: sl_main
+- id: freertos
+- id: freertos_heap_4
+- id: sl_si91x_mem_pool_buffers_with_quota
+- id: syscalls
+- id: si91x_memory_default_config
+- id: wiseconnect_common
+- id: wifi
+- id: sl_si91x_internal_stack
+- id: wifi_resources
+- id: network_manager
+- id: basic_network_config_manager
+- id: sl_si91x_asynchronous_socket
+- id: aws_sdk
+- id: sl_power_manager
+- id: gpio_npss_component
+- id: wireless_wakeup_ulp_component
+- id: calendar_ulp_component
+- id: sl_si91x_wrap
+requires:
+- name: device_needs_ram_execution
+  condition:
+  - si91x_common_flash
+toolchain_settings:
+- option: gcc_compiler_option
+  value: -Wall -Werror
+configuration:
+- name: SL_BOARD_ENABLE_VCOM
+  value: '1'
+- name: SL_ENABLE_GPIO_WAKEUP_SOURCE
+  value: '1'
+- name: ENABLE_NPSS_GPIO_2
+  value: '1'
+- name: SL_ENABLE_CALENDAR_WAKEUP_SOURCE
+  value: '1'
+- name: ENABLE_ALARM
+  value: '1'
+- name: ALARM_TIME_MSEC
+  value: '30000'
+- name: SL_SI91X_WRAP_KEY_BUFFER_SIZE
+  value: 1696
+readme:
+- path: readme.md
+other_file:
+- path: resources/readme/aws_choosing_policy.png
+- path: resources/readme/application_prints_soc.png
+- path: resources/readme/application_prints_soc1.png
+- path: resources/readme/application_prints_ncp.png
+- path: resources/readme/aws_create_policy.png
+- path: resources/readme/aws_create_thing_attach_policy.png
+- path: resources/readme/aws_create_thing_policy_create.png
+- path: resources/readme/aws_create_thing_step1.png
+- path: resources/readme/aws_create_thing_step2.png
+- path: resources/readme/aws_create_thing_step3.png
+- path: resources/readme/aws_create_thing_step4.png
+- path: resources/readme/aws_create_thing_step5.png
+- path: resources/readme/aws_iot_mqtt_host_url_1.png
+- path: resources/readme/aws_iot_mqtt_host_url_2.png
+- path: resources/readme/aws_sdk_architecture.png
+- path: resources/readme/aws_thing_certificates_download.png
+- path: resources/readme/aws_policy.png
+- path: resources/readme/power_meter_avg_current_consumption.png
+- path: resources/readme/setup_soc_ncp.png
+- path: resources/readme/energy_profiler_step_6.png
+- path: resources/readme/energy_profiler_step_7.png
+- path: resources/readme/pm_wakeup_configuration.png
+ui_hints:
+  highlight:
+  - path: readme.md
+    focus: true
+post_build:
+  profile: wiseconnect_soc
+sdk_extension:
+- id: wiseconnect3_sdk
+  vendor: silabs
+  version: 4.0.1
+sdk:
+  id: simplicity_sdk
+  vendor: silabs
+  version: 2025.12.2

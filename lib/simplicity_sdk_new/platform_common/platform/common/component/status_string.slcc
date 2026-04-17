@@ -1,0 +1,25 @@
+id: status_string
+label: Status Code Strings
+package: platform_common
+description: Common status code string functions and components
+category: Platform|Status Code
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: platform_common/platform/common
+config_file:
+- path: config/sl_status_string_config.h
+source:
+- path: src/sl_status.c
+requires:
+- name: status
+- name: sl_string
+provides:
+- name: status_string
+documentation:
+  docset: gecko-platform
+  document: platform-common/status
+template_contribution:
+- name: component_catalog
+  value: status_string

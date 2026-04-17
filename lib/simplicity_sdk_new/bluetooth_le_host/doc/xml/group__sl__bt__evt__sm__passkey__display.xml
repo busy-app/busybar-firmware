@@ -1,0 +1,42 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__evt__sm__passkey__display" kind="group">
+    <compoundname>sl_bt_evt_sm_passkey_display</compoundname>
+    <title>sl_bt_evt_sm_passkey_display</title>
+    <innerclass refid="structsl__bt__evt__sm__passkey__display__s" prot="public">sl_bt_evt_sm_passkey_display_s</innerclass>
+      <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="group__sl__bt__evt__sm__passkey__display_1gafbdc0c5ee046749e588ec13baa6ee8df" prot="public" static="no">
+        <type>struct <ref refid="structsl__bt__evt__sm__passkey__display__s" kindref="compound">sl_bt_evt_sm_passkey_display_s</ref></type>
+        <definition>typedef struct sl_bt_evt_sm_passkey_display_s sl_bt_evt_sm_passkey_display_t</definition>
+        <argsstring></argsstring>
+        <name>sl_bt_evt_sm_passkey_display_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11307" column="45" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="11307" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__evt__sm__passkey__display_1ga8e4c6ca6dfffb594cdae8fe1ee5cdc77" prot="public" static="no">
+        <name>sl_bt_evt_sm_passkey_display_id</name>
+        <initializer>0x000f00a0</initializer>
+        <briefdescription>
+<para>Identifier of the passkey_display event. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11289" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="11289" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Indicates a request to display the passkey to the user. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

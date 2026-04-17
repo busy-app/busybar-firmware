@@ -1,0 +1,31 @@
+id: memory_manager_retention_control_hal
+label: Memory Manager Retention Control HAL
+package: platform_core
+description: >
+  This component provides the Bank properties Hardware abstraction layer to
+  control retention and interleaving. Empty for devices that aren't supporting  shutting down RAM banks and interleaving.
+category: Services|Memory Manager
+quality: production
+ui_hints:
+  visibility: never
+metadata:
+  sbom:
+    license: Zlib
+root_path: platform_core/platform/service/memory_manager
+source:
+- path: hal/sli_memory_manager_retention_control_hal_none.c
+  condition: [device_generic_family_sixx301, device_cortexm, memory_manager_pool_power_aware]
+- path: hal/sli_memory_manager_retention_control_hal_none.c
+  condition: [device_series_2, device_cortexm, memory_manager_pool_power_aware]
+provides:
+- name: memory_manager_retention_control_hal
+  condition: [device_series_2]
+- name: memory_manager_retention_control_hal
+  condition: [device_generic_family_sixx301]
+template_contribution:
+- name: component_catalog
+  value: bank_retention_control_stubbed
+  condition: [device_series_2, device_cortexm, memory_manager_pool_power_aware]
+- name: component_catalog
+  value: bank_retention_control_stubbed
+  condition: [device_generic_family_sixx301, device_cortexm, memory_manager_pool_power_aware]

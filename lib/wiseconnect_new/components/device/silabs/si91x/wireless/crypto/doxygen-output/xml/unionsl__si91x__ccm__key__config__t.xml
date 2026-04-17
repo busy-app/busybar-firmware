@@ -1,0 +1,69 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="unionsl__si91x__ccm__key__config__t" kind="union" language="C++" prot="public">
+    <compoundname>sl_si91x_ccm_key_config_t</compoundname>
+    <includes refid="sl__si91x__ccm_8h" local="no">sl_si91x_ccm.h</includes>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="unionsl__si91x__ccm__key__config__t_1acc2e6a8e97c1a8a0958626e7d30a6893" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__si91x__ccm__key__config__a0__t" kindref="compound">sl_si91x_ccm_key_config_a0_t</ref></type>
+        <definition>sl_si91x_ccm_key_config_a0_t sl_si91x_ccm_key_config_t::a0</definition>
+        <argsstring></argsstring>
+        <name>a0</name>
+        <qualifiedname>sl_si91x_ccm_key_config_t::a0</qualifiedname>
+        <briefdescription>
+<para>Key configuration for non-B0 chip versions. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/ccm/inc/sl_si91x_ccm.h" line="101" column="32" bodyfile="components/device/silabs/si91x/wireless/crypto/ccm/inc/sl_si91x_ccm.h" bodystart="101" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionsl__si91x__ccm__key__config__t_1a93100392542484d1c096c87d5cef8b06" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__si91x__ccm__key__config__b0__t" kindref="compound">sl_si91x_ccm_key_config_b0_t</ref></type>
+        <definition>sl_si91x_ccm_key_config_b0_t sl_si91x_ccm_key_config_t::b0</definition>
+        <argsstring></argsstring>
+        <name>b0</name>
+        <qualifiedname>sl_si91x_ccm_key_config_t::b0</qualifiedname>
+        <briefdescription>
+<para>Key configuration for B0 chip versions. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/ccm/inc/sl_si91x_ccm.h" line="102" column="32" bodyfile="components/device/silabs/si91x/wireless/crypto/ccm/inc/sl_si91x_ccm.h" bodystart="102" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Union holds the CCM key configuration structures of B0, and non-B0 chip versions. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="2">
+        <label>sl_si91x_ccm_key_config_a0_t</label>
+        <link refid="structsl__si91x__ccm__key__config__a0__t"/>
+      </node>
+      <node id="3">
+        <label>sl_si91x_ccm_key_config_b0_t</label>
+        <link refid="structsl__si91x__ccm__key__config__b0__t"/>
+      </node>
+      <node id="1">
+        <label>sl_si91x_ccm_key_config_t</label>
+        <link refid="unionsl__si91x__ccm__key__config__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>a0</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>b0</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="components/device/silabs/si91x/wireless/crypto/ccm/inc/sl_si91x_ccm.h" line="100" column="1" bodyfile="components/device/silabs/si91x/wireless/crypto/ccm/inc/sl_si91x_ccm.h" bodystart="100" bodyend="103"/>
+    <listofallmembers>
+      <member refid="unionsl__si91x__ccm__key__config__t_1acc2e6a8e97c1a8a0958626e7d30a6893" prot="public" virt="non-virtual"><scope>sl_si91x_ccm_key_config_t</scope><name>a0</name></member>
+      <member refid="unionsl__si91x__ccm__key__config__t_1a93100392542484d1c096c87d5cef8b06" prot="public" virt="non-virtual"><scope>sl_si91x_ccm_key_config_t</scope><name>b0</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

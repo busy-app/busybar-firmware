@@ -1,0 +1,69 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="structsl__bt__evt__connection__channel__classification__s" kind="struct" language="C++" prot="public">
+    <compoundname>sl_bt_evt_connection_channel_classification_s</compoundname>
+    <includes refid="sl__bt__api_8h" local="no">sl_bt_api.h</includes>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structsl__bt__evt__connection__channel__classification__s_1a1fa36b9150adf3f5f3fcada2b2a10ae4" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_connection_channel_classification_s::connection</definition>
+        <argsstring></argsstring>
+        <name>connection</name>
+        <qualifiedname>sl_bt_evt_connection_channel_classification_s::connection</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Connection handle </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6933" column="38" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6933" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__connection__channel__classification__s_1a5174e2ada39cdccf7bda7cc3a5e00dfd" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__bt__channel__classification__map__t" kindref="compound">sl_bt_channel_classification_map_t</ref></type>
+        <definition>sl_bt_channel_classification_map_t sl_bt_evt_connection_channel_classification_s::classification_map</definition>
+        <argsstring></argsstring>
+        <name>classification_map</name>
+        <qualifiedname>sl_bt_evt_connection_channel_classification_s::classification_map</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>A fixed-length byte array of 10 bytes consisting of 40 2-bit fields.</para>
+<para>Only the first 37 fields are used by channel classification. The nth field (numbering from 0) contains the classification value of data channel index n. Classification is defined as following values:</para>
+<para><itemizedlist>
+<listitem><para>Value 0: Unknown</para>
+</listitem><listitem><para>Value 1: Good</para>
+</listitem><listitem><para>Value 3: Bad </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6934" column="38" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6934" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Data structure of the channel_classification event. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="2">
+        <label>sl_bt_channel_classification_map_t</label>
+        <link refid="structsl__bt__channel__classification__map__t"/>
+      </node>
+      <node id="1">
+        <label>sl_bt_evt_connection_channel_classification_s</label>
+        <link refid="structsl__bt__evt__connection__channel__classification__s"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>classification_map</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6931" column="1" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6932" bodyend="6958"/>
+    <listofallmembers>
+      <member refid="structsl__bt__evt__connection__channel__classification__s_1a5174e2ada39cdccf7bda7cc3a5e00dfd" prot="public" virt="non-virtual"><scope>sl_bt_evt_connection_channel_classification_s</scope><name>classification_map</name></member>
+      <member refid="structsl__bt__evt__connection__channel__classification__s_1a1fa36b9150adf3f5f3fcada2b2a10ae4" prot="public" virt="non-virtual"><scope>sl_bt_evt_connection_channel_classification_s</scope><name>connection</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

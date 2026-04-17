@@ -1,0 +1,19 @@
+id: zaf_config_security_header
+label: ZAF configuration security header
+category: Z-Wave
+description: >
+  Provides essential security configuration header file for Z-Wave Application Framework.  Enables secure communication and authentication features required by Z-Wave NCP applications  including controller, end device, and zniffer implementations.
+package: zwave
+quality: production
+ui_hints:
+  visibility: never
+metadata:
+  sbom:
+    reference: zw_sbom_license
+include:
+- path: ZAF/configuration/inc/
+  file_list:
+  - path: zaf_config_security.h
+provides:
+- name: zaf_config_security_header
+root_path: zwave

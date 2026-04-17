@@ -1,0 +1,21 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<module:DocumentRoot xmlns:module="http://www.silabs.com/ss/hwconfig/module.ecore">
+  <module id="pin_tool.si.sibg301.leddrv" label="LEDDRV" name="LEDDRV" description="" version="A">
+    <properties>
+      <stringProperty label="Type" id="type" defaultValue="leddrv" transient="true" hidden="true" readonly="true" description=""/>
+      <stringProperty label="Custom Peripheral Name" id="peripheral.name" description=""/>
+    </properties>
+    <propertyCategories>
+      <category label="LEDDRV">
+        <subCategory label="">
+          <propertyRef refId="peripheral.name"/>
+        </subCategory>
+      </category>
+    </propertyCategories>
+    <signals>
+      <signal name="DRNSENSE"/>
+      <signal name="IPKSENSE"/>
+      <signal name="VACSENSE"/>
+    </signals>
+  </module>
+</module:DocumentRoot>

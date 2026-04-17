@@ -1,0 +1,57 @@
+id: "btmesh_provisionee"
+label: "Btmesh Provisionee"
+package: bluetooth_mesh_middleware
+description: >
+  Btmesh Provisionee
+  This component is prepared for integration into SOC applications.
+  This component provides the following features:
+    - Automatic node initialization on boot event
+    - Automatic unprovisioned device beaconing on the selected bearers (PB-ADV, PB-GATT)
+    - Out-of-band authentication settings
+    - Helper functions for OOB authentication
+
+  This is a No-Code component.
+category: "Bluetooth Mesh|Btmesh Roles"
+quality: "production"
+metadata:
+  sbom:
+    license: Zlib
+root_path: "bluetooth_mesh_middleware/common/btmesh_provisionee"
+tag:
+- No-Code
+
+config_file:
+- path: "config/sl_btmesh_provisionee_config.h"
+source:
+- path: "sl_btmesh_provisionee.c"
+include:
+- path: ""
+  file_list:
+  - path: "sl_btmesh_provisionee.h"
+provides:
+- name: "btmesh_provisionee"
+- name: "btmesh_role_init"
+requires:
+- name: "app_assert"
+- name: "app_btmesh_util"
+- name: "btmesh_stack_node"
+- name: "component_catalog"
+- name: "app_timer"
+validation_helper:
+- path: btmesh_provisionee_validation.lua
+- path: "../../script/validation/soc_ncp_compatibility.lua"
+
+template_contribution:
+- name: "btmesh_on_event"
+  value:
+    include: "sl_btmesh_provisionee.h"
+    function: "sl_btmesh_provisionee_on_event"
+- name: "bluetooth_on_event"
+  value:
+    include: "sl_btmesh_provisionee.h"
+    function: "sl_bt_provisionee_on_event"
+- name: "component_catalog"
+  value: "btmesh_provisionee"
+documentation:
+  docset: btmesh
+  document: btmesh-service-api/btmesh-provisionee

@@ -1,0 +1,41 @@
+id: i2s_instance
+label: I2S
+package: platform_siwx91x
+description: "I2S Supports instances. Instances created must be named as i2s0, ulp_i2s.\
+  \ \n"
+category: Device|Si91x|MCU|Peripheral
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+instantiable:
+  prefix: inst
+root_path: components/device/silabs/si91x/mcu/drivers/unified_api
+config_file:
+- path: config/sl_si91x_i2s_init_{{instance}}_config.h
+  file_id: i2s_config
+- path: config/sl_i2s_instances_config/sl_si91x_i2s_config.h
+  override:
+    component: sl_i2s
+    file_id: sl_i2s_config
+    vendor: silabs
+provides:
+- name: i2s_instance
+  allow_multiple: true
+define:
+- name: I2S_INSTANCE_CONFIG
+  value: 1
+template_file:
+- path: init/sl_i2s_instances.h.jinja
+template_contribution:
+- name: i2s_instances
+  value: '{{instance}}'
+- name: component_catalog
+  value: i2s
+- name: component_catalog
+  value: i2s_{{instance}}
+requires:
+- name: sl_i2s
+documentation:
+  docset: wiseconnect
+  document: wiseconnect-api-reference-guide-si91x-peripherals/i2s

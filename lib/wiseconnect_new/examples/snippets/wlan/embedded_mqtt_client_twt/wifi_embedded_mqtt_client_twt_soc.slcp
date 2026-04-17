@@ -1,0 +1,82 @@
+project_name: wifi_embedded_mqtt_client_twt_soc
+package: wifi_app
+quality: production
+label: Wi-Fi - Embedded MQTT CLIENT TWT(SOC)
+category: Example|Wi-Fi
+description: 'Demonstrates how to build an MQTT client with TWT, power save configuration and connect to broker.
+
+  '
+filter:
+- name: Wireless Technology
+  value:
+  - Wi-Fi
+- name: Project Difficulty
+  value:
+  - Beginner
+source:
+- path: app.c
+include:
+- path: .
+  file_list:
+  - path: app.h
+define:
+- name: SL_SI91X_PRINT_DBG_LOG
+- name: SLI_SI91X_EMBEDDED_MQTT_CLIENT
+- name: SLI_SI91X_CONFIG_WIFI6_PARAMS
+- name: SLI_SI91X_ENABLE_TWT_FEATURE
+component:
+- id: sl_main
+- id: freertos
+- id: freertos_heap_4
+- id: sl_si91x_mem_pool_buffers_with_quota
+- id: syscalls
+- id: si91x_memory_default_config
+- id: wiseconnect_common
+- id: wifi
+- id: sl_si91x_internal_stack
+- id: wifi_resources
+- id: network_manager
+- id: basic_network_config_manager
+- id: mqtt
+- id: sl_power_manager
+requires:
+- name: device_needs_ram_execution
+  condition:
+  - si91x_common_flash
+toolchain_settings:
+- option: gcc_compiler_option
+  value: -Wall -Werror
+configuration:
+- name: SL_BOARD_ENABLE_VCOM
+  value: '1'
+readme:
+- path: readme.md
+other_file:
+- path: resources/readme/add_topic_name.png
+- path: resources/readme/application_prints_soc_ncp.png
+- path: resources/readme/connect_subscribe.png
+- path: resources/readme/connect.png
+- path: resources/readme/delete_connections.png
+- path: resources/readme/embedded_mqtt_client_twt_setup_soc_ncp.png
+- path: resources/readme/energy_profiler_step_6.png
+- path: resources/readme/energy_profiler_step_7.png
+- path: resources/readme/mqtt_explorer_msg.png
+- path: resources/readme/mqtt_server.png
+- path: resources/readme/mqtts_server.png
+- path: resources/readme/outputs_2.png
+- path: resources/readme/publish_msg.png
+- path: resources/sdk_edit_warning.png
+ui_hints:
+  highlight:
+  - path: readme.md
+    focus: true
+post_build:
+  profile: wiseconnect_soc
+sdk_extension:
+- id: wiseconnect3_sdk
+  vendor: silabs
+  version: 4.0.1
+sdk:
+  id: simplicity_sdk
+  vendor: silabs
+  version: 2025.12.2

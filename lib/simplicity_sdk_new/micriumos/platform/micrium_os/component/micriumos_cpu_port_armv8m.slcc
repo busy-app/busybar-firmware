@@ -1,0 +1,47 @@
+id: micriumos_cpu_port_armv8m
+label: CPU port for ARMv8-M
+package: micriumos
+description: Micrium OS CPU port for ARMv8-M
+category: RTOS|Micrium OS|Common
+quality: production
+metadata:
+  sbom:
+    license: MSLA
+ui_hints:
+  visibility: never
+source:
+# iar
+- path: source/iar/armv8m_cpu_a.asm
+  condition:
+  - toolchain_iar
+- path: source/iar/armv7m_cpu_c.c
+  condition:
+  - toolchain_iar
+# gcc
+- path: source/gnu/armv8m_cpu_a.S
+  condition:
+  - toolchain_gcc
+- path: source/gnu/armv7m_cpu_c.c
+  condition:
+  - toolchain_gcc
+include:
+- path: source
+  file_list:
+    # gcc
+  - path: gnu/armv7m_cpu_port.h
+    condition:
+    - toolchain_gcc
+  - path: gnu/armv8m_os_cpu.h
+    condition:
+    - toolchain_gcc
+    # iar
+  - path: iar/armv7m_cpu_port.h
+    condition:
+    - toolchain_iar
+  - path: iar/armv8m_os_cpu.h
+    condition:
+    - toolchain_iar
+provides:
+- name: cpu_port_armv8m
+- name: cpu_port
+root_path: micriumos/platform/micrium_os/ports

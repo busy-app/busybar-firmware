@@ -1,0 +1,29 @@
+id: lite_image_for_4mb
+package: platform_siwx91x
+description: >
+  lite image config component is used for 4MB SoC OPN where 1.3 MB allocated for the NWP image and ~1MB reserved for the M4 image
+category: Device|Si91x|MCU|Core
+label: Lite 4MB config
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+provides:
+  - name: lite_image_for_4mb
+define:
+  - name: SLI_SI91X_MCU_4MB_LITE_IMAGE
+requires:
+  - name: si91x_common_flash
+template_contribution:
+  - name: lite_image_for_4mb
+    value: true
+  - name: device_flash_addr
+    value: 135733248 # 0x0817 2000
+    priority: -111
+    condition:
+      - lite_image_for_4mb
+  - name: device_flash_size
+    value: 1110016 # 0x0010 F000
+    priority: -333
+    condition:
+      - lite_image_for_4mb

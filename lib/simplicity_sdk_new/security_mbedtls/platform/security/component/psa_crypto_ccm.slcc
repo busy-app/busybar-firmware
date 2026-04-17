@@ -1,0 +1,28 @@
+id: psa_crypto_ccm
+package: security_mbedtls
+label: CCM Mode
+description: >-
+  This component provides support for the CCM authenticated encryption
+  algorithm in PSA Crypto.
+category: Platform|Security|PSA Crypto|Authenticated Encryption
+quality: production
+provides:
+- name: psa_crypto_ccm
+requires:
+- name: psa_crypto_aes
+- name: sl_si91x_psa_aead
+  condition: [device_si91x]
+- name: sl_si91x_psa_wrap
+  condition: [device_si91x]
+template_contribution:
+- name: psa_crypto_config
+  value: PSA_WANT_ALG_CCM 1
+- name: psa_crypto_builtin_config
+  value: "MBEDTLS_PSA_BUILTIN_ALG_CCM 1"
+  condition: [mbedtls_ccm]
+documentation:
+  url: https://armmbed.github.io/mbed-crypto/html/api/ops/aead.html#c.PSA_ALG_CCM
+metadata:
+  sbom:
+    reference: mbedtls_sbom
+root_path: security_mbedtls

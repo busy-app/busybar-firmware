@@ -1,0 +1,44 @@
+id: btmesh_blob_transfer_server_recommended_instance_target
+label: BLOB Transfer Server Recommended Instance for Target Role
+package: bluetooth_mesh_middleware
+description: >
+  Provides recommended instance of BT Mesh BLOB (Binary Large OBject) Transfer
+  Server component when BT Mesh DFU Target Node role is implemented by the node.
+  BLOB Transfer Server instance of BT Mesh DFU Target Node role is present on
+  the primary element.
+
+  This is a utility component which is used to improve No-Code experience by
+  providing default BLOB Transfer Server instances for upper layer components.
+  The same component instances can be created manually to achieve same behavior.
+  If BLOB Transfer Server instance is added to the project file directly then it
+  overrides the recommended component instances, and consequently component
+  instances shall be added to the project manually when this default SLC
+  behavior is not desirable.
+  If BLOB Transfer Server instance is added to the project in Project Configuration
+  Tools Editor (Simplicity Studio) then the editor preserves the recommended
+  instances by adding them to the project explicitly.
+
+  This is not a standalone component.
+
+  This component is prepared for integration into SOC applications.
+category: "Bluetooth Mesh|Models|Transport"
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+requires:
+- name: btmesh_blob_transfer_server
+provides:
+- name: btmesh_blob_transfer_server_recommended_instance_target
+- name: btmesh_blob_transfer_server_recommended_instance_target_only
+recommends:
+- id: btmesh_blob_transfer_server
+  instance:
+  - dfu_target
+  vendor: silabs
+ui_hints:
+  visibility: advanced
+documentation:
+  docset: btmesh
+  document: btmesh-service-api/btmesh-blob-transfer-server-recommended-instance-target
+root_path: bluetooth_mesh_middleware

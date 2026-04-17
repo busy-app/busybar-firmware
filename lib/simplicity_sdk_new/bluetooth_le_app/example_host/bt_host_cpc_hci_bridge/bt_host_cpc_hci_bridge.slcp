@@ -1,0 +1,60 @@
+project_name: bt_host_cpc_hci_bridge
+package: bluetooth_le_app
+label: Bluetooth - Host CPC HCI Bridge
+description: >
+  This application creates a Bridge between the CPC daemon, and the host's Bluetooth stack
+  such as BlueZ on Linux. CPC daemon and libcpc must be installed by the user before building
+  the bridge. There must be an Bluetooth RCP connected to the system, and CPC daemon must be
+  configured to use it as secondary.
+category: Bluetooth Examples
+quality: experimental
+
+filter:
+  - name: "Wireless Technology"
+    value: ["Bluetooth"]
+  - name: "Device Type"
+    value: ["Host"]
+  - name: "Project Difficulty"
+    value: ["Advanced"]
+
+component:
+  - id: toolchain_gcc
+  - id: native_host
+  - id: host_main
+  - id: app_log
+  - id: iostream_stdio
+  - id: app_assert
+
+source:
+  - path: app.c
+  - path: ../common/app_log/app_log_cli.c
+
+include:
+  - path: .
+    file_list:
+      - path: hci_packet.h
+  - path: ../common/app_log
+    file_list:
+      - path: app_log_cli.h
+
+configuration:
+  - name: APP_LOG_LEVEL_FILTER_DYNAMIC 
+    value: 1
+
+config_file:
+  - path: config/app_config.h
+
+library:
+  - system: libcpc
+
+tag:
+  - toolchain:gcc
+  - hwfilter:device:device_family_host
+
+readme:
+  - path: readme.md
+
+ui_hints:
+  highlight:
+    - path: readme.md
+      focus: true

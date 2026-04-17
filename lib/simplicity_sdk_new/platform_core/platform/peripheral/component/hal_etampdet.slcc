@@ -1,0 +1,37 @@
+# This HAL applies only to series 2 devices.
+id: hal_etampdet
+label: ETAMPDET
+package: platform_core
+description: >
+  External Tamper Detection (ETAMPDET) peripheral API
+category: Platform|Peripheral|HAL
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+source:
+- path: src/sl_hal_etampdet.c
+include:
+- path: inc
+  file_list:
+  - path: sl_hal_etampdet.h
+  - path: sl_hal_etampdet_compat.h
+  - path: peripheral_etampdet.h
+  - path: peripheral_etampdet_compat.h
+provides:
+- name: hal_etampdet
+requires:
+- name: device_has_etampdet
+- name: enum
+documentation:
+  docset: gecko-platform
+  document:
+  - page: platform-peripheral-efr32xg25/etampdet
+    condition: [device_sdid_220]
+  - page: platform-peripheral-efr32xg27/etampdet
+    condition: [device_sdid_230]
+  - page: platform-peripheral-efr32xg29/etampdet
+    condition: [device_sdid_240]
+  - page: platform-peripheral-sixg301/etampdet
+    condition: [device_generic_family_sixx301]
+root_path: platform_core/platform/peripheral

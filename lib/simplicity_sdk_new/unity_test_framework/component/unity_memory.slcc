@@ -1,0 +1,20 @@
+id: test_framework_unity_memory
+label: Unity test framework memory component
+package: unity_test_framework
+description: Unity test framework - memory component
+category: Third Party|Unity
+quality: production
+metadata:
+  sbom:
+    license: MIT
+source:
+- path: src/unity_memory.c
+include:
+- path: src
+  file_list:
+  - path: unity_memory.h
+provides:
+- name: test_framework_unity_memory
+requires:
+- name: test_framework_unity
+root_path: unity_test_framework/extras/memory

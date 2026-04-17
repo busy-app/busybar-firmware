@@ -1,0 +1,26 @@
+id: zw_app_timer_deep_sleep
+label: Z-Wave App Timer Deep Sleep
+category: Z-Wave
+description: >
+  This component ensures that timer callbacks are efficiently performed in the Z-Wave application task.
+  This module wraps a Z-Wave SwTimerLiaison and presents it as a "singleton", easing its
+  availability among the Application modules. For detailed documentation see SwTimerLiaison.h
+  under `Componets/SwTimer`.
+package: zwave
+quality: production
+metadata:
+  sbom:
+    reference: zw_sbom_license
+
+include:
+- path: "ZAF/ApplicationUtilities"
+  file_list:
+  - path: "AppTimer.h"
+source:
+- path: "ZAF/ApplicationUtilities/AppTimerDeepSleep.c"
+provides:
+- name: zw_app_timer_deep_sleep
+template_contribution:
+- name: component_catalog
+  value: zw_app_timer_deep_sleep
+root_path: zwave

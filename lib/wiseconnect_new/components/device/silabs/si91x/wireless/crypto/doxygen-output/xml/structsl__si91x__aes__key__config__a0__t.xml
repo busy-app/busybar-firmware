@@ -1,0 +1,49 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="structsl__si91x__aes__key__config__a0__t" kind="struct" language="C++" prot="public">
+    <compoundname>sl_si91x_aes_key_config_a0_t</compoundname>
+    <includes refid="sl__si91x__aes_8h" local="no">sl_si91x_aes.h</includes>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structsl__si91x__aes__key__config__a0__t_1a70dd731fbe326b614641097d8e5ce6f3" prot="public" static="no" mutable="no">
+        <type>uint8_t *</type>
+        <definition>uint8_t* sl_si91x_aes_key_config_a0_t::key</definition>
+        <argsstring></argsstring>
+        <name>key</name>
+        <qualifiedname>sl_si91x_aes_key_config_a0_t::key</qualifiedname>
+        <briefdescription>
+<para>Pointer to the key. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_aes.h" line="110" column="11" bodyfile="components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_aes.h" bodystart="110" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__si91x__aes__key__config__a0__t_1a977a85a863c296301890d3b5d9e95f36" prot="public" static="no" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t sl_si91x_aes_key_config_a0_t::key_length</definition>
+        <argsstring></argsstring>
+        <name>key_length</name>
+        <qualifiedname>sl_si91x_aes_key_config_a0_t::key_length</qualifiedname>
+        <briefdescription>
+<para>Length of the key. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_aes.h" line="111" column="12" bodyfile="components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_aes.h" bodystart="111" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Structure defines the AES key configuration for the non-B0 chip versions. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_aes.h" line="109" column="1" bodyfile="components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_aes.h" bodystart="109" bodyend="112"/>
+    <listofallmembers>
+      <member refid="structsl__si91x__aes__key__config__a0__t_1a70dd731fbe326b614641097d8e5ce6f3" prot="public" virt="non-virtual"><scope>sl_si91x_aes_key_config_a0_t</scope><name>key</name></member>
+      <member refid="structsl__si91x__aes__key__config__a0__t_1a977a85a863c296301890d3b5d9e95f36" prot="public" virt="non-virtual"><scope>sl_si91x_aes_key_config_a0_t</scope><name>key_length</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

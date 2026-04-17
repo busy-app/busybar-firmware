@@ -1,0 +1,27 @@
+id: tz_ns_interface
+package: security_trustzone
+label: Non-secure interface for TrustZone secure library or other applications.
+description: >-
+  This component includes Non-Secure interface files.
+category: Platform|Security|TrustZone
+ui_hints:
+  visibility: never
+quality: production
+provides:
+- name: tz_ns_interface
+
+requires:
+- name: tfm_tz_ns_interface
+
+include:
+- path: sl_component/sl_trustzone/inc/nonsecure
+  file_list:
+  - path: sli_tz_ns_interface.h
+
+source:
+- path: sl_component/sl_trustzone/src/sli_tz_ns_interface.c
+
+metadata:
+  sbom:
+    license: Zlib
+root_path: security_trustzone/platform/security

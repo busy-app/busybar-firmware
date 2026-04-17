@@ -1,0 +1,895 @@
+id: zigbee_stack_common
+label: Stack Common
+package: zigbee
+category: Zigbee|Stack|Pro Core
+quality: production
+ui_hints:
+  visibility: never
+description: This component provides common header and source files for the Zigbee PRO stack to both SoC and NCP apps.
+
+provides:
+- name: zigbee_stack_common
+
+requires:
+- name: device_supports_zigbee
+  condition:
+  - device_cortexm
+- name: sl_rail_util_ieee802154_phy_select
+  condition:
+  - device_has_radio
+- name: rail_util_ieee802154_stack_event
+  condition:
+  - device_has_radio
+- name: zigbee_pro_stack_support
+- name: legacy_hal
+- name: rail_lib
+  condition:
+  - device_cortexm
+- name: rail_lib
+  condition:
+  - zigbee_simulation
+  - zigbee_phy_2_4
+- name: zigbee_system_common
+- name: component_catalog
+- name: common_token_manager
+- name: status
+- name: endianness
+  # Randomness
+- name: zigbee_strong_random
+- name: zigbee_security_manager
+- name: zigbee_ncp_pro_stack
+  condition:
+  - zigbee_ncp
+- name: zigbee_ipc
+  condition:
+  - cmsis_rtos2
+- name: zigbee_ipc
+  condition:
+  - device_series_3
+- name: byte_utilities
+- name: zigbee_stack_code_classification
+
+recommends:
+- id: rail_lib_singleprotocol
+  vendor: silabs
+- id: zigbee_strong_random_api_radio
+  vendor: silabs
+- id: zigbee_ncp_framework
+  condition:
+  - zigbee_ncp
+  vendor: silabs
+- id: zigbee_ipc
+  vendor: silabs
+  unless:
+  - zigbee_ncp
+
+include:
+- path: platform/radio/rail_lib/plugin
+  file_list:
+  - path: coexistence/common/coexistence.h
+  - path: coexistence/protocol/ieee802154_uc/coexistence-802154.h
+  - path: coexistence/protocol/ieee802154_uc/coexistence-common-802154.h
+  - path: sl_rail_util_ant_div/sl_rail_util_ant_div.h
+- path: platform/radio/rail_lib/plugin/sl_rail_util_ieee802154
+  file_list:
+  - path: sl_rail_util_ieee802154_stack_event.h
+  condition:
+  - device_cortexm
+  unless:
+  - rail_util_coex
+- path: .
+  file_list:
+  - path: stack/include/source-route.h
+- path: app/util/counters
+  file_list:
+  - path: counters.h
+- path: stack/
+  file_list:
+  - path: config/config.h
+  - path: config/token-stack.h
+  - path: config/sl_zigbee_token_defines.h
+  - path: config/token-phy.h
+  - path: config/sl_zigbee_configuration_defaults.h
+  - path: zll/zll-token-config.h
+  - path: zigbee/sli_zigbee_zdo_cluster_filter.h
+- path: stack/include/
+  file_list:
+  - path: sl_zigbee_types.h
+  - path: zll-types.h
+  - path: sl_zigbee_types_internal.h
+  - path: sl_zigbee.h
+  - path: sl_zigbee_debug.h
+  - path: sl_zigbee_dhc.h
+  - path: sl_zigbee_token.h
+  - path: child.h
+  - path: sl_zigbee_alternate_mac.h
+  - path: sl_zigbee_duty_cycle.h
+  - path: message.h
+  - path: multi-network.h
+  - path: multi-phy.h
+  - path: network-formation.h
+  - path: security.h
+  - path: stack-info.h
+  - path: trust-center.h
+  - path: zigbee-device-stack.h
+  - path: raw-message.h
+  - path: sl_zigbee_random_api.h
+  - path: library.h
+  - path: mac-layer.h
+  - path: bootload.h
+  - path: cbke-crypto-engine.h
+  - path: zigbee-event-logger-gen.h
+  - path: mfglib.h
+  - path: gp-types.h
+  - path: zll-api.h
+  - path: binding-table.h
+  - path: sl_zigbee_address_info.h
+      # NOTE needed for "sl_zigbee_r23_misc_support_stubs"
+  - path: sl_zigbee_tlv_core.h
+  - path: sl_zigbee_dynamic_commissioning.h
+      # NOTE needed for baremetal and IPC layers (resolving internal-defs includes)
+  - path: sl_zigbee_stack_specific_tlv.h
+  - path: sl_zigbee_zdo_security.h
+  - path: gp-sink-table.h
+  - path: gp-proxy-table.h
+      # NOTE needed for IPC layers (resolving ipc_command_messages includes)
+  - path: sl_zigbee_dlk_negotiation.h
+  - path: sl_zigbee_security_manager_dlk_ecc.h
+  - path: sl_zigbee_security_manager_dlk_ecc_test_vectors.h
+  - path: sl_zigbee_zdo_configuration.h
+  - path: sl_zigbee_zdo_dlk_negotiation.h
+  - path: sl_zigbee_zdo_management.h
+  - path: zigbee_packet_types.h
+- path: stack/include
+  file_list:
+  - path: gp-token-config.h
+  condition:
+  - zigbee_gp
+- path: stack/zigbee/
+  file_list:
+  - path: source-route-table-update.h
+- path: platform/radio/mac/rail_mux
+  file_list:
+  - path: sl_rail_mux_rename.h
+  - path: sl_rail_mux.h
+  #ToDo: These should be treated as internal headers: as such, we should clean up
+  #our released code so that we no longer need to release these (EMZIGBEE-6706)
+- path: platform/radio/mac
+  file_list:
+  - path: indirect-queue.h
+  - path: lower-mac.h
+  - path: lower-mac-debug.h
+  - path: mac-child.h
+  - path: mac-command.h
+  - path: mac-flat-header.h
+  - path: mac-header.h
+  - path: mac-packet-header.h
+  - path: mac-phy.h
+  - path: mac-types.h
+  - path: multi-mac.h
+  - path: mac-multi-network.h
+  - path: scan.h
+  - path: upper-mac.h
+  - path: lower-mac-common.h
+- path: util/silicon_labs/silabs_core/
+  file_list:
+  - path: buffer_manager/legacy-packet-buffer.h
+  - path: buffer_manager/buffer-queue.h
+  - path: buffer_manager/buffer-management.h
+  - path: event_queue/event-queue.h
+- path: stack/core/
+  file_list:
+  - path: sl_zigbee_stack.h
+  - path: sl_zigbee_multi_network.h
+  - path: multi-pan-token-config.h
+  - path: multi-pan.h
+- path: stack/mac/
+  file_list:
+  - path: multi-mac.h
+- path: stack/routing/zigbee
+  file_list:
+  - path: zigbee.h
+- path: stack/internal/inc
+  file_list:
+  - path: internal-defs-patch.h
+  - path: stack-info-internal-def.h
+  - path: network-formation-internal-def.h
+  - path: message_internal_def.h
+  - path: child_internal_def.h
+  - path: security_internal_def.h
+  - path: aes-mmo-internal-def.h
+  - path: binding-table-internal-def.h
+  - path: bootload_internal_def.h
+  - path: zigbee-device-stack-internal-def.h
+  - path: library_internal_def.h
+  - path: multi-phy-internal-def.h
+  - path: sl_zigbee_duty_cycle_internal_def.h
+  - path: mac-layer-internal-def.h
+  - path: sl_zigbee_random_api_internal_def.h
+  - path: raw-message-internal-def.h
+  - path: multi-network-internal-def.h
+  - path: sl_zigbee_address_info_internal_def.h
+  - path: zigbee-security-manager-internal-def.h
+  - path: trust-center-internal-def.h
+  - path: mfglib_internal_def.h
+  - path: internal-callbacks-patch.h
+  - path: sl_zigbee_token_internal_def.h
+  - path: sl_zigbee_zdo_security_internal_def.h
+- path: app/em260/
+  file_list:
+  - path: command-handlers-zll.h
+    condition:
+    - zigbee_ncp
+  - path: command-handlers-binding.h
+    condition:
+    - zigbee_ncp
+  - path: command-handlers-security.h
+    condition:
+    - zigbee_ncp
+  - path: command-handlers-zigbee-pro.h
+    condition:
+    - zigbee_ncp
+- path: stack/internal/src/ipc
+  file_list:
+  - path: bootload_ipc_callback_events.h
+    condition:
+    - zigbee_use_ipc
+  - path: bootload_ipc_command_messages.h
+    condition:
+    - zigbee_use_ipc
+  - path: child_ipc_callback_events.h
+    condition:
+    - zigbee_use_ipc
+  - path: child_ipc_command_messages.h
+    condition:
+    - zigbee_use_ipc
+  - path: sl_zigbee_duty_cycle_ipc_callback_events.h
+    condition:
+    - zigbee_use_ipc
+  - path: message_ipc_callback_events.h
+    condition:
+    - zigbee_use_ipc
+  - path: network-formation-ipc-callback-events.h
+    condition:
+    - zigbee_use_ipc
+  - path: raw-message-ipc-callback-events.h
+    condition:
+    - zigbee_use_ipc
+  - path: security_ipc_callback_events.h
+    condition:
+    - zigbee_use_ipc
+  - path: stack-info-ipc-callback-events.h
+    condition:
+    - zigbee_use_ipc
+  - path: sl_zigbee_duty_cycle_ipc_command_messages.h
+    condition:
+    - zigbee_use_ipc
+  - path: sl_zigbee_random_api_ipc_command_messages.h
+    condition:
+    - zigbee_use_ipc
+  - path: library_ipc_command_messages.h
+    condition:
+    - zigbee_use_ipc
+  - path: mac-layer-ipc-command-messages.h
+    condition:
+    - zigbee_use_ipc
+  - path: message_ipc_command_messages.h
+    condition:
+    - zigbee_use_ipc
+  - path: mfglib_ipc_command_messages.h
+    condition:
+    - zigbee_use_ipc
+  - path: multi-network-ipc-command-messages.h
+    condition:
+    - zigbee_use_ipc
+  - path: multi-phy-ipc-command-messages.h
+    condition:
+    - zigbee_use_ipc
+  - path: network-formation-ipc-command-messages.h
+    condition:
+    - zigbee_use_ipc
+  - path: raw-message-ipc-command-messages.h
+    condition:
+    - zigbee_use_ipc
+  - path: security_ipc_command_messages.h
+    condition:
+    - zigbee_use_ipc
+  - path: sl_zigbee_address_info_ipc_command_messages.h
+    condition:
+    - zigbee_use_ipc
+  - path: stack-info-ipc-command-messages.h
+    condition:
+    - zigbee_use_ipc
+  - path: trust-center-ipc-command-messages.h
+    condition:
+    - zigbee_use_ipc
+  - path: zigbee-device-stack-ipc-command-messages.h
+    condition:
+    - zigbee_use_ipc
+  - path: zigbee-security-manager-ipc-command-messages.h
+    condition:
+    - zigbee_use_ipc
+  - path: trust-center-ipc-callback-events.h
+    condition:
+    - zigbee_use_ipc
+  - path: sl_zigbee_token_ipc_command_messages.h
+    condition:
+    - zigbee_use_ipc
+
+- path: stack/include
+  file_list:
+  - path: binding-table.h
+- path: app/em260/
+  file_list:
+  - path: command-handlers-binding.h
+
+- path: stack/internal/src/ipc
+  file_list:
+  - path: binding-table-ipc-command-messages.h
+  - path: zigbee_ipc_callback_events.h
+  - path: zigbee_ipc_command_messages.h
+  condition:
+  - zigbee_use_ipc
+- path: stack/internal/inc
+  file_list:
+  - path: binding-table-internal-def.h
+- path: stack/internal/src/ipc
+  file_list:
+  - path: binding-table-ipc-callback-events.h
+  condition:
+  - zigbee_use_ipc
+- path: app/framework/plugin/dhc
+  file_list:
+  - path: dhc-ncp.h
+
+source:
+- path: app/util/counters/counters.c
+- path: app/em260/command-handlers-binding-generated.c
+  condition:
+  - zigbee_ncp
+- path: stack/internal/src/baremetal/binding-table-baremetal-wrapper.c
+  unless:
+  - zigbee_use_ipc
+  - native_host
+- path: stack/internal/src/baremetal/binding-table-baremetal-callbacks.c
+  unless:
+  - zigbee_use_ipc
+  - native_host
+- path: stack/internal/src/ipc/zigbee_ipc_callback_events.c
+  condition:
+  - zigbee_use_ipc
+- path: stack/internal/src/ipc/binding-table-ipc-callback-events.c
+  condition:
+  - zigbee_use_ipc
+- path: stack/internal/src/ipc/binding-table-ipc-command-messages.c
+  condition:
+  - zigbee_use_ipc
+- path: stack/internal/src/ipc/zigbee_ipc_callback_event_stub.c
+  condition:
+  - zigbee_use_ipc
+- path: platform/radio/rail_lib/plugin/sl_rail_util_ant_div/sl_rail_util_ant_div.c
+  condition:
+  - device_cortexm
+  unless:
+  - rail_util_ant_div
+    # Following condition to avoid adding this for subghz simulation which does not
+    # use librail simulation (uses ember PHY) and this source file need 'rail.h'.
+- path: platform/radio/rail_lib/plugin/sl_rail_util_ant_div/sl_rail_util_ant_div.c
+  condition:
+  - rail_lib_simulation
+  unless:
+  - rail_util_ant_div
+- path: platform/radio/rail_lib/plugin/coexistence/protocol/ieee802154_uc/coexistence-802154.c
+  condition:
+  - device_cortexm
+  unless:
+  - rail_util_coex
+  # Following condition to avoid adding this for subghz simulation which does not
+  # use librail simulation (uses ember PHY) and this source file need 'rail.h'.
+- path: platform/radio/rail_lib/plugin/coexistence/protocol/ieee802154_uc/coexistence-802154.c
+  condition:
+  - rail_lib_simulation
+  unless:
+  - rail_util_coex
+- path: stack/config/sl_zigbee_configuration.c
+- path: stack/config/sl_zigbee_configuration_access.c
+- path: stack/config/sl_zigbee_callback_stubs.c
+- path: stack/config/sl_zigbee_endpoint_stubs.c
+- path: stack/security/security-address-cache.c
+- path: app/em260/command-handlers-messaging-generated.c
+  condition:
+  - zigbee_ncp
+- path: app/em260/command-handlers-networking-generated.c
+  condition:
+  - zigbee_ncp
+- path: app/em260/command-handlers-security-generated.c
+  condition:
+  - zigbee_ncp
+- path: app/em260/command-handlers-trust-center-generated.c
+  condition:
+  - zigbee_ncp
+  # Stubs
+- path: stack/framework/debug-stub.c
+  unless:
+  - zigbee_debug_basic
+- path: stack/security/cbke-crypto-engine-stub.c
+  unless:
+  - zigbee_cbke_core
+- path: stack/security/cbke-crypto-engine-163k1-stub.c
+  unless:
+  - zigbee_cbke_163k1
+- path: stack/security/cbke-crypto-engine-283k1-stub.c
+  unless:
+  - zigbee_cbke_283k1
+- path: stack/security/cbke-crypto-engine-dsa-verify-stub.c
+  unless:
+  - zigbee_cbke_dsa_verify
+- path: stack/security/cbke-crypto-engine-dsa-sign-stub.c
+  unless:
+  - zigbee_cbke_dsa_sign
+- path: stack/security/cbke-crypto-engine-dsa-verify-283k1-stub.c
+  unless:
+  - zigbee_cbke_dsa_verify_283k1
+- path: stack/framework/debug-extended-stub.c
+  unless:
+  - zigbee_debug_extended
+- path: stack/gp/gp-stub.c
+  unless:
+  - zigbee_gp
+- path: stack/core/sl_zigbee_multi_network_stub.c
+  unless:
+  - zigbee_multi_network
+- path: stack/core/multi-pan-stub.c
+  unless:
+  - zigbee_multi_pan
+- path: stack/core/multi-pan-common.c
+- path: stack/zigbee/aps-keys-full-stub.c
+  unless:
+  - zigbee_security_link_keys
+- path: stack/zll/zll-stubs.c
+  unless:
+  - zigbee_zll
+- path: stack/zigbee/source-route-stub.c
+  unless:
+  - zigbee_source_route
+- path: stack/zigbee/zdo-r22-stub.c
+  unless:
+  - zigbee_r22_support
+- path: stack/routing/zigbee/enhanced-beacon-request-stub.c
+  unless:
+  - zigbee_r22_support
+- path: stack/mac/mac-info-element-parsing-stub.c
+  unless:
+  - zigbee_r22_support
+- path: stack/framework/zigbee-event-logger-stub-gen.c
+  unless:
+  - zigbee_event_logger
+- path: stack/stubs/sl_zigbee_dynamic_commissioning_stubs.c
+  unless:
+  - zigbee_dynamic_commissioning
+- path: stack/internal/src/stubs/sl_zigbee_zdo_security_internal_weak_stubs.c
+  unless:
+  - zigbee_dynamic_commissioning
+- path: stack/stubs/sl_zigbee_r23_misc_support_stubs.c
+  unless:
+  - zigbee_r23_support
+- path: stack/stubs/sli_zigbee_zdo_cluster_filter_stubs.c
+  unless:
+  - zigbee_zdo_cluster_filter
+- path: stack/stubs/sl_zigbee_fragmentation_stubs.c
+  unless:
+  - zigbee_fragmentation
+
+- path: stack/internal/src/baremetal/sl_zigbee_token_baremetal_wrapper.c
+  unless:
+  - zigbee_use_ipc
+  - native_host
+- path: stack/internal/src/ipc/sl_zigbee_token_ipc_command_messages.c
+  condition:
+  - zigbee_use_ipc
+- path: stack/internal/src/stubs/sl_zigbee_token_internal_weak_stubs.c
+  unless:
+  - zigbee_use_ipc
+- path: stack/internal/src/stubs/sl_zigbee_dhc_internal_weak_stubs.c
+  unless:
+  - zigbee_use_ipc
+
+   #these are duplicated and copied over from zigbee_token_interface   
+- path: stack/platform/sl_zigbee_token.c
+  unless:
+  - device_series_2
+- path: stack/platform/sl_zigbee_token_defines.c
+  unless:
+  - device_series_2
+- path: stack/platform/sl_zigbee_token_legacy.c
+  condition:
+  - device_series_2
+  #end of files duplicated and copied over from zigbee_token_interface     
+- path: stack/internal/src/baremetal/stack-info-baremetal-callbacks.c
+  unless:
+  - zigbee_use_ipc
+- path: stack/internal/src/baremetal/stack-info-baremetal-wrapper.c
+  unless:
+  - zigbee_use_ipc
+- path: stack/internal/src/stubs/stack-info-internal-weak-stubs.c
+  unless:
+  - zigbee_use_ipc
+- path: stack/internal/src/baremetal/message_baremetal_callbacks.c
+  unless:
+  - zigbee_use_ipc
+- path: stack/internal/src/baremetal/message_baremetal_wrapper.c
+  unless:
+  - zigbee_use_ipc
+- path: stack/internal/src/baremetal/network-formation-baremetal-callbacks.c
+  unless:
+  - zigbee_use_ipc
+- path: stack/internal/src/baremetal/network-formation-baremetal-wrapper.c
+  unless:
+  - zigbee_use_ipc
+- path: stack/internal/src/baremetal/sl_zigbee_random_api_baremetal_wrapper.c
+  unless:
+  - zigbee_use_ipc
+- path: stack/internal/src/baremetal/child_baremetal_callbacks.c
+  unless:
+  - zigbee_use_ipc
+- path: stack/internal/src/baremetal/child_baremetal_wrapper.c
+  unless:
+  - zigbee_use_ipc
+- path: stack/internal/src/ipc/child_ipc_command_messages.c
+  condition:
+  - zigbee_use_ipc
+- path: stack/internal/src/baremetal/zigbee-device-stack-baremetal-wrapper.c
+  unless:
+  - zigbee_use_ipc
+- path: stack/internal/src/baremetal/library_baremetal_wrapper.c
+  unless:
+  - zigbee_use_ipc
+- path: stack/internal/src/baremetal/raw-message-baremetal-callbacks.c
+  unless:
+  - zigbee_use_ipc
+- path: stack/internal/src/baremetal/raw-message-baremetal-wrapper.c
+  unless:
+  - zigbee_use_ipc
+- path: stack/internal/src/baremetal/trust-center-baremetal-wrapper.c
+  unless:
+  - zigbee_use_ipc
+- path: stack/internal/src/baremetal/trust-center-baremetal-callbacks.c
+  unless:
+  - zigbee_use_ipc
+- path: stack/internal/src/baremetal/multi-phy-baremetal-wrapper.c
+  unless:
+  - zigbee_use_ipc
+- path: stack/internal/src/baremetal/bootload_baremetal_wrapper.c
+  unless:
+  - zigbee_use_ipc
+- path: stack/internal/src/baremetal/bootload_baremetal_callbacks.c
+  unless:
+  - zigbee_use_ipc
+- path: stack/internal/src/baremetal/sl_zigbee_duty_cycle_baremetal_wrapper.c
+  unless:
+  - zigbee_use_ipc
+- path: stack/internal/src/baremetal/sl_zigbee_duty_cycle_baremetal_callbacks.c
+  unless:
+  - zigbee_use_ipc
+- path: stack/internal/src/baremetal/mac-layer-baremetal-wrapper.c
+  unless:
+  - zigbee_use_ipc
+- path: stack/internal/src/baremetal/sl_zigbee_address_info_baremetal_wrapper.c
+  unless:
+  - zigbee_use_ipc
+- path: stack/internal/src/ipc/raw-message-ipc-callback-events.c
+  condition:
+  - zigbee_use_ipc
+- path: stack/internal/src/ipc/stack-info-ipc-command-messages.c
+  condition:
+  - zigbee_use_ipc
+- path: stack/internal/src/ipc/stack-info-ipc-callback-events.c
+  condition:
+  - zigbee_use_ipc
+- path: stack/internal/src/ipc/network-formation-ipc-command-messages.c
+  condition:
+  - zigbee_use_ipc
+- path: stack/internal/src/ipc/zigbee-device-stack-ipc-command-messages.c
+  condition:
+  - zigbee_use_ipc
+- path: stack/internal/src/ipc/mac-layer-ipc-command-messages.c
+  condition:
+  - zigbee_use_ipc
+- path: stack/internal/src/ipc/multi-phy-ipc-command-messages.c
+  condition:
+  - zigbee_use_ipc
+- path: stack/internal/src/ipc/trust-center-ipc-command-messages.c
+  condition:
+  - zigbee_use_ipc
+- path: stack/internal/src/ipc/trust-center-ipc-callback-events.c
+  condition:
+  - zigbee_use_ipc
+- path: stack/internal/src/ipc/raw-message-ipc-command-messages.c
+  condition:
+  - zigbee_use_ipc
+- path: stack/internal/src/ipc/message_ipc_command_messages.c
+  condition:
+  - zigbee_use_ipc
+- path: stack/internal/src/ipc/library_ipc_command_messages.c
+  condition:
+  - zigbee_use_ipc
+- path: stack/internal/src/ipc/network-formation-ipc-callback-events.c
+  condition:
+  - zigbee_use_ipc
+- path: stack/internal/src/ipc/message_ipc_callback_events.c
+  condition:
+  - zigbee_use_ipc
+- path: stack/internal/src/ipc/bootload_ipc_callback_events.c
+  condition:
+  - zigbee_use_ipc
+- path: stack/internal/src/ipc/bootload_ipc_command_messages.c
+  condition:
+  - zigbee_use_ipc
+- path: stack/internal/src/ipc/child_ipc_callback_events.c
+  condition:
+  - zigbee_use_ipc
+- path: stack/internal/src/ipc/sl_zigbee_duty_cycle_ipc_callback_events.c
+  condition:
+  - zigbee_use_ipc
+- path: stack/internal/src/ipc/sl_zigbee_duty_cycle_ipc_command_messages.c
+  condition:
+  - zigbee_use_ipc
+- path: stack/internal/src/ipc/raw-message-ipc-callback-events.c
+  condition:
+  - zigbee_use_ipc
+- path: stack/internal/src/ipc/security_ipc_callback_events.c
+  condition:
+  - zigbee_use_ipc
+- path: stack/internal/src/ipc/sl_zigbee_random_api_ipc_command_messages.c
+  condition:
+  - zigbee_use_ipc
+- path: stack/internal/src/ipc/sl_zigbee_address_info_ipc_command_messages.c
+  condition:
+  - zigbee_use_ipc
+- path: platform/service/legacy_hal_wdog/src/sl_legacy_hal_wdog_stub.c
+  unless:
+  - legacy_hal_wdog
+validation_helper:
+  # NCP doesn't have DEVICE_TYPE before it connects to Host
+  # so we don't run the validation script for NCP
+- path: component/scripts/zigbee_soc_stack_config_validation.lua
+  unless:
+  - zigbee_ncp
+
+define:
+- name: SL_ZIGBEE_PHY_SELECT_STACK_SUPPORT
+  value: 1
+  condition:
+  - sl_rail_util_ieee802154_phy_select
+- name: SL_ZIGBEE_MULTI_NETWORK_STRIPPED
+  unless:
+  - zigbee_multi_network
+  # stack compliance version logic
+- name: SL_ZIGBEE_STACK_COMPLIANCE_REVISION
+  value: 22
+  unless:
+  - zigbee_r23_support
+- name: SL_ZIGBEE_STACK_COMPLIANCE_REVISION
+  value: 23
+  condition:
+  - zigbee_r23_support
+- name: STACK_TYPES_HEADER
+  value: "\"stack/include/sl_zigbee_types.h\""
+- name: STACK_HEADER
+  value: "\"stack/include/sl_zigbee.h\""
+- name: STACK_CORE_HEADER
+  value: "\"stack/core/sl_zigbee_stack.h\""
+
+template_contribution:
+- name: component_catalog
+  value: zigbee_stack_common
+- name: application_type
+  value: APPLICATION_TYPE_ZIGBEE
+  condition:
+  - bootloader_app_properties
+- name: application_type
+  value: APPLICATION_TYPE_ZIGBEE
+  condition:
+  - btl_app_properties
+  # These callbacks are consumed by zigbee pro NCP command handlers.
+- name: rail_util_ieee802154_phy_select_callbacks
+  value:
+    runtime_phy_select_stack_support: SL_ZIGBEE_PHY_SELECT_STACK_SUPPORT
+    update_active_radio_config: sli_mac_lower_mac_update_active_radio_config
+  priority: -9020
+  unless:
+  - rail_mux
+- name: zigbee_ncp_callback
+  value:
+    callback_type: set_configuration_value
+    function_name: sl_zigbee_xncp_zigbee_pro_set_configuration_value_command_cb
+- name: zigbee_ncp_callback
+  value:
+    callback_type: get_policy
+    function_name: sl_zigbee_xncp_zigbee_pro_policy_command_cb
+- name: zigbee_ncp_callback
+  value:
+    callback_type: set_policy
+    function_name: sl_zigbee_xncp_zigbee_pro_policy_command_cb
+- name: zigbee_ncp_callback
+  value:
+    callback_type: get_configuration_value
+    function_name: sl_zigbee_xncp_zigbee_pro_get_configuration_value_command_cb
+- name: zigbee_ncp_callback
+  value:
+    callback_type: modify_memory_allocation
+    function_name: sl_zigbee_xncp_zigbee_pro_modify_memory_allocation_cb
+- name: zigbee_ncp_callback
+  value:
+    callback_type: get_extended_value
+    function_name: sl_zigbee_xncp_zigbee_pro_get_extended_value_command_cb
+- name: zigbee_ncp_callback
+  value:
+    callback_type: set_value
+    function_name: sl_zigbee_xncp_zigbee_pro_set_value_command_cb
+- name: zigbee_ncp_callback
+  value:
+    callback_type: get_value
+    function_name: sl_zigbee_xncp_zigbee_pro_get_value_command_cb
+- name: zigbee_ncp_callback
+  value:
+    callback_type: set_configuration_value
+    function_name: sl_zigbee_xncp_security_set_configuration_value_command_cb
+- name: zigbee_ncp_callback
+  value:
+    callback_type: get_policy
+    function_name: sl_zigbee_xncp_security_policy_command_cb
+- name: zigbee_ncp_callback
+  value:
+    callback_type: set_policy
+    function_name: sl_zigbee_xncp_security_policy_command_cb
+- name: zigbee_ncp_callback
+  value:
+    callback_type: get_configuration_value
+    function_name: sl_zigbee_xncp_security_get_configuration_value_command_cb
+- name: zigbee_ncp_callback
+  value:
+    callback_type: set_value
+    function_name: sl_zigbee_xncp_security_set_value_command_cb
+- name: zigbee_ncp_callback
+  value:
+    callback_type: get_value
+    function_name: sl_zigbee_xncp_security_get_value_command_cb
+
+- name: zigbee_ncp_callback
+  value:
+    callback_type: set_configuration_value
+    function_name: sl_zigbee_xncp_binding_configuration_value_command_cb
+- name: zigbee_ncp_callback
+  value:
+    callback_type: get_policy
+    function_name: sl_zigbee_xncp_binding_policy_command_cb
+- name: zigbee_ncp_callback
+  value:
+    callback_type: set_policy
+    function_name: sl_zigbee_xncp_binding_policy_command_cb
+- name: zigbee_ncp_callback
+  value:
+    callback_type: get_configuration_value
+    function_name: sl_zigbee_xncp_binding_configuration_value_command_cb
+- name: zigbee_ncp_callback
+  value:
+    callback_type: modify_memory_allocation
+    function_name: sli_zigbee_initialize_binding_table
+
+- name: zigbee_ncp_callback
+  value:
+    callback_type: permit_host_to_ncp_frame
+    function_name: sl_zigbee_xncp_binding_permit_host_to_ncp_frame_cb
+
+
+- name: zigbee_stack_callback
+  value:
+    callback_type: mac_filter_match_message
+    function_name: sli_zigbee_af_mac_filter_match_message_callback
+  condition:
+  - zigbee_ncp
+- name: zigbee_stack_callback
+  value:
+    callback_type: bootload_transmit_complete
+    function_name: sli_zigbee_af_bootload_transmit_complete_callback
+  condition:
+  - zigbee_ncp
+- name: zigbee_stack_callback
+  value:
+    callback_type: incoming_bootload_message
+    function_name: sli_zigbee_af_incoming_bootload_message_callback
+  condition:
+  - zigbee_ncp
+- name: zigbee_stack_callback
+  value:
+    callback_type: raw_transmit_complete
+    function_name: sli_zigbee_af_raw_transmit_complete_callback
+  condition:
+  - zigbee_ncp
+- name: zigbee_stack_callback
+  value:
+    callback_type: mac_passthrough_message
+    function_name: sli_zigbee_af_mac_passthrough_message_callback
+  condition:
+  - zigbee_ncp
+- name: zigbee_stack_callback
+  value:
+    callback_type: id_conflict
+    function_name: sli_zigbee_af_id_conflict_callback
+  condition:
+  - zigbee_ncp
+- name: zigbee_stack_callback
+  value:
+    callback_type: incoming_network_status
+    function_name: sli_zigbee_af_incoming_network_status_callback
+  condition:
+  - zigbee_ncp
+- name: zigbee_stack_callback
+  value:
+    callback_type: incoming_route_error
+    function_name: sli_zigbee_af_incoming_route_error_callback
+  condition:
+  - zigbee_ncp
+- name: zigbee_stack_callback
+  value:
+    callback_type: incoming_many_to_one_route_request
+    function_name: sli_zigbee_af_incoming_many_to_one_route_request_cb
+  condition:
+  - zigbee_ncp
+- name: zigbee_stack_callback
+  value:
+    callback_type: duty_cycle
+    function_name: sli_zigbee_af_duty_cycle_callback
+  condition:
+  - zigbee_ncp
+- name: zigbee_stack_callback
+  value:
+    callback_type: child_join
+    function_name: sli_zigbee_af_child_join_cb
+  condition:
+  - zigbee_ncp
+- name: zigbee_stack_callback
+  value:
+    callback_type: network_found
+    function_name: sli_zigbee_af_network_found_callback
+  condition:
+  - zigbee_ncp
+- name: zigbee_stack_callback
+  value:
+    callback_type: scan_complete
+    function_name: sli_zigbee_af_scan_complete_callback
+  condition:
+  - zigbee_ncp
+- name: zigbee_stack_callback
+  value:
+    callback_type: incoming_message
+    function_name: sli_zigbee_af_incoming_message_callback
+  condition:
+  - zigbee_ncp
+- name: zigbee_stack_callback
+  value:
+    callback_type: message_sent
+    function_name: sli_zigbee_af_message_sent_callback
+  condition:
+  - zigbee_ncp
+- name: zigbee_stack_callback
+  value:
+    callback_type: switch_network_key
+    function_name: sli_zigbee_af_switch_network_key_callback
+  condition:
+  - zigbee_ncp
+- name: zigbee_stack_callback
+  value:
+    callback_type: zigbee_key_establishment
+    function_name: sli_zigbee_af_zigbee_key_establishment_callback
+  condition:
+  - zigbee_ncp
+
+documentation:
+  docset: zigbee
+  document: zigbee-af-api/stack-common
+metadata:
+  sbom:
+    license: MSLA AND Zlib
+root_path: zigbee

@@ -1,0 +1,5 @@
+from pyradioconfig.parts.bobcat.phys.Phys_RAIL_Base_Standard_IEEE802154 import PhysRAILBaseStandardIEEE802154Bobcat
+
+
+class PhysRAILBaseStandardIEEE802154Caracal(PhysRAILBaseStandardIEEE802154Bobcat):
+    pass

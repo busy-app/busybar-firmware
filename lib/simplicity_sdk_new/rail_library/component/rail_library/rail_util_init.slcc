@@ -1,0 +1,78 @@
+id: rail_util_init
+label: RAIL Utility, Initialization (RAIL 2.x)
+description: Utility to aid with RAIL Initialization Support
+package: rail_library
+category: Platform|Radio|RAIL 2.x
+quality: deprecated
+metadata:
+  sbom:
+    id: rail_util_init
+    name: RAIL Utility, Initialization (RAIL 2.x)
+    license: Zlib
+instantiable:
+  prefix: inst
+requires:
+- name: rail_lib
+- name: rail_util_protocol
+- name: rail_util_init_core
+- name: rail_util_callbacks
+provides:
+- name: rail_util_init
+  allow_multiple: true
+conflicts:
+- name: sl_rail_util_init
+documentation:
+  docset: rail
+  document: rail-api/rail-util-init
+config_file:
+- path: plugin/rail_util_init/config/efr32xg21/sl_rail_util_init_{{instance}}_config.h
+  condition:
+  - device_series_2
+  - device_sdid_200
+- path: plugin/rail_util_init/config/efr32xg22/sl_rail_util_init_{{instance}}_config.h
+  condition:
+  - device_series_2
+  - device_sdid_205
+- path: plugin/rail_util_init/config/efr32xg23/sl_rail_util_init_{{instance}}_config.h
+  condition:
+  - device_series_2
+  - device_sdid_210
+- path: plugin/rail_util_init/config/efr32xg24/sl_rail_util_init_{{instance}}_config.h
+  condition:
+  - device_series_2
+  - device_sdid_215
+- path: plugin/rail_util_init/config/efr32xg25/sl_rail_util_init_{{instance}}_config.h
+  condition:
+  - device_series_2
+  - device_sdid_220
+- path: plugin/rail_util_init/config/efr32xg26/sl_rail_util_init_{{instance}}_config.h
+  condition:
+  - device_series_2
+  - device_sdid_225
+- path: plugin/rail_util_init/config/efr32xg27/sl_rail_util_init_{{instance}}_config.h
+  condition:
+  - device_series_2
+  - device_sdid_230
+- path: plugin/rail_util_init/config/efr32xg28/sl_rail_util_init_{{instance}}_config.h
+  condition:
+  - device_series_2
+  - device_sdid_235
+- path: plugin/rail_util_init/config/efr32xg29/sl_rail_util_init_{{instance}}_config.h
+  condition:
+  - device_series_2
+  - device_sdid_240
+- path: plugin/rail_util_init/config/efr32xg2d/sl_rail_util_init_{{instance}}_config.h
+  condition:
+  - device_series_2
+  - device_sdid_260
+- path: plugin/rail_util_init/config/sixg301/sl_rail_util_init_{{instance}}_config.h
+  condition:
+  - device_series_3
+  - device_generic_family_sixx301
+
+template_contribution:
+- name: rail_util_init_instance
+  value: '{{instance}}'
+- name: component_catalog
+  value: rail_util_init
+root_path: rail_library

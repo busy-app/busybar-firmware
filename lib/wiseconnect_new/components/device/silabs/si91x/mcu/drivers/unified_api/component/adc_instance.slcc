@@ -1,0 +1,52 @@
+id: adc_instance
+label: ADC
+package: platform_siwx91x
+description: >
+   ADC stands for Analog-to-Digital Converter.
+   An ADC is a peripheral or component of a controller that converts analog signals (continuous voltage levels)
+   into digital data (discrete binary values) that the controller can handle.
+   Note:
+   For Configuring, Configurable Parameters of ADC, Open the configuration wizard and configure, Below are the Configurable Parameters of ADC:
+     - Resolution
+     - Sampling Rate
+     - Input Voltage Range
+     - Reference Voltage
+     - Triggering and Conversion Modes
+     - Channel Selection
+     - Interrupts and DMA
+   ADC Supports instances.
+   Instances created must be named as channel_1, channel_2, channel_3, channel_4, channel_5, channel_6, channel_7, channel_8, channel_9, channel_10, channel_11, channel_12, channel_13, channel_14, channel_15, channel_16.
+category: Device|Si91x|MCU|Peripheral
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+instantiable:
+  prefix: inst
+root_path: "components/device/silabs/si91x/mcu/drivers/unified_api"
+config_file:
+  - path: config/sl_si91x_adc_common_config.h
+  - path: config/sl_si91x_adc_init_{{instance}}_config.h
+    file_id: adc_config
+provides:
+  - name: adc_instance
+    allow_multiple: true
+template_file:
+  - path: init/sl_adc_instances.h.jinja
+  - path: init/sl_adc_init.c.jinja
+template_contribution:
+  - name: adc_instances
+    value: "{{instance}}"
+  - name: component_catalog
+    value: adc
+  - name: component_catalog
+    value: "adc_{{instance}}"
+  - name: event_handler
+    condition: [sl_adc]
+    value:
+      include: "sl_adc_instances.h"
+requires:
+  - name: sl_adc
+documentation:
+    docset: wiseconnect
+    document: wiseconnect-api-reference-guide-si91x-peripherals/adc

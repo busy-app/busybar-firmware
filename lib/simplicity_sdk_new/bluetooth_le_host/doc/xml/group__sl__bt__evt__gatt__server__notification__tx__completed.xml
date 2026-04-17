@@ -1,0 +1,48 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__evt__gatt__server__notification__tx__completed" kind="group">
+    <compoundname>sl_bt_evt_gatt_server_notification_tx_completed</compoundname>
+    <title>sl_bt_evt_gatt_server_notification_tx_completed</title>
+    <innerclass refid="structsl__bt__evt__gatt__server__notification__tx__completed__s" prot="public">sl_bt_evt_gatt_server_notification_tx_completed_s</innerclass>
+      <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="group__sl__bt__evt__gatt__server__notification__tx__completed_1gab391c8e7d0c482e56f6a459f42b5c015" prot="public" static="no">
+        <type>struct <ref refid="structsl__bt__evt__gatt__server__notification__tx__completed__s" kindref="compound">sl_bt_evt_gatt_server_notification_tx_completed_s</ref></type>
+        <definition>typedef struct sl_bt_evt_gatt_server_notification_tx_completed_s sl_bt_evt_gatt_server_notification_tx_completed_t</definition>
+        <argsstring></argsstring>
+        <name>sl_bt_evt_gatt_server_notification_tx_completed_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="10125" column="64" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="10125" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__evt__gatt__server__notification__tx__completed_1gaaac4706bf8c2310e5e40213a8c40a394" prot="public" static="no">
+        <name>sl_bt_evt_gatt_server_notification_tx_completed_id</name>
+        <initializer>0x060a00a0</initializer>
+        <briefdescription>
+<para>Identifier of the notification_tx_completed event. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="10114" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="10114" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Indicates that one or more GATT notifications have been transmitted. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>By default, this event is not enabled on Bluetooth connections due to additional resource usages</para>
+<para>Following enablers are required to enable the Bluetooth stack&apos;s functionality for supporting this event,<itemizedlist>
+<listitem><para>Include feature bluetooth_feature_resource_report in the application project.</para>
+</listitem><listitem><para>Use command <ref refid="group__sl__bt__resource_1gad776c2696303de220282839c6dcbf5f8" kindref="member">sl_bt_resource_enable_connection_tx_report</ref> to enable data packet TX status reports before this Bluetooth connection is established. </para>
+</listitem></itemizedlist>
+</para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

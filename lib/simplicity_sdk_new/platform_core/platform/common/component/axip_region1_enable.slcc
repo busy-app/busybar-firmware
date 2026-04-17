@@ -1,0 +1,22 @@
+id: axip_region1_enable
+label: Enable Encryption and Authentication (AXiP) for Code Region 1
+package: platform_core
+description: >
+  This component should be added to an application when encryption and
+  authentication, also known as AXiP, is enabled for Code Region 1. This
+  component does not actually enable AXiP, rather it is necessary in order to
+  compute the correct memory layout for the application in the event that AXiP
+  is enabled. AXiP can be enabled via a DCI command using Simplicity Commander.
+category: Platform|Toolchain
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+provides:
+- name: axip_region1
+- name: axip_region1_enable
+template_contribution:
+- name: axip_region1_enabled
+  value: 1
+
+root_path: platform_core

@@ -1,0 +1,30 @@
+parameters: []
+constants: []
+steps:
+  # Merge the application and bootloader binaries
+  - task: convert
+    input:
+      - "{{application_binary_s37}}"
+      - "{{bootloader_binary_s37}}"
+    output: artifacts/{{workspace_name}}-full.s37
+  - task: convert
+    input:
+      - "{{application_binary_hex}}"
+      - "{{bootloader_binary_hex}}"
+    output: artifacts/{{workspace_name}}-full.hex
+  # Copy bootloaders' and applications' files into the top level artifacts
+  - task: copy
+    input: "{{bootloader_binary_s37}}"
+    output: "artifacts/{{workspace_name}}-bootloader-only.s37"
+  - task: copy
+    input: "{{bootloader_binary_hex}}"
+    output: "artifacts/{{workspace_name}}-bootloader-only.hex"
+  - task: copy
+    input: "{{application_binary_hex}}"
+    output: "artifacts/{{workspace_name}}-application-only.hex"
+  - task: copy
+    input: "{{application_binary_s37}}"
+    output: "artifacts/{{workspace_name}}-application-only.s37"
+  - task: copy
+    input: "{{application_binary_gbl}}"
+    output: "artifacts/{{workspace_name}}-application-only.gbl"

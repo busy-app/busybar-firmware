@@ -1,0 +1,18 @@
+docset: gecko-platform
+content:
+  - from: doc
+    to: "hardware-board"
+doxygen:
+  - name: "hardware-board"
+    output: doc_tmp
+    output_dir: "hardware/board/doc_tmp"
+    mainpage: 'hardware/board/doc/hardware-board-api/mainpage.md'
+    component_path:
+      - component
+    quality:
+      - production
+    package:
+      - boards
+    macros: []
+    conditions: []
+    includes: []

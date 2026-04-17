@@ -1,0 +1,5 @@
+from pyradioconfig.parts.leopard.phys.Phys_RAIL_Base_Standard_IEEE802154 import PhysRAILBaseStandardIEEE802154Leopard
+
+
+class PhysRailBaseStandardIEEE802154Lion(PhysRAILBaseStandardIEEE802154Leopard):
+    pass

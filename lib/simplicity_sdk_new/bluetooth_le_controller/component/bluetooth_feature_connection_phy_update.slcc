@@ -1,0 +1,22 @@
+id: "bluetooth_feature_connection_phy_update"
+label: "Bluetooth Connection Phy Update"
+package: bluetooth_le_controller
+description: >
+  This component is used to enable configuring the connection phy to a value other than the default 1M.
+  For example, use this component to change the preferred phy to 2M or coded.
+
+category: Bluetooth|Bluetooth LE Controller (Link Layer)|Additional Features
+quality: "production"
+provides:
+- name: bluetooth_feature_connection_phy_update
+requires:
+- name: bluetooth_controller
+- name: bluetooth_feature_connection
+
+template_contribution:
+- name: component_catalog
+  value: bluetooth_feature_connection_phy_update
+metadata:
+  sbom:
+    license: MSLA
+root_path: bluetooth_le_controller

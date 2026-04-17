@@ -1,0 +1,41 @@
+id: uart_at_commands
+package: wifi
+description: >
+  UART Configuration AT commands
+category: Service| AT Commands Autogen| UART Configuration AT commands
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+component_root_path: ./components/at_commands_auto_gen
+provides:
+  - name: uart_at_commands
+
+template_contribution:
+  - name: console_commands
+    value:
+      uart-baud:
+        handler: uart_baud_command_handler
+        arguments:
+          - "uint32"  # baud-rate
+      uart-databits:
+        handler: uart_databits_command_handler
+        arguments:
+          - "uint32"  # data-bits
+      uart-stopbits:
+        handler: uart_stopbits_command_handler
+        arguments:
+          - "uint32"  # stop-bits
+      uart-parity:
+        handler: uart_parity_command_handler
+        arguments:
+          - "uint32"  # parity
+      uart-hwflowctrl:
+        handler: uart_hwflowctrl_command_handler
+        arguments:
+          - "uint32"  # hw-flow-control
+      uart-conf?:
+        handler: uart_conf_query_command_handler
+config_file:
+  - path: uart_at_commands_config.h
+    file_id: uart_at_commands_config

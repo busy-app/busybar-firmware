@@ -1,0 +1,24 @@
+id: sli_wifi_per_mode
+label:  SLI Wi-Fi PER Mode
+package: wifi
+description: >
+    Support for Wi-Fi PER mode
+category: SLI WIFI component
+component_root_path: ./components/sli_wifi_per_mode
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+ui_hints:
+  visibility: never
+source:
+- path: src/sli_wifi_per_mode.c
+include:
+- path: inc
+  file_list:
+    - path: sli_wifi_per_mode.h
+provides:
+    - name: sli_wifi_per_mode
+requires:
+  - name: wifi
+  - name: sli_wifi

@@ -1,0 +1,4 @@
+upgrade:
+  - sdk:
+    configuration:
+    component:

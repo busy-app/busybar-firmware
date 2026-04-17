@@ -1,0 +1,142 @@
+project_name: btmesh_soc_dfu_target_lpn_low_power
+package: bluetooth_mesh_app
+label: Bluetooth Mesh - SoC DFU Target
+description: >-
+  Demonstrates the Firmware Update Target role defined in Mesh Device Firmware
+  Update Model specification. Target node receives firmware image from a
+  Standalone Updater or Distributor node and applies the firmware image.
+  The node acts as a LPN node which supports pull transfer mode only.
+  This example variant is optimized for ultra low current consumption with
+  2 minutes poll timeout and disabled CLI, logging, and LCD.
+
+category: Bluetooth Mesh Examples
+quality: production
+
+filter:
+  - name: "Wireless Technology"
+    value: ["Bluetooth Mesh"]
+  - name: "Device Type"
+    value: ["SoC"]
+  - name: "Project Difficulty"
+    value: ["Advanced"]
+
+component:
+  - id: app_assert
+  - id: app_btmesh_util
+  - id: app_timer
+  - id: btmesh_factory_reset
+  - id: btmesh_sar_config_server
+  - id: btmesh_stack_gatt_prov_bearer
+  - id: btmesh_lpn
+  - id: btmesh_provisionee
+  - id: btmesh_provisioning_decorator
+  - id: btmesh_proxy
+  - id: btmesh_remote_provisioning_server
+  - id: btmesh_target_node
+  - id: btmesh_iv_update
+  - id: clock_manager
+  - id: device_init
+  - id: gatt_service_device_information_override
+  - id: mpu
+  - id: rail_util_pti
+  - id: simple_button_recommended_instance
+  - id: simple_led_recommended_instance
+  - id: sl_main
+  - id: toolchain_gcc_lto
+  - id: udelay
+
+source:
+  - path: app.c
+
+include:
+  - path: .
+    file_list:
+    - path: app.h
+
+config_file:
+  - override:
+      component: gatt_configuration
+      file_id: gatt_configuration_file_id
+    path: gatt_configuration.btconf
+    directory: btconf
+  - override:
+      component: btmesh_dcd_configuration
+      file_id: dcd_configuration_file_id
+    path: dcd_config_lpn_low_power.btmeshconf
+    directory: btmeshconf
+
+readme:
+  - path: ../../documentation/example/btmesh_soc_dfu_target/readme.md
+
+other_file:
+  - path: ../../documentation/example/btmesh_soc_dfu_target/readme_img0.png
+
+configuration:
+  - name: EMDRV_DMADRV_DMA_CH_COUNT
+    value: 2
+  - name: SL_BTMESH_LPN_POLL_TIMEOUT_CFG_VAL
+    value: 120000
+  - name: APP_LOG_LEVEL
+    value: APP_LOG_LEVEL_INFO
+  - name: NVM3_DEFAULT_CACHE_SIZE
+    value: 100
+  - name: NVM3_DEFAULT_NVM_SIZE
+    value: "0x6000"
+  - name: SL_BT_CONFIG_BUFFER_SIZE
+    value: 4000
+  - name: SL_BTMESH_BLOB_TRANSFER_SERVER_DFU_TARGET_LPN_MODE_CFG_VAL
+    value: "1"
+  - name: SL_BTMESH_BLOB_TRANSFER_SERVER_DFU_TARGET_MAX_BLOCK_SIZE_LOG_CFG_VAL
+    value: "0xB"
+    unless:
+      - "device_sdid_205"  # xG22
+  - name: SL_BTMESH_BLOB_TRANSFER_SERVER_DFU_TARGET_MAX_CHUNK_SIZE_CFG_VAL
+    value: "53"
+  - name: SL_BTMESH_BLOB_TRANSFER_SERVER_DFU_TARGET_MAX_CHUNKS_PER_BLOCK_CFG_VAL
+    value: "40"
+  - name: SL_BTMESH_BLOB_TRANSFER_SERVER_DFU_TARGET_PULL_CHUNK_REQUEST_CNT_CFG_VAL
+    value: "3"
+  - name: SL_BTMESH_BLOB_TRANSFER_SERVER_DFU_TARGET_PUSH_MODE_CFG_VAL
+    value: "0"
+  - name: SL_BTMESH_CONFIG_MAX_PROV_BEARERS
+    value: 3
+  - name: SL_BTMESH_FW_UPDATE_SERVER_FWID_CFG_VAL
+    value: '"socbtmtrgt_lpn_low_power_v1"'
+  - name: SL_PSA_KEY_USER_SLOT_COUNT
+    value: 0
+    condition:
+      - psa_crypto
+  - name: SL_SIMPLE_BUTTON_ALLOW_LED_CONFLICT
+    value: 1
+  - name: SL_STACK_SIZE
+    value: 0x1800
+
+post_build:
+  - path: "../../postbuild_profile/btmesh_common_s2.slpb"
+    condition: [device_series_2, bootloader_app_properties]
+
+tag:
+  - companion:bootloader
+  - hardware:board_only
+  - hardware:component:button:1+
+  - hardware:component:led:1+
+  - hardware:device:flash:512
+  - hardware:device:ram:32
+  - hardware:rf:band:2400
+  - prebuilt_demo
+  - hwfilter:device:device_series_2
+  - hwfilter:device:device_supports_bluetooth
+  - hwfilter:ram:32k
+  - hwfilter:flash:512k
+  - hwfilter:board:hardware_board_supports_wstk_lcd
+  - hwfilter:board:simple_led:led0
+  - hwfilter:board:simple_button:btn0
+
+ui_hints:
+  highlight:
+    - path: config/btconf/gatt_configuration.btconf
+      focus: false
+    - path: config/btmeshconf/dcd_config.btmeshconf
+      focus: false
+    - path: readme.md
+      focus: true

@@ -1,0 +1,42 @@
+project_name: segment_lcd_timer
+package: platform
+quality: production
+label: Platform - Segment LCD Timer
+description: |
+  This project shows how to use the segment LCD peripheral to display timer functions.
+category: Example|Platform
+filter:
+  - name: "Device Type"
+    value: ["SoC"]
+  - name: "MCU"
+    value: ["32-bit MCU"]
+  - name: "Project Difficulty"
+    value: ["Beginner"]
+source:
+  - path: app.c
+  - path: segment_lcd_app.c
+include:
+  - path: .
+    file_list:
+    - path: app.h
+    - path: segment_lcd_app.h
+component:
+  - id: hal_letimer
+  - id: hal_lcd
+  - id: sl_main
+  - id: device_init
+  - id: clock_manager
+  - id: segment_lcd_driver
+  - id: simple_button
+    instance:
+      - btn0
+      - btn1
+define:
+  - name: DEBUG_EFM
+readme:
+  - path: readme.md
+ui_hints:
+  highlight: readme.md
+tag:
+  - hardware:component:segment_lcd_driver:cl010-1087-04
+

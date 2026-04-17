@@ -1,0 +1,19 @@
+id: status
+label: Status Codes Definitions
+package: platform_common
+description: Common status codes
+category: Platform|Status Code
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: platform_common/platform/common
+include:
+- path: inc
+  file_list:
+  - path: sl_status.h
+provides:
+- name: status
+documentation:
+  docset: gecko-platform
+  document: platform-common/status

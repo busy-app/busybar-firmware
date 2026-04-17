@@ -1,0 +1,44 @@
+/*******************************************************************************
+* @file  console_variable_table.c.template
+* @brief 
+*******************************************************************************
+* # License
+* <b>Copyright 2023 Silicon Laboratories Inc. www.silabs.com</b>
+*******************************************************************************
+*
+* The licensor of this software is Silicon Laboratories Inc. Your use of this
+* software is governed by the terms of Silicon Labs Master Software License
+* Agreement (MSLA) available at
+* www.silabs.com/about-us/legal/master-software-license-agreement. This
+* software is distributed to you in Source Code format and is governed by the
+* sections of the MSLA applicable to Source Code.
+*
+******************************************************************************/
+
+{% set __variables=aggregate("/console/variables") -%}
+{% set __variable_headers=aggregate("/console/variable_headers") -%}
+{% set type_map={ "nvm": "NVM_STRUCTURE", "ram_struct": "RAM_STRUCTURE", "group": "GROUP", "variable": "VARIABLE" } -%}
+{% set __mapping = {"uint8": "UINT", "uint16": "UINT", "uint32": "UINT", "int": "INT", "int8": "INT", "int16": "INT", "int32": "INT", "string": "STRING", "mac": "MAC_ADDRESS", "ip": "IP_ADDRESS", "hex": "HEX", "bool": "BOOL"} -%}
+#include "console_types.h"
+#include "console_constants.h"
+#include "nvm_ids.h"
+{% for item in __variable_headers %}#include "{{item}}"
+{% endfor %}
+
+{% for name, node in __variables -%}
+{% include "console_variable_group_processing.template" -%}
+{% endfor %}
+
+const console_variable_node_t console_variable_table[] = {
+{% for name, node in __variables -%}
+{% if existsIn(node, "type") -%}
+{% if node.type == "ram_struct" %}  SL_CONSOLE_VARIABLE_RAM_STRUCTURE("{{name}}", {{name}}_struct_descriptor, {{node.instance}}),
+{% else if node.type == "variable" %}  SL_CONSOLE_VARIABLE_VARIABLE("{{name}}", &{{node.object}}, {{node.size}}),
+{% endif -%}
+{% else -%}
+  SL_CONSOLE_VARIABLE_GROUP("{{name}}", {{name}}_group),
+{% endif -%}
+{% endfor -%}
+};
+
+const uint32_t console_variable_table_size = sizeof(console_variable_table)/sizeof(console_variable_node_t);

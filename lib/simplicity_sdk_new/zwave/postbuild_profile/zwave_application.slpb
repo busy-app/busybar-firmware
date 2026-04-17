@@ -1,0 +1,32 @@
+parameters:
+  - name: build_dir
+constants:
+  - name: sample_encryption_key
+    value: config/sample_keys/sample_encrypt.key
+  - name: sample_signing_key
+    value: config/sample_keys/sample_sign.key
+steps:
+  # Print usage data
+  - task: "usage"
+    input: "{{build_dir}}/{{project_name}}.out"
+    map: "{{build_dir}}/{{project_name}}.map"
+  # Generate GBL for the application and copy it to the artifact folder
+  - task: create_gbl
+    app: "{{build_dir}}/{{project_name}}.hex"
+    sign: "{{sample_signing_key}}"
+    encrypt: "{{sample_encryption_key}}"
+    compress: lzma
+    output: "{{build_dir}}/{{project_name}}.gbl"
+  # Archive the important files into the artifact folder
+  - task: copy
+    input: "{{build_dir}}/{{project_name}}.s37"
+    output: "artifacts/{{project_name}}.s37"
+    export: application_binary_s37
+  - task: copy
+    input: "{{build_dir}}/{{project_name}}.hex"
+    output: "artifacts/{{project_name}}.hex"
+    export: application_binary_hex
+  - task: copy
+    input: "{{build_dir}}/{{project_name}}.gbl"
+    output: "artifacts/{{project_name}}.gbl"
+    export: application_binary_gbl

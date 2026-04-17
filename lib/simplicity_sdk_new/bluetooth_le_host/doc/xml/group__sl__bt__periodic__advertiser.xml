@@ -1,0 +1,311 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__periodic__advertiser" kind="group">
+    <compoundname>sl_bt_periodic_advertiser</compoundname>
+    <title>Periodic Advertiser</title>
+    <innergroup refid="group__sl__bt__periodic__advertiser__flags">Periodic Advertising Configuration Flags</innergroup>
+    <innergroup refid="group__sl__bt__evt__periodic__advertiser__status">sl_bt_evt_periodic_advertiser_status</innergroup>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="group__sl__bt__periodic__advertiser_1ga8ddb03280f2d65373a405ce20fdbcd18" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_periodic_advertiser_set_data</definition>
+        <argsstring>(uint8_t advertising_set, size_t data_len, const uint8_t *data)</argsstring>
+        <name>sl_bt_periodic_advertiser_set_data</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>advertising_set</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>data_len</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>data</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Set the data for periodic advertising on an advertising set. Maximum 254 bytes of data can be set with this command. For setting longer advertising data, use command <ref refid="group__sl__bt__periodic__advertiser_1gad70b3fd35ebf8e87f78d5ecab0117d4c" kindref="member">sl_bt_periodic_advertiser_set_long_data</ref>.</para>
+<para>If the periodic advertising is currently enabled, the new advertising data will be used immediately. Periodic advertising can be enabled using the command <ref refid="group__sl__bt__periodic__advertiser_1gaf2a2688f53f25df2d1ba12a5f5fafbd3" kindref="member">sl_bt_periodic_advertiser_start</ref>.</para>
+<para>The invalid parameter error will be returned if the data is too long to fit into the advertisement.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">advertising_set</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Advertising set handle </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">data_len</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Length of data in <computeroutput>data</computeroutput> </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">data</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Data to be set</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="3404" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="3404" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__periodic__advertiser_1gad70b3fd35ebf8e87f78d5ecab0117d4c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_periodic_advertiser_set_long_data</definition>
+        <argsstring>(uint8_t advertising_set)</argsstring>
+        <name>sl_bt_periodic_advertiser_set_long_data</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>advertising_set</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Set data for periodic advertising on an advertising set. Data currently in the system data buffer will be extracted as the advertising data. The buffer will be emptied after this command regardless of the completion status.</para>
+<para>Prior to calling this command, add data to the buffer with one or multiple calls to <ref refid="group__sl__bt__system_1ga2e185f6632d32051b0f431ea15abcc3c" kindref="member">sl_bt_system_data_buffer_write</ref>.</para>
+<para>Maximum 1650 bytes of data can be set for periodic advertising. Advertising parameters may limit the amount of data that can be sent.</para>
+<para>See <ref refid="group__sl__bt__periodic__advertiser_1ga8ddb03280f2d65373a405ce20fdbcd18" kindref="member">sl_bt_periodic_advertiser_set_data</ref> for more details.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">advertising_set</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Advertising set handle</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="3427" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="3427" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__periodic__advertiser_1gaf2a2688f53f25df2d1ba12a5f5fafbd3" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_periodic_advertiser_start</definition>
+        <argsstring>(uint8_t advertising_set, uint16_t interval_min, uint16_t interval_max, uint32_t flags)</argsstring>
+        <name>sl_bt_periodic_advertiser_start</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>advertising_set</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>interval_min</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>interval_max</declname>
+        </param>
+        <param>
+          <type>uint32_t</type>
+          <declname>flags</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Start periodic advertising on an advertising set.</para>
+<para>According to the Bluetooth Core specification, periodic advertising PDUs cannot be transmitted until at least one extended advertising event has been completed. If the application needs exact control over the extended advertising data and parameters, use the <ref refid="group__sl__bt__advertiser" kindref="compound">Advertiser</ref> class to configure the parameters of the advertising set and the <ref refid="group__sl__bt__extended__advertiser" kindref="compound">Extended Advertiser</ref> class to set or generate the desired extended advertising data payload. If the application does not configure the parameters or set the data, the default parameters and empty advertising data are used for the extended advertising.</para>
+<para>If the application has not already started extended advertising and the flag <ref refid="group__sl__bt__periodic__advertiser__flags_1ga17c966e284c2b95a771aefe9de0843c8" kindref="member">SL_BT_PERIODIC_ADVERTISER_AUTO_START_EXTENDED_ADVERTISING</ref> is set in <computeroutput>flags</computeroutput>, the stack will automatically start extended advertising with the parameters and extended advertising data currently configured to the advertising set. The application may stop the automatically started extended advertising using the <ref refid="group__sl__bt__advertiser_1gaa21542d22182e08604799e795c90db7b" kindref="member">sl_bt_advertiser_stop</ref> command.</para>
+<para>If the application has not already started extended advertising and the flag <ref refid="group__sl__bt__periodic__advertiser__flags_1ga17c966e284c2b95a771aefe9de0843c8" kindref="member">SL_BT_PERIODIC_ADVERTISER_AUTO_START_EXTENDED_ADVERTISING</ref> is not set in <computeroutput>flags</computeroutput>, the stack will momentarily start extended advertising with the parameters and extended advertising data currently configured to the advertising set. Unless the application starts extended advertising before the first extended advertising event has completed, the stack will automatically stop the momentary extended advertising after the first extended advertising event.</para>
+<para>Periodic advertising PDUs are transmitted on the secondary PHY configured for the advertising set with the <ref refid="group__sl__bt__extended__advertiser_1gac7a6395d280c76bb3396ce6182c9d1ca" kindref="member">sl_bt_extended_advertiser_set_phy</ref> command.</para>
+<para>Use <ref refid="group__sl__bt__periodic__advertiser_1ga862241c104b48e65829ae257fae08bb4" kindref="member">sl_bt_periodic_advertiser_stop</ref> command to stop the periodic advertising.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">advertising_set</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Advertising set handle </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">interval_min</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>Minimum periodic advertising interval. Value in units of 1.25 ms<itemizedlist>
+<listitem><para><bold>Range:</bold> 0x06 to 0xFFFF</para>
+</listitem><listitem><para>Time range: 7.5 ms to 81.92 s</para>
+</listitem><listitem><para><bold>Default</bold> : 100 ms </para>
+</listitem></itemizedlist>
+</para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">interval_max</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>Maximum periodic advertising interval. Value in units of 1.25 ms<itemizedlist>
+<listitem><para><bold>Range:</bold> 0x06 to 0xFFFF</para>
+</listitem><listitem><para>Time range: 7.5 ms to 81.92 s</para>
+</listitem><listitem><para>Note: interval_max should be bigger than interval_min</para>
+</listitem><listitem><para><bold>Default</bold> : 200 ms </para>
+</listitem></itemizedlist>
+</para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">flags</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Additional periodic advertising options. Value: 0 or bitmask of <ref refid="group__sl__bt__periodic__advertiser__flags" kindref="compound">Periodic Advertising Configuration Flags</ref></para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="3489" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="3489" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__periodic__advertiser_1ga862241c104b48e65829ae257fae08bb4" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_periodic_advertiser_stop</definition>
+        <argsstring>(uint8_t advertising_set)</argsstring>
+        <name>sl_bt_periodic_advertiser_stop</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>advertising_set</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Stop the periodic advertising on an advertising set. Counterpart to <ref refid="group__sl__bt__periodic__advertiser_1gaf2a2688f53f25df2d1ba12a5f5fafbd3" kindref="member">sl_bt_periodic_advertiser_start</ref>.</para>
+<para>This command does not affect the enable state of the legacy or extended advertising on the advertising set, i.e., the legacy or extended advertising is not stopped.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">advertising_set</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Advertising set handle</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="3508" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="3508" declcolumn="13"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__periodic__advertiser_1ga6acad6df17ed1afdf5931da38d65ef66" prot="public" static="no">
+        <name>sl_bt_cmd_periodic_advertiser_set_data_id</name>
+        <initializer>0x00580020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="3322" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="3322" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__periodic__advertiser_1ga391338519048b5f9c518b221d8519bd3" prot="public" static="no">
+        <name>sl_bt_cmd_periodic_advertiser_set_long_data_id</name>
+        <initializer>0x01580020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="3323" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="3323" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__periodic__advertiser_1ga95764c1563098b9b3a8b8f2a8aefb980" prot="public" static="no">
+        <name>sl_bt_cmd_periodic_advertiser_start_id</name>
+        <initializer>0x02580020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="3324" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="3324" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__periodic__advertiser_1ga4271be3e739671bf69e7729ff7e5f23a" prot="public" static="no">
+        <name>sl_bt_cmd_periodic_advertiser_stop_id</name>
+        <initializer>0x03580020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="3325" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="3325" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__periodic__advertiser_1ga2b852ea62960afae630f5fe0604d7be8" prot="public" static="no">
+        <name>sl_bt_rsp_periodic_advertiser_set_data_id</name>
+        <initializer>0x00580020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="3326" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="3326" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__periodic__advertiser_1ga7e47991ececf5eef66c04682267a0e68" prot="public" static="no">
+        <name>sl_bt_rsp_periodic_advertiser_set_long_data_id</name>
+        <initializer>0x01580020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="3327" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="3327" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__periodic__advertiser_1ga55f29fcaf354cc3ea4a9f1386e28648e" prot="public" static="no">
+        <name>sl_bt_rsp_periodic_advertiser_start_id</name>
+        <initializer>0x02580020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="3328" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="3328" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__periodic__advertiser_1ga4200a80d03022cd76ea97a12ad958db9" prot="public" static="no">
+        <name>sl_bt_rsp_periodic_advertiser_stop_id</name>
+        <initializer>0x03580020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="3329" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="3329" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Periodic Advertiser. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>Provides support for advertising with periodic advertising trains that do not have subevents or response slots. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

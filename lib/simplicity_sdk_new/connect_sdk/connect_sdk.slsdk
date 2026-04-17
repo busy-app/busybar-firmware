@@ -1,0 +1,13 @@
+# This file provides metadata for the stack directory, as part of ESF.
+id=com.silabs.stack.connect
+label=Connect SDK
+description=Connect Software Development Kit
+
+version=4.2.1
+prop.subLabel=Connect SDK
+
+# General properties are prepended with "prop."
+prop.file.templatesFile=
+prop.file.adapterPacks=
+prop.file.docsFile=
+prop.file.demosFile=

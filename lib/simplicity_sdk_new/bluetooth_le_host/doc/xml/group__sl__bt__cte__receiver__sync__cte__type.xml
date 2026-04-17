@@ -1,0 +1,62 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__cte__receiver__sync__cte__type" kind="group">
+    <compoundname>sl_bt_cte_receiver_sync_cte_type</compoundname>
+    <title>CTE type flags for limiting periodic advertising synchronization</title>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__cte__receiver__sync__cte__type_1ga7b69f0e7ad96b65abc74547ac916ff31" prot="public" static="no">
+        <name>SL_BT_CTE_RECEIVER_DO_NOT_SYNC_TO_AOA</name>
+        <initializer>0x1</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Do not sync to packets with an AoA Constant Tone Extension </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15485" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="15485" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__cte__receiver__sync__cte__type_1ga3ccbac70a40210c65f2c6d174c1fece1" prot="public" static="no">
+        <name>SL_BT_CTE_RECEIVER_DO_NOT_SYNC_TO_AOD_1_US</name>
+        <initializer>0x2</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Do not sync to packets with an AoD Constant Tone Extension with 1 us slots </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15489" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="15489" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__cte__receiver__sync__cte__type_1gaa196b95c785de8c72a2a76be64935875" prot="public" static="no">
+        <name>SL_BT_CTE_RECEIVER_DO_NOT_SYNC_TO_AOD_2_US</name>
+        <initializer>0x4</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Do not sync to packets with an AoD Constant Tone Extension with 2 us slots </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15493" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="15493" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__cte__receiver__sync__cte__type_1gaf66fad44d60a75006b9238d9c7c95504" prot="public" static="no">
+        <name>SL_BT_CTE_RECEIVER_SYNC_TO_CTE_ONLY</name>
+        <initializer>0x10</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Do not sync to packets without a Constant Tone Extension </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15496" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="15496" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para>Defines sync CTE type flags that are used to limit what types of periodic advertisers to sync to when scanning for periodic advertising synchronization or receiving periodic advertising synchronization transfers. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

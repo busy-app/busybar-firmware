@@ -1,0 +1,45 @@
+id: simple_button_core
+label: Simple Button Configuration
+package: platform_core
+description: >
+  The Simple Button Driver provides an implementation of the Generic Button API.
+  This driver supports both active high and low buttons and configurable
+  debouncing.
+
+
+  This component includes only the Simple Button driver. To configure and create
+  instances of this driver, the Simple Button component should be included in the
+  project.
+category: Platform|Driver|Button
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: platform_core/platform/driver/button/
+config_file:
+- path: config/sl_simple_button_config.h
+source:
+- path: src/sl_simple_button.c
+include:
+- path: inc
+  file_list:
+  - path: sl_simple_button.h
+provides:
+- name: simple_button_core
+requires:
+- name: gpio
+- name: clock_manager_runtime
+- name: button
+template_file:
+- path: inst/sl_simple_button_instances.c.jinja
+- path: inst/sl_simple_button_instances.h.jinja
+template_contribution:
+- condition: [simple_button]
+  name: event_handler
+  value:
+    event: driver_init
+    include: sl_simple_button_instances.h
+    handler: sl_simple_button_init_instances
+documentation:
+  docset: gecko-platform
+  document: platform-driver/simple-button

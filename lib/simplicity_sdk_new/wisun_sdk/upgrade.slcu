@@ -1,0 +1,88 @@
+upgrade:
+  - sdk:
+      id: simplicity_sdk
+      version: "2024.12.0"
+    component:
+      - trigger: sl_iperf_cli
+        description: >
+          The sl_iperf_cli component has been deprecated and merged into the new sl_wisun_cli component for better CLI management.
+        remove:
+          - sl_iperf_cli
+        add:
+          - sl_wisun_cli
+      - trigger: sl_wisun_app_cli
+        description: >
+          The sl_wisun_app_cli component has been deprecated and merged into the new sl_wisun_cli component for better CLI management.
+        remove:
+          - sl_wisun_app_cli
+        add:
+          - sl_wisun_cli
+      - trigger: sl_wisun_app_status_cli
+        description: >
+          The sl_wisun_app_status_cli component has been deprecated and merged into the new sl_wisun_cli component for better CLI management.
+        remove:
+          - sl_wisun_app_status_cli
+        add:
+          - sl_wisun_cli
+      - trigger: sl_wisun_cli_util_cli
+        description: >
+          The sl_wisun_cli_util_cli component has been deprecated and merged into the new sl_wisun_cli component for better CLI management.
+        remove:
+          - sl_wisun_cli_util_cli
+        add:
+          - sl_wisun_cli
+      - trigger: sl_wisun_collector_cli
+        description: >
+          The sl_wisun_collector_cli component has been deprecated and merged into the new sl_wisun_cli component for better CLI management.
+        remove:
+          - sl_wisun_collector_cli
+        add:
+          - sl_wisun_cli
+      - trigger: sl_wisun_network_measurement_cli
+        description: >
+          The sl_wisun_network_measurement_cli component has been deprecated and merged into the new sl_wisun_cli component for better CLI management.
+        remove:
+          - sl_wisun_network_measurement_cli
+        add:
+          - sl_wisun_cli
+      - trigger: sl_wisun_ota_dfu_cli
+        description: >
+          The sl_wisun_ota_dfu_cli component has been deprecated and merged into the new sl_wisun_cli component for better CLI management.
+        remove:
+          - sl_wisun_ota_dfu_cli
+        add:
+          - sl_wisun_cli
+      - trigger: sl_wisun_ping_cli
+        description: >
+          The sl_wisun_ping_cli component has been deprecated and merged into the new sl_wisun_cli component for better CLI management.
+        remove:
+          - sl_wisun_ping_cli
+        add:
+          - sl_wisun_cli
+      - trigger: sl_wisun_tcp_client_cli
+        description: >
+          The sl_wisun_tcp_client_cli component has been deprecated and merged into the new sl_wisun_cli component for better CLI management.
+        remove:
+          - sl_wisun_tcp_client_cli
+        add:
+          - sl_wisun_cli
+      - trigger: sl_wisun_udp_client_cli
+        description: >
+          The sl_wisun_udp_client_cli component has been deprecated and merged into the new sl_wisun_cli component for better CLI management.
+        remove:
+          - sl_wisun_udp_client_cli
+        add:
+          - sl_wisun_cli
+    configuration:
+      - name: SL_FTP_CLNT_AUTH_DEFAUL_HOST
+        replacement: SL_FTP_CLNT_AUTH_DEFAULT_HOST
+        description: >
+          Typo: the SL_FTP_CLNT_AUTH_DEFAUL_HOST configuration has been renamed to SL_FTP_CLNT_AUTH_DEFAULT_HOST.
+      - name: SL_WISUN_LED_PERIOD_CONTINOUS_SIGNAL
+        replacement: SL_WISUN_LED_PERIOD_CONTINUOUS_SIGNAL
+        description: >
+          Typo: the SL_WISUN_LED_PERIOD_CONTINOUS_SIGNAL configuration has been renamed to SL_WISUN_LED_PERIOD_CONTINUOUS_SIGNAL.
+      - name: SL_WISUN_APP_STATUS_DEFAULT_NOTIFCATION_ID
+        replacement: SL_WISUN_APP_STATUS_DEFAULT_NOTIFICATION_ID
+        description: >
+          Typo: the SL_WISUN_APP_STATUS_DEFAULT_NOTIFCATION_ID configuration has been renamed to SL_WISUN_APP_STATUS_DEFAULT_NOTIFICATION_ID.

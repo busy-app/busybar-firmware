@@ -1,0 +1,32 @@
+id: cs_antenna
+package: bluetooth_le_middleware
+label: CS Antenna
+description: >
+  Channel Sounding (CS) Antenna manages CS antenna offset settings.
+category: Bluetooth|Application|Miscellaneous
+metadata:
+  sbom:
+    license: Zlib
+quality: production
+root_path: bluetooth_le_middleware/common/cs_antenna
+include:
+- path: .
+  file_list:
+  - path: cs_antenna.h
+source:
+- path: cs_antenna.c
+  condition:
+  - device_cortexm
+- path: cs_antenna_ncp.c
+  condition:
+  - device_host
+provides:
+- name: cs_antenna
+requires:
+- name: rail_util_ble_cs
+  condition:
+  - device_cortexm
+- name: bluetooth_api
+documentation:
+  docset: bluetooth
+  document: bluetooth-service-api/cs-antenna

@@ -1,0 +1,59 @@
+id: spidrv_usart
+package: platform_core
+label: SPIDRV USART
+description: >
+  The SPI USART driver sets up the USART for SPI communication and supports
+  both master and slave roles. Both blocking and interrupt driven asynchrounous
+  APIs are provided for transmit and receive operations.
+
+
+  This component is instantiable, meaning that several named instances can be
+  created. For each instance a configuration is generated along with an
+  initialization struct set according to this configuration. These instance
+  defines and variables are available in a generated header file,
+  sl_spidrv_instances.h.
+
+
+  If the Services->Runtime->sl_main component is included in a project,
+  the default instance will be initialized automatically, using the default
+  instance configuration, during the sli_main_second_stage_init() call in
+  sl_main_init.c or by the start task of the RTOS if the project uses an RTOS.
+
+  DEPRECATED
+  If the Services->Runtime->System Setup->System Init component is included in
+  a project, the driver instances will be initialized automatically, using the
+  instance configurations, during the sl_system_init() call in main.c.
+
+
+  Selecting this component will also include the SPIDRV Core component, which is
+  the implementation of the SPI driver itself.
+category: Platform|Driver|SPI
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: platform_core/platform/emdrv/spidrv
+instantiable:
+  prefix: inst
+config_file:
+- path: config/usart/s2/sl_spidrv_usart_{{instance}}_config.h
+  file_id: spidrv_usart_config
+  condition: [device_series_2]
+validation_helper:
+- path: script/spidrv_usart_validation.lua
+provides:
+- name: spidrv_instance
+  allow_multiple: true
+- name: spidrv_usart
+  allow_multiple: true
+requires:
+- name: spidrv_core
+- name: device_has_usart
+template_contribution:
+- name: component_catalog
+  value: spidrv_usart
+- name: spidrv_usart_instances
+  value: '{{instance}}'
+documentation:
+  docset: gecko-platform
+  document: platform-driver/spidrv

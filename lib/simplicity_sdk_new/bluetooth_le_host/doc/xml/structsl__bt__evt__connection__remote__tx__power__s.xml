@@ -1,0 +1,117 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="structsl__bt__evt__connection__remote__tx__power__s" kind="struct" language="C++" prot="public">
+    <compoundname>sl_bt_evt_connection_remote_tx_power_s</compoundname>
+    <includes refid="sl__bt__api_8h" local="no">sl_bt_api.h</includes>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structsl__bt__evt__connection__remote__tx__power__s_1a6e0ffc85e1fe32d5e3544ad2b6a1f33e" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_connection_remote_tx_power_s::connection</definition>
+        <argsstring></argsstring>
+        <name>connection</name>
+        <qualifiedname>sl_bt_evt_connection_remote_tx_power_s::connection</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Handle of the connection </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6677" column="11" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6677" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__connection__remote__tx__power__s_1acf1ed9f4febf4a484b14f73c2dcb514a" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_connection_remote_tx_power_s::phy</definition>
+        <argsstring></argsstring>
+        <name>phy</name>
+        <qualifiedname>sl_bt_evt_connection_remote_tx_power_s::phy</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Enum <ref refid="group__sl__bt__gap_1ga1644548686ce4cbe4ff0c55b5760c24d" kindref="member">sl_bt_gap_phy_coding_t</ref>. The PHY which the transmit power is reported for. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_gap_phy_coding_1m_uncoded (0x1):</bold> 1M PHY</para>
+</listitem><listitem><para><bold>sl_bt_gap_phy_coding_2m_uncoded (0x2):</bold> 2M PHY</para>
+</listitem><listitem><para><bold>sl_bt_gap_phy_coding_125k_coded (0x4):</bold> 125k Coded PHY (S=8)</para>
+</listitem><listitem><para><bold>sl_bt_gap_phy_coding_500k_coded (0x8):</bold> 500k Coded PHY (S=2) </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6678" column="11" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6678" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__connection__remote__tx__power__s_1aed9ffabfdbfdf52f16333c71a2879ebd" prot="public" static="no" mutable="no">
+        <type>int8_t</type>
+        <definition>int8_t sl_bt_evt_connection_remote_tx_power_s::power_level</definition>
+        <argsstring></argsstring>
+        <name>power_level</name>
+        <qualifiedname>sl_bt_evt_connection_remote_tx_power_s::power_level</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Transmit power level in dBm. Values:<itemizedlist>
+<listitem><para><bold>Range:</bold> -127 to +20</para>
+</listitem><listitem><para><bold><ref refid="group__sl__bt__connection__tx__power__const_1gae560733d11bda2eada9aa81a810bfa6b" kindref="member">SL_BT_CONNECTION_TX_POWER_UNMANAGED</ref> (0x7E):</bold> Remote device is not managing power levels on this PHY.</para>
+</listitem><listitem><para><bold><ref refid="group__sl__bt__connection__tx__power__const_1gac9f8c677a74eeba96ff3314126676696" kindref="member">SL_BT_CONNECTION_TX_POWER_UNAVAILABLE</ref> (0x7F):</bold> Transmit power level is not available. </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6688" column="11" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6688" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__connection__remote__tx__power__s_1a7b46200755112b7501f2de64c1e5534e" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_connection_remote_tx_power_s::flags</definition>
+        <argsstring></argsstring>
+        <name>flags</name>
+        <qualifiedname>sl_bt_evt_connection_remote_tx_power_s::flags</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Enum <ref refid="group__sl__bt__connection_1ga817c9d6f24d206939cbd02f82c1313a7" kindref="member">sl_bt_connection_tx_power_flag_t</ref>. Transmit power level flags. Ignore this field if <computeroutput>power_level</computeroutput> is set to 0x7E or 0x7F. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_connection_tx_power_flag_none (0x0):</bold> No flag is defined for the reported TX power level</para>
+</listitem><listitem><para><bold>sl_bt_connection_tx_power_at_minimum (0x1):</bold> Transmit power level is at minimum level.</para>
+</listitem><listitem><para><bold>sl_bt_connection_tx_power_at_maximum (0x2):</bold> Transmit power level is at maximum level. </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6697" column="11" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6697" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__connection__remote__tx__power__s_1aefdc9c4e082ddcaca14367042e22ab2a" prot="public" static="no" mutable="no">
+        <type>int8_t</type>
+        <definition>int8_t sl_bt_evt_connection_remote_tx_power_s::delta</definition>
+        <argsstring></argsstring>
+        <name>delta</name>
+        <qualifiedname>sl_bt_evt_connection_remote_tx_power_s::delta</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Change in transmit power level. Values:<itemizedlist>
+<listitem><para><bold><ref refid="group__sl__bt__connection__tx__power__const_1ga28042379ab79e0db0e1ff52364ce5973" kindref="member">SL_BT_CONNECTION_TX_POWER_CHANGE_UNAVAILABLE</ref> (0x7F):</bold> Change is not available or is out of range.</para>
+</listitem><listitem><para><bold>Other values:</bold> positive indicates increased power, negative indicates decreased power, and zero indicates unchanged. Units: dB </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6709" column="11" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6709" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Data structure of the remote_tx_power event. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6675" column="1" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6676" bodyend="6717"/>
+    <listofallmembers>
+      <member refid="structsl__bt__evt__connection__remote__tx__power__s_1a6e0ffc85e1fe32d5e3544ad2b6a1f33e" prot="public" virt="non-virtual"><scope>sl_bt_evt_connection_remote_tx_power_s</scope><name>connection</name></member>
+      <member refid="structsl__bt__evt__connection__remote__tx__power__s_1aefdc9c4e082ddcaca14367042e22ab2a" prot="public" virt="non-virtual"><scope>sl_bt_evt_connection_remote_tx_power_s</scope><name>delta</name></member>
+      <member refid="structsl__bt__evt__connection__remote__tx__power__s_1a7b46200755112b7501f2de64c1e5534e" prot="public" virt="non-virtual"><scope>sl_bt_evt_connection_remote_tx_power_s</scope><name>flags</name></member>
+      <member refid="structsl__bt__evt__connection__remote__tx__power__s_1acf1ed9f4febf4a484b14f73c2dcb514a" prot="public" virt="non-virtual"><scope>sl_bt_evt_connection_remote_tx_power_s</scope><name>phy</name></member>
+      <member refid="structsl__bt__evt__connection__remote__tx__power__s_1aed9ffabfdbfdf52f16333c71a2879ebd" prot="public" virt="non-virtual"><scope>sl_bt_evt_connection_remote_tx_power_s</scope><name>power_level</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

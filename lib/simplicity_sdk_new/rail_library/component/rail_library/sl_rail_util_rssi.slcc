@@ -1,0 +1,95 @@
+id: sl_rail_util_rssi
+label: RAIL Utility, RSSI (RAIL 3)
+description: Utility to aid with Received Signal Strength Indicator (RSSI) Support
+package: rail_library
+category: Platform|Radio
+quality: production
+metadata:
+  sbom:
+    id: sl_rail_util_rssi
+    name: RAIL Utility, RSSI (RAIL 3)
+    license: Zlib
+documentation:
+  docset: rail
+  document: rail-api/rail-util-rssi
+provides:
+- name: sl_rail_util_rssi
+- name: rail_util_rssi
+requires:
+- name: rail_lib
+- name: status
+- name: component_catalog
+config_file:
+- path: plugin/sl_rail_util_rssi/config/efr32xg21/sl_rail_util_rssi_config.h
+  condition:
+  - device_series_2
+  - device_sdid_200
+  file_id: rail_util_rssi_config
+- path: plugin/sl_rail_util_rssi/config/efr32xg22/sl_rail_util_rssi_config.h
+  condition:
+  - device_series_2
+  - device_sdid_205
+  file_id: rail_util_rssi_config
+- path: plugin/sl_rail_util_rssi/config/efr32xg23/sl_rail_util_rssi_config.h
+  condition:
+  - device_series_2
+  - device_sdid_210
+  file_id: rail_util_rssi_config
+- path: plugin/sl_rail_util_rssi/config/efr32xg24/sl_rail_util_rssi_config.h
+  condition:
+  - device_series_2
+  - device_sdid_215
+  file_id: rail_util_rssi_config
+- path: plugin/sl_rail_util_rssi/config/efr32xg25/sl_rail_util_rssi_config.h
+  condition:
+  - device_series_2
+  - device_sdid_220
+  file_id: rail_util_rssi_config
+- path: plugin/sl_rail_util_rssi/config/efr32xg26/sl_rail_util_rssi_config.h
+  condition:
+  - device_series_2
+  - device_sdid_225
+  file_id: rail_util_rssi_config
+- path: plugin/sl_rail_util_rssi/config/efr32xg27/sl_rail_util_rssi_config.h
+  condition:
+  - device_series_2
+  - device_sdid_230
+  file_id: rail_util_rssi_config
+- path: plugin/sl_rail_util_rssi/config/efr32xg28/sl_rail_util_rssi_config.h
+  condition:
+  - device_series_2
+  - device_sdid_235
+  file_id: rail_util_rssi_config
+- path: plugin/sl_rail_util_rssi/config/efr32xg29/sl_rail_util_rssi_config.h
+  condition:
+  - device_series_2
+  - device_sdid_240
+  file_id: rail_util_rssi_config
+- path: plugin/sl_rail_util_rssi/config/efr32xg2d/sl_rail_util_rssi_config.h
+  condition:
+  - device_series_2
+  - device_sdid_260
+  file_id: rail_util_rssi_config
+- path: plugin/sl_rail_util_rssi/config/sixg301/sl_rail_util_rssi_config.h
+  condition:
+  - device_series_3
+  - device_generic_family_sixx301
+  file_id: rail_util_rssi_config
+include:
+- path: plugin/sl_rail_util_rssi
+  file_list:
+  - path: sl_rail_util_rssi.h
+source:
+- path: plugin/sl_rail_util_rssi/sl_rail_util_rssi.c
+template_contribution:
+- name: event_handler
+  value:
+    event: stack_init
+    include: sl_rail_util_rssi.h
+    handler: sl_rail_util_rssi_init
+  priority: -9010   # Must be called before sl_rail_util_init
+- name: component_catalog
+  value: sl_rail_util_rssi
+- name: component_catalog
+  value: rail_util_rssi
+root_path: rail_library

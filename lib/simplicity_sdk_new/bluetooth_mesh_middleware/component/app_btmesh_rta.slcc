@@ -1,0 +1,41 @@
+id: "app_btmesh_rta"
+label: "Btmesh Runtime Adaptor (RTA)"
+package: bluetooth_mesh_middleware
+description: >
+  Bluetooth Mesh Application Runtime Adaptor (RTA) provides a central resource
+  guarding service for Bluetooth Mesh SDK App components. Component guard
+  functions offer an abstraction layer for resource protection in baremetal
+  or RTOS systems, so the components can be system-agnostic (baremetal, RTOS).
+  BT Mesh RTA utilizes the Application Runtime Adaptor (app_rta) component to hide the
+  differences between RTOS and baremetal systems. Consequently, the guard
+  is implemented by a single mutex under RTOS, and it is NOP for baremetal
+  projects.
+category: "Bluetooth Mesh|Utility"
+quality: "production"
+ui_hints:
+  visibility: never
+metadata:
+  sbom:
+    license: Zlib
+root_path: "bluetooth_mesh_middleware/common/app_btmesh_rta"
+config_file:
+- path: "config/app_btmesh_rta_config.h"
+include:
+- path: "inc"
+  file_list:
+  - path: "app_btmesh_rta.h"
+  - path: "app_btmesh_rta_internal.h"
+source:
+- path: "src/app_btmesh_rta.c"
+provides:
+- name: "app_btmesh_rta"
+requires:
+- name: "app_rta"
+- name: "app_assert"
+- name: "component_catalog"
+- name: "status"
+template_contribution:
+- name: app_rta_init
+  value:
+    include: app_btmesh_rta.h
+    handler: _app_btmesh_rta_init

@@ -1,0 +1,82 @@
+project_name: wifi_enterprise_client_ncp
+package: wifi_app
+quality: production
+label: Wi-Fi - Enterprise Client Mode (NCP)
+category: Example|Wi-Fi
+description: 'Start a Wi-Fi Access Point with WPA2 Enterprise security
+
+  '
+filter:
+- name: Wireless Technology
+  value:
+  - Wi-Fi
+- name: Project Difficulty
+  value:
+  - Beginner
+source:
+- path: app.c
+include:
+- path: .
+  file_list:
+  - path: app.h
+define:
+- name: SL_SI91X_PRINT_DBG_LOG
+component:
+- id: sl_main
+- id: freertos
+- id: freertos_heap_4
+- id: device_init
+- id: spidrv
+  instance:
+  - exp
+- id: iostream_retarget_stdio
+- id: iostream_recommended_stream
+- id: iostream_stdlib_config
+- id: wiseconnect_common
+- id: wifi
+- id: sl_si91x_internal_stack
+- id: sl_si91x_spi_bus
+- id: wifi_resources
+- id: network_manager
+- id: basic_network_config_manager
+- id: sl_si91x_basic_buffers
+toolchain_settings:
+- option: gcc_compiler_option
+  value: -Wall -Werror
+configuration:
+- name: SL_BOARD_ENABLE_VCOM
+  value: '1'
+- name: configUSE_POSIX_ERRNO
+  value: '1'
+- name: configTOTAL_HEAP_SIZE
+  value: '51200'
+- name: configTIMER_TASK_PRIORITY
+  value: '55'
+- name: NVM3_DEFAULT_MAX_OBJECT_SIZE
+  value: '280'
+readme:
+- path: readme.md
+other_file:
+- path: resources/readme/application_prints.png
+- path: resources/readme/certs_path1.png
+- path: resources/readme/certs_path2.png
+- path: resources/readme/eap_credentials.png
+- path: resources/readme/eap_exchanges.png
+- path: resources/readme/eap_fragment_size.png
+- path: resources/readme/eap_type.png
+- path: resources/readme/lan_ip.png
+- path: resources/readme/radius_server.png
+- path: resources/readme/setup_soc_ncp.png
+- path: resources/readme/wpa2_eap.png
+ui_hints:
+  highlight:
+  - path: readme.md
+    focus: true
+sdk_extension:
+- id: wiseconnect3_sdk
+  vendor: silabs
+  version: 4.0.1
+sdk:
+  id: simplicity_sdk
+  vendor: silabs
+  version: 2025.12.2

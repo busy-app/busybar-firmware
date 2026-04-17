@@ -1,0 +1,22 @@
+id: test_framework_unity_fixture
+label: Unity test framework fixture component
+package: unity_test_framework
+category: Third Party|Unity
+quality: production
+metadata:
+  sbom:
+    license: MIT
+description: Unity unit test framework - fixture component
+source:
+- path: src/unity_fixture.c
+include:
+- path: src
+  file_list:
+  - path: unity_fixture.h
+  - path: unity_fixture_internals.h
+provides:
+- name: test_framework_unity_fixture
+requires:
+- name: test_framework_unity
+- name: test_framework_unity_memory
+root_path: unity_test_framework/extras/fixture

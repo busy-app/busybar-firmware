@@ -1,0 +1,432 @@
+label: Compliance
+quality: evaluation
+id: zigbee_r23_zcp_test_support
+package: zigbee
+category: Zigbee|Compliance
+ui_hints:
+  visibility: never
+description: CLI commands and components for running R23 compliance testing
+
+provides:
+- name: zigbee_r23_zcp_test_support
+
+requires:
+- name: zigbee_pro_compliance
+- name: zigbee_r23_support
+- name: zigbee_dynamic_commissioning
+
+source:
+- path: app/test/sl_zigbee_r23_zcp_test_support.c
+
+template_contribution:
+- name: component_catalog
+  value: zigbee_r23_zcp_test_support
+- name: zigbee_af_callback
+  value:
+    callback_type: init_done
+    function_name: sl_zigbee_r23_gu_init
+- name: cli_command
+  value:
+    name: r23_enable
+    handler: enable_r23_features_command
+    help: toggles stack support for R23 features
+    argument:
+    - type: uint8opt
+      help: optional boolean indicating state of the toggle (default true)
+- name: cli_command
+  value:
+    name: tclk_update
+    handler: initiate_tclk_update
+    help: 'Sends Node Descriptor Request to then trigger TC Link Key Update upon response (param 1: max attempts).'
+    argument:
+    - type: uint16opt
+      help: the number of retries to attempt
+- name: cli_command
+  value:
+    name: start_dlk
+    handler: start_key_negotiation
+    help: Kicks off dynamic link key negotiation process
+    argument:
+    - type: uint16
+      help: Partner device short ID
+    - type: hex
+      help: Partner device long ID
+    - type: uint8
+      help: Selected DLK negotiation method
+    - type: uint8
+      help: Selected DLK negotiation secret source
+- name: cli_command
+  value:
+    name: start_key_update
+    handler: start_key_update_command
+    help: generates a 'ZDO start key update' request
+    argument:
+    - type: uint16
+      help: target short ID (long ID lookup is performed)
+    - type: uint8
+      help: selected key negotiation method enum
+    - type: uint8
+      help: selected pre-shared secret key
+- name: cli_command
+  value:
+    name: retrieve_auth_token
+    handler: retrieve_auth_token_command
+    help: generates an 'Authentication token' request
+    argument:
+    - type: uint16
+      help: target short ID
+- name: cli_group
+  value:
+    name: zdo_config
+    help: Get and set ZDO configuration
+- name: cli_command
+  value:
+    group: zdo_config
+    name: get
+    handler: zdo_get_configuration_handler
+    help: Get the current ZDO configuration
+    argument:
+    - type: uint16
+      help: target short ID
+    - type: uint8
+      help: use aps encryption
+    - type: uint8
+      help: tag ID
+    - type: uint8opt
+      help: one or more tag ID
+- name: cli_command
+  value:
+    group: zdo_config
+    name: add
+    handler: zdo_add_configuration_handler
+    help: Set the provided ZDO configuration
+    argument:
+    - type: uint8
+      help: tag ID
+    - type: hex
+      help: Config value
+- name: cli_command
+  value:
+    group: zdo_config
+    name: send
+    handler: zdo_set_send_configuration_handler
+    help: Set the provided ZDO configuration
+    argument:
+    - type: uint16
+      help: target short ID
+    - type: uint8
+      help: use aps encryption
+- name: cli_group
+  value:
+    name: dlk_overrides
+    help: override values for selecting and supporting dlk
+- name: cli_command
+  value:
+    group: dlk_overrides
+    name: supported_methods
+    handler: set_dlk_override_supported_methods
+    help: select list of bits to enable in the supported DLK parameters bitmasks
+    argument:
+    - type: uint8opt
+      help: supported key negotiation method bits to enable. no inputs means return to default
+- name: cli_command
+  value:
+    group: dlk_overrides
+    name: supported_secrets
+    handler: set_dlk_override_supported_secrets
+    help: select list of bits to enable in the supported DLK parameters bitmasks
+    argument:
+    - type: uint8opt
+      help: supported shared secret bits to enable. no inputs means return to default
+- name: cli_command
+  value:
+    group: dlk_overrides
+    name: select
+    handler: set_dlk_override_selected_parameters
+    help: determines precisely which parameters will be selected for dlk
+    argument:
+    - type: uint8
+      help: selected key negotiation method
+    - type: uint8
+      help: selected shared secret
+- name: cli_command
+  value:
+    group: dlk_overrides
+    name: psk
+    handler: set_dlk_override_psk
+    help: sets the data which will be used for pre-shared key
+    argument:
+    - type: hexopt
+      help: key data to use. empty input clears override
+- name: cli_command
+  value:
+    group: dlk_overrides
+    name: toggle
+    handler: toggle_dlk_enabled
+    help: toggles support DLK related functionality
+    argument:
+    - type: uint8opt
+      help: optional boolean indicating whether DLK is enabled. defaults to inverting the current setting
+- name: cli_command
+  value:
+    group: dlk_overrides
+    name: negative
+    handler: setup_dlk_negative_testcase
+    help: selects between various negative test case behaviors
+    argument:
+    - type: uint8opt
+      help: optional enum corresponding to the test case. no argument clears negative behavior
+- name: cli_command
+  value:
+    name: decommission_devices
+    handler: start_zdo_decommission_device_command
+    help: generates a 'Security Decommission' request
+    argument:
+    - type: uint16
+      help: target short ID
+    - type: uint8
+      help: use aps encryption
+    - type: hexopt
+      help: One or more number of EUI64s of devices that need to be decommisioned
+- name: cli_command
+  value:
+    name: drop_acks
+    handler: set_ignore_acks_command
+    help: gu behavior for dropping incoming aps acks
+    argument:
+    - type: uint8
+      help: boolean indicating whether acks will be dropped
+- name: cli_command
+  value:
+    name: route_disc_tlv
+    handler: send_route_discovery_with_tlvs
+    help: sends a special route discovery message with mfg specific tlvs appended
+    argument:
+    - type: uint16
+      help: destination short id
+- name: cli_command
+  value:
+    name: clear_all_bindings
+    handler: send_clear_all_bindings_command
+    help: Sends a Clear Bindings command for given set of EUI64s
+    argument:
+    - type: uint16
+      help: target short id
+    - type: uint8
+      help: use aps encryption
+    - type: hexopt
+      help: One or more number of EUI64s of devices to purge their bindings
+- name: cli_command
+  value:
+    name: beacon_survey
+    handler: beacon_survey_command
+    help: generates an 'Beacon Survey' request
+    argument:
+    - type: uint16
+      help: target short ID
+    - type: uint32
+      help: channel page mask
+    - type: uint8
+      help: scan config mask
+- name: cli_command
+  value:
+    name: tc_backup_restore
+    handler: tc_backup_restore
+    help: Simulates a backup and restore on TC node by removing all the data except the authentication tokens, hashed link keys in respective key slots and finally changing its EUI64 to 0xbbbbbbbbbbbbbbbb.
+- name: cli_command
+  value:
+    name: override_auth_level
+    handler: set_override_auth_level_methods
+    help: sets initial join method and link key update method authentication levels
+    argument:
+    - type: uint8
+      help: initial join method
+    - type: uint8
+      help: link key update method
+- name: cli_command
+  value:
+    name: get_auth_level
+    handler: get_auth_level_command
+    help: sends get authentication level request to desired device
+    argument:
+    - type: uint16
+      help: short ID where to send request
+    - type: hex
+      help: EUI64 of device being queried
+    - type: uint16opt
+      help: optional APS encryption level (32 for APS_ENCRYTPTION)
+- name: cli_command
+  value:
+    name: fc_sync
+    handler: aps_key_sync_status_command
+    help: gets and sets the sync status of the APS link key
+    argument:
+    - type: uint8
+      help: the index of the key to verify
+    - type: uint32opt
+      help: set sync status, set frame counter
+- name: cli_command
+  value:
+    name: security_challenge
+    handler: send_security_challenge_command
+    help: 'sends a security challenge command, [optional: key]'
+    argument:
+    - type: uint16
+      help: target short ID
+    - type: uint8
+      help: options for GU test behavior (use 0 otherwise)
+    - type: hexopt
+      help: Either the 16-byte key data to use as challenge base key, or the target's EUI64 (in which case the link key with target is fetched to use as challenge base key).  Argument is required if target is not the TC.
+- name: cli_command
+  value:
+    name: change_challenge_rsp_tlv
+    handler: update_challenge_rsp_tlv
+    help: change tlv contents of challenge rsp
+    argument:
+    - type: uint8
+      help: Turn GU test on/off for checking behavior of invalid challenge response TLV (set to 1 if testing this behavior, 0 for normal operation)
+- name: cli_command
+  value:
+    name: aps_fc_verify
+    handler: aps_frame_counter_verify_command
+    help: Enable or disable frame counter verification
+    argument:
+    - type: uint8
+      help: boolean (1 = enable, 0 = disable)
+- name: cli_group
+  value:
+    name: interview
+    help: grouping for interview commands
+- name: cli_command
+  value:
+    group: interview
+    name: enable
+    handler: sl_device_interview_control_command
+    help: enables the device interview scenario
+    argument:
+    - type: uint8
+      help: boolean to enable(1) or disable(0) device interview
+- name: cli_command
+  value:
+    name: double_relays
+    handler: enable_aps_relay_duplication_command
+    help: enables special GU behavior for sending multiple copies of relay frames
+    argument:
+    - type: uint8
+      help: boolean to enable(1) or disable(0) sending duplicate relay frames
+  # duplicate / compatibility commands
+- name: cli_command
+  value:
+    name: export_tc_backup_data
+    handler: exportTcBackupData
+    help: prints the TC backup data in a format that can be used to restore the TC node
+- name: cli_command
+  value:
+    name: get_auth_token
+    handler: sendZdoGetAuthTokenCommand
+    argument:
+    - type: uint16
+      help: target short ID
+    - type: uint8
+      help: use aps encryption
+- name: cli_command
+  value:
+    name: set_auth_level
+    handler: set_override_auth_level_methods
+    help: sets the manual override for authentication level
+    argument:
+    - type: uint8
+      help: join method
+    - type: uint8
+      help: update method
+- name: cli_command
+  value:
+    name: dlk_psk
+    handler: setDlkPskSecretValue
+    help: sets the pre-shared secret for authenticated dlk
+    argument:
+    - type: hexopt
+- name: cli_command
+  value:
+    name: negative_dlk
+    handler: setup_dlk_negative_testcase
+    help: enables different negative test case scenarios for dlk
+    argument:
+    - type: uint8
+      help: enumerated value of negative testcase (refer to 'DlkTestCaseScenario')
+- name: cli_command
+  value:
+    name: set_beacon_params
+    handler: setBeaconParameters
+    help: sets various beacon parameters
+    argument:
+    - type: uint8opt
+      help: hub connectivity, long uptime, preferred parent, network update id
+- name: cli_command
+  value:
+    name: survey_beacons
+    handler: sendZdoBeaconSurveyCommand
+    help: sends a beacon survey request to the given node using a 1-byte config mask and a 4-byte scan config
+    argument:
+    - type: uint16
+      help: destination short id
+    - type: uint8
+      help: config mask
+    - type: uint32
+      help: channel mask
+- name: cli_command
+  value:
+    name: relay_dups
+    handler: enable_aps_relay_duplication_command
+    help: enable or disable gu behavior to test duplicate rejection of relay frames
+    argument:
+    - type: uint8
+      help: boolean indicating whether or not duplicate relay frames should be generated
+- name: cli_command
+  value:
+    name: tx_power_rel
+    handler: set_relative_tx_power
+    help: sets the transmit power by a relative offset in db
+    argument:
+    - type: int8
+      help: increments the tx power by that many db
+- name: cli_command
+  value:
+    name: tx_power_fix
+    handler: set_tx_power
+    help: sets the transmit power to a specified value in db
+    argument:
+    - type: int32
+      help: the tx power in decibels
+- name: cli_command
+  value:
+    name: beacon_tlvs_disable
+    handler: disableBeaconTlvsCommand
+    help: toggles whether tlvs are included in beacons
+    argument:
+    - type: uint8
+      help: boolean (0 = false)
+- name: cli_command
+  value:
+    name: disable_dlk
+    handler: disableDlkBehaviors
+    help: toggles a number of features related to performing dynamic link key negotiation
+    argument:
+    - type: uint8
+      help: boolean (0 = false)
+- name: cli_command
+  value:
+    name: send_decommission
+    handler: start_zdo_decommission_device_command
+    help: Sends a Security Decommission command from the TC
+    argument:
+    - type: uint16
+      help: short id destination
+    - type: uint8
+      help: determines whether or not the zdo command is sent with encryption
+    - type: hexopt
+      help: one or more eui64s to send in 'decomission' notification
+metadata:
+  sbom:
+    license: MSLA
+root_path: zigbee

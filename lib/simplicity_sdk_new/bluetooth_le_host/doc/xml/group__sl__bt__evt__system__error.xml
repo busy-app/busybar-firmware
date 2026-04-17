@@ -1,0 +1,43 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__evt__system__error" kind="group">
+    <compoundname>sl_bt_evt_system_error</compoundname>
+    <title>sl_bt_evt_system_error</title>
+    <innerclass refid="structsl__bt__evt__system__error__s" prot="public">sl_bt_evt_system_error_s</innerclass>
+      <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="group__sl__bt__evt__system__error_1gaf63054ad7b11697626108ade80b74729" prot="public" static="no">
+        <type>struct <ref refid="structsl__bt__evt__system__error__s" kindref="compound">sl_bt_evt_system_error_s</ref></type>
+        <definition>typedef struct sl_bt_evt_system_error_s sl_bt_evt_system_error_t</definition>
+        <argsstring></argsstring>
+        <name>sl_bt_evt_system_error_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="1050" column="39" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="1050" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__evt__system__error_1gabb9f5887fe37a7246c9e9b1b2b47b2e4" prot="public" static="no">
+        <name>sl_bt_evt_system_error_id</name>
+        <initializer>0x060100a0</initializer>
+        <briefdescription>
+<para>Identifier of the error event. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="1039" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="1039" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Indicates that an error has occurred. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>See error codes table for more information. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

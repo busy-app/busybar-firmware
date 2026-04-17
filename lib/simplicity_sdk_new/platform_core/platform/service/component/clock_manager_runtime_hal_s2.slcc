@@ -1,0 +1,29 @@
+id: clock_manager_runtime_hal_s2
+label: Clock Manager Runtime HAL Series 2
+package: platform_core
+description: >
+  Series 2 HAL for Clock Manager Runtime part
+category: Services|Clock Manager
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+ui_hints:
+  visibility: never
+provides:
+- name: clock_manager_runtime_hal
+  condition: [device_series_2]
+- name: clock_manager_runtime_hal_s2
+requires:
+- name: device_series_2
+- name: status
+- name: enum
+- name: emlib_cmu
+- name: hal_generic_gpio
+- name: device_clock
+- name: clock_manager_runtime
+- name: sl_core
+root_path: platform_core/platform/service/clock_manager
+source:
+- path: src/sl_clock_manager_hal_s2.c
+  condition: [device_series_2]

@@ -1,0 +1,77 @@
+id: tz_secure_key_library_s
+package: security_trustzone
+description: >-
+  This component provides a TrustZone secure library for services
+category: Platform|Security|TrustZone
+quality: production
+ui_hints:
+  visibility: never
+
+provides:
+- name: tz_secure_key_library_s
+
+requires:
+  # This adds the application properties struct
+- name: bootloader_interface
+- name: bootloader_app_properties
+
+  # Must know how peripherals are configured.
+- name: tz_secure_config
+
+  # Interface veneers
+- name: tz_sl_interface
+
+  # Secure PSA Crypto service is always included as part of the SKL.
+- name: tz_service_psa_crypto
+
+  # Disable execution outside secure flash ( when in secure mode )
+- name: mpu
+  # Memory Manager for PSA Crypto, ITS, ...
+- name: memory_manager
+
+- name: tz_common
+- name: sl_fault_injection_hardening
+- name: tz_service_attestation
+- name: tz_service_nvm3
+- name: tz_service_psa_its
+- name: tz_service_se_manager
+- name: tz_service_syscfg
+- name: tz_service_msc
+
+  # We must include the PSA ITS implementation in case it is requested by the NS
+  # application. No extra code will be linked in unless the NS PSA config says
+  # that ITS should be used.
+- name: psa_its
+- name: tz_secure_nvm3_s
+
+- name: sl_assert
+
+source:
+- path: src/sli_tz_secure_main.c
+
+template_file:
+- path: config/template/tz_secure_memory_autogen.h.jinja
+
+toolchain_settings:
+- option: trustzone_library
+  value: enabled
+
+template_contribution:
+- name: linker_no_token_page
+  priority: 0
+  value: true
+
+- name: component_catalog
+  value: tz_secure_key_library_s
+
+define:
+  # Use Silabs Secure Library configuration of TF-M.
+- name: TFM_CONFIG_SL_SECURE_LIBRARY
+
+  # ITS should be encrypted when used in the SKL
+- name: SLI_PSA_ITS_ENCRYPTED
+
+metadata:
+  sbom:
+    license: Zlib
+root_path: security_trustzone/platform/security/sl_component/sl_trustzone

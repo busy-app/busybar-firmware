@@ -1,0 +1,264 @@
+project_name: rail_bt_dmp_soc_range_test
+label: "RAIL Bluetooth DMP - SoC Range Test"
+package: "rail_sdk_sample_app"
+description: >
+  The Range Test application, running on Micrium OS RTOS and multiprotocol RAIL,
+  demonstrates the over-the-air range of the EFR32. It serves as both a
+  transmitter and a receiver, with adjustable packet length and transmission
+  options. Output power can be set from -15 dBm to +20 dBm. In Rx Mode, it
+  inspects received packets based on device IDs, displaying Packet Error Rate,
+  Bit Error Rate, and RSSI. The CLI can also be used for configuration.
+  Wireless Gecko mobile app can also be used to control this application over
+  Bluetooth.
+  Note: Avoid powering the boards from a coin cell due to higher current
+  consumption during continuous radio usage, particularly in Rx Mode. For
+  portability, consider using a USB power bank instead.
+category: RAIL Examples
+quality: production
+
+#---------------- UC/UP components -------------------
+component:
+  - id: sl_main
+  - id: clock_manager
+  - id: device_init
+  - id: board_control
+    condition: [hardware_board]
+  - id: sl_rail_util_init
+    instance:
+      - inst0
+  - id: sl_rail_util_compatible_pa
+  - id: sl_rail_sdk_packet_assistant
+  - id: sl_rail_sdk_packet_asm
+  - id: rail_lib_multiprotocol
+  - id: radio_config_simple_rail_singlephy
+  - id: app_log
+  - id: app_assert
+#---------------------- CLI -------------------------
+  - id: "cli"
+    instance:
+    - example
+  - id: sl_rail_sdk_range_test_cli
+#---------------------- LCD -------------------------
+  - id: glib
+    condition:
+      - hardware_board_supports_wstk_lcd
+#---------------- Images for LCD ---------------------
+  - id: sl_rail_sdk_images_for_lcd
+    condition:
+      - hardware_board_supports_wstk_lcd
+#--------------------- VCOM --------------------------
+  - id: printf
+  - id: iostream_recommended_stream
+  - id: iostream_retarget_stdio
+#------------Memory Protection Unit-------------------
+  - id: mpu
+#------------Core and Extension files------------------
+  - id: sl_rail_sdk_range_test_core
+#-----------Bluetooth & OS ---------------------------
+  - id: sl_rail_sdk_range_test_dmp_component
+  - id: micriumos_kernel
+    condition:
+      - device_series_2
+  - id: freertos
+    condition:
+      - device_series_3
+#-------------- Restriction rules -------------------
+  - id: restrictions_profile_base
+  - id: restrictions_profile_connect
+  - id: restrictions_profile_long_range
+  - id: restrictions_profile_wisun_fan_1_0
+  - id: restrictions_profile_wisun_fan_1_1
+  - id: restrictions_profile_wisun_han
+  - id: restrictions_profile_wisun_ofdm
+  - id: restrictions_profile_connect_ofdm
+  - id: restrictions_profile_ieee802154_bpsk
+#---------------Code Classification------------------
+  - id: code_classification
+
+#----------------- Require list ----------------------
+requires:
+  - name: a_radio_config
+  - name: kernel
+  - name: simple_button
+    condition:
+      - hardware_board_supports_wstk_lcd
+
+#----------------- Project files ---------------------
+
+readme:
+  - path: ../../../documentation/example/rail_soc_range_test/readme.md
+
+other_file:
+  - path: "hw_filter_tags.yaml"
+    condition:
+      - "add_hw_filter_to_project"
+
+#------------ Configuration overrides ----------------
+configuration:
+#----------------- OS --------------------------------
+  - name: OS_CFG_TMR_EN
+    value: "1"
+  - name: SL_STACK_SIZE
+    value: "6144"
+#------------- FreeRTOS OS ---------------------------
+  - name: configMINIMAL_STACK_SIZE
+    value: "1024"
+  - name: configTOTAL_HEAP_SIZE
+    value: "12288"
+#------------- Micrium OS / SystemView --------------------
+  - name: CPU_CFG_TS_32_EN
+    value: "1"
+  - name: OS_CFG_DBG_EN
+    value: "1"
+  - name: OS_CFG_TS_EN
+    value: "1"
+  - name: OS_CFG_SCHED_ROUND_ROBIN_EN
+    value: "1"
+  - name: OS_CFG_STAT_TASK_EN
+    value: "1"
+  - name: OS_CFG_TASK_PROFILE_EN
+    value: "1"
+#----------------- CLI --------------------------------
+  - name: SL_CLI_EXAMPLE_TASK_STACK_SIZE
+    value: "250"
+  - name: SL_CLI_INPUT_BUFFER_SIZE
+    value: "64"
+  - name: SL_CLI_NUM_HISTORY_BYTES
+    value: "0"
+  - name: SL_CLI_EXAMPLE_TASK_PRIORITY
+    value: "48"
+#------------- RAIL init, Configuration --------------
+  - name: SL_RAIL_SDK_TX_FIFO_SIZE
+    value: "128"
+  - name: SL_RAIL_SDK_RX_FIFO_SIZE
+    value: "256"
+#------------- RAIL init, FIFOs ---------------
+  - name: SL_RAIL_UTIL_INIT_RX_FIFO_INST0_BYTES
+    value: "256"
+  - name: SL_RAIL_UTIL_INIT_TX_FIFO_INST0_BYTES
+    value: "256"
+#------------- RAIL init, Project --------------------
+  - name: SL_RAIL_UTIL_INIT_INIT_COMPLETE_CALLBACK_INST0_ENABLE
+    value: "1"
+  - name: SL_RAIL_UTIL_INIT_RADIO_CONFIG_SUPPORT_INST0_ENABLE
+    value: "1"
+#------------ RAIL init, Protocol --------------------
+  - name: SL_RAIL_UTIL_INIT_PROTOCOLS_INST0_ENABLE
+    value: "1"
+  - name: SL_RAIL_UTIL_INIT_PROTOCOL_INST0_DEFAULT
+    value: "SL_RAIL_UTIL_PROTOCOL_PROPRIETARY"
+#------------- Disable RAIL not needed protocols -----
+  - name: SL_RAIL_UTIL_PROTOCOL_BLE_ENABLE
+    value: "0"
+  - name: SL_RAIL_UTIL_PROTOCOL_IEEE802154_2P4GHZ_ENABLE
+    value: "0"
+  - name: SL_RAIL_UTIL_PROTOCOL_IEEE802154_GB868_ENABLE
+    value: "0"
+  - name: SL_RAIL_UTIL_PROTOCOL_ZWAVE_ENABLE
+    value: "0"
+  - name: SL_RAIL_UTIL_PROTOCOL_SIDEWALK_ENABLE
+    value: "0"
+#------------- RAIL init, Calibrations ---------------
+  - name: SL_RAIL_UTIL_INIT_CALIBRATIONS_INST0_ENABLE
+    value: "1"
+  - name: SL_RAIL_UTIL_INIT_CALIBRATION_TEMPERATURE_NOTIFY_INST0_ENABLE
+    value: "1"
+  - name: SL_RAIL_UTIL_INIT_CALIBRATION_ONETIME_NOTIFY_INST0_ENABLE
+    value: "1"
+#------------- RAIL init, Auto Transitions -----------
+  - name: SL_RAIL_UTIL_INIT_TRANSITIONS_INST0_ENABLE
+    value: "1"
+#------------- RAIL init, Data Format ----------------
+  - name: SL_RAIL_UTIL_INIT_DATA_FORMATS_INST0_ENABLE
+    value: "1"
+#------------- RAIL init, Radio Events ---------------
+  - name: SL_RAIL_UTIL_INIT_EVENTS_INST0_ENABLE
+    value: "1"
+  - name: SL_RAIL_UTIL_INIT_EVENT_RX_PACKET_RECEIVED_INST0_ENABLE
+    value: "1"
+  - name: SL_RAIL_UTIL_INIT_EVENT_RX_FRAME_ERROR_INST0_ENABLE
+    value: "1"
+  - name: SL_RAIL_UTIL_INIT_EVENT_TX_PACKET_SENT_INST0_ENABLE
+    value: "1"
+  - name: SL_RAIL_UTIL_INIT_EVENT_RX_TX_SCHEDULED_RX_TX_STARTED_INST0_ENABLE
+    value: "1"
+  - name: SL_RAIL_UTIL_INIT_EVENT_TX_SCHEDULED_TX_MISSED_INST0_ENABLE
+    value: "1"
+  - name: SL_RAIL_UTIL_INIT_EVENT_SCHEDULER_STATUS_INST0_ENABLE
+    value: "1"
+  - name: SL_RAIL_UTIL_INIT_EVENT_SCHEDULER_STATUS_INST0_ENABLE
+    value: "1"
+  - name: SL_RAIL_UTIL_INIT_EVENT_CAL_NEEDED_INST0_ENABLE
+    value: "1"
+#------------- RAIL init, PA ---------------
+  - name: SL_RAIL_UTIL_PA_SELECTION_SUBGHZ
+    value: "RAIL_TX_POWER_MODE_SUBGIG_POWERSETTING_TABLE"
+    condition: [device_generic_family_efr32xg25]
+  - name: SL_RAIL_UTIL_PA_SELECTION_OFDM
+    condition: [device_generic_family_efr32xg25]
+    value: "RAIL_TX_POWER_MODE_OFDM_PA_POWERSETTING_TABLE"
+#------------- USART settings ----------------
+  - name: SL_BOARD_ENABLE_VCOM
+    value: "1"
+  - name: SL_IOSTREAM_USART_VCOM_CONVERT_BY_DEFAULT_LF_TO_CRLF
+    value: "(1)"
+  - name: SL_IOSTREAM_USART_VCOM_FLOW_CONTROL_TYPE
+    value: "usartHwFlowControlCtsAndRts"
+  - name: SL_IOSTREAM_EUSART_VCOM_CONVERT_BY_DEFAULT_LF_TO_CRLF
+    value: "(1)"
+  - name: SL_IOSTREAM_EUSART_VCOM_FLOW_CONTROL_TYPE
+    value: "SL_IOSTREAM_EUSART_UART_FLOW_CTRL_CTS_RTS"
+    condition:
+      - device_series_2
+  - name: SL_IOSTREAM_EUSART_VCOM_FLOW_CONTROL_TYPE
+    value: "SL_IOSTREAM_EUSART_UART_FLOW_CTRL_CTS_RTS"
+    condition:
+      - device_series_3
+#------------- LCD settings ----------------
+  - name: SL_BOARD_ENABLE_DISPLAY
+    value: "1"
+    condition:
+      - dmd_memlcd
+#------------- Button settings ----------------
+  - name: SL_SIMPLE_BUTTON_BTN0_MODE
+    value: "SL_SIMPLE_BUTTON_MODE_INTERRUPT"
+  - name: SL_SIMPLE_BUTTON_BTN1_MODE
+    value: "SL_SIMPLE_BUTTON_MODE_INTERRUPT"
+#------------- Other project settings ----------------
+  - name: APP_LOG_PREFIX_ENABLE
+    value: "0"
+
+#--------------------- Toolchain ------------------------
+toolchain_settings:
+  - option: optimize
+    value: size
+
+ui_hints:
+  highlight:
+    - path: "readme.md"
+    - path: "config/rail/radio_settings.radioconf"
+    - path: "config/btconf/gatt_configuration.btconf"
+      focus: true
+
+tag:
+  - prebuilt_demo
+  - hwfilter:board:hardware:has:vcom
+  - hwfilter:board:hardware:has:pti
+  - hwfilter:board:hardware_board_supports_rf_band_2400
+  - hwfilter:ram:55k
+  - hwfilter:flash:324k
+  - hwfilter:!device:device_generic_family_efr32xg21
+  - hwfilter:!device:device_family_mgm24
+  - hwfilter:!device:device_family_bgm24
+  - hwfilter:!device:device_family_mgm26
+  - hwfilter:!device:device_family_mgm27
+
+filter:
+  - name: "Wireless Technology"
+    value: ["RAIL", "Bluetooth"]
+  - name: "Device Type"
+    value: ["SoC"]
+  - name: "Capability"
+    value: ["Multiprotocol"]
+  - name: "Project Difficulty"
+    value: ["Advanced"]

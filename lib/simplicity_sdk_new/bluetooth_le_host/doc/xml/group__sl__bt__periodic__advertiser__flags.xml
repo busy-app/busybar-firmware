@@ -1,0 +1,38 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__periodic__advertiser__flags" kind="group">
+    <compoundname>sl_bt_periodic_advertiser_flags</compoundname>
+    <title>Periodic Advertising Configuration Flags</title>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__periodic__advertiser__flags_1gac93dcb4293040763a574d312b0f81029" prot="public" static="no">
+        <name>SL_BT_PERIODIC_ADVERTISER_INCLUDE_TX_POWER</name>
+        <initializer>0x1</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Include the TX power in advertising packets. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="3339" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="3339" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__periodic__advertiser__flags_1ga17c966e284c2b95a771aefe9de0843c8" prot="public" static="no">
+        <name>SL_BT_PERIODIC_ADVERTISER_AUTO_START_EXTENDED_ADVERTISING</name>
+        <initializer>0x2</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Automatically start the extended advertising on the advertising set. The advertising will be started in non-connectable and non-scannable mode. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="3343" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="3343" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para>Defines configuration flags for periodic advertising. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

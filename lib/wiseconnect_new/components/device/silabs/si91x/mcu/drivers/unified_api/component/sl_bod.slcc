@@ -1,0 +1,24 @@
+id: sl_bod
+label: BOD
+package: platform_siwx91x
+description: This application demonstrates how to set up and use the BOD. In this application we can configure the threshold value of BOD.
+category: Device|Si91x|MCU|Peripheral
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: "components/device/silabs/si91x/mcu/drivers/unified_api"
+requires:
+  - name: sl_dma 
+source:
+  - path: "src/sl_si91x_bod.c"
+define:
+  - name: SL_BOD_COMPONENT_EN
+config_file:
+  - path: config/sl_si91x_bod_config.h
+include:
+  - path: "inc"
+    file_list:
+    - path: "sl_si91x_bod.h"
+provides:
+  - name: sl_bod

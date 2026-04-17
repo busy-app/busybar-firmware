@@ -1,0 +1,67 @@
+project_name: iostream_usart_baremetal
+package: platform_siwx91x_app
+description: 'This application demonstrates how to use the I/O Stream service in a bare-metal configuration to enable UART communication over a virtual COM port (VCOM).  It will echo back any characters received through the serial connection, and the VCOM serial port operates over USB, allowing for communication between the device and a host.  This setup showcases basic serial communication using UART.
+
+  '
+category: example|peripheral
+quality: production
+label: iostream_usart_baremetal
+component:
+- id: sl_main
+- id: stdio
+- id: atomic
+- id: sl_common
+- id: iostream_retarget_stdio
+- id: iostream_uart_si91x
+  instance:
+  - vcom
+- id: sl_usart_iostream
+- id: iostream_si91x
+- id: si91x_memory_default_config
+source:
+- path: app.c
+- path: app_iostream_usart.c
+include:
+- path: .
+  file_list:
+  - path: app.h
+  - path: app_iostream_usart.h
+define:
+- name: IOSTREAM_SI91X_USART
+- name: SLI_SI91X_MCU_CONFIG_RADIO_BOARD_BASE_VER
+- name: USART_CONFIG
+toolchain_settings:
+- option: gcc_compiler_option
+  value: -Wall -Werror
+other_file:
+- path: resources/readme/image501b.png
+- path: resources/readme/image501d.png
+- path: resources/readme/image501e.png
+- path: resources/readme/setupdiagram.png
+- path: resources/readme/outputConsoleI_IOSTREAM.png
+- path: resources/readme/studio_admin_console.png
+- path: resources/readme/ttl_module_connection.png
+configuration:
+- name: SL_BOARD_ENABLE_VCOM
+  value: '1'
+- name: SL_IOSTREAM_USART_VCOM_CONVERT_BY_DEFAULT_LF_TO_CRLF
+  value: '1'
+template_contribution:
+- name: udma_enable
+  value: true
+ui_hints:
+  highlight:
+  - path: readme.md
+    focus: true
+readme:
+- path: readme.md
+post_build:
+  profile: wiseconnect_soc
+sdk_extension:
+- id: wiseconnect3_sdk
+  vendor: silabs
+  version: 4.0.1
+sdk:
+  id: simplicity_sdk
+  vendor: silabs
+  version: 2025.12.2

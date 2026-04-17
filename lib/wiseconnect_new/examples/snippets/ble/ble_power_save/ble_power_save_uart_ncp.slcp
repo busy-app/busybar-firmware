@@ -1,0 +1,90 @@
+project_name: ble_power_save_uart_ncp
+package: bluetooth_le_siwx91x_app
+quality: production
+label: BLE - Power Save (UART NCP)
+category: Example|BLE
+description: 'This application demonstrates how to configure the device in power save  profile with Advertising mode.
+
+  '
+filter:
+- name: Wireless Technology
+  value:
+  - BLE
+- name: Project Difficulty
+  value:
+  - Beginner
+source:
+- path: app.c
+include:
+- path: .
+  file_list:
+  - path: app.h
+  - path: ble_config.h
+define:
+- name: SL_SI91X_PRINT_DBG_LOG
+component:
+- id: sl_main
+- id: freertos
+- id: freertos_heap_4
+- id: device_init
+- id: iostream_retarget_stdio
+- id: iostream_rtt
+- id: iostream_stdlib_config
+- id: uartdrv_usart
+  instance:
+  - exp
+- id: wiseconnect_common
+- id: wifi
+- id: sl_si91x_internal_stack
+- id: sl_si91x_uart_bus
+- id: wifi_resources
+- id: network_manager
+- id: basic_network_config_manager
+- id: ble
+- id: sl_si91x_basic_buffers
+toolchain_settings:
+- option: gcc_linker_option
+  value: -u _printf_float
+- option: gcc_compiler_option
+  value: -Wall -Werror
+configuration:
+- name: SL_BOARD_ENABLE_VCOM
+  value: '1'
+- name: configUSE_POSIX_ERRNO
+  value: '1'
+- name: configTOTAL_HEAP_SIZE
+  value: '51200'
+- name: configTIMER_TASK_PRIORITY
+  value: '55'
+readme:
+- path: readme.md
+other_file:
+- path: resources/readme/ble_power_save_soc_ncp.png
+- path: resources/readme/blepowersavencpmeasurement.png
+- path: resources/readme/blepowersaveadvertising.png
+- path: resources/readme/blepowersavedeviceconnection.png
+- path: resources/readme/blepwlog.png
+- path: resources/readme/output1.png
+- path: resources/readme/blepowersavecurrentmeasurementpins.png
+- path: resources/readme/blepowersavencpmeasurement.png
+- path: resources/readme/blepwsocadv.png
+- path: resources/readme/ble_power_save_conn_soc.png
+- path: resources/readme/ble_ps_conn_adv_ncp.png
+- path: resources/readme/ble_ps_conn_adv_psram.png
+- path: resources/readme/ble_ps_conn_adv_soc.png
+- path: resources/readme/ble_ps_conn_soc.png
+- path: resources/readme/output2.png
+- path: resources/readme/blepowersavedeviceconnection1.png
+- path: resources/readme/blepowersavedeviceconnection2.png
+ui_hints:
+  highlight:
+  - path: readme.md
+    focus: true
+sdk_extension:
+- id: wiseconnect3_sdk
+  vendor: silabs
+  version: 4.0.1
+sdk:
+  id: simplicity_sdk
+  vendor: silabs
+  version: 2025.12.2

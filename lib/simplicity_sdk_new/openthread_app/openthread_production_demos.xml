@@ -1,0 +1,723 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<demos>
+	<demo name="brd4180a.demo.ot-ble-dmp-no-buttons" label="OpenThread BLE DMP (No buttons) - SoC FreeRTOS">
+		<property key="blurb" value="OpenThread BLE DMP (No buttons) - SoC FreeRTOS" />
+		<property key="partCompatibility" value=".*efr32mg21a020f1024im32.*" />
+		<property key="boardCompatibility" value="brd4180a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/openthread_app/demos/ot-ble-dmp-no-buttons/ot-ble-dmp-no-buttons-brd4180a.s37" />
+		<property key="readmeFiles" value="ot-ble-dmp/README.md" />
+		<property key="filters" value="Capability|Multiprotocol Device\ Type|SoC Project\ Difficulty|Advanced Wireless\ Technology|Bluetooth Wireless\ Technology|Thread" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This is a simple application to test DMP (Dynamic MultiProtocol) with OpenThread and Bluetooth running on FreeRTOS. It is identical to the ot-ble-dmp application with the exception that support for buttons has been removed. This application is meant to be used for boards which don't have buttons. </description>
+	</demo>
+	<demo name="brd4186c.demo.ot-ble-dmp-no-buttons" label="OpenThread BLE DMP (No buttons) - SoC FreeRTOS">
+		<property key="blurb" value="OpenThread BLE DMP (No buttons) - SoC FreeRTOS" />
+		<property key="partCompatibility" value=".*efr32mg24b210f1536im48.*" />
+		<property key="boardCompatibility" value="brd4186c" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/openthread_app/demos/ot-ble-dmp-no-buttons/ot-ble-dmp-no-buttons-brd4186c.s37" />
+		<property key="readmeFiles" value="ot-ble-dmp/README.md" />
+		<property key="filters" value="Capability|Multiprotocol Device\ Type|SoC Project\ Difficulty|Advanced Wireless\ Technology|Bluetooth Wireless\ Technology|Thread" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This is a simple application to test DMP (Dynamic MultiProtocol) with OpenThread and Bluetooth running on FreeRTOS. It is identical to the ot-ble-dmp application with the exception that support for buttons has been removed. This application is meant to be used for boards which don't have buttons. </description>
+	</demo>
+	<demo name="brd2703a.demo.ot-ble-dmp-no-buttons" label="OpenThread BLE DMP (No buttons) - SoC FreeRTOS">
+		<property key="blurb" value="OpenThread BLE DMP (No buttons) - SoC FreeRTOS" />
+		<property key="partCompatibility" value=".*efr32mg24b210f1536im48.*" />
+		<property key="boardCompatibility" value="brd2703a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/openthread_app/demos/ot-ble-dmp-no-buttons/ot-ble-dmp-no-buttons-brd2703a.s37" />
+		<property key="readmeFiles" value="ot-ble-dmp/README.md" />
+		<property key="filters" value="Capability|Multiprotocol Device\ Type|SoC Project\ Difficulty|Advanced Wireless\ Technology|Bluetooth Wireless\ Technology|Thread" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This is a simple application to test DMP (Dynamic MultiProtocol) with OpenThread and Bluetooth running on FreeRTOS. It is identical to the ot-ble-dmp application with the exception that support for buttons has been removed. This application is meant to be used for boards which don't have buttons. </description>
+	</demo>
+	<demo name="brd4116a.demo.ot-ble-dmp-no-buttons" label="OpenThread BLE DMP (No buttons) - SoC FreeRTOS">
+		<property key="blurb" value="OpenThread BLE DMP (No buttons) - SoC FreeRTOS" />
+		<property key="partCompatibility" value=".*efr32mg26b410f3200im48.*" />
+		<property key="boardCompatibility" value="brd4116a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/openthread_app/demos/ot-ble-dmp-no-buttons/ot-ble-dmp-no-buttons-brd4116a.s37" />
+		<property key="readmeFiles" value="ot-ble-dmp/README.md" />
+		<property key="filters" value="Capability|Multiprotocol Device\ Type|SoC Project\ Difficulty|Advanced Wireless\ Technology|Bluetooth Wireless\ Technology|Thread" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This is a simple application to test DMP (Dynamic MultiProtocol) with OpenThread and Bluetooth running on FreeRTOS. It is identical to the ot-ble-dmp application with the exception that support for buttons has been removed. This application is meant to be used for boards which don't have buttons. </description>
+	</demo>
+	<demo name="brd4407a.demo.ot-ble-dmp-no-buttons" label="OpenThread BLE DMP (No buttons) - SoC FreeRTOS">
+		<property key="blurb" value="OpenThread BLE DMP (No buttons) - SoC FreeRTOS" />
+		<property key="partCompatibility" value=".*simg301m104lil.*" />
+		<property key="boardCompatibility" value="brd4407a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/openthread_app/demos/ot-ble-dmp-no-buttons/ot-ble-dmp-no-buttons-brd4407a.s37" />
+		<property key="readmeFiles" value="ot-ble-dmp/README.md" />
+		<property key="filters" value="Capability|Multiprotocol Device\ Type|SoC Project\ Difficulty|Advanced Wireless\ Technology|Bluetooth Wireless\ Technology|Thread" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This is a simple application to test DMP (Dynamic MultiProtocol) with OpenThread and Bluetooth running on FreeRTOS. It is identical to the ot-ble-dmp application with the exception that support for buttons has been removed. This application is meant to be used for boards which don't have buttons. </description>
+	</demo>
+	<demo name="brd4180a.demo.ot-ble-dmp" label="OpenThread BLE DMP - SoC FreeRTOS">
+		<property key="blurb" value="OpenThread BLE DMP - SoC FreeRTOS" />
+		<property key="partCompatibility" value=".*efr32mg21a020f1024im32.*" />
+		<property key="boardCompatibility" value="brd4180a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/openthread_app/demos/ot-ble-dmp/ot-ble-dmp-brd4180a.s37" />
+		<property key="readmeFiles" value="ot-ble-dmp/README.md" />
+		<property key="filters" value="Capability|Multiprotocol Device\ Type|SoC Project\ Difficulty|Advanced Wireless\ Technology|Bluetooth Wireless\ Technology|Thread" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This is a simple application to test DMP (Dynamic MultiProtocol) with OpenThread and Bluetooth running on FreeRTOS. </description>
+	</demo>
+	<demo name="brd4186c.demo.ot-ble-dmp" label="OpenThread BLE DMP - SoC FreeRTOS">
+		<property key="blurb" value="OpenThread BLE DMP - SoC FreeRTOS" />
+		<property key="partCompatibility" value=".*efr32mg24b210f1536im48.*" />
+		<property key="boardCompatibility" value="brd4186c" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/openthread_app/demos/ot-ble-dmp/ot-ble-dmp-brd4186c.s37" />
+		<property key="readmeFiles" value="ot-ble-dmp/README.md" />
+		<property key="filters" value="Capability|Multiprotocol Device\ Type|SoC Project\ Difficulty|Advanced Wireless\ Technology|Bluetooth Wireless\ Technology|Thread" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This is a simple application to test DMP (Dynamic MultiProtocol) with OpenThread and Bluetooth running on FreeRTOS. </description>
+	</demo>
+	<demo name="brd2703a.demo.ot-ble-dmp" label="OpenThread BLE DMP - SoC FreeRTOS">
+		<property key="blurb" value="OpenThread BLE DMP - SoC FreeRTOS" />
+		<property key="partCompatibility" value=".*efr32mg24b210f1536im48.*" />
+		<property key="boardCompatibility" value="brd2703a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/openthread_app/demos/ot-ble-dmp/ot-ble-dmp-brd2703a.s37" />
+		<property key="readmeFiles" value="ot-ble-dmp/README.md" />
+		<property key="filters" value="Capability|Multiprotocol Device\ Type|SoC Project\ Difficulty|Advanced Wireless\ Technology|Bluetooth Wireless\ Technology|Thread" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This is a simple application to test DMP (Dynamic MultiProtocol) with OpenThread and Bluetooth running on FreeRTOS. </description>
+	</demo>
+	<demo name="brd4116a.demo.ot-ble-dmp" label="OpenThread BLE DMP - SoC FreeRTOS">
+		<property key="blurb" value="OpenThread BLE DMP - SoC FreeRTOS" />
+		<property key="partCompatibility" value=".*efr32mg26b410f3200im48.*" />
+		<property key="boardCompatibility" value="brd4116a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/openthread_app/demos/ot-ble-dmp/ot-ble-dmp-brd4116a.s37" />
+		<property key="readmeFiles" value="ot-ble-dmp/README.md" />
+		<property key="filters" value="Capability|Multiprotocol Device\ Type|SoC Project\ Difficulty|Advanced Wireless\ Technology|Bluetooth Wireless\ Technology|Thread" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This is a simple application to test DMP (Dynamic MultiProtocol) with OpenThread and Bluetooth running on FreeRTOS. </description>
+	</demo>
+	<demo name="brd4407a.demo.ot-ble-dmp" label="OpenThread BLE DMP - SoC FreeRTOS">
+		<property key="blurb" value="OpenThread BLE DMP - SoC FreeRTOS" />
+		<property key="partCompatibility" value=".*simg301m104lil.*" />
+		<property key="boardCompatibility" value="brd4407a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/openthread_app/demos/ot-ble-dmp/ot-ble-dmp-brd4407a.s37" />
+		<property key="readmeFiles" value="ot-ble-dmp/README.md" />
+		<property key="filters" value="Capability|Multiprotocol Device\ Type|SoC Project\ Difficulty|Advanced Wireless\ Technology|Bluetooth Wireless\ Technology|Thread" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This is a simple application to test DMP (Dynamic MultiProtocol) with OpenThread and Bluetooth running on FreeRTOS. </description>
+	</demo>
+	<demo name="brd4180a.demo.ot-cli-ftd" label="OpenThread - SoC CLI (FTD)">
+		<property key="blurb" value="OpenThread - SoC CLI (FTD)" />
+		<property key="partCompatibility" value=".*efr32mg21a020f1024im32.*" />
+		<property key="boardCompatibility" value="brd4180a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/openthread_app/demos/ot-cli-ftd/ot-cli-ftd-brd4180a.s37" />
+		<property key="readmeFiles" value="ot-cli/README.md" />
+		<property key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Thread" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This is a very simple CLI application to test the OpenThread stack on a Full Thread Device. This is equivalent to the ot-cli-ftd application in the OpenThread GitHub repo. </description>
+	</demo>
+	<demo name="brd4186c.demo.ot-cli-ftd" label="OpenThread - SoC CLI (FTD)">
+		<property key="blurb" value="OpenThread - SoC CLI (FTD)" />
+		<property key="partCompatibility" value=".*efr32mg24b210f1536im48.*" />
+		<property key="boardCompatibility" value="brd4186c" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/openthread_app/demos/ot-cli-ftd/ot-cli-ftd-brd4186c.s37" />
+		<property key="readmeFiles" value="ot-cli/README.md" />
+		<property key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Thread" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This is a very simple CLI application to test the OpenThread stack on a Full Thread Device. This is equivalent to the ot-cli-ftd application in the OpenThread GitHub repo. </description>
+	</demo>
+	<demo name="brd2703a.demo.ot-cli-ftd" label="OpenThread - SoC CLI (FTD)">
+		<property key="blurb" value="OpenThread - SoC CLI (FTD)" />
+		<property key="partCompatibility" value=".*efr32mg24b210f1536im48.*" />
+		<property key="boardCompatibility" value="brd2703a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/openthread_app/demos/ot-cli-ftd/ot-cli-ftd-brd2703a.s37" />
+		<property key="readmeFiles" value="ot-cli/README.md" />
+		<property key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Thread" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This is a very simple CLI application to test the OpenThread stack on a Full Thread Device. This is equivalent to the ot-cli-ftd application in the OpenThread GitHub repo. </description>
+	</demo>
+	<demo name="brd4116a.demo.ot-cli-ftd" label="OpenThread - SoC CLI (FTD)">
+		<property key="blurb" value="OpenThread - SoC CLI (FTD)" />
+		<property key="partCompatibility" value=".*efr32mg26b410f3200im48.*" />
+		<property key="boardCompatibility" value="brd4116a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/openthread_app/demos/ot-cli-ftd/ot-cli-ftd-brd4116a.s37" />
+		<property key="readmeFiles" value="ot-cli/README.md" />
+		<property key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Thread" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This is a very simple CLI application to test the OpenThread stack on a Full Thread Device. This is equivalent to the ot-cli-ftd application in the OpenThread GitHub repo. </description>
+	</demo>
+	<demo name="brd4407a.demo.ot-cli-ftd" label="OpenThread - SoC CLI (FTD)">
+		<property key="blurb" value="OpenThread - SoC CLI (FTD)" />
+		<property key="partCompatibility" value=".*simg301m104lil.*" />
+		<property key="boardCompatibility" value="brd4407a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/openthread_app/demos/ot-cli-ftd/ot-cli-ftd-brd4407a.s37" />
+		<property key="readmeFiles" value="ot-cli/README.md" />
+		<property key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Thread" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This is a very simple CLI application to test the OpenThread stack on a Full Thread Device. This is equivalent to the ot-cli-ftd application in the OpenThread GitHub repo. </description>
+	</demo>
+	<demo name="brd4180a.demo.ot-cli-mtd" label="OpenThread - SoC CLI (MTD)">
+		<property key="blurb" value="OpenThread - SoC CLI (MTD)" />
+		<property key="partCompatibility" value=".*efr32mg21a020f1024im32.*" />
+		<property key="boardCompatibility" value="brd4180a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/openthread_app/demos/ot-cli-mtd/ot-cli-mtd-brd4180a.s37" />
+		<property key="readmeFiles" value="ot-cli/README.md" />
+		<property key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Thread" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This is a very simple CLI application to test the OpenThread stack on a Minimal Thread Device. This is equivalent to the ot-cli-mtd application in the OpenThread GitHub repo. </description>
+	</demo>
+	<demo name="brd4186c.demo.ot-cli-mtd" label="OpenThread - SoC CLI (MTD)">
+		<property key="blurb" value="OpenThread - SoC CLI (MTD)" />
+		<property key="partCompatibility" value=".*efr32mg24b210f1536im48.*" />
+		<property key="boardCompatibility" value="brd4186c" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/openthread_app/demos/ot-cli-mtd/ot-cli-mtd-brd4186c.s37" />
+		<property key="readmeFiles" value="ot-cli/README.md" />
+		<property key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Thread" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This is a very simple CLI application to test the OpenThread stack on a Minimal Thread Device. This is equivalent to the ot-cli-mtd application in the OpenThread GitHub repo. </description>
+	</demo>
+	<demo name="brd2703a.demo.ot-cli-mtd" label="OpenThread - SoC CLI (MTD)">
+		<property key="blurb" value="OpenThread - SoC CLI (MTD)" />
+		<property key="partCompatibility" value=".*efr32mg24b210f1536im48.*" />
+		<property key="boardCompatibility" value="brd2703a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/openthread_app/demos/ot-cli-mtd/ot-cli-mtd-brd2703a.s37" />
+		<property key="readmeFiles" value="ot-cli/README.md" />
+		<property key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Thread" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This is a very simple CLI application to test the OpenThread stack on a Minimal Thread Device. This is equivalent to the ot-cli-mtd application in the OpenThread GitHub repo. </description>
+	</demo>
+	<demo name="brd4116a.demo.ot-cli-mtd" label="OpenThread - SoC CLI (MTD)">
+		<property key="blurb" value="OpenThread - SoC CLI (MTD)" />
+		<property key="partCompatibility" value=".*efr32mg26b410f3200im48.*" />
+		<property key="boardCompatibility" value="brd4116a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/openthread_app/demos/ot-cli-mtd/ot-cli-mtd-brd4116a.s37" />
+		<property key="readmeFiles" value="ot-cli/README.md" />
+		<property key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Thread" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This is a very simple CLI application to test the OpenThread stack on a Minimal Thread Device. This is equivalent to the ot-cli-mtd application in the OpenThread GitHub repo. </description>
+	</demo>
+	<demo name="brd4407a.demo.ot-cli-mtd" label="OpenThread - SoC CLI (MTD)">
+		<property key="blurb" value="OpenThread - SoC CLI (MTD)" />
+		<property key="partCompatibility" value=".*simg301m104lil.*" />
+		<property key="boardCompatibility" value="brd4407a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/openthread_app/demos/ot-cli-mtd/ot-cli-mtd-brd4407a.s37" />
+		<property key="readmeFiles" value="ot-cli/README.md" />
+		<property key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Thread" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This is a very simple CLI application to test the OpenThread stack on a Minimal Thread Device. This is equivalent to the ot-cli-mtd application in the OpenThread GitHub repo. </description>
+	</demo>
+	<demo name="brd4180a.demo.ot-ncp-ftd-cpc" label="OpenThread - NCP (FTD) with CPC">
+		<property key="blurb" value="OpenThread - NCP (FTD) with CPC" />
+		<property key="partCompatibility" value=".*efr32mg21a020f1024im32.*" />
+		<property key="boardCompatibility" value="brd4180a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/openthread_app/demos/ot-ncp-ftd-cpc/ot-ncp-ftd-cpc-brd4180a.s37" />
+		<property key="readmeFiles" value="ot-ncp/cpc/README-OT-NCP.md" />
+		<property key="filters" value="Device\ Type|NCP Project\ Difficulty|Advanced Wireless\ Technology|Thread" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This is a simple OpenThread Full Thread Device NCP application with CPC. This is equivalent to the ot-ncp-ftd application in the OpenThread GitHub repo. </description>
+	</demo>
+	<demo name="brd4186c.demo.ot-ncp-ftd-cpc" label="OpenThread - NCP (FTD) with CPC">
+		<property key="blurb" value="OpenThread - NCP (FTD) with CPC" />
+		<property key="partCompatibility" value=".*efr32mg24b210f1536im48.*" />
+		<property key="boardCompatibility" value="brd4186c" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/openthread_app/demos/ot-ncp-ftd-cpc/ot-ncp-ftd-cpc-brd4186c.s37" />
+		<property key="readmeFiles" value="ot-ncp/cpc/README-OT-NCP.md" />
+		<property key="filters" value="Device\ Type|NCP Project\ Difficulty|Advanced Wireless\ Technology|Thread" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This is a simple OpenThread Full Thread Device NCP application with CPC. This is equivalent to the ot-ncp-ftd application in the OpenThread GitHub repo. </description>
+	</demo>
+	<demo name="brd2703a.demo.ot-ncp-ftd-cpc" label="OpenThread - NCP (FTD) with CPC">
+		<property key="blurb" value="OpenThread - NCP (FTD) with CPC" />
+		<property key="partCompatibility" value=".*efr32mg24b210f1536im48.*" />
+		<property key="boardCompatibility" value="brd2703a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/openthread_app/demos/ot-ncp-ftd-cpc/ot-ncp-ftd-cpc-brd2703a.s37" />
+		<property key="readmeFiles" value="ot-ncp/cpc/README-OT-NCP.md" />
+		<property key="filters" value="Device\ Type|NCP Project\ Difficulty|Advanced Wireless\ Technology|Thread" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This is a simple OpenThread Full Thread Device NCP application with CPC. This is equivalent to the ot-ncp-ftd application in the OpenThread GitHub repo. </description>
+	</demo>
+	<demo name="brd4116a.demo.ot-ncp-ftd-cpc" label="OpenThread - NCP (FTD) with CPC">
+		<property key="blurb" value="OpenThread - NCP (FTD) with CPC" />
+		<property key="partCompatibility" value=".*efr32mg26b410f3200im48.*" />
+		<property key="boardCompatibility" value="brd4116a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/openthread_app/demos/ot-ncp-ftd-cpc/ot-ncp-ftd-cpc-brd4116a.s37" />
+		<property key="readmeFiles" value="ot-ncp/cpc/README-OT-NCP.md" />
+		<property key="filters" value="Device\ Type|NCP Project\ Difficulty|Advanced Wireless\ Technology|Thread" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This is a simple OpenThread Full Thread Device NCP application with CPC. This is equivalent to the ot-ncp-ftd application in the OpenThread GitHub repo. </description>
+	</demo>
+	<demo name="brd4407a.demo.ot-ncp-ftd-cpc" label="OpenThread - NCP (FTD) with CPC">
+		<property key="blurb" value="OpenThread - NCP (FTD) with CPC" />
+		<property key="partCompatibility" value=".*simg301m104lil.*" />
+		<property key="boardCompatibility" value="brd4407a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/openthread_app/demos/ot-ncp-ftd-cpc/ot-ncp-ftd-cpc-brd4407a.s37" />
+		<property key="readmeFiles" value="ot-ncp/cpc/README-OT-NCP.md" />
+		<property key="filters" value="Device\ Type|NCP Project\ Difficulty|Advanced Wireless\ Technology|Thread" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This is a simple OpenThread Full Thread Device NCP application with CPC. This is equivalent to the ot-ncp-ftd application in the OpenThread GitHub repo. </description>
+	</demo>
+	<demo name="brd4180a.demo.ot-ncp-mtd-cpc" label="OpenThread - NCP (MTD) with CPC">
+		<property key="blurb" value="OpenThread - NCP (MTD) with CPC" />
+		<property key="partCompatibility" value=".*efr32mg21a020f1024im32.*" />
+		<property key="boardCompatibility" value="brd4180a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/openthread_app/demos/ot-ncp-mtd-cpc/ot-ncp-mtd-cpc-brd4180a.s37" />
+		<property key="readmeFiles" value="ot-ncp/cpc/README-OT-NCP.md" />
+		<property key="filters" value="Device\ Type|NCP Project\ Difficulty|Advanced Wireless\ Technology|Thread" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This is a simple OpenThread Minimal Thread Device NCP application. This is equivalent to the ot-ncp-mtd application in the OpenThread GitHub repo. </description>
+	</demo>
+	<demo name="brd4186c.demo.ot-ncp-mtd-cpc" label="OpenThread - NCP (MTD) with CPC">
+		<property key="blurb" value="OpenThread - NCP (MTD) with CPC" />
+		<property key="partCompatibility" value=".*efr32mg24b210f1536im48.*" />
+		<property key="boardCompatibility" value="brd4186c" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/openthread_app/demos/ot-ncp-mtd-cpc/ot-ncp-mtd-cpc-brd4186c.s37" />
+		<property key="readmeFiles" value="ot-ncp/cpc/README-OT-NCP.md" />
+		<property key="filters" value="Device\ Type|NCP Project\ Difficulty|Advanced Wireless\ Technology|Thread" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This is a simple OpenThread Minimal Thread Device NCP application. This is equivalent to the ot-ncp-mtd application in the OpenThread GitHub repo. </description>
+	</demo>
+	<demo name="brd2703a.demo.ot-ncp-mtd-cpc" label="OpenThread - NCP (MTD) with CPC">
+		<property key="blurb" value="OpenThread - NCP (MTD) with CPC" />
+		<property key="partCompatibility" value=".*efr32mg24b210f1536im48.*" />
+		<property key="boardCompatibility" value="brd2703a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/openthread_app/demos/ot-ncp-mtd-cpc/ot-ncp-mtd-cpc-brd2703a.s37" />
+		<property key="readmeFiles" value="ot-ncp/cpc/README-OT-NCP.md" />
+		<property key="filters" value="Device\ Type|NCP Project\ Difficulty|Advanced Wireless\ Technology|Thread" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This is a simple OpenThread Minimal Thread Device NCP application. This is equivalent to the ot-ncp-mtd application in the OpenThread GitHub repo. </description>
+	</demo>
+	<demo name="brd4116a.demo.ot-ncp-mtd-cpc" label="OpenThread - NCP (MTD) with CPC">
+		<property key="blurb" value="OpenThread - NCP (MTD) with CPC" />
+		<property key="partCompatibility" value=".*efr32mg26b410f3200im48.*" />
+		<property key="boardCompatibility" value="brd4116a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/openthread_app/demos/ot-ncp-mtd-cpc/ot-ncp-mtd-cpc-brd4116a.s37" />
+		<property key="readmeFiles" value="ot-ncp/cpc/README-OT-NCP.md" />
+		<property key="filters" value="Device\ Type|NCP Project\ Difficulty|Advanced Wireless\ Technology|Thread" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This is a simple OpenThread Minimal Thread Device NCP application. This is equivalent to the ot-ncp-mtd application in the OpenThread GitHub repo. </description>
+	</demo>
+	<demo name="brd4407a.demo.ot-ncp-mtd-cpc" label="OpenThread - NCP (MTD) with CPC">
+		<property key="blurb" value="OpenThread - NCP (MTD) with CPC" />
+		<property key="partCompatibility" value=".*simg301m104lil.*" />
+		<property key="boardCompatibility" value="brd4407a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/openthread_app/demos/ot-ncp-mtd-cpc/ot-ncp-mtd-cpc-brd4407a.s37" />
+		<property key="readmeFiles" value="ot-ncp/cpc/README-OT-NCP.md" />
+		<property key="filters" value="Device\ Type|NCP Project\ Difficulty|Advanced Wireless\ Technology|Thread" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This is a simple OpenThread Minimal Thread Device NCP application. This is equivalent to the ot-ncp-mtd application in the OpenThread GitHub repo. </description>
+	</demo>
+	<demo name="brd4180a.demo.rcp-spi-802154" label="Multiprotocol (OpenThread+Zigbee) - RCP (SPI)">
+		<property key="blurb" value="Multiprotocol (OpenThread+Zigbee) - RCP (SPI)" />
+		<property key="partCompatibility" value=".*efr32mg21a020f1024im32.*" />
+		<property key="boardCompatibility" value="brd4180a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/openthread_app/demos/rcp-spi-802154/rcp-spi-802154-brd4180a.s37" />
+		<property key="readmeFiles" value="ot-ncp/cpc/README-MP-RCP.md" />
+		<property key="filters" value="Capability|Multiprotocol Device\ Type|RCP Project\ Difficulty|Advanced Wireless\ Technology|Thread Wireless\ Technology|Zigbee" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This multiprotocol radio co-processor (RCP) application supports running OpenThread and Zigbee stacks simultaneously on a host processor. It uses concurrent multiprotocol (CMP) / multi-PAN functionality to run the 802.15.4 networks simultaneously on the same channel. The host stacks and the RCP communicate using the Co-Processor Communication protocol (CPC), which acts as a protocol multiplexer and serial transport layer. The host applications connect to the CPC daemon, which in turn connects to the EFR via a SPI link. Refer to *docs.silabs.com Multiprotocol section- Multiprotocol on Linux Solution: Running Zigbee, OpenThread, and Bluetooth Concurrently on a Linux Host with a Multiprotocol Co-processor* for more information on running the multiprotocol RCP with different host applications. </description>
+	</demo>
+	<demo name="brd4180b.demo.rcp-spi-802154" label="Multiprotocol (OpenThread+Zigbee) - RCP (SPI)">
+		<property key="blurb" value="Multiprotocol (OpenThread+Zigbee) - RCP (SPI)" />
+		<property key="partCompatibility" value=".*efr32mg21a020f1024im32.*" />
+		<property key="boardCompatibility" value="brd4180b" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/openthread_app/demos/rcp-spi-802154/rcp-spi-802154-brd4180b.s37" />
+		<property key="readmeFiles" value="ot-ncp/cpc/README-MP-RCP.md" />
+		<property key="filters" value="Capability|Multiprotocol Device\ Type|RCP Project\ Difficulty|Advanced Wireless\ Technology|Thread Wireless\ Technology|Zigbee" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This multiprotocol radio co-processor (RCP) application supports running OpenThread and Zigbee stacks simultaneously on a host processor. It uses concurrent multiprotocol (CMP) / multi-PAN functionality to run the 802.15.4 networks simultaneously on the same channel. The host stacks and the RCP communicate using the Co-Processor Communication protocol (CPC), which acts as a protocol multiplexer and serial transport layer. The host applications connect to the CPC daemon, which in turn connects to the EFR via a SPI link. Refer to *docs.silabs.com Multiprotocol section- Multiprotocol on Linux Solution: Running Zigbee, OpenThread, and Bluetooth Concurrently on a Linux Host with a Multiprotocol Co-processor* for more information on running the multiprotocol RCP with different host applications. </description>
+	</demo>
+	<demo name="brd4186c.demo.rcp-spi-802154" label="Multiprotocol (OpenThread+Zigbee) - RCP (SPI)">
+		<property key="blurb" value="Multiprotocol (OpenThread+Zigbee) - RCP (SPI)" />
+		<property key="partCompatibility" value=".*efr32mg24b210f1536im48.*" />
+		<property key="boardCompatibility" value="brd4186c" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/openthread_app/demos/rcp-spi-802154/rcp-spi-802154-brd4186c.s37" />
+		<property key="readmeFiles" value="ot-ncp/cpc/README-MP-RCP.md" />
+		<property key="filters" value="Capability|Multiprotocol Device\ Type|RCP Project\ Difficulty|Advanced Wireless\ Technology|Thread Wireless\ Technology|Zigbee" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This multiprotocol radio co-processor (RCP) application supports running OpenThread and Zigbee stacks simultaneously on a host processor. It uses concurrent multiprotocol (CMP) / multi-PAN functionality to run the 802.15.4 networks simultaneously on the same channel. The host stacks and the RCP communicate using the Co-Processor Communication protocol (CPC), which acts as a protocol multiplexer and serial transport layer. The host applications connect to the CPC daemon, which in turn connects to the EFR via a SPI link. Refer to *docs.silabs.com Multiprotocol section- Multiprotocol on Linux Solution: Running Zigbee, OpenThread, and Bluetooth Concurrently on a Linux Host with a Multiprotocol Co-processor* for more information on running the multiprotocol RCP with different host applications. </description>
+	</demo>
+	<demo name="brd4116a.demo.rcp-spi-802154" label="Multiprotocol (OpenThread+Zigbee) - RCP (SPI)">
+		<property key="blurb" value="Multiprotocol (OpenThread+Zigbee) - RCP (SPI)" />
+		<property key="partCompatibility" value=".*efr32mg26b410f3200im48.*" />
+		<property key="boardCompatibility" value="brd4116a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/openthread_app/demos/rcp-spi-802154/rcp-spi-802154-brd4116a.s37" />
+		<property key="readmeFiles" value="ot-ncp/cpc/README-MP-RCP.md" />
+		<property key="filters" value="Capability|Multiprotocol Device\ Type|RCP Project\ Difficulty|Advanced Wireless\ Technology|Thread Wireless\ Technology|Zigbee" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This multiprotocol radio co-processor (RCP) application supports running OpenThread and Zigbee stacks simultaneously on a host processor. It uses concurrent multiprotocol (CMP) / multi-PAN functionality to run the 802.15.4 networks simultaneously on the same channel. The host stacks and the RCP communicate using the Co-Processor Communication protocol (CPC), which acts as a protocol multiplexer and serial transport layer. The host applications connect to the CPC daemon, which in turn connects to the EFR via a SPI link. Refer to *docs.silabs.com Multiprotocol section- Multiprotocol on Linux Solution: Running Zigbee, OpenThread, and Bluetooth Concurrently on a Linux Host with a Multiprotocol Co-processor* for more information on running the multiprotocol RCP with different host applications. </description>
+	</demo>
+	<demo name="brd4407a.demo.rcp-spi-802154" label="Multiprotocol (OpenThread+Zigbee) - RCP (SPI)">
+		<property key="blurb" value="Multiprotocol (OpenThread+Zigbee) - RCP (SPI)" />
+		<property key="partCompatibility" value=".*simg301m104lil.*" />
+		<property key="boardCompatibility" value="brd4407a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/openthread_app/demos/rcp-spi-802154/rcp-spi-802154-brd4407a.s37" />
+		<property key="readmeFiles" value="ot-ncp/cpc/README-MP-RCP.md" />
+		<property key="filters" value="Capability|Multiprotocol Device\ Type|RCP Project\ Difficulty|Advanced Wireless\ Technology|Thread Wireless\ Technology|Zigbee" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This multiprotocol radio co-processor (RCP) application supports running OpenThread and Zigbee stacks simultaneously on a host processor. It uses concurrent multiprotocol (CMP) / multi-PAN functionality to run the 802.15.4 networks simultaneously on the same channel. The host stacks and the RCP communicate using the Co-Processor Communication protocol (CPC), which acts as a protocol multiplexer and serial transport layer. The host applications connect to the CPC daemon, which in turn connects to the EFR via a SPI link. Refer to *docs.silabs.com Multiprotocol section- Multiprotocol on Linux Solution: Running Zigbee, OpenThread, and Bluetooth Concurrently on a Linux Host with a Multiprotocol Co-processor* for more information on running the multiprotocol RCP with different host applications. </description>
+	</demo>
+	<demo name="brd4180a.demo.rcp-uart-802154" label="Multiprotocol (OpenThread+Zigbee) - RCP (UART)">
+		<property key="blurb" value="Multiprotocol (OpenThread+Zigbee) - RCP (UART)" />
+		<property key="partCompatibility" value=".*efr32mg21a020f1024im32.*" />
+		<property key="boardCompatibility" value="brd4180a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/openthread_app/demos/rcp-uart-802154/rcp-uart-802154-brd4180a.s37" />
+		<property key="readmeFiles" value="ot-ncp/cpc/README-MP-RCP.md" />
+		<property key="filters" value="Capability|Multiprotocol Device\ Type|RCP Project\ Difficulty|Advanced Wireless\ Technology|Thread Wireless\ Technology|Zigbee" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This multiprotocol radio co-processor (RCP) application supports running OpenThread and Zigbee stacks simultaneously on a host processor. It uses concurrent multiprotocol (CMP) / multi-PAN functionality to run the 802.15.4 networks simultaneously on the same channel. The host stacks and the RCP communicate using the Co-Processor Communication protocol (CPC), which acts as a protocol multiplexer and serial transport layer. The host applications connect to the CPC daemon, which in turn connects to the EFR via a UART link. Refer to *docs.silabs.com Multiprotocol section- Multiprotocol on Linux Solution: Running Zigbee, OpenThread, and Bluetooth Concurrently on a Linux Host with a Multiprotocol Co-processor* for more information on running the multiprotocol RCP with different host applications. </description>
+	</demo>
+	<demo name="brd4180b.demo.rcp-uart-802154" label="Multiprotocol (OpenThread+Zigbee) - RCP (UART)">
+		<property key="blurb" value="Multiprotocol (OpenThread+Zigbee) - RCP (UART)" />
+		<property key="partCompatibility" value=".*efr32mg21a020f1024im32.*" />
+		<property key="boardCompatibility" value="brd4180b" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/openthread_app/demos/rcp-uart-802154/rcp-uart-802154-brd4180b.s37" />
+		<property key="readmeFiles" value="ot-ncp/cpc/README-MP-RCP.md" />
+		<property key="filters" value="Capability|Multiprotocol Device\ Type|RCP Project\ Difficulty|Advanced Wireless\ Technology|Thread Wireless\ Technology|Zigbee" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This multiprotocol radio co-processor (RCP) application supports running OpenThread and Zigbee stacks simultaneously on a host processor. It uses concurrent multiprotocol (CMP) / multi-PAN functionality to run the 802.15.4 networks simultaneously on the same channel. The host stacks and the RCP communicate using the Co-Processor Communication protocol (CPC), which acts as a protocol multiplexer and serial transport layer. The host applications connect to the CPC daemon, which in turn connects to the EFR via a UART link. Refer to *docs.silabs.com Multiprotocol section- Multiprotocol on Linux Solution: Running Zigbee, OpenThread, and Bluetooth Concurrently on a Linux Host with a Multiprotocol Co-processor* for more information on running the multiprotocol RCP with different host applications. </description>
+	</demo>
+	<demo name="brd4186c.demo.rcp-uart-802154" label="Multiprotocol (OpenThread+Zigbee) - RCP (UART)">
+		<property key="blurb" value="Multiprotocol (OpenThread+Zigbee) - RCP (UART)" />
+		<property key="partCompatibility" value=".*efr32mg24b210f1536im48.*" />
+		<property key="boardCompatibility" value="brd4186c" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/openthread_app/demos/rcp-uart-802154/rcp-uart-802154-brd4186c.s37" />
+		<property key="readmeFiles" value="ot-ncp/cpc/README-MP-RCP.md" />
+		<property key="filters" value="Capability|Multiprotocol Device\ Type|RCP Project\ Difficulty|Advanced Wireless\ Technology|Thread Wireless\ Technology|Zigbee" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This multiprotocol radio co-processor (RCP) application supports running OpenThread and Zigbee stacks simultaneously on a host processor. It uses concurrent multiprotocol (CMP) / multi-PAN functionality to run the 802.15.4 networks simultaneously on the same channel. The host stacks and the RCP communicate using the Co-Processor Communication protocol (CPC), which acts as a protocol multiplexer and serial transport layer. The host applications connect to the CPC daemon, which in turn connects to the EFR via a UART link. Refer to *docs.silabs.com Multiprotocol section- Multiprotocol on Linux Solution: Running Zigbee, OpenThread, and Bluetooth Concurrently on a Linux Host with a Multiprotocol Co-processor* for more information on running the multiprotocol RCP with different host applications. </description>
+	</demo>
+	<demo name="brd2703a.demo.rcp-uart-802154" label="Multiprotocol (OpenThread+Zigbee) - RCP (UART)">
+		<property key="blurb" value="Multiprotocol (OpenThread+Zigbee) - RCP (UART)" />
+		<property key="partCompatibility" value=".*efr32mg24b210f1536im48.*" />
+		<property key="boardCompatibility" value="brd2703a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/openthread_app/demos/rcp-uart-802154/rcp-uart-802154-brd2703a.s37" />
+		<property key="readmeFiles" value="ot-ncp/cpc/README-MP-RCP.md" />
+		<property key="filters" value="Capability|Multiprotocol Device\ Type|RCP Project\ Difficulty|Advanced Wireless\ Technology|Thread Wireless\ Technology|Zigbee" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This multiprotocol radio co-processor (RCP) application supports running OpenThread and Zigbee stacks simultaneously on a host processor. It uses concurrent multiprotocol (CMP) / multi-PAN functionality to run the 802.15.4 networks simultaneously on the same channel. The host stacks and the RCP communicate using the Co-Processor Communication protocol (CPC), which acts as a protocol multiplexer and serial transport layer. The host applications connect to the CPC daemon, which in turn connects to the EFR via a UART link. Refer to *docs.silabs.com Multiprotocol section- Multiprotocol on Linux Solution: Running Zigbee, OpenThread, and Bluetooth Concurrently on a Linux Host with a Multiprotocol Co-processor* for more information on running the multiprotocol RCP with different host applications. </description>
+	</demo>
+	<demo name="brd4116a.demo.rcp-uart-802154" label="Multiprotocol (OpenThread+Zigbee) - RCP (UART)">
+		<property key="blurb" value="Multiprotocol (OpenThread+Zigbee) - RCP (UART)" />
+		<property key="partCompatibility" value=".*efr32mg26b410f3200im48.*" />
+		<property key="boardCompatibility" value="brd4116a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/openthread_app/demos/rcp-uart-802154/rcp-uart-802154-brd4116a.s37" />
+		<property key="readmeFiles" value="ot-ncp/cpc/README-MP-RCP.md" />
+		<property key="filters" value="Capability|Multiprotocol Device\ Type|RCP Project\ Difficulty|Advanced Wireless\ Technology|Thread Wireless\ Technology|Zigbee" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This multiprotocol radio co-processor (RCP) application supports running OpenThread and Zigbee stacks simultaneously on a host processor. It uses concurrent multiprotocol (CMP) / multi-PAN functionality to run the 802.15.4 networks simultaneously on the same channel. The host stacks and the RCP communicate using the Co-Processor Communication protocol (CPC), which acts as a protocol multiplexer and serial transport layer. The host applications connect to the CPC daemon, which in turn connects to the EFR via a UART link. Refer to *docs.silabs.com Multiprotocol section- Multiprotocol on Linux Solution: Running Zigbee, OpenThread, and Bluetooth Concurrently on a Linux Host with a Multiprotocol Co-processor* for more information on running the multiprotocol RCP with different host applications. </description>
+	</demo>
+	<demo name="brd4407a.demo.rcp-uart-802154" label="Multiprotocol (OpenThread+Zigbee) - RCP (UART)">
+		<property key="blurb" value="Multiprotocol (OpenThread+Zigbee) - RCP (UART)" />
+		<property key="partCompatibility" value=".*simg301m104lil.*" />
+		<property key="boardCompatibility" value="brd4407a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/openthread_app/demos/rcp-uart-802154/rcp-uart-802154-brd4407a.s37" />
+		<property key="readmeFiles" value="ot-ncp/cpc/README-MP-RCP.md" />
+		<property key="filters" value="Capability|Multiprotocol Device\ Type|RCP Project\ Difficulty|Advanced Wireless\ Technology|Thread Wireless\ Technology|Zigbee" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This multiprotocol radio co-processor (RCP) application supports running OpenThread and Zigbee stacks simultaneously on a host processor. It uses concurrent multiprotocol (CMP) / multi-PAN functionality to run the 802.15.4 networks simultaneously on the same channel. The host stacks and the RCP communicate using the Co-Processor Communication protocol (CPC), which acts as a protocol multiplexer and serial transport layer. The host applications connect to the CPC daemon, which in turn connects to the EFR via a UART link. Refer to *docs.silabs.com Multiprotocol section- Multiprotocol on Linux Solution: Running Zigbee, OpenThread, and Bluetooth Concurrently on a Linux Host with a Multiprotocol Co-processor* for more information on running the multiprotocol RCP with different host applications. </description>
+	</demo>
+	<demo name="brd4180a.demo.ot-ncp-ftd" label="OpenThread - NCP (FTD)">
+		<property key="blurb" value="OpenThread - NCP (FTD)" />
+		<property key="partCompatibility" value=".*efr32mg21a020f1024im32.*" />
+		<property key="boardCompatibility" value="brd4180a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/openthread_app/demos/ot-ncp-ftd/ot-ncp-ftd-brd4180a.s37" />
+		<property key="readmeFiles" value="ot-ncp/ot/README-OT-NCP.md" />
+		<property key="filters" value="Device\ Type|NCP Project\ Difficulty|Advanced Wireless\ Technology|Thread" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This is a simple OpenThread Full Thread Device NCP application. This is equivalent to the ot-ncp-ftd application in the OpenThread GitHub repo. </description>
+	</demo>
+	<demo name="brd4186c.demo.ot-ncp-ftd" label="OpenThread - NCP (FTD)">
+		<property key="blurb" value="OpenThread - NCP (FTD)" />
+		<property key="partCompatibility" value=".*efr32mg24b210f1536im48.*" />
+		<property key="boardCompatibility" value="brd4186c" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/openthread_app/demos/ot-ncp-ftd/ot-ncp-ftd-brd4186c.s37" />
+		<property key="readmeFiles" value="ot-ncp/ot/README-OT-NCP.md" />
+		<property key="filters" value="Device\ Type|NCP Project\ Difficulty|Advanced Wireless\ Technology|Thread" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This is a simple OpenThread Full Thread Device NCP application. This is equivalent to the ot-ncp-ftd application in the OpenThread GitHub repo. </description>
+	</demo>
+	<demo name="brd2703a.demo.ot-ncp-ftd" label="OpenThread - NCP (FTD)">
+		<property key="blurb" value="OpenThread - NCP (FTD)" />
+		<property key="partCompatibility" value=".*efr32mg24b210f1536im48.*" />
+		<property key="boardCompatibility" value="brd2703a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/openthread_app/demos/ot-ncp-ftd/ot-ncp-ftd-brd2703a.s37" />
+		<property key="readmeFiles" value="ot-ncp/ot/README-OT-NCP.md" />
+		<property key="filters" value="Device\ Type|NCP Project\ Difficulty|Advanced Wireless\ Technology|Thread" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This is a simple OpenThread Full Thread Device NCP application. This is equivalent to the ot-ncp-ftd application in the OpenThread GitHub repo. </description>
+	</demo>
+	<demo name="brd4116a.demo.ot-ncp-ftd" label="OpenThread - NCP (FTD)">
+		<property key="blurb" value="OpenThread - NCP (FTD)" />
+		<property key="partCompatibility" value=".*efr32mg26b410f3200im48.*" />
+		<property key="boardCompatibility" value="brd4116a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/openthread_app/demos/ot-ncp-ftd/ot-ncp-ftd-brd4116a.s37" />
+		<property key="readmeFiles" value="ot-ncp/ot/README-OT-NCP.md" />
+		<property key="filters" value="Device\ Type|NCP Project\ Difficulty|Advanced Wireless\ Technology|Thread" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This is a simple OpenThread Full Thread Device NCP application. This is equivalent to the ot-ncp-ftd application in the OpenThread GitHub repo. </description>
+	</demo>
+	<demo name="brd4407a.demo.ot-ncp-ftd" label="OpenThread - NCP (FTD)">
+		<property key="blurb" value="OpenThread - NCP (FTD)" />
+		<property key="partCompatibility" value=".*simg301m104lil.*" />
+		<property key="boardCompatibility" value="brd4407a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/openthread_app/demos/ot-ncp-ftd/ot-ncp-ftd-brd4407a.s37" />
+		<property key="readmeFiles" value="ot-ncp/ot/README-OT-NCP.md" />
+		<property key="filters" value="Device\ Type|NCP Project\ Difficulty|Advanced Wireless\ Technology|Thread" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This is a simple OpenThread Full Thread Device NCP application. This is equivalent to the ot-ncp-ftd application in the OpenThread GitHub repo. </description>
+	</demo>
+	<demo name="brd4180a.demo.ot-ncp-mtd" label="OpenThread - NCP (MTD)">
+		<property key="blurb" value="OpenThread - NCP (MTD)" />
+		<property key="partCompatibility" value=".*efr32mg21a020f1024im32.*" />
+		<property key="boardCompatibility" value="brd4180a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/openthread_app/demos/ot-ncp-mtd/ot-ncp-mtd-brd4180a.s37" />
+		<property key="readmeFiles" value="ot-ncp/ot/README-OT-NCP.md" />
+		<property key="filters" value="Device\ Type|NCP Project\ Difficulty|Advanced Wireless\ Technology|Thread" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This is a simple OpenThread Minimal Thread Device NCP application. This is equivalent to the ot-ncp-mtd application in the OpenThread GitHub repo. </description>
+	</demo>
+	<demo name="brd4186c.demo.ot-ncp-mtd" label="OpenThread - NCP (MTD)">
+		<property key="blurb" value="OpenThread - NCP (MTD)" />
+		<property key="partCompatibility" value=".*efr32mg24b210f1536im48.*" />
+		<property key="boardCompatibility" value="brd4186c" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/openthread_app/demos/ot-ncp-mtd/ot-ncp-mtd-brd4186c.s37" />
+		<property key="readmeFiles" value="ot-ncp/ot/README-OT-NCP.md" />
+		<property key="filters" value="Device\ Type|NCP Project\ Difficulty|Advanced Wireless\ Technology|Thread" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This is a simple OpenThread Minimal Thread Device NCP application. This is equivalent to the ot-ncp-mtd application in the OpenThread GitHub repo. </description>
+	</demo>
+	<demo name="brd2703a.demo.ot-ncp-mtd" label="OpenThread - NCP (MTD)">
+		<property key="blurb" value="OpenThread - NCP (MTD)" />
+		<property key="partCompatibility" value=".*efr32mg24b210f1536im48.*" />
+		<property key="boardCompatibility" value="brd2703a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/openthread_app/demos/ot-ncp-mtd/ot-ncp-mtd-brd2703a.s37" />
+		<property key="readmeFiles" value="ot-ncp/ot/README-OT-NCP.md" />
+		<property key="filters" value="Device\ Type|NCP Project\ Difficulty|Advanced Wireless\ Technology|Thread" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This is a simple OpenThread Minimal Thread Device NCP application. This is equivalent to the ot-ncp-mtd application in the OpenThread GitHub repo. </description>
+	</demo>
+	<demo name="brd4116a.demo.ot-ncp-mtd" label="OpenThread - NCP (MTD)">
+		<property key="blurb" value="OpenThread - NCP (MTD)" />
+		<property key="partCompatibility" value=".*efr32mg26b410f3200im48.*" />
+		<property key="boardCompatibility" value="brd4116a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/openthread_app/demos/ot-ncp-mtd/ot-ncp-mtd-brd4116a.s37" />
+		<property key="readmeFiles" value="ot-ncp/ot/README-OT-NCP.md" />
+		<property key="filters" value="Device\ Type|NCP Project\ Difficulty|Advanced Wireless\ Technology|Thread" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This is a simple OpenThread Minimal Thread Device NCP application. This is equivalent to the ot-ncp-mtd application in the OpenThread GitHub repo. </description>
+	</demo>
+	<demo name="brd4407a.demo.ot-ncp-mtd" label="OpenThread - NCP (MTD)">
+		<property key="blurb" value="OpenThread - NCP (MTD)" />
+		<property key="partCompatibility" value=".*simg301m104lil.*" />
+		<property key="boardCompatibility" value="brd4407a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/openthread_app/demos/ot-ncp-mtd/ot-ncp-mtd-brd4407a.s37" />
+		<property key="readmeFiles" value="ot-ncp/ot/README-OT-NCP.md" />
+		<property key="filters" value="Device\ Type|NCP Project\ Difficulty|Advanced Wireless\ Technology|Thread" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This is a simple OpenThread Minimal Thread Device NCP application. This is equivalent to the ot-ncp-mtd application in the OpenThread GitHub repo. </description>
+	</demo>
+	<demo name="brd4180a.demo.ot-rcp" label="OpenThread - RCP">
+		<property key="blurb" value="OpenThread - RCP" />
+		<property key="partCompatibility" value=".*efr32mg21a020f1024im32.*" />
+		<property key="boardCompatibility" value="brd4180a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/openthread_app/demos/ot-rcp/ot-rcp-brd4180a.s37" />
+		<property key="readmeFiles" value="ot-ncp/ot/README-OT-RCP.md" />
+		<property key="filters" value="Device\ Type|RCP Project\ Difficulty|Advanced Wireless\ Technology|Thread" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This is a simple OpenThread RCP application. This is equivalent to the ot-rcp application in the OpenThread GitHub repo. </description>
+	</demo>
+	<demo name="brd4180b.demo.ot-rcp" label="OpenThread - RCP">
+		<property key="blurb" value="OpenThread - RCP" />
+		<property key="partCompatibility" value=".*efr32mg21a020f1024im32.*" />
+		<property key="boardCompatibility" value="brd4180b" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/openthread_app/demos/ot-rcp/ot-rcp-brd4180b.s37" />
+		<property key="readmeFiles" value="ot-ncp/ot/README-OT-RCP.md" />
+		<property key="filters" value="Device\ Type|RCP Project\ Difficulty|Advanced Wireless\ Technology|Thread" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This is a simple OpenThread RCP application. This is equivalent to the ot-rcp application in the OpenThread GitHub repo. </description>
+	</demo>
+	<demo name="brd4186c.demo.ot-rcp" label="OpenThread - RCP">
+		<property key="blurb" value="OpenThread - RCP" />
+		<property key="partCompatibility" value=".*efr32mg24b210f1536im48.*" />
+		<property key="boardCompatibility" value="brd4186c" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/openthread_app/demos/ot-rcp/ot-rcp-brd4186c.s37" />
+		<property key="readmeFiles" value="ot-ncp/ot/README-OT-RCP.md" />
+		<property key="filters" value="Device\ Type|RCP Project\ Difficulty|Advanced Wireless\ Technology|Thread" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This is a simple OpenThread RCP application. This is equivalent to the ot-rcp application in the OpenThread GitHub repo. </description>
+	</demo>
+	<demo name="brd2703a.demo.ot-rcp" label="OpenThread - RCP">
+		<property key="blurb" value="OpenThread - RCP" />
+		<property key="partCompatibility" value=".*efr32mg24b210f1536im48.*" />
+		<property key="boardCompatibility" value="brd2703a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/openthread_app/demos/ot-rcp/ot-rcp-brd2703a.s37" />
+		<property key="readmeFiles" value="ot-ncp/ot/README-OT-RCP.md" />
+		<property key="filters" value="Device\ Type|RCP Project\ Difficulty|Advanced Wireless\ Technology|Thread" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This is a simple OpenThread RCP application. This is equivalent to the ot-rcp application in the OpenThread GitHub repo. </description>
+	</demo>
+	<demo name="brd4116a.demo.ot-rcp" label="OpenThread - RCP">
+		<property key="blurb" value="OpenThread - RCP" />
+		<property key="partCompatibility" value=".*efr32mg26b410f3200im48.*" />
+		<property key="boardCompatibility" value="brd4116a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/openthread_app/demos/ot-rcp/ot-rcp-brd4116a.s37" />
+		<property key="readmeFiles" value="ot-ncp/ot/README-OT-RCP.md" />
+		<property key="filters" value="Device\ Type|RCP Project\ Difficulty|Advanced Wireless\ Technology|Thread" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This is a simple OpenThread RCP application. This is equivalent to the ot-rcp application in the OpenThread GitHub repo. </description>
+	</demo>
+	<demo name="brd4407a.demo.ot-rcp" label="OpenThread - RCP">
+		<property key="blurb" value="OpenThread - RCP" />
+		<property key="partCompatibility" value=".*simg301m104lil.*" />
+		<property key="boardCompatibility" value="brd4407a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/openthread_app/demos/ot-rcp/ot-rcp-brd4407a.s37" />
+		<property key="readmeFiles" value="ot-ncp/ot/README-OT-RCP.md" />
+		<property key="filters" value="Device\ Type|RCP Project\ Difficulty|Advanced Wireless\ Technology|Thread" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This is a simple OpenThread RCP application. This is equivalent to the ot-rcp application in the OpenThread GitHub repo. </description>
+	</demo>
+	<demo name="brd4180a.demo.sleepy-demo-ftd" label="OpenThread - SoC Sleepy Demo (FTD)">
+		<property key="blurb" value="OpenThread - SoC Sleepy Demo (FTD)" />
+		<property key="partCompatibility" value=".*efr32mg21a020f1024im32.*" />
+		<property key="boardCompatibility" value="brd4180a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/openthread_app/demos/sleepy-demo-ftd/sleepy-demo-ftd-brd4180a.s37" />
+		<property key="readmeFiles" value="sleepy-demo/README.md" />
+		<property key="filters" value="Device\ Type|SoC Project\ Difficulty|Advanced Wireless\ Technology|Thread" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This is a sample application to start and form a Thread network on an FTD for the sleepy-demo. </description>
+	</demo>
+	<demo name="brd4186c.demo.sleepy-demo-ftd" label="OpenThread - SoC Sleepy Demo (FTD)">
+		<property key="blurb" value="OpenThread - SoC Sleepy Demo (FTD)" />
+		<property key="partCompatibility" value=".*efr32mg24b210f1536im48.*" />
+		<property key="boardCompatibility" value="brd4186c" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/openthread_app/demos/sleepy-demo-ftd/sleepy-demo-ftd-brd4186c.s37" />
+		<property key="readmeFiles" value="sleepy-demo/README.md" />
+		<property key="filters" value="Device\ Type|SoC Project\ Difficulty|Advanced Wireless\ Technology|Thread" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This is a sample application to start and form a Thread network on an FTD for the sleepy-demo. </description>
+	</demo>
+	<demo name="brd2703a.demo.sleepy-demo-ftd" label="OpenThread - SoC Sleepy Demo (FTD)">
+		<property key="blurb" value="OpenThread - SoC Sleepy Demo (FTD)" />
+		<property key="partCompatibility" value=".*efr32mg24b210f1536im48.*" />
+		<property key="boardCompatibility" value="brd2703a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/openthread_app/demos/sleepy-demo-ftd/sleepy-demo-ftd-brd2703a.s37" />
+		<property key="readmeFiles" value="sleepy-demo/README.md" />
+		<property key="filters" value="Device\ Type|SoC Project\ Difficulty|Advanced Wireless\ Technology|Thread" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This is a sample application to start and form a Thread network on an FTD for the sleepy-demo. </description>
+	</demo>
+	<demo name="brd4116a.demo.sleepy-demo-ftd" label="OpenThread - SoC Sleepy Demo (FTD)">
+		<property key="blurb" value="OpenThread - SoC Sleepy Demo (FTD)" />
+		<property key="partCompatibility" value=".*efr32mg26b410f3200im48.*" />
+		<property key="boardCompatibility" value="brd4116a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/openthread_app/demos/sleepy-demo-ftd/sleepy-demo-ftd-brd4116a.s37" />
+		<property key="readmeFiles" value="sleepy-demo/README.md" />
+		<property key="filters" value="Device\ Type|SoC Project\ Difficulty|Advanced Wireless\ Technology|Thread" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This is a sample application to start and form a Thread network on an FTD for the sleepy-demo. </description>
+	</demo>
+	<demo name="brd4407a.demo.sleepy-demo-ftd" label="OpenThread - SoC Sleepy Demo (FTD)">
+		<property key="blurb" value="OpenThread - SoC Sleepy Demo (FTD)" />
+		<property key="partCompatibility" value=".*simg301m104lil.*" />
+		<property key="boardCompatibility" value="brd4407a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/openthread_app/demos/sleepy-demo-ftd/sleepy-demo-ftd-brd4407a.s37" />
+		<property key="readmeFiles" value="sleepy-demo/README.md" />
+		<property key="filters" value="Device\ Type|SoC Project\ Difficulty|Advanced Wireless\ Technology|Thread" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This is a sample application to start and form a Thread network on an FTD for the sleepy-demo. </description>
+	</demo>
+	<demo name="brd4180a.demo.sleepy-demo-mtd" label="OpenThread - SoC Sleepy Demo (MTD)">
+		<property key="blurb" value="OpenThread - SoC Sleepy Demo (MTD)" />
+		<property key="partCompatibility" value=".*efr32mg21a020f1024im32.*" />
+		<property key="boardCompatibility" value="brd4180a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/openthread_app/demos/sleepy-demo-mtd/sleepy-demo-mtd-brd4180a.s37" />
+		<property key="readmeFiles" value="sleepy-demo/README.md" />
+		<property key="filters" value="Device\ Type|SoC Project\ Difficulty|Advanced Wireless\ Technology|Thread" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This is a sample application to demonstrate Sleepy End Device (SED) behaviour with polling, using the EFR32's low power EM2 mode. </description>
+	</demo>
+	<demo name="brd4186c.demo.sleepy-demo-mtd" label="OpenThread - SoC Sleepy Demo (MTD)">
+		<property key="blurb" value="OpenThread - SoC Sleepy Demo (MTD)" />
+		<property key="partCompatibility" value=".*efr32mg24b210f1536im48.*" />
+		<property key="boardCompatibility" value="brd4186c" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/openthread_app/demos/sleepy-demo-mtd/sleepy-demo-mtd-brd4186c.s37" />
+		<property key="readmeFiles" value="sleepy-demo/README.md" />
+		<property key="filters" value="Device\ Type|SoC Project\ Difficulty|Advanced Wireless\ Technology|Thread" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This is a sample application to demonstrate Sleepy End Device (SED) behaviour with polling, using the EFR32's low power EM2 mode. </description>
+	</demo>
+	<demo name="brd2703a.demo.sleepy-demo-mtd" label="OpenThread - SoC Sleepy Demo (MTD)">
+		<property key="blurb" value="OpenThread - SoC Sleepy Demo (MTD)" />
+		<property key="partCompatibility" value=".*efr32mg24b210f1536im48.*" />
+		<property key="boardCompatibility" value="brd2703a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/openthread_app/demos/sleepy-demo-mtd/sleepy-demo-mtd-brd2703a.s37" />
+		<property key="readmeFiles" value="sleepy-demo/README.md" />
+		<property key="filters" value="Device\ Type|SoC Project\ Difficulty|Advanced Wireless\ Technology|Thread" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This is a sample application to demonstrate Sleepy End Device (SED) behaviour with polling, using the EFR32's low power EM2 mode. </description>
+	</demo>
+	<demo name="brd4116a.demo.sleepy-demo-mtd" label="OpenThread - SoC Sleepy Demo (MTD)">
+		<property key="blurb" value="OpenThread - SoC Sleepy Demo (MTD)" />
+		<property key="partCompatibility" value=".*efr32mg26b410f3200im48.*" />
+		<property key="boardCompatibility" value="brd4116a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/openthread_app/demos/sleepy-demo-mtd/sleepy-demo-mtd-brd4116a.s37" />
+		<property key="readmeFiles" value="sleepy-demo/README.md" />
+		<property key="filters" value="Device\ Type|SoC Project\ Difficulty|Advanced Wireless\ Technology|Thread" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This is a sample application to demonstrate Sleepy End Device (SED) behaviour with polling, using the EFR32's low power EM2 mode. </description>
+	</demo>
+	<demo name="brd4407a.demo.sleepy-demo-mtd" label="OpenThread - SoC Sleepy Demo (MTD)">
+		<property key="blurb" value="OpenThread - SoC Sleepy Demo (MTD)" />
+		<property key="partCompatibility" value=".*simg301m104lil.*" />
+		<property key="boardCompatibility" value="brd4407a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/openthread_app/demos/sleepy-demo-mtd/sleepy-demo-mtd-brd4407a.s37" />
+		<property key="readmeFiles" value="sleepy-demo/README.md" />
+		<property key="filters" value="Device\ Type|SoC Project\ Difficulty|Advanced Wireless\ Technology|Thread" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This is a sample application to demonstrate Sleepy End Device (SED) behaviour with polling, using the EFR32's low power EM2 mode. </description>
+	</demo>
+	<demo name="brd4180a.demo.sleepy-demo-ssed" label="OpenThread - SoC Sleepy Demo (SSED)">
+		<property key="blurb" value="OpenThread - SoC Sleepy Demo (SSED)" />
+		<property key="partCompatibility" value=".*efr32mg21a020f1024im32.*" />
+		<property key="boardCompatibility" value="brd4180a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/openthread_app/demos/sleepy-demo-ssed/sleepy-demo-ssed-brd4180a.s37" />
+		<property key="readmeFiles" value="sleepy-demo/README.md" />
+		<property key="filters" value="Device\ Type|SoC Project\ Difficulty|Advanced Wireless\ Technology|Thread" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This is a sample application to demonstrate Synchronous Sleepy End Device (SSED) behaviour with CSL, using the EFR32's low power EM2 mode. </description>
+	</demo>
+	<demo name="brd4186c.demo.sleepy-demo-ssed" label="OpenThread - SoC Sleepy Demo (SSED)">
+		<property key="blurb" value="OpenThread - SoC Sleepy Demo (SSED)" />
+		<property key="partCompatibility" value=".*efr32mg24b210f1536im48.*" />
+		<property key="boardCompatibility" value="brd4186c" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/openthread_app/demos/sleepy-demo-ssed/sleepy-demo-ssed-brd4186c.s37" />
+		<property key="readmeFiles" value="sleepy-demo/README.md" />
+		<property key="filters" value="Device\ Type|SoC Project\ Difficulty|Advanced Wireless\ Technology|Thread" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This is a sample application to demonstrate Synchronous Sleepy End Device (SSED) behaviour with CSL, using the EFR32's low power EM2 mode. </description>
+	</demo>
+	<demo name="brd2703a.demo.sleepy-demo-ssed" label="OpenThread - SoC Sleepy Demo (SSED)">
+		<property key="blurb" value="OpenThread - SoC Sleepy Demo (SSED)" />
+		<property key="partCompatibility" value=".*efr32mg24b210f1536im48.*" />
+		<property key="boardCompatibility" value="brd2703a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/openthread_app/demos/sleepy-demo-ssed/sleepy-demo-ssed-brd2703a.s37" />
+		<property key="readmeFiles" value="sleepy-demo/README.md" />
+		<property key="filters" value="Device\ Type|SoC Project\ Difficulty|Advanced Wireless\ Technology|Thread" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This is a sample application to demonstrate Synchronous Sleepy End Device (SSED) behaviour with CSL, using the EFR32's low power EM2 mode. </description>
+	</demo>
+	<demo name="brd4116a.demo.sleepy-demo-ssed" label="OpenThread - SoC Sleepy Demo (SSED)">
+		<property key="blurb" value="OpenThread - SoC Sleepy Demo (SSED)" />
+		<property key="partCompatibility" value=".*efr32mg26b410f3200im48.*" />
+		<property key="boardCompatibility" value="brd4116a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/openthread_app/demos/sleepy-demo-ssed/sleepy-demo-ssed-brd4116a.s37" />
+		<property key="readmeFiles" value="sleepy-demo/README.md" />
+		<property key="filters" value="Device\ Type|SoC Project\ Difficulty|Advanced Wireless\ Technology|Thread" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This is a sample application to demonstrate Synchronous Sleepy End Device (SSED) behaviour with CSL, using the EFR32's low power EM2 mode. </description>
+	</demo>
+	<demo name="brd4407a.demo.sleepy-demo-ssed" label="OpenThread - SoC Sleepy Demo (SSED)">
+		<property key="blurb" value="OpenThread - SoC Sleepy Demo (SSED)" />
+		<property key="partCompatibility" value=".*simg301m104lil.*" />
+		<property key="boardCompatibility" value="brd4407a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/openthread_app/demos/sleepy-demo-ssed/sleepy-demo-ssed-brd4407a.s37" />
+		<property key="readmeFiles" value="sleepy-demo/README.md" />
+		<property key="filters" value="Device\ Type|SoC Project\ Difficulty|Advanced Wireless\ Technology|Thread" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This is a sample application to demonstrate Synchronous Sleepy End Device (SSED) behaviour with CSL, using the EFR32's low power EM2 mode. </description>
+	</demo>
+</demos>

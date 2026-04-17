@@ -1,0 +1,59 @@
+id: btmesh_stack_api_ncp_host
+label: BT Mesh API and Adaptation layer
+package: bluetooth_mesh
+description: >
+  Bluetooth Mesh API for NCP host and the adaptation between host application and
+  SL_BTMESH_API protocol
+
+  This component does not require Bluetooth Mesh core or other Bluetooth features.
+category: Bluetooth|Application|NCP Host Demo
+quality: production
+include:
+- path: inc
+  file_list:
+  - path: sl_btmesh_api.h
+  - path: sl_btmesh_bgapi.h
+  - path: sli_btmesh_api.h
+  - path: sl_btmesh_compatibility_macros.h
+  - path: sl_btmesh_capi_types.h
+  - path: sl_btmesh_device_properties.h
+  - path: sl_btmesh_generic_model_capi_types.h
+  - path: sl_btmesh_lighting_model_capi_types.h
+  - path: sl_btmesh_memory_config.h
+  - path: sl_btmesh_model_specification_defs.h
+  - path: sl_btmesh_model_specification_v1_1_defs.h
+  - path: sl_btmesh_ncp_host.h
+  - path: sl_btmesh_sensor_model_capi_types.h
+  - path: sl_btmesh_stack_init.h
+source:
+- path: src/sl_btmesh_ncp_host_api.c
+- path: src/sl_btmesh_ncp_host.c
+template_file:
+- path: "src/sl_btmesh.c.jinja"
+- path: "inc/sl_btmesh.h.jinja"
+requires:
+- name: bluetooth_api_ncp_host
+provides:
+- name: btmesh_stack_api_ncp_host
+- name: btmesh_api
+
+template_contribution:
+- name: event_handler
+  value:
+    event: stack_init
+    include: sl_btmesh.h
+    handler: sl_btmesh_init
+  unless:
+  - kernel
+  priority: 0
+- name: event_handler
+  value:
+    event: stack_process_action
+    include: sl_btmesh.h
+    handler: sl_btmesh_step
+- name: btmesh_stack_api_ncp_host
+  value: 1
+metadata:
+  sbom:
+    license: MSLA
+root_path: bluetooth_mesh

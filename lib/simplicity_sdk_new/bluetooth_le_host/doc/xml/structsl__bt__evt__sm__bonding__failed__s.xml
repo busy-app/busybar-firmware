@@ -1,0 +1,49 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="structsl__bt__evt__sm__bonding__failed__s" kind="struct" language="C++" prot="public">
+    <compoundname>sl_bt_evt_sm_bonding_failed_s</compoundname>
+    <includes refid="sl__bt__api_8h" local="no">sl_bt_api.h</includes>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structsl__bt__evt__sm__bonding__failed__s_1a50245600df104c57bbb9ec1a40f3a242" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_sm_bonding_failed_s::connection</definition>
+        <argsstring></argsstring>
+        <name>connection</name>
+        <qualifiedname>sl_bt_evt_sm_bonding_failed_s::connection</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Connection handle </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11420" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="11420" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__sm__bonding__failed__s_1a967e4cd59f2c7cc4800d932d8b8fba26" prot="public" static="no" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t sl_bt_evt_sm_bonding_failed_s::reason</definition>
+        <argsstring></argsstring>
+        <name>reason</name>
+        <qualifiedname>sl_bt_evt_sm_bonding_failed_s::reason</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>An sl_status_t code describing the error that occurred </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11421" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="11421" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Data structure of the bonding_failed event. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11418" column="1" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="11419" bodyend="11423"/>
+    <listofallmembers>
+      <member refid="structsl__bt__evt__sm__bonding__failed__s_1a50245600df104c57bbb9ec1a40f3a242" prot="public" virt="non-virtual"><scope>sl_bt_evt_sm_bonding_failed_s</scope><name>connection</name></member>
+      <member refid="structsl__bt__evt__sm__bonding__failed__s_1a967e4cd59f2c7cc4800d932d8b8fba26" prot="public" virt="non-virtual"><scope>sl_bt_evt_sm_bonding_failed_s</scope><name>reason</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

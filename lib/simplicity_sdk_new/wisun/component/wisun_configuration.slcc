@@ -1,0 +1,30 @@
+id: "wisun_configuration"
+label: "Wi-SUN Configuration"
+description: "Wi-SUN Configuration"
+package: "wisun"
+category: "Wi-SUN"
+quality: "production"
+
+
+ui_hints:
+  visibility: never
+
+provides:
+- name: wisun_configuration
+
+requires:
+- name: "wisun_stack_configuration"
+- name: "wisun_phy_configuration"
+
+recommends:
+- id: wisun_config
+
+  vendor: silabs
+template_contribution:
+- name: component_catalog
+  value: wisun_configuration
+
+metadata:
+  sbom:
+    license: MSLA
+root_path: wisun

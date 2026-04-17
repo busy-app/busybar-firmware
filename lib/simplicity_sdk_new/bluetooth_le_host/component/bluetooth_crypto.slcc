@@ -1,0 +1,45 @@
+id: "bluetooth_crypto"
+label: "Bluetooth Core Crypto Configuration"
+package: bluetooth_le_host
+description: >
+  Bluetooth Low Energy stack crypto configurations
+
+  This component includes the crypto configration needed by the Bluetooth stack
+  and should not be included directly by the application.
+category: Bluetooth|Bluetooth Host (Stack)
+quality: "production"
+template_contribution:
+- name: psa_key_slots
+  value:
+    name: psa_key_slots_bluetooth_stack
+    count: 2
+  condition:
+  - psa_crypto
+  unless:
+  - bluetooth_feature_external_bonding_database
+- name: psa_key_slots
+  value:
+    name: psa_key_slots_bluetooth_stack
+    count: 3
+  condition:
+  - psa_crypto
+  - bluetooth_feature_external_bonding_database
+requires:
+- name: "psa_crypto"
+- name: "psa_crypto_cmac"
+- name: "psa_crypto_cipher_ecb"
+- name: "psa_crypto_ecdh"
+- name: "psa_crypto_ecc_secp256r1"
+- name: "psa_its"
+  condition:
+  - bluetooth_feature_builtin_bonding_database
+
+provides:
+- name: "bluetooth_crypto"
+
+ui_hints:
+  visibility: never
+metadata:
+  sbom:
+    license: MSLA
+root_path: bluetooth_le_host

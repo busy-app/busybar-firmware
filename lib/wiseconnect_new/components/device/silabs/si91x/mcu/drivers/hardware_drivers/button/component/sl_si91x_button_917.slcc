@@ -1,0 +1,48 @@
+id: sl_si91x_button_917
+package: platform_siwx91x
+label: Button
+description: >
+  The Button Driver provides an implementation of the Generic Button API. 
+  This driver supports configurable debouncing.
+  This component is instantiable i.e. named instances can be created.
+  For each instance, a configuration is generated along with an initialization struct set according to this configuration.
+category: Device|Si91x|MCU|Hardware
+quality: production
+metadata:
+  sbom:
+    license: MSLA
+component_root_path: "components/device/silabs/si91x/mcu/drivers/hardware_drivers/button"
+instantiable:
+  prefix: instance
+config_file:
+  - path: "config/sl_si91x_button_pin_config.h"
+  - path: "config/sl_si91x_button_init_{{instance}}_config.h"
+    file_id: button_config
+include:
+  - path: "inc"
+    file_list:
+      - path: "sl_si91x_button.h"
+source:
+  - path: "src/sl_si91x_button.c"
+requires:
+  - name: rsilib_egpio
+  - name: sl_gpio
+provides:
+  - name: sl_si91x_button_917
+template_file:
+  - path: "inst/sl_si91x_button_instances.c.jinja"
+  - path: "inst/sl_si91x_button_instances.h.jinja"
+template_contribution:
+  - name: simple_button_instance
+    value: "{{instance}}"
+  - name: component_catalog
+    value: "{{instance}}"
+  - name: component_catalog
+    value: simple_button
+  - name: component_catalog
+    value: "simple_button_{{instance}}"
+  - name: event_handler
+    value:
+      event: driver_init
+      include: sl_si91x_button_instances.h
+      handler: button_init_instances

@@ -1,0 +1,81 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="structsl__bt__evt__system__resource__exhausted__s" kind="struct" language="C++" prot="public">
+    <compoundname>sl_bt_evt_system_resource_exhausted_s</compoundname>
+    <includes refid="sl__bt__api_8h" local="no">sl_bt_api.h</includes>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structsl__bt__evt__system__resource__exhausted__s_1a97dd311e4778d68e48a1a82bdb816499" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_system_resource_exhausted_s::num_buffers_discarded</definition>
+        <argsstring></argsstring>
+        <name>num_buffers_discarded</name>
+        <qualifiedname>sl_bt_evt_system_resource_exhausted_s::num_buffers_discarded</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>The system has temporarily run out of the pre-allocated data buffers that are allocated based on SL_BT_CONFIG_BUFFER_SIZE configuration and some expendable data or event had to be discarded to satisfy a non-expendble buffer allocation. A typical case is discarding scan reports when a large inflow of scan reports exceeds the speed at which the application drains the BGAPI event queue. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="1081" column="11" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="1081" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__system__resource__exhausted__s_1aa33fff270a2e746d4081ab4347c5a7f6" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_system_resource_exhausted_s::num_buffer_allocation_failures</definition>
+        <argsstring></argsstring>
+        <name>num_buffer_allocation_failures</name>
+        <qualifiedname>sl_bt_evt_system_resource_exhausted_s::num_buffer_allocation_failures</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>The system has run out of the pre-allocated data buffers that are allocated based on SL_BT_CONFIG_BUFFER_SIZE configuration and a buffer allocation has failed. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="1094" column="11" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="1094" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__system__resource__exhausted__s_1a2ca140349ad12c0705a674763d5637ed" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_system_resource_exhausted_s::num_heap_allocation_failures</definition>
+        <argsstring></argsstring>
+        <name>num_heap_allocation_failures</name>
+        <qualifiedname>sl_bt_evt_system_resource_exhausted_s::num_heap_allocation_failures</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>The Bluetooth stack has failed to make an allocation from the heap. Note that only allocations made by the Bluetooth stack are detected and reported by this field. Allocation failures in other components that use sl_malloc() or malloc() are not included in this count. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="1100" column="11" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="1100" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__system__resource__exhausted__s_1a2f5512033fd9c00e2635bfa35730fc19" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_system_resource_exhausted_s::num_message_allocation_failures</definition>
+        <argsstring></argsstring>
+        <name>num_message_allocation_failures</name>
+        <qualifiedname>sl_bt_evt_system_resource_exhausted_s::num_message_allocation_failures</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>The system has run out of internal pre-allocated message items and the creation of an internal message has failed. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="1109" column="11" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="1109" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Data structure of the resource_exhausted event. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="1079" column="1" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="1080" bodyend="1113"/>
+    <listofallmembers>
+      <member refid="structsl__bt__evt__system__resource__exhausted__s_1aa33fff270a2e746d4081ab4347c5a7f6" prot="public" virt="non-virtual"><scope>sl_bt_evt_system_resource_exhausted_s</scope><name>num_buffer_allocation_failures</name></member>
+      <member refid="structsl__bt__evt__system__resource__exhausted__s_1a97dd311e4778d68e48a1a82bdb816499" prot="public" virt="non-virtual"><scope>sl_bt_evt_system_resource_exhausted_s</scope><name>num_buffers_discarded</name></member>
+      <member refid="structsl__bt__evt__system__resource__exhausted__s_1a2ca140349ad12c0705a674763d5637ed" prot="public" virt="non-virtual"><scope>sl_bt_evt_system_resource_exhausted_s</scope><name>num_heap_allocation_failures</name></member>
+      <member refid="structsl__bt__evt__system__resource__exhausted__s_1a2f5512033fd9c00e2635bfa35730fc19" prot="public" virt="non-virtual"><scope>sl_bt_evt_system_resource_exhausted_s</scope><name>num_message_allocation_failures</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,22 @@
+id: mbedtls_sbom
+package: security_mbedtls_source
+label: MBedTLS Software Bill of Materials
+description: This component defines license and other SBOM metadata
+category: Platform|Security|Mbed TLS
+quality: production
+ui_hints:
+  visibility: never
+
+metadata:
+  sbom:
+    license: "Apache-2.0"
+    upstream:
+      name: "Mbed TLS"
+      version: "3.6.4"
+      supplier: "Trusted Firmware"
+      url: "https://github.com/Mbed-TLS/mbedtls.git"
+      comment: >
+        Mbed TLS is a C library implementing the PSA Cryptography API,
+        cryptographic primitives, X.509 certificate manipulation and
+        the SSL/TLS and DTLS protocols
+root_path: security_mbedtls_source

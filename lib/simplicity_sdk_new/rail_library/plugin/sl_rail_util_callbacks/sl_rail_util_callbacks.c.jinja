@@ -1,0 +1,202 @@
+ /***************************************************************************//**
+ * @file sl_rail_util_callbacks.c
+ * @brief RAIL Callbacks
+ *   WARNING: Auto-Generated Radio Callbacks  -  DO NOT EDIT
+ *            Any application code placed within this file will be discarged
+ *            upon project regeneration.
+ *******************************************************************************
+ * # License
+ * <b>Copyright 2024 Silicon Laboratories Inc. www.silabs.com</b>
+ *******************************************************************************
+ *
+ * SPDX-License-Identifier: Zlib
+ *
+ * The licensor of this software is Silicon Laboratories Inc.
+ *
+ * This software is provided 'as-is', without any express or implied
+ * warranty. In no event will the authors be held liable for any damages
+ * arising from the use of this software.
+ *
+ * Permission is granted to anyone to use this software for any purpose,
+ * including commercial applications, and to alter it and redistribute it
+ * freely, subject to the following restrictions:
+ *
+ * 1. The origin of this software must not be misrepresented; you must not
+ *    claim that you wrote the original software. If you use this software
+ *    in a product, an acknowledgment in the product documentation would be
+ *    appreciated but is not required.
+ * 2. Altered source versions must be plainly marked as such, and must not be
+ *    misrepresented as being the original software.
+ * 3. This notice may not be removed or altered from any source distribution.
+ *
+ ******************************************************************************/
+ 
+#include <inttypes.h>
+#ifdef SL_COMPONENT_CATALOG_PRESENT
+#include "sl_component_catalog.h"
+#endif
+#ifdef SL_CATALOG_APP_ASSERT_PRESENT
+#include "app_assert.h"
+#define APP_ASSERT(expr, ...) app_assert(expr,__VA_ARGS__)
+#else
+ #define APP_ASSERT(expr, ...) \
+  do {                         \
+    if (!(expr)) {             \
+      while (1) ;              \
+    }                          \
+  } while (0)
+#endif
+
+#include "sl_rail.h"
+#include "rail.h"
+#include "sl_rail_util_callbacks_config.h"
+
+{%- for entry in rail_util_callbacks %}
+{%- if entry["include"] != empty %}
+#include "{{ entry["include"] }}"
+{%- endif %}
+{%- endfor %}
+
+// Provide weak function called by callback RAILCb_AssertFailed.
+__WEAK
+#ifdef  SL_CATALOG_SL_RAIL_UTIL_CALLBACKS_PRESENT
+void sl_rail_util_on_assert_failed(sl_rail_handle_t rail_handle,
+                                   sl_rail_assert_error_codes_t error_code,
+                                   int line)
+#else//!SL_CATALOG_SL_RAIL_UTIL_CALLBACKS_PRESENT
+void sl_rail_util_on_assert_failed(RAIL_Handle_t rail_handle,
+                                   RAIL_AssertErrorCodes_t error_code)
+#endif//SL_CATALOG_SL_RAIL_UTIL_CALLBACKS_PRESENT
+{
+  (void) rail_handle;
+  (void) error_code;
+#ifdef  SL_CATALOG_SL_RAIL_UTIL_CALLBACKS_PRESENT
+  (void) line;
+  APP_ASSERT(false, "rail_handle: 0x%lX, error_code: %" PRIu32 ", line: %d",
+             (unsigned long)rail_handle, error_code, line);
+#else//!SL_CATALOG_SL_RAIL_UTIL_CALLBACKS_PRESENT
+  APP_ASSERT(false, "rail_handle: 0x%lX, error_code: %" PRIu32,
+             (unsigned long)rail_handle, error_code);
+#endif//SL_CATALOG_SL_RAIL_UTIL_CALLBACKS_PRESENT
+}
+
+#if SL_RAIL_UTIL_CALLBACKS_ASSERT_FAILED_OVERRIDE
+// Note: RAILCb_AssertFailed is called directly by the RAIL library when
+// needed, so maintain this exact function signature.
+#ifdef  SL_CATALOG_SL_RAIL_UTIL_CALLBACKS_PRESENT
+void sl_railcb_assert_failed(sl_rail_handle_t rail_handle,
+                             sl_rail_assert_error_codes_t error_code,
+                             int line)
+#else//!SL_CATALOG_SL_RAIL_UTIL_CALLBACKS_PRESENT
+void RAILCb_AssertFailed(RAIL_Handle_t rail_handle,
+                         RAIL_AssertErrorCodes_t error_code)
+#endif//SL_CATALOG_SL_RAIL_UTIL_CALLBACKS_PRESENT
+{
+{%- for entry in rail_util_callbacks %}
+{%- if entry["event"] == "assert_failed" %}
+#ifdef  SL_CATALOG_SL_RAIL_UTIL_CALLBACKS_PRESENT
+  {{ entry["handler"] }}(rail_handle, error_code, line);
+#else//!SL_CATALOG_SL_RAIL_UTIL_CALLBACKS_PRESENT
+  {{ entry["handler"] }}(rail_handle, error_code);
+#endif//SL_CATALOG_SL_RAIL_UTIL_CALLBACKS_PRESENT
+{%- endif %}
+{%- endfor %}
+#ifdef  SL_CATALOG_SL_RAIL_UTIL_CALLBACKS_PRESENT
+  sl_rail_util_on_assert_failed(rail_handle, error_code, line);
+#else//!SL_CATALOG_SL_RAIL_UTIL_CALLBACKS_PRESENT
+  sl_rail_util_on_assert_failed(rail_handle, error_code);
+#endif//SL_CATALOG_SL_RAIL_UTIL_CALLBACKS_PRESENT
+}
+#endif
+
+// Provide weak function called by callback sli_rail_util_on_rf_ready.
+__WEAK
+#ifdef  SL_CATALOG_SL_RAIL_UTIL_CALLBACKS_PRESENT
+void sl_rail_util_on_rf_ready(sl_rail_handle_t rail_handle)
+#else//!SL_CATALOG_SL_RAIL_UTIL_CALLBACKS_PRESENT
+void sl_rail_util_on_rf_ready(RAIL_Handle_t rail_handle)
+#endif//SL_CATALOG_SL_RAIL_UTIL_CALLBACKS_PRESENT
+{
+  (void) rail_handle;
+}
+
+#ifdef  SL_CATALOG_SL_RAIL_UTIL_CALLBACKS_PRESENT
+// Internal-only callback set up through call to sl_rail_init().
+void sli_rail_util_on_rf_ready(sl_rail_handle_t rail_handle)
+#else//!SL_CATALOG_SL_RAIL_UTIL_CALLBACKS_PRESENT
+// Internal-only callback set up through call to RAIL_Init().
+void sli_rail_util_on_rf_ready(RAIL_Handle_t rail_handle)
+#endif//SL_CATALOG_SL_RAIL_UTIL_CALLBACKS_PRESENT
+{
+{%- for entry in rail_util_callbacks %}
+{%- if entry["event"] == "rf_ready" %}
+  {{ entry["handler"] }}(rail_handle);
+{%- endif %}
+{%- endfor %}
+  sl_rail_util_on_rf_ready(rail_handle);
+}
+
+// Provide weak function called by callback
+// sli_rail_util_on_channel_config_change.
+__WEAK
+#ifdef  SL_CATALOG_SL_RAIL_UTIL_PA_PRESENT
+void sl_rail_util_on_channel_config_change(sl_rail_handle_t rail_handle,
+                                           const sl_rail_channel_config_entry_t *p_entry)
+#else//!SL_CATALOG_SL_RAIL_UTIL_PA_PRESENT
+void sl_rail_util_on_channel_config_change(RAIL_Handle_t rail_handle,
+                                           const RAIL_ChannelConfigEntry_t *p_entry)
+#endif//SL_CATALOG_SL_RAIL_UTIL_PA_PRESENT
+{
+  (void) rail_handle;
+  (void) p_entry;
+}
+
+#ifdef  SL_CATALOG_SL_RAIL_UTIL_PA_PRESENT
+// Internal-only callback set up through call to sl_rail_config_channels().
+void sli_rail_util_on_channel_config_change(sl_rail_handle_t rail_handle,
+                                            const sl_rail_channel_config_entry_t *p_entry)
+#else//!SL_CATALOG_SL_RAIL_UTIL_PA_PRESENT
+// Internal-only callback set up through call to RAIL_ConfigChannels().
+void sli_rail_util_on_channel_config_change(RAIL_Handle_t rail_handle,
+                                            const RAIL_ChannelConfigEntry_t *p_entry)
+#endif//SL_CATALOG_SL_RAIL_UTIL_PA_PRESENT
+{
+{%- for entry in rail_util_callbacks %}
+{%- if entry["event"] == "channel_config_change" %}
+  {{ entry["handler"] }}(rail_handle, p_entry);
+{%- endif %}
+{%- endfor %}
+  sl_rail_util_on_channel_config_change(rail_handle, p_entry);
+}
+
+// Provide weak function called by callback sli_rail_util_on_event.
+__WEAK
+#ifdef  SL_CATALOG_SL_RAIL_UTIL_CALLBACKS_PRESENT
+void sl_rail_util_on_event(sl_rail_handle_t rail_handle,
+                           sl_rail_events_t events)
+#else//!SL_CATALOG_SL_RAIL_UTIL_CALLBACKS_PRESENT
+void sl_rail_util_on_event(RAIL_Handle_t rail_handle,
+                           RAIL_Events_t events)
+#endif//SL_CATALOG_SL_RAIL_UTIL_CALLBACKS_PRESENT
+{
+  (void) rail_handle;
+  (void) events;
+}
+
+#ifdef  SL_CATALOG_SL_RAIL_UTIL_CALLBACKS_PRESENT
+// Internal-only callback set up through call to sl_rail_init().
+void sli_rail_util_on_event(sl_rail_handle_t rail_handle,
+                            sl_rail_events_t events)
+#else//!SL_CATALOG_SL_RAIL_UTIL_CALLBACKS_PRESENT
+// Internal-only callback set up through call to RAIL_Init().
+void sli_rail_util_on_event(RAIL_Handle_t rail_handle,
+                            RAIL_Events_t events)
+#endif//SL_CATALOG_SL_RAIL_UTIL_CALLBACKS_PRESENT
+{
+{%- for entry in rail_util_callbacks %}
+{%- if entry["event"] == "rail_event" %}
+  {{ entry["handler"] }}(rail_handle, events);
+{%- endif %}
+{%- endfor %}
+  sl_rail_util_on_event(rail_handle, events);
+}

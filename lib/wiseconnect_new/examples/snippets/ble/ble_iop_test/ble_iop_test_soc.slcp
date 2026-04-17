@@ -1,0 +1,92 @@
+project_name: ble_iop_test_soc
+package: bluetooth_le_siwx91x_app
+quality: production
+label: BLE - Interoperability Testing Application (SoC)
+category: Example|BLE
+description: 'This application demonstrates Interoperability Test
+
+  '
+filter:
+- name: Wireless Technology
+  value:
+  - BLE
+- name: Project Difficulty
+  value:
+  - Beginner
+source:
+- path: app.c
+include:
+- path: .
+  file_list:
+  - path: app.h
+  - path: ble_config.h
+  - path: ble_iop.h
+define:
+- name: SL_SI91X_PRINT_DBG_LOG
+component:
+- id: sl_main
+- id: freertos
+- id: freertos_heap_4
+- id: syscalls
+- id: si91x_memory_default_config
+- id: wiseconnect_common
+- id: wifi
+- id: sl_si91x_internal_stack
+- id: wifi_resources
+- id: sl_power_manager
+- id: network_manager
+- id: basic_network_config_manager
+- id: ble
+- id: sl_si91x_basic_buffers
+- id: wireless_wakeup_ulp_component
+- id: sl_si91x_soc_soft_reset
+requires:
+- name: device_needs_ram_execution
+  condition:
+  - si91x_common_flash
+toolchain_settings:
+- option: gcc_compiler_option
+  value: -Wall -Werror
+configuration:
+- name: SL_BOARD_ENABLE_VCOM
+  value: '1'
+readme:
+- path: readme.md
+other_file:
+- path: resources/readme/new_board.png
+- path: resources/readme/bond.png
+- path: resources/readme/connect.png
+- path: resources/readme/new_image.png
+- path: resources/readme/log.png
+- path: resources/readme/NA.png
+- path: resources/readme/no_of_devices_conn.png
+- path: resources/readme/ota.png
+- path: resources/readme/pass.png
+- path: resources/readme/pin.png
+- path: resources/readme/progress.png
+- path: resources/readme/readme_img0.png
+- path: resources/readme/run.png
+- path: resources/readme/setup.png
+- path: resources/readme/share.png
+- path: resources/readme/start.png
+- path: resources/readme/Test.png
+- path: resources/readme/test_tab.png
+- path: resources/readme/test_log1.png
+- path: resources/readme/test_log_2.png
+- path: resources/readme/test_log_3.png
+- path: resources/readme/pin_display.png
+- path: resources/readme/le_privacy.png
+ui_hints:
+  highlight:
+  - path: readme.md
+    focus: true
+post_build:
+  profile: wiseconnect_soc
+sdk_extension:
+- id: wiseconnect3_sdk
+  vendor: silabs
+  version: 4.0.1
+sdk:
+  id: simplicity_sdk
+  vendor: silabs
+  version: 2025.12.2

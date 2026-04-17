@@ -1,0 +1,41 @@
+id: hal_sysrtc_subsystem_host
+label: SYSRTC for Host Sub-System
+package: platform_core
+description: >
+  System Real Time Counter (SYSRTC) peripheral API for Host Sub-System
+category: Platform|Peripheral|HAL
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+ui_hints:
+  visibility: never
+source:
+- path: src/sl_hal_sysrtc.c
+- path: src/sl_hal_sysrtc_subsystem.c
+include:
+- path: inc
+  file_list:
+  - path: sl_hal_sysrtc.h
+  - path: sl_hal_sysrtc_compat.h
+  - path: sl_hal_sysrtc_subsystem.h
+  - path: peripheral_sysrtc.h
+  - path: peripheral_sysrtc_compat.h
+provides:
+- name: hal_sysrtc_subsystem_host
+- name: hal_sysrtc_subsystem
+  condition: [device_cortexm]
+documentation:
+  docset: gecko-platform
+  document:
+  - page: platform-peripheral-efr32xg23/sysrtc
+    condition: [device_sdid_210]
+  - page: platform-peripheral-efr32xg24/sysrtc
+    condition: [device_sdid_215]
+  - page: platform-peripheral-efr32xg25/sysrtc
+    condition: [device_sdid_220]
+  - page: platform-peripheral-efr32xg28/sysrtc
+    condition: [device_sdid_235]
+  - page: platform-peripheral-sixg301/sysrtc
+    condition: [device_generic_family_sixx301]
+root_path: platform_core/platform/peripheral

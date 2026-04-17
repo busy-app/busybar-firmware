@@ -1,0 +1,24 @@
+{
+  "name" : "VEML6035",
+  "build_system" : "uc",
+  "type" : "unity",
+  "component" : [
+    "veml6035_driver",
+    "i2cspm:sensor",
+    "board_control",
+    "unity",
+    "sleeptimer",
+    "sl_system",
+    "device_init",
+    "simple_led:led0"
+  ],
+  "sources" : [
+    "../../../veml6035/test/veml6035_test.c"
+  ],
+  "coverage" : [
+    "sl_veml6035.c"
+  ],
+  "run_condition": [
+    "hardware:has:sensor:veml6035"
+  ]
+}

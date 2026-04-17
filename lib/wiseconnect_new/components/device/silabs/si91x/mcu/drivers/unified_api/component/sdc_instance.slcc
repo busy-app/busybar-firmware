@@ -1,0 +1,46 @@
+id: sdc_instance
+label: SDC
+package: platform_siwx91x
+description: >
+   SDC stands for Sensor Data Collector.
+   An SDC is a peripheral or component of a controller that converts analog signals (continuous voltage levels)
+   into digital data (discrete binary values) that the controller can handle in PS1 power state.
+   
+   SDC Supports instances.
+   Instances created must be named as channel_1, channel_2, channel_3, channel_4.
+
+category: Device|Si91x|MCU|Peripheral
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+instantiable:
+  prefix: inst
+root_path: "components/device/silabs/si91x/mcu/drivers/unified_api"
+config_file:
+  - path: config/sl_si91x_sdc_common_config.h
+  - path: config/sl_si91x_sdc_init_{{instance}}_config.h
+    file_id: sdc_config
+provides:
+  - name: sdc_instance
+    allow_multiple: true
+template_file:
+  - path: init/sl_sdc_instances.h.jinja
+  - path: init/sl_sdc_init.c.jinja
+template_contribution:
+  - name: sdc_instances
+    value: "{{instance}}"
+  - name: component_catalog
+    value: sdc
+  - name: component_catalog
+    value: "sdc_{{instance}}"
+  - name: event_handler
+    condition: [sl_sdc]
+    value:
+      include: "sl_sdc_instances.h"
+requires:
+  - name: sl_sdc
+  - name: sl_adc
+documentation:
+    docset: wiseconnect
+    document: wiseconnect-api-reference-guide-si91x-peripherals/sdc

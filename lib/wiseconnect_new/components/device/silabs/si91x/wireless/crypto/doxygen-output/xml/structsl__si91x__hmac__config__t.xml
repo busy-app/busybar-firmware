@@ -1,0 +1,109 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="structsl__si91x__hmac__config__t" kind="struct" language="C++" prot="public">
+    <compoundname>sl_si91x_hmac_config_t</compoundname>
+    <includes refid="sl__si91x__hmac_8h" local="no">sl_si91x_hmac.h</includes>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structsl__si91x__hmac__config__t_1a574b52d13be4a1bfb2a686b98669cc67" prot="public" static="no" mutable="no">
+        <type><ref refid="group__CRYPTO__HMAC__CONSTANTS_1ga93ae7b72c47bde356de2a927a9a7f35c" kindref="member">sl_si91x_hmac_mode_t</ref></type>
+        <definition>sl_si91x_hmac_mode_t sl_si91x_hmac_config_t::hmac_mode</definition>
+        <argsstring></argsstring>
+        <name>hmac_mode</name>
+        <qualifiedname>sl_si91x_hmac_config_t::hmac_mode</qualifiedname>
+        <briefdescription>
+<para>HMAC Mode. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/hmac/inc/sl_si91x_hmac.h" line="123" column="24" bodyfile="components/device/silabs/si91x/wireless/crypto/hmac/inc/sl_si91x_hmac.h" bodystart="123" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__si91x__hmac__config__t_1a1633a7adf8d5d1938da1405506a462e7" prot="public" static="no" mutable="no">
+        <type>const uint8_t *</type>
+        <definition>const uint8_t* sl_si91x_hmac_config_t::msg</definition>
+        <argsstring></argsstring>
+        <name>msg</name>
+        <qualifiedname>sl_si91x_hmac_config_t::msg</qualifiedname>
+        <briefdescription>
+<para>Pointer to the input message. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/hmac/inc/sl_si91x_hmac.h" line="124" column="17" bodyfile="components/device/silabs/si91x/wireless/crypto/hmac/inc/sl_si91x_hmac.h" bodystart="124" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__si91x__hmac__config__t_1a6f863f7de697028f5f4aabd1d6ca0ac9" prot="public" static="no" mutable="no">
+        <type>uint32_t</type>
+        <definition>uint32_t sl_si91x_hmac_config_t::msg_length</definition>
+        <argsstring></argsstring>
+        <name>msg_length</name>
+        <qualifiedname>sl_si91x_hmac_config_t::msg_length</qualifiedname>
+        <briefdescription>
+<para>Length of the message. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/hmac/inc/sl_si91x_hmac.h" line="125" column="12" bodyfile="components/device/silabs/si91x/wireless/crypto/hmac/inc/sl_si91x_hmac.h" bodystart="125" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__si91x__hmac__config__t_1a3542cd1311effbe3f871d327872c046a" prot="public" static="no" mutable="no">
+        <type><ref refid="unionsl__si91x__hmac__key__config__t" kindref="compound">sl_si91x_hmac_key_config_t</ref></type>
+        <definition>sl_si91x_hmac_key_config_t sl_si91x_hmac_config_t::key_config</definition>
+        <argsstring></argsstring>
+        <name>key_config</name>
+        <qualifiedname>sl_si91x_hmac_config_t::key_config</qualifiedname>
+        <briefdescription>
+<para>Key configuration. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/hmac/inc/sl_si91x_hmac.h" line="126" column="30" bodyfile="components/device/silabs/si91x/wireless/crypto/hmac/inc/sl_si91x_hmac.h" bodystart="126" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Structure defining HMAC configuration. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>This structure defines the HMAC configuration required for the operation, which includes the type of operation, input message, length of the input message, key configuration structure, and so on. </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>sl_si91x_hmac_config_t</label>
+        <link refid="structsl__si91x__hmac__config__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>key_config</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>sl_si91x_hmac_key_config_A0_t</label>
+        <link refid="structsl__si91x__hmac__key__config__A0__t"/>
+      </node>
+      <node id="4">
+        <label>sl_si91x_hmac_key_config_B0_t</label>
+        <link refid="structsl__si91x__hmac__key__config__B0__t"/>
+      </node>
+      <node id="2">
+        <label>sl_si91x_hmac_key_config_t</label>
+        <link refid="unionsl__si91x__hmac__key__config__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>A0</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>B0</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="components/device/silabs/si91x/wireless/crypto/hmac/inc/sl_si91x_hmac.h" line="122" column="1" bodyfile="components/device/silabs/si91x/wireless/crypto/hmac/inc/sl_si91x_hmac.h" bodystart="122" bodyend="127"/>
+    <listofallmembers>
+      <member refid="structsl__si91x__hmac__config__t_1a574b52d13be4a1bfb2a686b98669cc67" prot="public" virt="non-virtual"><scope>sl_si91x_hmac_config_t</scope><name>hmac_mode</name></member>
+      <member refid="structsl__si91x__hmac__config__t_1a3542cd1311effbe3f871d327872c046a" prot="public" virt="non-virtual"><scope>sl_si91x_hmac_config_t</scope><name>key_config</name></member>
+      <member refid="structsl__si91x__hmac__config__t_1a1633a7adf8d5d1938da1405506a462e7" prot="public" virt="non-virtual"><scope>sl_si91x_hmac_config_t</scope><name>msg</name></member>
+      <member refid="structsl__si91x__hmac__config__t_1a6f863f7de697028f5f4aabd1d6ca0ac9" prot="public" virt="non-virtual"><scope>sl_si91x_hmac_config_t</scope><name>msg_length</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

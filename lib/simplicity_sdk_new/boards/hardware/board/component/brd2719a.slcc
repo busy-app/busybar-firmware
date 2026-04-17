@@ -1,0 +1,62 @@
+!!omap
+- id: brd2719a
+- label: BRD2719A
+- package: boards
+- description: Board support for BRD2719A.
+- category: Platform|Board|Thunderboard
+- quality: production
+- metadata:
+    sbom:
+      license: Zlib
+- requires:
+  - name: simg301m104lil
+  - name: brd2719a_config
+- provides:
+  - name: brd2719a
+  - name: hardware_board
+  - name: hardware_board_tb
+  - name: hardware_board_from_tb
+  - name: hardware_board_from_sixg301-ek2719a
+  - name: hardware_board_has_vcom
+  - name: hardware_board_has_vcom_hardware_flowcontrol
+  - name: hardware_board_supports_rf_band_2400
+  - name: hardware_board_supports_1_rf_band
+  - name: hardware_board_default_rf_band
+  - name: hardware_board_default_rf_band_2400
+- recommends:
+  - id: iostream_eusart
+    instance:
+    - vcom
+    vendor: silabs
+  - id: bootloader_euart_driver
+    vendor: silabs
+  - id: simple_led
+    instance:
+    - led0
+    - led1
+    vendor: silabs
+  - id: simple_button
+    instance:
+    - btn0
+    - btn1
+    vendor: silabs
+- template_contribution: []
+- define:
+  - name: SL_BOARD_NAME
+    value: '"BRD2719A"'
+  - name: SL_BOARD_REV
+    value: '"A03"'
+  - name: HARDWARE_BOARD_SUPPORTS_RF_BAND_2400
+  - name: HARDWARE_BOARD_SUPPORTS_1_RF_BAND
+  - name: HARDWARE_BOARD_DEFAULT_RF_BAND_2400
+- tag:
+  - board:pn:BRD2719
+  - board:variant:A
+  - board:revision:A03
+  - board:device:simg301m104lil
+  - hardware:has:vcom
+  - hardware:has:vcom:vcom_hardware_flowcontrol
+  - hardware:has:pti
+  - hardware:has:led:2
+  - hardware:has:button:2
+- root_path: boards

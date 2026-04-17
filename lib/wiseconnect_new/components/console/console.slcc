@@ -1,0 +1,26 @@
+id: console
+package: wifi
+description: >
+  Provides a console (command line interpreter or CLI) service
+label: Console
+category: Service|Console
+quality: production
+metadata:
+  sbom: 
+    license: MSLA
+component_root_path: ./components/console
+provides:
+- name: console
+source:
+- path: console.c
+- path: console_minimal_uart_plugin.c
+include:
+- path: .
+  file_list:
+    - path: console_constants.h
+    - path: console_types.h
+    - path: console.h
+- path: variables
+  file_list:
+    - path: nvm_ids.h
+

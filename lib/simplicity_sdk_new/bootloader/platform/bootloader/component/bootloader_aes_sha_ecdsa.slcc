@@ -1,0 +1,18 @@
+id: bootloader_aes_sha_ecdsa
+label: Crypto
+package: bootloader
+description: >
+  The Crypto component provides crypto operations for bootloader, including:
+  1) Advanced Encryption Standard (AES)
+  2) Elliptic Curve Digital Signature Algorithm(ECDSA)
+  3) Secure Hash Algorithms(SHA).
+category: Platform|Bootloader|Utils
+quality: production
+requires:
+- name: bootloader_aes_sha_ecdsa_common
+provides:
+- name: bootloader_aes_sha_ecdsa
+metadata:
+  sbom:
+    license: MSLA AND APACHE-2.0
+root_path: bootloader

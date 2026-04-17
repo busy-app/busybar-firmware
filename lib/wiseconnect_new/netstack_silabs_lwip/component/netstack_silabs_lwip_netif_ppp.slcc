@@ -1,0 +1,88 @@
+id: netstack_silabs_lwip_netif_ppp
+label: "LWIP generic network interface device drivers for PPP"
+package: netstack_silabs_lwip
+description: >
+  The LWIP generic network interface device drivers for PP component can be used for the LWIP PPP support.
+  It is based from pppd (http://ppp.samba.org) with huge changes to match code size and memory requirements
+  for embedded devices. Please read /doc/ppp.txt and ppp/PPPD_FOLLOWUP for a detailed explanation.
+category: Network Stack|LwIP|netif
+quality: production
+provides:
+- name: netstack_silabs_lwip_netif
+  allow_multiple: true
+- name: netstack_silabs_lwip_netif_ppp
+requires:
+- name: netstack_silabs_lwip_core
+source:
+- path: lwip/src/netif/ppp/polarssl/arc4.c
+- path: lwip/src/netif/ppp/polarssl/des.c
+- path: lwip/src/netif/ppp/polarssl/md4.c
+- path: lwip/src/netif/ppp/polarssl/md5.c
+- path: lwip/src/netif/ppp/polarssl/sha1.c
+- path: lwip/src/netif/ppp/auth.c
+- path: lwip/src/netif/ppp/ccp.c
+- path: lwip/src/netif/ppp/chap_ms.c
+- path: lwip/src/netif/ppp/chap-md5.c
+- path: lwip/src/netif/ppp/chap-new.c
+- path: lwip/src/netif/ppp/demand.c
+- path: lwip/src/netif/ppp/eap.c
+- path: lwip/src/netif/ppp/ecp.c
+- path: lwip/src/netif/ppp/eui64.c
+- path: lwip/src/netif/ppp/fsm.c
+- path: lwip/src/netif/ppp/ipcp.c
+- path: lwip/src/netif/ppp/ipv6cp.c
+- path: lwip/src/netif/ppp/lcp.c
+- path: lwip/src/netif/ppp/magic.c
+- path: lwip/src/netif/ppp/mppe.c
+- path: lwip/src/netif/ppp/multilink.c
+- path: lwip/src/netif/ppp/ppp.c
+- path: lwip/src/netif/ppp/pppapi.c
+- path: lwip/src/netif/ppp/pppcrypt.c
+- path: lwip/src/netif/ppp/pppoe.c
+- path: lwip/src/netif/ppp/pppol2tp.c
+- path: lwip/src/netif/ppp/pppos.c
+- path: lwip/src/netif/ppp/upap.c
+- path: lwip/src/netif/ppp/utils.c
+- path: lwip/src/netif/ppp/vj.c
+
+include:
+- path: lwip/src/include
+  file_list:
+  - path: netif/ppp/polarssl/arc4.h
+  - path: netif/ppp/polarssl/des.h
+  - path: netif/ppp/polarssl/md4.h
+  - path: netif/ppp/polarssl/md5.h
+  - path: netif/ppp/polarssl/sha1.h
+  - path: netif/ppp/ccp.h
+  - path: netif/ppp/chap_ms.h
+  - path: netif/ppp/chap-md5.h
+  - path: netif/ppp/chap-new.h
+  - path: netif/ppp/eap.h
+  - path: netif/ppp/ecp.h
+  - path: netif/ppp/eui64.h
+  - path: netif/ppp/fsm.h
+  - path: netif/ppp/ipcp.h
+  - path: netif/ppp/ipv6cp.h
+  - path: netif/ppp/lcp.h
+  - path: netif/ppp/magic.h
+  - path: netif/ppp/mppe.h
+  - path: netif/ppp/ppp.h
+  - path: netif/ppp/pppapi.h
+  - path: netif/ppp/pppcrypt.h
+  - path: netif/ppp/pppdebug.h
+  - path: netif/ppp/pppoe.h
+  - path: netif/ppp/pppol2tp.h
+  - path: netif/ppp/pppos.h
+  - path: netif/ppp/upap.h
+  - path: netif/ppp/vj.h
+metadata:
+  sbom:
+    license: BSD-3-Clause
+    upstream:
+      name: lwip
+      version: 2.2.1
+      supplier: lwIP Developers
+      url: https://savannah.nongnu.org/projects/lwip/
+      package_url: https://github.com/lwip-tcpip/lwip/
+      comment: lwIP is a small independent implementation of the TCP/IP protocol suite.
+root_path: netstack_silabs_lwip/

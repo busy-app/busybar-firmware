@@ -1,0 +1,16 @@
+id: rail_util_ant_div
+label: RAIL Utility, Antenna Diversity Configuration (RAIL 2.x)
+description: Utility to aid with antenna diversity configuration
+package: rail_library
+category: Platform|Radio|RAIL 2.x
+quality: deprecated
+metadata:
+  sbom:
+    id: rail_util_ant_div
+    name: RAIL Utility, Antenna Diversity Configuration (RAIL 2.x)
+    license: MSLA
+provides:
+- name: rail2_util_ant_div
+requires:
+- name: sl_rail_util_ant_div
+root_path: rail_library

@@ -1,0 +1,24 @@
+id: tz_service_common
+package: security_trustzone
+description: >-
+  This component component includes files and functionality common to all secure
+  services.
+category: Platform|Security|TrustZone
+ui_hints:
+  visibility: never
+quality: production
+provides:
+- name: tz_service_common
+
+requires:
+- name: tfm_tz_service_common
+- name: trustzone_secure
+- name: psa_crypto
+- name: sl_assert
+- name: tz_common
+- name: tz_iovec_check
+
+metadata:
+  sbom:
+    license: ZLib
+root_path: security_trustzone/platform/security

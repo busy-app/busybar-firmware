@@ -1,0 +1,22 @@
+id: psram_configuration_headers
+label: PSRAM Configuration Header Files
+package: platform_siwx91x
+quality: production
+metadata:
+  sbom:
+    license: MSLA
+category: Device|Si91x|MCU|Core
+component_root_path: components/device/silabs/si91x/mcu/core/chip
+description: 'Si91x SoC PSRAM configuration header files.
+
+  '
+provides:
+- name: psram_configuration_headers
+config_file:
+- path: config/sl_si91x_psram_pin_config.h
+  override:
+    component: psram_core
+    file_id: psram_pin_config
+    vendor: silabs
+  unless:
+  - opn_config

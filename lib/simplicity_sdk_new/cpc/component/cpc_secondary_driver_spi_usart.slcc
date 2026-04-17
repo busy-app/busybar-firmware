@@ -1,0 +1,53 @@
+id: cpc_secondary_driver_spi_usart
+package: cpc
+description: SPI driver over USART peripheral for Co-Processor Communication (CPC) Secondary Device.
+label: CPC Secondary - SPI (USART)
+category: Services|Co-Processor Communication|Secondary Device|Driver
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+instantiable:
+  prefix: inst
+config_file:
+- path: config/s2/sl_cpc_drv_secondary_spi_usart_{{instance}}_config.h
+  file_id: cpc_drv_secondary_spi_usart_config
+  condition: [device_series_2]
+source:
+- path: src/sl_cpc_drv_secondary_spi.c
+provides:
+- name: cpc_driver
+  allow_multiple: true
+- name: cpc_secondary_driver_spi_usart_interface
+- name: cpc_secondary_driver
+  allow_multiple: true
+- name: cpc_secondary_driver_spi_usart
+  allow_multiple: false
+- name: cpc_secondary_driver_spi
+  allow_multiple: false
+requires:
+- name: device_has_usart
+- name: status
+- name: dmadrv
+- name: device_manager
+- name: emlib_gpio
+  condition: [device_series_2]
+- name: emlib_prs
+  condition: [device_series_2]
+- name: clock_manager_runtime
+- name: slist
+- name: cpc_core
+- name: cpc_secondary
+template_file:
+- path: template/s2/sl_cpc_drv_secondary_spi_config.h.jinja
+  condition: [device_series_2]
+template_contribution:
+- name: cpc_spi_instance_name
+  value: '{{instance}}'
+- name: cpc_interface_type
+  value: spi
+- name: cpc_spi_periph_type
+  value: usart
+- name: component_catalog
+  value: cpc_driver_spi
+root_path: cpc

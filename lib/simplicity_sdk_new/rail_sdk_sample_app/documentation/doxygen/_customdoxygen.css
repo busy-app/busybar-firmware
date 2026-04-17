@@ -1,0 +1,636 @@
+/* Customized Silicon Labs CSS for doxygen 1.8.10 */
+@import url(https://fonts.googleapis.com/css?family=Open+Sans:400,600,700,400italic,600italic,700italic);
+
+
+/*********************
+ * Custom tab styles *
+ *********************/
+.tabs, .tabs2, .tabs3 {
+    background: #fff;
+    border-bottom: 3px solid #797777;
+    font-size: 16px;
+    font-family: "Open Sans",sans-serif;
+}
+
+.tabs2 {
+    font-size: 14px;
+}
+.tabs3 {
+    font-size: 12px;
+}
+
+.tablist li {
+    background: #fff;
+    line-height: 48px;
+}
+
+.tabs2 .tablist li {
+	line-height: 36px;
+}
+
+.tabs3 .tablist li {
+	line-height: 24px;
+}
+
+.tablist a {
+    padding: 0 30px;
+    background: #fff;
+    color: #0F0102;
+    text-shadow: none;
+}
+
+.tablist li.current a {
+    background: #797777;
+    text-shadow: none;
+}
+
+.tablist a:hover {
+	background: #D91E2A;
+    text-shadow: none;
+}
+
+.tablist li.current a:hover {
+	background: #D91E2A;
+    text-shadow: none;
+    text-decoration: none;
+}
+
+
+/************
+ * Nav tree *
+ ************/
+#nav-tree li {
+  padding: 0;
+}
+
+#nav-tree .selected {
+  background: #D91E2A;
+  text-shadow: none;
+}
+
+#nav-tree a {
+  color: #000;
+}
+
+#nav-tree .label {
+  font: 14px "Open Sans",sans-serif;
+}
+
+#nav-tree .item {
+  padding:5px;
+}
+
+#nav-tree {
+  background: #fff; 
+}
+
+#doc-content {
+  background: url("gecko.png") no-repeat bottom right;
+}
+
+#side-nav {
+  width: 300px;
+}
+
+.ui-resizable-e {
+  background: #fff;
+  width:3px;
+}
+
+#nav-tree {
+  background: #fff;
+}
+
+
+/**********
+ * Search *
+ **********/
+
+ #MSearchBox {
+ 	width: 264px;
+  margin-top: 5px;
+ }
+
+ #MSearchBox .left {
+ 	background: #F0F0F0;
+ 	height: 34px;
+ }
+
+ #MSearchBox .right {
+ 	background: #F0F0F0;
+ 	height: 34px;
+ }
+
+ #MSearchField {
+ 	height: 32px;
+ 	background: #F0F0F0;
+ 	width: 200px;
+ 	font: 14px "Open Sans",sans-serif;
+ }
+
+.MSearchBoxActive #MSearchField {
+  border-top: 3px solid #E8E8E8;
+  margin-top: -3px;
+}
+
+.MSearchBoxInactive .left {
+  border-left: 3px solid #fff;
+  border-top: 3px solid #fff;
+}
+
+.MSearchBoxInactive .right {
+  border-right: 3px solid #fff;
+  border-top: 3px solid #fff;
+}
+
+.MSearchBoxActive .left {
+  border-left: 3px solid #E8E8E8;
+  border-top: 3px solid #E8E8E8;
+}
+
+.MSearchBoxActive .right {
+  border-right: 3px solid #E8E8E8;
+  border-top: 3px solid #E8E8E8;
+}
+
+ #MSearchSelect {
+ 	margin-top: 8px;
+ }
+
+ #MSearchClose {
+ 	top: 12px;
+ }
+
+ #MSearchSelectWindow {
+ 	margin-left: -4px;
+ 	border: none;
+ 	background: #F0F0F0;
+ 	border-radius: 0;
+ 	box-shadow: none;
+ 	padding-top: 10px;
+ }
+
+ .SelectItem {
+ 	font: 14px "Open Sans", sans-serif;
+ }
+
+ a.SelectItem {
+ 	padding: 2px 20px 2px 10px;
+ }
+
+iframe#MSearchResults {
+}
+
+#MSearchResultsWindow {
+	background: #F0F0F0;
+	border: 3px solid #E8E8E8;
+	margin-top: 14px;
+	margin-left: 98px;
+}
+
+
+/*****************
+ * Standard file *
+ *****************/
+ body, table, div, p, dl {
+	font: 400 14px/22px "Open Sans",sans-serif;
+}
+
+/* @group Heading Levels */
+
+.title {
+	font: 400 14px/28px "Open Sans",sans-serif;
+  font-size: 150%;
+  font-weight: bold;
+}
+
+h2.groupheader {
+	border-bottom: 3px solid #D91E2A;
+	color: #000;
+}
+
+h1.glow, h2.glow, h3.glow, h4.glow, h5.glow, h6.glow {
+	text-shadow: 0 0 15px #D91E2A;
+}
+
+/* @end */
+
+div.qindex, div.navtab{
+	background-color: #F0F0F0;
+	border: none;
+	text-align: center;
+}
+
+/* @group Link Styling */
+
+a {
+	color: #D91E2A;
+	font-weight: normal;
+	text-decoration: none;
+}
+
+.contents a:visited {
+	color: #D91E2A;
+}
+
+a.qindexHL {
+	background-color: #CE0F1C;
+	border: 1px double #A40C16;
+}
+
+/* @end */
+
+pre.fragment {
+        border: 1px solid #797777;
+        background-color: #F0F0F0;
+}
+
+td > pre.fragment {
+  /* Hide fragments from module list view (why are they there?) */
+  display: none;
+}
+
+div.fragment {
+	background-color: #F0F0F0;
+	border: 1px solid #797777;
+}
+
+div.line.glow {
+	background-color: #D91E2A;
+	box-shadow: 0 0 10px #D91E2A;
+}
+
+span.lineno a {
+	background-color: #DEDEDE;
+}
+
+span.lineno a:hover {
+	background-color: #DEDEDE;
+}
+
+div.ah, span.ah {
+	background: #797777;
+	border: none;
+	border-radius: 0;
+	box-shadow: none;
+}
+
+td.indexkey {
+	background-color: #D9D9D9;
+	border: 1px solid #F1505B;
+}
+
+td.indexvalue {
+	background-color: #D9D9D9;
+	border: 1px solid #F1505B;
+}
+
+tr.memlist {
+	background-color: #FAC7CB;
+}
+
+img.footer {
+	display: none;
+}
+
+/* @group Code Colorization */
+
+blockquote {
+        background-color: #FDE4E6;
+        border-left: 2px solid #CE0F1C;
+}
+
+/* @end */
+
+.dirtab {
+	border: 1px solid #DD101E;
+}
+
+th.dirtab {
+	background: #D9D9D9;
+}
+
+hr {
+	border-top: 1px solid #480509;
+}
+
+/* @group Member Descriptions */
+
+.memberdecls td.glow, .fieldtable tr.glow {
+	background-color: #D91E2A;
+	box-shadow: 0 0 15px #D91E2A;
+}
+
+.mdescLeft, .mdescRight,
+.memItemLeft, .memItemRight,
+.memTemplItemLeft, .memTemplItemRight, .memTemplParams {
+	background-color: #F0F0F0;
+}
+
+.memTemplParams {
+	color: #3F0408;
+}
+
+/* @end */
+
+/* @group Member Details */
+
+/* Styles for detailed member documentation */
+
+.memtemplate {
+	color: #3F0408;
+}
+
+.memnav {
+	background-color: #D9D9D9;
+	border: 1px solid #DD101E;
+}
+
+.memitem {
+    -webkit-transition: box-shadow 0.5s linear;
+    -moz-transition: box-shadow 0.5s linear;
+    -ms-transition: box-shadow 0.5s linear;
+    -o-transition: box-shadow 0.5s linear;
+    transition: box-shadow 0.5s linear;
+    display: table !important;
+    width: 100%;
+}
+
+.memitem.glow {
+         box-shadow: 0 0 15px #D91E2A;
+}
+
+.memproto, dl.reflist dt {
+	border: none;
+    padding: 6px 0px 6px 0px;
+    color: #000;
+    font-weight: bold;
+    background: #DEDEDE;
+    text-shadow: none;
+    box-shadow: none;
+    border-top-right-radius: 0;
+    border-top-left-radius: 0;
+}
+
+.memdoc, dl.reflist dd {
+	border: 3px solid #DEDEDE;
+    padding: 6px 10px 2px 10px;
+    background: #fff;
+    border-top-width: 0;
+    box-shadow: none;
+    border-bottom-right-radius: 0;
+    border-bottom-left-radius: 0;
+}
+
+.paramname {
+	color: #797777;
+}
+
+span.mlabel {
+        background-color: #820911;
+        border-top:1px solid #57060C;
+        border-left:1px solid #57060C;
+        border-right:1px solid #F1505B;
+        border-bottom:1px solid #F1505B;
+}
+
+/* @end */
+
+/* these are for tree view inside a (index) page */
+
+div.directory {
+        border-top: 3px solid #D91E2A;
+        border-bottom: 3px solid #D91E2A;
+}
+
+.directory td {
+        padding: 3px 0;
+}
+
+.directory td.entry a img {
+        border: none;
+}
+
+.directory td.desc p:empty {
+  /* Hide empty element in module list */
+  display: none;
+}
+
+.directory tr:not(.even) {
+	background-color: #FFFFFF;
+}
+
+.directory tr.even {
+  padding-left: 6px;
+  background-color: #F0F0F0;
+}
+
+.directory .levels span {
+	color: #2C0306;
+}
+
+.arrow {
+    color: #CE0F1C;
+}
+
+.icon {
+    font-family: "Open Sans", Helvetica;
+    height: 16px;
+    background-color: #797777;
+    border-radius: 0;
+}
+
+table.directory {
+    font: 400 14px "Open Sans",sans-serif;
+}
+
+/* @end */
+
+address {
+	color: #110102;
+}
+
+table.doxtable td, table.doxtable th {
+	border: 1px solid #140102;
+}
+
+table.doxtable th {
+	background-color: #220204;
+}
+
+table.fieldtable {
+        border: 3px solid #DEDEDE;
+        border-radius: 0;
+        box-shadow: none;
+}
+
+.fieldtable td.fieldtype, .fieldtable td.fieldname {
+        border-right: 1px solid #DEDEDE;
+        border-bottom: 1px solid #DEDEDE;
+}
+
+.fieldtable td.fielddoc {
+        border-bottom: 1px solid #DEDEDE;
+}
+
+.fieldtable th {
+	background: #DEDEDE;
+    color: #000;
+    border-radius: 0;
+    border-bottom: 1px solid #DEDEDE;
+}
+
+.navpath ul
+{
+	background: #797777;
+	color:#fff;
+	border: none;
+}
+
+.navpath li
+{
+	color:#fff;
+}
+
+.navpath li.navelem a
+{
+	color: #0F0102;
+}
+
+.navpath li.navelem a:hover
+{
+	color:#73080F;
+}
+
+.navpath li.footer
+{
+        color:#fff;
+}
+
+li.footer a {
+	color: #fff;
+}
+
+li.footer a::before {
+	content: 'Doxygen';
+}
+
+div.header
+{
+	background: #fff;
+	margin:  0px;
+	border-bottom: 3px solid #D91E2A;
+}
+
+/* dl.note, dl.warning, dl.attention, dl.pre, dl.post, dl.invariant, dl.deprecated, dl.todo, dl.test, dl.bug */
+dl.note
+{
+        border-color: #797777;
+}
+
+dl.warning, dl.attention
+{
+        border-color: #D91E2A;
+}
+
+dl.pre, dl.post, dl.invariant
+{
+        border-color: #007695;
+}
+
+dl.deprecated
+{
+        border-color: #797777;
+}
+
+dl.todo
+{
+        border-color: #A1B92E;
+}
+
+dl.test
+{
+        border-color: #0597AA;
+}
+
+dl.bug
+{
+        border-color: #E27F26;
+}
+ 
+#projectalign
+{
+        width: 100%;
+}
+
+#projectname
+{
+	font: 300% "Open Sans",sans-serif;
+	margin: 0 0 0 10px;
+	padding: 10px 0px 10px 170px;
+    background: url('silicon-labs-logo.png') no-repeat;
+    background-size: 150px;
+}
+    
+#projectbrief
+{
+	font: 120% "Open Sans",sans-serif;
+}
+
+#projectnumber
+{
+	font: 50% "Open Sans",sans-serif;
+	display: inline-block;
+	float: right;
+	margin: 0;
+	padding: 0 5px;
+}
+
+#titlearea
+{
+	padding: 0;
+	margin: 0;
+	width: 100%;
+	height: 120px;
+	overflow: hidden;
+	border-bottom: none;
+}
+
+#titlearea table {
+	width: 100%;
+}
+
+#titlearea tr {
+	height: 120px !important;
+}
+
+div.zoom
+{
+	border: 1px solid #B60D19;
+}
+
+dl.citelist dt {
+        color:#1B0203;
+}
+
+div.toc {
+        background-color: #FCDDDF;
+        border: 1px solid #F5868D;
+}
+
+div.toc h3 {
+        font: bold 12px/1.2 "Open Sans",FreeSans,sans-serif;
+	color: #3F0408;
+}
+
+#powerTip div {
+        font: 12px/16px "Open Sans",sans-serif;
+}
+
+
+/* Fix stupid link to [none] in header tabs */
+
+a[href$=\[none\]] {
+  pointer-events: none;
+  cursor: default;
+}

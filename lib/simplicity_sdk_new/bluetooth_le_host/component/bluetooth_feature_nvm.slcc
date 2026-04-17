@@ -1,0 +1,29 @@
+id: "bluetooth_feature_nvm"
+label: "NVM Support"
+package: bluetooth_le_host
+description: >
+  NonVolatile Memory  (nvm) feature
+
+  Provides convenient methods for applications in NCP mode to manage user data in NVM3.
+  This feature can only access data stored in the NVM3 key range assigned to Bluetooth. It
+  is not possible to access NVM3 keys out of the Bluetooth assigned range.
+
+  For applications in SoC mode, it is recommended to use NVM3 APIs directly.
+
+category: Bluetooth|Bluetooth Host (Stack)|Additional Features
+quality: "production"
+requires:
+- name: "bluetooth_stack"
+- name: "nvm3_default"
+provides:
+- name: "bluetooth_feature_nvm"
+template_contribution:
+- name: component_catalog
+  value: bluetooth_feature_nvm
+documentation:
+  docset: bluetooth
+  document: bluetooth-stack-api/sl-bt-nvm
+metadata:
+  sbom:
+    license: MSLA
+root_path: bluetooth_le_host

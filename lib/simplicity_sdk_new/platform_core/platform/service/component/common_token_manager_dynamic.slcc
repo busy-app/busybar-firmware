@@ -1,0 +1,38 @@
+id: common_token_manager_dynamic
+label: Common Token Manager - Dynamic Tokens
+package: platform_core
+description: >
+  The Common Token Manager employs NVM3 driver, a means to write and read data objects (key/value pairs) in flash,
+  to store dynamic tokens that get created in the application. However, dynamic tokens are cleared when
+  the device undergoes a mass erase.
+category: Services|Token Manager
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+provides:
+- name: common_token_manager_nvm3
+- name: common_token_manager_storage
+- name: common_token_manager_dynamic
+requires:
+- name: nvm3_source
+- name: common_token_manager_core
+- name: wireless_stack
+  condition: [device_series_2]
+define:
+- name: SL_COMMON_TOKEN_MANAGER_ENABLE_DYNAMIC_TOKENS
+source:
+- path: platform/service/token_manager/src/sli_token_manager_dynamic.c
+- path: platform/service/token_manager/legacy/src/sl_token_def.c
+  condition: [device_series_2, common_token_manager]
+include:
+- path: platform/service/token_manager/legacy/inc
+  condition: [device_series_2, common_token_manager]
+  file_list:
+  - path: sl_token_api.h
+ui_hints:
+  visibility: never
+documentation:
+  docset: gecko-platform
+  document: platform-service/token-manager
+root_path: platform_core

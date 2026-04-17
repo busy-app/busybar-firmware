@@ -1,0 +1,22 @@
+id: rsilib_sysrtc
+label: SYSRTC
+package: platform_siwx91x
+description: >
+  SYSRTC Peripheral Interface API's
+category: Device|Si91x|MCU|Internal|RSI Peripheral Drivers
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+ui_hints:
+  visibility: never
+component_root_path: "components/device/silabs/si91x/mcu/drivers/peripheral_drivers"
+source:
+  - path: "src/rsi_sysrtc.c"
+include:
+  - path: "inc"
+    file_list:
+    - path: "rsi_sysrtc.h"
+    - path: "rsi_sysrtc_headers.h"
+provides:
+  - name: rsilib_sysrtc

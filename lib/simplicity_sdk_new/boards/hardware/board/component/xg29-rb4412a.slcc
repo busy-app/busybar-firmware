@@ -1,0 +1,26 @@
+!!omap
+- id: xg29_rb4412a
+- label: XG29-RB4412A
+- package: boards
+- description: Kit BSP support for the EFR32xG29 Wireless 2.4 GHz +8 dBm DCDC Buck Radio Board.
+- category: Platform|Board|Kit|Radio Board
+- quality: production
+- metadata:
+    sbom:
+      license: Zlib
+- requires:
+  - name: hardware_board_from_xg29-rb4412a
+- provides:
+  - name: hardware_kit
+  - name: hardware_kit_rb
+- define:
+  - name: SL_KIT_NAME
+    value: '"XG29-RB4412A"'
+  - name: SL_KIT_REV
+    value: '"A02"'
+- tag:
+  - kit:opn:xG29-RB4412A
+  - kit:pn:RB4412
+  - kit:variant:A
+  - kit:revision:A02
+- root_path: boards

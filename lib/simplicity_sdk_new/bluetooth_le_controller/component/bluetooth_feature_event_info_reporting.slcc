@@ -1,0 +1,13 @@
+id: "bluetooth_feature_event_info_reporting"
+label: Bluetooth LE Event Information Reporting
+package: bluetooth_le_controller
+description: |-
+  Provides Event Info Reporting
+category: Bluetooth|Host Controller Interface (HCI)
+quality: production
+provides:
+- name: bluetooth_feature_event_info_reporting
+template_contribution:
+- name: component_catalog
+  value: bluetooth_feature_event_info_reporting
+root_path: bluetooth_le_controller

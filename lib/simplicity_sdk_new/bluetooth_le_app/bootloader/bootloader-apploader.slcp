@@ -1,0 +1,30 @@
+project_name: bt-bootloader-apploader
+package: bluetooth_le_app
+quality: experimental
+label: Bootloader - SoC Bluetooth AppLoader OTA DFU
+description: >
+  Standalone Bootloader using the Bluetooth AppLoader OTA DFU. This implements in-place application updates using Bluetooth connection.
+
+category: Example|Bootloader
+filter:
+  - name: "Device Type"
+    value: ["SoC"]
+  - name: "Project Difficulty"
+    value: ["Advanced"]
+  - name: "MCU"
+    value: ["Bootloader"]
+
+component:
+  - id: bootloader_core
+  - id: bootloader_apploader
+  - id: bootloader_image_parser
+  - id: bootloader_debug
+
+post_build:
+  - path: ../postbuild_profile/bt_dfu_btl.slpb
+
+tag:
+  - toolchain:gcc
+  - companion:application
+  - hwfilter:device:device_series_2
+  - hwfilter:device:device_supports_bluetooth

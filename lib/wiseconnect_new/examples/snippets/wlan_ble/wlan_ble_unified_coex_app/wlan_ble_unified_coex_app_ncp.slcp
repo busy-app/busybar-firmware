@@ -1,0 +1,121 @@
+project_name: wlan_ble_unified_coex_app_ncp
+package: multi_protocol_siwx91x_app
+quality: production
+label: Unified app for Bluetooth and Wifi NCP
+category: Example|BLE
+description: 'Bluetooth Low energy supporting 8Peripheral/2Central connections with Coex.
+
+  '
+filter:
+- name: Wireless Technology
+  value:
+  - WiFi BLE
+- name: Project Difficulty
+  value:
+  - Advanced
+source:
+- path: app.c
+- path: root_auto_gen.c
+- path: btc_auto_gen.c
+- path: ble/ble_cmd_hdlr_auto_gen.c
+- path: ble/ble_event_hdlr_auto_gen.c
+- path: ble/ble_ui_cmd_hdlr.c
+- path: ble/ble_user_cmd.c
+- path: ble/ble_user_event_hdlrs.c
+- path: user_input/rsi_user_input_DEMO_x.c
+- path: utils/command_parser.c
+- path: utils/event_loop.c
+- path: utils/rsi_common_utils.c
+- path: wifi/wifi_app.c
+- path: wifi/wifi_tcp_app.c
+- path: btdm_logging_framework/debug_logs_event_hdlr_auto_gen.c
+- path: btdm_logging_framework/debug_logs_task.c
+- path: btdm_logging_framework/debug_logs_user_event_hdlrs.c
+include:
+- path: .
+  file_list:
+  - path: app.h
+  - path: ble_config.h
+  - path: wifi/wifi_app_config.h
+  - path: wifi/wifi_tcp_app_config.h
+- path: ble
+  file_list:
+  - path: ble_cmd_hdlr_auto_gen.h
+  - path: ble_event_hdlr_auto_gen.h
+  - path: ble_private.h
+- path: inc
+  file_list:
+  - path: rsi_ble_config.h
+  - path: rsi_common_app.h
+- path: user_input
+  file_list:
+  - path: rsi_user_input_DEMO_x.h
+- path: utils
+  file_list:
+  - path: generic_command_handling.h
+  - path: rsi_common_utils.h
+  - path: event_loop.h
+- path: btdm_logging_framework
+  file_list:
+  - path: debug_logs_event_hdlr_auto_gen.h
+component:
+- id: sl_main
+- id: freertos
+- id: freertos_heap_4
+- id: device_init
+- id: spidrv
+  instance:
+  - exp
+- id: iostream_retarget_stdio
+- id: iostream_recommended_stream
+- id: iostream_stdlib_config
+- id: wiseconnect_common
+- id: wifi
+- id: sl_si91x_internal_stack
+- id: wifi_resources
+- id: sl_si91x_spi_bus
+- id: network_manager
+- id: basic_network_config_manager
+- id: ble
+- id: aws_sdk
+- id: sl_si91x_asynchronous_socket
+- id: sl_si91x_mem_pool_buffers_with_quota
+- id: bsd_socket
+toolchain_settings:
+- option: gcc_linker_option
+  value: -u _printf_float
+configuration:
+- name: SL_BOARD_ENABLE_VCOM
+  value: '1'
+- name: configTOTAL_HEAP_SIZE
+  value: '51200'
+- name: configTIMER_TASK_PRIORITY
+  value: '55'
+- name: configUSE_POSIX_ERRNO
+  value: '1'
+readme:
+- path: readme.md
+other_file:
+- path: resources/readme/image1_soc.png
+- path: resources/readme/central_scan.png
+- path: resources/readme/central_connected.png
+- path: resources/readme/peripheral.png
+- path: resources/readme/peripheral_connected.png
+- path: resources/readme/output1_mqtt.png
+- path: resources/readme/output1_wlan.png
+- path: resources/readme/output2.png
+- path: resources/readme/output3.png
+- path: resources/readme/output4.png
+- path: resources/readme/aws_iot_mqtt_host_url_1.png
+ui_hints:
+  highlight:
+  - path: readme.md
+    focus: true
+sdk_extension:
+- id: wiseconnect3_sdk
+  vendor: silabs
+  version: 4.0.1
+sdk:
+  id: simplicity_sdk
+  vendor: silabs
+  version: 2025.12.2

@@ -1,0 +1,92 @@
+id: "wisun_stack"
+label: "Wi-SUN Stack"
+description: >
+  Provides Wi-SUN stack common functionalities to connect and to communicate.
+package: "wisun"
+category: "Wi-SUN|Stack"
+quality: "production"
+root_path: "wisun/./stack"
+
+ui_hints:
+  visibility: never
+
+requires:
+- name: "device_supports_wisun"
+- name: "rail_lib"
+- name: "rail_lib_multiprotocol"
+  condition: [bluetooth_stack]
+- name: "sl_rail_util_compatible_pa"
+- name: "sl_rail_util_pti"
+- name: "cmsis_rtos2"
+- name: "nvm3"
+- name: "slist"
+- name: "sl_common"
+- name: "wisun_implementation"
+- name: "wisun_crypto"
+- name: "wisun_stack_device_type"
+- name: "sleeptimer"
+- name: "a_radio_config"
+- name: "event_system"
+- name: "errno"
+
+recommends:
+- id: "wisun_stack_library"
+  vendor: silabs
+- id: "wisun_stack_ffn"
+  vendor: silabs
+- id: "rail_lib_singleprotocol"
+
+  vendor: silabs
+provides:
+- name: "wisun_stack"
+- name: "a_wisun_stack"
+
+template_contribution:
+- name: "event_handler"
+  value:
+    event: "stack_init"
+    include: "sl_wisun_stack.h"
+    handler: "sl_wisun_stack_init"
+
+- name: component_catalog
+  value: wisun_stack
+
+include:
+- path: "inc/"
+  file_list:
+  - path: "sl_wisun_api.h"
+  - path: "sl_wisun_msg_api.h"
+  - path: "sl_wisun_common.h"
+  - path: "sl_wisun_events.h"
+  - path: "sl_wisun_regdb.h"
+  - path: "sl_wisun_stack.h"
+  - path: "sl_wisun_types.h"
+  - path: "sl_wisun_version.h"
+  - path: "sl_wisun_trace_api.h"
+  - path: "sli_wisun_internal_api.h"
+  - path: "sli_wisun_timer_service.h"
+  - path: "sl_wisun_connection_params_api.h"
+  - path: "sl_wisun_lfn_params_api.h"
+  - path: "sl_wisun_regulation_api.h"
+  - path: "sl_wisun_ip6string.h"
+- path: "inc/socket/"
+  file_list:
+  - path: "socket.h"
+- path: "inc/arpa/"
+  file_list:
+  - path: "inet.h"
+- path: "src/"
+  file_list:
+  - path: "common/endian.h"
+  - path: "common/int24.h"
+
+documentation:
+  docset: wisun
+  document: wisun-stack-api/sl-wisun-api
+
+other_file:
+- path: "../LICENSE"
+
+metadata:
+  sbom:
+    license: MSLA

@@ -1,0 +1,23 @@
+id: "bluetooth_feature_connection_subrating"
+label: Bluetooth Feature Connection Subrating
+package: bluetooth_le_controller
+description: >
+  Provides the connection subrating feature
+
+category: Bluetooth|Bluetooth LE Controller (Link Layer)|Features with Commands and Events
+quality: experimental
+include:
+- path: inc
+  file_list:
+  - path: sl_btctrl_hci.h
+provides:
+- name: "bluetooth_feature_connection_subrating"
+requires:
+- name: bluetooth_controller
+template_contribution:
+- name: component_catalog
+  value: bluetooth_feature_connection_subrating
+metadata:
+  sbom:
+    license: MSLA
+root_path: bluetooth_le_controller

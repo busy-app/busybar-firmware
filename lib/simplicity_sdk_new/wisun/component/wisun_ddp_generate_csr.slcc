@@ -1,0 +1,34 @@
+id: wisun_ddp_generate_csr
+label: DDP generate Wi-SUN CSR
+description: |
+  This component provides a Dynamic Data Provisioning (DDP) command for
+  generating a Wi-SUN Certificate Signing Request (CSR).
+package: wisun
+category: Wi-SUN
+quality: evaluation
+
+provides:
+- name: wisun_ddp_generate_csr
+requires:
+- name: ddp_common
+- name: mbedtls_pki
+- name: mbedtls_x509
+include:
+- path: plugin
+  file_list:
+  - path: sl_wisun_ddp_generate_csr.h
+source:
+- path: plugin/sl_wisun_ddp_generate_csr.c
+define:
+- name: SL_WISUN_DDP_GENERATE_CSR
+  value: 200
+template_contribution:
+- name: ddp_command
+  value:
+    id: SL_WISUN_DDP_GENERATE_CSR
+    handler: sl_wisun_ddp_generate_csr
+
+metadata:
+  sbom:
+    license: MSLA
+root_path: wisun

@@ -1,0 +1,137 @@
+package: zigbee
+description: This is the implementation of the EmberZNet Serial Protocol (EZSP) for communicating to an EFR32 chip configured as an NCP.  This protocol serializes the Zigbee stack calls that operate below the Application Framework.
+label: EZSP Common
+quality: production
+id: zigbee_ezsp
+category: Zigbee|Utility
+ui_hints: {}
+template_file: []
+provides:
+- name: zigbee_ezsp_protocol
+- name: zigbee_ezsp
+- name: zigbee_host_application
+requires:
+- name: zigbee_ezsp_serial_interface
+- name: zigbee_gateway
+- name: zigbee_hal
+- name: zigbee_host_unix_printf
+- name: device_host
+- name: zigbee_zcl_framework_core
+- name: zigbee_host_framework_common
+- name: silabs_core_event_queue
+- name: toolchain_gcc
+- name: zigbee_security_manager_host
+
+recommends:
+- id: zigbee_ezsp_spi
+
+  vendor: silabs
+define:
+- name: EZSP_HOST
+- name: PLATFORM_HEADER
+  value: "\"platform-header.h\""
+  unless:
+  - zigbee_host_simulation
+- name: GATEWAY_APP
+  unless:
+  - zigbee_host_simulation
+- name: STACK_TYPES_HEADER
+  value: "\"stack/include/sl_zigbee_types.h\""
+- name: STACK_HEADER
+  value: "\"stack/include/sl_zigbee.h\""
+- name: STACK_CORE_HEADER
+  value: "\"stack/core/sl_zigbee_stack.h\""
+
+source:
+- path: app/util/ezsp/ezsp-callbacks.c
+- path: app/util/ezsp/ezsp-enum-decode.c
+- path: app/util/ezsp/ezsp-frame-utilities.c
+- path: app/util/ezsp/ezsp.c
+- path: app/ezsp-host/ezsp-host-io.c
+  unless:
+  - zigbee_host_simulation
+- path: platform/service/legacy_hal/src/micro_host.c
+  unless:
+  - zigbee_host_simulation
+- path: app/ezsp-host/ezsp-host-queues.c
+- path: app/ezsp-host/ezsp-host-ui.c
+- path: app/framework/plugin-host/ezsp/ezsp-cb.c
+- path: stack/config/sl_zigbee_configuration_host_access.c
+
+template_contribution:
+- name: component_catalog
+  value: zigbee_ezsp
+include:
+- path: ./
+- path: .
+- path: app/ezsp-host/
+  file_list:
+  - path: ezsp-host-common.h
+  - path: ezsp-host-configuration.h
+  - path: ezsp-host-io.h
+  - path: ezsp-host-priv.h
+  - path: ezsp-host-queues.h
+  - path: ezsp-host-ui.h
+- path: app/util/ezsp/
+  file_list:
+  - path: serial-interface.h
+  - path: command-functions.h
+  - path: command-prototypes.h
+  - path: ezsp-enum-decode.h
+  - path: ezsp-enum.h
+  - path: ezsp-frame-utilities.h
+  - path: ezsp-host-configuration-defaults.h
+  - path: ezsp-protocol.h
+  - path: ezsp-utils.h
+  - path: ezsp.h
+  - path: rename-ezsp-functions.h
+- path: app/util/zigbee-framework/
+  file_list:
+  - path: zigbee-device-host.h
+- path: app/util/serial/
+  file_list:
+  - path: linux-serial.h
+  - path: cli.h
+- path: stack/
+- path: stack/platform/host/
+  file_list:
+  - path: em_device.h
+  unless:
+  - zigbee_host_simulation
+- path: stack/include/
+  file_list:
+  - path: sl_zigbee_types.h
+  - path: sl_zigbee.h
+- path: platform/radio/mac/
+  # Adding these base path before legacy_hal in "zigbee_ezsp"
+- path: platform/base
+  condition:
+  - zigbee_host_simulation
+- path: platform/service/legacy_hal/inc/
+  file_list:
+  - path: button.h
+  - path: em2xx-reset-defs.h
+  - path: led.h
+  - path: micro-common.h
+  - path: micro-types.h
+  - path: micro.h
+  - path: platform-header.h
+  - path: serial.h
+  - path: serial/serial.h
+  - path: bootloader-eeprom.h
+- path: platform/service/legacy_common_ash/inc/
+  file_list:
+  - path: ash-common.h
+  # This component brings in prototypes for CTM routines, while ZB code defines/overrides defines them, since the host does not save tokens to flash
+  # The sl_token_manager_defines.h file is needed to resolve macros for tokens, which are used on the host
+- path: platform/service/token_manager/inc
+  file_list:
+  - path: sl_token_manager_defines.h
+  - path: sl_token_manager_api.h
+- path: platform/emlib/inc/
+  file_list:
+  - path: em_core.h
+metadata:
+  sbom:
+    license: MSLA AND Zlib
+root_path: zigbee

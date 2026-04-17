@@ -1,0 +1,24 @@
+/*
+ * Doxygen (at least version 1.8.17) has a bug in the default stylesheet which
+ * causes the intermediate and end paragraghs of parameter descriptions to get
+ * rendered in bold font-weight. Workaround that bug by having rules that
+ * override these back to normal font-weight.
+ */
+table.params p.intertd { font-weight: normal }
+table.params p.endtd   { font-weight: normal }
+
+/* Use a background color in message summary headers */
+td.msg-summary-header  {
+  background-color: #C4CFE5;
+  font-weight: bold;
+}
+
+td.msg-type-header  {
+  background-color: #DDE8FF;
+  font-weight: bold;
+  text-indent: 20px
+}
+
+td.message-name {
+  text-indent: 40px
+}

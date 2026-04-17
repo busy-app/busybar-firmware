@@ -1,0 +1,76 @@
+/***************************************************************************//**
+ * @file
+ * @brief Simple Button Driver Instances
+ *******************************************************************************
+ * # License
+ * <b>Copyright 2019 Silicon Laboratories Inc. www.silabs.com</b>
+ *******************************************************************************
+ *
+ * SPDX-License-Identifier: Zlib
+ *
+ * The licensor of this software is Silicon Laboratories Inc.
+ *
+ * This software is provided 'as-is', without any express or implied
+ * warranty. In no event will the authors be held liable for any damages
+ * arising from the use of this software.
+ *
+ * Permission is granted to anyone to use this software for any purpose,
+ * including commercial applications, and to alter it and redistribute it
+ * freely, subject to the following restrictions:
+ *
+ * 1. The origin of this software must not be misrepresented; you must not
+ *    claim that you wrote the original software. If you use this software
+ *    in a product, an acknowledgment in the product documentation would be
+ *    appreciated but is not required.
+ * 2. Altered source versions must be plainly marked as such, and must not be
+ *    misrepresented as being the original software.
+ * 3. This notice may not be removed or altered from any source distribution.
+ *
+ ******************************************************************************/
+
+#include "sl_simple_button.h"
+{% for inst in simple_button_instance | sort -%}
+#include "sl_simple_button_{{ inst }}_config.h"
+{% endfor -%}
+
+{% for inst in simple_button_instance | sort %}
+sl_simple_button_context_t simple_{{ inst | lower }}_context = {
+  .state = 0,
+  .history = 0,
+  .port = SL_SIMPLE_BUTTON_{{ inst | upper }}_PORT,
+  .pin = SL_SIMPLE_BUTTON_{{ inst | upper }}_PIN,
+  .mode = SL_SIMPLE_BUTTON_{{ inst | upper }}_MODE,
+};
+
+const sl_button_t sl_button_{{ inst | lower }} = {
+  .context = &simple_{{ inst | lower }}_context,
+  .init = sl_simple_button_init,
+  .get_state = sl_simple_button_get_state,
+  .poll = sl_simple_button_poll_step,
+  .enable = sl_simple_button_enable,
+  .disable = sl_simple_button_disable,
+};
+{%- endfor %}
+
+// the table of buttons and button count are generated as a
+// convenience for the application
+const sl_button_t *sl_simple_button_array[] = {
+{%- for inst in simple_button_instance | sort %}
+  &sl_button_{{ inst | lower }}{% if not loop.last %}, {% endif %}
+{%- endfor %}
+};
+const uint8_t simple_button_count = {{ simple_button_instance | length }};
+
+void sl_simple_button_init_instances(void)
+{
+  {%- for inst in simple_button_instance %}
+  sl_button_init(&sl_button_{{ inst | lower }});
+  {%- endfor %}
+}
+
+void sl_simple_button_poll_instances(void)
+{
+  {%- for inst in simple_button_instance %}
+  sl_button_poll_step(&sl_button_{{ inst | lower }});
+  {%- endfor %}
+}

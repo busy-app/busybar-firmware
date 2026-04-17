@@ -1,0 +1,25 @@
+id: device_gpio
+label: Device Manager GPIO
+package: platform_core
+description: >
+  The Device Manager GPIO component defines the macros,  structures, and enums that are used common across GPIO driver and
+  peripheral.
+category: Services|Device Manager
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+provides:
+- name: device_gpio
+requires:
+- name: enum
+root_path: platform_core/platform/service/device_manager
+source:
+- path: src/sl_device_gpio.c
+include:
+- path: inc
+  file_list:
+  - path: sl_device_gpio.h
+# documentation:
+  # docset: gecko-platform
+  # document: platform-service/device-manager

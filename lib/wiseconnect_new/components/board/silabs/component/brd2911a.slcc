@@ -1,0 +1,80 @@
+!!omap
+- id: brd2911a
+- label: BRD2911A
+- package: platform_siwx91x
+- description: Board support for BRD2911A.
+- category: Board|Radio Board
+- quality: production
+- metadata:
+    sbom:
+      license: Zlib
+- root_path: components/board/silabs/config/brd2911a
+- requires:
+  - name: siwg917y111mgaba
+  - name: brd2911a_config
+  - name: external_flash_none
+  - name: external_psram_8mb
+  - name: rsilib_board
+  - name: si91x_common_flash
+- provides:
+  - name: brd2911a
+  - name: hardware_board
+  - name: hardware_board_supports_multi_slave
+  - name: si91x_b0_board
+  - name: device_is_917_module_dev_kit
+- define:
+  - name: SL_BOARD_NAME
+    value: '"BRD2911A"'
+  - name: SL_BOARD_REV
+    value: '"A02"'
+  - name: SLI_SI91X_MCU_CONFIG_RADIO_BOARD_BASE_VER
+    value: '1'
+  - name: SLI_SI91X_MCU_CONFIG_RADIO_BOARD_VER2
+    value: '1'
+  - name: SLI_SI91X_MCU_COMMON_FLASH_MODE
+    value: '1'
+  - name: SLI_SI91X_MCU_ENABLE_FLASH_BASED_EXECUTION
+    value: '1'
+  - name: SI917Y_DEVKIT
+    value: '1'
+- template_contribution:
+  # Default Memory configuration
+  - name: device_flash_addr
+    value: 136323072 # 0x0820 2000
+    priority: -1
+    condition:
+      - si917_mem_config_1
+  - name: device_flash_size
+    value: 2088960 # 0x001F E000
+    priority: -1
+    condition:
+      - si917_mem_config_1
+  # Medium Memory configuration
+  - name: device_flash_addr
+    value: 136323072 # 0x0820 2000
+    priority: -1
+    condition:
+      - si917_mem_config_2
+  - name: device_flash_size
+    value: 2088960 # 0x001F E000
+    priority: -1
+    condition:
+      - si917_mem_config_2
+  # Advanced Memory configuration
+  - name: device_flash_addr
+    value: 136323072 # 0x0820 2000
+    priority: -1
+    condition:
+      - si917_mem_config_3
+  - name: device_flash_size
+    value: 2088960 # 0x001F E000
+    priority: -1
+    condition:
+      - si917_mem_config_3
+- tag:
+  - board:pn:BRD2911
+  - board:variant:A
+  - board:revision:A02
+  - board:device:siwg917y111mgaba
+  - hardware:has:vcom
+  

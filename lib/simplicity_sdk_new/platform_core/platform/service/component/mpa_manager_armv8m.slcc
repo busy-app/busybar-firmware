@@ -1,0 +1,26 @@
+id: mpa_manager_armv8m
+label: "MPA Manager: ARMv8m Port"
+package: platform_core
+description: >
+  The Memory Protection and Attribute Manager Port for ARMv8m.
+category: Services|MPA Manager
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+ui_hints:
+  visibility: never
+root_path: platform_core/platform/service/mpa_manager
+source:
+- path: src/sl_mpa_manager_armv8m.c
+provides:
+- name: mpa_manager_arch
+  condition: [cortexm33]
+- name: mpa_manager_arch
+  condition: [cortexm55]
+requires:
+- name: device
+- name: enum
+- name: status
+- name: slist
+- name: memory_manager

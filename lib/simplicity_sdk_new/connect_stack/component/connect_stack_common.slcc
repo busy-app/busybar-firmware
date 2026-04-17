@@ -1,0 +1,176 @@
+id: "connect_stack_common"
+label: "Stack Common"
+package: "connect_stack"
+category: "Connect"
+quality: "production"
+description: "Provides Connect Stack common functionalities such as 15.4-like MAC layer, events system, dynamic memory allocation, and other required infrastracture functions. It also provides the stack configuration file, which allocates all the sizable RAM data structures."
+provides:
+- name: "connect_stack_common"
+- name: "wireless_stack"
+  allow_multiple: true
+requires:
+- name: "device_supports_connect"
+- name: "connect_stack_common_implementation"
+- name: "connect_app_framework_common"
+- name: "sl_common"
+- name: emlib_rmu
+- name: emlib_wdog
+  condition:
+  - "device_has_wdog"
+- name: "power_manager"
+  condition:
+  - "hardware_board"
+- name: "token_manager"
+- name: "rail_lib"
+- name: "sl_rail_util_compatible_pa"
+- name: "a_radio_config"
+- name: "component_catalog"
+- name: "connect_cmsis_stack_ipc"
+  condition:
+  - "cmsis_rtos2"
+- name: "connect_cmsis_stack_ipc"
+  condition:
+  - "bluetooth_stack"
+- name: "rail_lib_multiprotocol"
+  condition:
+  - "bluetooth_stack"
+- name: "platform_version"
+- name: "silabs_core_buffer_manager"
+recommends:
+- id: "connect_stack_common_source"
+  vendor: silabs
+- id: "rail_lib_singleprotocol"
+  vendor: silabs
+include:
+- path: "./"
+- path: "stack/"
+  file_list:
+  - path: "config/config.h"
+  - path: "config/token-stack.h"
+  - path: "config/ember-configuration-defaults.h"
+  - path: "config/ember-configuration.h"
+  - path: "config/sl_connect_radio_priority_config.h"
+- path: "stack/include/"
+  file_list:
+  - path: "byte-utilities.h"
+  - path: "ember-types.h"
+  - path: "ember.h"
+  - path: "error-def.h"
+  - path: "error.h"
+  - path: "event.h"
+  - path: "memory-buffer.h"
+  - path: "message.h"
+  - path: "network-management.h"
+  - path: "packet-buffer.h"
+  - path: "platform-header.h"
+  - path: "stack-info.h"
+  - path: "radio-stream.h"
+- path: "stack/framework/"
+  file_list:
+  - path: "sli-connect-random.h"
+  - path: "sl-connect-power-manager.h"
+    condition:
+    - "power_manager"
+- path: "stack/core"
+  file_list:
+  - path: "sl-connect-assert.h"
+  - path: "sli-connect-api.h"
+  - path: "sli-connect-interrupt-manipulation.h"
+  - path: "sli-connect-token.h"
+  - path: "sl-connect-watchdog.h"
+source:
+- path: "stack/config/ember-configuration.c"
+- path: "stack/config/stack-stubs.c"
+- path: "stack/config/stack-callback-stubs.c"
+- path: "stack/framework/sl-connect-info.c"
+- path: "stack/framework/sli-connect-random.c"
+- path: "stack/framework/sl-connect-power-manager.c"
+  condition:
+  - "power_manager"
+- path: "stack/core/sl-connect-watchdog.c"
+  condition:
+  - device_has_wdog
+  unless:
+  - legacy_hal
+- path: "stack/core/sli-connect-token.c"
+  condition:
+  - emlib_msc
+  unless:
+  - legacy_hal
+- path: "stack/core/sli-connect-api.c"
+  unless:
+  - connect_cmsis_stack_ipc
+- path: stack/core/sl-connect-rail-assert.c
+config_file:
+- path: "stack/config/component_config/stack-common-config.h"
+define:
+- name: "EMBER_STACK_CONNECT"
+- name: "PLATFORM_HEADER"
+  value: "\"platform-header.h\""
+  condition:
+  - device
+- name: "STACK_TYPES_HEADER"
+  value: "\"stack/include/ember-types.h\""
+- name: "STACK_HEADER"
+  value: "\"stack/include/ember.h\""
+- name: "STACK_CORE_HEADER"
+  value: "\"stack/include/ember.h\""
+  unless:
+  - "device_host"
+- name: "STACK_CORE_HEADER"
+  value: "\"stack/core/ember-stack.h\""
+  condition:
+  - "device_host"
+- name: "SL_RAIL_3_API"   # rail_util_pa is both 2 and 3
+template_contribution:
+- name: component_catalog
+  value: connect_stack_common
+- name: application_type
+  value: "APPLICATION_TYPE_FLEX"
+  condition:
+  - bootloader_interface
+- name: power_manager_handler
+  value:
+    event: is_ok_to_sleep
+    include: sl-connect-power-manager.h
+    handler: sl_connect_is_ok_to_sleep
+  unless:
+  - legacy_hal
+- name: power_manager_handler
+  value:
+    event: sleep_on_isr_exit
+    include: sl-connect-power-manager.h
+    handler: sl_connect_sleep_on_isr_exit
+  unless:
+  - legacy_hal
+- name: event_handler
+  value:
+    event: service_init
+    include: sl-connect-watchdog.h
+    handler: sl_connect_watchdog_init
+  unless:
+  - legacy_hal
+  condition: [sl_system]
+- name: event_handler
+  value:
+    event: service_init
+    include: sl-connect-watchdog.h
+    handler: sl_connect_watchdog_init
+  unless:
+  - legacy_hal
+  condition: [sl_main]
+  # - name: event_handler
+  #   value:
+  #     event: service_permanent_allocation
+  #     include: sl-connect-watchdog.h
+  #     handler: sl_connect_watchdog_permanent_allocation
+  #     condition: [sl_main]
+
+documentation:
+  docset: connect-stack
+  document: group-silabs-connect-stack
+
+metadata:
+  sbom:
+    license: Zlib
+root_path: connect_stack

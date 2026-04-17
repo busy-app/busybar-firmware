@@ -1,0 +1,41 @@
+id: sl_si91x_cpc_security
+label: CPC Security Si91x
+package: platform_nwp_siwx91x
+description: >
+  CPC Security Si91x
+category: Device|Si91x|MCU|Service
+quality: experimental
+metadata:
+  sbom:
+    license: Zlib
+component_root_path: "components/device/silabs/si91x/mcu/drivers/service/cpc"
+source:
+  - path: "src/sl_si91x_cpc_security.c"
+include:
+  - path: "inc"
+    file_list:
+    - path: "sl_si91x_cpc_security.h"
+provides:
+  - name: sl_si91x_cpc_security
+requires:
+  - name: cpc_security_secondary
+  - name: sl_si91x_common_flash_nvm3
+  # Required for key generation
+  - name: mbedtls_ecdh
+  # Adding mbedtls gcm for multipart gcm encryption(software fallback)
+  - name: mbedtls_gcm
+  - name: mbedtls_aes
+  - name: sl_si91x_psa_aes
+
+template_contribution:
+  - name: event_handler
+    value:
+      event: service_init
+      include: sl_si91x_cpc_security.h
+      handler: sl_si91x_cpc_crypto_init
+
+define:
+  - name: SL_CPC_SI91X_SECURITY
+    value: "1"
+  - name: SL_SI91X_SIDE_BAND_CRYPTO
+    value: "1"

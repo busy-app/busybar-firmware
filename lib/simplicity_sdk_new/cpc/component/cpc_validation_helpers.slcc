@@ -1,0 +1,13 @@
+id: cpc_validation_helpers
+package: cpc
+description: >
+  Helper component to validate CPC configuration settings and dependencies.
+
+category: Services|Co-Processor Communication|Validation
+quality: production
+label: CPC Configuration Validation Helper
+provides:
+- name: cpc_validation_helpers
+validation_helper:
+- path: cpc_configuration_validation.lua
+root_path: cpc

@@ -1,0 +1,34 @@
+id: wakeup_source_config
+label: PM Wakeup Source Configuration
+package: platform_siwx91x
+description: >
+  Wakeup Source Configuration component will enable the NPSS peripherals as wakeup source. 
+  This also initializes the peripheral and configure as a wakeup source as per the selection in User Configuration.
+
+  Install the appropriate component based on the configured wakeup source.
+  
+  Note: The default sleep time for the deep sleep timer is 10 ms because reducing it further does not result in any decrease in sleep current.
+category: Device|Si91x|MCU|Service|Power Manager
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+component_root_path: "components/device/silabs/si91x/mcu/drivers/service/power_manager"
+source:
+  - path: src/sli_si91x_power_manager_wakeup_init.c
+config_file:
+  - path: config/sl_si91x_power_manager_wakeup_source_config.h
+requires:
+  - name: sl_power_manager
+template_file:
+  - path: init/sl_si91x_power_manager_wakeup_handler.h.jinja
+  - path: init/sl_si91x_power_manager_wakeup_handler.c.jinja
+template_contribution:
+  - name: wakeup_config
+    value:
+      include:
+        name: sl_si91x_power_manager_wakeup_source_config.h
+define:
+  - name: SL_SI91X_POWER_MANAGER_UC_AVAILABLE
+provides:
+  - name: wakeup_source_config

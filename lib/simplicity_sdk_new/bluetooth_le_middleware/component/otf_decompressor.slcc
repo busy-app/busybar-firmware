@@ -1,0 +1,33 @@
+id: otf_decompressor
+package: bluetooth_le_middleware
+label: On-the-fly LZJB Stream Decompressor
+description: >
+  An algorithm that can take an LZJB-compressed data stream transmitted in
+  arbitrarily sized chunks (e.g. over a BLE connection with limited MTU size)
+  and decompress it on-the-fly into a single, coherent memory output.
+
+  The input stream must have no metadata or headers included, just the raw
+  compressed data.
+category: Bluetooth|Application|Miscellaneous
+metadata:
+  sbom:
+    license: Zlib
+quality: experimental
+root_path: bluetooth_le_middleware/common/otf_decompressor
+tag:
+- Low-Code
+source:
+- path: otf_decompressor.c
+include:
+- path: ""
+  file_list:
+  - path: otf_decompressor.h
+  - path: otf_compressor_config.h
+provides:
+- name: otf_decompressor
+conflicts:
+- name: esl_tag_nvm_image
+
+template_contribution:
+- name: component_catalog
+  value: otf_decompressor

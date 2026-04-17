@@ -1,0 +1,51 @@
+id: "sl_wisun_ping"
+label: "Wi-SUN Ping"
+package: "wisun_sdk"
+description: >
+  The Ping component implements a ping service using the ICMPv6 protocol.
+  It can send ICMPv6 packets, receive corresponding responses, and calculate
+  round-trip latency.
+  Applications can emit a single ping packet using the sl_wisun_ping_request()
+  API. To receive the pong response, the sl_wisun_ping_response() API is called.
+  The sl_wisun_ping() function offers a straightforward solution for periodic
+  ping packet transmission and reception. To halt the process, use the
+  sl_wisun_ping_stop() function.
+  Ping test parameters such as size, number of pings sent, and timeout for
+  response absence are configurable. Initialization of the component is done
+  by calling the sl_wisun_ping_init() function.
+category: "Wi-SUN|Wi-SUN Services"
+quality: "production"
+metadata:
+  sbom:
+    license: Zlib
+root_path: "wisun_sdk/component/ping"
+provides:
+- name: sl_wisun_ping
+source:
+- path: "sl_wisun_ping.c"
+
+include:
+- path: "."
+  file_list:
+  - "path": "sl_wisun_ping.h"
+requires:
+- name: "sleeptimer"
+
+config_file:
+- path: "config/sl_wisun_ping_config.h"
+
+#-------------- Template Contribution ----------------
+template_contribution:
+#---------------- Component Catalog ------------------
+- name: "event_handler"
+  value:
+    event: "internal_app_init"
+    include: "sl_wisun_ping.h"
+    handler: "sl_wisun_ping_init"
+
+- name: component_catalog
+  value: wisun_ping
+
+documentation:
+  docset: wisun
+  document: wisun-stack-api/sl-wisun-ping-api

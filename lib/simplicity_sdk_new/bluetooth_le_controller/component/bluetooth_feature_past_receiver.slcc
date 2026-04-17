@@ -1,0 +1,28 @@
+id: "bluetooth_feature_past_receiver"
+label: "Synchronization to Periodic advertising trains by receiving PAST"
+package: bluetooth_le_controller
+description: >
+  Synchronize to periodic advertising trains by receiving Periodic Advertising
+  Synchronization Transfer (PAST) over a connection.
+
+  Use this component on the device that needs to receive PAST from a remote
+  device. To initiate PAST from the local device to a remote device, use
+  <bluetooth_feature_advertiser_past> and/or <bluetooth_feature_sync_past>.
+category: Bluetooth|Bluetooth LE Controller (Link Layer)|Features with Commands and Events
+quality: "production"
+requires:
+- name: "bluetooth_controller"
+- name: "bluetooth_feature_sync"
+- name: "bluetooth_feature_connection"
+provides:
+- name: "bluetooth_feature_past_receiver"
+template_contribution:
+- name: component_catalog
+  value: bluetooth_feature_past_receiver
+documentation:
+  docset: bluetooth
+  document: bluetooth-stack-api/sl-bt-past-receiver
+metadata:
+  sbom:
+    license: MSLA
+root_path: bluetooth_le_controller

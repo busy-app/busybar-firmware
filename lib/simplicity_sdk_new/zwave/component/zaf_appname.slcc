@@ -1,0 +1,33 @@
+id: zaf_appname
+label: ZAF Application Name
+category: Z-Wave|ZAF|Application Name
+description: >
+  Provides a standard way for storing the name of the application, aiding the
+  identification of applications during development.
+
+  The default implementation stores the application name in the the application
+  code, to save resources.
+  To take advantage of the non-volatile memory and add the ability to read
+  the application name externally, use the ZAF Application Name - NVM component.
+package: zwave
+quality: production
+metadata:
+  sbom:
+    reference: zw_sbom_license
+
+include:
+- path: "ZAF/ApplicationUtilities/AppName"
+  file_list:
+  - path: "ZAF_AppName.h"
+source:
+- path: "ZAF/ApplicationUtilities/AppName/ZAF_AppName_weak.c"
+provides:
+- name: zaf_appname
+requires:
+- name: zw_core
+- name: zaf_appname_nvm
+  condition: [brd2603a]
+config_file:
+- path: sample_apps/config/zaf_appname/zaf_appname_config.h
+  file_id: zaf_appname
+root_path: zwave

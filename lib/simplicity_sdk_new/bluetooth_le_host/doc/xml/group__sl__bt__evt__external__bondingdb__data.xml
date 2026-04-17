@@ -1,0 +1,43 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__evt__external__bondingdb__data" kind="group">
+    <compoundname>sl_bt_evt_external_bondingdb_data</compoundname>
+    <title>sl_bt_evt_external_bondingdb_data</title>
+    <innerclass refid="structsl__bt__evt__external__bondingdb__data__s" prot="public">sl_bt_evt_external_bondingdb_data_s</innerclass>
+      <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="group__sl__bt__evt__external__bondingdb__data_1ga22f5b08f6d29e0cd6a76431b1acbaf61" prot="public" static="no">
+        <type>struct <ref refid="structsl__bt__evt__external__bondingdb__data__s" kindref="compound">sl_bt_evt_external_bondingdb_data_s</ref></type>
+        <definition>typedef struct sl_bt_evt_external_bondingdb_data_s sl_bt_evt_external_bondingdb_data_t</definition>
+        <argsstring></argsstring>
+        <name>sl_bt_evt_external_bondingdb_data_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="12243" column="50" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="12243" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__evt__external__bondingdb__data_1gaca3fa378aae2cf436b723e32d03d3457" prot="public" static="no">
+        <name>sl_bt_evt_external_bondingdb_data_id</name>
+        <initializer>0x015c00a0</initializer>
+        <briefdescription>
+<para>Identifier of the data event. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="12187" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="12187" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Indicates that updated bonding data of a connection is available. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>The application must store it in the external bonding database persistently. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,73 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="structsl__bt__evt__connection__analyzer__report__s" kind="struct" language="C++" prot="public">
+    <compoundname>sl_bt_evt_connection_analyzer_report_s</compoundname>
+    <includes refid="sl__bt__api_8h" local="no">sl_bt_api.h</includes>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structsl__bt__evt__connection__analyzer__report__s_1a05510063b52528920bbe19cbeb2b57bb" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_connection_analyzer_report_s::analyzer</definition>
+        <argsstring></argsstring>
+        <name>analyzer</name>
+        <qualifiedname>sl_bt_evt_connection_analyzer_report_s::analyzer</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>The handle of the connection analyzer </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16199" column="11" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="16199" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__connection__analyzer__report__s_1a2ccf1d7be3a4a002bfc73bef586585b4" prot="public" static="no" mutable="no">
+        <type>int8_t</type>
+        <definition>int8_t sl_bt_evt_connection_analyzer_report_s::central_rssi</definition>
+        <argsstring></argsstring>
+        <name>central_rssi</name>
+        <qualifiedname>sl_bt_evt_connection_analyzer_report_s::central_rssi</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>RSSI measurement of the packet transmitted by central in units dBm, or 127 if the packet was not observed.<itemizedlist>
+<listitem><para><bold>Range:</bold> -127 to +20</para>
+</listitem><listitem><para>Value 127: RSSI information unavailable </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16200" column="11" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="16200" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__connection__analyzer__report__s_1a100cc76adc9abcf8b62a6567cd8e2d0b" prot="public" static="no" mutable="no">
+        <type>int8_t</type>
+        <definition>int8_t sl_bt_evt_connection_analyzer_report_s::peripheral_rssi</definition>
+        <argsstring></argsstring>
+        <name>peripheral_rssi</name>
+        <qualifiedname>sl_bt_evt_connection_analyzer_report_s::peripheral_rssi</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>RSSI measurement of the packet transmitted by peripheral in units dBm, or 127 if the packet was not observed.<itemizedlist>
+<listitem><para><bold>Range:</bold> -127 to +20</para>
+</listitem><listitem><para>Value 127: RSSI information unavailable </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16206" column="11" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="16206" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Data structure of the report event. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16197" column="1" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="16198" bodyend="16212"/>
+    <listofallmembers>
+      <member refid="structsl__bt__evt__connection__analyzer__report__s_1a05510063b52528920bbe19cbeb2b57bb" prot="public" virt="non-virtual"><scope>sl_bt_evt_connection_analyzer_report_s</scope><name>analyzer</name></member>
+      <member refid="structsl__bt__evt__connection__analyzer__report__s_1a2ccf1d7be3a4a002bfc73bef586585b4" prot="public" virt="non-virtual"><scope>sl_bt_evt_connection_analyzer_report_s</scope><name>central_rssi</name></member>
+      <member refid="structsl__bt__evt__connection__analyzer__report__s_1a100cc76adc9abcf8b62a6567cd8e2d0b" prot="public" virt="non-virtual"><scope>sl_bt_evt_connection_analyzer_report_s</scope><name>peripheral_rssi</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

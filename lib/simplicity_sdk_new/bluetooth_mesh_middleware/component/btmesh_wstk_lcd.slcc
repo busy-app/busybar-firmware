@@ -1,0 +1,63 @@
+id: "btmesh_wstk_lcd"
+label: "WSTK LCD Driver"
+package: bluetooth_mesh_middleware
+description: >
+  The WSTK LCD Driver is an application-level software module which
+  implements an interface for WSTK board's LCD screen usage, ensuring the
+  uniform display of BT Mesh specific values. The interface contains an
+  initialization and a write function. The LCD initialization is executed
+  automatically at startup. The write interface is used to write one specified
+  line of text to the LCD.
+  This component is prepared for integration into SOC applications.
+
+  This is a No-code component (The LCD can be enabled/disabled
+  in the Platform/Board Control software component).
+category: "Bluetooth Mesh|Utility"
+quality: "production"
+metadata:
+  sbom:
+    license: Zlib
+root_path: "bluetooth_mesh_middleware/common/btmesh_wstk_lcd"
+tag:
+- No-Code
+
+source:
+- path: "sl_btmesh_wstk_graphics.c"
+- path: "sl_btmesh_wstk_lcd.c"
+include:
+- path: ""
+  file_list:
+  - path: "sl_btmesh_wstk_graphics.h"
+  - path: "sl_btmesh_wstk_lcd.h"
+  - path: "sli_btmesh_wstk_lcd.h"
+config_file:
+- path: "config/sl_btmesh_wstk_lcd_config.h"
+provides:
+- name: "btmesh_wstk_lcd"
+requires:
+- name: "app_assert"
+- name: "app_rta"
+- name: "btmesh_stack"
+- name: "dmd_memlcd"
+- name: "glib"
+- name: "ls013b7dh03"
+- name: "memory_manager"
+
+template_contribution:
+- name: app_rta_init
+  value:
+    include: sli_btmesh_wstk_lcd.h
+    handler: sli_btmesh_LCD_ctx_init
+- name: event_handler
+  value:
+    event: internal_app_init
+    include: "sl_btmesh_wstk_lcd.h"
+    handler: "sl_btmesh_LCD_init"
+- name: component_catalog
+  value: "btmesh_wstk_lcd"
+
+validation_helper:
+- path: "../../script/validation/soc_ncp_compatibility.lua"
+documentation:
+  docset: btmesh
+  document: btmesh-service-api/btmesh-wstk-lcd

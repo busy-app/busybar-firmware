@@ -1,0 +1,52 @@
+id: rail_test_graphics
+label: RAILtest Application, Graphics
+description: RAILtest Application WSTK Graphics Support
+package: rail_library
+category: Platform|Radio
+quality: production
+metadata:
+  sbom:
+    id: rail_test_graphics
+    name: RAILtest Application, Graphics
+    license: Zlib
+include:
+- path: apps/rail_test_graphics
+  file_list:
+  - path: sl_rail_test_graphics.h
+source:
+- path: apps/rail_test_graphics/sl_rail_test_graphics.c
+config_file:
+- path: apps/rail_test_graphics/config/sl_rail_test_graphics_config.h
+requires:
+- name: device_supports_rail_stack   # only show this for "RAIL stacks" (e.g., RAILtest)
+- name: board_control
+- name: ls013b7dh03
+  condition: [brd4001a]
+- name: dmd_memlcd
+- name: glib
+- name: rail_test_core
+provides:
+- name: rail_test_graphics
+documentation:
+  docset: rail
+  document: rail-api/rail-test-graphics
+define:
+  # LCD support
+- name: SL_RAIL_TEST_GRAPHICS_SUPPORT_ENABLE
+  value: '1'
+  condition:
+  - dmd_memlcd
+template_contribution:
+- name: event_handler
+  value:
+    event: service_init
+    include: sl_rail_test_graphics.h
+    handler: sl_rail_test_graphics_init
+  priority: 1000
+- name: event_handler
+  value:
+    event: service_process_action
+    include: sl_rail_test_graphics.h
+    handler: sl_rail_test_graphics_process_action
+  priority: 0
+root_path: rail_library

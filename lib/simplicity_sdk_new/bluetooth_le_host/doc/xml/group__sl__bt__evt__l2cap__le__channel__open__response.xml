@@ -1,0 +1,44 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__evt__l2cap__le__channel__open__response" kind="group">
+    <compoundname>sl_bt_evt_l2cap_le_channel_open_response</compoundname>
+    <title>sl_bt_evt_l2cap_le_channel_open_response</title>
+    <innerclass refid="structsl__bt__evt__l2cap__le__channel__open__response__s" prot="public">sl_bt_evt_l2cap_le_channel_open_response_s</innerclass>
+      <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="group__sl__bt__evt__l2cap__le__channel__open__response_1ga438c12d2480975c2bdeb9c9ac630d924" prot="public" static="no">
+        <type>struct <ref refid="structsl__bt__evt__l2cap__le__channel__open__response__s" kindref="compound">sl_bt_evt_l2cap_le_channel_open_response_s</ref></type>
+        <definition>typedef struct sl_bt_evt_l2cap_le_channel_open_response_s sl_bt_evt_l2cap_le_channel_open_response_t</definition>
+        <argsstring></argsstring>
+        <name>sl_bt_evt_l2cap_le_channel_open_response_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="14960" column="57" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="14960" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__evt__l2cap__le__channel__open__response_1gadb34aea8c58208cf6ffd48e1cc3bee88" prot="public" static="no">
+        <name>sl_bt_evt_l2cap_le_channel_open_response_id</name>
+        <initializer>0x024300a0</initializer>
+        <briefdescription>
+<para>Identifier of the le_channel_open_response event. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="14929" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="14929" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Indicates that an LE credit-based connection response is received. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>Result code <ref refid="group__sl__bt__l2cap_1ggae9842dbd44c2e083436b58bcd06cdb42ac9cf1e0fa42f9d334727f0a95c63905a" kindref="member">sl_bt_l2cap_connection_result_successful</ref> in <computeroutput>errorcode</computeroutput> implies that the logical channel is established and data can be sent or received on the channel.</para>
+<para>If the connection request was rejected by the peer, indicated by <computeroutput>errorcode</computeroutput>, the stack automatically closes the local channel and the user application should clean up the resources associated to the channel identifier. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

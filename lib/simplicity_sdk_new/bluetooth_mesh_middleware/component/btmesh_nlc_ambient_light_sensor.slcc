@@ -1,0 +1,25 @@
+id: "btmesh_nlc_ambient_light_sensor"
+label: "Ambient Light Sensor Profile"
+package: bluetooth_mesh_middleware
+description: >
+  Ambient Light Sensor role in an NLC network. This component
+  includes other components needed for an SoC application to
+  act as an Ambient Light Sensor node in an NLC network, as
+  well as components providing the relevant metadata for the role.
+category: "Bluetooth Mesh|NLC"
+quality: "production"
+metadata:
+  sbom:
+    license: Zlib
+root_path: "bluetooth_mesh_middleware/common/btmesh_nlc_ambient_light_sensor"
+tag:
+- No-Code
+
+provides:
+- name: "btmesh_nlc_ambient_light_sensor"
+requires:
+- name: "btmesh_nlc_ambient_light_sensor_profile_metadata"
+- name: "btmesh_sensor_server"
+documentation:
+  docset: btmesh
+  document: btmesh-service-api/btmesh-nlc-ambient-light-sensor

@@ -1,0 +1,22 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<module:DocumentRoot xmlns:module="http://www.silabs.com/ss/hwconfig/module.ecore">
+  <module id="pin_tool.efr32.mgm24.vdac" label="VDAC" name="VDAC" description="" version="A">
+    <properties>
+      <stringProperty label="Type" id="type" defaultValue="vdac" transient="true" hidden="true" readonly="true" description=""/>
+      <stringProperty label="Custom Peripheral Name" id="peripheral.name" description=""/>
+    </properties>
+    <propertyCategories>
+      <category label="VDAC">
+        <subCategory label="">
+          <propertyRef refId="peripheral.name"/>
+        </subCategory>
+      </category>
+    </propertyCategories>
+    <signals>
+      <signal name="CH0_ABUS_OUT"/>
+      <signal name="CH1_ABUS_OUT"/>
+      <signal name="CH0_MAIN_OUT"/>
+      <signal name="CH1_MAIN_OUT"/>
+    </signals>
+  </module>
+</module:DocumentRoot>

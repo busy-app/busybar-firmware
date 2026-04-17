@@ -1,0 +1,317 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__accept__list" kind="group">
+    <compoundname>sl_bt_accept_list</compoundname>
+    <title>Filter Accept List</title>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="group__sl__bt__accept__list_1ga71dbdfee71110fe8384285ffb39eb858" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_accept_list_add_device_by_bonding</definition>
+        <argsstring>(uint32_t bonding)</argsstring>
+        <name>sl_bt_accept_list_add_device_by_bonding</name>
+        <param>
+          <type>uint32_t</type>
+          <declname>bonding</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Add a device to the Filter Accept List based on its bonding handle.</para>
+<para>This command returns the error SL_STATUS_BT_CTRL_CONTROLLER_BUSY if the Filter Accept List is currently used by scanning filter policy, advertising filter policy, or by initiator filter policy, i.e. initiating connection to devices on the Filter Accept List. If the list is currently in use, the application needs to first stop the operation that uses the Filter Accept List, then add a device to the Filter Accept List, and then restart the operation that uses the Filter Accept List.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">bonding</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The bonding handle</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="12615" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="12615" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__accept__list_1gae5ad6b125fdcc612003247bbb0ae019c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_accept_list_add_device_by_address</definition>
+        <argsstring>(bd_addr address, uint8_t address_type)</argsstring>
+        <name>sl_bt_accept_list_add_device_by_address</name>
+        <param>
+          <type><ref refid="structbd__addr" kindref="compound">bd_addr</ref></type>
+          <declname>address</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>address_type</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Add a device to the Filter Accept List based on its identity address.</para>
+<para>Use the special address type <ref refid="group__sl__bt__gap_1ggac8d5431d3062e47c5d51b9fb9f36c104a8a317b2563feb135dd3444a0d9dca37a" kindref="member">sl_bt_gap_anonymous_address</ref> to add an entry that matches all advertisements sent with no address.</para>
+<para>This command returns the error SL_STATUS_BT_CTRL_CONTROLLER_BUSY if the Filter Accept List is currently used by scanning filter policy, advertising filter policy, or by initiator filter policy, i.e. initiating connection to devices on the Filter Accept List. If the list is currently in use, the application needs to first stop the operation that uses the Filter Accept List, then add a device to the Filter Accept List, and then restart the operation that uses the Filter Accept List.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">address</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Bluetooth address of the peer device </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">address_type</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Enum <ref refid="group__sl__bt__gap_1gac8d5431d3062e47c5d51b9fb9f36c104" kindref="member">sl_bt_gap_address_type_t</ref>. The peer device address type. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_gap_public_address (0x0):</bold> Public device address</para>
+</listitem><listitem><para><bold>sl_bt_gap_static_address (0x1):</bold> Static device address</para>
+</listitem><listitem><para><bold>sl_bt_gap_random_resolvable_address (0x2):</bold> Resolvable private random address</para>
+</listitem><listitem><para><bold>sl_bt_gap_random_nonresolvable_address (0x3):</bold> Non-resolvable private random address</para>
+</listitem><listitem><para><bold>sl_bt_gap_anonymous_address (0xff):</bold> Anonymous address. A Filter Accept List entry with this type matches all advertisements sent with no address.</para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="12648" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="12648" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__accept__list_1gaffbf0857a213a91fd3c881cefd6f51a0" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_accept_list_remove_device_by_bonding</definition>
+        <argsstring>(uint32_t bonding)</argsstring>
+        <name>sl_bt_accept_list_remove_device_by_bonding</name>
+        <param>
+          <type>uint32_t</type>
+          <declname>bonding</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Remove a device from the Filter Accept List based on its bonding handle.</para>
+<para>This command returns the error SL_STATUS_BT_CTRL_CONTROLLER_BUSY if the Filter Accept List is currently used by scanning filter policy, advertising filter policy, or by initiator filter policy, i.e. initiating connection to devices on the Filter Accept List. If the list is currently in use, the application needs to first stop the operation that uses the Filter Accept List, then remove a device from the Filter Accept List, and then restart the operation that uses the Filter Accept List.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">bonding</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The bonding handle</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="12668" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="12668" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__accept__list_1ga7d0987bc57f00bfec2aa76b5634d869d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_accept_list_remove_device_by_address</definition>
+        <argsstring>(bd_addr address, uint8_t address_type)</argsstring>
+        <name>sl_bt_accept_list_remove_device_by_address</name>
+        <param>
+          <type><ref refid="structbd__addr" kindref="compound">bd_addr</ref></type>
+          <declname>address</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>address_type</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Remove a device from the Filter Accept List based on its identity address.</para>
+<para>Use the special address type <ref refid="group__sl__bt__gap_1ggac8d5431d3062e47c5d51b9fb9f36c104a8a317b2563feb135dd3444a0d9dca37a" kindref="member">sl_bt_gap_anonymous_address</ref> to remove an entry that matches all advertisements sent with no address.</para>
+<para>This command returns the error SL_STATUS_BT_CTRL_CONTROLLER_BUSY if the Filter Accept List is currently used by scanning filter policy, advertising filter policy, or by initiator filter policy, i.e. initiating connection to devices on the Filter Accept List. If the list is currently in use, the application needs to first stop the operation that uses the Filter Accept List, then remove a device from the Filter Accept List, and then restart the operation that uses the Filter Accept List.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">address</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Bluetooth address of the peer device </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">address_type</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Enum <ref refid="group__sl__bt__gap_1gac8d5431d3062e47c5d51b9fb9f36c104" kindref="member">sl_bt_gap_address_type_t</ref>. The peer device address type. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_gap_public_address (0x0):</bold> Public device address</para>
+</listitem><listitem><para><bold>sl_bt_gap_static_address (0x1):</bold> Static device address</para>
+</listitem><listitem><para><bold>sl_bt_gap_random_resolvable_address (0x2):</bold> Resolvable private random address</para>
+</listitem><listitem><para><bold>sl_bt_gap_random_nonresolvable_address (0x3):</bold> Non-resolvable private random address</para>
+</listitem><listitem><para><bold>sl_bt_gap_anonymous_address (0xff):</bold> Anonymous address. A Filter Accept List entry with this type matches all advertisements sent with no address.</para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="12701" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="12701" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__accept__list_1ga043ff6f3b2cf5757065a1d43b2d5dd94" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_accept_list_remove_all_devices</definition>
+        <argsstring>(void)</argsstring>
+        <name>sl_bt_accept_list_remove_all_devices</name>
+        <param>
+          <type>void</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Remove all devices from the Filter Accept List.</para>
+<para>This command returns the error SL_STATUS_BT_CTRL_CONTROLLER_BUSY if the Filter Accept List is currently used by scanning filter policy, advertising filter policy, or by initiator filter policy, i.e. initiating connection to devices on the Filter Accept List. If the list is currently in use, the application needs to first stop the operation that uses the Filter Accept List, and then remove all devices from the Filter Accept List.</para>
+<para><simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="12719" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="12719" declcolumn="13"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__accept__list_1ga7a9ed25b84c60c1f9d031081142b2433" prot="public" static="no">
+        <name>sl_bt_cmd_accept_list_add_device_by_bonding_id</name>
+        <initializer>0x005e0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="12587" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="12587" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__accept__list_1gacc5852692d4d14c6c82685fc97214307" prot="public" static="no">
+        <name>sl_bt_cmd_accept_list_add_device_by_address_id</name>
+        <initializer>0x015e0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="12588" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="12588" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__accept__list_1gaecc7953d234a12b2044d9c9aa6162d99" prot="public" static="no">
+        <name>sl_bt_cmd_accept_list_remove_device_by_bonding_id</name>
+        <initializer>0x025e0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="12589" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="12589" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__accept__list_1gafacaccf7311f49855aa5b0005c0dbea4" prot="public" static="no">
+        <name>sl_bt_cmd_accept_list_remove_device_by_address_id</name>
+        <initializer>0x035e0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="12590" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="12590" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__accept__list_1ga533fd13369c2bf74dcb307c9e2ff478d" prot="public" static="no">
+        <name>sl_bt_cmd_accept_list_remove_all_devices_id</name>
+        <initializer>0x045e0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="12591" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="12591" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__accept__list_1gabda4e4e29e449509e97dffac22141ada" prot="public" static="no">
+        <name>sl_bt_rsp_accept_list_add_device_by_bonding_id</name>
+        <initializer>0x005e0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="12592" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="12592" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__accept__list_1gae90b718f3fef30bd8bc1d7a01d96acc4" prot="public" static="no">
+        <name>sl_bt_rsp_accept_list_add_device_by_address_id</name>
+        <initializer>0x015e0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="12593" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="12593" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__accept__list_1gac93603160eff65d994fe2215e0cf5fa5" prot="public" static="no">
+        <name>sl_bt_rsp_accept_list_remove_device_by_bonding_id</name>
+        <initializer>0x025e0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="12594" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="12594" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__accept__list_1ga4dbf1bd715d221bbfe4034bea0f48ea6" prot="public" static="no">
+        <name>sl_bt_rsp_accept_list_remove_device_by_address_id</name>
+        <initializer>0x035e0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="12595" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="12595" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__accept__list_1ga59cdfb79e49fc1ea856e6f4c68870770" prot="public" static="no">
+        <name>sl_bt_rsp_accept_list_remove_all_devices_id</name>
+        <initializer>0x045e0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="12596" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="12596" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Filter Accept List. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>Provides support for adding and removing devices from the Filter Accept List in the Bluetooth controller.</para>
+<para>The Filter Accept List allows filtering transmissions from other Bluetooth devices so that the local device only receives/accepts transmissions from the devices that it&apos;s interested in or wants to communicate with. Operations that support filtering provide a means to control how the Filter Accept List is used:<itemizedlist>
+<listitem><para>For advertising, use the command <ref refid="group__sl__bt__advertiser_1ga703e9e2f1bec3994191e0f201815e120" kindref="member">sl_bt_advertiser_configure</ref> and <computeroutput>flags</computeroutput> bits <ref refid="group__sl__bt__advertiser__flags_1gadd001514f2f136ae119c67b651f52948" kindref="member">SL_BT_ADVERTISER_USE_FILTER_FOR_SCAN_REQUESTS</ref> and <ref refid="group__sl__bt__advertiser__flags_1ga7ae97166020640291284569f566a45fd" kindref="member">SL_BT_ADVERTISER_USE_FILTER_FOR_CONNECTION_REQUESTS</ref> to control the advertising filter policy</para>
+</listitem><listitem><para>For scanning, use the command <ref refid="group__sl__bt__scanner_1gadf57e14430927a65b0993d824b6175df" kindref="member">sl_bt_scanner_set_parameters_and_filter</ref> to control the scanning filter policy </para>
+</listitem></itemizedlist>
+</para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

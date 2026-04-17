@@ -1,0 +1,21 @@
+id: mbedtls_ecdsa_deterministic
+package: security_mbedtls
+label: Legacy Deterministic ECDSA
+description: "This component provides support for signature generation with deterministic ECDSA (RFC-6979) using Mbed TLS.\n\nWARNING: \n Adding support for deterministic ECDSA through Mbed TLS will preclude regular ECDSA operations using the Mbed TLS API from being accelerated on Series-2 devices. ECDSA operations on those devices using the corresponding PSA API are unaffected. \n\nNOTE: \n The PSA Crypto component for Deterministic ECDSA (psa_crypto_ecdsa_deterministic.slcc) is recommended over Legacy Deterministic ECDSA (mbedtls_ecdsa_deterministic.slcc) in Mbed TLS for future support since the legacy low level crypto APIs of Mbed TLS is planned to be removed from Mbed TLS 4.0 APIs."
+
+category: Platform|Security|Mbed TLS|Signatures
+quality: production
+provides:
+- name: mbedtls_ecdsa_deterministic
+requires:
+- name: mbedtls_ecdsa
+- name: mbedtls_hash
+template_contribution:
+- name: mbedtls_config
+  value: MBEDTLS_ECDSA_DETERMINISTIC
+- name: mbedtls_config
+  value: MBEDTLS_HMAC_DRBG_C
+metadata:
+  sbom:
+    reference: mbedtls_sbom
+root_path: security_mbedtls

@@ -1,0 +1,30 @@
+id: littlefs_si91x
+label: LITTLEFS_SI91X
+package: platform_nwp_siwx91x
+description: >
+  A little fail-safe filesystem. It's designed to handle random power failures, 
+  with flash in mind, and provides wear leveling over dynamic blocks and to work 
+  with a small amount of memory. RAM usage is strictly bounded, which means RAM 
+  consumption does not change as the filesystem grows.
+category: Third Party
+quality: production
+metadata:
+  sbom:
+    license: BSD-3-Clause
+    upstream:
+      name: littlefs
+      version: 2.9.3
+      supplier: littlefs-project
+      url: https://github.com/littlefs-project/littlefs
+      package_url: pkg:github/littlefs-project/littlefs@v2.9.3
+component_root_path: 'third_party/littlefs'
+source:
+  - path: "src/lfs.c"
+  - path: "src/lfs_util.c"
+include:
+  - path: "inc"
+    file_list:
+    - path: "lfs.h"
+    - path: "lfs_util.h"
+provides:
+  - name: littlefs_si91x

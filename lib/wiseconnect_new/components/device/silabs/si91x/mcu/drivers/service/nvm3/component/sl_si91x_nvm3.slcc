@@ -1,0 +1,37 @@
+id: sl_si91x_nvm3
+label: NVM3 for Si91x
+package: platform_nwp_siwx91x
+description: >
+  The NVM3 driver provides a means to write and read data objects
+  (key/value pairs) stored in flash. Wear-leveling is applied to reduce erase
+  and write cycles and maximize flash lifetime. The driver is resilient to
+  power loss and reset events, ensuring that objects retrieved from the driver
+  are always in a valid state. A single NVM3 instance can be shared among
+  several wireless stacks and application code, making it well-suited for
+  multiprotocol applications.
+  This component includes only the NVM3 driver core. To configure and create
+  the default instance of this driver, the NVM3 Default Instance component
+  should be included in the project.
+  
+  When you install this component, it will also be installing the NVM3 dependency component, 
+  which is the NVM3 driver's implementation.
+category: Device|Si91x|MCU|Service
+quality: production
+metadata:
+  sbom:
+    license: MSLA
+component_root_path: "components/device/silabs/si91x/mcu/drivers/service/nvm3"
+config_file:
+  - path: config/nvm3_default_config.h
+requires:
+  - name: nvm3_default
+  - name: sl_si91x_common_flash_nvm3
+    condition: [si91x_common_flash]
+  - name: sl_si91x_dual_flash_nvm3
+    condition: [si91x_dual_flash]
+provides:
+  - name: sl_si91x_nvm3
+conflicts:
+  - name: sl_si91x_littlefs
+  - name: sl_si91x_littlefs_common_flash
+  - name: sl_si91x_littlefs_ext_flash

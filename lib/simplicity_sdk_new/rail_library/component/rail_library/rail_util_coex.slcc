@@ -1,0 +1,209 @@
+id: rail_util_coex
+label: RAIL Utility, Coexistence (RAIL 2.x)
+description: Utility to aid with RAIL Coexistence Support
+package: rail_library
+category: Platform|Radio|RAIL 2.x
+quality: production
+metadata:
+  sbom:
+    id: rail_util_coex
+    name: RAIL Utility, Coexistence (RAIL 2.x)
+    license: MSLA
+requires:
+- name: clock_manager_runtime
+- name: component_catalog
+- name: device
+- name: hal_prs
+- name: hal_timer
+- name: rail_lib
+- name: rail_util_coex_cli
+  condition:
+  - cli
+  - rail_test_core
+- name: rail_util_ieee802154_stack_event
+  condition:
+  - ot_stack
+- name: rail_util_ieee802154_stack_event
+  condition:
+  - zigbee_pro_stack_support
+- name: rail_util_ieee802154_phy_select
+  condition:
+  - ot_stack
+- name: rail_util_ieee802154_phy_select
+  condition:
+  - zigbee_pro_stack_support
+- name: sl_core
+- name: sl_common
+- name: status
+provides:
+- name: rail_util_coex
+documentation:
+  docset: rail
+  document: rail-api/rail-util-coex
+config_file:
+- path: plugin/coexistence/config/efr32xg24/sl_rail_util_coex_config.h
+  condition:
+  - device_series_2
+  - device_sdid_215
+  file_id: rail_util_coex_config
+- path: plugin/coexistence/config/efr32xg26/sl_rail_util_coex_config.h
+  condition:
+  - device_series_2
+  - device_sdid_225
+  file_id: rail_util_coex_config
+- path: plugin/coexistence/config/efr32xg2x/sl_rail_util_coex_config.h
+  condition:
+  - device_series_2
+  unless:
+  - device_sdid_215
+  - device_sdid_225
+  file_id: rail_util_coex_config
+- path: plugin/coexistence/config/sixg301/sl_rail_util_coex_config.h
+  condition:
+  - device_generic_family_sixx301
+  file_id: rail_util_coex_config
+- path: plugin/coexistence/config/sl_rail_util_coex_common_config.h
+  file_id: rail_util_coex_common_config
+include:
+- path: plugin
+- path: plugin/coexistence/common
+  file_list:
+  - path: coexistence.h
+- path: plugin/coexistence/hal/efr32
+  file_list:
+  - path: coexistence-hal.h
+- path: plugin/coexistence/protocol/ble
+  file_list:
+  - path: coexistence-ble.h
+  - path: coexistence-ble-ll.h
+  condition:
+  - bluetooth_controller
+- path: plugin/coexistence/protocol/ble
+  file_list:
+  - path: coexistence-ble.h
+  - path: coexistence-ble-ll.h
+  condition:
+  - rail_test_core
+- path: plugin/coexistence/protocol/ieee802154_uc
+  file_list:
+  - path: coexistence-802154.h
+  - path: coexistence-common-802154.h
+  - path: coexistence-ot.h
+  condition:
+  - ot_stack
+- path: plugin/coexistence/protocol/ieee802154_uc
+  file_list:
+  - path: coexistence-802154.h
+  - path: coexistence-common-802154.h
+  condition:
+  - rail_test_core
+- path: plugin/coexistence/protocol/ieee802154_uc
+  file_list:
+  - path: coexistence-802154.h
+  - path: coexistence-common-802154.h
+  condition:
+  - zigbee_pro_stack_support
+source:
+- path: plugin/coexistence/common/coexistence.c
+- path: plugin/coexistence/common/coexistence-pwm.c
+- path: plugin/coexistence/hal/efr32/coexistence-directional-priority.c
+- path: plugin/coexistence/hal/efr32/coexistence-hal.c
+- path: plugin/coexistence/protocol/ble/coexistence-ble.c
+  condition:
+  - bluetooth_controller
+- path: plugin/coexistence/protocol/ble/coexistence-ble-counters.c
+  condition:
+  - bluetooth_controller
+- path: plugin/coexistence/protocol/ble/coexistence-ble.c
+  condition:
+  - rail_test_core
+- path: plugin/coexistence/protocol/ble/coexistence-ble-counters.c
+  condition:
+  - rail_test_core
+- path: plugin/coexistence/protocol/ieee802154_uc/coexistence-802154.c
+  condition:
+  - ot_stack
+- path: plugin/coexistence/protocol/ieee802154_uc/coexistence-802154.c
+  condition:
+  - rail_test_core
+- path: plugin/coexistence/protocol/ieee802154_uc/coexistence-802154.c
+  condition:
+  - zigbee_pro_stack_support
+- path: plugin/coexistence/protocol/ieee802154_uc/coexistence-ot.c
+  condition:
+  - ot_stack
+- path: plugin/coexistence/protocol/ieee802154_uc/sl_zigbee_coexistence_cb.c
+  condition:
+  - zigbee_pro_stack_support
+template_file:
+- path: plugin/coexistence/common/coexistence_event.c.jinja
+template_contribution:
+- name: event_handler
+  value:
+    event: stack_init
+    include: coexistence-802154.h
+    handler: sl_rail_util_coex_init
+  priority: -9010
+  condition:
+  - zigbee_pro_stack_support
+- name: rail_util_coex_callbacks
+  value:
+    handler: sli_bt_coex_radio_callback
+    event_filter: sli_bt_coex_event_filter
+  priority: -9010
+  condition:
+  - bluetooth_controller
+- name: rail_util_coex_callbacks
+  value:
+    handler: sli_bt_coex_radio_callback
+    event_filter: sli_bt_coex_event_filter
+  priority: -9010
+  condition:
+  - rail_test_core
+- name: rail_util_coex_callbacks
+  value:
+    include: coexistence-802154.h
+    handler: sli_rail_util_ieee802154_coex_on_event
+    event_filter: sli_rail_util_ieee802154_coex_event_filter
+  priority: -9010
+  condition:
+  - ot_stack
+- name: rail_util_coex_callbacks
+  value:
+    include: coexistence-802154.h
+    handler: sli_rail_util_ieee802154_coex_on_event
+    event_filter: sli_rail_util_ieee802154_coex_event_filter
+  priority: -9010
+  condition:
+  - rail_test_core
+- name: rail_util_coex_callbacks
+  value:
+    include: coexistence-802154.h
+    handler: sli_rail_util_ieee802154_coex_on_event
+    event_filter: sli_rail_util_ieee802154_coex_event_filter
+  priority: -9010
+  condition:
+  - zigbee_pro_stack_support
+- name: rail_util_coex_callbacks
+  value:
+    include: coexistence-ot.h
+    handler: sli_rail_util_ot_coex_state_on_event
+    event_filter: sli_rail_util_ot_coex_state_event_filter
+  priority: -9010
+  condition:
+  - ot_stack
+- name: rail_util_ieee802154_callbacks
+  value:
+    include: coexistence-802154.h
+    handler: sl_rail_util_coex_on_event
+  priority: -9010
+- name: rail_util_ieee802154_phy_select_callbacks
+  value:
+    include: coexistence-802154.h
+    runtime_phy_features: SL_RAIL_UTIL_IEEE802154_RUNTIME_PHY_FEATURES_2P4_COEX
+    default_phy_features: SL_RAIL_UTIL_IEEE802154_DEFAULT_PHY_FEATURES_2P4_COEX
+    get_phy_features: sl_rail_util_ieee802154_get_coex_phy_features
+  priority: -9010
+- name: component_catalog
+  value: rail_util_coex
+root_path: rail_library

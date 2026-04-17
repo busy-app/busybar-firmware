@@ -1,0 +1,20 @@
+id: sl_si91x_lf_fsm_clock_selection
+label: SL SI91X LF-FSM CLOCK SELECTION
+package: platform_siwx91x
+metadata:
+  sbom:
+    license: MSLA
+description: >
+  This component enables the selection of configurations for the 32kHz clock within the LF-FSM domain. It is not needed when an external oscillator is installed.
+category: Device|Si91x|MCU|Core
+quality: production
+component_root_path: "components/device/silabs/si91x/mcu/core/chip"
+config_file:
+  - path: config/sl_si91x_lf_fsm_clock_sel.h
+define:
+  - name: LF_FSM_CLOCK_UC
+    value: '1'
+conflicts:
+  - name: si91x_32kHz_external_oscillator
+provides:
+  - name: sl_si91x_lf_fsm_clock_selection

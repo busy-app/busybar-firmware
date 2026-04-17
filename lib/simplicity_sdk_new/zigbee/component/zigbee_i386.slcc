@@ -1,0 +1,24 @@
+id: zigbee_i386
+label: Zigbee i386
+package: zigbee
+category: Zigbee
+quality: production
+description: This plugin contains defines to build Zigbee apps against i386.
+
+provides:
+- name: i386
+- name: zigbee_i386
+
+requires:
+- name: linux_arch_x86
+
+validation_helper:
+- path: component/scripts/zigbee_linux_arch_validation.lua
+
+documentation:
+  docset: zigbee
+  document: zigbee-af-api/i386
+metadata:
+  sbom:
+    license: MSLA
+root_path: zigbee

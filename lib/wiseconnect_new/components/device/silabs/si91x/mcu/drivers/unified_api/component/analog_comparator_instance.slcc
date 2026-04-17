@@ -1,0 +1,35 @@
+id: analog_comparator_instance
+label: Analog Comparator Instance
+package: platform_siwx91x
+description: >
+  Analog Comparator peripheral for the SiWx917 SoC device.
+  
+  Analog Comparator Supports instances.
+  Instances created must be named as comparator1, comparator2.
+category: Device|Si91x|MCU|Peripheral
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+instantiable:
+  prefix: inst
+root_path: "components/device/silabs/si91x/mcu/drivers/unified_api"
+config_file:
+  - path: config/sl_si91x_analog_comparator_{{instance}}_config.h
+    file_id: analog_comparator_config
+provides:
+  - name: analog_comparator_instance
+    allow_multiple: true
+template_file:
+  - path: init/sl_si91x_analog_comparator_init.h.jinja
+template_contribution:
+  - name: component_catalog
+    value: "{{instance}}"
+  - name: temp_analog_comparator_instance
+    value: "{{instance}}"
+  - name: component_catalog
+    value: "analog_comparator_instance"
+  - name: component_catalog
+    value: "temp_analog_comparator_{{instance}}"
+requires:
+  - name: sl_analog_comparator

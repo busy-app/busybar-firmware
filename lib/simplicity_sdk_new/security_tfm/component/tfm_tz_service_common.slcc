@@ -1,0 +1,21 @@
+id: tfm_tz_service_common
+package: security_tfm
+description: This component component includes tf-m source common to all secure services.
+category: Platform|Security|TrustZone
+ui_hints:
+  visibility: never
+quality: production
+provides:
+- name: tfm_tz_service_common
+include:
+- path: interface/include
+  file_list:
+  - path: psa_config.h
+  - path: tfm_api.h
+  - path: psa/client.h
+  - path: psa/crypto_client_struct.h
+  - path: psa/error.h
+metadata:
+  sbom:
+    reference: tfm_sbom
+root_path: security_tfm

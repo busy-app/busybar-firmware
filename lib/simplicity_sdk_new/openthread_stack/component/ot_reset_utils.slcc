@@ -1,0 +1,16 @@
+id: ot_reset_utils
+label: OpenThread Reset Utilities
+package: openthread_stack
+category: OpenThread
+quality: production
+description: This component provides the OpenThread stack
+ui_hints:
+  visibility: never
+include:
+- path: util/third_party/openthread/src/lib/platform
+  file_list:
+  - path: reset_util.h
+metadata:
+  sbom:
+    reference: ot_sbom_openthread
+root_path: openthread_stack

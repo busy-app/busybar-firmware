@@ -1,0 +1,15 @@
+parameters:
+  - name: build_dir
+constants:
+  - name: project_name
+    value: bootloader
+steps:
+  - task: convert
+    output: "artifact/{{project_name}}.s37"
+    input: "{{build_dir}}/{{project_name}}.out"
+    export: bootloader_main_stage
+  - task: convert
+    input: "artifact/{{project_name}}.s37"
+    output: "artifact/{{project_name}}-crc.s37"
+    crc: true
+    export: bootloader_binary

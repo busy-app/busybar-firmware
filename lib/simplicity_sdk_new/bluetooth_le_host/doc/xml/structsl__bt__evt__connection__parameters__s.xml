@@ -1,0 +1,103 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="structsl__bt__evt__connection__parameters__s" kind="struct" language="C++" prot="public">
+    <compoundname>sl_bt_evt_connection_parameters_s</compoundname>
+    <includes refid="sl__bt__api_8h" local="no">sl_bt_api.h</includes>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structsl__bt__evt__connection__parameters__s_1a2180d6afb56c4ef71ad77d8145152a11" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_connection_parameters_s::connection</definition>
+        <argsstring></argsstring>
+        <name>connection</name>
+        <qualifiedname>sl_bt_evt_connection_parameters_s::connection</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Connection handle </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6454" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6454" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__connection__parameters__s_1abb9a95262d0f98c33974a4acbf90200b" prot="public" static="no" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t sl_bt_evt_connection_parameters_s::interval</definition>
+        <argsstring></argsstring>
+        <name>interval</name>
+        <qualifiedname>sl_bt_evt_connection_parameters_s::interval</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Connection interval. Time = Value x 1.25 ms </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6455" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6455" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__connection__parameters__s_1a80b009be4bcbfd8bb2429c607c1db6d2" prot="public" static="no" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t sl_bt_evt_connection_parameters_s::latency</definition>
+        <argsstring></argsstring>
+        <name>latency</name>
+        <qualifiedname>sl_bt_evt_connection_parameters_s::latency</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Peripheral latency (how many connection intervals the peripheral can skip) </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6456" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6456" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__connection__parameters__s_1a129a2425ac6aba5d751991caed302095" prot="public" static="no" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t sl_bt_evt_connection_parameters_s::timeout</definition>
+        <argsstring></argsstring>
+        <name>timeout</name>
+        <qualifiedname>sl_bt_evt_connection_parameters_s::timeout</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Supervision timeout. Time = Value x 10 ms </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6458" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6458" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__connection__parameters__s_1a96617245c1c032fa51546d94743244d2" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_connection_parameters_s::security_mode</definition>
+        <argsstring></argsstring>
+        <name>security_mode</name>
+        <qualifiedname>sl_bt_evt_connection_parameters_s::security_mode</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Enum <ref refid="group__sl__bt__connection_1gaa978c6a4744e442da21c790679af4eae" kindref="member">sl_bt_connection_security_t</ref>. Connection security mode. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_connection_mode1_level1 (0x0):</bold> No security</para>
+</listitem><listitem><para><bold>sl_bt_connection_mode1_level2 (0x1):</bold> Unauthenticated pairing with encryption</para>
+</listitem><listitem><para><bold>sl_bt_connection_mode1_level3 (0x2):</bold> Authenticated pairing with encryption</para>
+</listitem><listitem><para><bold>sl_bt_connection_mode1_level4 (0x3):</bold> Authenticated Secure Connections pairing with encryption using a 128-bit strength encryption key </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6459" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6459" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Data structure of the parameters event. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6452" column="1" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6453" bodyend="6471"/>
+    <listofallmembers>
+      <member refid="structsl__bt__evt__connection__parameters__s_1a2180d6afb56c4ef71ad77d8145152a11" prot="public" virt="non-virtual"><scope>sl_bt_evt_connection_parameters_s</scope><name>connection</name></member>
+      <member refid="structsl__bt__evt__connection__parameters__s_1abb9a95262d0f98c33974a4acbf90200b" prot="public" virt="non-virtual"><scope>sl_bt_evt_connection_parameters_s</scope><name>interval</name></member>
+      <member refid="structsl__bt__evt__connection__parameters__s_1a80b009be4bcbfd8bb2429c607c1db6d2" prot="public" virt="non-virtual"><scope>sl_bt_evt_connection_parameters_s</scope><name>latency</name></member>
+      <member refid="structsl__bt__evt__connection__parameters__s_1a96617245c1c032fa51546d94743244d2" prot="public" virt="non-virtual"><scope>sl_bt_evt_connection_parameters_s</scope><name>security_mode</name></member>
+      <member refid="structsl__bt__evt__connection__parameters__s_1a129a2425ac6aba5d751991caed302095" prot="public" virt="non-virtual"><scope>sl_bt_evt_connection_parameters_s</scope><name>timeout</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

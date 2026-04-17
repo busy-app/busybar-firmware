@@ -1,0 +1,63 @@
+id: btmesh_firmware_update_client
+label: Firmware Update Client
+package: bluetooth_mesh_middleware
+description: >
+  Provides BT Mesh Firmware Update Client functionality, defined in mesh
+  specification.
+
+  The Firmware Update Client model is used by the Distributor and Initiator.
+  This component is prepared for integration into SOC applications.
+
+  The Initiator uses this model to retrieve the information about the firmware
+  subsystems installed on the Target node, and to get the location of the new
+  firmware images. The Initiator receives the list of Target nodes from the
+  higher-layer application.
+
+  The Distributor uses this model to start a firmware image transfer to the
+  Target nodes. The Distributor receives the list of Target nodes from the
+  Initiator. The Distributor uses the procedures on the Firmware Update Client
+  model with the inputs to these procedures being chosen by the Firmware
+  Distribution Server.
+
+  This is a No-Code component.
+category: "Bluetooth Mesh|Models|Firmware Update"
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: bluetooth_mesh_middleware/common/btmesh_firmware_update_client
+tag:
+- No-Code
+
+config_file:
+- path: btmesh_firmware_update_client.dcd
+  directory: btmeshconf
+source:
+- path: sl_btmesh_firmware_update_client.c
+include:
+- path: ""
+  file_list:
+  - path: sl_btmesh_firmware_update_client.h
+provides:
+- name: btmesh_firmware_update_client
+requires:
+- name: app_assert
+- name: app_btmesh_util
+- name: btmesh_core
+- name: btmesh_blob_transfer_client
+- name: btmesh_stack_fw_update_client
+
+template_contribution:
+- name: btmesh_on_event
+  value:
+    include: sl_btmesh_firmware_update_client.h
+    function: sl_btmesh_firmware_update_client_on_event
+  priority: -1002
+- name: component_catalog
+  value: btmesh_firmware_update_client
+
+validation_helper:
+- path: "../../script/validation/soc_ncp_compatibility.lua"
+documentation:
+  docset: btmesh
+  document: btmesh-service-api/btmesh-firmware-update-client

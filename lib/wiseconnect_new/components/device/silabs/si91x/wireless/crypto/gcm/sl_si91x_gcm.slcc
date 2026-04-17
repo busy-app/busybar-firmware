@@ -1,0 +1,23 @@
+id: sl_si91x_gcm
+package: wifi
+description: >
+  Implementation of the GCM API
+label: GCM
+category: Device|Si91x|MCU|Crypto
+quality: production
+metadata:
+  sbom:
+   license: Zlib
+component_root_path: ./components/device/silabs/si91x/wireless/crypto/gcm
+provides:
+- name: sl_si91x_gcm
+source:
+- path: src/sl_si91x_gcm.c
+include:
+- path: inc
+  file_list:
+    - path: sl_si91x_gcm.h
+
+requires:
+- name: sl_si91x_crypto
+

@@ -1,0 +1,54 @@
+id: fem_util
+label: Radio Utility, FEM
+description: Utility to aid with Device-external Front End Module (FEM) Support
+package: rail_library
+category: Platform|Radio
+quality: production
+metadata:
+  sbom:
+    id: fem_util
+    name: Radio Utility, FEM
+    license: Zlib
+requires:
+- name: device
+- name: emlib_cmu
+  condition: [device_series_2]
+- name: clock_manager_device_init
+  condition: [device_series_3]
+- name: hal_prs
+- name: component_catalog
+provides:
+- name: fem_util
+documentation:
+  docset: rail
+  document: rail-api/fem-util
+config_file:
+- path: plugin/fem_util/config/efr32xg25/sl_fem_util_config.h
+  file_id: fem_util_config
+  condition:
+  - device_sdid_220
+- path: plugin/fem_util/config/sl_fem_util_config.h
+  file_id: fem_util_config
+  unless:
+  - device_sdid_220
+include:
+- path: plugin/fem_util
+  file_list:
+  - path: sl_fem_util.h
+source:
+- path: plugin/fem_util/sl_fem_util.c
+template_contribution:
+- name: event_handler
+  value:
+    event: stack_init
+    include: sl_fem_util.h
+    handler: sl_fem_util_init
+  priority: -7005
+- name: rail_util_ieee802154_phy_select_callbacks
+  value:
+    include: sl_fem_util.h
+    runtime_phy_features: SL_RAIL_UTIL_IEEE802154_RUNTIME_PHY_FEATURES_2P4_FEM
+    default_phy_features: SL_RAIL_UTIL_IEEE802154_DEFAULT_PHY_FEATURES_2P4_FEM
+    get_phy_features: sl_fem_util_get_phy_features
+  priority: -9010
+root_path: rail_library

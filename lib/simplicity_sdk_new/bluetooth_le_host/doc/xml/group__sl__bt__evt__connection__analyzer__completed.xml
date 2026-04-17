@@ -1,0 +1,42 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__evt__connection__analyzer__completed" kind="group">
+    <compoundname>sl_bt_evt_connection_analyzer_completed</compoundname>
+    <title>sl_bt_evt_connection_analyzer_completed</title>
+    <innerclass refid="structsl__bt__evt__connection__analyzer__completed__s" prot="public">sl_bt_evt_connection_analyzer_completed_s</innerclass>
+      <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="group__sl__bt__evt__connection__analyzer__completed_1ga078fcbf6bb43ecccbebd38ff1c139b3e" prot="public" static="no">
+        <type>struct <ref refid="structsl__bt__evt__connection__analyzer__completed__s" kindref="compound">sl_bt_evt_connection_analyzer_completed_s</ref></type>
+        <definition>typedef struct sl_bt_evt_connection_analyzer_completed_s sl_bt_evt_connection_analyzer_completed_t</definition>
+        <argsstring></argsstring>
+        <name>sl_bt_evt_connection_analyzer_completed_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16237" column="56" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="16237" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__evt__connection__analyzer__completed_1gac02e8a8fbbd71206bc3436051a336d51" prot="public" static="no">
+        <name>sl_bt_evt_connection_analyzer_completed_id</name>
+        <initializer>0x014800a0</initializer>
+        <briefdescription>
+<para>Identifier of the completed event. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16225" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="16225" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Triggered when the operation of analyzing a connection is completed. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

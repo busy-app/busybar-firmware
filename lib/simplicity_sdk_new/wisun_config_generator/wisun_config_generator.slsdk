@@ -1,0 +1,11 @@
+# Properties file for Simplicity Studio metadata.
+id=com.silabs.tool.wisun_config_generator
+label=Wi-SUN Config Generator
+description=Wi-SUN Configurator tool for generating Wi-SUN stack configurations
+version=1.0.0
+
+# General properties are prepended with "prop."
+prop.file.templatesFile=
+prop.file.demosFile=
+prop.file.adapterPacks=apack.info
+prop.file.hkconfAdkModels=

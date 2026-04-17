@@ -1,0 +1,16 @@
+id: ot_diags
+label: Diagnostics
+package: openthread_stack
+category: OpenThread
+quality: production
+description: This component provides diagnostic functionalities for OpenThread.
+provides:
+- name: ot_diags
+- name: ot_diags_implementation
+define:
+- name: OPENTHREAD_CONFIG_DIAG_ENABLE
+  value: 1
+metadata:
+  sbom:
+    reference: ot_sbom_openthread
+root_path: openthread_stack

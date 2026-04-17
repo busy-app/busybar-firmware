@@ -1,0 +1,80 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__CRYPTO__SHA__FUNCTIONS" kind="group">
+    <compoundname>CRYPTO_SHA_FUNCTIONS</compoundname>
+    <title>Functions</title>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="group__CRYPTO__SHA__FUNCTIONS_1ga07c135c1af4b38b665f3c027a76dadfb" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_si91x_sha</definition>
+        <argsstring>(uint8_t sha_mode, const uint8_t *msg, uint16_t msg_length, uint8_t *digest)</argsstring>
+        <name>sl_si91x_sha</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>sha_mode</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>msg</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>msg_length</declname>
+        </param>
+        <param>
+          <type>uint8_t *</type>
+          <declname>digest</declname>
+        </param>
+        <briefdescription>
+<para>To provide the SHA output for the given configuration. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>This is a blocking API. <parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">sha_mode</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>1 – For SHA1 2 – For SHA256 3 – For SHA384 4 – For SHA512 5 – For SHA224 </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">msg</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to the message. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">msg_length</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Total message length. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">digest</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Buffer to store the output. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>sl_status_t. For more information on status codes, see <ulink url="https://docs.silabs.com/gecko-platform/latest/platform-common/status">SL STATUS DOCUMENTATION</ulink>. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/sha/inc/sl_si91x_sha.h" line="103" column="13" declfile="components/device/silabs/si91x/wireless/crypto/sha/inc/sl_si91x_sha.h" declline="103" declcolumn="13"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para>This section provides a reference to the SHA Crypto API functions. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

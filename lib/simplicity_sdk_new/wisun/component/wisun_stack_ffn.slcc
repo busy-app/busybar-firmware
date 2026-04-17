@@ -1,0 +1,37 @@
+id: "wisun_stack_ffn"
+label: "Wi-SUN Stack FFN Support"
+description: >
+  Adds support for Full Function Node (FFN) device type. Includes support for
+  parenting FAN1.1 LFNs.
+package: "wisun"
+category: "Wi-SUN|Stack"
+quality: "production"
+root_path: "wisun/./stack"
+
+requires:
+- name: "device_supports_wisun"
+- name: "a_wisun_stack"
+recommends:
+- id: wisun_stack
+
+  vendor: silabs
+provides:
+- name: "wisun_stack_ffn"
+- name: "wisun_stack_device_type"
+  allow_multiple: true
+
+define:
+- name: "HAVE_LFN_PARENT"
+- name: "HAVE_FFN"
+- name: "HAVE_ROUTER"
+- name: "HAVE_DIRECT_CONNECT"
+- name: "HAVE_RATE_ALG"
+- name: "HAVE_MODE_SWITCH"
+
+template_contribution:
+- name: component_catalog
+  value: wisun_ffn_device_support
+
+metadata:
+  sbom:
+    license: MSLA

@@ -1,0 +1,35 @@
+id: wisun_br_dhcpv6_relay
+label: DHCPv6 Relay for Wi-SUN Border Router
+description: >
+  Creates a bridge between WAN and FAN interfaces using DHCPv6 Relay
+  Agent/Server messages.
+package: wisun
+category: Wi-SUN|Application|Wi-SUN BR CLI
+quality: production
+
+
+provides:
+- name: wisun_br_dhcpv6
+
+requires:
+- name: wisun_br_stack
+- name: wisun_br_lwip
+
+include:
+- path: plugin
+  file_list:
+  - path: sl_wisun_br_dhcpv6_relay.h
+
+source:
+- path: plugin/sl_wisun_br_dhcpv6_relay.c
+  project:
+    transfer_ownership: true
+
+template_contribution:
+- name: component_catalog
+  value: wisun_br_dhcpv6_relay
+
+metadata:
+  sbom:
+    license: MSLA
+root_path: wisun

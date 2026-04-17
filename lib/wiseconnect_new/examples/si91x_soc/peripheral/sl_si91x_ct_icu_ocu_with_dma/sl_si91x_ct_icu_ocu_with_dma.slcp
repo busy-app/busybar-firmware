@@ -1,0 +1,44 @@
+project_name: sl_si91x_ct_icu_ocu_with_dma
+package: platform_siwx91x_app
+description: 'Demonstrates the Config Timer Input Capture and Output Compare features with DMA.
+
+  '
+category: example|peripheral
+quality: production
+label: SL Si91x - Config Timer ICU and OCU with DMA
+readme:
+- path: readme.md
+source:
+- path: config_timer_icu_ocu_example.c
+- path: app.c
+- path: app.h
+- path: config_timer_icu_ocu_example.h
+toolchain_settings:
+- option: gcc_compiler_option
+  value: -Wall -Werror
+component:
+- id: sl_main
+- id: status
+- id: syscalls
+- id: si917_memory_default_config
+- id: sl_config_timer
+other_file:
+- path: resources/readme/image502e.png
+- path: resources/uc_screen/uc_screen.png
+- path: resources/readme/setupdiagram.png
+- path: resources/readme/OutputConsole_DMA.png
+- path: resources/readme/OutputConsole_ICU.png
+ui_hints:
+  highlight:
+  - path: readme.md
+    focus: true
+post_build:
+  profile: wiseconnect_soc
+sdk_extension:
+- id: wiseconnect3_sdk
+  vendor: silabs
+  version: 4.0.1
+sdk:
+  id: simplicity_sdk
+  vendor: silabs
+  version: 2025.12.2

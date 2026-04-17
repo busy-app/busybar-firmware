@@ -1,0 +1,25 @@
+id: "bluetooth_feature_cte_transmitter"
+label: "CTE Transmitter"
+package: bluetooth_le_controller
+description: >
+  This component enables transmitting the Constant Tone Extension (CTE) for
+  Bluetooth Angle of Arrival (component <bluetooth_feature_aoa_transmitter>) and
+  Bluetooth Angle of Departure (component <bluetooth_feature_aod_transmitter>).
+category: Bluetooth|Bluetooth Host (Stack)|Additional Features
+quality: "production"
+requires:
+- name: bluetooth_controller
+ui_hints:
+  visibility: never
+provides:
+- name: bluetooth_feature_cte_transmitter
+template_contribution:
+- name: component_catalog
+  value: bluetooth_feature_cte_transmitter
+documentation:
+  docset: bluetooth
+  document: bluetooth-stack-api/sl-bt-cte-transmitter
+metadata:
+  sbom:
+    license: MSLA
+root_path: bluetooth_le_controller

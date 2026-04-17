@@ -1,0 +1,35 @@
+id: zigbee_pro_stack_rail_mux
+label: Pro Stack RAIL MUX
+package: zigbee
+category: Zigbee|Stack|Pro Core
+quality: production
+description: Provides Zigbee PRO stack functionality along with APIs to interface with RAIL MUX.
+
+provides:
+- name: zigbee_pro_stack_rail_mux
+
+requires:
+- name: zigbee_pro_stack_rail_mux_implementation
+- name: zigbee_pro_stack_rail_mux_library
+  condition:
+  - zigbee_use_release_libraries
+- name: zigbee_stack_common
+- name: zigbee_phy_2_4
+
+recommends:
+- id: zigbee_pro_stack_rail_mux_library_internal
+  vendor: silabs
+
+template_contribution:
+- name: component_catalog
+  value: zigbee_pro_stack_rail_mux
+  condition:
+  - rail_mux
+
+documentation:
+  docset: zigbee
+  document: zigbee-af-api/pro-stack-rail-mux
+metadata:
+  sbom:
+    license: MSLA
+root_path: zigbee

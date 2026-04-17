@@ -1,0 +1,62 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__gattdb__descriptor__properties" kind="group">
+    <compoundname>sl_bt_gattdb_descriptor_properties</compoundname>
+    <title>GATT Descriptor Property Flags</title>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__gattdb__descriptor__properties_1ga36212f3baef6b4659563846c2cd0bbaf" prot="public" static="no">
+        <name>SL_BT_GATTDB_DESCRIPTOR_READ</name>
+        <initializer>0x1</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>A GATT client can read the descriptor value. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="9226" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="9226" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gattdb__descriptor__properties_1ga8175775cdc729f42df7ffbde47ba7923" prot="public" static="no">
+        <name>SL_BT_GATTDB_DESCRIPTOR_WRITE</name>
+        <initializer>0x2</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>A GATT client can write the descriptor value. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="9229" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="9229" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gattdb__descriptor__properties_1ga3cb9ff33badfc1efd9cbecec9c0e5bd4" prot="public" static="no">
+        <name>SL_BT_GATTDB_DESCRIPTOR_WRITE_NO_RESPONSE</name>
+        <initializer>0x4</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>A GATT client can write the descriptor value without a response. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="9232" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="9232" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gattdb__descriptor__properties_1ga9fa472b104567226fc65db01d77b00e3" prot="public" static="no">
+        <name>SL_BT_GATTDB_DESCRIPTOR_LOCAL_ONLY</name>
+        <initializer>0x200</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>The descriptor is local only and should be invisible to GATT clients. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="9235" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="9235" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para>This enum defines the property flags for GATT characteristic descriptors. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,23 @@
+id: device_i2c
+label: Device Manager I2C
+package: platform_core
+description: >
+  The Device Manager I2C component abstracts device-specific
+  I2C attributes.
+category: Services|Device Manager
+quality: evaluation
+metadata:
+  sbom:
+    license: Zlib
+provides:
+- name: device_i2c
+requires:
+- name: enum
+root_path: platform_core/platform/service/device_manager
+include:
+- path: inc
+  file_list:
+  - path: sl_device_i2c.h
+documentation:
+  docset: gecko-platform
+  document: platform-service/device-manager-i2c

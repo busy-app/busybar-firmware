@@ -1,0 +1,47 @@
+id: mpu
+label: Simple MPU
+package: platform_core
+description: >
+  Instantiate the simple driver that configures the Memory Protection Unit (MPU)
+  to detect code injection attacks by making the RAM non-executable.
+category: Platform|Security|Memory Protection Unit
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+source:
+- path: platform/service/mpu/src/sl_mpu_s2.c
+  condition: [device_series_2]
+- path: platform/service/mpu/src/sl_mpu_s3.c
+  condition: [device_series_3, cortexm33]
+include:
+- path: platform/service/mpu/inc
+  file_list:
+  - path: sl_mpu.h
+provides:
+- name: mpu
+  condition: [device_series_2]
+- name: mpu
+  condition: [device_series_3, cortexm33]
+requires:
+- name: status
+- name: device_has_mpu
+- name: mpa_manager
+  condition: [device_series_3, cortexm33]
+template_contribution:
+- name: linker_mpu
+  value: true
+  unless: [mpa_manager]
+- name: component_catalog
+  value: mpu
+- name: event_handler
+  value:
+    event: service_init
+    include: sl_mpu.h
+    handler: sl_mpu_disable_execute_from_ram
+  priority: -1
+  condition: [sl_system, kernel]
+documentation:
+  docset: gecko-platform
+  document: platform-service/mpu
+root_path: platform_core

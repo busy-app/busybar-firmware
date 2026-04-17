@@ -1,0 +1,74 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__gattdb__attribute__state" kind="group">
+    <compoundname>sl_bt_gattdb_attribute_state</compoundname>
+    <title>GATT Attribute State Flags</title>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__gattdb__attribute__state_1gaafba3c88f0c858352dc701f91cb221c6" prot="public" static="no">
+        <name>SL_BT_GATTDB_ATTRIBUTE_STATE_FLAG_ACTIVE</name>
+        <initializer>0x1</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>The attribute is visible to remote GATT clients. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="9247" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="9247" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gattdb__attribute__state_1ga07a1693dc54c0d93bea430cc7bc30b2e" prot="public" static="no">
+        <name>SL_BT_GATTDB_ATTRIBUTE_STATE_FLAG_STARTED</name>
+        <initializer>0x2</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>The attribute has been marked to be activated when the changes are committed. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="9251" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="9251" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gattdb__attribute__state_1ga4998db49c38932e33a7d4ac48b5d1a28" prot="public" static="no">
+        <name>SL_BT_GATTDB_ATTRIBUTE_STATE_FLAG_STOPPED</name>
+        <initializer>0x4</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>The attribute has been marked to be inactivated when the changes are committed. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="9255" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="9255" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gattdb__attribute__state_1ga1108e9957e187194729cec06dc2c223a" prot="public" static="no">
+        <name>SL_BT_GATTDB_ATTRIBUTE_STATE_FLAG_ADDED</name>
+        <initializer>0x8</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>The attribute has been marked to be added when the changes are committed. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="9258" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="9258" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gattdb__attribute__state_1gac53ea46fc21990f5f9f97c0c24b6a380" prot="public" static="no">
+        <name>SL_BT_GATTDB_ATTRIBUTE_STATE_FLAG_DELETED</name>
+        <initializer>0x10</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>The attribute has been marked to be deleted when the changes are committed. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="9262" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="9262" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para>Defines the attribute state flags for GATT attributes. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

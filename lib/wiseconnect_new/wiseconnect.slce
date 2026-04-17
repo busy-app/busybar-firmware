@@ -1,0 +1,123 @@
+id: wiseconnect3_sdk
+label: Wiseconnect
+description: WiSeConnect extension for the Simplicity SDK (formerly Gecko SDK)
+version: 4.0.1
+component_path:
+ - path: components/board/silabs/component
+ - path: components/device/silabs/si91x/mcu
+ - path: components/device/silabs/si91x/mcu/core/chip/component
+ - path: components/device/silabs/si91x/mcu/core/cmsis/component
+ - path: components/device/silabs/si91x/mcu/core/common/component
+ - path: components/device/silabs/si91x/mcu/core/config/component
+ - path: components/device/silabs/si91x/mcu/drivers/cmsis_driver/CMSIS/Driver/component
+ - path: components/device/silabs/si91x/mcu/drivers/cmsis_driver/component
+ - path: components/device/silabs/si91x/mcu/drivers/cmsis_driver/config/component
+ - path: components/device/silabs/si91x/mcu/drivers/debug/component
+ - path: components/device/silabs/si91x/mcu/drivers/hardware_drivers/button/component
+ - path: components/device/silabs/si91x/mcu/drivers/hardware_drivers/icm40627/component
+ - path: components/device/silabs/si91x/mcu/drivers/hardware_drivers/led/component
+ - path: components/device/silabs/si91x/mcu/drivers/hardware_drivers/memlcd/component
+ - path: components/device/silabs/si91x/mcu/drivers/hardware_drivers/mic/component
+ - path: components/device/silabs/si91x/mcu/drivers/hardware_drivers/rgb_led/component
+ - path: components/device/silabs/si91x/mcu/drivers/hardware_drivers/si70xx_sensor/component
+ - path: components/device/silabs/si91x/mcu/drivers/hardware_drivers/sl_joystick/component
+ - path: components/device/silabs/si91x/mcu/drivers/hardware_drivers/veml6035/component
+ - path: components/device/silabs/si91x/mcu/drivers/peripheral_drivers/component
+ - path: components/device/silabs/si91x/mcu/drivers/rom_driver/component
+ - path: components/device/silabs/si91x/mcu/drivers/service/clock_manager/component
+ - path: components/device/silabs/si91x/mcu/drivers/service/memory_manager/component
+ - path: components/device/silabs/si91x/mcu/drivers/service/firmware_fallback/component
+ - path: components/device/silabs/si91x/mcu/drivers/service/iostream/component
+ - path: components/device/silabs/si91x/mcu/drivers/service/power_manager/component
+ - path: components/device/silabs/si91x/mcu/drivers/service/sensorhub/component
+ - path: components/device/silabs/si91x/mcu/drivers/service/sl_log/component
+ - path: components/device/silabs/si91x/mcu/drivers/service/sl_si91x_etm/component
+ - path: components/device/silabs/si91x/mcu/drivers/service/sleeptimer/component
+ - path: components/device/silabs/si91x/mcu/drivers/service/wdt_manager/component
+ - path: components/device/silabs/si91x/mcu/drivers/systemlevel/component
+ - path: components/device/silabs/si91x/mcu/drivers/unified_api/component
+ - path: components/device/silabs/si91x/mcu/drivers/unified_peripheral_drivers/component
+ - path: components/device/silabs/si91x/mcu/hal/component
+ - path: components/device/silabs/si91x/mcu/toolchain/component
+ - path: third_party/silicon_labs/freertos/component
+ - path: components/at_commands_auto_gen
+ - path: components/common
+ - path: components/console
+ - path: components/console/variables
+ - path: components/device/stm32
+ - path: components/device/silabs/si91x/wireless
+ - path: components/device/silabs/si91x/wireless/asynchronous_socket
+ - path: components/device/silabs/si91x/wireless/crypto
+ - path: components/device/silabs/si91x/wireless/crypto/aead
+ - path: components/device/silabs/si91x/wireless/crypto/aes
+ - path: components/device/silabs/si91x/wireless/crypto/attestation
+ - path: components/device/silabs/si91x/wireless/crypto/ccm
+ - path: components/device/silabs/si91x/wireless/crypto/chachapoly
+ - path: components/device/silabs/si91x/wireless/crypto/crypto_utility
+ - path: components/device/silabs/si91x/wireless/crypto/ecdh
+ - path: components/device/silabs/si91x/wireless/crypto/ecdsa
+ - path: components/device/silabs/si91x/wireless/crypto/gcm
+ - path: components/device/silabs/si91x/wireless/crypto/hmac
+ - path: components/device/silabs/si91x/wireless/crypto/mac
+ - path: components/device/silabs/si91x/wireless/crypto/multithread
+ - path: components/device/silabs/si91x/wireless/crypto/sha
+ - path: components/device/silabs/si91x/wireless/crypto/trng
+ - path: components/device/silabs/si91x/wireless/crypto/wrap
+ - path: components/device/silabs/si91x/wireless/errno/component
+ - path: components/device/silabs/si91x/wireless/firmware_upgrade
+ - path: components/device/silabs/si91x/wireless/ncp_interface
+ - path: components/device/silabs/si91x/wireless/ncp_interface/spi
+ - path: components/device/silabs/si91x/wireless/ncp_interface/uart
+ - path: components/device/silabs/si91x/wireless/socket
+ - path: components/logger
+ - path: components/protocol/wifi
+ - path: components/service/bsd_socket
+ - path: components/service/http_client
+ - path: components/service/mdns
+ - path: components/service/mqtt
+ - path: components/service/network_manager
+ - path: components/service/sl_http_server
+ - path: components/service/sl_websocket_client
+ - path: components/service/sntp
+ - path: components/sli_buffer_manager
+ - path: components/sli_command_engine/component
+ - path: components/sli_event_engine/component
+ - path: components/sli_queue_manager
+ - path: components/sli_routing_utility
+ - path: components/sli_si91x_wifi_event_handler
+ - path: components/sli_wifi
+ - path: components/sli_wifi_command_engine
+ - path: components/sli_wifi_per_mode
+ - path: components/sli_wlan_command_engine/component
+ - path: resources
+ - path: third_party/aws_sdk
+ - path: third_party/azure_freertos_middleware
+ - path: third_party/azure_freertos_middleware/libraries/coreMQTT
+ - path: third_party/iot_socket
+ - path: third_party/json_parser
+ - path: third_party/paho_mqtt_embedded
+ - path: third_party/qcbor/component
+ - path: third_party/tcose/component
+ - path: components/device/silabs/si91x/mcu/drivers/service/cpc/component
+ - path: components/device/silabs/si91x/mcu/drivers/service/littlefs/component
+ - path: components/device/silabs/si91x/mcu/drivers/service/nvm3/component
+ - path: components/device/silabs/si91x/mcu/hal/sli_hal_si91x/component
+ - path: third_party/littlefs/component
+ - path: components/device/silabs/si91x/wireless/ble
+ - path: netstack_silabs_lwip/component
+documentation:
+ - docset: platform_siwx91x
+   version: 4.0.1
+ - docset: wifi
+   version: 4.0.1
+ - docset: platform_nwp_siwx91x
+   version: 4.0.1
+ - docset: bluetooth_le_siwx91x
+   version: 4.0.1
+ - docset: unknown
+   version: 0.0.0
+upgrade_manifest:
+ - path: upgrade.slcu
+post_build_profile:
+ - path: utilities/postbuild_profile
+vendor: silabs

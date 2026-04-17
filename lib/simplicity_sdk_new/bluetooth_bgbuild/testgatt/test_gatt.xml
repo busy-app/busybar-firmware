@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<gatt generic_attribute_service="false">
+
+    <!-- Generic Access Service -->
+    <!-- https://developer.bluetooth.org/gatt/services/Pages/ServiceViewer.aspx?u=org.bluetooth.service.generic_access.xml -->    
+    <service uuid="1800">
+        <description>Generic Access Service</description>
+        
+        <!-- Device name -->
+        <!-- https://developer.bluetooth.org/gatt/characteristics/Pages/CharacteristicViewer.aspx?u=org.bluetooth.characteristic.gap.device_name.xml -->
+        <characteristic uuid="2a00">
+            <properties read="true" const="true" />
+            <value>Blue Gecko BGM111</value>
+        </characteristic>
+
+        <!-- Appearances -->
+        <!-- https://developer.bluetooth.org/gatt/characteristics/Pages/CharacteristicViewer.aspx?u=org.bluetooth.characteristic.gap.appearance.xml -->
+        <characteristic uuid="2a01">
+            <properties read="true" const="true" />
+            <value type="hex">0000</value>
+        </characteristic>
+    </service>
+
+    <service uuid="0bd51901-e7cb-469b-8e4d-2742f1ba77cc">
+        <description>Primary service</description>
+        <characteristic uuid="11add801-b042-4876-aae1-112855353cc1" id="char">
+            <description>Readable and writable characteristic</description>
+            <properties write="true" read="true" authenticated_read="true"/>
+            <value type="hex">ffff</value>
+        </characteristic>
+        <characteristic uuid="22add802-b042-4876-aae1-112855353cc1" id="char_read_only">
+            <description>Readable characteristic</description>
+            <properties write="false" read="true"/>
+            <value length="2"/>
+        </characteristic>
+        <characteristic uuid="33add803-b042-4876-aae1-112855353cc1" id="char_write_only">
+            <description>Writable characteristic</description>
+            <properties write="true" read="false"/>
+            <value length="2"/>
+        </characteristic>
+        <characteristic uuid="44add804-b042-4876-aae1-112855353cc1" id="char_notify">
+            <description>Characteristic which change of value is notified</description>
+            <properties notify="true"/>
+            <value length="2"/>
+        </characteristic>
+        <characteristic uuid="55add805-b042-4876-aae1-112855353cc1" id="char_indicate">
+            <description>Characteristic which change of value is indicated</description>
+            <properties indicate="true"/>
+            <value length="2"/>
+        </characteristic>
+        <characteristic uuid="66add806-b042-4876-aae1-112855353cc1" id="char_long1">
+            <description>Characteristic long value</description>
+            <properties write="true" read="true"/>
+            <value variable_length="true" length="512"/>
+        </characteristic>
+        <characteristic uuid="77add807-b042-4876-aae1-112855353cc1" id="char_long2">
+            <description>Characteristic long value</description>
+            <properties write="true" read="true"/>
+            <value length="200"/>
+        </characteristic>
+        <characteristic uuid="88add808-b042-4876-aae1-112855353cc1" id="user_char">
+            <description>User characteristic</description>
+            <properties write="true" read="true"/>
+            <value type="user"/>
+        </characteristic>
+    </service>
+    
+    <!-- Device Information Service -->
+    <!-- https://developer.bluetooth.org/gatt/services/Pages/ServiceViewer.aspx?u=org.bluetooth.service.device_information.xml -->
+    <service uuid="180A">
+        <description>Device Information Service</description>
+    
+        <!-- Manufacturer name string -->
+        <!-- https://developer.bluetooth.org/gatt/characteristics/Pages/CharacteristicViewer.aspx?u=org.bluetooth.characteristic.manufacturer_name_string.xml -->
+        <characteristic uuid="2A29">
+            <properties read="true" const="true" />
+            <value>Silicon Labs</value>
+        </characteristic>
+
+        <!-- Model number string string -->
+        <!-- https://developer.bluetooth.org/gatt/characteristics/Pages/CharacteristicViewer.aspx?u=org.bluetooth.characteristic.model_number_string.xml -->
+        <characteristic uuid="2A24">
+            <properties read="true" const="true" />
+            <value>BGM111</value>
+        </characteristic>
+
+        <!-- Serial number string -->
+        <!-- https://developer.bluetooth.org/gatt/characteristics/Pages/CharacteristicViewer.aspx?u=org.bluetooth.characteristic.system_id.xml -->
+        <characteristic uuid="2A23">
+            <properties read="true" const="true" />
+            <value type="hex">000102030405</value>
+        </characteristic>
+
+    </service>
+    <!-- Heart Rate-->
+    <!-- https://developer.bluetooth.org/gatt/services/Pages/ServiceViewer.aspx?u=org.bluetooth.service.heart_rate.xml -->
+    
+    <service primary="true" uuid="180D" advertise="false">
+
+        <!-- Heart Rate Measurement : Mandatory -->
+        <!-- https://developer.bluetooth.org/gatt/characteristics/Pages/CharacteristicViewer.aspx?u=org.bluetooth.characteristic.heart_rate_measurement.xml -->
+        <characteristic uuid="2A37" id="xgatt_180D_2A37" >
+            <properties notify="true" read="true" write="true" write_no_response="true" />
+            <value type="hex" length="23" />
+        </characteristic>
+
+    </service>
+    <!-- Tx Power -->
+    <!-- https://developer.bluetooth.org/gatt/services/Pages/ServiceViewer.aspx?u=org.bluetooth.service.tx_power.xml -->
+    <service uuid="1804">
+        <description>TX Power</description>
+        <characteristic uuid="2A07">
+            <properties read="true" />
+            <value type="hex">00</value>
+        </characteristic>
+    </service>
+</gatt>

@@ -1,0 +1,40 @@
+id: "bluetooth_hci"
+label: Bluetooth Controller HCI
+package: bluetooth_le_controller
+description: "Provides HCI for Bluetooth Controller"
+
+category: Bluetooth|Host Controller Interface (HCI)
+quality: production
+source:
+- path: utils/hci_packet/src/sl_btctrl_reset.c
+include:
+- path: inc
+  file_list:
+  - path: sl_btctrl_hci.h
+  - path: sl_hci_common_transport.h
+  - path: sl_btctrl_hci_handler.h
+- path: utils/hci_packet/inc
+  file_list:
+  - path: sl_btctrl_reset.h
+provides:
+- name: "bluetooth_hci"
+requires:
+- name: bluetooth_controller
+- name: bluetooth_hci_sleep
+  condition:
+  - power_manager
+- name: emlib_rmu
+  condition:
+  - device_series_2
+- name: hal_emu
+  condition:
+  - device_series_3
+conflicts:
+- name: bluetooth_stack
+template_contribution:
+- name: component_catalog
+  value: bluetooth_rcp
+metadata:
+  sbom:
+    license: MSLA
+root_path: bluetooth_le_controller

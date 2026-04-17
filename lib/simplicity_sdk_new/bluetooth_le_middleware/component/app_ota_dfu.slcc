@@ -1,0 +1,62 @@
+id: app_ota_dfu
+label: Application OTA DFU
+package: bluetooth_le_middleware
+description: >
+  Component that provides over-the-air (OTA) device firmware update (DFU)
+  functionality in user application during runtime. No need to enter
+  a specialized OTA state to update, and no AppLoader utility required.
+  No code is required from user to enable this component.
+category: Bluetooth|Application|Firmware Update
+metadata:
+  sbom:
+    license: Zlib
+quality: production
+root_path: bluetooth_le_middleware/common/app_ota_dfu
+tag:
+- No-Code
+config_file:
+- path: app_ota_dfu.xml
+  directory: btconf
+- path: config/sl_bt_app_ota_dfu_config.h
+source:
+- path: sl_bt_app_ota_dfu.c
+include:
+- path: .
+  file_list:
+  - path: sl_bt_app_ota_dfu.h
+  - path: sli_bt_app_ota_dfu.h
+provides:
+- name: app_ota_dfu
+conflicts:
+- name: in_place_ota_dfu
+requires:
+- name: app_assert
+- name: app_rta
+- name: bluetooth_feature_connection_role_peripheral
+- name: bluetooth_feature_gatt_server
+- name: bluetooth_feature_system
+- name: bluetooth_stack
+- name: bootloader_interface
+- name: component_catalog
+- name: gatt_configuration
+- name: power_manager
+- name: sl_common
+template_contribution:
+- name: component_catalog
+  value: app_ota_dfu
+- name: app_rta_init
+  value:
+    include: sli_bt_app_ota_dfu.h
+    handler: sli_bt_app_ota_dfu_init
+- name: app_rta_ready
+  value:
+    include: sli_bt_app_ota_dfu.h
+    handler: sli_bt_app_ota_dfu_rta_ready
+- name: bluetooth_on_event
+  value:
+    include: sli_bt_app_ota_dfu.h
+    function: sli_bt_app_ota_dfu_on_event
+  priority: 5
+documentation:
+  docset: bluetooth
+  document: bluetooth-service-api/app-ota-dfu

@@ -1,0 +1,68 @@
+id: "sl_iostream_ble_spp"
+label: "I/O Stream BLE Serial Port Profile"
+package: "wisun_sdk"
+description: >
+  Custom BLE Serial Port Profile I/O Stream.
+category: "Wi-SUN|Wi-SUN Services"
+quality: "evaluation"
+metadata:
+  sbom:
+    license: Zlib
+root_path: "wisun_sdk/component/iostream_ble_spp"
+provides:
+- name: "sl_iostream_ble_spp"
+- name: "iostream_transport"
+  allow_multiple: true
+- name: "iostream_console_support"
+  allow_multiple: true
+source:
+- path: "sl_iostream_ble_spp.c"
+include:
+- path: "."
+  file_list:
+  - "path": "sl_iostream_ble_spp.h"
+requires:
+- name: "bluetooth_stack"
+- name: "gatt_configuration"
+- name: "bluetooth_feature_system"
+- name: "bluetooth_feature_legacy_advertiser"
+- name: "bluetooth_feature_extended_advertiser"
+- name: "bluetooth_feature_connection"
+- name: "bluetooth_feature_gatt_server"
+- name: "bluetooth_feature_sm"
+- name: "iostream"
+config_file:
+- path: "config/sl_iostream_ble_spp_config.h"
+- path: "gatt_service_spp.xml"
+  directory: btconf
+
+ui_hints:
+  visibility: never
+
+#-------------- Template Contribution ----------------
+template_contribution:
+- name: "bluetooth_on_event"
+  value:
+    include: "sl_iostream_ble_spp.h"
+    function: "sl_iostream_ble_spp_on_event"
+- name: "event_handler"
+  value:
+    event: "internal_app_init"
+    include: "sl_iostream_ble_spp.h"
+    handler: "sl_iostream_ble_spp_init"
+- name: "iostream_instances"
+  value: "spp"
+- name: "iostream_handles"
+  value: "spp"
+- name: "event_handler"
+  value:
+    event: "iostream_instance_init_stage_1"
+    include: "sl_iostream_ble_spp.h"
+    handler: "sl_iostream_spp_init_cb"
+- name: "iostream_instance_info"
+  value:
+    include: "sl_iostream_ble_spp.h"
+    handler: "iostream_instance_spp_info"
+#---------------- Component Catalog ------------------
+- name: "component_catalog"
+  value: "iostream_ble_spp"

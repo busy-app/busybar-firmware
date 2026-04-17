@@ -1,0 +1,29 @@
+id: sht4x_driver
+package: board_drivers
+label: SHT4x - Temperature/Humidity Sensor
+description: |-
+  Driver for the SHT40 and SHT41 Temperature / Humidity sensors
+category: Platform|Board Drivers
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: board_drivers/hardware/driver/sht4x
+provides:
+- name: sht4x_driver
+requires:
+- name: i2cspm
+- name: sleeptimer
+- name: status
+include:
+- path: inc
+  file_list:
+  - path: sl_sht4x.h
+source:
+- path: src/sl_sht4x.c
+documentation:
+  docset: gecko-platform
+  document: platform-hardware-driver/sht4x
+template_contribution:
+- name: component_catalog
+  value: sht4x_driver

@@ -1,0 +1,27 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__scanner__option__flags" kind="group">
+    <compoundname>sl_bt_scanner_option_flags</compoundname>
+    <title>Option Flags to Specify Scanning Options</title>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__scanner__option__flags_1gadbb2cd013c344ee13e536d0a43601752" prot="public" static="no">
+        <name>SL_BT_SCANNER_IGNORE_BONDING</name>
+        <initializer>0x1</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>If the built-in bonding database is used (the component bluetooth_feature_builtin_bonding_database is included in the application), the scanner component by default tries to search for or resolve the advertiser addresses to find if a bonding has been created with the advertiser device. The bonding handle is then reported in the <computeroutput>bonding</computeroutput> field of <ref refid="group__sl__bt__evt__scanner__legacy__advertisement__report" kindref="compound">sl_bt_evt_scanner_legacy_advertisement_report</ref> and <ref refid="group__sl__bt__evt__scanner__extended__advertisement__report" kindref="compound">sl_bt_evt_scanner_extended_advertisement_report</ref> events.</para>
+<para>If the application does not need the bonding information in advertisement reports, set this scanner option to disable the search for the bonding. When this option is set the <computeroutput>bonding</computeroutput> field in advertisement reports will always be set to SL_BT_INVALID_BONDING_HANDLE (0xff). </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="3752" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="3752" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para>Defines the scanning option flags that can be set with the command <ref refid="group__sl__bt__scanner_1gadf57e14430927a65b0993d824b6175df" kindref="member">sl_bt_scanner_set_parameters_and_filter</ref>. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

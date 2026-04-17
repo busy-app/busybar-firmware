@@ -1,0 +1,71 @@
+id: common_token_manager_core
+label: Common Token Manager Core
+package: platform_core
+description: >
+  The Common Token Manager Core component.
+category: Services|Token Manager
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+requires:
+- name: component_catalog
+recommends:
+- id: common_token_manager
+  vendor: silabs
+provides:
+- name: common_token_manager_core
+config_file:
+- path: platform/service/token_manager/config/sl_token_manager_config.h
+  condition: [device_series_2]
+  unless: [token_manager]
+- path: platform/service/token_manager/config/s3/sl_token_manager_config.h
+  condition: [device_series_3]
+  unless: [token_manager]
+- path: platform/service/token_manager/config/sl_custom_token_header.h
+  condition: [common_token_manager_dynamic]
+  unless: [token_manager]
+- path: platform/service/token_manager/config/sl_custom_manufacturing_token_header.h
+  condition: [common_token_manager_static]
+  unless: [token_manager]
+define:
+- name: CUSTOM_TOKEN_HEADER
+  value: '"sl_token_manager_af_token_header.h"'
+  unless: [token_manager]
+- name: SL_TOKEN_MANAGER_BACKEND_INT_FLASH
+  value: 1
+  condition: [device_series_2]
+- name: SL_TOKEN_MANAGER_BACKEND_INT_FLASH_SE
+  value: 1
+  condition: [device_series_2, device_sdid_200]
+- name: SL_TOKEN_MANAGER_BACKEND_EXT_FLASH
+  value: 1
+  condition: [device_series_3]
+source:
+- path: platform/service/token_manager/src/sl_token_manager_api.c
+- path: platform/service/token_manager/src/sli_token_manager_internal.c
+- path: platform/service/token_manager/src/sl_token_manager_lock.c
+- path: platform/service/token_manager/legacy/src/sl_token_manager.c
+  condition: [device_series_2, common_token_manager]
+include:
+- path: platform/service/token_manager/inc
+  file_list:
+  - path: sl_token_manager_api.h
+  - path: sl_token_manager_defines.h
+  - path: sl_token_manager_lock.h
+- path: platform/service/token_manager/src
+  file_list:
+  - path: sli_token_manager_internal.h
+- path: platform/service/token_manager/legacy/inc
+  file_list:
+  - path: sl_token_manager_af_token_header.h
+  - path: sl_token_manager.h
+    condition: [device_series_2]
+template_contribution:
+- name: event_handler
+  value:
+    event: service_init
+    include: sl_token_manager_api.h
+    handler: sl_token_manager_init
+  priority: 9900
+root_path: platform_core

@@ -1,0 +1,22 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<module:DocumentRoot xmlns:module="http://www.silabs.com/ss/hwconfig/module.ecore">
+  <module id="pin_tool.efr32.mgm27.etampdet" label="ETAMPDET" name="ETAMPDET" description="" version="A">
+    <properties>
+      <stringProperty label="Type" id="type" defaultValue="etampdet" transient="true" hidden="true" readonly="true" description=""/>
+      <stringProperty label="Custom Peripheral Name" id="peripheral.name" description=""/>
+    </properties>
+    <propertyCategories>
+      <category label="ETAMPDET">
+        <subCategory label="">
+          <propertyRef refId="peripheral.name"/>
+        </subCategory>
+      </category>
+    </propertyCategories>
+    <signals>
+      <signal name="ETAMPIN0"/>
+      <signal name="ETAMPIN1"/>
+      <signal name="ETAMPOUT0"/>
+      <signal name="ETAMPOUT1"/>
+    </signals>
+  </module>
+</module:DocumentRoot>

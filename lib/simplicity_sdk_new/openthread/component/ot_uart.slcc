@@ -1,0 +1,36 @@
+id: ot_uart
+label: OpenThread UART
+package: openthread
+category: OpenThread
+quality: production
+description: This component provides the default UART support for the OpenThread stack.
+ui_hints:
+  visibility: never
+provides:
+- name: ot_uart
+- name: ot_uart_implementation
+requires:
+- name: ot_platform_abstraction
+- name: gpio
+  condition: [iostream_uart_common]
+recommends:
+- id: ot_platform_abstraction
+  vendor: silabs
+include:
+- path: platform-abstraction/efr32
+  file_list:
+  - path: uart.h
+source:
+- path: platform-abstraction/efr32/uartdrv_uart.c
+  condition:
+  - uartdrv_instance
+- path: platform-abstraction/efr32/iostream_uart.c
+  condition:
+  - iostream_uart_common
+template_contribution:
+- name: component_catalog
+  value: openthread_uart
+metadata:
+  sbom:
+    license: BSD-3-Clause
+root_path: openthread

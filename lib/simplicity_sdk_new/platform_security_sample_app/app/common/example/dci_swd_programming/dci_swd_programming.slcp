@@ -1,0 +1,58 @@
+project_name: dci_swd_programming
+package: platform
+quality: production
+label: Platform Security - SoC DCI and SWD Programming
+description: >
+  This example project demonstrates the DCI and SWD Programming on Series 2 and Series 3 devices.
+category: Example|Platform
+filter:
+  - name: "Device Type"
+    value: ["SoC"]
+  - name: "MCU"
+    value: ["32-bit MCU"]
+  - name: "Project Difficulty"
+    value: ["Advanced"]
+source:
+  - path: app_init.c
+  - path: app_process.c
+  - path: app_dci_swd.c
+  - path: app_dci_task.c
+  - path: app_firmware_image.c
+  - path: app_prog_error.c
+  - path: app_swd_task.c
+include:
+  - path: .
+    file_list:
+    - path: app_init.h
+    - path: app_process.h
+    - path: app_dci_swd.h
+    - path: app_dci_task.h
+    - path: app_firmware_image.h
+    - path: app_prog_error.h
+    - path: app_swd_task.h
+readme:
+  - path: readme.md
+ui_hints:
+  highlight:
+    - path: readme.md
+      focus: true
+component:
+  - id: udelay
+  - id: sl_main
+  - id: device_init
+  - id: clock_manager
+  - id: printf
+  - id: iostream_retarget_stdio
+  - id: iostream_recommended_stream
+configuration:
+  - name: SL_CLOCK_MANAGER_HFRCO_BAND
+    value: cmuHFRCODPLLFreq_80M0Hz
+    condition: [device_series_2]
+  - name: SL_CLOCK_MANAGER_HFRCO_BAND
+    value: 38000000
+    condition: [device_series_3]
+  - name: SL_BOARD_ENABLE_VCOM
+    value: 1
+toolchain_settings:
+  - option: optimize
+    value: debug

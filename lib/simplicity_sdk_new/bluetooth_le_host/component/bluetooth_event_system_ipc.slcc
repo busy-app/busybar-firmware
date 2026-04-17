@@ -1,0 +1,28 @@
+id: "bluetooth_event_system_ipc"
+label: "Bluetooth Event System IPC"
+package: bluetooth_le_host
+description: >
+  Use Event System IPC to deliver Bluetooth events in an application that uses
+  an RTOS. When this component is included, the Bluetooth stack will not deliver
+  events via callback functions but uses the IPC mechanism provided by
+  <event_system> to publish events to the application.
+category: Bluetooth|RTOS Adaptation
+quality: "production"
+include:
+- path: "inc/"
+  file_list:
+  - path: "sli_bt_event_system.h"
+source:
+- path: "event_system/src/sli_bt_event_system.c"
+requires:
+- name: bluetooth_rtos_adaptation
+- name: event_system
+template_contribution:
+- name: component_catalog
+  value: bluetooth_event_system_ipc
+provides:
+- name: bluetooth_event_system_ipc
+metadata:
+  sbom:
+    license: Zlib AND MSLA
+root_path: bluetooth_le_host

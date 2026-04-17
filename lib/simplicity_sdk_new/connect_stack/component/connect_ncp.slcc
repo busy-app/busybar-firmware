@@ -1,0 +1,49 @@
+id: "connect_ncp"
+label: "Connect NCP"
+package: "connect_stack"
+category: "Connect"
+quality: "production"
+ui_hints:
+  visibility: never
+description: "This plugin contains defines, source files, and include paths to use the NCP feature on the SoC."
+
+requires:
+- name: "connect_cpc"
+- name: "connect_csp"
+- name: "psa_crypto"
+
+provides:
+- name: "connect_ncp"
+
+include:
+- path: "stack/framework"
+  file_list:
+  - path: "event-queue.h"
+- path: "ncp"
+  file_list:
+  - path: "ncp-init.h"
+
+source:
+- path: "ncp/ncp-common.c"
+- path: "ncp/ncp-security.c"
+- path: "stack/framework/event-queue.c"
+
+define:
+- name: "CONNECT_NCP"
+
+template_contribution:
+- name: event_handler
+  value:
+    event: stack_init
+    include: ncp/ncp-init.h
+    handler: sli_connect_init_ncp_security
+  priority: -9000
+- name: event_system
+  value:
+    event_control: "sl_connect_ncp_security_init_event"
+    event_handler: "sli_connect_ncp_key_loader_handler"
+
+metadata:
+  sbom:
+    license: Zlib
+root_path: connect_stack

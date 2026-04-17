@@ -1,0 +1,40 @@
+id: "sl_rail_sdk_statistic_cli"
+label: "Event Statistics CLI"
+package: "rail_sdk"
+description: >
+  This component integrates a Command Line Interface (CLI) with the RAIL SDK -
+  RAIL Event Statistics component.
+category: "RAIL-SDK|Utility"
+quality: "evaluation"
+metadata:
+  sbom:
+    license: Zlib
+root_path: "rail_sdk/component/sl_rail_sdk_statistic_cli"
+
+provides:
+- name: "sl_rail_sdk_statistic_cli"
+
+requires:
+- name: "sl_rail_sdk_statistic"
+- name: "cli"
+
+source:
+- path: "sl_rail_sdk_statistic_cli.c"
+
+template_contribution:
+- name: cli_command
+  value:
+    name: clear_statistic
+    handler: cli_clear_statistic
+    help: "Clear already counted events"
+- name: cli_command
+  value:
+    name: print_statistic
+    handler: cli_print_statistic
+    help: "Print out count events"
+#---------------- Component Catalog ------------------
+- name: component_catalog
+  value: rail_sdk_rail_statistic_cli
+#-------- Hides Component for user in Studio ---------
+ui_hints:
+  visibility: never

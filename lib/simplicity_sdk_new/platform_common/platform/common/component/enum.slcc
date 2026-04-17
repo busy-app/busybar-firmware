@@ -1,0 +1,19 @@
+id: enum
+label: Enumerations
+package: platform_common
+description: A wrapper for enum generation that ensures consistent sizing and doxygen stylization.
+category: Platform|Utilities
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: platform_common/platform/common
+include:
+- path: inc
+  file_list:
+  - path: sl_enum.h
+provides:
+- name: enum
+documentation:
+  docset: gecko-platform
+  document: platform-common/enum

@@ -1,0 +1,68 @@
+id: rtllib
+label: Real-Time Locationing Library
+package: realtime_locationing
+description: Real time locationing library component
+category: Bluetooth|Direction Finding
+quality: production
+metadata:
+  sbom:
+    license: MSLA
+root_path: realtime_locationing/.
+provides:
+- name: rtllib
+library:
+- path: lib/gcc/cortex-m33/release/librtl_static.a
+  condition:
+  - toolchain_gcc
+  - cortexm33
+- path: lib/gcc/linux/x86-64/release/librtl_static.a
+  condition:
+  - toolchain_gcc
+  - linux_arch_x86_64
+- path: lib/gcc/darwin/x86-64/release/librtl_static.a
+  condition:
+  - toolchain_gcc
+  - macos
+- path: lib/gcc/windows/x86-64/release/librtl_static.a
+  condition:
+  - toolchain_gcc
+  - win32
+- path: lib/gcc/linux/aarch64/release/librtl_static.a
+  condition:
+  - toolchain_gcc
+  - linux_arch_aarch64
+- path: lib/gcc/linux/armv7l/release/librtl_static.a
+  condition:
+  - toolchain_gcc
+  - linux_arch_arm32v7
+- system: m
+  condition:
+  - device_host
+- system: pthread
+  condition:
+  - device_host
+- system: stdc++
+  condition:
+  - device_host
+
+requires:
+- name: rtllib_api
+- name: cortexm33
+  condition: [device_cortexm]
+- name: toolchain_gcc
+- name: memory_manager_cpp
+  condition: [device_cortexm]
+- name: cmsis_dsp
+  condition: [device_cortexm]
+- name: printf
+- name: rtllib_eigen
+- name: rtllib_cmsis_dsp
+- name: rtllib_printf
+
+template_contribution:
+- name: component_catalog
+  value: rtl_lib
+
+documentation:
+  docset: rtl-lib
+  document: modules

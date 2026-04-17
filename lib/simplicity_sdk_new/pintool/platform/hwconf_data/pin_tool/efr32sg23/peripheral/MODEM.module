@@ -1,0 +1,34 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<module:DocumentRoot xmlns:module="http://www.silabs.com/ss/hwconfig/module.ecore">
+  <module id="pin_tool.efr32.efr32sg23.modem" label="MODEM" name="MODEM" description="" version="A">
+    <properties>
+      <stringProperty label="Type" id="type" defaultValue="modem" transient="true" hidden="true" readonly="true" description=""/>
+      <stringProperty label="Custom Peripheral Name" id="peripheral.name" description=""/>
+    </properties>
+    <propertyCategories>
+      <category label="MODEM">
+        <subCategory label="">
+          <propertyRef refId="peripheral.name"/>
+        </subCategory>
+      </category>
+    </propertyCategories>
+    <signals>
+      <signal name="ANT0"/>
+      <signal name="ANT1"/>
+      <signal name="DCLK"/>
+      <signal name="DIN"/>
+      <signal name="DOUT"/>
+      <signal name="ANT_ROLL_OVER"/>
+      <signal name="ANT_RR0"/>
+      <signal name="ANT_RR1"/>
+      <signal name="ANT_RR2"/>
+      <signal name="ANT_RR3"/>
+      <signal name="ANT_RR4"/>
+      <signal name="ANT_RR5"/>
+      <signal name="ANT_SW_EN"/>
+      <signal name="ANT_SW_US"/>
+      <signal name="ANT_TRIG"/>
+      <signal name="ANT_TRIG_STOP"/>
+    </signals>
+  </module>
+</module:DocumentRoot>

@@ -1,0 +1,30 @@
+id: cs_reflector_acp
+package: bluetooth_le_middleware
+label: CS Reflector
+description: >
+  Channel Sounding (CS) Reflector role for ACP mode.
+category: Bluetooth|Application|Miscellaneous
+metadata:
+  sbom:
+    license: Zlib
+quality: production
+root_path: bluetooth_le_middleware/common/cs_reflector
+include:
+- path: .
+  file_list:
+  - path: cs_reflector.h
+config_file:
+- path: config/cs_reflector_config.h
+requires:
+- name: device_host
+- name: cs_ras_server_acp
+- name: host_bluetooth_connection_config
+conflicts:
+- name: cs_reflector
+provides:
+- name: cs_reflector_acp
+template_contribution:
+- name: component_catalog
+  value: cs_reflector_config
+- name: component_catalog
+  value: cs_reflector_acp

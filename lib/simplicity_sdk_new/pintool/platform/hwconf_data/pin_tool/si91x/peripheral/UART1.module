@@ -1,0 +1,32 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<module:DocumentRoot xmlns:module="http://www.silabs.com/ss/hwconfig/module.ecore">
+  <module id="pin_tool.wfm.si91x.uart1" label="UART1" name="UART1" description="" version="A">
+    <properties>
+      <stringProperty label="Type" id="type" defaultValue="uart1" transient="true" hidden="true" readonly="true" description=""/>
+      <stringProperty label="Custom Peripheral Name" id="peripheral.name" description=""/>
+    </properties>
+    <propertyCategories>
+      <category label="UART1">
+        <subCategory label="">
+          <propertyRef refId="peripheral.name"/>
+        </subCategory>
+      </category>
+    </propertyCategories>
+    <signals>
+      <signal name="CTS"/>
+      <signal name="RTS"/>
+      <signal name="RX"/>
+      <signal name="CLK"/>
+      <signal name="TX"/>
+      <signal name="DTR"/>
+      <signal name="DSR"/>
+      <signal name="DCD"/>
+      <signal name="RI"/>
+      <signal name="IRRX"/>
+      <signal name="IRTX"/>
+      <signal name="RS485_RE"/>
+      <signal name="RS485_DE"/>
+      <signal name="RS485_EN"/>
+    </signals>
+  </module>
+</module:DocumentRoot>

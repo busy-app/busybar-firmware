@@ -1,0 +1,50 @@
+project_name: sl_si91x_m4_updater
+package: platform_siwx91x_app
+description: "This application demonstrates the process of configuring a basic LED blinking functionality. \nIt highlights how to initialize the GPIO peripheral, set the LED pin as an output, \nand toggle its state periodically to achieve a blinking effect.\n"
+category: Example|si91x_soc
+quality: production
+label: sl_si91x_m4_updater
+component:
+- id: sl_main
+- id: syscalls
+- id: si91x_memory_default_config
+- id: sl_si91x_fw_fallback
+source:
+- path: app.c
+- path: m4_fw_updater.c
+include:
+- path: .
+  file_list:
+  - path: app.h
+define:
+- name: SYSCALLS_WRITE
+- name: SL_SI91X_FW_FALLBACK_UPDATER
+template_contribution:
+- name: device_flash_addr
+  value: 136323072
+  priority: -100
+- name: device_flash_size
+  value: 512000
+  priority: -100
+toolchain_settings:
+- option: gcc_compiler_option
+  value: -Wall -Werror
+other_file:
+- path: resources/readme/setupdiagram.png
+- path: resources/readme/updater.png
+ui_hints:
+  highlight:
+  - path: readme.md
+    focus: true
+readme:
+- path: readme.md
+post_build:
+  profile: wiseconnect_soc
+sdk_extension:
+- id: wiseconnect3_sdk
+  vendor: silabs
+  version: 4.0.1
+sdk:
+  id: simplicity_sdk
+  vendor: silabs
+  version: 2025.12.2

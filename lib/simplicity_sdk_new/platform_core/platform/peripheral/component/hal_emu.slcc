@@ -1,0 +1,55 @@
+# This HAL applies to series 2 and 3 devices.
+id: hal_emu
+label: EMU
+package: platform_core
+description: >
+  Energy management unit peripheral API
+category: Platform|Peripheral|HAL
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+source:
+- path: src/sl_hal_emu.c
+include:
+- path: inc
+  file_list:
+  - path: sl_hal_emu.h
+provides:
+- name: hal_emu
+- name: hal_generic_emu
+  condition: [device_series_3]
+requires:
+- name: status
+- name: device
+- name: device_has_emu
+- name: enum
+- name: hal_system
+- name: hal_syscfg
+template_contribution:
+- name: component_catalog
+  value: hal_emu
+documentation:
+  docset: gecko-platform
+  document:
+  - page: platform-peripheral-efr32xg21/emu
+    condition: [device_sdid_200]
+  - page: platform-peripheral-efr32xg22/emu
+    condition: [device_sdid_205]
+  - page: platform-peripheral-efr32xg23/emu
+    condition: [device_sdid_210]
+  - page: platform-peripheral-efr32xg24/emu
+    condition: [device_sdid_215]
+  - page: platform-peripheral-efr32xg25/emu
+    condition: [device_sdid_220]
+  - page: platform-peripheral-efr32xg26/emu
+    condition: [device_sdid_225]
+  - page: platform-peripheral-efr32xg27/emu
+    condition: [device_sdid_230]
+  - page: platform-peripheral-efr32xg28/emu
+    condition: [device_sdid_235]
+  - page: platform-peripheral-efr32xg29/emu
+    condition: [device_sdid_240]
+  - page: platform-peripheral-sixg301/emu
+    condition: [device_generic_family_sixx301]
+root_path: platform_core/platform/peripheral

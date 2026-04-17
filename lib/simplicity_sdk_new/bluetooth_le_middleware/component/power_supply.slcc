@@ -1,0 +1,35 @@
+id: power_supply
+label: Power supply measurement
+package: bluetooth_le_middleware
+description: Power supply measurement HW abstraction designed for development boards with coin cell battery support, i.e. Thunderboard and Dev Kit. Not suitable for other applications.
+category: Bluetooth|Application|Miscellaneous
+metadata:
+  sbom:
+    license: Zlib
+quality: production
+root_path: bluetooth_le_middleware/common/power_supply
+tag:
+- No-Code
+source:
+- path: sl_power_supply.c
+include:
+- path: .
+  file_list:
+  - path: sl_power_supply.h
+provides:
+- name: power_supply
+requires:
+- name: app_assert
+- name: si70xx_driver
+- name: i2cspm
+- name: emlib_iadc
+  condition:
+  - device_has_iadc
+- name: board_control
+- name: clock_manager_runtime
+template_contribution:
+- name: component_catalog
+  value: power_supply
+documentation:
+  docset: bluetooth
+  document: bluetooth-service-api/power-supply

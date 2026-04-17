@@ -1,0 +1,25 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<module:DocumentRoot xmlns:module="http://www.silabs.com/ss/hwconfig/module.ecore">
+  <module id="pin_tool.wfm.si91x.ulp_ssi" label="ULP_SSI" name="ULP_SSI" description="" version="A">
+    <properties>
+      <stringProperty label="Type" id="type" defaultValue="ulp_ssi" transient="true" hidden="true" readonly="true" description=""/>
+      <stringProperty label="Custom Peripheral Name" id="peripheral.name" description=""/>
+    </properties>
+    <propertyCategories>
+      <category label="ULP_SSI">
+        <subCategory label="">
+          <propertyRef refId="peripheral.name"/>
+        </subCategory>
+      </category>
+    </propertyCategories>
+    <signals>
+      <signal name="MISO_"/>
+      <signal name="MOSI_"/>
+      <signal name="SCK_"/>
+      <signal name="CS0_"/>
+      <signal name="CS1_"/>
+      <signal name="CS2_"/>
+      <signal name="CS3_"/>
+    </signals>
+  </module>
+</module:DocumentRoot>

@@ -1,0 +1,38 @@
+# This HAL applies to series 2 and 3 devices.
+id: hal_lesense
+label: LESENSE
+package: platform_core
+description: >
+  Low Energy Sensor (LESENSE) peripheral API.
+category: Platform|Peripheral|HAL
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+source:
+- path: src/sl_hal_lesense.c
+include:
+- path: inc
+  file_list:
+  - path: sl_hal_lesense.h
+provides:
+- name: hal_lesense
+- name: hal_generic_lesense
+  condition: [device_series_3]
+requires:
+- name: device
+- name: device_has_lesense
+- name: hal_common
+- name: cmsis_core
+conflicts:
+- name: device_series_3
+documentation:
+  docset: gecko-platform
+  document:
+  - page: platform-peripheral-efr32xg23/lesense
+    condition: [device_sdid_210]
+  - page: platform-peripheral-efr32xg25/lesense
+    condition: [device_sdid_220]
+  - page: platform-peripheral-efr32xg28/lesense
+    condition: [device_sdid_235]
+root_path: platform_core/platform/peripheral

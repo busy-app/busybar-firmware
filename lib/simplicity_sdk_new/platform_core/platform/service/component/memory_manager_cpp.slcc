@@ -1,0 +1,22 @@
+id: memory_manager_cpp
+label: Memory Manager C++ Support
+package: platform_core
+description: >
+  This component adds C++ support to the Memory Manager.
+  The C++ new/delete constructs are globally overloaded. New and delete respectively call the
+  Memory Manager sl_memory_alloc() and sl_memory_free() functions.
+  Hence, any C++ Simplicity SDK stacks such as OpenThread, Matter, AoX RTLLib doing dynamic memory allocations
+  via the classic C++ new/delete or any standard containers will call under the hood the Memory Manager API.
+category: Services|Memory Manager
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: platform_core/platform/service/memory_manager
+source:
+- path: src/sl_memory_manager_cpp.cpp
+provides:
+- name: memory_manager_cpp
+requires:
+- name: memory_manager
+- name: cpp_support

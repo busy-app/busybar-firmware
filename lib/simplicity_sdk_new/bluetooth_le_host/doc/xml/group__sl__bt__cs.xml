@@ -1,0 +1,1880 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__cs" kind="group">
+    <compoundname>sl_bt_cs</compoundname>
+    <title>Channel Sounding</title>
+    <innergroup refid="group__sl__bt__evt__cs__security__enable__complete">sl_bt_evt_cs_security_enable_complete</innergroup>
+    <innergroup refid="group__sl__bt__evt__cs__config__complete">sl_bt_evt_cs_config_complete</innergroup>
+    <innergroup refid="group__sl__bt__evt__cs__procedure__enable__complete">sl_bt_evt_cs_procedure_enable_complete</innergroup>
+    <innergroup refid="group__sl__bt__evt__cs__result">sl_bt_evt_cs_result</innergroup>
+    <innergroup refid="group__sl__bt__evt__cs__result__continue">sl_bt_evt_cs_result_continue</innergroup>
+    <innergroup refid="group__sl__bt__evt__cs__read__remote__supported__capabilities__complete">sl_bt_evt_cs_read_remote_supported_capabilities_complete</innergroup>
+      <sectiondef kind="enum">
+      <memberdef kind="enum" id="group__sl__bt__cs_1gab16efa17cdb87c4313b5e15b9261aaf9" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_bt_cs_role_t</name>
+        <enumvalue id="group__sl__bt__cs_1ggab16efa17cdb87c4313b5e15b9261aaf9aaf73d968e07229751c606ffd11765112" prot="public">
+          <name>sl_bt_cs_role_initiator</name>
+          <initializer>= 0x0</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x0) The device will initiate the procedure </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__cs_1ggab16efa17cdb87c4313b5e15b9261aaf9ac48303f1d3ee7f11542edd8c6d794aca" prot="public">
+          <name>sl_bt_cs_role_reflector</name>
+          <initializer>= 0x1</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x1) The device will reciprocate transmission </para>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>Specifies the role for the device during CS procedure. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="12892" column="1" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="12893" bodyend="12898"/>
+      </memberdef>
+      <memberdef kind="enum" id="group__sl__bt__cs_1ga066c2dc03d402d4af269353c4ed6f3d3" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_bt_cs_role_status_t</name>
+        <enumvalue id="group__sl__bt__cs_1gga066c2dc03d402d4af269353c4ed6f3d3aae4bf4fbf9538dcd69e42f7ee4b5a7d5" prot="public">
+          <name>sl_bt_cs_role_status_disable</name>
+          <initializer>= 0x0</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x0) The given role is disabled </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__cs_1gga066c2dc03d402d4af269353c4ed6f3d3a4054393bf496004c512a7e7659db3a03" prot="public">
+          <name>sl_bt_cs_role_status_enable</name>
+          <initializer>= 0x1</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x1) The given role is enabled </para>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>Defines the status of a given role for an CS capable device. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="12903" column="1" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="12904" bodyend="12907"/>
+      </memberdef>
+      <memberdef kind="enum" id="group__sl__bt__cs_1ga8fd875965cf4e392514a5f4f7769bb3d" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_bt_cs_procedure_state_t</name>
+        <enumvalue id="group__sl__bt__cs_1gga8fd875965cf4e392514a5f4f7769bb3da4eeadc432c438018a20be6b27a29ba44" prot="public">
+          <name>sl_bt_cs_procedure_state_disabled</name>
+          <initializer>= 0x0</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x0) CS procedures are disabled </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__cs_1gga8fd875965cf4e392514a5f4f7769bb3da61c67251f887bd52c618ef6106176cd7" prot="public">
+          <name>sl_bt_cs_procedure_state_enabled</name>
+          <initializer>= 0x1</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x1) CS procedures are enabled </para>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>Defines the CS procedure state for the device. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="12912" column="1" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="12913" bodyend="12916"/>
+      </memberdef>
+      <memberdef kind="enum" id="group__sl__bt__cs_1ga631ba2f05b0fb5daf637468c2f0d7dc3" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_bt_cs_mode_t</name>
+        <enumvalue id="group__sl__bt__cs_1gga631ba2f05b0fb5daf637468c2f0d7dc3a32778ba18934123ad7132ca191192edb" prot="public">
+          <name>sl_bt_cs_mode_rtt</name>
+          <initializer>= 0x1</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x1) Round Trip Time (RTT) measurement </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__cs_1gga631ba2f05b0fb5daf637468c2f0d7dc3aa489a1f39d38004f996b3b830b3f36ba" prot="public">
+          <name>sl_bt_cs_mode_pbr</name>
+          <initializer>= 0x2</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x2) Phase-Based Ranging (PBR) measurement </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__cs_1gga631ba2f05b0fb5daf637468c2f0d7dc3a8d55acf36a87ff73a3a187ca6a464243" prot="public">
+          <name>sl_bt_cs_submode_disabled</name>
+          <initializer>= 0xff</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0xff) Submode disabled for the procedure. </para>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>Defines the different modes for CS steps. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="12921" column="1" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="12922" bodyend="12928"/>
+      </memberdef>
+      <memberdef kind="enum" id="group__sl__bt__cs_1ga706ac48e5976f2b902c86bf7fd305d18" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_bt_cs_rtt_type_t</name>
+        <enumvalue id="group__sl__bt__cs_1gga706ac48e5976f2b902c86bf7fd305d18addf8dabfe55ac054b8eca49fa2816a0d" prot="public">
+          <name>sl_bt_cs_rtt_type_aa_only</name>
+          <initializer>= 0x0</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x0) RTT Access Address (AA) only </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__cs_1gga706ac48e5976f2b902c86bf7fd305d18a1da4ed6a5722141fe1c6030e265c6803" prot="public">
+          <name>sl_bt_cs_rtt_type_fractional_32_bit_sounding</name>
+          <initializer>= 0x1</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x1) RTT Fractional with 32-bit Sounding Sequence </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__cs_1gga706ac48e5976f2b902c86bf7fd305d18a0894adef6ce2d02667881a8876b827b5" prot="public">
+          <name>sl_bt_cs_rtt_type_fractional_96_bit_sounding</name>
+          <initializer>= 0x2</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x2) RTT Fractional with 96-bit Sounding Sequence </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__cs_1gga706ac48e5976f2b902c86bf7fd305d18ae571e6e167d166625a40ce49148b5540" prot="public">
+          <name>sl_bt_cs_rtt_type_fractional_32_bit_random</name>
+          <initializer>= 0x3</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x3) RTT Fractional with 32-bit Random Sequence </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__cs_1gga706ac48e5976f2b902c86bf7fd305d18a0bb850cd14095d5570c03004c58bfff4" prot="public">
+          <name>sl_bt_cs_rtt_type_fractional_64_bit_random</name>
+          <initializer>= 0x4</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x4) RTT Fractional with 64-bit Random Sequence </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__cs_1gga706ac48e5976f2b902c86bf7fd305d18a45bde3a6ee00e1efd4acb106b613c6eb" prot="public">
+          <name>sl_bt_cs_rtt_type_fractional_96_bit_random</name>
+          <initializer>= 0x5</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x5) RTT Fractional with 96-bit Random Sequence </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__cs_1gga706ac48e5976f2b902c86bf7fd305d18aa3263989477a5205a289671a1fccdde2" prot="public">
+          <name>sl_bt_cs_rtt_type_fractional_128_bit_random</name>
+          <initializer>= 0x6</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x6) RTT Fractional with 128-bit Random Sequence </para>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>Defines the Round Trip Time (RTT) payload types used during the CS sequence. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="12934" column="1" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="12935" bodyend="12956"/>
+      </memberdef>
+      <memberdef kind="enum" id="group__sl__bt__cs_1gac5685b907bdb55573c9e7fc9eb8d74a6" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_bt_cs_channel_selection_algorithm_t</name>
+        <enumvalue id="group__sl__bt__cs_1ggac5685b907bdb55573c9e7fc9eb8d74a6aa97a6091523c724bd83932e30238b4b9" prot="public">
+          <name>sl_bt_cs_channel_selection_algorithm_3b</name>
+          <initializer>= 0x0</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x0) Use Channel Selection Algorithm #3b for non-mode 0 CS steps </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__cs_1ggac5685b907bdb55573c9e7fc9eb8d74a6a8be53a27c1a8bdb63e1918417b9fe711" prot="public">
+          <name>sl_bt_cs_channel_selection_algorithm_3c</name>
+          <initializer>= 0x1</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x1) Use Channel Selection Algorithm #3c for non-mode 0 CS steps </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__cs_1ggac5685b907bdb55573c9e7fc9eb8d74a6a1329b5c6333403c8eec3843ea3f3f6af" prot="public">
+          <name>sl_bt_cs_channel_selection_algorithm_user_shape_interleaved</name>
+          <initializer>= 0x2</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x2) Use Interleaved shape for user specified channel sequence </para>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>Specifies the CS channel selection algorithms. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="12961" column="1" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="12962" bodyend="12992"/>
+      </memberdef>
+      <memberdef kind="enum" id="group__sl__bt__cs_1ga969721c02be54688a7faa2adf9873be2" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_bt_cs_ch3c_shape_t</name>
+        <enumvalue id="group__sl__bt__cs_1gga969721c02be54688a7faa2adf9873be2a37658e08bcb114430b9277f625e4c762" prot="public">
+          <name>sl_bt_cs_ch3c_shape_hat</name>
+          <initializer>= 0x0</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x0) Use Hat shape for user specified channel sequence </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__cs_1gga969721c02be54688a7faa2adf9873be2a0268932de733fef5d528264c79a4daef" prot="public">
+          <name>sl_bt_cs_chc3_shape_interleaved</name>
+          <initializer>= 0x1</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x1) Use Interleaved shape for user specified channel sequence </para>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>Specifies the ch3c shapes. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="12997" column="1" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="12998" bodyend="13003"/>
+      </memberdef>
+      <memberdef kind="enum" id="group__sl__bt__cs_1ga7eb16c89a888196a9c82fb85feb8d5a3" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_bt_cs_done_status_t</name>
+        <enumvalue id="group__sl__bt__cs_1gga7eb16c89a888196a9c82fb85feb8d5a3a0c984123ced5e0dc2601c3a546c2bf79" prot="public">
+          <name>sl_bt_cs_done_status_complete</name>
+          <initializer>= 0x0</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x0) All results complete for the CS procedure or subevent </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__cs_1gga7eb16c89a888196a9c82fb85feb8d5a3a96d9239a93fe21cc6b36ffddeff309f6" prot="public">
+          <name>sl_bt_cs_done_status_partial_results_continue</name>
+          <initializer>= 0x1</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x1) Partial results with more to follow </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__cs_1gga7eb16c89a888196a9c82fb85feb8d5a3aa9b19995e3a7a48c9e10dc1b1bd0d555" prot="public">
+          <name>sl_bt_cs_done_status_aborted</name>
+          <initializer>= 0xf</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0xf) Current procedure and all subsequent subevents in the procedure aborted or current subevent aborted. </para>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>Describes the current status of the procedure or subevents. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="13008" column="1" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="13009" bodyend="13023"/>
+      </memberdef>
+      <memberdef kind="enum" id="group__sl__bt__cs_1gacdacad7e39ed8a52834708a58845f41a" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_bt_cs_config_state_t</name>
+        <enumvalue id="group__sl__bt__cs_1ggacdacad7e39ed8a52834708a58845f41aabd37e6a25cbf1269135f8564fcdd92ca" prot="public">
+          <name>sl_bt_cs_config_state_removed</name>
+          <initializer>= 0x0</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x0) The CS device configuration is removed </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__cs_1ggacdacad7e39ed8a52834708a58845f41aae1711f456957c326eadb68416958b232" prot="public">
+          <name>sl_bt_cs_config_state_created</name>
+          <initializer>= 0x1</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x1) The CS device configuration is created </para>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>Specifies the role for the device during CS procedure. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="13028" column="1" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="13029" bodyend="13034"/>
+      </memberdef>
+      <memberdef kind="enum" id="group__sl__bt__cs_1gae36bfcc29d4bffeae51b5c6ee64eea9b" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_bt_cs_snr_control_adjustment_t</name>
+        <enumvalue id="group__sl__bt__cs_1ggae36bfcc29d4bffeae51b5c6ee64eea9ba90c8ebd75ef08d64a37e69ca397b2ac5" prot="public">
+          <name>sl_bt_cs_snr_control_adjustment_not_applied</name>
+          <initializer>= 0xff</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0xff) SNR control adjustment not to be applied </para>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>Specifies the Signal Noise Ration (SNR) used to control transmission of CS_SYNC packets. Currently the SiSDK does not support the SNR control adjustment. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="13041" column="1" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="13042" bodyend="13046"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="group__sl__bt__cs_1ga1a9836693912844643f9d19c292a81ce" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_cs_security_enable</definition>
+        <argsstring>(uint8_t connection)</argsstring>
+        <name>sl_bt_cs_security_enable</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>connection</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Start or restart CS security start procedure for the specified connection. This command returns SL_STATUS_BT_CTRL_INSUFFICIENT_SECURITY if the connection is not encrypted.</para>
+<para>This command returns SL_STATUS_BT_CTRL_COMMAND_DISALLOWED if the device is not the central in the connection.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">connection</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Connection handle</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise.</para>
+</simplesect>
+<bold>Events</bold> <itemizedlist>
+<listitem><para><ref refid="group__sl__bt__evt__cs__security__enable__complete" kindref="compound">sl_bt_evt_cs_security_enable_complete</ref> - Triggered when CS security start procedure has completed. </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="13915" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="13915" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__cs_1gafffbe85e1a062397e80c702ec792bf40" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_cs_set_default_settings</definition>
+        <argsstring>(uint8_t connection, uint8_t initiator_status, uint8_t reflector_status, uint8_t antenna_identifier, int8_t max_tx_power)</argsstring>
+        <name>sl_bt_cs_set_default_settings</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>connection</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>initiator_status</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>reflector_status</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>antenna_identifier</declname>
+        </param>
+        <param>
+          <type>int8_t</type>
+          <declname>max_tx_power</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Set the default CS settings for the specified connection. By default, all roles are disabled and the antenna is set to 1.</para>
+<para>This command returns SL_STATUS_BT_CTRL_INVALID_COMMAND_PARAMETERS if the device is trying to disable a role for which a valid CS configuration is present.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">connection</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Connection handle </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">initiator_status</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Enum <ref refid="group__sl__bt__cs_1ga066c2dc03d402d4af269353c4ed6f3d3" kindref="member">sl_bt_cs_role_status_t</ref>. Enable or disable status of the Initiator role. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_cs_role_status_disable (0x0):</bold> The given role is disabled</para>
+</listitem><listitem><para><bold>sl_bt_cs_role_status_enable (0x1):</bold> The given role is enabled </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">reflector_status</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Enum <ref refid="group__sl__bt__cs_1ga066c2dc03d402d4af269353c4ed6f3d3" kindref="member">sl_bt_cs_role_status_t</ref>. Enable or disable status of the Reflector role. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_cs_role_status_disable (0x0):</bold> The given role is disabled</para>
+</listitem><listitem><para><bold>sl_bt_cs_role_status_enable (0x1):</bold> The given role is enabled </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">antenna_identifier</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Antenna identifier to be used for CS sync packets. Values:<itemizedlist>
+<listitem><para><bold>0x01 to 0x04:</bold> The antenna identifier to be used for CS_SYNC packets by the local Controller</para>
+</listitem><listitem><para><bold>0xFD:</bold> Antenna identifiers to be used, in repetitive order {0x01, 0x01, ..., Num_Antenna_Elements_Supported, Num_Antenna_Elements_Supported} for CS_SYNC packets by the local Controller, where Num_Antenna_Elements_Supported is the number of antenna elements available for CS tone exchanges</para>
+</listitem><listitem><para><bold>0xFE:</bold> Antenna identifiers to be used, in repetitive order from 0x01 to Num_Antenna_Elements_Supported, for CS_SYNC packets by the local Controller, where Num_Antenna_Elements_Supported is the number of antenna elements available for CS tone exchanges</para>
+</listitem><listitem><para><bold>0xFF:</bold> Host does not have a recommendation. </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">max_tx_power</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Maximum transmit power level to be used in all CS transmissions. Units: dBm.<itemizedlist>
+<listitem><para><bold>Range:</bold> -127 to +20</para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="13956" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="13956" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__cs_1gabfd25cc7bc8b068882498998c44299af" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_cs_create_config</definition>
+        <argsstring>(uint8_t connection, uint8_t config_id, uint8_t create_context, uint8_t main_mode_type, uint8_t sub_mode_type, uint8_t min_main_mode_steps, uint8_t max_main_mode_steps, uint8_t main_mode_repetition, uint8_t mode_calibration_steps, uint8_t role, uint8_t rtt_type, uint8_t cs_sync_phy, const sl_bt_cs_channel_map_t *channel_map, uint8_t channel_map_repetition, uint8_t channel_selection_type, uint8_t ch3c_shape, uint8_t ch3c_jump, uint8_t reserved)</argsstring>
+        <name>sl_bt_cs_create_config</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>connection</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>config_id</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>create_context</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>main_mode_type</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>sub_mode_type</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>min_main_mode_steps</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>max_main_mode_steps</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>main_mode_repetition</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>mode_calibration_steps</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>role</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>rtt_type</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>cs_sync_phy</declname>
+        </param>
+        <param>
+          <type>const <ref refid="structsl__bt__cs__channel__map__t" kindref="compound">sl_bt_cs_channel_map_t</ref> *</type>
+          <declname>channel_map</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>channel_map_repetition</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>channel_selection_type</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>ch3c_shape</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>ch3c_jump</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>reserved</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Create a new CS configuration in the local and remote controller. The role used in this command must be enabled prior to issuing this command using <ref refid="group__sl__bt__cs_1gafffbe85e1a062397e80c702ec792bf40" kindref="member">sl_bt_cs_set_default_settings</ref> command.</para>
+<para>This command returns SL_STATUS_BT_CTRL_UNSUPPORTED_FEATURE_OR_PARAMETER_VALUE if the local or the remote controller does not support that CS feature.</para>
+<para>This command returns SL_STATUS_BT_CTRL_INVALID_COMMAND_PARAMETERS if there is no valid CS configuration previously created for the specified connection. These are created with the <ref refid="group__sl__bt__cs_1gafffbe85e1a062397e80c702ec792bf40" kindref="member">sl_bt_cs_set_default_settings</ref>.</para>
+<para>This command returns SL_STATUS_BT_CTRL_COMMAND_DISALLOWED if a previously created CS configuration is enabled or ongoing for the specified connection, by calling <ref refid="group__sl__bt__cs_1ga2d98ac43233c5db0d7903400b2cadd2e" kindref="member">sl_bt_cs_procedure_enable</ref>.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">connection</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The connection handle </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">config_id</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>CS configuration identifier.<itemizedlist>
+<listitem><para><bold>Range:</bold> 0 to 3 </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">create_context</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Defines in which device the created configuration will be written<itemizedlist>
+<listitem><para>Value: 0x00. Write CS configuration in the local controller only</para>
+</listitem><listitem><para>Value: 0x01. Write CS configuration in both the local and remote controller using a configuration procedure </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">main_mode_type</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Enum <ref refid="group__sl__bt__cs_1ga631ba2f05b0fb5daf637468c2f0d7dc3" kindref="member">sl_bt_cs_mode_t</ref>. Main mode type. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_cs_mode_rtt (0x1):</bold> Round Trip Time (RTT) measurement</para>
+</listitem><listitem><para><bold>sl_bt_cs_mode_pbr (0x2):</bold> Phase-Based Ranging (PBR) measurement</para>
+</listitem><listitem><para><bold>sl_bt_cs_submode_disabled (0xff):</bold> Submode disabled for the procedure. </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">sub_mode_type</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Enum <ref refid="group__sl__bt__cs_1ga631ba2f05b0fb5daf637468c2f0d7dc3" kindref="member">sl_bt_cs_mode_t</ref>. Sub mode type. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_cs_mode_rtt (0x1):</bold> Round Trip Time (RTT) measurement</para>
+</listitem><listitem><para><bold>sl_bt_cs_mode_pbr (0x2):</bold> Phase-Based Ranging (PBR) measurement</para>
+</listitem><listitem><para><bold>sl_bt_cs_submode_disabled (0xff):</bold> Submode disabled for the procedure. </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">min_main_mode_steps</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Minimum number of CS main mode steps to be executed prior to a sub mode step.<itemizedlist>
+<listitem><para><bold>Range:</bold> 2 to 255 </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">max_main_mode_steps</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Maximum number of CS main mode steps to be executed prior to a sub mode step.<itemizedlist>
+<listitem><para><bold>Range:</bold> 2 to 255 </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">main_mode_repetition</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of main mode steps taken from the end of the last CS subevent to be repeated at the beginning of the current CS subevent directly after the value r last Mode 0 step of that event.<itemizedlist>
+<listitem><para><bold>Range:</bold> 0 to 3 </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">mode_calibration_steps</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of Mode 0 steps to be included at the beginning of the test CS subevent<itemizedlist>
+<listitem><para><bold>Range:</bold> 1 to 3 </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">role</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Enum <ref refid="group__sl__bt__cs_1gab16efa17cdb87c4313b5e15b9261aaf9" kindref="member">sl_bt_cs_role_t</ref>. Device&apos;s role during the CS procedure Values:<itemizedlist>
+<listitem><para><bold>sl_bt_cs_role_initiator (0x0):</bold> The device will initiate the procedure</para>
+</listitem><listitem><para><bold>sl_bt_cs_role_reflector (0x1):</bold> The device will reciprocate transmission </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">rtt_type</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Enum <ref refid="group__sl__bt__cs_1ga706ac48e5976f2b902c86bf7fd305d18" kindref="member">sl_bt_cs_rtt_type_t</ref>. RTT payload type used in the CS procedure Values:<itemizedlist>
+<listitem><para><bold>sl_bt_cs_rtt_type_aa_only (0x0):</bold> RTT Access Address (AA) only</para>
+</listitem><listitem><para><bold>sl_bt_cs_rtt_type_fractional_32_bit_sounding (0x1):</bold> RTT Fractional with 32-bit Sounding Sequence</para>
+</listitem><listitem><para><bold>sl_bt_cs_rtt_type_fractional_96_bit_sounding (0x2):</bold> RTT Fractional with 96-bit Sounding Sequence</para>
+</listitem><listitem><para><bold>sl_bt_cs_rtt_type_fractional_32_bit_random (0x3):</bold> RTT Fractional with 32-bit Random Sequence</para>
+</listitem><listitem><para><bold>sl_bt_cs_rtt_type_fractional_64_bit_random (0x4):</bold> RTT Fractional with 64-bit Random Sequence</para>
+</listitem><listitem><para><bold>sl_bt_cs_rtt_type_fractional_96_bit_random (0x5):</bold> RTT Fractional with 96-bit Random Sequence</para>
+</listitem><listitem><para><bold>sl_bt_cs_rtt_type_fractional_128_bit_random (0x6):</bold> RTT Fractional with 128-bit Random Sequence </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">cs_sync_phy</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Enum <ref refid="group__sl__bt__gap_1ga05ce4496a6f87de7c67a9e32d816727c" kindref="member">sl_bt_gap_phy_t</ref>. Used PHY for CS SYNC exchanges during a procedure Values:<itemizedlist>
+<listitem><para><bold>sl_bt_gap_phy_1m (0x1):</bold> 1M PHY </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">channel_map</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>A fixed length byte array of 10 bytes consisting of 80 1-bit fields.</para>
+<para>The nth such field (in the range 0 to 78) contains the value for the CS channel index n.</para>
+<para><itemizedlist>
+<listitem><para>Bit value 0: Channel n is disabled</para>
+</listitem><listitem><para>Bit value 1: Channel n is enabled</para>
+</listitem></itemizedlist>
+</para>
+<para>The most significant bit (79) is reserved for future use and must be set to 0. Channels n = 0, 1, 23, 24, 25, 77 and 78 shall be ignored and not used for CS. At least 15 channels shall be marked as used. </para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">channel_map_repetition</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of times the channel_map field will be cycled through for non-Mode 0 steps within an CS procedure.<itemizedlist>
+<listitem><para><bold>Range:</bold> 1 to 255 </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">channel_selection_type</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Enum <ref refid="group__sl__bt__cs_1gac5685b907bdb55573c9e7fc9eb8d74a6" kindref="member">sl_bt_cs_channel_selection_algorithm_t</ref>. Channel selection algorithm Values:<itemizedlist>
+<listitem><para><bold>sl_bt_cs_channel_selection_algorithm_3b (0x0):</bold> Use Channel Selection Algorithm #3b for non-mode 0 CS steps</para>
+</listitem><listitem><para><bold>sl_bt_cs_channel_selection_algorithm_3c (0x1):</bold> Use Channel Selection Algorithm #3c for non-mode 0 CS steps</para>
+</listitem><listitem><para><bold>sl_bt_cs_channel_selection_algorithm_user_shape_interleaved (0x2):</bold> Use Interleaved shape for user specified channel sequence </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">ch3c_shape</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Enum <ref refid="group__sl__bt__cs_1ga969721c02be54688a7faa2adf9873be2" kindref="member">sl_bt_cs_ch3c_shape_t</ref>. Ch3c shape Values:<itemizedlist>
+<listitem><para><bold>sl_bt_cs_ch3c_shape_hat (0x0):</bold> Use Hat shape for user specified channel sequence</para>
+</listitem><listitem><para><bold>sl_bt_cs_chc3_shape_interleaved (0x1):</bold> Use Interleaved shape for user specified channel sequence </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">ch3c_jump</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of channels skipped in each rising and falling sequence.<itemizedlist>
+<listitem><para><bold>Range:</bold> 2 to 8 </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">reserved</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Reserved for future use.</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise.</para>
+</simplesect>
+<bold>Events</bold> <itemizedlist>
+<listitem><para><ref refid="group__sl__bt__evt__cs__config__complete" kindref="compound">sl_bt_evt_cs_config_complete</ref> - Triggered when an CS configuration procedure completed </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="14075" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="14075" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__cs_1ga3e87a4164f6020acadda0d41e2137325" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_cs_remove_config</definition>
+        <argsstring>(uint8_t connection, uint8_t config_id)</argsstring>
+        <name>sl_bt_cs_remove_config</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>connection</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>config_id</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Remove an CS configuration from the local controller.</para>
+<para>This command returns SL_STATUS_BT_CTRL_INVALID_COMMAND_PARAMETERS if the <computeroutput>config_id</computeroutput> does not exist .</para>
+<para>This command returns SL_STATUS_BT_CTRL_COMMAND_DISALLOWED if there is one or more CS procedures enabled with the <ref refid="group__sl__bt__cs_1ga2d98ac43233c5db0d7903400b2cadd2e" kindref="member">sl_bt_cs_procedure_enable</ref> command.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">connection</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Connection handle </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">config_id</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>CS configuration identifier<itemizedlist>
+<listitem><para><bold>Range:</bold> 0 to 3</para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise.</para>
+</simplesect>
+<bold>Events</bold> <itemizedlist>
+<listitem><para><ref refid="group__sl__bt__evt__cs__config__complete" kindref="compound">sl_bt_evt_cs_config_complete</ref> - Triggered when an CS configuration procedure is completed </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="14115" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="14115" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__cs_1gaa88b3a2d98f2204122e08031c2f5f9fd" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_cs_set_channel_classification</definition>
+        <argsstring>(const sl_bt_cs_channel_map_t *channel_map)</argsstring>
+        <name>sl_bt_cs_set_channel_classification</name>
+        <param>
+          <type>const <ref refid="structsl__bt__cs__channel__map__t" kindref="compound">sl_bt_cs_channel_map_t</ref> *</type>
+          <declname>channel_map</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Update the channel classification for CS. This classification persists until overwritten with a subsequent command or until the system is reset.</para>
+<para>This command returns SL_STATUS_BT_CTRL_COMMAND_DISALLOWED if this command was issued after less than one second before.</para>
+<para>This command returns SL_STATUS_BT_CTRL_INVALID_COMMAND_PARAMETERS if less than 15 channels are enabled.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">channel_map</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>A fixed length byte array of 10 bytes consisting of 80 1-bit fields.</para>
+<para>The nth field (in the range 0 to 78) contains the value for the link layer channel index n.</para>
+<para><itemizedlist>
+<listitem><para>Bit value 0: Channel n is disabled.</para>
+</listitem><listitem><para>Bit value 1: Channel n is enabled.</para>
+</listitem></itemizedlist>
+</para>
+<para>The most significant bit (79) is reserved for future use and must be set to 0. Channels n = 0, 1, 23, 24, 25, 77 and 78 shall be ignored and not used for CS. </para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+<para><simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="14145" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="14145" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__cs_1ga45623207ae15789c3b2a90876d38b625" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_cs_set_procedure_parameters</definition>
+        <argsstring>(uint8_t connection, uint8_t config_id, uint16_t max_procedure_len, uint16_t min_procedure_interval, uint16_t max_procedure_interval, uint16_t max_procedure_count, uint32_t min_subevent_len, uint32_t max_subevent_len, uint8_t tone_antenna_config_selection, uint8_t phy, int8_t tx_pwr_delta, uint8_t preferred_peer_antenna, uint8_t snr_control_initiator, uint8_t snr_control_reflector)</argsstring>
+        <name>sl_bt_cs_set_procedure_parameters</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>connection</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>config_id</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>max_procedure_len</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>min_procedure_interval</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>max_procedure_interval</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>max_procedure_count</declname>
+        </param>
+        <param>
+          <type>uint32_t</type>
+          <declname>min_subevent_len</declname>
+        </param>
+        <param>
+          <type>uint32_t</type>
+          <declname>max_subevent_len</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>tone_antenna_config_selection</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>phy</declname>
+        </param>
+        <param>
+          <type>int8_t</type>
+          <declname>tx_pwr_delta</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>preferred_peer_antenna</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>snr_control_initiator</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>snr_control_reflector</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Set the parameters for scheduling CS procedures with the remote device. The parameters set by this command become invalid after removing the <computeroutput>config_id</computeroutput> with <ref refid="group__sl__bt__cs_1ga3e87a4164f6020acadda0d41e2137325" kindref="member">sl_bt_cs_remove_config</ref>.</para>
+<para>This command returns SL_STATUS_BT_CTRL_INVALID_COMMAND_PARAMETERS if the <computeroutput>config_id</computeroutput> does not exists or was previously removed with <ref refid="group__sl__bt__cs_1ga3e87a4164f6020acadda0d41e2137325" kindref="member">sl_bt_cs_remove_config</ref></para>
+<para>This command returns SL_STATUS_BT_CTRL_INVALID_COMMAND_PARAMETERS if less than 15 channels are enabled.</para>
+<para>This command returns SL_STATUS_BT_CTRL_INSUFFICIENT_CHANNELS if there are less than 15 channels available.</para>
+<para>This command returns SL_STATUS_BT_CTRL_COMMAND_DISALLOWED if the CS procedure has been previously enabled.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">connection</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The connection handle </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">config_id</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>CS configuration identifier.<itemizedlist>
+<listitem><para><bold>Range:</bold> 0 to 3 </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">max_procedure_len</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>Maximum duration for each measurement procedure. Value in units of 0.625 ms.<itemizedlist>
+<listitem><para><bold>Range:</bold> 1 to 65535</para>
+</listitem><listitem><para>Time: N x 0.625ms. <bold>N</bold> being the input.</para>
+</listitem><listitem><para>Time range: 0.625 ms to 40.959375 s. </para>
+</listitem></itemizedlist>
+</para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">min_procedure_interval</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Minimum duration in number of connection events between consecutive measurement procedure.<itemizedlist>
+<listitem><para><bold>Range:</bold> 1 to 65535 </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">max_procedure_interval</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Maximum duration in number of connection events between consecutive measurement procedure.<itemizedlist>
+<listitem><para><bold>Range:</bold> 1 to 65535 </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">max_procedure_count</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>Maximum number of CS procedures to be scheduled.<itemizedlist>
+<listitem><para><bold>Range:</bold> 1 to 65535</para>
+</listitem><listitem><para>Value: 0x00. Procedures to continue until disabled. </para>
+</listitem></itemizedlist>
+</para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">min_subevent_len</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>Minimum suggested duration for each CS subevent. Units: microseconds.<itemizedlist>
+<listitem><para><bold>Range:</bold> 1250 to 3999999</para>
+</listitem><listitem><para>Time range: 1250 us to 4s </para>
+</listitem></itemizedlist>
+</para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">max_subevent_len</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>Maximum suggested duration for each CS subevent. Units: microseconds.<itemizedlist>
+<listitem><para><bold>Range:</bold> 1250 to 3999999</para>
+</listitem><listitem><para>Time range: 1250 us to 4s </para>
+</listitem></itemizedlist>
+</para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">tone_antenna_config_selection</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Antenna configuration index<itemizedlist>
+<listitem><para><bold>Range:</bold> 0 to 7 </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">phy</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Enum <ref refid="group__sl__bt__gap_1ga05ce4496a6f87de7c67a9e32d816727c" kindref="member">sl_bt_gap_phy_t</ref>. PHY used by the controller to determine the base transmit power for the CS procedure. The final transmit power level will be the lesser of the configured maximum transmission power for the PHY and the sum of the connection transmission power and the remote controller&apos;s power delta. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_gap_phy_1m (0x1):</bold> 1M PHY</para>
+</listitem><listitem><para><bold>sl_bt_gap_phy_2m (0x2):</bold> 2M PHY</para>
+</listitem><listitem><para><bold>sl_bt_gap_phy_coded (0x4):</bold> Coded PHY, 125k (S=8) or 500k (S=2)</para>
+</listitem><listitem><para><bold>sl_bt_gap_phy_any (0xff):</bold> Any PHYs the device supports </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">tx_pwr_delta</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Indicates the recommended difference between the remote controller&apos;s power level for the CS tones and RTT packets and the power level for the PHY indicated by the PHY parameter. Units: dB.<itemizedlist>
+<listitem><para>Value: 0x80. Host does not have a recommendation for transmit power delta </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">preferred_peer_antenna</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Preferred peer-ordered antenna elements to be used by the remote device for the antenna configuration denoted by the tone antenna config selection.<itemizedlist>
+<listitem><para>0x01, bit 0: Use first ordered antenna element</para>
+</listitem><listitem><para>0x02, bit 1: Use second ordered antenna element</para>
+</listitem><listitem><para>0x04, bit 2: Use third ordered antenna element</para>
+</listitem><listitem><para>0x08, bit 3: Use fourth ordered antenna element </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">snr_control_initiator</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Enum <ref refid="group__sl__bt__cs_1gae36bfcc29d4bffeae51b5c6ee64eea9b" kindref="member">sl_bt_cs_snr_control_adjustment_t</ref>. The Signal Noise Ratio (SNR) control adjustment for the CS_SYNC transmissions of the initiator. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_cs_snr_control_adjustment_not_applied (0xff):</bold> SNR control adjustment not to be applied </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">snr_control_reflector</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Enum <ref refid="group__sl__bt__cs_1gae36bfcc29d4bffeae51b5c6ee64eea9b" kindref="member">sl_bt_cs_snr_control_adjustment_t</ref>. The Signal Noise Ratio (SNR) control adjustment for the CS_SYNC transmissions of the reflector. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_cs_snr_control_adjustment_not_applied (0xff):</bold> SNR control adjustment not to be applied</para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="14238" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="14238" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__cs_1ga2d98ac43233c5db0d7903400b2cadd2e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_cs_procedure_enable</definition>
+        <argsstring>(uint8_t connection, uint8_t enable, uint8_t config_id)</argsstring>
+        <name>sl_bt_cs_procedure_enable</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>connection</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>enable</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>config_id</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Enable or disable scheduling CS procedures with the remote device.</para>
+<para>This command returns SL_STATUS_BT_CTRL_COMMAND_DISALLOWED if the <ref refid="group__sl__bt__cs_1ga45623207ae15789c3b2a90876d38b625" kindref="member">sl_bt_cs_set_procedure_parameters</ref> has not been called previosly for that <computeroutput>config_id</computeroutput>.</para>
+<para>This command returns SL_STATUS_BT_CTRL_INVALID_COMMAND_PARAMETERS if the <computeroutput>config_id</computeroutput> does not exists or was previously removed with <ref refid="group__sl__bt__cs_1ga3e87a4164f6020acadda0d41e2137325" kindref="member">sl_bt_cs_remove_config</ref>.</para>
+<para>This command returns SL_STATUS_BT_CTRL_COMMAND_DISALLOWED if the CS procedure has been previously enabled by calling <ref refid="group__sl__bt__cs_1ga2d98ac43233c5db0d7903400b2cadd2e" kindref="member">sl_bt_cs_procedure_enable</ref>.</para>
+<para>This command returns SL_STATUS_BT_CTRL_INSUFFICIENT_CHANNELS if there are less than 15 channels available.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">connection</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The connection handle </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">enable</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Enum <ref refid="group__sl__bt__cs_1ga8fd875965cf4e392514a5f4f7769bb3d" kindref="member">sl_bt_cs_procedure_state_t</ref>. Enabled or disabled CS procedure state. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_cs_procedure_state_disabled (0x0):</bold> CS procedures are disabled</para>
+</listitem><listitem><para><bold>sl_bt_cs_procedure_state_enabled (0x1):</bold> CS procedures are enabled </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">config_id</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>CS configuration identifier</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise.</para>
+</simplesect>
+<bold>Events</bold> <itemizedlist>
+<listitem><para><ref refid="group__sl__bt__evt__cs__procedure__enable__complete" kindref="compound">sl_bt_evt_cs_procedure_enable_complete</ref> - Triggered when local controller has scheduled or disabled an CS procedure measurement</para>
+</listitem><listitem><para><ref refid="group__sl__bt__evt__cs__result" kindref="compound">sl_bt_evt_cs_result</ref> - Triggered when local controller has results to report for every CS event within the CS procedure </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="14289" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="14289" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__cs_1ga76ba2c01277740fd6844392fedc571aa" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_cs_set_antenna_configuration</definition>
+        <argsstring>(size_t antenna_element_offset_len, const uint8_t *antenna_element_offset)</argsstring>
+        <name>sl_bt_cs_set_antenna_configuration</name>
+        <param>
+          <type>size_t</type>
+          <declname>antenna_element_offset_len</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>antenna_element_offset</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Set the antenna configuration for the CS feature.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">antenna_element_offset_len</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Length of data in <computeroutput>antenna_element_offset</computeroutput> </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">antenna_element_offset</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Offset of each antenna, each element is a signed 16-bit integer stored in two consecutive bytes in little-endian order. Units: 1 cm.</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="14306" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="14306" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__cs_1ga179e5b1dd30a811c3d3f53c64acf9e47" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_cs_read_local_supported_capabilities</definition>
+        <argsstring>(uint8_t *num_config, uint16_t *max_consecutive_procedures, uint8_t *num_antennas, uint8_t *max_antenna_paths, uint8_t *roles, uint8_t *modes, uint8_t *rtt_capability, uint8_t *rtt_aa_only, uint8_t *rtt_sounding, uint8_t *rtt_random_payload, uint16_t *nadm_sounding_capability, uint16_t *nadm_random_capability, uint8_t *cs_sync_phys, uint16_t *subfeatures, uint16_t *t_ip1_times, uint16_t *t_ip2_times, uint16_t *t_fcs_times, uint16_t *t_pm_times, uint8_t *t_sw_times, uint8_t *tx_snr_capability)</argsstring>
+        <name>sl_bt_cs_read_local_supported_capabilities</name>
+        <param>
+          <type>uint8_t *</type>
+          <declname>num_config</declname>
+        </param>
+        <param>
+          <type>uint16_t *</type>
+          <declname>max_consecutive_procedures</declname>
+        </param>
+        <param>
+          <type>uint8_t *</type>
+          <declname>num_antennas</declname>
+        </param>
+        <param>
+          <type>uint8_t *</type>
+          <declname>max_antenna_paths</declname>
+        </param>
+        <param>
+          <type>uint8_t *</type>
+          <declname>roles</declname>
+        </param>
+        <param>
+          <type>uint8_t *</type>
+          <declname>modes</declname>
+        </param>
+        <param>
+          <type>uint8_t *</type>
+          <declname>rtt_capability</declname>
+        </param>
+        <param>
+          <type>uint8_t *</type>
+          <declname>rtt_aa_only</declname>
+        </param>
+        <param>
+          <type>uint8_t *</type>
+          <declname>rtt_sounding</declname>
+        </param>
+        <param>
+          <type>uint8_t *</type>
+          <declname>rtt_random_payload</declname>
+        </param>
+        <param>
+          <type>uint16_t *</type>
+          <declname>nadm_sounding_capability</declname>
+        </param>
+        <param>
+          <type>uint16_t *</type>
+          <declname>nadm_random_capability</declname>
+        </param>
+        <param>
+          <type>uint8_t *</type>
+          <declname>cs_sync_phys</declname>
+        </param>
+        <param>
+          <type>uint16_t *</type>
+          <declname>subfeatures</declname>
+        </param>
+        <param>
+          <type>uint16_t *</type>
+          <declname>t_ip1_times</declname>
+        </param>
+        <param>
+          <type>uint16_t *</type>
+          <declname>t_ip2_times</declname>
+        </param>
+        <param>
+          <type>uint16_t *</type>
+          <declname>t_fcs_times</declname>
+        </param>
+        <param>
+          <type>uint16_t *</type>
+          <declname>t_pm_times</declname>
+        </param>
+        <param>
+          <type>uint8_t *</type>
+          <declname>t_sw_times</declname>
+        </param>
+        <param>
+          <type>uint8_t *</type>
+          <declname>tx_snr_capability</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Read the CS capabilities of the local controller.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="out">num_config</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The number of CS configurations supported per connection.<itemizedlist>
+<listitem><para><bold>Range:</bold> 1 to 4 </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">max_consecutive_procedures</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>The maximum number of consecutive CS procedures supported.<itemizedlist>
+<listitem><para><bold>Range:</bold> 1 to 65535</para>
+</listitem><listitem><para><bold>0x00:</bold> Fixed number of consecutive procedures and for an indefinite number of procedures until termination </para>
+</listitem></itemizedlist>
+</para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">num_antennas</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The number of antenna elements available for CS tone exchanges.<itemizedlist>
+<listitem><para><bold>Range:</bold> 1 to 4 </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">max_antenna_paths</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The maximum number of antenna paths supported.<itemizedlist>
+<listitem><para><bold>Range:</bold> 1 to 4 </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">roles</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>This value is a bitmask of flags to indicate which CS roles are supported by the controller. Flags:<itemizedlist>
+<listitem><para><bold>0x01, bit 0:</bold> Initiator role</para>
+</listitem><listitem><para><bold>0x02, bit 1:</bold> Reflector role </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">modes</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>This value is a bitmask of flags to indicate which Optional CS modes are supported. Flags:<itemizedlist>
+<listitem><para><bold>0x01, bit 0:</bold> Mode 3 is supported </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">rtt_capability</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>This value is a bitmask of flags to indicate which Round Trip Time (RTT) CS capabilities accuracy requirement in <computeroutput>rtt_aa_only_n</computeroutput>, <computeroutput>rtt_sounding_n</computeroutput>, and <computeroutput>rtt_random_payload</computeroutput>. Flags:<itemizedlist>
+<listitem><para><bold>0x01, bit 0:</bold> 10 ns time-of-flight (ToF) precision requirement for <computeroutput>rtt_aa_only</computeroutput> if set; otherwise 150 ns ToF</para>
+</listitem><listitem><para><bold>0x02, bit 1:</bold> 10 ns ToF precision requirement for <computeroutput>rtt_sounding</computeroutput> if set; otherwise 150 ns ToF</para>
+</listitem><listitem><para><bold>0x04, bit 2:</bold> 10 ns ToF precision requirement for <computeroutput>rtt_random_payload</computeroutput> if set; otherwise 150 ns ToF </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">rtt_aa_only</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>The support status of RTT Access Address(AA) in the local controller. When supported it establishes the number of SYNC changes needed to satisfy the precision requirements.<itemizedlist>
+<listitem><para><bold>Range:</bold> 1 to 255</para>
+</listitem><listitem><para>0x00: RTT AA Only is not supported </para>
+</listitem></itemizedlist>
+</para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">rtt_sounding</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>The support status of RTT Sounding is supported in the local controller. When supported it establishes the number of SYNC changes needed to satisfy the precision requirements.<itemizedlist>
+<listitem><para><bold>Range:</bold> 1 to 255</para>
+</listitem><listitem><para>0x00: RTT Sounding is not supported </para>
+</listitem></itemizedlist>
+</para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">rtt_random_payload</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>The support status of RTT Random Payload in the local controller. When supported it establishes the number of SYNC changes needed to satisfy the precision requirements.<itemizedlist>
+<listitem><para><bold>Range:</bold> 1 to 255</para>
+</listitem><listitem><para>0x00: RTT Random Payload is not supported </para>
+</listitem></itemizedlist>
+</para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">nadm_sounding_capability</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>This value is a bitmask of flags to indicate the support for reporting Normalized Attack Detector Metric (NADM) when a CS_SYNC with a sounding sequence is received. Flags:<itemizedlist>
+<listitem><para><bold>0x01, bit 0:</bold> Support for reporting Phase-based NADM when a CS_SYNC with sounding sequence is received </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">nadm_random_capability</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>This value is a bitmask of flags to indicate the support for reporting Normalized Attack Detector Metric (NADM) when a CS_SYNC with a random sequence is received. Flags:<itemizedlist>
+<listitem><para><bold>0x01, bit 0:</bold> Support for reporting Phase-based NADM when a CS_SYNC with random sequence is received </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">cs_sync_phys</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>This value is a bitmask of flags to indicate which CS_SYNC packages supported in an specific PHY. Flags:<itemizedlist>
+<listitem><para><bold>0x02, bit 1:</bold> LE 2M PHY CS_SYNC packages are supported</para>
+</listitem><listitem><para><bold>0x04, bit 2:</bold> LE 2M 2BT PHY CS_SYNC packages are supported </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">subfeatures</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>This value is a bitmask of flags to indicate which optional CS subfeatures are supported. Flags:<itemizedlist>
+<listitem><para><bold>0x02, bit 1:</bold> CS with zero Frequency Actuation Error relative to Mode 0 transmissions in reflector role is supported</para>
+</listitem><listitem><para><bold>0x04, bit 2:</bold> CS Channel Selection Algorithm #3c is supported</para>
+</listitem><listitem><para><bold>0x08, bit 3:</bold> CS phase-based ranging from an RTT sounding is supported </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">t_ip1_times</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>This value is a bitmask of flags to indicate which time durations of Time for Interlude Period 1 (IP1) are supported. Flags:<itemizedlist>
+<listitem><para><bold>0x0001, bit 0:</bold> Time durantion of 10 microseconds is supported</para>
+</listitem><listitem><para><bold>0x0002, bit 1:</bold> Time durantion of 20 microseconds is supported</para>
+</listitem><listitem><para><bold>0x0004, bit 2:</bold> Time durantion of 30 microseconds is supported</para>
+</listitem><listitem><para><bold>0x0008, bit 3:</bold> Time durantion of 40 microseconds is supported</para>
+</listitem><listitem><para><bold>0x0010, bit 4:</bold> Time durantion of 50 microseconds is supported</para>
+</listitem><listitem><para><bold>0x0020, bit 5:</bold> Time durantion of 60 microseconds is supported</para>
+</listitem><listitem><para><bold>0x0040, bit 6:</bold> Time durantion of 80 microseconds is supported </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">t_ip2_times</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>This value is a bitmask of flags to indicate which time durations of Time for Interlude Period 2 (IP2) are supported. Flags:<itemizedlist>
+<listitem><para><bold>0x0001, bit 0:</bold> Time duration of 10 microseconds is supported</para>
+</listitem><listitem><para><bold>0x0002, bit 1:</bold> Time duration of 20 microseconds is supported</para>
+</listitem><listitem><para><bold>0x0004, bit 2:</bold> Time duration of 30 microseconds is supported</para>
+</listitem><listitem><para><bold>0x0008, bit 3:</bold> Time duration of 40 microseconds is supported</para>
+</listitem><listitem><para><bold>0x0010, bit 4:</bold> Time duration of 50 microseconds is supported</para>
+</listitem><listitem><para><bold>0x0020, bit 5:</bold> Time duration of 60 microseconds is supported</para>
+</listitem><listitem><para><bold>0x0040, bit 6:</bold> Time duration of 80 microseconds is supported </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">t_fcs_times</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>This value is a bitmask of flags to indicate which durations of Time for Frequency Change Spacing (FCS) are supported. Flags:<itemizedlist>
+<listitem><para><bold>0x0001, bit 0:</bold> Time duration of 10 microseconds is supported</para>
+</listitem><listitem><para><bold>0x0002, bit 1:</bold> Time duration of 20 microseconds is supported</para>
+</listitem><listitem><para><bold>0x0004, bit 2:</bold> Time duration of 30 microseconds is supported</para>
+</listitem><listitem><para><bold>0x0008, bit 3:</bold> Time duration of 40 microseconds is supported</para>
+</listitem><listitem><para><bold>0x0010, bit 4:</bold> Time duration of 50 microseconds is supported</para>
+</listitem><listitem><para><bold>0x0020, bit 5:</bold> Time duration of 60 microseconds is supported</para>
+</listitem><listitem><para><bold>0x0040, bit 6:</bold> Time duration of 80 microseconds is supported</para>
+</listitem><listitem><para><bold>0x0100, bit 7:</bold> Time duration of 100 microseconds is supported</para>
+</listitem><listitem><para><bold>0x0200, bit 8:</bold> Time duration of 120 microseconds is supported </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">t_pm_times</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>This value is a bitmask of flags to indicate which time durations of Time for Phase Measurement (PM) are supported. Flags:<itemizedlist>
+<listitem><para><bold>0x0001, bit 0:</bold> Time duration of 10 microseconds is supported</para>
+</listitem><listitem><para><bold>0x0002, bit 1:</bold> Time duration of 20 microseconds is supported </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">t_sw_times</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Time in microseconds for the antenna switch period of the CS tones.<itemizedlist>
+<listitem><para>Values: 0x00, 0x01, 0x02, 0x04 and 0x0A </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">tx_snr_capability</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>This value is a bitmask of flags to indicate the supported SNR levels used in RTT packets. Flags:<itemizedlist>
+<listitem><para><bold>0x01, bit 0:</bold> 18 dB supported</para>
+</listitem><listitem><para><bold>0x02, bit 1:</bold> 21 dB supported</para>
+</listitem><listitem><para><bold>0x04, bit 2:</bold> 24 dB supported</para>
+</listitem><listitem><para><bold>0x08, bit 3:</bold> 27 dB supported</para>
+</listitem><listitem><para><bold>0x10, bit 4:</bold> 30 dB supported</para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="14436" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="14436" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__cs_1ga8c0052901c17a4c427f2b25d3c484bc7" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_cs_read_remote_supported_capabilities</definition>
+        <argsstring>(uint8_t connection)</argsstring>
+        <name>sl_bt_cs_read_remote_supported_capabilities</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>connection</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Read the Channel Sounding (CS) capabilities of the remote controller.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">connection</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Connection handle</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise.</para>
+</simplesect>
+<bold>Events</bold> <itemizedlist>
+<listitem><para><ref refid="group__sl__bt__evt__cs__read__remote__supported__capabilities__complete" kindref="compound">sl_bt_evt_cs_read_remote_supported_capabilities_complete</ref> - Triggered when local controller has the requested supported capabilities of the remote controller. </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="14471" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="14471" declcolumn="13"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__cs_1ga1b7d9eff7825aa34d06e6fb6e6a5e57d" prot="public" static="no">
+        <name>sl_bt_cmd_cs_security_enable_id</name>
+        <initializer>0x00590020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="12868" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="12868" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__cs_1gaaf8d1863cbdd1861b8851420890d0b10" prot="public" static="no">
+        <name>sl_bt_cmd_cs_set_default_settings_id</name>
+        <initializer>0x01590020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="12869" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="12869" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__cs_1gadfbd1b442e7b3ad371a3d83d38fddacc" prot="public" static="no">
+        <name>sl_bt_cmd_cs_create_config_id</name>
+        <initializer>0x02590020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="12870" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="12870" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__cs_1ga2b47a87c6093b6d986d5d0b07002e307" prot="public" static="no">
+        <name>sl_bt_cmd_cs_remove_config_id</name>
+        <initializer>0x03590020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="12871" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="12871" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__cs_1ga51c24b0b3bbecfa251aee597c0dca4df" prot="public" static="no">
+        <name>sl_bt_cmd_cs_set_channel_classification_id</name>
+        <initializer>0x04590020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="12872" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="12872" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__cs_1ga683b67d0abc0533620d50f361759646a" prot="public" static="no">
+        <name>sl_bt_cmd_cs_set_procedure_parameters_id</name>
+        <initializer>0x05590020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="12873" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="12873" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__cs_1gaf795c5cc46317922688311e2fd04445c" prot="public" static="no">
+        <name>sl_bt_cmd_cs_procedure_enable_id</name>
+        <initializer>0x06590020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="12874" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="12874" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__cs_1gacf1980b93dce896a255ab468616c137c" prot="public" static="no">
+        <name>sl_bt_cmd_cs_set_antenna_configuration_id</name>
+        <initializer>0x07590020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="12875" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="12875" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__cs_1gacdd8312d52928132293091395b69705b" prot="public" static="no">
+        <name>sl_bt_cmd_cs_read_local_supported_capabilities_id</name>
+        <initializer>0x08590020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="12876" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="12876" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__cs_1ga446e679888cd49105b861a051898857b" prot="public" static="no">
+        <name>sl_bt_cmd_cs_read_remote_supported_capabilities_id</name>
+        <initializer>0x09590020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="12877" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="12877" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__cs_1ga0987597a30a5747b72c6119f95e873b0" prot="public" static="no">
+        <name>sl_bt_rsp_cs_security_enable_id</name>
+        <initializer>0x00590020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="12878" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="12878" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__cs_1gafcf9bfb8f785d74aac09f22f4a429eec" prot="public" static="no">
+        <name>sl_bt_rsp_cs_set_default_settings_id</name>
+        <initializer>0x01590020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="12879" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="12879" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__cs_1ga3669a9419563eb3801e2a7068f8c45f4" prot="public" static="no">
+        <name>sl_bt_rsp_cs_create_config_id</name>
+        <initializer>0x02590020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="12880" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="12880" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__cs_1gad9143444e2abf6dd8cec9399d81a1406" prot="public" static="no">
+        <name>sl_bt_rsp_cs_remove_config_id</name>
+        <initializer>0x03590020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="12881" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="12881" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__cs_1ga27eacaeeab657d87710ea45572ff61bc" prot="public" static="no">
+        <name>sl_bt_rsp_cs_set_channel_classification_id</name>
+        <initializer>0x04590020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="12882" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="12882" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__cs_1ga0c6d1a2cb4f059f429aed3b6a012258e" prot="public" static="no">
+        <name>sl_bt_rsp_cs_set_procedure_parameters_id</name>
+        <initializer>0x05590020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="12883" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="12883" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__cs_1ga96762b8fdfadef01e677c55bc370cf6b" prot="public" static="no">
+        <name>sl_bt_rsp_cs_procedure_enable_id</name>
+        <initializer>0x06590020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="12884" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="12884" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__cs_1gaf773b4f5018263cc19658a037a66c22f" prot="public" static="no">
+        <name>sl_bt_rsp_cs_set_antenna_configuration_id</name>
+        <initializer>0x07590020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="12885" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="12885" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__cs_1ga50afbc935d11ea6e3c1e84f4063c2bd1" prot="public" static="no">
+        <name>sl_bt_rsp_cs_read_local_supported_capabilities_id</name>
+        <initializer>0x08590020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="12886" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="12886" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__cs_1gabb8b8697dbbeb030b3dd28955a6a8b90" prot="public" static="no">
+        <name>sl_bt_rsp_cs_read_remote_supported_capabilities_id</name>
+        <initializer>0x09590020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="12887" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="12887" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Channel Sounding. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>This class provides commands and events for Channel Sounding (CS) between Bluetooth devices.</para>
+<para>Any CS command that involves a remote device requires that the connection with the remote device is encrypted. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

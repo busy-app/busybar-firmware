@@ -1,0 +1,151 @@
+id: ot_platform_abstraction_core
+label: Platform Abstraction (Core)
+package: openthread
+category: OpenThread
+quality: production
+description: This component provides the abstraction layer between the OpenThread stack and Silicon Labs platform
+provides:
+- name: ot_platform_abstraction_core
+  # NOTE: The 'wireless_stack' provide was moved here from 'ot_stack_source' to support building modules using the ot-efr32 GitHub repo
+- name: wireless_stack
+  allow_multiple: true
+requires:
+- name: code_classification
+- name: cpp_support
+- name: sli_protocol_crypto
+  condition: [device_series_2]
+- name: sli_crypto
+  condition: [device_series_3]
+- name: device_init
+- name: component_catalog
+- name: rail_lib
+- name: sl_rail_util_compatible_pa
+- name: rail_util_rssi
+- name: rail_util_built_in_phys
+- name: emlib_msc
+  condition: [device_series_2]
+- name: emlib_rmu
+  condition: [device_series_2]
+- name: hal_emu
+  condition: [device_series_3]
+- name: sleeptimer
+- name: mpu
+  condition: [device_series_2]
+- name: nvm3_default
+  condition: [ot_stack_full]
+- name: nvm3_default
+  condition: [ot_ncp_cpc]
+- name: memory_manager
+- name: silabs_core_circular_queue
+- name: device_supports_thread
+- name: ot_rtos_wrappers
+  condition: [kernel]
+- name: ot_platform_abstraction_implementation
+- name: ot_headers
+- name: ot_sbom_openthread
+- name: ot_sbom_tcplp
+- name: cmsis_rtos2
+  condition: [device_series_3]
+- name: ot_uart_implementation
+- name: radio_priority_15_4
+recommends:
+- id: ot_platform_abstraction_source
+  vendor: silabs
+- id: freertos
+  condition: [device_series_3]
+  vendor: silabs
+- id: freertos_heap_3
+  condition: [device_series_3]
+  vendor: silabs
+- id: ot_uart
+  vendor: silabs
+conflicts:
+- name: toolchain_iar
+ui_hints:
+  visibility: never
+include:
+- path: include
+  file_list:
+  - path: sl_ot_phy_select.h
+    condition:
+    - rail_util_ieee802154_phy_select
+- path: platform-abstraction/efr32
+  file_list:
+  - path: alarm.h
+  - path: board_config.h
+  - path: openthread-core-efr32-config.h
+  - path: openthread-core-efr32-config-check.h
+  - path: platform-efr32.h
+  - path: sleep.h
+    condition:
+    - power_manager
+  - path: uart.h
+source:
+- path: platform-abstraction/efr32/sleep.c
+  condition:
+  - power_manager
+define:
+- name: OPENTHREAD_PROJECT_CORE_CONFIG_FILE
+  value: '"openthread-core-efr32-config.h"'
+- name: OPENTHREAD_CORE_CONFIG_PLATFORM_CHECK_FILE
+  value: '"openthread-core-efr32-config-check.h"'
+- name: SL_CODE_COMPONENT_OT_PLATFORM_ABSTRACTION
+  value: ot_platform_abstraction
+validation_helper:
+- path: component/script/ot_circular_queue_max_size_validation.lua
+template_file:
+- path: src/template/sl_ot_init.c.jinja
+- path: include/template/sl_ot_init.h.jinja
+template_contribution:
+- name: power_manager_handler
+  value:
+    event: is_ok_to_sleep
+    include: sleep.h
+    handler: sl_ot_is_ok_to_sleep
+  condition:
+  - power_manager
+  unless:
+  - kernel
+- name: power_manager_handler
+  value:
+    event: sleep_on_isr_exit
+    include: sleep.h
+    handler: sl_ot_sleep_on_isr_exit
+  condition:
+  - power_manager
+  unless:
+  - kernel
+- name: event_handler
+  value:
+    event: stack_init
+    include: platform-efr32.h
+    handler: sl_ot_sys_init
+  priority: -10
+- name: event_handler
+  value:
+    event: internal_app_init
+    include: sl_ot_init.h
+    handler: sl_ot_init
+  unless:
+  - kernel
+- name: ot_init
+  value: sl_ot_sleep_init
+  priority: 10
+  condition:
+  - power_manager
+- name: code_classification_components
+  value: ot_platform_abstraction
+- name: rail_util_ieee802154_phy_select_callbacks
+  value:
+    include: sl_ot_phy_select.h
+    runtime_phy_select_stack_support: SL_OPENTHREAD_PHY_SELECT_STACK_SUPPORT
+    update_active_radio_config: sl_ot_update_active_radio_config
+  priority: -9020
+  unless:
+  - rail_mux
+  condition:
+  - rail_util_ieee802154_phy_select
+metadata:
+  sbom:
+    license: BSD-3-Clause
+root_path: openthread

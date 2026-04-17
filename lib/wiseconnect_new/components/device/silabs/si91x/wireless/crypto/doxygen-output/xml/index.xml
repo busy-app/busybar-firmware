@@ -1,0 +1,819 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygenindex xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="index.xsd" version="1.9.4" xml:lang="en-US">
+  <compound refid="structsl__si91x__aes__config__t" kind="struct"><name>sl_si91x_aes_config_t</name>
+    <member refid="structsl__si91x__aes__config__t_1a340b8b1984efb80bc2bb8004de252a3b" kind="variable"><name>aes_mode</name></member>
+    <member refid="structsl__si91x__aes__config__t_1a751d86617f58c3b8c5483997e2e4ebe1" kind="variable"><name>encrypt_decrypt</name></member>
+    <member refid="structsl__si91x__aes__config__t_1adfc68b5c8e0dc8e81f3ff97f707f1a44" kind="variable"><name>msg</name></member>
+    <member refid="structsl__si91x__aes__config__t_1a14051ee66642816cb35e0519955efb29" kind="variable"><name>msg_length</name></member>
+    <member refid="structsl__si91x__aes__config__t_1af794e23df5c540ee23327742af5773b3" kind="variable"><name>iv</name></member>
+    <member refid="structsl__si91x__aes__config__t_1abd15431e3ec7db21c1de933c0a337141" kind="variable"><name>key_config</name></member>
+  </compound>
+  <compound refid="structsl__si91x__aes__key__config__a0__t" kind="struct"><name>sl_si91x_aes_key_config_a0_t</name>
+    <member refid="structsl__si91x__aes__key__config__a0__t_1a70dd731fbe326b614641097d8e5ce6f3" kind="variable"><name>key</name></member>
+    <member refid="structsl__si91x__aes__key__config__a0__t_1a977a85a863c296301890d3b5d9e95f36" kind="variable"><name>key_length</name></member>
+  </compound>
+  <compound refid="structsl__si91x__aes__key__config__b0__t" kind="struct"><name>sl_si91x_aes_key_config_b0_t</name>
+    <member refid="structsl__si91x__aes__key__config__b0__t_1a5da45f983b1f84919480a4b0628f0030" kind="variable"><name>key_type</name></member>
+    <member refid="structsl__si91x__aes__key__config__b0__t_1a9690ef5c657f42ac01d1ad103b4c5503" kind="variable"><name>key_size</name></member>
+    <member refid="structsl__si91x__aes__key__config__b0__t_1a6d955a1e461202d2558e0cdcf4db0cbe" kind="variable"><name>key_slot</name></member>
+    <member refid="structsl__si91x__aes__key__config__b0__t_1a17ef882557570e8f39a5999f41cf3e2d" kind="variable"><name>wrap_iv_mode</name></member>
+    <member refid="structsl__si91x__aes__key__config__b0__t_1a77ca3fe2a9a6b75c13533ec773722094" kind="variable"><name>wrap_iv</name></member>
+    <member refid="structsl__si91x__aes__key__config__b0__t_1a3077c2f5ca7575133f493bff4d226f40" kind="variable"><name>key_buffer</name></member>
+    <member refid="structsl__si91x__aes__key__config__b0__t_1abbca80234de16ec9e0282dc19c9e2432" kind="variable"><name>reserved</name></member>
+  </compound>
+  <compound refid="unionsl__si91x__aes__key__config__t" kind="union"><name>sl_si91x_aes_key_config_t</name>
+    <member refid="unionsl__si91x__aes__key__config__t_1a757949b7e89291f5aa025af5bd32cfcd" kind="variable"><name>a0</name></member>
+    <member refid="unionsl__si91x__aes__key__config__t_1a596b0b67319ee775a302788f8aebb949" kind="variable"><name>b0</name></member>
+  </compound>
+  <compound refid="structsl__si91x__ccm__config__t" kind="struct"><name>sl_si91x_ccm_config_t</name>
+    <member refid="structsl__si91x__ccm__config__t_1a541d87093a9b7408616d9c20339a4d26" kind="variable"><name>encrypt_decrypt</name></member>
+    <member refid="structsl__si91x__ccm__config__t_1a1893c23d08f4e700a410cf7a3a9db4c3" kind="variable"><name>msg</name></member>
+    <member refid="structsl__si91x__ccm__config__t_1a81120eecfee452053d4672c442a03584" kind="variable"><name>msg_length</name></member>
+    <member refid="structsl__si91x__ccm__config__t_1a1b6fc1df1b8360d8de44465a7a102184" kind="variable"><name>nonce</name></member>
+    <member refid="structsl__si91x__ccm__config__t_1aa49d09f5fc8695fafc37fc074877a096" kind="variable"><name>tag</name></member>
+    <member refid="structsl__si91x__ccm__config__t_1abc6cce66417a26ef2524289d1a4952b5" kind="variable"><name>ad</name></member>
+    <member refid="structsl__si91x__ccm__config__t_1a599bc77091f03e65f715098f6aa4665b" kind="variable"><name>nonce_length</name></member>
+    <member refid="structsl__si91x__ccm__config__t_1ad5f79b409eb6ed2e2865d0384b80b0b7" kind="variable"><name>tag_length</name></member>
+    <member refid="structsl__si91x__ccm__config__t_1ae70e620bd7edcadedb618b37add49d43" kind="variable"><name>ad_length</name></member>
+    <member refid="structsl__si91x__ccm__config__t_1a8838986bdf9e17a7e7e9a58a9b960981" kind="variable"><name>key_config</name></member>
+  </compound>
+  <compound refid="structsl__si91x__ccm__key__config__a0__t" kind="struct"><name>sl_si91x_ccm_key_config_a0_t</name>
+    <member refid="structsl__si91x__ccm__key__config__a0__t_1a23538538f9b81ae812cdaef2d7518007" kind="variable"><name>key</name></member>
+    <member refid="structsl__si91x__ccm__key__config__a0__t_1ad456305318d31539724f38dd0c06422d" kind="variable"><name>key_length</name></member>
+  </compound>
+  <compound refid="structsl__si91x__ccm__key__config__b0__t" kind="struct"><name>sl_si91x_ccm_key_config_b0_t</name>
+    <member refid="structsl__si91x__ccm__key__config__b0__t_1ac6d81fbdf87a598193e12b4895985806" kind="variable"><name>key_type</name></member>
+    <member refid="structsl__si91x__ccm__key__config__b0__t_1afd17f4e06a03a0de8ae0eb824f84c16c" kind="variable"><name>key_size</name></member>
+    <member refid="structsl__si91x__ccm__key__config__b0__t_1a07def3a5efbd4bfdac03dc40f01d28de" kind="variable"><name>key_slot</name></member>
+    <member refid="structsl__si91x__ccm__key__config__b0__t_1a6861484d5f9f43eb94a8d86bb9beceb6" kind="variable"><name>wrap_iv_mode</name></member>
+    <member refid="structsl__si91x__ccm__key__config__b0__t_1a074dd3918ff94603a293c17b050b2f9a" kind="variable"><name>wrap_iv</name></member>
+    <member refid="structsl__si91x__ccm__key__config__b0__t_1ab7f0583b0308b3c9da5c3673d3b3cccf" kind="variable"><name>key_buffer</name></member>
+    <member refid="structsl__si91x__ccm__key__config__b0__t_1aa6a5ec8edf9d7edc8b0277412bc5ab5b" kind="variable"><name>reserved</name></member>
+  </compound>
+  <compound refid="unionsl__si91x__ccm__key__config__t" kind="union"><name>sl_si91x_ccm_key_config_t</name>
+    <member refid="unionsl__si91x__ccm__key__config__t_1acc2e6a8e97c1a8a0958626e7d30a6893" kind="variable"><name>a0</name></member>
+    <member refid="unionsl__si91x__ccm__key__config__t_1a93100392542484d1c096c87d5cef8b06" kind="variable"><name>b0</name></member>
+  </compound>
+  <compound refid="structsl__si91x__chachapoly__config__t" kind="struct"><name>sl_si91x_chachapoly_config_t</name>
+    <member refid="structsl__si91x__chachapoly__config__t_1a34e236d13afdbd4c2050dfb7b8a6b9d1" kind="variable"><name>encrypt_decrypt</name></member>
+    <member refid="structsl__si91x__chachapoly__config__t_1a7223f6e0bc7df0ea875fd34e31e7d6f2" kind="variable"><name>chachapoly_mode</name></member>
+    <member refid="structsl__si91x__chachapoly__config__t_1a9fa963150ff34961a61ab136b810b142" kind="variable"><name>dma_use</name></member>
+    <member refid="structsl__si91x__chachapoly__config__t_1a0a6c715e9aa9578f75a789f65be464f4" kind="variable"><name>msg</name></member>
+    <member refid="structsl__si91x__chachapoly__config__t_1a2f3d398481ce68c7ad610919b1f9b868" kind="variable"><name>msg_length</name></member>
+    <member refid="structsl__si91x__chachapoly__config__t_1a131da63024d930cd109d6afdcb77382b" kind="variable"><name>nonce</name></member>
+    <member refid="structsl__si91x__chachapoly__config__t_1a3a85e74591d0dfec8abc6bfdcde35035" kind="variable"><name>ad</name></member>
+    <member refid="structsl__si91x__chachapoly__config__t_1a153caadfbaf2b2f86c769bec3f81097f" kind="variable"><name>ad_length</name></member>
+    <member refid="structsl__si91x__chachapoly__config__t_1a6dab37ebe41864844afa0b26b3330dc5" kind="variable"><name>key_config</name></member>
+  </compound>
+  <compound refid="structsl__si91x__chachapoly__key__config__a0__t" kind="struct"><name>sl_si91x_chachapoly_key_config_a0_t</name>
+    <member refid="structsl__si91x__chachapoly__key__config__a0__t_1a5460db4e9d0f95fd55fcaafb18c56cc2" kind="variable"><name>key_chacha</name></member>
+    <member refid="structsl__si91x__chachapoly__key__config__a0__t_1aad9953edc001d6e8470502d44f4f2a05" kind="variable"><name>keyr_in</name></member>
+    <member refid="structsl__si91x__chachapoly__key__config__a0__t_1ac56659e39548ee8ea3a4939d75cf559e" kind="variable"><name>keys_in</name></member>
+  </compound>
+  <compound refid="structsl__si91x__chachapoly__key__config__b0__t" kind="struct"><name>sl_si91x_chachapoly_key_config_b0_t</name>
+    <member refid="structsl__si91x__chachapoly__key__config__b0__t_1ae238cde01a8babede94f9a15ef9e2522" kind="variable"><name>key_type</name></member>
+    <member refid="structsl__si91x__chachapoly__key__config__b0__t_1a7853e4993e93dec79852a0829b9ccf20" kind="variable"><name>key_size</name></member>
+    <member refid="structsl__si91x__chachapoly__key__config__b0__t_1adfc5fe079082365505a0891f0fd4db8c" kind="variable"><name>key_slot</name></member>
+    <member refid="structsl__si91x__chachapoly__key__config__b0__t_1a9108904e49759c8c212ba9b6825fb220" kind="variable"><name>wrap_iv_mode</name></member>
+    <member refid="structsl__si91x__chachapoly__key__config__b0__t_1a357b78f9c9f857ad422b37d4a0c50432" kind="variable"><name>wrap_iv</name></member>
+    <member refid="structsl__si91x__chachapoly__key__config__b0__t_1a6d7b17630bf98ff9e929c2db72b21afc" kind="variable"><name>key_buffer</name></member>
+    <member refid="structsl__si91x__chachapoly__key__config__b0__t_1a8b2560408148638cc495cc633f36c7f2" kind="variable"><name>reserved</name></member>
+  </compound>
+  <compound refid="unionsl__si91x__chachapoly__key__config__t" kind="union"><name>sl_si91x_chachapoly_key_config_t</name>
+    <member refid="unionsl__si91x__chachapoly__key__config__t_1affb0eebd17aa623b3e5720a15cbac503" kind="variable"><name>a0</name></member>
+    <member refid="unionsl__si91x__chachapoly__key__config__t_1ac7e0cf3cab09021d469c60382154a727" kind="variable"><name>b0</name></member>
+  </compound>
+  <compound refid="structsl__si91x__ecdsa__config__t" kind="struct"><name>sl_si91x_ecdsa_config_t</name>
+    <member refid="structsl__si91x__ecdsa__config__t_1abba88862f79bd9060a2788ddc332d0cc" kind="variable"><name>ecdsa_operation</name></member>
+    <member refid="structsl__si91x__ecdsa__config__t_1ad16155077dabb51b5d4173553bc51ed0" kind="variable"><name>curve_id</name></member>
+    <member refid="structsl__si91x__ecdsa__config__t_1a66d77aea4596f93f446f54dc8e68a958" kind="variable"><name>sha_mode</name></member>
+    <member refid="structsl__si91x__ecdsa__config__t_1ad40edca0609a6d890c58026cf25a5310" kind="variable"><name>private_key</name></member>
+    <member refid="structsl__si91x__ecdsa__config__t_1a372141ba4d9ea5202bcf8a18becab091" kind="variable"><name>private_key_length</name></member>
+    <member refid="structsl__si91x__ecdsa__config__t_1a49037247af061f6f7d733e2b8caaa274" kind="variable"><name>public_key</name></member>
+    <member refid="structsl__si91x__ecdsa__config__t_1af98ba1752232dd020325739e374d319b" kind="variable"><name>public_key_length</name></member>
+    <member refid="structsl__si91x__ecdsa__config__t_1a449a6b16423767b954ff60a84a594007" kind="variable"><name>signature</name></member>
+    <member refid="structsl__si91x__ecdsa__config__t_1a73e8f9f56c72602e68dc93d886bb2b3b" kind="variable"><name>signature_length</name></member>
+    <member refid="structsl__si91x__ecdsa__config__t_1afd3d4cc540a2c995b8f8895ff2da4fd0" kind="variable"><name>msg</name></member>
+    <member refid="structsl__si91x__ecdsa__config__t_1a0b0caa39b0ed0d7750cd477817afa2a1" kind="variable"><name>msg_length</name></member>
+    <member refid="structsl__si91x__ecdsa__config__t_1a1697751d5cbc920c229245ce34b55a85" kind="variable"><name>key_config</name></member>
+  </compound>
+  <compound refid="structsl__si91x__ecdsa__key__config__a0__t" kind="struct"><name>sl_si91x_ecdsa_key_config_a0_t</name>
+    <member refid="structsl__si91x__ecdsa__key__config__a0__t_1ad3ba11bd0e21434a983f531b604ace6a" kind="variable"><name>key_length</name></member>
+  </compound>
+  <compound refid="structsl__si91x__ecdsa__key__config__b0__t" kind="struct"><name>sl_si91x_ecdsa_key_config_b0_t</name>
+    <member refid="structsl__si91x__ecdsa__key__config__b0__t_1ae7c9dd33c63d9134ef9ff4eef60c2c3a" kind="variable"><name>key_type</name></member>
+    <member refid="structsl__si91x__ecdsa__key__config__b0__t_1a5e026fffa2e445d348050efed4986328" kind="variable"><name>key_size</name></member>
+    <member refid="structsl__si91x__ecdsa__key__config__b0__t_1a683e7f41389ba3a057e7dedf3a76e739" kind="variable"><name>key_slot</name></member>
+    <member refid="structsl__si91x__ecdsa__key__config__b0__t_1aeebf63bc6441706fd2419f191ddeca34" kind="variable"><name>wrap_iv_mode</name></member>
+    <member refid="structsl__si91x__ecdsa__key__config__b0__t_1a015b54c8662ec8f54080f6feee791842" kind="variable"><name>wrap_iv</name></member>
+    <member refid="structsl__si91x__ecdsa__key__config__b0__t_1af7689bc9e829a739e1fc6d938f68b9a0" kind="variable"><name>reserved</name></member>
+  </compound>
+  <compound refid="unionsl__si91x__ecdsa__key__config__t" kind="union"><name>sl_si91x_ecdsa_key_config_t</name>
+    <member refid="unionsl__si91x__ecdsa__key__config__t_1ac8270ef7ea62e17993e7320c97996410" kind="variable"><name>a0</name></member>
+    <member refid="unionsl__si91x__ecdsa__key__config__t_1ad885ceee00ba293a4788f1f3f50cd680" kind="variable"><name>b0</name></member>
+  </compound>
+  <compound refid="structsl__si91x__gcm__config__t" kind="struct"><name>sl_si91x_gcm_config_t</name>
+    <member refid="structsl__si91x__gcm__config__t_1a75c6aae2f80dd83028250441c76f8a07" kind="variable"><name>encrypt_decrypt</name></member>
+    <member refid="structsl__si91x__gcm__config__t_1ac98554c714c0345677e4a07e6bb15dc3" kind="variable"><name>dma_use</name></member>
+    <member refid="structsl__si91x__gcm__config__t_1a35698d3347fd3b7c62c08bba7bdff652" kind="variable"><name>msg</name></member>
+    <member refid="structsl__si91x__gcm__config__t_1ad996c4c63fe1246e24dc0959e366a1e3" kind="variable"><name>msg_length</name></member>
+    <member refid="structsl__si91x__gcm__config__t_1a664ad3557a994cb0c6df9c3e2ffa6e3f" kind="variable"><name>nonce</name></member>
+    <member refid="structsl__si91x__gcm__config__t_1a1ccbbb5bfc40c63cd6f275f0d699a1a9" kind="variable"><name>ad</name></member>
+    <member refid="structsl__si91x__gcm__config__t_1a1da460f3e252f94d484de6722589e4f7" kind="variable"><name>nonce_length</name></member>
+    <member refid="structsl__si91x__gcm__config__t_1ad4f6f28e97dfe711f3c067e547a54e97" kind="variable"><name>ad_length</name></member>
+    <member refid="structsl__si91x__gcm__config__t_1a8bb0cb5334c81781694b7ccb0972070a" kind="variable"><name>key_config</name></member>
+  </compound>
+  <compound refid="structsl__si91x__gcm__key__config__a0__t" kind="struct"><name>sl_si91x_gcm_key_config_a0_t</name>
+    <member refid="structsl__si91x__gcm__key__config__a0__t_1aa18f62f8268657f7eb6120c1dd37708f" kind="variable"><name>key</name></member>
+    <member refid="structsl__si91x__gcm__key__config__a0__t_1aac8e41eb3ff850363f224bbffd27ad44" kind="variable"><name>key_length</name></member>
+  </compound>
+  <compound refid="structsl__si91x__gcm__key__config__b0__t" kind="struct"><name>sl_si91x_gcm_key_config_b0_t</name>
+    <member refid="structsl__si91x__gcm__key__config__b0__t_1afce619741f439e8786923228d185b70c" kind="variable"><name>key_type</name></member>
+    <member refid="structsl__si91x__gcm__key__config__b0__t_1a2cf8e201fb126f0b0d8e7f27a44fa73b" kind="variable"><name>key_size</name></member>
+    <member refid="structsl__si91x__gcm__key__config__b0__t_1ac03e87650fc14718235c6a61260f6073" kind="variable"><name>key_slot</name></member>
+    <member refid="structsl__si91x__gcm__key__config__b0__t_1a4d563ed74743f929a1666237cd6a2633" kind="variable"><name>wrap_iv_mode</name></member>
+    <member refid="structsl__si91x__gcm__key__config__b0__t_1aed83476d89add31b46a9911524d4a0fd" kind="variable"><name>wrap_iv</name></member>
+    <member refid="structsl__si91x__gcm__key__config__b0__t_1a1ca2edee64490522e6923b930fb6038d" kind="variable"><name>key_buffer</name></member>
+    <member refid="structsl__si91x__gcm__key__config__b0__t_1a81515c1ad33c8d12e386ba266ed2278d" kind="variable"><name>reserved</name></member>
+  </compound>
+  <compound refid="unionsl__si91x__gcm__key__config__t" kind="union"><name>sl_si91x_gcm_key_config_t</name>
+    <member refid="unionsl__si91x__gcm__key__config__t_1a1c132c1038659d2c18548ae14750efee" kind="variable"><name>a0</name></member>
+    <member refid="unionsl__si91x__gcm__key__config__t_1ada43d15974f4994352c662cfcba96a76" kind="variable"><name>b0</name></member>
+  </compound>
+  <compound refid="structsl__si91x__hmac__config__t" kind="struct"><name>sl_si91x_hmac_config_t</name>
+    <member refid="structsl__si91x__hmac__config__t_1a574b52d13be4a1bfb2a686b98669cc67" kind="variable"><name>hmac_mode</name></member>
+    <member refid="structsl__si91x__hmac__config__t_1a1633a7adf8d5d1938da1405506a462e7" kind="variable"><name>msg</name></member>
+    <member refid="structsl__si91x__hmac__config__t_1a6f863f7de697028f5f4aabd1d6ca0ac9" kind="variable"><name>msg_length</name></member>
+    <member refid="structsl__si91x__hmac__config__t_1a3542cd1311effbe3f871d327872c046a" kind="variable"><name>key_config</name></member>
+  </compound>
+  <compound refid="structsl__si91x__hmac__key__config__A0__t" kind="struct"><name>sl_si91x_hmac_key_config_A0_t</name>
+    <member refid="structsl__si91x__hmac__key__config__A0__t_1a04b835f1dd9293152651f84f7dc6e4f3" kind="variable"><name>key</name></member>
+    <member refid="structsl__si91x__hmac__key__config__A0__t_1a4a0d8025f9614e27cbe11459929822e6" kind="variable"><name>key_length</name></member>
+  </compound>
+  <compound refid="structsl__si91x__hmac__key__config__B0__t" kind="struct"><name>sl_si91x_hmac_key_config_B0_t</name>
+    <member refid="structsl__si91x__hmac__key__config__B0__t_1af0cdf73da6cff9f2781feafcd447f7f6" kind="variable"><name>key_type</name></member>
+    <member refid="structsl__si91x__hmac__key__config__B0__t_1a808b8ac9b39b6e04484dce6515d7409a" kind="variable"><name>key_size</name></member>
+    <member refid="structsl__si91x__hmac__key__config__B0__t_1a0cca52ebd200f96b7459d7b7856114c3" kind="variable"><name>key_slot</name></member>
+    <member refid="structsl__si91x__hmac__key__config__B0__t_1a7f6eac924421659fa28b7159490bee84" kind="variable"><name>wrap_iv_mode</name></member>
+    <member refid="structsl__si91x__hmac__key__config__B0__t_1a8da89ab0f44d8f5ecd2c8070860b1fe3" kind="variable"><name>wrap_iv</name></member>
+    <member refid="structsl__si91x__hmac__key__config__B0__t_1a698407bd708595e9040fadd7224b24a1" kind="variable"><name>key</name></member>
+    <member refid="structsl__si91x__hmac__key__config__B0__t_1af27b0da188f9efebf6d3a21276094195" kind="variable"><name>reserved</name></member>
+  </compound>
+  <compound refid="unionsl__si91x__hmac__key__config__t" kind="union"><name>sl_si91x_hmac_key_config_t</name>
+    <member refid="unionsl__si91x__hmac__key__config__t_1a7f808146eb6f0e371ba2afaf79786285" kind="variable"><name>A0</name></member>
+    <member refid="unionsl__si91x__hmac__key__config__t_1adf4cef49d8a7fc6e65027141b67e1dc5" kind="variable"><name>B0</name></member>
+  </compound>
+  <compound refid="structsl__si91x__trng__config__t" kind="struct"><name>sl_si91x_trng_config_t</name>
+    <member refid="structsl__si91x__trng__config__t_1af3517a81bc06d3e3e7ea6803380fcc23" kind="variable"><name>trng_test_data</name></member>
+    <member refid="structsl__si91x__trng__config__t_1a451065e3d109ecc0c6afdc752e4c0009" kind="variable"><name>input_length</name></member>
+    <member refid="structsl__si91x__trng__config__t_1a25ec083e4374631863ad2a98eb0a69ff" kind="variable"><name>trng_key</name></member>
+  </compound>
+  <compound refid="structsl__si91x__wrap__config__t" kind="struct"><name>sl_si91x_wrap_config_t</name>
+    <member refid="structsl__si91x__wrap__config__t_1ac553dd50e88c211df75b1fa94cb088cb" kind="variable"><name>key_type</name></member>
+    <member refid="structsl__si91x__wrap__config__t_1a105a735b0a0d005c096133d87b26888d" kind="variable"><name>padding</name></member>
+    <member refid="structsl__si91x__wrap__config__t_1afb3019cbad2bd6c17840c5b445e3ea17" kind="variable"><name>hmac_sha_mode</name></member>
+    <member refid="structsl__si91x__wrap__config__t_1aef9137cbfae684f3e84344ea73103129" kind="variable"><name>key_size</name></member>
+    <member refid="structsl__si91x__wrap__config__t_1a99e07f6e359083070b52b491e8d5546a" kind="variable"><name>wrap_iv_mode</name></member>
+    <member refid="structsl__si91x__wrap__config__t_1acf9b4ed77a2b2c7630425896ae5033f4" kind="variable"><name>wrap_iv</name></member>
+    <member refid="structsl__si91x__wrap__config__t_1a7015e009817d8c76827f1ae665c15951" kind="variable"><name>key_buffer</name></member>
+  </compound>
+  <compound refid="structsli__si91x__crypto__cipher__operation__t" kind="struct"><name>sli_si91x_crypto_cipher_operation_t</name>
+    <member refid="structsli__si91x__crypto__cipher__operation__t_1a8c5651b2d6d547aaba193ca0394c2b09" kind="variable"><name>alg</name></member>
+    <member refid="structsli__si91x__crypto__cipher__operation__t_1afc0519d65f88b1926a190fb116f569f7" kind="variable"><name>config</name></member>
+  </compound>
+  <compound refid="structsli__si91x__psa__aes__multipart__config__t" kind="struct"><name>sli_si91x_psa_aes_multipart_config_t</name>
+    <member refid="structsli__si91x__psa__aes__multipart__config__t_1a54374d75a78756f08629c2bc043177c4" kind="variable"><name>aes_mode</name></member>
+    <member refid="structsli__si91x__psa__aes__multipart__config__t_1a4ee0fdacbfce43c51aa3878ca978f678" kind="variable"><name>encrypt_decrypt</name></member>
+    <member refid="structsli__si91x__psa__aes__multipart__config__t_1a874969575d254a5cbbf079ce160a87b5" kind="variable"><name>msg</name></member>
+    <member refid="structsli__si91x__psa__aes__multipart__config__t_1aa7e145e9039af75823458cc386c104b9" kind="variable"><name>msg_length</name></member>
+    <member refid="structsli__si91x__psa__aes__multipart__config__t_1a399608620ff2da958be5120c6cbae4f9" kind="variable"><name>iv</name></member>
+    <member refid="structsli__si91x__psa__aes__multipart__config__t_1a1ab4ecfe0a303b313670ece04c137cea" kind="variable"><name>iv_flag</name></member>
+    <member refid="structsli__si91x__psa__aes__multipart__config__t_1a6d3ea246de929e38cf81d4b82b489632" kind="variable"><name>key_config</name></member>
+    <member refid="structsli__si91x__psa__aes__multipart__config__t_1a91ada830340c28febe9030ce2c5e8868" kind="variable"><name>chunk_flag</name></member>
+  </compound>
+  <compound refid="sl__si91x__aes_8h" kind="file"><name>sl_si91x_aes.h</name>
+    <member refid="group__CRYPTO__AES__CONSTANTS_1ga2be33478ea68e099978c931604211cd5" kind="define"><name>SL_SI91X_AES_BLOCK_SIZE</name></member>
+    <member refid="group__CRYPTO__AES__CONSTANTS_1ga21c8a3c8913e02b6f6644428c131d507" kind="define"><name>SL_SI91X_AES_FIRST_CHUNK</name></member>
+    <member refid="group__CRYPTO__AES__CONSTANTS_1gae612d02561af16487db6cd03072fb7a5" kind="define"><name>SL_SI91X_AES_MIDDLE_CHUNK</name></member>
+    <member refid="group__CRYPTO__AES__CONSTANTS_1gad135009e1cbaebe26f46d27dce12439a" kind="define"><name>SL_SI91X_AES_LAST_CHUNK</name></member>
+    <member refid="group__CRYPTO__AES__CONSTANTS_1ga7d391bbc018f78114f268d40cb068f98" kind="enum"><name>sl_si91x_aes_mode_t</name></member>
+    <member refid="group__CRYPTO__AES__CONSTANTS_1gga7d391bbc018f78114f268d40cb068f98a3b24c0b918aabf1865fc331054559613" kind="enumvalue"><name>SL_SI91X_AES_CBC</name></member>
+    <member refid="group__CRYPTO__AES__CONSTANTS_1gga7d391bbc018f78114f268d40cb068f98a81af9fce9bd67e446d4d2e4898c0f72c" kind="enumvalue"><name>SL_SI91X_AES_ECB</name></member>
+    <member refid="group__CRYPTO__AES__CONSTANTS_1gga7d391bbc018f78114f268d40cb068f98a509afaba3be0e8225e965df8142d78e5" kind="enumvalue"><name>SL_SI91X_AES_CTR</name></member>
+    <member refid="group__CRYPTO__AES__CONSTANTS_1gacfa81db6bfb71882bf35012b6a57c713" kind="enum"><name>sl_si91x_aes_type_t</name></member>
+    <member refid="group__CRYPTO__AES__CONSTANTS_1ggacfa81db6bfb71882bf35012b6a57c713ae046f869a059c0dfaaf1ba8cad94fb73" kind="enumvalue"><name>SL_SI91X_AES_ENCRYPT</name></member>
+    <member refid="group__CRYPTO__AES__CONSTANTS_1ggacfa81db6bfb71882bf35012b6a57c713a7067197dae5ab37c49e9a6f89385a972" kind="enumvalue"><name>SL_SI91X_AES_DECRYPT</name></member>
+    <member refid="group__CRYPTO__AES__CONSTANTS_1gabcfc4a6c04b3af6fd6c10c2ec6f3a55a" kind="enum"><name>sl_si91x_aes_key_size_t</name></member>
+    <member refid="group__CRYPTO__AES__CONSTANTS_1ggabcfc4a6c04b3af6fd6c10c2ec6f3a55aa0226fb24cd3a9b5f67be46cb25e13dd7" kind="enumvalue"><name>SL_SI91X_AES_KEY_SIZE_128</name></member>
+    <member refid="group__CRYPTO__AES__CONSTANTS_1ggabcfc4a6c04b3af6fd6c10c2ec6f3a55aae4318ab0aef889cb295c7c8fe4ff0a98" kind="enumvalue"><name>SL_SI91X_AES_KEY_SIZE_192</name></member>
+    <member refid="group__CRYPTO__AES__CONSTANTS_1ggabcfc4a6c04b3af6fd6c10c2ec6f3a55aae0b9e5345083dd96f14215894eaf54c3" kind="enumvalue"><name>SL_SI91X_AES_KEY_SIZE_256</name></member>
+    <member refid="group__CRYPTO__AES__FUNCTIONS_1gaf508565bc1ffbe903d3496a7b712dd2f" kind="function"><name>sl_si91x_aes</name></member>
+    <member refid="group__CRYPTO__AES__FUNCTIONS_1ga0f48a13beb7db143b748ae6678eb490f" kind="function"><name>sl_si91x_aes_multipart</name></member>
+  </compound>
+  <compound refid="sl__si91x__psa__aes_8h" kind="file"><name>sl_si91x_psa_aes.h</name>
+    <member refid="sl__si91x__psa__aes_8h_1ae96293999f0f774032a000a7835f60de" kind="function"><name>sli_si91x_crypto_cipher_encrypt</name></member>
+    <member refid="sl__si91x__psa__aes_8h_1a8c56e59f150c49a819619f25502b557d" kind="function"><name>sli_si91x_crypto_cipher_decrypt</name></member>
+    <member refid="sl__si91x__psa__aes_8h_1aa59a8cb88fb215e1da6886c91c33b75d" kind="function"><name>sli_si91x_crypto_cipher_encrypt_setup</name></member>
+    <member refid="sl__si91x__psa__aes_8h_1a7a3f9733532e39cae6adf9bda770cd1d" kind="function"><name>sli_si91x_crypto_cipher_decrypt_setup</name></member>
+    <member refid="sl__si91x__psa__aes_8h_1a1ddeb700bc52dd70584bd185d7b1409d" kind="function"><name>sli_si91x_crypto_cipher_set_iv</name></member>
+    <member refid="sl__si91x__psa__aes_8h_1a32fc444b9c4b289edd40e04a38ad8874" kind="function"><name>sli_si91x_crypto_cipher_update</name></member>
+    <member refid="sl__si91x__psa__aes_8h_1abf81f31d4e9f5ce9e69e9ed39e97419d" kind="function"><name>sli_si91x_crypto_cipher_finish</name></member>
+    <member refid="sl__si91x__psa__aes_8h_1a36bb5f092d2e01f40075a63c3f114868" kind="function"><name>sli_si91x_crypto_cipher_abort</name></member>
+  </compound>
+  <compound refid="sl__si91x__attestation_8h" kind="file"><name>sl_si91x_attestation.h</name>
+    <member refid="group__CRYPTO__ATTESTATION__FUNCTIONS_1ga1b34e32bd04dbdf7b825d748e7f532d3" kind="function"><name>sl_si91x_attestation_get_token</name></member>
+  </compound>
+  <compound refid="sl__si91x__ccm_8h" kind="file"><name>sl_si91x_ccm.h</name>
+    <member refid="group__CRYPTO__CCM__CONSTANTS_1gafb56b83af116d04420ceaeffaca882f1" kind="enum"><name>sl_si91x_ccm_type_t</name></member>
+    <member refid="group__CRYPTO__CCM__CONSTANTS_1ggafb56b83af116d04420ceaeffaca882f1a9dded5d4ac340b935b1647c8f4effba8" kind="enumvalue"><name>SL_SI91X_CCM_ENCRYPT</name></member>
+    <member refid="group__CRYPTO__CCM__CONSTANTS_1ggafb56b83af116d04420ceaeffaca882f1a3bb826abf66861cf6f32971279a8a49f" kind="enumvalue"><name>SL_SI91X_CCM_DECRYPT</name></member>
+    <member refid="group__CRYPTO__CCM__CONSTANTS_1gacd989fb5d8038b724895d36c08396ee5" kind="enum"><name>sl_si91x_ccm_key_size_t</name></member>
+    <member refid="group__CRYPTO__CCM__CONSTANTS_1ggacd989fb5d8038b724895d36c08396ee5a14e8d7a71c938e4fc52f49dcef35397a" kind="enumvalue"><name>SL_SI91X_CCM_KEY_SIZE_128</name></member>
+    <member refid="group__CRYPTO__CCM__CONSTANTS_1ggacd989fb5d8038b724895d36c08396ee5a0ea2c3150893be8f2ac2f59335c43ff7" kind="enumvalue"><name>SL_SI91X_CCM_KEY_SIZE_192</name></member>
+    <member refid="group__CRYPTO__CCM__CONSTANTS_1ggacd989fb5d8038b724895d36c08396ee5a554790d09c24d35567be6f04b13b4ddc" kind="enumvalue"><name>SL_SI91X_CCM_KEY_SIZE_256</name></member>
+    <member refid="group__CRYPTO__CCM__FUNCTIONS_1ga7b5f373e08f72466aabed31c1b01808d" kind="function"><name>sl_si91x_ccm</name></member>
+  </compound>
+  <compound refid="sl__si91x__chachapoly_8h" kind="file"><name>sl_si91x_chachapoly.h</name>
+    <member refid="group__CRYPTO__CHACHAPOLY__CONSTANTS_1gaca1e019835c27cef6dd0b254c6430e99" kind="enum"><name>sl_si91x_chachapoly_type_t</name></member>
+    <member refid="group__CRYPTO__CHACHAPOLY__CONSTANTS_1ggaca1e019835c27cef6dd0b254c6430e99a5d78fe0143656163873bd4dbbcceeb7e" kind="enumvalue"><name>SL_SI91X_CHACHAPOLY_ENCRYPT</name></member>
+    <member refid="group__CRYPTO__CHACHAPOLY__CONSTANTS_1ggaca1e019835c27cef6dd0b254c6430e99a26cf379b91040ea238cf71479cbf830c" kind="enumvalue"><name>SL_SI91X_CHACHAPOLY_DECRYPT</name></member>
+    <member refid="group__CRYPTO__CHACHAPOLY__CONSTANTS_1ga915a39d925d0469a6d786e6902c12208" kind="enum"><name>sl_si91x_chachapoly_mode_t</name></member>
+    <member refid="group__CRYPTO__CHACHAPOLY__CONSTANTS_1gga915a39d925d0469a6d786e6902c12208abeeb3fde963130aa42e0dfcf7b143edf" kind="enumvalue"><name>SL_SI91X_CHACHA20POLY1305_MODE</name></member>
+    <member refid="group__CRYPTO__CHACHAPOLY__CONSTANTS_1gga915a39d925d0469a6d786e6902c12208a2298517d03b6f8ea244ef921eb96f14f" kind="enumvalue"><name>SL_SI91X_CHACHA20_MODE</name></member>
+    <member refid="group__CRYPTO__CHACHAPOLY__CONSTANTS_1gga915a39d925d0469a6d786e6902c12208ab7ffe6827c4fe6337ce5001f6e7248e9" kind="enumvalue"><name>SL_SI91X_CHACHAPOLY_POLY1305_KEYR_KEYS_MODE</name></member>
+    <member refid="group__CRYPTO__CHACHAPOLY__CONSTANTS_1gga915a39d925d0469a6d786e6902c12208a0f94cf9813d9579ecda8e0117becdf86" kind="enumvalue"><name>SL_SI91X_POLY1305_MODE</name></member>
+    <member refid="group__CRYPTO__CHACHAPOLY__CONSTANTS_1gaccec4293096edded87b75bc42930529a" kind="enum"><name>sl_si91x_chachapoly_dma_use_t</name></member>
+    <member refid="group__CRYPTO__CHACHAPOLY__CONSTANTS_1ggaccec4293096edded87b75bc42930529aac4b267d43abe985af9291e3bc52d4693" kind="enumvalue"><name>SL_SI91X_CHACHAPOLY_DMA_DISABLE</name></member>
+    <member refid="group__CRYPTO__CHACHAPOLY__CONSTANTS_1ggaccec4293096edded87b75bc42930529aa1b398e3f8a41b467dd6ac6fd2abc9d1a" kind="enumvalue"><name>SL_SI91X_CHACHAPOLY_DMA_ENABLE</name></member>
+    <member refid="group__CRYPTO__CHACHAPOLY__CONSTANTS_1ga43f7318ac25be44fb1507e4fe85d54e5" kind="enum"><name>sl_si91x_chachapoly_key_size_t</name></member>
+    <member refid="group__CRYPTO__CHACHAPOLY__CONSTANTS_1gga43f7318ac25be44fb1507e4fe85d54e5ac26b62ee64864d8fc7f961da0f29cda1" kind="enumvalue"><name>SL_SI91X_CHACHAPOLY_KEY_SIZE_256</name></member>
+    <member refid="group__CRYPTO__CHACHAPOLY__FUNCTIONS_1gaa97ba8e510cfb61378cd94c41e7efe7a" kind="function"><name>sl_si91x_chachapoly</name></member>
+  </compound>
+  <compound refid="sl__si91x__crypto__utility_8h" kind="file"><name>sl_si91x_crypto_utility.h</name>
+    <member refid="group__CRYPTO__UTILITY__FUNCTIONS_1gabbf8c23ff0e0c848c473c4ed76a60558" kind="function"><name>pkcs7_padding</name></member>
+    <member refid="group__CRYPTO__UTILITY__FUNCTIONS_1gabac5d16db3bb54fda056f7e4ac1f32c7" kind="function"><name>pkcs7_unpad</name></member>
+  </compound>
+  <compound refid="doxygen__indexfile_8md" kind="file"><name>doxygen_indexfile.md</name>
+  </compound>
+  <compound refid="doxygen__template_8h" kind="file"><name>doxygen_template.h</name>
+  </compound>
+  <compound refid="sl__si91x__ecdh_8h" kind="file"><name>sl_si91x_ecdh.h</name>
+    <member refid="group__CRYPTO__ECDH__CONSTANTS_1gae36b0f21336a3ac7366f105d357ae8de" kind="define"><name>SL_SI91X_ECDH_MAX_VECTOR_SIZE</name></member>
+    <member refid="group__CRYPTO__ECDH__CONSTANTS_1gabc2911014049f6f70e80752da677f66d" kind="enum"><name>sl_si91x_ecdh_mode_t</name></member>
+    <member refid="group__CRYPTO__ECDH__CONSTANTS_1ggabc2911014049f6f70e80752da677f66dae262ac368f09a8878b26697d2a3e9d0b" kind="enumvalue"><name>SL_SI91X_ECDH_192</name></member>
+    <member refid="group__CRYPTO__ECDH__CONSTANTS_1ggabc2911014049f6f70e80752da677f66da23c3d52b7ae2975eeccb778577485d48" kind="enumvalue"><name>SL_SI91X_ECDH_224</name></member>
+    <member refid="group__CRYPTO__ECDH__CONSTANTS_1ggabc2911014049f6f70e80752da677f66da74f9eaa1a977eea1bd404b8bbd3800b1" kind="enumvalue"><name>SL_SI91X_ECDH_256</name></member>
+    <member refid="group__CRYPTO__ECDH__CONSTANTS_1gab49d4f8f37f85fd2d42a0242583900c0" kind="enum"><name>sl_si91x_ecdh_sub_mode_t</name></member>
+    <member refid="group__CRYPTO__ECDH__CONSTANTS_1ggab49d4f8f37f85fd2d42a0242583900c0acc15ee7f588414377b78a48bb72ffd1b" kind="enumvalue"><name>SL_SI91X_ECDH_MUL</name></member>
+    <member refid="group__CRYPTO__ECDH__CONSTANTS_1ggab49d4f8f37f85fd2d42a0242583900c0a67cbfa8dec99f5f0aefda7b554c89e85" kind="enumvalue"><name>SL_SI91X_ECDH_ADD</name></member>
+    <member refid="group__CRYPTO__ECDH__CONSTANTS_1ggab49d4f8f37f85fd2d42a0242583900c0abc8f993c937566ebdd5e6e5cc646ad70" kind="enumvalue"><name>SL_SI91X_ECDH_SUB</name></member>
+    <member refid="group__CRYPTO__ECDH__CONSTANTS_1ggab49d4f8f37f85fd2d42a0242583900c0a17cef8efc57a5626a4d46ac600c5a012" kind="enumvalue"><name>SL_SI91X_ECDH_DOUBLE</name></member>
+    <member refid="group__CRYPTO__ECDH__CONSTANTS_1ggab49d4f8f37f85fd2d42a0242583900c0a764b57af2d6d330357d1cbcb7d05f792" kind="enumvalue"><name>SL_SI91X_ECDH_AFFINITY</name></member>
+    <member refid="group__CRYPTO__ECDH__CONSTANTS_1ga3da614442e62a63c46194498c5154f47" kind="enum"><name>sl_si91x_ecdh_vector_size_t</name></member>
+    <member refid="group__CRYPTO__ECDH__CONSTANTS_1gga3da614442e62a63c46194498c5154f47a2b3e1462e5aef8b228c48995e2b29f44" kind="enumvalue"><name>SL_SI91X_ECDH_VECTOR_SIZE_192</name></member>
+    <member refid="group__CRYPTO__ECDH__CONSTANTS_1gga3da614442e62a63c46194498c5154f47a931f016c0eea24880b8862c0ed4aa9b9" kind="enumvalue"><name>SL_SI91X_ECDH_VECTOR_SIZE_224</name></member>
+    <member refid="group__CRYPTO__ECDH__CONSTANTS_1gga3da614442e62a63c46194498c5154f47a0eaf1b72ae3eed2dcb1504094147c76b" kind="enumvalue"><name>SL_SI91X_ECDH_VECTOR_SIZE_256</name></member>
+    <member refid="group__CRYPTO__ECDH__CONSTANTS_1gaea9248d323dd1986c763cf5ff73ce51b" kind="enum"><name>sl_si91x_ecdh_curve_type_t</name></member>
+    <member refid="group__CRYPTO__ECDH__CONSTANTS_1ggaea9248d323dd1986c763cf5ff73ce51ba3ab7561384be2f0fedbcda7b390e2db6" kind="enumvalue"><name>SL_SI91X_ECDH_CURVE_P</name></member>
+    <member refid="group__CRYPTO__ECDH__CONSTANTS_1ggaea9248d323dd1986c763cf5ff73ce51ba6ada1ab57cc8601ebe139accdb8038fc" kind="enumvalue"><name>SL_SI91X_ECDH_CURVE_K</name></member>
+    <member refid="group__CRYPTO__ECDH__CONSTANTS_1ggaea9248d323dd1986c763cf5ff73ce51ba3f316a27d656aacd8e5acd43a4214392" kind="enumvalue"><name>SL_SI91X_ECDH_CURVE_B</name></member>
+    <member refid="group__CRYPTO__ECDH__FUNCTIONS_1ga36ffef1836318b405ab66117571590a6" kind="function"><name>sl_si91x_ecdh_point_addition</name></member>
+    <member refid="group__CRYPTO__ECDH__FUNCTIONS_1ga5aac96166e13f52136e16b0606ce8a14" kind="function"><name>sl_si91x_ecdh_point_subtraction</name></member>
+    <member refid="group__CRYPTO__ECDH__FUNCTIONS_1ga8f6c370cdd8616b4dfc7c6266d5fc05c" kind="function"><name>sl_si91x_ecdh_point_multiplication</name></member>
+    <member refid="group__CRYPTO__ECDH__FUNCTIONS_1ga8534b935a906b781a8261184e1bfaf2b" kind="function"><name>sl_si91x_ecdh_point_double</name></member>
+    <member refid="group__CRYPTO__ECDH__FUNCTIONS_1ga8b776bbe9871c570030476fc6fd2422b" kind="function"><name>sl_si91x_ecdh_point_affine</name></member>
+  </compound>
+  <compound refid="sl__si91x__psa__ecdh_8h" kind="file"><name>sl_si91x_psa_ecdh.h</name>
+    <member refid="sl__si91x__psa__ecdh_8h_1a1c18077d33bd9d01a7db51a32383be3c" kind="define"><name>ECC_P256_LEN</name></member>
+    <member refid="sl__si91x__psa__ecdh_8h_1acfa9d71e5db293cbf793ebc805ef6a74" kind="define"><name>ECC_P192_LEN</name></member>
+    <member refid="sl__si91x__psa__ecdh_8h_1a6ce17b019dd37b5787ce80fd80c30c79" kind="define"><name>ECC_P256_BITS_LEN</name></member>
+    <member refid="sl__si91x__psa__ecdh_8h_1a7476554a823ea93284cc7e4bbc425ce6" kind="define"><name>ECC_P192_BITS_LEN</name></member>
+    <member refid="sl__si91x__psa__ecdh_8h_1a6b20d41d6252e9871430c242cb1a56e7" kind="define"><name>BUFFER_SIZE</name></member>
+    <member refid="sl__si91x__psa__ecdh_8h_1ab70e4cfb5c3f1dbf7dfe84fdf9d4e557" kind="function"><name>sli_si91x_psa_generate_key_ecdh</name></member>
+    <member refid="sl__si91x__psa__ecdh_8h_1a1d68e892ee79b856f71dc06b24143d9b" kind="function"><name>sli_si91x_psa_export_public_key_ecdh</name></member>
+    <member refid="sl__si91x__psa__ecdh_8h_1ad8e2c00577bb69963fa5aa8fc45a9dd4" kind="function"><name>sli_si91x_psa_ecdh_key_agreement</name></member>
+  </compound>
+  <compound refid="sl__si91x__ecdsa_8h" kind="file"><name>sl_si91x_ecdsa.h</name>
+    <member refid="group__CRYPTO__ECDSA__CONSTANTS_1gac22f70d4a1d9c6fd627b4b4e2b123a57" kind="enum"><name>sl_si91x_ecdsa_key_size_t</name></member>
+    <member refid="group__CRYPTO__ECDSA__CONSTANTS_1ggac22f70d4a1d9c6fd627b4b4e2b123a57a1e0725e25ede366535b9ef8ccc77848e" kind="enumvalue"><name>SL_SI91X_ECDSA_PRIV_KEY_SIZE_224</name></member>
+    <member refid="group__CRYPTO__ECDSA__CONSTANTS_1ggac22f70d4a1d9c6fd627b4b4e2b123a57a91439460680159aff8b663f9188d0f5d" kind="enumvalue"><name>SL_SI91X_ECDSA_PRIV_KEY_SIZE_256</name></member>
+    <member refid="group__CRYPTO__ECDSA__CONSTANTS_1ggac22f70d4a1d9c6fd627b4b4e2b123a57ab295d52a8e1996d55a21c789f431a699" kind="enumvalue"><name>SL_SI91X_ECDSA_PUB_KEY_SIZE_224</name></member>
+    <member refid="group__CRYPTO__ECDSA__CONSTANTS_1ggac22f70d4a1d9c6fd627b4b4e2b123a57a18cf7330b2f0bedb4e8fefae6297b8a9" kind="enumvalue"><name>SL_SI91X_ECDSA_PUB_KEY_SIZE_256</name></member>
+    <member refid="group__CRYPTO__ECDSA__CONSTANTS_1ga726017ce8f30df553274e46fd78b156c" kind="enum"><name>sl_si91x_crypto_ecdsa_mode_t</name></member>
+    <member refid="group__CRYPTO__ECDSA__CONSTANTS_1gga726017ce8f30df553274e46fd78b156caad0a70989812505e855d8cb1b740c348" kind="enumvalue"><name>SL_SI91X_GENERATE_ECC_KEY_PAIR</name></member>
+    <member refid="group__CRYPTO__ECDSA__CONSTANTS_1gga726017ce8f30df553274e46fd78b156cac1c03708b8e50c3be97bc6906cadb023" kind="enumvalue"><name>SL_SI91X_ECDSA_GENERATE_SIGN</name></member>
+    <member refid="group__CRYPTO__ECDSA__CONSTANTS_1gga726017ce8f30df553274e46fd78b156ca20625d90eeaaadee74094f85d91654a7" kind="enumvalue"><name>SL_SI91X_ECDSA_VERIFY_SIGN</name></member>
+    <member refid="group__CRYPTO__ECDSA__CONSTANTS_1ga03914b286cf67384817919a1b73ee0c2" kind="enum"><name>sl_si91x_ecdsa_signature_size_t</name></member>
+    <member refid="group__CRYPTO__ECDSA__CONSTANTS_1gga03914b286cf67384817919a1b73ee0c2a7dd529b23787326c7a11654061c38708" kind="enumvalue"><name>SL_SI91X_ECDSA_SIGN_HALF_SIZE_P224R1</name></member>
+    <member refid="group__CRYPTO__ECDSA__CONSTANTS_1gga03914b286cf67384817919a1b73ee0c2a273d00fb8fba403efb0bc1a54ee1ba6f" kind="enumvalue"><name>SL_SI91X_ECDSA_SIGN_HALF_SIZE_P256R1</name></member>
+    <member refid="group__CRYPTO__ECDSA__CONSTANTS_1gga03914b286cf67384817919a1b73ee0c2a006d6c7d14e0c72e4dbb39c9a8281a44" kind="enumvalue"><name>SL_SI91X_ECDSA_SIGN_MAX_SIZE</name></member>
+    <member refid="group__CRYPTO__ECDSA__CONSTANTS_1gaf51b39292ea7d10ec831e0fab1ad6ac2" kind="enum"><name>sl_si91x_crypto_ecc_curve_t</name></member>
+    <member refid="group__CRYPTO__ECDSA__CONSTANTS_1ggaf51b39292ea7d10ec831e0fab1ad6ac2ac6813d6eb54dae3ded3ebbc11947bc36" kind="enumvalue"><name>SL_SI91X_ECC_SECP224R1</name></member>
+    <member refid="group__CRYPTO__ECDSA__CONSTANTS_1ggaf51b39292ea7d10ec831e0fab1ad6ac2ae930da358a32c5959a2247e177a7efa5" kind="enumvalue"><name>SL_SI91X_ECC_SECP256R1</name></member>
+    <member refid="group__CRYPTO__ECDSA__CONSTANTS_1ga36435fb2454fb634cc727c8330096255" kind="enum"><name>sl_si91x_crypto_ecdsa_sha_mode_t</name></member>
+    <member refid="group__CRYPTO__ECDSA__CONSTANTS_1gga36435fb2454fb634cc727c8330096255aae4f7ff4d9ed377f97229c68004132f8" kind="enumvalue"><name>SL_SI91X_ECDSA_SHA_256</name></member>
+    <member refid="group__CRYPTO__ECDSA__CONSTANTS_1gga36435fb2454fb634cc727c8330096255ad2188a99adfcdd7d4c55b1fa0ed725af" kind="enumvalue"><name>SL_SI91X_ECDSA_SHA_384</name></member>
+    <member refid="group__CRYPTO__ECDSA__CONSTANTS_1gga36435fb2454fb634cc727c8330096255a4b14f9d860e6a23be02c0746eded3afd" kind="enumvalue"><name>SL_SI91X_ECDSA_SHA_512</name></member>
+    <member refid="group__CRYPTO__ECDSA__FUNCTIONS_1gaa1565119c0d5bf09d2770b357454c174" kind="function"><name>sl_si91x_ecdsa</name></member>
+  </compound>
+  <compound refid="sl__si91x__psa__ecdsa_8h" kind="file"><name>sl_si91x_psa_ecdsa.h</name>
+    <member refid="sl__si91x__psa__ecdsa_8h_1abc318831235375efc0b5f713b00a3923" kind="function"><name>sli_si91x_crypto_sign_message</name></member>
+    <member refid="sl__si91x__psa__ecdsa_8h_1a67551eafc2d15c1ff57ce89f27adc5cd" kind="function"><name>sli_si91x_crypto_verify_message</name></member>
+  </compound>
+  <compound refid="sl__si91x__gcm_8h" kind="file"><name>sl_si91x_gcm.h</name>
+    <member refid="group__CRYPTO__GCM__CONSTANTS_1ga21ad2549f5e9572d41a6e506fb3503af" kind="enum"><name>sl_si91x_gcm_type_t</name></member>
+    <member refid="group__CRYPTO__GCM__CONSTANTS_1gga21ad2549f5e9572d41a6e506fb3503afa5129b3c113dd87840860d6083c59f731" kind="enumvalue"><name>SL_SI91X_GCM_ENCRYPT</name></member>
+    <member refid="group__CRYPTO__GCM__CONSTANTS_1gga21ad2549f5e9572d41a6e506fb3503afaec1ed1c24ca887943416c436750a06f9" kind="enumvalue"><name>SL_SI91X_GCM_DECRYPT</name></member>
+    <member refid="group__CRYPTO__GCM__CONSTANTS_1gaf26457523764140812fe8e50a3d19aab" kind="enum"><name>sl_si91x_gcm_mode_t</name></member>
+    <member refid="group__CRYPTO__GCM__CONSTANTS_1ggaf26457523764140812fe8e50a3d19aaba36ed8029f62b74eee250a694f57a88a7" kind="enumvalue"><name>SL_SI91X_GCM_MODE</name></member>
+    <member refid="group__CRYPTO__GCM__CONSTANTS_1ggaf26457523764140812fe8e50a3d19aabae16cd06b11d05049d15fd1993897f606" kind="enumvalue"><name>SL_SI91X_CMAC_MODE</name></member>
+    <member refid="group__CRYPTO__GCM__CONSTANTS_1ga7ab695ba0bf504742a0a790461bc00e0" kind="enum"><name>sl_si91x_gcm_dma_use_t</name></member>
+    <member refid="group__CRYPTO__GCM__CONSTANTS_1gga7ab695ba0bf504742a0a790461bc00e0a0943623e95c537aeba33ebc065649575" kind="enumvalue"><name>SL_SI91X_GCM_DMA_DISABLE</name></member>
+    <member refid="group__CRYPTO__GCM__CONSTANTS_1gga7ab695ba0bf504742a0a790461bc00e0ab049bd43a57e2423fbc0fa65b7642922" kind="enumvalue"><name>SL_SI91X_GCM_DMA_ENABLE</name></member>
+    <member refid="group__CRYPTO__GCM__CONSTANTS_1gac99a59b09b06220c06b669019d96c4ba" kind="enum"><name>sl_si91x_gcm_key_size_t</name></member>
+    <member refid="group__CRYPTO__GCM__CONSTANTS_1ggac99a59b09b06220c06b669019d96c4baae9e8bc1ff599521ba8bd2a6af29d6975" kind="enumvalue"><name>SL_SI91X_GCM_KEY_SIZE_128</name></member>
+    <member refid="group__CRYPTO__GCM__CONSTANTS_1ggac99a59b09b06220c06b669019d96c4baa175bf31cdd2c0c0f15ed988ac105cd0f" kind="enumvalue"><name>SL_SI91X_GCM_KEY_SIZE_192</name></member>
+    <member refid="group__CRYPTO__GCM__CONSTANTS_1ggac99a59b09b06220c06b669019d96c4baa02cbe78eddc7058806c11e24c162acef" kind="enumvalue"><name>SL_SI91X_GCM_KEY_SIZE_256</name></member>
+    <member refid="group__CRYPTO__GCM__FUNCTIONS_1gaa7aa38fc2ee5bdd69c07a44b41d83c24" kind="function"><name>sl_si91x_gcm</name></member>
+  </compound>
+  <compound refid="sl__si91x__hmac_8h" kind="file"><name>sl_si91x_hmac.h</name>
+    <member refid="group__CRYPTO__HMAC__CONSTANTS_1ga93ae7b72c47bde356de2a927a9a7f35c" kind="enum"><name>sl_si91x_hmac_mode_t</name></member>
+    <member refid="group__CRYPTO__HMAC__CONSTANTS_1gga93ae7b72c47bde356de2a927a9a7f35ca3224011cbdb937066c23c78c2d0ce2dc" kind="enumvalue"><name>SL_SI91X_HMAC_SHA_1</name></member>
+    <member refid="group__CRYPTO__HMAC__CONSTANTS_1gga93ae7b72c47bde356de2a927a9a7f35ca23241f8235a41ac12f245758ac04fd53" kind="enumvalue"><name>SL_SI91X_HMAC_SHA_256</name></member>
+    <member refid="group__CRYPTO__HMAC__CONSTANTS_1gga93ae7b72c47bde356de2a927a9a7f35caa150727ebada992303fd02dd9f552903" kind="enumvalue"><name>SL_SI91X_HMAC_SHA_384</name></member>
+    <member refid="group__CRYPTO__HMAC__CONSTANTS_1gga93ae7b72c47bde356de2a927a9a7f35cafda5ea19392333562f016811a0970b2b" kind="enumvalue"><name>SL_SI91X_HMAC_SHA_512</name></member>
+    <member refid="group__CRYPTO__HMAC__CONSTANTS_1ga4c9cc1f075afaaf0673fc18232ecbed2" kind="enum"><name>sl_si91x_hmac_digest_len_t</name></member>
+    <member refid="group__CRYPTO__HMAC__CONSTANTS_1gga4c9cc1f075afaaf0673fc18232ecbed2aa1c6b545ea0f0cf05b11db4735028cb6" kind="enumvalue"><name>SL_SI91X_HMAC_SHA_1_DIGEST_LEN</name></member>
+    <member refid="group__CRYPTO__HMAC__CONSTANTS_1gga4c9cc1f075afaaf0673fc18232ecbed2aac62f6744bb420375459bb24a1cafec5" kind="enumvalue"><name>SL_SI91X_HMAC_SHA_256_DIGEST_LEN</name></member>
+    <member refid="group__CRYPTO__HMAC__CONSTANTS_1gga4c9cc1f075afaaf0673fc18232ecbed2ab08498e7be967d7c84260d6446e70e48" kind="enumvalue"><name>SL_SI91X_HMAC_SHA_384_DIGEST_LEN</name></member>
+    <member refid="group__CRYPTO__HMAC__CONSTANTS_1gga4c9cc1f075afaaf0673fc18232ecbed2ab9fb4d377902c3d4e96c1bf49f64ef39" kind="enumvalue"><name>SL_SI91X_HMAC_SHA_512_DIGEST_LEN</name></member>
+    <member refid="group__CRYPTO__HMAC__FUNCTIONS_1ga2d9d28456662957d17921b3fda97b40d" kind="function"><name>sl_si91x_hmac</name></member>
+  </compound>
+  <compound refid="sl__si91x__psa__hmac_8h" kind="file"><name>sl_si91x_psa_hmac.h</name>
+  </compound>
+  <compound refid="sl__si91x__crypto_8h" kind="file"><name>sl_si91x_crypto.h</name>
+    <member refid="group__CRYPTO__CONSTANTS_1ga51711f7644807c80a92f9fef873ec598" kind="define"><name>SL_SI91X_MAX_DATA_SIZE_IN_BYTES</name></member>
+    <member refid="group__CRYPTO__CONSTANTS_1ga35e35e3e50e208dbc0bf0c71a72a6a26" kind="define"><name>SL_SI91X_MAX_DATA_SIZE_IN_BYTES_FOR_CCM</name></member>
+    <member refid="group__CRYPTO__CONSTANTS_1ga3711f91e5c2e6ea50f6d75036dff9e27" kind="define"><name>SL_SI91X_MAX_DATA_SIZE_IN_BYTES_FOR_CHACHAPOLY</name></member>
+    <member refid="group__CRYPTO__CONSTANTS_1ga3936c05c79c2c129da5eeaec5d7fbd3d" kind="define"><name>SL_SI91X_IV_SIZE</name></member>
+    <member refid="group__CRYPTO__CONSTANTS_1ga70acbe34bfae6519370054a881bc1bb7" kind="define"><name>SL_SI91X_KEY_BUFFER_SIZE</name></member>
+    <member refid="group__CRYPTO__CONSTANTS_1ga5b8939661c60bc78f84602e61caf3686" kind="define"><name>SL_SI91X_MAX_DATA_SIZE_IN_BYTES_FOR_ECDSA</name></member>
+    <member refid="group__CRYPTO__CONSTANTS_1ga5e5a14ca74c2cc47f71067ff1bba27ac" kind="define"><name>FIRST_CHUNK</name></member>
+    <member refid="group__CRYPTO__CONSTANTS_1ga93c6dbc17a4845a4a9b816307748770a" kind="define"><name>MIDDLE_CHUNK</name></member>
+    <member refid="group__CRYPTO__CONSTANTS_1ga73a45e3fc7c2b833932177c1c8a1a92d" kind="define"><name>LAST_CHUNK</name></member>
+    <member refid="group__CRYPTO__CONSTANTS_1gab2fb3cd3f463bc7fb4f94ae5e1c58352" kind="enum"><name>sl_si91x_crypto_key_slot_t</name></member>
+    <member refid="group__CRYPTO__CONSTANTS_1ggab2fb3cd3f463bc7fb4f94ae5e1c58352a0ff2257e963b4728d506a02e75728300" kind="enumvalue"><name>SL_SI91X_KEY_SLOT_1</name></member>
+    <member refid="group__CRYPTO__CONSTANTS_1ggab2fb3cd3f463bc7fb4f94ae5e1c58352a8b2b6c0aab15d318b18cd6646fe07077" kind="enumvalue"><name>SL_SI91X_KEY_SLOT_2</name></member>
+    <member refid="group__CRYPTO__CONSTANTS_1ga6461b1ebbd4867d2f670b6c79e66b649" kind="enum"><name>sl_si91x_crypto_key_size_t</name></member>
+    <member refid="group__CRYPTO__CONSTANTS_1gga6461b1ebbd4867d2f670b6c79e66b649a9acd2931412b3c2bd44c5a2ce9fd14e4" kind="enumvalue"><name>SL_SI91X_KEY_SIZE_1</name></member>
+    <member refid="group__CRYPTO__CONSTANTS_1gga6461b1ebbd4867d2f670b6c79e66b649aa2e6bb1cece4df212d1104a165a3f09a" kind="enumvalue"><name>SL_SI91X_KEY_SIZE_2</name></member>
+    <member refid="group__CRYPTO__CONSTANTS_1gaa4ae5ba737ea708d60d4c58f83d6d7be" kind="enum"><name>sl_si91x_crypto_key_type_t</name></member>
+    <member refid="group__CRYPTO__CONSTANTS_1ggaa4ae5ba737ea708d60d4c58f83d6d7beaa684d25501a85326f0598635e8d27684" kind="enumvalue"><name>SL_SI91X_TRANSPARENT_KEY</name></member>
+    <member refid="group__CRYPTO__CONSTANTS_1ggaa4ae5ba737ea708d60d4c58f83d6d7bea112fe2d5446f908928117926da327fe1" kind="enumvalue"><name>SL_SI91X_WRAPPED_KEY</name></member>
+    <member refid="group__CRYPTO__CONSTANTS_1ggaa4ae5ba737ea708d60d4c58f83d6d7bead6c025e071741da349fd924fbee045fd" kind="enumvalue"><name>SL_SI91X_BUILT_IN_KEY</name></member>
+    <member refid="group__CRYPTO__CONSTANTS_1gaac5c8069f16fca3b9d5936ef034537de" kind="enum"><name>sl_si91x_crypto_wrap_mode_t</name></member>
+    <member refid="group__CRYPTO__CONSTANTS_1ggaac5c8069f16fca3b9d5936ef034537deac565feb5d012f480bc84374c73202867" kind="enumvalue"><name>SL_SI91X_WRAP_IV_ECB_MODE</name></member>
+    <member refid="group__CRYPTO__CONSTANTS_1ggaac5c8069f16fca3b9d5936ef034537dea2f64655874226f1d0b9fbd5da4c87048" kind="enumvalue"><name>SL_SI91X_WRAP_IV_CBC_MODE</name></member>
+    <member refid="group__CRYPTO__CONSTANTS_1ga6ad34a0b8e121a6a30c44909aaf2820f" kind="enum"><name>sl_si91x_crypto_algorithm_type_t</name></member>
+    <member refid="group__CRYPTO__CONSTANTS_1gga6ad34a0b8e121a6a30c44909aaf2820faaa28d81449f4bae922bb5e79f6f06be6" kind="enumvalue"><name>AES</name></member>
+    <member refid="group__CRYPTO__CONSTANTS_1gga6ad34a0b8e121a6a30c44909aaf2820fa7c74ffad5ddce949f36534629bc5310c" kind="enumvalue"><name>SHA</name></member>
+    <member refid="group__CRYPTO__CONSTANTS_1gga6ad34a0b8e121a6a30c44909aaf2820fa86af0475f3f6b2966e256784b6c9cb8b" kind="enumvalue"><name>HMAC_SHA</name></member>
+    <member refid="group__CRYPTO__CONSTANTS_1gga6ad34a0b8e121a6a30c44909aaf2820fa85000c9eddf9978c0e2261ea0fa53816" kind="enumvalue"><name>DH</name></member>
+    <member refid="group__CRYPTO__CONSTANTS_1gga6ad34a0b8e121a6a30c44909aaf2820fa451db34215a1733e42cce38b5a551c6e" kind="enumvalue"><name>ECDH</name></member>
+    <member refid="group__CRYPTO__CONSTANTS_1gga6ad34a0b8e121a6a30c44909aaf2820fae25059a23e46efa3f9c9c6ee6ee82fd3" kind="enumvalue"><name>SHA3</name></member>
+    <member refid="group__CRYPTO__CONSTANTS_1gga6ad34a0b8e121a6a30c44909aaf2820fa61c75f5aa833f31a972f4831179342e2" kind="enumvalue"><name>CHACHAPOLY</name></member>
+    <member refid="group__CRYPTO__CONSTANTS_1gga6ad34a0b8e121a6a30c44909aaf2820fa313f9e8f1ff4fdfe84c642fdb62b8aab" kind="enumvalue"><name>GCM</name></member>
+    <member refid="group__CRYPTO__CONSTANTS_1gga6ad34a0b8e121a6a30c44909aaf2820fa8e7838b96be55048186754b37db105dd" kind="enumvalue"><name>WRAP</name></member>
+    <member refid="group__CRYPTO__CONSTANTS_1gga6ad34a0b8e121a6a30c44909aaf2820fa2304b1adc71e45940228c5f362479770" kind="enumvalue"><name>TRNG</name></member>
+    <member refid="group__CRYPTO__CONSTANTS_1gga6ad34a0b8e121a6a30c44909aaf2820fa4742ab5add31bcbe14b900f9db45a012" kind="enumvalue"><name>CCM</name></member>
+    <member refid="group__CRYPTO__CONSTANTS_1gga6ad34a0b8e121a6a30c44909aaf2820fa533fb8b894a39de8097e0ae397b7d61d" kind="enumvalue"><name>ECDSA</name></member>
+  </compound>
+  <compound refid="sli__si91x__crypto__driver__functions_8h" kind="file"><name>sli_si91x_crypto_driver_functions.h</name>
+    <member refid="group__CRYPTO__FUNCTIONS_1ga6df7260890c4e2d42a1f56ea645ca316" kind="function"><name>convert_si91x_error_code_to_psa_status</name></member>
+  </compound>
+  <compound refid="sl__si91x__crypto__thread_8h" kind="file"><name>sl_si91x_crypto_thread.h</name>
+    <member refid="group__CRYPTO__THREAD__VARIABLES_1ga3c16897b5f491db3e044ab4c43259651" kind="variable"><name>crypto_aes_mutex</name></member>
+    <member refid="group__CRYPTO__THREAD__VARIABLES_1gaf199fc0391c42280b8d014c792abf1ea" kind="variable"><name>crypto_ccm_mutex</name></member>
+    <member refid="group__CRYPTO__THREAD__VARIABLES_1ga00df169f8046795041b560edea4ea482" kind="variable"><name>crypto_sha_mutex</name></member>
+    <member refid="group__CRYPTO__THREAD__VARIABLES_1ga8b7c610bb1cdfd24b094c00d023fc6cd" kind="variable"><name>crypto_gcm_mutex</name></member>
+    <member refid="group__CRYPTO__THREAD__VARIABLES_1ga65d1c13cbd1048a1f12bae01404b8c9a" kind="variable"><name>crypto_chachapoly_mutex</name></member>
+    <member refid="group__CRYPTO__THREAD__VARIABLES_1ga0f5aa72dc91fba55722b43f3da731b75" kind="variable"><name>crypto_attestation_mutex</name></member>
+    <member refid="group__CRYPTO__THREAD__VARIABLES_1ga0da20f880c4cffa28718debf029cba20" kind="variable"><name>crypto_ecdh_mutex</name></member>
+    <member refid="group__CRYPTO__THREAD__VARIABLES_1ga0c0da60c64b22a28c9e426840f08b477" kind="variable"><name>crypto_ecdsa_mutex</name></member>
+    <member refid="group__CRYPTO__THREAD__VARIABLES_1gaaa566764ab8f647c1c7c418172d59075" kind="variable"><name>crypto_hmac_mutex</name></member>
+    <member refid="group__CRYPTO__THREAD__VARIABLES_1gad2625b5e8947f7493dfbf9543bb9f153" kind="variable"><name>crypto_trng_mutex</name></member>
+    <member refid="group__CRYPTO__THREAD__VARIABLES_1ga06632d2bfe0c25ef3e6730d3214a187c" kind="variable"><name>mutex_result</name></member>
+    <member refid="group__CRYPTO__THREAD__FUNCTIONS_1ga9d8427af69aed30d206eca15dfca306a" kind="function"><name>sl_si91x_crypto_threadsafety_init</name></member>
+    <member refid="group__CRYPTO__THREAD__FUNCTIONS_1ga27227706c866093d3d27ce71baf0c62a" kind="function"><name>sl_si91x_crypto_mutex_acquire</name></member>
+    <member refid="group__CRYPTO__THREAD__FUNCTIONS_1ga372a749320b84990f4b13bc2443c9df4" kind="function"><name>sl_si91x_crypto_mutex_release</name></member>
+  </compound>
+  <compound refid="sl__si91x__psa__sha_8h" kind="file"><name>sl_si91x_psa_sha.h</name>
+    <member refid="sl__si91x__psa__sha_8h_1ab41de85bb7345ff0516f203aa815f5ae" kind="function"><name>sli_si91x_crypto_hash_compute</name></member>
+  </compound>
+  <compound refid="sl__si91x__sha_8h" kind="file"><name>sl_si91x_sha.h</name>
+    <member refid="group__CRYPTO__SHA__CONSTANTS_1ga036b5abc4f89d104a2bf5c25ac73757d" kind="define"><name>SL_SI91X_SHA_LEN_INVALID</name></member>
+    <member refid="group__CRYPTO__SHA__CONSTANTS_1gada692ce5d96ff4fa4def0d4aeda2de2c" kind="enum"><name>sl_si91x_crypto_sha_mode_t</name></member>
+    <member refid="group__CRYPTO__SHA__CONSTANTS_1ggada692ce5d96ff4fa4def0d4aeda2de2ca8f2ac63efe8775c11f06cc686382d6f3" kind="enumvalue"><name>SL_SI91X_SHA_1</name></member>
+    <member refid="group__CRYPTO__SHA__CONSTANTS_1ggada692ce5d96ff4fa4def0d4aeda2de2cad90f4ae983779072ed129a38db33b3c7" kind="enumvalue"><name>SL_SI91X_SHA_256</name></member>
+    <member refid="group__CRYPTO__SHA__CONSTANTS_1ggada692ce5d96ff4fa4def0d4aeda2de2cabbc9816178dca06cc6891d4776331413" kind="enumvalue"><name>SL_SI91X_SHA_384</name></member>
+    <member refid="group__CRYPTO__SHA__CONSTANTS_1ggada692ce5d96ff4fa4def0d4aeda2de2ca108b0267c6fbecd9803d1897745b9998" kind="enumvalue"><name>SL_SI91X_SHA_512</name></member>
+    <member refid="group__CRYPTO__SHA__CONSTANTS_1ggada692ce5d96ff4fa4def0d4aeda2de2ca5aa5b85d1674a653815d84c0590607fa" kind="enumvalue"><name>SL_SI91X_SHA_224</name></member>
+    <member refid="group__CRYPTO__SHA__CONSTANTS_1gad91977604ccf5c4aa71e01f20ea94db7" kind="enum"><name>sl_si91x_sha_length_t</name></member>
+    <member refid="group__CRYPTO__SHA__CONSTANTS_1ggad91977604ccf5c4aa71e01f20ea94db7ad73fe1e5ccc369966da3f22c3b9c6721" kind="enumvalue"><name>SL_SI91X_SHA_1_DIGEST_LEN</name></member>
+    <member refid="group__CRYPTO__SHA__CONSTANTS_1ggad91977604ccf5c4aa71e01f20ea94db7a04bb5c309d9e6fdae52c6c8b167a971b" kind="enumvalue"><name>SL_SI91X_SHA_256_DIGEST_LEN</name></member>
+    <member refid="group__CRYPTO__SHA__CONSTANTS_1ggad91977604ccf5c4aa71e01f20ea94db7ac90a0b2b5509333b418d5784827084bb" kind="enumvalue"><name>SL_SI91X_SHA_384_DIGEST_LEN</name></member>
+    <member refid="group__CRYPTO__SHA__CONSTANTS_1ggad91977604ccf5c4aa71e01f20ea94db7a116a72d40b5ddbb7b459f786f70116d9" kind="enumvalue"><name>SL_SI91X_SHA_512_DIGEST_LEN</name></member>
+    <member refid="group__CRYPTO__SHA__CONSTANTS_1ggad91977604ccf5c4aa71e01f20ea94db7ace7c653f78c4689720eea2c0546c765c" kind="enumvalue"><name>SL_SI91X_SHA_224_DIGEST_LEN</name></member>
+    <member refid="group__CRYPTO__SHA__FUNCTIONS_1ga07c135c1af4b38b665f3c027a76dadfb" kind="function"><name>sl_si91x_sha</name></member>
+  </compound>
+  <compound refid="sl__si91x__psa__trng_8h" kind="file"><name>sl_si91x_psa_trng.h</name>
+    <member refid="sl__si91x__psa__trng_8h_1a99bfe8e6b8deb1a5812047238a256119" kind="function"><name>sl_si91x_psa_get_random</name></member>
+    <member refid="sl__si91x__psa__trng_8h_1af37eca1dbd9325db0e21efee6b527533" kind="function"><name>sli_si91x_crypto_trng_init</name></member>
+  </compound>
+  <compound refid="sl__si91x__trng_8h" kind="file"><name>sl_si91x_trng.h</name>
+    <member refid="sl__si91x__trng_8h_1aba91756d6be3639f550bd0b0b8a0d7be" kind="define"><name>SLI_SI91X_TRNG_DUPLICATE_CHECK</name></member>
+    <member refid="group__CRYPTO__TRNG__FUNCTIONS_1ga8f1943b72b3f9c8905d660b444bedf52" kind="function"><name>sl_si91x_trng_init</name></member>
+    <member refid="group__CRYPTO__TRNG__FUNCTIONS_1ga4a9f888e25793169c7a579bc8c2f8ea4" kind="function"><name>sl_si91x_trng_entropy</name></member>
+    <member refid="group__CRYPTO__TRNG__FUNCTIONS_1ga88c917f81bf74552bb5fd10657127d51" kind="function"><name>sl_si91x_trng_program_key</name></member>
+    <member refid="group__CRYPTO__TRNG__FUNCTIONS_1ga3b2dceb5f8a51388fd59db965b627ae3" kind="function"><name>sl_si91x_trng_get_random_num</name></member>
+    <member refid="group__CRYPTO__TRNG__FUNCTIONS_1ga3fc29e8cb2d3d95b398c97e14960d0b0" kind="function"><name>sl_si91x_duplicate_element</name></member>
+  </compound>
+  <compound refid="sl__si91x__wrap__config_8h" kind="file"><name>sl_si91x_wrap_config.h</name>
+    <member refid="group__CRYPTO__CONSTANTS_1ga48eea85223bca71f449dcf9f2b5d11fb" kind="define"><name>SL_SI91X_WRAP_KEY_BUFFER_SIZE</name></member>
+  </compound>
+  <compound refid="sl__si91x__psa__wrap_8h" kind="file"><name>sl_si91x_psa_wrap.h</name>
+    <member refid="sl__si91x__psa__wrap_8h_1a4ae9090826cd09fdbc25f75ab63ec50b" kind="define"><name>PSA_KEY_VOLATILE_PERSISTENT_WRAPPED</name></member>
+    <member refid="sl__si91x__psa__wrap_8h_1ac8087f2180058d40cc53b23d0296c2e6" kind="define"><name>PSA_KEY_VOLATILE_PERSISTENT_WRAP_IMPORT</name></member>
+    <member refid="sl__si91x__psa__wrap_8h_1aa4df34b906f06f84c303b10b730bdd00" kind="variable"><name>WRAP_IV</name></member>
+    <member refid="sl__si91x__psa__wrap_8h_1a8f2efe5985f599e260a6fb6fca3fe7f2" kind="function"><name>sli_si91x_crypto_wrap_key</name></member>
+    <member refid="sl__si91x__psa__wrap_8h_1a3e71969689f876954cd5d7e0422f1a05" kind="function"><name>sli_si91x_crypto_generate_symm_key</name></member>
+  </compound>
+  <compound refid="sl__si91x__wrap_8h" kind="file"><name>sl_si91x_wrap.h</name>
+    <member refid="sl__si91x__wrap_8h_1a96ffab12b51d25ae882bdef65ffd67a2" kind="define"><name>SL_SI91X_HMAC_PADDING</name></member>
+    <member refid="sl__si91x__wrap_8h_1ab6cd2ca3aeee12628a17ffbc74d11c20" kind="define"><name>SL_SI91X_HMAC_512_BLOCK_SIZE</name></member>
+    <member refid="sl__si91x__wrap_8h_1a97aa321872771851c4384ea45ff800dc" kind="define"><name>SL_SI91X_HMAC_256_BLOCK_SIZE</name></member>
+    <member refid="sl__si91x__wrap_8h_1a2236f6673f796f620b00ac6e9dfe84a9" kind="define"><name>SL_SI91X_HMAC_512_BLOCK_SIZE_ALIGN</name></member>
+    <member refid="sl__si91x__wrap_8h_1a2f1202985ae6dd64f952c97b25a6632c" kind="define"><name>SL_SI91X_HMAC_256_BLOCK_SIZE_ALIGN</name></member>
+    <member refid="sl__si91x__wrap_8h_1a9dc008c127240ccac1cab38fa27aefcb" kind="define"><name>SL_SI91X_DEFAULT_16BYTE_ALIGN</name></member>
+    <member refid="group__CRYPTO__WRAP__TYPES_1ga0e2790c70d45e976121f925ab9af9226" kind="enum"><name>sl_si91x_wrap_mode_t</name></member>
+    <member refid="group__CRYPTO__WRAP__TYPES_1gga0e2790c70d45e976121f925ab9af9226a4b8fefb83b9043cd09fb9a5affa379ed" kind="enumvalue"><name>SL_SI91X_WRAP_HMAC_SHA_1</name></member>
+    <member refid="group__CRYPTO__WRAP__TYPES_1gga0e2790c70d45e976121f925ab9af9226ac84924d26a9e22a165f98d809a5605ab" kind="enumvalue"><name>SL_SI91X_WRAP_HMAC_SHA_256</name></member>
+    <member refid="group__CRYPTO__WRAP__TYPES_1gga0e2790c70d45e976121f925ab9af9226a97506b9f604388810116abb76308e7ae" kind="enumvalue"><name>SL_SI91X_WRAP_HMAC_SHA_384</name></member>
+    <member refid="group__CRYPTO__WRAP__TYPES_1gga0e2790c70d45e976121f925ab9af9226a06c566682c12b747ad2d642c6b01b8b1" kind="enumvalue"><name>SL_SI91X_WRAP_HMAC_SHA_512</name></member>
+    <member refid="group__CRYPTO__WRAP__FUNCTIONS_1gaa7799e73d94ecb19c899ea636c51aa1d" kind="function"><name>sl_si91x_wrap</name></member>
+  </compound>
+  <compound refid="group__CRYPTO" kind="group"><name>CRYPTO</name>
+  </compound>
+  <compound refid="group__CRYPTO__AES" kind="group"><name>CRYPTO_AES</name>
+  </compound>
+  <compound refid="group__CRYPTO__AES__FUNCTIONS" kind="group"><name>CRYPTO_AES_FUNCTIONS</name>
+    <member refid="group__CRYPTO__AES__FUNCTIONS_1gaf508565bc1ffbe903d3496a7b712dd2f" kind="function"><name>sl_si91x_aes</name></member>
+    <member refid="group__CRYPTO__AES__FUNCTIONS_1ga0f48a13beb7db143b748ae6678eb490f" kind="function"><name>sl_si91x_aes_multipart</name></member>
+  </compound>
+  <compound refid="group__CRYPTO__AES__TYPES" kind="group"><name>CRYPTO_AES_TYPES</name>
+  </compound>
+  <compound refid="group__CRYPTO__AES__CONSTANTS" kind="group"><name>CRYPTO_AES_CONSTANTS</name>
+    <member refid="group__CRYPTO__AES__CONSTANTS_1ga7d391bbc018f78114f268d40cb068f98" kind="enum"><name>sl_si91x_aes_mode_t</name></member>
+    <member refid="group__CRYPTO__AES__CONSTANTS_1gga7d391bbc018f78114f268d40cb068f98a3b24c0b918aabf1865fc331054559613" kind="enumvalue"><name>SL_SI91X_AES_CBC</name></member>
+    <member refid="group__CRYPTO__AES__CONSTANTS_1gga7d391bbc018f78114f268d40cb068f98a81af9fce9bd67e446d4d2e4898c0f72c" kind="enumvalue"><name>SL_SI91X_AES_ECB</name></member>
+    <member refid="group__CRYPTO__AES__CONSTANTS_1gga7d391bbc018f78114f268d40cb068f98a509afaba3be0e8225e965df8142d78e5" kind="enumvalue"><name>SL_SI91X_AES_CTR</name></member>
+    <member refid="group__CRYPTO__AES__CONSTANTS_1gacfa81db6bfb71882bf35012b6a57c713" kind="enum"><name>sl_si91x_aes_type_t</name></member>
+    <member refid="group__CRYPTO__AES__CONSTANTS_1ggacfa81db6bfb71882bf35012b6a57c713ae046f869a059c0dfaaf1ba8cad94fb73" kind="enumvalue"><name>SL_SI91X_AES_ENCRYPT</name></member>
+    <member refid="group__CRYPTO__AES__CONSTANTS_1ggacfa81db6bfb71882bf35012b6a57c713a7067197dae5ab37c49e9a6f89385a972" kind="enumvalue"><name>SL_SI91X_AES_DECRYPT</name></member>
+    <member refid="group__CRYPTO__AES__CONSTANTS_1gabcfc4a6c04b3af6fd6c10c2ec6f3a55a" kind="enum"><name>sl_si91x_aes_key_size_t</name></member>
+    <member refid="group__CRYPTO__AES__CONSTANTS_1ggabcfc4a6c04b3af6fd6c10c2ec6f3a55aa0226fb24cd3a9b5f67be46cb25e13dd7" kind="enumvalue"><name>SL_SI91X_AES_KEY_SIZE_128</name></member>
+    <member refid="group__CRYPTO__AES__CONSTANTS_1ggabcfc4a6c04b3af6fd6c10c2ec6f3a55aae4318ab0aef889cb295c7c8fe4ff0a98" kind="enumvalue"><name>SL_SI91X_AES_KEY_SIZE_192</name></member>
+    <member refid="group__CRYPTO__AES__CONSTANTS_1ggabcfc4a6c04b3af6fd6c10c2ec6f3a55aae0b9e5345083dd96f14215894eaf54c3" kind="enumvalue"><name>SL_SI91X_AES_KEY_SIZE_256</name></member>
+    <member refid="group__CRYPTO__AES__CONSTANTS_1ga2be33478ea68e099978c931604211cd5" kind="define"><name>SL_SI91X_AES_BLOCK_SIZE</name></member>
+    <member refid="group__CRYPTO__AES__CONSTANTS_1ga21c8a3c8913e02b6f6644428c131d507" kind="define"><name>SL_SI91X_AES_FIRST_CHUNK</name></member>
+    <member refid="group__CRYPTO__AES__CONSTANTS_1gae612d02561af16487db6cd03072fb7a5" kind="define"><name>SL_SI91X_AES_MIDDLE_CHUNK</name></member>
+    <member refid="group__CRYPTO__AES__CONSTANTS_1gad135009e1cbaebe26f46d27dce12439a" kind="define"><name>SL_SI91X_AES_LAST_CHUNK</name></member>
+  </compound>
+  <compound refid="group__CRYPTO__ATTESTATION" kind="group"><name>CRYPTO_ATTESTATION</name>
+  </compound>
+  <compound refid="group__CRYPTO__ATTESTATION__FUNCTIONS" kind="group"><name>CRYPTO_ATTESTATION_FUNCTIONS</name>
+    <member refid="group__CRYPTO__ATTESTATION__FUNCTIONS_1ga1b34e32bd04dbdf7b825d748e7f532d3" kind="function"><name>sl_si91x_attestation_get_token</name></member>
+  </compound>
+  <compound refid="group__CRYPTO__ECDH" kind="group"><name>CRYPTO_ECDH</name>
+  </compound>
+  <compound refid="group__CRYPTO__ECDH__FUNCTIONS" kind="group"><name>CRYPTO_ECDH_FUNCTIONS</name>
+    <member refid="group__CRYPTO__ECDH__FUNCTIONS_1ga36ffef1836318b405ab66117571590a6" kind="function"><name>sl_si91x_ecdh_point_addition</name></member>
+    <member refid="group__CRYPTO__ECDH__FUNCTIONS_1ga5aac96166e13f52136e16b0606ce8a14" kind="function"><name>sl_si91x_ecdh_point_subtraction</name></member>
+    <member refid="group__CRYPTO__ECDH__FUNCTIONS_1ga8f6c370cdd8616b4dfc7c6266d5fc05c" kind="function"><name>sl_si91x_ecdh_point_multiplication</name></member>
+    <member refid="group__CRYPTO__ECDH__FUNCTIONS_1ga8534b935a906b781a8261184e1bfaf2b" kind="function"><name>sl_si91x_ecdh_point_double</name></member>
+    <member refid="group__CRYPTO__ECDH__FUNCTIONS_1ga8b776bbe9871c570030476fc6fd2422b" kind="function"><name>sl_si91x_ecdh_point_affine</name></member>
+  </compound>
+  <compound refid="group__CRYPTO__ECDH__CONSTANTS" kind="group"><name>CRYPTO_ECDH_CONSTANTS</name>
+    <member refid="group__CRYPTO__ECDH__CONSTANTS_1gabc2911014049f6f70e80752da677f66d" kind="enum"><name>sl_si91x_ecdh_mode_t</name></member>
+    <member refid="group__CRYPTO__ECDH__CONSTANTS_1ggabc2911014049f6f70e80752da677f66dae262ac368f09a8878b26697d2a3e9d0b" kind="enumvalue"><name>SL_SI91X_ECDH_192</name></member>
+    <member refid="group__CRYPTO__ECDH__CONSTANTS_1ggabc2911014049f6f70e80752da677f66da23c3d52b7ae2975eeccb778577485d48" kind="enumvalue"><name>SL_SI91X_ECDH_224</name></member>
+    <member refid="group__CRYPTO__ECDH__CONSTANTS_1ggabc2911014049f6f70e80752da677f66da74f9eaa1a977eea1bd404b8bbd3800b1" kind="enumvalue"><name>SL_SI91X_ECDH_256</name></member>
+    <member refid="group__CRYPTO__ECDH__CONSTANTS_1gab49d4f8f37f85fd2d42a0242583900c0" kind="enum"><name>sl_si91x_ecdh_sub_mode_t</name></member>
+    <member refid="group__CRYPTO__ECDH__CONSTANTS_1ggab49d4f8f37f85fd2d42a0242583900c0acc15ee7f588414377b78a48bb72ffd1b" kind="enumvalue"><name>SL_SI91X_ECDH_MUL</name></member>
+    <member refid="group__CRYPTO__ECDH__CONSTANTS_1ggab49d4f8f37f85fd2d42a0242583900c0a67cbfa8dec99f5f0aefda7b554c89e85" kind="enumvalue"><name>SL_SI91X_ECDH_ADD</name></member>
+    <member refid="group__CRYPTO__ECDH__CONSTANTS_1ggab49d4f8f37f85fd2d42a0242583900c0abc8f993c937566ebdd5e6e5cc646ad70" kind="enumvalue"><name>SL_SI91X_ECDH_SUB</name></member>
+    <member refid="group__CRYPTO__ECDH__CONSTANTS_1ggab49d4f8f37f85fd2d42a0242583900c0a17cef8efc57a5626a4d46ac600c5a012" kind="enumvalue"><name>SL_SI91X_ECDH_DOUBLE</name></member>
+    <member refid="group__CRYPTO__ECDH__CONSTANTS_1ggab49d4f8f37f85fd2d42a0242583900c0a764b57af2d6d330357d1cbcb7d05f792" kind="enumvalue"><name>SL_SI91X_ECDH_AFFINITY</name></member>
+    <member refid="group__CRYPTO__ECDH__CONSTANTS_1ga3da614442e62a63c46194498c5154f47" kind="enum"><name>sl_si91x_ecdh_vector_size_t</name></member>
+    <member refid="group__CRYPTO__ECDH__CONSTANTS_1gga3da614442e62a63c46194498c5154f47a2b3e1462e5aef8b228c48995e2b29f44" kind="enumvalue"><name>SL_SI91X_ECDH_VECTOR_SIZE_192</name></member>
+    <member refid="group__CRYPTO__ECDH__CONSTANTS_1gga3da614442e62a63c46194498c5154f47a931f016c0eea24880b8862c0ed4aa9b9" kind="enumvalue"><name>SL_SI91X_ECDH_VECTOR_SIZE_224</name></member>
+    <member refid="group__CRYPTO__ECDH__CONSTANTS_1gga3da614442e62a63c46194498c5154f47a0eaf1b72ae3eed2dcb1504094147c76b" kind="enumvalue"><name>SL_SI91X_ECDH_VECTOR_SIZE_256</name></member>
+    <member refid="group__CRYPTO__ECDH__CONSTANTS_1gaea9248d323dd1986c763cf5ff73ce51b" kind="enum"><name>sl_si91x_ecdh_curve_type_t</name></member>
+    <member refid="group__CRYPTO__ECDH__CONSTANTS_1ggaea9248d323dd1986c763cf5ff73ce51ba3ab7561384be2f0fedbcda7b390e2db6" kind="enumvalue"><name>SL_SI91X_ECDH_CURVE_P</name></member>
+    <member refid="group__CRYPTO__ECDH__CONSTANTS_1ggaea9248d323dd1986c763cf5ff73ce51ba6ada1ab57cc8601ebe139accdb8038fc" kind="enumvalue"><name>SL_SI91X_ECDH_CURVE_K</name></member>
+    <member refid="group__CRYPTO__ECDH__CONSTANTS_1ggaea9248d323dd1986c763cf5ff73ce51ba3f316a27d656aacd8e5acd43a4214392" kind="enumvalue"><name>SL_SI91X_ECDH_CURVE_B</name></member>
+    <member refid="group__CRYPTO__ECDH__CONSTANTS_1gae36b0f21336a3ac7366f105d357ae8de" kind="define"><name>SL_SI91X_ECDH_MAX_VECTOR_SIZE</name></member>
+  </compound>
+  <compound refid="group__CRYPTO__ECDSA" kind="group"><name>CRYPTO_ECDSA</name>
+  </compound>
+  <compound refid="group__CRYPTO__ECDSA__FUNCTIONS" kind="group"><name>CRYPTO_ECDSA_FUNCTIONS</name>
+    <member refid="group__CRYPTO__ECDSA__FUNCTIONS_1gaa1565119c0d5bf09d2770b357454c174" kind="function"><name>sl_si91x_ecdsa</name></member>
+  </compound>
+  <compound refid="group__CRYPTO__ECDSA__TYPES" kind="group"><name>CRYPTO_ECDSA_TYPES</name>
+  </compound>
+  <compound refid="group__CRYPTO__ECDSA__CONSTANTS" kind="group"><name>CRYPTO_ECDSA_CONSTANTS</name>
+    <member refid="group__CRYPTO__ECDSA__CONSTANTS_1gac22f70d4a1d9c6fd627b4b4e2b123a57" kind="enum"><name>sl_si91x_ecdsa_key_size_t</name></member>
+    <member refid="group__CRYPTO__ECDSA__CONSTANTS_1ggac22f70d4a1d9c6fd627b4b4e2b123a57a1e0725e25ede366535b9ef8ccc77848e" kind="enumvalue"><name>SL_SI91X_ECDSA_PRIV_KEY_SIZE_224</name></member>
+    <member refid="group__CRYPTO__ECDSA__CONSTANTS_1ggac22f70d4a1d9c6fd627b4b4e2b123a57a91439460680159aff8b663f9188d0f5d" kind="enumvalue"><name>SL_SI91X_ECDSA_PRIV_KEY_SIZE_256</name></member>
+    <member refid="group__CRYPTO__ECDSA__CONSTANTS_1ggac22f70d4a1d9c6fd627b4b4e2b123a57ab295d52a8e1996d55a21c789f431a699" kind="enumvalue"><name>SL_SI91X_ECDSA_PUB_KEY_SIZE_224</name></member>
+    <member refid="group__CRYPTO__ECDSA__CONSTANTS_1ggac22f70d4a1d9c6fd627b4b4e2b123a57a18cf7330b2f0bedb4e8fefae6297b8a9" kind="enumvalue"><name>SL_SI91X_ECDSA_PUB_KEY_SIZE_256</name></member>
+    <member refid="group__CRYPTO__ECDSA__CONSTANTS_1ga726017ce8f30df553274e46fd78b156c" kind="enum"><name>sl_si91x_crypto_ecdsa_mode_t</name></member>
+    <member refid="group__CRYPTO__ECDSA__CONSTANTS_1gga726017ce8f30df553274e46fd78b156caad0a70989812505e855d8cb1b740c348" kind="enumvalue"><name>SL_SI91X_GENERATE_ECC_KEY_PAIR</name></member>
+    <member refid="group__CRYPTO__ECDSA__CONSTANTS_1gga726017ce8f30df553274e46fd78b156cac1c03708b8e50c3be97bc6906cadb023" kind="enumvalue"><name>SL_SI91X_ECDSA_GENERATE_SIGN</name></member>
+    <member refid="group__CRYPTO__ECDSA__CONSTANTS_1gga726017ce8f30df553274e46fd78b156ca20625d90eeaaadee74094f85d91654a7" kind="enumvalue"><name>SL_SI91X_ECDSA_VERIFY_SIGN</name></member>
+    <member refid="group__CRYPTO__ECDSA__CONSTANTS_1ga03914b286cf67384817919a1b73ee0c2" kind="enum"><name>sl_si91x_ecdsa_signature_size_t</name></member>
+    <member refid="group__CRYPTO__ECDSA__CONSTANTS_1gga03914b286cf67384817919a1b73ee0c2a7dd529b23787326c7a11654061c38708" kind="enumvalue"><name>SL_SI91X_ECDSA_SIGN_HALF_SIZE_P224R1</name></member>
+    <member refid="group__CRYPTO__ECDSA__CONSTANTS_1gga03914b286cf67384817919a1b73ee0c2a273d00fb8fba403efb0bc1a54ee1ba6f" kind="enumvalue"><name>SL_SI91X_ECDSA_SIGN_HALF_SIZE_P256R1</name></member>
+    <member refid="group__CRYPTO__ECDSA__CONSTANTS_1gga03914b286cf67384817919a1b73ee0c2a006d6c7d14e0c72e4dbb39c9a8281a44" kind="enumvalue"><name>SL_SI91X_ECDSA_SIGN_MAX_SIZE</name></member>
+    <member refid="group__CRYPTO__ECDSA__CONSTANTS_1gaf51b39292ea7d10ec831e0fab1ad6ac2" kind="enum"><name>sl_si91x_crypto_ecc_curve_t</name></member>
+    <member refid="group__CRYPTO__ECDSA__CONSTANTS_1ggaf51b39292ea7d10ec831e0fab1ad6ac2ac6813d6eb54dae3ded3ebbc11947bc36" kind="enumvalue"><name>SL_SI91X_ECC_SECP224R1</name></member>
+    <member refid="group__CRYPTO__ECDSA__CONSTANTS_1ggaf51b39292ea7d10ec831e0fab1ad6ac2ae930da358a32c5959a2247e177a7efa5" kind="enumvalue"><name>SL_SI91X_ECC_SECP256R1</name></member>
+    <member refid="group__CRYPTO__ECDSA__CONSTANTS_1ga36435fb2454fb634cc727c8330096255" kind="enum"><name>sl_si91x_crypto_ecdsa_sha_mode_t</name></member>
+    <member refid="group__CRYPTO__ECDSA__CONSTANTS_1gga36435fb2454fb634cc727c8330096255aae4f7ff4d9ed377f97229c68004132f8" kind="enumvalue"><name>SL_SI91X_ECDSA_SHA_256</name></member>
+    <member refid="group__CRYPTO__ECDSA__CONSTANTS_1gga36435fb2454fb634cc727c8330096255ad2188a99adfcdd7d4c55b1fa0ed725af" kind="enumvalue"><name>SL_SI91X_ECDSA_SHA_384</name></member>
+    <member refid="group__CRYPTO__ECDSA__CONSTANTS_1gga36435fb2454fb634cc727c8330096255a4b14f9d860e6a23be02c0746eded3afd" kind="enumvalue"><name>SL_SI91X_ECDSA_SHA_512</name></member>
+  </compound>
+  <compound refid="group__CRYPTO__CCM" kind="group"><name>CRYPTO_CCM</name>
+  </compound>
+  <compound refid="group__CRYPTO__CCM__FUNCTIONS" kind="group"><name>CRYPTO_CCM_FUNCTIONS</name>
+    <member refid="group__CRYPTO__CCM__FUNCTIONS_1ga7b5f373e08f72466aabed31c1b01808d" kind="function"><name>sl_si91x_ccm</name></member>
+  </compound>
+  <compound refid="group__CRYPTO__CCM__TYPES" kind="group"><name>CRYPTO_CCM_TYPES</name>
+  </compound>
+  <compound refid="group__CRYPTO__CCM__CONSTANTS" kind="group"><name>CRYPTO_CCM_CONSTANTS</name>
+    <member refid="group__CRYPTO__CCM__CONSTANTS_1gafb56b83af116d04420ceaeffaca882f1" kind="enum"><name>sl_si91x_ccm_type_t</name></member>
+    <member refid="group__CRYPTO__CCM__CONSTANTS_1ggafb56b83af116d04420ceaeffaca882f1a9dded5d4ac340b935b1647c8f4effba8" kind="enumvalue"><name>SL_SI91X_CCM_ENCRYPT</name></member>
+    <member refid="group__CRYPTO__CCM__CONSTANTS_1ggafb56b83af116d04420ceaeffaca882f1a3bb826abf66861cf6f32971279a8a49f" kind="enumvalue"><name>SL_SI91X_CCM_DECRYPT</name></member>
+    <member refid="group__CRYPTO__CCM__CONSTANTS_1gacd989fb5d8038b724895d36c08396ee5" kind="enum"><name>sl_si91x_ccm_key_size_t</name></member>
+    <member refid="group__CRYPTO__CCM__CONSTANTS_1ggacd989fb5d8038b724895d36c08396ee5a14e8d7a71c938e4fc52f49dcef35397a" kind="enumvalue"><name>SL_SI91X_CCM_KEY_SIZE_128</name></member>
+    <member refid="group__CRYPTO__CCM__CONSTANTS_1ggacd989fb5d8038b724895d36c08396ee5a0ea2c3150893be8f2ac2f59335c43ff7" kind="enumvalue"><name>SL_SI91X_CCM_KEY_SIZE_192</name></member>
+    <member refid="group__CRYPTO__CCM__CONSTANTS_1ggacd989fb5d8038b724895d36c08396ee5a554790d09c24d35567be6f04b13b4ddc" kind="enumvalue"><name>SL_SI91X_CCM_KEY_SIZE_256</name></member>
+  </compound>
+  <compound refid="group__CRYPTO__CHACHAPOLY" kind="group"><name>CRYPTO_CHACHAPOLY</name>
+  </compound>
+  <compound refid="group__CRYPTO__CHACHAPOLY__FUNCTIONS" kind="group"><name>CRYPTO_CHACHAPOLY_FUNCTIONS</name>
+    <member refid="group__CRYPTO__CHACHAPOLY__FUNCTIONS_1gaa97ba8e510cfb61378cd94c41e7efe7a" kind="function"><name>sl_si91x_chachapoly</name></member>
+  </compound>
+  <compound refid="group__CRYPTO__CHACHAPOLY__TYPES" kind="group"><name>CRYPTO_CHACHAPOLY_TYPES</name>
+  </compound>
+  <compound refid="group__CRYPTO__CHACHAPOLY__CONSTANTS" kind="group"><name>CRYPTO_CHACHAPOLY_CONSTANTS</name>
+    <member refid="group__CRYPTO__CHACHAPOLY__CONSTANTS_1gaca1e019835c27cef6dd0b254c6430e99" kind="enum"><name>sl_si91x_chachapoly_type_t</name></member>
+    <member refid="group__CRYPTO__CHACHAPOLY__CONSTANTS_1ggaca1e019835c27cef6dd0b254c6430e99a5d78fe0143656163873bd4dbbcceeb7e" kind="enumvalue"><name>SL_SI91X_CHACHAPOLY_ENCRYPT</name></member>
+    <member refid="group__CRYPTO__CHACHAPOLY__CONSTANTS_1ggaca1e019835c27cef6dd0b254c6430e99a26cf379b91040ea238cf71479cbf830c" kind="enumvalue"><name>SL_SI91X_CHACHAPOLY_DECRYPT</name></member>
+    <member refid="group__CRYPTO__CHACHAPOLY__CONSTANTS_1ga915a39d925d0469a6d786e6902c12208" kind="enum"><name>sl_si91x_chachapoly_mode_t</name></member>
+    <member refid="group__CRYPTO__CHACHAPOLY__CONSTANTS_1gga915a39d925d0469a6d786e6902c12208abeeb3fde963130aa42e0dfcf7b143edf" kind="enumvalue"><name>SL_SI91X_CHACHA20POLY1305_MODE</name></member>
+    <member refid="group__CRYPTO__CHACHAPOLY__CONSTANTS_1gga915a39d925d0469a6d786e6902c12208a2298517d03b6f8ea244ef921eb96f14f" kind="enumvalue"><name>SL_SI91X_CHACHA20_MODE</name></member>
+    <member refid="group__CRYPTO__CHACHAPOLY__CONSTANTS_1gga915a39d925d0469a6d786e6902c12208ab7ffe6827c4fe6337ce5001f6e7248e9" kind="enumvalue"><name>SL_SI91X_CHACHAPOLY_POLY1305_KEYR_KEYS_MODE</name></member>
+    <member refid="group__CRYPTO__CHACHAPOLY__CONSTANTS_1gga915a39d925d0469a6d786e6902c12208a0f94cf9813d9579ecda8e0117becdf86" kind="enumvalue"><name>SL_SI91X_POLY1305_MODE</name></member>
+    <member refid="group__CRYPTO__CHACHAPOLY__CONSTANTS_1gaccec4293096edded87b75bc42930529a" kind="enum"><name>sl_si91x_chachapoly_dma_use_t</name></member>
+    <member refid="group__CRYPTO__CHACHAPOLY__CONSTANTS_1ggaccec4293096edded87b75bc42930529aac4b267d43abe985af9291e3bc52d4693" kind="enumvalue"><name>SL_SI91X_CHACHAPOLY_DMA_DISABLE</name></member>
+    <member refid="group__CRYPTO__CHACHAPOLY__CONSTANTS_1ggaccec4293096edded87b75bc42930529aa1b398e3f8a41b467dd6ac6fd2abc9d1a" kind="enumvalue"><name>SL_SI91X_CHACHAPOLY_DMA_ENABLE</name></member>
+    <member refid="group__CRYPTO__CHACHAPOLY__CONSTANTS_1ga43f7318ac25be44fb1507e4fe85d54e5" kind="enum"><name>sl_si91x_chachapoly_key_size_t</name></member>
+    <member refid="group__CRYPTO__CHACHAPOLY__CONSTANTS_1gga43f7318ac25be44fb1507e4fe85d54e5ac26b62ee64864d8fc7f961da0f29cda1" kind="enumvalue"><name>SL_SI91X_CHACHAPOLY_KEY_SIZE_256</name></member>
+  </compound>
+  <compound refid="group__CRYPTO__GCM" kind="group"><name>CRYPTO_GCM</name>
+  </compound>
+  <compound refid="group__CRYPTO__GCM__FUNCTIONS" kind="group"><name>CRYPTO_GCM_FUNCTIONS</name>
+    <member refid="group__CRYPTO__GCM__FUNCTIONS_1gaa7aa38fc2ee5bdd69c07a44b41d83c24" kind="function"><name>sl_si91x_gcm</name></member>
+  </compound>
+  <compound refid="group__CRYPTO__GCM__TYPES" kind="group"><name>CRYPTO_GCM_TYPES</name>
+  </compound>
+  <compound refid="group__CRYPTO__GCM__CONSTANTS" kind="group"><name>CRYPTO_GCM_CONSTANTS</name>
+    <member refid="group__CRYPTO__GCM__CONSTANTS_1ga21ad2549f5e9572d41a6e506fb3503af" kind="enum"><name>sl_si91x_gcm_type_t</name></member>
+    <member refid="group__CRYPTO__GCM__CONSTANTS_1gga21ad2549f5e9572d41a6e506fb3503afa5129b3c113dd87840860d6083c59f731" kind="enumvalue"><name>SL_SI91X_GCM_ENCRYPT</name></member>
+    <member refid="group__CRYPTO__GCM__CONSTANTS_1gga21ad2549f5e9572d41a6e506fb3503afaec1ed1c24ca887943416c436750a06f9" kind="enumvalue"><name>SL_SI91X_GCM_DECRYPT</name></member>
+    <member refid="group__CRYPTO__GCM__CONSTANTS_1gaf26457523764140812fe8e50a3d19aab" kind="enum"><name>sl_si91x_gcm_mode_t</name></member>
+    <member refid="group__CRYPTO__GCM__CONSTANTS_1ggaf26457523764140812fe8e50a3d19aaba36ed8029f62b74eee250a694f57a88a7" kind="enumvalue"><name>SL_SI91X_GCM_MODE</name></member>
+    <member refid="group__CRYPTO__GCM__CONSTANTS_1ggaf26457523764140812fe8e50a3d19aabae16cd06b11d05049d15fd1993897f606" kind="enumvalue"><name>SL_SI91X_CMAC_MODE</name></member>
+    <member refid="group__CRYPTO__GCM__CONSTANTS_1ga7ab695ba0bf504742a0a790461bc00e0" kind="enum"><name>sl_si91x_gcm_dma_use_t</name></member>
+    <member refid="group__CRYPTO__GCM__CONSTANTS_1gga7ab695ba0bf504742a0a790461bc00e0a0943623e95c537aeba33ebc065649575" kind="enumvalue"><name>SL_SI91X_GCM_DMA_DISABLE</name></member>
+    <member refid="group__CRYPTO__GCM__CONSTANTS_1gga7ab695ba0bf504742a0a790461bc00e0ab049bd43a57e2423fbc0fa65b7642922" kind="enumvalue"><name>SL_SI91X_GCM_DMA_ENABLE</name></member>
+    <member refid="group__CRYPTO__GCM__CONSTANTS_1gac99a59b09b06220c06b669019d96c4ba" kind="enum"><name>sl_si91x_gcm_key_size_t</name></member>
+    <member refid="group__CRYPTO__GCM__CONSTANTS_1ggac99a59b09b06220c06b669019d96c4baae9e8bc1ff599521ba8bd2a6af29d6975" kind="enumvalue"><name>SL_SI91X_GCM_KEY_SIZE_128</name></member>
+    <member refid="group__CRYPTO__GCM__CONSTANTS_1ggac99a59b09b06220c06b669019d96c4baa175bf31cdd2c0c0f15ed988ac105cd0f" kind="enumvalue"><name>SL_SI91X_GCM_KEY_SIZE_192</name></member>
+    <member refid="group__CRYPTO__GCM__CONSTANTS_1ggac99a59b09b06220c06b669019d96c4baa02cbe78eddc7058806c11e24c162acef" kind="enumvalue"><name>SL_SI91X_GCM_KEY_SIZE_256</name></member>
+  </compound>
+  <compound refid="group__CRYPTO__HMAC" kind="group"><name>CRYPTO_HMAC</name>
+  </compound>
+  <compound refid="group__CRYPTO__HMAC__FUNCTIONS" kind="group"><name>CRYPTO_HMAC_FUNCTIONS</name>
+    <member refid="group__CRYPTO__HMAC__FUNCTIONS_1ga2d9d28456662957d17921b3fda97b40d" kind="function"><name>sl_si91x_hmac</name></member>
+  </compound>
+  <compound refid="group__CRYPTO__HMAC__TYPES" kind="group"><name>CRYPTO_HMAC_TYPES</name>
+  </compound>
+  <compound refid="group__CRYPTO__HMAC__CONSTANTS" kind="group"><name>CRYPTO_HMAC_CONSTANTS</name>
+    <member refid="group__CRYPTO__HMAC__CONSTANTS_1ga93ae7b72c47bde356de2a927a9a7f35c" kind="enum"><name>sl_si91x_hmac_mode_t</name></member>
+    <member refid="group__CRYPTO__HMAC__CONSTANTS_1gga93ae7b72c47bde356de2a927a9a7f35ca3224011cbdb937066c23c78c2d0ce2dc" kind="enumvalue"><name>SL_SI91X_HMAC_SHA_1</name></member>
+    <member refid="group__CRYPTO__HMAC__CONSTANTS_1gga93ae7b72c47bde356de2a927a9a7f35ca23241f8235a41ac12f245758ac04fd53" kind="enumvalue"><name>SL_SI91X_HMAC_SHA_256</name></member>
+    <member refid="group__CRYPTO__HMAC__CONSTANTS_1gga93ae7b72c47bde356de2a927a9a7f35caa150727ebada992303fd02dd9f552903" kind="enumvalue"><name>SL_SI91X_HMAC_SHA_384</name></member>
+    <member refid="group__CRYPTO__HMAC__CONSTANTS_1gga93ae7b72c47bde356de2a927a9a7f35cafda5ea19392333562f016811a0970b2b" kind="enumvalue"><name>SL_SI91X_HMAC_SHA_512</name></member>
+    <member refid="group__CRYPTO__HMAC__CONSTANTS_1ga4c9cc1f075afaaf0673fc18232ecbed2" kind="enum"><name>sl_si91x_hmac_digest_len_t</name></member>
+    <member refid="group__CRYPTO__HMAC__CONSTANTS_1gga4c9cc1f075afaaf0673fc18232ecbed2aa1c6b545ea0f0cf05b11db4735028cb6" kind="enumvalue"><name>SL_SI91X_HMAC_SHA_1_DIGEST_LEN</name></member>
+    <member refid="group__CRYPTO__HMAC__CONSTANTS_1gga4c9cc1f075afaaf0673fc18232ecbed2aac62f6744bb420375459bb24a1cafec5" kind="enumvalue"><name>SL_SI91X_HMAC_SHA_256_DIGEST_LEN</name></member>
+    <member refid="group__CRYPTO__HMAC__CONSTANTS_1gga4c9cc1f075afaaf0673fc18232ecbed2ab08498e7be967d7c84260d6446e70e48" kind="enumvalue"><name>SL_SI91X_HMAC_SHA_384_DIGEST_LEN</name></member>
+    <member refid="group__CRYPTO__HMAC__CONSTANTS_1gga4c9cc1f075afaaf0673fc18232ecbed2ab9fb4d377902c3d4e96c1bf49f64ef39" kind="enumvalue"><name>SL_SI91X_HMAC_SHA_512_DIGEST_LEN</name></member>
+  </compound>
+  <compound refid="group__CRYPTO__SHA" kind="group"><name>CRYPTO_SHA</name>
+  </compound>
+  <compound refid="group__CRYPTO__SHA__FUNCTIONS" kind="group"><name>CRYPTO_SHA_FUNCTIONS</name>
+    <member refid="group__CRYPTO__SHA__FUNCTIONS_1ga07c135c1af4b38b665f3c027a76dadfb" kind="function"><name>sl_si91x_sha</name></member>
+  </compound>
+  <compound refid="group__CRYPTO__SHA__CONSTANTS" kind="group"><name>CRYPTO_SHA_CONSTANTS</name>
+    <member refid="group__CRYPTO__SHA__CONSTANTS_1gada692ce5d96ff4fa4def0d4aeda2de2c" kind="enum"><name>sl_si91x_crypto_sha_mode_t</name></member>
+    <member refid="group__CRYPTO__SHA__CONSTANTS_1ggada692ce5d96ff4fa4def0d4aeda2de2ca8f2ac63efe8775c11f06cc686382d6f3" kind="enumvalue"><name>SL_SI91X_SHA_1</name></member>
+    <member refid="group__CRYPTO__SHA__CONSTANTS_1ggada692ce5d96ff4fa4def0d4aeda2de2cad90f4ae983779072ed129a38db33b3c7" kind="enumvalue"><name>SL_SI91X_SHA_256</name></member>
+    <member refid="group__CRYPTO__SHA__CONSTANTS_1ggada692ce5d96ff4fa4def0d4aeda2de2cabbc9816178dca06cc6891d4776331413" kind="enumvalue"><name>SL_SI91X_SHA_384</name></member>
+    <member refid="group__CRYPTO__SHA__CONSTANTS_1ggada692ce5d96ff4fa4def0d4aeda2de2ca108b0267c6fbecd9803d1897745b9998" kind="enumvalue"><name>SL_SI91X_SHA_512</name></member>
+    <member refid="group__CRYPTO__SHA__CONSTANTS_1ggada692ce5d96ff4fa4def0d4aeda2de2ca5aa5b85d1674a653815d84c0590607fa" kind="enumvalue"><name>SL_SI91X_SHA_224</name></member>
+    <member refid="group__CRYPTO__SHA__CONSTANTS_1gad91977604ccf5c4aa71e01f20ea94db7" kind="enum"><name>sl_si91x_sha_length_t</name></member>
+    <member refid="group__CRYPTO__SHA__CONSTANTS_1ggad91977604ccf5c4aa71e01f20ea94db7ad73fe1e5ccc369966da3f22c3b9c6721" kind="enumvalue"><name>SL_SI91X_SHA_1_DIGEST_LEN</name></member>
+    <member refid="group__CRYPTO__SHA__CONSTANTS_1ggad91977604ccf5c4aa71e01f20ea94db7a04bb5c309d9e6fdae52c6c8b167a971b" kind="enumvalue"><name>SL_SI91X_SHA_256_DIGEST_LEN</name></member>
+    <member refid="group__CRYPTO__SHA__CONSTANTS_1ggad91977604ccf5c4aa71e01f20ea94db7ac90a0b2b5509333b418d5784827084bb" kind="enumvalue"><name>SL_SI91X_SHA_384_DIGEST_LEN</name></member>
+    <member refid="group__CRYPTO__SHA__CONSTANTS_1ggad91977604ccf5c4aa71e01f20ea94db7a116a72d40b5ddbb7b459f786f70116d9" kind="enumvalue"><name>SL_SI91X_SHA_512_DIGEST_LEN</name></member>
+    <member refid="group__CRYPTO__SHA__CONSTANTS_1ggad91977604ccf5c4aa71e01f20ea94db7ace7c653f78c4689720eea2c0546c765c" kind="enumvalue"><name>SL_SI91X_SHA_224_DIGEST_LEN</name></member>
+    <member refid="group__CRYPTO__SHA__CONSTANTS_1ga036b5abc4f89d104a2bf5c25ac73757d" kind="define"><name>SL_SI91X_SHA_LEN_INVALID</name></member>
+  </compound>
+  <compound refid="group__CRYPTO__TRNG" kind="group"><name>CRYPTO_TRNG</name>
+  </compound>
+  <compound refid="group__CRYPTO__TRNG__FUNCTIONS" kind="group"><name>CRYPTO_TRNG_FUNCTIONS</name>
+    <member refid="group__CRYPTO__TRNG__FUNCTIONS_1ga8f1943b72b3f9c8905d660b444bedf52" kind="function"><name>sl_si91x_trng_init</name></member>
+    <member refid="group__CRYPTO__TRNG__FUNCTIONS_1ga4a9f888e25793169c7a579bc8c2f8ea4" kind="function"><name>sl_si91x_trng_entropy</name></member>
+    <member refid="group__CRYPTO__TRNG__FUNCTIONS_1ga88c917f81bf74552bb5fd10657127d51" kind="function"><name>sl_si91x_trng_program_key</name></member>
+    <member refid="group__CRYPTO__TRNG__FUNCTIONS_1ga3b2dceb5f8a51388fd59db965b627ae3" kind="function"><name>sl_si91x_trng_get_random_num</name></member>
+    <member refid="group__CRYPTO__TRNG__FUNCTIONS_1ga3fc29e8cb2d3d95b398c97e14960d0b0" kind="function"><name>sl_si91x_duplicate_element</name></member>
+  </compound>
+  <compound refid="group__CRYPTO__TRNG__TYPES" kind="group"><name>CRYPTO_TRNG_TYPES</name>
+  </compound>
+  <compound refid="group__CRYPTO__WRAP" kind="group"><name>CRYPTO_WRAP</name>
+  </compound>
+  <compound refid="group__CRYPTO__WRAP__FUNCTIONS" kind="group"><name>CRYPTO_WRAP_FUNCTIONS</name>
+    <member refid="group__CRYPTO__WRAP__FUNCTIONS_1gaa7799e73d94ecb19c899ea636c51aa1d" kind="function"><name>sl_si91x_wrap</name></member>
+  </compound>
+  <compound refid="group__CRYPTO__WRAP__TYPES" kind="group"><name>CRYPTO_WRAP_TYPES</name>
+    <member refid="group__CRYPTO__WRAP__TYPES_1ga0e2790c70d45e976121f925ab9af9226" kind="enum"><name>sl_si91x_wrap_mode_t</name></member>
+    <member refid="group__CRYPTO__WRAP__TYPES_1gga0e2790c70d45e976121f925ab9af9226a4b8fefb83b9043cd09fb9a5affa379ed" kind="enumvalue"><name>SL_SI91X_WRAP_HMAC_SHA_1</name></member>
+    <member refid="group__CRYPTO__WRAP__TYPES_1gga0e2790c70d45e976121f925ab9af9226ac84924d26a9e22a165f98d809a5605ab" kind="enumvalue"><name>SL_SI91X_WRAP_HMAC_SHA_256</name></member>
+    <member refid="group__CRYPTO__WRAP__TYPES_1gga0e2790c70d45e976121f925ab9af9226a97506b9f604388810116abb76308e7ae" kind="enumvalue"><name>SL_SI91X_WRAP_HMAC_SHA_384</name></member>
+    <member refid="group__CRYPTO__WRAP__TYPES_1gga0e2790c70d45e976121f925ab9af9226a06c566682c12b747ad2d642c6b01b8b1" kind="enumvalue"><name>SL_SI91X_WRAP_HMAC_SHA_512</name></member>
+  </compound>
+  <compound refid="group__CRYPTO__COMMON" kind="group"><name>CRYPTO_COMMON</name>
+  </compound>
+  <compound refid="group__CRYPTO__CONSTANTS" kind="group"><name>CRYPTO_CONSTANTS</name>
+    <member refid="group__CRYPTO__CONSTANTS_1gab2fb3cd3f463bc7fb4f94ae5e1c58352" kind="enum"><name>sl_si91x_crypto_key_slot_t</name></member>
+    <member refid="group__CRYPTO__CONSTANTS_1ggab2fb3cd3f463bc7fb4f94ae5e1c58352a0ff2257e963b4728d506a02e75728300" kind="enumvalue"><name>SL_SI91X_KEY_SLOT_1</name></member>
+    <member refid="group__CRYPTO__CONSTANTS_1ggab2fb3cd3f463bc7fb4f94ae5e1c58352a8b2b6c0aab15d318b18cd6646fe07077" kind="enumvalue"><name>SL_SI91X_KEY_SLOT_2</name></member>
+    <member refid="group__CRYPTO__CONSTANTS_1ga6461b1ebbd4867d2f670b6c79e66b649" kind="enum"><name>sl_si91x_crypto_key_size_t</name></member>
+    <member refid="group__CRYPTO__CONSTANTS_1gga6461b1ebbd4867d2f670b6c79e66b649a9acd2931412b3c2bd44c5a2ce9fd14e4" kind="enumvalue"><name>SL_SI91X_KEY_SIZE_1</name></member>
+    <member refid="group__CRYPTO__CONSTANTS_1gga6461b1ebbd4867d2f670b6c79e66b649aa2e6bb1cece4df212d1104a165a3f09a" kind="enumvalue"><name>SL_SI91X_KEY_SIZE_2</name></member>
+    <member refid="group__CRYPTO__CONSTANTS_1gaa4ae5ba737ea708d60d4c58f83d6d7be" kind="enum"><name>sl_si91x_crypto_key_type_t</name></member>
+    <member refid="group__CRYPTO__CONSTANTS_1ggaa4ae5ba737ea708d60d4c58f83d6d7beaa684d25501a85326f0598635e8d27684" kind="enumvalue"><name>SL_SI91X_TRANSPARENT_KEY</name></member>
+    <member refid="group__CRYPTO__CONSTANTS_1ggaa4ae5ba737ea708d60d4c58f83d6d7bea112fe2d5446f908928117926da327fe1" kind="enumvalue"><name>SL_SI91X_WRAPPED_KEY</name></member>
+    <member refid="group__CRYPTO__CONSTANTS_1ggaa4ae5ba737ea708d60d4c58f83d6d7bead6c025e071741da349fd924fbee045fd" kind="enumvalue"><name>SL_SI91X_BUILT_IN_KEY</name></member>
+    <member refid="group__CRYPTO__CONSTANTS_1gaac5c8069f16fca3b9d5936ef034537de" kind="enum"><name>sl_si91x_crypto_wrap_mode_t</name></member>
+    <member refid="group__CRYPTO__CONSTANTS_1ggaac5c8069f16fca3b9d5936ef034537deac565feb5d012f480bc84374c73202867" kind="enumvalue"><name>SL_SI91X_WRAP_IV_ECB_MODE</name></member>
+    <member refid="group__CRYPTO__CONSTANTS_1ggaac5c8069f16fca3b9d5936ef034537dea2f64655874226f1d0b9fbd5da4c87048" kind="enumvalue"><name>SL_SI91X_WRAP_IV_CBC_MODE</name></member>
+    <member refid="group__CRYPTO__CONSTANTS_1ga6ad34a0b8e121a6a30c44909aaf2820f" kind="enum"><name>sl_si91x_crypto_algorithm_type_t</name></member>
+    <member refid="group__CRYPTO__CONSTANTS_1gga6ad34a0b8e121a6a30c44909aaf2820faaa28d81449f4bae922bb5e79f6f06be6" kind="enumvalue"><name>AES</name></member>
+    <member refid="group__CRYPTO__CONSTANTS_1gga6ad34a0b8e121a6a30c44909aaf2820fa7c74ffad5ddce949f36534629bc5310c" kind="enumvalue"><name>SHA</name></member>
+    <member refid="group__CRYPTO__CONSTANTS_1gga6ad34a0b8e121a6a30c44909aaf2820fa86af0475f3f6b2966e256784b6c9cb8b" kind="enumvalue"><name>HMAC_SHA</name></member>
+    <member refid="group__CRYPTO__CONSTANTS_1gga6ad34a0b8e121a6a30c44909aaf2820fa85000c9eddf9978c0e2261ea0fa53816" kind="enumvalue"><name>DH</name></member>
+    <member refid="group__CRYPTO__CONSTANTS_1gga6ad34a0b8e121a6a30c44909aaf2820fa451db34215a1733e42cce38b5a551c6e" kind="enumvalue"><name>ECDH</name></member>
+    <member refid="group__CRYPTO__CONSTANTS_1gga6ad34a0b8e121a6a30c44909aaf2820fae25059a23e46efa3f9c9c6ee6ee82fd3" kind="enumvalue"><name>SHA3</name></member>
+    <member refid="group__CRYPTO__CONSTANTS_1gga6ad34a0b8e121a6a30c44909aaf2820fa61c75f5aa833f31a972f4831179342e2" kind="enumvalue"><name>CHACHAPOLY</name></member>
+    <member refid="group__CRYPTO__CONSTANTS_1gga6ad34a0b8e121a6a30c44909aaf2820fa313f9e8f1ff4fdfe84c642fdb62b8aab" kind="enumvalue"><name>GCM</name></member>
+    <member refid="group__CRYPTO__CONSTANTS_1gga6ad34a0b8e121a6a30c44909aaf2820fa8e7838b96be55048186754b37db105dd" kind="enumvalue"><name>WRAP</name></member>
+    <member refid="group__CRYPTO__CONSTANTS_1gga6ad34a0b8e121a6a30c44909aaf2820fa2304b1adc71e45940228c5f362479770" kind="enumvalue"><name>TRNG</name></member>
+    <member refid="group__CRYPTO__CONSTANTS_1gga6ad34a0b8e121a6a30c44909aaf2820fa4742ab5add31bcbe14b900f9db45a012" kind="enumvalue"><name>CCM</name></member>
+    <member refid="group__CRYPTO__CONSTANTS_1gga6ad34a0b8e121a6a30c44909aaf2820fa533fb8b894a39de8097e0ae397b7d61d" kind="enumvalue"><name>ECDSA</name></member>
+    <member refid="group__CRYPTO__CONSTANTS_1ga51711f7644807c80a92f9fef873ec598" kind="define"><name>SL_SI91X_MAX_DATA_SIZE_IN_BYTES</name></member>
+    <member refid="group__CRYPTO__CONSTANTS_1ga35e35e3e50e208dbc0bf0c71a72a6a26" kind="define"><name>SL_SI91X_MAX_DATA_SIZE_IN_BYTES_FOR_CCM</name></member>
+    <member refid="group__CRYPTO__CONSTANTS_1ga3711f91e5c2e6ea50f6d75036dff9e27" kind="define"><name>SL_SI91X_MAX_DATA_SIZE_IN_BYTES_FOR_CHACHAPOLY</name></member>
+    <member refid="group__CRYPTO__CONSTANTS_1ga3936c05c79c2c129da5eeaec5d7fbd3d" kind="define"><name>SL_SI91X_IV_SIZE</name></member>
+    <member refid="group__CRYPTO__CONSTANTS_1ga70acbe34bfae6519370054a881bc1bb7" kind="define"><name>SL_SI91X_KEY_BUFFER_SIZE</name></member>
+    <member refid="group__CRYPTO__CONSTANTS_1ga5b8939661c60bc78f84602e61caf3686" kind="define"><name>SL_SI91X_MAX_DATA_SIZE_IN_BYTES_FOR_ECDSA</name></member>
+    <member refid="group__CRYPTO__CONSTANTS_1ga5e5a14ca74c2cc47f71067ff1bba27ac" kind="define"><name>FIRST_CHUNK</name></member>
+    <member refid="group__CRYPTO__CONSTANTS_1ga93c6dbc17a4845a4a9b816307748770a" kind="define"><name>MIDDLE_CHUNK</name></member>
+    <member refid="group__CRYPTO__CONSTANTS_1ga73a45e3fc7c2b833932177c1c8a1a92d" kind="define"><name>LAST_CHUNK</name></member>
+    <member refid="group__CRYPTO__CONSTANTS_1ga48eea85223bca71f449dcf9f2b5d11fb" kind="define"><name>SL_SI91X_WRAP_KEY_BUFFER_SIZE</name></member>
+  </compound>
+  <compound refid="group__CRYPTO__FUNCTIONS" kind="group"><name>CRYPTO_FUNCTIONS</name>
+    <member refid="group__CRYPTO__FUNCTIONS_1ga6df7260890c4e2d42a1f56ea645ca316" kind="function"><name>convert_si91x_error_code_to_psa_status</name></member>
+  </compound>
+  <compound refid="group__CRYPTO__UTILITY" kind="group"><name>CRYPTO_UTILITY</name>
+  </compound>
+  <compound refid="group__CRYPTO__UTILITY__FUNCTIONS" kind="group"><name>CRYPTO_UTILITY_FUNCTIONS</name>
+    <member refid="group__CRYPTO__UTILITY__FUNCTIONS_1gabbf8c23ff0e0c848c473c4ed76a60558" kind="function"><name>pkcs7_padding</name></member>
+    <member refid="group__CRYPTO__UTILITY__FUNCTIONS_1gabac5d16db3bb54fda056f7e4ac1f32c7" kind="function"><name>pkcs7_unpad</name></member>
+  </compound>
+  <compound refid="group__CRYPTO__THREAD" kind="group"><name>CRYPTO_THREAD</name>
+  </compound>
+  <compound refid="group__CRYPTO__THREAD__VARIABLES" kind="group"><name>CRYPTO_THREAD_VARIABLES</name>
+    <member refid="group__CRYPTO__THREAD__VARIABLES_1ga3c16897b5f491db3e044ab4c43259651" kind="variable"><name>crypto_aes_mutex</name></member>
+    <member refid="group__CRYPTO__THREAD__VARIABLES_1gaf199fc0391c42280b8d014c792abf1ea" kind="variable"><name>crypto_ccm_mutex</name></member>
+    <member refid="group__CRYPTO__THREAD__VARIABLES_1ga00df169f8046795041b560edea4ea482" kind="variable"><name>crypto_sha_mutex</name></member>
+    <member refid="group__CRYPTO__THREAD__VARIABLES_1ga8b7c610bb1cdfd24b094c00d023fc6cd" kind="variable"><name>crypto_gcm_mutex</name></member>
+    <member refid="group__CRYPTO__THREAD__VARIABLES_1ga65d1c13cbd1048a1f12bae01404b8c9a" kind="variable"><name>crypto_chachapoly_mutex</name></member>
+    <member refid="group__CRYPTO__THREAD__VARIABLES_1ga0f5aa72dc91fba55722b43f3da731b75" kind="variable"><name>crypto_attestation_mutex</name></member>
+    <member refid="group__CRYPTO__THREAD__VARIABLES_1ga0da20f880c4cffa28718debf029cba20" kind="variable"><name>crypto_ecdh_mutex</name></member>
+    <member refid="group__CRYPTO__THREAD__VARIABLES_1ga0c0da60c64b22a28c9e426840f08b477" kind="variable"><name>crypto_ecdsa_mutex</name></member>
+    <member refid="group__CRYPTO__THREAD__VARIABLES_1gaaa566764ab8f647c1c7c418172d59075" kind="variable"><name>crypto_hmac_mutex</name></member>
+    <member refid="group__CRYPTO__THREAD__VARIABLES_1gad2625b5e8947f7493dfbf9543bb9f153" kind="variable"><name>crypto_trng_mutex</name></member>
+    <member refid="group__CRYPTO__THREAD__VARIABLES_1ga06632d2bfe0c25ef3e6730d3214a187c" kind="variable"><name>mutex_result</name></member>
+  </compound>
+  <compound refid="group__CRYPTO__THREAD__FUNCTIONS" kind="group"><name>CRYPTO_THREAD_FUNCTIONS</name>
+    <member refid="group__CRYPTO__THREAD__FUNCTIONS_1ga9d8427af69aed30d206eca15dfca306a" kind="function"><name>sl_si91x_crypto_threadsafety_init</name></member>
+    <member refid="group__CRYPTO__THREAD__FUNCTIONS_1ga27227706c866093d3d27ce71baf0c62a" kind="function"><name>sl_si91x_crypto_mutex_acquire</name></member>
+    <member refid="group__CRYPTO__THREAD__FUNCTIONS_1ga372a749320b84990f4b13bc2443c9df4" kind="function"><name>sl_si91x_crypto_mutex_release</name></member>
+  </compound>
+  <compound refid="dir_7ba012e751dd9f653521d4760571a855" kind="dir"><name>components/device/silabs/si91x/wireless/crypto/aes</name>
+  </compound>
+  <compound refid="dir_83acad5782abecd4e3cb862df8d2a4c0" kind="dir"><name>components/device/silabs/si91x/wireless/crypto/attestation</name>
+  </compound>
+  <compound refid="dir_951a816228334b0b1fbe2c7aa1dea986" kind="dir"><name>components/device/silabs/si91x/wireless/crypto/ccm</name>
+  </compound>
+  <compound refid="dir_b05513ffa01a92565d98807fd8061b66" kind="dir"><name>components/device/silabs/si91x/wireless/crypto/chachapoly</name>
+  </compound>
+  <compound refid="dir_409f97388efe006bc3438b95e9edef48" kind="dir"><name>components</name>
+  </compound>
+  <compound refid="dir_40d70c57a5649c06269b11f30e5c971e" kind="dir"><name>components/device/silabs/si91x/wireless/crypto/wrap/config</name>
+  </compound>
+  <compound refid="dir_c09ecaa54b87031b16d07ef18b0ab90e" kind="dir"><name>components/device/silabs/si91x/wireless/crypto</name>
+  </compound>
+  <compound refid="dir_827e4e1b6609cbc1a3e8228b7d9f514d" kind="dir"><name>components/device/silabs/si91x/wireless/crypto/crypto_utility</name>
+  </compound>
+  <compound refid="dir_27278b313c1e696b0e5eca555051df01" kind="dir"><name>components/device</name>
+  </compound>
+  <compound refid="dir_952589b72703cb4fe7dbae3341636cd8" kind="dir"><name>components/device/silabs/si91x/wireless/crypto/docs</name>
+  </compound>
+  <compound refid="dir_6144c2053ad9de7d10fbdf65dd6ef0b2" kind="dir"><name>components/device/silabs/si91x/wireless/crypto/ecdh</name>
+  </compound>
+  <compound refid="dir_ed3faeeba0a00603b1a79cde269aa739" kind="dir"><name>components/device/silabs/si91x/wireless/crypto/ecdsa</name>
+  </compound>
+  <compound refid="dir_14971ee6dca589c52c1d67fec9469df5" kind="dir"><name>components/device/silabs/si91x/wireless/crypto/gcm</name>
+  </compound>
+  <compound refid="dir_334822590cf86d864e27f5e0d74d87d7" kind="dir"><name>components/device/silabs/si91x/wireless/crypto/hmac</name>
+  </compound>
+  <compound refid="dir_c2c06721bf6d48e61edc75a0a5b5985e" kind="dir"><name>components/device/silabs/si91x/wireless/crypto/aes/inc</name>
+  </compound>
+  <compound refid="dir_6961dea4c45320f7cdc452a167eb1c67" kind="dir"><name>components/device/silabs/si91x/wireless/crypto/attestation/inc</name>
+  </compound>
+  <compound refid="dir_8edd9ac24cbd09e41fae61a2ec72a9dd" kind="dir"><name>components/device/silabs/si91x/wireless/crypto/ccm/inc</name>
+  </compound>
+  <compound refid="dir_99a13ff2330918c6148ebd6e6842025b" kind="dir"><name>components/device/silabs/si91x/wireless/crypto/chachapoly/inc</name>
+  </compound>
+  <compound refid="dir_c756ed1ae0eafdfef8453666cf857068" kind="dir"><name>components/device/silabs/si91x/wireless/crypto/crypto_utility/inc</name>
+  </compound>
+  <compound refid="dir_834e97b9ac93a95156330bb70bd771f0" kind="dir"><name>components/device/silabs/si91x/wireless/crypto/ecdh/inc</name>
+  </compound>
+  <compound refid="dir_bb45dc8931f449af61311494f39bb596" kind="dir"><name>components/device/silabs/si91x/wireless/crypto/ecdsa/inc</name>
+  </compound>
+  <compound refid="dir_46b2d69eda58958499c934c45ef60123" kind="dir"><name>components/device/silabs/si91x/wireless/crypto/gcm/inc</name>
+  </compound>
+  <compound refid="dir_8f7d204dbe3684e50f4fab13b6ee6554" kind="dir"><name>components/device/silabs/si91x/wireless/crypto/hmac/inc</name>
+  </compound>
+  <compound refid="dir_3c0c936a236a62f7a8726aa8a9f75f8f" kind="dir"><name>components/device/silabs/si91x/wireless/crypto/inc</name>
+  </compound>
+  <compound refid="dir_b6eb43ed41ff992c54f58206dca4d6e8" kind="dir"><name>components/device/silabs/si91x/wireless/crypto/multithread/inc</name>
+  </compound>
+  <compound refid="dir_c73aaea12569b76173069c46b543ec0e" kind="dir"><name>components/device/silabs/si91x/wireless/crypto/sha/inc</name>
+  </compound>
+  <compound refid="dir_124977708590bb37e76bd40bfc2f24c6" kind="dir"><name>components/device/silabs/si91x/wireless/crypto/trng/inc</name>
+  </compound>
+  <compound refid="dir_589e3edd731563ab79768b80f00b8d19" kind="dir"><name>components/device/silabs/si91x/wireless/crypto/wrap/inc</name>
+  </compound>
+  <compound refid="dir_230896b2bd26a9b8ba731df8751d2ba6" kind="dir"><name>components/device/silabs/si91x/wireless/crypto/multithread</name>
+  </compound>
+  <compound refid="dir_d6175dcb6f383e7cffd6662609373b1d" kind="dir"><name>components/device/silabs/si91x/wireless/crypto/sha</name>
+  </compound>
+  <compound refid="dir_55dfeb49a672d43a54ddda9a268f28f0" kind="dir"><name>components/device/silabs/si91x</name>
+  </compound>
+  <compound refid="dir_454898e28a47f76a8169dea9161d36d8" kind="dir"><name>components/device/silabs</name>
+  </compound>
+  <compound refid="dir_b09ff481c8abf0d0f73ba4e3f8cdb40a" kind="dir"><name>components/device/silabs/si91x/wireless/crypto/trng</name>
+  </compound>
+  <compound refid="dir_b778f1c827210fa554d9ec5c6399ea30" kind="dir"><name>components/device/silabs/si91x/wireless</name>
+  </compound>
+  <compound refid="dir_688a240befede595ce27bbd157a9a7a5" kind="dir"><name>components/device/silabs/si91x/wireless/crypto/wrap</name>
+  </compound>
+  <compound refid="indexpage" kind="page"><name>index</name>
+  </compound>
+</doxygenindex>

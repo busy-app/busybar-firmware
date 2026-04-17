@@ -1,0 +1,15 @@
+id: "btmesh_stack_models"
+label: "Bluetooth Mesh Stack Models"
+package: bluetooth_mesh
+description: "Meta-component for grouping mesh models' SBOM metadata"
+category: "Bluetooth Mesh|Stack"
+quality: "production"
+provides:
+- name: "btmesh_stack_models"
+ui_hints:
+  visibility: never
+metadata:
+  sbom:
+    id: btmesh_stack_models
+    license: MSLA
+root_path: bluetooth_mesh

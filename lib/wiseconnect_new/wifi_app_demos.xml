@@ -1,0 +1,15 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<demos xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.silabs.com/ss/Demo.ecore">
+  <demo name="brd4338a.demo.wifi_commander_soc" label="Wi-Fi - Commander (SoC)">
+    <description>Wi-Fi Commander application</description>
+    <property key="demos.blurb" value="Wi-Fi - Commander (SoC)" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4338a" />
+    <property key="demos.imageFile" value="asset://extension.wiseconnect_4.0.1/wifi_app/brd4338a/wifi_commander_soc.rps" />
+    <property key="demos.firmwareFile" value="asset://extension.wiseconnect_4.0.1/connectivity_firmware/standard/SiWG917-B.2.15.5.1.0.5.rps" />
+    <property key="demos.firmwareFile.version" value="1711.2.15.5.1.0.5" />
+    <property key="readmeFiles" value="examples/demos/wifi_commander/readme.md" />
+    <property key="filters" value="Device\ Type|SoC Wireless\ Technology|Wi-Fi Project\ Difficulty|Beginner" />
+    <property key="core.quality" value="PRODUCTION" />
+  </demo>
+</demos>

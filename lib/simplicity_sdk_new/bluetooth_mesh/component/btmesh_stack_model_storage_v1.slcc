@@ -1,0 +1,27 @@
+id: btmesh_stack_model_storage_v1
+label: "Backwards compatible persistent storage for Mesh model configuration data"
+package: bluetooth_mesh
+description: "Provides persistent storage for Mesh model configuration data, such as subscription lists and application key bindings. This component implements a backwards-compatible variant of the storage, which can be used when updating an existing project without having to migrate data. "
+category: "Bluetooth Mesh|Stack"
+quality: "production"
+provides:
+- name: btmesh_stack_model_storage_v1
+- name: btmesh_stack_model_storage
+conflicts:
+- name: btmesh_stack_model_storage_v2
+requires:
+- name: btmesh_stack_model_storage_v1_libraries
+recommends:
+- id: btmesh_stack_model_storage_v1_libraries_release
+  condition:
+  - btmesh_stack_libraries_release
+  vendor: silabs
+- id: btmesh_stack_model_storage_v1_libraries_debug
+  condition:
+  - btmesh_stack_libraries_debug
+  vendor: silabs
+metadata:
+  sbom:
+    reference: btmesh_stack
+
+root_path: bluetooth_mesh

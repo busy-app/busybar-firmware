@@ -1,0 +1,30 @@
+id: "bluetooth_feature_external_bonding_database"
+label: "External Bluetooth bonding database"
+package: bluetooth_le_host
+description: >
+  Configures the Bluetooth stack to operate with an external bonding database.
+  In this configuration the user application takes care of storing the
+  persistent data required for Bluetooth bondings. The Bluetooth stack sends
+  events to the application to store bonding data and to request the application
+  to pass required bonding data to the Bluetooth stack when relevant.
+category: Bluetooth|Bluetooth Host (Stack)|Features with Commands and Events
+quality: "production"
+config_file:
+- path: "config/sl_bluetooth_external_bondingdb_config.h"
+requires:
+- name: "bluetooth_stack"
+provides:
+- name: "bluetooth_feature_external_bonding_database"
+- name: "bluetooth_feature_bonding_database"
+conflicts:
+- name: "bluetooth_feature_builtin_bonding_database"
+template_contribution:
+- name: component_catalog
+  value: bluetooth_feature_external_bonding_database
+documentation:
+  docset: bluetooth
+  document: bluetooth-stack-api/sl-bt-external-bondingdb
+metadata:
+  sbom:
+    license: MSLA
+root_path: bluetooth_le_host

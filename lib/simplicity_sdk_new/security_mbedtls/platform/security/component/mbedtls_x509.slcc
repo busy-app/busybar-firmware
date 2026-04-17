@@ -1,0 +1,37 @@
+id: mbedtls_x509
+package: security_mbedtls
+label: X.509
+description: >-
+  This component provides full support for handling X.509 standard-
+  based certificates in Mbed TLS.
+category: Platform|Security|Mbed TLS|Upper Layer
+quality: production
+provides:
+- name: mbedtls_x509
+- name: mbedtls_uses_psa_crypto
+  allow_multiple: true
+requires:
+- name: mbedtls_pki
+- name: mbedtls_pem
+- name: mbedtls_mpi
+- name: mbedtls_oid
+- name: mbedtls_core
+template_contribution:
+- name: mbedtls_config
+  value: MBEDTLS_X509_USE_C
+- name: mbedtls_config
+  value: MBEDTLS_X509_CREATE_C
+- name: mbedtls_config
+  value: MBEDTLS_X509_CRT_PARSE_C
+- name: mbedtls_config
+  value: MBEDTLS_X509_CRT_WRITE_C
+- name: mbedtls_config
+  value: MBEDTLS_X509_CRL_PARSE_C
+- name: mbedtls_config
+  value: MBEDTLS_X509_CSR_PARSE_C
+- name: mbedtls_config
+  value: MBEDTLS_X509_CSR_WRITE_C
+metadata:
+  sbom:
+    reference: mbedtls_sbom
+root_path: security_mbedtls

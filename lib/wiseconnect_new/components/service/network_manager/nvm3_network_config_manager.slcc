@@ -1,0 +1,26 @@
+id: nvm3_network_config_manager
+package: wifi
+description: >
+  NVM3 Network Config Manager provides an API to manage network credentials and profiles stored in NVM3
+label: NVM3 Network Configuration Manager
+category: Service|Network Management|Configuration
+quality: production
+metadata:
+  sbom:
+    license: MSLA
+component_root_path: ./components/service/network_manager
+provides:
+- name: nvm3_network_config_manager
+- name: network_config_manager
+source:
+- path: src/sl_net_credentials.c
+- path: src/sl_net_nvm_profiles.c
+define:
+- name: SL_SI91X_NVM3_CONFIG_MANAGER
+- name: NVM3_LOCK_OVERRIDE
+requires:
+- name: network_manager
+- name: nvm3_credential_manager
+- name: nvm3_lib
+conflicts:
+- name: basic_network_config_manager

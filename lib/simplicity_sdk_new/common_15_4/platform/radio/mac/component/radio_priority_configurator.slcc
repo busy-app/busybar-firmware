@@ -1,0 +1,21 @@
+id: radio_priority_configurator
+label: Radio Priority Configurator
+package: common_15_4
+category: 802.15.4|Radio
+quality: production
+description: "Adds the Radio Priority Configurator tool to the project."
+
+provides:
+- name: radio_priority_configurator
+  allow_multiple: true
+
+metadata:
+  sbom:
+    license: MSLA
+
+root_path: common_15_4/platform/radio/mac/component/radio_priority_configurator
+
+config_file:
+- path: priority_config.prioconf
+  file_id: radio_priority_configurator_file_id
+  directory: prioconf

@@ -1,0 +1,315 @@
+id: freertos_kernel_cortexm
+label: FreeRTOS Kernel ARM Cortex-M Port
+package: freertos
+description: 'This component provides the FreeRTOS kernel port for ARM Cortex-M processors.
+
+  '
+category: RTOS|FreeRTOS
+quality: production
+metadata:
+  sbom:
+    license: Apache 2.0
+    upstream:
+      name: CMSIS-FreeRTOS
+      version: 11.1.0
+      supplier: ARM-software
+      url: https://github.com/ARM-software/CMSIS-FreeRTOS
+      package_url: https://github.com/ARM-software/CMSIS-FreeRTOS/releases/tag/v11.1.0
+      comment: CMSIS-FreeRTOS, Version 11.1.0
+source:
+- path: cmsis/Source/cmsis_os2.c
+- path: kernel/portable/IAR/ARM_CM0/port.c
+  condition:
+  - toolchain_iar
+  - cortexm0plus
+- path: kernel/portable/IAR/ARM_CM0/portasm.s
+  condition:
+  - toolchain_iar
+  - cortexm0plus
+- path: kernel/portable/IAR/ARM_CM3/port.c
+  condition:
+  - toolchain_iar
+  - cortexm3
+- path: kernel/portable/IAR/ARM_CM3/portasm.s
+  condition:
+  - toolchain_iar
+  - cortexm3
+- path: kernel/portable/IAR/ARM_CM4F/port.c
+  condition:
+  - toolchain_iar
+  - cortexm4
+- path: kernel/portable/IAR/ARM_CM4F/portasm.s
+  condition:
+  - toolchain_iar
+  - cortexm4
+- path: kernel/portable/IAR/ARM_CM33_NTZ/non_secure/port.c
+  condition:
+  - toolchain_iar
+  - cortexm33
+- path: kernel/portable/IAR/ARM_CM33_NTZ/non_secure/portasm.s
+  condition:
+  - toolchain_iar
+  - cortexm33
+- path: kernel/portable/IAR/ARM_CM33_NTZ/non_secure/mpu_wrappers_v2_asm.S
+  condition:
+  - toolchain_iar
+  - cortexm33
+- path: kernel/portable/IAR/ARM_CM33_NTZ/non_secure/port.c
+  condition:
+  - toolchain_iar
+  - cortexm55
+- path: kernel/portable/IAR/ARM_CM33_NTZ/non_secure/portasm.s
+  condition:
+  - toolchain_iar
+  - cortexm55
+- path: kernel/portable/IAR/ARM_CM33_NTZ/non_secure/mpu_wrappers_v2_asm.S
+  condition:
+  - toolchain_iar
+  - cortexm55
+- path: kernel/portable/GCC/ARM_CM0/port.c
+  condition:
+  - toolchain_gcc
+  - cortexm0plus
+- path: kernel/portable/GCC/ARM_CM0/mpu_wrappers_v2_asm.c
+  condition:
+  - toolchain_gcc
+  - cortexm0plus
+- path: kernel/portable/GCC/ARM_CM3/port.c
+  condition:
+  - toolchain_gcc
+  - cortexm3
+- path: kernel/portable/GCC/ARM_CM4F/port.c
+  condition:
+  - toolchain_gcc
+  - cortexm4
+- path: kernel/portable/GCC/ARM_CM33_NTZ/non_secure/port.c
+  condition:
+  - toolchain_gcc
+  - cortexm33
+- path: kernel/portable/GCC/ARM_CM33_NTZ/non_secure/portasm.c
+  condition:
+  - toolchain_gcc
+  - cortexm33
+- path: kernel/portable/GCC/ARM_CM33_NTZ/non_secure/mpu_wrappers_v2_asm.c
+  condition:
+  - toolchain_gcc
+  - cortexm33
+- path: kernel/portable/GCC/ARM_CM33_NTZ/non_secure/port.c
+  condition:
+  - toolchain_gcc
+  - cortexm55
+- path: kernel/portable/GCC/ARM_CM33_NTZ/non_secure/portasm.c
+  condition:
+  - toolchain_gcc
+  - cortexm55
+- path: kernel/portable/GCC/ARM_CM33_NTZ/non_secure/mpu_wrappers_v2_asm.c
+  condition:
+  - toolchain_gcc
+  - cortexm55
+- path: kernel/portable/GCC/ARM_CM0/port.c
+  condition:
+  - toolchain_llvm
+  - cortexm0plus
+- path: kernel/portable/GCC/ARM_CM0/mpu_wrappers_v2_asm.c
+  condition:
+  - toolchain_llvm
+  - cortexm0plus
+- path: kernel/portable/GCC/ARM_CM3/port.c
+  condition:
+  - toolchain_llvm
+  - cortexm3
+- path: kernel/portable/GCC/ARM_CM4F/port.c
+  condition:
+  - toolchain_llvm
+  - cortexm4
+- path: kernel/portable/GCC/ARM_CM33_NTZ/non_secure/port.c
+  condition:
+  - toolchain_llvm
+  - cortexm33
+- path: kernel/portable/GCC/ARM_CM33_NTZ/non_secure/portasm.c
+  condition:
+  - toolchain_llvm
+  - cortexm33
+- path: kernel/portable/GCC/ARM_CM33_NTZ/non_secure/mpu_wrappers_v2_asm.c
+  condition:
+  - toolchain_llvm
+  - cortexm33
+- path: kernel/portable/GCC/ARM_CM33_NTZ/non_secure/port.c
+  condition:
+  - toolchain_llvm
+  - cortexm55
+- path: kernel/portable/GCC/ARM_CM33_NTZ/non_secure/portasm.c
+  condition:
+  - toolchain_llvm
+  - cortexm55
+- path: kernel/portable/GCC/ARM_CM33_NTZ/non_secure/mpu_wrappers_v2_asm.c
+  condition:
+  - toolchain_llvm
+  - cortexm55
+- path: kernel/portable/SiliconLabs/cortexm/tick_power_manager.c
+  condition:
+  - power_manager
+include:
+- path: cmsis/Include
+  file_list:
+  - path: freertos_os2.h
+  - path: freertos_mpool.h
+- path: kernel/portable/IAR/ARM_CM0
+  file_list:
+  - path: portmacro.h
+  condition:
+  - toolchain_iar
+  - cortexm0plus
+- path: kernel/portable/GCC/ARM_CM0
+  file_list:
+  - path: portmacro.h
+  condition:
+  - toolchain_gcc
+  - cortexm0plus
+- path: kernel/portable/GCC/ARM_CM0
+  file_list:
+  - path: portmacro.h
+  condition:
+  - toolchain_llvm
+  - cortexm0plus
+- path: kernel/portable/RVDS/ARM_CM0
+  file_list:
+  - path: portmacro.h
+  condition:
+  - toolchain_arm
+  - cortexm0plus
+- path: kernel/portable/IAR/ARM_CM3
+  file_list:
+  - path: portmacro.h
+  condition:
+  - toolchain_iar
+  - cortexm3
+- path: kernel/portable/GCC/ARM_CM3
+  file_list:
+  - path: portmacro.h
+  condition:
+  - toolchain_gcc
+  - cortexm3
+- path: kernel/portable/GCC/ARM_CM3
+  file_list:
+  - path: portmacro.h
+  condition:
+  - toolchain_llvm
+  - cortexm3
+- path: kernel/portable/RVDS/ARM_CM3
+  file_list:
+  - path: portmacro.h
+  condition:
+  - toolchain_arm
+  - cortexm3
+- path: kernel/portable/IAR/ARM_CM4F
+  file_list:
+  - path: portmacro.h
+  condition:
+  - toolchain_iar
+  - cortexm4
+- path: kernel/portable/GCC/ARM_CM4F
+  file_list:
+  - path: portmacro.h
+  condition:
+  - toolchain_gcc
+  - cortexm4
+- path: kernel/portable/GCC/ARM_CM4F
+  file_list:
+  - path: portmacro.h
+  condition:
+  - toolchain_llvm
+  - cortexm4
+- path: kernel/portable/RVDS/ARM_CM4F
+  file_list:
+  - path: portmacro.h
+  condition:
+  - toolchain_arm
+  - cortexm4
+- path: kernel/portable/IAR/ARM_CM33_NTZ/non_secure
+  file_list:
+  - path: portmacro.h
+  - path: portasm.h
+  - path: portmacrocommon.h
+  condition:
+  - toolchain_iar
+  - cortexm33
+- path: kernel/portable/GCC/ARM_CM33_NTZ/non_secure
+  file_list:
+  - path: portmacro.h
+  - path: portasm.h
+  - path: portmacrocommon.h
+  condition:
+  - toolchain_gcc
+  - cortexm33
+- path: kernel/portable/GCC/ARM_CM33_NTZ/non_secure
+  file_list:
+  - path: portmacro.h
+  - path: portasm.h
+  - path: portmacrocommon.h
+  condition:
+  - toolchain_llvm
+  - cortexm33
+- path: kernel/portable/IAR/ARM_CM33_NTZ/non_secure
+  file_list:
+  - path: portmacro.h
+  - path: portasm.h
+  - path: portmacrocommon.h
+  condition:
+  - toolchain_iar
+  - cortexm55
+- path: kernel/portable/GCC/ARM_CM33_NTZ/non_secure
+  file_list:
+  - path: portmacro.h
+  - path: portasm.h
+  - path: portmacrocommon.h
+  condition:
+  - toolchain_gcc
+  - cortexm55
+- path: kernel/portable/GCC/ARM_CM33_NTZ/non_secure
+  file_list:
+  - path: portmacro.h
+  - path: portasm.h
+  - path: portmacrocommon.h
+  condition:
+  - toolchain_llvm
+  - cortexm55
+provides:
+- name: freertos_arch
+  condition:
+  - device_cortexm
+requires:
+- name: freertos
+- name: device_cortexm
+- name: cmsis_core
+- name: cmsis_common
+- name: cmsis_rtos2_headers
+- name: cmsis_rtos2_tick
+- name: cmsis_rtos2_init
+- name: freertos_heap
+- name: sleeptimer
+  condition:
+  - power_manager
+- name: code_classification
+- name: component_catalog
+  condition:
+  - power_manager
+validation_helper:
+- path: script/freertos_validation.lua
+template_contribution:
+- name: component_catalog
+  value: freertos_kernel
+- name: component_catalog
+  value: kernel
+- name: rte_components
+  value: RTE_RTOS_FreeRTOS_CORE
+  priority: -9000
+- name: rte_components
+  value: RTE_RTOS_FreeRTOS_CONFIG_RTOS2
+- name: rte_components
+  value: RTE_RTOS_FreeRTOS_COROUTINE
+- name: rte_components
+  value: RTE_RTOS_FreeRTOS_EVENTGROUPS
+- name: rte_components
+  value: RTE_RTOS_FreeRTOS_TIMERS
+root_path: freertos

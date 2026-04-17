@@ -1,0 +1,80 @@
+id: device_init_hfxo
+label: High Frequency Crystal Oscillator (HFXO)
+package: platform_core
+description: >
+  Instantiate the component for High Frequency Crystal Oscillator (HFXO)
+  initialization based on the provided configuration.
+category: Services|Device Initialization|Peripherals
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: platform_core/platform/service/device_init/
+config_file:
+- path: config/s2/sdid200/sl_device_init_hfxo_config.h
+  condition: [device_sdid_200]
+  file_id: device_init_hfxo_config
+- path: config/s2/sdid205/sl_device_init_hfxo_config.h
+  condition: [device_sdid_205]
+  file_id: device_init_hfxo_config
+- path: config/s2/sdid210/sl_device_init_hfxo_config.h
+  condition: [device_sdid_210]
+  file_id: device_init_hfxo_config
+- path: config/s2/sdid215/sl_device_init_hfxo_config.h
+  condition: [device_sdid_215]
+  file_id: device_init_hfxo_config
+- path: config/s2/sdid220/sl_device_init_hfxo_config.h
+  condition: [device_sdid_220]
+  file_id: device_init_hfxo_config
+- path: config/s2/sdid225/sl_device_init_hfxo_config.h
+  condition: [device_sdid_225]
+  file_id: device_init_hfxo_config
+- path: config/s2/sdid230/sl_device_init_hfxo_config.h
+  condition: [device_sdid_230]
+  file_id: device_init_hfxo_config
+- path: config/s2/sdid235/sl_device_init_hfxo_config.h
+  condition: [device_sdid_235]
+  file_id: device_init_hfxo_config
+- path: config/s2/sdid240/sl_device_init_hfxo_config.h
+  condition: [device_sdid_240]
+  file_id: device_init_hfxo_config
+- path: config/s2/sdid250/sl_device_init_hfxo_config.h
+  condition: [device_generic_family_efr32xg2b]
+  file_id: device_init_hfxo_config
+- path: config/s2/sdid260/sl_device_init_hfxo_config.h
+  condition: [device_sdid_260]
+  file_id: device_init_hfxo_config
+include:
+- path: inc
+  file_list:
+  - path: sl_device_init_hfxo.h
+source:
+- path: src/sl_device_init_hfxo_s2.c
+  condition: [device_series_2]
+  unless: [device_family_mgm24]
+- path: src/sl_device_init_hfxo_mgm24.c
+  condition: [device_family_mgm24]
+
+provides:
+- name: device_init_hfxo
+  condition: [device_series_2]
+requires:
+- name: emlib_cmu
+- name: status
+- name: component_catalog
+  condition: [device_series_2]
+template_contribution:
+- name: event_handler
+  value:
+    event: platform_init
+    include: sl_device_init_hfxo.h
+    handler: sl_device_init_hfxo
+  priority: -9650
+  condition: [sl_system, kernel]
+- name: device_init_clocks_present
+  value: hfxo
+- name: component_catalog
+  value: device_init_hfxo
+documentation:
+  docset: gecko-platform
+  document: platform-service/device-init-hfxo

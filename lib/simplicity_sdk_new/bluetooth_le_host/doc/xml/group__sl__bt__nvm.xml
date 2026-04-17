@@ -1,0 +1,279 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__nvm" kind="group">
+    <compoundname>sl_bt_nvm</compoundname>
+    <title>NVM3 Access in NCP mode</title>
+    <innergroup refid="group__sl__bt__nvm__key__range">Defined key ranges</innergroup>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="group__sl__bt__nvm_1gac35df372fed2134445476526b1049dc0" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_nvm_save</definition>
+        <argsstring>(uint16_t key, size_t value_len, const uint8_t *value)</argsstring>
+        <name>sl_bt_nvm_save</name>
+        <param>
+          <type>uint16_t</type>
+          <declname>key</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>value_len</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Store a value into the specified NVM3 key in the Bluetooth region. Allowed keys are in the range from SL_BT_NVM_KEY_RANGE_USER_MIN (0x4000) to SL_BT_NVM_KEY_RANGE_USER_MAX (0x5FFF). The maximum value length is the lesser of NVM3_DEFAULT_MAX_OBJECT_SIZE configuration in the application and 253 bytes which is the maximum amount this command can accept.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">key</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The NVM3 key in the Bluetooth region </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">value_len</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Length of data in <computeroutput>value</computeroutput> </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">value</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Value to store into the NVM3 key</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="10804" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="10804" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__nvm_1gaf988906c52e4612a9c2eda4151eb2198" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_nvm_load</definition>
+        <argsstring>(uint16_t key, size_t max_value_size, size_t *value_len, uint8_t *value)</argsstring>
+        <name>sl_bt_nvm_load</name>
+        <param>
+          <type>uint16_t</type>
+          <declname>key</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>max_value_size</declname>
+        </param>
+        <param>
+          <type>size_t *</type>
+          <declname>value_len</declname>
+        </param>
+        <param>
+          <type>uint8_t *</type>
+          <declname>value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Retrieve the value of the specified NVM3 key in the Bluetooth region. Allowed keys are in the range from SL_BT_NVM_KEY_RANGE_USER_MIN (0x4000) to SL_BT_NVM_KEY_RANGE_USER_MAX (0x5FFF).</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">key</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The NVM3 key in the Bluetooth region </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">max_value_size</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Size of output buffer passed in <computeroutput>value</computeroutput> </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">value_len</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>On return, set to the length of output data written to <computeroutput>value</computeroutput> </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">value</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The value of the NVM3 key</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="10823" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="10823" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__nvm_1gaf165765a78e2a32831290760bcfa5b3b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_nvm_erase</definition>
+        <argsstring>(uint16_t key)</argsstring>
+        <name>sl_bt_nvm_erase</name>
+        <param>
+          <type>uint16_t</type>
+          <declname>key</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Delete a single NVM3 key and its value from the Bluetooth region. Allowed keys are in the range from SL_BT_NVM_KEY_RANGE_USER_MIN (0x4000) to SL_BT_NVM_KEY_RANGE_USER_MAX (0x5FFF).</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">key</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The NVM3 key to delete</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="10839" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="10839" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__nvm_1ga5380b53bbabe4f810d5cdaf5e1fe6bdc" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_nvm_erase_all</definition>
+        <argsstring>(void)</argsstring>
+        <name>sl_bt_nvm_erase_all</name>
+        <param>
+          <type>void</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Delete all NVMs keys and their corresponding values in the Bluetooth region of NVM3. All bluetooth bondings and associated data in NVM3 are deleted too.</para>
+<para><simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="10850" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="10850" declcolumn="13"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__nvm_1gae4dd1a7ad708634affbbdb0a3d61c69c" prot="public" static="no">
+        <name>sl_bt_cmd_nvm_save_id</name>
+        <initializer>0x020d0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="10763" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="10763" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__nvm_1ga30355b4026f3ddaec2f131ca5f856d51" prot="public" static="no">
+        <name>sl_bt_cmd_nvm_load_id</name>
+        <initializer>0x030d0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="10764" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="10764" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__nvm_1ga321beb5240d63d3bd7bdf52786b8e824" prot="public" static="no">
+        <name>sl_bt_cmd_nvm_erase_id</name>
+        <initializer>0x040d0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="10765" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="10765" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__nvm_1ga3042fb23253c22e72ab11571687d78e5" prot="public" static="no">
+        <name>sl_bt_cmd_nvm_erase_all_id</name>
+        <initializer>0x010d0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="10766" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="10766" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__nvm_1ga28f9726833418d3431b441c96f547ecb" prot="public" static="no">
+        <name>sl_bt_rsp_nvm_save_id</name>
+        <initializer>0x020d0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="10767" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="10767" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__nvm_1ga8de89507dcd2d8ee7845792cc2702bc4" prot="public" static="no">
+        <name>sl_bt_rsp_nvm_load_id</name>
+        <initializer>0x030d0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="10768" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="10768" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__nvm_1ga687ca9fc2272b73e361344f753204e5f" prot="public" static="no">
+        <name>sl_bt_rsp_nvm_erase_id</name>
+        <initializer>0x040d0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="10769" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="10769" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__nvm_1gafa4d2be9c6d3e7f223f9dd5c0768250c" prot="public" static="no">
+        <name>sl_bt_rsp_nvm_erase_all_id</name>
+        <initializer>0x010d0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="10770" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="10770" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>NVM3 Access in NCP mode. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>Provide convenient methods for applications in NCP mode to manage user data in the Bluetooth region of NVM3. User data stored in NVM3 is persistent across reset and power cycling of the device. Because Bluetooth bondings are also stored in NVM3, the space available for user data also depends on the number of bondings the device has at the time.</para>
+<para>It is recommended to use NVM3 APIs directly whenever it is possible, especially for applications in SoC mode.</para>
+<para>In NVM3, the flash store size is configurable and the minimum is 3 flash pages. The maximum data object size is configurable up to 4096 bytes. A Bluetooth bonding uses maximum 110 bytes for secure connections and 138 bytes for legacy pairing. For more details, see AN1135 &quot;Using Third Generation
+NonVolatile Memory (NVM3) Data Storage&quot;. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

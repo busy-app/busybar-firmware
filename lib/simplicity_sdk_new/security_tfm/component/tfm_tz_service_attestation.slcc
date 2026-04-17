@@ -1,0 +1,138 @@
+id: tfm_tz_service_attestation
+package: security_tfm
+label: PSA Attestation Service for TrustZone Secure Key Library
+description: This component includes tf-m source for the attestation support for TrustZone secure library.
+category: Platform|Security|TrustZone
+quality: production
+provides:
+- name: tfm_tz_service_attestation
+requires:
+- name: tfm_tz_service_common
+  condition:
+  - trustzone_secure
+include:
+- path: interface/include
+  file_list:
+  - path: psa/initial_attestation.h
+- path: secure_fw/spm/include
+  condition:
+  - trustzone_secure
+  unless:
+  - device_security_vault
+  file_list:
+  - path: tfm_boot_status.h
+- path: secure_fw/partitions/initial_attestation
+  condition:
+  - trustzone_secure
+  unless:
+  - device_security_vault
+  file_list:
+  - path: attest.h
+  - path: attest_key.h
+  - path: attest_token.h
+  - path: attest_eat_defines.h
+- path: platform/include
+  condition:
+  - trustzone_secure
+  unless:
+  - device_security_vault
+  file_list:
+  - path: tfm_plat_crypto_keys.h
+  - path: tfm_plat_defs.h
+  - path: tfm_plat_device_id.h
+  - path: tfm_plat_boot_seed.h
+  - path: tfm_attest_hal.h
+- path: lib/ext/qcbor/inc
+  condition:
+  - trustzone_secure
+  unless:
+  - device_security_vault
+  file_list:
+  - path: qcbor.h
+  - path: q_useful_buf.h
+  - path: UsefulBuf.h
+- path: lib/ext/qcbor/src
+  condition:
+  - trustzone_secure
+  file_list:
+  - path: ieee754.h
+- path: lib/ext/t_cose/inc
+  condition:
+  - trustzone_secure
+  unless:
+  - device_security_vault
+  file_list:
+  - path: t_cose_common.h
+  - path: t_cose_sign1_sign.h
+- path: lib/ext/t_cose/src
+  condition:
+  - trustzone_secure
+  file_list:
+  - path: t_cose_standard_constants.h
+  - path: t_cose_crypto.h
+  - path: t_cose_util.h
+  - path: t_cose_parameters.h
+source:
+- path: secure_fw/partitions/initial_attestation/attest_core.c
+  condition:
+  - trustzone_secure
+  unless:
+  - device_security_vault
+- path: secure_fw/partitions/initial_attestation/attest_token_encode.c
+  condition:
+  - trustzone_secure
+  unless:
+  - device_security_vault
+- path: secure_fw/partitions/initial_attestation/attest_asymmetric_key.c
+  condition:
+  - trustzone_secure
+  unless:
+  - device_security_vault
+- path: lib/ext/qcbor/src/ieee754.c
+  condition:
+  - trustzone_secure
+  unless:
+  - device_security_vault
+- path: lib/ext/qcbor/src/qcbor_decode.c
+  condition:
+  - trustzone_secure
+  unless:
+  - device_security_vault
+- path: lib/ext/qcbor/src/qcbor_encode.c
+  condition:
+  - trustzone_secure
+  unless:
+  - device_security_vault
+- path: lib/ext/qcbor/src/UsefulBuf.c
+  condition:
+  - trustzone_secure
+  unless:
+  - device_security_vault
+- path: lib/ext/t_cose/src/t_cose_sign1_sign.c
+  condition:
+  - trustzone_secure
+  unless:
+  - device_security_vault
+- path: lib/ext/t_cose/src/t_cose_parameters.c
+  condition:
+  - trustzone_secure
+  unless:
+  - device_security_vault
+- path: lib/ext/t_cose/src/t_cose_util.c
+  condition:
+  - trustzone_secure
+  unless:
+  - device_security_vault
+- path: lib/ext/t_cose/crypto_adapters/t_cose_psa_crypto.c
+  condition:
+  - trustzone_secure
+  unless:
+  - device_security_vault
+define:
+- name: T_COSE_USE_PSA_CRYPTO
+  unless:
+  - device_security_vault
+metadata:
+  sbom:
+    reference: tfm_sbom
+root_path: security_tfm

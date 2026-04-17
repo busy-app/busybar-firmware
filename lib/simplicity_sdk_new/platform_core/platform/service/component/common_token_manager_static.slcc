@@ -1,0 +1,73 @@
+id: common_token_manager_static
+label: Common Token Manager - Static Tokens
+package: platform_core
+description: >
+  The Common Token Manager provides a means to read and write manufacturing (static device and static secure)
+  tokens such as manufacturing ID, channel number, transmit power, and various pieces of information
+  that the application needs, these token are usually programmed during manufacturing.
+category: Services|Token Manager
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+requires:
+- name: component_catalog
+- name: se_manager
+- name: device_clock
+  condition: [device_series_3]
+- name: hal_generic_gpcrc
+  condition: [device_series_3]
+- name: common_token_manager_core
+- name: common_token_manager_secure
+  condition: [device_series_3]
+define:
+- name: SL_COMMON_TOKEN_MANAGER_ENABLE_STATIC_TOKENS
+provides:
+- name: common_token_manager_static
+source:
+- path: platform/service/token_manager/src/sli_token_manager_backend_nvm.c
+  condition: [device_series_3]
+- path: platform/service/token_manager/src/sli_token_manager_backend_ram.c
+  condition: [device_series_3]
+- path: platform/service/token_manager/src/sli_token_manager_format_klv.c
+  condition: [device_series_3]
+- path: platform/service/token_manager/src/sli_token_manager_hal_ext_flash.c
+  condition: [device_series_3]
+- path: platform/service/token_manager/src/sli_token_manager_hal_se_mtp.c
+  condition: [device_series_3]
+- path: platform/service/token_manager/src/sli_token_manager_manufacturing.c
+- path: platform/service/token_manager/legacy/src/sl_token_manufacturing.c
+  condition: [device_series_2]
+- path: platform/service/token_manager/legacy/src/sl_token_manufacturing_generic.c
+  condition: [device_series_2]
+include:
+- path: platform/service/token_manager/inc
+  file_list:
+  - path: sl_token_manager_manufacturing.h
+- path: platform/service/token_manager/src
+  file_list:
+  - path: sli_token_manager_backend_nvm.h
+    condition: [device_series_3]
+  - path: sli_token_manager_backend_ram.h
+    condition: [device_series_3]
+  - path: sli_token_manager_backend_se_mtp.h
+    condition: [device_series_3]
+  - path: sli_token_manager_format_klv.h
+    condition: [device_series_3]
+  - path: sli_token_manager_hal_flash.h
+    condition: [device_series_3]
+- path: platform/service/token_manager/legacy/inc
+  condition: [device_series_2]
+  file_list:
+  - path: sl_token_manufacturing_api.h
+  - path: sl_token_manufacturing.h
+  - path: sl_token_manufacturing_series_2.h
+- path: platform/service/token_manager/legacy/inc
+  file_list:
+  - path: sl_token_manufacturing_generic.h
+ui_hints:
+  visibility: never
+documentation:
+  docset: gecko-platform
+  document: platform-service/token-manager
+root_path: platform_core

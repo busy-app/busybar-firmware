@@ -1,0 +1,131 @@
+project_name: wifi_azure_iot_soc
+package: wifi_app
+quality: production
+label: Wi-Fi - Azure IoT MQTT Client (SoC)
+category: Example|Wi-Fi
+description: 'Application connects to azure cloud.
+
+  '
+filter:
+- name: Wireless Technology
+  value:
+  - Wi-Fi
+- name: Project Difficulty
+  value:
+  - Beginner
+source:
+- path: app.c
+include:
+- path: .
+  file_list:
+  - path: app.h
+  - path: demo_config.h
+  - path: transport_tls_socket.h
+define:
+- name: SL_SI91X_PRINT_DBG_LOG
+- name: azureiotconfigKEEP_ALIVE_TIMEOUT_SECONDS
+  value: '600'
+component:
+- id: sl_main
+- id: freertos
+- id: freertos_heap_4
+- id: sl_si91x_mem_pool_buffers_with_quota
+- id: syscalls
+- id: si91x_memory_default_config
+- id: wiseconnect_common
+- id: wifi
+- id: sl_si91x_internal_stack
+- id: wifi_resources
+- id: sl_si91x_hmac
+- id: sl_si91x_crypto
+- id: sl_si91x_wrap
+- id: network_manager
+- id: basic_network_config_manager
+- id: sl_si91x_asynchronous_socket
+- id: azure_freertos_middleware
+- id: sl_power_manager
+toolchain_settings:
+- option: gcc_compiler_option
+  value: -Wall -Werror
+configuration:
+- name: SL_BOARD_ENABLE_VCOM
+  value: '1'
+- name: configTICK_RATE_HZ
+  value: '1000'
+readme:
+- path: readme.md
+other_file:
+- path: resources/readme/azureaccountcreatea.png
+- path: resources/readme/azureaccountcreateb.png
+- path: resources/readme/azureaccountcreatec.png
+- path: resources/readme/azureaccountlogin.png
+- path: resources/readme/azurecertificateconversions.png
+- path: resources/readme/azureclientx509fingerprint.png
+- path: resources/readme/azureclientx509openssl.png
+- path: resources/readme/azurecloudshell.png
+- path: resources/readme/azurecloudshellsend.png
+- path: resources/readme/azurecloudshellsendcmd.png
+- path: resources/readme/azurecopyconnstring.png
+- path: resources/readme/azurecreatedevicea.png
+- path: resources/readme/azurecreatedevicea2.png
+- path: resources/readme/azurecreatedeviceb.png
+- path: resources/readme/azurecreatedevicenew.png
+- path: resources/readme/azurecreateiothub1.png
+- path: resources/readme/azurecreateiothub2.png
+- path: resources/readme/azurecreateiothub3.png
+- path: resources/readme/azurecreateiothub4.png
+- path: resources/readme/azurecreateiothub5.png
+- path: resources/readme/azurecreateiothub6.png
+- path: resources/readme/azurecreateiothub7.png
+- path: resources/readme/azurecreateresourcegroupiothub.png
+- path: resources/readme/azuredebugprints.png
+- path: resources/readme/azurehomepageiothub.png
+- path: resources/readme/azurehubcreatea.png
+- path: resources/readme/azurehubcreateb.png
+- path: resources/readme/azurehubopen.png
+- path: resources/readme/application_prints_soc1.png
+- path: resources/readme/application_prints_soc2.png
+- path: resources/readme/azureiothubadddevice.png
+- path: resources/readme/azureiothubcreate.png
+- path: resources/readme/azuremsgfromcloudprints.png
+- path: resources/readme/azuremsgfromhub.png
+- path: resources/readme/azureportallogin.png
+- path: resources/readme/azureportalloginsend.png
+- path: resources/readme/azureresourcecreatea.png
+- path: resources/readme/azureresourcecreateb.png
+- path: resources/readme/azureresourcecreatec.png
+- path: resources/readme/azureresourcecreated.png
+- path: resources/readme/azureresourcecreatee.png
+- path: resources/readme/azureresourcecreatef.png
+- path: resources/readme/azureresourcehub.png
+- path: resources/readme/azuresetupaddons.png
+- path: resources/readme/azuresetupmanagement.png
+- path: resources/readme/azuresetupncp.png
+- path: resources/readme/azuresetupnetworking.png
+- path: resources/readme/azuresetupsoc.png
+- path: resources/readme/azureviewmsg.png
+- path: resources/readme/azurex509devicecreate.png
+- path: resources/readme/iothubstep4image.png
+- path: resources/readme/openssloutputs.png
+- path: resources/readme/power_meter_avg_current_consumption.png
+- path: resources/readme/energy_profiler_step_1.png
+- path: resources/readme/energy_profiler_step_2.png
+- path: resources/readme/energy_profiler_step_3.png
+requires:
+- name: device_needs_ram_execution
+  condition:
+  - si91x_common_flash
+ui_hints:
+  highlight:
+  - path: readme.md
+    focus: true
+post_build:
+  profile: wiseconnect_soc
+sdk_extension:
+- id: wiseconnect3_sdk
+  vendor: silabs
+  version: 4.0.1
+sdk:
+  id: simplicity_sdk
+  vendor: silabs
+  version: 2025.12.2

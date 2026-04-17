@@ -1,0 +1,42 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__evt__advertiser__scan__request" kind="group">
+    <compoundname>sl_bt_evt_advertiser_scan_request</compoundname>
+    <title>sl_bt_evt_advertiser_scan_request</title>
+    <innerclass refid="structsl__bt__evt__advertiser__scan__request__s" prot="public">sl_bt_evt_advertiser_scan_request_s</innerclass>
+      <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="group__sl__bt__evt__advertiser__scan__request_1ga4cda6e28813b3cef105fc6c9ac10cff4" prot="public" static="no">
+        <type>struct <ref refid="structsl__bt__evt__advertiser__scan__request__s" kindref="compound">sl_bt_evt_advertiser_scan_request_s</ref></type>
+        <definition>typedef struct sl_bt_evt_advertiser_scan_request_s sl_bt_evt_advertiser_scan_request_t</definition>
+        <argsstring></argsstring>
+        <name>sl_bt_evt_advertiser_scan_request_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="2454" column="50" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="2454" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__evt__advertiser__scan__request_1ga305631e7dc877a0dca3820263d605a3d" prot="public" static="no">
+        <name>sl_bt_evt_advertiser_scan_request_id</name>
+        <initializer>0x020400a0</initializer>
+        <briefdescription>
+<para>Identifier of the scan_request event. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="2407" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="2407" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Reports a scan request received during the legacy or extended advertising advertising if the scan request notification is enabled. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

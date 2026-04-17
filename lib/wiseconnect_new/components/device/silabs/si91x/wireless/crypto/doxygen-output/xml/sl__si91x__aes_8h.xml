@@ -1,0 +1,556 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="sl__si91x__aes_8h" kind="file" language="C++">
+    <compoundname>sl_si91x_aes.h</compoundname>
+    <includes refid="sl__si91x__crypto_8h" local="yes">sl_si91x_crypto.h</includes>
+    <includes local="yes">sl_status.h</includes>
+    <includedby refid="sl__si91x__psa__aes_8h" local="yes">components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_psa_aes.h</includedby>
+    <incdepgraph>
+      <node id="1">
+        <label>components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_aes.h</label>
+        <link refid="sl__si91x__aes_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>sl_si91x_crypto.h</label>
+        <link refid="sl__si91x__crypto_8h"/>
+      </node>
+      <node id="3">
+        <label>sl_status.h</label>
+      </node>
+    </incdepgraph>
+    <invincdepgraph>
+      <node id="1">
+        <label>components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_aes.h</label>
+        <link refid="sl__si91x__aes_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_psa_aes.h</label>
+        <link refid="sl__si91x__psa__aes_8h_source"/>
+      </node>
+    </invincdepgraph>
+    <innerclass refid="structsl__si91x__aes__key__config__a0__t" prot="public">sl_si91x_aes_key_config_a0_t</innerclass>
+    <innerclass refid="structsl__si91x__aes__key__config__b0__t" prot="public">sl_si91x_aes_key_config_b0_t</innerclass>
+    <innerclass refid="unionsl__si91x__aes__key__config__t" prot="public">sl_si91x_aes_key_config_t</innerclass>
+    <innerclass refid="structsl__si91x__aes__config__t" prot="public">sl_si91x_aes_config_t</innerclass>
+    <innerclass refid="structsli__si91x__psa__aes__multipart__config__t" prot="public">sli_si91x_psa_aes_multipart_config_t</innerclass>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__CRYPTO__AES__CONSTANTS_1ga2be33478ea68e099978c931604211cd5" prot="public" static="no">
+        <name>SL_SI91X_AES_BLOCK_SIZE</name>
+        <initializer>16</initializer>
+        <briefdescription>
+<para>AES BLOCK SIZE of 16 bytes or 128 bits. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_aes.h" line="46" column="9" bodyfile="components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_aes.h" bodystart="46" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__CRYPTO__AES__CONSTANTS_1ga21c8a3c8913e02b6f6644428c131d507" prot="public" static="no">
+        <name>SL_SI91X_AES_FIRST_CHUNK</name>
+        <initializer>BIT(0)</initializer>
+        <briefdescription>
+<para>First chunk of data. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_aes.h" line="51" column="9" bodyfile="components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_aes.h" bodystart="51" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__CRYPTO__AES__CONSTANTS_1gae612d02561af16487db6cd03072fb7a5" prot="public" static="no">
+        <name>SL_SI91X_AES_MIDDLE_CHUNK</name>
+        <initializer>BIT(1)</initializer>
+        <briefdescription>
+<para>Middle chunk of data. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_aes.h" line="56" column="9" bodyfile="components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_aes.h" bodystart="56" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__CRYPTO__AES__CONSTANTS_1gad135009e1cbaebe26f46d27dce12439a" prot="public" static="no">
+        <name>SL_SI91X_AES_LAST_CHUNK</name>
+        <initializer>BIT(2)</initializer>
+        <briefdescription>
+<para>Last chunk of data. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_aes.h" line="61" column="9" bodyfile="components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_aes.h" bodystart="61" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="enum">
+      <memberdef kind="enum" id="group__CRYPTO__AES__CONSTANTS_1ga7d391bbc018f78114f268d40cb068f98" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_si91x_aes_mode_t</name>
+        <enumvalue id="group__CRYPTO__AES__CONSTANTS_1gga7d391bbc018f78114f268d40cb068f98a3b24c0b918aabf1865fc331054559613" prot="public">
+          <name>SL_SI91X_AES_CBC</name>
+          <initializer>= 1</initializer>
+          <briefdescription>
+<para>AES CBC mode. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__AES__CONSTANTS_1gga7d391bbc018f78114f268d40cb068f98a81af9fce9bd67e446d4d2e4898c0f72c" prot="public">
+          <name>SL_SI91X_AES_ECB</name>
+          <briefdescription>
+<para>AES ECB mode. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__AES__CONSTANTS_1gga7d391bbc018f78114f268d40cb068f98a509afaba3be0e8225e965df8142d78e5" prot="public">
+          <name>SL_SI91X_AES_CTR</name>
+          <briefdescription>
+<para>AES CTR mode. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>Enumeration defines the AES modes supported by the SI91X device. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>This enumeration defines different AES modes supported by the SI91X device, such as AES CBC, AES ECB, and AES CTR modes. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_aes.h" line="69" column="1" bodyfile="components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_aes.h" bodystart="69" bodyend="73"/>
+      </memberdef>
+      <memberdef kind="enum" id="group__CRYPTO__AES__CONSTANTS_1gacfa81db6bfb71882bf35012b6a57c713" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_si91x_aes_type_t</name>
+        <enumvalue id="group__CRYPTO__AES__CONSTANTS_1ggacfa81db6bfb71882bf35012b6a57c713ae046f869a059c0dfaaf1ba8cad94fb73" prot="public">
+          <name>SL_SI91X_AES_ENCRYPT</name>
+          <initializer>= 1</initializer>
+          <briefdescription>
+<para>AES encryption. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__AES__CONSTANTS_1ggacfa81db6bfb71882bf35012b6a57c713a7067197dae5ab37c49e9a6f89385a972" prot="public">
+          <name>SL_SI91X_AES_DECRYPT</name>
+          <briefdescription>
+<para>AES decryption. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>Enumeration defines the AES encryption and decryption types. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>This enumeration defines the types of AES operations supported, which includes encryption and decryption. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_aes.h" line="81" column="1" bodyfile="components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_aes.h" bodystart="81" bodyend="84"/>
+      </memberdef>
+      <memberdef kind="enum" id="group__CRYPTO__AES__CONSTANTS_1gabcfc4a6c04b3af6fd6c10c2ec6f3a55a" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_si91x_aes_key_size_t</name>
+        <enumvalue id="group__CRYPTO__AES__CONSTANTS_1ggabcfc4a6c04b3af6fd6c10c2ec6f3a55aa0226fb24cd3a9b5f67be46cb25e13dd7" prot="public">
+          <name>SL_SI91X_AES_KEY_SIZE_128</name>
+          <initializer>= 16</initializer>
+          <briefdescription>
+<para>Key size of 128 bits. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__AES__CONSTANTS_1ggabcfc4a6c04b3af6fd6c10c2ec6f3a55aae4318ab0aef889cb295c7c8fe4ff0a98" prot="public">
+          <name>SL_SI91X_AES_KEY_SIZE_192</name>
+          <initializer>= 24</initializer>
+          <briefdescription>
+<para>Key size of 192 bits. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__AES__CONSTANTS_1ggabcfc4a6c04b3af6fd6c10c2ec6f3a55aae0b9e5345083dd96f14215894eaf54c3" prot="public">
+          <name>SL_SI91X_AES_KEY_SIZE_256</name>
+          <initializer>= 32</initializer>
+          <briefdescription>
+<para>Key size of 256 bits. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>Enumeration defines the key sizes supported by the AES encryption algorithm on the SI91X device, which includes 128-bit, 192-bit, and 256-bit key sizes. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_aes.h" line="90" column="1" bodyfile="components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_aes.h" bodystart="90" bodyend="94"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="group__CRYPTO__AES__FUNCTIONS_1gaf508565bc1ffbe903d3496a7b712dd2f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_si91x_aes</definition>
+        <argsstring>(sl_si91x_aes_config_t *config, uint8_t *output)</argsstring>
+        <name>sl_si91x_aes</name>
+        <param>
+          <type><ref refid="structsl__si91x__aes__config__t" kindref="compound">sl_si91x_aes_config_t</ref> *</type>
+          <declname>config</declname>
+        </param>
+        <param>
+          <type>uint8_t *</type>
+          <declname>output</declname>
+        </param>
+        <briefdescription>
+<para>To encrypt or decrypt the message according to the given configuration. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>This is a blocking API. <parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">config</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Configuration object of type <ref refid="structsl__si91x__aes__config__t" kindref="compound">sl_si91x_aes_config_t</ref> </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">output</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Buffer to store the output. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="note"><para>The maximum length of the message in bytes that can be handled in one go is determined by SLI_SI91X_MAX_DATA_SIZE_IN_BYTES_FOR_AES. If the message length is not a multiple of SL_SI91X_AES_BLOCK_SIZE, the function returns an error.</para>
+</simplesect>
+<simplesect kind="return"><para>sl_status_t. For more information on status codes, refer to <ulink url="https://docs.silabs.com/gecko-platform/latest/platform-common/status">SL STATUS DOCUMENTATION</ulink>. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_aes.h" line="195" column="13" declfile="components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_aes.h" declline="195" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__CRYPTO__AES__FUNCTIONS_1ga0f48a13beb7db143b748ae6678eb490f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_si91x_aes_multipart</definition>
+        <argsstring>(const sl_si91x_aes_config_t *config, uint16_t chunk_length, uint8_t aes_flags, uint8_t *output)</argsstring>
+        <name>sl_si91x_aes_multipart</name>
+        <param>
+          <type>const <ref refid="structsl__si91x__aes__config__t" kindref="compound">sl_si91x_aes_config_t</ref> *</type>
+          <declname>config</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>chunk_length</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>aes_flags</declname>
+        </param>
+        <param>
+          <type>uint8_t *</type>
+          <declname>output</declname>
+        </param>
+        <briefdescription>
+<para>Encrypts or decrypts a chunk of a message (CBC and ECB modes are not supported for multipart operations) according to the given configuration. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>This is a blocking API. <parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">config</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Configuration object of type <ref refid="structsl__si91x__aes__config__t" kindref="compound">sl_si91x_aes_config_t</ref> containing the AES operation parameters. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">chunk_length</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Length of the current chunk to be processed in bytes. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">aes_flags</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Flags indicating the position of the current chunk. Valid values are:- <ref refid="group__CRYPTO__AES__CONSTANTS_1ga21c8a3c8913e02b6f6644428c131d507" kindref="member">SL_SI91X_AES_FIRST_CHUNK</ref>, <ref refid="group__CRYPTO__AES__CONSTANTS_1gae612d02561af16487db6cd03072fb7a5" kindref="member">SL_SI91X_AES_MIDDLE_CHUNK</ref>, <ref refid="group__CRYPTO__AES__CONSTANTS_1gad135009e1cbaebe26f46d27dce12439a" kindref="member">SL_SI91X_AES_LAST_CHUNK</ref>. Buffer to store the processed output data. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>sl_status_t. For more information on status codes, refer to <ulink url="https://docs.silabs.com/gecko-platform/latest/platform-common/status">SL STATUS DOCUMENTATION</ulink>. </para>
+</simplesect>
+<simplesect kind="note"><para><itemizedlist>
+<listitem><para>The maximum length of the message in bytes that can be handled in one go is determined by SLI_SI91X_MAX_DATA_SIZE_IN_BYTES_FOR_AES.</para>
+</listitem><listitem><para>If the message length exceeds this limit, the function returns SL_STATUS_INVALID_PARAMETER.</para>
+</listitem><listitem><para>If the message length is not a multiple of SL_SI91X_AES_BLOCK_SIZE, the function returns an error. </para>
+</listitem></itemizedlist>
+</para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_aes.h" line="217" column="13" declfile="components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_aes.h" declline="217" declcolumn="13"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>SL SI91X AES Header file. </para>
+    </briefdescription>
+    <detaileddescription>
+<sect1 id="sl__si91x__aes_8h_1autotoc_md2">
+<title>License</title>
+<para><bold>Copyright 2023 Silicon Laboratories Inc. www.silabs.com</bold></para>
+<para>SPDX-License-Identifier: Zlib</para>
+<para>The licensor of this software is Silicon Laboratories Inc.</para>
+<para>This software is provided &apos;as-is&apos;, without any express or implied warranty. In no event will the authors be held liable for any damages arising from the use of this software.</para>
+<para>Permission is granted to anyone to use this software for any purpose, including commercial applications, and to alter it and redistribute it freely, subject to the following restrictions:</para>
+<para><orderedlist>
+<listitem><para>The origin of this software must not be misrepresented; you must not claim that you wrote the original software. If you use this software in a product, an acknowledgment in the product documentation would be appreciated but is not required.</para>
+</listitem><listitem><para>Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.</para>
+</listitem><listitem><para>This notice may not be removed or altered from any source distribution. </para>
+</listitem></orderedlist>
+</para>
+</sect1>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="comment">/***************************************************************************/</highlight><highlight class="normal"><sp/></highlight><highlight class="comment">/**</highlight></codeline>
+<codeline lineno="2"><highlight class="comment"><sp/>*<sp/>@file</highlight></codeline>
+<codeline lineno="3"><highlight class="comment"><sp/>*<sp/>@brief<sp/>SL<sp/>SI91X<sp/>AES<sp/>Header<sp/>file</highlight></codeline>
+<codeline lineno="4"><highlight class="comment"><sp/>*******************************************************************************</highlight></codeline>
+<codeline lineno="5"><highlight class="comment"><sp/>*<sp/>#<sp/>License</highlight></codeline>
+<codeline lineno="6"><highlight class="comment"><sp/>*<sp/>&lt;b&gt;Copyright<sp/>2023<sp/>Silicon<sp/>Laboratories<sp/>Inc.<sp/>www.silabs.com&lt;/b&gt;</highlight></codeline>
+<codeline lineno="7"><highlight class="comment"><sp/>*******************************************************************************</highlight></codeline>
+<codeline lineno="8"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="9"><highlight class="comment"><sp/>*<sp/>SPDX-License-Identifier:<sp/>Zlib</highlight></codeline>
+<codeline lineno="10"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="11"><highlight class="comment"><sp/>*<sp/>The<sp/>licensor<sp/>of<sp/>this<sp/>software<sp/>is<sp/>Silicon<sp/>Laboratories<sp/>Inc.</highlight></codeline>
+<codeline lineno="12"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="13"><highlight class="comment"><sp/>*<sp/>This<sp/>software<sp/>is<sp/>provided<sp/>&apos;as-is&apos;,<sp/>without<sp/>any<sp/>express<sp/>or<sp/>implied</highlight></codeline>
+<codeline lineno="14"><highlight class="comment"><sp/>*<sp/>warranty.<sp/>In<sp/>no<sp/>event<sp/>will<sp/>the<sp/>authors<sp/>be<sp/>held<sp/>liable<sp/>for<sp/>any<sp/>damages</highlight></codeline>
+<codeline lineno="15"><highlight class="comment"><sp/>*<sp/>arising<sp/>from<sp/>the<sp/>use<sp/>of<sp/>this<sp/>software.</highlight></codeline>
+<codeline lineno="16"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="17"><highlight class="comment"><sp/>*<sp/>Permission<sp/>is<sp/>granted<sp/>to<sp/>anyone<sp/>to<sp/>use<sp/>this<sp/>software<sp/>for<sp/>any<sp/>purpose,</highlight></codeline>
+<codeline lineno="18"><highlight class="comment"><sp/>*<sp/>including<sp/>commercial<sp/>applications,<sp/>and<sp/>to<sp/>alter<sp/>it<sp/>and<sp/>redistribute<sp/>it</highlight></codeline>
+<codeline lineno="19"><highlight class="comment"><sp/>*<sp/>freely,<sp/>subject<sp/>to<sp/>the<sp/>following<sp/>restrictions:</highlight></codeline>
+<codeline lineno="20"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="21"><highlight class="comment"><sp/>*<sp/>1.<sp/>The<sp/>origin<sp/>of<sp/>this<sp/>software<sp/>must<sp/>not<sp/>be<sp/>misrepresented;<sp/>you<sp/>must<sp/>not</highlight></codeline>
+<codeline lineno="22"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/>claim<sp/>that<sp/>you<sp/>wrote<sp/>the<sp/>original<sp/>software.<sp/>If<sp/>you<sp/>use<sp/>this<sp/>software</highlight></codeline>
+<codeline lineno="23"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/>in<sp/>a<sp/>product,<sp/>an<sp/>acknowledgment<sp/>in<sp/>the<sp/>product<sp/>documentation<sp/>would<sp/>be</highlight></codeline>
+<codeline lineno="24"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/>appreciated<sp/>but<sp/>is<sp/>not<sp/>required.</highlight></codeline>
+<codeline lineno="25"><highlight class="comment"><sp/>*<sp/>2.<sp/>Altered<sp/>source<sp/>versions<sp/>must<sp/>be<sp/>plainly<sp/>marked<sp/>as<sp/>such,<sp/>and<sp/>must<sp/>not<sp/>be</highlight></codeline>
+<codeline lineno="26"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/>misrepresented<sp/>as<sp/>being<sp/>the<sp/>original<sp/>software.</highlight></codeline>
+<codeline lineno="27"><highlight class="comment"><sp/>*<sp/>3.<sp/>This<sp/>notice<sp/>may<sp/>not<sp/>be<sp/>removed<sp/>or<sp/>altered<sp/>from<sp/>any<sp/>source<sp/>distribution.</highlight></codeline>
+<codeline lineno="28"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="29"><highlight class="comment"><sp/>******************************************************************************/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="30"><highlight class="normal"></highlight></codeline>
+<codeline lineno="31"><highlight class="normal"></highlight><highlight class="preprocessor">#pragma<sp/>once</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="32"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;<ref refid="sl__si91x__crypto_8h" kindref="compound">sl_si91x_crypto.h</ref>&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="33"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;sl_status.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="34"><highlight class="normal"></highlight></codeline>
+<codeline lineno="35"><highlight class="normal"></highlight><highlight class="comment">/******************************************************</highlight></codeline>
+<codeline lineno="36"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Constants</highlight></codeline>
+<codeline lineno="37"><highlight class="comment"><sp/>******************************************************/</highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="38"><highlight class="comment">/**</highlight></codeline>
+<codeline lineno="39"><highlight class="comment"><sp/>*<sp/>@addtogroup<sp/>CRYPTO_AES_CONSTANTS</highlight></codeline>
+<codeline lineno="40"><highlight class="comment"><sp/>*<sp/>@{<sp/></highlight></codeline>
+<codeline lineno="41"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="42"><highlight class="normal"></highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="43"><highlight class="comment">/**</highlight></codeline>
+<codeline lineno="44"><highlight class="comment"><sp/>*<sp/>@brief<sp/>AES<sp/>BLOCK<sp/>SIZE<sp/>of<sp/>16<sp/>bytes<sp/>or<sp/>128<sp/>bits.</highlight></codeline>
+<codeline lineno="45"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="46" refid="group__CRYPTO__AES__CONSTANTS_1ga2be33478ea68e099978c931604211cd5" refkind="member"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>SL_SI91X_AES_BLOCK_SIZE<sp/>16</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="47"><highlight class="normal"></highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="48"><highlight class="comment">/**</highlight></codeline>
+<codeline lineno="49"><highlight class="comment"><sp/>*<sp/>@brief<sp/>First<sp/>chunk<sp/>of<sp/>data.</highlight></codeline>
+<codeline lineno="50"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="51" refid="group__CRYPTO__AES__CONSTANTS_1ga21c8a3c8913e02b6f6644428c131d507" refkind="member"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>SL_SI91X_AES_FIRST_CHUNK<sp/>BIT(0)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="52"><highlight class="normal"></highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="53"><highlight class="comment">/**</highlight></codeline>
+<codeline lineno="54"><highlight class="comment"><sp/>*<sp/>@brief<sp/>Middle<sp/>chunk<sp/>of<sp/>data.</highlight></codeline>
+<codeline lineno="55"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="56" refid="group__CRYPTO__AES__CONSTANTS_1gae612d02561af16487db6cd03072fb7a5" refkind="member"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>SL_SI91X_AES_MIDDLE_CHUNK<sp/>BIT(1)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="57"><highlight class="normal"></highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="58"><highlight class="comment">/**</highlight></codeline>
+<codeline lineno="59"><highlight class="comment"><sp/>*<sp/>@brief<sp/>Last<sp/>chunk<sp/>of<sp/>data.</highlight></codeline>
+<codeline lineno="60"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="61" refid="group__CRYPTO__AES__CONSTANTS_1gad135009e1cbaebe26f46d27dce12439a" refkind="member"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>SL_SI91X_AES_LAST_CHUNK<sp/>BIT(2)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="62"><highlight class="normal"></highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="63"><highlight class="comment">/**</highlight></codeline>
+<codeline lineno="64"><highlight class="comment"><sp/>*<sp/>@brief<sp/>Enumeration<sp/>defines<sp/>the<sp/>AES<sp/>modes<sp/>supported<sp/>by<sp/>the<sp/>SI91X<sp/>device.</highlight></codeline>
+<codeline lineno="65"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="66"><highlight class="comment"><sp/>*<sp/>This<sp/>enumeration<sp/>defines<sp/>different<sp/>AES<sp/>modes<sp/>supported<sp/>by<sp/>the<sp/>SI91X<sp/>device,</highlight></codeline>
+<codeline lineno="67"><highlight class="comment"><sp/>*<sp/>such<sp/>as<sp/>AES<sp/>CBC,<sp/>AES<sp/>ECB,<sp/>and<sp/>AES<sp/>CTR<sp/>modes.</highlight></codeline>
+<codeline lineno="68"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="69" refid="group__CRYPTO__AES__CONSTANTS_1ga7d391bbc018f78114f268d40cb068f98" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">enum</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="70" refid="group__CRYPTO__AES__CONSTANTS_1gga7d391bbc018f78114f268d40cb068f98a3b24c0b918aabf1865fc331054559613" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="group__CRYPTO__AES__CONSTANTS_1gga7d391bbc018f78114f268d40cb068f98a3b24c0b918aabf1865fc331054559613" kindref="member">SL_SI91X_AES_CBC</ref><sp/>=<sp/>1,<sp/></highlight><highlight class="comment">///&lt;<sp/>AES<sp/>CBC<sp/>mode</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="71" refid="group__CRYPTO__AES__CONSTANTS_1gga7d391bbc018f78114f268d40cb068f98a81af9fce9bd67e446d4d2e4898c0f72c" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="group__CRYPTO__AES__CONSTANTS_1gga7d391bbc018f78114f268d40cb068f98a81af9fce9bd67e446d4d2e4898c0f72c" kindref="member">SL_SI91X_AES_ECB</ref>,<sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">///&lt;<sp/>AES<sp/>ECB<sp/>mode</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="72"><highlight class="normal"><sp/><sp/><ref refid="group__CRYPTO__AES__CONSTANTS_1gga7d391bbc018f78114f268d40cb068f98a509afaba3be0e8225e965df8142d78e5" kindref="member">SL_SI91X_AES_CTR</ref><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">///&lt;<sp/>AES<sp/>CTR<sp/>mode</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="73" refid="group__CRYPTO__AES__CONSTANTS_1gga7d391bbc018f78114f268d40cb068f98a509afaba3be0e8225e965df8142d78e5" refkind="member"><highlight class="normal">}<sp/><ref refid="group__CRYPTO__AES__CONSTANTS_1ga7d391bbc018f78114f268d40cb068f98" kindref="member">sl_si91x_aes_mode_t</ref>;</highlight></codeline>
+<codeline lineno="74"><highlight class="normal"></highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="75"><highlight class="comment">/**</highlight></codeline>
+<codeline lineno="76"><highlight class="comment"><sp/>*<sp/>@brief<sp/>Enumeration<sp/>defines<sp/>the<sp/>AES<sp/>encryption<sp/>and<sp/>decryption<sp/>types.</highlight></codeline>
+<codeline lineno="77"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="78"><highlight class="comment"><sp/>*<sp/>This<sp/>enumeration<sp/>defines<sp/>the<sp/>types<sp/>of<sp/>AES<sp/>operations<sp/>supported,<sp/>which<sp/>includes</highlight></codeline>
+<codeline lineno="79"><highlight class="comment"><sp/>*<sp/>encryption<sp/>and<sp/>decryption.</highlight></codeline>
+<codeline lineno="80"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="81" refid="group__CRYPTO__AES__CONSTANTS_1gacfa81db6bfb71882bf35012b6a57c713" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">enum</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="82" refid="group__CRYPTO__AES__CONSTANTS_1ggacfa81db6bfb71882bf35012b6a57c713ae046f869a059c0dfaaf1ba8cad94fb73" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="group__CRYPTO__AES__CONSTANTS_1ggacfa81db6bfb71882bf35012b6a57c713ae046f869a059c0dfaaf1ba8cad94fb73" kindref="member">SL_SI91X_AES_ENCRYPT</ref><sp/>=<sp/>1,<sp/></highlight><highlight class="comment">///&lt;<sp/>AES<sp/>encryption</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="83"><highlight class="normal"><sp/><sp/><ref refid="group__CRYPTO__AES__CONSTANTS_1ggacfa81db6bfb71882bf35012b6a57c713a7067197dae5ab37c49e9a6f89385a972" kindref="member">SL_SI91X_AES_DECRYPT</ref><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">///&lt;<sp/>AES<sp/>decryption</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="84" refid="group__CRYPTO__AES__CONSTANTS_1ggacfa81db6bfb71882bf35012b6a57c713a7067197dae5ab37c49e9a6f89385a972" refkind="member"><highlight class="normal">}<sp/><ref refid="group__CRYPTO__AES__CONSTANTS_1gacfa81db6bfb71882bf35012b6a57c713" kindref="member">sl_si91x_aes_type_t</ref>;</highlight></codeline>
+<codeline lineno="85"><highlight class="normal"></highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="86"><highlight class="comment">/**</highlight></codeline>
+<codeline lineno="87"><highlight class="comment"><sp/>*<sp/>@brief<sp/>Enumeration<sp/>defines<sp/>the<sp/>key<sp/>sizes<sp/>supported<sp/>by<sp/>the<sp/>AES<sp/>encryption</highlight></codeline>
+<codeline lineno="88"><highlight class="comment"><sp/>*<sp/>algorithm<sp/>on<sp/>the<sp/>SI91X<sp/>device,<sp/>which<sp/>includes<sp/>128-bit,<sp/>192-bit,<sp/>and<sp/>256-bit<sp/>key<sp/>sizes.</highlight></codeline>
+<codeline lineno="89"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="90" refid="group__CRYPTO__AES__CONSTANTS_1gabcfc4a6c04b3af6fd6c10c2ec6f3a55a" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">enum</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="91" refid="group__CRYPTO__AES__CONSTANTS_1ggabcfc4a6c04b3af6fd6c10c2ec6f3a55aa0226fb24cd3a9b5f67be46cb25e13dd7" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="group__CRYPTO__AES__CONSTANTS_1ggabcfc4a6c04b3af6fd6c10c2ec6f3a55aa0226fb24cd3a9b5f67be46cb25e13dd7" kindref="member">SL_SI91X_AES_KEY_SIZE_128</ref><sp/>=<sp/>16,<sp/></highlight><highlight class="comment">///&lt;<sp/>Key<sp/>size<sp/>of<sp/>128<sp/>bits</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="92" refid="group__CRYPTO__AES__CONSTANTS_1ggabcfc4a6c04b3af6fd6c10c2ec6f3a55aae4318ab0aef889cb295c7c8fe4ff0a98" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="group__CRYPTO__AES__CONSTANTS_1ggabcfc4a6c04b3af6fd6c10c2ec6f3a55aae4318ab0aef889cb295c7c8fe4ff0a98" kindref="member">SL_SI91X_AES_KEY_SIZE_192</ref><sp/>=<sp/>24,<sp/></highlight><highlight class="comment">///&lt;<sp/>Key<sp/>size<sp/>of<sp/>192<sp/>bits</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="93"><highlight class="normal"><sp/><sp/><ref refid="group__CRYPTO__AES__CONSTANTS_1ggabcfc4a6c04b3af6fd6c10c2ec6f3a55aae0b9e5345083dd96f14215894eaf54c3" kindref="member">SL_SI91X_AES_KEY_SIZE_256</ref><sp/>=<sp/>32<sp/><sp/></highlight><highlight class="comment">///&lt;<sp/>Key<sp/>size<sp/>of<sp/>256<sp/>bits</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="94" refid="group__CRYPTO__AES__CONSTANTS_1ggabcfc4a6c04b3af6fd6c10c2ec6f3a55aae0b9e5345083dd96f14215894eaf54c3" refkind="member"><highlight class="normal">}<sp/><ref refid="group__CRYPTO__AES__CONSTANTS_1gabcfc4a6c04b3af6fd6c10c2ec6f3a55a" kindref="member">sl_si91x_aes_key_size_t</ref>;</highlight></codeline>
+<codeline lineno="95"><highlight class="normal"></highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="96"><highlight class="comment">/**<sp/>@}<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="97"><highlight class="normal"></highlight></codeline>
+<codeline lineno="98"><highlight class="normal"></highlight><highlight class="comment">/******************************************************</highlight></codeline>
+<codeline lineno="99"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Type<sp/>Definitions</highlight></codeline>
+<codeline lineno="100"><highlight class="comment"><sp/>******************************************************/</highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="101"><highlight class="comment">/**</highlight></codeline>
+<codeline lineno="102"><highlight class="comment"><sp/>*<sp/>@addtogroup<sp/>CRYPTO_AES_TYPES<sp/></highlight></codeline>
+<codeline lineno="103"><highlight class="comment"><sp/>*<sp/>@{<sp/></highlight></codeline>
+<codeline lineno="104"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="105"><highlight class="normal"></highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="106"><highlight class="comment">/**</highlight></codeline>
+<codeline lineno="107"><highlight class="comment"><sp/>*<sp/>@brief<sp/>Structure<sp/>defines<sp/>the<sp/>AES<sp/>key<sp/>configuration<sp/>for<sp/>the<sp/>non-B0<sp/>chip<sp/>versions.</highlight></codeline>
+<codeline lineno="108"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="109" refid="structsl__si91x__aes__key__config__a0__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal">{</highlight></codeline>
+<codeline lineno="110" refid="structsl__si91x__aes__key__config__a0__t_1a70dd731fbe326b614641097d8e5ce6f3" refkind="member"><highlight class="normal"><sp/><sp/>uint8_t<sp/>*<ref refid="structsl__si91x__aes__key__config__a0__t_1a70dd731fbe326b614641097d8e5ce6f3" kindref="member">key</ref>;<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">///&lt;<sp/>Pointer<sp/>to<sp/>the<sp/>key</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="111" refid="structsl__si91x__aes__key__config__a0__t_1a977a85a863c296301890d3b5d9e95f36" refkind="member"><highlight class="normal"><sp/><sp/>uint16_t<sp/><ref refid="structsl__si91x__aes__key__config__a0__t_1a977a85a863c296301890d3b5d9e95f36" kindref="member">key_length</ref>;<sp/></highlight><highlight class="comment">///&lt;<sp/>Length<sp/>of<sp/>the<sp/>key</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="112"><highlight class="normal">}<sp/><ref refid="structsl__si91x__aes__key__config__a0__t" kindref="compound">sl_si91x_aes_key_config_a0_t</ref>;</highlight></codeline>
+<codeline lineno="113"><highlight class="normal"></highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="114"><highlight class="comment">/**</highlight></codeline>
+<codeline lineno="115"><highlight class="comment"><sp/>*<sp/>@brief<sp/>Structure<sp/>defines<sp/>the<sp/>AES<sp/>key<sp/>configuration<sp/>for<sp/>B0<sp/>chip<sp/>versions.</highlight></codeline>
+<codeline lineno="116"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="117" refid="structsl__si91x__aes__key__config__b0__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal">{</highlight></codeline>
+<codeline lineno="118" refid="structsl__si91x__aes__key__config__b0__t_1a5da45f983b1f84919480a4b0628f0030" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="group__CRYPTO__CONSTANTS_1gaa4ae5ba737ea708d60d4c58f83d6d7be" kindref="member">sl_si91x_crypto_key_type_t</ref><sp/><ref refid="structsl__si91x__aes__key__config__b0__t_1a5da45f983b1f84919480a4b0628f0030" kindref="member">key_type</ref>;<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">///&lt;<sp/>Key<sp/>type</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="119" refid="structsl__si91x__aes__key__config__b0__t_1a9690ef5c657f42ac01d1ad103b4c5503" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="group__CRYPTO__AES__CONSTANTS_1gabcfc4a6c04b3af6fd6c10c2ec6f3a55a" kindref="member">sl_si91x_aes_key_size_t</ref><sp/><ref refid="structsl__si91x__aes__key__config__b0__t_1a9690ef5c657f42ac01d1ad103b4c5503" kindref="member">key_size</ref>;<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">///&lt;<sp/>Key<sp/>size</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="120" refid="structsl__si91x__aes__key__config__b0__t_1a6d955a1e461202d2558e0cdcf4db0cbe" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="group__CRYPTO__CONSTANTS_1gab2fb3cd3f463bc7fb4f94ae5e1c58352" kindref="member">sl_si91x_crypto_key_slot_t</ref><sp/><ref refid="structsl__si91x__aes__key__config__b0__t_1a6d955a1e461202d2558e0cdcf4db0cbe" kindref="member">key_slot</ref>;<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">///&lt;<sp/>Key<sp/>slot</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="121" refid="structsl__si91x__aes__key__config__b0__t_1a17ef882557570e8f39a5999f41cf3e2d" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="group__CRYPTO__CONSTANTS_1gaac5c8069f16fca3b9d5936ef034537de" kindref="member">sl_si91x_crypto_wrap_mode_t</ref><sp/><ref refid="structsl__si91x__aes__key__config__b0__t_1a17ef882557570e8f39a5999f41cf3e2d" kindref="member">wrap_iv_mode</ref>;<sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">///&lt;<sp/>Wrap<sp/>mode</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="122" refid="structsl__si91x__aes__key__config__b0__t_1a77ca3fe2a9a6b75c13533ec773722094" refkind="member"><highlight class="normal"><sp/><sp/>uint8_t<sp/>wrap_iv[<ref refid="group__CRYPTO__CONSTANTS_1ga3936c05c79c2c129da5eeaec5d7fbd3d" kindref="member">SL_SI91X_IV_SIZE</ref>];<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">///&lt;<sp/>IV<sp/>used<sp/>in<sp/>SL_SI91X_AES_CBC<sp/>and<sp/>SL_SI91X_AES_CTR<sp/>modes</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="123" refid="structsl__si91x__aes__key__config__b0__t_1a3077c2f5ca7575133f493bff4d226f40" refkind="member"><highlight class="normal"><sp/><sp/>uint8_t<sp/>key_buffer[<ref refid="group__CRYPTO__CONSTANTS_1ga70acbe34bfae6519370054a881bc1bb7" kindref="member">SL_SI91X_KEY_BUFFER_SIZE</ref>];<sp/></highlight><highlight class="comment">///&lt;<sp/>Buffer<sp/>to<sp/>store<sp/>the<sp/>key</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="124" refid="structsl__si91x__aes__key__config__b0__t_1abbca80234de16ec9e0282dc19c9e2432" refkind="member"><highlight class="normal"><sp/><sp/>uint32_t<sp/><ref refid="structsl__si91x__aes__key__config__b0__t_1abbca80234de16ec9e0282dc19c9e2432" kindref="member">reserved</ref>;<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">///&lt;<sp/>Reserved<sp/>for<sp/>future<sp/>use</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="125"><highlight class="normal">}<sp/><ref refid="structsl__si91x__aes__key__config__b0__t" kindref="compound">sl_si91x_aes_key_config_b0_t</ref>;</highlight></codeline>
+<codeline lineno="126"><highlight class="normal"></highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="127"><highlight class="comment">/**</highlight></codeline>
+<codeline lineno="128"><highlight class="comment"><sp/>*<sp/>@brief<sp/>Union<sp/>holds<sp/>the<sp/>AES<sp/>key<sp/>configuration<sp/>structures<sp/>of<sp/>B0<sp/>and<sp/>non-B0<sp/>chip<sp/>versions.</highlight></codeline>
+<codeline lineno="129"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="130" refid="unionsl__si91x__aes__key__config__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">union<sp/></highlight><highlight class="normal">{</highlight></codeline>
+<codeline lineno="131" refid="unionsl__si91x__aes__key__config__t_1a757949b7e89291f5aa025af5bd32cfcd" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="structsl__si91x__aes__key__config__a0__t" kindref="compound">sl_si91x_aes_key_config_a0_t</ref><sp/><ref refid="unionsl__si91x__aes__key__config__t_1a757949b7e89291f5aa025af5bd32cfcd" kindref="member">a0</ref>;<sp/></highlight><highlight class="comment">///&lt;<sp/>Key<sp/>configuration<sp/>for<sp/>non-B0<sp/>chip<sp/>versions</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="132" refid="unionsl__si91x__aes__key__config__t_1a596b0b67319ee775a302788f8aebb949" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="structsl__si91x__aes__key__config__b0__t" kindref="compound">sl_si91x_aes_key_config_b0_t</ref><sp/><ref refid="unionsl__si91x__aes__key__config__t_1a596b0b67319ee775a302788f8aebb949" kindref="member">b0</ref>;<sp/></highlight><highlight class="comment">///&lt;<sp/>Key<sp/>configuration<sp/>for<sp/>B0<sp/>chip<sp/>versions</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="133"><highlight class="normal">}<sp/><ref refid="unionsl__si91x__aes__key__config__t" kindref="compound">sl_si91x_aes_key_config_t</ref>;</highlight></codeline>
+<codeline lineno="134"><highlight class="normal"></highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="135"><highlight class="comment">/**</highlight></codeline>
+<codeline lineno="136"><highlight class="comment"><sp/>*<sp/>@brief<sp/>Structure<sp/>defines<sp/>the<sp/>AES<sp/>configuration.</highlight></codeline>
+<codeline lineno="137"><highlight class="comment"><sp/>*<sp/></highlight></codeline>
+<codeline lineno="138"><highlight class="comment"><sp/>*<sp/>This<sp/>structure<sp/>defines<sp/>AES<sp/>configuration<sp/>required<sp/>for<sp/>the<sp/>operation<sp/>which<sp/>includes<sp/></highlight></codeline>
+<codeline lineno="139"><highlight class="comment"><sp/>*<sp/>type<sp/>of<sp/>operation,<sp/>input<sp/>message,<sp/>length<sp/>of<sp/>input<sp/>message,<sp/>key<sp/>configuration<sp/>structure,<sp/>and<sp/>so<sp/>on.<sp/></highlight></codeline>
+<codeline lineno="140"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="141" refid="structsl__si91x__aes__config__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal">{</highlight></codeline>
+<codeline lineno="142" refid="structsl__si91x__aes__config__t_1a340b8b1984efb80bc2bb8004de252a3b" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="group__CRYPTO__AES__CONSTANTS_1ga7d391bbc018f78114f268d40cb068f98" kindref="member">sl_si91x_aes_mode_t</ref><sp/><ref refid="structsl__si91x__aes__config__t_1a340b8b1984efb80bc2bb8004de252a3b" kindref="member">aes_mode</ref>;<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">///&lt;<sp/>AES<sp/>Mode</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="143" refid="structsl__si91x__aes__config__t_1a751d86617f58c3b8c5483997e2e4ebe1" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="group__CRYPTO__AES__CONSTANTS_1gacfa81db6bfb71882bf35012b6a57c713" kindref="member">sl_si91x_aes_type_t</ref><sp/><ref refid="structsl__si91x__aes__config__t_1a751d86617f58c3b8c5483997e2e4ebe1" kindref="member">encrypt_decrypt</ref>;<sp/><sp/></highlight><highlight class="comment">///&lt;<sp/>Encryption<sp/>or<sp/>decryption</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="144" refid="structsl__si91x__aes__config__t_1adfc68b5c8e0dc8e81f3ff97f707f1a44" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint8_t<sp/>*<ref refid="structsl__si91x__aes__config__t_1adfc68b5c8e0dc8e81f3ff97f707f1a44" kindref="member">msg</ref>;<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">///&lt;<sp/>Pointer<sp/>to<sp/>the<sp/>input<sp/>message</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="145" refid="structsl__si91x__aes__config__t_1a14051ee66642816cb35e0519955efb29" refkind="member"><highlight class="normal"><sp/><sp/>uint16_t<sp/><ref refid="structsl__si91x__aes__config__t_1a14051ee66642816cb35e0519955efb29" kindref="member">msg_length</ref>;<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">///&lt;<sp/>Length<sp/>of<sp/>the<sp/>message</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="146" refid="structsl__si91x__aes__config__t_1af794e23df5c540ee23327742af5773b3" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint8_t<sp/>*<ref refid="structsl__si91x__aes__config__t_1af794e23df5c540ee23327742af5773b3" kindref="member">iv</ref>;<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">///&lt;<sp/>Pointer<sp/>to<sp/>the<sp/>Initialization<sp/>vector</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="147" refid="structsl__si91x__aes__config__t_1abd15431e3ec7db21c1de933c0a337141" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="unionsl__si91x__aes__key__config__t" kindref="compound">sl_si91x_aes_key_config_t</ref><sp/><ref refid="structsl__si91x__aes__config__t_1abd15431e3ec7db21c1de933c0a337141" kindref="member">key_config</ref>;<sp/></highlight><highlight class="comment">///&lt;<sp/>Key<sp/>configuration</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="148"><highlight class="normal">}<sp/><ref refid="structsl__si91x__aes__config__t" kindref="compound">sl_si91x_aes_config_t</ref>;</highlight></codeline>
+<codeline lineno="149"><highlight class="normal"></highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="150"><highlight class="comment">/**</highlight></codeline>
+<codeline lineno="151"><highlight class="comment"><sp/>*<sp/>@brief<sp/>Structure<sp/>defines<sp/>the<sp/>PSA<sp/>AES<sp/>Multipart<sp/>configuration.</highlight></codeline>
+<codeline lineno="152"><highlight class="comment"><sp/>*<sp/></highlight></codeline>
+<codeline lineno="153"><highlight class="comment"><sp/>*<sp/>This<sp/>structure<sp/>defines<sp/>PSA<sp/>AES<sp/>Multipart<sp/>configuration<sp/>required<sp/>for<sp/>the<sp/>operation<sp/>which<sp/>includes<sp/></highlight></codeline>
+<codeline lineno="154"><highlight class="comment"><sp/>*<sp/>type<sp/>of<sp/>operation,<sp/>input<sp/>message,<sp/>length<sp/>of<sp/>input<sp/>message,<sp/>key<sp/>configuration<sp/>structure,<sp/>and<sp/>so<sp/>on.<sp/></highlight></codeline>
+<codeline lineno="155"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="156" refid="structsli__si91x__psa__aes__multipart__config__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal">{</highlight></codeline>
+<codeline lineno="157" refid="structsli__si91x__psa__aes__multipart__config__t_1a54374d75a78756f08629c2bc043177c4" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="group__CRYPTO__AES__CONSTANTS_1ga7d391bbc018f78114f268d40cb068f98" kindref="member">sl_si91x_aes_mode_t</ref><sp/><ref refid="structsli__si91x__psa__aes__multipart__config__t_1a54374d75a78756f08629c2bc043177c4" kindref="member">aes_mode</ref>;<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">///&lt;<sp/>AES<sp/>Mode</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="158" refid="structsli__si91x__psa__aes__multipart__config__t_1a4ee0fdacbfce43c51aa3878ca978f678" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="group__CRYPTO__AES__CONSTANTS_1gacfa81db6bfb71882bf35012b6a57c713" kindref="member">sl_si91x_aes_type_t</ref><sp/><ref refid="structsli__si91x__psa__aes__multipart__config__t_1a4ee0fdacbfce43c51aa3878ca978f678" kindref="member">encrypt_decrypt</ref>;<sp/><sp/></highlight><highlight class="comment">///&lt;<sp/>Encryption<sp/>or<sp/>decryption</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="159" refid="structsli__si91x__psa__aes__multipart__config__t_1a874969575d254a5cbbf079ce160a87b5" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint8_t<sp/>*<ref refid="structsli__si91x__psa__aes__multipart__config__t_1a874969575d254a5cbbf079ce160a87b5" kindref="member">msg</ref>;<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">///&lt;<sp/>Pointer<sp/>to<sp/>the<sp/>input<sp/>message</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="160" refid="structsli__si91x__psa__aes__multipart__config__t_1aa7e145e9039af75823458cc386c104b9" refkind="member"><highlight class="normal"><sp/><sp/>uint16_t<sp/><ref refid="structsli__si91x__psa__aes__multipart__config__t_1aa7e145e9039af75823458cc386c104b9" kindref="member">msg_length</ref>;<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">///&lt;<sp/>Length<sp/>of<sp/>the<sp/>message</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="161" refid="structsli__si91x__psa__aes__multipart__config__t_1a399608620ff2da958be5120c6cbae4f9" refkind="member"><highlight class="normal"><sp/><sp/>uint8_t<sp/>iv[<ref refid="group__CRYPTO__CONSTANTS_1ga3936c05c79c2c129da5eeaec5d7fbd3d" kindref="member">SL_SI91X_IV_SIZE</ref>];<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">///&lt;<sp/>Initialization<sp/>vector</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="162" refid="structsli__si91x__psa__aes__multipart__config__t_1a1ab4ecfe0a303b313670ece04c137cea" refkind="member"><highlight class="normal"><sp/><sp/>uint8_t<sp/><ref refid="structsli__si91x__psa__aes__multipart__config__t_1a1ab4ecfe0a303b313670ece04c137cea" kindref="member">iv_flag</ref>;<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">///&lt;<sp/>Flag<sp/>to<sp/>indicate<sp/>whether<sp/>iv<sp/>is<sp/>set<sp/>or<sp/>not</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="163" refid="structsli__si91x__psa__aes__multipart__config__t_1a6d3ea246de929e38cf81d4b82b489632" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="unionsl__si91x__aes__key__config__t" kindref="compound">sl_si91x_aes_key_config_t</ref><sp/><ref refid="structsli__si91x__psa__aes__multipart__config__t_1a6d3ea246de929e38cf81d4b82b489632" kindref="member">key_config</ref>;<sp/></highlight><highlight class="comment">///&lt;<sp/>Key<sp/>configuration</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="164" refid="structsli__si91x__psa__aes__multipart__config__t_1a91ada830340c28febe9030ce2c5e8868" refkind="member"><highlight class="normal"><sp/><sp/>uint8_t<sp/><ref refid="structsli__si91x__psa__aes__multipart__config__t_1a91ada830340c28febe9030ce2c5e8868" kindref="member">chunk_flag</ref>;<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">///&lt;<sp/>Flag<sp/>to<sp/>indicate<sp/>chunk<sp/>number</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="165"><highlight class="normal">}<sp/><ref refid="structsli__si91x__psa__aes__multipart__config__t" kindref="compound">sli_si91x_psa_aes_multipart_config_t</ref>;</highlight></codeline>
+<codeline lineno="166"><highlight class="normal"></highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="167"><highlight class="comment">/**<sp/>@}<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="168"><highlight class="normal"></highlight></codeline>
+<codeline lineno="169"><highlight class="normal"></highlight><highlight class="comment">/******************************************************</highlight></codeline>
+<codeline lineno="170"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Function<sp/>Declarations</highlight></codeline>
+<codeline lineno="171"><highlight class="comment"><sp/>******************************************************/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="172"><highlight class="normal"></highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="173"><highlight class="comment">/**</highlight></codeline>
+<codeline lineno="174"><highlight class="comment"><sp/>*<sp/>@addtogroup<sp/>CRYPTO_AES_FUNCTIONS</highlight></codeline>
+<codeline lineno="175"><highlight class="comment"><sp/>*<sp/>@{</highlight></codeline>
+<codeline lineno="176"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="177"><highlight class="normal"></highlight></codeline>
+<codeline lineno="178"><highlight class="normal"></highlight><highlight class="comment">/***************************************************************************/</highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="179"><highlight class="comment">/**</highlight></codeline>
+<codeline lineno="180"><highlight class="comment"><sp/>*<sp/>@brief<sp/></highlight></codeline>
+<codeline lineno="181"><highlight class="comment"><sp/>*<sp/><sp/><sp/>To<sp/>encrypt<sp/>or<sp/>decrypt<sp/>the<sp/>message<sp/>according<sp/>to<sp/>the<sp/>given<sp/>configuration.<sp/>This<sp/>is<sp/>a<sp/>blocking<sp/>API.</highlight></codeline>
+<codeline lineno="182"><highlight class="comment"><sp/>*<sp/>@param[in]<sp/>config<sp/></highlight></codeline>
+<codeline lineno="183"><highlight class="comment"><sp/>*<sp/><sp/><sp/>Configuration<sp/>object<sp/>of<sp/>type<sp/>@ref<sp/>sl_si91x_aes_config_t</highlight></codeline>
+<codeline lineno="184"><highlight class="comment"><sp/>*<sp/>@param[out]<sp/>output<sp/></highlight></codeline>
+<codeline lineno="185"><highlight class="comment"><sp/>*<sp/><sp/><sp/>Buffer<sp/>to<sp/>store<sp/>the<sp/>output.</highlight></codeline>
+<codeline lineno="186"><highlight class="comment"><sp/>*<sp/>@note</highlight></codeline>
+<codeline lineno="187"><highlight class="comment"><sp/>*<sp/><sp/><sp/>The<sp/>maximum<sp/>length<sp/>of<sp/>the<sp/>message<sp/>in<sp/>bytes<sp/>that<sp/>can<sp/>be<sp/>handled<sp/>in<sp/>one<sp/>go<sp/>is<sp/>determined<sp/>by<sp/>SLI_SI91X_MAX_DATA_SIZE_IN_BYTES_FOR_AES.</highlight></codeline>
+<codeline lineno="188"><highlight class="comment"><sp/>*<sp/><sp/><sp/>If<sp/>the<sp/>message<sp/>length<sp/>is<sp/>not<sp/>a<sp/>multiple<sp/>of<sp/>SL_SI91X_AES_BLOCK_SIZE,<sp/>the<sp/>function<sp/>returns<sp/>an<sp/>error.</highlight></codeline>
+<codeline lineno="189"><highlight class="comment"><sp/>*<sp/></highlight></codeline>
+<codeline lineno="190"><highlight class="comment"><sp/>*<sp/>@return</highlight></codeline>
+<codeline lineno="191"><highlight class="comment"><sp/>*<sp/><sp/><sp/>sl_status_t.</highlight></codeline>
+<codeline lineno="192"><highlight class="comment"><sp/>*<sp/>For<sp/>more<sp/>information<sp/>on<sp/>status<sp/>codes,<sp/>refer<sp/>to<sp/></highlight></codeline>
+<codeline lineno="193"><highlight class="comment"><sp/>*<sp/>[SL<sp/>STATUS<sp/>DOCUMENTATION](https://docs.silabs.com/gecko-platform/latest/platform-common/status).</highlight></codeline>
+<codeline lineno="194"><highlight class="comment"><sp/>******************************************************************************/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="195" refid="group__CRYPTO__AES__FUNCTIONS_1gaf508565bc1ffbe903d3496a7b712dd2f" refkind="member"><highlight class="normal">sl_status_t<sp/><ref refid="group__CRYPTO__AES__FUNCTIONS_1gaf508565bc1ffbe903d3496a7b712dd2f" kindref="member">sl_si91x_aes</ref>(<ref refid="structsl__si91x__aes__config__t" kindref="compound">sl_si91x_aes_config_t</ref><sp/>*config,<sp/>uint8_t<sp/>*output);</highlight></codeline>
+<codeline lineno="196"><highlight class="normal"></highlight></codeline>
+<codeline lineno="197"><highlight class="normal"></highlight><highlight class="comment">/***************************************************************************/</highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="198"><highlight class="comment">/**</highlight></codeline>
+<codeline lineno="199"><highlight class="comment"><sp/>*<sp/>@brief<sp/></highlight></codeline>
+<codeline lineno="200"><highlight class="comment"><sp/>*<sp/><sp/><sp/>Encrypts<sp/>or<sp/>decrypts<sp/>a<sp/>chunk<sp/>of<sp/>a<sp/>message<sp/>(CBC<sp/>and<sp/>ECB<sp/>modes<sp/>are<sp/>not<sp/>supported<sp/>for<sp/>multipart<sp/>operations)<sp/>according<sp/>to<sp/>the<sp/>given<sp/>configuration.<sp/>This<sp/>is<sp/>a<sp/>blocking<sp/>API.</highlight></codeline>
+<codeline lineno="201"><highlight class="comment"><sp/>*<sp/>@param[in]<sp/>config<sp/></highlight></codeline>
+<codeline lineno="202"><highlight class="comment"><sp/>*<sp/><sp/><sp/>Configuration<sp/>object<sp/>of<sp/>type<sp/>@ref<sp/>sl_si91x_aes_config_t<sp/>containing<sp/>the<sp/>AES<sp/>operation<sp/>parameters.</highlight></codeline>
+<codeline lineno="203"><highlight class="comment"><sp/>*<sp/>@param[in]<sp/>chunk_length<sp/></highlight></codeline>
+<codeline lineno="204"><highlight class="comment"><sp/>*<sp/><sp/><sp/>Length<sp/>of<sp/>the<sp/>current<sp/>chunk<sp/>to<sp/>be<sp/>processed<sp/>in<sp/>bytes.</highlight></codeline>
+<codeline lineno="205"><highlight class="comment"><sp/>*<sp/>@param[in]<sp/>aes_flags<sp/></highlight></codeline>
+<codeline lineno="206"><highlight class="comment"><sp/>*<sp/><sp/><sp/>Flags<sp/>indicating<sp/>the<sp/>position<sp/>of<sp/>the<sp/>current<sp/>chunk.<sp/>Valid<sp/>values<sp/>are:-<sp/>@ref<sp/>SL_SI91X_AES_FIRST_CHUNK,<sp/>@ref<sp/>SL_SI91X_AES_MIDDLE_CHUNK,<sp/>@ref<sp/>SL_SI91X_AES_LAST_CHUNK.</highlight></codeline>
+<codeline lineno="207"><highlight class="comment"><sp/>*<sp/><sp/><sp/>Buffer<sp/>to<sp/>store<sp/>the<sp/>processed<sp/>output<sp/>data.</highlight></codeline>
+<codeline lineno="208"><highlight class="comment"><sp/>*<sp/>@return</highlight></codeline>
+<codeline lineno="209"><highlight class="comment"><sp/>*<sp/><sp/><sp/>sl_status_t.</highlight></codeline>
+<codeline lineno="210"><highlight class="comment"><sp/>*<sp/>For<sp/>more<sp/>information<sp/>on<sp/>status<sp/>codes,<sp/>refer<sp/>to<sp/></highlight></codeline>
+<codeline lineno="211"><highlight class="comment"><sp/>*<sp/>[SL<sp/>STATUS<sp/>DOCUMENTATION](https://docs.silabs.com/gecko-platform/latest/platform-common/status).</highlight></codeline>
+<codeline lineno="212"><highlight class="comment"><sp/>*<sp/>@note</highlight></codeline>
+<codeline lineno="213"><highlight class="comment"><sp/>*<sp/><sp/><sp/>-<sp/>The<sp/>maximum<sp/>length<sp/>of<sp/>the<sp/>message<sp/>in<sp/>bytes<sp/>that<sp/>can<sp/>be<sp/>handled<sp/>in<sp/>one<sp/>go<sp/>is<sp/>determined<sp/>by<sp/>SLI_SI91X_MAX_DATA_SIZE_IN_BYTES_FOR_AES.</highlight></codeline>
+<codeline lineno="214"><highlight class="comment"><sp/>*<sp/><sp/><sp/>-<sp/>If<sp/>the<sp/>message<sp/>length<sp/>exceeds<sp/>this<sp/>limit,<sp/>the<sp/>function<sp/>returns<sp/>SL_STATUS_INVALID_PARAMETER.</highlight></codeline>
+<codeline lineno="215"><highlight class="comment"><sp/>*<sp/><sp/><sp/>-<sp/>If<sp/>the<sp/>message<sp/>length<sp/>is<sp/>not<sp/>a<sp/>multiple<sp/>of<sp/>SL_SI91X_AES_BLOCK_SIZE,<sp/>the<sp/>function<sp/>returns<sp/>an<sp/>error.</highlight></codeline>
+<codeline lineno="216"><highlight class="comment"><sp/>******************************************************************************/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="217" refid="group__CRYPTO__AES__FUNCTIONS_1ga0f48a13beb7db143b748ae6678eb490f" refkind="member"><highlight class="normal">sl_status_t<sp/><ref refid="group__CRYPTO__AES__FUNCTIONS_1ga0f48a13beb7db143b748ae6678eb490f" kindref="member">sl_si91x_aes_multipart</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structsl__si91x__aes__config__t" kindref="compound">sl_si91x_aes_config_t</ref><sp/>*config,</highlight></codeline>
+<codeline lineno="218"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>uint16_t<sp/>chunk_length,</highlight></codeline>
+<codeline lineno="219"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>uint8_t<sp/>aes_flags,</highlight></codeline>
+<codeline lineno="220"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>uint8_t<sp/>*output);</highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="221"><highlight class="comment">/**<sp/>@}<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+    </programlisting>
+    <location file="components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_aes.h"/>
+  </compounddef>
+</doxygen>

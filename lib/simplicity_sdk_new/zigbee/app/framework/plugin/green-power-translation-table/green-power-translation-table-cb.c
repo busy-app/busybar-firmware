@@ -1,0 +1,105 @@
+/***************************************************************************//**
+ * @file
+ * @brief
+ *******************************************************************************
+ * # License
+ * <b>Copyright 2021 Silicon Laboratories Inc. www.silabs.com</b>
+ *******************************************************************************
+ *
+ * The licensor of this software is Silicon Laboratories Inc. Your use of this
+ * software is governed by the terms of Silicon Labs Master Software License
+ * Agreement (MSLA) available at
+ * www.silabs.com/about-us/legal/master-software-license-agreement. This
+ * software is distributed to you in Source Code format and is governed by the
+ * sections of the MSLA applicable to Source Code.
+ *
+ ******************************************************************************/
+#ifdef SL_COMPONENT_CATALOG_PRESENT
+#include "sl_component_catalog.h"
+#endif
+#ifdef SL_CATALOG_ZIGBEE_ZCL_FRAMEWORK_CORE_PRESENT
+#include "app/framework/include/af.h"
+#else // !SL_CATALOG_ZIGBEE_ZCL_FRAMEWORK_CORE_PRESENT
+#include "green-power-adapter.h"
+#endif //SL_CATALOG_ZIGBEE_ZCL_FRAMEWORK_CORE_PRESENT
+
+/** @brief Green power server pass frame without translation callback
+ *
+ * This function is called by the green power server translation table plugin
+ * to notify the application of a green power notification without translation
+ * (when the endpoint is set as 0xFC).
+ *
+ * @param addr GPD address in the notification   Ver.: always
+ * @param gpdCommandId GPD command id Ver.: always
+ * @param gpdCommandPayload GPD command payload Ver.: always
+ */
+WEAK(void sl_zigbee_af_green_power_cluster_pass_frame_without_translation_cb(sl_zigbee_gp_address_t * addr,
+                                                                             uint8_t gpdCommandId,
+                                                                             uint8_t * gpdCommandPayload))
+{
+  UNUSED_VAR(addr);
+  UNUSED_VAR(gpdCommandId);
+  UNUSED_VAR(gpdCommandPayload);
+}
+
+/** @brief Delete entries from translation table callback
+ *
+ * This function is called by the green power server translation table plugin
+ * to notify the application of a translation table entry deletion for a gpd.
+ * Application must respond to the request if it is handling this.
+ *
+ * @param gpdAddr   Ver.: always
+ *
+ * @returns Return true if handled by application.
+ */
+WEAK(bool sl_zigbee_af_green_power_cluster_gp_trans_table_delete_translation_table_entry_cb(sl_zigbee_gp_address_t *gpdAddr))
+{
+  UNUSED_VAR(gpdAddr);
+  return false;
+}
+
+/** @brief Request translation table callback
+ *
+ * This function is called by the green power server plugin to give a chance to the
+ * application to respond to a translation table request.
+ * Application must respond to the request if it is handling this.
+ *
+ * @param startIndex   Ver.: always
+ *
+ * @returns Return true if handled by application.
+ */
+WEAK(bool sl_zigbee_af_green_power_cluster_gp_request_translation_table_cb(uint8_t startIndex))
+{
+  UNUSED_VAR(startIndex);
+  return false;
+}
+
+/** @brief Update Translation Table
+ *
+ * This function is called by the Green Power Sink Plugin to request the
+ * application of a Green Power Device to add, remove or replace the requested
+ * translation table entries.
+ * Application must respond to the request if it is handling this.
+ *
+ * @param options      Ver.: always
+ * @param gpdSrcId     Ver.: always
+ * @param gpdIeee      Ver.: always
+ * @param gpdEndpoint  Ver.: always
+ * @param translations Ver.: always
+ *
+ * @returns Return true if handled by application.
+ */
+WEAK(bool sl_zigbee_af_green_power_cluster_gp_update_translation_table_cb(uint16_t options,
+                                                                          uint32_t gpdSrcId,
+                                                                          uint8_t* gpdIeee,
+                                                                          uint8_t gpdEndpoint,
+                                                                          uint8_t* translations))
+{
+  UNUSED_VAR(options);
+  UNUSED_VAR(gpdSrcId);
+  UNUSED_VAR(gpdIeee);
+  UNUSED_VAR(gpdEndpoint);
+  UNUSED_VAR(translations);
+
+  return false;
+}

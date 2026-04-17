@@ -1,0 +1,35 @@
+id: netstack_silabs_lwip_app_netbiosns
+label: "LWIP NetBIOS-NS High Layer Application"
+package: netstack_silabs_lwip
+description: >
+  The LWIP NetBIOS-NS high layer application specifically programmed with the lwIP low-level raw API,
+  this is an example implementation of a NetBIOS name server. It responds to name queries for a
+  configurable name. Name resolving is not supported.
+  Note:
+  Device doesn't broadcast it's own name so can't detect duplicate names.
+category: Network Stack|LwIP|apps
+quality: production
+provides:
+- name: netstack_silabs_lwip_apps
+  allow_multiple: true
+- name: netstack_silabs_lwip_app_netbiosns
+requires:
+- name: netstack_silabs_lwip_core
+source:
+- path: lwip/src/apps/netbiosns/netbiosns.c
+include:
+- path: lwip/src/include
+  file_list:
+  - path: lwip/apps/netbiosns.h
+  - path: lwip/apps/netbiosns_opts.h
+metadata:
+  sbom:
+    license: BSD-3-Clause
+    upstream:
+      name: lwip
+      version: 2.2.1
+      supplier: lwIP Developers
+      url: https://savannah.nongnu.org/projects/lwip/
+      package_url: https://github.com/lwip-tcpip/lwip/
+      comment: lwIP is a small independent implementation of the TCP/IP protocol suite.
+root_path: netstack_silabs_lwip/

@@ -1,0 +1,28 @@
+id: "bluetooth_feature_high_power"
+label: "Unrestricted High Power Feature"
+package: bluetooth_le_controller
+description: >
+  The Bluetooth high power component allows the device to use a high transmission power
+  when the frequency adaptivity or the current channel mapping allows to do so.
+
+  Low power mode is a mode where the frequency adaptivity is disabled or the current
+  channel mapping with adaptivity enabled does not allow to use a high transmission
+  power. In this mode, Bluetooth will use a transmission power that is not greater than
+  the power limit setting. The power limit is set to 10dBm by default. Use BGAPI command
+  sl_bt_system_linklayer_configure() in NCP/SoC mode, or the vendor HCI command 0xfc1b
+  in RCP mode, to set the per-PHY power limits if the default value is not applicable.
+  The limit must not exceed the maximum that the regulations in the region of use allow.
+
+category: Bluetooth|Bluetooth LE Controller (Link Layer)|Additional Features
+quality: "production"
+requires:
+- name: "bluetooth_controller"
+provides:
+- name: "bluetooth_feature_high_power"
+template_contribution:
+- name: component_catalog
+  value: bluetooth_feature_high_power
+metadata:
+  sbom:
+    license: MSLA
+root_path: bluetooth_le_controller

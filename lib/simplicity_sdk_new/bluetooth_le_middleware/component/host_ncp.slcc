@@ -1,0 +1,77 @@
+id: host_ncp
+label: Threaded NCP solution for host projects
+package: bluetooth_le_middleware
+description: >
+  Threaded NCP solution for host projects
+category: Bluetooth|Application|Miscellaneous
+metadata:
+  sbom:
+    license: Zlib
+quality: experimental
+root_path: bluetooth_le_middleware/common_host
+tag:
+- Low-Code
+include:
+- path: app_sleep
+  file_list:
+  - path: app_sleep.h
+- path: host_comm
+  file_list:
+  - path: host_comm.h
+  - path: host_comm_common.h
+  - path: host_comm_ringbuf.h
+- path: ncp_host
+  file_list:
+  - path: ncp_host.h
+- path: tcp
+  file_list:
+  - path: tcp.h
+- path: uart
+  file_list:
+  - path: uart.h
+- path: named_socket
+  unless:
+  - win32
+  file_list:
+  - path: named_socket.h
+config_file:
+- path: host_comm/config/host_comm_config.h
+- path: ncp_host/config/ncp_host_config.h
+source:
+- path: app_sleep/app_sleep.c
+- path: host_comm/host_comm_posix.c
+  unless:
+  - win32
+- path: host_comm/host_comm_win.c
+  condition:
+  - win32
+- path: host_comm/host_comm_common.c
+- path: host_comm/host_comm_ringbuf.c
+- path: ncp_host/ncp_host.c
+- path: tcp/tcp_posix.c
+  unless:
+  - win32
+- path: tcp/tcp_win.c
+  condition:
+  - win32
+- path: uart/uart_posix.c
+  unless:
+  - win32
+- path: uart/uart_win.c
+  condition:
+  - win32
+- path: named_socket/named_socket.c
+  unless:
+  - win32
+requires:
+- name: bluetooth_api_ncp_host
+- name: app_timer
+- name: component_catalog
+provides:
+- name: host_ncp
+
+library:
+- system: pthread
+- system: ws2_32
+  condition:
+  - win32

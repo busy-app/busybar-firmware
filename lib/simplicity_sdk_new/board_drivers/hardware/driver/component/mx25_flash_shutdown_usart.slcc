@@ -1,0 +1,37 @@
+id: mx25_flash_shutdown_usart
+package: board_drivers
+label: MX25 Flash Shutdown with usart
+description: >
+  Provides a function to put the MX25 SPI flash into deep power down mode in order to reduce power consumption using the USART SPI.
+  Note that in case of a custom board (not a Silicon Labs radio board), the sl_mx25_flash_shutdown() function call should be manually added in the application.
+category: Platform|Board Drivers
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: board_drivers/hardware/driver/mx25_flash_shutdown
+provides:
+- name: mx25_flash_shutdown_usart
+- name: mx25_flash_shutdown_driver
+requires:
+- name: clock_manager_runtime
+- name: hal_usart
+- name: gpio
+- name: udelay
+- name: device
+include:
+- path: inc/sl_mx25_flash_shutdown_usart
+  file_list:
+  - path: sl_mx25_flash_shutdown.h
+source:
+- path: src/sl_mx25_flash_shutdown_usart/sl_mx25_flash_shutdown.c
+config_file:
+- path: config/s2/mx25_flash_shutdown_usart/sl_mx25_flash_shutdown_usart_config.h
+  file_id: mx25_flash_shutdown_usart_config
+  condition: [device_series_2]
+template_contribution:
+- name: component_catalog
+  value: mx25_flash_shutdown_usart
+documentation:
+  docset: gecko-platform
+  document: platform-hardware-driver/mx25-flash-shutdown

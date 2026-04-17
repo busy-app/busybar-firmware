@@ -1,0 +1,65 @@
+project_name: si91x_psa_sha
+package: platform_nwp_siwx91x_app
+description: 'This example project demonstrates the PSA SHA API in SI91x.
+
+  '
+category: example|crypto
+quality: production
+label: SI91x - SoC PSA SHA
+component:
+- id: sl_main
+- id: freertos
+- id: freertos_heap_4
+- id: psa_crypto
+- id: psa_driver
+- id: psa_crypto_trng
+- id: psa_crypto_sha1
+- id: psa_crypto_sha224
+- id: psa_crypto_sha256
+- id: psa_crypto_sha384
+- id: psa_crypto_sha512
+- id: syscalls
+- id: si91x_memory_default_config
+- id: wifi
+- id: sl_si91x_internal_stack
+- id: wifi_resources
+- id: network_manager
+- id: basic_network_config_manager
+- id: sl_si91x_basic_buffers
+source:
+- path: psa_sha_app.c
+- path: app.c
+include:
+- path: .
+  file_list:
+  - path: psa_sha_app.h
+  - path: app.h
+toolchain_settings:
+- option: gcc_compiler_option
+  value: -Wall -Werror
+other_file:
+- path: resources/readme/image508a.png
+- path: resources/readme/output.png
+ui_hints:
+  highlight:
+  - path: readme.md
+    focus: true
+readme:
+- path: readme.md
+post_build:
+  profile: wiseconnect_soc
+filter:
+- name: Wireless Technology
+  value:
+  - Wi-Fi
+- name: Project Difficulty
+  value:
+  - Beginner
+sdk_extension:
+- id: wiseconnect3_sdk
+  vendor: silabs
+  version: 4.0.1
+sdk:
+  id: simplicity_sdk
+  vendor: silabs
+  version: 2025.12.2

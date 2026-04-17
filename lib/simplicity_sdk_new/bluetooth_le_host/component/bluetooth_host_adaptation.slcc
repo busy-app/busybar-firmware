@@ -1,0 +1,30 @@
+id: "bluetooth_host_adaptation"
+label: "System adaptation layer used by the Bluetooth host stack"
+package: bluetooth_le_host
+description: >
+  Provides the system adaptation layer that is used internally by the Bluetooth
+  host stack. This component is automatically included when required and should
+  not be included directly by the application.
+category: Bluetooth|Bluetooth Host (Stack)
+quality: "production"
+ui_hints:
+  visibility: never
+config_file:
+- path: "config/sl_bt_host_adaptation_config.h"
+include:
+- path: "inc/"
+  file_list:
+  - path: "sli_bt_host_adaptation.h"
+source:
+- path: "src/sli_bt_host_adaptation.c"
+provides:
+- name: bluetooth_host_adaptation
+requires:
+- name: sl_core
+template_contribution:
+- name: component_catalog
+  value: bluetooth_host_adaptation
+metadata:
+  sbom:
+    license: Zlib AND MSLA
+root_path: bluetooth_le_host

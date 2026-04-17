@@ -1,0 +1,87 @@
+project_name: wifi_http_client_soc
+package: wifi_app
+quality: production
+label: Wi-Fi - HTTP CLIENT(SOC)
+category: Example|Wi-Fi
+description: 'Demonstrates how to create HTTP client and do PUT, GET and POST operations with the server opened on remote peer
+
+  '
+filter:
+- name: Wireless Technology
+  value:
+  - Wi-Fi
+- name: Project Difficulty
+  value:
+  - Beginner
+source:
+- path: app.c
+include:
+- path: .
+  file_list:
+  - path: app.h
+define:
+- name: SL_SI91X_PRINT_DBG_LOG
+component:
+- id: si91x_memory_default_config
+- id: si91x_debug
+- id: syscalls
+- id: sl_si91x_mem_pool_buffers_with_quota
+requires:
+- name: sl_main
+- name: http_client
+- name: network_manager
+- name: basic_network_config_manager
+- name: wiseconnect_common
+- name: wifi
+- name: sl_si91x_wireless
+- name: sl_si91x_internal_stack
+- name: wifi_resources
+- name: freertos
+- name: freertos_heap_4
+- name: slist
+- name: iostream_retarget_stdio
+  condition:
+  - device_has_devinfo
+- name: iostream_recommended_stream
+  condition:
+  - device_has_devinfo
+- name: iostream_stdlib_config
+  condition:
+  - device_has_devinfo
+- name: device_init
+  condition:
+  - device_has_devinfo
+- name: emlib_common
+  condition:
+  - device_has_devinfo
+- name: emlib_ldma
+  condition:
+  - device_has_devinfo
+- name: device_needs_ram_execution
+  condition:
+  - si91x_common_flash
+toolchain_settings:
+- option: gcc_compiler_option
+  value: -Wall -Werror
+configuration:
+- name: SL_BOARD_ENABLE_VCOM
+  value: '1'
+readme:
+- path: readme.md
+other_file:
+- path: resources/readme/http_client_output.png
+- path: resources/readme/http_client_soc_ncp.png
+ui_hints:
+  highlight:
+  - path: readme.md
+    focus: true
+post_build:
+  profile: wiseconnect_soc
+sdk_extension:
+- id: wiseconnect3_sdk
+  vendor: silabs
+  version: 4.0.1
+sdk:
+  id: simplicity_sdk
+  vendor: silabs
+  version: 2025.12.2

@@ -1,0 +1,40 @@
+id: bgapi_service
+label: BGAPI Service
+package: bgapi_protocol
+description: >
+  Provides the BGAPI device integration that is required by APIs of BGAPI
+  Service. An application should not directly include this component. Include
+  one or more of the BGAPI Service feature components to select the APIs that
+  the application requires.
+category: Bluetooth|Bluetooth Host (Stack)
+quality: production
+ui_hints:
+  visibility: never
+requires:
+- name: bgapi_protocol
+- name: bgapi_service_api
+provides:
+- name: bgapi_service
+template_contribution:
+- name: component_catalog
+  value: bgapi_service
+metadata:
+  sbom:
+    license: Zlib AND MSLA
+library:
+- path: build/gcc/cortex-m33/bgapi_service/release/libbgapi_service.a
+  condition:
+  - toolchain_gcc
+  - cortexm33
+  - bgapi_protocol_libraries_release
+- path: build/iar/cortex-m33/bgapi_service/release/libbgapi_service.a
+  condition:
+  - toolchain_iar
+  - cortexm33
+  - bgapi_protocol_libraries_release
+- path: build/llvm/cortex-m33/bgapi_service/release/libbgapi_service.a
+  condition:
+  - toolchain_llvm
+  - cortexm33
+  - bgapi_protocol_libraries_release
+root_path: bgapi_protocol

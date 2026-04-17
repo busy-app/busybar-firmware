@@ -1,0 +1,9 @@
+upgrade:
+  - sdk:
+      id: simplicity_sdk
+      version: "2025.6.0"
+    component:
+      - trigger: cs_initiator
+        description: >
+          In sisdk-2025.6.0 the cs_initiator component was significantly changed along with its public API. The automated upgrade is not possible, it has to be carried out manually. The recommended way to upgrade your project using this component is to create a new project from sisdk-2025.6.0 and migrate your changes (e.g. application logic) on top of that.
+        status: impossible

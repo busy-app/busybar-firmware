@@ -1,0 +1,33 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="structsl__bt__evt__dfu__boot__s" kind="struct" language="C++" prot="public">
+    <compoundname>sl_bt_evt_dfu_boot_s</compoundname>
+    <includes refid="sl__bt__api_8h" local="no">sl_bt_api.h</includes>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structsl__bt__evt__dfu__boot__s_1a7161b93fea756f62fd1c51b5caad8a57" prot="public" static="no" mutable="no">
+        <type>uint32_t</type>
+        <definition>uint32_t sl_bt_evt_dfu_boot_s::version</definition>
+        <argsstring></argsstring>
+        <name>version</name>
+        <qualifiedname>sl_bt_evt_dfu_boot_s::version</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>The version of the bootloader </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="178" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="178" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Data structure of the boot event. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="176" column="1" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="177" bodyend="179"/>
+    <listofallmembers>
+      <member refid="structsl__bt__evt__dfu__boot__s_1a7161b93fea756f62fd1c51b5caad8a57" prot="public" virt="non-virtual"><scope>sl_bt_evt_dfu_boot_s</scope><name>version</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,85 @@
+id: tz_service_msc
+package: security_trustzone
+label: MSC Service for TrustZone Secure Key Library
+description: >-
+  This component provides an interface for the TZ Non-Secure application to
+  access a very limited subset of the MSC's functionality. The functionality
+  provided is mainly used by the CMU module for configuring flash access wait
+  states.
+category: Platform|Security|TrustZone
+quality: production
+ui_hints:
+  visibility: never
+
+provides:
+- name: tz_service_msc
+
+requires:
+- name: tz_service_config
+- name: tz_service_common
+  condition: [trustzone_secure]
+- name: emlib_msc
+  condition: [trustzone_secure]
+- name: emlib_core
+  condition: [trustzone_secure]
+
+include:
+- path: inc/common
+  file_list:
+  - path: sli_tz_service_msc.h
+
+source:
+- path: src/sli_tz_service_msc_s.c
+  condition: [trustzone_secure]
+- path: src/sli_tz_service_msc_ns.c
+  condition: [trustzone_nonsecure]
+
+template_contribution:
+- name: tz_service_config
+  value: TZ_SERVICE_MSC_PRESENT
+  condition: [trustzone_nonsecure]
+
+- name: simple_func_mapping_no_args
+  value: sli_tz_msc_get_locked
+  condition: [trustzone_nonsecure]
+
+- name: simple_func_mapping_no_args
+  value: sli_tz_msc_set_locked
+  condition: [trustzone_nonsecure]
+
+- name: simple_func_mapping_no_args
+  value: sli_tz_msc_set_unlocked
+  condition: [trustzone_nonsecure]
+
+- name: simple_func_mapping_no_args
+  value: sli_tz_msc_get_readctrl
+  condition: [trustzone_nonsecure]
+
+- name: simple_func_mapping_with_args
+  value: sli_tz_msc_set_readctrl
+  condition: [trustzone_nonsecure]
+
+- name: simple_func_mapping_with_args
+  value: sli_tz_msc_set_pagelock
+  condition: [trustzone_nonsecure]
+
+- name: simple_func_mapping_with_args
+  value: sli_tz_msc_get_pagelock
+  condition: [trustzone_nonsecure]
+
+- name: simple_func_mapping_no_args
+  value: sli_tz_msc_get_userdata_size
+  condition: [trustzone_nonsecure]
+
+- name: simple_func_mapping_no_args
+  value: sli_tz_msc_get_misclockword
+  condition: [trustzone_nonsecure]
+
+- name: simple_func_mapping_with_args
+  value: sli_tz_msc_set_misclockword
+  condition: [trustzone_nonsecure]
+
+metadata:
+  sbom:
+    license: Zlib
+root_path: security_trustzone/platform/security/sl_component/sl_trustzone/

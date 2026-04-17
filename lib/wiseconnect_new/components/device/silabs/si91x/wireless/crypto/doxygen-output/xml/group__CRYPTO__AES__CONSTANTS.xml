@@ -1,0 +1,171 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__CRYPTO__AES__CONSTANTS" kind="group">
+    <compoundname>CRYPTO_AES_CONSTANTS</compoundname>
+    <title>Constants</title>
+      <sectiondef kind="enum">
+      <memberdef kind="enum" id="group__CRYPTO__AES__CONSTANTS_1ga7d391bbc018f78114f268d40cb068f98" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_si91x_aes_mode_t</name>
+        <enumvalue id="group__CRYPTO__AES__CONSTANTS_1gga7d391bbc018f78114f268d40cb068f98a3b24c0b918aabf1865fc331054559613" prot="public">
+          <name>SL_SI91X_AES_CBC</name>
+          <initializer>= 1</initializer>
+          <briefdescription>
+<para>AES CBC mode. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__AES__CONSTANTS_1gga7d391bbc018f78114f268d40cb068f98a81af9fce9bd67e446d4d2e4898c0f72c" prot="public">
+          <name>SL_SI91X_AES_ECB</name>
+          <briefdescription>
+<para>AES ECB mode. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__AES__CONSTANTS_1gga7d391bbc018f78114f268d40cb068f98a509afaba3be0e8225e965df8142d78e5" prot="public">
+          <name>SL_SI91X_AES_CTR</name>
+          <briefdescription>
+<para>AES CTR mode. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>Enumeration defines the AES modes supported by the SI91X device. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>This enumeration defines different AES modes supported by the SI91X device, such as AES CBC, AES ECB, and AES CTR modes. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_aes.h" line="69" column="1" bodyfile="components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_aes.h" bodystart="69" bodyend="73"/>
+      </memberdef>
+      <memberdef kind="enum" id="group__CRYPTO__AES__CONSTANTS_1gacfa81db6bfb71882bf35012b6a57c713" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_si91x_aes_type_t</name>
+        <enumvalue id="group__CRYPTO__AES__CONSTANTS_1ggacfa81db6bfb71882bf35012b6a57c713ae046f869a059c0dfaaf1ba8cad94fb73" prot="public">
+          <name>SL_SI91X_AES_ENCRYPT</name>
+          <initializer>= 1</initializer>
+          <briefdescription>
+<para>AES encryption. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__AES__CONSTANTS_1ggacfa81db6bfb71882bf35012b6a57c713a7067197dae5ab37c49e9a6f89385a972" prot="public">
+          <name>SL_SI91X_AES_DECRYPT</name>
+          <briefdescription>
+<para>AES decryption. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>Enumeration defines the AES encryption and decryption types. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>This enumeration defines the types of AES operations supported, which includes encryption and decryption. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_aes.h" line="81" column="1" bodyfile="components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_aes.h" bodystart="81" bodyend="84"/>
+      </memberdef>
+      <memberdef kind="enum" id="group__CRYPTO__AES__CONSTANTS_1gabcfc4a6c04b3af6fd6c10c2ec6f3a55a" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_si91x_aes_key_size_t</name>
+        <enumvalue id="group__CRYPTO__AES__CONSTANTS_1ggabcfc4a6c04b3af6fd6c10c2ec6f3a55aa0226fb24cd3a9b5f67be46cb25e13dd7" prot="public">
+          <name>SL_SI91X_AES_KEY_SIZE_128</name>
+          <initializer>= 16</initializer>
+          <briefdescription>
+<para>Key size of 128 bits. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__AES__CONSTANTS_1ggabcfc4a6c04b3af6fd6c10c2ec6f3a55aae4318ab0aef889cb295c7c8fe4ff0a98" prot="public">
+          <name>SL_SI91X_AES_KEY_SIZE_192</name>
+          <initializer>= 24</initializer>
+          <briefdescription>
+<para>Key size of 192 bits. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__AES__CONSTANTS_1ggabcfc4a6c04b3af6fd6c10c2ec6f3a55aae0b9e5345083dd96f14215894eaf54c3" prot="public">
+          <name>SL_SI91X_AES_KEY_SIZE_256</name>
+          <initializer>= 32</initializer>
+          <briefdescription>
+<para>Key size of 256 bits. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>Enumeration defines the key sizes supported by the AES encryption algorithm on the SI91X device, which includes 128-bit, 192-bit, and 256-bit key sizes. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_aes.h" line="90" column="1" bodyfile="components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_aes.h" bodystart="90" bodyend="94"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__CRYPTO__AES__CONSTANTS_1ga2be33478ea68e099978c931604211cd5" prot="public" static="no">
+        <name>SL_SI91X_AES_BLOCK_SIZE</name>
+        <initializer>16</initializer>
+        <briefdescription>
+<para>AES BLOCK SIZE of 16 bytes or 128 bits. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_aes.h" line="46" column="9" bodyfile="components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_aes.h" bodystart="46" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__CRYPTO__AES__CONSTANTS_1ga21c8a3c8913e02b6f6644428c131d507" prot="public" static="no">
+        <name>SL_SI91X_AES_FIRST_CHUNK</name>
+        <initializer>BIT(0)</initializer>
+        <briefdescription>
+<para>First chunk of data. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_aes.h" line="51" column="9" bodyfile="components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_aes.h" bodystart="51" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__CRYPTO__AES__CONSTANTS_1gae612d02561af16487db6cd03072fb7a5" prot="public" static="no">
+        <name>SL_SI91X_AES_MIDDLE_CHUNK</name>
+        <initializer>BIT(1)</initializer>
+        <briefdescription>
+<para>Middle chunk of data. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_aes.h" line="56" column="9" bodyfile="components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_aes.h" bodystart="56" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__CRYPTO__AES__CONSTANTS_1gad135009e1cbaebe26f46d27dce12439a" prot="public" static="no">
+        <name>SL_SI91X_AES_LAST_CHUNK</name>
+        <initializer>BIT(2)</initializer>
+        <briefdescription>
+<para>Last chunk of data. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_aes.h" line="61" column="9" bodyfile="components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_aes.h" bodystart="61" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para>This section provides a reference to the AES Crypto API constants. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

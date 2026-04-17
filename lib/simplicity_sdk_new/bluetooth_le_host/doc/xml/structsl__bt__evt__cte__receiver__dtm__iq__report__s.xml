@@ -1,0 +1,167 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="structsl__bt__evt__cte__receiver__dtm__iq__report__s" kind="struct" language="C++" prot="public">
+    <compoundname>sl_bt_evt_cte_receiver_dtm_iq_report_s</compoundname>
+    <includes refid="sl__bt__api_8h" local="no">sl_bt_api.h</includes>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structsl__bt__evt__cte__receiver__dtm__iq__report__s_1a5b8fc65416c0d3f1bad2e8d512a857d0" prot="public" static="no" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t sl_bt_evt_cte_receiver_dtm_iq_report_s::status</definition>
+        <argsstring></argsstring>
+        <name>status</name>
+        <qualifiedname>sl_bt_evt_cte_receiver_dtm_iq_report_s::status</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Status of CTE IQ sampling </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15514" column="14" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="15514" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__cte__receiver__dtm__iq__report__s_1a4feb688ceb976322072f59abfac2b9b2" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_cte_receiver_dtm_iq_report_s::channel</definition>
+        <argsstring></argsstring>
+        <name>channel</name>
+        <qualifiedname>sl_bt_evt_cte_receiver_dtm_iq_report_s::channel</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>The channel on which the CTE packet was received </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15515" column="14" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="15515" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__cte__receiver__dtm__iq__report__s_1a611b5ed13647dd5d2401208b0f927495" prot="public" static="no" mutable="no">
+        <type>int8_t</type>
+        <definition>int8_t sl_bt_evt_cte_receiver_dtm_iq_report_s::rssi</definition>
+        <argsstring></argsstring>
+        <name>rssi</name>
+        <qualifiedname>sl_bt_evt_cte_receiver_dtm_iq_report_s::rssi</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>RSSI in the received CTE packet. Unit: dBm </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15517" column="14" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="15517" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__cte__receiver__dtm__iq__report__s_1a107cf8487e37908cdb73f4e5f78c4b3c" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_cte_receiver_dtm_iq_report_s::rssi_antenna_id</definition>
+        <argsstring></argsstring>
+        <name>rssi_antenna_id</name>
+        <qualifiedname>sl_bt_evt_cte_receiver_dtm_iq_report_s::rssi_antenna_id</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>The ID of the antenna on which RSSI was measured </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15518" column="14" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="15518" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__cte__receiver__dtm__iq__report__s_1acf2ef263acd4568bf20b9e312d72695d" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_cte_receiver_dtm_iq_report_s::cte_type</definition>
+        <argsstring></argsstring>
+        <name>cte_type</name>
+        <qualifiedname>sl_bt_evt_cte_receiver_dtm_iq_report_s::cte_type</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>The CTE type<itemizedlist>
+<listitem><para><bold>0:</bold> AoA CTE response</para>
+</listitem><listitem><para><bold>1:</bold> AoD CTE response with 1us slots</para>
+</listitem><listitem><para><bold>2:</bold> AoD CTE response with 2us slots </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15520" column="14" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="15520" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__cte__receiver__dtm__iq__report__s_1ad14da59146ef83c984f4f8e79ec50ed0" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_cte_receiver_dtm_iq_report_s::slot_durations</definition>
+        <argsstring></argsstring>
+        <name>slot_durations</name>
+        <qualifiedname>sl_bt_evt_cte_receiver_dtm_iq_report_s::slot_durations</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Slot durations<itemizedlist>
+<listitem><para><bold>1:</bold> Switching and sampling slots are 1 us each</para>
+</listitem><listitem><para><bold>2:</bold> Switching and sampling slots are 2 us each </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15524" column="14" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="15524" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__cte__receiver__dtm__iq__report__s_1a793b5c8a78ae8c9a4a01aa654cd0582a" prot="public" static="no" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t sl_bt_evt_cte_receiver_dtm_iq_report_s::event_counter</definition>
+        <argsstring></argsstring>
+        <name>event_counter</name>
+        <qualifiedname>sl_bt_evt_cte_receiver_dtm_iq_report_s::event_counter</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>The event counter of the periodic advertising train or the connection </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15529" column="14" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="15529" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__cte__receiver__dtm__iq__report__s_1a640c870378a28081e3a8a2d50b46a50e" prot="public" static="no" mutable="no">
+        <type><ref refid="structuint8array" kindref="compound">uint8array</ref></type>
+        <definition>uint8array sl_bt_evt_cte_receiver_dtm_iq_report_s::samples</definition>
+        <argsstring></argsstring>
+        <name>samples</name>
+        <qualifiedname>sl_bt_evt_cte_receiver_dtm_iq_report_s::samples</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>IQ samples of the received CTE packet. I and Q samples follow each other alternately (I, Q, I, Q, ...) </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15531" column="14" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="15531" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Data structure of the dtm_iq_report event. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>sl_bt_evt_cte_receiver_dtm_iq_report_s</label>
+        <link refid="structsl__bt__evt__cte__receiver__dtm__iq__report__s"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>samples</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>uint8array</label>
+        <link refid="structuint8array"/>
+      </node>
+    </collaborationgraph>
+    <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15512" column="1" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="15513" bodyend="15534"/>
+    <listofallmembers>
+      <member refid="structsl__bt__evt__cte__receiver__dtm__iq__report__s_1a4feb688ceb976322072f59abfac2b9b2" prot="public" virt="non-virtual"><scope>sl_bt_evt_cte_receiver_dtm_iq_report_s</scope><name>channel</name></member>
+      <member refid="structsl__bt__evt__cte__receiver__dtm__iq__report__s_1acf2ef263acd4568bf20b9e312d72695d" prot="public" virt="non-virtual"><scope>sl_bt_evt_cte_receiver_dtm_iq_report_s</scope><name>cte_type</name></member>
+      <member refid="structsl__bt__evt__cte__receiver__dtm__iq__report__s_1a793b5c8a78ae8c9a4a01aa654cd0582a" prot="public" virt="non-virtual"><scope>sl_bt_evt_cte_receiver_dtm_iq_report_s</scope><name>event_counter</name></member>
+      <member refid="structsl__bt__evt__cte__receiver__dtm__iq__report__s_1a611b5ed13647dd5d2401208b0f927495" prot="public" virt="non-virtual"><scope>sl_bt_evt_cte_receiver_dtm_iq_report_s</scope><name>rssi</name></member>
+      <member refid="structsl__bt__evt__cte__receiver__dtm__iq__report__s_1a107cf8487e37908cdb73f4e5f78c4b3c" prot="public" virt="non-virtual"><scope>sl_bt_evt_cte_receiver_dtm_iq_report_s</scope><name>rssi_antenna_id</name></member>
+      <member refid="structsl__bt__evt__cte__receiver__dtm__iq__report__s_1a640c870378a28081e3a8a2d50b46a50e" prot="public" virt="non-virtual"><scope>sl_bt_evt_cte_receiver_dtm_iq_report_s</scope><name>samples</name></member>
+      <member refid="structsl__bt__evt__cte__receiver__dtm__iq__report__s_1ad14da59146ef83c984f4f8e79ec50ed0" prot="public" virt="non-virtual"><scope>sl_bt_evt_cte_receiver_dtm_iq_report_s</scope><name>slot_durations</name></member>
+      <member refid="structsl__bt__evt__cte__receiver__dtm__iq__report__s_1a5b8fc65416c0d3f1bad2e8d512a857d0" prot="public" virt="non-virtual"><scope>sl_bt_evt_cte_receiver_dtm_iq_report_s</scope><name>status</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

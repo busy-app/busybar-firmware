@@ -1,0 +1,128 @@
+id: zigbee_cbke_core
+label: CBKE core
+package: zigbee
+category: Zigbee|Stack
+quality: production
+description: Certificate-Based Key Exchange Library. It provides support for managing the Elliptic Curve Cryptography (ECC) operations.  It provides key agreement and ephemeral key generation interfaces with the ability to save the generated link key key.  It is used by the Smart Energy 1.x Profile to authenticate and authorize devices.
+
+provides:
+- name: zigbee_cbke_core
+
+requires:
+- name: zigbee_cbke_core_implementation
+- name: zigbee_cbke_core_library
+  condition:
+  - zigbee_use_release_libraries
+- name: zigbee_security_link_keys
+  # The CBKE Core library requires the selection of either the CBKE 163k1 library,
+  # the CBKE 283k1 library, or both libraries. The current recommended library is
+  # selected as CBKE 283k1.
+- name: zigbee_ecc_curve_support
+
+recommends:
+- id: zigbee_cbke_core_library_internal
+  vendor: silabs
+- id: zigbee_cbke_283k1
+
+  vendor: silabs
+include:
+- path: stack/include
+  file_list:
+  - path: cbke-crypto-engine.h
+- path: app/em260
+  file_list:
+  - path: command-handlers-cbke.h
+    condition:
+    - zigbee_ncp
+
+- path: stack/internal/src/ipc
+  file_list:
+  - path: cbke-crypto-engine-ipc-callback-events.h
+  - path: cbke-crypto-engine-ipc-command-messages.h
+  - path: zigbee_ipc_callback_events.h
+  - path: zigbee_ipc_command_messages.h
+  condition:
+  - zigbee_use_ipc
+- path: stack/internal/inc
+  file_list:
+  - path: cbke-crypto-engine-internal-def.h
+source:
+- path: app/em260/command-handlers-certificate-based-key-exchange-cbke-generated.c
+  condition:
+  - zigbee_ncp
+- path: stack/internal/src/baremetal/cbke-crypto-engine-baremetal-wrapper.c
+  unless:
+  - zigbee_use_ipc
+  - native_host
+- path: stack/internal/src/ipc/cbke-crypto-engine-ipc-callback-events.c
+  condition:
+  - zigbee_use_ipc
+- path: stack/internal/src/ipc/zigbee_ipc_callback_event_stub.c
+  condition:
+  - zigbee_use_ipc
+- path: stack/internal/src/ipc/cbke-crypto-engine-ipc-command-messages.c
+  condition:
+  - zigbee_use_ipc
+- path: stack/internal/src/baremetal/cbke-crypto-engine-baremetal-callbacks.c
+  unless:
+  - zigbee_use_ipc
+  - native_host
+- path: stack/internal/src/ipc/zigbee_ipc_callback_events.c
+  condition:
+  - zigbee_use_ipc
+template_contribution:
+- name: component_catalog
+  value: zigbee_cbke_core
+- name: zigbee_stack_callback
+  value:
+    callback_type: dsa_sign
+    function_name: sli_zigbee_af_dsa_sign_callback
+  condition:
+  - zigbee_ncp
+- name: zigbee_stack_callback
+  value:
+    callback_type: dsa_verify
+    function_name: sli_zigbee_af_dsa_verify_callback
+  condition:
+  - zigbee_ncp
+- name: zigbee_stack_callback
+  value:
+    callback_type: generate_cbke_keys
+    function_name: sli_zigbee_af_generate_cbke_keys_callback
+  condition:
+  - zigbee_ncp
+- name: zigbee_stack_callback
+  value:
+    callback_type: calculate_smacs
+    function_name: sli_zigbee_af_calculate_smacs_callback
+  condition:
+  - zigbee_ncp
+- name: zigbee_stack_callback
+  value:
+    callback_type: generate_cbke_keys_handler283k1
+    function_name: sli_zigbee_af_generate_cbke_keys_callback_283k1
+  condition:
+  - zigbee_ncp
+- name: zigbee_stack_callback
+  value:
+    callback_type: calculate_smacs_handler283k1
+    function_name: sli_zigbee_af_calculate_smacs_callback_283k1
+  condition:
+  - zigbee_ncp
+- name: zigbee_ncp_callback
+  value:
+    callback_type: set_configuration_value
+    function_name: sl_zigbee_xncp_cbke_configuration_value_command_cb
+- name: zigbee_ncp_callback
+  value:
+    callback_type: get_configuration_value
+    function_name: sl_zigbee_xncp_cbke_configuration_value_command_cb
+
+
+documentation:
+  docset: zigbee
+  document: zigbee-af-api/cbke-core
+metadata:
+  sbom:
+    license: MSLA
+root_path: zigbee

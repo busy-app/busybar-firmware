@@ -1,0 +1,27 @@
+id: device_clock
+label: Device Manager Clock
+package: platform_core
+description: >
+  The Device Manager Clock component defines the different oscillators,
+  clock branches and bus clock values that exist accross all Silicon Labs
+  devices.
+category: Services|Device Manager
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+provides:
+- name: device_clock
+requires:
+- name: enum
+- name: device_clock_hal
+root_path: platform_core/platform/service/device_manager
+source:
+- path: src/sl_device_clock.c
+include:
+- path: inc
+  file_list:
+  - path: sl_device_clock.h
+documentation:
+  docset: gecko-platform
+  document: platform-service/device-manager-clock

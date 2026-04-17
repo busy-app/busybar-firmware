@@ -1,0 +1,18 @@
+id: common_token_manager_static_bootloader
+label: Common Token Manager - Static Tokens - Bootloader
+package: platform_core
+description: >
+  A stub for the Common Token Manager - Static Tokens used by the bootloader.
+category: Services|Token Manager
+quality: evaluation
+ui_hints:
+  visibility: never
+metadata:
+  sbom:
+    license: Zlib
+provides:
+- name: common_token_manager_static
+  condition: [btl_core]
+requires:
+- name: btl_core
+root_path: platform_core

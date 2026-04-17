@@ -1,0 +1,123 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__CRYPTO__AES__FUNCTIONS" kind="group">
+    <compoundname>CRYPTO_AES_FUNCTIONS</compoundname>
+    <title>Functions</title>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="group__CRYPTO__AES__FUNCTIONS_1gaf508565bc1ffbe903d3496a7b712dd2f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_si91x_aes</definition>
+        <argsstring>(sl_si91x_aes_config_t *config, uint8_t *output)</argsstring>
+        <name>sl_si91x_aes</name>
+        <param>
+          <type><ref refid="structsl__si91x__aes__config__t" kindref="compound">sl_si91x_aes_config_t</ref> *</type>
+          <declname>config</declname>
+        </param>
+        <param>
+          <type>uint8_t *</type>
+          <declname>output</declname>
+        </param>
+        <briefdescription>
+<para>To encrypt or decrypt the message according to the given configuration. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>This is a blocking API. <parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">config</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Configuration object of type <ref refid="structsl__si91x__aes__config__t" kindref="compound">sl_si91x_aes_config_t</ref> </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">output</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Buffer to store the output. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="note"><para>The maximum length of the message in bytes that can be handled in one go is determined by SLI_SI91X_MAX_DATA_SIZE_IN_BYTES_FOR_AES. If the message length is not a multiple of SL_SI91X_AES_BLOCK_SIZE, the function returns an error.</para>
+</simplesect>
+<simplesect kind="return"><para>sl_status_t. For more information on status codes, refer to <ulink url="https://docs.silabs.com/gecko-platform/latest/platform-common/status">SL STATUS DOCUMENTATION</ulink>. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_aes.h" line="195" column="13" declfile="components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_aes.h" declline="195" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__CRYPTO__AES__FUNCTIONS_1ga0f48a13beb7db143b748ae6678eb490f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_si91x_aes_multipart</definition>
+        <argsstring>(const sl_si91x_aes_config_t *config, uint16_t chunk_length, uint8_t aes_flags, uint8_t *output)</argsstring>
+        <name>sl_si91x_aes_multipart</name>
+        <param>
+          <type>const <ref refid="structsl__si91x__aes__config__t" kindref="compound">sl_si91x_aes_config_t</ref> *</type>
+          <declname>config</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>chunk_length</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>aes_flags</declname>
+        </param>
+        <param>
+          <type>uint8_t *</type>
+          <declname>output</declname>
+        </param>
+        <briefdescription>
+<para>Encrypts or decrypts a chunk of a message (CBC and ECB modes are not supported for multipart operations) according to the given configuration. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>This is a blocking API. <parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">config</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Configuration object of type <ref refid="structsl__si91x__aes__config__t" kindref="compound">sl_si91x_aes_config_t</ref> containing the AES operation parameters. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">chunk_length</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Length of the current chunk to be processed in bytes. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">aes_flags</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Flags indicating the position of the current chunk. Valid values are:- <ref refid="group__CRYPTO__AES__CONSTANTS_1ga21c8a3c8913e02b6f6644428c131d507" kindref="member">SL_SI91X_AES_FIRST_CHUNK</ref>, <ref refid="group__CRYPTO__AES__CONSTANTS_1gae612d02561af16487db6cd03072fb7a5" kindref="member">SL_SI91X_AES_MIDDLE_CHUNK</ref>, <ref refid="group__CRYPTO__AES__CONSTANTS_1gad135009e1cbaebe26f46d27dce12439a" kindref="member">SL_SI91X_AES_LAST_CHUNK</ref>. Buffer to store the processed output data. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>sl_status_t. For more information on status codes, refer to <ulink url="https://docs.silabs.com/gecko-platform/latest/platform-common/status">SL STATUS DOCUMENTATION</ulink>. </para>
+</simplesect>
+<simplesect kind="note"><para><itemizedlist>
+<listitem><para>The maximum length of the message in bytes that can be handled in one go is determined by SLI_SI91X_MAX_DATA_SIZE_IN_BYTES_FOR_AES.</para>
+</listitem><listitem><para>If the message length exceeds this limit, the function returns SL_STATUS_INVALID_PARAMETER.</para>
+</listitem><listitem><para>If the message length is not a multiple of SL_SI91X_AES_BLOCK_SIZE, the function returns an error. </para>
+</listitem></itemizedlist>
+</para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_aes.h" line="217" column="13" declfile="components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_aes.h" declline="217" declcolumn="13"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para>This section provides a reference to the AES Crypto API Functions. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

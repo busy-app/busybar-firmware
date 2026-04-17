@@ -1,0 +1,33 @@
+id: "connect_psa_security_library"
+label: "AES Security (Library)"
+package: "connect_stack"
+category: "Connect"
+quality: "production"
+description: "Provides the Connect AES Security library."
+provides:
+- name: "connect_aes_security_implementation"
+  allow_multiple: true
+- name: "ccm_implementation"
+  allow_multiple: true
+requires:
+- name: "connect_aes_security"
+recommends:
+- id: "connect_aes_security"
+  vendor: silabs
+library:
+- path: "libs/libconnect-psa-security-library-efr32xg2x-iar.a"
+  condition:
+  - "toolchain_iar"
+  - device_series_2
+- path: "libs/libconnect-psa-security-library-efr32xg2x-gcc.a"
+  condition:
+  - "toolchain_gcc"
+  - device_series_2
+template_contribution:
+- name: component_catalog
+  value: connect_psa_encryption
+
+metadata:
+  sbom:
+    license: Zlib
+root_path: connect_stack

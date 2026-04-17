@@ -1,0 +1,61 @@
+id: uartdrv_eusart
+package: platform_core
+label: UARTDRV EUSART
+description: >
+  The UART EUSART driver supports the UART capabilities of the EUSART
+  peripheral. The driver is fully reentrant and supports multiple driver
+  instances. Both blocking and non-blocking transfer functions are available.
+  The non-blocking transfer functions use DMA to transfer data and report
+  transfer completion with callback functions. Note that the blocking functions
+  are not suitable for low energy applications because they use CPU polling.
+
+
+  If the Services->Runtime->sl_main component is included in a project,
+  the default instance will be initialized automatically, using the default
+  instance configuration, during the sli_main_second_stage_init() call in
+  sl_main_init.c or by the start task of the RTOS if the project uses an RTOS.
+
+  DEPRECATED
+  If the Services->Runtime->System Setup->System Init component is included in
+  a project, the driver instances will be initialized automatically, using the
+  instance configurations, during the sl_system_init() call in main.c.
+
+
+  Selecting this component will also include the UARTDRV Core component, which is
+  the implementation of the UARTDRV driver itself.
+category: Platform|Driver|UART
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: platform_core/platform/emdrv/uartdrv
+instantiable:
+  prefix: inst
+config_file:
+- path: config/eusart/s2/sl_uartdrv_eusart_{{instance}}_config.h
+  file_id: uartdrv_eusart_config
+  condition: [device_series_2]
+- path: config/eusart/s3/sl_uartdrv_eusart_{{instance}}_config.h
+  file_id: uartdrv_eusart_config
+  condition: [device_series_3]
+provides:
+- name: uartdrv_instance
+  allow_multiple: true
+- name: uartdrv_eusart
+  allow_multiple: true
+requires:
+- name: uartdrv_core
+- name: device_has_euart
+template_contribution:
+- name: uartdrv_eusart_instances
+  value: '{{instance}}'
+- name: power_manager_handler
+  value:
+    event: sleep_on_isr_exit
+    include: uartdrv.h
+    handler: sl_uartdrv_sleep_on_isr_exit
+- name: component_catalog
+  value: uartdrv_eusart
+documentation:
+  docset: gecko-platform
+  document: platform-driver/uartdrv

@@ -1,0 +1,126 @@
+project_name: bt_cs_soc_reflector
+package: bluetooth_le_app
+label: Bluetooth - SoC CS Reflector
+description: >
+  Channel Sounding (CS) Reflector for Bluetooth LE. This example sends
+  measurement results back to the CS Initiator device via the CS Ranging
+  Service. The CS Reflector has to connect to at least one CS Initiator
+  device to start the measurement. It can connect to a maximum of four
+  CS Initiators at a time. The application starts advertising after boot
+  and keeps advertising until every connection slots are occupied. If a
+  connection slot becomes free, the device will start advertising again.
+category: Bluetooth Examples
+quality: production
+
+filter:
+  - name: "Wireless Technology"
+    value: ["Bluetooth"]
+  - name: "Device Type"
+    value: ["SoC"]
+  - name: "Project Difficulty"
+    value: ["Beginner"]
+
+component:
+  - id: toolchain_gcc
+  - id: bluetooth_stack
+  - id: gatt_configuration
+  - id: gatt_service_device_information_override
+  - id: bluetooth_feature_legacy_advertiser
+  - id: bluetooth_feature_connection_role_peripheral
+  - id: bluetooth_feature_gatt
+  - id: bluetooth_feature_gatt_server
+  - id: bluetooth_feature_extended_scanner
+  - id: bluetooth_feature_sm
+  - id: bluetooth_feature_system
+  - id: app_assert
+  - id: app_log
+  - id: cs_reflector
+  - id: cs_antenna
+  - id: mpu
+  - id: simple_button
+    instance:
+      - btn0
+      - btn1
+  - id: sl_main
+  - id: clock_manager
+  - id: device_init
+  - id: ble_peer_manager_common
+  - id: ble_peer_manager_peripheral
+
+source:
+  - path: app.c
+  - path: security.c
+
+include:
+  - path: .
+    file_list:
+      - path: app.h
+      - path: security.h
+
+config_file:
+  - override:
+      component: gatt_configuration
+      file_id: gatt_configuration_file_id
+    path: gatt_configuration.btconf
+    directory: btconf
+  - path: config/app_config.h
+
+readme:
+  - path: readme.md
+
+configuration:
+  - name: SL_STACK_SIZE
+    value: 2752
+  - name: SL_BT_CONFIG_BUFFER_SIZE
+    value: 30000
+  - name: SL_BT_CONFIG_MAX_CS_PROCEDURES
+    value: 4
+  - name: SL_BT_CONTROLLER_CONN_EVENT_LENGTH_EXTENSION
+    value: 1
+  - name: SL_PSA_KEY_USER_SLOT_COUNT
+    value: "0"
+    condition:
+      - psa_crypto
+  - name: SL_CLOCK_MANAGER_HFXO_FREQ
+    value: 40000000
+    unless:
+      - hardware_board
+  - name: SL_IOSTREAM_USART_VCOM_RESTRICT_ENERGY_MODE_TO_ALLOW_RECEPTION
+    value: 0
+    unless:
+      - cli
+  - name: SL_IOSTREAM_EUSART_VCOM_RESTRICT_ENERGY_MODE_TO_ALLOW_RECEPTION
+    value: 0
+    unless:
+      - cli
+  - name: SL_BOARD_ENABLE_VCOM
+    value: 1
+  - name: CS_REFLECTOR_ANTENNA_OFFSET
+    value: 0
+  - name: BLE_PEER_MANAGER_PERIPHERAL_CONFIG_ADV_PHY
+    value: sl_bt_gap_phy_2m
+  - name: APP_LOG_LEVEL_FILTER_THRESHOLD
+    value: APP_LOG_LEVEL_INFO
+
+template_contribution:
+  - name: ble_peer_manager_event_handler
+    value:
+      include: app.h
+      handler: ble_peer_manager_on_event_reflector
+
+post_build:
+  - path: ../../postbuild_profile/bt_common_s2.slpb
+    condition: [device_series_2, bootloader_app_properties]
+
+tag:
+  - prebuilt_demo
+  - toolchain:gcc
+  - hwfilter:device:device_supports_bluetooth
+  - hwfilter:device:device_generic_family_efr32xg24
+  - hwfilter:board:hardware_board_has_hfxo_freq_40mhz
+
+ui_hints:
+  highlight:
+    - path: config/btconf/gatt_configuration.btconf
+    - path: readme.md
+      focus: true

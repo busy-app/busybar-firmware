@@ -1,0 +1,34 @@
+id: sensor_lux
+label: Ambient light sensor
+package: bluetooth_le_middleware
+description: Ambient light sensor driver abstraction designed for development boards with VEML6035 sensor, i.e. Thunderboard and Dev Kit. Not suitable for other applications.
+category: Bluetooth|Application|Miscellaneous
+metadata:
+  sbom:
+    license: Zlib
+quality: production
+root_path: bluetooth_le_middleware/common/sensor_lux
+tag:
+- No-Code
+source:
+- path: sl_sensor_lux.c
+include:
+- path: .
+  file_list:
+  - path: sl_sensor_lux.h
+config_file:
+- path: config/sl_sensor_lux_config.h
+  condition: [btmesh_stack]
+provides:
+- name: sensor_lux
+requires:
+- name: veml6035_driver
+- name: i2cspm
+- name: app_assert
+- name: board_control
+template_contribution:
+- name: component_catalog
+  value: sensor_lux
+documentation:
+  docset: bluetooth
+  document: bluetooth-service-api/sensor-lux

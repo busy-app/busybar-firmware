@@ -1,0 +1,15 @@
+
+
+tag:
+  - hardware:
+      device:
+        memory:
+          flash: 308
+          ram: 56
+      board:
+        rf_bands:
+          - 2400
+        communication:
+          - vcom
+          - pti
+

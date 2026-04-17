@@ -1,0 +1,24 @@
+id: zigbee_device_config
+label: Zigbee Device Config
+package: zigbee
+category: Zigbee|Utility
+quality: production
+description: This component is used for Zigbee device configuration.
+
+provides:
+- name: zigbee_device_config
+
+config_file:
+- path: app/framework/common/config/zigbee_device_config.h
+
+validation_helper:
+- path: app/framework/component/scripts/zigbee_smart_energy_profile_apps_validation.lua
+
+template_contribution:
+- name: component_catalog
+  value: zigbee_device_config
+
+metadata:
+  sbom:
+    license: MSLA
+root_path: zigbee

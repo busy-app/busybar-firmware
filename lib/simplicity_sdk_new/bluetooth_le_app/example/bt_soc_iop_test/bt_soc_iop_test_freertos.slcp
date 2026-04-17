@@ -1,0 +1,157 @@
+---
+project_name: bt_soc_iop_test_freertos
+package: bluetooth_le_app
+label: Bluetooth - SoC Interoperability Test FreeRTOS
+description: >
+  This is a test procedure containing several test cases for Bluetooth Low
+  Energy communication. This demo is meant to be used with the Simplicity
+  Connect mobile app, through the "Interoperability Test" tile on the Develop
+  view of the app.
+category: Bluetooth Examples
+quality: experimental
+
+filter:
+  - name: "Wireless Technology"
+    value: ["Bluetooth"]
+  - name: "Device Type"
+    value: ["SoC"]
+  - name: "Project Difficulty"
+    value: ["Beginner"]
+
+component:
+  - id: freertos
+  - id: bluetooth_stack
+  - id: gatt_configuration
+  - id: gatt_service_device_information_override
+  - id: bluetooth_feature_accept_list
+  - id: bluetooth_feature_legacy_advertiser
+  - id: bluetooth_feature_connection_role_peripheral
+  - id: bluetooth_feature_gatt_server
+  - id: bluetooth_feature_resolving_list
+  - id: bluetooth_feature_sm
+  - id: bluetooth_feature_nvm
+  - id: bluetooth_feature_system
+  - id: component_catalog
+  - id: in_place_ota_dfu
+    condition:
+      - device_series_2
+  - id: app_ota_dfu
+    condition:
+      - device_series_3
+  - id: rail_util_pti
+  - id: app_assert
+  - id: mpu
+  - id: app_timer
+  - id: app_log
+  - id: dmd_memlcd
+    condition:
+      - hardware_board_supports_wstk_lcd
+  - id: glib
+    condition:
+      - hardware_board_supports_wstk_lcd
+  - id: bt_iop_post_build
+  - id: sl_main
+  - id: app_os_helper
+  - id: clock_manager
+  - id: device_init
+
+source:
+  - path: app.c
+  - path: app_iop.c
+  - path: app_memlcd.c
+    condition:
+      - hardware_board_supports_wstk_lcd
+
+include:
+  - path: .
+    file_list:
+      - path: app.h
+      - path: app_iop.h
+      - path: app_memlcd.h
+
+config_file:
+  - override:
+      component: gatt_configuration
+      file_id: gatt_configuration_file_id
+    path: gatt_configuration.btconf
+    directory: btconf
+
+readme:
+  - path: readme.md
+
+other_file:
+  - path: image/readme_img0.png
+  - path: image/readme_img1.png
+  - path: image/readme_img2a.png
+  - path: image/readme_img2b.png
+  - path: image/readme_img3a.png
+  - path: image/readme_img3b.png
+  - path: image/readme_img4.png
+  - path: image/readme_img5.png
+  - path: image/readme_img6.png
+  - path: image/readme_img7.png
+  - path: image/readme_img8.png
+  - path: image/readme_img9.png
+  - path: image/readme_img10.png
+  - path: image/readme_img11a.png
+  - path: image/readme_img11b.png
+
+configuration:
+  - name: SL_STACK_SIZE
+    value: "2000"
+    condition:
+      - in_place_ota_dfu
+  - name: SL_STACK_SIZE
+    value: "2752"
+    condition:
+      - app_ota_dfu
+  - name: SL_BT_APP_OTA_DFU_CONFIG_STACK
+    value: "2048"
+    condition:
+      - app_ota_dfu
+      - device_series_2
+  - name: configTOTAL_HEAP_SIZE
+    value: "5000"
+    condition:
+      - in_place_ota_dfu
+  - name: configTOTAL_HEAP_SIZE
+    value: "8192"
+    condition:
+      - app_ota_dfu
+  - name: configTIMER_TASK_STACK_DEPTH
+    value: "240"
+  - name: SL_BOARD_ENABLE_VCOM
+    value: "1"
+  - name: SL_IOSTREAM_USART_VCOM_RESTRICT_ENERGY_MODE_TO_ALLOW_RECEPTION
+    value: "0"
+  - name: SL_IOSTREAM_EUSART_VCOM_RESTRICT_ENERGY_MODE_TO_ALLOW_RECEPTION
+    value: "0"
+  - name: SL_BOARD_ENABLE_DISPLAY
+    value: "1"
+    condition:
+      - hardware_board_supports_wstk_lcd
+  - name: SL_PSA_KEY_USER_SLOT_COUNT
+    value: "0"
+    condition:
+      - psa_crypto
+  - name: APP_LOG_LEVEL_FILTER_THRESHOLD
+    value: APP_LOG_LEVEL_INFO
+
+define:
+  - name: BOARD_MEMLCD_PRESENT
+    condition:
+      - hardware_board_supports_wstk_lcd
+
+post_build:
+  - path: ../../postbuild_profile/bt_dfu_app.slpb
+
+tag:
+  - companion:bootloader
+  - hwfilter:device:device_supports_bluetooth
+  - hwfilter:!device:device_generic_family_efr32xg22
+
+ui_hints:
+  highlight:
+    - path: config/btconf/gatt_configuration.btconf
+    - path: readme.md
+      focus: true

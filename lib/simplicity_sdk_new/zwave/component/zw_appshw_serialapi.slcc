@@ -1,0 +1,29 @@
+id: zw_appshw_serialapi
+label: SerialAPI AppsHw
+category: Z-Wave|AppsHw
+description: >
+  This component provides basic hardware mapping and hardware initialization for the SerialAPI
+  application. The component makes sure that both Series 1 and Series 2 devices have the right
+  USART pin configuration. Interrupt and deep sleep functionalities are also handled for the
+  SerialAPI application.
+package: zwave
+quality: production
+metadata:
+  sbom:
+    reference: zw_sbom_license
+
+config_file:
+- path: platform/SiliconLabs/AppsHw/inc/SerialAPI/config/serial_api_config.h
+  file_id: serial_api_config
+  condition: [device_series_2]
+source:
+- path: "platform/SiliconLabs/AppsHw/src/SerialAPI/SerialAPI_hw.c"
+include:
+- path: "sample_apps/zwave_ncp_serial_api"
+  file_list:
+  - path: "SerialAPI_hw.h"
+provides:
+- name: zw_appshw_serialapi
+requires:
+- name: zw_appshw
+root_path: zwave

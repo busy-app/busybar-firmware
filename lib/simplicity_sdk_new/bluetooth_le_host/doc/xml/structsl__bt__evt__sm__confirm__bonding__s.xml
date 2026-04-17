@@ -1,0 +1,54 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="structsl__bt__evt__sm__confirm__bonding__s" kind="struct" language="C++" prot="public">
+    <compoundname>sl_bt_evt_sm_confirm_bonding_s</compoundname>
+    <includes refid="sl__bt__api_8h" local="no">sl_bt_api.h</includes>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structsl__bt__evt__sm__confirm__bonding__s_1ab4832e5da634ce163b3f7f1177069e82" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_sm_confirm_bonding_s::connection</definition>
+        <argsstring></argsstring>
+        <name>connection</name>
+        <qualifiedname>sl_bt_evt_sm_confirm_bonding_s::connection</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Connection handle </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11447" column="11" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="11447" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__sm__confirm__bonding__s_1a97d466614a859507f1749f5257a689e5" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_sm_confirm_bonding_s::bonding_handle</definition>
+        <argsstring></argsstring>
+        <name>bonding_handle</name>
+        <qualifiedname>sl_bt_evt_sm_confirm_bonding_s::bonding_handle</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Bonding handle for the request.<itemizedlist>
+<listitem><para><bold>Range:</bold> 0 to 31</para>
+</listitem><listitem><para>0xFF: SL_BT_INVALID_BONDING_HANDLE</para>
+</listitem><listitem><para>NOTE! When the bonding handle is anything other than SL_BT_INVALID_BONDING_HANDLE (0xff), a bonding already exists for this connection. Overwriting the existing bonding is a potential security risk. </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11448" column="11" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="11448" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Data structure of the confirm_bonding event. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11445" column="1" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="11446" bodyend="11457"/>
+    <listofallmembers>
+      <member refid="structsl__bt__evt__sm__confirm__bonding__s_1a97d466614a859507f1749f5257a689e5" prot="public" virt="non-virtual"><scope>sl_bt_evt_sm_confirm_bonding_s</scope><name>bonding_handle</name></member>
+      <member refid="structsl__bt__evt__sm__confirm__bonding__s_1ab4832e5da634ce163b3f7f1177069e82" prot="public" virt="non-virtual"><scope>sl_bt_evt_sm_confirm_bonding_s</scope><name>connection</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

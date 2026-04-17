@@ -1,0 +1,51 @@
+project_name: sl_si91x_si70xx
+package: platform_siwx91x_app
+description: 'This application demonstrates how to configures and use si70xx sensor.
+
+  '
+category: example|peripheral
+quality: production
+label: sl_si91x_si70xx
+component:
+- id: sl_main
+- id: syscalls
+- id: si91x_memory_default_config
+- id: sl_si70xx
+- id: sl_i2c
+- id: sl_dma
+- id: sleeptimer
+- id: i2c_instance
+  instance:
+  - i2c2
+source:
+- path: app.c
+- path: si70xx_example.c
+include:
+- path: .
+  file_list:
+  - path: app.h
+  - path: si70xx_example.h
+toolchain_settings:
+- option: gcc_compiler_option
+  value: -Wall -Werror
+other_file:
+- path: resources/readme/setupdiagram.png
+- path: resources/readme/output1.png
+- path: resources/readme/output2.png
+- path: resources/uc_screen/si70xx_uc_screen.png
+ui_hints:
+  highlight:
+  - path: readme.md
+    focus: true
+readme:
+- path: readme.md
+post_build:
+  profile: wiseconnect_soc
+sdk_extension:
+- id: wiseconnect3_sdk
+  vendor: silabs
+  version: 4.0.1
+sdk:
+  id: simplicity_sdk
+  vendor: silabs
+  version: 2025.12.2

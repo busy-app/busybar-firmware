@@ -1,0 +1,119 @@
+%%{init: {'theme': 'forest' } }%%
+sequenceDiagram
+    participant A as AppThread
+    participant E as EventThread
+    participant B as CommandEngine
+    participant R as RoutingUtility
+
+    Note over A: User calls API to send a command<br>A command packet is prepared with<br>all the command parameters
+    A->>A: Enter Critical Section
+    Note over A: Allocate unique packet id for the command<br>packet before it is being added to the queue
+    A->>A: Exit Critical Section
+    Note over A: Prepared command packet to be added<br>into respected command queue using<br>sli_queue_manager_enqueue()
+    Note left of A: Invoke the add to queue with atomic action API with<br>sli_queue_handle_t *handle<br>sl_slist_node_t *node<br>sli_queue_manager_action_handler_t action_handler
+
+    rect rgba(255, 0, 0, .2)
+        opt sli_queue_manager_enqueue()
+            A->>A: Enter Critical Section
+
+            Note over A: This API facilitates user to perform an action<br>under the protection of queue's critical section
+            alt if handler is not NULL
+                A->>A: Invoke the handler with user specific data
+            end
+
+            A->>A: Add the command packet data to the queue
+            A->>A: Exit Critical Section
+        end
+    end
+
+    Note over A: Once the packet is queued in the respective command queue,<br>packet is dequeued in Command Engine and processed
+    A->>B: Trigger TX event to Command Engine
+
+    rect rgba(0, 0, 255, .2)
+        B->>B: Check the status of the queues<br>using SLI_QUEUE_GET_STATUS()
+
+        opt SLI_QUEUE_GET_STATUS(queue)
+            B->>B: Return true if list is empty
+        end
+
+        Note over B: If the corresponding queue is not Empty, <br>then Command Engine will process the<br>comamnds in the commanmd queues
+    end
+
+    rect rgba(0, 255, 0, .2)
+        Note over R: When the underlying HAL layer receives <br>a packet, it will forward it to command <br>engine through routing utility
+        R->>R: Add the packet to BUS RX queue
+
+        opt sli_queue_manager_enqueue(sli_queue_handle_t *handle, sl_slist_node_t *node, sli_queue_manager_action_handler_t action_handler)
+            R->>R: Enter Critical Section
+            R->>R: Add the command response <br>packet data to the queue
+            R->>R: Exit critical section
+        end
+
+        R->>B: Set BUS RX event for Command Engine
+    end
+
+    rect rgba(0, 0, 255, .2)
+        Note over B: When a command response or a asynchronous data<br>packet is received, Command Engine will add the packet<br>to either response queue or the notification queue
+
+        B->>B: Dequeue the RX Packet
+        opt sli_queue_manager_dequeue(sli_queue_handle_t *handle, sl_slist_node_t **node)
+            B->>B: Enter Critical Section
+            B->>B: Remove the BUS RX packet data from the queue head
+            B->>B: Exit Critical Section
+            B->>B: Return the data to Command Engine
+        end
+
+        opt sli_queue_manager_enqueue(sli_queue_handle_t *handle, sl_slist_node_t *node, sli_queue_manager_action_handler_t action_handler)
+            B->>B: Enter Critical Section
+            B->>B: Add the command response packet data to<br>the response or Async notification queue
+            B->>B: Exit critical section
+        end
+    end
+
+    B->>A: If the response is a synchronous command response<br>Trigger corresponding RX Event
+    rect rgba(255, 0, 0, .2)
+        A->>A: The thread waiting on the corresponding response wakes up
+        Note over A: After waking up from desired event, thread checks if<br>and dequeues the response for expected packet id<br>using sli_queue_manager_remove_node_from_queue()
+
+        opt sli_queue_manager_remove_node_from_queue()
+            A->>A: Enter Critical Section
+
+            alt if queue is empty
+                A->>A: Exit Critical Section
+                A->>A: Return SL_STATUS_EMPTY
+            end
+
+            loop Iterate through the nodes in the list
+                A->>A: Invoke the compare function to identify the node
+                Note over A: In this situation, packet_id identification<br>function is invoked
+            end
+
+            alt if comapre function returns true
+                A->>A: Remove node from list 
+                A->>A: Exit Critical Section
+                A->>A: Return the response packet
+            else
+                A->>A: Exit Critical Section
+                A->>A: Return SL_STATUS_NOT_FOUND
+            end
+        end
+    end
+
+    rect rgba(0, 0, 255, .2)
+        alt if the received data packet is a Async data packet
+            B->>B: Add received data packet to corresponding<br>notification event queue
+            B->>E: Trigger Notification event to event handler thread
+
+            Note over E: Event thread will be waiting for<br>notification events to be triggered
+            Note over E: Once the Event is triggered, the<br> notification events are dequeued<br>from respective notification event queues<br>using sli_queue_manager_dequeue()
+
+            opt sli_queue_manager_dequeue(sli_queue_handle_t *handle, sl_slist_node_t **node)
+                E->>E: Enter Critical Section
+                E->>E: Remove the Notification event packet data from the queue head
+                E->>E: Exit Critical Section
+                E->>E: Return the data to the application
+            end
+
+            Note over E: Invoke appropriate event handler with the event data
+        end
+    end

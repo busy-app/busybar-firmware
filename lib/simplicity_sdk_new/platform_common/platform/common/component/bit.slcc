@@ -1,0 +1,19 @@
+id: bit
+label: Bit Operations Library
+package: platform_common
+description: Library of different bit operations
+category: Platform|Utilities
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: platform_common/platform/common
+include:
+- path: inc
+  file_list:
+  - path: sl_bit.h
+provides:
+- name: bit
+documentation:
+  docset: gecko-platform
+  document: platform-common/bit

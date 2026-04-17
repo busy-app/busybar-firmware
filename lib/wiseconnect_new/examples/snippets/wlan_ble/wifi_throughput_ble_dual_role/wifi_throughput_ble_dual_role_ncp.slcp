@@ -1,0 +1,98 @@
+project_name: wifi_throughput_ble_dual_role_ncp
+package: multi_protocol_siwx91x_app
+quality: production
+label: Wi-Fi Throughtput BLE Dual Role(NCP)
+category: Example|Wi-Fi_BLE
+description: 'This example demonstrates throughput measurements of WLAN/BLE in individual or with protocol combinations in the SiWx91x module.
+
+  '
+filter:
+- name: Wireless Technology
+  value:
+  - WiFi BLE
+- name: Project Difficulty
+  value:
+  - Advanced
+source:
+- path: app.c
+- path: ble_device_info.c
+- path: ble_main_task.c
+- path: ble_subtasks.c
+- path: wifi_app.c
+- path: wifi_throughput.c
+include:
+- path: .
+  file_list:
+  - path: app.h
+  - path: app_common_config.h
+  - path: ble_config.h
+  - path: ble_device_info.h
+  - path: wifi_app_config.h
+define:
+- name: SL_SI91X_PRINT_DBG_LOG
+- name: SLI_SI91X_SOCKETS
+component:
+- id: sl_main
+- id: freertos
+- id: freertos_heap_4
+- id: device_init
+- id: spidrv
+  instance:
+  - exp
+- id: iostream_retarget_stdio
+- id: iostream_recommended_stream
+- id: iostream_stdlib_config
+- id: wiseconnect_common
+- id: ble
+- id: wifi
+- id: sl_si91x_internal_stack
+- id: wifi_resources
+- id: network_manager
+- id: basic_network_config_manager
+- id: bsd_socket
+- id: sl_si91x_asynchronous_socket
+- id: sl_si91x_basic_buffers
+- id: sl_si91x_spi_bus
+toolchain_settings:
+- option: gcc_linker_option
+  value: -u _printf_float
+- option: gcc_compiler_option
+  value: -Wall -Werror
+configuration:
+- name: SL_BOARD_ENABLE_VCOM
+  value: '1'
+- name: configUSE_POSIX_ERRNO
+  value: '1'
+- name: configTOTAL_HEAP_SIZE
+  value: '51200'
+- name: configTIMER_TASK_PRIORITY
+  value: '55'
+readme:
+- path: readme.md
+other_file:
+- path: resources/readme/image1_soc.png
+- path: resources/readme/output1.png
+- path: resources/readme/output2.png
+- path: resources/readme/output3.png
+- path: resources/readme/output4.png
+- path: resources/readme/remote_screen1.png
+- path: resources/readme/remote_screen2.png
+- path: resources/readme/remote_screen3.png
+- path: resources/readme/remote_screen4.png
+- path: resources/readme/remote_screen5.png
+- path: resources/readme/remote_screen6.png
+- path: resources/readme/remote_screen7.png
+- path: resources/readme/remote_screen8.png
+- path: resources/readme/remote_screen9.png
+ui_hints:
+  highlight:
+  - path: readme.md
+    focus: true
+sdk_extension:
+- id: wiseconnect3_sdk
+  vendor: silabs
+  version: 4.0.1
+sdk:
+  id: simplicity_sdk
+  vendor: silabs
+  version: 2025.12.2

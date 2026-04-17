@@ -1,0 +1,168 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="sl__net__ping_8h" kind="file" language="C++">
+    <compoundname>sl_net_ping.h</compoundname>
+    <includes local="yes">sl_status.h</includes>
+    <includes local="yes">sl_net_types.h</includes>
+    <incdepgraph>
+      <node id="1">
+        <label>components/device/silabs/si91x/wireless/icmp/sl_net_ping.h</label>
+        <link refid="sl__net__ping_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
+      </node>
+      <node id="3">
+        <label>sl_net_types.h</label>
+      </node>
+      <node id="2">
+        <label>sl_status.h</label>
+      </node>
+    </incdepgraph>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="group__SL__PING__FUNCTIONS_1gabe41d48d834975a419264388851c40ff" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_si91x_send_ping</definition>
+        <argsstring>(sl_ip_address_t ip_address, uint16_t ping_packet_size)</argsstring>
+        <name>sl_si91x_send_ping</name>
+        <param>
+          <type>sl_ip_address_t</type>
+          <declname>ip_address</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>ping_packet_size</declname>
+        </param>
+        <briefdescription>
+<para>Send an ICMP ping request to a specific IP address. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>This function sends an ICMP ping request to a specific IP address (IPv4 or IPv6) with a user defined ping packet size. It verifies the device’s initialization status and validates the IP address type before sending the request to the specific IP address. <simplesect kind="pre"><para>Pre-condition:<itemizedlist>
+<listitem><para><ulink url="../wiseconnect-api-reference-guide-nwk-mgmt/net-interface-functions#sl-net-up">sl_net_up</ulink> should be called before this API. </para>
+</listitem></itemizedlist>
+</para>
+</simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">ip_address</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The destination IP address should be of type <ulink url="../wiseconnect-api-reference-guide-common/sl-ip-address-t">sl_ip_address_type_t</ulink> either IPv4 or IPv6. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">ping_packet_size</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The size of the ping packet must fall within the valid range of [0, 300]. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para><ulink url="https://docs.silabs.com/gecko-platform/latest/platform-common/status">sl_status_t</ulink> - Status of the operation.<itemizedlist>
+<listitem><para>SL_STATUS_OK: Operation successful.</para>
+</listitem><listitem><para>SL_STATUS_NOT_INITIALIZED: Device is not initialized.</para>
+</listitem><listitem><para>SL_STATUS_INVALID_PARAMETER: Invalid IP address type.</para>
+</listitem></itemizedlist>
+</para>
+</simplesect>
+<simplesect kind="note"><para><orderedlist>
+<listitem><para>This API is asynchronous. The ping response is delivered through the registered <ulink url="../wiseconnect-api-reference-guide-nwk-mgmt/sl-net-types#sl-net-event-handler-t">sl_net_event_handler_t</ulink> callback, using the event type <ulink url="../wiseconnect-api-reference-guide-nwk-mgmt/sl-net-constants#sl-net-event-t">SL_NET_PING_RESPONSE_EVENT</ulink>. To receive this event, the sl_net_event_handler_t must be registered via the <ulink url="../wiseconnect-api-reference-guide-nwk-mgmt/net-interface-functions#sl-net-init">sl_net_init()</ulink> API. </para>
+</listitem></orderedlist>
+</para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/icmp/sl_net_ping.h" line="62" column="13" declfile="components/device/silabs/si91x/wireless/icmp/sl_net_ping.h" declline="62" declcolumn="13"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<sect1 id="sl__net__ping_8h_1autotoc_md0">
+<title>License</title>
+<para><bold>Copyright 2019 Silicon Laboratories Inc. www.silabs.com</bold></para>
+<para>SPDX-License-Identifier: Zlib</para>
+<para>The licensor of this software is Silicon Laboratories Inc.</para>
+<para>This software is provided &apos;as-is&apos;, without any express or implied warranty. In no event will the authors be held liable for any damages arising from the use of this software.</para>
+<para>Permission is granted to anyone to use this software for any purpose, including commercial applications, and to alter it and redistribute it freely, subject to the following restrictions:</para>
+<para><orderedlist>
+<listitem><para>The origin of this software must not be misrepresented; you must not claim that you wrote the original software. If you use this software in a product, an acknowledgment in the product documentation would be appreciated but is not required.</para>
+</listitem><listitem><para>Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.</para>
+</listitem><listitem><para>This notice may not be removed or altered from any source distribution. </para>
+</listitem></orderedlist>
+</para>
+</sect1>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="comment">/***************************************************************************/</highlight><highlight class="normal"><sp/></highlight><highlight class="comment">/**</highlight></codeline>
+<codeline lineno="2"><highlight class="comment"><sp/>*<sp/>@file</highlight></codeline>
+<codeline lineno="3"><highlight class="comment"><sp/>*<sp/>@brief</highlight></codeline>
+<codeline lineno="4"><highlight class="comment"><sp/>*******************************************************************************</highlight></codeline>
+<codeline lineno="5"><highlight class="comment"><sp/>*<sp/>#<sp/>License</highlight></codeline>
+<codeline lineno="6"><highlight class="comment"><sp/>*<sp/>&lt;b&gt;Copyright<sp/>2019<sp/>Silicon<sp/>Laboratories<sp/>Inc.<sp/>www.silabs.com&lt;/b&gt;</highlight></codeline>
+<codeline lineno="7"><highlight class="comment"><sp/>*******************************************************************************</highlight></codeline>
+<codeline lineno="8"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="9"><highlight class="comment"><sp/>*<sp/>SPDX-License-Identifier:<sp/>Zlib</highlight></codeline>
+<codeline lineno="10"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="11"><highlight class="comment"><sp/>*<sp/>The<sp/>licensor<sp/>of<sp/>this<sp/>software<sp/>is<sp/>Silicon<sp/>Laboratories<sp/>Inc.</highlight></codeline>
+<codeline lineno="12"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="13"><highlight class="comment"><sp/>*<sp/>This<sp/>software<sp/>is<sp/>provided<sp/>&apos;as-is&apos;,<sp/>without<sp/>any<sp/>express<sp/>or<sp/>implied</highlight></codeline>
+<codeline lineno="14"><highlight class="comment"><sp/>*<sp/>warranty.<sp/>In<sp/>no<sp/>event<sp/>will<sp/>the<sp/>authors<sp/>be<sp/>held<sp/>liable<sp/>for<sp/>any<sp/>damages</highlight></codeline>
+<codeline lineno="15"><highlight class="comment"><sp/>*<sp/>arising<sp/>from<sp/>the<sp/>use<sp/>of<sp/>this<sp/>software.</highlight></codeline>
+<codeline lineno="16"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="17"><highlight class="comment"><sp/>*<sp/>Permission<sp/>is<sp/>granted<sp/>to<sp/>anyone<sp/>to<sp/>use<sp/>this<sp/>software<sp/>for<sp/>any<sp/>purpose,</highlight></codeline>
+<codeline lineno="18"><highlight class="comment"><sp/>*<sp/>including<sp/>commercial<sp/>applications,<sp/>and<sp/>to<sp/>alter<sp/>it<sp/>and<sp/>redistribute<sp/>it</highlight></codeline>
+<codeline lineno="19"><highlight class="comment"><sp/>*<sp/>freely,<sp/>subject<sp/>to<sp/>the<sp/>following<sp/>restrictions:</highlight></codeline>
+<codeline lineno="20"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="21"><highlight class="comment"><sp/>*<sp/>1.<sp/>The<sp/>origin<sp/>of<sp/>this<sp/>software<sp/>must<sp/>not<sp/>be<sp/>misrepresented;<sp/>you<sp/>must<sp/>not</highlight></codeline>
+<codeline lineno="22"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/>claim<sp/>that<sp/>you<sp/>wrote<sp/>the<sp/>original<sp/>software.<sp/>If<sp/>you<sp/>use<sp/>this<sp/>software</highlight></codeline>
+<codeline lineno="23"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/>in<sp/>a<sp/>product,<sp/>an<sp/>acknowledgment<sp/>in<sp/>the<sp/>product<sp/>documentation<sp/>would<sp/>be</highlight></codeline>
+<codeline lineno="24"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/>appreciated<sp/>but<sp/>is<sp/>not<sp/>required.</highlight></codeline>
+<codeline lineno="25"><highlight class="comment"><sp/>*<sp/>2.<sp/>Altered<sp/>source<sp/>versions<sp/>must<sp/>be<sp/>plainly<sp/>marked<sp/>as<sp/>such,<sp/>and<sp/>must<sp/>not<sp/>be</highlight></codeline>
+<codeline lineno="26"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/>misrepresented<sp/>as<sp/>being<sp/>the<sp/>original<sp/>software.</highlight></codeline>
+<codeline lineno="27"><highlight class="comment"><sp/>*<sp/>3.<sp/>This<sp/>notice<sp/>may<sp/>not<sp/>be<sp/>removed<sp/>or<sp/>altered<sp/>from<sp/>any<sp/>source<sp/>distribution.</highlight></codeline>
+<codeline lineno="28"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="29"><highlight class="comment"><sp/>******************************************************************************/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="30"><highlight class="normal"></highlight><highlight class="preprocessor">#pragma<sp/>once</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="31"><highlight class="normal"></highlight></codeline>
+<codeline lineno="32"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;sl_status.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="33"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;sl_net_types.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="34"><highlight class="normal"></highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="35"><highlight class="comment">/**<sp/>\addtogroup<sp/>SL_PING_FUNCTIONS<sp/>Functions</highlight></codeline>
+<codeline lineno="36"><highlight class="comment"><sp/>*<sp/>\ingroup<sp/>SL_PING_APIS</highlight></codeline>
+<codeline lineno="37"><highlight class="comment"><sp/>*<sp/>@{<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="38"><highlight class="normal"></highlight></codeline>
+<codeline lineno="39"><highlight class="normal"></highlight><highlight class="comment">/***************************************************************************/</highlight><highlight class="normal"><sp/></highlight><highlight class="comment">/**</highlight></codeline>
+<codeline lineno="40"><highlight class="comment"><sp/>*<sp/>@brief</highlight></codeline>
+<codeline lineno="41"><highlight class="comment"><sp/>*<sp/><sp/><sp/>Send<sp/>an<sp/>ICMP<sp/>ping<sp/>request<sp/>to<sp/>a<sp/>specific<sp/>IP<sp/>address.</highlight></codeline>
+<codeline lineno="42"><highlight class="comment"><sp/>*<sp/>@details</highlight></codeline>
+<codeline lineno="43"><highlight class="comment"><sp/>*<sp/><sp/><sp/>This<sp/>function<sp/>sends<sp/>an<sp/>ICMP<sp/>ping<sp/>request<sp/>to<sp/>a<sp/>specific<sp/>IP<sp/>address<sp/>(IPv4<sp/>or<sp/>IPv6)<sp/>with<sp/>a<sp/>user<sp/>defined<sp/>ping<sp/>packet<sp/>size.</highlight></codeline>
+<codeline lineno="44"><highlight class="comment"><sp/>*<sp/><sp/><sp/>It<sp/>verifies<sp/>the<sp/>device’s<sp/>initialization<sp/>status<sp/>and<sp/>validates<sp/>the<sp/>IP<sp/>address<sp/>type<sp/>before<sp/>sending<sp/>the<sp/>request<sp/>to<sp/>the<sp/>specific<sp/>IP<sp/>address.</highlight></codeline>
+<codeline lineno="45"><highlight class="comment"><sp/>*<sp/>@pre<sp/>Pre-condition:</highlight></codeline>
+<codeline lineno="46"><highlight class="comment"><sp/>*<sp/><sp/>-<sp/>[sl_net_up](../wiseconnect-api-reference-guide-nwk-mgmt/net-interface-functions#sl-net-up)<sp/>should<sp/>be<sp/>called<sp/>before<sp/>this<sp/>API.</highlight></codeline>
+<codeline lineno="47"><highlight class="comment"><sp/>*<sp/>@param[in]<sp/>ip_address</highlight></codeline>
+<codeline lineno="48"><highlight class="comment"><sp/>*<sp/><sp/><sp/>The<sp/>destination<sp/>IP<sp/>address<sp/>should<sp/>be<sp/>of<sp/>type<sp/>[sl_ip_address_type_t](../wiseconnect-api-reference-guide-common/sl-ip-address-t)<sp/>either<sp/>IPv4<sp/>or<sp/>IPv6.</highlight></codeline>
+<codeline lineno="49"><highlight class="comment"><sp/>*<sp/>@param[in]<sp/>ping_packet_size</highlight></codeline>
+<codeline lineno="50"><highlight class="comment"><sp/>*<sp/><sp/><sp/>The<sp/>size<sp/>of<sp/>the<sp/>ping<sp/>packet<sp/>must<sp/>fall<sp/>within<sp/>the<sp/>valid<sp/>range<sp/>of<sp/>[0,<sp/>300].</highlight></codeline>
+<codeline lineno="51"><highlight class="comment"><sp/>*<sp/>@return</highlight></codeline>
+<codeline lineno="52"><highlight class="comment"><sp/>*<sp/><sp/><sp/>[sl_status_t](https://docs.silabs.com/gecko-platform/latest/platform-common/status)<sp/>-<sp/>Status<sp/>of<sp/>the<sp/>operation.</highlight></codeline>
+<codeline lineno="53"><highlight class="comment"><sp/>*<sp/><sp/><sp/>-<sp/>SL_STATUS_OK:<sp/>Operation<sp/>successful.</highlight></codeline>
+<codeline lineno="54"><highlight class="comment"><sp/>*<sp/><sp/><sp/>-<sp/>SL_STATUS_NOT_INITIALIZED:<sp/>Device<sp/>is<sp/>not<sp/>initialized.</highlight></codeline>
+<codeline lineno="55"><highlight class="comment"><sp/>*<sp/><sp/><sp/>-<sp/>SL_STATUS_INVALID_PARAMETER:<sp/>Invalid<sp/>IP<sp/>address<sp/>type.</highlight></codeline>
+<codeline lineno="56"><highlight class="comment"><sp/>*<sp/></highlight></codeline>
+<codeline lineno="57"><highlight class="comment"><sp/>*<sp/>@note<sp/></highlight></codeline>
+<codeline lineno="58"><highlight class="comment"><sp/>*<sp/>1.<sp/>This<sp/>API<sp/>is<sp/>asynchronous.<sp/>The<sp/>ping<sp/>response<sp/>is<sp/>delivered<sp/>through<sp/>the<sp/>registered<sp/>[sl_net_event_handler_t](../wiseconnect-api-reference-guide-nwk-mgmt/sl-net-types#sl-net-event-handler-t)<sp/>callback,<sp/></highlight></codeline>
+<codeline lineno="59"><highlight class="comment"><sp/>*<sp/>using<sp/>the<sp/>event<sp/>type<sp/>[SL_NET_PING_RESPONSE_EVENT](../wiseconnect-api-reference-guide-nwk-mgmt/sl-net-constants#sl-net-event-t).<sp/></highlight></codeline>
+<codeline lineno="60"><highlight class="comment"><sp/>*<sp/>To<sp/>receive<sp/>this<sp/>event,<sp/>the<sp/>sl_net_event_handler_t<sp/>must<sp/>be<sp/>registered<sp/>via<sp/>the<sp/>[sl_net_init()](../wiseconnect-api-reference-guide-nwk-mgmt/net-interface-functions#sl-net-init)<sp/>API.<sp/></highlight></codeline>
+<codeline lineno="61"><highlight class="comment"><sp/>******************************************************************************/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="62" refid="group__SL__PING__FUNCTIONS_1gabe41d48d834975a419264388851c40ff" refkind="member"><highlight class="normal">sl_status_t<sp/><ref refid="group__SL__PING__FUNCTIONS_1gabe41d48d834975a419264388851c40ff" kindref="member">sl_si91x_send_ping</ref>(sl_ip_address_t<sp/>ip_address,<sp/>uint16_t<sp/>ping_packet_size);</highlight></codeline>
+<codeline lineno="63"><highlight class="normal"></highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="64"><highlight class="comment">/**<sp/>@}<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+    </programlisting>
+    <location file="components/device/silabs/si91x/wireless/icmp/sl_net_ping.h"/>
+  </compounddef>
+</doxygen>

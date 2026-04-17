@@ -1,0 +1,84 @@
+/*******************************************************************************
+ * @file  console_command_database.c.jinja
+ * @brief 
+ *******************************************************************************
+ * # License
+ * <b>Copyright 2025 Silicon Laboratories Inc. www.silabs.com</b>
+ *******************************************************************************
+ *
+ * SPDX-License-Identifier: Zlib
+ *
+ * The licensor of this software is Silicon Laboratories Inc.
+ *
+ * This software is provided 'as-is', without any express or implied
+ * warranty. In no event will the authors be held liable for any damages
+ * arising from the use of this software.
+ *
+ * Permission is granted to anyone to use this software for any purpose,
+ * including commercial applications, and to alter it and redistribute it
+ * freely, subject to the following restrictions:
+ *
+ * 1. The origin of this software must not be misrepresented; you must not
+ *    claim that you wrote the original software. If you use this software
+ *    in a product, an acknowledgment in the product documentation would be
+ *    appreciated but is not required.
+ * 2. Altered source versions must be plainly marked as such, and must not be
+ *    misrepresented as being the original software.
+ * 3. This notice may not be removed or altered from any source distribution.
+ *
+ ******************************************************************************/
+{% macro process_command(command, name, prefix) -%}
+{%- if "handler" in command -%}
+extern sl_status_t {{command.handler}}( console_args_t* arguments );
+{%- endif -%}
+
+{%- if "handler" in command %}
+static const console_descriptive_command_t {{prefix}}_{{name}}_command = { .handler={{command.handler}}, .argument_list={ 
+  {%- for arg in command.arguments -%}
+    {%- if arg.type is defined -%}
+      {%- if arg.option is defined %}CONSOLE_OPTIONAL_ARG('{{arg.option}}', {% endif -%}
+      {%- if arg.type in __mapping  %}CONSOLE_ARG_{{ __mapping[arg.type]}} {% else %}CONSOLE_ENUM_ARG({{arg.type}}) {% endif -%}
+      {%- if arg.option is defined %}){%endif -%}
+    {%- elif arg is not string -%}
+      {% for key in arg %}CONSOLE_OPTIONAL_ARG('{{key}}', {% if arg[key] in __mapping %}CONSOLE_ARG_{{__mapping[arg[key]]}} {% else %}CONSOLE_ENUM_ARG({{arg[key]}}) {% endif %}){%endfor -%}
+    {%- else -%}
+      {% if arg in __mapping %}CONSOLE_ARG_{{__mapping[arg]}}{% else %}CONSOLE_ENUM_ARG({{arg}}){% endif -%}
+    {%- endif %}, 
+  {%- endfor -%} CONSOLE_ARG_END } };
+{%- else -%}
+{%    set old_command = command %}{% set old_prefix = prefix -%}{% set prefix = prefix + "_" + name %}
+{%-   for b_name in old_command %}
+{%      if old_command[b_name] is not string %}
+{{ process_command(old_command[b_name], b_name, prefix) }}
+{%-     endif %}
+{%-   endfor -%}
+{% set command = old_command %}{% set old_command = command.old_command %}
+const console_database_t {{prefix}}_command_database =
+{
+  CONSOLE_DATABASE_ENTRIES(
+{%    for temp_name in command %}
+{%-     if command[temp_name] is not string %}    { "{{temp_name}}",    &{{prefix}}_{{temp_name}}_command },
+{%      endif %}
+{%-   endfor %}    )
+};
+
+static const console_descriptive_command_t {{prefix}}_command = { .description={%- if "description" in command %}"{{command.description}}"{%else%}""{%endif%}, 0, .sub_command_database = &{{prefix}}_command_database, {CONSOLE_ARG_SUB_COMMAND,CONSOLE_ARG_END} };
+{% set old_name = command.old_name %}{% set prefix = old_prefix -%}
+{%- endif %}
+{%- endmacro %}
+
+#include "console.h"
+#include "console_argument_types.h"
+{% set __mapping = {"uint8": "UINT", "uint16": "UINT", "uint32": "UINT", "int": "INT", "int8": "INT", "int16": "INT", "int32": "INT", "string": "STRING", "mac": "MAC_ADDRESS", "ip": "IP_ADDRESS", "hex": "HEX", "*": "REMAINING_COMMAND_LINE"}  %}
+{% for entry in console_commands %}{% for name in entry %}
+{% set modified_name = name | replace('-', '_') | replace('?', 'q') %}
+{{ process_command(entry[name], modified_name, "") }}
+{% endfor %}{% endfor %}
+
+const console_database_t console_command_database =
+{
+    CONSOLE_DATABASE_ENTRIES(
+{% for entry in console_commands -%} {% for name in entry -%}
+{% set modified_name = name | replace('-', '_') | replace('?', 'q') -%}
+    { "{{name}}",    &_{{modified_name}}_command },
+{% endfor -%}{% endfor -%}   )};

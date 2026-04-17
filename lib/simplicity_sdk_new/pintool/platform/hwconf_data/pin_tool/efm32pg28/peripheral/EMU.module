@@ -1,0 +1,25 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<module:DocumentRoot xmlns:module="http://www.silabs.com/ss/hwconfig/module.ecore">
+  <module id="pin_tool.efm32.efm32pg28.emu" label="EMU" name="EMU" description="" version="A">
+    <properties>
+      <stringProperty label="Type" id="type" defaultValue="emu" transient="true" hidden="true" readonly="true" description=""/>
+      <stringProperty label="Custom Peripheral Name" id="peripheral.name" description=""/>
+    </properties>
+    <propertyCategories>
+      <category label="EMU">
+        <subCategory label="">
+          <propertyRef refId="peripheral.name"/>
+        </subCategory>
+      </category>
+    </propertyCategories>
+    <signals>
+      <signal name="RSTNEXPORT_ISBIAS_RDY_N_HV"/>
+      <signal name="RSTNEXPORT_HDREG_RDY_N_HV"/>
+      <signal name="RSTNEXPORT_PFMISO_ISO_N_HV"/>
+      <signal name="VSBTESTIN0"/>
+      <signal name="VSBTESTIN1"/>
+      <signal name="RSTNEXPORT_LEBOD_POR_N_HV"/>
+      <signal name="RSTNEXPORT_HVBOD_RDY_N_HV"/>
+    </signals>
+  </module>
+</module:DocumentRoot>

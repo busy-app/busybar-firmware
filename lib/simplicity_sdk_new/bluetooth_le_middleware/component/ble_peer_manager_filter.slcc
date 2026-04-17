@@ -1,0 +1,40 @@
+id: ble_peer_manager_filter
+package: bluetooth_le_middleware
+label: BLE Peer Manager Filter
+description: >
+  Peer Manager for Bluetooth Low Energy. Responsible for advertising and
+  creating connections. The user can set the advertising parameters.
+category: Bluetooth|Application|Miscellaneous
+metadata:
+  sbom:
+    license: Zlib
+quality: production
+root_path: bluetooth_le_middleware/common/ble_peer_manager/filter
+include:
+- path: inc
+  file_list:
+  - path: ble_peer_manager_filter.h
+source:
+- path: src/ble_peer_manager_filter.c
+requires:
+- name: app_log
+- name: bluetooth_api
+- name: bluetooth_feature_system
+  condition:
+  - device_cortexm
+- name: memory_manager
+provides:
+- name: ble_peer_manager_filter
+config_file:
+- path: config/ble_peer_manager_filter_config.h
+documentation:
+  docset: bluetooth
+  document: bluetooth-service-api/ble-peer-manager-filter
+template_contribution:
+- name: component_catalog
+  value: ble_peer_manager_filter
+- name: event_handler
+  value:
+    event: internal_app_init
+    include: ble_peer_manager_filter.h
+    handler: ble_peer_manager_filter_init

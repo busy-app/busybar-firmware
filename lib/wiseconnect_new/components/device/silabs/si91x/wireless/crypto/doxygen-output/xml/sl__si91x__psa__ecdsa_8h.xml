@@ -1,0 +1,522 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="sl__si91x__psa__ecdsa_8h" kind="file" language="C++">
+    <compoundname>sl_si91x_psa_ecdsa.h</compoundname>
+    <includes refid="sli__si91x__crypto__driver__functions_8h" local="yes">sli_si91x_crypto_driver_functions.h</includes>
+    <includes local="yes">string.h</includes>
+    <includes local="yes">sl_status.h</includes>
+    <includes refid="sl__si91x__crypto_8h" local="yes">sl_si91x_crypto.h</includes>
+    <incdepgraph>
+      <node id="1">
+        <label>components/device/silabs/si91x/wireless/crypto/ecdsa/inc/sl_si91x_psa_ecdsa.h</label>
+        <link refid="sl__si91x__psa__ecdsa_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="7" relation="include">
+        </childnode>
+        <childnode refid="4" relation="include">
+        </childnode>
+        <childnode refid="5" relation="include">
+        </childnode>
+      </node>
+      <node id="5">
+        <label>sl_si91x_crypto.h</label>
+        <link refid="sl__si91x__crypto_8h"/>
+      </node>
+      <node id="2">
+        <label>sli_si91x_crypto_driver_functions.h</label>
+        <link refid="sli__si91x__crypto__driver__functions_8h"/>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="4" relation="include">
+        </childnode>
+        <childnode refid="5" relation="include">
+        </childnode>
+        <childnode refid="6" relation="include">
+        </childnode>
+      </node>
+      <node id="3">
+        <label>psa/crypto.h</label>
+      </node>
+      <node id="4">
+        <label>sl_status.h</label>
+      </node>
+      <node id="6">
+        <label>sli_psa_driver_features.h</label>
+      </node>
+      <node id="7">
+        <label>string.h</label>
+      </node>
+    </incdepgraph>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="sl__si91x__psa__ecdsa_8h_1abc318831235375efc0b5f713b00a3923" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>psa_status_t</type>
+        <definition>psa_status_t sli_si91x_crypto_sign_message</definition>
+        <argsstring>(const psa_key_attributes_t *attributes, const uint8_t *key_buffer, size_t key_buffer_size, psa_algorithm_t alg, const uint8_t *input, size_t input_length, uint8_t *signature, size_t signature_size, size_t *signature_length)</argsstring>
+        <name>sli_si91x_crypto_sign_message</name>
+        <param>
+          <type>const psa_key_attributes_t *</type>
+          <declname>attributes</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>key_buffer</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>key_buffer_size</declname>
+        </param>
+        <param>
+          <type>psa_algorithm_t</type>
+          <declname>alg</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>input</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>input_length</declname>
+        </param>
+        <param>
+          <type>uint8_t *</type>
+          <declname>signature</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>signature_size</declname>
+        </param>
+        <param>
+          <type>size_t *</type>
+          <declname>signature_length</declname>
+        </param>
+        <briefdescription>
+<para>Generate a signature with input message using ECC private key. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="note"><para>The signature of this function is that of a PSA driver sign_message entry point. This function behaves as a sign_message entry point as defined in the PSA driver interface specification for transparent drivers.</para>
+</simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">attributes</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The attributes of the key to use for the operation. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">key_buffer</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The buffer containing the key context. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>key_buffer_size</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Size of the <computeroutput>key_buffer</computeroutput> buffer in bytes. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>alg</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The ECDSA algorithm to compute. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">input</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Data is encryted and authenticated. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>input_length</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Size of input in bytes. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">signature</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Output buffer for the generated signature. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>signature_size</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Size of the signature buffer in bytes. This must be appropriate for the selected algorithm and key:<itemizedlist>
+<listitem><para>A sufficient output size is PSA_SIGN_OUTPUT_SIZE(key_type, key_bits, alg) where key_type is the type of asymmetric key.</para>
+</listitem><listitem><para>PSA_VENDOR_ECDSA_SIGNATURE_MAX_SIZE evaluates to the maximum signature size of any supported curve. </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">signature_length</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>On success, the size of the output in the signature buffer.</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>psa_status_t. See <ulink url="https://docs.silabs.com/gecko-platform/4.1/service/api/group-error">https://docs.silabs.com/gecko-platform/4.1/service/api/group-error</ulink> for details. </para>
+</simplesect>
+<parameterlist kind="retval"><parameteritem>
+<parameternamelist>
+<parametername>PSA_SUCCESS</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Success. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>PSA_ERROR_NOT_SUPPORTED</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><computeroutput>alg</computeroutput> is not supported. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>PSA_ERROR_INSUFFICIENT_MEMORY</parametername>
+</parameternamelist>
+<parameterdescription>
+<para></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>PSA_ERROR_BUFFER_TOO_SMALL</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>signature buffer is too small. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>PSA_ERROR_CORRUPTION_DETECTED</parametername>
+</parameternamelist>
+<parameterdescription>
+<para></para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/ecdsa/inc/sl_si91x_psa_ecdsa.h" line="79" column="14" declfile="components/device/silabs/si91x/wireless/crypto/ecdsa/inc/sl_si91x_psa_ecdsa.h" declline="79" declcolumn="14"/>
+      </memberdef>
+      <memberdef kind="function" id="sl__si91x__psa__ecdsa_8h_1a67551eafc2d15c1ff57ce89f27adc5cd" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>psa_status_t</type>
+        <definition>psa_status_t sli_si91x_crypto_verify_message</definition>
+        <argsstring>(const psa_key_attributes_t *attributes, const uint8_t *key_buffer, size_t key_buffer_size, psa_algorithm_t alg, const uint8_t *input, size_t input_length, const uint8_t *signature, size_t signature_length)</argsstring>
+        <name>sli_si91x_crypto_verify_message</name>
+        <param>
+          <type>const psa_key_attributes_t *</type>
+          <declname>attributes</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>key_buffer</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>key_buffer_size</declname>
+        </param>
+        <param>
+          <type>psa_algorithm_t</type>
+          <declname>alg</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>input</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>input_length</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>signature</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>signature_length</declname>
+        </param>
+        <briefdescription>
+<para><itemizedlist>
+<listitem><para>Verify a signature with input message using ECC public key. </para>
+</listitem></itemizedlist>
+</para>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="note"><para>The signature of this function is that of a PSA driver verify_message entry point. This function behaves as a verify_message entry point as defined in the PSA driver interface specification for transparent drivers.</para>
+</simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">attributes</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The attributes of the key to use for the operation. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">key_buffer</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The buffer containing the key context. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>key_buffer_size</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Size of the <computeroutput>key_buffer</computeroutput> buffer in bytes. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>alg</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The ECDSA algorithm to compute. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">input</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Data is authenticated. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>input_length</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Size of input in bytes. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">signature</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The buffer containing signature.</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">signature_length</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The size of the signature buffer.</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>psa_status_t. See <ulink url="https://docs.silabs.com/gecko-platform/4.1/service/api/group-error">https://docs.silabs.com/gecko-platform/4.1/service/api/group-error</ulink> for details. </para>
+</simplesect>
+<parameterlist kind="retval"><parameteritem>
+<parameternamelist>
+<parametername>PSA_SUCCESS</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Success. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>PSA_ERROR_INVALID_SIGNATURE</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Failure, The signature is invald. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>PSA_ERROR_NOT_SUPPORTED</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><computeroutput>alg</computeroutput> is not supported. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>PSA_ERROR_INSUFFICIENT_MEMORY</parametername>
+</parameternamelist>
+<parameterdescription>
+<para></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>PSA_ERROR_CORRUPTION_DETECTED</parametername>
+</parameternamelist>
+<parameterdescription>
+<para></para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/ecdsa/inc/sl_si91x_psa_ecdsa.h" line="119" column="14" declfile="components/device/silabs/si91x/wireless/crypto/ecdsa/inc/sl_si91x_psa_ecdsa.h" declline="119" declcolumn="14"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="comment">/*******************************************************************************</highlight></codeline>
+<codeline lineno="2"><highlight class="comment"><sp/>*<sp/>@file<sp/><sp/>sl_si91x_psa_ecdsa.h</highlight></codeline>
+<codeline lineno="3"><highlight class="comment"><sp/>*<sp/>@brief</highlight></codeline>
+<codeline lineno="4"><highlight class="comment"><sp/>*******************************************************************************</highlight></codeline>
+<codeline lineno="5"><highlight class="comment"><sp/>*<sp/>#<sp/>License</highlight></codeline>
+<codeline lineno="6"><highlight class="comment"><sp/>*<sp/>&lt;b&gt;Copyright<sp/>2025<sp/>Silicon<sp/>Laboratories<sp/>Inc.<sp/>www.silabs.com&lt;/b&gt;</highlight></codeline>
+<codeline lineno="7"><highlight class="comment"><sp/>*******************************************************************************</highlight></codeline>
+<codeline lineno="8"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="9"><highlight class="comment"><sp/>*<sp/>SPDX-License-Identifier:<sp/>Zlib</highlight></codeline>
+<codeline lineno="10"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="11"><highlight class="comment"><sp/>*<sp/>The<sp/>licensor<sp/>of<sp/>this<sp/>software<sp/>is<sp/>Silicon<sp/>Laboratories<sp/>Inc.</highlight></codeline>
+<codeline lineno="12"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="13"><highlight class="comment"><sp/>*<sp/>This<sp/>software<sp/>is<sp/>provided<sp/>&apos;as-is&apos;,<sp/>without<sp/>any<sp/>express<sp/>or<sp/>implied</highlight></codeline>
+<codeline lineno="14"><highlight class="comment"><sp/>*<sp/>warranty.<sp/>In<sp/>no<sp/>event<sp/>will<sp/>the<sp/>authors<sp/>be<sp/>held<sp/>liable<sp/>for<sp/>any<sp/>damages</highlight></codeline>
+<codeline lineno="15"><highlight class="comment"><sp/>*<sp/>arising<sp/>from<sp/>the<sp/>use<sp/>of<sp/>this<sp/>software.</highlight></codeline>
+<codeline lineno="16"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="17"><highlight class="comment"><sp/>*<sp/>Permission<sp/>is<sp/>granted<sp/>to<sp/>anyone<sp/>to<sp/>use<sp/>this<sp/>software<sp/>for<sp/>any<sp/>purpose,</highlight></codeline>
+<codeline lineno="18"><highlight class="comment"><sp/>*<sp/>including<sp/>commercial<sp/>applications,<sp/>and<sp/>to<sp/>alter<sp/>it<sp/>and<sp/>redistribute<sp/>it</highlight></codeline>
+<codeline lineno="19"><highlight class="comment"><sp/>*<sp/>freely,<sp/>subject<sp/>to<sp/>the<sp/>following<sp/>restrictions:</highlight></codeline>
+<codeline lineno="20"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="21"><highlight class="comment"><sp/>*<sp/>1.<sp/>The<sp/>origin<sp/>of<sp/>this<sp/>software<sp/>must<sp/>not<sp/>be<sp/>misrepresented;<sp/>you<sp/>must<sp/>not</highlight></codeline>
+<codeline lineno="22"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/>claim<sp/>that<sp/>you<sp/>wrote<sp/>the<sp/>original<sp/>software.<sp/>If<sp/>you<sp/>use<sp/>this<sp/>software</highlight></codeline>
+<codeline lineno="23"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/>in<sp/>a<sp/>product,<sp/>an<sp/>acknowledgment<sp/>in<sp/>the<sp/>product<sp/>documentation<sp/>would<sp/>be</highlight></codeline>
+<codeline lineno="24"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/>appreciated<sp/>but<sp/>is<sp/>not<sp/>required.</highlight></codeline>
+<codeline lineno="25"><highlight class="comment"><sp/>*<sp/>2.<sp/>Altered<sp/>source<sp/>versions<sp/>must<sp/>be<sp/>plainly<sp/>marked<sp/>as<sp/>such,<sp/>and<sp/>must<sp/>not<sp/>be</highlight></codeline>
+<codeline lineno="26"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/>misrepresented<sp/>as<sp/>being<sp/>the<sp/>original<sp/>software.</highlight></codeline>
+<codeline lineno="27"><highlight class="comment"><sp/>*<sp/>3.<sp/>This<sp/>notice<sp/>may<sp/>not<sp/>be<sp/>removed<sp/>or<sp/>altered<sp/>from<sp/>any<sp/>source<sp/>distribution.</highlight></codeline>
+<codeline lineno="28"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="29"><highlight class="comment"><sp/>******************************************************************************/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="30"><highlight class="normal"></highlight></codeline>
+<codeline lineno="31"><highlight class="normal"></highlight><highlight class="preprocessor">#ifndef<sp/>SL_SI91X_PSA_ECDSA_H</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="32"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>SL_SI91X_PSA_ECDSA_H</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="33"><highlight class="normal"></highlight></codeline>
+<codeline lineno="34"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;<ref refid="sli__si91x__crypto__driver__functions_8h" kindref="compound">sli_si91x_crypto_driver_functions.h</ref>&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="35"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;string.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="36"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;sl_status.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="37"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;<ref refid="sl__si91x__crypto_8h" kindref="compound">sl_si91x_crypto.h</ref>&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="38"><highlight class="normal"></highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="39"><highlight class="comment">/**</highlight></codeline>
+<codeline lineno="40"><highlight class="comment"><sp/>*<sp/>\brief<sp/>Generate<sp/>a<sp/>signature<sp/>with<sp/>input<sp/>message<sp/>using<sp/>ECC<sp/>private<sp/>key</highlight></codeline>
+<codeline lineno="41"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="42"><highlight class="comment"><sp/>*<sp/>\note<sp/>The<sp/>signature<sp/>of<sp/>this<sp/>function<sp/>is<sp/>that<sp/>of<sp/>a<sp/>PSA<sp/>driver</highlight></codeline>
+<codeline lineno="43"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/>sign_message<sp/>entry<sp/>point.<sp/>This<sp/>function<sp/>behaves<sp/>as<sp/>a<sp/>sign_message</highlight></codeline>
+<codeline lineno="44"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/>entry<sp/>point<sp/>as<sp/>defined<sp/>in<sp/>the<sp/>PSA<sp/>driver<sp/>interface<sp/>specification<sp/>for</highlight></codeline>
+<codeline lineno="45"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/>transparent<sp/>drivers.</highlight></codeline>
+<codeline lineno="46"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="47"><highlight class="comment"><sp/>*<sp/>\param[in]<sp/><sp/>attributes<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>The<sp/>attributes<sp/>of<sp/>the<sp/>key<sp/>to<sp/>use<sp/>for<sp/>the</highlight></codeline>
+<codeline lineno="48"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>operation.</highlight></codeline>
+<codeline lineno="49"><highlight class="comment"><sp/>*<sp/>\param[in]<sp/><sp/>key_buffer<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>The<sp/>buffer<sp/>containing<sp/>the<sp/>key<sp/>context.</highlight></codeline>
+<codeline lineno="50"><highlight class="comment"><sp/>*<sp/>\param<sp/><sp/><sp/><sp/><sp/><sp/>key_buffer_size<sp/><sp/><sp/><sp/>Size<sp/>of<sp/>the<sp/>\p<sp/>key_buffer<sp/>buffer<sp/>in<sp/>bytes.</highlight></codeline>
+<codeline lineno="51"><highlight class="comment"><sp/>*<sp/>\param<sp/><sp/><sp/><sp/><sp/><sp/>alg<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>The<sp/>ECDSA<sp/>algorithm<sp/>to<sp/>compute.</highlight></codeline>
+<codeline lineno="52"><highlight class="comment"><sp/>*<sp/>\param[in]<sp/><sp/>input<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Data<sp/>is<sp/>encryted<sp/>and<sp/>authenticated.</highlight></codeline>
+<codeline lineno="53"><highlight class="comment"><sp/>*<sp/>\param<sp/><sp/><sp/><sp/><sp/><sp/>input_length<sp/><sp/><sp/><sp/><sp/><sp/><sp/>Size<sp/>of<sp/>input<sp/>in<sp/>bytes.</highlight></codeline>
+<codeline lineno="54"><highlight class="comment"><sp/>*<sp/>\param[out]<sp/>signature<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Output<sp/>buffer<sp/>for<sp/>the<sp/>generated<sp/>signature.</highlight></codeline>
+<codeline lineno="55"><highlight class="comment"><sp/>*<sp/>\param<sp/><sp/><sp/><sp/><sp/><sp/>signature_size<sp/><sp/><sp/><sp/><sp/>Size<sp/>of<sp/>the<sp/>signature<sp/>buffer<sp/>in<sp/>bytes.<sp/>This</highlight></codeline>
+<codeline lineno="56"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>must<sp/>be<sp/>appropriate<sp/>for<sp/>the<sp/>selected<sp/>algorithm</highlight></codeline>
+<codeline lineno="57"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>and<sp/>key:</highlight></codeline>
+<codeline lineno="58"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>-<sp/>A<sp/>sufficient<sp/>output<sp/>size<sp/>is</highlight></codeline>
+<codeline lineno="59"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>PSA_SIGN_OUTPUT_SIZE(key_type,<sp/>key_bits,<sp/>alg)<sp/></highlight></codeline>
+<codeline lineno="60"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>where<sp/>key_type<sp/>is<sp/>the<sp/>type</highlight></codeline>
+<codeline lineno="61"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>of<sp/>asymmetric<sp/>key.</highlight></codeline>
+<codeline lineno="62"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>-<sp/>PSA_VENDOR_ECDSA_SIGNATURE_MAX_SIZE<sp/></highlight></codeline>
+<codeline lineno="63"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>evaluates<sp/>to<sp/>the<sp/>maximum</highlight></codeline>
+<codeline lineno="64"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>signature<sp/>size<sp/>of<sp/>any<sp/>supported<sp/>curve.</highlight></codeline>
+<codeline lineno="65"><highlight class="comment"><sp/>*<sp/>\param[out]<sp/>signature_length<sp/><sp/><sp/>On<sp/>success,<sp/>the<sp/>size<sp/>of<sp/>the<sp/>output<sp/>in<sp/>the</highlight></codeline>
+<codeline lineno="66"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>signature<sp/>buffer.</highlight></codeline>
+<codeline lineno="67"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="68"><highlight class="comment"><sp/>*<sp/>\return</highlight></codeline>
+<codeline lineno="69"><highlight class="comment"><sp/>*<sp/>psa_status_t.<sp/>See<sp/>https://docs.silabs.com/gecko-platform/4.1/service/api/group-error<sp/>for<sp/>details.</highlight></codeline>
+<codeline lineno="70"><highlight class="comment"><sp/>*<sp/>\retval<sp/>PSA_SUCCESS<sp/>Success.</highlight></codeline>
+<codeline lineno="71"><highlight class="comment"><sp/>*<sp/>\retval<sp/>PSA_ERROR_NOT_SUPPORTED</highlight></codeline>
+<codeline lineno="72"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>\p<sp/>alg<sp/>is<sp/>not<sp/>supported.</highlight></codeline>
+<codeline lineno="73"><highlight class="comment"><sp/>*<sp/>\retval<sp/>PSA_ERROR_INSUFFICIENT_MEMORY</highlight></codeline>
+<codeline lineno="74"><highlight class="comment"><sp/>*<sp/>\retval<sp/>PSA_ERROR_BUFFER_TOO_SMALL</highlight></codeline>
+<codeline lineno="75"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>signature<sp/>buffer<sp/>is<sp/>too<sp/>small.</highlight></codeline>
+<codeline lineno="76"><highlight class="comment"><sp/>*<sp/>\retval<sp/>PSA_ERROR_CORRUPTION_DETECTED</highlight></codeline>
+<codeline lineno="77"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="78"><highlight class="normal"></highlight></codeline>
+<codeline lineno="79"><highlight class="normal">psa_status_t<sp/>sli_si91x_crypto_sign_message(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>psa_key_attributes_t<sp/>*attributes,</highlight></codeline>
+<codeline lineno="80"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint8_t<sp/>*key_buffer,</highlight></codeline>
+<codeline lineno="81"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>key_buffer_size,</highlight></codeline>
+<codeline lineno="82"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>psa_algorithm_t<sp/>alg,</highlight></codeline>
+<codeline lineno="83"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint8_t<sp/>*input,</highlight></codeline>
+<codeline lineno="84"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>input_length,</highlight></codeline>
+<codeline lineno="85"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>uint8_t<sp/>*signature,</highlight></codeline>
+<codeline lineno="86"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>signature_size,</highlight></codeline>
+<codeline lineno="87"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>*signature_length);</highlight></codeline>
+<codeline lineno="88"><highlight class="normal"></highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="89"><highlight class="comment">/**</highlight></codeline>
+<codeline lineno="90"><highlight class="comment"><sp/>*<sp/>\brief<sp/>*<sp/>Verify<sp/>a<sp/>signature<sp/>with<sp/>input<sp/>message<sp/>using<sp/>ECC<sp/>public<sp/>key.</highlight></codeline>
+<codeline lineno="91"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="92"><highlight class="comment"><sp/>*<sp/>\note<sp/>The<sp/>signature<sp/>of<sp/>this<sp/>function<sp/>is<sp/>that<sp/>of<sp/>a<sp/>PSA<sp/>driver</highlight></codeline>
+<codeline lineno="93"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/>verify_message<sp/>entry<sp/>point.<sp/>This<sp/>function<sp/>behaves<sp/>as<sp/>a<sp/>verify_message</highlight></codeline>
+<codeline lineno="94"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/>entry<sp/>point<sp/>as<sp/>defined<sp/>in<sp/>the<sp/>PSA<sp/>driver<sp/>interface<sp/>specification<sp/>for</highlight></codeline>
+<codeline lineno="95"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/>transparent<sp/>drivers.</highlight></codeline>
+<codeline lineno="96"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="97"><highlight class="comment"><sp/>*<sp/>\param[in]<sp/><sp/>attributes<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>The<sp/>attributes<sp/>of<sp/>the<sp/>key<sp/>to<sp/>use<sp/>for<sp/>the</highlight></codeline>
+<codeline lineno="98"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>operation.</highlight></codeline>
+<codeline lineno="99"><highlight class="comment"><sp/>*<sp/>\param[in]<sp/><sp/>key_buffer<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>The<sp/>buffer<sp/>containing<sp/>the<sp/>key<sp/>context.</highlight></codeline>
+<codeline lineno="100"><highlight class="comment"><sp/>*<sp/>\param<sp/><sp/><sp/><sp/><sp/><sp/>key_buffer_size<sp/><sp/><sp/><sp/>Size<sp/>of<sp/>the<sp/>\p<sp/>key_buffer<sp/>buffer<sp/>in<sp/>bytes.</highlight></codeline>
+<codeline lineno="101"><highlight class="comment"><sp/>*<sp/>\param<sp/><sp/><sp/><sp/><sp/><sp/>alg<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>The<sp/>ECDSA<sp/>algorithm<sp/>to<sp/>compute.</highlight></codeline>
+<codeline lineno="102"><highlight class="comment"><sp/>*<sp/>\param[in]<sp/><sp/>input<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Data<sp/>is<sp/>authenticated.</highlight></codeline>
+<codeline lineno="103"><highlight class="comment"><sp/>*<sp/>\param<sp/><sp/><sp/><sp/><sp/><sp/>input_length<sp/><sp/><sp/><sp/><sp/><sp/><sp/>Size<sp/>of<sp/>input<sp/>in<sp/>bytes.</highlight></codeline>
+<codeline lineno="104"><highlight class="comment"><sp/>*<sp/>\param[in]<sp/><sp/>signature<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>The<sp/>buffer<sp/>containing<sp/>signature.</highlight></codeline>
+<codeline lineno="105"><highlight class="comment"></highlight></codeline>
+<codeline lineno="106"><highlight class="comment"><sp/>*<sp/>\param[in]<sp/>signature_length<sp/><sp/><sp/><sp/>The<sp/>size<sp/>of<sp/>the<sp/>signature<sp/>buffer.</highlight></codeline>
+<codeline lineno="107"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="108"><highlight class="comment"><sp/>*<sp/>\return</highlight></codeline>
+<codeline lineno="109"><highlight class="comment"><sp/>*<sp/>psa_status_t.<sp/>See<sp/>https://docs.silabs.com/gecko-platform/4.1/service/api/group-error<sp/>for<sp/>details.</highlight></codeline>
+<codeline lineno="110"><highlight class="comment"><sp/>*<sp/>\retval<sp/>PSA_SUCCESS<sp/>Success.</highlight></codeline>
+<codeline lineno="111"><highlight class="comment"><sp/>*<sp/>\retval<sp/>PSA_ERROR_INVALID_SIGNATURE</highlight></codeline>
+<codeline lineno="112"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Failure,<sp/>The<sp/>signature<sp/>is<sp/>invald.</highlight></codeline>
+<codeline lineno="113"><highlight class="comment"><sp/>*<sp/>\retval<sp/>PSA_ERROR_NOT_SUPPORTED</highlight></codeline>
+<codeline lineno="114"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>\p<sp/>alg<sp/>is<sp/>not<sp/>supported.</highlight></codeline>
+<codeline lineno="115"><highlight class="comment"><sp/>*<sp/>\retval<sp/>PSA_ERROR_INSUFFICIENT_MEMORY</highlight></codeline>
+<codeline lineno="116"><highlight class="comment"><sp/>*<sp/>\retval<sp/>PSA_ERROR_CORRUPTION_DETECTED</highlight></codeline>
+<codeline lineno="117"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="118"><highlight class="normal"></highlight></codeline>
+<codeline lineno="119"><highlight class="normal">psa_status_t<sp/>sli_si91x_crypto_verify_message(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>psa_key_attributes_t<sp/>*attributes,</highlight></codeline>
+<codeline lineno="120"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint8_t<sp/>*key_buffer,</highlight></codeline>
+<codeline lineno="121"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>key_buffer_size,</highlight></codeline>
+<codeline lineno="122"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>psa_algorithm_t<sp/>alg,</highlight></codeline>
+<codeline lineno="123"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint8_t<sp/>*input,</highlight></codeline>
+<codeline lineno="124"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>input_length,</highlight></codeline>
+<codeline lineno="125"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint8_t<sp/>*signature,</highlight></codeline>
+<codeline lineno="126"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>signature_length);</highlight></codeline>
+<codeline lineno="127"><highlight class="normal"></highlight></codeline>
+<codeline lineno="128"><highlight class="normal"></highlight><highlight class="preprocessor">#endif<sp/></highlight><highlight class="comment">/*<sp/>SL_SI91X_PSA_ECDSA_H<sp/>*/</highlight><highlight class="preprocessor"></highlight></codeline>
+    </programlisting>
+    <location file="components/device/silabs/si91x/wireless/crypto/ecdsa/inc/sl_si91x_psa_ecdsa.h"/>
+  </compounddef>
+</doxygen>

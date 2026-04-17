@@ -1,0 +1,4 @@
+vcom: USART1
+exp_h:
+  - peripheral: USART1
+    signals: ['12', '14']

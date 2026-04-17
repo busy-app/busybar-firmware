@@ -1,0 +1,30 @@
+id: se_manager_extmem
+label: External Memory
+package: security_se_manager
+description: >-
+  SE Manager api for external flash opearations.
+category: Platform|Security|SE Manager
+quality: production
+ui_hints:
+  visibility: never
+source:
+- path: src/sl_se_manager_extmem.c
+
+include:
+- path: inc
+  file_list:
+  - path: sl_se_manager_extmem.h
+
+requires:
+- name: se_manager
+- name: device
+- name: status
+- name: device_series_3
+
+provides:
+- name: se_manager_extmem
+
+metadata:
+  sbom:
+    license: Zlib
+root_path: security_se_manager/platform/security/sl_component/se_manager

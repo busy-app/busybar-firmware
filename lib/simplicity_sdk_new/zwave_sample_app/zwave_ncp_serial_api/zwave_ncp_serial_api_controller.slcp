@@ -1,0 +1,160 @@
+project_name: zwave_ncp_serial_api_controller
+label: Z-Wave - NCP Serial API Controller
+category: Z-Wave|Apps
+description: >
+  The Serial Applications Programming Interface (Serial API) allows a host to communicate with a
+  Z-Wave chip. The host may be a PC or a less powerful embedded host CPU, such as in a remote control
+  or in a gateway device, and so on.
+package: zwave_sample_app
+quality: production
+component:
+  # Z-Wave
+  - id: zw_role_type_central_static_controller
+  - id: zaf_ncp
+  - id: zaf_config_security_header
+  - id: zw_core
+  - id: zw_appshw_serialapi
+  - id: zw_apputilities_minimal
+  - id: zw_app_timer_deep_sleep
+  - id: zw_api_zw
+  - id: zw_api_controller
+  - id: zw_dcdc_override
+  - id: ZW_MIGRATION_FROM_7_20
+  - id: power_manager_no_deepsleep
+  # Platform
+  - id: emlib_letimer
+  - id: emlib_timer
+  - id: emlib_msc
+  - id: gpiointerrupt
+  - id: sl_main
+  - id: device_init
+  - id: mpu # disable execution from RAM
+  - id: simple_led
+    instance: [led0, led1]
+  - id: clock_manager
+  - id: rail_util_pti
+
+source:
+  - path: app_node_info.c
+  - path: cmd_handlers_invoker.c
+  - path: cmd_handlers.c
+  - path: cmd_get_capabilities.c
+  - path: silabs/sl_dcdc_cmd_handlers.c
+  - path: cmds_management.c
+  - path: cmds_rf.c
+  - path: cmds_security.c
+  - path: comm_interface.c
+  - path: nvm_backup_restore.c
+  - path: serialapi_file.c
+  - path: app.c
+  - path: utils.c
+  - path: virtual_slave_node_info.c
+  - path: silabs/sl_debug_cmd_handlers.c
+include:
+  - path: .
+    file_list:
+      - path: app_node_info.h
+      - path: cmd_handlers.h
+      - path: cmds_management.h
+      - path: cmds_rf.h
+      - path: cmds_security.h
+      - path: comm_interface.h
+      - path: controller_supported_func.h
+      - path: nvm_backup_restore.h
+      - path: serialapi_file.h
+      - path: app.h
+      - path: common_supported_func.h
+      - path: slave_supported_func.h
+      - path: utils.h
+      - path: virtual_slave_node_info.h
+      - path: SerialAPI.h
+config_file:
+  # For series 2
+  - path: ../config/zw_zaf/s2/zaf_config.h
+    file_id: zaf_config
+    condition: [device_series_2]
+  # Sample keys for signing
+  - path: ../controller-keys/sample_encrypt.key
+    directory: sample_keys
+  - path: ../controller-keys/sample_sign.key
+    directory: sample_keys
+
+configuration:
+  - name: ZAF_CONFIG_GENERIC_TYPE
+    value: GENERIC_TYPE_STATIC_CONTROLLER
+  - name: ZAF_CONFIG_SPECIFIC_TYPE
+    value: SPECIFIC_TYPE_PC_CONTROLLER
+  - name: ZAF_CONFIG_PRODUCT_ID
+    value: 4 # Silicon Labs Z-Wave Serial API product ID
+  - name: NVM3_DEFAULT_MAX_OBJECT_SIZE
+    value: 1900
+  - name: NVM3_DEFAULT_CACHE_SIZE
+    value: 100
+  - name: SL_BOARD_ENABLE_VCOM
+    value: 1
+  - name: SL_IOSTREAM_USART_VCOM_CONVERT_BY_DEFAULT_LF_TO_CRLF
+    value: 1
+  - name: SL_IOSTREAM_USART_VCOM_RESTRICT_ENERGY_MODE_TO_ALLOW_RECEPTION
+    value: 0    # UART RX shouldn't prevent EM2
+  - name: SL_IOSTREAM_EUSART_VCOM_CONVERT_BY_DEFAULT_LF_TO_CRLF
+    value: 1
+  - name: SL_IOSTREAM_EUSART_VCOM_RESTRICT_ENERGY_MODE_TO_ALLOW_RECEPTION
+    value: 0    # UART RX shouldn't prevent EM2
+  - name: configUSE_IDLE_HOOK
+    value: 1
+  - name: configTIMER_TASK_PRIORITY
+    value: 55
+  - name: configMAX_SYSCALL_INTERRUPT_PRIORITY
+    value: 16
+    condition: [device_series_2]
+  - name: configKERNEL_INTERRUPT_PRIORITY
+    value: 112
+    condition: [device_series_2]
+  - name: configTIMER_QUEUE_LENGTH
+    value: 8
+  - name: SL_PSA_ITS_USER_MAX_FILES
+    value: 32
+    condition: ["device_series_2", "device_security_vault"]
+  - name: SL_PSA_KEY_USER_SLOT_COUNT
+    value: 14
+    condition: ["device_series_2", "device_security_vault"]
+  - name: SL_SLEEPTIMER_PERIPHERAL
+    value: SL_SLEEPTIMER_PERIPHERAL_BURTC
+    condition: ["device_series_2"]
+  - name: ZAF_CONFIG_INSTALLER_ICON_TYPE
+    value: 0
+  - name: ZAF_APP_NAME
+    value: '"serial_api_controller"'
+define:
+  - name: APP_PROPERTIES_CONFIG_FILE
+    value: <application_properties_config.h>
+
+post_build:
+  profile: zwave_application
+
+provides:
+  - name: zwave_sample_application
+  - name: zwave_ncp_serial_api_controller
+
+tag:
+  - prebuilt_demo
+  - hwfilter:device:device_supports_zwave
+  - hwfilter:!board:brd4205a
+  - toolchain:gcc
+
+filter:
+  - name: "Wireless Technology"
+    value: ["Z-Wave"]
+  - name: "Device Type"
+    value: ["NCP"]
+  - name: "Project Difficulty"
+    value: ["Beginner"]
+
+readme:
+   - path: README.md
+ui_hints:
+   highlight: README.md
+
+template_contribution:
+  - name: rodata_sections # Ensure memory section define by Z-Wave stack are placed in the rodata section
+    value: zw_cmd_handlers

@@ -1,0 +1,71 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__SL__PING__FUNCTIONS" kind="group">
+    <compoundname>SL_PING_FUNCTIONS</compoundname>
+    <title>Functions</title>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="group__SL__PING__FUNCTIONS_1gabe41d48d834975a419264388851c40ff" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_si91x_send_ping</definition>
+        <argsstring>(sl_ip_address_t ip_address, uint16_t ping_packet_size)</argsstring>
+        <name>sl_si91x_send_ping</name>
+        <param>
+          <type>sl_ip_address_t</type>
+          <declname>ip_address</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>ping_packet_size</declname>
+        </param>
+        <briefdescription>
+<para>Send an ICMP ping request to a specific IP address. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>This function sends an ICMP ping request to a specific IP address (IPv4 or IPv6) with a user defined ping packet size. It verifies the device’s initialization status and validates the IP address type before sending the request to the specific IP address. <simplesect kind="pre"><para>Pre-condition:<itemizedlist>
+<listitem><para><ulink url="../wiseconnect-api-reference-guide-nwk-mgmt/net-interface-functions#sl-net-up">sl_net_up</ulink> should be called before this API. </para>
+</listitem></itemizedlist>
+</para>
+</simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">ip_address</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The destination IP address should be of type <ulink url="../wiseconnect-api-reference-guide-common/sl-ip-address-t">sl_ip_address_type_t</ulink> either IPv4 or IPv6. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">ping_packet_size</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The size of the ping packet must fall within the valid range of [0, 300]. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para><ulink url="https://docs.silabs.com/gecko-platform/latest/platform-common/status">sl_status_t</ulink> - Status of the operation.<itemizedlist>
+<listitem><para>SL_STATUS_OK: Operation successful.</para>
+</listitem><listitem><para>SL_STATUS_NOT_INITIALIZED: Device is not initialized.</para>
+</listitem><listitem><para>SL_STATUS_INVALID_PARAMETER: Invalid IP address type.</para>
+</listitem></itemizedlist>
+</para>
+</simplesect>
+<simplesect kind="note"><para><orderedlist>
+<listitem><para>This API is asynchronous. The ping response is delivered through the registered <ulink url="../wiseconnect-api-reference-guide-nwk-mgmt/sl-net-types#sl-net-event-handler-t">sl_net_event_handler_t</ulink> callback, using the event type <ulink url="../wiseconnect-api-reference-guide-nwk-mgmt/sl-net-constants#sl-net-event-t">SL_NET_PING_RESPONSE_EVENT</ulink>. To receive this event, the sl_net_event_handler_t must be registered via the <ulink url="../wiseconnect-api-reference-guide-nwk-mgmt/net-interface-functions#sl-net-init">sl_net_init()</ulink> API. </para>
+</listitem></orderedlist>
+</para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/icmp/sl_net_ping.h" line="62" column="13" declfile="components/device/silabs/si91x/wireless/icmp/sl_net_ping.h" declline="62" declcolumn="13"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para>This section provides a reference to the Ping API functions. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

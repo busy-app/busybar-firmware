@@ -1,0 +1,113 @@
+project_name: bt_aoa_host_locator
+package: bluetooth_le_app
+label: Bluetooth AoA - Host Locator
+description: >
+  Host application that performs real-time Angle of Arrival (AoA) calculations
+  for Bluetooth direction finding. It connects to an NCP target with an antenna
+  array (e.g., WSTK with antenna board) via UART to receive IQ samples from AoA
+  tags. The application processes these samples using the Silicon Labs RTL library
+  to calculate azimuth and elevation angles, then publishes the positioning data
+  to an MQTT broker for integration with location tracking systems.
+category: Bluetooth Examples
+quality: experimental
+
+filter:
+  - name: "Wireless Technology"
+    value: ["Bluetooth"]
+  - name: "Device Type"
+    value: ["Host"]
+  - name: "Project Difficulty"
+    value: ["Beginner"]
+
+component:
+  - id: toolchain_gcc
+  - id: native_host
+  - id: ncp_version
+  - id: host_main
+  - id: host_ncp
+  - id: app_log
+  - id: iostream_stdio
+  - id: app_assert
+  - id: rtllib
+  - id: component_catalog
+
+library:
+  - system: libcjson
+  - system: libmosquitto
+
+config_file:
+  - path: config/locator_config.json
+
+source:
+  - path: app.c
+  - path: ../common/app_log/app_log_cli.c
+  - path: ./aoa_cte/aoa_cte.c
+  - path: ./aoa_cte/cte_conn_less.c
+  - path: ./aoa_cte/cte_conn.c
+  - path: ./aoa_cte/cte_silabs.c
+  - path: ../common/aoa_db/aoa_db.c
+  - path: ../common/antenna_array/antenna_array.c
+  - path: ../common/mqtt/mqtt.c
+  - path: ../common/aoa_parse/aoa_parse.c
+  - path: ../common/aoa_parse/aoa_parse_enum.c
+  - path: ../common/aoa_parse/aoa_parse_cte.c
+  - path: ../common/aoa_angle/aoa_angle.c
+  - path: ../common/aoa_util/aoa_util.c
+  - path: ../common/aoa_util/aoa_serdes.c
+
+include:
+  - path: ../common/app_log
+    file_list:
+      - path: app_log_cli.h
+  - path: ./aoa_cte
+    file_list:
+      - path: aoa_cte.h
+  - path: ./aoa_cte/config
+    file_list:
+      - path: aoa_cte_config.h
+  - path: ../common/ncp
+    file_list:
+      - path: ncp_user_cmd.h
+      - path: sl_ncp_evt_filter_common.h
+  - path: ../common/aoa_db
+    file_list:
+      - path: aoa_db.h
+  - path: ../common/aoa_util
+    file_list:
+      - path: aoa_types.h
+      - path: aoa_util.h
+      - path: aoa_serdes.h
+      - path: aoa_topics.h
+  - path: ../common/antenna_array
+    file_list:
+      - path: antenna_array.h
+      - path: antenna_array_brd4191a.h
+  - path: ../common/mqtt
+    file_list:
+      - path: mqtt.h
+  - path: ../common/aoa_parse
+    file_list:
+      - path: aoa_parse.h
+      - path: aoa_parse_cte.h
+      - path: aoa_parse_enum.h
+  - path: ../common/aoa_angle
+    file_list:
+      - path: aoa_angle.h
+  - path: ../common/aoa_angle/config
+    file_list:
+      - path: aoa_angle_config.h
+
+configuration:
+  - name: APP_LOG_LEVEL_FILTER_DYNAMIC 
+    value: 1
+
+tag:
+  - hwfilter:device:device_family_host
+
+readme:
+  - path: readme.md
+
+ui_hints:
+  highlight:
+    - path: readme.md
+      focus: true

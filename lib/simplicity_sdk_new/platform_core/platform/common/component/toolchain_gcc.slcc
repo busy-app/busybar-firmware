@@ -1,0 +1,43 @@
+id: toolchain_gcc
+label: GCC Toolchain
+package: platform_core
+description: Toolchain support for GCC
+category: Platform|Toolchain
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: platform_core/platform/common
+tag:
+- toolchain:id:gcc
+provides:
+- name: toolchain
+- name: toolchain_gcc
+- name: toolchain_supports_arm
+- name: toolchain_supports_host
+requires:
+- name: toolchain_linker_type
+- name: toolchain_variant
+- name: memory_manager_region
+  condition: [device_cortexm]
+- name: sl_syscalls
+  condition: [device_cortexm]
+recommends:
+- id: toolchain_gcc_standard
+  condition: [device_cortexm]
+  vendor: silabs
+- id: toolchain_gcc_standard
+  condition: [device_host]
+  vendor: silabs
+library:
+- system: gcc
+  unless: [device_host]
+- system: c
+  unless: [win32]
+- system: m
+- system: nosys
+  unless: [device_host]
+toolchain_settings:
+- option: link_time_optimization
+  value: disabled
+  unless: [toolchain_lto]

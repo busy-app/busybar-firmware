@@ -1,0 +1,141 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__CRYPTO__CHACHAPOLY__CONSTANTS" kind="group">
+    <compoundname>CRYPTO_CHACHAPOLY_CONSTANTS</compoundname>
+    <title>Constants</title>
+      <sectiondef kind="enum">
+      <memberdef kind="enum" id="group__CRYPTO__CHACHAPOLY__CONSTANTS_1gaca1e019835c27cef6dd0b254c6430e99" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_si91x_chachapoly_type_t</name>
+        <enumvalue id="group__CRYPTO__CHACHAPOLY__CONSTANTS_1ggaca1e019835c27cef6dd0b254c6430e99a5d78fe0143656163873bd4dbbcceeb7e" prot="public">
+          <name>SL_SI91X_CHACHAPOLY_ENCRYPT</name>
+          <initializer>= 0</initializer>
+          <briefdescription>
+<para>ChaChaPoly Encryption. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__CHACHAPOLY__CONSTANTS_1ggaca1e019835c27cef6dd0b254c6430e99a26cf379b91040ea238cf71479cbf830c" prot="public">
+          <name>SL_SI91X_CHACHAPOLY_DECRYPT</name>
+          <briefdescription>
+<para>ChaChaPoly Decryption. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>Enumeration defining ChaChaPoly encryption and decryption types. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>This enumeration defines the types of ChaChaPoly operations supported, including encryption and decryption. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/chachapoly/inc/sl_si91x_chachapoly.h" line="49" column="1" bodyfile="components/device/silabs/si91x/wireless/crypto/chachapoly/inc/sl_si91x_chachapoly.h" bodystart="49" bodyend="52"/>
+      </memberdef>
+      <memberdef kind="enum" id="group__CRYPTO__CHACHAPOLY__CONSTANTS_1ga915a39d925d0469a6d786e6902c12208" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_si91x_chachapoly_mode_t</name>
+        <enumvalue id="group__CRYPTO__CHACHAPOLY__CONSTANTS_1gga915a39d925d0469a6d786e6902c12208abeeb3fde963130aa42e0dfcf7b143edf" prot="public">
+          <name>SL_SI91X_CHACHA20POLY1305_MODE</name>
+          <initializer>= 0</initializer>
+          <briefdescription>
+<para>CHACHA20POLY1305 mode. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__CHACHAPOLY__CONSTANTS_1gga915a39d925d0469a6d786e6902c12208a2298517d03b6f8ea244ef921eb96f14f" prot="public">
+          <name>SL_SI91X_CHACHA20_MODE</name>
+          <briefdescription>
+<para>CHACHA20 mode. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__CHACHAPOLY__CONSTANTS_1gga915a39d925d0469a6d786e6902c12208ab7ffe6827c4fe6337ce5001f6e7248e9" prot="public">
+          <name>SL_SI91X_CHACHAPOLY_POLY1305_KEYR_KEYS_MODE</name>
+          <briefdescription>
+<para>CHACHA20POLY1305 mode with &apos;R&apos;, &apos;S&apos; keys. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__CHACHAPOLY__CONSTANTS_1gga915a39d925d0469a6d786e6902c12208a0f94cf9813d9579ecda8e0117becdf86" prot="public">
+          <name>SL_SI91X_POLY1305_MODE</name>
+          <briefdescription>
+<para>POLY1305 mode. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>Enumeration defining ChaChaPoly modes supported by the SI91X device. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>This enumeration defines different ChaChaPoly modes supported by the SI91X device, such as ChaCha20, Poly1305, and ChaCha20Poly1305 modes. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/chachapoly/inc/sl_si91x_chachapoly.h" line="60" column="1" bodyfile="components/device/silabs/si91x/wireless/crypto/chachapoly/inc/sl_si91x_chachapoly.h" bodystart="60" bodyend="65"/>
+      </memberdef>
+      <memberdef kind="enum" id="group__CRYPTO__CHACHAPOLY__CONSTANTS_1gaccec4293096edded87b75bc42930529a" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_si91x_chachapoly_dma_use_t</name>
+        <enumvalue id="group__CRYPTO__CHACHAPOLY__CONSTANTS_1ggaccec4293096edded87b75bc42930529aac4b267d43abe985af9291e3bc52d4693" prot="public">
+          <name>SL_SI91X_CHACHAPOLY_DMA_DISABLE</name>
+          <initializer>= 0</initializer>
+          <briefdescription>
+<para>Disable DMA. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__CHACHAPOLY__CONSTANTS_1ggaccec4293096edded87b75bc42930529aa1b398e3f8a41b467dd6ac6fd2abc9d1a" prot="public">
+          <name>SL_SI91X_CHACHAPOLY_DMA_ENABLE</name>
+          <briefdescription>
+<para>Enable DMA. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>Enumeration defines the ChaChaPoly DMA enable, and disable options. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/chachapoly/inc/sl_si91x_chachapoly.h" line="70" column="1" bodyfile="components/device/silabs/si91x/wireless/crypto/chachapoly/inc/sl_si91x_chachapoly.h" bodystart="70" bodyend="73"/>
+      </memberdef>
+      <memberdef kind="enum" id="group__CRYPTO__CHACHAPOLY__CONSTANTS_1ga43f7318ac25be44fb1507e4fe85d54e5" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_si91x_chachapoly_key_size_t</name>
+        <enumvalue id="group__CRYPTO__CHACHAPOLY__CONSTANTS_1gga43f7318ac25be44fb1507e4fe85d54e5ac26b62ee64864d8fc7f961da0f29cda1" prot="public">
+          <name>SL_SI91X_CHACHAPOLY_KEY_SIZE_256</name>
+          <initializer>= 32</initializer>
+          <briefdescription>
+<para>Key size of 256-bits. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>Enumeration defines ChaChaPoly key sizes supported by the SI91X device. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>This enumeration defines the key sizes supported by the ChaChaPoly encryption algorithm on the SI91X device, that includes 256-bits key size. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/chachapoly/inc/sl_si91x_chachapoly.h" line="81" column="1" bodyfile="components/device/silabs/si91x/wireless/crypto/chachapoly/inc/sl_si91x_chachapoly.h" bodystart="81" bodyend="83"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para>This section provides a reference to the CHACHAPOLY Crypto API constants. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

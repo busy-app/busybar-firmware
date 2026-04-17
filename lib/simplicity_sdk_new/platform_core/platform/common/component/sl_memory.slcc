@@ -1,0 +1,28 @@
+id: sl_memory
+label: Memory Configuration
+package: platform_core
+description: >
+  Warning: This component is deprecated
+  This component provides configuration of the stack and
+  heap for supported toolchains. For gcc it also adds support for _sbrk()
+  for heap allocation. This is used in the newlib version of malloc().
+category: Platform|Toolchain
+quality: deprecated
+metadata:
+  sbom:
+    license: Zlib
+root_path: platform_core/platform/common
+include:
+- path: toolchain/inc
+  file_list:
+  - path: sl_gcc_preinclude.h
+    condition: [toolchain_gcc]
+provides:
+- name: sl_memory
+requires:
+- name: memory_manager_region
+- name: sl_common
+toolchain_settings:
+- option: preinclude
+  value: sl_gcc_preinclude.h
+  condition: [toolchain_gcc]

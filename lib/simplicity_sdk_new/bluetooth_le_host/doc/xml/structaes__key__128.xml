@@ -1,0 +1,33 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="structaes__key__128" kind="struct" language="C++" prot="public">
+    <compoundname>aes_key_128</compoundname>
+    <includes refid="sl__bgapi_8h" local="no">sl_bgapi.h</includes>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structaes__key__128_1ade9b32f16f9392c4a487027766105540" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t aes_key_128::data[16]</definition>
+        <argsstring>[16]</argsstring>
+        <name>data</name>
+        <qualifiedname>aes_key_128::data</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>128-bit AES key </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" line="108" column="11" bodyfile="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" bodystart="108" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>128-bit AES key </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" line="107" column="1" bodyfile="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" bodystart="107" bodyend="109"/>
+    <listofallmembers>
+      <member refid="structaes__key__128_1ade9b32f16f9392c4a487027766105540" prot="public" virt="non-virtual"><scope>aes_key_128</scope><name>data</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,365 @@
+id: sl_si91x_wireless
+package: wifi
+description: 'Si91x Wireless Subsystem provides an API to manage the Wireless Subsystem
+  in the Si91x SoC
+
+  '
+label: Si91x Wireless Subsystem
+category: Device|Si91x|Wireless
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+component_root_path: ./components/device/silabs/si91x/wireless
+provides:
+- name: sli_wifi_power_profile
+- name: sli_wifi_memory_manager
+- name: sl_si91x_wireless
+- name: wifi_driver
+- condition:
+  - brd4271a
+  name: efx_ncp_custom_host_mcu
+- condition:
+  - brd4270a
+  name: efx_ncp_custom_host_mcu
+source:
+- path: src/sli_wifi_power_profile.c
+- path: src/sli_wifi_memory_manager.c
+- path: src/sl_si91x_driver.c
+- path: sl_net/src/sl_net_si91x.c
+  condition:
+  - sl_si91x_internal_stack
+  unless:
+  - sl_si91x_network_dual_stack
+  - sl_si91x_lwip_stack
+- path: sl_net/src/sli_net_si91x_utility.c
+  condition:
+  - sl_si91x_internal_stack
+- path: sl_net/src/sli_net_si91x_utility.c
+  condition:
+  - sl_si91x_lwip_stack
+- path: src/sl_rsi_utility.c
+- path: sl_net/src/sl_net_si91x_callback_framework.c
+  condition:
+  - network_manager
+- path: sl_net/src/sl_net_rsi_utility.c
+  condition:
+  - network_manager
+- path: sl_net/src/sl_net_si91x_integration_handler.c
+  condition:
+  - network_manager
+- path: host_mcu/si91x/siwx917_soc_ncp_host.c
+  condition:
+  - device_si91x
+- path: ahb_interface/src/rsi_hal_mcu_m4_ram.c
+  condition:
+  - device_si91x
+- path: ahb_interface/src/sl_platform.c
+  condition:
+  - device_si91x
+- path: ahb_interface/src/sl_platform_wireless.c
+  condition:
+  - device_si91x
+- path: ahb_interface/src/sl_si91x_bus.c
+  condition:
+  - device_si91x
+- path: ahb_interface/src/sli_siwx917_soc.c
+  condition:
+  - device_si91x
+- path: ahb_interface/src/rsi_hal_mcu_m4_rom.c
+  condition:
+  - device_si91x
+- path: ahb_interface/src/sl_si91x_timer.c
+  condition:
+  - device_si91x
+- path: host_mcu/efx32/efx32_ncp_host.c
+  condition:
+  - device_efx
+  unless:
+  - efx_ncp_custom_host_mcu
+- path: host_mcu/efr32fg25/efx32_ncp_host.c
+  condition:
+  - brd4271a
+- path: host_mcu/efr32fg25/efx32_ncp_host.c
+  condition:
+  - brd4270a
+include:
+- path: inc
+- path: inc/mqtt/inc
+- path: sl_net/inc
+  condition:
+  - network_manager
+- path: inc
+  file_list:
+  - path: sl_rsi_utility.h
+  - path: sl_si91x_constants.h
+  - path: sl_si91x_core_utilities.h
+  - path: sl_si91x_driver.h
+  - path: sl_si91x_host_interface.h
+  - path: sl_si91x_iot_socket.h
+  - path: sl_si91x_protocol_types.h
+  - path: sl_si91x_spi_constants.h
+  - path: sl_si91x_status.h
+  - path: sl_si91x_types.h
+  - path: sl_wifi_device.h
+- path: sl_net/inc
+  file_list:
+  - path: sli_net_utility.h
+  - path: sl_net_si91x_integration_handler.h
+  - path: sl_net_si91x.h
+  condition:
+  - network_manager
+- path: ahb_interface/inc
+  file_list:
+  - path: rsi_common.h
+  - path: rsi_data_types.h
+  - path: rsi_driver.h
+  - path: rsi_m4.h
+  - path: rsi_os.h
+  - path: rsi_pkt_mgmt.h
+  - path: rsi_user.h
+  - path: rsi_wisemcu_hardware_setup.h
+  - path: rsi_wlan_common_config.h
+  - path: rsi_wlan_defines.h
+  - path: sli_siwx917_soc.h
+  - path: sli_siwx917_timer.h
+  - path: sl_device.h
+  condition:
+  - device_si91x
+define:
+- name: SLI_SI917
+- condition:
+  - device_si91x
+  name: SLI_SI91X_MCU_INTERFACE
+requires:
+- name: sli_wifi
+- name: sli_wifi_command_engine
+- name: wiseconnect_common
+- condition:
+  - sl_si91x_internal_stack
+  name: bsd_socket_api
+- condition:
+  - sl_si91x_internal_stack
+  name: sl_si91x_socket
+- condition:
+  - network_manager
+  name: sl_si91x_network_stack
+- name: sl_si91x_fwup
+- name: sl_si91x_buffer_management
+- name: bit
+- name: cmsis_os2_ext_task_register
+- condition:
+  - device_si91x
+  name: sl_si91x_mcu
+- condition:
+  - device_efx
+  name: efx32_si91x_wireless_connector
+- condition:
+  - device_efx
+  name: gpiointerrupt
+- condition:
+  - device_efx
+  name: emlib
+- condition:
+  - device_efx
+  name: dmadrv
+- condition:
+  - device_efx
+  name: sl_si91x_ncp_bus
+- condition:
+  - sl_si91x_internal_stack
+  name: sl_si91x_errno
+- name: emlib_core
+- name: wifi
+- name: wifi_resources
+- name: si91x_log_none
+recommends:
+- id: '%extension-wiseconnect3_sdk%sl_si91x_internal_stack'
+  vendor: silabs
+- id: '%extension-wiseconnect3_sdk%sl_si91x_basic_buffers'
+  vendor: silabs
+template_contribution:
+- condition:
+  - device_si91x
+  name: event_handler
+  priority: -9996
+  value:
+    event: platform_init
+    handler: sli_si91x_platform_init
+    include: sli_siwx917_soc.h
+- name: console_headers
+  value: sl_wifi_constants.h
+- name: console_headers
+  value: sl_ip_types.h
+- name: console_headers
+  value: sl_wifi_device.h
+- name: console_enums
+  value:
+    wifi_interface:
+      client: SL_WIFI_CLIENT_2_4GHZ_INTERFACE
+      ap: SL_WIFI_AP_2_4GHZ_INTERFACE
+      client_5g: SL_WIFI_CLIENT_5GHZ_INTERFACE
+      ap_5g: SL_WIFI_AP_5GHZ_INTERFACE
+    wifi_init_mode:
+      client: 0
+      ap: 1
+      apsta: 2
+      eap: 3
+      ble_coex: 4
+      client_ipv6: 5
+      transmit_test: 6
+    region_code:
+      default: DEFAULT_REGION
+      us: SL_WIFI_REGION_US
+      europe: SL_WIFI_REGION_EU
+      japan: SL_WIFI_REGION_JP
+      worldwide: SL_WIFI_REGION_WORLD_DOMAIN
+      korea: SL_WIFI_REGION_KR
+      singapore: SL_WIFI_REGION_SG
+      china: SL_WIFI_REGION_CN
+      ignore: SL_WIFI_IGNORE_REGION
+    operating_band:
+      2.4g: 0
+      5g: 1
+      dual: 2
+    flags:
+      connect: 0
+      bind_and_listen: 1
+    continuous_flag:
+      one_time: 0
+      continuous: 1
+    ap_client_deauth:
+      deauth_client: SL_WIFI_DEAUTH
+      deauth_client_unspecified: SL_WIFI_DEAUTH_UNSPECIFIED
+    wifi_security:
+      open: SL_WIFI_OPEN
+      wpa: SL_WIFI_WPA
+      wpa2: SL_WIFI_WPA2
+      wep: SL_WIFI_WEP
+      wpa_enterprise: SL_WIFI_WPA_ENTERPRISE
+      wpa2_enterprise: SL_WIFI_WPA2_ENTERPRISE
+      wpa_wpa2_mixed: SL_WIFI_WPA_WPA2_MIXED
+      wpa3: SL_WIFI_WPA3
+      wpa3_transition: SL_WIFI_WPA3_TRANSITION
+      wpa3_enterprise: SL_WIFI_WPA3_ENTERPRISE
+      wpa3_transition_enterprise: SL_WIFI_WPA3_TRANSITION_ENTERPRISE
+    wifi_encryption:
+      open: SL_WIFI_NO_ENCRYPTION
+      wep: SL_WIFI_WEP_ENCRYPTION
+      tkip: SL_WIFI_TKIP_ENCRYPTION
+      ccmp: SL_WIFI_CCMP_ENCRYPTION
+      tls: SL_WIFI_EAP_TLS_ENCRYPTION
+      ttls: SL_WIFI_EAP_TTLS_ENCRYPTION
+      fast: SL_WIFI_EAP_FAST_ENCRYPTION
+      peap: SL_WIFI_PEAP_MSCHAPV2_ENCRYPTION
+      peapsafe1: SL_WIFI_PEAP_SAFE1_ENCRYPTION
+      peapsafe2: SL_WIFI_PEAP_SAFE2_ENCRYPTION
+    wifi_band:
+      auto: SL_WIFI_AUTO_BAND
+      900m: SL_WIFI_BAND_900MHZ
+      2.4g: SL_WIFI_BAND_2_4GHZ
+      5g: SL_WIFI_BAND_5GHZ
+      6g: SL_WIFI_BAND_6GHZ
+      60g: SL_WIFI_BAND_60GHZ
+    wifi_bandwidth:
+      10m: SL_WIFI_BANDWIDTH_10MHz
+      20m: SL_WIFI_BANDWIDTH_20MHz
+      40m: SL_WIFI_BANDWIDTH_40MHz
+      80m: SL_WIFI_BANDWIDTH_80MHz
+      160m: SL_WIFI_BANDWIDTH_160MHz
+    performance_mode:
+      high_performance: HIGH_PERFORMANCE
+      power_save: ASSOCIATED_POWER_SAVE
+      power_save_low_latency: ASSOCIATED_POWER_SAVE_LOW_LATENCY
+      deep_sleep_without_ram_retention: DEEP_SLEEP_WITHOUT_RAM_RETENTION
+      deep_sleep_with_ram_retention: DEEP_SLEEP_WITH_RAM_RETENTION
+    enable_bg_scan:
+      bg_scan: 1
+    ipv4_or_ipv6:
+      ipv4: 1
+      ipv6: 2
+    set_option_id:
+      fionbio: 1
+      recvtimeout: 2
+      sendtimeout: 3
+      keepalivetimeout: 4
+    get_option_id:
+      recvtimeout: 2
+      sendtimeout: 3
+      keepalivetimeout: 4
+      sockettype: 5
+    option_name:
+      SO_RCVTIMEO: 4102
+      SO_KEEPALIVE: 8
+      SL_SO_CERT_INDEX: 4134
+      SO_MAX_RETRANSMISSION_TIMEOUT_VALUE: 12306
+      TCP_ULP: 31
+      SL_SI91X_SO_MAXRETRY: 24
+      SL_SI91X_SO_MSS: 40
+      SL_SI91X_SO_HIGH_PERFORMANCE_SOCKET: 38
+    option_level:
+      SOL_TCP: 6
+      SOL_SOCKET: 65535
+    rate_protocol:
+      auto: SL_WIFI_RATE_PROTOCOL_AUTO
+      802.11b: SL_WIFI_RATE_PROTOCOL_B_ONLY
+      802.11g: SL_WIFI_RATE_PROTOCOL_G_ONLY
+      802.11n: SL_WIFI_RATE_PROTOCOL_N_ONLY
+      802.11ax: SL_WIFI_RATE_PROTOCOL_AX_ONLY
+    data_rate:
+      auto: SL_WIFI_AUTO_RATE
+      1Mbps: SL_WIFI_RATE_11B_1
+      2Mbps: SL_WIFI_RATE_11B_2
+      5.5Mbps: SL_WIFI_RATE_11B_5_5
+      11Mbps: SL_WIFI_RATE_11B_11
+      6Mbps: SL_WIFI_RATE_11G_6
+      9Mbps: SL_WIFI_RATE_11G_9
+      12Mbps: SL_WIFI_RATE_11G_12
+      18Mbps: SL_WIFI_RATE_11G_18
+      24Mbps: SL_WIFI_RATE_11G_24
+      36Mbps: SL_WIFI_RATE_11G_36
+      48Mbps: SL_WIFI_RATE_11G_48
+      54Mbps: SL_WIFI_RATE_11G_54
+      7.2Mbps: SL_WIFI_RATE_11N_MCS0
+      14.4Mbps: SL_WIFI_RATE_11N_MCS1
+      21.7Mbps: SL_WIFI_RATE_11N_MCS2
+      28.9Mbps: SL_WIFI_RATE_11N_MCS3
+      43.3Mbps: SL_WIFI_RATE_11N_MCS4
+      57.8Mbps: SL_WIFI_RATE_11N_MCS5
+      65Mbps: SL_WIFI_RATE_11N_MCS6
+      72.2Mbps: SL_WIFI_RATE_11N_MCS7
+      8.6Mbps: SL_WIFI_RATE_11AX_MCS0
+      17.2Mbps: SL_WIFI_RATE_11AX_MCS1
+      25.8Mbps: SL_WIFI_RATE_11AX_MCS2
+      34.4Mbps: SL_WIFI_RATE_11AX_MCS3
+      51.6Mbps: SL_WIFI_RATE_11AX_MCS4
+      68.8Mbps: SL_WIFI_RATE_11AX_MCS5
+      77.4Mbps: SL_WIFI_RATE_11AX_MCS6
+      86Mbps: SL_WIFI_RATE_11AX_MCS7
+    net_interface:
+      client: SL_NET_WIFI_CLIENT_INTERFACE
+      ap: SL_NET_WIFI_AP_INTERFACE
+      ethernet: SL_NET_ETHERNET_INTERFACE
+      thread: SL_NET_THREAD_INTERFACE
+      bluetooth: SL_NET_BLUETOOTH_INTERFACE
+      zwave: SL_NET_ZWAVE_INTERFACE
+    wifi_ap_flag:
+      hidden_ssid: SL_WIFI_HIDDEN_SSID
+    wps_mode:
+      pin: SL_WIFI_WPS_PIN_MODE
+      push_button: SL_WIFI_WPS_PUSH_BUTTON_MODE
+    sl_ip_address_type_t:
+      ipv4: SL_IPV4
+      ipv6: SL_IPV6
+      ipv6_link_local: SL_IPV6_LINK_LOCAL
+      ipv6_site_local: SL_IPV6_SITE_LOCAL
+      ipv6_global: SL_IPV6_GLOBAL
+    sl_ip_management_t:
+      static: SL_IP_MANAGEMENT_STATIC_IP
+      dhcp: SL_IP_MANAGEMENT_DHCP
+    boolean:
+      true: 1
+    sl_wifi_timeout_type_t:
+      authentication_association_timer: SL_SI91X_AUTHENTICATION_ASSOCIATION_TIMEOUT
+      channel_active_timer: SL_SI91X_CHANNEL_ACTIVE_SCAN_TIMEOUT
+      keep_alive_timer: SL_SI91X_KEEP_ALIVE_TIMEOUT

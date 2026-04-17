@@ -1,0 +1,19 @@
+id: sl_main_custom_main
+label: SL Main custom main provides
+package: platform_core
+description: >
+  Component to be required by a component (.slcc) or project (.slcp) file if this project provides a custom function main() to be used instead of the main() function provided by the component sl_main for baremetal or RTOS.
+  If the project has a custom main() and sl_main_custom_main is forgotten, it will lead to a compiler
+  error about duplicate definitions of "main" symbol.
+category: Runtime|Test
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+provides:
+- name: sl_main_custom_main
+- name: custom_main
+template_contribution:
+- name: component_catalog
+  value: custom_main
+root_path: platform_core

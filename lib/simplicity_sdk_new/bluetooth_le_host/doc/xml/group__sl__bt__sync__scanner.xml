@@ -1,0 +1,228 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__sync__scanner" kind="group">
+    <compoundname>sl_bt_sync_scanner</compoundname>
+    <title>Periodic Advertising Sync Scanner</title>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="group__sl__bt__sync__scanner_1ga861e55e868835b042abf965073485a5e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_sync_scanner_set_sync_parameters</definition>
+        <argsstring>(uint16_t skip, uint16_t timeout, uint8_t reporting_mode)</argsstring>
+        <name>sl_bt_sync_scanner_set_sync_parameters</name>
+        <param>
+          <type>uint16_t</type>
+          <declname>skip</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>timeout</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>reporting_mode</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Configure synchronization parameters for synchronizing to periodic advertising trains. The specified parameters take effect immediately for all periodic advertising trains that have not already established synchronization.</para>
+<para>The application should determine skip and timeout values based on the periodic advertising interval provided by the advertiser. Use a long enough timeout to allow multiple receives. If <computeroutput>skip</computeroutput> and <computeroutput>timeout</computeroutput> are used, select appropriate values so that they allow a few receiving attempts. Irrespective of the value of the <computeroutput>skip</computeroutput> parameter, the Controller stops skipping packets if the skipping would cause a timeout. Periodic advertising intervals are reported in <ref refid="group__sl__bt__evt__scanner__extended__advertisement__report" kindref="compound">sl_bt_evt_scanner_extended_advertisement_report</ref> event.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">skip</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>The maximum number of periodic advertising packets that can be skipped after a successful receive.<itemizedlist>
+<listitem><para><bold>Range:</bold> 0x0000 to 0x01F3</para>
+</listitem><listitem><para><bold>Default</bold> : 0 </para>
+</listitem></itemizedlist>
+</para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">timeout</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>The maximum permitted time between successful receives. If this time is exceeded, synchronization is lost. Unit: 10 ms.<itemizedlist>
+<listitem><para><bold>Range:</bold> 0x000A to 0x4000</para>
+</listitem><listitem><para>Unit: 10 ms</para>
+</listitem><listitem><para>Time range: 100 ms to 163.84 s</para>
+</listitem><listitem><para><bold>Default</bold> : 1000 ms </para>
+</listitem></itemizedlist>
+</para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">reporting_mode</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>Enum <ref refid="group__sl__bt__sync_1ga4d6dbc6ce7a4dfc5ba8e473253161d30" kindref="member">sl_bt_sync_reporting_mode_t</ref>. Specifies the initial mode for reporting data received in the periodic advertising train after it has achieved synchronization. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_sync_report_none (0x0):</bold> Data received in periodic advertising trains is not reported to the application.</para>
+</listitem><listitem><para><bold>sl_bt_sync_report_all (0x1):</bold> Data received in periodic advertising trains is reported to the application.</para>
+</listitem></itemizedlist>
+</para>
+<para>Default: <ref refid="group__sl__bt__sync_1gga4d6dbc6ce7a4dfc5ba8e473253161d30aac59b61bf5411ed41d7079f22c122f8b" kindref="member">sl_bt_sync_report_all</ref> (Data received in periodic advertising trains is reported to the application) </para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+<para><simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="4497" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="4497" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__sync__scanner_1gafc4271a3a5784987925927e6aae8652b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_sync_scanner_open</definition>
+        <argsstring>(bd_addr address, uint8_t address_type, uint8_t adv_sid, uint16_t *sync)</argsstring>
+        <name>sl_bt_sync_scanner_open</name>
+        <param>
+          <type><ref refid="structbd__addr" kindref="compound">bd_addr</ref></type>
+          <declname>address</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>address_type</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>adv_sid</declname>
+        </param>
+        <param>
+          <type>uint16_t *</type>
+          <declname>sync</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Start establishing synchronization with the specified periodic advertiser in parallel with other advertisers given in previous invocations of this command.</para>
+<para>Periodic advertisers are typically discovered by scanning for extended advertisements and observing the received <ref refid="group__sl__bt__evt__scanner__extended__advertisement__report" kindref="compound">sl_bt_evt_scanner_extended_advertisement_report</ref> events. See the bluetooth_feature_extended_scanner component and the <ref refid="group__sl__bt__scanner_1gac523df08a9e0ea5de94739609f27324f" kindref="member">sl_bt_scanner_start</ref> command. When an advertiser has periodic advertising, the <computeroutput>periodic_interval</computeroutput> field of <ref refid="group__sl__bt__evt__scanner__extended__advertisement__report" kindref="compound">sl_bt_evt_scanner_extended_advertisement_report</ref> event will be non-zero. To synchronize to that periodic advertising train, use the <computeroutput>address</computeroutput>, <computeroutput>address_type</computeroutput>, and <computeroutput>adv_sid</computeroutput> fields from the <ref refid="group__sl__bt__evt__scanner__extended__advertisement__report" kindref="compound">sl_bt_evt_scanner_extended_advertisement_report</ref> when issuing this command.</para>
+<para>If the application has not already started scanning with the <ref refid="group__sl__bt__scanner_1gac523df08a9e0ea5de94739609f27324f" kindref="member">sl_bt_scanner_start</ref> command, the stack will internally enable scanning so that synchronizations can occur. The internal scanning uses the PHY that was most recently used with <ref refid="group__sl__bt__scanner_1gac523df08a9e0ea5de94739609f27324f" kindref="member">sl_bt_scanner_start</ref> and the parameters that have been configured with <ref refid="group__sl__bt__scanner_1ga99c05204881bd06221cebf3ef7b60532" kindref="member">sl_bt_scanner_set_parameters</ref>. The internal scanning is automatically stopped when all requested synchronizations have occurred.</para>
+<para>The scanning responses from the internal scanning are not passed to the application unless the application starts scanning with the <ref refid="group__sl__bt__scanner_1gac523df08a9e0ea5de94739609f27324f" kindref="member">sl_bt_scanner_start</ref> command. If the application starts scanning while synchronizations are being established, the scanning PHY and settings set by the application take effect immediately and scanning for synchronizations continues with the new settings. When the application has started scanning with the <ref refid="group__sl__bt__scanner_1gac523df08a9e0ea5de94739609f27324f" kindref="member">sl_bt_scanner_start</ref> command, scanning continues until the application stops scanning with the <ref refid="group__sl__bt__scanner_1ga59c2a23518c18aa3106312ee8eda1c57" kindref="member">sl_bt_scanner_stop</ref> command.</para>
+<para>Advertisers that have not already synced before the invocation of this command will be synced using the <computeroutput>skip</computeroutput> and <computeroutput>timeout</computeroutput> values configured in the most recent invocation of command <ref refid="group__sl__bt__evt__scanner__extended__advertisement__report" kindref="compound">sl_bt_evt_scanner_extended_advertisement_report</ref>.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">address</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Address of the advertiser </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">address_type</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>Enum <ref refid="group__sl__bt__gap_1gac8d5431d3062e47c5d51b9fb9f36c104" kindref="member">sl_bt_gap_address_type_t</ref>.</para>
+<para>Advertiser address type.</para>
+<para>If the application does not include the bluetooth_feature_use_accurate_api_address_types component, <computeroutput>address_type</computeroutput> uses the following values:<itemizedlist>
+<listitem><para><bold>0:</bold> Public address</para>
+</listitem><listitem><para><bold>1:</bold> Random address</para>
+</listitem></itemizedlist>
+</para>
+<para>If the application includes the bluetooth_feature_use_accurate_api_address_types component, <computeroutput>address_type</computeroutput> uses enum <ref refid="group__sl__bt__gap_1gac8d5431d3062e47c5d51b9fb9f36c104" kindref="member">sl_bt_gap_address_type_t</ref> values:<itemizedlist>
+<listitem><para><bold>sl_bt_gap_public_address (0x0):</bold> Public device address</para>
+</listitem><listitem><para><bold>sl_bt_gap_static_address (0x1):</bold> Static device address</para>
+</listitem><listitem><para><bold>sl_bt_gap_random_resolvable_address (0x2):</bold> Resolvable private random address</para>
+</listitem><listitem><para><bold>sl_bt_gap_random_nonresolvable_address (0x3):</bold> Non-resolvable private random address</para>
+</listitem><listitem><para><bold>sl_bt_gap_public_address_resolved_from_rpa (0x4):</bold> Public identity address resolved from a resolvable private address (RPA)</para>
+</listitem><listitem><para><bold>sl_bt_gap_static_address_resolved_from_rpa (0x5):</bold> Static identity address resolved from a resolvable private address (RPA) </para>
+</listitem></itemizedlist>
+</para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">adv_sid</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The identifier of the advertising set to synchronize to </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">sync</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>A handle that will be assigned to the periodic advertising synchronization after the synchronization is established. This handle is valid only if the result code of this response is SL_STATUS_OK.</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise.</para>
+</simplesect>
+<bold>Events</bold> <itemizedlist>
+<listitem><para><ref refid="group__sl__bt__evt__periodic__sync__opened" kindref="compound">sl_bt_evt_periodic_sync_opened</ref> - Triggered after synchronization is established to a periodic advertising train that does not have subevents or response slots.</para>
+</listitem><listitem><para><ref refid="group__sl__bt__evt__pawr__sync__opened" kindref="compound">sl_bt_evt_pawr_sync_opened</ref> - Triggered after synchronization is established to a Periodic Advertising with Responses (PAwR) train.</para>
+</listitem><listitem><para><ref refid="group__sl__bt__evt__periodic__sync__report" kindref="compound">sl_bt_evt_periodic_sync_report</ref> - Triggered when data for periodic advertising train that does not have subevents or response slots is received and accepted by the reporting mode currently set to the train.</para>
+</listitem><listitem><para><ref refid="group__sl__bt__evt__pawr__sync__subevent__report" kindref="compound">sl_bt_evt_pawr_sync_subevent_report</ref> - Triggered when subevent data for Periodic Advertising with Responses (PAwR) train is received and accepted by the reporting mode currently set to the train.</para>
+</listitem><listitem><para><ref refid="group__sl__bt__evt__sync__closed" kindref="compound">sl_bt_evt_sync_closed</ref> - Triggered after periodic advertising synchronization was lost or explicitly closed, or a synchronization establishment procedure was canceled. </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="4589" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="4589" declcolumn="13"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__sync__scanner_1gacc212085e60be2258e152df9957db71a" prot="public" static="no">
+        <name>sl_bt_cmd_sync_scanner_set_sync_parameters_id</name>
+        <initializer>0x00500020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="4443" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="4443" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__sync__scanner_1ga7b2baad7bf90aaa27d836af5395a71f6" prot="public" static="no">
+        <name>sl_bt_cmd_sync_scanner_open_id</name>
+        <initializer>0x01500020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="4444" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="4444" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__sync__scanner_1ga14f9c5ce3668c00d9c7b365a7900758f" prot="public" static="no">
+        <name>sl_bt_rsp_sync_scanner_set_sync_parameters_id</name>
+        <initializer>0x00500020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="4445" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="4445" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__sync__scanner_1gae8f4761e5bfd613f06e83e88d9fc0824" prot="public" static="no">
+        <name>sl_bt_rsp_sync_scanner_open_id</name>
+        <initializer>0x01500020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="4446" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="4446" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Periodic Advertising Sync Scanner. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>Synchronize to periodic advertising trains by scanning for extended advertisements that provide the synchronization information. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

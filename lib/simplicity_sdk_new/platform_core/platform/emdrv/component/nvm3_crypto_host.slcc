@@ -1,0 +1,27 @@
+id: nvm3_crypto_host
+label: NVM3 HAL for host crypto
+package: platform_core
+description: >
+  NVM3 crypto HAL for crypto HW on host subsystem.
+category: Services|NVM3
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+source:
+- path: platform/emdrv/nvm3/src/nvm3_hal_crypto_host.c
+  unless: [trustzone_nonsecure]
+include:
+- path: platform/emdrv/nvm3/inc
+  file_list:
+  - path: nvm3_hal_crypto.h
+  - path: nvm3_hal_crypto_handle.h
+  unless: [trustzone_nonsecure]
+provides:
+- name: nvm3_crypto_host
+requires:
+- name: se_manager
+- name: sli_crypto
+ui_hints:
+  visibility: never
+root_path: platform_core

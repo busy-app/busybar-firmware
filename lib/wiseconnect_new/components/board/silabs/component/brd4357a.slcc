@@ -1,0 +1,19 @@
+!!omap
+- id: brd4357a
+- label: BRD4357A
+- package: platform_siwx91x
+- description: Board support for BRD4357A.
+- category: Board|Radio Board
+- quality: production
+- metadata:
+    sbom:
+      license: Zlib
+- requires:
+  - name: siwn917y100lgnba
+- define:
+  - name: SI91X_32kHz_EXTERNAL_OSCILLATOR
+    value: '1'
+- tag:
+  - board:pn:BRD4357
+  - board:variant:A
+  - board:revision:a02

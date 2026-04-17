@@ -1,0 +1,19 @@
+id: bootloader_aes_ctr_stream_block_cfg
+label: Bootloader AES CTR Stream Block Config
+package: bootloader
+description: >
+  Provides the configuration for determining the size of stream block that are pre-computed.
+category: Platform|Bootloader|Core
+quality: production
+define:
+- name: "SE_MANAGER_CONFIG_FILE"
+  value: "\"btl_aes_ctr_stream_block_cfg.h\""
+config_file:
+- path: btl_aes_ctr_stream_block_cfg.h
+  file_id: btl_aes_ctr_stream_block_cfg
+provides:
+- name: bootloader_aes_ctr_stream_block_cfg
+metadata:
+  sbom:
+    license: MSLA
+root_path: bootloader/platform/bootloader/config

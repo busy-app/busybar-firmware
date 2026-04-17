@@ -1,0 +1,49 @@
+project_name: sl_si91x_i2c_driver_leader_using_transfer_api
+package: platform_siwx91x_app
+description: "This application demonstrates how to use the I2C interface on the Si91x SoC device using the transfer API. \nIt focuses on configuring the I2C peripheral for communication and using the transfer API for sending and receiving data, \nproviding an efficient, non-blocking way to handle I2C transactions.\n"
+category: example|peripheral
+quality: production
+label: SI91x - SL_I2C_driver_Leader_Using_Transfer_Api
+component:
+- id: sl_main
+- id: status
+- id: syscalls
+- id: si91x_memory_default_config
+- id: sl_gpio_peripheral
+- id: i2c_instance
+  instance:
+  - i2c2
+- id: sl_clock_manager
+source:
+- path: app.c
+- path: i2c_leader_example.c
+include:
+- path: .
+  file_list:
+  - path: app.h
+  - path: i2c_leader_example.h
+toolchain_settings:
+- option: gcc_compiler_option
+  value: -Wall -Werror
+other_file:
+- path: resources/readme/setupdiagram.png
+- path: resources/readme/image507d.png
+- path: resources/readme/image507e.png
+- path: resources/uc_screen/i2c_uc_screen.png
+- path: resources/readme/output.png
+ui_hints:
+  highlight:
+  - path: readme.md
+    focus: true
+readme:
+- path: readme.md
+post_build:
+  profile: wiseconnect_soc
+sdk_extension:
+- id: wiseconnect3_sdk
+  vendor: silabs
+  version: 4.0.1
+sdk:
+  id: simplicity_sdk
+  vendor: silabs
+  version: 2025.12.2

@@ -1,0 +1,43 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__evt__cs__result__continue" kind="group">
+    <compoundname>sl_bt_evt_cs_result_continue</compoundname>
+    <title>sl_bt_evt_cs_result_continue</title>
+    <innerclass refid="structsl__bt__evt__cs__result__continue__s" prot="public">sl_bt_evt_cs_result_continue_s</innerclass>
+      <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="group__sl__bt__evt__cs__result__continue_1ga14d035d0c177f18770ca4b27a4f64205" prot="public" static="no">
+        <type>struct <ref refid="structsl__bt__evt__cs__result__continue__s" kindref="compound">sl_bt_evt_cs_result_continue_s</ref></type>
+        <definition>typedef struct sl_bt_evt_cs_result_continue_s sl_bt_evt_cs_result_continue_t</definition>
+        <argsstring></argsstring>
+        <name>sl_bt_evt_cs_result_continue_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="13645" column="45" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="13645" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__evt__cs__result__continue_1gafdea19946084b55e68e54053fc4d0232" prot="public" static="no">
+        <name>sl_bt_evt_cs_result_continue_id</name>
+        <initializer>0x055900a0</initializer>
+        <briefdescription>
+<para>Identifier of the result_continue event. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="13540" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="13540" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Reports results when the number of steps exceeds the maximum HCI event size, of every CS subevent within the CS procedure. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>This event is triggered after the <ref refid="group__sl__bt__evt__cs__result" kindref="compound">sl_bt_evt_cs_result</ref> event. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

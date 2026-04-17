@@ -1,0 +1,42 @@
+project_name: segment_lcd_tempsensor
+package: platform
+quality: production
+label: Platform - Segment LCD Tempsensor
+description: |
+  This project demonstrates how to use the Si70xx temperature sensor to measure and record temperature values and how to use the Segment LCD to display those values.
+category: Example|Platform
+filter:
+  - name: "Device Type"
+    value: ["SoC"]
+  - name: "MCU"
+    value: ["32-bit MCU"]
+  - name: "Project Difficulty"
+    value: ["Beginner"]
+source:
+  - path: app.c
+  - path: segment_lcd_app.c
+include:
+  - path: .
+    file_list:
+    - path: app.h
+    - path: segment_lcd_app.h
+component:
+  - id: hal_lcd
+  - id: sl_main
+  - id: device_init
+  - id: clock_manager
+  - id: segment_lcd_driver
+  - id: si70xx_driver
+define:
+  - name: DEBUG_EFM
+readme:
+  - path: readme.md
+ui_hints:
+  highlight: readme.md
+tag:
+  - hardware:component:segment_lcd_driver:cl010-1087-04
+configuration:
+  - name: SL_BOARD_ENABLE_VCOM
+    value: 1
+  - name: SL_BOARD_ENABLE_SENSOR_RHT
+    value: 1

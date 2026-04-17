@@ -1,0 +1,26 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__connection__rssi__const" kind="group">
+    <compoundname>sl_bt_connection_rssi_const</compoundname>
+    <title>RSSI Value Constants</title>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__connection__rssi__const_1gad1df888f9f1a48a32d399ae5b870d4b3" prot="public" static="no">
+        <name>SL_BT_CONNECTION_RSSI_UNAVAILABLE</name>
+        <initializer>0x7f</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>RSSI value is unavailable </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6337" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6337" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para>Constants for RSSI value </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

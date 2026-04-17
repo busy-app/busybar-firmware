@@ -1,0 +1,24 @@
+!!omap
+- id: brd4182a
+- label: BRD4182A
+- package: boards
+- description: Board support for BRD4182A.
+- category: Platform|Board|Radio Board
+- quality: production
+- metadata:
+    sbom:
+      license: Zlib
+- requires:
+  - name: brd4182a_revision
+- provides:
+  - name: brd4182a
+  - name: hardware_board_from_stk
+  - name: hardware_board_from_slwrb4182a
+  - name: hardware_board_from_slwstk6021a
+  - name: hardware_board_from_slwstk6021b
+- recommends:
+  - id: brd4182a_b06
+    vendor: silabs
+- ui_hints:
+    visibility: never
+- root_path: boards

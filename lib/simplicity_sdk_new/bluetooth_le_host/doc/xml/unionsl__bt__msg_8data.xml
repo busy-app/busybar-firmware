@@ -1,0 +1,1390 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="unionsl__bt__msg_8data" kind="union" language="C++" prot="public">
+    <compoundname>sl_bt_msg.data</compoundname>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="unionsl__bt__msg_8data_1ae1260894f59eeae98c8440899de4df8d" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition></definition>
+        <argsstring></argsstring>
+        <name>handle</name>
+        <qualifiedname>sl_bt_msg.data::handle</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16506" column="13"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionsl__bt__msg_8data_1a80cdac15945be6c10710665d2e378357" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__bt__evt__dfu__boot__s" kindref="compound">sl_bt_evt_dfu_boot_t</ref></type>
+        <definition></definition>
+        <argsstring></argsstring>
+        <name>evt_dfu_boot</name>
+        <qualifiedname>sl_bt_msg.data::evt_dfu_boot</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Data field for event sl_bt_evt_dfu_boot_id </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16507" column="66"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionsl__bt__msg_8data_1a59c3a5ad4070ab665d308e116e7afb07" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__bt__evt__dfu__boot__failure__s" kindref="compound">sl_bt_evt_dfu_boot_failure_t</ref></type>
+        <definition></definition>
+        <argsstring></argsstring>
+        <name>evt_dfu_boot_failure</name>
+        <qualifiedname>sl_bt_msg.data::evt_dfu_boot_failure</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Data field for event sl_bt_evt_dfu_boot_failure_id </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16508" column="66"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionsl__bt__msg_8data_1a14c98c43c426ee9fc5156ce9308e39d7" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__bt__evt__system__boot__s" kindref="compound">sl_bt_evt_system_boot_t</ref></type>
+        <definition></definition>
+        <argsstring></argsstring>
+        <name>evt_system_boot</name>
+        <qualifiedname>sl_bt_msg.data::evt_system_boot</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Data field for event sl_bt_evt_system_boot_id </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16509" column="66"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionsl__bt__msg_8data_1a6002f448ea03168af7716e495571e58f" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__bt__evt__system__error__s" kindref="compound">sl_bt_evt_system_error_t</ref></type>
+        <definition></definition>
+        <argsstring></argsstring>
+        <name>evt_system_error</name>
+        <qualifiedname>sl_bt_msg.data::evt_system_error</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Data field for event sl_bt_evt_system_error_id </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16510" column="66"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionsl__bt__msg_8data_1ab0248346384157cc3115287197c9676f" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__bt__evt__system__resource__exhausted__s" kindref="compound">sl_bt_evt_system_resource_exhausted_t</ref></type>
+        <definition></definition>
+        <argsstring></argsstring>
+        <name>evt_system_resource_exhausted</name>
+        <qualifiedname>sl_bt_msg.data::evt_system_resource_exhausted</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Data field for event sl_bt_evt_system_resource_exhausted_id </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16511" column="66"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionsl__bt__msg_8data_1a19a2befbece82056e2c458a1cb0e388f" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__bt__evt__system__external__signal__s" kindref="compound">sl_bt_evt_system_external_signal_t</ref></type>
+        <definition></definition>
+        <argsstring></argsstring>
+        <name>evt_system_external_signal</name>
+        <qualifiedname>sl_bt_msg.data::evt_system_external_signal</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Data field for event sl_bt_evt_system_external_signal_id </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16512" column="66"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionsl__bt__msg_8data_1aa1129745097659fbc54c9c0d6682cf59" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__bt__evt__system__soft__timer__s" kindref="compound">sl_bt_evt_system_soft_timer_t</ref></type>
+        <definition></definition>
+        <argsstring></argsstring>
+        <name>evt_system_soft_timer</name>
+        <qualifiedname>sl_bt_msg.data::evt_system_soft_timer</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Data field for event sl_bt_evt_system_soft_timer_id </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16513" column="66"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionsl__bt__msg_8data_1a6dfca974e0f8e82f3f90c46b2ece233b" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__bt__evt__linklayer__event__info__report__s" kindref="compound">sl_bt_evt_linklayer_event_info_report_t</ref></type>
+        <definition></definition>
+        <argsstring></argsstring>
+        <name>evt_linklayer_event_info_report</name>
+        <qualifiedname>sl_bt_msg.data::evt_linklayer_event_info_report</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Data field for event sl_bt_evt_linklayer_event_info_report_id </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16514" column="66"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionsl__bt__msg_8data_1affef37a5a28996df4b4619c015773eb6" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__bt__evt__resource__status__s" kindref="compound">sl_bt_evt_resource_status_t</ref></type>
+        <definition></definition>
+        <argsstring></argsstring>
+        <name>evt_resource_status</name>
+        <qualifiedname>sl_bt_msg.data::evt_resource_status</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Data field for event sl_bt_evt_resource_status_id </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16515" column="66"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionsl__bt__msg_8data_1a7cbb758c23cd09c4cfe59d347840995d" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__bt__evt__advertiser__timeout__s" kindref="compound">sl_bt_evt_advertiser_timeout_t</ref></type>
+        <definition></definition>
+        <argsstring></argsstring>
+        <name>evt_advertiser_timeout</name>
+        <qualifiedname>sl_bt_msg.data::evt_advertiser_timeout</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Data field for event sl_bt_evt_advertiser_timeout_id </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16516" column="66"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionsl__bt__msg_8data_1a38d5af7435ce13540e12136ed70e3e6a" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__bt__evt__advertiser__scan__request__s" kindref="compound">sl_bt_evt_advertiser_scan_request_t</ref></type>
+        <definition></definition>
+        <argsstring></argsstring>
+        <name>evt_advertiser_scan_request</name>
+        <qualifiedname>sl_bt_msg.data::evt_advertiser_scan_request</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Data field for event sl_bt_evt_advertiser_scan_request_id </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16517" column="66"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionsl__bt__msg_8data_1a383aec7fe065f4d5630e1f1a7f43aed0" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__bt__evt__periodic__advertiser__status__s" kindref="compound">sl_bt_evt_periodic_advertiser_status_t</ref></type>
+        <definition></definition>
+        <argsstring></argsstring>
+        <name>evt_periodic_advertiser_status</name>
+        <qualifiedname>sl_bt_msg.data::evt_periodic_advertiser_status</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Data field for event sl_bt_evt_periodic_advertiser_status_id </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16518" column="66"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionsl__bt__msg_8data_1a855eb4dac7e6f410a64614fd7bf53d16" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__bt__evt__scanner__legacy__advertisement__report__s" kindref="compound">sl_bt_evt_scanner_legacy_advertisement_report_t</ref></type>
+        <definition></definition>
+        <argsstring></argsstring>
+        <name>evt_scanner_legacy_advertisement_report</name>
+        <qualifiedname>sl_bt_msg.data::evt_scanner_legacy_advertisement_report</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Data field for event sl_bt_evt_scanner_legacy_advertisement_report_id </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16519" column="66"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionsl__bt__msg_8data_1a71b5da1d81fb58f2fcbff5fbaed9f29b" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__bt__evt__scanner__extended__advertisement__report__s" kindref="compound">sl_bt_evt_scanner_extended_advertisement_report_t</ref></type>
+        <definition></definition>
+        <argsstring></argsstring>
+        <name>evt_scanner_extended_advertisement_report</name>
+        <qualifiedname>sl_bt_msg.data::evt_scanner_extended_advertisement_report</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Data field for event sl_bt_evt_scanner_extended_advertisement_report_id </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16520" column="66"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionsl__bt__msg_8data_1ae3b6225d4de441399951d2bcfcc59689" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__bt__evt__sync__closed__s" kindref="compound">sl_bt_evt_sync_closed_t</ref></type>
+        <definition></definition>
+        <argsstring></argsstring>
+        <name>evt_sync_closed</name>
+        <qualifiedname>sl_bt_msg.data::evt_sync_closed</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Data field for event sl_bt_evt_sync_closed_id </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16521" column="66"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionsl__bt__msg_8data_1a35d433803b504816d6cad1c72c9a6730" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__bt__evt__periodic__sync__opened__s" kindref="compound">sl_bt_evt_periodic_sync_opened_t</ref></type>
+        <definition></definition>
+        <argsstring></argsstring>
+        <name>evt_periodic_sync_opened</name>
+        <qualifiedname>sl_bt_msg.data::evt_periodic_sync_opened</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Data field for event sl_bt_evt_periodic_sync_opened_id </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16522" column="66"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionsl__bt__msg_8data_1a98aace150cd58018e16a7cc995e75b76" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__bt__evt__periodic__sync__transfer__received__s" kindref="compound">sl_bt_evt_periodic_sync_transfer_received_t</ref></type>
+        <definition></definition>
+        <argsstring></argsstring>
+        <name>evt_periodic_sync_transfer_received</name>
+        <qualifiedname>sl_bt_msg.data::evt_periodic_sync_transfer_received</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Data field for event sl_bt_evt_periodic_sync_transfer_received_id </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16523" column="66"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionsl__bt__msg_8data_1ab511f185c7c5cf40ae76d61151fdc840" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__bt__evt__periodic__sync__report__s" kindref="compound">sl_bt_evt_periodic_sync_report_t</ref></type>
+        <definition></definition>
+        <argsstring></argsstring>
+        <name>evt_periodic_sync_report</name>
+        <qualifiedname>sl_bt_msg.data::evt_periodic_sync_report</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Data field for event sl_bt_evt_periodic_sync_report_id </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16524" column="66"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionsl__bt__msg_8data_1a8565d956ceaa3f94296ebd963dd5dcef" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__bt__evt__pawr__sync__opened__s" kindref="compound">sl_bt_evt_pawr_sync_opened_t</ref></type>
+        <definition></definition>
+        <argsstring></argsstring>
+        <name>evt_pawr_sync_opened</name>
+        <qualifiedname>sl_bt_msg.data::evt_pawr_sync_opened</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Data field for event sl_bt_evt_pawr_sync_opened_id </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16525" column="66"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionsl__bt__msg_8data_1ac68c657f970811167205ba1b39d43bf2" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__bt__evt__pawr__sync__transfer__received__s" kindref="compound">sl_bt_evt_pawr_sync_transfer_received_t</ref></type>
+        <definition></definition>
+        <argsstring></argsstring>
+        <name>evt_pawr_sync_transfer_received</name>
+        <qualifiedname>sl_bt_msg.data::evt_pawr_sync_transfer_received</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Data field for event sl_bt_evt_pawr_sync_transfer_received_id </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16526" column="66"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionsl__bt__msg_8data_1ab65d7f8ea811a57f42fe575e90a1c0be" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__bt__evt__pawr__sync__subevent__report__s" kindref="compound">sl_bt_evt_pawr_sync_subevent_report_t</ref></type>
+        <definition></definition>
+        <argsstring></argsstring>
+        <name>evt_pawr_sync_subevent_report</name>
+        <qualifiedname>sl_bt_msg.data::evt_pawr_sync_subevent_report</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Data field for event sl_bt_evt_pawr_sync_subevent_report_id </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16527" column="66"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionsl__bt__msg_8data_1ac935bd6f5aa5b22444b3b63ef498ce0c" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__bt__evt__pawr__advertiser__subevent__data__request__s" kindref="compound">sl_bt_evt_pawr_advertiser_subevent_data_request_t</ref></type>
+        <definition></definition>
+        <argsstring></argsstring>
+        <name>evt_pawr_advertiser_subevent_data_request</name>
+        <qualifiedname>sl_bt_msg.data::evt_pawr_advertiser_subevent_data_request</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Data field for event sl_bt_evt_pawr_advertiser_subevent_data_request_id </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16528" column="66"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionsl__bt__msg_8data_1a881781e72d071108b9cada740cd91143" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__bt__evt__pawr__advertiser__subevent__tx__failed__s" kindref="compound">sl_bt_evt_pawr_advertiser_subevent_tx_failed_t</ref></type>
+        <definition></definition>
+        <argsstring></argsstring>
+        <name>evt_pawr_advertiser_subevent_tx_failed</name>
+        <qualifiedname>sl_bt_msg.data::evt_pawr_advertiser_subevent_tx_failed</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Data field for event sl_bt_evt_pawr_advertiser_subevent_tx_failed_id </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16529" column="66"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionsl__bt__msg_8data_1af66e94ad90ef197c38a9b9eb69405a03" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__bt__evt__pawr__advertiser__response__report__s" kindref="compound">sl_bt_evt_pawr_advertiser_response_report_t</ref></type>
+        <definition></definition>
+        <argsstring></argsstring>
+        <name>evt_pawr_advertiser_response_report</name>
+        <qualifiedname>sl_bt_msg.data::evt_pawr_advertiser_response_report</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Data field for event sl_bt_evt_pawr_advertiser_response_report_id </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16530" column="66"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionsl__bt__msg_8data_1a25182776a172f7bf1f195c0cf7e2fe32" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__bt__evt__connection__opened__s" kindref="compound">sl_bt_evt_connection_opened_t</ref></type>
+        <definition></definition>
+        <argsstring></argsstring>
+        <name>evt_connection_opened</name>
+        <qualifiedname>sl_bt_msg.data::evt_connection_opened</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Data field for event sl_bt_evt_connection_opened_id </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16531" column="66"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionsl__bt__msg_8data_1a39428113ae7bfb67fa01a584f884fbc7" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__bt__evt__connection__parameters__s" kindref="compound">sl_bt_evt_connection_parameters_t</ref></type>
+        <definition></definition>
+        <argsstring></argsstring>
+        <name>evt_connection_parameters</name>
+        <qualifiedname>sl_bt_msg.data::evt_connection_parameters</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Data field for event sl_bt_evt_connection_parameters_id </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16532" column="66"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionsl__bt__msg_8data_1a01f8e3e043b62db4c8cec09c6fdf8f60" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__bt__evt__connection__set__parameters__failed__s" kindref="compound">sl_bt_evt_connection_set_parameters_failed_t</ref></type>
+        <definition></definition>
+        <argsstring></argsstring>
+        <name>evt_connection_set_parameters_failed</name>
+        <qualifiedname>sl_bt_msg.data::evt_connection_set_parameters_failed</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Data field for event sl_bt_evt_connection_set_parameters_failed_id </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16533" column="66"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionsl__bt__msg_8data_1a6df1f2648ba1af3d799d09ba5637118f" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__bt__evt__connection__phy__status__s" kindref="compound">sl_bt_evt_connection_phy_status_t</ref></type>
+        <definition></definition>
+        <argsstring></argsstring>
+        <name>evt_connection_phy_status</name>
+        <qualifiedname>sl_bt_msg.data::evt_connection_phy_status</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Data field for event sl_bt_evt_connection_phy_status_id </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16534" column="66"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionsl__bt__msg_8data_1ad08a398ae489980120b4e0b64a8d149a" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__bt__evt__connection__get__remote__tx__power__completed__s" kindref="compound">sl_bt_evt_connection_get_remote_tx_power_completed_t</ref></type>
+        <definition></definition>
+        <argsstring></argsstring>
+        <name>evt_connection_get_remote_tx_power_completed</name>
+        <qualifiedname>sl_bt_msg.data::evt_connection_get_remote_tx_power_completed</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Data field for event sl_bt_evt_connection_get_remote_tx_power_completed_id </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16535" column="66"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionsl__bt__msg_8data_1a2d7b506050899eb876019256bbbed1cc" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__bt__evt__connection__tx__power__s" kindref="compound">sl_bt_evt_connection_tx_power_t</ref></type>
+        <definition></definition>
+        <argsstring></argsstring>
+        <name>evt_connection_tx_power</name>
+        <qualifiedname>sl_bt_msg.data::evt_connection_tx_power</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Data field for event sl_bt_evt_connection_tx_power_id </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16536" column="66"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionsl__bt__msg_8data_1a4c3683ee67eb477a8e1ae8f9a5f2347f" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__bt__evt__connection__remote__tx__power__s" kindref="compound">sl_bt_evt_connection_remote_tx_power_t</ref></type>
+        <definition></definition>
+        <argsstring></argsstring>
+        <name>evt_connection_remote_tx_power</name>
+        <qualifiedname>sl_bt_msg.data::evt_connection_remote_tx_power</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Data field for event sl_bt_evt_connection_remote_tx_power_id </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16537" column="66"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionsl__bt__msg_8data_1abaebdf52e673bbd800d81804ee491e32" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__bt__evt__connection__remote__used__features__s" kindref="compound">sl_bt_evt_connection_remote_used_features_t</ref></type>
+        <definition></definition>
+        <argsstring></argsstring>
+        <name>evt_connection_remote_used_features</name>
+        <qualifiedname>sl_bt_msg.data::evt_connection_remote_used_features</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Data field for event sl_bt_evt_connection_remote_used_features_id </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16538" column="66"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionsl__bt__msg_8data_1a4a239b2d3031dd420b535da2d2960954" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__bt__evt__connection__data__length__s" kindref="compound">sl_bt_evt_connection_data_length_t</ref></type>
+        <definition></definition>
+        <argsstring></argsstring>
+        <name>evt_connection_data_length</name>
+        <qualifiedname>sl_bt_msg.data::evt_connection_data_length</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Data field for event sl_bt_evt_connection_data_length_id </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16539" column="66"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionsl__bt__msg_8data_1a81efa1f862068cbaf48e0f4ac17630f6" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__bt__evt__connection__statistics__s" kindref="compound">sl_bt_evt_connection_statistics_t</ref></type>
+        <definition></definition>
+        <argsstring></argsstring>
+        <name>evt_connection_statistics</name>
+        <qualifiedname>sl_bt_msg.data::evt_connection_statistics</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Data field for event sl_bt_evt_connection_statistics_id </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16540" column="66"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionsl__bt__msg_8data_1ab370947da6e9d0c2661d7a95822b3bce" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__bt__evt__connection__request__subrate__failed__s" kindref="compound">sl_bt_evt_connection_request_subrate_failed_t</ref></type>
+        <definition></definition>
+        <argsstring></argsstring>
+        <name>evt_connection_request_subrate_failed</name>
+        <qualifiedname>sl_bt_msg.data::evt_connection_request_subrate_failed</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Data field for event sl_bt_evt_connection_request_subrate_failed_id </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16541" column="66"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionsl__bt__msg_8data_1afb751aaabe41ec901bac8dd3a6beb1a8" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__bt__evt__connection__subrate__changed__s" kindref="compound">sl_bt_evt_connection_subrate_changed_t</ref></type>
+        <definition></definition>
+        <argsstring></argsstring>
+        <name>evt_connection_subrate_changed</name>
+        <qualifiedname>sl_bt_msg.data::evt_connection_subrate_changed</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Data field for event sl_bt_evt_connection_subrate_changed_id </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16542" column="66"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionsl__bt__msg_8data_1aaae904624ad08268fc39c426401df825" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__bt__evt__connection__channel__classification__s" kindref="compound">sl_bt_evt_connection_channel_classification_t</ref></type>
+        <definition></definition>
+        <argsstring></argsstring>
+        <name>evt_connection_channel_classification</name>
+        <qualifiedname>sl_bt_msg.data::evt_connection_channel_classification</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Data field for event sl_bt_evt_connection_channel_classification_id </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16543" column="66"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionsl__bt__msg_8data_1a201f7b6e310ea8263f6624fc4c117afe" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__bt__evt__connection__closed__s" kindref="compound">sl_bt_evt_connection_closed_t</ref></type>
+        <definition></definition>
+        <argsstring></argsstring>
+        <name>evt_connection_closed</name>
+        <qualifiedname>sl_bt_msg.data::evt_connection_closed</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Data field for event sl_bt_evt_connection_closed_id </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16544" column="66"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionsl__bt__msg_8data_1a1926b7f807e547811af8bde1877c2aad" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__bt__evt__gatt__mtu__exchanged__s" kindref="compound">sl_bt_evt_gatt_mtu_exchanged_t</ref></type>
+        <definition></definition>
+        <argsstring></argsstring>
+        <name>evt_gatt_mtu_exchanged</name>
+        <qualifiedname>sl_bt_msg.data::evt_gatt_mtu_exchanged</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Data field for event sl_bt_evt_gatt_mtu_exchanged_id </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16545" column="66"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionsl__bt__msg_8data_1a4449692bdf76b0f915e88dc49b43aeb3" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__bt__evt__gatt__service__s" kindref="compound">sl_bt_evt_gatt_service_t</ref></type>
+        <definition></definition>
+        <argsstring></argsstring>
+        <name>evt_gatt_service</name>
+        <qualifiedname>sl_bt_msg.data::evt_gatt_service</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Data field for event sl_bt_evt_gatt_service_id </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16546" column="66"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionsl__bt__msg_8data_1a2bdc7e1d0f4345bc77bdfb86032d9e17" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__bt__evt__gatt__characteristic__s" kindref="compound">sl_bt_evt_gatt_characteristic_t</ref></type>
+        <definition></definition>
+        <argsstring></argsstring>
+        <name>evt_gatt_characteristic</name>
+        <qualifiedname>sl_bt_msg.data::evt_gatt_characteristic</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Data field for event sl_bt_evt_gatt_characteristic_id </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16547" column="66"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionsl__bt__msg_8data_1a0abe6f7a12808ee50905e6ab553c1d91" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__bt__evt__gatt__descriptor__s" kindref="compound">sl_bt_evt_gatt_descriptor_t</ref></type>
+        <definition></definition>
+        <argsstring></argsstring>
+        <name>evt_gatt_descriptor</name>
+        <qualifiedname>sl_bt_msg.data::evt_gatt_descriptor</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Data field for event sl_bt_evt_gatt_descriptor_id </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16548" column="66"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionsl__bt__msg_8data_1acbc18ee686f33c68ebbabfbcd668e8fd" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__bt__evt__gatt__characteristic__value__s" kindref="compound">sl_bt_evt_gatt_characteristic_value_t</ref></type>
+        <definition></definition>
+        <argsstring></argsstring>
+        <name>evt_gatt_characteristic_value</name>
+        <qualifiedname>sl_bt_msg.data::evt_gatt_characteristic_value</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Data field for event sl_bt_evt_gatt_characteristic_value_id </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16549" column="66"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionsl__bt__msg_8data_1a113670d75da6834373160214ebb3370a" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__bt__evt__gatt__descriptor__value__s" kindref="compound">sl_bt_evt_gatt_descriptor_value_t</ref></type>
+        <definition></definition>
+        <argsstring></argsstring>
+        <name>evt_gatt_descriptor_value</name>
+        <qualifiedname>sl_bt_msg.data::evt_gatt_descriptor_value</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Data field for event sl_bt_evt_gatt_descriptor_value_id </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16550" column="66"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionsl__bt__msg_8data_1a3c6d4bd779bdc8b814d277d674e05c96" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__bt__evt__gatt__procedure__completed__s" kindref="compound">sl_bt_evt_gatt_procedure_completed_t</ref></type>
+        <definition></definition>
+        <argsstring></argsstring>
+        <name>evt_gatt_procedure_completed</name>
+        <qualifiedname>sl_bt_msg.data::evt_gatt_procedure_completed</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Data field for event sl_bt_evt_gatt_procedure_completed_id </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16551" column="66"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionsl__bt__msg_8data_1ae1f22176a12bfc8dac577902fe00ce5d" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__bt__evt__gatt__server__attribute__value__s" kindref="compound">sl_bt_evt_gatt_server_attribute_value_t</ref></type>
+        <definition></definition>
+        <argsstring></argsstring>
+        <name>evt_gatt_server_attribute_value</name>
+        <qualifiedname>sl_bt_msg.data::evt_gatt_server_attribute_value</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Data field for event sl_bt_evt_gatt_server_attribute_value_id </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16552" column="66"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionsl__bt__msg_8data_1a4a050dc4adfbfcc96b9c17411f674c0e" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__bt__evt__gatt__server__user__read__request__s" kindref="compound">sl_bt_evt_gatt_server_user_read_request_t</ref></type>
+        <definition></definition>
+        <argsstring></argsstring>
+        <name>evt_gatt_server_user_read_request</name>
+        <qualifiedname>sl_bt_msg.data::evt_gatt_server_user_read_request</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Data field for event sl_bt_evt_gatt_server_user_read_request_id </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16553" column="66"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionsl__bt__msg_8data_1ae24a3e6a6f48b653a1e4e7efb8f11772" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__bt__evt__gatt__server__user__write__request__s" kindref="compound">sl_bt_evt_gatt_server_user_write_request_t</ref></type>
+        <definition></definition>
+        <argsstring></argsstring>
+        <name>evt_gatt_server_user_write_request</name>
+        <qualifiedname>sl_bt_msg.data::evt_gatt_server_user_write_request</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Data field for event sl_bt_evt_gatt_server_user_write_request_id </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16554" column="66"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionsl__bt__msg_8data_1ac76d2500c0b8afcbbbcb6001315889b0" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__bt__evt__gatt__server__characteristic__status__s" kindref="compound">sl_bt_evt_gatt_server_characteristic_status_t</ref></type>
+        <definition></definition>
+        <argsstring></argsstring>
+        <name>evt_gatt_server_characteristic_status</name>
+        <qualifiedname>sl_bt_msg.data::evt_gatt_server_characteristic_status</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Data field for event sl_bt_evt_gatt_server_characteristic_status_id </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16555" column="66"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionsl__bt__msg_8data_1a1348b678cd156baab899fd82b4272658" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__bt__evt__gatt__server__execute__write__completed__s" kindref="compound">sl_bt_evt_gatt_server_execute_write_completed_t</ref></type>
+        <definition></definition>
+        <argsstring></argsstring>
+        <name>evt_gatt_server_execute_write_completed</name>
+        <qualifiedname>sl_bt_msg.data::evt_gatt_server_execute_write_completed</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Data field for event sl_bt_evt_gatt_server_execute_write_completed_id </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16556" column="66"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionsl__bt__msg_8data_1ac087f0684a3c670978689cb17bf26e78" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__bt__evt__gatt__server__indication__timeout__s" kindref="compound">sl_bt_evt_gatt_server_indication_timeout_t</ref></type>
+        <definition></definition>
+        <argsstring></argsstring>
+        <name>evt_gatt_server_indication_timeout</name>
+        <qualifiedname>sl_bt_msg.data::evt_gatt_server_indication_timeout</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Data field for event sl_bt_evt_gatt_server_indication_timeout_id </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16557" column="66"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionsl__bt__msg_8data_1a1bc5493ae1c06cbd7b3f6615803dd2a8" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__bt__evt__gatt__server__notification__tx__completed__s" kindref="compound">sl_bt_evt_gatt_server_notification_tx_completed_t</ref></type>
+        <definition></definition>
+        <argsstring></argsstring>
+        <name>evt_gatt_server_notification_tx_completed</name>
+        <qualifiedname>sl_bt_msg.data::evt_gatt_server_notification_tx_completed</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Data field for event sl_bt_evt_gatt_server_notification_tx_completed_id </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16558" column="66"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionsl__bt__msg_8data_1a1a17fa830feeef547503fcb0bffd9045" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__bt__evt__test__dtm__completed__s" kindref="compound">sl_bt_evt_test_dtm_completed_t</ref></type>
+        <definition></definition>
+        <argsstring></argsstring>
+        <name>evt_test_dtm_completed</name>
+        <qualifiedname>sl_bt_msg.data::evt_test_dtm_completed</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Data field for event sl_bt_evt_test_dtm_completed_id </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16559" column="66"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionsl__bt__msg_8data_1a8b011fd0b62ab1d8b2e6dbb850b23d63" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__bt__evt__sm__passkey__display__s" kindref="compound">sl_bt_evt_sm_passkey_display_t</ref></type>
+        <definition></definition>
+        <argsstring></argsstring>
+        <name>evt_sm_passkey_display</name>
+        <qualifiedname>sl_bt_msg.data::evt_sm_passkey_display</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Data field for event sl_bt_evt_sm_passkey_display_id </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16560" column="66"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionsl__bt__msg_8data_1af2e52d995dc5dbc5fbb5411747dc88f8" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__bt__evt__sm__passkey__request__s" kindref="compound">sl_bt_evt_sm_passkey_request_t</ref></type>
+        <definition></definition>
+        <argsstring></argsstring>
+        <name>evt_sm_passkey_request</name>
+        <qualifiedname>sl_bt_msg.data::evt_sm_passkey_request</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Data field for event sl_bt_evt_sm_passkey_request_id </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16561" column="66"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionsl__bt__msg_8data_1a99b12e67247fa689b51b20c7fbcab9b2" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__bt__evt__sm__confirm__passkey__s" kindref="compound">sl_bt_evt_sm_confirm_passkey_t</ref></type>
+        <definition></definition>
+        <argsstring></argsstring>
+        <name>evt_sm_confirm_passkey</name>
+        <qualifiedname>sl_bt_msg.data::evt_sm_confirm_passkey</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Data field for event sl_bt_evt_sm_confirm_passkey_id </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16562" column="66"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionsl__bt__msg_8data_1af629e825c56d2c9bec01a660598ef7a4" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__bt__evt__sm__bonded__s" kindref="compound">sl_bt_evt_sm_bonded_t</ref></type>
+        <definition></definition>
+        <argsstring></argsstring>
+        <name>evt_sm_bonded</name>
+        <qualifiedname>sl_bt_msg.data::evt_sm_bonded</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Data field for event sl_bt_evt_sm_bonded_id </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16563" column="66"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionsl__bt__msg_8data_1a909b96190b704c032f4ddf6f994d7fbc" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__bt__evt__sm__bonding__failed__s" kindref="compound">sl_bt_evt_sm_bonding_failed_t</ref></type>
+        <definition></definition>
+        <argsstring></argsstring>
+        <name>evt_sm_bonding_failed</name>
+        <qualifiedname>sl_bt_msg.data::evt_sm_bonding_failed</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Data field for event sl_bt_evt_sm_bonding_failed_id </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16564" column="66"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionsl__bt__msg_8data_1a90de02453237d9dda0d621490f71fcb8" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__bt__evt__sm__confirm__bonding__s" kindref="compound">sl_bt_evt_sm_confirm_bonding_t</ref></type>
+        <definition></definition>
+        <argsstring></argsstring>
+        <name>evt_sm_confirm_bonding</name>
+        <qualifiedname>sl_bt_msg.data::evt_sm_confirm_bonding</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Data field for event sl_bt_evt_sm_confirm_bonding_id </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16565" column="66"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionsl__bt__msg_8data_1ab2cda3f5605f1fea9559fc2e574f6ed4" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__bt__evt__external__bondingdb__data__request__s" kindref="compound">sl_bt_evt_external_bondingdb_data_request_t</ref></type>
+        <definition></definition>
+        <argsstring></argsstring>
+        <name>evt_external_bondingdb_data_request</name>
+        <qualifiedname>sl_bt_msg.data::evt_external_bondingdb_data_request</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Data field for event sl_bt_evt_external_bondingdb_data_request_id </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16566" column="66"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionsl__bt__msg_8data_1af4de508c3d75824ee930f7a124d370a3" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__bt__evt__external__bondingdb__data__s" kindref="compound">sl_bt_evt_external_bondingdb_data_t</ref></type>
+        <definition></definition>
+        <argsstring></argsstring>
+        <name>evt_external_bondingdb_data</name>
+        <qualifiedname>sl_bt_msg.data::evt_external_bondingdb_data</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Data field for event sl_bt_evt_external_bondingdb_data_id </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16567" column="66"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionsl__bt__msg_8data_1abc9f2f183c575aaa212583157fb8d246" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__bt__evt__external__bondingdb__data__ready__s" kindref="compound">sl_bt_evt_external_bondingdb_data_ready_t</ref></type>
+        <definition></definition>
+        <argsstring></argsstring>
+        <name>evt_external_bondingdb_data_ready</name>
+        <qualifiedname>sl_bt_msg.data::evt_external_bondingdb_data_ready</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Data field for event sl_bt_evt_external_bondingdb_data_ready_id </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16568" column="66"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionsl__bt__msg_8data_1a5a40df6e5a51e7f568eb693ee912a5b4" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__bt__evt__external__bondingdb__local__irk__s" kindref="compound">sl_bt_evt_external_bondingdb_local_irk_t</ref></type>
+        <definition></definition>
+        <argsstring></argsstring>
+        <name>evt_external_bondingdb_local_irk</name>
+        <qualifiedname>sl_bt_msg.data::evt_external_bondingdb_local_irk</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Data field for event sl_bt_evt_external_bondingdb_local_irk_id </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16569" column="66"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionsl__bt__msg_8data_1aec9f34ea4634f4ee884bd25fbd65ab87" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__bt__evt__cs__security__enable__complete__s" kindref="compound">sl_bt_evt_cs_security_enable_complete_t</ref></type>
+        <definition></definition>
+        <argsstring></argsstring>
+        <name>evt_cs_security_enable_complete</name>
+        <qualifiedname>sl_bt_msg.data::evt_cs_security_enable_complete</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Data field for event sl_bt_evt_cs_security_enable_complete_id </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16570" column="66"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionsl__bt__msg_8data_1adeaa011d7bde4023ccc2b4cc1183bfb8" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__bt__evt__cs__config__complete__s" kindref="compound">sl_bt_evt_cs_config_complete_t</ref></type>
+        <definition></definition>
+        <argsstring></argsstring>
+        <name>evt_cs_config_complete</name>
+        <qualifiedname>sl_bt_msg.data::evt_cs_config_complete</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Data field for event sl_bt_evt_cs_config_complete_id </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16571" column="66"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionsl__bt__msg_8data_1a963bb2b9f6eefa05819f81c437eba770" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__bt__evt__cs__procedure__enable__complete__s" kindref="compound">sl_bt_evt_cs_procedure_enable_complete_t</ref></type>
+        <definition></definition>
+        <argsstring></argsstring>
+        <name>evt_cs_procedure_enable_complete</name>
+        <qualifiedname>sl_bt_msg.data::evt_cs_procedure_enable_complete</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Data field for event sl_bt_evt_cs_procedure_enable_complete_id </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16572" column="66"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionsl__bt__msg_8data_1ae0e5d6235ea803394d6e6a0774617c12" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__bt__evt__cs__result__s" kindref="compound">sl_bt_evt_cs_result_t</ref></type>
+        <definition></definition>
+        <argsstring></argsstring>
+        <name>evt_cs_result</name>
+        <qualifiedname>sl_bt_msg.data::evt_cs_result</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Data field for event sl_bt_evt_cs_result_id </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16573" column="66"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionsl__bt__msg_8data_1a9fd8024a1e0f8057c3c3b0e273dc9dc3" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__bt__evt__cs__result__continue__s" kindref="compound">sl_bt_evt_cs_result_continue_t</ref></type>
+        <definition></definition>
+        <argsstring></argsstring>
+        <name>evt_cs_result_continue</name>
+        <qualifiedname>sl_bt_msg.data::evt_cs_result_continue</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Data field for event sl_bt_evt_cs_result_continue_id </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16574" column="66"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionsl__bt__msg_8data_1a3f7222be86b184462d39c9c0694cbcf8" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__bt__evt__cs__read__remote__supported__capabilities__complete__s" kindref="compound">sl_bt_evt_cs_read_remote_supported_capabilities_complete_t</ref></type>
+        <definition></definition>
+        <argsstring></argsstring>
+        <name>evt_cs_read_remote_supported_capabilities_complete</name>
+        <qualifiedname>sl_bt_msg.data::evt_cs_read_remote_supported_capabilities_complete</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Data field for event sl_bt_evt_cs_read_remote_supported_capabilities_complete_id </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16575" column="66"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionsl__bt__msg_8data_1a8b0993b257160674eb908c7582c93d88" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__bt__evt__cs__test__end__completed__s" kindref="compound">sl_bt_evt_cs_test_end_completed_t</ref></type>
+        <definition></definition>
+        <argsstring></argsstring>
+        <name>evt_cs_test_end_completed</name>
+        <qualifiedname>sl_bt_msg.data::evt_cs_test_end_completed</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Data field for event sl_bt_evt_cs_test_end_completed_id </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16576" column="66"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionsl__bt__msg_8data_1a81144447f6b2876df6f00bd076c8f40c" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__bt__evt__l2cap__le__channel__open__request__s" kindref="compound">sl_bt_evt_l2cap_le_channel_open_request_t</ref></type>
+        <definition></definition>
+        <argsstring></argsstring>
+        <name>evt_l2cap_le_channel_open_request</name>
+        <qualifiedname>sl_bt_msg.data::evt_l2cap_le_channel_open_request</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Data field for event sl_bt_evt_l2cap_le_channel_open_request_id </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16577" column="66"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionsl__bt__msg_8data_1aa3d013c07252fe8c04fa37086b936334" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__bt__evt__l2cap__le__channel__open__response__s" kindref="compound">sl_bt_evt_l2cap_le_channel_open_response_t</ref></type>
+        <definition></definition>
+        <argsstring></argsstring>
+        <name>evt_l2cap_le_channel_open_response</name>
+        <qualifiedname>sl_bt_msg.data::evt_l2cap_le_channel_open_response</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Data field for event sl_bt_evt_l2cap_le_channel_open_response_id </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16578" column="66"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionsl__bt__msg_8data_1ae46247640eee440bee69f4b7ca5e1c2e" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__bt__evt__l2cap__channel__data__s" kindref="compound">sl_bt_evt_l2cap_channel_data_t</ref></type>
+        <definition></definition>
+        <argsstring></argsstring>
+        <name>evt_l2cap_channel_data</name>
+        <qualifiedname>sl_bt_msg.data::evt_l2cap_channel_data</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Data field for event sl_bt_evt_l2cap_channel_data_id </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16579" column="66"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionsl__bt__msg_8data_1a2039de674836136b0d8b60541033557c" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__bt__evt__l2cap__channel__credit__s" kindref="compound">sl_bt_evt_l2cap_channel_credit_t</ref></type>
+        <definition></definition>
+        <argsstring></argsstring>
+        <name>evt_l2cap_channel_credit</name>
+        <qualifiedname>sl_bt_msg.data::evt_l2cap_channel_credit</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Data field for event sl_bt_evt_l2cap_channel_credit_id </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16580" column="66"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionsl__bt__msg_8data_1ace81c1bd8849f441588dc7ef9bd6d4f6" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__bt__evt__l2cap__channel__closed__s" kindref="compound">sl_bt_evt_l2cap_channel_closed_t</ref></type>
+        <definition></definition>
+        <argsstring></argsstring>
+        <name>evt_l2cap_channel_closed</name>
+        <qualifiedname>sl_bt_msg.data::evt_l2cap_channel_closed</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Data field for event sl_bt_evt_l2cap_channel_closed_id </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16581" column="66"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionsl__bt__msg_8data_1ae1cca19d77fe66083cd1fa42656fab28" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__bt__evt__l2cap__command__rejected__s" kindref="compound">sl_bt_evt_l2cap_command_rejected_t</ref></type>
+        <definition></definition>
+        <argsstring></argsstring>
+        <name>evt_l2cap_command_rejected</name>
+        <qualifiedname>sl_bt_msg.data::evt_l2cap_command_rejected</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Data field for event sl_bt_evt_l2cap_command_rejected_id </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16582" column="66"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionsl__bt__msg_8data_1a87435191cae9f363996d0a9a423ea89e" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__bt__evt__cte__receiver__dtm__iq__report__s" kindref="compound">sl_bt_evt_cte_receiver_dtm_iq_report_t</ref></type>
+        <definition></definition>
+        <argsstring></argsstring>
+        <name>evt_cte_receiver_dtm_iq_report</name>
+        <qualifiedname>sl_bt_msg.data::evt_cte_receiver_dtm_iq_report</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Data field for event sl_bt_evt_cte_receiver_dtm_iq_report_id </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16583" column="66"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionsl__bt__msg_8data_1a0b8d1369376928a5e6757a5872f222d4" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__bt__evt__cte__receiver__connection__iq__report__s" kindref="compound">sl_bt_evt_cte_receiver_connection_iq_report_t</ref></type>
+        <definition></definition>
+        <argsstring></argsstring>
+        <name>evt_cte_receiver_connection_iq_report</name>
+        <qualifiedname>sl_bt_msg.data::evt_cte_receiver_connection_iq_report</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Data field for event sl_bt_evt_cte_receiver_connection_iq_report_id </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16584" column="66"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionsl__bt__msg_8data_1a9e02024f216801621fe2ee6e60d8801f" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__bt__evt__cte__receiver__connectionless__iq__report__s" kindref="compound">sl_bt_evt_cte_receiver_connectionless_iq_report_t</ref></type>
+        <definition></definition>
+        <argsstring></argsstring>
+        <name>evt_cte_receiver_connectionless_iq_report</name>
+        <qualifiedname>sl_bt_msg.data::evt_cte_receiver_connectionless_iq_report</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Data field for event sl_bt_evt_cte_receiver_connectionless_iq_report_id </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16585" column="66"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionsl__bt__msg_8data_1a0317ce991bd51b76b0f6e444be5e1f11" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__bt__evt__cte__receiver__silabs__iq__report__s" kindref="compound">sl_bt_evt_cte_receiver_silabs_iq_report_t</ref></type>
+        <definition></definition>
+        <argsstring></argsstring>
+        <name>evt_cte_receiver_silabs_iq_report</name>
+        <qualifiedname>sl_bt_msg.data::evt_cte_receiver_silabs_iq_report</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Data field for event sl_bt_evt_cte_receiver_silabs_iq_report_id </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16586" column="66"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionsl__bt__msg_8data_1aaec71e9131e150e41b6e6aa0052ffb15" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__bt__evt__connection__analyzer__report__s" kindref="compound">sl_bt_evt_connection_analyzer_report_t</ref></type>
+        <definition></definition>
+        <argsstring></argsstring>
+        <name>evt_connection_analyzer_report</name>
+        <qualifiedname>sl_bt_msg.data::evt_connection_analyzer_report</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Data field for event sl_bt_evt_connection_analyzer_report_id </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16587" column="66"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionsl__bt__msg_8data_1acc35522f8c350f3676926d5c44ebee87" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__bt__evt__connection__analyzer__completed__s" kindref="compound">sl_bt_evt_connection_analyzer_completed_t</ref></type>
+        <definition></definition>
+        <argsstring></argsstring>
+        <name>evt_connection_analyzer_completed</name>
+        <qualifiedname>sl_bt_msg.data::evt_connection_analyzer_completed</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Data field for event sl_bt_evt_connection_analyzer_completed_id </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16588" column="66"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionsl__bt__msg_8data_1a6aea8fb47c88275ed44717abe5ab637f" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__bt__evt__user__message__to__host__s" kindref="compound">sl_bt_evt_user_message_to_host_t</ref></type>
+        <definition></definition>
+        <argsstring></argsstring>
+        <name>evt_user_message_to_host</name>
+        <qualifiedname>sl_bt_msg.data::evt_user_message_to_host</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Data field for event sl_bt_evt_user_message_to_host_id </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16589" column="66"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionsl__bt__msg_8data_1a3aaa71cd16dedb31199882ca8fd8fe6e" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__bt__evt__user__cs__service__message__to__host__s" kindref="compound">sl_bt_evt_user_cs_service_message_to_host_t</ref></type>
+        <definition></definition>
+        <argsstring></argsstring>
+        <name>evt_user_cs_service_message_to_host</name>
+        <qualifiedname>sl_bt_msg.data::evt_user_cs_service_message_to_host</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Data field for event sl_bt_evt_user_cs_service_message_to_host_id </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16590" column="66"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionsl__bt__msg_8data_1a666eb5250efa07e775220df62056960c" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition></definition>
+        <argsstring>[SL_BGAPI_MAX_PAYLOAD_SIZE]</argsstring>
+        <name>payload</name>
+        <qualifiedname>sl_bt_msg.data::payload</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16591" column="13"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para>Union of API event types </para>
+    </detaileddescription>
+    <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16505" column="3" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="16505" bodyend="16592"/>
+    <listofallmembers>
+      <member refid="unionsl__bt__msg_8data_1a38d5af7435ce13540e12136ed70e3e6a" prot="public" virt="non-virtual"><scope>sl_bt_msg.data</scope><name>evt_advertiser_scan_request</name></member>
+      <member refid="unionsl__bt__msg_8data_1a7cbb758c23cd09c4cfe59d347840995d" prot="public" virt="non-virtual"><scope>sl_bt_msg.data</scope><name>evt_advertiser_timeout</name></member>
+      <member refid="unionsl__bt__msg_8data_1acc35522f8c350f3676926d5c44ebee87" prot="public" virt="non-virtual"><scope>sl_bt_msg.data</scope><name>evt_connection_analyzer_completed</name></member>
+      <member refid="unionsl__bt__msg_8data_1aaec71e9131e150e41b6e6aa0052ffb15" prot="public" virt="non-virtual"><scope>sl_bt_msg.data</scope><name>evt_connection_analyzer_report</name></member>
+      <member refid="unionsl__bt__msg_8data_1aaae904624ad08268fc39c426401df825" prot="public" virt="non-virtual"><scope>sl_bt_msg.data</scope><name>evt_connection_channel_classification</name></member>
+      <member refid="unionsl__bt__msg_8data_1a201f7b6e310ea8263f6624fc4c117afe" prot="public" virt="non-virtual"><scope>sl_bt_msg.data</scope><name>evt_connection_closed</name></member>
+      <member refid="unionsl__bt__msg_8data_1a4a239b2d3031dd420b535da2d2960954" prot="public" virt="non-virtual"><scope>sl_bt_msg.data</scope><name>evt_connection_data_length</name></member>
+      <member refid="unionsl__bt__msg_8data_1ad08a398ae489980120b4e0b64a8d149a" prot="public" virt="non-virtual"><scope>sl_bt_msg.data</scope><name>evt_connection_get_remote_tx_power_completed</name></member>
+      <member refid="unionsl__bt__msg_8data_1a25182776a172f7bf1f195c0cf7e2fe32" prot="public" virt="non-virtual"><scope>sl_bt_msg.data</scope><name>evt_connection_opened</name></member>
+      <member refid="unionsl__bt__msg_8data_1a39428113ae7bfb67fa01a584f884fbc7" prot="public" virt="non-virtual"><scope>sl_bt_msg.data</scope><name>evt_connection_parameters</name></member>
+      <member refid="unionsl__bt__msg_8data_1a6df1f2648ba1af3d799d09ba5637118f" prot="public" virt="non-virtual"><scope>sl_bt_msg.data</scope><name>evt_connection_phy_status</name></member>
+      <member refid="unionsl__bt__msg_8data_1a4c3683ee67eb477a8e1ae8f9a5f2347f" prot="public" virt="non-virtual"><scope>sl_bt_msg.data</scope><name>evt_connection_remote_tx_power</name></member>
+      <member refid="unionsl__bt__msg_8data_1abaebdf52e673bbd800d81804ee491e32" prot="public" virt="non-virtual"><scope>sl_bt_msg.data</scope><name>evt_connection_remote_used_features</name></member>
+      <member refid="unionsl__bt__msg_8data_1ab370947da6e9d0c2661d7a95822b3bce" prot="public" virt="non-virtual"><scope>sl_bt_msg.data</scope><name>evt_connection_request_subrate_failed</name></member>
+      <member refid="unionsl__bt__msg_8data_1a01f8e3e043b62db4c8cec09c6fdf8f60" prot="public" virt="non-virtual"><scope>sl_bt_msg.data</scope><name>evt_connection_set_parameters_failed</name></member>
+      <member refid="unionsl__bt__msg_8data_1a81efa1f862068cbaf48e0f4ac17630f6" prot="public" virt="non-virtual"><scope>sl_bt_msg.data</scope><name>evt_connection_statistics</name></member>
+      <member refid="unionsl__bt__msg_8data_1afb751aaabe41ec901bac8dd3a6beb1a8" prot="public" virt="non-virtual"><scope>sl_bt_msg.data</scope><name>evt_connection_subrate_changed</name></member>
+      <member refid="unionsl__bt__msg_8data_1a2d7b506050899eb876019256bbbed1cc" prot="public" virt="non-virtual"><scope>sl_bt_msg.data</scope><name>evt_connection_tx_power</name></member>
+      <member refid="unionsl__bt__msg_8data_1adeaa011d7bde4023ccc2b4cc1183bfb8" prot="public" virt="non-virtual"><scope>sl_bt_msg.data</scope><name>evt_cs_config_complete</name></member>
+      <member refid="unionsl__bt__msg_8data_1a963bb2b9f6eefa05819f81c437eba770" prot="public" virt="non-virtual"><scope>sl_bt_msg.data</scope><name>evt_cs_procedure_enable_complete</name></member>
+      <member refid="unionsl__bt__msg_8data_1a3f7222be86b184462d39c9c0694cbcf8" prot="public" virt="non-virtual"><scope>sl_bt_msg.data</scope><name>evt_cs_read_remote_supported_capabilities_complete</name></member>
+      <member refid="unionsl__bt__msg_8data_1ae0e5d6235ea803394d6e6a0774617c12" prot="public" virt="non-virtual"><scope>sl_bt_msg.data</scope><name>evt_cs_result</name></member>
+      <member refid="unionsl__bt__msg_8data_1a9fd8024a1e0f8057c3c3b0e273dc9dc3" prot="public" virt="non-virtual"><scope>sl_bt_msg.data</scope><name>evt_cs_result_continue</name></member>
+      <member refid="unionsl__bt__msg_8data_1aec9f34ea4634f4ee884bd25fbd65ab87" prot="public" virt="non-virtual"><scope>sl_bt_msg.data</scope><name>evt_cs_security_enable_complete</name></member>
+      <member refid="unionsl__bt__msg_8data_1a8b0993b257160674eb908c7582c93d88" prot="public" virt="non-virtual"><scope>sl_bt_msg.data</scope><name>evt_cs_test_end_completed</name></member>
+      <member refid="unionsl__bt__msg_8data_1a0b8d1369376928a5e6757a5872f222d4" prot="public" virt="non-virtual"><scope>sl_bt_msg.data</scope><name>evt_cte_receiver_connection_iq_report</name></member>
+      <member refid="unionsl__bt__msg_8data_1a9e02024f216801621fe2ee6e60d8801f" prot="public" virt="non-virtual"><scope>sl_bt_msg.data</scope><name>evt_cte_receiver_connectionless_iq_report</name></member>
+      <member refid="unionsl__bt__msg_8data_1a87435191cae9f363996d0a9a423ea89e" prot="public" virt="non-virtual"><scope>sl_bt_msg.data</scope><name>evt_cte_receiver_dtm_iq_report</name></member>
+      <member refid="unionsl__bt__msg_8data_1a0317ce991bd51b76b0f6e444be5e1f11" prot="public" virt="non-virtual"><scope>sl_bt_msg.data</scope><name>evt_cte_receiver_silabs_iq_report</name></member>
+      <member refid="unionsl__bt__msg_8data_1a80cdac15945be6c10710665d2e378357" prot="public" virt="non-virtual"><scope>sl_bt_msg.data</scope><name>evt_dfu_boot</name></member>
+      <member refid="unionsl__bt__msg_8data_1a59c3a5ad4070ab665d308e116e7afb07" prot="public" virt="non-virtual"><scope>sl_bt_msg.data</scope><name>evt_dfu_boot_failure</name></member>
+      <member refid="unionsl__bt__msg_8data_1af4de508c3d75824ee930f7a124d370a3" prot="public" virt="non-virtual"><scope>sl_bt_msg.data</scope><name>evt_external_bondingdb_data</name></member>
+      <member refid="unionsl__bt__msg_8data_1abc9f2f183c575aaa212583157fb8d246" prot="public" virt="non-virtual"><scope>sl_bt_msg.data</scope><name>evt_external_bondingdb_data_ready</name></member>
+      <member refid="unionsl__bt__msg_8data_1ab2cda3f5605f1fea9559fc2e574f6ed4" prot="public" virt="non-virtual"><scope>sl_bt_msg.data</scope><name>evt_external_bondingdb_data_request</name></member>
+      <member refid="unionsl__bt__msg_8data_1a5a40df6e5a51e7f568eb693ee912a5b4" prot="public" virt="non-virtual"><scope>sl_bt_msg.data</scope><name>evt_external_bondingdb_local_irk</name></member>
+      <member refid="unionsl__bt__msg_8data_1a2bdc7e1d0f4345bc77bdfb86032d9e17" prot="public" virt="non-virtual"><scope>sl_bt_msg.data</scope><name>evt_gatt_characteristic</name></member>
+      <member refid="unionsl__bt__msg_8data_1acbc18ee686f33c68ebbabfbcd668e8fd" prot="public" virt="non-virtual"><scope>sl_bt_msg.data</scope><name>evt_gatt_characteristic_value</name></member>
+      <member refid="unionsl__bt__msg_8data_1a0abe6f7a12808ee50905e6ab553c1d91" prot="public" virt="non-virtual"><scope>sl_bt_msg.data</scope><name>evt_gatt_descriptor</name></member>
+      <member refid="unionsl__bt__msg_8data_1a113670d75da6834373160214ebb3370a" prot="public" virt="non-virtual"><scope>sl_bt_msg.data</scope><name>evt_gatt_descriptor_value</name></member>
+      <member refid="unionsl__bt__msg_8data_1a1926b7f807e547811af8bde1877c2aad" prot="public" virt="non-virtual"><scope>sl_bt_msg.data</scope><name>evt_gatt_mtu_exchanged</name></member>
+      <member refid="unionsl__bt__msg_8data_1a3c6d4bd779bdc8b814d277d674e05c96" prot="public" virt="non-virtual"><scope>sl_bt_msg.data</scope><name>evt_gatt_procedure_completed</name></member>
+      <member refid="unionsl__bt__msg_8data_1ae1f22176a12bfc8dac577902fe00ce5d" prot="public" virt="non-virtual"><scope>sl_bt_msg.data</scope><name>evt_gatt_server_attribute_value</name></member>
+      <member refid="unionsl__bt__msg_8data_1ac76d2500c0b8afcbbbcb6001315889b0" prot="public" virt="non-virtual"><scope>sl_bt_msg.data</scope><name>evt_gatt_server_characteristic_status</name></member>
+      <member refid="unionsl__bt__msg_8data_1a1348b678cd156baab899fd82b4272658" prot="public" virt="non-virtual"><scope>sl_bt_msg.data</scope><name>evt_gatt_server_execute_write_completed</name></member>
+      <member refid="unionsl__bt__msg_8data_1ac087f0684a3c670978689cb17bf26e78" prot="public" virt="non-virtual"><scope>sl_bt_msg.data</scope><name>evt_gatt_server_indication_timeout</name></member>
+      <member refid="unionsl__bt__msg_8data_1a1bc5493ae1c06cbd7b3f6615803dd2a8" prot="public" virt="non-virtual"><scope>sl_bt_msg.data</scope><name>evt_gatt_server_notification_tx_completed</name></member>
+      <member refid="unionsl__bt__msg_8data_1a4a050dc4adfbfcc96b9c17411f674c0e" prot="public" virt="non-virtual"><scope>sl_bt_msg.data</scope><name>evt_gatt_server_user_read_request</name></member>
+      <member refid="unionsl__bt__msg_8data_1ae24a3e6a6f48b653a1e4e7efb8f11772" prot="public" virt="non-virtual"><scope>sl_bt_msg.data</scope><name>evt_gatt_server_user_write_request</name></member>
+      <member refid="unionsl__bt__msg_8data_1a4449692bdf76b0f915e88dc49b43aeb3" prot="public" virt="non-virtual"><scope>sl_bt_msg.data</scope><name>evt_gatt_service</name></member>
+      <member refid="unionsl__bt__msg_8data_1ace81c1bd8849f441588dc7ef9bd6d4f6" prot="public" virt="non-virtual"><scope>sl_bt_msg.data</scope><name>evt_l2cap_channel_closed</name></member>
+      <member refid="unionsl__bt__msg_8data_1a2039de674836136b0d8b60541033557c" prot="public" virt="non-virtual"><scope>sl_bt_msg.data</scope><name>evt_l2cap_channel_credit</name></member>
+      <member refid="unionsl__bt__msg_8data_1ae46247640eee440bee69f4b7ca5e1c2e" prot="public" virt="non-virtual"><scope>sl_bt_msg.data</scope><name>evt_l2cap_channel_data</name></member>
+      <member refid="unionsl__bt__msg_8data_1ae1cca19d77fe66083cd1fa42656fab28" prot="public" virt="non-virtual"><scope>sl_bt_msg.data</scope><name>evt_l2cap_command_rejected</name></member>
+      <member refid="unionsl__bt__msg_8data_1a81144447f6b2876df6f00bd076c8f40c" prot="public" virt="non-virtual"><scope>sl_bt_msg.data</scope><name>evt_l2cap_le_channel_open_request</name></member>
+      <member refid="unionsl__bt__msg_8data_1aa3d013c07252fe8c04fa37086b936334" prot="public" virt="non-virtual"><scope>sl_bt_msg.data</scope><name>evt_l2cap_le_channel_open_response</name></member>
+      <member refid="unionsl__bt__msg_8data_1a6dfca974e0f8e82f3f90c46b2ece233b" prot="public" virt="non-virtual"><scope>sl_bt_msg.data</scope><name>evt_linklayer_event_info_report</name></member>
+      <member refid="unionsl__bt__msg_8data_1af66e94ad90ef197c38a9b9eb69405a03" prot="public" virt="non-virtual"><scope>sl_bt_msg.data</scope><name>evt_pawr_advertiser_response_report</name></member>
+      <member refid="unionsl__bt__msg_8data_1ac935bd6f5aa5b22444b3b63ef498ce0c" prot="public" virt="non-virtual"><scope>sl_bt_msg.data</scope><name>evt_pawr_advertiser_subevent_data_request</name></member>
+      <member refid="unionsl__bt__msg_8data_1a881781e72d071108b9cada740cd91143" prot="public" virt="non-virtual"><scope>sl_bt_msg.data</scope><name>evt_pawr_advertiser_subevent_tx_failed</name></member>
+      <member refid="unionsl__bt__msg_8data_1a8565d956ceaa3f94296ebd963dd5dcef" prot="public" virt="non-virtual"><scope>sl_bt_msg.data</scope><name>evt_pawr_sync_opened</name></member>
+      <member refid="unionsl__bt__msg_8data_1ab65d7f8ea811a57f42fe575e90a1c0be" prot="public" virt="non-virtual"><scope>sl_bt_msg.data</scope><name>evt_pawr_sync_subevent_report</name></member>
+      <member refid="unionsl__bt__msg_8data_1ac68c657f970811167205ba1b39d43bf2" prot="public" virt="non-virtual"><scope>sl_bt_msg.data</scope><name>evt_pawr_sync_transfer_received</name></member>
+      <member refid="unionsl__bt__msg_8data_1a383aec7fe065f4d5630e1f1a7f43aed0" prot="public" virt="non-virtual"><scope>sl_bt_msg.data</scope><name>evt_periodic_advertiser_status</name></member>
+      <member refid="unionsl__bt__msg_8data_1a35d433803b504816d6cad1c72c9a6730" prot="public" virt="non-virtual"><scope>sl_bt_msg.data</scope><name>evt_periodic_sync_opened</name></member>
+      <member refid="unionsl__bt__msg_8data_1ab511f185c7c5cf40ae76d61151fdc840" prot="public" virt="non-virtual"><scope>sl_bt_msg.data</scope><name>evt_periodic_sync_report</name></member>
+      <member refid="unionsl__bt__msg_8data_1a98aace150cd58018e16a7cc995e75b76" prot="public" virt="non-virtual"><scope>sl_bt_msg.data</scope><name>evt_periodic_sync_transfer_received</name></member>
+      <member refid="unionsl__bt__msg_8data_1affef37a5a28996df4b4619c015773eb6" prot="public" virt="non-virtual"><scope>sl_bt_msg.data</scope><name>evt_resource_status</name></member>
+      <member refid="unionsl__bt__msg_8data_1a71b5da1d81fb58f2fcbff5fbaed9f29b" prot="public" virt="non-virtual"><scope>sl_bt_msg.data</scope><name>evt_scanner_extended_advertisement_report</name></member>
+      <member refid="unionsl__bt__msg_8data_1a855eb4dac7e6f410a64614fd7bf53d16" prot="public" virt="non-virtual"><scope>sl_bt_msg.data</scope><name>evt_scanner_legacy_advertisement_report</name></member>
+      <member refid="unionsl__bt__msg_8data_1af629e825c56d2c9bec01a660598ef7a4" prot="public" virt="non-virtual"><scope>sl_bt_msg.data</scope><name>evt_sm_bonded</name></member>
+      <member refid="unionsl__bt__msg_8data_1a909b96190b704c032f4ddf6f994d7fbc" prot="public" virt="non-virtual"><scope>sl_bt_msg.data</scope><name>evt_sm_bonding_failed</name></member>
+      <member refid="unionsl__bt__msg_8data_1a90de02453237d9dda0d621490f71fcb8" prot="public" virt="non-virtual"><scope>sl_bt_msg.data</scope><name>evt_sm_confirm_bonding</name></member>
+      <member refid="unionsl__bt__msg_8data_1a99b12e67247fa689b51b20c7fbcab9b2" prot="public" virt="non-virtual"><scope>sl_bt_msg.data</scope><name>evt_sm_confirm_passkey</name></member>
+      <member refid="unionsl__bt__msg_8data_1a8b011fd0b62ab1d8b2e6dbb850b23d63" prot="public" virt="non-virtual"><scope>sl_bt_msg.data</scope><name>evt_sm_passkey_display</name></member>
+      <member refid="unionsl__bt__msg_8data_1af2e52d995dc5dbc5fbb5411747dc88f8" prot="public" virt="non-virtual"><scope>sl_bt_msg.data</scope><name>evt_sm_passkey_request</name></member>
+      <member refid="unionsl__bt__msg_8data_1ae3b6225d4de441399951d2bcfcc59689" prot="public" virt="non-virtual"><scope>sl_bt_msg.data</scope><name>evt_sync_closed</name></member>
+      <member refid="unionsl__bt__msg_8data_1a14c98c43c426ee9fc5156ce9308e39d7" prot="public" virt="non-virtual"><scope>sl_bt_msg.data</scope><name>evt_system_boot</name></member>
+      <member refid="unionsl__bt__msg_8data_1a6002f448ea03168af7716e495571e58f" prot="public" virt="non-virtual"><scope>sl_bt_msg.data</scope><name>evt_system_error</name></member>
+      <member refid="unionsl__bt__msg_8data_1a19a2befbece82056e2c458a1cb0e388f" prot="public" virt="non-virtual"><scope>sl_bt_msg.data</scope><name>evt_system_external_signal</name></member>
+      <member refid="unionsl__bt__msg_8data_1ab0248346384157cc3115287197c9676f" prot="public" virt="non-virtual"><scope>sl_bt_msg.data</scope><name>evt_system_resource_exhausted</name></member>
+      <member refid="unionsl__bt__msg_8data_1aa1129745097659fbc54c9c0d6682cf59" prot="public" virt="non-virtual"><scope>sl_bt_msg.data</scope><name>evt_system_soft_timer</name></member>
+      <member refid="unionsl__bt__msg_8data_1a1a17fa830feeef547503fcb0bffd9045" prot="public" virt="non-virtual"><scope>sl_bt_msg.data</scope><name>evt_test_dtm_completed</name></member>
+      <member refid="unionsl__bt__msg_8data_1a3aaa71cd16dedb31199882ca8fd8fe6e" prot="public" virt="non-virtual"><scope>sl_bt_msg.data</scope><name>evt_user_cs_service_message_to_host</name></member>
+      <member refid="unionsl__bt__msg_8data_1a6aea8fb47c88275ed44717abe5ab637f" prot="public" virt="non-virtual"><scope>sl_bt_msg.data</scope><name>evt_user_message_to_host</name></member>
+      <member refid="unionsl__bt__msg_8data_1ae1260894f59eeae98c8440899de4df8d" prot="public" virt="non-virtual"><scope>sl_bt_msg.data</scope><name>handle</name></member>
+      <member refid="unionsl__bt__msg_8data_1a666eb5250efa07e775220df62056960c" prot="public" virt="non-virtual"><scope>sl_bt_msg.data</scope><name>payload</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

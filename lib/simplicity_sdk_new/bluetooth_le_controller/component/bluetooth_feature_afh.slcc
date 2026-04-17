@@ -1,0 +1,26 @@
+id: "bluetooth_feature_afh"
+label: "AFH"
+package: bluetooth_le_controller
+description: >
+  Adaptive Frequency Hopping (AFH) is a feature in Bluetooth technology to ensure
+  reliable data transmission, especially in noisy environments. If the central
+  device detects high interference on a channel, it can initiate a channel map
+  update. This means that the communicating devices are continuously monitoring
+  their environment for interference and are continuously changing the channel
+  map to address the interference. AFH is a requirement for using TX power over
+  +10 dBm. It may also provide performance improvement by avoiding congested
+  channels.
+category: Bluetooth|Bluetooth LE Controller (Link Layer)|Additional Features
+quality: "production"
+requires:
+- name: "bluetooth_controller"
+- name: "bluetooth_feature_high_power"
+provides:
+- name: "bluetooth_feature_afh"
+template_contribution:
+- name: component_catalog
+  value: bluetooth_feature_afh
+metadata:
+  sbom:
+    license: MSLA
+root_path: bluetooth_le_controller

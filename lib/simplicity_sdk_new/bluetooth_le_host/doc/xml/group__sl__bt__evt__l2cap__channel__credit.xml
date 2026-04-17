@@ -1,0 +1,42 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__evt__l2cap__channel__credit" kind="group">
+    <compoundname>sl_bt_evt_l2cap_channel_credit</compoundname>
+    <title>sl_bt_evt_l2cap_channel_credit</title>
+    <innerclass refid="structsl__bt__evt__l2cap__channel__credit__s" prot="public">sl_bt_evt_l2cap_channel_credit_s</innerclass>
+      <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="group__sl__bt__evt__l2cap__channel__credit_1ga57d200f43174611cc79c7c9495e53c23" prot="public" static="no">
+        <type>struct <ref refid="structsl__bt__evt__l2cap__channel__credit__s" kindref="compound">sl_bt_evt_l2cap_channel_credit_s</ref></type>
+        <definition>typedef struct sl_bt_evt_l2cap_channel_credit_s sl_bt_evt_l2cap_channel_credit_t</definition>
+        <argsstring></argsstring>
+        <name>sl_bt_evt_l2cap_channel_credit_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15016" column="47" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="15016" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__evt__l2cap__channel__credit_1gaa1d3df49b1ab7a0917897ba9facfc88d" prot="public" static="no">
+        <name>sl_bt_evt_l2cap_channel_credit_id</name>
+        <initializer>0x044300a0</initializer>
+        <briefdescription>
+<para>Identifier of the channel_credit event. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15002" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="15002" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Indicates that flow control credits are received on a channel informing that the peer channel endpoint is capable of receiving more data. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,28 @@
+id: "btmesh_dcd_configuration"
+label: "DCD Configuration"
+package: bluetooth_mesh_middleware
+description: "Bluetooth Mesh Configuration"
+category: "Bluetooth Mesh|DCD"
+quality: "production"
+metadata:
+  sbom:
+    license: Zlib
+root_path: "bluetooth_mesh_middleware/common/btmesh_dcd_configuration"
+config_file:
+- path: "dcd_config.btmeshconf"
+  file_id: dcd_configuration_file_id
+  directory: "btmeshconf"
+
+provides:
+- name: "btmesh_dcd_configuration"
+- name: "dcd_configuration"
+
+requires:
+- name: "btmesh_stack"
+
+template_contribution:
+- name: component_catalog
+  value: btmesh_dcd_configuration
+
+ui_hints:
+  visibility: never

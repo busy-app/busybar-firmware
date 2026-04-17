@@ -1,0 +1,137 @@
+project_name: wifi_ble_provisioning_aws_devkit
+package: multi_protocol_siwx91x_app
+quality: production
+label: wifi_ble_provisioning_aws_devkit
+category: Example|Wi-Fi_BLE
+description: 'This application explains how to connect to a Wi-Fi access point using BLE provisioning functionality and then communicates with an AWS server using MQTT for devkit. Data will be continuously published until the device is disconnected from the access point
+
+  '
+filter:
+- name: Wireless Technology
+  value:
+  - WiFi BLE
+- name: Project Difficulty
+  value:
+  - Intermediate
+source:
+- path: app.c
+- path: ble_app.c
+- path: wifi_app.c
+- path: sensor_app.c
+- path: sensors/humidity_sensor.c
+- path: sensors/light_sensor.c
+- path: sensors/motion_sensor.c
+- path: sensors/rgb_led.c
+include:
+- path: .
+  file_list:
+  - path: app.h
+  - path: ble_config.h
+  - path: wifi_config.h
+- path: sensors
+  file_list:
+  - path: humidity_sensor.h
+  - path: light_sensor.h
+  - path: motion_sensor.h
+  - path: rgb_led.h
+define:
+- name: SL_SI91X_PRINT_DBG_LOG
+- name: SLI_SI91X_SOCKETS
+- name: SENSOR_RESPONSE_BUFFER_SIZE
+  value: 256
+component:
+- id: sl_main
+- id: freertos
+- id: freertos_heap_4
+- id: syscalls
+- id: si91x_memory_default_config
+- id: wiseconnect_common
+- id: sl_i2c_peripheral
+- id: ble
+- id: wifi
+- id: sl_si91x_internal_stack
+- id: wifi_resources
+- id: network_manager
+- id: basic_network_config_manager
+- id: sl_si91x_asynchronous_socket
+- id: aws_sdk
+- id: sl_si91x_basic_buffers
+- id: gpio_npss_component
+- id: sl_si91x_rgb_led_917
+  instance:
+  - red
+  - green
+  - blue
+- id: sl_si70xx
+- id: ssi_ulp_component
+- id: sl_ssi
+- id: sl_icm40627
+- id: sl_gpio
+- id: sl_veml6035
+- instance:
+  - i2c2
+  id: i2c_instance
+- id: sl_power_manager
+requires:
+- name: device_needs_ram_execution
+  condition:
+  - si91x_common_flash
+toolchain_settings:
+- option: gcc_compiler_option
+  value: -Wall -Werror
+configuration:
+- name: SL_BOARD_ENABLE_VCOM
+  value: '1'
+- name: ENABLE_NPSS_GPIO_2
+  value: '1'
+- name: SL_ENABLE_GPIO_WAKEUP_SOURCE
+  value: '1'
+- name: SL_SSI_DEVICE_MODE
+  value: SL_SSI_ULP_MASTER_ACTIVE
+- name: SL_SPI_BAUD
+  value: '500000'
+- name: SL_ULP_TIMER_DIRECTION
+  value: '1'
+readme:
+- path: readme.md
+other_file:
+- path: resources/readme/output1.png
+- path: resources/readme/output2.png
+- path: resources/readme/remote_screen1.png
+- path: resources/readme/remote_screen2.png
+- path: resources/readme/remote_screen3.png
+- path: resources/readme/remote_screen4.png
+- path: resources/readme/remote_screen5.png
+- path: resources/readme/aws_create_thing_step1.png
+- path: resources/readme/aws_create_thing_step2.png
+- path: resources/readme/aws_create_thing_step3.png
+- path: resources/readme/aws_create_thing_step4.png
+- path: resources/readme/aws_create_thing_step5.png
+- path: resources/readme/aws_thing_certificates_download.png
+- path: resources/readme/aws_choosing_policy.png
+- path: resources/readme/aws_create_thing_attach_policy.png
+- path: resources/readme/aws_create_thing_policy_create.png
+- path: resources/readme/aws_iot_mqtt_host_url.png
+- path: resources/readme/dut_scan_result.png
+- path: resources/readme/publish_status_from_AWS.png
+- path: resources/readme/create-project.png
+- path: resources/readme/embedded-sensor-demo-setup.png
+- path: resources/readme/Mobile_app_ui_1.png
+- path: resources/readme/Mobile_app_ui_2.png
+- path: resources/readme/Mobile_app_ui_3.png
+- path: resources/readme/Mobile_app_ui_4.png
+- path: resources/readme/Mobile_app_ui_5.png
+ui_hints:
+  highlight:
+  - path: readme.md
+    focus: true
+post_build:
+  profile: wiseconnect_soc
+sdk_extension:
+- id: wiseconnect3_sdk
+  vendor: silabs
+  version: 4.0.1
+sdk:
+  id: simplicity_sdk
+  vendor: silabs
+  version: 2025.12.2

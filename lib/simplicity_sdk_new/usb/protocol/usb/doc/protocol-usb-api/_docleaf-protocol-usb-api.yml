@@ -1,0 +1,12 @@
+objectType: docLeaf
+id: protocol-usb-api
+access: public
+status: active
+version: "1.6.0"
+docSpaceParent: ../../../../protocol/usb/_docspace-protocol-usb.yml
+authors:
+  - sobimana@silabs.com
+contentType: doxygen
+title: "API Documentation"
+description: "Protocol USB API documentation"
+sourceDir: ../../doc_tmp/xml

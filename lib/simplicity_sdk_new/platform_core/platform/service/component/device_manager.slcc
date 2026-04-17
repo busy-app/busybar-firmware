@@ -1,0 +1,21 @@
+id: device_manager
+label: Device Manager
+package: platform_core
+description: >
+  This component handles devices and technologies abstraction.
+category: Services|Device Manager
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: platform_core/platform/service/device_manager
+
+provides:
+- name: device_manager
+requires:
+- name: device
+- name: device_clock
+- name: device_peripheral
+- name: device_gpio
+- name: device_i2c
+- name: device_dma

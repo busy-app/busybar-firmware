@@ -1,0 +1,20 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<module:DocumentRoot xmlns:module="http://www.silabs.com/ss/hwconfig/module.ecore">
+  <module id="pin_tool.efr32.efr32mg24.i2c" label="I2C" name="I2C" description="" version="A">
+    <properties>
+      <stringProperty label="Type" id="type" defaultValue="i2c" transient="true" hidden="true" readonly="true" description=""/>
+      <stringProperty label="Custom Peripheral Name" id="peripheral.name" description=""/>
+    </properties>
+    <propertyCategories>
+      <category label="I2C">
+        <subCategory label="">
+          <propertyRef refId="peripheral.name"/>
+        </subCategory>
+      </category>
+    </propertyCategories>
+    <signals>
+      <signal name="SCL"/>
+      <signal name="SDA"/>
+    </signals>
+  </module>
+</module:DocumentRoot>

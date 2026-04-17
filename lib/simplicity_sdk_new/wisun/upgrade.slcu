@@ -1,0 +1,21 @@
+upgrade:
+  - sdk:
+      id: simplicity_sdk
+      version: "2025.12.0"
+    component:
+      - trigger: wisun_default_phy
+        description: >
+          The wisun_rb_detection component has been deprecated in 2025.12.0.
+        add:
+          - wisun_rb_detection
+      - trigger: wisun_rcp
+        description: >
+          The wisun_stack_ffn dependency has been removed from wisun_rcp as RCP projects should not include FFN stack functionality.
+        remove:
+          - wisun_stack_ffn
+      - trigger: wisun_rcp
+        description: >
+          The cpc_secondary_recommended_uart_interface component has been added to wisun_rcp to provide recommended UART interface for CPC secondary communication.
+        add:
+          - cpc_secondary_recommended_uart_interface
+

@@ -1,0 +1,47 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="doxygen__template_8h" kind="file" language="C++">
+    <compoundname>doxygen_template.h</compoundname>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="comment">/*******************************************************************************</highlight></codeline>
+<codeline lineno="2"><highlight class="comment">*<sp/>@file<sp/><sp/>doxygen_template.h</highlight></codeline>
+<codeline lineno="3"><highlight class="comment">*<sp/>@brief<sp/></highlight></codeline>
+<codeline lineno="4"><highlight class="comment">*******************************************************************************</highlight></codeline>
+<codeline lineno="5"><highlight class="comment">*<sp/>#<sp/>License</highlight></codeline>
+<codeline lineno="6"><highlight class="comment">*<sp/>&lt;b&gt;Copyright<sp/>2023<sp/>Silicon<sp/>Laboratories<sp/>Inc.<sp/>www.silabs.com&lt;/b&gt;</highlight></codeline>
+<codeline lineno="7"><highlight class="comment">*******************************************************************************</highlight></codeline>
+<codeline lineno="8"><highlight class="comment">*</highlight></codeline>
+<codeline lineno="9"><highlight class="comment">*<sp/>The<sp/>licensor<sp/>of<sp/>this<sp/>software<sp/>is<sp/>Silicon<sp/>Laboratories<sp/>Inc.<sp/>Your<sp/>use<sp/>of<sp/>this</highlight></codeline>
+<codeline lineno="10"><highlight class="comment">*<sp/>software<sp/>is<sp/>governed<sp/>by<sp/>the<sp/>terms<sp/>of<sp/>Silicon<sp/>Labs<sp/>Master<sp/>Software<sp/>License</highlight></codeline>
+<codeline lineno="11"><highlight class="comment">*<sp/>Agreement<sp/>(MSLA)<sp/>available<sp/>at</highlight></codeline>
+<codeline lineno="12"><highlight class="comment">*<sp/>www.silabs.com/about-us/legal/master-software-license-agreement.<sp/>This</highlight></codeline>
+<codeline lineno="13"><highlight class="comment">*<sp/>software<sp/>is<sp/>distributed<sp/>to<sp/>you<sp/>in<sp/>Source<sp/>Code<sp/>format<sp/>and<sp/>is<sp/>governed<sp/>by<sp/>the</highlight></codeline>
+<codeline lineno="14"><highlight class="comment">*<sp/>sections<sp/>of<sp/>the<sp/>MSLA<sp/>applicable<sp/>to<sp/>Source<sp/>Code.</highlight></codeline>
+<codeline lineno="15"><highlight class="comment">*</highlight></codeline>
+<codeline lineno="16"><highlight class="comment">******************************************************************************/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="17"><highlight class="normal"></highlight></codeline>
+<codeline lineno="18"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>------------------------------------------------------------------------</highlight></codeline>
+<codeline lineno="19"><highlight class="comment"><sp/>*<sp/>The<sp/>following<sp/>APIs<sp/>appear<sp/>in<sp/>the<sp/>docs.silabs.com<sp/>menu<sp/>in<sp/>the<sp/>order<sp/>shown</highlight></codeline>
+<codeline lineno="20"><highlight class="comment"><sp/>*<sp/>------------------------------------------------------------------------</highlight></codeline>
+<codeline lineno="21"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="22"><highlight class="normal"></highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="23"><highlight class="comment">/*!<sp/>@defgroup<sp/>SL_PING_APIS<sp/>APIs</highlight></codeline>
+<codeline lineno="24"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="25"><highlight class="comment"><sp/>*<sp/><sp/><sp/>This<sp/>section<sp/>provides<sp/>a<sp/>reference<sp/>to<sp/>the<sp/>Internet<sp/>Control<sp/>Message<sp/>Protocol<sp/>(ICMP)<sp/>or<sp/>Ping<sp/>protocol<sp/>API.</highlight></codeline>
+<codeline lineno="26"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="27"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="28"><highlight class="normal"></highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="29"><highlight class="comment">/*!<sp/>@defgroup<sp/>SL_PING_FUNCTIONS<sp/>Functions</highlight></codeline>
+<codeline lineno="30"><highlight class="comment"><sp/>*<sp/><sp/>@ingroup<sp/>SL_PING_APIS</highlight></codeline>
+<codeline lineno="31"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="32"><highlight class="comment"><sp/>*<sp/><sp/><sp/>This<sp/>section<sp/>provides<sp/>a<sp/>reference<sp/>to<sp/>the<sp/>Ping<sp/>API<sp/>functions.</highlight></codeline>
+<codeline lineno="33"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="34"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+    </programlisting>
+    <location file="components/device/silabs/si91x/wireless/icmp/docs/doxygen_template.h"/>
+  </compounddef>
+</doxygen>

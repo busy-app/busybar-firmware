@@ -1,0 +1,53 @@
+id: "sl_wisun_app_status"
+label: "Wi-SUN Application status over CoAP"
+package: "wisun_sdk"
+description: >
+  The component implements status notifications and resources over CoAP.
+  The component can be used in any application to gather runtime information about devices.
+  The component should be initialized with the sl_wisun_app_status_init() function.
+  Conditional sending can be customized by implementing the sl_wisun_app_status_condition_cb() function.
+  Server and notification parameters can be configured in the sl_wisun_app_status_config.h file
+  or at runtime using the appropriate setters/getters.
+  When the application starts, the component is initialized automatically with the default values from the configuration header.
+  The configuration interface provides options to enable or disable the expected statistics data from the nodes,
+  such as device information, execution time statistics, and neighbor information.
+  Notifications can be received on any CoAP server, such as the [libcoap](https://libcoap.net) server application.
+  Over the prebuilt binaries, any custom library can be used to implement a CoAP server that receives the notifications from the Wi-SUN node.
+  CoAP resources can be accessed using the CoAP client, such as the [libcoap](https://libcoap.net) client application to provide a solution for handling CoAP requests sent directly to the node.
+  The application status resource is configurable through the configuration header file and can be optionally enabled or disabled at compile time.
+
+category: "Wi-SUN|Wi-SUN Services"
+quality: "evaluation"
+metadata:
+  sbom:
+    license: Zlib
+root_path: "wisun_sdk/component/app_status"
+provides:
+- name: sl_wisun_app_status
+
+requires:
+- name: "sl_string"
+- name: "sl_wisun_coap"
+- name: "sl_wisun_app_core"
+- name: "app_project_info"
+
+source:
+- path: "sl_wisun_app_status.c"
+
+include:
+- path: "."
+  file_list:
+  - "path": "sl_wisun_app_status.h"
+config_file:
+- path: "config/sl_wisun_app_status_config.h"
+
+#-------------- Template Contribution ----------------
+template_contribution:
+- name: "event_handler"
+  value:
+    event: "internal_app_init"
+    include: "sl_wisun_app_status.h"
+    handler: "sl_wisun_app_status_init"
+#---------------- Component Catalog ------------------
+- name: component_catalog
+  value: wisun_app_status

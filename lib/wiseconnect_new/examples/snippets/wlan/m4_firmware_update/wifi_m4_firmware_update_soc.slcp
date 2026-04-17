@@ -1,0 +1,70 @@
+project_name: wifi_m4_firmware_update_soc
+package: wifi_app
+quality: production
+label: Wi-Fi - M4 Firmware Update via TCP (SoC)
+category: Example|Wi-Fi
+description: 'Wirelessly updates the M4 firmware from a remote TCP server
+
+  '
+filter:
+- name: Wireless Technology
+  value:
+  - Wi-Fi
+- name: Project Difficulty
+  value:
+  - Advanced
+source:
+- path: app.c
+include:
+- path: .
+  file_list:
+  - path: app.h
+define:
+- name: SL_SI91X_PRINT_DBG_LOG
+- name: SLI_SI91X_MCU_FW_UPGRADE_OTA_DUAL_FLASH
+component:
+- id: sl_main
+- id: freertos
+- id: freertos_heap_4
+- id: syscalls
+- id: si91x_memory_default_config
+- id: wiseconnect_common
+- id: wifi
+- id: sl_si91x_internal_stack
+- id: wifi_resources
+- id: network_manager
+- id: basic_network_config_manager
+- id: bsd_socket
+- id: sl_si91x_soc_soft_reset
+- id: sl_si91x_basic_buffers
+requires:
+- name: device_needs_ram_execution
+  condition:
+  - si91x_common_flash
+toolchain_settings:
+- option: gcc_compiler_option
+  value: -Wall -Werror
+configuration:
+- name: SL_BOARD_ENABLE_VCOM
+  value: '1'
+readme:
+- path: readme.md
+other_file:
+- path: resources/readme/output_remote_server.png
+- path: resources/readme/output_soc.png
+- path: resources/readme/setup_soc_updated.png
+- path: resources/readme/vcom.png
+ui_hints:
+  highlight:
+  - path: readme.md
+    focus: true
+post_build:
+  profile: wiseconnect_soc
+sdk_extension:
+- id: wiseconnect3_sdk
+  vendor: silabs
+  version: 4.0.1
+sdk:
+  id: simplicity_sdk
+  vendor: silabs
+  version: 2025.12.2

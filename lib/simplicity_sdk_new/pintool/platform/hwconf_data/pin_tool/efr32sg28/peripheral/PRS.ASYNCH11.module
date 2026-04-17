@@ -1,0 +1,19 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<module:DocumentRoot xmlns:module="http://www.silabs.com/ss/hwconfig/module.ecore">
+  <module id="pin_tool.efr32.efr32sg28.prs.asynch11" label="PRS.ASYNCH11" name="PRS.ASYNCH11" description="" version="A">
+    <properties>
+      <stringProperty label="Type" id="type" defaultValue="prs" transient="true" hidden="true" readonly="true" description=""/>
+      <stringProperty label="Custom Peripheral Name" id="peripheral.name" description=""/>
+    </properties>
+    <propertyCategories>
+      <category label="PRS.ASYNCH11">
+        <subCategory label="">
+          <propertyRef refId="peripheral.name"/>
+        </subCategory>
+      </category>
+    </propertyCategories>
+    <signals>
+      <signal name="ASYNCH11"/>
+    </signals>
+  </module>
+</module:DocumentRoot>

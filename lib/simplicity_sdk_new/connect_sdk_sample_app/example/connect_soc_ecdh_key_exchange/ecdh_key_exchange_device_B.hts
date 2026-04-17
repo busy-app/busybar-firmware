@@ -1,0 +1,32 @@
+<HtermSequenceFile>
+    <ItemList>
+        <SequenceItem name="-- Commands --">
+            <description></description>
+            <sequence value="" />
+        </SequenceItem>
+        <SequenceItem name="leave">
+            <description></description>
+            <sequence value="a[leave] h[0D]" />
+        </SequenceItem>
+        <SequenceItem name="set_network_key">
+            <description></description>
+            <sequence value="a[set_network_key {00112233445566778899aabbccddeeff}] h[0D]" />
+        </SequenceItem>
+        <SequenceItem name="commission 2">
+            <description></description>
+            <sequence value="a[commission 2] h[0D]" />
+        </SequenceItem>
+        <SequenceItem name="request_network_key 1">
+            <description></description>
+            <sequence value="a[request_network_key 1] h[0D]" />
+        </SequenceItem>
+        <SequenceItem name="generate_random_network_key">
+            <description></description>
+            <sequence value="a[generate_random_network_key] h[0D]" />
+        </SequenceItem>
+        <SequenceItem name="send 1">
+            <description></description>
+            <sequence value='a[send 1 {01234567}] h[0D]' />
+        </SequenceItem>
+    </ItemList>
+</HtermSequenceFile>

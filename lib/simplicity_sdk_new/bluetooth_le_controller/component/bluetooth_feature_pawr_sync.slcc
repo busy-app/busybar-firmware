@@ -1,0 +1,36 @@
+id: "bluetooth_feature_pawr_sync"
+label: "Synchronization to Periodic Advertising with Responses trains"
+package: bluetooth_le_controller
+description: >
+  Provides events and control for synchronized Periodic Advertising with
+  Responses (PAwR) trains. Synchronization is achieved by scanning (see
+  <bluetooth_feature_sync_scanner>) or by receiving Periodic Advertising
+  Synchronization Transfer (PAST) from a remote device (see
+  <bluetooth_feature_past_receiver>).
+
+  Use this component if the application syncs to periodic advertising using the
+  components mentioned above and needs support for Periodic Advertising with
+  Responses (PAwR) trains.
+category: Bluetooth|Bluetooth LE Controller (Link Layer)|Features with Commands and Events
+quality: "production"
+config_file:
+- path: "config/sl_bt_pawr_sync_config.h"
+requires:
+- name: "bluetooth_controller"
+- name: "bluetooth_feature_periodic_sync"
+provides:
+- name: "bluetooth_feature_pawr_sync"
+- name: "bluetooth_feature_peripheral_connection"
+  allow_multiple: true
+- name: "bluetooth_feature_connection_creation"
+  allow_multiple: true
+template_contribution:
+- name: component_catalog
+  value: bluetooth_feature_pawr_sync
+documentation:
+  docset: bluetooth
+  document: bluetooth-stack-api/sl-bt-pawr-sync
+metadata:
+  sbom:
+    license: Zlib AND MSLA
+root_path: bluetooth_le_controller

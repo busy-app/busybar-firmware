@@ -1,0 +1,26 @@
+id: silabs_core_event_queue
+label: Ember queue-based event system
+package: zigbee
+description: Ember queue-based event system.
+category: Platform|Utilities
+quality: production
+metadata:
+  sbom:
+    license: MSLA
+include:
+- path: util/silicon_labs/silabs_core
+- path: util/silicon_labs/silabs_core/event_queue
+  file_list:
+  - path: event-queue.h
+
+source:
+- path: util/silicon_labs/silabs_core/event_queue/event-queue.c
+provides:
+- name: silabs_core_event_queue
+define:
+- name: SL_CODE_COMPONENT_EVENT_QUEUE
+  value: event_queue
+template_contribution:
+- name: code_classification_components
+  value: event_queue
+root_path: zigbee

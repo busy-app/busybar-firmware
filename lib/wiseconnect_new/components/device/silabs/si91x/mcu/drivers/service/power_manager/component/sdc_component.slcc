@@ -1,0 +1,42 @@
+id: sdc_component
+label: PM SDC
+package: platform_siwx91x
+description: >
+ PM SDC component will enable SDC in the low-power mode. It moves all the peripheral dependencies to RAM. 
+  It also installs the peripheral component if already not installed.
+  If an instantiable component then the user needs to install the instance manually.
+category: Device|Si91x|MCU|Service|Power Manager|ULP Peripheral
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+requires:
+  - name: sl_sdc
+
+provides:
+  - name: sdc_component
+
+template_contribution:
+  - name: power_manager_ps2
+    value: 1
+    condition:
+      - pm_ps2_component  
+  - name: adc_ps2
+    value: rsi_adc.*
+  - name: adc_ps2
+    value: rsi_bod.*
+  - name: adc_ps2
+    value: aux_reference_volt_config.*
+  - name: adc_ps2
+    value: sl_si91x_adc.*
+  - name: calendar_ps2
+    value: rsi_rtc.*
+  - name: sdc_ps2
+    value: sl_sdc_init.*
+  - name: sdc_ps2
+    value: sl_si91x_sdc.*
+  - name: sdc_ps2
+    value: sl_si91x_peripheral_sdc.*   
+
+
+

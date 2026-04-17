@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="dir_b6eb43ed41ff992c54f58206dca4d6e8" kind="dir">
+    <compoundname>components/device/silabs/si91x/wireless/crypto/multithread/inc</compoundname>
+    <innerfile refid="sl__si91x__crypto__thread_8h">sl_si91x_crypto_thread.h</innerfile>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="components/device/silabs/si91x/wireless/crypto/multithread/inc/"/>
+  </compounddef>
+</doxygen>

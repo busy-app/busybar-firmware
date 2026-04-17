@@ -1,0 +1,225 @@
+project_name: "wisun_soc_coap_meter"
+label: "Wi-SUN - SoC CoAP Meter"
+description: "The Wi-SUN CoAP Meter sample application demonstrates the use of the CoAP (Constrained Application Protocol) protocol to emulate a metering-like application.
+The CoAP Meter purpose is to send sensor measurements to a CoAP Collector device in the same Wi-SUN network."
+package: "wisun_sdk_sample_app"
+category: "Wi-SUN Examples"
+quality: "production"
+
+component:
+# for wisun stack and default components
+  - id: "segger_rtt"
+  - id: "wisun_stack"
+  - id: "wisun_stack_lfn"
+  - id: "power_manager"
+    condition: [device_sdid_210]
+  - id: "wisun_stack_ffn"
+    condition: [device_sdid_220]
+  - id: "wisun_stack_ffn"
+    condition: [device_sdid_235]
+  - id: "wisun_stack_debug"
+  - id: "sl_main"
+  - id: "clock_manager"
+  - id: "device_init"
+  - id: "board_control"
+    condition: [hardware_board]
+  - id: "sleeptimer"
+  - id: "nvm3_default"
+  - id: "freertos"
+  - id: "iostream_retarget_stdio"
+  - id: "printf"
+# radio config
+  - id: "radio_config_brd_wisun_singlephy"
+  - id: "restrictions_profile_wisun_han"
+  - id: "restrictions_profile_wisun_fan_1_0"
+  - id: "restrictions_profile_wisun_fan_1_1"
+# SDK components
+  - id: "sl_wisun_trace_util"
+  - id: "sl_wisun_app_core"
+  - id: "sl_wisun_app_setting"
+    condition: [device_sdid_220]
+  - id: "sl_wisun_app_setting"
+    condition: [device_sdid_235]
+  - id: "sl_wisun_cli"
+    condition: [device_sdid_220]
+  - id: "sl_wisun_cli"
+    condition: [device_sdid_235]
+  - id: "sl_wisun_ping"
+    condition: [device_sdid_220]
+  - id: "sl_wisun_ping"
+    condition: [device_sdid_235]
+  - id: "sl_wisun_meter"
+  - id: "sl_wisun_coap"
+  - id: "cli"
+    instance: [vcom]
+    condition: [device_sdid_220]
+  - id: "cli"
+    instance: [vcom]
+    condition: [device_sdid_235]
+
+requires:
+  - name: "cmsis_rtos2"
+  - name: freertos_heap_3
+    condition: [freertos]
+source:
+  - path: "app.c"
+  - path: "app_init.c"
+  - path: "app_custom_callback.c"
+    unless: [device_sdid_210]
+include:
+  - path: "."
+    file_list:
+    - path: "app.h"
+    - path: "app_custom_callback.h"
+      unless: [device_sdid_210]
+define:
+  - name: "DEBUG_EFM"
+  - name: "WISUN_CONFIG_DEVICE_TYPE"
+    value: "SL_WISUN_LFN"
+    condition: [device_sdid_210]
+  - name: "SL_WISUN_FG23_SUPPORT"
+    condition: [device_sdid_210]
+
+configuration:
+  - name: "SEGGER_RTT_MAX_NUM_UP_BUFFERS"
+    value: "1"
+    condition: [device_sdid_210]
+  - name: "SEGGER_RTT_MAX_NUM_DOWN_BUFFERS"
+    value: "1"
+    condition: [device_sdid_210]
+  - name: "BUFFER_SIZE_UP"
+    value: "64"
+    condition: [device_sdid_210]
+  - name: "BUFFER_SIZE_DOWN"
+    value: "16"
+    condition: [device_sdid_210]
+  - name: "SL_MAIN_START_TASK_STACK_SIZE_BYTES"
+    value: "2048"
+  - name: "SL_BOARD_ENABLE_VCOM"
+    value: "1"
+  - name: "SL_IOSTREAM_USART_VCOM_FLOW_CONTROL_TYPE"
+    value: "usartHwFlowControlCtsAndRts"
+  - name: "SL_IOSTREAM_USART_VCOM_CONVERT_BY_DEFAULT_LF_TO_CRLF"
+    value: "1"
+  - name: SL_CLI_LOCAL_ECHO
+    value: "(1)"
+  - name: "SL_IOSTREAM_EUSART_VCOM_FLOW_CONTROL_TYPE"
+    value: "SL_IOSTREAM_EUSART_UART_FLOW_CTRL_CTS_RTS"
+  - name: "SL_IOSTREAM_EUSART_VCOM_CONVERT_BY_DEFAULT_LF_TO_CRLF"
+    value: "1"
+  - name: "SL_IOSTREAM_USART_VCOM_RX_BUFFER_SIZE"
+    value: "128"
+    condition: [iostream_usart]
+  - name: "SL_IOSTREAM_EUSART_VCOM_RX_BUFFER_SIZE"
+    value: "128"
+    condition: [iostream_eusart]
+  - name: "SL_IOSTREAM_LEUART_VCOM_RX_BUFFER_SIZE"
+    value: "128"
+    condition: [iostream_leuart]
+  - name: "OS_CFG_APP_HOOKS_EN"
+    value: "1"
+    condition: [micriumos_kernel]
+  - name: "configUSE_POSIX_ERRNO"
+    value: "1"
+    condition: [freertos]
+  - name: "OS_CFG_ERRNO_EN"
+    value: "1"
+    condition: [micriumos_kernel]
+  - name: "APP_PROJECT_INFO_WISUN_VERSION_ENABLED"
+    value: "1"
+  - name: "APP_PROJECT_INFO_MBEDTLS_VERSION_ENABLED"
+    value: "1"
+  - name: SL_RAIL_UTIL_PTI_BAUD_RATE_HZ
+    value: "3200000"
+  - name: SL_WISUN_COAP_NOTIFY_SERVICE_ENABLE
+    value: "0U"
+    condition: [device_sdid_210]
+  - name: SL_SLEEPTIMER_WALLCLOCK_CONFIG
+    value: "1"
+    condition:
+      - "sl_wisun_ota_dfu"
+
+  # LFN related peripheral and energy saver setup
+  - name: SL_IOSTREAM_EUSART_INSTANCE_RESTRICT_ENERGY_MODE_TO_ALLOW_RECEPTION
+    value: 0
+    condition: [iostream_eusart,power_manager]
+  - name: SL_IOSTREAM_EUSART_VCOM_BAUDRATE
+    value: 9600
+    condition: [iostream_eusart,power_manager]
+  - name: SL_IOSTREAM_EUSART_VCOM_ENABLE_HIGH_FREQUENCY
+    value: 0
+    condition: [iostream_eusart,power_manager]
+  - name: SL_IOSTREAM_EUSART_VCOM_RESTRICT_ENERGY_MODE_TO_ALLOW_RECEPTION
+    value: 0
+    condition: [iostream_eusart,power_manager]
+  - name: SL_IOSTREAM_LEUART_VCOM_RESTRICT_ENERGY_MODE_TO_ALLOW_RECEPTION
+    value: 0
+    condition: [iostream_leuart,power_manager]
+  - name: SL_WISUN_LED_DRIVER_UPDATE_STATE_MS
+    value: 1000
+    condition: [power_manager]
+  - name: "SL_CLOCK_MANAGER_EUSART0CLK_SOURCE"
+    value: "CMU_EUSART0CLKCTRL_CLKSEL_LFXO"
+    condition: [iostream_leuart,power_manager]
+  - name: "SL_CLOCK_MANAGER_EUSART0CLK_SOURCE"
+    value: "CMU_EUSART0CLKCTRL_CLKSEL_LFXO"
+    condition: [iostream_eusart,power_manager]
+  - name: "SL_CLOCK_MANAGER_LFXO_EN"
+    value: "CMU_EUSART0CLKCTRL_CLKSEL_LFXO"
+    condition: [iostream_eusart,power_manager]
+  - name: "OS_CFG_SCHED_ROUND_ROBIN_EN"
+    value: "0"
+    condition: [micriumos_kernel,power_manager]
+  - name: OS_CFG_STAT_TASK_EN
+    value: "0"
+    condition: [micriumos_kernel,power_manager]
+  - name: OS_CFG_TASK_PROFILE_EN
+    value: "0"
+    condition: [micriumos_kernel,power_manager]
+
+  # SDK Application version
+  - name: APP_PROJECT_INFO_APP_VERSION_MAJOR
+    value: 2
+  - name: APP_PROJECT_INFO_APP_VERSION_MINOR
+    value: 1
+  - name: APP_PROJECT_INFO_APP_VERSION_PATCH
+    value: 0
+
+readme:
+  - path: ../../documentation/example/wisun_soc_coap_meter/readme.md
+
+other_file:
+  - path: ../../documentation/example/wisun_soc_coap_meter/readme_img0.png
+  - path: ../../documentation/example/wisun_soc_coap_meter/readme_img1.png
+  - path: hw_filter_tags.yaml
+    condition:
+      - "add_hw_filter_to_project"
+
+ui_hints:
+  highlight:
+    - path: "config/wisun/wisun_settings.wisunconf"
+    - path: readme.md
+      focus: true
+
+#--------------------- HWFILTER ------------------------
+tag:
+  - hwfilter:board:hardware:has:pti
+  - hwfilter:board:hardware:has:vcom
+  - hwfilter:ram:63k
+
+#--------------------- Toolchain ------------------------
+toolchain_settings:
+  - option: optimize
+    value: debug
+    unless: [device_sdid_210]
+  - option: optimize
+    value: size
+    condition: [device_sdid_210]
+
+filter:
+  - name: "Wireless Technology"
+    value: ["Wi-SUN"]
+  - name: "Device Type"
+    value: ["SoC"]
+  - name: "Project Difficulty"
+    value: ["Advanced"]

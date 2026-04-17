@@ -1,0 +1,64 @@
+id: dmadrv
+label: DMADRV
+package: platform_core
+description: >
+  The Direct Memory Access (DMA) driver is used configure and control the DMA and
+  LDMA peripherals to perform data transfers between memory regions and/or peripherals.
+  The driver handles central management of the DMA channels and interrupt vector which
+  allows sharing DMA resources between several users.
+category: Platform|Driver
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+config_file:
+- path: platform/emdrv/dmadrv/config/s2_8ch/dmadrv_config.h
+  condition: [device_sdid_200]
+- path: platform/emdrv/dmadrv/config/s2_8ch/dmadrv_config.h
+  condition: [device_sdid_205]
+- path: platform/emdrv/dmadrv/config/s2_8ch/dmadrv_config.h
+  condition: [device_sdid_210]
+- path: platform/emdrv/dmadrv/config/s2_8ch/dmadrv_config.h
+  condition: [device_sdid_215]
+- path: platform/emdrv/dmadrv/config/s2_16ch/dmadrv_config.h
+  condition: [device_sdid_220]
+- path: platform/emdrv/dmadrv/config/s2_8ch/dmadrv_config.h
+  condition: [device_sdid_225]
+- path: platform/emdrv/dmadrv/config/s2_8ch/dmadrv_config.h
+  condition: [device_sdid_230]
+- path: platform/emdrv/dmadrv/config/s2_8ch/dmadrv_config.h
+  condition: [device_sdid_235]
+- path: platform/emdrv/dmadrv/config/s2_8ch/dmadrv_config.h
+  condition: [device_sdid_240]
+- path: platform/emdrv/dmadrv/config/s2_8ch/dmadrv_config.h
+  condition: [device_sdid_260]
+- path: platform/emdrv/dmadrv/config/s3_8ch/dmadrv_config.h
+  condition: [device_generic_family_sixx301]
+source:
+- path: platform/emdrv/dmadrv/src/dmadrv.c
+include:
+- path: platform/emdrv/dmadrv/inc
+  file_list:
+  - path: dmadrv.h
+- path: platform/emdrv/dmadrv/inc/s2_signals
+  file_list:
+  - path: dmadrv_signals.h
+  condition: [device_series_2]
+- path: platform/emdrv/dmadrv/inc/s3_signals
+  file_list:
+  - path: dmadrv_signals.h
+  condition: [device_generic_family_sixx301]
+provides:
+- name: dmadrv
+requires:
+- name: dmadrv_core
+template_contribution:
+- name: code_classification_components
+  value: dmadrv
+define:
+- name: SL_CODE_COMPONENT_DMADRV
+  value: dmadrv
+documentation:
+  docset: gecko-platform
+  document: driver/api/group-dmadrv
+root_path: platform_core

@@ -1,0 +1,31 @@
+id: netstack_silabs_lwip_netif_slipif
+label: "LWIP generic network interface device drivers for slipif"
+package: netstack_silabs_lwip
+description: >
+  The LWIP generic network interface device drivers for slipif. A generic implementation of the SLIP (Serial Line IP)
+  protocol. It requires a sio (serial I/O) module to work.
+category: Network Stack|LwIP|netif
+quality: production
+provides:
+- name: netstack_silabs_lwip_netif
+  allow_multiple: true
+- name: netstack_silabs_lwip_netif_slipif
+requires:
+- name: netstack_silabs_lwip_core
+source:
+- path: lwip/src/netif/slipif.c
+include:
+- path: lwip/src/include
+  file_list:
+  - path: netif/slipif.h
+metadata:
+  sbom:
+    license: BSD-3-Clause
+    upstream:
+      name: lwip
+      version: 2.2.1
+      supplier: lwIP Developers
+      url: https://savannah.nongnu.org/projects/lwip/
+      package_url: https://github.com/lwip-tcpip/lwip/
+      comment: lwIP is a small independent implementation of the TCP/IP protocol suite.
+root_path: netstack_silabs_lwip/

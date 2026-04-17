@@ -1,0 +1,38 @@
+id: tz_non_secure_execution_source
+label: TrustZone Non-Secure Execution (Source Reference Only)
+description: >
+  Contains the source file for the pre-compiled binary added by the
+  tz_non_secure_execution component. This component shall not be added to
+  any project. It is only made available to reference what is pre-compiled
+  in the tz_non_secure_execution binary blob.
+package: platform_core
+category: Platform|TrustZone
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: platform_core/platform/common
+source:
+- path: src/sl_tz_non_secure_execution_source.c
+provides:
+- name: tz_non_secure_execution_source
+- name: tz_execution
+requires:
+- name: device_series_3
+- name: trustzone_unaware
+- name: sl_common
+define:
+- name: SL_TZ_NON_SECURE_EXECUTION
+- name: configRUN_FREERTOS_SECURE_ONLY
+  value: 0
+- name: configENABLE_TRUSTZONE
+  value: 0
+- name: SL_TZ_NON_SECURE_EXECUTION_USE_SOURCE
+  value: 1
+conflicts:
+- name: ram_only_execution
+template_contribution:
+- name: tz_non_secure_execution
+  value: 1
+- name: tz_non_secure_execution_source
+  value: 1

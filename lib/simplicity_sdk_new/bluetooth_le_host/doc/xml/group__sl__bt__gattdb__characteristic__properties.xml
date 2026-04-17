@@ -1,0 +1,98 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__gattdb__characteristic__properties" kind="group">
+    <compoundname>sl_bt_gattdb_characteristic_properties</compoundname>
+    <title>GATT Characteristic Property Flags</title>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__gattdb__characteristic__properties_1gacc9eb5e217b4d2cc764e25edd5491207" prot="public" static="no">
+        <name>SL_BT_GATTDB_CHARACTERISTIC_READ</name>
+        <initializer>0x2</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>A GATT client can read the characteristic value. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="9196" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="9196" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gattdb__characteristic__properties_1gadb6daa7ac7d22cc97c3897de17cf8b0f" prot="public" static="no">
+        <name>SL_BT_GATTDB_CHARACTERISTIC_WRITE_NO_RESPONSE</name>
+        <initializer>0x4</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>A GATT client can write the characteristic value without a response. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="9199" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="9199" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gattdb__characteristic__properties_1gafeb4d570e69930455c1d3e60ce73ab72" prot="public" static="no">
+        <name>SL_BT_GATTDB_CHARACTERISTIC_WRITE</name>
+        <initializer>0x8</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>A GATT client can write the characteristic value. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="9202" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="9202" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gattdb__characteristic__properties_1ga49caa7c4387481d68aa5eff71e6a76ee" prot="public" static="no">
+        <name>SL_BT_GATTDB_CHARACTERISTIC_NOTIFY</name>
+        <initializer>0x10</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>The characteristic value can be notified without acknowledgment. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="9205" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="9205" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gattdb__characteristic__properties_1ga74dabd2367de7d0e09c439366412c7d4" prot="public" static="no">
+        <name>SL_BT_GATTDB_CHARACTERISTIC_INDICATE</name>
+        <initializer>0x20</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>The characteristic value can be notified with acknowledgment. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="9208" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="9208" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gattdb__characteristic__properties_1ga566b7f79aa84e920f520ce450c78302a" prot="public" static="no">
+        <name>SL_BT_GATTDB_CHARACTERISTIC_EXTENDED_PROPS</name>
+        <initializer>0x80</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>The additional characteristic properties are defined. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="9211" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="9211" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gattdb__characteristic__properties_1gab16b4856c3441061448369e3cad77037" prot="public" static="no">
+        <name>SL_BT_GATTDB_CHARACTERISTIC_RELIABLE_WRITE</name>
+        <initializer>0x101</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>The characteristic value supports reliable write. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="9214" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="9214" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para>This enum defines the property flags for GATT characteristic values. Lower byte is Characteristic Properties and higher byte is Characteristic Extended Properties. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

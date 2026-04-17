@@ -1,0 +1,19 @@
+id: atomic
+label: Atomic Operations Library
+package: platform_common
+description: Library of different operations performed atomically
+category: Platform|Utilities
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: platform_common/platform/common
+include:
+- path: inc
+  file_list:
+  - path: sl_atomic.h
+provides:
+- name: atomic
+documentation:
+  docset: gecko-platform
+  document: platform-common/atomic

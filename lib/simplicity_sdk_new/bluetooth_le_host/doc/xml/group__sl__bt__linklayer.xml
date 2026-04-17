@@ -1,0 +1,126 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__linklayer" kind="group">
+    <compoundname>sl_bt_linklayer</compoundname>
+    <title>Link Layer</title>
+    <innergroup refid="group__sl__bt__evt__linklayer__event__info__report">sl_bt_evt_linklayer_event_info_report</innergroup>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="group__sl__bt__linklayer_1ga7626df3c11d39b180f58b2bf688eff8c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_linklayer_event_info_reporting_enable</definition>
+        <argsstring>(uint8_t enable, uint32_t configuration, uint8_t procedure_type, size_t procedure_identifier_len, const uint8_t *procedure_identifier)</argsstring>
+        <name>sl_bt_linklayer_event_info_reporting_enable</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>enable</declname>
+        </param>
+        <param>
+          <type>uint32_t</type>
+          <declname>configuration</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>procedure_type</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>procedure_identifier_len</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>procedure_identifier</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Enable or disable link layer event info reporting. This command passes the parameters directly to the vendor-specific HCI command HCI_VS_Siliconlabs_Event_Info_Reporting_Enable. This command is only available if the bluetooth_feature_event_info_reporting component is included in the application. See the documentation of the HCI command for detailed description of each parameter and the behavior of the command.</para>
+<para>Events that have been succesfully enabled will be reported with the <ref refid="group__sl__bt__evt__linklayer__event__info__report" kindref="compound">sl_bt_evt_linklayer_event_info_report</ref> event.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">enable</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Enable or disable event info reporting. Values:<itemizedlist>
+<listitem><para><bold>0:</bold> Disable event info reporting</para>
+</listitem><listitem><para><bold>1:</bold> Enable event info reporting </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">configuration</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Bitmask to specify the event info reporting configuration. See the link layer documentation of HCI_VS_Siliconlabs_Event_Info_Reporting_Enable for detailed description of each bit. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">procedure_type</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The type of the procedure that this configuration is for. See the link layer documentation of HCI_VS_Siliconlabs_Event_Info_Reporting_Enable for detailed description of available procedure types. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">procedure_identifier_len</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Length of data in <computeroutput>procedure_identifier</computeroutput> </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">procedure_identifier</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The identifier of the procedure that this configuration is for. See the link layer documentation of HCI_VS_Siliconlabs_Event_Info_Reporting_Enable for detailed description of procedure identifiers.</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise.</para>
+</simplesect>
+<bold>Events</bold> <itemizedlist>
+<listitem><para><ref refid="group__sl__bt__evt__linklayer__event__info__report" kindref="compound">sl_bt_evt_linklayer_event_info_report</ref> - Sent for each event info report received from the link layer. </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="1822" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="1822" declcolumn="13"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__linklayer_1gad0b08b8edc5e44c264565d086828f9dc" prot="public" static="no">
+        <name>sl_bt_cmd_linklayer_event_info_reporting_enable_id</name>
+        <initializer>0x00600020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="1735" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="1735" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__linklayer_1ga732050aea39b247cd6b54d16d86363e3" prot="public" static="no">
+        <name>sl_bt_rsp_linklayer_event_info_reporting_enable_id</name>
+        <initializer>0x00600020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="1736" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="1736" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Link Layer. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>Commands and events in this class provide access to low-level Bluetooth link layer functionality that is not available via higher-level APIs of the Bluetooth host stack. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,104 @@
+project_name: bt_host_positioning
+package: bluetooth_le_app
+label: Bluetooth - Host Positioning
+description: >
+  AoA positioning application that calculates asset tag positions using
+  angle-of-arrival data from multiple locators. It subscribes to MQTT topics
+  to receive angle data and publishes calculated positions.
+category: Bluetooth Examples
+quality: experimental
+
+filter:
+  - name: "Wireless Technology"
+    value: ["Bluetooth"]
+  - name: "Device Type"
+    value: ["Host"]
+  - name: "Project Difficulty"
+    value: ["Beginner"]
+
+component:
+  - id: toolchain_gcc
+  - id: native_host
+  - id: host_main
+  - id: bgapi_protocol
+  - id: app_log
+  - id: iostream_stdio
+  - id: app_assert
+  - id: rtllib
+  - id: component_catalog
+
+library:
+  - system: libcjson
+  - system: libmosquitto
+
+config_file:
+  - path: config/positioning_config.json
+
+source:
+  - path: app.c
+  - path: ../common/app_log/app_log_cli.c
+  - path: ../common/mqtt/mqtt.c
+  - path: ../common/aoa_parse/aoa_parse.c
+  - path: ../common/aoa_parse/aoa_parse_enum.c
+  - path: ../common/aoa_util/aoa_serdes.c
+  - path: ../common/aoa_util/aoa_util.c
+  - path: ../common/aoa_angle/aoa_angle.c
+  - path: ../common/antenna_array/antenna_array.c
+  - path: ../common/aoa_db/aoa_db.c
+  - path: ./angle_queue/angle_queue.c
+  - path: ./aoa_loc/aoa_loc.c
+
+include:
+  - path: ../common/app_log
+    file_list:
+      - path: app_log_cli.h
+  - path: ../common/ncp
+    file_list:
+      - path: sl_ncp_evt_filter_common.h
+  - path: ../common/mqtt
+    file_list:
+      - path: mqtt.h
+  - path: ../common/aoa_parse
+    file_list:
+      - path: aoa_parse.h
+      - path: aoa_parse_enum.h
+  - path: ../common/aoa_util
+    file_list:
+      - path: aoa_util.h
+      - path: aoa_serdes.h
+      - path: aoa_topics.h
+      - path: aoa_types.h
+  - path: ../common/aoa_angle
+    file_list:
+      - path: aoa_angle.h
+  - path: ../common/aoa_angle/config
+    file_list:
+      - path: aoa_angle_config.h
+  - path: ../common/antenna_array
+    file_list:
+      - path: antenna_array.h
+      - path: antenna_array_brd4191a.h
+  - path: ../common/aoa_db
+    file_list:
+      - path: aoa_db.h
+  - path: ./angle_queue
+    file_list:
+      - path: angle_queue.h
+  - path: ./aoa_loc
+    file_list:
+      - path: aoa_loc.h
+
+configuration:
+  - name: APP_LOG_LEVEL_FILTER_DYNAMIC 
+    value: 1
+
+tag:
+  - hwfilter:device:device_family_host
+
+readme:
+  - path: readme.md
+
+ui_hints:
+  highlight:
+    - path: readme.md
+      focus: true

@@ -1,0 +1,42 @@
+id: "sl_wisun_ble_dmp_advertise_controller"
+label: "Wi-SUN BLE DMP Advertise Controller"
+package: "wisun_sdk"
+description: >
+  Enables BLE (Bluetooth Low Energy) advertising functionality for DMP (Dynamic Multiprotocol) applications, utilizing button presses for control and LED for status indication.
+category: "Wi-SUN|Wi-SUN Services"
+quality: "evaluation"
+metadata:
+  sbom:
+    license: Zlib
+root_path: "wisun_sdk/component/ble_dmp_advertise_controller"
+provides:
+- name: "sl_wisun_ble_dmp_advertise_controller"
+source:
+- path: "sl_wisun_ble_dmp_advertise_controller.c"
+include:
+- path: "."
+  file_list:
+  - "path": "sl_wisun_ble_dmp_advertise_controller.h"
+requires:
+- name: "sl_wisun_led_driver"
+- name: "ble_peer_manager_common"
+- name: "ble_peer_manager_peripheral"
+- name: "simple_button"
+
+ui_hints:
+  visibility: never
+
+#-------------- Template Contribution ----------------
+template_contribution:
+- name: "ble_peer_manager_event_handler"
+  value:
+    include: sl_wisun_ble_dmp_advertise_controller.h
+    handler: "ble_peer_manager_on_event_wisun_advertise_controller"
+- name: "event_handler"
+  value:
+    event: "internal_app_init"
+    include: "sl_wisun_ble_dmp_advertise_controller.h"
+    handler: "sl_wisun_ble_dmp_advertise_controller_init"
+#---------------- Component Catalog ------------------
+- name: "component_catalog"
+  value: "wisun_ble_dmp_advertise_controller"

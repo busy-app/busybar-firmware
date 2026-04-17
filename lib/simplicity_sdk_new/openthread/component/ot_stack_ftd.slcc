@@ -1,0 +1,67 @@
+id: ot_stack_ftd
+label: Stack (FTD)
+package: openthread
+category: OpenThread
+quality: production
+description: This component provides the OpenThread stack for a Full Thread Device (FTD)
+provides:
+- name: ot_stack
+- name: ot_stack_full
+- name: ot_stack_ftd
+requires:
+- name: ot_stack_implementation
+- name: ot_stack_tcp_implementation
+- name: ot_platform_abstraction
+- name: ot_mbedtls
+- name: ot_psa_crypto
+recommends:
+- id: ot_stack_source
+  vendor: silabs
+- id: ot_stack_tcp
+  vendor: silabs
+- id: ot_platform_abstraction
+  vendor: silabs
+config_file:
+- path: config/sl_openthread_features_config.h
+  file_id: openthread_features
+  unless: [ot_cert_libs, ot_reference_device, ot_ncp]
+- path: config/sl_openthread_features_ftd_cert_config.h
+  file_id: openthread_features
+  condition: [ot_cert_libs]
+- path: config/sl_openthread_reference_device_config.h
+  file_id: openthread_features
+  condition: [ot_reference_device]
+- path: config/sl_openthread_features_ncp_ftd_config.h
+  file_id: openthread_features
+  condition: [ot_ncp]
+include:
+- path: include
+  file_list:
+  - path: sl_openthread_package_info.h
+validation_helper:
+- path: component/script/ot_log_validation.lua
+define:
+- name: SL_OPENTHREAD_STACK_FEATURES_CONFIG_FILE
+  value: '"sl_openthread_features_config.h"'
+  unless: [ot_cert_libs, ot_reference_device, ot_ncp]
+- name: SL_OPENTHREAD_STACK_FEATURES_CONFIG_FILE
+  value: '"sl_openthread_features_ftd_cert_config.h"'
+  condition: [ot_cert_libs]
+- name: SL_OPENTHREAD_STACK_FEATURES_CONFIG_FILE
+  value: '"sl_openthread_reference_device_config.h"'
+  condition: [ot_reference_device]
+- name: SL_OPENTHREAD_STACK_FEATURES_CONFIG_FILE
+  value: '"sl_openthread_features_ncp_ftd_config.h"'
+  condition: [ot_ncp]
+- name: OPENTHREAD_CONFIG_FILE
+  value: '"sl_openthread_package_info.h"'
+- name: OPENTHREAD_FTD
+  value: 1
+- name: OPENTHREAD_SPINEL_CONFIG_OPENTHREAD_MESSAGE_ENABLE
+  value: 1
+  condition:
+  - ot_ncp
+metadata:
+  sbom:
+    license: Zlib
+root_path: openthread

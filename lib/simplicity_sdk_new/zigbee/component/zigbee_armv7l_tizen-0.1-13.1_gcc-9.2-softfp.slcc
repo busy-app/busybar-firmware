@@ -1,0 +1,29 @@
+id: zigbee_arm7l_tizen_13_1_gcc_9_2
+label: Zigbee ARM64
+package: zigbee
+category: Zigbee
+quality: production
+description: This plugin contains defines to build Zigbee apps against ARM32, with gcc 9.2 soft floating point (tizen-0.1-13.1).
+
+provides:
+- name: zigbee_arm7l_tizen_13_1_gcc_9_2
+- name: armv7l_tizen-0.1-13.1_gcc-9.2-softfp
+- name: zigbee_armv7l_tizen-0.1-13.1_gcc-9.2-softfp
+
+requires:
+- name: linux_arch_arm32v7
+
+template_contribution:
+- name: component_catalog
+  value: zigbee_armv7l_tizen-0.1-13.1_gcc-9.2-softfp
+
+validation_helper:
+- path: component/scripts/zigbee_linux_arch_validation.lua
+
+documentation:
+  docset: zigbee
+  document: zigbee-af-api/arm32_ndk
+metadata:
+  sbom:
+    license: MSLA
+root_path: zigbee

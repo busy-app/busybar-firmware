@@ -1,0 +1,22 @@
+id: cs_ras_server_acp
+package: bluetooth_le_middleware
+label: CS Ranging Service Server for ACP
+description: >
+  Channel Sounding (CS) Ranging Service (RAS) Server for ACP  adds GATT database entries for RAS. It can be used in hybrid  ACP mode only.  
+category: Bluetooth|Application|GATT Services
+metadata:
+  sbom:
+    license: Zlib
+quality: production
+root_path: bluetooth_le_middleware/common/cs_ras
+config_file:
+- path: server/config/ras.xml
+  file_id: cs_ras_server_gatt
+  directory: btconf
+requires:
+- name: device_host
+- name: gatt_configuration
+conflicts:
+- name: cs_ras_server
+provides:
+- name: cs_ras_server_acp

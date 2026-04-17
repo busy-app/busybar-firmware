@@ -1,0 +1,72 @@
+project_name: wifi_data_transfer_application_soc
+package: wifi_app
+quality: production
+label: Wi-Fi - Data Transfer Application (SoC)
+category: Example|Wi-Fi
+description: 'In Client interface, recieve the data from remote PC1 to SiWx91x Station. This recieved data is stored in a buffer. Later in AP interface, the stored buffer is sent by SiWx91x AP to remote PC2.
+
+  '
+filter:
+- name: Wireless Technology
+  value:
+  - Wi-Fi
+- name: Project Difficulty
+  value:
+  - Beginner
+source:
+- path: app.c
+include:
+- path: .
+  file_list:
+  - path: app.h
+define:
+- name: SL_SI91X_PRINT_DBG_LOG
+component:
+- id: sl_main
+- id: freertos
+- id: freertos_heap_4
+- id: syscalls
+- id: si91x_memory_default_config
+- id: wiseconnect_common
+- id: wifi
+- id: sl_si91x_internal_stack
+- id: wifi_resources
+- id: network_manager
+- id: basic_network_config_manager
+- id: sl_si91x_mem_pool_buffers
+- id: sl_si91x_asynchronous_socket
+- id: sl_si91x_socket
+- id: mqtt
+- id: bsd_socket
+requires:
+- name: device_needs_ram_execution
+  condition:
+  - si91x_common_flash
+toolchain_settings:
+- option: gcc_compiler_option
+  value: -Wall -Werror
+configuration:
+- name: SL_BOARD_ENABLE_VCOM
+  value: '1'
+readme:
+- path: readme.md
+other_file:
+- path: resources/readme/data_transfer_1.png
+- path: resources/readme/data_transfer_2.png
+- path: resources/readme/data_transfer_3.png
+- path: resources/readme/data_transfer_setup.png
+- path: resources/readme/data_transfer_setup_ncp.png
+ui_hints:
+  highlight:
+  - path: readme.md
+    focus: true
+post_build:
+  profile: wiseconnect_soc
+sdk_extension:
+- id: wiseconnect3_sdk
+  vendor: silabs
+  version: 4.0.1
+sdk:
+  id: simplicity_sdk
+  vendor: silabs
+  version: 2025.12.2

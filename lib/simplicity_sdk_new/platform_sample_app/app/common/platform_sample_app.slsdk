@@ -1,0 +1,14 @@
+# Properties file for Simplicity Studio metadata.
+
+id=com.silabs.sdk.platform_sample_app
+
+label=Platform Sample App Package
+
+description=Platform Sample App Package
+
+version=1.0.1-beta.3
+
+prop.file.templatesFile=platform_production_templates.xml
+    
+prop.file.demosFile=platform_production_demos.xml
+

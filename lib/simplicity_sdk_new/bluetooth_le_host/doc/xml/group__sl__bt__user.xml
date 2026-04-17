@@ -1,0 +1,323 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__user" kind="group">
+    <compoundname>sl_bt_user</compoundname>
+    <title>User Messaging</title>
+    <innergroup refid="group__sl__bt__evt__user__message__to__host">sl_bt_evt_user_message_to_host</innergroup>
+    <innergroup refid="group__sl__bt__evt__user__cs__service__message__to__host">sl_bt_evt_user_cs_service_message_to_host</innergroup>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="group__sl__bt__user_1ga9e644f3d526e10e3f6485e675e4e2fd8" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_user_message_to_target</definition>
+        <argsstring>(size_t data_len, const uint8_t *data, size_t max_response_size, size_t *response_len, uint8_t *response)</argsstring>
+        <name>sl_bt_user_message_to_target</name>
+        <param>
+          <type>size_t</type>
+          <declname>data_len</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>data</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>max_response_size</declname>
+        </param>
+        <param>
+          <type>size_t *</type>
+          <declname>response_len</declname>
+        </param>
+        <param>
+          <type>uint8_t *</type>
+          <declname>response</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Used by an NCP host to send a message to the target application on device. The application on the target must send the response with <ref refid="group__sl__bt__utility__functions_1gafe95b5828a4899cb3eb200d20bd50f2d" kindref="member">sl_bt_send_rsp_user_message_to_target</ref>.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">data_len</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Length of data in <computeroutput>data</computeroutput> </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">data</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The message </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">max_response_size</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Size of output buffer passed in <computeroutput>response</computeroutput> </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">response_len</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>On return, set to the length of output data written to <computeroutput>response</computeroutput> </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">response</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The response message</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16431" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="16431" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__user_1gaabb7641d170c394f47f12a5d6f7594f3" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_user_manage_event_filter</definition>
+        <argsstring>(size_t data_len, const uint8_t *data)</argsstring>
+        <name>sl_bt_user_manage_event_filter</name>
+        <param>
+          <type>size_t</type>
+          <declname>data_len</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>data</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Manage NCP event filter. When the event filter is in use, API events passing the filter will be sent to the host and those that do not pass are discarded by the target. For functionality details, see the NCP component in the Bluetooth SDK.</para>
+<para>By default, the NCP does not use the event filter.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">data_len</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Length of data in <computeroutput>data</computeroutput> </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">data</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The message for managing event filter</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16452" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="16452" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__user_1gaa23b4b4618e63a3adaead575d599576c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void sl_bt_user_reset_to_dfu</definition>
+        <argsstring>(void)</argsstring>
+        <name>sl_bt_user_reset_to_dfu</name>
+        <param>
+          <type>void</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Reset the target device to DFU mode from the NCP host. This command is used by specific SDK DFU component on the target device for the functionality related to DFU. Do not use it in other circumstances. This command does not have a response. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16464" column="6" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="16464" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__user_1gaaafe759f6d6e397d326c1b14bdd4da4a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_user_cs_service_message_to_target</definition>
+        <argsstring>(size_t data_len, const uint8_t *data, size_t max_response_size, size_t *response_len, uint8_t *response)</argsstring>
+        <name>sl_bt_user_cs_service_message_to_target</name>
+        <param>
+          <type>size_t</type>
+          <declname>data_len</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>data</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>max_response_size</declname>
+        </param>
+        <param>
+          <type>size_t *</type>
+          <declname>response_len</declname>
+        </param>
+        <param>
+          <type>uint8_t *</type>
+          <declname>response</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Used by an NCP host to send a message to the Channel Sounding service component on target device. The Channel Sounding service on target device must send the response with <ref refid="group__sl__bt__utility__functions_1ga05bd13a2260a174af64102db871b61fa" kindref="member">sl_bt_send_rsp_user_cs_service_message_to_target</ref>.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">data_len</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Length of data in <computeroutput>data</computeroutput> </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">data</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The message </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">max_response_size</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Size of output buffer passed in <computeroutput>response</computeroutput> </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">response_len</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>On return, set to the length of output data written to <computeroutput>response</computeroutput> </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">response</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The response message</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16483" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="16483" declcolumn="13"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__user_1gabcdf5c2163b58fa220aa90f9d65d0ed4" prot="public" static="no">
+        <name>sl_bt_cmd_user_message_to_target_id</name>
+        <initializer>0x00ff0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16360" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="16360" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__user_1ga4098741446a6a8888c912a780e5c6548" prot="public" static="no">
+        <name>sl_bt_cmd_user_manage_event_filter_id</name>
+        <initializer>0x01ff0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16361" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="16361" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__user_1gad389719478766b78b5b1a55e7d462999" prot="public" static="no">
+        <name>sl_bt_cmd_user_reset_to_dfu_id</name>
+        <initializer>0x02ff0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16362" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="16362" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__user_1gaf83cbca18548d88ef73f3401837a8d07" prot="public" static="no">
+        <name>sl_bt_cmd_user_cs_service_message_to_target_id</name>
+        <initializer>0x03ff0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16363" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="16363" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__user_1ga5ecd50e6a4fc5a84db70ce34fdd3bf1a" prot="public" static="no">
+        <name>sl_bt_rsp_user_message_to_target_id</name>
+        <initializer>0x00ff0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16364" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="16364" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__user_1gac4574aaf2e52c113a8c27e6af552a168" prot="public" static="no">
+        <name>sl_bt_rsp_user_manage_event_filter_id</name>
+        <initializer>0x01ff0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16365" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="16365" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__user_1ga3a862610cf119878c084ec62251e83ca" prot="public" static="no">
+        <name>sl_bt_rsp_user_reset_to_dfu_id</name>
+        <initializer>0x02ff0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16366" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="16366" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__user_1ga4bd7d6567fa240e601ebfe7a32b470fe" prot="public" static="no">
+        <name>sl_bt_rsp_user_cs_service_message_to_target_id</name>
+        <initializer>0x03ff0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16367" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="16367" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>User Messaging. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>This class provides commands and events, which can be used by a NCP host and target to implement a communication mechanism with a custom proprietary protocol. An application must decide whether and how the command and event are used. The Bluetooth host stack does not produce or consume any messages belonging to this class. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

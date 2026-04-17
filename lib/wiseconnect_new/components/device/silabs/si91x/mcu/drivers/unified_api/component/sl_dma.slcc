@@ -1,0 +1,45 @@
+id: sl_dma
+label: DMA
+package: platform_siwx91x
+description: >
+  Direct Memory Access (DMA) is a process of transferring data from  memory to memory, 
+  peripehral to memory, memory to peripheral to another without the direct involvement 
+  of the processor (CPU). The main benefit of using DMA is more efficient data movement 
+  in the embedded system.
+ 
+  Offering simple memory to memory transfer, peripheral to memory and memory to peripheral transfer functions.
+
+  When you install this component, it will also be installing the  DMA dependency component, 
+  which is the DMA driver's implementation.
+
+  Note: When utilizing the UDMA1 instance in high power mode, it is advisable to allocate buffers in the ULP Memory block. 
+  For further details on buffer allocation, please refer to the ULP UDMA example.
+category: Device|Si91x|MCU|Peripheral
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: "components/device/silabs/si91x/mcu/drivers/unified_api"
+config_file:
+  - path: config/sl_si91x_dma_config.h
+requires:
+  - name: udma_linker_config
+  - name: romdriver_udma_wrapper
+source:
+  - path: "src/sl_si91x_dma.c"
+include:
+  - path: "inc"
+    file_list:
+    - path: "sl_si91x_dma.h"
+provides:
+  - name: sl_dma
+define:
+  - name: __STATIC_INLINE
+    value: "static inline"
+  - name: UDMA_ROMDRIVER_PRESENT
+template_contribution:
+  - name: udma_enable
+    value: true
+documentation:
+    docset: wiseconnect
+    document: wiseconnect-api-reference-guide-si91x-peripherals/dma

@@ -1,0 +1,19 @@
+id: toolchain_variant_host
+label: Toolchain for host
+package: platform_core
+description: Toolchain support for host devices
+category: Platform|Toolchain
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+tag:
+- toolchain:variant:host
+provides:
+- name: toolchain_variant
+  condition: [device_host]
+- name: toolchain_variant_host
+toolchain_settings:
+- option: device_type
+  value: host
+root_path: platform_core

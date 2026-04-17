@@ -1,0 +1,26 @@
+!!omap
+- id: bg29_rb4414a
+- label: BG29-RB4414A
+- package: boards
+- description: Kit BSP support for the EFR32BG29 Bluetooth LE 4 dBm Boost WLCSP Socket Radio Board.
+- category: Platform|Board|Kit|Radio Board
+- quality: production
+- metadata:
+    sbom:
+      license: Zlib
+- requires:
+  - name: hardware_board_from_bg29-rb4414a
+- provides:
+  - name: hardware_kit
+  - name: hardware_kit_rb
+- define:
+  - name: SL_KIT_NAME
+    value: '"BG29-RB4414A"'
+  - name: SL_KIT_REV
+    value: '"A02"'
+- tag:
+  - kit:opn:BG29-RB4414A
+  - kit:pn:RB4414
+  - kit:variant:A
+  - kit:revision:A02
+- root_path: boards

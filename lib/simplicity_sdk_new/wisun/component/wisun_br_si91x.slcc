@@ -1,0 +1,42 @@
+id: wisun_br_si91x
+label: Wi-Fi connectivity for Wi-SUN Border Router
+description: >
+  Provides backhaul connectivity to the Wi-SUN SoC Border Router using the
+  Wi-Fi SiWx91x as an NCP system-on-chip and WiSeConnect v3.x Extension.
+package: wisun
+category: Wi-SUN
+quality: evaluation
+
+
+requires:
+- name: wisun_br_stack
+- name: wisun_br_lwip
+- name: sl_si91x_basic_buffers
+- name: sl_si91x_spi_bus
+- name: wifi
+- name: wifi_resources
+- name: basic_credential_manager
+
+provides:
+- name: wisun_br_wan
+- name: wisun_br_wifi
+- name: sl_si91x_network_stack
+
+include:
+- path: plugin
+  file_list:
+  - path: sl_wisun_br_wifi.h
+
+source:
+- path: plugin/sl_wisun_br_si91x.c
+  project:
+    transfer_ownership: true
+
+template_contribution:
+- name: component_catalog
+  value: wisun_br_wifi
+
+metadata:
+  sbom:
+    license: MSLA
+root_path: wisun

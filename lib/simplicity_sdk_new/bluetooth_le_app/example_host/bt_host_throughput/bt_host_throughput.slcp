@@ -1,0 +1,63 @@
+project_name: bt_host_throughput
+package: bluetooth_le_app
+label: Bluetooth - Host Throughput Example
+description: >
+  This example tests the throughput capabilities of the device and can be used
+  to measure throughput between a host and an *EFR32* device.
+category: Bluetooth Examples
+quality: experimental
+
+filter:
+  - name: "Wireless Technology"
+    value: ["Bluetooth"]
+  - name: "Device Type"
+    value: ["Host"]
+  - name: "Project Difficulty"
+    value: ["Advanced"]
+
+component:
+  - id: toolchain_gcc
+  - id: ncp_version
+  - id: host_main
+  - id: host_ncp
+  - id: native_host
+  - id: app_log
+  - id: iostream_stdio
+  - id: app_assert
+  - id: throughput_central
+  - id: throughput_ui_log
+
+source:
+  - path: app.c
+  - path: cf_parse.c
+  - path: host_platform.c
+  - path: ../common/app_log/app_log_cli.c
+
+include:
+  - path: .
+    file_list:
+      - path: app.h
+      - path: cf_parse.h
+      - path: throughput_central_rta.h
+  - path: ../common/app_log
+    file_list:
+      - path: app_log_cli.h
+
+configuration:
+  - name: APP_LOG_LEVEL_FILTER_DYNAMIC 
+    value: 1
+
+library:
+  - system: libcjson
+
+tag:
+  - toolchain:gcc
+  - hwfilter:device:device_family_host
+
+readme:
+  - path: readme.md
+
+ui_hints:
+  highlight:
+    - path: readme.md
+      focus: true

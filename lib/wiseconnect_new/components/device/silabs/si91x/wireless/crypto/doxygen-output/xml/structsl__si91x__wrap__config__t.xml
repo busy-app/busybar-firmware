@@ -1,0 +1,139 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="structsl__si91x__wrap__config__t" kind="struct" language="C++" prot="public">
+    <compoundname>sl_si91x_wrap_config_t</compoundname>
+    <includes refid="sl__si91x__wrap_8h" local="no">sl_si91x_wrap.h</includes>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structsl__si91x__wrap__config__t_1ac553dd50e88c211df75b1fa94cb088cb" prot="public" static="no" mutable="no">
+        <type>uint32_t</type>
+        <definition>uint32_t sl_si91x_wrap_config_t::key_type</definition>
+        <argsstring></argsstring>
+        <name>key_type</name>
+        <qualifiedname>sl_si91x_wrap_config_t::key_type</qualifiedname>
+        <briefdescription>
+<para>Type of the key as indicated by <ref refid="group__CRYPTO__CONSTANTS_1gaa4ae5ba737ea708d60d4c58f83d6d7be" kindref="member">sl_si91x_crypto_key_type_t</ref>. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/wrap/inc/sl_si91x_wrap.h" line="62" column="12" bodyfile="components/device/silabs/si91x/wireless/crypto/wrap/inc/sl_si91x_wrap.h" bodystart="62" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__si91x__wrap__config__t_1a105a735b0a0d005c096133d87b26888d" prot="public" static="no" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t sl_si91x_wrap_config_t::padding</definition>
+        <argsstring></argsstring>
+        <name>padding</name>
+        <qualifiedname>sl_si91x_wrap_config_t::padding</qualifiedname>
+        <briefdescription>
+<para>Type of padding. A value of 1 specifies HMAC padding, whereas a value of 0 specifies PKCS7 padding. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/wrap/inc/sl_si91x_wrap.h" line="64" column="5" bodyfile="components/device/silabs/si91x/wireless/crypto/wrap/inc/sl_si91x_wrap.h" bodystart="64" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__si91x__wrap__config__t_1afb3019cbad2bd6c17840c5b445e3ea17" prot="public" static="no" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t sl_si91x_wrap_config_t::hmac_sha_mode</definition>
+        <argsstring></argsstring>
+        <name>hmac_sha_mode</name>
+        <qualifiedname>sl_si91x_wrap_config_t::hmac_sha_mode</qualifiedname>
+        <briefdescription>
+<para>Specifies HMAC SHA mode if HMAC padding is enabled; otherwise reserved. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/wrap/inc/sl_si91x_wrap.h" line="65" column="12" bodyfile="components/device/silabs/si91x/wireless/crypto/wrap/inc/sl_si91x_wrap.h" bodystart="65" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__si91x__wrap__config__t_1aef9137cbfae684f3e84344ea73103129" prot="public" static="no" mutable="no">
+        <type>uint32_t</type>
+        <definition>uint32_t sl_si91x_wrap_config_t::key_size</definition>
+        <argsstring></argsstring>
+        <name>key_size</name>
+        <qualifiedname>sl_si91x_wrap_config_t::key_size</qualifiedname>
+        <briefdescription>
+<para>Size of the key in bytes. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/wrap/inc/sl_si91x_wrap.h" line="66" column="12" bodyfile="components/device/silabs/si91x/wireless/crypto/wrap/inc/sl_si91x_wrap.h" bodystart="66" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__si91x__wrap__config__t_1a99e07f6e359083070b52b491e8d5546a" prot="public" static="no" mutable="no">
+        <type><ref refid="group__CRYPTO__CONSTANTS_1gaac5c8069f16fca3b9d5936ef034537de" kindref="member">sl_si91x_crypto_wrap_mode_t</ref></type>
+        <definition>sl_si91x_crypto_wrap_mode_t sl_si91x_wrap_config_t::wrap_iv_mode</definition>
+        <argsstring></argsstring>
+        <name>wrap_iv_mode</name>
+        <qualifiedname>sl_si91x_wrap_config_t::wrap_iv_mode</qualifiedname>
+        <briefdescription>
+<para>Specifies the wrap IV mode. IV is mandatory for <ref refid="group__CRYPTO__CONSTANTS_1ggaac5c8069f16fca3b9d5936ef034537dea2f64655874226f1d0b9fbd5da4c87048" kindref="member">SL_SI91X_WRAP_IV_CBC_MODE</ref>. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/wrap/inc/sl_si91x_wrap.h" line="68" column="5" bodyfile="components/device/silabs/si91x/wireless/crypto/wrap/inc/sl_si91x_wrap.h" bodystart="68" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__si91x__wrap__config__t_1acf9b4ed77a2b2c7630425896ae5033f4" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_si91x_wrap_config_t::wrap_iv[SL_SI91X_IV_SIZE]</definition>
+        <argsstring>[SL_SI91X_IV_SIZE]</argsstring>
+        <name>wrap_iv</name>
+        <qualifiedname>sl_si91x_wrap_config_t::wrap_iv</qualifiedname>
+        <briefdescription>
+<para>Buffer to store the initialization vector (IV). </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/wrap/inc/sl_si91x_wrap.h" line="69" column="11" bodyfile="components/device/silabs/si91x/wireless/crypto/wrap/inc/sl_si91x_wrap.h" bodystart="69" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__si91x__wrap__config__t_1a7015e009817d8c76827f1ae665c15951" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_si91x_wrap_config_t::key_buffer[SL_SI91X_WRAP_KEY_BUFFER_SIZE]</definition>
+        <argsstring>[SL_SI91X_WRAP_KEY_BUFFER_SIZE]</argsstring>
+        <name>key_buffer</name>
+        <qualifiedname>sl_si91x_wrap_config_t::key_buffer</qualifiedname>
+        <briefdescription>
+<para>Key or plain text to be wrapped. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="note"><para><itemizedlist>
+<listitem><para>By default <ref refid="group__CRYPTO__CONSTANTS_1ga48eea85223bca71f449dcf9f2b5d11fb" kindref="member">SL_SI91X_WRAP_KEY_BUFFER_SIZE</ref> is set to 1400 bytes. <linebreak/>
+</para>
+</listitem><listitem><para>To configure <ref refid="group__CRYPTO__CONSTANTS_1ga48eea85223bca71f449dcf9f2b5d11fb" kindref="member">SL_SI91X_WRAP_KEY_BUFFER_SIZE</ref>, use the configuration wizard in the Simplicity Studio for the Wrap component.</para>
+</listitem><listitem><para>Ensure the application stack size is sufficient to accommodate the <ref refid="group__CRYPTO__CONSTANTS_1ga48eea85223bca71f449dcf9f2b5d11fb" kindref="member">SL_SI91X_WRAP_KEY_BUFFER_SIZE</ref>. </para>
+</listitem></itemizedlist>
+</para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/wrap/inc/sl_si91x_wrap.h" line="77" column="11" bodyfile="components/device/silabs/si91x/wireless/crypto/wrap/inc/sl_si91x_wrap.h" bodystart="77" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Structure defining WRAP configuration. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>The structure defines the WRAP configuration required for the operation, which includes key type, key size, key buffer, and so on. </para>
+    </detaileddescription>
+    <location file="components/device/silabs/si91x/wireless/crypto/wrap/inc/sl_si91x_wrap.h" line="61" column="1" bodyfile="components/device/silabs/si91x/wireless/crypto/wrap/inc/sl_si91x_wrap.h" bodystart="61" bodyend="78"/>
+    <listofallmembers>
+      <member refid="structsl__si91x__wrap__config__t_1afb3019cbad2bd6c17840c5b445e3ea17" prot="public" virt="non-virtual"><scope>sl_si91x_wrap_config_t</scope><name>hmac_sha_mode</name></member>
+      <member refid="structsl__si91x__wrap__config__t_1a7015e009817d8c76827f1ae665c15951" prot="public" virt="non-virtual"><scope>sl_si91x_wrap_config_t</scope><name>key_buffer</name></member>
+      <member refid="structsl__si91x__wrap__config__t_1aef9137cbfae684f3e84344ea73103129" prot="public" virt="non-virtual"><scope>sl_si91x_wrap_config_t</scope><name>key_size</name></member>
+      <member refid="structsl__si91x__wrap__config__t_1ac553dd50e88c211df75b1fa94cb088cb" prot="public" virt="non-virtual"><scope>sl_si91x_wrap_config_t</scope><name>key_type</name></member>
+      <member refid="structsl__si91x__wrap__config__t_1a105a735b0a0d005c096133d87b26888d" prot="public" virt="non-virtual"><scope>sl_si91x_wrap_config_t</scope><name>padding</name></member>
+      <member refid="structsl__si91x__wrap__config__t_1acf9b4ed77a2b2c7630425896ae5033f4" prot="public" virt="non-virtual"><scope>sl_si91x_wrap_config_t</scope><name>wrap_iv</name></member>
+      <member refid="structsl__si91x__wrap__config__t_1a99e07f6e359083070b52b491e8d5546a" prot="public" virt="non-virtual"><scope>sl_si91x_wrap_config_t</scope><name>wrap_iv_mode</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,224 @@
+project_name: zwave_soc_wall_controller
+label: Z-Wave - SoC Wall Controller
+category: Z-Wave|Apps
+description: >
+  The Z-Wave certified Wall Controller application shows a push-button switch panel implementation
+  to control devices in the Z-Wave network from push buttons (physical or virtual) on a device that
+  is meant to be mounted on a wall. Examples include scene and zone controllers and wall-mounted AV
+  controllers.
+package: zwave_sample_app
+quality: production
+component:
+  - id: emlib_letimer
+  - id: emlib_timer
+  - id: emlib_msc
+  - id: gpiointerrupt
+  - id: zw_role_type_always_on
+  - id: zaf_soc
+  - id: zw_core
+  - id: zw_zaf
+  - id: zw_true_status
+  - id: zw_ota
+  - id: zw_cc_manufacturerspecific
+  - id: zw_cc_common
+  - id: zw_cc_association
+  - id: zw_cc_supervision
+  - id: zw_cc_multi_channel_control
+  - id: zw_cc_basiccontroller
+  - id: zw_cc_deviceresetlocally
+  - id: zw_cc_firmwareupdate
+  - id: zw_cc_version
+  - id: zw_cc_indicator
+  - id: zw_cc_powerlevel
+  - id: zw_cc_zwaveplusinfo
+  - id: zw_cc_central_scene
+  - id: zw_cc_central_scene_nvm
+  - id: zw_cc_multilevelswitchcontrol
+  - id: zw_appshw
+  - id: sl_main
+  - id: device_init
+  - id: mpu # disable execution from RAM
+  - id: ZW_MIGRATION_TO_7_19
+  - id: zw_cli_common
+    condition: [zw_stack_release_libraries]
+  - id: app_button_press
+  - id: app_assert
+  - id: simple_button
+    instance: [btn0, btn1]
+  - id: simple_led
+    instance: [led0, led1]
+  - id: clock_manager
+
+source:
+  - path: app.c
+  - path: app_cli.c
+    condition: [zw_cli_common]
+  - path: app_btn_handler.c
+    condition: [simple_button]
+
+include:
+  - path: .
+    file_list:
+      - path: events.h
+configuration:
+  - name: SHORT_BUTTON_PRESS_DURATION_MS
+    value: (400)
+  - name: MEDIUM_BUTTON_PRESS_DURATION_MS
+    value: (1500)
+  - name: APP_BUTTON_PRESS_DETECTION
+    value: APP_BUTTON_PRESS_DETECT_PRESS_AND_RELEASE
+  - name: ZAF_CONFIG_REQUEST_KEY_S0
+    value: 1
+  - name: ZAF_CONFIG_REQUEST_KEY_S2_UNAUTHENTICATED
+    value: 1
+  - name: ZAF_CONFIG_REQUEST_KEY_S2_AUTHENTICATED
+    value: 1
+  - name: ZAF_CONFIG_GENERIC_TYPE
+    value: GENERIC_TYPE_WALL_CONTROLLER
+  - name: ZAF_CONFIG_SPECIFIC_TYPE
+    value: SPECIFIC_TYPE_NOT_USED
+  - name: ZAF_CONFIG_PRODUCT_ID
+    value: 6 # Silicon Labs Z-Wave Wall Controller product ID
+  - name: ZAF_CONFIG_USER_ICON_TYPE
+    value: ICON_TYPE_GENERIC_WALL_CONTROLLER
+  - name: ZAF_CONFIG_INSTALLER_ICON_TYPE
+    value: ICON_TYPE_GENERIC_WALL_CONTROLLER
+  - name: ZAF_TRANSPORT_CONFIG_QUEUE_SIZE
+    value: 7
+  - name: NVM3_DEFAULT_MAX_OBJECT_SIZE
+    value: 1900
+  - name: NVM3_DEFAULT_CACHE_SIZE
+    value: 100
+  - name: SL_BOARD_ENABLE_VCOM
+    value: 1
+  - name: configUSE_IDLE_HOOK
+    value: 1
+  - name: configTIMER_TASK_PRIORITY
+    value: 55
+  - name: configMAX_SYSCALL_INTERRUPT_PRIORITY
+    value: 16
+    condition: [device_series_2]
+  - name: configKERNEL_INTERRUPT_PRIORITY
+    value: 112
+    condition: [device_series_2]
+  - name: configTIMER_QUEUE_LENGTH
+    value: 8
+  - name: SL_PSA_ITS_USER_MAX_FILES
+    value: 32
+    condition: ["device_series_2", "device_security_vault"]
+  - name: SL_PSA_KEY_USER_SLOT_COUNT
+    value: 14
+    condition: ["device_series_2", "device_security_vault"]
+  - name: SL_SLEEPTIMER_PERIPHERAL
+    value: SL_SLEEPTIMER_PERIPHERAL_BURTC
+    condition: ["device_series_2"]
+  - name: CC_ASSOCIATION_MAX_GROUPS_PER_ENDPOINT
+    value: 7
+  - name: CC_ASSOCIATION_MAX_NODES_IN_GROUP
+    value: 5
+  - name: ZAF_EVENT_DISTRIBUTOR_CORE_CONFIG_TIMEOUT
+    value: 10
+  - name: SL_PSA_ITS_SUPPORT_V1_DRIVER
+    value: 1
+  - name: SL_PSA_ITS_SUPPORT_V2_DRIVER
+    value: 1
+  - name: SL_PSA_ITS_SUPPORT_V3_DRIVER
+    value: 1
+  - name: ZAF_APP_NAME
+    value: '"wall_controller"'
+  - name: SL_IOSTREAM_EUSART_INSTANCE_RESTRICT_ENERGY_MODE_TO_ALLOW_RECEPTION
+    value: 0
+    condition: [zw_cli_common, iostream_eusart]
+  - name: SL_IOSTREAM_EUSART_VCOM_RESTRICT_ENERGY_MODE_TO_ALLOW_RECEPTION
+    value: 0
+    condition: [zw_cli_common,iostream_eusart]
+  - name: SL_IOSTREAM_LEUART_VCOM_RESTRICT_ENERGY_MODE_TO_ALLOW_RECEPTION
+    value: 0
+    condition: [zw_cli_common, iostream_leuart]
+  - name: SL_CLOCK_MANAGER_WDOG0CLK_SOURCE
+    value: CMU_WDOG0CLKCTRL_CLKSEL_LFRCO
+  - name: SL_CLOCK_MANAGER_EUSART0CLK_SOURCE
+    value: CMU_EUSART0CLKCTRL_CLKSEL_LFRCO
+    unless: [brd4204a]
+  # USART configuration
+  - name: SL_IOSTREAM_USART_VCOM_CONVERT_BY_DEFAULT_LF_TO_CRLF
+    value: 1
+  - name: SL_IOSTREAM_USART_VCOM_RESTRICT_ENERGY_MODE_TO_ALLOW_RECEPTION
+    value: 0    # UART RX shouldn't prevent EM2
+  # EUSART configuration
+  - name: SL_IOSTREAM_EUSART_VCOM_CONVERT_BY_DEFAULT_LF_TO_CRLF
+    value: 1
+  - name: SL_IOSTREAM_EUSART_VCOM_RESTRICT_ENERGY_MODE_TO_ALLOW_RECEPTION
+    value: 0    # EUSART RX shouldn't prevent EM2
+    unless: [brd4204a]
+  - name: SL_IOSTREAM_EUSART_INSTANCE_RESTRICT_ENERGY_MODE_TO_ALLOW_RECEPTION
+    value: 0
+  - name: SL_IOSTREAM_EUSART_VCOM_BAUDRATE
+    value: 9600 # In EM2 the eusart is working only with 9600 baud
+  - name: SL_IOSTREAM_EUSART_VCOM_ENABLE_HIGH_FREQUENCY # Disable high frequency mode for EUSART to work in EM2
+    value: 0
+    unless: [brd4204a]
+  # BRD4204A uses PORTD for EUSART that cannot work in EM2, so we configure EUSART to apply lock for EM1
+  - name: SL_CLOCK_MANAGER_EUSART0CLK_SOURCE
+    value: CMU_EUSART0CLKCTRL_CLKSEL_EM01GRPCCLK
+    condition: [brd4204a]
+  - name: SL_IOSTREAM_EUSART_VCOM_ENABLE_HIGH_FREQUENCY
+    value: 1
+    condition: [brd4204a]
+  - name: SL_IOSTREAM_EUSART_VCOM_RESTRICT_ENERGY_MODE_TO_ALLOW_RECEPTION
+    value: 1
+    condition: [brd4204a]
+config_file:
+  - path: WallController.cc_config
+    directory: cc_config
+  # Sample keys for signing
+  - path: ../sample-keys/sample_encrypt.key
+    directory: sample_keys
+  - path: ../sample-keys/sample_sign.key
+    directory: sample_keys
+
+provides:
+  - name: zwave_sample_application
+  - name: zwave_soc_wall_controller
+
+template_contribution:
+#------------------ CLI commands ---------------------
+  - name: cli_command
+    condition: [zw_cli_common]
+    value:
+      name: send_central_scene_key
+      handler: cli_send_central_scene_key
+      help: Send Central Scene Command
+      argument:
+      - type: uint8
+        help: Number of the key (1 ,2 or 3)
+      - type: string
+        help: Action of the key action (press, hold, release)
+
+define:
+  - name: APP_PROPERTIES_CONFIG_FILE
+    value: <application_properties_config.h>
+  - name: FILE_ID_APPLICATIONDATA # File identifiers for application file system
+    value: "0x00000" # Range: 0x00000 - 0x0FFFF
+
+post_build:
+  profile: zwave_application
+
+tag:
+  - prebuilt_demo
+  - hwfilter:device:device_supports_zwave
+  - hwfilter:!board:brd4205a
+  - toolchain:gcc
+
+filter:
+  - name: "Wireless Technology"
+    value: ["Z-Wave"]
+  - name: "Device Type"
+    value: ["SoC"]
+  - name: "Project Difficulty"
+    value: ["Beginner"]
+
+readme:
+   - path: README.md
+ui_hints:
+   highlight: README.md

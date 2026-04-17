@@ -1,0 +1,34 @@
+id: systemlevel_headers
+label: System-Level API Headers
+package: platform_siwx91x
+description: >
+  System-Level API Headers
+category: Device|Si91x|MCU|Internal|System-Level Drivers
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+ui_hints:
+  visibility: never
+component_root_path: "components/device/silabs/si91x/mcu/drivers/systemlevel"
+include:
+  - path: "inc"
+    file_list:
+      - path: rsi_bod.h
+      - path: rsi_ds_timer.h
+      - path: rsi_ipmu.h
+      - path: rsi_pll.h
+      - path: rsi_pmu.h
+      - path: rsi_power_save.h
+      - path: rsi_processor_sensor.h
+      - path: rsi_reg_spi.h
+      - path: rsi_retention.h
+      - path: rsi_rtc.h
+      - path: rsi_temp_sensor.h
+      - path: rsi_time_period.h
+      - path: rsi_ulpss_clk.h
+      - path: rsi_wwdt.h
+provides:
+  - name: systemlevel_headers
+requires:
+  - name: systemlevel_ulpss_clk

@@ -1,0 +1,51 @@
+project_name: btmesh_host_provisioner
+package: bluetooth_mesh_app
+label: Bluetooth Mesh - Host Provisioner
+description: >-
+  Demonstrates a Bluetooth Mesh host provisioner application. This application can
+  provision devices into a Bluetooth Mesh network, configure them, and manage network
+  operations. It supports optional features like Certificate-Based Provisioning (CBP),
+  Remote Provisioning (RPR), and User Interface (UI) components. Built using the NCP
+  (Network Co-Processor) architecture.
+
+category: Bluetooth Mesh Examples
+quality: production
+
+filter:
+  - name: "Wireless Technology"
+    value: ["Bluetooth Mesh"]
+  - name: "Device Type"
+    value: ["Host"]
+  - name: "Project Difficulty"
+    value: ["Advanced"]
+
+component:
+  - id: app_assert
+  - id: app_timer
+  - id: btmesh_host_app_prov
+  - id: btmesh_stack_api_ncp_host
+  - id: host_main
+  - id: host_ncp
+  - id: iostream_stdio
+  - id: native_host
+  - id: ncp_evt_filter
+  - id: ncp_host_btmesh
+  - id: ncp_version
+  - id: toolchain_gcc
+
+source:
+  - path: app.c
+  - path: app_conf.c
+
+include:
+  - path: .
+    file_list:
+    - path: app.h
+    - path: app_conf.h
+    - path: app_prov_only.h
+
+readme:
+  - path: ../../documentation/example/btmesh_host_provisioner/readme.md
+
+tag:
+  - hwfilter:device:device_family_host

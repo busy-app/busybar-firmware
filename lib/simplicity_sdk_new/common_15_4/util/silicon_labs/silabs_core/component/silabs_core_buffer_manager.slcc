@@ -1,0 +1,27 @@
+id: silabs_core_buffer_manager
+package: common_15_4
+label: Buffer Manager
+description: |-
+  Silicon Labs core utility providing a buffer management solution.
+  This component is for internal use only and should not be used directly by an application.
+category: Platform|Utilities
+quality: production
+ui_hints:
+  visibility: never
+include:
+- path: util/silicon_labs/silabs_core/buffer_manager
+  file_list:
+  - path: buffer-management.h
+  - path: buffer-queue.h
+source:
+- path: util/silicon_labs/silabs_core/buffer_manager/buffer-management.c
+- path: util/silicon_labs/silabs_core/buffer_manager/buffer-queue.c
+
+requires:
+- name: sl_core
+provides:
+- name: silabs_core_buffer_manager
+metadata:
+  sbom:
+    license: MSLA
+root_path: common_15_4

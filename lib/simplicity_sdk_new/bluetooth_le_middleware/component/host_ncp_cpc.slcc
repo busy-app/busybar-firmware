@@ -1,0 +1,28 @@
+id: host_ncp_cpc
+label: Host NCP CPC adapter (Linux only)
+package: bluetooth_le_middleware
+description: >
+  Host NCP CPC adapter (Linux only)
+category: Bluetooth|Application|Miscellaneous
+metadata:
+  sbom:
+    license: Zlib
+quality: experimental
+root_path: bluetooth_le_middleware/common_host/cpc_bt
+tag:
+- Low-Code
+include:
+- path: .
+  file_list:
+  - path: cpc_bt.h
+source:
+- path: cpc_bt.c
+provides:
+- name: host_ncp_cpc
+requires:
+- name: linux
+library:
+- system: libcpc
+template_contribution:
+- name: component_catalog
+  value: host_ncp_cpc

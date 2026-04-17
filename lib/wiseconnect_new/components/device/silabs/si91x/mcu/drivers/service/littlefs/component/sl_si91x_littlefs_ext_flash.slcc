@@ -1,0 +1,33 @@
+id: sl_si91x_littlefs_ext_flash
+label: Little FS for Common Flash parts with external flash
+package: platform_nwp_siwx91x
+description: >
+  A little fail-safe filesystem. This component is used for performing file operations on common flash parts with external flash connected on GPIO_46 to GPIO_51 for common flash parts. 
+  Configure SL_LITTLEFS_BASE_EXT in sl_si91x_littlefs_ext_flash_config.h file to indicate start address for littlefs region in external connected flash.
+  note: QSPI2 peripheral is used to access the external flash. External flash base address starts from 0xA000000. For example, external flash physical address 0x00000000 translates to 0x0A000000.
+category: Device|Si91x|MCU|Service
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+component_root_path: 'components/device/silabs/si91x/mcu/drivers/service/littlefs'
+config_file:
+  - path: "config/sl_si91x_littlefs_ext_flash_config.h"
+source:
+  - path: "src/sl_si91x_littlefs_hal.c"
+include:
+  - path: "inc"
+    file_list:
+    - path: "sl_si91x_littlefs_hal.h"
+define:
+  - name: SI91X_LITTLEFS_EXT_FLASH_PRESENT
+requires:
+  - name: littlefs_si91x
+  - name: romdriver_qspi   
+  - name: sl_gpio   
+provides:
+  - name: sl_si91x_littlefs_ext_flash
+conflicts:
+  - name: sl_si91x_littlefs
+  - name: sl_si91x_littlefs_common_flash
+  - name: sl_si91x_nvm3

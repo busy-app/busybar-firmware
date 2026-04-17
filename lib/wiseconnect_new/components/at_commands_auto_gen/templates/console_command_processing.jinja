@@ -1,0 +1,35 @@
+{%- if "handler" in command -%}
+extern sl_status_t {{command.handler}}( console_args_t* arguments );
+static const char* {{prefix}}_{{name}}_arg_help[] = { {%- for arg in command.arguments %}{% if "help" in arg %}  "{{arg.help}}",{% else %}  0,{% endif -%}{% endfor %} };
+{%- endif %}
+{%- if "handler" in command %}
+static const console_descriptive_command_t {{prefix}}_{{name}}_command = { .description={%- if "description" in command %}"{{command.description}}"{% elif "help" in command %}"{{command.help}}"{% endif %}, .argument_help={{prefix}}_{{name}}_arg_help, .handler={{command.handler}}, .argument_list={ 
+  {%- for arg in command.arguments -%}
+    {%- if "type" in arg -%}
+      {%- if "option" in arg %}CONSOLE_OPTIONAL_ARG('{{arg.option}}', {% endif -%}
+      {%- if arg.type in __mapping  %}CONSOLE_ARG_{{ __mapping[arg.type]}} {% else %}CONSOLE_ENUM_ARG({{arg.type}}) {% endif -%}
+      {%- if "option" in arg %}){%endif -%}
+    {%- elif arg is not string -%}
+      {% for key in arg %}CONSOLE_OPTIONAL_ARG('{{key}}', {% if arg[key] in __mapping %}CONSOLE_ARG_{{__mapping[arg[key]]}} {% else %}CONSOLE_ENUM_ARG({{arg[key]}}) {% endif %}){%endfor -%}
+    {%- else -%}
+      {% if arg in __mapping %}CONSOLE_ARG_{{__mapping[arg]}}{% else %}CONSOLE_ENUM_ARG({{arg}}){% endif -%}
+    {%- endif %}, 
+  {%- endfor -%} CONSOLE_ARG_END } };
+{%- else -%}
+  {% set old_command = command %}{% set old_name = name -%}{% set old_prefix = prefix -%}{% set prefix = prefix + "_" + name %}
+  {%- for b_name in old_command %}
+    {% if old_command[b_name] is not string %}{% set name = b_name %}{% set command = old_command[b_name] -%}
+{%-    include "console_command_processing.jinja" %}
+    {%- endif %}
+  {%- endfor -%}
+{% set command = old_command %}{% set name = old_name %}{% set old_command = command.old_command %}
+const console_database_t {{prefix}}_command_database =
+{
+  CONSOLE_DATABASE_ENTRIES(
+{% for temp_name in command %}{% if command[temp_name] is not string %}    { "{{temp_name}}",    &{{prefix}}_{{temp_name}}_command },
+{% endif %}{%- endfor %}    )
+};
+
+static const console_descriptive_command_t {{prefix}}_command = { .description={%- if "description" in command %}"{{command.description}}"{%else%}""{%endif%}, 0, .sub_command_database = &{{prefix}}_command_database, {CONSOLE_ARG_SUB_COMMAND,CONSOLE_ARG_END} };
+{% set old_name = command.old_name %}{% set prefix = old_prefix -%}
+{%- endif %}

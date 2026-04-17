@@ -1,0 +1,42 @@
+project_name: bt_host_ota_dfu
+package: bluetooth_le_app
+label: Bluetooth - Host OTA DFU
+description: >
+  OTA DFU utility. This program performs Over The Air (OTA) Device Firmware
+  Update (DFU). A path to a Gecko Bootloader (GBL) file and the address of
+  the target must be supplied at the command line argument.
+category: Bluetooth Examples
+quality: experimental
+
+filter:
+  - name: "Wireless Technology"
+    value: ["Bluetooth"]
+  - name: "Device Type"
+    value: ["Host"]
+  - name: "Project Difficulty"
+    value: ["Beginner"]
+
+component:
+  - id: ncp_version
+  - id: host_ncp
+  - id: app_log
+  - id: iostream_stdio
+  - id: app_assert
+  - id: native_host
+  - id: host_main
+  - id: toolchain_gcc
+
+source:
+  - path: app.c
+
+tag:
+  - toolchain:gcc
+  - hwfilter:device:device_family_host
+
+readme:
+  - path: readme.md
+
+ui_hints:
+  highlight:
+    - path: readme.md
+      focus: true

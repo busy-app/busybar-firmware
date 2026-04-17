@@ -1,0 +1,42 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__evt__connection__get__remote__tx__power__completed" kind="group">
+    <compoundname>sl_bt_evt_connection_get_remote_tx_power_completed</compoundname>
+    <title>sl_bt_evt_connection_get_remote_tx_power_completed</title>
+    <innerclass refid="structsl__bt__evt__connection__get__remote__tx__power__completed__s" prot="public">sl_bt_evt_connection_get_remote_tx_power_completed_s</innerclass>
+      <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="group__sl__bt__evt__connection__get__remote__tx__power__completed_1gae01eae41c4cc023bc5ad0de76fcd5151" prot="public" static="no">
+        <type>struct <ref refid="structsl__bt__evt__connection__get__remote__tx__power__completed__s" kindref="compound">sl_bt_evt_connection_get_remote_tx_power_completed_s</ref></type>
+        <definition>typedef struct sl_bt_evt_connection_get_remote_tx_power_completed_s sl_bt_evt_connection_get_remote_tx_power_completed_t</definition>
+        <argsstring></argsstring>
+        <name>sl_bt_evt_connection_get_remote_tx_power_completed_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6583" column="67" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6583" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__evt__connection__get__remote__tx__power__completed_1ga814bea24d3e828b6000c41e2c2f48bfa" prot="public" static="no">
+        <name>sl_bt_evt_connection_get_remote_tx_power_completed_id</name>
+        <initializer>0x050600a0</initializer>
+        <briefdescription>
+<para>Identifier of the get_remote_tx_power_completed event. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6532" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6532" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Indicates that reading remote transmit power initiated by <ref refid="group__sl__bt__connection_1ga8cadd42340a29a6e76442f7b4f085617" kindref="member">sl_bt_connection_get_remote_tx_power</ref> command has completed. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

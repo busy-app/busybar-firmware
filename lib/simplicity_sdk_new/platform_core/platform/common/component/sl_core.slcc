@@ -1,0 +1,45 @@
+id: sl_core
+label: core
+package: platform_core
+description: >
+  Core peripheral API
+category: Platform|Utilities
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: platform_core/platform/common
+source:
+- path: src/sl_core_cortexm.c
+  condition: [device_cortexm]
+- path: src/sl_core_mock.c
+  condition: [device_host]
+include:
+- path: inc
+  file_list:
+  - path: sl_core.h
+config_file:
+- path: config/sl_core_config.h
+  file_id: sl_core_config
+provides:
+- name: sl_core
+- name: sl_core_arch
+  condition: [device_cortexm]
+- name: sl_core_arch
+  condition: [device_host]
+requires:
+- name: device
+  condition: [device_cortexm]
+- name: cmsis_core
+  condition: [device_cortexm]
+- name: sl_common
+- name: code_classification
+- name: sl_core_arch
+template_contribution:
+- name: code_classification_components
+  value: core
+- name: component_catalog
+  value: sl_core
+define:
+- name: SL_CODE_COMPONENT_CORE
+  value: core

@@ -1,0 +1,24 @@
+id: ot_diags_stubs
+label: Diagnostics
+package: openthread
+category: OpenThread
+quality: production
+description: This component provides function stubs for a stack configured with diagnostics support.
+requires:
+- name: ot_headers
+provides:
+- name: ot_diags_stubs
+- name: ot_diags_implementation
+root_path: openthread/src/stubs/diag
+source:
+- path: diag_stubs.c
+- path: diags_api_stubs.cpp
+- path: factory_diags_stubs.cpp
+define:
+- name: OPENTHREAD_CONFIG_DIAG_ENABLE
+  value: 1
+ui_hints:
+  visibility: never
+metadata:
+  sbom:
+    license: Zlib

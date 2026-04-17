@@ -1,0 +1,41 @@
+id: si91x_debug_swo
+label: SI91X SWO Debug
+package: platform_siwx91x
+description: >
+  Driver for debugging using Serial Wire Output.
+  The driver can be configured to output hardware interrupt events and
+  Program Counter samples using the DWT and ITM, as well as arbitrary data
+  produced by software using any of the 32 stimulus ports of the ITM.
+
+  Note: This software component can be used to enable code correlation profiling.
+  For proper operation, enable interrupt event trace and Program Counter samples
+  in the component configuration.
+category: Device|Si91x|MCU|Debug
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: components/device/silabs/si91x/mcu/drivers/debug
+source:
+  - path: src/sl_si91x_debug_swo.c
+include:
+  - path: inc
+    file_list:
+      - path: sl_si91x_debug_swo.h
+provides:
+  - name: si91x_debug_swo
+requires:
+  - name: status
+  - name: cmsis_core
+  - name: component_catalog
+  - name: sl_gpio
+config_file:
+  - path: config/sl_si91x_debug_swo_config.h
+template_contribution:
+  - name: event_handler
+    value:
+      event: driver_init
+      include: "sl_si91x_debug_swo.h"
+      handler: sl_si91x_debug_swo_init
+  - name: component_catalog
+    value: debug_swo_si91x

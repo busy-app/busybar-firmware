@@ -1,0 +1,104 @@
+id: btl_core
+label: Bootloader Core (Series-3)
+package: bootloader
+description: >
+  The Bootloader Core component provides a core library for the Gecko bootloader, It provides the core
+  functions such as bootloader initialization and de-initialization, setting a reset reason, reset methods,
+  initialization of the image parser, and others.
+category: Platform|Bootloader|Core
+quality: production
+source:
+- path: platform/bootloader/series3/core/btl_bootload.c
+- path: platform/bootloader/series3/core/btl_core.c
+- path: platform/bootloader/series3/core/btl_main.c
+- path: platform/bootloader/series3/core/btl_parse.c
+- path: platform/bootloader/core/btl_reset.c
+- path: platform/bootloader/driver/btl_driver_util.c
+define:
+- name: BOOTLOADER_ENABLE
+  value: 1
+- name: SL_RAMFUNC_DISABLE
+  value: 1
+- name: __START
+  value: main
+- name: __STARTUP_CLEAR_BSS
+  value: 1
+- name: BOOTLOADER_SECOND_STAGE
+  value: 1
+- name: SL_STACK_SIZE
+  value: 16384
+
+include:
+- path: platform/bootloader/series3
+  file_list:
+  - path: api/btl_interface.h
+  - path: config/btl_config.h
+  - path: core/btl_core.h
+  - path: core/btl_helper.h
+  - path: core/btl_parse.h
+  - path: core/btl_bootload.h
+  - path: core/btl_util.h
+  - path: driver/btl_driver_cmu.h
+- path: platform/bootloader
+  file_list:
+  - path: core/btl_reset.h
+  - path: driver/btl_driver_util.h
+provides:
+- name: btl_core
+
+requires:
+- name: hal_gpio
+- name: hal_ldma
+- name: hal_common
+- name: hal_timer
+- name: se_manager_mailbox
+- name: enum
+- name: tz_secure_execution
+  condition: [trustzone_unaware]
+- name: btl_crc
+
+recommends:
+- id: btl_include_parser
+  vendor: silabs
+- id: bootloader_uart_xmodem
+  vendor: silabs
+- id: bootloader_xmodem_parser
+  vendor: silabs
+- id: bootloader_bgapi_uartdfu
+  vendor: silabs
+- id: bootloader_delay_driver
+  vendor: silabs
+- id: bootloader_ezsp_spi
+  vendor: silabs
+- id: bootloader_debug
+  vendor: silabs
+- id: btl_image_parser
+  vendor: silabs
+- id: bootloader_spi_peripheral_driver
+  vendor: silabs
+- id: btl_serial_driver
+
+  vendor: silabs
+config_file:
+  # Series-3
+- path: platform/bootloader/series3/config/device_series_3/btl_core_cfg.h
+  file_id: btl_core_config
+
+template_contribution:
+- name: bootloader_enable
+  value: 1
+- name: app_rollback_protection_size
+  value: 0x20
+
+  # Series-3 devices
+- name: bootloader_main_size
+  value: 0x8000
+- name: bootloader_flash_addr
+  value: 0x1000000
+toolchain_settings:
+- option: optimize
+  value: size
+metadata:
+  sbom:
+    license: MSLA
+root_path: bootloader

@@ -1,0 +1,22 @@
+!!omap
+- id: brd4414a
+- label: BRD4414A
+- package: boards
+- description: Board support for BRD4414A.
+- category: Platform|Board|Radio Board
+- quality: evaluation
+- metadata:
+    sbom:
+      license: Zlib
+- requires:
+  - name: brd4414a_revision
+- provides:
+  - name: brd4414a
+  - name: hardware_board_from_stk
+  - name: hardware_board_from_bg29-rb4414a
+- recommends:
+  - id: brd4414a_a07
+    vendor: silabs
+- ui_hints:
+    visibility: never
+- root_path: boards

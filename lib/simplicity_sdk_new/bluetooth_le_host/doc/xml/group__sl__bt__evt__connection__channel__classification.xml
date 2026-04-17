@@ -1,0 +1,42 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__evt__connection__channel__classification" kind="group">
+    <compoundname>sl_bt_evt_connection_channel_classification</compoundname>
+    <title>sl_bt_evt_connection_channel_classification</title>
+    <innerclass refid="structsl__bt__evt__connection__channel__classification__s" prot="public">sl_bt_evt_connection_channel_classification_s</innerclass>
+      <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="group__sl__bt__evt__connection__channel__classification_1gaf578b09f5fb6ed5d873b56fdfd996b3b" prot="public" static="no">
+        <type>struct <ref refid="structsl__bt__evt__connection__channel__classification__s" kindref="compound">sl_bt_evt_connection_channel_classification_s</ref></type>
+        <definition>typedef struct sl_bt_evt_connection_channel_classification_s sl_bt_evt_connection_channel_classification_t</definition>
+        <argsstring></argsstring>
+        <name>sl_bt_evt_connection_channel_classification_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6960" column="60" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6960" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__evt__connection__channel__classification_1gad07b77d6ec9ed73aa04adb548b8cd67b" prot="public" static="no">
+        <name>sl_bt_evt_connection_channel_classification_id</name>
+        <initializer>0x0f0600a0</initializer>
+        <briefdescription>
+<para>Identifier of the channel_classification event. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6926" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6926" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Indicates that a channel classification is received from the remote peripheral device. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

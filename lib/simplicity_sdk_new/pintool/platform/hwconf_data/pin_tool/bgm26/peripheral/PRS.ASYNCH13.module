@@ -1,0 +1,19 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<module:DocumentRoot xmlns:module="http://www.silabs.com/ss/hwconfig/module.ecore">
+  <module id="pin_tool.efr32.bgm26.prs.asynch13" label="PRS.ASYNCH13" name="PRS.ASYNCH13" description="" version="A">
+    <properties>
+      <stringProperty label="Type" id="type" defaultValue="prs" transient="true" hidden="true" readonly="true" description=""/>
+      <stringProperty label="Custom Peripheral Name" id="peripheral.name" description=""/>
+    </properties>
+    <propertyCategories>
+      <category label="PRS.ASYNCH13">
+        <subCategory label="">
+          <propertyRef refId="peripheral.name"/>
+        </subCategory>
+      </category>
+    </propertyCategories>
+    <signals>
+      <signal name="ASYNCH13"/>
+    </signals>
+  </module>
+</module:DocumentRoot>

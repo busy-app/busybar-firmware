@@ -1,0 +1,115 @@
+project_name: common_token_manager_baremetal
+package: platform
+quality: production
+label: Platform - Common Token Manager Baremetal
+description: >
+  This example project demonstrates use of the CTM interface.
+  Using the command line interface, the user can write, read and delete tokens.
+category: Example|Platform
+filter:
+  - name: "Device Type"
+    value: ["SoC"]
+  - name: "MCU"
+    value: ["32-bit MCU"]
+  - name: "Project Difficulty"
+    value: ["Beginner"]
+source:
+  - path: app.c
+  - path: ctm_app.c
+include:
+  - path: .
+    file_list:
+    - path: app.h
+    - path: ctm_app.h
+component:
+  - id: sl_main
+  - id: device_init
+  - id: clock_manager
+  - id: common_token_manager
+  - id: common_token_manager_compatibility
+  - id: cli
+    instance: [vcom]
+  - id: iostream_stdlib_config
+  - id: iostream_retarget_stdio
+  - id: iostream_recommended_stream
+define:
+  - name: DEBUG_EFM
+configuration:
+  - name: SL_BOARD_ENABLE_VCOM
+    value: 1
+  - name: SL_CLI_INPUT_BUFFER_SIZE
+    value: 256
+  - name: SL_CLI_PROMPT_STRING
+    value: "ctm> "
+template_contribution:
+  - name: cli_command
+    value:
+      name: write_custom_static_token
+      handler: ctm_write_custom_static_token
+      help: "Write static token data (0 - Write Static Secure, 1 - Write Static Device)"
+      argument:
+        - type: uint32
+          help: "Token Type"     
+  - name: cli_command
+    value:
+      name: read_custom_static_token
+      handler: ctm_read_custom_static_token
+      help: "Read static token data (0 - Read Static Secure, 1 - Read Static Device)"
+      argument:
+        - type: uint32
+          help: "Token Type" 
+  - name: cli_command
+    value:
+      name: write_dynamic_token
+      handler: ctm_write_dynamic_token
+      help: "Write dynamic token data (0 - Data Object, 1 - Override Token For Static Device, 2 - Override Token For Static Secure)"
+      argument:
+        - type: uint32
+          help: "Dynamic Token Type"
+        - type: uint32
+          help: "key (Refer to readme for command usage)"
+        - type: string
+          help: "data" 
+  - name: cli_command
+    value:
+      name: read_dynamic_token
+      handler: ctm_read_dynamic_token
+      help: "Read dynamic token data (0 - Data Object, 1 - Override Token For Static Device, 2 - Override Token For Static Secure)"
+      argument:
+        - type: uint32
+          help: "Dynamic Token Type"
+        - type: uint32
+          help: "key (Refer to readme for command usage)"
+  - name: cli_command
+    value:
+      name: delete_dynamic_token
+      handler: ctm_delete_dynamic_token
+      help: "Delete dynamic token data (0 - Dynamic Token, 1 - Delete static device override token, 2 - Delete static secure override token)"
+      argument:
+        - type: uint32
+          help: "Dynamic Token Type"
+        - type: uint32
+          help: "key"
+  - name: cli_command
+    value:
+      name: write_counter_token
+      handler: ctm_write_counter_token
+      help: "writes a counter value"
+      argument:
+        - type: uint32
+          help: "counter_value (Refer to readme for command usage)"
+  - name: cli_command
+    value:
+      name: read_counter_token
+      handler: ctm_read_counter_token
+      help: "reads the counter token data"
+  - name: cli_command
+    value:
+      name: increment_counter_token
+      handler: ctm_increment_counter_token
+      help: "increments the counter token data by 1"
+      
+readme:
+  - path: readme.md
+ui_hints:
+  highlight: readme.md

@@ -1,0 +1,46 @@
+/***************************************************************************//**
+ * @file sl_si91x_analog_comparator_init.h
+ * @brief Analog Comparator Instances
+ *******************************************************************************
+ * # License
+ * <b>Copyright 2023 Silicon Laboratories Inc. www.silabs.com</b>
+ *******************************************************************************
+ *
+ * The licensor of this software is Silicon Laboratories Inc. Your use of this
+ * software is governed by the terms of Silicon Labs Master Software License
+ * Agreement (MSLA) available at
+ * www.silabs.com/about-us/legal/master-software-license-agreement. This
+ * software is distributed to you in Source Code format and is governed by the
+ * sections of the MSLA applicable to Source Code.
+ *
+ ******************************************************************************/
+
+#ifndef SL_SI91X_ANALOG_COMPARATOR_INIT_H_
+#define SL_SI91X_ANALOG_COMPARATOR_INIT_H_
+
+#include "sl_si91x_analog_comparator.h"
+// Include instance config {# Include instance config #}
+{% for inst in temp_analog_comparator_instance %} 
+#include "sl_si91x_analog_comparator_{{ inst }}_config.h"
+
+#if defined(SL_ANALOG_{{ inst | upper }}_NON_INVERTING_INPUT) // To verify UC inputs existance
+sl_analog_comparator_config_t sl_analog_{{ inst }}_config_handle = {
+        .comparator_number   = SL_ANALOG_COMPARATOR_{{ inst | upper }},
+#if defined(SL_ANALOG_{{ inst | upper }}_NON_INVERTING_PIN_INPUT)
+		.non_inverting_input = SL_ANALOG_{{ inst | upper }}_NON_INVERTING_PIN_INPUT, // Pin tool non-inverting input
+#else
+		.non_inverting_input = SL_ANALOG_{{ inst | upper }}_NON_INVERTING_INPUT,
+#endif
+#if defined(SL_ANALOG_{{ inst | upper }}_INVERTING_PIN_INPUT)
+        .inverting_input = SL_ANALOG_{{ inst | upper }}_INVERTING_PIN_INPUT, // Pin tool inverting input
+#else
+        .inverting_input = SL_ANALOG_{{ inst | upper }}_INVERTING_INPUT,
+#endif
+        .hystersis_value   = SL_ANALOG_{{ inst | upper }}_HYSTERSIS_VALUE,
+        .is_filter_enabled = SL_ANALOG_{{ inst | upper }}_FILTER_ENABLED,
+};
+#endif // SL_ANALOG_COMPARATOR_INSTANCE
+{% endfor %}
+
+
+#endif // SL_SI91X_ANALOG_COMPARATOR_INIT_H

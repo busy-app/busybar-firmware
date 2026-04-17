@@ -1,0 +1,28 @@
+id: gatt_configuration
+label: Static GATT Database and Configuration
+package: bluetooth_le_host
+description: >
+  Adds a basic, static GATT database. It can be customized by the GATT Configurator tool.
+  It is compatible with the Dynamic GATT feature <bluetooth_feature_dynamic_gattdb> - static and dynamic GATT databases can co-exist.
+  It will also provide the GATT Configurator tool.
+category: Bluetooth|Bluetooth Host (Stack)
+metadata:
+  sbom:
+    license: Zlib
+quality: production
+root_path: bluetooth_le_host/config
+tag:
+- No-Code
+config_file:
+- path: gatt_configuration.btconf
+  file_id: gatt_configuration_file_id
+  directory: btconf
+provides:
+- name: gatt_configuration
+- name: bluetooth_gatt_database
+  allow_multiple: true
+requires:
+- name: bluetooth_gattdb_definition
+template_contribution:
+- name: component_catalog
+  value: gatt_configuration

@@ -1,0 +1,51 @@
+id: pwm_core
+label: PWM Core
+package: platform_core
+description: >
+  The PWM driver uses a high frequency hardware timer to generate Pulse Width
+  Modulated (PWM) waveforms with configurable frequency, polarity and duty
+  cycle.
+
+
+  This component includes only the PWM driver core. To configure and create
+  instances of this driver, the PWM component should be included in the
+  project.
+category: Platform|Driver|PWM
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: platform_core/platform/driver/pwm/
+ui_hints:
+  visibility: never
+source:
+- path: src/sl_pwm.c
+include:
+- path: inc
+  file_list:
+  - path: sl_pwm.h
+provides:
+- name: pwm_core
+requires:
+- name: hal_generic_timer
+- name: clock_manager_runtime
+- name: device_manager
+- name: gpio
+- name: hal_generic_common
+- name: status
+- name: enum
+template_file:
+- path: init/sl_pwm_init.c.jinja
+  condition: [pwm]
+- path: init/sl_pwm_instances.h.jinja
+  condition: [pwm]
+template_contribution:
+- name: event_handler
+  condition: [pwm]
+  value:
+    event: driver_init
+    include: sl_pwm_instances.h
+    handler: sl_pwm_init_instances
+documentation:
+  docset: gecko-platform
+  document: platform-driver/pwm

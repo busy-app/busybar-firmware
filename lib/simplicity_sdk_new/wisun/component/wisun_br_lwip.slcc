@@ -1,0 +1,40 @@
+id: wisun_br_lwip
+label: Integrate lwIP to Wi-SUN Border Router
+description: >
+  Creates WAN and PAN network interfaces to route IPv6 messages
+  between the Wi-SUN network and Internet.
+package: wisun
+category: Wi-SUN|Application|Wi-SUN BR CLI
+quality: evaluation
+
+
+requires:
+- name: lwip_core
+- name: lwip_api
+- name: lwip_netif_ethernet
+
+provides:
+- name: wisun_br_lwip
+
+include:
+- path: plugin
+  file_list:
+  - path: sl_wisun_br_lwip.h
+
+source:
+- path: plugin/sl_wisun_br_lwip.c
+
+define:
+- name: LWIP_HOOK_FILENAME
+  value: \"sl_wisun_br_lwip.h\"
+- name: LWIP_HOOK_IP6_ROUTE
+  value: sl_wisun_br_lwip_ip6_route_hook
+
+template_contribution:
+- name: component_catalog
+  value: wisun_br_lwip
+
+metadata:
+  sbom:
+    license: MSLA
+root_path: wisun

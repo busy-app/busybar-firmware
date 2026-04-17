@@ -1,0 +1,55 @@
+id: cpc_secondary_driver_spi_eusart
+package: cpc
+description: SPI driver over EUSART peripheral for Co-Processor Communication (CPC) Secondary Device.
+label: CPC Secondary - SPI (EUSART)
+category: Services|Co-Processor Communication|Secondary Device|Driver
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+instantiable:
+  prefix: inst
+config_file:
+- path: config/s2/sl_cpc_drv_secondary_spi_eusart_{{instance}}_config.h
+  file_id: cpc_drv_secondary_spi_eusart_config
+  condition: [device_series_2]
+- path: config/s3/sl_cpc_drv_secondary_spi_eusart_{{instance}}_config.h
+  file_id: cpc_drv_secondary_spi_eusart_config
+  condition: [device_series_3]
+source:
+- path: src/sl_cpc_drv_secondary_spi.c
+provides:
+- name: cpc_driver
+  allow_multiple: true
+- name: cpc_secondary_driver_spi_eusart_interface
+- name: cpc_secondary_driver
+  allow_multiple: true
+- name: cpc_secondary_driver_spi_eusart
+  allow_multiple: false
+- name: cpc_secondary_driver_spi
+  allow_multiple: false
+requires:
+- name: status
+- name: dmadrv
+- name: hal_generic_gpio
+- name: hal_generic_prs
+- name: hal_generic_eusart
+- name: clock_manager_runtime
+- name: slist
+- name: cpc_core
+- name: cpc_secondary
+template_file:
+- path: template/s2/sl_cpc_drv_secondary_spi_config.h.jinja
+  condition: [device_series_2]
+- path: template/s3/sl_cpc_drv_secondary_spi_config.h.jinja
+  condition: [device_series_3]
+template_contribution:
+- name: cpc_spi_instance_name
+  value: '{{instance}}'
+- name: cpc_interface_type
+  value: spi
+- name: cpc_spi_periph_type
+  value: eusart
+- name: component_catalog
+  value: cpc_driver_spi
+root_path: cpc

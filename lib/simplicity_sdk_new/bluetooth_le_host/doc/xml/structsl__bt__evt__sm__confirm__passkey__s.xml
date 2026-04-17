@@ -1,0 +1,55 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="structsl__bt__evt__sm__confirm__passkey__s" kind="struct" language="C++" prot="public">
+    <compoundname>sl_bt_evt_sm_confirm_passkey_s</compoundname>
+    <includes refid="sl__bt__api_8h" local="no">sl_bt_api.h</includes>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structsl__bt__evt__sm__confirm__passkey__s_1aea35c21d37c47c70c566c954ac27c719" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_sm_confirm_passkey_s::connection</definition>
+        <argsstring></argsstring>
+        <name>connection</name>
+        <qualifiedname>sl_bt_evt_sm_confirm_passkey_s::connection</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Connection handle </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11352" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="11352" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__sm__confirm__passkey__s_1a174d02a46c35159a1a2124ceb2f99dee" prot="public" static="no" mutable="no">
+        <type>uint32_t</type>
+        <definition>uint32_t sl_bt_evt_sm_confirm_passkey_s::passkey</definition>
+        <argsstring></argsstring>
+        <name>passkey</name>
+        <qualifiedname>sl_bt_evt_sm_confirm_passkey_s::passkey</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Passkey.<itemizedlist>
+<listitem><para><bold>Range:</bold> 0 to 999999</para>
+</listitem><listitem><para>NOTE! When displaying the passkey to the user, prefix the number with zeros to obtain a 6 digit number</para>
+</listitem><listitem><para>Example: Passkey value is 42</para>
+</listitem><listitem><para>Number to display to the user is 000042 </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11353" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="11353" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Data structure of the confirm_passkey event. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11350" column="1" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="11351" bodyend="11361"/>
+    <listofallmembers>
+      <member refid="structsl__bt__evt__sm__confirm__passkey__s_1aea35c21d37c47c70c566c954ac27c719" prot="public" virt="non-virtual"><scope>sl_bt_evt_sm_confirm_passkey_s</scope><name>connection</name></member>
+      <member refid="structsl__bt__evt__sm__confirm__passkey__s_1a174d02a46c35159a1a2124ceb2f99dee" prot="public" virt="non-virtual"><scope>sl_bt_evt_sm_confirm_passkey_s</scope><name>passkey</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,49 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="structsl__bt__evt__sync__closed__s" kind="struct" language="C++" prot="public">
+    <compoundname>sl_bt_evt_sync_closed_s</compoundname>
+    <includes refid="sl__bt__api_8h" local="no">sl_bt_api.h</includes>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structsl__bt__evt__sync__closed__s_1a6b409b8d52fccbb7fe793097646d9548" prot="public" static="no" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t sl_bt_evt_sync_closed_s::reason</definition>
+        <argsstring></argsstring>
+        <name>reason</name>
+        <qualifiedname>sl_bt_evt_sync_closed_s::reason</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>SL_STATUS_OK if successful. Error code otherwise. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="4343" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="4343" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__sync__closed__s_1a9e595d702aa81ec41c05302594952b4b" prot="public" static="no" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t sl_bt_evt_sync_closed_s::sync</definition>
+        <argsstring></argsstring>
+        <name>sync</name>
+        <qualifiedname>sl_bt_evt_sync_closed_s::sync</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Periodic advertising synchronization handle </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="4344" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="4344" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Data structure of the closed event. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="4341" column="1" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="4342" bodyend="4345"/>
+    <listofallmembers>
+      <member refid="structsl__bt__evt__sync__closed__s_1a6b409b8d52fccbb7fe793097646d9548" prot="public" virt="non-virtual"><scope>sl_bt_evt_sync_closed_s</scope><name>reason</name></member>
+      <member refid="structsl__bt__evt__sync__closed__s_1a9e595d702aa81ec41c05302594952b4b" prot="public" virt="non-virtual"><scope>sl_bt_evt_sync_closed_s</scope><name>sync</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

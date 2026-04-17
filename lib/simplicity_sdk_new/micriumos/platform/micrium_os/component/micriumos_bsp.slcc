@@ -1,0 +1,27 @@
+id: micriumos_bsp
+label: BSP init
+package: micriumos
+description: BSP init
+category: Services|Micrium|BSP
+quality: production
+metadata:
+  sbom:
+    license: MSLA
+config_file:
+- path: ../../../cfg/bsp_cfg.h
+source:
+- path: source/bsp_os.c
+include:
+- path: include
+  file_list:
+  - path: bsp_os.h
+  - path: bsp_opt_def.h
+provides:
+- name: micriumos_bsp
+requires:
+- name: emlib_chip
+  condition: [device_series_2]
+- name: device_init_dcdc
+ui_hints:
+  visibility: never
+root_path: micriumos/platform/micrium_os/bsp/siliconlabs/generic/

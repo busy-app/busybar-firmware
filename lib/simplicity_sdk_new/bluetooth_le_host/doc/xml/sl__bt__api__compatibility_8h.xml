@@ -1,0 +1,221 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="sl__bt__api__compatibility_8h" kind="file" language="C++">
+    <compoundname>sl_bt_api_compatibility.h</compoundname>
+    <includedby refid="sl__bt__api_8h" local="yes">/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h</includedby>
+    <invincdepgraph>
+      <node id="2">
+        <label>/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h</label>
+        <link refid="sl__bt__api_8h_source"/>
+        <childnode refid="3" relation="include">
+        </childnode>
+      </node>
+      <node id="1">
+        <label>/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api_compatibility.h</label>
+        <link refid="sl__bt__api__compatibility_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+      </node>
+      <node id="3">
+        <label>/var/lib/jenkins/github@3/bluetooth_le_host/event_system/inc/sli_bt_event_system.h</label>
+        <link refid="sli__bt__event__system_8h_source"/>
+      </node>
+    </invincdepgraph>
+      <sectiondef kind="enum">
+      <memberdef kind="enum" id="sl__bt__api__compatibility_8h_1a6b0b8e1c9cc747539022a4b387b93d21" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_bt_gap_phy_type_t</name>
+        <enumvalue id="sl__bt__api__compatibility_8h_1a6b0b8e1c9cc747539022a4b387b93d21a299003aa8c9c94c1db491eb16ed5fcc7" prot="public">
+          <name>sl_bt_gap_1m_phy</name>
+          <initializer>= 0x1</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x1) 1M PHY </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="sl__bt__api__compatibility_8h_1a6b0b8e1c9cc747539022a4b387b93d21a0561f02a8f26f9de6941ba89bbb05d43" prot="public">
+          <name>sl_bt_gap_2m_phy</name>
+          <initializer>= 0x2</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x2) 2M PHY </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="sl__bt__api__compatibility_8h_1a6b0b8e1c9cc747539022a4b387b93d21aca4f5ac76879625b11eed9e4e3251061" prot="public">
+          <name>sl_bt_gap_coded_phy</name>
+          <initializer>= 0x4</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x4) Coded PHY, 125k (S=8) or 500k (S=2) </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="sl__bt__api__compatibility_8h_1a6b0b8e1c9cc747539022a4b387b93d21ab01dd70af0a530622f66bc748fb5aaee" prot="public">
+          <name>sl_bt_gap_any_phys</name>
+          <initializer>= 0xff</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0xff) Any PHYs the device supports </para>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>BT API source code compatibility for deprecated items. </para>
+        </briefdescription>
+        <detaileddescription>
+<sect1 id="sl__bt__api__compatibility_8h_1autotoc_md3">
+<title>License</title>
+<para><bold>Copyright 2020 Silicon Laboratories Inc. www.silabs.com</bold></para>
+<para>The licensor of this software is Silicon Laboratories Inc. Your use of this software is governed by the terms of Silicon Labs Master Software License Agreement (MSLA) available at www.silabs.com/about-us/legal/master-software-license-agreement. This software is distributed to you in Source Code format and is governed by the sections of the MSLA applicable to Source Code. Deprecated and replaced by sl_bt_gap_phy_t. </para>
+</sect1>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api_compatibility.h" line="27" column="1" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api_compatibility.h" bodystart="28" bodyend="33"/>
+      </memberdef>
+      <memberdef kind="enum" id="sl__bt__api__compatibility_8h_1a8cb32e507df1b06ec3d43b306dc801a8" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_bt_gap_phy_and_coding_type_t</name>
+        <enumvalue id="sl__bt__api__compatibility_8h_1a8cb32e507df1b06ec3d43b306dc801a8adb711194e71260172dbdd31fc7c8e8a4" prot="public">
+          <name>sl_bt_gap_1m_phy_uncoded</name>
+          <initializer>= 0x1</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x1) 1M PHY </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="sl__bt__api__compatibility_8h_1a8cb32e507df1b06ec3d43b306dc801a8a04f9f42553dc9df9c399b753bbf93f01" prot="public">
+          <name>sl_bt_gap_2m_phy_uncoded</name>
+          <initializer>= 0x2</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x2) 2M PHY </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="sl__bt__api__compatibility_8h_1a8cb32e507df1b06ec3d43b306dc801a8ae363def65297861cc8d0c6912046b3df" prot="public">
+          <name>sl_bt_gap_coded_phy_125k</name>
+          <initializer>= 0x4</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x4) 125k Coded PHY (S=8) </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="sl__bt__api__compatibility_8h_1a8cb32e507df1b06ec3d43b306dc801a8abb88c6b2714fb2f667fa65c39437bbf5" prot="public">
+          <name>sl_bt_gap_coded_phy_500k</name>
+          <initializer>= 0x8</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x8) 500k Coded PHY (S=2) </para>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Deprecated and replaced by sl_bt_gap_phy_coding_t. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api_compatibility.h" line="38" column="1" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api_compatibility.h" bodystart="39" bodyend="44"/>
+      </memberdef>
+      <memberdef kind="enum" id="sl__bt__api__compatibility_8h_1aec231a73aa758ffc4bbc97f4a79f7830" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_bt_advertiser_connection_mode_t</name>
+        <enumvalue id="sl__bt__api__compatibility_8h_1aec231a73aa758ffc4bbc97f4a79f7830a1161c87e097d8deb50faa538dd5aecb8" prot="public">
+          <name>sl_bt_advertiser_non_connectable</name>
+          <initializer>= 0x0</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x0) Non-connectable non-scannable </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="sl__bt__api__compatibility_8h_1aec231a73aa758ffc4bbc97f4a79f7830a6cf3129bae68e5a4f0d87ff472ff10af" prot="public">
+          <name>sl_bt_advertiser_connectable_scannable</name>
+          <initializer>= 0x2</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x2) Undirected connectable scannable. This mode can only be used in legacy advertising PDUs. </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="sl__bt__api__compatibility_8h_1aec231a73aa758ffc4bbc97f4a79f7830a33ee16a5c3b7c3441d81023bda4b957c" prot="public">
+          <name>sl_bt_advertiser_scannable_non_connectable</name>
+          <initializer>= 0x3</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x3) Undirected scannable (Non-connectable but responds to scan requests) </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="sl__bt__api__compatibility_8h_1aec231a73aa758ffc4bbc97f4a79f7830a4f0fa03db8f8158fb07d496b66f7671a" prot="public">
+          <name>sl_bt_advertiser_connectable_non_scannable</name>
+          <initializer>= 0x4</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x4) Undirected connectable non-scannable. This mode can only be used in extended advertising PDUs. </para>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Deprecated and replaced by sl_bt_legacy_advertiser_connection_mode_t and sl_bt_extended_advertiser_connection_mode_t. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api_compatibility.h" line="50" column="1" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api_compatibility.h" bodystart="51" bodyend="70"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="comment">/***************************************************************************/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="17"><highlight class="normal"></highlight><highlight class="preprocessor">#ifndef<sp/>SL_BT_API_COMPATIBILITY_H</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="18"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>SL_BT_API_COMPATIBILITY_H</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="19"><highlight class="normal"></highlight></codeline>
+<codeline lineno="20"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="21"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="stringliteral">&quot;C&quot;</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="22"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="23"><highlight class="normal"></highlight></codeline>
+<codeline lineno="27"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">enum</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="28"><highlight class="normal">{</highlight></codeline>
+<codeline lineno="29"><highlight class="normal"><sp/><sp/>sl_bt_gap_1m_phy<sp/><sp/><sp/><sp/>=<sp/>0x1,<sp/><sp/></highlight></codeline>
+<codeline lineno="30"><highlight class="normal"><sp/><sp/>sl_bt_gap_2m_phy<sp/><sp/><sp/><sp/>=<sp/>0x2,<sp/><sp/></highlight></codeline>
+<codeline lineno="31"><highlight class="normal"><sp/><sp/>sl_bt_gap_coded_phy<sp/>=<sp/>0x4,<sp/><sp/></highlight></codeline>
+<codeline lineno="32"><highlight class="normal"><sp/><sp/>sl_bt_gap_any_phys<sp/><sp/>=<sp/>0xff<sp/><sp/></highlight></codeline>
+<codeline lineno="33"><highlight class="normal">}<sp/>sl_bt_gap_phy_type_t;</highlight></codeline>
+<codeline lineno="34"><highlight class="normal"></highlight></codeline>
+<codeline lineno="38"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">enum</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="39"><highlight class="normal">{</highlight></codeline>
+<codeline lineno="40"><highlight class="normal"><sp/><sp/>sl_bt_gap_1m_phy_uncoded<sp/>=<sp/>0x1,<sp/></highlight></codeline>
+<codeline lineno="41"><highlight class="normal"><sp/><sp/>sl_bt_gap_2m_phy_uncoded<sp/>=<sp/>0x2,<sp/></highlight></codeline>
+<codeline lineno="42"><highlight class="normal"><sp/><sp/>sl_bt_gap_coded_phy_125k<sp/>=<sp/>0x4,<sp/></highlight></codeline>
+<codeline lineno="43"><highlight class="normal"><sp/><sp/>sl_bt_gap_coded_phy_500k<sp/>=<sp/>0x8<sp/><sp/></highlight></codeline>
+<codeline lineno="44"><highlight class="normal">}<sp/>sl_bt_gap_phy_and_coding_type_t;</highlight></codeline>
+<codeline lineno="45"><highlight class="normal"></highlight></codeline>
+<codeline lineno="50"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">enum</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="51"><highlight class="normal">{</highlight></codeline>
+<codeline lineno="52"><highlight class="normal"><sp/><sp/>sl_bt_advertiser_non_connectable<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>=<sp/>0x0,<sp/></highlight></codeline>
+<codeline lineno="54"><highlight class="normal"><sp/><sp/>sl_bt_advertiser_connectable_scannable<sp/><sp/><sp/><sp/><sp/>=<sp/>0x2,<sp/></highlight></codeline>
+<codeline lineno="59"><highlight class="normal"><sp/><sp/>sl_bt_advertiser_scannable_non_connectable<sp/>=<sp/>0x3,<sp/></highlight></codeline>
+<codeline lineno="64"><highlight class="normal"><sp/><sp/>sl_bt_advertiser_connectable_non_scannable<sp/>=<sp/>0x4<sp/><sp/></highlight></codeline>
+<codeline lineno="70"><highlight class="normal">}<sp/>sl_bt_advertiser_connection_mode_t;</highlight></codeline>
+<codeline lineno="71"><highlight class="normal"></highlight></codeline>
+<codeline lineno="72"><highlight class="normal"></highlight></codeline>
+<codeline lineno="73"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="74"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="75"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="76"><highlight class="normal"></highlight></codeline>
+<codeline lineno="77"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight></codeline>
+    </programlisting>
+    <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api_compatibility.h"/>
+  </compounddef>
+</doxygen>

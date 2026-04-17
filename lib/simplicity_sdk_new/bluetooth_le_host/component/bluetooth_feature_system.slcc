@@ -1,0 +1,22 @@
+id: "bluetooth_feature_system"
+label: "System"
+package: bluetooth_le_host
+description: >
+  Local device configruation and software timers
+
+category: Bluetooth|Bluetooth Host (Stack)|Features with Commands and Events
+quality: "production"
+requires:
+- name: "bluetooth_stack"
+provides:
+- name: "bluetooth_feature_system"
+template_contribution:
+- name: component_catalog
+  value: bluetooth_feature_system
+documentation:
+  docset: bluetooth
+  document: bluetooth-stack-api/sl-bt-system
+metadata:
+  sbom:
+    license: MSLA
+root_path: bluetooth_le_host

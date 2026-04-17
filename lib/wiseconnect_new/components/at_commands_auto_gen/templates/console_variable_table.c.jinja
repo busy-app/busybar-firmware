@@ -1,0 +1,91 @@
+/*******************************************************************************
+ * @file  console_variable_table.c.jinja
+ * @brief 
+ *******************************************************************************
+ *
+ * SPDX-License-Identifier: Zlib
+ *
+ * The licensor of this software is Silicon Laboratories Inc.
+ *
+ * This software is provided 'as-is', without any express or implied
+ * warranty. In no event will the authors be held liable for any damages
+ * arising from the use of this software.
+ *
+ * Permission is granted to anyone to use this software for any purpose,
+ * including commercial applications, and to alter it and redistribute it
+ * freely, subject to the following restrictions:
+ *
+ * 1. The origin of this software must not be misrepresented; you must not
+ *    claim that you wrote the original software. If you use this software
+ *    in a product, an acknowledgment in the product documentation would be
+ *    appreciated but is not required.
+ * 2. Altered source versions must be plainly marked as such, and must not be
+ *    misrepresented as being the original software.
+ * 3. This notice may not be removed or altered from any source distribution.
+ *
+ ******************************************************************************/
+ 
+{% macro process_variable(node, name) -%}
+{% for name2 in node %}{% set node2=node[name2] %}
+{%   if "type" not in node2 -%}
+{{      process_variable(node2, name2) }}
+{%   else -%}
+{%     if node2.type == "ram_struct" -%}
+const structure_descriptor_entry_t {{name2}}_struct_descriptor[] = {
+{%       for item in node2.members %}  SL_CONSOLE_STRUCTURE_ENTRY("{{item.name}}", {{item.name}}, {{node2.struct}}, CONSOLE_VARIABLE_{{__mapping[item.type]}} ),
+{%       endfor -%}
+};
+{%   endif -%}
+{% endif -%}
+{% endfor -%}
+
+{% for name2 in node -%}{% set node2=node[name2] %}{% if "type" in node2 and node2.type == "nvm_struct" -%}
+extern sl_status_t {{node2.function}}(console_variable_action_t action, const struct console_variable_node_s *node, const char *value);
+{% endif -%}
+{% endfor %}
+console_variable_node_t {{name}}_group[] = {
+{% for name2 in node -%}{% set node2=node[name2] %}
+{% if "type" in node2 -%}
+{% if node2.type == "ram_struct" %}  SL_CONSOLE_VARIABLE_RAM_STRUCTURE("{{name2}}", {{name2}}_struct_descriptor, {{node2.instance}}),
+{% elif node2.type == "variable" %}  SL_CONSOLE_VARIABLE_VARIABLE("{{name2}}", &{{node2.object}}, CONSOLE_VARIABLE_{{__mapping[node2.data_type]}}, {{node2.data_size}}),
+{% elif node2.type == "nvm_struct" %}  SL_CONSOLE_VARIABLE_NVM_STRUCTURE("{{name2}}", {{node2.nvm_id}}, {{node2.function}}),
+{% endif -%}
+{% else -%}
+  SL_CONSOLE_VARIABLE_GROUP("{{name2}}", {{name2}}_group),
+{% endif -%}
+{% endfor -%}
+};
+{% endmacro -%}
+
+{% set type_map={ "nvm": "NVM_STRUCTURE", "ram_struct": "RAM_STRUCTURE", "group": "GROUP", "variable": "VARIABLE" } -%}
+{% set __mapping = {"uint8": "UINT", "uint16": "UINT", "uint32": "UINT", "int": "INT", "int8": "INT", "int16": "INT", "int32": "INT", "string": "STRING", "mac": "MAC_ADDRESS", "ip": "IP_ADDRESS", "hex": "HEX", "bool": "BOOL"} -%}
+#include "console_types.h"
+#include "console_constants.h"
+#include "nvm_ids.h"
+{% for file in console_headers -%}
+#include "{{file}}"
+{% endfor %}
+
+{% for item in console_variables -%}{% for name in item -%}
+{{ process_variable(item[name], name) }}
+{% endfor %}{% endfor %}
+
+{% if console_variables is defined %}
+const console_variable_node_t console_variable_table[] = {
+{% for item in console_variables -%}{% for name in item %}{% set node=item[name] -%}
+{% if "type" in node -%}
+{%   if node.type == "ram_struct" %}  SL_CONSOLE_VARIABLE_RAM_STRUCTURE("{{name}}", {{name}}_struct_descriptor, {{node.instance}}),
+{%   elif node.type == "variable" %}  SL_CONSOLE_VARIABLE_VARIABLE("{{name}}", &{{node.object}}, CONSOLE_VARIABLE_{{__mapping[node.data_type]}}, {{node.data_size}}),
+{%   endif -%}
+{% else -%}
+  SL_CONSOLE_VARIABLE_GROUP("{{name}}", {{name}}_group),
+{% endif -%}
+{% endfor -%}{% endfor -%}
+};
+
+const uint32_t console_variable_table_size = sizeof(console_variable_table)/sizeof(console_variable_node_t);
+{% else %}
+const console_variable_node_t* console_variable_table = NULL;
+const uint32_t console_variable_table_size = 0;
+{% endif %}
+

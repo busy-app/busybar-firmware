@@ -1,0 +1,104 @@
+project_name: wifi_calibration_app_soc
+package: wifi_app
+quality: production
+label: Wi-Fi - Calibration App (SoC)
+category: Example|Wi-Fi
+description: 'Calibrates carrier frequency offset and Tx gain offset and update that to the Flash/Efuse
+
+  '
+filter:
+- name: Wireless Technology
+  value:
+  - Wi-Fi
+- name: Project Difficulty
+  value:
+  - Beginner
+source:
+- path: app.c
+include:
+- path: .
+  file_list:
+  - path: app.h
+define:
+- name: SL_SI91X_PRINT_DBG_LOG
+- name: USART_CONFIG
+component:
+- id: si91x_memory_default_config
+- id: stdio
+- id: rsilib_clock_update
+- id: sl_main
+- id: iostream_retarget_stdio
+- instance:
+  - vcom
+  id: iostream_uart_si91x
+- id: sl_usart_iostream
+- id: iostream_si91x
+- id: cmsis_usart
+- id: rsilib_userconfig
+- id: rsilib_usart
+- id: romdriver_egpio
+- id: brd4002a
+- id: udma_linker_config
+- id: cmsis_udma
+- id: sl_si91x_mem_pool_buffers_with_quota
+requires:
+- name: sl_main
+- name: bsd_socket
+- name: network_manager
+- name: basic_network_config_manager
+- name: wiseconnect_common
+- name: wifi
+- name: sl_si91x_wireless
+- name: sl_si91x_internal_stack
+- name: wifi_resources
+- name: freertos
+- name: freertos_heap_4
+- name: slist
+- name: iostream_retarget_stdio
+  condition:
+  - device_has_devinfo
+- name: iostream_recommended_stream
+  condition:
+  - device_has_devinfo
+- name: iostream_stdlib_config
+  condition:
+  - device_has_devinfo
+- name: device_init
+  condition:
+  - device_has_devinfo
+- name: emlib_common
+  condition:
+  - device_has_devinfo
+- name: emlib_ldma
+  condition:
+  - device_has_devinfo
+- name: device_needs_ram_execution
+  condition:
+  - si91x_common_flash
+toolchain_settings:
+- option: gcc_compiler_option
+  value: -Wall -Werror
+configuration:
+- name: SL_BOARD_ENABLE_VCOM
+  value: '1'
+readme:
+- path: readme.md
+other_file:
+- path: resources/readme/calibration_soc_ncp.png
+- path: resources/readme/image_c7.png
+- path: resources/readme/image_c9.png
+- path: resources/readme/output.png
+ui_hints:
+  highlight:
+  - path: readme.md
+    focus: true
+post_build:
+  profile: wiseconnect_soc
+sdk_extension:
+- id: wiseconnect3_sdk
+  vendor: silabs
+  version: 4.0.1
+sdk:
+  id: simplicity_sdk
+  vendor: silabs
+  version: 2025.12.2

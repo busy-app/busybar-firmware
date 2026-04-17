@@ -1,0 +1,35 @@
+id: event_system
+package: platform_core
+label: Event System API
+description: Component that provides an event system for inter-process communication.
+category: Platform|Utilities
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: platform_core/platform/common
+config_file:
+- path: config/sl_event_system_config.h
+  file_id: sl_event_system_config
+include:
+- path: inc
+  file_list:
+  - path: sl_event_system.h
+source:
+- path: src/sl_event_system.c
+provides:
+- name: event_system
+requires:
+- name: cmsis_rtos2
+- name: slist
+- name: status
+- name: sl_assert
+- name: sl_core
+- name: memory_manager
+template_contribution:
+- name: event_handler
+  value:
+    event: platform_init
+    include: sl_event_system.h
+    handler: sl_event_system_init
+  priority: -8900

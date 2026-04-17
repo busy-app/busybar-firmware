@@ -1,0 +1,64 @@
+project_name: si91x_psa_gcm_large_data_example
+package: platform_nwp_siwx91x_app
+description: 'This example project demonstrates the PSA GCM API on large data in SI91x.
+
+  '
+category: example|crypto
+quality: production
+label: SI91x - SoC PSA GCM Large Data Example
+component:
+- id: sl_main
+- id: freertos
+- id: freertos_heap_4
+- id: psa_crypto
+- id: psa_driver
+- id: psa_crypto_gcm
+- id: psa_crypto_trng
+- id: syscalls
+- id: si91x_memory_default_config
+- id: wifi
+- id: sl_si91x_internal_stack
+- id: wifi_resources
+- id: network_manager
+- id: basic_network_config_manager
+- id: sl_si91x_basic_buffers
+source:
+- path: app.c
+- path: psa_gcm_app.c
+include:
+- path: .
+  file_list:
+  - path: app.h
+  - path: psa_gcm_app.h
+define:
+- name: SL_MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS
+  value: 1
+toolchain_settings:
+- option: gcc_compiler_option
+  value: -Wall -Werror
+other_file:
+- path: resources/readme/image508a.png
+- path: resources/readme/gcm_output.png
+ui_hints:
+  highlight:
+  - path: readme.md
+    focus: true
+readme:
+- path: readme.md
+post_build:
+  profile: wiseconnect_soc
+filter:
+- name: Wireless Technology
+  value:
+  - Wi-Fi
+- name: Project Difficulty
+  value:
+  - Beginner
+sdk_extension:
+- id: wiseconnect3_sdk
+  vendor: silabs
+  version: 4.0.1
+sdk:
+  id: simplicity_sdk
+  vendor: silabs
+  version: 2025.12.2

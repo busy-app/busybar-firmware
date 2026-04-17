@@ -1,0 +1,37 @@
+id: "sl_rail_sdk_wmbus_packet_assembler"
+label: "Wireless M-Bus sensor Packet Assembler (Wireless M-Bus Meter Only)"
+package: "rail_sdk"
+description: "Packet assembler component for Wireless M-Bus sensors"
+category: "RAIL-SDK|Wireless M-Bus"
+quality: "production"
+metadata:
+  sbom:
+    license: Zlib
+root_path: "rail_sdk/component/sl_rail_sdk_wmbus_packet_assembler"
+
+provides:
+- name: sl_rail_sdk_wmbus_packet_assembler
+
+requires:
+- name: "mbedtls_aes"
+- name: "mbedtls_cipher_cbc"
+- name: "mbedtls_slcrypto"
+- name: "emlib_gpcrc"
+- name: "device_has_radio"
+- name: "app_assert"
+
+source:
+- path: "sl_rail_sdk_wmbus_packet_assembler.c"
+include:
+- path: "."
+  file_list:
+  - "path": "sl_rail_sdk_wmbus_packet_assembler.h"
+
+#-------------- Template Contribution ----------------
+template_contribution:
+#---------------- Component Catalog ------------------
+- name: component_catalog
+  value: wmbus_packet_assembler
+#-------- Hides Component for user in Studio ---------
+ui_hints:
+  visibility: never

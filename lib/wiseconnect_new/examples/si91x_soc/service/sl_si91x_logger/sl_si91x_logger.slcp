@@ -1,0 +1,62 @@
+project_name: sl_si91x_logger
+package: platform_nwp_siwx91x_app
+description: 'This application demonstrates the logger service on the SI91x SoC device.
+
+  '
+category: example|service
+quality: production
+label: SI91x - SL_LOGGER_EXAMPLE
+component:
+- id: sl_main
+- id: freertos
+- id: freertos_heap_4
+- id: syscalls
+- id: si91x_mem_config_3
+- id: wiseconnect_common
+- id: sl_power_manager
+- id: debug_ulp_component
+- id: wifi
+- id: sl_si91x_internal_stack
+- id: network_manager
+- id: basic_network_config_manager
+- id: wifi_resources
+- id: sl_si91x_basic_buffers
+- id: si91x_log
+- id: si91x_log_backend_uart
+source:
+- path: app.c
+- path: sl_si91x_logger_example.c
+include:
+- path: .
+  file_list:
+  - path: app.h
+  - path: sl_si91x_logger_example.h
+define:
+- name: SL_SI91X_ENABLE_LOWPWR_RET_LDO
+  value: '1'
+- name: SL_SI91X_ULP_STATE_ENABLE
+toolchain_settings:
+- option: gcc_compiler_option
+  value: -Wall -Werror
+requires:
+- name: device_needs_ram_execution
+other_file:
+- path: resources/readme/setupdiagram.png
+- path: resources/readme/output1.png
+- path: resources/readme/logger_uc_config.png
+ui_hints:
+  highlight:
+  - path: readme.md
+    focus: true
+readme:
+- path: readme.md
+post_build:
+  profile: wiseconnect_soc
+sdk_extension:
+- id: wiseconnect3_sdk
+  vendor: silabs
+  version: 4.0.1
+sdk:
+  id: simplicity_sdk
+  vendor: silabs
+  version: 2025.12.2

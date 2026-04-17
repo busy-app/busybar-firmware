@@ -1,0 +1,44 @@
+id: zw_versions
+label: Z-Wave Version Numbers
+category: Z-Wave
+description: >
+  This component provides the Protocol-specific, Application Framework-specific, and SDK-related
+  version numbers (in the form of MINOR - MAJOR - PATH). The application developer can freely alter
+  the ZAF_VERSION_* version numbers according to their needs. This can be done in this component.
+  Application version, which is generated during release of SDK,
+  the application developer can freely alter the version numbers according to his needs.
+package: zwave
+quality: production
+metadata:
+  sbom:
+    reference: zw_sbom_license
+provides:
+- name: zw_versions
+define:
+# Z-Wave Plus Framework and Apps
+- name: ZAF_VERSION_MAJOR
+  value: 11
+- name: ZAF_VERSION_MINOR
+  value: 0
+- name: ZAF_VERSION_PATCH
+  value: 1
+- name: ZAF_BUILD_NO
+  value: 0xABCD
+# SDK
+- name: SDK_VERSION_MAJOR
+  value: 8
+- name: SDK_VERSION_MINOR
+  value: 0
+- name: SDK_VERSION_PATCH
+  value: 1
+
+include:
+- path: "ZAF/ApplicationUtilities/"
+  file_list:
+  - path: "ZAF_version.h"
+source:
+- path: "ZAF/ApplicationUtilities/ZAF_version.c"
+config_file:
+- path: sample_apps/config/version/zw_version_config.h
+  file_id: version_config
+root_path: zwave

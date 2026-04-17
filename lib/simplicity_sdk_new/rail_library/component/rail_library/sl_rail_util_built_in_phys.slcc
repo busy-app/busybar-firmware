@@ -1,0 +1,156 @@
+id: sl_rail_util_built_in_phys
+label: RAIL Utility, Built-in PHYs Across HFXO Frequencies (RAIL 3)
+description: >
+  Utility to include built-in PHYs to work with different HFXO frequencies. On
+  EFR32XG24 and EFR32XG26 parts, 38.4 MHz, 39 MHz, and 40 Mhz HFXO support is provided by
+  this component.
+package: rail_library
+category: Platform|Radio
+quality: production
+metadata:
+  sbom:
+    id: sl_rail_util_built_in_phys
+    name: RAIL Utility, Built-in PHYs Across HFXO Frequencies (RAIL 3)
+    license: Zlib
+documentation:
+  docset: rail
+  document: rail-api/rail-util-built-in-phys
+provides:
+- name: sl_rail_util_built_in_phys
+- name: rail_util_built_in_phys
+requires:
+- name: rail_lib
+- name: device
+- name: device_init_hfxo
+- name: component_catalog
+- name: code_classification
+recommends:
+- id: device_init_hfxo
+  condition:
+  - device_series_2
+  vendor: silabs
+include:
+- path: plugin/sl_rail_util_built_in_phys/efr32xg24
+  condition: [device_sdid_215]
+  unless: [device_is_module]
+  file_list:
+  - path: sl_rail_ble_config_38M4Hz.h
+  - path: sl_rail_ieee802154_config_38M4Hz.h
+  - path: sl_rail_rfsense_ook_config_38M4Hz.h
+  - path: sl_rail_ble_config_39MHz.h
+  - path: sl_rail_ieee802154_config_39MHz.h
+  - path: sl_rail_rfsense_ook_config_39MHz.h
+  - path: sl_rail_ble_config_40MHz.h
+  - path: sl_rail_ieee802154_config_40MHz.h
+  - path: sl_rail_rfsense_ook_config_40MHz.h
+- path: plugin/sl_rail_util_built_in_phys/efr32xg26
+  condition: [device_sdid_225]
+  unless: [device_is_module]
+  file_list:
+  - path: sl_rail_ble_config_38M4Hz.h
+  - path: sl_rail_ieee802154_config_38M4Hz.h
+  - path: sl_rail_rfsense_ook_config_38M4Hz.h
+  - path: sl_rail_ble_config_39MHz.h
+  - path: sl_rail_ieee802154_config_39MHz.h
+  - path: sl_rail_rfsense_ook_config_39MHz.h
+  - path: sl_rail_ble_config_40MHz.h
+  - path: sl_rail_ieee802154_config_40MHz.h
+  - path: sl_rail_rfsense_ook_config_40MHz.h
+- path: plugin/sl_rail_util_built_in_phys/sixg301
+  condition: [device_generic_family_sixx301]
+  unless: [device_is_module]
+  file_list:
+  - path: sl_rail_ble_config_38M4Hz.h
+  - path: sl_rail_ble_config_39MHz.h
+  - path: sl_rail_ble_config_40MHz.h
+  - path: sl_rail_ieee802154_config_38M4Hz.h
+  - path: sl_rail_ieee802154_config_39MHz.h
+  - path: sl_rail_ieee802154_config_40MHz.h
+source:
+- path: plugin/sl_rail_util_built_in_phys/sl_rail_phy_overrides.c
+  condition: [device_sdid_215]
+  unless: [device_is_module]
+- path: plugin/sl_rail_util_built_in_phys/efr32xg24/sl_rail_ble_config_38M4Hz.c
+  condition: [device_sdid_215]
+  unless: [device_is_module]
+- path: plugin/sl_rail_util_built_in_phys/efr32xg24/sl_rail_ieee802154_config_38M4Hz.c
+  condition: [device_sdid_215]
+  unless: [device_is_module]
+- path: plugin/sl_rail_util_built_in_phys/efr32xg24/sl_rail_rfsense_ook_config_38M4Hz.c
+  condition: [device_sdid_215]
+  unless: [device_is_module]
+- path: plugin/sl_rail_util_built_in_phys/efr32xg24/sl_rail_ble_config_39MHz.c
+  condition: [device_sdid_215]
+  unless: [device_is_module]
+- path: plugin/sl_rail_util_built_in_phys/efr32xg24/sl_rail_ieee802154_config_39MHz.c
+  condition: [device_sdid_215]
+  unless: [device_is_module]
+- path: plugin/sl_rail_util_built_in_phys/efr32xg24/sl_rail_rfsense_ook_config_39MHz.c
+  condition: [device_sdid_215]
+  unless: [device_is_module]
+- path: plugin/sl_rail_util_built_in_phys/efr32xg24/sl_rail_ble_config_40MHz.c
+  condition: [device_sdid_215]
+  unless: [device_is_module]
+- path: plugin/sl_rail_util_built_in_phys/efr32xg24/sl_rail_ieee802154_config_40MHz.c
+  condition: [device_sdid_215]
+  unless: [device_is_module]
+- path: plugin/sl_rail_util_built_in_phys/efr32xg24/sl_rail_rfsense_ook_config_40MHz.c
+  condition: [device_sdid_215]
+  unless: [device_is_module]
+- path: plugin/sl_rail_util_built_in_phys/sl_rail_phy_overrides.c
+  condition: [device_sdid_225]
+  unless: [device_is_module]
+- path: plugin/sl_rail_util_built_in_phys/efr32xg26/sl_rail_ble_config_38M4Hz.c
+  condition: [device_sdid_225]
+  unless: [device_is_module]
+- path: plugin/sl_rail_util_built_in_phys/efr32xg26/sl_rail_ieee802154_config_38M4Hz.c
+  condition: [device_sdid_225]
+  unless: [device_is_module]
+- path: plugin/sl_rail_util_built_in_phys/efr32xg26/sl_rail_rfsense_ook_config_38M4Hz.c
+  condition: [device_sdid_225]
+  unless: [device_is_module]
+- path: plugin/sl_rail_util_built_in_phys/efr32xg26/sl_rail_ble_config_39MHz.c
+  condition: [device_sdid_225]
+  unless: [device_is_module]
+- path: plugin/sl_rail_util_built_in_phys/efr32xg26/sl_rail_ieee802154_config_39MHz.c
+  condition: [device_sdid_225]
+  unless: [device_is_module]
+- path: plugin/sl_rail_util_built_in_phys/efr32xg26/sl_rail_rfsense_ook_config_39MHz.c
+  condition: [device_sdid_225]
+  unless: [device_is_module]
+- path: plugin/sl_rail_util_built_in_phys/efr32xg26/sl_rail_ble_config_40MHz.c
+  condition: [device_sdid_225]
+  unless: [device_is_module]
+- path: plugin/sl_rail_util_built_in_phys/efr32xg26/sl_rail_ieee802154_config_40MHz.c
+  condition: [device_sdid_225]
+  unless: [device_is_module]
+- path: plugin/sl_rail_util_built_in_phys/efr32xg26/sl_rail_rfsense_ook_config_40MHz.c
+  condition: [device_sdid_225]
+  unless: [device_is_module]
+- path: plugin/sl_rail_util_built_in_phys/sl_rail_phy_overrides.c
+  condition: [device_generic_family_sixx301]
+  unless: [device_is_module]
+- path: plugin/sl_rail_util_built_in_phys/sixg301/sl_rail_ble_config_38M4Hz.c
+  condition: [device_generic_family_sixx301]
+  unless: [device_is_module]
+- path: plugin/sl_rail_util_built_in_phys/sixg301/sl_rail_ble_config_39MHz.c
+  condition: [device_generic_family_sixx301]
+  unless: [device_is_module]
+- path: plugin/sl_rail_util_built_in_phys/sixg301/sl_rail_ble_config_40MHz.c
+  condition: [device_generic_family_sixx301]
+  unless: [device_is_module]
+- path: plugin/sl_rail_util_built_in_phys/sixg301/sl_rail_ieee802154_config_38M4Hz.c
+  condition: [device_generic_family_sixx301]
+  unless: [device_is_module]
+- path: plugin/sl_rail_util_built_in_phys/sixg301/sl_rail_ieee802154_config_39MHz.c
+  condition: [device_generic_family_sixx301]
+  unless: [device_is_module]
+- path: plugin/sl_rail_util_built_in_phys/sixg301/sl_rail_ieee802154_config_40MHz.c
+  condition: [device_generic_family_sixx301]
+  unless: [device_is_module]
+template_contribution:
+- name: component_catalog
+  value: sl_rail_util_built_in_phys
+- name: component_catalog
+  value: rail_util_built_in_phys
+root_path: rail_library

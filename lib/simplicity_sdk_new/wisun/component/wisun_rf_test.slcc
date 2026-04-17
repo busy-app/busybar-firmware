@@ -1,0 +1,40 @@
+id: "wisun_rf_test"
+label: "Wi-SUN Stack RF Test Plugin"
+package: "wisun"
+category: "Wi-SUN|Stack Plugin"
+quality: "production"
+description: >
+  Provides Wi-SUN RF Test APIs. Supports continuous transmission of carrier wave
+  and modulated PN9 stream.
+
+
+requires:
+- name: "a_wisun_stack"
+
+provides:
+- name: "wisun_rf_test"
+
+source:
+  # Nanostack source files
+- path: "plugin/sl_wisun_rf_test.c"
+- path: "plugin/sl_wisun_rf_test_tools.c"
+- path: "stack/inc/sl_wisun_rf_test.h"
+
+include:
+- path: "stack/inc"
+- path: plugin
+  file_list:
+  - path: sl_wisun_rf_test_tools.h
+
+documentation:
+  docset: wisun
+  document: wisun-stack-api/sl-wisun-rf-test
+
+template_contribution:
+- name: component_catalog
+  value: wisun_rf_test
+
+metadata:
+  sbom:
+    license: MSLA
+root_path: wisun

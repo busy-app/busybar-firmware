@@ -1,0 +1,87 @@
+id: ot_ncp_source
+label: NCP
+package: openthread_stack
+category: OpenThread
+quality: production
+description: This component provides support for both NCP and RCP implementations of the OpenThread stack. It requires that an OpenThread stack component be included with the project. If no OpenThread stack component is chosen, it will default to using the OpenThread stack for a Full Thread Device (FTD).
+provides:
+- name: ot_ncp
+requires:
+- name: ot_stack
+- name: ot_ncp_spinel
+recommends:
+- id: ot_stack_ftd
+  vendor: silabs
+
+root_path: openthread_stack/util/third_party/openthread/src
+
+include:
+- path: .
+- path: cli
+  file_list:
+  - path: cli_config.h
+- path: ncp
+  file_list:
+  - path: changed_props_set.hpp
+  - path: ncp_base.hpp
+  - path: ncp_config.h
+  - path: ncp_hdlc.hpp
+  - path: ncp_spi.hpp
+- path: lib/hdlc
+  file_list:
+  - path: hdlc.hpp
+- path: lib/utils
+  file_list:
+  - path: endian.hpp
+  - path: math.hpp
+
+source:
+- path: ../examples/apps/ncp/ncp.c
+  unless:
+  - ot_ncp_vendor_extension
+- path: ncp/changed_props_set.cpp
+- path: ncp/multipan_platform.cpp
+- path: ncp/ncp_base.cpp
+- path: ncp/ncp_base_dispatcher.cpp
+- path: ncp/ncp_base_ftd.cpp
+- path: ncp/ncp_base_mtd.cpp
+- path: ncp/ncp_base_radio.cpp
+- path: ncp/ncp_hdlc.cpp
+- path: ncp/ncp_spi.cpp
+- path: ncp/platform/dnssd.cpp
+- path: ncp/platform/infra_if.cpp
+- path: ncp/platform/trel.cpp
+- path: lib/hdlc/hdlc.cpp
+
+define:
+- name: OPENTHREAD_PROJECT_LIB_CONFIG_FILE
+  value: '"sl_openthread_features_config.h"'
+  unless: [ot_stack_ftd, ot_stack_mtd]
+- name: OPENTHREAD_PROJECT_LIB_CONFIG_FILE
+  value: '"sl_openthread_features_ncp_ftd_config.h"'
+  condition: [ot_stack_ftd]
+- name: OPENTHREAD_PROJECT_LIB_CONFIG_FILE
+  value: '"sl_openthread_features_ncp_mtd_config.h"'
+  condition: [ot_stack_mtd]
+- name: _GNU_SOURCE
+
+toolchain_settings:
+- option: gcc_compiler_option
+  value: -fno-strict-aliasing
+  condition:
+  - toolchain_lto
+- option: llvm_compiler_option
+  value: -fno-strict-aliasing
+  condition:
+  - toolchain_lto
+
+template_contribution:
+- name: component_catalog
+  value: openthread_ncp
+- name: ot_init
+  value: sl_ot_ncp_init
+  priority: 5
+
+metadata:
+  sbom:
+    reference: ot_sbom_openthread

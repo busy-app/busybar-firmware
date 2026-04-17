@@ -1,0 +1,111 @@
+package: zigbee
+description: Silicon Labs implementation of the Door Lock server cluster. This is an incomplete component implementation. It does all of the mandatory and optional behavior in the Door Lock cluster needed to pass the Door Lock cluster tests. It does NOT store user and schedule tables in persistent memory, check user pin activation against user status or user schedule, or offer callbacks and component options to the application for further customization of functionality.
+label: Door Lock Server Cluster
+quality: evaluation
+id: zigbee_door_lock_server
+category: Zigbee|Cluster Library|Home Automation
+provides:
+- name: zigbee_door_lock_server
+source:
+- path: app/framework/plugin/door-lock-server/door-lock-server-core.c
+- path: app/framework/plugin/door-lock-server/door-lock-server-user.c
+- path: app/framework/plugin/door-lock-server/door-lock-server-schedule.c
+- path: app/framework/plugin/door-lock-server/door-lock-server-logging.c
+- path: app/framework/plugin/door-lock-server/door-lock-server-cli.c
+  condition:
+  - cli
+- path: app/framework/plugin/door-lock-server/door-lock-server-cb.c
+include:
+- path: app/framework/plugin/door-lock-server
+  file_list:
+  - path: door-lock-server.h
+template_contribution:
+- name: component_catalog
+  value: zigbee_door_lock_server
+- name: zigbee_af_callback
+  value:
+    callback_type: event_init
+    function_name: sli_zigbee_af_door_lock_server_init_events
+- name: zigbee_af_callback
+  value:
+    callback_type: init_done
+    function_name: sl_zigbee_af_door_lock_server_init_cb
+- name: cluster_service
+  value:
+    cluster_id: '0x0101'
+    mfg_id: NOT_MFG_SPECIFIC
+    side: SERVER
+    service_function: sl_zigbee_af_door_lock_cluster_server_command_parse
+- name: cli_group
+  value:
+    group: plugin
+    name: door-lock-server
+    help: door-lock-server related commands
+- name: cli_command
+  value:
+    group: door-lock-server
+    name: status
+    handler: sli_zigbee_af_door_lock_server_status_command
+    help: Prints out the current status of the door lock.
+- name: cli_command
+  value:
+    group: door-lock-server
+    name: lock
+    handler: sli_zigbee_af_door_lock_server_lock_or_unlock_command
+    help: Lock the door (on currently hardcoded endpoint 1).
+    argument:
+    - type: uint16
+      help: The user ID for whoever is locking the door
+- name: cli_command
+  value:
+    group: door-lock-server
+    name: unlock
+    handler: sli_zigbee_af_door_lock_server_lock_or_unlock_command
+    help: Unlocks the door (on currently hardcoded endpoint 1).
+    argument:
+    - type: uint16
+      help: The user ID for whoever is unlocking the door
+- name: cli_command
+  value:
+    group: door-lock-server
+    name: open
+    handler: sli_zigbee_af_door_lock_server_open_or_close_command
+    help: Opens the door (on currently hardcoded endpoint 1).
+- name: cli_command
+  value:
+    group: door-lock-server
+    name: close
+    handler: sli_zigbee_af_door_lock_server_open_or_close_command
+    help: Closes the door (on currently hardcoded endpoint 1).
+- name: cli_command
+  value:
+    group: door-lock-server
+    name: apply-pin
+    handler: sli_zigbee_af_door_lock_server_apply_code_command
+    help: Simulates a PIN being entered into the door lock.
+    argument:
+    - type: string
+      help: The PIN to enter into the door lock
+- name: cli_command
+  value:
+    group: door-lock-server
+    name: apply-rfid
+    handler: sli_zigbee_af_door_lock_server_apply_code_command
+    help: Simulates an RFID device being brought within range of the door lock.
+    argument:
+    - type: string
+      help: The identifier of the RFID device
+- name: cluster_functions
+  value:
+    cluster_name: DoorLock
+    cluster_id: 0x101
+    cluster_type: server
+    attribute_changed_function: sl_zigbee_af_door_lock_cluster_server_attribute_changed_cb
+
+documentation:
+  docset: zigbee
+  document: zigbee-af-api/door-lock-server
+metadata:
+  sbom:
+    license: MSLA
+root_path: zigbee

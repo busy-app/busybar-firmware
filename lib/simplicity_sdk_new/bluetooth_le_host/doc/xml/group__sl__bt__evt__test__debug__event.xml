@@ -1,0 +1,42 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__evt__test__debug__event" kind="group">
+    <compoundname>sl_bt_evt_test_debug_event</compoundname>
+    <title>sl_bt_evt_test_debug_event</title>
+    <innerclass refid="structsl__bt__evt__test__debug__event__s" prot="public">sl_bt_evt_test_debug_event_s</innerclass>
+      <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="group__sl__bt__evt__test__debug__event_1gad24233c81a50adb6503d160c6a748079" prot="public" static="no">
+        <type>struct <ref refid="structsl__bt__evt__test__debug__event__s" kindref="compound">sl_bt_evt_test_debug_event_s</ref></type>
+        <definition>typedef struct sl_bt_evt_test_debug_event_s sl_bt_evt_test_debug_event_t</definition>
+        <argsstring></argsstring>
+        <name>sl_bt_evt_test_debug_event_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="10953" column="43" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="10953" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__evt__test__debug__event_1ga46d6edb285f6d3b52462e330b6292261" prot="public" static="no">
+        <name>sl_bt_evt_test_debug_event_id</name>
+        <initializer>0x010e00a0</initializer>
+        <briefdescription>
+<para>Identifier of the debug_event event. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="10943" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="10943" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Events of this type are queued to the BGAPI event queue by sl_bt_test_debug_command using id 10 (debug_id_queue_bgapi_event) </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

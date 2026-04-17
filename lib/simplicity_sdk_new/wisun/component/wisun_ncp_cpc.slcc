@@ -1,0 +1,32 @@
+id: wisun_ncp_cpc
+label: Wi-SUN NCP - CPC interface
+description: >
+  Provides Wi-SUN NCP CPC interface. UART and CPC interfaces
+  are mutually exclusive. It installs CPC secondary UART driver by default.
+  Can only be used in Wi-SUN NCP application.
+package: wisun
+category: "Wi-SUN|Application|Wi-SUN NCP"
+quality: production
+root_path: wisun/./app/wisun_ncp
+
+provides:
+- name: wisun_ncp_cpc
+- name: wisun_ncp_interface
+
+requires:
+- name: cpc_secondary
+- name: cpc_secondary_recommended_uart_interface
+
+source:
+- path: "ncp/sl_wsncp_cpc.c"
+
+template_contribution:
+- name: component_catalog
+  value: wisun_ncp
+
+ui_hints:
+  visibility: never
+
+metadata:
+  sbom:
+    license: MSLA

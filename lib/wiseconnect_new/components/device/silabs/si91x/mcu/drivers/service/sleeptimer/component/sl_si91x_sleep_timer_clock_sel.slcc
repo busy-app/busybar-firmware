@@ -1,0 +1,18 @@
+id: sl_si91x_sleep_timer_clock_selection
+label: SL SI91X SLEEP TIMER CLOCK SELECTION
+package: platform_siwx91x
+metadata:
+  sbom:
+    license: MSLA
+description: >
+  This component allows the selection of configurations for the 32kHz clock specifically for the Sleep Timer.
+category: Device|Si91x|MCU|Core
+quality: production
+component_root_path: "components/device/silabs/si91x/mcu/drivers/service/sleeptimer"
+config_file:
+  - path: config/sl_si91x_sleep_timer_clock_sel.h
+define:
+  - name: SLEEP_TIMER_CLOCK_UC
+    value: '1'
+provides:
+  - name: sl_si91x_sleep_timer_clock_selection

@@ -1,0 +1,42 @@
+/*******************************************************************************
+* @file  sl_iostream_init_si91x_uart.h.jinja
+* @brief 
+*******************************************************************************
+* # License
+* <b>Copyright 2023 Silicon Laboratories Inc. www.silabs.com</b>
+*******************************************************************************
+*
+* The licensor of this software is Silicon Laboratories Inc. Your use of this
+* software is governed by the terms of Silicon Labs Master Software License
+* Agreement (MSLA) available at
+* www.silabs.com/about-us/legal/master-software-license-agreement. This
+* software is distributed to you in Source Code format and is governed by the
+* sections of the MSLA applicable to Source Code.
+*
+******************************************************************************/
+
+#ifndef SL_IOSTREAM_INIT_SI91X_UART_H
+#define SL_IOSTREAM_INIT_SI91X_UART_H
+#if defined(SL_COMPONENT_CATALOG_PRESENT)
+#include "sl_component_catalog.h"
+#endif
+#include "sl_iostream.h"
+#include "sl_iostream_uart_si91x.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+{% for instance in iostream_uart_instances_si91x %}
+extern sl_iostream_t *sl_iostream_vcom_handle;
+extern sl_iostream_uart_t *sl_iostream_uart_vcom_handle;
+extern sl_iostream_instance_info_t sl_iostream_instance_vcom_info;
+{% endfor %}
+
+// Initialize only iostream usart instance(s)
+void sl_iostream_uart_si91x_init_instances(void);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif // SL_IOSTREAM_INIT_SI91X_UART_H

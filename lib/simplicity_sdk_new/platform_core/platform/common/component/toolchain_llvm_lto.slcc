@@ -1,0 +1,23 @@
+id: toolchain_llvm_lto
+label: Enable Link time optimization (using LLVM)
+package: platform_core
+description: Toolchain profile for building with LLVM+LTO instead of GCC
+category: Platform|Toolchain
+quality: experimental
+provides:
+- name: toolchain_llvm_lto
+requires:
+- name: toolchain_llvm
+- name: toolchain_lto
+conflicts:
+- name: device_riscv
+- name: device_host
+define:
+- name: SLI_BUILT_WITH_LLVM_LTO
+template_contribution:
+- name: compiler_is_llvm_lto
+  value: true
+metadata:
+  sbom:
+    license: Zlib
+root_path: platform_core

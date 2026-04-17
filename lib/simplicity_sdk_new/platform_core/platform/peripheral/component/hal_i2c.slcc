@@ -1,0 +1,56 @@
+# This HAL applies to series 2 and 3 devices.
+id: hal_i2c
+label: I2C
+package: platform_core
+description: >
+  Inter-Integrated Circuit (I2C) peripheral API
+category: Platform|Peripheral|HAL
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+source:
+- path: src/sl_hal_i2c.c
+include:
+- path: inc
+  file_list:
+  - path: sl_hal_i2c.h
+provides:
+- name: hal_i2c
+- name: hal_generic_i2c
+  condition: [device_series_3]
+requires:
+- name: device
+- name: device_has_i2c
+- name: device_i2c
+- name: hal_common
+- name: cmsis_core
+- name: enum
+template_contribution:
+- name: component_catalog
+  value: i2c_fifo
+  condition: [device_series_3]
+documentation:
+  docset: gecko-platform
+  document:
+  - page: platform-peripheral-efr32xg21/i2c
+    condition: [device_sdid_200]
+  - page: platform-peripheral-efr32xg22/i2c
+    condition: [device_sdid_205]
+  - page: platform-peripheral-efr32xg23/i2c
+    condition: [device_sdid_210]
+  - page: platform-peripheral-efr32xg24/i2c
+    condition: [device_sdid_215]
+  - page: platform-peripheral-efr32xg25/i2c
+    condition: [device_sdid_220]
+  - page: platform-peripheral-efr32xg26/i2c
+    condition: [device_sdid_225]
+  - page: platform-peripheral-efr32xg27/i2c
+    condition: [device_sdid_230]
+  - page: platform-peripheral-efr32xg28/i2c
+    condition: [device_sdid_235]
+  - page: platform-peripheral-efr32xg29/i2c
+    condition: [device_sdid_240]
+  - page: platform-peripheral-sixg301/i2c
+    condition: [device_generic_family_sixx301]
+root_path: platform_core/platform/peripheral

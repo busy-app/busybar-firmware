@@ -1,0 +1,20 @@
+id: btl_lockbit_override
+label: Bootloader lockbit override
+package: bootloader
+description: >
+  This component allows skipping the bootloader's lock bit check by defining a macro.
+  It provides a mechanism to bypass the lock bit, useful in QA environments
+  where continuous firmware upgrades are required without consuming OTP Bits
+category: Platform|Bootloader
+quality: production
+provides:
+- name: btl_lockbit_override
+define:
+- name: LOCKBIT_SKIP_BOOT_CHECK
+  value: 1
+ui_hints:
+  visibility: never
+metadata:
+  sbom:
+    license: MSLA
+root_path: bootloader

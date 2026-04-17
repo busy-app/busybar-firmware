@@ -1,0 +1,43 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__evt__system__boot" kind="group">
+    <compoundname>sl_bt_evt_system_boot</compoundname>
+    <title>sl_bt_evt_system_boot</title>
+    <innerclass refid="structsl__bt__evt__system__boot__s" prot="public">sl_bt_evt_system_boot_s</innerclass>
+      <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="group__sl__bt__evt__system__boot_1ga2323776cf08c2eb9f2e2cc56eaa9ef2e" prot="public" static="no">
+        <type>struct <ref refid="structsl__bt__evt__system__boot__s" kindref="compound">sl_bt_evt_system_boot_s</ref></type>
+        <definition>typedef struct sl_bt_evt_system_boot_s sl_bt_evt_system_boot_t</definition>
+        <argsstring></argsstring>
+        <name>sl_bt_evt_system_boot_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="1012" column="38" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="1012" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__evt__system__boot_1gab87aa47a4d2e5a6c89bfb1cd838597af" prot="public" static="no">
+        <name>sl_bt_evt_system_boot_id</name>
+        <initializer>0x000100a0</initializer>
+        <briefdescription>
+<para>Identifier of the boot event. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="993" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="993" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Indicates that the device has started and the radio is ready. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>This event carries the Bluetooth stack version and other software and hardware identification codes. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

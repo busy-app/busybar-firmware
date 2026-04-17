@@ -1,0 +1,58 @@
+project_name: sl_si91x_uart_rs485
+package: platform_siwx91x_app
+description: 'This example project configures UART RS485 in multidrop mode and transmits and receives data.
+
+  '
+category: example|peripheral
+quality: production
+label: SI91x - SL_UART_RS485
+component:
+- id: sl_main
+- id: status
+- id: syscalls
+- id: si917_memory_default_config
+- id: sl_clock_manager
+- id: sl_gpio
+- id: rsilib_usart_rs485
+- id: sl_uart1_rs485
+source:
+- path: app.c
+- path: uart_rs485_example.c
+include:
+- path: .
+  file_list:
+  - path: app.h
+  - path: uart_rs485_example.h
+toolchain_settings:
+- option: gcc_compiler_option
+  value: -Wall -Werror
+define:
+- name: SLI_SI91X_MCU_CONFIG_RADIO_BOARD_BASE_VER
+- name: SLI_SI91X_MCU_RS485_MODE
+other_file:
+- path: resources/readme/setupdiagram.png
+- path: resources/readme/3_board_setup.png
+- path: resources/readme/N_board_setup.png
+- path: resources/readme/uart1_rs485_output_console.png
+- path: resources/uc_screen/uart0_rs485_hardware_controlled_half_duplex_receive_mode_uc.png
+- path: resources/uc_screen/uart0_rs485_hardware_controlled_half_duplex_transmit_mode_uc.png
+- path: resources/uc_screen/uart0_rs485_software_controlled_half_duplex_uc.png
+- path: resources/uc_screen/uart1_rs485_hardware_controlled_half_duplex_receive_mode_uc.png
+- path: resources/uc_screen/uart1_rs485_hardware_controlled_half_duplex_transmit_mode_uc.png
+- path: resources/uc_screen/uart1_rs485_software_controlled_half_duplex_uc.png
+ui_hints:
+  highlight:
+  - path: readme.md
+    focus: true
+readme:
+- path: readme.md
+post_build:
+  profile: wiseconnect_soc
+sdk_extension:
+- id: wiseconnect3_sdk
+  vendor: silabs
+  version: 4.0.1
+sdk:
+  id: simplicity_sdk
+  vendor: silabs
+  version: 2025.12.2

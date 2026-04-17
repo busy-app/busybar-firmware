@@ -1,0 +1,20 @@
+id: rail_lib_multiprotocol_alpha_chips_dummy
+label: RAIL Library, Multiprotocol for Alpha Chips Dummy
+description: >
+  Multiprotocol RAIL Library Support for satisfying alpha chips dependency in
+  rail_lib_multiprotocol component.
+package: rail_library
+category: Platform|Radio
+quality: production
+metadata:
+  sbom:
+    id: rail_lib_multiprotocol_alpha_chips_dummy
+    name: RAIL Library, Multiprotocol Alpha Chips Dummy
+    license: MSLA
+requires:
+- name: rail_lib_multiprotocol
+provides:
+- name: rail_lib_multiprotocol_alpha_chips_support
+ui_hints:
+  visibility: never
+root_path: rail_library

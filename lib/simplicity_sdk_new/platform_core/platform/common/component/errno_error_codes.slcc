@@ -1,0 +1,25 @@
+id: errno_error_codes
+label: errno error codes support
+description: >
+  This component provides "errno_error_codes.h" header file.
+  Only errno error codes are provided by this header, no implementation for errno is
+  provided in it.
+  This is necessary on some compilers like IAR where the errno implementation is provided  but not the error codes.
+
+  If you need an errno implementation, use the component errno instead.
+package: platform_core
+category: Platform|Toolchain
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: platform_core/platform/common
+include:
+- path: errno_error_codes/inc
+  file_list:
+  - path: errno_error_codes.h
+provides:
+- name: errno_error_codes
+documentation:
+  docset: gecko-platform
+  document: platform-common/errno

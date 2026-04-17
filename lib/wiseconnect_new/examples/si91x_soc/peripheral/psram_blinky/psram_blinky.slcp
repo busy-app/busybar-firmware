@@ -1,0 +1,50 @@
+project_name: psram_blinky
+package: platform_siwx91x_app
+description: 'This application demonstrates a blinky application running from PSRAM.  The program''s Text and Data segments are placed in PSRAM to utilize external memory effectively.  It highlights memory configuration for applications requiring execution from PSRAM, enabling expanded memory space usage and optimizing on-chip resources.
+
+  '
+category: example|peripheral
+quality: production
+label: SI91x - SoC Peripheral PSRAM Blinky
+component:
+- id: sl_main
+- id: sleeptimer
+- id: data_segment_in_psram
+- id: text_segment_in_psram
+- id: psram_core
+- id: psram_aps6404l_sqh
+- id: syscalls
+- id: si91x_memory_default_config
+- id: sl_si91x_led_917
+  instance:
+  - led0
+source:
+- path: app.c
+- path: blinky.c
+include:
+- path: .
+  file_list:
+  - path: app.h
+  - path: blinky.h
+toolchain_settings:
+- option: gcc_compiler_option
+  value: -Wall -Werror
+other_file:
+- path: ./resources/readme/setupdiagram.png
+- path: ./resources/readme/section_component_installation.png
+ui_hints:
+  highlight:
+  - path: readme.md
+    focus: true
+readme:
+- path: readme.md
+post_build:
+  profile: wiseconnect_soc
+sdk_extension:
+- id: wiseconnect3_sdk
+  vendor: silabs
+  version: 4.0.1
+sdk:
+  id: simplicity_sdk
+  vendor: silabs
+  version: 2025.12.2

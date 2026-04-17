@@ -1,0 +1,60 @@
+id: "lower_mac_spinel"
+label: "802.15.4 UMAC - Lower MAC - Spinel"
+package: multiprotocol
+category: 802.15.4|Mac
+quality: "production"
+description: "Implements the lower mac portion of the silabs 802.15.4 unified mac using Spinel talking to an OpenThread 15.4 RCP. Used for running 15.4 stacks such as Zigbee on a posix host connected to an RCP."
+provides:
+- name: "lower_mac_spinel"
+
+requires:
+- name: "mbedtls_random"
+- name: "spinel_host_interface_implementation"
+- name: "ot_headers"
+- name: "ot_lower_mac_spinel"
+
+recommends:
+- id: "spinel_host_interface_cpc"
+
+  vendor: silabs
+include:
+- path: "protocol/openthread/platform-abstraction/include"
+  file_list:
+  - path: radio_counters.h
+  - path: radio_extension.h
+  - path: vendor_spinel.hpp
+- path: "protocol/openthread/platform-abstraction/posix"
+  file_list:
+  - path: cpc_interface.hpp
+  - path: posix_vendor_spinel_interface.hpp
+
+# ensure this file gets packaged
+- path: "platform/radio/mac"
+  file_list:
+  - path: lower-mac-spinel.h
+
+source:
+# OT Spinel files
+- path: "protocol/openthread/platform-abstraction/posix/posix_vendor_spinel_interface.cpp"
+- path: "protocol/openthread/platform-abstraction/posix/radio_extension.cpp"
+
+# OT Stubs
+- path: "platform/radio/mac/lower-mac-spinel-stubs.cpp"
+
+template_contribution:
+- name: component_catalog
+  value: lower_mac_spinel
+
+config_file:
+- path: "platform/radio/mac/config/lower-mac-spinel-config.h"
+
+toolchain_settings:
+- option: preinclude
+  value: lower-mac-spinel-config.h
+
+metadata:
+  sbom:
+    # Zlib covers the files from protocol/openthread
+    # MSLA covers platform/radio/mac
+    license: Zlib AND MSLA
+root_path: multiprotocol

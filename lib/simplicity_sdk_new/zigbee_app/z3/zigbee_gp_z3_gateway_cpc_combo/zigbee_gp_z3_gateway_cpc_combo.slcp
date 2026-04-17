@@ -1,0 +1,246 @@
+project_name: zigbee_gp_z3_gateway_cpc_combo
+label: Zigbee GP - Z3GatewayCpcCombo
+package: zigbee
+category: Zigbee Host Application
+quality: production
+
+description: >
+  This is a Zigbee 3.0 gateway acting as a Green Power Combo. This application is meant for a Unix host that communicates to the EFR using CPC.
+
+author: Silicon Laboratories, Inc.
+
+component:
+  - id: sl_main
+  - id: cli
+    instance:
+      - example
+  - id: native_host
+  - id: iostream_stdio
+  - id: zigbee_address_table
+  - id: zigbee_basic
+  - id: zigbee_color_control_server
+  - id: zigbee_concentrator
+  - id: zigbee_counters
+  - id: zigbee_coex_cli
+  - id: zigbee_ezmode_commissioning
+  - id: zigbee_ezsp
+  - id: zigbee_ezsp_cpc
+  - id: zigbee_file_descriptor_dispatch
+  - id: zigbee_ias_zone_client
+  - id: zigbee_identify
+  - id: zigbee_identify_feedback
+  - id: zigbee_level_control
+  - id: zigbee_ncp_configuration
+  - id: zigbee_network_creator
+  - id: zigbee_network_creator_security
+  - id: zigbee_network_steering
+  - id: zigbee_on_off
+  - id: zigbee_ota_server
+  - id: zigbee_ota_server_policy
+  - id: zigbee_ota_common
+  - id: zigbee_ota_storage_common
+  - id: zigbee_ota_storage_posix_filesystem
+  - id: zigbee_poll_control_client
+  - id: zigbee_reporting
+  - id: zigbee_scan_dispatch
+  - id: zigbee_update_tc_link_key
+  - id: zigbee_simple_metering_client
+  - id: zigbee_stack_diagnostics
+  - id: zigbee_test_harness
+  - id: zigbee_time_server
+  - id: zigbee_trust_center_nwk_key_update_broadcast
+  - id: zigbee_trust_center_nwk_key_update_periodic
+  - id: zigbee_trust_center_nwk_key_update_unicast
+  - id: zigbee_debug_print
+  - id: zigbee_aes_software
+  - id: zigbee_zcl_cli
+  - id: zigbee_core_cli
+  - id: zigbee_af_support
+  - id: zigbee_green_power_client_cli
+  - id: zigbee_green_power_server_cli
+  - id: zigbee_green_power_translation_table_cli
+  - id: zigbee_groups_server
+  - id: zigbee_scenes
+  - id: zigbee_custom_ezsp
+
+configuration:
+  - name: SL_BOARD_ENABLE_VCOM
+    value: 1
+  - name: SL_IOSTREAM_USART_VCOM_FLOW_CONTROL_TYPE
+    value: usartHwFlowControlCtsAndRts
+    condition:
+      - iostream_usart
+  - name: SL_IOSTREAM_EUSART_VCOM_FLOW_CONTROL_TYPE
+    value: SL_IOSTREAM_EUSART_UART_FLOW_CTRL_CTS_RTS
+    condition:
+      - iostream_eusart
+  - name: SL_CLI_MAX_INPUT_ARGUMENTS
+    value: 16
+  - name: SLI_ZIGBEE_PRIMARY_NETWORK_DEVICE_TYPE
+    value: SLI_ZIGBEE_NETWORK_DEVICE_TYPE_COORDINATOR_OR_ROUTER
+  - name: SLI_ZIGBEE_PRIMARY_NETWORK_SECURITY_TYPE
+    value: SLI_ZIGBEE_NETWORK_SECURITY_TYPE_3_0
+  - name: SL_CLI_PROMPT_STRING
+    value: "\"zigbee_gp_z3_gateway_cpc_combo>\""
+  - name: SL_ZIGBEE_BROADCAST_TABLE_SIZE
+    value: 35
+  - name: EZSP_HOST_SOURCE_ROUTE_TABLE_SIZE
+    value: 100
+  - name: SL_ZIGBEE_AF_PLUGIN_GREEN_POWER_TRANSLATION_TABLE_CUSTOMIZED_GPD_TRANSLATION_TABLE_SIZE
+    value: 5
+  - name: SL_ZIGBEE_BINDING_TABLE_SIZE
+    value: 5
+  - name: SL_CLI_EXAMPLE_IOSTREAM_HANDLE
+    value: sl_iostream_get_default()
+
+include:
+  - path: ./
+
+source:
+  - path: main.c
+    unless: [cmsis_rtos2]
+  - path: app.c
+
+config_file:
+  - path: config/zcl/zcl_config.zap
+
+# Custom CLI for this application
+template_contribution:
+  - name: cli_group
+    value:
+      name: custom
+      help: Custom commands
+  - name: cli_command
+    value:
+      group: custom
+      name: tokdump
+      handler: mfgappTokenDump
+  - name: cli_command
+    value:
+      group: custom
+      name: changeNwkKey
+      handler: changeNwkKeyCommand
+  - name: cli_command
+    value:
+      group: custom
+      name: printNextKey
+      handler: printNextKeyCommand
+  - name: cli_command
+    value:
+      group: custom
+      name: version
+      handler: versionCommand
+  - name: cli_command
+    value:
+      group: custom
+      name: txPower
+      handler: setTxPowerCommand
+      argument:
+        - type: int8
+  - name: cli_command
+    value:
+      group: custom
+      name: gpAppTxQInit
+      handler: gpAppGpTxQueueInit
+      help: Initialises the Application Gp Tx Queue
+  - name: cli_command
+    value:
+      group: custom
+      name: gpAppTxQSet
+      handler: gpAppGpTxQueueSet
+      help: Sets a packet on Application Gp Tx Queue
+      argument:
+        - type: uint8
+          help: GPD application ID (must be 0)
+        - type: uint32
+          help: GPD source ID
+        - type: uint8
+          help: GPD CommandId
+        - type: hex
+          help: GPD command payload
+  - name: cli_command
+    value:
+      group: custom
+      name: gpAppTxQGet
+      handler: gpAppGpTxQueueGet
+      help: Gets a packet from Application Gp Tx Queue
+      argument:
+        - type: uint8
+          help: GPD application ID (must be 0)
+        - type: uint32
+          help: GPD source ID
+  - name: cli_command
+    value:
+      group: custom
+      name: gpAppTxQRemove
+      handler: gpAppGpTxQueueRemove
+      help: Removes a packet from Application Gp Tx Queue
+      argument:
+        - type: uint8
+          help: GPD application ID (must be 0)
+        - type: uint32
+          help: GPD source ID
+  - name: cli_command
+    value:
+      group: custom
+      name: gpAppTxQSetMaxSize
+      handler: gpAppGpSetTxQueueSize
+      help: Sets the Gp Queue Max Size
+      argument:
+        - type: uint8
+          help: Maximum Size of Gp Tx Queue
+  - name: cli_command
+    value:
+      group: custom
+      name: gpAppTxQGetMaxSize
+      handler: gpAppGpGetTxQueueSize
+      help: Gets the Gp Queue Max Size
+  - name: cli_command
+    value:
+      group: custom
+      name: gpAppTxQGetCount
+      handler: gpAppGpGetTxQueueCount
+      help: Gets the Gp Queue Counts
+  - name: cli_command
+    value:
+      group: custom
+      name: gpAppGpSendGpRaw
+      handler: gpAppGpSendGpRaw
+      help: Sends a raw packet using App rail handle
+      argument:
+        - type: uint8
+          help: Channel
+        - type: uint8
+          help: Delay in milliseconds
+        - type: hex
+          help: MPDU
+  - name: cli_command
+    value:
+      group: custom
+      name: factory-reset
+      handler: sl_zigbee_reset_zigbee_token
+      help: Factory reset all zigbee tokens
+      argument:
+        - type: uint8
+          help: Boolean value, excluding (1) or not excluding (0) network and APS frame counter tokens.
+        - type: uint8
+          help: Boolean value, excluding (1) or not excluding (0) stack boot counter tokens.
+
+readme:
+  - path: ./readme.md
+
+ui_hints:
+  highlight:
+    - path: readme.md
+      focus: false
+
+filter:
+  - name: Wireless Technology
+    value: [Zigbee]
+  - name: Device Type
+    value: [Host]
+  - name: Project Difficulty
+    value: [Advanced]
+
+tag:
+  - hwfilter:device:device_family_host

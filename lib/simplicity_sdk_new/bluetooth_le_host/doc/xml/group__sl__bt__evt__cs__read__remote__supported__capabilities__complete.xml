@@ -1,0 +1,42 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__evt__cs__read__remote__supported__capabilities__complete" kind="group">
+    <compoundname>sl_bt_evt_cs_read_remote_supported_capabilities_complete</compoundname>
+    <title>sl_bt_evt_cs_read_remote_supported_capabilities_complete</title>
+    <innerclass refid="structsl__bt__evt__cs__read__remote__supported__capabilities__complete__s" prot="public">sl_bt_evt_cs_read_remote_supported_capabilities_complete_s</innerclass>
+      <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="group__sl__bt__evt__cs__read__remote__supported__capabilities__complete_1gad1a9f7a186ea41d9d1d8ca5659f4eacd" prot="public" static="no">
+        <type>struct <ref refid="structsl__bt__evt__cs__read__remote__supported__capabilities__complete__s" kindref="compound">sl_bt_evt_cs_read_remote_supported_capabilities_complete_s</ref></type>
+        <definition>typedef struct sl_bt_evt_cs_read_remote_supported_capabilities_complete_s sl_bt_evt_cs_read_remote_supported_capabilities_complete_t</definition>
+        <argsstring></argsstring>
+        <name>sl_bt_evt_cs_read_remote_supported_capabilities_complete_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="13893" column="73" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="13893" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__evt__cs__read__remote__supported__capabilities__complete_1ga5ee11874bc43b1619c634e6afb9d71b1" prot="public" static="no">
+        <name>sl_bt_evt_cs_read_remote_supported_capabilities_complete_id</name>
+        <initializer>0x045900a0</initializer>
+        <briefdescription>
+<para>Identifier of the read_remote_supported_capabilities_complete event. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="13658" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="13658" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Report the remote controller&apos;s supported capabilities as a result of calling the <ref refid="group__sl__bt__cs_1ga8c0052901c17a4c427f2b25d3c484bc7" kindref="member">sl_bt_cs_read_remote_supported_capabilities</ref> command previously. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

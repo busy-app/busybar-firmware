@@ -1,0 +1,13 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="dir_834e97b9ac93a95156330bb70bd771f0" kind="dir">
+    <compoundname>components/device/silabs/si91x/wireless/crypto/ecdh/inc</compoundname>
+    <innerfile refid="sl__si91x__ecdh_8h">sl_si91x_ecdh.h</innerfile>
+    <innerfile refid="sl__si91x__psa__ecdh_8h">sl_si91x_psa_ecdh.h</innerfile>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="components/device/silabs/si91x/wireless/crypto/ecdh/inc/"/>
+  </compounddef>
+</doxygen>

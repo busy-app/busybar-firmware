@@ -1,0 +1,33 @@
+id: icache_disable
+label: ICACHE Disable
+description: >
+  Adding this component to an application disables instruction caching, which
+  can be useful when measuring the worst case performance of your application.
+  This component is only available for devices in the sixx301 family.
+package: platform_core
+category: Platform|Utilities
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: platform_core/platform/common
+include:
+- path: inc
+  file_list:
+  - path: sli_icache_disable.h
+source:
+- path: src/sli_icache_disable.c
+requires:
+- name: event_handler
+- name: device
+provides:
+- name: icache_disable
+  condition: [device_generic_family_sixx301]
+template_contribution:
+- name: event_handler
+  value:
+    event: service_init
+    include: sli_icache_disable.h
+    handler: sli_icache_disable
+  priority: 1
+

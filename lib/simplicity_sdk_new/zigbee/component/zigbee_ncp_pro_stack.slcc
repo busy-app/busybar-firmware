@@ -1,0 +1,34 @@
+id: zigbee_ncp_pro_stack
+label: Pro Stack NCP commands
+package: zigbee
+category: Zigbee|Stack|Pro Core
+quality: production
+description: The main NCP commands for Zigbee PRO Stack component for parsing, processing, generating and managing the Zigbee PRO stack messages and functionality.
+
+provides:
+- name: zigbee_ncp_pro_stack
+- name: zigbee_ncp_pro_stack_support
+
+requires:
+- name: zigbee_ncp_pro_stack_implementation
+- name: zigbee_ncp_pro_stack_library
+  condition:
+  - zigbee_use_release_libraries
+- name: zigbee_stack_common
+
+recommends:
+- id: zigbee_ncp_pro_stack_library_internal
+  vendor: silabs
+
+template_contribution:
+- name: component_catalog
+  value: zigbee_ncp_pro_stack
+
+
+documentation:
+  docset: zigbee
+  document: zigbee-af-api/ncp-pro
+metadata:
+  sbom:
+    license: MSLA
+root_path: zigbee

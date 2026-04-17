@@ -1,0 +1,50 @@
+id: power_manager
+label: Power Manager
+package: platform_core
+description: >
+  Instantiate the Power Manager (PM) component for managing the power
+  consumption of the MCU. The PM will shut down the high-frequency clock and put
+  the system in lower Energy Modes (EM) when possible. The PM also allows the
+  user to register certain callback that will be executed when going into/out of
+  certain EM. This allows the user to carry out any bookkeeping following EM
+  transition events.
+category: Services|Power Manager
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+config_file:
+- path: platform/service/power_manager/config/sl_power_manager_config.h
+  condition: [device_sdid_200]
+- path: platform/service/power_manager/config/EFR32XG22/sl_power_manager_config.h
+  condition: [device_sdid_205]
+- path: platform/service/power_manager/config/sl_power_manager_config.h
+  condition: [device_sdid_210]
+- path: platform/service/power_manager/config/sl_power_manager_config.h
+  condition: [device_sdid_215]
+- path: platform/service/power_manager/config/EFX32XG25/sl_power_manager_config.h
+  condition: [device_sdid_220]
+- path: platform/service/power_manager/config/sl_power_manager_config.h
+  condition: [device_sdid_225]
+- path: platform/service/power_manager/config/sl_power_manager_config.h
+  condition: [device_sdid_230]
+- path: platform/service/power_manager/config/sl_power_manager_config.h
+  condition: [device_sdid_235]
+- path: platform/service/power_manager/config/sl_power_manager_config.h
+  condition: [device_sdid_240]
+- path: platform/service/power_manager/config/sl_power_manager_config.h
+  condition: [device_sdid_260]
+- path: platform/service/power_manager/config/SIXG301/sl_power_manager_config.h
+  condition: [device_generic_family_sixx301]
+provides:
+- name: power_manager
+requires:
+- name: power_manager_core
+- name: power_manager_handler
+recommends:
+- id: power_manager_handler_implementation
+  vendor: silabs
+documentation:
+  docset: gecko-platform
+  document: platform-service-power-manager-overview
+root_path: platform_core

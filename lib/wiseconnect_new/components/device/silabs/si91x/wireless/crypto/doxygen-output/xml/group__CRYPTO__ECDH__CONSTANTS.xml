@@ -1,0 +1,206 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__CRYPTO__ECDH__CONSTANTS" kind="group">
+    <compoundname>CRYPTO_ECDH_CONSTANTS</compoundname>
+    <title>Constants</title>
+      <sectiondef kind="enum">
+      <memberdef kind="enum" id="group__CRYPTO__ECDH__CONSTANTS_1gabc2911014049f6f70e80752da677f66d" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_si91x_ecdh_mode_t</name>
+        <enumvalue id="group__CRYPTO__ECDH__CONSTANTS_1ggabc2911014049f6f70e80752da677f66dae262ac368f09a8878b26697d2a3e9d0b" prot="public">
+          <name>SL_SI91X_ECDH_192</name>
+          <initializer>= 1</initializer>
+          <briefdescription>
+<para>ECDH 192 mode. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__ECDH__CONSTANTS_1ggabc2911014049f6f70e80752da677f66da23c3d52b7ae2975eeccb778577485d48" prot="public">
+          <name>SL_SI91X_ECDH_224</name>
+          <initializer>= 2</initializer>
+          <briefdescription>
+<para>ECDH 224 mode. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__ECDH__CONSTANTS_1ggabc2911014049f6f70e80752da677f66da74f9eaa1a977eea1bd404b8bbd3800b1" prot="public">
+          <name>SL_SI91X_ECDH_256</name>
+          <initializer>= 4</initializer>
+          <briefdescription>
+<para>ECDH 256 mode. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>Enumeration defining ECDH modes supported by the SI91X device. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>This enumeration defines the modes of operation for the ECDH algorithm on the SI91X device. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/ecdh/inc/sl_si91x_ecdh.h" line="49" column="1" bodyfile="components/device/silabs/si91x/wireless/crypto/ecdh/inc/sl_si91x_ecdh.h" bodystart="49" bodyend="53"/>
+      </memberdef>
+      <memberdef kind="enum" id="group__CRYPTO__ECDH__CONSTANTS_1gab49d4f8f37f85fd2d42a0242583900c0" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_si91x_ecdh_sub_mode_t</name>
+        <enumvalue id="group__CRYPTO__ECDH__CONSTANTS_1ggab49d4f8f37f85fd2d42a0242583900c0acc15ee7f588414377b78a48bb72ffd1b" prot="public">
+          <name>SL_SI91X_ECDH_MUL</name>
+          <initializer>= 1</initializer>
+          <briefdescription>
+<para>ECDH multiplication mode. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__ECDH__CONSTANTS_1ggab49d4f8f37f85fd2d42a0242583900c0a67cbfa8dec99f5f0aefda7b554c89e85" prot="public">
+          <name>SL_SI91X_ECDH_ADD</name>
+          <initializer>= 2</initializer>
+          <briefdescription>
+<para>ECDH addition mode. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__ECDH__CONSTANTS_1ggab49d4f8f37f85fd2d42a0242583900c0abc8f993c937566ebdd5e6e5cc646ad70" prot="public">
+          <name>SL_SI91X_ECDH_SUB</name>
+          <initializer>= 3</initializer>
+          <briefdescription>
+<para>ECDH subtraction mode. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__ECDH__CONSTANTS_1ggab49d4f8f37f85fd2d42a0242583900c0a17cef8efc57a5626a4d46ac600c5a012" prot="public">
+          <name>SL_SI91X_ECDH_DOUBLE</name>
+          <initializer>= 4</initializer>
+          <briefdescription>
+<para>ECDH double mode. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__ECDH__CONSTANTS_1ggab49d4f8f37f85fd2d42a0242583900c0a764b57af2d6d330357d1cbcb7d05f792" prot="public">
+          <name>SL_SI91X_ECDH_AFFINITY</name>
+          <initializer>= 5</initializer>
+          <briefdescription>
+<para>ECDH affinity mode. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>Enumeration defining ECDH sub-modes. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>This enumeration defines the types of ECDH operations supported, such as ECDH Multiplication, Addition, Subtraction, Double, and Affinity. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/ecdh/inc/sl_si91x_ecdh.h" line="61" column="1" bodyfile="components/device/silabs/si91x/wireless/crypto/ecdh/inc/sl_si91x_ecdh.h" bodystart="61" bodyend="67"/>
+      </memberdef>
+      <memberdef kind="enum" id="group__CRYPTO__ECDH__CONSTANTS_1ga3da614442e62a63c46194498c5154f47" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_si91x_ecdh_vector_size_t</name>
+        <enumvalue id="group__CRYPTO__ECDH__CONSTANTS_1gga3da614442e62a63c46194498c5154f47a2b3e1462e5aef8b228c48995e2b29f44" prot="public">
+          <name>SL_SI91X_ECDH_VECTOR_SIZE_192</name>
+          <initializer>= 24</initializer>
+          <briefdescription>
+<para>192 bits or 24 bytes vector size </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__ECDH__CONSTANTS_1gga3da614442e62a63c46194498c5154f47a931f016c0eea24880b8862c0ed4aa9b9" prot="public">
+          <name>SL_SI91X_ECDH_VECTOR_SIZE_224</name>
+          <initializer>= 28</initializer>
+          <briefdescription>
+<para>224 bits or 28 bytes vector size </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__ECDH__CONSTANTS_1gga3da614442e62a63c46194498c5154f47a0eaf1b72ae3eed2dcb1504094147c76b" prot="public">
+          <name>SL_SI91X_ECDH_VECTOR_SIZE_256</name>
+          <initializer>= 32</initializer>
+          <briefdescription>
+<para>256 bits or 32 bytes vector size </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>Enumeration defining ECDH vector sizes. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>This enumeration defines the different ECDH vector sizes supported, which includes 24, 28, and 32 bytes. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/ecdh/inc/sl_si91x_ecdh.h" line="75" column="1" bodyfile="components/device/silabs/si91x/wireless/crypto/ecdh/inc/sl_si91x_ecdh.h" bodystart="75" bodyend="79"/>
+      </memberdef>
+      <memberdef kind="enum" id="group__CRYPTO__ECDH__CONSTANTS_1gaea9248d323dd1986c763cf5ff73ce51b" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_si91x_ecdh_curve_type_t</name>
+        <enumvalue id="group__CRYPTO__ECDH__CONSTANTS_1ggaea9248d323dd1986c763cf5ff73ce51ba3ab7561384be2f0fedbcda7b390e2db6" prot="public">
+          <name>SL_SI91X_ECDH_CURVE_P</name>
+          <initializer>= 0</initializer>
+          <briefdescription>
+<para>Prime Field Curves. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__ECDH__CONSTANTS_1ggaea9248d323dd1986c763cf5ff73ce51ba6ada1ab57cc8601ebe139accdb8038fc" prot="public">
+          <name>SL_SI91X_ECDH_CURVE_K</name>
+          <initializer>= 1</initializer>
+          <briefdescription>
+<para>Binary Field Curves. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__ECDH__CONSTANTS_1ggaea9248d323dd1986c763cf5ff73ce51ba3f316a27d656aacd8e5acd43a4214392" prot="public">
+          <name>SL_SI91X_ECDH_CURVE_B</name>
+          <initializer>= 2</initializer>
+          <briefdescription>
+<para>Edwards Curves. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>Enumeration defining ECDH curve types. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>This enumeration defines the different ECDH curves supported, which includes Prime field curves, binary curves, and Edwards curves. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/ecdh/inc/sl_si91x_ecdh.h" line="87" column="1" bodyfile="components/device/silabs/si91x/wireless/crypto/ecdh/inc/sl_si91x_ecdh.h" bodystart="87" bodyend="91"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__CRYPTO__ECDH__CONSTANTS_1gae36b0f21336a3ac7366f105d357ae8de" prot="public" static="no">
+        <name>SL_SI91X_ECDH_MAX_VECTOR_SIZE</name>
+        <initializer>32</initializer>
+        <briefdescription>
+<para>Maximum size of an ECDH vector. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/ecdh/inc/sl_si91x_ecdh.h" line="42" column="9" bodyfile="components/device/silabs/si91x/wireless/crypto/ecdh/inc/sl_si91x_ecdh.h" bodystart="42" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para>This section provides a reference to the ECDH Crypto API constants. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

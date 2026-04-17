@@ -1,0 +1,52 @@
+id: zigbee_ui
+package: zigbee
+label: Zigbee LCD Display
+category: Zigbee|Zigbee 3.0
+quality: production
+description: Zigbee applications use this component to display graphics on the LCD.
+
+provides:
+- name: zigbee_ui
+
+requires:
+- name: app_assert
+- name: glib
+- name: dmd_memlcd
+- name: zigbee_zcl_framework_core
+
+conflicts:
+- name: dmp_ui_demo
+
+source:
+- path: app/framework/plugin/zigbee-ui-demo/sl_zigbee_ui.c
+
+
+include:
+- path: app/framework/plugin/zigbee-ui-demo/
+  file_list:
+  - path: sl_zigbee_ui.h
+  - path: sl_zigbee_bitmaps.h
+
+template_contribution:
+- name: component_catalog
+  value: zigbee_ui
+- name: zigbee_af_callback
+  value:
+    callback_type: event_init
+    function_name: sl_zigbee_ui_init
+- name: zigbee_af_callback
+  value:
+    callback_type: local_data_init
+    function_name: sl_zigbee_ui_init
+- name: zigbee_af_callback
+  value:
+    callback_type: init_done
+    function_name: sl_zigbee_ui_init
+
+documentation:
+  docset: zigbee
+  document: zigbee-af-api/zigbee-ui
+metadata:
+  sbom:
+    license: MSLA
+root_path: zigbee

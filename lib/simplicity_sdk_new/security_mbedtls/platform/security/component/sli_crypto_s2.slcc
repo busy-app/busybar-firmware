@@ -1,0 +1,28 @@
+id: sli_crypto_s2
+label: Accelerated Crypto Primitives for Series-2 devices
+package: security_mbedtls
+description: >-
+  This component provides hardware accelerated cryptographic primitives for Series-2 devices.
+category: Platform|Security|SLI Crypto
+quality: production
+ui_hints:
+  visibility: never
+source:
+- path: src/sl_crypto_s2.c
+include:
+- path: inc
+  file_list:
+  - path: sli_crypto.h
+  - path: sli_crypto_s2.h
+provides:
+- name: sli_crypto_s2
+requires:
+- name: device
+- name: device_series_2
+- name: status
+- name: sl_assert
+- name: sli_protocol_crypto
+metadata:
+  sbom:
+    license: Zlib
+root_path: security_mbedtls/platform/security/sl_component/sli_crypto

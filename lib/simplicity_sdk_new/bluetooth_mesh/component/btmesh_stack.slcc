@@ -1,0 +1,144 @@
+id: "btmesh_stack"
+label: "Bluetooth Mesh Stack"
+package: bluetooth_mesh
+description: "Provides Bluetooth Mesh Stack library."
+category: "Bluetooth Mesh|Stack"
+quality: "production"
+config_file:
+- path: "config/sl_btmesh_config.h"
+  unless: [tz_secure_key_library_s, trustzone_nonsecure]
+- path: "config/sl_btmesh_config.h"
+  export: true
+  condition: [trustzone_nonsecure]
+- path: component/gatt_service_mesh_default.xml
+  directory: btconf
+source:
+- path: "src/sl_btmesh_lib.c"
+  condition:
+  - "btmesh_generic_model"
+- path: "src/sl_btmesh_serdeser.c"
+  condition:
+  - "btmesh_generic_model"
+- path: "src/sl_btmesh_sensor.c"
+  condition:
+  - "btmesh_sensor_model"
+- path: "src/sl_btmesh_sensor.c"
+  condition:
+  - "btmesh_stack_lc_server"
+  unless:
+  - "btmesh_sensor_model"
+include:
+- path: "inc"
+  file_list:
+  - path: "sl_btmesh_stack_init.h"
+  - path: "sl_btmesh_api.h"
+  - path: "sl_btmesh_bgapi.h"
+  - path: "sl_btmesh_compatibility_macros.h"
+  - path: "sl_btmesh_capi_types.h"
+  - path: "sl_btmesh_memory_config.h"
+  - path: "sl_btmesh_model_specification_defs.h"
+  - path: "sl_btmesh_generic_model_capi_types.h"
+    condition:
+    - "btmesh_generic_model"
+  - path: "sl_btmesh_lib.h"
+    condition:
+    - "btmesh_generic_model"
+  - path: "sl_btmesh_serdeser.h"
+    condition:
+    - "btmesh_generic_model"
+  - path: "sl_btmesh_lighting_model_capi_types.h"
+    condition:
+    - "btmesh_generic_model"
+  - path: "sl_btmesh_device_properties.h"
+    condition:
+    - "btmesh_sensor_model"
+  - path: "sl_btmesh_device_properties.h"
+    condition:
+    - "btmesh_stack_lc_server"
+    unless:
+    - "btmesh_sensor_model"
+  - path: "sl_btmesh_sensor_model_capi_types.h"
+    condition:
+    - "btmesh_sensor_model"
+  - path: "sl_btmesh_sensor_model_capi_types.h"
+    condition:
+    - "btmesh_stack_lc_server"
+    unless:
+    - "btmesh_sensor_model"
+  - path: "sl_btmesh_sensor.h"
+    condition:
+    - "btmesh_sensor_model"
+  - path: "sl_btmesh_sensor.h"
+    condition:
+    - "btmesh_stack_lc_server"
+    unless:
+    - "btmesh_sensor_model"
+  - path: "sl_btmesh_provisioning_records.h"
+template_file:
+- path: "src/sl_btmesh.c.jinja"
+- path: "inc/sl_btmesh.h.jinja"
+other_file:
+- path: "api/sl_btmesh.xapi"
+template_contribution:
+- name: component_catalog
+  value: btmesh
+- name: event_handler
+  value:
+    event: stack_init
+    include: "sl_btmesh.h"
+    handler: "sl_btmesh_init"
+  priority: 1
+  unless:
+  - "kernel"
+- name: event_handler
+  value:
+    event: stack_process_action
+    include: "sl_btmesh.h"
+    handler: "sl_btmesh_step"
+  priority: 10
+- name: btmesh_stack
+  value: 1
+- name: bluetooth_on_event
+  value:
+    function: sl_btmesh_bgapi_listener
+  unless:
+  - kernel
+- name: btmesh_advertisers
+  value:
+    name: nonconnectable
+    count: 3
+requires:
+- name: "btmesh_stack_libraries"
+- name: "bluetooth_stack"
+- name: "bluetooth_feature_system"
+- name: "bluetooth_feature_gap"
+- name: "btmesh_nonconnectable_advertiser"
+- name: "btmesh_scanner"
+- name: "bluetooth_feature_central_connection"
+- name: "emlib"
+- name: "memory_manager"
+- name: "sleeptimer"
+- name: "nvm3_lib"
+- name: "nvm3_default"
+- name: "btmesh_stack_crypto"
+- name: "device_supports_bluetooth"
+- name: "btmesh_stack_health_server"
+- name: "dcd_configuration"
+- name: "btmesh_stack_models"
+- name: "btmesh_stack_model_storage"
+recommends:
+- id: btmesh_stack_libraries_release
+  vendor: silabs
+- id: btmesh_stack_advertiser_legacy
+  vendor: silabs
+- id: btmesh_stack_scanner_legacy
+  vendor: silabs
+- id: btmesh_stack_model_storage_v2
+  vendor: silabs
+provides:
+- name: "btmesh_stack"
+metadata:
+  sbom:
+    id: btmesh_stack
+    license: MSLA
+root_path: bluetooth_mesh

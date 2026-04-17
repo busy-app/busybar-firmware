@@ -1,0 +1,48 @@
+id: btmesh_stack_crypto_key_cache_libraries_release
+ui_hints:
+  visibility: never
+package: bluetooth_mesh
+description: Release libraries for btmesh_stack_crypto_key_cache
+category: Bluetooth Mesh|Stack
+quality: production
+provides:
+- name: btmesh_stack_crypto_key_cache_libraries_release
+- name: btmesh_stack_crypto_key_cache_libraries
+library:
+- path: build/gcc/cortex-m33/ble_mesh/release/libbtmesh_crypto_key_cache.a
+  condition:
+  - toolchain_gcc
+  - cortexm33
+  unless:
+  - trustzone_nonsecure
+- path: build/gcc/cortex-m33/ble_mesh/release/libbtmesh_crypto_key_cache_dummy.a
+  condition:
+  - toolchain_gcc
+  - cortexm33
+  - trustzone_nonsecure
+- path: build/iar/cortex-m33/ble_mesh/release/libbtmesh_crypto_key_cache.a
+  condition:
+  - toolchain_iar
+  - cortexm33
+  unless:
+  - trustzone_nonsecure
+- path: build/iar/cortex-m33/ble_mesh/release/libbtmesh_crypto_key_cache_dummy.a
+  condition:
+  - toolchain_iar
+  - cortexm33
+  - trustzone_nonsecure
+- path: build/llvm/cortex-m33/ble_mesh/release/libbtmesh_crypto_key_cache.a
+  condition:
+  - toolchain_llvm
+  - cortexm33
+  unless:
+  - trustzone_nonsecure
+- path: build/llvm/cortex-m33/ble_mesh/release/libbtmesh_crypto_key_cache_dummy.a
+  condition:
+  - toolchain_llvm
+  - cortexm33
+  - trustzone_nonsecure
+metadata:
+  sbom:
+    reference: btmesh_stack
+root_path: bluetooth_mesh

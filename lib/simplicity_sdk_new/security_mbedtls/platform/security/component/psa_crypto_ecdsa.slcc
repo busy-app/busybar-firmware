@@ -1,0 +1,73 @@
+id: psa_crypto_ecdsa
+package: security_mbedtls
+label: ECDSA
+description: >-
+  This component provides support for signature generation and verification
+  with ECDSA in PSA Crypto.
+category: Platform|Security|PSA Crypto|Signatures
+quality: production
+provides:
+- name: psa_crypto_ecdsa
+- name: mbedtls_pk_backend
+  allow_multiple: true
+requires:
+- name: psa_crypto_ecc
+- name: psa_crypto_ecc_curve
+- name: sl_si91x_psa_ecdsa
+  condition: [device_si91x]
+- name: sl_si91x_psa_wrap
+  condition: [device_si91x]
+- name: mbedtls_ecdsa
+  condition: [device_si91x, psa_crypto_ecc_secp192r1]
+- name: mbedtls_ecdsa
+  condition: [device_si91x, psa_crypto_ecc_secp384r1]
+- name: mbedtls_ecdsa
+  condition: [device_si91x, psa_crypto_ecc_secp521r1]
+  # EFR32xG21 (SDID:200) does not support acceleration of the SECP224R1 curve.
+- name: mbedtls_ecdsa
+  condition: [device_sdid_200, psa_crypto_ecc_secp224r1]
+- name: mbedtls_ecdsa
+  condition: [device_security_se, psa_crypto_ecc_secp384r1]
+- name: mbedtls_ecdsa
+  condition: [device_security_se, psa_crypto_ecc_secp521r1]
+- name: mbedtls_ecdsa
+  condition: [device_security_rot, psa_crypto_ecc_secp384r1]
+- name: mbedtls_ecdsa
+  condition: [device_security_rot, psa_crypto_ecc_secp521r1]
+- name: mbedtls_ecdsa
+  condition: [device_security_base, psa_crypto_ecc_secp384r1]
+- name: mbedtls_ecdsa
+  condition: [device_security_base, psa_crypto_ecc_secp521r1]
+  # Secp256k1 support has only been added to VSE PSA Crypto driver.
+- name: mbedtls_ecdsa
+  condition: [device_has_semailbox, psa_crypto_ecc_secp256k1]
+    # SIXX301 does not accelerate secp384r1
+- name: mbedtls_ecdsa
+  condition: [device_generic_family_sixx301, psa_crypto_ecc_secp384r1]
+    # SIXX301 does not accelerate secp521r1
+- name: mbedtls_ecdsa
+  condition: [device_generic_family_sixx301, psa_crypto_ecc_secp521r1]
+template_contribution:
+- name: psa_crypto_config
+  value: PSA_WANT_ALG_ECDSA 1
+- name: psa_crypto_builtin_config
+  value: "MBEDTLS_PSA_BUILTIN_ALG_ECDSA 1"
+  condition: [mbedtls_ecdsa]
+- name: mbedtls_config
+  value: MBEDTLS_ECDSA_C
+  condition: [mbedtls_uses_psa_crypto]
+
+  # The ECDSA module depends on ASN.1.
+- name: mbedtls_config
+  value: MBEDTLS_ASN1_PARSE_C
+  condition: [mbedtls_uses_psa_crypto]
+- name: mbedtls_config
+  value: MBEDTLS_ASN1_WRITE_C
+  condition: [mbedtls_uses_psa_crypto]
+
+documentation:
+  url: https://armmbed.github.io/mbed-crypto/html/api/ops/sign.html#c.PSA_ALG_ECDSA
+metadata:
+  sbom:
+    reference: mbedtls_sbom
+root_path: security_mbedtls

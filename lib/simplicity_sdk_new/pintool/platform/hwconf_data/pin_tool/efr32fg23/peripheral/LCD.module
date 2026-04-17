@@ -1,0 +1,43 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<module:DocumentRoot xmlns:module="http://www.silabs.com/ss/hwconfig/module.ecore">
+  <module id="pin_tool.efr32.efr32fg23.lcd" label="LCD" name="LCD" description="" version="A">
+    <properties>
+      <stringProperty label="Type" id="type" defaultValue="lcd" transient="true" hidden="true" readonly="true" description=""/>
+      <stringProperty label="Custom Peripheral Name" id="peripheral.name" description=""/>
+    </properties>
+    <propertyCategories>
+      <category label="LCD">
+        <subCategory label="">
+          <propertyRef refId="peripheral.name"/>
+        </subCategory>
+      </category>
+    </propertyCategories>
+    <signals>
+      <signal name="SEG8"/>
+      <signal name="SEG9"/>
+      <signal name="SEG10"/>
+      <signal name="SEG11"/>
+      <signal name="LCD_CP"/>
+      <signal name="SEG12"/>
+      <signal name="SEG13"/>
+      <signal name="SEG14"/>
+      <signal name="SEG15"/>
+      <signal name="SEG16"/>
+      <signal name="SEG17"/>
+      <signal name="SEG0"/>
+      <signal name="SEG1"/>
+      <signal name="SEG2"/>
+      <signal name="SEG3"/>
+      <signal name="SEG4"/>
+      <signal name="SEG5"/>
+      <signal name="SEG6"/>
+      <signal name="SEG7"/>
+      <signal name="SEG18"/>
+      <signal name="SEG19"/>
+      <signal name="COM0"/>
+      <signal name="COM1"/>
+      <signal name="COM2"/>
+      <signal name="COM3"/>
+    </signals>
+  </module>
+</module:DocumentRoot>

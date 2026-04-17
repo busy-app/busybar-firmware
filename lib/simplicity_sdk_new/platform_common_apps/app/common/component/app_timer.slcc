@@ -1,0 +1,138 @@
+id: app_timer
+label: Timer
+package: platform_common_apps
+description: >
+  Timer service for applications with less strict timing requirements.
+  This module is based on the sleeptimer, but runs the timer callbacks in
+  non-interrupt context. This behavior gives more flexibility for the callback
+  implementation but causes a less precise timing.
+  If your application requires precise timing, please use the sleeptimer
+  directly.
+category: Application|Utility
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: platform_common_apps/app/common/util/app_timer
+source:
+- path: bm/app_timer.c
+  unless:
+  - kernel
+  - device_family_host
+- path: freertos/app_timer_freertos.c
+  condition:
+  - freertos
+- path: micriumos/app_timer_micriumos.c
+  condition:
+  - micriumos_kernel
+- path: host/macos/app_timer_macos.c
+  condition:
+  - macos
+- path: host/linux/app_timer_linux.c
+  condition:
+  - linux
+- path: host/win/app_timer_win.c
+  condition:
+  - win32
+include:
+- path: .
+  file_list:
+  - path: app_timer.h
+  - path: sl_simple_timer.h
+- path: bm
+  file_list:
+  - path: app_timer_internal.h
+  - path: app_timer_types.h
+  unless:
+  - kernel
+  - device_family_host
+- path: freertos
+  file_list:
+  - path: app_timer_types.h
+  condition:
+  - freertos
+- path: micriumos
+  file_list:
+  - path: app_timer_types.h
+  condition:
+  - micriumos_kernel
+- path: host
+  file_list:
+  - path: app_timer_internal.h
+  condition:
+  - device_family_host
+- path: host/macos
+  file_list:
+  - path: app_timer_types.h
+  condition:
+  - macos
+- path: host/linux
+  file_list:
+  - path: app_timer_types.h
+  condition:
+  - linux
+- path: host/win
+  file_list:
+  - path: app_timer_types.h
+  condition:
+  - win32
+provides:
+- name: app_timer
+requires:
+- name: sleeptimer
+  condition:
+  - device_cortexm
+- name: sl_core
+  condition:
+  - device_cortexm
+- name: component_catalog
+  condition:
+  - device_cortexm
+- name: app_log
+  condition:
+  - device_family_host
+template_contribution:
+- name: component_catalog
+  value: app_timer
+- name: event_handler
+  value:
+    event: service_process_action
+    include: app_timer_internal.h
+    handler: sli_app_timer_step
+  unless:
+  - kernel
+- name: event_handler
+  value:
+    event: service_init
+    include: app_timer_internal.h
+    handler: sli_app_timer_init
+  condition:
+  - device_family_host
+- name: power_manager_handler
+  value:
+    event: is_ok_to_sleep
+    include: app_timer_internal.h
+    handler: sli_app_timer_is_ok_to_sleep
+  unless:
+  - kernel
+  - device_family_host
+- name: power_manager_handler
+  value:
+    event: sleep_on_isr_exit
+    include: app_timer_internal.h
+    handler: sli_app_timer_sleep_on_isr_exit
+  unless:
+  - kernel
+  - device_family_host
+validation_library:
+- path: ../../validation/autonumber_common.lua
+  name: autonumber_common
+  condition:
+  - kernel
+validation_helper:
+- path: freertos/app_timer_freertos_validation.lua
+  condition:
+  - freertos
+- path: micriumos/app_timer_micriumos_validation.lua
+  condition:
+  - micriumos_kernel

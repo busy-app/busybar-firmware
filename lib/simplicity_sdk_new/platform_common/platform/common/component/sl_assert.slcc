@@ -1,0 +1,21 @@
+id: sl_assert
+package: platform_common
+label: Assert Functions
+description: Component that provides assert functions.
+category: Platform|Utilities
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: platform_common/platform/common
+include:
+- path: inc
+  file_list:
+  - path: sl_assert.h
+source:
+- path: src/sl_assert.c
+provides:
+- name: sl_assert
+documentation:
+  docset: gecko-platform
+  document: platform-common/assert

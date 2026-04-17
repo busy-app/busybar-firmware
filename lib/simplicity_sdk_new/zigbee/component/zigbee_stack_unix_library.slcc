@@ -1,0 +1,15 @@
+id: zigbee_stack_unix_library
+label: Zigbee Stack Unix Library
+package: zigbee
+category: Zigbee
+quality: production
+description: This plugin contains the required provides to build Zigbee apps against Unix.
+
+provides:
+- name: zigbee_stack_unix_implementation
+- name: zigbee_stack_unix_library
+
+metadata:
+  sbom:
+    license: MSLA
+root_path: zigbee

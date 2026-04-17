@@ -1,0 +1,15 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<demos xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.silabs.com/ss/Demo.ecore">
+  <demo name="brd2605a.demo.siwx917_dev_kit" label="Wi-Fi - SiWx917 Dev Kit (BRD2605A)">
+    <description>Demonstrates the features of the SiWx917 Dev Kit Board. This can be tested with the Simplicity Connect mobile app.</description>
+    <property key="demos.blurb" value="Wi-Fi - SiWx917 Dev Kit (BRD2605A)" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd2605a" />
+    <property key="demos.imageFile" value="asset://extension.wiseconnect_4.0.1/platform_nwp_siwx91x_app/brd2605a/siwx917_dev_kit.rps" />
+    <property key="demos.firmwareFile" value="asset://extension.wiseconnect_4.0.1/connectivity_firmware/standard/SiWG917-B.2.15.5.1.0.5.rps" />
+    <property key="demos.firmwareFile.version" value="1711.2.15.5.1.0.5" />
+    <property key="readmeFiles" value="examples/si91x_soc/siwx917_dev_kit/readme.md" />
+    <property key="filters" value="Device\ Type|SoC Wireless\ Technology|Wi-Fi Project\ Difficulty|Beginner" />
+    <property key="core.quality" value="PRODUCTION" />
+  </demo>
+</demos>

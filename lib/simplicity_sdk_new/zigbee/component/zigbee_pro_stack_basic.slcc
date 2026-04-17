@@ -1,0 +1,36 @@
+id: zigbee_pro_stack_basic
+label: Pro Stack (Basic)
+package: zigbee
+category: Zigbee|Stack|Pro Core
+quality: production
+description: Uses the main Zigbee PRO Stack library variant (without support for high-datarate PHY or RAIL MUX).
+
+provides:
+- name: zigbee_pro_stack_basic
+
+requires:
+- name: zigbee_pro_stack_implementation
+- name: zigbee_pro_stack_library
+  condition:
+  - zigbee_use_release_libraries
+- name: zigbee_stack_common
+- name: lower_mac_spinel
+  condition:
+  - zigbee_stack_unix
+
+- name: si446x_radio_driver
+  condition:
+  - zigbee_phy_2_4_subghz_switch_coordinator
+
+recommends:
+- id: zigbee_pro_stack_library_internal
+  vendor: silabs
+
+
+documentation:
+  docset: zigbee
+  document: zigbee-af-api/pro-stack
+metadata:
+  sbom:
+    license: MSLA
+root_path: zigbee

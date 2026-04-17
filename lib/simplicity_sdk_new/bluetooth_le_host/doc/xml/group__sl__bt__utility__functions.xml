@@ -1,0 +1,441 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__utility__functions" kind="group">
+    <compoundname>sl_bt_utility_functions</compoundname>
+    <title>Utility Functions</title>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="group__sl__bt__utility__functions_1gaff57fe1cdd8863d2d271224c2d7e2bb6" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_pop_event</definition>
+        <argsstring>(sl_bt_msg_t *event)</argsstring>
+        <name>sl_bt_pop_event</name>
+        <param>
+          <type><ref refid="group__sl__bt__common__types_1ga4133c50f6e7679f5ed2d48ad98d3690f" kindref="member">sl_bt_msg_t</ref> *</type>
+          <declname>event</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Get the next event that requires processing by user application. Application is not blocked if no event is waiting.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>event</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>the pointer for storing the new event </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if a new event is returned, or SL_STATUS_NOT_FOUND if no event is waiting; other value indicates an error occurred </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16617" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="16617" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__utility__functions_1ga29654e6399b4bf427978e604dee505c4" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool sl_bt_event_pending</definition>
+        <argsstring>(void)</argsstring>
+        <name>sl_bt_event_pending</name>
+        <param>
+          <type>void</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Check whether events are in queue pending for processing. Call <ref refid="group__sl__bt__utility__functions_1gaff57fe1cdd8863d2d271224c2d7e2bb6" kindref="member">sl_bt_pop_event</ref> to process pending events.</para>
+<para><simplesect kind="return"><para>true if event is pending; false otherwise </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16625" column="6" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="16625" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__utility__functions_1ga9d60c2be2d9ba65176820c7430017e12" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>uint32_t</type>
+        <definition>uint32_t sl_bt_event_pending_len</definition>
+        <argsstring>(void)</argsstring>
+        <name>sl_bt_event_pending_len</name>
+        <param>
+          <type>void</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Check whether events are in queue pending for processing and return the next event length in bytes if events are pending. Call <ref refid="group__sl__bt__utility__functions_1gaff57fe1cdd8863d2d271224c2d7e2bb6" kindref="member">sl_bt_pop_event</ref> to process pending events.</para>
+<para><simplesect kind="return"><para>the next event length if event is pending; 0 otherwise </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16634" column="10" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="16634" declcolumn="10"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__utility__functions_1ga16c8034e39e43154301ec3a5b66175f4" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void sl_bt_run</definition>
+        <argsstring>()</argsstring>
+        <name>sl_bt_run</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Run the Bluetooth stack to process scheduled tasks. Events for user application may be generated as a result of this operation. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16641" column="6" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="16641" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__utility__functions_1ga840b2449b01c063776d48203138f2115" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>SL_BGAPI_DEPRECATED void</type>
+        <definition>SL_BGAPI_DEPRECATED void sl_bt_handle_command</definition>
+        <argsstring>(uint32_t hdr, void *data)</argsstring>
+        <name>sl_bt_handle_command</name>
+        <param>
+          <type>uint32_t</type>
+          <declname>hdr</declname>
+        </param>
+        <param>
+          <type>void *</type>
+          <declname>data</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Handle an API command in binary format.</para>
+<para><bold>Deprecated</bold> and replaced by <ref refid="group__sl__bgapi__functions_1ga079fb06ff4ff1036071bf394a36941ce" kindref="member">sl_bgapi_execute_binary_command</ref>. The replacement provides a more flexible and efficient way to execute BGAPI commands in their binary format. The new function automatically performs any locking that&apos;s needed and enables re-using the command buffer memory for the response.</para>
+<para>This is provided to NCP target applications for processing commands received from NCP transport. This function is a synonym for a generic BGAPI function <ref refid="group__sl__bgapi__functions_1ga866a91ee450f902d0036a4ee196049f9" kindref="member">sl_bgapi_handle_command</ref>. If the NCP application uses an RTOS, use the sequence documented in <ref refid="group__sl__bgapi__functions_1ga866a91ee450f902d0036a4ee196049f9" kindref="member">sl_bgapi_handle_command</ref> to handle the BGAPI command in a thread-safe manner.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>hdr</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>the command header </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>data</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>the command payload in a byte array </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16661" column="26" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="16661" declcolumn="26"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__utility__functions_1ga10ba5cfefeaf1559b811cf41f55c47b3" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>SL_BGAPI_DEPRECATED <ref refid="group__sl__bt__common__types_1ga4133c50f6e7679f5ed2d48ad98d3690f" kindref="member">sl_bt_msg_t</ref> *</type>
+        <definition>static SL_BGAPI_DEPRECATED sl_bt_msg_t * sl_bt_get_command_response</definition>
+        <argsstring>()</argsstring>
+        <name>sl_bt_get_command_response</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Get the response to the command currently being handled.</para>
+<para><bold>Deprecated</bold> and replaced by <ref refid="group__sl__bgapi__functions_1ga079fb06ff4ff1036071bf394a36941ce" kindref="member">sl_bgapi_execute_binary_command</ref>. The replacement provides a more flexible and efficient way to execute BGAPI commands in their binary format. The new function automatically performs any locking that&apos;s needed and enables re-using the command buffer memory for the response.</para>
+<para>This is provided to NCP target applications for processing commands received from NCP transport. This function is a synonym for a generic BGAPI function <ref refid="group__sl__bgapi__functions_1gac7b30151a238436c59e93a76aedbee0c" kindref="member">sl_bgapi_get_command_response</ref>. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16676" column="47" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="16676" bodyend="16693"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__utility__functions_1gaca4c91c504be0d4ad392c5fdbb111ee6" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void sl_bt_priority_handle</definition>
+        <argsstring>(void)</argsstring>
+        <name>sl_bt_priority_handle</name>
+        <param>
+          <type>void</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Priority message handler function if user application requires the use of PendSV interrupt.</para>
+<para>If scheduler_callback function pointer in configuration struct is something else than NULL, then stack will not install its own PendSV IRQ handler but instead uses callback/handler functions.</para>
+<para>When application receives call to the scheduler_callback function it must schedule the call to gecko_priority_handle function to later time to run on high priority thread. This callback may happen inside radio IRQ so processing must not block and has to happen as fast as possible.</para>
+<para>Recommended implementation: High priority thread is loop that waits on binary semaphore and calls gecko_priority_handler. The scheduler_callback is simple function that only signals the semaphore. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16713" column="6" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="16713" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__utility__functions_1gaf34d7a4f48d238971575e45e9103b03f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_external_signal</definition>
+        <argsstring>(uint32_t signals)</argsstring>
+        <name>sl_bt_external_signal</name>
+        <param>
+          <type>uint32_t</type>
+          <declname>signals</declname>
+        </param>
+        <briefdescription>
+<para>Signal the Bluetooth stack that an external event has happened. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Signals can be used to report status changes from interrupt context or from other threads to application. Signals are bits that are automatically cleared after application has been notified.</para>
+<para>If the Platform Core Interrupt API has been configured to use the CORE_ATOMIC_METHOD_BASEPRI as the implementation method of atomic sections, this function must not be called from an interrupt handler with a priority higher than CORE_ATOMIC_BASE_PRIORITY_LEVEL.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>signals</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>is a bitmask defining active signals that are reported back to the application by system_external_signal-event. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if the operation is successful, SL_STATUS_NO_MORE_RESOURCE indicating the request could not be processed due to resource limitation at the moment, or SL_STATUS_INVALID_STATE when the on-demand start feature is used and the stack is currently stopped. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16734" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="16734" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__utility__functions_1ga3ae83713640241b5fe646774faa6b8f4" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void sl_bt_send_system_awake</definition>
+        <argsstring>()</argsstring>
+        <name>sl_bt_send_system_awake</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Signals stack to send system_awake event when application received wakeup signal. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16740" column="6" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="16740" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__utility__functions_1ga932da482b285833a9df22c36f389d8bb" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void sl_bt_send_system_error</definition>
+        <argsstring>(uint16_t reason, uint8_t data_len, const uint8_t *data)</argsstring>
+        <name>sl_bt_send_system_error</name>
+        <param>
+          <type>uint16_t</type>
+          <declname>reason</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>data_len</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>data</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Signals stack to send system_error event when in case of an error. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16745" column="6" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="16745" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__utility__functions_1ga2efa124d72e59697be4527c7d966f3c2" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_is_sensitive_message</definition>
+        <argsstring>(uint32_t message_header)</argsstring>
+        <name>sl_bt_is_sensitive_message</name>
+        <param>
+          <type>uint32_t</type>
+          <declname>message_header</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Tells if a SL_BT_API message is sensitive.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">message_header</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The header of the SL_BT_API message </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>1 if the message is sensitive; otherwise 0 </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16753" column="9" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="16753" declcolumn="9"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__utility__functions_1ga629882087e9e95d82c773def3eb95173" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void sl_bt_set_user_response_buffer</definition>
+        <argsstring>(void *user_response_buffer, size_t user_response_buffer_size)</argsstring>
+        <name>sl_bt_set_user_response_buffer</name>
+        <param>
+          <type>void *</type>
+          <declname>user_response_buffer</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>user_response_buffer_size</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Set the response buffer to use for responses to user commands.</para>
+<para>This a utility helping a NCP host and target application to exchange user data. Do not use it in SoC mode.</para>
+<para>User commands are a special case in BGAPI as they are not handled via the normal BGAPI command handling but are executed with a direct function call to the application from the NCP/CPC components. If any of the <computeroutput>sl_bt_send_rsp_*</computeroutput> functions provided in <computeroutput><ref refid="sl__bt__api_8h_source" kindref="compound">sl_bt_api.h</ref></computeroutput> are used to set the user command response, the NCP/CPC component should set the response buffer with this function before executing user commands.</para>
+<para>If the response buffer has not been set when one of the <computeroutput>sl_bt_send_rsp_*</computeroutput> functions is called, the caller is assumed to be using the deprecated command handling APIs that use a shared buffer. In that case the caller must have obtained the BGAPI lock with the deprecated <computeroutput>sl_bgapi_lock</computeroutput> function before handling the user command. In this case the user response will be set to the shared message buffer that is returned by <computeroutput>sl_bgapi_get_command_response</computeroutput>.</para>
+<para>If the caller later needs to free the supplied buffer, call this function again with <computeroutput>user_response_buffer</computeroutput> set to <computeroutput>NULL</computeroutput> and <computeroutput>user_response_buffer_size</computeroutput> set to 0 to indicate that the previously set buffer is no longer available.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">user_response_buffer</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The buffer to use for user responses </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">user_response_buffer_size</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The total size of the buffer </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16783" column="6" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="16783" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__utility__functions_1gafe95b5828a4899cb3eb200d20bd50f2d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void sl_bt_send_rsp_user_message_to_target</definition>
+        <argsstring>(uint16_t result, uint8_t data_len, uint8_t *data)</argsstring>
+        <name>sl_bt_send_rsp_user_message_to_target</name>
+        <param>
+          <type>uint16_t</type>
+          <declname>result</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>data_len</declname>
+        </param>
+        <param>
+          <type>uint8_t *</type>
+          <declname>data</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Sends the NCP host a message whose SL_BT_MSG_ID is gecko_rsp_user_message_to_target_id.</para>
+<para>This a utility helping a NCP host and target application to exchange user data. Do not use it in SoC mode. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16793" column="6" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="16793" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__utility__functions_1gaae30388f753bb22a4cbd25677fd76288" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void sl_bt_send_evt_user_message_to_host</definition>
+        <argsstring>(uint8_t data_len, uint8_t *data)</argsstring>
+        <name>sl_bt_send_evt_user_message_to_host</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>data_len</declname>
+        </param>
+        <param>
+          <type>uint8_t *</type>
+          <declname>data</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Sends the NCP host a message whose SL_BT_MSG_ID is gecko_evt_user_message_to_host_id.</para>
+<para>This a utility helping a NCP host and target application to exchange user data. Do not use it in SoC mode. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16802" column="6" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="16802" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__utility__functions_1ga90eef151525addf229cf984e779814db" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void sl_bt_send_rsp_user_manage_event_filter</definition>
+        <argsstring>(uint16_t result)</argsstring>
+        <name>sl_bt_send_rsp_user_manage_event_filter</name>
+        <param>
+          <type>uint16_t</type>
+          <declname>result</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Sends the NCP host a message whose SL_BT_MSG_ID is gecko_rsp_user_manage_event_filter_id.</para>
+<para>This a utility helping a NCP host and target application to manage event filter. Do not use it in SoC mode. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16811" column="6" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="16811" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__utility__functions_1ga05bd13a2260a174af64102db871b61fa" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void sl_bt_send_rsp_user_cs_service_message_to_target</definition>
+        <argsstring>(uint16_t result, uint8_t data_len, uint8_t *data)</argsstring>
+        <name>sl_bt_send_rsp_user_cs_service_message_to_target</name>
+        <param>
+          <type>uint16_t</type>
+          <declname>result</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>data_len</declname>
+        </param>
+        <param>
+          <type>uint8_t *</type>
+          <declname>data</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Sends the NCP host a message whose SL_BT_MSG_ID is gecko_rsp_user_cs_service_message_to_target_id.</para>
+<para>This a utility helping a NCP host and target application to exchange user data. Do not use it in SoC mode. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16820" column="6" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="16820" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__utility__functions_1ga6662f56ac1b8ba5051b1cbb5f0031aa0" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void sl_bt_send_evt_user_cs_service_message_to_host</definition>
+        <argsstring>(uint8_t data_len, uint8_t *data)</argsstring>
+        <name>sl_bt_send_evt_user_cs_service_message_to_host</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>data_len</declname>
+        </param>
+        <param>
+          <type>uint8_t *</type>
+          <declname>data</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Sends the NCP host a message whose SL_BT_MSG_ID is gecko_evt_user_cs_service_message_to_host_id.</para>
+<para>This a utility helping a NCP host and target application to exchange user data. Do not use it in SoC mode. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16829" column="6" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="16829" declcolumn="6"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Utility functions for applications on SoC. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

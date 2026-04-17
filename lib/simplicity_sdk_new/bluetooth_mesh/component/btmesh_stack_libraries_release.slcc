@@ -1,0 +1,140 @@
+id: btmesh_stack_libraries_release
+ui_hints:
+  visibility: never
+package: bluetooth_mesh
+description: Release libraries for btmesh_stack
+category: Bluetooth Mesh|Stack
+quality: production
+provides:
+- name: btmesh_stack_libraries_release
+- name: btmesh_stack_libraries
+requires:
+- name: bluetooth_common
+library:
+- path: build/gcc/cortex-m33/ble_mesh/release/libbtmesh_core.a
+  condition:
+  - toolchain_gcc
+  - cortexm33
+- path: build/gcc/cortex-m33/ble_mesh/release/libbtmesh_crypto_common_cache.a
+  condition:
+  - toolchain_gcc
+  - cortexm33
+  unless:
+  - device_generic_family_efr32xg22
+- path: build/gcc/cortex-m33/ble_mesh/release/libbtmesh_crypto_common_nocache.a
+  condition:
+  - toolchain_gcc
+  - cortexm33
+  - device_generic_family_efr32xg22
+- path: build/gcc/cortex-m33/ble_mesh/release/libbtmesh_crypto_psa.a
+  condition:
+  - toolchain_gcc
+  - cortexm33
+- path: build/gcc/cortex-m33/ble_mesh/release/libbtmesh_its_keystorage.a
+  condition:
+  - toolchain_gcc
+  - cortexm33
+- path: build/gcc/cortex-m33/hal/release/libbtmesh_hal.a
+  condition:
+  - toolchain_gcc
+  - cortexm33
+- path: build/gcc/cortex-m33/hal/release/libbtmesh_hal_nonobfuscated_nvm.a
+  condition:
+  - toolchain_gcc
+  - cortexm33
+  - device_series_3
+- path: build/gcc/cortex-m33/hal/release/libbtmesh_hal_obfuscated_nvm.a
+  condition:
+  - toolchain_gcc
+  - cortexm33
+  - device_series_2
+- path: build/gcc/cortex-m33/hal/release/libbtmesh_hal_psa.a
+  condition:
+  - toolchain_gcc
+  - cortexm33
+- path: build/iar/cortex-m33/ble_mesh/release/libbtmesh_core.a
+  condition:
+  - toolchain_iar
+  - cortexm33
+- path: build/iar/cortex-m33/ble_mesh/release/libbtmesh_crypto_common_cache.a
+  condition:
+  - toolchain_iar
+  - cortexm33
+  unless:
+  - device_generic_family_efr32xg22
+- path: build/iar/cortex-m33/ble_mesh/release/libbtmesh_crypto_common_nocache.a
+  condition:
+  - toolchain_iar
+  - cortexm33
+  - device_generic_family_efr32xg22
+- path: build/iar/cortex-m33/ble_mesh/release/libbtmesh_crypto_psa.a
+  condition:
+  - toolchain_iar
+  - cortexm33
+- path: build/iar/cortex-m33/ble_mesh/release/libbtmesh_its_keystorage.a
+  condition:
+  - toolchain_iar
+  - cortexm33
+- path: build/iar/cortex-m33/hal/release/libbtmesh_hal.a
+  condition:
+  - toolchain_iar
+  - cortexm33
+- path: build/iar/cortex-m33/hal/release/libbtmesh_hal_nonobfuscated_nvm.a
+  condition:
+  - toolchain_iar
+  - cortexm33
+  - device_series_3
+- path: build/iar/cortex-m33/hal/release/libbtmesh_hal_obfuscated_nvm.a
+  condition:
+  - toolchain_iar
+  - cortexm33
+  - device_series_2
+- path: build/iar/cortex-m33/hal/release/libbtmesh_hal_psa.a
+  condition:
+  - toolchain_iar
+  - cortexm33
+- path: build/llvm/cortex-m33/ble_mesh/release/libbtmesh_core.a
+  condition:
+  - toolchain_llvm
+  - cortexm33
+- path: build/llvm/cortex-m33/ble_mesh/release/libbtmesh_crypto_common_cache.a
+  condition:
+  - toolchain_llvm
+  - cortexm33
+  unless:
+  - device_generic_family_efr32xg22
+- path: build/llvm/cortex-m33/ble_mesh/release/libbtmesh_crypto_common_nocache.a
+  condition:
+  - toolchain_llvm
+  - cortexm33
+  - device_generic_family_efr32xg22
+- path: build/llvm/cortex-m33/ble_mesh/release/libbtmesh_crypto_psa.a
+  condition:
+  - toolchain_llvm
+  - cortexm33
+- path: build/llvm/cortex-m33/ble_mesh/release/libbtmesh_its_keystorage.a
+  condition:
+  - toolchain_llvm
+  - cortexm33
+- path: build/llvm/cortex-m33/hal/release/libbtmesh_hal.a
+  condition:
+  - toolchain_llvm
+  - cortexm33
+- path: build/llvm/cortex-m33/hal/release/libbtmesh_hal_nonobfuscated_nvm.a
+  condition:
+  - toolchain_llvm
+  - cortexm33
+  - device_series_3
+- path: build/llvm/cortex-m33/hal/release/libbtmesh_hal_obfuscated_nvm.a
+  condition:
+  - toolchain_llvm
+  - cortexm33
+  - device_series_2
+- path: build/llvm/cortex-m33/hal/release/libbtmesh_hal_psa.a
+  condition:
+  - toolchain_llvm
+  - cortexm33
+metadata:
+  sbom:
+    reference: btmesh_stack
+root_path: bluetooth_mesh

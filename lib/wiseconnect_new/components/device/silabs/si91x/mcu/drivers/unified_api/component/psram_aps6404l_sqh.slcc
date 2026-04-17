@@ -1,0 +1,23 @@
+id: psram_aps6404l_sqh
+label: APS6404L_SQH PSRAM Device
+package: platform_siwx91x
+description: >
+  This component includes the AP Memory APS6404L-SQH PSRAM device related configurations.
+  Selecting this component will also include the PSRAM Core component, which is 
+  the implementation of the PSRAM driver itself.
+category: Device|Si91x|MCU|Peripheral|PSRAM Driver|PSRAM Device
+quality: production
+metadata:
+  sbom:
+    license: MSLA
+root_path: "components/device/silabs/si91x/mcu/drivers/unified_api"
+requires:
+  - name: psram_core  
+provides:
+  - name: psram_config
+  - name: psram_aps6404l_sqh
+config_file:
+  - path: "config/psram_device_config/aps6404l_sqh/sl_si91x_psram_aps6404l_sqh_config.h"
+    file_id: psram_config
+define:
+  - name: SLI_SI91X_MCU_PSRAM_APS6404L_SQH

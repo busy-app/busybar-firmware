@@ -1,0 +1,44 @@
+#include <stdbool.h>
+#include "sl_ncp.h"
+#include "sl_component_catalog.h"
+
+{%- set includes = [] -%} {# Deduplicate includes before printing #include statements -#}
+{%- for handler in ncp_local_evt_process %}
+{%- if 'include' in handler and handler['include'] not in includes -%}
+{%- if includes.append(handler['include']) %}{% endif -%}
+{%- endif -%}
+{%- endfor -%}
+{%- for handler in ncp_local_btmesh_evt_process %}
+{%- if 'include' in handler and handler['include'] not in includes -%}
+{%- if includes.append(handler['include']) %}{% endif -%}
+{%- endif -%}
+{%- endfor -%}
+{%- for include in includes %}
+#include "{{include}}"
+{%- endfor %}
+
+bool sl_ncp_local_common_evt_process(sl_bt_msg_t *evt)
+{
+  (void)evt;
+  bool pass_evt = true;
+{% for handler in ncp_local_evt_process %}
+  pass_evt &= ({{ handler['handler'] }}(evt));
+{% endfor %}
+  pass_evt &= sl_ncp_local_evt_process(evt);
+  return pass_evt;
+}
+
+#if defined(SL_CATALOG_BTMESH_PRESENT)
+
+bool sl_ncp_local_common_btmesh_evt_process(sl_btmesh_msg_t *evt)
+{
+  (void)evt;
+  bool pass_evt = true;
+{% for handler in ncp_local_btmesh_evt_process %}
+  pass_evt &= ({{ handler['handler'] }}(evt));
+{% endfor %}
+  pass_evt &= sl_ncp_local_btmesh_evt_process(evt);
+  return pass_evt;
+}
+
+#endif // SL_CATALOG_BTMESH_PRESENT

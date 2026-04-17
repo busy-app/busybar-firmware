@@ -1,0 +1,271 @@
+id: "bluetooth_host_release_libraries"
+label: "Bluetooth Low Energy Host Library"
+ui_hints:
+  visibility: never
+package: bluetooth_le_host
+description: >
+  BLE host libraries to be used by the Bluetooth stack
+category: Bluetooth|Bluetooth Host (Stack)
+quality: "production"
+requires:
+- name: "bluetooth_common"
+provides:
+- name: "bluetooth_host_libraries"
+- name: "bluetooth_host_release_libraries"
+library:
+- path: build/gcc/cortex-m33/accept_list/release/libble_host_accept_list.a
+  condition:
+  - toolchain_gcc
+  - cortexm33
+  - bluetooth_feature_accept_list
+- path: build/gcc/cortex-m33/accept_list/release/libble_host_accept_list_stub.a
+  condition:
+  - toolchain_gcc
+  - cortexm33
+  unless:
+  - bluetooth_feature_accept_list
+- path: build/gcc/cortex-m33/bgstack/release/libble_host.a
+  condition:
+  - toolchain_gcc
+  - cortexm33
+- path: build/gcc/cortex-m33/bgstack/release/libbondingdb_stub.a
+  condition:
+  - toolchain_gcc
+  - cortexm33
+  unless:
+  - bluetooth_feature_builtin_bonding_database
+- path: build/gcc/cortex-m33/ble_bgapi/release/libble_bgapi.a
+  condition:
+  - toolchain_gcc
+  - cortexm33
+- path: build/gcc/cortex-m33/ble_bgapi/release/libble_bgapi_stub_gatt_client.a
+  condition:
+  - toolchain_gcc
+  - cortexm33
+  unless:
+  - bluetooth_feature_gatt
+- path: build/gcc/cortex-m33/ble_bgapi/release/libble_bgapi_stub_gatt_server.a
+  condition:
+  - toolchain_gcc
+  - cortexm33
+  unless:
+  - bluetooth_feature_gatt_server
+- path: build/gcc/cortex-m33/ble_system/release/libble_system.a
+  condition:
+  - toolchain_gcc
+  - cortexm33
+- path: build/gcc/cortex-m33/channel_classification/release/libble_host_channel_classification.a
+  condition:
+  - toolchain_gcc
+  - cortexm33
+  - bluetooth_feature_channel_classification
+- path: build/gcc/cortex-m33/connection_subrating/release/libble_host_connection_subrating.a
+  condition:
+  - toolchain_gcc
+  - cortexm33
+  - bluetooth_feature_connection_subrating
+- path: build/gcc/cortex-m33/connection_subrating/release/libble_host_connection_subrating_stub.a
+  condition:
+  - toolchain_gcc
+  - cortexm33
+  unless:
+  - bluetooth_feature_connection_subrating
+- path: build/gcc/cortex-m33/core/release/libble_host_core.a
+  condition:
+  - toolchain_gcc
+  - cortexm33
+- path: build/gcc/cortex-m33/cte_transmitter/release/libble_host_cte_transmitter.a
+  condition:
+  - toolchain_gcc
+  - cortexm33
+  - bluetooth_feature_cte_transmitter
+- path: build/gcc/cortex-m33/hal/release/libble_host_hal_series2.a
+  condition:
+  - toolchain_gcc
+  - cortexm33
+  - device_series_2
+- path: build/gcc/cortex-m33/hal/release/libble_host_hal_series3.a
+  condition:
+  - toolchain_gcc
+  - cortexm33
+  - device_series_3
+- path: build/gcc/cortex-m33/hci/release/libble_host_hci.a
+  condition:
+  - toolchain_gcc
+  - cortexm33
+- path: build/gcc/cortex-m33/system/release/libble_host_system.a
+  condition:
+  - toolchain_gcc
+  - cortexm33
+- path: build/iar/cortex-m33/accept_list/release/libble_host_accept_list.a
+  condition:
+  - toolchain_iar
+  - cortexm33
+  - bluetooth_feature_accept_list
+- path: build/iar/cortex-m33/accept_list/release/libble_host_accept_list_stub.a
+  condition:
+  - toolchain_iar
+  - cortexm33
+  unless:
+  - bluetooth_feature_accept_list
+- path: build/iar/cortex-m33/bgstack/release/libble_host.a
+  condition:
+  - toolchain_iar
+  - cortexm33
+- path: build/iar/cortex-m33/bgstack/release/libbondingdb_stub.a
+  condition:
+  - toolchain_iar
+  - cortexm33
+  unless:
+  - bluetooth_feature_builtin_bonding_database
+- path: build/iar/cortex-m33/ble_bgapi/release/libble_bgapi.a
+  condition:
+  - toolchain_iar
+  - cortexm33
+- path: build/iar/cortex-m33/ble_bgapi/release/libble_bgapi_stub_gatt_client.a
+  condition:
+  - toolchain_iar
+  - cortexm33
+  unless:
+  - bluetooth_feature_gatt
+- path: build/iar/cortex-m33/ble_bgapi/release/libble_bgapi_stub_gatt_server.a
+  condition:
+  - toolchain_iar
+  - cortexm33
+  unless:
+  - bluetooth_feature_gatt_server
+- path: build/iar/cortex-m33/ble_system/release/libble_system.a
+  condition:
+  - toolchain_iar
+  - cortexm33
+- path: build/iar/cortex-m33/channel_classification/release/libble_host_channel_classification.a
+  condition:
+  - toolchain_iar
+  - cortexm33
+  - bluetooth_feature_channel_classification
+- path: build/iar/cortex-m33/connection_subrating/release/libble_host_connection_subrating.a
+  condition:
+  - toolchain_iar
+  - cortexm33
+  - bluetooth_feature_connection_subrating
+- path: build/iar/cortex-m33/connection_subrating/release/libble_host_connection_subrating_stub.a
+  condition:
+  - toolchain_iar
+  - cortexm33
+  unless:
+  - bluetooth_feature_connection_subrating
+- path: build/iar/cortex-m33/core/release/libble_host_core.a
+  condition:
+  - toolchain_iar
+  - cortexm33
+- path: build/iar/cortex-m33/cte_transmitter/release/libble_host_cte_transmitter.a
+  condition:
+  - toolchain_iar
+  - cortexm33
+  - bluetooth_feature_cte_transmitter
+- path: build/iar/cortex-m33/hal/release/libble_host_hal_series2.a
+  condition:
+  - toolchain_iar
+  - cortexm33
+  - device_series_2
+- path: build/iar/cortex-m33/hal/release/libble_host_hal_series3.a
+  condition:
+  - toolchain_iar
+  - cortexm33
+  - device_series_3
+- path: build/iar/cortex-m33/hci/release/libble_host_hci.a
+  condition:
+  - toolchain_iar
+  - cortexm33
+- path: build/iar/cortex-m33/system/release/libble_host_system.a
+  condition:
+  - toolchain_iar
+  - cortexm33
+- path: build/llvm/cortex-m33/accept_list/release/libble_host_accept_list.a
+  condition:
+  - toolchain_llvm
+  - cortexm33
+  - bluetooth_feature_accept_list
+- path: build/llvm/cortex-m33/accept_list/release/libble_host_accept_list_stub.a
+  condition:
+  - toolchain_llvm
+  - cortexm33
+  unless:
+  - bluetooth_feature_accept_list
+- path: build/llvm/cortex-m33/bgstack/release/libble_host.a
+  condition:
+  - toolchain_llvm
+  - cortexm33
+- path: build/llvm/cortex-m33/bgstack/release/libbondingdb_stub.a
+  condition:
+  - toolchain_llvm
+  - cortexm33
+  unless:
+  - bluetooth_feature_builtin_bonding_database
+- path: build/llvm/cortex-m33/ble_bgapi/release/libble_bgapi.a
+  condition:
+  - toolchain_llvm
+  - cortexm33
+- path: build/llvm/cortex-m33/ble_bgapi/release/libble_bgapi_stub_gatt_client.a
+  condition:
+  - toolchain_llvm
+  - cortexm33
+  unless:
+  - bluetooth_feature_gatt
+- path: build/llvm/cortex-m33/ble_bgapi/release/libble_bgapi_stub_gatt_server.a
+  condition:
+  - toolchain_llvm
+  - cortexm33
+  unless:
+  - bluetooth_feature_gatt_server
+- path: build/llvm/cortex-m33/ble_system/release/libble_system.a
+  condition:
+  - toolchain_llvm
+  - cortexm33
+- path: build/llvm/cortex-m33/channel_classification/release/libble_host_channel_classification.a
+  condition:
+  - toolchain_llvm
+  - cortexm33
+  - bluetooth_feature_channel_classification
+- path: build/llvm/cortex-m33/connection_subrating/release/libble_host_connection_subrating.a
+  condition:
+  - toolchain_llvm
+  - cortexm33
+  - bluetooth_feature_connection_subrating
+- path: build/llvm/cortex-m33/connection_subrating/release/libble_host_connection_subrating_stub.a
+  condition:
+  - toolchain_llvm
+  - cortexm33
+  unless:
+  - bluetooth_feature_connection_subrating
+- path: build/llvm/cortex-m33/core/release/libble_host_core.a
+  condition:
+  - toolchain_llvm
+  - cortexm33
+- path: build/llvm/cortex-m33/cte_transmitter/release/libble_host_cte_transmitter.a
+  condition:
+  - toolchain_llvm
+  - cortexm33
+  - bluetooth_feature_cte_transmitter
+- path: build/llvm/cortex-m33/hal/release/libble_host_hal_series2.a
+  condition:
+  - toolchain_llvm
+  - cortexm33
+  - device_series_2
+- path: build/llvm/cortex-m33/hal/release/libble_host_hal_series3.a
+  condition:
+  - toolchain_llvm
+  - cortexm33
+  - device_series_3
+- path: build/llvm/cortex-m33/hci/release/libble_host_hci.a
+  condition:
+  - toolchain_llvm
+  - cortexm33
+- path: build/llvm/cortex-m33/system/release/libble_host_system.a
+  condition:
+  - toolchain_llvm
+  - cortexm33
+metadata:
+  sbom:
+    license: MSLA
+root_path: bluetooth_le_host

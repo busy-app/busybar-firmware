@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="dir_952589b72703cb4fe7dbae3341636cd8" kind="dir">
+    <compoundname>components/device/silabs/si91x/wireless/crypto/docs</compoundname>
+    <innerfile refid="doxygen__template_8h">doxygen_template.h</innerfile>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="components/device/silabs/si91x/wireless/crypto/docs/"/>
+  </compounddef>
+</doxygen>

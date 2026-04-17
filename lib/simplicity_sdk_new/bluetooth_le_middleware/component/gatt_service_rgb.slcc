@@ -1,0 +1,42 @@
+id: gatt_service_rgb
+label: RGB LED GATT Service
+package: bluetooth_le_middleware
+description: >
+  Provides RGB LED controls in GATT characteristics.
+  Designed for the Thunderboard smartphone app.
+category: Bluetooth|Application|GATT Services
+metadata:
+  sbom:
+    license: Zlib
+quality: production
+root_path: bluetooth_le_middleware/common/gatt_service_rgb
+tag:
+- No-Code
+config_file:
+- path: gatt_service_rgb.xml
+  directory: btconf
+source:
+- path: sl_gatt_service_rgb.c
+include:
+- path: .
+  file_list:
+  - path: sl_gatt_service_rgb.h
+provides:
+- name: gatt_service_rgb
+requires:
+- name: bluetooth_stack
+- name: gatt_configuration
+- name: bluetooth_feature_connection
+- name: bluetooth_feature_gatt_server
+- name: app_assert
+- name: sl_core
+template_contribution:
+- name: bluetooth_on_event
+  value:
+    include: sl_gatt_service_rgb.h
+    function: sl_gatt_service_rgb_on_event
+- name: component_catalog
+  value: gatt_service_rgb
+documentation:
+  docset: bluetooth
+  document: bluetooth-service-api/gatt-service-rgb

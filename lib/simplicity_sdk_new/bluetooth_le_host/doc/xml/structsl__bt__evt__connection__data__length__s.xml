@@ -1,0 +1,97 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="structsl__bt__evt__connection__data__length__s" kind="struct" language="C++" prot="public">
+    <compoundname>sl_bt_evt_connection_data_length_s</compoundname>
+    <includes refid="sl__bt__api_8h" local="no">sl_bt_api.h</includes>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structsl__bt__evt__connection__data__length__s_1acb6f69f807dadb07e75866e164a34d9f" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_connection_data_length_s::connection</definition>
+        <argsstring></argsstring>
+        <name>connection</name>
+        <qualifiedname>sl_bt_evt_connection_data_length_s::connection</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Connection handle </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6766" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6766" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__connection__data__length__s_1ae9b9c6f6141949ed39a2afdc4624f5ae" prot="public" static="no" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t sl_bt_evt_connection_data_length_s::tx_data_len</definition>
+        <argsstring></argsstring>
+        <name>tx_data_len</name>
+        <qualifiedname>sl_bt_evt_connection_data_length_s::tx_data_len</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>The maximum payload octets of a packet that the local Controller will send </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6767" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6767" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__connection__data__length__s_1a5aadef7ac8430a3692d089a6b9d97465" prot="public" static="no" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t sl_bt_evt_connection_data_length_s::tx_time_us</definition>
+        <argsstring></argsstring>
+        <name>tx_time_us</name>
+        <qualifiedname>sl_bt_evt_connection_data_length_s::tx_time_us</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>The maximum time in microseconds that the local Controller will take to send a data packet </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6769" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6769" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__connection__data__length__s_1ac5c93751c450f71f51c6917c868ce719" prot="public" static="no" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t sl_bt_evt_connection_data_length_s::rx_data_len</definition>
+        <argsstring></argsstring>
+        <name>rx_data_len</name>
+        <qualifiedname>sl_bt_evt_connection_data_length_s::rx_data_len</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>The maximum payload octets of a packet that the local Controller expects to receive </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6771" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6771" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__connection__data__length__s_1aa3cd5197e0628267e43c1261b8eb5331" prot="public" static="no" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t sl_bt_evt_connection_data_length_s::rx_time_us</definition>
+        <argsstring></argsstring>
+        <name>rx_time_us</name>
+        <qualifiedname>sl_bt_evt_connection_data_length_s::rx_time_us</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>The maximum time in microseconds that the local Controller expects to take to receive a data packet </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6773" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6773" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Data structure of the data_length event. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6764" column="1" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6765" bodyend="6775"/>
+    <listofallmembers>
+      <member refid="structsl__bt__evt__connection__data__length__s_1acb6f69f807dadb07e75866e164a34d9f" prot="public" virt="non-virtual"><scope>sl_bt_evt_connection_data_length_s</scope><name>connection</name></member>
+      <member refid="structsl__bt__evt__connection__data__length__s_1ac5c93751c450f71f51c6917c868ce719" prot="public" virt="non-virtual"><scope>sl_bt_evt_connection_data_length_s</scope><name>rx_data_len</name></member>
+      <member refid="structsl__bt__evt__connection__data__length__s_1aa3cd5197e0628267e43c1261b8eb5331" prot="public" virt="non-virtual"><scope>sl_bt_evt_connection_data_length_s</scope><name>rx_time_us</name></member>
+      <member refid="structsl__bt__evt__connection__data__length__s_1ae9b9c6f6141949ed39a2afdc4624f5ae" prot="public" virt="non-virtual"><scope>sl_bt_evt_connection_data_length_s</scope><name>tx_data_len</name></member>
+      <member refid="structsl__bt__evt__connection__data__length__s_1a5aadef7ac8430a3692d089a6b9d97465" prot="public" virt="non-virtual"><scope>sl_bt_evt_connection_data_length_s</scope><name>tx_time_us</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

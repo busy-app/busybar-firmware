@@ -1,0 +1,12 @@
+# Properties file for Simplicity Studio metadata.
+
+id=com.silabs.sdk.bootloader_sample_app
+
+label=Bootloader Sample App Package
+
+description=Bootloader Sample App Package
+
+version=1.0.1-beta.2
+
+prop.file.templatesFile=bootloader_production_templates.xml
+    

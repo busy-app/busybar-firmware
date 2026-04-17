@@ -1,0 +1,27 @@
+id: zw_release
+label: Z-Wave Release
+category: Z-Wave
+description: >
+  This component is used to optimize the code for production by removing
+  unnecessary debug information and adjusting the toolchain to prioritize a
+  small final binary size.
+  By reducing the code size and eliminating debug statements, it helps improve
+  performance and shrink memory usage.
+package: zwave
+quality: production
+metadata:
+  sbom:
+    reference: zw_sbom_license
+provides:
+- name: zw_build_mode
+- name: zw_release
+define:
+- name: NDEBUG
+conflicts:
+- name: zw_debug
+toolchain_settings:
+- option: optimize
+  value: size
+- option: debug_level
+  value: none
+root_path: zwave

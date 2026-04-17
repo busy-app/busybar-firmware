@@ -1,0 +1,65 @@
+id: "btmesh_lighting_client"
+label: "Lightness Client"
+package: bluetooth_mesh_middleware
+description: >
+  Used to support the functionality of a node that can set the dim level of a
+  light source (Lightness Server) on another node.
+
+  This component integrates the Generic OnOff Client functionality, for ease of
+  use. It provides functions to change the dim value by, or set the dim value to
+  a certain percentage, and a function for getting the current lightness level.
+  This component is prepared for integration into SOC applications.
+
+  This is a Low-Code component. For example, toggling all Light Lightness Servers
+  in the network can be achieved by adding an event handler for mesh events and
+  calling the following code:
+
+  #include "sl_btmesh_lighting_client.h"
+
+  void event_handler(sl_btmesh_msg_t *evt)
+  {
+    case sl_btmesh_evt_node_initialized_id:
+      if (evt->data.evt_node_initialized.provisioned) {
+        sl_btmesh_change_switch_position(SL_BTMESH_LIGHTING_CLIENT_TOGGLE);
+      }
+    break;
+  }
+category: "Bluetooth Mesh|Models|Lighting"
+quality: "production"
+metadata:
+  sbom:
+    license: Zlib
+root_path: "bluetooth_mesh_middleware/common/btmesh_lighting_client"
+tag:
+- Low-Code
+
+config_file:
+- path: btmesh_lighting_client.dcd
+  directory: btmeshconf
+- path: "config/sl_btmesh_lighting_client_config.h"
+source:
+- path: "sl_btmesh_lighting_client.c"
+include:
+- path: ""
+  file_list:
+  - path: "sl_btmesh_lighting_client.h"
+provides:
+- name: "btmesh_lighting_client"
+requires:
+- name: "app_assert"
+- name: "app_btmesh_util"
+- name: "app_btmesh_rta"
+- name: "btmesh_stack_generic_client"
+- name: "btmesh_stack_node"
+- name: "btmesh_generic_client"
+- name: "app_timer"
+
+template_contribution:
+- name: component_catalog
+  value: btmesh_lighting_client
+
+validation_helper:
+- path: "../../script/validation/soc_ncp_compatibility.lua"
+documentation:
+  docset: btmesh
+  document: btmesh-service-api/btmesh-lighting-client

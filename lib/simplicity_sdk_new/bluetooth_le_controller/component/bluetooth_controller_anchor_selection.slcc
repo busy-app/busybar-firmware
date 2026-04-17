@@ -1,0 +1,21 @@
+id: bluetooth_controller_anchor_selection
+label: Bluetooth controller anchor selection
+package: bluetooth_le_controller
+description: Improved anchor selection
+
+category: Bluetooth|Bluetooth LE Controller (Link Layer)|Additional Features
+quality: production
+config_file:
+- path: config/sl_btctrl_anchor_selection_config.h
+provides:
+- name: bluetooth_controller_anchor_selection
+requires:
+- name: bluetooth_controller
+template_contribution:
+- name: component_catalog
+  value: bluetooth_controller_anchor_selection
+metadata:
+  sbom:
+    license: MSLA
+
+root_path: bluetooth_le_controller

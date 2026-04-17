@@ -1,0 +1,18 @@
+id: zigbee_default_lcd_config
+package: zigbee
+label: Zigbee Default LCD/Display (auto)
+category: Platform|Display
+quality: production
+description: Conditionally pull the Zigbee UI on boards that support the WSTK LCD header.
+
+provides:
+- name: zigbee_default_lcd_config
+
+requires:
+- name: zigbee_ui
+  condition: [hardware_board_supports_wstk_lcd, zigbee_zcl_framework_core]
+
+metadata:
+  sbom:
+    license: MSLA
+root_path: zigbee

@@ -1,0 +1,448 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__coex" kind="group">
+    <compoundname>sl_bt_coex</compoundname>
+    <title>Coexistence</title>
+      <sectiondef kind="enum">
+      <memberdef kind="enum" id="group__sl__bt__coex_1ga35af928f08226b258ebee855f287f7e5" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_bt_coex_option_t</name>
+        <enumvalue id="group__sl__bt__coex_1gga35af928f08226b258ebee855f287f7e5a6c1ee14ea145299b91dc76f42541d581" prot="public">
+          <name>sl_bt_coex_option_enable</name>
+          <initializer>= 0x100</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x100) Enable coexistence feature </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__coex_1gga35af928f08226b258ebee855f287f7e5a46368edef7586b8cf3d4c20ceca26099" prot="public">
+          <name>sl_bt_coex_option_tx_abort</name>
+          <initializer>= 0x400</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x400) Abort transmission if grant is denied </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__coex_1gga35af928f08226b258ebee855f287f7e5aefc95107d48fa34bd1e85f43af237568" prot="public">
+          <name>sl_bt_coex_option_high_priority</name>
+          <initializer>= 0x800</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x800) Enable priority signal </para>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>Coexistence configuration options. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="12748" column="1" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="12749" bodyend="12755"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="group__sl__bt__coex_1gad09b577c4a6dfc0dce7f68488117a5a7" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_coex_set_options</definition>
+        <argsstring>(uint32_t mask, uint32_t options)</argsstring>
+        <name>sl_bt_coex_set_options</name>
+        <param>
+          <type>uint32_t</type>
+          <declname>mask</declname>
+        </param>
+        <param>
+          <type>uint32_t</type>
+          <declname>options</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Configure coexistence options at runtime.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">mask</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Bitmask of following coexistence options to change<itemizedlist>
+<listitem><para><bold><ref refid="group__sl__bt__coex_1gga35af928f08226b258ebee855f287f7e5a6c1ee14ea145299b91dc76f42541d581" kindref="member">sl_bt_coex_option_enable</ref></bold> : (0x100) Enable coexistence feature</para>
+</listitem><listitem><para><bold><ref refid="group__sl__bt__coex_1gga35af928f08226b258ebee855f287f7e5a46368edef7586b8cf3d4c20ceca26099" kindref="member">sl_bt_coex_option_tx_abort</ref></bold> : (0x400) Abort transmission if grant is denied</para>
+</listitem><listitem><para><bold><ref refid="group__sl__bt__coex_1gga35af928f08226b258ebee855f287f7e5aefc95107d48fa34bd1e85f43af237568" kindref="member">sl_bt_coex_option_high_priority</ref></bold> : (0x800) Enable priority signal </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">options</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Bitmask of following coexistence option values to set<itemizedlist>
+<listitem><para><bold><ref refid="group__sl__bt__coex_1gga35af928f08226b258ebee855f287f7e5a6c1ee14ea145299b91dc76f42541d581" kindref="member">sl_bt_coex_option_enable</ref></bold> : (0x100) Enable coexistence feature</para>
+</listitem><listitem><para><bold><ref refid="group__sl__bt__coex_1gga35af928f08226b258ebee855f287f7e5a46368edef7586b8cf3d4c20ceca26099" kindref="member">sl_bt_coex_option_tx_abort</ref></bold> : (0x400) Abort transmission if grant is denied</para>
+</listitem><listitem><para><bold><ref refid="group__sl__bt__coex_1gga35af928f08226b258ebee855f287f7e5aefc95107d48fa34bd1e85f43af237568" kindref="member">sl_bt_coex_option_high_priority</ref></bold> : (0x800) Enable priority signal</para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="12779" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="12779" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__coex_1ga291c66dd87fea8ad699ed560d243011b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_coex_set_parameters</definition>
+        <argsstring>(uint8_t priority, uint8_t request, uint8_t pwm_period, uint8_t pwm_dutycycle)</argsstring>
+        <name>sl_bt_coex_set_parameters</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>priority</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>request</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>pwm_period</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>pwm_dutycycle</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Configure coexistence parameters.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">priority</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Coexistence priority threshold. Coexistence priority is toggled if priority is below this value. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">request</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Coexistence request threshold. Coexistence request is toggled if priority is below this value. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">pwm_period</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>PWM functionality period length in 1 ms units </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">pwm_dutycycle</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>PWM functionality duty cycle in percentage</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="12795" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="12795" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__coex_1ga27efdbc15a7b36db8df86e94fa0297d4" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_coex_set_directional_priority_pulse</definition>
+        <argsstring>(uint8_t pulse)</argsstring>
+        <name>sl_bt_coex_set_directional_priority_pulse</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>pulse</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Set Directional Priority Pulse Width.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">pulse</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Directional priority pulse width in us</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="12809" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="12809" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__coex_1ga802719cc59f33c97bc673e86d24abe1e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_coex_get_parameters</definition>
+        <argsstring>(uint8_t *priority, uint8_t *request, uint8_t *pwm_period, uint8_t *pwm_dutycycle)</argsstring>
+        <name>sl_bt_coex_get_parameters</name>
+        <param>
+          <type>uint8_t *</type>
+          <declname>priority</declname>
+        </param>
+        <param>
+          <type>uint8_t *</type>
+          <declname>request</declname>
+        </param>
+        <param>
+          <type>uint8_t *</type>
+          <declname>pwm_period</declname>
+        </param>
+        <param>
+          <type>uint8_t *</type>
+          <declname>pwm_dutycycle</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Get the coexistence parameters.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="out">priority</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Coexistence priority threshold. Coexistence priority is toggled if priority is below this value. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">request</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Coexistence request threshold. Coexistence request is toggled if priority is below this value. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">pwm_period</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>PWM functionality period length in 1 ms units </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">pwm_dutycycle</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>PWM functionality duty cycle in percentage</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="12825" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="12825" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__coex_1gac9a999d3200c7426e38be561b609bc8c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_coex_get_counters</definition>
+        <argsstring>(uint8_t reset, size_t max_counters_size, size_t *counters_len, uint8_t *counters)</argsstring>
+        <name>sl_bt_coex_get_counters</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>reset</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>max_counters_size</declname>
+        </param>
+        <param>
+          <type>size_t *</type>
+          <declname>counters_len</declname>
+        </param>
+        <param>
+          <type>uint8_t *</type>
+          <declname>counters</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Read coexistence statistic counters from the device. Response contains the list of uint32 type counter values. Counters in the list are in following order: low priority requested, high priority requested, low priority denied, high priority denied, low-priority TX aborted, and high-priority TX aborted. Passing a non-zero value also resets counters.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">reset</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Reset counters if parameter value is not zero. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">max_counters_size</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Size of output buffer passed in <computeroutput>counters</computeroutput> </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">counters_len</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>On return, set to the length of output data written to <computeroutput>counters</computeroutput> </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">counters</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Coexistence statistic counters</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="12847" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="12847" declcolumn="13"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__coex_1ga948490b9927bdea7b325b04d0c91f7d7" prot="public" static="no">
+        <name>sl_bt_cmd_coex_set_options_id</name>
+        <initializer>0x00200020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="12734" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="12734" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__coex_1ga9cf8aada44edfe834bf2afd6ee7b92be" prot="public" static="no">
+        <name>sl_bt_cmd_coex_set_parameters_id</name>
+        <initializer>0x02200020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="12735" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="12735" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__coex_1gad5b70c9bfa7ef164e9fa9ddaecbd9957" prot="public" static="no">
+        <name>sl_bt_cmd_coex_set_directional_priority_pulse_id</name>
+        <initializer>0x03200020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="12736" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="12736" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__coex_1gaaedf84ca4fb60fc20fb5ea594784c429" prot="public" static="no">
+        <name>sl_bt_cmd_coex_get_parameters_id</name>
+        <initializer>0x04200020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="12737" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="12737" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__coex_1ga3a8e8ba57afaafb612fa07a3f31467ee" prot="public" static="no">
+        <name>sl_bt_cmd_coex_get_counters_id</name>
+        <initializer>0x01200020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="12738" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="12738" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__coex_1gac9dce16969e6d9e83bfad1cb19f22cb3" prot="public" static="no">
+        <name>sl_bt_rsp_coex_set_options_id</name>
+        <initializer>0x00200020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="12739" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="12739" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__coex_1gade63e06cdfdf0ca43860a4d74ef00bf2" prot="public" static="no">
+        <name>sl_bt_rsp_coex_set_parameters_id</name>
+        <initializer>0x02200020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="12740" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="12740" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__coex_1gaca0d8e10c9cbc574545bcd34eed9203d" prot="public" static="no">
+        <name>sl_bt_rsp_coex_set_directional_priority_pulse_id</name>
+        <initializer>0x03200020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="12741" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="12741" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__coex_1ga4689b42c514109a3d9e5415596e209db" prot="public" static="no">
+        <name>sl_bt_rsp_coex_get_parameters_id</name>
+        <initializer>0x04200020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="12742" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="12742" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__coex_1ga7c7d9a2793a1929ee38fd4072d9bfa30" prot="public" static="no">
+        <name>sl_bt_rsp_coex_get_counters_id</name>
+        <initializer>0x01200020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="12743" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="12743" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Coexistence. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>Coexistence BGAPI class. Coexistence interface is enabled and initialized with sl_bt_init_coex_hal function. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

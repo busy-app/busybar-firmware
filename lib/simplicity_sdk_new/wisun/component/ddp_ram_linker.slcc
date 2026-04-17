@@ -1,0 +1,26 @@
+id: ddp_ram_linker
+label: RAM linker for DDP
+description: |
+  This component provides a customized linker script for creating
+  RAM based Dynamic Data Provisioning (DDP) applications.
+package: wisun
+category: Wi-SUN
+quality: evaluation
+metadata:
+  sbom:
+    license: MSLA
+ui_hints:
+  visibility: never
+root_path: wisun/./ddp
+provides:
+- name: ddp_ram_linker
+- name: toolchain_linker_type
+source:
+- path: src/sl_ddp_ram_linker.c
+template_file:
+- path: template/linkerfile_ram.ld.jinja
+toolchain_settings:
+- option: linkerfile
+  value: autogen/linkerfile_ram.ld
+define:
+- name: SL_RAM_LINKER

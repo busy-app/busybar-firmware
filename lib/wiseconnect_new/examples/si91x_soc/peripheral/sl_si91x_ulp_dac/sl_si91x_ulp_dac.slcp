@@ -1,0 +1,70 @@
+project_name: sl_si91x_ulp_dac
+package: platform_siwx91x_app
+description: 'This application demonstrates the how to configure and use the ULP DAC peripheral on the the SiWx917 SoC device.
+
+  '
+category: example|peripheral
+quality: production
+label: Si91x - SL ULP DAC
+component:
+- id: sl_main
+- id: status
+- id: syscalls
+- id: si91x_memory_default_config
+- id: sl_dac
+- id: sl_power_manager
+- id: debug_ulp_component
+- id: dac_ulp_component
+- id: dma_ulp_component
+- id: sllib_wireless_shutdown
+- id: pm_ps2_component
+define:
+- name: SLI_SI91X_MCU_ENABLE_RAM_BASED_EXECUTION
+- name: SL_SI91X_ULP_STATE_ENABLE
+template_contribution:
+- name: user_files_ps2
+  value: sl_ulp_dac_example.*
+- name: user_files_ps2
+  value: app.*
+- name: user_files_ps2
+  value: main.*
+- name: user_files_ps2
+  value: sl_system_process_action.*
+  condition:
+  - sl_system
+- name: user_files_ps2
+  value: sl_event_handler.*
+source:
+- path: sl_ulp_dac_example.c
+- path: app.c
+include:
+- path: .
+  file_list:
+  - path: app.h
+  - path: sl_ulp_dac_example.h
+toolchain_settings:
+- option: gcc_compiler_option
+  value: -Wall -Werror
+other_file:
+- path: resources/readme/setupdiagram.png
+- path: resources/readme/dac_static_console_output.png
+- path: resources/readme/dac_static_analyzer_output.png
+- path: resources/readme/dac_fifo_console_output.png
+- path: resources/readme/dac_fifo_analyzer_output.png
+- path: resources/uc_screen/sl_dac_uc_screen.png
+ui_hints:
+  highlight:
+  - path: readme.md
+    focus: true
+readme:
+- path: readme.md
+post_build:
+  profile: wiseconnect_soc
+sdk_extension:
+- id: wiseconnect3_sdk
+  vendor: silabs
+  version: 4.0.1
+sdk:
+  id: simplicity_sdk
+  vendor: silabs
+  version: 2025.12.2

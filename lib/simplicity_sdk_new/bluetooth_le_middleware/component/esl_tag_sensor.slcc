@@ -1,0 +1,52 @@
+id: esl_tag_sensor
+package: bluetooth_le_middleware
+label: ESL Tag Sensor
+description: >
+  Extends the Bluetooth Electronic Shelf Label example design with ESL Sensor
+  class capabilities and its corresponding ESL Sensor Information
+  characteristic. This is an abstract sensor class, while it may also provide a
+  few useful sensor instances for demonstration purposes. PLEASE NOTE that this
+  component automatically registers those sensors which are enabled in
+  the configuration header at the beginning of the sensor list (from index 0).
+  More supported sensors can be added later by custom needs. To add your custom
+  sensors please invoke the esl_sensor_add(<your_property_id>) method from
+  esl_core_boot_event() callback and then implement the provided
+  esl_read_user_sensor() method accordingly.
+
+  This is a Custom-Code component.
+category: Bluetooth|Application|GATT Services
+metadata:
+  sbom:
+    license: Zlib
+quality: production
+tag:
+- Custom-Code
+config_file:
+- path: common/esl_tag_sensor/config/esl_tag_sensor.xml
+  file_id: esl_tag_sensor_characteristics
+  directory: btconf
+- path: common/esl_tag_sensor/config/esl_tag_sensor_config.h
+  file_id: esl_tag_sensor_config
+include:
+- path: common/esl_tag_sensor/inc
+  file_list:
+  - path: esl_tag_sensor.h
+  - path: esl_tag_sensor_properties.h
+source:
+- path: common/esl_tag_sensor/src/esl_tag_sensor.c
+provides:
+- name: esl_tag_sensor
+requires:
+- name: esl_tag_core
+template_contribution:
+- name: bluetooth_on_event
+  value:
+    include: esl_tag_sensor.h
+    function: esl_sensor_bt_on_event
+  priority: -8998    # must be put before esl_core_bt_on_event!
+validation_helper:
+- path: common/esl_tag_sensor/config/validator.lua
+documentation:
+  docset: bluetooth
+  document: bluetooth-service-api/esl-tag-sensor
+root_path: bluetooth_le_middleware

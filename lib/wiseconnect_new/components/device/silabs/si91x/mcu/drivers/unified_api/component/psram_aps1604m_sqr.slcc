@@ -1,0 +1,23 @@
+id: psram_aps1604m_sqr
+label: APS1604M-SQR PSRAM Device
+package: platform_siwx91x
+description: >
+  This component includes the AP Memory APS1604M-SQR PSRAM device related configurations.
+  Selecting this component will also include the PSRAM Core component, which is 
+  the implementation of the PSRAM driver itself.
+category: Device|Si91x|MCU|Peripheral|PSRAM Driver|PSRAM Device
+quality: production
+metadata:
+  sbom:
+    license: MSLA
+root_path: "components/device/silabs/si91x/mcu/drivers/unified_api"
+requires:
+  - name: psram_core  
+provides:
+  - name: psram_config
+  - name: psram_aps1604m_sqr
+config_file:
+  - path: "config/psram_device_config/aps1604m_sqr/sl_si91x_psram_aps1604m_sqr_config.h"
+    file_id: psram_config
+define:
+  - name: SLI_SI91X_MCU_PSRAM_APS1604M_SQR

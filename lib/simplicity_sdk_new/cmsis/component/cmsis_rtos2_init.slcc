@@ -1,0 +1,39 @@
+id: cmsis_rtos2_init
+label: CMSIS-RTOS2 Initialization
+package: cmsis
+description: CMSIS RTOS2 Initialization Hooks.
+category: Platform|CMSIS
+quality: production
+metadata:
+  sbom:
+    license: Apache 2.0
+    upstream:
+      name: CMSIS_5
+      version: 5.8.0
+      supplier: ARM-software
+      url: https://github.com/ARM-software/CMSIS_5
+      package_url: pkg:github/ARM-software/CMSIS_5@5.8.0
+      comment: The CMSIS is a set of tools, APIs, frameworks, and work flows
+source:
+- path: RTOS2/Source/os_systick.c
+provides:
+- name: cmsis_rtos2_init
+requires:
+- name: cmsis_rtos2_headers
+- name: cmsis_core
+template_contribution:
+- name: event_handler
+  value:
+    event: platform_init
+    include: cmsis_os2.h
+    handler: osKernelInitialize
+  priority: 4
+  condition:
+  - sl_system
+- name: event_handler
+  value:
+    event: kernel_start
+    include: cmsis_os2.h
+    handler: osKernelStart
+  priority: 6
+root_path: cmsis

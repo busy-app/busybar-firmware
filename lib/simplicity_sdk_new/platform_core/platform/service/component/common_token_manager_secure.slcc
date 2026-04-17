@@ -1,0 +1,21 @@
+id: common_token_manager_secure
+label: Common Token Manager enable security
+package: platform_core
+description: >
+  The Common Token Manager's secure component provides protected read and write access to static secure tokens residing in the flash region.
+  Importantly, this Token Manager leverages the same 128-bit AES-GCM encryption key used by NVM3 for data security.
+category: Services|Token Manager
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+provides:
+- name: common_token_manager_secure
+requires:
+- name: common_token_manager_crypto_se
+- name: memory_manager
+define:
+- name: SL_TOKEN_MANAGER_SECURITY
+ui_hints:
+  visibility: never
+root_path: platform_core

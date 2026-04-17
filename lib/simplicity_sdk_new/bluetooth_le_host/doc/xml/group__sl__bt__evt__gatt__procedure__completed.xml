@@ -1,0 +1,44 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__evt__gatt__procedure__completed" kind="group">
+    <compoundname>sl_bt_evt_gatt_procedure_completed</compoundname>
+    <title>sl_bt_evt_gatt_procedure_completed</title>
+    <innerclass refid="structsl__bt__evt__gatt__procedure__completed__s" prot="public">sl_bt_evt_gatt_procedure_completed_s</innerclass>
+      <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="group__sl__bt__evt__gatt__procedure__completed_1gac694e4b62da24cdf6e77b1e8acb35889" prot="public" static="no">
+        <type>struct <ref refid="structsl__bt__evt__gatt__procedure__completed__s" kindref="compound">sl_bt_evt_gatt_procedure_completed_s</ref></type>
+        <definition>typedef struct sl_bt_evt_gatt_procedure_completed_s sl_bt_evt_gatt_procedure_completed_t</definition>
+        <argsstring></argsstring>
+        <name>sl_bt_evt_gatt_procedure_completed_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="8357" column="51" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="8357" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__evt__gatt__procedure__completed_1ga1f7688078c7ccbb10b68cce9029a89b0" prot="public" static="no">
+        <name>sl_bt_evt_gatt_procedure_completed_id</name>
+        <initializer>0x060900a0</initializer>
+        <briefdescription>
+<para>Identifier of the procedure_completed event. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="8346" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="8346" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Indicates that the current GATT procedure was completed successfully or that it failed with an error. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>All GATT commands excluding <ref refid="group__sl__bt__gatt_1ga2fb8049cafc0efc9f06bf2fae7c3c119" kindref="member">sl_bt_gatt_write_characteristic_value_without_response</ref> and <ref refid="group__sl__bt__gatt_1ga691b8ffe8734ea853fe9315d0767db75" kindref="member">sl_bt_gatt_send_characteristic_confirmation</ref> will trigger this event. As a result, the application must wait for this event before issuing another GATT command (excluding the two aforementioned exceptions).</para>
+<para><bold>Note:</bold> After a failed GATT procedure with SL_STATUS_TIMEOUT error, further GATT transactions over this connection are not allowed by the stack. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

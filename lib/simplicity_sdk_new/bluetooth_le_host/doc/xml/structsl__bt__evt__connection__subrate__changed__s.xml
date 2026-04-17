@@ -1,0 +1,97 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="structsl__bt__evt__connection__subrate__changed__s" kind="struct" language="C++" prot="public">
+    <compoundname>sl_bt_evt_connection_subrate_changed_s</compoundname>
+    <includes refid="sl__bt__api_8h" local="no">sl_bt_api.h</includes>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structsl__bt__evt__connection__subrate__changed__s_1ad2ff99099f4d06f4877584ab6e09484e" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_connection_subrate_changed_s::connection</definition>
+        <argsstring></argsstring>
+        <name>connection</name>
+        <qualifiedname>sl_bt_evt_connection_subrate_changed_s::connection</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Connection handle </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6902" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6902" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__connection__subrate__changed__s_1a42574c1bebd18527322150394aa2dd5e" prot="public" static="no" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t sl_bt_evt_connection_subrate_changed_s::subrate_factor</definition>
+        <argsstring></argsstring>
+        <name>subrate_factor</name>
+        <qualifiedname>sl_bt_evt_connection_subrate_changed_s::subrate_factor</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Subrate factor applied to the specified underlying connection interval. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6903" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6903" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__connection__subrate__changed__s_1a26cd6027b236a86d026fb18e431457f5" prot="public" static="no" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t sl_bt_evt_connection_subrate_changed_s::latency</definition>
+        <argsstring></argsstring>
+        <name>latency</name>
+        <qualifiedname>sl_bt_evt_connection_subrate_changed_s::latency</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Peripheral latency for the connection in number of subrated connection events. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6905" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6905" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__connection__subrate__changed__s_1a94ecafd3857e0aa231cce58cc77bf982" prot="public" static="no" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t sl_bt_evt_connection_subrate_changed_s::continuation_number</definition>
+        <argsstring></argsstring>
+        <name>continuation_number</name>
+        <qualifiedname>sl_bt_evt_connection_subrate_changed_s::continuation_number</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Number of underlying connection events to remain active after a packet containing a Link Layer PDU with a non-zero Length field is sent or received. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6907" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6907" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__connection__subrate__changed__s_1a50e2857308caf5fb4a84c53300c715c4" prot="public" static="no" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t sl_bt_evt_connection_subrate_changed_s::timeout</definition>
+        <argsstring></argsstring>
+        <name>timeout</name>
+        <qualifiedname>sl_bt_evt_connection_subrate_changed_s::timeout</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Supervision timeout. Time = Value x 10 ms </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6911" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6911" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Data structure of the subrate_changed event. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6900" column="1" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6901" bodyend="6912"/>
+    <listofallmembers>
+      <member refid="structsl__bt__evt__connection__subrate__changed__s_1ad2ff99099f4d06f4877584ab6e09484e" prot="public" virt="non-virtual"><scope>sl_bt_evt_connection_subrate_changed_s</scope><name>connection</name></member>
+      <member refid="structsl__bt__evt__connection__subrate__changed__s_1a94ecafd3857e0aa231cce58cc77bf982" prot="public" virt="non-virtual"><scope>sl_bt_evt_connection_subrate_changed_s</scope><name>continuation_number</name></member>
+      <member refid="structsl__bt__evt__connection__subrate__changed__s_1a26cd6027b236a86d026fb18e431457f5" prot="public" virt="non-virtual"><scope>sl_bt_evt_connection_subrate_changed_s</scope><name>latency</name></member>
+      <member refid="structsl__bt__evt__connection__subrate__changed__s_1a42574c1bebd18527322150394aa2dd5e" prot="public" virt="non-virtual"><scope>sl_bt_evt_connection_subrate_changed_s</scope><name>subrate_factor</name></member>
+      <member refid="structsl__bt__evt__connection__subrate__changed__s_1a50e2857308caf5fb4a84c53300c715c4" prot="public" virt="non-virtual"><scope>sl_bt_evt_connection_subrate_changed_s</scope><name>timeout</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

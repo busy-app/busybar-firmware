@@ -1,0 +1,67 @@
+id: ead_core
+package: bluetooth_le_middleware
+label: Encrypted Advertising Data core API
+description: >
+  Provides simple to use API for Advertising, Periodic Advertising and Scan
+  Response data encryption and decryption that is compatible with the Bluetooth
+  Core Encrypted Advertisement Data (EAD) enhancement.
+
+  For the usage of the APIs defined in sl_bt_ead_core.h please see
+
+  esl_core_encrypt_message(void *msg, uint8_t *len) and
+
+  esl_core_decrypt_message(void *msg, uint8_t *len)
+
+  functions in esl_tag_crypto.c within ESL Tag core component.
+category: Bluetooth|Application|Miscellaneous
+metadata:
+  sbom:
+    license: Zlib
+quality: production
+root_path: bluetooth_le_middleware/common/ead_core
+tag:
+- Custom-Code
+config_file:
+- path: config/sl_bt_ead_core_config.h
+  file_id: sl_bt_ead_core_config
+  unless:
+  - device_family_host
+include:
+- path: .
+  file_list:
+  - path: sl_bt_ead_core.h
+source:
+- path: sl_bt_ead_core.c
+  unless:
+  - device_family_host
+provides:
+- name: ead_core
+requires:
+- name: memory_manager
+  condition:
+  - device_cortexm
+- name: psa_crypto_common
+  condition:
+  - device_cortexm
+- name: psa_crypto_api
+  condition:
+  - device_family_host
+- name: psa_crypto_ccm
+  condition:
+  - device_cortexm
+- name: sli_protocol_crypto
+  condition:
+  - device_cortexm
+- name: sl_common
+template_contribution:
+- name: psa_key_slots
+  value:
+    name: psa_key_slots_ead
+    count: 2
+  condition:
+  - psa_crypto
+  unless:
+  - device_family_host
+documentation:
+  docset: bluetooth
+  document: bluetooth-service-api/ead-core

@@ -1,0 +1,111 @@
+id: sxsymcrypt
+package: security_sxsymcrypt
+label: SxSymCrypt Library
+description: >-
+  Hardware acceleration library for the HostCrypto hardware peripherals.
+category: Platform|Security|Hardware Acceleration Libraries
+quality: production
+ui_hints:
+  visibility: never
+
+provides:
+- name: sxsymcrypt
+
+requires:
+- name: clock_manager_runtime
+- name: code_classification
+- name: device
+- name: device_has_lpwaes
+- name: device_has_symcrypto
+- name: sli_psec_osal
+
+source:
+- path: src/blkcipher.c
+- path: src/channel.c
+- path: src/cmdma.c
+- path: src/cmmask.c
+- path: src/keyref.c
+- path: src/aead.c
+- path: src/cmac.c
+- path: src/hmac.c
+- path: src/mac.c
+- path: src/hash.c
+- path: src/interrupts.c
+- path: src/platform/silicon_labs/sli_sxsymcrypt_engine_management.c
+- path: src/platform/silicon_labs/sli_sxsymcrypt_hardware_interaction.c
+
+include:
+- path: include
+  file_list:
+  - path: sxsymcrypt/aes.h
+  - path: sxsymcrypt/aead.h
+  - path: sxsymcrypt/channel.h
+  - path: sxsymcrypt/cmac.h
+  - path: sxsymcrypt/cmmask.h
+  - path: sxsymcrypt/hmac.h
+  - path: sxsymcrypt/mac.h
+  - path: sxsymcrypt/blkcipher.h
+  - path: sxsymcrypt/hash.h
+  - path: sxsymcrypt/sha1.h
+  - path: sxsymcrypt/sha2.h
+  - path: sxsymcrypt/sm3.h
+  - path: sxsymcrypt/keyref.h
+  - path: sxsymcrypt/statuscodes.h
+  - path: sxsymcrypt/internal.h
+  - path: sxsymcrypt/memdiff.h
+  - path: sxsymcrypt/interrupts.h
+
+- path: src
+  file_list:
+  - path: ba431regs.h
+  - path: blkcipherdefs.h
+  - path: aeaddefs.h
+  - path: macdefs.h
+  - path: cmdma.h
+  - path: cmaes.h
+  - path: crypmasterregs.h
+  - path: hw.h
+  - path: hashdefs.h
+  - path: keyrefdefs.h
+  - path: membarriers.h
+
+- path: src/platform/silicon_labs
+  file_list:
+  - path: sli_sxsymcrypt.h
+
+define:
+- name: SL_CODE_COMPONENT_SXSYMCRYPT
+  value: sxsymcrypt
+- name: SX_HASH_DIGESTSZ_MAX
+  value: 0
+- name: SX_HASH_BLOCKSZ_MAX
+  value: 0
+- name: SX_KEYREF_MAX_ID
+  value: 32
+  condition: [device_generic_family_sixx301]
+
+template_contribution:
+- name: code_classification_components
+  value: sxsymcrypt
+- name: event_handler
+  value:
+    event: service_init
+    include: sli_sxsymcrypt.h
+    handler: sli_sxsymcrypt_init_locks
+  priority: 1
+
+other_file:
+- path: REUSE.toml
+- path: LICENSES/BSD-3-Clause.txt
+- path: LICENSES/Zlib.txt
+- path: LICENSES/LicenseRef-SecureIC.txt
+
+metadata:
+  sbom:
+    license: Zlib AND BSD-3-Clause AND LicenseRef-SecureIC
+    upstream:
+      name: Secure-IC Symmetric Crypto Offload C Library
+      version: v4.11
+      supplier: Secure-IC
+      comment: Software for symmetric cryptography offload to Secure-IC hardware.
+root_path: security_sxsymcrypt

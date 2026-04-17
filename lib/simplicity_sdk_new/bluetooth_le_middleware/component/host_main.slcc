@@ -1,0 +1,44 @@
+id: host_main
+label: System setup for host
+package: bluetooth_le_middleware
+description: >
+  This component provides a custom main function for host projects based on sl_main.
+  It adds 2 extra APIs to sl_main:
+    - `app_cli_init`: Enables to parse command line arguments
+    - `app_deinit`: Enables to terminate the application with the SIGINT and SIGTERM signals.
+category: Bluetooth|Application|Miscellaneous
+metadata:
+  sbom:
+    license: Zlib
+quality: experimental
+tag:
+- Low-Code
+include:
+- path: common_host/app_signal
+  file_list:
+  - path: app_signal.h
+source:
+- path: common_host/host_main/main.c
+- path: common_host/app_signal/app_signal_win.c
+  condition:
+  - win32
+- path: common_host/app_signal/app_signal_posix.c
+  unless:
+  - win32
+define:
+  # See /usr/include/features.h for details.
+- name: _DEFAULT_SOURCE
+  condition:
+  - linux
+requires:
+- name: sl_main
+- name: sl_common
+- name: sl_main_custom_main
+provides:
+- name: host_main
+toolchain_settings:
+- option: gcc_linker_option
+  value: -static
+  condition:
+  - win32
+root_path: bluetooth_le_middleware

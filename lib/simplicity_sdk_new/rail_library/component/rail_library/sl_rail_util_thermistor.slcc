@@ -1,0 +1,39 @@
+id: sl_rail_util_thermistor
+label: RAIL Utility, Thermistor Utility (RAIL 3)
+description: Utility to aid with RAIL thermistor conversions support
+package: rail_library
+category: Platform|Radio
+quality: production
+metadata:
+  sbom:
+    id: sl_rail_util_thermistor
+    name: RAIL Utility, Thermistor Utility (RAIL 3)
+    license: Zlib
+documentation:
+  docset: rail
+  document: rail-api/rail-util-thermistor
+provides:
+- name: sl_rail_util_thermistor
+- name: rail_util_thermistor
+requires:
+- name: device
+- name: rail_lib
+- name: component_catalog
+include:
+- path: plugin/sl_rail_util_thermistor/
+  file_list:
+  - path: sl_rail_util_thermistor.h
+source:
+- path: plugin/sl_rail_util_thermistor/sl_rail_util_thermistor.c
+template_contribution:
+- name: event_handler
+  value:
+    event: stack_init
+    include: sl_rail_util_thermistor.h
+    handler: sl_rail_util_thermistor_init
+  priority: -9010
+- name: component_catalog
+  value: sl_rail_util_thermistor
+- name: component_catalog
+  value: rail_util_thermistor
+root_path: rail_library

@@ -1,0 +1,30 @@
+id: zw_cc_central_scene
+label: Central Scene Command Class
+category: Z-Wave|Command Classes
+description: >
+  The Central Scene Command Class is used to communicate central scene activations to the
+  controller using the lifeline concept. The central scene controller must configure
+  lifeline association in relevant nodes before the home control application can take action in the
+  central scene controller.
+  Note that this Command Class supports advanced configuration.
+  To use it, please make sure that configuration related to your project is added to cc_config file located in
+  <app_location>/config/cc_config/<app_name>.cc_config.
+  See DevTools/cc_configurator/README.md for more details.
+package: zwave
+quality: production
+metadata:
+  sbom:
+    reference: zw_sbom_license
+
+source:
+- path: ZAF/CommandClasses/CentralScene/src/CC_CentralScene.c
+- path: ZAF/CommandClasses/CentralScene/src/cc_central_scene_io_weak.c
+  # Private header
+- path: ZAF/CommandClasses/CentralScene/src/cc_central_scene_io.h
+include:
+- path: ZAF/CommandClasses/CentralScene/inc
+  file_list:
+  - path: CC_CentralScene.h
+provides:
+- name: zw_cc_central_scene
+root_path: zwave

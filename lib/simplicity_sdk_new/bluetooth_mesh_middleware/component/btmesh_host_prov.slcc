@@ -1,0 +1,28 @@
+id: btmesh_host_prov
+label: BT Mesh Provisioner Component
+package: bluetooth_mesh_middleware
+description: >
+  BT Mesh Provisioner component provides functionality for provisioning  devices into a Bluetooth Mesh network.
+category: Bluetooth Mesh|Host
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+
+root_path: bluetooth_mesh_middleware/common/btmesh_host_prov
+include:
+- path: .
+  file_list:
+  - path: btmesh_prov.h
+source:
+- path: btmesh_prov.c
+provides:
+- name: btmesh_host_prov
+requires:
+- name: btmesh_stack_api_ncp_host
+- name: btmesh_host_db
+- name: component_catalog
+- name: slist
+template_contribution:
+- name: component_catalog
+  value: btmesh_host_prov

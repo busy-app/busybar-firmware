@@ -1,0 +1,72 @@
+id: sl_main_kernel
+label: SL Main Kernel
+package: platform_core
+category: Services|System Setup
+ui_hints:
+  visibility: never
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: platform_core/platform/service/sl_main/
+source:
+- path: src/sl_main_kernel.c
+include:
+- path: inc
+  file_list:
+  - path: sl_main_kernel.h
+- path: src
+  file_list:
+  - path: sli_main_kernel.h
+provides:
+- name: sl_main_kernel
+requires:
+- name: cmsis_rtos2
+- name: cmsis_rtos2_headers
+- name: cmsis_common
+template_contribution:
+- name: event
+  value:
+    id: kernel_start
+    function:
+      name: sl_kernel_start
+      return: void
+  priority: -5000
+documentation:
+  docset: gecko-platform
+  document: platform-service/sl-main
+description: |
+  Main Kernel component provides an API to:
+
+     - sl_main_kernel_start(): Starts the kernel
+     - sl_main_start_task_should_continue(): Determines if the start task should
+                                             continue after the initialization
+                                             process is done.
+
+   sl_main_kernel_start() function calls a function that is automatically generated
+   and located in `$autogen/sl_event_handler.c`. Handlers can be registered
+   for the following events using the Event Handler API provided by the
+   Event Handler component:
+
+     - kernel_start -> sl_kernel_start()
+
+   The event is fired when `sl_main_kernel_start()` is called.
+
+   sl_main_kernel_start() is called automatically by the main re-target 
+   from main_retarget.c. Users should not call this API themselves.
+
+   sl_main_start_task_should_continue() returns false by default to stop the start
+   task after the initialization process is done. It can be redefined by the user
+   to allow the start task to continue executing after the initialization process is
+   done. Keep in mind that this function is called in the templated main function
+   provided by sl_main, if you removed the call to `sl_main_start_task_should_continue`
+   in your main function then re-implementing this function will have no effect.
+
+   The following code snippet shows how to implement this function to allow the 
+   start task to continue:
+   @code{.c}
+   bool sl_main_start_task_should_continue(void) 
+   {
+       return true; // start task will continue after initialization.
+   }
+   @endcode

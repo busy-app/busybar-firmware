@@ -1,0 +1,17 @@
+id: si91x_debug_uc
+package: platform_siwx91x
+metadata:
+  sbom:
+    license: MIT
+description: >
+  "Enables application-level print functionality on the Si91x platform. Allows configuration of the UART instance and sets the baud rate for debug output (only the baud rate is configured here, not in the chosen component). The same driver component must be installed for any selected UART/USART instance. Only TX/RX pin mapping is configurable within the component configuration. The selected UART/USART instance is dedicated for debug output and should not be used for other communication purposes."
+label: Debug UC
+category: Device|Si91x|MCU|Common
+quality: production
+component_root_path: components/device/silabs/si91x/mcu/core/common
+config_file:
+  - path: config/sl_si91x_debug_uc_config.h
+provides:
+  - name: si91x_debug_uc
+define:
+  - name: DEBUG_UART_UC

@@ -1,0 +1,42 @@
+id: sl_rail_util_load_devinfo
+label: RAIL Utility, Load Devinfo (RAIL 3)
+description: Utility to aid with copying DEVINFO register values onto RAM
+package: rail_library
+category: Platform|Radio
+quality: production
+metadata:
+  sbom:
+    id: sl_rail_util_load_devinfo
+    name: RAIL Utility, Load Devinfo (RAIL 3)
+    license: Zlib
+provides:
+- name: sl_rail_util_load_devinfo
+- name: rail_util_load_devinfo
+requires:
+- name: rail_lib
+- name: component_catalog
+include:
+- path: plugin/sl_rail_util_load_devinfo
+  file_list:
+  - path: sl_rail_util_load_devinfo.h
+source:
+- path: plugin/sl_rail_util_load_devinfo/sl_rail_util_load_devinfo.c
+template_contribution:
+- name: event_handler
+  value:
+        # Must be in Stage 1 (pre-RTOS) to properly access DEVINFO.
+        # Was previously registered to stack_init which runs in
+        # Stage 2 after RTOS start, but this caused DEVINFO access
+        # issues. When service_init calls sl_se_init earlier in
+        # Stage 2, it may configure security restrictions that
+        # prevent proper DEVINFO access by the time stack_init runs,
+        # even with priority ensuring it ran before sl_rail_util_init.
+    event: internal_init_early
+    include: sl_rail_util_load_devinfo.h
+    handler: sl_rail_util_load_devinfo
+  priority: -9010   # Must be called before sl_rail_util_init
+- name: component_catalog
+  value: sl_rail_util_load_devinfo
+- name: component_catalog
+  value: rail_util_load_devinfo
+root_path: rail_library

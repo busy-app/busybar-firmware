@@ -1,0 +1,63 @@
+package: zigbee
+description: This component implements the rejoin algorithm as specified in the Base Device Behavior 3.1 specification. When this component is present, other components that may attempt rejoins, such as the End Device Support component, have their rejoin attempts suppressed. This component is only applicable for routers and end devices, as trust centers do not initiate rejoins.
+label: BDB 3.1 Rejoin Algorithm
+quality: production
+id: zigbee_bdb_3dot1_rejoin_algorithm
+category: Zigbee|Zigbee 4.0
+provides:
+- name: zigbee_bdb_3dot1_rejoin_algorithm
+requires:
+- name: zigbee_network_steering      # for getting primary, secondary channel mask
+- name: zigbee_update_tc_link_key    # for detecting whether TCLK has been updated
+conflicts:
+  # An app cannot have both the WWAH Connectivity Manager and this component, as both seek to restore connectivity upon connection loss
+- name: zigbee_wwah_connectivity_manager
+config_file:
+- path: app/framework/plugin/zigbee-bdb-3dot1-rejoin-algorithm/zigbee-bdb-3dot1-rejoin-algorithm-config.h
+source:
+- path: app/framework/plugin/zigbee-bdb-3dot1-rejoin-algorithm/zigbee-bdb-3dot1-rejoin-algorithm.c
+- path: app/framework/plugin/zigbee-bdb-3dot1-rejoin-algorithm/zigbee-bdb-3dot1-rejoin-algorithm-cli.c
+  condition:
+  - cli
+include:
+- path: app/framework/plugin/zigbee-bdb-3dot1-rejoin-algorithm/
+  file_list:
+  - path: zigbee-bdb-3dot1-rejoin-algorithm.h
+template_contribution:
+- name: component_catalog
+  value: zigbee_bdb_3dot1_rejoin_algorithm
+- name: zigbee_af_callback
+  value:
+    callback_type: event_init
+    function_name: sli_zigbee_af_bdb_3dot1_rejoin_algorithm_init_callback
+- name: zigbee_stack_callback
+  value:
+    callback_type: stack_status
+    function_name: sl_zigbee_af_bdb_3dot1_rejoin_algorithm_stack_status_cb
+- name: cli_group
+  value:
+    group: plugin
+    name: bdb-rejoin
+    help: bdb-rejoin related commands
+- name: cli_command
+  value:
+    group: bdb-rejoin
+    name: enable
+    handler: sl_zigbee_af_bdb_3dot1_rejoin_algorithm_enable_command
+    help: Enable or disable the rejoin algorithm. Disabling the algorithm will cause the End Device Support plugin to handle rejoins on end devices when connectivity is lost.
+    argument:
+    - type: uint8
+      help: Enable (1) or disable (0) the rejoin algorithm
+- name: cli_command
+  value:
+    group: bdb-rejoin
+    name: status
+    handler: sl_zigbee_af_bdb_3dot1_rejoin_algorithm_status_command
+    help: Display info about the rejoin algorithm
+documentation:
+  docset: zigbee
+  document: zigbee-af-api/zigbee-bdb-3dot1-rejoin-algorithm
+metadata:
+  sbom:
+    license: MSLA
+root_path: zigbee

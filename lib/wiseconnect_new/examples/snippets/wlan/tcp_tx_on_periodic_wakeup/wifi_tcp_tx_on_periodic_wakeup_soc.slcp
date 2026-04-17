@@ -1,0 +1,92 @@
+project_name: tcp_tx_on_periodic_wakeup_soc
+package: wifi_app
+quality: production
+label: Wi-Fi - TCP Tx on Periodic Wakeup (SoC)
+category: Example|Wi-Fi
+description: 'The application demonstrates TCP TX with Periodic Wakeup
+
+  '
+filter:
+- name: Wireless Technology
+  value:
+  - Wi-Fi
+- name: Project Difficulty
+  value:
+  - Beginner
+source:
+- path: app.c
+include:
+- path: .
+  file_list:
+  - path: app.h
+define:
+- name: SL_SI91X_PRINT_DBG_LOG
+- name: SLI_SI91X_MCU_MOV_ROM_API_TO_FLASH
+component:
+- id: sl_main
+- id: freertos
+- id: freertos_heap_4
+- id: syscalls
+- id: si91x_memory_default_config
+- id: wiseconnect_common
+- id: wifi
+- id: sl_si91x_internal_stack
+- id: wifi_resources
+- id: network_manager
+- id: basic_network_config_manager
+- id: bsd_socket
+- id: sl_si91x_basic_buffers
+- id: sl_power_manager
+- id: gpio_npss_component
+requires:
+- name: device_needs_ram_execution
+  condition:
+  - si91x_common_flash
+toolchain_settings:
+- option: gcc_linker_option
+  value: -u _printf_float
+configuration:
+- name: SL_BOARD_ENABLE_VCOM
+  value: '1'
+- name: SL_ENABLE_GPIO_WAKEUP_SOURCE
+  value: '1'
+- name: ENABLE_NPSS_GPIO_2
+  value: '1'
+readme:
+- path: readme.md
+other_file:
+- path: resources/readme/build_project_ncp.png
+- path: resources/readme/build_project_soc.png
+- path: resources/readme/create_project_ncp.png
+- path: resources/readme/create_project_soc.png
+- path: resources/readme/efr32.png
+- path: resources/readme/load_image1.png
+- path: resources/readme/load_image2.png
+- path: resources/readme/output1.png
+- path: resources/readme/port_selection.png
+- path: resources/readme/port_selection_soc.png
+- path: resources/readme/select_project_ncp.png
+- path: resources/readme/select_project-soc.png
+- path: resources/readme/serial_port.png
+- path: resources/readme/serial_port_setup.png
+- path: resources/readme/setup_ncp.png
+- path: resources/readme/setup_soc.png
+- path: resources/readme/soc_board_detection.png
+- path: resources/readme/usb_to_uart_1.png
+- path: resources/readme/usb_to_uart_2.png
+- path: resources/readme/vcom.png
+- path: resources/readme/console_logs.png
+ui_hints:
+  highlight:
+  - path: readme.md
+    focus: true
+post_build:
+  profile: wiseconnect_soc
+sdk_extension:
+- id: wiseconnect3_sdk
+  vendor: silabs
+  version: 4.0.1
+sdk:
+  id: simplicity_sdk
+  vendor: silabs
+  version: 2025.12.2

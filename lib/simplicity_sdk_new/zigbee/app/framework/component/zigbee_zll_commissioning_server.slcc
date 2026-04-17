@@ -1,0 +1,35 @@
+package: zigbee
+description: Server-side implementation of the Zigbee 3.0 Touchlink commissioning mechanism.
+label: ZLL Commissioning Server
+quality: production
+id: zigbee_zll_commissioning_server
+category: Zigbee|Zigbee Light Link
+provides:
+- name: zigbee_zll_commissioning_server
+requires:
+- name: zigbee_zll
+- name: zigbee_interpan
+- name: zigbee_zll_commissioning_common
+config_file:
+- path: app/framework/plugin/zll-commissioning-server/config/zll-commissioning-server-config.h
+source:
+- path: app/framework/plugin/zll-commissioning-server/zll-commissioning-server.c
+- path: app/framework/plugin/zll-commissioning-server/zll-commissioning-server-cb.c
+include:
+- path: app/framework/plugin/zll-commissioning-server
+  file_list:
+  - path: zll-commissioning-server.h
+template_contribution:
+- name: component_catalog
+  value: zigbee_zll_commissioning_server
+- name: zigbee_stack_callback
+  value:
+    callback_type: zll_touch_link_target
+    function_name: sli_zigbee_af_zll_touch_link_target_callback
+documentation:
+  docset: zigbee
+  document: zigbee-af-api/zll-commissioning-server
+metadata:
+  sbom:
+    license: MSLA
+root_path: zigbee

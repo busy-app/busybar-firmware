@@ -1,0 +1,50 @@
+id: emlib_wdog
+label: WDOG
+package: platform_core
+description: >
+  Watchdog (WDOG) peripheral API.
+category: Platform|Peripheral|EMLIB
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+source:
+- path: src/em_wdog.c
+include:
+- path: inc
+  file_list:
+  - path: em_wdog.h
+provides:
+- name: emlib_wdog
+- name: hal_generic_wdog
+  condition: [device_series_2]
+requires:
+- name: device
+- name: device_has_wdog
+- name: emlib_common
+- name: emlib_core
+- name: cmsis_core
+conflicts:
+- name: device_series_3
+documentation:
+  docset: gecko-platform
+  document:
+  - page: platform-emlib-efr32xg21/wdog
+    condition: [device_sdid_200]
+  - page: platform-emlib-efr32xg22/wdog
+    condition: [device_sdid_205]
+  - page: platform-emlib-efr32xg23/wdog
+    condition: [device_sdid_210]
+  - page: platform-emlib-efr32xg24/wdog
+    condition: [device_sdid_215]
+  - page: platform-emlib-efr32xg25/wdog
+    condition: [device_sdid_220]
+  - page: platform-emlib-efr32xg26/wdog
+    condition: [device_sdid_225]
+  - page: platform-emlib-efr32xg27/wdog
+    condition: [device_sdid_230]
+  - page: platform-emlib-efr32xg28/wdog
+    condition: [device_sdid_235]
+  - page: platform-emlib-efr32xg29/wdog
+    condition: [device_sdid_240]
+root_path: platform_core/platform/emlib

@@ -1,0 +1,27 @@
+upgrade:
+  - sdk:
+      id: simplicity_sdk
+      version: "2025.6.0"
+    component:
+      - trigger: btmesh_stack
+        description: >
+          The Bluetooth Mesh stack model configuration data storage format is
+          changed in SDK release 9.0.0. The storage format defaults to the new
+          btmesh_stack_model_storage_v2 format in new projects.
+          Upgrade adds the btmesh_stack_model_storage_v1 component to the project
+          to preserve the old format in existing projects which are based on
+          previous SiSDK version.
+          The new btmesh_stack_model_storage_v2 storage format is superior to
+          the old format because it implements the storage in a manner that
+          supports more complex firmware updates, but is not backwards-compatible.
+          The project can be migrated to the new format by replacing the
+          btmesh_stack_model_storage_v1 component with the btmesh_stack_model_storage_v2
+          and btmesh_stack_model_storage_v1_to_v2_migrate components.
+          The persistent storage migration shall be executed by calling the
+          sl_btmesh_model_migration_migrate_models API from sl_btmesh_api.h file
+          before the node/provisioner initialization.
+          See details in the API documentation.
+          If the migration is done then the btmesh_stack_model_storage_v1_to_v2_migrate
+          component can be removed from the project in newer application versions.
+        add:
+          - btmesh_stack_model_storage_v1

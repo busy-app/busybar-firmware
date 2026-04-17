@@ -1,0 +1,20 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<module:DocumentRoot xmlns:module="http://www.silabs.com/ss/hwconfig/module.ecore">
+  <module id="pin_tool.wfm.si91x.adc_ch9" label="ADC_CH9" name="ADC_CH9" description="ADC Channel 9 pins" version="A">
+    <properties>
+      <stringProperty label="Type" id="type" defaultValue="adc_ch9" transient="true" hidden="true" readonly="true" description=""/>
+      <stringProperty label="Custom Peripheral Name" id="peripheral.name" description=""/>
+    </properties>
+    <propertyCategories>
+      <category label="ADC_CH9">
+        <subCategory label="">
+          <propertyRef refId="peripheral.name"/>
+        </subCategory>
+      </category>
+    </propertyCategories>
+    <signals>
+      <signal name="P"/>
+      <signal name="N"/>
+    </signals>
+  </module>
+</module:DocumentRoot>

@@ -1,0 +1,23 @@
+id: btl_interface_osal
+label: Bootloader OS Abstraction Layer (Series-3)
+package: bootloader
+description: >-
+  RTOS support for Bootloader Interface.
+category: Platform|Bootloader
+quality: production
+ui_hints:
+  visibility: never
+source:
+- path: platform/bootloader/series3/api/btl_interface_lock.c
+include:
+- path: platform/bootloader/series3/api
+  file_list:
+  - path: btl_interface_lock.h
+provides:
+- name: btl_interface_osal
+requires:
+- name: cmsis_core
+metadata:
+  sbom:
+    license: MSLA
+root_path: bootloader

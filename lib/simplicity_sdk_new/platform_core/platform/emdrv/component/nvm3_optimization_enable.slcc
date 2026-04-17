@@ -1,0 +1,20 @@
+id: nvm3_optimization_enable
+label: NVM3 enable optimization
+package: platform_core
+description: >
+  This component improves the NVM3 initialization and object lookup time.
+  Code size increases ~1248 bytes with NVM3 optimization enabled.
+category: Services|NVM3
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+define:
+- name: NVM3_OPTIMIZATION
+  value: '1'
+provides:
+- name: nvm3_optimization
+- name: nvm3_optimization_enable
+requires:
+- name: device_efx
+root_path: platform_core

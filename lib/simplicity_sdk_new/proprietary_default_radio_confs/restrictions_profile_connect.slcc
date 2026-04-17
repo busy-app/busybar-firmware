@@ -1,0 +1,38 @@
+id: restrictions_profile_connect
+label: Restrictions - Connect Profile
+package: proprietary_default_radio_confs
+description: Component provides profile_connect.restriction configuration files by logic
+category: Platform|Radio Configuration
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: proprietary_default_radio_confs/restrictions
+requires:
+- name: rail_lib
+- name: device_has_radio
+
+#------- Set provided component name
+provides:
+- name: restrictions_profile_connect
+
+#-------- Include restriction config json file --------
+#
+# Connect profile restrictions
+#
+config_file:
+- path: profile_connect.restriction
+  directory: rail
+  unless:
+  - device_generic_family_efr32xg21
+  - device_is_module
+- path: profile_connect.restriction
+  directory: rail
+  condition:
+  - "device_family_fgm23"
+
+#-------- Hides Component for user in Studio ---------
+ui_hints:
+  visibility: never
+
+

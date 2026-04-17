@@ -1,0 +1,316 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="sl__si91x__psa__wrap_8h" kind="file" language="C++">
+    <compoundname>sl_si91x_psa_wrap.h</compoundname>
+    <includes refid="sli__si91x__crypto__driver__functions_8h" local="yes">sli_si91x_crypto_driver_functions.h</includes>
+    <includes local="yes">string.h</includes>
+    <includes local="yes">sl_status.h</includes>
+    <includes refid="sl__si91x__crypto_8h" local="yes">sl_si91x_crypto.h</includes>
+    <incdepgraph>
+      <node id="5">
+        <label>sl_si91x_crypto.h</label>
+        <link refid="sl__si91x__crypto_8h"/>
+      </node>
+      <node id="2">
+        <label>sli_si91x_crypto_driver_functions.h</label>
+        <link refid="sli__si91x__crypto__driver__functions_8h"/>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="4" relation="include">
+        </childnode>
+        <childnode refid="5" relation="include">
+        </childnode>
+        <childnode refid="6" relation="include">
+        </childnode>
+      </node>
+      <node id="1">
+        <label>components/device/silabs/si91x/wireless/crypto/wrap/inc/sl_si91x_psa_wrap.h</label>
+        <link refid="sl__si91x__psa__wrap_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="7" relation="include">
+        </childnode>
+        <childnode refid="4" relation="include">
+        </childnode>
+        <childnode refid="5" relation="include">
+        </childnode>
+      </node>
+      <node id="3">
+        <label>psa/crypto.h</label>
+      </node>
+      <node id="4">
+        <label>sl_status.h</label>
+      </node>
+      <node id="6">
+        <label>sli_psa_driver_features.h</label>
+      </node>
+      <node id="7">
+        <label>string.h</label>
+      </node>
+    </incdepgraph>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="sl__si91x__psa__wrap_8h_1a4ae9090826cd09fdbc25f75ab63ec50b" prot="public" static="no">
+        <name>PSA_KEY_VOLATILE_PERSISTENT_WRAPPED</name>
+        <initializer>((psa_key_location_t)0x000001)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/wrap/inc/sl_si91x_psa_wrap.h" line="40" column="9" bodyfile="components/device/silabs/si91x/wireless/crypto/wrap/inc/sl_si91x_psa_wrap.h" bodystart="40" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="sl__si91x__psa__wrap_8h_1ac8087f2180058d40cc53b23d0296c2e6" prot="public" static="no">
+        <name>PSA_KEY_VOLATILE_PERSISTENT_WRAP_IMPORT</name>
+        <initializer>((psa_key_location_t)0x800000)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/wrap/inc/sl_si91x_psa_wrap.h" line="43" column="9" bodyfile="components/device/silabs/si91x/wireless/crypto/wrap/inc/sl_si91x_psa_wrap.h" bodystart="43" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="var">
+      <memberdef kind="variable" id="sl__si91x__psa__wrap_8h_1aa4df34b906f06f84c303b10b730bdd00" prot="public" static="no" mutable="no">
+        <type>unsigned char</type>
+        <definition>unsigned char WRAP_IV[]</definition>
+        <argsstring>[]</argsstring>
+        <name>WRAP_IV</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/wrap/inc/sl_si91x_psa_wrap.h" line="39" column="22" declfile="components/device/silabs/si91x/wireless/crypto/wrap/inc/sl_si91x_psa_wrap.h" declline="39" declcolumn="22"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="sl__si91x__psa__wrap_8h_1a8f2efe5985f599e260a6fb6fca3fe7f2" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>psa_status_t</type>
+        <definition>psa_status_t sli_si91x_crypto_wrap_key</definition>
+        <argsstring>(uint8_t *key_buffer, size_t key_buffer_size, uint32_t wrap_mode, uint8_t *wrap_iv_var)</argsstring>
+        <name>sli_si91x_crypto_wrap_key</name>
+        <param>
+          <type>uint8_t *</type>
+          <declname>key_buffer</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>key_buffer_size</declname>
+        </param>
+        <param>
+          <type>uint32_t</type>
+          <declname>wrap_mode</declname>
+        </param>
+        <param>
+          <type>uint8_t *</type>
+          <declname>wrap_iv_var</declname>
+        </param>
+        <briefdescription>
+<para>This API is used to wrap a key. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">key_buffer</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Input key buffer and buffer to store the wrapped key </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">key_buffer_size</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Key size </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">wrap_mode</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Wrapping method(ECB/CBC) </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">wrap_iv_var</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>IV for AES CBC mode </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>psa_status_t PSA_SUCCESS on success, return error code on failure </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/wrap/inc/sl_si91x_psa_wrap.h" line="60" column="14" declfile="components/device/silabs/si91x/wireless/crypto/wrap/inc/sl_si91x_psa_wrap.h" declline="60" declcolumn="14"/>
+      </memberdef>
+      <memberdef kind="function" id="sl__si91x__psa__wrap_8h_1a3e71969689f876954cd5d7e0422f1a05" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>psa_status_t</type>
+        <definition>psa_status_t sli_si91x_crypto_generate_symm_key</definition>
+        <argsstring>(uint8_t *key_buffer, size_t key_buffer_size, uint32_t wrap_mode, uint8_t *wrap_iv_var)</argsstring>
+        <name>sli_si91x_crypto_generate_symm_key</name>
+        <param>
+          <type>uint8_t *</type>
+          <declname>key_buffer</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>key_buffer_size</declname>
+        </param>
+        <param>
+          <type>uint32_t</type>
+          <declname>wrap_mode</declname>
+        </param>
+        <param>
+          <type>uint8_t *</type>
+          <declname>wrap_iv_var</declname>
+        </param>
+        <briefdescription>
+<para>This API is used to generate and wrap a symmetric key. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">key_buffer</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Input key buffer and buffer to store the generated wrapped key </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">key_buffer_size</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Key size in bytes </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">wrap_mode</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Wrapping method(ECB/CBC) </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">wrap_iv_var</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>IV for AES CBC mode </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>psa_status_t PSA_SUCCESS on success, return error code on failure </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/wrap/inc/sl_si91x_psa_wrap.h" line="79" column="14" declfile="components/device/silabs/si91x/wireless/crypto/wrap/inc/sl_si91x_psa_wrap.h" declline="79" declcolumn="14"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="comment">/*******************************************************************************</highlight></codeline>
+<codeline lineno="2"><highlight class="comment"><sp/>*<sp/>@file<sp/><sp/>sl_si91x_psa_wrap.h</highlight></codeline>
+<codeline lineno="3"><highlight class="comment"><sp/>*<sp/>@brief</highlight></codeline>
+<codeline lineno="4"><highlight class="comment"><sp/>*******************************************************************************</highlight></codeline>
+<codeline lineno="5"><highlight class="comment"><sp/>*<sp/>#<sp/>License</highlight></codeline>
+<codeline lineno="6"><highlight class="comment"><sp/>*<sp/>&lt;b&gt;Copyright<sp/>2025<sp/>Silicon<sp/>Laboratories<sp/>Inc.<sp/>www.silabs.com&lt;/b&gt;</highlight></codeline>
+<codeline lineno="7"><highlight class="comment"><sp/>*******************************************************************************</highlight></codeline>
+<codeline lineno="8"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="9"><highlight class="comment"><sp/>*<sp/>SPDX-License-Identifier:<sp/>Zlib</highlight></codeline>
+<codeline lineno="10"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="11"><highlight class="comment"><sp/>*<sp/>The<sp/>licensor<sp/>of<sp/>this<sp/>software<sp/>is<sp/>Silicon<sp/>Laboratories<sp/>Inc.</highlight></codeline>
+<codeline lineno="12"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="13"><highlight class="comment"><sp/>*<sp/>This<sp/>software<sp/>is<sp/>provided<sp/>&apos;as-is&apos;,<sp/>without<sp/>any<sp/>express<sp/>or<sp/>implied</highlight></codeline>
+<codeline lineno="14"><highlight class="comment"><sp/>*<sp/>warranty.<sp/>In<sp/>no<sp/>event<sp/>will<sp/>the<sp/>authors<sp/>be<sp/>held<sp/>liable<sp/>for<sp/>any<sp/>damages</highlight></codeline>
+<codeline lineno="15"><highlight class="comment"><sp/>*<sp/>arising<sp/>from<sp/>the<sp/>use<sp/>of<sp/>this<sp/>software.</highlight></codeline>
+<codeline lineno="16"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="17"><highlight class="comment"><sp/>*<sp/>Permission<sp/>is<sp/>granted<sp/>to<sp/>anyone<sp/>to<sp/>use<sp/>this<sp/>software<sp/>for<sp/>any<sp/>purpose,</highlight></codeline>
+<codeline lineno="18"><highlight class="comment"><sp/>*<sp/>including<sp/>commercial<sp/>applications,<sp/>and<sp/>to<sp/>alter<sp/>it<sp/>and<sp/>redistribute<sp/>it</highlight></codeline>
+<codeline lineno="19"><highlight class="comment"><sp/>*<sp/>freely,<sp/>subject<sp/>to<sp/>the<sp/>following<sp/>restrictions:</highlight></codeline>
+<codeline lineno="20"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="21"><highlight class="comment"><sp/>*<sp/>1.<sp/>The<sp/>origin<sp/>of<sp/>this<sp/>software<sp/>must<sp/>not<sp/>be<sp/>misrepresented;<sp/>you<sp/>must<sp/>not</highlight></codeline>
+<codeline lineno="22"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/>claim<sp/>that<sp/>you<sp/>wrote<sp/>the<sp/>original<sp/>software.<sp/>If<sp/>you<sp/>use<sp/>this<sp/>software</highlight></codeline>
+<codeline lineno="23"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/>in<sp/>a<sp/>product,<sp/>an<sp/>acknowledgment<sp/>in<sp/>the<sp/>product<sp/>documentation<sp/>would<sp/>be</highlight></codeline>
+<codeline lineno="24"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/>appreciated<sp/>but<sp/>is<sp/>not<sp/>required.</highlight></codeline>
+<codeline lineno="25"><highlight class="comment"><sp/>*<sp/>2.<sp/>Altered<sp/>source<sp/>versions<sp/>must<sp/>be<sp/>plainly<sp/>marked<sp/>as<sp/>such,<sp/>and<sp/>must<sp/>not<sp/>be</highlight></codeline>
+<codeline lineno="26"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/>misrepresented<sp/>as<sp/>being<sp/>the<sp/>original<sp/>software.</highlight></codeline>
+<codeline lineno="27"><highlight class="comment"><sp/>*<sp/>3.<sp/>This<sp/>notice<sp/>may<sp/>not<sp/>be<sp/>removed<sp/>or<sp/>altered<sp/>from<sp/>any<sp/>source<sp/>distribution.</highlight></codeline>
+<codeline lineno="28"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="29"><highlight class="comment"><sp/>******************************************************************************/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="30"><highlight class="normal"></highlight></codeline>
+<codeline lineno="31"><highlight class="normal"></highlight><highlight class="preprocessor">#ifndef<sp/>SL_SI91X_PSA_WRAP_H</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="32"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>SL_SI91X_PSA_WRAP_H</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="33"><highlight class="normal"></highlight></codeline>
+<codeline lineno="34"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;<ref refid="sli__si91x__crypto__driver__functions_8h" kindref="compound">sli_si91x_crypto_driver_functions.h</ref>&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="35"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;string.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="36"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;sl_status.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="37"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;<ref refid="sl__si91x__crypto_8h" kindref="compound">sl_si91x_crypto.h</ref>&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="38"><highlight class="normal"></highlight></codeline>
+<codeline lineno="39"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">unsigned</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>WRAP_IV[];</highlight></codeline>
+<codeline lineno="40"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>PSA_KEY_VOLATILE_PERSISTENT_WRAPPED<sp/>((psa_key_location_t)0x000001)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="41"><highlight class="normal"></highlight><highlight class="comment">//<sp/>The<sp/>PSA<sp/>key<sp/>is<sp/>given<sp/>in<sp/>wrapped<sp/>format<sp/>to<sp/>psa_import_key<sp/>and<sp/>other<sp/>APIs</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="42"><highlight class="normal"></highlight></codeline>
+<codeline lineno="43"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>PSA_KEY_VOLATILE_PERSISTENT_WRAP_IMPORT<sp/>((psa_key_location_t)0x800000)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="44"><highlight class="normal"></highlight><highlight class="comment">//<sp/>The<sp/>PSA<sp/>key<sp/>is<sp/>given<sp/>in<sp/>plain<sp/>format,<sp/>to<sp/>be<sp/>wrapped<sp/>in<sp/>psa_import_key<sp/>API<sp/>and<sp/>used<sp/>in<sp/>wrapped<sp/>format<sp/>with<sp/>other<sp/>APIs</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="45"><highlight class="normal"></highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="46"><highlight class="comment">/**</highlight></codeline>
+<codeline lineno="47"><highlight class="comment"><sp/>*<sp/>@brief</highlight></codeline>
+<codeline lineno="48"><highlight class="comment"><sp/>*<sp/><sp/><sp/>This<sp/>API<sp/>is<sp/>used<sp/>to<sp/>wrap<sp/>a<sp/>key</highlight></codeline>
+<codeline lineno="49"><highlight class="comment"><sp/>*<sp/>@param[in]<sp/><sp/>key_buffer</highlight></codeline>
+<codeline lineno="50"><highlight class="comment"><sp/>*<sp/><sp/><sp/>Input<sp/>key<sp/>buffer<sp/>and<sp/>buffer<sp/>to<sp/>store<sp/>the<sp/>wrapped<sp/>key</highlight></codeline>
+<codeline lineno="51"><highlight class="comment"><sp/>*<sp/>@param[in]<sp/><sp/>key_buffer_size</highlight></codeline>
+<codeline lineno="52"><highlight class="comment"><sp/>*<sp/><sp/><sp/>Key<sp/>size</highlight></codeline>
+<codeline lineno="53"><highlight class="comment"><sp/>*<sp/>@param[in]<sp/><sp/>wrap_mode</highlight></codeline>
+<codeline lineno="54"><highlight class="comment"><sp/>*<sp/><sp/><sp/>Wrapping<sp/>method(ECB/CBC)</highlight></codeline>
+<codeline lineno="55"><highlight class="comment"><sp/>*<sp/>@param[in]<sp/><sp/>wrap_iv_var</highlight></codeline>
+<codeline lineno="56"><highlight class="comment"><sp/>*<sp/><sp/><sp/>IV<sp/>for<sp/>AES<sp/>CBC<sp/>mode</highlight></codeline>
+<codeline lineno="57"><highlight class="comment"><sp/>*<sp/>@return</highlight></codeline>
+<codeline lineno="58"><highlight class="comment"><sp/>*<sp/><sp/><sp/>psa_status_t<sp/>PSA_SUCCESS<sp/>on<sp/>success,<sp/>return<sp/>error<sp/>code<sp/>on<sp/>failure</highlight></codeline>
+<codeline lineno="59"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="60"><highlight class="normal">psa_status_t<sp/>sli_si91x_crypto_wrap_key(uint8_t<sp/>*key_buffer,</highlight></codeline>
+<codeline lineno="61"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>key_buffer_size,</highlight></codeline>
+<codeline lineno="62"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>uint32_t<sp/>wrap_mode,</highlight></codeline>
+<codeline lineno="63"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>uint8_t<sp/>*wrap_iv_var);</highlight></codeline>
+<codeline lineno="64"><highlight class="normal"></highlight></codeline>
+<codeline lineno="65"><highlight class="normal"></highlight><highlight class="comment">/***************************************************************************/</highlight><highlight class="normal"><sp/></highlight><highlight class="comment">/**</highlight></codeline>
+<codeline lineno="66"><highlight class="comment"><sp/>*<sp/>@brief</highlight></codeline>
+<codeline lineno="67"><highlight class="comment"><sp/>*<sp/><sp/><sp/>This<sp/>API<sp/>is<sp/>used<sp/>to<sp/>generate<sp/>and<sp/>wrap<sp/>a<sp/>symmetric<sp/>key</highlight></codeline>
+<codeline lineno="68"><highlight class="comment"><sp/>*<sp/>@param[in]<sp/><sp/>key_buffer</highlight></codeline>
+<codeline lineno="69"><highlight class="comment"><sp/>*<sp/><sp/><sp/>Input<sp/>key<sp/>buffer<sp/>and<sp/>buffer<sp/>to<sp/>store<sp/>the<sp/>generated<sp/>wrapped<sp/>key</highlight></codeline>
+<codeline lineno="70"><highlight class="comment"><sp/>*<sp/>@param[in]<sp/><sp/>key_buffer_size</highlight></codeline>
+<codeline lineno="71"><highlight class="comment"><sp/>*<sp/><sp/><sp/>Key<sp/>size<sp/>in<sp/>bytes</highlight></codeline>
+<codeline lineno="72"><highlight class="comment"><sp/>*<sp/>@param[in]<sp/><sp/>wrap_mode</highlight></codeline>
+<codeline lineno="73"><highlight class="comment"><sp/>*<sp/><sp/><sp/>Wrapping<sp/>method(ECB/CBC)</highlight></codeline>
+<codeline lineno="74"><highlight class="comment"><sp/>*<sp/>@param[in]<sp/><sp/>wrap_iv_var</highlight></codeline>
+<codeline lineno="75"><highlight class="comment"><sp/>*<sp/><sp/><sp/>IV<sp/>for<sp/>AES<sp/>CBC<sp/>mode</highlight></codeline>
+<codeline lineno="76"><highlight class="comment"><sp/>*<sp/>@return</highlight></codeline>
+<codeline lineno="77"><highlight class="comment"><sp/>*<sp/><sp/><sp/>psa_status_t<sp/>PSA_SUCCESS<sp/>on<sp/>success,<sp/>return<sp/>error<sp/>code<sp/>on<sp/>failure</highlight></codeline>
+<codeline lineno="78"><highlight class="comment">******************************************************************************/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="79"><highlight class="normal">psa_status_t<sp/>sli_si91x_crypto_generate_symm_key(uint8_t<sp/>*key_buffer,</highlight></codeline>
+<codeline lineno="80"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>key_buffer_size,</highlight></codeline>
+<codeline lineno="81"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>uint32_t<sp/>wrap_mode,</highlight></codeline>
+<codeline lineno="82"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>uint8_t<sp/>*wrap_iv_var);</highlight></codeline>
+<codeline lineno="83"><highlight class="normal"></highlight></codeline>
+<codeline lineno="84"><highlight class="normal"></highlight><highlight class="preprocessor">#endif<sp/></highlight><highlight class="comment">/*<sp/>SL_SI91X_PSA_WRAP_H<sp/>*/</highlight><highlight class="preprocessor"></highlight></codeline>
+    </programlisting>
+    <location file="components/device/silabs/si91x/wireless/crypto/wrap/inc/sl_si91x_psa_wrap.h"/>
+  </compounddef>
+</doxygen>

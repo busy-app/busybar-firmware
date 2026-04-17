@@ -1,0 +1,28 @@
+id: zigbee_aarch64_cortex_a72_gcc_12_3_0_musl
+label: Zigbee ARM64
+package: zigbee
+category: Zigbee
+quality: production
+description: This plugin contains defines to build Zigbee apps against ARM64.
+
+provides:
+- name: aarch64_cortex-a72_gcc-12.3.0_musl
+- name: zigbee_aarch64_cortex_a72_gcc_12_3_0_musl
+
+requires:
+- name: linux_arch_aarch64
+
+template_contribution:
+- name: component_catalog
+  value: zigbee_aarch64_cortex_a72_gcc_12_3_0_musl
+
+validation_helper:
+- path: component/scripts/zigbee_linux_arch_validation.lua
+
+documentation:
+  docset: zigbee
+  document: zigbee-af-api/aarch64_cortex_a72_gcc_12_3_0_musl
+metadata:
+  sbom:
+    license: MSLA
+root_path: zigbee

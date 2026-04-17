@@ -1,0 +1,44 @@
+<HtermSequenceFile>
+    <ItemList>
+        <SequenceItem name="-- Commands --">
+            <description></description>
+            <sequence value="" />
+        </SequenceItem>
+        <SequenceItem name="help">
+            <description></description>
+            <sequence value="a[help] h[0D]" />
+        </SequenceItem>
+        <SequenceItem name="info">
+            <description></description>
+            <sequence value="a[info] h[0D]" />
+        </SequenceItem>
+        <SequenceItem name="set_mode 0">
+            <description></description>
+            <sequence value="a[set_mode 0] h[0D]" />
+        </SequenceItem>
+        <SequenceItem name="set_mode 1">
+            <description></description>
+            <sequence value="a[set_mode 1] h[0D]" />
+        </SequenceItem>
+        <SequenceItem name="set_active_channel 0">
+            <description></description>
+            <sequence value="a[set_active_channel 0] h[0D]" />
+        </SequenceItem>
+        <SequenceItem name="set_active_channel 1">
+            <description></description>
+            <sequence value="a[set_active_channel 1] h[0D]" />
+        </SequenceItem>
+        <SequenceItem name="set_direction 0">
+            <description></description>
+            <sequence value="a[set_direction 0] h[0D]" />
+        </SequenceItem>
+        <SequenceItem name="set_direction 1">
+            <description></description>
+            <sequence value="a[set_direction 1] h[0D]" />
+        </SequenceItem>
+        <SequenceItem name="send">
+            <description></description>
+            <sequence value="a[send] h[0D]" />
+        </SequenceItem>
+    </ItemList>
+</HtermSequenceFile>

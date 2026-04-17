@@ -1,0 +1,39 @@
+id: timer_ulp_component
+label: PM ULP Timer
+package: platform_siwx91x
+description: >
+  ULP TIMER component will enable  Timer in the low-power mode. It moves all the peripheral dependencies to RAM. 
+  It also installs the peripheral component if already not installed. If an instantiable component then the user
+  needs to install the instance manually."
+category: Device|Si91x|MCU|Service|Power Manager|ULP Peripheral
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+requires:
+  - name: sl_ulp_timer
+  - name: rsilib_timers
+
+provides:
+  - name: timer_ulp_component
+
+template_contribution:
+  - name: power_manager_ps2
+    value: 1
+    condition:
+      - pm_ps2_component  
+  - name: ulp_timer_ps2
+    value: sl_si91x_ulp_timer.*
+  - name: ulp_timer_ps2
+    value: rsi_timers.*
+  - name: ulp_timer_ps2
+    value: memcpy.*
+  - name: ulp_timer_ps2
+    value: UDMA.*
+  - name: ulp_timer_ps2
+    value: rsi_udma.*
+  - name: ulp_timer_ps2
+    value: rsi_udma_wrapper.*
+  - name: ulp_timer_ps2
+    value: sl_si91x_led.*
+

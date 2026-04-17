@@ -1,0 +1,27 @@
+id: "btmesh_lcd_server"
+label: "Large Composition Data Server"
+package: bluetooth_mesh_middleware
+description: >
+  A thin wrapper of the Bluetooth Mesh Stack Large Composition Data component.
+  This component enables automatic Models Metadata Page 0 generation for Silicon
+  Labs components providing SIG models.
+category: "Bluetooth Mesh|Models|Large Composition Data"
+quality: "production"
+metadata:
+  sbom:
+    license: Zlib
+root_path: "bluetooth_mesh_middleware/common/btmesh_lcd_server"
+tag:
+- No-Code
+
+config_file:
+- path: "config/sl_btmesh_lcd_server_config.h"
+- path: btmesh_lcd_server.dcd
+  directory: btmeshconf
+provides:
+- name: "btmesh_lcd_server"
+requires:
+- name: "btmesh_stack_lcd_server"
+documentation:
+  docset: btmesh
+  document: btmesh-service-api/btmesh-lcd-server

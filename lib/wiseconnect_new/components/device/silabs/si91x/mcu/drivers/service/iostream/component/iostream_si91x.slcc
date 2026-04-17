@@ -1,0 +1,49 @@
+id: iostream_si91x
+label: IO Stream Si91x
+package: platform_siwx91x
+description: >
+  The IO Stream component allows to read/write data using a variety of physical
+  communication interfaces, or Streams. This allows for standardized data 
+  transfer operations while abstracting the underlying interface.
+  This component provides an IO Stream implementation for the Si91x.
+category: Device|Si91x|MCU|Service
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: components/device/silabs/si91x/mcu/drivers/service/iostream
+include:
+  - path: inc
+    file_list:
+      - path: sl_iostream_usart_si91x.h
+      - path: sl_iostream_uart_si91x.h
+      - path: sli_iostream_uart_si91x.h
+source:
+  - path: src/sl_iostream_usart_si91x.c
+config_file:
+  - path: "config/si91x/sl_iostream_usart_vcom_config.h"
+    file_id: iostream_usart_config
+template_file:
+  - path: init/sl_iostream_init_si91x_uart.c.jinja
+  - path: init/sl_iostream_init_si91x_uart.h.jinja
+template_contribution:
+  - name: event_handler
+    value:
+      event: iostream_instance_init_stage_1
+      include: sl_iostream_init_si91x_uart.h
+      handler: sl_iostream_uart_si91x_init_instances
+  - name: iostream_instance_info
+    value:
+      include: sl_iostream_init_si91x_uart.h
+      handler: "sl_iostream_instance_vcom_info"
+define:
+  - name: SRAM_BASE
+    value: "0x0C000000UL"
+  - name: SRAM_SIZE
+    value: "0x00040000UL"
+  - name: _SI91X_DEVICE
+provides:
+  - name: iostream_si91x
+requires:
+  - name: sl_usart_iostream
+  - name: iostream_retarget_stdio

@@ -1,0 +1,24 @@
+id: micriumos_lib_mem_port_armv8m
+label: Mem port for ARMv8-M
+package: micriumos
+description: Micrium OS Lib Mem port for ARMv8-M
+category: Services|Micrium|Common
+quality: production
+metadata:
+  sbom:
+    license: MSLA
+ui_hints:
+  visibility: never
+source:
+  # iar
+- path: source/iar/armv7m_lib_mem.asm
+  condition:
+  - toolchain_iar
+  # gcc
+- path: source/gnu/armv7m_lib_mem.S
+  condition:
+  - toolchain_gcc
+provides:
+- name: lib_mem_port_armv8m
+- name: lib_mem_port
+root_path: micriumos/platform/micrium_os/ports

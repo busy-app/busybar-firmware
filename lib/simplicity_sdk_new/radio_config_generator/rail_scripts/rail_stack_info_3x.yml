@@ -1,0 +1,68 @@
+# Stack info mapping.
+#
+# Usage:
+# rail_stack_info:
+#   <protocol_id>:
+#     <phy_id>: <phy_name>
+#
+# The protocol_id is the same as the enum sl_rail_pti_protocol_t in
+# sl_rail_types.h
+# The phy_id is the same as the enum sl_rail_<protocol>_phy_t in the
+# corresponding sl_rail_<protocol>.h files.
+
+rail_stack_info:
+  # Custom
+  0:
+    0: "sl_railcfg_custom_phy"
+  # Thread
+  2:
+    0: "placeholder_for_thread"
+  # BLE
+  3:
+    0: "sl_railcfg_ble_phy_1_mbps"
+    1: "sl_railcfg_ble_phy_2_mbps"
+    2: "sl_railcfg_ble_phy_coded_125_kbps"
+    3: "sl_railcfg_ble_phy_coded_500_kbps"
+    4: "sl_railcfg_ble_phy_simulscan"
+    5: "sl_railcfg_ble_phy_aox_2_mbps"
+    6: "sl_railcfg_ble_phy_quuppa_1_mbps"
+    7: "sl_railcfg_ble_phy_cs_1_mbps"
+    8: "sl_railcfg_ble_phy_cs_2_mbps"
+    12: "sl_railcfg_ble_phy_fast_switch"
+  # Connect
+  4:
+    0: "placeholder_for_connect"
+  # Zigbee
+  5:
+    0: "sl_railcfg_ieee802154_phy_2p4_ghz"
+    1: "sl_railcfg_ieee802154_phy_2p4_ghz_antdiv"
+    2: "sl_railcfg_ieee802154_phy_2p4_ghz_coex"
+    3: "sl_railcfg_ieee802154_phy_2p4_ghz_antdiv_coex"
+    8: "sl_railcfg_ieee802154_phy_2p4_ghz_fem"
+    9: "sl_railcfg_ieee802154_phy_2p4_ghz_fem_antdiv"
+    10: "sl_railcfg_ieee802154_phy_2p4_ghz_fem_coex"
+    11: "sl_railcfg_ieee802154_phy_2p4_ghz_fem_antdiv_coex"
+    14: "sl_railcfg_ieee802154_phy_fast_switch"
+    133: "sl_railcfg_ieee802154_phy_863_mhz_gb868"
+    134: "sl_railcfg_ieee802154_phy_915_mhz_gb868"
+  # Z-Wave
+  6:
+    0: "sl_railcfg_zwave_phy_9p6_kbps"
+    1: "sl_railcfg_zwave_phy_9p6_kbps_concurrent"
+    2: "sl_railcfg_zwave_phy_40_kbps"
+    3: "sl_railcfg_zwave_phy_40_kbps_beam"
+    4: "sl_railcfg_zwave_phy_100_kbps"
+    5: "sl_railcfg_zwave_phy_100_kbps_lowside"
+    6: "sl_railcfg_zwave_phy_100_kbps_beam"
+    7: "sl_railcfg_zwave_phy_100_kbps_lowside_beam"
+    8: "sl_railcfg_zwave_phy_long_range"
+    9: "sl_railcfg_zwave_phy_long_range_beam"
+  # Wi-SUN
+  7:
+    0: "placeholder_for_wisun"
+  # Custom 802.15.4
+  8:
+    0: "placeholder_for_custom_802154"
+  # Sidewalk
+  9:
+    0: "sl_railcfg_sidewalk_phy_2gfsk_50kbps"

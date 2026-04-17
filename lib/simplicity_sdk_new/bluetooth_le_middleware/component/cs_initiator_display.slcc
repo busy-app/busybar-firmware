@@ -1,0 +1,56 @@
+id: cs_initiator_display
+package: bluetooth_le_middleware
+label: CS Initiator Display
+description: >
+  Prints Channel Sounding (CS) Initiator status information to the LCD of the WSTK.
+category: Bluetooth|Application|Miscellaneous
+metadata:
+  sbom:
+    license: Zlib
+quality: evaluation
+root_path: bluetooth_le_middleware/common/cs_initiator_display
+include:
+- path: ./inc
+  file_list:
+  - path: cs_initiator_display_core.h
+  - path: cs_initiator_display.h
+
+config_file:
+- path: config/cs_initiator_display_config.h
+
+source:
+- path: src/cs_initiator_display_stubs.c
+  unless:
+  - hardware_board_supports_wstk_lcd
+- path: src/cs_initiator_display_core.c
+  condition:
+  - hardware_board_supports_wstk_lcd
+- path: src/cs_initiator_display.c
+  condition:
+  - hardware_board_supports_wstk_lcd
+
+requires:
+- name: dmd_memlcd
+  condition:
+  - hardware_board_supports_wstk_lcd
+- name: glib
+  condition:
+  - hardware_board_supports_wstk_lcd
+- name: rtllib_api
+  condition:
+  - hardware_board_supports_wstk_lcd
+
+provides:
+- name: cs_initiator_display
+
+template_contribution:
+- name: bluetooth_on_event
+  value:
+    include: cs_initiator_display_core.h
+    function: cs_initiator_display_on_event
+  priority: 9999
+  condition:
+  - hardware_board_supports_wstk_lcd
+documentation:
+  docset: bluetooth
+  document: bluetooth-service-api/cs-initiator-display

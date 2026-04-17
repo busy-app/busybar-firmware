@@ -1,0 +1,41 @@
+id: "bluetooth_rtos_adaptation"
+label: "Bluetooth RTOS Adaptation"
+package: bluetooth_le_host
+description: >
+  Bluetooth RTOS adaptation for running Bluetooth stack in a kernel.
+  This component is automatically included when required and should
+  not be included directly by the application.
+category: Bluetooth|RTOS Adaptation
+quality: "production"
+config_file:
+- path: "config/sl_bt_rtos_config.h"
+- path: "config/sl_bt_rtos_config_s2.h"
+  condition:
+  - "device_series_2"
+- path: "config/sl_bt_rtos_config_s3.h"
+  condition:
+  - "device_series_3"
+include:
+- path: "inc/"
+  file_list:
+  - path: "sl_bt_rtos_adaptation.h"
+source:
+- path: "src/sl_bt_rtos_adaptation.c"
+requires:
+- name: bluetooth_stack
+- name: sl_core
+- name: bgapi_protocol_rtos_adaptation
+template_contribution:
+- name: component_catalog
+  value: bluetooth_rtos_adaptation
+- name: event_handler
+  value:
+    event: kernel_start
+    include: "sl_bt_rtos_adaptation.h"
+    handler: "sli_bt_rtos_adaptation_kernel_start"
+provides:
+- name: "bluetooth_rtos_adaptation"
+metadata:
+  sbom:
+    license: Zlib AND MSLA
+root_path: bluetooth_le_host

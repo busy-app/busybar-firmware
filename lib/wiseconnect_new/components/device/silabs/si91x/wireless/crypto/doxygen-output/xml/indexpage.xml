@@ -1,0 +1,30 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="indexpage" kind="page">
+    <compoundname>index</compoundname>
+    <title>Overview</title>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<sect1 id="index_1autotoc_md16">
+<title>Introduction</title>
+<para>This module lists all the hardware accelerator implemented Crypto algorithms.</para>
+</sect1>
+<sect1 id="index_1autotoc_md17">
+<title>Crypto Operations</title>
+<para><itemizedlist>
+<listitem><para>AES Algorithm which includes ECB, CBC, CTR modes</para>
+</listitem><listitem><para>Key Agreement Algorithm ECDH</para>
+</listitem><listitem><para>Digital Signature Algorithm ECDSA</para>
+</listitem><listitem><para>AEAD Algorithms which include CCM, GCM, ChachaPoly</para>
+</listitem><listitem><para>Secure Hash Algorithm SHA which include SHA1, SHA224, SHA256, SHA384, SHA512 modes</para>
+</listitem><listitem><para>True Random Number Generator</para>
+</listitem><listitem><para>Attestation token generation</para>
+</listitem><listitem><para>Message Authenticated Code Algorithm HMAC. </para>
+</listitem></itemizedlist>
+</para>
+</sect1>
+    </detaileddescription>
+    <location file="components/device/silabs/si91x/wireless/crypto/docs/doxygen_indexfile.md"/>
+  </compounddef>
+</doxygen>

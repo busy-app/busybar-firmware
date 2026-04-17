@@ -1,0 +1,49 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="structsl__bt__evt__connection__phy__status__s" kind="struct" language="C++" prot="public">
+    <compoundname>sl_bt_evt_connection_phy_status_s</compoundname>
+    <includes refid="sl__bt__api_8h" local="no">sl_bt_api.h</includes>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structsl__bt__evt__connection__phy__status__s_1ab7fd61e6abda1f9eddacd46886bd11ef" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_connection_phy_status_s::connection</definition>
+        <argsstring></argsstring>
+        <name>connection</name>
+        <qualifiedname>sl_bt_evt_connection_phy_status_s::connection</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Connection handle </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6515" column="11" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6515" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__connection__phy__status__s_1a68b2128e8c1a9815f672f80b6ad54692" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_connection_phy_status_s::phy</definition>
+        <argsstring></argsstring>
+        <name>phy</name>
+        <qualifiedname>sl_bt_evt_connection_phy_status_s::phy</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Current active PHY. See values from <ref refid="group__sl__bt__connection_1ga99cc41717415928e08b79e1cc3b1a04e" kindref="member">sl_bt_connection_set_preferred_phy</ref> command. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6516" column="11" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6516" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Data structure of the phy_status event. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6513" column="1" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6514" bodyend="6518"/>
+    <listofallmembers>
+      <member refid="structsl__bt__evt__connection__phy__status__s_1ab7fd61e6abda1f9eddacd46886bd11ef" prot="public" virt="non-virtual"><scope>sl_bt_evt_connection_phy_status_s</scope><name>connection</name></member>
+      <member refid="structsl__bt__evt__connection__phy__status__s_1a68b2128e8c1a9815f672f80b6ad54692" prot="public" virt="non-virtual"><scope>sl_bt_evt_connection_phy_status_s</scope><name>phy</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

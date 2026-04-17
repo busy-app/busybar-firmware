@@ -1,0 +1,2325 @@
+id: "bluetooth_cli"
+label: "Bluetooth_cli"
+package: "bluetooth_le_host"
+description: >
+  This component provides a Command Line Interface (CLI) that enables
+  applications running on external hosts to interact with the Bluetooth
+  stack running on EFR devices in SoC mode.
+  This component is intended for system testing purposes only.
+  Do not use this component in production environments.
+category: "Bluetooth|CLI"
+quality: "experimental"
+ui_hints:
+  visibility: never
+
+include:
+- path: "inc/"
+  file_list:
+  - path: "sl_bt_cli.h"
+source:
+- path: "src/sl_bt_cli.c"
+requires:
+- name: "bluetooth_stack"
+- name: printf
+- name: "cli"
+provides:
+- name: "bluetooth_cli"
+template_contribution:
+- name: "bluetooth_on_event"
+  value:
+    include: "sl_bt_cli.h"
+    function: "sl_bt_cli_on_event"
+- name: cli_group
+  value:
+    name: bt_system
+- name: cli_group
+  value:
+    name: bt_linklayer
+- name: cli_group
+  value:
+    name: bt_resource
+- name: cli_group
+  value:
+    name: bt_gap
+- name: cli_group
+  value:
+    name: bt_advertiser
+- name: cli_group
+  value:
+    name: bt_legacy_advertiser
+- name: cli_group
+  value:
+    name: bt_extended_advertiser
+- name: cli_group
+  value:
+    name: bt_periodic_advertiser
+- name: cli_group
+  value:
+    name: bt_scanner
+- name: cli_group
+  value:
+    name: bt_sync
+- name: cli_group
+  value:
+    name: bt_sync_scanner
+- name: cli_group
+  value:
+    name: bt_past_receiver
+- name: cli_group
+  value:
+    name: bt_advertiser_past
+- name: cli_group
+  value:
+    name: bt_sync_past
+- name: cli_group
+  value:
+    name: bt_periodic_sync
+- name: cli_group
+  value:
+    name: bt_pawr_sync
+- name: cli_group
+  value:
+    name: bt_pawr_advertiser
+- name: cli_group
+  value:
+    name: bt_connection
+- name: cli_group
+  value:
+    name: bt_gatt
+- name: cli_group
+  value:
+    name: bt_gattdb
+- name: cli_group
+  value:
+    name: bt_gatt_server
+- name: cli_group
+  value:
+    name: bt_nvm
+- name: cli_group
+  value:
+    name: bt_test
+- name: cli_group
+  value:
+    name: bt_sm
+- name: cli_group
+  value:
+    name: bt_external_bondingdb
+- name: cli_group
+  value:
+    name: bt_resolving_list
+- name: cli_group
+  value:
+    name: bt_accept_list
+- name: cli_group
+  value:
+    name: bt_coex
+- name: cli_group
+  value:
+    name: bt_cs
+- name: cli_group
+  value:
+    name: bt_cs_test
+- name: cli_group
+  value:
+    name: bt_l2cap
+- name: cli_group
+  value:
+    name: bt_cte_transmitter
+- name: cli_group
+  value:
+    name: bt_cte_receiver
+- name: cli_group
+  value:
+    name: bt_connection_analyzer
+- name: cli_command
+  value:
+    group: bt_system
+    name: hello
+    handler: sli_bt_cli_system_hello
+- name: cli_command
+  value:
+    group: bt_system
+    name: start_bluetooth
+    handler: sli_bt_cli_system_start_bluetooth
+- name: cli_command
+  value:
+    group: bt_system
+    name: stop_bluetooth
+    handler: sli_bt_cli_system_stop_bluetooth
+- name: cli_command
+  value:
+    group: bt_system
+    name: forcefully_stop_bluetooth
+    handler: sli_bt_cli_system_forcefully_stop_bluetooth
+- name: cli_command
+  value:
+    group: bt_system
+    name: get_version
+    handler: sli_bt_cli_system_get_version
+- name: cli_command
+  value:
+    group: bt_system
+    name: reboot
+    handler: sli_bt_cli_system_reboot
+- name: cli_command
+  value:
+    group: bt_system
+    name: halt
+    handler: sli_bt_cli_system_halt
+    argument:
+    - type: uint8
+- name: cli_command
+  value:
+    group: bt_system
+    name: linklayer_configure
+    handler: sli_bt_cli_system_linklayer_configure
+    argument:
+    - type: uint8
+    - type: hex
+- name: cli_command
+  value:
+    group: bt_system
+    name: set_tx_power
+    handler: sli_bt_cli_system_set_tx_power
+    argument:
+    - type: int16
+    - type: int16
+- name: cli_command
+  value:
+    group: bt_system
+    name: get_tx_power_setting
+    handler: sli_bt_cli_system_get_tx_power_setting
+- name: cli_command
+  value:
+    group: bt_system
+    name: set_identity_address
+    handler: sli_bt_cli_system_set_identity_address
+    argument:
+    - type: hex
+    - type: uint8
+- name: cli_command
+  value:
+    group: bt_system
+    name: get_identity_address
+    handler: sli_bt_cli_system_get_identity_address
+- name: cli_command
+  value:
+    group: bt_system
+    name: get_random_data
+    handler: sli_bt_cli_system_get_random_data
+    argument:
+    - type: uint8
+- name: cli_command
+  value:
+    group: bt_system
+    name: data_buffer_write
+    handler: sli_bt_cli_system_data_buffer_write
+    argument:
+    - type: hex
+- name: cli_command
+  value:
+    group: bt_system
+    name: data_buffer_clear
+    handler: sli_bt_cli_system_data_buffer_clear
+- name: cli_command
+  value:
+    group: bt_system
+    name: get_counters
+    handler: sli_bt_cli_system_get_counters
+    argument:
+    - type: uint8
+- name: cli_command
+  value:
+    group: bt_system
+    name: set_lazy_soft_timer
+    handler: sli_bt_cli_system_set_lazy_soft_timer
+    argument:
+    - type: uint32
+    - type: uint32
+    - type: uint8
+    - type: uint8
+- name: cli_command
+  value:
+    group: bt_linklayer
+    name: event_info_reporting_enable
+    handler: sli_bt_cli_linklayer_event_info_reporting_enable
+    argument:
+    - type: uint8
+    - type: uint32
+    - type: uint8
+    - type: hex
+  condition:
+  - bluetooth_feature_linklayer_interface
+- name: cli_command
+  value:
+    group: bt_resource
+    name: get_status
+    handler: sli_bt_cli_resource_get_status
+- name: cli_command
+  value:
+    group: bt_resource
+    name: set_report_threshold
+    handler: sli_bt_cli_resource_set_report_threshold
+    argument:
+    - type: uint32
+    - type: uint32
+- name: cli_command
+  value:
+    group: bt_resource
+    name: enable_connection_tx_report
+    handler: sli_bt_cli_resource_enable_connection_tx_report
+    argument:
+    - type: uint16
+- name: cli_command
+  value:
+    group: bt_resource
+    name: get_connection_tx_status
+    handler: sli_bt_cli_resource_get_connection_tx_status
+    argument:
+    - type: uint8
+- name: cli_command
+  value:
+    group: bt_resource
+    name: disable_connection_tx_report
+    handler: sli_bt_cli_resource_disable_connection_tx_report
+- name: cli_command
+  value:
+    group: bt_gap
+    name: set_privacy_mode
+    handler: sli_bt_cli_gap_set_privacy_mode
+    argument:
+    - type: uint8
+    - type: uint8
+- name: cli_command
+  value:
+    group: bt_gap
+    name: set_data_channel_classification
+    handler: sli_bt_cli_gap_set_data_channel_classification
+    argument:
+    - type: hex
+- name: cli_command
+  value:
+    group: bt_gap
+    name: set_identity_address
+    handler: sli_bt_cli_gap_set_identity_address
+    argument:
+    - type: hex
+    - type: uint8
+- name: cli_command
+  value:
+    group: bt_gap
+    name: get_identity_address
+    handler: sli_bt_cli_gap_get_identity_address
+- name: cli_command
+  value:
+    group: bt_gap
+    name: get_max_connections
+    handler: sli_bt_cli_gap_get_max_connections
+- name: cli_command
+  value:
+    group: bt_advertiser
+    name: create_set
+    handler: sli_bt_cli_advertiser_create_set
+- name: cli_command
+  value:
+    group: bt_advertiser
+    name: configure
+    handler: sli_bt_cli_advertiser_configure
+    argument:
+    - type: uint8
+    - type: uint32
+- name: cli_command
+  value:
+    group: bt_advertiser
+    name: set_timing
+    handler: sli_bt_cli_advertiser_set_timing
+    argument:
+    - type: uint8
+    - type: uint32
+    - type: uint32
+    - type: uint16
+    - type: uint8
+- name: cli_command
+  value:
+    group: bt_advertiser
+    name: set_channel_map
+    handler: sli_bt_cli_advertiser_set_channel_map
+    argument:
+    - type: uint8
+    - type: uint8
+- name: cli_command
+  value:
+    group: bt_advertiser
+    name: set_tx_power
+    handler: sli_bt_cli_advertiser_set_tx_power
+    argument:
+    - type: uint8
+    - type: int16
+- name: cli_command
+  value:
+    group: bt_advertiser
+    name: set_report_scan_request
+    handler: sli_bt_cli_advertiser_set_report_scan_request
+    argument:
+    - type: uint8
+    - type: uint8
+- name: cli_command
+  value:
+    group: bt_advertiser
+    name: set_random_address
+    handler: sli_bt_cli_advertiser_set_random_address
+    argument:
+    - type: uint8
+    - type: uint8
+    - type: hex
+- name: cli_command
+  value:
+    group: bt_advertiser
+    name: clear_random_address
+    handler: sli_bt_cli_advertiser_clear_random_address
+    argument:
+    - type: uint8
+- name: cli_command
+  value:
+    group: bt_advertiser
+    name: stop
+    handler: sli_bt_cli_advertiser_stop
+    argument:
+    - type: uint8
+- name: cli_command
+  value:
+    group: bt_advertiser
+    name: delete_set
+    handler: sli_bt_cli_advertiser_delete_set
+    argument:
+    - type: uint8
+- name: cli_command
+  value:
+    group: bt_legacy_advertiser
+    name: set_data
+    handler: sli_bt_cli_legacy_advertiser_set_data
+    argument:
+    - type: uint8
+    - type: uint8
+    - type: hex
+- name: cli_command
+  value:
+    group: bt_legacy_advertiser
+    name: generate_data
+    handler: sli_bt_cli_legacy_advertiser_generate_data
+    argument:
+    - type: uint8
+    - type: uint8
+- name: cli_command
+  value:
+    group: bt_legacy_advertiser
+    name: start
+    handler: sli_bt_cli_legacy_advertiser_start
+    argument:
+    - type: uint8
+    - type: uint8
+- name: cli_command
+  value:
+    group: bt_legacy_advertiser
+    name: start_directed
+    handler: sli_bt_cli_legacy_advertiser_start_directed
+    argument:
+    - type: uint8
+    - type: uint8
+    - type: hex
+    - type: uint8
+- name: cli_command
+  value:
+    group: bt_extended_advertiser
+    name: set_phy
+    handler: sli_bt_cli_extended_advertiser_set_phy
+    argument:
+    - type: uint8
+    - type: uint8
+    - type: uint8
+- name: cli_command
+  value:
+    group: bt_extended_advertiser
+    name: set_data
+    handler: sli_bt_cli_extended_advertiser_set_data
+    argument:
+    - type: uint8
+    - type: hex
+- name: cli_command
+  value:
+    group: bt_extended_advertiser
+    name: set_long_data
+    handler: sli_bt_cli_extended_advertiser_set_long_data
+    argument:
+    - type: uint8
+- name: cli_command
+  value:
+    group: bt_extended_advertiser
+    name: generate_data
+    handler: sli_bt_cli_extended_advertiser_generate_data
+    argument:
+    - type: uint8
+    - type: uint8
+- name: cli_command
+  value:
+    group: bt_extended_advertiser
+    name: start
+    handler: sli_bt_cli_extended_advertiser_start
+    argument:
+    - type: uint8
+    - type: uint8
+    - type: uint32
+- name: cli_command
+  value:
+    group: bt_extended_advertiser
+    name: start_directed
+    handler: sli_bt_cli_extended_advertiser_start_directed
+    argument:
+    - type: uint8
+    - type: uint8
+    - type: uint32
+    - type: hex
+    - type: uint8
+- name: cli_command
+  value:
+    group: bt_periodic_advertiser
+    name: set_data
+    handler: sli_bt_cli_periodic_advertiser_set_data
+    argument:
+    - type: uint8
+    - type: hex
+- name: cli_command
+  value:
+    group: bt_periodic_advertiser
+    name: set_long_data
+    handler: sli_bt_cli_periodic_advertiser_set_long_data
+    argument:
+    - type: uint8
+- name: cli_command
+  value:
+    group: bt_periodic_advertiser
+    name: start
+    handler: sli_bt_cli_periodic_advertiser_start
+    argument:
+    - type: uint8
+    - type: uint16
+    - type: uint16
+    - type: uint32
+- name: cli_command
+  value:
+    group: bt_periodic_advertiser
+    name: stop
+    handler: sli_bt_cli_periodic_advertiser_stop
+    argument:
+    - type: uint8
+- name: cli_command
+  value:
+    group: bt_scanner
+    name: set_parameters
+    handler: sli_bt_cli_scanner_set_parameters
+    argument:
+    - type: uint8
+    - type: uint16
+    - type: uint16
+- name: cli_command
+  value:
+    group: bt_scanner
+    name: set_parameters_and_filter
+    handler: sli_bt_cli_scanner_set_parameters_and_filter
+    argument:
+    - type: uint8
+    - type: uint16
+    - type: uint16
+    - type: uint32
+    - type: uint8
+- name: cli_command
+  value:
+    group: bt_scanner
+    name: start
+    handler: sli_bt_cli_scanner_start
+    argument:
+    - type: uint8
+    - type: uint8
+- name: cli_command
+  value:
+    group: bt_scanner
+    name: stop
+    handler: sli_bt_cli_scanner_stop
+- name: cli_command
+  value:
+    group: bt_sync
+    name: set_reporting_mode
+    handler: sli_bt_cli_sync_set_reporting_mode
+    argument:
+    - type: uint16
+    - type: uint8
+- name: cli_command
+  value:
+    group: bt_sync
+    name: update_sync_parameters
+    handler: sli_bt_cli_sync_update_sync_parameters
+    argument:
+    - type: uint16
+    - type: uint16
+    - type: uint16
+- name: cli_command
+  value:
+    group: bt_sync
+    name: close
+    handler: sli_bt_cli_sync_close
+    argument:
+    - type: uint16
+- name: cli_command
+  value:
+    group: bt_sync_scanner
+    name: set_sync_parameters
+    handler: sli_bt_cli_sync_scanner_set_sync_parameters
+    argument:
+    - type: uint16
+    - type: uint16
+    - type: uint8
+- name: cli_command
+  value:
+    group: bt_sync_scanner
+    name: open
+    handler: sli_bt_cli_sync_scanner_open
+    argument:
+    - type: hex
+    - type: uint8
+    - type: uint8
+- name: cli_command
+  value:
+    group: bt_past_receiver
+    name: set_default_sync_receive_parameters
+    handler: sli_bt_cli_past_receiver_set_default_sync_receive_parameters
+    argument:
+    - type: uint8
+    - type: uint16
+    - type: uint16
+    - type: uint8
+- name: cli_command
+  value:
+    group: bt_past_receiver
+    name: set_sync_receive_parameters
+    handler: sli_bt_cli_past_receiver_set_sync_receive_parameters
+    argument:
+    - type: uint8
+    - type: uint8
+    - type: uint16
+    - type: uint16
+    - type: uint8
+- name: cli_command
+  value:
+    group: bt_past_receiver
+    name: set_default_sync_receive_over_sync_parameters
+    handler: sli_bt_cli_past_receiver_set_default_sync_receive_over_sync_parameters
+    argument:
+    - type: uint8
+    - type: uint16
+    - type: uint16
+    - type: uint8
+- name: cli_command
+  value:
+    group: bt_past_receiver
+    name: set_sync_receive_over_sync_parameters
+    handler: sli_bt_cli_past_receiver_set_sync_receive_over_sync_parameters
+    argument:
+    - type: uint16
+    - type: uint8
+    - type: uint16
+    - type: uint16
+    - type: uint8
+- name: cli_command
+  value:
+    group: bt_advertiser_past
+    name: transfer
+    handler: sli_bt_cli_advertiser_past_transfer
+    argument:
+    - type: uint8
+    - type: uint16
+    - type: uint8
+- name: cli_command
+  value:
+    group: bt_advertiser_past
+    name: transfer_over_pawr_advertiser
+    handler: sli_bt_cli_advertiser_past_transfer_over_pawr_advertiser
+    argument:
+    - type: uint8
+    - type: uint16
+    - type: uint8
+    - type: uint8
+    - type: hex
+- name: cli_command
+  value:
+    group: bt_sync_past
+    name: transfer
+    handler: sli_bt_cli_sync_past_transfer
+    argument:
+    - type: uint8
+    - type: uint16
+    - type: uint16
+- name: cli_command
+  value:
+    group: bt_pawr_sync
+    name: set_sync_subevents
+    handler: sli_bt_cli_pawr_sync_set_sync_subevents
+    argument:
+    - type: uint16
+    - type: hex
+- name: cli_command
+  value:
+    group: bt_pawr_sync
+    name: set_response_data
+    handler: sli_bt_cli_pawr_sync_set_response_data
+    argument:
+    - type: uint16
+    - type: uint16
+    - type: uint8
+    - type: uint8
+    - type: uint8
+    - type: hex
+- name: cli_command
+  value:
+    group: bt_pawr_advertiser
+    name: start
+    handler: sli_bt_cli_pawr_advertiser_start
+    argument:
+    - type: uint8
+    - type: uint16
+    - type: uint16
+    - type: uint32
+    - type: uint8
+    - type: uint8
+    - type: uint8
+    - type: uint8
+    - type: uint8
+- name: cli_command
+  value:
+    group: bt_pawr_advertiser
+    name: change_parameters
+    handler: sli_bt_cli_pawr_advertiser_change_parameters
+    argument:
+    - type: uint8
+    - type: uint16
+    - type: uint16
+    - type: uint32
+    - type: uint8
+    - type: uint8
+    - type: uint8
+    - type: uint8
+    - type: uint8
+    - type: uint8
+    - type: uint8
+- name: cli_command
+  value:
+    group: bt_pawr_advertiser
+    name: set_subevent_data
+    handler: sli_bt_cli_pawr_advertiser_set_subevent_data
+    argument:
+    - type: uint8
+    - type: uint8
+    - type: uint8
+    - type: uint8
+    - type: hex
+- name: cli_command
+  value:
+    group: bt_pawr_advertiser
+    name: create_connection
+    handler: sli_bt_cli_pawr_advertiser_create_connection
+    argument:
+    - type: uint8
+    - type: uint8
+    - type: hex
+    - type: uint8
+- name: cli_command
+  value:
+    group: bt_pawr_advertiser
+    name: stop
+    handler: sli_bt_cli_pawr_advertiser_stop
+    argument:
+    - type: uint8
+- name: cli_command
+  value:
+    group: bt_connection
+    name: set_default_parameters
+    handler: sli_bt_cli_connection_set_default_parameters
+    argument:
+    - type: uint16
+    - type: uint16
+    - type: uint16
+    - type: uint16
+    - type: uint16
+    - type: uint16
+- name: cli_command
+  value:
+    group: bt_connection
+    name: set_default_preferred_phy
+    handler: sli_bt_cli_connection_set_default_preferred_phy
+    argument:
+    - type: uint8
+    - type: uint8
+- name: cli_command
+  value:
+    group: bt_connection
+    name: set_default_data_length
+    handler: sli_bt_cli_connection_set_default_data_length
+    argument:
+    - type: uint16
+- name: cli_command
+  value:
+    group: bt_connection
+    name: set_default_acceptable_subrate
+    handler: sli_bt_cli_connection_set_default_acceptable_subrate
+    argument:
+    - type: uint16
+    - type: uint16
+    - type: uint16
+    - type: uint16
+    - type: uint16
+- name: cli_command
+  value:
+    group: bt_connection
+    name: open
+    handler: sli_bt_cli_connection_open
+    argument:
+    - type: hex
+    - type: uint8
+    - type: uint8
+- name: cli_command
+  value:
+    group: bt_connection
+    name: open_with_accept_list
+    handler: sli_bt_cli_connection_open_with_accept_list
+    argument:
+    - type: uint8
+- name: cli_command
+  value:
+    group: bt_connection
+    name: set_parameters
+    handler: sli_bt_cli_connection_set_parameters
+    argument:
+    - type: uint8
+    - type: uint16
+    - type: uint16
+    - type: uint16
+    - type: uint16
+    - type: uint16
+    - type: uint16
+- name: cli_command
+  value:
+    group: bt_connection
+    name: set_preferred_phy
+    handler: sli_bt_cli_connection_set_preferred_phy
+    argument:
+    - type: uint8
+    - type: uint8
+    - type: uint8
+- name: cli_command
+  value:
+    group: bt_connection
+    name: disable_slave_latency
+    handler: sli_bt_cli_connection_disable_slave_latency
+    argument:
+    - type: uint8
+    - type: uint8
+- name: cli_command
+  value:
+    group: bt_connection
+    name: get_median_rssi
+    handler: sli_bt_cli_connection_get_median_rssi
+    argument:
+    - type: uint8
+- name: cli_command
+  value:
+    group: bt_connection
+    name: read_channel_map
+    handler: sli_bt_cli_connection_read_channel_map
+    argument:
+    - type: uint8
+- name: cli_command
+  value:
+    group: bt_connection
+    name: set_power_reporting
+    handler: sli_bt_cli_connection_set_power_reporting
+    argument:
+    - type: uint8
+    - type: uint8
+- name: cli_command
+  value:
+    group: bt_connection
+    name: set_remote_power_reporting
+    handler: sli_bt_cli_connection_set_remote_power_reporting
+    argument:
+    - type: uint8
+    - type: uint8
+- name: cli_command
+  value:
+    group: bt_connection
+    name: get_tx_power
+    handler: sli_bt_cli_connection_get_tx_power
+    argument:
+    - type: uint8
+    - type: uint8
+- name: cli_command
+  value:
+    group: bt_connection
+    name: get_remote_tx_power
+    handler: sli_bt_cli_connection_get_remote_tx_power
+    argument:
+    - type: uint8
+    - type: uint8
+- name: cli_command
+  value:
+    group: bt_connection
+    name: set_tx_power
+    handler: sli_bt_cli_connection_set_tx_power
+    argument:
+    - type: uint8
+    - type: int16
+- name: cli_command
+  value:
+    group: bt_connection
+    name: read_remote_used_features
+    handler: sli_bt_cli_connection_read_remote_used_features
+    argument:
+    - type: uint8
+- name: cli_command
+  value:
+    group: bt_connection
+    name: get_security_status
+    handler: sli_bt_cli_connection_get_security_status
+    argument:
+    - type: uint8
+- name: cli_command
+  value:
+    group: bt_connection
+    name: set_data_length
+    handler: sli_bt_cli_connection_set_data_length
+    argument:
+    - type: uint8
+    - type: uint16
+    - type: uint16
+- name: cli_command
+  value:
+    group: bt_connection
+    name: read_statistics
+    handler: sli_bt_cli_connection_read_statistics
+    argument:
+    - type: uint8
+    - type: uint8
+- name: cli_command
+  value:
+    group: bt_connection
+    name: get_scheduling_details
+    handler: sli_bt_cli_connection_get_scheduling_details
+    argument:
+    - type: uint8
+- name: cli_command
+  value:
+    group: bt_connection
+    name: get_remote_address
+    handler: sli_bt_cli_connection_get_remote_address
+    argument:
+    - type: uint8
+- name: cli_command
+  value:
+    group: bt_connection
+    name: request_subrate
+    handler: sli_bt_cli_connection_request_subrate
+    argument:
+    - type: uint8
+    - type: uint16
+    - type: uint16
+    - type: uint16
+    - type: uint16
+    - type: uint16
+- name: cli_command
+  value:
+    group: bt_connection
+    name: get_state
+    handler: sli_bt_cli_connection_get_state
+    argument:
+    - type: uint8
+- name: cli_command
+  value:
+    group: bt_connection
+    name: close
+    handler: sli_bt_cli_connection_close
+    argument:
+    - type: uint8
+- name: cli_command
+  value:
+    group: bt_connection
+    name: forcefully_close
+    handler: sli_bt_cli_connection_forcefully_close
+    argument:
+    - type: uint8
+- name: cli_command
+  value:
+    group: bt_gatt
+    name: set_max_mtu
+    handler: sli_bt_cli_gatt_set_max_mtu
+    argument:
+    - type: uint16
+  condition:
+  - bluetooth_feature_gatt
+- name: cli_command
+  value:
+    group: bt_gatt
+    name: discover_primary_services
+    handler: sli_bt_cli_gatt_discover_primary_services
+    argument:
+    - type: uint8
+  condition:
+  - bluetooth_feature_gatt
+- name: cli_command
+  value:
+    group: bt_gatt
+    name: discover_primary_services_by_uuid
+    handler: sli_bt_cli_gatt_discover_primary_services_by_uuid
+    argument:
+    - type: uint8
+    - type: hex
+  condition:
+  - bluetooth_feature_gatt
+- name: cli_command
+  value:
+    group: bt_gatt
+    name: find_included_services
+    handler: sli_bt_cli_gatt_find_included_services
+    argument:
+    - type: uint8
+    - type: uint32
+  condition:
+  - bluetooth_feature_gatt
+- name: cli_command
+  value:
+    group: bt_gatt
+    name: discover_characteristics
+    handler: sli_bt_cli_gatt_discover_characteristics
+    argument:
+    - type: uint8
+    - type: uint32
+  condition:
+  - bluetooth_feature_gatt
+- name: cli_command
+  value:
+    group: bt_gatt
+    name: discover_characteristics_by_uuid
+    handler: sli_bt_cli_gatt_discover_characteristics_by_uuid
+    argument:
+    - type: uint8
+    - type: uint32
+    - type: hex
+  condition:
+  - bluetooth_feature_gatt
+- name: cli_command
+  value:
+    group: bt_gatt
+    name: discover_descriptors
+    handler: sli_bt_cli_gatt_discover_descriptors
+    argument:
+    - type: uint8
+    - type: uint16
+  condition:
+  - bluetooth_feature_gatt
+- name: cli_command
+  value:
+    group: bt_gatt
+    name: discover_characteristic_descriptors
+    handler: sli_bt_cli_gatt_discover_characteristic_descriptors
+    argument:
+    - type: uint8
+    - type: uint16
+    - type: uint16
+  condition:
+  - bluetooth_feature_gatt
+- name: cli_command
+  value:
+    group: bt_gatt
+    name: set_characteristic_notification
+    handler: sli_bt_cli_gatt_set_characteristic_notification
+    argument:
+    - type: uint8
+    - type: uint16
+    - type: uint8
+  condition:
+  - bluetooth_feature_gatt
+- name: cli_command
+  value:
+    group: bt_gatt
+    name: send_characteristic_confirmation
+    handler: sli_bt_cli_gatt_send_characteristic_confirmation
+    argument:
+    - type: uint8
+  condition:
+  - bluetooth_feature_gatt
+- name: cli_command
+  value:
+    group: bt_gatt
+    name: read_characteristic_value
+    handler: sli_bt_cli_gatt_read_characteristic_value
+    argument:
+    - type: uint8
+    - type: uint16
+  condition:
+  - bluetooth_feature_gatt
+- name: cli_command
+  value:
+    group: bt_gatt
+    name: read_characteristic_value_from_offset
+    handler: sli_bt_cli_gatt_read_characteristic_value_from_offset
+    argument:
+    - type: uint8
+    - type: uint16
+    - type: uint16
+    - type: uint16
+  condition:
+  - bluetooth_feature_gatt
+- name: cli_command
+  value:
+    group: bt_gatt
+    name: read_multiple_characteristic_values
+    handler: sli_bt_cli_gatt_read_multiple_characteristic_values
+    argument:
+    - type: uint8
+    - type: hex
+  condition:
+  - bluetooth_feature_gatt
+- name: cli_command
+  value:
+    group: bt_gatt
+    name: read_variable_length_characteristic_values
+    handler: sli_bt_cli_gatt_read_variable_length_characteristic_values
+    argument:
+    - type: uint8
+    - type: hex
+  condition:
+  - bluetooth_feature_gatt
+- name: cli_command
+  value:
+    group: bt_gatt
+    name: read_characteristic_value_by_uuid
+    handler: sli_bt_cli_gatt_read_characteristic_value_by_uuid
+    argument:
+    - type: uint8
+    - type: uint32
+    - type: hex
+  condition:
+  - bluetooth_feature_gatt
+- name: cli_command
+  value:
+    group: bt_gatt
+    name: write_characteristic_value
+    handler: sli_bt_cli_gatt_write_characteristic_value
+    argument:
+    - type: uint8
+    - type: uint16
+    - type: hex
+  condition:
+  - bluetooth_feature_gatt
+- name: cli_command
+  value:
+    group: bt_gatt
+    name: write_characteristic_value_without_response
+    handler: sli_bt_cli_gatt_write_characteristic_value_without_response
+    argument:
+    - type: uint8
+    - type: uint16
+    - type: hex
+  condition:
+  - bluetooth_feature_gatt
+- name: cli_command
+  value:
+    group: bt_gatt
+    name: prepare_characteristic_value_write
+    handler: sli_bt_cli_gatt_prepare_characteristic_value_write
+    argument:
+    - type: uint8
+    - type: uint16
+    - type: uint16
+    - type: hex
+  condition:
+  - bluetooth_feature_gatt
+- name: cli_command
+  value:
+    group: bt_gatt
+    name: prepare_characteristic_value_reliable_write
+    handler: sli_bt_cli_gatt_prepare_characteristic_value_reliable_write
+    argument:
+    - type: uint8
+    - type: uint16
+    - type: uint16
+    - type: hex
+  condition:
+  - bluetooth_feature_gatt
+- name: cli_command
+  value:
+    group: bt_gatt
+    name: execute_characteristic_value_write
+    handler: sli_bt_cli_gatt_execute_characteristic_value_write
+    argument:
+    - type: uint8
+    - type: uint8
+  condition:
+  - bluetooth_feature_gatt
+- name: cli_command
+  value:
+    group: bt_gatt
+    name: read_descriptor_value
+    handler: sli_bt_cli_gatt_read_descriptor_value
+    argument:
+    - type: uint8
+    - type: uint16
+  condition:
+  - bluetooth_feature_gatt
+- name: cli_command
+  value:
+    group: bt_gatt
+    name: write_descriptor_value
+    handler: sli_bt_cli_gatt_write_descriptor_value
+    argument:
+    - type: uint8
+    - type: uint16
+    - type: hex
+  condition:
+  - bluetooth_feature_gatt
+- name: cli_command
+  value:
+    group: bt_gatt
+    name: get_mtu
+    handler: sli_bt_cli_gatt_get_mtu
+    argument:
+    - type: uint8
+  condition:
+  - bluetooth_feature_gatt
+- name: cli_command
+  value:
+    group: bt_gattdb
+    name: new_session
+    handler: sli_bt_cli_gattdb_new_session
+- name: cli_command
+  value:
+    group: bt_gattdb
+    name: add_service
+    handler: sli_bt_cli_gattdb_add_service
+    argument:
+    - type: uint16
+    - type: uint8
+    - type: uint8
+    - type: hex
+- name: cli_command
+  value:
+    group: bt_gattdb
+    name: remove_service
+    handler: sli_bt_cli_gattdb_remove_service
+    argument:
+    - type: uint16
+    - type: uint16
+- name: cli_command
+  value:
+    group: bt_gattdb
+    name: add_included_service
+    handler: sli_bt_cli_gattdb_add_included_service
+    argument:
+    - type: uint16
+    - type: uint16
+    - type: uint16
+- name: cli_command
+  value:
+    group: bt_gattdb
+    name: remove_included_service
+    handler: sli_bt_cli_gattdb_remove_included_service
+    argument:
+    - type: uint16
+    - type: uint16
+- name: cli_command
+  value:
+    group: bt_gattdb
+    name: add_uuid16_characteristic
+    handler: sli_bt_cli_gattdb_add_uuid16_characteristic
+    argument:
+    - type: uint16
+    - type: uint16
+    - type: uint16
+    - type: uint16
+    - type: uint8
+    - type: hex
+    - type: uint8
+    - type: uint16
+    - type: hex
+- name: cli_command
+  value:
+    group: bt_gattdb
+    name: add_uuid128_characteristic
+    handler: sli_bt_cli_gattdb_add_uuid128_characteristic
+    argument:
+    - type: uint16
+    - type: uint16
+    - type: uint16
+    - type: uint16
+    - type: uint8
+    - type: hex
+    - type: uint8
+    - type: uint16
+    - type: hex
+- name: cli_command
+  value:
+    group: bt_gattdb
+    name: remove_characteristic
+    handler: sli_bt_cli_gattdb_remove_characteristic
+    argument:
+    - type: uint16
+    - type: uint16
+- name: cli_command
+  value:
+    group: bt_gattdb
+    name: add_uuid16_descriptor
+    handler: sli_bt_cli_gattdb_add_uuid16_descriptor
+    argument:
+    - type: uint16
+    - type: uint16
+    - type: uint16
+    - type: uint16
+    - type: hex
+    - type: uint8
+    - type: uint16
+    - type: hex
+- name: cli_command
+  value:
+    group: bt_gattdb
+    name: add_uuid128_descriptor
+    handler: sli_bt_cli_gattdb_add_uuid128_descriptor
+    argument:
+    - type: uint16
+    - type: uint16
+    - type: uint16
+    - type: uint16
+    - type: hex
+    - type: uint8
+    - type: uint16
+    - type: hex
+- name: cli_command
+  value:
+    group: bt_gattdb
+    name: remove_descriptor
+    handler: sli_bt_cli_gattdb_remove_descriptor
+    argument:
+    - type: uint16
+    - type: uint16
+- name: cli_command
+  value:
+    group: bt_gattdb
+    name: start_service
+    handler: sli_bt_cli_gattdb_start_service
+    argument:
+    - type: uint16
+    - type: uint16
+- name: cli_command
+  value:
+    group: bt_gattdb
+    name: stop_service
+    handler: sli_bt_cli_gattdb_stop_service
+    argument:
+    - type: uint16
+    - type: uint16
+- name: cli_command
+  value:
+    group: bt_gattdb
+    name: start_characteristic
+    handler: sli_bt_cli_gattdb_start_characteristic
+    argument:
+    - type: uint16
+    - type: uint16
+- name: cli_command
+  value:
+    group: bt_gattdb
+    name: stop_characteristic
+    handler: sli_bt_cli_gattdb_stop_characteristic
+    argument:
+    - type: uint16
+    - type: uint16
+- name: cli_command
+  value:
+    group: bt_gattdb
+    name: commit
+    handler: sli_bt_cli_gattdb_commit
+    argument:
+    - type: uint16
+- name: cli_command
+  value:
+    group: bt_gattdb
+    name: abort
+    handler: sli_bt_cli_gattdb_abort
+    argument:
+    - type: uint16
+- name: cli_command
+  value:
+    group: bt_gattdb
+    name: get_attribute_state
+    handler: sli_bt_cli_gattdb_get_attribute_state
+    argument:
+    - type: uint16
+- name: cli_command
+  value:
+    group: bt_gatt_server
+    name: set_max_mtu
+    handler: sli_bt_cli_gatt_server_set_max_mtu
+    argument:
+    - type: uint16
+- name: cli_command
+  value:
+    group: bt_gatt_server
+    name: get_mtu
+    handler: sli_bt_cli_gatt_server_get_mtu
+    argument:
+    - type: uint8
+- name: cli_command
+  value:
+    group: bt_gatt_server
+    name: find_attribute
+    handler: sli_bt_cli_gatt_server_find_attribute
+    argument:
+    - type: uint16
+    - type: hex
+- name: cli_command
+  value:
+    group: bt_gatt_server
+    name: find_primary_service
+    handler: sli_bt_cli_gatt_server_find_primary_service
+    argument:
+    - type: uint16
+    - type: hex
+- name: cli_command
+  value:
+    group: bt_gatt_server
+    name: read_attribute_value
+    handler: sli_bt_cli_gatt_server_read_attribute_value
+    argument:
+    - type: uint16
+    - type: uint16
+- name: cli_command
+  value:
+    group: bt_gatt_server
+    name: read_attribute_type
+    handler: sli_bt_cli_gatt_server_read_attribute_type
+    argument:
+    - type: uint16
+- name: cli_command
+  value:
+    group: bt_gatt_server
+    name: read_attribute_properties
+    handler: sli_bt_cli_gatt_server_read_attribute_properties
+    argument:
+    - type: uint16
+- name: cli_command
+  value:
+    group: bt_gatt_server
+    name: write_attribute_value
+    handler: sli_bt_cli_gatt_server_write_attribute_value
+    argument:
+    - type: uint16
+    - type: uint16
+    - type: hex
+- name: cli_command
+  value:
+    group: bt_gatt_server
+    name: send_user_read_response
+    handler: sli_bt_cli_gatt_server_send_user_read_response
+    argument:
+    - type: uint8
+    - type: uint16
+    - type: uint8
+    - type: hex
+- name: cli_command
+  value:
+    group: bt_gatt_server
+    name: send_user_write_response
+    handler: sli_bt_cli_gatt_server_send_user_write_response
+    argument:
+    - type: uint8
+    - type: uint16
+    - type: uint8
+- name: cli_command
+  value:
+    group: bt_gatt_server
+    name: send_notification
+    handler: sli_bt_cli_gatt_server_send_notification
+    argument:
+    - type: uint8
+    - type: uint16
+    - type: hex
+- name: cli_command
+  value:
+    group: bt_gatt_server
+    name: send_notification_with_options
+    handler: sli_bt_cli_gatt_server_send_notification_with_options
+    argument:
+    - type: uint8
+    - type: uint16
+    - type: uint32
+    - type: hex
+- name: cli_command
+  value:
+    group: bt_gatt_server
+    name: send_indication
+    handler: sli_bt_cli_gatt_server_send_indication
+    argument:
+    - type: uint8
+    - type: uint16
+    - type: hex
+- name: cli_command
+  value:
+    group: bt_gatt_server
+    name: send_indication_with_options
+    handler: sli_bt_cli_gatt_server_send_indication_with_options
+    argument:
+    - type: uint8
+    - type: uint16
+    - type: uint32
+    - type: hex
+- name: cli_command
+  value:
+    group: bt_gatt_server
+    name: notify_all
+    handler: sli_bt_cli_gatt_server_notify_all
+    argument:
+    - type: uint16
+    - type: hex
+- name: cli_command
+  value:
+    group: bt_gatt_server
+    name: read_client_configuration
+    handler: sli_bt_cli_gatt_server_read_client_configuration
+    argument:
+    - type: uint8
+    - type: uint16
+- name: cli_command
+  value:
+    group: bt_gatt_server
+    name: send_user_prepare_write_response
+    handler: sli_bt_cli_gatt_server_send_user_prepare_write_response
+    argument:
+    - type: uint8
+    - type: uint16
+    - type: uint8
+    - type: uint16
+    - type: hex
+- name: cli_command
+  value:
+    group: bt_gatt_server
+    name: set_capabilities
+    handler: sli_bt_cli_gatt_server_set_capabilities
+    argument:
+    - type: uint32
+    - type: uint32
+- name: cli_command
+  value:
+    group: bt_gatt_server
+    name: enable_capabilities
+    handler: sli_bt_cli_gatt_server_enable_capabilities
+    argument:
+    - type: uint32
+- name: cli_command
+  value:
+    group: bt_gatt_server
+    name: disable_capabilities
+    handler: sli_bt_cli_gatt_server_disable_capabilities
+    argument:
+    - type: uint32
+- name: cli_command
+  value:
+    group: bt_gatt_server
+    name: get_enabled_capabilities
+    handler: sli_bt_cli_gatt_server_get_enabled_capabilities
+- name: cli_command
+  value:
+    group: bt_gatt_server
+    name: read_client_supported_features
+    handler: sli_bt_cli_gatt_server_read_client_supported_features
+    argument:
+    - type: uint8
+- name: cli_command
+  value:
+    group: bt_nvm
+    name: save
+    handler: sli_bt_cli_nvm_save
+    argument:
+    - type: uint16
+    - type: hex
+- name: cli_command
+  value:
+    group: bt_nvm
+    name: load
+    handler: sli_bt_cli_nvm_load
+    argument:
+    - type: uint16
+- name: cli_command
+  value:
+    group: bt_nvm
+    name: erase
+    handler: sli_bt_cli_nvm_erase
+    argument:
+    - type: uint16
+- name: cli_command
+  value:
+    group: bt_nvm
+    name: erase_all
+    handler: sli_bt_cli_nvm_erase_all
+- name: cli_command
+  value:
+    group: bt_test
+    name: dtm_tx_v4
+    handler: sli_bt_cli_test_dtm_tx_v4
+    argument:
+    - type: uint8
+    - type: uint8
+    - type: uint8
+    - type: uint8
+    - type: int8
+- name: cli_command
+  value:
+    group: bt_test
+    name: dtm_tx_cw
+    handler: sli_bt_cli_test_dtm_tx_cw
+    argument:
+    - type: uint8
+    - type: uint8
+    - type: uint8
+    - type: int16
+- name: cli_command
+  value:
+    group: bt_test
+    name: dtm_rx
+    handler: sli_bt_cli_test_dtm_rx
+    argument:
+    - type: uint8
+    - type: uint8
+- name: cli_command
+  value:
+    group: bt_test
+    name: dtm_end
+    handler: sli_bt_cli_test_dtm_end
+- name: cli_command
+  value:
+    group: bt_sm
+    name: configure
+    handler: sli_bt_cli_sm_configure
+    argument:
+    - type: uint8
+    - type: uint8
+- name: cli_command
+  value:
+    group: bt_sm
+    name: set_minimum_key_size
+    handler: sli_bt_cli_sm_set_minimum_key_size
+    argument:
+    - type: uint8
+- name: cli_command
+  value:
+    group: bt_sm
+    name: set_debug_mode
+    handler: sli_bt_cli_sm_set_debug_mode
+- name: cli_command
+  value:
+    group: bt_sm
+    name: store_bonding_configuration
+    handler: sli_bt_cli_sm_store_bonding_configuration
+    argument:
+    - type: uint8
+    - type: uint8
+- name: cli_command
+  value:
+    group: bt_sm
+    name: set_bondable_mode
+    handler: sli_bt_cli_sm_set_bondable_mode
+    argument:
+    - type: uint8
+- name: cli_command
+  value:
+    group: bt_sm
+    name: set_passkey
+    handler: sli_bt_cli_sm_set_passkey
+    argument:
+    - type: int32
+- name: cli_command
+  value:
+    group: bt_sm
+    name: increase_security
+    handler: sli_bt_cli_sm_increase_security
+    argument:
+    - type: uint8
+- name: cli_command
+  value:
+    group: bt_sm
+    name: enter_passkey
+    handler: sli_bt_cli_sm_enter_passkey
+    argument:
+    - type: uint8
+    - type: int32
+- name: cli_command
+  value:
+    group: bt_sm
+    name: passkey_confirm
+    handler: sli_bt_cli_sm_passkey_confirm
+    argument:
+    - type: uint8
+    - type: uint8
+- name: cli_command
+  value:
+    group: bt_sm
+    name: bonding_confirm
+    handler: sli_bt_cli_sm_bonding_confirm
+    argument:
+    - type: uint8
+    - type: uint8
+- name: cli_command
+  value:
+    group: bt_sm
+    name: delete_bonding
+    handler: sli_bt_cli_sm_delete_bonding
+    argument:
+    - type: uint8
+- name: cli_command
+  value:
+    group: bt_sm
+    name: delete_bondings
+    handler: sli_bt_cli_sm_delete_bondings
+- name: cli_command
+  value:
+    group: bt_sm
+    name: get_bonding_handles
+    handler: sli_bt_cli_sm_get_bonding_handles
+    argument:
+    - type: uint32
+- name: cli_command
+  value:
+    group: bt_sm
+    name: get_bonding_details
+    handler: sli_bt_cli_sm_get_bonding_details
+    argument:
+    - type: uint32
+- name: cli_command
+  value:
+    group: bt_sm
+    name: find_bonding_by_address
+    handler: sli_bt_cli_sm_find_bonding_by_address
+    argument:
+    - type: hex
+- name: cli_command
+  value:
+    group: bt_sm
+    name: resolve_rpa
+    handler: sli_bt_cli_sm_resolve_rpa
+    argument:
+    - type: hex
+- name: cli_command
+  value:
+    group: bt_sm
+    name: set_legacy_oob
+    handler: sli_bt_cli_sm_set_legacy_oob
+    argument:
+    - type: uint8
+    - type: hex
+- name: cli_command
+  value:
+    group: bt_sm
+    name: set_oob
+    handler: sli_bt_cli_sm_set_oob
+    argument:
+    - type: uint8
+- name: cli_command
+  value:
+    group: bt_sm
+    name: set_remote_oob
+    handler: sli_bt_cli_sm_set_remote_oob
+    argument:
+    - type: uint8
+    - type: hex
+    - type: hex
+- name: cli_command
+  value:
+    group: bt_external_bondingdb
+    name: set_data
+    handler: sli_bt_cli_external_bondingdb_set_data
+    argument:
+    - type: uint8
+    - type: uint8
+    - type: hex
+- name: cli_command
+  value:
+    group: bt_external_bondingdb
+    name: set_local_irk
+    handler: sli_bt_cli_external_bondingdb_set_local_irk
+    argument:
+    - type: hex
+- name: cli_command
+  value:
+    group: bt_resolving_list
+    name: add_device_by_bonding
+    handler: sli_bt_cli_resolving_list_add_device_by_bonding
+    argument:
+    - type: uint32
+    - type: uint8
+- name: cli_command
+  value:
+    group: bt_resolving_list
+    name: add_device_by_address
+    handler: sli_bt_cli_resolving_list_add_device_by_address
+    argument:
+    - type: hex
+    - type: uint8
+    - type: hex
+    - type: uint8
+- name: cli_command
+  value:
+    group: bt_resolving_list
+    name: remove_device_by_bonding
+    handler: sli_bt_cli_resolving_list_remove_device_by_bonding
+    argument:
+    - type: uint32
+- name: cli_command
+  value:
+    group: bt_resolving_list
+    name: remove_device_by_address
+    handler: sli_bt_cli_resolving_list_remove_device_by_address
+    argument:
+    - type: hex
+    - type: uint8
+- name: cli_command
+  value:
+    group: bt_resolving_list
+    name: remove_all_devices
+    handler: sli_bt_cli_resolving_list_remove_all_devices
+- name: cli_command
+  value:
+    group: bt_accept_list
+    name: add_device_by_bonding
+    handler: sli_bt_cli_accept_list_add_device_by_bonding
+    argument:
+    - type: uint32
+  condition:
+  - bluetooth_feature_accept_list
+- name: cli_command
+  value:
+    group: bt_accept_list
+    name: add_device_by_address
+    handler: sli_bt_cli_accept_list_add_device_by_address
+    argument:
+    - type: hex
+    - type: uint8
+  condition:
+  - bluetooth_feature_accept_list
+- name: cli_command
+  value:
+    group: bt_accept_list
+    name: remove_device_by_bonding
+    handler: sli_bt_cli_accept_list_remove_device_by_bonding
+    argument:
+    - type: uint32
+  condition:
+  - bluetooth_feature_accept_list
+- name: cli_command
+  value:
+    group: bt_accept_list
+    name: remove_device_by_address
+    handler: sli_bt_cli_accept_list_remove_device_by_address
+    argument:
+    - type: hex
+    - type: uint8
+  condition:
+  - bluetooth_feature_accept_list
+- name: cli_command
+  value:
+    group: bt_accept_list
+    name: remove_all_devices
+    handler: sli_bt_cli_accept_list_remove_all_devices
+  condition:
+  - bluetooth_feature_accept_list
+- name: cli_command
+  value:
+    group: bt_coex
+    name: set_options
+    handler: sli_bt_cli_coex_set_options
+    argument:
+    - type: uint32
+    - type: uint32
+- name: cli_command
+  value:
+    group: bt_coex
+    name: set_parameters
+    handler: sli_bt_cli_coex_set_parameters
+    argument:
+    - type: uint8
+    - type: uint8
+    - type: uint8
+    - type: uint8
+- name: cli_command
+  value:
+    group: bt_coex
+    name: set_directional_priority_pulse
+    handler: sli_bt_cli_coex_set_directional_priority_pulse
+    argument:
+    - type: uint8
+- name: cli_command
+  value:
+    group: bt_coex
+    name: get_parameters
+    handler: sli_bt_cli_coex_get_parameters
+- name: cli_command
+  value:
+    group: bt_coex
+    name: get_counters
+    handler: sli_bt_cli_coex_get_counters
+    argument:
+    - type: uint8
+- name: cli_command
+  value:
+    group: bt_cs
+    name: security_enable
+    handler: sli_bt_cli_cs_security_enable
+    argument:
+    - type: uint8
+  condition:
+  - device_supports_bluetooth_cs
+- name: cli_command
+  value:
+    group: bt_cs
+    name: set_default_settings
+    handler: sli_bt_cli_cs_set_default_settings
+    argument:
+    - type: uint8
+    - type: uint8
+    - type: uint8
+    - type: uint8
+    - type: int8
+  condition:
+  - device_supports_bluetooth_cs
+- name: cli_command
+  value:
+    group: bt_cs
+    name: create_config
+    handler: sli_bt_cli_cs_create_config
+    argument:
+    - type: uint8
+    - type: uint8
+    - type: uint8
+    - type: uint8
+    - type: uint8
+    - type: uint8
+    - type: uint8
+    - type: uint8
+    - type: uint8
+    - type: uint8
+    - type: uint8
+    - type: uint8
+    - type: hex
+    - type: uint8
+    - type: uint8
+    - type: uint8
+    - type: uint8
+    - type: uint8
+  condition:
+  - device_supports_bluetooth_cs
+- name: cli_command
+  value:
+    group: bt_cs
+    name: remove_config
+    handler: sli_bt_cli_cs_remove_config
+    argument:
+    - type: uint8
+    - type: uint8
+  condition:
+  - device_supports_bluetooth_cs
+- name: cli_command
+  value:
+    group: bt_cs
+    name: set_channel_classification
+    handler: sli_bt_cli_cs_set_channel_classification
+    argument:
+    - type: hex
+  condition:
+  - device_supports_bluetooth_cs
+- name: cli_command
+  value:
+    group: bt_cs
+    name: set_procedure_parameters
+    handler: sli_bt_cli_cs_set_procedure_parameters
+    argument:
+    - type: uint8
+    - type: uint8
+    - type: uint16
+    - type: uint16
+    - type: uint16
+    - type: uint16
+    - type: uint32
+    - type: uint32
+    - type: uint8
+    - type: uint8
+    - type: int8
+    - type: uint8
+    - type: uint8
+    - type: uint8
+  condition:
+  - device_supports_bluetooth_cs
+- name: cli_command
+  value:
+    group: bt_cs
+    name: procedure_enable
+    handler: sli_bt_cli_cs_procedure_enable
+    argument:
+    - type: uint8
+    - type: uint8
+    - type: uint8
+  condition:
+  - device_supports_bluetooth_cs
+- name: cli_command
+  value:
+    group: bt_cs
+    name: set_antenna_configuration
+    handler: sli_bt_cli_cs_set_antenna_configuration
+    argument:
+    - type: hex
+  condition:
+  - device_supports_bluetooth_cs
+- name: cli_command
+  value:
+    group: bt_cs
+    name: read_local_supported_capabilities
+    handler: sli_bt_cli_cs_read_local_supported_capabilities
+  condition:
+  - device_supports_bluetooth_cs
+- name: cli_command
+  value:
+    group: bt_cs
+    name: read_remote_supported_capabilities
+    handler: sli_bt_cli_cs_read_remote_supported_capabilities
+    argument:
+    - type: uint8
+  condition:
+  - device_supports_bluetooth_cs
+- name: cli_command
+  value:
+    group: bt_cs_test
+    name: start
+    handler: sli_bt_cli_cs_test_start
+    argument:
+    - type: uint8
+    - type: uint8
+    - type: uint8
+    - type: uint8
+    - type: uint8
+    - type: uint8
+    - type: uint8
+    - type: uint8
+    - type: hex
+    - type: uint16
+    - type: uint8
+    - type: int8
+    - type: uint8
+    - type: uint8
+    - type: uint8
+    - type: uint8
+    - type: uint8
+    - type: uint8
+    - type: uint8
+    - type: uint8
+    - type: uint8
+    - type: uint16
+    - type: uint8
+    - type: uint16
+    - type: hex
+  condition:
+  - device_supports_bluetooth_cs
+- name: cli_command
+  value:
+    group: bt_cs_test
+    name: end
+    handler: sli_bt_cli_cs_test_end
+  condition:
+  - device_supports_bluetooth_cs
+- name: cli_command
+  value:
+    group: bt_l2cap
+    name: open_le_channel
+    handler: sli_bt_cli_l2cap_open_le_channel
+    argument:
+    - type: uint8
+    - type: uint16
+    - type: uint16
+    - type: uint16
+    - type: uint16
+- name: cli_command
+  value:
+    group: bt_l2cap
+    name: send_le_channel_open_response
+    handler: sli_bt_cli_l2cap_send_le_channel_open_response
+    argument:
+    - type: uint8
+    - type: uint16
+    - type: uint16
+    - type: uint16
+    - type: uint16
+    - type: uint16
+- name: cli_command
+  value:
+    group: bt_l2cap
+    name: channel_send_data
+    handler: sli_bt_cli_l2cap_channel_send_data
+    argument:
+    - type: uint8
+    - type: uint16
+    - type: hex
+- name: cli_command
+  value:
+    group: bt_l2cap
+    name: channel_send_credit
+    handler: sli_bt_cli_l2cap_channel_send_credit
+    argument:
+    - type: uint8
+    - type: uint16
+    - type: uint16
+- name: cli_command
+  value:
+    group: bt_l2cap
+    name: close_channel
+    handler: sli_bt_cli_l2cap_close_channel
+    argument:
+    - type: uint8
+    - type: uint16
+- name: cli_command
+  value:
+    group: bt_cte_transmitter
+    name: set_dtm_parameters
+    handler: sli_bt_cli_cte_transmitter_set_dtm_parameters
+    argument:
+    - type: uint8
+    - type: uint8
+    - type: hex
+  condition:
+  - bluetooth_feature_cte_transmitter
+- name: cli_command
+  value:
+    group: bt_cte_transmitter
+    name: clear_dtm_parameters
+    handler: sli_bt_cli_cte_transmitter_clear_dtm_parameters
+  condition:
+  - bluetooth_feature_cte_transmitter
+- name: cli_command
+  value:
+    group: bt_cte_transmitter
+    name: enable_connection_cte
+    handler: sli_bt_cli_cte_transmitter_enable_connection_cte
+    argument:
+    - type: uint8
+    - type: uint8
+    - type: hex
+  condition:
+  - bluetooth_feature_cte_transmitter
+- name: cli_command
+  value:
+    group: bt_cte_transmitter
+    name: disable_connection_cte
+    handler: sli_bt_cli_cte_transmitter_disable_connection_cte
+    argument:
+    - type: uint8
+  condition:
+  - bluetooth_feature_cte_transmitter
+- name: cli_command
+  value:
+    group: bt_cte_transmitter
+    name: enable_connectionless_cte
+    handler: sli_bt_cli_cte_transmitter_enable_connectionless_cte
+    argument:
+    - type: uint8
+    - type: uint8
+    - type: uint8
+    - type: uint8
+    - type: hex
+  condition:
+  - bluetooth_feature_cte_transmitter
+- name: cli_command
+  value:
+    group: bt_cte_transmitter
+    name: disable_connectionless_cte
+    handler: sli_bt_cli_cte_transmitter_disable_connectionless_cte
+    argument:
+    - type: uint8
+  condition:
+  - bluetooth_feature_cte_transmitter
+- name: cli_command
+  value:
+    group: bt_cte_transmitter
+    name: enable_silabs_cte
+    handler: sli_bt_cli_cte_transmitter_enable_silabs_cte
+    argument:
+    - type: uint8
+    - type: uint8
+    - type: uint8
+    - type: uint8
+    - type: hex
+  condition:
+  - bluetooth_feature_cte_transmitter
+- name: cli_command
+  value:
+    group: bt_cte_transmitter
+    name: disable_silabs_cte
+    handler: sli_bt_cli_cte_transmitter_disable_silabs_cte
+    argument:
+    - type: uint8
+  condition:
+  - bluetooth_feature_cte_transmitter
+- name: cli_command
+  value:
+    group: bt_cte_receiver
+    name: set_dtm_parameters
+    handler: sli_bt_cli_cte_receiver_set_dtm_parameters
+    argument:
+    - type: uint8
+    - type: uint8
+    - type: uint8
+    - type: hex
+  condition:
+  - bluetooth_feature_cte_receiver
+- name: cli_command
+  value:
+    group: bt_cte_receiver
+    name: clear_dtm_parameters
+    handler: sli_bt_cli_cte_receiver_clear_dtm_parameters
+  condition:
+  - bluetooth_feature_cte_receiver
+- name: cli_command
+  value:
+    group: bt_cte_receiver
+    name: set_sync_cte_type
+    handler: sli_bt_cli_cte_receiver_set_sync_cte_type
+    argument:
+    - type: uint8
+  condition:
+  - bluetooth_feature_cte_receiver
+- name: cli_command
+  value:
+    group: bt_cte_receiver
+    name: set_default_sync_receive_parameters
+    handler: sli_bt_cli_cte_receiver_set_default_sync_receive_parameters
+    argument:
+    - type: uint8
+    - type: uint16
+    - type: uint16
+    - type: uint8
+    - type: uint8
+  condition:
+  - bluetooth_feature_cte_receiver
+- name: cli_command
+  value:
+    group: bt_cte_receiver
+    name: set_sync_receive_parameters
+    handler: sli_bt_cli_cte_receiver_set_sync_receive_parameters
+    argument:
+    - type: uint8
+    - type: uint8
+    - type: uint16
+    - type: uint16
+    - type: uint8
+    - type: uint8
+  condition:
+  - bluetooth_feature_cte_receiver
+- name: cli_command
+  value:
+    group: bt_cte_receiver
+    name: configure
+    handler: sli_bt_cli_cte_receiver_configure
+    argument:
+    - type: uint8
+  condition:
+  - bluetooth_feature_cte_receiver
+- name: cli_command
+  value:
+    group: bt_cte_receiver
+    name: enable_connection_cte
+    handler: sli_bt_cli_cte_receiver_enable_connection_cte
+    argument:
+    - type: uint8
+    - type: uint16
+    - type: uint8
+    - type: uint8
+    - type: uint8
+    - type: hex
+  condition:
+  - bluetooth_feature_cte_receiver
+- name: cli_command
+  value:
+    group: bt_cte_receiver
+    name: disable_connection_cte
+    handler: sli_bt_cli_cte_receiver_disable_connection_cte
+    argument:
+    - type: uint8
+  condition:
+  - bluetooth_feature_cte_receiver
+- name: cli_command
+  value:
+    group: bt_cte_receiver
+    name: enable_connectionless_cte
+    handler: sli_bt_cli_cte_receiver_enable_connectionless_cte
+    argument:
+    - type: uint16
+    - type: uint8
+    - type: uint8
+    - type: hex
+  condition:
+  - bluetooth_feature_cte_receiver
+- name: cli_command
+  value:
+    group: bt_cte_receiver
+    name: disable_connectionless_cte
+    handler: sli_bt_cli_cte_receiver_disable_connectionless_cte
+    argument:
+    - type: uint16
+  condition:
+  - bluetooth_feature_cte_receiver
+- name: cli_command
+  value:
+    group: bt_cte_receiver
+    name: enable_silabs_cte
+    handler: sli_bt_cli_cte_receiver_enable_silabs_cte
+    argument:
+    - type: uint8
+    - type: uint8
+    - type: hex
+  condition:
+  - bluetooth_feature_cte_receiver
+- name: cli_command
+  value:
+    group: bt_cte_receiver
+    name: disable_silabs_cte
+    handler: sli_bt_cli_cte_receiver_disable_silabs_cte
+  condition:
+  - bluetooth_feature_cte_receiver
+- name: cli_command
+  value:
+    group: bt_connection_analyzer
+    name: start
+    handler: sli_bt_cli_connection_analyzer_start
+    argument:
+    - type: uint32
+    - type: uint32
+    - type: uint16
+    - type: uint16
+    - type: uint8
+    - type: uint8
+    - type: uint8
+    - type: uint8
+    - type: uint8
+    - type: hex
+    - type: uint8
+    - type: uint16
+    - type: int32
+    - type: uint32
+- name: cli_command
+  value:
+    group: bt_connection_analyzer
+    name: stop
+    handler: sli_bt_cli_connection_analyzer_stop
+    argument:
+    - type: uint8
+root_path: bluetooth_le_host

@@ -1,0 +1,468 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="structsl__bt__evt__cs__config__complete__s" kind="struct" language="C++" prot="public">
+    <compoundname>sl_bt_evt_cs_config_complete_s</compoundname>
+    <includes refid="sl__bt__api_8h" local="no">sl_bt_api.h</includes>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structsl__bt__evt__cs__config__complete__s_1a11a04499e4704ffe6730dacdf56cec4f" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_cs_config_complete_s::connection</definition>
+        <argsstring></argsstring>
+        <name>connection</name>
+        <qualifiedname>sl_bt_evt_cs_config_complete_s::connection</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Connection handle </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="13087" column="26" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="13087" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__cs__config__complete__s_1aa3d6f2ad298415669a644fa09ed1369b" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_cs_config_complete_s::config_id</definition>
+        <argsstring></argsstring>
+        <name>config_id</name>
+        <qualifiedname>sl_bt_evt_cs_config_complete_s::config_id</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>CS configuration identifier.<itemizedlist>
+<listitem><para><bold>Range:</bold> 0 to 3 </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="13088" column="26" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="13088" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__cs__config__complete__s_1a17759ab81636df837cc365eb538edbf2" prot="public" static="no" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t sl_bt_evt_cs_config_complete_s::status</definition>
+        <argsstring></argsstring>
+        <name>status</name>
+        <qualifiedname>sl_bt_evt_cs_config_complete_s::status</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>SL_STATUS_OK if successful. Error code otherwise. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="13091" column="26" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="13091" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__cs__config__complete__s_1ab214f3507b52b16fdcc4209b5ecb4677" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_cs_config_complete_s::config_state</definition>
+        <argsstring></argsstring>
+        <name>config_state</name>
+        <qualifiedname>sl_bt_evt_cs_config_complete_s::config_state</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Enum <ref refid="group__sl__bt__cs_1gacdacad7e39ed8a52834708a58845f41a" kindref="member">sl_bt_cs_config_state_t</ref>. CS configuration state Values:<itemizedlist>
+<listitem><para><bold>sl_bt_cs_config_state_removed (0x0):</bold> The CS device configuration is removed</para>
+</listitem><listitem><para><bold>sl_bt_cs_config_state_created (0x1):</bold> The CS device configuration is created </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="13094" column="26" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="13094" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__cs__config__complete__s_1a207126af8e79e46e046e725fb6f874fd" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_cs_config_complete_s::main_mode_type</definition>
+        <argsstring></argsstring>
+        <name>main_mode_type</name>
+        <qualifiedname>sl_bt_evt_cs_config_complete_s::main_mode_type</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Enum <ref refid="group__sl__bt__cs_1ga631ba2f05b0fb5daf637468c2f0d7dc3" kindref="member">sl_bt_cs_mode_t</ref>. Main mode type. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_cs_mode_rtt (0x1):</bold> Round Trip Time (RTT) measurement</para>
+</listitem><listitem><para><bold>sl_bt_cs_mode_pbr (0x2):</bold> Phase-Based Ranging (PBR) measurement</para>
+</listitem><listitem><para><bold>sl_bt_cs_submode_disabled (0xff):</bold> Submode disabled for the procedure. </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="13106" column="26" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="13106" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__cs__config__complete__s_1ac57f152f8446a3024283c8ca49d6791c" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_cs_config_complete_s::sub_mode_type</definition>
+        <argsstring></argsstring>
+        <name>sub_mode_type</name>
+        <qualifiedname>sl_bt_evt_cs_config_complete_s::sub_mode_type</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Enum <ref refid="group__sl__bt__cs_1ga631ba2f05b0fb5daf637468c2f0d7dc3" kindref="member">sl_bt_cs_mode_t</ref>. Sub mode type. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_cs_mode_rtt (0x1):</bold> Round Trip Time (RTT) measurement</para>
+</listitem><listitem><para><bold>sl_bt_cs_mode_pbr (0x2):</bold> Phase-Based Ranging (PBR) measurement</para>
+</listitem><listitem><para><bold>sl_bt_cs_submode_disabled (0xff):</bold> Submode disabled for the procedure. </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="13119" column="26" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="13119" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__cs__config__complete__s_1a65230026a1f6de3c4bfbdfd176d136d5" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_cs_config_complete_s::min_main_mode_steps</definition>
+        <argsstring></argsstring>
+        <name>min_main_mode_steps</name>
+        <qualifiedname>sl_bt_evt_cs_config_complete_s::min_main_mode_steps</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Minimum number of CS main mode steps to be executed prior to a sub mode step.<itemizedlist>
+<listitem><para><bold>Range:</bold> 2 to 255 </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="13132" column="26" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="13132" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__cs__config__complete__s_1a47fbd9da04b54951dbb7df4fceb3ba1c" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_cs_config_complete_s::max_main_mode_steps</definition>
+        <argsstring></argsstring>
+        <name>max_main_mode_steps</name>
+        <qualifiedname>sl_bt_evt_cs_config_complete_s::max_main_mode_steps</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Maximum number of CS main mode steps to be executed prior to a sub mode step.<itemizedlist>
+<listitem><para><bold>Range:</bold> 2 to 255 </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="13136" column="26" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="13136" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__cs__config__complete__s_1a2bbd8066f3d47e90c0ff384e9dfa0d22" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_cs_config_complete_s::main_mode_repetition</definition>
+        <argsstring></argsstring>
+        <name>main_mode_repetition</name>
+        <qualifiedname>sl_bt_evt_cs_config_complete_s::main_mode_repetition</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Number of main mode steps taken from the end of the last CS subevent to be repeated at the beginning of the current CS subevent directly after the last Mode 0 step of that event.<itemizedlist>
+<listitem><para><bold>Range:</bold> 0 to 3 </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="13140" column="26" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="13140" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__cs__config__complete__s_1a9dcb1be7c4615a6092f02bf5edba9a78" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_cs_config_complete_s::mode_calibration_steps</definition>
+        <argsstring></argsstring>
+        <name>mode_calibration_steps</name>
+        <qualifiedname>sl_bt_evt_cs_config_complete_s::mode_calibration_steps</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Number of calibration mode steps to be included at the beginning of the test CS subevent.<itemizedlist>
+<listitem><para><bold>Range:</bold> 1 to 3 </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="13148" column="26" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="13148" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__cs__config__complete__s_1a22d580762cf68c445a3000407d569d84" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_cs_config_complete_s::role</definition>
+        <argsstring></argsstring>
+        <name>role</name>
+        <qualifiedname>sl_bt_evt_cs_config_complete_s::role</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Enum <ref refid="group__sl__bt__cs_1gab16efa17cdb87c4313b5e15b9261aaf9" kindref="member">sl_bt_cs_role_t</ref>. Device role during the CS procedure Values:<itemizedlist>
+<listitem><para><bold>sl_bt_cs_role_initiator (0x0):</bold> The device will initiate the procedure</para>
+</listitem><listitem><para><bold>sl_bt_cs_role_reflector (0x1):</bold> The device will reciprocate transmission </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="13153" column="26" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="13153" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__cs__config__complete__s_1aa3f38f2207e960588194bbedab4d0903" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_cs_config_complete_s::rtt_type</definition>
+        <argsstring></argsstring>
+        <name>rtt_type</name>
+        <qualifiedname>sl_bt_evt_cs_config_complete_s::rtt_type</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Enum <ref refid="group__sl__bt__cs_1ga706ac48e5976f2b902c86bf7fd305d18" kindref="member">sl_bt_cs_rtt_type_t</ref>. RTT payload type used in the CS procedure Values:<itemizedlist>
+<listitem><para><bold>sl_bt_cs_rtt_type_aa_only (0x0):</bold> RTT Access Address (AA) only</para>
+</listitem><listitem><para><bold>sl_bt_cs_rtt_type_fractional_32_bit_sounding (0x1):</bold> RTT Fractional with 32-bit Sounding Sequence</para>
+</listitem><listitem><para><bold>sl_bt_cs_rtt_type_fractional_96_bit_sounding (0x2):</bold> RTT Fractional with 96-bit Sounding Sequence</para>
+</listitem><listitem><para><bold>sl_bt_cs_rtt_type_fractional_32_bit_random (0x3):</bold> RTT Fractional with 32-bit Random Sequence</para>
+</listitem><listitem><para><bold>sl_bt_cs_rtt_type_fractional_64_bit_random (0x4):</bold> RTT Fractional with 64-bit Random Sequence</para>
+</listitem><listitem><para><bold>sl_bt_cs_rtt_type_fractional_96_bit_random (0x5):</bold> RTT Fractional with 96-bit Random Sequence</para>
+</listitem><listitem><para><bold>sl_bt_cs_rtt_type_fractional_128_bit_random (0x6):</bold> RTT Fractional with 128-bit Random Sequence </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="13164" column="26" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="13164" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__cs__config__complete__s_1a12548a7c9981eea0b1e2f068d81c064f" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_cs_config_complete_s::cs_sync_phy</definition>
+        <argsstring></argsstring>
+        <name>cs_sync_phy</name>
+        <qualifiedname>sl_bt_evt_cs_config_complete_s::cs_sync_phy</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Enum <ref refid="group__sl__bt__gap_1ga05ce4496a6f87de7c67a9e32d816727c" kindref="member">sl_bt_gap_phy_t</ref>. Used PHY for CS_SYNC exchanges during a procedure Values:<itemizedlist>
+<listitem><para><bold>sl_bt_gap_phy_1m (0x1):</bold> 1M PHY</para>
+</listitem><listitem><para><bold>sl_bt_gap_phy_2m (0x2):</bold> 2M PHY</para>
+</listitem><listitem><para><bold>sl_bt_gap_phy_coded (0x4):</bold> Coded PHY, 125k (S=8) or 500k (S=2)</para>
+</listitem><listitem><para><bold>sl_bt_gap_phy_any (0xff):</bold> Any PHYs the device supports </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="13196" column="26" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="13196" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__cs__config__complete__s_1a2feab589fd3080b09b80de851650e8e5" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__bt__cs__channel__map__t" kindref="compound">sl_bt_cs_channel_map_t</ref></type>
+        <definition>sl_bt_cs_channel_map_t sl_bt_evt_cs_config_complete_s::channel_map</definition>
+        <argsstring></argsstring>
+        <name>channel_map</name>
+        <qualifiedname>sl_bt_evt_cs_config_complete_s::channel_map</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>A fixed length byte array of 10 bytes consisting of 80 1-bit fields.</para>
+<para>The nth field (in the range 0 to 78) contains the value for the CS channel index n.</para>
+<para><itemizedlist>
+<listitem><para>Bit value 0: Channel n is disabled</para>
+</listitem><listitem><para>Bit value 1: Channel n is enabled</para>
+</listitem></itemizedlist>
+</para>
+<para>The most significant bit (79) is reserved for future use and must be set to 0. Channels n = 0, 1, 23, 24, 25, 77 and 78 shall be ignored and not used for CS. At least 15 channels shall be marked as used. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="13211" column="26" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="13211" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__cs__config__complete__s_1aa1669bed5201002e469628b67f908c30" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_cs_config_complete_s::channel_map_repetition</definition>
+        <argsstring></argsstring>
+        <name>channel_map_repetition</name>
+        <qualifiedname>sl_bt_evt_cs_config_complete_s::channel_map_repetition</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Number of times the channel_map field will be cycled through for non-Mode 0 steps within a CS procedure.<itemizedlist>
+<listitem><para><bold>Range:</bold> 1 to 255 </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="13234" column="26" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="13234" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__cs__config__complete__s_1a28c25227e048ce9ad638a9b45571c38b" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_cs_config_complete_s::channel_selection_type</definition>
+        <argsstring></argsstring>
+        <name>channel_selection_type</name>
+        <qualifiedname>sl_bt_evt_cs_config_complete_s::channel_selection_type</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Enum <ref refid="group__sl__bt__cs_1gac5685b907bdb55573c9e7fc9eb8d74a6" kindref="member">sl_bt_cs_channel_selection_algorithm_t</ref>. CS algorithm to be used during the procedure for non-mode 0 steps Value:<itemizedlist>
+<listitem><para><bold>sl_bt_cs_channel_selection_algorithm_3b (0x0):</bold> Use Channel Selection Algorithm #3b for non-mode 0 CS steps</para>
+</listitem><listitem><para><bold>sl_bt_cs_channel_selection_algorithm_3c (0x1):</bold> Use Channel Selection Algorithm #3c for non-mode 0 CS steps</para>
+</listitem><listitem><para><bold>sl_bt_cs_channel_selection_algorithm_user_shape_interleaved (0x2):</bold> Use Interleaved shape for user specified channel sequence </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="13240" column="26" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="13240" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__cs__config__complete__s_1af0a43e94c534b39cb31bc03542073311" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_cs_config_complete_s::ch3c_shape</definition>
+        <argsstring></argsstring>
+        <name>ch3c_shape</name>
+        <qualifiedname>sl_bt_evt_cs_config_complete_s::ch3c_shape</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Enum <ref refid="group__sl__bt__cs_1ga969721c02be54688a7faa2adf9873be2" kindref="member">sl_bt_cs_ch3c_shape_t</ref>. Shape for user-specified channel sequence Values:<itemizedlist>
+<listitem><para><bold>sl_bt_cs_ch3c_shape_hat (0x0):</bold> Use Hat shape for user specified channel sequence</para>
+</listitem><listitem><para><bold>sl_bt_cs_chc3_shape_interleaved (0x1):</bold> Use Interleaved shape for user specified channel sequence </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="13260" column="26" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="13260" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__cs__config__complete__s_1a39abf6bc849e29c14ff444f175740ad2" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_cs_config_complete_s::ch3c_jump</definition>
+        <argsstring></argsstring>
+        <name>ch3c_jump</name>
+        <qualifiedname>sl_bt_evt_cs_config_complete_s::ch3c_jump</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Number of channels skipped in each rising and falling sequence<itemizedlist>
+<listitem><para><bold>Range:</bold> 3 to 8 </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="13274" column="26" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="13274" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__cs__config__complete__s_1a414493fd436b863c737c67d20e7701b2" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_cs_config_complete_s::reserved</definition>
+        <argsstring></argsstring>
+        <name>reserved</name>
+        <qualifiedname>sl_bt_evt_cs_config_complete_s::reserved</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Reserved for future use. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="13278" column="26" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="13278" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__cs__config__complete__s_1a08368feec576ebf7d4d7b2a59f5e8faf" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_cs_config_complete_s::t_ip1_time</definition>
+        <argsstring></argsstring>
+        <name>t_ip1_time</name>
+        <qualifiedname>sl_bt_evt_cs_config_complete_s::t_ip1_time</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Interlude time in microseconds between the RTT packets. Values: 0x0A, 0x14, 0x1E, 0x28, 0x32, 0x3C, 0x50, or 0x91. All other values are reserved for future use. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="13279" column="26" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="13279" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__cs__config__complete__s_1a112ebb35bf97364875faeedf17a377d3" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_cs_config_complete_s::t_ip2_time</definition>
+        <argsstring></argsstring>
+        <name>t_ip2_time</name>
+        <qualifiedname>sl_bt_evt_cs_config_complete_s::t_ip2_time</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Interlude time in microseconds between the CS tones. Values: 0x0A, 0x14, 0x1E, 0x28, 0x32, 0x3C, 0x50, or 0x91. All other values are reserved for future use. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="13286" column="26" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="13286" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__cs__config__complete__s_1acd04c7e8fdcecf00dfe627a18e387a74" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_cs_config_complete_s::t_fcs_time</definition>
+        <argsstring></argsstring>
+        <name>t_fcs_time</name>
+        <qualifiedname>sl_bt_evt_cs_config_complete_s::t_fcs_time</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Time in microseconds for frequency changes. Values: 0x0F, 0x14, 0x1E, 0x28, 0x32, 0x3C, 0x50, 0x64, 0x78, or 0x96. All other values are reserved for future use. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="13293" column="26" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="13293" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__cs__config__complete__s_1a1cde8bfed0a188421d06741b7223d4db" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_cs_config_complete_s::t_pm_time</definition>
+        <argsstring></argsstring>
+        <name>t_pm_time</name>
+        <qualifiedname>sl_bt_evt_cs_config_complete_s::t_pm_time</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Time in microseconds for the phase measurement period of the CS tones. Values: 0x0A, 0x14, or 0x28. All other values are reserved for future use. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="13300" column="26" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="13300" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Data structure of the config_complete event. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="2">
+        <label>sl_bt_cs_channel_map_t</label>
+        <link refid="structsl__bt__cs__channel__map__t"/>
+      </node>
+      <node id="1">
+        <label>sl_bt_evt_cs_config_complete_s</label>
+        <link refid="structsl__bt__evt__cs__config__complete__s"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>channel_map</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="13085" column="1" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="13086" bodyend="13306"/>
+    <listofallmembers>
+      <member refid="structsl__bt__evt__cs__config__complete__s_1a39abf6bc849e29c14ff444f175740ad2" prot="public" virt="non-virtual"><scope>sl_bt_evt_cs_config_complete_s</scope><name>ch3c_jump</name></member>
+      <member refid="structsl__bt__evt__cs__config__complete__s_1af0a43e94c534b39cb31bc03542073311" prot="public" virt="non-virtual"><scope>sl_bt_evt_cs_config_complete_s</scope><name>ch3c_shape</name></member>
+      <member refid="structsl__bt__evt__cs__config__complete__s_1a2feab589fd3080b09b80de851650e8e5" prot="public" virt="non-virtual"><scope>sl_bt_evt_cs_config_complete_s</scope><name>channel_map</name></member>
+      <member refid="structsl__bt__evt__cs__config__complete__s_1aa1669bed5201002e469628b67f908c30" prot="public" virt="non-virtual"><scope>sl_bt_evt_cs_config_complete_s</scope><name>channel_map_repetition</name></member>
+      <member refid="structsl__bt__evt__cs__config__complete__s_1a28c25227e048ce9ad638a9b45571c38b" prot="public" virt="non-virtual"><scope>sl_bt_evt_cs_config_complete_s</scope><name>channel_selection_type</name></member>
+      <member refid="structsl__bt__evt__cs__config__complete__s_1aa3d6f2ad298415669a644fa09ed1369b" prot="public" virt="non-virtual"><scope>sl_bt_evt_cs_config_complete_s</scope><name>config_id</name></member>
+      <member refid="structsl__bt__evt__cs__config__complete__s_1ab214f3507b52b16fdcc4209b5ecb4677" prot="public" virt="non-virtual"><scope>sl_bt_evt_cs_config_complete_s</scope><name>config_state</name></member>
+      <member refid="structsl__bt__evt__cs__config__complete__s_1a11a04499e4704ffe6730dacdf56cec4f" prot="public" virt="non-virtual"><scope>sl_bt_evt_cs_config_complete_s</scope><name>connection</name></member>
+      <member refid="structsl__bt__evt__cs__config__complete__s_1a12548a7c9981eea0b1e2f068d81c064f" prot="public" virt="non-virtual"><scope>sl_bt_evt_cs_config_complete_s</scope><name>cs_sync_phy</name></member>
+      <member refid="structsl__bt__evt__cs__config__complete__s_1a2bbd8066f3d47e90c0ff384e9dfa0d22" prot="public" virt="non-virtual"><scope>sl_bt_evt_cs_config_complete_s</scope><name>main_mode_repetition</name></member>
+      <member refid="structsl__bt__evt__cs__config__complete__s_1a207126af8e79e46e046e725fb6f874fd" prot="public" virt="non-virtual"><scope>sl_bt_evt_cs_config_complete_s</scope><name>main_mode_type</name></member>
+      <member refid="structsl__bt__evt__cs__config__complete__s_1a47fbd9da04b54951dbb7df4fceb3ba1c" prot="public" virt="non-virtual"><scope>sl_bt_evt_cs_config_complete_s</scope><name>max_main_mode_steps</name></member>
+      <member refid="structsl__bt__evt__cs__config__complete__s_1a65230026a1f6de3c4bfbdfd176d136d5" prot="public" virt="non-virtual"><scope>sl_bt_evt_cs_config_complete_s</scope><name>min_main_mode_steps</name></member>
+      <member refid="structsl__bt__evt__cs__config__complete__s_1a9dcb1be7c4615a6092f02bf5edba9a78" prot="public" virt="non-virtual"><scope>sl_bt_evt_cs_config_complete_s</scope><name>mode_calibration_steps</name></member>
+      <member refid="structsl__bt__evt__cs__config__complete__s_1a414493fd436b863c737c67d20e7701b2" prot="public" virt="non-virtual"><scope>sl_bt_evt_cs_config_complete_s</scope><name>reserved</name></member>
+      <member refid="structsl__bt__evt__cs__config__complete__s_1a22d580762cf68c445a3000407d569d84" prot="public" virt="non-virtual"><scope>sl_bt_evt_cs_config_complete_s</scope><name>role</name></member>
+      <member refid="structsl__bt__evt__cs__config__complete__s_1aa3f38f2207e960588194bbedab4d0903" prot="public" virt="non-virtual"><scope>sl_bt_evt_cs_config_complete_s</scope><name>rtt_type</name></member>
+      <member refid="structsl__bt__evt__cs__config__complete__s_1a17759ab81636df837cc365eb538edbf2" prot="public" virt="non-virtual"><scope>sl_bt_evt_cs_config_complete_s</scope><name>status</name></member>
+      <member refid="structsl__bt__evt__cs__config__complete__s_1ac57f152f8446a3024283c8ca49d6791c" prot="public" virt="non-virtual"><scope>sl_bt_evt_cs_config_complete_s</scope><name>sub_mode_type</name></member>
+      <member refid="structsl__bt__evt__cs__config__complete__s_1acd04c7e8fdcecf00dfe627a18e387a74" prot="public" virt="non-virtual"><scope>sl_bt_evt_cs_config_complete_s</scope><name>t_fcs_time</name></member>
+      <member refid="structsl__bt__evt__cs__config__complete__s_1a08368feec576ebf7d4d7b2a59f5e8faf" prot="public" virt="non-virtual"><scope>sl_bt_evt_cs_config_complete_s</scope><name>t_ip1_time</name></member>
+      <member refid="structsl__bt__evt__cs__config__complete__s_1a112ebb35bf97364875faeedf17a377d3" prot="public" virt="non-virtual"><scope>sl_bt_evt_cs_config_complete_s</scope><name>t_ip2_time</name></member>
+      <member refid="structsl__bt__evt__cs__config__complete__s_1a1cde8bfed0a188421d06741b7223d4db" prot="public" virt="non-virtual"><scope>sl_bt_evt_cs_config_complete_s</scope><name>t_pm_time</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

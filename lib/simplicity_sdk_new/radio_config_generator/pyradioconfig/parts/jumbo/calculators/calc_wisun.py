@@ -1,0 +1,500 @@
+from pycalcmodel.core.model import ModelRoot
+from pyradioconfig.calculator_model_framework.interfaces.icalculator import ICalculator
+from pycalcmodel.core.variable import ModelVariableFormat, CreateModelVariableEnum
+from enum import Enum
+from pyradioconfig.calculator_model_framework.Utils.LogMgr import LogMgr
+from pyradioconfig.parts.jumbo.profiles.profile_wisun_fan_1_1 import ProfileWisunFan1v1Jumbo
+
+class CALC_WiSUN_Jumbo(ICalculator):
+
+    def buildVariables(self, model):
+        var = self._addModelVariable(model, 'wisun_mode', Enum, ModelVariableFormat.DECIMAL, 'Wi-SUN Operating Mode (PhyMode)')
+        member_data = [
+            ['Mode1a', 0, '2FSK 50kbps mi=0.5'],
+            ['Mode1b', 1, '2FSK 50kbps mi=1.0'],
+            ['Mode2a', 2, '2FSK 100kbps mi=0.5'],
+            ['Mode2b', 3, '2FSK 100kbps mi=1.0'],
+            ['Mode3',  4, '2FSK 150kbps mi=0.5'],
+            ['Mode4a', 5, '2FSK 200kbps mi=0.5'],
+            ['Mode4b', 6, '2FSK 200kbps mi=1.0'],
+            ['Mode5',  7, '2FSK 300kbps mi=0.5']
+            ]
+        var.var_enum = CreateModelVariableEnum(
+            'WiSUNModeEnum',
+            'List of supported WiSUN Modes',
+            member_data)
+
+        var = self._addModelVariable(model, 'wisun_han_mode', Enum, ModelVariableFormat.DECIMAL,
+                                     'Wi-SUN Operating Mode (PhyMode)')
+        member_data = [
+            ['Mode1b', 1, '2FSK 50kbps mi=1.0'],
+            ['Mode2b', 3, '2FSK 100kbps mi=1.0'],
+        ] #Leaving numbering the same as wisun_mode to allow for easy expansion
+        var.var_enum = CreateModelVariableEnum(
+            'WiSUNHanModeEnum',
+            'List of supported WiSUN Modes',
+            member_data)
+
+        var = self._addModelVariable(model, 'wisun_reg_domain', Enum, ModelVariableFormat.HEX,
+                                     'Wi-SUN Regulatory Domain')
+        member_data = [
+            ['NA', 0x01, 'North America'],
+            ['JP', 0x02, 'Japan'],
+            ['EU', 0x03, 'Europe'],
+            ['CN', 0x04, 'China'],
+            ['IN', 0x05, 'India'],
+            ['MX', 0x06, 'Mexico'],
+            ['BZ', 0x07, 'Brazil'],
+            ['AZ_NZ', 0x08, 'Australia and New Zealand'],
+            ['KR', 0x09, 'Korea'],
+            ['PH', 0x0A, 'Philippines'],
+            ['MY', 0x0B, 'Malaysia'],
+            ['HK', 0x0C, 'Hong Kong'],
+            ['SG', 0x0D, 'Singapore'],
+            ['TH', 0x0E, 'Thailand'],
+            ['VN', 0x0F, 'Vietnam'],
+            ['WW', 0x10, 'Worldwide'],
+        ]
+        var.var_enum = CreateModelVariableEnum(
+            'WiSUNRegDomainEnum',
+            'List of supported WiSUN Regulatory Domains',
+            member_data)
+
+        self._addModelVariable(model, 'wisun_operating_class', int, ModelVariableFormat.DECIMAL, desc='WiSUN Operating Class')
+        self._addModelVariable(model, 'wisun_phy_mode_id', int, ModelVariableFormat.DECIMAL, desc='WiSUN PhyModeID', is_array=True)
+        self._addModelVariable(model, 'wisun_mode_switch_phr', int, ModelVariableFormat.DECIMAL, desc='WiSUN Mode Switch PHR', is_array=True)
+
+        var = self._addModelVariable(model, 'wisun_phy_mode_id_select', Enum, ModelVariableFormat.DECIMAL, desc='WiSUN PhyModeID')
+        member_data = [
+            ['PhyID_1_FSK_50kbps_mi0p5',        0x01, 'PhyID_1_FSK_50kbps_mi0p5'],
+            ['PhyID_2_FSK_50kbps_mi1',          0x02, 'PhyID_2_FSK_50kbps_mi1'],
+            ['PhyID_3_FSK_100kbps_mi0p5',       0x03, 'PhyID_3_FSK_100kbps_mi0p5'],
+            ['PhyID_4_FSK_100kbps_mi1',         0x04, 'PhyID_4_FSK_100kbps_mi1'],
+            ['PhyID_5_FSK_150kbps_mi0p5',       0x05, 'PhyID_5_FSK3_150kbps_mi0p5'],
+            ['PhyID_6_FSK_200kbps_mi0p5',       0x06, 'PhyID_6_FSK_200kbps_mi0p5'],
+            ['PhyID_7_FSK_200kbps_mi1',         0x07, 'PhyID_7_FSK_200kbps_mi1'],
+            ['PhyID_8_FSK_300kbps_mi0p5',       0x08, 'PhyID_8_FSK_300kbps_mi0p5'],
+            ['PhyID_17_FSK_50kbps_mi0p5_FEC',   0x11, 'PhyID_17_FSK_50kbps_mi0p5_FEC'],
+            ['PhyID_18_FSK_50kbps_mi1_FEC',     0x12, 'PhyID_18_FSK_50kbps_mi1_FEC'],
+            ['PhyID_19_FSK_100kbps_mi0p5_FEC',  0x13, 'PhyID_19_FSK_100kbps_mi0p5_FEC'],
+            ['PhyID_20_FSK_100kbps_mi1_FEC',    0x14, 'PhyID_20_FSK_100kbps_mi1_FEC'],
+            ['PhyID_21_FSK_150kbps_mi0p5_FEC',  0x15, 'PhyID_21_FSK_150kbps_mi0p5_FEC'],
+            ['PhyID_22_FSK_200kbps_mi0p5_FEC',  0x16, 'PhyID_22_FSK_200kbps_mi0p5_FEC'],
+            ['PhyID_23_FSK_200kbps_mi1_FEC',    0x17, 'PhyID_23_FSK_200kbps_mi1_FEC'],
+            ['PhyID_24_FSK_300kbps_mi0p5_FEC',  0x18, 'PhyID_24_FSK_300kbps_mi0p5_FEC'],
+        ]
+
+        var.var_enum = CreateModelVariableEnum(
+            'WiSUNPhyModeIdEnum',
+            'List of supported PHY Mode IDs defined in WiSUN FAN 1v1',
+            member_data
+        )
+
+        self._addModelVariable(model, 'meta_mcs_restriction', int, ModelVariableFormat.DECIMAL,
+                               desc='WiSUN MCS Restriction', is_array=True)
+
+        self._addModelVariable(model, 'meta_bitrates', int, ModelVariableFormat.DECIMAL,
+                               desc='WiSUN Bitrates', is_array=True)
+
+        self._addModelVariable(model, 'meta_min_frequency', int, ModelVariableFormat.DECIMAL,
+                               desc='WiSUN Freq Band Start')
+
+        self._addModelVariable(model, 'meta_max_frequency', int, ModelVariableFormat.DECIMAL,
+                               desc='WiSUN Freq Band End')
+
+        var = self._addModelVariable(model, 'meta_modulation_type', Enum, ModelVariableFormat.DECIMAL,
+                                     desc='WiSUN Modulation')
+        member_data = [
+            ['FSK', 0x00, 'FSK'],
+            ['OFDM', 0x01, 'OFDM'],
+        ]
+        var.var_enum = CreateModelVariableEnum(
+            'WiSUNModulationdEnum',
+            'List of modulation types defined in WiSUN FAN 1v1',
+            member_data
+        )
+
+        self._addModelVariable(model, 'meta_modulation_index', float, ModelVariableFormat.DECIMAL,
+                               desc='WiSUN Modulation Index')
+
+        self._addModelVariable(model, 'meta_fec', bool, ModelVariableFormat.DECIMAL,
+                               desc='WiSUN FEC')
+
+        # Retrieve info and create enums from profile table
+        var = self._addModelVariable(model, 'wisun_channel_plan_id', Enum, ModelVariableFormat.DECIMAL,
+                                     desc='WiSUN ChanPlanID')
+        member_data = []
+        table = ProfileWisunFan1v1Jumbo.wisun_1v1_chplan_table
+        for id in table:
+            member_data.append([table[id].enum_name, id, table[id].enum_name])
+
+        var.var_enum = CreateModelVariableEnum(
+            'WiSUNChPlanEnum',
+            'List of channel plan IDs defined in WiSUN FAN 1v1',
+            member_data
+        )
+
+        var = self._addModelVariable(model, 'meta_group', Enum, ModelVariableFormat.DECIMAL,
+                                     desc='WiSUN Grouping')
+        member_data = [
+            ["AZ_NZ", 0x00, "Group AZ_NZ"],
+            ["BZ", 0x01, "Group BZ"],
+            ["CN1", 0x02, "Group CN1"],
+            ["CN2", 0x03, "Group CN2"],
+            ["EU1", 0x04, "Group EU1"],
+            ["EU2", 0x05, "Group EU2"],
+            ["EU3", 0x06, "Group EU3"],
+            ["HK", 0x07, "Group HK"],
+            ["IN", 0x08, "Group IN"],
+            ["JP", 0x09, "Group JP"],
+            ["KR", 0x0a, "Group KR"],
+            ["MX", 0x0b, "Group MX"],
+            ["MY", 0x0c, "Group MY"],
+            ["NA", 0x0d, "Group NA"],
+            ["PH", 0x0e, "Group PH"],
+            ["SG1", 0x0f, "Group SG1"],
+            ["SG2", 0x10, "Group SG2"],
+            ["TH", 0x11, "Group TH"],
+            ["VN", 0x12, "Group VN"],
+            ["WW", 0x13, "Group WW"],
+        ]
+        var.var_enum = CreateModelVariableEnum(
+            'WiSUNGroupingEnum',
+            'List of groups defined in WiSUN FAN 1v1',
+            member_data
+        )
+
+    def calc_wisun_freq_spacing(self, model):
+
+        # This calculation only applies to Wi-SUN FSK (FAN/HAN)
+        # Outside of profile logic to avoid duplication for both FAN 1.0 and HAN Profiles
+        if model.profile.name.lower() in ['wisun_fan_1_0', 'wisun_han']:
+
+            # Read the reg domain and operating class
+            wisun_reg_domain = model.vars.wisun_reg_domain.value
+            wisun_operating_class = model.vars.wisun_operating_class.value
+            reg_domain_enum = model.vars.wisun_reg_domain.var_enum
+
+            error = False
+            if wisun_reg_domain == reg_domain_enum.CN:
+                if wisun_operating_class == 1:
+                    base_frequency_hz = 470.2e6
+                    channel_spacing_hz = 200e3
+                elif wisun_operating_class == 2:
+                    base_frequency_hz = 779.2e6
+                    channel_spacing_hz = 200e3
+                elif wisun_operating_class == 3:
+                    base_frequency_hz = 779.4e6
+                    channel_spacing_hz = 400e3
+                elif wisun_operating_class == 4:
+                    base_frequency_hz = 920.625e6
+                    channel_spacing_hz = 250e3
+                else:
+                    error = True
+                    base_frequency_hz = 470.2e6
+                    channel_spacing_hz = 200e3
+            elif wisun_reg_domain == reg_domain_enum.EU:
+                if wisun_operating_class == 1:
+                    base_frequency_hz = 863.1e6
+                    channel_spacing_hz = 100e3
+                elif wisun_operating_class == 2:
+                    base_frequency_hz = 863.1e6
+                    channel_spacing_hz = 200e3
+                elif wisun_operating_class == 3:
+                    base_frequency_hz = 870.1e6
+                    channel_spacing_hz = 100e3
+                elif wisun_operating_class == 4:
+                    base_frequency_hz = 870.2e6
+                    channel_spacing_hz = 200e3
+                else:
+                    error = True
+                    base_frequency_hz = 863.1e6
+                    channel_spacing_hz = 100e3
+            elif wisun_reg_domain == reg_domain_enum.IN:
+                if wisun_operating_class == 1:
+                    base_frequency_hz = 865.1e6
+                    channel_spacing_hz = 100e3
+                elif wisun_operating_class == 2:
+                    base_frequency_hz = 865.1e6
+                    channel_spacing_hz = 200e3
+                else:
+                    error = True
+                    base_frequency_hz = 865.1e6
+                    channel_spacing_hz = 100e3
+            elif wisun_reg_domain == reg_domain_enum.SG:
+                if wisun_operating_class == 1:
+                    base_frequency_hz = 866.1e6
+                    channel_spacing_hz = 100e3
+                elif wisun_operating_class == 2:
+                    base_frequency_hz = 866.1e6
+                    channel_spacing_hz = 200e3
+                elif wisun_operating_class == 3:
+                    base_frequency_hz = 866.3e6
+                    channel_spacing_hz = 400e3
+                elif wisun_operating_class == 4:
+                    base_frequency_hz = 920.2e6
+                    channel_spacing_hz = 200e3
+                elif wisun_operating_class== 5:
+                    base_frequency_hz = 920.4e6
+                    channel_spacing_hz = 400e3
+                else:
+                    error = True
+                    base_frequency_hz = 866.1e6
+                    channel_spacing_hz = 100e3
+            elif wisun_reg_domain == reg_domain_enum.MX:
+                if wisun_operating_class == 1:
+                    base_frequency_hz = 902.2e6
+                    channel_spacing_hz = 200e3
+                elif wisun_operating_class == 2:
+                    base_frequency_hz = 902.4e6
+                    channel_spacing_hz = 400e3
+                else:
+                    error = True
+                    base_frequency_hz = 902.2e6
+                    channel_spacing_hz = 200e3
+            elif wisun_reg_domain == reg_domain_enum.NA:
+                if wisun_operating_class == 1:
+                    base_frequency_hz = 902.2e6
+                    channel_spacing_hz = 200e3
+                elif wisun_operating_class == 2:
+                    base_frequency_hz = 902.4e6
+                    channel_spacing_hz = 400e3
+                elif wisun_operating_class == 3:
+                    base_frequency_hz = 902.6e6
+                    channel_spacing_hz = 600e3
+                else:
+                    error = True
+                    base_frequency_hz = 902.2e6
+                    channel_spacing_hz = 200e3
+            elif wisun_reg_domain == reg_domain_enum.BZ:
+                if wisun_operating_class == 1:
+                    base_frequency_hz = 902.2e6
+                    channel_spacing_hz = 200e3
+                elif wisun_operating_class == 2:
+                    base_frequency_hz = 902.4e6
+                    channel_spacing_hz = 400e3
+                elif wisun_operating_class == 3:
+                    base_frequency_hz = 902.6e6
+                    channel_spacing_hz = 600e3
+                else:
+                    error = True
+                    base_frequency_hz = 902.2e6
+                    channel_spacing_hz = 200e3
+            elif wisun_reg_domain == reg_domain_enum.AZ_NZ:
+                if wisun_operating_class == 1:
+                    base_frequency_hz = 915.2e6
+                    channel_spacing_hz = 200e3
+                elif wisun_operating_class == 2:
+                    base_frequency_hz = 915.4e6
+                    channel_spacing_hz = 400e3
+                else:
+                    error = True
+                    base_frequency_hz = 915.2e6
+                    channel_spacing_hz = 200e3
+            elif wisun_reg_domain == reg_domain_enum.KR:
+                if wisun_operating_class == 1:
+                    base_frequency_hz = 917.1e6
+                    channel_spacing_hz = 200e3
+                elif wisun_operating_class == 2:
+                    base_frequency_hz = 917.3e6
+                    channel_spacing_hz = 400e3
+                else:
+                    error = True
+                    base_frequency_hz = 917.1e6
+                    channel_spacing_hz = 200e3
+            elif wisun_reg_domain == reg_domain_enum.PH:
+                if wisun_operating_class == 1:
+                    base_frequency_hz = 915.2e6
+                    channel_spacing_hz = 200e3
+                elif wisun_operating_class == 2:
+                    base_frequency_hz = 915.4e6
+                    channel_spacing_hz = 400e3
+                else:
+                    error = True
+                    base_frequency_hz = 915.2e6
+                    channel_spacing_hz = 200e3
+            elif wisun_reg_domain == reg_domain_enum.MY:
+                if wisun_operating_class == 1:
+                    base_frequency_hz = 919.2e6
+                    channel_spacing_hz = 200e3
+                elif wisun_operating_class == 2:
+                    base_frequency_hz = 919.4e6
+                    channel_spacing_hz = 400e3
+                else:
+                    error = True
+                    base_frequency_hz = 919.2e6
+                    channel_spacing_hz = 200e3
+            elif wisun_reg_domain == reg_domain_enum.HK:
+                if wisun_operating_class == 1:
+                    base_frequency_hz = 920.2e6
+                    channel_spacing_hz = 200e3
+                elif wisun_operating_class == 2:
+                    base_frequency_hz = 920.4e6
+                    channel_spacing_hz = 400e3
+                else:
+                    error = True
+                    base_frequency_hz = 920.2e6
+                    channel_spacing_hz = 200e3
+            elif wisun_reg_domain == reg_domain_enum.TH:
+                if wisun_operating_class == 1:
+                    base_frequency_hz = 920.2e6
+                    channel_spacing_hz = 200e3
+                elif wisun_operating_class == 2:
+                    base_frequency_hz = 920.4e6
+                    channel_spacing_hz = 400e3
+                else:
+                    error = True
+                    base_frequency_hz = 920.2e6
+                    channel_spacing_hz = 200e3
+            elif wisun_reg_domain == reg_domain_enum.VN:
+                if wisun_operating_class == 1:
+                    base_frequency_hz = 920.2e6
+                    channel_spacing_hz = 200e3
+                elif wisun_operating_class == 2:
+                    base_frequency_hz = 920.4e6
+                    channel_spacing_hz = 400e3
+                else:
+                    error = True
+                    base_frequency_hz = 920.2e6
+                    channel_spacing_hz = 200e3
+            elif wisun_reg_domain == reg_domain_enum.JP:
+                if wisun_operating_class == 1:
+                    base_frequency_hz = 920.6e6
+                    channel_spacing_hz = 200e3
+                elif wisun_operating_class == 2:
+                    base_frequency_hz = 920.9e6
+                    channel_spacing_hz = 400e3
+                elif wisun_operating_class == 3:
+                    base_frequency_hz = 920.8e6
+                    channel_spacing_hz = 600e3
+                else:
+                    error = True
+                    base_frequency_hz = 920.6e6
+                    channel_spacing_hz = 200e3
+            else: #WW
+                if wisun_operating_class == 1:
+                    base_frequency_hz = 2400.2e6
+                    channel_spacing_hz = 200e3
+                elif wisun_operating_class == 2:
+                    base_frequency_hz = 2400.4e6
+                    channel_spacing_hz = 400e3
+                else:
+                    error = True
+                    base_frequency_hz = 2400.2e6
+                    channel_spacing_hz = 200e3
+
+            if error:
+                LogMgr.Error("Error: Unsupported Wi-SUN Operating Class for selected Regulatory Domain")
+
+            #Write the model vars
+            model.vars.base_frequency_hz.value = int(base_frequency_hz)
+            model.vars.channel_spacing_hz.value = int(channel_spacing_hz)
+
+    def calc_wisun_phy_mode_id(self, model):
+        # This function calculates the PhyModeID for Wi-SUN OFDM and Wi-SUN FSK PHYs
+        # For OFDM, the variable contains an array of MCS0-7 values
+        # For FSK, a PHY with FEC on can also be FEC off but the inverse is false
+        # Then the variable contains an array of either FEC off/on or FEC off values
+
+        profile_name = model.profile.name.lower()
+        fec_enabled = model.vars.fec_enabled.value
+
+        wisun_phy_mode_id = None
+        if profile_name in ["wisun_fan_1_0", "wisun_han"]:
+            wisun_mode = model.vars.wisun_mode.value
+            wisun_phy_mode_id = [0]
+            phy_mode = int(wisun_mode) + 1
+
+            # FEC off
+            wisun_phy_mode_id[0] = (0 << 4) | phy_mode
+            if fec_enabled:
+                # FEC on
+                wisun_phy_mode_id.append((1 << 4) | phy_mode)
+        elif profile_name in ["wisun_fan_1_1"]:
+            wisun_phy_mode_id_select = model.vars.wisun_phy_mode_id_select.value.value
+            wisun_phy_mode_id = [0]
+            if wisun_phy_mode_id_select >= 0x10:
+                #FEC is enabled
+                wisun_phy_mode_id[0] = wisun_phy_mode_id_select - 0x10
+                wisun_phy_mode_id.append(wisun_phy_mode_id_select)
+            else:
+                #No FEC
+                wisun_phy_mode_id[0] = wisun_phy_mode_id_select
+        if wisun_phy_mode_id is not None:
+            # Write the variable
+            model.vars.wisun_phy_mode_id.value = wisun_phy_mode_id
+
+    def calc_wisun_mode_switch_phr(self, model):
+        #This function calculates the PHR associated with the calculated PhyModeID
+        #For OFDM, the variable contains an array of MCS0-6 values
+        #For FSK, the variable contains an array of FEC off/on values
+
+        profile_name = model.profile.name.lower()
+
+        if "wisun" in profile_name or profile_name == "connect_ofdm":
+            wisun_phy_mode_id = model.vars.wisun_phy_mode_id.value
+            wisun_mode_switch_phr = []
+            for phy_mode_id in wisun_phy_mode_id:
+                wisun_mode_switch_phr.append(self._make_phr(phy_mode_id))
+
+            #Write the variable
+            model.vars.wisun_mode_switch_phr.value = wisun_mode_switch_phr
+
+
+    def _make_phr(self, phy_mode_id):
+
+        wisun_bch_gen_poly = 0b10011
+
+        mode_switch_field = 0b1
+        mode_switch_shift = 15
+
+        reserved_field = 0b00
+        reserved_shift = 13
+
+        phy_mode_id_field = phy_mode_id
+        phy_mode_id_shift = 5
+
+        first_11_bits = ((mode_switch_field << mode_switch_shift) | (reserved_field << reserved_shift) | (phy_mode_id_field << phy_mode_id_shift)) >> 5
+        checksum_field = self._get_bch_15_11_checksum(first_11_bits, wisun_bch_gen_poly)
+        checksum_shift = 1
+
+        first_15_bits = ((first_11_bits << 5) | (checksum_field << checksum_shift)) >> 1
+        parity_field = self._get_parity(first_15_bits)
+        parity_shift = 0
+
+        phr = (first_15_bits << 1) | (parity_field << parity_shift)
+
+        #Now we need to reverse the order of bits for transmission
+        phr = int(format(phr, '016b')[::-1],2)
+
+        return phr
+
+    def _get_bch_15_11_checksum(self, data, gen_poly):
+        #This function calculates the BCH checksum, which is the shifted data divided by the generator polynomial
+
+        data_shifted = data << 4 #The 4 here comes from the BCH(15,11) definition as 4 = 15-11
+
+        data_bits = len("{0:b}".format(data_shifted))
+        gen_poly_bits = len("{0:b}".format(gen_poly))
+
+        #Initialize checksum
+        checksum = data_shifted
+
+        #Shift gen polynomial to left align with data
+        gen_poly_shifted = gen_poly << (data_bits - gen_poly_bits)
+
+        for bit_position in range (data_bits-gen_poly_bits+1):
+            if (checksum & (1<<(data_bits-bit_position-1))) != 0:
+                #Only XOR if there is a 1 in the MSB of the current checksum
+                checksum = checksum ^ (gen_poly_shifted >> bit_position)
+
+        return checksum
+
+    def _get_parity(self, data):
+
+        #Optimized algorithm from Sophie Gault
+        parity = 0
+        while (data != 0):
+            parity ^= 1  # toggle parity bit
+            data = data & (data - 1)
+        return parity

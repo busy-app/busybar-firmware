@@ -1,0 +1,34 @@
+id: psa_crypto_pbkdf2
+package: security_mbedtls
+label: PBKDF2-HMAC
+description: >-
+  PSA Crypto support for PBKDF2 using HMAC as the PRF.
+category: Platform|Security|PSA Crypto|Key Derivation
+quality: production
+
+provides:
+- name: psa_crypto_pbkdf2_hmac
+
+  # The ID and 'primary provide' of this component is 'psa_crypto_pbkdf2' for
+  # historical reasons. This component used to enable both HMAC- and CMAC based
+  # PRFs for use in the SL-custom API for one-shot key derivation
+  # (sl_psa_key_derivation_single_shot()). Now that PSA Crypto implements
+  # PBKDF2, there is a need to differentiate between the two PRFs for code size
+  # reasons. Since PKBDF2-HMAC is the most common use case, this component
+  # continues to enable that variant.
+- name: psa_crypto_pbkdf2
+
+requires:
+- name: psa_crypto
+- name: psa_crypto_hmac
+
+template_contribution:
+- name: psa_crypto_config
+  value: PSA_WANT_ALG_PBKDF2_HMAC 1
+
+- name: psa_crypto_builtin_config
+  value: "MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_HMAC 1"
+metadata:
+  sbom:
+    reference: mbedtls_sbom
+root_path: security_mbedtls

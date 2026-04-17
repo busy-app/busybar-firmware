@@ -1,0 +1,16 @@
+!!omap
+- id: brd4346a
+- label: BRD4346A
+- package: platform_siwx91x
+- description: Board support for BRD4346A.
+- category: Board|Radio Board
+- quality: production
+- metadata:
+    sbom:
+      license: Zlib
+- requires:
+  - name: siwn917m100lgtba
+- tag:
+  - board:pn:BRD4346
+  - board:variant:A
+  - board:revision:a12

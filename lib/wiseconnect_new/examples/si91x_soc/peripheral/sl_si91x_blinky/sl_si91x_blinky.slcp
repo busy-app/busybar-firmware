@@ -1,0 +1,45 @@
+project_name: sl_si91x_blinky
+package: platform_siwx91x_app
+description: "This application demonstrates the process of configuring a basic LED blinking functionality. \nIt highlights how to initialize the GPIO peripheral, set the LED pin as an output, \nand toggle its state periodically to achieve a blinking effect.\n"
+category: example|peripheral
+quality: production
+label: Si91x - Blinky
+component:
+- id: sl_main
+- id: sleeptimer
+- id: sl_si91x_led_917
+  instance:
+  - led0
+- id: syscalls
+- id: si91x_memory_default_config
+source:
+- path: app.c
+- path: blinky.c
+include:
+- path: .
+  file_list:
+  - path: app.h
+  - path: blinky.h
+toolchain_settings:
+- option: gcc_compiler_option
+  value: -Wall -Werror
+other_file:
+- path: resources/readme/setupdiagram.png
+define:
+- name: SYSCALLS_WRITE
+ui_hints:
+  highlight:
+  - path: readme.md
+    focus: true
+readme:
+- path: readme.md
+post_build:
+  profile: wiseconnect_soc
+sdk_extension:
+- id: wiseconnect3_sdk
+  vendor: silabs
+  version: 4.0.1
+sdk:
+  id: simplicity_sdk
+  vendor: silabs
+  version: 2025.12.2

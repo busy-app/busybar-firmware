@@ -1,0 +1,53 @@
+id: app_log
+label: Log
+package: platform_common_apps
+description: >
+  The Log component provides the logging functionality at different levels:
+  1) INFO
+  2) DEBUG
+  3) ERROR
+  4) WARNING
+  5) CRITICAL
+  stream type and stream instance are configurable options, the default stream type is
+  UART and stream instance is VCOM. Other configuration options include log level,
+  logging color, log timing and more.
+category: Application|Utility
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: platform_common_apps/app/common/util/app_log
+config_file:
+- path: config/app_log_config.h
+source:
+- path: app_log.c
+include:
+- path: .
+  file_list:
+  - path: app_log.h
+  - path: sl_app_log.h
+provides:
+- name: app_log
+requires:
+- name: iostream
+- name: iostream_retarget_stdio
+  condition:
+  - device_cortexm
+- name: iostream_stdlib_config
+  condition:
+  - device_cortexm
+- name: component_catalog
+- name: sl_common
+template_contribution:
+- name: component_catalog
+  value: app_log
+- name: event_handler
+  value:
+    event: internal_app_init
+    include: app_log.h
+    handler: app_log_init
+validation_library:
+- path: ../../validation/autonumber_common.lua
+  name: autonumber_common
+validation_helper:
+- path: app_log_validation.lua

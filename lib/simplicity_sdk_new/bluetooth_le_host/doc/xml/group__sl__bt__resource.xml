@@ -1,0 +1,334 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__resource" kind="group">
+    <compoundname>sl_bt_resource</compoundname>
+    <title>Resource Report</title>
+    <innergroup refid="group__sl__bt__resource__connection__tx__flags">Connection TX status flags</innergroup>
+    <innergroup refid="group__sl__bt__evt__resource__status">sl_bt_evt_resource_status</innergroup>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="group__sl__bt__resource_1ga364e6338e65b335e0ebfcbbb600c1757" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_resource_get_status</definition>
+        <argsstring>(uint32_t *total_bytes, uint32_t *free_bytes)</argsstring>
+        <name>sl_bt_resource_get_status</name>
+        <param>
+          <type>uint32_t *</type>
+          <declname>total_bytes</declname>
+        </param>
+        <param>
+          <type>uint32_t *</type>
+          <declname>free_bytes</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Get the present memory buffer usage status.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="out">total_bytes</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The number of total bytes in the memory buffer </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">free_bytes</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The number of free bytes in the memory buffer</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="1928" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="1928" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__resource_1gac43c1de372fd21b3cdacd15fca685caa" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_resource_set_report_threshold</definition>
+        <argsstring>(uint32_t low, uint32_t high)</argsstring>
+        <name>sl_bt_resource_set_report_threshold</name>
+        <param>
+          <type>uint32_t</type>
+          <declname>low</declname>
+        </param>
+        <param>
+          <type>uint32_t</type>
+          <declname>high</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Set low and high thresholds of memory buffer usage reports. Value 0 in parameter <computeroutput>low</computeroutput> for the low threshold disables the reporting, and a non-zero value in <computeroutput>low</computeroutput> enables the reporting.</para>
+<para>When the reporting is enabled, event <ref refid="group__sl__bt__evt__resource__status" kindref="compound">sl_bt_evt_resource_status</ref> will be generated to report the status when the free buffer amount decreases and crosses the low threshold, and later another event will be generated if the free buffer amount increases and crosses the high threshold. If only the high threshold is crossed but the low threshold isn&apos;t, no event will be generated.</para>
+<para>By default, low and high threshold values are 0, i.e., no report event is generated.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">low</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The low threshold of free bytes in the memory buffer, or 0 to disable the reporting </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">high</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>A non-zero value as the high threshold that must be greater than parameter <computeroutput>low</computeroutput>, or 0 for not reporting the status for high threshold</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="1954" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="1954" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__resource_1gad776c2696303de220282839c6dcbf5f8" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_resource_enable_connection_tx_report</definition>
+        <argsstring>(uint16_t packet_count)</argsstring>
+        <name>sl_bt_resource_enable_connection_tx_report</name>
+        <param>
+          <type>uint16_t</type>
+          <declname>packet_count</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Enable tracking and reporting data packet TX status of future new connections. Existing connections are not affected by this command.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">packet_count</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The maximum number of data packets to track on a connection</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise.</para>
+</simplesect>
+<bold>Events</bold> <itemizedlist>
+<listitem><para><ref refid="group__sl__bt__evt__gatt__server__notification__tx__completed" kindref="compound">sl_bt_evt_gatt_server_notification_tx_completed</ref> - Sent when GATT notifications from the GATT server were transmitted. </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="1971" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="1971" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__resource_1gac20e81967290607f606bac886edfd959" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_resource_get_connection_tx_status</definition>
+        <argsstring>(uint8_t connection, uint16_t *flags, uint16_t *packet_count, uint32_t *data_len)</argsstring>
+        <name>sl_bt_resource_get_connection_tx_status</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>connection</declname>
+        </param>
+        <param>
+          <type>uint16_t *</type>
+          <declname>flags</declname>
+        </param>
+        <param>
+          <type>uint16_t *</type>
+          <declname>packet_count</declname>
+        </param>
+        <param>
+          <type>uint32_t *</type>
+          <declname>data_len</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Get the data packet TX status of a connection.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">connection</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Connection handle </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">flags</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Flags that indicate the status of connection TX packet reporting. This value is a bitmask of <ref refid="group__sl__bt__resource__connection__tx__flags" kindref="compound">Connection TX status flags</ref>. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">packet_count</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of data packets in the TX queue waiting to be transmitted </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">data_len</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Total number of bytes of data packets in the TX queue</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="1988" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="1988" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__resource_1ga6a309c7afd2edf511f16d7529183faba" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_resource_disable_connection_tx_report</definition>
+        <argsstring>(void)</argsstring>
+        <name>sl_bt_resource_disable_connection_tx_report</name>
+        <param>
+          <type>void</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Disable tracking and reporting data packet TX status of future new connections.</para>
+<para><simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="2002" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="2002" declcolumn="13"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__resource_1ga3e388e1c9065574f6fb3c7139507228f" prot="public" static="no">
+        <name>sl_bt_cmd_resource_get_status_id</name>
+        <initializer>0x005f0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="1851" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="1851" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__resource_1gad3409792229ff38835d0eb0e001a9f8b" prot="public" static="no">
+        <name>sl_bt_cmd_resource_set_report_threshold_id</name>
+        <initializer>0x015f0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="1852" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="1852" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__resource_1gad54c32a3753e9ee2da837e0027dec822" prot="public" static="no">
+        <name>sl_bt_cmd_resource_enable_connection_tx_report_id</name>
+        <initializer>0x025f0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="1853" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="1853" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__resource_1ga7cd4c91831c64792600bc4414c76e718" prot="public" static="no">
+        <name>sl_bt_cmd_resource_get_connection_tx_status_id</name>
+        <initializer>0x035f0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="1854" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="1854" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__resource_1ga5533ef2470e9b2f068df21db09f28a9b" prot="public" static="no">
+        <name>sl_bt_cmd_resource_disable_connection_tx_report_id</name>
+        <initializer>0x045f0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="1855" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="1855" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__resource_1gace99cb7df39714871064fbe3d215da13" prot="public" static="no">
+        <name>sl_bt_rsp_resource_get_status_id</name>
+        <initializer>0x005f0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="1856" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="1856" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__resource_1gae57210f8aab108f528e4c99905dd52c8" prot="public" static="no">
+        <name>sl_bt_rsp_resource_set_report_threshold_id</name>
+        <initializer>0x015f0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="1857" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="1857" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__resource_1ga574007b292c4d4672eeae29aee8f82cf" prot="public" static="no">
+        <name>sl_bt_rsp_resource_enable_connection_tx_report_id</name>
+        <initializer>0x025f0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="1858" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="1858" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__resource_1ga28bbbbf3223b9f4ddcbdd0367a8c2fad" prot="public" static="no">
+        <name>sl_bt_rsp_resource_get_connection_tx_status_id</name>
+        <initializer>0x035f0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="1859" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="1859" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__resource_1ga9593b46c266757044234464b5360f750" prot="public" static="no">
+        <name>sl_bt_rsp_resource_disable_connection_tx_report_id</name>
+        <initializer>0x045f0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="1860" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="1860" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Resource Report. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>Commands and events in this class can be used to query and receive the memory buffer usage status. The memory buffer is used by the Bluetooth stack for storing application data (e.g., API commands and events), user data over Bluetooth connections, advertising, scanning, etc. Total buffer size is defined by the application using the SL_BT_CONFIG_BUFFER_SIZE configuration. The Bluetooth stack does not partition the buffer, instead, the buffer is a shared resource for all features. Therefore, the available memory for one feature could be affected by another feature in simultaneous use cases. This API class provides a utility for application to get some insight of the buffer usage. As allocations in the memory buffer have overhead, the actual amount of memory that can be used for user data is less than a reported free memory amount. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

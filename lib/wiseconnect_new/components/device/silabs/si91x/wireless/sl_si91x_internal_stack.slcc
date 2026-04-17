@@ -1,0 +1,56 @@
+id: sl_si91x_internal_stack
+package: wifi
+description: >
+  The offload network stack component offloads the network stack to the Si91x Wireless Subsystem
+label: Offload Network Stack
+category: Device|Si91x|Wireless|Network Stack
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+component_root_path: ./components/device/silabs/si91x/wireless
+provides:
+- name: sl_si91x_internal_stack
+- name: sl_si91x_network_stack
+source:
+- path: sl_net/src/sl_si91x_net_internal_stack.c
+- path: icmp/sl_net_ping.c
+- path: src/sl_si91x_http_client_callback_framework.c
+  condition: ["http_client"]
+include:
+- path: sl_net/inc
+- path: icmp
+- path: inc/http_client/inc
+  condition: ["http_client"]
+- path: inc/mqtt/inc
+  condition: ["mqtt"]
+- path: inc/sntp
+  condition: ["sntp"]
+- path: icmp
+  file_list:
+    - path: sl_net_ping.h
+- path: inc/http_client/inc
+  file_list:
+    - path: sl_si91x_http_client_callback_framework.h
+  condition:
+    - http_client
+- path: inc/mqtt/inc
+  file_list:
+    - path: si91x_mqtt_client_callback_framework.h
+    - path: si91x_mqtt_client_types.h
+    - path: si91x_mqtt_client_utility.h
+  condition:
+    - mqtt
+- path: inc/sntp
+  file_list:
+    - path: si91x_sntp_client_callback_framework.h
+    - path: si91x_sntp_client_types.h
+  condition:
+    - sntp
+
+define:
+- name: SLI_SI91X_OFFLOAD_NETWORK_STACK
+
+requires:
+- name: sl_si91x_wireless
+

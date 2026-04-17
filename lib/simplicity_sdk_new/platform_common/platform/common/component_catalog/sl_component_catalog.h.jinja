@@ -1,0 +1,16 @@
+#ifndef SL_COMPONENT_CATALOG_H
+#define SL_COMPONENT_CATALOG_H
+
+{# Ensure list of components to suppress exists -#}
+{% if component_catalog_suppress is not defined -%}
+{% set component_catalog_suppress = [] -%}
+{% endif -%}
+
+// APIs present in project
+{%- for cc in component_catalog %}
+{%- if cc not in component_catalog_suppress %}
+#define SL_CATALOG_{{cc|upper}}_PRESENT
+{%- endif %}
+{%- endfor %}
+
+#endif // SL_COMPONENT_CATALOG_H

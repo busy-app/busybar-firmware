@@ -1,0 +1,69 @@
+id: "btmesh_hsl_client"
+label: "HSL Client"
+package: bluetooth_mesh_middleware
+description: >
+  Hue, Saturation and Lightness (HSL) Client model. Used to support the control
+  and reporting functionality of a node with a light source that is dimmable and
+  whose color can be selected.
+
+  This component extends the Lighting Client with functions to change the
+  hue or the saturation to a certain degree or percentage.
+
+  For more details about lighting please see Lighting Client.
+  This component is prepared for integration into SOC applications.
+
+  This is a Low-Code component. For example, changing all HSL Server nodes' light
+  saturation by 1 percent can be achieved by adding an event handler for mesh
+  events and calling the following code:
+
+  #include "sl_btmesh_hsl_client.h"
+
+  void event_handler(sl_btmesh_msg_t *evt)
+  {
+    case sl_btmesh_evt_node_initialized_id:
+      if (evt->data.evt_node_initialized.provisioned) {
+        sl_btmesh_hsl_client_set_saturation(1);
+      }
+    break;
+  }
+category: "Bluetooth Mesh|Models|Lighting"
+quality: "experimental"
+metadata:
+  sbom:
+    license: Zlib
+root_path: "bluetooth_mesh_middleware/common/btmesh_hsl_client"
+tag:
+- Low-Code
+
+config_file:
+- path: btmesh_hsl_client.dcd
+  directory: btmeshconf
+- path: "config/sl_btmesh_hsl_client_config.h"
+source:
+- path: "sl_btmesh_hsl_client.c"
+include:
+- path: ""
+  file_list:
+  - path: "sl_btmesh_hsl_client.h"
+provides:
+- name: "btmesh_hsl_client"
+requires:
+- name: "app_assert"
+- name: "app_btmesh_util"
+- name: "app_btmesh_rta"
+- name: "btmesh_stack_generic_client"
+- name: "btmesh_stack_node"
+- name: "btmesh_generic_client"
+- name: "btmesh_lighting_client"
+- name: "app_timer"
+
+
+template_contribution:
+- name: component_catalog
+  value: btmesh_hsl_client
+
+validation_helper:
+- path: "../../script/validation/soc_ncp_compatibility.lua"
+documentation:
+  docset: btmesh
+  document: btmesh-service-api/btmesh-hsl-client

@@ -1,0 +1,12 @@
+objectType: docLeaf
+id: platform-hardware-board
+access: public
+status: active
+version: "6.0.0"
+docSpaceParent: ../../../../platform/common/_docspace-gecko-platform.yml
+authors:
+  - sobimana@silabs.com
+contentType: doxygen
+title: "API Documentation"
+description: "Hardware Board API documentation"
+sourceDir: ../../doc_tmp/xml

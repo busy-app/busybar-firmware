@@ -1,0 +1,358 @@
+project_name: connect_soc_sink
+label: "Connect - SoC Sink"
+package: "connect_sdk_sample_app"
+description: >
+  The Sink example serves as the counterpart to the Sensor example. It receives
+  reports from Sensor nodes as they join its network.
+category: Connect Examples
+quality: production
+
+#---------------- UC/UP components -------------------
+component:
+  - id: sl_main
+  - id: clock_manager
+  - id: device_init
+  - id: board_control
+    condition: [hardware_board]
+  - id: radio_config_simple_connect_singlephy
+  - id: app_log
+  - id: app_assert
+  - id: token_manager
+  - id: sl_rail_util_pti
+  # Connect components
+  - id: sl_connect_config
+  - id: sl_sensor_sink_core
+  - id: connect_debug_print
+  - id: connect_app_framework_common
+  - id: connect_stack_common
+  - id: connect_psa_security_library
+  - id: connect_mac_queue
+  - id: connect_stack_counters
+  - id: connect_poll
+  - id: connect_parent_support
+  - id: connect_frequency_hopping
+#---------------------- I/O --------------------------
+  - id: simple_led
+    instance:
+      - led0
+#---------------------- CLI --------------------------
+  - id: cli
+    instance:
+    - example
+  - id: printf
+  - id: iostream_recommended_stream
+  - id: iostream_retarget_stdio
+#------------Memory Protection Unit-------------------
+  - id: mpu
+#-------------- Restriction rules -------------------
+  - id: restrictions_profile_connect
+  - id: restrictions_profile_connect_ofdm
+  - id: restrictions_profile_long_range
+#------------------ Secure storage
+  - id: psa_its
+#------------------- Connect RAIL DMP ----------------
+  - id: rail_lib_multiprotocol
+    condition:
+      - sl_connect_rail_dmp
+  - id: sl_rail_util_init
+    instance:
+      - inst0
+    condition:
+      - sl_connect_rail_dmp
+#----------------- Require list ----------------------
+requires:
+  - name: a_radio_config
+  - name: radio_config_simple_connect_singlephy_device_family_fgm23
+    condition:
+      - "device_family_fgm23"
+
+#----------------- Project files ---------------------
+include:
+  - path: "."
+    file_list:
+      - path: "app_init.h"
+      - path: "app_process.h"
+source:
+  - path: "app_init.c"
+  - path: "app_process.c"
+  - path: "app_cli.c"
+    condition:
+    - "cli"
+
+other_file:
+  - path: "../../../script/connect_create_gbl_image.bat"
+  - path: "../../../script/connect_create_gbl_image.sh"
+  - path: "hw_filter_tags.yaml"
+    condition:
+      - "add_hw_filter_to_project"
+
+readme:
+  - path: ../../../documentation/example/connect_sink_sensor/readme.md
+
+#----------------- Project macros --------------------
+define:
+  - name: "SINK_ROLE"
+    value: "1"
+#----------------- Watchdog  -------------------------
+  - name: SL_CONNECT_DISABLE_WATCHDOG
+
+#--------------------- HWFILTER ------------------------
+tag:
+  - hwfilter:board:hardware:has:vcom
+  - hwfilter:board:hardware:has:pti
+  - hwfilter:ram:33k
+  - hwfilter:flash:249k
+  - hwfilter:board:simple_led:led0
+
+#------------ Configuration overrides ----------------
+configuration:
+#------------ RAIL init, Channel Config --------------
+  - name: SL_BOARD_ENABLE_VCOM
+    value: "1"
+  - name: SL_CLI_LOCAL_ECHO
+    value: "(1)"
+  - name: SL_IOSTREAM_USART_VCOM_CONVERT_BY_DEFAULT_LF_TO_CRLF
+    value: "(1)"
+  - name: SL_IOSTREAM_USART_VCOM_FLOW_CONTROL_TYPE
+    value: "usartHwFlowControlCtsAndRts"
+  - name: SL_IOSTREAM_EUSART_VCOM_CONVERT_BY_DEFAULT_LF_TO_CRLF
+    value: "(1)"
+  - name: SL_IOSTREAM_EUSART_VCOM_FLOW_CONTROL_TYPE
+    value: "SL_IOSTREAM_EUSART_UART_FLOW_CTRL_CTS_RTS"
+  - name: APP_LOG_PREFIX_ENABLE
+    value: "0"
+  - name: "SL_STACK_SIZE"
+    value: "8192"
+#------------- OS ----------------
+#-------------- Connect-RAIL DMP --------------------
+  - name: "SL_RAIL_UTIL_INIT_INIT_COMPLETE_CALLBACK_INST0_ENABLE"
+    value: "1"
+    condition:
+      - "sl_connect_rail_dmp"
+  - name: "SL_RAIL_UTIL_INIT_RX_PACKET_QUEUE_INST0_ENTRIES"
+    value: "16"
+    condition:
+      - "sl_connect_rail_dmp"
+  - name: "SL_RAIL_UTIL_INIT_RX_FIFO_INST0_BYTES"
+    value: "128"
+    condition:
+      - "sl_connect_rail_dmp"
+  - name: "SL_RAIL_UTIL_INIT_TX_FIFO_INST0_BYTES"
+    value: "128"
+    condition:
+      - "sl_connect_rail_dmp"
+  - name: "SL_RAIL_UTIL_INIT_PROTOCOL_INST0_DEFAULT"
+    value: "SL_RAIL_UTIL_PROTOCOL_PROPRIETARY"
+    condition:
+      - "sl_connect_rail_dmp"
+  - name: "SL_RAIL_UTIL_INIT_PROTOCOL_PROPRIETARY_INST0_INDEX"
+    value: "1"
+    condition:
+      - "sl_connect_rail_dmp"
+  - name: "SL_RAIL_UTIL_INIT_TRANSITION_INST0_RX_SUCCESS"
+    value: "RAIL_RF_STATE_RX"
+    condition:
+      - "sl_connect_rail_dmp"
+  - name: "SL_RAIL_UTIL_INIT_TRANSITION_INST0_RX_ERROR"
+    value: "RAIL_RF_STATE_RX"
+    condition:
+      - "sl_connect_rail_dmp"
+  - name: "SL_RAIL_UTIL_INIT_EVENTS_INST0_ENABLE"
+    value: "1"
+    condition:
+      - "sl_connect_rail_dmp"
+  - name: "SL_RAIL_UTIL_INIT_EVENT_RX_PACKET_RECEIVED_INST0_ENABLE"
+    value: "1"
+    condition:
+      - "sl_connect_rail_dmp"
+  - name: "SL_RAIL_UTIL_INIT_EVENT_RX_FRAME_ERROR_INST0_ENABLE"
+    value: "1"
+    condition:
+      - "sl_connect_rail_dmp"
+  - name: "SL_RAIL_UTIL_INIT_EVENT_RX_PACKET_ABORTED_INST0_ENABLE"
+    value: "1"
+    condition:
+      - "sl_connect_rail_dmp"
+  - name: "SL_RAIL_UTIL_INIT_EVENT_RX_TIMEOUT_INST0_ENABLE"
+    value: "1"
+    condition:
+      - "sl_connect_rail_dmp"
+  - name: "SL_RAIL_UTIL_INIT_EVENT_TX_PACKET_SENT_INST0_ENABLE"
+    value: "1"
+    condition:
+      - "sl_connect_rail_dmp"
+  - name: "SL_RAIL_UTIL_INIT_EVENT_TX_ABORTED_INST0_ENABLE"
+    value: "1"
+    condition:
+      - "sl_connect_rail_dmp"
+  - name: "SL_RAIL_UTIL_INIT_EVENT_TX_BLOCKED_INST0_ENABLE"
+    value: "1"
+    condition:
+      - "sl_connect_rail_dmp"
+  - name: "SL_RAIL_UTIL_INIT_EVENT_TX_STARTED_INST0_ENABLE"
+    value: "1"
+    condition:
+      - "sl_connect_rail_dmp"
+  - name: "SL_RAIL_UTIL_INIT_EVENT_CONFIG_UNSCHEDULED_INST0_ENABLE"
+    value: "1"
+    condition:
+      - "sl_connect_rail_dmp"
+  - name: "SL_RAIL_UTIL_INIT_EVENT_CONFIG_SCHEDULED_INST0_ENABLE"
+    value: "1"
+    condition:
+      - "sl_connect_rail_dmp"
+  - name: "SL_RAIL_UTIL_INIT_EVENT_SCHEDULER_STATUS_INST0_ENABLE"
+    value: "1"
+    condition:
+      - "sl_connect_rail_dmp"
+  - name: "SL_RAIL_UTIL_INIT_RADIO_CONFIG_SUPPORT_INST0_ENABLE"
+    value: "1"
+    condition:
+      - "sl_connect_rail_dmp"
+  - name: "SL_RAIL_UTIL_INIT_PROTOCOLS_INST0_ENABLE"
+    value: "1"
+    condition:
+      - "sl_connect_rail_dmp"
+  - name: "SL_RAIL_UTIL_INIT_RADIO_CONFIG_SUPPORT_INST0_ENABLE"
+    value: "1"
+    condition:
+      - "sl_connect_rail_dmp"
+  - name: "SL_RAIL_UTIL_INIT_CALIBRATIONS_INST0_ENABLE"
+    value: "1"
+    condition:
+      - "sl_connect_rail_dmp"
+  - name: "SL_RAIL_UTIL_INIT_TRANSITIONS_INST0_ENABLE"
+    value: "0"
+    condition:
+      - "sl_connect_rail_dmp"
+  - name: "SL_RAIL_UTIL_CALLBACKS_ASSERT_FAILED_OVERRIDE"
+    value: "0"
+    condition:
+      - "sl_connect_rail_dmp"
+
+#-------------- Template Contribution ----------------
+template_contribution:
+#------------------ CLI commands ---------------------
+  - name: cli_command
+    value:
+      name: info
+      handler: cli_info
+      help: "MCU ID, Network state, Node ID, PAN ID, Channel ID, etc."
+  - name: cli_command
+    value:
+      name: reset
+      handler: cli_reset
+      help: "Reset the hardware"
+  - name: cli_command
+    value:
+      name: counter
+      handler: cli_counter
+      help: "Print out the passed stack counter"
+      argument:
+      - type: uint8
+        help: "Counter type"
+  - name: cli_command
+    value:
+      name: set_channel
+      handler: cli_set_channel
+      help: "Set Connect channel"
+      argument:
+      - type: uint16
+        help: "Channel ID"
+  - name: cli_command
+    value:
+      name: leave
+      handler: cli_leave
+      help: "Forget the current network and revert to EMBER_NO_NETWORK"
+  - name: cli_command
+    value:
+      name: set_tx_options
+      handler: cli_set_tx_option
+      help: "Set Tx options"
+      argument:
+      - type: uint8
+        help: "Security(0x01) MAC Ack(0x02) High Prio(0x04)"
+  - name: cli_command
+    value:
+      name: start_energy_scan
+      handler: cli_start_energy_scan
+      help: "Scan the energy level on the given channel"
+      argument:
+      - type: uint16
+        help: "Channel ID"
+      - type: uint8
+        help: "Number of samples"
+  - name: cli_command
+    value:
+      name: set_key
+      handler: cli_set_security_key
+      help: "Set security key"
+      argument:
+  # byte array feature is missing from UP cli - till this use string
+      - type: hex
+        help: "Security key (size:EMBER_ENCRYPTION_KEY_SIZE)"
+  - name: cli_command
+    value:
+      name: unset_key
+      handler: cli_unset_security_key
+      help: "Unset current security key"
+  - name: cli_command
+    value:
+      name: form
+      handler: cli_form
+      help: "Forms a network"
+      argument:
+      - type: uint16
+        help: "Channel"
+      - type: uint16opt
+        help: "Optional PAN ID"
+  - name: cli_command
+    value:
+      name: set_tx_power
+      handler: cli_set_tx_power
+      help: "Sets the antenna output power. The second optional parameter can be used to save the TX power as default"
+      argument:
+      - type: int16
+        help: "TX power value in 0.1 dBm steps"
+      - type: uint8opt
+        help: "1 - TX power persistent (saved in token), 0 - TX power volatile"
+  - name: cli_command
+    value:
+      name: pjoin
+      handler: cli_pjoin
+      help: "Permit join for a given time period with optional selective payload"
+      argument:
+      - type: uint8
+        help: "Duration"
+      - type: stringopt
+        help: "Optional Join payload"
+  - name: cli_command
+    value:
+      name: remove_child
+      handler: cli_remove_child
+      help: "Remove a specific sensor child from the list"
+      argument:
+      - type: uint8
+        help: "Mode"
+      - type: uint16
+        help: "Short Address of the child to remove. Not used if long address is given"
+      - type: hexopt
+        help: "Long Address of the child to remove"
+
+#--------------------- Toolchain ------------------------
+toolchain_settings:
+  - option: optimize
+    value: debug
+
+ui_hints:
+  highlight:
+    - path: readme.md
+      focus: true
+
+filter:
+  - name: "Wireless Technology"
+    value: ["Connect"]
+  - name: "Device Type"
+    value: ["SoC"]
+  - name: "Project Difficulty"
+    value: ["Beginner"]

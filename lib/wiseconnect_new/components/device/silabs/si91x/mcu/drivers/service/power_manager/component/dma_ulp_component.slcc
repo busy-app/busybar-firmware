@@ -1,0 +1,32 @@
+id: dma_ulp_component
+label: PM ULP DMA
+package: platform_siwx91x
+description: >
+  ULP DMA component will enable DMA in the low-power mode. 
+  It moves all the peripheral dependencies to RAM. 
+  It also installs the peripheral component if already not installed.
+category: Device|Si91x|MCU|Service|Power Manager|ULP Peripheral
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+requires:
+  - name: sl_dma
+  - name: cmsis_udma
+
+provides:
+  - name: dma_ulp_component
+
+template_contribution:
+  - name: power_manager_ps2
+    value: 1
+    condition:
+      - pm_ps2_component  
+  - name: dma_ps2
+    value: sl_si91x_dma.*
+  - name: dma_ps2
+    value: rsi_udma.*
+  - name: dma_ps2
+    value: rsi_udma_wrapper.*
+  - name: dma_ps2
+    value: UDMA.*

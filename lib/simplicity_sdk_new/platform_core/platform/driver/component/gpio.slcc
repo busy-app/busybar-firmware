@@ -1,0 +1,42 @@
+id: gpio
+package: platform_core
+label: GPIO Driver
+description: >
+  General Purpose Input Output (GPIO) Driver API
+category: Platform|Driver|GPIO
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: platform_core/platform/driver/gpio/
+include:
+- path: inc
+  file_list:
+  - path: sl_gpio.h
+source:
+- path: src/sl_gpio.c
+provides:
+- name: gpio
+  condition: [device_has_gpio]
+requires:
+- name: hal_gpio
+- name: status
+- name: sl_core
+- name: interrupt_manager
+- name: clock_manager_runtime
+- name: device_gpio
+- name: component_catalog
+- name: code_classification
+template_contribution:
+- name: event_handler
+  value:
+    event: driver_init
+    include: sl_gpio.h
+    handler: sl_gpio_init
+- name: component_catalog
+  value: gpio
+- name: code_classification_components
+  value: gpio
+define:
+- name: SL_CODE_COMPONENT_GPIO
+  value: gpio

@@ -1,0 +1,42 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__evt__l2cap__channel__closed" kind="group">
+    <compoundname>sl_bt_evt_l2cap_channel_closed</compoundname>
+    <title>sl_bt_evt_l2cap_channel_closed</title>
+    <innerclass refid="structsl__bt__evt__l2cap__channel__closed__s" prot="public">sl_bt_evt_l2cap_channel_closed_s</innerclass>
+      <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="group__sl__bt__evt__l2cap__channel__closed_1ga5436dde7fe1710f09997f2ed1a8cc6ab" prot="public" static="no">
+        <type>struct <ref refid="structsl__bt__evt__l2cap__channel__closed__s" kindref="compound">sl_bt_evt_l2cap_channel_closed_s</ref></type>
+        <definition>typedef struct sl_bt_evt_l2cap_channel_closed_s sl_bt_evt_l2cap_channel_closed_t</definition>
+        <argsstring></argsstring>
+        <name>sl_bt_evt_l2cap_channel_closed_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15040" column="47" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="15040" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__evt__l2cap__channel__closed_1ga917df93d754cf76d97663819cfeda82d" prot="public" static="no">
+        <name>sl_bt_evt_l2cap_channel_closed_id</name>
+        <initializer>0x054300a0</initializer>
+        <briefdescription>
+<para>Identifier of the channel_closed event. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15028" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="15028" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Indicates that a credit-based logical channel is closed by the local or peer device. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

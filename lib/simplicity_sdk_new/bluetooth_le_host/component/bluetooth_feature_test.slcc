@@ -1,0 +1,21 @@
+id: "bluetooth_feature_test"
+label: "Direct Test Mode"
+package: bluetooth_le_host
+description: >
+  Bluetooth DTM test feature
+category: Bluetooth|Bluetooth Host (Stack)|Features with Commands and Events
+quality: "production"
+requires:
+- name: "bluetooth_stack"
+provides:
+- name: "bluetooth_feature_test"
+template_contribution:
+- name: component_catalog
+  value: bluetooth_feature_test
+documentation:
+  docset: bluetooth
+  document: bluetooth-stack-api/sl-bt-test
+metadata:
+  sbom:
+    license: MSLA
+root_path: bluetooth_le_host

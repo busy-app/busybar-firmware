@@ -1,0 +1,27 @@
+id: "bluetooth_feature_cis"
+label: Bluetooth Feature CIS CIG
+package: bluetooth_le_controller
+description: >
+  Provide CIS and CIG feature
+
+category: Bluetooth|Bluetooth LE Controller (Link Layer)|Features with Commands and Events
+quality: experimental
+config_file:
+- path: "config/sl_btctrl_iso_conn_config.h"
+include:
+- path: inc
+  file_list:
+  - path: sl_btctrl_hci.h
+  - path: sl_btctrl_iso.h
+provides:
+- name: "bluetooth_feature_cis"
+requires:
+- name: bluetooth_hci
+- name: bluetooth_controller
+template_contribution:
+- name: component_catalog
+  value: bluetooth_feature_cis
+metadata:
+  sbom:
+    license: MSLA
+root_path: bluetooth_le_controller

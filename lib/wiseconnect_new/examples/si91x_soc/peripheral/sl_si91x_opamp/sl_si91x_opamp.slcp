@@ -1,0 +1,99 @@
+project_name: sl_si91x_opamp
+package: platform_siwx91x_app
+description: 'This application demonstrates how to configure and use the OPAMP features on the Si91x SoC.
+
+  '
+category: example|peripheral
+quality: production
+label: SI91x - SL_OPAMP
+component:
+- id: sl_main
+- id: status
+- id: syscalls
+- id: si91x_memory_default_config
+- id: rsilib_userconfig
+- id: romdriver_egpio
+- id: rsilib_clock_update
+- id: systemlevel_processor_sensor
+- id: systemlevel_wwdt
+- id: rsilib_comparator
+- id: rsilib_opamp
+- id: rsilib_adc
+- id: cmsis_device_config_917
+- id: rsilib_egpio
+- id: opamp_instance
+  instance:
+  - opamp1
+- id: sl_opamp
+- id: sl_gpio
+- id: sl_bod
+source:
+- path: app.c
+- path: opamp_example.c
+include:
+- path: .
+  file_list:
+  - path: app.h
+  - path: opamp_example.h
+toolchain_settings:
+- option: gcc_compiler_option
+  value: -Wall -Werror
+define:
+- name: SLI_SI91X_MCU_COMMON_FLASH_MODE
+- name: SL_SI91X_OPAMP
+- name: RSI_M4_INTERFACE
+provides:
+- name: si91x_soc
+other_file:
+- path: resources/readme/setupdiagram.png
+- path: resources/readme/opamp_console_output.png
+- path: resources/readme/dac_console_output.png
+- path: resources/readme/unity_gain.png
+- path: resources/readme/inverting_pga.png
+- path: resources/readme/non-inverting_pga.png
+- path: resources/readme/inverting_comp_hyst.png
+- path: resources/readme/noninverting_comp_hyst.png
+- path: resources/readme/cascaded_inv_pga.png
+- path: resources/readme/cascaded_noninv_pga.png
+- path: resources/readme/two_opamps_diff.png
+- path: resources/readme/instrumentation_amp.png
+- path: resources/readme/trans_impedance_amp.png
+- path: resources/uc_screen/opamp_uc_screen.png
+- path: resources/uc_screen/unity_gain_uc.png
+- path: resources/uc_screen/invt_pga_uc.png
+- path: resources/uc_screen/noninvt_pga_uc.png
+- path: resources/uc_screen/invt_hys_uc.png
+- path: resources/uc_screen/noninvt_hys_uc.png
+- path: resources/uc_screen/unity_gain_dac_uc.png
+- path: resources/uc_screen/cas_invt_uc_opamp1.png
+- path: resources/uc_screen/cas_invt_uc_opamp2.png
+- path: resources/uc_screen/cas_invt_uc_opamp2_1.png
+- path: resources/uc_screen/cas_invt_uc_opamp3.png
+- path: resources/uc_screen/cas_noninvt_uc_opamp1.png
+- path: resources/uc_screen/cas_noninvt_uc_opamp2.png
+- path: resources/uc_screen/cas_noninvt_uc_opamp2_1.png
+- path: resources/uc_screen/cas_noninvt_uc_opamp3.png
+- path: resources/uc_screen/two_opamps_uc_opamp1.png
+- path: resources/uc_screen/two_opamps_uc_opamp2.png
+- path: resources/uc_screen/two_opamps_uc_opamp2_1.png
+- path: resources/uc_screen/two_opamps_uc_opamp3.png
+- path: resources/uc_screen/instr_amp_opamp1.png
+- path: resources/uc_screen/instr_amp_opamp2.png
+- path: resources/uc_screen/instr_amp_opamp3.png
+- path: resources/uc_screen/trans_impedance_amp_opamp1.png
+readme:
+- path: readme.md
+ui_hints:
+  highlight:
+  - path: readme.md
+    focus: true
+post_build:
+  profile: wiseconnect_soc
+sdk_extension:
+- id: wiseconnect3_sdk
+  vendor: silabs
+  version: 4.0.1
+sdk:
+  id: simplicity_sdk
+  vendor: silabs
+  version: 2025.12.2

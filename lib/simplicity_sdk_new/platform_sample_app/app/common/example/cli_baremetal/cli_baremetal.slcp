@@ -1,0 +1,43 @@
+project_name: cli_baremetal
+package: platform
+quality: production
+label: Platform - CLI Bare-metal
+description: >
+  This example project demonstrates how to use the CLI driver in a bare-metal configuration.
+category: Example|Platform
+filter:
+  - name: "Device Type"
+    value: ["SoC"]
+  - name: "MCU"
+    value: ["32-bit MCU"]
+  - name: "Project Difficulty"
+    value: ["Beginner"]
+source:
+  - path: app.c
+  - path: cli.c
+include:
+  - path: .
+    file_list:
+      - path: app.h
+      - path: cli.h
+component:
+  - id: sl_main
+  - id: device_init
+  - id: clock_manager
+  - id: cli
+    instance: [inst]
+  - id: simple_led_recommended_instance
+  - id: iostream_stdlib_config
+  - id: iostream_retarget_stdio
+  - id: iostream_recommended_console
+define:
+  - name: DEBUG_EFM
+readme:
+  - path: readme.md
+ui_hints:
+  highlight: readme.md
+tag:
+  - hardware:component:led:1+
+configuration:
+  - name: SL_BOARD_ENABLE_VCOM
+    value: 1

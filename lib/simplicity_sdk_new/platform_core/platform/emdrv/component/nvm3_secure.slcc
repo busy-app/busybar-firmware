@@ -1,0 +1,19 @@
+id: nvm3_secure
+label: NVM3 enable security
+package: platform_core
+description: >
+  The NVM3 secure component enables secure reads/writes for the NVM3 data.
+category: Services|NVM3
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+define:
+- name: NVM3_SECURITY
+provides:
+- name: nvm3_secure
+requires:
+- name: nvm3_crypto_host
+ui_hints:
+  visibility: never
+root_path: platform_core

@@ -1,0 +1,23 @@
+id: "btmesh_nlc_basic_scene_selector_profile_metadata"
+label: "Basic Scene Selector Profile Metadata"
+package: bluetooth_mesh_middleware
+description: >
+  This component provides the relevant metadata so the Basic Scene Selector
+  NLC profile is included in DCD Page 2.
+category: "Bluetooth Mesh|Profile Metadata"
+quality: "production"
+metadata:
+  sbom:
+    license: Zlib
+root_path: "bluetooth_mesh_middleware/common/btmesh_nlc_basic_scene_selector_profile_metadata"
+tag:
+- No-Code
+
+config_file:
+- path: btmesh_nlc_basic_scene_selector.profile
+  directory: btmeshconf
+provides:
+- name: "btmesh_nlc_basic_scene_selector_profile_metadata"
+documentation:
+  docset: btmesh
+  document: btmesh-service-api/btmesh-nlc-basic-scene-selector-profile-metadata

@@ -1,0 +1,26 @@
+id: "apploader"
+label: "AppLoader Support for Applications"
+package: bluetooth_apploader
+description: >
+  Bluetooth AppLoader application for OTA DFU for series 2 devices.
+
+  This component moves the application start address to give space for an AppLoader OTA DFU
+  Bootloader. It also requires a Gecko Bootloader with an AppLoader OTA DFU plugin to be
+  present on the device.
+
+  AppLoader is a minimal version of the Bluetooth stack designed to enable device firmware
+  updates over BLE connections. It allows to update application using in-place update where
+  the old application is directly overwritten with the new one.
+category: Bluetooth|Apploader
+quality: "production"
+include: []
+source: []
+requires:
+- name: device_supports_bluetooth
+- name: device_series_2
+provides:
+- name: "apploader"
+metadata:
+  sbom:
+    license: MSLA
+root_path: bluetooth_apploader

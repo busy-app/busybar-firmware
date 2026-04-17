@@ -1,0 +1,123 @@
+project_name: wifi_station_ble_provisioning_aws_soc
+package: multi_protocol_siwx91x_app
+quality: production
+label: wifi_station_ble_provisioning_aws_soc
+category: Example|Wi-Fi_BLE
+description: 'This application explains how to connect to a Wi-Fi access point using BLE provisioning functionality and then communicates with an AWS server using MQTT. Data will be continuously published until the device is disconnected from the access point
+
+  '
+filter:
+- name: Wireless Technology
+  value:
+  - WiFi BLE
+- name: Project Difficulty
+  value:
+  - Intermediate
+source:
+- path: app.c
+- path: ble_app.c
+- path: wifi_app.c
+- path: i2c_leader_example.c
+include:
+- path: .
+  file_list:
+  - path: app.h
+  - path: ble_config.h
+  - path: wifi_config.h
+  - path: i2c_leader_example.h
+define:
+- name: SL_SI91X_PRINT_DBG_LOG
+- name: SLI_SI91X_SOCKETS
+component:
+- id: sl_main
+- id: freertos
+- id: freertos_heap_4
+- id: syscalls
+- id: si91x_memory_default_config
+- id: wiseconnect_common
+- id: sl_i2c
+- id: i2c_instance
+  instance:
+  - i2c2
+- id: ble
+- id: wifi
+- id: sl_si91x_internal_stack
+- id: wifi_resources
+- id: network_manager
+- id: basic_network_config_manager
+- id: sl_si91x_asynchronous_socket
+- id: aws_sdk
+- id: sl_si91x_basic_buffers
+- id: sl_power_manager
+- id: gpio_npss_component
+- id: wireless_wakeup_ulp_component
+- id: calendar_ulp_component
+requires:
+- name: device_needs_ram_execution
+  condition:
+  - si91x_common_flash
+toolchain_settings:
+- option: gcc_compiler_option
+  value: -Wall -Werror
+configuration:
+- name: SL_BOARD_ENABLE_VCOM
+  value: '1'
+- name: ENABLE_NPSS_GPIO_2
+  value: '1'
+- name: SL_ENABLE_GPIO_WAKEUP_SOURCE
+  value: '1'
+- name: SL_ENABLE_CALENDAR_WAKEUP_SOURCE
+  value: '1'
+- name: ENABLE_ALARM
+  value: '1'
+- name: ALARM_TIME_MSEC
+  value: '30000'
+readme:
+- path: readme.md
+other_file:
+- path: resources/readme/aws_screen.png
+- path: resources/readme/aws_screen1.png
+- path: resources/readme/aws_screen2.png
+- path: resources/readme/aws_screen3.png
+- path: resources/readme/wifi_station_ble_provisioning_aws_soc_ncp.png
+- path: resources/readme/image_aws1.png
+- path: resources/readme/output1.png
+- path: resources/readme/output2.png
+- path: resources/readme/output3.png
+- path: resources/readme/output5.png
+- path: resources/readme/remote_screen1.png
+- path: resources/readme/remote_screen2.png
+- path: resources/readme/remote_screen3.png
+- path: resources/readme/remote_screen4.png
+- path: resources/readme/remote_screen5.png
+- path: resources/readme/power_meter_avg_current_consumption.png
+- path: resources/readme/energy_profiler_step_6.png
+- path: resources/readme/energy_profiler_step_7.png
+- path: resources/readme/aws_create_thing_step1.png
+- path: resources/readme/aws_create_thing_step2.png
+- path: resources/readme/aws_create_thing_step3.png
+- path: resources/readme/aws_create_thing_step4.png
+- path: resources/readme/aws_create_thing_step5.png
+- path: resources/readme/aws_thing_certificates_download.png
+- path: resources/readme/aws_choosing_policy.png
+- path: resources/readme/aws_create_thing_attach_policy.png
+- path: resources/readme/aws_create_thing_policy_create.png
+- path: resources/readme/aws_policy.png
+- path: resources/readme/aws_create_policy.png
+- path: resources/readme/aws_iot_mqtt_host_url.png
+- path: resources/readme/dut_scan_result.png
+- path: resources/readme/pm_wakeup_configuration.png
+ui_hints:
+  highlight:
+  - path: readme.md
+    focus: true
+post_build:
+  profile: wiseconnect_soc
+sdk_extension:
+- id: wiseconnect3_sdk
+  vendor: silabs
+  version: 4.0.1
+sdk:
+  id: simplicity_sdk
+  vendor: silabs
+  version: 2025.12.2

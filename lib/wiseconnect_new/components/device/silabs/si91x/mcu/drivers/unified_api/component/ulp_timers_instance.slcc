@@ -1,0 +1,51 @@
+id: ulp_timers_instance
+label: ULP Timer
+package: platform_siwx91x
+description: >
+  ULP Timer will works in ultra low power mode and is designed to consume very little power in comparison
+  to regular timers. It allows a microcontroller to wake up periodically, perform a task, and then return 
+  to a low-power state to conserve energy.
+
+  Note:
+  For Configuring, Configurable Parameters of ULP Timer, Open the configuration wizard and configure, Below are the Configurable Parameters of ULP Timer:
+    - Timer Instance
+    - Timer Type
+    - Timer Mode
+    - Timer Direction
+
+  ULP Timer Supports instances.
+  Instances created must be named as timer0, timer1, timer2, timer3.
+category: Device|Si91x|MCU|Peripheral
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+instantiable:
+  prefix: inst
+root_path: "components/device/silabs/si91x/mcu/drivers/unified_api"
+config_file:
+  - path: config/sl_si91x_ulp_timer_common_config.h
+  - path: config/sl_si91x_ulp_timer_init_{{instance}}_config.h
+    file_id: ulp_timer_config
+provides:
+  - name: ulp_timers_instance
+    allow_multiple: true
+template_file:
+  - path: init/sl_ulp_timer_instances.h.jinja
+  - path: init/sl_ulp_timer_init.c.jinja
+template_contribution:
+  - name: ulp_timer_instance
+    value: "{{instance}}"
+  - name: component_catalog
+    value: ulp_timer
+  - name: component_catalog
+    value: "ulp_timer_{{instance}}"
+  - name: event_handler
+    condition: [sl_ulp_timer]
+    value:
+      include: "sl_ulp_timer_instances.h"
+requires:
+  - name: sl_ulp_timer
+documentation:
+    docset: wiseconnect
+    document: wiseconnect-api-reference-guide-si91x-peripherals/ulp-timer

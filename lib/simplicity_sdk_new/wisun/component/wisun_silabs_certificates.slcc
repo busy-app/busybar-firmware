@@ -1,0 +1,45 @@
+id: "wisun_silabs_certificates"
+label: "Wi-SUN Silabs Demo Certificates"
+description: >
+  Adds Wi-SUN Silabs Demo Certificates. These certificates are intended for
+  development-time use and must not be utilized in a production device.
+package: "wisun"
+category: "Wi-SUN|Wi-SUN Services"
+quality: "production"
+
+
+requires:
+- name: wisun_keychain
+
+include:
+- path: plugin
+  file_list:
+  - path: sl_wisun_silabs_certificates.h
+
+template_contribution:
+- name: wisun_keychain_include
+  value:
+    path: sl_wisun_silabs_certificates.h
+
+- name: wisun_keychain_trustedca
+  value:
+    certificate: SILABS_ROOT_CERT
+- name: wisun_keychain_credential
+  value:
+    certificate: SILABS_DEVICE_CERT
+    key: SILABS_DEVICE_KEY
+  condition:
+  - wisun_stack
+  priority: 1
+- name: wisun_keychain_credential
+  value:
+    certificate: SILABS_BR_CERT
+    key: SILABS_BR_KEY
+  condition:
+  - wisun_br_stack
+  priority: 1
+
+metadata:
+  sbom:
+    license: MSLA
+root_path: wisun

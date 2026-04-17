@@ -1,0 +1,54 @@
+id: "sl_rail_sdk_range_test_dmp_component"
+label: "DMP Bluetooth for Range Test (Range Test DMP Only)"
+package: "rail_sdk"
+description: "Adds DMP Bluetooth support to Range Test."
+category: "RAIL-SDK|Extension"
+quality: "production"
+metadata:
+  sbom:
+    license: Zlib
+root_path: "rail_sdk/component/sl_rail_sdk_range_test_dmp_component"
+provides:
+- name: sl_rail_sdk_range_test_dmp_component
+
+requires:
+- name: bluetooth_stack
+- name: gatt_configuration
+- name: bluetooth_feature_system
+- name: bluetooth_feature_gap
+- name: bluetooth_feature_legacy_advertiser
+- name: bluetooth_feature_connection_role_peripheral
+- name: bluetooth_feature_gatt
+- name: bluetooth_feature_gatt_server
+- name: mbedtls_config
+- name: mbedtls_aes
+- name: mbedtls_slcrypto
+- name: device_has_radio
+- name: sl_rail_sdk_simple_os
+- name: bt_ipc_listener
+  condition: [device_series_3]
+
+config_file:
+- path: "range_test_measurement.xml"
+  directory: "btconf"
+- path: "range_test_device_info.xml"
+  directory: "btconf"
+- override:
+    component: gatt_configuration
+    file_id: gatt_configuration_file_id
+    vendor: silabs
+  path: gatt_configuration.btconf
+  directory: btconf
+
+source:
+- path: "app_bluetooth.c"
+include:
+- path: "."
+  file_list:
+  - "path": "app_bluetooth.h"
+
+#-------------- Template Contribution ----------------
+template_contribution:
+#---------------- Component Catalog ------------------
+- name: component_catalog
+  value: range_test_dmp_component

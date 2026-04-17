@@ -1,0 +1,1067 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="sl__bgapi_8h" kind="file" language="C++">
+    <compoundname>sl_bgapi.h</compoundname>
+    <includes local="no">stdint.h</includes>
+    <includes local="no">stddef.h</includes>
+    <includes local="no">stdbool.h</includes>
+    <includes local="yes">sl_status.h</includes>
+    <includes local="yes">sl_bgapi_config.h</includes>
+    <includedby refid="sl__bt__api_8h" local="yes">/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h</includedby>
+    <incdepgraph>
+      <node id="1">
+        <label>/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h</label>
+        <link refid="sl__bgapi_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="4" relation="include">
+        </childnode>
+        <childnode refid="5" relation="include">
+        </childnode>
+        <childnode refid="6" relation="include">
+        </childnode>
+      </node>
+      <node id="6">
+        <label>sl_bgapi_config.h</label>
+      </node>
+      <node id="5">
+        <label>sl_status.h</label>
+      </node>
+      <node id="4">
+        <label>stdbool.h</label>
+      </node>
+      <node id="3">
+        <label>stddef.h</label>
+      </node>
+      <node id="2">
+        <label>stdint.h</label>
+      </node>
+    </incdepgraph>
+    <invincdepgraph>
+      <node id="1">
+        <label>/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h</label>
+        <link refid="sl__bgapi_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h</label>
+        <link refid="sl__bt__api_8h_source"/>
+        <childnode refid="3" relation="include">
+        </childnode>
+      </node>
+      <node id="3">
+        <label>/var/lib/jenkins/github@3/bluetooth_le_host/event_system/inc/sli_bt_event_system.h</label>
+        <link refid="sli__bt__event__system_8h_source"/>
+      </node>
+    </invincdepgraph>
+    <innerclass refid="structuint8array" prot="public">uint8array</innerclass>
+    <innerclass refid="structbyte__array__s" prot="public">byte_array_s</innerclass>
+    <innerclass refid="structbd__addr" prot="public">bd_addr</innerclass>
+    <innerclass refid="structuuid__128" prot="public">uuid_128</innerclass>
+    <innerclass refid="structaes__key__128" prot="public">aes_key_128</innerclass>
+    <innerclass refid="structsl__bt__uuid__16__t" prot="public">sl_bt_uuid_16_t</innerclass>
+    <innerclass refid="structsl__bt__uuid__64__t" prot="public">sl_bt_uuid_64_t</innerclass>
+    <innerclass refid="structsl__bgapi__rsp__error__s" prot="public">sl_bgapi_rsp_error_s</innerclass>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="sl__bgapi_8h_1a7bb24fa997f25e432cedd558fedb4193" prot="public" static="no">
+        <name>SL_BGAPI_DEPRECATED</name>
+        <briefdescription>
+<para>Silicon Labs BGAPI types and macros. </para>
+        </briefdescription>
+        <detaileddescription>
+<sect1 id="sl__bgapi_8h_1autotoc_md1">
+<title>License</title>
+<para><bold>Copyright 2019-2020 Silicon Laboratories Inc. www.silabs.com</bold></para>
+<para>The licensor of this software is Silicon Laboratories Inc. Your use of this software is governed by the terms of Silicon Labs Master Software License Agreement (MSLA) available at www.silabs.com/about-us/legal/master-software-license-agreement. This software is distributed to you in Source Code format and is governed by the sections of the MSLA applicable to Source Code. </para>
+</sect1>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" line="36" column="12" bodyfile="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" bodystart="36" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bgapi__types_1ga267fbf80cdc6fbc7990b9dbb9ee268e2" prot="public" static="no">
+        <name>SL_BT_TYPE_UINT8ARRARY</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" line="70" column="9" bodyfile="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" bodystart="70" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bgapi__types_1ga253166438a8eef1a0f124c0d4e666a5a" prot="public" static="no">
+        <name>SL_BT_TYPE_BYTE_ARRARY</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" line="79" column="9" bodyfile="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" bodystart="79" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bgapi__types_1gaafbfd975e4108e0800b2514e4620e3fe" prot="public" static="no">
+        <name>SL_BT_TYPE_BDADDR</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" line="89" column="9" bodyfile="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" bodystart="89" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bgapi__types_1gadf14f7d846c7814be79f8a8c42598c47" prot="public" static="no">
+        <name>SL_BT_TYPE_UUID128</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" line="97" column="9" bodyfile="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" bodystart="97" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bgapi__types_1ga90a686db62e237997747ce3c801932f9" prot="public" static="no">
+        <name>SL_BT_TYPE_AES_KEY128</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" line="105" column="9" bodyfile="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" bodystart="105" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bgapi__types_1ga07ead9236e64f2f39c2cfb0552a1780c" prot="public" static="no">
+        <name>SL_BT_TYPE_UUID16</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" line="113" column="9" bodyfile="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" bodystart="113" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bgapi__types_1ga244785a8656dadd8c2974431fddb4a92" prot="public" static="no">
+        <name>SL_BT_TYPE_UUID64</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" line="121" column="9" bodyfile="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" bodystart="121" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bgapi__types_1ga6bb011435286a47a9c4de1f6ef519c12" prot="public" static="no">
+        <name>SL_BGAPI_MSG_HEADER_LEN</name>
+        <initializer>(4)</initializer>
+        <briefdescription>
+<para>The length of a BGAPI message header which is 4 bytes. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" line="172" column="9" bodyfile="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" bodystart="172" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bgapi__types_1ga72e6465679d444647bd983ad6ccc04ab" prot="public" static="no">
+        <name>SL_BGAPI_MSG_ERROR_PAYLOAD_LEN</name>
+        <initializer>(2)</initializer>
+        <briefdescription>
+<para>The length of the BGAPI message payload of a generic error response. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>See function <ref refid="group__sl__bgapi__functions_1gab41d467ade795af855161f208b81c491" kindref="member">sl_bgapi_set_error_response</ref> for how to generate a generic error response. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" line="180" column="9" bodyfile="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" bodystart="180" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bgapi__types_1ga4671b66da59b89c387be047d4e32c855" prot="public" static="no">
+        <name>SL_BGAPI_MSG_TYPE</name>
+        <param><defname>HDR</defname></param>
+        <initializer>((HDR) &amp; 0x80)</initializer>
+        <briefdescription>
+<para>Get the message type of a BGAPI message. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>HDR</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The header of the message as a uint32_t integer </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" line="187" column="9" bodyfile="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" bodystart="187" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bgapi__types_1gaab00659f64d4181303b12b0c4fef8ece" prot="public" static="no">
+        <name>SL_BGAPI_MSG_DEVICE_TYPE</name>
+        <param><defname>HDR</defname></param>
+        <initializer>((HDR) &amp; 0x38)</initializer>
+        <briefdescription>
+<para>Get the device type of a BGAPI message. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>HDR</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The header of the message as a uint32_t integer </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" line="194" column="9" bodyfile="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" bodystart="194" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bgapi__types_1ga7a3cec618d880b1644cf9fac82757ca5" prot="public" static="no">
+        <name>SL_BGAPI_MSG_ID</name>
+        <param><defname>HDR</defname></param>
+        <initializer>((HDR) &amp; 0xffff00f8)</initializer>
+        <briefdescription>
+<para>Get the identifier of a BGAPI message including device type, class ID, message type and message ID. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>HDR</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The header of the message as a uint32_t integer </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" line="202" column="9" bodyfile="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" bodystart="202" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bgapi__types_1gac8bc7ba3742a4b869a16010cb00b8f3a" prot="public" static="no">
+        <name>SL_BGAPI_HEADER_MAX_PAYLOAD_LEN</name>
+        <initializer>(0x7FF)</initializer>
+        <briefdescription>
+<para>The maximum value the BGAPI header payload length field can store. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" line="207" column="9" bodyfile="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" bodystart="207" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bgapi__types_1ga0072fe93eccf2839b954ec5f04f17db4" prot="public" static="no">
+        <name>SL_BGAPI_MSG_LEN</name>
+        <param><defname>HDR</defname></param>
+        <initializer>((((HDR) &amp; 0x7) &lt;&lt; 8) | (((HDR) &amp; 0xff00) &gt;&gt; 8))</initializer>
+        <briefdescription>
+<para>Get the data payload length in a BGAPI message. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>HDR</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The header of the message as a uint32_t integer </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" line="219" column="9" bodyfile="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" bodystart="219" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bgapi__types_1ga41f5c362bad074d82588d1a75e8a8583" prot="public" static="no">
+        <name>SL_BGAPI_BIT_ENCRYPTED</name>
+        <initializer>(1 &lt;&lt; 6)</initializer>
+        <briefdescription>
+<para>The bit indicating whether data of a BGAPI message is encrypted. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" line="224" column="9" bodyfile="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" bodystart="224" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bgapi__types_1ga6d6214448a73d76f19bbc958933f3125" prot="public" static="no">
+        <name>SL_BGAPI_MSG_ENCRYPTED</name>
+        <param><defname>HDR</defname></param>
+        <initializer>((HDR)&amp;<ref refid="group__sl__bgapi__types_1ga41f5c362bad074d82588d1a75e8a8583" kindref="member">SL_BGAPI_BIT_ENCRYPTED</ref>)</initializer>
+        <briefdescription>
+<para>Check whether data of a BGAPI message is encrypted. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>HDR</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The BGAPI header of the message as a uint32_t integer </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" line="231" column="9" bodyfile="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" bodystart="231" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bgapi__types_1ga335896cc750f109d2b622a6254261c8d" prot="public" static="no">
+        <name>SL_BGAPI_MSG_HEADER_FROM_ID_AND_LEN</name>
+        <param><defname>evt_id</defname></param>
+        <param><defname>payload_len</defname></param>
+        <initializer>  ((uint32_t) (((uint32_t) (evt_id))                             \
+               | (((uint32_t) (payload_len) &amp; 0x00FF) &lt;&lt; 8)      \
+               | (((uint32_t) (payload_len) &amp; 0x0700) &gt;&gt; 8)))    \</initializer>
+        <briefdescription>
+<para>Construct a BGAPI message header from an event ID and payload length. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>It is the caller&apos;s responsibility to verify that the input values are within valid range.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">evt_id</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The full event ID constant, for example <computeroutput>sl_bt_evt_system_boot_id</computeroutput> </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">payload_len</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Length of the full BGAPI message payload</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>The header as a <computeroutput>uint32_t</computeroutput> value </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" line="245" column="9" bodyfile="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" bodystart="245" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="enum">
+      <memberdef kind="enum" id="sl__bgapi_8h_1abb491e1804cd51f1fc647aed80bb6b77" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_bgapi_msg_types</name>
+        <enumvalue id="sl__bgapi_8h_1abb491e1804cd51f1fc647aed80bb6b77a6c0dd8c2d95aa65dc073b86877415406" prot="public">
+          <name>sl_bgapi_msg_type_cmd</name>
+          <initializer>= 0x00</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="sl__bgapi_8h_1abb491e1804cd51f1fc647aed80bb6b77adb48e47f2e6730e731b0782277f721f5" prot="public">
+          <name>sl_bgapi_msg_type_rsp</name>
+          <initializer>= 0x00</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="sl__bgapi_8h_1abb491e1804cd51f1fc647aed80bb6b77a687ff6681f9ce22708674d11a30737c7" prot="public">
+          <name>sl_bgapi_msg_type_evt</name>
+          <initializer>= 0x80</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" line="134" column="1" bodyfile="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" bodystart="134" bodyend="138"/>
+      </memberdef>
+      <memberdef kind="enum" id="sl__bgapi_8h_1a26456af8ae059808bc9c3b935f7c5017" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_bgapi_dev_types</name>
+        <enumvalue id="sl__bgapi_8h_1a26456af8ae059808bc9c3b935f7c5017a6dfc78111f0df7fec4380a94df4269c2" prot="public">
+          <name>sl_bgapi_dev_type_app</name>
+          <initializer>= 0x00</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="sl__bgapi_8h_1a26456af8ae059808bc9c3b935f7c5017a809fdd16fd77c8a24db40add1b67c147" prot="public">
+          <name>sl_bgapi_dev_type_bt</name>
+          <initializer>= 0x20</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="sl__bgapi_8h_1a26456af8ae059808bc9c3b935f7c5017a02d532fab02eb2ae727c902fcd55791c" prot="public">
+          <name>sl_bgapi_dev_type_btmesh</name>
+          <initializer>= 0x28</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="sl__bgapi_8h_1a26456af8ae059808bc9c3b935f7c5017acb1545bd1ebede65e3657f354a2d4b28" prot="public">
+          <name>sl_bgapi_dev_type_bgapi_service</name>
+          <initializer>= 0x30</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" line="140" column="1" bodyfile="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" bodystart="140" bodyend="145"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="group__sl__bgapi__types_1ga2d09a4b1bcaa504e0f8e4f66cba9a358" prot="public" static="no">
+        <type>struct <ref refid="structbyte__array__s" kindref="compound">byte_array_s</ref></type>
+        <definition>typedef struct byte_array_s byte_array</definition>
+        <argsstring></argsstring>
+        <name>byte_array</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" line="85" column="27" bodyfile="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" bodystart="85" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="sl__bgapi_8h_1acab37437cd257a3dc087f5a839b34bda" prot="public" static="no">
+        <type>void(*</type>
+        <definition>typedef void(* sl_bgapi_handler) (const void *)</definition>
+        <argsstring>)(const void *)</argsstring>
+        <name>sl_bgapi_handler</name>
+        <briefdescription>
+<para>Internal function prototype for BGAPI command handlers. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" line="132" column="9" bodyfile="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" bodystart="132" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="sl__bgapi_8h_1a523b521b2e73094f49fcaef293defea4" prot="public" static="no">
+        <type>enum sl_bgapi_msg_types</type>
+        <definition>typedef enum sl_bgapi_msg_types sl_bgapi_msg_types_t</definition>
+        <argsstring></argsstring>
+        <name>sl_bgapi_msg_types_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" line="138" column="22"/>
+      </memberdef>
+      <memberdef kind="typedef" id="sl__bgapi_8h_1a0bada858e78280e7c8ef9dcb49645097" prot="public" static="no">
+        <type>struct <ref refid="structsl__bgapi__rsp__error__s" kindref="compound">sl_bgapi_rsp_error_s</ref></type>
+        <definition>typedef struct sl_bgapi_rsp_error_s sl_bgapi_rsp_error_t</definition>
+        <argsstring></argsstring>
+        <name>sl_bgapi_rsp_error_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" line="161" column="35" bodyfile="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" bodystart="161" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="group__sl__bgapi__functions_1ga16f194dee0b0f8e0d9b1bfc06aa69755" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bgapi_obtain_message_buffer</definition>
+        <argsstring>(size_t max_payload_size, void **buffer)</argsstring>
+        <name>sl_bgapi_obtain_message_buffer</name>
+        <param>
+          <type>size_t</type>
+          <declname>max_payload_size</declname>
+        </param>
+        <param>
+          <type>void **</type>
+          <declname>buffer</declname>
+        </param>
+        <briefdescription>
+<para>Obtain a buffer that can be used to execute BGAPI or user commands. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>This function is provided as a convenience for NCP/CPC components that need to handle BGAPI or user commands and responses in their binary format. If the user of <ref refid="group__sl__bgapi__functions_1ga079fb06ff4ff1036071bf394a36941ce" kindref="member">sl_bgapi_execute_binary_command</ref> already has memory available for the command and response buffer (such as the memory allocated for UART RX/TX buffers), the user is encouraged to use the already existing memory when executing <ref refid="group__sl__bgapi__functions_1ga079fb06ff4ff1036071bf394a36941ce" kindref="member">sl_bgapi_execute_binary_command</ref>.</para>
+<para>If the user needs to allocate dedicated memory for any reason, using this function for the allocation may reduce the overall memory usage depending on the application configuration. If the configuration allows safe sharing of a message buffer (this is the case in a single-threaded baremetal application), the function returns the shared message buffer instead of making a separate allocation. When an RTOS is used, the function allocates a dedicated buffer for the caller.</para>
+<para>Callers that use this function must call <ref refid="group__sl__bgapi__functions_1ga1a21829a9a326f28b529554b05c321d6" kindref="member">sl_bgapi_release_message_buffer</ref> to release the message buffer when it is no longer needed.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">max_payload_size</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The maximum payload size of the messages that the buffer will be used for. The value may not exceed the BGAPI configuration value SL_BGAPI_MAX_PAYLOAD_SIZE.</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">buffer</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Set to point to the buffer that the caller can use to execute BGAPI or user commands</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if the buffer was obtained, otherwise an error code </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" line="290" column="13" declfile="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" declline="290" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bgapi__functions_1ga1a21829a9a326f28b529554b05c321d6" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void sl_bgapi_release_message_buffer</definition>
+        <argsstring>(void *buffer)</argsstring>
+        <name>sl_bgapi_release_message_buffer</name>
+        <param>
+          <type>void *</type>
+          <declname>buffer</declname>
+        </param>
+        <briefdescription>
+<para>Release a buffer that was obtained with <ref refid="group__sl__bgapi__functions_1ga16f194dee0b0f8e0d9b1bfc06aa69755" kindref="member">sl_bgapi_obtain_message_buffer</ref>. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">buffer</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The buffer to release </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" line="298" column="6" declfile="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" declline="298" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bgapi__functions_1gaed25854ac5561ae0467c2c329a10b974" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bgapi_check_command_sensitivity</definition>
+        <argsstring>(uint32_t command_header, bool *is_sensitive)</argsstring>
+        <name>sl_bgapi_check_command_sensitivity</name>
+        <param>
+          <type>uint32_t</type>
+          <declname>command_header</declname>
+        </param>
+        <param>
+          <type>bool *</type>
+          <declname>is_sensitive</declname>
+        </param>
+        <briefdescription>
+<para>Check if the specified command is marked as sensitive. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>This function is provided for NCP/CPC components that need to handle BGAPI commands and responses in their binary format. If the NCP/CPC transport supports encryption, it can use this function to determine if the specified command is considered as sensitive and should be encrypted. If the execution of a sensitive command is attempted over an unencrypted transport, the NCP/CPC component can choose to reject the command.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">command_header</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The header of the command to check </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">is_sensitive</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Set to true if the command is considered sensitive, otherwise set to false</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if the sensitivity of the command was successfully determined, otherwise an error code </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" line="317" column="13" declfile="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" declline="317" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bgapi__functions_1ga079fb06ff4ff1036071bf394a36941ce" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bgapi_execute_binary_command</definition>
+        <argsstring>(const void *command_buf, size_t command_buf_size, void *response_buf, size_t response_buf_size)</argsstring>
+        <name>sl_bgapi_execute_binary_command</name>
+        <param>
+          <type>const void *</type>
+          <declname>command_buf</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>command_buf_size</declname>
+        </param>
+        <param>
+          <type>void *</type>
+          <declname>response_buf</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>response_buf_size</declname>
+        </param>
+        <briefdescription>
+<para>Execute a BGAPI command in binary format. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>This function is provided for NCP/CPC components that need to handle BGAPI commands and responses in their binary format. This function automatically performs any locking or inter-process communication required to execute the command. The function returns when the command has been executed.</para>
+<para>If the caller does not need the command buffer after executing the command, it is acceptable to point the response buffer <computeroutput>response_buf</computeroutput> to the same memory location as the command buffer <computeroutput>command_buf</computeroutput>. In this case the response overwrites the command buffer. Provided that the response buffer is large enough, this function guarantees that the response buffer is always filled with a valid response message. If command execution fails, the response buffer is filled with a generic error response.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">command_buf</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to the full BGAPI command message including the header and the command-specific payload </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">command_buf_size</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The size of the command buffer. This is used to verify that the command header is valid and the full command message is available. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">response_buf</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to the response buffer to fill. It is acceptable to point to the same buffer as the command buffer in <computeroutput>command_buf</computeroutput>. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">response_buf_size</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The size of the response buffer</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if the command was executed, otherwise an error code. Note that SL_STATUS_OK does not mean that the command was successful, only that it was executed. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" line="350" column="13" declfile="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" declline="350" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bgapi__functions_1gae2d5118429c4fec3f1448381cc994f38" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>SL_BGAPI_DEPRECATED sl_status_t</type>
+        <definition>SL_BGAPI_DEPRECATED sl_status_t sl_bgapi_lock</definition>
+        <argsstring>(void)</argsstring>
+        <name>sl_bgapi_lock</name>
+        <param>
+          <type>void</type>
+        </param>
+        <briefdescription>
+<para>Lock the BGAPI for exclusive access. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><bold>Deprecated</bold> and replaced by <ref refid="group__sl__bgapi__functions_1ga079fb06ff4ff1036071bf394a36941ce" kindref="member">sl_bgapi_execute_binary_command</ref>. The replacement provides a more flexible and efficient way to execute BGAPI commands in their binary format. The new function automatically performs any locking that&apos;s needed and enables re-using the command buffer memory for the response.</para>
+<para>NOTE: This function is provided for NCP/CPC components that need to handle BGAPI commands and responses in their binary format in an application that uses an RTOS. Normal application code that issues BGAPI commands by calling API functions defined by protocol stacks must never call this function directly.</para>
+<para>See the documentation of <ref refid="group__sl__bgapi__functions_1ga866a91ee450f902d0036a4ee196049f9" kindref="member">sl_bgapi_handle_command</ref> for the full sequence that must be followed when processing commands in their binary format.</para>
+<para><simplesect kind="return"><para>SL_STATUS_OK if the lock has been obtained, otherwise an error code </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" line="375" column="33" declfile="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" declline="375" declcolumn="33"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bgapi__functions_1gaf193a0e2a09007de8ff79bc58944ca1a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>SL_BGAPI_DEPRECATED void</type>
+        <definition>SL_BGAPI_DEPRECATED void sl_bgapi_unlock</definition>
+        <argsstring>(void)</argsstring>
+        <name>sl_bgapi_unlock</name>
+        <param>
+          <type>void</type>
+        </param>
+        <briefdescription>
+<para>Release the lock obtained by <ref refid="group__sl__bgapi__functions_1gae2d5118429c4fec3f1448381cc994f38" kindref="member">sl_bgapi_lock</ref>. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><bold>Deprecated</bold> and replaced by <ref refid="group__sl__bgapi__functions_1ga079fb06ff4ff1036071bf394a36941ce" kindref="member">sl_bgapi_execute_binary_command</ref>. The replacement provides a more flexible and efficient way to execute BGAPI commands in their binary format. The new function automatically performs any locking that&apos;s needed and enables re-using the command buffer memory for the response.</para>
+<para>NOTE: This function is provided for NCP/CPC components that need to handle BGAPI commands and responses in their binary format in an application that uses an RTOS. Normal application code that issues BGAPI commands by calling API functions defined by protocol stacks must never call this function directly.</para>
+<para>See the documentation of <ref refid="group__sl__bgapi__functions_1ga866a91ee450f902d0036a4ee196049f9" kindref="member">sl_bgapi_handle_command</ref> for the full sequence that must be followed when processing commands in their binary format. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" line="395" column="26" declfile="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" declline="395" declcolumn="26"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bgapi__functions_1ga866a91ee450f902d0036a4ee196049f9" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>SL_BGAPI_DEPRECATED void</type>
+        <definition>SL_BGAPI_DEPRECATED void sl_bgapi_handle_command</definition>
+        <argsstring>(uint32_t hdr, const void *data)</argsstring>
+        <name>sl_bgapi_handle_command</name>
+        <param>
+          <type>uint32_t</type>
+          <declname>hdr</declname>
+        </param>
+        <param>
+          <type>const void *</type>
+          <declname>data</declname>
+        </param>
+        <briefdescription>
+<para>Handle a BGAPI command in binary format. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><bold>Deprecated</bold> and replaced by <ref refid="group__sl__bgapi__functions_1ga079fb06ff4ff1036071bf394a36941ce" kindref="member">sl_bgapi_execute_binary_command</ref>. The replacement provides a more flexible and efficient way to execute BGAPI commands in their binary format. The new function automatically performs any locking that&apos;s needed and enables re-using the command buffer memory for the response.</para>
+<para>NOTE: This function is provided for NCP/CPC components that need to handle BGAPI commands and responses in their binary format. Normal application code that issues BGAPI commands by calling API functions defined by protocol stacks must never call this function directly.</para>
+<para>If the application uses an RTOS, the caller must protect the BGAPI handling by obtaining the BGAPI lock with <ref refid="group__sl__bgapi__functions_1gae2d5118429c4fec3f1448381cc994f38" kindref="member">sl_bgapi_lock</ref>, handle the command with <ref refid="group__sl__bgapi__functions_1ga866a91ee450f902d0036a4ee196049f9" kindref="member">sl_bgapi_handle_command</ref>, read the response from the buffer returned by <ref refid="group__sl__bgapi__functions_1gac7b30151a238436c59e93a76aedbee0c" kindref="member">sl_bgapi_get_command_response</ref>, and then release the lock with <ref refid="group__sl__bgapi__functions_1gaf193a0e2a09007de8ff79bc58944ca1a" kindref="member">sl_bgapi_unlock</ref>. Here&apos;s an example of the full sequence that&apos;s required:</para>
+<para><programlisting><codeline><highlight class="normal">//<sp/>Lock<sp/>BGAPI<sp/>for<sp/>exclusive<sp/>access</highlight></codeline>
+<codeline><highlight class="normal">sl_status_t<sp/>status<sp/>=<sp/>sl_bgapi_lock();</highlight></codeline>
+<codeline><highlight class="normal">if<sp/>(status<sp/>!=<sp/>SL_STATUS_OK)<sp/>{</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>//<sp/>Locking<sp/>will<sp/>only<sp/>fail<sp/>if<sp/>there<sp/>are<sp/>fatal<sp/>unrecoverable<sp/>errors<sp/>with<sp/>the</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>//<sp/>RTOS<sp/>primitives,<sp/>so<sp/>caller<sp/>may<sp/>choose<sp/>to<sp/>just<sp/>assert<sp/>in<sp/>case<sp/>of<sp/>errors.</highlight></codeline>
+<codeline><highlight class="normal">}</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">//<sp/>Process<sp/>the<sp/>command</highlight></codeline>
+<codeline><highlight class="normal">sl_bgapi_handle_command(hdr,<sp/>data);</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">//<sp/>Read<sp/>the<sp/>response</highlight></codeline>
+<codeline><highlight class="normal">void<sp/>*rsp<sp/>=<sp/>sl_bgapi_get_command_response();</highlight></codeline>
+<codeline><highlight class="normal">uint32_t<sp/>rsp_header<sp/>=<sp/>*((uint32_t<sp/>*)rsp);</highlight></codeline>
+<codeline><highlight class="normal">size_t<sp/>rsp_len<sp/>=<sp/>SL_BGAPI_MSG_LEN(rsp_header)<sp/>+<sp/>SL_BGAPI_MSG_HEADER_LEN;</highlight></codeline>
+<codeline><highlight class="normal">//<sp/>Send<sp/>the<sp/>`rsp_len`<sp/>bytes<sp/>of<sp/>response<sp/>starting<sp/>from<sp/>`rsp`</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">//<sp/>Finally<sp/>unlock<sp/>the<sp/>BGAPI<sp/>to<sp/>allow<sp/>other<sp/>commands<sp/>to<sp/>proceed</highlight></codeline>
+<codeline><highlight class="normal">sl_bgapi_unlock();</highlight></codeline>
+</programlisting></para>
+<para>Empty stub implementations are provided for <ref refid="group__sl__bgapi__functions_1gae2d5118429c4fec3f1448381cc994f38" kindref="member">sl_bgapi_lock</ref> and <ref refid="group__sl__bgapi__functions_1gaf193a0e2a09007de8ff79bc58944ca1a" kindref="member">sl_bgapi_unlock</ref>, so the same sequence can be used for all NCP/CPC implementations even if an RTOS is not present.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">hdr</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The BGAPI command header </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">data</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The payload data associated with the command </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" line="445" column="26" declfile="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" declline="445" declcolumn="26"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bgapi__functions_1gac7b30151a238436c59e93a76aedbee0c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>SL_BGAPI_DEPRECATED void *</type>
+        <definition>SL_BGAPI_DEPRECATED void * sl_bgapi_get_command_response</definition>
+        <argsstring>(void)</argsstring>
+        <name>sl_bgapi_get_command_response</name>
+        <param>
+          <type>void</type>
+        </param>
+        <briefdescription>
+<para>Get the response of a handled BGAPI command. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><bold>Deprecated</bold> and replaced by <ref refid="group__sl__bgapi__functions_1ga079fb06ff4ff1036071bf394a36941ce" kindref="member">sl_bgapi_execute_binary_command</ref>. The replacement provides a more flexible and efficient way to execute BGAPI commands in their binary format. The new function automatically performs any locking that&apos;s needed and enables re-using the command buffer memory for the response.</para>
+<para>NOTE: This function is provided for NCP/CPC components that need to handle BGAPI commands and responses in their binary format. Normal application code that issues BGAPI commands by calling API functions defined by protocol stacks must never call this function directly.</para>
+<para>See the documentation of <ref refid="group__sl__bgapi__functions_1ga866a91ee450f902d0036a4ee196049f9" kindref="member">sl_bgapi_handle_command</ref> for the full sequence that must be followed when processing commands in their binary format.</para>
+<para><simplesect kind="return"><para>Pointer to the BGAPI response structure that was filled when the command was executed in <ref refid="group__sl__bgapi__functions_1ga866a91ee450f902d0036a4ee196049f9" kindref="member">sl_bgapi_handle_command</ref>. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" line="467" column="26" declfile="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" declline="467" declcolumn="26"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bgapi__functions_1gab41d467ade795af855161f208b81c491" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void sl_bgapi_set_error_response</definition>
+        <argsstring>(uint32_t command_hdr, uint16_t result, void *response, size_t response_buf_size)</argsstring>
+        <name>sl_bgapi_set_error_response</name>
+        <param>
+          <type>uint32_t</type>
+          <declname>command_hdr</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>result</declname>
+        </param>
+        <param>
+          <type>void *</type>
+          <declname>response</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>response_buf_size</declname>
+        </param>
+        <briefdescription>
+<para>Set a generic error response to the specified buffer. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>NOTE: This function is provided for NCP/CPC components that need to handle BGAPI commands and responses in their binary format. Normal application code that issues BGAPI commands by calling API functions defined by protocol stacks must never call this function directly.</para>
+<para>This function is available for NCP components that have detected fatal errors in command processing (for example have failed to receive a complete command message from the NCP host) and need to generate an error response without going through the normal BGAPI command processing.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">command_hdr</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The header of the command that we are responding to. It is possible in certain types of failures that the NCP implementation does not even have the full command header. In these cases it is recommended that the NCP implementation sets the unavailable bytes of the header to value zero to avoid transmitting uninitialized bytes. BGAPI commands are processed one command at a time and the recipient will be able to handle the error response even if it&apos;s missing the device ID, the class ID, or the command ID.</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">result</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The value to set to the <computeroutput>result</computeroutput> field of the error response.</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">response</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The response buffer to fill</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">response_buf_size</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The size of the response buffer. The caller must provide a buffer that has at least <ref refid="group__sl__bgapi__types_1ga6bb011435286a47a9c4de1f6ef519c12" kindref="member">SL_BGAPI_MSG_HEADER_LEN</ref> + <ref refid="group__sl__bgapi__types_1ga72e6465679d444647bd983ad6ccc04ab" kindref="member">SL_BGAPI_MSG_ERROR_PAYLOAD_LEN</ref> bytes available. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" line="500" column="6" declfile="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" declline="500" declcolumn="6"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="comment">/***************************************************************************/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="17"><highlight class="normal"></highlight><highlight class="preprocessor">#ifndef<sp/>SL_BGAPI_H</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="18"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>SL_BGAPI_H</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="19"><highlight class="normal"></highlight></codeline>
+<codeline lineno="20"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stdint.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="21"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stddef.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="22"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stdbool.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="23"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;sl_status.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="24"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;sl_bgapi_config.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="25"><highlight class="normal"></highlight></codeline>
+<codeline lineno="26"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="27"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="stringliteral">&quot;C&quot;</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="28"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="29"><highlight class="normal"></highlight></codeline>
+<codeline lineno="30"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>Macros<sp/>to<sp/>declare<sp/>deprecated<sp/>functions<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="31"><highlight class="normal"></highlight><highlight class="preprocessor">#if<sp/>defined(__IAR_SYSTEMS_ICC__)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="32"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/>#define<sp/>SL_BGAPI_DEPRECATED<sp/>_Pragma(&quot;deprecated&quot;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="33"><highlight class="normal"></highlight><highlight class="preprocessor">#elif<sp/>defined(__GNUC__)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="34"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/>#define<sp/>SL_BGAPI_DEPRECATED<sp/>__attribute__((deprecated))</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="35"><highlight class="normal"></highlight><highlight class="preprocessor">#else</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="36"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/>#define<sp/>SL_BGAPI_DEPRECATED</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="37"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="38"><highlight class="normal"></highlight></codeline>
+<codeline lineno="39"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>Compatibility<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="40"><highlight class="normal"></highlight><highlight class="preprocessor">#ifndef<sp/>PACKSTRUCT</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="41"><highlight class="normal"></highlight><highlight class="comment">/*Default<sp/>packed<sp/>configuration*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="42"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__GNUC__</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="43"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>_WIN32</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="44"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>PACKSTRUCT(decl)<sp/>decl<sp/>__attribute__((__packed__,<sp/>gcc_struct))</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="45"><highlight class="normal"></highlight><highlight class="preprocessor">#else</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="46"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>PACKSTRUCT(decl)<sp/>decl<sp/>__attribute__((__packed__))</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="47"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="48"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ALIGNED<sp/>__attribute__((aligned(0x4)))</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="49"><highlight class="normal"></highlight><highlight class="preprocessor">#elif<sp/>__IAR_SYSTEMS_ICC__</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="50"><highlight class="normal"></highlight></codeline>
+<codeline lineno="51"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>PACKSTRUCT(decl)<sp/>__packed<sp/>decl</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="52"><highlight class="normal"></highlight></codeline>
+<codeline lineno="53"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ALIGNED</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="54"><highlight class="normal"></highlight><highlight class="preprocessor">#elif<sp/>_MSC_VER<sp/><sp/></highlight><highlight class="comment">/*msvc*/</highlight><highlight class="preprocessor"></highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="55"><highlight class="normal"></highlight></codeline>
+<codeline lineno="56"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>PACKSTRUCT(decl)<sp/>__pragma(pack(push,<sp/>1)<sp/>)<sp/>decl<sp/>__pragma(pack(pop)<sp/>)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="57"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ALIGNED</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="58"><highlight class="normal"></highlight><highlight class="preprocessor">#else</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="59"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>PACKSTRUCT(a)<sp/>a<sp/>PACKED</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="60"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="61"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="62"><highlight class="normal"></highlight></codeline>
+<codeline lineno="63"><highlight class="normal"></highlight><highlight class="comment">/***************************************************************************/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="69"><highlight class="normal"></highlight><highlight class="preprocessor">#ifndef<sp/>SL_BT_TYPE_UINT8ARRARY</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="70"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>SL_BT_TYPE_UINT8ARRARY</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="72" refid="structuint8array" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal">{</highlight></codeline>
+<codeline lineno="73" refid="structuint8array_1a4698938af444ec839076786df946394d" refkind="member"><highlight class="normal"><sp/><sp/>uint8_t<sp/><ref refid="structuint8array_1a4698938af444ec839076786df946394d" kindref="member">len</ref>;<sp/><sp/><sp/><sp/></highlight></codeline>
+<codeline lineno="74" refid="structuint8array_1a6d9567b478549b3de2320751b34b533f" refkind="member"><highlight class="normal"><sp/><sp/>uint8_t<sp/>data[];<sp/></highlight></codeline>
+<codeline lineno="75"><highlight class="normal">}<sp/><ref refid="structuint8array" kindref="compound">uint8array</ref>;</highlight></codeline>
+<codeline lineno="76"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="77"><highlight class="normal"></highlight></codeline>
+<codeline lineno="78"><highlight class="normal"></highlight><highlight class="preprocessor">#ifndef<sp/>SL_BT_TYPE_BYTE_ARRARY</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="79"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>SL_BT_TYPE_BYTE_ARRARY</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="81" refid="structbyte__array__s" refkind="compound"><highlight class="normal">PACKSTRUCT(</highlight><highlight class="keyword">struct</highlight><highlight class="normal"><sp/><ref refid="structbyte__array__s" kindref="compound">byte_array_s</ref><sp/>{</highlight></codeline>
+<codeline lineno="82" refid="structbyte__array__s_1a5bfb9ef637d707bab6dd8b6754c925a8" refkind="member"><highlight class="normal"><sp/><sp/>uint16_t<sp/><ref refid="structbyte__array__s_1a5bfb9ef637d707bab6dd8b6754c925a8" kindref="member">len</ref>;<sp/><sp/><sp/><sp/></highlight></codeline>
+<codeline lineno="83" refid="structbyte__array__s_1ae5525d168cf501592f2aae9cfa295044" refkind="member"><highlight class="normal"><sp/><sp/>uint8_t<sp/><sp/>data[];<sp/></highlight></codeline>
+<codeline lineno="84"><highlight class="normal">});</highlight></codeline>
+<codeline lineno="85"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structbyte__array__s" kindref="compound">byte_array_s</ref><sp/><ref refid="structbyte__array__s" kindref="compound">byte_array</ref>;</highlight></codeline>
+<codeline lineno="86"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="87"><highlight class="normal"></highlight></codeline>
+<codeline lineno="88"><highlight class="normal"></highlight><highlight class="preprocessor">#ifndef<sp/>SL_BT_TYPE_BDADDR</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="89"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>SL_BT_TYPE_BDADDR</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="91" refid="structbd__addr" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal">{</highlight></codeline>
+<codeline lineno="92" refid="structbd__addr_1a47483c57b4bc71ced8f652233a3a4d43" refkind="member"><highlight class="normal"><sp/><sp/>uint8_t<sp/>addr[6];<sp/></highlight></codeline>
+<codeline lineno="93"><highlight class="normal">}<sp/><ref refid="structbd__addr" kindref="compound">bd_addr</ref>;</highlight></codeline>
+<codeline lineno="94"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="95"><highlight class="normal"></highlight></codeline>
+<codeline lineno="96"><highlight class="normal"></highlight><highlight class="preprocessor">#ifndef<sp/>SL_BT_TYPE_UUID128</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="97"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>SL_BT_TYPE_UUID128</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="99" refid="structuuid__128" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal">{</highlight></codeline>
+<codeline lineno="100" refid="structuuid__128_1a9f76ac637112f3c966050df06d803513" refkind="member"><highlight class="normal"><sp/><sp/>uint8_t<sp/>data[16];<sp/></highlight></codeline>
+<codeline lineno="101"><highlight class="normal">}<sp/><ref refid="structuuid__128" kindref="compound">uuid_128</ref>;</highlight></codeline>
+<codeline lineno="102"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="103"><highlight class="normal"></highlight></codeline>
+<codeline lineno="104"><highlight class="normal"></highlight><highlight class="preprocessor">#ifndef<sp/>SL_BT_TYPE_AES_KEY128</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="105"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>SL_BT_TYPE_AES_KEY128</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="107" refid="structaes__key__128" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal">{</highlight></codeline>
+<codeline lineno="108" refid="structaes__key__128_1ade9b32f16f9392c4a487027766105540" refkind="member"><highlight class="normal"><sp/><sp/>uint8_t<sp/>data[16];<sp/></highlight></codeline>
+<codeline lineno="109"><highlight class="normal">}<sp/><ref refid="structaes__key__128" kindref="compound">aes_key_128</ref>;</highlight></codeline>
+<codeline lineno="110"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="111"><highlight class="normal"></highlight></codeline>
+<codeline lineno="112"><highlight class="normal"></highlight><highlight class="preprocessor">#ifndef<sp/>SL_BT_TYPE_UUID16</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="113"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>SL_BT_TYPE_UUID16</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="115" refid="structsl__bt__uuid__16__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal">{</highlight></codeline>
+<codeline lineno="116" refid="structsl__bt__uuid__16__t_1a7608458597cc609ff31993260f8dd242" refkind="member"><highlight class="normal"><sp/><sp/>uint8_t<sp/>data[2];<sp/></highlight></codeline>
+<codeline lineno="117"><highlight class="normal">}<sp/><ref refid="structsl__bt__uuid__16__t" kindref="compound">sl_bt_uuid_16_t</ref>;</highlight></codeline>
+<codeline lineno="118"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="119"><highlight class="normal"></highlight></codeline>
+<codeline lineno="120"><highlight class="normal"></highlight><highlight class="preprocessor">#ifndef<sp/>SL_BT_TYPE_UUID64</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="121"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>SL_BT_TYPE_UUID64</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="123" refid="structsl__bt__uuid__64__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal">{</highlight></codeline>
+<codeline lineno="124" refid="structsl__bt__uuid__64__t_1a4b47b6b700f7c775bec3f8bb8195fb16" refkind="member"><highlight class="normal"><sp/><sp/>uint8_t<sp/>data[8];<sp/></highlight></codeline>
+<codeline lineno="125"><highlight class="normal">}<sp/><ref refid="structsl__bt__uuid__64__t" kindref="compound">sl_bt_uuid_64_t</ref>;</highlight></codeline>
+<codeline lineno="126"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="127"><highlight class="normal"><sp/></highlight><highlight class="comment">//<sp/>end<sp/>addtogroup<sp/>sl_bgapi_types</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="129"><highlight class="normal"></highlight><highlight class="comment">/******************************************************************************/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="130"><highlight class="normal"></highlight></codeline>
+<codeline lineno="132"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/>void<sp/>(*sl_bgapi_handler)(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal">*);</highlight></codeline>
+<codeline lineno="133"><highlight class="normal"></highlight></codeline>
+<codeline lineno="134"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">enum</highlight><highlight class="normal"><sp/>sl_bgapi_msg_types<sp/>{</highlight></codeline>
+<codeline lineno="135"><highlight class="normal"><sp/><sp/>sl_bgapi_msg_type_cmd<sp/>=<sp/>0x00,</highlight></codeline>
+<codeline lineno="136"><highlight class="normal"><sp/><sp/>sl_bgapi_msg_type_rsp<sp/>=<sp/>0x00,</highlight></codeline>
+<codeline lineno="137"><highlight class="normal"><sp/><sp/>sl_bgapi_msg_type_evt<sp/>=<sp/>0x80</highlight></codeline>
+<codeline lineno="138"><highlight class="normal">}<sp/>sl_bgapi_msg_types_t;</highlight></codeline>
+<codeline lineno="139"><highlight class="normal"></highlight></codeline>
+<codeline lineno="140"><highlight class="normal"></highlight><highlight class="keyword">enum</highlight><highlight class="normal"><sp/>sl_bgapi_dev_types<sp/>{</highlight></codeline>
+<codeline lineno="141"><highlight class="normal"><sp/><sp/>sl_bgapi_dev_type_app<sp/>=<sp/>0x00,</highlight></codeline>
+<codeline lineno="142"><highlight class="normal"><sp/><sp/>sl_bgapi_dev_type_bt<sp/>=<sp/>0x20,</highlight></codeline>
+<codeline lineno="143"><highlight class="normal"><sp/><sp/>sl_bgapi_dev_type_btmesh<sp/>=<sp/>0x28,</highlight></codeline>
+<codeline lineno="144"><highlight class="normal"><sp/><sp/>sl_bgapi_dev_type_bgapi_service<sp/>=<sp/>0x30,</highlight></codeline>
+<codeline lineno="145"><highlight class="normal">};</highlight></codeline>
+<codeline lineno="146"><highlight class="normal"></highlight></codeline>
+<codeline lineno="156" refid="structsl__bgapi__rsp__error__s" refkind="compound"><highlight class="normal">PACKSTRUCT(</highlight><highlight class="keyword">struct</highlight><highlight class="normal"><sp/><ref refid="structsl__bgapi__rsp__error__s" kindref="compound">sl_bgapi_rsp_error_s</ref>{</highlight></codeline>
+<codeline lineno="158" refid="structsl__bgapi__rsp__error__s_1ae6a7ce3915781833f6a96c345c764173" refkind="member"><highlight class="normal"><sp/><sp/>uint16_t<sp/><ref refid="structsl__bgapi__rsp__error__s_1ae6a7ce3915781833f6a96c345c764173" kindref="member">result</ref>;</highlight></codeline>
+<codeline lineno="159"><highlight class="normal">});</highlight></codeline>
+<codeline lineno="160"><highlight class="normal"></highlight></codeline>
+<codeline lineno="161"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structsl__bgapi__rsp__error__s" kindref="compound">sl_bgapi_rsp_error_s</ref><sp/><ref refid="structsl__bgapi__rsp__error__s" kindref="compound">sl_bgapi_rsp_error_t</ref>;</highlight></codeline>
+<codeline lineno="162"><highlight class="normal"></highlight></codeline>
+<codeline lineno="163"><highlight class="normal"></highlight><highlight class="comment">/***************************************************************************/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="172" refid="group__sl__bgapi__types_1ga6bb011435286a47a9c4de1f6ef519c12" refkind="member"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>SL_BGAPI_MSG_HEADER_LEN<sp/>(4)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="173"><highlight class="normal"></highlight></codeline>
+<codeline lineno="180" refid="group__sl__bgapi__types_1ga72e6465679d444647bd983ad6ccc04ab" refkind="member"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>SL_BGAPI_MSG_ERROR_PAYLOAD_LEN<sp/>(2)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="181"><highlight class="normal"></highlight></codeline>
+<codeline lineno="187" refid="group__sl__bgapi__types_1ga4671b66da59b89c387be047d4e32c855" refkind="member"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>SL_BGAPI_MSG_TYPE(HDR)<sp/>((HDR)<sp/>&amp;<sp/>0x80)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="188"><highlight class="normal"></highlight></codeline>
+<codeline lineno="194" refid="group__sl__bgapi__types_1gaab00659f64d4181303b12b0c4fef8ece" refkind="member"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>SL_BGAPI_MSG_DEVICE_TYPE(HDR)<sp/>((HDR)<sp/>&amp;<sp/>0x38)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="195"><highlight class="normal"></highlight></codeline>
+<codeline lineno="202" refid="group__sl__bgapi__types_1ga7a3cec618d880b1644cf9fac82757ca5" refkind="member"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>SL_BGAPI_MSG_ID(HDR)<sp/>((HDR)<sp/>&amp;<sp/>0xffff00f8)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="203"><highlight class="normal"></highlight></codeline>
+<codeline lineno="207" refid="group__sl__bgapi__types_1gac8bc7ba3742a4b869a16010cb00b8f3a" refkind="member"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>SL_BGAPI_HEADER_MAX_PAYLOAD_LEN<sp/>(0x7FF)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="208"><highlight class="normal"></highlight></codeline>
+<codeline lineno="209"><highlight class="normal"></highlight><highlight class="comment">//<sp/>Verify<sp/>that<sp/>the<sp/>the<sp/>payload<sp/>size<sp/>configuration<sp/>we<sp/>see<sp/>is<sp/>within<sp/>valid<sp/>range</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="210"><highlight class="normal"></highlight><highlight class="preprocessor">#if<sp/>SL_BGAPI_MAX_PAYLOAD_SIZE<sp/>&gt;<sp/>SL_BGAPI_HEADER_MAX_PAYLOAD_LEN</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="211"><highlight class="normal"></highlight><highlight class="preprocessor">#error<sp/>Invalid<sp/>BGAPI<sp/>payload<sp/>configuration.<sp/>SL_BGAPI_MAX_PAYLOAD_SIZE<sp/>must<sp/>not<sp/>exceed<sp/>2047.</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="212"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="213"><highlight class="normal"></highlight></codeline>
+<codeline lineno="219" refid="group__sl__bgapi__types_1ga0072fe93eccf2839b954ec5f04f17db4" refkind="member"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>SL_BGAPI_MSG_LEN(HDR)<sp/>((((HDR)<sp/>&amp;<sp/>0x7)<sp/>&lt;&lt;<sp/>8)<sp/>|<sp/>(((HDR)<sp/>&amp;<sp/>0xff00)<sp/>&gt;&gt;<sp/>8))</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="220"><highlight class="normal"></highlight></codeline>
+<codeline lineno="224" refid="group__sl__bgapi__types_1ga41f5c362bad074d82588d1a75e8a8583" refkind="member"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>SL_BGAPI_BIT_ENCRYPTED<sp/>(1<sp/>&lt;&lt;<sp/>6)<sp/></highlight><highlight class="comment">//<sp/>Bit</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="225"><highlight class="normal"></highlight></codeline>
+<codeline lineno="231" refid="group__sl__bgapi__types_1ga6d6214448a73d76f19bbc958933f3125" refkind="member"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>SL_BGAPI_MSG_ENCRYPTED(HDR)<sp/>((HDR)&amp;SL_BGAPI_BIT_ENCRYPTED)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="232"><highlight class="normal"></highlight></codeline>
+<codeline lineno="245" refid="group__sl__bgapi__types_1ga335896cc750f109d2b622a6254261c8d" refkind="member"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>SL_BGAPI_MSG_HEADER_FROM_ID_AND_LEN(evt_id,<sp/>payload_len)<sp/>\</highlight></codeline>
+<codeline lineno="246"><highlight class="preprocessor"><sp/><sp/>((uint32_t)<sp/>(((uint32_t)<sp/>(evt_id))<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>\</highlight></codeline>
+<codeline lineno="247"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>(((uint32_t)<sp/>(payload_len)<sp/>&amp;<sp/>0x00FF)<sp/>&lt;&lt;<sp/>8)<sp/><sp/><sp/><sp/><sp/><sp/>\</highlight></codeline>
+<codeline lineno="248"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>|<sp/>(((uint32_t)<sp/>(payload_len)<sp/>&amp;<sp/>0x0700)<sp/>&gt;&gt;<sp/>8)))<sp/><sp/><sp/><sp/>\</highlight></codeline>
+<codeline lineno="249"><highlight class="preprocessor"><sp/></highlight><highlight class="comment">//<sp/>end<sp/>addtogroup<sp/>sl_bgapi_types</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="251"><highlight class="normal"></highlight><highlight class="comment">/******************************************************************************/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="252"><highlight class="normal"></highlight></codeline>
+<codeline lineno="290" refid="group__sl__bgapi__functions_1ga16f194dee0b0f8e0d9b1bfc06aa69755" refkind="member"><highlight class="normal">sl_status_t<sp/><ref refid="group__sl__bgapi__functions_1ga16f194dee0b0f8e0d9b1bfc06aa69755" kindref="member">sl_bgapi_obtain_message_buffer</ref>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>max_payload_size,</highlight></codeline>
+<codeline lineno="291"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>**buffer);</highlight></codeline>
+<codeline lineno="292"><highlight class="normal"></highlight></codeline>
+<codeline lineno="298" refid="group__sl__bgapi__functions_1ga1a21829a9a326f28b529554b05c321d6" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="group__sl__bgapi__functions_1ga1a21829a9a326f28b529554b05c321d6" kindref="member">sl_bgapi_release_message_buffer</ref>(</highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*buffer);</highlight></codeline>
+<codeline lineno="299"><highlight class="normal"></highlight></codeline>
+<codeline lineno="317" refid="group__sl__bgapi__functions_1gaed25854ac5561ae0467c2c329a10b974" refkind="member"><highlight class="normal">sl_status_t<sp/><ref refid="group__sl__bgapi__functions_1gaed25854ac5561ae0467c2c329a10b974" kindref="member">sl_bgapi_check_command_sensitivity</ref>(uint32_t<sp/>command_header,</highlight></codeline>
+<codeline lineno="318"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>*is_sensitive);</highlight></codeline>
+<codeline lineno="319"><highlight class="normal"></highlight></codeline>
+<codeline lineno="350" refid="group__sl__bgapi__functions_1ga079fb06ff4ff1036071bf394a36941ce" refkind="member"><highlight class="normal">sl_status_t<sp/><ref refid="group__sl__bgapi__functions_1ga079fb06ff4ff1036071bf394a36941ce" kindref="member">sl_bgapi_execute_binary_command</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*command_buf,</highlight></codeline>
+<codeline lineno="351"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>command_buf_size,</highlight></codeline>
+<codeline lineno="352"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*response_buf,</highlight></codeline>
+<codeline lineno="353"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>response_buf_size);</highlight></codeline>
+<codeline lineno="354"><highlight class="normal"></highlight></codeline>
+<codeline lineno="375" refid="group__sl__bgapi__functions_1gae2d5118429c4fec3f1448381cc994f38" refkind="member"><highlight class="normal">SL_BGAPI_DEPRECATED<sp/>sl_status_t<sp/><ref refid="group__sl__bgapi__functions_1gae2d5118429c4fec3f1448381cc994f38" kindref="member">sl_bgapi_lock</ref>(</highlight><highlight class="keywordtype">void</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="376"><highlight class="normal"></highlight></codeline>
+<codeline lineno="395" refid="group__sl__bgapi__functions_1gaf193a0e2a09007de8ff79bc58944ca1a" refkind="member"><highlight class="normal">SL_BGAPI_DEPRECATED<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="group__sl__bgapi__functions_1gaf193a0e2a09007de8ff79bc58944ca1a" kindref="member">sl_bgapi_unlock</ref>(</highlight><highlight class="keywordtype">void</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="396"><highlight class="normal"></highlight></codeline>
+<codeline lineno="445" refid="group__sl__bgapi__functions_1ga866a91ee450f902d0036a4ee196049f9" refkind="member"><highlight class="normal">SL_BGAPI_DEPRECATED<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="group__sl__bgapi__functions_1ga866a91ee450f902d0036a4ee196049f9" kindref="member">sl_bgapi_handle_command</ref>(uint32_t<sp/>hdr,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal">*<sp/>data);</highlight></codeline>
+<codeline lineno="446"><highlight class="normal"></highlight></codeline>
+<codeline lineno="467" refid="group__sl__bgapi__functions_1gac7b30151a238436c59e93a76aedbee0c" refkind="member"><highlight class="normal">SL_BGAPI_DEPRECATED<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal">*<sp/><ref refid="group__sl__bgapi__functions_1gac7b30151a238436c59e93a76aedbee0c" kindref="member">sl_bgapi_get_command_response</ref>(</highlight><highlight class="keywordtype">void</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="468"><highlight class="normal"></highlight></codeline>
+<codeline lineno="500" refid="group__sl__bgapi__functions_1gab41d467ade795af855161f208b81c491" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="group__sl__bgapi__functions_1gab41d467ade795af855161f208b81c491" kindref="member">sl_bgapi_set_error_response</ref>(uint32_t<sp/>command_hdr,</highlight></codeline>
+<codeline lineno="501"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>uint16_t<sp/><ref refid="structsl__bgapi__rsp__error__s_1ae6a7ce3915781833f6a96c345c764173" kindref="member">result</ref>,</highlight></codeline>
+<codeline lineno="502"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*response,</highlight></codeline>
+<codeline lineno="503"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>response_buf_size);</highlight></codeline>
+<codeline lineno="504"><highlight class="normal"><sp/></highlight><highlight class="comment">//<sp/>end<sp/>addtogroup<sp/>sl_bgapi_functions</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="506"><highlight class="normal"></highlight></codeline>
+<codeline lineno="507"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="508"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="509"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="510"><highlight class="normal"></highlight></codeline>
+<codeline lineno="511"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight></codeline>
+    </programlisting>
+    <location file="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h"/>
+  </compounddef>
+</doxygen>

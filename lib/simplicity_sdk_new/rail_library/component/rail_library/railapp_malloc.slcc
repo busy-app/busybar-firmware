@@ -1,0 +1,22 @@
+id: railapp_malloc
+label: RAILAPP Malloc (RAIL 2.x)
+package: rail_library
+description: Memory allocation component for RAILAPP debug buffer capture
+category: Platform|Radio|RAIL 2.x
+quality: deprecated
+metadata:
+  sbom:
+    license: Zlib
+provides:
+- name: railapp_malloc
+requires:
+- name: sl_core
+config_file:
+- path: apps/railapp/config/sl_railapp_malloc_config.h
+source:
+- path: apps/railapp/railapp_malloc.c
+include:
+- path: apps/railapp
+  file_list:
+  - path: railapp_malloc.h
+root_path: rail_library

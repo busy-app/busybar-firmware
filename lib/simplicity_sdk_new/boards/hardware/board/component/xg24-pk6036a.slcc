@@ -1,0 +1,26 @@
+!!omap
+- id: xg24_pk6036a
+- label: XG24-PK6036A
+- package: boards
+- description: Kit BSP support for the EFR32xG24 Channel Sounding Pro Kit.
+- category: Platform|Board|Kit|Pro Kit
+- quality: production
+- metadata:
+    sbom:
+      license: Zlib
+- requires:
+  - name: hardware_board_from_xg24-pk6036a
+- provides:
+  - name: hardware_kit
+  - name: hardware_kit_pk
+- define:
+  - name: SL_KIT_NAME
+    value: '"XG24-PK6036A"'
+  - name: SL_KIT_REV
+    value: '"A02"'
+- tag:
+  - kit:opn:xG24-PK6036A
+  - kit:pn:PK6036
+  - kit:variant:A
+  - kit:revision:A02
+- root_path: boards

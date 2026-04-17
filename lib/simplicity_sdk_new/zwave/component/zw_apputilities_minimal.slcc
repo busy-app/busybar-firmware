@@ -1,0 +1,40 @@
+id: zw_apputilities_minimal
+label: Z-Wave ApplicationUtility Minimal Component
+category: Z-Wave
+description: >
+  This SLC component provides minimal support for Application Utilities.
+  It includes utilities for ZAF (Z-Wave Application Framework) such as timers,
+  ZAF NVM (non-volatile memory), and more.
+  These utilities are essential for developing Z-Wave applications or new Command Classes and enhancing their functionality.
+package: zwave
+quality: production
+metadata:
+  sbom:
+    reference: zw_sbom_license
+
+include:
+- path: "ZAF/ApplicationUtilities"
+  file_list:
+  - path: "ev_man.h"
+  - path: "AppTimer.h"
+  - path: "ZAF_CmdPublisher.h"
+  - path: "ZAF_types.h"
+  - path: "ZAF_file_ids.h"
+  - path: "ZW_product_id_enum.h"
+  - path: "ZW_TransportSecProtocol.h"
+  - path: "ZW_TransportEndpoint.h"
+  - path: "ZAF_ApplicationEvents.h"
+  - path: "ZAF_nvm.h"
+  - path: "ZAF_nvm_app.h"
+  - path: "ZAF_retention_register.h"
+source:
+- path: "ZAF/ApplicationUtilities/AppTimer.c"
+- path: "ZAF/ApplicationUtilities/_commonIF/ZAF_Common_interface.c"
+- path: "ZAF/ApplicationUtilities/ZAF_nvm.c"
+- path: "ZAF/ApplicationUtilities/ZAF_nvm_app.c"
+- path: "ZAF/ApplicationUtilities/ZAF_retention_register.c"
+requires:
+- name: zaf_appname
+provides:
+- name: zw_apputilities_minimal
+root_path: zwave

@@ -1,0 +1,181 @@
+id: zigbee_high_datarate_phy
+label: zigbee_high_datarate_phy
+package: zigbee
+category: Zigbee
+quality: production
+description: Provides transmit API and receive callback for high-datarate phy and limited CLI to aid testing of the rail_util_ieee802154_high_speed feature
+
+config_file:
+- path: app/framework/plugin-soc/high_datarate_phy/config/high_datarate_phy_config.h
+
+validation_helper:
+- path: app/framework/component/scripts/zigbee_hdr_tasks_stack_size.lua
+
+requires:
+- name: rail_util_ieee802154_high_speed_phy
+- name: sl_rail_util_ieee802154_phy_select
+provides:
+- name: zigbee_high_datarate_phy
+
+include:
+- path: app/framework/plugin-soc/high_datarate_phy
+  file_list:
+  - path: high_datarate_phy.h
+- path: stack/include
+  file_list:
+  - path: high_datarate_phy_stack_interface.h
+- path: stack/internal/inc
+  file_list:
+  - path: high_datarate_phy_stack_interface_internal_def.h
+- path: stack/internal/src/ipc
+  file_list:
+  - path: high_datarate_phy_stack_interface_ipc_command_messages.h
+    condition:
+    - zigbee_use_ipc
+  - path: high_datarate_phy_stack_interface_ipc_callback_events.h
+    condition:
+    - zigbee_use_ipc
+
+source:
+- path: app/framework/plugin-soc/high_datarate_phy/high_datarate_phy.c
+- path: stack/internal/src/stubs/high_datarate_phy_stack_interface_internal_weak_stubs.c
+- path: stack/internal/src/baremetal/high_datarate_phy_stack_interface_baremetal_wrapper.c
+  unless:
+  - zigbee_use_ipc
+- path: stack/internal/src/baremetal/high_datarate_phy_stack_interface_baremetal_callbacks.c
+  unless:
+  - zigbee_use_ipc
+- path: stack/internal/src/ipc/high_datarate_phy_stack_interface_ipc_command_messages.c
+  condition:
+  - zigbee_use_ipc
+- path: stack/internal/src/ipc/high_datarate_phy_stack_interface_ipc_callback_events.c
+  condition:
+  - zigbee_use_ipc
+
+
+template_contribution:
+- name: component_catalog
+  value: high_datarate_phy
+
+- name: zigbee_af_callback
+  value:
+    callback_type: event_init
+    function_name: sli_high_datarate_phy_init
+
+- name: zigbee_af_callback
+  value:
+    callback_type: init_done
+    function_name: sli_high_datarate_phy_init
+
+- name: event_handler
+  value:
+    event: stack_permanent_allocation
+    include: sl_zigbee_system_common.h
+    handler: sli_mac_hdr_phy_rx_fifo_initialize
+  priority: -8999
+  condition: [sl_main, device_series_3]
+
+# CLI Commands < high_datarate_phy  >
+- name: cli_group
+  value:
+    name: high_datarate_phy
+    help: CLI Commands to test high-datarate phy transmit
+  condition:
+  - cli
+
+- name: cli_command
+  value:
+    group: high_datarate_phy
+    name: transmit
+    handler: sl_high_datarate_phy_tx_command
+    argument:
+    - type: uint16
+      help: length
+    help: Transmit payload of specified length over high datarate phy (data is 1,2,3... len)
+  condition:
+  - cli
+
+- name: cli_command
+  value:
+    group: high_datarate_phy
+    name: txsched
+    handler: sl_high_datarate_phy_tx_sched_command
+    argument:
+    - type: uint16
+      help: length
+    - type: uint32
+      help: timestamp relative to current time
+    help: Transmits HDR phy packet timestamp microseconds after current time
+  condition:
+  - cli
+
+- name: cli_command
+  value:
+    group: high_datarate_phy
+    name: clr_stats
+    handler: sl_high_datarate_phy_clr_stats_command
+    help: Clear high datarate phy statistics
+  condition:
+  - cli
+
+- name: cli_command
+  value:
+    group: high_datarate_phy
+    name: print_stats
+    handler: sl_high_datarate_phy_print_stats_command
+    help: Prints high datarate phy statistics
+  condition:
+  - cli
+
+- name: cli_command
+  value:
+    group: high_datarate_phy
+    name: set_rx_enable
+    argument:
+    - type: uint8
+      help: enable_flag
+    handler: sl_high_datarate_phy_set_rx_enable_command
+    help: Enable or disable reception of high datarate packets
+  condition:
+  - cli
+
+- name: cli_command
+  value:
+    group: high_datarate_phy
+    name: switch_phy
+    argument:
+    - type: uint8
+      help: switch_phy args 0 (to disable hdr phy), 1 (for 1 mbps) and 2 (for 2mbps)
+    handler: sl_high_datarate_phy_set_phy_command
+    help: Disable/Enable high datarate phy, and/or switch data rates between 1 Mbps and 2 Mbps for images built with SL_RAIL_UTIL_IEEE802154_RADIO_CONFIG_2P4_1MBPS_FEC_SUPPORTED set to 1
+  condition:
+  - cli
+
+- name: cli_command
+  value:
+    group: high_datarate_phy
+    name: get_active_phy
+    handler: sl_high_datarate_phy_get_phy_command
+    help: Get current active phy
+  condition:
+  - cli
+
+- name: cli_command
+  value:
+    group: high_datarate_phy
+    name: force_tx_after_failed_hdr_phy_cca
+    argument:
+    - type: uint8
+      help: hdr_csma_attempts (number of CSMA retries)
+    - type: uint32
+      help: min_bo_period_us (minimum random backoff in microseconds)
+    - type: uint32
+      help: max_bo_period_us (maximum random backoff in microseconds)
+    handler: sl_high_datarate_phy_force_tx_after_failed_hdr_phy_cca_command
+    help: Force TX after failed HDR PHY CCA with specified CSMA attempts and backoff periods
+  condition:
+  - cli
+metadata:
+  sbom:
+    license: MSLA
+root_path: zigbee

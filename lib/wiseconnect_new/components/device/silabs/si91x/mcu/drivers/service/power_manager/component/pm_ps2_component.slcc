@@ -1,0 +1,89 @@
+id: pm_ps2_component
+label: PM PS2 Component
+package: platform_siwx91x
+description: >
+ Required component for applications designed to operate in PS2 power mode. 
+  This component loads essential files into RAM.
+category: Device|Si91x|MCU|Service|Power Manager|ULP Peripheral  
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+provides:
+  - name: pm_ps2_component
+template_contribution:
+  - name: user_files_ps2
+    value: app.*
+  - name: user_files_ps2
+    value: main.*
+  - name: user_files_ps2
+    value: sl_event_handler.*
+  - name: user_files_ps2
+    value: sl_system_process_action.*
+    condition:
+    - sl_system
+  - name: user_files_ps2
+    value: sl_main_process_action.*
+  - name: user_files_ps2
+    value: sl_ulp_adc_example.*
+    condition:
+    - adc_ulp_component
+  - name: user_files_ps2
+    value: ulp_calendar_example.*
+    condition:
+    - calendar_ulp_component
+  - name: user_files_ps2
+    value: sl_ulp_dac_example.*
+    condition:
+    - dac_ulp_component
+  - name: user_files_ps2
+    value: ulp_dma_example.*
+    condition:
+    - dma_ulp_component
+  - name: user_files_ps2
+    value: ulp_gpio_example.*
+    condition:
+    - gpio_ulp_component
+  - name: user_files_ps2
+    value: ulp_i2c_leader_example.*
+    condition:
+    - i2c_ulp_component
+  - name: user_files_ps2
+    value: ulp_i2s_example.*
+    condition:
+    - i2s_ulp_component
+  - name: user_files_ps2
+    value: ulp_ssi_master_example.*
+    condition:
+    - ssi_ulp_component
+  - name: user_files_ps2
+    value: ulp_timer_example.*
+    condition:
+    - timer_ulp_component
+  - name: user_files_ps2
+    value: ulp_uart_example.*
+    condition:
+    - usart_ulp_component
+  - name: user_files_ps2
+    value: sdc_example.*
+    condition:
+    - sdc_component
+  - name: user_files_ps2
+    value: ps0_state.*
+  - name: user_files_ps2
+    value: ps1_state.*
+  - name: user_files_ps2
+    value: ps2_state.*
+  - name: user_files_ps2
+    value: ps3_state.*
+  - name: user_files_ps2
+    value: ps4_state.*
+  - name: user_files_ps2
+    value: power_manager_tickless_idle_example.*
+    condition: [calendar_ulp_component, timer_ulp_component]
+  - name: user_files_ps2
+    value: sl_si91x_button.*
+    condition: [calendar_ulp_component, timer_ulp_component]
+  - name: user_files_ps2
+    value: sl_si91x_button_instances.*
+    condition: [calendar_ulp_component, timer_ulp_component]

@@ -1,0 +1,90 @@
+Name: seqacc_regbases
+Version: 0.01
+
+# Warning: This file should be unique and modified only when necessary.
+# The base address configurations can be referenced by their name in the source YAML file located in RAIL,
+# under the field BaseAddrCfg.
+
+# All config must end with 0xFFFFFFFF: 0xFFFFFFFF
+
+#sixg301
+RAINIER:
+  BaseAddrCfgDefault:
+    Define: SEQACC_BASE_ADDR_CFG_DFLT_ARRAY_SZ
+    ContWrPos: 16
+    BasePos: 24
+    BaseAddr:
+      0xA0200000: 0
+      0xA0210000: 1
+      0xA0220000: 2
+      0xA0000000: 3
+      0xA3000000: 4
+      0xA0250000: 5
+      0xFFFFFFFF: 0xFFFFFFFF
+    Alias:
+      SEQRAM: 0xA0000000
+
+LPWH72000:
+  BaseAddrCfgDefault:
+    ContWrPos: 16
+    BasePos: 24
+    BaseAddr:
+      0xB0200000: 0
+      0xB0210000: 1
+      0xB0220000: 2
+      0xB0260000: 3
+      0xB0270000: 4
+      0xB0280000: 5
+      0xB0000000: 6
+      0xB0010000: 7
+      0xB3000000: 8
+      0xB0250000: 9
+      0xFFFFFFFF: 0xFFFFFFFF
+    Alias:
+      SEQRAM: 0xB0010000
+
+LPWH74000:
+  BaseAddrCfgDefault:
+    ContWrPos: 18
+    BasePos: 24
+    BaseAddr:
+      0xB0200000: 0
+      0xB0240000: 1
+      0xB0280000: 2
+      0xB0000000: 3
+      0xB2000000: 4
+      0xB2700000: 5
+      0x5F000000: 6
+      0xFFFFFFFF: 0xFFFFFFFF
+    Alias:
+      SEQRAM: 0xB0000000
+
+EVEREST:
+  BaseAddrCfgDefault:
+    ContWrPos: 18
+    BasePos: 24
+    BaseAddr:
+      0xB0200000: 0
+      0xB0240000: 1
+      0xB0280000: 2
+      0xB0000000: 3
+      0xB2000000: 4
+      0xB2700000: 5
+      0x5F000000: 6
+      0xFFFFFFFF: 0xFFFFFFFF
+    Alias:
+      SEQRAM: 0xB0000000
+
+WIFI74000:
+  BaseAddrCfgDefault:
+    ContWrPos: 16
+    BasePos: 24
+    BaseAddr:
+      0xB2900000: 0
+      0xB2910000: 1
+      0xB2930000: 2
+      0xB2710000: 3
+      0xB2700000: 4
+      0xFFFFFFFF: 0xFFFFFFFF
+    Alias:
+      SEQRAM: 0xB0010000

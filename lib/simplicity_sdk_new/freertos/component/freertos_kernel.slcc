@@ -1,0 +1,108 @@
+id: freertos
+label: FreeRTOS Kernel
+package: freertos
+description: 'The FreeRTOS Kernel (v11.1.0).
+
+  '
+category: RTOS|FreeRTOS
+quality: production
+metadata:
+  sbom:
+    id: freertos
+    license: MSLA
+    upstream:
+      name: FreeRTOS kernel
+      version: 11.1.0
+      supplier: AWS open source
+      url: https://github.com/FreeRTOS/FreeRTOS-Kernel
+      package_url: https://github.com/FreeRTOS/FreeRTOS-Kernel/releases/tag/V11.1.0
+      comment: FreeRTOS kernel, Version 11.1.0
+config_file:
+- path: config/series2/FreeRTOSConfig.h
+  file_id: freertos_config
+  condition:
+  - device_series_2
+  - device_cortexm
+- path: config/series3/FreeRTOSConfig.h
+  file_id: freertos_config
+  condition:
+  - device_series_3
+  - device_cortexm
+- path: config/series2/FreeRTOSConfig.h
+  file_id: freertos_config
+  condition:
+  - device_cortexm
+  unless:
+  - device_series_2
+  - device_series_3
+source:
+- path: kernel/croutine.c
+- path: kernel/event_groups.c
+- path: kernel/list.c
+- path: kernel/queue.c
+- path: kernel/stream_buffer.c
+- path: kernel/tasks.c
+- path: kernel/timers.c
+include:
+- path: kernel/include
+  file_list:
+  - path: atomic.h
+  - path: croutine.h
+  - path: deprecated_definitions.h
+  - path: event_groups.h
+  - path: FreeRTOS.h
+  - path: list.h
+  - path: message_buffer.h
+  - path: mpu_prototypes.h
+  - path: mpu_syscall_numbers.h
+  - path: mpu_wrappers.h
+  - path: portable.h
+  - path: projdefs.h
+  - path: queue.h
+  - path: semphr.h
+  - path: stack_macros.h
+  - path: StackMacros.h
+  - path: stream_buffer.h
+  - path: task.h
+  - path: timers.h
+provides:
+- name: freertos
+- name: kernel
+- name: cmsis_rtos2
+  condition:
+  - device_cortexm
+- name: cmsis_rtos2_port
+  condition:
+  - device_cortexm
+requires:
+- name: freertos_heap
+- name: component_catalog
+  condition:
+  - power_manager
+- name: freertos_arch
+- name: code_classification
+recommends:
+- id: freertos_heap_3
+  vendor: silabs
+validation_helper:
+- path: script/freertos_validation.lua
+template_contribution:
+- name: component_catalog
+  value: freertos_kernel
+- name: component_catalog
+  value: kernel
+- name: rte_components
+  value: RTE_RTOS_FreeRTOS_CORE
+  priority: -9000
+- name: rte_components
+  value: RTE_RTOS_FreeRTOS_CONFIG_RTOS2
+- name: rte_components
+  value: RTE_RTOS_FreeRTOS_COROUTINE
+- name: rte_components
+  value: RTE_RTOS_FreeRTOS_EVENTGROUPS
+- name: rte_components
+  value: RTE_RTOS_FreeRTOS_TIMERS
+define:
+- name: SL_CODE_COMPONENT_FREERTOS_KERNEL
+  value: freertos_kernel
+root_path: freertos

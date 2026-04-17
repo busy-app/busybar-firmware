@@ -1,0 +1,70 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="unionsl__si91x__hmac__key__config__t" kind="union" language="C++" prot="public">
+    <compoundname>sl_si91x_hmac_key_config_t</compoundname>
+    <includes refid="sl__si91x__hmac_8h" local="no">sl_si91x_hmac.h</includes>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="unionsl__si91x__hmac__key__config__t_1a7f808146eb6f0e371ba2afaf79786285" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__si91x__hmac__key__config__A0__t" kindref="compound">sl_si91x_hmac_key_config_A0_t</ref></type>
+        <definition>sl_si91x_hmac_key_config_A0_t sl_si91x_hmac_key_config_t::A0</definition>
+        <argsstring></argsstring>
+        <name>A0</name>
+        <qualifiedname>sl_si91x_hmac_key_config_t::A0</qualifiedname>
+        <briefdescription>
+<para>Key configuration for non-B0 chip versions. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/hmac/inc/sl_si91x_hmac.h" line="112" column="33" bodyfile="components/device/silabs/si91x/wireless/crypto/hmac/inc/sl_si91x_hmac.h" bodystart="112" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="unionsl__si91x__hmac__key__config__t_1adf4cef49d8a7fc6e65027141b67e1dc5" prot="public" static="no" mutable="no">
+        <type><ref refid="structsl__si91x__hmac__key__config__B0__t" kindref="compound">sl_si91x_hmac_key_config_B0_t</ref></type>
+        <definition>sl_si91x_hmac_key_config_B0_t sl_si91x_hmac_key_config_t::B0</definition>
+        <argsstring></argsstring>
+        <name>B0</name>
+        <qualifiedname>sl_si91x_hmac_key_config_t::B0</qualifiedname>
+        <briefdescription>
+<para>Key configuration for B0 chip versions. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/hmac/inc/sl_si91x_hmac.h" line="113" column="33" bodyfile="components/device/silabs/si91x/wireless/crypto/hmac/inc/sl_si91x_hmac.h" bodystart="113" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Union holding HMAC key configuration structures for B0, and non-B0 chip versions. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>This union holds the key configuration structures for both B0, and non-B0 chip versions. </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="2">
+        <label>sl_si91x_hmac_key_config_A0_t</label>
+        <link refid="structsl__si91x__hmac__key__config__A0__t"/>
+      </node>
+      <node id="3">
+        <label>sl_si91x_hmac_key_config_B0_t</label>
+        <link refid="structsl__si91x__hmac__key__config__B0__t"/>
+      </node>
+      <node id="1">
+        <label>sl_si91x_hmac_key_config_t</label>
+        <link refid="unionsl__si91x__hmac__key__config__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>A0</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>B0</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="components/device/silabs/si91x/wireless/crypto/hmac/inc/sl_si91x_hmac.h" line="111" column="1" bodyfile="components/device/silabs/si91x/wireless/crypto/hmac/inc/sl_si91x_hmac.h" bodystart="111" bodyend="114"/>
+    <listofallmembers>
+      <member refid="unionsl__si91x__hmac__key__config__t_1a7f808146eb6f0e371ba2afaf79786285" prot="public" virt="non-virtual"><scope>sl_si91x_hmac_key_config_t</scope><name>A0</name></member>
+      <member refid="unionsl__si91x__hmac__key__config__t_1adf4cef49d8a7fc6e65027141b67e1dc5" prot="public" virt="non-virtual"><scope>sl_si91x_hmac_key_config_t</scope><name>B0</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

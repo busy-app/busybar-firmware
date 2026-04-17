@@ -1,0 +1,17 @@
+id: example_keypair
+label: Example keypair
+description: >
+  Provides example keypair for signing and encryption postbuild actions. This component copies the signing keypair and encryption key in the autogen folder.
+package: platform_core
+category: Platform|Common
+quality: evaluation
+metadata:
+  sbom:
+    license: Zlib
+root_path: platform_core/platform/common
+provides:
+- name: example_keypair
+template_file:
+- path: example_signing_key.pem
+- path: example_signing_pubkey.pem
+- path: example-key-aes-ccm.txt

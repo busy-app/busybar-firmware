@@ -1,0 +1,39 @@
+id: "btmesh_stack_dfu_model"
+label: "Bluetooth Mesh DFU Model Library"
+package: bluetooth_mesh
+description: "This component provides the Bluetooth mesh Device Firmware Upgrade model library. The library is structured so that only the relevant parts will be included in the application binary, depending on which of the models are used by the application."
+category: "Bluetooth Mesh|Stack|DFU"
+quality: "production"
+include:
+- path: "inc"
+  file_list:
+  - path: "sl_btmesh_dfu_platform_capi.h"
+  - path: "sl_btmesh_model_specification_v1_1_defs.h"
+requires:
+- name: "btmesh_stack_dfu_model_libraries"
+- name: "btmesh_stack"
+- name: "btmesh_core"
+- name: "btmesh_stack_mbt_model"
+provides:
+- name: "btmesh_stack_dfu_model"
+recommends:
+- id: "btmesh_stack_dfu_model_libraries_release"
+  condition:
+  - "btmesh_stack_libraries_release"
+  vendor: silabs
+- id: "btmesh_stack_dfu_model_libraries_debug"
+  condition:
+  - "btmesh_stack_libraries_debug"
+
+  vendor: silabs
+template_contribution:
+- name: component_catalog
+  value: btmesh_stack_dfu_model
+
+ui_hints:
+  visibility: never
+
+metadata:
+  sbom:
+    reference: btmesh_stack_models
+root_path: bluetooth_mesh

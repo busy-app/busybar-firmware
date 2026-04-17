@@ -1,0 +1,35 @@
+id: cs_result
+package: bluetooth_le_middleware
+label: CS result handler
+description: >
+  Channel Sounding (CS) result handler that provides API to build up
+  a type-value pair sequence of high-level measurement results
+  (e.g. filtered distance, raw distance, etc.) and provides API
+  to extract these pairs from the sequence.
+category: Bluetooth|Application|Miscellaneous
+metadata:
+  sbom:
+    license: Zlib
+quality: production
+root_path: bluetooth_le_middleware/common/cs_result
+
+include:
+- path: ./inc
+  file_list:
+  - path: cs_result.h
+
+config_file:
+- path: config/cs_result_config.h
+
+source:
+- path: src/cs_result.c
+
+requires:
+- name: component_catalog
+
+provides:
+- name: cs_result
+
+documentation:
+  docset: bluetooth
+  document: bluetooth-service-api/cs-result

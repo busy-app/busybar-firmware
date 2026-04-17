@@ -1,0 +1,646 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__CRYPTO__ECDH__FUNCTIONS" kind="group">
+    <compoundname>CRYPTO_ECDH_FUNCTIONS</compoundname>
+    <title>Functions</title>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="group__CRYPTO__ECDH__FUNCTIONS_1ga36ffef1836318b405ab66117571590a6" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_si91x_ecdh_point_addition</definition>
+        <argsstring>(sl_si91x_ecdh_mode_t ecdh_mode, const uint8_t *sx, const uint8_t *sy, const uint8_t *sz, const uint8_t *tx, const uint8_t *ty, const uint8_t *tz, uint8_t *rx, uint8_t *ry, uint8_t *rz)</argsstring>
+        <name>sl_si91x_ecdh_point_addition</name>
+        <param>
+          <type><ref refid="group__CRYPTO__ECDH__CONSTANTS_1gabc2911014049f6f70e80752da677f66d" kindref="member">sl_si91x_ecdh_mode_t</ref></type>
+          <declname>ecdh_mode</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>sx</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>sy</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>sz</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>tx</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>ty</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>tz</declname>
+        </param>
+        <param>
+          <type>uint8_t *</type>
+          <declname>rx</declname>
+        </param>
+        <param>
+          <type>uint8_t *</type>
+          <declname>ry</declname>
+        </param>
+        <param>
+          <type>uint8_t *</type>
+          <declname>rz</declname>
+        </param>
+        <briefdescription>
+<para>To compute the ECDH point addition vector. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>This is a blocking API. <parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">ecdh_mode</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>ECDH mode of type <ref refid="group__CRYPTO__ECDH__CONSTANTS_1gabc2911014049f6f70e80752da677f66d" kindref="member">sl_si91x_ecdh_mode_t</ref>. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">sx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to the x coordinate of the first point to be added. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">sy</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to the y coordinate of the first point to be added. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">sz</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to the z coordinate of the first point to be added. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">tx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to the x coordinate of the second point to be added. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">ty</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to the y coordinate of the second point to be added. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">tz</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to the z coordinate of the second point to be added. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">rx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to the x coordinate of the result point. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">ry</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to the y coordinate of the result point. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">rz</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to the z coordinate of the result point. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>sl_status_t. For more information on status codes, refer to <ulink url="https://docs.silabs.com/gecko-platform/latest/platform-common/status">SL STATUS DOCUMENTATION</ulink>. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/ecdh/inc/sl_si91x_ecdh.h" line="132" column="13" declfile="components/device/silabs/si91x/wireless/crypto/ecdh/inc/sl_si91x_ecdh.h" declline="132" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__CRYPTO__ECDH__FUNCTIONS_1ga5aac96166e13f52136e16b0606ce8a14" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_si91x_ecdh_point_subtraction</definition>
+        <argsstring>(sl_si91x_ecdh_mode_t ecdh_mode, const uint8_t *sx, const uint8_t *sy, const uint8_t *sz, const uint8_t *tx, const uint8_t *ty, const uint8_t *tz, uint8_t *rx, uint8_t *ry, uint8_t *rz)</argsstring>
+        <name>sl_si91x_ecdh_point_subtraction</name>
+        <param>
+          <type><ref refid="group__CRYPTO__ECDH__CONSTANTS_1gabc2911014049f6f70e80752da677f66d" kindref="member">sl_si91x_ecdh_mode_t</ref></type>
+          <declname>ecdh_mode</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>sx</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>sy</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>sz</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>tx</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>ty</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>tz</declname>
+        </param>
+        <param>
+          <type>uint8_t *</type>
+          <declname>rx</declname>
+        </param>
+        <param>
+          <type>uint8_t *</type>
+          <declname>ry</declname>
+        </param>
+        <param>
+          <type>uint8_t *</type>
+          <declname>rz</declname>
+        </param>
+        <briefdescription>
+<para>To compute the ECDH point subtraction vector. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>This is a blocking API. <parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">ecdh_mode</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>ECDH mode of type <ref refid="group__CRYPTO__ECDH__CONSTANTS_1gabc2911014049f6f70e80752da677f66d" kindref="member">sl_si91x_ecdh_mode_t</ref>. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">sx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to the x coordinate of the first point to be subtracted. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">sy</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to the y coordinate of the first point to be subtracted. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">sz</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to the z coordinate of the first point to be subtracted. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">tx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to the x coordinate of the second point to be subtracted. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">ty</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to the y coordinate of the second point to be subtracted. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">tz</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to the z coordinate of the second point to be subtracted. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">rx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to the x coordinate of the result point. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">ry</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to the y coordinate of the result point. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">rz</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to the z coordinate of the result point. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>sl_status_t. For more information on status codes, refer to <ulink url="https://docs.silabs.com/gecko-platform/latest/platform-common/status">SL STATUS DOCUMENTATION</ulink>. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/ecdh/inc/sl_si91x_ecdh.h" line="172" column="13" declfile="components/device/silabs/si91x/wireless/crypto/ecdh/inc/sl_si91x_ecdh.h" declline="172" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__CRYPTO__ECDH__FUNCTIONS_1ga8f6c370cdd8616b4dfc7c6266d5fc05c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_si91x_ecdh_point_multiplication</definition>
+        <argsstring>(sl_si91x_ecdh_mode_t ecdh_mode, const uint8_t *d, const uint8_t *sx, const uint8_t *sy, const uint8_t *sz, uint32_t affinity, uint8_t *rx, uint8_t *ry, uint8_t *rz, uint8_t reverse)</argsstring>
+        <name>sl_si91x_ecdh_point_multiplication</name>
+        <param>
+          <type><ref refid="group__CRYPTO__ECDH__CONSTANTS_1gabc2911014049f6f70e80752da677f66d" kindref="member">sl_si91x_ecdh_mode_t</ref></type>
+          <declname>ecdh_mode</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>d</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>sx</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>sy</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>sz</declname>
+        </param>
+        <param>
+          <type>uint32_t</type>
+          <declname>affinity</declname>
+        </param>
+        <param>
+          <type>uint8_t *</type>
+          <declname>rx</declname>
+        </param>
+        <param>
+          <type>uint8_t *</type>
+          <declname>ry</declname>
+        </param>
+        <param>
+          <type>uint8_t *</type>
+          <declname>rz</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>reverse</declname>
+        </param>
+        <briefdescription>
+<para>To compute the ECDH point multiplication vector. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>This is a blocking API. <parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">ecdh_mode</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>ECDH mode of type <ref refid="group__CRYPTO__ECDH__CONSTANTS_1gabc2911014049f6f70e80752da677f66d" kindref="member">sl_si91x_ecdh_mode_t</ref>. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">d</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><linebreak/>
+ Pointer to the scalar value to be multiplied. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">sx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><linebreak/>
+ Pointer to the x coordinate of the point to be multiplied with scalar &apos;d&apos;. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">sy</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><linebreak/>
+ Pointer to the y coordinate of the point to be multiplied with scalar &apos;d&apos;. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">sz</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><linebreak/>
+ Pointer to the z coordinate of the point to be multiplied with scalar &apos;d&apos;. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">affinity</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Affinity mode:<itemizedlist>
+<listitem><para>0 : no affinity</para>
+</listitem><listitem><para>1 : affinity on input</para>
+</listitem><listitem><para>2 : affinity on output</para>
+</listitem><listitem><para>3 : affinity on both input and output </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">rx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><linebreak/>
+ Pointer to the x coordinate of the result point. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">ry</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><linebreak/>
+ Pointer to the y coordinate of the result point. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">rz</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><linebreak/>
+ Pointer to the z coordinate of the result point. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">reverse</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><linebreak/>
+ Setting this will perform reverse_8 on the inputs and outputs. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>sl_status_t. For more information on status codes, refer to <ulink url="https://docs.silabs.com/gecko-platform/latest/platform-common/status">SL STATUS DOCUMENTATION</ulink>. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/ecdh/inc/sl_si91x_ecdh.h" line="216" column="13" declfile="components/device/silabs/si91x/wireless/crypto/ecdh/inc/sl_si91x_ecdh.h" declline="216" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__CRYPTO__ECDH__FUNCTIONS_1ga8534b935a906b781a8261184e1bfaf2b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_si91x_ecdh_point_double</definition>
+        <argsstring>(sl_si91x_ecdh_mode_t ecdh_mode, const uint8_t *sx, const uint8_t *sy, const uint8_t *sz, uint8_t *rx, uint8_t *ry, uint8_t *rz)</argsstring>
+        <name>sl_si91x_ecdh_point_double</name>
+        <param>
+          <type><ref refid="group__CRYPTO__ECDH__CONSTANTS_1gabc2911014049f6f70e80752da677f66d" kindref="member">sl_si91x_ecdh_mode_t</ref></type>
+          <declname>ecdh_mode</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>sx</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>sy</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>sz</declname>
+        </param>
+        <param>
+          <type>uint8_t *</type>
+          <declname>rx</declname>
+        </param>
+        <param>
+          <type>uint8_t *</type>
+          <declname>ry</declname>
+        </param>
+        <param>
+          <type>uint8_t *</type>
+          <declname>rz</declname>
+        </param>
+        <briefdescription>
+<para>To compute the ECDH point double vector. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>This is a blocking API. <parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">ecdh_mode</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>ECDH mode of type <ref refid="group__CRYPTO__ECDH__CONSTANTS_1gabc2911014049f6f70e80752da677f66d" kindref="member">sl_si91x_ecdh_mode_t</ref>. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">sx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to the x coordinate of the point to be doubled. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">sy</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to the y coordinate of the point to be doubled. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">sz</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to the z coordinate of the point to be doubled. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">rx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to the x coordinate of the result point. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">ry</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to the y coordinate of the result point. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">rz</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to the z coordinate of the result point. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>sl_status_t. For more information on status codes, refer to <ulink url="https://docs.silabs.com/gecko-platform/latest/platform-common/status">SL STATUS DOCUMENTATION</ulink>. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/ecdh/inc/sl_si91x_ecdh.h" line="250" column="13" declfile="components/device/silabs/si91x/wireless/crypto/ecdh/inc/sl_si91x_ecdh.h" declline="250" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__CRYPTO__ECDH__FUNCTIONS_1ga8b776bbe9871c570030476fc6fd2422b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_si91x_ecdh_point_affine</definition>
+        <argsstring>(sl_si91x_ecdh_mode_t ecdh_mode, const uint8_t *sx, const uint8_t *sy, const uint8_t *sz, uint8_t *rx, uint8_t *ry, uint8_t *rz)</argsstring>
+        <name>sl_si91x_ecdh_point_affine</name>
+        <param>
+          <type><ref refid="group__CRYPTO__ECDH__CONSTANTS_1gabc2911014049f6f70e80752da677f66d" kindref="member">sl_si91x_ecdh_mode_t</ref></type>
+          <declname>ecdh_mode</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>sx</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>sy</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>sz</declname>
+        </param>
+        <param>
+          <type>uint8_t *</type>
+          <declname>rx</declname>
+        </param>
+        <param>
+          <type>uint8_t *</type>
+          <declname>ry</declname>
+        </param>
+        <param>
+          <type>uint8_t *</type>
+          <declname>rz</declname>
+        </param>
+        <briefdescription>
+<para>To compute the ECDH point affinity vector. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>This is a blocking API. <parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">ecdh_mode</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>ECDH mode of type <ref refid="group__CRYPTO__ECDH__CONSTANTS_1gabc2911014049f6f70e80752da677f66d" kindref="member">sl_si91x_ecdh_mode_t</ref>. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">sx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to the x coordinate of the point. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">sy</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to the y coordinate of the point. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">sz</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to the z coordinate of the point. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">rx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to the x coordinate of the result point. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">ry</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to the y coordinate of the result point. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">rz</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to the z coordinate of the result point. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>sl_status_t. For more information on status codes, refer to <ulink url="https://docs.silabs.com/gecko-platform/latest/platform-common/status">SL STATUS DOCUMENTATION</ulink>. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/ecdh/inc/sl_si91x_ecdh.h" line="281" column="13" declfile="components/device/silabs/si91x/wireless/crypto/ecdh/inc/sl_si91x_ecdh.h" declline="281" declcolumn="13"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para>This section provides a reference to the ECDH Crypto API functions. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

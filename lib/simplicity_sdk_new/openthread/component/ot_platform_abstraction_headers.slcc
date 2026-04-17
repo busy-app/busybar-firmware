@@ -1,0 +1,40 @@
+id: ot_platform_abstraction_headers
+label: Platform Abstraction headers
+package: openthread
+category: OpenThread
+quality: production
+description: This component provides header files for the OpenThread Platform Abstraction Layer
+provides:
+- name: ot_platform_abstraction_headers
+ui_hints:
+  visibility: never
+root_path: openthread/platform-abstraction
+include:
+- path: efr32
+  file_list:
+  - path: alarm.h
+  - path: diag.h
+  - path: ieee802154mac.h
+  - path: ieee802154-packet-utils.hpp
+  - path: platform-band.h
+  - path: radio_channel_switching.h
+  - path: radio_csl.h
+  - path: radio_energy_scan.hpp
+  - path: radio_events.h
+  - path: radio_interface.h
+  - path: radio_instance.h
+  - path: radio_security.h
+  - path: radio_state.h
+  - path: rail_config.h
+  - path: sl_packet_utils.h
+  - path: soft_source_match_table.h
+- path: include
+  file_list:
+  - path: radio_coex.h
+  - path: radio_counters.h
+  - path: radio_extension.h
+  - path: radio_multi_channel.h
+  - path: radio_power_manager.h
+metadata:
+  sbom:
+    license: BSD-3-Clause

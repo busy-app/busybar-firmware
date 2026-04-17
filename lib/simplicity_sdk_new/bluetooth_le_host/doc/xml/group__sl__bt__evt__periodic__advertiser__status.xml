@@ -1,0 +1,43 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__evt__periodic__advertiser__status" kind="group">
+    <compoundname>sl_bt_evt_periodic_advertiser_status</compoundname>
+    <title>sl_bt_evt_periodic_advertiser_status</title>
+    <innerclass refid="structsl__bt__evt__periodic__advertiser__status__s" prot="public">sl_bt_evt_periodic_advertiser_status_s</innerclass>
+      <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="group__sl__bt__evt__periodic__advertiser__status_1ga294bbe5708cd56a07857edaee5652dd1" prot="public" static="no">
+        <type>struct <ref refid="structsl__bt__evt__periodic__advertiser__status__s" kindref="compound">sl_bt_evt_periodic_advertiser_status_s</ref></type>
+        <definition>typedef struct sl_bt_evt_periodic_advertiser_status_s sl_bt_evt_periodic_advertiser_status_t</definition>
+        <argsstring></argsstring>
+        <name>sl_bt_evt_periodic_advertiser_status_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="3380" column="53" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="3380" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__evt__periodic__advertiser__status_1ga3138e092e01f7ec8498ce7820639adea" prot="public" static="no">
+        <name>sl_bt_evt_periodic_advertiser_status_id</name>
+        <initializer>0x005800a0</initializer>
+        <briefdescription>
+<para>Identifier of the status event. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="3361" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="3361" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>This event reports the latest status of periodic advertising on an advertising set. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>It is generated for each scheduled periodic advertising transmission when the status report has been enabled. By default, this event is disabled in the Bluetooth stack. Use command <ref refid="group__sl__bt__system_1gab87c80f649dda1bb2d55bd43b3658782" kindref="member">sl_bt_system_linklayer_configure</ref> and key <ref refid="group__sl__bt__system_1ggabeb0cee19ac79ff0d4789a07e8e185afad2187f1b88c73da8324a876364c04510" kindref="member">sl_bt_system_linklayer_config_key_set_periodic_advertising_status_report</ref> to enable or disable it. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

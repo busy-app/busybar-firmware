@@ -1,0 +1,37 @@
+id: sl_system
+label: System Setup (sl_system)
+package: platform_core
+category: Services|System Setup
+quality: deprecated
+metadata:
+  sbom:
+    license: Zlib
+provides:
+- name: sl_system
+requires:
+- name: sl_system_implementation_kernel
+  condition: [kernel]
+- name: sl_system_implementation
+recommends:
+- id: sl_system_compatibility
+  vendor: silabs
+conflicts:
+- name: sl_main
+  condition: [kernel]
+documentation:
+  docset: gecko-platform
+  document: platform-service/system
+description: |-
+  The System Setup component provides a set of events that can be used by
+  other components to register handlers that should be run when the system
+  is initialized and is running. For a detailed list of the handlers that can be
+  registered using the Event Handler API and a usage example, please refer to 
+  the documentation.
+
+  This component was replaced by System Setup Compatibility Layer for baremetal
+  applications. This component now only supports applications using an RTOS
+  and is deprecated. Replace this component with sl_main by sisdk-2026.6.
+
+  To migrate an RTOS application to sl_main. See:
+  https://docs.silabs.com/gecko-platform/latest/platform-service-sl-system-to-sl-main-migration-guide/
+root_path: platform_core

@@ -1,0 +1,111 @@
+project_name: sl_si91x_sensorhub
+package: platform_nwp_siwx91x_app
+description: 'This application demonstrates how to use of the sensorhub in SI91x SoC device.
+
+  '
+category: example|si91x_soc|service
+quality: production
+label: SI91x - SoC SL_SI91X_SENSORHUB
+component:
+- id: freertos
+- id: freertos_heap_4
+- id: slist
+- id: sl_main
+- id: wiseconnect_common
+- id: syscalls
+- id: si91x_memory_default_config
+- id: sl_adc
+- id: sl_ssi
+- id: sensor_hub
+- id: wifi
+- id: sl_si91x_internal_stack
+- id: wifi_resources
+- id: network_manager
+- id: basic_network_config_manager
+- id: sl_si91x_asynchronous_socket
+- id: sl_si91x_basic_buffers
+- id: sl_power_manager
+- id: sl_si91x_button_917
+  instance:
+  - btn0
+- id: gpio_ulp_component
+source:
+- path: sensorhub_config.c
+- path: sensors/src/hub_hal_intf.c
+- path: sensors/src/light_sensor/bh1750fvi.c
+- path: sensors/src/light_sensor/lightsensor_hal.c
+- path: sensors/src/temperature_sensor/lm75.c
+- path: sensors/src/temperature_sensor/tempSensor_hal.c
+- path: sensors/src/apds_sensor/apds9960.c
+- path: sensors/src/apds_sensor/apds9960Sensor_hal.c
+- path: sensors/src/accelerometer_sensor/accelerometerSensor_hal.c
+- path: sensors/src/accelerometer_sensor/adxl345.c
+- path: sensors/src/adc_sensor/adc_sensor_hal.c
+- path: sensors/src/adc_sensor/adc_sensor_driver.c
+- path: sensors/src/adc_sensor/sl_si91x_sdc.c
+- path: app.c
+- path: sensorhub_app.c
+- path: sensorhub_aws_app.c
+include:
+- path: sensors/inc/light_sensor
+  file_list:
+  - path: bh1750fvi.h
+  - path: lightsensor_hal.h
+- path: sensors/inc/temperature_sensor
+  file_list:
+  - path: lm75.h
+  - path: tempSensor_hal.h
+- path: sensors/inc/apds_sensor
+  file_list:
+  - path: apds9960.h
+  - path: apds9960Sensor_hal.h
+- path: sensors/inc/accelerometer_sensor
+  file_list:
+  - path: accelerometerSensor_hal.h
+  - path: adxl345.h
+- path: sensors/inc/adc_sensor
+  file_list:
+  - path: adc_sensor_hal.h
+  - path: adc_sensor_driver.h
+  - path: sl_si91x_sdc.h
+- path: sensors/inc
+  file_list:
+  - path: sensors_config.h
+  - path: sensor_type.h
+  - path: hub_hal_intf.h
+- path: .
+  file_list:
+  - path: app.h
+define:
+- name: SPI_MULTI_SLAVE
+- name: SSI_CONFIG
+- name: RTE_SSI_ULP_MASTER_RX_DMA
+- name: RTE_SSI_ULP_MASTER_TX_DMA
+- name: SLI_SI91X_MCU_ENABLE_RAM_BASED_EXECUTION
+- name: SL_SI91X_ULP_STATE_ENABLE
+toolchain_settings:
+- option: gcc_compiler_option
+  value: -Wall -Werror
+other_file:
+- path: resources/readme/image508b.png
+- path: resources/readme/setupdiagram.png
+- path: resources/readme/wakeup.png
+- path: resources/readme/BH1750_console_prints.png
+requires:
+- name: aws_sdk
+ui_hints:
+  highlight:
+  - path: readme.md
+    focus: true
+readme:
+- path: readme.md
+post_build:
+  profile: wiseconnect_soc
+sdk_extension:
+- id: wiseconnect3_sdk
+  vendor: silabs
+  version: 4.0.1
+sdk:
+  id: simplicity_sdk
+  vendor: silabs
+  version: 2025.12.2

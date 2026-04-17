@@ -1,0 +1,68 @@
+id: netstack_silabs_lwip_app_snmp
+label: "LWIP SNMP High Layer Application"
+package: netstack_silabs_lwip
+description: >
+  The LWIP snmp high layer application specifically programmed with the lwIP low-level raw API,
+  SNMPv2c and SNMPv3 compatible agent there is also a MIB compiler and a MIB viewer in lwIP
+  contrib folder (lwip/contrib/apps/LwipMibCompiler). The agent implements the most important
+  MIB2 MIBs including IPv6 support (interfaces, UDP, TCP, SNMP, ICMP, SYSTEM).
+category: Network Stack|LwIP|apps
+quality: production
+provides:
+- name: netstack_silabs_lwip_apps
+  allow_multiple: true
+- name: netstack_silabs_lwip_app_snmp
+requires:
+- name: netstack_silabs_lwip_core
+source:
+- path: lwip/src/apps/snmp/snmp_asn1.c
+- path: lwip/src/apps/snmp/snmp_asn1.h
+- path: lwip/src/apps/snmp/snmp_core.c
+- path: lwip/src/apps/snmp/snmp_core_priv.h
+- path: lwip/src/apps/snmp/snmp_mib2.c
+- path: lwip/src/apps/snmp/snmp_mib2_icmp.c
+- path: lwip/src/apps/snmp/snmp_mib2_interfaces.c
+- path: lwip/src/apps/snmp/snmp_mib2_ip.c
+- path: lwip/src/apps/snmp/snmp_mib2_snmp.c
+- path: lwip/src/apps/snmp/snmp_mib2_system.c
+- path: lwip/src/apps/snmp/snmp_mib2_tcp.c
+- path: lwip/src/apps/snmp/snmp_mib2_udp.c
+- path: lwip/src/apps/snmp/snmp_msg.c
+- path: lwip/src/apps/snmp/snmp_msg.h
+- path: lwip/src/apps/snmp/snmp_netconn.c
+- path: lwip/src/apps/snmp/snmp_pbuf_stream.c
+- path: lwip/src/apps/snmp/snmp_pbuf_stream.h
+- path: lwip/src/apps/snmp/snmp_raw.c
+- path: lwip/src/apps/snmp/snmp_scalar.c
+- path: lwip/src/apps/snmp/snmp_snmpv2_framework.c
+- path: lwip/src/apps/snmp/snmp_snmpv2_usm.c
+- path: lwip/src/apps/snmp/snmp_table.c
+- path: lwip/src/apps/snmp/snmp_threadsync.c
+- path: lwip/src/apps/snmp/snmp_traps.c
+- path: lwip/src/apps/snmp/snmpv3.c
+- path: lwip/src/apps/snmp/snmpv3_mbedtls.c
+- path: lwip/src/apps/snmp/snmpv3_priv.h
+include:
+- path: lwip/src/include
+  file_list:
+  - path: lwip/apps/snmp.h
+  - path: lwip/apps/snmp_core.h
+  - path: lwip/apps/snmp_mib2.h
+  - path: lwip/apps/snmp_opts.h
+  - path: lwip/apps/snmp_scalar.h
+  - path: lwip/apps/snmp_snmpv2_framework.h
+  - path: lwip/apps/snmp_snmpv2_usm.h
+  - path: lwip/apps/snmp_table.h
+  - path: lwip/apps/snmp_threadsync.h
+  - path: lwip/apps/snmpv3.h
+metadata:
+  sbom:
+    license: BSD-3-Clause
+    upstream:
+      name: lwip
+      version: 2.2.1
+      supplier: lwIP Developers
+      url: https://savannah.nongnu.org/projects/lwip/
+      package_url: https://github.com/lwip-tcpip/lwip/
+      comment: lwIP is a small independent implementation of the TCP/IP protocol suite.
+root_path: netstack_silabs_lwip/

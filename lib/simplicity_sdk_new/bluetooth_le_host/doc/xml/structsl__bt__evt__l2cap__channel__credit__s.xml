@@ -1,0 +1,65 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="structsl__bt__evt__l2cap__channel__credit__s" kind="struct" language="C++" prot="public">
+    <compoundname>sl_bt_evt_l2cap_channel_credit_s</compoundname>
+    <includes refid="sl__bt__api_8h" local="no">sl_bt_api.h</includes>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structsl__bt__evt__l2cap__channel__credit__s_1a6e74bf111abc739375872a7616cc4c6f" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_l2cap_channel_credit_s::connection</definition>
+        <argsstring></argsstring>
+        <name>connection</name>
+        <qualifiedname>sl_bt_evt_l2cap_channel_credit_s::connection</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>The Bluetooth connection handle on which the credit is received </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15009" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="15009" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__l2cap__channel__credit__s_1a90fe417accbba2bfef15b4e8762a396d" prot="public" static="no" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t sl_bt_evt_l2cap_channel_credit_s::cid</definition>
+        <argsstring></argsstring>
+        <name>cid</name>
+        <qualifiedname>sl_bt_evt_l2cap_channel_credit_s::cid</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>The channel identifier </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15011" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="15011" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__l2cap__channel__credit__s_1a848893450f84257c1019f82ba715ee91" prot="public" static="no" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t sl_bt_evt_l2cap_channel_credit_s::credit</definition>
+        <argsstring></argsstring>
+        <name>credit</name>
+        <qualifiedname>sl_bt_evt_l2cap_channel_credit_s::credit</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>The credit value, i.e., the additional number of PDUs the peer channel endpoint can receive </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15012" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="15012" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Data structure of the channel_credit event. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15007" column="1" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="15008" bodyend="15014"/>
+    <listofallmembers>
+      <member refid="structsl__bt__evt__l2cap__channel__credit__s_1a90fe417accbba2bfef15b4e8762a396d" prot="public" virt="non-virtual"><scope>sl_bt_evt_l2cap_channel_credit_s</scope><name>cid</name></member>
+      <member refid="structsl__bt__evt__l2cap__channel__credit__s_1a6e74bf111abc739375872a7616cc4c6f" prot="public" virt="non-virtual"><scope>sl_bt_evt_l2cap_channel_credit_s</scope><name>connection</name></member>
+      <member refid="structsl__bt__evt__l2cap__channel__credit__s_1a848893450f84257c1019f82ba715ee91" prot="public" virt="non-virtual"><scope>sl_bt_evt_l2cap_channel_credit_s</scope><name>credit</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

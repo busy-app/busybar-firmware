@@ -1,0 +1,30 @@
+package: zigbee
+description: This component maintains a table of ESIs that can be queried by other components.  This is used by all Smart Energy client devices.
+label: ESI Management
+quality: production
+id: zigbee_esi_management
+category: Zigbee|Cluster Library|Smart Energy
+provides:
+- name: zigbee_esi_management
+config_file:
+- path: app/framework/plugin/esi-management/config/esi-management-config.h
+source:
+- path: app/framework/plugin/esi-management/esi-management.c
+include:
+- path: app/framework/plugin/esi-management
+  file_list:
+  - path: esi-management.h
+template_contribution:
+- name: component_catalog
+  value: zigbee_esi_management
+- name: zigbee_af_callback
+  value:
+    callback_type: local_data_init
+    function_name: sl_zigbee_af_esi_management_init_cb
+documentation:
+  docset: zigbee
+  document: zigbee-af-api/esi-management
+metadata:
+  sbom:
+    license: MSLA
+root_path: zigbee

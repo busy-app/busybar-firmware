@@ -1,0 +1,36 @@
+id: "wisun_util"
+label: "Wi-SUN Utilities"
+package: "wisun"
+category: "Wi-SUN|Wi-SUN Services"
+quality: "production"
+description: >
+  Provides tools for Wi-SUN applications to ease selection of connection
+  parameters. This component is deprecated and will be removed in the future
+  versions of the Wi-SUN stack.
+
+
+requires:
+- name: "wisun_stack"
+
+provides:
+- name: "wisun_util"
+
+source:
+- path: "plugin/sl_wisun_util.c"
+- path: "stack/inc/sl_wisun_util.h"
+
+include:
+- path: "stack/inc"
+
+documentation:
+  docset: wisun
+  document: wisun-stack-api/sl-wisun-util
+
+template_contribution:
+- name: component_catalog
+  value: wisun_util
+
+metadata:
+  sbom:
+    license: MSLA
+root_path: wisun

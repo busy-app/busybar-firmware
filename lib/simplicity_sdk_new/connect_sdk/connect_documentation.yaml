@@ -1,0 +1,576 @@
+###########################################
+#  Flex documentation packaging definition
+#  
+#  Yaml Element description:
+#  - Title, ordered by the number at the start of the string. The number is 
+#    stripped when presenting the doc in release metadata. Lower numbers are 
+#    ordered first
+#  - source-location: where the doc comes from. Docs in the docs_v2 repo are
+#    referenced with ${DOCS_V2}
+#  - installer-destination: where in the installer the doc belongs
+#  - index-classification: what group in the doc index.html file the doc 
+#    belongs to-rail-version
+#  - doc-number: the doc tracking number 
+#  - studio-metadata-group: the group of docs the doc belongs to in studio 
+#    presentation
+#  - studio-priority: how highly studio should recommend viewing the doc
+#  - sdkAndProtocolTags: For documents appearing in multiple SDKs, the list of technologies
+#  - document-description: text describing the context for the doc, used 
+#    to preview the doc in both index.html and the studio metadata 
+###########################################
+
+#Getting Started
+  01 Proprietary Flex SDK v3.x Quick Start Guide:
+    source-location: ${DOCS_V2}/QSG/Release/qsg168-proprietary-flex-sdk-v3x-quick-start-guide.pdf
+    installer-destination: documentation/qsg168-proprietary-flex-sdk-v3x-quick-start-guide.pdf
+    index-classification: 01 Release Notes / Quick Start Guides
+    doc-number: QSG168
+    studio-metadata-group: Quick Start Guides
+    studio-priority: 1
+    document-description: >
+      Provides basic information on configuring, building, and installing applications using Silicon Labs Connect and RAIL,
+      the two development paths in the Silicon Labs Proprietary Flex SDK v3.x.
+
+  02 Flex SDK Release Notes:
+    source-location: documentation/Flex_Release_Notes.pdf
+    installer-destination: documentation/flex-release-notes.pdf
+    index-classification: 01 Release Notes / Quick Start Guides
+    doc-number: 
+    studio-metadata-group: Release Notes
+    studio-priority: 1
+    document-description: >
+     Lists compatibility requirements and sources for all software components in the development environment. 
+     Discusses the latest changes to the SiliconLabs Flex SDK, including added/deleted/deprecated features/API. 
+     Reviews fixed and known issues. 
+
+  07 Gecko Platform Release Notes:
+    source-location: ${DOCS_V2}/releaseNotes/release/gecko-platform-v3x-release-notes.pdf
+    installer-destination: documentation/gecko-platform-release-notes.pdf
+    index-classification: 01 Release Notes / Quick Start Guides
+    doc-number: 
+    studio-metadata-group: Release Notes
+    studio-priority: 1
+    sdkAndProtocolTags: Bluetooth Bluetooth\ Mesh Zigbee Proprietary Thread Z-Wave 32-bit\ MCU HomeKit Wi-SUN
+    document-description: >
+      A detailed overview of the changes, additions, and fixes in the Gecko Platform components. 
+      The Gecko Platform includes EMLIB, EMDRV, RAIL Library, NVM3, and the component-based infrastructure.
+        
+#Application Development Fundamentals
+  01 Connect Fundamentals: 
+    source-location: ${DOCS_V2}/AppDev_Fundamentals/Release/ug103-12-fundamentals-connect.pdf
+    installer-destination: documentation/ug103-12-fundamentals-connect.pdf
+    index-classification: 02 Application Development Fundamentals
+    doc-number: UG103.12
+    studio-metadata-group: User's Guides
+    studio-priority: 10
+    document-description: >
+      Describes the features and functions of the Silicon Labs Connect stack, including its device types, network topologies, and its 'building block' development methodology using plugins. 
+
+  02 RAIL Fundamentals: 
+    source-location: ${DOCS_V2}/AppDev_Fundamentals/Release/ug103-13-fundamentals-rail.pdf
+    installer-destination: documentation/ug103-13-fundamentals-rail.pdf
+    index-classification: 02 Application Development Fundamentals
+    doc-number: UG103.13
+    studio-metadata-group: User's Guides
+    studio-priority: 10
+    document-description: >
+      Describes the features and functions of Silicon Labs RAIL (Radio Abstraction Interface Layer). RAIL provides an intuitive, easily-customizable radio interface layer that is designed to support proprietary or standards-based wireless protocols. 
+
+  03 Wireless Networking Fundamentals:
+    source-location: ${DOCS_V2}/AppDev_Fundamentals/Release/ug103-01-fundamentals-wireless-network.pdf
+    installer-destination: documentation/ug103-01-fundamentals-wireless-network.pdf
+    index-classification: 02 Application Development Fundamentals
+    doc-number: UG103.01
+    studio-metadata-group: User's Guides
+    studio-priority: 10
+    sdkAndProtocolTags: Zigbee Proprietary Thread HomeKit Wi-SUN
+    document-description: >
+      Introduces some fundamental concepts of wireless networking. These concepts are referred to in other Fundamentals documents. If you are new to wireless networking, you should read this document first. 
+
+  05 Bootloader Fundamentals:
+    source-location: ${DOCS_V2}/AppDev_Fundamentals/Release/ug103-06-fundamentals-bootloading.pdf
+    installer-destination: documentation/ug103-06-fundamentals-bootloading.pdf 
+    index-classification: 02 Application Development Fundamentals
+    doc-number: UG103.06
+    studio-metadata-group: User's Guides
+    studio-priority: 10
+    sdkAndProtocolTags: Bluetooth Bluetooth\ Mesh Zigbee Proprietary Thread HomeKit Wi-SUN
+    document-description: >
+      Introduces bootloading for Silicon Labs networking devices. Discusses the Gecko Bootloader as well 
+      as legacy Ember and Bluetooth bootloaders, and describes the file formats used by each. 
+
+  06 Non-Volatile Data Storage Fundamentals:
+    source-location: ${DOCS_V2}/AppDev_Fundamentals/Release/ug103-07-non-volatile-data-storage-fundamentals.pdf
+    installer-destination: documentation/ug103-07-non-volatile-data-storage-fundamentals.pdf
+    index-classification: 02 Application Development Fundamentals
+    doc-number: UG103.07
+    studio-metadata-group: User's Guides
+    studio-priority: 10
+    sdkAndProtocolTags: Bluetooth Bluetooth\ Mesh Zigbee Proprietary Thread HomeKit Wi-SUN
+    document-description: >
+      Introduces non-volatile data storage using flash and the three different storage implementations offered 
+      for Silicon Labs microcontrollers and SoCs: PS Store and NVM3.  
+
+  09 Multiprotocol Fundamentals:
+    source-location: ${DOCS_V2}/AppDev_Fundamentals/Release/ug103-16-multiprotocol-fundamentals.pdf
+    installer-destination: documentation/ug103-16-multiprotocol-fundamentals.pdf 
+    index-classification: 02 Application Development Fundamentals
+    doc-number: UG103.16
+    studio-metadata-group: User's Guides
+    studio-priority: 10
+    sdkAndProtocolTags: Bluetooth Zigbee Proprietary Thread HomeKit
+    document-description: >
+      Describes the four multiprotocol modes, discusses considerations when selecting protocols for 
+      multiprotocol implementations, and reviews the Radio Scheduler, a required component of a 
+      dynamic multiprotocol solution.
+
+#Flex References
+  01 Simplicity Commander Reference Guide:
+    source-location: ${DOCS_V2}/SoftwareReference/SimplicityCommanderReferenceGuide/release/ug162-simplicity-commander-reference-guide.pdf
+    installer-destination: documentation/ug162-simplicity-commander-reference-guide.pdf
+    index-classification: 03 Flex References
+    doc-number: UG162
+    studio-metadata-group: User's Guides
+    studio-priority: 20
+    sdkAndProtocolTags: Bluetooth Bluetooth\ Mesh Zigbee Proprietary Thread HomeKit Wi-SUN
+    document-description: >
+      Describes how and when to use Simplicity Commander's Command-Line Interface. 
+
+#  02 Configuring Peripherals for 32-Bit Devices in Simplicity Studio:
+#    source-location: ${DOCS_V2}/appNotes/release/an1115-32-bit-device-peripheral-configuration-in-simplicity-studio.pdf
+#    installer-destination: documentation/an1115-32-bit-device-peripheral-configuration-in-simplicity-studio.pdf
+#    index-classification: 3 Flex References
+#    doc-number: AN1115
+#    studio-metadata-group: Application Notes
+#    studio-priority: 12
+#    document-description: >
+#      Describes how to initialize and customize peripherals for 32-bit devices, both in the Simplicity IDE and using the 
+#      standalone Hardware Configurator tool. 
+
+#  03 Bringing Up Custom Devices for the EFR32MG and EFR32FG Families:
+#    source-location: ${DOCS_V2}/appNotes/release/an961-custom-nodes-efr32.pdf
+#    installer-destination: documentation/an961-custom-nodes-efr32.pdf
+#    index-classification: 3 Flex References
+#    doc-number: AN961
+#    studio-metadata-group: Application Notes
+#    studio-priority: 12
+#    document-description: >
+#      Describes how to initialize a piece of custom hardware (a 'device') based on the EFR32MG and EFR32FG families so that it 
+#      interfaces correctly with a network stack. The same procedures can be used to restore devices whose settings have been corrupted or erased.
+
+  05 Series 2 Secure Boot with RTSL: 
+    source-location: ${DOCS_V2}/appNotes/release/an1218-secure-boot-with-rtsl.pdf
+    installer-destination: documentation/an1218-secure-boot-with-rtsl.pdf
+    index-classification: 03 Flex References
+    doc-number: AN1218
+    studio-metadata-group: Application Notes
+    studio-priority: 20
+    sdkAndProtocolTags: Bluetooth Bluetooth\ Mesh Zigbee Proprietary Thread HomeKit
+    document-description: >
+      Contains detailed information on configuring and using the Secure Boot with hardware Root of Trust and Secure Loader on 
+      Series 2 devices, including how to provision the signing key. This is a companion document to UG489: Silicon Labs Gecko 
+      Bootloader User's Guide.
+
+#Connect Documentation
+  01 About the Connect v3.x User's Guide: 
+    source-location: ${DOCS_V2}/SoftwareReference/ConnectUserGuide/release/ug435-01-about-connect-v3x-users-guide.pdf
+    installer-destination: documentation/ug435-01-about-connect-v3x-users-guide.pdf
+    index-classification: 04 More About Connect
+    doc-number: UG435.01
+    studio-metadata-group: User's Guides
+    studio-priority: 31
+    document-description: >
+      Introduces the Connect User's Guide for the Flex SDK v3.x.
+
+  02 Using Silicon Labs Connect v3.x with IEEE 802.15.4: 
+    source-location: ${DOCS_V2}/SoftwareReference/ConnectUserGuide/release/ug435-02-using-connect-v3x-with-ieee-802-15-4.pdf
+    installer-destination: documentation/ug435-02-using-connect-v3x-with-ieee-802-15-4.pdf
+    index-classification: 04 More About Connect
+    doc-number: UG435.02
+    studio-metadata-group: User's Guides
+    studio-priority: 32
+    document-description: >
+      Introduces the IEEE 802.15.4 standard on which Connect v3.x is based.
+
+  03 Architecture of the Silicon Labs Connect Stack v3.x: 
+    source-location: ${DOCS_V2}/SoftwareReference/ConnectUserGuide/release/ug435-03-architecture-of-connect-v3x.pdf
+    installer-destination: documentation/ug435-03-architecture-of-connect-v3x.pdf
+    index-classification: 04 More About Connect
+    doc-number: UG435.03
+    studio-metadata-group: User's Guides
+    studio-priority: 33
+    document-description: >
+      Describes the architecture of the Silicon Labs Connect stack v3.x an how it implements IEEE 802.15.4.
+
+  04 Customizing Applications with Silicon Labs Connect v3.x: 
+    source-location: ${DOCS_V2}/SoftwareReference/ConnectUserGuide/release/ug435-04-customizing-applications-with-connect-v3x.pdf
+    installer-destination: documentation/ug435-04-customizing-applications-with-connect-v3x.pdf
+    index-classification: 04 More About Connect
+    doc-number: UG435.04
+    studio-metadata-group: User's Guides
+    studio-priority: 34
+    document-description: >
+      Describes how to use components, callbacks, and events on top of the Gecko Platform application framework to configure features and application behavior.
+
+  05 Using Real Time Operating Systems with Silicon Labs Connect v3.x: 
+    source-location: ${DOCS_V2}/SoftwareReference/ConnectUserGuide/release/ug435-05-using-micrium-with-connect-v3x.pdf
+    installer-destination: documentation/ug435-05-using-micrium-with-connect-v3x.pdf
+    index-classification: 04 More About Connect
+    doc-number: UG435.05
+    studio-metadata-group: User's Guides
+    studio-priority: 35
+    document-description: >
+      Describes the process to implement a Connect-based application on top of one of the supported Real Time Operating Systems (RTOS).  
+
+  06 Bootloading and OTA with Silicon Labs Connect v3.x: 
+    source-location: ${DOCS_V2}/SoftwareReference/ConnectUserGuide/release/ug435-06-bootloading-and-ota-with-connect-v3x.pdf
+    installer-destination: documentation/ug435-06-bootloading-and-ota-with-connect-v3x.pdf
+    index-classification: 04 More About Connect
+    doc-number: UG435.06
+    studio-metadata-group: User's Guides
+    studio-priority: 36
+    document-description: >
+      Explains standalone (serial) and application (OTA) bootloader options available for use within Connect v3.x -based applications
+ 
+  07 Energy Saving with Silicon Labs Connect v3.x: 
+    source-location: ${DOCS_V2}/SoftwareReference/ConnectUserGuide/release/ug435-07-energy-savings-with-connect-v3x.pdf
+    installer-destination: documentation/ug435-07-energy-savings-with-connect-v3x.pdf
+    index-classification: 04 More About Connect
+    doc-number: UG435.07
+    studio-metadata-group: User's Guides
+    studio-priority: 37
+    document-description: >
+      Describes the features available in Connect v3.x to reduce power consumption. Using those features is described in AN1252: Building Low Power Networks with the Silicon Labs Connect Stack v3.x.
+ 
+  08 Network Co-Processor Applications with Silicon Labs Connect v3.x: 
+    source-location: ${DOCS_V2}/SoftwareReference/ConnectUserGuide/release/ug435-08-network-co-processor-applications-connect-v3.x.pdf
+    installer-destination: documentation/ug435-08-network-co-processor-applications-connect-v3.x.pdf
+    index-classification: 04 More About Connect
+    doc-number: UG435.08
+    studio-metadata-group: User's Guides
+    studio-priority: 37
+    document-description: >
+      Describes how to run the Silicon Labs Connect stack in Network Co-Processor (NCP) mode, where the NCP runs on the EFR32 while the Host application and the Co-processor Communication daemon (CPCd) run on the Host device.
+      
+  09 Bringing Up Custom Devices for the EFR32MG and EFR32FG Families:
+    source-location: ${DOCS_V2}/appNotes/release/an961-custom-nodes-efr32.pdf
+    installer-destination: documentation/an961-custom-nodes-efr32.pdf
+    index-classification: 04 More About Connect
+    doc-number: AN961
+    studio-metadata-group: Application Notes
+    studio-priority: 30
+    sdkAndProtocolTags: Zigbee Thread
+    document-description: >
+      Describes how to initialize a piece of custom hardware (a 'device') based on the EFR32MG and EFR32FG 
+      families so that it interfaces correctly with a network stack. The same procedures can be used to 
+      restore devices whose settings have been corrupted or erased.  
+      
+  10 Silicon Labs Connect API Reference Guide:
+    source-location: ../../protocol/flex/doxygen/Output/API_CONNECT_HTML/*
+    installer-destination: documentation/API_CONNECT_HTML/
+    installer-destination-hyperlink-entry: index.html
+    index-classification: 04 More About Connect
+    doc-number: 
+    studio-metadata-group: Reference Manuals
+    studio-priority: 30
+    document-description: >
+      Contains a comprehensive list of APIs used to interface to the Silicon Labs Connect stack. 
+
+  11 Silicon Labs Gecko Bootloader User's Guide for GSDK 4.0 and Higher:
+    source-location: ${DOCS_V2}/SoftwareReference/GeckoBootloader/ug489-gecko-bootloader-user-guide-gsdk-4.pdf
+    installer-destination: documentation/ug489-gecko-bootloader-user-guide-gsdk-4.pdf
+    index-classification: 04 More About Connect
+    doc-number: UG489
+    studio-metadata-group: User's Guides
+    studio-priority: 40
+    sdkAndProtocolTags: Bluetooth Bluetooth\ Mesh Zigbee Proprietary Thread HomeKit Wi-SUN
+    document-description: >
+      Describes the high-level implementation of the Silicon Labs Gecko Bootloader for EFR32 SoCs and NCPs, 
+      and provides information on how to get started using the Gecko Bootloader with Silicon Labs wireless protocol stacks in GSDK 4.0 and higher. 
+
+  12 Using the Gecko Bootloader with Silicon Labs Connect:
+    source-location: ${DOCS_V2}/appNotes/release/an1085-gecko-bootloader-connect.pdf
+    installer-destination: documentation/an1085-gecko-bootloader-connect.pdf
+    index-classification: 04 More About Connect
+    doc-number: AN1085
+    studio-metadata-group: Application Notes
+    studio-priority: 40
+    document-description: >
+      Includes detailed information on using the Silicon Labs Gecko Bootloader with Connect. 
+      It supplements the general Gecko Bootloader implementation information provided in UG489: Silicon
+      Labs Gecko Bootloader User's Guide. 
+
+  14 Dynamic Multiprotocol User's Guide:
+    source-location: ${DOCS_V2}/SoftwareReference/Dynamic_Multiprotocol/ug305-dynamic-multiprotocol-users-guide.pdf
+    installer-destination: documentation/ug305-dynamic-multiprotocol-users-guide.pdf
+    index-classification: 04 More About Connect
+    doc-number: UG305
+    studio-metadata-group: User's Guides
+    studio-priority: 40
+    sdkAndProtocolTags: Bluetooth Zigbee Proprietary Thread HomeKit
+    document-description: >
+      Describes how to implement a dynamic multiprotocol solution. 
+ 
+  19 Building Low Power Networks with the Silicon Labs Connect Stack v3.x: 
+    source-location: ${DOCS_V2}/appNotes/release/an1252-connect-v3x-low-power-networks.pdf
+    installer-destination: documentation/an1252-connect-v3x-low-power-networks.pdf
+    index-classification: 04 More About Connect
+    doc-number: AN1252
+    studio-metadata-group: Application Notes
+    studio-priority: 40
+    document-description: >
+      Illustrates reducing power consumption in a Connect v3.x application using the sensor example. 
+
+  24 Using Third Generation Non-Volatile Memory (NVM3) Data Storage:
+    source-location: ${DOCS_V2}/appNotes/release/an1135-using-third-generation-nonvolatile-memory.pdf
+    installer-destination: documentation/an1135-using-third-generation-nonvolatile-memory.pdf
+    index-classification: 04 More About Connect
+    doc-number: AN1135
+    studio-metadata-group: Application Notes
+    studio-priority: 42
+    sdkAndProtocolTags: Bluetooth Bluetooth\ Mesh Zigbee Proprietary Thread HomeKit Wi-SUN
+    document-description: >
+      Explains how NVM3 can be used as non-volatile data storage in various protocol implementations.
+
+  27 Using Tokens for Non-Volatile Data Storage:
+    source-location: ${DOCS_V2}/appNotes/release/an1154-tokens-for-non-volatile-storage.pdf
+    installer-destination: documentation/an1154-tokens-for-non-volatile-storage.pdf
+    index-classification: 04 More About Connect
+    doc-number: AN1154
+    studio-metadata-group: Application Notes
+    studio-priority: 42
+    sdkAndProtocolTags: Zigbee Proprietary
+    document-description: >
+      Describes tokens and shows how to use them for non-volatile data storage in EmberZNet PRO and Silicon Labs Flex 
+      applications.  
+
+  29 Transitioning to the Updated Gecko Bootloader in GSDK 4.0 and Higher:
+    source-location: ${DOCS_V2}/appNotes/release/an1326-gecko-bootloader-transitioning-guide.pdf
+    installer-destination: documentation/an1326-gecko-bootloader-transitioning-guide.pdf
+    index-classification: 04 More About Connect
+    doc-number: AN1326
+    studio-metadata-group: Application Notes
+    studio-priority: 42
+    sdkAndProtocolTags: Bluetooth Bluetooth\ Mesh Zigbee Proprietary Thread 32-bit\ MCU HomeKit Wi-SUN
+    document-description: >
+      Gecko Bootloader v2.x, introduced in GSDK 4.0, contains a number of changes compared to Gecko Bootloader v1.x. This document describes the differences between the versions, including how to configure the new Gecko Bootloader in Simplicity Studio 5.     
+
+#RAIL Documentation
+  01 Silicon Labs RAIL API Reference Guide:
+    source-location: ../../platform/radio/rail_lib/autogen/docs/html/*
+    installer-destination: documentation/API_RAIL_HTML/
+    installer-destination-hyperlink-entry: index.html
+    index-classification: 05 More About RAIL
+    doc-number: 
+    studio-metadata-group: Reference Manuals
+    studio-priority: 50
+    document-description: >
+      Contains a comprehensive list of APIs used to interface to the Silicon Labs RAIL library. 
+
+  03 Flex SDK v3.x Range Test Demo User's Guide: 
+    source-location: ${DOCS_V2}/SoftwareReference/RangeTest/release/ug471-flex-v3x-range-test-demo.pdf
+    installer-destination: documentation/ug471-flex-v3x-range-test-demo.pdf
+    index-classification: 05 More About RAIL
+    doc-number: UG471
+    studio-metadata-group: User's Guides
+    studio-priority: 50
+    document-description: >
+      Provides an easy way to evaluate the link budget of the Wireless Gecko EFR32 devices using Silicon Labs RAIL (RAIL) by performing a range test between two nodes using Range Test, a standalone test application. The range test demo implements Packet Error Rate (PER) measurement.
+      
+  06 EFR32 Series 2 Long Range Configuration Reference: 
+    source-location: ${DOCS_V2}/SoftwareReference/LongRangeConfig/ug460.2-efr32-series-2-long-range-configuration.pdf
+    installer-destination: documentation/ug460.2-efr32-series-2-long-range-configuration.pdf
+    index-classification: 06 More About RAIL
+    doc-number: UG460.2
+    studio-metadata-group: User's Guides
+    studio-priority: 50
+    document-description: >
+      Describes how to test long range performance on EFR32 Series 2 devices using Simplicity Studio 5 and Silicon Labs development hardware. Instructions for using example applications are included.
+
+  07 EFR32 Radio Configurator Guide for Simplicity Studio 5: 
+    source-location: ${DOCS_V2}/appNotes/release/an1253-efr32-radio-configurator-guide-for-ssv5.pdf
+    installer-destination: documentation/an1253-efr32-radio-configurator-guide-for-ssv5.pdf
+    index-classification: 05 More About RAIL
+    doc-number: AN1253
+    studio-metadata-group: Application Notes
+    studio-priority: 50
+    document-description: >
+     Describes the radio configurator GUI for RAIL framework applications in Simplicity Studio 5. With it, you can 
+     create standard or custom radio configurations on which to run your RAIL-based applications. The role of each GUI item is explained. 
+
+  09 RAILtest User's Guide: 
+    source-location: ${DOCS_V2}/SoftwareReference/RAILtest/ug409-railtest-users-guide.pdf
+    installer-destination: documentation/ug409-railtest-users-guide.pdf
+    index-classification: 05 More About RAIL
+    doc-number: UG409
+    studio-metadata-group: User's Guides
+    studio-priority: 50
+    document-description: >
+     Describes the functionality available in the RAILtest application.  
+
+  11 EFR32 RF Evaluation Guide: 
+    source-location: ${DOCS_V2}/appNotes/release/an972-efr32-rf-eval-guide.pdf
+    installer-destination: documentation/an972-efr32-rf-eval-guide.pdf
+    index-classification: 05 More About RAIL
+    doc-number: AN972
+    studio-metadata-group: Application Notes
+    studio-priority: 50
+    document-description: >
+     Describes using RAILTest to evaluate radio functionality, as well as peripherals, deep sleep states, etc. With it you can fully evaluate the receiving and transmitting performance and test RF functionality of development kit hardware or custom hardware.
+
+  13 Using RAIL for Wireless M-Bus Applications with EFR32: 
+    source-location: ${DOCS_V2}/appNotes/release/an1119-rail-wmbus.pdf
+    installer-destination: documentation/an1119-rail-wmbus.pdf
+    index-classification: 05 More About RAIL
+    doc-number: AN1119
+    studio-metadata-group: Application Notes
+    studio-priority: 50
+    document-description: >
+      Describes using the Flex SDK for Wireless M-Bus development on EFR32 Wireless Geckos. 
+      Includes features and limitations as well as examples. 
+
+  14 Using RAIL for Wireless M-Bus Applications with EFR32: 
+    source-location: ${DOCS_V2}/appNotes/release/an1119-rail-wmbus.pdf
+    installer-destination: documentation/an1119-rail-wmbus.pdf
+    index-classification: 05 More About RAIL
+    doc-number: AN1119
+    studio-metadata-group: Application Notes
+    studio-priority: 50
+    document-description: >
+      Describes using the Flex SDK for Wireless M-Bus development on EFR32 Wireless Geckos. 
+      Includes features and limitations as well as examples.
+
+  15 Using RAIL for IEEE 802.15.4 Applications with EFR32: 
+    source-location: ${DOCS_V2}/appNotes/release/an1365-15-4-over-rail.pdf
+    installer-destination: documentation/an1365-15-4-over-rail.pdf
+    index-classification: 05 More About RAIL
+    doc-number: AN1365
+    studio-metadata-group: Application Notes
+    studio-priority: 50
+    document-description: >
+      Describes using the Flex SDK for 802.15.4 development on EFR32 wireless parts.
+
+#  17 Detailed Timing Test Results for RAIL:
+#    source-location: ${DOCS_V2}/appNotes/release/an1392-rail-timing-test.pdf
+#    installer-destination: documentation/an1392-rail-timing-test.pdf
+#    index-classification: 05 More About RAIL
+#    doc-number: AN1392
+#    studio-metadata-group: Application Notes
+#    studio-priority: 50
+#    document-description: >
+#      Provides information about various timing measurements that may be of interest when using RAIL to develop an application.   
+#
+  19 EFR32 Migration Guide for Proprietary Applications:
+    source-location: ${DOCS_V2}/appNotes/release/an1244-migration-efr32-families.pdf
+    installer-destination: documentation/an1244-migration-efr32-families.pdf
+    index-classification: 05 More About RAIL
+    doc-number: AN1244
+    studio-metadata-group: Application Notes
+    studio-priority: 50
+    document-description: >
+      Describes the distinguishing features of different EFR32 families that are most relevant to porting proprietary wireless
+      applications between them. Provides insight that is also helpful when selecting an initial target platform for proprietary
+      wireless solutions.
+      
+
+#Security
+      
+  62 IoT Endpoint Security Fundamentals:
+    source-location: ${DOCS_V2}/AppDev_Fundamentals/Release/ug103-05-fundamentals-security.pdf
+    installer-destination: documentation/ug103-05-fundamentals-security.pdf 
+    index-classification: 10 Security
+    doc-number: UG103.05
+    studio-metadata-group: User's Guides
+    studio-priority: 50
+    sdkAndProtocolTags: Bluetooth Bluetooth\ Mesh Zigbee Proprietary Thread Z-Wave HomeKit Wi-SUN
+    document-description: >
+      Introduces the security concepts that must be considered when implementing an Internet of Things (IoT) 
+      system. Using the ioXt Alliance's eight security principles as a structure, it clearly delineates 
+      the solutions Silicon Labs provides to support endpoint security and what you must do outside of 
+      the Silicon Labs framework. 
+      
+  64  Series 2 Secure Debug:
+    source-location: ${DOCS_V2}/appNotes/release/an1190-efr32-secure-debug.pdf
+    installer-destination: documentation/an1190-efr32-secure-debug.pdf
+    index-classification: 10 Security
+    doc-number: AN1190
+    studio-metadata-group: Application Notes
+    studio-priority: 50
+    sdkAndProtocolTags: Bluetooth Bluetooth\ Mesh Zigbee Proprietary Thread HomeKit
+    document-description: >
+      Describes how to lock and unlock the debug access of EFR32 Gecko Series 2 
+      devices. Many aspects of the debug access, including the secure debug unlock are described. The Debug 
+      Challenge Interface (DCI) and Secure Engine (SE) Mailbox Interface for locking and unlocking debug 
+      access are also included.
+      
+  66  Production Programming of Series 2 Devices:
+    source-location: ${DOCS_V2}/appNotes/release/an1222-efr32xg2x-production-programming.pdf
+    installer-destination: documentation/an1222-efr32xg2x-production-programming.pdf
+    index-classification: 10 Security
+    doc-number: AN1222
+    studio-metadata-group: Application Notes
+    studio-priority: 50
+    sdkAndProtocolTags: Bluetooth Bluetooth\ Mesh Zigbee Proprietary Thread HomeKit
+    document-description: >
+      Details on programming, provisioning, and configuring Series 2 devices in production environments. 
+      Covers Secure Engine Subsystem of Series 2 devices, which runs easily upgradeable Secure Engine (SE) or Virtual Secure Engine (VSE) firmware.
+        
+  68  Anti-Tamper Protection Configuration and Use:
+    source-location: ${DOCS_V2}/appNotes/release/an1247-efr32-secure-vault-tamper.pdf
+    installer-destination: documentation/an1247-efr32-secure-vault-tamper.pdf
+    index-classification: 10 Security
+    doc-number: AN1247
+    studio-metadata-group: Application Notes
+    studio-priority: 50
+    sdkAndProtocolTags: Bluetooth Bluetooth\ Mesh Zigbee Proprietary Thread HomeKit
+    document-description: >
+      How to program, provision, and configure the anti-tamper module on EFR32 Series 2 devices with 
+      Secure Vault.
+              
+  70  Authenticating Silicon Labs Devices using Device Certificates:
+    source-location: ${DOCS_V2}/appNotes/release/an1268-efr32-secure-identity.pdf
+    installer-destination: documentation/an1268-efr32-secure-identity.pdf
+    index-classification: 10 Security
+    doc-number: AN1268
+    studio-metadata-group: Application Notes
+    studio-priority: 50
+    sdkAndProtocolTags: Bluetooth Bluetooth\ Mesh Zigbee Proprietary Thread HomeKit
+    document-description: >
+      How to authenticate an EFR32 Series 2 device with Secure Vault, using secure device certificates 
+      and signatures.
+
+  72  Secure Key Storage:
+    source-location: ${DOCS_V2}/appNotes/release/an1271-efr32-secure-key-storage.pdf
+    installer-destination: documentation/an1271-efr32-secure-key-storage.pdf
+    index-classification: 10 Security
+    doc-number: AN1271
+    studio-metadata-group: Application Notes
+    studio-priority: 50
+    sdkAndProtocolTags: Bluetooth Bluetooth\ Mesh Zigbee Proprietary Thread HomeKit
+    document-description: >
+      How to securely "wrap" keys in EFR32 Series 2 devices with Secure Vault, so they can be stored in 
+      non-volatile storage.
+
+  74  Programming Series 2 Devices Using the Debug Challenge Interface (DCI) and Serial Wire Debug (SWD):
+    source-location: ${DOCS_V2}/appNotes/release/an1303-efr32-dci-swd-programming.pdf
+    installer-destination: documentation/an1303-efr32-dci-swd-programming.pdf
+    index-classification: 10 Security
+    doc-number: AN1303
+    studio-metadata-group: Application Notes
+    studio-priority: 50
+    sdkAndProtocolTags: Bluetooth Bluetooth\ Mesh Zigbee Proprietary Thread HomeKit
+    document-description: >
+      Describes how to provision and configure Series 2 devices through the DCI and SWD.  
+
+  76  Integrating Crypto Functionality Using PSA Crypto Compared to Mbed TLS:
+    source-location: ${DOCS_V2}/appNotes/release/an1311-mbedtls-psa-crypto-porting-guide.pdf
+    installer-destination: documentation/an1311-mbedtls-psa-crypto-porting-guide.pdf
+    index-classification: 10 Security
+    doc-number: AN1311
+    studio-metadata-group: Application Notes
+    studio-priority: 50
+    sdkAndProtocolTags: Bluetooth Bluetooth\ Mesh Zigbee Proprietary Thread HomeKit Wi-SUN
+    document-description: >
+      Describes how to integrate crypto functionality into applications using PSA Crypto 
+      compared to Mbed TLS. 
+

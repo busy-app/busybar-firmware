@@ -1,0 +1,144 @@
+project_name: "wisun_soc_br_empty"
+label: "Wi-SUN - SoC Border Router Empty"
+description: "The Wi-SUN Border Router Empty sample application is a bare-bones application. It can be used as a template to develop a Wi-SUN border router application with custom application logics."
+package: "wisun_sdk_sample_app"
+category: "Wi-SUN Examples"
+quality: "production"
+
+component:
+  - id: "wisun_br_stack"
+  - id: "wisun_default_phy"
+  - id: "wisun_config"
+  - id: "wisun_stack_debug"
+  - id: "sl_main"
+  - id: "clock_manager"
+  - id: "board_control"
+    condition: [hardware_board]
+  - id: "freertos"
+  - id: "sleeptimer"
+  - id: "nvm3_default"
+  - id: "iostream_retarget_stdio"
+  - id: "iostream_stdlib_config"
+  - id: "memory_manager"
+  - id: "wisun_default_radioconf"
+  - id: "iostream_recommended_stream"
+  - id: "wisun_keychain"
+  - id: "wisun_silabs_certificates"
+  - id: "wisun_br_dhcpv6_server"
+  - id: "wisun_select"
+  - id: "wisun_br_config"
+
+requires:
+  - name: wisun_br_dhcpv6
+  - name: "cmsis_rtos2"
+  - name: freertos_heap_3
+    condition: [freertos]
+
+source:
+  - path: "app.c"
+  - path: "app_init.c"
+include:
+  - path: "."
+    file_list:
+    - path: "app.h"
+define:
+  - name: "DEBUG_EFM"
+  - name: "WISUN_CLI_SAMPLE_APP"
+configuration:
+  - name: "SL_BOARD_ENABLE_VCOM"
+    value: "1"
+  - name: "SL_IOSTREAM_USART_VCOM_FLOW_CONTROL_TYPE"
+    value: "usartHwFlowControlCtsAndRts"
+    condition: [iostream_usart]
+  - name: "SL_IOSTREAM_USART_VCOM_CONVERT_BY_DEFAULT_LF_TO_CRLF"
+    value: "1"
+    condition: [iostream_usart]
+  - name: SL_IOSTREAM_EUSART_VCOM_CONVERT_BY_DEFAULT_LF_TO_CRLF
+    value: "true"
+    condition: [iostream_eusart]
+  - name: SL_IOSTREAM_EUSART_VCOM_RESTRICT_ENERGY_MODE_TO_ALLOW_RECEPTION
+    value: "false" # Disable this so that the chip can enter EM2/3/4
+                   # and be woken by other wake sources, setting this
+                   # to true adds an EM1 requirement to the Power Manager.
+    condition: [iostream_eusart]
+  - name: SL_IOSTREAM_EUSART_VCOM_RX_BUFFER_SIZE
+    value: "128" # Increase from default 32 to account for automated command
+                 # storage entry and for when long command strings are
+                 # interrupted by chip interrupts.
+    condition: [iostream_eusart]
+  - name: SL_IOSTREAM_EUSART_VCOM_FLOW_CONTROL_TYPE
+    value: "SL_IOSTREAM_EUSART_UART_FLOW_CTRL_CTS_RTS"
+    condition: [iostream_eusart]
+  - name: CPU_CFG_TS_32_EN
+    value: "1"
+  - name: OS_CFG_DBG_EN
+    value: "1"
+  - name: OS_CFG_TS_EN
+    value: "1"
+  - name: OS_CFG_SCHED_ROUND_ROBIN_EN
+    value: "1"
+  - name: OS_CFG_STAT_TASK_EN
+    value: "1"
+  - name: OS_CFG_TASK_PROFILE_EN
+    value: "1"
+  - name: "OS_CFG_APP_HOOKS_EN"
+    value: "1"
+    condition: [micriumos_kernel]
+  - name: "OS_CFG_ERRNO_EN"
+    value: "1"
+    condition: [micriumos_kernel]
+  - name: "configUSE_POSIX_ERRNO"
+    value: "1"
+    condition: [freertos]
+  - name: "configTIMER_TASK_PRIORITY"
+    value: "55"
+    condition: [freertos]
+  - name: "NVM3_DEFAULT_MAX_OBJECT_SIZE"
+    value: "1900"
+  - name: SL_RAIL_UTIL_PTI_BAUD_RATE_HZ
+    value: "3200000"
+  - name: "SL_RAIL_UTIL_SFM_SEQUENCER_SUN_MODULATIONS_SELECTION"
+    value: "SL_RAIL_UTIL_SFM_SEQUENCER_SUN_MODULATIONS_OFDM"
+    condition: [device_sdid_220]
+
+  # SDK Application version
+  - name: "APP_PROJECT_INFO_APP_VERSION_MAJOR"
+    value: "1"
+  - name: "APP_PROJECT_INFO_APP_VERSION_MINOR"
+    value: "0"
+  - name: "APP_PROJECT_INFO_APP_VERSION_PATCH"
+    value: "0"
+
+readme:
+  - path: "../../documentation/example/wisun_soc_br_empty/readme.md"
+
+other_file:
+  - path: "../../documentation/example/wisun_soc_br_empty/readme_img0.png"
+  - path: hw_filter_tags.yaml
+    condition:
+      - "add_hw_filter_to_project"
+
+ui_hints:
+  highlight:
+    - path: "config/wisun/wisun_settings.wisunconf"
+    - path: readme.md
+      focus: true
+
+#--------------------- HWFILTER ------------------------
+tag:
+  - hwfilter:board:hardware:has:pti
+  - hwfilter:ram:91k
+  - hwfilter:flash:716k
+
+#--------------------- Toolchain ------------------------
+toolchain_settings:
+  - option: optimize
+    value: debug
+
+filter:
+  - name: "Wireless Technology"
+    value: ["Wi-SUN"]
+  - name: "Device Type"
+    value: ["SoC"]
+  - name: "Project Difficulty"
+    value: ["Beginner"]

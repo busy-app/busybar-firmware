@@ -1,0 +1,78 @@
+project_name: ble_gatt_long_read_soc
+package: bluetooth_le_siwx91x_app
+quality: production
+label: BLE - Gatt Long Read (SoC)
+category: Example|BLE
+description: 'Demonstrates how a GATT client device accesses a GATT server device for long read
+
+  '
+filter:
+- name: Wireless Technology
+  value:
+  - BLE
+- name: Project Difficulty
+  value:
+  - Advanced
+source:
+- path: app.c
+include:
+- path: .
+  file_list:
+  - path: app.h
+  - path: ble_config.h
+define:
+- name: SL_SI91X_PRINT_DBG_LOG
+component:
+- id: sl_main
+- id: freertos
+- id: freertos_heap_4
+- id: syscalls
+- id: si91x_memory_default_config
+- id: wiseconnect_common
+- id: wifi
+- id: sl_si91x_internal_stack
+- id: sl_power_manager
+- id: wifi_resources
+- id: network_manager
+- id: basic_network_config_manager
+- id: ble
+- id: sl_si91x_basic_buffers
+- id: wireless_wakeup_ulp_component
+requires:
+- name: device_needs_ram_execution
+  condition:
+  - si91x_common_flash
+toolchain_settings:
+- option: gcc_compiler_option
+  value: -Wall -Werror
+configuration:
+- name: SL_BOARD_ENABLE_VCOM
+  value: '1'
+readme:
+- path: readme.md
+other_file:
+- path: resources/readme/blegattlr_soc_ncp.png
+- path: resources/readme/blegattlrdeviceadvertising.png
+- path: resources/readme/blegattlrdeviceconnected.png
+- path: resources/readme/blegattlrdatasent.png
+- path: resources/readme/blegattlrsocserverprints.png
+- path: resources/readme/blegattlrncpserverprints.png
+- path: resources/readme/blegattleconfigurator.png
+- path: resources/readme/blegattlradvertiser.png
+- path: resources/readme/blegattleclient.png
+- path: resources/readme/blegattlrsocclientprints.png
+- path: resources/readme/blegattlrncpclientprints.png
+ui_hints:
+  highlight:
+  - path: readme.md
+    focus: true
+post_build:
+  profile: wiseconnect_soc
+sdk_extension:
+- id: wiseconnect3_sdk
+  vendor: silabs
+  version: 4.0.1
+sdk:
+  id: simplicity_sdk
+  vendor: silabs
+  version: 2025.12.2

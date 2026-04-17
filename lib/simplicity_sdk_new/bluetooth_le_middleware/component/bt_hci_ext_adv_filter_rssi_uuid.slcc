@@ -1,0 +1,38 @@
+id: bt_hci_ext_adv_filter_rssi_uuid
+label: HCI Extended Advertisment Filtering
+package: bluetooth_le_middleware
+description: >
+  Provides API to filter HCI extended advertising reports using RSSI and UUID
+  values
+category: Bluetooth|Host Controller Interface (HCI)
+metadata:
+  sbom:
+    license: Zlib
+quality: production
+root_path: bluetooth_le_middleware/common/hci_ext_adv_filter_rssi_uuid
+include:
+- path: inc/
+  file_list:
+  - path: sl_bt_hci_ext_adv_filter.h
+config_file:
+- path: config/sl_bt_hci_ext_adv_filter_config.h
+source:
+- path: src/sl_bt_hci_ext_adv_filter.c
+requires:
+- name: bluetooth_hci
+- name: bluetooth_hci_filter
+template_contribution:
+- name: event_handler
+  value:
+    event: internal_app_init
+    include: sl_bt_hci_ext_adv_filter.h
+    handler: sli_bt_hci_filter_init
+  priority: 100
+- name: event_handler
+  value:
+    event: internal_app_init
+    include: sl_bt_hci_ext_adv_filter.h
+    handler: sl_btctrl_rssi_uuid_filtering_init
+  priority: 100
+provides:
+- name: bt_hci_ext_adv_filter_rssi_uuid

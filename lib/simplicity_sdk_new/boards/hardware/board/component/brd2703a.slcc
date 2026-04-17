@@ -1,0 +1,22 @@
+!!omap
+- id: brd2703a
+- label: BRD2703A
+- package: boards
+- description: Board support for BRD2703A.
+- category: Platform|Board|Thunderboard
+- quality: production
+- metadata:
+    sbom:
+      license: Zlib
+- requires:
+  - name: brd2703a_revision
+- provides:
+  - name: brd2703a
+  - name: hardware_board_from_tb
+  - name: hardware_board_from_xg24-ek2703a
+- recommends:
+  - id: brd2703a_a02
+    vendor: silabs
+- ui_hints:
+    visibility: never
+- root_path: boards

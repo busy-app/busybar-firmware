@@ -1,0 +1,45 @@
+id: iostream_swo_si91x
+package: platform_siwx91x
+label: "IO Stream:SI91X SWO"
+description: >
+  Instantiate the driver for using IO Stream over the Single
+  Wire Output (SWO) peripheral for SI91X.
+category: Device|Si91x|MCU|Service
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: components/device/silabs/si91x/mcu/drivers/service/iostream
+config_file:
+  - path: "config/sl_si91x_iostream_swo_config.h"
+provides:
+  - name: iostream_swo_si91x
+  - name: iostream_transport
+    allow_multiple: true
+  - name: si91x_iostream_transport
+    allow_multiple: true
+requires:
+  - name: iostream
+  - name: si91x_debug_swo
+include:
+  - path: inc
+    file_list:
+      - path: sl_si91x_iostream_swo.h
+source:
+  - path: src/sl_si91x_iostream_swo.c
+define:
+  - name: "SL_SI91X_IOSTREAM_SWO_PRESENT"
+  - name: SL_CODE_COMPONENT_IOSTREAM_SWO_SI91X
+    value: iostream_swo_si91x
+template_contribution:
+  - name: event_handler
+    value:
+      event: iostream_instance_init_stage_1
+      include: sl_si91x_iostream_swo.h
+      handler: sl_si91x_iostream_swo_init
+  - name: iostream_instance_info
+    value:
+      include: sl_si91x_iostream_swo.h
+      handler: sl_si91x_iostream_instance_swo_info
+  - name: component_catalog
+    value: iostream_swo_si91x

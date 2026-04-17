@@ -1,0 +1,38 @@
+id: iostream_eusart_core
+package: platform_core
+label: 'IO Stream: EUSART Core'
+description: Core of IO Stream EUSART.
+category: Services|IO Stream
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+ui_hints:
+  visibility: never
+provides:
+- name: iostream_eusart_core
+root_path: platform_core/platform/service/iostream
+include:
+- path: inc
+  file_list:
+  - path: sl_iostream_eusart.h
+source:
+- path: src/sl_iostream_eusart.c
+template_file:
+- path: init/sl_iostream_init_eusart_instances.c.jinja
+  condition: [iostream_eusart]
+- path: init/sl_iostream_init_eusart_instances.h.jinja
+  condition: [iostream_eusart]
+template_contribution:
+- name: component_catalog
+  value: iostream_eusart
+requires:
+- name: iostream
+- name: iostream_uart_common
+- name: status
+- name: clock_manager_runtime
+- name: device_manager
+- name: hal_generic_gpio
+- name: hal_generic_eusart
+- name: atomic
+- name: slist

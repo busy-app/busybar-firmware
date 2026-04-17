@@ -1,0 +1,55 @@
+/***************************************************************************//**
+ * @file sl_rail_util_mp_transition_time_config.h
+ * @brief
+ *******************************************************************************
+ * # License
+ * <b>Copyright 2025 Silicon Laboratories Inc. www.silabs.com</b>
+ *******************************************************************************
+ *
+ * SPDX-License-Identifier: Zlib
+ *
+ * The licensor of this software is Silicon Laboratories Inc.
+ *
+ * This software is provided 'as-is', without any express or implied
+ * warranty. In no event will the authors be held liable for any damages
+ * arising from the use of this software.
+ *
+ * Permission is granted to anyone to use this software for any purpose,
+ * including commercial applications, and to alter it and redistribute it
+ * freely, subject to the following restrictions:
+ *
+ * 1. The origin of this software must not be misrepresented; you must not
+ *    claim that you wrote the original software. If you use this software
+ *    in a product, an acknowledgment in the product documentation would be
+ *    appreciated but is not required.
+ * 2. Altered source versions must be plainly marked as such, and must not be
+ *    misrepresented as being the original software.
+ * 3. This notice may not be removed or altered from any source distribution.
+ *
+ ******************************************************************************/
+#ifndef SL_RAIL_UTIL_MP_TRANSITION_TIME_CONFIG_H
+#define SL_RAIL_UTIL_MP_TRANSITION_TIME_CONFIG_H
+
+#include "sl_rail_util_mp_transition_time.h"
+
+// Define the number of transition time entries.
+#define SL_RAIL_UTIL_MP_TRANSITION_TIME_TABLE_ENTRIES {{ sl_rail_util_mp_transition_time_table[0].minimum_frequency_hz.split(' ')|length }}
+
+// Transition time table
+// This table defines the mapping between system clock frequencies and the corresponding
+// transition times required for multiprotocol radio operations. Each entry specifies
+// the minimum frequency (in Hz) for which the associated transition time (in microseconds)
+// is valid. The table is sorted by frequency in descending order to satisfy the lookup algorithm conditions.
+static const sl_rail_util_mp_transition_time_entry_t sl_rail_util_mp_transition_time_table[SL_RAIL_UTIL_MP_TRANSITION_TIME_TABLE_ENTRIES] = {
+{%- set frequencies = sl_rail_util_mp_transition_time_table[0].minimum_frequency_hz.split(',') %}
+{%- set times = sl_rail_util_mp_transition_time_table[0].transition_time_us.split(',') %}
+{%- set pairs = [] %}
+{%- for i in range(frequencies|length) %}
+  {%- set _ = pairs.append((frequencies[i].strip()|int, times[i].strip()|int)) %}
+{%- endfor %}
+{%- for frequency, time in pairs|sort(reverse=True) %}
+  { {{ frequency }}U, {{ time }}U },
+{%- endfor %}
+};
+
+#endif // SL_RAIL_UTIL_MP_TRANSITION_TIME_CONFIG_H

@@ -1,0 +1,36 @@
+id: sl_sysrtc
+label: SysRTC
+package: platform_siwx91x
+description: >
+  The System Real-Time Clock (SYSRTC) driver provides precise timekeeping and timer capabilities required by a variety of applications. 
+  It is required for activities such as accurate time measurement and scheduling an event. 
+  The SYSRTC driver provides complete features for setting and running the peripheral, 
+  ensuring high performance and reliability in time-critical applications.
+  It supports two groups and each group have two compare channels and one capture channel. 
+  It saves power by letting all groups share a single counter. And this also supports ULP and UULP power domain.
+  When you select this component, it will also be installing the  SYSRTC  dependency component, 
+  which is the SYSRTC driver's implementation.
+category: Device|Si91x|MCU|Peripheral
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: "components/device/silabs/si91x/mcu/drivers/unified_api"
+config_file:
+  - path: config/sl_si91x_sysrtc_config.h
+source:
+  - path: "src/sl_si91x_sysrtc.c"
+include:
+  - path: "inc"
+    file_list:
+    - path: "sl_si91x_sysrtc.h"
+provides:
+  - name: sl_sysrtc
+requires:
+  - name: udma_linker_config
+  - name: rsilib_sysrtc
+conflicts:
+  - name: sleeptimer_si91x
+documentation:
+    docset: wiseconnect
+    document: wiseconnect-api-reference-guide-si91x-peripherals/sysrtc

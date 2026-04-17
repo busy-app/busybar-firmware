@@ -1,0 +1,21 @@
+id: "btmesh_stack_sar_config_server"
+label: "SAR Configuration Server Model"
+package: bluetooth_mesh
+description: "Provides Bluetooth mesh SAR Configuration Server Model. This model provides the functionality of configuration of the segmentation and reassembly behavior of a node."
+category: "Bluetooth Mesh|Stack|Models|Core"
+quality: "production"
+
+requires:
+- name: "btmesh_stack"
+- name: "btmesh_core"
+provides:
+- name: "btmesh_stack_sar_config_server"
+template_contribution:
+- name: btmesh_bgapi_class
+  value:
+    class: "sar_config_server"
+  priority: 1
+metadata:
+  sbom:
+    reference: btmesh_stack
+root_path: bluetooth_mesh

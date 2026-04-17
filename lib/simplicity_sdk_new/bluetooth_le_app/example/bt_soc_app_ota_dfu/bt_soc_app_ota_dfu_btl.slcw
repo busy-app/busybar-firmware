@@ -1,0 +1,16 @@
+workspace_name: bt_soc_app_ota_dfu_btl
+label: Bluetooth - SoC Application OTA DFU
+package: bluetooth_le_app
+description: >
+  A minimal project structure, that serves as a starting point for custom
+  Bluetooth applications that provides Over-The-Air device firmware update in
+  user application runtime.
+  Combined solution with application and bootloader projects.
+quality: production
+project:
+  - path: bt_soc_app_ota_dfu.slcp
+    id: application
+  - path: ../../bootloader/bootloader-storage-internal-single.slcp
+    id: bootloader
+post_build:
+  path: ../../postbuild_profile/bt_dfu_ws.slpb

@@ -1,0 +1,29 @@
+id: sl_fault_injection_hardening
+label: Fault Injection Hardening
+package: security_trustzone
+description: >
+  Fault injection hardening library provides support for different measures, which can either be enabled/disabled by selecting one of the TFM_FIH_PROFILEs
+category: Platform|Security
+quality: production
+
+provides:
+- name: sl_fault_injection_hardening
+
+requires:
+- name: sl_fault_injection_hardening_source
+- name: device_series_2
+- name: se_manager
+  condition: [trustzone_secure]
+- name: cryptoacc_library
+  condition: [device_has_cryptoacc, trustzone_secure]
+- name: psa_driver
+  condition: [device_has_cryptoacc]
+- name: mbedtls_config
+  condition: [device_has_cryptoacc]
+- name: mbedtls_slcrypto_driver
+  condition: [device_has_cryptoacc]
+
+metadata:
+  sbom:
+    license: Zlib
+root_path: security_trustzone

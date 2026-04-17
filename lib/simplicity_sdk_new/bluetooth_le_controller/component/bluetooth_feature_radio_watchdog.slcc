@@ -1,0 +1,19 @@
+id: bluetooth_feature_radio_watchdog
+label: Bluetooth Radio Watchdog
+package: bluetooth_le_controller
+description: Radio watchdog feature
+
+category: Bluetooth|Bluetooth LE Controller (Link Layer)|Additional Features
+quality: production
+provides:
+- name: bluetooth_radio_watchdog
+requires:
+- name: bluetooth_controller
+template_contribution:
+- name: component_catalog
+  value: bluetooth_feature_radio_watchdog
+metadata:
+  sbom:
+    license: MSLA
+
+root_path: bluetooth_le_controller

@@ -1,0 +1,43 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__evt__advertiser__timeout" kind="group">
+    <compoundname>sl_bt_evt_advertiser_timeout</compoundname>
+    <title>sl_bt_evt_advertiser_timeout</title>
+    <innerclass refid="structsl__bt__evt__advertiser__timeout__s" prot="public">sl_bt_evt_advertiser_timeout_s</innerclass>
+      <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="group__sl__bt__evt__advertiser__timeout_1ga95dbf1e9bca7f7ad62bd5e4013dbb720" prot="public" static="no">
+        <type>struct <ref refid="structsl__bt__evt__advertiser__timeout__s" kindref="compound">sl_bt_evt_advertiser_timeout_s</ref></type>
+        <definition>typedef struct sl_bt_evt_advertiser_timeout_s sl_bt_evt_advertiser_timeout_t</definition>
+        <argsstring></argsstring>
+        <name>sl_bt_evt_advertiser_timeout_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="2395" column="45" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="2395" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__evt__advertiser__timeout_1ga790f609c286c245fc6fba12b3d6345c5" prot="public" static="no">
+        <name>sl_bt_evt_advertiser_timeout_id</name>
+        <initializer>0x010400a0</initializer>
+        <briefdescription>
+<para>Identifier of the timeout event. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="2385" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="2385" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Indicates the legacy or extended advertising on an advertising set has stopped because the advertiser has completed the configured number of advertising events or has completed all advertising events that it can perform within the configured duration. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>The maximum number of advertising events or advertising duration can be configured by the <computeroutput>maxevents</computeroutput> or <computeroutput>duration</computeroutput> parameter in the command <ref refid="group__sl__bt__advertiser_1ga2124b32ebba98612731be0e2b7b9cf1f" kindref="member">sl_bt_advertiser_set_timing</ref>. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

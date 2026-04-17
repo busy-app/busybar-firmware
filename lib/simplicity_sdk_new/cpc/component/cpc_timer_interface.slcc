@@ -1,0 +1,20 @@
+id: cpc_timer_interface
+label: CPC Timer interface
+package: cpc
+description: Co-Processor Communication (CPC) Core
+category: Services|Co-Processor Communication
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+ui_hints:
+  visibility: never
+include:
+- path: inc
+  condition:
+  - cpc_core_v1
+  file_list:
+  - path: sli_cpc_timer.h
+provides:
+- name: cpc_timer_interface
+root_path: cpc

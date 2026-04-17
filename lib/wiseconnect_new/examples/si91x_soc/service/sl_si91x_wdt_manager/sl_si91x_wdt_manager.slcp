@@ -1,0 +1,52 @@
+project_name: sl_si91x_wdt_manager
+package: platform_siwx91x_app
+description: 'This application demonstrates WDT manager integration with LED blinking functionality.
+
+  The LED blinks 10 times, then the system intentionally hangs to demonstrate
+
+  the WDT manager''s ability to detect and recover from system hangs.
+
+  '
+category: example|service
+quality: production
+label: Si91x - WDT Manager
+component:
+- id: sl_main
+- id: sleeptimer
+- id: sl_si91x_led_917
+  instance:
+  - led0
+- id: sl_wdt_manager
+- id: syscalls
+- id: si91x_memory_default_config
+source:
+- path: app.c
+- path: wdt_manager.c
+include:
+- path: .
+  file_list:
+  - path: app.h
+  - path: wdt_manager.h
+toolchain_settings:
+- option: gcc_compiler_option
+  value: -Wall -Werror
+other_file:
+- path: resources/readme/setupdiagram.png
+define:
+- name: SYSCALLS_WRITE
+ui_hints:
+  highlight:
+  - path: readme.md
+    focus: true
+readme:
+- path: readme.md
+post_build:
+  profile: wiseconnect_soc
+sdk_extension:
+- id: wiseconnect3_sdk
+  vendor: silabs
+  version: 4.0.1
+sdk:
+  id: simplicity_sdk
+  vendor: silabs
+  version: 2025.12.2

@@ -1,0 +1,25 @@
+id: tz_service_config
+package: security_trustzone
+description: >-
+  This component provides TZ service config
+category: Platform|Security|TrustZone
+ui_hints:
+  visibility: never
+quality: production
+provides:
+- name: tz_service_config
+
+conflicts:
+- name: trustzone_unaware
+
+template_file:
+- path: config/template/tz_service_config_autogen.h.jinja
+  export: true
+  condition: [trustzone_nonsecure]
+
+define:
+- name: TZ_SERVICE_CONFIG_PRESENT
+metadata:
+  sbom:
+    license: Zlib
+root_path: security_trustzone/platform/security/sl_component/sl_trustzone

@@ -1,0 +1,33 @@
+id: netstack_silabs_lwip_api
+label: "LightWeight IP (LWIP) API"
+package: netstack_silabs_lwip
+description: >
+  The LightWeight IP (LWIP) API component implements the code for the high-level wrapper API.
+  Not needed if you use the low-level call-back/raw API.
+category: Network Stack|LwIP
+quality: production
+provides:
+- name: netstack_silabs_lwip_api
+requires:
+- name: netstack_silabs_lwip_core
+source:
+- path: lwip/src/api/api_lib.c
+- path: lwip/src/api/api_msg.c
+- path: lwip/src/api/err.c
+- path: lwip/src/api/if_api.c
+- path: lwip/src/api/netbuf.c
+- path: lwip/src/api/netdb.c
+- path: lwip/src/api/netifapi.c
+- path: lwip/src/api/sockets.c
+- path: lwip/src/api/tcpip.c
+metadata:
+  sbom:
+    license: BSD-3-Clause
+    upstream:
+      name: lwip
+      version: 2.2.1
+      supplier: lwIP Developers
+      url: https://savannah.nongnu.org/projects/lwip/
+      package_url: https://github.com/lwip-tcpip/lwip/
+      comment: lwIP is a small independent implementation of the TCP/IP protocol suite.
+root_path: netstack_silabs_lwip/

@@ -1,0 +1,54 @@
+package: zigbee
+description: This component provides common utility functions used by both the Price Server and Price Client components.
+id: zigbee_price_common
+label: Price Common
+category: Zigbee|Cluster Library|Smart Energy
+quality: evaluation
+provides:
+- name: zigbee_price_common
+source:
+- path: app/framework/plugin/price-common/price-common.c
+- path: app/framework/plugin/price-common/price-common-time.c
+- path: app/framework/plugin/price-common/price-common-cli.c
+  condition:
+  - cli
+include:
+- path: app/framework/plugin/price-common
+  file_list:
+  - path: price-common.h
+  - path: price-common-time.h
+template_contribution:
+- name: component_catalog
+  value: zigbee_price_common
+- name: cli_group
+  value:
+    group: plugin
+    name: price-common
+    help: price-common related commands.
+- name: cli_command
+  value:
+    group: price-common
+    name: adj-st-t
+    handler: sli_zigbee_af_price_common_cluster_get_adjusted_start_time_cli
+    help: Calculates a new UTC start time value based on the duration type parameter.
+    argument:
+    - type: uint32
+    - type: uint8
+- name: cli_command
+  value:
+    group: price-common
+    name: cnvrt-durn-to-sec
+    handler: sli_zigbee_af_price_common_cluster_convert_duration_to_seconds_cli
+    help: Converts the duration to a number of seconds based on the duration type parameter.
+    argument:
+    - type: uint32
+    - type: uint32
+    - type: uint8
+
+documentation:
+  docset: zigbee
+  document: zigbee-af-api/price-common
+metadata:
+  sbom:
+    license: MSLA
+root_path: zigbee

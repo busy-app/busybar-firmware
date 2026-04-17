@@ -1,0 +1,24 @@
+id: sli_wifi_command_engine
+label: WiFi Command Engine
+package: wifi
+description: >
+    This package contains core Command Engine thread which receives the TX and RX events.
+category: Command Engine
+component_root_path: ./components/sli_wifi_command_engine
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+ui_hints:
+  visibility: never
+provides:
+    - name: sli_wifi_command_engine
+source:
+- path: src/sli_wifi_command_engine.c
+include:
+- path: inc
+  file_list:
+    - path: sli_wifi_event_handler.h
+    - path: sli_wifi_command_engine.h
+requires:
+    - name: wifi_event_handler

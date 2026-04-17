@@ -1,0 +1,8 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<module:DocumentRoot xmlns:module="http://www.silabs.com/ss/hwconfig/module.ecore">
+  <module id="pin_tool.efr32.bgm21.portio" label="Pinout Configuration" name="PORTIO" description="" version="A">
+    <properties/>
+    <propertyCategories/>
+    <signals/>
+  </module>
+</module:DocumentRoot>

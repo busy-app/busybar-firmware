@@ -1,0 +1,30 @@
+id: legacy_ncp_ash
+label: Legacy NCP ASH
+package: zigbee
+category: Services|Ember Legacy
+description: Legacy Ember ASH implementation for NCP.
+quality: production
+metadata:
+  sbom:
+    license: MSLA
+root_path: zigbee/platform/service/legacy_ncp_ash
+provides:
+- name: legacy_ncp_ash
+requires:
+- name: component_catalog
+- name: legacy_common_ash
+- name: device
+- name: token_manager
+  condition: [device_series_2]
+- name: common_token_manager
+  condition: [device_series_3]
+- name: zigbee_debug_basic
+source:
+- path: src/ash-ncp.c
+include:
+- path: inc
+  file_list:
+  - path: ash-ncp.h
+template_contribution:
+- name: component_catalog
+  value: legacy_ncp_ash

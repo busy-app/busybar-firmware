@@ -1,0 +1,883 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<demos>
+	<demo name="brd4109a.demo.memlcd_baremetal" label="Platform - MEMLCD Bare-metal">
+		<property key="blurb" value="Platform - MEMLCD Bare-metal" />
+		<property key="partCompatibility" value=".*efr32bg27c230f768im40.*" />
+		<property key="boardCompatibility" value="brd4109a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/platform_sample_app/demos/memlcd_baremetal/memlcd_baremetal-brd4109a.s37" />
+		<property key="readmeFiles" value="example/memlcd_baremetal/readme.md" />
+		<property key="filters" value="Device\ Type|SoC MCU|32-bit\ MCU Project\ Difficulty|Beginner" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This example project demonstrates use of the Memory Liquid Crystal Display (LCD) module in a baremetal application, using Silicon Labs Graphics Library (glib).
+</description>
+	</demo>
+	<demo name="brd4116a.demo.memlcd_baremetal" label="Platform - MEMLCD Bare-metal">
+		<property key="blurb" value="Platform - MEMLCD Bare-metal" />
+		<property key="partCompatibility" value=".*efr32mg26b410f3200im48.*" />
+		<property key="boardCompatibility" value="brd4116a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/platform_sample_app/demos/memlcd_baremetal/memlcd_baremetal-brd4116a.s37" />
+		<property key="readmeFiles" value="example/memlcd_baremetal/readme.md" />
+		<property key="filters" value="Device\ Type|SoC MCU|32-bit\ MCU Project\ Difficulty|Beginner" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This example project demonstrates use of the Memory Liquid Crystal Display (LCD) module in a baremetal application, using Silicon Labs Graphics Library (glib).
+</description>
+	</demo>
+	<demo name="brd4117a.demo.memlcd_baremetal" label="Platform - MEMLCD Bare-metal">
+		<property key="blurb" value="Platform - MEMLCD Bare-metal" />
+		<property key="partCompatibility" value=".*efr32mg26b420f3200im48.*" />
+		<property key="boardCompatibility" value="brd4117a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/platform_sample_app/demos/memlcd_baremetal/memlcd_baremetal-brd4117a.s37" />
+		<property key="readmeFiles" value="example/memlcd_baremetal/readme.md" />
+		<property key="filters" value="Device\ Type|SoC MCU|32-bit\ MCU Project\ Difficulty|Beginner" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This example project demonstrates use of the Memory Liquid Crystal Display (LCD) module in a baremetal application, using Silicon Labs Graphics Library (glib).
+</description>
+	</demo>
+	<demo name="brd4118a.demo.memlcd_baremetal" label="Platform - MEMLCD Bare-metal">
+		<property key="blurb" value="Platform - MEMLCD Bare-metal" />
+		<property key="partCompatibility" value=".*efr32mg26b510f3200il136.*" />
+		<property key="boardCompatibility" value="brd4118a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/platform_sample_app/demos/memlcd_baremetal/memlcd_baremetal-brd4118a.s37" />
+		<property key="readmeFiles" value="example/memlcd_baremetal/readme.md" />
+		<property key="filters" value="Device\ Type|SoC MCU|32-bit\ MCU Project\ Difficulty|Beginner" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This example project demonstrates use of the Memory Liquid Crystal Display (LCD) module in a baremetal application, using Silicon Labs Graphics Library (glib).
+</description>
+	</demo>
+	<demo name="brd4120a.demo.memlcd_baremetal" label="Platform - MEMLCD Bare-metal">
+		<property key="blurb" value="Platform - MEMLCD Bare-metal" />
+		<property key="partCompatibility" value=".*efr32mg26b410f3200im68.*" />
+		<property key="boardCompatibility" value="brd4120a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/platform_sample_app/demos/memlcd_baremetal/memlcd_baremetal-brd4120a.s37" />
+		<property key="readmeFiles" value="example/memlcd_baremetal/readme.md" />
+		<property key="filters" value="Device\ Type|SoC MCU|32-bit\ MCU Project\ Difficulty|Beginner" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This example project demonstrates use of the Memory Liquid Crystal Display (LCD) module in a baremetal application, using Silicon Labs Graphics Library (glib).
+</description>
+	</demo>
+	<demo name="brd4121a.demo.memlcd_baremetal" label="Platform - MEMLCD Bare-metal">
+		<property key="blurb" value="Platform - MEMLCD Bare-metal" />
+		<property key="partCompatibility" value=".*efr32mg26b420f3200im68.*" />
+		<property key="boardCompatibility" value="brd4121a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/platform_sample_app/demos/memlcd_baremetal/memlcd_baremetal-brd4121a.s37" />
+		<property key="readmeFiles" value="example/memlcd_baremetal/readme.md" />
+		<property key="filters" value="Device\ Type|SoC MCU|32-bit\ MCU Project\ Difficulty|Beginner" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This example project demonstrates use of the Memory Liquid Crystal Display (LCD) module in a baremetal application, using Silicon Labs Graphics Library (glib).
+</description>
+	</demo>
+	<demo name="brd4171a.demo.memlcd_baremetal" label="Platform - MEMLCD Bare-metal">
+		<property key="blurb" value="Platform - MEMLCD Bare-metal" />
+		<property key="partCompatibility" value=".*rm21z000f1024im32.*" />
+		<property key="boardCompatibility" value="brd4171a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/platform_sample_app/demos/memlcd_baremetal/memlcd_baremetal-brd4171a.s37" />
+		<property key="readmeFiles" value="example/memlcd_baremetal/readme.md" />
+		<property key="filters" value="Device\ Type|SoC MCU|32-bit\ MCU Project\ Difficulty|Beginner" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This example project demonstrates use of the Memory Liquid Crystal Display (LCD) module in a baremetal application, using Silicon Labs Graphics Library (glib).
+</description>
+	</demo>
+	<demo name="brd4176a.demo.memlcd_baremetal" label="Platform - MEMLCD Bare-metal">
+		<property key="blurb" value="Platform - MEMLCD Bare-metal" />
+		<property key="partCompatibility" value=".*efr32mg21a010f1024im32.*" />
+		<property key="boardCompatibility" value="brd4176a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/platform_sample_app/demos/memlcd_baremetal/memlcd_baremetal-brd4176a.s37" />
+		<property key="readmeFiles" value="example/memlcd_baremetal/readme.md" />
+		<property key="filters" value="Device\ Type|SoC MCU|32-bit\ MCU Project\ Difficulty|Beginner" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This example project demonstrates use of the Memory Liquid Crystal Display (LCD) module in a baremetal application, using Silicon Labs Graphics Library (glib).
+</description>
+	</demo>
+	<demo name="brd4180a.demo.memlcd_baremetal" label="Platform - MEMLCD Bare-metal">
+		<property key="blurb" value="Platform - MEMLCD Bare-metal" />
+		<property key="partCompatibility" value=".*efr32mg21a020f1024im32.*" />
+		<property key="boardCompatibility" value="brd4180a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/platform_sample_app/demos/memlcd_baremetal/memlcd_baremetal-brd4180a.s37" />
+		<property key="readmeFiles" value="example/memlcd_baremetal/readme.md" />
+		<property key="filters" value="Device\ Type|SoC MCU|32-bit\ MCU Project\ Difficulty|Beginner" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This example project demonstrates use of the Memory Liquid Crystal Display (LCD) module in a baremetal application, using Silicon Labs Graphics Library (glib).
+</description>
+	</demo>
+	<demo name="brd4180b.demo.memlcd_baremetal" label="Platform - MEMLCD Bare-metal">
+		<property key="blurb" value="Platform - MEMLCD Bare-metal" />
+		<property key="partCompatibility" value=".*efr32mg21a020f1024im32.*" />
+		<property key="boardCompatibility" value="brd4180b" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/platform_sample_app/demos/memlcd_baremetal/memlcd_baremetal-brd4180b.s37" />
+		<property key="readmeFiles" value="example/memlcd_baremetal/readme.md" />
+		<property key="filters" value="Device\ Type|SoC MCU|32-bit\ MCU Project\ Difficulty|Beginner" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This example project demonstrates use of the Memory Liquid Crystal Display (LCD) module in a baremetal application, using Silicon Labs Graphics Library (glib).
+</description>
+	</demo>
+	<demo name="brd4181a.demo.memlcd_baremetal" label="Platform - MEMLCD Bare-metal">
+		<property key="blurb" value="Platform - MEMLCD Bare-metal" />
+		<property key="partCompatibility" value=".*efr32mg21a010f1024im32.*" />
+		<property key="boardCompatibility" value="brd4181a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/platform_sample_app/demos/memlcd_baremetal/memlcd_baremetal-brd4181a.s37" />
+		<property key="readmeFiles" value="example/memlcd_baremetal/readme.md" />
+		<property key="filters" value="Device\ Type|SoC MCU|32-bit\ MCU Project\ Difficulty|Beginner" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This example project demonstrates use of the Memory Liquid Crystal Display (LCD) module in a baremetal application, using Silicon Labs Graphics Library (glib).
+</description>
+	</demo>
+	<demo name="brd4181b.demo.memlcd_baremetal" label="Platform - MEMLCD Bare-metal">
+		<property key="blurb" value="Platform - MEMLCD Bare-metal" />
+		<property key="partCompatibility" value=".*efr32mg21a010f1024im32.*" />
+		<property key="boardCompatibility" value="brd4181b" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/platform_sample_app/demos/memlcd_baremetal/memlcd_baremetal-brd4181b.s37" />
+		<property key="readmeFiles" value="example/memlcd_baremetal/readme.md" />
+		<property key="filters" value="Device\ Type|SoC MCU|32-bit\ MCU Project\ Difficulty|Beginner" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This example project demonstrates use of the Memory Liquid Crystal Display (LCD) module in a baremetal application, using Silicon Labs Graphics Library (glib).
+</description>
+	</demo>
+	<demo name="brd4181c.demo.memlcd_baremetal" label="Platform - MEMLCD Bare-metal">
+		<property key="blurb" value="Platform - MEMLCD Bare-metal" />
+		<property key="partCompatibility" value=".*efr32mg21b010f1024im32.*" />
+		<property key="boardCompatibility" value="brd4181c" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/platform_sample_app/demos/memlcd_baremetal/memlcd_baremetal-brd4181c.s37" />
+		<property key="readmeFiles" value="example/memlcd_baremetal/readme.md" />
+		<property key="filters" value="Device\ Type|SoC MCU|32-bit\ MCU Project\ Difficulty|Beginner" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This example project demonstrates use of the Memory Liquid Crystal Display (LCD) module in a baremetal application, using Silicon Labs Graphics Library (glib).
+</description>
+	</demo>
+	<demo name="brd4182a.demo.memlcd_baremetal" label="Platform - MEMLCD Bare-metal">
+		<property key="blurb" value="Platform - MEMLCD Bare-metal" />
+		<property key="partCompatibility" value=".*efr32mg22c224f512im40.*" />
+		<property key="boardCompatibility" value="brd4182a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/platform_sample_app/demos/memlcd_baremetal/memlcd_baremetal-brd4182a.s37" />
+		<property key="readmeFiles" value="example/memlcd_baremetal/readme.md" />
+		<property key="filters" value="Device\ Type|SoC MCU|32-bit\ MCU Project\ Difficulty|Beginner" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This example project demonstrates use of the Memory Liquid Crystal Display (LCD) module in a baremetal application, using Silicon Labs Graphics Library (glib).
+</description>
+	</demo>
+	<demo name="brd4185a.demo.memlcd_baremetal" label="Platform - MEMLCD Bare-metal">
+		<property key="blurb" value="Platform - MEMLCD Bare-metal" />
+		<property key="partCompatibility" value=".*efr32bg22c224f512im40.*" />
+		<property key="boardCompatibility" value="brd4185a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/platform_sample_app/demos/memlcd_baremetal/memlcd_baremetal-brd4185a.s37" />
+		<property key="readmeFiles" value="example/memlcd_baremetal/readme.md" />
+		<property key="filters" value="Device\ Type|SoC MCU|32-bit\ MCU Project\ Difficulty|Beginner" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This example project demonstrates use of the Memory Liquid Crystal Display (LCD) module in a baremetal application, using Silicon Labs Graphics Library (glib).
+</description>
+	</demo>
+	<demo name="brd4186a.demo.memlcd_baremetal" label="Platform - MEMLCD Bare-metal">
+		<property key="blurb" value="Platform - MEMLCD Bare-metal" />
+		<property key="partCompatibility" value=".*efr32mg24a010f1536gm48.*" />
+		<property key="boardCompatibility" value="brd4186a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/platform_sample_app/demos/memlcd_baremetal/memlcd_baremetal-brd4186a.s37" />
+		<property key="readmeFiles" value="example/memlcd_baremetal/readme.md" />
+		<property key="filters" value="Device\ Type|SoC MCU|32-bit\ MCU Project\ Difficulty|Beginner" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This example project demonstrates use of the Memory Liquid Crystal Display (LCD) module in a baremetal application, using Silicon Labs Graphics Library (glib).
+</description>
+	</demo>
+	<demo name="brd4186b.demo.memlcd_baremetal" label="Platform - MEMLCD Bare-metal">
+		<property key="blurb" value="Platform - MEMLCD Bare-metal" />
+		<property key="partCompatibility" value=".*efr32mg24b010f1536im48.*" />
+		<property key="boardCompatibility" value="brd4186b" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/platform_sample_app/demos/memlcd_baremetal/memlcd_baremetal-brd4186b.s37" />
+		<property key="readmeFiles" value="example/memlcd_baremetal/readme.md" />
+		<property key="filters" value="Device\ Type|SoC MCU|32-bit\ MCU Project\ Difficulty|Beginner" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This example project demonstrates use of the Memory Liquid Crystal Display (LCD) module in a baremetal application, using Silicon Labs Graphics Library (glib).
+</description>
+	</demo>
+	<demo name="brd4186c.demo.memlcd_baremetal" label="Platform - MEMLCD Bare-metal">
+		<property key="blurb" value="Platform - MEMLCD Bare-metal" />
+		<property key="partCompatibility" value=".*efr32mg24b210f1536im48.*" />
+		<property key="boardCompatibility" value="brd4186c" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/platform_sample_app/demos/memlcd_baremetal/memlcd_baremetal-brd4186c.s37" />
+		<property key="readmeFiles" value="example/memlcd_baremetal/readme.md" />
+		<property key="filters" value="Device\ Type|SoC MCU|32-bit\ MCU Project\ Difficulty|Beginner" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This example project demonstrates use of the Memory Liquid Crystal Display (LCD) module in a baremetal application, using Silicon Labs Graphics Library (glib).
+</description>
+	</demo>
+	<demo name="brd4187a.demo.memlcd_baremetal" label="Platform - MEMLCD Bare-metal">
+		<property key="blurb" value="Platform - MEMLCD Bare-metal" />
+		<property key="partCompatibility" value=".*efr32mg24a020f1536gm48.*" />
+		<property key="boardCompatibility" value="brd4187a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/platform_sample_app/demos/memlcd_baremetal/memlcd_baremetal-brd4187a.s37" />
+		<property key="readmeFiles" value="example/memlcd_baremetal/readme.md" />
+		<property key="filters" value="Device\ Type|SoC MCU|32-bit\ MCU Project\ Difficulty|Beginner" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This example project demonstrates use of the Memory Liquid Crystal Display (LCD) module in a baremetal application, using Silicon Labs Graphics Library (glib).
+</description>
+	</demo>
+	<demo name="brd4187b.demo.memlcd_baremetal" label="Platform - MEMLCD Bare-metal">
+		<property key="blurb" value="Platform - MEMLCD Bare-metal" />
+		<property key="partCompatibility" value=".*efr32mg24b020f1536im48.*" />
+		<property key="boardCompatibility" value="brd4187b" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/platform_sample_app/demos/memlcd_baremetal/memlcd_baremetal-brd4187b.s37" />
+		<property key="readmeFiles" value="example/memlcd_baremetal/readme.md" />
+		<property key="filters" value="Device\ Type|SoC MCU|32-bit\ MCU Project\ Difficulty|Beginner" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This example project demonstrates use of the Memory Liquid Crystal Display (LCD) module in a baremetal application, using Silicon Labs Graphics Library (glib).
+</description>
+	</demo>
+	<demo name="brd4187c.demo.memlcd_baremetal" label="Platform - MEMLCD Bare-metal">
+		<property key="blurb" value="Platform - MEMLCD Bare-metal" />
+		<property key="partCompatibility" value=".*efr32mg24b220f1536im48.*" />
+		<property key="boardCompatibility" value="brd4187c" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/platform_sample_app/demos/memlcd_baremetal/memlcd_baremetal-brd4187c.s37" />
+		<property key="readmeFiles" value="example/memlcd_baremetal/readme.md" />
+		<property key="filters" value="Device\ Type|SoC MCU|32-bit\ MCU Project\ Difficulty|Beginner" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This example project demonstrates use of the Memory Liquid Crystal Display (LCD) module in a baremetal application, using Silicon Labs Graphics Library (glib).
+</description>
+	</demo>
+	<demo name="brd4188a.demo.memlcd_baremetal" label="Platform - MEMLCD Bare-metal">
+		<property key="blurb" value="Platform - MEMLCD Bare-metal" />
+		<property key="partCompatibility" value=".*efr32mg24b020f1536im48.*" />
+		<property key="boardCompatibility" value="brd4188a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/platform_sample_app/demos/memlcd_baremetal/memlcd_baremetal-brd4188a.s37" />
+		<property key="readmeFiles" value="example/memlcd_baremetal/readme.md" />
+		<property key="filters" value="Device\ Type|SoC MCU|32-bit\ MCU Project\ Difficulty|Beginner" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This example project demonstrates use of the Memory Liquid Crystal Display (LCD) module in a baremetal application, using Silicon Labs Graphics Library (glib).
+</description>
+	</demo>
+	<demo name="brd4188b.demo.memlcd_baremetal" label="Platform - MEMLCD Bare-metal">
+		<property key="blurb" value="Platform - MEMLCD Bare-metal" />
+		<property key="partCompatibility" value=".*efr32mg24b220f1536im48.*" />
+		<property key="boardCompatibility" value="brd4188b" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/platform_sample_app/demos/memlcd_baremetal/memlcd_baremetal-brd4188b.s37" />
+		<property key="readmeFiles" value="example/memlcd_baremetal/readme.md" />
+		<property key="filters" value="Device\ Type|SoC MCU|32-bit\ MCU Project\ Difficulty|Beginner" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This example project demonstrates use of the Memory Liquid Crystal Display (LCD) module in a baremetal application, using Silicon Labs Graphics Library (glib).
+</description>
+	</demo>
+	<demo name="brd4194a.demo.memlcd_baremetal" label="Platform - MEMLCD Bare-metal">
+		<property key="blurb" value="Platform - MEMLCD Bare-metal" />
+		<property key="partCompatibility" value=".*efr32mg27c140f768im40.*" />
+		<property key="boardCompatibility" value="brd4194a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/platform_sample_app/demos/memlcd_baremetal/memlcd_baremetal-brd4194a.s37" />
+		<property key="readmeFiles" value="example/memlcd_baremetal/readme.md" />
+		<property key="filters" value="Device\ Type|SoC MCU|32-bit\ MCU Project\ Difficulty|Beginner" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This example project demonstrates use of the Memory Liquid Crystal Display (LCD) module in a baremetal application, using Silicon Labs Graphics Library (glib).
+</description>
+	</demo>
+	<demo name="brd4195a.demo.memlcd_baremetal" label="Platform - MEMLCD Bare-metal">
+		<property key="blurb" value="Platform - MEMLCD Bare-metal" />
+		<property key="partCompatibility" value=".*efr32mg21b010f1024im32.*" />
+		<property key="boardCompatibility" value="brd4195a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/platform_sample_app/demos/memlcd_baremetal/memlcd_baremetal-brd4195a.s37" />
+		<property key="readmeFiles" value="example/memlcd_baremetal/readme.md" />
+		<property key="filters" value="Device\ Type|SoC MCU|32-bit\ MCU Project\ Difficulty|Beginner" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This example project demonstrates use of the Memory Liquid Crystal Display (LCD) module in a baremetal application, using Silicon Labs Graphics Library (glib).
+</description>
+	</demo>
+	<demo name="brd4195b.demo.memlcd_baremetal" label="Platform - MEMLCD Bare-metal">
+		<property key="blurb" value="Platform - MEMLCD Bare-metal" />
+		<property key="partCompatibility" value=".*efr32mg21b010f1024im32.*" />
+		<property key="boardCompatibility" value="brd4195b" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/platform_sample_app/demos/memlcd_baremetal/memlcd_baremetal-brd4195b.s37" />
+		<property key="readmeFiles" value="example/memlcd_baremetal/readme.md" />
+		<property key="filters" value="Device\ Type|SoC MCU|32-bit\ MCU Project\ Difficulty|Beginner" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This example project demonstrates use of the Memory Liquid Crystal Display (LCD) module in a baremetal application, using Silicon Labs Graphics Library (glib).
+</description>
+	</demo>
+	<demo name="brd4196a.demo.memlcd_baremetal" label="Platform - MEMLCD Bare-metal">
+		<property key="blurb" value="Platform - MEMLCD Bare-metal" />
+		<property key="partCompatibility" value=".*efr32mg21b020f1024im32.*" />
+		<property key="boardCompatibility" value="brd4196a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/platform_sample_app/demos/memlcd_baremetal/memlcd_baremetal-brd4196a.s37" />
+		<property key="readmeFiles" value="example/memlcd_baremetal/readme.md" />
+		<property key="filters" value="Device\ Type|SoC MCU|32-bit\ MCU Project\ Difficulty|Beginner" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This example project demonstrates use of the Memory Liquid Crystal Display (LCD) module in a baremetal application, using Silicon Labs Graphics Library (glib).
+</description>
+	</demo>
+	<demo name="brd4196b.demo.memlcd_baremetal" label="Platform - MEMLCD Bare-metal">
+		<property key="blurb" value="Platform - MEMLCD Bare-metal" />
+		<property key="partCompatibility" value=".*efr32mg21b020f1024im32.*" />
+		<property key="boardCompatibility" value="brd4196b" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/platform_sample_app/demos/memlcd_baremetal/memlcd_baremetal-brd4196b.s37" />
+		<property key="readmeFiles" value="example/memlcd_baremetal/readme.md" />
+		<property key="filters" value="Device\ Type|SoC MCU|32-bit\ MCU Project\ Difficulty|Beginner" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This example project demonstrates use of the Memory Liquid Crystal Display (LCD) module in a baremetal application, using Silicon Labs Graphics Library (glib).
+</description>
+	</demo>
+	<demo name="brd4197a.demo.memlcd_baremetal" label="Platform - MEMLCD Bare-metal">
+		<property key="blurb" value="Platform - MEMLCD Bare-metal" />
+		<property key="partCompatibility" value=".*efr32mg24b220f1536im48.*" />
+		<property key="boardCompatibility" value="brd4197a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/platform_sample_app/demos/memlcd_baremetal/memlcd_baremetal-brd4197a.s37" />
+		<property key="readmeFiles" value="example/memlcd_baremetal/readme.md" />
+		<property key="filters" value="Device\ Type|SoC MCU|32-bit\ MCU Project\ Difficulty|Beginner" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This example project demonstrates use of the Memory Liquid Crystal Display (LCD) module in a baremetal application, using Silicon Labs Graphics Library (glib).
+</description>
+	</demo>
+	<demo name="brd4198a.demo.memlcd_baremetal" label="Platform - MEMLCD Bare-metal">
+		<property key="blurb" value="Platform - MEMLCD Bare-metal" />
+		<property key="partCompatibility" value=".*efr32mg24b210f1536im48.*" />
+		<property key="boardCompatibility" value="brd4198a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/platform_sample_app/demos/memlcd_baremetal/memlcd_baremetal-brd4198a.s37" />
+		<property key="readmeFiles" value="example/memlcd_baremetal/readme.md" />
+		<property key="filters" value="Device\ Type|SoC MCU|32-bit\ MCU Project\ Difficulty|Beginner" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This example project demonstrates use of the Memory Liquid Crystal Display (LCD) module in a baremetal application, using Silicon Labs Graphics Library (glib).
+</description>
+	</demo>
+	<demo name="brd4198b.demo.memlcd_baremetal" label="Platform - MEMLCD Bare-metal">
+		<property key="blurb" value="Platform - MEMLCD Bare-metal" />
+		<property key="partCompatibility" value=".*efr32mg24b210f1536im48.*" />
+		<property key="boardCompatibility" value="brd4198b" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/platform_sample_app/demos/memlcd_baremetal/memlcd_baremetal-brd4198b.s37" />
+		<property key="readmeFiles" value="example/memlcd_baremetal/readme.md" />
+		<property key="filters" value="Device\ Type|SoC MCU|32-bit\ MCU Project\ Difficulty|Beginner" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This example project demonstrates use of the Memory Liquid Crystal Display (LCD) module in a baremetal application, using Silicon Labs Graphics Library (glib).
+</description>
+	</demo>
+	<demo name="brd4204a.demo.memlcd_baremetal" label="Platform - MEMLCD Bare-metal">
+		<property key="blurb" value="Platform - MEMLCD Bare-metal" />
+		<property key="partCompatibility" value=".*efr32zg23a010f512gm48.*" />
+		<property key="boardCompatibility" value="brd4204a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/platform_sample_app/demos/memlcd_baremetal/memlcd_baremetal-brd4204a.s37" />
+		<property key="readmeFiles" value="example/memlcd_baremetal/readme.md" />
+		<property key="filters" value="Device\ Type|SoC MCU|32-bit\ MCU Project\ Difficulty|Beginner" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This example project demonstrates use of the Memory Liquid Crystal Display (LCD) module in a baremetal application, using Silicon Labs Graphics Library (glib).
+</description>
+	</demo>
+	<demo name="brd4204b.demo.memlcd_baremetal" label="Platform - MEMLCD Bare-metal">
+		<property key="blurb" value="Platform - MEMLCD Bare-metal" />
+		<property key="partCompatibility" value=".*efr32zg23a010f512gm48.*" />
+		<property key="boardCompatibility" value="brd4204b" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/platform_sample_app/demos/memlcd_baremetal/memlcd_baremetal-brd4204b.s37" />
+		<property key="readmeFiles" value="example/memlcd_baremetal/readme.md" />
+		<property key="filters" value="Device\ Type|SoC MCU|32-bit\ MCU Project\ Difficulty|Beginner" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This example project demonstrates use of the Memory Liquid Crystal Display (LCD) module in a baremetal application, using Silicon Labs Graphics Library (glib).
+</description>
+	</demo>
+	<demo name="brd4204c.demo.memlcd_baremetal" label="Platform - MEMLCD Bare-metal">
+		<property key="blurb" value="Platform - MEMLCD Bare-metal" />
+		<property key="partCompatibility" value=".*efr32zg23b010f512im48.*" />
+		<property key="boardCompatibility" value="brd4204c" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/platform_sample_app/demos/memlcd_baremetal/memlcd_baremetal-brd4204c.s37" />
+		<property key="readmeFiles" value="example/memlcd_baremetal/readme.md" />
+		<property key="filters" value="Device\ Type|SoC MCU|32-bit\ MCU Project\ Difficulty|Beginner" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This example project demonstrates use of the Memory Liquid Crystal Display (LCD) module in a baremetal application, using Silicon Labs Graphics Library (glib).
+</description>
+	</demo>
+	<demo name="brd4204d.demo.memlcd_baremetal" label="Platform - MEMLCD Bare-metal">
+		<property key="blurb" value="Platform - MEMLCD Bare-metal" />
+		<property key="partCompatibility" value=".*efr32zg23b010f512im48.*" />
+		<property key="boardCompatibility" value="brd4204d" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/platform_sample_app/demos/memlcd_baremetal/memlcd_baremetal-brd4204d.s37" />
+		<property key="readmeFiles" value="example/memlcd_baremetal/readme.md" />
+		<property key="filters" value="Device\ Type|SoC MCU|32-bit\ MCU Project\ Difficulty|Beginner" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This example project demonstrates use of the Memory Liquid Crystal Display (LCD) module in a baremetal application, using Silicon Labs Graphics Library (glib).
+</description>
+	</demo>
+	<demo name="brd4205a.demo.memlcd_baremetal" label="Platform - MEMLCD Bare-metal">
+		<property key="blurb" value="Platform - MEMLCD Bare-metal" />
+		<property key="partCompatibility" value=".*zgm230sa27hnn.*" />
+		<property key="boardCompatibility" value="brd4205a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/platform_sample_app/demos/memlcd_baremetal/memlcd_baremetal-brd4205a.s37" />
+		<property key="readmeFiles" value="example/memlcd_baremetal/readme.md" />
+		<property key="filters" value="Device\ Type|SoC MCU|32-bit\ MCU Project\ Difficulty|Beginner" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This example project demonstrates use of the Memory Liquid Crystal Display (LCD) module in a baremetal application, using Silicon Labs Graphics Library (glib).
+</description>
+	</demo>
+	<demo name="brd4205b.demo.memlcd_baremetal" label="Platform - MEMLCD Bare-metal">
+		<property key="blurb" value="Platform - MEMLCD Bare-metal" />
+		<property key="partCompatibility" value=".*zgm230sb27hgn.*" />
+		<property key="boardCompatibility" value="brd4205b" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/platform_sample_app/demos/memlcd_baremetal/memlcd_baremetal-brd4205b.s37" />
+		<property key="readmeFiles" value="example/memlcd_baremetal/readme.md" />
+		<property key="filters" value="Device\ Type|SoC MCU|32-bit\ MCU Project\ Difficulty|Beginner" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This example project demonstrates use of the Memory Liquid Crystal Display (LCD) module in a baremetal application, using Silicon Labs Graphics Library (glib).
+</description>
+	</demo>
+	<demo name="brd4210a.demo.memlcd_baremetal" label="Platform - MEMLCD Bare-metal">
+		<property key="blurb" value="Platform - MEMLCD Bare-metal" />
+		<property key="partCompatibility" value=".*efr32zg23b020f512im48.*" />
+		<property key="boardCompatibility" value="brd4210a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/platform_sample_app/demos/memlcd_baremetal/memlcd_baremetal-brd4210a.s37" />
+		<property key="readmeFiles" value="example/memlcd_baremetal/readme.md" />
+		<property key="filters" value="Device\ Type|SoC MCU|32-bit\ MCU Project\ Difficulty|Beginner" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This example project demonstrates use of the Memory Liquid Crystal Display (LCD) module in a baremetal application, using Silicon Labs Graphics Library (glib).
+</description>
+	</demo>
+	<demo name="brd4263a.demo.memlcd_baremetal" label="Platform - MEMLCD Bare-metal">
+		<property key="blurb" value="Platform - MEMLCD Bare-metal" />
+		<property key="partCompatibility" value=".*efr32fg23a010f512gm48.*" />
+		<property key="boardCompatibility" value="brd4263a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/platform_sample_app/demos/memlcd_baremetal/memlcd_baremetal-brd4263a.s37" />
+		<property key="readmeFiles" value="example/memlcd_baremetal/readme.md" />
+		<property key="filters" value="Device\ Type|SoC MCU|32-bit\ MCU Project\ Difficulty|Beginner" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This example project demonstrates use of the Memory Liquid Crystal Display (LCD) module in a baremetal application, using Silicon Labs Graphics Library (glib).
+</description>
+	</demo>
+	<demo name="brd4263b.demo.memlcd_baremetal" label="Platform - MEMLCD Bare-metal">
+		<property key="blurb" value="Platform - MEMLCD Bare-metal" />
+		<property key="partCompatibility" value=".*efr32fg23a010f512gm48.*" />
+		<property key="boardCompatibility" value="brd4263b" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/platform_sample_app/demos/memlcd_baremetal/memlcd_baremetal-brd4263b.s37" />
+		<property key="readmeFiles" value="example/memlcd_baremetal/readme.md" />
+		<property key="filters" value="Device\ Type|SoC MCU|32-bit\ MCU Project\ Difficulty|Beginner" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This example project demonstrates use of the Memory Liquid Crystal Display (LCD) module in a baremetal application, using Silicon Labs Graphics Library (glib).
+</description>
+	</demo>
+	<demo name="brd4263c.demo.memlcd_baremetal" label="Platform - MEMLCD Bare-metal">
+		<property key="blurb" value="Platform - MEMLCD Bare-metal" />
+		<property key="partCompatibility" value=".*efr32fg23b010f512im48.*" />
+		<property key="boardCompatibility" value="brd4263c" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/platform_sample_app/demos/memlcd_baremetal/memlcd_baremetal-brd4263c.s37" />
+		<property key="readmeFiles" value="example/memlcd_baremetal/readme.md" />
+		<property key="filters" value="Device\ Type|SoC MCU|32-bit\ MCU Project\ Difficulty|Beginner" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This example project demonstrates use of the Memory Liquid Crystal Display (LCD) module in a baremetal application, using Silicon Labs Graphics Library (glib).
+</description>
+	</demo>
+	<demo name="brd4264a.demo.memlcd_baremetal" label="Platform - MEMLCD Bare-metal">
+		<property key="blurb" value="Platform - MEMLCD Bare-metal" />
+		<property key="partCompatibility" value=".*efr32fg23a020f512gm48.*" />
+		<property key="boardCompatibility" value="brd4264a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/platform_sample_app/demos/memlcd_baremetal/memlcd_baremetal-brd4264a.s37" />
+		<property key="readmeFiles" value="example/memlcd_baremetal/readme.md" />
+		<property key="filters" value="Device\ Type|SoC MCU|32-bit\ MCU Project\ Difficulty|Beginner" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This example project demonstrates use of the Memory Liquid Crystal Display (LCD) module in a baremetal application, using Silicon Labs Graphics Library (glib).
+</description>
+	</demo>
+	<demo name="brd4264b.demo.memlcd_baremetal" label="Platform - MEMLCD Bare-metal">
+		<property key="blurb" value="Platform - MEMLCD Bare-metal" />
+		<property key="partCompatibility" value=".*efr32fg23a020f512gm48.*" />
+		<property key="boardCompatibility" value="brd4264b" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/platform_sample_app/demos/memlcd_baremetal/memlcd_baremetal-brd4264b.s37" />
+		<property key="readmeFiles" value="example/memlcd_baremetal/readme.md" />
+		<property key="filters" value="Device\ Type|SoC MCU|32-bit\ MCU Project\ Difficulty|Beginner" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This example project demonstrates use of the Memory Liquid Crystal Display (LCD) module in a baremetal application, using Silicon Labs Graphics Library (glib).
+</description>
+	</demo>
+	<demo name="brd4264c.demo.memlcd_baremetal" label="Platform - MEMLCD Bare-metal">
+		<property key="blurb" value="Platform - MEMLCD Bare-metal" />
+		<property key="partCompatibility" value=".*efr32fg23b020f512im48.*" />
+		<property key="boardCompatibility" value="brd4264c" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/platform_sample_app/demos/memlcd_baremetal/memlcd_baremetal-brd4264c.s37" />
+		<property key="readmeFiles" value="example/memlcd_baremetal/readme.md" />
+		<property key="filters" value="Device\ Type|SoC MCU|32-bit\ MCU Project\ Difficulty|Beginner" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This example project demonstrates use of the Memory Liquid Crystal Display (LCD) module in a baremetal application, using Silicon Labs Graphics Library (glib).
+</description>
+	</demo>
+	<demo name="brd4265a.demo.memlcd_baremetal" label="Platform - MEMLCD Bare-metal">
+		<property key="blurb" value="Platform - MEMLCD Bare-metal" />
+		<property key="partCompatibility" value=".*efr32fg23a010f512gm48.*" />
+		<property key="boardCompatibility" value="brd4265a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/platform_sample_app/demos/memlcd_baremetal/memlcd_baremetal-brd4265a.s37" />
+		<property key="readmeFiles" value="example/memlcd_baremetal/readme.md" />
+		<property key="filters" value="Device\ Type|SoC MCU|32-bit\ MCU Project\ Difficulty|Beginner" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This example project demonstrates use of the Memory Liquid Crystal Display (LCD) module in a baremetal application, using Silicon Labs Graphics Library (glib).
+</description>
+	</demo>
+	<demo name="brd4265b.demo.memlcd_baremetal" label="Platform - MEMLCD Bare-metal">
+		<property key="blurb" value="Platform - MEMLCD Bare-metal" />
+		<property key="partCompatibility" value=".*efr32fg23b010f512im48.*" />
+		<property key="boardCompatibility" value="brd4265b" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/platform_sample_app/demos/memlcd_baremetal/memlcd_baremetal-brd4265b.s37" />
+		<property key="readmeFiles" value="example/memlcd_baremetal/readme.md" />
+		<property key="filters" value="Device\ Type|SoC MCU|32-bit\ MCU Project\ Difficulty|Beginner" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This example project demonstrates use of the Memory Liquid Crystal Display (LCD) module in a baremetal application, using Silicon Labs Graphics Library (glib).
+</description>
+	</demo>
+	<demo name="brd4270a.demo.memlcd_baremetal" label="Platform - MEMLCD Bare-metal">
+		<property key="blurb" value="Platform - MEMLCD Bare-metal" />
+		<property key="partCompatibility" value=".*efr32fg25b222f1920im56.*" />
+		<property key="boardCompatibility" value="brd4270a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/platform_sample_app/demos/memlcd_baremetal/memlcd_baremetal-brd4270a.s37" />
+		<property key="readmeFiles" value="example/memlcd_baremetal/readme.md" />
+		<property key="filters" value="Device\ Type|SoC MCU|32-bit\ MCU Project\ Difficulty|Beginner" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This example project demonstrates use of the Memory Liquid Crystal Display (LCD) module in a baremetal application, using Silicon Labs Graphics Library (glib).
+</description>
+	</demo>
+	<demo name="brd4270b.demo.memlcd_baremetal" label="Platform - MEMLCD Bare-metal">
+		<property key="blurb" value="Platform - MEMLCD Bare-metal" />
+		<property key="partCompatibility" value=".*efr32fg25b222f1920im56.*" />
+		<property key="boardCompatibility" value="brd4270b" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/platform_sample_app/demos/memlcd_baremetal/memlcd_baremetal-brd4270b.s37" />
+		<property key="readmeFiles" value="example/memlcd_baremetal/readme.md" />
+		<property key="filters" value="Device\ Type|SoC MCU|32-bit\ MCU Project\ Difficulty|Beginner" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This example project demonstrates use of the Memory Liquid Crystal Display (LCD) module in a baremetal application, using Silicon Labs Graphics Library (glib).
+</description>
+	</demo>
+	<demo name="brd4271a.demo.memlcd_baremetal" label="Platform - MEMLCD Bare-metal">
+		<property key="blurb" value="Platform - MEMLCD Bare-metal" />
+		<property key="partCompatibility" value=".*efr32fg25b222f1920im56.*" />
+		<property key="boardCompatibility" value="brd4271a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/platform_sample_app/demos/memlcd_baremetal/memlcd_baremetal-brd4271a.s37" />
+		<property key="readmeFiles" value="example/memlcd_baremetal/readme.md" />
+		<property key="filters" value="Device\ Type|SoC MCU|32-bit\ MCU Project\ Difficulty|Beginner" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This example project demonstrates use of the Memory Liquid Crystal Display (LCD) module in a baremetal application, using Silicon Labs Graphics Library (glib).
+</description>
+	</demo>
+	<demo name="brd4272a.demo.memlcd_baremetal" label="Platform - MEMLCD Bare-metal">
+		<property key="blurb" value="Platform - MEMLCD Bare-metal" />
+		<property key="partCompatibility" value=".*efr32fg25b222f1920im56.*" />
+		<property key="boardCompatibility" value="brd4272a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/platform_sample_app/demos/memlcd_baremetal/memlcd_baremetal-brd4272a.s37" />
+		<property key="readmeFiles" value="example/memlcd_baremetal/readme.md" />
+		<property key="filters" value="Device\ Type|SoC MCU|32-bit\ MCU Project\ Difficulty|Beginner" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This example project demonstrates use of the Memory Liquid Crystal Display (LCD) module in a baremetal application, using Silicon Labs Graphics Library (glib).
+</description>
+	</demo>
+	<demo name="brd4276a.demo.memlcd_baremetal" label="Platform - MEMLCD Bare-metal">
+		<property key="blurb" value="Platform - MEMLCD Bare-metal" />
+		<property key="partCompatibility" value=".*efr32fg25b222f1920im56.*" />
+		<property key="boardCompatibility" value="brd4276a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/platform_sample_app/demos/memlcd_baremetal/memlcd_baremetal-brd4276a.s37" />
+		<property key="readmeFiles" value="example/memlcd_baremetal/readme.md" />
+		<property key="filters" value="Device\ Type|SoC MCU|32-bit\ MCU Project\ Difficulty|Beginner" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This example project demonstrates use of the Memory Liquid Crystal Display (LCD) module in a baremetal application, using Silicon Labs Graphics Library (glib).
+</description>
+	</demo>
+	<demo name="brd4308a.demo.memlcd_baremetal" label="Platform - MEMLCD Bare-metal">
+		<property key="blurb" value="Platform - MEMLCD Bare-metal" />
+		<property key="partCompatibility" value=".*mgm210pa32jia.*" />
+		<property key="boardCompatibility" value="brd4308a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/platform_sample_app/demos/memlcd_baremetal/memlcd_baremetal-brd4308a.s37" />
+		<property key="readmeFiles" value="example/memlcd_baremetal/readme.md" />
+		<property key="filters" value="Device\ Type|SoC MCU|32-bit\ MCU Project\ Difficulty|Beginner" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This example project demonstrates use of the Memory Liquid Crystal Display (LCD) module in a baremetal application, using Silicon Labs Graphics Library (glib).
+</description>
+	</demo>
+	<demo name="brd4308b.demo.memlcd_baremetal" label="Platform - MEMLCD Bare-metal">
+		<property key="blurb" value="Platform - MEMLCD Bare-metal" />
+		<property key="partCompatibility" value=".*mgm210pa22jia.*" />
+		<property key="boardCompatibility" value="brd4308b" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/platform_sample_app/demos/memlcd_baremetal/memlcd_baremetal-brd4308b.s37" />
+		<property key="readmeFiles" value="example/memlcd_baremetal/readme.md" />
+		<property key="filters" value="Device\ Type|SoC MCU|32-bit\ MCU Project\ Difficulty|Beginner" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This example project demonstrates use of the Memory Liquid Crystal Display (LCD) module in a baremetal application, using Silicon Labs Graphics Library (glib).
+</description>
+	</demo>
+	<demo name="brd4308c.demo.memlcd_baremetal" label="Platform - MEMLCD Bare-metal">
+		<property key="blurb" value="Platform - MEMLCD Bare-metal" />
+		<property key="partCompatibility" value=".*mgm210pb32jia.*" />
+		<property key="boardCompatibility" value="brd4308c" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/platform_sample_app/demos/memlcd_baremetal/memlcd_baremetal-brd4308c.s37" />
+		<property key="readmeFiles" value="example/memlcd_baremetal/readme.md" />
+		<property key="filters" value="Device\ Type|SoC MCU|32-bit\ MCU Project\ Difficulty|Beginner" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This example project demonstrates use of the Memory Liquid Crystal Display (LCD) module in a baremetal application, using Silicon Labs Graphics Library (glib).
+</description>
+	</demo>
+	<demo name="brd4308d.demo.memlcd_baremetal" label="Platform - MEMLCD Bare-metal">
+		<property key="blurb" value="Platform - MEMLCD Bare-metal" />
+		<property key="partCompatibility" value=".*mgm210pb22jia.*" />
+		<property key="boardCompatibility" value="brd4308d" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/platform_sample_app/demos/memlcd_baremetal/memlcd_baremetal-brd4308d.s37" />
+		<property key="readmeFiles" value="example/memlcd_baremetal/readme.md" />
+		<property key="filters" value="Device\ Type|SoC MCU|32-bit\ MCU Project\ Difficulty|Beginner" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This example project demonstrates use of the Memory Liquid Crystal Display (LCD) module in a baremetal application, using Silicon Labs Graphics Library (glib).
+</description>
+	</demo>
+	<demo name="brd4310a.demo.memlcd_baremetal" label="Platform - MEMLCD Bare-metal">
+		<property key="blurb" value="Platform - MEMLCD Bare-metal" />
+		<property key="partCompatibility" value=".*bgm220sc12wga.*" />
+		<property key="boardCompatibility" value="brd4310a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/platform_sample_app/demos/memlcd_baremetal/memlcd_baremetal-brd4310a.s37" />
+		<property key="readmeFiles" value="example/memlcd_baremetal/readme.md" />
+		<property key="filters" value="Device\ Type|SoC MCU|32-bit\ MCU Project\ Difficulty|Beginner" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This example project demonstrates use of the Memory Liquid Crystal Display (LCD) module in a baremetal application, using Silicon Labs Graphics Library (glib).
+</description>
+	</demo>
+	<demo name="brd4311a.demo.memlcd_baremetal" label="Platform - MEMLCD Bare-metal">
+		<property key="blurb" value="Platform - MEMLCD Bare-metal" />
+		<property key="partCompatibility" value=".*bgm220pc22hna.*" />
+		<property key="boardCompatibility" value="brd4311a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/platform_sample_app/demos/memlcd_baremetal/memlcd_baremetal-brd4311a.s37" />
+		<property key="readmeFiles" value="example/memlcd_baremetal/readme.md" />
+		<property key="filters" value="Device\ Type|SoC MCU|32-bit\ MCU Project\ Difficulty|Beginner" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This example project demonstrates use of the Memory Liquid Crystal Display (LCD) module in a baremetal application, using Silicon Labs Graphics Library (glib).
+</description>
+	</demo>
+	<demo name="brd4311b.demo.memlcd_baremetal" label="Platform - MEMLCD Bare-metal">
+		<property key="blurb" value="Platform - MEMLCD Bare-metal" />
+		<property key="partCompatibility" value=".*mgm220pc22hna.*" />
+		<property key="boardCompatibility" value="brd4311b" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/platform_sample_app/demos/memlcd_baremetal/memlcd_baremetal-brd4311b.s37" />
+		<property key="readmeFiles" value="example/memlcd_baremetal/readme.md" />
+		<property key="filters" value="Device\ Type|SoC MCU|32-bit\ MCU Project\ Difficulty|Beginner" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This example project demonstrates use of the Memory Liquid Crystal Display (LCD) module in a baremetal application, using Silicon Labs Graphics Library (glib).
+</description>
+	</demo>
+	<demo name="brd4312a.demo.memlcd_baremetal" label="Platform - MEMLCD Bare-metal">
+		<property key="blurb" value="Platform - MEMLCD Bare-metal" />
+		<property key="partCompatibility" value=".*bgm220sc22hna.*" />
+		<property key="boardCompatibility" value="brd4312a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/platform_sample_app/demos/memlcd_baremetal/memlcd_baremetal-brd4312a.s37" />
+		<property key="readmeFiles" value="example/memlcd_baremetal/readme.md" />
+		<property key="filters" value="Device\ Type|SoC MCU|32-bit\ MCU Project\ Difficulty|Beginner" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This example project demonstrates use of the Memory Liquid Crystal Display (LCD) module in a baremetal application, using Silicon Labs Graphics Library (glib).
+</description>
+	</demo>
+	<demo name="brd4316a.demo.memlcd_baremetal" label="Platform - MEMLCD Bare-metal">
+		<property key="blurb" value="Platform - MEMLCD Bare-metal" />
+		<property key="partCompatibility" value=".*mgm240pb22vna.*" />
+		<property key="boardCompatibility" value="brd4316a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/platform_sample_app/demos/memlcd_baremetal/memlcd_baremetal-brd4316a.s37" />
+		<property key="readmeFiles" value="example/memlcd_baremetal/readme.md" />
+		<property key="filters" value="Device\ Type|SoC MCU|32-bit\ MCU Project\ Difficulty|Beginner" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This example project demonstrates use of the Memory Liquid Crystal Display (LCD) module in a baremetal application, using Silicon Labs Graphics Library (glib).
+</description>
+	</demo>
+	<demo name="brd4317a.demo.memlcd_baremetal" label="Platform - MEMLCD Bare-metal">
+		<property key="blurb" value="Platform - MEMLCD Bare-metal" />
+		<property key="partCompatibility" value=".*mgm240pb32vna.*" />
+		<property key="boardCompatibility" value="brd4317a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/platform_sample_app/demos/memlcd_baremetal/memlcd_baremetal-brd4317a.s37" />
+		<property key="readmeFiles" value="example/memlcd_baremetal/readme.md" />
+		<property key="filters" value="Device\ Type|SoC MCU|32-bit\ MCU Project\ Difficulty|Beginner" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This example project demonstrates use of the Memory Liquid Crystal Display (LCD) module in a baremetal application, using Silicon Labs Graphics Library (glib).
+</description>
+	</demo>
+	<demo name="brd4318a.demo.memlcd_baremetal" label="Platform - MEMLCD Bare-metal">
+		<property key="blurb" value="Platform - MEMLCD Bare-metal" />
+		<property key="partCompatibility" value=".*mgm240sd22vna.*" />
+		<property key="boardCompatibility" value="brd4318a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/platform_sample_app/demos/memlcd_baremetal/memlcd_baremetal-brd4318a.s37" />
+		<property key="readmeFiles" value="example/memlcd_baremetal/readme.md" />
+		<property key="filters" value="Device\ Type|SoC MCU|32-bit\ MCU Project\ Difficulty|Beginner" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This example project demonstrates use of the Memory Liquid Crystal Display (LCD) module in a baremetal application, using Silicon Labs Graphics Library (glib).
+</description>
+	</demo>
+	<demo name="brd4328a.demo.memlcd_baremetal" label="Platform - MEMLCD Bare-metal">
+		<property key="blurb" value="Platform - MEMLCD Bare-metal" />
+		<property key="partCompatibility" value=".*fgm230sb27hgn.*" />
+		<property key="boardCompatibility" value="brd4328a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/platform_sample_app/demos/memlcd_baremetal/memlcd_baremetal-brd4328a.s37" />
+		<property key="readmeFiles" value="example/memlcd_baremetal/readme.md" />
+		<property key="filters" value="Device\ Type|SoC MCU|32-bit\ MCU Project\ Difficulty|Beginner" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This example project demonstrates use of the Memory Liquid Crystal Display (LCD) module in a baremetal application, using Silicon Labs Graphics Library (glib).
+</description>
+	</demo>
+	<demo name="brd4328b.demo.memlcd_baremetal" label="Platform - MEMLCD Bare-metal">
+		<property key="blurb" value="Platform - MEMLCD Bare-metal" />
+		<property key="partCompatibility" value=".*fgm230sa27hgn.*" />
+		<property key="boardCompatibility" value="brd4328b" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/platform_sample_app/demos/memlcd_baremetal/memlcd_baremetal-brd4328b.s37" />
+		<property key="readmeFiles" value="example/memlcd_baremetal/readme.md" />
+		<property key="filters" value="Device\ Type|SoC MCU|32-bit\ MCU Project\ Difficulty|Beginner" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This example project demonstrates use of the Memory Liquid Crystal Display (LCD) module in a baremetal application, using Silicon Labs Graphics Library (glib).
+</description>
+	</demo>
+	<demo name="brd4335a.demo.memlcd_baremetal" label="Platform - MEMLCD Bare-metal">
+		<property key="blurb" value="Platform - MEMLCD Bare-metal" />
+		<property key="partCompatibility" value=".*bgm241sd22vna.*" />
+		<property key="boardCompatibility" value="brd4335a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/platform_sample_app/demos/memlcd_baremetal/memlcd_baremetal-brd4335a.s37" />
+		<property key="readmeFiles" value="example/memlcd_baremetal/readme.md" />
+		<property key="filters" value="Device\ Type|SoC MCU|32-bit\ MCU Project\ Difficulty|Beginner" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This example project demonstrates use of the Memory Liquid Crystal Display (LCD) module in a baremetal application, using Silicon Labs Graphics Library (glib).
+</description>
+	</demo>
+	<demo name="brd4350a.demo.memlcd_baremetal" label="Platform - MEMLCD Bare-metal">
+		<property key="blurb" value="Platform - MEMLCD Bare-metal" />
+		<property key="partCompatibility" value=".*mgm260pd22vna.*" />
+		<property key="boardCompatibility" value="brd4350a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/platform_sample_app/demos/memlcd_baremetal/memlcd_baremetal-brd4350a.s37" />
+		<property key="readmeFiles" value="example/memlcd_baremetal/readme.md" />
+		<property key="filters" value="Device\ Type|SoC MCU|32-bit\ MCU Project\ Difficulty|Beginner" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This example project demonstrates use of the Memory Liquid Crystal Display (LCD) module in a baremetal application, using Silicon Labs Graphics Library (glib).
+</description>
+	</demo>
+	<demo name="brd4351a.demo.memlcd_baremetal" label="Platform - MEMLCD Bare-metal">
+		<property key="blurb" value="Platform - MEMLCD Bare-metal" />
+		<property key="partCompatibility" value=".*mgm260pd32vna.*" />
+		<property key="boardCompatibility" value="brd4351a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/platform_sample_app/demos/memlcd_baremetal/memlcd_baremetal-brd4351a.s37" />
+		<property key="readmeFiles" value="example/memlcd_baremetal/readme.md" />
+		<property key="filters" value="Device\ Type|SoC MCU|32-bit\ MCU Project\ Difficulty|Beginner" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This example project demonstrates use of the Memory Liquid Crystal Display (LCD) module in a baremetal application, using Silicon Labs Graphics Library (glib).
+</description>
+	</demo>
+	<demo name="brd4400a.demo.memlcd_baremetal" label="Platform - MEMLCD Bare-metal">
+		<property key="blurb" value="Platform - MEMLCD Bare-metal" />
+		<property key="partCompatibility" value=".*efr32fg28b312f1024im68.*" />
+		<property key="boardCompatibility" value="brd4400a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/platform_sample_app/demos/memlcd_baremetal/memlcd_baremetal-brd4400a.s37" />
+		<property key="readmeFiles" value="example/memlcd_baremetal/readme.md" />
+		<property key="filters" value="Device\ Type|SoC MCU|32-bit\ MCU Project\ Difficulty|Beginner" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This example project demonstrates use of the Memory Liquid Crystal Display (LCD) module in a baremetal application, using Silicon Labs Graphics Library (glib).
+</description>
+	</demo>
+	<demo name="brd4400b.demo.memlcd_baremetal" label="Platform - MEMLCD Bare-metal">
+		<property key="blurb" value="Platform - MEMLCD Bare-metal" />
+		<property key="partCompatibility" value=".*efr32zg28b312f1024im68.*" />
+		<property key="boardCompatibility" value="brd4400b" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/platform_sample_app/demos/memlcd_baremetal/memlcd_baremetal-brd4400b.s37" />
+		<property key="readmeFiles" value="example/memlcd_baremetal/readme.md" />
+		<property key="filters" value="Device\ Type|SoC MCU|32-bit\ MCU Project\ Difficulty|Beginner" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This example project demonstrates use of the Memory Liquid Crystal Display (LCD) module in a baremetal application, using Silicon Labs Graphics Library (glib).
+</description>
+	</demo>
+	<demo name="brd4400c.demo.memlcd_baremetal" label="Platform - MEMLCD Bare-metal">
+		<property key="blurb" value="Platform - MEMLCD Bare-metal" />
+		<property key="partCompatibility" value=".*efr32zg28b312f1024im68.*" />
+		<property key="boardCompatibility" value="brd4400c" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/platform_sample_app/demos/memlcd_baremetal/memlcd_baremetal-brd4400c.s37" />
+		<property key="readmeFiles" value="example/memlcd_baremetal/readme.md" />
+		<property key="filters" value="Device\ Type|SoC MCU|32-bit\ MCU Project\ Difficulty|Beginner" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This example project demonstrates use of the Memory Liquid Crystal Display (LCD) module in a baremetal application, using Silicon Labs Graphics Library (glib).
+</description>
+	</demo>
+	<demo name="brd4401a.demo.memlcd_baremetal" label="Platform - MEMLCD Bare-metal">
+		<property key="blurb" value="Platform - MEMLCD Bare-metal" />
+		<property key="partCompatibility" value=".*efr32fg28b322f1024im68.*" />
+		<property key="boardCompatibility" value="brd4401a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/platform_sample_app/demos/memlcd_baremetal/memlcd_baremetal-brd4401a.s37" />
+		<property key="readmeFiles" value="example/memlcd_baremetal/readme.md" />
+		<property key="filters" value="Device\ Type|SoC MCU|32-bit\ MCU Project\ Difficulty|Beginner" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This example project demonstrates use of the Memory Liquid Crystal Display (LCD) module in a baremetal application, using Silicon Labs Graphics Library (glib).
+</description>
+	</demo>
+	<demo name="brd4401b.demo.memlcd_baremetal" label="Platform - MEMLCD Bare-metal">
+		<property key="blurb" value="Platform - MEMLCD Bare-metal" />
+		<property key="partCompatibility" value=".*efr32zg28b322f1024im68.*" />
+		<property key="boardCompatibility" value="brd4401b" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/platform_sample_app/demos/memlcd_baremetal/memlcd_baremetal-brd4401b.s37" />
+		<property key="readmeFiles" value="example/memlcd_baremetal/readme.md" />
+		<property key="filters" value="Device\ Type|SoC MCU|32-bit\ MCU Project\ Difficulty|Beginner" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This example project demonstrates use of the Memory Liquid Crystal Display (LCD) module in a baremetal application, using Silicon Labs Graphics Library (glib).
+</description>
+	</demo>
+	<demo name="brd4401c.demo.memlcd_baremetal" label="Platform - MEMLCD Bare-metal">
+		<property key="blurb" value="Platform - MEMLCD Bare-metal" />
+		<property key="partCompatibility" value=".*efr32zg28b322f1024im68.*" />
+		<property key="boardCompatibility" value="brd4401c" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/platform_sample_app/demos/memlcd_baremetal/memlcd_baremetal-brd4401c.s37" />
+		<property key="readmeFiles" value="example/memlcd_baremetal/readme.md" />
+		<property key="filters" value="Device\ Type|SoC MCU|32-bit\ MCU Project\ Difficulty|Beginner" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This example project demonstrates use of the Memory Liquid Crystal Display (LCD) module in a baremetal application, using Silicon Labs Graphics Library (glib).
+</description>
+	</demo>
+	<demo name="brd4402a.demo.memlcd_baremetal" label="Platform - MEMLCD Bare-metal">
+		<property key="blurb" value="Platform - MEMLCD Bare-metal" />
+		<property key="partCompatibility" value=".*efr32bg22c224f512im40.*" />
+		<property key="boardCompatibility" value="brd4402a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/platform_sample_app/demos/memlcd_baremetal/memlcd_baremetal-brd4402a.s37" />
+		<property key="readmeFiles" value="example/memlcd_baremetal/readme.md" />
+		<property key="filters" value="Device\ Type|SoC MCU|32-bit\ MCU Project\ Difficulty|Beginner" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This example project demonstrates use of the Memory Liquid Crystal Display (LCD) module in a baremetal application, using Silicon Labs Graphics Library (glib).
+</description>
+	</demo>
+	<demo name="brd4402b.demo.memlcd_baremetal" label="Platform - MEMLCD Bare-metal">
+		<property key="blurb" value="Platform - MEMLCD Bare-metal" />
+		<property key="partCompatibility" value=".*efr32bg22c224f512im40.*" />
+		<property key="boardCompatibility" value="brd4402b" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/platform_sample_app/demos/memlcd_baremetal/memlcd_baremetal-brd4402b.s37" />
+		<property key="readmeFiles" value="example/memlcd_baremetal/readme.md" />
+		<property key="filters" value="Device\ Type|SoC MCU|32-bit\ MCU Project\ Difficulty|Beginner" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This example project demonstrates use of the Memory Liquid Crystal Display (LCD) module in a baremetal application, using Silicon Labs Graphics Library (glib).
+</description>
+	</demo>
+	<demo name="brd4402c.demo.memlcd_baremetal" label="Platform - MEMLCD Bare-metal">
+		<property key="blurb" value="Platform - MEMLCD Bare-metal" />
+		<property key="partCompatibility" value=".*efr32bg22c224f512im40.*" />
+		<property key="boardCompatibility" value="brd4402c" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/platform_sample_app/demos/memlcd_baremetal/memlcd_baremetal-brd4402c.s37" />
+		<property key="readmeFiles" value="example/memlcd_baremetal/readme.md" />
+		<property key="filters" value="Device\ Type|SoC MCU|32-bit\ MCU Project\ Difficulty|Beginner" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This example project demonstrates use of the Memory Liquid Crystal Display (LCD) module in a baremetal application, using Silicon Labs Graphics Library (glib).
+</description>
+	</demo>
+	<demo name="brd4411a.demo.memlcd_baremetal" label="Platform - MEMLCD Bare-metal">
+		<property key="blurb" value="Platform - MEMLCD Bare-metal" />
+		<property key="partCompatibility" value=".*efr32mg24b220f1536im48.*" />
+		<property key="boardCompatibility" value="brd4411a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/platform_sample_app/demos/memlcd_baremetal/memlcd_baremetal-brd4411a.s37" />
+		<property key="readmeFiles" value="example/memlcd_baremetal/readme.md" />
+		<property key="filters" value="Device\ Type|SoC MCU|32-bit\ MCU Project\ Difficulty|Beginner" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This example project demonstrates use of the Memory Liquid Crystal Display (LCD) module in a baremetal application, using Silicon Labs Graphics Library (glib).
+</description>
+	</demo>
+	<demo name="brd4412a.demo.memlcd_baremetal" label="Platform - MEMLCD Bare-metal">
+		<property key="blurb" value="Platform - MEMLCD Bare-metal" />
+		<property key="partCompatibility" value=".*efr32mg29b140f1024im40.*" />
+		<property key="boardCompatibility" value="brd4412a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/platform_sample_app/demos/memlcd_baremetal/memlcd_baremetal-brd4412a.s37" />
+		<property key="readmeFiles" value="example/memlcd_baremetal/readme.md" />
+		<property key="filters" value="Device\ Type|SoC MCU|32-bit\ MCU Project\ Difficulty|Beginner" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This example project demonstrates use of the Memory Liquid Crystal Display (LCD) module in a baremetal application, using Silicon Labs Graphics Library (glib).
+</description>
+	</demo>
+	<demo name="brd4413a.demo.memlcd_baremetal" label="Platform - MEMLCD Bare-metal">
+		<property key="blurb" value="Platform - MEMLCD Bare-metal" />
+		<property key="partCompatibility" value=".*efr32mg29b230f1024cm40.*" />
+		<property key="boardCompatibility" value="brd4413a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/platform_sample_app/demos/memlcd_baremetal/memlcd_baremetal-brd4413a.s37" />
+		<property key="readmeFiles" value="example/memlcd_baremetal/readme.md" />
+		<property key="filters" value="Device\ Type|SoC MCU|32-bit\ MCU Project\ Difficulty|Beginner" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This example project demonstrates use of the Memory Liquid Crystal Display (LCD) module in a baremetal application, using Silicon Labs Graphics Library (glib).
+</description>
+	</demo>
+	<demo name="brd4415a.demo.memlcd_baremetal" label="Platform - MEMLCD Bare-metal">
+		<property key="blurb" value="Platform - MEMLCD Bare-metal" />
+		<property key="partCompatibility" value=".*efr32mg22e224f512im40.*" />
+		<property key="boardCompatibility" value="brd4415a" />
+		<property key="imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/platform_sample_app/demos/memlcd_baremetal/memlcd_baremetal-brd4415a.s37" />
+		<property key="readmeFiles" value="example/memlcd_baremetal/readme.md" />
+		<property key="filters" value="Device\ Type|SoC MCU|32-bit\ MCU Project\ Difficulty|Beginner" />
+		<property key="quality" value="PRODUCTION" />
+		<description>This example project demonstrates use of the Memory Liquid Crystal Display (LCD) module in a baremetal application, using Silicon Labs Graphics Library (glib).
+</description>
+	</demo>
+</demos>

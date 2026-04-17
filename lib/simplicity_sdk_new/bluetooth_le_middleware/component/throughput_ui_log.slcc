@@ -1,0 +1,35 @@
+id: throughput_ui_log
+package: bluetooth_le_middleware
+label: Throughput User Interface API with logging
+description: |-
+  API for printing throughput test state and results to log
+category: Bluetooth|Application|Test
+metadata:
+  sbom:
+    license: Zlib
+quality: production
+root_path: bluetooth_le_middleware/common/throughput_ui
+tag:
+- No-Code
+include:
+- path: .
+  file_list:
+  - path: throughput_ui.h
+  - path: throughput_ui_types.h
+source:
+- path: throughput_ui_log.c
+- path: throughput_ui_common.c
+config_file:
+- path: config/throughput_ui_log_config.h
+requires:
+- name: throughput
+- name: app_assert
+- name: app_log
+provides:
+- name: throughput_ui
+template_contribution:
+- name: component_catalog
+  value: throughput_ui
+documentation:
+  docset: bluetooth
+  document: bluetooth-service-api/throughput-ui-log

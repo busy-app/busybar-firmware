@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="dir_848835a5aecb994e59a4c4b7340e87b9" kind="dir">
+    <compoundname>/var/lib/jenkins/github@3/bluetooth_le_host/inc</compoundname>
+    <innerfile refid="sl__bt__rtos__adaptation_8h">sl_bt_rtos_adaptation.h</innerfile>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/var/lib/jenkins/github@3/bluetooth_le_host/inc/"/>
+  </compounddef>
+</doxygen>

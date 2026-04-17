@@ -1,0 +1,34 @@
+id: aes_gcm_ram_functions
+package: security_sxsymcrypt
+label: Accelerate AES-GCM
+description: >-
+  Acceleration of AES-GCM by putting functions in RAM
+category: Platform|Security|Hardware Acceleration Libraries
+quality: production
+ui_hints:
+  visibility: never
+
+provides:
+- name: aes_gcm_ram_functions
+  condition: [device_generic_family_sixx301]
+
+requires:
+- name: sxsymcrypt
+- name: aes_common_ram_functions
+
+define:
+- name: SL_CODE_COMPONENT_AES_GCM
+  value: aes_gcm
+
+template_contribution:
+- name: code_classification_components
+  value: aes_gcm
+- name: code_classification_selections
+  value:
+    component: aes_gcm
+    class: security
+
+metadata:
+  sbom:
+    license: Zlib
+root_path: security_sxsymcrypt

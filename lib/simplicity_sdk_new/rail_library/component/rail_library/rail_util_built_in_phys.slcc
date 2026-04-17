@@ -1,0 +1,19 @@
+id: rail_util_built_in_phys
+label: RAIL Utility, Built-in PHYs Across HFXO Frequencies (RAIL 2.x)
+description: >
+  Utility to include built-in (Standards based) PHYs to work with different HFXO
+  frequencies. On EFR32XG24 and EFR32XG26 parts, 38.4 MHz, 39 MHz, and 40 Mhz
+  HFXO support is provided by this component.
+package: rail_library
+category: Platform|Radio|RAIL 2.x
+quality: deprecated
+metadata:
+  sbom:
+    id: rail_util_built_in_phys
+    name: RAIL Utility, Built-in PHYs Across HFXO Frequencies (RAIL 2.x)
+    license: Zlib
+provides:
+- name: rail2_util_built_in_phys
+requires:
+- name: sl_rail_util_built_in_phys
+root_path: rail_library

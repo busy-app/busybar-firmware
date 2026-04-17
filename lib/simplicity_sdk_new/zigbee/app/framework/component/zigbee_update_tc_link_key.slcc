@@ -1,0 +1,91 @@
+package: zigbee
+description: This component provides the functionality to update the trust center link key of a device on a Zigbee R21+ network. The device also requests the trust center link key periodically if the trust center is pre-R21. After the trust center is upgraded to R21+, if not already R21+, the periodic request for a trust center link key update passes and the link key is updated.
+label: Update TC Link Key
+quality: production
+id: zigbee_update_tc_link_key
+category: Zigbee|Zigbee 3.0
+provides:
+- name: zigbee_update_tc_link_key
+requires:
+- name: zigbee_network_steering
+config_file:
+- path: app/framework/plugin/update-tc-link-key/config/update-tc-link-key-config.h
+source:
+- path: app/framework/plugin/update-tc-link-key/update-tc-link-key.c
+- path: app/framework/plugin/update-tc-link-key/update-tc-link-key-cli.c
+  condition:
+  - cli
+- path: app/framework/plugin/update-tc-link-key/update-tc-link-key-cb.c
+include:
+- path: app/framework/plugin/update-tc-link-key
+  file_list:
+  - path: update-tc-link-key.h
+template_contribution:
+- name: component_catalog
+  value: zigbee_update_tc_link_key
+- name: zigbee_stack_callback
+  value:
+    callback_type: zigbee_key_establishment
+    function_name: sl_zigbee_af_update_tc_link_key_zigbee_key_establishment_cb
+- name: zigbee_af_callback
+  value:
+    callback_type: event_init
+    function_name: sli_zigbee_af_update_tc_link_key_begin_tc_link_key_update_init
+- name: zigbee_stack_callback
+  value:
+    callback_type: stack_status
+    function_name: sli_zigbee_af_update_tc_link_key_stack_status_callback
+- name: cli_group
+  value:
+    group: plugin
+    name: update-tc-link-key
+    help: update-tc-link-key related commands
+- name: cli_command
+  value:
+    group: update-tc-link-key
+    name: timer
+    handler: sl_zigbee_af_set_tc_link_key_update_timer_command
+    help: Specify the amount of time to wait after one TCLK update operation completes before beginning a new TCLK update operation.
+    argument:
+    - type: uint32
+      help: The amount of time between subsequent trust center link key updates in milliseconds
+- name: cli_command
+  value:
+    group: update-tc-link-key
+    name: retry-backoff-timer
+    handler: sl_zigbee_af_set_tc_link_key_update_retry_backoff_timer_command
+    help: Specify the amount of time between each retry after a failure TCLK update
+    argument:
+    - type: uint32
+      help: The maximum amount of time between each retry after a failure TCLK update in milliseconds
+- name: cli_command
+  value:
+    group: update-tc-link-key
+    name: now
+    handler: sl_zigbee_af_set_tc_link_key_update_now_command
+    help: This initiates a TCLK update procedure.
+- name: cli_command
+  value:
+    group: update-tc-link-key
+    name: max-attempts-per-iteration
+    handler: sl_zigbee_af_set_tc_link_key_update_max_attempts_per_iteration_command
+    help: Specify the maximum number of Trust Center command exchange attempts made before concluding that the exchange has failed
+    argument:
+    - type: uint8
+      help: The maximum number of Trust Center command exchange attempts made before concluding that the exchange has failed
+- name: cli_command
+  value:
+    group: update-tc-link-key
+    name: max-iterations
+    handler: sl_zigbee_af_set_tc_link_key_update_max_iterations_command
+    help: Specify the maximum number of iterations of the TCLK update attempt permitted before a failure is declared using the On-Network TCLK Update procedure.
+    argument:
+    - type: uint8
+      help: the maximum number of iterations of the TCLK update attempt permitted before a failure is declared using the On-Network TCLK Update procedure
+documentation:
+  docset: zigbee
+  document: zigbee-af-api/update-tc-link-key
+metadata:
+  sbom:
+    license: MSLA
+root_path: zigbee

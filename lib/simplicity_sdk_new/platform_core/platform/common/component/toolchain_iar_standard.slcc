@@ -1,0 +1,24 @@
+id: toolchain_iar_standard
+label: IAR Toolchain Standard Linker
+package: platform_core
+description: Provides the IAR Standard linker file.
+category: Platform|Toolchain
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+ui_hints:
+  visibility: never
+root_path: platform_core/platform/common
+provides:
+- name: toolchain_iar_standard
+- name: toolchain_linker_type
+template_file:
+- path: toolchain/cortexm/iar/s2/linkerfile.icf.jinja
+  condition: [device_cortexm, device_series_2]
+- path: toolchain/cortexm/iar/s30/linkerfile.icf.jinja
+  condition: [device_cortexm, device_generic_family_sixx301]
+toolchain_settings:
+- option: linkerfile
+  value: autogen/linkerfile.icf
+  condition: [device_cortexm]

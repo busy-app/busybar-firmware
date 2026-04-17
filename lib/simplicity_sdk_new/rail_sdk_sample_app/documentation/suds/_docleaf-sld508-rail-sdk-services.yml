@@ -1,0 +1,11 @@
+objectType: docLeaf
+id: rail-sdk-services
+access: public
+status: active
+version: "3.0.1"
+authors:
+  - anyone@silabs.com
+contentType: doxygen
+title: "RAIL SDK Services"
+description: ""
+sourceDir: ../doxygen/out_doxygen/xml

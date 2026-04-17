@@ -1,0 +1,31 @@
+id: "sl_light_switch_core"
+label: "Light/Switch Core"
+package: "connect_sdk"
+description: >
+  Common files among the Light and Switch sample apps.
+category: "Connect|Core"
+quality: "production"
+metadata:
+  sbom:
+    license: Zlib
+root_path: "connect_sdk/component/sl_light_switch"
+
+requires:
+- name: "device_has_radio"
+
+include:
+- path: "."
+  file_list:
+  - path: "sl_light_switch.h"
+source:
+- path: "sl_light_switch.c"
+
+#-------- Hides Component for user in Studio ---------
+ui_hints:
+  visibility: never
+
+#-------------- Template Contribution ----------------
+template_contribution:
+#---------------- Component Catalog ------------------
+- name: component_catalog
+  value: sl_light_switch_core

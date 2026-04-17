@@ -1,0 +1,563 @@
+id: opn_config
+label: opn config
+description: Configuration files for OPN
+package: platform_siwx91x
+category: Board|Configuration
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: components/board/silabs/config
+ui_hints:
+  visibility: never
+provides:
+- name: opn_config
+config_file:
+- override:
+    component: sl_icm40627
+    file_id: icm40627_config
+    vendor: silabs
+  path: common_config_opn/sl_icm40627_config/sl_si91x_icm40627_config.h
+  unless:
+  - si917_dev_board
+  - rsilib_board
+- override:
+    component: sl_si91x_mic
+    file_id: mic_config
+    vendor: silabs
+  path: common_config_opn/sl_mic_config/sl_si91x_mic_config.h
+  unless:
+  - si917_dev_board
+- override:
+    component: sl_si91x_rgb_led_917
+    file_id: rgb_led_config
+    vendor: silabs
+  path: common_config_opn/sl_si91x_rgb_led_init_config.h
+  unless:
+  - rsilib_board
+- override:
+    component: sl_gspi
+    file_id: gspi_config
+    vendor: silabs
+  path: common_config_opn/sl_si91x_gspi_common_config.h
+  unless:
+  - rsilib_board
+- override:
+    component: sl_dac
+    file_id: dac_config
+    vendor: silabs
+  path: common_config_opn/sl_si91x_dac_config.h
+  unless:
+  - rsilib_board
+- override:
+    component: sl_config_timer
+    file_id: config_timer_config
+    vendor: silabs
+  path: common_config_opn/sl_si91x_config_timer_config.h
+  unless:
+  - rsilib_board
+- override:
+    component: sl_qei
+    file_id: qei_config
+    vendor: silabs
+  path: common_config_opn/sl_si91x_qei_config.h
+  unless:
+  - rsilib_board
+- override:
+    component: sl_uart
+    file_id: uart_config
+    vendor: silabs
+  path: common_config_opn/sl_si91x_uart_common_config.h
+  unless:
+  - rsilib_board
+- override:
+    component: sl_ulp_uart
+    file_id: ulp_uart_config
+    vendor: silabs
+  path: common_config_opn/sl_si91x_ulp_uart_common_config.h
+  unless:
+  - rsilib_board
+- override:
+    component: sl_usart
+    file_id: usart_config
+    vendor: silabs
+  path: common_config_opn/sl_si91x_usart_common_config.h
+  unless:
+  - rsilib_board
+- override:
+    component: sdc_instance
+    file_id: sdc_config
+    instance: channel_1
+    vendor: silabs
+  path: common_config_opn/sl_si91x_sdc_init_channel_1_config.h
+  unless:
+  - rsilib_board
+- override:
+    component: sdc_instance
+    file_id: sdc_config
+    instance: channel_2
+    vendor: silabs
+  path: common_config_opn/sl_si91x_sdc_init_channel_2_config.h
+  unless:
+  - rsilib_board
+- override:
+    component: sdc_instance
+    file_id: sdc_config
+    instance: channel_3
+    vendor: silabs
+  path: common_config_opn/sl_si91x_sdc_init_channel_3_config.h
+  unless:
+  - rsilib_board
+- override:
+    component: sdc_instance
+    file_id: sdc_config
+    instance: channel_4
+    vendor: silabs
+  path: common_config_opn/sl_si91x_sdc_init_channel_4_config.h
+  unless:
+  - rsilib_board
+- override:
+    component: adc_instance
+    file_id: adc_config
+    instance: channel_1
+    vendor: silabs
+  path: common_config_opn/sl_si91x_adc_init_channel_1_config.h
+  unless:
+  - rsilib_board
+- override:
+    component: adc_instance
+    file_id: adc_config
+    instance: channel_2
+    vendor: silabs
+  path: common_config_opn/sl_si91x_adc_init_channel_2_config.h
+  unless:
+  - rsilib_board
+- override:
+    component: adc_instance
+    file_id: adc_config
+    instance: channel_3
+    vendor: silabs
+  path: common_config_opn/sl_si91x_adc_init_channel_3_config.h
+  unless:
+  - rsilib_board
+- override:
+    component: adc_instance
+    file_id: adc_config
+    instance: channel_4
+    vendor: silabs
+  path: common_config_opn/sl_si91x_adc_init_channel_4_config.h
+  unless:
+  - rsilib_board
+- override:
+    component: adc_instance
+    file_id: adc_config
+    instance: channel_5
+    vendor: silabs
+  path: common_config_opn/sl_si91x_adc_init_channel_5_config.h
+  unless:
+  - rsilib_board
+- override:
+    component: adc_instance
+    file_id: adc_config
+    instance: channel_6
+    vendor: silabs
+  path: common_config_opn/sl_si91x_adc_init_channel_6_config.h
+  unless:
+  - rsilib_board
+- override:
+    component: adc_instance
+    file_id: adc_config
+    instance: channel_7
+    vendor: silabs
+  path: common_config_opn/sl_si91x_adc_init_channel_7_config.h
+  unless:
+  - rsilib_board
+- override:
+    component: adc_instance
+    file_id: adc_config
+    instance: channel_8
+    vendor: silabs
+  path: common_config_opn/sl_si91x_adc_init_channel_8_config.h
+  unless:
+  - rsilib_board
+- override:
+    component: adc_instance
+    file_id: adc_config
+    instance: channel_9
+    vendor: silabs
+  path: common_config_opn/sl_si91x_adc_init_channel_9_config.h
+  unless:
+  - rsilib_board
+- override:
+    component: adc_instance
+    file_id: adc_config
+    instance: channel_10
+    vendor: silabs
+  path: common_config_opn/sl_si91x_adc_init_channel_10_config.h
+  unless:
+  - rsilib_board
+- override:
+    component: adc_instance
+    file_id: adc_config
+    instance: channel_11
+    vendor: silabs
+  path: common_config_opn/sl_si91x_adc_init_channel_11_config.h
+  unless:
+  - rsilib_board
+- override:
+    component: adc_instance
+    file_id: adc_config
+    instance: channel_12
+    vendor: silabs
+  path: common_config_opn/sl_si91x_adc_init_channel_12_config.h
+  unless:
+  - rsilib_board
+- override:
+    component: adc_instance
+    file_id: adc_config
+    instance: channel_13
+    vendor: silabs
+  path: common_config_opn/sl_si91x_adc_init_channel_13_config.h
+  unless:
+  - rsilib_board
+- override:
+    component: adc_instance
+    file_id: adc_config
+    instance: channel_14
+    vendor: silabs
+  path: common_config_opn/sl_si91x_adc_init_channel_14_config.h
+  unless:
+  - rsilib_board
+- override:
+    component: adc_instance
+    file_id: adc_config
+    instance: channel_15
+    vendor: silabs
+  path: common_config_opn/sl_si91x_adc_init_channel_15_config.h
+  unless:
+  - rsilib_board
+- override:
+    component: adc_instance
+    file_id: adc_config
+    instance: channel_16
+    vendor: silabs
+  path: common_config_opn/sl_si91x_adc_init_channel_16_config.h
+  unless:
+  - rsilib_board
+- override:
+    component: opamp_instance
+    file_id: opamp_config
+    instance: opamp1
+    vendor: silabs
+  path: common_config_opn/sl_si91x_opamp_opamp1_config.h
+  unless:
+  - rsilib_board
+- override:
+    component: opamp_instance
+    file_id: opamp_config
+    instance: opamp2
+    vendor: silabs
+  path: common_config_opn/sl_si91x_opamp_opamp2_config.h
+  unless:
+  - rsilib_board
+- override:
+    component: opamp_instance
+    file_id: opamp_config
+    instance: opamp3
+    vendor: silabs
+  path: common_config_opn/sl_si91x_opamp_opamp3_config.h
+  unless:
+  - rsilib_board
+- override:
+    component: pwm_instance
+    file_id: pwm_config
+    instance: channel_0
+    vendor: silabs
+  path: common_config_opn/sl_si91x_pwm_init_channel_0_config.h
+  unless:
+  - rsilib_board
+- override:
+    component: pwm_instance
+    file_id: pwm_config
+    instance: channel_1
+    vendor: silabs
+  path: common_config_opn/sl_si91x_pwm_init_channel_1_config.h
+  unless:
+  - rsilib_board
+- override:
+    component: pwm_instance
+    file_id: pwm_config
+    instance: channel_2
+    vendor: silabs
+  path: common_config_opn/sl_si91x_pwm_init_channel_2_config.h
+  unless:
+  - rsilib_board
+- override:
+    component: pwm_instance
+    file_id: pwm_config
+    instance: channel_3
+    vendor: silabs
+  path: common_config_opn/sl_si91x_pwm_init_channel_3_config.h
+  unless:
+  - rsilib_board
+- override:
+    component: pwm_instance
+    file_id: pwm_config
+    instance: led0
+    vendor: silabs
+  path: common_config_opn/sl_si91x_pwm_init_led0_config.h
+  unless:
+  - rsilib_board
+- override:
+    component: pwm_instance
+    file_id: pwm_config
+    instance: led1
+    vendor: silabs
+  path: common_config_opn/sl_si91x_pwm_init_led1_config.h
+  unless:
+  - rsilib_board
+- override:
+    component: i2c_instance
+    file_id: i2c_config
+    instance: i2c0
+    vendor: silabs
+  path: common_config_opn/sl_si91x_i2c_init_i2c0_config.h
+  unless:
+  - rsilib_board
+- override:
+    component: i2c_instance
+    file_id: i2c_config
+    instance: i2c1
+    vendor: silabs
+  path: common_config_opn/sl_si91x_i2c_init_i2c1_config.h
+  unless:
+  - rsilib_board
+- override:
+    component: i2c_instance
+    file_id: i2c_config
+    instance: i2c2
+    vendor: silabs
+  path: common_config_opn/sl_si91x_i2c_init_i2c2_config.h
+  unless:
+  - rsilib_board
+- override:
+    component: sl_ssi_instance
+    file_id: ssi_common_config
+    instance: primary
+    vendor: silabs
+  path: common_config_opn/sl_si91x_ssi_primary_common_config.h
+  unless:
+  - rsilib_board
+- override:
+    component: sl_ssi_instance
+    file_id: ssi_common_config
+    instance: secondary
+    vendor: silabs
+  path: common_config_opn/sl_si91x_ssi_secondary_common_config.h
+  unless:
+  - rsilib_board
+- override:
+    component: sl_ssi_instance
+    file_id: ssi_common_config
+    instance: ulp_primary
+    vendor: silabs
+  path: common_config_opn/sl_si91x_ssi_ulp_primary_common_config.h
+  unless:
+  - rsilib_board
+- override:
+    component: sl_ssi_instance
+    file_id: ssi_config
+    instance: primary
+    vendor: silabs
+  path: common_config_opn/sl_si91x_ssi_primary_config.h
+  unless:
+  - rsilib_board
+- override:
+    component: sl_ssi_instance
+    file_id: ssi_config
+    instance: secondary
+    vendor: silabs
+  path: common_config_opn/sl_si91x_ssi_secondary_config.h
+  unless:
+  - rsilib_board
+- override:
+    component: sl_ssi_instance
+    file_id: ssi_config
+    instance: ulp_primary
+    vendor: silabs
+  path: common_config_opn/sl_si91x_ssi_ulp_primary_config.h
+  unless:
+  - si917_dev_board
+  - memlcd_917
+  - sl_icm40627
+  - rsilib_board
+- override:
+    component: sl_ssi_instance
+    file_id: ssi_config
+    instance: ulp_primary
+    vendor: silabs
+  path: common_config_opn/sl_memlcd_config/sl_si91x_ssi_ulp_primary_config.h
+  condition:
+  - memlcd_917
+- override:
+    component: sl_ssi_instance
+    file_id: ssi_config
+    instance: ulp_primary
+    vendor: silabs
+  path: common_config_opn/sl_icm40627_config/sl_si91x_ssi_ulp_primary_config.h
+  condition:
+  - sl_icm40627
+  unless:
+  - rsilib_board
+- override:
+    component: ulp_timers_instance
+    file_id: ulp_timer_config
+    instance: timer0
+    vendor: silabs
+  path: common_config_opn/sl_si91x_ulp_timer_init_timer0_config.h
+  unless:
+  - rsilib_board
+- override:
+    component: ulp_timers_instance
+    file_id: ulp_timer_config
+    instance: timer1
+    vendor: silabs
+  path: common_config_opn/sl_si91x_ulp_timer_init_timer1_config.h
+  unless:
+  - rsilib_board
+- override:
+    component: ulp_timers_instance
+    file_id: ulp_timer_config
+    instance: timer2
+    vendor: silabs
+  path: common_config_opn/sl_si91x_ulp_timer_init_timer2_config.h
+  unless:
+  - rsilib_board
+- override:
+    component: ulp_timers_instance
+    file_id: ulp_timer_config
+    instance: timer3
+    vendor: silabs
+  path: common_config_opn/sl_si91x_ulp_timer_init_timer3_config.h
+  unless:
+  - rsilib_board
+- override:
+    component: analog_comparator_instance
+    file_id: analog_comparator_config
+    instance: comparator1
+    vendor: silabs
+  path: common_config_opn/sl_si91x_analog_comparator_comparator1_config.h
+  unless:
+  - rsilib_board
+- override:
+    component: analog_comparator_instance
+    file_id: analog_comparator_config
+    instance: comparator2
+    vendor: silabs
+  path: common_config_opn/sl_si91x_analog_comparator_comparator2_config.h
+  unless:
+  - rsilib_board
+- override:
+    component: sl_si91x_button_917
+    file_id: button_config
+    instance: btn0
+    vendor: silabs
+  path: common_config_opn/sl_si91x_button_init_btn0_config.h
+  unless:
+  - si917_dev_board
+  - rsilib_board
+- override:
+    component: sl_si91x_button_917
+    file_id: button_config
+    instance: btn1
+    vendor: silabs
+  path: common_config_opn/sl_si91x_button_init_btn1_config.h
+  unless:
+  - si917_dev_board
+  - rsilib_board
+- override:
+    component: memlcd_917
+    file_id: memlcd_config
+    vendor: silabs
+  path: common_config_opn/sl_memlcd_config/sl_si91x_memlcd_config.h
+  unless:
+  - rsilib_board
+- override:
+    component: iostream_si91x
+    file_id: iostream_usart_config
+    vendor: silabs
+  path: common_config_opn/sl_iostream_usart_vcom_config.h
+  unless:
+  - rsilib_board
+- override:
+    component: sl_si91x_led_917
+    file_id: led_config
+    instance: led0
+    vendor: silabs
+  path: common_config_opn/sl_si91x_led_init_led0_config.h
+  unless:
+  - rsilib_board
+- override:
+    component: sl_si91x_led_917
+    file_id: led_config
+    instance: led1
+    vendor: silabs
+  path: common_config_opn/sl_si91x_led_init_led1_config.h
+  unless:
+  - rsilib_board
+- override:
+    component: i2s_instance
+    file_id: i2s_config
+    instance: i2s0
+    vendor: silabs
+  path: common_config_opn/sl_si91x_i2s_init_i2s0_config.h
+  unless:
+  - si917_dev_board
+  - sl_si91x_mic
+  - rsilib_board
+- override:
+    component: i2s_instance
+    file_id: i2s_config
+    instance: i2s0
+    vendor: silabs
+  path: common_config_opn/sl_mic_config/sl_si91x_i2s_init_i2s0_config.h
+  condition:
+  - sl_si91x_mic
+  unless:
+  - rsilib_board
+- override:
+    component: i2s_instance
+    file_id: i2s_config
+    instance: ulp_i2s
+    vendor: silabs
+  path: common_config_opn/sl_si91x_i2s_init_ulp_i2s_config.h
+  unless:
+  - rsilib_board
+- override:
+    component: pcm_instance
+    file_id: pcm_config
+    instance: pcm0
+    vendor: silabs
+  path: common_config_opn/sl_si91x_pcm_init_pcm0_config.h
+  unless:
+  - si917_dev_board
+  - sl_si91x_mic
+  - rsilib_board
+- override:
+    component: pcm_instance
+    file_id: pcm_config
+    instance: pcm0
+    vendor: silabs
+  path: common_config_opn/sl_mic_config/sl_si91x_pcm_init_pcm0_config.h
+  condition:
+  - sl_si91x_mic
+  unless:
+  - rsilib_board
+- override:
+    component: pcm_instance
+    file_id: pcm_config
+    instance: ulp_pcm
+    vendor: silabs
+  path: common_config_opn/sl_si91x_pcm_init_ulp_pcm_config.h
+  unless:
+  - rsilib_board

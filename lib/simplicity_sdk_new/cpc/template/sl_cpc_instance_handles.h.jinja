@@ -1,0 +1,129 @@
+/***************************************************************************//**
+ * @file
+ * @brief CPC Instance Handle Generated Header File.
+ *******************************************************************************
+ * # License
+ * <b>Copyright 2024 Silicon Laboratories Inc. www.silabs.com</b>
+ *******************************************************************************
+ *
+ * SPDX-License-Identifier: Zlib
+ *
+ * The licensor of this software is Silicon Laboratories Inc.
+ *
+ * This software is provided 'as-is', without any express or implied
+ * warranty. In no event will the authors be held liable for any damages
+ * arising from the use of this software.
+ *
+ * Permission is granted to anyone to use this software for any purpose,
+ * including commercial applications, and to alter it and redistribute it
+ * freely, subject to the following restrictions:
+ *
+ * 1. The origin of this software must not be misrepresented; you must not
+ *    claim that you wrote the original software. If you use this software
+ *    in a product, an acknowledgment in the product documentation would be
+ *    appreciated but is not required.
+ * 2. Altered source versions must be plainly marked as such, and must not be
+ *    misrepresented as being the original software.
+ * 3. This notice may not be removed or altered from any source distribution.
+ *
+ ******************************************************************************/
+
+#ifndef SL_CPC_INSTANCE_HANDLES_H
+#define SL_CPC_INSTANCE_HANDLES_H
+
+// needed to check if security is enabled and
+// side loading of the user configuration header.
+#include "sli_cpc.h"
+
+#include "sli_cpc_instance.h"
+
+{%- set cpc_config_files = [] %}
+{%- set cpc_instances = [] %}
+{%- for instance in cpc_spi_instance_name -%}
+  {%- set _ = cpc_config_files.append( "secondary_spi_" + cpc_spi_periph_type|first + "_" + instance) %}
+  {%- set _ = cpc_instances.append(("spi", "spi_" + instance)) %}
+{%-endfor %}
+
+{%- for instance in cpc_uart_instance_name -%}
+  {%- set _ = cpc_config_files.append( "uart_" + cpc_uart_periph_type|first + "_" + instance) %}
+  {%- set _ = cpc_instances.append(("uart", "uart_" + instance)) %}
+{%- endfor %}
+
+{%- for instance in cpc_sdio_instance_name -%}
+  {%- set _ = cpc_instances.append(("sdio", "sdio_" + instance)) %}
+{%-endfor %}
+
+{%- if 'emul' in cpc_interface_type %}
+  {%- set _ = cpc_instances.append(("emul", "emul")) %}
+{%- endif %}
+
+{%- if cpc_instances | count == 1 %}
+  {%- set cpc_instance_single_mode = true %}
+{%- endif %}
+
+{%- for instance in cpc_config_files %}
+#include "sl_cpc_drv_{{instance}}_config.h"
+{%- endfor %}
+
+{% if cpc_instance_single_mode == true %}
+#if !defined(SL_CPC_ENDPOINT_DEFAULT_INSTANCE)
+  #define SL_CPC_ENDPOINT_DEFAULT_INSTANCE {{ cpc_instances[0][1] }}
+#endif
+#if !defined(SL_CPC_DRV_{{ cpc_instances[0][1] | upper }}_RX_PAYLOAD_MAX_LENGTH)
+  #define SL_CPC_DRV_{{ cpc_instances[0][1] | upper }}_RX_PAYLOAD_MAX_LENGTH         SL_CPC_RX_PAYLOAD_MAX_LENGTH
+#endif
+#if !defined(SL_CPC_DRV_{{ cpc_instances[0][1] | upper }}_RX_BUFFER_MAX_COUNT)
+  #define SL_CPC_DRV_{{ cpc_instances[0][1] | upper }}_RX_BUFFER_MAX_COUNT           SL_CPC_RX_BUFFER_MAX_COUNT
+#endif
+#if !defined(SL_CPC_DRV_{{ cpc_instances[0][1] | upper }}_TX_QUEUE_ITEM_MAX_COUNT)
+  #define SL_CPC_DRV_{{ cpc_instances[0][1] | upper }}_TX_QUEUE_ITEM_MAX_COUNT       SL_CPC_TX_QUEUE_ITEM_MAX_COUNT
+#endif
+{% endif %}
+
+{% for instance in cpc_instances %}
+#define SLI_CPC_DRV_{{ instance.0 | upper }}_RX_DATA_MAX_LENGTH             (SLI_CPC_RX_DATA_MAX_LENGTH_CFG(SL_CPC_DRV_{{ instance.1 | upper }}_RX_PAYLOAD_MAX_LENGTH))
+#define SLI_CPC_DRV_{{ instance.0 | upper }}_HDLC_REJECT_MAX_COUNT          (SLI_CPC_HDLC_REJECT_MAX_COUNT_CFG(SL_CPC_DRV_{{ instance.1 | upper }}_RX_BUFFER_MAX_COUNT))
+#define SLI_CPC_DRV_{{ instance.0 | upper }}_RX_QUEUE_ITEM_MAX_COUNT        (SLI_CPC_RX_QUEUE_ITEM_MAX_COUNT_CFG(SL_CPC_DRV_{{ instance.1 | upper }}_RX_BUFFER_MAX_COUNT))
+#define SLI_CPC_DRV_{{ instance.0 | upper }}_TX_QUEUE_ITEM_SFRAME_MAX_COUNT (SLI_CPC_TX_QUEUE_ITEM_SFRAME_MAX_COUNT_CFG(SLI_CPC_DRV_{{ instance.0 | upper }}_RX_QUEUE_ITEM_MAX_COUNT))
+#define SLI_CPC_DRV_{{ instance.0 | upper }}_BUFFER_HANDLE_MAX_COUNT        (SLI_CPC_BUFFER_HANDLE_MAX_COUNT_CFG( \
+                                                                                  SL_CPC_DRV_{{ instance.1 | upper }}_TX_QUEUE_ITEM_MAX_COUNT,    \
+                                                                                  SL_CPC_DRV_{{ instance.1 | upper }}_RX_BUFFER_MAX_COUNT,        \
+                                                                                  SLI_CPC_DRV_{{ instance.0 | upper }}_TX_QUEUE_ITEM_SFRAME_MAX_COUNT))
+#define SLI_CPC_DRV_{{ instance.0 | upper }}_HDLC_HEADER_MAX_COUNT          (SLI_CPC_HDLC_HEADER_MAX_COUNT_CFG(SLI_CPC_DRV_{{ instance.0 | upper }}_BUFFER_HANDLE_MAX_COUNT))
+#define SLI_CPC_DRV_{{ instance.0 | upper }}_RX_FRAME_MAX_LENGTH            (SLI_CPC_RX_FRAME_MAX_LENGTH_CFG(SLI_CPC_DRV_{{ instance.0 | upper }}_RX_DATA_MAX_LENGTH))
+#define SLI_CPC_DRV_{{ instance.0 | upper }}_RX_BUFFER_MAX_LENGTH           (SLI_CPC_RX_BUFFER_MAX_LENGTH_CFG(SLI_CPC_DRV_{{ instance.0 | upper }}_RX_FRAME_MAX_LENGTH))
+{%- endfor %}
+
+{% if cpc_instance_single_mode == true %}
+#if (SL_CPC_ENDPOINT_SECURITY_ENABLED >= 1)
+#if (SL_CPC_DRV_{{ cpc_instances[0][1] | upper }}_RX_PAYLOAD_MAX_LENGTH > 4079)
+  #error Invalid SL_CPC_DRV_{{ cpc_instances[0][1] | upper }}_RX_PAYLOAD_MAX_LENGTH; Must be less or equal to 4079
+#endif
+#else
+#if (SL_CPC_DRV_{{ cpc_instances[0][1] | upper }}_RX_PAYLOAD_MAX_LENGTH > 4087)
+  #error Invalid SL_CPC_DRV_{{ cpc_instances[0][1] | upper }}_RX_PAYLOAD_MAX_LENGTH; Must be less or equal to 4087
+#endif
+#endif
+
+#if defined(SL_CATALOG_CPC_PRIMARY_PRESENT)
+#define SLI_CPC_RX_DATA_MAX_LENGTH                                          (SLI_CPC_DRV_{{ cpc_interface_type | first | upper }}_RX_DATA_MAX_LENGTH)
+
+extern sli_cpc_instance_t g_instance;
+#endif
+{%- endif %}
+
+#if defined(SL_CATALOG_CPC_SECONDARY_PRESENT)
+// Declaration of instances handles
+{%- for instance in cpc_instances %}
+extern sli_cpc_instance_t SL_CPC_INSTANCE_NAME({{instance.1}});
+{% endfor %}
+
+{%- if cpc_instance_single_mode == true %}
+#define g_instance sli_cpc_instance_{{ cpc_instances[0][1] }}
+{%- endif %}
+
+extern sli_cpc_instance_t *sl_cpc_instances[];
+extern const uint8_t sl_cpc_instances_count;
+#endif
+
+#endif // SL_CPC_INSTANCE_HANDLES_H

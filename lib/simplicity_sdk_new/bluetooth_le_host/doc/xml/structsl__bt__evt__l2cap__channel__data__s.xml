@@ -1,0 +1,78 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="structsl__bt__evt__l2cap__channel__data__s" kind="struct" language="C++" prot="public">
+    <compoundname>sl_bt_evt_l2cap_channel_data_s</compoundname>
+    <includes refid="sl__bt__api_8h" local="no">sl_bt_api.h</includes>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structsl__bt__evt__l2cap__channel__data__s_1ae0d8a031bdfd9e3a3ed98df5b67d3645" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_l2cap_channel_data_s::connection</definition>
+        <argsstring></argsstring>
+        <name>connection</name>
+        <qualifiedname>sl_bt_evt_l2cap_channel_data_s::connection</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>The connection handle </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="14985" column="14" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="14985" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__l2cap__channel__data__s_1a57ef4101da1c4702740111c339faf9e4" prot="public" static="no" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t sl_bt_evt_l2cap_channel_data_s::cid</definition>
+        <argsstring></argsstring>
+        <name>cid</name>
+        <qualifiedname>sl_bt_evt_l2cap_channel_data_s::cid</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>The channel identifier </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="14986" column="14" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="14986" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__l2cap__channel__data__s_1ae748decdce136a730c0f4bc95a38b2f5" prot="public" static="no" mutable="no">
+        <type><ref refid="structuint8array" kindref="compound">uint8array</ref></type>
+        <definition>uint8array sl_bt_evt_l2cap_channel_data_s::data</definition>
+        <argsstring></argsstring>
+        <name>data</name>
+        <qualifiedname>sl_bt_evt_l2cap_channel_data_s::data</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Data received </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="14987" column="14" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="14987" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Data structure of the channel_data event. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>sl_bt_evt_l2cap_channel_data_s</label>
+        <link refid="structsl__bt__evt__l2cap__channel__data__s"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>data</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>uint8array</label>
+        <link refid="structuint8array"/>
+      </node>
+    </collaborationgraph>
+    <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="14983" column="1" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="14984" bodyend="14988"/>
+    <listofallmembers>
+      <member refid="structsl__bt__evt__l2cap__channel__data__s_1a57ef4101da1c4702740111c339faf9e4" prot="public" virt="non-virtual"><scope>sl_bt_evt_l2cap_channel_data_s</scope><name>cid</name></member>
+      <member refid="structsl__bt__evt__l2cap__channel__data__s_1ae0d8a031bdfd9e3a3ed98df5b67d3645" prot="public" virt="non-virtual"><scope>sl_bt_evt_l2cap_channel_data_s</scope><name>connection</name></member>
+      <member refid="structsl__bt__evt__l2cap__channel__data__s_1ae748decdce136a730c0f4bc95a38b2f5" prot="public" virt="non-virtual"><scope>sl_bt_evt_l2cap_channel_data_s</scope><name>data</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

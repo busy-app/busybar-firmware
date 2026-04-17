@@ -1,0 +1,38 @@
+id: "bluetooth_feature_aoa_receiver"
+label: "AoA Receiver"
+package: bluetooth_le_controller
+description: >
+  This component enables receiving the Constant Tone Extension (CTE) for Bluetooth
+  Angle of Arrival (AoA). AoA is a method used in direction finding and positioning
+  systems that allows a device to calculate the position of another device by
+  measuring the angle at which a radio signal arrives. When multiple receiver antennas
+  are placed next to each other, the radio waves emitted by a single transmitter will
+  reach the different antennas in different phases. From this phase difference, the
+  direction the radio waves came from can be calculated.
+
+  CTE is a concept in Bluetooth that extends Bluetooth packets with a constant tone,
+  which is a continuous phase, constant amplitude, and constant frequency signal,
+  sent immediately after the CRC of a Bluetooth packet. This signal can be used on the
+  receiver side to measure the phase of the incoming signal on multiple antennas.
+category: Bluetooth|Bluetooth LE Controller (Link Layer)|Additional Features
+quality: "production"
+requires:
+- name: bluetooth_controller
+- name: device_supports_bluetooth_cte
+- name: device_supports_bluetooth_iq_sampling
+- name: device_supports_bluetooth_antenna_switching
+- name: rail_util_aox
+provides:
+- name: bluetooth_feature_aoa_receiver
+- name: bluetooth_feature_cte_receiver
+  allow_multiple: true
+template_contribution:
+- name: component_catalog
+  value: bluetooth_feature_aoa_receiver
+documentation:
+  docset: bluetooth
+  document: bluetooth-stack-api/sl-bt-cte-receiver
+metadata:
+  sbom:
+    license: MSLA
+root_path: bluetooth_le_controller

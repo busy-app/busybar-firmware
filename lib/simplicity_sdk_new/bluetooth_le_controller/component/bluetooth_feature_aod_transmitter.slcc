@@ -1,0 +1,33 @@
+id: "bluetooth_feature_aod_transmitter"
+label: "AoD Transmitter"
+package: bluetooth_le_controller
+description: >
+  This component enables transmitting the Constant Tone Extension (CTE) for Bluetooth
+  Angle of Departure (AoD). AoA is a method used in direction finding and positioning
+  systems that the transmitter sends signals from multiple antennas and the receiver
+  calculates its own direction relative to the transmitting antenna array.
+
+  CTE is a concept in Bluetooth that extends Bluetooth packets with a constant tone,
+  which is a continuous phase, constant amplitude, and constant frequency signal,
+  sent immediately after the CRC of a Bluetooth packet. This signal can be used on the
+  receiver side to measure the phase of the incoming signal on multiple antennas.
+category: Bluetooth|Bluetooth LE Controller (Link Layer)|Additional Features
+quality: "experimental"
+requires:
+- name: bluetooth_controller
+- name: device_supports_bluetooth_cte
+- name: bluetooth_feature_cte_transmitter
+- name: device_supports_bluetooth_antenna_switching
+- name: rail_util_aox
+provides:
+- name: bluetooth_feature_aod_transmitter
+template_contribution:
+- name: component_catalog
+  value: bluetooth_feature_aod_transmitter
+documentation:
+  docset: bluetooth
+  document: bluetooth-stack-api/sl-bt-cte-transmitter
+metadata:
+  sbom:
+    license: MSLA
+root_path: bluetooth_le_controller

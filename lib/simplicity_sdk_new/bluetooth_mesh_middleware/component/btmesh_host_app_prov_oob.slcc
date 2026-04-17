@@ -1,0 +1,24 @@
+id: btmesh_host_app_prov_oob
+label: BT Mesh Provisioner OOB Application Component
+package: bluetooth_mesh_middleware
+description: >
+  BT Mesh Provisioner OOB (Out-of-Band Provisioning) Application component
+  provides out-of-band provisioning functionality for Bluetooth Mesh networks.
+category: Bluetooth Mesh|Host
+quality: production
+root_path: bluetooth_mesh_middleware/common/btmesh_host_app_prov_oob
+include:
+- path: .
+  file_list:
+  - path: btmesh_app_prov_oob.h
+source:
+- path: btmesh_app_prov_oob.c
+provides:
+- name: btmesh_host_app_prov_oob
+requires:
+- name: btmesh_stack_api_ncp_host
+- name: btmesh_host_app_prov
+- name: component_catalog
+template_contribution:
+- name: component_catalog
+  value: btmesh_host_app_prov_oob

@@ -1,0 +1,47 @@
+id: "sl_radioprs"
+label: "PRS Debug Signal Support"
+package: "rail_sdk"
+description: "Helper for setting Radio debug PRS signals."
+category: "RAIL-SDK|Utility"
+quality: "production"
+metadata:
+  sbom:
+    license: Zlib
+instantiable:
+  prefix: inst
+root_path: rail_sdk/component/sl_rail_sdk_radioprs
+config_file:
+- path: "config/s2/xg21/sl_radioprs_config_{{instance}}.h"
+  condition: ['device_generic_family_efr32xg21']
+  file_id: sl_radioprs_config
+- path: "config/s2/sl_radioprs_config_{{instance}}.h"
+  condition: ['device_series_2']
+  unless: ['device_generic_family_efr32xg21']
+  file_id: sl_radioprs_config
+- path: "config/s3/sl_radioprs_config_{{instance}}.h"
+  condition: ['device_series_3']
+  file_id: sl_radioprs_config
+template_file:
+- path: template/s2/sl_radioprs_init_instances.c.jinja
+  condition: ['device_series_2']
+  unless: ['clock_manager_device_init']
+- path: template/s2_clock_manager/sl_radioprs_init_instances.c.jinja
+  condition: ['device_series_2', 'clock_manager_device_init']
+- path: template/sl_radioprs_init_instances.h.jinja
+- path: template/s3/sl_radioprs_init_instances.c.jinja
+  condition: ['device_series_3']
+template_contribution:
+- name: radioprs_instances
+  value: "{{instance}}"
+- name: event_handler
+  value:
+    event: platform_init
+    include: sl_radioprs_init_instances.h
+    handler: sl_radioprs_init_instances
+  priority: -9800
+provides:
+- name: sl_radioprs
+  allow_multiple: true
+requires:
+- name: "hal_prs"
+- name: "hal_gpio"

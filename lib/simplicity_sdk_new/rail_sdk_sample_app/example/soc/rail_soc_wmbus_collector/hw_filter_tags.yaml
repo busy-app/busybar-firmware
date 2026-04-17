@@ -1,0 +1,18 @@
+
+
+tag:
+  - hardware:
+      device:
+        memory:
+          flash: 93
+          ram: 11
+      board:
+        rf_bands:
+          - 169|434|868
+        communication:
+          - vcom
+          - pti
+        io:
+          led: 1+
+          si4468: false
+  

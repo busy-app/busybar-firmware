@@ -1,0 +1,19 @@
+package: zigbee
+id: zigbee_green_power_combo_zap_config
+label: Green Power Combo Zap Config
+category: Zigbee|Green Power
+quality: production
+description: This component provides Green Power Combo zap config file which can be used on NCP applications
+provides:
+- name: zigbee_green_power_combo_zap_config
+
+config_file:
+- path: app/framework/plugin/green-power-common/config/zcl/zcl_config_gp_combo.zap
+
+template_contribution:
+- name: component_catalog
+  value: zigbee_green_power_combo_zap_config
+metadata:
+  sbom:
+    license: MSLA
+root_path: zigbee

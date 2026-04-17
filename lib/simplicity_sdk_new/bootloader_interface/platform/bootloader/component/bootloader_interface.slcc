@@ -1,0 +1,44 @@
+id: bootloader_interface
+label: Bootloader Application Interface
+package: bootloader_interface
+description: >
+  The Bootloader Application Interface component must be added to a project in order to use the Gecko Bootloader.
+  When this component is included in a secure application project, a part of flash memory is reserved for Bootloader
+  usage in the application linker file. This component also provides a bootloader interface for interacting with
+  the Gecko Bootloader.
+
+  Note: This component is not required for Gecko Bootloader projects. This component
+  is only required for application projects that need Gecko Bootloader support.
+category: Platform|Bootloader
+quality: production
+provides:
+- name: bootloader_interface
+requires:
+- name: bootloader_interface_common
+config_file:
+- path: platform/bootloader/config/btl_interface_cfg.h
+  condition: [device_series_2]
+  unless: [trustzone_nonsecure]
+- path: platform/bootloader/config/btl_interface/btl_interface_cfg_s2c1.h
+  file_id: btl_interface_config
+  condition: [device_sdid_200]
+  unless: [trustzone_nonsecure, apploader]
+- path: platform/bootloader/config/btl_interface/btl_interface_cfg_s2c2.h
+  file_id: btl_interface_config
+  condition: [device_sdid_205]
+  unless: [trustzone_nonsecure, apploader]
+- path: platform/bootloader/config/btl_interface/btl_interface_cfg_s2c3.h
+  file_id: btl_interface_config
+  condition: [device_sdid_210]
+  unless: [trustzone_nonsecure, apploader]
+- path: platform/bootloader/config/btl_interface/btl_interface_cfg_s2c4.h
+  file_id: btl_interface_config
+  condition: [device_sdid_215]
+  unless: [trustzone_nonsecure, apploader]
+documentation:
+  docset: mcu-bootloader
+  document: group-Interface
+metadata:
+  sbom:
+    license: MSLA
+root_path: bootloader_interface

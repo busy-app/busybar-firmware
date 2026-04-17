@@ -1,0 +1,4 @@
+upgrade:
+  - sdk:
+      id: wisun_config_generator
+      version: "1.0.0"

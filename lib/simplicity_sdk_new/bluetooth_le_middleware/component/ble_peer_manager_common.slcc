@@ -1,0 +1,39 @@
+id: ble_peer_manager_common
+package: bluetooth_le_middleware
+label: BLE Peer Manager Common
+description: >
+  Peer Manager for Bluetooth Low Energy. Responsible for advertising and
+  creating connections. The user can set the advertising parameters.
+category: Bluetooth|Application|Miscellaneous
+metadata:
+  sbom:
+    license: Zlib
+quality: production
+root_path: bluetooth_le_middleware/common/ble_peer_manager/common
+include:
+- path: .
+  file_list:
+  - path: ble_peer_manager_common.h
+  - path: ble_peer_manager_common_internal.h
+  - path: ble_peer_manager_connections.h
+source:
+- path: ble_peer_manager_connections.c
+requires:
+- name: app_log
+- name: bluetooth_api
+- name: bluetooth_feature_system
+  condition:
+  - device_cortexm
+- name: sl_common
+provides:
+- name: ble_peer_manager_common
+config_file:
+- path: config/ble_peer_manager_common_config.h
+template_file:
+- path: template/ble_peer_manager_common.c.jinja
+template_contribution:
+- name: component_catalog
+  value: ble_peer_manager_common
+documentation:
+  docset: bluetooth
+  document: bluetooth-service-api/ble-peer-manager-common

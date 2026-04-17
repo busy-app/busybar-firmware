@@ -1,0 +1,24 @@
+#include "sl_hal_gpio_simple_init.h"
+{% for inst in hal_gpio_simple_init -%}
+#include "sl_hal_gpio_init_{{inst}}_config.h"
+{% endfor -%}
+
+#include "sl_hal_gpio.h"
+#include "sl_clock_manager.h"
+
+void sl_hal_gpio_simple_init(void)
+{
+  sl_clock_manager_enable_bus_clock(SL_BUS_CLOCK_GPIO);
+
+{%- for inst in hal_gpio_simple_init %}
+  sl_hal_gpio_set_pin_mode(
+    &(sl_gpio_t){
+      .port = SL_HAL_GPIO_INIT_{{ inst | upper }}_PORT,
+      .pin  = SL_HAL_GPIO_INIT_{{ inst | upper }}_PIN
+    },
+    SL_HAL_GPIO_INIT_{{ inst | upper }}_MODE,
+    SL_HAL_GPIO_INIT_{{ inst | upper }}_DOUT
+  );
+{% endfor -%}
+
+}

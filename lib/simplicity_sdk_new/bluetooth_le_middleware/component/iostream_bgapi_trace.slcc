@@ -1,0 +1,22 @@
+id: iostream_bgapi_trace
+package: bluetooth_le_middleware
+label: IO Stream interface over BGAPI Trace
+description: >
+  This component enables the redirection of app log messages into custom BGAPI Trace messages.
+category: Bluetooth|Application|Miscellaneous
+metadata:
+  sbom:
+    license: Zlib
+quality: experimental
+root_path: bluetooth_le_middleware/common/iostream_bgapi_trace
+include:
+- path: .
+  file_list:
+  - path: iostream_bgapi_trace.h
+source:
+- path: iostream_bgapi_trace.c
+provides:
+- name: iostream_bgapi_trace
+requires:
+- name: iostream
+- name: bluetooth_utility_bgapi_trace

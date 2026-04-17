@@ -1,0 +1,117 @@
+id: sl_main_process_action
+label: sl_main Process Action
+package: platform_core
+category: Services|System Setup
+ui_hints:
+  visibility: never
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: platform_core/platform/service/sl_main
+source:
+- path: src/sl_main_process_action.c
+  unless: [kernel]
+include:
+- path: inc
+  unless: [kernel]
+  file_list:
+  - path: sl_main_process_action.h
+provides:
+- name: sl_main_process_action
+requires:
+- name: event_handler
+template_contribution:
+- name: event
+  unless: [kernel]
+  value:
+    id: platform_process_action
+    function:
+      name: sli_platform_process_action
+      return: void
+  priority: -4000
+- name: event
+  unless: [kernel]
+  value:
+    id: service_process_action
+    function:
+      name: sli_service_process_action
+      return: void
+  priority: -3990
+- name: event
+  unless: [kernel]
+  value:
+    id: stack_process_action
+    function:
+      name: sli_stack_process_action
+      return: void
+  priority: -3980
+- name: event
+  unless: [kernel]
+  value:
+    id: internal_app_process_action
+    function:
+      name: sli_internal_app_process_action
+      return: void
+  priority: -3970
+documentation:
+  docset: gecko-platform
+  document: platform-service/sl-main
+description: |
+  Main Process Action component provides a function that executes
+  actions to perform periodically from the main loop.:
+
+    - sl_main_process_action().
+
+  This function calls a set of functions that are automatically generated
+  and located in `$autogen/sl_event_handler.c`. Handlers can be registered
+  for the following events using the Event Handler API provided by the
+  Event Handler component:
+
+    - platform_process_action     -> sli_platform_process_action()
+    - service_process_action      -> sli_service_process_action()
+    - stack_process_action        -> sli_stack_process_action()
+    - internal_app_process_action -> sli_internal_app_process_action()
+
+  These events are fired in the order listed above when `sl_main_process_action()`
+  is called.
+
+  Usage example in baremetal application:
+
+  @code{.c}
+  #include "sl_component_catalog.h"
+  #include "sl_main_init.h"
+
+  #if defined(SL_CATALOG_POWER_MANAGER_PRESENT)
+  #include "sl_power_manager.h"
+  #endif
+
+  #include "sl_main_process_action.h"
+
+  int main(void)
+  {
+    // Initialize Silicon Labs device, system, service(s) and protocol stack(s).
+    // Note that if the kernel is present, the start task will be started and software component
+    // initialization will take place there.
+    sl_main_init();
+
+    // User provided code
+    app_init();
+
+    while (1) {
+      // Silicon Labs components process action routine
+      // must be called from the super loop.
+      sl_main_process_action();
+
+      // User provided code. Application process.
+      app_process_action();
+
+  #if defined(SL_CATALOG_POWER_MANAGER_PRESENT)
+      // Let the CPU go to sleep if the system allows it.
+      sl_power_manager_sleep();
+  #endif
+    }
+  #endif // SL_CATALOG_KERNEL_PRESENT
+  }
+  @endcode
+  ```

@@ -1,0 +1,133 @@
+/**
+ * @file
+ * Command Class Notification Configuration
+ * @remarks This file is auto generated
+ * @copyright 2022 Silicon Laboratories Inc.
+ */
+
+#include <cc_notification_config_api.h>
+#include <CC_Notification.h>
+#include "cc_notification_events.h"
+#include <SizeOf.h>
+#include <assert.h>
+
+{# Namespace storing endpoint value. #}
+{% set ns_endpoint = namespace(endpoint = 0) -%}
+
+{# Generate group names and array of commands for each endpoint. #}
+{% for notification in notifications %}
+  {% if 'endpoint' in notification %}
+    {% set ns_endpoint.endpoint = notification['endpoint'] %}
+  {% else %}
+    {% set ns_endpoint.endpoint = 0 %}
+  {% endif %}
+static const notification_event_state STATES_EVENTS_EP{{ ns_endpoint.endpoint }}_{{ notification.type }}[] = {
+  {% for st_ev in notification['state_events'] %}
+  {{ st_ev }},
+  {% endfor %}
+};
+{% endfor %}
+
+static cc_notification_t notifications[] = {
+{% for notification in notifications %}
+  {
+    .type = {{notification['type']}},
+    {% if 'endpoint' in notification %}
+    .endpoint = {{notification['endpoint']}},
+    {% set ns_endpoint.endpoint = notification['endpoint'] %}
+    {% else %}
+    .endpoint = 0,
+    {% set ns_endpoint.endpoint = '0' %}
+    {% endif %}
+    {# agi_profile #}
+    {% for agi in notification['agi_profile'] %}
+      {% if 'profile_MS' in agi %}
+    .agi_profile.profile_MS = {{agi['profile_MS']}},
+      {% else %}
+    .agi_profile.profile_LS = {{agi['profile_LS']}},
+      {% endif %}
+    {% endfor %}
+    {# states/events #}
+    .events = STATES_EVENTS_EP{{ ns_endpoint.endpoint }}_{{ notification.type }},
+    .event_count = sizeof_array(STATES_EVENTS_EP{{ ns_endpoint.endpoint }}_{{ notification.type }}),
+    .current_event = NOTIFICATION_EVENT_NO_EVENT,
+    .status        = NOTIFICATION_STATUS_UNSOLICIT_ACTIVATED,
+  },
+{% endfor %}
+};
+
+_Static_assert((sizeof_array(notifications) > 0), "STATIC_ASSERT_FAILED_size_mismatch");
+
+cc_notification_t * cc_notification_get_config(void) {
+  return notifications;
+}
+
+uint8_t cc_notification_get_config_length(void) {
+  return sizeof_array(notifications);
+}
+
+cc_notification_t* cc_notification_get(uint8_t index) {
+  if(index >= sizeof_array(notifications)) {
+    return NULL;
+  }
+  return &notifications[index];
+}
+
+int8_t cc_notification_get_index_by_type_and_endpoint(notification_type_t type, uint8_t endpoint) {
+  for (uint8_t i = 0; i {{'<'}} sizeof_array(notifications); i++) {
+    if (type == notifications[i].type && endpoint == notifications[i].endpoint) {
+      return (int8_t)i;
+    }
+  }
+  return -1;
+}
+
+notification_type_t cc_notification_get_type(uint8_t index) {
+  return notifications[index].type;
+}
+
+notification_event_state cc_notification_get_current_event(uint8_t index) {
+  return notifications[index].current_event;
+}
+
+agi_profile_t cc_notification_get_agi_profile(uint8_t index) {
+  return notifications[index].agi_profile;
+}
+
+uint8_t cc_notification_get_endpoint(uint8_t index) {
+  return notifications[index].endpoint;
+}
+
+NOTIFICATION_STATUS cc_notification_get_status(uint8_t index) {
+  return notifications[index].status;
+}
+
+bool cc_notification_is_type_supported(notification_type_t type) {
+  for (uint8_t i = 0; i {{'<'}} sizeof_array(notifications); i++) {
+    if (type == notifications[i].type) {
+      return true;
+    }
+  }
+  return false;
+}
+
+int8_t cc_notification_find_event(uint8_t event, uint8_t index)
+{
+  for (uint8_t i = 0; i {{'<'}} notifications[index].event_count; i++) {
+    if (event == notifications[index].events[i]) {
+      return (int8_t)i;
+    }
+  }
+  return -1;
+}
+
+uint8_t cc_notification_config_get_number_of_events(uint8_t index)
+{
+  assert(index < sizeof_array(notifications));
+  return notifications[index].event_count;
+}
+
+{% for _ in notifications %}
+ZAF_CC_REGISTER_CONFIG(COMMAND_CLASS_NOTIFICATION_V8, &notifications[{{loop.index - 1}}], {{loop.index - 1}});
+{% endfor %}
+

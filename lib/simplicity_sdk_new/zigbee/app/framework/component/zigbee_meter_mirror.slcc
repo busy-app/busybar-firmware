@@ -1,0 +1,64 @@
+package: zigbee
+description: A component for mirroring attributes of a sleepy meter in a Smart Energy network.  The device is expected to be a configured as mirror server on as many endpoints as are allocated as meters.  Those endpoints must be contiguous.
+label: Meter Mirror
+quality: production
+id: zigbee_meter_mirror
+category: Zigbee|Cluster Library|Smart Energy
+provides:
+- name: zigbee_meter_mirror
+config_file:
+- path: app/framework/plugin/meter-mirror/config/meter-mirror-config.h
+source:
+- path: app/framework/plugin/meter-mirror/meter-mirror.c
+- path: app/framework/plugin/meter-mirror/meter-mirror-cli.c
+  condition:
+  - cli
+- path: app/framework/plugin/meter-mirror/meter-mirror-cb.c
+include:
+- path: app/framework/plugin/meter-mirror
+  file_list:
+  - path: meter-mirror.h
+template_contribution:
+- name: component_catalog
+  value: zigbee_meter_mirror
+- name: cluster_service
+  value:
+    cluster_id: '0x0702'
+    mfg_id: NOT_MFG_SPECIFIC
+    side: CLIENT
+    service_function: sli_zigbee_af_meter_mirror_simple_metering_cluster_client_command_parse
+- name: zigbee_af_callback
+  value:
+    callback_type: init_done
+    function_name: sl_zigbee_af_meter_mirror_init_cb
+- name: zigbee_stack_callback
+  value:
+    callback_type: stack_status
+    function_name: sl_zigbee_af_meter_mirror_stack_status_cb
+- name: cli_group
+  value:
+    group: plugin
+    name: meter-mirror
+    help: meter-mirror related commands
+- name: cli_command
+  value:
+    group: meter-mirror
+    name: status
+    handler: sli_zigbee_af_meter_mirror_status_command
+    help: Prints the status of all mirrors.
+- name: cli_command
+  value:
+    group: meter-mirror
+    name: remove
+    handler: sli_zigbee_af_meter_mirror_remove_command
+    help: Manually removes a registered mirror at the specified endpoint.
+    argument:
+    - type: uint8
+      help: The endpoint of the mirror to remove.
+documentation:
+  docset: zigbee
+  document: zigbee-af-api/meter-mirror
+metadata:
+  sbom:
+    license: MSLA
+root_path: zigbee

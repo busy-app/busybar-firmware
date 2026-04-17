@@ -1,0 +1,41 @@
+id: sl_rail_util_dma
+label: RAIL Utility, DMA (RAIL 3)
+description: Utility to aid with RAIL Direct Memory Access (DMA) Support
+package: rail_library
+category: Platform|Radio
+quality: production
+metadata:
+  sbom:
+    id: sl_rail_util_dma
+    name: RAIL Utility, DMA (RAIL 3)
+    license: Zlib
+documentation:
+  docset: rail
+  document: rail-api/rail-util-dma
+provides:
+- name: sl_rail_util_dma
+- name: rail_util_dma
+requires:
+- name: dmadrv
+- name: rail_lib
+- name: component_catalog
+config_file:
+- path: plugin/sl_rail_util_dma/config/sl_rail_util_dma_config.h
+include:
+- path: plugin/sl_rail_util_dma
+  file_list:
+  - path: sl_rail_util_dma.h
+source:
+- path: plugin/sl_rail_util_dma/sl_rail_util_dma.c
+template_contribution:
+- name: event_handler
+  value:
+    event: stack_init
+    include: sl_rail_util_dma.h
+    handler: sl_rail_util_dma_init
+  priority: -9010
+- name: component_catalog
+  value: sl_rail_util_dma
+- name: component_catalog
+  value: rail_util_dma
+root_path: rail_library

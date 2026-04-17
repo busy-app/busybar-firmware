@@ -1,0 +1,33 @@
+id: btmesh_host_key_export
+label: BT Mesh Key Export Component
+package: bluetooth_mesh_middleware
+description: >
+  BT Mesh Key Export component provides functionality for exporting
+  cryptographic keys from the Bluetooth Mesh network.
+category: Bluetooth Mesh|Host
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: bluetooth_mesh_middleware/common/btmesh_host_key_export
+include:
+- path: .
+  file_list:
+  - path: btmesh_key_export.h
+source:
+- path: btmesh_key_export.c
+provides:
+- name: btmesh_host_key_export
+requires:
+- name: btmesh_stack_api_ncp_host
+- name: app_assert
+- name: app_log
+- name: component_catalog
+template_contribution:
+- name: component_catalog
+  value: btmesh_host_key_export
+- name: btmesh_on_event
+  value:
+    include: btmesh_key_export.h
+    function: btmesh_key_export_on_event
+    priority: -9000

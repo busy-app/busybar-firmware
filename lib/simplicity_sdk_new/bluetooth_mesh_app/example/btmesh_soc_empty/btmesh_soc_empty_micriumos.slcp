@@ -1,0 +1,99 @@
+project_name: btmesh_soc_empty_micriumos
+package: bluetooth_mesh_app
+label: Bluetooth Mesh - SoC Empty MicriumOS
+description: >-
+  Demonstrates the bare minimum needed for a Bluetooth Mesh C application.
+  The application starts Unprovisioned Device Beaconing after booting, and
+  then waits to be provisioned. This example runs on top of Micrium OS.
+
+category: Bluetooth Mesh Examples
+quality: production
+
+filter:
+  - name: "Wireless Technology"
+    value: ["Bluetooth Mesh"]
+  - name: "Device Type"
+    value: ["SoC"]
+  - name: "Project Difficulty"
+    value: ["Beginner"]
+
+component:
+  - id: app_assert
+  - id: btmesh_stack_gatt_prov_bearer
+  - id: btmesh_stack_relay
+  - id: btmesh_provisionee
+  - id: btmesh_proxy
+  - id: clock_manager
+  - id: device_init
+  - id: micriumos_kernel
+  - id: mpu
+  - id: rail_util_pti
+  - id: sl_main
+  - id: toolchain_gcc_lto
+
+source:
+  - path: app.c
+  - path: app_micriumos.c
+
+include:
+  - path: .
+    file_list:
+    - path: app.h
+
+config_file:
+  - override:
+      component: btmesh_dcd_configuration
+      file_id: dcd_configuration_file_id
+    path: dcd_config.btmeshconf
+    directory: btmeshconf
+
+readme:
+  - path: ../../documentation/example/btmesh_soc_empty/readme_rtos.md
+
+other_file:
+  - path: ../../documentation/example/btmesh_soc_empty/readme_img0.png
+  - path: ../../documentation/example/btmesh_soc_empty/readme_img1.png
+  - path: ../../documentation/example/btmesh_soc_empty/readme_img2.png
+  - path: ../../documentation/example/btmesh_soc_empty/readme_img3.png
+  - path: ../../documentation/example/btmesh_soc_empty/readme_img4.png
+  - path: ../../documentation/example/btmesh_soc_empty/readme_img5.png
+
+configuration:
+  - name: EMDRV_DMADRV_DMA_CH_COUNT
+    value: 2
+  - name: NVM3_DEFAULT_NVM_SIZE
+    value: "0x6000"
+  - name: SL_BTMESH_CONFIG_MAX_PROV_BEARERS
+    value: "3"
+  - name: SL_PSA_KEY_USER_SLOT_COUNT
+    value: "0"
+    condition:
+      - psa_crypto
+  - name: SL_BT_RTOS_HOST_STACK_TASK_STACK_SIZE
+    value: "4000"
+  - name: OS_CFG_TMR_EN
+    value: "1"
+  - name: SL_BTMESH_PROVISIONEE_AUTO_RESET_DELAY
+    value: "1"
+
+post_build:
+  - path: "../../postbuild_profile/btmesh_common_s2.slpb"
+    condition: [device_series_2, bootloader_app_properties]
+
+tag:
+  - hardware:device:flash:512
+  - hardware:device:ram:64
+  - hardware:rf:band:2400
+  - hwfilter:device:device_supports_bluetooth
+  - hwfilter:device:device_series_2
+  - hwfilter:ram:64k
+  - hwfilter:flash:512k
+
+ui_hints:
+  highlight:
+    - path: config/btconf/gatt_configuration.btconf
+      focus: false
+    - path: config/btmeshconf/dcd_config.btmeshconf
+      focus: false
+    - path: readme.md
+      focus: true

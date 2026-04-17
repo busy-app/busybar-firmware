@@ -1,0 +1,42 @@
+id: sl_rail_util_ieee802154_rx_duty_cycling
+label: RAIL Utility, IEEE802.15.4 Duty Cycling Configuration
+description: Utility to aid with IEEE802.15.4 Duty Cycling Configuration
+package: rail_library
+category: Platform|Radio
+quality: production
+metadata:
+  sbom:
+    id: sl_rail_util_ieee802154_rx_duty_cycling
+    name: RAIL Utility, IEEE802.15.4 Duty Cycling Configuration
+    license: MSLA
+provides:
+- name: sl_rail_util_ieee802154_rx_duty_cycling
+requires:
+- name: sl_rail_util_ieee802154_phy_select
+- name: component_catalog
+config_file:
+- path: plugin/sl_rail_util_ieee802154/config/sl_rail_util_ieee802154_rx_duty_cycling_config.h
+  file_id: sl_rail_util_ieee802154_rx_duty_cycling_config
+include:
+- path: plugin/sl_rail_util_ieee802154
+  file_list:
+  - path: sl_rail_util_ieee802154_rx_duty_cycling.h
+- path: plugin/sl_rail_util_ieee802154/sixg301
+  condition: [device_generic_family_sixx301]
+  file_list:
+  - path: sl_rail_util_ieee802154_rx_duty_cycling_radio_config.h
+source:
+- path: plugin/sl_rail_util_ieee802154/sl_rail_util_ieee802154_rx_duty_cycling.c
+- path: plugin/sl_rail_util_ieee802154/sixg301/sl_rail_util_ieee802154_rx_duty_cycling_radio_config.c
+  condition: [device_generic_family_sixx301]
+template_contribution:
+- name: rail_util_ieee802154_phy_select_callbacks
+  value:
+    config_include: sl_rail_util_ieee802154_rx_duty_cycling_config.h
+    include: sl_rail_util_ieee802154_rx_duty_cycling.h
+    runtime_phy_features: SL_RAIL_UTIL_IEEE802154_RUNTIME_PHY_FEATURES_RX_DUTY_CYCLING
+    default_phy_features: SL_RAIL_UTIL_IEEE802154_DEFAULT_PHY_FEATURES_RX_DUTY_CYCLING
+    get_phy_features: sl_rail_util_ieee802154_get_rx_duty_cycling_phy_features
+- name: component_catalog
+  value: sl_rail_util_ieee802154_rx_duty_cycling
+root_path: rail_library

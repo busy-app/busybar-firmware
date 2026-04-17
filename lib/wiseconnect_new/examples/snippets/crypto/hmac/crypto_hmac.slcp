@@ -1,0 +1,83 @@
+project_name: crypto_hmac
+package: platform_nwp_siwx91x_app
+quality: production
+label: Crypto HMAC
+category: Example|Crypto
+description: 'Demonstrate the use of HMAC
+
+  '
+filter:
+- name: Wireless Technology
+  value:
+  - Wi-Fi
+- name: Project Difficulty
+  value:
+  - Beginner
+source:
+- path: app.c
+include:
+- path: .
+  file_list:
+  - path: app.h
+component:
+- id: si91x_memory_default_config
+- id: si91x_debug
+- id: syscalls
+requires:
+- name: sl_main
+- name: network_manager
+- name: basic_network_config_manager
+- name: sl_si91x_basic_buffers
+- name: freertos
+- name: freertos_heap_4
+- name: wifi
+- name: sl_si91x_wireless
+- name: wiseconnect_common
+- name: sl_si91x_internal_stack
+- name: wifi_resources
+- name: sl_si91x_hmac
+- name: sl_si91x_crypto
+- name: sl_si91x_wrap
+- name: iostream_retarget_stdio
+  condition:
+  - device_has_devinfo
+- name: iostream_recommended_stream
+  condition:
+  - device_has_devinfo
+- name: iostream_stdlib_config
+  condition:
+  - device_has_devinfo
+- name: device_init
+  condition:
+  - device_has_devinfo
+- name: emlib_common
+  condition:
+  - device_has_devinfo
+- name: emlib_ldma
+  condition:
+  - device_has_devinfo
+toolchain_settings:
+- option: gcc_compiler_option
+  value: -Wall -Werror
+configuration:
+- name: SL_BOARD_ENABLE_VCOM
+  value: '1'
+readme:
+- path: readme.md
+other_file:
+- path: resources/readme/setup_diagram_soc.png
+- path: resources/readme/output.png
+ui_hints:
+  highlight:
+  - path: readme.md
+    focus: true
+post_build:
+  profile: wiseconnect_soc
+sdk_extension:
+- id: wiseconnect3_sdk
+  vendor: silabs
+  version: 4.0.1
+sdk:
+  id: simplicity_sdk
+  vendor: silabs
+  version: 2025.12.2

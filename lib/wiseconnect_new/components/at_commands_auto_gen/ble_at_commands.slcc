@@ -1,0 +1,104 @@
+id: ble_at_commands
+package: wifi
+description: >
+  BLE AT commands
+category: Service| AT Commands Autogen| BLE AT commands
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+component_root_path: ./components/at_commands_auto_gen
+provides:
+  - name: ble_at_commands
+
+template_contribution:
+  - name: console_commands
+    value:
+      coex-mode:
+        handler: coex_mode_command_handler
+        arguments:
+          - "uint16"  # coex-mode
+      net-info:
+        handler: net_info_command_handler
+        arguments:
+          - "uint8"   # interface
+      91x-ble-enable-gatt:
+        handler: ble_enable_gatt_command_handler
+        arguments:
+          - "uint8"   # enable-gatt
+      91x-ble-max-per:
+        handler: ble_max_per_command_handler
+        arguments:
+          - "uint8"   # max-peripherals
+      91x-ble-max-cent:
+        handler: ble_max_cent_command_handler
+        arguments:
+          - "uint8"   # max-centrals
+      91x-ble-max-gatt-srv:
+        handler: ble_max_gatt_srv_command_handler
+        arguments:
+          - "uint8"   # max-gatt-services
+      91x-ble-max-attr:
+        handler: ble_max_attr_command_handler
+        arguments:
+          - "uint8"   # max-attributes
+      91x-ble-scan-conf:
+        handler: ble_scan_conf_command_handler
+        arguments:
+          - "uint8"   # status
+          - "uint8"   # scan-type
+          - "uint8"   # enable-acceptlist
+          - "uint8"   # own-addr-type
+          - "uint16"  # scan-interval
+          - "uint16"  # scan-window
+      91x-ble-scan-conf?:
+        handler: ble_scan_conf_query_command_handler
+      91x-ble-add-acc:
+        handler: ble_add_acc_command_handler
+        arguments:
+          - "uint8"   # dev-addr-type
+          - "string"  # dev-address
+      91x-ble-del-acc:
+        handler: ble_del_acc_command_handler
+        arguments:
+          - "uint8"   # dev-addr-type
+          - "string"  # dev-address
+      91x-ble-clear-acc:
+        handler: ble_clear_acc_command_handler
+      91x-ble-scan-start:
+        handler: ble_scan_start_command_handler
+      91x-ble-scan-stop:
+        handler: ble_scan_stop_command_handler
+      91x-ble-add-acc-type:
+        handler: ble_add_acc_type_command_handler
+        arguments:
+          - "uint8"   # ad-type
+          - "uint8"   # value-length
+      91x-ble-del-acc-type:
+        handler: ble_del_acc_type_command_handler
+        arguments:
+          - "uint8"   # ad-type
+      91x-ble-adv-conf:
+        handler: ble_adv_conf_command_handler
+        arguments:
+          - "uint8"   # status
+          - "uint8"   # adv-type
+          - "uint8"   # filter-type
+          - "uint8"   # direct-addr-type
+          - "string"  # direct-addr
+          - "uint16"  # adv-int-min
+          - "uint16"  # adv-int-max
+          - "uint8"   # own-addr-type
+          - "uint8"   # adv-channel-map
+      91x-ble-adv-conf?:
+        handler: ble_adv_conf_query_command_handler
+      91x-ble-adv-data:
+        handler: ble_adv_data_command_handler
+        arguments:
+          - "uint32"  # data-len
+      91x-ble-adv-data?:
+        handler: ble_adv_data_query_command_handler
+      91x-ble-adv-start:
+        handler: ble_adv_start_command_handler
+      91x-ble-adv-stop:
+        handler: ble_adv_stop_command_handler

@@ -1,0 +1,22 @@
+id: basic_network_config_manager
+package: wifi
+description: >
+  Basic Network Configuration Manager provides a basic reference implementation for managing network credentials and profiles
+label: Basic Network Configuration Manager
+category: Service|Network Management|Configuration
+quality: production
+metadata:
+  sbom:
+    license: MSLA
+component_root_path: ./components/service/network_manager
+provides:
+- name: basic_network_config_manager
+- name: network_config_manager
+source:
+- path: src/sl_net_credentials.c
+- path: src/sl_net_basic_profiles.c
+requires:
+- name: network_manager
+- name: basic_credential_manager
+conflicts:
+- name: nvm3_network_config_manager

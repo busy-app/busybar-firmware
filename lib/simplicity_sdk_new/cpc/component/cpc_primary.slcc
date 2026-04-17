@@ -1,0 +1,66 @@
+id: cpc_primary
+label: Primary Device (Host)
+package: cpc
+description: >
+  Co-Processor Communication (CPC) allows for communication between a Primary
+  and a secondary device using a single physical link. Both devices can have
+  multiple endpoints that both produce and consume data and CPC will handle
+  the multiplexing/demultiplexing of the data to the target endpoint. CPC
+  also allows for data encryption, mitigating the risks of transmitting data
+  on an unsecured physical data link.
+
+  This component implements the CPC Primary on an embedded device, allowing
+  it to communicate to a single secondary CPC device connected to it.
+category: Services|Co-Processor Communication|Primary Device
+quality: experimental
+metadata:
+  sbom:
+    license: Zlib
+
+config_file:
+- path: config/sl_cpc_primary_config.h
+- path: config/sl_cpc_config.h
+- path: config/sl_cpc_kernel_config.h
+  condition: [kernel]
+
+source:
+- path: src/sl_cpc_system_primary.c
+- path: src/sl_cpc_reboot_sequence.c
+- path: src/sl_cpc_fwu.c
+
+include:
+- path: inc
+  condition:
+  - cpc_core_v1
+  file_list:
+  - path: sl_cpc_primary_init.h
+  - path: sl_cpc_fwu.h
+  - path: sl_cpc_system_primary.h
+  - path: sli_cpc_bootloader.h
+  - path: sli_cpc_system_primary.h
+  - path: sli_cpc_reboot_sequence.h
+  - path: sli_cpc_fwu.h
+
+provides:
+- name: cpc_primary
+
+requires:
+- name: cpc_core
+- name: cpc_primary_driver
+- name: cpc_validation_helpers
+
+recommends:
+- id: cpc_core
+
+  vendor: silabs
+template_file:
+- path: template/sl_cpc_instance_handles.h.jinja
+
+template_contribution:
+- name: component_catalog
+  value: cpc_primary
+
+documentation:
+  docset: gecko-platform
+  document: platform-cpc/cpc
+root_path: cpc

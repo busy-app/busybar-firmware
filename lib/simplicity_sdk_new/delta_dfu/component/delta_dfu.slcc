@@ -1,0 +1,29 @@
+id: delta_dfu
+package: delta_dfu
+description: >
+  Delta DFU is a library for applying firmware update patches.
+category: Delta DFU
+quality: production
+provides:
+- name: delta_dfu
+include:
+- path: include
+  file_list:
+  - path: ddfu/patch.h
+library:
+- path: lib/gcc/cortex-m33/libddfu-patch.a
+  condition:
+  - toolchain_gcc
+  - cortexm33
+- path: lib/iar/cortex-m33/libddfu-patch.a
+  condition:
+  - toolchain_iar
+  - cortexm33
+- path: lib/llvm/cortex-m33/libddfu-patch.a
+  condition:
+  - toolchain_llvm
+  - cortexm33
+metadata:
+  sbom:
+    license: MSLA
+root_path: delta_dfu

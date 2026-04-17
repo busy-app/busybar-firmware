@@ -1,0 +1,29 @@
+id: sl_gpio
+label: GPIO
+package: platform_siwx91x
+description: >
+  The GPIO (General Purpose Input/Output) driver provides a comprehensive set of functions to
+  configure and control the GPIO pins. The GPIO pins can be used for various purposes such as reading
+  digital signals, controlling external devices, generating interrupts, etc. The GPIO driver simplifies the process of interacting
+  with GPIO pins, making it easier to integrate GPIO functionality into the application.
+  In GPIO one can use HP (High power), ULP (Ultra Low Power) or UULP (Ultra Ultra Low Power) pins.
+category: Device|Si91x|MCU|Peripheral
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: "components/device/silabs/si91x/mcu/drivers"
+source:
+  - path: "unified_api/src/sl_si91x_driver_gpio.c"
+include:
+  - path: "unified_api/inc"
+    file_list:
+    - path: "sl_si91x_driver_gpio.h"
+    - path: "sl_driver_gpio.h"
+provides:
+  - name: sl_gpio
+requires:
+  - name: sl_gpio_peripheral
+documentation:
+    docset: wiseconnect
+    document: wiseconnect-api-reference-guide-si91x-peripherals/gpio

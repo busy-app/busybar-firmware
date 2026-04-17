@@ -1,0 +1,28 @@
+id: linux_arch_64
+label: Linux OS (x86_64)
+package: devices
+description: OS component for x86_64 Linux build targets.
+category: Platform|Device|Native
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+requires:
+- name: linux
+provides:
+- name: linux_arch
+- name: linux_arch_64
+- name: linux_arch_x86_64
+- name: x86_64
+toolchain_settings:
+- option: gcc_compiler_option
+  value: -m32
+  condition:
+  - build_32bit
+- option: gcc_linker_option
+  value: -m32
+  condition:
+  - build_32bit
+tag:
+- device:opn:linux_x86_64
+root_path: devices

@@ -1,0 +1,90 @@
+/***************************************************************************//**
+ * @file zigbee_zcl_callback_dispatcher.h
+ * @brief ZCL callback dispatcher declarations.
+ *******************************************************************************
+ * # License
+ * <b>Copyright 2020 Silicon Laboratories Inc. www.silabs.com</b>
+ *******************************************************************************
+ *
+ * The licensor of this software is Silicon Laboratories Inc. Your use of this
+ * software is governed by the terms of Silicon Labs Master Software License
+ * Agreement (MSLA) available at
+ * www.silabs.com/about-us/legal/master-software-license-agreement. This
+ * software is distributed to you in Source Code format and is governed by the
+ * sections of the MSLA applicable to Source Code.
+ *
+ ******************************************************************************/
+
+#ifndef SL_ZIGBEE_AF_CALLBACK_DISPATCHER_H
+#define SL_ZIGBEE_AF_CALLBACK_DISPATCHER_H
+
+#include PLATFORM_HEADER
+#include "af.h"
+
+{# RESET_ATTRIBUTES -#}
+// Reset Attributes
+void sli_zigbee_af_reset_attributes(uint8_t endpointId);
+{% for cb in zigbee_af_callback -%}
+{% if cb['callback_type'] == "reset_attributes" -%}
+void {{ cb['function_name'] }}(uint8_t endpointId);
+{% endif -%}
+{% endfor -%}
+
+{# PRE_COMMAND_RECEIVED #}
+// Pre command received
+bool sli_zigbee_af_pre_command_received(sl_zigbee_af_cluster_command_t* cmd);
+bool sl_zigbee_af_pre_command_received_cb(sl_zigbee_af_cluster_command_t* cmd);
+{% for cb in zigbee_af_callback -%}
+{% if cb['callback_type'] == "pre_command_received" -%}
+bool {{ cb['function_name'] }}(sl_zigbee_af_cluster_command_t* cmd);
+{% endif -%}
+{% endfor -%}
+
+{# PRE_ZDO_MESSAGE_RECEIVED #}
+// Pre ZDO message received
+bool sli_zigbee_af_pre_zdo_message_received(sl_802154_short_addr_t nodeId, sl_zigbee_aps_frame_t* apsFrame, uint8_t* message, uint16_t length);
+bool sl_zigbee_af_pre_zdo_message_received_cb(sl_802154_short_addr_t nodeId, sl_zigbee_aps_frame_t* apsFrame, uint8_t* message, uint16_t length);
+{% for cb in zigbee_af_callback -%}
+{% if cb['callback_type'] == "pre_zdo_message_received" -%}
+bool {{ cb['function_name'] }}(sl_802154_short_addr_t nodeId, sl_zigbee_aps_frame_t* apsFrame, uint8_t* message, uint16_t length);
+{% endif -%}
+{% endfor -%}
+
+{# ZDO_MESSAGE_RECEIVED #}
+// ZDO message received
+void sli_zigbee_af_zdo_message_received(sl_802154_short_addr_t sender, sl_zigbee_aps_frame_t* apsFrame, uint8_t* message, uint16_t length);
+{% for cb in zigbee_af_callback -%}
+{% if cb['callback_type'] == "zdo_message_received" -%}
+void {{ cb['function_name'] }}(sl_802154_short_addr_t sender, sl_zigbee_aps_frame_t* apsFrame, uint8_t* message, uint16_t length);
+{% endif -%}
+{% endfor -%}
+
+{# RETRIEVE_ATTRIBUTE_AND_CRAFT_RESPONSE #}
+// Retrieve attribute and craft response
+bool sli_zigbee_af_retrieve_attribute_and_craft_response(uint8_t endpoint, sl_zigbee_af_cluster_id_t clusterId, sl_zigbee_af_attribute_id_t attrId, uint8_t mask, uint16_t maunfacturerCode, uint16_t readLength);
+{% for cb in zigbee_af_callback -%}
+{% if cb['callback_type'] == "retrieve_attribute_and_craft_response" -%}
+bool {{ cb['function_name'] }}(uint8_t endpoint, sl_zigbee_af_cluster_id_t clusterId, sl_zigbee_af_attribute_id_t attrId, uint8_t mask, uint16_t maunfacturerCode, uint16_t readLength);
+{% endif -%}
+{% endfor -%}
+
+{# READ_ATTRIBUTES_RESPONSE #}
+bool sli_zigbee_af_read_attributes_response(sl_zigbee_af_cluster_id_t clusterId, uint8_t* buffer, uint16_t bufLen);
+// Read attributes response
+bool sl_zigbee_af_read_attributes_response_cb(sl_zigbee_af_cluster_id_t clusterId, uint8_t* buffer, uint16_t bufLen);
+{% for cb in zigbee_af_callback -%}
+{% if cb['callback_type'] == "read_attributes_response" -%}
+bool {{ cb['function_name'] }}(sl_zigbee_af_cluster_id_t clusterId, uint8_t* buffer, uint16_t bufLen);
+{% endif -%}
+{% endfor -%}
+
+{# REPORT_ATTRIBUTES #}
+// Report attributes
+bool sli_zigbee_af_report_attributes(sl_zigbee_af_cluster_id_t clusterId, uint8_t * buffer, uint16_t bufLen);
+bool sl_zigbee_af_report_attributes_cb(sl_zigbee_af_cluster_id_t clusterId, uint8_t * buffer, uint16_t bufLen);
+{% for cb in zigbee_af_callback -%}
+{% if cb['callback_type'] == "report_attributes" -%}
+bool {{ cb['function_name'] }}(sl_zigbee_af_cluster_id_t clusterId, uint8_t * buffer, uint16_t bufLen);
+{% endif -%}
+{% endfor %}
+#endif // SL_ZIGBEE_AF_CALLBACK_DISPATCHER_H

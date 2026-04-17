@@ -1,0 +1,12 @@
+# Properties file for Simplicity Studio metadata
+id=uc.extension.wiseconnect3_sdk
+version=4.0.1
+label=WiSeConnect
+description=WiSeConnect SDK
+prop.subLabel=Wi-Fi\\ SDK\\ 4.0.1-alpha.71
+prop.file.templatesFile=bluetooth_le_siwx91x_app_templates.xml platform_siwx91x_app_templates.xml platform_nwp_siwx91x_app_templates.xml multi_protocol_siwx91x_app_templates.xml wifi_app_templates.xml
+prop.file.docsFile=wiseconnect_docs.xml
+prop.file.connectivityFirmwareFolders=connectivity_firmware
+prop.file.demosFile=platform_nwp_siwx91x_app_demos.xml wifi_app_demos.xml multi_protocol_siwx91x_app_demos.xml
+prop.boardCompatibility=.*
+prop.partCompatibility=.*si917.* .*siwg917m111mgtba.* .*siwg917m111xgtba.* .*siwg917m141xgtba.* .*siwg917m100xntba.* .*siwg917y111mgab.* .*siwg917y111mgnba.* .*siwg917y111mgnxa.* .*siwg917y110lgnba.* .*siwg917y110lgnxa.* .*siwg917y121mgnba.* .*siwg917y121mgnxa.* .*siwg917y111mgaba.* .*siwg917y111mgaxa.* .*siwg917y110lgaba.* .*siwg917y110lgaxa.* .*siwg917y121mgaba.* .*siwg917y121mgaxa.* .*siwg917y121mgnb.* .*siwg917m121xgtba.* .*siwg917m100mgtba.* .*siwg917m110lgtba.*

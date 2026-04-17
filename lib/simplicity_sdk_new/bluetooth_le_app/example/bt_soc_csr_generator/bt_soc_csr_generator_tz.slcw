@@ -1,0 +1,24 @@
+workspace_name: bt_soc_csr_generator_tz
+package: bluetooth_le_app
+label: Bluetooth - SoC Certificate Signing Request Generator (TrustZone)
+description: >
+  Certificate generating firmware workspace. Software is generating the device
+  EC key pair, the signing request for the device certificate, and other related
+  data. The generated data can be read out by the Central Authority.
+  This example utilizes TrustZone for storing keys.
+quality: experimental
+project:
+  - path: ../bt_soc_tz_secure_application/bt_soc_tz_secure_application.slcp
+    id: bt_soc_tz_secure_application
+    output: bt_soc_tz_secure_application
+  - path: bt_soc_csr_generator_tz_ns.slcp
+    id: bt_soc_tz_nonsecure_application
+    output: bt_soc_csr_generator_tz_ns
+  - path: ../../bootloader/bootloader-apploader-secure.slcp
+    id: bootloader-apploader-secure
+    output: bootloader-apploader-secure
+  - path: ../../bootloader/bootloader-apploader-nonsecure.slcp
+    id: bootloader-apploader-nonsecure
+    output: bootloader-apploader-nonsecure
+post_build:
+  path: ../../postbuild_profile/bt_tz_workspace_s2.slpb

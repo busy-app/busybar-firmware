@@ -1,0 +1,59 @@
+id: device_clock_hal
+label: Device Manager Clock HAL
+package: platform_core
+description: >
+  This component represent the clock HAL layer of the Device Manager.
+category: Services|Device Manager
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+ui_hints:
+  visibility: never
+provides:
+- name: device_clock_hal
+  condition: [device_sdid_200]
+- name: device_clock_hal
+  condition: [device_sdid_205]
+- name: device_clock_hal
+  condition: [device_sdid_210]
+- name: device_clock_hal
+  condition: [device_sdid_215]
+- name: device_clock_hal
+  condition: [device_sdid_220]
+- name: device_clock_hal
+  condition: [device_sdid_225]
+- name: device_clock_hal
+  condition: [device_sdid_230]
+- name: device_clock_hal
+  condition: [device_sdid_235]
+- name: device_clock_hal
+  condition: [device_sdid_240]
+- name: device_clock_hal
+  condition: [device_sdid_260]
+- name: device_clock_hal
+  condition: [device_generic_family_sixx301]
+requires:
+- name: device_clock
+root_path: platform_core/platform/service/device_manager
+source:
+- path: clocks/sl_device_clock_efr32xg22.c
+  condition: [device_sdid_205]
+- path: clocks/sl_device_clock_efr32xg23.c
+  condition: [device_sdid_210]
+- path: clocks/sl_device_clock_efr32xg24.c
+  condition: [device_sdid_215]
+- path: clocks/sl_device_clock_efr32xg25.c
+  condition: [device_sdid_220]
+- path: clocks/sl_device_clock_efr32xg26.c
+  condition: [device_sdid_225]
+- path: clocks/sl_device_clock_efr32xg27.c
+  condition: [device_sdid_230]
+- path: clocks/sl_device_clock_efr32xg28.c
+  condition: [device_sdid_235]
+- path: clocks/sl_device_clock_efr32xg29.c
+  condition: [device_sdid_240]
+- path: clocks/sl_device_clock_efr32xg2d.c
+  condition: [device_sdid_260]
+- path: clocks/sl_device_clock_sixx301.c
+  condition: [device_generic_family_sixx301]

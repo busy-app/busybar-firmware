@@ -1,0 +1,104 @@
+/***************************************************************************//**
+ * @file zigbee_ncp_callback_dispatcher.h
+ * @brief ZigBee ncp dispatcher declarations.
+ *******************************************************************************
+ * # License
+ * <b>Copyright 2020 Silicon Laboratories Inc. www.silabs.com</b>
+ *******************************************************************************
+ *
+ * The licensor of this software is Silicon Laboratories Inc. Your use of this
+ * software is governed by the terms of Silicon Labs Master Software License
+ * Agreement (MSLA) available at
+ * www.silabs.com/about-us/legal/master-software-license-agreement. This
+ * software is distributed to you in Source Code format and is governed by the
+ * sections of the MSLA applicable to Source Code.
+ *
+ ******************************************************************************/
+
+#ifndef SL_ZIGBEE_NCP_CALLBACK_DISPATCHER_H
+#define SL_ZIGBEE_NCP_CALLBACK_DISPATCHER_H
+
+#include PLATFORM_HEADER
+#include "stack/include/sl_zigbee.h"
+#include "app/em260/command-context.h" // sl_zigbee_af_plugin_ezsp_value_command_context_t
+
+{# GET_VALUE #}
+// get_value
+void sl_zigbee_af_ezsp_get_value_command_cb(sl_zigbee_af_plugin_ezsp_value_command_context_t* context);
+{% for cb in zigbee_ncp_callback -%}
+{% if cb['callback_type'] == "get_value" -%}
+void {{ cb['function_name'] }}(sl_zigbee_af_plugin_ezsp_value_command_context_t* context);
+{% endif -%}
+{% endfor %}
+
+
+{# GET_EXTENDED_VALUE #}
+void sl_zigbee_af_ezsp_get_extended_value_command_cb(sl_zigbee_af_plugin_ezsp_value_command_context_t* context);
+{%- for cb in zigbee_ncp_callback %}
+{%- if cb['callback_type'] == "get_extended_value" %}
+void {{ cb['function_name'] }}(sl_zigbee_af_plugin_ezsp_value_command_context_t* context);
+{%- endif %}
+{%- endfor %}
+
+
+{# SET_VALUE #}
+void sl_zigbee_af_ezsp_set_value_command_cb(sl_zigbee_af_plugin_ezsp_value_command_context_t* context);
+{%- for cb in zigbee_ncp_callback %}
+{%- if cb['callback_type'] == "set_value" %}
+void {{ cb['function_name'] }}(sl_zigbee_af_plugin_ezsp_value_command_context_t* context);
+{%- endif %}
+{%- endfor %}
+
+
+{# GET_POLICY #}
+void sl_zigbee_af_ezsp_get_policy_command_cb(sl_zigbee_af_plugin_ezsp_policy_command_context_t* context);
+{%- for cb in zigbee_ncp_callback %}
+{%- if cb['callback_type'] == "get_policy" %}
+void {{ cb['function_name'] }}(sl_zigbee_af_plugin_ezsp_policy_command_context_t* context);
+{%- endif %}
+{%- endfor %}
+
+
+{# SET_POLICY #}
+void sl_zigbee_af_ezsp_set_policy_command_cb(sl_zigbee_af_plugin_ezsp_policy_command_context_t* context);
+{%- for cb in zigbee_ncp_callback %}
+{%- if cb['callback_type'] == "set_policy" %}
+void  {{ cb['function_name'] }}(sl_zigbee_af_plugin_ezsp_policy_command_context_t* context);
+{%- endif %}
+{%- endfor %}
+
+{# GET_CONFIGURATION_VALUE #}
+void sl_zigbee_af_ezsp_get_configuration_value_command_cb(sl_zigbee_af_plugin_ezsp_configuration_value_command_context_t* context);
+{%- for cb in zigbee_ncp_callback %}
+{%- if cb['callback_type'] == "get_configuration_value" %}
+void {{ cb['function_name'] }}(sl_zigbee_af_plugin_ezsp_configuration_value_command_context_t* context);
+{%- endif %}
+{%- endfor %}
+
+
+{# SET_CONFIGURATION_VALUE #}
+void sl_zigbee_af_ezsp_set_configuration_value_command_cb(sl_zigbee_af_plugin_ezsp_configuration_value_command_context_t* context);
+{%- for cb in zigbee_ncp_callback %}
+{%- if cb['callback_type'] == "set_configuration_value" %}
+void {{ cb['function_name'] }}(sl_zigbee_af_plugin_ezsp_configuration_value_command_context_t* context);
+{%- endif %}
+{%- endfor %}
+
+{# MODIFY_MEMORY_ALLOCATION #}
+void sl_zigbee_xncp_modify_memory_allocation_cb(void);
+{%- for cb in zigbee_ncp_callback %}
+{%- if cb['callback_type'] == "modify_memory_allocation" %}
+void {{ cb['function_name'] }}(void);
+{%- endif %}
+{%- endfor %}
+
+
+{# PERMIT_HOST_TO_NCP_FRAME #}
+void sl_zigbee_xncp_permit_host_to_ncp_frame_cb(bool* permit);
+{%- for cb in zigbee_ncp_callback %}
+{%- if cb['callback_type'] == "permit_host_to_ncp_frame" %}
+void {{ cb['function_name'] }}(bool* permit);
+{%- endif %}
+{%- endfor %}
+
+#endif // SL_ZIGBEE_NCP_CALLBACK_DISPATCHER_H

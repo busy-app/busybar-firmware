@@ -1,0 +1,529 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__test" kind="group">
+    <compoundname>sl_bt_test</compoundname>
+    <title>Testing Commands</title>
+    <innergroup refid="group__sl__bt__evt__test__dtm__completed">sl_bt_evt_test_dtm_completed</innergroup>
+      <sectiondef kind="enum">
+      <memberdef kind="enum" id="group__sl__bt__test_1ga5cd6efcb00f31a090c3534f5e08cbdc7" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_bt_test_packet_type_t</name>
+        <enumvalue id="group__sl__bt__test_1gga5cd6efcb00f31a090c3534f5e08cbdc7a657093f522ff5d9b1df449992005bbad" prot="public">
+          <name>sl_bt_test_pkt_prbs9</name>
+          <initializer>= 0x0</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x0) PRBS9 packet payload </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__test_1gga5cd6efcb00f31a090c3534f5e08cbdc7aec25fca9fb81ebf7faa6bcc695b0fc65" prot="public">
+          <name>sl_bt_test_pkt_11110000</name>
+          <initializer>= 0x1</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x1) 11110000 packet payload </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__test_1gga5cd6efcb00f31a090c3534f5e08cbdc7abd7100bdda52ca8d877b9eb449c46273" prot="public">
+          <name>sl_bt_test_pkt_10101010</name>
+          <initializer>= 0x2</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x2) 10101010 packet payload </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__test_1gga5cd6efcb00f31a090c3534f5e08cbdc7a2e8a86ab33a0d5ec7435a9e90d80b800" prot="public">
+          <name>sl_bt_test_pkt_11111111</name>
+          <initializer>= 0x4</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x4) 11111111 packet payload </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__test_1gga5cd6efcb00f31a090c3534f5e08cbdc7adb4d17b599b9af1b695a3a9672abbdec" prot="public">
+          <name>sl_bt_test_pkt_00000000</name>
+          <initializer>= 0x5</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x5) 00000000 packet payload </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__test_1gga5cd6efcb00f31a090c3534f5e08cbdc7a4ea9a0c87e037c2f3b99350d0aca6f45" prot="public">
+          <name>sl_bt_test_pkt_00001111</name>
+          <initializer>= 0x6</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x6) 00001111 packet payload </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__test_1gga5cd6efcb00f31a090c3534f5e08cbdc7a409c1b10e753c64bb2aaf8003c689a17" prot="public">
+          <name>sl_bt_test_pkt_01010101</name>
+          <initializer>= 0x7</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x7) 01010101 packet payload </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__test_1gga5cd6efcb00f31a090c3534f5e08cbdc7ad15a8e241e1b15499c82ec66505968ef" prot="public">
+          <name>sl_bt_test_pkt_pn9</name>
+          <initializer>= 0xfd</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0xfd) PN9 continuously modulated output </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__test_1gga5cd6efcb00f31a090c3534f5e08cbdc7af022bf24b54abaa16383b1c7f031d535" prot="public">
+          <name>sl_bt_test_pkt_carrier</name>
+          <initializer>= 0xfe</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0xfe) Unmodulated carrier </para>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>Test packet types supported by the stack. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="10874" column="1" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="10875" bodyend="10885"/>
+      </memberdef>
+      <memberdef kind="enum" id="group__sl__bt__test_1ga35a5e3ed16a6fc6186b45b47565759bc" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_bt_test_phy_t</name>
+        <enumvalue id="group__sl__bt__test_1gga35a5e3ed16a6fc6186b45b47565759bca3b5ee041bf2ea45832647b4bbaa56015" prot="public">
+          <name>sl_bt_test_phy_1m</name>
+          <initializer>= 0x1</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x1) 1M PHY </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__test_1gga35a5e3ed16a6fc6186b45b47565759bca5f40998ac85a463655865e766b4a0048" prot="public">
+          <name>sl_bt_test_phy_2m</name>
+          <initializer>= 0x2</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x2) 2M PHY </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__test_1gga35a5e3ed16a6fc6186b45b47565759bca01a0236cd52a1bd0a23c8432a79da6b9" prot="public">
+          <name>sl_bt_test_phy_125k</name>
+          <initializer>= 0x3</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x3) 125k Coded PHY </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__test_1gga35a5e3ed16a6fc6186b45b47565759bcafd540a3bb1564a1216f06879b881e5ab" prot="public">
+          <name>sl_bt_test_phy_500k</name>
+          <initializer>= 0x4</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x4) 500k Coded PHY </para>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>Test PHY types. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="10890" column="1" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="10891" bodyend="10896"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="group__sl__bt__test_1ga9cbb848ae0ff9dd24ba1ca5bb9c547a4" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_test_dtm_tx_v4</definition>
+        <argsstring>(uint8_t packet_type, uint8_t length, uint8_t channel, uint8_t phy, int8_t power_level)</argsstring>
+        <name>sl_bt_test_dtm_tx_v4</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>packet_type</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>length</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>channel</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>phy</declname>
+        </param>
+        <param>
+          <type>int8_t</type>
+          <declname>power_level</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Start a transmitter test against a separate Bluetooth tester device. When the command is processed by the radio, a <ref refid="group__sl__bt__evt__test__dtm__completed" kindref="compound">sl_bt_evt_test_dtm_completed</ref> event is triggered. This event indicates whether the test started successfully.</para>
+<para>In the transmitter test, the device sends packets continuously with a fixed interval. The type and length of each packet is set by <computeroutput>packet_type</computeroutput> and <computeroutput>length</computeroutput> parameters. The parameter <computeroutput>phy</computeroutput> specifies which PHY is used to transmit the packets. All devices support at least 1M PHY.</para>
+<para>Stop the test using the <ref refid="group__sl__bt__test_1ga7f995817c8e2ec75377cc17e4e1ff233" kindref="member">sl_bt_test_dtm_end</ref> command.</para>
+<para>For transmitter test with packet type <ref refid="group__sl__bt__test_1gga5cd6efcb00f31a090c3534f5e08cbdc7ad15a8e241e1b15499c82ec66505968ef" kindref="member">sl_bt_test_pkt_pn9</ref> or <ref refid="group__sl__bt__test_1gga5cd6efcb00f31a090c3534f5e08cbdc7af022bf24b54abaa16383b1c7f031d535" kindref="member">sl_bt_test_pkt_carrier</ref>, use the <ref refid="group__sl__bt__test_1gadf47a095a35889c5fe86d59fddf86970" kindref="member">sl_bt_test_dtm_tx_cw</ref> command.</para>
+<para>Starting a transmitter test while other Bluetooth activities are active will either result in an error response or cause functionality issues, hence make sure other Bluetooth activities are stopped when performing the test.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">packet_type</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Enum <ref refid="group__sl__bt__test_1ga5cd6efcb00f31a090c3534f5e08cbdc7" kindref="member">sl_bt_test_packet_type_t</ref>. Packet type to transmit. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_test_pkt_prbs9 (0x0):</bold> PRBS9 packet payload</para>
+</listitem><listitem><para><bold>sl_bt_test_pkt_11110000 (0x1):</bold> 11110000 packet payload</para>
+</listitem><listitem><para><bold>sl_bt_test_pkt_10101010 (0x2):</bold> 10101010 packet payload</para>
+</listitem><listitem><para><bold>sl_bt_test_pkt_11111111 (0x4):</bold> 11111111 packet payload</para>
+</listitem><listitem><para><bold>sl_bt_test_pkt_00000000 (0x5):</bold> 00000000 packet payload</para>
+</listitem><listitem><para><bold>sl_bt_test_pkt_00001111 (0x6):</bold> 00001111 packet payload</para>
+</listitem><listitem><para><bold>sl_bt_test_pkt_01010101 (0x7):</bold> 01010101 packet payload </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">length</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Packet length in bytes<itemizedlist>
+<listitem><para><bold>Range:</bold> 0 to 255 </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">channel</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Bluetooth channel. Channel is (F - 2402) / 2, where F is frequency in MHz.<itemizedlist>
+<listitem><para><bold>Range:</bold> 0 (2402 MHz) to 39 (2480 MHz) </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">phy</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Enum <ref refid="group__sl__bt__test_1ga35a5e3ed16a6fc6186b45b47565759bc" kindref="member">sl_bt_test_phy_t</ref>. PHY to use. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_test_phy_1m (0x1):</bold> 1M PHY</para>
+</listitem><listitem><para><bold>sl_bt_test_phy_2m (0x2):</bold> 2M PHY</para>
+</listitem><listitem><para><bold>sl_bt_test_phy_125k (0x3):</bold> 125k Coded PHY</para>
+</listitem><listitem><para><bold>sl_bt_test_phy_500k (0x4):</bold> 500k Coded PHY </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">power_level</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>TX power level in unit dBm. Use specified or the nearest TX power level. The minimum -127 dBm is specified in the Bluetooth specification. However, a device may not support this low TX power. In addition, only some devices support 20 dBm TX power. Effective TX power will be limited by the global system TX power that can be set with the <ref refid="group__sl__bt__system_1ga19566861d594376a52e2e1e7481bef68" kindref="member">sl_bt_system_set_tx_power</ref> command. Values:<itemizedlist>
+<listitem><para><bold>Range:</bold> -127 to +20</para>
+</listitem><listitem><para><bold>0x7E:</bold> Use minimum TX power level the device supports.</para>
+</listitem><listitem><para><bold>0x7F:</bold> Use the smallest of the maximum TX power level the device supports and the global maximum TX power setting in stack. </para>
+</listitem></itemizedlist>
+</para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+<para><simplesect kind="return"><para>Command result</para>
+</simplesect>
+<bold>Events</bold> <itemizedlist>
+<listitem><para><ref refid="group__sl__bt__evt__test__dtm__completed" kindref="compound">sl_bt_evt_test_dtm_completed</ref> - This event is received when the command is processed. </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="10989" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="10989" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__test_1gadf47a095a35889c5fe86d59fddf86970" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_test_dtm_tx_cw</definition>
+        <argsstring>(uint8_t packet_type, uint8_t channel, uint8_t phy, int16_t power_level)</argsstring>
+        <name>sl_bt_test_dtm_tx_cw</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>packet_type</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>channel</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>phy</declname>
+        </param>
+        <param>
+          <type>int16_t</type>
+          <declname>power_level</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Start a transmitter test for a custom wave. When the command is processed by the radio, a <ref refid="group__sl__bt__evt__test__dtm__completed" kindref="compound">sl_bt_evt_test_dtm_completed</ref> event is triggered. This event indicates whether the test started successfully.</para>
+<para>In the custom wave transmitter test, the device continuously transmits the career. The parameter <computeroutput>packet_type</computeroutput> specifies the packet type. The parameter <computeroutput>phy</computeroutput> specifies which PHY is used to transmit the packets. All devices support at least 1M PHY.</para>
+<para>Stop the test using the <ref refid="group__sl__bt__test_1ga7f995817c8e2ec75377cc17e4e1ff233" kindref="member">sl_bt_test_dtm_end</ref> command.</para>
+<para>Starting a transmitter test while other Bluetooth activities are active will either result in an error response or cause functionality issues, hence make sure other Bluetooth activities are stopped when performing the test.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">packet_type</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Enum <ref refid="group__sl__bt__test_1ga5cd6efcb00f31a090c3534f5e08cbdc7" kindref="member">sl_bt_test_packet_type_t</ref>. Packet type to transmit. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_test_pkt_pn9 (0xfd):</bold> PN9 continuously modulated output</para>
+</listitem><listitem><para><bold>sl_bt_test_pkt_carrier (0xfe):</bold> Unmodulated carrier </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">channel</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Bluetooth channel. Channel is (F - 2402) / 2,where F is frequency in MHz.<itemizedlist>
+<listitem><para><bold>Range:</bold> 0 to 39 </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">phy</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Enum <ref refid="group__sl__bt__test_1ga35a5e3ed16a6fc6186b45b47565759bc" kindref="member">sl_bt_test_phy_t</ref>. PHY to use. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_test_phy_1m (0x1):</bold> 1M PHY</para>
+</listitem><listitem><para><bold>sl_bt_test_phy_2m (0x2):</bold> 2M PHY</para>
+</listitem><listitem><para><bold>sl_bt_test_phy_125k (0x3):</bold> 125k Coded PHY</para>
+</listitem><listitem><para><bold>sl_bt_test_phy_500k (0x4):</bold> 500k Coded PHY </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">power_level</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>TX power level. Unit: 0.1 dBm.</para>
+<para>If the value exceeds the range of power level value, allowed by the device, the command will adjust the power level to the closest minimum or maximum value. </para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+<para><simplesect kind="return"><para>Command result</para>
+</simplesect>
+<bold>Events</bold> <itemizedlist>
+<listitem><para><ref refid="group__sl__bt__evt__test__dtm__completed" kindref="compound">sl_bt_evt_test_dtm_completed</ref> - This event is received when the command is processed. </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11039" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="11039" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__test_1gaf05ab5487716fdc835037f5febcae0d2" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_test_dtm_rx</definition>
+        <argsstring>(uint8_t channel, uint8_t phy)</argsstring>
+        <name>sl_bt_test_dtm_rx</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>channel</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>phy</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Start a receiver test against a separate Bluetooth tester device. When the command is processed by the radio, a <ref refid="group__sl__bt__evt__test__dtm__completed" kindref="compound">sl_bt_evt_test_dtm_completed</ref> event is triggered. This event indicates whether the test started successfully.</para>
+<para>Parameter <computeroutput>phy</computeroutput> specifies which PHY is used to receive the packets. All devices support at least 1M PHY.</para>
+<para>The test may be stopped using <ref refid="group__sl__bt__test_1ga7f995817c8e2ec75377cc17e4e1ff233" kindref="member">sl_bt_test_dtm_end</ref> command. This will trigger another <ref refid="group__sl__bt__evt__test__dtm__completed" kindref="compound">sl_bt_evt_test_dtm_completed</ref> event, which carries the number of packets received during the test.</para>
+<para>Starting a receiver test while other Bluetooth activities are active will either result in an error response or cause functionality issues, hence make sure other Bluetooth activities are stopped when performing the test.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">channel</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Bluetooth channel. Channel is (F - 2402) / 2, where F is frequency in MHz.<itemizedlist>
+<listitem><para><bold>Range:</bold> 0 to 39 </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">phy</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Enum <ref refid="group__sl__bt__test_1ga35a5e3ed16a6fc6186b45b47565759bc" kindref="member">sl_bt_test_phy_t</ref>. PHY to use. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_test_phy_1m (0x1):</bold> 1M PHY</para>
+</listitem><listitem><para><bold>sl_bt_test_phy_2m (0x2):</bold> 2M PHY</para>
+</listitem><listitem><para><bold>sl_bt_test_phy_125k (0x3):</bold> 125k Coded PHY</para>
+</listitem><listitem><para><bold>sl_bt_test_phy_500k (0x4):</bold> 500k Coded PHY</para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Command result</para>
+</simplesect>
+<bold>Events</bold> <itemizedlist>
+<listitem><para><ref refid="group__sl__bt__evt__test__dtm__completed" kindref="compound">sl_bt_evt_test_dtm_completed</ref> - This event is received when the command is processed. </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11077" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="11077" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__test_1ga7f995817c8e2ec75377cc17e4e1ff233" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_test_dtm_end</definition>
+        <argsstring>(void)</argsstring>
+        <name>sl_bt_test_dtm_end</name>
+        <param>
+          <type>void</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>End a transmitter or a receiver test. When the command is processed by the radio and the test has ended, a <ref refid="group__sl__bt__evt__test__dtm__completed" kindref="compound">sl_bt_evt_test_dtm_completed</ref> event is triggered.</para>
+<para><simplesect kind="return"><para>Command result</para>
+</simplesect>
+<bold>Events</bold> <itemizedlist>
+<listitem><para><ref refid="group__sl__bt__evt__test__dtm__completed" kindref="compound">sl_bt_evt_test_dtm_completed</ref> - Received when the command is processed by the radio and the test has ended. </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11093" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="11093" declcolumn="13"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__test_1ga4db65d08254eb2f0321d76c40320d6ca" prot="public" static="no">
+        <name>sl_bt_cmd_test_dtm_tx_v4_id</name>
+        <initializer>0x030e0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="10862" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="10862" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__test_1ga2c4a76bf9ad5c58ded7dc64ebf5665a6" prot="public" static="no">
+        <name>sl_bt_cmd_test_dtm_tx_cw_id</name>
+        <initializer>0x040e0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="10863" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="10863" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__test_1ga2227cc695877b1774f06d481873a2749" prot="public" static="no">
+        <name>sl_bt_cmd_test_dtm_rx_id</name>
+        <initializer>0x010e0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="10864" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="10864" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__test_1ga3d915e018d2eb5c0fc76ce71c162f8b3" prot="public" static="no">
+        <name>sl_bt_cmd_test_dtm_end_id</name>
+        <initializer>0x020e0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="10865" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="10865" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__test_1gac32c15436a356f4766e42311992d16da" prot="public" static="no">
+        <name>sl_bt_rsp_test_dtm_tx_v4_id</name>
+        <initializer>0x030e0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="10866" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="10866" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__test_1ga1197ea908d531f92d4d7dcccdb60c595" prot="public" static="no">
+        <name>sl_bt_rsp_test_dtm_tx_cw_id</name>
+        <initializer>0x040e0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="10867" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="10867" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__test_1ga1b5cf68e78594f34937e9b2ff3899661" prot="public" static="no">
+        <name>sl_bt_rsp_test_dtm_rx_id</name>
+        <initializer>0x010e0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="10868" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="10868" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__test_1gaaaf1fe8ed18bdb4128e23dee56171140" prot="public" static="no">
+        <name>sl_bt_rsp_test_dtm_end_id</name>
+        <initializer>0x020e0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="10869" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="10869" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Testing Commands. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

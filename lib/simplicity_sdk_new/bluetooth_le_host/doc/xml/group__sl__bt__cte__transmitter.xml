@@ -1,0 +1,654 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__cte__transmitter" kind="group">
+    <compoundname>sl_bt_cte_transmitter</compoundname>
+    <title>CTE Transmitter</title>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="group__sl__bt__cte__transmitter_1ga8705c768c81053b54e7e3f23d23749ad" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_cte_transmitter_set_dtm_parameters</definition>
+        <argsstring>(uint8_t cte_length, uint8_t cte_type, size_t switching_pattern_len, const uint8_t *switching_pattern)</argsstring>
+        <name>sl_bt_cte_transmitter_set_dtm_parameters</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>cte_length</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>cte_type</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>switching_pattern_len</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>switching_pattern</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Set the CTE-related parameters of the LE transmitter test.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">cte_length</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>The length of the Constant Tone Extension in 8 us units<itemizedlist>
+<listitem><para><bold>0:</bold> No CTE</para>
+</listitem><listitem><para><bold>0x02 to 0x14:</bold> CTE length</para>
+</listitem></itemizedlist>
+</para>
+<para>Default: 0 (no CTE) </para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">cte_type</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>CTE type<itemizedlist>
+<listitem><para><bold>0:</bold> AoA CTE</para>
+</listitem><listitem><para><bold>1:</bold> AoD CTE with 1 us slots</para>
+</listitem><listitem><para><bold>2:</bold> AoD CTE with 2 us slots</para>
+</listitem></itemizedlist>
+</para>
+<para>Default: 0 </para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">switching_pattern_len</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Length of data in <computeroutput>switching_pattern</computeroutput> </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">switching_pattern</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Antenna switching pattern. Antennas will be switched in this order with the antenna switch pins during CTE. If the CTE is longer than the switching pattern, the pattern starts over. This can be an empty array if CTE is unused.</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15294" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="15294" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__cte__transmitter_1gaecc51cb9464cb879252c83ac7d44e440" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_cte_transmitter_clear_dtm_parameters</definition>
+        <argsstring>(void)</argsstring>
+        <name>sl_bt_cte_transmitter_clear_dtm_parameters</name>
+        <param>
+          <type>void</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Clear CTE-related parameters that were previously set for LE transmitter test. Default values will be restored for these parameters.</para>
+<para><simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15308" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="15308" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__cte__transmitter_1ga100e182e00da9899cc3a139e6607c97f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_cte_transmitter_enable_connection_cte</definition>
+        <argsstring>(uint8_t connection, uint8_t cte_types, size_t switching_pattern_len, const uint8_t *switching_pattern)</argsstring>
+        <name>sl_bt_cte_transmitter_enable_connection_cte</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>connection</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>cte_types</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>switching_pattern_len</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>switching_pattern</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Enable different types of CTE responses on a connection. CTE response will be sent once requested by the peer device using the CTE Request procedure.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">connection</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Connection handle </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">cte_types</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>CTE types. Bitmask of the following:<itemizedlist>
+<listitem><para><bold>Bit 0:</bold> AoA CTE response</para>
+</listitem><listitem><para><bold>Bit 1:</bold> AoD CTE response with 1 us slots</para>
+</listitem><listitem><para><bold>Bit 2:</bold> AoD CTE response with 2 us slots </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">switching_pattern_len</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Length of data in <computeroutput>switching_pattern</computeroutput> </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">switching_pattern</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Antenna switching pattern. Antennas will be switched in this order with the antenna switch pins during CTE. If the CTE is longer than the switching pattern, the pattern starts over.</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15328" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="15328" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__cte__transmitter_1ga56dc1dfec3171de6696854e8f789687a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_cte_transmitter_disable_connection_cte</definition>
+        <argsstring>(uint8_t connection)</argsstring>
+        <name>sl_bt_cte_transmitter_disable_connection_cte</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>connection</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Disable CTE responses on a connection.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">connection</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Connection handle</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15342" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="15342" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__cte__transmitter_1gacdbabf1631b58dc2d659237e3eb9fda1" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_cte_transmitter_enable_connectionless_cte</definition>
+        <argsstring>(uint8_t handle, uint8_t cte_length, uint8_t cte_type, uint8_t cte_count, size_t switching_pattern_len, const uint8_t *switching_pattern)</argsstring>
+        <name>sl_bt_cte_transmitter_enable_connectionless_cte</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>handle</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>cte_length</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>cte_type</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>cte_count</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>switching_pattern_len</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>switching_pattern</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Start a connectionless CTE transmit. CTEs will be transmitted in periodic advertisement packets. As a result, a periodic advertising has to be started prior to this command.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">handle</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Periodic advertising handle </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">cte_length</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>CTE length in 8 us units.<itemizedlist>
+<listitem><para><bold>Range:</bold> 2 to 20</para>
+</listitem><listitem><para>Time Range: 16 us to 160 us </para>
+</listitem></itemizedlist>
+</para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">cte_type</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>CTE type<itemizedlist>
+<listitem><para><bold>0:</bold> AoA CTE</para>
+</listitem><listitem><para><bold>1:</bold> AoD CTE with 1 us slots</para>
+</listitem><listitem><para><bold>2:</bold> AoD CTE with 2 us slots </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">cte_count</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The number of CTEs to be transmitted in each periodic advertising interval </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">switching_pattern_len</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Length of data in <computeroutput>switching_pattern</computeroutput> </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">switching_pattern</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Antenna switching pattern. Antennas will be switched in this order with the antenna switch pins during CTE. If the CTE is longer than the switching pattern, the pattern starts over.</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15371" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="15371" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__cte__transmitter_1gafd5d95cd625aaa163c0f103ab86711ae" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_cte_transmitter_disable_connectionless_cte</definition>
+        <argsstring>(uint8_t handle)</argsstring>
+        <name>sl_bt_cte_transmitter_disable_connectionless_cte</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>handle</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Stop the connectionless CTE transmit.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">handle</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Periodic advertising handle</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15387" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="15387" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__cte__transmitter_1gaac66f1e515d77503acb80471265d8726" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_cte_transmitter_enable_silabs_cte</definition>
+        <argsstring>(uint8_t handle, uint8_t cte_length, uint8_t cte_type, uint8_t cte_count, size_t switching_pattern_len, const uint8_t *switching_pattern)</argsstring>
+        <name>sl_bt_cte_transmitter_enable_silabs_cte</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>handle</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>cte_length</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>cte_type</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>cte_count</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>switching_pattern_len</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>switching_pattern</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Enable Silicon Labs CTE transmit. CTEs will be transmitted in extended advertisement packets. As a result, extended advertising has to be started prior this command.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">handle</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Advertising handle </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">cte_length</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>CTE length in 8 us units.<itemizedlist>
+<listitem><para><bold>Range:</bold> 2 to 20</para>
+</listitem><listitem><para>Time Range: 16 us to 160 us </para>
+</listitem></itemizedlist>
+</para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">cte_type</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>CTE type<itemizedlist>
+<listitem><para><bold>0:</bold> AoA CTE</para>
+</listitem><listitem><para><bold>1:</bold> AoD CTE with 1 us slots</para>
+</listitem><listitem><para><bold>2:</bold> AoD CTE with 2 us slots </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">cte_count</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The number of CTEs to be transmitted in each extended advertising interval. Currently, only cte_count = 1 is supported. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">switching_pattern_len</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Length of data in <computeroutput>switching_pattern</computeroutput> </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">switching_pattern</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Antenna switching pattern. Antennas will be switched in this order with the antenna switch pins during CTE. If the CTE is longer than the switching pattern, the pattern starts over.</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15416" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="15416" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__cte__transmitter_1ga49515ce07ca91c02e2ae683c1054d64d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_cte_transmitter_disable_silabs_cte</definition>
+        <argsstring>(uint8_t handle)</argsstring>
+        <name>sl_bt_cte_transmitter_disable_silabs_cte</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>handle</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Disable Silicon Labs CTE transmit.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">handle</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Advertising handle</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15432" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="15432" declcolumn="13"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__cte__transmitter_1gae512915f3d600b5bffd80e44d736c391" prot="public" static="no">
+        <name>sl_bt_cmd_cte_transmitter_set_dtm_parameters_id</name>
+        <initializer>0x04440020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15249" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="15249" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__cte__transmitter_1gaf9b06a7e5ce85c5d9048cacac78c2bed" prot="public" static="no">
+        <name>sl_bt_cmd_cte_transmitter_clear_dtm_parameters_id</name>
+        <initializer>0x05440020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15250" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="15250" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__cte__transmitter_1ga37c82fc54dcbde364bbc1f6ec17b82d7" prot="public" static="no">
+        <name>sl_bt_cmd_cte_transmitter_enable_connection_cte_id</name>
+        <initializer>0x00440020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15251" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="15251" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__cte__transmitter_1gaa1dddbdcdf6530bb9045306703fd763b" prot="public" static="no">
+        <name>sl_bt_cmd_cte_transmitter_disable_connection_cte_id</name>
+        <initializer>0x01440020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15252" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="15252" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__cte__transmitter_1ga6401a3762ff90998d8c997cd889b44a9" prot="public" static="no">
+        <name>sl_bt_cmd_cte_transmitter_enable_connectionless_cte_id</name>
+        <initializer>0x02440020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15253" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="15253" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__cte__transmitter_1ga921d5fd4941716889cba70f4c5b0ec12" prot="public" static="no">
+        <name>sl_bt_cmd_cte_transmitter_disable_connectionless_cte_id</name>
+        <initializer>0x03440020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15254" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="15254" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__cte__transmitter_1gaeebb18b34310add03eaaa4a872f10fc6" prot="public" static="no">
+        <name>sl_bt_cmd_cte_transmitter_enable_silabs_cte_id</name>
+        <initializer>0x06440020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15255" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="15255" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__cte__transmitter_1ga85dd8ef2fb4e8eae8d253c7264e2fd1f" prot="public" static="no">
+        <name>sl_bt_cmd_cte_transmitter_disable_silabs_cte_id</name>
+        <initializer>0x07440020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15256" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="15256" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__cte__transmitter_1ga0446a4aaae01b1796290c6a8c1256d56" prot="public" static="no">
+        <name>sl_bt_rsp_cte_transmitter_set_dtm_parameters_id</name>
+        <initializer>0x04440020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15257" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="15257" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__cte__transmitter_1gadbca381dc758a4a4d27a460b5cd57875" prot="public" static="no">
+        <name>sl_bt_rsp_cte_transmitter_clear_dtm_parameters_id</name>
+        <initializer>0x05440020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15258" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="15258" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__cte__transmitter_1gabab21180090a26265c54042f1b56b4b2" prot="public" static="no">
+        <name>sl_bt_rsp_cte_transmitter_enable_connection_cte_id</name>
+        <initializer>0x00440020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15259" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="15259" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__cte__transmitter_1gab8405af6cccdd2db6dff73bdc820c383" prot="public" static="no">
+        <name>sl_bt_rsp_cte_transmitter_disable_connection_cte_id</name>
+        <initializer>0x01440020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15260" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="15260" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__cte__transmitter_1gad08219d4724e44a018f6c940f343038b" prot="public" static="no">
+        <name>sl_bt_rsp_cte_transmitter_enable_connectionless_cte_id</name>
+        <initializer>0x02440020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15261" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="15261" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__cte__transmitter_1ga701385bcc9f96ee7795cc393c1fcf2a6" prot="public" static="no">
+        <name>sl_bt_rsp_cte_transmitter_disable_connectionless_cte_id</name>
+        <initializer>0x03440020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15262" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="15262" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__cte__transmitter_1ga0aa2aad01b274ee4d949fa89f638646b" prot="public" static="no">
+        <name>sl_bt_rsp_cte_transmitter_enable_silabs_cte_id</name>
+        <initializer>0x06440020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15263" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="15263" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__cte__transmitter_1ga690676b958d8822f37efb3dc692e2cbe" prot="public" static="no">
+        <name>sl_bt_rsp_cte_transmitter_disable_silabs_cte_id</name>
+        <initializer>0x07440020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15264" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="15264" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>CTE Transmitter. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>Commands and events in this class manage Constant Tone Extension (CTE) transmission.</para>
+<para>CTE feature is only supported by specific devices. Commands from this class will return SL_STATUS_NOT_SUPPORTED on devices that do not support CTE. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

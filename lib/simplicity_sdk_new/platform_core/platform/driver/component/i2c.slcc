@@ -1,0 +1,43 @@
+id: i2c
+package: platform_core
+label: I2C
+description: >
+  This is an I2C HLD Driver that supports both master and slave modes in
+  both blocking and non-blocking types of transfers.
+
+  This component is instantiable, meaning that several named instances can be
+  created. For each instance a configuration is generated along with an
+  initialization struct set according to this configuration. These instance
+  defines and variables are available in a generated header file,
+  sl_i2c_instances.h.
+
+  If the Services->Runtime->System Setup->sl_main component is included in
+  a project, the driver instances will be initialized automatically, using the
+  instance configurations, during the sli_main_init() call in main.c or in the
+  start task when using an RTOS.
+
+  Selecting this component will include the I2C Core component,
+  which is the implementation of the I2C driver itself.
+category: Platform|Driver|I2C
+quality: evaluation
+metadata:
+  sbom:
+    license: Zlib
+root_path: platform_core/platform/driver/i2c
+instantiable:
+  prefix: instance
+config_file:
+- path: "config/s2/sl_i2c_{{instance}}_config.h"
+  file_id: i2c_config
+  condition: [device_series_2]
+- path: "config/s3/sl_i2c_{{instance}}_config.h"
+  file_id: i2c_config
+  condition: [device_series_3]
+provides:
+- name: i2c
+  allow_multiple: true
+requires:
+- name: i2c_core
+template_contribution:
+- name: i2c_instances
+  value: "{{instance}}"

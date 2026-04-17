@@ -1,0 +1,42 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__evt__connection__set__parameters__failed" kind="group">
+    <compoundname>sl_bt_evt_connection_set_parameters_failed</compoundname>
+    <title>sl_bt_evt_connection_set_parameters_failed</title>
+    <innerclass refid="structsl__bt__evt__connection__set__parameters__failed__s" prot="public">sl_bt_evt_connection_set_parameters_failed_s</innerclass>
+      <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="group__sl__bt__evt__connection__set__parameters__failed_1gafb17979583ea0ab30268ba5fbb3eda96" prot="public" static="no">
+        <type>struct <ref refid="structsl__bt__evt__connection__set__parameters__failed__s" kindref="compound">sl_bt_evt_connection_set_parameters_failed_s</ref></type>
+        <definition>typedef struct sl_bt_evt_connection_set_parameters_failed_s sl_bt_evt_connection_set_parameters_failed_t</definition>
+        <argsstring></argsstring>
+        <name>sl_bt_evt_connection_set_parameters_failed_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6497" column="59" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6497" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__evt__connection__set__parameters__failed_1ga747061a9b61f5dcea2bf49a028c75340" prot="public" static="no">
+        <name>sl_bt_evt_connection_set_parameters_failed_id</name>
+        <initializer>0x100600a0</initializer>
+        <briefdescription>
+<para>Identifier of the set_parameters_failed event. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6487" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6487" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Triggered when the peer device rejected an L2CAP connection parameter update request as a result of calling command <ref refid="group__sl__bt__connection_1ga322a5f4020bef878c5fb309371d1f867" kindref="member">sl_bt_connection_set_parameters</ref> to change connection parameters on the <ref refid="group__sl__bt__connection_1ggab7587d83e86c8d88ecd98f7d20af9ab6a4ef4abde4e72cb4a362bb7092c8b79f4" kindref="member">sl_bt_connection_role_peripheral</ref> role. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

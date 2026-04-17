@@ -1,0 +1,16 @@
+workspace_name: bt_soc_in_place_ota_dfu_micriumos_btl
+label: Bluetooth - SoC In-Place OTA DFU Micrium OS
+package: bluetooth_le_app
+description: >
+  A minimal project structure, that serves as a starting point for custom
+  Bluetooth applications that provides Over-The-Air device firmware update
+  using an apploader.
+  Combined solution with application and bootloader projects.
+quality: experimental
+project:
+  - path: bt_soc_in_place_ota_dfu_micriumos.slcp
+    id: application
+  - path: ../../bootloader/bootloader-apploader.slcp
+    id: bootloader
+post_build:
+  path: ../../postbuild_profile/bt_dfu_ws.slpb

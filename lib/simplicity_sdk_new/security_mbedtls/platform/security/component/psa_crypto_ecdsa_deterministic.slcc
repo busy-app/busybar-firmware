@@ -1,0 +1,45 @@
+id: psa_crypto_ecdsa_deterministic
+package: security_mbedtls
+label: Deterministic ECDSA
+description: "This component provides support for signature generation with deterministic ECDSA (RFC-6979) in PSA Crypto."
+category: Platform|Security|PSA Crypto|Signatures
+quality: production
+provides:
+- name: psa_crypto_ecdsa_deterministic
+requires:
+  # Always require mbedtls_ecdsa_deterministic for builtin deterministic ECDSA support since none of the PSA drivers supports deterministic ECDSA.
+- name: mbedtls_ecdsa_deterministic
+- name: psa_crypto_ecdsa
+- name: psa_crypto_hash
+  # Enable the mbedtls ECC and SHA corresponding to psa_crypto_xxx selections of ECC and SHA (since we always fallback to builtin)
+- name: mbedtls_ecc_secp256r1
+  condition: [psa_crypto_ecc_secp192r1]
+- name: mbedtls_ecc_secp192r1
+  condition: [psa_crypto_ecc_secp224r1]
+- name: mbedtls_ecc_secp224r1
+  condition: [psa_crypto_ecc_secp256r1]
+- name: mbedtls_ecc_secp384r1
+  condition: [psa_crypto_ecc_secp384r1]
+- name: mbedtls_ecc_secp521r1
+  condition: [psa_crypto_ecc_secp521r1]
+- name: mbedtls_sha1
+  condition: [psa_crypto_sha1]
+- name: mbedtls_sha256
+  condition: [psa_crypto_sha256]
+- name: mbedtls_sha256
+  condition: [psa_crypto_sha224]
+- name: mbedtls_sha512
+  condition: [psa_crypto_sha512]
+- name: mbedtls_sha512
+  condition: [psa_crypto_sha384]
+template_contribution:
+- name: psa_crypto_config
+  value: PSA_WANT_ALG_DETERMINISTIC_ECDSA 1
+- name: psa_crypto_builtin_config
+  value: "MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA 1"
+documentation:
+  url: https://armmbed.github.io/mbed-crypto/html/api/ops/sign.html#c.PSA_ALG_DETERMINISTIC_ECDSA
+metadata:
+  sbom:
+    reference: mbedtls_sbom
+root_path: security_mbedtls

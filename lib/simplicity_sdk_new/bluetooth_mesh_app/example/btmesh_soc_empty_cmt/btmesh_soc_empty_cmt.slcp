@@ -1,0 +1,109 @@
+project_name: btmesh_soc_empty_cmt
+package: bluetooth_mesh_app
+label: Bluetooth Mesh - SoC Empty with Common Manufacturing Token Support
+description: >-
+  Demonstrates the bare minimum needed for a Bluetooth Mesh C application.
+  The application sets its UUID and OOB provisioning capabilities depending
+  on the manufacturing token used. The application also demonstrates how to
+  use PSA crypto to validate the token signature.
+
+category: Bluetooth Mesh Examples
+quality: experimental
+
+filter:
+  - name: "Wireless Technology"
+    value: ["Bluetooth Mesh"]
+  - name: "Device Type"
+    value: ["SoC"]
+  - name: "Project Difficulty"
+    value: ["Beginner"]
+
+component:
+  - id: app_assert
+  - id: app_log
+  - id: btmesh_cmt
+  - id: btmesh_stack_gatt_prov_bearer
+  - id: btmesh_stack_relay
+  - id: btmesh_provisionee
+  - id: btmesh_proxy
+  - id: common_token_manager_compatibility # This does not provide anything with the same name, it has to be added by ID directly to .slcp
+  - id: clock_manager
+  - id: device_init
+  - id: iostream_recommended_stream
+  - id: mpu
+  - id: rail_util_pti
+  - id: psa_crypto_ecdsa
+  - id: sl_main
+
+source:
+  - path: app.c
+  - path: app_bm.c
+
+include:
+  - path: .
+    file_list:
+    - path: app.h
+
+config_file:
+  - override:
+      component: btmesh_dcd_configuration
+      file_id: dcd_configuration_file_id
+    path: dcd_config.btmeshconf
+    directory: btmeshconf
+
+configuration:
+  - name: SL_BTMESH_CMT_TOKEN_PUBLIC_KEY
+    value: "{0}"
+  - name: EMDRV_DMADRV_DMA_CH_COUNT
+    value: 2
+  - name: NVM3_DEFAULT_NVM_SIZE
+    value: "0x6000"
+  - name: SL_BTMESH_CONFIG_MAX_PROV_BEARERS
+    value: "3"
+  - name: SL_BOARD_ENABLE_VCOM
+    value: "1"
+  - name: SL_PSA_KEY_USER_SLOT_COUNT
+    value: "0"
+    condition:
+      - psa_crypto
+  - name: SL_STACK_SIZE
+    value: "0x1200"
+
+post_build:
+  - path: "../../postbuild_profile/btmesh_common_s2.slpb"
+    condition: [device_series_2, bootloader_app_properties]
+
+readme:
+  - path: ../../documentation/example/btmesh_soc_empty_cmt/readme.md
+
+other_file:
+  - path: ../../documentation/example/btmesh_soc_empty_cmt/readme_img0.png
+  - path: ../../documentation/example/btmesh_soc_empty_cmt/readme_img1.png
+  - path: ../../documentation/example/btmesh_soc_empty_cmt/readme_img2.png
+  - path: ../../documentation/example/btmesh_soc_empty_cmt/readme_img3.png
+  - path: ../../documentation/example/btmesh_soc_empty_cmt/readme_img4.png
+  - path: ../../documentation/example/btmesh_soc_empty_cmt/readme_img5.png
+  - path: scripts/create_token.py
+  - path: scripts/deploy_token.py
+  - path: scripts/generate_keypair.py
+  - path: scripts/update_public_key.py
+  - path: scripts/token_data.json
+  - path: scripts/token_definition.json
+
+tag:
+  - hardware:device:flash:512
+  - hardware:device:ram:32
+  - hardware:rf:band:2400
+  - hwfilter:device:device_series_2
+  - hwfilter:device:device_supports_bluetooth
+  - hwfilter:ram:32k
+  - hwfilter:flash:512k
+
+ui_hints:
+  highlight:
+    - path: config/btconf/gatt_configuration.btconf
+      focus: false
+    - path: config/btmeshconf/dcd_config.btmeshconf
+      focus: false
+    - path: readme.md
+      focus: true

@@ -1,0 +1,45 @@
+package: zigbee
+description: Software AES wrapper using the mbed TLS.
+label: AES (Software)
+quality: production
+id: zigbee_aes_software
+category: Zigbee|Utility
+provides:
+- name: zigbee_aes
+- name: zigbee_aes_software
+requires:
+- name: mbedtls_aes
+
+include:
+- path: stack/platform/micro
+  file_list:
+  - path: aes.h
+- path: stack/include
+  file_list:
+  - path: security.h
+
+validation_helper:
+- path: component/scripts/zigbee_aes_software_validation.lua
+
+source:
+- path: stack/framework/aes-ecb.c
+
+define:
+- name: MBEDTLS_PLATFORM_FREE_MACRO
+  value: free
+  unless: [zigbee_stack_unix]
+- name: MBEDTLS_PLATFORM_CALLOC_MACRO
+  value: calloc
+  unless: [zigbee_stack_unix]
+- name: MBEDTLS_PLATFORM_C
+  unless: [zigbee_stack_unix]
+- name: MBEDTLS_PLATFORM_MEMORY
+  unless: [zigbee_stack_unix]
+
+template_contribution:
+- name: component_catalog
+  value: zigbee_aes_software
+metadata:
+  sbom:
+    license: MSLA
+root_path: zigbee

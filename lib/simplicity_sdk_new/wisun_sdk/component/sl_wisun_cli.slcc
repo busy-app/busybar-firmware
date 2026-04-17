@@ -1,0 +1,1069 @@
+id: "sl_wisun_cli"
+label: "Wi-SUN CLI"
+package: "wisun_sdk"
+description: >
+  The Wi-SUN CLI component offers command-line interface handlers for managing Wi-SUN network connections, settings, and various utility commands.
+  It includes handlers for connecting to Wi-SUN networks using different configurations (FAN1.0, FAN1.1, explicit PHY settings),
+  managing OTA DFU processes, performing network measurements, and interacting with TCP/UDP clients.
+  Users can configure various aspects such as host addresses, ports, and measurement parameters.
+  The component also supports commands for managing sockets, retrieving app status, and setting application-specific variables.
+  This component features a configuration interface, allowing each CLI related to a component to be enabled or disabled individually.
+  Additionally, there is a configuration option to enable or disable all CLI functionalities related to components with a single switch.
+  The CLI commands are organized into logical groups, making it easy for users to find and use the commands they need.
+  SoC Border Router specific commands are included and compiled only if the Border Router stack is selected.
+category: "Wi-SUN|Wi-SUN Services"
+quality: "production"
+metadata:
+  sbom:
+    license: Zlib
+root_path: "wisun_sdk/component/cli"
+
+provides:
+- name: "sl_wisun_cli"
+- name: "sl_wisun_ping_cli"
+  condition:
+  - "sl_wisun_ping"
+- name: "sl_wisun_rtt_logger_cli"
+  condition:
+  - "sl_wisun_rtt_logger"
+- name: sl_wisun_ota_dfu_cli
+  condition:
+  - "sl_wisun_ota_dfu"
+- name: sl_wisun_network_measurement_cli
+  condition:
+  - "sl_wisun_network_measurement"
+- name: sl_iperf_cli
+  condition:
+  - "sl_iperf"
+- name: sl_wisun_collector_cli
+  condition:
+  - "sl_wisun_collector"
+- name: sl_wisun_client_cli
+  allow_multiple: true
+  condition:
+  - "sl_wisun_tcp_client"
+- name: sl_wisun_client_cli
+  allow_multiple: true
+  condition:
+  - "sl_wisun_udp_client"
+- name: sl_wisun_app_status_cli
+  condition:
+  - "sl_wisun_app_status"
+- name: sl_wisun_cli_util_cli
+  condition:
+  - "sl_wisun_cli_util"
+
+include:
+- path: "."
+  file_list:
+  - path: "sl_wisun_cli.h"
+  - path: "sl_wisun_client_cli.h"
+    condition:
+    - "sl_wisun_tcp_client"
+  - path: "sl_wisun_client_cli.h"
+    condition:
+    - "sl_wisun_udp_client"
+  - path: "sl_wisun_ping_cli.h"
+    condition:
+    - "sl_wisun_ping"
+  - path: "sl_wisun_rtt_logger_cli.h"
+    condition:
+    - "sl_wisun_rtt_logger"
+  - path: "sl_iperf_cli.h"
+    condition:
+    - "sl_iperf"
+  - path: "sl_wisun_ota_dfu_cli.h"
+    condition:
+    - "sl_wisun_ota_dfu"
+  - path: "sl_wisun_network_measurement_cli.h"
+    condition:
+    - "sl_wisun_network_measurement"
+  - path: "sl_wisun_app_status_cli.h"
+    condition:
+    - "sl_wisun_app_status"
+  - path: "sl_wisun_cli_util_cli.h"
+    condition:
+    - "sl_wisun_cli_util"
+  - path: "sl_wisun_coap_collector_cli.h"
+    condition:
+    - "sl_wisun_collector"
+    - "sl_wisun_coap"
+  - path: "sl_wisun_collector_cli.h"
+    condition:
+    - "sl_wisun_collector"
+    unless:
+    - "sl_wisun_coap"
+  - path: "sl_wisun_br_agent_cli.h"
+    condition:
+    - "cli"
+    - "sl_wisun_app_core"
+    - "sl_wisun_app_setting"
+    - "wisun_br_stack"
+    - "sl_wisun_br_agent_service"
+
+source:
+- path: "sl_wisun_cli.c"
+  condition:
+  - "cli"
+  - "sl_wisun_cli_util"
+  - "sl_wisun_trace_util"
+  - "sl_wisun_app_core"
+  - "sl_wisun_app_setting"
+- path: "sl_wisun_ping_cli.c"
+  condition:
+  - "cli"
+  - "sl_wisun_cli_util"
+  - "sl_wisun_ping"
+- path: "sl_wisun_rtt_logger_cli.c"
+  condition:
+  - "cli"
+  - "sl_wisun_cli_util"
+  - "sl_wisun_rtt_logger"
+- path: "sl_wisun_ota_dfu_cli.c"
+  condition:
+  - "cli"
+  - "sl_wisun_cli_util"
+  - "sl_wisun_ota_dfu"
+- path: "sl_wisun_network_measurement_cli.c"
+  condition:
+  - "cli"
+  - "sl_wisun_app_core"
+  - "sl_wisun_ping"
+  - "sl_wisun_cli_util"
+  - "sl_wisun_trace_util"
+  - "sl_wisun_network_measurement"
+- path: "sl_iperf_cli.c"
+  condition:
+  - "cli"
+  - "sl_iperf"
+- path: "sl_wisun_coap_collector_cli.c"
+  condition:
+  - "cli"
+  - "sl_wisun_cli_util"
+  - "sl_wisun_collector"
+  - "sl_wisun_coap"
+  - "sl_wisun_led_driver"
+- path: "sl_wisun_collector_cli.c"
+  condition:
+  - "cli"
+  - "sl_wisun_cli_util"
+  - "sl_wisun_collector"
+  unless:
+  - "sl_wisun_coap"
+- path: "sl_wisun_client_cli.c"
+  condition:
+  - "cli"
+  - "sl_wisun_cli_util"
+  - "sl_mempool"
+  - "sl_wisun_tcp_client"
+- path: "sl_wisun_client_cli.c"
+  condition:
+  - "cli"
+  - "sl_wisun_cli_util"
+  - "sl_mempool"
+  - "sl_wisun_udp_client"
+- path: "sl_wisun_app_status_cli.c"
+  condition:
+  - "cli"
+  - "sl_wisun_cli_util"
+  - "sl_wisun_trace_util"
+  - "sl_wisun_app_status"
+- path: "sl_wisun_cli_util_cli.c"
+  condition:
+  - "cli"
+  - "sl_wisun_cli_util"
+- path: "sl_wisun_br_agent_cli.c"
+  condition:
+  - "cli"
+  - "sl_wisun_app_core"
+  - "sl_wisun_app_setting"
+  - "wisun_br_stack"
+  - "sl_wisun_br_agent_service"
+
+config_file:
+- path: "config/sl_wisun_cli_config.h"
+
+requires:
+- name: "iostream_recommended_stream"
+  condition:
+  - "cli"
+- name: "iostream_retarget_stdio"
+  condition:
+  - "cli"
+- name: "iostream_stdlib_config"
+  condition:
+  - "cli"
+- name: "printf"
+  condition:
+  - "cli"
+- name: "sl_mempool"
+  condition:
+  - "sl_wisun_tcp_client"
+- name: "sl_mempool"
+  condition:
+  - "sl_wisun_udp_client"
+- name: "sl_wisun_cli_util"
+- name: "sl_string"
+
+#-------------- Template Contribution ----------------
+template_contribution:
+- name: "event_handler"
+  value:
+    event: "stack_init"
+    include: "sl_wisun_client_cli.h"
+    handler: "sl_wisun_client_cli_init"
+  condition:
+  - "sl_wisun_tcp_client"
+- name: "event_handler"
+  value:
+    event: "stack_init"
+    include: "sl_wisun_client_cli.h"
+    handler: "sl_wisun_client_cli_init"
+  condition:
+  - "sl_wisun_udp_client"
+
+- name: "cli_group"
+  value:
+    name: "wisun"
+    help: "Wi-SUN commands"
+    shortcuts:
+    - name: "w"
+  condition:
+  - "cli"
+
+- name: "cli_command"
+  value:
+    group: "wisun"
+    name: "join_fan10"
+    handler: "app_cli_handler"
+    help: "Connect to a Wi-SUN network using FAN1.0 settings"
+    shortcuts:
+    - name: "j10"
+  condition:
+  - "cli"
+  - "sl_wisun_app_core"
+  - "sl_wisun_app_setting"
+  unless:
+  - "wisun_br_stack"
+
+- name: "cli_command"
+  value:
+    group: "wisun"
+    name: "join_fan11"
+    handler: "app_cli_handler"
+    help: "Connect to a Wi-SUN network using FAN1.1 settings"
+    shortcuts:
+    - name: "j11"
+  condition:
+  - "cli"
+  - "sl_wisun_app_core"
+  - "sl_wisun_app_setting"
+  unless:
+  - "wisun_br_stack"
+
+- name: "cli_command"
+  value:
+    group: "wisun"
+    name: "start_fan11"
+    handler: "app_cli_handler"
+    help: "Start the border router using FAN1.1 settings: w st11"
+    shortcuts:
+    - name: "st11"
+  condition:
+  - "cli"
+  - "sl_wisun_app_core"
+  - "sl_wisun_app_setting"
+  - "wisun_br_stack"
+
+- name: "cli_command"
+  value:
+    group: "wisun"
+    name: "set_br_bridge_agent_addr"
+    handler: "app_cli_handler"
+    help: "Set the Border Router Bridge Agent address"
+    argument:
+    - type: string
+      help: "BR Bridge Agent address"
+    shortcuts:
+    - name: "sbra"
+  condition:
+  - "cli"
+  - "sl_wisun_app_core"
+  - "sl_wisun_app_setting"
+  - "wisun_br_stack"
+  - "sl_wisun_br_agent_service"
+
+- name: "cli_command"
+  value:
+    group: "wisun"
+    name: "get_br_bridge_agent_addr"
+    handler: "app_cli_handler"
+    help: "Get the Border Router Bridge Agent address"
+    shortcuts:
+    - name: "gbra"
+  condition:
+  - "cli"
+  - "sl_wisun_app_core"
+  - "sl_wisun_app_setting"
+  - "wisun_br_stack"
+  - "sl_wisun_br_agent_service"
+
+- name: "cli_command"
+  value:
+    group: "wisun"
+    name: "join_explicit"
+    handler: "app_cli_handler"
+    help: "Connect to a Wi-SUN network using explicit PHY settings"
+    shortcuts:
+    - name: "je"
+  condition:
+  - "cli"
+  - "sl_wisun_app_core"
+  - "sl_wisun_app_setting"
+  unless:
+  - "wisun_br_stack"
+
+- name: "cli_command"
+  value:
+    group: "wisun"
+    name: "disconnect"
+    handler: "app_cli_handler"
+    help: "Disconnect from the Wi-SUN network"
+    shortcuts:
+    - name: "d"
+  condition:
+  - "cli"
+  - "sl_wisun_app_core"
+  - "sl_wisun_app_setting"
+  unless:
+  - "wisun_br_stack"
+
+- name: "cli_command"
+  value:
+    group: "wisun"
+    name: "stop"
+    handler: "app_cli_handler"
+    help: "Stop the border router"
+    shortcuts:
+    - name: "sp"
+  condition:
+  - "cli"
+  - "sl_wisun_app_core"
+  - "sl_wisun_app_setting"
+  - "wisun_br_stack"
+
+- name: "cli_command"
+  value:
+    group: "wisun"
+    name: "mac_allow"
+    handler: "app_cli_handler"
+    help: "Add a MAC address to the list of allowed addresses, (FF:FF:FF:FF:FF:FF:FF:FF) clears the whitelist: w ma"
+    shortcuts:
+    - name: "ma"
+    argument:
+    - type: string
+      help: "MAC address"
+    condition:
+    - "cli"
+    - "sl_wisun_app_core"
+    - "sl_wisun_app_setting"
+
+- name: "cli_command"
+  value:
+    group: "wisun"
+    name: "mac_deny"
+    handler: "app_cli_handler"
+    help: "Add a MAC address to the list of denied addresses: w md"
+    shortcuts:
+    - name: "md"
+    argument:
+    - type: string
+      help: "MAC address"
+    condition:
+    - "cli"
+    - "sl_wisun_app_core"
+    - "sl_wisun_app_setting"
+
+- name: "cli_command"
+  value:
+    name: "about"
+    handler: "app_cli_handler"
+    help: "Get info about the running app"
+    shortcuts:
+    - name: "a"
+  condition:
+  - "cli"
+  - "app_project_info"
+
+- name: "cli_command"
+  value:
+    name: "reboot"
+    handler: "app_cli_handler"
+    help: "Reboot board"
+    shortcuts:
+    - name: "r"
+  condition:
+  - "cli"
+  - "wisun_br_stack"
+
+- name: "cli_command"
+  value:
+    group: "wisun"
+    name: "ping"
+    handler: "app_cli_handler"
+    help: "Ping a remote host"
+    shortcuts:
+    - name: "p"
+    argument:
+    - type: string
+      help: "Remote address"
+  condition:
+  - "sl_wisun_ping"
+
+- name: "cli_group"
+  value:
+    name: "ota-dfu"
+    help: "OTA DFU commands"
+    shortcuts:
+    - name: "od"
+  condition:
+  - "sl_wisun_ota_dfu"
+
+- name: "cli_command"
+  value:
+    group: "ota-dfu"
+    name: "start_firmware_update"
+    handler: "sl_wisun_ota_dfu_cli_handler"
+    help: "Start firmware update"
+    shortcuts:
+    - name: "fb"
+  condition:
+  - "sl_wisun_ota_dfu"
+
+- name: "cli_command"
+  value:
+    group: "ota-dfu"
+    name: "stop_firmware_update"
+    handler: "sl_wisun_ota_dfu_cli_handler"
+    help: "Stop firmware update"
+    shortcuts:
+    - name: "fq"
+  condition:
+  - "sl_wisun_ota_dfu"
+
+- name: "cli_command"
+  value:
+    group: "ota-dfu"
+    name: "reboot_and_install_fw"
+    handler: "sl_wisun_ota_dfu_cli_handler"
+    help: "Reboot and install firmware"
+    shortcuts:
+    - name: "fr"
+  condition:
+  - "sl_wisun_ota_dfu"
+
+- name: "cli_command"
+  value:
+    group: "ota-dfu"
+    name: "firmware_update_status"
+    handler: "sl_wisun_ota_dfu_cli_handler"
+    help: "Get firmware update status"
+    shortcuts:
+    - name: "fs"
+  condition:
+  - "sl_wisun_ota_dfu"
+
+- name: "cli_command"
+  value:
+    group: "ota-dfu"
+    name: "set_host_addr"
+    handler: "sl_wisun_ota_dfu_cli_handler"
+    help: "Set host address"
+    shortcuts:
+    - name: "sha"
+    argument:
+    - type: string
+      help: "Host address"
+    - type: uint16
+      help: "Port"
+  condition:
+  - "sl_wisun_ota_dfu"
+
+- name: "cli_command"
+  value:
+    group: "ota-dfu"
+    name: "get_host_addr"
+    handler: "sl_wisun_ota_dfu_cli_handler"
+    help: "Get host address"
+    shortcuts:
+    - name: "gha"
+  condition:
+  - "sl_wisun_ota_dfu"
+
+- name: "cli_command"
+  value:
+    group: "ota-dfu"
+    name: "set_host_uri"
+    handler: "sl_wisun_ota_dfu_cli_handler"
+    help: "Set host uri path"
+    shortcuts:
+    - name: "shu"
+    argument:
+    - type: string
+      help: "Host uri path"
+  condition:
+  - "sl_wisun_ota_dfu"
+
+- name: "cli_command"
+  value:
+    group: "ota-dfu"
+    name: "get_host_uri"
+    handler: "sl_wisun_ota_dfu_cli_handler"
+    help: "Get host uri path"
+    shortcuts:
+    - name: "ghu"
+  condition:
+  - "sl_wisun_ota_dfu"
+
+- name: "cli_command"
+  value:
+    group: "ota-dfu"
+    name: "set_gbl_path"
+    handler: "sl_wisun_ota_dfu_cli_handler"
+    help: "Set gbl path"
+    shortcuts:
+    - name: "sgp"
+    argument:
+    - type: string
+      help: "Gbl file path"
+  condition:
+  - "sl_wisun_ota_dfu"
+
+- name: "cli_command"
+  value:
+    group: "ota-dfu"
+    name: "get_gbl_path"
+    handler: "sl_wisun_ota_dfu_cli_handler"
+    help: "Get gbl path"
+    shortcuts:
+    - name: "ggp"
+  condition:
+  - "sl_wisun_ota_dfu"
+
+- name: "cli_command"
+  value:
+    group: "ota-dfu"
+    name: "set_notify_host_addr"
+    handler: "sl_wisun_ota_dfu_cli_handler"
+    help: "Set notify host address"
+    shortcuts:
+    - name: "snha"
+    argument:
+    - type: string
+      help: "Host address"
+    - type: uint16
+      help: "Port"
+  condition:
+  - "sl_wisun_ota_dfu"
+
+- name: "cli_command"
+  value:
+    group: "ota-dfu"
+    name: "get_notify_host_addr"
+    handler: "sl_wisun_ota_dfu_cli_handler"
+    help: "Get notify host address"
+    shortcuts:
+    - name: "gnha"
+  condition:
+  - "sl_wisun_ota_dfu"
+
+- name: "cli_command"
+  value:
+    group: "ota-dfu"
+    name: "set_notify_host_uri"
+    handler: "sl_wisun_ota_dfu_cli_handler"
+    help: "Set notify host uri path"
+    shortcuts:
+    - name: "snhu"
+    argument:
+    - type: string
+      help: "Notify host uri path"
+  condition:
+  - "sl_wisun_ota_dfu"
+
+- name: "cli_command"
+  value:
+    group: "ota-dfu"
+    name: "get_notify_host_uri"
+    handler: "sl_wisun_ota_dfu_cli_handler"
+    help: "Get notify host uri path"
+    shortcuts:
+    - name: "gnhu"
+  condition:
+  - "sl_wisun_ota_dfu"
+
+- name: "cli_command"
+  value:
+    group: "ota-dfu"
+    name: "set_notify_download_chunk"
+    handler: "sl_wisun_ota_dfu_cli_handler"
+    help: "Set notify download chunk"
+    shortcuts:
+    - name: "sndc"
+    argument:
+    - type: uint16
+      help: "Number or chunks"
+  condition:
+  - "sl_wisun_ota_dfu"
+
+- name: "cli_command"
+  value:
+    group: "ota-dfu"
+    name: "get_notify_download_chunk"
+    handler: "sl_wisun_ota_dfu_cli_handler"
+    help: "Get notify download chunk"
+    shortcuts:
+    - name: "gndc"
+  condition:
+  - "sl_wisun_ota_dfu"
+
+- name: "cli_command"
+  value:
+    group: "wisun"
+    name: "measure"
+    handler: "app_cli_handler"
+    help: "Measure a remote host or quick measurement"
+    shortcuts:
+    - name: "m"
+    argument:
+    - type: string
+      help: "Remote address or 'all' or 'parent' or 'br'"
+    - type: uint16
+      help: "Count of measurement packets"
+    - type: uint16
+      help: "Measurement packet length"
+  condition:
+  - "sl_wisun_network_measurement"
+
+- name: "cli_command"
+  value:
+    group: "wisun"
+    name: "print_nodeinfo"
+    handler: "app_cli_handler"
+    help: "Print info about Border Router and Neighbors"
+    shortcuts: "pni"
+  condition:
+  - "sl_wisun_network_measurement"
+
+- name: "cli_group"
+  value:
+    name: "iperf"
+    help: "iPerf2 commands"
+    shortcuts:
+    - name: "i"
+  condition:
+  - "sl_iperf"
+
+- name: "cli_command"
+  value:
+    group: "iperf"
+    name: "get"
+    handler: "sl_iperf_cli_handler"
+    help: "Get configuration parameters"
+    argument:
+    - type: wildcard
+      help: "empty | [string] Key"
+    shortcuts:
+    - name: "g"
+  condition:
+  - "sl_iperf"
+
+- name: "cli_command"
+  value:
+    group: "iperf"
+    name: "set"
+    handler: "sl_iperf_cli_handler"
+    help: "Set configuration parameters"
+    argument:
+    - type: wildcard
+      help: "empty | [string] Key [string] Value"
+    shortcuts:
+    - name: "s"
+  condition:
+  - "sl_iperf"
+
+- name: "cli_command"
+  value:
+    group: "iperf"
+    name: "server"
+    handler: "sl_iperf_cli_handler"
+    help: "Start preconfigured iPerf Server test"
+    argument:
+    - type: wildcard
+      help: "help"
+    shortcuts:
+    - name: "-s"
+  condition:
+  - "sl_iperf"
+
+- name: "cli_command"
+  value:
+    group: "iperf"
+    name: "client"
+    handler: "sl_iperf_cli_handler"
+    help: "Start preconfigured iPerf Client test"
+    argument:
+    - type: wildcard
+      help: "help"
+    shortcuts:
+    - name: "-c"
+  condition:
+  - "sl_iperf"
+
+- name: "cli_command"
+  value:
+    group: "wisun"
+    name: "register_meter"
+    handler: "app_cli_handler"
+    help: "Register collector to the given meter"
+    shortcuts:
+    - name: "r"
+    argument:
+    - type: string
+      help: "Meter address"
+  condition:
+  - "sl_wisun_collector"
+
+- name: "cli_command"
+  value:
+    group: "wisun"
+    name: "remove_meter"
+    handler: "app_cli_handler"
+    help: "Remove registration from the given meter"
+    shortcuts:
+    - name: "d"
+    argument:
+    - type: string
+      help: "Meter address"
+  condition:
+  - "sl_wisun_collector"
+
+- name: "cli_command"
+  value:
+    group: "wisun"
+    name: "async_request"
+    handler: "app_cli_handler"
+    help: "Send an async request to the given meter"
+    shortcuts:
+    - name: "a"
+    argument:
+    - type: string
+      help: "Meter address"
+  condition:
+  - "sl_wisun_collector"
+
+- name: "cli_command"
+  value:
+    group: "wisun"
+    name: "list_meters"
+    handler: "app_cli_handler"
+    help: "List registered and async meters"
+    shortcuts:
+    - name: "p"
+  condition:
+  - "sl_wisun_collector"
+  - "sl_wisun_coap"
+
+- name: "cli_command"
+  value:
+    group: "wisun"
+    name: "led_toggle"
+    handler: "app_cli_handler"
+    help: "Toggle LED on remote meter"
+    shortcuts:
+    - name: "l"
+    argument:
+    - type: string
+      help: "Meter address"
+    - type: uint8
+      help: "LED ID, it can be '0' or '1'"
+  condition:
+  - "sl_wisun_collector"
+  - "sl_wisun_coap"
+
+- name: "cli_command"
+  value:
+    group: "wisun"
+    name: "tcp_client"
+    handler: "app_cli_handler"
+    help: "Open a TCP client socket"
+    shortcuts:
+    - name: "tc"
+    argument:
+    - type: string
+      help: "Remote address"
+    - type: uint16
+      help: "Remote port"
+  condition:
+  - "sl_wisun_tcp_client"
+
+- name: "cli_command"
+  value:
+    group: "wisun"
+    name: "udp_client"
+    handler: "app_cli_handler"
+    help: "Open a UDP client socket"
+    shortcuts:
+    - name: "uc"
+  condition:
+  - "sl_wisun_udp_client"
+
+- name: "cli_command"
+  value:
+    group: "wisun"
+    name: "socket_close"
+    handler: "app_cli_handler"
+    help: "Close a socket"
+    shortcuts:
+    - name: "sc"
+    argument:
+    - type: uint32
+      help: "Socket Id"
+  condition:
+  - "sl_wisun_tcp_client"
+
+- name: "cli_command"
+  value:
+    group: "wisun"
+    name: "socket_close"
+    handler: "app_cli_handler"
+    help: "Close a socket"
+    shortcuts:
+    - name: "sc"
+    argument:
+    - type: uint32
+      help: "Socket Id"
+  condition:
+  - "sl_wisun_udp_client"
+
+- name: "cli_command"
+  value:
+    group: "wisun"
+    name: "socket_write"
+    handler: "app_cli_handler"
+    help: "Write to a socket"
+    shortcuts:
+    - name: "sw"
+    argument:
+    - type: wildcard
+      help: "TCP: wisun socket_write <Socket Id> <Data to write>\\n                                    UDP: wisun socket_write <Socket Id> <Remote address> <Remote port> <Data to write>"
+  condition:
+  - "sl_wisun_tcp_client"
+
+- name: "cli_command"
+  value:
+    group: "wisun"
+    name: "socket_write"
+    handler: "app_cli_handler"
+    help: "Write to a socket"
+    shortcuts:
+    - name: "sw"
+    argument:
+    - type: wildcard
+      help: "TCP: wisun socket_write <Socket Id> <Data to write>\\n                                    UDP: wisun socket_write <Socket Id> <Remote address> <Remote port> <Data to write>"
+  condition:
+  - "sl_wisun_udp_client"
+
+- name: "cli_command"
+  value:
+    group: "wisun"
+    name: "socket_read"
+    handler: "app_cli_handler"
+    help: "Read from a socket"
+    shortcuts:
+    - name: "sr"
+    argument:
+    - type: wildcard
+      help: "TCP: wisun socket_read <Socket Id> <Number of bytes to read>\\n                                    UDP: wisun socket_read <Socket Id>"
+  condition:
+  - "sl_wisun_tcp_client"
+
+- name: "cli_command"
+  value:
+    group: "wisun"
+    name: "socket_read"
+    handler: "app_cli_handler"
+    help: "Read from a socket"
+    shortcuts:
+    - name: "sr"
+    argument:
+    - type: wildcard
+      help: "TCP: wisun socket_read <Socket Id> <Number of bytes to read>\\n                                    UDP: wisun socket_read <Socket Id>"
+  condition:
+  - "sl_wisun_udp_client"
+
+- name: "cli_command"
+  value:
+    group: "wisun"
+    name: "set_app_status_address"
+    handler: "app_cli_handler"
+    help: "App status address setting"
+    argument:
+    - type: string
+      help: "Remote address"
+    - type: uint16
+      help: "Remote port"
+    shortcuts:
+    - name: "sasa"
+  condition:
+  - "sl_wisun_app_status"
+
+- name: "cli_command"
+  value:
+    group: "wisun"
+    name: "set_app_status_schedule"
+    handler: "app_cli_handler"
+    help: "Set app status schedule time setting"
+    argument:
+    - type: uint32
+      help: "Schedule time in ms"
+    shortcuts:
+    - name: "sast"
+  condition:
+  - "sl_wisun_app_status"
+
+- name: "cli_command"
+  value:
+    group: "wisun"
+    name: "get_app_status_address"
+    handler: "app_cli_handler"
+    help: "Get app status address setting"
+    shortcuts:
+    - name: "gasa"
+  condition:
+  - "sl_wisun_app_status"
+
+- name: "cli_command"
+  value:
+    group: "wisun"
+    name: "get_app_status_schedule"
+    handler: "app_cli_handler"
+    help: "Get app status schedule time setting"
+    shortcuts:
+    - name: "gast"
+  condition:
+  - "sl_wisun_app_status"
+
+- name: "cli_command"
+  value:
+    group: "wisun"
+    name: "set"
+    handler: "app_cli_handler"
+    help: "Set a variable"
+    shortcuts:
+    - name: "s"
+    argument:
+    - type: wildcard
+      help: "empty | help | [string] Key [string] Value"
+  condition:
+  - "sl_wisun_cli_util"
+
+- name: "cli_command"
+  value:
+    group: "wisun"
+    name: "get"
+    handler: "app_cli_handler"
+    help: "Get a variable"
+    shortcuts:
+    - name: "g"
+    argument:
+    - type: wildcard
+      help: "empty | help | [string] Key"
+  condition:
+  - "sl_wisun_cli_util"
+
+- name: "cli_command"
+  value:
+    group: "wisun"
+    name: "save"
+    handler: "app_cli_handler"
+    help: "Save variables to non-volatile storage"
+    shortcuts:
+    - name: "a"
+  condition:
+  - "sl_wisun_cli_util"
+
+- name: "cli_command"
+  value:
+    group: "wisun"
+    name: "reset"
+    handler: "app_cli_handler"
+    help: "Reset variables to default settings"
+    shortcuts:
+    - name: "r"
+  condition:
+  - "sl_wisun_cli_util"
+
+- name: "cli_command"
+  value:
+    group: "wisun"
+    name: "start_rtt_report"
+    handler: "app_cli_handler"
+    help: "Send RTT logs periodically to the client"
+    shortcuts:
+    - name: "strr"
+  condition:
+  - "sl_wisun_rtt_logger"
+
+- name: "cli_command"
+  value:
+    group: "wisun"
+    name: "stop_rtt_report"
+    handler: "app_cli_handler"
+    help: "Stop sending RTT logs to the client"
+    shortcuts:
+    - name: "sprr"
+  condition:
+  - "sl_wisun_rtt_logger"
+
+- name: "cli_command"
+  value:
+    group: "wisun"
+    name: "set_trace_level"
+    handler: "app_cli_handler"
+    help: "Set the trace level: w tl"
+    shortcuts:
+    - name: "tl"
+    argument:
+    - type: string
+      help: "Note: this command is disabled by default, to enable it check Wi-SUN CLI component configuration. List of ID,level; such as 1,none;4,info to configure group ID 1 with no log and group ID 4 with INFO level. Can also use all,info to set all groups to INFO level."
+  condition:
+  - "wisun_stack_debug"
+
+- name: cli_group
+  value:
+    name: wifi
+    help: Wi-Fi commands
+  condition: [wisun_br_wifi]
+- name: cli_command
+  value:
+    group: wifi
+    name: connect
+    handler: app_cli_handler
+    help: Connect to Wi-FI AP
+    shortcuts:
+    - name: "cw"
+  condition: [wisun_br_wifi]
+- name: cli_command
+  value:
+    group: wifi
+    name: disconnect
+    handler: app_cli_handler
+    help: Disconnect from Wi-FI AP
+    shortcuts:
+    - name: "dw"
+  condition: [wisun_br_wifi]
+
+#---------------- Component Catalog ------------------
+- name: component_catalog
+  value: "wisun_cli"

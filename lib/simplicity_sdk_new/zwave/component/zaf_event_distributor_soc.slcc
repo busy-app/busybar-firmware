@@ -1,0 +1,31 @@
+id: zaf_event_distributor_soc
+label: ZAF Event Distributor SOC Component
+category: Z-Wave|ZAF|Event Distributor
+description: >
+  It includes the event distributor needed by System on a Chip (SOC) Applications. It can handle
+  invalid states (e.g. maximum node inclusion reached), as well as different process flows (e.g.
+  learn mode or reset). It initializes some subsystems at system start, such as the EventQueue.
+package: zwave
+quality: production
+metadata:
+  sbom:
+    reference: zw_sbom_license
+
+config_file:
+- path: sample_apps/config/zaf_event_distributor_soc/zaf_event_distributor_soc_config.h
+  file_id: zaf_event_distributor_soc
+include:
+- path: "ZAF/ApplicationUtilities/EventHandling"
+  file_list:
+  - path: "zaf_event_distributor_soc.h"
+source:
+- path: "ZAF/ApplicationUtilities/EventHandling/zaf_event_distributor_soc.c"
+provides:
+- name: zaf_event_distributor_soc
+- name: zaf_event_distributor_type
+requires:
+- name: zaf_event_distributor_core
+template_contribution:
+- name: rodata_sections   # Ensure memory section define by Z-Wave stack are placed in the rodata section
+  value: zw_zaf_event_distributor_cc_event_handler
+root_path: zwave

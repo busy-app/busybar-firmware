@@ -1,0 +1,29 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="doxygen__indexfile_8md" kind="file" language="Markdown">
+    <compoundname>doxygen_indexfile.md</compoundname>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline><highlight class="normal">@mainpage<sp/>Overview</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Introduction</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">This<sp/>module<sp/>lists<sp/>all<sp/>the<sp/>hardware<sp/>accelerator<sp/>implemented<sp/>Crypto<sp/>algorithms.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Crypto<sp/>Operations</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>AES<sp/>Algorithm<sp/>which<sp/>includes<sp/>ECB,<sp/>CBC,<sp/>CTR<sp/>modes</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Key<sp/>Agreement<sp/>Algorithm<sp/>ECDH</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Digital<sp/>Signature<sp/>Algorithm<sp/>ECDSA</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>AEAD<sp/>Algorithms<sp/>which<sp/>include<sp/>CCM,<sp/>GCM,<sp/>ChachaPoly</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Secure<sp/>Hash<sp/>Algorithm<sp/>SHA<sp/>which<sp/>include<sp/>SHA1,<sp/>SHA224,<sp/>SHA256,<sp/>SHA384,<sp/>SHA512<sp/>modes</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>True<sp/>Random<sp/>Number<sp/>Generator</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Attestation<sp/>token<sp/>generation</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Message<sp/>Authenticated<sp/>Code<sp/>Algorithm<sp/>HMAC.</highlight></codeline>
+    </programlisting>
+    <location file="components/device/silabs/si91x/wireless/crypto/docs/doxygen_indexfile.md"/>
+  </compounddef>
+</doxygen>

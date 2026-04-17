@@ -1,0 +1,43 @@
+id: sl_gspi
+label: GSPI
+package: platform_siwx91x
+description: >
+  The GSPI Master driver supports sending, receiving, and transferring data at 116 MHz. 
+  It enables full duplex and half duplex communication modes. 
+  Offering both blocking and non-blocking data transfer functions. 
+  The non-blocking functions utilize DMA to transfer data asynchronously, 
+  signaling transfer completion via callback functions.
+  
+  When you install this component, it will also be installing the  GSPI dependency component, 
+  which is the GSPI driver's implementation.
+category: Device|Si91x|MCU|Peripheral
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: "components/device/silabs/si91x/mcu/drivers/unified_api"
+config_file:
+  - path: config/sl_si91x_gspi_config.h
+  - path: config/sl_si91x_gspi_common_config.h
+    file_id: gspi_config
+source:
+  - path: "src/sl_si91x_gspi.c"
+include:
+  - path: "inc"
+    file_list:
+    - path: "sl_si91x_gspi.h"
+define:
+  - name: GSPI_MULTI_SLAVE
+  - name: GSPI_CONFIG
+  - name: SL_SI91X_GSPI_DMA
+  - name: SL_SI91X_REQUIRES_INTF_PLL
+provides:
+  - name: sl_gspi
+requires:
+  - name: udma_linker_config
+  - name: rsilib_gspi
+  - name: cmsis_gspi
+  - name: sl_dma
+documentation:
+    docset: wiseconnect
+    document: wiseconnect-api-reference-guide-si91x-peripherals/gspi

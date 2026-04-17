@@ -1,0 +1,4 @@
+id=com.silabs.sdk.zwave_cc_configurator
+version=1.0.0.0
+label=Z-Wave CC Configurator
+description=Z-Wave CC Configurator for Z-Wave SDK

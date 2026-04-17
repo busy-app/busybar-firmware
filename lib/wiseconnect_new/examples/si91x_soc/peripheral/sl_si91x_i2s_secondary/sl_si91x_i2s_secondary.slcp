@@ -1,0 +1,48 @@
+project_name: sl_si91x_i2s_secondary
+package: platform_siwx91x_app
+description: "This application demonstrates how to configure and use the secondary I2S interface on the Si91x SoC device, enabling audio data communication through the secondary I2S interface. \nThis example shows how to set up the secondary interface for transmitting and receiving audio signals, providing a foundation for audio applications requiring dual I2S interfaces.\n"
+category: example|peripheral
+quality: production
+label: SI91x - SL_I2S_SECONDARY
+component:
+- id: sl_main
+- id: status
+- id: syscalls
+- id: si91x_memory_default_config
+- id: i2s_instance
+  instance:
+  - i2s0
+source:
+- path: app.c
+- path: i2s_secondary_example.c
+include:
+- path: .
+  file_list:
+  - path: app.h
+  - path: i2s_secondary_example.h
+toolchain_settings:
+- option: gcc_compiler_option
+  value: -Wall -Werror
+define:
+- name: SYSCALLS_WRITE
+other_file:
+- path: resources/readme/setupdiagram.png
+- path: resources/readme/image505d.png
+- path: resources/uc_screen/i2s_secondary_uc_screen.png
+- path: resources/readme/output.png
+ui_hints:
+  highlight:
+  - path: readme.md
+    focus: true
+readme:
+- path: readme.md
+post_build:
+  profile: wiseconnect_soc
+sdk_extension:
+- id: wiseconnect3_sdk
+  vendor: silabs
+  version: 4.0.1
+sdk:
+  id: simplicity_sdk
+  vendor: silabs
+  version: 2025.12.2

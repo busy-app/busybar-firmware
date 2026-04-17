@@ -1,0 +1,25 @@
+/**
+ * @file
+ * Command Class Color Switch Configuration
+ * @remarks This file is auto generated
+ * @copyright 2022 Silicon Laboratories Inc.
+ */
+
+#ifndef CC_MULTILEVEL_SENSOR_CONFIG_API_H
+#define CC_MULTILEVEL_SENSOR_CONFIG_API_H
+
+#include <stdint.h>
+#include <stdbool.h>
+#include <CC_MultilevelSensor_SensorHandlerTypes.h>
+
+{% for _endpoint in endpoints %}
+  {% set _endpoint_id = _endpoint["endpoint"] %}
+{% for _instance in _endpoint["sensors"] %}
+bool cc_multilevel_sensor_endpoint_{{_endpoint_id}}_{{_instance}}_interface_init(void);
+bool cc_multilevel_sensor_endpoint_{{_endpoint_id}}_{{_instance}}_interface_deinit(void);
+bool cc_multilevel_sensor_endpoint_{{_endpoint_id}}_{{_instance}}_interface_read_value(__attribute__((unused)) sensor_read_result_t* o_result, __attribute__((unused)) uint8_t i_scale);
+{% endfor %}
+{% endfor %}
+
+#endif /* CC_MULTILEVEL_SENSOR_CONFIG_API_H */
+

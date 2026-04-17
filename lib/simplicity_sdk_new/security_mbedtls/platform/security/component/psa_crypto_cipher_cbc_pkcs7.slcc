@@ -1,0 +1,24 @@
+id: psa_crypto_cipher_cbc_pkcs7
+package: security_mbedtls
+label: CBC Mode with PKCS#7 Padding
+description: >-
+  This component provides support for the CBC block cipher chaining mode
+  with PKCS#7 padding in PSA Crypto.
+category: Platform|Security|PSA Crypto|Encryption
+quality: production
+provides:
+- name: psa_crypto_cipher_cbc_pkcs7
+requires:
+- name: psa_crypto_aes
+template_contribution:
+- name: psa_crypto_config
+  value: PSA_WANT_ALG_CBC_PKCS7 1
+- name: psa_crypto_builtin_config
+  value: "MBEDTLS_PSA_BUILTIN_ALG_CBC_PKCS7 1"
+  condition: [mbedtls_cipher_cbc, mbedtls_cipher_padding_pkcs7]
+documentation:
+  url: https://armmbed.github.io/mbed-crypto/html/api/ops/ciphers.html#c.PSA_ALG_CBC_PKCS7
+metadata:
+  sbom:
+    reference: mbedtls_sbom
+root_path: security_mbedtls

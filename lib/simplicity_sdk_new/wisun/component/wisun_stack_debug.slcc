@@ -1,0 +1,28 @@
+id: "wisun_stack_debug"
+label: "Wi-SUN Stack Debug & Traces Plugin"
+description: >
+  Adds trace and debug functionalities to Wi-SUN stack. Provides an API to
+  control the log level per trace domain.
+package: "wisun"
+category: "Wi-SUN|Stack Plugin"
+quality: "production"
+root_path: "wisun/./stack"
+
+requires:
+- name: "device_supports_wisun"
+- name: segger_rtt
+
+provides:
+- name: "wisun_stack_debug"
+
+documentation:
+  docset: wisun
+  document: wisun-stack-api/sl-wisun-trace-api
+
+template_contribution:
+- name: component_catalog
+  value: wisun_stack_debug
+
+metadata:
+  sbom:
+    license: MSLA

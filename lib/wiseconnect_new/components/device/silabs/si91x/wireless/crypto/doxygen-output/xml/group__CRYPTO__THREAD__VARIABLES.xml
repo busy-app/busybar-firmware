@@ -1,0 +1,168 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__CRYPTO__THREAD__VARIABLES" kind="group">
+    <compoundname>CRYPTO_THREAD_VARIABLES</compoundname>
+    <title>Variables</title>
+      <sectiondef kind="var">
+      <memberdef kind="variable" id="group__CRYPTO__THREAD__VARIABLES_1ga3c16897b5f491db3e044ab4c43259651" prot="public" static="no" mutable="no">
+        <type>osSemaphoreId_t</type>
+        <definition>osSemaphoreId_t crypto_aes_mutex</definition>
+        <argsstring></argsstring>
+        <name>crypto_aes_mutex</name>
+        <briefdescription>
+<para>Semaphore for AES crypto operations. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/multithread/inc/sl_si91x_crypto_thread.h" line="53" column="24" declfile="components/device/silabs/si91x/wireless/crypto/multithread/inc/sl_si91x_crypto_thread.h" declline="53" declcolumn="24"/>
+      </memberdef>
+      <memberdef kind="variable" id="group__CRYPTO__THREAD__VARIABLES_1gaf199fc0391c42280b8d014c792abf1ea" prot="public" static="no" mutable="no">
+        <type>osSemaphoreId_t</type>
+        <definition>osSemaphoreId_t crypto_ccm_mutex</definition>
+        <argsstring></argsstring>
+        <name>crypto_ccm_mutex</name>
+        <briefdescription>
+<para>Semaphore for CCM crypto operations. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/multithread/inc/sl_si91x_crypto_thread.h" line="58" column="24" declfile="components/device/silabs/si91x/wireless/crypto/multithread/inc/sl_si91x_crypto_thread.h" declline="58" declcolumn="24"/>
+      </memberdef>
+      <memberdef kind="variable" id="group__CRYPTO__THREAD__VARIABLES_1ga00df169f8046795041b560edea4ea482" prot="public" static="no" mutable="no">
+        <type>osSemaphoreId_t</type>
+        <definition>osSemaphoreId_t crypto_sha_mutex</definition>
+        <argsstring></argsstring>
+        <name>crypto_sha_mutex</name>
+        <briefdescription>
+<para>Semaphore for SHA crypto operations. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/multithread/inc/sl_si91x_crypto_thread.h" line="63" column="24" declfile="components/device/silabs/si91x/wireless/crypto/multithread/inc/sl_si91x_crypto_thread.h" declline="63" declcolumn="24"/>
+      </memberdef>
+      <memberdef kind="variable" id="group__CRYPTO__THREAD__VARIABLES_1ga8b7c610bb1cdfd24b094c00d023fc6cd" prot="public" static="no" mutable="no">
+        <type>osSemaphoreId_t</type>
+        <definition>osSemaphoreId_t crypto_gcm_mutex</definition>
+        <argsstring></argsstring>
+        <name>crypto_gcm_mutex</name>
+        <briefdescription>
+<para>Semaphore for GCM crypto operations. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/multithread/inc/sl_si91x_crypto_thread.h" line="68" column="24" declfile="components/device/silabs/si91x/wireless/crypto/multithread/inc/sl_si91x_crypto_thread.h" declline="68" declcolumn="24"/>
+      </memberdef>
+      <memberdef kind="variable" id="group__CRYPTO__THREAD__VARIABLES_1ga65d1c13cbd1048a1f12bae01404b8c9a" prot="public" static="no" mutable="no">
+        <type>osSemaphoreId_t</type>
+        <definition>osSemaphoreId_t crypto_chachapoly_mutex</definition>
+        <argsstring></argsstring>
+        <name>crypto_chachapoly_mutex</name>
+        <briefdescription>
+<para>Semaphore for ChaChaPoly crypto operations. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/multithread/inc/sl_si91x_crypto_thread.h" line="73" column="24" declfile="components/device/silabs/si91x/wireless/crypto/multithread/inc/sl_si91x_crypto_thread.h" declline="73" declcolumn="24"/>
+      </memberdef>
+      <memberdef kind="variable" id="group__CRYPTO__THREAD__VARIABLES_1ga0f5aa72dc91fba55722b43f3da731b75" prot="public" static="no" mutable="no">
+        <type>osSemaphoreId_t</type>
+        <definition>osSemaphoreId_t crypto_attestation_mutex</definition>
+        <argsstring></argsstring>
+        <name>crypto_attestation_mutex</name>
+        <briefdescription>
+<para>Semaphore for attestation crypto operations. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/multithread/inc/sl_si91x_crypto_thread.h" line="78" column="24" declfile="components/device/silabs/si91x/wireless/crypto/multithread/inc/sl_si91x_crypto_thread.h" declline="78" declcolumn="24"/>
+      </memberdef>
+      <memberdef kind="variable" id="group__CRYPTO__THREAD__VARIABLES_1ga0da20f880c4cffa28718debf029cba20" prot="public" static="no" mutable="no">
+        <type>osSemaphoreId_t</type>
+        <definition>osSemaphoreId_t crypto_ecdh_mutex</definition>
+        <argsstring></argsstring>
+        <name>crypto_ecdh_mutex</name>
+        <briefdescription>
+<para>Semaphore for ECDH crypto operations. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/multithread/inc/sl_si91x_crypto_thread.h" line="83" column="24" declfile="components/device/silabs/si91x/wireless/crypto/multithread/inc/sl_si91x_crypto_thread.h" declline="83" declcolumn="24"/>
+      </memberdef>
+      <memberdef kind="variable" id="group__CRYPTO__THREAD__VARIABLES_1ga0c0da60c64b22a28c9e426840f08b477" prot="public" static="no" mutable="no">
+        <type>osSemaphoreId_t</type>
+        <definition>osSemaphoreId_t crypto_ecdsa_mutex</definition>
+        <argsstring></argsstring>
+        <name>crypto_ecdsa_mutex</name>
+        <briefdescription>
+<para>Semaphore for ECDSA crypto operations. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/multithread/inc/sl_si91x_crypto_thread.h" line="88" column="24" declfile="components/device/silabs/si91x/wireless/crypto/multithread/inc/sl_si91x_crypto_thread.h" declline="88" declcolumn="24"/>
+      </memberdef>
+      <memberdef kind="variable" id="group__CRYPTO__THREAD__VARIABLES_1gaaa566764ab8f647c1c7c418172d59075" prot="public" static="no" mutable="no">
+        <type>osSemaphoreId_t</type>
+        <definition>osSemaphoreId_t crypto_hmac_mutex</definition>
+        <argsstring></argsstring>
+        <name>crypto_hmac_mutex</name>
+        <briefdescription>
+<para>Semaphore for HMAC crypto operations. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/multithread/inc/sl_si91x_crypto_thread.h" line="93" column="24" declfile="components/device/silabs/si91x/wireless/crypto/multithread/inc/sl_si91x_crypto_thread.h" declline="93" declcolumn="24"/>
+      </memberdef>
+      <memberdef kind="variable" id="group__CRYPTO__THREAD__VARIABLES_1gad2625b5e8947f7493dfbf9543bb9f153" prot="public" static="no" mutable="no">
+        <type>osSemaphoreId_t</type>
+        <definition>osSemaphoreId_t crypto_trng_mutex</definition>
+        <argsstring></argsstring>
+        <name>crypto_trng_mutex</name>
+        <briefdescription>
+<para>Semaphore for TRNG crypto operations. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/multithread/inc/sl_si91x_crypto_thread.h" line="98" column="24" declfile="components/device/silabs/si91x/wireless/crypto/multithread/inc/sl_si91x_crypto_thread.h" declline="98" declcolumn="24"/>
+      </memberdef>
+      <memberdef kind="variable" id="group__CRYPTO__THREAD__VARIABLES_1ga06632d2bfe0c25ef3e6730d3214a187c" prot="public" static="no" mutable="no">
+        <type>osStatus_t</type>
+        <definition>osStatus_t mutex_result</definition>
+        <argsstring></argsstring>
+        <name>mutex_result</name>
+        <briefdescription>
+<para>Status of the semaphore operations. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/multithread/inc/sl_si91x_crypto_thread.h" line="103" column="19" declfile="components/device/silabs/si91x/wireless/crypto/multithread/inc/sl_si91x_crypto_thread.h" declline="103" declcolumn="19"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para>This section provides a reference to the Crypto multithread management API variables. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

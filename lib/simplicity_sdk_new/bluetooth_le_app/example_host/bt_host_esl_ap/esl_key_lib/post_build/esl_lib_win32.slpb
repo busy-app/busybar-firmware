@@ -1,0 +1,7 @@
+parameters:
+  - name: build_dir
+steps:
+  - task: copy
+    input: "{{build_dir}}/{{project_name}}.exe"
+    output: ../esl_ap/lib/esl_key_lib.dll
+    export: esl_key_lib_binary

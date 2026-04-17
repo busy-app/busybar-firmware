@@ -1,0 +1,47 @@
+project_name: sl_si91x_sdio_secondary
+package: platform_siwx91x_app
+description: 'This application demonstrates how to use the SDIO Secondary interface on the Si91x SoC devices.
+
+  '
+category: example|peripheral
+quality: production
+label: SI91x - SoC Peripheral SDIO Secondary
+component:
+- id: sl_main
+- id: status
+- id: syscalls
+- id: si91x_memory_default_config
+- id: sl_sdio_secondary
+source:
+- path: sdio_secondary_example.c
+- path: app.c
+include:
+- path: .
+  file_list:
+  - path: sdio_secondary_example.h
+  - path: app.h
+define:
+- name: __SYSTICK
+toolchain_settings:
+- option: gcc_compiler_option
+  value: -Wall -Werror
+other_file:
+- path: resources/readme/setupdiagram.png
+- path: resources/readme/output_sdio.png
+- path: resources/uc_screen/sdio_secondary.png
+ui_hints:
+  highlight:
+  - path: readme.md
+    focus: true
+readme:
+- path: readme.md
+post_build:
+  profile: wiseconnect_soc
+sdk_extension:
+- id: wiseconnect3_sdk
+  vendor: silabs
+  version: 4.0.1
+sdk:
+  id: simplicity_sdk
+  vendor: silabs
+  version: 2025.12.2

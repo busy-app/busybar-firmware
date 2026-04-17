@@ -1,0 +1,44 @@
+id: "btmesh_cmt"
+label: "BT Mesh Common Manufacturing Token"
+package: bluetooth_mesh_middleware
+description: >
+  Common Manufacturing Token support for Bluetooth Mesh projects.
+  This component reads the manufacturing token "MESH_TOKEN" from the
+  device's flash memory.
+
+  Based on configuration, the token can then be used to set the device
+  UUID and its OOB capabilities.
+category: "Bluetooth Mesh|CMT"
+quality: "experimental"
+metadata:
+  sbom:
+    license: Zlib
+root_path: "bluetooth_mesh_middleware/common/btmesh_cmt"
+tag:
+- No-Code
+config_file:
+- path: "config/sl_btmesh_cmt_config.h"
+source:
+- path: "sl_btmesh_cmt.c"
+include:
+- path: ""
+  file_list:
+  - path: "sl_btmesh_cmt.h"
+provides:
+- name: "btmesh_cmt"
+requires:
+- name: common_token_manager
+template_contribution:
+- name: component_catalog
+  value: btmesh_cmt
+- name: event_handler
+  value:
+    event: internal_app_init
+    include: sl_btmesh_cmt.h
+    handler: sl_btmesh_cmt_on_init
+
+validation_helper:
+- path: "../../script/validation/soc_ncp_compatibility.lua"
+documentation:
+  docset: btmesh
+  document: btmesh-service-api/btmesh-cmt

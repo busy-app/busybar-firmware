@@ -1,0 +1,30 @@
+id: btmesh_distributor
+label: DFU distributor
+package: bluetooth_mesh_middleware
+description: >
+  Wrapper software component for DFU distributor role in Bluetooth Mesh applications.
+  This component is prepared for integration into SOC applications.
+category: "Bluetooth Mesh|DFU Roles"
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: bluetooth_mesh_middleware/common/btmesh_distributor
+config_file:
+- override:
+    file_id: btmesh_blob_transfer_server_dcd
+    component: btmesh_blob_transfer_server
+    instance: dfu_dist
+    vendor: silabs
+  path: btmesh_blob_transfer_server_dfu_dist.dcd
+  directory: btmeshconf
+provides:
+- name: btmesh_distributor
+requires:
+- name: btmesh_fw_distribution_server
+- name: btmesh_blob_transfer_server_recommended_instance_dist
+conflicts:
+- name: btmesh_blob_transfer_server_recommended_instance_target_only
+documentation:
+  docset: btmesh
+  document: btmesh-service-api/btmesh-distributor

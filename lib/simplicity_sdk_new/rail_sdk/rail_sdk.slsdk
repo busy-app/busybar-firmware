@@ -1,0 +1,11 @@
+# This file provides metadata for the stack directory, as part of ESF.
+id=com.silabs.stack.rail
+label=RAIL SDK
+description=RAIL Software Development Kit
+
+version=3.0.1
+
+# General properties are prepended with "prop."
+prop.file.templatesFile=
+prop.file.adapterPacks=
+prop.file.demosFile=

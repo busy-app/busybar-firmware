@@ -1,0 +1,65 @@
+id: "sl_rail_sdk_phy_selector"
+label: "PHY Selector and CLI"
+package: "rail_sdk"
+description: >
+  This component facilitates appropriate phy management for an application.
+  The module offers flexible configuration options through a Command Line
+  Interface (CLI). Users can interactively define their preferred PHY,
+  making it a highly adaptable tool for managing PHYs within the application.
+  This component is not compatible with Range Test, Wireless M-Bus and Multiphy applications.
+category: "RAIL-SDK|Utility"
+quality: "production"
+metadata:
+  sbom:
+    license: Zlib
+root_path: "rail_sdk/component/sl_rail_sdk_phy_selector"
+provides:
+- name: sl_rail_sdk_phy_selector
+
+requires:
+- name: "rail_lib_singleprotocol"
+
+source:
+- path: "sl_rail_sdk_phy_selector.c"
+- path: "sl_rail_sdk_phy_selector_cli.c"
+  condition:
+  - "cli"
+include:
+- path: "."
+  file_list:
+  - "path": "sl_rail_sdk_phy_selector.h"
+
+
+
+#-------------- Template Contribution ----------------
+template_contribution:
+#---------------- Component Catalog ------------------
+- name: component_catalog
+  value: rail_sdk_phy_selector
+
+- name: cli_command
+  value:
+    name: set_phy
+    handler: cli_set_phy
+    help: "Set which phy the communication will happen"
+    argument:
+    - type: uint8
+      help: The phy number to apply
+  condition:
+  - "cli"
+- name: cli_command
+  value:
+    name: get_phy
+    handler: cli_get_phy
+    help: "Get which phy the communication is happening"
+  condition:
+  - "cli"
+- name: cli_command
+  value:
+    name: get_phy_list
+    handler: cli_get_phy_list
+    help: "List available phys with protocol infos"
+  condition:
+  - "cli"
+
+

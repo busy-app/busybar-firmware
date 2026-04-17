@@ -1,0 +1,37 @@
+id: restrictions_profile_ieee802154_bpsk
+label: Restrictions - IEEE802154 BPSK Profile
+package: proprietary_default_radio_confs
+description: Component provides profile_ieee802154_bpsk.restriction configuration files by logic
+category: Platform|Radio Configuration
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: proprietary_default_radio_confs/restrictions
+requires:
+- name: rail_lib
+- name: device_has_radio
+
+#------- Set provided component name
+provides:
+- name: restrictions_profile_ieee802154_bpsk
+
+#-------- Include restriction config json file --------
+#
+# IEEE802154 BPSK Profile restrictions
+#
+config_file:
+- path: profile_ieee802154_bpsk.restriction
+  directory: rail
+  condition:
+  - device_generic_family_efr32xg23
+- path: profile_ieee802154_bpsk.restriction
+  directory: rail
+  condition:
+  - device_generic_family_efr32xg28
+
+#-------- Hides Component for user in Studio ---------
+ui_hints:
+  visibility: never
+
+

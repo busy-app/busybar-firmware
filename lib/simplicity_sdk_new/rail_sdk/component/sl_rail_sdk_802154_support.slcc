@@ -1,0 +1,267 @@
+id: "sl_rail_sdk_802154_support"
+label: "IEEE 802.15.4 support (Simple TRX Std Only)"
+package: "rail_sdk"
+description: >
+  This software component integrates minimalist IEEE Std. 802.15.4 support for
+  encoding, decoding packets, and utilizing fundamental functionalities. It
+  initializes the IEEE 802.15.4 protocol according to the selected
+  configuration, offering flexibility in protocol setup. The component handles
+  initialization failures gracefully and ensures compatibility with supported
+  RF bands.
+category: "RAIL-SDK|Utility"
+quality: "production"
+metadata:
+  sbom:
+    license: Zlib
+root_path: "rail_sdk/component/sl_rail_sdk_802154_support"
+
+provides:
+- name: sl_rail_sdk_802154_support
+- name: sl_rail_sdk_protocol
+  allow_multiple: false
+- name: sl_rail_util_init
+  allow_multiple: false
+
+requires:
+- name: sl_rail_sdk_packet_asm
+- name: device_has_radio
+- name: rail_lib
+- name: sl_rail_util_callbacks
+- name: sl_rail_util_dma
+- name: sl_rail_util_compatible_pa
+- name: sl_rail_util_pti
+- name: sl_rail_util_rf_path
+- name: sl_rail_util_rssi
+- name: app_log
+- name: app_assert
+- name: iostream_transport
+
+source:
+- path: "sl_rail_sdk_ieee802154_support.c"
+- path: sl_rail_sdk_util_802154_init.c
+- path: sl_rail_sdk_util_802154_protocol.c
+
+include:
+- path: "."
+  file_list:
+  - "path": "sl_rail_sdk_ieee802154_support.h"
+- path: .
+  file_list:
+  - path: sl_rail_sdk_util_802154_init.h
+- path: "."
+  file_list:
+  - path: sl_rail_sdk_util_802154_protocol.h
+  - path: sl_rail_sdk_util_802154_protocol_types.h
+
+config_file:
+- path: "config/sl_rail_sdk_ieee802154_config.h"
+ # The board has only 2.4GHz RF band
+- path: config/2p4/sl_rail_sdk_util_802154_init_config.h
+  unless:
+  - "hardware_board_supports_rf_band_868"
+  - "hardware_board_supports_rf_band_914"
+  - "hardware_board_supports_rf_band_915"
+  - "hardware_board_supports_rf_band_924"
+  - "hardware_board_supports_rf_band_2400"
+
+- path: config/2p4/sl_rail_sdk_util_802154_init_config.h
+  condition:
+  - "hardware_board_supports_rf_band_2400"
+  unless:
+  - "hardware_board_supports_rf_band_868"
+  - "hardware_board_supports_rf_band_914"
+  - "hardware_board_supports_rf_band_915"
+  - "hardware_board_supports_rf_band_924"
+
+  # The board has only 868MHz RF band
+- path: config/868/sl_rail_sdk_util_802154_init_config.h
+  condition:
+  - "hardware_board_supports_rf_band_868"
+  unless:
+  - "hardware_board_supports_rf_band_2400"
+  - "hardware_board_supports_rf_band_914"
+  - "hardware_board_supports_rf_band_915"
+  - "hardware_board_supports_rf_band_924"
+
+  # The board has only 915MHz RF band
+- path: config/915/sl_rail_sdk_util_802154_init_config.h
+  condition:
+  - "hardware_board_supports_rf_band_915"
+  unless:
+  - "hardware_board_supports_rf_band_868"
+  - "hardware_board_supports_rf_band_914"
+  - "hardware_board_supports_rf_band_2400"
+  - "hardware_board_supports_rf_band_924"
+
+  # The board has 868MHz, 914MHz and 924MHz RF band (Z-wave)
+- path: config/868_915/sl_rail_sdk_util_802154_init_config.h
+  condition:
+  - "hardware_board_supports_rf_band_868"
+  - "hardware_board_supports_rf_band_914"
+  - "hardware_board_supports_rf_band_924"
+  unless:
+  - "hardware_board_supports_rf_band_915"
+  - "hardware_board_supports_rf_band_2400"
+
+  # The board has 868MHz and 915MHz RF bands
+- path: config/868_915/sl_rail_sdk_util_802154_init_config.h
+  condition:
+  - "hardware_board_supports_rf_band_868"
+  - "hardware_board_supports_rf_band_915"
+  unless:
+  - "hardware_board_supports_rf_band_924"
+  - "hardware_board_supports_rf_band_914"
+  - "hardware_board_supports_rf_band_2400"
+
+  # The board has 868MHz and 2.4GHz RF bands
+- path: config/2p4_868/sl_rail_sdk_util_802154_init_config.h
+  condition:
+  - "hardware_board_supports_rf_band_868"
+  - "hardware_board_supports_rf_band_2400"
+  unless:
+  - "hardware_board_supports_rf_band_924"
+  - "hardware_board_supports_rf_band_914"
+  - "hardware_board_supports_rf_band_915"
+
+  # The board has 915MHz and 2.4GHz RF bands
+- path: config/2p4_915/sl_rail_sdk_util_802154_init_config.h
+  condition:
+  - "hardware_board_supports_rf_band_915"
+  - "hardware_board_supports_rf_band_2400"
+  unless:
+  - "hardware_board_supports_rf_band_924"
+  - "hardware_board_supports_rf_band_914"
+  - "hardware_board_supports_rf_band_868"
+
+  # The board has 868MHz, 915MHz and 2.4GHz RF bands
+- path: config/2p4_868_915/sl_rail_sdk_util_802154_init_config.h
+  condition:
+  - "hardware_board_supports_rf_band_868"
+  - "hardware_board_supports_rf_band_915"
+  - "hardware_board_supports_rf_band_2400"
+  unless:
+  - "hardware_board_supports_rf_band_924"
+  - "hardware_board_supports_rf_band_914"
+
+  # The board has 868MHz, 915MHz and 2.4GHz RF bands
+- path: config/2p4_868_915/sl_rail_sdk_util_802154_init_config.h
+  condition:
+  - "hardware_board_supports_rf_band_868"
+  - "hardware_board_supports_rf_band_914"
+  - "hardware_board_supports_rf_band_924"
+  - "hardware_board_supports_rf_band_2400"
+  unless:
+  - "hardware_board_supports_rf_band_915"
+
+# The board has only 2.4GHz RF band
+- path: config/2p4ghz/sl_rail_sdk_util_802154_protocol_config.h
+  unless:
+  - "hardware_board_supports_rf_band_868"
+  - "hardware_board_supports_rf_band_914"
+  - "hardware_board_supports_rf_band_915"
+  - "hardware_board_supports_rf_band_924"
+  - "hardware_board_supports_rf_band_2400"
+
+- path: config/2p4ghz/sl_rail_sdk_util_802154_protocol_config.h
+  condition:
+  - "hardware_board_supports_rf_band_2400"
+  unless:
+  - "hardware_board_supports_rf_band_868"
+  - "hardware_board_supports_rf_band_914"
+  - "hardware_board_supports_rf_band_915"
+  - "hardware_board_supports_rf_band_924"
+
+  # The board has only 868MHz RF band
+- path: config/subghz/sl_rail_sdk_util_802154_protocol_config.h
+  condition:
+  - "hardware_board_supports_rf_band_868"
+  unless:
+  - "hardware_board_supports_rf_band_2400"
+  - "hardware_board_supports_rf_band_914"
+  - "hardware_board_supports_rf_band_915"
+  - "hardware_board_supports_rf_band_924"
+
+  # The board has only 915MHz RF band
+- path: config/subghz/sl_rail_sdk_util_802154_protocol_config.h
+  condition:
+  - "hardware_board_supports_rf_band_915"
+  unless:
+  - "hardware_board_supports_rf_band_868"
+  - "hardware_board_supports_rf_band_914"
+  - "hardware_board_supports_rf_band_2400"
+  - "hardware_board_supports_rf_band_924"
+
+  # The board has 868MHz, 914MHz and 924MHz RF band (Z-wave)
+- path: config/subghz/sl_rail_sdk_util_802154_protocol_config.h
+  condition:
+  - "hardware_board_supports_rf_band_868"
+  - "hardware_board_supports_rf_band_914"
+  - "hardware_board_supports_rf_band_924"
+  unless:
+  - "hardware_board_supports_rf_band_915"
+  - "hardware_board_supports_rf_band_2400"
+
+  # The board has 868MHz and 915MHz RF bands
+- path: config/subghz/sl_rail_sdk_util_802154_protocol_config.h
+  condition:
+  - "hardware_board_supports_rf_band_868"
+  - "hardware_board_supports_rf_band_915"
+  unless:
+  - "hardware_board_supports_rf_band_924"
+  - "hardware_board_supports_rf_band_914"
+  - "hardware_board_supports_rf_band_2400"
+
+  # The board has 868MHz and 2.4GHz RF bands
+- path: config/dualband/sl_rail_sdk_util_802154_protocol_config.h
+  condition:
+  - "hardware_board_supports_rf_band_868"
+  - "hardware_board_supports_rf_band_2400"
+  unless:
+  - "hardware_board_supports_rf_band_924"
+  - "hardware_board_supports_rf_band_914"
+  - "hardware_board_supports_rf_band_915"
+
+  # The board has 915MHz and 2.4GHz RF bands
+- path: config/dualband/sl_rail_sdk_util_802154_protocol_config.h
+  condition:
+  - "hardware_board_supports_rf_band_915"
+  - "hardware_board_supports_rf_band_2400"
+  unless:
+  - "hardware_board_supports_rf_band_924"
+  - "hardware_board_supports_rf_band_914"
+  - "hardware_board_supports_rf_band_868"
+
+  # The board has 868MHz, 915MHz and 2.4GHz RF bands
+- path: config/dualband/sl_rail_sdk_util_802154_protocol_config.h
+  condition:
+  - "hardware_board_supports_rf_band_868"
+  - "hardware_board_supports_rf_band_915"
+  - "hardware_board_supports_rf_band_2400"
+  unless:
+  - "hardware_board_supports_rf_band_924"
+  - "hardware_board_supports_rf_band_914"
+
+  # The board has 868MHz, 915MHz and 2.4GHz RF bands
+- path: config/dualband/sl_rail_sdk_util_802154_protocol_config.h
+  condition:
+  - "hardware_board_supports_rf_band_868"
+  - "hardware_board_supports_rf_band_914"
+  - "hardware_board_supports_rf_band_924"
+  - "hardware_board_supports_rf_band_2400"
+  unless:
+  - "hardware_board_supports_rf_band_915"
+
+#-------------- Template Contribution ----------------
+template_contribution:
+#------------------ Event handler --------------------
+- name: event_handler
+  value:
+    event: stack_init
+    include: sl_rail_sdk_util_802154_init.h
+    handler: sl_rail_sdk_util_init
+  priority: -9000
+#---------------- Component Catalog ------------------
+- name: component_catalog
+  value: rail_sdk_ieee802154_support
+- name: component_catalog
+  value: sl_rail_sdk_util_802154_init

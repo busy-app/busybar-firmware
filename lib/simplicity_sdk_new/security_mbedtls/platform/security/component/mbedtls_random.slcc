@@ -1,0 +1,34 @@
+id: mbedtls_random
+package: security_mbedtls
+label: CTR-DRBG
+description: >-
+  This component provides support for pseudo-random number generation
+  using the CTR-DRBG construction in Mbed TLS.
+category: Platform|Security|Mbed TLS|Randomness
+quality: production
+provides:
+- name: mbedtls_random
+requires:
+- name: mbedtls_aes
+- name: mbedtls_sha256
+- name: mbedtls_core
+- name: mbedtls_entropy_default
+  condition: [device_cortexm]
+
+template_contribution:
+- name: mbedtls_config
+  value: MBEDTLS_ENTROPY_C
+- name: mbedtls_config
+  value: MBEDTLS_ENTROPY_FORCE_SHA256
+- name: mbedtls_config
+  value: "MBEDTLS_ENTROPY_MAX_SOURCES  2"
+- name: mbedtls_config
+  value: MBEDTLS_NO_PLATFORM_ENTROPY
+  condition:
+  - device_cortexm
+- name: mbedtls_config
+  value: MBEDTLS_CTR_DRBG_C
+metadata:
+  sbom:
+    reference: mbedtls_sbom
+root_path: security_mbedtls

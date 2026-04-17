@@ -1,0 +1,22 @@
+!!omap
+- id: brd4402c
+- label: BRD4402C
+- package: boards
+- description: Board support for BRD4402C.
+- category: Platform|Board|Radio Board
+- quality: production
+- metadata:
+    sbom:
+      license: Zlib
+- requires:
+  - name: brd4402c_revision
+- provides:
+  - name: brd4402c
+  - name: hardware_board_from_stk
+  - name: hardware_board_from_bg22-rb4402c
+- recommends:
+  - id: brd4402c_a01
+    vendor: silabs
+- ui_hints:
+    visibility: never
+- root_path: boards

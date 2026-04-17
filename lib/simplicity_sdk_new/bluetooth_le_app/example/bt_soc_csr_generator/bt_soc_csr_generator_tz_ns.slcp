@@ -1,0 +1,127 @@
+project_name: bt_soc_csr_generator_tz_ns
+package: bluetooth_le_app
+label: Bluetooth - SoC Certificate Signing Request Generator (TrustZone)
+description: >
+  Certificate generating firmware example. Software is generating the device
+  EC key pair, the signing request for the device certificate, and other related
+  data. The generated data can be read out by the Central Authority.
+  This example utilizes TrustZone for storing keys.
+
+category: Bluetooth Examples
+quality: experimental
+
+filter:
+  - name: "Wireless Technology"
+    value: ["Bluetooth"]
+  - name: "Device Type"
+    value: ["SoC"]
+  - name: "Project Difficulty"
+    value: ["Advanced"]
+
+component:
+  - id: bluetooth_stack
+  - id: bootloader_interface
+  - id: apploader
+  - id: app_assert
+  - id: app_log
+  - id: nvm3_lib
+  - id: nvm3_default
+  - id: trustzone_nonsecure
+  - id: tz_secure_key_library
+  - id: psa_crypto
+  - id: psa_crypto_cmac
+  - id: psa_crypto_ccm
+  - id: psa_crypto_cipher_ecb
+  - id: psa_crypto_ecdh
+  - id: psa_crypto_ecdsa
+  - id: psa_crypto_ecc_secp256r1
+  - id: psa_its
+  - id: psa_crypto_hmac
+  - id: psa_crypto_sha256
+  - id: psa_crypto_sha1
+  - id: sl_main
+  - id: clock_manager
+  - id: device_init
+  - id: sleeptimer
+
+source:
+  - path: app.c
+  - path: csr_generator.c
+  - path: der.c
+
+include:
+  - path: .
+    file_list:
+      - path: csr_generator.h
+      - path: der.h
+
+config_file:
+  - path: config/csr_generator_config.h
+
+readme:
+  - path: readme.md
+
+other_file:
+  - path: image/readme_img0.png
+  - path: image/readme_img1.png
+  - path: image/readme_img2.png
+
+import:
+  # Import the config files from the TZ Secure application
+  - id: bt_soc_tz_secure_application
+
+configuration:
+  - name: SL_STACK_SIZE
+    value: "4000"
+    condition: [device_sdid_205]  # xG22
+  - name: SL_STACK_SIZE
+    value: "6200"
+    unless: [device_sdid_205]  # not xG22
+  - name: CSR_GENERATOR_KEY_LOCATION
+    value: "PSA_KEY_LOCATION_LOCAL_STORAGE"  # TrustZone
+  - name: SL_BOARD_ENABLE_VCOM
+    value: "1"
+  - name: SL_IOSTREAM_USART_VCOM_RESTRICT_ENERGY_MODE_TO_ALLOW_RECEPTION
+    value: "0"
+  - name: SL_IOSTREAM_EUSART_VCOM_RESTRICT_ENERGY_MODE_TO_ALLOW_RECEPTION
+    value: "0"
+  - name: SL_PSA_KEY_USER_SLOT_COUNT
+    value: "1"
+    condition:
+      - psa_crypto
+
+template_contribution:
+  # Offset flash after bootloader and secure app
+  - name: memory_flash_start
+    value: 0x2C000
+    condition: [device_sdid_200]
+  - name: memory_flash_start
+    value: 0x2C000
+    condition: [device_sdid_205]
+  - name: memory_flash_start
+    value: 0x802C000
+    unless: [device_sdid_200, device_sdid_205]
+
+  - name: memory_ram_start
+    value: 0x20002000
+    condition: [device_sdid_205]  # xG22
+  - name: memory_ram_start
+    value: 0x20003000
+    unless: [device_sdid_205]  # not xG22
+
+post_build:
+  profile: tz_nonsecure_application
+
+tag:
+  - companion:secure_app  # Needs a companion app and cannot be built alone
+  - hwfilter:device:device_supports_bluetooth
+  - hwfilter:device:device_series_2
+  - hwfilter:device:armv8m.main
+  - hwfilter:!device:device_security_vault
+  - hwfilter:flash:512k
+  - hwfilter:ram:32k
+
+ui_hints:
+  highlight:
+    - path: readme.md
+      focus: true

@@ -1,0 +1,21 @@
+id: math
+label: Math
+package: compute
+description: >
+  This component provides some math features.
+category: Compute
+quality: production
+root_path: compute/math
+metadata:
+  sbom:
+    license: Zlib
+source:
+- path: src/sl_math_matrix.c
+include:
+- path: inc
+  file_list:
+  - path: sl_math_matrix.h
+provides:
+- name: math
+requires:
+- name: math_types

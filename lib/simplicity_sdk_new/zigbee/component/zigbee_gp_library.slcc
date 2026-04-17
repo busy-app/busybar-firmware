@@ -1,0 +1,611 @@
+#WARNING: This is a generated file. Do not modify.
+#run "sled lib export <FILENAME> to generate
+id: zigbee_gp_library
+label: Green Power (Library)
+package: zigbee
+category: Zigbee|Stack
+quality: production
+ui_hints:
+  visibility: never
+description: Provides Green Power (Library)
+
+provides:
+- name: zigbee_gp_implementation
+- name: zigbee_gp_library
+
+requires:
+- name: zigbee_gp
+
+library:
+- path: build/gcc/aarch64_cortex-a72_gcc-12.3.0_musl/ncp-gp-library/release/libncp-gp-library.a
+  condition:
+  - toolchain_gcc
+  - aarch64_cortex-a72_gcc-12.3.0_musl
+  - zigbee_ncp
+  - zigbee_stack_unix
+  - zigbee_multi_network
+  - zigbee_aarch64_cortex_a72_gcc_12_3_0_musl
+  unless:
+  - zigbee_x86_64
+- path: build/gcc/aarch64_cortex-a72_gcc-12.3.0_musl/ncp-gp-library/release_singlenetwork/libncp-gp-library.a
+  condition:
+  - toolchain_gcc
+  - aarch64_cortex-a72_gcc-12.3.0_musl
+  - zigbee_ncp
+  - zigbee_stack_unix
+  - zigbee_aarch64_cortex_a72_gcc_12_3_0_musl
+  unless:
+  - zigbee_multi_network
+  - zigbee_x86_64
+- path: build/gcc/aarch64_cortex-a72_gcc-12.3.0_musl/zigbee-gp/release/libzigbee-gp.a
+  condition:
+  - toolchain_gcc
+  - aarch64_cortex-a72_gcc-12.3.0_musl
+  - zigbee_stack_unix
+  - zigbee_multi_network
+  - zigbee_aarch64_cortex_a72_gcc_12_3_0_musl
+  unless:
+  - zigbee_x86_64
+- path: build/gcc/aarch64_cortex-a72_gcc-12.3.0_musl/zigbee-gp/release_singlenetwork/libzigbee-gp.a
+  condition:
+  - toolchain_gcc
+  - aarch64_cortex-a72_gcc-12.3.0_musl
+  - zigbee_stack_unix
+  - zigbee_aarch64_cortex_a72_gcc_12_3_0_musl
+  unless:
+  - zigbee_multi_network
+  - zigbee_x86_64
+- path: build/gcc/aarch64_tizen-0.1-13.1_gcc-9.2-softfp/ncp-gp-library/release/libncp-gp-library.a
+  condition:
+  - toolchain_gcc
+  - aarch64_tizen-0.1-13.1_gcc-9.2-softfp
+  - zigbee_ncp
+  - zigbee_stack_unix
+  - zigbee_multi_network
+  unless: []
+- path: build/gcc/aarch64_tizen-0.1-13.1_gcc-9.2-softfp/ncp-gp-library/release_singlenetwork/libncp-gp-library.a
+  condition:
+  - toolchain_gcc
+  - aarch64_tizen-0.1-13.1_gcc-9.2-softfp
+  - zigbee_ncp
+  - zigbee_stack_unix
+  unless:
+  - zigbee_multi_network
+- path: build/gcc/aarch64_tizen-0.1-13.1_gcc-9.2-softfp/zigbee-gp/release/libzigbee-gp.a
+  condition:
+  - toolchain_gcc
+  - aarch64_tizen-0.1-13.1_gcc-9.2-softfp
+  - zigbee_stack_unix
+  - zigbee_multi_network
+  unless: []
+- path: build/gcc/aarch64_tizen-0.1-13.1_gcc-9.2-softfp/zigbee-gp/release_singlenetwork/libzigbee-gp.a
+  condition:
+  - toolchain_gcc
+  - aarch64_tizen-0.1-13.1_gcc-9.2-softfp
+  - zigbee_stack_unix
+  unless:
+  - zigbee_multi_network
+- path: build/gcc/arm32v7/ncp-gp-library/release/libncp-gp-library.a
+  condition:
+  - toolchain_gcc
+  - arm32v7
+  - zigbee_ncp
+  - zigbee_stack_unix
+  - zigbee_multi_network
+  - linux_arch_arm32v7
+  unless:
+  - zigbee_i386
+- path: build/gcc/arm32v7/ncp-gp-library/release_singlenetwork/libncp-gp-library.a
+  condition:
+  - toolchain_gcc
+  - arm32v7
+  - zigbee_ncp
+  - zigbee_stack_unix
+  - linux_arch_arm32v7
+  unless:
+  - zigbee_multi_network
+  - zigbee_i386
+- path: build/gcc/arm32v7/zigbee-gp/release/libzigbee-gp.a
+  condition:
+  - toolchain_gcc
+  - arm32v7
+  - zigbee_stack_unix
+  - zigbee_multi_network
+  - linux_arch_arm32v7
+  unless:
+  - zigbee_i386
+- path: build/gcc/arm32v7/zigbee-gp/release_singlenetwork/libzigbee-gp.a
+  condition:
+  - toolchain_gcc
+  - arm32v7
+  - zigbee_stack_unix
+  - linux_arch_arm32v7
+  unless:
+  - zigbee_multi_network
+  - zigbee_i386
+- path: build/gcc/arm64v8/ncp-gp-library/release/libncp-gp-library.a
+  condition:
+  - toolchain_gcc
+  - arm64v8
+  - zigbee_ncp
+  - zigbee_stack_unix
+  - zigbee_multi_network
+  - linux_arch_aarch64
+  unless:
+  - zigbee_x86_64
+  - zigbee_aarch64_cortex_a72_gcc_12_3_0_musl
+- path: build/gcc/arm64v8/ncp-gp-library/release_singlenetwork/libncp-gp-library.a
+  condition:
+  - toolchain_gcc
+  - arm64v8
+  - zigbee_ncp
+  - zigbee_stack_unix
+  - linux_arch_aarch64
+  unless:
+  - zigbee_multi_network
+  - zigbee_x86_64
+  - zigbee_aarch64_cortex_a72_gcc_12_3_0_musl
+- path: build/gcc/arm64v8/zigbee-gp/release/libzigbee-gp.a
+  condition:
+  - toolchain_gcc
+  - arm64v8
+  - zigbee_stack_unix
+  - zigbee_multi_network
+  - linux_arch_aarch64
+  unless:
+  - zigbee_x86_64
+  - zigbee_aarch64_cortex_a72_gcc_12_3_0_musl
+- path: build/gcc/arm64v8/zigbee-gp/release_singlenetwork/libzigbee-gp.a
+  condition:
+  - toolchain_gcc
+  - arm64v8
+  - zigbee_stack_unix
+  - linux_arch_aarch64
+  unless:
+  - zigbee_multi_network
+  - zigbee_x86_64
+  - zigbee_aarch64_cortex_a72_gcc_12_3_0_musl
+- path: build/gcc/armv7l_tizen-0.1-13.1_gcc-9.2-softfp/ncp-gp-library/release/libncp-gp-library.a
+  condition:
+  - toolchain_gcc
+  - armv7l_tizen-0.1-13.1_gcc-9.2-softfp
+  - zigbee_ncp
+  - zigbee_stack_unix
+  - zigbee_multi_network
+  unless: []
+- path: build/gcc/armv7l_tizen-0.1-13.1_gcc-9.2-softfp/ncp-gp-library/release_singlenetwork/libncp-gp-library.a
+  condition:
+  - toolchain_gcc
+  - armv7l_tizen-0.1-13.1_gcc-9.2-softfp
+  - zigbee_ncp
+  - zigbee_stack_unix
+  unless:
+  - zigbee_multi_network
+- path: build/gcc/armv7l_tizen-0.1-13.1_gcc-9.2-softfp/zigbee-gp/release/libzigbee-gp.a
+  condition:
+  - toolchain_gcc
+  - armv7l_tizen-0.1-13.1_gcc-9.2-softfp
+  - zigbee_stack_unix
+  - zigbee_multi_network
+  unless: []
+- path: build/gcc/armv7l_tizen-0.1-13.1_gcc-9.2-softfp/zigbee-gp/release_singlenetwork/libzigbee-gp.a
+  condition:
+  - toolchain_gcc
+  - armv7l_tizen-0.1-13.1_gcc-9.2-softfp
+  - zigbee_stack_unix
+  unless:
+  - zigbee_multi_network
+- path: build/gcc/cortex-m33/ncp-gp-library/release/libncp-gp-library.a
+  condition:
+  - toolchain_gcc
+  - cortexm33
+  - zigbee_ncp
+  - zigbee_phy_2_4
+  - zigbee_multi_network
+  unless:
+  - zigbee_phy_2_4_subghz_selection_end_device
+  - zigbee_phy_2_4_subghz_switch_coordinator
+  - toolchain_llvm
+- path: build/gcc/cortex-m33/ncp-gp-library/release_dualrail/libncp-gp-library.a
+  condition:
+  - toolchain_gcc
+  - cortexm33
+  - zigbee_ncp
+  - zigbee_phy_2_4_subghz_switch_coordinator
+  - zigbee_multi_network
+  unless:
+  - zigbee_phy_2_4_subghz_selection_end_device
+  - toolchain_llvm
+- path: build/gcc/cortex-m33/ncp-gp-library/release_dualrail_singlenetwork/libncp-gp-library.a
+  condition:
+  - toolchain_gcc
+  - cortexm33
+  - zigbee_ncp
+  - zigbee_phy_2_4_subghz_switch_coordinator
+  unless:
+  - zigbee_multi_network
+  - zigbee_phy_2_4_subghz_selection_end_device
+  - toolchain_llvm
+- path: build/gcc/cortex-m33/ncp-gp-library/release_singlenetwork/libncp-gp-library.a
+  condition:
+  - toolchain_gcc
+  - cortexm33
+  - zigbee_ncp
+  - zigbee_phy_2_4
+  unless:
+  - zigbee_multi_network
+  - zigbee_phy_2_4_subghz_selection_end_device
+  - zigbee_phy_2_4_subghz_switch_coordinator
+  - toolchain_llvm
+- path: build/gcc/cortex-m33/zigbee-gp/release/libzigbee-gp.a
+  condition:
+  - toolchain_gcc
+  - cortexm33
+  - zigbee_phy_2_4
+  - zigbee_multi_network
+  unless:
+  - zigbee_phy_2_4_subghz_selection_end_device
+  - zigbee_phy_2_4_subghz_switch_coordinator
+  - toolchain_llvm
+- path: build/gcc/cortex-m33/zigbee-gp/release_dualrail/libzigbee-gp.a
+  condition:
+  - toolchain_gcc
+  - cortexm33
+  - zigbee_phy_2_4_subghz_switch_coordinator
+  - zigbee_multi_network
+  unless:
+  - zigbee_phy_2_4_subghz_selection_end_device
+  - toolchain_llvm
+- path: build/gcc/cortex-m33/zigbee-gp/release_dualrail_singlenetwork/libzigbee-gp.a
+  condition:
+  - toolchain_gcc
+  - cortexm33
+  - zigbee_phy_2_4_subghz_switch_coordinator
+  unless:
+  - zigbee_multi_network
+  - zigbee_phy_2_4_subghz_selection_end_device
+  - toolchain_llvm
+- path: build/gcc/cortex-m33/zigbee-gp/release_singlenetwork/libzigbee-gp.a
+  condition:
+  - toolchain_gcc
+  - cortexm33
+  - zigbee_phy_2_4
+  unless:
+  - zigbee_multi_network
+  - zigbee_phy_2_4_subghz_selection_end_device
+  - zigbee_phy_2_4_subghz_switch_coordinator
+  - toolchain_llvm
+- path: build/gcc/i386/ncp-gp-library/release/libncp-gp-library.a
+  condition:
+  - toolchain_gcc
+  - i386
+  - zigbee_ncp
+  - zigbee_stack_unix
+  - zigbee_multi_network
+  - zigbee_i386
+  unless: []
+- path: build/gcc/i386/ncp-gp-library/release_singlenetwork/libncp-gp-library.a
+  condition:
+  - toolchain_gcc
+  - i386
+  - zigbee_ncp
+  - zigbee_stack_unix
+  - zigbee_i386
+  unless:
+  - zigbee_multi_network
+- path: build/gcc/i386/zigbee-gp/release/libzigbee-gp.a
+  condition:
+  - toolchain_gcc
+  - i386
+  - zigbee_stack_unix
+  - zigbee_multi_network
+  - zigbee_i386
+  unless: []
+- path: build/gcc/i386/zigbee-gp/release_singlenetwork/libzigbee-gp.a
+  condition:
+  - toolchain_gcc
+  - i386
+  - zigbee_stack_unix
+  - zigbee_i386
+  unless:
+  - zigbee_multi_network
+- path: build/gcc/x86-64/ncp-gp-library/release/libncp-gp-library.a
+  condition:
+  - toolchain_gcc
+  - x86-64
+  - zigbee_ncp
+  - zigbee_stack_unix
+  - zigbee_multi_network
+  - zigbee_x86_64
+  unless: []
+- path: build/gcc/x86-64/ncp-gp-library/release_singlenetwork/libncp-gp-library.a
+  condition:
+  - toolchain_gcc
+  - x86-64
+  - zigbee_ncp
+  - zigbee_stack_unix
+  - zigbee_x86_64
+  unless:
+  - zigbee_multi_network
+- path: build/gcc/x86-64/zigbee-gp/release/libzigbee-gp.a
+  condition:
+  - toolchain_gcc
+  - x86-64
+  - zigbee_stack_unix
+  - zigbee_multi_network
+  - zigbee_x86_64
+  unless: []
+- path: build/gcc/x86-64/zigbee-gp/release_singlenetwork/libzigbee-gp.a
+  condition:
+  - toolchain_gcc
+  - x86-64
+  - zigbee_stack_unix
+  - zigbee_x86_64
+  unless:
+  - zigbee_multi_network
+- path: build/iar/cortex-m33/ncp-gp-library/release/libncp-gp-library.a
+  condition:
+  - toolchain_iar
+  - cortexm33
+  - zigbee_ncp
+  - zigbee_phy_2_4
+  - zigbee_multi_network
+  unless:
+  - zigbee_phy_2_4_subghz_selection_end_device
+  - zigbee_phy_2_4_subghz_switch_coordinator
+  - stack_protection_iar
+- path: build/iar/cortex-m33/ncp-gp-library/release_dualrail/libncp-gp-library.a
+  condition:
+  - toolchain_iar
+  - cortexm33
+  - zigbee_ncp
+  - zigbee_phy_2_4_subghz_switch_coordinator
+  - zigbee_multi_network
+  unless:
+  - zigbee_phy_2_4_subghz_selection_end_device
+  - stack_protection_iar
+- path: build/iar/cortex-m33/ncp-gp-library/release_dualrail_singlenetwork/libncp-gp-library.a
+  condition:
+  - toolchain_iar
+  - cortexm33
+  - zigbee_ncp
+  - zigbee_phy_2_4_subghz_switch_coordinator
+  unless:
+  - zigbee_multi_network
+  - zigbee_phy_2_4_subghz_selection_end_device
+  - stack_protection_iar
+- path: build/iar/cortex-m33/ncp-gp-library/release_singlenetwork/libncp-gp-library.a
+  condition:
+  - toolchain_iar
+  - cortexm33
+  - zigbee_ncp
+  - zigbee_phy_2_4
+  unless:
+  - zigbee_multi_network
+  - zigbee_phy_2_4_subghz_selection_end_device
+  - zigbee_phy_2_4_subghz_switch_coordinator
+  - stack_protection_iar
+- path: build/iar/cortex-m33/ncp-gp-library/release_stackprotection/libncp-gp-library.a
+  condition:
+  - toolchain_iar
+  - cortexm33
+  - zigbee_ncp
+  - zigbee_phy_2_4
+  - zigbee_multi_network
+  - stack_protection_iar
+  unless:
+  - zigbee_phy_2_4_subghz_selection_end_device
+  - zigbee_phy_2_4_subghz_switch_coordinator
+- path: build/iar/cortex-m33/ncp-gp-library/release_stackprotection_dualrail/libncp-gp-library.a
+  condition:
+  - toolchain_iar
+  - cortexm33
+  - zigbee_ncp
+  - zigbee_phy_2_4_subghz_switch_coordinator
+  - zigbee_multi_network
+  - stack_protection_iar
+  unless:
+  - zigbee_phy_2_4_subghz_selection_end_device
+- path: build/iar/cortex-m33/ncp-gp-library/release_stackprotection_dualrail_singlenetwork/libncp-gp-library.a
+  condition:
+  - toolchain_iar
+  - cortexm33
+  - zigbee_ncp
+  - zigbee_phy_2_4_subghz_switch_coordinator
+  - stack_protection_iar
+  unless:
+  - zigbee_multi_network
+  - zigbee_phy_2_4_subghz_selection_end_device
+- path: build/iar/cortex-m33/ncp-gp-library/release_stackprotection_singlenetwork/libncp-gp-library.a
+  condition:
+  - toolchain_iar
+  - cortexm33
+  - zigbee_ncp
+  - zigbee_phy_2_4
+  - stack_protection_iar
+  unless:
+  - zigbee_multi_network
+  - zigbee_phy_2_4_subghz_selection_end_device
+  - zigbee_phy_2_4_subghz_switch_coordinator
+- path: build/iar/cortex-m33/zigbee-gp/release/libzigbee-gp.a
+  condition:
+  - toolchain_iar
+  - cortexm33
+  - zigbee_phy_2_4
+  - zigbee_multi_network
+  unless:
+  - zigbee_phy_2_4_subghz_selection_end_device
+  - zigbee_phy_2_4_subghz_switch_coordinator
+  - stack_protection_iar
+- path: build/iar/cortex-m33/zigbee-gp/release_dualrail/libzigbee-gp.a
+  condition:
+  - toolchain_iar
+  - cortexm33
+  - zigbee_phy_2_4_subghz_switch_coordinator
+  - zigbee_multi_network
+  unless:
+  - zigbee_phy_2_4_subghz_selection_end_device
+  - stack_protection_iar
+- path: build/iar/cortex-m33/zigbee-gp/release_dualrail_singlenetwork/libzigbee-gp.a
+  condition:
+  - toolchain_iar
+  - cortexm33
+  - zigbee_phy_2_4_subghz_switch_coordinator
+  unless:
+  - zigbee_multi_network
+  - zigbee_phy_2_4_subghz_selection_end_device
+  - stack_protection_iar
+- path: build/iar/cortex-m33/zigbee-gp/release_singlenetwork/libzigbee-gp.a
+  condition:
+  - toolchain_iar
+  - cortexm33
+  - zigbee_phy_2_4
+  unless:
+  - zigbee_multi_network
+  - zigbee_phy_2_4_subghz_selection_end_device
+  - zigbee_phy_2_4_subghz_switch_coordinator
+  - stack_protection_iar
+- path: build/iar/cortex-m33/zigbee-gp/release_stackprotection/libzigbee-gp.a
+  condition:
+  - toolchain_iar
+  - cortexm33
+  - zigbee_phy_2_4
+  - zigbee_multi_network
+  - stack_protection_iar
+  unless:
+  - zigbee_phy_2_4_subghz_selection_end_device
+  - zigbee_phy_2_4_subghz_switch_coordinator
+- path: build/iar/cortex-m33/zigbee-gp/release_stackprotection_dualrail/libzigbee-gp.a
+  condition:
+  - toolchain_iar
+  - cortexm33
+  - zigbee_phy_2_4_subghz_switch_coordinator
+  - zigbee_multi_network
+  - stack_protection_iar
+  unless:
+  - zigbee_phy_2_4_subghz_selection_end_device
+- path: build/iar/cortex-m33/zigbee-gp/release_stackprotection_dualrail_singlenetwork/libzigbee-gp.a
+  condition:
+  - toolchain_iar
+  - cortexm33
+  - zigbee_phy_2_4_subghz_switch_coordinator
+  - stack_protection_iar
+  unless:
+  - zigbee_multi_network
+  - zigbee_phy_2_4_subghz_selection_end_device
+- path: build/iar/cortex-m33/zigbee-gp/release_stackprotection_singlenetwork/libzigbee-gp.a
+  condition:
+  - toolchain_iar
+  - cortexm33
+  - zigbee_phy_2_4
+  - stack_protection_iar
+  unless:
+  - zigbee_multi_network
+  - zigbee_phy_2_4_subghz_selection_end_device
+  - zigbee_phy_2_4_subghz_switch_coordinator
+- path: build/llvm/aarch64-android-ndk-r25c/ncp-gp-library/release/libncp-gp-library.a
+  condition:
+  - toolchain_llvm
+  - aarch64-android-ndk-r25c
+  - zigbee_ncp
+  - zigbee_stack_unix
+  - zigbee_multi_network
+  unless: []
+- path: build/llvm/aarch64-android-ndk-r25c/ncp-gp-library/release_singlenetwork/libncp-gp-library.a
+  condition:
+  - toolchain_llvm
+  - aarch64-android-ndk-r25c
+  - zigbee_ncp
+  - zigbee_stack_unix
+  unless:
+  - zigbee_multi_network
+- path: build/llvm/aarch64-android-ndk-r25c/zigbee-gp/release/libzigbee-gp.a
+  condition:
+  - toolchain_llvm
+  - aarch64-android-ndk-r25c
+  - zigbee_stack_unix
+  - zigbee_multi_network
+  unless: []
+- path: build/llvm/aarch64-android-ndk-r25c/zigbee-gp/release_singlenetwork/libzigbee-gp.a
+  condition:
+  - toolchain_llvm
+  - aarch64-android-ndk-r25c
+  - zigbee_stack_unix
+  unless:
+  - zigbee_multi_network
+- path: build/llvm/cortex-m33/ncp-gp-library/release/libncp-gp-library.a
+  condition:
+  - toolchain_llvm
+  - cortexm33
+  - zigbee_ncp
+  - zigbee_phy_2_4
+  - zigbee_multi_network
+  unless:
+  - zigbee_phy_2_4_subghz_selection_end_device
+  - zigbee_phy_2_4_subghz_switch_coordinator
+- path: build/llvm/cortex-m33/ncp-gp-library/release_dualrail/libncp-gp-library.a
+  condition:
+  - toolchain_llvm
+  - cortexm33
+  - zigbee_ncp
+  - zigbee_phy_2_4_subghz_switch_coordinator
+  - zigbee_multi_network
+  unless:
+  - zigbee_phy_2_4_subghz_selection_end_device
+- path: build/llvm/cortex-m33/ncp-gp-library/release_dualrail_singlenetwork/libncp-gp-library.a
+  condition:
+  - toolchain_llvm
+  - cortexm33
+  - zigbee_ncp
+  - zigbee_phy_2_4_subghz_switch_coordinator
+  unless:
+  - zigbee_multi_network
+  - zigbee_phy_2_4_subghz_selection_end_device
+- path: build/llvm/cortex-m33/ncp-gp-library/release_singlenetwork/libncp-gp-library.a
+  condition:
+  - toolchain_llvm
+  - cortexm33
+  - zigbee_ncp
+  - zigbee_phy_2_4
+  unless:
+  - zigbee_multi_network
+  - zigbee_phy_2_4_subghz_selection_end_device
+  - zigbee_phy_2_4_subghz_switch_coordinator
+- path: build/llvm/cortex-m33/zigbee-gp/release/libzigbee-gp.a
+  condition:
+  - toolchain_llvm
+  - cortexm33
+  - zigbee_phy_2_4
+  - zigbee_multi_network
+  unless:
+  - zigbee_phy_2_4_subghz_selection_end_device
+  - zigbee_phy_2_4_subghz_switch_coordinator
+- path: build/llvm/cortex-m33/zigbee-gp/release_dualrail/libzigbee-gp.a
+  condition:
+  - toolchain_llvm
+  - cortexm33
+  - zigbee_phy_2_4_subghz_switch_coordinator
+  - zigbee_multi_network
+  unless:
+  - zigbee_phy_2_4_subghz_selection_end_device
+- path: build/llvm/cortex-m33/zigbee-gp/release_dualrail_singlenetwork/libzigbee-gp.a
+  condition:
+  - toolchain_llvm
+  - cortexm33
+  - zigbee_phy_2_4_subghz_switch_coordinator
+  unless:
+  - zigbee_multi_network
+  - zigbee_phy_2_4_subghz_selection_end_device
+- path: build/llvm/cortex-m33/zigbee-gp/release_singlenetwork/libzigbee-gp.a
+  condition:
+  - toolchain_llvm
+  - cortexm33
+  - zigbee_phy_2_4
+  unless:
+  - zigbee_multi_network
+  - zigbee_phy_2_4_subghz_selection_end_device
+  - zigbee_phy_2_4_subghz_switch_coordinator
+metadata:
+  sbom:
+    license: MSLA
+root_path: zigbee

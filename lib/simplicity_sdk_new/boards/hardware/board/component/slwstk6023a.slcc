@@ -1,0 +1,27 @@
+!!omap
+- id: slwstk6023a
+- label: SLWSTK6023A
+- package: boards
+- description: Kit BSP support for the EFR32xG21 Bluetooth Starter Kit.
+- category: Platform|Board|Kit|Wireless Starter Kit
+- quality: production
+- metadata:
+    sbom:
+      license: Zlib
+- requires:
+  - name: brd4002a
+  - name: hardware_board_from_slwstk6023a
+- provides:
+  - name: hardware_kit
+  - name: hardware_kit_stk
+- define:
+  - name: SL_KIT_NAME
+    value: '"SLWSTK6023A"'
+  - name: SL_KIT_REV
+    value: '"B00"'
+- tag:
+  - kit:opn:SLWSTK6023A
+  - kit:pn:WSTK6023
+  - kit:variant:A
+  - kit:revision:B00
+- root_path: boards

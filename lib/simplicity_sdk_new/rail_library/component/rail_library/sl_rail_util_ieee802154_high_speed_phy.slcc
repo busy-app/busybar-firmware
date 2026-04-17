@@ -1,0 +1,38 @@
+id: sl_rail_util_ieee802154_high_speed_phy
+label: RAIL Utility, IEEE802.15.4 High Speed PHY Configuration (RAIL 3)
+description: Utility to aid with IEEE802.15.4 High Speed PHY Configuration
+package: rail_library
+category: Platform|Radio
+quality: evaluation
+metadata:
+  sbom:
+    id: sl_rail_util_ieee802154_high_speed_phy
+    name: RAIL Utility, IEEE802.15.4 High Speed PHY Configuration (RAIL 3)
+    license: Zlib
+provides:
+- name: sl_rail_util_ieee802154_high_speed_phy
+- name: rail_util_ieee802154_high_speed_phy
+requires:
+- name: sl_rail_util_ieee802154_phy_select
+- name: component_catalog
+config_file:
+- path: plugin/sl_rail_util_ieee802154/config/sl_rail_util_ieee802154_high_speed_phy_config.h
+  file_id: sl_rail_util_ieee802154_high_speed_phy_config
+include:
+- path: plugin/sl_rail_util_ieee802154
+  file_list:
+  - path: sl_rail_util_ieee802154_high_speed.h
+template_contribution:
+- name: rail_util_ieee802154_phy_select_callbacks
+  value:
+    config_include: sl_rail_util_ieee802154_high_speed_phy_config.h
+    include: sl_rail_util_ieee802154_high_speed.h
+    runtime_phy_features: SL_RAIL_UTIL_IEEE802154_RUNTIME_PHY_FEATURES_2P4_2MBPS
+    default_phy_features: SL_RAIL_UTIL_IEEE802154_DEFAULT_PHY_FEATURES_2P4_2MBPS
+    get_phy_features: sl_rail_util_ieee802154_get_high_speed_phy_features
+  priority: -9010
+- name: component_catalog
+  value: sl_rail_util_ieee802154_high_speed_phy
+- name: component_catalog
+  value: rail_util_ieee802154_high_speed_phy
+root_path: rail_library

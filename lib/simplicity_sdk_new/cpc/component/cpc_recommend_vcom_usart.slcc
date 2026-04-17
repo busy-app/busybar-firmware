@@ -1,0 +1,28 @@
+id: cpc_recommend_vcom_usart
+label: 'CPC: Recommend VCOM USART interface'
+package: cpc
+description: CPC Recommend VCOM USART interface
+category: Services|Co-Processor Communication|Secondary Device
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+ui_hints:
+  visibility: never
+requires:
+- name: cpc_config_vcom
+  condition:
+  - cpc_secondary_driver_uart_usart
+provides:
+- name: cpc_recommend_vcom
+- name: cpc_recommend_vcom_usart
+recommends:
+- id: cpc_secondary_driver_uart_usart
+  instance:
+  - vcom
+  vendor: silabs
+- id: cpc_config_vcom
+  instance:
+  - vcom
+  vendor: silabs
+root_path: cpc

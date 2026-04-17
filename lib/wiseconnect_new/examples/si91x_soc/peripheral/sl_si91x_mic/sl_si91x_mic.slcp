@@ -1,0 +1,49 @@
+project_name: sl_si91x_mic
+package: platform_siwx91x_app
+description: 'This application demonstrates how to use an I2S microphone.
+
+  '
+category: example|peripheral
+quality: production
+label: Si91x - Mic
+component:
+- id: sl_main
+- id: status
+- id: sl_si91x_mic
+- id: syscalls
+- id: si91x_memory_default_config
+- id: i2s_instance
+  instance:
+  - i2s0
+source:
+- path: app.c
+- path: mic_example.c
+include:
+- path: .
+  file_list:
+  - path: app.h
+  - path: mic_example.h
+define:
+- name: SYSCALLS_WRITE
+toolchain_settings:
+- option: gcc_compiler_option
+  value: -Wall -Werror
+other_file:
+- path: resources/readme/setupdiagram.png
+- path: resources/readme/mic_console_logs.png
+ui_hints:
+  highlight:
+  - path: readme.md
+    focus: true
+readme:
+- path: readme.md
+post_build:
+  profile: wiseconnect_soc
+sdk_extension:
+- id: wiseconnect3_sdk
+  vendor: silabs
+  version: 4.0.1
+sdk:
+  id: simplicity_sdk
+  vendor: silabs
+  version: 2025.12.2

@@ -1,0 +1,43 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__evt__l2cap__command__rejected" kind="group">
+    <compoundname>sl_bt_evt_l2cap_command_rejected</compoundname>
+    <title>sl_bt_evt_l2cap_command_rejected</title>
+    <innerclass refid="structsl__bt__evt__l2cap__command__rejected__s" prot="public">sl_bt_evt_l2cap_command_rejected_s</innerclass>
+      <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="group__sl__bt__evt__l2cap__command__rejected_1ga193321081d8861075e938b0b07ce6a7d" prot="public" static="no">
+        <type>struct <ref refid="structsl__bt__evt__l2cap__command__rejected__s" kindref="compound">sl_bt_evt_l2cap_command_rejected_s</ref></type>
+        <definition>typedef struct sl_bt_evt_l2cap_command_rejected_s sl_bt_evt_l2cap_command_rejected_t</definition>
+        <argsstring></argsstring>
+        <name>sl_bt_evt_l2cap_command_rejected_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15070" column="49" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="15070" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__evt__l2cap__command__rejected_1ga75f59b10722ab0a3399a14ec4d5ddf92" prot="public" static="no">
+        <name>sl_bt_evt_l2cap_command_rejected_id</name>
+        <initializer>0x064300a0</initializer>
+        <briefdescription>
+<para>Identifier of the command_rejected event. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15054" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="15054" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Indicates that the peer device rejected a command. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>This might happen if, for example, the device does not support the feature or the command has an incorrect CID. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

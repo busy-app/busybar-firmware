@@ -1,0 +1,81 @@
+project_name: sl_si91x_slot_a_fw
+package: platform_nwp_siwx91x_app
+description: 'Wirelessly updates the M4 firmware from a remote TCP server
+
+  '
+category: Example|si91x_soc
+quality: production
+label: sl_si91x_slot_a_fw
+component:
+- id: sl_main
+- id: freertos
+- id: freertos_heap_4
+- id: syscalls
+- id: si91x_memory_default_config
+- id: wiseconnect_common
+- id: wifi
+- id: sl_si91x_internal_stack
+- id: wifi_resources
+- id: network_manager
+- id: basic_network_config_manager
+- id: bsd_socket
+- id: sl_si91x_soc_soft_reset
+- id: sl_si91x_basic_buffers
+- id: sl_si91x_fw_fallback
+source:
+- path: app.c
+include:
+- path: .
+  file_list:
+  - path: app.h
+define:
+- name: SL_SI91X_PRINT_DBG_LOG
+- name: SLI_SI91X_MCU_FW_UPGRADE_OTA_DUAL_FLASH
+- name: SL_SI91X_FW_FALLBACK
+- name: SL_SI91X_FW_FALLBACK_UPDATER
+template_contribution:
+- name: device_flash_addr
+  value: 136835072
+  priority: -100
+- name: device_flash_size
+  value: 1769472
+  priority: -100
+toolchain_settings:
+- option: gcc_compiler_option
+  value: -Wall -Werror
+other_file:
+- path: resources/readme/output_remote_server.png
+- path: resources/readme/output_soc.png
+- path: resources/readme/output_soc_1.png
+- path: resources/readme/setup_soc_updated.png
+- path: resources/readme/vcom.png
+requires:
+- name: device_needs_ram_execution
+  condition:
+  - si91x_common_flash
+configuration:
+- name: SL_BOARD_ENABLE_VCOM
+  value: '1'
+ui_hints:
+  highlight:
+  - path: readme.md
+    focus: true
+readme:
+- path: readme.md
+post_build:
+  profile: wiseconnect_soc
+filter:
+- name: Wireless Technology
+  value:
+  - Wi-Fi
+- name: Project Difficulty
+  value:
+  - Advanced
+sdk_extension:
+- id: wiseconnect3_sdk
+  vendor: silabs
+  version: 4.0.1
+sdk:
+  id: simplicity_sdk
+  vendor: silabs
+  version: 2025.12.2

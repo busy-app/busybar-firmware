@@ -1,0 +1,96 @@
+id: zigbee_dynamic_commissioning
+label: Dynamic Commissioning
+package: zigbee
+category: Zigbee|Stack
+quality: production
+
+description: Provides support for Dynamic Commissioning features as part of Revision 23 of ZigBee Specification, including Dynamic Link Keys and Device Interview. Zigbee Dynamic Link Key Negotation provides support for negotiating link keys via new ZDO clusters. This enables devices to commission new link keys both on-network and during joining, and Device Interview allows Centralized Networks to implement additional security screening of new devices before authorizing them on the network.
+
+provides:
+- name: zigbee_dynamic_commissioning
+- name: zigbee_dlk_negotiation
+- name: zigbee_zdo_dlk_negotiation
+
+requires:
+- name: zigbee_r23_support
+- name: zigbee_security_manager_dlk_ecc
+- name: zigbee_dynamic_commissioning_implementation
+- name: zigbee_dynamic_commissioning_library
+  condition:
+  - zigbee_use_release_libraries
+
+recommends:
+- id: zigbee_dynamic_commissioning_library_internal
+  vendor: silabs
+
+include:
+- path: stack/include
+  file_list:
+  - path: sl_zigbee_dlk_negotiation.h
+  - path: sl_zigbee_zdo_dlk_negotiation.h
+  - path: sl_zigbee_dynamic_commissioning.h
+
+- path: stack/internal/inc
+  file_list:
+  - path: sl_zigbee_dlk_negotiation_internal_def.h
+  - path: sl_zigbee_dynamic_commissioning_internal_def.h
+  - path: sl_zigbee_zdo_dlk_negotiation_internal_def.h
+- path: stack/internal/src/ipc
+  file_list:
+  - path: sl_zigbee_dlk_negotiation_ipc_command_messages.h
+  - path: sl_zigbee_dynamic_commissioning_ipc_command_messages.h
+  - path: sl_zigbee_zdo_dlk_negotiation_ipc_command_messages.h
+  - path: sl_zigbee_dlk_negotiation_ipc_command_messages.h
+  - path: sl_zigbee_dynamic_commissioning_ipc_callback_events.h
+  - path: sl_zigbee_dynamic_commissioning_ipc_command_messages.h
+  - path: sl_zigbee_zdo_dlk_negotiation_ipc_command_messages.h
+  - path: zigbee_ipc_callback_events.h
+  - path: zigbee_ipc_command_messages.h
+  condition:
+  - zigbee_use_ipc
+template_contribution:
+- name: component_catalog
+  value: zigbee_dynamic_commissioning
+
+documentation:
+  docset: zigbee
+  document: zigbee-af-api/dynamic-commissioning
+source:
+- path: stack/internal/src/baremetal/sl_zigbee_zdo_dlk_negotiation_baremetal_wrapper.c
+  unless:
+  - zigbee_use_ipc
+  - native_host
+- path: stack/internal/src/ipc/sl_zigbee_dlk_negotiation_ipc_command_messages.c
+  condition:
+  - zigbee_use_ipc
+- path: stack/internal/src/baremetal/sl_zigbee_dlk_negotiation_baremetal_wrapper.c
+  unless:
+  - zigbee_use_ipc
+  - native_host
+- path: stack/internal/src/ipc/zigbee_ipc_callback_event_stub.c
+  condition:
+  - zigbee_use_ipc
+- path: stack/internal/src/ipc/zigbee_ipc_callback_events.c
+  condition:
+  - zigbee_use_ipc
+- path: stack/internal/src/ipc/sl_zigbee_dynamic_commissioning_ipc_callback_events.c
+  condition:
+  - zigbee_use_ipc
+- path: stack/internal/src/baremetal/sl_zigbee_dynamic_commissioning_baremetal_wrapper.c
+  unless:
+  - zigbee_use_ipc
+  - native_host
+- path: stack/internal/src/ipc/sl_zigbee_zdo_dlk_negotiation_ipc_command_messages.c
+  condition:
+  - zigbee_use_ipc
+- path: stack/internal/src/baremetal/sl_zigbee_dynamic_commissioning_baremetal_callbacks.c
+  unless:
+  - zigbee_use_ipc
+  - native_host
+- path: stack/internal/src/ipc/sl_zigbee_dynamic_commissioning_ipc_command_messages.c
+  condition:
+  - zigbee_use_ipc
+metadata:
+  sbom:
+    license: MSLA
+root_path: zigbee

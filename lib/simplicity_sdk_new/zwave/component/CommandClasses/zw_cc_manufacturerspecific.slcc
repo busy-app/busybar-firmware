@@ -1,0 +1,20 @@
+id: zw_cc_manufacturerspecific
+label: Manufacturer Specific Command Class
+category: Z-Wave|Command Classes
+description: >
+  The Manufacturer Specific Command Class is used to advertize Manufacturer-Specific and Device-specific information.
+
+  The data content MUST be vendor-specific and MUST be non-value added with respect to the Home
+  Automation application in general. Manufacturer ID, Product Type ID, and Product ID can be sent
+  with the command class
+package: zwave
+quality: production
+metadata:
+  sbom:
+    reference: zw_sbom_license
+
+source:
+- path: ZAF/CommandClasses/ManufacturerSpecific/CC_ManufacturerSpecific.c
+provides:
+- name: zw_cc_manufacturerspecific
+root_path: zwave

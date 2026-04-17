@@ -1,0 +1,171 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__bluetooth__rtos__adaptation" kind="group">
+    <compoundname>bluetooth_rtos_adaptation</compoundname>
+    <title>Bluetooth RTOS adaptation</title>
+      <sectiondef kind="var">
+      <memberdef kind="variable" id="group__bluetooth__rtos__adaptation_1ga10153dd9d6c691b664b879750cb7b0d6" prot="public" static="no" mutable="no">
+        <type>sli_bgapi_component_init_func_t</type>
+        <definition>sli_bgapi_component_init_func_t sli_bt_rtos_adaptation_init</definition>
+        <argsstring></argsstring>
+        <name>sli_bt_rtos_adaptation_init</name>
+        <briefdescription>
+<para>BGAPI component initialization function for Bluetooth RTOS adaptation. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Do not call this function directly from the application. The Bluetooth host stack components call this function automatically in the right stage of initialization. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/inc/sl_bt_rtos_adaptation.h" line="90" column="33" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/inc/sl_bt_rtos_adaptation.h" bodystart="90" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="group__bluetooth__rtos__adaptation_1gae57501271487d2e270bbc7b6789efa0a" prot="public" static="no" mutable="no">
+        <type>sli_bgapi_component_deinit_func_t</type>
+        <definition>sli_bgapi_component_deinit_func_t sli_bt_rtos_adaptation_deinit</definition>
+        <argsstring></argsstring>
+        <name>sli_bt_rtos_adaptation_deinit</name>
+        <briefdescription>
+<para>BGAPI component de-init function for Bluetooth RTOS adaptation. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Do not call this function directly from the application. The Bluetooth host stack components call this function automatically in the right stage of de-initialization. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/inc/sl_bt_rtos_adaptation.h" line="128" column="35" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/inc/sl_bt_rtos_adaptation.h" bodystart="128" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="group__bluetooth__rtos__adaptation_1gac718122dcb73f19023423387fc9f6751" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sli_bt_rtos_adaptation_permanent_allocation</definition>
+        <argsstring>(void)</argsstring>
+        <name>sli_bt_rtos_adaptation_permanent_allocation</name>
+        <param>
+          <type>void</type>
+        </param>
+        <briefdescription>
+<para>Make permanent memory allocations for Bluetooth RTOS adaptation. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Do not call this function directly from the application. The Bluetooth host stack components call this function automatically in the right stage of initialization.</para>
+<para><simplesect kind="return"><para>SL_STATUS_OK if succeeds, otherwise error </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/inc/sl_bt_rtos_adaptation.h" line="81" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/inc/sl_bt_rtos_adaptation.h" declline="81" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__bluetooth__rtos__adaptation_1ga10d163cf628c20fcdd80f7670916fe52" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sli_bt_rtos_adaptation_start</definition>
+        <argsstring>(void)</argsstring>
+        <name>sli_bt_rtos_adaptation_start</name>
+        <param>
+          <type>void</type>
+        </param>
+        <briefdescription>
+<para>Start the Bluetooth RTOS adaptation. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Do not call this function directly from the application. The Bluetooth host stack components call this function automatically when it&apos;s time to start the RTOS adaptation.</para>
+<para><simplesect kind="return"><para>SL_STATUS_OK if succeeds, otherwise error </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/inc/sl_bt_rtos_adaptation.h" line="101" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/inc/sl_bt_rtos_adaptation.h" declline="101" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__bluetooth__rtos__adaptation_1ga35709a76781b2fb07eb15e8629321431" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void sli_bt_rtos_adaptation_prepare_to_stop</definition>
+        <argsstring>(void)</argsstring>
+        <name>sli_bt_rtos_adaptation_prepare_to_stop</name>
+        <param>
+          <type>void</type>
+        </param>
+        <briefdescription>
+<para>Prepare to stop the Bluetooth RTOS adaptation. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Do not call this function directly from the application. The Bluetooth host stack components call this function automatically when it&apos;s time to prepare for stopping the RTOS adaptation. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/inc/sl_bt_rtos_adaptation.h" line="110" column="6" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/inc/sl_bt_rtos_adaptation.h" declline="110" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__bluetooth__rtos__adaptation_1gac3a5c1f982e53d7002f43caeaf4eacea" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void sli_bt_rtos_adaptation_stop</definition>
+        <argsstring>(void)</argsstring>
+        <name>sli_bt_rtos_adaptation_stop</name>
+        <param>
+          <type>void</type>
+        </param>
+        <briefdescription>
+<para>Stop the Bluetooth RTOS adaptation. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Do not call this function directly from the application. The Bluetooth host stack components call this function automatically when it&apos;s time to stop the RTOS adaptation. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/inc/sl_bt_rtos_adaptation.h" line="119" column="6" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/inc/sl_bt_rtos_adaptation.h" declline="119" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="group__bluetooth__rtos__adaptation_1gaa7b9592f6f990160875fc32fe5028e6c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_bluetooth_pend</definition>
+        <argsstring>()</argsstring>
+        <name>sl_bt_bluetooth_pend</name>
+        <briefdescription>
+<para>Obtain the Bluetooth host stack command lock. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Starting from Gecko SDK v3.1.2, all BGAPI command functions have automatic locking to make them thread-safe. Using <ref refid="group__bluetooth__rtos__adaptation_1gaa7b9592f6f990160875fc32fe5028e6c" kindref="member">sl_bt_bluetooth_pend()</ref> and <ref refid="group__bluetooth__rtos__adaptation_1ga6c0f014f2cfe37e0301e8d0dcd124b6d" kindref="member">sl_bt_bluetooth_post()</ref> is therefore no longer required for individual calls to the BGAPI.</para>
+<para>The application only needs to use <ref refid="group__bluetooth__rtos__adaptation_1gaa7b9592f6f990160875fc32fe5028e6c" kindref="member">sl_bt_bluetooth_pend()</ref> and <ref refid="group__bluetooth__rtos__adaptation_1ga6c0f014f2cfe37e0301e8d0dcd124b6d" kindref="member">sl_bt_bluetooth_post()</ref> to protect sections of code where multiple commands need to be performed atomically in a thread-safe manner. This includes cases such as using <ref refid="group__sl__bt__system_1ga2e185f6632d32051b0f431ea15abcc3c" kindref="member">sl_bt_system_data_buffer_write()</ref> to write data to the system buffer followed by a call to <ref refid="group__sl__bt__extended__advertiser_1gafd85f91fd16eaa5eda271928de21bf4a" kindref="member">sl_bt_extended_advertiser_set_long_data()</ref> to set that data to an advertiser set. To synchronize access to the shared system buffer, the application would need to lock by calling <ref refid="group__bluetooth__rtos__adaptation_1gaa7b9592f6f990160875fc32fe5028e6c" kindref="member">sl_bt_bluetooth_pend()</ref> before <ref refid="group__sl__bt__system_1ga2e185f6632d32051b0f431ea15abcc3c" kindref="member">sl_bt_system_data_buffer_write()</ref>, and release the lock by calling <ref refid="group__bluetooth__rtos__adaptation_1ga6c0f014f2cfe37e0301e8d0dcd124b6d" kindref="member">sl_bt_bluetooth_post()</ref> after <ref refid="group__sl__bt__extended__advertiser_1gafd85f91fd16eaa5eda271928de21bf4a" kindref="member">sl_bt_extended_advertiser_set_long_data()</ref>.</para>
+<para><simplesect kind="return"><para>SL_STATUS_OK if mutex has been obtained </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/inc/sl_bt_rtos_adaptation.h" line="151" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/inc/sl_bt_rtos_adaptation.h" declline="151" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__bluetooth__rtos__adaptation_1ga6c0f014f2cfe37e0301e8d0dcd124b6d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_bluetooth_post</definition>
+        <argsstring>()</argsstring>
+        <name>sl_bt_bluetooth_post</name>
+        <briefdescription>
+<para>Release the Bluetooth host stack command lock. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>See <ref refid="group__bluetooth__rtos__adaptation_1gaa7b9592f6f990160875fc32fe5028e6c" kindref="member">sl_bt_bluetooth_pend()</ref> for description of how an application needs to use the locking to guarantee thread-safety.</para>
+<para><simplesect kind="return"><para>SL_STATUS_OK the mutex has been released </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/inc/sl_bt_rtos_adaptation.h" line="161" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/inc/sl_bt_rtos_adaptation.h" declline="161" declcolumn="13"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Bluetooth RTOS adaptation. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>The Bluetooth RTOS adaptation component implements the relevant interfaces for running the Bluetooth stack in an RTOS. The component creates the required RTOS synchronization primitives and tasks for the Bluetooth stack and handles the inter-process communication (IPC) required when the application calls a BGAPI command.</para>
+<para>If the Bluetooth Event System IPC component (<computeroutput>bluetooth_event_system_ipc</computeroutput>) is included in the application, Bluetooth events are delivered using the IPC mechanism provided by the <computeroutput>event_system</computeroutput> component. See <ref refid="group__bluetooth__event__system" kindref="compound">Bluetooth Event System IPC</ref> for the description of that mechanism. In this configuration no event task is created by the RTOS adaptation.</para>
+<para>If the Bluetooth Event System IPC component (<computeroutput>bluetooth_event_system_ipc</computeroutput>) is not included in the application, the RTOS adaptation component creates an event task that delivers the events to the application as direct callbacks to sl_bt_process_event() and sl_bt_on_event() functions.</para>
+<para>To guarantee thread safety and avoid the risk of deadlocks, the Bluetooth RTOS adaptation implementation makes the following promises with regard to the locking mechanism provided in the API:</para>
+<para><orderedlist>
+<listitem><para>The stack will never directly call sl_bt_process_event() or sl_bt_on_event() from within the same callstack that is calling a command function. The callbacks always come from a processing loop in an event task created for this purpose.</para>
+</listitem><listitem><para>The stack uses <computeroutput>sli_bgapi_lock()</computeroutput> and <computeroutput>sli_bgapi_unlock()</computeroutput> to synchronize the handling of individual BGAPI commands, and the application must never directly call these. Individual BGAPI commands are safe to be called from multiple threads without additional locking. See <ref refid="group__bluetooth__rtos__adaptation_1gaa7b9592f6f990160875fc32fe5028e6c" kindref="member">sl_bt_bluetooth_pend()</ref> for description of when an application needs to use additional locking to guarantee atomicity across multiple commands.</para>
+</listitem><listitem><para>The stack will never internally obtain the <ref refid="group__bluetooth__rtos__adaptation_1gaa7b9592f6f990160875fc32fe5028e6c" kindref="member">sl_bt_bluetooth_pend()</ref> lock. It is safe for the application to obtain the lock also from within the sl_bt_on_event() callback. </para>
+</listitem></orderedlist>
+</para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

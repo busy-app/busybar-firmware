@@ -1,0 +1,600 @@
+/***************************************************************************//**
+ * @file
+ * @brief Si446x Radio driver
+ *******************************************************************************
+ * # License
+ * <b>Copyright 2022 Silicon Laboratories Inc. www.silabs.com</b>
+ *******************************************************************************
+ *
+ * SPDX-License-Identifier: Zlib
+ *
+ * The licensor of this software is Silicon Laboratories Inc.
+ *
+ * This software is provided 'as-is', without any express or implied
+ * warranty. In no event will the authors be held liable for any damages
+ * arising from the use of this software.
+ *
+ * Permission is granted to anyone to use this software for any purpose,
+ * including commercial applications, and to alter it and redistribute it
+ * freely, subject to the following restrictions:
+ *
+ * 1. The origin of this software must not be misrepresented; you must not
+ *    claim that you wrote the original software. If you use this software
+ *    in a product, an acknowledgment in the product documentation would be
+ *    appreciated but is not required.
+ * 2. Altered source versions must be plainly marked as such, and must not be
+ *    misrepresented as being the original software.
+ * 3. This notice may not be removed or altered from any source distribution.
+ *
+ ******************************************************************************/
+
+#include <stddef.h> // NULL
+
+#include "em_bus.h"
+#include "sl_clock_manager.h"
+#include "sl_core.h"
+#include "sl_hal_gpio.h"
+#include "sl_gpio.h"
+#include "em_usart.h"
+
+#include "sl_si446x_radio_usart_config.h"
+#include "sl_si446x_radio.h"
+
+//== DEVICE CAPABILITIES ==
+
+#ifdef  SL_SI446X_RADIO_PERIPHERAL
+
+#if     (defined(SL_SI446X_RADIO_SDN_PORT) && defined(SL_SI446X_RADIO_SDN_PIN))
+  #define SL_EXT_DEVICE_POWER_PORT         SL_SI446X_RADIO_SDN_PORT
+  #define SL_EXT_DEVICE_POWER_PIN          SL_SI446X_RADIO_SDN_PIN
+  #define SL_EXT_DEVICE_POWER_POLARITY     SL_EXT_DEVICE_POLARITY_INVERT
+#endif//(defined(SL_SI446X_RADIO_SDN_PORT) && defined(SL_SI446X_RADIO_SDN_PIN))
+
+#if     (defined(SL_SI446X_RADIO_CTS_PORT) && defined(SL_SI446X_RADIO_CTS_PIN))
+  #define SL_EXT_DEVICE_READY_PORT         SL_SI446X_RADIO_CTS_PORT
+  #define SL_EXT_DEVICE_READY_PIN          SL_SI446X_RADIO_CTS_PIN
+  #define SL_EXT_DEVICE_READY_POLARITY     SL_EXT_DEVICE_POLARITY_NORMAL
+static int32_t ctsIntNo = SL_GPIO_INTERRUPT_UNAVAILABLE;
+  #define SL_EXT_DEVICE_READY_IRQ          ctsIntNo
+#endif//(defined(SL_SI446X_RADIO_CTS_PORT) && defined(SL_SI446X_RADIO_CTS_PIN))
+
+#if     (defined(SL_SI446X_RADIO_CS_PORT) && defined(SL_SI446X_RADIO_CS_PIN))
+  #define SL_EXT_DEVICE_SELECT_PORT        SL_SI446X_RADIO_CS_PORT
+  #define SL_EXT_DEVICE_SELECT_PIN         SL_SI446X_RADIO_CS_PIN
+  #define SL_EXT_DEVICE_SELECT_POLARITY    SL_EXT_DEVICE_POLARITY_INVERT
+#endif//(defined(SL_SI446X_RADIO_CS_PORT) && defined(SL_SI446X_RADIO_CS_PIN))
+
+#if     (defined(SL_SI446X_RADIO_INT_PORT) && defined(SL_SI446X_RADIO_INT_PIN))
+  #define SL_EXT_DEVICE_INTERRUPT_PORT     SL_SI446X_RADIO_INT_PORT
+  #define SL_EXT_DEVICE_INTERRUPT_PIN      SL_SI446X_RADIO_INT_PIN
+  #define SL_EXT_DEVICE_INTERRUPT_POLARITY SL_EXT_DEVICE_POLARITY_INVERT
+static int32_t intIntNo = SL_GPIO_INTERRUPT_UNAVAILABLE;
+  #define SL_EXT_DEVICE_INTERRUPT_IRQ      intIntNo
+#endif//(defined(SL_SI446X_RADIO_INT_PORT) && defined(SL_SI446X_RADIO_INT_PIN))
+
+#define SL_EXT_DEVICE_SPI_PORT             SL_SI446X_RADIO_PERIPHERAL
+
+#define SL_EXT_DEVICE_SPI_MOSI_PORT        SL_SI446X_RADIO_TX_PORT
+#define SL_EXT_DEVICE_SPI_MOSI_PIN         SL_SI446X_RADIO_TX_PIN
+#define SL_EXT_DEVICE_SPI_MOSI_LOC         SL_SI446X_RADIO_TX_LOC
+
+#define SL_EXT_DEVICE_SPI_MISO_PORT        SL_SI446X_RADIO_RX_PORT
+#define SL_EXT_DEVICE_SPI_MISO_PIN         SL_SI446X_RADIO_RX_PIN
+#define SL_EXT_DEVICE_SPI_MISO_LOC         SL_SI446X_RADIO_RX_LOC
+
+#define SL_EXT_DEVICE_SPI_CLK_PORT         SL_SI446X_RADIO_CLK_PORT
+#define SL_EXT_DEVICE_SPI_CLK_PIN          SL_SI446X_RADIO_CLK_PIN
+#define SL_EXT_DEVICE_SPI_CLK_LOC          SL_SI446X_RADIO_CLK_LOC
+
+#define SL_EXT_DEVICE_SPI_CS_PORT          SL_SI446X_RADIO_CS_PORT
+#define SL_EXT_DEVICE_SPI_CS_PIN           SL_SI446X_RADIO_CS_PIN
+#define SL_EXT_DEVICE_SPI_CS_LOC           SL_SI446X_RADIO_CS_LOC
+
+#ifdef  SL_SI446X_RADIO_SPI_BAUDRATE
+#define SL_EXT_DEVICE_SPI_BAUDRATE         SL_SI446X_RADIO_SPI_BAUDRATE
+#endif//SL_SI446X_RADIO_SPI_BAUDRATE
+
+//== COMPATIBLILTY LEGEND (EmberHAL ext-device) ==
+
+// #define halExtDeviceIntCB           sli_ext_device_interrupt_handler
+// #define halExtDeviceIntCfgIrq       sli_ext_device_configure_interrupt_irq
+// #define halExtDeviceIntLevel        sli_ext_device_interrupt_depth
+// #define halExtDevicePowered         sli_ext_device_is_powered
+// #define halExtDeviceRdyCB           sli_ext_device_ready_handler
+// #define halExtDeviceRdyCfgIrq       sli_ext_device_configure_ready_irq
+// #define halExtDeviceSelected        sli_ext_device_is_selected
+// #define halIrqxIsr                  sli_ext_device_on_gpio_event
+
+//== LOCAL STATE ==
+
+/// Track device power state
+static bool sli_ext_device_is_powered = false;
+/// Track device selected state
+static bool sli_ext_device_is_selected = false;
+#ifdef  SL_EXT_DEVICE_READY_IRQ
+/// App's ready handler
+static sl_ext_device_handler_t sli_ext_device_ready_handler = NULL;
+#endif//SL_EXT_DEVICE_READY_IRQ
+#ifdef  SL_EXT_DEVICE_INTERRUPT_IRQ
+/// App's interrupt handler
+static sl_ext_device_handler_t sli_ext_device_interrupt_handler = NULL;
+/// Track app's interrupt depth
+static volatile sl_ext_device_interrupt_depth_t sli_ext_device_interrupt_depth = SL_EXT_DEVICE_INTERRUPT_UNCONFIGURED;
+#endif//SL_EXT_DEVICE_INTERRUPT_IRQ
+
+//== HELPER FUNCTIONS ==
+
+#if     (defined(SL_EXT_DEVICE_READY_IRQ) || defined(SL_EXT_DEVICE_INTERRUPT_IRQ))
+
+/** @brief GPIO event handler to map interrupt event to its handler.
+ *
+ * Assume only called from interrupt context.
+ */
+static void sli_ext_device_on_gpio_event(uint8_t irq, void *ctx)
+{
+  (void) ctx;
+ #ifdef  SL_EXT_DEVICE_INTERRUPT_IRQ
+  if (irq == SL_EXT_DEVICE_INTERRUPT_IRQ) {
+    // Acknowledge interrupt before callback assuming edge-triggered
+    sl_hal_gpio_clear_interrupts(1U << SL_EXT_DEVICE_INTERRUPT_IRQ);
+    if (sli_ext_device_interrupt_handler != NULL) {
+      (*sli_ext_device_interrupt_handler)();
+    }
+    // Treat device interrupt as level-triggered rather than edge-triggered
+    if (sl_ext_device_is_interrupt_pending()) {
+      sl_hal_gpio_set_interrupts(1U << SL_EXT_DEVICE_INTERRUPT_IRQ); // Repend INTERRUPT
+    }
+  }
+ #endif//SL_EXT_DEVICE_INTERRUPT_IRQ
+ #ifdef  SL_EXT_DEVICE_READY_IRQ
+  if (irq == SL_EXT_DEVICE_READY_IRQ) {
+    if (sli_ext_device_ready_handler != NULL) {
+      (*sli_ext_device_ready_handler)();
+    }
+    // Acknowledge READY interrupt after callback in case it's level triggered
+    sl_hal_gpio_clear_interrupts(1U << SL_EXT_DEVICE_READY_IRQ);
+  }
+ #endif//SL_EXT_DEVICE_READY_IRQ
+}
+
+#endif//(defined(SL_EXT_DEVICE_INTERRUPT_IRQ) || defined(SL_EXT_DEVICE_READY_IRQ))
+
+/** @brief Configure and enable/disable the device ready IRQ
+ */
+static void sli_ext_device_configure_ready_irq(void)
+{
+ #ifdef  SL_EXT_DEVICE_READY_IRQ
+  CORE_DECLARE_IRQ_STATE;
+
+  // Disable interrupt and clear out anything stale.
+  sl_gpio_disable_interrupts(1U << SL_EXT_DEVICE_READY_IRQ);
+  sl_hal_gpio_clear_interrupts(1U << SL_EXT_DEVICE_READY_IRQ);
+  // Disable interrupts because this might be called from non-GPIO ISRs
+  // (protecting sli_ internal state), and GPIO_InputSenseSet() is not
+  // safe to call in ISR context.
+  CORE_ENTER_ATOMIC();
+  // If device is powered and handler exists, configure & enable interrupt.
+  if (sli_ext_device_is_powered && (sli_ext_device_ready_handler != NULL)) {
+   #ifdef GPIO_INSENSE_INT // Only Series-1 has GPIO_INSENSE register
+    GPIO_InputSenseSet(GPIO_INSENSE_INT, GPIO_INSENSE_INT);
+   #endif
+    sl_gpio_interrupt_flag_t flag;
+    sl_gpio_t ext_device_gpio = {
+      .port = (sl_gpio_port_t)SL_EXT_DEVICE_READY_PORT,
+      .pin = SL_EXT_DEVICE_READY_PIN,
+    };
+    if (SL_EXT_DEVICE_READY_POLARITY == SL_EXT_DEVICE_POLARITY_NORMAL) {
+      flag = SL_GPIO_INTERRUPT_RISING_EDGE;
+    } else if (SL_EXT_DEVICE_READY_POLARITY == SL_EXT_DEVICE_POLARITY_INVERT) {
+      flag = SL_GPIO_INTERRUPT_FALLING_EDGE;
+    } else {
+      flag = SL_GPIO_INTERRUPT_RISING_FALLING_EDGE;
+    }
+    sl_gpio_configure_external_interrupt(&ext_device_gpio, &SL_EXT_DEVICE_READY_IRQ, flag, &sli_ext_device_on_gpio_event, (void *)NULL);
+  }
+  CORE_EXIT_ATOMIC();
+ #endif//SL_EXT_DEVICE_READY_IRQ
+}
+
+/** @brief Configure and enable/disable the device interrupt IRQ
+ */
+static void sli_ext_device_configure_interrupt_irq(void)
+{
+ #ifdef  SL_EXT_DEVICE_INTERRUPT_IRQ
+  CORE_DECLARE_IRQ_STATE;
+
+  // Disable interrupt and clear out anything stale.
+  sl_gpio_disable_interrupts(1U << SL_EXT_DEVICE_INTERRUPT_IRQ);
+  sl_hal_gpio_clear_interrupts(1U << SL_EXT_DEVICE_INTERRUPT_IRQ);
+  // Disable interrupts because this might be called from non-GPIO ISRs
+  // (protecting sli_ internal state), and GPIO_InputSenseSet() is not
+  // safe to call in ISR context.
+  CORE_ENTER_ATOMIC();
+  sli_ext_device_interrupt_depth = SL_EXT_DEVICE_INTERRUPT_UNCONFIGURED;
+  // If device is powered and handler exists, configure interrupt disabled
+  if (sli_ext_device_is_powered && (sli_ext_device_interrupt_handler != NULL)) {
+   #ifdef GPIO_INSENSE_INT // Only Series-1 has GPIO_INSENSE register
+    GPIO_InputSenseSet(GPIO_INSENSE_INT, GPIO_INSENSE_INT);
+   #endif
+    sl_gpio_interrupt_flag_t flag;
+    sl_gpio_t ext_device_gpio = {
+      .port = (sl_gpio_port_t)SL_EXT_DEVICE_INTERRUPT_PORT,
+      .pin = SL_EXT_DEVICE_INTERRUPT_PIN,
+    };
+    if (SL_EXT_DEVICE_INTERRUPT_POLARITY == SL_EXT_DEVICE_POLARITY_NORMAL) {
+      flag = SL_GPIO_INTERRUPT_RISING_EDGE;
+    } else if (SL_EXT_DEVICE_INTERRUPT_POLARITY == SL_EXT_DEVICE_POLARITY_INVERT) {
+      flag = SL_GPIO_INTERRUPT_FALLING_EDGE;
+    } else {
+      flag = SL_GPIO_INTERRUPT_RISING_FALLING_EDGE;
+    }
+    sl_gpio_configure_external_interrupt(&ext_device_gpio, &SL_EXT_DEVICE_INTERRUPT_IRQ, flag, &sli_ext_device_on_gpio_event, (void *)NULL);
+    sli_ext_device_interrupt_depth = SL_EXT_DEVICE_INTERRUPT_DEPTH_OFF;
+    // Callers need to use sl_ext_device_enable_interrupt() to enable
+  }
+  CORE_EXIT_ATOMIC();
+ #endif//SL_EXT_DEVICE_INTERRUPT_IRQ
+}
+
+//== GLOBAL STATE ==
+
+#ifdef  SL_EXT_DEVICE_SPI_PORT
+
+#include "spidrv.h"
+
+// Default SPI baudrate to 4 MHz if not defined
+#ifndef SL_EXT_DEVICE_SPI_BAUDRATE
+#define SL_EXT_DEVICE_SPI_BAUDRATE   4000000U
+#endif//SL_EXT_DEVICE_SPI_BAUDRATE
+
+const SPIDRV_Init_t sl_ext_device_spi_config = {
+  .port            = (void *)SL_EXT_DEVICE_SPI_PORT,
+ #if defined(_USART_ROUTELOC0_MASK)
+  .portLocationTx  = SL_EXT_DEVICE_SPI_MOSI_LOC,
+  .portLocationRx  = SL_EXT_DEVICE_SPI_MISO_LOC,
+  .portLocationClk = SL_EXT_DEVICE_SPI_CLK_LOC,
+ #ifndef SL_EXT_DEVICE_SELECT_PIN
+  .portLocationCs  = SL_EXT_DEVICE_SPI_CS_LOC,
+ #endif//SL_EXT_DEVICE_SELECT_PIN
+ #elif defined(_GPIO_USART_ROUTEEN_MASK) || defined(_GPIO_EUSART_ROUTEEN_MASK)
+  .portTx          = SL_EXT_DEVICE_SPI_MOSI_PORT,
+  .pinTx           = SL_EXT_DEVICE_SPI_MOSI_PIN,
+  .portRx          = SL_EXT_DEVICE_SPI_MISO_PORT,
+  .pinRx           = SL_EXT_DEVICE_SPI_MISO_PIN,
+  .portClk         = SL_EXT_DEVICE_SPI_CLK_PORT,
+  .pinClk          = SL_EXT_DEVICE_SPI_CLK_PIN,
+ #ifndef SL_EXT_DEVICE_SELECT_PIN
+  .portCs          = SL_EXT_DEVICE_SPI_CS_PORT,
+  .pinCs           = SL_EXT_DEVICE_SPI_CS_PIN,
+ #endif//SL_EXT_DEVICE_SELECT_PIN
+ #else
+  .portLocation    =,  //@TODO trigger compilation error for now
+ #endif
+  .bitRate         = SL_EXT_DEVICE_SPI_BAUDRATE,
+  .frameLength     = 8U,                     // DO NOT CHANGE!
+  .dummyTxValue    = 0xFFU,                  // DO NOT CHANGE!
+  .type            = spidrvMaster,           // DO NOT CHANGE!
+  .bitOrder        = spidrvBitOrderMsbFirst, // DO NOT CHANGE!
+  .clockMode       = spidrvClockMode0,       // DO NOT CHANGE!
+ #ifdef  SL_EXT_DEVICE_SELECT_PIN
+  .csControl       = spidrvCsControlApplication,
+ #else//!SL_EXT_DEVICE_SELECT_PIN
+  .csControl       = spidrvCsControlAuto,
+ #endif//SL_EXT_DEVICE_SELECT_PIN
+};
+
+static SPIDRV_HandleData_t sli_ext_device_spi_handle_data;
+SPIDRV_Handle_t sl_ext_device_spi_handle = &sli_ext_device_spi_handle_data;
+
+#endif//SL_EXT_DEVICE_SPI_PORT
+
+//== API FUNCTIONS ==
+
+//-- External Device Initialization --
+
+sl_ext_device_config_t sl_ext_device_init(sl_ext_device_handler_t interrupt_handler,
+                                          sl_ext_device_handler_t ready_handler)
+{
+  CORE_DECLARE_IRQ_STATE;
+
+ #ifdef  SL_EXT_DEVICE_READY_IRQ
+  sli_ext_device_ready_handler = ready_handler;
+ #else//!SL_EXT_DEVICE_READY_IRQ
+  (void) ready_handler;
+ #endif//SL_EXT_DEVICE_READY_IRQ
+ #ifdef  SL_EXT_DEVICE_INTERRUPT_IRQ
+  sli_ext_device_interrupt_handler = interrupt_handler;
+ #else//!SL_EXT_DEVICE_INTERRUPT_IRQ
+  (void) interrupt_handler;
+ #endif//SL_EXT_DEVICE_INTERRUPT_IRQ
+
+  // GPIOINT_Init() and GPIO_PinModeSet() are NOT interrupt-safe.
+  CORE_ENTER_ATOMIC();
+
+  // Enable GPIO clock
+  sl_clock_manager_enable_bus_clock(SL_BUS_CLOCK_GPIO);
+
+ #if     (defined(SL_EXT_DEVICE_READY_IRQ) || defined(SL_EXT_DEVICE_INTERRUPT_IRQ))
+  sl_gpio_init();
+ #endif//(defined(SL_EXT_DEVICE_READY_IRQ) || defined(SL_EXT_DEVICE_INTERRUPT_IRQ))
+
+#ifdef  SL_EXT_DEVICE_POWER_PIN
+  sl_gpio_t ext_device_power_gpio = {
+    .port = (sl_gpio_port_t)SL_EXT_DEVICE_POWER_PORT,
+    .pin = SL_EXT_DEVICE_POWER_PIN,
+  };
+  sl_gpio_set_pin_mode(&ext_device_power_gpio,
+                       SL_GPIO_MODE_PUSH_PULL,
+                       (SL_EXT_DEVICE_POWER_POLARITY == SL_EXT_DEVICE_POLARITY_NORMAL
+                        ? 0U : 1U)); // init unpowered
+#endif//SL_EXT_DEVICE_POWER_PIN
+
+#ifdef  SL_EXT_DEVICE_SELECT_PIN
+  sl_gpio_t ext_device_select_gpio = {
+    .port = (sl_gpio_port_t)SL_EXT_DEVICE_SELECT_PORT,
+    .pin = SL_EXT_DEVICE_SELECT_PIN,
+  };
+  sl_gpio_set_pin_mode(&ext_device_select_gpio,
+                       SL_GPIO_MODE_PUSH_PULL,
+                       (SL_EXT_DEVICE_SELECT_POLARITY == SL_EXT_DEVICE_POLARITY_NORMAL
+                        ? 0U : 1U)); // init deselected
+#endif//SL_EXT_DEVICE_SELECT_PIN
+
+#ifdef  SL_EXT_DEVICE_READY_PIN
+  sl_gpio_t ext_device_ready_gpio = {
+    .port = (sl_gpio_port_t)SL_EXT_DEVICE_READY_PORT,
+    .pin = SL_EXT_DEVICE_READY_PIN,
+  };
+  sl_gpio_set_pin_mode(&ext_device_ready_gpio,
+                       SL_GPIO_MODE_INPUT_PULL,
+                       (SL_EXT_DEVICE_READY_POLARITY == SL_EXT_DEVICE_POLARITY_NORMAL
+                        ? 0U : 1U)); // init pull to not ready
+#endif//SL_EXT_DEVICE_READY_PIN
+
+#ifdef  SL_EXT_DEVICE_INTERRUPT_PIN
+  sl_gpio_t ext_device_interrupt_gpio = {
+    .port = (sl_gpio_port_t)SL_EXT_DEVICE_INTERRUPT_PORT,
+    .pin = SL_EXT_DEVICE_INTERRUPT_PIN,
+  };
+  sl_gpio_set_pin_mode(&ext_device_interrupt_gpio,
+                       SL_GPIO_MODE_INPUT_PULL,
+                       (SL_EXT_DEVICE_INTERRUPT_POLARITY == SL_EXT_DEVICE_POLARITY_NORMAL
+                        ? 0U : 1U)); // init pull to not interrupt
+#endif//SL_EXT_DEVICE_INTERRUPT_PIN
+
+  CORE_EXIT_ATOMIC();
+
+  // When powered just update the IRQ callbacks.
+  // When not powered, ensure device is not powered and not selected.
+  if (sli_ext_device_is_powered) {
+    sli_ext_device_configure_ready_irq();
+    sli_ext_device_configure_interrupt_irq();
+  } else {
+    sl_ext_device_deselect();
+    sl_ext_device_power_down();
+  }
+
+  return (sl_ext_device_config_t) (0U
+                                  #ifdef  SL_EXT_DEVICE_POWER_PIN
+                                   | SL_EXT_DEVICE_HAS_POWER
+                                  #endif//SL_EXT_DEVICE_POWER_PIN
+                                  #ifdef  SL_EXT_DEVICE_READY_PIN
+                                   | SL_EXT_DEVICE_HAS_READY
+                                  #ifdef  SL_EXT_DEVICE_READY_IRQ
+                                   | SL_EXT_DEVICE_HAS_READY_IRQ
+                                  #endif//SL_EXT_DEVICE_READY_IRQ
+                                  #endif//SL_EXT_DEVICE_READY_PIN
+                                  #ifdef  SL_EXT_DEVICE_SELECT_PIN
+                                   | SL_EXT_DEVICE_HAS_SELECT
+                                  #endif//SL_EXT_DEVICE_SELECT_PIN
+                                  #ifdef  SL_EXT_DEVICE_INTERRUPT_PIN
+                                   | SL_EXT_DEVICE_HAS_INTERRUPT
+                                  #ifdef  SL_EXT_DEVICE_INTERRUPT_IRQ
+                                   | SL_EXT_DEVICE_HAS_INTERRUPT_IRQ
+                                  #endif//SL_EXT_DEVICE_INTERRUPT_IRQ
+                                  #endif//SL_EXT_DEVICE_INTERRUPT_PIN
+                                   );
+}
+
+//-- External Device Power --
+
+void sl_ext_device_power_down(void)
+{
+  // Shut off ISRs before removing power, in case of glitches
+  sli_ext_device_is_powered = false;
+  sli_ext_device_configure_ready_irq();
+  sli_ext_device_configure_interrupt_irq();
+
+ #ifdef  SL_EXT_DEVICE_POWER_PIN
+  sl_gpio_t ext_device_power_gpio = {
+    .port = (sl_gpio_port_t)SL_EXT_DEVICE_POWER_PORT,
+    .pin = SL_EXT_DEVICE_POWER_PIN,
+  };
+ #if     (SL_EXT_DEVICE_POWER_POLARITY == SL_EXT_DEVICE_POLARITY_NORMAL)
+  sl_gpio_clear_pin(&ext_device_power_gpio);
+ #else
+  sl_gpio_set_pin(&ext_device_power_gpio);
+ #endif//(SL_EXT_DEVICE_POWER_POLARITY == SL_EXT_DEVICE_POLARITY_NORMAL)
+ #endif//SL_EXT_DEVICE_POWER_PIN
+}
+
+void sl_ext_device_power_up(void)
+{
+  // Enable ISRs before powering so they can notify when device is ready
+  sli_ext_device_is_powered = true;
+  sli_ext_device_configure_ready_irq();
+  sli_ext_device_configure_interrupt_irq();
+
+ #ifdef  SL_EXT_DEVICE_POWER_PIN
+  sl_gpio_t ext_device_power_gpio = {
+    .port = (sl_gpio_port_t)SL_EXT_DEVICE_POWER_PORT,
+    .pin = SL_EXT_DEVICE_POWER_PIN,
+  };
+ #if     (SL_EXT_DEVICE_POWER_POLARITY == SL_EXT_DEVICE_POLARITY_NORMAL)
+  sl_gpio_set_pin(&ext_device_power_gpio);
+ #else
+  sl_gpio_clear_pin(&ext_device_power_gpio);
+ #endif
+ #endif//SL_EXT_DEVICE_POWER_PIN
+}
+
+//-- External Device Ready --
+
+bool sl_ext_device_is_ready(void)
+{
+ #ifdef  SL_EXT_DEVICE_READY_PIN
+  bool pin_value;
+  sl_gpio_t ext_device_ready_gpio = {
+    .port = SL_EXT_DEVICE_READY_PORT,
+    .pin = SL_EXT_DEVICE_READY_PIN,
+  };
+  sl_gpio_get_pin_input(&ext_device_ready_gpio, &pin_value);
+  return (sli_ext_device_is_powered
+          && ((bool)pin_value
+              == SL_EXT_DEVICE_READY_POLARITY));
+ #else//!SL_EXT_DEVICE_READY_PIN
+  return sli_ext_device_is_powered; // Assume ready only when powered
+ #endif//SL_EXT_DEVICE_READY_PIN
+}
+
+extern inline bool sl_ext_device_not_ready(void);
+
+void sl_ext_device_wait_ready(void)
+{
+  // Beware of watchdog
+  while (sl_ext_device_not_ready()) {
+    // spin
+  }
+}
+
+//-- External Device Selection --
+
+void sl_ext_device_select(void)
+{
+  sli_ext_device_is_selected = true;
+
+ #ifdef  SL_EXT_DEVICE_SELECT_PIN
+  sl_gpio_t ext_device_select_gpio = {
+    .port = (sl_gpio_port_t)SL_EXT_DEVICE_SELECT_PORT,
+    .pin = SL_EXT_DEVICE_SELECT_PIN,
+  };
+    #if     (SL_EXT_DEVICE_SELECT_POLARITY == SL_EXT_DEVICE_POLARITY_NORMAL)
+  sl_gpio_set_pin(&ext_device_select_gpio);
+ #else
+  sl_gpio_clear_pin(&ext_device_select_gpio);
+ #endif//(SL_EXT_DEVICE_SELECT_POLARITY == SL_EXT_DEVICE_POLARITY_NORMAL)
+ #endif//SL_EXT_DEVICE_SELECT_PIN
+}
+
+void sl_ext_device_deselect(void)
+{
+  sli_ext_device_is_selected = false;
+
+ #ifdef  SL_EXT_DEVICE_SELECT_PIN
+  sl_gpio_t ext_device_select_gpio = {
+    .port = (sl_gpio_port_t)SL_EXT_DEVICE_SELECT_PORT,
+    .pin = SL_EXT_DEVICE_SELECT_PIN,
+  };
+    #if     (SL_EXT_DEVICE_SELECT_POLARITY == SL_EXT_DEVICE_POLARITY_NORMAL)
+  sl_gpio_clear_pin(&ext_device_select_gpio);
+    #else
+  sl_gpio_set_pin(&ext_device_select_gpio);
+ #endif//(SL_EXT_DEVICE_SELECT_POLARITY == SL_EXT_DEVICE_POLARITY_NORMAL)
+ #endif//SL_EXT_DEVICE_SELECT_PIN
+}
+
+bool sl_ext_device_is_selected(void)
+{
+  return sli_ext_device_is_selected;
+}
+
+extern inline bool sl_ext_device_not_selected(void);
+
+//-- External Device Interrupts --
+
+bool sl_ext_device_is_interrupt_pending(void)
+{
+ #ifdef  SL_EXT_DEVICE_INTERRUPT_PIN
+  bool pin_value;
+  sl_gpio_t ext_device_interrupt_gpio = {
+    .port = (sl_gpio_port_t)SL_EXT_DEVICE_INTERRUPT_PORT,
+    .pin = SL_EXT_DEVICE_INTERRUPT_PIN,
+  };
+  sl_gpio_get_pin_input(&ext_device_interrupt_gpio, &pin_value);
+  // This is pure GPIO level -- treat device interrupt as level-triggered
+  return (sli_ext_device_is_powered
+          && ((bool)pin_value
+              == SL_EXT_DEVICE_INTERRUPT_POLARITY));
+ #else//!SL_EXT_DEVICE_INTERRUPT_PIN
+  return false; // Assume never pending
+ #endif//SL_EXT_DEVICE_INTERRUPT_PIN
+}
+
+extern inline bool sl_ext_device_no_interrupt_pending(void);
+
+sl_ext_device_interrupt_depth_t sl_ext_device_disable_interrupt(void)
+{
+ #ifdef  SL_EXT_DEVICE_INTERRUPT_IRQ
+  CORE_DECLARE_IRQ_STATE;
+  sl_ext_device_interrupt_depth_t orig_depth;
+
+  sl_gpio_disable_interrupts(1U << SL_EXT_DEVICE_INTERRUPT_IRQ);
+
+  // Disable interrupts because this might be called from non-GPIO ISRs
+  // (protecting sli_ext_device_interupt_depth).
+  CORE_ENTER_ATOMIC();
+  orig_depth = sli_ext_device_interrupt_depth;
+  if (orig_depth != SL_EXT_DEVICE_INTERRUPT_UNCONFIGURED) {
+    sli_ext_device_interrupt_depth += 1U;
+  }
+  CORE_EXIT_ATOMIC();
+
+  return orig_depth;
+ #else//!SL_EXT_DEVICE_INTERRUPT_IRQ
+  return SL_EXT_DEVICE_INTERRUPT_UNCONFIGURED;
+ #endif//SL_EXT_DEVICE_INTERRUPT_IRQ
+}
+
+sl_ext_device_interrupt_depth_t sl_ext_device_enable_interrupt(bool clear_pending)
+{
+ #ifdef  SL_EXT_DEVICE_INTERRUPT_IRQ
+  CORE_DECLARE_IRQ_STATE;
+  sl_ext_device_interrupt_depth_t orig_depth;
+  bool just_enabled = false;
+
+  // Disable interrupts because this might be called from non-GPIO ISRs
+  // (protecting sli_ext_device_interupt_depth).
+  CORE_ENTER_ATOMIC();
+  orig_depth = sli_ext_device_interrupt_depth;
+  if (orig_depth != SL_EXT_DEVICE_INTERRUPT_UNCONFIGURED) {
+    if (orig_depth > SL_EXT_DEVICE_INTERRUPT_DEPTH_ON) { // Peg at DEPTH_ON
+      sli_ext_device_interrupt_depth -= 1U;
+      just_enabled = (sli_ext_device_interrupt_depth == SL_EXT_DEVICE_INTERRUPT_DEPTH_ON);
+    }
+  }
+  CORE_EXIT_ATOMIC();
+
+  if (clear_pending) {
+    // Clear out any stale state
+    sl_hal_gpio_clear_interrupts(1U << SL_EXT_DEVICE_INTERRUPT_IRQ);
+  }
+
+  if (just_enabled) {
+    // In case we missed edge of level interrupt
+    if (sl_ext_device_is_interrupt_pending()) {
+      sl_hal_gpio_set_interrupts(1U << SL_EXT_DEVICE_INTERRUPT_IRQ);
+    }
+    sl_gpio_enable_interrupts(1U << SL_EXT_DEVICE_INTERRUPT_IRQ);
+  }
+
+  return orig_depth;
+ #else//!SL_EXT_DEVICE_INTERRUPT_IRQ
+  return SL_EXT_DEVICE_INTERRUPT_UNCONFIGURED;
+ #endif//SL_EXT_DEVICE_INTERRUPT_IRQ
+}
+
+#else//!SL_SI446X_RADIO_PERIPHERAL
+
+// Do NOT provide stub API implementation; force linking to fail instead.
+
+#endif//SL_SI446X_RADIO_PERIPHERAL

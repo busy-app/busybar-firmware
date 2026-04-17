@@ -1,0 +1,43 @@
+#include "em_device.h"
+#include "sl_clock_manager.h"
+#include "em_gpio.h"
+#include "em_prs.h"
+#include "sl_component_catalog.h"
+#ifdef SL_CATALOG_APP_LOG_PRESENT
+#include "app_log.h"
+#endif
+
+// Include instance(s) config(s) {# Include instance config #}
+{% for instance in radioprs_instances %} #include "sl_radioprs_config_{{ instance }}.h"
+{% endfor %}
+
+{# Init function #}
+void sl_radioprs_init_instances(void)
+{
+  sl_status_t clock_status = SL_STATUS_OK;
+
+  clock_status = sl_clock_manager_enable_bus_clock(SL_BUS_CLOCK_PRS);
+  if (clock_status != SL_STATUS_OK){
+#ifdef SL_CATALOG_APP_LOG_PRESENT
+    app_log_warning("Clock manager returned with error code: %lu\n", clock_status);
+#endif
+    return;
+  }
+
+  clock_status = sl_clock_manager_enable_bus_clock(SL_BUS_CLOCK_GPIO);
+  if (clock_status != SL_STATUS_OK){
+#ifdef SL_CATALOG_APP_LOG_PRESENT
+    app_log_warning("Clock manager returned with error code: %lu\n", clock_status);
+#endif
+    return;
+  }
+
+  // radioprs instance(s) init(s) {# Initialize radioprs instance(s) #}
+  {% for instance in radioprs_instances %}
+  //begin radioprs_init_{{ instance }}();
+  PRS_ConnectSignal(RADIOPRS_{{ instance | upper }}_CHANNEL, prsTypeAsync, (PRS_Signal_t)RADIOPRS_{{ instance | upper }}_SOURCESEL);
+  PRS_PinOutput(RADIOPRS_{{ instance | upper }}_CHANNEL, prsTypeAsync, RADIOPRS_{{ instance | upper }}_PORT, RADIOPRS_{{ instance | upper }}_PIN);
+  GPIO_PinModeSet(RADIOPRS_{{ instance | upper }}_PORT, RADIOPRS_{{ instance | upper }}_PIN, gpioModePushPull, 0);
+  //end radioprs_init_{{ instance }}();
+  {% endfor %}
+}

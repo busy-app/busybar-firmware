@@ -1,0 +1,42 @@
+project_name: sl_si91x_hrng
+package: platform_siwx91x_app
+description: "This application demonstrates how to generate a random number using the built-in random number generation functionality on the Si91x SoC device. \n"
+category: example|peripheral
+quality: production
+label: Si91x - HRNG
+component:
+- id: sl_main
+- id: status
+- id: syscalls
+- id: sl_hrng
+- id: si91x_memory_default_config
+source:
+- path: app.c
+- path: hrng_example.c
+include:
+- path: .
+  file_list:
+  - path: app.h
+  - path: hrng_example.h
+toolchain_settings:
+- option: gcc_compiler_option
+  value: -Wall
+other_file:
+- path: resources/readme/setupdiagram.png
+- path: resources/readme/output_hrng.png
+ui_hints:
+  highlight:
+  - path: readme.md
+    focus: true
+readme:
+- path: readme.md
+post_build:
+  profile: wiseconnect_soc
+sdk_extension:
+- id: wiseconnect3_sdk
+  vendor: silabs
+  version: 4.0.1
+sdk:
+  id: simplicity_sdk
+  vendor: silabs
+  version: 2025.12.2

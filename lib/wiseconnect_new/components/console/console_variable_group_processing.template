@@ -1,0 +1,30 @@
+{# Expects node that is a group #}
+{% for name2, node2 in node -%}
+{% if not existsIn(node2, "type") -%}
+{% set old_name = name %}{% set old_node = node %}{% set name = name2 %}{% set node = node2 -%}
+{% include "console_variable_group_processing.template" %}
+{% set name = old_name %}{% set node = old_node -%}
+{% else -%}
+{% if node2.type == "ram_struct" -%}
+const structure_descriptor_entry_t {{name2}}_struct_descriptor[] = {
+{% for item in node2.members %}  SL_CONSOLE_STRUCTURE_ENTRY("{{item.name}}", {{item.name}}, {{node2.struct}}, CONSOLE_VARIABLE_{{at(__mapping, item.type)}} ),
+{% endfor -%}
+};
+{% endif %}{% endif -%}
+{% endfor -%}
+
+{% for name2, node2 in node -%}{% if existsIn(node2, "type") and node2.type == "nvm_struct" -%}
+extern sl_status_t {{node2.function}}(console_variable_action_t action, const struct console_variable_node_s *node, const char *value);
+{% endif -%}{% endfor %}
+console_variable_node_t {{name}}_group[] = {
+{% for name2, node2 in node -%}
+{% if existsIn(node2, "type") -%}
+{% if node2.type == "ram_struct" %}  SL_CONSOLE_VARIABLE_RAM_STRUCTURE("{{name2}}", {{name2}}_struct_descriptor, {{node2.instance}}),
+{% else if node2.type == "variable" %}  SL_CONSOLE_VARIABLE_VARIABLE("{{name2}}", &{{node2.object}}, {{node2.size}}),
+{% else if node2.type == "nvm_struct" %}  SL_CONSOLE_VARIABLE_NVM_STRUCTURE("{{name2}}", {{node2.nvm_id}}, {{node2.function}}),
+{% endif -%}
+{% else -%}
+  SL_CONSOLE_VARIABLE_GROUP("{{name2}}", {{name2}}_group),
+{% endif -%}
+{% endfor -%}
+};

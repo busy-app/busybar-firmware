@@ -1,0 +1,109 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__CRYPTO__HMAC__CONSTANTS" kind="group">
+    <compoundname>CRYPTO_HMAC_CONSTANTS</compoundname>
+    <title>Constants</title>
+      <sectiondef kind="enum">
+      <memberdef kind="enum" id="group__CRYPTO__HMAC__CONSTANTS_1ga93ae7b72c47bde356de2a927a9a7f35c" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_si91x_hmac_mode_t</name>
+        <enumvalue id="group__CRYPTO__HMAC__CONSTANTS_1gga93ae7b72c47bde356de2a927a9a7f35ca3224011cbdb937066c23c78c2d0ce2dc" prot="public">
+          <name>SL_SI91X_HMAC_SHA_1</name>
+          <initializer>= 1</initializer>
+          <briefdescription>
+<para>HMAC SHA 1 mode. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__HMAC__CONSTANTS_1gga93ae7b72c47bde356de2a927a9a7f35ca23241f8235a41ac12f245758ac04fd53" prot="public">
+          <name>SL_SI91X_HMAC_SHA_256</name>
+          <briefdescription>
+<para>HMAC SHA 256 mode. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__HMAC__CONSTANTS_1gga93ae7b72c47bde356de2a927a9a7f35caa150727ebada992303fd02dd9f552903" prot="public">
+          <name>SL_SI91X_HMAC_SHA_384</name>
+          <briefdescription>
+<para>HMAC SHA 384 mode. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__HMAC__CONSTANTS_1gga93ae7b72c47bde356de2a927a9a7f35cafda5ea19392333562f016811a0970b2b" prot="public">
+          <name>SL_SI91X_HMAC_SHA_512</name>
+          <briefdescription>
+<para>HMAC SHA 512 mode. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>Enumeration defining HMAC-SHA modes supported by the SI91X device. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>This enumeration defines different HMAC-SHA modes supported by the SI91X device, including SHA1, SHA256, SHA384, and SHA512 modes. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/hmac/inc/sl_si91x_hmac.h" line="49" column="1" bodyfile="components/device/silabs/si91x/wireless/crypto/hmac/inc/sl_si91x_hmac.h" bodystart="49" bodyend="54"/>
+      </memberdef>
+      <memberdef kind="enum" id="group__CRYPTO__HMAC__CONSTANTS_1ga4c9cc1f075afaaf0673fc18232ecbed2" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_si91x_hmac_digest_len_t</name>
+        <enumvalue id="group__CRYPTO__HMAC__CONSTANTS_1gga4c9cc1f075afaaf0673fc18232ecbed2aa1c6b545ea0f0cf05b11db4735028cb6" prot="public">
+          <name>SL_SI91X_HMAC_SHA_1_DIGEST_LEN</name>
+          <initializer>= 20</initializer>
+          <briefdescription>
+<para>Digest length for HMAC SHA 1. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__HMAC__CONSTANTS_1gga4c9cc1f075afaaf0673fc18232ecbed2aac62f6744bb420375459bb24a1cafec5" prot="public">
+          <name>SL_SI91X_HMAC_SHA_256_DIGEST_LEN</name>
+          <initializer>= 32</initializer>
+          <briefdescription>
+<para>Digest length for HMAC SHA 256. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__HMAC__CONSTANTS_1gga4c9cc1f075afaaf0673fc18232ecbed2ab08498e7be967d7c84260d6446e70e48" prot="public">
+          <name>SL_SI91X_HMAC_SHA_384_DIGEST_LEN</name>
+          <initializer>= 48</initializer>
+          <briefdescription>
+<para>Digest length for HMAC SHA 384. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__HMAC__CONSTANTS_1gga4c9cc1f075afaaf0673fc18232ecbed2ab9fb4d377902c3d4e96c1bf49f64ef39" prot="public">
+          <name>SL_SI91X_HMAC_SHA_512_DIGEST_LEN</name>
+          <initializer>= 64</initializer>
+          <briefdescription>
+<para>Digest length for HMAC SHA 512. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>Enumeration defining digest lengths of HMAC-SHA modes supported by the SI91X device. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>This enumeration defines digest lengths of different HMAC-SHA modes supported by the SI91X device, including SHA1, SHA256, SHA384, and SHA512 modes. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/hmac/inc/sl_si91x_hmac.h" line="62" column="1" bodyfile="components/device/silabs/si91x/wireless/crypto/hmac/inc/sl_si91x_hmac.h" bodystart="62" bodyend="67"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para>This section provides a reference to the HMAC Crypto API constants. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

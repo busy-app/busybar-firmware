@@ -1,0 +1,33 @@
+id: lwip_app_mdns
+label: LWIP mDNS High Layer Application
+package: lwip
+description: 'The LWIP mDNS high layer application specifically programmed with the lwIP low-level raw API, multicast DNS lwip the MDNS responder does not have all features required by the standards. It is however usable in normal cases - but watch out if many devices on the same network try to use the same host/service instance names.
+
+  '
+category: Third Party|LwIP|apps
+quality: production
+provides:
+- name: lwip_apps
+  allow_multiple: true
+- name: lwip_app_mdns
+requires:
+- name: lwip_core
+source:
+- path: lwip/src/apps/mdns/mdns.c
+include:
+- path: lwip/src/include
+  file_list:
+  - path: lwip/apps/mdns.h
+  - path: lwip/apps/mdns_opts.h
+  - path: lwip/apps/mdns_priv.h
+metadata:
+  sbom:
+    license: BSD-3-Clause
+    upstream:
+      name: lwip
+      version: 2.1.2
+      supplier: lwIP Developers
+      url: https://savannah.nongnu.org/projects/lwip/
+      package_url: https://github.com/lwip-tcpip/lwip/
+      comment: lwIP is a small independent implementation of the TCP/IP protocol suite.
+root_path: lwip

@@ -1,0 +1,17 @@
+workspace_name: btmesh_soc_dfu_distributor_log_s2_ext_btl
+package: bluetooth_mesh_app
+label: Bluetooth Mesh - SoC DFU Distributor with External Storage Bootloader
+description: >
+  Demonstrates the Firmware Distributor role based on the BT Mesh Model specification.
+  Distributor is responsible for delivering new firmware images to the Target nodes
+  and monitoring the progress of the firmware update.
+  This workspace combines External Storage Bootloader and Bluetooth Mesh
+  Firmware Distributor into a single binary.
+quality: production
+project:
+  - path: btmesh_soc_dfu_distributor_log.slcp
+    id: application
+  - path: ../../bootloader/bootloader-storage-spiflash-single-btmesh.slcp
+    id: bootloader
+post_build:
+  path: ../../postbuild_profile/btmesh_dfu_ws.slpb

@@ -1,0 +1,1497 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__sm" kind="group">
+    <compoundname>sl_bt_sm</compoundname>
+    <title>Security Manager</title>
+    <innergroup refid="group__sl__bt__sm__configuration">Security Manager configuration flags</innergroup>
+    <innergroup refid="group__sl__bt__evt__sm__passkey__display">sl_bt_evt_sm_passkey_display</innergroup>
+    <innergroup refid="group__sl__bt__evt__sm__passkey__request">sl_bt_evt_sm_passkey_request</innergroup>
+    <innergroup refid="group__sl__bt__evt__sm__confirm__passkey">sl_bt_evt_sm_confirm_passkey</innergroup>
+    <innergroup refid="group__sl__bt__evt__sm__bonded">sl_bt_evt_sm_bonded</innergroup>
+    <innergroup refid="group__sl__bt__evt__sm__bonding__failed">sl_bt_evt_sm_bonding_failed</innergroup>
+    <innergroup refid="group__sl__bt__evt__sm__confirm__bonding">sl_bt_evt_sm_confirm_bonding</innergroup>
+      <sectiondef kind="enum">
+      <memberdef kind="enum" id="group__sl__bt__sm_1gad428091a8f4174a3dfc1adaaca2b6785" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_bt_sm_io_capability_t</name>
+        <enumvalue id="group__sl__bt__sm_1ggad428091a8f4174a3dfc1adaaca2b6785a87010ed990af365f379dfd87eeec71ac" prot="public">
+          <name>sl_bt_sm_io_capability_displayonly</name>
+          <initializer>= 0x0</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x0) Display Only </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__sm_1ggad428091a8f4174a3dfc1adaaca2b6785ae72626ebce11a3e261c1b131e9775e40" prot="public">
+          <name>sl_bt_sm_io_capability_displayyesno</name>
+          <initializer>= 0x1</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x1) Display with Yes/No-buttons </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__sm_1ggad428091a8f4174a3dfc1adaaca2b6785aa19fe69e09c48105097b9a0019c41d90" prot="public">
+          <name>sl_bt_sm_io_capability_keyboardonly</name>
+          <initializer>= 0x2</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x2) Keyboard Only </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__sm_1ggad428091a8f4174a3dfc1adaaca2b6785acc1d4e152dedaf71335c35f0a3268d35" prot="public">
+          <name>sl_bt_sm_io_capability_noinputnooutput</name>
+          <initializer>= 0x3</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x3) No Input and No Output </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__sm_1ggad428091a8f4174a3dfc1adaaca2b6785aee6d75123aa9c8be67df8a9840f0425e" prot="public">
+          <name>sl_bt_sm_io_capability_keyboarddisplay</name>
+          <initializer>= 0x4</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x4) Display with Keyboard </para>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>These values define the security management related I/O capabilities supported by the device. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11233" column="1" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="11234" bodyend="11242"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="group__sl__bt__sm_1ga2668706f7ffb70681ed974f1e0b46c86" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_sm_configure</definition>
+        <argsstring>(uint8_t flags, uint8_t io_capabilities)</argsstring>
+        <name>sl_bt_sm_configure</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>flags</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>io_capabilities</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Configure security requirements and I/O capabilities of the system.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">flags</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>Security requirement flags. This value can be a bitmask of multiple flags from <ref refid="group__sl__bt__sm__configuration" kindref="compound">Security Manager configuration flags</ref></para>
+<para>Bit 0:<itemizedlist>
+<listitem><para><bold>0:</bold> Allow bonding without authentication</para>
+</listitem><listitem><para><bold>1:</bold> Bonding requires authentication (Man-in-the-Middle protection)</para>
+</listitem></itemizedlist>
+</para>
+<para>Bit 1:<itemizedlist>
+<listitem><para><bold>0:</bold> Allow encryption without bonding</para>
+</listitem><listitem><para><bold>1:</bold> Encryption requires bonding. Note that this setting will also enable bonding.</para>
+</listitem></itemizedlist>
+</para>
+<para>Bit 2:<itemizedlist>
+<listitem><para><bold>0:</bold> Allow bonding with legacy pairing</para>
+</listitem><listitem><para><bold>1:</bold> Secure connections only</para>
+</listitem></itemizedlist>
+</para>
+<para>Bit 3:<itemizedlist>
+<listitem><para><bold>0:</bold> Bonding request does not need to be confirmed</para>
+</listitem><listitem><para><bold>1:</bold> Bonding requests need to be confirmed. Received bonding requests are notified by <ref refid="group__sl__bt__evt__sm__confirm__bonding" kindref="compound">sl_bt_evt_sm_confirm_bonding</ref></para>
+</listitem></itemizedlist>
+</para>
+<para>Bit 4: This option is ignored when the application includes the bluetooth_feature_external_bonding_database feature.<itemizedlist>
+<listitem><para><bold>0:</bold> Allow all connections</para>
+</listitem><listitem><para><bold>1:</bold> Allow connections only from bonded devices</para>
+</listitem></itemizedlist>
+</para>
+<para>Bit 5:<itemizedlist>
+<listitem><para><bold>0:</bold> Prefer just works pairing when both options are possible based on the settings.</para>
+</listitem><listitem><para><bold>1:</bold> Prefer authenticated pairing when both options are possible based on the settings.</para>
+</listitem></itemizedlist>
+</para>
+<para>Bit 6:<itemizedlist>
+<listitem><para><bold>0:</bold> Allow secure connections OOB pairing with OOB data from only one device.</para>
+</listitem><listitem><para><bold>1:</bold> Require secure connections OOB data from both devices.</para>
+</listitem></itemizedlist>
+</para>
+<para>Bit 7:<itemizedlist>
+<listitem><para><bold>0:</bold> Allow debug keys from remote device.</para>
+</listitem><listitem><para><bold>1:</bold> Reject pairing if remote device uses debug keys.</para>
+</listitem><listitem><para><bold>Default</bold> : 0 </para>
+</listitem></itemizedlist>
+</para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">io_capabilities</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Enum <ref refid="group__sl__bt__sm_1gad428091a8f4174a3dfc1adaaca2b6785" kindref="member">sl_bt_sm_io_capability_t</ref>. I/O Capabilities. The default I/O Capability used by the stack is No Input and No Output. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_sm_io_capability_displayonly (0x0):</bold> Display Only</para>
+</listitem><listitem><para><bold>sl_bt_sm_io_capability_displayyesno (0x1):</bold> Display with Yes/No-buttons</para>
+</listitem><listitem><para><bold>sl_bt_sm_io_capability_keyboardonly (0x2):</bold> Keyboard Only</para>
+</listitem><listitem><para><bold>sl_bt_sm_io_capability_noinputnooutput (0x3):</bold> No Input and No Output</para>
+</listitem><listitem><para><bold>sl_bt_sm_io_capability_keyboarddisplay (0x4):</bold> Display with Keyboard</para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11527" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="11527" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__sm_1gadf5ef83084ef4651ee31bb05d5d4d8ff" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_sm_set_minimum_key_size</definition>
+        <argsstring>(uint8_t minimum_key_size)</argsstring>
+        <name>sl_bt_sm_set_minimum_key_size</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>minimum_key_size</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Set the minimum allowed key size used for bonding. The default value is 16 bytes.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">minimum_key_size</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Minimum allowed key size for bonding.<itemizedlist>
+<listitem><para><bold>Range:</bold> 7 to 16</para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11540" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="11540" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__sm_1gaceb0bb106f4fa057ebcb1e20ad8f1bfc" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_sm_set_debug_mode</definition>
+        <argsstring>(void)</argsstring>
+        <name>sl_bt_sm_set_debug_mode</name>
+        <param>
+          <type>void</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Set Security Manager in debug mode. In this mode, the secure connections bonding uses known debug keys, so that the encrypted packet can be opened by Bluetooth protocol analyzer. To disable the debug mode, restart the device.</para>
+<para>Bondings made in debug mode are unsecure.</para>
+<para><simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11554" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="11554" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__sm_1gaa83c977d878b0632cec34464ef281887" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_sm_store_bonding_configuration</definition>
+        <argsstring>(uint8_t max_bonding_count, uint8_t policy_flags)</argsstring>
+        <name>sl_bt_sm_store_bonding_configuration</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>max_bonding_count</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>policy_flags</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Set the maximum allowed bonding count and bonding policy. The maximum number of bondings that can be supported depends on how much user data is stored in the NVM3 and the NVM3 size. When bond policy value 1 or 2 is selected, the stack will automatically write the new bond, as per the policy, only if the maximum allowed bonding count has been reached. If the stack can&apos;t write a new bond for any other reason (e.g., NVM3 is full), an error will be thrown through the bonding_failed event indicating why the bonding was not written. The application has to manually release space from the NVM (e.g., by deleting one of the existing bonds or application data) so that a new bond can be saved. The default value is 13.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">max_bonding_count</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Maximum allowed bonding count.<itemizedlist>
+<listitem><para><bold>Range:</bold> 1 to 32 </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">policy_flags</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>Bonding policy. Values:<itemizedlist>
+<listitem><para><bold>0:</bold> If database is full, pairing will be performed but no bonding is stored</para>
+</listitem><listitem><para><bold>1:</bold> New bonding will overwrite the oldest existing bonding</para>
+</listitem><listitem><para><bold>2:</bold> New bonding will overwrite the bonding that was used the longest time ago</para>
+</listitem></itemizedlist>
+</para>
+<para>Default: 0</para>
+<para>With external bonding database the parameter is ignored. </para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+<para><simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11587" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="11587" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__sm_1ga5b300b3007067d4671ecf598752d2f60" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_sm_set_bondable_mode</definition>
+        <argsstring>(uint8_t bondable)</argsstring>
+        <name>sl_bt_sm_set_bondable_mode</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>bondable</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Set whether the device should accept new bondings. By default, the device does not accept new bondings.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">bondable</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>Bondable mode. Values:<itemizedlist>
+<listitem><para><bold>0:</bold> New bondings not accepted</para>
+</listitem><listitem><para><bold>1:</bold> Bondings allowed</para>
+</listitem><listitem><para><bold>Default</bold> : 0 </para>
+</listitem></itemizedlist>
+</para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+<para><simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11606" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="11606" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__sm_1ga3ea16a5b602a40ba4d98030e823067e3" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_sm_set_passkey</definition>
+        <argsstring>(int32_t passkey)</argsstring>
+        <name>sl_bt_sm_set_passkey</name>
+        <param>
+          <type>int32_t</type>
+          <declname>passkey</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Enter a fixed passkey, which will be used in the <ref refid="group__sl__bt__evt__sm__passkey__display" kindref="compound">sl_bt_evt_sm_passkey_display</ref> event.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">passkey</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>Passkey.<itemizedlist>
+<listitem><para><bold>Range:</bold> 0 to 999999</para>
+</listitem></itemizedlist>
+</para>
+<para>. Set -1 to disable and start using random passkeys. </para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+<para><simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11623" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="11623" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__sm_1gadde7d3d515ab2831e5cd40898530f874" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_sm_increase_security</definition>
+        <argsstring>(uint8_t connection)</argsstring>
+        <name>sl_bt_sm_increase_security</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>connection</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Enhance the security of a connection to current security requirements. On an unencrypted connection, it will encrypt the connection and will also perform bonding if requested by both devices. On an encrypted connection, it will cause the connection to be re-encrypted.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">connection</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Connection handle</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise.</para>
+</simplesect>
+<bold>Events</bold> <itemizedlist>
+<listitem><para><ref refid="group__sl__bt__evt__connection__parameters" kindref="compound">sl_bt_evt_connection_parameters</ref> - Triggered after increasing security has been completed successfully and indicates the latest security mode of the connection.</para>
+</listitem><listitem><para><ref refid="group__sl__bt__evt__sm__bonded" kindref="compound">sl_bt_evt_sm_bonded</ref> - Triggered if pairing or bonding was performed in this operation and the result is successful.</para>
+</listitem><listitem><para><ref refid="group__sl__bt__evt__sm__bonding__failed" kindref="compound">sl_bt_evt_sm_bonding_failed</ref> - Triggered if pairing or bonding was performed in this operation and the result has failed. </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11646" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="11646" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__sm_1gaffc570a910fbacb230e207688611d83f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_sm_enter_passkey</definition>
+        <argsstring>(uint8_t connection, int32_t passkey)</argsstring>
+        <name>sl_bt_sm_enter_passkey</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>connection</declname>
+        </param>
+        <param>
+          <type>int32_t</type>
+          <declname>passkey</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Enter a passkey after receiving a passkey request event.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">connection</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Connection handle </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">passkey</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>Passkey.<itemizedlist>
+<listitem><para><bold>Range:</bold> 0 to 999999</para>
+</listitem></itemizedlist>
+</para>
+<para>Set -1 to cancel pairing. </para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+<para><simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11663" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="11663" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__sm_1ga56c7140cb6749a2016bbc6571d20c50d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_sm_passkey_confirm</definition>
+        <argsstring>(uint8_t connection, uint8_t confirm)</argsstring>
+        <name>sl_bt_sm_passkey_confirm</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>connection</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>confirm</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Accept or reject the reported passkey confirm value.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">connection</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Connection handle </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">confirm</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Acceptance. Values:<itemizedlist>
+<listitem><para><bold>0:</bold> Reject</para>
+</listitem><listitem><para><bold>1:</bold> Accept confirm value</para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11677" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="11677" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__sm_1ga65b9b1763034e7658ad5bb85f7c393a9" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_sm_bonding_confirm</definition>
+        <argsstring>(uint8_t connection, uint8_t confirm)</argsstring>
+        <name>sl_bt_sm_bonding_confirm</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>connection</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>confirm</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Accept or reject the bonding request.</para>
+<para>NOTE! When the bonding handle for the connection is anything other than SL_BT_INVALID_BONDING_HANDLE (0xff), a bonding already exists for this connection. Overwriting the existing bonding is a potential security risk. The bonding handle is included in the <ref refid="group__sl__bt__evt__sm__confirm__bonding" kindref="compound">sl_bt_evt_sm_confirm_bonding</ref> event.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">connection</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Connection handle </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">confirm</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Acceptance. Values:<itemizedlist>
+<listitem><para><bold>0:</bold> Reject</para>
+</listitem><listitem><para><bold>1:</bold> Accept bonding request</para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11697" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="11697" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__sm_1ga29ac245e23a6715698072ec631f5c457" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_sm_delete_bonding</definition>
+        <argsstring>(uint8_t bonding)</argsstring>
+        <name>sl_bt_sm_delete_bonding</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>bonding</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Delete the specified bonding. The connection will be closed if the remote device is connected currently.</para>
+<para>This commands deletes the information from the persistent bonding database when the built-in bonding database (bluetooth_feature_builtin_bonding_database) is used.</para>
+<para>When used with Filter Accept List (bluetooth_feature_accept_list) or Resolving List (bluetooth_feature_resolving_list), this command removes the deleted device from the lists.</para>
+<para>This command is unavailable if the external bonding database (bluetooth_feature_external_bonding_database) is used.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">bonding</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Bonding handle</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11720" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="11720" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__sm_1gac1de9585ff48dc1d732b7f3e14ae52f0" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_sm_delete_bondings</definition>
+        <argsstring>(void)</argsstring>
+        <name>sl_bt_sm_delete_bondings</name>
+        <param>
+          <type>void</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Delete all bondings and device local identity resolving key (IRK). All connections to affected devices are closed as well.</para>
+<para>This command empties the persistent bonding database when the built-in bonding database (bluetooth_feature_builtin_bonding_database) is used.</para>
+<para>When used with Filter Accept List (bluetooth_feature_accept_list) or Resolving List (bluetooth_feature_resolving_list), this command removes the deleted devices from the lists.</para>
+<para><simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11738" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="11738" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__sm_1ga12fa739726642637a21d8b1776818659" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_sm_get_bonding_handles</definition>
+        <argsstring>(uint32_t reserved, uint32_t *num_bondings, size_t max_bondings_size, size_t *bondings_len, uint8_t *bondings)</argsstring>
+        <name>sl_bt_sm_get_bonding_handles</name>
+        <param>
+          <type>uint32_t</type>
+          <declname>reserved</declname>
+        </param>
+        <param>
+          <type>uint32_t *</type>
+          <declname>num_bondings</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>max_bondings_size</declname>
+        </param>
+        <param>
+          <type>size_t *</type>
+          <declname>bondings_len</declname>
+        </param>
+        <param>
+          <type>uint8_t *</type>
+          <declname>bondings</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Get number of entries and bitmask of their handles saved in the bonding database.</para>
+<para>To get the bonding information and peer device address of a bonding, use the <ref refid="group__sl__bt__sm_1ga955e0410627f3f939a493fb1894d8dc4" kindref="member">sl_bt_sm_get_bonding_details</ref> command. The bonding handle can be calculated from the handle bitmask returned by this command, or alternatively, repeat calling the <ref refid="group__sl__bt__sm_1ga955e0410627f3f939a493fb1894d8dc4" kindref="member">sl_bt_sm_get_bonding_details</ref> command to get the detailed information of all bondings.</para>
+<para>This command is unavailable if the external bonding database (bluetooth_feature_external_bonding_database) is used.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">reserved</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Use the value 0 on this reserved field. Do not use none-zero values because they are reserved for future use. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">num_bondings</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Total number of bondings stored in bonding database. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">max_bondings_size</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Size of output buffer passed in <computeroutput>bondings</computeroutput> </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">bondings_len</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>On return, set to the length of output data written to <computeroutput>bondings</computeroutput> </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">bondings</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>4 byte bit field of used bonding handles in little endian format. Bit 0 of first byte is bonding handle 0, bit 0 of second byte is bonding handle 8 etc. If the bit is 1 that bonding handle exists in the bonding database.</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11768" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="11768" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__sm_1ga955e0410627f3f939a493fb1894d8dc4" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_sm_get_bonding_details</definition>
+        <argsstring>(uint32_t bonding, bd_addr *address, uint8_t *address_type, uint8_t *security_mode, uint8_t *key_size)</argsstring>
+        <name>sl_bt_sm_get_bonding_details</name>
+        <param>
+          <type>uint32_t</type>
+          <declname>bonding</declname>
+        </param>
+        <param>
+          <type><ref refid="structbd__addr" kindref="compound">bd_addr</ref> *</type>
+          <declname>address</declname>
+        </param>
+        <param>
+          <type>uint8_t *</type>
+          <declname>address_type</declname>
+        </param>
+        <param>
+          <type>uint8_t *</type>
+          <declname>security_mode</declname>
+        </param>
+        <param>
+          <type>uint8_t *</type>
+          <declname>key_size</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Get the detailed information for a bonding entry. Data includes remote device address and address type as well as security mode for bonding and a used encryption key length.</para>
+<para>To get the detailed information of all bondings, repeat calling this command starting from 0 as the bonding handle value until the maximum number of configured bondings are reached. Use 32 as the maximum number if the configured number is unknown.</para>
+<para>This command is unavailable if the external bonding database (bluetooth_feature_external_bonding_database) is used.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">bonding</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Bonding handle </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">address</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Bluetooth address of the remote device </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">address_type</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Enum <ref refid="group__sl__bt__gap_1gac8d5431d3062e47c5d51b9fb9f36c104" kindref="member">sl_bt_gap_address_type_t</ref>. Address type. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_gap_public_address (0x0):</bold> Public device address</para>
+</listitem><listitem><para><bold>sl_bt_gap_static_address (0x1):</bold> Static device address </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">security_mode</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Enum <ref refid="group__sl__bt__connection_1gaa978c6a4744e442da21c790679af4eae" kindref="member">sl_bt_connection_security_t</ref>. Connection security mode. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_connection_mode1_level1 (0x0):</bold> No security</para>
+</listitem><listitem><para><bold>sl_bt_connection_mode1_level2 (0x1):</bold> Unauthenticated pairing with encryption</para>
+</listitem><listitem><para><bold>sl_bt_connection_mode1_level3 (0x2):</bold> Authenticated pairing with encryption</para>
+</listitem><listitem><para><bold>sl_bt_connection_mode1_level4 (0x3):</bold> Authenticated Secure Connections pairing with encryption using a 128-bit strength encryption key </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">key_size</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Key length in bytes</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11809" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="11809" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__sm_1gad9331896c22adb49290ee7886ee96565" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_sm_find_bonding_by_address</definition>
+        <argsstring>(bd_addr address, uint32_t *bonding, uint8_t *security_mode, uint8_t *key_size)</argsstring>
+        <name>sl_bt_sm_find_bonding_by_address</name>
+        <param>
+          <type><ref refid="structbd__addr" kindref="compound">bd_addr</ref></type>
+          <declname>address</declname>
+        </param>
+        <param>
+          <type>uint32_t *</type>
+          <declname>bonding</declname>
+        </param>
+        <param>
+          <type>uint8_t *</type>
+          <declname>security_mode</declname>
+        </param>
+        <param>
+          <type>uint8_t *</type>
+          <declname>key_size</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Find the bonding entry by using a Bluetooth device address.</para>
+<para>This command is unavailable if the external bonding database (bluetooth_feature_external_bonding_database) is used.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">address</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The Bluetooth device address </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">bonding</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The bonding handle </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">security_mode</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Enum <ref refid="group__sl__bt__connection_1gaa978c6a4744e442da21c790679af4eae" kindref="member">sl_bt_connection_security_t</ref>. Connection security mode. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_connection_mode1_level1 (0x0):</bold> No security</para>
+</listitem><listitem><para><bold>sl_bt_connection_mode1_level2 (0x1):</bold> Unauthenticated pairing with encryption</para>
+</listitem><listitem><para><bold>sl_bt_connection_mode1_level3 (0x2):</bold> Authenticated pairing with encryption</para>
+</listitem><listitem><para><bold>sl_bt_connection_mode1_level4 (0x3):</bold> Authenticated Secure Connections pairing with encryption using a 128-bit strength encryption key </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">key_size</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Key length in bytes</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11839" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="11839" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__sm_1gaabf1490dd77c7dc64b3962bb07e87b72" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_sm_resolve_rpa</definition>
+        <argsstring>(bd_addr rpa, bd_addr *address, uint8_t *address_type, uint32_t *bonding)</argsstring>
+        <name>sl_bt_sm_resolve_rpa</name>
+        <param>
+          <type><ref refid="structbd__addr" kindref="compound">bd_addr</ref></type>
+          <declname>rpa</declname>
+        </param>
+        <param>
+          <type><ref refid="structbd__addr" kindref="compound">bd_addr</ref> *</type>
+          <declname>address</declname>
+        </param>
+        <param>
+          <type>uint8_t *</type>
+          <declname>address_type</declname>
+        </param>
+        <param>
+          <type>uint32_t *</type>
+          <declname>bonding</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Find the identity address of bonded device by using resolvable private address (RPA).</para>
+<para>The error SL_STATUS_NOT_FOUND is returned if the RPA cannot be resolved.</para>
+<para>This command is unavailable if the external bonding database (bluetooth_feature_external_bonding_database) is used.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">rpa</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Resolvable private address to be resolved </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">address</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The identity adderss of the bonded device </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">address_type</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Enum <ref refid="group__sl__bt__gap_1gac8d5431d3062e47c5d51b9fb9f36c104" kindref="member">sl_bt_gap_address_type_t</ref>. Identity address type. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_gap_public_address (0x0):</bold> Public device address</para>
+</listitem><listitem><para><bold>sl_bt_gap_static_address (0x1):</bold> Static device address </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">bonding</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The bonding handle</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11865" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="11865" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__sm_1gad51863e6fcce9bc2e30a227fb185d672" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_sm_set_legacy_oob</definition>
+        <argsstring>(uint8_t enable, aes_key_128 oob_data)</argsstring>
+        <name>sl_bt_sm_set_legacy_oob</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>enable</declname>
+        </param>
+        <param>
+          <type><ref refid="structaes__key__128" kindref="compound">aes_key_128</ref></type>
+          <declname>oob_data</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Set Out-Of-Band (OOB) encryption data for a legacy pairing of a device. OOB data may be, for example, a PIN code exchanged over an alternate path, such as NFC. The device will not allow any other bonding if OOB data is set. OOB data can&apos;t be set simultaneously with secure connections OOB data.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">enable</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Enable OOB with legacy pairing. Values:<itemizedlist>
+<listitem><para><bold>0:</bold> disable</para>
+</listitem><listitem><para><bold>1:</bold> enable </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">oob_data</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>16-byte legacy pairing OOB data in little endian format.</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11885" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="11885" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__sm_1ga3abaa98fab778f3c20fb08f1917a9f38" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_sm_set_oob</definition>
+        <argsstring>(uint8_t enable, aes_key_128 *random, aes_key_128 *confirm)</argsstring>
+        <name>sl_bt_sm_set_oob</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>enable</declname>
+        </param>
+        <param>
+          <type><ref refid="structaes__key__128" kindref="compound">aes_key_128</ref> *</type>
+          <declname>random</declname>
+        </param>
+        <param>
+          <type><ref refid="structaes__key__128" kindref="compound">aes_key_128</ref> *</type>
+          <declname>confirm</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Enable the use of Out-Of-Band (OOB) encryption data for a device for secure connections pairing. Enabling will generate new OOB data and confirm values, which can be sent to the remote device. After enabling the secure connections OOB data, the remote devices OOB data can be set with <ref refid="group__sl__bt__sm_1gaeeb7c8376a1b8f323f963b9a6ebd8729" kindref="member">sl_bt_sm_set_remote_oob</ref>. Calling this function will erase any set remote device OOB data and confirm values. The device will not allow any other bonding if OOB data is set. The secure connections OOB data cannot be enabled simultaneously with legacy pairing OOB data.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">enable</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Enable OOB with secure connections pairing. Values:<itemizedlist>
+<listitem><para><bold>0:</bold> disable</para>
+</listitem><listitem><para><bold>1:</bold> enable </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">random</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>16-byte randomly-generated secure connections OOB data in little endian format. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">confirm</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>16-byte confirm value for the OOB random value in little endian format.</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11909" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="11909" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__sm_1gaeeb7c8376a1b8f323f963b9a6ebd8729" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_sm_set_remote_oob</definition>
+        <argsstring>(uint8_t enable, aes_key_128 random, aes_key_128 confirm)</argsstring>
+        <name>sl_bt_sm_set_remote_oob</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>enable</declname>
+        </param>
+        <param>
+          <type><ref refid="structaes__key__128" kindref="compound">aes_key_128</ref></type>
+          <declname>random</declname>
+        </param>
+        <param>
+          <type><ref refid="structaes__key__128" kindref="compound">aes_key_128</ref></type>
+          <declname>confirm</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Set Out-Of-Band (OOB) data and confirm values received from the remote device for secure connections pairing. OOB data must be enabled with <ref refid="group__sl__bt__sm_1ga3abaa98fab778f3c20fb08f1917a9f38" kindref="member">sl_bt_sm_set_oob</ref> before setting the remote device OOB data.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">enable</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Enable remote device OOB data with secure connections pairing. Values:<itemizedlist>
+<listitem><para><bold>0:</bold> disable</para>
+</listitem><listitem><para><bold>1:</bold> enable </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">random</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>16-byte remote device secure connections OOB data in little endian format. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">confirm</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>16-byte remote device confirm value for the OOB random value in little endian format.</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11931" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="11931" declcolumn="13"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__sm_1ga45259515f1a63fa4f739963ecf53394e" prot="public" static="no">
+        <name>sl_bt_cmd_sm_configure_id</name>
+        <initializer>0x010f0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11136" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="11136" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__sm_1ga956a6f3541fac84ddf7892710ae69897" prot="public" static="no">
+        <name>sl_bt_cmd_sm_set_minimum_key_size_id</name>
+        <initializer>0x140f0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11137" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="11137" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__sm_1ga866c24bc772f0e558711cb84c79ec0dc" prot="public" static="no">
+        <name>sl_bt_cmd_sm_set_debug_mode_id</name>
+        <initializer>0x0f0f0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11138" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="11138" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__sm_1ga934f589371dee34d17a8ac31f1b94b93" prot="public" static="no">
+        <name>sl_bt_cmd_sm_store_bonding_configuration_id</name>
+        <initializer>0x020f0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11139" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="11139" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__sm_1ga2fcaf37a633506b61ae8c37b6f4b82d6" prot="public" static="no">
+        <name>sl_bt_cmd_sm_set_bondable_mode_id</name>
+        <initializer>0x000f0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11140" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="11140" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__sm_1ga4de6e647a7626e2de6e1638cd3b60122" prot="public" static="no">
+        <name>sl_bt_cmd_sm_set_passkey_id</name>
+        <initializer>0x100f0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11141" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="11141" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__sm_1ga825d8193fc5e13224d28f5575a3a4639" prot="public" static="no">
+        <name>sl_bt_cmd_sm_increase_security_id</name>
+        <initializer>0x040f0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11142" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="11142" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__sm_1ga875c294d6c6e5922b30fc2cc876f0bb3" prot="public" static="no">
+        <name>sl_bt_cmd_sm_enter_passkey_id</name>
+        <initializer>0x080f0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11143" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="11143" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__sm_1gad9a4fd01bf7de354c8ff9fbdc1ac42ec" prot="public" static="no">
+        <name>sl_bt_cmd_sm_passkey_confirm_id</name>
+        <initializer>0x090f0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11144" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="11144" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__sm_1gac1d8cbc8a856c4083ebb0b0a053aa5ac" prot="public" static="no">
+        <name>sl_bt_cmd_sm_bonding_confirm_id</name>
+        <initializer>0x0e0f0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11145" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="11145" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__sm_1ga33a334583f233dcf599e3f6d4513669c" prot="public" static="no">
+        <name>sl_bt_cmd_sm_delete_bonding_id</name>
+        <initializer>0x060f0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11146" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="11146" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__sm_1ga0f42ef54eaacc40d5e6af82df28b3e43" prot="public" static="no">
+        <name>sl_bt_cmd_sm_delete_bondings_id</name>
+        <initializer>0x070f0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11147" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="11147" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__sm_1ga02a844f6a814baa9363e88ed82435d0e" prot="public" static="no">
+        <name>sl_bt_cmd_sm_get_bonding_handles_id</name>
+        <initializer>0x150f0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11148" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="11148" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__sm_1ga87f6c9518c272dbddd6d8aa0f816f22e" prot="public" static="no">
+        <name>sl_bt_cmd_sm_get_bonding_details_id</name>
+        <initializer>0x160f0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11149" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="11149" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__sm_1gabaafc259751c99b6c6238a991e6b6a47" prot="public" static="no">
+        <name>sl_bt_cmd_sm_find_bonding_by_address_id</name>
+        <initializer>0x170f0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11150" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="11150" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__sm_1ga27ff50c199537870430cd0c48428882c" prot="public" static="no">
+        <name>sl_bt_cmd_sm_resolve_rpa_id</name>
+        <initializer>0x1d0f0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11151" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="11151" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__sm_1ga20f162efc2c64ed7c98b602fdd6b34a5" prot="public" static="no">
+        <name>sl_bt_cmd_sm_set_legacy_oob_id</name>
+        <initializer>0x190f0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11152" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="11152" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__sm_1ga815906c9cd9be4ef00edfb42816a0b43" prot="public" static="no">
+        <name>sl_bt_cmd_sm_set_oob_id</name>
+        <initializer>0x1a0f0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11153" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="11153" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__sm_1ga6f2b75cb6e028cf4cb15ffa3ed292dcf" prot="public" static="no">
+        <name>sl_bt_cmd_sm_set_remote_oob_id</name>
+        <initializer>0x1b0f0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11154" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="11154" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__sm_1ga00b0df0ceca37e6b2e56dd21f481b15a" prot="public" static="no">
+        <name>sl_bt_rsp_sm_configure_id</name>
+        <initializer>0x010f0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11155" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="11155" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__sm_1ga1b55a0c44b332be61a68aa4f49047f83" prot="public" static="no">
+        <name>sl_bt_rsp_sm_set_minimum_key_size_id</name>
+        <initializer>0x140f0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11156" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="11156" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__sm_1gaec7b0ad04ee2ff595881638c08ffdd2c" prot="public" static="no">
+        <name>sl_bt_rsp_sm_set_debug_mode_id</name>
+        <initializer>0x0f0f0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11157" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="11157" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__sm_1ga77b063ea561e719ebb52cfbeca3d2900" prot="public" static="no">
+        <name>sl_bt_rsp_sm_store_bonding_configuration_id</name>
+        <initializer>0x020f0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11158" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="11158" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__sm_1ga17aa25016d41b9bcccd299333d5dd953" prot="public" static="no">
+        <name>sl_bt_rsp_sm_set_bondable_mode_id</name>
+        <initializer>0x000f0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11159" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="11159" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__sm_1ga69f8f56d849046ee2fff5a53c8f2fb68" prot="public" static="no">
+        <name>sl_bt_rsp_sm_set_passkey_id</name>
+        <initializer>0x100f0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11160" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="11160" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__sm_1ga61ec5ec090fd05329c194fe27b803434" prot="public" static="no">
+        <name>sl_bt_rsp_sm_increase_security_id</name>
+        <initializer>0x040f0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11161" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="11161" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__sm_1ga9481121a9e77633cd85149c0655db007" prot="public" static="no">
+        <name>sl_bt_rsp_sm_enter_passkey_id</name>
+        <initializer>0x080f0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11162" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="11162" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__sm_1ga6b784c53206d7f5f35c672ee43191745" prot="public" static="no">
+        <name>sl_bt_rsp_sm_passkey_confirm_id</name>
+        <initializer>0x090f0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11163" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="11163" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__sm_1ga0413ba24e9f171d214a1f8aa108c16bf" prot="public" static="no">
+        <name>sl_bt_rsp_sm_bonding_confirm_id</name>
+        <initializer>0x0e0f0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11164" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="11164" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__sm_1gaea8fba50cd5472441f8612a75bbb26ab" prot="public" static="no">
+        <name>sl_bt_rsp_sm_delete_bonding_id</name>
+        <initializer>0x060f0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11165" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="11165" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__sm_1ga03a161ba407f6920b1d9f3bf01849463" prot="public" static="no">
+        <name>sl_bt_rsp_sm_delete_bondings_id</name>
+        <initializer>0x070f0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11166" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="11166" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__sm_1ga9ca38d4c5019df1a55ddb33d499c0f3e" prot="public" static="no">
+        <name>sl_bt_rsp_sm_get_bonding_handles_id</name>
+        <initializer>0x150f0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11167" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="11167" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__sm_1ga37584fc184b643ef78603229c1f40c59" prot="public" static="no">
+        <name>sl_bt_rsp_sm_get_bonding_details_id</name>
+        <initializer>0x160f0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11168" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="11168" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__sm_1ga428a80a4a2de47c0df594c303622a05f" prot="public" static="no">
+        <name>sl_bt_rsp_sm_find_bonding_by_address_id</name>
+        <initializer>0x170f0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11169" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="11169" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__sm_1ga220e048a1bc074c443aaa0c6572e6e35" prot="public" static="no">
+        <name>sl_bt_rsp_sm_resolve_rpa_id</name>
+        <initializer>0x1d0f0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11170" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="11170" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__sm_1gadbcdd948590e5c7a6269a876a12dc4cd" prot="public" static="no">
+        <name>sl_bt_rsp_sm_set_legacy_oob_id</name>
+        <initializer>0x190f0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11171" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="11171" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__sm_1ga4f05ed47872e1d5eb8bea3434366b120" prot="public" static="no">
+        <name>sl_bt_rsp_sm_set_oob_id</name>
+        <initializer>0x1a0f0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11172" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="11172" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__sm_1ga138a9d3f7bbff60403facaf253a70f5f" prot="public" static="no">
+        <name>sl_bt_rsp_sm_set_remote_oob_id</name>
+        <initializer>0x1b0f0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11173" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="11173" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Security Manager. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>The commands in this class manage Bluetooth security, including commands for starting and stopping encryption and commands for management of all bonding operations.</para>
+<para>Use the following procedure to bond with a remote device:<itemizedlist>
+<listitem><para>Use the command <ref refid="group__sl__bt__sm_1ga2668706f7ffb70681ed974f1e0b46c86" kindref="member">sl_bt_sm_configure</ref> to configure security requirements and I/O capabilities of this device.</para>
+</listitem><listitem><para>Use the command <ref refid="group__sl__bt__sm_1ga5b300b3007067d4671ecf598752d2f60" kindref="member">sl_bt_sm_set_bondable_mode</ref> to set this device into bondable mode.</para>
+</listitem><listitem><para>Use the command <ref refid="group__sl__bt__connection_1gabb952445e50f64228b279fe9969001fe" kindref="member">sl_bt_connection_open</ref> to open a connection to the remote device.</para>
+</listitem><listitem><para>After the connection is open, use command <ref refid="group__sl__bt__sm_1gadde7d3d515ab2831e5cd40898530f874" kindref="member">sl_bt_sm_increase_security</ref> to encrypt the connection. This will also start the bonding process.</para>
+</listitem></itemizedlist>
+</para>
+<para>Use the following procedure to respond to the bonding initiated by a remote device:<itemizedlist>
+<listitem><para>Use the command <ref refid="group__sl__bt__sm_1ga2668706f7ffb70681ed974f1e0b46c86" kindref="member">sl_bt_sm_configure</ref> to configure security requirements and I/O capabilities of this device.</para>
+</listitem><listitem><para>Use the command <ref refid="group__sl__bt__sm_1ga5b300b3007067d4671ecf598752d2f60" kindref="member">sl_bt_sm_set_bondable_mode</ref> to set this device into bondable mode.</para>
+</listitem><listitem><para>Start connectable advertising, e.g., using the command <ref refid="group__sl__bt__legacy__advertiser_1gafbe2b47ed2e88b2c96ef028e1df388d3" kindref="member">sl_bt_legacy_advertiser_start</ref>.</para>
+</listitem><listitem><para>Open a connection to this device from the remote device.</para>
+</listitem><listitem><para>After the connection is open, start the bonding process on the remote device.</para>
+</listitem></itemizedlist>
+</para>
+<para>If MITM is required, the application needs to display or ask the user to enter a passkey during the process. See events <ref refid="group__sl__bt__evt__sm__passkey__display" kindref="compound">sl_bt_evt_sm_passkey_display</ref> and <ref refid="group__sl__bt__evt__sm__passkey__request" kindref="compound">sl_bt_evt_sm_passkey_request</ref> for more information. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,39 @@
+id: bootloader_debug
+label: Debug
+package: bootloader
+description: >
+  The Bootloader Debug component provides the build debug instrumentation into the bootloader.
+  This component implements two types of debugging functionalities:
+  1) Defining SL_DEBUG_ASSERT enables assertions on compile-time configurable parameters
+  2) Defining SL_DEBUG_PRINT enables debug prints at strategic points in the code
+category: Platform|Bootloader|Utils
+quality: production
+define:
+- name: SYSTEM_NO_STATIC_MEMORY
+  value: 1
+  condition: [device_series_2]
+source:
+- path: platform/bootloader/debug/btl_debug.c
+- path: platform/bootloader/debug/btl_debug_swo.c
+- path: platform/bootloader/debug/btl_debug_veneers.c
+  condition: [bootloader_core_secure]
+include:
+- path: platform/bootloader/debug
+  file_list:
+  - path: btl_debug.h
+- path: platform/bootloader
+  file_list:
+  - path: config/btl_config.h
+  - path: core/btl_util.h
+provides:
+- name: bootloader_debug
+- name: bootloader_nonsecure_incompatible
+  condition: [bootloader_core_nonsecure]
+config_file:
+- path: platform/bootloader/debug/config/btl_debug_cfg.h
+validation_helper:
+- path: platform/bootloader/component/scripts/bootloader_debug_validation.lua
+metadata:
+  sbom:
+    license: MSLA
+root_path: bootloader

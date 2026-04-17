@@ -1,0 +1,112 @@
+id: http_at_commands
+package: wifi
+description: >
+  HTTP AT commands
+category: Service| AT Commands Autogen| HTTP AT commands
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+component_root_path: ./components/at_commands_auto_gen
+provides:
+  - name: http_at_commands
+
+template_contribution:
+  - name: console_commands
+    value:
+      http-client-mode:
+        handler: http_client_mode_command_handler
+        arguments:
+          - "uint8"   # mode
+      net-cred-httpclient:
+        handler: net_cred_httpclient_command_handler
+        arguments:
+          - "uint32"  # credential-id
+          - "string"  # username
+          - "string"  # password
+      http-client-init:
+        handler: http_client_init_command_handler
+        arguments:
+          - "uint8"   # certificate-index
+          - "uint8"   # tls-version
+          - "uint8"   # http-version
+          - "uint8"   # https-enable
+          - "uint8"   # https-use-sni
+          - "uint8"   # ip-version
+          - "uint8"   # network-interface
+      http-client-deinit:
+        handler: http_client_deinit_command_handler
+        arguments:
+          - "uint8"   # client-instance-id
+      http-client-req-conncfg:
+        handler: http_client_req_conncfg_command_handler
+        arguments:
+          - "uint8"   # client-instance-id
+          - "uint32"  # request-id
+          - "uint8"   # method-type
+          - "string"  # ip-address
+          - "string"  # host-name
+          - "string"  # sni-extension
+          - "uint16"  # port
+          - "string"  # resource
+      http-client-req-geturl:
+        handler: http_client_req_geturl_command_handler
+        arguments:
+          - "uint8"   # client-instance-id
+          - "uint32"  # request-id
+      http-client-req-opt:
+        handler: http_client_req_opt_command_handler
+        arguments:
+          - "uint8"   # client-instance-id
+          - "uint32"  # request-id
+          - "uint16"  # timeout
+          - "uint16"  # retry-count
+          - "uint16"  # retry-period
+          - "uint8"   # tcp-connection-reuse
+      http-client-req-body:
+        handler: http_client_req_body_command_handler
+        arguments:
+          - "uint8"   # client-instance-id
+          - "uint32"  # request-id
+          - "uint32"  # body-length
+      http-client-req-body-len:
+        handler: http_client_req_body_len_command_handler
+        arguments:
+          - "uint8"   # client-instance-id
+          - "uint32"  # request-id
+          - "uint32"  # body-length
+      http-client-req-addhdr:
+        handler: http_client_req_addhdr_command_handler
+        arguments:
+          - "uint8"   # client-instance-id
+          - "uint32"  # request-id
+          - "string"  # key
+          - "string"  # value
+      http-client-req-delhdr:
+        handler: http_client_req_delhdr_command_handler
+        arguments:
+          - "uint8"   # client-instance-id
+          - "uint32"  # request-id
+          - "string"  # key
+      http-client-req-delallhd:
+        handler: http_client_req_delallhd_command_handler
+        arguments:
+          - "uint8"   # client-instance-id
+          - "uint32"  # request-id
+      http-client-req-getallhd:
+        handler: http_client_req_getallhd_command_handler
+        arguments:
+          - "uint8"   # client-instance-id
+          - "uint32"  # request-id
+      http-client-req-send:
+        handler: http_client_req_send_command_handler
+        arguments:
+          - "uint8"   # client-instance-id
+          - "uint32"  # request-id
+      http-client-send-chunk:
+        handler: http_client_send_chunk_command_handler
+        arguments:
+          - "uint8"   # client-instance-id
+          - "uint32"  # request-id
+          - "uint8"   # flush
+          - "uint32"  # chunk-size

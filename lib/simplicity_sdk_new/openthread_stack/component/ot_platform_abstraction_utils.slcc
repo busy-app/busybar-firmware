@@ -1,0 +1,24 @@
+id: ot_platform_abstraction_utils
+label: Platform Abstraction Utils
+package: openthread_stack
+category: OpenThread
+quality: production
+description: This component provides utility functions for the platform abstraction layer
+ui_hints:
+  visibility: never
+provides:
+- name: ot_platform_abstraction_utils
+requires:
+- name: ot_headers
+root_path: openthread_stack/util/third_party/openthread/examples/platforms/utils
+source:
+- path: debug_uart.c
+- path: link_metrics.cpp
+- path: logging_rtt.c
+  condition: [ot_rtt_log]
+- path: mac_frame.cpp
+- path: settings_ram.c
+- path: uart_rtt.c
+metadata:
+  sbom:
+    reference: ot_sbom_openthread

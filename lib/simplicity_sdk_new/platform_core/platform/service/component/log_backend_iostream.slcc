@@ -1,0 +1,22 @@
+id: log_backend_iostream
+label: logger module backend iostream
+package: platform_core
+description: >
+  This component provides the backend iostream interface for Series 2
+  and Series 3 devices
+category: Services|Log
+quality: evaluation
+metadata:
+  sbom:
+    license: Zlib
+provides:
+- name: log_backend
+- name: log_backend_iostream
+requires:
+- name: iostream
+- name: log
+root_path: platform_core/platform/service/sl_log
+config_file:
+- path: config/sl_log_proprietary_config.h
+source:
+- path: backend/src/sl_log_backend_iostream.c

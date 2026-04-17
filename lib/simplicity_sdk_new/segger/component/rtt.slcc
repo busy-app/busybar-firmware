@@ -1,0 +1,34 @@
+id: segger_rtt
+label: SEGGER RTT
+package: segger
+description: SEGGER RTT
+category: Third Party|Segger|RTT
+quality: production
+metadata:
+  sbom:
+    license: Segger
+config_file:
+- path: systemview/Config/SEGGER_RTT_Conf.h
+source:
+- path: systemview/SEGGER/SEGGER_RTT.c
+include:
+- path: systemview/SEGGER
+  file_list:
+  - path: SEGGER.h
+  - path: SEGGER_RTT.h
+  - path: sl_rtt_buffer_index.h
+provides:
+- name: segger_rtt
+define:
+- name: RTT_USE_ASM
+  value: '0'
+- name: SEGGER_RTT_SECTION
+  value: '"SEGGER_RTT"'
+  condition:
+  - toolchain_gcc
+template_contribution:
+- name: linker_rtt_section
+  value: 1
+- name: component_catalog
+  value: segger_rtt
+root_path: segger

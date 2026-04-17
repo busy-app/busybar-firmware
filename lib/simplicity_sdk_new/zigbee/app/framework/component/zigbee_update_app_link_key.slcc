@@ -1,0 +1,46 @@
+package: zigbee
+description: This component provides the functionality to update the application link key of a device on a Zigbee R21+ network.
+label: Update Application Link Key
+quality: production
+id: zigbee_update_app_link_key
+category: Zigbee|Zigbee 4.0
+provides:
+- name: zigbee_update_app_link_key
+source:
+- path: app/framework/plugin/update-app-link-key/update-app-link-key.c
+- path: app/framework/plugin/update-app-link-key/update-app-link-key-cli.c
+  condition:
+  - cli
+- path: app/framework/plugin/update-app-link-key/update-app-link-key-cb.c
+include:
+- path: app/framework/plugin/update-app-link-key
+  file_list:
+  - path: update-app-link-key.h
+template_contribution:
+- name: component_catalog
+  value: zigbee_update_app_link_key
+- name: zigbee_stack_callback
+  value:
+    callback_type: zigbee_key_establishment
+    function_name: sl_zigbee_af_update_app_link_key_zigbee_key_establishment_cb
+- name: cli_group
+  value:
+    group: plugin
+    name: update-app-link-key
+    help: update-app-link-key related commands
+- name: cli_command
+  value:
+    group: update-app-link-key
+    name: request
+    handler: sl_zigbee_af_set_app_link_key_update_request_command
+    help: This initiates an application link key update procedure with the partner node
+    argument:
+    - help: partner eui64
+      type: hex
+documentation:
+  docset: zigbee
+  document: zigbee-af-api/update-app-link-key
+metadata:
+  sbom:
+    license: MSLA
+root_path: zigbee

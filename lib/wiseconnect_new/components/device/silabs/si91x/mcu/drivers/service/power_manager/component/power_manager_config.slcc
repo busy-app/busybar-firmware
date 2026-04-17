@@ -1,0 +1,59 @@
+id: power_manager_config
+label: Power Manager Configuration
+package: platform_siwx91x
+description: >
+  Provides configuration for the peripheral enable/disable as well as the RAM retention. 
+  Supports the configuration of HP, ULP, and UULP peripherals.
+  RAM configuration is provided either by size or by Bank number, the user can opt for anyone. 
+  Priority is given to the RAM Bank number.
+category: Device|Si91x|MCU|Service|Power Manager
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+component_root_path: "components/device/silabs/si91x/mcu/drivers/service/power_manager"
+conflicts:
+  - name: power_manager_advance_config
+
+config_file:
+  - path: config/sl_si91x_power_manager_config_1.h
+    condition:
+      - si91x_mem_config_1
+  - path: config/sl_si91x_power_manager_config_2.h
+    condition:
+      - si91x_mem_config_2
+  - path: config/sl_si91x_power_manager_config_3.h
+    condition:
+      - si91x_mem_config_3
+template_file:
+  - path: init/sl_si91x_power_manager_init.h.jinja
+template_contribution:
+  - name: event_handler
+    value:
+      event: service_init
+      include: sl_si91x_power_manager_init.h
+      handler: sli_si91x_power_manager_configure_ram_and_peripheral
+    priority: -9990
+  - name: power_manager_config
+    value:
+      include:
+        name: sl_si91x_power_manager_config_1.h
+    priority: -5000
+    condition:
+      - si91x_mem_config_1
+  - name: power_manager_config
+    value: 
+      include:
+        name: sl_si91x_power_manager_config_2.h
+    priority: -5000
+    condition:
+      - si91x_mem_config_2
+  - name: power_manager_config
+    value:
+      include:
+        name: sl_si91x_power_manager_config_3.h
+    priority: -5000
+    condition:
+      - si91x_mem_config_3
+provides:
+  - name: power_manager_config

@@ -1,0 +1,13 @@
+workspace_name: bt_host_esl_ap
+label: Bluetooth - Host ESL Access Point
+package: bluetooth_le_app
+description: >
+  Bluetooth - Host ESL Access Point
+quality: experimental
+project:
+  - path: esl_ap.slcp
+    id: esl_ap
+  - path: esl_lib/esl_lib.slcp
+    id: esl_lib
+  - path: esl_key_lib/esl_key_lib.slcp
+    id: esl_key_lib

@@ -1,0 +1,333 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="sl__si91x__sha_8h" kind="file" language="C++">
+    <compoundname>sl_si91x_sha.h</compoundname>
+    <includes refid="sl__si91x__crypto_8h" local="yes">sl_si91x_crypto.h</includes>
+    <includes local="yes">sl_status.h</includes>
+    <incdepgraph>
+      <node id="2">
+        <label>sl_si91x_crypto.h</label>
+        <link refid="sl__si91x__crypto_8h"/>
+      </node>
+      <node id="1">
+        <label>components/device/silabs/si91x/wireless/crypto/sha/inc/sl_si91x_sha.h</label>
+        <link refid="sl__si91x__sha_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
+      </node>
+      <node id="3">
+        <label>sl_status.h</label>
+      </node>
+    </incdepgraph>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__CRYPTO__SHA__CONSTANTS_1ga036b5abc4f89d104a2bf5c25ac73757d" prot="public" static="no">
+        <name>SL_SI91X_SHA_LEN_INVALID</name>
+        <initializer>0</initializer>
+        <briefdescription>
+<para>SHA length is invalid. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/sha/inc/sl_si91x_sha.h" line="43" column="9" bodyfile="components/device/silabs/si91x/wireless/crypto/sha/inc/sl_si91x_sha.h" bodystart="43" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="enum">
+      <memberdef kind="enum" id="group__CRYPTO__SHA__CONSTANTS_1gada692ce5d96ff4fa4def0d4aeda2de2c" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_si91x_crypto_sha_mode_t</name>
+        <enumvalue id="group__CRYPTO__SHA__CONSTANTS_1ggada692ce5d96ff4fa4def0d4aeda2de2ca8f2ac63efe8775c11f06cc686382d6f3" prot="public">
+          <name>SL_SI91X_SHA_1</name>
+          <initializer>= 1</initializer>
+          <briefdescription>
+<para>SHA 1 mode. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__SHA__CONSTANTS_1ggada692ce5d96ff4fa4def0d4aeda2de2cad90f4ae983779072ed129a38db33b3c7" prot="public">
+          <name>SL_SI91X_SHA_256</name>
+          <briefdescription>
+<para>SHA 256 mode. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__SHA__CONSTANTS_1ggada692ce5d96ff4fa4def0d4aeda2de2cabbc9816178dca06cc6891d4776331413" prot="public">
+          <name>SL_SI91X_SHA_384</name>
+          <briefdescription>
+<para>SHA 384 mode. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__SHA__CONSTANTS_1ggada692ce5d96ff4fa4def0d4aeda2de2ca108b0267c6fbecd9803d1897745b9998" prot="public">
+          <name>SL_SI91X_SHA_512</name>
+          <briefdescription>
+<para>SHA 512 mode. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__SHA__CONSTANTS_1ggada692ce5d96ff4fa4def0d4aeda2de2ca5aa5b85d1674a653815d84c0590607fa" prot="public">
+          <name>SL_SI91X_SHA_224</name>
+          <briefdescription>
+<para>SHA 224 mode. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>Enumeration defining SHA modes supported by the SI91X device. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>This enumeration defines different SHA modes supported by the SI91X device, such as SHA1, SHA224, SHA256, SHA384, and SHA512 modes. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/sha/inc/sl_si91x_sha.h" line="50" column="1" bodyfile="components/device/silabs/si91x/wireless/crypto/sha/inc/sl_si91x_sha.h" bodystart="50" bodyend="56"/>
+      </memberdef>
+      <memberdef kind="enum" id="group__CRYPTO__SHA__CONSTANTS_1gad91977604ccf5c4aa71e01f20ea94db7" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_si91x_sha_length_t</name>
+        <enumvalue id="group__CRYPTO__SHA__CONSTANTS_1ggad91977604ccf5c4aa71e01f20ea94db7ad73fe1e5ccc369966da3f22c3b9c6721" prot="public">
+          <name>SL_SI91X_SHA_1_DIGEST_LEN</name>
+          <initializer>= 20</initializer>
+          <briefdescription>
+<para>Digest length for SHA 1. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__SHA__CONSTANTS_1ggad91977604ccf5c4aa71e01f20ea94db7a04bb5c309d9e6fdae52c6c8b167a971b" prot="public">
+          <name>SL_SI91X_SHA_256_DIGEST_LEN</name>
+          <initializer>= 32</initializer>
+          <briefdescription>
+<para>Digest length for SHA 256. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__SHA__CONSTANTS_1ggad91977604ccf5c4aa71e01f20ea94db7ac90a0b2b5509333b418d5784827084bb" prot="public">
+          <name>SL_SI91X_SHA_384_DIGEST_LEN</name>
+          <initializer>= 48</initializer>
+          <briefdescription>
+<para>Digest length for SHA 384. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__SHA__CONSTANTS_1ggad91977604ccf5c4aa71e01f20ea94db7a116a72d40b5ddbb7b459f786f70116d9" prot="public">
+          <name>SL_SI91X_SHA_512_DIGEST_LEN</name>
+          <initializer>= 64</initializer>
+          <briefdescription>
+<para>Digest length for SHA 512. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__SHA__CONSTANTS_1ggad91977604ccf5c4aa71e01f20ea94db7ace7c653f78c4689720eea2c0546c765c" prot="public">
+          <name>SL_SI91X_SHA_224_DIGEST_LEN</name>
+          <initializer>= 28</initializer>
+          <briefdescription>
+<para>Digest length for SHA 224. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>Enumeration defining digest lengths of SHA modes supported by the SI91X device. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>This enumeration defines digest lengths of different SHA modes supported by the SI91X device, including SHA1, SHA224, SHA256, SHA384, and SHA512 modes. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/sha/inc/sl_si91x_sha.h" line="64" column="1" bodyfile="components/device/silabs/si91x/wireless/crypto/sha/inc/sl_si91x_sha.h" bodystart="64" bodyend="70"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="group__CRYPTO__SHA__FUNCTIONS_1ga07c135c1af4b38b665f3c027a76dadfb" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_si91x_sha</definition>
+        <argsstring>(uint8_t sha_mode, const uint8_t *msg, uint16_t msg_length, uint8_t *digest)</argsstring>
+        <name>sl_si91x_sha</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>sha_mode</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>msg</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>msg_length</declname>
+        </param>
+        <param>
+          <type>uint8_t *</type>
+          <declname>digest</declname>
+        </param>
+        <briefdescription>
+<para>To provide the SHA output for the given configuration. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>This is a blocking API. <parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">sha_mode</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>1 – For SHA1 2 – For SHA256 3 – For SHA384 4 – For SHA512 5 – For SHA224 </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">msg</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to the message. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">msg_length</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Total message length. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">digest</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Buffer to store the output. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>sl_status_t. For more information on status codes, see <ulink url="https://docs.silabs.com/gecko-platform/latest/platform-common/status">SL STATUS DOCUMENTATION</ulink>. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/sha/inc/sl_si91x_sha.h" line="103" column="13" declfile="components/device/silabs/si91x/wireless/crypto/sha/inc/sl_si91x_sha.h" declline="103" declcolumn="13"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="comment">/*******************************************************************************</highlight></codeline>
+<codeline lineno="2"><highlight class="comment"><sp/>*<sp/>@file<sp/><sp/>sl_si91x_sha.h</highlight></codeline>
+<codeline lineno="3"><highlight class="comment"><sp/>*<sp/>@brief</highlight></codeline>
+<codeline lineno="4"><highlight class="comment"><sp/>*******************************************************************************</highlight></codeline>
+<codeline lineno="5"><highlight class="comment"><sp/>*<sp/>#<sp/>License</highlight></codeline>
+<codeline lineno="6"><highlight class="comment"><sp/>*<sp/>&lt;b&gt;Copyright<sp/>2025<sp/>Silicon<sp/>Laboratories<sp/>Inc.<sp/>www.silabs.com&lt;/b&gt;</highlight></codeline>
+<codeline lineno="7"><highlight class="comment"><sp/>*******************************************************************************</highlight></codeline>
+<codeline lineno="8"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="9"><highlight class="comment"><sp/>*<sp/>SPDX-License-Identifier:<sp/>Zlib</highlight></codeline>
+<codeline lineno="10"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="11"><highlight class="comment"><sp/>*<sp/>The<sp/>licensor<sp/>of<sp/>this<sp/>software<sp/>is<sp/>Silicon<sp/>Laboratories<sp/>Inc.</highlight></codeline>
+<codeline lineno="12"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="13"><highlight class="comment"><sp/>*<sp/>This<sp/>software<sp/>is<sp/>provided<sp/>&apos;as-is&apos;,<sp/>without<sp/>any<sp/>express<sp/>or<sp/>implied</highlight></codeline>
+<codeline lineno="14"><highlight class="comment"><sp/>*<sp/>warranty.<sp/>In<sp/>no<sp/>event<sp/>will<sp/>the<sp/>authors<sp/>be<sp/>held<sp/>liable<sp/>for<sp/>any<sp/>damages</highlight></codeline>
+<codeline lineno="15"><highlight class="comment"><sp/>*<sp/>arising<sp/>from<sp/>the<sp/>use<sp/>of<sp/>this<sp/>software.</highlight></codeline>
+<codeline lineno="16"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="17"><highlight class="comment"><sp/>*<sp/>Permission<sp/>is<sp/>granted<sp/>to<sp/>anyone<sp/>to<sp/>use<sp/>this<sp/>software<sp/>for<sp/>any<sp/>purpose,</highlight></codeline>
+<codeline lineno="18"><highlight class="comment"><sp/>*<sp/>including<sp/>commercial<sp/>applications,<sp/>and<sp/>to<sp/>alter<sp/>it<sp/>and<sp/>redistribute<sp/>it</highlight></codeline>
+<codeline lineno="19"><highlight class="comment"><sp/>*<sp/>freely,<sp/>subject<sp/>to<sp/>the<sp/>following<sp/>restrictions:</highlight></codeline>
+<codeline lineno="20"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="21"><highlight class="comment"><sp/>*<sp/>1.<sp/>The<sp/>origin<sp/>of<sp/>this<sp/>software<sp/>must<sp/>not<sp/>be<sp/>misrepresented;<sp/>you<sp/>must<sp/>not</highlight></codeline>
+<codeline lineno="22"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/>claim<sp/>that<sp/>you<sp/>wrote<sp/>the<sp/>original<sp/>software.<sp/>If<sp/>you<sp/>use<sp/>this<sp/>software</highlight></codeline>
+<codeline lineno="23"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/>in<sp/>a<sp/>product,<sp/>an<sp/>acknowledgment<sp/>in<sp/>the<sp/>product<sp/>documentation<sp/>would<sp/>be</highlight></codeline>
+<codeline lineno="24"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/>appreciated<sp/>but<sp/>is<sp/>not<sp/>required.</highlight></codeline>
+<codeline lineno="25"><highlight class="comment"><sp/>*<sp/>2.<sp/>Altered<sp/>source<sp/>versions<sp/>must<sp/>be<sp/>plainly<sp/>marked<sp/>as<sp/>such,<sp/>and<sp/>must<sp/>not<sp/>be</highlight></codeline>
+<codeline lineno="26"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/>misrepresented<sp/>as<sp/>being<sp/>the<sp/>original<sp/>software.</highlight></codeline>
+<codeline lineno="27"><highlight class="comment"><sp/>*<sp/>3.<sp/>This<sp/>notice<sp/>may<sp/>not<sp/>be<sp/>removed<sp/>or<sp/>altered<sp/>from<sp/>any<sp/>source<sp/>distribution.</highlight></codeline>
+<codeline lineno="28"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="29"><highlight class="comment"><sp/>******************************************************************************/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="30"><highlight class="normal"></highlight></codeline>
+<codeline lineno="31"><highlight class="normal"></highlight><highlight class="preprocessor">#pragma<sp/>once</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="32"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;<ref refid="sl__si91x__crypto_8h" kindref="compound">sl_si91x_crypto.h</ref>&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="33"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;sl_status.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="34"><highlight class="normal"></highlight></codeline>
+<codeline lineno="35"><highlight class="normal"></highlight><highlight class="comment">/******************************************************</highlight></codeline>
+<codeline lineno="36"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Constants</highlight></codeline>
+<codeline lineno="37"><highlight class="comment"><sp/>******************************************************/</highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="38"><highlight class="comment">/**</highlight></codeline>
+<codeline lineno="39"><highlight class="comment"><sp/>*<sp/>@addtogroup<sp/>CRYPTO_SHA_CONSTANTS</highlight></codeline>
+<codeline lineno="40"><highlight class="comment"><sp/>*<sp/>@{<sp/></highlight></codeline>
+<codeline lineno="41"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="42"><highlight class="normal"></highlight></codeline>
+<codeline lineno="43" refid="group__CRYPTO__SHA__CONSTANTS_1ga036b5abc4f89d104a2bf5c25ac73757d" refkind="member"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>SL_SI91X_SHA_LEN_INVALID<sp/>0<sp/></highlight><highlight class="comment">///&lt;<sp/>SHA<sp/>length<sp/>is<sp/>invalid</highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="44"><highlight class="comment">/**</highlight></codeline>
+<codeline lineno="45"><highlight class="comment"><sp/>*<sp/>@brief<sp/>Enumeration<sp/>defining<sp/>SHA<sp/>modes<sp/>supported<sp/>by<sp/>the<sp/>SI91X<sp/>device.</highlight></codeline>
+<codeline lineno="46"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="47"><highlight class="comment"><sp/>*<sp/>This<sp/>enumeration<sp/>defines<sp/>different<sp/>SHA<sp/>modes<sp/>supported<sp/>by<sp/>the<sp/>SI91X<sp/>device,</highlight></codeline>
+<codeline lineno="48"><highlight class="comment"><sp/>*<sp/>such<sp/>as<sp/>SHA1,<sp/>SHA224,<sp/>SHA256,<sp/>SHA384,<sp/>and<sp/>SHA512<sp/>modes.</highlight></codeline>
+<codeline lineno="49"><highlight class="comment"><sp/>*/</highlight><highlight class="preprocessor"></highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="50" refid="group__CRYPTO__SHA__CONSTANTS_1gada692ce5d96ff4fa4def0d4aeda2de2c" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">enum</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="51" refid="group__CRYPTO__SHA__CONSTANTS_1ggada692ce5d96ff4fa4def0d4aeda2de2ca8f2ac63efe8775c11f06cc686382d6f3" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="group__CRYPTO__SHA__CONSTANTS_1ggada692ce5d96ff4fa4def0d4aeda2de2ca8f2ac63efe8775c11f06cc686382d6f3" kindref="member">SL_SI91X_SHA_1</ref><sp/>=<sp/>1,<sp/></highlight><highlight class="comment">///&lt;<sp/>SHA<sp/>1<sp/>mode</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="52" refid="group__CRYPTO__SHA__CONSTANTS_1ggada692ce5d96ff4fa4def0d4aeda2de2cad90f4ae983779072ed129a38db33b3c7" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="group__CRYPTO__SHA__CONSTANTS_1ggada692ce5d96ff4fa4def0d4aeda2de2cad90f4ae983779072ed129a38db33b3c7" kindref="member">SL_SI91X_SHA_256</ref>,<sp/><sp/><sp/></highlight><highlight class="comment">///&lt;<sp/>SHA<sp/>256<sp/>mode</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="53" refid="group__CRYPTO__SHA__CONSTANTS_1ggada692ce5d96ff4fa4def0d4aeda2de2cabbc9816178dca06cc6891d4776331413" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="group__CRYPTO__SHA__CONSTANTS_1ggada692ce5d96ff4fa4def0d4aeda2de2cabbc9816178dca06cc6891d4776331413" kindref="member">SL_SI91X_SHA_384</ref>,<sp/><sp/><sp/></highlight><highlight class="comment">///&lt;<sp/>SHA<sp/>384<sp/>mode</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="54" refid="group__CRYPTO__SHA__CONSTANTS_1ggada692ce5d96ff4fa4def0d4aeda2de2ca108b0267c6fbecd9803d1897745b9998" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="group__CRYPTO__SHA__CONSTANTS_1ggada692ce5d96ff4fa4def0d4aeda2de2ca108b0267c6fbecd9803d1897745b9998" kindref="member">SL_SI91X_SHA_512</ref>,<sp/><sp/><sp/></highlight><highlight class="comment">///&lt;<sp/>SHA<sp/>512<sp/>mode</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="55"><highlight class="normal"><sp/><sp/><ref refid="group__CRYPTO__SHA__CONSTANTS_1ggada692ce5d96ff4fa4def0d4aeda2de2ca5aa5b85d1674a653815d84c0590607fa" kindref="member">SL_SI91X_SHA_224</ref><sp/><sp/><sp/><sp/></highlight><highlight class="comment">///&lt;<sp/>SHA<sp/>224<sp/>mode</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="56" refid="group__CRYPTO__SHA__CONSTANTS_1ggada692ce5d96ff4fa4def0d4aeda2de2ca5aa5b85d1674a653815d84c0590607fa" refkind="member"><highlight class="normal">}<sp/><ref refid="group__CRYPTO__SHA__CONSTANTS_1gada692ce5d96ff4fa4def0d4aeda2de2c" kindref="member">sl_si91x_crypto_sha_mode_t</ref>;</highlight></codeline>
+<codeline lineno="57"><highlight class="normal"></highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="58"><highlight class="comment">/**</highlight></codeline>
+<codeline lineno="59"><highlight class="comment"><sp/>*<sp/>@brief<sp/>Enumeration<sp/>defining<sp/>digest<sp/>lengths<sp/>of<sp/>SHA<sp/>modes<sp/>supported<sp/>by<sp/>the<sp/>SI91X<sp/>device.</highlight></codeline>
+<codeline lineno="60"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="61"><highlight class="comment"><sp/>*<sp/>This<sp/>enumeration<sp/>defines<sp/>digest<sp/>lengths<sp/>of<sp/>different<sp/>SHA<sp/>modes<sp/>supported<sp/>by<sp/>the<sp/>SI91X<sp/>device,</highlight></codeline>
+<codeline lineno="62"><highlight class="comment"><sp/>*<sp/>including<sp/>SHA1,<sp/>SHA224,<sp/>SHA256,<sp/>SHA384,<sp/>and<sp/>SHA512<sp/>modes.</highlight></codeline>
+<codeline lineno="63"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="64" refid="group__CRYPTO__SHA__CONSTANTS_1gad91977604ccf5c4aa71e01f20ea94db7" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">enum</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="65" refid="group__CRYPTO__SHA__CONSTANTS_1ggad91977604ccf5c4aa71e01f20ea94db7ad73fe1e5ccc369966da3f22c3b9c6721" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="group__CRYPTO__SHA__CONSTANTS_1ggad91977604ccf5c4aa71e01f20ea94db7ad73fe1e5ccc369966da3f22c3b9c6721" kindref="member">SL_SI91X_SHA_1_DIGEST_LEN</ref><sp/><sp/><sp/>=<sp/>20,<sp/></highlight><highlight class="comment">///&lt;<sp/>Digest<sp/>length<sp/>for<sp/>SHA<sp/>1</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="66" refid="group__CRYPTO__SHA__CONSTANTS_1ggad91977604ccf5c4aa71e01f20ea94db7a04bb5c309d9e6fdae52c6c8b167a971b" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="group__CRYPTO__SHA__CONSTANTS_1ggad91977604ccf5c4aa71e01f20ea94db7a04bb5c309d9e6fdae52c6c8b167a971b" kindref="member">SL_SI91X_SHA_256_DIGEST_LEN</ref><sp/>=<sp/>32,<sp/></highlight><highlight class="comment">///&lt;<sp/>Digest<sp/>length<sp/>for<sp/>SHA<sp/>256</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="67" refid="group__CRYPTO__SHA__CONSTANTS_1ggad91977604ccf5c4aa71e01f20ea94db7ac90a0b2b5509333b418d5784827084bb" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="group__CRYPTO__SHA__CONSTANTS_1ggad91977604ccf5c4aa71e01f20ea94db7ac90a0b2b5509333b418d5784827084bb" kindref="member">SL_SI91X_SHA_384_DIGEST_LEN</ref><sp/>=<sp/>48,<sp/></highlight><highlight class="comment">///&lt;<sp/>Digest<sp/>length<sp/>for<sp/>SHA<sp/>384</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="68" refid="group__CRYPTO__SHA__CONSTANTS_1ggad91977604ccf5c4aa71e01f20ea94db7a116a72d40b5ddbb7b459f786f70116d9" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="group__CRYPTO__SHA__CONSTANTS_1ggad91977604ccf5c4aa71e01f20ea94db7a116a72d40b5ddbb7b459f786f70116d9" kindref="member">SL_SI91X_SHA_512_DIGEST_LEN</ref><sp/>=<sp/>64,<sp/></highlight><highlight class="comment">///&lt;<sp/>Digest<sp/>length<sp/>for<sp/>SHA<sp/>512</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="69"><highlight class="normal"><sp/><sp/><ref refid="group__CRYPTO__SHA__CONSTANTS_1ggad91977604ccf5c4aa71e01f20ea94db7ace7c653f78c4689720eea2c0546c765c" kindref="member">SL_SI91X_SHA_224_DIGEST_LEN</ref><sp/>=<sp/>28<sp/><sp/></highlight><highlight class="comment">///&lt;<sp/>Digest<sp/>length<sp/>for<sp/>SHA<sp/>224</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="70" refid="group__CRYPTO__SHA__CONSTANTS_1ggad91977604ccf5c4aa71e01f20ea94db7ace7c653f78c4689720eea2c0546c765c" refkind="member"><highlight class="normal">}<sp/><ref refid="group__CRYPTO__SHA__CONSTANTS_1gad91977604ccf5c4aa71e01f20ea94db7" kindref="member">sl_si91x_sha_length_t</ref>;</highlight></codeline>
+<codeline lineno="71"><highlight class="normal"></highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="72"><highlight class="comment">/**<sp/>@}<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="73"><highlight class="normal"></highlight></codeline>
+<codeline lineno="74"><highlight class="normal"></highlight><highlight class="comment">/******************************************************</highlight></codeline>
+<codeline lineno="75"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Function<sp/>Declarations</highlight></codeline>
+<codeline lineno="76"><highlight class="comment">*******************************************************/</highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="77"><highlight class="comment">/**</highlight></codeline>
+<codeline lineno="78"><highlight class="comment"><sp/>*<sp/>@addtogroup<sp/>CRYPTO_SHA_FUNCTIONS</highlight></codeline>
+<codeline lineno="79"><highlight class="comment"><sp/>*<sp/>@{<sp/></highlight></codeline>
+<codeline lineno="80"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="81"><highlight class="normal"></highlight></codeline>
+<codeline lineno="82"><highlight class="normal"></highlight><highlight class="comment">/***************************************************************************/</highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="83"><highlight class="comment">/**</highlight></codeline>
+<codeline lineno="84"><highlight class="comment"><sp/>*<sp/>@brief<sp/></highlight></codeline>
+<codeline lineno="85"><highlight class="comment"><sp/>*<sp/><sp/><sp/>To<sp/>provide<sp/>the<sp/>SHA<sp/>output<sp/>for<sp/>the<sp/>given<sp/>configuration.<sp/>This<sp/>is<sp/>a<sp/>blocking<sp/>API.</highlight></codeline>
+<codeline lineno="86"><highlight class="comment"><sp/>*<sp/>@param[in]<sp/>sha_mode<sp/></highlight></codeline>
+<codeline lineno="87"><highlight class="comment"><sp/>*<sp/><sp/><sp/>1<sp/>–<sp/>For<sp/>SHA1<sp/></highlight></codeline>
+<codeline lineno="88"><highlight class="comment"><sp/>*<sp/><sp/><sp/>2<sp/>–<sp/>For<sp/>SHA256<sp/></highlight></codeline>
+<codeline lineno="89"><highlight class="comment"><sp/>*<sp/><sp/><sp/>3<sp/>–<sp/>For<sp/>SHA384<sp/></highlight></codeline>
+<codeline lineno="90"><highlight class="comment"><sp/>*<sp/><sp/><sp/>4<sp/>–<sp/>For<sp/>SHA512<sp/></highlight></codeline>
+<codeline lineno="91"><highlight class="comment"><sp/>*<sp/><sp/><sp/>5<sp/>–<sp/>For<sp/>SHA224<sp/></highlight></codeline>
+<codeline lineno="92"><highlight class="comment"><sp/>*<sp/>@param[in]<sp/><sp/>msg<sp/></highlight></codeline>
+<codeline lineno="93"><highlight class="comment"><sp/>*<sp/><sp/><sp/>Pointer<sp/>to<sp/>the<sp/>message.</highlight></codeline>
+<codeline lineno="94"><highlight class="comment"><sp/>*<sp/>@param[in]<sp/><sp/>msg_length<sp/></highlight></codeline>
+<codeline lineno="95"><highlight class="comment"><sp/>*<sp/><sp/><sp/>Total<sp/>message<sp/>length.</highlight></codeline>
+<codeline lineno="96"><highlight class="comment"><sp/>*<sp/>@param[out]<sp/>digest<sp/></highlight></codeline>
+<codeline lineno="97"><highlight class="comment"><sp/>*<sp/><sp/><sp/>Buffer<sp/>to<sp/>store<sp/>the<sp/>output.</highlight></codeline>
+<codeline lineno="98"><highlight class="comment"><sp/>*<sp/>@return</highlight></codeline>
+<codeline lineno="99"><highlight class="comment"><sp/>*<sp/><sp/><sp/>sl_status_t.</highlight></codeline>
+<codeline lineno="100"><highlight class="comment"><sp/>*<sp/>For<sp/>more<sp/>information<sp/>on<sp/>status<sp/>codes,<sp/>see<sp/></highlight></codeline>
+<codeline lineno="101"><highlight class="comment"><sp/>*<sp/>[SL<sp/>STATUS<sp/>DOCUMENTATION](https://docs.silabs.com/gecko-platform/latest/platform-common/status).</highlight></codeline>
+<codeline lineno="102"><highlight class="comment">******************************************************************************/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="103" refid="group__CRYPTO__SHA__FUNCTIONS_1ga07c135c1af4b38b665f3c027a76dadfb" refkind="member"><highlight class="normal">sl_status_t<sp/><ref refid="group__CRYPTO__SHA__FUNCTIONS_1ga07c135c1af4b38b665f3c027a76dadfb" kindref="member">sl_si91x_sha</ref>(uint8_t<sp/>sha_mode,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint8_t<sp/>*msg,<sp/>uint16_t<sp/>msg_length,<sp/>uint8_t<sp/>*digest);</highlight></codeline>
+<codeline lineno="104"><highlight class="normal"></highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="105"><highlight class="comment">/**<sp/>@}<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+    </programlisting>
+    <location file="components/device/silabs/si91x/wireless/crypto/sha/inc/sl_si91x_sha.h"/>
+  </compounddef>
+</doxygen>

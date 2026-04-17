@@ -1,0 +1,15 @@
+id: sl_si91x_freertos_heap4_for_littlefs
+package: platform_siwx91x
+description: >
+  Provides freertos_heap_4 for littlefs standalone applications
+label: HEAP4 Inclusion
+category: Device|Si91x|MCU|Common
+quality: production
+metadata:
+  sbom:
+    license: MSLA
+component_root_path: "./components/device/silabs/si91x/mcu/core/common/component"
+requires:
+- name: freertos_heap_4
+provides:
+  - name: sl_si91x_freertos_heap4_for_littlefs

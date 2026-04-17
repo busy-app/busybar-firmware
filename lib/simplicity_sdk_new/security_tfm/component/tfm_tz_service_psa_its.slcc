@@ -1,0 +1,29 @@
+id: tfm_tz_service_psa_its
+package: security_tfm
+label: PSA ITS Service for TrustZone Secure Key Library
+description: This component provides the tf-m source for PSA ITS for TrustZone secure library.
+category: Platform|Security|TrustZone
+quality: production
+provides:
+- name: tfm_tz_service_psa_its
+include:
+- path: interface/include
+  condition:
+  - trustzone_secure
+  file_list:
+  - path: psa/storage_common.h
+  - path: psa/internal_trusted_storage.h
+  - path: psa/error.h
+- path: secure_fw/partitions/internal_trusted_storage
+  condition:
+  - trustzone_secure
+  file_list:
+  - path: tfm_its_req_mngr.h
+source:
+- path: interface/src/tfm_its_func_api.c
+  condition:
+  - trustzone_nonsecure
+metadata:
+  sbom:
+    reference: tfm_sbom
+root_path: security_tfm

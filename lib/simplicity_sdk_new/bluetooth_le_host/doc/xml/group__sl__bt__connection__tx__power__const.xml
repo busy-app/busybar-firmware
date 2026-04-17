@@ -1,0 +1,50 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__connection__tx__power__const" kind="group">
+    <compoundname>sl_bt_connection_tx_power_const</compoundname>
+    <title>Transmit Power Reporting Constants</title>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__connection__tx__power__const_1gae560733d11bda2eada9aa81a810bfa6b" prot="public" static="no">
+        <name>SL_BT_CONNECTION_TX_POWER_UNMANAGED</name>
+        <initializer>0x7e</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Remote device is not managing power levels. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6349" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6349" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__connection__tx__power__const_1gac9f8c677a74eeba96ff3314126676696" prot="public" static="no">
+        <name>SL_BT_CONNECTION_TX_POWER_UNAVAILABLE</name>
+        <initializer>0x7f</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Transmit power level is not available. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6352" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6352" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__connection__tx__power__const_1ga28042379ab79e0db0e1ff52364ce5973" prot="public" static="no">
+        <name>SL_BT_CONNECTION_TX_POWER_CHANGE_UNAVAILABLE</name>
+        <initializer>0x7f</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Change is not available or is out of range. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6355" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6355" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para>Constants in transmit power reporting </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

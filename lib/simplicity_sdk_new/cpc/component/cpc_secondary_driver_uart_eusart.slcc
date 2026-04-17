@@ -1,0 +1,50 @@
+id: cpc_secondary_driver_uart_eusart
+package: cpc
+description: UART driver over EUSART peripheral for Co-Processor Communication (CPC) Secondary Device.
+label: CPC Secondary - UART (EUSART)
+category: Services|Co-Processor Communication|Secondary Device|Driver
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+instantiable:
+  prefix: inst
+config_file:
+- path: config/s2/sl_cpc_drv_uart_eusart_{{instance}}_config.h
+  file_id: cpc_drv_uart_eusart_config
+source:
+- path: src/sl_cpc_drv_uart.c
+provides:
+- name: cpc_driver
+  allow_multiple: true
+- name: cpc_secondary_driver_uart_eusart_interface
+- name: cpc_secondary_driver
+  allow_multiple: true
+- name: cpc_secondary_driver_uart_eusart
+  allow_multiple: false
+requires:
+- name: cpc_secondary
+- name: status
+- name: dmadrv
+- name: device_manager
+- name: hal_generic_gpio
+- name: hal_generic_eusart
+- name: emlib_cmu
+  condition: [device_series_2]
+- name: clock_manager_runtime
+- name: slist
+template_file:
+- path: template/s2/sl_cpc_drv_uart_config.h.jinja
+  condition: [device_series_2]
+- path: template/s3/sl_cpc_drv_uart_config.h.jinja
+  condition: [device_series_3]
+template_contribution:
+- name: cpc_uart_instance_name
+  value: '{{instance}}'
+- name: cpc_interface_type
+  value: uart
+- name: cpc_uart_periph_type
+  value: eusart
+- name: component_catalog
+  value: cpc_driver_uart
+root_path: cpc

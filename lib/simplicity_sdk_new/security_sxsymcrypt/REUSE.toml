@@ -1,0 +1,47 @@
+version = 1
+
+# Default license for source files (Secure-IC proprietary)
+[licenses]
+default = "LicenseRef-SecureIC"
+
+# Annotations: Assign licenses to files that don't have explicit SPDX tags
+# Headers in include/ are explicitly tagged with Zlib in the files themselves
+# Source files in src/ remain under Secure-IC license (LicenseRef-SecureIC)
+
+# All source files (.c and .h in src/) are under Secure-IC license
+[[annotations]]
+path = "src/**/*.c"
+SPDX-FileCopyrightText = "Copyright (c) Secure-IC S.A.S."
+SPDX-License-Identifier = "LicenseRef-SecureIC"
+
+[[annotations]]
+path = "src/**/*.h"
+SPDX-FileCopyrightText = "Copyright (c) Secure-IC S.A.S."
+SPDX-License-Identifier = "LicenseRef-SecureIC"
+
+[[annotations]]
+path = "README.md"
+SPDX-FileCopyrightText = "Copyright (c) Secure-IC S.A.S."
+SPDX-License-Identifier = "LicenseRef-SecureIC"
+
+# Component and configuration files
+[[annotations]]
+path = "component/**"
+SPDX-FileCopyrightText = "Copyright (c) Silicon Laboratories Inc."
+SPDX-License-Identifier = "Zlib"
+
+[[annotations]]
+path = "*.slcc"
+SPDX-FileCopyrightText = "Copyright (c) Silicon Laboratories Inc."
+SPDX-License-Identifier = "Zlib"
+
+[[annotations]]
+path = "*.slce"
+SPDX-FileCopyrightText = "Copyright (c) Silicon Laboratories Inc."
+SPDX-License-Identifier = "Zlib"
+
+[[annotations]]
+path = "conanfile.py"
+SPDX-FileCopyrightText = "Copyright (c) Silicon Laboratories Inc."
+SPDX-License-Identifier = "Zlib"
+

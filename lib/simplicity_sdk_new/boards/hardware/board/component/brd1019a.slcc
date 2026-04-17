@@ -1,0 +1,88 @@
+!!omap
+- id: brd1019a
+- label: BRD1019A
+- package: boards
+- description: Board support for BRD1019A.
+- category: Platform|Board|Socket Board
+- quality: evaluation
+- metadata:
+    sbom:
+      license: Zlib
+- requires:
+  - name: device_generic_family_sixx301
+  - name: brd1019a_config
+  - name: hardware_board_mainboard
+- provides:
+  - name: brd1019a
+  - name: hardware_board
+  - name: hardware_board_rb
+  - name: hardware_board_from_stk
+  - name: hardware_board_from_sixg301-rb1019a
+  - name: hardware_board_has_si70xx
+  - name: hardware_board_has_tempsensor
+  - name: hardware_board_supports_wstk_lcd
+  - name: hardware_board_has_vcom
+  - name: hardware_board_has_vcom_hardware_flowcontrol
+  - name: hardware_board_has_hfxo_freq_38.4mhz
+  - name: hardware_board_has_hfxo
+  - name: hardware_board_supports_rf_band_2400
+  - name: hardware_board_supports_1_rf_band
+  - name: hardware_board_default_rf_band
+  - name: hardware_board_default_rf_band_2400
+- recommends:
+  - id: SIMG301M114LIH
+    vendor: silabs
+  - id: brd4002a
+    vendor: silabs
+  - id: iostream_eusart
+    instance:
+    - vcom
+    vendor: silabs
+  - id: bootloader_euart_driver
+    vendor: silabs
+  - id: i2cspm
+    instance:
+    - sensor
+    vendor: silabs
+  - id: ls013b7dh03
+    vendor: silabs
+  - id: memlcd_eusart
+    vendor: silabs
+  - id: simple_led
+    instance:
+    - led0
+    vendor: silabs
+  - id: simple_button
+    instance:
+    - btn0
+    - btn1
+    vendor: silabs
+  - id: bootloader_spi_peripheral_eusart_driver
+    vendor: silabs
+- template_contribution: []
+- define:
+  - name: SL_BOARD_NAME
+    value: '"BRD1019A"'
+  - name: SL_BOARD_REV
+    value: '"A02"'
+  - name: HFXO_FREQ
+    value: 38400000
+  - name: HARDWARE_BOARD_SUPPORTS_RF_BAND_2400
+  - name: HARDWARE_BOARD_SUPPORTS_1_RF_BAND
+  - name: HARDWARE_BOARD_DEFAULT_RF_BAND_2400
+- tag:
+  - board:pn:BRD1019
+  - board:variant:A
+  - board:revision:A02
+  - board:device:sixg301m114lih
+  - hardware:has:vcom
+  - hardware:has:vcom:vcom_hardware_flowcontrol
+  - hardware:has:pti
+  - hardware:has:sensor:si7021
+  - hardware:has:display:ls013b7dh03
+  - hardware:has:led:1
+  - hardware:has:button:2
+  - hardware:has:exp_header:spi
+  - hardware:has:exp_header:uart
+  - hardware:has:exp_header:i2c
+- root_path: boards

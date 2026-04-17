@@ -1,0 +1,42 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__evt__dfu__boot" kind="group">
+    <compoundname>sl_bt_evt_dfu_boot</compoundname>
+    <title>sl_bt_evt_dfu_boot</title>
+    <innerclass refid="structsl__bt__evt__dfu__boot__s" prot="public">sl_bt_evt_dfu_boot_s</innerclass>
+      <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="group__sl__bt__evt__dfu__boot_1ga3edd86b0a92b412c0a7b30a9e609baea" prot="public" static="no">
+        <type>struct <ref refid="structsl__bt__evt__dfu__boot__s" kindref="compound">sl_bt_evt_dfu_boot_s</ref></type>
+        <definition>typedef struct sl_bt_evt_dfu_boot_s sl_bt_evt_dfu_boot_t</definition>
+        <argsstring></argsstring>
+        <name>sl_bt_evt_dfu_boot_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="181" column="35" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="181" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__evt__dfu__boot_1ga21968df02046c2ae76f33616eeaa752a" prot="public" static="no">
+        <name>sl_bt_evt_dfu_boot_id</name>
+        <initializer>0x000000a0</initializer>
+        <briefdescription>
+<para>Identifier of the boot event. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="171" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="171" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>This event indicates that the device booted in DFU mode and is now ready to receive commands related to device firmware upgrade (DFU). </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

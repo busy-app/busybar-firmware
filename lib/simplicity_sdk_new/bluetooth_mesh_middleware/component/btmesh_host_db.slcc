@@ -1,0 +1,26 @@
+id: btmesh_host_db
+label: BT Mesh Database Component
+package: bluetooth_mesh_middleware
+description: >
+  BT Mesh Database component provides database functionality for managing
+  Bluetooth Mesh network information.
+category: Bluetooth Mesh|Host
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: bluetooth_mesh_middleware/common/btmesh_host_db
+include:
+- path: .
+  file_list:
+  - path: btmesh_db.h
+source:
+- path: btmesh_db.c
+provides:
+- name: btmesh_host_db
+requires:
+- name: btmesh_stack_api_ncp_host
+- name: component_catalog
+template_contribution:
+- name: component_catalog
+  value: btmesh_host_db

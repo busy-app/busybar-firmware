@@ -1,0 +1,78 @@
+package: zigbee
+description: This component is used both for a trust center and a joining device.  It provides a set of APIs for setting the acceptable delay for receiving a network key, as well as sending the network key on demand from the app. The following are the minimum conditions to verify before successfully using this component. 1. The trust center must have an acceptable version of a link key for the joining devices. 2. The component must be (re-)activated every time a network is opened or after any other event that changes the trust center (re-)join policy.
+id: zigbee_delayed_join
+label: Delayed Join
+category: Zigbee|Utility
+quality: production
+provides:
+- name: zigbee_delayed_join
+source:
+- path: app/framework/plugin/delayed-join/delayed-join.c
+- path: app/framework/plugin/delayed-join/delayed-join-cli.c
+  condition:
+  - cli
+include:
+- path: app/framework/plugin/delayed-join
+  file_list:
+  - path: delayed-join.h
+template_contribution:
+- name: component_catalog
+  value: zigbee_delayed_join
+- name: zigbee_stack_callback
+  value:
+    callback_type: stack_status
+    function_name: sl_zigbee_af_delayed_join_stack_status_cb
+- name: cli_group
+  value:
+    group: plugin
+    name: delayed-join
+    help: delayed-join related commands.
+- name: cli_command
+  value:
+    group: delayed-join
+    name: activate
+    handler: sli_zigbee_af_delayed_join_activate_command
+    help: Sets the TC join policy to delayed-join.
+- name: cli_command
+  value:
+    group: delayed-join
+    name: set-supported-timeout
+    handler: sli_zigbee_af_delayed_join_set_supported_timeout_command
+    help: Sets the TC supported timeout policy to delayed-join.
+    argument:
+    - type: uint8
+- name: cli_command
+  value:
+    group: delayed-join
+    name: send-network-key
+    handler: sli_zigbee_af_delayed_join_send_network_key_command
+    help: Triggers sending the encrypted network key to the joining node.
+    argument:
+    - type: uint16
+      help: Short address of the key destination
+    - type: hex
+      help: Long address of the key destination
+    - type: uint16
+      help: Address of the key destination
+    - type: hex
+      help: The network key
+- name: cli_command
+  value:
+    group: delayed-join
+    name: set-key-timeout
+    handler: sli_zigbee_af_delayed_join_set_network_key_timeout_command
+    help: Extends the joiner timeout to wait for the network key during join.
+    argument:
+    - type: uint8
+- name: zigbee_stack_callback
+  value:
+    callback_type: trust_center_post_join
+    function_name: sli_zigbee_af_delayed_join_trust_center_join_callback
+
+documentation:
+  docset: zigbee
+  document: zigbee-af-api/delayed-join
+metadata:
+  sbom:
+    license: MSLA
+root_path: zigbee

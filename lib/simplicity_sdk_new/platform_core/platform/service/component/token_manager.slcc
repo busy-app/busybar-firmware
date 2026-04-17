@@ -1,0 +1,62 @@
+id: token_manager
+label: Legacy Token Manager
+package: platform_core
+description: >
+  The Token Manager provides a means to read and write manufacturing and dynamic tokens
+  such as manufacturing ID, channel number, transmit power, and various pieces of information
+  that the application needs to be persistent between device power cycles. The token system is
+  design to abstract implementation details and simplify interacting with differing non-volatile systems.
+  The majority of tokens are stored in NVM3 where they can be rewritten.
+  Manufacturing tokens are stored in dedicated regions of flash.
+category: Services|Token Manager
+quality: production
+metadata:
+  sbom:
+    license: MSLA
+requires:
+- name: token_manager_storage
+- name: component_catalog
+- name: se_manager
+  condition: [device_series_2]
+- name: wireless_stack
+recommends:
+- id: token_manager_nvm3
+  vendor: silabs
+provides:
+- name: token_manager
+- name: token_manager_feature
+config_file:
+- path: platform/service/token_manager/config/sl_token_manager_config.h
+  condition: [device_series_2]
+- path: platform/service/token_manager/config/s3/sl_token_manager_config.h
+  condition: [device_series_3]
+- path: platform/service/token_manager/config/sl_custom_token_header.h
+- path: platform/service/token_manager/config/sl_custom_manufacturing_token_header.h
+define:
+- name: CUSTOM_TOKEN_HEADER
+  value: '"sl_token_manager_af_token_header.h"'
+- name: NVM3_OVERRIDE_ENABLE
+  condition: [device_series_3]
+- name: SL_TOKEN_MANAGER_BACKWARD_COMPATIBILITY
+source:
+- path: platform/service/token_manager/legacy/src/sl_token_def.c
+- path: platform/service/token_manager/legacy/src/sl_token_manager.c
+- path: platform/service/token_manager/legacy/src/sl_token_manufacturing.c
+- path: platform/service/token_manager/legacy/src/sl_token_manufacturing_generic.c
+include:
+- path: platform/service/token_manager/legacy/inc
+  file_list:
+  - path: sl_token_api.h
+  - path: sl_token_manager.h
+  - path: sl_token_manager_af_token_header.h
+  - path: sl_token_manufacturing.h
+  - path: sl_token_manufacturing_api.h
+  - path: sl_token_manufacturing_series_2.h
+  - path: sl_token_manufacturing_generic.h
+template_contribution:
+- name: component_catalog
+  value: token_manager
+documentation:
+  docset: gecko-platform
+  document: platform-service/token-manager
+root_path: platform_core

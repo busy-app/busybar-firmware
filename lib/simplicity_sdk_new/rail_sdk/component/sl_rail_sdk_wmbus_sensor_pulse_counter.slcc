@@ -1,0 +1,45 @@
+id: "sl_rail_sdk_wmbus_sensor_pulse_counter"
+label: "Wireless M-Bus Button Pulse Counter (Wireless M-Bus Meter Only)"
+package: "rail_sdk"
+description: "Measure and send button presses between TX frames."
+category: "RAIL-SDK|Wireless M-Bus"
+quality: "production"
+metadata:
+  sbom:
+    license: Zlib
+root_path: "rail_sdk/component/sl_rail_sdk_wmbus_sensor_pulse_counter"
+
+provides:
+- name: sl_rail_sdk_wmbus_sensor_pulse_counter
+
+config_file:
+- path: config/sl_rail_sdk_wmbus_sensor_pulse_counter_config.h
+
+requires:
+- name: "sl_rail_sdk_wmbus_sensor_core"
+- name: "sl_rail_sdk_wmbus_packet_assembler"
+- name: "segment_lcd_driver"
+  condition:
+  - "hardware_board_has_segment_lcd"
+- name: "sleeptimer"
+- name: "app_assert"
+
+source:
+- path: "sl_rail_sdk_wmbus_sensor_pulse_counter.c"
+include:
+- path: "."
+  file_list:
+  - "path": "sl_rail_sdk_wmbus_sensor_pulse_counter.h"
+
+#-------------- Template Contribution ----------------
+template_contribution:
+#------------------ Pulse counter --------------------
+- name: event_handler
+  value:
+    event: internal_app_init
+    include: "sl_rail_sdk_wmbus_sensor_pulse_counter.h"
+    handler: "sl_rail_sdk_wmbus_sensor_pulse_counter_init"
+  priority: 9000
+#---------------- Component Catalog ------------------
+- name: component_catalog
+  value: wmbus_sensor_pulse_counter

@@ -1,0 +1,265 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="structsl__bt__evt__pawr__sync__opened__s" kind="struct" language="C++" prot="public">
+    <compoundname>sl_bt_evt_pawr_sync_opened_s</compoundname>
+    <includes refid="sl__bt__api_8h" local="no">sl_bt_api.h</includes>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structsl__bt__evt__pawr__sync__opened__s_1af074879d705317dce59425b57d582827" prot="public" static="no" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t sl_bt_evt_pawr_sync_opened_s::sync</definition>
+        <argsstring></argsstring>
+        <name>sync</name>
+        <qualifiedname>sl_bt_evt_pawr_sync_opened_s::sync</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>PAwR synchronization handle </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="5423" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="5423" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__pawr__sync__opened__s_1a22db4211d88645e4a2cba5364a0eb785" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_pawr_sync_opened_s::adv_sid</definition>
+        <argsstring></argsstring>
+        <name>adv_sid</name>
+        <qualifiedname>sl_bt_evt_pawr_sync_opened_s::adv_sid</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Advertising set identifier </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="5424" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="5424" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__pawr__sync__opened__s_1aba27b744d4ca5cfc6f16b3904b93d854" prot="public" static="no" mutable="no">
+        <type><ref refid="structbd__addr" kindref="compound">bd_addr</ref></type>
+        <definition>bd_addr sl_bt_evt_pawr_sync_opened_s::address</definition>
+        <argsstring></argsstring>
+        <name>address</name>
+        <qualifiedname>sl_bt_evt_pawr_sync_opened_s::address</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Address of the advertiser </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="5425" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="5425" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__pawr__sync__opened__s_1adc81dd82b87ae3338aafaa86e4b9b372" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_pawr_sync_opened_s::address_type</definition>
+        <argsstring></argsstring>
+        <name>address_type</name>
+        <qualifiedname>sl_bt_evt_pawr_sync_opened_s::address_type</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Enum <ref refid="group__sl__bt__gap_1gac8d5431d3062e47c5d51b9fb9f36c104" kindref="member">sl_bt_gap_address_type_t</ref>.</para>
+<para>Advertiser address type.</para>
+<para>If the application does not include the bluetooth_feature_use_accurate_api_address_types component, <computeroutput>address_type</computeroutput> uses the following values:<itemizedlist>
+<listitem><para><bold>0:</bold> Public address</para>
+</listitem><listitem><para><bold>1:</bold> Random address</para>
+</listitem></itemizedlist>
+</para>
+<para>If the application includes the bluetooth_feature_use_accurate_api_address_types component, <computeroutput>address_type</computeroutput> uses enum <ref refid="group__sl__bt__gap_1gac8d5431d3062e47c5d51b9fb9f36c104" kindref="member">sl_bt_gap_address_type_t</ref> values:<itemizedlist>
+<listitem><para><bold>sl_bt_gap_public_address (0x0):</bold> Public device address</para>
+</listitem><listitem><para><bold>sl_bt_gap_static_address (0x1):</bold> Static device address</para>
+</listitem><listitem><para><bold>sl_bt_gap_random_resolvable_address (0x2):</bold> Resolvable private random address</para>
+</listitem><listitem><para><bold>sl_bt_gap_random_nonresolvable_address (0x3):</bold> Non-resolvable private random address</para>
+</listitem><listitem><para><bold>sl_bt_gap_public_address_resolved_from_rpa (0x4):</bold> Public identity address resolved from a resolvable private address (RPA)</para>
+</listitem><listitem><para><bold>sl_bt_gap_static_address_resolved_from_rpa (0x5):</bold> Static identity address resolved from a resolvable private address (RPA) </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="5426" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="5426" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__pawr__sync__opened__s_1a92b8207d42cd2b65a84eae8a003b7c65" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_pawr_sync_opened_s::adv_phy</definition>
+        <argsstring></argsstring>
+        <name>adv_phy</name>
+        <qualifiedname>sl_bt_evt_pawr_sync_opened_s::adv_phy</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Enum <ref refid="group__sl__bt__gap_1ga05ce4496a6f87de7c67a9e32d816727c" kindref="member">sl_bt_gap_phy_t</ref>. The advertiser PHY. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_gap_phy_1m (0x1):</bold> 1M PHY</para>
+</listitem><listitem><para><bold>sl_bt_gap_phy_2m (0x2):</bold> 2M PHY</para>
+</listitem><listitem><para><bold>sl_bt_gap_phy_coded (0x4):</bold> Coded PHY, 125k (S=8) or 500k (S=2) </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="5459" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="5459" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__pawr__sync__opened__s_1a21163d6968269c705299402b4d287e8d" prot="public" static="no" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t sl_bt_evt_pawr_sync_opened_s::adv_interval</definition>
+        <argsstring></argsstring>
+        <name>adv_interval</name>
+        <qualifiedname>sl_bt_evt_pawr_sync_opened_s::adv_interval</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>The periodic advertising interval. Value in units of 1.25 ms<itemizedlist>
+<listitem><para><bold>Range:</bold> 0x06 to 0xFFFF</para>
+</listitem><listitem><para>Time range: 7.5 ms to 81.92 s </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="5465" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="5465" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__pawr__sync__opened__s_1a63948d981c29e7efd39912592713d548" prot="public" static="no" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t sl_bt_evt_pawr_sync_opened_s::clock_accuracy</definition>
+        <argsstring></argsstring>
+        <name>clock_accuracy</name>
+        <qualifiedname>sl_bt_evt_pawr_sync_opened_s::clock_accuracy</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Enum <ref refid="group__sl__bt__sync_1gacf10b05b3679bf358e10775bee5bcd60" kindref="member">sl_bt_sync_advertiser_clock_accuracy_t</ref>. The advertiser clock accuracy. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="5470" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="5470" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__pawr__sync__opened__s_1a3fbf12d5b06ed2a25f478e9af7df9d9c" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_pawr_sync_opened_s::num_subevents</definition>
+        <argsstring></argsstring>
+        <name>num_subevents</name>
+        <qualifiedname>sl_bt_evt_pawr_sync_opened_s::num_subevents</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>The number of subevents.<itemizedlist>
+<listitem><para><bold>Range:</bold> 0x01 to 0x80 </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="5473" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="5473" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__pawr__sync__opened__s_1af14764f2ac77f213261ca3946b3907a7" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_pawr_sync_opened_s::subevent_interval</definition>
+        <argsstring></argsstring>
+        <name>subevent_interval</name>
+        <qualifiedname>sl_bt_evt_pawr_sync_opened_s::subevent_interval</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Subevent interval. Value in units of 1.25 ms.<itemizedlist>
+<listitem><para><bold>Range:</bold> 0x06 to 0xFF</para>
+</listitem><listitem><para>Time range: 7.5 ms to 318.75 ms </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="5475" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="5475" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__pawr__sync__opened__s_1a11af39205d6fc73076e5fb1f88ab83cd" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_pawr_sync_opened_s::response_slot_delay</definition>
+        <argsstring></argsstring>
+        <name>response_slot_delay</name>
+        <qualifiedname>sl_bt_evt_pawr_sync_opened_s::response_slot_delay</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Time between the advertising packet in a subevent and the first response slot. Value in units of 1.25 ms.<itemizedlist>
+<listitem><para><bold>Range:</bold> 0x01 to 0xFE</para>
+</listitem><listitem><para>Time range: 1.25 ms to 317.5 ms </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="5480" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="5480" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__pawr__sync__opened__s_1addd83592b45b5497e34f26ed52f4cc7c" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_pawr_sync_opened_s::response_slot_spacing</definition>
+        <argsstring></argsstring>
+        <name>response_slot_spacing</name>
+        <qualifiedname>sl_bt_evt_pawr_sync_opened_s::response_slot_spacing</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Time between the start of response slots in a subevent. Value in units of 0.125 ms.<itemizedlist>
+<listitem><para><bold>Range:</bold> 0x02 to 0xFF</para>
+</listitem><listitem><para>Time range: 0.25 ms to 31.875 ms </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="5486" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="5486" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__pawr__sync__opened__s_1a6fe19efac8c45151a7a362e67a85d33e" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_pawr_sync_opened_s::bonding</definition>
+        <argsstring></argsstring>
+        <name>bonding</name>
+        <qualifiedname>sl_bt_evt_pawr_sync_opened_s::bonding</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Bonding handle. Values:<itemizedlist>
+<listitem><para><bold>SL_BT_INVALID_BONDING_HANDLE (0xff):</bold> No bonding</para>
+</listitem><listitem><para><bold>Other:</bold> Bonding handle </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="5492" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="5492" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Data structure of the opened event. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="2">
+        <label>bd_addr</label>
+        <link refid="structbd__addr"/>
+      </node>
+      <node id="1">
+        <label>sl_bt_evt_pawr_sync_opened_s</label>
+        <link refid="structsl__bt__evt__pawr__sync__opened__s"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>address</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="5421" column="1" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="5422" bodyend="5496"/>
+    <listofallmembers>
+      <member refid="structsl__bt__evt__pawr__sync__opened__s_1aba27b744d4ca5cfc6f16b3904b93d854" prot="public" virt="non-virtual"><scope>sl_bt_evt_pawr_sync_opened_s</scope><name>address</name></member>
+      <member refid="structsl__bt__evt__pawr__sync__opened__s_1adc81dd82b87ae3338aafaa86e4b9b372" prot="public" virt="non-virtual"><scope>sl_bt_evt_pawr_sync_opened_s</scope><name>address_type</name></member>
+      <member refid="structsl__bt__evt__pawr__sync__opened__s_1a21163d6968269c705299402b4d287e8d" prot="public" virt="non-virtual"><scope>sl_bt_evt_pawr_sync_opened_s</scope><name>adv_interval</name></member>
+      <member refid="structsl__bt__evt__pawr__sync__opened__s_1a92b8207d42cd2b65a84eae8a003b7c65" prot="public" virt="non-virtual"><scope>sl_bt_evt_pawr_sync_opened_s</scope><name>adv_phy</name></member>
+      <member refid="structsl__bt__evt__pawr__sync__opened__s_1a22db4211d88645e4a2cba5364a0eb785" prot="public" virt="non-virtual"><scope>sl_bt_evt_pawr_sync_opened_s</scope><name>adv_sid</name></member>
+      <member refid="structsl__bt__evt__pawr__sync__opened__s_1a6fe19efac8c45151a7a362e67a85d33e" prot="public" virt="non-virtual"><scope>sl_bt_evt_pawr_sync_opened_s</scope><name>bonding</name></member>
+      <member refid="structsl__bt__evt__pawr__sync__opened__s_1a63948d981c29e7efd39912592713d548" prot="public" virt="non-virtual"><scope>sl_bt_evt_pawr_sync_opened_s</scope><name>clock_accuracy</name></member>
+      <member refid="structsl__bt__evt__pawr__sync__opened__s_1a3fbf12d5b06ed2a25f478e9af7df9d9c" prot="public" virt="non-virtual"><scope>sl_bt_evt_pawr_sync_opened_s</scope><name>num_subevents</name></member>
+      <member refid="structsl__bt__evt__pawr__sync__opened__s_1a11af39205d6fc73076e5fb1f88ab83cd" prot="public" virt="non-virtual"><scope>sl_bt_evt_pawr_sync_opened_s</scope><name>response_slot_delay</name></member>
+      <member refid="structsl__bt__evt__pawr__sync__opened__s_1addd83592b45b5497e34f26ed52f4cc7c" prot="public" virt="non-virtual"><scope>sl_bt_evt_pawr_sync_opened_s</scope><name>response_slot_spacing</name></member>
+      <member refid="structsl__bt__evt__pawr__sync__opened__s_1af14764f2ac77f213261ca3946b3907a7" prot="public" virt="non-virtual"><scope>sl_bt_evt_pawr_sync_opened_s</scope><name>subevent_interval</name></member>
+      <member refid="structsl__bt__evt__pawr__sync__opened__s_1af074879d705317dce59425b57d582827" prot="public" virt="non-virtual"><scope>sl_bt_evt_pawr_sync_opened_s</scope><name>sync</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,56 @@
+id: sl_power_manager
+label: Power Manager
+package: platform_siwx91x
+description: >
+  Initiates the Power Manager (PM) component to manage the MCU's power usage. 
+  The system is initially set to PS3 power-save mode. The PM also allows the user to 
+  specify callbacks that will be executed when entering or exiting specific Power States. 
+  This enables the user to perform any accounting after PS transition occurrences. 
+  It also exposes a set of events that other components may utilize to register 
+  handlers for the power manager hooks function. 
+category: Device|Si91x|MCU|Service|Power Manager
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+component_root_path: "components/device/silabs/si91x/mcu/drivers/service/power_manager"
+source:
+  - path: src/sl_si91x_power_manager.c
+  - path: src/sli_si91x_power_manager.c
+include:
+  - path: inc
+    file_list:
+      - path: sl_si91x_power_manager.h
+      - path: sli_si91x_power_manager_board_config.h
+      - path: sli_si91x_power_manager.h
+template_file:
+  - path: init/sl_si91x_power_manager_handler.c.jinja
+requires:
+  - name: slist
+  - name: wakeup_source_config
+  - name: power_manager_config
+  - name: si91x_tickless_mode
+    condition:
+      - freertos
+  - name: romdriver_power_save
+  - name: systemlevel_time_period
+  - name: sl_clock_manager
+define:
+  - name: SLI_WIRELESS_COMPONENT_PRESENT
+    value: "1"
+    condition:
+      - sl_si91x_wireless
+template_contribution:
+  - name: device_ram_addr
+    value: 1024
+    priority: -2
+  - name: event_handler
+    value:
+      event: service_init
+      include: sl_si91x_power_manager.h
+      handler: sl_si91x_power_manager_init
+    priority: -9995
+  - name: sl_si91x_power_manager_present
+    value: true
+provides:
+  - name: sl_power_manager

@@ -1,0 +1,45 @@
+id: sl_rail_util_ieee802154_fast_channel_switching
+label: RAIL Utility, IEEE802.15.4 Fast Channel Switching Configuration (RAIL 3)
+description: Utility to aid with IEEE802.15.4 Fast Channel Switching Configuration
+package: rail_library
+category: Platform|Radio
+quality: production
+metadata:
+  sbom:
+    id: sl_rail_util_ieee802154_fast_channel_switching
+    name: RAIL Utility, IEEE802.15.4 Fast Channel Switching Configuration (RAIL 3)
+    license: Zlib
+provides:
+- name: sl_rail_util_ieee802154_fast_channel_switching
+- name: rail_util_ieee802154_fast_channel_switching
+requires:
+- name: sl_rail_util_ieee802154_phy_select
+- name: component_catalog
+config_file:
+- path: plugin/sl_rail_util_ieee802154/config/sl_rail_util_ieee802154_fast_channel_switching_config.h
+  file_id: sl_rail_util_ieee802154_fast_channel_switching_config
+include:
+- path: plugin/sl_rail_util_ieee802154
+  file_list:
+  - path: sl_rail_util_ieee802154_fast_channel_switching.h
+- path: plugin/sl_rail_util_ieee802154/sixg301
+  condition: [device_generic_family_sixx301]
+  file_list:
+  - path: sl_rail_util_ieee802154_fast_channel_switching_radio_config.h
+source:
+- path: plugin/sl_rail_util_ieee802154/sl_rail_util_ieee802154_fast_channel_switching.c
+- path: plugin/sl_rail_util_ieee802154/sixg301/sl_rail_util_ieee802154_fast_channel_switching_radio_config.c
+  condition: [device_generic_family_sixx301]
+template_contribution:
+- name: rail_util_ieee802154_phy_select_callbacks
+  value:
+    config_include: sl_rail_util_ieee802154_fast_channel_switching_config.h
+    include: sl_rail_util_ieee802154_fast_channel_switching.h
+    runtime_phy_features: SL_RAIL_UTIL_IEEE802154_RUNTIME_PHY_FEATURES_2P4_RX_CH_SWITCHING
+    default_phy_features: SL_RAIL_UTIL_IEEE802154_DEFAULT_PHY_FEATURES_2P4_RX_CH_SWITCHING
+    get_phy_features: sl_rail_util_ieee802154_get_fast_channel_switching_phy_features
+- name: component_catalog
+  value: sl_rail_util_ieee802154_fast_channel_switching
+- name: component_catalog
+  value: rail_util_ieee802154_fast_channel_switching
+root_path: rail_library

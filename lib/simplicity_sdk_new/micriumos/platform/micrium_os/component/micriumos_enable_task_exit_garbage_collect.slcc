@@ -1,0 +1,15 @@
+id: micriumos_enable_task_exit_garbage_collect
+label: Micrium OS Task Exit Garbage Collection
+package: micriumos
+description: Enables Micrium OS task exit garbage collection, allowing deferred cleanup of task resources when a thread created via the CMSIS-RTOS layer self-exits.
+category: RTOS|Micrium OS|Common
+quality: production
+metadata:
+  sbom:
+    license: MSLA
+provides:
+- name: micriumos_enable_task_exit_garbage_collect
+define:
+- name: ENABLE_MICRIUM_TASK_EXIT_GARBAGE_COLLECT
+  value: 1
+root_path: micriumos/platform/micrium_os

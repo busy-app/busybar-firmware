@@ -1,0 +1,37 @@
+id: tcose
+label: t_cose
+package: wifi
+description: >
+  t_cose is a CBOR Object Signing and Encryption (COSE) library
+category: Third Party
+quality: production
+metadata:
+  sbom:
+    license: BSD-3-Clause
+    upstream:
+      name: tcose
+      version: 1.1.1
+      supplier: laurencelundblade
+      url: https://github.com/laurencelundblade/t_cose
+      package_url: pkg:github/laurencelundblade/t_cose@v1.1.1
+component_root_path: "third_party/tcose"
+source:
+  - path: "src/t_cose_parameters.c"
+  - path: "src/t_cose_short_circuit.c"
+  - path: "src/t_cose_sign1_sign.c"
+  - path: "src/t_cose_sign1_verify.c"
+  - path: "src/t_cose_util.c"
+include:
+  - path: "inc"
+    file_list:
+    - path: "q_useful_buf.h"
+    - path: "t_cose_common.h"
+    - path: "t_cose_crypto.h"
+    - path: "t_cose_parameters.h"
+    - path: "t_cose_short_circuit.h"
+    - path: "t_cose_sign1_sign.h"
+    - path: "t_cose_sign1_verify.h"
+    - path: "t_cose_standard_constants.h"
+    - path: "t_cose_util.h"
+provides:
+  - name: tcose

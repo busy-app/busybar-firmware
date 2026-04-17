@@ -1,0 +1,4 @@
+vcom: EUSART2
+exp_h:
+  - peripheral: EUSART2
+    signals: ['12', '14']

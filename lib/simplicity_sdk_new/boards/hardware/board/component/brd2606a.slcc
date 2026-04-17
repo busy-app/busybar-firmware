@@ -1,0 +1,79 @@
+!!omap
+- id: brd2606a
+- label: BRD2606A
+- package: boards
+- description: Board support for BRD2606A.
+- category: Platform|Board|Starter Kit
+- quality: production
+- metadata:
+    sbom:
+      license: Zlib
+- requires:
+  - name: efr32mg24b210f1536im48
+  - name: brd2606a_config
+- provides:
+  - name: brd2606a
+  - name: hardware_board
+  - name: hardware_board_stk
+  - name: hardware_board_from_stk
+  - name: hardware_board_from_xg24-dk2606a
+  - name: hardware_board_has_vcom
+  - name: hardware_board_has_vcom_hardware_flowcontrol
+  - name: hardware_board_has_spiflash
+  - name: hardware_board_has_rfswitch
+  - name: board_config_clock_manager
+  - name: hardware_board_has_hfxo_freq_40mhz
+  - name: hardware_board_has_hfxo
+  - name: hardware_board_has_lfxo
+  - name: hardware_board_supports_cs
+  - name: hardware_board_supports_rf_band_2400
+  - name: hardware_board_supports_1_rf_band
+  - name: hardware_board_default_rf_band
+  - name: hardware_board_default_rf_band_2400
+- recommends:
+  - id: iostream_eusart
+    instance:
+    - vcom
+    vendor: silabs
+  - id: bootloader_uart_driver
+    vendor: silabs
+  - id: simple_led
+    instance:
+    - led0
+    - led1
+    vendor: silabs
+  - id: simple_button
+    instance:
+    - btn0
+    - btn1
+    vendor: silabs
+  - id: mx25_flash_shutdown_eusart
+    vendor: silabs
+  - id: bootloader_spi_controller_usart_driver
+    vendor: silabs
+  - id: imu_driver_icm40627
+    vendor: silabs
+- template_contribution: []
+- define:
+  - name: SL_BOARD_NAME
+    value: '"BRD2606A"'
+  - name: SL_BOARD_REV
+    value: '"A04"'
+  - name: HFXO_FREQ
+    value: 40000000
+  - name: HARDWARE_BOARD_SUPPORTS_RF_BAND_2400
+  - name: HARDWARE_BOARD_SUPPORTS_1_RF_BAND
+  - name: HARDWARE_BOARD_DEFAULT_RF_BAND_2400
+- tag:
+  - board:pn:BRD2606
+  - board:variant:A
+  - board:revision:A04
+  - board:device:efr32mg24b210f1536im48
+  - hardware:has:vcom
+  - hardware:has:vcom:vcom_hardware_flowcontrol
+  - hardware:has:pti
+  - hardware:has:led:2
+  - hardware:has:button:2
+  - hardware:has:memory:spi:mx25r3235f
+  - hardware:has:imu:icm-40627
+- root_path: boards

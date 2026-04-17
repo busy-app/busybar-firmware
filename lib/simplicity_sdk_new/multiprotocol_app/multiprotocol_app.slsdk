@@ -1,0 +1,20 @@
+#
+# multiprotocol_app.slsdk
+#
+# This files lists Studio SDK properties pertaining to the multiprotocol examples package.
+#
+# The version=1.0.1.0
+# release branch, or it should be set to 0.0.0 otherwise. This is the
+# version that Studio displays for the loaded package.
+#
+
+id=com.silabs.sdk.multiprotocol_app
+version=1.0.1.0
+label=Multiprotocol
+description=Multiprotocol Sample Applications
+prop.subLabel=Multiprotocol\\ 1.0.1.0
+
+prop.partCompatibility=.*host.* .*rm21.* .*efr32m[gr]2.* .*mgm2.* .*simg301.*
+
+prop.file.templatesFile=multiprotocol_production_templates.xml multiprotocol_experimental_templates.xml
+prop.file.demosFile=multiprotocol_production_demos.xml

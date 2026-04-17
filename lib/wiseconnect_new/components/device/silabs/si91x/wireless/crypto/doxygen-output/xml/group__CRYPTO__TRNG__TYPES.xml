@@ -1,0 +1,13 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__CRYPTO__TRNG__TYPES" kind="group">
+    <compoundname>CRYPTO_TRNG_TYPES</compoundname>
+    <title>Types</title>
+    <innerclass refid="structsl__si91x__trng__config__t" prot="public">sl_si91x_trng_config_t</innerclass>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para>This section provides a reference to the TRNG Crypto API types. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

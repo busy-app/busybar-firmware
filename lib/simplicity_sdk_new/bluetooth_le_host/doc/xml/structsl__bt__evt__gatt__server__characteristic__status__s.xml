@@ -1,0 +1,101 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="structsl__bt__evt__gatt__server__characteristic__status__s" kind="struct" language="C++" prot="public">
+    <compoundname>sl_bt_evt_gatt_server_characteristic_status_s</compoundname>
+    <includes refid="sl__bt__api_8h" local="no">sl_bt_api.h</includes>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structsl__bt__evt__gatt__server__characteristic__status__s_1ab7a6f5cd2d0ac022342abe18c7cbc836" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_gatt_server_characteristic_status_s::connection</definition>
+        <argsstring></argsstring>
+        <name>connection</name>
+        <qualifiedname>sl_bt_evt_gatt_server_characteristic_status_s::connection</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Connection handle </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="10020" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="10020" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__gatt__server__characteristic__status__s_1ada7e7b18429a812a4b90dca213a16bde" prot="public" static="no" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t sl_bt_evt_gatt_server_characteristic_status_s::characteristic</definition>
+        <argsstring></argsstring>
+        <name>characteristic</name>
+        <qualifiedname>sl_bt_evt_gatt_server_characteristic_status_s::characteristic</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>GATT characteristic handle. This value is normally received from the gatt_characteristic event. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="10021" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="10021" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__gatt__server__characteristic__status__s_1a671f95833dc8ae7170f86bc15666638f" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_gatt_server_characteristic_status_s::status_flags</definition>
+        <argsstring></argsstring>
+        <name>status_flags</name>
+        <qualifiedname>sl_bt_evt_gatt_server_characteristic_status_s::status_flags</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Enum <ref refid="group__sl__bt__gatt__server_1gacb0e9f3923813a7c7e87e18b4f994b3f" kindref="member">sl_bt_gatt_server_characteristic_status_flag_t</ref>. Describes whether Client Characteristic Configuration was changed or if a confirmation was received. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_gatt_server_client_config (0x1):</bold> Characteristic client configuration has been changed.</para>
+</listitem><listitem><para><bold>sl_bt_gatt_server_confirmation (0x2):</bold> Characteristic confirmation has been received. </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="10024" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="10024" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__gatt__server__characteristic__status__s_1a5b6feb95deb28f3dfd2af8a3603181ea" prot="public" static="no" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t sl_bt_evt_gatt_server_characteristic_status_s::client_config_flags</definition>
+        <argsstring></argsstring>
+        <name>client_config_flags</name>
+        <qualifiedname>sl_bt_evt_gatt_server_characteristic_status_s::client_config_flags</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Enum <ref refid="group__sl__bt__gatt__server_1ga494b6552ef9af21dd22f79dfd4edadfd" kindref="member">sl_bt_gatt_server_client_configuration_t</ref>. This field carries the new value of the Client Characteristic Configuration. If the status_flags is 0x2 (confirmation received), the value of this field can be ignored. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="10035" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="10035" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__gatt__server__characteristic__status__s_1aa2a672280042b94bc28e27a0ab3ef779" prot="public" static="no" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t sl_bt_evt_gatt_server_characteristic_status_s::client_config</definition>
+        <argsstring></argsstring>
+        <name>client_config</name>
+        <qualifiedname>sl_bt_evt_gatt_server_characteristic_status_s::client_config</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>The handle of client-config descriptor. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="10042" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="10042" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Data structure of the characteristic_status event. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="10018" column="1" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="10019" bodyend="10043"/>
+    <listofallmembers>
+      <member refid="structsl__bt__evt__gatt__server__characteristic__status__s_1ada7e7b18429a812a4b90dca213a16bde" prot="public" virt="non-virtual"><scope>sl_bt_evt_gatt_server_characteristic_status_s</scope><name>characteristic</name></member>
+      <member refid="structsl__bt__evt__gatt__server__characteristic__status__s_1aa2a672280042b94bc28e27a0ab3ef779" prot="public" virt="non-virtual"><scope>sl_bt_evt_gatt_server_characteristic_status_s</scope><name>client_config</name></member>
+      <member refid="structsl__bt__evt__gatt__server__characteristic__status__s_1a5b6feb95deb28f3dfd2af8a3603181ea" prot="public" virt="non-virtual"><scope>sl_bt_evt_gatt_server_characteristic_status_s</scope><name>client_config_flags</name></member>
+      <member refid="structsl__bt__evt__gatt__server__characteristic__status__s_1ab7a6f5cd2d0ac022342abe18c7cbc836" prot="public" virt="non-virtual"><scope>sl_bt_evt_gatt_server_characteristic_status_s</scope><name>connection</name></member>
+      <member refid="structsl__bt__evt__gatt__server__characteristic__status__s_1a671f95833dc8ae7170f86bc15666638f" prot="public" virt="non-virtual"><scope>sl_bt_evt_gatt_server_characteristic_status_s</scope><name>status_flags</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

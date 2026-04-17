@@ -1,0 +1,16 @@
+id: rail_lib_multiprotocol_alpha_chips
+label: RAIL Library, Multiprotocol for Alpha Chips
+description: Multiprotocol RAIL Library Support for Alpha Chips
+package: rail_library_alpha_chips
+category: Platform|Radio
+quality: production
+metadata:
+  sbom:
+    id: rail_lib_multiprotocol_alpha_chips
+    name: RAIL Library, Multiprotocol for Alpha Chips
+    license: MSLA
+requires:
+- name: rail_lib_multiprotocol
+provides:
+- name: rail_lib_multiprotocol_alpha_chips_support   # specific tag
+root_path: rail_library_alpha_chips

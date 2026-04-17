@@ -1,0 +1,32 @@
+id: sl_hspi_secondary
+label: HSPI Secondary 
+package: platform_siwx91x
+description: >
+  The HSPI Secondary application shows how to read and write data between HSPI Secondary
+  external device which is going to act as Primary and demonstrates about soc clock setting, 
+  hspi secondary  initialization, transmitting and receiving the data to and from the hspi primary and secondary. 
+category: Device|Si91x|MCU|Peripheral|HSPI Slave Driver
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: "components/device/silabs/si91x/mcu/drivers/unified_api"
+provides:
+  - name: sl_hspi_secondary
+requires:
+  - name: sl_assert
+  - name: sl_hspi_secondary_peripheral
+source:
+  - path: src/sl_si91x_hspi_secondary.c
+include:
+  - path: inc
+    file_list:
+      - path: sl_si91x_hspi_secondary.h
+config_file:
+  - path: config/sl_si91x_hspi_secondary_drv_config.h
+    file_id: hspi_secondary_drv_config
+documentation:
+    docset: wiseconnect
+    document: wiseconnect-api-reference-guide-si91x-peripherals/hspi
+conflicts:
+  - name: sl_sdio_secondary

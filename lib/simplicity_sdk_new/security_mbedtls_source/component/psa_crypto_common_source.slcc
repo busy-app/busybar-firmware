@@ -1,0 +1,28 @@
+id: psa_crypto_common_source
+package: security_mbedtls_source
+label: Common Source
+description: >-
+  This component provides the source implementation for PSA Crypto common
+  functionality.
+category: Platform|Security|PSA Crypto
+quality: production
+ui_hints:
+  visibility: never
+provides:
+- name: psa_crypto_common_source
+requires:
+- name: psa_crypto_api
+source:
+- path: library/psa_crypto_client.c
+  unless:
+  - trustzone_nonsecure
+include:
+- path: library
+  file_list:
+  - path: bignum_core_invasive.h
+  - path: common.h
+
+metadata:
+  sbom:
+    reference: mbedtls_sbom
+root_path: security_mbedtls_source

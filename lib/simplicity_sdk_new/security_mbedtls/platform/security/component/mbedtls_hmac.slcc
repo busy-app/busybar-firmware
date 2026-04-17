@@ -1,0 +1,20 @@
+id: mbedtls_hmac
+label: HMAC
+package: security_mbedtls
+quality: production
+category: Platform|Security|Mbed TLS|Message Authentication Codes
+description: >-
+  This component provides support for message authentication with the HMAC
+  algorithm using Mbed TLS.
+
+provides:
+- name: mbedtls_hmac
+
+requires:
+- name: mbedtls_hash
+- name: psa_crypto_hmac
+  condition: [psa_crypto]
+metadata:
+  sbom:
+    reference: mbedtls_sbom
+root_path: security_mbedtls

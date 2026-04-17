@@ -1,0 +1,64 @@
+id: "sl_wisun_ota_dfu"
+label: "Wi-SUN Over-The-Air Device Firmware Upgrade (OTA DFU)"
+package: "wisun_sdk"
+description: >
+  The Wi-SUN Over-The-Air Device Firmware Upgrade (OTA DFU) service is
+  implemented to facilitate the updating of Wi-SUN device firmware. This
+  component requires the Gecko Bootloader API to execute firmware writing,
+  verification, and bootload operations.
+  To obtain a new Gecko Bootloader File (GBL) file from a remote host
+  Over-The-Air, a Trivial File Transfer Protocol (TFTP) client is employed,
+  leveraging the Wi-SUN network.
+  The entire firmware upgrade session is manageable over CoAP, with the service
+  offering remote host connection settings, firmware file selection, notification, and
+  status request capabilities.
+  Configuration of the connection to the TFTP remote host can be accomplished
+  within the component configuration file.
+  To use this component, a bootloader must be flashed onto the device. The
+  component relies on functions that reside within the bootloader. To choose
+  the appropriate bootloader, consider factors such as flash location
+  (internal or external) and size.
+  To save on download time, we recommend applying compression on both the bootloader and device projects.
+
+category: "Wi-SUN|Wi-SUN Services"
+quality: "evaluation"
+metadata:
+  sbom:
+    license: Zlib
+root_path: "wisun_sdk/component/ota_dfu"
+provides:
+- name: sl_wisun_ota_dfu
+
+source:
+- path: "sl_wisun_ota_dfu.c"
+
+include:
+- path: "."
+  file_list:
+  - "path": "sl_wisun_ota_dfu.h"
+
+config_file:
+- path: "config/sl_wisun_ota_dfu_config.h"
+
+requires:
+- name: "sl_string"
+- name: "bootloader_interface"
+- name: "sl_ftp"
+- name: "sl_wisun_coap"
+- name: "sleeptimer"
+
+#-------------- Template Contribution ----------------
+template_contribution:
+- name: "event_handler"
+  value:
+    event: "internal_app_init"
+    include: "sl_wisun_ota_dfu.h"
+    handler: "sl_wisun_ota_dfu_init"
+
+#---------------- Component Catalog ------------------
+- name: component_catalog
+  value: wisun_ota_dfu
+
+documentation:
+  docset: wisun
+  document: wisun-stack-api/sl-wisun-ota-dfu-api

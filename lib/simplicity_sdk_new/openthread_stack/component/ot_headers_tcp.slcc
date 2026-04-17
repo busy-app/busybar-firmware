@@ -1,0 +1,35 @@
+id: ot_headers_tcp
+label: OpenThread headers (TCP)
+package: openthread_stack
+category: OpenThread
+quality: production
+description: This component provides the OpenThread TCP header files.
+provides:
+- name: ot_headers_tcp
+ui_hints:
+  visibility: never
+root_path: openthread_stack/util/third_party/openthread/third_party/tcplp
+include:
+- path: .
+  file_list:
+  - path: bsdtcp/cc.h
+  - path: bsdtcp/cc/cc_module.h
+  - path: bsdtcp/icmp_var.h
+  - path: bsdtcp/ip.h
+  - path: bsdtcp/ip6.h
+  - path: bsdtcp/sys/queue.h
+  - path: bsdtcp/tcp.h
+  - path: bsdtcp/tcp_const.h
+  - path: bsdtcp/tcp_fastopen.h
+  - path: bsdtcp/tcp_fsm.h
+  - path: bsdtcp/tcp_seq.h
+  - path: bsdtcp/tcp_timer.h
+  - path: bsdtcp/tcp_var.h
+  - path: bsdtcp/types.h
+  - path: lib/bitmap.h
+  - path: lib/cbuf.h
+  - path: lib/lbuf.h
+  - path: tcplp.h
+metadata:
+  sbom:
+    reference: ot_sbom_tcplp

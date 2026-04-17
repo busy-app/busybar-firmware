@@ -1,0 +1,19 @@
+id: compute_util
+label: Compute utilities
+package: compute
+description: >
+  This component provides compute utilities.
+category: Compute
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: compute/util
+source:
+- path: src/sl_compute_util.c
+include:
+- path: inc
+  file_list:
+  - path: sl_compute_util.h
+provides:
+- name: compute_util

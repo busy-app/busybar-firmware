@@ -1,0 +1,95 @@
+id: nvm3_source
+label: NVM3 Core (source)
+package: platform_core
+description: >
+  The NVM3 driver provides a means to write and read data objects
+  (key/value pairs) stored in flash. Wear-leveling is applied to reduce erase
+  and write cycles and maximize flash lifetime. The driver is resilient to
+  power loss and reset events, ensuring that objects retrieved from the driver
+  are always in a valid state. A single NVM3 instance can be shared among
+  several wireless stacks and application code, making it well-suited for
+  multiprotocol applications.
+
+
+  This component includes only the NVM3 driver core. To configure and create
+  the default instance of this driver, the NVM3 Default Instance component
+  should be included in the project.
+
+  This component allows secure read/write and storage for NVM3 based on
+  device specific selection of this feature (nvm3_secure).
+category: Services|NVM3
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+source:
+- path: platform/emdrv/nvm3/src/nvm3.c
+  unless: [trustzone_nonsecure]
+- path: platform/emdrv/nvm3/src/nvm3_cache.c
+  unless: [trustzone_nonsecure]
+- path: platform/emdrv/nvm3/src/nvm3_hal_flash.c
+  condition: [device_series_2]
+  unless: [trustzone_nonsecure]
+- path: platform/emdrv/nvm3/src/nvm3_hal_flash_ext.c
+  condition: [device_series_3]
+  unless: [trustzone_nonsecure]
+- path: platform/emdrv/nvm3/src/nvm3_lock.c
+  unless: [trustzone_nonsecure]
+- path: platform/emdrv/nvm3/src/nvm3_object.c
+  unless: [trustzone_nonsecure]
+- path: platform/emdrv/nvm3/src/nvm3_page.c
+  unless: [trustzone_nonsecure]
+- path: platform/emdrv/nvm3/src/nvm3_utils.c
+  unless: [trustzone_nonsecure]
+include:
+- path: platform/emdrv/nvm3/inc
+  file_list:
+  - path: nvm3.h
+  - path: nvm3_generic.h
+  - path: nvm3_cache.h
+  - path: nvm3_hal.h
+  - path: nvm3_hal_flash.h
+  - path: nvm3_lock.h
+  - path: nvm3_object.h
+  - path: nvm3_page.h
+  - path: nvm3_trace.h
+  - path: nvm3_utils.h
+- path: platform/emdrv/nvm3/config
+  file_list:
+  - path: nvm3_config.h
+provides:
+- name: nvm3
+- name: nvm3_source
+- name: nvm_system
+template_contribution:
+- name: component_catalog
+  value: nvm3
+requires:
+- name: nvm3_default
+- name: ecode
+- name: status
+- name: emlib_msc
+  condition: [device_series_2]
+- name: hal_system
+  condition: [device_series_3]
+- name: se_manager
+  condition: [device_series_3]
+- name: sl_si91x_nvm3
+  condition: [device_si91x]
+- name: memory_manager
+  condition: [device_efx]
+- name: nvm3_optimization
+  condition: [device_efx]
+- name: nvm3_secure
+  condition: [device_series_3]
+recommends:
+- id: nvm3_optimization_disable
+  condition: [device_series_2]
+  vendor: silabs
+- id: nvm3_optimization_enable
+  condition: [device_series_3]
+  vendor: silabs
+documentation:
+  docset: gecko-platform
+  document: platform-driver/nvm3
+root_path: platform_core

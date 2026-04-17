@@ -1,0 +1,36 @@
+id: "bgapi_service_feature_system"
+label: "BGAPI Service System APIs"
+package: bgapi_protocol
+description: >
+  Provides the System class APIs of the BGAPI Service. The commands of this
+  class provide system-level services to query information of the BGAPI
+  Protocol.
+category: Bluetooth|Bluetooth Host (Stack)
+quality: "production"
+requires:
+- name: bgapi_service
+provides:
+- name: bgapi_service_feature_system
+template_contribution:
+- name: component_catalog
+  value: bgapi_service_feature_system
+metadata:
+  sbom:
+    license: Zlib AND MSLA
+library:
+- path: build/gcc/cortex-m33/bgapi_service/system/release/libbgapi_service_system.a
+  condition:
+  - toolchain_gcc
+  - cortexm33
+  - bgapi_protocol_libraries_release
+- path: build/iar/cortex-m33/bgapi_service/system/release/libbgapi_service_system.a
+  condition:
+  - toolchain_iar
+  - cortexm33
+  - bgapi_protocol_libraries_release
+- path: build/llvm/cortex-m33/bgapi_service/system/release/libbgapi_service_system.a
+  condition:
+  - toolchain_llvm
+  - cortexm33
+  - bgapi_protocol_libraries_release
+root_path: bgapi_protocol

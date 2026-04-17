@@ -1,0 +1,52 @@
+project_name: cpc_secondary_vcom_freertos
+package: cpc_app
+quality: production
+label: Platform - CPC Secondary with FreeRTOS
+description: >
+  This simple example project shows how to open user endpoints in a FreeRTOS task with
+  security disabled. By connecting a host running a CPCd instance to the secondary's VCOM port,
+  the user can send data to the user endpoints, and verify that it is echoed back.
+category: Example|Platform
+filter:
+  - name: "Device Type"
+    value: ["SoC"]
+  - name: "MCU"
+    value: ["32-bit MCU"]
+  - name: "Project Difficulty"
+    value: ["Advanced"]
+source:
+  - path: app.c
+  - path: cpc_app.c
+include:
+  - path: .
+    file_list:
+    - path: app.h
+    - path: cpc_app.h
+component:
+  - id: sl_main
+  - id: device_init
+  - id: clock_manager
+  - id: freertos
+  - id: cpc_secondary
+  - id: cpc_security_secondary_none
+  - id: cpc_secondary_recommended_uart_interface
+  - id: memory_manager
+define:
+  - name: DEBUG_EFM
+configuration:
+  - name: OS_CFG_FLAG_MODE_CLR_EN
+    value: 1
+  - name: SL_BOARD_ENABLE_VCOM
+    value: 1
+readme:
+  - path: readme.md
+ui_hints:
+  highlight: readme.md
+tag:
+  - hwfilter:ram:40k
+  - hwfilter:device:device_has_uart
+  - hwfilter:!device:device_generic_family_efr32xg22
+  - hwfilter:!device:device_generic_family_efr32xg25
+  - hwfilter:!device:device_generic_family_efr32xg26
+  - hwfilter:!device:device_generic_family_efr32xg29
+  - hwfilter:board:hardware:has:vcom

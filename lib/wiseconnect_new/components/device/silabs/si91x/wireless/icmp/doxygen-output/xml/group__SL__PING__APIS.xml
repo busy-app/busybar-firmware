@@ -1,0 +1,13 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__SL__PING__APIS" kind="group">
+    <compoundname>SL_PING_APIS</compoundname>
+    <title>APIs</title>
+    <innergroup refid="group__SL__PING__FUNCTIONS">Functions</innergroup>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para>This section provides a reference to the Internet Control Message Protocol (ICMP) or Ping protocol API. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

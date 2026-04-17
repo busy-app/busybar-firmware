@@ -1,0 +1,27 @@
+id: tz_secure_config
+package: security_trustzone
+description: >-
+  This component includes the TZ secure configuration file.
+category: Platform|Security|TrustZone
+ui_hints:
+  visibility: never
+quality: production
+provides:
+- name: tz_secure_config
+
+requires:
+- name: trustzone_secure
+
+include:
+- path: config/secure
+  file_list:
+  - path: sl_trustzone_secure_config.h
+
+template_contribution:
+- name: component_catalog
+  value: trustzone_secure_config
+
+metadata:
+  sbom:
+    license: Zlib
+root_path: security_trustzone/platform/security/sl_component/sl_trustzone

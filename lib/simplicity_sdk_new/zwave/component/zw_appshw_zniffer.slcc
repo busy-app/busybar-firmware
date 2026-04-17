@@ -1,0 +1,28 @@
+id: zw_appshw_zniffer
+label: Zniffer AppsHw
+category: Z-Wave|AppsHw
+description: >
+  This SLC component provides support for Z-Wave Zniffer (beta) Application.
+  The Z-Wave Zniffer Application provides functionality for capturing and analyzing Z-Wave network traffic and sends it
+  through a Serial connection. The Z-Wave PTI appliction is supported in the PC Zniffer application out of the box.
+package: zwave
+quality: production
+metadata:
+  sbom:
+    reference: zw_sbom_license
+
+config_file:
+- path: platform/SiliconLabs/AppsHw/inc/Zniffer/config/zniffer_config.h
+  file_id: zniffer_config
+  condition: [device_series_2]
+source:
+- path: "platform/SiliconLabs/AppsHw/src/Zniffer/Zniffer_hw.c"
+include:
+- path: "sample_apps/zwave_ncp_zniffer"
+  file_list:
+  - path: "Zniffer_hw.h"
+provides:
+- name: zw_appshw_zniffer
+requires:
+- name: zw_appshw
+root_path: zwave

@@ -1,0 +1,22 @@
+id: btl_interface_bootloadinfo
+label: Bootload Info Interface (Series-3)
+package: bootloader
+description: >
+  The bootloader interface bootloadinfo component part of bootloader application interface. It provides common functionality for storage. This component provides the bootloader with multiple storage options. All implementations provide a slot-based API to
+  access image files to be bootloaded.
+category: Platform|Bootloader
+quality: production
+source:
+- path: platform/bootloader/series3/storage/bootloadinfo/btl_storage_bootloadinfo.c
+include:
+- path: platform/bootloader/series3/storage/bootloadinfo
+  file_list:
+  - path: btl_storage_bootloadinfo.h
+provides:
+- name: btl_interface_bootloadinfo
+requires:
+- name: btl_crc
+metadata:
+  sbom:
+    license: MSLA
+root_path: bootloader

@@ -1,0 +1,42 @@
+id: gatt_service_device_information_override
+label: Device Information GATT Service Override
+package: bluetooth_le_middleware
+description: |
+  This component overrides the default static values for the characteristics under the Device Information service upon boot event as follows.
+  - Firmware Revision String: Bluetooth stack version number
+  - Model Number String: Board name
+  - Hardware Revision String: Board revision
+  - System ID: Unique ID derived from the public Bluetooth address
+
+  Please note that this component expects predefined IDs present in the GATT configuration for these characteristics.
+category: Bluetooth|Application|GATT Services
+metadata:
+  sbom:
+    license: Zlib
+quality: production
+root_path: bluetooth_le_middleware/common/gatt_service_device_information_override
+tag:
+- No-Code
+source:
+- path: sl_gatt_service_device_information_override.c
+  project:
+    transfer_ownership: true
+include:
+- path: .
+  file_list:
+  - path: sl_gatt_service_device_information_override.h
+provides:
+- name: gatt_service_device_information_override
+requires:
+- name: bluetooth_stack
+- name: bluetooth_feature_gap
+- name: gatt_configuration
+- name: app_assert
+template_contribution:
+- name: bluetooth_on_event
+  value:
+    include: sl_gatt_service_device_information_override.h
+    function: sl_gatt_service_device_information_override_on_event
+documentation:
+  docset: bluetooth
+  document: bluetooth-service-api/gatt-service-device-information-override

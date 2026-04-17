@@ -1,0 +1,56 @@
+id: ncp_host_com
+label: NCP Host Communication Interface
+package: bluetooth_le_middleware
+description: >
+  Component that provides the Bluetooth Network Co-Processor (NCP) host
+  communication interface.
+
+  This is a No-Code component.
+category: Bluetooth|Application|NCP Host Demo
+metadata:
+  sbom:
+    license: Zlib
+quality: production
+root_path: bluetooth_le_middleware/common/ncp_host_com
+tag:
+- No-Code
+config_file:
+- path: config/sl_ncp_host_com_config.h
+source:
+- path: sl_ncp_host_com.c
+include:
+- path: .
+  file_list:
+  - path: sl_ncp_host_com.h
+provides:
+- name: ncp_host_com
+requires:
+- name: bluetooth_api_ncp_host
+- name: component_catalog
+- name: bluetooth_ncp_transport
+- name: sl_core
+- name: app_assert
+recommends:
+- id: bluetooth_ncp_transport_usart
+  condition:
+  - device_series_2
+  vendor: silabs
+- id: bluetooth_ncp_transport_iostream
+  condition:
+  - device_series_3
+  vendor: silabs
+template_contribution:
+- name: event_handler
+  value:
+    event: internal_app_init
+    include: sl_ncp_host_com.h
+    handler: sl_ncp_host_com_init
+  priority: 3
+- name: power_manager_handler
+  value:
+    event: is_ok_to_sleep
+    include: sl_ncp_host_com.h
+    handler: sl_ncp_host_is_ok_to_sleep
+documentation:
+  docset: bluetooth
+  document: bluetooth-service-api/ncp-host-com

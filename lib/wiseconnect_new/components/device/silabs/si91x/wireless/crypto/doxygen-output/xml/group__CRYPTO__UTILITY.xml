@@ -1,0 +1,13 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__CRYPTO__UTILITY" kind="group">
+    <compoundname>CRYPTO_UTILITY</compoundname>
+    <title>Crypto Utility</title>
+    <innergroup refid="group__CRYPTO__UTILITY__FUNCTIONS">Functions</innergroup>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para>This section provides a reference to the Crypto utility API functions. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

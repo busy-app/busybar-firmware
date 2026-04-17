@@ -1,0 +1,36 @@
+id: "sl_rail_sdk_simple_assistance"
+label: "Simple Assistance"
+package: "rail_sdk"
+category: "RAIL-SDK|Utility"
+quality: "production"
+metadata:
+  sbom:
+    license: Zlib
+description: >
+  This component provides fine-grained control over the dedicated LEDs on the
+  board, as well as essential logging functionality.
+  The logging functions allow you to capture important events and diagnostic
+  information. These logs can be invaluable for debugging, monitoring, and
+  analyzing the behavior of your system.
+  Whether you want to indicate reception or transmission, this component
+  provides the necessary functionality along with robust logging capabilities.
+root_path: "rail_sdk/component/sl_rail_sdk_simple_assistance"
+
+requires:
+- name: component_catalog
+
+include:
+- path: "."
+  file_list:
+  - "path": "sl_rail_sdk_simple_assistance.h"
+
+source:
+- path: "sl_rail_sdk_simple_assistance.c"
+
+provides:
+- name: "sl_rail_sdk_simple_assistance"
+
+template_contribution:
+#----------------- Component Catalog -----------------
+- name: component_catalog
+  value: rail_sdk_simple_assistance

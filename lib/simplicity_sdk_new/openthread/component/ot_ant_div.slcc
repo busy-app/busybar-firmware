@@ -1,0 +1,53 @@
+id: ot_ant_div
+label: Antenna Diversity
+package: openthread
+category: OpenThread
+quality: production
+description: This component provides support for Antenna Diversity with OpenThread
+provides:
+- name: ot_ant_div
+requires:
+- name: ot_platform_abstraction
+- name: rail_util_ant_div
+- name: rail_util_ieee802154_stack_event
+- name: sl_rail_util_ieee802154_phy_select
+- name: sl_ot_custom_cli
+  condition: [ot_cli]
+- name: ot_ncp_vendor_extension
+  condition: [ot_ncp]
+recommends:
+- id: ot_platform_abstraction
+  vendor: silabs
+config_file:
+- path: config/sl_openthread_ant_div_cli_config.h
+  condition: [ot_cli]
+toolchain_settings:
+- option: preinclude
+  value: sl_openthread_ant_div_cli_config.h
+  condition: [ot_cli]
+template_contribution:
+- name: sl_ot_cli_command
+  value:
+    name: "antenna"
+    handler: "antennaCommand"
+    macro: "SL_OPENTHREAD_ANT_DIV_CLI_ENABLE"
+  condition: [sl_ot_custom_cli]
+- name: component_catalog
+  value: openthread_ant_div
+include:
+- path: include
+  file_list:
+  - path: sl_ot_phy_select.h
+- path: platform-abstraction/ncp/
+  condition: [ot_ncp]
+  file_list:
+  - path: ncp_ant_div.hpp
+source:
+- path: src/cli/antenna_diversity_cli.c
+  unless: [ot_rcp]
+- path: platform-abstraction/ncp/ncp_ant_div.cpp
+  condition: [ot_ncp]
+metadata:
+  sbom:
+    license: Zlib
+root_path: openthread

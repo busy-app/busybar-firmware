@@ -1,0 +1,14 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__CRYPTO__TRNG" kind="group">
+    <compoundname>CRYPTO_TRNG</compoundname>
+    <title>TRNG</title>
+    <innergroup refid="group__CRYPTO__TRNG__FUNCTIONS">Functions</innergroup>
+    <innergroup refid="group__CRYPTO__TRNG__TYPES">Types</innergroup>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para>TRNG stands for “true random number generator” which generates random numbers using physical entropy source. This section provides a reference to the TRNG Crypto API which includes functions, data types, and constants. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

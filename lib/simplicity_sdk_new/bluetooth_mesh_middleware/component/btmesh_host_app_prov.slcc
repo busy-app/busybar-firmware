@@ -1,0 +1,43 @@
+id: btmesh_host_app_prov
+label: BT Mesh Provisioner Application Component
+package: bluetooth_mesh_middleware
+description: >
+  BT Mesh Provisioner Application component provides application-level
+  functionality for provisioning devices into a Bluetooth Mesh network.
+category: Bluetooth Mesh|Host
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: bluetooth_mesh_middleware/common/btmesh_host_app_prov
+include:
+- path: .
+  file_list:
+  - path: btmesh_app_prov.h
+source:
+- path: btmesh_app_prov.c
+provides:
+- name: btmesh_host_app_prov
+requires:
+- name: btmesh_stack_api_ncp_host
+- name: app_log
+- name: app_assert
+- name: btmesh_host_prov
+- name: btmesh_host_conf
+- name: btmesh_host_key_export
+- name: component_catalog
+- name: app_timer
+template_contribution:
+- name: component_catalog
+  value: btmesh_host_app_prov
+- name: event_handler
+  value:
+    event: internal_app_process_action
+    include: btmesh_app_prov.h
+    handler: btmesh_app_prov_process_action
+    priority: -8999
+- name: btmesh_on_event
+  value:
+    include: btmesh_app_prov.h
+    function: btmesh_app_prov_on_event
+    priority: -9000

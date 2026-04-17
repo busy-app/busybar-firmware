@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="ASCII"?>
+<model:MDescriptors xmlns:model="http://www.silabs.com/ss/Studio.ecore">
+  <descriptors name="zigbee_z3_gateway_cpc" label="Zigbee - Z3GatewayCpc" description="This is a Zigbee 3.0 gateway application for a Unix host. As opposed to the standard zigbee_z3_gateway application, this application here uses the Co-Processor Communication (CPC) feature to communicate to a NCP that is also configured with the CPC feature.
+">
+    <properties key="namespace" value="template.uc"/>
+    <properties key="keywords" value="universal\ configurator"/>
+    <properties key="solutionReferenceId" value="zigbee.z3.zigbee_z3_gateway_cpc.zigbee_z3_gateway_cpc.slcp"/>
+    <properties key="projectFilePaths" value="z3/zigbee_z3_gateway_cpc/zigbee_z3_gateway_cpc.slcp"/>
+    <properties key="readmeFiles" value="z3/zigbee_z3_gateway_cpc/readme.md"/>
+    <properties key="boardCompatibility" value="com.silabs.board.none"/>
+    <properties key="partCompatibility" value=".*linux.* .*macos.* .*win32.*"/>
+    <properties key="ideCompatibility" value="generic-template iar-embedded-workbench makefile-ide simplicity-ide visual-studio-code"/>
+    <properties key="toolchainCompatibility" value="gcc iar"/>
+    <properties key="category" value="Zigbee Host Application"/>
+    <properties key="quality" value="EXPERIMENTAL"/>
+    <properties key="stockConfigCompatibility" value="com.silabs.ss.framework.project.toolchain.core.default"/>
+    <properties key="filters" value="Device\ Type|Host Project\ Difficulty|Advanced Wireless\ Technology|Zigbee"/>
+  </descriptors>
+</model:MDescriptors>

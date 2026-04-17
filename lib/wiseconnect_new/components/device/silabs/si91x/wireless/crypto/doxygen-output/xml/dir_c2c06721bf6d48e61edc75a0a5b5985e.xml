@@ -1,0 +1,13 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="dir_c2c06721bf6d48e61edc75a0a5b5985e" kind="dir">
+    <compoundname>components/device/silabs/si91x/wireless/crypto/aes/inc</compoundname>
+    <innerfile refid="sl__si91x__aes_8h">sl_si91x_aes.h</innerfile>
+    <innerfile refid="sl__si91x__psa__aes_8h">sl_si91x_psa_aes.h</innerfile>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="components/device/silabs/si91x/wireless/crypto/aes/inc/"/>
+  </compounddef>
+</doxygen>

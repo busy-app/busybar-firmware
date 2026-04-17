@@ -1,0 +1,28 @@
+id: "btmesh_stack_gatt_prov_bearer"
+label: "GATT Provisioning Bearer"
+package: bluetooth_mesh
+description: "Enables the Bluetooth Mesh PB-GATT Provisioning Bearer for the Node."
+category: "Bluetooth Mesh|Stack"
+quality: "production"
+
+requires:
+- name: "btmesh_stack"
+- name: "btmesh_stack_node"
+- name: bluetooth_feature_gatt_server
+- name: gatt_configuration
+- name: bluetooth_feature_dynamic_gattdb
+
+provides:
+- name: "btmesh_stack_gatt_prov_bearer"
+
+config_file:
+- path: component/gatt_service_mesh_prov.xml
+  directory: btconf
+
+template_contribution:
+- name: btmesh_stack_gatt_prov_bearer
+  value: 1
+metadata:
+  sbom:
+    reference: btmesh_stack
+root_path: bluetooth_mesh

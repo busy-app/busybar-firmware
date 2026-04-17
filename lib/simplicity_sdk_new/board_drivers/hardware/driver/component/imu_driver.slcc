@@ -1,0 +1,18 @@
+id: imu_driver
+package: board_drivers
+label: IMU - Inertial Measurement Unit
+description: >
+  Intertial Measurement Unit driver
+category: Platform|Board Drivers
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: board_drivers/hardware/driver/imu
+provides:
+- name: imu_driver
+requires:
+- name: imu_device_driver
+documentation:
+  docset: gecko-platform
+  document: platform-hardware-driver/imu

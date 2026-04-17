@@ -1,0 +1,20 @@
+id: "btmesh_stack_test"
+label: "Test"
+package: bluetooth_mesh
+description: "Provides Bluetooth mesh Test Utilities (Only for development, do not use them in production)."
+category: "Bluetooth Mesh|Stack"
+quality: "production"
+
+requires:
+- name: "btmesh_stack"
+provides:
+- name: "btmesh_stack_test"
+template_contribution:
+- name: btmesh_bgapi_class
+  value:
+    class: "test"
+  priority: 1
+metadata:
+  sbom:
+    reference: btmesh_stack
+root_path: bluetooth_mesh

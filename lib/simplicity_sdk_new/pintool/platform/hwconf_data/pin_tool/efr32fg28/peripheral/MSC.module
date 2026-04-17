@@ -1,0 +1,22 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<module:DocumentRoot xmlns:module="http://www.silabs.com/ss/hwconfig/module.ecore">
+  <module id="pin_tool.efr32.efr32fg28.msc" label="MSC" name="MSC" description="" version="A">
+    <properties>
+      <stringProperty label="Type" id="type" defaultValue="msc" transient="true" hidden="true" readonly="true" description=""/>
+      <stringProperty label="Custom Peripheral Name" id="peripheral.name" description=""/>
+    </properties>
+    <propertyCategories>
+      <category label="MSC">
+        <subCategory label="">
+          <propertyRef refId="peripheral.name"/>
+        </subCategory>
+      </category>
+    </propertyCategories>
+    <signals>
+      <signal name="TSW_FLASH_TM2"/>
+      <signal name="TSW_FLASH_TM1"/>
+      <signal name="TSW_FLASH_TM3"/>
+      <signal name="TSW_FLASH_TM0"/>
+    </signals>
+  </module>
+</module:DocumentRoot>

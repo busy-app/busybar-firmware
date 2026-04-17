@@ -1,0 +1,20 @@
+id: ncp_host_btmesh
+label: NCP Host BT Mesh Component
+package: bluetooth_mesh_middleware
+description: >
+  NCP Host component with threading support for Bluetooth Mesh applications.
+  This component provides host-side NCP (Network Co-Processor) functionality
+  for Bluetooth Mesh.
+category: Bluetooth Mesh|Host
+quality: production
+provides:
+- name: ncp_host_btmesh
+requires:
+- name: component_catalog
+- name: host_ncp
+define:
+- name: BTMESH
+template_contribution:
+- name: component_catalog
+  value: btmesh_ncp_host_btmesh
+root_path: bluetooth_mesh_middleware

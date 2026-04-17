@@ -1,0 +1,8 @@
+parameters:
+  - name: build_dir
+steps:
+  # Export application binary
+  - task: convert
+    input: "{{build_dir}}/{{project_name}}.out"
+    output: "artifact/{{project_name}}.s37"
+    export: "bootloader_binary"

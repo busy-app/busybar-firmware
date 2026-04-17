@@ -1,0 +1,30 @@
+id: interrupt_manager_cortexm
+label: Interrupt Manager Cortex-M
+package: platform_core
+description: >
+  This component provides different APIs to manage embedded interrupts on Cortex-M architectures.
+  It allows devices to set the affinity of an interrupt, to enable/disable interrupts, set priority
+  and copy the vector table in RAM.
+category: Services|Interrupt Manager
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+ui_hints:
+  visibility: never
+root_path: platform_core/platform/service/interrupt_manager
+include:
+- path: inc/arm
+  file_list:
+  - path: cmsis_nvic_virtual.h
+source:
+- path: src/sl_interrupt_manager_cortexm.c
+provides:
+- name: interrupt_manager_arch
+  condition: [device_cortexm]
+requires:
+- name: device_cortexm
+define:
+- name: CMSIS_NVIC_VIRTUAL
+- name: CMSIS_NVIC_VIRTUAL_HEADER_FILE
+  value: '"cmsis_nvic_virtual.h"'

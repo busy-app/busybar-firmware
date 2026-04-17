@@ -1,0 +1,139 @@
+package: zigbee
+description: A component implementing the client-side CLI functionality of the Green Power cluster.
+label: Green Power Client CLI
+quality: production
+id: zigbee_green_power_client_cli
+category: Zigbee|Green Power
+provides:
+- name: zigbee_green_power_client_cli
+source:
+- path: app/framework/plugin/green-power-client/green-power-client-cli.c
+  condition:
+  - cli
+  - zigbee_green_power_client
+- path: app/framework/plugin/green-power-client/green-power-client.c
+  condition:
+  - cli
+  - zigbee_green_power_client
+- path: app/framework/plugin/green-power-common/green-power-cli.c
+  condition:
+  - cli
+  unless:
+  - zigbee_green_power_client
+include:
+- path: app/framework/plugin/green-power-client
+  file_list:
+  - path: green-power-client.h
+    condition:
+    - zigbee_green_power_client
+- path: stack/gp
+  file_list:
+  - path: sli-gp-proxy-table.h
+    condition:
+    - zigbee_gp
+- path: stack/include
+  file_list:
+  - path: gp-proxy-table.h
+    condition:
+    - zigbee_gp
+template_contribution:
+- name: component_catalog
+  value: zigbee_green_power_client_cli
+- name: cli_group
+  value:
+    group: plugin
+    name: green-power-client
+    help: green-power-client related commands
+- name: cli_command
+  value:
+    group: green-power-client
+    name: set-proxy-entry
+    handler: sl_zigbee_af_green_power_client_set_proxy_entry
+    help: Sets a proxy table entry.
+    argument:
+    - type: uint8
+      help: Index to proxy table
+    - type: uint32
+      help: GPD Source ID
+    - type: uint16
+      help: Sinks node address
+    - type: uint32
+- name: cli_command
+  value:
+    group: green-power-client
+    name: add-sink
+    handler: sl_zigbee_af_green_power_client_add_sink
+    help: Adds a sink for a given GPD.
+    argument:
+    - type: uint32
+      help: GPD Source ID
+    - type: hex
+      help: Sinks IEEE address
+- name: cli_command
+  value:
+    group: green-power-client
+    name: add-group-sink
+    handler: sl_zigbee_af_green_power_client_add_groupcast_sink
+    help: Adds a groupcast sink for a given GPD.
+    argument:
+    - type: uint32
+      help: GPD Source ID
+    - type: uint16
+      help: Sink group
+- name: cli_command
+  value:
+    group: green-power-client
+    name: rm-gpd
+    handler: sl_zigbee_af_green_power_client_remove_proxy_table_entry
+    help: Removes a given GPD from the proxy table.
+    argument:
+    - type: uint32
+      help: GPD Source ID
+- name: cli_command
+  value:
+    group: green-power-client
+    name: rm-sink
+    handler: sl_zigbee_af_green_power_client_add_sink
+    help: Removes a sink for a given GPD.  If it is the last sink, removes the proxy table entry.
+    argument:
+    - type: uint32
+      help: GPD Source ID
+    - type: hex
+      help: Sinks IEEE address
+- name: cli_command
+  value:
+    group: green-power-client
+    name: print-proxy-table
+    handler: sl_zigbee_af_green_power_client_print_proxy_table
+    help: Prints the proxy table.
+- name: cli_command
+  value:
+    group: green-power-client
+    name: clear-proxy-table
+    handler: sl_zigbee_af_green_power_client_clear_proxy_table_command
+    help: Clears the proxy table.
+- name: cli_command
+  value:
+    group: green-power-client
+    name: duplicate-filter-test
+    handler: sl_zigbee_af_green_power_client_duplicate_filtering_test
+    help: Used to instrument the current device receiving a message, in order to test the duplicate message filtering functionality.
+    argument:
+    - type: uint8
+    - type: uint32
+      help: Source ID of the fake incoming message
+    - type: uint8
+- name: cli_command
+  value:
+    group: green-power-client
+    name: set-key
+    handler: sl_zigbee_af_green_power_client_set_key
+    help: Used to set the key for a proxy table entry.
+    argument:
+    - type: uint8
+    - type: hex
+      help: Source ID of the fake incoming message
+metadata:
+  sbom:
+    license: MSLA
+root_path: zigbee

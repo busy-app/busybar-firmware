@@ -1,0 +1,26 @@
+id: "bluetooth_feature_sm"
+label: "Security Manager"
+package: bluetooth_le_host
+description: >
+  Bluetooth security manager (SM) feature
+category: Bluetooth|Bluetooth Host (Stack)|Features with Commands and Events
+quality: "production"
+requires:
+- name: "bluetooth_stack"
+- name: "bluetooth_feature_bonding_database"
+- name: "bluetooth_crypto"
+recommends:
+- id: "bluetooth_feature_builtin_bonding_database"
+  vendor: silabs
+provides:
+- name: "bluetooth_feature_sm"
+template_contribution:
+- name: component_catalog
+  value: bluetooth_feature_sm
+documentation:
+  docset: bluetooth
+  document: bluetooth-stack-api/sl-bt-sm
+metadata:
+  sbom:
+    license: MSLA
+root_path: bluetooth_le_host

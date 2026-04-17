@@ -1,0 +1,174 @@
+id: SIWG917Y121MGNB
+package: platform_siwx91x
+description: Silicon Labs CMSIS-Device part headers for SIWG917Y121MGNB.
+category: Platform|Device|Si91x|MCU|Family|SIWG917Y
+ui_hints:
+  visibility: never
+quality: production
+define:
+- name: SIWG917Y121MGNB
+  unless:
+  - device_content_override
+- name: SLI_SI917
+  value: '1'
+- name: SLI_SI917B0
+  value: '1'
+- name: SLI_SI91X_MCU_ENABLE_FLASH_BASED_EXECUTION
+  value: '1'
+- name: SLI_SI91X_MCU_INTERNAL_LDO_FOR_PSRAM
+  value: '1'
+- name: SL_SI91X_ACX_MODULE
+  value: '1'
+- name: SRAM_BASE
+  value: 0x0cUL
+  unless:
+  - rsilib_board
+- name: SRAM_SIZE
+  value: 0x2fc00UL
+  unless:
+  - rsilib_board
+- name: SLI_SI91X_MCU_CONFIG_RADIO_BOARD_BASE_VER
+  unless:
+  - rsilib_board
+- name: SLI_SI91X_MCU_CONFIG_RADIO_BOARD_VER2
+  unless:
+  - rsilib_board
+- name: SLI_SI91X_DEVICE_WITH_INT_RF_SWITCH
+  value: '1'
+source:
+- path: components/device/silabs/si91x/mcu/core/chip/src/system_si91x.c
+- path: components/device/silabs/si91x/mcu/core/chip/src/startup_si91x.c
+  unless:
+  - siwx917_soc_custom_startup
+provides:
+- name: siwg917y121mgnb
+- name: device
+- name: device_cortexm
+- name: device_si91x
+- name: device_family_siwg917
+- name: si91x_platform
+- name: device_arm
+- name: cortexm4
+- name: armv7em
+- name: device_has_mvp
+- name: device_compute_mvp
+- name: device_supports_psram
+- name: device_has_stacked_flash
+- name: device_has_mpu
+- name: device_is_module
+- name: device_no_antenna
+requires:
+- name: rsilib_chip
+- name: cmsis_common
+  condition:
+  - freertos
+- name: cmsis_core
+- name: romdriver_clks
+- name: si91x_mem_config
+- name: sl_si91x_mcu
+- name: board_configuration_headers
+- name: wiseconnect_toolchain_plugin
+- name: psram_configuration_headers
+  condition:
+  - rsilib_board
+- name: freertos_config
+  condition:
+  - freertos
+- name: si91x_32kHz_external_oscillator
+- name: opn_config
+recommends:
+- id: si91x_mem_config_1
+  vendor: silabs
+- id: trustzone_unaware
+  vendor: silabs
+template_contribution:
+- name: device_opn
+  value: SIWG917Y121MGNB
+- name: device_arch
+  value: armv7em
+- name: device_cpu
+  value: cortexm4
+- name: device_family
+  value: siwg917y
+- name: device_fpu
+  value: true
+- name: device_mpu
+  value: true
+- name: default_stack_size
+  value: 3072
+- name: default_heap_size
+  value: 7168
+- name: nvm3_size
+  value: 65536
+- name: psram_present
+  value: 1
+- name: device_psram_addr
+  value: 167772160
+- name: device_psram_size
+  value: 2097152
+- name: flash_present
+  value: 1
+- name: device_flash_addr
+  value: 136323072
+  priority: -1
+  condition:
+  - si91x_mem_config_1
+- name: device_flash_size
+  value: 2088960
+  priority: -1
+  condition:
+  - si91x_mem_config_1
+- name: device_flash_addr
+  value: 136323072
+  priority: -1
+  condition:
+  - si91x_mem_config_2
+- name: device_flash_size
+  value: 2088960
+  priority: -1
+  condition:
+  - si91x_mem_config_2
+- name: device_flash_addr
+  value: 136323072
+  priority: -1
+  condition:
+  - si91x_mem_config_3
+- name: device_flash_size
+  value: 2088960
+  priority: -1
+  condition:
+  - si91x_mem_config_3
+- name: device_flash_page_size
+  value: 256
+- name: device_ram_addr
+  value: 12
+tag:
+- device:opn:siwg917y121mgnb
+toolchain_settings:
+- option: device_opn
+  value: siwg917y121mgnb
+- option: architecture
+  value: armv7e-m
+- option: cpu
+  value: cortex-m4
+- option: fpu
+  value: fpv4-sp
+metadata:
+  sbom:
+    license: MSLA
+  device:
+    memory:
+    - name: Stacked PSRAM
+      size: 2097152
+      start: 167772160
+      type: volatile
+    - name: Main Flash
+      page_size: 256
+      size: 8388608
+      start: 136323072
+      type: non-volatile
+    - name: RAM
+      size: 196608
+      start: 12
+      type: volatile
+    opn: siwg917y121mgnb

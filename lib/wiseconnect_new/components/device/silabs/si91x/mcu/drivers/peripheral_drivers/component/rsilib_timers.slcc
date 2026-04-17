@@ -1,0 +1,23 @@
+id: rsilib_timers
+label: TIMERS API
+package: platform_siwx91x
+description: >
+  Timers Peripheral API's
+category: Device|Si91x|MCU|Internal|RSI Peripheral Drivers
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+ui_hints:
+  visibility: never
+component_root_path: "components/device/silabs/si91x/mcu/drivers/peripheral_drivers"
+source:
+  - path: "src/rsi_timers.c"
+include:
+  - path: "inc"
+    file_list:
+    - path: "rsi_timers.h"
+provides:
+  - name: rsilib_timers
+define: 
+  - name: TIMER_ROMDRIVER_PRESENT

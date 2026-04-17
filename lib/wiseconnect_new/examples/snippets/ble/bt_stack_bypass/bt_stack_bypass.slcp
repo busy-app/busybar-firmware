@@ -1,0 +1,96 @@
+project_name: bt_stack_bypass
+package: bluetooth_le_siwx91x_app
+quality: production
+label: BLE - BT_STACK_BYPASS
+category: Example|BLE
+description: 'Demonstrates how to configure the Raw HCI commands through uart.
+
+  '
+filter:
+- name: Wireless Technology
+  value:
+  - BLE
+- name: Project Difficulty
+  value:
+  - Beginner
+source:
+- path: app.c
+include:
+- path: .
+  file_list:
+  - path: app.h
+  - path: ble_config.h
+define:
+- name: SL_SI91X_PRINT_DBG_LOG
+- name: SLI_SI91X_MCU_INTERFACE
+- name: SLI_SI91X_MCU_MOV_ROM_API_TO_FLASH
+component:
+- id: si91x_memory_default_config
+- id: si91x_debug
+- id: rsilib_userconfig
+- id: romdriver_egpio
+- id: rsilib_clock_update
+- id: udma_linker_config
+- id: syscalls
+- id: sl_usart
+- id: sl_clock_manager
+requires:
+- name: sl_main
+- name: network_manager
+- name: basic_network_config_manager
+- name: wiseconnect_common
+- name: wifi
+- name: ble
+- name: sl_si91x_internal_stack
+- name: sl_si91x_basic_buffers
+- name: wifi_resources
+- name: freertos
+- name: freertos_heap_4
+- name: slist
+- name: sl_si91x_soc_soft_reset
+- name: iostream_retarget_stdio
+  condition:
+  - device_has_devinfo
+- name: iostream_recommended_stream
+  condition:
+  - device_has_devinfo
+- name: iostream_stdlib_config
+  condition:
+  - device_has_devinfo
+- name: device_init
+  condition:
+  - device_has_devinfo
+- name: emlib_common
+  condition:
+  - device_has_devinfo
+- name: emlib_ldma
+  condition:
+  - device_has_devinfo
+- name: device_needs_ram_execution
+  condition:
+  - si91x_common_flash
+toolchain_settings: []
+configuration:
+- name: SL_BOARD_ENABLE_VCOM
+  value: '1'
+- name: SL_USART_MODE
+  value: SL_USART_MODE_ASYNCHRONOUS
+readme:
+- path: readme.md
+other_file:
+- path: resources/readme/blenewappsoc.png
+- path: resources/readme/consoleprints.png
+ui_hints:
+  highlight:
+  - path: readme.md
+    focus: true
+post_build:
+  profile: wiseconnect_soc
+sdk_extension:
+- id: wiseconnect3_sdk
+  vendor: silabs
+  version: 4.0.1
+sdk:
+  id: simplicity_sdk
+  vendor: silabs
+  version: 2025.12.2

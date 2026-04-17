@@ -1,0 +1,46 @@
+id: "sl_wisun_br_agent_service"
+label: "Wi-SUN SoC Border Router Agent Service"
+package: "wisun_sdk"
+description: >
+  This component contains functionalities of Wi-SUN SoC Border Router Agent Service.
+  The service provides a TCP server that listens for incoming connections from a remote Border Router Agent client.
+  It allows remote management and monitoring of the Border Router through a defined interface.
+category: "Wi-SUN|Wi-SUN Services"
+quality: "evaluation"
+metadata:
+  sbom:
+    license: Zlib
+root_path: "wisun_sdk/component/br_agent_service"
+provides:
+- name: "sl_wisun_br_agent_service"
+
+source:
+- path: "sl_wisun_br_agent_service.c"
+
+include:
+- path: "."
+  file_list:
+  - path: "sl_wisun_br_agent_service.h"
+
+config_file:
+- path: "config/sl_wisun_br_agent_service_config.h"
+
+requires:
+- name: "sl_wisun_app_core"
+- name: "sl_wisun_app_setting"
+- name: "sl_string"
+- name: "memory_manager"
+- name: "wisun_br_stack"
+
+ui_hints:
+  visibility: never
+#-------------- Template Contribution ----------------
+template_contribution:
+- name: "event_handler"
+  value:
+    event: "internal_app_init"
+    include: "sl_wisun_br_agent_service.h"
+    handler: "sl_wisun_br_agent_service_init"
+#---------------- Component Catalog ------------------
+- name: component_catalog
+  value: wisun_br_agent_service

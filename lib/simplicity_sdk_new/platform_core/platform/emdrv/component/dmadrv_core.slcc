@@ -1,0 +1,28 @@
+id: dmadrv_core
+label: DMADRV Core
+package: platform_core
+description: >
+  The core implementation for the Direct Memory Access (DMA) driver.
+category: Platform|Driver
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+ui_hints:
+  visibility: never
+provides:
+- name: dmadrv_core
+  condition: [device_series_2]
+- name: dmadrv_core
+  condition: [device_generic_family_sixx301]
+requires:
+- name: dmadrv_core
+- name: hal_generic_ldma
+  condition: [device_has_ldma]
+- name: clock_manager_runtime
+  condition: [device_series_3]
+- name: ecode
+- name: enum
+- name: sl_core
+- name: code_classification
+root_path: platform_core

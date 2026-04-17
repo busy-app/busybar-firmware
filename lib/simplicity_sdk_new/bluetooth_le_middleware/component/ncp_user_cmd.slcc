@@ -1,0 +1,29 @@
+id: ncp_user_cmd
+label: General BGAPI User Commands
+package: bluetooth_le_middleware
+description: >
+  Demonstrates the communication between an NCP host and NCP target using
+  BGAPI user messages, responses and events. Can be used as a starting point
+  for creating custom commands or for testing purposes.
+category: Bluetooth|NCP Interface
+metadata:
+  sbom:
+    license: Zlib
+quality: production
+root_path: bluetooth_le_middleware/common/ncp_user_cmd
+source:
+- path: ncp_user_cmd.c
+  project:
+    transfer_ownership: true
+other_file:
+- path: ncp_user_cmd.h
+  project:
+    transfer_ownership: true
+provides:
+- name: ncp_user_cmd
+requires:
+- name: memory_manager
+- name: app_timer
+documentation:
+  docset: bluetooth
+  document: bluetooth-service-api/ncp-user-cmd

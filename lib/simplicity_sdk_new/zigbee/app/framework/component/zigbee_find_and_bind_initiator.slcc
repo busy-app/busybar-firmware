@@ -1,0 +1,55 @@
+package: zigbee
+description: This component provides the functionality to find devices that are performing the find and bind process for a target, and then optionally attempts to create a binding to those devices.
+label: Find and Bind Initiator
+quality: production
+id: zigbee_find_and_bind_initiator
+category: Zigbee|Zigbee 3.0
+provides:
+- name: zigbee_find_and_bind_initiator
+config_file:
+- path: app/framework/plugin/find-and-bind-initiator/config/find-and-bind-initiator-config.h
+source:
+- path: app/framework/plugin/find-and-bind-initiator/find-and-bind-initiator.c
+- path: app/framework/plugin/find-and-bind-initiator/find-and-bind-initiator-cli.c
+  condition:
+  - cli
+- path: app/framework/plugin/find-and-bind-initiator/find-and-bind-initiator-cb.c
+include:
+- path: app/framework/plugin/find-and-bind-initiator
+  file_list:
+  - path: find-and-bind-initiator.h
+template_contribution:
+- name: component_catalog
+  value: zigbee_find_and_bind_initiator
+- name: zigbee_af_callback
+  value:
+    callback_type: event_init
+    function_name: sli_zigbee_af_find_and_bind_initiator_init_callback
+- name: cluster_service
+  value:
+    cluster_id: '0x0003'
+    mfg_id: NOT_MFG_SPECIFIC
+    side: CLIENT
+    service_function: sl_zigbee_af_identify_cluster_client_command_parse
+- name: cli_group
+  value:
+    name: find-and-bind
+    group: plugin
+    help: Find and bind related commands.
+- name: cli_command
+  value:
+    name: initiator
+    group: find-and-bind
+    handler: sl_zigbee_af_find_and_bind_initiator_start_command
+    help: Makes this node start the initiator part of the finding and binding process.
+    argument:
+    - type: uint8
+      help: The endpoint on which to begin the Finding and Binding initiator process
+
+documentation:
+  docset: zigbee
+  document: zigbee-af-api/find-and-bind-initiator
+metadata:
+  sbom:
+    license: MSLA
+root_path: zigbee

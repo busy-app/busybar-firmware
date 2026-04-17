@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="dir_2391b89f2879365d74a63a728bba7d01" kind="dir">
+    <compoundname>/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi</compoundname>
+    <innerdir refid="dir_d0da292a01e2631d4fa972006f72b194">/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc</innerdir>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/"/>
+  </compounddef>
+</doxygen>

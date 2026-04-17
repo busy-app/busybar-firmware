@@ -1,0 +1,649 @@
+/***************************************************************************//**
+ * GCC Linker script for Silicon Labs devices
+ *******************************************************************************
+ * # License
+ * <b>Copyright 2020 Silicon Laboratories Inc. www.silabs.com</b>
+ *******************************************************************************
+ *
+ * SPDX-License-Identifier: Zlib
+ *
+ * The licensor of this software is Silicon Laboratories Inc.
+ *
+ * This software is provided 'as-is', without any express or implied
+ * warranty. In no event will the authors be held liable for any damages
+ * arising from the use of this software.
+ *
+ * Permission is granted to anyone to use this software for any purpose,
+ * including commercial applications, and to alter it and redistribute it
+ * freely, subject to the following restrictions:
+ *
+ * 1. The origin of this software must not be misrepresented; you must not
+ *    claim that you wrote the original software. If you use this software
+ *    in a product, an acknowledgment in the product documentation would be
+ *    appreciated but is not required.
+ * 2. Altered source versions must be plainly marked as such, and must not be
+ *    misrepresented as being the original software.
+ * 3. This notice may not be removed or altered from any source distribution.
+ *
+ ******************************************************************************/
+
+{#-
+  Device specific sizes and addresses. These variables describes the physical
+  memory of the device.
+#}
+{%- set sram_addr = device_ram_addr | first %}
+{%- set sram_size = device_ram_size | first %}
+{%- if flash_present %}
+	{%- set flash_addr = device_flash_addr | first %}
+	{%- set flash_size = device_flash_size | first %}
+{%- endif %}
+{%- set flash_page_size = device_flash_page_size | first %}
+
+
+{%- if psram_present %}
+	{%- set psram_addr = device_psram_addr | first %}
+	{%- set psram_size = device_psram_size | first %}
+{%- endif %}
+
+{%- if udma_enable %}
+  {%- set udma0_main_size = udma0_size | sum %}
+  {%- set udma0_start_addr = udma0 | sum %}
+  {%- set udma1_main_size = udma1_size | sum %}
+  {%- set udma1_start_addr = udma1 | sum %}
+{%- endif %}
+
+{#-
+  Application specific sizes. Here we start to calculate the application view
+  of the physical memory.
+#}
+{%- if flash_present %}
+	{%- set app_flash_start = flash_addr %}
+	{%- set app_flash_end = flash_addr + flash_size %}
+{%- endif %}
+{%- set app_ram_start = sram_addr %}
+{%- set app_ram_end = sram_size %}
+
+{%- if psram_present %}	
+	{%- set app_psram_start = psram_addr %}
+
+	{#- This linker file is only used when wiseconnect_toolchain_psram_linker is installed #}
+
+	{#- Always apply 0x1000 offset (4096 in decimal) to skip reserved area #}
+
+	{%- set psram_start_offset = 4096 %}
+
+	{%- set app_psram_start = psram_addr + psram_start_offset %}
+
+	{%- set app_psram_end = psram_addr + psram_size %}
+
+{%- endif %}
+
+{#-
+  Calculate application flash and ram size based on start and end address.
+#}
+{%- if flash_present %}
+{%- set app_flash_size = app_flash_end - app_flash_start %}
+{%- endif %}
+{%- set app_ram_size = app_ram_end - app_ram_start %}
+
+{%- if udma_enable %}
+  {%- set udma_buffer = udma_buffer | sum %}
+  {%- set app_ram_size = app_ram_size - udma_buffer %}
+  {%- set udma0_start_addr = app_ram_size + app_ram_start %}
+  {%- set udma1_start_addr = udma1_start_addr -  udma_buffer%}
+{%- endif %}
+
+{%- if psram_present %}	
+	{%- set app_psram_size = app_psram_end - app_psram_start %}
+{%- endif %}
+
+{%- set rtt = 0 %}
+{% if linker_rtt_section is defined %}
+{%-   set rtt = 1 %}
+{% endif %}
+
+{%- if nvm3_flash_size %}
+	{%- set nvm_size = nvm3_size | first%}
+	{%- set app_flash_size = app_flash_size - nvm_size %}
+{%- endif %}
+
+{%- if nvm3_enable or littlefs_enable %}
+	{%- set nvm_app_max_flash_size = max_flash_size | first %}
+{%- endif %}
+
+ MEMORY
+ {
+{%- if flash_present %}
+   rom   (rx)  : ORIGIN = 0x{{ '%0x' % app_flash_start }}, LENGTH = 0x{{ '%0x' % app_flash_size }}
+{% endif %}
+   ram   (rwx) : ORIGIN = 0x{{ '%0x' % app_ram_start }}, LENGTH = 0x{{ '%0x' % app_ram_size }}
+   {%- if psram_present %}
+   psram (rwx) : ORIGIN = 0x{{ '%0x' % app_psram_start }}, LENGTH = 0x{{ '%0x' % app_psram_size }}
+   {%- endif %}
+ }
+
+{%- if udma_enable %}
+ MEMORY
+ {
+   udma0   (rwx)  : ORIGIN = 0x{{ '%0x' % udma0_start_addr }}, LENGTH = 0x{{ '%0x' % udma0_main_size }}
+   udma1   (rwx)  : ORIGIN = 0x{{ '%0x' % udma1_start_addr }}, LENGTH = 0x{{ '%0x' % udma1_main_size }}
+ }
+{%- endif %}
+
+{%- if (nvm3_enable and text_segment_in_psram) %}
+_last_rom_location = ORIGIN(rom);
+{%- endif %}
+{%- if psram_present and psram_linker_config_enabled %}
+_last_psram_location = ORIGIN(psram);
+_last_ram_location = ORIGIN(ram);
+{%- endif %}
+
+ENTRY(Reset_Handler)
+ 
+SECTIONS
+{
+	.text :
+	{
+		KEEP(*(.isr_vector))
+		. = ALIGN(32);
+		{% if (psram_present and psram_linker_config_enabled and ram_execution) %}
+		KEEP(*(.reset_handler))	
+        *(EXCLUDE_FILE(*/sl_si91x_bus.* */sl_si91x_driver.* */sli_wifi_command_engine.* */sli_si91x_wifi_event_handler.* */rsi_deepsleep_soc.* */rsi_hal_mcu_m4_ram.* */rsi_hal_mcu_m4_rom.* */sl_sleeptimer.* */sl_sleeptimer_hal_si91x_sysrtc.* */rsi_sysrtc.* */sl_si91x_low_power_tickless_mode.* */croutine.* */event_groups.* */list.* */queue.* */stream_buffer.* */tasks.* */timers.* */cmsis_os2.* */freertos_umm_malloc_host.* */malloc_buffers.* */port.* */heap_4.* */sl_si91x_psram.* */rsi_qspi.* */rsi_pll.* */rsi_egpio.* */UDMA.* */sl_rsi_utility.* */ipmu_apis.* */rsi_d_cache.* */sli_si91x_power_manager.* */sl_si91x_power_manager.* */sl_si91x_clock_manager.* */sli_si91x_clock_manager.* */sl_platform.*) .text*)
+		 {%- else %}
+			*(EXCLUDE_FILE(*/UDMA.* */rsi_d_cache.*).text*)
+		{% endif %}        
+			 KEEP(*(.init))
+			 KEEP(*(.fini))	
+        /* Align before rodata for flash line efficiency */
+        . = ALIGN(32);
+        *(.rodata*)
+        *(.rodata.*)
+
+		/* .ctors */
+		*/crtbegin.*(.ctors)
+		*/crtbegin?.*(.ctors)
+		*(EXCLUDE_FILE(*/crtend?.* */crtend.*) .ctors)
+		*(SORT(.ctors.*))
+		*(.ctors)
+		
+		/* .dtors */
+		*/crtbegin.*(.dtors)
+		*/crtbegin?.*(.dtors)
+		*(EXCLUDE_FILE(*/crtend?.* */crtend.*) .dtors)
+		*(SORT(.dtors.*))
+		*(.dtors)
+		
+		
+		KEEP(*(.eh_fram e*))
+	{%- if psram_present and text_segment_in_psram %}
+		_last_psram_location = .;
+	} > psram	
+	{%- elif flash_present %}			
+	} > rom 
+	{%- else %}			
+	} > ram 
+	{% endif %}	
+	
+	.ARM.extab : 
+	{
+		*(.ARM.extab* .gnu.linkonce.armextab.*)
+	{%- if psram_present and text_segment_in_psram %}
+		_last_psram_location = .;
+	} > psram	
+	{%- elif flash_present %}			
+	} > rom 
+	{%- else %}			
+	} > ram 
+	{% endif %}
+	
+	__exidx_start = .;
+	.ARM.exidx :
+	{
+		*(.ARM.exidx* .gnu.linkonce.armexidx.*)
+	{%- if psram_present and text_segment_in_psram %}
+		_last_psram_location = .;
+	} > psram	
+	{%- elif flash_present %}			
+	} > rom 
+	{%- else %}			
+	} > ram
+	{% endif %} 
+	__exidx_end = .;
+	__etext = .;
+
+{%- if (nvm3_enable and text_segment_in_psram) %}
+	__nvm3text = _last_rom_location;
+{% endif %}	
+	
+{% if data_segment_in_psram %}
+	{% if psram_present and psram_linker_config_enabled %}
+		_slpcode = __etext;
+
+		. = _last_ram_location;
+
+		/* Power save & PSRAM driver code */
+		.sleep_psram_driver :
+		{
+			__sleep_code_start__ = .;
+			/* _scode is used in code startup code */
+			_scode = __sleep_code_start__;
+			. = ALIGN(4);
+		{% if ram_execution %}	
+			KEEP(*(.ramVector))
+	    	*/rsi_deepsleep_soc.*(.text*)
+	    	*/sl_si91x_psram.*(.text*)
+	    	*/sl_si91x_psram_handle.*(.text*)
+	    	*/rsi_qspi.*(.text*)
+	    	*/rsi_pll.*(.text*)
+	    	*/rsi_egpio.*(.text*)
+	    	*/rsi_deepsleep_soc.*(.data*)
+	    	*/sl_si91x_psram.*(.data*)
+	    	*/sl_si91x_psram_handle.*(.data*)
+	    	*/rsi_qspi.*(.data*)
+	    	*/rsi_pll.*(.data*)
+	    */rsi_egpio.*(.data*)
+		    */rsi_hal_mcu_m4_ram.*(.text*)
+		    */rsi_hal_mcu_m4_rom.*(.text*)
+		    */sl_si91x_driver.*(.text*)
+		    */sl_si91x_bus.*(.text*)
+		    */sl_sleeptimer.*(.text*)
+		    */sl_sleeptimer_hal_si91x_sysrtc.*(.text*)
+		    */rsi_sysrtc.*(.text*)
+		    */sl_si91x_low_power_tickless_mode.*(.text*)
+		    */sli_wifi_command_engine.*(.text*)
+		    */sli_si91x_wifi_event_handler.*(.text*)
+		    */croutine.*(.text*)
+		    */event_groups.*(.text*)
+		    */list.*(.text*)
+		    */queue.*(.text*)
+		    */cmsis_os2.*(.text*)
+		    */stream_buffer.*(.text*)
+		    */tasks.*(.text*)
+		    */timers.*(.text*)
+		    */freertos_umm_malloc_host.*(.text*)
+		    */malloc_buffers.*(.text*)
+		    */sl_rsi_utility.*(.text*)
+		    */port.*(.text*)
+		    */heap_4.*(.text*)
+		    */ipmu_apis.*(.text*)
+		    */rsi_d_cache.*(.text*)
+		    */sl_si91x_power_manager.*(.text*)
+		    */sli_si91x_power_manager.*(.text*)
+		    */sl_si91x_clock_manager.*(.text*)
+		    */sli_si91x_clock_manager.*(.text*)
+		    */sl_si91x_power_manager.*(.data*)
+		    */sli_si91x_clock_manager.*(.data*)
+		    */sl_platform.*(.text*)
+		    */UDMA.*(.text*)
+		{% else %}
+		    */UDMA.*(.text*)
+		    */rsi_d_cache.*(.text*)
+		{% endif %}
+		    /* ipmu calibration data */
+		    *(.common_ipmu_ram*)    	    	    
+	    	__sleep_code_end__ = .;
+			/* _ecode is used in code startup code */
+			_ecode = __sleep_code_end__;	
+	    	_last_ram_location = .;
+	  	{%- if text_segment_in_psram %}
+		} > ram AT> psram
+
+		. = _last_ram_location;
+		_classified_text_ = __etext + (__sleep_code_end__ - __sleep_code_start__);
+
+		.classified_text :
+		{
+		    _classified_text_section_start_ = .;
+		    . = ALIGN(4);
+		    *(text_*)
+		    _classified_text_section_end_ = .;
+		    _last_ram_location = .;
+		} > ram AT> psram
+		
+        . = _last_ram_location;
+        _classified_data_ = __etext + (_classified_text_section_end_ - __sleep_code_start__);
+	
+		.classified_data :
+		{
+		    _classified_data_section_start_ = .;
+		    . = ALIGN(4);
+		    *(data_*)
+		    _classified_data_section_end_ = .;
+		    _last_ram_location = .;
+		} > ram AT> psram
+    
+	    /* _sidata is used in code startup code */
+		_sidata = __etext + (_classified_data_section_end_ - __sleep_code_start__);
+		_last_psram_location = _sidata;
+		  {%- elif data_segment_in_psram %}
+		  } > ram AT> rom
+
+		 /* _sidata is used in code startup code */
+		_sidata = __etext + (__sleep_code_end__ - __sleep_code_start__);
+		_last_ram_location = _sidata;
+
+	  	{%- elif flash_present %}
+	  	} > ram AT> rom
+			{%- else %}
+	  	} > ram
+
+	  	/* _sidata is used in code startup code */
+		_sidata = __etext + (__sleep_code_end__ - __sleep_code_start__);
+	    {% endif %}
+	{%- else %}
+	/* _sidata is used in code startup code */
+	_sidata = __etext;
+	{% endif %}
+{%- else %}
+	/* _sidata is used in code startup code */
+	_sidata = __etext;
+{% endif %}
+	
+	{%- if psram_present and psram_linker_config_enabled %}
+			{%- if data_segment_in_psram %}
+	. = _last_psram_location;	
+			{%- else %}
+	. = _last_ram_location;
+			{% endif %}
+	{% endif %} 
+	
+	{%- if psram_present and psram_linker_config_enabled %} 	
+	.data . :
+	{%- else %}
+	.data :
+	{% endif %}
+	{
+		__data_start__ = .;
+		
+		/* _sdata is used in startup code */
+		_sdata = __data_start__;
+
+    {%- if (ram_execution and not data_segment_in_psram) %}
+			KEEP(*(.ramVector))
+	    	*/rsi_deepsleep_soc.*(.text*)
+	    	*/sl_si91x_psram.*(.text*)
+	    	*/sl_si91x_psram_handle.*(.text*)
+	    	*/rsi_qspi.*(.text*)
+	    	*/rsi_pll.*(.text*)
+	    	*/rsi_egpio.*(.text*)
+	    	*/rsi_deepsleep_soc.*(.data*)
+	    	*/sl_si91x_psram.*(.data*)
+	    	*/sl_si91x_psram_handle.*(.data*)
+	    	*/rsi_qspi.*(.data*)
+	    	*/rsi_pll.*(.data*)
+	    	*/rsi_egpio.*(.data*)
+		    */rsi_hal_mcu_m4_ram.*(.text*)
+		    */rsi_hal_mcu_m4_rom.*(.text*)
+		    */sl_si91x_driver.*(.text*)
+		    */sl_si91x_bus.*(.text*)
+            */UDMA.*(.text*)
+		    */sl_sleeptimer.*(.text*)
+		    */sl_sleeptimer_hal_si91x_sysrtc.*(.text*)
+		    */rsi_sysrtc.*(.text*)
+		    */sl_si91x_low_power_tickless_mode.*(.text*)
+		    */sli_wifi_command_engine.*(.text*)
+		    */sli_si91x_wifi_event_handler.*(.text*)
+		    */croutine.*(.text*)
+		    */event_groups.*(.text*)
+		    */list.*(.text*)
+		    */queue.*(.text*)
+		    */cmsis_os2.*(.text*)
+		    */stream_buffer.*(.text*)
+		    */tasks.*(.text*)
+		    */timers.*(.text*)
+		    */freertos_umm_malloc_host.*(.text*)
+		    */malloc_buffers.*(.text*)
+		    */sl_rsi_utility.*(.text*)
+		    */port.*(.text*)
+		    */heap_4.*(.text*)
+		    */rsi_d_cache.*(.text*)
+		    */sl_platform.*(.text*)
+		    */sl_si91x_power_manager.*(.text*)
+		    */sli_si91x_power_manager.*(.text*)
+		    */sl_si91x_clock_manager.*(.text*)
+		    */sli_si91x_clock_manager.*(.text*)
+	  		*(.data*)
+	  		/* ipmu calibration data */
+	  		*(.common_ipmu_ram*)
+	  {% elif (not data_segment_in_psram and not ram_execution) %}
+	      */UDMA.*(.text*)
+	      */rsi_d_cache.*(.text*)
+	      *(.data*)
+	      /* ipmu calibration data */
+	      *(.common_ipmu_ram*)
+	  {%- else %}
+        *(.data*)
+	  {% endif %}
+		  
+		. = ALIGN(4);
+		/* preinit data */
+		PROVIDE_HIDDEN (__preinit_array_start = .);
+		KEEP(*(.preinit_array))
+		PROVIDE_HIDDEN (__preinit_array_end = .);
+		
+		. = ALIGN(4);
+		/* init data */
+		
+		PROVIDE_HIDDEN (__init_array_start = .);
+		KEEP(*(SORT(.init_array.*)))
+		KEEP(*(.init_array))
+		PROVIDE_HIDDEN (__init_array_end = .);
+		
+		. = ALIGN(4);
+		/* finit data */
+		PROVIDE_HIDDEN (__fini_array_start = .);
+		KEEP(*(SORT(.fini_array.*)))
+		KEEP(*(.fini_array))
+		PROVIDE_HIDDEN (__fini_array_end = .);
+		
+		KEEP(*(.jcr*))
+		. = ALIGN(4);
+		/* All data end */
+		__data_end__ = .;
+		
+		/* _edata is used in startup code */
+		_edata = __data_end__;
+	{%- if psram_present and data_segment_in_psram and not text_segment_in_psram and flash_present %}
+		_last_psram_location = .;
+	} > psram	AT> rom
+	{%- elif psram_present and data_segment_in_psram and text_segment_in_psram %}
+		_last_psram_location = .;
+	} > psram
+	{%- elif psram_present and text_segment_in_psram %}	
+		_last_ram_location = .;	
+	} > ram AT> psram
+	{%- elif psram_present and psram_linker_config_enabled and flash_present %}
+		_last_ram_location = .;	
+	} > ram AT> rom
+	{%- elif flash_present %} 
+	} > ram AT> rom
+	{%- else %} 
+	} > ram
+	{% endif %}
+
+
+  {%- if psram_present and psram_linker_config_enabled and not bss_segment_in_psram %}
+	. = _last_psram_location;
+	_classified_bss_ = _last_ram_location;
+	
+	.classified_bss :
+	{
+		_classified_bss_section_start_ = .;
+		
+		. = ALIGN(4);
+		*(bss_to_psram*)
+		
+		_classified_bss_section_end_ = .;
+		_last_psram_location = .;
+	} > psram
+	{%- endif %}
+
+	{%- if psram_present and psram_linker_config_enabled %}
+			{%- if bss_segment_in_psram %}
+	. = _last_psram_location;	
+			{%- else %}
+	. = _last_ram_location;
+			{% endif %} 
+	{% endif %}	
+	
+	.bss (NOLOAD) :
+	{
+		. = ALIGN(4);
+		__bss_start__ = .;
+		*(.bss*)
+		*(COMMON)
+		. = ALIGN(4);
+		__bss_end__ = .;
+	{%- if psram_present and bss_segment_in_psram %}
+		_last_psram_location = .;
+	} > psram	
+	{%- elif psram_present and psram_linker_config_enabled %}
+		_last_ram_location = .;			
+	} > ram 
+	{%- else %} 
+	} > ram 
+	{% endif %}
+		
+	{%- if psram_present and psram_linker_config_enabled %}
+			{%- if stack_segment_in_psram %}
+	. = _last_psram_location;	
+			{%- else %}
+	. = _last_ram_location;
+			{% endif %}
+	{% endif %}
+	
+	.stack (NOLOAD):
+	{
+		__StackLimit = .;
+		KEEP(*(.stack*))
+		. = ALIGN(4);
+		__StackTop = .;
+		PROVIDE(__stack = __StackTop);
+	{%- if psram_present and stack_segment_in_psram %}
+		_last_psram_location = .;
+	} > psram	
+	{%- elif psram_present and psram_linker_config_enabled %}	
+		_last_ram_location = .;
+	} > ram		
+	{%- else %}			
+	} > ram
+	{% endif %}
+
+	{%- if psram_present and psram_linker_config_enabled %}
+			{%- if heap_segment_in_psram %}
+	. = _last_psram_location;	
+			{%- else %}
+	. = _last_ram_location;
+			{% endif %}
+	{% endif %}		
+  	.heap (COPY):
+  	{
+		__HeapBase = .;
+		__end__ = .;
+		end = __end__;
+		_end = __end__;
+		KEEP(*(.heap*))
+  		{%- if psram_present and heap_segment_in_psram %}
+	  	. = ORIGIN(psram) + LENGTH(psram);	
+		{%- else %}	
+		. = ORIGIN(ram) + LENGTH(ram);
+  		{% endif %}
+		__HeapLimit = .;
+  {%- if psram_present and heap_segment_in_psram %}
+  		_last_psram_location = .;
+  } > psram	
+  {%- else %}			
+  	} > ram
+  {% endif %}
+	__heap_size = __HeapLimit - __HeapBase;
+
+
+{%- if flash_present %}
+{%- if udma_enable %}
+	.udma_addr0 :
+	{
+		*(.udma_addr0*)
+	{%- if psram_present and text_segment_in_psram %}
+	} > udma0 AT> psram 
+	{%- else %}
+	} > udma0 AT> rom
+	{% endif %}
+
+	.udma_addr1 :
+	{
+		*(.udma_addr1*)
+	{%- if psram_present and text_segment_in_psram %}
+	} > udma1 AT> psram 
+	{%- else %}		
+	} > udma1 AT> rom 
+	{%- endif %}
+{%- endif %}	
+{% endif %}
+
+{%- if flash_present %}
+{%- if nvm3_enable %}
+  __ram_end__ = 0x{{ '%0x' % app_ram_start }} + 0x{{ '%0x' % app_ram_size }};
+  {%- if app_flash_size >= nvm_app_max_flash_size %}
+   __main_flash_end__ = 0x{{ '%0x' % app_flash_start }} + 0x{{ '%0x' % nvm_app_max_flash_size }};
+   {%- else %}
+   __main_flash_end__ = 0x{{ '%0x' % app_flash_start }} + 0x{{ '%0x' % app_flash_size }};
+  {% endif %}
+	   /* This is where we handle flash storage blocks. We use dummy sections for finding the configured
+   * block sizes and then "place" them at the end of flash when the size is known. */
+  .internal_storage1 (DSECT) : {
+    KEEP(*(.internal_storage1*))
+  } > rom
+  .nvm (DSECT) : {
+    KEEP(*(.simee*))
+  } > rom
+ 
+  linker_nvm_end = __main_flash_end__;
+  linker_nvm_begin = linker_nvm_end - SIZEOF(.nvm);
+  linker_nvm_size = SIZEOF(.nvm);
+  linker_storage_end = linker_nvm_begin;
+  __nvm3Base = linker_nvm_begin;	
+  linker_storage_begin = linker_storage_end - SIZEOF(.internal_storage1);
+  linker_storage_size = SIZEOF(.internal_storage1);
+ {%- if text_segment_in_psram %}
+  ASSERT((linker_storage_begin >= (__nvm3text + SIZEOF(.data))), "FLASH memory overflowed !")
+ {%- else %}
+  ASSERT((linker_storage_begin >= (__etext + SIZEOF(.data))), "FLASH memory overflowed !")
+ {%- endif %} 
+ 
+{%- endif %}  /* nvm3 enable*/
+{%- endif %}  /* Flash Present*/
+
+{%- if flash_present %}
+{%- if littlefs_enable %}
+{%- if nvm3_enable %}
+  __main_flash_end__ = linker_nvm_begin;
+{%- elif app_flash_size >= nvm_app_max_flash_size %}
+  __main_flash_end__ = 0x{{ '%0x' % app_flash_start }} + 0x{{ '%0x' % nvm_app_max_flash_size }};
+{%- else %}
+  __main_flash_end__ = 0x{{ '%0x' % app_flash_start }} + 0x{{ '%0x' % app_flash_size }};
+{%- endif %}
+	   /* This is where we handle littlefs flash storage blocks. We use dummy sections for finding the configured
+   * block sizes and then "place" them at the end of flash when the size is known. */
+  .internal_storage2 (DSECT) : {
+    KEEP(*(.internal_storage2*))
+  } > rom
+  .littlefs (DSECT) : {
+    KEEP(*(.ltfs*))
+  } > rom
+ 
+  linker_littlefs_end = __main_flash_end__;
+  linker_littlefs_begin = linker_littlefs_end - SIZEOF(.littlefs);
+  linker_littlefs_size = SIZEOF(.littlefs);
+  linker_storage2_end = linker_littlefs_begin;
+  __littlefsBase = linker_littlefs_begin;
+  linker_storage2_begin = linker_storage2_end - SIZEOF(.internal_storage2);
+  linker_storage2_size = SIZEOF(.internal_storage2);
+ {%- if text_segment_in_psram %}
+  ASSERT((linker_storage2_begin >= (__nvm3text + SIZEOF(.data))), "FLASH memory overflowed !")
+ {%- else %}
+  ASSERT((linker_storage2_begin >= (__etext + SIZEOF(.data))), "FLASH memory overflowed !")
+ {%- endif %}
+ 
+{%- endif %}  /* littlefs_enable */
+{%- endif %}  /* Flash Present */
+}

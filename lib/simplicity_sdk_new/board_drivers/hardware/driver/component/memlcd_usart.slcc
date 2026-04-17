@@ -1,0 +1,52 @@
+id: memlcd_usart
+package: board_drivers
+label: Memory LCD with usart SPI driver
+description: >
+  This component contains functions that can be used by a range of
+  Memory LCDs. These Memory LCDs have an SPI interface and can draw one or
+  more rows on the display at a time. This component is used by the
+  Monochrome (LS013B7DH03) and Color (LS013B7DH06 or LPM013M126A) Memory LCD Drivers.
+  This specific version uses the usart to drive the SPI.
+category: Platform|Board Drivers|Memory LCD|Peripheral Driver
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: board_drivers/hardware/driver/memlcd
+config_file:
+- path: config/memlcd_usart/sl_memlcd_usart_config.h
+  file_id: sl_memlcd_usart_config
+include:
+- path: inc
+  file_list:
+  - path: sl_memlcd.h
+- path: inc/memlcd_usart
+  file_list:
+  - path: sl_memlcd_spi.h
+source:
+- path: src/sl_memlcd.c
+- path: src/memlcd_usart/sl_memlcd_spi.c
+- path: src/sl_memlcd_display.c
+requires:
+- name: sleeptimer
+- name: udelay
+- name: status
+- name: hal_usart
+- name: clock_manager_runtime
+- name: gpio
+- name: memlcd_screen
+- name: code_classification
+provides:
+- name: memlcd_usart
+- name: memlcd_driver
+template_contribution:
+- name: component_catalog
+  value: memlcd_usart
+- name: code_classification_components
+  value: memlcd
+define:
+- name: SL_CODE_COMPONENT_MEMLCD
+  value: memlcd
+documentation:
+  docset: gecko-platform
+  document: platform-hardware-driver/memlcd

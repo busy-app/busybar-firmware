@@ -1,0 +1,30 @@
+#include "sl_component_catalog.h"
+#ifdef SL_CATALOG_KERNEL_PRESENT
+#include "app_rta_internal.h"
+#else // SL_CATALOG_KERNEL_PRESENT
+#include "app_rta_internal_bm.h"
+#endif // SL_CATALOG_KERNEL_PRESENT
+
+{%- set includes = [] -%} {# Deduplicate includes before printing #include statements -#}
+{%- for handler in app_rta_init %}
+{%- if 'include' in handler and handler['include'] not in includes -%}
+{%- if includes.append(handler['include']) %}{% endif -%}
+{%- endif -%}
+{%- endfor -%}
+{%- for include in includes %}
+#include "{{include}}"
+{%- endfor %}
+
+void app_rta_init_contributors(void)
+{
+{%- for handler in app_rta_init %}
+  {{ handler['handler'] }}();
+{%- endfor %}
+}
+
+void app_rta_ready(void)
+{
+{%- for handler in app_rta_ready %}
+  {{ handler['handler'] }}();
+{%- endfor %}
+}

@@ -1,0 +1,22 @@
+id: micriumos_common_lib_mem_cmd
+label: Micrium OS Common Libraries Module
+package: micriumos
+description: Micrium OS Extension to Common libraries provide additional libraries that are not essential to the kernel
+category: Services|Micrium|Common
+quality: production
+metadata:
+  sbom:
+    license: MSLA
+ui_hints:
+  visibility: never
+source:
+- path: source/lib/lib_mem_cmd.c
+include:
+- path: source
+  file_list:
+  - path: lib/lib_mem_cmd_priv.h
+requires:
+- name: common_shell
+provides:
+- name: common_lib_mem_cmd
+root_path: micriumos/platform/micrium_os/common

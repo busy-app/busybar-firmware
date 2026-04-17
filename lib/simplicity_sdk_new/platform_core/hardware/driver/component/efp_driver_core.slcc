@@ -1,0 +1,42 @@
+id: efp_driver_core
+package: platform_core
+label: EFP - Energy Friendly PMIC Core
+description: >
+  This component contains the core EFP Driver.
+category: Platform|Board Drivers
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+include:
+- path: hardware/driver/efp/inc
+  file_list:
+  - path: sl_efp01.h
+  - path: sl_efp.h
+source:
+- path: hardware/driver/efp/src/sl_efp.c
+requires:
+- name: hal_generic_common
+- name: clock_manager_runtime
+- name: sl_core
+- name: gpio
+- name: i2cspm_core
+- name: status
+- name: se_manager
+  condition: [device_sdid_200]
+provides:
+- name: efp_driver_core
+template_file:
+- path: hardware/driver/efp/inst/sl_efp_instances.c.jinja
+- path: hardware/driver/efp/inst/sl_efp_instances.h.jinja
+template_contribution:
+- name: event_handler
+  condition: [efp_driver]
+  value:
+    event: driver_init
+    include: sl_efp_instances.h
+    handler: sl_efp_init_instances
+documentation:
+  docset: gecko-platform
+  document: platform-hardware-driver/sl-efp
+root_path: platform_core

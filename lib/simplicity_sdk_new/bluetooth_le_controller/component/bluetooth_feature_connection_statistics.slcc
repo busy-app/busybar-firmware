@@ -1,0 +1,25 @@
+id: "bluetooth_feature_connection_statistics"
+label: "Connection specific statistics for Bluetooth"
+package: bluetooth_le_controller
+description: >
+  The component provides functionality to collect connection specific statistics
+  and report them to application upon request. The API for reading the statistics
+  on a connection is "sl_bt_connection_read_statistics". The statistics are also
+  reported upon connection closing.
+category: Bluetooth|Bluetooth LE Controller (Link Layer)|Features with Commands and Events
+quality: "production"
+requires:
+- name: "bluetooth_controller"
+- name: "bluetooth_feature_connection"
+provides:
+- name: "bluetooth_feature_connection_statistics"
+template_contribution:
+- name: component_catalog
+  value: bluetooth_feature_connection_statistics
+documentation:
+  docset: bluetooth
+  document: bluetooth-stack-api/sl-bt-connection
+metadata:
+  sbom:
+    license: MSLA
+root_path: bluetooth_le_controller

@@ -1,0 +1,35 @@
+id: sl_rail_util_sfm_sequencer
+label: RAIL Utility, SFM Sequencer Image Selection (RAIL 3)
+description: Utility to aid with selecting a Software Modem (SFM) sequencer image.
+package: rail_library
+category: Platform|Radio
+quality: production
+metadata:
+  sbom:
+    id: sl_rail_util_sfm_sequencer
+    name: RAIL Utility, SFM Sequencer Image Selection (RAIL 3)
+    license: Zlib
+documentation:
+  docset: rail
+  document: rail-api/rail-util-sfm-sequencer
+provides:
+- name: sl_rail_util_sfm_sequencer
+- name: rail_util_sfm_sequencer
+requires:
+- name: rail_lib
+- name: component_catalog
+config_file:
+- path: plugin/sl_rail_util_sfm_sequencer/config/efr32xg25/sl_rail_util_sfm_sequencer_config.h
+  condition:
+  - device_sdid_220
+  file_id: rail_util_sfm_sequencer_config
+source:
+- path: plugin/sl_rail_util_sfm_sequencer/sl_rail_util_sfm_sequencer.c
+  condition:
+  - device_sdid_220
+template_contribution:
+- name: component_catalog
+  value: sl_rail_util_sfm_sequencer
+- name: component_catalog
+  value: rail_util_sfm_sequencer
+root_path: rail_library

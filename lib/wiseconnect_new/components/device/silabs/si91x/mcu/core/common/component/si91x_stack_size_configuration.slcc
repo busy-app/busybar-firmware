@@ -1,0 +1,19 @@
+id: si91x_stack_size_configuration
+package: platform_siwx91x
+description: >
+  This component provides configuration of the stack and
+  heap for supported toolchains for SiW91x devices.
+label: "SiW91x Stack Size Configuration"
+category: Device|Si91x|MCU|Common
+metadata:
+  sbom:
+    license: Zlib
+quality: production
+component_root_path: components/device/silabs/si91x/mcu/core/common
+config_file:
+  - path: config/sl_si91x_stack_size_config.h
+source:
+  - path: src/sl_si91x_stack_object_declare.c
+provides:
+- name: si91x_stack_size_configuration
+  condition: [device_si91x]

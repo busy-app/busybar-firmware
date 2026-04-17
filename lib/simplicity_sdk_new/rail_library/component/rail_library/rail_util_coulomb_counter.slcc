@@ -1,0 +1,38 @@
+id: rail_util_coulomb_counter
+label: RAIL Utility, Coulomb Counter
+description: Utility to estimate device energy usage
+package: rail_library
+category: Platform|Radio
+quality: production
+metadata:
+  sbom:
+    id: rail_util_coulomb_counter
+    name: RAIL Utility, Coulomb Counter
+    license: MSLA
+requires:
+- name: rail_util_ieee802154_stack_event
+- name: status
+provides:
+- name: rail_util_coulomb_counter
+documentation:
+  docset: rail
+  document: rail-api/rail-util-coulomb-counter
+include:
+- path: plugin/coulomb-counter/protocol/ieee802154_uc
+  file_list:
+  - path: coulomb-counter-802154.h
+- path: plugin/coulomb-counter/hal/simulator
+  file_list:
+  - path: coulomb-counter.h
+source:
+- path: plugin/coulomb-counter/protocol/ieee802154_uc/coulomb-counter-802154.c
+- path: plugin/coulomb-counter/hal/simulator/coulomb-counter.h
+template_contribution:
+- name: rail_util_ieee802154_callbacks
+  value:
+    include: coulomb-counter-802154.h
+    handler: sl_rail_util_coulomb_counter_on_event
+  priority: -9010
+- name: component_catalog
+  value: rail_util_coulomb_counter
+root_path: rail_library

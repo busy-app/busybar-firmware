@@ -1,0 +1,27 @@
+id: zw_cc_indicator
+label: Indicator Command Class
+category: Z-Wave|Command Classes
+description: >
+  The Indicator Command Class is used to manipulate indicator resources in a supporting node. An
+  indicator may be an LED, an LCD display or a buzzer. The Indicator Get Command is used to request
+  the state of the indicator resource.
+package: zwave
+quality: production
+metadata:
+  sbom:
+    reference: zw_sbom_license
+
+source:
+- path: ZAF/CommandClasses/Indicator/src/CC_Indicator.c
+include:
+- path: ZAF/CommandClasses/Indicator/src/
+  file_list:
+  - path: CC_IndicatorPrivate.h
+provides:
+- name: zw_cc_indicator
+requires:
+- name: zw_core
+template_contribution:
+- name: component_catalog
+  value: ZW_CC_INDICATOR
+root_path: zwave

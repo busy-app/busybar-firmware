@@ -1,0 +1,73 @@
+id: zigbee_mfglib
+label: Manufacturing Library
+package: zigbee
+category: Zigbee|Utility
+quality: production
+description: Manufacturing Library (mfglib) utility. Provides functions that assist in radio testing and calibration.
+
+provides:
+- name: zigbee_mfglib
+- name: zigbee_mfglib_feature
+
+requires:
+- name: zigbee_mfglib_implementation
+- name: zigbee_mfglib_library
+  condition:
+  - zigbee_use_release_libraries
+
+recommends:
+- id: zigbee_mfglib_library_internal
+  vendor: silabs
+
+include:
+- path: stack/include
+  file_list:
+  - path: mfglib.h
+
+- path: stack/internal/src/ipc
+  file_list:
+  - path: mfglib_ipc_command_messages.h
+  - path: zigbee_ipc_callback_events.h
+  - path: zigbee_ipc_command_messages.h
+  condition:
+  - zigbee_use_ipc
+- path: stack/internal/inc
+  file_list:
+  - path: mfglib_internal_def.h
+source:
+- path: app/em260/command-handlers-mfglib-generated.c
+  condition:
+  - zigbee_ncp
+
+- path: stack/internal/src/ipc/zigbee_ipc_callback_event_stub.c
+  condition:
+  - zigbee_use_ipc
+- path: stack/internal/src/baremetal/mfglib_baremetal_wrapper.c
+  unless:
+  - zigbee_use_ipc
+  - native_host
+- path: stack/internal/src/ipc/zigbee_ipc_callback_events.c
+  condition:
+  - zigbee_use_ipc
+- path: stack/internal/src/ipc/mfglib_ipc_command_messages.c
+  condition:
+  - zigbee_use_ipc
+template_contribution:
+- name: component_catalog
+  value: zigbee_mfglib
+- name: zigbee_ncp_callback
+  value:
+    callback_type: set_value
+    function_name: sl_zigbee_xncp_mfglib_set_value_command_cb
+- name: zigbee_ncp_callback
+  value:
+    callback_type: get_value
+    function_name: sl_zigbee_xncp_mfglib_get_value_command_cb
+
+documentation:
+  docset: zigbee
+  document: zigbee-af-api/mfglib
+metadata:
+  sbom:
+    license: MSLA
+root_path: zigbee

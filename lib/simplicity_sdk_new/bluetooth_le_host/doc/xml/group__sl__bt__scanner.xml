@@ -1,0 +1,592 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__scanner" kind="group">
+    <compoundname>sl_bt_scanner</compoundname>
+    <title>Scanner</title>
+    <innergroup refid="group__sl__bt__scanner__event__flag">Event Type Flags of Advertisement Reports</innergroup>
+    <innergroup refid="group__sl__bt__scanner__option__flags">Option Flags to Specify Scanning Options</innergroup>
+    <innergroup refid="group__sl__bt__evt__scanner__legacy__advertisement__report">sl_bt_evt_scanner_legacy_advertisement_report</innergroup>
+    <innergroup refid="group__sl__bt__evt__scanner__extended__advertisement__report">sl_bt_evt_scanner_extended_advertisement_report</innergroup>
+      <sectiondef kind="enum">
+      <memberdef kind="enum" id="group__sl__bt__scanner_1ga3830ec233ae145d28d34258bbefc00f4" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_bt_scanner_discover_mode_t</name>
+        <enumvalue id="group__sl__bt__scanner_1gga3830ec233ae145d28d34258bbefc00f4a4d6ee89abb3c77ee093e5c62185c4270" prot="public">
+          <name>sl_bt_scanner_discover_limited</name>
+          <initializer>= 0x0</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x0) Discover only limited discoverable devices. </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__scanner_1gga3830ec233ae145d28d34258bbefc00f4a94cb7f575d29df9a18bf79b6359146c8" prot="public">
+          <name>sl_bt_scanner_discover_generic</name>
+          <initializer>= 0x1</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x1) Discover limited and general discoverable devices. </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__scanner_1gga3830ec233ae145d28d34258bbefc00f4a8405c738e113754927319c2e905a59e6" prot="public">
+          <name>sl_bt_scanner_discover_observation</name>
+          <initializer>= 0x2</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x2) Discover non-discoverable, limited and general discoverable devices. </para>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>These values indicate which Bluetooth discovery mode to use when scanning for advertising devices. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="3551" column="1" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="3552" bodyend="3560"/>
+      </memberdef>
+      <memberdef kind="enum" id="group__sl__bt__scanner_1gac85cd821c92ed695a15fa689f5d51b95" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_bt_scanner_scan_mode_t</name>
+        <enumvalue id="group__sl__bt__scanner_1ggac85cd821c92ed695a15fa689f5d51b95af3b455e97275bdfa6503538c8c6f15f9" prot="public">
+          <name>sl_bt_scanner_scan_mode_passive</name>
+          <initializer>= 0x0</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x0) Passive scanning mode where the device only listens to advertising packets and does not transmit packets </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__scanner_1ggac85cd821c92ed695a15fa689f5d51b95a583f109e5c133631770faa8f23c6ae24" prot="public">
+          <name>sl_bt_scanner_scan_mode_active</name>
+          <initializer>= 0x1</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x1) Active scanning mode where the device sends out a scan request packet upon receiving a scannable advertising packet from a remote device and listens to the scan response packet from the remote device </para>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>The scanning modes. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="3565" column="1" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="3566" bodyend="3578"/>
+      </memberdef>
+      <memberdef kind="enum" id="group__sl__bt__scanner_1ga4713d5a26836fd1613db16be436fcb92" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_bt_scanner_scan_phy_t</name>
+        <enumvalue id="group__sl__bt__scanner_1gga4713d5a26836fd1613db16be436fcb92af69e2c34d517fde3a0262286081bd32a" prot="public">
+          <name>sl_bt_scanner_scan_phy_1m</name>
+          <initializer>= 0x1</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x1) Initiate the scanning on the 1M PHY </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__scanner_1gga4713d5a26836fd1613db16be436fcb92ad8caacfcbcf14975f9d516d77d0dd3ca" prot="public">
+          <name>sl_bt_scanner_scan_phy_coded</name>
+          <initializer>= 0x4</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x4) Initiate the scanning on the Coded PHY </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__scanner_1gga4713d5a26836fd1613db16be436fcb92a5ff8817f7f6d7f09340daf90097ae7bc" prot="public">
+          <name>sl_bt_scanner_scan_phy_1m_and_coded</name>
+          <initializer>= 0x5</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x5) Simultaneous scanning by initiating the scanning on the 1M and Coded PHY alternatively </para>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>The enum defines the scanning PHYs. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="3583" column="1" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="3584" bodyend="3592"/>
+      </memberdef>
+      <memberdef kind="enum" id="group__sl__bt__scanner_1ga198ccf77c614ae3f0a7b97f731489eb6" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_bt_scanner_data_status_t</name>
+        <enumvalue id="group__sl__bt__scanner_1gga198ccf77c614ae3f0a7b97f731489eb6a0b066c26364d680e47a97cd280eb96af" prot="public">
+          <name>sl_bt_scanner_data_status_complete</name>
+          <initializer>= 0x0</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x0) All data of the advertisement has been reported. </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__scanner_1gga198ccf77c614ae3f0a7b97f731489eb6a5cc457db755a388ef57ed9946e16eae7" prot="public">
+          <name>sl_bt_scanner_data_status_incomplete_more</name>
+          <initializer>= 0x1</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x1) Data of the advertisement is incomplete in this event, and more data will come in new events. </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__scanner_1gga198ccf77c614ae3f0a7b97f731489eb6ad5cf47e1e4a49f960011bf3e45b32839" prot="public">
+          <name>sl_bt_scanner_data_status_incomplete_nomore</name>
+          <initializer>= 0x2</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x2) Data of the advertisement is incomplete in this event, but no more data will come, i.e., the data of the advertisement is truncated. </para>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>Defines the data completeness status types of an advertisement reported by the scanner. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="3598" column="1" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="3599" bodyend="3617"/>
+      </memberdef>
+      <memberdef kind="enum" id="group__sl__bt__scanner_1ga273b6e90f8db94de796c5f5027fc769d" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_bt_scanner_filter_policy_t</name>
+        <enumvalue id="group__sl__bt__scanner_1gga273b6e90f8db94de796c5f5027fc769da6e4a3cfc08865e2d1487a33162a63302" prot="public">
+          <name>sl_bt_scanner_filter_policy_basic_unfiltered</name>
+          <initializer>= 0x0</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x0) Advertising and scan response PDUs are processed from all devices. For directed advertising, the target address must additionally match the identity address of the local device or be a Resolvable Private Address that is resolved to the local device by the Bluetooth controller. </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__scanner_1gga273b6e90f8db94de796c5f5027fc769da5d6569adeb5873788f88a4fb7a9d858a" prot="public">
+          <name>sl_bt_scanner_filter_policy_basic_filtered</name>
+          <initializer>= 0x1</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x1) Advertising and scan response PDUs are processed only from devices that the application has added to the Filter Accept List. For directed advertising, the target address must additionally match the identity address of the local device or be a Resolvable Private Address that is resolved to the local device by the Bluetooth controller. </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__scanner_1gga273b6e90f8db94de796c5f5027fc769daeb8291c3d56ae2474c09c64396f4fab5" prot="public">
+          <name>sl_bt_scanner_filter_policy_extended_unfiltered</name>
+          <initializer>= 0x2</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x2) Advertising and scan response PDUs are processed from all devices. For directed advertising, the target address must additionally match the identity address of the local device or be any Resolvable Private Address. </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__scanner_1gga273b6e90f8db94de796c5f5027fc769da7013679926e8a1b6ef754f8f3eef1525" prot="public">
+          <name>sl_bt_scanner_filter_policy_extended_filtered</name>
+          <initializer>= 0x3</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x3) Advertising and scan response PDUs are processed only from devices that the application has added to the Filter Accept List. For directed advertising, the target address must additionally match the identity address of the local device or be any Resolvable Private Address. </para>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>The scanning filter policy setting determines which advertisements and scan responses are delivered to the application when scanning. See the Bluetooth Core specification Volume 6, Part B, Section 4.3.3 &quot;Scanning filter
+policy&quot; for a detailed description of this setting. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Note that some filter policies require the application to include additional Bluetooth feature components. Filter policies that use the Filter Accept List require that the application has included the bluetooth_feature_accept_list component. Filter policies that require the Bluetooth controller to resolve a Resolvable Private Address require that the application has included the bluetooth_feature_resolving_list component. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="3632" column="1" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="3633" bodyend="3704"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="group__sl__bt__scanner_1ga99c05204881bd06221cebf3ef7b60532" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_scanner_set_parameters</definition>
+        <argsstring>(uint8_t mode, uint16_t interval, uint16_t window)</argsstring>
+        <name>sl_bt_scanner_set_parameters</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>mode</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>interval</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>window</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Set scan parameters for subsequent scanning operations. If the device is currently scanning, new parameters will take effect when scanning is restarted.</para>
+<para>This command sets the scanning filter policy to the default value <ref refid="group__sl__bt__scanner_1gga273b6e90f8db94de796c5f5027fc769da6e4a3cfc08865e2d1487a33162a63302" kindref="member">sl_bt_scanner_filter_policy_basic_unfiltered</ref>. Use the command <ref refid="group__sl__bt__scanner_1gadf57e14430927a65b0993d824b6175df" kindref="member">sl_bt_scanner_set_parameters_and_filter</ref> to set a specific scanning filter policy.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">mode</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>Enum <ref refid="group__sl__bt__scanner_1gac85cd821c92ed695a15fa689f5d51b95" kindref="member">sl_bt_scanner_scan_mode_t</ref>.</para>
+<para>Passive or active scan. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_scanner_scan_mode_passive (0x0):</bold> Passive scanning mode where the device only listens to advertising packets and does not transmit packets</para>
+</listitem><listitem><para><bold>sl_bt_scanner_scan_mode_active (0x1):</bold> Active scanning mode where the device sends out a scan request packet upon receiving a scannable advertising packet from a remote device and listens to the scan response packet from the remote device</para>
+</listitem><listitem><para><bold>Default</bold> : <ref refid="group__sl__bt__scanner_1ggac85cd821c92ed695a15fa689f5d51b95af3b455e97275bdfa6503538c8c6f15f9" kindref="member">sl_bt_scanner_scan_mode_passive</ref> </para>
+</listitem></itemizedlist>
+</para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">interval</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>The time interval when the device starts its last scan until it begins the subsequent scan. In other words, how often to scan<itemizedlist>
+<listitem><para><bold>Range:</bold> 0x0004 to 0xFFFF</para>
+</listitem><listitem><para>Time = Value x 0.625 ms</para>
+</listitem><listitem><para>Time Range: 2.5 ms to 40.96 s</para>
+</listitem><listitem><para><bold>Default</bold> : 10 ms</para>
+</listitem></itemizedlist>
+</para>
+<para>A variable delay occurs when switching channels at the end of each scanning interval, which is included in the scanning interval time. During the switch time, advertising packets are not received by the device. The switch time variation is use case dependent. For example, if scanning while keeping active connections, the channel switch time might be longer than when scanning without any active connections. Increasing the scanning interval reduces the amount of time in which the device can&apos;t receive advertising packets because it switches channels less often.</para>
+<para>After every scan interval, the scanner changes the frequency at which it operates. It cycles through all three advertising channels in a round robin fashion. According to the specification, all three channels must be used by a scanner. </para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">window</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>The scan window, i.e., the duration of the scan, which must be less than or equal to the <computeroutput>interval</computeroutput> <itemizedlist>
+<listitem><para><bold>Range:</bold> 0x0004 to 0xFFFF</para>
+</listitem><listitem><para>Time = Value x 0.625 ms</para>
+</listitem><listitem><para>Time Range: 2.5 ms to 40.96 s</para>
+</listitem><listitem><para><bold>Default</bold> : 10 ms</para>
+</listitem></itemizedlist>
+</para>
+<para>Note that the packet reception is aborted if it&apos;s started just before the scan window ends. </para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+<para><simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="4101" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="4101" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__scanner_1gadf57e14430927a65b0993d824b6175df" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_scanner_set_parameters_and_filter</definition>
+        <argsstring>(uint8_t mode, uint16_t interval, uint16_t window, uint32_t flags, uint8_t filter_policy)</argsstring>
+        <name>sl_bt_scanner_set_parameters_and_filter</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>mode</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>interval</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>window</declname>
+        </param>
+        <param>
+          <type>uint32_t</type>
+          <declname>flags</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>filter_policy</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Set scan parameters and the scanning filter policy for subsequent scanning operations. If the device is currently scanning, new parameters will take effect when scanning is restarted.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">mode</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>Enum <ref refid="group__sl__bt__scanner_1gac85cd821c92ed695a15fa689f5d51b95" kindref="member">sl_bt_scanner_scan_mode_t</ref>.</para>
+<para>Passive or active scan. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_scanner_scan_mode_passive (0x0):</bold> Passive scanning mode where the device only listens to advertising packets and does not transmit packets</para>
+</listitem><listitem><para><bold>sl_bt_scanner_scan_mode_active (0x1):</bold> Active scanning mode where the device sends out a scan request packet upon receiving a scannable advertising packet from a remote device and listens to the scan response packet from the remote device</para>
+</listitem><listitem><para><bold>Default</bold> : <ref refid="group__sl__bt__scanner_1ggac85cd821c92ed695a15fa689f5d51b95af3b455e97275bdfa6503538c8c6f15f9" kindref="member">sl_bt_scanner_scan_mode_passive</ref> </para>
+</listitem></itemizedlist>
+</para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">interval</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>The time interval when the device starts its last scan until it begins the subsequent scan. In other words, how often to scan<itemizedlist>
+<listitem><para><bold>Range:</bold> 0x0004 to 0xFFFF</para>
+</listitem><listitem><para>Time = Value x 0.625 ms</para>
+</listitem><listitem><para>Time Range: 2.5 ms to 40.96 s</para>
+</listitem><listitem><para><bold>Default</bold> : 10 ms</para>
+</listitem></itemizedlist>
+</para>
+<para>A variable delay occurs when switching channels at the end of each scanning interval, which is included in the scanning interval time. During the switch time, advertising packets are not received by the device. The switch time variation is use case dependent. For example, if scanning while keeping active connections, the channel switch time might be longer than when scanning without any active connections. Increasing the scanning interval reduces the amount of time in which the device can&apos;t receive advertising packets because it switches channels less often.</para>
+<para>After every scan interval, the scanner changes the frequency at which it operates. It cycles through all three advertising channels in a round robin fashion. According to the specification, all three channels must be used by a scanner. </para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">window</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>The scan window, i.e., the duration of the scan, which must be less than or equal to the <computeroutput>interval</computeroutput> <itemizedlist>
+<listitem><para><bold>Range:</bold> 0x0004 to 0xFFFF</para>
+</listitem><listitem><para>Time = Value x 0.625 ms</para>
+</listitem><listitem><para>Time Range: 2.5 ms to 40.96 s</para>
+</listitem><listitem><para><bold>Default</bold> : 10 ms</para>
+</listitem></itemizedlist>
+</para>
+<para>Note that the packet reception is aborted if it&apos;s started just before the scan window ends. </para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">flags</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Additional scanner options. Value: 0 or bitmask of <ref refid="group__sl__bt__scanner__option__flags" kindref="compound">Option Flags to Specify Scanning Options</ref>. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">filter_policy</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>Enum <ref refid="group__sl__bt__scanner_1ga273b6e90f8db94de796c5f5027fc769d" kindref="member">sl_bt_scanner_filter_policy_t</ref>.</para>
+<para>The scanning filter policy to use when scanning is started. The filter policy determines which advertisements and scan responses are delivered to the application. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_scanner_filter_policy_basic_unfiltered (0x0):</bold> Advertising and scan response PDUs are processed from all devices. For directed advertising, the target address must additionally match the identity address of the local device or be a Resolvable Private Address that is resolved to the local device by the Bluetooth controller.</para>
+</listitem><listitem><para><bold>sl_bt_scanner_filter_policy_basic_filtered (0x1):</bold> Advertising and scan response PDUs are processed only from devices that the application has added to the Filter Accept List. For directed advertising, the target address must additionally match the identity address of the local device or be a Resolvable Private Address that is resolved to the local device by the Bluetooth controller.</para>
+</listitem><listitem><para><bold>sl_bt_scanner_filter_policy_extended_unfiltered (0x2):</bold> Advertising and scan response PDUs are processed from all devices. For directed advertising, the target address must additionally match the identity address of the local device or be any Resolvable Private Address.</para>
+</listitem><listitem><para><bold>sl_bt_scanner_filter_policy_extended_filtered (0x3):</bold> Advertising and scan response PDUs are processed only from devices that the application has added to the Filter Accept List. For directed advertising, the target address must additionally match the identity address of the local device or be any Resolvable Private Address.</para>
+</listitem><listitem><para><bold>Default</bold> : <ref refid="group__sl__bt__scanner_1gga273b6e90f8db94de796c5f5027fc769da6e4a3cfc08865e2d1487a33162a63302" kindref="member">sl_bt_scanner_filter_policy_basic_unfiltered</ref> </para>
+</listitem></itemizedlist>
+</para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+<para><simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="4198" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="4198" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__scanner_1gac523df08a9e0ea5de94739609f27324f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_scanner_start</definition>
+        <argsstring>(uint8_t scanning_phy, uint8_t discover_mode)</argsstring>
+        <name>sl_bt_scanner_start</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>scanning_phy</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>discover_mode</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Start the GAP discovery procedure to scan for advertising devices that use legacy or extended advertising PDUs. To cancel an ongoing discovery procedure, use the <ref refid="group__sl__bt__scanner_1ga59c2a23518c18aa3106312ee8eda1c57" kindref="member">sl_bt_scanner_stop</ref> command.</para>
+<para>The invalid parameter error will be returned if the value of scanning PHYs is invalid or the device does not support a PHY.</para>
+<para>Received advertising packets are not filtered in any way, so multiple events will be received for every advertising device in range.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">scanning_phy</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>Enum <ref refid="group__sl__bt__scanner_1ga4713d5a26836fd1613db16be436fcb92" kindref="member">sl_bt_scanner_scan_phy_t</ref>.</para>
+<para>The scanning PHY(s).</para>
+<para>In simultaneous scanning, the stack alternates the scanning on two PHYs by switching the PHY at every scan interval. When a timing parameter is set differently on 1M and Coded PHY, the stack chooses the most relaxed value for both PHYs during simultaneous scanning, i.e., the largest scan interval or the smallest scan window. If one PHY is set to passive scanning and the other to active scanning, passive scanning is chosen for simultaneous scanning. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_scanner_scan_phy_1m (0x1):</bold> Initiate the scanning on the 1M PHY</para>
+</listitem><listitem><para><bold>sl_bt_scanner_scan_phy_coded (0x4):</bold> Initiate the scanning on the Coded PHY</para>
+</listitem><listitem><para><bold>sl_bt_scanner_scan_phy_1m_and_coded (0x5):</bold> Simultaneous scanning by initiating the scanning on the 1M and Coded PHY alternatively </para>
+</listitem></itemizedlist>
+</para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">discover_mode</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Enum <ref refid="group__sl__bt__scanner_1ga3830ec233ae145d28d34258bbefc00f4" kindref="member">sl_bt_scanner_discover_mode_t</ref>. Bluetooth discovery Mode. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_scanner_discover_limited (0x0):</bold> Discover only limited discoverable devices.</para>
+</listitem><listitem><para><bold>sl_bt_scanner_discover_generic (0x1):</bold> Discover limited and general discoverable devices.</para>
+</listitem><listitem><para><bold>sl_bt_scanner_discover_observation (0x2):</bold> Discover non-discoverable, limited and general discoverable devices.</para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise.</para>
+</simplesect>
+<bold>Events</bold> <itemizedlist>
+<listitem><para><ref refid="group__sl__bt__evt__scanner__legacy__advertisement__report" kindref="compound">sl_bt_evt_scanner_legacy_advertisement_report</ref> - This event is triggered for reporting a received advertisement that uses legacy advertising PDUs if the application includes the bluetooth_feature_legacy_scanner or bluetooth_feature_extended_scanner component.</para>
+</listitem><listitem><para><ref refid="group__sl__bt__evt__scanner__extended__advertisement__report" kindref="compound">sl_bt_evt_scanner_extended_advertisement_report</ref> - This event is triggered for reporting a received advertisement that uses extended advertising PDUs if the application includes the bluetooth_feature_extended_scanner component. </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="4258" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="4258" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__scanner_1ga59c2a23518c18aa3106312ee8eda1c57" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_scanner_stop</definition>
+        <argsstring>(void)</argsstring>
+        <name>sl_bt_scanner_stop</name>
+        <param>
+          <type>void</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Stop scanning for advertising devices. For more information about the discovery, see the <ref refid="group__sl__bt__scanner_1gac523df08a9e0ea5de94739609f27324f" kindref="member">sl_bt_scanner_start</ref> command.</para>
+<para><simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="4269" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="4269" declcolumn="13"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__scanner_1gafd391b621daa037d7e0f77e06d88dd25" prot="public" static="no">
+        <name>sl_bt_cmd_scanner_set_parameters_id</name>
+        <initializer>0x06050020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="3538" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="3538" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__scanner_1gadd714c8cbdc55f27004146b24e4bf39a" prot="public" static="no">
+        <name>sl_bt_cmd_scanner_set_parameters_and_filter_id</name>
+        <initializer>0x07050020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="3539" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="3539" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__scanner_1ga81c174b960a384f4bc963efcf68907eb" prot="public" static="no">
+        <name>sl_bt_cmd_scanner_start_id</name>
+        <initializer>0x03050020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="3540" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="3540" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__scanner_1gaf7f6df7466820ddbe1901c5313438283" prot="public" static="no">
+        <name>sl_bt_cmd_scanner_stop_id</name>
+        <initializer>0x05050020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="3541" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="3541" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__scanner_1ga3bfebd89f00ef2c60fca240b767c4429" prot="public" static="no">
+        <name>sl_bt_rsp_scanner_set_parameters_id</name>
+        <initializer>0x06050020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="3542" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="3542" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__scanner_1ga5f41ed90219e2259ec6cd88f188f9e50" prot="public" static="no">
+        <name>sl_bt_rsp_scanner_set_parameters_and_filter_id</name>
+        <initializer>0x07050020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="3543" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="3543" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__scanner_1ga0254492e9da2f8998ad8fc25cf6aa10d" prot="public" static="no">
+        <name>sl_bt_rsp_scanner_start_id</name>
+        <initializer>0x03050020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="3544" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="3544" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__scanner_1gadcfdeecf8700e43f07ad38b8bb925a4b" prot="public" static="no">
+        <name>sl_bt_rsp_scanner_stop_id</name>
+        <initializer>0x05050020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="3545" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="3545" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Scanner. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>The commands and events in this class provides scanning functionality. There are functionality differences depending on included components:</para>
+<para>The bluetooth_feature_legacy_scanner component is included but the bluetooth_feature_extended_scanner is not:<itemizedlist>
+<listitem><para>The scanner can only scan advertising devices that use legacy advertising PDUs.</para>
+</listitem><listitem><para>Received advertisements are reported in <ref refid="group__sl__bt__evt__scanner__legacy__advertisement__report" kindref="compound">sl_bt_evt_scanner_legacy_advertisement_report</ref> events.</para>
+</listitem></itemizedlist>
+</para>
+<para>The bluetooth_feature_extended_scanner component is included:<itemizedlist>
+<listitem><para>The scanner can scan advertising devices that use legacy or extended advertising PDUs.</para>
+</listitem><listitem><para>Received advertisements that use legacy advertising PDUs are reported in <ref refid="group__sl__bt__evt__scanner__legacy__advertisement__report" kindref="compound">sl_bt_evt_scanner_legacy_advertisement_report</ref> events.</para>
+</listitem><listitem><para>Received advertisements that use extended advertising PDUs are reported in <ref refid="group__sl__bt__evt__scanner__extended__advertisement__report" kindref="compound">sl_bt_evt_scanner_extended_advertisement_report</ref> events. </para>
+</listitem></itemizedlist>
+</para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

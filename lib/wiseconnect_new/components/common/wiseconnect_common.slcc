@@ -1,0 +1,38 @@
+id: wiseconnect_common
+package: wifi
+description: >
+  Provides a library of commonly used components in the WiSeConnect SDK.
+label: WiSeConnect Common Library
+category: Common
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+component_root_path: ./components/common
+provides:
+- name: wiseconnect_common
+- name: wiseconnect3_common
+source:
+- path: src/sl_utility.c
+include:
+- path: inc
+  file_list:
+    - path: sl_additional_status.h
+    - path: sl_cmsis_utility.h
+    - path: sl_constants.h
+    - path: sl_ieee802_types.h
+    - path: sl_ip_types.h
+    - path: sl_utility.h
+
+requires:
+- name: status
+- name: sl_common
+- name: slist
+- name: sl_string
+- name: atomic
+- name: cmsis_core
+- name: malloc_thread_safety
+
+toolchain_settings:
+  - option: gcc_compiler_option
+    value: -Wall -Werror -Wno-error=deprecated-declarations

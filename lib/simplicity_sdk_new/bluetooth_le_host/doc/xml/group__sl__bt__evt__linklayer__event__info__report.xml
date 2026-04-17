@@ -1,0 +1,42 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__evt__linklayer__event__info__report" kind="group">
+    <compoundname>sl_bt_evt_linklayer_event_info_report</compoundname>
+    <title>sl_bt_evt_linklayer_event_info_report</title>
+    <innerclass refid="structsl__bt__evt__linklayer__event__info__report__s" prot="public">sl_bt_evt_linklayer_event_info_report_s</innerclass>
+      <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="group__sl__bt__evt__linklayer__event__info__report_1gaacb3ddce3a15f0296d7820a6cf3a2f9a" prot="public" static="no">
+        <type>struct <ref refid="structsl__bt__evt__linklayer__event__info__report__s" kindref="compound">sl_bt_evt_linklayer_event_info_report_s</ref></type>
+        <definition>typedef struct sl_bt_evt_linklayer_event_info_report_s sl_bt_evt_linklayer_event_info_report_t</definition>
+        <argsstring></argsstring>
+        <name>sl_bt_evt_linklayer_event_info_report_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="1782" column="54" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="1782" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__evt__linklayer__event__info__report_1gaa207a70e32c88d5c5fd239232d13d683" prot="public" static="no">
+        <name>sl_bt_evt_linklayer_event_info_report_id</name>
+        <initializer>0x006000a0</initializer>
+        <briefdescription>
+<para>Identifier of the event_info_report event. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="1747" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="1747" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Sent when the link layer reports an event info report that was previously enabled with a call to <ref refid="group__sl__bt__linklayer_1ga7626df3c11d39b180f58b2bf688eff8c" kindref="member">sl_bt_linklayer_event_info_reporting_enable</ref>. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

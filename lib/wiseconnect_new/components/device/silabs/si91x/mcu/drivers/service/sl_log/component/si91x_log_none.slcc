@@ -1,0 +1,22 @@
+id: si91x_log_none
+label: Si91x Log None
+package: platform_siwx91x
+description: >
+  A None component that disables the logging system and any size impact on the code
+category: Services|Log
+quality: evaluation
+metadata:
+  sbom:
+    license: Zlib
+ui_hints:
+  visibility: never    
+root_path: components/device/silabs/si91x/mcu/drivers/service/sl_log
+include:
+  - path: inc
+    file_list:
+      - path: sl_log_helper_si91x.h  
+provides:
+  - name: si91x_log_none
+template_contribution:
+  - name: component_catalog
+    value: logger_component_none

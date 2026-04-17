@@ -1,0 +1,69 @@
+project_name: wifi_dtls_client_soc
+package: wifi_app
+quality: production
+label: Wi-Fi - DTLS Client (SoC)
+category: Example|Wi-Fi
+description: 'Open UDP client socket with secure connection using SSL and send the data on socket.
+
+  '
+filter:
+- name: Wireless Technology
+  value:
+  - Wi-Fi
+- name: Project Difficulty
+  value:
+  - Beginner
+source:
+- path: app.c
+include:
+- path: .
+  file_list:
+  - path: app.h
+define:
+- name: SL_SI91X_PRINT_DBG_LOG
+component:
+- id: sl_main
+- id: freertos
+- id: freertos_heap_4
+- id: syscalls
+- id: si91x_memory_default_config
+- id: wiseconnect_common
+- id: wifi
+- id: sl_si91x_internal_stack
+- id: wifi_resources
+- id: network_manager
+- id: basic_network_config_manager
+- id: bsd_socket
+- id: sl_si91x_asynchronous_socket
+- id: sl_si91x_mem_pool_buffers_with_quota
+toolchain_settings:
+- option: gcc_compiler_option
+  value: -Wall -Werror
+configuration:
+- name: SL_BOARD_ENABLE_VCOM
+  value: '1'
+readme:
+- path: readme.md
+other_file:
+- path: resources/readme/server1.png
+- path: resources/readme/server2.png
+- path: resources/readme/tls_client_output.png
+- path: resources/readme/tls_client_soc_ncp.png
+requires:
+- name: device_needs_ram_execution
+  condition:
+  - si91x_common_flash
+ui_hints:
+  highlight:
+  - path: readme.md
+    focus: true
+post_build:
+  profile: wiseconnect_soc
+sdk_extension:
+- id: wiseconnect3_sdk
+  vendor: silabs
+  version: 4.0.1
+sdk:
+  id: simplicity_sdk
+  vendor: silabs
+  version: 2025.12.2

@@ -1,0 +1,27 @@
+id: sl_http_server
+package: wifi
+description: >
+  The HTTP Server provides an API to start a HTTP Server service
+label: HTTP Server
+category: Service
+quality: production
+metadata:
+  sbom:
+    license: MSLA
+component_root_path: ./components/service/sl_http_server
+provides:
+- name: sl_http_server
+source:
+- path: src/sl_http_server.c
+include:
+- path: inc
+- path: inc
+  file_list:
+    - path: sl_http_server.h
+    - path: sl_http_server_types.h
+
+requires:
+- name: sl_si91x_socket
+- name: bsd_socket
+- name: sl_si91x_asynchronous_socket
+

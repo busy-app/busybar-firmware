@@ -1,0 +1,60 @@
+%%{init: {'theme': 'forest' } }%%
+sequenceDiagram
+  participant Command Engine
+  participant Routing Utility
+  
+  rect rgba(255, 0, 0, .2)
+    Command Engine->>Routing Utility: sli_routing_utility_route_packet(sli_routing_table_t *routing_table, uint16_t packet_type, void *packet, uint16_t packet_size)
+    Note over Command Engine: Calls route packet function
+  end
+  rect rgba(0, 128, 255, .2)
+    
+    alt is_destination_entry_invalid
+        Routing Utility-->>Command Engine: Return SL_STATUS_INVALID_PARAMETER
+    end
+     
+  end
+  
+  
+  rect rgba(255, 165, 0, .2)
+
+        alt destination_packet_handler function is not defined
+          Routing Utility-->>Command Engine: Error status code
+        end
+        Routing Utility->>Routing Utility: Call entry->destination_packet_handler(*packet, size, entry->packet_status_handler, context)  
+        Routing Utility-->>Command Engine: status success  
+    
+  end
+
+  rect rgba(255, 0, 0, .2)
+    Command Engine->>Routing Utility: sli_routing_utility_route_queue_node(sli_routing_table_t *routing_table, uint16_t packet_type, sl_slist_node_t *packet, uint16_t packet_size)
+    Note over Command Engine: Calls route queue node function
+  end
+  rect rgba(0, 128, 255, .2)
+    
+    alt is_destination_entry_invalid
+        Routing Utility-->>Command Engine: Return SL_STATUS_INVALID_PARAMETER
+    end
+     
+  end
+  
+  
+  rect rgba(255, 165, 0, .2)
+        
+        alt queue_handle is defined
+            Routing Utility->>Routing Utility: sli_queue_manager_enqueue(sli_queue_handle_t *queue_handle, sl_slist_node_t *node)
+             
+                Routing Utility-->>Command Engine: Return status code
+             
+        end
+        alt destination_packet_handler function is defined
+            Routing Utility->>Routing Utility: Call entry->destination_packet_handler(void *packet, size, entry->packet_status_handler, context)
+            Note over Routing Utility: Extracts data from packet and calls handler
+                Routing Utility-->>Command Engine: Return status code
+            
+        end
+        
+          Routing Utility-->>Command Engine: status success  
+    
+  end
+

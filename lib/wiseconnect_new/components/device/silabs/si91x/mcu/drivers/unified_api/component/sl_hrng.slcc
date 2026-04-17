@@ -1,0 +1,23 @@
+id: sl_hrng
+label: HRNG - Hardware Random Number Generator
+package: platform_siwx91x
+description: The HRNG driver enables the generation of true random and pseudo-random numbers. 
+  It supports secure applications requiring high-quality randomness, such as cryptographic functions. 
+  The driver offers APIs for starting, stopping, and retrieving random data from the HRNG peripheral. 
+  It operates in two modes ie, true random generation for enhanced security and pseudo-random for standard applications. 
+category: Device|Si91x|MCU|Peripheral
+quality: production
+metadata:
+   sbom:
+     license: Zlib
+root_path: "components/device/silabs/si91x/mcu/drivers/unified_api" 
+source:
+  - path: "src/sl_si91x_hrng.c"
+include:
+  - path: "inc"
+    file_list:
+    - path: "sl_si91x_hrng.h"
+provides:
+  - name: sl_hrng
+requires:
+  - name: romdriver_rng

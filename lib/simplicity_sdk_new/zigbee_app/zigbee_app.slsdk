@@ -1,0 +1,11 @@
+id=com.silabs.sdk.stack.zigbee_app
+version=9.0.1.0
+label=EmberZNet SDK
+description=Silicon Labs EmberZNet SDK
+prop.subLabel=EmberZNet\\ 9.0.1.0
+
+prop.partCompatibility=.*host.* .*rm21.* .*efr32m[gr]2.* .*mgm2.* .*simg301.*
+
+prop.file.templatesFile=zigbee_experimental_templates.xml zigbee_production_templates.xml
+prop.file.docsFile=docs/slEmberZNet_docContent.xml
+prop.file.demosFile=zigbee_production_demos.xml

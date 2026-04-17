@@ -1,0 +1,81 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="structsli__si91x__crypto__cipher__operation__t" kind="struct" language="C++" prot="public">
+    <compoundname>sli_si91x_crypto_cipher_operation_t</compoundname>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structsli__si91x__crypto__cipher__operation__t_1a8c5651b2d6d547aaba193ca0394c2b09" prot="public" static="no" mutable="no">
+        <type>psa_algorithm_t</type>
+        <definition>psa_algorithm_t sli_si91x_crypto_cipher_operation_t::alg</definition>
+        <argsstring></argsstring>
+        <name>alg</name>
+        <qualifiedname>sli_si91x_crypto_cipher_operation_t::alg</qualifiedname>
+        <briefdescription>
+<para>Algorithm to be used for the operation. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_psa_aes.h" line="41" column="19" bodyfile="components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_psa_aes.h" bodystart="41" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsli__si91x__crypto__cipher__operation__t_1afc0519d65f88b1926a190fb116f569f7" prot="public" static="no" mutable="no">
+        <type><ref refid="structsli__si91x__psa__aes__multipart__config__t" kindref="compound">sli_si91x_psa_aes_multipart_config_t</ref></type>
+        <definition>sli_si91x_psa_aes_multipart_config_t sli_si91x_crypto_cipher_operation_t::config</definition>
+        <argsstring></argsstring>
+        <name>config</name>
+        <qualifiedname>sli_si91x_crypto_cipher_operation_t::config</qualifiedname>
+        <briefdescription>
+<para>Configuration for the operation. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_psa_aes.h" line="42" column="40" bodyfile="components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_psa_aes.h" bodystart="42" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="4">
+        <label>sl_si91x_aes_key_config_a0_t</label>
+        <link refid="structsl__si91x__aes__key__config__a0__t"/>
+      </node>
+      <node id="5">
+        <label>sl_si91x_aes_key_config_b0_t</label>
+        <link refid="structsl__si91x__aes__key__config__b0__t"/>
+      </node>
+      <node id="3">
+        <label>sl_si91x_aes_key_config_t</label>
+        <link refid="unionsl__si91x__aes__key__config__t"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>a0</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>b0</edgelabel>
+        </childnode>
+      </node>
+      <node id="1">
+        <label>sli_si91x_crypto_cipher_operation_t</label>
+        <link refid="structsli__si91x__crypto__cipher__operation__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>config</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>sli_si91x_psa_aes_multipart_config_t</label>
+        <link refid="structsli__si91x__psa__aes__multipart__config__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>key_config</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_psa_aes.h" line="40" column="1" bodyfile="components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_psa_aes.h" bodystart="40" bodyend="43"/>
+    <listofallmembers>
+      <member refid="structsli__si91x__crypto__cipher__operation__t_1a8c5651b2d6d547aaba193ca0394c2b09" prot="public" virt="non-virtual"><scope>sli_si91x_crypto_cipher_operation_t</scope><name>alg</name></member>
+      <member refid="structsli__si91x__crypto__cipher__operation__t_1afc0519d65f88b1926a190fb116f569f7" prot="public" virt="non-virtual"><scope>sli_si91x_crypto_cipher_operation_t</scope><name>config</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

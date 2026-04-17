@@ -1,0 +1,39 @@
+id: "bluetooth_feature_gatt"
+label: "GATT Client"
+package: bluetooth_le_host
+description: >
+  GATT Client feature
+
+  Enables the ability to browse and manage attributes in a remote GATT server.
+category: Bluetooth|Bluetooth Host (Stack)|Features with Commands and Events
+quality: "production"
+requires:
+- name: "bluetooth_stack"
+provides:
+- name: "bluetooth_feature_gatt"
+template_contribution:
+- name: component_catalog
+  value: bluetooth_feature_gatt
+documentation:
+  docset: bluetooth
+  document: bluetooth-stack-api/sl-bt-gatt
+metadata:
+  sbom:
+    license: MSLA
+library:
+- path: build/gcc/cortex-m33/ble_bgapi/release/libble_bgapi_gatt_client.a
+  condition:
+  - toolchain_gcc
+  - cortexm33
+  - bluetooth_host_release_libraries
+- path: build/iar/cortex-m33/ble_bgapi/release/libble_bgapi_gatt_client.a
+  condition:
+  - toolchain_iar
+  - cortexm33
+  - bluetooth_host_release_libraries
+- path: build/llvm/cortex-m33/ble_bgapi/release/libble_bgapi_gatt_client.a
+  condition:
+  - toolchain_llvm
+  - cortexm33
+  - bluetooth_host_release_libraries
+root_path: bluetooth_le_host

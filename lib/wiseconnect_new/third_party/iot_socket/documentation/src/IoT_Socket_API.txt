@@ -1,0 +1,755 @@
+/**
+\defgroup iotSocketMacros IoT Socket Macros
+\brief List of IoT Socket macros
+\details
+*/
+
+/**
+\addtogroup iotSocketMacros
+@{
+*/
+
+/**
+\defgroup iotSocketAddressFamily  IoT Socket Address Family
+\brief Address Family definitions.
+\details The Socket Address Family specifies the addressing scheme that an instance of the socket can use.
+@{
+\def IOT_SOCKET_AF_INET
+\details Internet Address Family version 4.
+\def IOT_SOCKET_AF_INET6
+\details Internet Address Family version 6.
+@}
+*/
+
+/**
+\defgroup iotSocketType  IoT Socket Type
+\brief Socket Type definitions.
+\details The Socket Type specifies the type of the socket.
+@{
+\def IOT_SOCKET_SOCK_STREAM
+\details Stream Socket is connection-oriented, sequenced and reliable, implemented on top of the TCP protocol.
+\def IOT_SOCKET_SOCK_DGRAM
+\details Datagram Socket is connectionless, unreliable, using the UDP protocol.
+@}
+*/
+
+/**
+\defgroup iotSocketProtocol  IoT Socket Protocol
+\brief Socket Protocol definitions.
+\details The Socket Protocol specifies the Internet Protocol Type that the socket is using.
+@{
+\def IOT_SOCKET_IPPROTO_TCP
+\details Transmission Control Protocol.
+\def IOT_SOCKET_IPPROTO_UDP
+\details User Datagram Protocol.
+@}
+*/
+
+/**
+\defgroup iotSocketOptions  IoT Socket Options
+\brief Socket Option definitions.
+\details The Socket Option specifies the socket option for which the value is to be set or obtained.
+@{
+\def IOT_SOCKET_IO_FIONBIO
+\details Enables or disables the non-blocking mode for the socket.
+\def IOT_SOCKET_SO_RCVTIMEO
+\details Specifies the time limit for receiving in blocking mode. The time limit is in milliseconds.
+\def IOT_SOCKET_SO_SNDTIMEO
+\details Specifies the time limit for sending in blocking mode. The time limit is in milliseconds.
+\def IOT_SOCKET_SO_KEEPALIVE
+\details Enables or disables the keep-alive mode for the stream socket.
+\def IOT_SOCKET_SO_TYPE
+\details Obtains the type of the socket.
+@}
+*/
+
+/**
+\defgroup iotSocketReturnCodes  IoT Socket Return Codes
+\brief Socket Return Codes.
+\details This section lists all the return errors the socket functions will return.
+The error codes are negative. This makes it easy to check an error when the return
+code is less than \token{0}.
+@{
+\def IOT_SOCKET_ERROR
+\def IOT_SOCKET_ESOCK
+\def IOT_SOCKET_EINVAL
+\def IOT_SOCKET_ENOTSUP
+\def IOT_SOCKET_ENOMEM
+\def IOT_SOCKET_EAGAIN
+\def IOT_SOCKET_EINPROGRESS
+\def IOT_SOCKET_ETIMEDOUT
+\def IOT_SOCKET_EISCONN
+\def IOT_SOCKET_ENOTCONN
+\def IOT_SOCKET_ECONNREFUSED
+\def IOT_SOCKET_ECONNRESET
+\def IOT_SOCKET_ECONNABORTED
+\def IOT_SOCKET_EALREADY
+\def IOT_SOCKET_EADDRINUSE
+\def IOT_SOCKET_EHOSTNOTFOUND
+@}
+*/
+
+/**
+@}
+*/
+
+
+/**
+\defgroup iotSocketAPI  IoT Socket Functions
+\brief List of IoT Socket API functions
+@{
+*/
+
+
+
+/*==================   API description details ========================*/
+
+/**
+\fn int32_t iotSocketCreate (int32_t af, int32_t type, int32_t protocol)
+\details
+The function \b iotSocketCreate creates a communication endpoint called a socket.
+
+The argument \em af specifies the address family. The following values are supported:
+Family                       | Description
+:----------------------------|:-------------------------------------------------
+\ref IOT_SOCKET_AF_INET      | Address Family Internet
+\ref IOT_SOCKET_AF_INET6     | Address Family Internet version 6
+
+The argument \em type specifies the communication semantics. The following are the currently supported types:
+Type                         | Description
+:----------------------------|:-------------------------------------------------
+\ref IOT_SOCKET_SOCK_STREAM  | Provides a reliable connection based data stream that is full-duplex
+\ref IOT_SOCKET_SOCK_DGRAM   | Provides connectionless communication that is unreliable
+
+The argument \em protocol specifies the protocol that must be used with the socket type:
+Protocol                     | Description
+:----------------------------|:-------------------------------------------------
+\ref IOT_SOCKET_IPPROTO_TCP  | Must be used with \ref IOT_SOCKET_SOCK_STREAM socket type
+\ref IOT_SOCKET_IPPROTO_UDP  | Must be used with \ref IOT_SOCKET_SOCK_DGRAM socket type
+\token{0}                    | The system selects a matching protocol for the socket type
+
+\b Example:
+ - see \ref iotSocketListen, \ref iotSocketConnect
+*/
+
+/**
+\fn int32_t iotSocketBind (int32_t socket, const uint8_t *ip, uint32_t ip_len, uint16_t port)
+\details
+The function \b iotSocketBind assigns a name to an unnamed socket. The name represents the local address
+and port of the communication endpoint.
+
+The argument \em socket specifies a socket identification number returned from a previous call
+to \ref iotSocketCreate.
+
+The argument \em ip is a pointer to the buffer containing the IP address octets of the local IP address.
+
+The argument \em ip_len specifies the length of the local IP address. The length is \token{4} bytes
+for the IPv4 address and \token{16} bytes for the IPv6 address.
+
+The argument \em port specifies the local port. If the argument \em port is \token{0}, the function returns error,
+because this port is reserved.
+
+\b Example:
+ - see \ref iotSocketListen
+*/
+
+/**
+\fn int32_t iotSocketListen (int32_t socket, int32_t backlog)
+\details
+The function \b iotSocketListen sets the specified socket to listening mode, that is to the
+server mode of operation. Before calling the \b iotSocketListen function, the \ref iotSocketBind
+function must be called.
+
+The argument \em socket specifies a socket identification number returned from a previous call
+to \ref iotSocketCreate.
+
+The argument \em backlog specifies a maximum number of connection requests that can be queued.
+
+\b Example:
+\code
+ 
+void Echo_Server_Thread (void *arg) {
+  uint8_t ip[4] = { 0U, 0U, 0U, 0U };
+  int32_t sock, sd, res;
+  char dbuf[120];
+ 
+  while (1) {
+    sock = iotSocketCreate (IOT_SOCKET_AF_INET, IOT_SOCKET_SOCK_STREAM, IOT_SOCKET_IPPROTO_TCP);
+ 
+    iotSocketBind (sock, (uint8_t *)ip, sizeof(ip), 7U);
+    iotSocketListen (sock, 1);
+    sd = iotSocketAccept (sock, NULL, NULL, NULL);
+    iotSocketClose (sock);
+    sock = sd;
+ 
+    while (1) {
+      res = iotSocketRecv (sock, dbuf, sizeof(dbuf));
+      if (res < 0) {
+        break;                                      // Error occurred
+      }
+      if (res > 0) {
+        iotSocketSend (sock, dbuf, res);            // Echo the data
+      }
+    }
+    iotSocketClose (sock);
+  }
+}
+\endcode
+*/
+
+/**
+\fn int32_t iotSocketAccept (int32_t socket, uint8_t *ip, uint32_t *ip_len, uint16_t *port)
+\details
+The function \b iotSocketAccept accepts a connection request queued for a listening socket.
+
+If a connection request is pending, \b iotSocketAccept removes the request from the queue,
+and creates a new socket for the connection. The original listening socket remains open and continues
+to queue new connection requests. The \em socket must be a socket of type \ref IOT_SOCKET_SOCK_STREAM.
+
+In blocking mode, which is enabled by default, this function waits for a connection request. In
+non blocking mode, you must call the \b iotSocketAccept function again if the error code
+\c IOT_SOCKET_EAGAIN is returned.
+
+The argument \em socket specifies a socket identification number returned from a previous call
+to \ref iotSocketCreate.
+
+The argument \em ip is a pointer to the buffer that will receive the IP address of the connection node.
+If the \em ip is \token{NULL}, the IP address is not returned.
+
+The argument \em ip_len is a pointer to the IP address length. It should initially contain the amount of
+space pointed to by \em ip. On return it contains the actual length of the address returned in bytes.
+
+The argument \em port is a pointer to the buffer, that will receive the port number of the connection node.
+If the \em port is \token{NULL}, the port number is not returned.
+
+\b Example:
+ - see \ref iotSocketListen
+*/
+
+/**
+\fn int32_t iotSocketConnect (int32_t socket, const uint8_t *ip, uint32_t ip_len, uint16_t port)
+\details
+The function \b iotSocketConnect assigns the address of the peer communication endpoint. The function
+behaves differently according to the type of socket:
+
+-  \ref IOT_SOCKET_SOCK_STREAM : A connection is established between the endpoints.
+
+  In blocking mode, which is enabled by default, this function waits for a connection to be established.
+
+  In non blocking mode, the function returns the error code \c IOT_SOCKET_EINPROGRESS and the connection
+  is established asynchronously. Subsequent calls to \b iotSocketConnect for the same socket,
+  before the connection is established, return the error code \c IOT_SOCKET_EALREADY.  When the connection
+  is established, the call to \b iotSocketConnect returns the error code \c IOT_SOCKET_EISCONN.
+
+- \ref IOT_SOCKET_SOCK_DGRAM : An address filter is established between the endpoints.
+
+  The address filter is changed with another \b iotSocketConnect function call. If the socket
+  is not yet bound, the system implicitly binds to a random dynamic port.
+
+The argument \em socket specifies a socket identification number returned from a previous call
+to \ref iotSocketCreate.
+
+The argument \em ip is a pointer to the buffer containing the IP address octets of the endpoint node.
+
+The argument \em ip_len specifies the length of the IP address. The length is \token{4} bytes
+for the IPv4 address and \token{16} bytes for the IPv6 address.
+
+The argument \em port specifies the port of the endpoint node. If the argument \em port is \token{0}, 
+the function returns error, because this port is reserved.
+
+\b Example:
+\code
+ 
+static const char message[] = { "The quick brown fox jumps over the lazy dog." };
+ 
+void Echo_Client_Thread (void *arg) {
+  uint8_t ip[4] = { 192U, 168U, 0U, 100U };
+  int32_t sock, res;
+  char dbuf[120];
+ 
+  while (1) {
+    sock = iotSocketCreate (IOT_SOCKET_AF_INET, IOT_SOCKET_SOCK_STREAM, IOT_SOCKET_IPPROTO_TCP);
+ 
+    res = iotSocketConnect (sock, (uint8_t *)ip, sizeof(ip), 7U);
+    if (res == 0) {
+      while (1) {
+        iotSocketSend (sock, message, sizeof(message));
+        res = iotSocketRecv (sock, dbuf, sizeof(dbuf));
+        if (res < 0) {
+          break;               // Receive error
+        }
+        if (res > 0) {
+          if (memcmp (dbuf, message, res) != 0) {
+            break;             // Message error, echoed message is not the same
+          }
+        }
+        osDelay (1000U);
+      }
+    }
+    iotSocketClose (sock);
+  }
+}
+\endcode
+*/
+
+/**
+\fn int32_t iotSocketRecv (int32_t socket, void *buf, uint32_t len)
+\details
+The function \b iotSocketRecv receives incoming data that has been queued for the socket.
+
+You can use this function with both, the stream and the datagram socket. It reads as much
+information as currently available up to the size of the buffer specified.
+
+In blocking mode, which is enabled by default, this function waits for received data. In non
+blocking mode, you must call the \b iotSocketRecv function again if the error code 
+\c IOT_SOCKET_EAGAIN is returned.
+
+The argument \em socket specifies a socket identification number returned from a previous call
+to \ref iotSocketCreate.
+
+The argument \em buf is a pointer to the application data buffer for storing the data to.
+If the available data is too large to fit in the supplied application buffer \em buf, excess bytes
+are discarded in case of a datagram sockets. For stream sockets, the data is buffered internally
+so the application can retrieve all data by multiple calls of \b iotSocketRecv function.
+
+The argument \em len specifies the size of the application data buffer.
+
+\note
+The function can also be used to check if the socket has data available to read by specifying 
+\token{0} for argument \em len (argument \em buf is ignored).
+The function returns \token{0} if data is available or error code otherwise.
+In blocking mode, the function waits until data is available, in non blocking mode the function returns instantly.
+
+\b Example:
+ - see \ref iotSocketListen
+*/
+
+/**
+\fn int32_t iotSocketRecvFrom (int32_t socket, void *buf, uint32_t len, uint8_t *ip, uint32_t *ip_len, uint16_t *port)
+\details
+The function \b iotSocketRecvFrom is used to receive data that has been queued for a socket.
+
+It is normally used to receive messages on datagram sockets, but can also be used to receive a reliable,
+ordered stream of data on a connected stream sockets. It reads as much information as currently available
+up to the size of the buffer specified.
+
+In blocking mode, which is enabled by default, this function waits for received data. In non
+blocking mode, you must call the \b iotSocketRecv function again if the error code 
+\c IOT_SOCKET_EAGAIN is returned.
+
+The argument \em socket specifies a socket identification number returned from a previous call
+to \ref iotSocketCreate.
+
+The argument \em buf is a pointer to the application data buffer for storing the data to.
+If the available data is too large to fit in the supplied application buffer \em buf, excess bytes
+are discarded in case of a datagram sockets. For stream sockets, the data is buffered internally
+so the application can retrieve all data by multiple calls of \b iotSocketRecv function.
+
+The argument \em len specifies the size of the application data buffer.
+
+The argument \em ip is a pointer to the buffer that will receive the IP address of the sender.
+If the \em ip is \token{NULL}, the IP address is not returned.
+
+The argument \em ip_len is a pointer to the IP address length. It should initially contain the amount of
+space pointed to by \em ip. On return it contains the actual length of the address returned in bytes.
+
+The argument \em port is a pointer to the buffer, that will receive the port number of the sender.
+If the \em port is \token{NULL}, the port number is not returned.
+
+\note
+The function can also be used to check if the socket has data available to read by specifying 
+\token{0} for argument \em len (arguments \em buf, \em ip, \em ip_len and \em port are ignored).
+The function returns \token{0} if data is available or error code otherwise.
+In blocking mode, the function waits until data is available, in non blocking mode the function returns instantly.
+
+\b Example:
+\code
+ 
+void Echo_Server_Thread (void *arg) {
+  uint8_t ip[4];
+  uint16_t port;
+  int32_t sock, res;
+  uint32_t ip_len;
+  char dbuf[120];
+ 
+  while (1) {
+    sock = iotSocketCreate (IOT_SOCKET_AF_INET, IOT_SOCKET_SOCK_DGRAM, IOT_SOCKET_IPPROTO_UDP);
+ 
+    ip[0] = 0U;                 // Unspecified address
+    ip[1] = 0U;
+    ip[2] = 0U;
+    ip[3] = 0U;
+    port  = 7U;                 // Standard port for Echo service
+ 
+    iotSocketBind (sock, (uint8_t *)ip, sizeof(ip), port);
+ 
+    while (1) {
+      ip_len = sizeof(ip);
+      res = iotSocketRecvFrom (sock, dbuf, sizeof(dbuf), (uint8_t *)ip, &ip_len, &port);
+      if (res < 0) {
+        break;                  // Error occurred
+      }
+      if (res > 0) {            // Echo the data
+        iotSocketSendTo (sock, dbuf, res, (uint8_t *)ip, ip_len, port);
+      }
+    }
+    iotSocketClose (sock);
+  }
+}
+\endcode
+*/
+
+/**
+\fn int32_t iotSocketSend (int32_t socket, const void *buf, uint32_t len)
+\details
+The function \b iotSocketSend is used to send data on an already connected socket.
+
+This function is normally used to send a reliable, ordered stream of data bytes on a stream sockets. It can also be used
+to send messages on datagram sockets.
+
+The argument \em socket specifies a socket identification number returned from a previous call
+to \ref iotSocketCreate.
+
+The argument \a buf is a pointer to the application data buffer containing data to transmit. The buffer
+data length is not limited in size. If the data length is too large for one packet, the \b iotSocketSend function
+will fragment the data and send it in several successive data packets:
+- In blocking mode, which is enabled by default, this function returns after the data has been successfully queued for transmission.
+- In non blocking mode, the function returns immediately without blocking the system.
+
+The argument \a len specifies the length of data in bytes.
+
+Return value, when positive, represents the number of bytes sent, which can be less than \a len.
+
+\note
+The function can also be used to check if the socket is ready to send data by specifying \token{0} 
+for argument \em len (argument \em buf is ignored).
+The function returns \token{0} if the socket is writable or error code otherwise.
+
+\b Example:
+ - see \ref iotSocketListen
+*/
+
+/**
+\fn int32_t iotSocketSendTo (int32_t socket, const void *buf, uint32_t len, const uint8_t *ip, uint32_t ip_len, uint16_t port)
+\details
+The function \b iotSocketSendTo is used to send data. 
+
+It is normally used to send messages on a datagram sockets, but can also be used to send data on a connected stream sockets.
+
+If the datagram socket is not yet bound, the system implicitly binds to a random dynamic port.
+
+The argument \em socket specifies a socket identification number returned from a previous call
+to \ref iotSocketCreate.
+
+The argument \a buf is a pointer to the application data buffer containing data to transmit. The buffer
+data length is not limited in size. If the data length is too large for one packet, the \b iotSocketSend function
+will fragment the data and send it in several successive data packets:
+- In blocking mode, which is enabled by default, this function returns after the data has been successfully queued for transmission.
+- In non blocking mode, the function returns immediately without blocking the system.
+
+The argument \a len specifies the length of data in bytes.
+
+The argument \em ip is a pointer to the buffer containing the IP address octets of the endpoint node.
+
+The argument \em ip_len specifies the length of the IP address. The length is \token{4} bytes
+for the IPv4 address and \token{16} bytes for the IPv6 address.
+
+The argument \em port specifies the port of the endpoint node. If the argument \em port is \token{0}, 
+the function returns error, because this port is reserved.
+
+For the stream sockets, arguments \em ip, \em ip_len and \em port are ignored.
+
+Return value, when positive, represents the number of bytes sent, which can be less than \a len.
+
+\note
+The function can also be used to check if the socket is ready to send data by specifying \token{0} 
+for argument \em len (arguments \em buf, \em ip, \em ip_len and \em port are ignored).
+The function returns \token{0} if the socket is writable or error code otherwise.
+
+\b Example:
+ - see \ref iotSocketRecvFrom
+*/
+
+/**
+\fn int32_t iotSocketGetSockName (int32_t socket, uint8_t *ip, uint32_t *ip_len, uint16_t *port)
+\details
+The function \b iotSocketGetSockName retrieves the local IP address and port for a socket.
+
+The argument \em socket specifies a socket identification number returned from a previous call
+to \ref iotSocketCreate.
+
+The argument \em ip is a pointer to the buffer that will receive the local IP address.
+If the \em ip is \token{NULL}, the local IP address is not returned.
+
+The argument \em ip_len is a pointer to the IP address length. It should initially contain the amount of
+space pointed to by \em ip. On return it contains the actual length of the address returned in bytes.
+
+The argument \em port is a pointer to the buffer, that will receive the local port number.
+If the \em port is \token{NULL}, the local port number is not returned.
+
+\b Example:
+\code
+static uint8_t  local_ip[4];    // Socket address and port
+static uint16_t local_port;
+ 
+static void get_socket_local_info (void) {
+  uint32_t ip_len;
+ 
+  ip_len = sizeof(local_ip);
+  iotSocketGetSockName (sock, (uint8_t *)local_ip, &ip_len, &local_port);
+}
+\endcode
+*/
+
+/**
+\fn int32_t iotSocketGetPeerName (int32_t socket, uint8_t *ip, uint32_t *ip_len, uint16_t *port)
+\details
+The function \b iotSocketGetPeerName retrieves the IP address and port of the peer to which
+a socket is connected.
+
+The argument \em socket specifies a socket identification number returned from a previous call
+to \ref iotSocketCreate.
+
+The argument \em ip is a pointer to the buffer that will receive the IP address of the peer.
+If the \em ip is \token{NULL}, the IP address is not returned.
+
+The argument \em ip_len is a pointer to the IP address length. It should initially contain the amount of
+space pointed to by \em ip. On return it contains the actual length of the address returned in bytes.
+
+The argument \em port is a pointer to the buffer, that will receive the port number of the peer.
+If the \em port is \token{NULL}, the port number is not returned.
+
+\b Example:
+\code
+static uint8_t  peer_ip[4];    // Socket address and port
+static uint16_t peer_port;
+ 
+static void get_socket_peer_info (void) {
+  uint32_t ip_len;
+ 
+  ip_len = sizeof(peer_ip);
+  iotSocketGetPeerName (sock, (uint8_t *)peer_ip, &ip_len, &peer_port);
+}
+\endcode
+*/
+
+/**
+\fn int32_t iotSocketGetOpt (int32_t socket, int32_t opt_id, void *opt_val, uint32_t *opt_len)
+\details
+The function \b iotSocketGetOpt retrieves options for a socket.
+
+The argument \em socket specifies a socket identification number returned from a previous call
+to \ref iotSocketCreate.
+
+The argument \em opt_id is the socket option for which the value is to be retrieved. The following
+socket options are supported:
+Option                       | Type    | Description
+:----------------------------|:--------|:-------------------------------------------------
+\ref IOT_SOCKET_SO_RCVTIMEO  | int32_t | Timeout for receiving in blocking mode
+\ref IOT_SOCKET_SO_SNDTIMEO  | int32_t | Timeout for sending in blocking mode
+\ref IOT_SOCKET_SO_KEEPALIVE | int32_t | Keep-alive mode for the stream socket
+\ref IOT_SOCKET_SO_TYPE      | int32_t | Type of the socket (stream or datagram)
+
+The argument \em opt_val points to the buffer that will receive the value of the \em opt_id.
+
+The argument \em opt_len contains the length of the buffer at the input and returns the length
+of the option information on the output.
+
+\b Example:
+\code
+uint32_t type;
+ 
+iotSocketGetOpt (sock, IOT_SOCKET_SO_TYPE, &type, sizeof(type));
+if (type == IOT_SOCKET_SOCK_STREAM) {
+  // Stream socket
+}
+if (type == IOT_SOCKET_SOCK_DGRAM) {
+  // Datagram socket
+}
+\endcode
+*/
+
+/**
+\fn int32_t iotSocketSetOpt (int32_t socket, int32_t opt_id, const void *opt_val, uint32_t opt_len)
+\details
+The function \b iotSocketSetOpt sets options for a socket.
+
+The argument \em socket specifies a socket identification number returned from a previous call
+to \ref iotSocketCreate.
+
+The argument \em opt_id is the socket option for which the value is to be set. The following
+socket options are supported:
+Option                       | Type    | Description
+:----------------------------|:--------|:-------------------------------------------------
+\ref IOT_SOCKET_IO_FIONBIO   | int32_t | Non-blocking mode for the socket
+\ref IOT_SOCKET_SO_RCVTIMEO  | int32_t | Timeout for receiving in blocking mode
+\ref IOT_SOCKET_SO_SNDTIMEO  | int32_t | Timeout for sending in blocking mode
+\ref IOT_SOCKET_SO_KEEPALIVE | int32_t | Keep-alive mode for the stream socket
+
+The argument \em opt_val points to the buffer containing the value of the \em opt_id.
+
+The argument \em opt_len tells the exact length of the option.
+ 
+\b Example:
+\code
+uint32_t nonblocking = 0U;    // Blocking mode
+uint32_t timeout = 10000U;    // Timeout 10 seconds
+ 
+iotSocketSetOpt (sock, IOT_SOCKET_IO_FIONBIO, &nonblocking, sizeof(nonblocking));
+iotSocketSetOpt (sock, IOT_SOCKET_SO_RCVTIMEO, &timeout, sizeof(timeout));
+iotSocketSetOpt (sock, IOT_SOCKET_SO_SNDTIMEO, &timeout, sizeof(timeout));
+\endcode
+*/
+
+/**
+\fn int32_t iotSocketClose (int32_t socket)
+\details
+The function \b iotSocketClose closes an existing socket and releases the socket descriptor.
+Further references to \em socket fail with \c IOT_SOCKET_EINVAL error code.
+
+The argument \em socket specifies a socket identification number returned from a previous call
+to \ref iotSocketCreate.
+
+In blocking mode, which is enabled by default, this function will wait until a socket is closed.
+In non blocking mode, you must call the \b iotSocketClose function again if the error code
+\c IOT_SOCKET_EAGAIN is returned.
+
+\b Example:
+ - see \ref iotSocketListen
+*/
+
+/**
+\fn int32_t iotSocketGetHostByName (const char *name, int32_t af, uint8_t *ip, uint32_t *ip_len)
+\details
+The function \b iotSocketGetHostByName retrieves host information corresponding to
+a host name from a host database.
+
+It does this by sending DNS requests to the DNS server.
+The IP address of the DNS server is specified in the network interface configuration or can be
+obtained from the DHCP server for the local area network.
+
+The argument \a name is a pointer to the \token{null}-terminated name of the host to resolve.
+
+The argument \em af specifies the address family, that is, which type of IP address you want
+to resolve. The following values are supported:
+Family                       | Description
+:----------------------------|:-------------------------------------------------
+\ref IOT_SOCKET_AF_INET      | Resolve the IPv4 address
+\ref IOT_SOCKET_AF_INET6     | Resolve the IPv6 address
+
+The argument \em ip is a pointer to the buffer that will receive the resolved IP address of the host.
+If the argument \em ip is \token{NULL}, the function returns error.
+
+The argument \em ip_len is a pointer to the IP address length. It should initially contain the amount of
+space pointed to by \em ip. On return it contains the actual length of the address returned in bytes.
+*/
+
+/**
+@}
+*/
+
+/**
+\defgroup iotSocketMux IoT Socket Multiplexer API
+\brief List of APIs specific to IoT Socket Multiplexer
+\details
+See \ref iot_socket_mux for concept overview.
+*/
+
+/**
+\addtogroup iotSocketMux
+@{
+*/
+
+/**
+\struct iotSocketApi_t
+\details
+Specifies the API access structure for the \ref iotSocketRegisterApi function.
+*/
+
+/**
+\fn int32_t iotSocketRegisterApi (const iotSocketApi_t *api)
+\details
+The function \b iotSocketRegisterApi registers the functions that get executed when corresponding IoT Socket API is called. It is available only with IoT Socket Multiplexer (Mux variant).
+
+The argument \a api is a pointer to a structure of \ref iotSocketApi_t type that provides the mapping for IoT Socket API.
+
+*/
+
+/**
+@}
+*/
+
+/**
+\var iotSocketApi_t::SocketCreate
+\brief Pointer to IoT Socket create function (see \ref iotSocketCreate)
+*/
+
+/**
+\var iotSocketApi_t::SocketBind
+\brief Pointer to IoT Socket bind function (see \ref iotSocketCreate)
+*/
+
+/**
+\var iotSocketApi_t::SocketListen
+\brief Pointer to IoT Socket listen function (see \ref iotSocketListen)
+*/
+
+/**
+\var iotSocketApi_t::SocketAccept
+\brief Pointer to IoT Socket accept function (see \ref iotSocketAccept)
+*/
+
+/**
+\var iotSocketApi_t::SocketConnect
+\brief Pointer to IoT Socket connect function (see \ref iotSocketConnect)
+*/
+
+/**
+\var iotSocketApi_t::SocketRecv
+\brief Pointer to IoT Socket receive function (see \ref iotSocketRecv)
+*/
+
+/**
+\var iotSocketApi_t::SocketRecvFrom
+\brief Pointer to IoT Socket receive from function (see \ref iotSocketRecvFrom)
+*/
+
+/**
+\var iotSocketApi_t::SocketSend
+\brief Pointer to IoT Socket send function (see \ref iotSocketSend).
+*/
+
+/**
+\var iotSocketApi_t::SocketSendTo
+\brief Pointer to IoT Socket send to function (see \ref iotSocketSendTo)
+*/
+
+/**
+\var iotSocketApi_t::SocketGetSockName
+\brief Pointer to IoT Socket get socket name function (see \ref iotSocketGetSockName)
+*/
+
+/**
+\var iotSocketApi_t::SocketGetPeerName
+\brief Pointer to IoT Socket get peer name function (see \ref iotSocketGetPeerName)
+*/
+
+/**
+\var iotSocketApi_t::SocketGetOpt
+\brief Pointer to IoT Socket get option function (see \ref iotSocketGetOpt)
+*/
+
+/**
+\var iotSocketApi_t::SocketSetOpt
+\brief Pointer to IoT Socket set option function (see \ref iotSocketSetOpt)
+*/
+
+/**
+\var iotSocketApi_t::SocketClose
+\brief Pointer to IoT Socket close function (see \ref iotSocketClose)
+*/
+
+/**
+\var iotSocketApi_t::SocketGetHostByName
+\brief Pointer to IoT Socket get host by name function (see \ref iotSocketGetHostByName)
+*/

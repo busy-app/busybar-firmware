@@ -1,0 +1,30 @@
+id: "app_project_info"
+label: "Application Project Info"
+package: "wisun_sdk"
+description: >
+  The component offers a comprehensive compilation of project-related
+  information, with a particular focus on software layer versions and toolchains.
+category: "Wi-SUN|Wi-SUN Services"
+quality: "production"
+metadata:
+  sbom:
+    license: Zlib
+root_path: "wisun_sdk/component/app_project_info"
+provides:
+- name: app_project_info
+
+source:
+- path: "app_project_info.c"
+
+include:
+- path: "."
+  file_list:
+  - "path": "app_project_info.h"
+config_file:
+- path: "config/app_project_info_config.h"
+
+#-------------- Template Contribution ----------------
+template_contribution:
+#---------------- Component Catalog ------------------
+- name: component_catalog
+  value: app_project_info

@@ -1,0 +1,8 @@
+parameters:
+  - name: build_dir
+steps:
+  # Create upgrade image using LZMA comporession algorithm
+  - task: create_gbl
+    app: "{{build_dir}}/{{project_name}}.out"
+    output: "{{build_dir}}/{{project_name}}.gbl"
+    compress: lzma

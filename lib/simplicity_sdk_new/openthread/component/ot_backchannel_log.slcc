@@ -1,0 +1,29 @@
+id: ot_backchannel_log
+label: Backchannel Logger
+package: openthread
+category: OpenThread
+quality: production
+description: This component adds support for debug backchannel logging.
+provides:
+- name: ot_logging
+- name: ot_backchannel_log
+requires:
+- name: ot_platform_abstraction_implementation
+- name: ot_debug_channel
+conflicts:
+- name: ot_rtt_log
+recommends:
+- id: ot_platform_abstraction_source
+  vendor: silabs
+source:
+- path: platform-abstraction/efr32/logging_backchannel.c
+define:
+- name: OPENTHREAD_CONFIG_LOG_OUTPUT
+  value: OPENTHREAD_CONFIG_LOG_OUTPUT_PLATFORM_DEFINED
+template_contribution:
+- name: component_catalog
+  value: ot_backchannel_log
+metadata:
+  sbom:
+    license: BSD-3-Clause
+root_path: openthread

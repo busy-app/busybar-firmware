@@ -1,0 +1,130 @@
+,IPMU (TYPE : 1),2405A000,604348416,,,,,,
+,PMU (TYPE : 2),24058000,604340224,,,,,,
+,,,,,,,,,
+BLOCK,STRUCTURE,STRUCTURE CODE,TYPE,ADDRESS,MSB,LSB,Data(HEX),NOTES,DESCRIPTION
+IPMU,ipmu_common_config,IPMU1,1,127,12,10,1,,Setting SC-DCDC regulation voltage to be 1.0V.
+,,,1,126,21,0,3E002F,,"Configuring the SC-DCDC with external cap enable, sample switch sizes"
+,,,1,128,21,0,200020,,Transitioing from LDO mode to SC-DCDC Mode and setting trim_clamp lp and hp values
+,,,1,129,20,18,1,,�Setting RETN_LDO to 0.75 V
+,,,1,140,19,15,19,,"Increasing the bias current of RETN LDO, enabling AUTO SHUT DOWN of PMUX_BULKSEL_COMP"
+,,,1,125,2,2,1,,Disabling switching of bg_combi_ckt
+,,,,,,,,,
+PMU,pmu_common_config,PMU1,2,1D0,20,17,A,,�Programming Buck output to 1.35V
+,,,2,1D0,12,0,241,,Updating P constant for buck� PID controller
+,,,2,1D2,12,0,D7,,�Updating I constant for buck PID controller
+,,,2,1D2,18,17,3,,�Increasing ADC reference to avoid limit cycle
+,,,2,1D3,14,0,72B,,�Updating D constant for buck PID controller
+,,,2,1DA,4,3,3,,Increasing buck tran high threshold
+,,,2,1D1,19,19,1,,Enable BUCK dithering
+,,,2,1D8,2,2,1,,Programming for Flash LDO Control from NPSS
+,,,2,1DE,8,5,7,,Set lower buck vref voltage to 1.2V
+,,,2,1D6,11,0,CB,,"Clear LDORF_DEFAULT_MODE_EN, LDOSOC_DEFAULT_MODE_EN to give access for voltage controlling"
+,,,,,,,,,
+SCDCDC,scdc_volt_sel,SCDC0,1,127,9,7,0,PLEASE DO NOT ADD SPARE REG PROGRAMMING IN THIS STRUCTURE,�Set HP - LDO voltage to 1.05
+,,,1,128,21,21,0,,Transition to LDO mode
+,,,1,127,12,10,1,,Set SC-DCDC to desired voltage (1.0V)
+,,,1,126,20,13,F8,,Configure the desired switch sizes
+,,,1,128,21,21,1,,Switch back to SC-DCDC mode
+,,,,,,,,,
+SCDCDC,lp_scdc_extcapmode,SCDC1,1,127,9,7,0,PLEASE DO NOT ADD SPARE REG PROGRAMMING IN THIS STRUCTURE,�Set HP - LDO voltage to 1.05
+,,,1,128,21,21,0,,Transition to LDO mode
+,,,1,127,12,10,2,,Set SC-DCDC to desired voltage (0.95V)
+,,,1,126,20,13,F8,,Configure the desired switch sizes
+,,,1,126,10,6,10,,�Increasing the BW to support load steps of 0 to 1mA
+,,,1,128,21,21,1,,Switch back to SC-DCDC mode
+,,,,,,,,,
+SCDCDC,hp_ldo_voltsel,SCDC2,1,127,9,7,4,,�Enables to change the LDO voltage settings 1.15V (WuRx mode)
+,,,,,,,,,
+RETN_LDO,retn_ldo_voltsel,RETN0,1,129,20,18,2,,�Setting RETN_LDO voltage to 0.7V
+,,,,,,,,,
+RETN_LDO,retn_ldo_0p75,RETN3,1,129,20,18,1,,Setting RETN_LDO voltage to 0.75V
+,,,,,,,,,
+RETN_LDO,retn_ldo_lpmode,RETN1,1,129,16,16,1,,Enabling the RETN_LDO LP MODE
+,,,,,,,,,
+RETN_LDO,retn_ldo_hpmode,RETN2,1,129,16,16,0,,Enabling the RETN_LDO HP MODE
+,,,,,,,,,
+POC,poc_bias_current,POC1,1,140,19,18,0,,"Decreasing the bias current of RETN_LDO, 32 K RO"
+,,,,,,,,,
+ULP_BG,ref_sel_pmu,BG_PMU_PFM,1,127,2,0,0,,Setting the reference voltage for PMU in PFM mode
+,,,,,,,,,
+ULP_BG,bg_sleep_time,BG_SLEEP1,1,125,21,18,8,,To Control the sleep duration of ULP_BG in sampling mode
+,,,,,,,,,
+ANA_PERIF,ana_perif_ptat_common_config1,ANAPERIF_BIAS_EN,1,127,3,3,1,,To enable bias currents to Analog Peripherals
+,,,,,,,,,
+ANA_PERIF,ana_perif_ptat_common_config2,ANAPERIF_BIAS_DIS,1,127,3,3,0,,To disable bias currents to Analog Peripherals
+,,,,,,,,,
+BOD_CLKS,ipmu_bod_clks_common_config1,BOD_BIAS_EN,1,127,4,4,1,,To enable/disable bias currents to BOD
+,,,,,,,,,
+BOD_CLKS,ipmu_bod_clks_common_config2,BOD_BIAS_DIS,1,127,4,4,0,,To disable bias currents to BOD
+,,,,,,,,,
+XTAL_OSC,xtal1_khz_fast_start_en,XTAL1_FS_EN,1,10E,20,17,F,,To enable fast startup mode (Low Power XTAL)
+,,,,,,,,,
+XTAL_OSC,xtal1_khz_fast_start_disable,XTAL1_FS_DIS,1,10E,20,17,7,,To disable fast startup mode (Low Power XTAL)
+,,,,,,,,,
+XTAL_OSC,xtal2_khz_fast_start_en,XTAL2_FS_EN,1,10E,20,17,F,,To enable fast startup mode
+,,,,,,,,,
+XTAL_OSC,xtal2_khz_fast_start_disable,XTAL2_FS_DIS,1,10E,20,17,7,,To disable fast startup mode
+,,,,,,,,,
+BOD,button_wakeup_thresh,BOD_BUTTON,1,1.00E+02,20,2,295F9,,
+,,,,,,,,,
+BOD,bod_cmp_hyst,BOD_CMP_HYST,1,1.00E+02,1,0,0,,
+,,,,,,,,,
+BUCK,buck_op_ctrl,BUCK1,2,1D0,20,17,A,,To re-configure buck output voltage
+,,,,,,,,,
+LDOSOC,ldosoc_op_ctrl,LDOSOC3,2,1D6,5,0,C,,
+,,,,,,,,,
+LDORF,ldoflash_op_ctrl,LDORF3,2,1D6,11,6,3,,
+,,,,,,,,,
+TS_TOP,ro_tempsense_config,RO_TS_CONFIG,1,134,16,0,F2,Disregard the address (31:22),<16:7> to represent TS_SLOPE_SET 0x2404_8504 bits[9:0]
+,,,,,,,,,
+TS_TOP,bjt_tempsense_config,BJT_TS_CONFIG,1,135,15,0,1,Disregard the address (31:22),To represent BJT Temp Sensor SLOPE
+,,,,,,,,,
+POC,poc_bias_efuse,POC_BIAS_EFUSE,1,140,19,18,3,,Overwrite this structure after reading E-Fuse
+,,,,,,,,,
+ULP_BG,bg_trim_efuse,BG_TRIM_EFUSE,1,140,12,12,0,,To trim ULP_BG
+,,,1,127,21,16,10,,To trim ULP_BG
+,,,,,,,,,
+POC,blackout_trim_efuse,POC2,1,140,11,10,0,,Setting BLACKOUT_MON thresholds
+,,,,,,,,,
+MHz RC,m32rc_osc_trim_efuse,M32RC_EFUSE,1,104,20,14,5A,,Overwrite this structure after reading E-Fuse
+,,,,,,,,,
+MHz RC,m20rc_osc_trim_efuse,M20RC_EFUSE,1,104,20,14,38,,Overwrite this structure after reading E-Fuse
+,,,,,,,,,
+DBLR,dblr_32m_trim_efuse,DBLR_EFUSE,1,101,20,15,20,,Overwrite this structure after reading E-Fuse
+,,,,,,,,,
+32KHZRO,ro_32khz_trim_efuse,RO32K_EFUSE,1,102,20,16,7,,Overwrite this structure after reading E-Fuse
+,,,,,,,,,
+16KHZRC,rc_16khz_trim_efuse,RC16K_EFUSE,1,103,20,12,A2,,Overwrite this structure after reading E-Fuse
+,,,,,,,,,
+64KHZRC,rc_64khz_trim_efuse,RC64K_EFUSE,1,103,20,12,A2,,Overwrite this structure after reading E-Fuse
+,,,,,,,,,
+32KHZRC,rc_32khz_trim_efuse,RC32K_EFUSE,1,103,20,12,A2,,Overwrite this structure after reading E-Fuse
+,,,,,,,,,
+XTAL_OSC,xtal1_bias_efuse,XTAL1_BIAS_EFUSE,1,10E,16,13,7,,Overwrite this structure after reading E-Fuse
+,,,,,,,,,
+XTAL_OSC,xtal2_bias_efuse,XTAL2_BIAS_EFUSE,1,10E,16,13,7,,Overwrite this structure after reading E-Fuse
+,,,,,,,,,
+20MHZRO,m20ro_osc_trim_efuse,M20RO_EFUSE,1,105,20,14,27,,Overwrite this structure after reading E-Fuse
+,,,,,,,,,
+VBATT_MON,vbatt_status_trim_efuse,VBATT_MON_EFUSE,1,10E,5,0,0,,Overwrite this structure after reading E-Fuse
+,,,,,,,,,
+RO_TS,ro_ts_efuse,RO_TS_EFUSE,1,136,9,0,10E,Disregard the address (31:22) and use the data<9:0> for programming f2/f1 ratio 0x2404_8508 bits[9:0],Overwrite this structure after reading E-Fuse
+,,,,,,,,,
+BJT_TS,vbg_tsbjt_efuse,VBG_TS_EFUSE,1,137,11,0,4BF,Disregard the address (31:22) and use the data<10:0> for storing ULP_BG vref,Overwrite this structure after reading E-Fuse
+,,,,,,,,,
+BJT_TS,delvbe_tsbjt_efuse,DELVBE_TS_EFUSE,1,138,10,0,3D9,Disregard the address (31:22) and use the data<10:0> for storing BJT delta vbe,Overwrite this structure after reading E-Fuse
+,,,,,,,,,
+AUX_ADC,auxadc_off_diff_efuse,AUXADC_DIFFOFF_EFUSE,1,130,11,0,64,Disregard the address (31:22) and use the data<10:0> for programming offset error in ADC,Overwrite this structure after reading E-Fuse
+,,,,,,,,,
+AUX_ADC,auxadc_gain_diff_efuse,AUXADC_DIFFGAIN_EFUSE,1,131,15,0,8000,Disregard the address (31:22),Overwrite this structure after reading E-Fuse
+,,,,,,,,,
+AUX_ADC,auxadc_off_se_efuse,AUXADC_SEOFF_EFUSE,1,132,11,0,64,Disregard the address (31:22),Overwrite this structure after reading E-Fuse
+,,,,,,,,,
+AUX_ADC,auxadc_gain_se_efuse,AUXADC_SEGAIN_EFUSE,1,133,15,0,8000,Disregard the address (31:22),Overwrite this structure after reading E-Fuse
+,,,,,,,,,
+BG_PMU,buck_trim_efuse,BUCK_TRIM_EFUSE,2,1D0,20,17,A,,Overwrite this structure after reading E-Fuse
+,,,,,,,,,
+SOC_LDO,ldosoc_trim_efuse,LDOSOC_TRIM_EFUSE,2,1DF,3,0,0,,Overwrite this structure after reading E-Fuse
+,,,,,,,,,
+BUCK,dpwm_freq_trim_efuse,DPWM_FREQ_TRIM_EFUSE,2,1D2,16,13,4,,Overwrite this structure after reading E-Fuse
+,,,,,,,,,

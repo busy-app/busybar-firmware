@@ -1,0 +1,42 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__evt__cs__test__end__completed" kind="group">
+    <compoundname>sl_bt_evt_cs_test_end_completed</compoundname>
+    <title>sl_bt_evt_cs_test_end_completed</title>
+    <innerclass refid="structsl__bt__evt__cs__test__end__completed__s" prot="public">sl_bt_evt_cs_test_end_completed_s</innerclass>
+      <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="group__sl__bt__evt__cs__test__end__completed_1gabbba0cc06e5931b2b92a17af10ad5534" prot="public" static="no">
+        <type>struct <ref refid="structsl__bt__evt__cs__test__end__completed__s" kindref="compound">sl_bt_evt_cs_test_end_completed_s</ref></type>
+        <definition>typedef struct sl_bt_evt_cs_test_end_completed_s sl_bt_evt_cs_test_end_completed_t</definition>
+        <argsstring></argsstring>
+        <name>sl_bt_evt_cs_test_end_completed_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="14553" column="48" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="14553" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__evt__cs__test__end__completed_1gace5a1912d0859b5811888b3f43898575" prot="public" static="no">
+        <name>sl_bt_evt_cs_test_end_completed_id</name>
+        <initializer>0x005a00a0</initializer>
+        <briefdescription>
+<para>Identifier of the end_completed event. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="14543" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="14543" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>This event is generated when the local controller stops the ongoing CS test as the result of calling the <ref refid="group__sl__bt__cs__test_1gab5af1068c11f2652091144188451c3b1" kindref="member">sl_bt_cs_test_end</ref> command. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

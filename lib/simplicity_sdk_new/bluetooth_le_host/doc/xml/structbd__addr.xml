@@ -1,0 +1,33 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="structbd__addr" kind="struct" language="C++" prot="public">
+    <compoundname>bd_addr</compoundname>
+    <includes refid="sl__bgapi_8h" local="no">sl_bgapi.h</includes>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structbd__addr_1a47483c57b4bc71ced8f652233a3a4d43" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t bd_addr::addr[6]</definition>
+        <argsstring>[6]</argsstring>
+        <name>addr</name>
+        <qualifiedname>bd_addr::addr</qualifiedname>
+        <briefdescription>
+<para>Bluetooth address in reverse byte order. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" line="92" column="11" bodyfile="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" bodystart="92" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Bluetooth address. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" line="91" column="1" bodyfile="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" bodystart="91" bodyend="93"/>
+    <listofallmembers>
+      <member refid="structbd__addr_1a47483c57b4bc71ced8f652233a3a4d43" prot="public" virt="non-virtual"><scope>bd_addr</scope><name>addr</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

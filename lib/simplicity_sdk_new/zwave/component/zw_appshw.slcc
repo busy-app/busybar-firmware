@@ -1,0 +1,50 @@
+id: zw_appshw
+label: Z-Wave AppsHw
+category: Z-Wave
+description: >
+  The AppsHw component collects the board-specific description files. It configures and initializes
+  the LED to show different working states, and configures the board's ADC.
+package: zwave
+quality: production
+metadata:
+  sbom:
+    reference: zw_sbom_license
+ui_hints:
+  visibility: never
+
+include:
+- path: "AppsHw/inc"
+  file_list:
+  - path: "app_hw.h"
+  - path: "board_indicator.h"
+- path: "platform/SiliconLabs/AppsHw/inc"
+  file_list:
+  - path: "ADC.h"
+  - path: "app_button_handler.h"
+    condition: [simple_button]
+
+source:
+- path: "platform/SiliconLabs/AppsHw/src/common/IADC.c"
+  condition: [device_has_iadc]
+- path: "platform/SiliconLabs/AppsHw/src/common/board_indicator.c"
+  condition: [simple_led]
+- path: "platform/SiliconLabs/AppsHw/src/common/app_button_handler.c"
+  condition: [simple_button]
+provides:
+- name: zw_appshw
+
+template_contribution:
+- name: event
+  unless: [zw_appshw_serialapi]
+  value:
+    id: zw_app_hw_init
+    function:
+      name: app_hw_init
+      return: void
+- name: event_handler
+  condition: [app_button_press]
+  value:
+    event: zw_app_hw_init
+    include: app_button_press.h
+    handler: app_button_press_enable
+root_path: zwave

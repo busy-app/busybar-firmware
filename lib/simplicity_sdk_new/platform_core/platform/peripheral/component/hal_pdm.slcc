@@ -1,0 +1,34 @@
+# This HAL applies to series 2 and 3 devices.
+id: hal_pdm
+label: PDM
+package: platform_core
+description: >
+  Pulse Density Modulation (PDM) peripheral API.
+category: Platform|Peripheral|HAL
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+source:
+- path: src/sl_hal_pdm.c
+include:
+- path: inc
+  file_list:
+  - path: sl_hal_pdm.h
+provides:
+- name: hal_pdm
+requires:
+- name: device
+- name: device_has_pdm
+- name: hal_common
+- name: cmsis_core
+documentation:
+  docset: gecko-platform
+  document:
+  - page: platform-peripheral-efr32xg22/pdm
+    condition: [device_sdid_205]
+  - page: platform-peripheral-efr32xg27/pdm
+    condition: [device_sdid_230]
+  - page: platform-peripheral-efr32xg29/pdm
+    condition: [device_sdid_240]
+root_path: platform_core/platform/peripheral

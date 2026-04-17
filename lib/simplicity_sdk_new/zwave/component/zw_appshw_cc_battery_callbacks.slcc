@@ -1,0 +1,19 @@
+id: zw_appshw_cc_battery_callbacks
+label: Command Class Battery AppsHw
+category: Z-Wave|AppsHw
+description: >
+  Provides Command Class Battery callback implementations for Z-Wave battery-powered applications.  Reports battery status including full, empty states or remaining energy percentage to communicate  battery level information to the Z-Wave network for device monitoring.
+package: zwave
+quality: production
+ui_hints:
+  visibility: never
+metadata:
+  sbom:
+    reference: zw_sbom_license
+source:
+- path: "platform/SiliconLabs/AppsHw/src/common/app_cc_battery_callbacks.c"
+provides:
+- name: zw_appshw_cc_battery_callbacks
+requires:
+- name: zw_appshw
+root_path: zwave

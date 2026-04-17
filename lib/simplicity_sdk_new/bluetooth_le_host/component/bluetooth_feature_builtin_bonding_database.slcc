@@ -1,0 +1,42 @@
+id: "bluetooth_feature_builtin_bonding_database"
+label: "Built-in Bluetooth bonding database"
+package: bluetooth_le_host
+description: >
+  Configures the Bluetooth stack to include a built-in bonding database. In this
+  configuration the Bluetooth stack stores the bonding data in the local
+  non-volatile memory. APIs for accessing bondings stored in the database are provided
+  by the "sm" class.
+category: Bluetooth|Bluetooth Host (Stack)|Additional Features
+quality: "production"
+requires:
+- name: "bluetooth_stack"
+- name: "nvm3_default"
+provides:
+- name: "bluetooth_feature_builtin_bonding_database"
+- name: "bluetooth_feature_bonding_database"
+template_contribution:
+- name: component_catalog
+  value: bluetooth_feature_builtin_bonding_database
+documentation:
+  docset: bluetooth
+  document: bluetooth-stack-api/sl-bt-sm
+metadata:
+  sbom:
+    license: MSLA
+library:
+- path: build/gcc/cortex-m33/bgstack/release/libbondingdb.a
+  condition:
+  - toolchain_gcc
+  - cortexm33
+  - bluetooth_host_release_libraries
+- path: build/iar/cortex-m33/bgstack/release/libbondingdb.a
+  condition:
+  - toolchain_iar
+  - cortexm33
+  - bluetooth_host_release_libraries
+- path: build/llvm/cortex-m33/bgstack/release/libbondingdb.a
+  condition:
+  - toolchain_llvm
+  - cortexm33
+  - bluetooth_host_release_libraries
+root_path: bluetooth_le_host

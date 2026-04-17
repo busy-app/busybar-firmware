@@ -1,0 +1,42 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__evt__connection__remote__used__features" kind="group">
+    <compoundname>sl_bt_evt_connection_remote_used_features</compoundname>
+    <title>sl_bt_evt_connection_remote_used_features</title>
+    <innerclass refid="structsl__bt__evt__connection__remote__used__features__s" prot="public">sl_bt_evt_connection_remote_used_features_s</innerclass>
+      <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="group__sl__bt__evt__connection__remote__used__features_1gaf21f98b79d85afa47af7dbc873acf5a0" prot="public" static="no">
+        <type>struct <ref refid="structsl__bt__evt__connection__remote__used__features__s" kindref="compound">sl_bt_evt_connection_remote_used_features_s</ref></type>
+        <definition>typedef struct sl_bt_evt_connection_remote_used_features_s sl_bt_evt_connection_remote_used_features_t</definition>
+        <argsstring></argsstring>
+        <name>sl_bt_evt_connection_remote_used_features_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6747" column="58" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6747" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__evt__connection__remote__used__features_1ga171b4b561b00d7efcd575da0a022ed7f" prot="public" static="no">
+        <name>sl_bt_evt_connection_remote_used_features_id</name>
+        <initializer>0x080600a0</initializer>
+        <briefdescription>
+<para>Identifier of the remote_used_features event. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6730" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6730" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>List of link layer features supported by the remote device. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,21 @@
+!!omap
+- id: brd4277a
+- label: BRD4277A
+- package: boards
+- description: Board support for BRD4277A.
+- category: Platform|Board|Radio Board
+- quality: evaluation
+- metadata:
+    sbom:
+      license: Zlib
+- requires:
+  - name: brd4277a_revision
+- provides:
+  - name: brd4277a
+  - name: hardware_board_from_stk
+- recommends:
+  - id: brd4277a_a05
+    vendor: silabs
+- ui_hints:
+    visibility: never
+- root_path: boards

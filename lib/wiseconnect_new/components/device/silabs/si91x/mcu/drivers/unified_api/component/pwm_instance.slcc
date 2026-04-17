@@ -1,0 +1,61 @@
+id: pwm_instance
+label: PWM
+package: platform_siwx91x
+description: >
+ The Motor Control Pulse Width Modulation (MCPWM) controller is used to generate a periodic pulse waveform, which is useful in
+ motor control and power control applications.
+ The MCPWM controller acts as a timer to count up to a period count value.
+ The time period and the duty cycle of the pulses are both programmable.
+
+ Note:
+  For Configuring, Configurable Parameters of PWM, Open the configuration wizard and configure, Below are the Configurable Parameters of PWM:
+    - Frequency
+    - Output Polarity
+    - PWM Mode
+    - Timer counter
+    - Duty cycle
+    - Base Timer Mode and Selection
+    - External Trigger
+
+ PWM Supports instances.
+ Generic channel instances must be named as channel_0, channel_1, channel_2, channel_3.
+ Pre-configured LED instances can be named as led0, led1.
+ 
+ Note: The Si91x PWM peripheral has 4 hardware channels (SL_CHANNEL_1 to SL_CHANNEL_4).
+ Multiple instances can be configured, but each must be mapped to one of these 4 physical channels via SL_PWM_<instance>_OUTPUT_CHANNEL configuration.
+category: Device|Si91x|MCU|Peripheral
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+instantiable:
+  prefix: inst
+root_path: "components/device/silabs/si91x/mcu/drivers/unified_api"
+config_file:
+  - path: config/sl_si91x_pwm_common_config.h
+  - path: config/sl_si91x_pwm_init_{{instance}}_config.h
+    file_id: pwm_config
+provides:
+  - name: pwm_instance
+    allow_multiple: true
+template_file:
+  - path: init/sl_pwm_instances.h.jinja
+  - path: init/sl_pwm_init.c.jinja
+template_contribution:
+  - name: pwm_instances
+    value: "{{instance}}"
+  - name: component_catalog
+    value: pwm
+  - name: component_catalog
+    value: "pwm_{{instance}}"
+  - name: event_handler
+    condition: [sl_pwm]
+    value:
+      event: driver_init
+      include: "sl_pwm_instances.h"
+      handler: sl_pwm_init_instances
+requires:
+  - name: sl_pwm
+documentation:
+    docset: wiseconnect
+    document: wiseconnect-api-reference-guide-si91x-peripherals/pwm

@@ -1,0 +1,21 @@
+id: "bluetooth_feature_connection_role_peripheral"
+label: "Connection in the Peripheral role"
+package: bluetooth_le_controller
+description: >
+  Provides support for Bluetooth connections where the local device is in the Peripheral role
+category: Bluetooth|Bluetooth LE Controller (Link Layer)|Features with Commands and Events
+quality: "production"
+requires:
+- name: "bluetooth_feature_connection"
+- name: "bluetooth_feature_peripheral_connection"
+provides:
+- name: "bluetooth_feature_connection_role_peripheral"
+- name: "bluetooth_feature_connection_role"
+  allow_multiple: true
+template_contribution:
+- name: component_catalog
+  value: bluetooth_feature_connection_role_peripheral
+documentation:
+  docset: bluetooth
+  document: bluetooth-stack-api/sl-bt-connection
+root_path: bluetooth_le_controller

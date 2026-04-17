@@ -1,0 +1,92 @@
+<HtermSequenceFile>
+    <ItemList>
+        <SequenceItem name="help">
+            <description></description>
+            <sequence value="a[help] h[0D]" />
+        </SequenceItem>
+        <SequenceItem name="idle 0">
+            <description></description>
+            <sequence value="a[idle 0] h[0D]" />
+        </SequenceItem>
+        <SequenceItem name="idle 1">
+            <description></description>
+            <sequence value="a[idle 1] h[0D]" />
+        </SequenceItem>
+        <SequenceItem name="idle 2">
+            <description></description>
+            <sequence value="a[idle 2] h[0D]" />
+        </SequenceItem>
+        <SequenceItem name="idle 3">
+            <description></description>
+            <sequence value="a[idle 3] h[0D]" />
+        </SequenceItem>
+        <SequenceItem name="idle 4">
+            <description></description>
+            <sequence value="a[idle 4] h[0D]" />
+        </SequenceItem>
+        <SequenceItem name="idle 5">
+            <description></description>
+            <sequence value="a[idle 5] h[0D]" />
+        </SequenceItem>
+        <SequenceItem name="periodic_tx 500000 0">
+            <description></description>
+            <sequence value="a[periodic_tx 500000 0] h[0D]" />
+        </SequenceItem>
+        <SequenceItem name="periodic_tx 500000 1">
+            <description></description>
+            <sequence value="a[periodic_tx 500000 1] h[0D]" />
+        </SequenceItem>
+        <SequenceItem name="periodic_tx 500000 2">
+            <description></description>
+            <sequence value="a[periodic_tx 500000 2] h[0D]" />
+        </SequenceItem>
+        <SequenceItem name="periodic_tx 500000 3">
+            <description></description>
+            <sequence value="a[periodic_tx 500000 3] h[0D]" />
+        </SequenceItem>
+        <SequenceItem name="periodic_rx 500000 500000 0">
+            <description></description>
+            <sequence value="a[periodic_rx 500000 500000 0] h[0D]" />
+        </SequenceItem>
+        <SequenceItem name="periodic_rx 500000 500000 1">
+            <description></description>
+            <sequence value="a[periodic_rx 500000 500000 1] h[0D]" />
+        </SequenceItem>
+        <SequenceItem name="periodic_rx 500000 500000 2">
+            <description></description>
+            <sequence value="a[periodic_rx 500000 500000 2] h[0D]" />
+        </SequenceItem>
+        <SequenceItem name="periodic_rx 500000 500000 3">
+            <description></description>
+            <sequence value="a[periodic_rx 500000 500000 3] h[0D]" />
+        </SequenceItem>
+        <SequenceItem name="cw 0">
+            <description></description>
+            <sequence value="a[cw 0] h[0D]" />
+        </SequenceItem>
+        <SequenceItem name="cw 1">
+            <description></description>
+            <sequence value="a[cw 1] h[0D]" />
+        </SequenceItem>
+        <SequenceItem name="rx 0">
+            <description></description>
+            <sequence value="a[rx 0] h[0D]" />
+        </SequenceItem>
+        <SequenceItem name="rx 1">
+            <description></description>
+            <sequence value="a[rx 1] h[0D]" />
+        </SequenceItem>
+        <SequenceItem name="set_power 10 raw">
+            <description></description>
+            <sequence value="a[set_power 10 raw] h[0D]" />
+        </SequenceItem>
+        <SequenceItem name="set_power -10">
+            <description></description>
+            <sequence value="a[set_power -10] h[0D]" />
+        </SequenceItem>
+        <SequenceItem name="get_power">
+            <description></description>
+            <sequence value="a[get_power] h[0D]" />
+        </SequenceItem>
+    </ItemList>
+</HtermSequenceFile>

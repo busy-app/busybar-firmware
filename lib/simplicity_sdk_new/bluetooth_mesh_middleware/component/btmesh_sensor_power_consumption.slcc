@@ -1,0 +1,76 @@
+id: "btmesh_sensor_power_consumption"
+label: "Power consumption mock sensor"
+package: "bluetooth_mesh_middleware"
+description: >
+  The power consumption mock sensor is an application-level software module that
+  simulates power consumption measurements. This module provides interface for
+  setting and getting the simulated power consumption.
+  This component is prepared for integration into SOC applications.
+
+  This is a No-Code component, if it is used with Sensor Server to broadcast power consumption data to sensor clients.
+category: "Bluetooth Mesh|Utility"
+quality: "production"
+metadata:
+  sbom:
+    license: Zlib
+root_path: "bluetooth_mesh_middleware/common/btmesh_sensor_power_consumption"
+tag:
+- No-Code
+
+source:
+- path: "sl_btmesh_sensor_power_consumption.c"
+include:
+- path: ""
+  file_list:
+  - path: "sl_btmesh_sensor_power_consumption.h"
+config_file:
+- path: "config/sl_btmesh_sensor_power_consumption_config.h"
+provides:
+- name: "btmesh_sensor_power_consumption"
+requires:
+- name: "btmesh_sensor_server"
+- name: "component_catalog"
+
+template_contribution:
+- name: cli_command
+  value:
+    group: energymonitor
+    name: set
+    handler: power_consumption_set_from_cli
+    shortcuts:
+    - name: s
+    help: "Setting the current power consumption data."
+    argument:
+    - type: uint32
+      help: "Power consumption sensor value"
+  condition:
+  - "cli"
+
+- name: cli_command
+  value:
+    group: energymonitor
+    name: get
+    handler: power_consumption_get_from_cli
+    shortcuts:
+    - name: g
+    help: "Getting the current power consumption data."
+  condition:
+  - "cli"
+
+- name: cli_group
+  value:
+    name: energymonitor
+    help: "Controlling simulated power monitor sensor value."
+    shortcuts:
+    - name: pc
+  condition:
+  - "cli"
+
+- name: component_catalog
+  value: "btmesh_sensor_power_consumption"
+
+validation_helper:
+- path: "../../script/validation/soc_ncp_compatibility.lua"
+documentation:
+  docset: btmesh
+  document: btmesh-service-api/btmesh-sensor-power-consumption

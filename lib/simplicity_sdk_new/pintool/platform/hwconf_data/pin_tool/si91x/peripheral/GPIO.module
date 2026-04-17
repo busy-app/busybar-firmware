@@ -1,0 +1,22 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<module:DocumentRoot xmlns:module="http://www.silabs.com/ss/hwconfig/module.ecore">
+  <module id="pin_tool.wfm.si91x.gpio" label="GPIO" name="GPIO" description="" version="A">
+    <properties>
+      <stringProperty label="Type" id="type" defaultValue="gpio" transient="true" hidden="true" readonly="true" description=""/>
+      <stringProperty label="Custom Peripheral Name" id="peripheral.name" description=""/>
+    </properties>
+    <propertyCategories>
+      <category label="GPIO">
+        <subCategory label="">
+          <propertyRef refId="peripheral.name"/>
+        </subCategory>
+      </category>
+    </propertyCategories>
+    <signals>
+      <signal name="JTAG_TCK_SWCLK"/>
+      <signal name="JTAG_TDI"/>
+      <signal name="JTAG_TMS_SWDIO"/>
+      <signal name="JTAG_TDO_SWO"/>
+    </signals>
+  </module>
+</module:DocumentRoot>

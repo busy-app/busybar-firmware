@@ -1,0 +1,61 @@
+project_name: bt_host_ncp_test
+package: bluetooth_le_app
+label: Bluetooth - Host NCP Test
+description: >
+  This Network Co-Processor (NCP) host application serves 2 purposes.
+  It demonstrates (1) how to use user NCP commands and
+  (2) how to implement a simple application to test NCP
+  performance using the default user commands.
+category: Bluetooth Examples
+quality: experimental
+
+filter:
+  - name: "Wireless Technology"
+    value: ["Bluetooth"]
+  - name: "Device Type"
+    value: ["Host"]
+  - name: "Project Difficulty"
+    value: ["Beginner"]
+
+component:
+  - id: toolchain_gcc
+  - id: native_host
+  - id: ncp_version
+  - id: host_main
+  - id: host_ncp
+  - id: app_log
+  - id: iostream_stdio
+  - id: app_assert
+
+source:
+  - path: app.c
+  - path: test.c
+  - path: ../common/app_log/app_log_cli.c
+
+include:
+  - path: ../common/app_log
+    file_list:
+      - path: app_log_cli.h
+  - path: ../common/ncp
+    file_list:
+      - path: ncp_user_cmd.h
+  - path: .
+    file_list:
+      - path: test.h
+
+configuration:
+  - name: APP_LOG_LEVEL_FILTER_DYNAMIC 
+    value: 1  
+
+tag:
+  - toolchain:gcc
+  - hwfilter:device:device_family_host
+
+readme:
+  - path: readme.md
+
+ui_hints:
+  highlight:
+    - path: readme.md
+      focus: true
+

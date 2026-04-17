@@ -1,0 +1,52 @@
+id: bootloader_aes_sha_ecdsa_s2
+label: Crypto
+package: bootloader
+description: >
+  The Crypto component provides crypto operations for bootloader for Series 2
+category: Platform|Bootloader|Utils
+quality: production
+ui_hints:
+  visibility: never
+source:
+- path: platform/bootloader/security/btl_security_aes.c
+- path: platform/bootloader/security/btl_security_sha256.c
+- path: platform/bootloader/security/btl_security_ecdsa.c
+- path: platform/bootloader/security/sha/crypto_sha.c
+- path: platform/bootloader/security/sha/cryptoacc_sha.c
+- path: platform/bootloader/security/sha/se_sha.c
+- path: platform/bootloader/security/sha/btl_sha256.c
+- path: platform/bootloader/security/ecc/ecc.c
+include:
+- path: platform/bootloader
+  file_list:
+  - path: api/btl_interface.h
+  - path: api/btl_errorcode.h
+  - path: core/btl_util.h
+  - path: config/btl_config.h
+  - path: security/btl_security_aes.h
+  - path: security/btl_security_ecdsa.h
+  - path: security/btl_security_sha256.h
+  - path: security/btl_security_tokens.h
+  - path: security/btl_security_types.h
+  - path: security/btl_security_aes.h
+  - path: security/ecc/ecc.h
+  - path: security/sha/btl_sha256.h
+  - path: config/test/btl_config_library.h
+- path: platform/bootloader/api
+  file_list:
+  - path: btl_reset_info.h
+  - path: application_properties.h
+  - path: btl_interface_parser.h
+  - path: btl_interface_storage.h
+requires:
+- name: mbedtls_cipher_ctr
+provides:
+- name: bootloader_aes_sha_ecdsa_common
+  condition: [device_series_2]
+- name: bootloader_aes_sha_ecdsa_s2
+- name: bootloader_nonsecure_incompatible
+  condition: [bootloader_core_nonsecure]
+metadata:
+  sbom:
+    license: MSLA AND APACHE-2.0
+root_path: bootloader

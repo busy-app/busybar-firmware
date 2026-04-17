@@ -1,0 +1,46 @@
+id: "sl_rail_sdk_wmbus_sensor_cli"
+label: "Wireless M-Bus Sensor CLI (Wireless M-Bus Meter Only)"
+package: "rail_sdk"
+description: "Wireless M-Bus sensor CLI support."
+category: "RAIL-SDK|Wireless M-Bus"
+quality: "production"
+metadata:
+  sbom:
+    license: Zlib
+root_path: "rail_sdk/component/sl_rail_sdk_wmbus_sensor_cli"
+
+provides:
+- name: "sl_rail_sdk_wmbus_sensor_cli"
+requires:
+- name: "sl_rail_sdk_wmbus_sensor_core"
+- name: "cli"
+- name: "app_log"
+- name: "iostream_recommended_stream"
+source:
+- path: "sl_rail_sdk_wmbus_sensor_cli.c"
+
+template_contribution:
+- name: cli_command
+  value:
+    name: list_sensors
+    handler: cli_list_sensors
+    help: "List available sensors"
+- name: cli_command
+  value:
+    name: get_active_sensor
+    handler: cli_get_active_sensor
+    help: "Get active sensor"
+- name: cli_command
+  value:
+    name: set_active_sensor
+    handler: cli_set_active_sensor
+    help: "Set active sensor (Set after TX frame sending)"
+    argument:
+    - type: uint8
+      help: "Sensor id"
+#---------------- Component Catalog ------------------
+- name: component_catalog
+  value: sl_rail_sdk_wmbus_sensor_cli
+#-------- Hides Component for user in Studio ---------
+ui_hints:
+  visibility: never

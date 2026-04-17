@@ -1,0 +1,48 @@
+id: zw_apputilities
+label: Z-Wave ApplicationUtility Component
+category: Z-Wave
+description: >
+  This SLC component provides full support for Application Utilities.
+  It includes utilities for ZAF (Z-Wave Application Framework) such as timers,
+  ZAF NVM (non-volatile memory), and more.
+  These utilities are essential for developing Z-Wave applications or new Command Classes and enhancing their functionality.
+package: zwave
+quality: production
+metadata:
+  sbom:
+    reference: zw_sbom_license
+
+include:
+- path: "ZAF/ApplicationUtilities"
+  file_list:
+  - path: "misc.h"
+  - path: "ZAF_command_class_utils.h"
+  - path: "ZAF_network_learn.h"
+  - path: "ZAF_network_management.h"
+  - path: "ZW_TransportLayer.h"
+  - path: "ZW_TransportMulticast.h"
+  - path: "ZAF_CC_Invoker.h"
+  - path: "ZAF_transport.h"
+source:
+- path: "ZAF/ApplicationUtilities/ZW_TransportEndpoint.c"
+- path: "ZAF/ApplicationUtilities/ZAF_CmdPublisher.c"
+- path: "ZAF/ApplicationUtilities/ZAF_network_learn.c"
+- path: "ZAF/ApplicationUtilities/ZAF_network_management.c"
+- path: "ZAF/ApplicationUtilities/ZW_TransportSecProtocol.c"
+- path: "ZAF/ApplicationUtilities/ZW_TransportMulticast.c"
+- path: "ZAF/ApplicationUtilities/ZAF_command_class_utils.c"
+- path: "ZAF/ApplicationUtilities/Actuator/ZAF_Actuator.c"
+- path: "ZAF/ApplicationUtilities/_commonIF/ZAF_Common_helper.c"
+- path: "ZAF/ApplicationUtilities/ZAF_CC_Invoker.c"
+- path: "ZAF/ApplicationUtilities/ZAF_transport.c"
+- path: "ZAF/ApplicationUtilities/TrueStatusEngine/ZAF_TSE_weak.c"
+requires:
+- name: zw_apputilities_minimal
+provides:
+- name: zw_apputilities
+template_contribution:
+- name: rodata_sections   # Ensure memory section define by Z-Wave stack are placed in the rodata section
+  value: zw_cc_handlers_v3
+- name: rodata_sections   # Ensure memory section define by Z-Wave stack are placed in the rodata section
+  value: zw_zaf_cc_config
+root_path: zwave

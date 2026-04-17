@@ -1,0 +1,31 @@
+id: cpc_secondary_driver_sdio_917
+label: Co-Processor Communication (CPC) SDIO Driver
+package: cpc
+description: >
+  Provides SDIO driver for Co-Processor Communication (CPC) protocol service.
+category: Services|Co-Processor Communication|Secondary Device|Driver
+quality: experimental
+metadata:
+  sbom:
+    license: Zlib
+instantiable:
+  prefix: inst
+config_file:
+- path: config/si91x/sl_cpc_drv_secondary_sdio_config.h
+source:
+- path: src/sl_cpc_drv_secondary_sdio.c
+provides:
+- name: cpc_secondary_driver
+  allow_multiple: false
+requires:
+- name: device_si91x
+template_contribution:
+- name: cpc_sdio_instance_name
+  value: '{{instance}}'
+- name: cpc_interface_type
+  value: sdio
+- name: cpc_sdio_periph_type
+  value: sdio
+- name: component_catalog
+  value: cpc_driver_sdio
+root_path: cpc

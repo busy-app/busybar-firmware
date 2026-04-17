@@ -1,0 +1,19 @@
+id: cmsis_i2c_driver
+label: CMSIS I2C DRIVER
+package: platform_siwx91x
+description: >
+  CMSIS I2C Driver include path
+category: Device|Si91x|MCU|Internal|CMSIS Drivers
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+component_root_path: "components/device/silabs/si91x/mcu/drivers/cmsis_driver/CMSIS/Driver"
+include:
+  - path: "Include"
+    file_list:
+    - path: "Driver_I2C.h"
+ui_hints:
+  visibility: never
+provides:
+  - name: cmsis_i2c_driver

@@ -1,0 +1,92 @@
+id: radio_config_wmbus_meter
+label: Custom Radio Configuration for wmbus meter application
+package: proprietary_default_radio_confs
+description: Triggers Radio Configurator UI for setting a proper (Application - Die - RF Band) Custom Radio Configurator
+category: Platform|Radio Configuration
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+provides:
+- name: radio_config_wmbus_meter
+- name: a_radio_config
+  allow_multiple: true
+ui_hints:
+  visibility: never
+template_contribution:
+- name: component_catalog
+  value: radio_config_wmbus_meter
+config_file:
+- path: Mbus/wmbus_meter_868/device_generic_family_efr32xg23/rf_band_868/radio_settings.radioconf
+  file_id: radio_configuration_settings
+  directory: rail
+  condition:
+  - device_has_radio_subghz
+  - device_generic_family_efr32xg23
+  unless:
+  - hardware_board_rb
+  - hardware_board_tb
+  - hardware_board_stk
+  - device_is_module
+  - device_generic_family_efr32xg21
+- path: Mbus/wmbus_meter_868/device_generic_family_efr32xg28/rf_band_868/radio_settings.radioconf
+  file_id: radio_configuration_settings
+  directory: rail
+  condition:
+  - device_has_radio_subghz
+  - device_generic_family_efr32xg28
+  unless:
+  - hardware_board_rb
+  - hardware_board_tb
+  - hardware_board_stk
+  - device_is_module
+  - device_generic_family_efr32xg21
+- path: Mbus/wmbus_meter_868/device_generic_family_efr32xg2d/rf_band_868/radio_settings.radioconf
+  file_id: radio_configuration_settings
+  directory: rail
+  condition:
+  - device_has_radio_subghz
+  - device_generic_family_efr32xg2d
+  unless:
+  - hardware_board_rb
+  - hardware_board_tb
+  - hardware_board_stk
+  - device_is_module
+  - device_generic_family_efr32xg21
+- path: Mbus/wmbus_434/device_generic_family_efr32xg23/rf_band_434/radio_settings.radioconf
+  file_id: radio_configuration_settings
+  directory: rail
+  condition:
+  - hardware_board_default_rf_band_434
+  - device_generic_family_efr32xg23
+  unless:
+  - device_is_module
+  - device_generic_family_efr32xg21
+- path: Mbus/wmbus_meter_868/device_generic_family_efr32xg23/rf_band_868/radio_settings.radioconf
+  file_id: radio_configuration_settings
+  directory: rail
+  condition:
+  - hardware_board_default_rf_band_868
+  - device_generic_family_efr32xg23
+  unless:
+  - device_is_module
+  - device_generic_family_efr32xg21
+- path: Mbus/wmbus_meter_868/device_generic_family_efr32xg28/rf_band_868/radio_settings.radioconf
+  file_id: radio_configuration_settings
+  directory: rail
+  condition:
+  - hardware_board_default_rf_band_868
+  - device_generic_family_efr32xg28
+  unless:
+  - device_is_module
+  - device_generic_family_efr32xg21
+- path: Mbus/wmbus_meter_868/device_generic_family_efr32xg2d/rf_band_868/radio_settings.radioconf
+  file_id: radio_configuration_settings
+  directory: rail
+  condition:
+  - hardware_board_default_rf_band_868
+  - device_generic_family_efr32xg2d
+  unless:
+  - device_is_module
+  - device_generic_family_efr32xg21
+root_path: proprietary_default_radio_confs

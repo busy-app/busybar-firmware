@@ -1,0 +1,42 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__evt__cte__receiver__connection__iq__report" kind="group">
+    <compoundname>sl_bt_evt_cte_receiver_connection_iq_report</compoundname>
+    <title>sl_bt_evt_cte_receiver_connection_iq_report</title>
+    <innerclass refid="structsl__bt__evt__cte__receiver__connection__iq__report__s" prot="public">sl_bt_evt_cte_receiver_connection_iq_report_s</innerclass>
+      <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="group__sl__bt__evt__cte__receiver__connection__iq__report_1ga26211870fd6b05c701ae1f21ba813c78" prot="public" static="no">
+        <type>struct <ref refid="structsl__bt__evt__cte__receiver__connection__iq__report__s" kindref="compound">sl_bt_evt_cte_receiver_connection_iq_report_s</ref></type>
+        <definition>typedef struct sl_bt_evt_cte_receiver_connection_iq_report_s sl_bt_evt_cte_receiver_connection_iq_report_t</definition>
+        <argsstring></argsstring>
+        <name>sl_bt_evt_cte_receiver_connection_iq_report_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15580" column="60" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="15580" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__evt__cte__receiver__connection__iq__report_1gae3fb872a3668e559c7f5b494b53bb261" prot="public" static="no">
+        <name>sl_bt_evt_cte_receiver_connection_iq_report_id</name>
+        <initializer>0x004500a0</initializer>
+        <briefdescription>
+<para>Identifier of the connection_iq_report event. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15547" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="15547" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>IQ sample report from connection CTE packets. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

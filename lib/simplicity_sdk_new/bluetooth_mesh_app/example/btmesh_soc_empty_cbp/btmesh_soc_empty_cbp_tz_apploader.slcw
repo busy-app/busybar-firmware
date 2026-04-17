@@ -1,0 +1,24 @@
+workspace_name: btmesh_soc_empty_cbp_tz_workspace
+package: bluetooth_mesh_app
+label: Bluetooth Mesh - SoC Empty with Certificate-Based Provisioning support (TrustZone)
+description: >
+  Certificate-based provisioning firmware workspace. Demonstrates the bare minimum
+  needed for a Bluetooth Mesh C application that allows Certificate-Based Provisioning (CBP).
+  The application starts Unprovisioned Device Beaconing after boot waiting to be provisioned
+  to a Mesh Network. This example utilizes TrustZone for storing keys.
+quality: experimental
+project:
+  - path: ../btmesh_soc_tz_secure_application/btmesh_soc_tz_secure_application.slcp
+    id: btmesh_soc_tz_secure_application
+    output: btmesh_soc_tz_secure_application
+  - path: btmesh_soc_empty_cbp_tz.slcp
+    id: btmesh_soc_tz_nonsecure_application
+    output: btmesh_soc_empty_cbp_tz
+  - path: ../../bootloader/bootloader-apploader-secure.slcp
+    id: bootloader-apploader-secure
+    output: bootloader-apploader-secure
+  - path: ../../bootloader/bootloader-apploader-nonsecure.slcp
+    id: bootloader-apploader-nonsecure
+    output: bootloader-apploader-nonsecure
+post_build:
+  path: "../../postbuild_profile/btmesh_tz_workspace.slpb"

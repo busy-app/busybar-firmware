@@ -1,0 +1,32 @@
+id: "sl_rail_sdk_packet_asm"
+label: "Standard packet assembler"
+package: "rail_sdk"
+description: >
+  This component offers packet assembly functionalities for IEEE 802.15.4, BLE,
+  and WiSUN.
+category: "RAIL-SDK|Utility"
+quality: "production"
+metadata:
+  sbom:
+    license: Zlib
+root_path: "rail_sdk/component/sl_rail_sdk_packet_asm"
+provides:
+- name: sl_rail_sdk_packet_asm
+
+requires:
+- name: device_has_radio
+
+# according to standards the packet assembler is chosen.
+source:
+- path: "sl_rail_sdk_packet_asm.c"
+include:
+- path: "."
+  file_list:
+  - "path": "sl_rail_sdk_packet_asm.h"
+
+#-------------- Template Contribution ----------------
+template_contribution:
+#---------------- Component Catalog ------------------
+- name: component_catalog
+  value: rail_sdk_packet_asm
+

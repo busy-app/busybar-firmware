@@ -1,0 +1,37 @@
+id: sl_adc
+label: ADC
+package: platform_siwx91x
+description: >
+  The ADC Drivers can read at up to 2.5 Msps with a 12-Bit resolution. 
+  It supports 16 channel instances. 
+  There are two types of data sampling functions: blocking and non-blocking.  
+  Non-blocking read data functions use DMA (FIFO mode) to read data 
+  and notify completion via callback functions.
+  When Default creates an instance, it installs channel 1.
+  It is also feasible to run all instances in ULP mode.
+ 
+  When you install this component, it will also be installing the ADC dependency component, which is the ADC driver's implementation.
+category: Device|Si91x|MCU|Peripheral
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+component_root_path: "components/device/silabs/si91x/mcu/drivers/unified_api"
+ui_hints:
+  visibility: never
+source:
+  - path: "src/sl_si91x_adc.c"
+include:
+  - path: "inc"
+    file_list:
+    - path: "sl_si91x_adc.h"
+provides:
+  - name: sl_adc
+requires:
+  - name: rsilib_adc
+  - name: sl_dma
+  - name: romdriver_ulpss
+  - name: systemlevel_rtc
+documentation:
+    docset: wiseconnect
+    document: wiseconnect-api-reference-guide-si91x-peripherals/adc

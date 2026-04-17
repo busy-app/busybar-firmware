@@ -1,0 +1,145 @@
+id: cs_initiator_cli
+package: bluetooth_le_middleware
+label: CS Initiator CLI
+description: >
+  Command Line Interface (CLI) for the CS Initiator example.
+  Serves testing purposes only.
+category: Bluetooth|Application|Miscellaneous
+metadata:
+  sbom:
+    license: Zlib
+quality: experimental
+root_path: bluetooth_le_middleware/common/cs_initiator_cli
+include:
+- path: .
+  file_list:
+  - path: cs_initiator_cli.h
+source:
+- path: cs_initiator_cli.c
+provides:
+- name: cs_initiator_cli
+requires:
+- name: app_log
+- name: ble_peer_manager_filter
+- name: ble_peer_manager_central
+- name: bluetooth_api
+- name: cli
+- name: component_catalog
+- name: rtllib_api
+recommends:
+- id: cli
+  vendor: silabs
+  instance:
+  - example
+conflicts:
+- name: cs_reflector_cli
+template_contribution:
+- name: cli_command
+  value:
+    name: mode
+    handler: cs_initiator_cli_mode
+    shortcuts:
+    - name: sm
+    help: "Set mode"
+    argument:
+    - type: uint8
+      help: "PBR:2 or RTT:1"
+- name: cli_command
+  value:
+    name: proc_count
+    handler: cs_initiator_cli_procedure_counter
+    shortcuts:
+    - name: pc
+    help: "Set max procedure counter"
+    argument:
+    - type: uint8
+      help: "Free running:0 or Synchronized:1"
+- name: cli_command
+  value:
+    name: sub_mode
+    handler: cs_initiator_cli_sub_mode
+    shortcuts:
+    - name: ssm
+    help: "Set sub mode"
+    argument:
+    - type: uint8
+      help: "No sub mode:255 (default) or RTT:1"
+- name: cli_command
+  value:
+    name: algo_mode
+    handler: cs_initiator_cli_algo_mode
+    shortcuts:
+    - name: sa
+    help: "Set algo_mode"
+    argument:
+    - type: uint8
+      help: "Moving Object Tracking:0 or Stationary Object Tracking:1"
+- name: cli_command
+  value:
+    name: preset
+    handler: cs_initiator_cli_preset
+    shortcuts:
+    - name: p
+    help: "Set channel map preset"
+    argument:
+    - type: uint8
+      help: "0:LOW 1:MEDIUM 2:HIGH (default) 3:CUSTOM (load macro CS_CUSTOM_CHANNEL_MAP)"
+- name: cli_command
+  value:
+    name: conn_phy
+    handler: cs_initiator_cli_conn_phy
+    shortcuts:
+    - name: cp
+    help: "Set connection PHY"
+    argument:
+    - type: uint8
+      help: "Supported values: 1 for 1M PHY and 2 for 2M PHY"
+- name: cli_command
+  value:
+    name: filter_address
+    handler: cs_initiator_cli_filter_address
+    shortcuts:
+    - name: fa
+    help: "Set filter"
+    argument:
+    - type: string
+      help: "Filter address in format AA:BB:CC:DD:EE:FF or AABBCCDDEEFF."
+- name: cli_command
+  value:
+    name: log_level
+    handler: cs_initiator_cli_log_level
+    shortcuts:
+    - name: ll
+    help: "Set log level"
+    argument:
+    - type: uint8
+      help: "Values: critical:0|error:1|warning:2|info:3|debug:4"
+- name: cli_command
+  value:
+    name: start
+    handler: cs_initiator_cli_start
+    shortcuts:
+    - name: s
+    help: "Start scanning"
+- name: cli_command
+  value:
+    name: antenna_config_index
+    handler: cs_initiator_cli_aci
+    shortcuts:
+    - name: aci
+    help: "Antenna Configuration Index"
+    argument:
+    - type: uint8
+      help: "Values: (1-1):0 | (2-1):1 | (1-2):4 | (2-2):7"
+- name: cli_command
+  value:
+    name: cs_sync_antenna_usage
+    handler: cs_initiator_cli_cs_sync_antenna_usage
+    shortcuts:
+    - name: aucs
+    help: "Antenna usage for CS SYNC packets"
+    argument:
+    - type: string
+      help: "Values: Only antenna ID1:1 | Only antenna ID2:2 | Different antenna for each channel:0xFE"
+- name: component_catalog
+  value: cs_initiator_cli

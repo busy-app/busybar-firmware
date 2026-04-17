@@ -1,0 +1,262 @@
+id: "wisun_stack_library"
+label: "Wi-SUN Stack (Library)"
+package: "wisun"
+category: "Wi-SUN"
+quality: "production"
+description: "Provide Wi-SUN stack library"
+root_path: "wisun/./stack"
+
+ui_hints:
+  visibility: never
+
+requires:
+- name: "wisun_stack"
+
+provides:
+- name: "wisun_implementation"
+- name: "wisun_stack_library"
+
+source:
+- path: "src/sl_wisun_regdb.c"
+  project:
+    transfer_ownership: true
+
+library:
+- path: "libwisun_ffn_efr32xg2x_gcc_debug.a"
+  condition:
+  - "toolchain_gcc"
+  - "device_sdid_220"
+  - "wisun_stack_debug"
+  unless:
+  - "wisun_stack_lfn"
+- path: "libwisun_ffn_efr32xg2x_iar_debug.a"
+  condition:
+  - "toolchain_iar"
+  - "device_sdid_220"
+  - "wisun_stack_debug"
+  unless:
+  - "wisun_stack_lfn"
+- path: "libwisun_ffn_efr32xg2x_gcc_debug.a"
+  condition:
+  - "toolchain_gcc"
+  - "device_sdid_235"
+  - "wisun_stack_debug"
+  unless:
+  - "wisun_stack_lfn"
+- path: "libwisun_ffn_efr32xg2x_iar_debug.a"
+  condition:
+  - "toolchain_iar"
+  - "device_sdid_235"
+  - "wisun_stack_debug"
+  unless:
+  - "wisun_stack_lfn"
+
+
+- path: "libwisun_ffn_efr32xg2x_gcc_release.a"
+  condition:
+  - "toolchain_gcc"
+  - "device_sdid_220"
+  unless:
+  - "wisun_stack_lfn"
+  - "wisun_stack_debug"
+- path: "libwisun_ffn_efr32xg2x_iar_release.a"
+  condition:
+  - "toolchain_iar"
+  - "device_sdid_220"
+  unless:
+  - "wisun_stack_lfn"
+  - "wisun_stack_debug"
+- path: "libwisun_ffn_efr32xg2x_gcc_release.a"
+  condition:
+  - "toolchain_gcc"
+  - "device_sdid_235"
+  unless:
+  - "wisun_stack_lfn"
+  - "wisun_stack_debug"
+- path: "libwisun_ffn_efr32xg2x_iar_release.a"
+  condition:
+  - "toolchain_iar"
+  - "device_sdid_235"
+  unless:
+  - "wisun_stack_lfn"
+  - "wisun_stack_debug"
+
+# -------------------------------
+
+- path: "libwisun_lfn_efr32xg2x_gcc_debug.a"
+  condition:
+  - "toolchain_gcc"
+  - "device_sdid_220"
+  - "wisun_stack_debug"
+  - "wisun_stack_lfn"
+  unless:
+  - "wisun_stack_ffn"
+- path: "libwisun_lfn_efr32xg2x_iar_debug.a"
+  condition:
+  - "toolchain_iar"
+  - "device_sdid_220"
+  - "wisun_stack_debug"
+  - "wisun_stack_lfn"
+  unless:
+  - "wisun_stack_ffn"
+- path: "libwisun_lfn_efr32xg2x_gcc_debug.a"
+  condition:
+  - "toolchain_gcc"
+  - "device_sdid_235"
+  - "wisun_stack_debug"
+  - "wisun_stack_lfn"
+  unless:
+  - "wisun_stack_ffn"
+- path: "libwisun_lfn_efr32xg2x_iar_debug.a"
+  condition:
+  - "toolchain_iar"
+  - "device_sdid_235"
+  - "wisun_stack_debug"
+  - "wisun_stack_lfn"
+  unless:
+  - "wisun_stack_ffn"
+
+
+- path: "libwisun_lfn_efr32xg2x_gcc_release.a"
+  condition:
+  - "toolchain_gcc"
+  - "device_sdid_220"
+  - "wisun_stack_lfn"
+  unless:
+  - "wisun_stack_ffn"
+  - "wisun_stack_debug"
+- path: "libwisun_lfn_efr32xg2x_iar_release.a"
+  condition:
+  - "toolchain_iar"
+  - "device_sdid_220"
+  - "wisun_stack_lfn"
+  unless:
+  - "wisun_stack_ffn"
+  - "wisun_stack_debug"
+- path: "libwisun_lfn_efr32xg2x_gcc_release.a"
+  condition:
+  - "toolchain_gcc"
+  - "device_sdid_235"
+  - "wisun_stack_lfn"
+  unless:
+  - "wisun_stack_ffn"
+  - "wisun_stack_debug"
+- path: "libwisun_lfn_efr32xg2x_iar_release.a"
+  condition:
+  - "toolchain_iar"
+  - "device_sdid_235"
+  - "wisun_stack_lfn"
+  unless:
+  - "wisun_stack_ffn"
+  - "wisun_stack_debug"
+
+# -------------------------------
+
+- path: "libwisun_lfn_efr32xg23_gcc_debug.a"
+  condition:
+  - "toolchain_gcc"
+  - "device_sdid_210"
+  - "wisun_stack_debug"
+  - "wisun_stack_lfn"
+  unless:
+  - "wisun_stack_ffn"
+- path: "libwisun_lfn_efr32xg23_iar_debug.a"
+  condition:
+  - "toolchain_iar"
+  - "device_sdid_210"
+  - "wisun_stack_debug"
+  - "wisun_stack_lfn"
+  unless:
+  - "wisun_stack_ffn"
+
+
+- path: "libwisun_lfn_efr32xg23_gcc_release.a"
+  condition:
+  - "toolchain_gcc"
+  - "device_sdid_210"
+  - "wisun_stack_lfn"
+  unless:
+  - "wisun_stack_ffn"
+  - "wisun_stack_debug"
+- path: "libwisun_lfn_efr32xg23_iar_release.a"
+  condition:
+  - "toolchain_iar"
+  - "device_sdid_210"
+  - "wisun_stack_lfn"
+  unless:
+  - "wisun_stack_ffn"
+  - "wisun_stack_debug"
+
+# -------------------------------
+
+- path: "libwisun_full_efr32xg2x_gcc_debug.a"
+  condition:
+  - "toolchain_gcc"
+  - "device_sdid_220"
+  - "wisun_stack_debug"
+  - "wisun_stack_lfn"
+  - "wisun_stack_ffn"
+- path: "libwisun_full_efr32xg2x_iar_debug.a"
+  condition:
+  - "toolchain_iar"
+  - "device_sdid_220"
+  - "wisun_stack_debug"
+  - "wisun_stack_lfn"
+  - "wisun_stack_ffn"
+- path: "libwisun_full_efr32xg2x_gcc_debug.a"
+  condition:
+  - "toolchain_gcc"
+  - "device_sdid_235"
+  - "wisun_stack_debug"
+  - "wisun_stack_lfn"
+  - "wisun_stack_ffn"
+- path: "libwisun_full_efr32xg2x_iar_debug.a"
+  condition:
+  - "toolchain_iar"
+  - "device_sdid_235"
+  - "wisun_stack_debug"
+  - "wisun_stack_lfn"
+  - "wisun_stack_ffn"
+
+
+- path: "libwisun_full_efr32xg2x_gcc_release.a"
+  condition:
+  - "toolchain_gcc"
+  - "device_sdid_220"
+  - "wisun_stack_lfn"
+  - "wisun_stack_ffn"
+  unless:
+  - "wisun_stack_debug"
+- path: "libwisun_full_efr32xg2x_iar_release.a"
+  condition:
+  - "toolchain_iar"
+  - "device_sdid_220"
+  - "wisun_stack_lfn"
+  - "wisun_stack_ffn"
+  unless:
+  - "wisun_stack_debug"
+- path: "libwisun_full_efr32xg2x_gcc_release.a"
+  condition:
+  - "toolchain_gcc"
+  - "device_sdid_235"
+  - "wisun_stack_lfn"
+  - "wisun_stack_ffn"
+  unless:
+  - "wisun_stack_debug"
+- path: "libwisun_full_efr32xg2x_iar_release.a"
+  condition:
+  - "toolchain_iar"
+  - "device_sdid_235"
+  - "wisun_stack_lfn"
+  - "wisun_stack_ffn"
+  unless:
+  - "wisun_stack_debug"
+
+metadata:
+  sbom:
+    license: MSLA AND Apache-2.0
+    upstream:
+      name: Nanostack
+      version: 14.0.0
+      supplier: Pelion and affiliates
+      url: https://github.com/ARMmbed/mbed-os/tree/9957e7b4ae4315e6d1d2bc064c469e69fb34ff78/features/nanostack

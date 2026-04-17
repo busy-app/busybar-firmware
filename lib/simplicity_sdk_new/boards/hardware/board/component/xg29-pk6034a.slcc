@@ -1,0 +1,26 @@
+!!omap
+- id: xg29_pk6034a
+- label: XG29-PK6034A
+- package: boards
+- description: Kit BSP support for the EFR32xG29 Wireless 2.4 GHz +8 dBm DCDC Buck Pro Kit.
+- category: Platform|Board|Kit|Pro Kit
+- quality: production
+- metadata:
+    sbom:
+      license: Zlib
+- requires:
+  - name: hardware_board_from_xg29-pk6034a
+- provides:
+  - name: hardware_kit
+  - name: hardware_kit_pk
+- define:
+  - name: SL_KIT_NAME
+    value: '"XG29-PK6034A"'
+  - name: SL_KIT_REV
+    value: '"A02"'
+- tag:
+  - kit:opn:xG29-PK6034A
+  - kit:pn:PK6034
+  - kit:variant:A
+  - kit:revision:A02
+- root_path: boards

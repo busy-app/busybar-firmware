@@ -1,0 +1,43 @@
+id: pcm_instance
+label: PCM
+package: platform_siwx91x
+description: 'PCM Supports instances. Instances created must be named as pcm0, ulp_pcm.
+
+  '
+category: Device|Si91x|MCU|Peripheral
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+instantiable:
+  prefix: inst
+root_path: components/device/silabs/si91x/mcu/drivers/unified_api
+config_file:
+- path: config/sl_si91x_pcm_init_{{instance}}_config.h
+  file_id: pcm_config
+- path: config/sl_i2s_instances_config/sl_si91x_pcm_config.h
+  override:
+    component: sl_pcm
+    file_id: sl_pcm_config
+    vendor: silabs
+provides:
+- name: pcm_instance
+  allow_multiple: true
+define:
+- name: PCM_INSTANCE_CONFIG
+  value: 1
+template_file:
+- path: init/sl_pcm_instances.h.jinja
+template_contribution:
+- name: pcm_instances
+  value: '{{instance}}'
+- name: component_catalog
+  value: pcm
+- name: component_catalog
+  value: pcm_{{instance}}
+requires:
+- name: sl_i2s
+- name: sl_pcm
+documentation:
+  docset: wiseconnect
+  document: wiseconnect-api-reference-guide-si91x-peripherals/i2s

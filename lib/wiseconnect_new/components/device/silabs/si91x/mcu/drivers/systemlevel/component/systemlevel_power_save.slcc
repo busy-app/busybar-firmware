@@ -1,0 +1,21 @@
+id: systemlevel_power_save
+label: POWER SAVE
+package: platform_siwx91x
+description: >
+  Power Save API's
+category: Device|Si91x|MCU|Internal|System-Level Drivers
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+component_root_path: "components/device/silabs/si91x/mcu/drivers/systemlevel"
+source:
+  - path: "src/rsi_power_save.c"
+include:
+  - path: "inc"
+    file_list:
+    - path: "rsi_power_save.h"
+provides:
+  - name: systemlevel_power_save
+requires:
+  - name: romdriver_power_save

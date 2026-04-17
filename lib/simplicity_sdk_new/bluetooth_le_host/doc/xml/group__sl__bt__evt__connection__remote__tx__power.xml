@@ -1,0 +1,43 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__evt__connection__remote__tx__power" kind="group">
+    <compoundname>sl_bt_evt_connection_remote_tx_power</compoundname>
+    <title>sl_bt_evt_connection_remote_tx_power</title>
+    <innerclass refid="structsl__bt__evt__connection__remote__tx__power__s" prot="public">sl_bt_evt_connection_remote_tx_power_s</innerclass>
+      <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="group__sl__bt__evt__connection__remote__tx__power_1ga03a02d9ddb3d66d149111999e0aa09af" prot="public" static="no">
+        <type>struct <ref refid="structsl__bt__evt__connection__remote__tx__power__s" kindref="compound">sl_bt_evt_connection_remote_tx_power_s</ref></type>
+        <definition>typedef struct sl_bt_evt_connection_remote_tx_power_s sl_bt_evt_connection_remote_tx_power_t</definition>
+        <argsstring></argsstring>
+        <name>sl_bt_evt_connection_remote_tx_power_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6719" column="53" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6719" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__evt__connection__remote__tx__power_1ga62b9ddb45604be8df67d705071b8d19e" prot="public" static="no">
+        <name>sl_bt_evt_connection_remote_tx_power_id</name>
+        <initializer>0x070600a0</initializer>
+        <briefdescription>
+<para>Identifier of the remote_tx_power event. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6670" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6670" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Reports a transmit power change of the connection on the remote device that supports the LE Power Control for the connection. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>This event is enabled if reporting the remote transmit power change has been enabled with the <ref refid="group__sl__bt__connection_1gacf6622b4231baa2c3a7bb89e2022e081" kindref="member">sl_bt_connection_set_remote_power_reporting</ref> command. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

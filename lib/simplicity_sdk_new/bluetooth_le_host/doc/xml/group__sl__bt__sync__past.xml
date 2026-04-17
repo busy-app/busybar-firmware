@@ -1,0 +1,93 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__sync__past" kind="group">
+    <compoundname>sl_bt_sync_past</compoundname>
+    <title>Sync PAST</title>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="group__sl__bt__sync__past_1gafe9e9238ba4b2eab368191cb0d659ed4" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_sync_past_transfer</definition>
+        <argsstring>(uint8_t connection, uint16_t service_data, uint16_t sync)</argsstring>
+        <name>sl_bt_sync_past_transfer</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>connection</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>service_data</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>sync</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Transfer the synchronization information of a periodic advertising train for which a sync has been established.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">connection</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Connection handle of the connection used to transmit the sync transfer </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">service_data</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>A value provided by the application for use by the peer device. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">sync</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Handle of the periodic advertising synchronization to transfer</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="5158" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="5158" declcolumn="13"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__sync__past_1ga0674a1ef2db090514d2a6143a26add99" prot="public" static="no">
+        <name>sl_bt_cmd_sync_past_transfer_id</name>
+        <initializer>0x005b0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="5140" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="5140" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__sync__past_1ga46a84bcf4c0227b5aa425b52e2c04c9f" prot="public" static="no">
+        <name>sl_bt_rsp_sync_past_transfer_id</name>
+        <initializer>0x005b0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="5141" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="5141" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Sync PAST. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>Transfer the synchronization information of a synchronized periodic advertising train to a remote device using Periodic Advertising Synchronization Transfer (PAST) over a connection. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

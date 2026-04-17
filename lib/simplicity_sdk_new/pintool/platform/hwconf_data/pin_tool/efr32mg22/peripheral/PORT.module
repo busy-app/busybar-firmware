@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<module:DocumentRoot xmlns:module="http://www.silabs.com/ss/hwconfig/module.ecore">
+  <module id="pin_tool.efr32.efr32mg22.port" label="Port" name="Port" description="" version="A">
+    <properties/>
+    <propertyCategories>
+      <category label="Port Bank">
+        <subCategory label=""/>
+      </category>
+    </propertyCategories>
+    <signals/>
+  </module>
+</module:DocumentRoot>

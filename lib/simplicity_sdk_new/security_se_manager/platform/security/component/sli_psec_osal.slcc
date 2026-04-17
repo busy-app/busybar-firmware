@@ -1,0 +1,44 @@
+id: sli_psec_osal
+label: OS Abstraction Layer
+package: security_se_manager
+description: >-
+  OS abstraction layer for platform security components.
+category: Platform|Security
+quality: production
+ui_hints:
+  visibility: never
+include:
+- path: inc
+  file_list:
+  - path: sli_psec_osal.h
+  - path: sli_psec_osal_baremetal.h
+    unless: [cmsis_rtos2]
+  - path: sli_psec_osal_cmsis_rtos2.h
+    condition: [cmsis_rtos2]
+
+source:
+- path: src/sli_psec_osal_cmsis_rtos2.c
+  condition: [cmsis_rtos2]
+
+conflicts:
+- name: native
+
+requires:
+- name: sl_core
+- name: code_classification
+
+provides:
+- name: sli_psec_osal
+
+define:
+- name: SL_CODE_COMPONENT_PSEC_OSAL
+  value: psec_osal
+
+template_contribution:
+- name: code_classification_components
+  value: psec_osal
+
+metadata:
+  sbom:
+    license: Zlib
+root_path: security_se_manager/platform/security/sl_component/sli_psec_osal

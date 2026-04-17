@@ -1,0 +1,116 @@
+id: sl_main_init
+label: sl main Init
+package: platform_core
+category: Services|System Setup
+ui_hints:
+  visibility: never
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: platform_core/platform/service/sl_main/
+source:
+- path: src/sl_main_init.c
+- path: src/legacy/main.c
+  project:
+    transfer_ownership: true
+  unless: [kernel, custom_main]
+- path: src/rtos/main.c
+  project:
+    transfer_ownership: true
+  condition: [kernel]
+  unless: [custom_main]
+- path: src/rtos/main_retarget.c
+  condition: [kernel]
+include:
+- path: inc
+  file_list:
+  - path: sl_main_init.h
+provides:
+- name: sl_main_init
+- name: main_init
+requires:
+- name: sl_main_memory_init
+- name: event_handler
+- name: sl_main_kernel
+  condition: [kernel]
+- name: hal_system
+  condition: [device_cortexm, device_efx]
+- name: cmsis_core
+template_contribution:
+- name: event
+  value:
+    id: platform_init
+    function:
+      name: sl_platform_init
+      return: void
+  priority: -5000
+- name: event
+  value:
+    id: driver_init
+    function:
+      name: sl_driver_init
+      return: void
+  priority: -4990
+- name: event
+  value:
+    id: service_init
+    function:
+      name: sl_service_init
+      return: void
+  priority: -4980
+- name: event
+  value:
+    id: stack_init
+    function:
+      name: sl_stack_init
+      return: void
+  priority: -4970
+- name: event
+  value:
+    id: internal_app_init
+    function:
+      name: sl_internal_app_init
+      return: void
+  priority: -4960
+- name: event
+  value:
+    id: internal_init_early
+    function:
+      name: sli_internal_init_early
+      return: void
+  priority: -5000
+documentation:
+  docset: gecko-platform
+  document: platform-service/sl-main
+toolchain_settings:
+- option: gcc_linker_option
+  value: -Wl,--wrap=main
+  condition: [kernel]
+- option: llvm_linker_option
+  value: -Wl,--wrap=main
+  condition: [kernel]
+description: |
+  Main Init provides a function for initializing the system and the products:
+
+    - sl_main_init().
+
+  This function calls a hardcoded sequence of functions that are executed in order.
+
+    - sl_main_second_stage_init().
+
+  This function is called the second stage init, it calls a set of functions
+  that are automatically generated and located in `autogen/sl_event_handler.c`.
+  Handlers can be registered for the following events using the Event Handler
+  API provided by the Event Handler component:
+
+    - platform_init      -> sl_platform_init()
+    - driver_init        -> sl_driver_init()
+    - service_init       -> sl_service_init()
+    - stack_init         -> sl_stack_init()
+    - internal_app_init  -> sl_internal_app_init()
+
+  These events are fired in the order listed above when `sl_main_init()`
+  is called. If an RTOS is included in the project the sl_main_second_stage_init
+  function will be called after the OS kernel is started.
+   ```

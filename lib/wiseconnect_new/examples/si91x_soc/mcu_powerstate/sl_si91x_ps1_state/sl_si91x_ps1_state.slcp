@@ -1,0 +1,68 @@
+project_name: sl_si91x_ps1_state
+package: platform_siwx91x_app
+description: 'This application demonstrates the PS1 state with NWP shutdown.
+
+  '
+category: example|mcu powerstate
+quality: production
+label: SI91x - SL_SI91X_PS1_STATE
+component:
+- id: sl_main
+- id: status
+- id: syscalls
+- id: si91x_mem_config_3
+- id: sl_power_manager
+- id: ulp_timers_instance
+  instance:
+  - timer0
+- id: calendar_ulp_component
+- id: timer_ulp_component
+- id: debug_ulp_component
+- id: pm_ps2_component
+template_contribution:
+- name: user_files_ps2
+  value: ps1_state.*
+- name: user_files_ps2
+  value: app.*
+- name: user_files_ps2
+  value: main.*
+define:
+- name: SLI_SI91X_MCU_ENABLE_RAM_BASED_EXECUTION
+  value: '1'
+- name: SL_SI91X_ENABLE_LOWPWR_RET_LDO
+  value: '1'
+- name: SI_SI91X_NWP_SHUTDOWN
+  value: '1'
+provides:
+- name: SL_SI91X_PM_STATE_TRANSITION
+source:
+- path: app.c
+- path: ps1_state.c
+include:
+- path: .
+  file_list:
+  - path: app.h
+  - path: ps1_state.h
+toolchain_settings:
+- option: gcc_compiler_option
+  value: -Wall -Werror
+other_file:
+- path: resources/readme/setupdiagram.png
+- path: resources/readme/ps1_power_plot.png
+- path: resources/readme/ps1_state.png
+ui_hints:
+  highlight:
+  - path: readme.md
+    focus: true
+readme:
+- path: readme.md
+post_build:
+  profile: wiseconnect_soc
+sdk_extension:
+- id: wiseconnect3_sdk
+  vendor: silabs
+  version: 4.0.1
+sdk:
+  id: simplicity_sdk
+  vendor: silabs
+  version: 2025.12.2

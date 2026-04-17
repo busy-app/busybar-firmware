@@ -1,0 +1,361 @@
+/***************************************************************************//**
+ * @file
+ * @brief This file contains helpers for transitioning into the various
+ *   AppModes
+ *******************************************************************************
+ * # License
+ * <b>Copyright 2024 Silicon Laboratories Inc. www.silabs.com</b>
+ *******************************************************************************
+ *
+ * SPDX-License-Identifier: Zlib
+ *
+ * The licensor of this software is Silicon Laboratories Inc.
+ *
+ * This software is provided 'as-is', without any express or implied
+ * warranty. In no event will the authors be held liable for any damages
+ * arising from the use of this software.
+ *
+ * Permission is granted to anyone to use this software for any purpose,
+ * including commercial applications, and to alter it and redistribute it
+ * freely, subject to the following restrictions:
+ *
+ * 1. The origin of this software must not be misrepresented; you must not
+ *    claim that you wrote the original software. If you use this software
+ *    in a product, an acknowledgment in the product documentation would be
+ *    appreciated but is not required.
+ * 2. Altered source versions must be plainly marked as such, and must not be
+ *    misrepresented as being the original software.
+ * 3. This notice may not be removed or altered from any source distribution.
+ *
+ ******************************************************************************/
+
+#include "app_common.h"
+
+#include "sl_core.h"
+
+const char *getRfStateName(sl_rail_radio_state_t state)
+{
+  switch (state) {
+    case SL_RAIL_RF_STATE_IDLE:
+      return "Idle";
+    case SL_RAIL_RF_STATE_RX:
+      return "Rx";
+    case SL_RAIL_RF_STATE_TX:
+      return "Tx";
+    case SL_RAIL_RF_STATE_RX_ACTIVE:
+      return "RxActive";
+    case SL_RAIL_RF_STATE_TX_ACTIVE:
+      return "TxActive";
+    case SL_RAIL_RF_STATE_INACTIVE:
+      return "Inactive";
+    default:
+      //Check individual rail state bits if RAIL state is unknown
+      return "Unknown";
+  }
+}
+
+// Note this function should be supplied with a buffer of minimum char size 23
+// to avoid potential RAM corruption for worse case (though invalid) 22 character
+// string "ToIdleActiveNoFrameLbt" + string termination character.
+char *getRfStateDetailName(sl_rail_radio_state_detail_t state, char *buffer)
+{
+  if (state == SL_RAIL_RF_STATE_DETAIL_INACTIVE) {
+    strcpy(buffer, "Inactive");
+    return buffer;
+  }
+  buffer[0] = '\0';
+  if ((state & SL_RAIL_RF_STATE_DETAIL_TRANSITION) != 0) {
+    strcpy(buffer, "To");
+  }
+  switch (state & SL_RAIL_RF_STATE_DETAIL_CORE_STATE_MASK) {
+    case SL_RAIL_RF_STATE_DETAIL_IDLE_STATE:
+      strcat(buffer, "Idle");
+      break;
+    case SL_RAIL_RF_STATE_DETAIL_RX_STATE:
+      strcat(buffer, "Rx");
+      break;
+    case SL_RAIL_RF_STATE_DETAIL_TX_STATE:
+      strcat(buffer, "Tx");
+      break;
+    default:
+      // If we reach here and either no core radio state bits are set,
+      // or multiple core radio state bits are set, then unknown state.
+      strcpy(buffer, "Unknown");
+      return buffer;
+  }
+  if ((state & SL_RAIL_RF_STATE_DETAIL_ACTIVE) != 0) {
+    strcat(buffer, "Active");
+  }
+  if ((state & SL_RAIL_RF_STATE_DETAIL_NO_FRAMES) != 0) {
+    strcat(buffer, "NoFrame");
+  }
+  if ((state & SL_RAIL_RF_STATE_DETAIL_LBT) != 0) {
+    strcat(buffer, "Lbt");
+  }
+  return buffer;
+}
+
+// Guard for CI functions to ensure a certain radio state before running
+bool inRadioState(sl_rail_radio_state_t state, char *command)
+{
+  sl_rail_radio_state_t currentState = sl_rail_get_radio_state(railHandle);
+  bool ret;
+  switch (state) {
+    case SL_RAIL_RF_STATE_INACTIVE:  // Match exactly
+    case SL_RAIL_RF_STATE_TX_ACTIVE: // Match exactly
+    case SL_RAIL_RF_STATE_RX_ACTIVE: // Match exactly
+      ret = (currentState == state);
+      break;
+    case SL_RAIL_RF_STATE_IDLE:      // Match IDLE or INACTIVE
+      ret = (currentState <= SL_RAIL_RF_STATE_IDLE);
+      break;
+    case SL_RAIL_RF_STATE_RX:        // Match RX or RX_ACTIVE
+    case SL_RAIL_RF_STATE_TX:        // Match TX or TX_ACTIVE
+      ret = ((currentState & state) == state);
+      break;
+    default:                      // Illegal state!?
+      ret = false;
+      break;
+  }
+  if (!ret && command) {
+    responsePrintError(command, 0x17,
+                       "Need to be in %s radio state for this command",
+                       getRfStateName(state));
+  }
+  return ret;
+}
+
+const char *configuredRxAntenna(sl_rail_rx_options_t rxOptions)
+{
+  switch (rxOptions & (SL_RAIL_RX_OPTION_ANTENNA_AUTO)) {
+    case (SL_RAIL_RX_OPTION_ANTENNA_AUTO): {
+      return "Auto";
+      break;
+    }
+    case (SL_RAIL_RX_OPTION_ANTENNA_0): {
+      return "Antenna0";
+      break;
+    }
+    case (SL_RAIL_RX_OPTION_ANTENNA_1): {
+      return "Antenna1";
+      break;
+    }
+    default: {
+      return "Any";
+      break;
+    }
+  }
+}
+
+void printRailAppEvents(void)
+{
+  // Print any newly received app events
+  if (!queueIsEmpty(&railAppEventQueue)) {
+    RailAppEvent_t *railtestEvent
+      = (RailAppEvent_t *)queueRemove(&railAppEventQueue);
+    // Print the received packet and appended info
+    if (railtestEvent != NULL) {
+      if (railtestEvent->type == RX_PACKET) {
+        char *cmdName;
+        uint8_t *dataPtr = railtestEvent->rxPacket.dataPtr;
+        switch (railtestEvent->rxPacket.packetStatus) {
+          case SL_RAIL_RX_PACKET_ABORT_FORMAT:
+            cmdName = "rxErrFmt";
+            break;
+          case SL_RAIL_RX_PACKET_ABORT_FILTERED:
+            cmdName = "rxErrFlt";
+            break;
+          case SL_RAIL_RX_PACKET_ABORT_ABORTED:
+            cmdName = "rxErrAbt";
+            break;
+          case SL_RAIL_RX_PACKET_ABORT_OVERFLOW:
+            cmdName = "rxErrOvf";
+            break;
+          case SL_RAIL_RX_PACKET_ABORT_CRC_ERROR:
+            cmdName = "rxErrCrc";
+            break;
+          case SL_RAIL_RX_PACKET_READY_CRC_ERROR:
+          case SL_RAIL_RX_PACKET_READY_SUCCESS:
+            cmdName = "rxPacket";
+            break;
+          default:
+            cmdName = "rxErr???";
+            break;
+        }
+        printPacket(cmdName,
+                    dataPtr,
+                    railtestEvent->rxPacket.dataLength,
+                    &railtestEvent->rxPacket);
+      } else if (railtestEvent->type == BEAM_PACKET) {
+        // Now print the most recent packet we may have received in Z-Wave mode
+        responsePrint("ZWaveBeamFrame",
+                      "nodeId:0x%x,beamHomeIdHash:0x%x,"
+                      "channelHopIdx:%d,lrBeam:%s,lrBeamTxPower:%d,beamRssi:%d",
+                      railtestEvent->beamPacket.node_id,
+                      railtestEvent->beamPacket.home_id_hash,
+                      railtestEvent->beamPacket.channel_index,
+                      (railtestEvent->beamPacket.lr_tx_power == SL_RAIL_ZWAVE_LR_BEAM_TX_POWER_INVALID)
+                      ? "No" : "Yes",
+                      railtestEvent->beamPacket.lr_tx_power,
+                      railtestEvent->beamPacket.rssi_dbm);
+      } else if (railtestEvent->type == RAIL_EVENT) {
+        printRailEvents(&railtestEvent->railEvent);
+      } else if (railtestEvent->type == MULTITIMER) {
+        responsePrint("multiTimerCb",
+                      "TimerExpiredCallback:%u,"
+                      "ConfiguredExpireTime:%u,"
+                      "MultiTimerIndex:%d",
+                      railtestEvent->multitimer.currentTime,
+                      railtestEvent->multitimer.expirationTime,
+                      railtestEvent->multitimer.index);
+      } else if (railtestEvent->type == AVERAGE_RSSI) {
+        char bufAverageRssi[10];
+        averageRssi = (float)railtestEvent->rssi.rssi / 4;
+        if (railtestEvent->rssi.rssi == SL_RAIL_RSSI_INVALID) {
+          responsePrint("getAvgRssi", "Could not read RSSI (SL_RAIL_RSSI_INVALID).");
+        } else {
+          sprintfFloat(bufAverageRssi, sizeof(bufAverageRssi), averageRssi, 2);
+          responsePrint("getAvgRssi", "rssi:%s", bufAverageRssi);
+        }
+#ifdef SL_CATALOG_MOCK_SCHEDULER_PRESENT
+      } else if (railtestEvent->type == MOCK_SCHEDULER_TASK) {
+        responsePrint("mockSchedulerCb", "notification_type:%s,taskID:0x%x",
+                      (railtestEvent->mockSchedulerTask.notificationType == 0) ? "task_activated" : "task_failed",
+                      railtestEvent->mockSchedulerTask.taskId);
+#endif
+      }
+#if SL_RAIL_IEEE802154_SUPPORTS_G_MODE_SWITCH && defined(WISUN_MODESWITCHPHRS_ARRAY_SIZE)
+      else if (railtestEvent->type == MODE_SWITCH_CHANGE_CHANNEL) {
+        responsePrint("modeSwitchChangeChannel", "channel:%u",
+                      railtestEvent->modeSwitchChangeChannel.channel);
+      }
+#endif
+      sl_free((void *)railtestEvent);
+    }
+  }
+  uint32_t eventsMissedCache = 0;
+  CORE_DECLARE_IRQ_STATE;
+  CORE_ENTER_CRITICAL();
+  eventsMissedCache = eventsMissed;
+  eventsMissed = 0;
+  CORE_EXIT_CRITICAL();
+  if (eventsMissedCache > 0) {
+    responsePrint("missedRailAppEvents", "count:%u", eventsMissedCache);
+  }
+}
+
+void printChipInfo(void)
+{
+#define EVALIT(a, b)  a # b
+#define PASTEIT(a, b) EVALIT(a, b)
+#if defined(_SILICON_LABS_32B_SERIES_2)
+  #define FAMILY_NAME PASTEIT("EFR32XG2", _SILICON_LABS_32B_SERIES_2_CONFIG)
+#elif defined(_SILICON_LABS_32B_SERIES_3)
+  #define FAMILY_NAME PASTEIT("SIXX", _SILICON_LABS_32B_SERIES_3_CONFIG)
+#else
+  #define FAMILY_NAME "??"
+#endif
+#ifndef _SILICON_LABS_GECKO_INTERNAL_SDID
+  #define _SILICON_LABS_GECKO_INTERNAL_SDID 0U
+#endif
+
+#if defined(_SILICON_LABS_32B_SERIES_2)
+  uint32_t moduleName32[8] = {
+    DEVINFO->MODULENAME0, DEVINFO->MODULENAME1, DEVINFO->MODULENAME2,
+    DEVINFO->MODULENAME3, DEVINFO->MODULENAME4, DEVINFO->MODULENAME5,
+    DEVINFO->MODULENAME6, 0UL
+  };
+  char *moduleName = (char *) moduleName32;
+  for (uint8_t i = 0U; i < sizeof(moduleName32); i++) {
+    if ((moduleName[i] == '\0') || (moduleName[i] == '\xFF')) {
+      moduleName[i] = '\0';
+      break;
+    }
+  }
+  responsePrint("radio", "FreqHz:%u,ModuleInfo:0x%08x,ModuleName:%s",
+                sl_rail_get_radio_clock_freq_hz(railHandle),
+                DEVINFO->MODULEINFO,
+                ((moduleName[0] == '\0') ? "N/A" : moduleName));
+  SYSTEM_ChipRevision_TypeDef chipRev = { 0, };
+  SYSTEM_ChipRevisionGet(&chipRev);
+#else
+  responsePrint("radio", "FreqHz:%u,ModuleInfo:0x%08x",
+                sl_rail_get_radio_clock_freq_hz(railHandle),
+#if defined(_DEVINFO_MODULEINFO_MASK)
+                DEVINFO->MODULEINFO);
+#else
+                0);
+#endif
+  sl_hal_system_chip_revision_t chipRev = { 0, };
+  sl_hal_system_get_chip_revision(&chipRev);
+#endif
+
+  // SYSTEM_ChipRevision_TypeDef defines either a partNumber field or a family field.
+  // If _SYSCFG_CHIPREV_PARTNUMBER_MASK is defined, there is a partNumber field.
+  // Otherwise, there is a family field.
+  responsePrint("system", "Family:%s,"
+#if defined(_SYSCFG_CHIPREV_PARTNUMBER_MASK)
+                "Part#:%u,"
+#else
+                "Fam#:%u,"
+#endif
+                "ChipRev:%u.%u,sdid:%u,Part:0x%08x",
+                FAMILY_NAME,
+#if defined(_SYSCFG_CHIPREV_PARTNUMBER_MASK)
+#if defined(_SILICON_LABS_32B_SERIES_2)
+                chipRev.partNumber,
+#else
+                chipRev.part_number,
+#endif
+#else
+                chipRev.family,
+#endif
+                chipRev.major,
+                chipRev.minor,
+                _SILICON_LABS_GECKO_INTERNAL_SDID,
+#if defined(_DEVINFO_PART0_MASK)
+                DEVINFO->PART0);
+#else
+                DEVINFO->PART);
+#endif
+}
+
+Queue_t railAppEventQueue;
+
+bool queueAdd(Queue_t *queue, QueueEntryPtr_t *data)
+{
+  if (data == NULL) {
+    return false;
+  }
+  *data = NULL; // make sure next ptr -- first field in data -- is NULL
+  CORE_DECLARE_IRQ_STATE;
+  CORE_ENTER_CRITICAL();
+  if (queue->tail == NULL) {
+    queue->head = queue->tail = data;
+  } else {
+    *(queue->tail) = (QueueEntryPtr_t)data;
+    queue->tail = data;
+  }
+  CORE_EXIT_CRITICAL();
+  return true;
+}
+
+QueueEntryPtr_t *queueRemove(Queue_t *queue)
+{
+  CORE_DECLARE_IRQ_STATE;
+  CORE_ENTER_CRITICAL();
+  QueueEntryPtr_t *data = queue->head;
+  if (data != NULL) {
+    queue->head = (QueueEntryPtr_t *)(*data); // next ptr
+    if (queue->tail == data) { // Could also be if (queue->head == NULL)
+      queue->tail = NULL;
+    }
+  }
+  CORE_EXIT_CRITICAL();
+  return data;
+}
+
+bool queueIsEmpty(Queue_t *queue)
+{
+  return (queue->head == NULL);
+}

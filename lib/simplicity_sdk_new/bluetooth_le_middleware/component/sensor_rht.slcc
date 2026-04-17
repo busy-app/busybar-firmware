@@ -1,0 +1,34 @@
+id: sensor_rht
+label: Relative Humidity and Temperature sensor
+package: bluetooth_le_middleware
+description: Relative Humidity and Temperature sensor driver abstraction designed for Thunderboard. Not suitable for other applications.
+category: Bluetooth|Application|Miscellaneous
+metadata:
+  sbom:
+    license: Zlib
+quality: production
+root_path: bluetooth_le_middleware/common/sensor_rht
+tag:
+- No-Code
+source:
+- path: sl_sensor_rht.c
+include:
+- path: .
+  file_list:
+  - path: sl_sensor_rht.h
+config_file:
+- path: config/sl_sensor_rht_config.h
+  condition: [btmesh_stack]
+provides:
+- name: sensor_rht
+requires:
+- name: si70xx_driver
+- name: i2cspm
+- name: app_assert
+- name: board_control
+template_contribution:
+- name: component_catalog
+  value: sensor_rht
+documentation:
+  docset: bluetooth
+  document: bluetooth-service-api/sensor-rht

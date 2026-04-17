@@ -1,0 +1,63 @@
+id: cs_reflector_cli
+package: bluetooth_le_middleware
+label: CS Reflector CLI
+description: >
+  Command Line Interface (CLI) for the CS Reflector example.
+  Serves testing purposes only.
+category: Bluetooth|Application|Miscellaneous
+metadata:
+  sbom:
+    license: Zlib
+quality: experimental
+root_path: bluetooth_le_middleware/common/cs_reflector_cli
+include:
+- path: .
+  file_list:
+  - path: cs_reflector_cli.h
+source:
+- path: cs_reflector_cli.c
+provides:
+- name: cs_reflector_cli
+requires:
+- name: app_log
+- name: ble_peer_manager_peripheral
+- name: bluetooth_api
+- name: cli
+- name: component_catalog
+recommends:
+- id: cli
+  vendor: silabs
+  instance:
+  - example
+conflicts:
+- name: cs_initiator_cli
+template_contribution:
+- name: cli_command
+  value:
+    name: log_level
+    handler: cs_reflector_cli_log_level
+    shortcuts:
+    - name: ll
+    help: "Set log level"
+    argument:
+    - type: uint8
+      help: "Values: critical:0|error:1|warning:2|info:3|debug:4"
+- name: cli_command
+  value:
+    name: start
+    handler: cs_reflector_cli_start
+    shortcuts:
+    - name: s
+    help: "Start advertising"
+- name: cli_command
+  value:
+    name: cs_sync_antenna_usage
+    handler: cs_reflector_cli_cs_sync_antenna_usage
+    shortcuts:
+    - name: aucs
+    help: "Antenna usage for CS SYNC packets"
+    argument:
+    - type: string
+      help: "Values: Only antenna ID1:1 | Only antenna ID2:2 | Different antenna for each channel:0xFE"
+- name: component_catalog
+  value: cs_reflector_cli

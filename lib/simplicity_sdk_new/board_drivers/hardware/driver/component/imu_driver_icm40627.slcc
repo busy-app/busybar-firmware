@@ -1,0 +1,21 @@
+id: imu_driver_icm40627
+package: board_drivers
+label: IMU - Device driver for InvenSense ICM-40627
+description: >
+  Intertial Measurement Unit driver for InvenSense ICM-40627
+category: Platform|Board Drivers
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: board_drivers/hardware/driver/imu
+provides:
+- name: imu_device_driver
+requires:
+- name: imu_driver_core
+- name: icm40627_driver
+source:
+- path: src/sl_imu_icm40627.c
+documentation:
+  docset: gecko-platform
+  document: platform-hardware-driver/imu

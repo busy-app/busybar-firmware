@@ -1,0 +1,31 @@
+id: tz_sl_interface
+package: security_trustzone
+label: Interface for TrustZone Secure Key Library
+description: >-
+  This component provides the TrustZone secure library interface files
+category: Platform|Security|TrustZone
+quality: production
+ui_hints:
+  visibility: never
+provides:
+- name: tz_sl_interface
+requires:
+- name: tfm_tz_sl_interface
+- name: tz_common
+- name: tz_iovec_check
+- name: tz_service_config
+  condition: [trustzone_secure]
+source:
+- path: src/sli_tz_s_interface.c
+  condition: [trustzone_secure]
+template_file:
+- path: config/template/sli_tz_s_interface_funcs_autogen.h.jinja
+  export: true
+  condition: [trustzone_nonsecure]
+- path: config/template/sli_tz_funcs_sids_autogen.h.jinja
+  export: true
+  condition: [trustzone_nonsecure]
+metadata:
+  sbom:
+    license: Zlib
+root_path: security_trustzone/platform/security/sl_component/sl_trustzone

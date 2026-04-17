@@ -1,0 +1,142 @@
+id: sl_rail_util_pa
+label: RAIL Utility, PA (RAIL 3)
+description: Utility to aid with RAIL RF Power Amplifier (PA) Support
+package: rail_library
+category: Platform|Radio
+quality: production
+metadata:
+  sbom:
+    id: sl_rail_util_pa
+    name: RAIL Utility, PA (RAIL 3)
+    license: Zlib
+provides:
+- name: sl_rail_util_pa
+- name: sl_rail_util_pa_integration
+conflicts:
+- name: rail_util_pa
+requires:
+- name: rail_lib
+- name: emlib_cmu
+  condition:
+  - device_series_2
+- name: device
+- name: hal_generic_common
+- name: sl_rail_util_pa_tables
+- name: component_catalog
+define:
+- name: SL_RAIL_UTIL_PA_CONFIG_HEADER
+  value: '<sl_rail_util_pa_config.h>'
+- name: SL_RAIL_UTIL_PA_PLUGIN_HEADER
+  value: '<sl_rail_util_pa_conversions.h>'
+config_file:
+- path: plugin/sl_rail_util_pa_conversions/efr32xg21/config/sl_rail_util_pa_config.h
+  condition:
+  - device_series_2
+  - device_sdid_200
+  unless:
+  - fpga
+  file_id: sl_rail_util_pa_config
+- path: plugin/sl_rail_util_pa_conversions/efr32xg22/config/sl_rail_util_pa_config.h
+  condition:
+  - device_series_2
+  - device_sdid_205
+  unless:
+  - fpga
+  file_id: sl_rail_util_pa_config
+- path: plugin/sl_rail_util_pa_conversions/efr32xg23/config/sl_rail_util_pa_config.h
+  condition:
+  - device_series_2
+  - device_sdid_210
+  unless:
+  - fpga
+  file_id: sl_rail_util_pa_config
+- path: plugin/sl_rail_util_pa_conversions/efr32xg24/config/sl_rail_util_pa_config.h
+  condition:
+  - device_series_2
+  - device_sdid_215
+  unless:
+  - fpga
+  - device_is_module
+  file_id: sl_rail_util_pa_config
+- path: plugin/sl_rail_util_pa_conversions/efr32xg25/config/sl_rail_util_pa_config.h
+  condition:
+  - device_series_2
+  - device_sdid_220
+  unless:
+  - fpga
+  file_id: sl_rail_util_pa_config
+- path: plugin/sl_rail_util_pa_conversions/efr32xg26/config/sl_rail_util_pa_config.h
+  condition:
+  - device_series_2
+  - device_sdid_225
+  unless:
+  - fpga
+  - device_is_module
+  file_id: sl_rail_util_pa_config
+- path: plugin/sl_rail_util_pa_conversions/efr32xg27/config/sl_rail_util_pa_config.h
+  condition:
+  - device_series_2
+  - device_sdid_230
+  unless:
+  - fpga
+  file_id: sl_rail_util_pa_config
+- path: plugin/sl_rail_util_pa_conversions/efr32xg28/config/sl_rail_util_pa_config.h
+  condition:
+  - device_series_2
+  - device_sdid_235
+  unless:
+  - fpga
+  file_id: sl_rail_util_pa_config
+- path: plugin/sl_rail_util_pa_conversions/efr32xg29/config/sl_rail_util_pa_config.h
+  condition:
+  - device_series_2
+  - device_sdid_240
+  unless:
+  - fpga
+  file_id: sl_rail_util_pa_config
+- path: plugin/sl_rail_util_pa_conversions/efr32xg2d/config/sl_rail_util_pa_config.h
+  condition:
+  - device_series_2
+  - device_sdid_260
+  unless:
+  - fpga
+  file_id: sl_rail_util_pa_config
+- path: plugin/sl_rail_util_pa_conversions/sixg301/config/sl_rail_util_pa_config.h
+  condition:
+  - device_series_3
+  - device_generic_family_sixx301
+  unless:
+  - fpga
+  file_id: sl_rail_util_pa_config
+- path: plugin/sl_rail_util_pa_conversions/fpga/config/sl_rail_util_pa_config.h
+  condition:
+  - fpga
+  file_id: sl_rail_util_pa_config
+include:
+- path: plugin/sl_rail_util_compatible_pa
+  file_list:
+  - path: sl_rail_util_compatible_pa.h
+- path: plugin/sl_rail_util_pa_conversions
+  file_list:
+  - path: sl_rail_util_pa_conversions.h
+  - path: sl_rail_util_pa_types.h
+source:
+- path: plugin/sl_rail_util_pa_conversions/sl_rail_util_pa_conversions.c
+- path: plugin/sl_rail_util_pa_conversions/sl_rail_util_pa_tables.c
+  unless:
+  - device_is_module
+template_contribution:
+- name: event_handler
+  value:
+    event: stack_init
+    include: sl_rail_util_compatible_pa.h
+    handler: sl_rail_util_pa_init
+  priority: -9010
+- name: rail_util_callbacks
+  value:
+    event: channel_config_change
+    include: sl_rail_util_pa_conversions.h
+    handler: sl_rail_util_pa_on_channel_config_change
+- name: component_catalog
+  value: sl_rail_util_pa
+root_path: rail_library

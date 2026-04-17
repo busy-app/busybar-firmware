@@ -1,0 +1,307 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bgapi__types" kind="group">
+    <compoundname>sl_bgapi_types</compoundname>
+    <title>BGAPI Types</title>
+    <innerclass refid="structuint8array" prot="public">uint8array</innerclass>
+    <innerclass refid="structbyte__array__s" prot="public">byte_array_s</innerclass>
+    <innerclass refid="structbd__addr" prot="public">bd_addr</innerclass>
+    <innerclass refid="structuuid__128" prot="public">uuid_128</innerclass>
+    <innerclass refid="structaes__key__128" prot="public">aes_key_128</innerclass>
+    <innerclass refid="structsl__bt__uuid__16__t" prot="public">sl_bt_uuid_16_t</innerclass>
+    <innerclass refid="structsl__bt__uuid__64__t" prot="public">sl_bt_uuid_64_t</innerclass>
+      <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="group__sl__bgapi__types_1ga2d09a4b1bcaa504e0f8e4f66cba9a358" prot="public" static="no">
+        <type>struct <ref refid="structbyte__array__s" kindref="compound">byte_array_s</ref></type>
+        <definition>typedef struct byte_array_s byte_array</definition>
+        <argsstring></argsstring>
+        <name>byte_array</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" line="85" column="27" bodyfile="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" bodystart="85" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bgapi__types_1ga267fbf80cdc6fbc7990b9dbb9ee268e2" prot="public" static="no">
+        <name>SL_BT_TYPE_UINT8ARRARY</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" line="70" column="9" bodyfile="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" bodystart="70" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bgapi__types_1ga253166438a8eef1a0f124c0d4e666a5a" prot="public" static="no">
+        <name>SL_BT_TYPE_BYTE_ARRARY</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" line="79" column="9" bodyfile="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" bodystart="79" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bgapi__types_1gaafbfd975e4108e0800b2514e4620e3fe" prot="public" static="no">
+        <name>SL_BT_TYPE_BDADDR</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" line="89" column="9" bodyfile="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" bodystart="89" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bgapi__types_1gadf14f7d846c7814be79f8a8c42598c47" prot="public" static="no">
+        <name>SL_BT_TYPE_UUID128</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" line="97" column="9" bodyfile="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" bodystart="97" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bgapi__types_1ga90a686db62e237997747ce3c801932f9" prot="public" static="no">
+        <name>SL_BT_TYPE_AES_KEY128</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" line="105" column="9" bodyfile="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" bodystart="105" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bgapi__types_1ga07ead9236e64f2f39c2cfb0552a1780c" prot="public" static="no">
+        <name>SL_BT_TYPE_UUID16</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" line="113" column="9" bodyfile="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" bodystart="113" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bgapi__types_1ga244785a8656dadd8c2974431fddb4a92" prot="public" static="no">
+        <name>SL_BT_TYPE_UUID64</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" line="121" column="9" bodyfile="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" bodystart="121" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bgapi__types_1ga6bb011435286a47a9c4de1f6ef519c12" prot="public" static="no">
+        <name>SL_BGAPI_MSG_HEADER_LEN</name>
+        <initializer>(4)</initializer>
+        <briefdescription>
+<para>The length of a BGAPI message header which is 4 bytes. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" line="172" column="9" bodyfile="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" bodystart="172" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bgapi__types_1ga72e6465679d444647bd983ad6ccc04ab" prot="public" static="no">
+        <name>SL_BGAPI_MSG_ERROR_PAYLOAD_LEN</name>
+        <initializer>(2)</initializer>
+        <briefdescription>
+<para>The length of the BGAPI message payload of a generic error response. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>See function <ref refid="group__sl__bgapi__functions_1gab41d467ade795af855161f208b81c491" kindref="member">sl_bgapi_set_error_response</ref> for how to generate a generic error response. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" line="180" column="9" bodyfile="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" bodystart="180" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bgapi__types_1ga4671b66da59b89c387be047d4e32c855" prot="public" static="no">
+        <name>SL_BGAPI_MSG_TYPE</name>
+        <param><defname>HDR</defname></param>
+        <initializer>((HDR) &amp; 0x80)</initializer>
+        <briefdescription>
+<para>Get the message type of a BGAPI message. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>HDR</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The header of the message as a uint32_t integer </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" line="187" column="9" bodyfile="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" bodystart="187" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bgapi__types_1gaab00659f64d4181303b12b0c4fef8ece" prot="public" static="no">
+        <name>SL_BGAPI_MSG_DEVICE_TYPE</name>
+        <param><defname>HDR</defname></param>
+        <initializer>((HDR) &amp; 0x38)</initializer>
+        <briefdescription>
+<para>Get the device type of a BGAPI message. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>HDR</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The header of the message as a uint32_t integer </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" line="194" column="9" bodyfile="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" bodystart="194" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bgapi__types_1ga7a3cec618d880b1644cf9fac82757ca5" prot="public" static="no">
+        <name>SL_BGAPI_MSG_ID</name>
+        <param><defname>HDR</defname></param>
+        <initializer>((HDR) &amp; 0xffff00f8)</initializer>
+        <briefdescription>
+<para>Get the identifier of a BGAPI message including device type, class ID, message type and message ID. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>HDR</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The header of the message as a uint32_t integer </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" line="202" column="9" bodyfile="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" bodystart="202" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bgapi__types_1gac8bc7ba3742a4b869a16010cb00b8f3a" prot="public" static="no">
+        <name>SL_BGAPI_HEADER_MAX_PAYLOAD_LEN</name>
+        <initializer>(0x7FF)</initializer>
+        <briefdescription>
+<para>The maximum value the BGAPI header payload length field can store. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" line="207" column="9" bodyfile="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" bodystart="207" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bgapi__types_1ga0072fe93eccf2839b954ec5f04f17db4" prot="public" static="no">
+        <name>SL_BGAPI_MSG_LEN</name>
+        <param><defname>HDR</defname></param>
+        <initializer>((((HDR) &amp; 0x7) &lt;&lt; 8) | (((HDR) &amp; 0xff00) &gt;&gt; 8))</initializer>
+        <briefdescription>
+<para>Get the data payload length in a BGAPI message. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>HDR</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The header of the message as a uint32_t integer </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" line="219" column="9" bodyfile="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" bodystart="219" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bgapi__types_1ga41f5c362bad074d82588d1a75e8a8583" prot="public" static="no">
+        <name>SL_BGAPI_BIT_ENCRYPTED</name>
+        <initializer>(1 &lt;&lt; 6)</initializer>
+        <briefdescription>
+<para>The bit indicating whether data of a BGAPI message is encrypted. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" line="224" column="9" bodyfile="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" bodystart="224" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bgapi__types_1ga6d6214448a73d76f19bbc958933f3125" prot="public" static="no">
+        <name>SL_BGAPI_MSG_ENCRYPTED</name>
+        <param><defname>HDR</defname></param>
+        <initializer>((HDR)&amp;<ref refid="group__sl__bgapi__types_1ga41f5c362bad074d82588d1a75e8a8583" kindref="member">SL_BGAPI_BIT_ENCRYPTED</ref>)</initializer>
+        <briefdescription>
+<para>Check whether data of a BGAPI message is encrypted. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>HDR</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The BGAPI header of the message as a uint32_t integer </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" line="231" column="9" bodyfile="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" bodystart="231" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bgapi__types_1ga335896cc750f109d2b622a6254261c8d" prot="public" static="no">
+        <name>SL_BGAPI_MSG_HEADER_FROM_ID_AND_LEN</name>
+        <param><defname>evt_id</defname></param>
+        <param><defname>payload_len</defname></param>
+        <initializer>  ((uint32_t) (((uint32_t) (evt_id))                             \
+               | (((uint32_t) (payload_len) &amp; 0x00FF) &lt;&lt; 8)      \
+               | (((uint32_t) (payload_len) &amp; 0x0700) &gt;&gt; 8)))    \</initializer>
+        <briefdescription>
+<para>Construct a BGAPI message header from an event ID and payload length. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>It is the caller&apos;s responsibility to verify that the input values are within valid range.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">evt_id</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The full event ID constant, for example <computeroutput>sl_bt_evt_system_boot_id</computeroutput> </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">payload_len</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Length of the full BGAPI message payload</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>The header as a <computeroutput>uint32_t</computeroutput> value </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" line="245" column="9" bodyfile="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" bodystart="245" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Common types in BGAPI protocol. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

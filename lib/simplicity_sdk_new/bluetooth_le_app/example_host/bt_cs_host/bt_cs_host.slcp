@@ -1,0 +1,89 @@
+project_name: bt_cs_host
+package: bluetooth_le_app
+label: Bluetooth - CS Host
+description: >
+  CS host
+category: Bluetooth Examples
+quality: experimental
+
+filter:
+  - name: "Wireless Technology"
+    value: ["Bluetooth"]
+  - name: "Device Type"
+    value: ["Host"]
+  - name: "Project Difficulty"
+    value: ["Beginner"]
+
+component:
+  - id: host_bluetooth_connection_config
+  - id: ble_peer_manager_common
+  - id: ble_peer_manager_central
+  - id: ble_peer_manager_peripheral
+  - id: cs_initiator_client
+  - id: cs_reflector_acp
+  - id: cs_acp
+  - id: rtllib_api
+  - id: cs_antenna
+  - id: gatt_configuration
+  - id: ncp_gatt
+  - id: ncp_version
+  - id: host_main
+  - id: host_ncp
+  - id: app_log
+  - id: iostream_stdio
+  - id: app_assert
+  - id: native_host
+  - id: toolchain_gcc
+
+source:
+  - path: app.c
+  - path: security.c
+  - path: extended_result.c
+  - path: ../common/app_log/app_log_cli.c
+
+include:
+  - path: ../common/app_log
+    file_list:
+      - path: app_log_cli.h
+  - path: .
+    file_list:
+      - path: app.h
+      - path: extended_result.h
+      - path: security.h
+
+config_file:
+  - override:
+      component: gatt_configuration
+      file_id: gatt_configuration_file_id
+    path: config/btconf/gatt_configuration.btconf
+    directory: btconf
+  - path: config/app_config.h
+
+configuration:
+  - name: APP_LOG_LEVEL_FILTER_DYNAMIC 
+    value: 1
+  - name: BLE_PEER_MANAGER_PERIPHERAL_CONFIG_ADV_PHY
+    value: sl_bt_gap_phy_2m
+  - name: BLE_PEER_MANAGER_CENTRAL_CONFIG_DEFAULT_SCAN_INTERVAL
+    value: 21
+  - name: BLE_PEER_MANAGER_CENTRAL_CONFIG_DEFAULT_SCAN_WINDOW
+    value: 21
+
+readme:
+  - path: readme.md
+
+ui_hints:
+  highlight:
+    - path: config/btconf/gatt_configuration.btconf
+    - path: readme.md
+      focus: true
+
+template_contribution:
+  - name: ble_peer_manager_event_handler
+    value:
+      include: app.h
+      handler: app_ble_peer_manager_on_event
+
+tag:
+  - toolchain:gcc
+  - hwfilter:device:device_family_host

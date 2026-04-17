@@ -1,0 +1,216 @@
+/***************************************************************************//**
+ * @file
+ * @brief This file contains definitions for storing ZCL attributes
+ * in NVM tokens.
+ *******************************************************************************
+ * # License
+ * <b>Copyright 2024 Silicon Laboratories Inc. www.silabs.com</b>
+ *******************************************************************************
+ *
+ * The licensor of this software is Silicon Laboratories Inc. Your use of this
+ * software is governed by the terms of Silicon Labs Master Software License
+ * Agreement (MSLA) available at
+ * www.silabs.com/about-us/legal/master-software-license-agreement. This
+ * software is distributed to you in Source Code format and is governed by the
+ * sections of the MSLA applicable to Source Code.
+ *
+ ******************************************************************************/
+
+{{zap_header}}
+
+#include "af-types.h"
+#include "sl_token_manager_defines.h"
+#include "sl_token_manager_api.h"
+
+{{#token_attributes}}
+  {{#first}}
+#define NUM_PERSISTED_ZCL_ATTRIBUTES ({{count}}){{new_line 1}}
+
+// Identifier tags for tokens
+  {{/first}}
+  {{#if isSingleton}}
+// Creator for singleton attribute: {{name}}
+#define CREATOR_{{define}}_SINGLETON {{as_hex tokenId 4}}
+#define NVM3KEY_{{define}}_SINGLETON (NVM3KEY_DOMAIN_ZIGBEE | {{as_hex tokenId 4}})
+#define COMMON_TOKEN_{{define}}_SINGLETON SL_TOKEN_GET_DYNAMIC_TOKEN(NVM3KEY_{{define}}_SINGLETON, 0)
+  {{else}}
+// Creator for attribute: {{name}}, endpoint: {{endpointId}}
+#define CREATOR_{{define}}_{{endpointId}} {{as_hex tokenId 4}}
+#define NVM3KEY_{{define}}_{{endpointId}} (NVM3KEY_DOMAIN_ZIGBEE | {{as_hex tokenId 4}})
+#define COMMON_TOKEN_{{define}}_{{endpointId}} SL_TOKEN_GET_DYNAMIC_TOKEN(NVM3KEY_{{define}}_{{endpointId}}, 0)
+  {{/if}}
+{{/token_attributes}}
+
+
+{{#token_attribute_endpoints}}
+  {{#first}}
+// Types for the tokens
+#ifdef DEFINETYPES
+  {{/first}}
+{{/token_attribute_endpoints}}
+{{#all_user_cluster_generated_attributes}}
+    {{#if_compare 'NVM' storageOption operator='=='}}
+        {{#if isString}}
+typedef uint8_t tokType_{{as_snake_case define}}[{{attributeSize}}];
+        {{else if (is_number_greater_than attributeSize 4)}}
+typedef uint8_t tokType_{{as_snake_case define}}[{{attributeSize}}];
+        {{else if (is_num_equal attributeSize 3)}}
+typedef uint8_t tokType_{{as_snake_case define}}[{{attributeSize}}];
+        {{else}}
+typedef {{as_underlying_type type}} tokType_{{as_snake_case define}};
+        {{/if}}
+    {{/if_compare}}
+{{/all_user_cluster_generated_attributes}}
+{{#token_attribute_endpoints}}
+  {{#first}}
+#endif // DEFINETYPES
+  {{/first}}
+{{/token_attribute_endpoints}}
+
+{{#token_attribute_endpoints}}
+  {{#first}}
+// Actual token definitions
+#ifdef DEFINETOKENS
+  {{/first}}
+{{/token_attribute_endpoints}}
+{{#all_user_cluster_generated_attributes}}
+    {{#if_compare 'NVM' storageOption operator='=='}}
+        {{#if isSingleton}}
+          {{#if isString}}  
+            {{#if_compare 'octet' type operator='in'}}
+DEFINE_BASIC_TOKEN({{define}}_SINGLETON, tokType_{{as_snake_case define}}, { {{format_zcl_string_as_characters_for_generated_defaults defaultValue attributeSize isCommaTerminated=0 isOctet=1}} })
+            {{else}}
+DEFINE_BASIC_TOKEN({{define}}_SINGLETON, tokType_{{as_snake_case define}}, { {{format_zcl_string_as_characters_for_generated_defaults defaultValue attributeSize isCommaTerminated=0}} })
+            {{/if_compare}}
+          {{else if (is_number_greater_than attributeSize 4)}}
+DEFINE_BASIC_TOKEN({{define}}_SINGLETON, tokType_{{as_snake_case define}}, { {{as_generated_default_macro defaultValue attributeSize endian="big" isCommaTerminated=0}} })
+          {{else if (is_num_equal attributeSize 3)}}
+DEFINE_BASIC_TOKEN({{define}}_SINGLETON, tokType_{{as_snake_case define}}, { {{as_generated_default_macro defaultValue attributeSize endian="big" isCommaTerminated=0}} })
+          {{else if defaultValue}}
+DEFINE_BASIC_TOKEN({{define}}_SINGLETON, tokType_{{as_snake_case define}}, {{as_hex defaultValue}})
+          {{else}}
+DEFINE_BASIC_TOKEN({{define}}_SINGLETON, tokType_{{as_snake_case define}}, 0)
+          {{/if}}
+        {{/if}}
+    {{/if_compare}}
+{{/all_user_cluster_generated_attributes}}
+
+{{#generated_clustes_details}}
+    {{#all_user_cluster_generated_attributes}}
+        {{#if_compare 'NVM' storageOption operator='=='}}
+            {{#unless isSingleton}}
+                {{#if (is_lowercase_equal ./clusterName ../clusterName)}}
+                    {{#if (is_lowercase_equal ./clusterSide ../clusterSide)}}
+                        {{#if isString}}
+                          {{#if_compare 'octet' type operator='in'}}
+DEFINE_BASIC_TOKEN({{define}}_{{../endpointIdentifier}}, tokType_{{as_snake_case define}}, { {{format_zcl_string_as_characters_for_generated_defaults defaultValue attributeSize isCommaTerminated=0 isOctet=1}} })
+                          {{else}}
+DEFINE_BASIC_TOKEN({{define}}_{{../endpointIdentifier}}, tokType_{{as_snake_case define}}, { {{format_zcl_string_as_characters_for_generated_defaults defaultValue attributeSize isCommaTerminated=0}} })
+                          {{/if_compare}}
+                        {{else if (is_number_greater_than attributeSize 4)}}
+DEFINE_BASIC_TOKEN({{define}}_{{../endpointIdentifier}}, tokType_{{as_snake_case define}}, { {{as_generated_default_macro defaultValue attributeSize endian="big" isCommaTerminated=0}} })
+                        {{else if (is_num_equal attributeSize 3)}}
+DEFINE_BASIC_TOKEN({{define}}_{{../endpointIdentifier}}, tokType_{{as_snake_case define}}, { {{as_generated_default_macro defaultValue attributeSize endian="big" isCommaTerminated=0}} })
+                        {{else if defaultValue}}
+DEFINE_BASIC_TOKEN({{define}}_{{../endpointIdentifier}}, tokType_{{as_snake_case define}}, {{as_hex defaultValue}})
+                        {{else}}
+DEFINE_BASIC_TOKEN({{define}}_{{../endpointIdentifier}}, tokType_{{as_snake_case define}}, 0)
+                        {{/if}}
+                    {{/if}}
+                {{/if}}
+            {{/unless}}
+        {{/if_compare}}
+    {{/all_user_cluster_generated_attributes}}
+{{/generated_clustes_details}}
+{{#token_attribute_endpoints}}
+  {{#first}}
+#endif // DEFINETOKENS
+  {{/first}}
+{{/token_attribute_endpoints}}
+
+{{#token_attribute_endpoints}}
+  {{#first}}
+// Macro snippet that loads all the attributes from tokens
+#define GENERATED_TOKEN_LOADER(endpoint) do { \
+  {{/first}}
+{{/token_attribute_endpoints}}
+{{#all_user_cluster_generated_attributes}}
+    {{#first}}
+        {{#if_compare tokenizedAttributeSize 0 operator='>'}}
+  uint8_t ptr[{{maxTokenAttributeSize}}]; \
+        {{/if_compare}}
+        {{#if_compare nonSingletonTokenizedAttributeSize 0 operator='>'}}
+  uint8_t curNetwork = sl_zigbee_get_current_network(); \
+  uint8_t epNetwork; \
+        {{/if_compare}}
+    {{/first}}
+  {{/all_user_cluster_generated_attributes}}
+  {{#token_attributes}}
+        {{#if isSingleton}}
+  (void)sl_token_manager_get_data(COMMON_TOKEN_{{define}}_SINGLETON, (tokType_{{as_snake_case define}} *)ptr, sizeof(tokType_{{as_snake_case define}})); \
+  (void)sli_zigbee_af_write_attribute({{smallestEndpointIdentifier}}, ZCL_{{clusterDefine}}_ID, ZCL_{{define}}_ATTRIBUTE_ID, CLUSTER_MASK_{{as_delimited_macro side}}, {{#if isManufacturingSpecific}}{{as_hex mfgCode 4}}{{else}}SL_ZIGBEE_AF_NULL_MANUFACTURER_CODE{{/if}}, (uint8_t*)ptr, ZCL_{{as_delimited_macro type}}_ATTRIBUTE_TYPE, true, false, false); \
+        {{/if}}
+  {{/token_attributes}}
+{{#token_attribute_endpoints isSingleton=0}}
+    {{#token_attributes endpointTypeRef isSingleton=0}}
+        {{#first}}
+  epNetwork = sl_zigbee_af_network_index_from_endpoint({{../endpointId}}); \
+  if({{../endpointId}} == (endpoint) || (SL_ZIGBEE_BROADCAST_ENDPOINT == (endpoint) && epNetwork == curNetwork)) { \
+        {{/first}}
+    (void)sl_token_manager_get_data(COMMON_TOKEN_{{define}}_{{../endpointId}}, (tokType_{{as_snake_case define}} *)ptr, sizeof(tokType_{{as_snake_case define}})); \
+    (void)sli_zigbee_af_write_attribute({{../endpointId}}, ZCL_{{clusterDefine}}_ID, ZCL_{{define}}_ATTRIBUTE_ID, CLUSTER_MASK_{{as_delimited_macro side}}, {{#if isManufacturingSpecific}}{{as_hex mfgCode 4}}{{else}}SL_ZIGBEE_AF_NULL_MANUFACTURER_CODE{{/if}}, (uint8_t*)ptr, ZCL_{{as_delimited_macro type}}_ATTRIBUTE_TYPE, true, false, false); \
+        {{#last}}
+  } \
+        {{/last}}
+    {{/token_attributes}}
+{{/token_attribute_endpoints}}
+{{#token_attribute_endpoints}}
+    {{#first}}
+} while (false)
+    {{/first}}
+{{/token_attribute_endpoints}}
+
+{{#all_user_cluster_generated_attributes}}
+  {{#first}}
+    {{#if_compare tokenizedAttributeSize 0 operator='>'}}
+// Macro snippet that saves the attribute to token
+#define GENERATED_TOKEN_SAVER do { \
+  uint8_t allZeroData[{{maxTokenAttributeSize}}]; \
+  memset(allZeroData, 0, {{maxTokenAttributeSize}});  \
+  if ( data == NULL ) { data = allZeroData; } \
+    {{/if_compare}}
+  {{/first}}
+{{/all_user_cluster_generated_attributes}}
+{{#token_attribute_clusters isSingleton=1}}
+    if ( {{as_hex code 4}} == clusterId ) { \
+    {{#all_user_cluster_generated_attributes}}
+        {{#if_compare 'NVM' storageOption operator='=='}}
+            {{#if isSingleton}}
+                {{#if (is_lowercase_equal ./clusterName ../name)}}
+if ( {{as_hex code 4}} == metadata->attributeId && {{as_hex mfgCode 4}} == sl_zigbee_af_get_mfg_code(metadata) && {{#if_compare 'server' side operator='=='}}!{{/if_compare}}sl_zigbee_af_attribute_is_client(metadata) ) {   \
+        (void)sl_token_manager_set_data(COMMON_TOKEN_{{define}}_SINGLETON, data, sizeof(tokType_{{as_snake_case define}})); } \
+                {{/if}}
+            {{/if}}
+        {{/if_compare}}
+    {{/all_user_cluster_generated_attributes}}
+    } \
+{{/token_attribute_clusters}}
+{{#token_attribute_endpoints isSingleton=0}}
+if ( {{endpointId}} == endpoint ) { \
+    {{#token_attribute_clusters endpointTypeRef isSingleton=0}}
+    {{#not_first}}else {{/not_first}}if ( {{as_hex code 4}} == clusterId ) { \
+        {{#token_attributes ../endpointTypeRef isSingleton=0}}
+          {{#if (is_lowercase_equal ./clusterName ../name)}}
+if ( {{as_hex code 4}} == metadata->attributeId && {{as_hex mfgCode 4}} == sl_zigbee_af_get_mfg_code(metadata) && {{#if side}}!{{/if}}sl_zigbee_af_attribute_is_client(metadata) ) \
+          (void)sl_token_manager_set_data(COMMON_TOKEN_{{define}}_{{../../endpointId}}, data, sizeof(tokType_{{as_snake_case define}})); \
+          {{/if}}
+        {{/token_attributes}}
+    } \
+    {{/token_attribute_clusters}}
+} \
+{{/token_attribute_endpoints}}
+{{#token_attribute_endpoints}}
+  {{#first}}
+} while (false)
+  {{/first}}
+{{/token_attribute_endpoints}}

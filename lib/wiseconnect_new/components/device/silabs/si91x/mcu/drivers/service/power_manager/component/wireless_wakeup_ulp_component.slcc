@@ -1,0 +1,25 @@
+id: wireless_wakeup_ulp_component
+label: PM UULP Wireless Wakeup
+package: platform_siwx91x
+description: >
+  As this is a NPSS peripheral, it also contributes to the wakeup source handler 
+  if the wakeup source config component is installed. It initializes the wakeup source as per the
+  selection in Wakeup Source Configuration UC.
+category: Device|Si91x|MCU|Service|Power Manager|UULP Wakeup Sources
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+provides:
+  - name: wireless_wakeup_ulp_component
+
+template_contribution:
+  - name: wakeup
+    value: 
+      event: wakeup_init
+      function:
+        name: sli_si91x_power_manager_wireless_wakeup_init
+        return: sl_status_t
+      include:
+        name: sl_si91x_power_manager.h
+    priority: -5000

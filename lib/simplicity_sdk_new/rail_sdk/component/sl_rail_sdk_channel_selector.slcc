@@ -1,0 +1,67 @@
+id: "sl_rail_sdk_channel_selector"
+label: "Channel Selector and CLI"
+package: "rail_sdk"
+description: >
+  This component facilitates appropriate channel management for an application.
+  The module offers flexible configuration options through a Command Line
+  Interface (CLI). Users can interactively define their preferred channels,
+  making it a highly adaptable tool for managing channels within the application.
+  Note: Currently, it is limited to the first protocol's first channel group.
+category: "RAIL-SDK|Utility"
+quality: "production"
+metadata:
+  sbom:
+    license: Zlib
+root_path: "rail_sdk/component/sl_rail_sdk_channel_selector"
+provides:
+- name: sl_rail_sdk_channel_selector
+
+requires:
+- name: "rail_lib_singleprotocol"
+
+# according to standards the packet assembler is chosen.
+source:
+- path: "sl_rail_sdk_channel_selector.c"
+- path: "sl_rail_sdk_channel_selector_cli.c"
+  condition:
+  - "cli"
+include:
+- path: "."
+  file_list:
+  - "path": "sl_rail_sdk_channel_selector.h"
+
+config_file:
+- path: config/sl_rail_sdk_channel_selector_config.h
+
+
+#-------------- Template Contribution ----------------
+template_contribution:
+#---------------- Component Catalog ------------------
+- name: component_catalog
+  value: rail_sdk_channel_selector
+
+- name: cli_command
+  value:
+    name: set_channel
+    handler: cli_set_channel
+    help: "Set which channel the communication will happen"
+    argument:
+    - type: uint16
+      help: The channel number to apply
+  condition:
+  - "cli"
+- name: cli_command
+  value:
+    name: get_channel
+    handler: cli_get_channel
+    help: "Get which channel the communication is happening"
+  condition:
+  - "cli"
+- name: event_handler
+  value:
+    event: internal_app_init
+    include: "sl_rail_sdk_channel_selector.h"
+    handler: "set_configured_channel"
+  priority: 2000
+
+

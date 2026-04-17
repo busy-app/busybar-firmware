@@ -1,0 +1,39 @@
+package: zigbee
+description: This component is an example utility that brings in additional, necessary functionality for Zigbee 4.0 trust centers. This component is only necessary for coordinator applications, not routers or end devices. This component handles performing cluster discovery of devices upon joining, and issuing ZDO Bind Request messages to end devices that support the Poll Control cluster, as required by the BDB 3.1 specification.
+quality: production
+id: zigbee_bdb_3dot1_trust_center_extension
+label: BDB 3.1 Trust Center Extension
+category: Zigbee|Zigbee 4.0
+provides:
+- name: zigbee_bdb_3dot1_trust_center_extension
+requires:
+  # zigbee_device_query_service will kick off necessary BDB 3.1 discovery about nodes
+  # This is needed to bind to end devices using the Poll Control cluster
+- name: zigbee_device_query_service
+#config_file:
+#  - path: app/framework/plugin/zigbee-bdb-3dot1-trust-center-extension/zigbee-bdb-3dot1-trust-center-extension-config.h
+source:
+- path: app/framework/plugin/zigbee-bdb-3dot1-trust-center-extension/zigbee-bdb-3dot1-trust-center-extension.c
+include:
+- path: app/framework/plugin/zigbee-bdb-3dot1-trust-center-extension/
+  file_list:
+  - path: zigbee-bdb-3dot1-trust-center-extension.h
+template_contribution:
+- name: component_catalog
+  value: zigbee_bdb_3dot1_trust_center_extension
+- name: zigbee_af_callback
+  value:
+    callback_type: init_done
+    function_name: sli_zigbee_af_bdb_3dot1_trust_center_extension_init_callback
+- name: zigbee_stack_callback
+  value:
+    callback_type: zigbee_key_establishment
+    function_name: sli_zigbee_af_bdb_3dot1_trust_center_extension_key_establishment_cb
+
+#documentation:
+#  docset: zigbee
+#  document: zigbee-af-api/zigbee-bdb-3dot1-trust-center-extension
+metadata:
+  sbom:
+    license: MSLA
+root_path: zigbee

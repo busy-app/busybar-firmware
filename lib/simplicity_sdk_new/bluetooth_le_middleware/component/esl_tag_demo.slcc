@@ -1,0 +1,18 @@
+id: esl_tag_demo
+package: bluetooth_le_middleware
+label: Demo for ESL Tag application
+description: >
+  ESL tag demo is an optional component for the ESL Tag example application,
+  after configuration it will show ESL ID and Group ID on the WSTK's display.
+category: Bluetooth|Application|Test
+metadata:
+  sbom:
+    license: Zlib
+quality: experimental
+root_path: bluetooth_le_middleware/common/esl_tag_demo
+source:
+- path: esl_tag_demo.c
+provides:
+- name: esl_tag_demo
+requires:
+- name: glib

@@ -1,0 +1,23 @@
+id: sl_si91x_attestation
+package: wifi
+description: >
+  Implementation of the ATTESTATION API
+label: ATTESTATION
+category: Device|Si91x|MCU|Crypto
+quality: production
+metadata:
+  sbom:
+   license: Zlib
+component_root_path: ./components/device/silabs/si91x/wireless/crypto/attestation
+provides:
+- name: sl_si91x_attestation
+source:
+- path: src/sl_si91x_attestation.c
+include:
+- path: inc
+  file_list:
+    - path: sl_si91x_attestation.h
+
+requires:
+- name: sl_si91x_crypto
+

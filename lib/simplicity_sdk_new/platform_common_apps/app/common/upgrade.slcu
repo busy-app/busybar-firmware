@@ -1,0 +1,74 @@
+upgrade:
+  - sdk:
+      id: simplicity_sdk
+      version: "4.3.0"
+    component:
+      - trigger: simple_timer
+        description: >
+          The Simple Timer component has been modified and moved.
+        remove:
+          - simple_timer
+        add:
+          - app_timer
+      - trigger: simple_timer_freertos
+        description: >
+          The Simple Timer (FreeRTOS) component has been modified and moved.
+        remove:
+          - simple_timer_freertos
+        add:
+          - app_timer_freertos
+      - trigger: simple_timer_freertos_static
+        description: >
+          The Simple Timer (FreeRTOS with static memory allocation) component has been modified and moved.
+        remove:
+          - simple_timer_freertos_static
+        add:
+          - app_timer_freertos_static
+      - trigger: simple_timer_micriumos
+        description: >
+          The Simple Timer (Micrium RTOS) component has been modified and moved.
+        remove:
+          - simple_timer_micriumos
+        add:
+          - app_timer_micriumos
+  - sdk:
+      id: simplicity_sdk
+      version: 2025.6.1
+    configuration:
+      - name: MIN_VALID_BUTTON_PRESS_DURATION
+        replacement: MIN_VALID_BUTTON_PRESS_DURATION_MS
+        description: MIN_VALID_BUTTON_PRESS_DURATION was renamed to MIN_VALID_BUTTON_PRESS_DURATION_MS.
+        status: automatic
+      - name: SHORT_BUTTON_PRESS_DURATION
+        replacement: SHORT_BUTTON_PRESS_DURATION_MS
+        description: SHORT_BUTTON_PRESS_DURATION was renamed to SHORT_BUTTON_PRESS_DURATION_MS.
+        status: automatic
+      - name: MEDIUM_BUTTON_PRESS_DURATION
+        replacement: MEDIUM_BUTTON_PRESS_DURATION_MS
+        description: MEDIUM_BUTTON_PRESS_DURATION was renamed to MEDIUM_BUTTON_PRESS_DURATION_MS.
+        status: automatic
+      - name: LONG_BUTTON_PRESS_DURATION
+        replacement: LONG_BUTTON_PRESS_DURATION_MS
+        description: LONG_BUTTON_PRESS_DURATION was renamed to LONG_BUTTON_PRESS_DURATION_MS.
+        status: automatic
+      - name: APP_BUTTON_PRESS_WAKEUP_DELAY
+        replacement: APP_BUTTON_PRESS_WAKEUP_DELAY_MS
+        description: APP_BUTTON_PRESS_WAKEUP_DELAY was renamed to APP_BUTTON_PRESS_WAKEUP_DELAY_MS.
+        status: automatic
+
+  - sdk:
+      id: simplicity_sdk
+      version: 2025.12.0
+    component:
+      - trigger: segment_lcd_driver
+        description: >
+          Add emlib_chip component to the project, for em_chip.h include issue fixing.
+        add:
+          - emlib_chip
+    configuration:
+      - name: SL_SEGMENT_LCD_LDMA_MODE
+        replacement: SL_SEGMENT_LCD_LDMA_MODE
+        value:
+          lcdDmaModeFrameCounterEvent: SL_HAL_LCD_DMA_MODE_FRAME_COUNTER_EVENT
+        description: value was modified to SL_HAL_LCD_DMA_MODE_FRAME_COUNTER_EVENT from lcdDmaModeFrameCounterEvent.
+        status: automatic

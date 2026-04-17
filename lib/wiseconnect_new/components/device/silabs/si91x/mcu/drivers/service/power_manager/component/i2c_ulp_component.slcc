@@ -1,0 +1,41 @@
+id: i2c_ulp_component
+label: PM ULP I2C
+package: platform_siwx91x
+description: >
+  ULP I2C component will enable I2C in the low-power mode. It moves all the peripheral dependencies to RAM. 
+  It also installs the peripheral component if already not installed. 
+  If an instantiable component then the user needs to install the instance manually.
+category: Device|Si91x|MCU|Service|Power Manager|ULP Peripheral
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+requires:
+  - name: sl_i2c
+
+provides:
+  - name: i2c_ulp_component
+
+template_contribution:
+  - name: power_manager_ps2
+    value: 1
+    condition:
+      - pm_ps2_component  
+  - name: i2c_ps2
+    value: sl_si91x_peripheral_i2c.*
+  - name: i2c_ps2
+    value: sl_si91x_i2c.*
+  - name: i2c_ps2
+    value: memcpy.*
+  - name: i2c_ps2
+    value: UDMA.*
+  - name: i2c_ps2
+    value: rsi_udma.*
+  - name: i2c_ps2
+    value: rsi_udma_wrapper.*
+  - name: i2c_ps2
+    value: sl_si91x_dma.*
+  - name: i2c_ps2
+    value: rsi_i2c.*
+  - name: i2c_ps2
+    value: sl_si91x_clock_manager.*

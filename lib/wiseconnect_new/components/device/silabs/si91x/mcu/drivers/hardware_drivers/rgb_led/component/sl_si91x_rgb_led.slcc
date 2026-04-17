@@ -1,0 +1,16 @@
+id: sl_si91x_rgb_led
+package: platform_siwx91x
+label: RGB LED
+description: >
+  This component acts as a tag to detect RGB LED support in projects.
+  When this component is added to an RGB LED project's slcp file, it provides the sl_si91x_rgb_led symbol,
+  which is used by the LED driver component (sl_si91x_led_917) to conditionally include RGB LED files
+  instead of regular LED files for OPN configurations.
+category: Device|Si91x|MCU|Hardware
+quality: production
+metadata:
+  sbom:
+    license: MSLA
+component_root_path: "components/device/silabs/si91x/mcu/drivers/hardware_drivers/rgb_led"
+provides:
+  - name: sl_si91x_rgb_led

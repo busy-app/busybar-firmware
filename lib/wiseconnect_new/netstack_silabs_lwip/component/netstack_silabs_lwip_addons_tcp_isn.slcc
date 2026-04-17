@@ -1,0 +1,32 @@
+id: netstack_silabs_lwip_addons_tcp_isn
+label: "TCP Initial Sequence Numbers"
+package: netstack_silabs_lwip
+description: >
+  The TCP Initial Sequence Numbers component can be used to generate Initial Sequence Numbers add-on for a new
+  TCP connection. Initial sequence numbers (ISN) refers to the unique 32-bit sequence number
+  assigned to each new connection on a Transmission Control Protocol (TCP)-based data communication.
+  It helps with the allocation of a sequence number that does not conflict with other data bytes
+  transmitted over a TCP connection.
+category: Network Stack|LwIP|Addons
+quality: production
+provides:
+- name: netstack_silabs_lwip_addons_tcp_isn
+requires:
+- name: netstack_silabs_lwip_core
+source:
+- path: lwip/contrib/addons/tcp_isn/tcp_isn.c
+include:
+- path: lwip/contrib/addons/tcp_isn
+  file_list:
+  - path: tcp_isn.h
+metadata:
+  sbom:
+    license: BSD-3-Clause
+    upstream:
+      name: lwip
+      version: 2.2.1
+      supplier: lwIP Developers
+      url: https://savannah.nongnu.org/projects/lwip/
+      package_url: https://github.com/lwip-tcpip/lwip/
+      comment: lwIP is a small independent implementation of the TCP/IP protocol suite.
+root_path: netstack_silabs_lwip/

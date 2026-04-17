@@ -1,0 +1,27 @@
+id: json_parser
+package: wifi
+description: >
+  JSON Parser for Embedded C
+label: JSON Parser
+category: Third Party
+quality: production
+metadata:
+  sbom:
+    license: MIT
+    upstream:
+      name: JSON Parser
+      version: 1.1.0
+      supplier: zserge
+      url: https://github.com/zserge/jsmn
+      package_url: pkg:github/zserge/jsmn@v1.1.0
+component_root_path: ./third_party/json_parser
+provides:
+- name: json_parser
+source:
+- path: src/jsmn.c
+include:
+- path: include
+- path: include
+  file_list:
+    - path: jsmn.h
+

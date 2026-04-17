@@ -1,0 +1,159 @@
+#!/usr/bin/env python3
+import os
+import glob
+import argparse
+import yaml
+import sys
+import logging
+from cc_base import cc_base, cc_data
+from ccs import cc_multilevel_sensor
+from typing import Any
+from os import walk
+from enum import IntEnum
+
+class CCConfigGenerationError(Exception):
+    pass
+
+class ExitCode(IntEnum):
+    """Exit code for the application"""
+    SUCCESS = 0
+    ERROR_NO_INPUT = 1
+    ERROR_VERIFY = 2
+    ERROR_WRITTEN_NOT_GENERATED = 3
+    ERROR_GENERATED_NOT_WRITTEN = 4
+    ERROR_DURING_GENERATION = 5
+
+def handle_templates(configuration: Any) -> list[cc_data]:
+    """Handle all the templates
+
+    Currently these templates are only command classes but this could be
+    extended for other use cases
+
+    Args:
+        output_dir (str): The output directory for the auto generate files
+        configuration (Any): The configuration (cc_config) file
+
+    Returns:
+        list[cc_data]: A list of Command Class data
+    """
+    command_classes = [
+        cc_base('zw_cc_color_switch', ['cc_color_switch_config.c.jinja'], 'colors'),
+        cc_base('zw_cc_binaryswitch', ['cc_binary_switch_config.c.jinja'], 'binary_switches'),
+        cc_base('zw_cc_multilevel_switch_support', ['cc_multilevel_switch_support_config.c.jinja'], 'switches'),
+        cc_multilevel_sensor(),
+        cc_base('zw_cc_configuration', ['cc_configuration_config.c.jinja'], 'configurations'),
+        cc_base('zw_cc_door_lock', ['cc_door_lock_config.h.jinja'], 'configuration'),
+        cc_base('zw_cc_notification', ['cc_notification_config.c.jinja'], 'notifications'),
+        cc_base('zw_cc_zwaveplusinfo', ['cc_zwaveplusinfo_config.c.jinja'], 'endpoints'),
+        cc_base('zw_cc_agi', ['cc_agi_config.c.jinja'], 'endpoints'),
+        cc_base('zw_cc_multi_channel', ['cc_multi_channel_config.c.jinja'], 'endpoints'),
+        cc_base('zw_cc_central_scene', ['cc_central_scene_config.c.jinja'], 'central_scene'),
+    ]
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    templates_dir = os.path.join(current_dir, "templates")
+
+    ret = []
+    for command_class in command_classes:
+        if command_class.component in configuration:
+            ret.extend(command_class.render(
+                configuration, templates_dir))
+
+    return ret
+
+
+def generate(input_dir: str) -> list[cc_data]:
+    """Finds all cc_config files and for each handle the templates
+
+    Args:
+        input_dir (str): _description_
+
+    Returns:
+        list[cc_data]: A list of Command Class data
+    """
+    ret = []
+    config_files = glob.glob(os.path.join(input_dir, "*.cc_config"))
+    for file in config_files:
+        with open(file) as fd:
+            configuration = yaml.load(fd, Loader=yaml.SafeLoader)
+
+        if configuration is not None:
+            ret += handle_templates(configuration)
+
+    if config_files and not ret:
+        raise CCConfigGenerationError("There are .cc_config files present, but no component was found!")
+    return ret
+
+
+def take_action(files: list[cc_data], action: str, output_dir: str) -> int:
+    """Take a given action
+
+    Args:
+        files (list[cc_data]): A list of Command Class data
+        action (str): The action
+        output_dir (str): Output directory
+
+    Returns:
+        int: Code used as exit code
+    """
+    ret = ExitCode.ERROR_NO_INPUT
+    for file in files:
+        file_path = os.path.join(output_dir, file.name)
+        
+        if os.path.isdir(output_dir) == False:
+            os.mkdir(output_dir)
+
+        # Generate the cc config files
+        if action == "generate":
+            with open(file_path, 'w') as fd:
+                fd.write(file.data)
+            ret = ExitCode.SUCCESS
+        # Verify that files that are written match the expected content
+        elif action == 'verify' and os.path.isfile(file_path):
+            with open(file_path, 'r') as fd:
+                written_data = fd.read()
+                if written_data != file.data:
+                    logging.error(f"{os.path.basename(file_path)} does not match the expected content")
+                    ret = ExitCode.ERROR_VERIFY
+
+    # Read files from disk and compare if they are needed
+    # Read files from disk and compare if all generated files are present
+    if action == 'verify':
+        written_files = []
+        for (_, __, filenames) in walk(output_dir):
+            written_files.extend(filenames)
+
+        set_written = set(written_files)
+        set_generated = set([f.name for f in files])
+        only_written = set_written.difference(set_generated)
+        only_generated = set_generated.difference(set_written)
+
+        for written in only_written:
+            logging.error(f"{written} is only written in disk but not generated")
+            ret = ExitCode.ERROR_WRITTEN_NOT_GENERATED
+        for generated in only_generated:
+            logging.error(f"{generated} is not written in disk but is generated")
+            ret = ExitCode.ERROR_GENERATED_NOT_WRITTEN
+
+    return ret
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Z-Wave Command Class configuration to C converter.')
+    parser.add_argument('-i', required=True, help='Input directory containing .cc_config files')
+    parser.add_argument('-o', required=True, help='Output directory to populate with serialized content.')
+    subparsers = parser.add_subparsers(help='Action to be taken', dest="action")
+    subparsers.add_parser('generate', help='Generate the files from the templates')
+    subparsers.add_parser('verify', help='Verify that the files generate match the templates')
+    args = parser.parse_args()
+
+    ret = ExitCode.SUCCESS
+    try:
+        files = generate(args.i)
+        if files:
+            ret = take_action(files, args.action, args.o)
+        if ExitCode(ret) != ExitCode.SUCCESS:
+            logging.error(ExitCode(ret).name)
+    except (KeyError, CCConfigGenerationError) as e:
+        logging.error(f"{e.__class__.__name__}:{e} Please check the .cc_config files!")
+        ret = ExitCode.ERROR_DURING_GENERATION
+    sys.exit(ret)

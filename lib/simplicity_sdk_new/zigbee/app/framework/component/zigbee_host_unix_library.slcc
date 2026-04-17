@@ -1,0 +1,76 @@
+package: zigbee
+description: Common functionality for Unix hosts.
+label: Unix Library
+quality: production
+id: zigbee_host_unix_library
+category: Zigbee|Unix Host
+toolchain_settings: []
+ui_hints: {}
+template_file: []
+provides:
+- name: zigbee_crc
+- name: zigbee_hal
+- name: zigbee_random
+- name: zigbee_system_timer
+- name: zigbee_token
+- name: zigbee_host_unix_library
+
+requires:
+- name: device_host
+- name: zigbee_ezsp
+- name: emlib_core
+
+config_file:
+- path: app/framework/plugin-host/unix-library/config/unix-library-config.h
+
+source:
+- path: platform/service/legacy_hal/src/crc.c
+- path: platform/service/legacy_hal/src/random.c
+- path: platform/service/legacy_hal/src/system-timer.c
+- path: platform/service/legacy_hal/src/micro_host.c
+- path: stack/platform/sl_zigbee_token.c
+- path: stack/platform/sl_zigbee_token_defines.c
+- path: stack/platform/sl_zigbee_token_host.c
+  unless:
+  - zigbee_host_simulation
+  - zigbee_simulation
+- path: stack/platform/sl_zigbee_legacy_token_host.c
+- path: stack/internal/src/baremetal/sl_zigbee_token_baremetal_wrapper.c
+
+include:
+- path: platform/service/legacy_hal/inc/
+  file_list:
+  - path: crc.h
+  - path: random.h
+  - path: hal.h
+  - path: hal/hal.h
+  - path: micro_host.h
+- path: platform/service/legacy_host/inc
+  file_list:
+  - path: token.h
+- path: stack/include/
+  file_list:
+  - path: sl_zigbee_token.h
+- path: stack/config/
+  file_list:
+  - path: token-stack.h
+  - path: token-phy.h
+  - path: sl_zigbee_token_defines.h
+- path: stack/zll/
+  file_list:
+  - path: zll-token-config.h
+- path: stack/core/
+  file_list:
+  - path: multi-pan-token-config.h
+- path: stack/internal/inc
+  file_list:
+  - path: sl_zigbee_token_internal_def.h
+
+
+template_contribution:
+- name: component_catalog
+  value: zigbee_host_unix_library
+metadata:
+  sbom:
+    license: MSLA AND Zlib
+root_path: zigbee

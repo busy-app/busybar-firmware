@@ -1,0 +1,18 @@
+id: ot_reference_device
+label: Reference Device Configuration
+package: openthread
+category: OpenThread
+quality: production
+description: OpenThread configuration for applications that will be used as reference devices in the Thread test harness.
+provides:
+- name: ot_reference_device
+- name: ot_stack_configuration
+requires:
+- name: ot_diags_implementation
+recommends:
+- id: ot_diags
+  vendor: silabs
+metadata:
+  sbom:
+    license: Zlib
+root_path: openthread

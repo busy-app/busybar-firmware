@@ -1,0 +1,59 @@
+// {% block filename %}{{filename}}.c{% endblock %}
+// From {% block title %}{{title}}{% endblock %}
+{% block content -%}
+#// clang-format off
+#ifdef SEQACC_ENABLE
+#include "data_types.h"
+// Structures :
+{%- for modemConfigName, modemConfig in multiPhyConfig.commonStructures.modemConfigEntriesBase.items() %}
+const uint32 {{modemConfigName}}[] = {
+{%- for entryName, entry in modemConfig.items() %}
+  {%- set firstValue = entry.encodedValues|first %}
+  {%- set remainingValues = entry.encodedValues[1:] %}
+  {{"0x{:08X}UL, ".format(entry.encodedAction)}}
+  {%- if rail_internal and not rail_secondary_config -%}
+    {{- "0x{:08X}UL,".format(firstValue) if firstValue is number else "(uint32) &{},".format(firstValue.value|default(firstValue._uniqueName|default(firstValue.name|default(firstValue))))}}
+    {{- " /* {} */".format(entry.encodedRegNames[0])}}
+    {%- for value in remainingValues %}
+  /*    {{"{:04X}".format(entry.encodedAction|formatActionAddress(loop.index))}} */ {{"0x{:08X}UL,".format(value) if value is number else "(uint32_t) &{},".format(value.value|default(value._uniqueName|default(value.name|default(value))))}}{{" /* {} */".format(entry.encodedRegNames[loop.index])}}
+    {%- endfor -%}
+  {%- else -%}
+    {{- "0x{:08X}UL,".format(firstValue) if firstValue is number else "(uint32) &{},".format(firstValue.value|default(firstValue._uniqueName|default(firstValue.name|default(firstValue))))}}
+    {%- for value in remainingValues %}
+  /*    {{"{:04X}".format(entry.encodedAction|formatActionAddress(loop.index))}} */ {{"0x{:08X}UL,".format(value) if value is number else "(uint32_t) &{},".format(value.value|default(value._uniqueName|default(value.name|default(value))))}}
+    {%- endfor -%}
+  {%- endif -%}
+{% endfor %}
+  0xFFFFFFFF,
+};
+
+{% endfor %}
+{%- for lookupTableEntryName, lookupTableEntry in multiPhyConfig.commonStructures.lookupTableEntries.items() %}
+ {%- if rail_internal %}
+/* Inputs for {{lookupTableEntry['tableName']}}:
+{%- for items in lookupTableEntry['tableInputs']|batch(1) %}
+  {{ items|join(", ") -}}
+{%- endfor %}
+*/
+ {%- endif -%}
+
+uint32_t {{lookupTableEntry['tableName']}}[] = {
+  {%- for items in lookupTableEntry['values']|batch(4) %}
+  {{ items|join(", ") -}},
+  {%- endfor %}
+};
+
+{% endfor %}
+
+{%- if sequenceCfg %}
+{%- for modemConfigName, modemConfig in multiPhyConfig.commonStructures.modemConfigEntriesBase.items() %}
+SeqAccEntry_t {{modemConfigName}}Entry = {
+  .baseAddrCfgPtr = &({{baseAddrAccess}}),
+  .sequenceCfg = {{"0x{0:08X}U,".format(sequenceCfg)}}
+  .sequencePtr = (RAILInt_SeqAccCmdPtr_t) {{modemConfigName}},
+  .sequenceWords = 0U  // Not used
+};
+{% endfor %}
+{%- endif %}
+#endif
+{%- endblock %}

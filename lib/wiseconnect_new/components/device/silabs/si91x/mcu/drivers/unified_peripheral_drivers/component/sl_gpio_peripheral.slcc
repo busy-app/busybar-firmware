@@ -1,0 +1,27 @@
+id: sl_gpio_peripheral
+label: SL GPIO Peripheral
+package: platform_siwx91x
+description: >
+  GPIO stands for general purpose input output. 
+  The peripheral GPIO demonstrates the set of operations like handling input and output 
+  digital signals, toggling the gpio.
+  There are 3 instances present in gpio(HP (or) M4,ULP,UULP instances).
+  The application default points to M4 instance, in which toggling of gpio is performed.
+category: Device|Si91x|MCU|Peripheral|Register-Level API
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+component_root_path: "components/device/silabs/si91x/mcu/drivers/unified_peripheral_drivers"
+source:
+  - path: "src/sl_si91x_peripheral_gpio.c"
+include:
+  - path: "inc"
+    file_list:
+    - path: "sl_si91x_peripheral_gpio.h"
+    - path: "sl_si91x_gpio.h"
+    - path: "sl_si91x_gpio_common.h"
+provides:
+  - name: sl_gpio_peripheral
+ui_hints:
+  visibility: never

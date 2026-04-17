@@ -1,0 +1,43 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__evt__system__external__signal" kind="group">
+    <compoundname>sl_bt_evt_system_external_signal</compoundname>
+    <title>sl_bt_evt_system_external_signal</title>
+    <innerclass refid="structsl__bt__evt__system__external__signal__s" prot="public">sl_bt_evt_system_external_signal_s</innerclass>
+      <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="group__sl__bt__evt__system__external__signal_1gaf00c909ba83ba614e46691837cceaf6d" prot="public" static="no">
+        <type>struct <ref refid="structsl__bt__evt__system__external__signal__s" kindref="compound">sl_bt_evt_system_external_signal_s</ref></type>
+        <definition>typedef struct sl_bt_evt_system_external_signal_s sl_bt_evt_system_external_signal_t</definition>
+        <argsstring></argsstring>
+        <name>sl_bt_evt_system_external_signal_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="1139" column="49" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="1139" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__evt__system__external__signal_1ga9165ef387e34213b7b15fbc7a2b9a593" prot="public" static="no">
+        <name>sl_bt_evt_system_external_signal_id</name>
+        <initializer>0x030100a0</initializer>
+        <briefdescription>
+<para>Identifier of the external_signal event. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="1128" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="1128" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Indicates that the external signals have been received. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>External signals are generated from the native application. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,205 @@
+project_name: zigbee_ble_dynamic_multiprotocol_light_sed_minimal
+label: Zigbee BLE - DynamicMultiprotocolLightSedMinimal
+package: multiprotocol
+category: Zigbee Application
+quality: production
+description: This is a sample application demonstrating a sleepy light application using dynamic multiprotocol (Zigbee + Bluetooth LE) and NVM3 for persistent storage. This application does not use LCD, LEDs or buttons. We recommend the use of Micrium Kernel for this sample application.
+author: Silicon Laboratories, Inc.
+
+component:
+  - id: sl_main
+  - id: cli
+    instance:
+      - example
+  - id: iostream_recommended_console
+  - id: zigbee_debug_basic
+  - id: zigbee_debug_print
+  - id: zigbee_pro_leaf_stack
+  - id: zigbee_source_route
+  - id: bluetooth_stack
+  - id: gatt_configuration
+  - id: bluetooth_feature_system
+
+  # Use legacy scanner to only scan advertisements that use legacy advertising
+  # PDUs. Include bluetooth_feature_extended_scanner if scanning extended
+  # advertising PDUs is also required. That component is not included currently
+  # for minimizing the application size.
+  - id: bluetooth_feature_legacy_scanner
+
+  - id: bluetooth_feature_legacy_advertiser
+  - id: bluetooth_feature_connection_role_central
+  - id: bluetooth_feature_connection_role_peripheral
+  - id: bluetooth_feature_gatt
+  - id: bluetooth_feature_gatt_server
+  - id: bluetooth_feature_sm
+  - id: zigbee_zll
+  - id: zigbee_zcl_framework_core
+  - id: zigbee_zcl_cli
+  - id: zigbee_core_cli
+  - id: zigbee_groups_server
+  - id: zigbee_identify
+  - id: zigbee_on_off
+  - id: zigbee_zll_on_off_server
+  - id: zigbee_counters
+  - id: zigbee_find_and_bind_target
+  - id: zigbee_interpan
+  - id: zigbee_zll_commissioning_common
+  - id: zigbee_zll_commissioning_server
+  - id: zigbee_address_table
+  - id: zigbee_network_steering
+  - id: zigbee_update_tc_link_key
+  - id: zigbee_reporting
+  - id: zigbee_zll_identify_server
+  - id: zigbee_scenes
+  - id: zigbee_zll_scenes_server
+  - id: zigbee_basic
+  - id: zigbee_scan_dispatch
+  - id: zigbee_end_device_support
+  - id: zigbee_ble_event_handler
+  - id: zigbee_ble_dmp_cli
+  - id: zigbee_application_bootloader
+  - id: clock_manager
+  # Platform - enable LTO for gcc
+  - id: toolchain_gcc_lto
+
+configuration:
+  - name: SL_BOARD_ENABLE_VCOM
+    value: 1
+  - name: SL_IOSTREAM_USART_VCOM_FLOW_CONTROL_TYPE
+    value: usartHwFlowControlCtsAndRts
+    condition:
+      - iostream_usart
+  - name: SL_IOSTREAM_EUSART_VCOM_FLOW_CONTROL_TYPE
+    value: SL_IOSTREAM_EUSART_UART_FLOW_CTRL_CTS_RTS
+    condition:
+      - iostream_eusart
+  - name: SL_CLI_MAX_INPUT_ARGUMENTS
+    value: 16
+  - name: SLI_ZIGBEE_PRIMARY_NETWORK_DEVICE_TYPE
+    value: SLI_ZIGBEE_NETWORK_DEVICE_TYPE_SLEEPY_END_DEVICE
+  - name: SLI_ZIGBEE_PRIMARY_NETWORK_SECURITY_TYPE
+    value: SLI_ZIGBEE_NETWORK_SECURITY_TYPE_3_0
+  - name: SL_IOSTREAM_USART_VCOM_RESTRICT_ENERGY_MODE_TO_ALLOW_RECEPTION
+    value: 0
+    condition:
+      - iostream_usart
+  - name: SL_IOSTREAM_EUSART_VCOM_RESTRICT_ENERGY_MODE_TO_ALLOW_RECEPTION
+    value: 0
+    condition:
+      - iostream_eusart
+  - name: SL_CLI_PROMPT_STRING
+    value: "\"DMPLightSed>\""
+  - name: SL_BT_CONFIG_USER_ADVERTISERS
+    value: 3
+  - name: SL_BT_CONFIG_MAX_CONNECTIONS
+    value: 4
+  - name: SL_STACK_SIZE
+    value: 1024
+    condition:
+      - freertos
+      - device_series_2
+  - name: SL_STACK_SIZE
+    value: 16384
+    condition:
+      - device_series_3
+  - name: SL_STACK_SIZE
+    value: 512
+    condition:
+      - micriumos_kernel
+      - device_series_2
+  - name: SL_STACK_SIZE
+    value: 1024
+    condition:
+      - micriumos_kernel
+      - zigbee_secure_key_storage_upgrade
+      - device_series_2
+  - name: LIB_MEM_CFG_HEAP_SIZE
+    value: 0
+  - name: SL_CLI_HELP_DESCRIPTION_ENABLED
+    value: 0
+  - name: NVM3_DEFAULT_NVM_SIZE
+    value: 32768
+    condition:
+      - device_series_2
+  # If using zigbee_secure_key_storage we do not need to support backwards
+  # compatibility because we have never deployed images with keys in PSA
+  # As a result, these lines end up saving some code space
+  - name: SL_PSA_ITS_SUPPORT_V1_DRIVER
+    value: 0
+  - name: SL_PSA_ITS_SUPPORT_V2_DRIVER
+    value: 0
+  - name: SL_PSA_ITS_SUPPORT_V3_DRIVER
+    value: 1
+  # Timer RTOS task priority needs to be one more than SL_BT_RTOS_LINK_LAYER_TASK_PRIORITY
+  # BT uses event flags that require the timer task to be higher priority than all other RTOS tasks
+  - name: configTIMER_TASK_PRIORITY
+    value: 53
+  - name: configMAX_TASK_NAME_LEN
+    value: 30
+  - name: SL_CLI_EXAMPLE_TASK_STACK_SIZE
+    value: 600
+    condition:
+      - cmsis_rtos2
+  # On series 3, the bootloader requires more stack to do context parsing of OTA images
+  - name: SL_CLI_EXAMPLE_TASK_STACK_SIZE
+    value: 1500
+    condition:
+      - device_series_3
+  - name: SL_ZIGBEE_STACK_RTOS_TASK_STACK_SIZE
+    value: 5800
+    condition:
+      - device_series_3
+  - name: SL_ZIGBEE_APP_FRAMEWORK_RTOS_TASK_STACK_SIZE
+    value: 6000
+    condition:
+      - device_series_3
+  - name: SL_ZIGBEE_AF_PLUGIN_ZCL_CLUSTER_DEFER_ATTRIBUTE_WRITES_TO_NVM_MS
+    value: 2000
+    condition:
+      - device_series_3
+
+define:
+  - name: OS_CFG_COMPAT_INIT
+
+source:
+  - path: main.c
+    unless: [cmsis_rtos2]
+  - path: app.c
+
+config_file:
+  - path: config/zcl/zcl_config.zap
+    file_id: zap_configuration_file_id
+    directory: zcl
+  - override:
+      component: gatt_configuration
+      file_id: gatt_configuration_file_id
+    path: config/gatt_configuration.btconf
+    directory: btconf
+
+include:
+  - path: ./
+
+tag:
+  - hardware:device:flash:512
+  - hardware:device:ram:64
+  - hwfilter:device:device_supports_bluetooth
+  - hwfilter:device:device_supports_zigbee
+  - hwfilter:ram:64k
+  - hwfilter:!device:device_is_module
+readme:
+  - path: ./readme.md
+
+ui_hints:
+  highlight:
+    - path: readme.md
+      focus: false
+
+filter:
+  - name: Wireless Technology
+    value: [Zigbee, Bluetooth]
+  - name: Device Type
+    value: [SoC]
+  - name: Capability
+    value: [Multiprotocol]
+  - name: Project Difficulty
+    value: [Advanced]

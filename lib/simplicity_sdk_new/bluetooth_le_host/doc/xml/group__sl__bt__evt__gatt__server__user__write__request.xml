@@ -1,0 +1,43 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__evt__gatt__server__user__write__request" kind="group">
+    <compoundname>sl_bt_evt_gatt_server_user_write_request</compoundname>
+    <title>sl_bt_evt_gatt_server_user_write_request</title>
+    <innerclass refid="structsl__bt__evt__gatt__server__user__write__request__s" prot="public">sl_bt_evt_gatt_server_user_write_request_s</innerclass>
+      <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="group__sl__bt__evt__gatt__server__user__write__request_1gadd09c6648c5b3179df69c61385373209" prot="public" static="no">
+        <type>struct <ref refid="structsl__bt__evt__gatt__server__user__write__request__s" kindref="compound">sl_bt_evt_gatt_server_user_write_request_s</ref></type>
+        <definition>typedef struct sl_bt_evt_gatt_server_user_write_request_s sl_bt_evt_gatt_server_user_write_request_t</definition>
+        <argsstring></argsstring>
+        <name>sl_bt_evt_gatt_server_user_write_request_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="9994" column="57" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="9994" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__evt__gatt__server__user__write__request_1ga6737e04bb70e9c3961c9b0ce31aef96a" prot="public" static="no">
+        <name>sl_bt_evt_gatt_server_user_write_request_id</name>
+        <initializer>0x080a00a0</initializer>
+        <briefdescription>
+<para>Identifier of the user_write_request event. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="9976" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="9976" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Indicates that a remote GATT client is attempting to write a value of an attribute into the local GATT database, where the attribute was defined in the GATT database XML file to have the type=&quot;user&quot;. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>The parameter <computeroutput>att_opcode</computeroutput> informs which attribute procedure was used to write the value. If the <computeroutput>att_opcode</computeroutput> is <ref refid="group__sl__bt__gatt_1gga459acca869ec6d9edd49c57ff6357dd8a51671dfd8baa4c957c17e79106d0002d" kindref="member">sl_bt_gatt_write_request</ref> (see <ref refid="group__sl__bt__gatt_1ga459acca869ec6d9edd49c57ff6357dd8" kindref="member">sl_bt_gatt_att_opcode_t</ref>), the application needs to respond to this request by using the <ref refid="group__sl__bt__gatt__server_1ga1c459b8ea2c5b2e0efe145280fe370e0" kindref="member">sl_bt_gatt_server_send_user_write_response</ref> command within 30 seconds, otherwise further GATT transactions are not allowed by the remote side. If the <computeroutput>att_opcode</computeroutput> is <ref refid="group__sl__bt__gatt_1gga459acca869ec6d9edd49c57ff6357dd8aa83dd06123197fb0e93ab07036ba9f0a" kindref="member">sl_bt_gatt_prepare_write_request</ref>, the application needs to respond to this request by using the <ref refid="group__sl__bt__gatt__server_1ga6a8a286eeffeab7e2bd0b42d8d0f49b0" kindref="member">sl_bt_gatt_server_send_user_prepare_write_response</ref> command within 30 seconds, otherwise further GATT transactions are not allowed by the remote side. If the value of <computeroutput>att_opcode</computeroutput> is <ref refid="group__sl__bt__gatt_1gga459acca869ec6d9edd49c57ff6357dd8adcc73fa81bc13dea5ac84383333ac136" kindref="member">sl_bt_gatt_execute_write_request</ref>, it indicates that there was one or more prepare writes earlier and now the GATT server is processing the execute write, the value of <computeroutput>characteristic</computeroutput> is set to 0 and should be ignored. The event <ref refid="group__sl__bt__evt__gatt__server__execute__write__completed" kindref="compound">sl_bt_evt_gatt_server_execute_write_completed</ref> will be emitted after responding to <ref refid="group__sl__bt__gatt_1gga459acca869ec6d9edd49c57ff6357dd8adcc73fa81bc13dea5ac84383333ac136" kindref="member">sl_bt_gatt_execute_write_request</ref> by using <ref refid="group__sl__bt__gatt__server_1ga1c459b8ea2c5b2e0efe145280fe370e0" kindref="member">sl_bt_gatt_server_send_user_write_response</ref>. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

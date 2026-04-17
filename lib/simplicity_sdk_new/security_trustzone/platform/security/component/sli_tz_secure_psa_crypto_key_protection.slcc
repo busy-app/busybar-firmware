@@ -1,0 +1,48 @@
+id: sli_tz_secure_psa_crypto_key_protection
+label: PSA Crypto Key ID Protection
+package: security_trustzone
+description: >-
+  This component enables protection of PSA key ID ranges from NonSecure access.
+  Protected ranges are defined by including components that contribute to
+  'psa_key_protection_range'. Keys within protected ranges can only be accessed
+  by the Secure partition.
+category: Platform|Security|PSA Crypto
+quality: production
+provides:
+- name: tz_secure_psa_crypto_key_protection
+
+requires:
+- name: psa_crypto
+  condition: [trustzone_nonsecure]
+- name: tz_service_psa_crypto
+  condition: [trustzone_secure]
+
+include:
+- path: inc
+  file_list:
+  - path: sli_tz_secure_psa_key_protection.h
+
+source:
+- path: src/sli_tz_secure_psa_key_protection.c
+  condition: [trustzone_secure]
+
+# Generate the autogen header from template contributions
+template_file:
+- path: config/template/sli_tz_psa_key_protection_autogen.h.jinja
+  condition: [trustzone_secure]
+- path: config/template/sli_tz_psa_key_protection_autogen.h.jinja
+  export: true
+  condition: [trustzone_nonsecure]
+
+template_contribution:
+- name: component_catalog
+  value: psa_crypto_key_protection
+
+- name: tz_service_config
+  value: TZ_PSA_KEY_PROTECTION_ENABLED
+  condition: [trustzone_nonsecure]
+
+metadata:
+  sbom:
+    license: Zlib
+root_path: security_trustzone/platform/security/sl_component/sl_trustzone

@@ -1,0 +1,22 @@
+!!omap
+- id: brd2600a
+- label: BRD2600A
+- package: boards
+- description: Board support for BRD2600A.
+- category: Platform|Board|Starter Kit
+- quality: production
+- metadata:
+    sbom:
+      license: Zlib
+- requires:
+  - name: brd2600a_revision
+- provides:
+  - name: brd2600a
+  - name: hardware_board_from_stk
+  - name: hardware_board_from_fg23-dk2600a
+- recommends:
+  - id: brd2600a_a03
+    vendor: silabs
+- ui_hints:
+    visibility: never
+- root_path: boards

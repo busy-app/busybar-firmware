@@ -1,0 +1,19 @@
+id: native_host
+label: Native Host Device
+package: devices
+description: Device component for native binary.
+category: Platform|Device|Native
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+provides:
+- name: device
+- name: device_host
+- name: native_host
+requires:
+- name: operating_system
+recommends:
+- id: linux
+  vendor: silabs
+root_path: devices

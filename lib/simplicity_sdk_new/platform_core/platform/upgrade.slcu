@@ -1,0 +1,73 @@
+upgrade:
+  - sdk:
+      id: simplicity_sdk
+      version: "4.1.0"
+    component:
+      - trigger: cmsis_core
+        description: >
+          In CMSIS 5.8, the arm_math.h header has moved from CMSIS-Core to CMSIS-DSP. If arm_math.h isn't used in your project, you do not need to keep the CMSIS-DSP component.
+        add:
+          - cmsis_dsp
+  - sdk:
+      id: simplicity_sdk
+      version: "2024.6.0"
+    component:
+      - trigger: silabs_core_sl_malloc
+        description: >
+          In simplicity_sdk 2024.6.0 the silabs_core_sl_malloc component was deprecated and replaced by memory_manager. Remove the silabs_core_sl_malloc component from your project.
+        add:
+          - memory_manager
+        remove:
+          - silabs_core_sl_malloc
+      - trigger: peripheral_dcdc_coulomb_counter
+        description: >
+          In gecko_sdk 2024.6.0 the peripheral_dcdc_coulomb_counter component was renamed to hal_dcdc_coulomb_counter. Remove the peripheral_dcdc_coulomb_counter component from your project.
+        add:
+          - hal_dcdc_coulomb_counter
+        remove:
+          - peripheral_dcdc_coulomb_counter
+      - trigger: peripheral_etampdet
+        description: >
+          In gecko_sdk 2024.6.0 the peripheral_etampdet component was renamed to hal_etampdet. Remove the peripheral_etampdet component from your project.
+        add:
+          - hal_etampdet
+        remove:
+          - peripheral_etampdet
+      - trigger: peripheral_keyscan
+        description: >
+          In gecko_sdk 2024.6.0 the peripheral_keyscan component was renamed to hal_keyscan. Remove the peripheral_keyscan component from your project.
+        add:
+          - hal_keyscan
+        remove:
+          - peripheral_keyscan
+      - trigger: peripheral_sysrtc
+        description: >
+          In gecko_sdk 2024.6.0 the peripheral_sysrtc component was renamed to hal_sysrtc. Remove the peripheral_sysrtc component from your project.
+        add:
+          - hal_sysrtc
+        remove:
+          - peripheral_sysrtc
+    configuration:
+      - script: platform_core/platform/scripts/upgrade_validation.lua
+      - name: SL_EMLIB_CORE_ENABLE_INTERRUPT_DISABLED_TIMING
+        replacement: SL_CORE_DEBUG_INTERRUPTS_MASKED_TIMING
+  - sdk:
+      id: simplicity_sdk
+      version: "2025.6.0"
+    component:
+      - trigger: cpc_secondary_recommended_interface
+        description: >
+          In sisdk-2025.6.0 the cpc_secondary_recommended_interface component was renamed cpc_secondary_recommended_uart_interface. Remove the cpc_secondary_recommended_interface component from your project.
+        add:
+          - cpc_secondary_recommended_uart_interface
+        remove:
+          - cpc_secondary_recommended_interface
+      - trigger: silabs_core_sl_malloc
+        description: >
+          In simplicity_sdk 2025.6.0 the silabs_core_sl_malloc component was removed and replaced by memory_manager. Remove the silabs_core_sl_malloc component from your project.
+        add:
+          - memory_manager
+        remove:
+          - silabs_core_sl_malloc
+    configuration:
+      - script: platform_core/platform/scripts/upgrade_iostream_eusart_fc.lua

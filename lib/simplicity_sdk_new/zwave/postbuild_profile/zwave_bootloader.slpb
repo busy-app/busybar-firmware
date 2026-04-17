@@ -1,0 +1,17 @@
+parameters:
+  - name: build_dir
+constants: []
+steps:
+  # Print usage data
+  - task: "usage"
+    input: "{{build_dir}}/{{project_name}}.out"
+    map: "{{build_dir}}/{{project_name}}.map"
+  # Archive the important files into the artifact folder
+  - task: copy
+    input: "{{build_dir}}/{{project_name}}.s37"
+    output: "artifacts/{{project_name}}.s37"
+    export: bootloader_binary_s37
+  - task: copy
+    input: "{{build_dir}}/{{project_name}}.hex"
+    output: "artifacts/{{project_name}}.hex"
+    export: bootloader_binary_hex

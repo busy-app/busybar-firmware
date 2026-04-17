@@ -1,0 +1,21 @@
+id: zw_debug
+label: Z-Wave Debug
+category: Z-Wave
+description: >
+  This component, which offers zw_debug, is a crucial tool for debugging and development.  If this component is installed, the firmware will be compiled with increased flash memory usage,  providing invaluable insights into application behavior and aiding in efficient troubleshooting and optimization.
+package: zwave
+quality: production
+metadata:
+  sbom:
+    reference: zw_sbom_license
+provides:
+- name: zw_build_mode
+- name: zw_debug
+conflicts:
+- name: zw_release
+toolchain_settings:
+- option: optimize
+  value: debug
+- option: debug_level
+  value: default
+root_path: zwave

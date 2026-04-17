@@ -1,0 +1,21 @@
+id: cmsis_rtos2_tick
+label: CMSIS-RTOS2 OS Tick
+package: cmsis
+description: CMSIS RTOS2 Tick Hooks.
+category: Platform|CMSIS
+quality: production
+metadata:
+  sbom:
+    license: Apache 2.0
+    upstream:
+      name: CMSIS_5
+      version: 5.8.0
+      supplier: ARM-software
+      url: https://github.com/ARM-software/CMSIS_5
+      package_url: pkg:github/ARM-software/CMSIS_5@5.8.0
+      comment: The CMSIS is a set of tools, APIs, frameworks, and work flows
+source:
+- path: RTOS2/Source/os_systick.c
+provides:
+- name: cmsis_rtos2_tick
+root_path: cmsis

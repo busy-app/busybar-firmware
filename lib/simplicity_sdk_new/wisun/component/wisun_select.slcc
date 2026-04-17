@@ -1,0 +1,39 @@
+id: "wisun_select"
+label: "Wi-SUN select() implementation"
+description: >
+  Provides select() implementation for Wi-SUN Socket API. The application must
+  integrate the provided callbacks into its event handling.
+package: "wisun"
+category: "Wi-SUN|Wi-SUN Services"
+quality: "production"
+root_path: "wisun/./stack/"
+
+requires:
+- name: "a_wisun_stack"
+- name: "errno"
+
+provides:
+- name: "wisun_select"
+
+include:
+- path: "inc/"
+  file_list:
+  - path: "socket/select.h"
+  - path: "socket/sl_select_util.h"
+
+source:
+- path: "src/socket/select.c"
+
+template_contribution:
+- name: "event_handler"
+  value:
+    event: "internal_app_init"
+    include: "sl_select_util.h"
+    handler: "sl_wisun_select_init"
+
+- name: component_catalog
+  value: wisun_select
+
+metadata:
+  sbom:
+    license: MSLA

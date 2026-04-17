@@ -1,0 +1,24 @@
+id: sl_si91x_etm
+label: ETM 
+package: platform_siwx91x
+description: >
+  An Embedded Trace Macrocell(ETM) is a real-time trace module providing instruction execution flow and data access patterns, for debugging and optimization. In this file, we are configuring the ETM pins and core registers that are needed for ETM initialization. The operating frequency of the ETM in SiWx917 is greater than  or equal to 40MHz. It is configured to operate at 120 MHz by default.
+category: Device|Si91x|MCU|Service
+quality: production
+metadata:
+  sbom:
+    license: MSLA
+component_root_path: "components/device/silabs/si91x/mcu/drivers/service/sl_si91x_etm"
+source:
+  - path: "src/sl_si91x_etm.c"
+include:
+  - path: "inc"
+    file_list:
+    - path: "sl_si91x_etm.h"
+template_contribution:
+  - name: event_handler
+    value:
+      event: service_init
+      include: sl_si91x_etm.h
+      handler: sl_si91x_etm_int
+    priority: -9996

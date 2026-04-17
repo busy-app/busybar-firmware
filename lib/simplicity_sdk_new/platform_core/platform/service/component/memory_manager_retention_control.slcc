@@ -1,0 +1,21 @@
+id: memory_manager_retention_control
+label: Memory Manager Retention Control
+package: platform_core
+description: >
+  This component provides the RAM Bank control to the Memory Manager.
+category: Services|Memory Manager
+quality: production
+ui_hints:
+  visibility: never
+metadata:
+  sbom:
+    license: Zlib
+root_path: platform_core/platform/service/memory_manager
+include:
+- path: inc
+  file_list:
+  - path: sli_memory_manager_retention_control.h
+provides:
+- name: memory_manager_retention_control
+requires:
+- name: memory_manager_retention_control_hal

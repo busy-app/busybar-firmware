@@ -1,0 +1,105 @@
+project_name: bt_soc_blinky_shared
+package: bluetooth_le_app
+label: Bluetooth - SoC Blinky
+description: >
+  The classic blinky example using Bluetooth communication. Demonstrates a
+  simple two-way data exchange over GATT. This can be tested with the
+  Simplicity Connect mobile app.
+category: Bluetooth Examples
+quality: production
+
+filter:
+  - name: "Wireless Technology"
+    value: ["Bluetooth"]
+  - name: "Device Type"
+    value: ["SoC"]
+  - name: "Project Difficulty"
+    value: ["Beginner"]
+
+component:
+  - id: bluetooth_stack
+  - id: gatt_configuration
+  - id: gatt_service_device_information_override
+  - id: bluetooth_feature_legacy_advertiser
+  - id: bluetooth_feature_connection_role_peripheral
+  - id: bluetooth_feature_gatt_server
+  - id: bluetooth_feature_system
+  - id: rail_util_pti
+  - id: app_assert
+  - id: mpu
+  - id: simple_button
+    instance:
+      - btn0
+  - id: simple_led
+    instance:
+      - led1
+  - id: app_log
+  - id: sl_main
+  - id: clock_manager
+  - id: device_init
+
+source:
+  - path: app.c
+  - path: app_bm.c
+
+include:
+  - path: .
+    file_list:
+      - path: app.h
+
+config_file:
+  - override:
+      component: gatt_configuration
+      file_id: gatt_configuration_file_id
+    path: gatt_configuration.btconf
+    directory: btconf
+
+readme:
+  - path: readme.md
+
+other_file:
+  - path: image/readme_img0.png
+  - path: image/readme_img1.jpg
+  - path: image/readme_img2.jpg
+  - path: image/readme_img3.jpg
+  - path: image/readme_img4.jpg
+  - path: image/readme_img5.gif
+
+configuration:
+  - name: SL_STACK_SIZE
+    value: "2752"
+  - name: SL_BOARD_ENABLE_VCOM
+    value: "1"
+  - name: SL_IOSTREAM_USART_VCOM_RESTRICT_ENERGY_MODE_TO_ALLOW_RECEPTION
+    value: "0"
+  - name: SL_IOSTREAM_EUSART_VCOM_RESTRICT_ENERGY_MODE_TO_ALLOW_RECEPTION
+    value: "0"
+  - name: SL_PSA_KEY_USER_SLOT_COUNT
+    value: "0"
+    condition:
+      - psa_crypto
+
+template_contribution:
+  - name: event_handler
+    value:
+        event: internal_init_early
+        include: app.h
+        handler: app_init_bt
+
+post_build:
+  - path: ../../postbuild_profile/bt_common_s2.slpb
+    condition: [device_series_2, bootloader_app_properties]
+
+tag:
+  - prebuilt_demo
+  - hwfilter:device:device_supports_bluetooth
+  - hwfilter:device:device_series_2
+  - hwfilter:board:simple_led:led1
+  - hwfilter:board:simple_button:btn0
+  - hwfilter:board:hardware:shares:button:led
+
+ui_hints:
+  highlight:
+    - path: config/btconf/gatt_configuration.btconf
+    - path: readme.md
+      focus: true

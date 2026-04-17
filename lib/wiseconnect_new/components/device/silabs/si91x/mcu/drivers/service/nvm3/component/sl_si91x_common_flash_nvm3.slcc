@@ -1,0 +1,40 @@
+id: sl_si91x_common_flash_nvm3
+label: NVM3 Common Flash
+package: platform_nwp_siwx91x
+description: >
+  Implements NVM3 on for the SiWG91x parts with common flash.
+category: Device|Si91x|MCU|Service
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+component_root_path: "components/device/silabs/si91x/mcu/drivers/service/nvm3"
+define:
+  - name: FLASH_PAGE_SIZE
+    value: 4096
+  - name: __STATIC_INLINE
+    value: "static inline"
+ui_hints:
+  visibility: never
+source:
+  - path: "src/sl_si91x_common_flash_intf.c"
+  - path: "src/sl_si91x_nvm3_hal_flash.c"
+requires:
+  - name: sl_assert
+  - name: sl_common
+  - name: status
+  - name: sl_si91x_wireless
+  - name: sl_si91x_mcu
+include:
+  - path: "inc"
+    file_list:
+    - path: "sl_si91x_common_flash_intf.h"
+template_contribution:
+  - name: nvm3_enable
+    value: true
+  - name: ram_execution
+    value: true
+  - name: max_flash_size
+    value: 2088960 #0x1fe000    
+provides:
+  - name: sl_si91x_common_flash_nvm3

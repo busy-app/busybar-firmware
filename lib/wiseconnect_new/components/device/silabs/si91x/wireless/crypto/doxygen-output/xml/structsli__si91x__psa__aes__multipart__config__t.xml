@@ -1,0 +1,173 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="structsli__si91x__psa__aes__multipart__config__t" kind="struct" language="C++" prot="public">
+    <compoundname>sli_si91x_psa_aes_multipart_config_t</compoundname>
+    <includes refid="sl__si91x__aes_8h" local="no">sl_si91x_aes.h</includes>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structsli__si91x__psa__aes__multipart__config__t_1a54374d75a78756f08629c2bc043177c4" prot="public" static="no" mutable="no">
+        <type><ref refid="group__CRYPTO__AES__CONSTANTS_1ga7d391bbc018f78114f268d40cb068f98" kindref="member">sl_si91x_aes_mode_t</ref></type>
+        <definition>sl_si91x_aes_mode_t sli_si91x_psa_aes_multipart_config_t::aes_mode</definition>
+        <argsstring></argsstring>
+        <name>aes_mode</name>
+        <qualifiedname>sli_si91x_psa_aes_multipart_config_t::aes_mode</qualifiedname>
+        <briefdescription>
+<para>AES Mode. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_aes.h" line="157" column="23" bodyfile="components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_aes.h" bodystart="157" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsli__si91x__psa__aes__multipart__config__t_1a4ee0fdacbfce43c51aa3878ca978f678" prot="public" static="no" mutable="no">
+        <type><ref refid="group__CRYPTO__AES__CONSTANTS_1gacfa81db6bfb71882bf35012b6a57c713" kindref="member">sl_si91x_aes_type_t</ref></type>
+        <definition>sl_si91x_aes_type_t sli_si91x_psa_aes_multipart_config_t::encrypt_decrypt</definition>
+        <argsstring></argsstring>
+        <name>encrypt_decrypt</name>
+        <qualifiedname>sli_si91x_psa_aes_multipart_config_t::encrypt_decrypt</qualifiedname>
+        <briefdescription>
+<para>Encryption or decryption. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_aes.h" line="158" column="23" bodyfile="components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_aes.h" bodystart="158" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsli__si91x__psa__aes__multipart__config__t_1a874969575d254a5cbbf079ce160a87b5" prot="public" static="no" mutable="no">
+        <type>const uint8_t *</type>
+        <definition>const uint8_t* sli_si91x_psa_aes_multipart_config_t::msg</definition>
+        <argsstring></argsstring>
+        <name>msg</name>
+        <qualifiedname>sli_si91x_psa_aes_multipart_config_t::msg</qualifiedname>
+        <briefdescription>
+<para>Pointer to the input message. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_aes.h" line="159" column="17" bodyfile="components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_aes.h" bodystart="159" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsli__si91x__psa__aes__multipart__config__t_1aa7e145e9039af75823458cc386c104b9" prot="public" static="no" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t sli_si91x_psa_aes_multipart_config_t::msg_length</definition>
+        <argsstring></argsstring>
+        <name>msg_length</name>
+        <qualifiedname>sli_si91x_psa_aes_multipart_config_t::msg_length</qualifiedname>
+        <briefdescription>
+<para>Length of the message. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_aes.h" line="160" column="12" bodyfile="components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_aes.h" bodystart="160" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsli__si91x__psa__aes__multipart__config__t_1a399608620ff2da958be5120c6cbae4f9" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sli_si91x_psa_aes_multipart_config_t::iv[SL_SI91X_IV_SIZE]</definition>
+        <argsstring>[SL_SI91X_IV_SIZE]</argsstring>
+        <name>iv</name>
+        <qualifiedname>sli_si91x_psa_aes_multipart_config_t::iv</qualifiedname>
+        <briefdescription>
+<para>Initialization vector. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_aes.h" line="161" column="11" bodyfile="components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_aes.h" bodystart="161" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsli__si91x__psa__aes__multipart__config__t_1a1ab4ecfe0a303b313670ece04c137cea" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sli_si91x_psa_aes_multipart_config_t::iv_flag</definition>
+        <argsstring></argsstring>
+        <name>iv_flag</name>
+        <qualifiedname>sli_si91x_psa_aes_multipart_config_t::iv_flag</qualifiedname>
+        <briefdescription>
+<para>Flag to indicate whether iv is set or not. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_aes.h" line="162" column="11" bodyfile="components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_aes.h" bodystart="162" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsli__si91x__psa__aes__multipart__config__t_1a6d3ea246de929e38cf81d4b82b489632" prot="public" static="no" mutable="no">
+        <type><ref refid="unionsl__si91x__aes__key__config__t" kindref="compound">sl_si91x_aes_key_config_t</ref></type>
+        <definition>sl_si91x_aes_key_config_t sli_si91x_psa_aes_multipart_config_t::key_config</definition>
+        <argsstring></argsstring>
+        <name>key_config</name>
+        <qualifiedname>sli_si91x_psa_aes_multipart_config_t::key_config</qualifiedname>
+        <briefdescription>
+<para>Key configuration. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_aes.h" line="163" column="29" bodyfile="components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_aes.h" bodystart="163" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsli__si91x__psa__aes__multipart__config__t_1a91ada830340c28febe9030ce2c5e8868" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sli_si91x_psa_aes_multipart_config_t::chunk_flag</definition>
+        <argsstring></argsstring>
+        <name>chunk_flag</name>
+        <qualifiedname>sli_si91x_psa_aes_multipart_config_t::chunk_flag</qualifiedname>
+        <briefdescription>
+<para>Flag to indicate chunk number. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_aes.h" line="164" column="11" bodyfile="components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_aes.h" bodystart="164" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Structure defines the PSA AES Multipart configuration. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>This structure defines PSA AES Multipart configuration required for the operation which includes type of operation, input message, length of input message, key configuration structure, and so on. </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="3">
+        <label>sl_si91x_aes_key_config_a0_t</label>
+        <link refid="structsl__si91x__aes__key__config__a0__t"/>
+      </node>
+      <node id="4">
+        <label>sl_si91x_aes_key_config_b0_t</label>
+        <link refid="structsl__si91x__aes__key__config__b0__t"/>
+      </node>
+      <node id="2">
+        <label>sl_si91x_aes_key_config_t</label>
+        <link refid="unionsl__si91x__aes__key__config__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>a0</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>b0</edgelabel>
+        </childnode>
+      </node>
+      <node id="1">
+        <label>sli_si91x_psa_aes_multipart_config_t</label>
+        <link refid="structsli__si91x__psa__aes__multipart__config__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>key_config</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_aes.h" line="156" column="1" bodyfile="components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_aes.h" bodystart="156" bodyend="165"/>
+    <listofallmembers>
+      <member refid="structsli__si91x__psa__aes__multipart__config__t_1a54374d75a78756f08629c2bc043177c4" prot="public" virt="non-virtual"><scope>sli_si91x_psa_aes_multipart_config_t</scope><name>aes_mode</name></member>
+      <member refid="structsli__si91x__psa__aes__multipart__config__t_1a91ada830340c28febe9030ce2c5e8868" prot="public" virt="non-virtual"><scope>sli_si91x_psa_aes_multipart_config_t</scope><name>chunk_flag</name></member>
+      <member refid="structsli__si91x__psa__aes__multipart__config__t_1a4ee0fdacbfce43c51aa3878ca978f678" prot="public" virt="non-virtual"><scope>sli_si91x_psa_aes_multipart_config_t</scope><name>encrypt_decrypt</name></member>
+      <member refid="structsli__si91x__psa__aes__multipart__config__t_1a399608620ff2da958be5120c6cbae4f9" prot="public" virt="non-virtual"><scope>sli_si91x_psa_aes_multipart_config_t</scope><name>iv</name></member>
+      <member refid="structsli__si91x__psa__aes__multipart__config__t_1a1ab4ecfe0a303b313670ece04c137cea" prot="public" virt="non-virtual"><scope>sli_si91x_psa_aes_multipart_config_t</scope><name>iv_flag</name></member>
+      <member refid="structsli__si91x__psa__aes__multipart__config__t_1a6d3ea246de929e38cf81d4b82b489632" prot="public" virt="non-virtual"><scope>sli_si91x_psa_aes_multipart_config_t</scope><name>key_config</name></member>
+      <member refid="structsli__si91x__psa__aes__multipart__config__t_1a874969575d254a5cbbf079ce160a87b5" prot="public" virt="non-virtual"><scope>sli_si91x_psa_aes_multipart_config_t</scope><name>msg</name></member>
+      <member refid="structsli__si91x__psa__aes__multipart__config__t_1aa7e145e9039af75823458cc386c104b9" prot="public" virt="non-virtual"><scope>sli_si91x_psa_aes_multipart_config_t</scope><name>msg_length</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

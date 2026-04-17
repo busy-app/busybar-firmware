@@ -1,0 +1,13 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="dir_124977708590bb37e76bd40bfc2f24c6" kind="dir">
+    <compoundname>components/device/silabs/si91x/wireless/crypto/trng/inc</compoundname>
+    <innerfile refid="sl__si91x__psa__trng_8h">sl_si91x_psa_trng.h</innerfile>
+    <innerfile refid="sl__si91x__trng_8h">sl_si91x_trng.h</innerfile>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="components/device/silabs/si91x/wireless/crypto/trng/inc/"/>
+  </compounddef>
+</doxygen>

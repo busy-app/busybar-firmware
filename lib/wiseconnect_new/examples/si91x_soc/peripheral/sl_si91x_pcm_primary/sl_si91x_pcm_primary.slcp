@@ -1,0 +1,53 @@
+project_name: sl_si91x_pcm_primary
+package: platform_siwx91x_app
+description: 'Demonstrates how to use the PCM primary interface on the SI91x SoC device.
+
+  '
+category: example|peripheral
+quality: production
+label: SI91x - SL_PCM_PRIMARY
+component:
+- id: sl_main
+- id: status
+- id: syscalls
+- id: si91x_memory_default_config
+- id: sl_pcm
+- id: pcm_instance
+  instance:
+  - pcm0
+source:
+- path: app.c
+- path: pcm_primary_example.c
+include:
+- path: .
+  file_list:
+  - path: app.h
+  - path: pcm_primary_example.h
+define:
+- name: SYSCALLS_WRITE
+toolchain_settings:
+- option: gcc_compiler_option
+  value: -Wall -Werror
+other_file:
+- path: resources/readme/setupdiagram.png
+- path: resources/readme/PCM_Primary_Secondary_Pins.png
+- path: resources/uc_screen/pcm_primary_uc_screen.png
+- path: resources/readme/output.png
+requires:
+- name: sl_gpio
+ui_hints:
+  highlight:
+  - path: readme.md
+    focus: true
+readme:
+- path: readme.md
+post_build:
+  profile: wiseconnect_soc
+sdk_extension:
+- id: wiseconnect3_sdk
+  vendor: silabs
+  version: 4.0.1
+sdk:
+  id: simplicity_sdk
+  vendor: silabs
+  version: 2025.12.2

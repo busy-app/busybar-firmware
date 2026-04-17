@@ -1,0 +1,90 @@
+/***************************************************************************//**
+ * @file sl_pwm_init.c.jinja
+ * @brief PWM Driver Instance Initialization
+ *******************************************************************************
+ * # License
+ * <b>Copyright 2020 Silicon Laboratories Inc. www.silabs.com</b>
+ *******************************************************************************
+ *
+ * SPDX-License-Identifier: Zlib
+ *
+ * The licensor of this software is Silicon Laboratories Inc.
+ *
+ * This software is provided 'as-is', without any express or implied
+ * warranty. In no event will the authors be held liable for any damages
+ * arising from the use of this software.
+ *
+ * Permission is granted to anyone to use this software for any purpose,
+ * including commercial applications, and to alter it and redistribute it
+ * freely, subject to the following restrictions:
+ *
+ * 1. The origin of this software must not be misrepresented; you must not
+ *    claim that you wrote the original software. If you use this software
+ *    in a product, an acknowledgment in the product documentation would be
+ *    appreciated but is not required.
+ * 2. Altered source versions must be plainly marked as such, and must not be
+ *    misrepresented as being the original software.
+ * 3. This notice may not be removed or altered from any source distribution.
+ *
+ ******************************************************************************/
+
+#include "sl_si91x_pwm.h"
+#include "sl_pwm_board.h"
+#include "sl_si91x_pwm_common_config.h"
+{% for inst in pwm_instances %}
+#include "sl_si91x_pwm_init_{{ inst }}_config.h"
+{% endfor %}
+
+#include "sl_pwm_instances.h"
+
+{% for inst in pwm_instances %}
+sl_pwm_config_t sl_pwm_{{ inst }}_config = {
+  .channel = (uint8_t)SL_PWM_{{ inst | upper }}_OUTPUT_CHANNEL,
+  .frequency = SL_PWM_{{ inst | upper }}_FREQUENCY,
+  .is_polarity_low = SL_PWM_{{ inst | upper }}_POLARITY_LOW,
+  .is_polarity_high = SL_PWM_{{ inst | upper }}_POLARITY_HIGH,
+  .is_mode = SL_PWM_{{ inst | upper }}_MODE,
+  .base_time_counter_initial_value = SL_PWM_{{ inst | upper }}_TIMER_COUNTER,
+  .duty_cycle = SL_PWM_{{ inst | upper }}_DUTY_CYCLE,
+  .base_timer_mode = SL_PWM_{{ inst | upper }}_TIMER_MODE,
+  .channel_timer_selection = SL_PWM_COMMON_TIMER_SELECTION,
+};
+{% endfor %}
+
+{% for inst in pwm_instances %}
+sl_pwm_init_t sl_pwm_{{ inst }}_init = {
+  .port_l = SL_PWM_{{ inst | upper }}_PORT_L,
+  .pin_l = SL_PWM_{{ inst | upper }}_PIN_L,
+  .port_h = SL_PWM_{{ inst | upper }}_PORT_H,
+  .pin_h = SL_PWM_{{ inst | upper }}_PIN_H,
+  .mux_l = SL_PWM_{{ inst | upper }}_MUX_L,
+  .mux_h = SL_PWM_{{ inst | upper }}_MUX_H,
+  .pad_l = SL_PWM_{{ inst | upper }}_PAD_L,
+  .pad_h= SL_PWM_{{ inst | upper }}_PAD_H,
+};
+{% endfor %}
+
+{% for inst in pwm_instances %}
+sl_pwm_fault_init_t sl_pwm_{{ inst }}_event_init = {
+  .port = SL_PWM_{{ inst | upper }}_PORT,
+  .pin = SL_PWM_{{ inst | upper }}_PIN,
+  .mux = SL_PWM_{{ inst | upper }}_MUX,
+  .pad = SL_PWM_{{ inst | upper }}_PAD,
+};
+{% endfor %}
+
+
+#if ((SL_PWM_COMMON_TIMER_SELECTION == SL_BASE_TIMER_ALL_CHANNEL_VAL) && (!defined SL_PWM_CHANNEL_0_AVAILABLE))
+    #warning "PWM Base Timer cannot be \"Only one (0th) for All Channels\" if channel_0 instance is not added"
+#endif
+
+
+
+void sl_pwm_init_instances(void)
+{
+{% for inst in pwm_instances %}
+
+  sl_si91x_pwm_init(&sl_pwm_{{ inst }}_init);
+
+  {% endfor %}
+}

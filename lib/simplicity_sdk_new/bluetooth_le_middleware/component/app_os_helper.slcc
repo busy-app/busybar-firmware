@@ -1,0 +1,53 @@
+id: app_os_helper
+label: Application OS helper
+package: bluetooth_le_middleware
+description: >
+  Provides context for creating and managing the application task,
+  a semaphore and a mutex.
+  Can be modified freely, to match the needs of the application task.
+  The implementation is selected based on if the project uses
+  FreeRTOS, Micrium OS or no OS at all.
+  # We could say that this is an extension for sl_main
+category: Bluetooth|Application|Miscellaneous
+metadata:
+  sbom:
+    license: Zlib
+quality: production
+root_path: bluetooth_le_middleware/common/app_os_helper
+tag:
+- Low-Code
+source:
+  # Use transfer_ownership to move these files to the project root since these
+  # files strictly belong to app.c (otherwise we could just use app_rta instead)
+  # Let the user to make modifications needed for the application task
+- path: app_bm.c
+  unless:
+  - kernel
+  project:
+    transfer_ownership: true
+- path: app_freertos.c
+  condition:
+  - freertos
+  project:
+    transfer_ownership: true
+- path: app_micriumos.c
+  condition:
+  - micriumos_kernel
+  project:
+    transfer_ownership: true
+template_contribution:
+- name: event_handler
+  value:
+    event: internal_init_early
+    include: app.h
+    handler: app_init_bt
+provides:
+- name: app_os_helper
+ui_hints:
+  visibility: never
+  # Allowing users to add/remove this component would break their project
+  # The purpose of this component is to provide these files to the projects
+  # at generation time
+documentation:
+  docset: bluetooth
+  document: bluetooth-service-api/app-os-helper

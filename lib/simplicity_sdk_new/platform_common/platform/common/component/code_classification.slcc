@@ -1,0 +1,37 @@
+id: code_classification
+label: Code Classification
+package: platform_common
+description: >
+  This component provides the SL_CODE_CLASSIFY macro to group functions into
+  code classes. These code classes are the basis for code placement at
+  link-time. Additionally, this component provides the SL_CODE_RAM macro to
+  place application functions in RAM.
+category: Platform|Toolchain
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+ui_hints:
+  visibility: never
+root_path: platform_common/platform/common
+include:
+- path: inc
+  file_list:
+  - path: sl_code_classification.h
+  - path: sli_code_classification.h
+provides:
+- name: code_classification
+template_contribution:
+- name: code_classification_standard_selections
+  condition: [device_series_3]
+  value: timecritical
+- name: gcc_ram_objects
+  condition: [device_series_3]
+  value: memset
+- name: iar_ram_objects
+  condition: [device_series_3]
+  value: memset
+- name: libgcc_ram_objects
+  condition: [device_series_3]
+  value: _*
+

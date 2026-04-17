@@ -1,0 +1,43 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__evt__system__resource__exhausted" kind="group">
+    <compoundname>sl_bt_evt_system_resource_exhausted</compoundname>
+    <title>sl_bt_evt_system_resource_exhausted</title>
+    <innerclass refid="structsl__bt__evt__system__resource__exhausted__s" prot="public">sl_bt_evt_system_resource_exhausted_s</innerclass>
+      <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="group__sl__bt__evt__system__resource__exhausted_1gab375bdb9dfb131cf6b54700fce9533e9" prot="public" static="no">
+        <type>struct <ref refid="structsl__bt__evt__system__resource__exhausted__s" kindref="compound">sl_bt_evt_system_resource_exhausted_s</ref></type>
+        <definition>typedef struct sl_bt_evt_system_resource_exhausted_s sl_bt_evt_system_resource_exhausted_t</definition>
+        <argsstring></argsstring>
+        <name>sl_bt_evt_system_resource_exhausted_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="1115" column="52" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="1115" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__evt__system__resource__exhausted_1ga383ee48eeceeb5731626a94326431a84" prot="public" static="no">
+        <name>sl_bt_evt_system_resource_exhausted_id</name>
+        <initializer>0x080100a0</initializer>
+        <briefdescription>
+<para>Identifier of the resource_exhausted event. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="1074" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="1074" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Indicates that a system resource has been exhausted during the operation of the Bluetooth stack. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>If resource errors occur already when the Bluetooth stack is starting, the error is reported directly as a return value from sl_bt_stack_init (when the Bluetooth on-demand start component is not included in the application build), or from <ref refid="group__sl__bt__system_1ga0c8188c8e90a95ac461faa59039415fd" kindref="member">sl_bt_system_start_bluetooth</ref> (when the on-demand start component is included). The fields of this event indicate how many failures have occurred for a specific resource. If further resource failures occur while this event is already queued in the BGAPI event queue but not yet delivered to the application, the new failures are included in the already queued event. When the application receives this event, the fields represent the number of failures that have occurred since the previous <ref refid="group__sl__bt__evt__system__resource__exhausted" kindref="compound">sl_bt_evt_system_resource_exhausted</ref> event. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

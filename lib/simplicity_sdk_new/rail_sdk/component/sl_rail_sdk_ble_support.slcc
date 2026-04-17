@@ -1,0 +1,69 @@
+id: "sl_rail_sdk_ble_support"
+label: "BLE support (Simple TRX Std Only)"
+package: "rail_sdk"
+description: >
+  This component extends the application's capabilities by adding minimalist BLE
+  support. It seamlessly integrates with other components, providing a cohesive
+  solution for Bluetooth Low Energy (BLE) communication. It facilitates seamless
+  communication between devices, enabling efficient data exchange. Specifically,
+  it handles the coding and decoding of BLE packets, ensuring reliable data
+  transmission.
+category: "RAIL-SDK|Utility"
+quality: "production"
+metadata:
+  sbom:
+    license: Zlib
+root_path: "rail_sdk/component/sl_rail_sdk_ble_support"
+provides:
+- name: sl_rail_sdk_ble_support
+- name: sl_rail_sdk_protocol
+  allow_multiple: false
+- name: sl_rail_util_init
+  allow_multiple: false
+
+requires:
+- name: sl_rail_sdk_packet_asm
+- name: device_has_radio
+- name: rail_lib
+- name: sl_rail_util_callbacks
+- name: sl_rail_util_dma
+- name: sl_rail_util_pa
+- name: sl_rail_util_pti
+- name: sl_rail_util_rf_path
+- name: sl_rail_util_rssi
+- name: app_log
+- name: app_assert
+- name: iostream_transport
+- name: device_has_radio_2g4hz
+
+config_file:
+- path: config/sl_rail_sdk_util_ble_init_config.h
+- path: config/sl_rail_sdk_util_ble_protocol_config.h
+
+include:
+- path: "."
+  file_list:
+  - path: sl_rail_sdk_util_ble_protocol.h
+  - path: sl_rail_sdk_util_ble_protocol_types.h
+  - path: sl_rail_sdk_util_ble_init.h
+source:
+- path: sl_rail_sdk_util_ble_protocol.c
+- path: sl_rail_sdk_util_ble_init.c
+
+#-------------- Template Contribution ----------------
+template_contribution:
+#------------------ Event handler --------------------
+- name: event_handler
+  value:
+    event: stack_init
+    include: sl_rail_sdk_util_ble_init.h
+    handler: sl_rail_sdk_util_init
+  priority: -9000
+#---------------- Component Catalog ------------------
+- name: component_catalog
+  value: rail_sdk_ble_support
+- name: component_catalog
+  value: sl_rail_sdk_util_ble_protocol
+- name: component_catalog
+  value: sl_rail_sdk_util_ble_init
+

@@ -1,0 +1,42 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__evt__connection__data__length" kind="group">
+    <compoundname>sl_bt_evt_connection_data_length</compoundname>
+    <title>sl_bt_evt_connection_data_length</title>
+    <innerclass refid="structsl__bt__evt__connection__data__length__s" prot="public">sl_bt_evt_connection_data_length_s</innerclass>
+      <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="group__sl__bt__evt__connection__data__length_1ga93cf3783f55cf3a86c89ba3f3164c6ea" prot="public" static="no">
+        <type>struct <ref refid="structsl__bt__evt__connection__data__length__s" kindref="compound">sl_bt_evt_connection_data_length_s</ref></type>
+        <definition>typedef struct sl_bt_evt_connection_data_length_s sl_bt_evt_connection_data_length_t</definition>
+        <argsstring></argsstring>
+        <name>sl_bt_evt_connection_data_length_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6777" column="49" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6777" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__evt__connection__data__length_1ga61964e2f4f63af14f64ee9ae54400040" prot="public" static="no">
+        <name>sl_bt_evt_connection_data_length_id</name>
+        <initializer>0x090600a0</initializer>
+        <briefdescription>
+<para>Identifier of the data_length event. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6759" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6759" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Reports a change to the maximum payload length or maximum TX time in either direction of a connection. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

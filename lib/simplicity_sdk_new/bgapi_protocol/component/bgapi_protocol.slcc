@@ -1,0 +1,35 @@
+id: bgapi_protocol
+label: BGAPI Protocol
+package: bgapi_protocol
+description: >
+  Provides the BGAPI Protocol that handles serialization and deserialization of
+  parameters and return values for commands, responses, and events in Bluetooth
+  APIs. This component is automatically included when required and should not be
+  included directly by the application.
+category: Bluetooth|Bluetooth Host (Stack)
+quality: production
+config_file:
+- path: config/sl_bgapi_config.h
+include:
+- path: protocol/inc/
+  file_list:
+  - path: sl_bgapi.h
+  - path: sli_bgapi.h
+requires:
+- name: memory_manager
+- name: bgapi_protocol_libraries
+- name: bgapi_protocol_rtos_adaptation
+  condition:
+  - kernel
+recommends:
+- id: bgapi_protocol_libraries_release
+  vendor: silabs
+provides:
+- name: bgapi_protocol
+template_contribution:
+- name: component_catalog
+  value: bgapi_protocol
+metadata:
+  sbom:
+    license: Zlib AND MSLA
+root_path: bgapi_protocol

@@ -1,0 +1,29 @@
+id: memory_profiler_api
+label: Memory Profiler API
+package: platform_core
+description: >
+  Provides an internal API for Silicon Labs components that need to profile
+  memory usage with the Memory Profiler tool. This API component gives Silicon
+  Labs components access to the Memory Profiler API header without forcing the
+  Memory Profiler functionality to be included in the application build. Use the
+  component <memory_profiler> to enable the tracing of the Memory Profiler
+  events in the application.
+category: Services|Memory Manager
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: platform_core/platform/service/memory_manager/profiler
+include:
+- path: inc
+  file_list:
+  - path: sli_memory_profiler.h
+source:
+- path: src/sli_memory_profiler_stubs.c
+  unless:
+  - memory_profiler
+provides:
+- name: memory_profiler_api
+template_contribution:
+- name: component_catalog
+  value: memory_profiler_api

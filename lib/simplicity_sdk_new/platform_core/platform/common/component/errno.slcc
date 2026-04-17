@@ -1,0 +1,30 @@
+id: errno
+label: errno support
+description: >
+  This component provides "errno.h" header file.
+  It also provides support for threadsafe errno usage along with support for errno usage in ISR context.
+package: platform_core
+category: Platform|Toolchain
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: platform_core/platform/common
+include:
+- path: errno/inc
+  file_list:
+  - path: errno.h
+source:
+- path: errno/src/sl_errno.c
+provides:
+- name: errno
+requires:
+- name: sl_core
+- name: sl_common
+- name: errno_error_codes
+template_contribution:
+- name: component_catalog
+  value: errno
+documentation:
+  docset: gecko-platform
+  document: platform-common/errno

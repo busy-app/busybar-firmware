@@ -1,0 +1,69 @@
+project_name: cpc_secondary_spi_security_device_recovery
+package: cpc_app
+quality: production
+label: Platform - CPC Secondary Device Recovery - SPI
+description: >
+  This simple example project implements the function sl_cpc_security_on_unbind_request(),
+  allowing the secondary device to be unbound from the host.
+category: Example|Platform
+filter:
+  - name: "Device Type"
+    value: ["SoC"]
+  - name: "MCU"
+    value: ["32-bit MCU"]
+  - name: "Project Difficulty"
+    value: ["Advanced"]
+source:
+  - path: app.c
+  - path: cpc_app.c
+include:
+  - path: .
+    file_list:
+    - path: app.h
+    - path: cpc_app.h
+component:
+  - id: sl_main
+  - id: device_init
+  - id: clock_manager
+  - id: cpc_secondary
+  - id: cpc_security_secondary
+  - id: cpc_secondary_recommended_spi_interface
+define:
+  - name: DEBUG_EFM
+configuration:
+  - name: SL_CPC_SECURITY_ENABLED
+    value: 1
+  - name: SL_CPC_SECURITY_BINDING_KEY_METHOD
+    value: SL_CPC_SECURITY_BINDING_KEY_ECDH
+readme:
+  - path: readme.md
+ui_hints:
+  highlight: readme.md
+tag:
+  - hwfilter:ram:40k
+  - hwfilter:device:device_has_gpcrc
+  - hwfilter:device:device_has_uart
+  - hwfilter:!device:device_generic_family_efr32xg22
+  - hwfilter:!device:device_generic_family_efr32xg25
+  - hwfilter:!device:device_generic_family_efr32xg26
+  - hwfilter:!device:device_generic_family_efr32xg29
+  - hwfilter:board:hardware:has:exp_header:spi
+  # Following boards have SPI routed on the expansion header but it's only
+  # accessible via USART, not EUSART. Due to how the
+  # cpc_secondary_recommended_spi_interface is made, the generated project will
+  # try to use EUSART even if that doesn't make sense, and as there is no
+  # override for that peripheral, the compilation fails.
+  - hwfilter:!board:brd2505a # SPI EUSART config is not available
+  - hwfilter:!board:brd2506a # SPI EUSART config is not available
+  - hwfilter:!board:brd2704a # SPI EUSART config is not available
+  - hwfilter:!board:brd4115a # SPI EUSART config is not available
+  - hwfilter:!board:brd4115b # SPI EUSART config is not available
+  - hwfilter:!board:brd4118a # SPI EUSART config is not available
+  - hwfilter:!board:brd4120a # SPI EUSART config is not available
+  - hwfilter:!board:brd4121a # SPI EUSART config is not available
+  - hwfilter:!board:brd4400a # SPI EUSART config is not available
+  - hwfilter:!board:brd4400b # SPI EUSART config is not available
+  - hwfilter:!board:brd4400c # SPI EUSART config is not available
+  - hwfilter:!board:brd4401a # SPI EUSART config is not available
+  - hwfilter:!board:brd4401b # SPI EUSART config is not available
+  - hwfilter:!board:brd4401c # SPI EUSART config is not available

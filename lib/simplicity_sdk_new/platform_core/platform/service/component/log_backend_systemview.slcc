@@ -1,0 +1,22 @@
+id: log_backend_systemview
+label: Log Segger Systemview
+package: platform_core
+description: >
+  The Debug Logger Systemview component.
+category: Services|Log
+quality: evaluation
+metadata:
+  sbom:
+    license: Zlib
+provides:
+- name: log_backend_systemview
+- name: log_backend
+requires:
+- name: segger_systemview
+- name: log
+root_path: platform_core/platform/service/sl_log/backend
+source:
+- path: src/sl_log_backend_segger.c
+template_contribution:
+- name: component_catalog
+  value: logger_backend_systemview

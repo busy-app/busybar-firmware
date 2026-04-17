@@ -1,0 +1,42 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__evt__scanner__legacy__advertisement__report" kind="group">
+    <compoundname>sl_bt_evt_scanner_legacy_advertisement_report</compoundname>
+    <title>sl_bt_evt_scanner_legacy_advertisement_report</title>
+    <innerclass refid="structsl__bt__evt__scanner__legacy__advertisement__report__s" prot="public">sl_bt_evt_scanner_legacy_advertisement_report_s</innerclass>
+      <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="group__sl__bt__evt__scanner__legacy__advertisement__report_1gad5478cbbe76880a24f28bdab0ea1f9d7" prot="public" static="no">
+        <type>struct <ref refid="structsl__bt__evt__scanner__legacy__advertisement__report__s" kindref="compound">sl_bt_evt_scanner_legacy_advertisement_report_s</ref></type>
+        <definition>typedef struct sl_bt_evt_scanner_legacy_advertisement_report_s sl_bt_evt_scanner_legacy_advertisement_report_t</definition>
+        <argsstring></argsstring>
+        <name>sl_bt_evt_scanner_legacy_advertisement_report_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="3863" column="62" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="3863" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__evt__scanner__legacy__advertisement__report_1ga67eaf8d97615048b28e3fd734f3c4ba3" prot="public" static="no">
+        <name>sl_bt_evt_scanner_legacy_advertisement_report_id</name>
+        <initializer>0x000500a0</initializer>
+        <briefdescription>
+<para>Identifier of the legacy_advertisement_report event. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="3764" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="3764" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Reports an advertising data or scan response packet from an advertising device that uses legacy advertising PDUs. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

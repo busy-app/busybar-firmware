@@ -1,0 +1,318 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__connection__analyzer" kind="group">
+    <compoundname>sl_bt_connection_analyzer</compoundname>
+    <title>Connection Analyzer</title>
+    <innergroup refid="group__sl__bt__connection__analyzer__flags">Connection Analyzer Configuration flags</innergroup>
+    <innergroup refid="group__sl__bt__evt__connection__analyzer__report">sl_bt_evt_connection_analyzer_report</innergroup>
+    <innergroup refid="group__sl__bt__evt__connection__analyzer__completed">sl_bt_evt_connection_analyzer_completed</innergroup>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="group__sl__bt__connection__analyzer_1gaa3898b966e74863f4e2fe159f5f7d183" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_connection_analyzer_start</definition>
+        <argsstring>(uint32_t access_address, uint32_t crc_init, uint16_t interval, uint16_t supervision_timeout, uint8_t central_clock_accuracy, uint8_t central_phy, uint8_t peripheral_phy, uint8_t channel_selection_algorithm, uint8_t hop, const sl_bt_connection_channel_map_t *channel_map, uint8_t channel, uint16_t event_counter, int32_t start_time_us, uint32_t flags, uint8_t *analyzer)</argsstring>
+        <name>sl_bt_connection_analyzer_start</name>
+        <param>
+          <type>uint32_t</type>
+          <declname>access_address</declname>
+        </param>
+        <param>
+          <type>uint32_t</type>
+          <declname>crc_init</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>interval</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>supervision_timeout</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>central_clock_accuracy</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>central_phy</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>peripheral_phy</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>channel_selection_algorithm</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>hop</declname>
+        </param>
+        <param>
+          <type>const <ref refid="structsl__bt__connection__channel__map__t" kindref="compound">sl_bt_connection_channel_map_t</ref> *</type>
+          <declname>channel_map</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>channel</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>event_counter</declname>
+        </param>
+        <param>
+          <type>int32_t</type>
+          <declname>start_time_us</declname>
+        </param>
+        <param>
+          <type>uint32_t</type>
+          <declname>flags</declname>
+        </param>
+        <param>
+          <type>uint8_t *</type>
+          <declname>analyzer</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Start to analyze another device&apos;s connection and report the RSSI measurements. The parameters in this command provide necessary information to identify the connection and schedule operations to follow its transmissions.</para>
+<para>The analyzer generates a report at every connection interval. When a central or peripheral packet could not be observed, the RSSI for the role is reported as unavailable (127).</para>
+<para>If the other device uses Silabs&apos; Bluetooth stack, the information of the connection could be retrieved with command <ref refid="group__sl__bt__connection_1gad62e5d430b422114957d0d45005cd8bb" kindref="member">sl_bt_connection_get_scheduling_details</ref>. The method of passing the information to this device is application layer logic.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">access_address</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Access address of the connection </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">crc_init</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The CRC initialization value </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">interval</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The connection interval. Time = Value x 1.25 ms </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">supervision_timeout</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The connection supervision time. Time = Value x 10 ms </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">central_clock_accuracy</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The central device&apos;s clock accuracy index value </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">central_phy</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Enum <ref refid="group__sl__bt__gap_1ga05ce4496a6f87de7c67a9e32d816727c" kindref="member">sl_bt_gap_phy_t</ref>. The PHY that the Central device is transmitting on. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_gap_phy_1m (0x1):</bold> 1M PHY</para>
+</listitem><listitem><para><bold>sl_bt_gap_phy_2m (0x2):</bold> 2M PHY</para>
+</listitem><listitem><para><bold>sl_bt_gap_phy_coded (0x4):</bold> Coded PHY, 125k (S=8) or 500k (S=2) </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">peripheral_phy</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Enum <ref refid="group__sl__bt__gap_1ga05ce4496a6f87de7c67a9e32d816727c" kindref="member">sl_bt_gap_phy_t</ref>. The PHY that the Peripheral device is transmitting on. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_gap_phy_1m (0x1):</bold> 1M PHY</para>
+</listitem><listitem><para><bold>sl_bt_gap_phy_2m (0x2):</bold> 2M PHY</para>
+</listitem><listitem><para><bold>sl_bt_gap_phy_coded (0x4):</bold> Coded PHY, 125k (S=8) or 500k (S=2) </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">channel_selection_algorithm</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Enum <ref refid="group__sl__bt__gap_1gac8f8f7951d8100e1e969cdf90127a086" kindref="member">sl_bt_gap_channel_selection_algorithm_t</ref>. The channel selection algorithm. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_gap_channel_selection_algorithm_1 (0x0):</bold> Channel selection algorithm #1</para>
+</listitem><listitem><para><bold>sl_bt_gap_channel_selection_algorithm_2 (0x1):</bold> Channel selection algorithm #2 </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">hop</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The hop increment when the channel selection algorithm #1 is used on the connection. Ignored if <computeroutput>channel_selection_algorithm</computeroutput> indicates that the connection uses channel selection algorithm #2. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">channel_map</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>5 byte bit field in little endian format. Only the first 37 bits are used. Bit 0 of the first byte is channel 0, bit 0 of the second byte is channel 8, etc. Ignore bits 37-39 that are reserved for future use.</para>
+<para>A channel is unused when its bit is 0. A channel is used when its bit is 1. </para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">channel</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The data channel number that transmissions will use in the next connection event </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">event_counter</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The event counter of the next connection event </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">start_time_us</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The start time of the given connection event in microseconds. The semantics depend on whether the configuration flag SL_BT_CONNECTION_ANALYZER_RELATIVE_TIME is set in parameter <computeroutput>flags:</computeroutput> <itemizedlist>
+<listitem><para>When the flag is set, the value is a time relative to the current time. A negative value means that the start time was in the past.</para>
+</listitem><listitem><para>When the flag is not set, the value is an absolute time converted from the PROTIMER tick. </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">flags</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Configuration flags. This value is a bitmask of <ref refid="group__sl__bt__connection__analyzer__flags" kindref="compound">Connection Analyzer Configuration flags</ref>. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">analyzer</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>A handle that is assigned to the connection analyzer. This handle is valid only if the result code of this command is SL_STATUS_OK.</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise.</para>
+</simplesect>
+<bold>Events</bold> <itemizedlist>
+<listitem><para><ref refid="group__sl__bt__evt__connection__analyzer__report" kindref="compound">sl_bt_evt_connection_analyzer_report</ref> - Triggered at every connection interval.</para>
+</listitem><listitem><para><ref refid="group__sl__bt__evt__connection__analyzer__completed" kindref="compound">sl_bt_evt_connection_analyzer_completed</ref> - Triggered when analyzing a connection is completed in the Link Layer for some reason. </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16315" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="16315" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__connection__analyzer_1gadf538d051a2f17718bbe1ca1d6941f20" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_connection_analyzer_stop</definition>
+        <argsstring>(uint8_t analyzer)</argsstring>
+        <name>sl_bt_connection_analyzer_stop</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>analyzer</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Stop analyzing another device&apos;s Bluetooth connection. The operation is stopped when this command returns, and the stack does not send additional event.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">analyzer</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The handle of the connection analyzer to stop</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16342" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="16342" declcolumn="13"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__connection__analyzer_1gad613de875f5a9f34ebe326ef5bf19fbb" prot="public" static="no">
+        <name>sl_bt_cmd_connection_analyzer_start_id</name>
+        <initializer>0x00480020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16167" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="16167" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__connection__analyzer_1ga618695dcbca10e818491e5d265947fb1" prot="public" static="no">
+        <name>sl_bt_cmd_connection_analyzer_stop_id</name>
+        <initializer>0x01480020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16168" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="16168" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__connection__analyzer_1ga18155dd5db6b1a10fd59fa78b2aed4c7" prot="public" static="no">
+        <name>sl_bt_rsp_connection_analyzer_start_id</name>
+        <initializer>0x00480020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16169" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="16169" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__connection__analyzer_1ga0cc18aa2e3b4a210abc6ae45e2e89816" prot="public" static="no">
+        <name>sl_bt_rsp_connection_analyzer_stop_id</name>
+        <initializer>0x01480020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16170" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="16170" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Connection Analyzer. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>Analyze Bluetooth packets that are transmitted on the connections of external devices. Include component bluetooth_feature_connection_analyzer to use the commands and events in this class. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

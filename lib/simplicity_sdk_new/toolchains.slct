@@ -1,0 +1,651 @@
+schema:
+  architecture:
+    type: str
+  device_opn:
+    type: str
+  device_restricted:
+    type: bool
+  board_id:
+    type: str
+  cpu:
+    type: str
+    enum:
+      - cortex-m0+
+      - cortex-m3
+      - cortex-m4
+      - cortex-m33
+      - cortex-m55
+  fpu:
+    type: str
+    enum:
+      - fpv4-sp
+      - fpv5-sp
+  optimize:
+    type: str
+    enum:
+      - none
+      - debug
+      - speed
+      - size
+  debug_level:
+    type: str
+    enum:
+      - none
+      - minimal
+      - default
+      - maximal
+  c_standard:
+    type: str
+  cxx_standard:
+    type: str
+  preinclude:
+    type: str
+  linkerfile:
+    type: str
+  device_type:
+    type: str
+    enum:
+      - embedded
+      - host
+  split_sections:
+    type: str
+    enum:
+      - enabled
+      - disabled
+  nano_c_libs:
+    type: str
+    enum:
+      - enabled
+      - disabled
+  fp16:
+    type: str
+    enum:
+      - enabled
+      - disabled
+  gcc_compiler_option:
+    type: str
+  llvm_compiler_option:
+    type: str
+  gcc_c_compiler_option:
+    type: str
+  llvm_c_compiler_option:
+    type: str
+  gcc_c++_compiler_option:
+    type: str
+  llvm_c++_compiler_option:
+    type: str
+  gcc_assembler_option:
+    type: str
+  llvm_assembler_option:
+    type: str
+  gcc_linker_option:
+    type: str
+  llvm_linker_option:
+    type: str
+  iar_compiler_option:
+    type: str
+  iar_linker_option:
+    type: str
+  trustzone_library:
+    type: str
+    enum:
+      - enabled
+      - disabled
+  cmse:
+    type: str
+    enum:
+      - enabled
+      - disabled
+  no_builtin_printf:
+    type: str
+    enum:
+      - enabled
+      - disabled
+  no_builtin_sprintf:
+    type: str
+    enum:
+      - enabled
+      - disabled
+  link_time_optimization:
+    type: str
+    enum:
+      - enabled
+      - disabled
+  compiler_option:
+    type: str
+  c_compiler_option:
+    type: str
+  c++_compiler_option:
+    type: str
+  linker_option:
+    type: str
+exporter:
+  - exporter_id: simplicity_studio
+    setting:
+
+      - tool: linker
+        option: generateMapFile
+        value: true
+      - tool: compiler
+        option: c_standard
+        value: c18
+      - tool: compiler
+        option: cxx_standard
+        value: c++17
+      - tool: compiler
+        option: warnings.all
+        value: true
+      - tool: compiler
+        option: warnings.extra
+        value: true
+      - tool: compiler
+        option: warnings.pedantic
+        value: false
+      - tool: compiler
+        option: warnings.are_errors
+        value: false
+      - tool: compiler
+        option: optimization
+        value: size # Optimize for size by default
+      - tool: linker
+        option: optimization
+        value: size # Optimize for size by default
+      - tool: compiler
+        option: debug_level
+        value: default
+
+      - tool: com.silabs.ide.si32.gcc.cdt.managedbuild.tool.gnu.c.linker.base
+        option: com.silabs.ide.si32.gcc.cdt.managedbuild.tool.gnu.c.linker.circulardependency
+        value: true
+      - tool: com.silabs.ide.si32.gcc.cdt.managedbuild.tool.gnu.c.linker.base
+        option: com.silabs.ide.si32.gcc.cdt.managedbuild.tool.gnu.c.linker.nostdlibs
+        value: false
+      - tool: com.silabs.ide.si32.gcc.cdt.managedbuild.tool.gnu.cpp.linker
+        option: com.silabs.ide.si32.gcc.cdt.managedbuild.tool.gnu.cpp.linker.circulardependency
+        value: true
+      - tool: com.silabs.ide.si32.gcc.cdt.managedbuild.tool.gnu.c.linker.base
+        option: com.silabs.gnu.c.link.option.ldflags
+        action: append
+        value: "-Wl,--no-warn-rwx-segments"
+      - tool: com.silabs.ide.si32.gcc.cdt.managedbuild.tool.gnu.cpp.linker.base
+        option: com.silabs.gnu.cpp.link.option.flags
+        action: append
+        value: "-Wl,--no-warn-rwx-segments"
+      - tool: com.silabs.ide.si32.gcc.cdt.managedbuild.tool.gnu.c.compiler.base
+        option: com.silabs.gnu.c.compiler.option.misc.otherlist
+        action: append
+        value: "-c"
+      - tool: com.silabs.ide.si32.gcc.cdt.managedbuild.tool.gnu.cpp.compiler.base
+        option: com.silabs.gnu.cpp.compiler.option.misc.otherlist
+        action: append
+        value: "-c"
+      - tool: com.silabs.ide.si32.gcc.cdt.managedbuild.tool.gnu.c.compiler.base
+        option: com.silabs.gnu.c.compiler.option.misc.otherlist
+        action: append
+        value: "-fmessage-length=0"
+      - tool: com.silabs.ide.si32.gcc.cdt.managedbuild.tool.gnu.cpp.compiler.base
+        option: com.silabs.gnu.cpp.compiler.option.misc.otherlist
+        action: append
+        value: "-fmessage-length=0"
+    mapping:
+      split_sections:
+        enabled:
+          - tool: compiler
+            option: function_sections
+            value: true
+          - tool: compiler
+            option: data_sections
+            value: true
+          - tool: makefile.arm.gcc.linker
+            option: misc
+            action: append
+            value: "-Wl,--gc-sections"
+          - tool: makefile.arm.llvm.linker
+            option: misc
+            action: append
+            value: "-Xlinker --gc-sections"
+        disabled: []
+      cmse:
+        enabled:
+          - tool: compiler
+            option: secure_code
+            value: true
+        disabled:
+          - tool: compiler
+            option: secure_code
+            value: false
+      nano_c_libs:
+        enabled:
+          - tool: compiler
+            option: nano_c_libs
+            value: true
+          - tool: assembler
+            option: nano_c_libs
+            value: true
+          - tool: linker
+            option: nano_c_libs
+            value: true
+        disabled:
+          - tool: compiler
+            option: nano_c_libs
+            value: false
+          - tool: assembler
+            option: nano_c_libs
+            value: false
+          - tool: linker
+            option: nano_c_libs
+            value: false
+      rdimon_c_libs:
+        enabled:
+          - tool: makefile.arm.gcc.linker
+            option: misc
+            action: append
+            value: "--specs=rdimon.specs -lc -lrdimon"
+          - tool: makefile.arm.gcc.compiler
+            option: misc
+            action: append
+            value: "--specs=rdimon.specs -lc -lrdimon"
+          - tool: linker
+            option: rdimon_c_libs
+            value: true
+        disabled:
+          - tool: linker
+            option: rdimon_c_libs
+            value: false
+      fp16:
+        enabled:
+          - tool: makefile.arm.gcc.compiler
+            option: misc
+            action: append
+            value: "-mfp16-format=ieee"
+          - tool: makefile.host.gcc.compiler
+            option: misc
+            action: append
+            value: "-mfp16-format=ieee"
+          - tool: com.silabs.ide.si32.gcc.cdt.managedbuild.tool.gnu.c.compiler.base
+            option: com.silabs.gnu.c.compiler.option.misc.otherlist
+            action: append
+            value: "-mfp16-format=ieee"
+          - tool: com.silabs.ide.si32.gcc.cdt.managedbuild.tool.gnu.cpp.compiler.base
+            option: com.silabs.gnu.cpp.compiler.option.misc.otherlist
+            action: append
+            value: "-mfp16-format=ieee"
+        disabled: []
+      device_type:
+        embedded:
+          - tool: compiler
+            option: omit_frame_pointer
+            value: true
+          # C++ options
+          - tool: compiler
+            option: no_exceptions
+            value: true
+          - tool: compiler
+            option: no_rtti
+            value: true
+        host: []
+      cpu:
+        cortex-m0+:
+          - tool: toolchain
+            option: cpu
+            value: cortex-m0+
+        cortex-m3:
+          - tool: toolchain
+            option: cpu
+            value: cortex-m3
+        cortex-m4:
+          - tool: toolchain
+            option: cpu
+            value: cortex-m4
+        cortex-m33:
+          - tool: toolchain
+            option: cpu
+            value: cortex-m33
+        cortex-m55:
+          - tool: toolchain
+            option: cpu
+            value: cortex-m55
+          # Pending update to CMSIS 6, make LLVM behave like GCC and define m55
+          # as having v8m-main arch
+          - tool: makefile.arm.llvm.compiler.c
+            option: misc
+            action: append
+            value: -D__ARM_ARCH_8M_MAIN__=1
+          - tool: makefile.arm.llvm.compiler.cpp
+            option: misc
+            action: append
+            value: -D__ARM_ARCH_8M_MAIN__=1
+      fpu:
+        fpv4-sp:
+          - tool: toolchain
+            option: fpu
+            value: fpv4-sp
+          - tool: toolchain
+            option: float_abi
+            value: softfp
+        fpv5-sp:
+          - tool: toolchain
+            option: fpu
+            value: fpv5-sp
+          - tool: toolchain
+            option: float_abi
+            value: hard
+      optimize:
+        none:
+          - tool: compiler
+            option: optimization
+            value: none
+          - tool: linker
+            option: optimization
+            value: none
+        debug:
+          - tool: compiler
+            option: optimization
+            value: debug
+          - tool: linker
+            option: optimization
+            value: debug
+        speed:
+          - tool: compiler
+            option: optimization
+            value: speed
+          - tool: linker
+            option: optimization
+            value: speed
+        size:
+          - tool: compiler
+            option: optimization
+            value: size
+          - tool: linker
+            option: optimization
+            value: size
+      debug_level:
+        none:
+          - tool: compiler
+            option: debug_level
+            value: none
+        minimal:
+          - tool: compiler
+            option: debug_level
+            value: minimal
+        default:
+          - tool: compiler
+            option: debug_level
+            value: default
+        maximal:
+          - tool: compiler
+            option: debug_level
+            value: maximum
+      c_standard:
+        - tool: compiler
+          option: c_standard
+          value: "{{value}}"
+      cxx_standard:
+        - tool: compiler
+          option: cxx_standard
+          value: "{{value}}"
+      preinclude:
+        - tool: compiler
+          option: preinclude
+          action: append
+          value: "{{value}}"
+        - tool: assembler
+          option: preinclude
+          action: append
+          value: "{{value}}"
+      linkerfile:
+        - tool: linker
+          option: linkerScript
+          value: "{{value}}"
+      device_opn:
+        - tool: studio.ide.project
+          option: device_opn
+          value: "{{value}}"
+      board_id:
+        - tool: studio.ide.project
+          option: board_id
+          action: append
+          value: "{{value}}"
+      trustzone_library:
+        enabled:
+          - tool: linker
+            option: generate_trustzone_lib
+            value: "trustzone_secure_library.o"
+        disabled: []
+      architecture: []
+      gcc_compiler_option:
+        - tool: makefile.arm.gcc.compiler
+          option: misc
+          action: append
+          value: "{{value}}"
+        - tool: makefile.host.gcc.compiler
+          option: misc
+          action: append
+          value: "{{value}}"
+        - tool: com.silabs.ide.si32.gcc.cdt.managedbuild.tool.gnu.c.compiler.base
+          option: com.silabs.gnu.c.compiler.option.misc.otherlist
+          action: append
+          value: "{{value}}"
+        - tool: com.silabs.ide.si32.gcc.cdt.managedbuild.tool.gnu.cpp.compiler.base
+          option: com.silabs.gnu.cpp.compiler.option.misc.otherlist
+          action: append
+          value: "{{value}}"
+      llvm_compiler_option:
+        - tool: makefile.arm.llvm.compiler.c
+          option: misc
+          action: append
+          value: "{{value}}"
+        - tool: makefile.arm.llvm.compiler.cpp
+          option: misc
+          action: append
+          value: "{{value}}"
+      gcc_c_compiler_option:
+        - tool: makefile.arm.gcc.compiler.c
+          option: misc
+          action: append
+          value: "{{value}}"
+        - tool: makefile.host.gcc.compiler.c
+          option: misc
+          action: append
+          value: "{{value}}"
+        - tool: com.silabs.ide.si32.gcc.cdt.managedbuild.tool.gnu.c.compiler.base
+          option: com.silabs.gnu.c.compiler.option.misc.otherlist
+          action: append
+          value: "{{value}}"
+      llvm_c_compiler_option:
+        - tool: makefile.arm.llvm.compiler.c
+          option: misc
+          action: append
+          value: "{{value}}"
+      gcc_c++_compiler_option:
+        - tool: makefile.arm.gcc.compiler.cpp
+          option: misc
+          action: append
+          value: "{{value}}"
+        - tool: makefile.host.gcc.compiler.cpp
+          option: misc
+          action: append
+          value: "{{value}}"
+        - tool: com.silabs.ide.si32.gcc.cdt.managedbuild.tool.gnu.cpp.compiler.base
+          option: com.silabs.gnu.cpp.compiler.option.misc.otherlist
+          action: append
+          value: "{{value}}"
+      llvm_c++_compiler_option:
+        - tool: makefile.arm.llvm.compiler.cpp
+          option: misc
+          action: append
+          value: "{{value}}"
+      gcc_assembler_option:
+        - tool: makefile.arm.gcc.assembler
+          option: misc
+          action: append
+          value: "{{value}}"
+      llvm_assembler_option:
+        - tool: makefile.arm.llvm.assembler
+          option: misc
+          action: append
+          value: "{{value}}"
+      gcc_linker_option:
+        - tool: makefile.arm.gcc.linker
+          option: misc
+          action: append
+          value: "{{value}}"
+        - tool: makefile.host.gcc.linker
+          option: misc
+          action: append
+          value: "{{value}}"
+        - tool: com.silabs.ide.si32.gcc.cdt.managedbuild.tool.gnu.c.linker.base
+          option: com.silabs.gnu.c.link.option.ldflags
+          action: append
+          value: "{{value}}"
+        - tool: com.silabs.ide.si32.gcc.cdt.managedbuild.tool.gnu.cpp.linker.base
+          option: com.silabs.gnu.cpp.link.option.flags
+          action: append
+          value: "{{value}}"
+      llvm_linker_option:
+        - tool: makefile.arm.llvm.linker
+          option: misc
+          action: append
+          value: "{{value}}"
+      iar_compiler_option:
+        - tool: iar.ewp.arm.compiler
+          option: IExtraOptions
+          action: append
+          value: "{{value}}"
+        - tool: iar.arm.toolchain.compiler.v5.4.1
+          option: iar.arm.toolchain.compiler.option.additionalUserOptions
+          action: append
+          value: "{{value}}"
+      iar_linker_option:
+        - tool: iar.ewp.arm.linker
+          option: IlinkUseExtraOptions
+          value: "1"
+        - tool: iar.ewp.arm.linker
+          option: IlinkExtraOptions
+          action: append
+          value: "{{value}}"
+        - tool: iar.arm.toolchain.linker.v5.4.0
+          option: iar.arm.toolchain.linker.option.extraOptions.v5.4.0
+          action: append
+          value: "{{value}}"
+      no_builtin_printf:
+        enabled:
+          - tool: makefile.arm.gcc.compiler
+            option: misc
+            action: append
+            value: "-fno-builtin-printf"
+          - tool: makefile.arm.llvm.compiler.c
+            option: misc
+            action: append
+            value: "-fno-builtin-printf"
+          - tool: makefile.arm.llvm.compiler.cpp
+            option: misc
+            action: append
+            value: "-fno-builtin-printf"
+          - tool: com.silabs.ide.si32.gcc.cdt.managedbuild.tool.gnu.c.compiler.base
+            option: com.silabs.gnu.c.compiler.option.misc.otherlist
+            action: append
+            value: "-fno-builtin-printf"
+        disabled: []
+      no_builtin_sprintf:
+        enabled:
+          - tool: makefile.arm.gcc.compiler
+            option: misc
+            action: append
+            value: "-fno-builtin-sprintf"
+          - tool: makefile.arm.llvm.compiler.c
+            option: misc
+            action: append
+            value: "-fno-builtin-sprintf"
+          - tool: makefile.arm.llvm.compiler.cpp
+            option: misc
+            action: append
+            value: "-fno-builtin-sprintf"
+          - tool: com.silabs.ide.si32.gcc.cdt.managedbuild.tool.gnu.c.compiler.base
+            option: com.silabs.gnu.c.compiler.option.misc.otherlist
+            action: append
+            value: "-fno-builtin-sprintf"
+        disabled: []
+      link_time_optimization:
+        enabled:
+          - tool: makefile.arm.gcc.compiler
+            option: misc
+            action: append
+            value: "-flto=auto -fwhole-program"
+          - tool: makefile.arm.gcc.linker
+            option: misc
+            action: append
+            value: "-flto"
+          - tool: makefile.arm.llvm.compiler.c
+            option: misc
+            action: append
+            value: "-flto -fwhole-program-vtables"
+          - tool: makefile.arm.llvm.compiler.cpp
+            option: misc
+            action: append
+            value: "-flto -fwhole-program-vtables"
+          - tool: makefile.arm.llvm.linker
+            option: misc
+            action: append
+            value: "-flto -fwhole-program-vtables"
+          - tool: com.silabs.ide.si32.gcc.cdt.managedbuild.tool.gnu.c.compiler.base
+            option: com.silabs.gnu.c.compiler.option.misc.otherlist
+            action: append
+            value: "-flto=auto -fwhole-program"
+          - tool: com.silabs.ide.si32.gcc.cdt.managedbuild.tool.gnu.cpp.compiler.base
+            option: com.silabs.gnu.cpp.compiler.option.misc.otherlist
+            action: append
+            value: "-flto=auto -fwhole-program"
+          - tool: com.silabs.ide.si32.gcc.cdt.managedbuild.tool.gnu.cpp.linker.base
+            option: com.silabs.gnu.cpp.link.option.flags
+            action: append
+            value: "-flto"
+          - tool: com.silabs.ide.si32.gcc.cdt.managedbuild.tool.gnu.c.linker.base
+            option: com.silabs.gnu.c.link.option.ldflags
+            action: append
+            value: "-flto"
+        disabled:
+          - tool: makefile.arm.gcc.compiler
+            option: misc
+            action: append
+            value: "-fno-lto"
+          - tool: makefile.arm.gcc.linker
+            option: misc
+            action: append
+            value: "-fno-lto"
+          - tool: com.silabs.ide.si32.gcc.cdt.managedbuild.tool.gnu.c.compiler.base
+            option: com.silabs.gnu.c.compiler.option.misc.otherlist
+            action: append
+            value: "-fno-lto"
+          - tool: com.silabs.ide.si32.gcc.cdt.managedbuild.tool.gnu.cpp.compiler.base
+            option: com.silabs.gnu.cpp.compiler.option.misc.otherlist
+            action: append
+            value: "-fno-lto"
+          - tool: com.silabs.ide.si32.gcc.cdt.managedbuild.tool.gnu.cpp.linker.base
+            option: com.silabs.gnu.cpp.link.option.flags
+            action: append
+            value: "-fno-lto"
+          - tool: com.silabs.ide.si32.gcc.cdt.managedbuild.tool.gnu.c.linker.base
+            option: com.silabs.gnu.c.link.option.ldflags
+            action: append
+            value: "-fno-lto"
+      compiler_option:
+        - tool: compiler
+          option: misc
+          action: append
+          value: "{{value}}"
+      c_compiler_option:
+        - tool: compiler.c
+          option: misc
+          action: append
+          value: "{{value}}"
+      c++_compiler_option:
+        - tool: compiler.cpp
+          option: misc
+          action: append
+          value: "{{value}}"
+      linker_option:
+        - tool: linker
+          option: misc
+          action: append
+          value: "{{value}}"

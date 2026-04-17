@@ -1,0 +1,24 @@
+id: mbedtls_oid
+package: security_mbedtls
+quality: production
+label: OID
+description: >-
+  This component enables the Object Identifier (OID) database in Mbed TLS.
+category: Platform|Security|Mbed TLS|Utilities
+# Most likely not helpful as a standalone component.
+ui_hints:
+  visibility: never
+
+provides:
+- name: mbedtls_oid
+
+requires:
+- name: mbedtls_core
+
+template_contribution:
+- name: mbedtls_config
+  value: MBEDTLS_OID_C
+metadata:
+  sbom:
+    reference: mbedtls_sbom
+root_path: security_mbedtls

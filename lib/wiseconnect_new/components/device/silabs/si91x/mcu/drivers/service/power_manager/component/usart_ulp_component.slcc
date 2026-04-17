@@ -1,0 +1,30 @@
+id: usart_ulp_component
+label: PM ULP UART
+package: platform_siwx91x
+description: >
+  ULP UART component will enable  USART in the low-power mode. It moves all the peripheral dependencies to RAM. 
+  It also installs the peripheral component if already not installed.
+category: Device|Si91x|MCU|Service|Power Manager|ULP Peripheral
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+requires:
+  - name: sl_ulp_uart
+  - name: cmsis_usart
+
+provides:
+  - name: usart_ulp_component
+
+template_contribution:
+  - name: power_manager_ps2
+    value: 1
+    condition:
+      - pm_ps2_component  
+  - name: usart_ps2
+    value: sl_si91x_usart.*
+  - name: usart_ps2
+    value: rsi_udma.*
+  - name: usart_ps2
+    value: rsi_udma_wrapper.*
+

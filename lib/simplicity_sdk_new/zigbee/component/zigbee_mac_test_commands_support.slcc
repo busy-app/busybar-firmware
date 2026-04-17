@@ -1,0 +1,67 @@
+id: zigbee_mac_test_commands_support
+label: MAC Test Commands Support
+package: zigbee
+category: Zigbee|Stack
+quality: evaluation
+ui_hints:
+  visibility: never
+description: Enable MAC test cli commands needed for MAC certification in zigbee_pro_compliance application. Currently zigbee_pro_compliance app is internal app hence this component marked as internal.
+
+provides:
+- name: zigbee_mac_test_commands_support
+
+requires:
+- name: zigbee_pro_stack_mac_test_cmds
+- name: zigbee_r22_support_mac_test_cmds
+
+define:
+- name: MAC_TEST_COMMANDS_SUPPORT
+
+source:
+- path: app/test/mac-test-commands.c
+- path: stack/internal/src/baremetal/sl_zigbee_mac_app_events_baremetal_callbacks.c
+  unless:
+  - zigbee_use_ipc
+- path: stack/internal/src/ipc/sl_zigbee_mac_app_events_ipc_callback_events.c
+  condition:
+  - zigbee_use_ipc
+
+
+- path: stack/internal/src/ipc/zigbee_ipc_callback_event_stub.c
+  condition:
+  - zigbee_use_ipc
+- path: stack/internal/src/ipc/zigbee_ipc_callback_events.c
+  condition:
+  - zigbee_use_ipc
+include:
+  #for an include on stack/framework/packet-header.h
+- path: stack
+- path: stack/mac
+  file_list:
+  - path: sl_zigbee_mac_app_events.h
+- path: stack/internal/inc/
+  file_list:
+  - path: sl_zigbee_mac_app_events_internal_def.h
+- path: stack/internal/src/ipc/
+  file_list:
+  - path: sl_zigbee_mac_app_events_ipc_callback_events.h
+    condition:
+    - zigbee_use_ipc
+
+- path: stack/internal/src/ipc
+  file_list:
+  - path: zigbee_ipc_callback_events.h
+  - path: zigbee_ipc_command_messages.h
+  condition:
+  - zigbee_use_ipc
+template_contribution:
+- name: component_catalog
+  value: zigbee_mac_test_commands_support
+
+documentation:
+  docset: zigbee
+  document: zigbee-af-api/mac-test-commands-support
+metadata:
+  sbom:
+    license: MSLA
+root_path: zigbee

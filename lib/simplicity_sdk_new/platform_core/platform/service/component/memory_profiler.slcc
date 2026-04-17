@@ -1,0 +1,30 @@
+id: memory_profiler
+label: Memory Profiler
+package: platform_core
+description: >
+  Silicon Labs internal utility for memory usage profiling. Use this component
+  to record a Memory Profiler trace if instructed by Silicon Labs.
+category: Services|Memory Manager
+quality: evaluation
+metadata:
+  sbom:
+    license: Zlib
+root_path: platform_core/platform/service/memory_manager/profiler
+config_file:
+- path: config/sli_memory_profiler_config.h
+source:
+- path: src/sli_memory_profiler.c
+provides:
+- name: memory_profiler
+requires:
+- name: memory_manager
+- name: segger_rtt
+- name: memory_profiler_api
+template_contribution:
+- name: component_catalog
+  value: memory_profiler
+- name: event_handler
+  value:
+    event: service_init
+    include: sli_memory_profiler.h
+    handler: sli_memory_profiler_init

@@ -1,0 +1,43 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__evt__pawr__sync__subevent__report" kind="group">
+    <compoundname>sl_bt_evt_pawr_sync_subevent_report</compoundname>
+    <title>sl_bt_evt_pawr_sync_subevent_report</title>
+    <innerclass refid="structsl__bt__evt__pawr__sync__subevent__report__s" prot="public">sl_bt_evt_pawr_sync_subevent_report_s</innerclass>
+      <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="group__sl__bt__evt__pawr__sync__subevent__report_1ga6471577292ef06cd4fb81f0a6c482f5d" prot="public" static="no">
+        <type>struct <ref refid="structsl__bt__evt__pawr__sync__subevent__report__s" kindref="compound">sl_bt_evt_pawr_sync_subevent_report_s</ref></type>
+        <definition>typedef struct sl_bt_evt_pawr_sync_subevent_report_s sl_bt_evt_pawr_sync_subevent_report_t</definition>
+        <argsstring></argsstring>
+        <name>sl_bt_evt_pawr_sync_subevent_report_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="5698" column="52" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="5698" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__evt__pawr__sync__subevent__report_1ga6ee06fdb1be6495e21962c31f6beeceb" prot="public" static="no">
+        <name>sl_bt_evt_pawr_sync_subevent_report_id</name>
+        <initializer>0x025400a0</initializer>
+        <briefdescription>
+<para>Identifier of the subevent_report event. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="5641" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="5641" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Reports that the device&apos;s radio has received a periodic advertisement in a subevent of an active PAwR train. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>This event reports also empty advertisements, i.e., advertisements that contained no payload data. In this case the <computeroutput>data</computeroutput> parameter has zero length. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

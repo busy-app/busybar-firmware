@@ -1,0 +1,78 @@
+id: sl_rail_util_protocol
+label: RAIL Utility, Protocol (RAIL 3)
+description: Utility to aid with Protocol-Specific Configurations
+package: rail_library
+category: Platform|Radio
+quality: production
+metadata:
+  sbom:
+    id: sl_rail_util_protocol
+    name: RAIL Utility, Protocol (RAIL 3)
+    license: Zlib
+documentation:
+  docset: rail
+  document: rail-api/rail-util-protocol
+provides:
+- name: sl_rail_util_protocol
+- name: rail_util_protocol
+requires:
+- name: rail_lib
+- name: component_catalog
+config_file:
+- path: plugin/sl_rail_util_protocol/config/efr32xg21/sl_rail_util_protocol_config.h
+  condition:
+  - device_series_2
+  - device_sdid_200
+- path: plugin/sl_rail_util_protocol/config/efr32xg22/sl_rail_util_protocol_config.h
+  condition:
+  - device_series_2
+  - device_sdid_205
+- path: plugin/sl_rail_util_protocol/config/efr32xg23/sl_rail_util_protocol_config.h
+  condition:
+  - device_series_2
+  - device_sdid_210
+- path: plugin/sl_rail_util_protocol/config/efr32xg24/sl_rail_util_protocol_config.h
+  condition:
+  - device_series_2
+  - device_sdid_215
+- path: plugin/sl_rail_util_protocol/config/efr32xg25/sl_rail_util_protocol_config.h
+  condition:
+  - device_series_2
+  - device_sdid_220
+- path: plugin/sl_rail_util_protocol/config/efr32xg26/sl_rail_util_protocol_config.h
+  condition:
+  - device_series_2
+  - device_sdid_225
+- path: plugin/sl_rail_util_protocol/config/efr32xg27/sl_rail_util_protocol_config.h
+  condition:
+  - device_series_2
+  - device_sdid_230
+- path: plugin/sl_rail_util_protocol/config/efr32xg28/sl_rail_util_protocol_config.h
+  condition:
+  - device_series_2
+  - device_sdid_235
+- path: plugin/sl_rail_util_protocol/config/efr32xg29/sl_rail_util_protocol_config.h
+  condition:
+  - device_series_2
+  - device_sdid_240
+- path: plugin/sl_rail_util_protocol/config/efr32xg2d/sl_rail_util_protocol_config.h
+  condition:
+  - device_series_2
+  - device_sdid_260
+- path: plugin/sl_rail_util_protocol/config/sixg301/sl_rail_util_protocol_config.h
+  condition:
+  - device_series_3
+  - device_generic_family_sixx301
+include:
+- path: plugin/sl_rail_util_protocol
+  file_list:
+  - path: sl_rail_util_protocol.h
+  - path: sl_rail_util_protocol_types.h
+source:
+- path: plugin/sl_rail_util_protocol/sl_rail_util_protocol.c
+template_contribution:
+- name: component_catalog
+  value: sl_rail_util_protocol
+- name: component_catalog
+  value: rail_util_protocol
+root_path: rail_library

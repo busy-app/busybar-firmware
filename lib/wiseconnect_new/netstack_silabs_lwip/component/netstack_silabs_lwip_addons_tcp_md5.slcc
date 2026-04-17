@@ -1,0 +1,34 @@
+id: netstack_silabs_lwip_addons_tcp_md5
+label: "TCP MD5"
+package: netstack_silabs_lwip
+description: >
+  The TCP md5 component can be used for adding custom TCP header options and custom socket options.
+  It does this by implementing the (seldom used) tcp md5 signature, sockets application, enable md5 signature
+  on a socket after that, your connection (client) or all incoming connections (server) require tcp md5 signatures.
+  The md5sum is designed to verify data integrity using MD5 (Message Digest Algorithm 5), The TCP MD5 option
+  allows BGP to protect itself against the introduction of spoofed TCP segments into the connection stream.
+  To spoof a connection using MD5 signed sessions, the attacker not only has to guess TCP sequence numbers,
+  but also the password included in the MD5 digest.
+category: Network Stack|LwIP|Addons
+quality: production
+provides:
+- name: netstack_silabs_lwip_addons_tcp_md5
+requires:
+- name: netstack_silabs_lwip_core
+source:
+- path: lwip/contrib/addons/tcp_md5/tcp_md5.c
+include:
+- path: lwip/contrib/addons/tcp_md5
+  file_list:
+  - path: tcp_md5.h
+metadata:
+  sbom:
+    license: BSD-3-Clause
+    upstream:
+      name: lwip
+      version: 2.2.1
+      supplier: lwIP Developers
+      url: https://savannah.nongnu.org/projects/lwip/
+      package_url: https://github.com/lwip-tcpip/lwip/
+      comment: lwIP is a small independent implementation of the TCP/IP protocol suite.
+root_path: netstack_silabs_lwip/

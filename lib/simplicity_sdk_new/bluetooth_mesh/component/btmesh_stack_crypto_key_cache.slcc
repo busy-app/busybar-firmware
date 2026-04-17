@@ -1,0 +1,26 @@
+id: "btmesh_stack_crypto_key_cache"
+label: "RAM cache for cryptographic keys"
+package: bluetooth_mesh
+description: "Provides an internal RAM cache to speed up cryptographic key access for application keys and device keys on Series 2 devices. The key cache cannot be used in TrustZone applications."
+category: "Bluetooth Mesh|Stack"
+quality: "production"
+provides:
+- name: "btmesh_stack_crypto_key_cache"
+requires:
+- name: "btmesh_stack_crypto_key_cache_libraries"
+recommends:
+- id: "btmesh_stack_crypto_key_cache_libraries_release"
+  condition:
+  - "btmesh_stack_libraries_release"
+  vendor: silabs
+- id: "btmesh_stack_crypto_key_cache_libraries_debug"
+  condition:
+  - "btmesh_stack_libraries_debug"
+  vendor: silabs
+metadata:
+  sbom:
+    reference: btmesh_stack
+
+ui_hints:
+  visibility: never
+root_path: bluetooth_mesh

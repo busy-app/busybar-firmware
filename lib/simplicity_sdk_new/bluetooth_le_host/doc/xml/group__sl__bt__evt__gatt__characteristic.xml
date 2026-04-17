@@ -1,0 +1,43 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__evt__gatt__characteristic" kind="group">
+    <compoundname>sl_bt_evt_gatt_characteristic</compoundname>
+    <title>sl_bt_evt_gatt_characteristic</title>
+    <innerclass refid="structsl__bt__evt__gatt__characteristic__s" prot="public">sl_bt_evt_gatt_characteristic_s</innerclass>
+      <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="group__sl__bt__evt__gatt__characteristic_1ga312c88acb476d0af7348bc57947edfdb" prot="public" static="no">
+        <type>struct <ref refid="structsl__bt__evt__gatt__characteristic__s" kindref="compound">sl_bt_evt_gatt_characteristic_s</ref></type>
+        <definition>typedef struct sl_bt_evt_gatt_characteristic_s sl_bt_evt_gatt_characteristic_t</definition>
+        <argsstring></argsstring>
+        <name>sl_bt_evt_gatt_characteristic_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="8228" column="46" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="8228" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__evt__gatt__characteristic_1ga15a9f7d6e63b67d5b0cdda6f9550fc2e" prot="public" static="no">
+        <name>sl_bt_evt_gatt_characteristic_id</name>
+        <initializer>0x020900a0</initializer>
+        <briefdescription>
+<para>Identifier of the characteristic event. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="8215" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="8215" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Indicates that a GATT characteristic in the remote GATT database was discovered. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>This event is generated after issuing either the <ref refid="group__sl__bt__gatt_1ga46982679201ab309b2081775f1804ec5" kindref="member">sl_bt_gatt_discover_characteristics</ref> or <ref refid="group__sl__bt__gatt_1gae648cf008d821f5d469eb9e40176183c" kindref="member">sl_bt_gatt_discover_characteristics_by_uuid</ref> command. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

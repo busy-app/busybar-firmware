@@ -1,0 +1,38 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__extended__advertiser__flags" kind="group">
+    <compoundname>sl_bt_extended_advertiser_flags</compoundname>
+    <title>Extended Advertising Configuration Flags</title>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__extended__advertiser__flags_1ga2789da1f4e733455f6c32332c56e70f0" prot="public" static="no">
+        <name>SL_BT_EXTENDED_ADVERTISER_ANONYMOUS_ADVERTISING</name>
+        <initializer>0x1</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Omit advertiser&apos;s address from all PDUs (anonymous advertising). The advertising cannot be connectable or scannable if this flag is set. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="3047" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="3047" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__extended__advertiser__flags_1ga51327cff1ba61f5fbb89a34e411133b9" prot="public" static="no">
+        <name>SL_BT_EXTENDED_ADVERTISER_INCLUDE_TX_POWER</name>
+        <initializer>0x2</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Include the TX power in advertising packets. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="3050" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="3050" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para>This enum defines configuration flags for the extended advertising. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

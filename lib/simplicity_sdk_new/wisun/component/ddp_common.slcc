@@ -1,0 +1,27 @@
+id: ddp_common
+label: Common framework for DDP
+description: |
+  This component provides the generic framework for processing
+  Dynamic Data Provisioning (DDP) commands.
+package: wisun
+category: Wi-SUN
+quality: evaluation
+metadata:
+  sbom:
+    license: MSLA
+ui_hints:
+  visibility: never
+root_path: wisun/./ddp
+provides:
+- name: ddp_common
+requires:
+- name: sl_common
+include:
+- path: inc
+  file_list:
+  - path: sl_ddp_common.h
+  - path: sl_ddp_types.h
+source:
+- path: src/sl_ddp_common.c
+template_file:
+- path: template/sl_ddp_command_table.c.jinja

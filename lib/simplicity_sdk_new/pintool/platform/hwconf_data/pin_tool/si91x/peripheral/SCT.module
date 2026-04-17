@@ -1,0 +1,30 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<module:DocumentRoot xmlns:module="http://www.silabs.com/ss/hwconfig/module.ecore">
+  <module id="pin_tool.wfm.si91x.sct" label="SCT" name="SCT" description="" version="A">
+    <properties>
+      <stringProperty label="Type" id="type" defaultValue="sct" transient="true" hidden="true" readonly="true" description=""/>
+      <stringProperty label="Custom Peripheral Name" id="peripheral.name" description=""/>
+    </properties>
+    <propertyCategories>
+      <category label="SCT">
+        <subCategory label="">
+          <propertyRef refId="peripheral.name"/>
+        </subCategory>
+      </category>
+    </propertyCategories>
+    <signals>
+      <signal name="IN0"/>
+      <signal name="IN1"/>
+      <signal name="IN2"/>
+      <signal name="IN3"/>
+      <signal name="OUT0"/>
+      <signal name="OUT1"/>
+      <signal name="OUT2"/>
+      <signal name="OUT3"/>
+      <signal name="OUT4"/>
+      <signal name="OUT5"/>
+      <signal name="OUT6"/>
+      <signal name="OUT7"/>
+    </signals>
+  </module>
+</module:DocumentRoot>

@@ -1,0 +1,26 @@
+!!omap
+- id: xg26_pk6029a
+- label: XG26-PK6029A
+- package: boards
+- description: Kit BSP support for the xG26 2.4 GHz 20 dBm Pro Kit.
+- category: Platform|Board|Kit|Pro Kit
+- quality: production
+- metadata:
+    sbom:
+      license: Zlib
+- requires:
+  - name: hardware_board_from_xg26-pk6029a
+- provides:
+  - name: hardware_kit
+  - name: hardware_kit_pk
+- define:
+  - name: SL_KIT_NAME
+    value: '"XG26-PK6029A"'
+  - name: SL_KIT_REV
+    value: '"A00"'
+- tag:
+  - kit:opn:xG26-PK6029A
+  - kit:pn:PK6029
+  - kit:variant:A
+  - kit:revision:A00
+- root_path: boards

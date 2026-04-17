@@ -1,0 +1,553 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__gap" kind="group">
+    <compoundname>sl_bt_gap</compoundname>
+    <title>GAP</title>
+      <sectiondef kind="enum">
+      <memberdef kind="enum" id="group__sl__bt__gap_1gac8d5431d3062e47c5d51b9fb9f36c104" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_bt_gap_address_type_t</name>
+        <enumvalue id="group__sl__bt__gap_1ggac8d5431d3062e47c5d51b9fb9f36c104a9bd23a182f82727d767972fa82a41295" prot="public">
+          <name>sl_bt_gap_public_address</name>
+          <initializer>= 0x0</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x0) Public device address </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__gap_1ggac8d5431d3062e47c5d51b9fb9f36c104a0906c9f6e28dd0d93b011d7509c3d70c" prot="public">
+          <name>sl_bt_gap_static_address</name>
+          <initializer>= 0x1</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x1) Static device address </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__gap_1ggac8d5431d3062e47c5d51b9fb9f36c104a3a0443252343b32692fe328d1d57d373" prot="public">
+          <name>sl_bt_gap_random_resolvable_address</name>
+          <initializer>= 0x2</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x2) Resolvable private random address </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__gap_1ggac8d5431d3062e47c5d51b9fb9f36c104a5f62ca6ef98136610de468f3e2e8ddf1" prot="public">
+          <name>sl_bt_gap_random_nonresolvable_address</name>
+          <initializer>= 0x3</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x3) Non-resolvable private random address </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__gap_1ggac8d5431d3062e47c5d51b9fb9f36c104ae6fc3496d03a6b45ab4d78649dd9703b" prot="public">
+          <name>sl_bt_gap_public_address_resolved_from_rpa</name>
+          <initializer>= 0x4</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x4) Public identity address resolved from a resolvable private address (RPA) </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__gap_1ggac8d5431d3062e47c5d51b9fb9f36c104ab2c2c574d7b476b19eaa1be12b069038" prot="public">
+          <name>sl_bt_gap_static_address_resolved_from_rpa</name>
+          <initializer>= 0x5</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x5) Static identity address resolved from a resolvable private address (RPA) </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__gap_1ggac8d5431d3062e47c5d51b9fb9f36c104a8a317b2563feb135dd3444a0d9dca37a" prot="public">
+          <name>sl_bt_gap_anonymous_address</name>
+          <initializer>= 0xff</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0xff) No address provided (anonymous advertising) </para>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>These values define Bluetooth device address types. Commands and events that have Bluetooth device address parameters will specify which values are valid for that particular command or event. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>If the application does not include the bluetooth_feature_use_accurate_api_address_types component, most Bluetooth commands and events use a coarse address type that only differentiates between a public address and any random address. When the application includes the bluetooth_feature_use_accurate_api_address_types component, Bluetooth commands and events that include an address type will systematically use values of this <ref refid="group__sl__bt__gap_1gac8d5431d3062e47c5d51b9fb9f36c104" kindref="member">sl_bt_gap_address_type_t</ref> enumeration to indicate the accurate address type.</para>
+<para>The values <ref refid="group__sl__bt__gap_1ggac8d5431d3062e47c5d51b9fb9f36c104ae6fc3496d03a6b45ab4d78649dd9703b" kindref="member">sl_bt_gap_public_address_resolved_from_rpa</ref> and <ref refid="group__sl__bt__gap_1ggac8d5431d3062e47c5d51b9fb9f36c104ab2c2c574d7b476b19eaa1be12b069038" kindref="member">sl_bt_gap_static_address_resolved_from_rpa</ref> are reported by the Bluetooth stack only when the application includes the bluetooth_feature_resolving_list component and the address was resolved in the Bluetooth controller. If the application uses these two types in input parameters, they are treated as synonyms of <ref refid="group__sl__bt__gap_1ggac8d5431d3062e47c5d51b9fb9f36c104a9bd23a182f82727d767972fa82a41295" kindref="member">sl_bt_gap_public_address</ref> and <ref refid="group__sl__bt__gap_1ggac8d5431d3062e47c5d51b9fb9f36c104a0906c9f6e28dd0d93b011d7509c3d70c" kindref="member">sl_bt_gap_static_address</ref>, respectively. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="2050" column="1" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="2051" bodyend="2071"/>
+      </memberdef>
+      <memberdef kind="enum" id="group__sl__bt__gap_1ga05ce4496a6f87de7c67a9e32d816727c" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_bt_gap_phy_t</name>
+        <enumvalue id="group__sl__bt__gap_1gga05ce4496a6f87de7c67a9e32d816727ca3ae0bf1d99d33066af4b6eea4b55414e" prot="public">
+          <name>sl_bt_gap_phy_1m</name>
+          <initializer>= 0x1</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x1) 1M PHY </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__gap_1gga05ce4496a6f87de7c67a9e32d816727ca3f768e221018e837d768d737d7f8a4f3" prot="public">
+          <name>sl_bt_gap_phy_2m</name>
+          <initializer>= 0x2</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x2) 2M PHY </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__gap_1gga05ce4496a6f87de7c67a9e32d816727ca5233c0e14a2181f8094b987885086f41" prot="public">
+          <name>sl_bt_gap_phy_coded</name>
+          <initializer>= 0x4</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x4) Coded PHY, 125k (S=8) or 500k (S=2) </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__gap_1gga05ce4496a6f87de7c67a9e32d816727ca1d0f75e090da3301ebceff78be1b5a93" prot="public">
+          <name>sl_bt_gap_phy_any</name>
+          <initializer>= 0xff</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0xff) Any PHYs the device supports </para>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>Types of PHYs. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="2076" column="1" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="2077" bodyend="2082"/>
+      </memberdef>
+      <memberdef kind="enum" id="group__sl__bt__gap_1ga1644548686ce4cbe4ff0c55b5760c24d" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_bt_gap_phy_coding_t</name>
+        <enumvalue id="group__sl__bt__gap_1gga1644548686ce4cbe4ff0c55b5760c24dae29d662e113af1b0a63041a9de3c2651" prot="public">
+          <name>sl_bt_gap_phy_coding_1m_uncoded</name>
+          <initializer>= 0x1</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x1) 1M PHY </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__gap_1gga1644548686ce4cbe4ff0c55b5760c24dae7d4e59097ab83b49c64b46fb697388e" prot="public">
+          <name>sl_bt_gap_phy_coding_2m_uncoded</name>
+          <initializer>= 0x2</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x2) 2M PHY </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__gap_1gga1644548686ce4cbe4ff0c55b5760c24da86c3cfbf6d599452028c6cbed70567c8" prot="public">
+          <name>sl_bt_gap_phy_coding_125k_coded</name>
+          <initializer>= 0x4</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x4) 125k Coded PHY (S=8) </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__gap_1gga1644548686ce4cbe4ff0c55b5760c24dae5d379696bb79b9731422885489c5a15" prot="public">
+          <name>sl_bt_gap_phy_coding_500k_coded</name>
+          <initializer>= 0x8</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x8) 500k Coded PHY (S=2) </para>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>PHY types with coding schemes. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="2087" column="1" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="2088" bodyend="2093"/>
+      </memberdef>
+      <memberdef kind="enum" id="group__sl__bt__gap_1gac8f8f7951d8100e1e969cdf90127a086" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_bt_gap_channel_selection_algorithm_t</name>
+        <enumvalue id="group__sl__bt__gap_1ggac8f8f7951d8100e1e969cdf90127a086a207c4b705ad3016dc17edb2d38fa9863" prot="public">
+          <name>sl_bt_gap_channel_selection_algorithm_1</name>
+          <initializer>= 0x0</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x0) Channel selection algorithm #1 </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__gap_1ggac8f8f7951d8100e1e969cdf90127a086aa37ef47df0d5c53d0c73ed0f50ec95ec" prot="public">
+          <name>sl_bt_gap_channel_selection_algorithm_2</name>
+          <initializer>= 0x1</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x1) Channel selection algorithm #2 </para>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>Types of channel selection algorithms in Link Layer. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="2098" column="1" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="2099" bodyend="2104"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="group__sl__bt__gap_1gab8d65fb681a00f260f8b8c49a09ab1d5" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_gap_set_privacy_mode</definition>
+        <argsstring>(uint8_t privacy, uint8_t interval)</argsstring>
+        <name>sl_bt_gap_set_privacy_mode</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>privacy</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>interval</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Enable or disable the privacy feature on all GAP roles. New privacy mode will take effect for advertising next time advertising is enabled, for scanning next time scanning is enabled, and for initiating on the next open connection command.</para>
+<para>When privacy is enabled and the device is advertising or scanning, the stack will maintain a periodic timer with the specified time interval as a timeout value. At each timeout, the stack generates a new resolvable private address and uses it in scanning requests. For advertisers, the stack generates a new resolvable or non-resolvable private address and uses it in advertising data packets for each advertising set if its address is not application-managed, i.e., the address was not set by the application (with the <ref refid="group__sl__bt__advertiser_1gab7f12454d8502bce94240325a0eec4d4" kindref="member">sl_bt_advertiser_set_random_address</ref> command). The application is fully responsible for application-managed advertiser addresses. For an application-managed resolvable private address, the application should schedule periodic address updates for enhancing the privacy. It is recommended to use different schedules for different advertising sets.</para>
+<para>Disabling the privacy during active advertising or scanning is not allowed.</para>
+<para>By default, privacy feature is disabled.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">privacy</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Values:<itemizedlist>
+<listitem><para><bold>0:</bold> Disable privacy</para>
+</listitem><listitem><para><bold>1:</bold> Enable privacy </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">interval</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The minimum time interval between a private address change. This parameter is ignored if this command is issued to disable privacy mode. Values:<itemizedlist>
+<listitem><para><bold>0:</bold> Use default interval, 15 minutes</para>
+</listitem><listitem><para><bold>others:</bold> The time interval in minutes</para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="2142" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="2142" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__gap_1gae1ee4d45283563a12394f5261e45f952" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_gap_set_data_channel_classification</definition>
+        <argsstring>(size_t channel_map_len, const uint8_t *channel_map)</argsstring>
+        <name>sl_bt_gap_set_data_channel_classification</name>
+        <param>
+          <type>size_t</type>
+          <declname>channel_map_len</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>channel_map</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Specify a channel classification for data channels. This classification persists until overwritten with a subsequent command or until the system is reset. The value length of <computeroutput>channel_map</computeroutput> must be 5 bytes.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">channel_map_len</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Length of data in <computeroutput>channel_map</computeroutput> </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">channel_map</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>5 byte bit field in little endian format. Only the first 37 bits are used. Bit 0 of the first byte is channel 0, bit 0 of the second byte is channel 8, etc. Bits 37-39 are reserved for future use and must be set to 0.</para>
+<para>A channel is bad when its bit is 0. A channel is unknown when its bit is 1. At least two channels shall be marked as unknown. </para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+<para><simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="2163" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="2163" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__gap_1ga654072e39147679ac71c8f32935eeaf9" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_gap_set_identity_address</definition>
+        <argsstring>(bd_addr address, uint8_t addr_type)</argsstring>
+        <name>sl_bt_gap_set_identity_address</name>
+        <param>
+          <type><ref refid="structbd__addr" kindref="compound">bd_addr</ref></type>
+          <declname>address</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>addr_type</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Set the device&apos;s Bluetooth identity address to be used in advertising, scanning, connection initiation, and identity address exchange in bonding. The address is stored in RAM only and does not change the identity address in persistent storage. The address can be a public device address or static device address. It will be effective immediately in the next advertising, scanning, connection initiation, and bonding. Error SL_STATUS_INVALID_PARAMETER is returned if the address does not conform to the Bluetooth specification.</para>
+<para>Note that advertising sets that have own addresses set by <ref refid="group__sl__bt__advertiser_1gab7f12454d8502bce94240325a0eec4d4" kindref="member">sl_bt_advertiser_set_random_address</ref> are not affected by this command, i.e., they will continue to use their own user defined addresses.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">address</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The address in little endian format </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">addr_type</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Enum <ref refid="group__sl__bt__gap_1gac8d5431d3062e47c5d51b9fb9f36c104" kindref="member">sl_bt_gap_address_type_t</ref>. The address type. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_gap_public_address (0x0):</bold> Public device address</para>
+</listitem><listitem><para><bold>sl_bt_gap_static_address (0x1):</bold> Static device address</para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="2190" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="2190" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__gap_1gaead984805fa3c7145da2c63354f98697" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_gap_get_identity_address</definition>
+        <argsstring>(bd_addr *address, uint8_t *type)</argsstring>
+        <name>sl_bt_gap_get_identity_address</name>
+        <param>
+          <type><ref refid="structbd__addr" kindref="compound">bd_addr</ref> *</type>
+          <declname>address</declname>
+        </param>
+        <param>
+          <type>uint8_t *</type>
+          <declname>type</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Get the Bluetooth identity address used by the device, which can be a public or random static device address.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="out">address</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Bluetooth identity address in little endian format </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">type</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Enum <ref refid="group__sl__bt__gap_1gac8d5431d3062e47c5d51b9fb9f36c104" kindref="member">sl_bt_gap_address_type_t</ref>. Identity address type. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_gap_public_address (0x0):</bold> Public device address</para>
+</listitem><listitem><para><bold>sl_bt_gap_static_address (0x1):</bold> Static device address</para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="2206" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="2206" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__gap_1gac87c0807d9ae80830b80409930d71a78" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_gap_get_max_connections</definition>
+        <argsstring>(uint8_t *num_connections)</argsstring>
+        <name>sl_bt_gap_get_max_connections</name>
+        <param>
+          <type>uint8_t *</type>
+          <declname>num_connections</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Get the maximum number of concurrent connections supported by the device.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="out">num_connections</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The maximum number of concurrent connections supported by the device.</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="2218" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="2218" declcolumn="13"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__gap_1gafe44c545af0f70ba8733013cd3d8e832" prot="public" static="no">
+        <name>sl_bt_cmd_gap_set_privacy_mode_id</name>
+        <initializer>0x01020020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="2017" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="2017" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gap_1gaaf8e401ac4e5ba0b8b3469d10fc17de0" prot="public" static="no">
+        <name>sl_bt_cmd_gap_set_data_channel_classification_id</name>
+        <initializer>0x02020020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="2018" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="2018" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gap_1ga266dd784ad902fa2faf499e0084aefb5" prot="public" static="no">
+        <name>sl_bt_cmd_gap_set_identity_address_id</name>
+        <initializer>0x04020020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="2019" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="2019" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gap_1gaa1fa023adee48b1dc9244343bcaa5a9b" prot="public" static="no">
+        <name>sl_bt_cmd_gap_get_identity_address_id</name>
+        <initializer>0x05020020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="2020" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="2020" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gap_1ga889b2e4c2f3f01588ab1b9e78aedea1b" prot="public" static="no">
+        <name>sl_bt_cmd_gap_get_max_connections_id</name>
+        <initializer>0x06020020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="2021" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="2021" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gap_1gad5ef0c0b5b41e18d5be735adaff92645" prot="public" static="no">
+        <name>sl_bt_rsp_gap_set_privacy_mode_id</name>
+        <initializer>0x01020020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="2022" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="2022" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gap_1ga632932216159bdf43f1b0f1f7be7d85f" prot="public" static="no">
+        <name>sl_bt_rsp_gap_set_data_channel_classification_id</name>
+        <initializer>0x02020020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="2023" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="2023" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gap_1gafa28b857ba33de526244d62e848aaa05" prot="public" static="no">
+        <name>sl_bt_rsp_gap_set_identity_address_id</name>
+        <initializer>0x04020020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="2024" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="2024" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gap_1ga3083559198beefa63e85619237408067" prot="public" static="no">
+        <name>sl_bt_rsp_gap_get_identity_address_id</name>
+        <initializer>0x05020020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="2025" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="2025" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gap_1ga8c628928e08687d5f66725a5852774b2" prot="public" static="no">
+        <name>sl_bt_rsp_gap_get_max_connections_id</name>
+        <initializer>0x06020020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="2026" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="2026" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>GAP. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>The commands and events in this class are related to the Generic Access Profile (GAP) in Bluetooth. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

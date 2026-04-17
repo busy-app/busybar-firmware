@@ -1,0 +1,34 @@
+id: clock_manager_init_hal_s3
+label: Clock Manager Init HAL Series 3
+package: platform_core
+description: >
+  Series 3 HAL for Clock Manager Initialization part
+category: Services|Clock Manager
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+ui_hints:
+  visibility: never
+provides:
+- name: clock_manager_init_hal
+  condition: [device_generic_family_sixx301]
+- name: clock_manager_init_hal_s3
+requires:
+- name: device_series_3
+- name: status
+- name: sl_assert
+- name: sl_core
+- name: hal_syscfg
+- name: hal_system
+- name: se_manager
+- name: gpio
+- name: common_token_manager_static
+recommends:
+- id: common_token_manager_static_bootloader
+  condition: [btl_core]
+  vendor: silabs
+root_path: platform_core/platform/service/clock_manager
+source:
+- path: src/sl_clock_manager_init_hal_s3.c
+  condition: [device_series_3]

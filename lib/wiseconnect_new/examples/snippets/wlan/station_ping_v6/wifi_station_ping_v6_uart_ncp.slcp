@@ -1,0 +1,64 @@
+project_name: wifi_station_ping_v6_uart_ncp
+package: wifi_app
+quality: production
+label: Wi-Fi - STATION PING V6 (UART NCP)
+category: Example|Wi-Fi
+description: Demonstrates how to send an ICMPv6 ping request
+filter:
+- name: Wireless Technology
+  value:
+  - Wi-Fi
+- name: Project Difficulty
+  value:
+  - Beginner
+source:
+- path: app.c
+include:
+- path: .
+  file_list:
+  - path: app.h
+define:
+- name: SL_SI91X_PRINT_DBG_LOG
+- name: SLI_SI91X_ENABLE_IPV6
+component:
+- id: sl_main
+- id: freertos
+- id: freertos_heap_4
+- id: device_init
+- id: iostream_retarget_stdio
+- id: iostream_rtt
+- id: iostream_stdlib_config
+- id: sl_si91x_uart_bus
+- id: uartdrv_usart
+  instance:
+  - exp
+- id: sl_si91x_basic_buffers
+- id: wiseconnect_common
+- id: wifi
+- id: sl_si91x_internal_stack
+- id: wifi_resources
+- id: network_manager
+- id: basic_network_config_manager
+toolchain_settings:
+- option: gcc_compiler_option
+  value: -Wall -Werror
+configuration:
+- name: SL_BOARD_ENABLE_VCOM
+  value: '1'
+readme:
+- path: readme.md
+other_file:
+- path: resources/readme/station_ping_output.png
+- path: resources/readme/stationpingsetupsoc_ncp.png
+ui_hints:
+  highlight:
+  - path: readme.md
+    focus: true
+sdk_extension:
+- id: wiseconnect3_sdk
+  vendor: silabs
+  version: 4.0.1
+sdk:
+  id: simplicity_sdk
+  vendor: silabs
+  version: 2025.12.2

@@ -1,0 +1,90 @@
+id: zigbee_source_route
+label: Source route
+package: zigbee
+category: Zigbee|Stack
+quality: production
+description: Provides support for Source Route table maintenance and update functionality.
+
+provides:
+- name: zigbee_source_route
+
+requires:
+- name: zigbee_source_route_implementation
+- name: zigbee_source_route_library
+  condition:
+  - zigbee_use_release_libraries
+
+recommends:
+- id: zigbee_source_route_library_internal
+  vendor: silabs
+
+include:
+- path: stack/include
+  file_list:
+  - path: source-route.h
+
+- path: stack/internal/src/ipc
+  file_list:
+  - path: source-route-ipc-command-messages.h
+  - path: zigbee_ipc_callback_events.h
+  - path: zigbee_ipc_command_messages.h
+  condition:
+  - zigbee_use_ipc
+- path: stack/internal/inc
+  file_list:
+  - path: source-route-internal-def.h
+config_file:
+- path: stack/config/component_config/sl_zigbee_source_route_config.h
+
+template_contribution:
+- name: component_catalog
+  value: zigbee_source_route
+- name: zigbee_ncp_callback
+  value:
+    callback_type: set_configuration_value
+    function_name: sl_zigbee_xncp_source_route_set_configuration_value_command_cb
+- name: zigbee_ncp_callback
+  value:
+    callback_type: get_configuration_value
+    function_name: sl_zigbee_xncp_source_route_get_configuration_value_command_cb
+- name: zigbee_stack_callback
+  value:
+    callback_type: incoming_route_record
+    function_name: sli_zigbee_af_incoming_route_record_callback
+  condition:
+  - zigbee_ncp
+- name: zigbee_stack_callback
+  value:
+    callback_type: override_furthur_index_for_source_route_add_entry
+    function_name: sli_zigbee_af_override_furthur_index_for_source_route_add_entry_callback
+  condition:
+  - zigbee_ncp
+- name: zigbee_stack_callback
+  value:
+    callback_type: override_incoming_route_record
+    function_name: sli_zigbee_af_override_incoming_route_record_callback
+  condition:
+  - zigbee_ncp
+
+
+documentation:
+  docset: zigbee
+  document: zigbee-af-api/source-route
+source:
+- path: stack/internal/src/ipc/source-route-ipc-command-messages.c
+  condition:
+  - zigbee_use_ipc
+- path: stack/internal/src/baremetal/source-route-baremetal-wrapper.c
+  unless:
+  - zigbee_use_ipc
+  - native_host
+- path: stack/internal/src/ipc/zigbee_ipc_callback_events.c
+  condition:
+  - zigbee_use_ipc
+- path: stack/internal/src/ipc/zigbee_ipc_callback_event_stub.c
+  condition:
+  - zigbee_use_ipc
+metadata:
+  sbom:
+    license: MSLA
+root_path: zigbee

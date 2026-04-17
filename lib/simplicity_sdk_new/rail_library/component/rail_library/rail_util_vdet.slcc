@@ -1,0 +1,16 @@
+id: rail_util_vdet
+label: RAIL Utility, VDET (RAIL 2.x)
+description: Utility to provide RAIL with Front End Module Voltage Detect (VDET) support. Allows ADC voltage measurements timed with the start of TX packets for tuning FEM performance.
+package: rail_library
+category: Platform|Radio|RAIL 2.x
+quality: deprecated
+metadata:
+  sbom:
+    id: rail_util_vdet
+    name: RAIL Utility, VDET (RAIL 2.x)
+    license: Zlib
+provides:
+- name: rail2_util_vdet
+requires:
+- name: sl_rail_util_vdet
+root_path: rail_library

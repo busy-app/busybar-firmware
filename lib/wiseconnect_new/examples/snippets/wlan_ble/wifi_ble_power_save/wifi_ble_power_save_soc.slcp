@@ -1,0 +1,125 @@
+project_name: wifi_ble_power_save_soc
+package: multi_protocol_siwx91x_app
+quality: production
+label: wifi_station_ble_power_save_soc
+category: Example|Wi-Fi_BLE
+description: 'The coex application demonstrates the procedure about how to configure the device in WisConnect coex mode with wlan standby and ble connected power save.
+
+  '
+filter:
+- name: Wireless Technology
+  value:
+  - WiFi BLE
+- name: Project Difficulty
+  value:
+  - Intermediate
+source:
+- path: app.c
+- path: ble_app.c
+- path: wifi_app.c
+include:
+- path: .
+  file_list:
+  - path: app.h
+  - path: ble_config.h
+  - path: wifi_app.h
+define:
+- name: SL_SI91X_PRINT_DBG_LOG
+component:
+- id: si91x_memory_default_config
+- id: si91x_debug
+- id: syscalls
+- id: rsilib_userconfig
+- id: rsilib_chip
+- id: sl_si91x_mcu
+requires:
+- name: sl_main
+- name: bsd_socket
+- name: network_manager
+- name: basic_network_config_manager
+- name: wiseconnect_common
+- name: wifi
+- name: sl_si91x_wireless
+- name: sl_si91x_asynchronous_socket
+- name: sl_si91x_internal_stack
+- name: sl_si91x_basic_buffers
+- name: wifi_resources
+- name: freertos
+- name: freertos_heap_4
+- name: slist
+- name: wireless_wakeup_ulp_component
+- name: sl_power_manager
+- name: gpio_npss_component
+- name: ble
+- name: iostream_retarget_stdio
+  condition:
+  - device_has_devinfo
+- name: iostream_recommended_stream
+  condition:
+  - device_has_devinfo
+- name: iostream_stdlib_config
+  condition:
+  - device_has_devinfo
+- name: device_init
+  condition:
+  - device_has_devinfo
+- name: emlib_common
+  condition:
+  - device_has_devinfo
+- name: emlib_ldma
+  condition:
+  - device_has_devinfo
+- name: device_needs_ram_execution
+  condition:
+  - si91x_common_flash
+toolchain_settings: []
+configuration:
+- name: SL_BOARD_ENABLE_VCOM
+  value: '1'
+- name: SL_ENABLE_GPIO_WAKEUP_SOURCE
+  value: '1'
+- name: ENABLE_NPSS_GPIO_2
+  value: '1'
+readme:
+- path: readme.md
+other_file:
+- path: resources/readme/openssl_command.png
+- path: resources/readme/power_save_log.png
+- path: resources/readme/ble_scan.png
+- path: resources/readme/SI_Connect_notify1.png
+- path: resources/readme/SI_Connect_notify2.png
+- path: resources/readme/send_hello_from_ssl_log.png
+- path: resources/readme/SI_Connect_activity_log.png
+- path: resources/readme/SI_Connect_ble_message.png
+- path: resources/readme/SSL_server_log.png
+- path: resources/readme/output12.png
+- path: resources/readme/serial_prints.png
+- path: resources/readme/wlan_connection1.png
+- path: resources/readme/build_example.png
+- path: resources/readme/create_project2.png
+- path: resources/readme/efr32.png
+- path: resources/readme/load_image1.png
+- path: resources/readme/load_image2.png
+- path: resources/readme/port_selection_soc.png
+- path: resources/readme/port_selection.png
+- path: resources/readme/serial_port_setup.png
+- path: resources/readme/serial_port.png
+- path: resources/readme/setup_ncp.png
+- path: resources/readme/setup_soc.png
+- path: resources/readme/socboarddetection111.png
+- path: resources/readme/usb_to_uart_1.png
+- path: resources/readme/usb_to_uart_2.png
+ui_hints:
+  highlight:
+  - path: readme.md
+    focus: true
+post_build:
+  profile: wiseconnect_soc
+sdk_extension:
+- id: wiseconnect3_sdk
+  vendor: silabs
+  version: 4.0.1
+sdk:
+  id: simplicity_sdk
+  vendor: silabs
+  version: 2025.12.2

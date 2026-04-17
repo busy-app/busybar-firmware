@@ -1,0 +1,61 @@
+id: zigbee_multi_network
+label: Multi network
+package: zigbee
+category: Zigbee|Stack
+quality: production
+description: 'Provides the ability for a single device to be on multiple networks and time-sharing between them.  The device can be a coordinator/router on only one network, but a sleepy end device on another network. See AN724: Designing for Multiple Networks on a Single Zigbee Chip for more information.'
+
+provides:
+- name: zigbee_multi_network
+
+requires:
+- name: zigbee_multi_network_implementation
+- name: zigbee_multi_network_library
+  condition:
+  - zigbee_use_release_libraries
+
+recommends:
+- id: zigbee_multi_network_library_internal
+  vendor: silabs
+
+include:
+- path: stack/include
+  file_list:
+  - path: multi-network.h
+
+- path: stack/internal/src/ipc
+  file_list:
+  - path: multi-network-ipc-command-messages.h
+  - path: zigbee_ipc_callback_events.h
+  - path: zigbee_ipc_command_messages.h
+  condition:
+  - zigbee_use_ipc
+- path: stack/internal/inc
+  file_list:
+  - path: multi-network-internal-def.h
+template_contribution:
+- name: component_catalog
+  value: zigbee_multi_network
+
+
+documentation:
+  docset: zigbee
+  document: zigbee-af-api/multi-network
+source:
+- path: stack/internal/src/baremetal/multi-network-baremetal-wrapper.c
+  unless:
+  - zigbee_use_ipc
+  - native_host
+- path: stack/internal/src/ipc/multi-network-ipc-command-messages.c
+  condition:
+  - zigbee_use_ipc
+- path: stack/internal/src/ipc/zigbee_ipc_callback_event_stub.c
+  condition:
+  - zigbee_use_ipc
+- path: stack/internal/src/ipc/zigbee_ipc_callback_events.c
+  condition:
+  - zigbee_use_ipc
+metadata:
+  sbom:
+    license: MSLA
+root_path: zigbee

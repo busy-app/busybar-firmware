@@ -1,0 +1,32 @@
+id: netstack_silabs_lwip_app_smtp
+label: "LWIP SMTP High Layer Application"
+package: netstack_silabs_lwip
+description: >
+  The LWIP smtp high layer application specifically programmed with the lwIP low-level raw API,
+  this is simple SMTP client for raw API. It is a minimal implementation of SMTP as specified in RFC 5321.
+category: Network Stack|LwIP|apps
+quality: production
+provides:
+- name: netstack_silabs_lwip_apps
+  allow_multiple: true
+- name: netstack_silabs_lwip_app_smtp
+requires:
+- name: netstack_silabs_lwip_core
+source:
+- path: lwip/src/apps/smtp/smtp.c
+include:
+- path: lwip/src/include
+  file_list:
+  - path: lwip/apps/smtp.h
+  - path: lwip/apps/smtp_opts.h
+metadata:
+  sbom:
+    license: BSD-3-Clause
+    upstream:
+      name: lwip
+      version: 2.2.1
+      supplier: lwIP Developers
+      url: https://savannah.nongnu.org/projects/lwip/
+      package_url: https://github.com/lwip-tcpip/lwip/
+      comment: lwIP is a small independent implementation of the TCP/IP protocol suite.
+root_path: netstack_silabs_lwip/

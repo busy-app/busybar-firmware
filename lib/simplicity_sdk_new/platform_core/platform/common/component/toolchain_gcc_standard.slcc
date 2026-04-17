@@ -1,0 +1,27 @@
+id: toolchain_gcc_standard
+label: GCC Toolchain Standard Linker
+package: platform_core
+description: Provides the GCC Standard linker file.
+category: Platform|Toolchain
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+ui_hints:
+  visibility: never
+root_path: platform_core/platform/common
+provides:
+- name: toolchain_gcc_standard
+- name: toolchain_linker_type
+template_file:
+- path: toolchain/cortexm/gcc/s2/linkerfile.ld.jinja
+  condition: [device_cortexm, device_series_2]
+- path: toolchain/cortexm/gcc/s30/bootloader/linkerfile.ld.jinja
+  condition: [btl_core, device_cortexm, device_generic_family_sixx301]
+- path: toolchain/cortexm/gcc/s30/linkerfile.ld.jinja
+  condition: [device_cortexm, device_generic_family_sixx301]
+  unless: [btl_core]
+toolchain_settings:
+- option: linkerfile
+  value: autogen/linkerfile.ld
+  condition: [device_cortexm]

@@ -1,0 +1,20 @@
+<HtermSequenceFile>
+    <ItemList>
+        <SequenceItem name="-- Commands --">
+            <description></description>
+            <sequence value="" />
+        </SequenceItem>
+        <SequenceItem name="info">
+            <description></description>
+            <sequence value="a[info] h[0D]" />
+        </SequenceItem>
+        <SequenceItem name="change_status">
+            <description></description>
+            <sequence value="a[change_status] h[0D]" />
+        </SequenceItem>
+        <SequenceItem name="toggle_light">
+            <description></description>
+            <sequence value="a[toggle_light] h[0D]" />
+        </SequenceItem>
+    </ItemList>
+</HtermSequenceFile>

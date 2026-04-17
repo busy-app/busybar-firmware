@@ -1,0 +1,193 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="structsl__bt__evt__pawr__sync__subevent__report__s" kind="struct" language="C++" prot="public">
+    <compoundname>sl_bt_evt_pawr_sync_subevent_report_s</compoundname>
+    <includes refid="sl__bt__api_8h" local="no">sl_bt_api.h</includes>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structsl__bt__evt__pawr__sync__subevent__report__s_1a19c84f5d62daf24abdb1d7d977d96514" prot="public" static="no" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t sl_bt_evt_pawr_sync_subevent_report_s::sync</definition>
+        <argsstring></argsstring>
+        <name>sync</name>
+        <qualifiedname>sl_bt_evt_pawr_sync_subevent_report_s::sync</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>PAwR synchronization handle </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="5648" column="14" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="5648" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__pawr__sync__subevent__report__s_1a3ad78b9d9c09ffb48ceff58b2f8981f9" prot="public" static="no" mutable="no">
+        <type>int8_t</type>
+        <definition>int8_t sl_bt_evt_pawr_sync_subevent_report_s::tx_power</definition>
+        <argsstring></argsstring>
+        <name>tx_power</name>
+        <qualifiedname>sl_bt_evt_pawr_sync_subevent_report_s::tx_power</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>TX power value in the received packet header. Units: dBm<itemizedlist>
+<listitem><para><bold>Range:</bold> -127 to 126</para>
+</listitem><listitem><para>Value 127: information unavailable </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="5649" column="14" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="5649" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__pawr__sync__subevent__report__s_1aa0b2d10ca59b9b876c57693af039d69c" prot="public" static="no" mutable="no">
+        <type>int8_t</type>
+        <definition>int8_t sl_bt_evt_pawr_sync_subevent_report_s::rssi</definition>
+        <argsstring></argsstring>
+        <name>rssi</name>
+        <qualifiedname>sl_bt_evt_pawr_sync_subevent_report_s::rssi</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Signal strength indicator (RSSI) of the received packet. Units: dBm<itemizedlist>
+<listitem><para><bold>Range:</bold> -127 to +20 </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="5654" column="14" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="5654" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__pawr__sync__subevent__report__s_1af972bd362176e1d1cd89dd1f4e7b307d" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_pawr_sync_subevent_report_s::cte_type</definition>
+        <argsstring></argsstring>
+        <name>cte_type</name>
+        <qualifiedname>sl_bt_evt_pawr_sync_subevent_report_s::cte_type</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>The CTE type<itemizedlist>
+<listitem><para><bold>0x00:</bold> AoA CTE</para>
+</listitem><listitem><para><bold>0x01:</bold> AoD CTE with 1us slots</para>
+</listitem><listitem><para><bold>0x02:</bold> AoD CTE with 2us slots</para>
+</listitem><listitem><para><bold>0xFF:</bold> No CTE </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="5657" column="14" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="5657" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__pawr__sync__subevent__report__s_1a7b273060bb7ae2a0be0dc0bf01a5fa48" prot="public" static="no" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t sl_bt_evt_pawr_sync_subevent_report_s::event_counter</definition>
+        <argsstring></argsstring>
+        <name>event_counter</name>
+        <qualifiedname>sl_bt_evt_pawr_sync_subevent_report_s::event_counter</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>The value of the periodic advertising event counter (paEventCounter) of the event in which the advertisement was received. If the application responds to this advertisement, use this field as the value of <computeroutput>request_event</computeroutput> parameter for the <ref refid="group__sl__bt__pawr__sync_1ga5d5ff16e38a7fe4df466636781fc7469" kindref="member">sl_bt_pawr_sync_set_response_data</ref> command. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="5662" column="14" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="5662" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__pawr__sync__subevent__report__s_1a87218cbd5afacac18ec4315c73d08cdb" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_pawr_sync_subevent_report_s::subevent</definition>
+        <argsstring></argsstring>
+        <name>subevent</name>
+        <qualifiedname>sl_bt_evt_pawr_sync_subevent_report_s::subevent</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>The subevent in which the advertisement was received. If the application responds to this advertisement, use this field as the value of <computeroutput>request_subevent</computeroutput> parameter for the <ref refid="group__sl__bt__pawr__sync_1ga5d5ff16e38a7fe4df466636781fc7469" kindref="member">sl_bt_pawr_sync_set_response_data</ref> command. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="5669" column="14" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="5669" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__pawr__sync__subevent__report__s_1a2612325a0c5a09ff6246c643c5061e04" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_pawr_sync_subevent_report_s::data_status</definition>
+        <argsstring></argsstring>
+        <name>data_status</name>
+        <qualifiedname>sl_bt_evt_pawr_sync_subevent_report_s::data_status</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Data completeness:<itemizedlist>
+<listitem><para><bold>0:</bold> Complete</para>
+</listitem><listitem><para><bold>1:</bold> Incomplete, more data to come in new events</para>
+</listitem><listitem><para><bold>2:</bold> Incomplete, data truncated, no more to come</para>
+</listitem><listitem><para><bold>255:</bold> Failed to receive subevent data in this subevent </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="5674" column="14" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="5674" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__pawr__sync__subevent__report__s_1aa3fb58e723daaad3b1c8827eaabe4188" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_pawr_sync_subevent_report_s::counter</definition>
+        <argsstring></argsstring>
+        <name>counter</name>
+        <qualifiedname>sl_bt_evt_pawr_sync_subevent_report_s::counter</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>The sequence number of this <ref refid="group__sl__bt__evt__pawr__sync__subevent__report" kindref="compound">sl_bt_evt_pawr_sync_subevent_report</ref> event as a monotonically increasing counter that wraps from 255 to 0. There is a single counter for this event type that starts from value 0 when the Bluetooth stack is started and is never reset while the stack is running. This counter can be used to detect if one or more <ref refid="group__sl__bt__evt__pawr__sync__subevent__report" kindref="compound">sl_bt_evt_pawr_sync_subevent_report</ref> events have been created by the stack but dropped due to problems such as temporarily running out of resources before the event reached the application. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="5682" column="14" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="5682" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__pawr__sync__subevent__report__s_1aa5966e60dc85479d09e091ee2093e4f7" prot="public" static="no" mutable="no">
+        <type><ref refid="structuint8array" kindref="compound">uint8array</ref></type>
+        <definition>uint8array sl_bt_evt_pawr_sync_subevent_report_s::data</definition>
+        <argsstring></argsstring>
+        <name>data</name>
+        <qualifiedname>sl_bt_evt_pawr_sync_subevent_report_s::data</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>The advertisement data that was received </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="5695" column="14" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="5695" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Data structure of the subevent_report event. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>sl_bt_evt_pawr_sync_subevent_report_s</label>
+        <link refid="structsl__bt__evt__pawr__sync__subevent__report__s"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>data</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>uint8array</label>
+        <link refid="structuint8array"/>
+      </node>
+    </collaborationgraph>
+    <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="5646" column="1" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="5647" bodyend="5696"/>
+    <listofallmembers>
+      <member refid="structsl__bt__evt__pawr__sync__subevent__report__s_1aa3fb58e723daaad3b1c8827eaabe4188" prot="public" virt="non-virtual"><scope>sl_bt_evt_pawr_sync_subevent_report_s</scope><name>counter</name></member>
+      <member refid="structsl__bt__evt__pawr__sync__subevent__report__s_1af972bd362176e1d1cd89dd1f4e7b307d" prot="public" virt="non-virtual"><scope>sl_bt_evt_pawr_sync_subevent_report_s</scope><name>cte_type</name></member>
+      <member refid="structsl__bt__evt__pawr__sync__subevent__report__s_1aa5966e60dc85479d09e091ee2093e4f7" prot="public" virt="non-virtual"><scope>sl_bt_evt_pawr_sync_subevent_report_s</scope><name>data</name></member>
+      <member refid="structsl__bt__evt__pawr__sync__subevent__report__s_1a2612325a0c5a09ff6246c643c5061e04" prot="public" virt="non-virtual"><scope>sl_bt_evt_pawr_sync_subevent_report_s</scope><name>data_status</name></member>
+      <member refid="structsl__bt__evt__pawr__sync__subevent__report__s_1a7b273060bb7ae2a0be0dc0bf01a5fa48" prot="public" virt="non-virtual"><scope>sl_bt_evt_pawr_sync_subevent_report_s</scope><name>event_counter</name></member>
+      <member refid="structsl__bt__evt__pawr__sync__subevent__report__s_1aa0b2d10ca59b9b876c57693af039d69c" prot="public" virt="non-virtual"><scope>sl_bt_evt_pawr_sync_subevent_report_s</scope><name>rssi</name></member>
+      <member refid="structsl__bt__evt__pawr__sync__subevent__report__s_1a87218cbd5afacac18ec4315c73d08cdb" prot="public" virt="non-virtual"><scope>sl_bt_evt_pawr_sync_subevent_report_s</scope><name>subevent</name></member>
+      <member refid="structsl__bt__evt__pawr__sync__subevent__report__s_1a19c84f5d62daf24abdb1d7d977d96514" prot="public" virt="non-virtual"><scope>sl_bt_evt_pawr_sync_subevent_report_s</scope><name>sync</name></member>
+      <member refid="structsl__bt__evt__pawr__sync__subevent__report__s_1a3ad78b9d9c09ffb48ceff58b2f8981f9" prot="public" virt="non-virtual"><scope>sl_bt_evt_pawr_sync_subevent_report_s</scope><name>tx_power</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

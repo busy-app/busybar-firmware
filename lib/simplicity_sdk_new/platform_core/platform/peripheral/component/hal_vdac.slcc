@@ -1,0 +1,38 @@
+# This HAL applies to series 2 and 3 devices.
+id: hal_vdac
+label: VDAC
+package: platform_core
+description: >
+  Digital to Analog Converter (VDAC) Peripheral API.
+category: Platform|Peripheral|HAL
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+source:
+- path: src/sl_hal_vdac.c
+include:
+- path: inc
+  file_list:
+  - path: sl_hal_vdac.h
+provides:
+- name: hal_vdac
+requires:
+- name: device
+- name: device_has_vdac
+- name: hal_common
+- name: cmsis_core
+documentation:
+  docset: gecko-platform
+  document:
+  - page: platform-peripheral-efr32xg23/vdac
+    condition: [device_sdid_210]
+  - page: platform-peripheral-efr32xg24/vdac
+    condition: [device_sdid_215]
+  - page: platform-peripheral-efr32xg25/vdac
+    condition: [device_sdid_220]
+  - page: platform-peripheral-efr32xg26/vdac
+    condition: [device_sdid_225]
+  - page: platform-peripheral-efr32xg28/vdac
+    condition: [device_sdid_235]
+root_path: platform_core/platform/peripheral

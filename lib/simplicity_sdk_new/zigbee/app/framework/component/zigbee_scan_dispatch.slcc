@@ -1,0 +1,55 @@
+package: zigbee
+description: This component allows the existence of multiple consumers of the stack 802.15.4 scan results.
+label: Scan Dispatch
+quality: production
+id: zigbee_scan_dispatch
+category: Zigbee|Network Form and Join
+provides:
+- name: zigbee_scan_dispatch
+config_file:
+- path: app/framework/plugin/scan-dispatch/config/scan-dispatch-config.h
+source:
+- path: app/framework/plugin/scan-dispatch/scan-dispatch.c
+include:
+- path: app/framework/plugin/scan-dispatch
+  file_list:
+  - path: scan-dispatch.h
+template_contribution:
+- name: component_catalog
+  value: zigbee_scan_dispatch
+
+  # CLI command to scan dispatch component
+- name: cli_command
+  value:
+    name: energy-scan
+    handler: sli_zigbee_af_scan_dispatch_energy_scan_cli_command
+    help: Perform energy scan on provided channel mask and duration.
+    argument:
+    - type: uint32
+      help: Channel mask (bitfield of channels to scan)
+    - type: uint8
+      help: Scan duration (0-14, where actual time = (aBaseSuperframeDuration * (2^n + 1)) symbols)
+
+- name: zigbee_af_callback
+  value:
+    callback_type: event_init
+    function_name: sli_zigbee_af_scan_dispatch_init_callback
+- name: zigbee_stack_callback
+  value:
+    callback_type: energy_scan_result
+    function_name: sli_zigbee_af_scan_dispatch_energy_scan_result_callback
+- name: zigbee_stack_callback
+  value:
+    callback_type: scan_complete
+    function_name: sli_zigbee_af_scan_dispatch_scan_complete_callback
+- name: zigbee_stack_callback
+  value:
+    callback_type: network_found
+    function_name: sli_zigbee_af_scan_dispatch_network_found_callback
+documentation:
+  docset: zigbee
+  document: zigbee-af-api/scan-dispatch
+metadata:
+  sbom:
+    license: MSLA
+root_path: zigbee

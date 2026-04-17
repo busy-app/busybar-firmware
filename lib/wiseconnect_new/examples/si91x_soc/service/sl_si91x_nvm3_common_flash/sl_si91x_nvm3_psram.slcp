@@ -1,0 +1,64 @@
+project_name: sl_si91x_nvm3_psram
+package: platform_nwp_siwx91x_app
+description: "Testing NVM3 in Si91x PSRAM \n"
+category: Example|Service
+quality: production
+label: sl_si91x_nvm3_psram
+component:
+- id: sl_main
+- id: freertos
+- id: freertos_heap_4
+- id: nvm3_lib
+- id: slist
+- id: syscalls
+- id: wifi
+- id: network_manager
+- id: basic_network_config_manager
+- id: sl_si91x_internal_stack
+- id: si91x_memory_default_config
+- id: sl_si91x_basic_buffers
+- id: text_segment_in_psram
+- id: data_segment_in_psram
+- id: psram_core
+- id: psram_aps6404l_sqh
+source:
+- path: app.c
+include:
+- path: .
+  file_list:
+  - path: app.h
+define:
+- name: SL_SI91X_PRINT_DBG_LOG
+toolchain_settings:
+- option: gcc_compiler_option
+  value: -Wall -Werror
+other_file:
+- path: resources/readme/setupdiagram.png
+- path: resources/readme/output.png
+- path: resources/uc_screen/si91x_nvm3_uc_screen.png
+configuration:
+- name: SL_BOARD_ENABLE_VCOM
+  value: '1'
+ui_hints:
+  highlight:
+  - path: readme.md
+    focus: true
+readme:
+- path: readme.md
+filter:
+- name: Wireless Technology
+  value:
+  - Wi-Fi
+- name: Project Difficulty
+  value:
+  - Beginner
+post_build:
+  profile: wiseconnect_soc
+sdk_extension:
+- id: wiseconnect3_sdk
+  vendor: silabs
+  version: 4.0.1
+sdk:
+  id: simplicity_sdk
+  vendor: silabs
+  version: 2025.12.2

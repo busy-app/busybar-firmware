@@ -1,0 +1,48 @@
+project_name: sl_si91x_ct_ocu_non_dma
+package: platform_siwx91x_app
+description: 'Demonstrates the Config Timer Basic features and Output Compare feature without DMA.
+
+  '
+category: example|peripheral
+quality: production
+label: SL Si91x - Config Timer Basic and OCU without DMA
+component:
+- id: sl_main
+- id: status
+- id: syscalls
+- id: si917_memory_default_config
+- id: sl_config_timer
+source:
+- path: config_timer_ocu_non_dma_example.c
+- path: app.c
+include:
+- path: .
+  file_list:
+  - path: app.h
+  - path: config_timer_ocu_non_dma_example.h
+toolchain_settings:
+- option: gcc_compiler_option
+  value: -Wall -Werror
+other_file:
+- path: resources/readme/image502e.png
+- path: resources/uc_screen/uc_screen.png
+- path: resources/readme/setupdiagram.png
+- path: resources/readme/OutputConsole_CT.png
+- path: resources/readme/OutputConsole_CT_OCU.png
+- path: resources/readme/pwm_CT_output.png
+ui_hints:
+  highlight:
+  - path: readme.md
+    focus: true
+readme:
+- path: readme.md
+post_build:
+  profile: wiseconnect_soc
+sdk_extension:
+- id: wiseconnect3_sdk
+  vendor: silabs
+  version: 4.0.1
+sdk:
+  id: simplicity_sdk
+  vendor: silabs
+  version: 2025.12.2

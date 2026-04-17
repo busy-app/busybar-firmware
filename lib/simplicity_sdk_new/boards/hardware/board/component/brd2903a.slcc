@@ -1,0 +1,61 @@
+!!omap
+- id: brd2903a
+- label: BRD2903A
+- package: boards
+- description: Board support for BRD2903A.
+- category: Platform|Board|Thunderboard
+- quality: production
+- metadata:
+    sbom:
+      license: Zlib
+- requires:
+  - name: bgm240pb32vnn
+  - name: brd2903a_config
+- provides:
+  - name: brd2903a
+  - name: hardware_board
+  - name: hardware_board_tb
+  - name: hardware_board_from_tb
+  - name: hardware_board_has_vcom
+  - name: hardware_board_has_vcom_hardware_flowcontrol
+  - name: board_config_clock_manager
+  - name: hardware_board_has_lfxo
+  - name: hardware_board_supports_rf_band_2400
+  - name: hardware_board_supports_1_rf_band
+  - name: hardware_board_default_rf_band
+  - name: hardware_board_default_rf_band_2400
+- recommends:
+  - id: iostream_eusart
+    instance:
+    - vcom
+    vendor: silabs
+  - id: bootloader_uart_driver
+    vendor: silabs
+  - id: simple_led
+    instance:
+    - led0
+    vendor: silabs
+  - id: simple_button
+    instance:
+    - btn0
+    vendor: silabs
+- template_contribution: []
+- define:
+  - name: SL_BOARD_NAME
+    value: '"BRD2903A"'
+  - name: SL_BOARD_REV
+    value: '"A00"'
+  - name: HARDWARE_BOARD_SUPPORTS_RF_BAND_2400
+  - name: HARDWARE_BOARD_SUPPORTS_1_RF_BAND
+  - name: HARDWARE_BOARD_DEFAULT_RF_BAND_2400
+- tag:
+  - board:pn:BRD2903
+  - board:variant:A
+  - board:revision:A00
+  - board:device:bgm240pb32vnn
+  - hardware:has:vcom
+  - hardware:has:vcom:vcom_hardware_flowcontrol
+  - hardware:has:pti
+  - hardware:has:led:1
+  - hardware:has:button:1
+- root_path: boards

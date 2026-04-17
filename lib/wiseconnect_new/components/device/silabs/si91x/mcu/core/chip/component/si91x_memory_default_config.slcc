@@ -1,0 +1,18 @@
+id: si91x_memory_default_config
+label: 'Default RAM Memory Configuration'
+package: platform_siwx91x
+metadata:
+  sbom:
+    license: Zlib
+description: >
+  Provides default RAM memory configuration for the Si91x.
+category: Device|Si91x|Memory Configuration
+quality: production
+requires:
+  - name: si91x_mem_config_1
+provides:
+  - name: si91x_memory_default_config
+  - name: si91x_mem_config
+conflicts:
+  - name: si91x_mem_config_2
+  - name: si91x_mem_config_3

@@ -1,0 +1,18 @@
+id: wiseconnect_toolchain_gcc_lto
+label: Enable Link time optimization (LTO) for WiSeConnect
+package: platform_siwx91x
+description: Enable Link time optimization for WiSeConnect
+category: Platform|Toolchain
+quality: evaluation
+metadata:
+  sbom:
+    license: Zlib
+provides:
+  - name: wiseconnect_toolchain_gcc_lto
+define:
+  - name: SL_SI91X_ENABLE_GCC_LTO
+template_contribution:
+  - name: component_catalog
+    value: wiseconnect_toolchain_gcc_lto
+    unless:
+      - wiseconnect_toolchain_gcc_lto_disable

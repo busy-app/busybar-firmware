@@ -1,0 +1,31 @@
+id: sl_watchdog_timer
+label: WDT
+package: platform_siwx91x
+description: >
+  WDT represents Watchdog Timer/Window Watchdog Timer. The WDT driver improves system dependability by monitoring a program's performance and resetting the system in the event of a malfunction or failure.
+  Operates in both open and closed modes. 
+  In addition, it will restart and reset the system/device in response to interruptions and it also supports UULP power domain.
+  When you install this component, it will also be installing the watchdog timer dependency component, 
+  which is the watchdog timer driver's implementation.
+category: Device|Si91x|MCU|Peripheral
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: "components/device/silabs/si91x/mcu/drivers/unified_api"
+config_file:
+  - path: "config/sl_si91x_watchdog_timer_config.h"
+    unless: [sl_wdt_manager]
+source:
+  - path: "src/sl_si91x_watchdog_timer.c"
+include:
+  - path: "inc"
+    file_list:
+      - path: "sl_si91x_watchdog_timer.h"
+provides:
+  - name: sl_watchdog_timer
+requires:
+  - name: systemlevel_wwdt
+documentation:
+  docset: wiseconnect
+  document: wiseconnect-api-reference-guide-si91x-peripherals/watchdog-timer

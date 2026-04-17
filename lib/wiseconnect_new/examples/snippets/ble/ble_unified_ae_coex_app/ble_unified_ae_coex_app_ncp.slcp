@@ -1,0 +1,102 @@
+project_name: ble_unified_ae_coex_app_ncp
+package: bluetooth_le_siwx91x_app
+quality: production
+label: BLE - Unified AE Coex App (NCP)
+category: Example|BLE
+description: 'Bluetooth Low energy Extended Advertising features(Central/Peripheral).
+
+  '
+filter:
+- name: Wireless Technology
+  value:
+  - BLE
+- name: Project Difficulty
+  value:
+  - Advanced
+source:
+- path: app.c
+- path: root_auto_gen.c
+- path: btc_auto_gen.c
+- path: ble/ble_cmd_hdlr_auto_gen.c
+- path: ble/ble_event_hdlr_auto_gen.c
+- path: ble/ble_ui_cmd_hdlr.c
+- path: ble/ble_user_cmd.c
+- path: ble/ble_user_event_hdlrs.c
+- path: user_input/rsi_user_input_DEMO_x.c
+- path: utils/command_parser.c
+- path: utils/event_loop.c
+- path: utils/rsi_common_utils.c
+include:
+- path: .
+  file_list:
+  - path: app.h
+  - path: ble_config.h
+- path: ble
+  file_list:
+  - path: ble_cmd_hdlr_auto_gen.h
+  - path: ble_event_hdlr_auto_gen.h
+  - path: ble_private.h
+- path: inc
+  file_list:
+  - path: rsi_ble_config.h
+  - path: rsi_common_app.h
+- path: user_input
+  file_list:
+  - path: rsi_user_input_DEMO_x.h
+- path: utils
+  file_list:
+  - path: generic_command_handling.h
+  - path: rsi_common_utils.h
+  - path: event_loop.h
+define:
+- name: SL_SI91X_PRINT_DBG_LOG
+component:
+- id: sl_main
+- id: freertos
+- id: freertos_heap_4
+- id: device_init
+- id: spidrv
+  instance:
+  - exp
+- id: iostream_retarget_stdio
+- id: iostream_recommended_stream
+- id: iostream_stdlib_config
+- id: wiseconnect_common
+- id: wifi
+- id: sl_si91x_internal_stack
+- id: wifi_resources
+- id: sl_si91x_spi_bus
+- id: network_manager
+- id: basic_network_config_manager
+- id: ble
+- id: sl_si91x_basic_buffers
+toolchain_settings:
+- option: gcc_linker_option
+  value: -u _printf_float
+configuration:
+- name: SL_BOARD_ENABLE_VCOM
+  value: '1'
+- name: configTOTAL_HEAP_SIZE
+  value: '51200'
+- name: configTIMER_TASK_PRIORITY
+  value: '55'
+readme:
+- path: readme.md
+other_file:
+- path: resources/readme/ble_unified_ae_coex_ncp_soc.png
+- path: resources/readme/output1.png
+- path: resources/readme/output2.png
+- path: resources/readme/output3.png
+- path: resources/readme/output4.png
+ui_hints:
+  highlight:
+  - path: readme.md
+    focus: true
+sdk_extension:
+- id: wiseconnect3_sdk
+  vendor: silabs
+  version: 4.0.1
+sdk:
+  id: simplicity_sdk
+  vendor: silabs
+  version: 2025.12.2

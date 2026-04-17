@@ -1,0 +1,88 @@
+id: iostream
+package: platform_core
+label: IO Stream
+description: >
+  The IO Stream component allows to read/write data using a variety of physical
+  communication interfaces, or Streams. This allows for standardized data
+  transfer operations while abstracting the underlying interface. IO Stream
+  also enables the implementation of the printf standard C function, using the
+  configured Stream, making it easier to send formatted data over a physical link.
+  For IO Stream to be able to use a physical link, the corresponding IO Stream driver
+  component must be added to your project. Note that a project may have multiple instances
+  of IO Stream, allowing for communication over multiple physical links at the same
+  time.
+category: Services|IO Stream
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+provides:
+- name: iostream
+requires:
+- name: component_catalog
+- name: cmsis_os2_ext_task_register
+  condition:
+  - kernel
+  - device_cortexm
+- name: cmsis_os2_ext_task_register
+  condition:
+  - kernel
+  - device_host
+- name: hal_generic_common
+  condition: [device_efx]
+- name: sl_core
+- name: sl_assert
+- name: enum
+- name: iostream_transport
+- name: slist
+- name: status
+include:
+- path: inc
+  file_list:
+  - path: sl_iostream.h
+  - path: sli_iostream.h
+source:
+- path: src/sl_iostream.c
+template_file:
+- path: init/sl_iostream_handles.h.jinja
+- path: init/sl_iostream_handles.c.jinja
+- path: init/sl_iostream_init_instances.h.jinja
+template_contribution:
+- name: component_catalog
+  value: iostream
+- name: event
+  value:
+    id: iostream_instance_init_stage_1
+    function:
+      name: sl_iostream_init_instances_stage_1
+      return: void
+  priority: 4
+- name: event
+  value:
+    id: iostream_instance_init_stage_2
+    function:
+      name: sl_iostream_init_instances_stage_2
+      return: void
+  priority: 9999
+- name: event_handler
+  value:
+    event: service_init
+    include: sl_iostream_init_instances.h
+    handler: sl_iostream_init_instances_stage_1
+  priority: 4
+- name: event_handler
+  value:
+    event: service_init
+    include: sl_iostream_init_instances.h
+    handler: sl_iostream_init_instances_stage_2
+  priority: 9800
+- name: event_handler
+  value:
+    event: iostream_instance_init_stage_2
+    include: sl_iostream_handles.h
+    handler: sl_iostream_set_console_instance
+  priority: 9999
+documentation:
+  docset: gecko-platform
+  document: platform-service/iostream
+root_path: platform_core/platform/service/iostream

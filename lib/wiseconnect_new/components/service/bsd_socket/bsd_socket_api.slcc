@@ -1,0 +1,31 @@
+id: bsd_socket_api
+package: wifi
+description: >
+  The BSD Socket API provides a BSD socket API prototypes
+label: BSD Socket API
+category: Common
+quality: production
+metadata:
+  sbom:
+    license: MSLA AND Apache-2.0
+    upstream:
+      name: IoT Socket
+      version: 1.3.0
+      supplier: MDK-Packs
+      url: https://github.com/MDK-Packs/IoT_Socket
+      package_url: pkg:github/MDK-Packs/IoT_Socket@1.3.0
+component_root_path: ./components/service/bsd_socket
+provides:
+- name: bsd_socket_api
+include:
+- path: inc
+- path: inc
+  file_list:
+    - path: netdb.h
+    - path: netinet_in.h
+    - path: netinet6_in6.h
+    - path: select.h
+    - path: socket.h
+    - path: sys.h
+    - path: uio.h
+

@@ -1,0 +1,36 @@
+id: "sl_connect_sdk_ota_bootloader_interface"
+label: "OTA Bootloader Interface"
+package: "connect_sdk"
+category: "Connect"
+quality: "production"
+metadata:
+  sbom:
+    license: Zlib
+description: >
+  The component serves as an interface layer for the Application Bootloader. It
+  is essential for any bootloader-related functions. Additionally, it introduces
+  bootloader API functions that the application can utilize during runtime.
+  These functions include reading or writing image slot space, as well as
+  erasing or validating received images. Furthermore, OTA Bootloader components
+  access images through this particular component.
+root_path: "connect_sdk/component/sl_connect_sdk_ota_bootloader_interface"
+provides:
+- name: "sl_connect_sdk_ota_bootloader_interface"
+requires:
+- name: "connect_stack_common"
+- name: "bootloader_interface"
+source:
+- path: "sl_connect_sdk_btl-interface.c"
+include:
+- path: "."
+  file_list:
+  - path: "sl_connect_sdk_btl-interface.h"
+#-------------- Template Contribution ----------------
+template_contribution:
+#---------------- Component Catalog ------------------
+- name: component_catalog
+  value: sl_connect_sdk_ota_bootloader_interface
+- name: stack_callback
+  value:
+    callback_type: "init"
+    function_name: "emberAfPluginBootloaderInterfaceSleep"

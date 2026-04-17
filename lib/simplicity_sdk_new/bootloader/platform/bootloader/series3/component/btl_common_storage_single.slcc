@@ -1,0 +1,30 @@
+id: btl_common_storage_single
+label: Common Storage (Series-3)(single storage slot only)
+package: bootloader
+description: >
+  The Common Storage (single storage slot only) component provides common functionality for storage components.
+  This size-optimized version only supports a single storage slot.
+category: Platform|Bootloader|Storage
+quality: production
+source:
+- path: platform/bootloader/series3/storage/btl_storage.c
+- path: platform/bootloader/series3/storage/btl_storage_library.c
+- path: platform/bootloader/series3/storage/bootloadinfo/btl_storage_bootloadinfo_single.c
+include:
+- path: platform/bootloader/series3
+  file_list:
+  - path: storage/ext_mem/btl_storage_ext_mem.h
+  - path: storage/btl_storage.h
+  - path: storage/bootloadinfo/btl_storage_bootloadinfo.h
+provides:
+- name: btl_common_storage_single
+requires:
+- name: btl_storage_slots
+- name: bootloader_debug
+config_file:
+- path: platform/bootloader/series3/config/btl_storage_cfg.h
+  file_id: btl_storage_config
+metadata:
+  sbom:
+    license: MSLA
+root_path: bootloader

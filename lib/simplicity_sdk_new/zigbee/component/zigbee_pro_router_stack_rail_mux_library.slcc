@@ -1,0 +1,117 @@
+#WARNING: This is a generated file. Do not modify.
+#run "sled lib export <FILENAME> to generate
+id: zigbee_pro_router_stack_rail_mux_library
+label: Zigbee PRO Router Stack with rail mux (Library)
+package: zigbee
+category: Zigbee|Stack
+quality: production
+ui_hints:
+  visibility: never
+description: Provides Zigbee PRO Router with rail mux Library
+
+provides:
+- name: zigbee_pro_router_stack_rail_mux_implementation
+- name: zigbee_pro_router_stack_rail_mux_library
+
+requires:
+- name: zigbee_pro_router_stack_rail_mux
+
+library:
+- path: build/gcc/cortex-m33/zigbee-pro-router-stack-rail-mux/release/libzigbee-pro-router-stack-rail-mux.a
+  condition:
+  - toolchain_gcc
+  - cortexm33
+  - zigbee_phy_2_4
+  - zigbee_multi_network
+  - rail_mux
+  unless:
+  - zigbee_phy_2_4_subghz_selection_end_device
+  - zigbee_phy_2_4_subghz_switch_coordinator
+  - zigbee_high_datarate_phy
+  - toolchain_llvm
+- path: build/gcc/cortex-m33/zigbee-pro-router-stack-rail-mux/release_singlenetwork/libzigbee-pro-router-stack-rail-mux.a
+  condition:
+  - toolchain_gcc
+  - cortexm33
+  - zigbee_phy_2_4
+  - rail_mux
+  unless:
+  - zigbee_multi_network
+  - zigbee_phy_2_4_subghz_selection_end_device
+  - zigbee_phy_2_4_subghz_switch_coordinator
+  - zigbee_high_datarate_phy
+  - toolchain_llvm
+- path: build/iar/cortex-m33/zigbee-pro-router-stack-rail-mux/release/libzigbee-pro-router-stack-rail-mux.a
+  condition:
+  - toolchain_iar
+  - cortexm33
+  - zigbee_phy_2_4
+  - zigbee_multi_network
+  - rail_mux
+  unless:
+  - zigbee_phy_2_4_subghz_selection_end_device
+  - zigbee_phy_2_4_subghz_switch_coordinator
+  - zigbee_high_datarate_phy
+  - stack_protection_iar
+- path: build/iar/cortex-m33/zigbee-pro-router-stack-rail-mux/release_singlenetwork/libzigbee-pro-router-stack-rail-mux.a
+  condition:
+  - toolchain_iar
+  - cortexm33
+  - zigbee_phy_2_4
+  - rail_mux
+  unless:
+  - zigbee_multi_network
+  - zigbee_phy_2_4_subghz_selection_end_device
+  - zigbee_phy_2_4_subghz_switch_coordinator
+  - zigbee_high_datarate_phy
+  - stack_protection_iar
+- path: build/iar/cortex-m33/zigbee-pro-router-stack-rail-mux/release_stackprotection/libzigbee-pro-router-stack-rail-mux.a
+  condition:
+  - toolchain_iar
+  - cortexm33
+  - zigbee_phy_2_4
+  - zigbee_multi_network
+  - rail_mux
+  - stack_protection_iar
+  unless:
+  - zigbee_phy_2_4_subghz_selection_end_device
+  - zigbee_phy_2_4_subghz_switch_coordinator
+  - zigbee_high_datarate_phy
+- path: build/iar/cortex-m33/zigbee-pro-router-stack-rail-mux/release_stackprotection_singlenetwork/libzigbee-pro-router-stack-rail-mux.a
+  condition:
+  - toolchain_iar
+  - cortexm33
+  - zigbee_phy_2_4
+  - rail_mux
+  - stack_protection_iar
+  unless:
+  - zigbee_multi_network
+  - zigbee_phy_2_4_subghz_selection_end_device
+  - zigbee_phy_2_4_subghz_switch_coordinator
+  - zigbee_high_datarate_phy
+- path: build/llvm/cortex-m33/zigbee-pro-router-stack-rail-mux/release/libzigbee-pro-router-stack-rail-mux.a
+  condition:
+  - toolchain_llvm
+  - cortexm33
+  - zigbee_phy_2_4
+  - zigbee_multi_network
+  - rail_mux
+  unless:
+  - zigbee_phy_2_4_subghz_selection_end_device
+  - zigbee_phy_2_4_subghz_switch_coordinator
+  - zigbee_high_datarate_phy
+- path: build/llvm/cortex-m33/zigbee-pro-router-stack-rail-mux/release_singlenetwork/libzigbee-pro-router-stack-rail-mux.a
+  condition:
+  - toolchain_llvm
+  - cortexm33
+  - zigbee_phy_2_4
+  - rail_mux
+  unless:
+  - zigbee_multi_network
+  - zigbee_phy_2_4_subghz_selection_end_device
+  - zigbee_phy_2_4_subghz_switch_coordinator
+  - zigbee_high_datarate_phy
+metadata:
+  sbom:
+    license: MSLA
+root_path: zigbee

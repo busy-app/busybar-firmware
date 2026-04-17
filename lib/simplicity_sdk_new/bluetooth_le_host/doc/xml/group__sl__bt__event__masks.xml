@@ -1,0 +1,27 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__event__masks" kind="group">
+    <compoundname>sl_bt_event_masks</compoundname>
+    <title>BT Event System Event Masks</title>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__event__masks_1ga8f63d0dfbf2c142c4094efb6e5041fd7" prot="public" static="no">
+        <name>SL_BT_EVENT_MASK_PUBLIC</name>
+        <initializer>((uint32_t) 0x01)</initializer>
+        <briefdescription>
+<para>Event mask bit set in all public Bluetooth host events. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="59" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="59" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Event Mask values used with Event System. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>When the component <computeroutput>bluetooth_event_system_ipc</computeroutput> is included in the application, the Bluetooth host stack events are published using the Event System provided by the <computeroutput>event_system</computeroutput> component. The constants in this group define the event masks used for Bluetooth host stack events. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,49 @@
+/***************************************************************************//**
+ * @file sl_ulp_timer_init.c.jinja
+ * @brief ULP timer Instance Initialization
+ *******************************************************************************
+ * # License
+ * <b>Copyright 2020 Silicon Laboratories Inc. www.silabs.com</b>
+ *******************************************************************************
+ *
+ * SPDX-License-Identifier: Zlib
+ *
+ * The licensor of this software is Silicon Laboratories Inc.
+ *
+ * This software is provided 'as-is', without any express or implied
+ * warranty. In no event will the authors be held liable for any damages
+ * arising from the use of this software.
+ *
+ * Permission is granted to anyone to use this software for any purpose,
+ * including commercial applications, and to alter it and redistribute it
+ * freely, subject to the following restrictions:
+ *
+ * 1. The origin of this software must not be misrepresented; you must not
+ *    claim that you wrote the original software. If you use this software
+ *    in a product, an acknowledgment in the product documentation would be
+ *    appreciated but is not required.
+ * 2. Altered source versions must be plainly marked as such, and must not be
+ *    misrepresented as being the original software.
+ * 3. This notice may not be removed or altered from any source distribution.
+ *
+ ******************************************************************************/
+
+#include "sl_si91x_ulp_timer.h"
+{% for inst in ulp_timer_instance %}
+#include "sl_si91x_ulp_timer_init_{{ inst }}_config.h"
+{% endfor %}
+
+#include "sl_ulp_timer_instances.h"
+
+
+{% for inst in ulp_timer_instance %}
+ulp_timer_config_t sl_timer_handle_{{ inst }} = {
+		.timer_num =              SL_ULP_TIMER_{{ inst | upper }},
+		.timer_mode =             SL_ULP_TIMER_{{ inst | upper }}_MODE,
+		.timer_type =             SL_ULP_TIMER_{{ inst | upper }}_TYPE,
+		.timer_match_value =      SL_TIMER_MATCH_VALUE_DEFAULT,
+		.timer_direction =        SL_ULP_TIMER_{{ inst | upper }}_DIRECTION,
+};
+{% endfor %}
+
+

@@ -1,0 +1,2 @@
+from .lut_wisun_fan1v0 import LutWisunFan1v0
+from .lut_wisun_fan1v1 import LutWisunFan1v1

@@ -1,0 +1,41 @@
+project_name: bt-bootloader-storage-internal-single
+package: bluetooth_le_app
+quality: experimental
+label: Bootloader - SoC Internal Storage
+description: >
+  This sample configuration of the Gecko bootloader configures the bootloader to use the internal main flash to store
+  firmware update images. The storage configuration is set up to store a single firmware update image at a time, in a
+  single storage slot. The storage slot start address and size is calculated automatically based on the flash size and
+  flash start address. The SLOT_CUSTOM_CONFIG configuration option can be enabled to customize the slot configuration.
+
+category: Example|Bootloader
+filter:
+  - name: "Device Type"
+    value: ["SoC"]
+  - name: "Project Difficulty"
+    value: ["Advanced"]
+  - name: "MCU"
+    value: ["Bootloader"]
+
+component:
+  - id: bootloader_core
+  - id: bootloader_crc
+  - id: bootloader_aes_sha_ecdsa
+  - id: bootloader_internal_storage
+  - id: bootloader_storage_slots
+  - id: bootloader_image_parser
+  - id: bootloader_common_storage_single
+  - id: bootloader_token_management
+  - id: bootloader_debug
+
+configuration:
+  - name: SLOT_CUSTOM_CONFIG
+    value: 0
+
+post_build:
+  - path: ../postbuild_profile/bt_dfu_btl.slpb
+
+tag:
+  - toolchain:gcc
+  - companion:application
+  - hwfilter:device:device_series_2

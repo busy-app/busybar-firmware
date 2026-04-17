@@ -1,0 +1,63 @@
+id: psa_se_driver
+package: security_mbedtls
+label: PSA SE Driver Source Code
+description: >-
+  This component includes the Silicon Labs PSA SE drivers source code files.
+category: Platform|Security|PSA Crypto
+quality: production
+ui_hints:
+  visibility: never
+provides:
+- name: psa_se_driver
+
+requires:
+- name: device_has_semailbox
+- name: psa_driver_common
+- name: se_manager
+- name: sli_crypto_ksu_manager
+  condition: [device_has_ksu]
+
+
+conflicts:
+- name: tz_secure_key_library_ns
+
+source:
+  # Common source for transparent and opaque drivers
+- path: src/sli_se_driver_builtin_keys.c
+- path: src/sli_se_driver_key_management.c
+- path: src/sli_se_driver_key_derivation.c
+- path: src/sli_se_driver_aead.c
+- path: src/sli_se_driver_mac.c
+- path: src/sli_se_driver_signature.c
+- path: src/sli_se_driver_cipher.c
+
+  # Transparent drivers
+- path: src/sli_se_transparent_driver_cipher.c
+- path: src/sli_se_transparent_driver_hash.c
+- path: src/sli_se_transparent_driver_aead.c
+- path: src/sli_se_transparent_driver_mac.c
+- path: src/sli_se_transparent_key_derivation.c
+
+  # Opaque drivers
+- path: src/sli_se_opaque_driver_mac.c
+- path: src/sli_se_opaque_key_derivation.c
+- path: src/sli_se_opaque_driver_cipher.c
+- path: src/sli_se_opaque_driver_aead.c
+
+include:
+- path: inc
+  file_list:
+  - path: sli_se_driver_aead.h
+  - path: sli_se_driver_cipher.h
+  - path: sli_se_driver_key_derivation.h
+  - path: sli_se_driver_key_management.h
+  - path: sli_se_driver_mac.h
+  - path: sli_se_opaque_functions.h
+  - path: sli_se_opaque_types.h
+  - path: sli_se_transparent_functions.h
+  - path: sli_se_transparent_types.h
+
+metadata:
+  sbom:
+    license: Zlib
+root_path: security_mbedtls/platform/security/sl_component/sl_psa_driver

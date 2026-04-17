@@ -1,0 +1,56 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="ble__indexPage_8md" kind="file" language="Markdown">
+    <compoundname>ble_indexPage.md</compoundname>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline><highlight class="normal">#<sp/>Overview</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">This<sp/>document<sp/>contains<sp/>the<sp/>full<sp/>API<sp/>reference<sp/>for<sp/>the<sp/>Silicon<sp/>Labs<sp/>Bluetooth<sp/>Software.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">The<sp/>Blue<sp/>Gecko<sp/>family<sp/>of<sp/>the<sp/>Silicon<sp/>Labs&apos;<sp/>Bluetooth<sp/>chipsets<sp/>deliver<sp/>a<sp/>high<sp/>performance,</highlight></codeline>
+<codeline><highlight class="normal">low<sp/>energy<sp/>and<sp/>easy-to-use<sp/>Bluetooth<sp/>solution<sp/>integrated<sp/>into<sp/>a<sp/>small<sp/>form<sp/>factor<sp/>package.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">The<sp/>ultra-low<sp/>power<sp/>operating<sp/>modes<sp/>and<sp/>fast<sp/>wake-up<sp/>times<sp/>of<sp/>the<sp/>Silicon<sp/>Labs&apos;</highlight></codeline>
+<codeline><highlight class="normal">energy<sp/>friendly<sp/>32-bit<sp/>MCUs,<sp/>combined<sp/>with<sp/>the<sp/>low<sp/>transmit<sp/>and<sp/>receive<sp/>power</highlight></codeline>
+<codeline><highlight class="normal">consumption<sp/>of<sp/>the<sp/>Bluetooth<sp/>radio,<sp/>result<sp/>in<sp/>a<sp/>solution<sp/>optimized<sp/>for<sp/>battery</highlight></codeline>
+<codeline><highlight class="normal">powered<sp/>applications.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>API<sp/>Payload</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">The<sp/>parameters<sp/>of<sp/>a<sp/>Bluetooth<sp/>API<sp/>command,<sp/>response,<sp/>or<sp/>event<sp/>are<sp/>passed<sp/>between</highlight></codeline>
+<codeline><highlight class="normal">the<sp/>application<sp/>and<sp/>firmware<sp/>in<sp/>a<sp/>payload.<sp/>For<sp/>example,<sp/>a<sp/>parameter<sp/>of<sp/>uint32_t</highlight></codeline>
+<codeline><highlight class="normal">type<sp/>uses<sp/>4<sp/>bytes<sp/>of<sp/>the<sp/>payload<sp/>space.<sp/>A<sp/>byte<sp/>array<sp/>parameter<sp/>uses<sp/>one<sp/>byte<sp/>to</highlight></codeline>
+<codeline><highlight class="normal">describe<sp/>the<sp/>length<sp/>of<sp/>the<sp/>array.<sp/>Data<sp/>in<sp/>the<sp/>array<sp/>is<sp/>copied<sp/>into<sp/>the<sp/>remaining</highlight></codeline>
+<codeline><highlight class="normal">free<sp/>payload<sp/>space.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>API<sp/>Payload<sp/>Size</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">The<sp/>payload<sp/>size<sp/>is<sp/>configurable<sp/>using<sp/>SL_BGAPI_MAX_PAYLOAD_SIZE.<sp/>The</highlight></codeline>
+<codeline><highlight class="normal">configurable<sp/>range<sp/>is<sp/>from<sp/>256<sp/>bytes<sp/>(minimum)<sp/>to<sp/>2047<sp/>bytes<sp/>(maximum).</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">The<sp/>API<sp/>library<sp/>validates<sp/>payload<sp/>sizes<sp/>when<sp/>commands<sp/>are<sp/>called:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>**SL_STATUS_COMMAND_TOO_LONG<sp/>(0x49)**:<sp/>Returned<sp/>when<sp/>the<sp/>combined<sp/>size<sp/>of</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>input<sp/>parameters<sp/>exceeds<sp/>the<sp/>configured<sp/>payload<sp/>size<sp/>limit.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>**SL_STATUS_WOULD_OVERFLOW<sp/>(0x1d)**:<sp/>Returned<sp/>when<sp/>the<sp/>buffer<sp/>size<sp/>provided</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>for<sp/>an<sp/>output<sp/>parameter<sp/>is<sp/>insufficient<sp/>to<sp/>hold<sp/>the<sp/>response<sp/>data.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Decode<sp/>API<sp/>Binary<sp/>Data</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">For<sp/>decoding<sp/>a<sp/>message<sp/>in<sp/>binary<sp/>format,<sp/>see<sp/>@ref<sp/>decode_bgapi_message.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Deprecations</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Deprecated<sp/>commands,<sp/>enumerations,<sp/>and<sp/>events<sp/>are<sp/>documented<sp/>in<sp/>this<sp/>API<sp/>reference</highlight></codeline>
+<codeline><highlight class="normal">manual.<sp/>It<sp/>is<sp/>highly<sp/>recommended<sp/>to<sp/>migrate<sp/>to<sp/>the<sp/>replacements<sp/>as<sp/>early<sp/>as<sp/>possible.</highlight></codeline>
+<codeline><highlight class="normal">A<sp/>deprecated<sp/>command<sp/>may<sp/>not<sp/>support<sp/>new<sp/>features<sp/>although<sp/>it<sp/>remains<sp/>functional</highlight></codeline>
+<codeline><highlight class="normal">on<sp/>current<sp/>Bluetooth<sp/>stack.<sp/>Deprecated<sp/>items<sp/>will<sp/>be<sp/>removed<sp/>in<sp/>some<sp/>future<sp/>release.</highlight></codeline>
+    </programlisting>
+    <location file="ble_indexPage.md"/>
+  </compounddef>
+</doxygen>

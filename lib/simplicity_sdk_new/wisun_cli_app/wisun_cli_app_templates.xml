@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="ASCII"?>
+<model:MDescriptors xmlns:model="http://www.silabs.com/ss/Studio.ecore">
+  <descriptors name="wisun_soc_brcli" label="Wi-SUN - SoC Border Router" description="This demo is an out-of-the-box Wi-SUN border router application. It provides a command-line interface to control basic configurations.">
+    <properties key="namespace" value="template.uc"/>
+    <properties key="keywords" value="universal\ configurator"/>
+    <properties key="solutionReferenceId" value="wisun_soc_brcli.wisun_soc_brcli.slcp"/>
+    <properties key="projectFilePaths" value="wisun_soc_brcli/wisun_soc_brcli.slcp"/>
+    <properties key="readmeFiles" value="wisun_soc_brcli/doc/readme.md"/>
+    <properties key="boardCompatibility" value="brd2705a brd4270a brd4270b brd4271a brd4272a brd4400a brd4400b brd4400c brd4401a brd4401b brd4401c com.silabs.board.none"/>
+    <properties key="partCompatibility" value=".*efr32fg25.* .*efr32fg28.* .*efr32zg28.*"/>
+    <properties key="ideCompatibility" value="generic-template iar-embedded-workbench makefile-ide simplicity-ide visual-studio-code"/>
+    <properties key="toolchainCompatibility" value="gcc iar segger"/>
+    <properties key="category" value="Wi-SUN Examples"/>
+    <properties key="quality" value="PRODUCTION"/>
+    <properties key="stockConfigCompatibility" value="com.silabs.ss.framework.project.toolchain.core.default"/>
+    <properties key="filters" value="Device\ Type|SoC Project\ Difficulty|Advanced Wireless\ Technology|Wi-SUN"/>
+  </descriptors>
+  <descriptors name="wisun_soc_brcli_wifi" label="Wi-SUN - SoC Border Router CLI with Wi-Fi connectivity" description="The Wi-SUN Border Router CLI (Command-Line Interface) sample application allows developers to easily evaluate the Wi-SUN stack APIs. The Wi-SUN command line interface provides a serial interface to a number of the Wi-SUN stack functions. For example, it can be used to create a Wi-SUN network and then to connect and exchange IP packets with Wi-SUN devices.">
+    <properties key="namespace" value="template.uc"/>
+    <properties key="keywords" value="universal\ configurator"/>
+    <properties key="solutionReferenceId" value="wisun_soc_brcli.wisun_soc_brcli_wifi.slcp"/>
+    <properties key="projectFilePaths" value="wisun_soc_brcli/wisun_soc_brcli_wifi.slcp"/>
+    <properties key="readmeFiles" value="wisun_soc_brcli/doc/readme.md"/>
+    <properties key="boardCompatibility" value="brd4270a brd4271a com.silabs.board.none"/>
+    <properties key="partCompatibility" value=".*efr32fg25.* .*efr32fg28.* .*efr32zg28.*"/>
+    <properties key="ideCompatibility" value="generic-template iar-embedded-workbench makefile-ide simplicity-ide visual-studio-code"/>
+    <properties key="toolchainCompatibility" value="gcc iar segger"/>
+    <properties key="category" value="Wi-SUN Examples"/>
+    <properties key="quality" value="EVALUATION"/>
+    <properties key="stockConfigCompatibility" value="com.silabs.ss.framework.project.toolchain.core.default"/>
+    <properties key="filters" value="Device\ Type|SoC Project\ Difficulty|Advanced Wireless\ Technology|Wi-SUN"/>
+  </descriptors>
+  <descriptors name="wisun_soc_cli" label="Wi-SUN - CLI example" description="The Wi-SUN CLI (Command-Line Interface) sample application allows developers to easily evaluate the Wi-SUN stack APIs. The Wi-SUN command line interface provides a serial interface to a number of the Wi-SUN stack functions. For example, it can be used to connect the Wi-SUN device to a Wi-SUN border router and exchange IP packets.">
+    <properties key="namespace" value="template.uc"/>
+    <properties key="keywords" value="universal\ configurator"/>
+    <properties key="solutionReferenceId" value="wisun_soc_cli.wisun_soc_cli.slcp"/>
+    <properties key="projectFilePaths" value="wisun_soc_cli/wisun_soc_cli.slcp"/>
+    <properties key="readmeFiles" value="wisun_soc_cli/doc/readme.md"/>
+    <properties key="boardCompatibility" value="brd2705a brd4270a brd4270b brd4271a brd4272a brd4276a brd4400a brd4400b brd4400c brd4401a brd4401b brd4401c com.silabs.board.none"/>
+    <properties key="partCompatibility" value=".*efr32fg25.* .*efr32fg28.* .*efr32zg28.*"/>
+    <properties key="ideCompatibility" value="generic-template iar-embedded-workbench makefile-ide simplicity-ide visual-studio-code"/>
+    <properties key="toolchainCompatibility" value="gcc iar segger"/>
+    <properties key="category" value="Wi-SUN Examples"/>
+    <properties key="quality" value="PRODUCTION"/>
+    <properties key="stockConfigCompatibility" value="com.silabs.ss.framework.project.toolchain.core.default"/>
+    <properties key="filters" value="Device\ Type|SoC Project\ Difficulty|Advanced Wireless\ Technology|Wi-SUN"/>
+  </descriptors>
+  <descriptors name="wisun_soc_lfn_cli" label="Wi-SUN - LFN CLI example" description="The Wi-SUN CLI (Command-Line Interface) sample application allows developers to easily evaluate the Wi-SUN LFN device. The Wi-SUN command line interface provides a serial interface to a number of the Wi-SUN stack functions. For example, it can be used to connect the Wi-SUN device to a Wi-SUN border router and exchange IP packets.">
+    <properties key="namespace" value="template.uc"/>
+    <properties key="keywords" value="universal\ configurator"/>
+    <properties key="solutionReferenceId" value="wisun_soc_cli.wisun_soc_lfn_cli.slcp"/>
+    <properties key="projectFilePaths" value="wisun_soc_cli/wisun_soc_lfn_cli.slcp"/>
+    <properties key="readmeFiles" value="wisun_soc_cli/doc/readme_lfn.md"/>
+    <properties key="boardCompatibility" value="brd2705a brd4270a brd4270b brd4271a brd4272a brd4400a brd4400b brd4400c brd4401a brd4401b brd4401c com.silabs.board.none"/>
+    <properties key="partCompatibility" value=".*efr32fg25.* .*efr32fg28.* .*efr32zg28.*"/>
+    <properties key="ideCompatibility" value="generic-template iar-embedded-workbench makefile-ide simplicity-ide visual-studio-code"/>
+    <properties key="toolchainCompatibility" value="gcc iar segger"/>
+    <properties key="category" value="Wi-SUN Examples"/>
+    <properties key="quality" value="EVALUATION"/>
+    <properties key="stockConfigCompatibility" value="com.silabs.ss.framework.project.toolchain.core.default"/>
+    <properties key="filters" value="Device\ Type|SoC Project\ Difficulty|Advanced Wireless\ Technology|Wi-SUN"/>
+  </descriptors>
+</model:MDescriptors>

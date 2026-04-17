@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="dir_8edd9ac24cbd09e41fae61a2ec72a9dd" kind="dir">
+    <compoundname>components/device/silabs/si91x/wireless/crypto/ccm/inc</compoundname>
+    <innerfile refid="sl__si91x__ccm_8h">sl_si91x_ccm.h</innerfile>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="components/device/silabs/si91x/wireless/crypto/ccm/inc/"/>
+  </compounddef>
+</doxygen>

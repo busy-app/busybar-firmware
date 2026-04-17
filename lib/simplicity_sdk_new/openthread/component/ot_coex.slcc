@@ -1,0 +1,60 @@
+id: ot_coex
+label: Coexistence
+package: openthread
+category: OpenThread
+quality: production
+description: This component provides support for Wi-Fi coexistence with OpenThread
+provides:
+- name: ot_coex
+requires:
+- name: ot_platform_abstraction
+- name: rail_util_coex
+- name: rail_util_ieee802154_stack_event
+- name: sl_rail_util_ieee802154_phy_select
+- name: sl_ot_custom_cli
+  condition: [ot_cli]
+- name: ot_ncp_vendor_extension
+  condition: [ot_ncp]
+recommends:
+- id: ot_platform_abstraction
+  vendor: silabs
+config_file:
+- path: config/sl_openthread_coex_config.h
+- path: config/sl_openthread_coex_cli_config.h
+  condition: [ot_cli]
+toolchain_settings:
+- option: preinclude
+  value: sl_openthread_coex_config.h
+- option: preinclude
+  value: sl_openthread_coex_cli_config.h
+  condition: [ot_cli]
+template_contribution:
+- name: sl_ot_cli_command
+  value:
+    name: "coexistence"
+    handler: "coexCommand"
+    macro: "SL_OPENTHREAD_COEX_CLI_ENABLE"
+  condition: [sl_ot_custom_cli]
+- name: component_catalog
+  value: openthread_coex
+include:
+- path: include
+  file_list:
+  - path: sl_ot_phy_select.h
+- path: platform-abstraction/ncp/
+  condition: [ot_ncp]
+  file_list:
+  - path: ncp_coex.hpp
+source:
+- path: src/cli/coexistence_cli.c
+  unless: [ot_rcp]
+- path: platform-abstraction/ncp/ncp_coex.cpp
+  condition: [ot_ncp]
+define:
+- name: OPENTHREAD_CONFIG_NCP_SPI_BUFFER_SIZE
+  value: 1300
+  condition: [ot_cli, ot_ncp_spidrv]
+metadata:
+  sbom:
+    license: Zlib
+root_path: openthread

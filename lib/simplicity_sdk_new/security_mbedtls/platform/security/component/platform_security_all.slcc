@@ -1,0 +1,150 @@
+id: platform_security_all
+package: security_mbedtls
+label: Platform Security All
+description: Helper including all components and all relevant configs.
+category: Platform|Security|Internal
+# Quality set to evaluation to ensure component is part of packaged SDK
+quality: evaluation
+ui_hints:
+  visibility: never
+provides:
+- name: platform_security_all
+
+requires:
+- name: mbedtls_aes
+- name: mbedtls_asn1
+- name: mbedtls_base64
+- name: mbedtls_ccm
+- name: mbedtls_chachapoly
+- name: mbedtls_cipher_cbc
+- name: mbedtls_cipher_cfb
+- name: mbedtls_cipher_ctr
+- name: mbedtls_cipher_ofb
+- name: mbedtls_cipher_padding_pkcs7
+- name: mbedtls_cipher_xts
+- name: mbedtls_cmac
+- name: mbedtls_debug
+- name: mbedtls_dtls
+- name: mbedtls_ecc_curve25519
+- name: mbedtls_ecc_curve448
+- name: mbedtls_ecc_secp192r1
+- name: mbedtls_ecc_secp224r1
+- name: mbedtls_ecc_secp256r1
+- name: mbedtls_ecc_secp384r1
+- name: mbedtls_ecc_secp521r1
+- name: mbedtls_ecdh
+- name: mbedtls_ecdhe_key_exchange
+- name: mbedtls_ecdsa
+- name: mbedtls_ecdsa_deterministic
+- name: mbedtls_entropy_default
+
+    # Don't want this on FPGA builds yet (due to NVM3 issues).
+- name: mbedtls_entropy_nvseed
+  condition: [device_series_2]
+
+- name: mbedtls_error
+- name: mbedtls_gcm
+- name: mbedtls_hash
+- name: mbedtls_hkdf
+- name: mbedtls_hmac
+- name: mbedtls_jpake
+- name: mbedtls_md5
+- name: mbedtls_mpi
+- name: mbedtls_nist_kw
+- name: mbedtls_oid
+- name: mbedtls_pem
+- name: mbedtls_pkcs12
+- name: mbedtls_pkcs1_v15
+- name: mbedtls_pkcs1_v21
+- name: mbedtls_pkcs5
+- name: mbedtls_pki
+- name: mbedtls_random
+- name: mbedtls_rsa_1024
+- name: mbedtls_rsa_2048
+- name: mbedtls_rsa_4096
+- name: mbedtls_rsa_8192
+- name: mbedtls_sha1
+- name: mbedtls_sha224
+- name: mbedtls_sha256
+- name: mbedtls_sha384
+- name: mbedtls_sha512
+- name: mbedtls_tls
+- name: mbedtls_tls_server
+- name: mbedtls_version
+- name: mbedtls_x509
+- name: psa_builtin_key_support_cryptoacc
+  condition: [device_has_cryptoacc, device_has_sepuf]
+- name: psa_builtin_key_support_se
+  condition: [device_has_semailbox]
+- name: psa_crypto_aes
+- name: psa_crypto_ccm
+- name: psa_crypto_chachapoly
+- name: psa_crypto_cipher_cbc
+- name: psa_crypto_cipher_cbc_pkcs7
+- name: psa_crypto_cipher_cfb
+- name: psa_crypto_cipher_chacha20
+- name: psa_crypto_cipher_ctr
+- name: psa_crypto_cipher_ecb
+- name: psa_crypto_cipher_ofb
+- name: psa_crypto_cipher_xts
+- name: psa_crypto_cmac
+- name: psa_crypto_ecc_curve25519
+- name: psa_crypto_ecc_curve448
+- name: psa_crypto_ecc_edwards25519
+  condition: [device_has_semailbox]
+- name: psa_crypto_ecc_secp192r1
+- name: psa_crypto_ecc_secp224r1
+- name: psa_crypto_ecc_secp256k1
+- name: psa_crypto_ecc_secp256r1
+- name: psa_crypto_ecc_secp384r1
+- name: psa_crypto_ecc_secp521r1
+- name: psa_crypto_ecdh
+- name: psa_crypto_ecdsa
+- name: psa_crypto_eddsa
+  condition: [device_has_semailbox]
+- name: psa_crypto_gcm
+- name: psa_crypto_gcm_full
+- name: psa_crypto_hash
+- name: psa_crypto_hkdf
+- name: psa_crypto_hmac
+- name: psa_crypto_jpake
+- name: psa_crypto_md5
+- name: psa_crypto_pbkdf2_hmac
+- name: psa_crypto_pbkdf2_cmac
+- name: psa_crypto_rsa_1024
+- name: psa_crypto_rsa_2048
+- name: psa_crypto_rsa_4096
+- name: psa_crypto_rsa_8192
+- name: psa_crypto_rsa_crypt_legacy
+- name: psa_crypto_rsa_crypt_oaep
+- name: psa_crypto_rsa_sign_legacy
+- name: psa_crypto_rsa_sign_pss
+- name: psa_crypto_sha1
+- name: psa_crypto_sha224
+- name: psa_crypto_sha256
+- name: psa_crypto_sha384
+- name: psa_crypto_sha512
+- name: psa_crypto_tls12_prf
+- name: psa_crypto_tls12_psk_to_ms
+
+    # Don't want this on FPGA builds yet (due to NVM3 issues).
+- name: psa_its
+  condition: [device_series_2]
+
+- name: se_manager
+
+- name: sli_protocol_crypto
+  condition: [device_series_2]
+
+  # Non-PSEC components (placed here because conditionals are not supported in
+  # SLC projects).
+  # Don't want this on FPGA builds yet (due to emlib_se issues).
+- name: micriumos_kernel
+  condition: [device_series_2, toolchain_gcc]
+- name: micriumos_kernel
+  condition: [device_series_2, toolchain_iar]
+
+metadata:
+  sbom:
+    license: Zlib
+root_path: security_mbedtls

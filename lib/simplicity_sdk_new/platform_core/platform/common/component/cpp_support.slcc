@@ -1,0 +1,21 @@
+id: cpp_support
+label: 'Toolchain: C++ Support'
+description: >
+  C++ support for project. Adds C++ standard library for GCC.
+package: platform_core
+category: Platform|Toolchain
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+library:
+- system: stdc++
+  condition: [toolchain_gcc]
+- system: c++
+  condition: [toolchain_llvm]
+provides:
+- name: cpp_support
+template_contribution:
+- name: component_catalog
+  value: cpp_support
+root_path: platform_core

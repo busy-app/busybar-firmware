@@ -1,0 +1,98 @@
+project_name: ble_power_save_psram
+package: bluetooth_le_siwx91x_app
+quality: production
+label: BLE - Power Save (PSRAM)
+category: Example|BLE
+description: 'This application demonstrates how to configure the device in power save  profile with Advertising mode.
+
+  '
+filter:
+- name: Wireless Technology
+  value:
+  - BLE
+- name: Project Difficulty
+  value:
+  - Beginner
+source:
+- path: app.c
+include:
+- path: .
+  file_list:
+  - path: app.h
+  - path: ble_config.h
+define:
+- name: SL_SI91X_PRINT_DBG_LOG
+- name: SLI_SI91X_MCU_ENABLE_PSRAM_FEATURE
+template_contribution:
+- name: event_handler
+  condition:
+  - sli_si91x_mcu_interface
+  value:
+    event: platform_init
+    include: rsi_wisemcu_hardware_setup.h
+    handler: sl_si91x_hardware_setup
+  priority: -9994
+component:
+- id: sl_main
+- id: freertos
+- id: freertos_heap_4
+- id: syscalls
+- id: si91x_memory_default_config
+- id: wiseconnect_common
+- id: wifi
+- id: sl_si91x_internal_stack
+- id: wifi_resources
+- id: network_manager
+- id: basic_network_config_manager
+- id: ble
+- id: psram_core
+- id: psram_aps6404l_sqh
+- id: text_segment_in_psram
+- id: data_segment_in_psram
+- id: sl_si91x_basic_buffers
+- id: sl_power_manager
+- id: wireless_wakeup_ulp_component
+requires:
+- name: device_needs_ram_execution
+  condition:
+  - si91x_common_flash
+toolchain_settings:
+- option: gcc_compiler_option
+  value: -Wall -Werror
+configuration:
+- name: SL_BOARD_ENABLE_VCOM
+  value: '1'
+readme:
+- path: readme.md
+other_file:
+- path: resources/readme/ble_power_save_soc_ncp.png
+- path: resources/readme/blepowersavencpmeasurement.png
+- path: resources/readme/blepowersaveadvertising.png
+- path: resources/readme/blepowersavedeviceconnection.png
+- path: resources/readme/blepwlog.png
+- path: resources/readme/output1.png
+- path: resources/readme/blepowersavecurrentmeasurementpins.png
+- path: resources/readme/blepowersavencpmeasurement.png
+- path: resources/readme/blepwsocadv.png
+- path: resources/readme/ble_power_save_conn_soc.png
+- path: resources/readme/ble_ps_conn_adv_ncp.png
+- path: resources/readme/ble_ps_conn_adv_psram.png
+- path: resources/readme/ble_ps_conn_adv_soc.png
+- path: resources/readme/ble_ps_conn_soc.png
+- path: resources/readme/output2.png
+- path: resources/readme/blepowersavedeviceconnection1.png
+- path: resources/readme/blepowersavedeviceconnection2.png
+ui_hints:
+  highlight:
+  - path: readme.md
+    focus: true
+post_build:
+  profile: wiseconnect_soc
+sdk_extension:
+- id: wiseconnect3_sdk
+  vendor: silabs
+  version: 4.0.1
+sdk:
+  id: simplicity_sdk
+  vendor: silabs
+  version: 2025.12.2

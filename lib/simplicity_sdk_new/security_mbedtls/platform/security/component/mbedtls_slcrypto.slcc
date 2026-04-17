@@ -1,0 +1,48 @@
+id: mbedtls_slcrypto
+package: security_mbedtls
+label: Silicon Labs Mbed TLS support
+description: >-
+  This component provides Silicon Labs specific support for Mbed TLS.
+category: Platform|Security|Mbed TLS
+quality: production
+ui_hints:
+  visibility: never
+source:
+- path: sl_component/sl_mbedtls_support/src/sl_mbedtls.c
+
+include:
+- path: sl_component/sl_mbedtls_support/inc
+  file_list:
+  - path: sl_mbedtls.h
+
+requires:
+- name: mbedtls_slcrypto_driver
+  condition: [trustzone_unaware]
+- name: mbedtls_slcrypto_driver
+  condition: [trustzone_secure]
+
+- name: mbedtls_threading_alt
+  condition: [freertos]
+- name: mbedtls_threading_alt
+  condition: [micriumos]
+
+recommends:
+  # The require + recommend approach is used for allowing alternative user defined
+  # threading configuration.
+- id: mbedtls_threading_alt_cmsis_rtos2
+
+  vendor: silabs
+provides:
+- name: mbedtls_slcrypto
+
+template_contribution:
+- name: event_handler
+  value:
+    event: service_init
+    include: sl_mbedtls.h
+    handler: sl_mbedtls_init
+
+metadata:
+  sbom:
+    license: Zlib
+root_path: security_mbedtls/platform/security

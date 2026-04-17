@@ -1,0 +1,79 @@
+id: "wisun_mac_library"
+label: "Wi-SUN MAC (Library)"
+description: "Provide Wi-SUN MAC library"
+package: "wisun"
+category: "Wi-SUN"
+quality: "production"
+root_path: "wisun/./stack"
+
+ui_hints:
+  visibility: never
+
+requires:
+- name: "wisun_mac"
+
+provides:
+- name: "wisun_mac_implementation"
+- name: "wisun_mac_library"
+
+library:
+- path: "libwisun_mac_efr32xg2x_gcc_debug.a"
+  condition:
+  - "toolchain_gcc"
+  - "device_series_2"
+  - "wisun_stack_debug"
+  unless:
+  - "device_sdid_210"
+- path: "libwisun_mac_efr32xg2x_iar_debug.a"
+  condition:
+  - "toolchain_iar"
+  - "device_series_2"
+  - "wisun_stack_debug"
+  unless:
+  - "device_sdid_210"
+- path: "libwisun_mac_efr32xg23_gcc_debug.a"
+  condition:
+  - "toolchain_gcc"
+  - "device_sdid_210"
+  - "wisun_stack_debug"
+- path: "libwisun_mac_efr32xg23_iar_debug.a"
+  condition:
+  - "toolchain_iar"
+  - "device_sdid_210"
+  - "wisun_stack_debug"
+
+- path: "libwisun_mac_efr32xg2x_gcc_release.a"
+  condition:
+  - "toolchain_gcc"
+  - "device_series_2"
+  unless:
+  - "device_sdid_210"
+  - "wisun_stack_debug"
+- path: "libwisun_mac_efr32xg2x_iar_release.a"
+  condition:
+  - "toolchain_iar"
+  - "device_series_2"
+  unless:
+  - "device_sdid_210"
+  - "wisun_stack_debug"
+- path: "libwisun_mac_efr32xg23_gcc_release.a"
+  condition:
+  - "toolchain_gcc"
+  - "device_sdid_210"
+  unless:
+  - "wisun_stack_debug"
+- path: "libwisun_mac_efr32xg23_iar_release.a"
+  condition:
+  - "toolchain_iar"
+  - "device_sdid_210"
+  unless:
+  - "wisun_stack_debug"
+
+metadata:
+  sbom:
+    license: MSLA AND Apache-2.0
+    upstream:
+      name: Nanostack
+      version: 14.0.0
+      supplier: Pelion and affiliates
+      url: https://github.com/ARMmbed/mbed-os/tree/9957e7b4ae4315e6d1d2bc064c469e69fb34ff78/features/nanostack

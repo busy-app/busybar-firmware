@@ -1,0 +1,38 @@
+id: sl_config_timer
+label: Config Timer
+package: platform_siwx91x
+description: >
+  Configurable timers driver can be used for modulated signal output, event capture on
+  the GPIOs in input mode, and clock and event counting.
+  They can be configured to generate Pulse Width Modulation (PWM) output,
+  In accordance with the ON and OFF periods that are programmed.
+  Config timer will trigger interrupt on occurance of an event or reaching 
+  match count value and notifies via callback functions.
+  When you install this component, it will also be installing the  Config timer dependency component, 
+  which is the Config timer driver's implementation. 
+category: Device|Si91x|MCU|Peripheral
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: "components/device/silabs/si91x/mcu/drivers/unified_api"
+config_file:
+  - path: config/sl_si91x_config_timer_config.h
+    file_id: config_timer_config
+source:
+  - path: "src/sl_si91x_config_timer.c"
+include:
+  - path: "inc"
+    file_list:
+    - path: "sl_si91x_config_timer.h"
+provides:
+  - name: sl_config_timer
+requires:
+  - name: udma_linker_config
+  - name: rsilib_ct
+  - name: sl_dma
+define:
+  - name: SL_SI91X_REQUIRES_INTF_PLL
+documentation:
+    docset: wiseconnect
+    document: wiseconnect-api-reference-guide-si91x-peripherals/config-timer

@@ -1,0 +1,21 @@
+id: trustzone_secure
+label: TrustZone Secure
+description: >
+  Set up application configuration to create TrustZone Secure application.
+package: platform_core
+category: Platform|TrustZone
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: platform_core/platform/common
+define:
+- name: SL_TRUSTZONE_SECURE
+provides:
+- name: trustzone_secure
+- name: trustzone_security_state
+requires:
+- name: cortexm33
+template_contribution:
+- name: trustzone_secure
+  value: 1

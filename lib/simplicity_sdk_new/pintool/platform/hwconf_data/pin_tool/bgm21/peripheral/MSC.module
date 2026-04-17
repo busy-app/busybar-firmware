@@ -1,0 +1,36 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<module:DocumentRoot xmlns:module="http://www.silabs.com/ss/hwconfig/module.ecore">
+  <module id="pin_tool.efr32.bgm21.msc" label="MSC" name="MSC" description="" version="A">
+    <properties>
+      <stringProperty label="Type" id="type" defaultValue="msc" transient="true" hidden="true" readonly="true" description=""/>
+      <stringProperty label="Custom Peripheral Name" id="peripheral.name" description=""/>
+    </properties>
+    <propertyCategories>
+      <category label="MSC">
+        <subCategory label="">
+          <propertyRef refId="peripheral.name"/>
+        </subCategory>
+      </category>
+    </propertyCategories>
+    <signals>
+      <signal name="CDA_SEL1"/>
+      <signal name="CDA_SEL2"/>
+      <signal name="CDA_SEL3"/>
+      <signal name="CDA_SEL0"/>
+      <signal name="CDA_CLK"/>
+      <signal name="CDA_DATA4"/>
+      <signal name="CDA_DATA5"/>
+      <signal name="CDA_DATA6"/>
+      <signal name="CDA_DATA7"/>
+      <signal name="TSW_FLASH_TM0"/>
+      <signal name="CDA_DATA0"/>
+      <signal name="STB_BIST_SCLK"/>
+      <signal name="CDA_DATA1"/>
+      <signal name="STB_BIST_SCE"/>
+      <signal name="CDA_DATA2"/>
+      <signal name="STB_BIST_SI"/>
+      <signal name="CDA_DATA3"/>
+      <signal name="STB_BIST_SO"/>
+    </signals>
+  </module>
+</module:DocumentRoot>

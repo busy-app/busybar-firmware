@@ -1,0 +1,29 @@
+id: "ncp_btmesh_user_cmd"
+label: "NCP User Commands"
+package: bluetooth_mesh_middleware
+description: >
+  Demonstrates the communication between an NCP host and NCP target using
+  BGAPI user messages, responses and events. Can be used as a starting point
+  for creating custom commands or for testing purposes.
+category: "Bluetooth Mesh|Utility"
+quality: "production"
+metadata:
+  sbom:
+    license: Zlib
+root_path: "bluetooth_mesh_middleware/common/ncp_btmesh_user_cmd"
+source:
+- path: "ncp_btmesh_user_cmd.c"
+include:
+- path: ""
+  file_list:
+  - path: "ncp_btmesh_user_cmd.h"
+  - path: "ncp_btmesh_user_cmd_handler.h"
+template_file:
+- path: "ncp_btmesh_user_cmd_handler.c.jinja"
+provides:
+- name: "ncp_btmesh_user_cmd"
+requires:
+- name: "ncp"
+documentation:
+  docset: btmesh
+  document: btmesh-service-api/ncp-btmesh-user-cmd

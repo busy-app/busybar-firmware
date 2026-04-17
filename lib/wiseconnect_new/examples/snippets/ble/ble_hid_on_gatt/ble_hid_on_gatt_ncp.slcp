@@ -1,0 +1,81 @@
+project_name: ble_hid_on_gatt_ncp
+package: bluetooth_le_siwx91x_app
+quality: production
+label: BLE - HID On GATT (NCP)
+category: Example|BLE
+description: "This application demonstrates how to configure BLE device as GATT server in BLE peripheral mode and as GATT client in BLE central mode. \n"
+filter:
+- name: Wireless Technology
+  value:
+  - BLE
+- name: Project Difficulty
+  value:
+  - Beginner
+source:
+- path: app.c
+include:
+- path: .
+  file_list:
+  - path: app.h
+  - path: ble_config.h
+define:
+- name: SL_SI91X_PRINT_DBG_LOG
+component:
+- id: sl_main
+- id: freertos
+- id: freertos_heap_4
+- id: device_init
+- id: spidrv
+  instance:
+  - exp
+- id: iostream_retarget_stdio
+- id: iostream_recommended_stream
+- id: iostream_stdlib_config
+- id: wiseconnect_common
+- id: wifi
+- id: sl_si91x_internal_stack
+- id: sl_si91x_spi_bus
+- id: wifi_resources
+- id: network_manager
+- id: basic_network_config_manager
+- id: ble
+- id: sl_si91x_basic_buffers
+toolchain_settings:
+- option: gcc_linker_option
+  value: -u _printf_float
+- option: gcc_compiler_option
+  value: -Wall -Werror
+configuration:
+- name: SL_BOARD_ENABLE_VCOM
+  value: '1'
+- name: configTOTAL_HEAP_SIZE
+  value: '51200'
+- name: configUSE_POSIX_ERRNO
+  value: '1'
+- name: configTIMER_TASK_PRIORITY
+  value: '55'
+readme:
+- path: readme.md
+other_file:
+- path: resources/readme/ble_hid_on_gatt_soc_ncp.png
+- path: resources/readme/blehidadvertising.png
+- path: resources/readme/blehidpairing.png
+- path: resources/readme/blehidconnection.png
+- path: resources/readme/blehiddatatf.png
+- path: resources/readme/output_1.png
+- path: resources/readme/output_2.png
+- path: resources/readme/output_3.png
+- path: resources/readme/output_4.png
+- path: resources/readme/output_5.png
+ui_hints:
+  highlight:
+  - path: readme.md
+    focus: true
+sdk_extension:
+- id: wiseconnect3_sdk
+  vendor: silabs
+  version: 4.0.1
+sdk:
+  id: simplicity_sdk
+  vendor: silabs
+  version: 2025.12.2

@@ -1,0 +1,27 @@
+id: btmesh_stack_model_storage_v1_libraries_release
+ui_hints:
+  visibility: never
+package: bluetooth_mesh
+description: Libraries for btmesh_stack_model_storage_v1
+category: Bluetooth Mesh|Stack
+quality: production
+provides:
+- name: btmesh_stack_model_storage_v1_libraries_release
+- name: btmesh_stack_model_storage_v1_libraries
+library:
+- path: build/gcc/cortex-m33/hal/release/libbtmesh_model_storage_v1.a
+  condition:
+  - toolchain_gcc
+  - cortexm33
+- path: build/iar/cortex-m33/hal/release/libbtmesh_model_storage_v1.a
+  condition:
+  - toolchain_iar
+  - cortexm33
+- path: build/llvm/cortex-m33/hal/release/libbtmesh_model_storage_v1.a
+  condition:
+  - toolchain_llvm
+  - cortexm33
+metadata:
+  sbom:
+    reference: btmesh_stack
+root_path: bluetooth_mesh

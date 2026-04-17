@@ -1,0 +1,19 @@
+id: "sl_rail_sdk_fifo_size"
+label: "FIFO size values"
+package: "rail_sdk"
+description: "Provides apps with adjustable RAIL configuration values like TX and RX FIFO capacity."
+category: "RAIL-SDK|Utility"
+quality: "production"
+metadata:
+  sbom:
+    license: Zlib
+root_path: "rail_sdk/component/sl_rail_sdk_fifo_size"
+provides:
+- name: "sl_rail_sdk_fifo_size"
+config_file:
+- path: "config/sl_rail_sdk_fifo_size_config.h"
+
+template_contribution:
+#---------------- Component Catalog ------------------
+- name: component_catalog
+  value: sl_rail_sdk_fifo_size

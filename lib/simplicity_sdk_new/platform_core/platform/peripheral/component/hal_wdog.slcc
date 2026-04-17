@@ -1,0 +1,51 @@
+# This HAL applies to series 2 and 3 devices.
+id: hal_wdog
+label: WDOG
+package: platform_core
+description: >
+  Watchdog (WDOG) peripheral API
+category: Platform|Peripheral|HAL
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+source:
+- path: src/sl_hal_wdog.c
+include:
+- path: inc
+  file_list:
+  - path: sl_hal_wdog.h
+provides:
+- name: hal_wdog
+- name: hal_generic_wdog
+  condition: [device_series_3]
+requires:
+- name: device
+- name: device_has_wdog
+- name: hal_common
+- name: cmsis_core
+- name: enum
+documentation:
+  docset: gecko-platform
+  document:
+  - page: platform-peripheral-efr32xg21/wdog
+    condition: [device_sdid_200]
+  - page: platform-peripheral-efr32xg22/wdog
+    condition: [device_sdid_205]
+  - page: platform-peripheral-efr32xg23/wdog
+    condition: [device_sdid_210]
+  - page: platform-peripheral-efr32xg24/wdog
+    condition: [device_sdid_215]
+  - page: platform-peripheral-efr32xg25/wdog
+    condition: [device_sdid_220]
+  - page: platform-peripheral-efr32xg26/wdog
+    condition: [device_sdid_225]
+  - page: platform-peripheral-efr32xg27/wdog
+    condition: [device_sdid_230]
+  - page: platform-peripheral-efr32xg28/wdog
+    condition: [device_sdid_235]
+  - page: platform-peripheral-efr32xg29/wdog
+    condition: [device_sdid_240]
+  - page: platform-peripheral-sixg301/wdog
+    condition: [device_generic_family_sixx301]
+root_path: platform_core/platform/peripheral

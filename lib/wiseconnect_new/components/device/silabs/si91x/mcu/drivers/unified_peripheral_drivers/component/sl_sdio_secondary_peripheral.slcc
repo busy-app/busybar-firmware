@@ -1,0 +1,24 @@
+id: sl_sdio_secondary_peripheral
+label: SL SDIO Secondary Peripheral
+package: platform_siwx91x
+description: >
+  The SDIO Secondary application shows how to read and write data in SDIO Secondary
+  and demonstrates about soc clock setting, sdio secondary  initialization, 
+  transmitting and receiving the data to and from the sdio master.
+category: Device|Si91x|MCU|Peripheral|Register-Level API
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: "components/device/silabs/si91x/mcu/drivers/unified_peripheral_drivers"
+provides:
+  - name: sl_sdio_secondary_peripheral
+requires:
+  - name: romdriver_gpdma
+  - name: rsilib_gpdma
+source:
+  - path: src/sl_si91x_peripheral_sdio_secondary.c
+include:
+  - path: inc
+    file_list:
+      - path: sl_si91x_peripheral_sdio_secondary.h

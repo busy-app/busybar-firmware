@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<contentItems xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.silabs.com/ss/ContentItem.ecore">
+
+  <contentItemData label="WiSeConnect SDK NCP Getting Started Guide" itemURI="https://docs.silabs.com/wiseconnect/4.0.1/wiseconnect-getting-started/getting-started-with-ncp-mode-with-efr32" category="Quick Start Guides" priority="1">
+    <property key="core.category" value="Quick Start Guides"/>
+    <property key="core.priority" value="1"/>
+    <property key="core.boardCompatibility" value=""/>
+    <property key="core.partCompatibility" value=".*siwn.*"/>
+    <property key="core.sdkAndProtocolTags" value="WiSeConnect"/>
+    <description>Get started with developing an application for the SiWx91x™ chipset family using the WiSeConnect™ SDK with an EFR32™ host in Network Co-Processor (NCP) mode, where the application runs on the EFR32 host and the connectivity stack runs on the SiWx91x chipset.</description>
+  </contentItemData>
+
+  <contentItemData label="WiSeConnect SDK Release Notes" itemURI="https://docs.silabs.com/wiseconnect/4.0.1/sisdk-wifi-release-notes/" category="Release Notes" priority="3">
+    <property key="core.category" value="Release Notes"/>
+    <property key="core.priority" value="3"/>
+    <property key="core.boardCompatibility" value=""/>
+    <property key="core.partCompatibility" value=".*siwg.* .*siwn.*"/>
+    <property key="core.sdkAndProtocolTags" value="WiSeConnect"/>
+    <description>Release Notes for the WiSeConnect SDK. These release notes provide information on the release including part compatibility, changes, and supported features.</description>
+  </contentItemData>
+
+  <contentItemData label="WiSeConnect SDK SoC Getting Started Guide" itemURI="https://docs.silabs.com/wiseconnect/4.0.1/wiseconnect-getting-started/getting-started-with-soc-mode" category="Quick Start Guides" priority="1">
+    <property key="core.category" value="Quick Start Guides"/>
+    <property key="core.priority" value="1"/>
+    <property key="core.boardCompatibility" value=""/>
+    <property key="core.partCompatibility" value=".*siwg.*"/>
+    <property key="core.sdkAndProtocolTags" value="WiSeConnect"/>
+    <description>Get started with running the out-of-box demo for the SiWx91x™ chipset family using the WiSeConnect™ SDK in System-on-chip (SoC) mode, where both the application and the connectivity stack run on the SiWx91x chipset.</description>
+  </contentItemData>
+
+  <contentItemData label="SiWx91x Glossary of Terms" itemURI="https://docs.silabs.com/wiseconnect/latest/wiseconnect-glossary/" category="Software" priority="2">
+    <property key="core.category" value="Software"/>
+    <property key="core.priority" value="2"/>
+    <property key="core.boardCompatibility" value=""/>
+    <property key="core.partCompatibility" value=".*siwg.* .*siwn.*"/>
+    <property key="core.sdkAndProtocolTags" value="WiSeConnect"/>
+    <description>Glossary of commonly used terms in the SiWx91x™ documentation.</description>
+  </contentItemData>
+
+  <contentItemData label="WiSeConnect SDK Migration Guide from v3.1.0 to v3.1.1" itemURI="https://github.com/SiliconLabs/wiseconnect/blob/v4.0.1-content-for-docs/docs/software-reference/developer-guides/migrating-from-v3-1-0.md" category="Quick Start Guides" priority="5">
+    <property key="core.category" value="Quick Start Guides"/>
+    <property key="core.priority" value="5"/>
+    <property key="core.boardCompatibility" value=""/>
+    <property key="core.partCompatibility" value=".*siwg.* .*siwn.*"/>
+    <property key="core.sdkAndProtocolTags" value="WiSeConnect"/>
+    <description>Guide for updating an existing application using the WiSeConnect™ SDK v3.1.0 to a v3.1.1 application. This guide describes the folder changes made in the WiSeConnect SDK v3.1.0 to simplify it and make it easier to understand. It also provides the steps for updating a v3.1.0 application to a v3.1.1 application.</description>
+  </contentItemData>
+
+  <contentItemData label="WiSeConnect SDK Migration Guide from v3.1.3 to v3.1.4" itemURI="https://github.com/SiliconLabs/wiseconnect/blob/v4.0.1-content-for-docs/docs/software-reference/developer-guides/migrating-from-v3-1-3.md" category="Quick Start Guides" priority="6">
+    <property key="core.category" value="Quick Start Guides"/>
+    <property key="core.priority" value="6"/>
+    <property key="core.boardCompatibility" value=""/>
+    <property key="core.partCompatibility" value=".*siwg.* .*siwn.*"/>
+    <property key="core.sdkAndProtocolTags" value="WiSeConnect"/>
+    <description>Guide for updating an existing application using the WiSeConnect™ SDK v3.1.3 to a v3.1.4 application. This guide describes the naming and interface changes in v3.1.4, mostly in order to standardize the names and improve the overall usage experience of the Application Programming Interface (API). Migration requires the names everywhere to be updated in the existing code of an application.</description>
+  </contentItemData>
+
+  <contentItemData label="WiSeConnect SDK Migration Guide from v3.1.4 to v3.2.0" itemURI="https://github.com/SiliconLabs/wiseconnect/blob/v4.0.1-content-for-docs/docs/software-reference/developer-guides/migrating-from-v3-1-4.md" category="Quick Start Guides" priority="7">
+    <property key="core.category" value="Quick Start Guides"/>
+    <property key="core.priority" value="7"/>
+    <property key="core.boardCompatibility" value=""/>
+    <property key="core.partCompatibility" value=".*siwg.* .*siwn.*"/>
+    <property key="core.sdkAndProtocolTags" value="WiSeConnect"/>
+    <description>Guide for updating an existing application using the WiSeConnect™ SDK v3.1.4 to a v3.2.0 application. This guide describes the naming and interface changes in v3.2.0, mostly in order to standardize the names and improve the overall usage experience of the Application Programming Interface (API). Migration requires the names everywhere to be updated in the existing code of an application.</description>
+  </contentItemData>
+
+  <contentItemData label="WiSeConnect SDK Migration Guide from v3.2.0 to v3.3.0" itemURI="https://github.com/SiliconLabs/wiseconnect/blob/v4.0.1-content-for-docs/docs/software-reference/developer-guides/migrating-from-v3-2-0.md" category="Quick Start Guides" priority="8">
+    <property key="core.category" value="Quick Start Guides"/>
+    <property key="core.priority" value="8"/>
+    <property key="core.boardCompatibility" value=""/>
+    <property key="core.partCompatibility" value=".*siwg.* .*siwn.*"/>
+    <property key="core.sdkAndProtocolTags" value="WiSeConnect"/>
+    <description>Guide for updating an existing application using the WiSeConnect™ SDK v3.2.0 to a v3.3.0 application. This guide describes the naming and interface changes in v3.3.0, mostly in order to standardize the names and improve the overall usage experience of the Application Programming Interface (API). Migration requires the names everywhere to be updated in the existing code of an application.</description>
+  </contentItemData>
+
+  <contentItemData label="WiSeConnect SDK Migration Guide from v3.3.0 to v3.3.1" itemURI="https://github.com/SiliconLabs/wiseconnect/blob/v4.0.1-content-for-docs/docs/software-reference/developer-guides/migrating-from-v3-3-0.md" category="Quick Start Guides" priority="8">
+    <property key="core.category" value="Quick Start Guides"/>
+    <property key="core.priority" value="8"/>
+    <property key="core.boardCompatibility" value=""/>
+    <property key="core.partCompatibility" value=".*siwg.* .*siwn.*"/>
+    <property key="core.sdkAndProtocolTags" value="WiSeConnect"/>
+    <description>Guide for updating an existing application using the WiSeConnect™ SDK v3.3.0 to a v3.3.1 application. This guide describes the naming and interface changes in v3.3.1, mostly in order to standardize the names and improve the overall usage experience of the Application Programming Interface (API). Migration requires the names everywhere to be updated in the existing code of an application.</description>
+  </contentItemData>
+
+  <contentItemData label="WiSeConnect SDK Migration Guide from v3.3.2 to v3.3.3" itemURI="https://github.com/SiliconLabs/wiseconnect/blob/v4.0.1-content-for-docs/docs/software-reference/developer-guides/migrating-from-v3-3-2.md" category="Quick Start Guides" priority="8">
+    <property key="core.category" value="Quick Start Guides"/>
+    <property key="core.priority" value="8"/>
+    <property key="core.boardCompatibility" value=""/>
+    <property key="core.partCompatibility" value=".*siwg.* .*siwn.*"/>
+    <property key="core.sdkAndProtocolTags" value="WiSeConnect"/>
+    <description>Guide for updating an existing application using the WiSeConnect™ SDK v3.3.2 to a v3.3.3 application. This guide describes the naming and interface changes in v3.3.3, mostly in order to standardize the names and improve the overall usage experience of the Application Programming Interface (API). Migration requires the names everywhere to be updated in the existing code of an application.</description>
+  </contentItemData>
+
+  <contentItemData label="WiSeConnect SDK Migration Guide from v3.3.4 to v3.4.0" itemURI="https://github.com/SiliconLabs/wiseconnect/blob/v4.0.1-content-for-docs/docs/software-reference/developer-guides/migrating-from-v3-3-4.md" category="Quick Start Guides" priority="8">
+    <property key="core.category" value="Quick Start Guides"/>
+    <property key="core.priority" value="8"/>
+    <property key="core.boardCompatibility" value=""/>
+    <property key="core.partCompatibility" value=".*siwg.* .*siwn.*"/>
+    <property key="core.sdkAndProtocolTags" value="WiSeConnect"/>
+    <description>Guide for updating an existing application using the WiSeConnect™ SDK v3.3.4 to a v3.4.0 application. This guide describes the naming and interface changes in v3.4.0, mostly in order to standardize the names and improve the overall usage experience of the Application Programming Interface (API). Migration requires the names everywhere to be updated in the existing code of an application.</description>
+  </contentItemData>
+
+  <contentItemData label="WiSeConnect SDK Migration Guide from v3.4.0 to v3.4.1" itemURI="https://github.com/SiliconLabs/wiseconnect/blob/v4.0.1-content-for-docs/docs/software-reference/developer-guides/migrating-from-v3-4-0.md" category="Quick Start Guides" priority="8">
+    <property key="core.category" value="Quick Start Guides"/>
+    <property key="core.priority" value="8"/>
+    <property key="core.boardCompatibility" value=""/>
+    <property key="core.partCompatibility" value=".*siwg.* .*siwn.*"/>
+    <property key="core.sdkAndProtocolTags" value="WiSeConnect"/>
+    <description>Guide for updating an existing application using the WiSeConnect™ SDK v3.4.0 to a v3.4.1 application. This guide describes the naming and interface changes in v3.4.1, mostly in order to standardize the names and improve the overall usage experience of the Application Programming Interface (API). Migration requires the names everywhere to be updated in the existing code of an application.</description>
+  </contentItemData>
+
+  <contentItemData label="SiWx917 Software Reference Manual" itemURI="https://github.com/SiliconLabs/wiseconnect/blob/v4.0.1-contents-for-docs/docs/software-reference/manuals/siwx91x-software-reference-manual.md" category="Reference Manuals" priority="9">
+    <property key="core.category" value="Reference Manuals"/>
+    <property key="core.priority" value="9"/>
+    <property key="core.boardCompatibility" value=""/>
+    <property key="core.partCompatibility" value=".*siwg.* .*siwn.*"/>
+    <property key="core.sdkAndProtocolTags" value="WiSeConnect"/>
+    <description>This reference manual provides information about the software on the SiWx917™, the first chip in the SiWx91x™ chipset family. It is intended to provide all the details required for a smooth developer experience.</description>
+  </contentItemData>
+
+  <contentItemData label="WiSeConnect SDK API Reference" itemURI="https://docs.silabs.com/wiseconnect/4.0.1/wiseconnect-api-reference-guide-summary" category="Software API Documentation" priority="11">
+    <property key="core.category" value="Software API Documentation"/>
+    <property key="core.priority" value="11"/>
+    <property key="core.boardCompatibility" value=""/>
+    <property key="core.partCompatibility" value=".*siwg.* .*siwn.*"/>
+    <property key="core.sdkAndProtocolTags" value="WiSeConnect"/>
+    <description>Guide to the Application Programming Interface (API) of the WiSeConnect™ SDK, providing details of the functions, data types, constants, and callback frameworks within the various categories of APIs provided by the WiSeConnect™ SDK .</description>
+  </contentItemData>
+
+  <contentItemData label="WiSeConnect SDK Developer Documentation" itemURI="https://docs.silabs.com/wiseconnect/4.0.1/wiseconnect-developing-with-wiseconnect-sdk/" category="Software" priority="12">
+    <property key="core.category" value="Software"/>
+    <property key="core.priority" value="12"/>
+    <property key="core.boardCompatibility" value=""/>
+    <property key="core.partCompatibility" value=".*siwg.* .*siwn.*"/>
+    <property key="core.sdkAndProtocolTags" value="WiSeConnect"/>
+    <description>This documentation provides a development guide and reference for the SiWx91x™ chipset family using version 3.x (3.0.0 and later) of the WiSeConnect™ software development kit (SDK), a simple-to-use Application Programming Interface (API) for Internet Protocol (IP) networking and connectivity.</description>
+  </contentItemData>
+
+  <contentItemData label="UG569: BRD8045 Adapter Board for Co-Processor Radio Boards User's Guide" itemURI="https://www.silabs.com/documents/public/user-guides/ug569-brd8045-user-guide.pdf" category="User's Guides" priority="10">
+    <property key="core.category" value="User's Guides"/>
+    <property key="core.priority" value="10"/>
+    <property key="core.boardCompatibility" value=""/>
+    <property key="core.partCompatibility" value=".*siwn.*"/>
+    <property key="core.sdkAndProtocolTags" value="WiSeConnect"/>
+    <description>User's guide for co-processor adapter boards for applications hosted on EFM32™ or EFR32™ devices, Raspberry Pi or other Linux machines, or STM microcontrollers.</description>
+  </contentItemData>
+
+  <contentItemData label="WiSeConnect SDK Migration Guide from v3.4.1 to v3.4.2" itemURI="https://github.com/SiliconLabs/wiseconnect/blob/v4.0.1-content-for-docs/docs/software-reference/developer-guides/migrating-from-v3-4-1.md" category="Quick Start Guides" priority="8">
+    <property key="core.category" value="Quick Start Guides"/>
+    <property key="core.priority" value="8"/>
+    <property key="core.boardCompatibility" value=""/>
+    <property key="core.partCompatibility" value=".*siwg.* .*siwn.*"/>
+    <property key="core.sdkAndProtocolTags" value="WiSeConnect"/>
+    <description>Guide for updating an existing application using the WiSeConnect™ SDK v3.4.1 to a v3.4.2 application. This guide describes the naming and interface changes in v3.4.2, mostly in order to standardize the names and improve the overall usage experience of the Application Programming Interface (API). Migration requires the names everywhere to be updated in the existing code of an application.</description>
+  </contentItemData>
+
+  <contentItemData label="WiSeConnect SDK Migration Guide from v3.4.2 to v3.5.1" itemURI="https://docs.silabs.com/wiseconnect/latest/wiseconnect-developers-guide-migr-guides-overview/migrating-from-v3-4-2" category="Quick Start Guides" priority="8">
+    <property key="core.category" value="Quick Start Guides"/>
+    <property key="core.priority" value="8"/>
+    <property key="core.boardCompatibility" value=""/>
+    <property key="core.partCompatibility" value=".*siwg.* .*siwn.*"/>
+    <property key="core.sdkAndProtocolTags" value="WiSeConnect"/>
+    <description>Guide for updating an existing application using the WiSeConnect™ SDK v3.4.2 to a v3.5.1 application. This guide describes the naming and interface changes in v3.5.1, mostly in order to standardize the names and improve the overall usage experience of the Application Programming Interface (API). Migration requires the names everywhere to be updated in the existing code of an application.</description>
+  </contentItemData>
+
+  <contentItemData label="WiSeConnect SDK Migration Guide from v3.5.1 to v3.5.2" itemURI="https://docs.silabs.com/wiseconnect/latest/wiseconnect-developers-guide-migr-guides-overview/migrating-from-v3-5-1" category="Quick Start Guides" priority="8">
+    <property key="core.category" value="Quick Start Guides"/>
+    <property key="core.priority" value="8"/>
+    <property key="core.boardCompatibility" value=""/>
+    <property key="core.partCompatibility" value=".*siwg.* .*siwn.*"/>
+    <property key="core.sdkAndProtocolTags" value="WiSeConnect"/>
+    <description>Guide for updating an existing application using the WiSeConnect™ SDK v3.5.1 to v3.5.2 application. This guide describes the naming and interface changes in v3.5.2, mostly in order to standardize the names and improve the overall usage experience of the Application Programming Interface (API). Migration requires the names everywhere to be updated in the existing code of an application.</description>
+  </contentItemData>
+
+  <contentItemData label="WiSeConnect SDK Migration Guide from v3.5.2 to v4.0.0" itemURI="https://docs.silabs.com/wiseconnect/latest/wiseconnect-developers-guide-migr-guides-overview/migrating-from-v3-5-2" category="Quick Start Guides" priority="8">
+    <property key="core.category" value="Quick Start Guides"/>
+    <property key="core.priority" value="8"/>
+    <property key="core.boardCompatibility" value=""/>
+    <property key="core.partCompatibility" value=".*siwg.* .*siwn.*"/>
+    <property key="core.sdkAndProtocolTags" value="WiSeConnect"/>
+    <description>Guide for updating an existing application using the WiSeConnect™ SDK v3.5.2 to v4.0.0 application. This guide describes the naming and interface changes in v4.0.0, mostly in order to standardize the names and improve the overall usage experience of the Application Programming Interface (API). Migration requires the names everywhere to be updated in the existing code of an application.</description>
+  </contentItemData>
+
+  <contentItemData label="WiSeConnect SDK Migration Guide from v4.0.0 to v4.0.1" itemURI="https://docs.silabs.com/wiseconnect/latest/wiseconnect-developers-guide-migr-guides-overview/migrating-from-v4-0-0" category="Quick Start Guides" priority="8">
+    <property key="core.category" value="Quick Start Guides"/>
+    <property key="core.priority" value="8"/>
+    <property key="core.boardCompatibility" value=""/>
+    <property key="core.partCompatibility" value=".*siwg.* .*siwn.*"/>
+    <property key="core.sdkAndProtocolTags" value="WiSeConnect"/>
+    <description>Guide for updating an existing application using the WiSeConnect™ SDK v4.0.0 to v4.0.1 application. This guide describes the naming and interface changes in v4.0.1, mostly in order to standardize the names and improve the overall usage experience of the Application Programming Interface (API). Migration requires the names everywhere to be updated in the existing code of an application.</description>
+  </contentItemData>
+
+</contentItems>

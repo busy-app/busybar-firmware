@@ -1,0 +1,55 @@
+{
+    "silabs_dhc": {
+        "version": 1,
+        "rssi_offset": 0,
+        "pa_curves": {
+            "version": 1,
+            "num_descriptors": 2,
+            "pa_voltage": 0,
+            "signature": 0,
+            "pa_descriptors": [
+                {"algorithm": 0, "num_segments_or_entries": 9, "min": 0, "max": 90},
+                {"algorithm": 1, "num_segments_or_entries": 16, "min": 0, "max": 15}
+            ],
+            "pa_curve_or_table": [
+                {
+                    "curve_min_ddbm": -300,
+                    "curve_max_ddbm": 100,
+                    "curve_segments": [
+                        {"maxPowerLevel": 255, "slope": 100, "intercept": 22},
+                        {"maxPowerLevel": 90, "slope": 1960, "intercept": -116460},
+                        {"maxPowerLevel": 36, "slope": 567, "intercept": -7935},
+                        {"maxPowerLevel": 22, "slope": 288, "intercept": 6929},
+                        {"maxPowerLevel": 16, "slope": 192, "intercept": 9881},
+                        {"maxPowerLevel": 11, "slope": 134, "intercept": 10360},
+                        {"maxPowerLevel": 8, "slope": 89, "intercept": 9610},
+                        {"maxPowerLevel": 6, "slope": 69, "intercept": 8821},
+                        {"maxPowerLevel": 4, "slope": 18, "intercept": 5138}
+                    ]
+                },
+                {
+                    "ddbm_values": [
+                        -252,
+                        -149,
+                        -97,
+                        -69,
+                        -52,
+                        -40,
+                        -32,
+                        -26,
+                        -22,
+                        -18,
+                        -15,
+                        -13,
+                        -11,
+                        -9,
+                        -8,
+                        -7
+                    ]
+                }
+            ]
+        },
+        "pa_mode": 4,
+        "ctune": 87
+    }
+}

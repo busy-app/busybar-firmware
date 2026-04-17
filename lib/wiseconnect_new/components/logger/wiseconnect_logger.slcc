@@ -1,0 +1,22 @@
+id: wiseconnect_logger
+package: wifi
+description: >
+  Provides a logger component for sl_debug logs .
+label: WiSeConnect logger
+category: Common
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+component_root_path: ./components/logger
+provides:
+- name: wiseconnect_logger
+requires:
+- name: cmsis_core
+include:
+- path: inc
+  file_list:
+    - path: sl_wlan_logger.h
+- path: src
+  file_list:
+    - path: sl_wlan_logger.c

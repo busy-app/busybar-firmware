@@ -1,0 +1,16 @@
+id: test_framework_unity_gcov
+label: Unity test framework component GCOV support
+package: unity_test_framework
+metadata:
+  sbom:
+    license: zlib
+description: Unity test framework
+category: Third Party|Unity
+quality: evaluation
+provides:
+- name: test_framework_unity_gcov
+requires:
+- name: test_framework_unity
+source:
+- path: src/unity_gcov.c
+root_path: unity_test_framework

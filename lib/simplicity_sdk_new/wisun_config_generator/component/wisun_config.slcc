@@ -1,0 +1,102 @@
+id: wisun_config
+label: "Wi-SUN Configurator"
+package: "wisun_config"
+description: >
+  When initiating a new Wi-SUN project, a Wi-SUN Configurator is automatically
+  included. This Configurator serves as an interface to the main settings of
+  the Wi-SUN application, comprising three panels: Application, Security and
+  Radio. For some examples, the Wi-SUN Configurator only displays the Radio panel.
+  These examples do not have the application and security infrastructure.
+category: Wi-SUN|Application
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: "wisun_config_generator/component/wisun_config"
+provides:
+- name: wisun_config
+- name: wisun_stack_configuration
+- name: wisun_phy_configuration
+
+config_file:
+#------------------------------------------------ restriction files with conditions
+# LFN not support
+- path: config/restrictions/lfn_not_supported.restriction
+  directory: wisun
+  unless:
+  - "wisun_stack_lfn"
+# tabs' restriction files
+- path: config/restrictions/only_radio.restriction
+  directory: wisun
+  unless:
+  - "sl_wisun_full_config"
+  - "wisun_br_stack"
+- path: config/restrictions/app_radio_tab.restriction
+  directory: wisun
+  condition:
+  - "wisun_br_stack"
+
+#------------------------------------------------ default full configuration
+
+# xG23 NA_1_1b
+- path: config/NA_1_1b/wisun_settings.wisunconf
+  directory: wisun
+  condition: [device_sdid_210, hardware_board_default_rf_band_915]
+
+# xG23 EU_1_1a
+- path: config/EU_1_1a/wisun_settings.wisunconf
+  directory: wisun
+  condition: [device_sdid_210, hardware_board_default_rf_band_868]
+
+# xG23 CN_1_1b
+- path: config/CN_1_1b/wisun_settings.wisunconf
+  directory: wisun
+  condition: [device_sdid_210, hardware_board_default_rf_band_470]
+
+
+# xG25 NA_1_1b
+- path: config/NA_1_1b/wisun_settings.wisunconf
+  directory: wisun
+  condition: [device_sdid_220, hardware_board_default_rf_band_915]
+
+# xG25 EU_1_1a
+- path: config/EU_1_1a/wisun_settings.wisunconf
+  directory: wisun
+  condition: [device_sdid_220, hardware_board_default_rf_band_868]
+
+# xG25 CN_1_1b
+- path: config/CN_1_1b/wisun_settings.wisunconf
+  directory: wisun
+  condition: [device_sdid_220, hardware_board_default_rf_band_470]
+
+# xG28 NA_1_1b
+- path: config/NA_1_1b/wisun_settings.wisunconf
+  directory: wisun
+  condition: [device_sdid_235]
+
+# based on IC all NA_1_1b
+- path: config/NA_1_1b/wisun_settings.wisunconf
+  directory: wisun
+  condition:
+  - device_generic_family_efr32xg25
+  unless:
+  - hardware_board
+- path: config/NA_1_1b/wisun_settings.wisunconf
+  directory: wisun
+  condition:
+  - device_generic_family_efr32xg28
+  unless:
+  - hardware_board
+- path: config/NA_1_1b/wisun_settings.wisunconf
+  directory: wisun
+  condition:
+  - device_generic_family_efr32xg23
+  unless:
+  - hardware_board
+
+#------------------------------------------------ default configuration end
+
+template_contribution:
+#---------------- Component Catalog ------------------
+- name: component_catalog
+  value: wisun_config

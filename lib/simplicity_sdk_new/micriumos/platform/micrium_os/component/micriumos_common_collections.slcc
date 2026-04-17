@@ -1,0 +1,26 @@
+id: micriumos_common_collections
+label: Micrium OS Common Collections
+package: micriumos
+description: Micrium OS Common Collections offers basic collections management such as maps and singly linked lists, required by some modules.
+category: Services|Micrium|Common
+quality: production
+metadata:
+  sbom:
+    license: MSLA
+ui_hints:
+  visibility: never
+source:
+- path: source/collections/bitmap.c
+- path: source/collections/map.c
+- path: source/collections/slist.c
+include:
+- path: source
+  file_list:
+  - path: collections/bitmap_priv.h
+  - path: collections/map_priv.h
+  - path: collections/slist_priv.h
+provides:
+- name: common_collections
+requires:
+- name: common_core
+root_path: micriumos/platform/micrium_os/common

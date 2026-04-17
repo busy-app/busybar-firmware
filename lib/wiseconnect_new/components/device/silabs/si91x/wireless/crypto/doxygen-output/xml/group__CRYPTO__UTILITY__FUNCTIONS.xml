@@ -1,0 +1,124 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__CRYPTO__UTILITY__FUNCTIONS" kind="group">
+    <compoundname>CRYPTO_UTILITY_FUNCTIONS</compoundname>
+    <title>Functions</title>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="group__CRYPTO__UTILITY__FUNCTIONS_1gabbf8c23ff0e0c848c473c4ed76a60558" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>uint8_t *</type>
+        <definition>uint8_t * pkcs7_padding</definition>
+        <argsstring>(const uint8_t *data, size_t data_length, size_t block_size, size_t *padded_data_length)</argsstring>
+        <name>pkcs7_padding</name>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>data</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>data_length</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>block_size</declname>
+        </param>
+        <param>
+          <type>size_t *</type>
+          <declname>padded_data_length</declname>
+        </param>
+        <briefdescription>
+<para>To perform PKCS #7 padding on the given data. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">data</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to the data to be padded. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">data_length</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Length of the data in bytes. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">block_size</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Size of the block in bytes (typically 16 for AES). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">padded_data_length</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><linebreak/>
+ Pointer to store the length of the padded data. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Returns a pointer to the padded data. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/crypto_utility/inc/sl_si91x_crypto_utility.h" line="59" column="9" declfile="components/device/silabs/si91x/wireless/crypto/crypto_utility/inc/sl_si91x_crypto_utility.h" declline="59" declcolumn="9"/>
+      </memberdef>
+      <memberdef kind="function" id="group__CRYPTO__UTILITY__FUNCTIONS_1gabac5d16db3bb54fda056f7e4ac1f32c7" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int pkcs7_unpad</definition>
+        <argsstring>(const unsigned char *data, size_t data_length)</argsstring>
+        <name>pkcs7_unpad</name>
+        <param>
+          <type>const unsigned char *</type>
+          <declname>data</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>data_length</declname>
+        </param>
+        <briefdescription>
+<para>To unpad a PKCS #7 padded data array in-place, and return the length of the unpadded data. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>This function performs PKCS #7 unpadding on the input data array. It checks the padding bytes at the end of the array, removes them if they are valid, and returns the length of the unpadded data. <linebreak/>
+ <parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">data</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to the data array containing PKCS #7 padded data. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">data_length</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Length of the data array. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>The length of the unpadded data, or -1, if the padding is invalid or data is empty. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/crypto_utility/inc/sl_si91x_crypto_utility.h" line="72" column="5" declfile="components/device/silabs/si91x/wireless/crypto/crypto_utility/inc/sl_si91x_crypto_utility.h" declline="72" declcolumn="5"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para>This section provides a reference to the Crypto utility API functions used for AES. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

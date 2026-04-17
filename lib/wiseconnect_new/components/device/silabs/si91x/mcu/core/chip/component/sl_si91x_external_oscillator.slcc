@@ -1,0 +1,20 @@
+id: si91x_32kHz_external_oscillator
+label: SI91X 32kHz EXTERNAL OSCILLATOR
+package: platform_siwx91x
+metadata:
+  sbom:
+    license: MSLA
+description: >
+  This component provides the provision to select the UULP GPIO for connecting the external oscillator.
+category: Device|Si91x|MCU|Core
+quality: production
+component_root_path: "components/device/silabs/si91x/mcu/core/chip"
+config_file:
+  - path: config/sl_si91x_external_oscillator.h
+define:
+  - name: SI91X_32kHz_EXTERNAL_OSCILLATOR
+    value: '1'
+conflicts:
+  - name: sl_si91x_lf_fsm_clock_selection
+provides:
+  - name: si91x_32kHz_external_oscillator

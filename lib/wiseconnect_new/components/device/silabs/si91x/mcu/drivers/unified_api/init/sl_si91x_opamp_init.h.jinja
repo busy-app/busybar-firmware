@@ -1,0 +1,40 @@
+/***************************************************************************//**
+ * @file sl_si91x_opamp_init.h.jinja
+ * @brief OPAMP Instances
+ *******************************************************************************
+ * # License
+ * <b>Copyright 2025 Silicon Laboratories Inc. www.silabs.com</b>
+ *******************************************************************************
+ *
+ * The licensor of this software is Silicon Laboratories Inc. Your use of this
+ * software is governed by the terms of Silicon Labs Master Software License
+ * Agreement (MSLA) available at
+ * www.silabs.com/about-us/legal/master-software-license-agreement. This
+ * software is distributed to you in Source Code format and is governed by the
+ * sections of the MSLA applicable to Source Code.
+ *
+ ******************************************************************************/
+
+#ifndef SL_SI91X_OPAMP_INIT_H_
+#define SL_SI91X_OPAMP_INIT_H_
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#include "sl_si91x_opamp.h"
+// Include instance config {# Include instance config #}
+{% for inst in opamp_instances %}
+
+#include "sl_si91x_opamp_{{ inst }}_config.h"
+extern sl_opamp_pin_config_t sl_{{ inst }}_pin_config;
+extern sl_opamp_config_t sl_{{ inst }}_feature;
+{% endfor %}
+
+void sl_opamp_init_instances(void);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif // SL_SI91X_OPAMP_INIT_H

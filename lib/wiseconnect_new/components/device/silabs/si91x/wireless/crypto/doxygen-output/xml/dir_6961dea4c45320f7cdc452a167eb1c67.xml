@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="dir_6961dea4c45320f7cdc452a167eb1c67" kind="dir">
+    <compoundname>components/device/silabs/si91x/wireless/crypto/attestation/inc</compoundname>
+    <innerfile refid="sl__si91x__attestation_8h">sl_si91x_attestation.h</innerfile>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="components/device/silabs/si91x/wireless/crypto/attestation/inc/"/>
+  </compounddef>
+</doxygen>

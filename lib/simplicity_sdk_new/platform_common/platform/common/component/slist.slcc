@@ -1,0 +1,24 @@
+id: slist
+label: Single Link List
+package: platform_common
+description: Component that provides single link list functionality.
+category: Platform|Utilities
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: platform_common/platform/common
+include:
+- path: inc
+  file_list:
+  - path: sl_slist.h
+source:
+- path: src/sl_slist.c
+provides:
+- name: slist
+requires:
+- name: status
+- name: sl_assert
+documentation:
+  docset: gecko-platform
+  document: platform-common/slist

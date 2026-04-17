@@ -1,0 +1,15 @@
+workspace_name: bt_soc_thunderboard_brd4184b_btl
+label: Bluetooth - SoC Thunderboard EFR32BG22 (BRD4184B) + AppLoader OTA DFU
+package: bluetooth_le_app
+description: >
+  Demonstrates the features of the Thunderboard EFR32BG22 Kit.
+  This can be tested with the Simplicity Connect mobile app.
+  Combined solution with application and bootloader projects.
+quality: production
+project:
+  - path: bt_soc_thunderboard_brd4184b.slcp
+    id: application
+  - path: ../../bootloader/bootloader-apploader.slcp
+    id: bootloader
+post_build:
+  path: ../../postbuild_profile/bt_dfu_ws.slpb

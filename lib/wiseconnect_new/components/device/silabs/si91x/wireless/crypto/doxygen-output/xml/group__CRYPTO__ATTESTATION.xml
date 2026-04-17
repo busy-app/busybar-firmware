@@ -1,0 +1,13 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__CRYPTO__ATTESTATION" kind="group">
+    <compoundname>CRYPTO_ATTESTATION</compoundname>
+    <title>Attestation</title>
+    <innergroup refid="group__CRYPTO__ATTESTATION__FUNCTIONS">Functions</innergroup>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para>This section provides a reference to the Attestation Crypto API functions. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

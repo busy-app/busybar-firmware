@@ -1,0 +1,21 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<module:DocumentRoot xmlns:module="http://www.silabs.com/ss/hwconfig/module.ecore">
+  <module id="pin_tool.efr32.bgm22.lfxo" label="LFXO" name="LFXO" description="" version="A">
+    <properties>
+      <stringProperty label="Type" id="type" defaultValue="lfxo" transient="true" hidden="true" readonly="true" description=""/>
+      <stringProperty label="Custom Peripheral Name" id="peripheral.name" description=""/>
+    </properties>
+    <propertyCategories>
+      <category label="LFXO">
+        <subCategory label="">
+          <propertyRef refId="peripheral.name"/>
+        </subCategory>
+      </category>
+    </propertyCategories>
+    <signals>
+      <signal name="LFXTAL_O"/>
+      <signal name="LFXTAL_I"/>
+      <signal name="LF_EXTCLK"/>
+    </signals>
+  </module>
+</module:DocumentRoot>

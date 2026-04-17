@@ -1,0 +1,77 @@
+id: brd4339b
+label: BRD4339B
+package: platform_siwx91x
+description: Board support for BRD4339B.
+category: Board|Radio Board
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: components/board/silabs/config/brd4339b
+requires:
+- name: siwg917m111mgtba
+- name: brd4339b_config
+- name: hardware_board_mainboard
+- name: external_flash_8mb
+- name: external_psram_none
+- name: rsilib_board
+- name: si91x_dual_flash
+provides:
+- name: brd4339b
+- name: hardware_board
+- name: hardware_board_rb
+- name: hardware_board_supports_multi_slave
+- name: si91x_b0_board
+- name: si917_prod_board
+- name: si917_radio_board
+recommends:
+- id: brd4002a
+  vendor: silabs
+define:
+- name: SL_BOARD_NAME
+  value: '"BRD4339B"'
+- name: SL_BOARD_REV
+  value: '"A02"'
+- name: SLI_SI91X_MCU_CONFIG_RADIO_BOARD_BASE_VER
+  value: '1'
+- name: SLI_SI91X_MCU_ENABLE_FLASH_BASED_EXECUTION
+  value: '1'
+- name: SLI_SI91X_MCU_CONFIG_RADIO_BOARD_VER2
+  value: '1'
+template_contribution:
+- name: device_flash_addr
+  value: 134291456
+  priority: -1
+  condition:
+  - si91x_mem_config_1
+- name: device_flash_size
+  value: 4059136
+  priority: -1
+  condition:
+  - si91x_mem_config_1
+- name: device_flash_addr
+  value: 134291456
+  priority: -1
+  condition:
+  - si91x_mem_config_2
+- name: device_flash_size
+  value: 4059136
+  priority: -1
+  condition:
+  - si91x_mem_config_2
+- name: device_flash_addr
+  value: 134291456
+  priority: -1
+  condition:
+  - si91x_mem_config_3
+- name: device_flash_size
+  value: 4059136
+  priority: -1
+  condition:
+  - si91x_mem_config_3
+tag:
+- board:pn:BRD4339
+- board:variant:B
+- board:revision:A00
+- board:device:siwg917m111mgtba
+- hardware:has:vcom

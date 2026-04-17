@@ -1,0 +1,17 @@
+label: ZWave_SoC_LEDBulb_Solution
+description: >
+  Demonstrates LED Bulb application combined with OTA bootloader.
+  The Z-Wave LED Bulb application shows an implementation
+  of a remotely controlled color switch. An example is an LED bulb
+  or any other color-capable device. The app supports dimming of an RGB LED.
+package: zwave_sample_app
+quality: production
+project:
+  - path: ../zwave_soc_led_bulb/zwave_soc_led_bulb.slcp
+    id: application
+    output: application
+  - path: ../bootloaders/bootloader-storage-internal-single-zwave-ota.slcp
+    id: bootloader
+    output: bootloader
+post_build:
+  profile: zwave_workspace

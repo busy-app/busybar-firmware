@@ -1,0 +1,371 @@
+id: mbedtls_source
+package: security_mbedtls_source
+label: Source Code
+description: This component includes the Mbed TLS libraries source code files.
+category: Platform|Security|Mbed TLS
+quality: production
+ui_hints:
+  visibility: never
+provides:
+- name: mbedtls_source
+requires:
+- name: mbedtls_crypto_platform_api
+# The NonSecure app must headers from the trusted-firmware-m repo
+- name: tfm_tz_service_psa_crypto
+  condition: [trustzone_nonsecure]
+source:
+- path: library/aes.c
+  condition:
+  - mbedtls_aes
+  unless:
+  - trustzone_nonsecure
+- path: library/asn1parse.c
+  condition:
+  - mbedtls_asn1
+- path: library/asn1write.c
+  condition:
+  - mbedtls_asn1
+- path: library/base64.c
+  condition:
+  - mbedtls_base64
+- path: library/bignum.c
+  condition:
+  - mbedtls_mpi
+- path: library/bignum_core.c
+  condition:
+  - mbedtls_mpi
+- path: library/bignum_mod.c
+  condition:
+  - mbedtls_mpi
+- path: library/bignum_mod_raw.c
+  condition:
+  - mbedtls_mpi
+- path: library/block_cipher.c
+  condition:
+  - mbedtls_cipher
+  unless:
+  - trustzone_nonsecure
+- path: library/ccm.c
+  condition:
+  - mbedtls_ccm
+  unless:
+  - trustzone_nonsecure
+- path: library/chacha20.c
+  condition:
+  - mbedtls_chacha20
+  unless:
+  - trustzone_nonsecure
+- path: library/chachapoly.c
+  condition:
+  - mbedtls_chachapoly
+  unless:
+  - trustzone_nonsecure
+- path: library/cipher.c
+  condition:
+  - mbedtls_cipher
+  unless:
+  - trustzone_nonsecure
+- path: library/cipher_wrap.c
+  condition:
+  - mbedtls_cipher
+  unless:
+  - trustzone_nonsecure
+- path: library/cmac.c
+  condition:
+  - mbedtls_cmac
+  unless:
+  - trustzone_nonsecure
+- path: library/constant_time.c
+- path: library/ctr_drbg.c
+  condition:
+  - mbedtls_random
+  unless:
+  - trustzone_nonsecure
+- path: library/debug.c
+  condition:
+  - mbedtls_debug
+- path: library/ecdh.c
+  condition:
+  - mbedtls_ecdh
+  unless:
+  - trustzone_nonsecure
+- path: library/ecdsa.c
+  condition:
+  - mbedtls_ecdsa
+- path: library/ecdsa.c
+  condition:
+  - mbedtls_pki
+- path: library/ecjpake.c
+  condition:
+  - mbedtls_jpake
+  unless:
+  - trustzone_nonsecure
+- path: library/ecp.c
+  condition:
+  - mbedtls_ecc
+- path: library/ecp.c
+  condition:
+  - mbedtls_pki
+- path: library/ecp_curves.c
+  condition:
+  - mbedtls_ecc
+- path: library/ecp_curves.c
+  condition:
+  - mbedtls_pki
+- path: library/ecp_curves_new.c
+  condition:
+  - mbedtls_ecc
+- path: library/entropy.c
+  condition:
+  - mbedtls_random
+  unless:
+  - trustzone_nonsecure
+- path: library/entropy_poll.c
+  condition:
+  - mbedtls_random
+  unless:
+  - trustzone_nonsecure
+- path: library/gcm.c
+  condition:
+  - mbedtls_gcm
+  unless:
+  - trustzone_nonsecure
+- path: library/hkdf.c
+  condition:
+  - mbedtls_hkdf
+  unless:
+  - trustzone_nonsecure
+- path: library/hmac_drbg.c
+  condition:
+  - mbedtls_random
+  unless:
+  - trustzone_nonsecure
+- path: library/md.c
+  condition:
+  - mbedtls_hash
+  unless:
+  - trustzone_nonsecure
+- path: library/md.c
+  condition:
+  - mbedtls_pki
+- path: library/md5.c
+  condition:
+  - mbedtls_md5
+  unless:
+  - trustzone_nonsecure
+- path: library/nist_kw.c
+  condition:
+  - mbedtls_nist_kw
+- path: library/oid.c
+  condition:
+  - mbedtls_oid
+- path: library/pem.c
+  condition:
+  - mbedtls_pem
+- path: library/pk.c
+  condition:
+  - mbedtls_pki
+- path: library/pkcs5.c
+  condition:
+  - mbedtls_pkcs5
+- path: library/pkcs12.c
+  condition:
+  - mbedtls_pkcs12
+- path: library/pkparse.c
+  condition:
+  - mbedtls_pki
+- path: library/pkwrite.c
+  condition:
+  - mbedtls_pki
+- path: library/pk_ecc.c
+  condition:
+  - mbedtls_pki
+- path: library/pk_wrap.c
+  condition:
+  - mbedtls_pki
+- path: library/platform.c
+- path: library/platform_util.c
+- path: library/poly1305.c
+  condition:
+  - mbedtls_poly1305
+  unless:
+  - trustzone_nonsecure
+- path: library/psa_util.c
+- path: library/rsa.c
+  condition:
+  - mbedtls_rsa
+- path: library/rsa_alt_helpers.c
+  condition:
+  - mbedtls_rsa
+- path: library/sha1.c
+  condition:
+  - mbedtls_sha1
+  unless:
+  - trustzone_nonsecure
+- path: library/sha256.c
+  condition:
+  - mbedtls_sha256
+  unless:
+  - trustzone_nonsecure
+- path: library/sha256.c
+  condition:
+  - mbedtls_sha224
+  unless:
+  - trustzone_nonsecure
+- path: library/sha512.c
+  condition:
+  - mbedtls_sha512
+  unless:
+  - trustzone_nonsecure
+- path: library/sha512.c
+  condition:
+  - mbedtls_sha384
+  unless:
+  - trustzone_nonsecure
+- path: library/ssl_cache.c
+  condition:
+  - mbedtls_tls
+- path: library/ssl_ciphersuites.c
+  condition:
+  - mbedtls_tls
+- path: library/ssl_client.c
+  condition:
+  - mbedtls_tls
+- path: library/ssl_cookie.c
+  condition:
+  - mbedtls_tls
+- path: library/ssl_debug_helpers_generated.c
+  condition:
+  - mbedtls_tls
+- path: library/ssl_msg.c
+  condition:
+  - mbedtls_tls
+- path: library/ssl_ticket.c
+  condition:
+  - mbedtls_tls
+- path: library/ssl_tls.c
+  condition:
+  - mbedtls_tls
+- path: library/ssl_tls12_client.c
+  condition:
+  - mbedtls_tls
+- path: library/ssl_tls12_server.c
+  condition:
+  - mbedtls_tls
+- path: library/threading.c
+- path: library/version.c
+  condition:
+  - mbedtls_version
+- path: library/x509.c
+  condition:
+  - mbedtls_x509
+- path: library/x509_create.c
+  condition:
+  - mbedtls_x509
+- path: library/x509_crl.c
+  condition:
+  - mbedtls_x509
+- path: library/x509_crt.c
+  condition:
+  - mbedtls_x509
+- path: library/x509_csr.c
+  condition:
+  - mbedtls_x509
+- path: library/x509write.c
+  condition:
+  - mbedtls_x509
+- path: library/x509write_crt.c
+  condition:
+  - mbedtls_x509
+- path: library/x509write_csr.c
+  condition:
+  - mbedtls_x509
+include:
+- path: include
+  file_list:
+  - path: mbedtls/asn1.h
+  - path: mbedtls/asn1write.h
+  - path: mbedtls/base64.h
+  - path: mbedtls/compat-2.x.h
+  - path: mbedtls/constant_time.h
+  - path: mbedtls/ctr_drbg.h
+  - path: mbedtls/debug.h
+  - path: mbedtls/des.h
+  - path: mbedtls/dhm.h
+  - path: mbedtls/ecdh.h
+  - path: mbedtls/entropy.h
+  - path: mbedtls/error.h
+  - path: mbedtls/hkdf.h
+  - path: mbedtls/hmac_drbg.h
+  - path: mbedtls/lms.h
+  - path: mbedtls/memory_buffer_alloc.h
+  - path: mbedtls/net_sockets.h
+  - path: mbedtls/nist_kw.h
+  - path: mbedtls/oid.h
+  - path: mbedtls/pem.h
+  - path: mbedtls/pk.h
+  - path: mbedtls/pkcs12.h
+  - path: mbedtls/pkcs5.h
+  - path: mbedtls/pkcs7.h
+  - path: mbedtls/platform.h
+  - path: mbedtls/psa_util.h
+  - path: mbedtls/rsa.h
+  - path: mbedtls/ssl.h
+  - path: mbedtls/ssl_cache.h
+  - path: mbedtls/ssl_ciphersuites.h
+  - path: mbedtls/ssl_cookie.h
+  - path: mbedtls/ssl_ticket.h
+  - path: mbedtls/threading.h
+  - path: mbedtls/timing.h
+  - path: mbedtls/version.h
+  - path: mbedtls/x509.h
+  - path: mbedtls/x509_crl.h
+  - path: mbedtls/x509_crt.h
+  - path: mbedtls/x509_csr.h
+- path: library
+  file_list:
+  - path: alignment.h
+  - path: base64_internal.h
+  - path: bignum_core.h
+  - path: bignum_internal.h
+  - path: bignum_mod.h
+  - path: bignum_mod_raw.h
+  - path: bignum_mod_raw_invasive.h
+  - path: block_cipher_internal.h
+  - path: bn_mul.h
+  - path: check_crypto_config.h
+  - path: cipher_invasive.h
+  - path: cipher_wrap.h
+  - path: common.h
+  - path: constant_time_impl.h
+  - path: constant_time_internal.h
+  - path: ctr.h
+  - path: debug_internal.h
+  - path: ecp_internal_alt.h
+  - path: ecp_invasive.h
+  - path: entropy_poll.h
+  - path: lmots.h
+  - path: md_psa.h
+  - path: md_wrap.h
+  - path: mps_common.h
+  - path: mps_error.h
+  - path: mps_reader.h
+  - path: mps_trace.h
+  - path: padlock.h
+  - path: pk_internal.h
+  - path: pk_wrap.h
+  - path: pkwrite.h
+  - path: psa_util_internal.h
+  - path: rsa_alt_helpers.h
+  - path: rsa_internal.h
+  - path: ssl_ciphersuites_internal.h
+  - path: ssl_client.h
+  - path: ssl_debug_helpers.h
+  - path: ssl_misc.h
+  - path: ssl_tls13_invasive.h
+  - path: ssl_tls13_keys.h
+  - path: x509_internal.h
+metadata:
+  sbom:
+    reference: mbedtls_sbom
+root_path: security_mbedtls_source

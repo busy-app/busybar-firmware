@@ -1,0 +1,619 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="sl__si91x__psa__ecdh_8h" kind="file" language="C++">
+    <compoundname>sl_si91x_psa_ecdh.h</compoundname>
+    <includes local="yes">psa/crypto.h</includes>
+    <incdepgraph>
+      <node id="1">
+        <label>components/device/silabs/si91x/wireless/crypto/ecdh/inc/sl_si91x_psa_ecdh.h</label>
+        <link refid="sl__si91x__psa__ecdh_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>psa/crypto.h</label>
+      </node>
+    </incdepgraph>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="sl__si91x__psa__ecdh_8h_1a1c18077d33bd9d01a7db51a32383be3c" prot="public" static="no">
+        <name>ECC_P256_LEN</name>
+        <initializer>32</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/ecdh/inc/sl_si91x_psa_ecdh.h" line="39" column="9" bodyfile="components/device/silabs/si91x/wireless/crypto/ecdh/inc/sl_si91x_psa_ecdh.h" bodystart="39" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="sl__si91x__psa__ecdh_8h_1acfa9d71e5db293cbf793ebc805ef6a74" prot="public" static="no">
+        <name>ECC_P192_LEN</name>
+        <initializer>24</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/ecdh/inc/sl_si91x_psa_ecdh.h" line="40" column="9" bodyfile="components/device/silabs/si91x/wireless/crypto/ecdh/inc/sl_si91x_psa_ecdh.h" bodystart="40" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="sl__si91x__psa__ecdh_8h_1a6ce17b019dd37b5787ce80fd80c30c79" prot="public" static="no">
+        <name>ECC_P256_BITS_LEN</name>
+        <initializer>256</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/ecdh/inc/sl_si91x_psa_ecdh.h" line="41" column="9" bodyfile="components/device/silabs/si91x/wireless/crypto/ecdh/inc/sl_si91x_psa_ecdh.h" bodystart="41" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="sl__si91x__psa__ecdh_8h_1a7476554a823ea93284cc7e4bbc425ce6" prot="public" static="no">
+        <name>ECC_P192_BITS_LEN</name>
+        <initializer>192</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/ecdh/inc/sl_si91x_psa_ecdh.h" line="42" column="9" bodyfile="components/device/silabs/si91x/wireless/crypto/ecdh/inc/sl_si91x_psa_ecdh.h" bodystart="42" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="sl__si91x__psa__ecdh_8h_1a6b20d41d6252e9871430c242cb1a56e7" prot="public" static="no">
+        <name>BUFFER_SIZE</name>
+        <initializer>32</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/ecdh/inc/sl_si91x_psa_ecdh.h" line="43" column="9" bodyfile="components/device/silabs/si91x/wireless/crypto/ecdh/inc/sl_si91x_psa_ecdh.h" bodystart="43" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="sl__si91x__psa__ecdh_8h_1ab70e4cfb5c3f1dbf7dfe84fdf9d4e557" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>psa_status_t</type>
+        <definition>psa_status_t sli_si91x_psa_generate_key_ecdh</definition>
+        <argsstring>(const psa_key_attributes_t *attributes, const uint8_t *key_buffer, size_t key_buffer_size, size_t *key_buffer_length)</argsstring>
+        <name>sli_si91x_psa_generate_key_ecdh</name>
+        <param>
+          <type>const psa_key_attributes_t *</type>
+          <declname>attributes</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>key_buffer</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>key_buffer_size</declname>
+        </param>
+        <param>
+          <type>size_t *</type>
+          <declname>key_buffer_length</declname>
+        </param>
+        <briefdescription>
+<para>Generate a private key using random number generator. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="note"><para>The signature of this function is that of a PSA driver generate_key entry point. This function behaves as a generate_key entry point as defined in the PSA driver interface specification for transparent drivers.</para>
+</simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">attributes</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The attributes of the key to use for the operation. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="inout">key_buffer</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The buffer containing the key context. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">key_buffer_size</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Size of the <computeroutput>key_buffer</computeroutput> buffer in bytes. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">key_buffer_length</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>On success, the number of bytes that make up the returned output. Initialized to zero by the core.</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<parameterlist kind="retval"><parameteritem>
+<parameternamelist>
+<parametername>PSA_SUCCESS</parametername>
+</parameternamelist>
+<parameterdescription>
+<para></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>PSA_ERROR_NOT_SUPPORTED</parametername>
+</parameternamelist>
+<parameterdescription>
+<para></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>PSA_ERROR_INSUFFICIENT_MEMORY</parametername>
+</parameternamelist>
+<parameterdescription>
+<para></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>PSA_ERROR_CORRUPTION_DETECTED</parametername>
+</parameternamelist>
+<parameterdescription>
+<para></para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/ecdh/inc/sl_si91x_psa_ecdh.h" line="72" column="14" declfile="components/device/silabs/si91x/wireless/crypto/ecdh/inc/sl_si91x_psa_ecdh.h" declline="72" declcolumn="14"/>
+      </memberdef>
+      <memberdef kind="function" id="sl__si91x__psa__ecdh_8h_1a1d68e892ee79b856f71dc06b24143d9b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>psa_status_t</type>
+        <definition>psa_status_t sli_si91x_psa_export_public_key_ecdh</definition>
+        <argsstring>(const psa_key_attributes_t *attributes, const uint8_t *key_buffer, size_t key_buffer_size, uint8_t *data, size_t data_size, size_t *data_length)</argsstring>
+        <name>sli_si91x_psa_export_public_key_ecdh</name>
+        <param>
+          <type>const psa_key_attributes_t *</type>
+          <declname>attributes</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>key_buffer</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>key_buffer_size</declname>
+        </param>
+        <param>
+          <type>uint8_t *</type>
+          <declname>data</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>data_size</declname>
+        </param>
+        <param>
+          <type>size_t *</type>
+          <declname>data_length</declname>
+        </param>
+        <briefdescription>
+<para>Generate a public key using ecdh multiplication. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="note"><para>The signature of this function is that of a PSA driver export_public_key entry point. This function behaves as a export_public_key entry point as defined in the PSA driver interface specification for transparent drivers.</para>
+</simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">attributes</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The attributes of the key to use for the operation. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">key_buffer</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The buffer containing the key context. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">key_buffer_size</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Size of the <computeroutput>key_buffer</computeroutput> buffer in bytes. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="inout">data</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Buffer where the output is to be written. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">data_size</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Size of the <computeroutput>data</computeroutput> buffer in bytes. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">data_length</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>On success, the number of bytes that make up the returned output. Initialized to zero by the core.</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<parameterlist kind="retval"><parameteritem>
+<parameternamelist>
+<parametername>PSA_SUCCESS</parametername>
+</parameternamelist>
+<parameterdescription>
+<para></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>PSA_ERROR_NOT_SUPPORTED</parametername>
+</parameternamelist>
+<parameterdescription>
+<para></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>PSA_ERROR_INSUFFICIENT_MEMORY</parametername>
+</parameternamelist>
+<parameterdescription>
+<para></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>PSA_ERROR_CORRUPTION_DETECTED</parametername>
+</parameternamelist>
+<parameterdescription>
+<para></para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/ecdh/inc/sl_si91x_psa_ecdh.h" line="100" column="14" declfile="components/device/silabs/si91x/wireless/crypto/ecdh/inc/sl_si91x_psa_ecdh.h" declline="100" declcolumn="14"/>
+      </memberdef>
+      <memberdef kind="function" id="sl__si91x__psa__ecdh_8h_1ad8e2c00577bb69963fa5aa8fc45a9dd4" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>psa_status_t</type>
+        <definition>psa_status_t sli_si91x_psa_ecdh_key_agreement</definition>
+        <argsstring>(psa_algorithm_t alg, const psa_key_attributes_t *attributes, const uint8_t *private_key, size_t private_key_len, const uint8_t *peer_key, size_t peer_key_length, uint8_t *shared_secret, size_t shared_secret_size, size_t *shared_secret_length)</argsstring>
+        <name>sli_si91x_psa_ecdh_key_agreement</name>
+        <param>
+          <type>psa_algorithm_t</type>
+          <declname>alg</declname>
+        </param>
+        <param>
+          <type>const psa_key_attributes_t *</type>
+          <declname>attributes</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>private_key</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>private_key_len</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>peer_key</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>peer_key_length</declname>
+        </param>
+        <param>
+          <type>uint8_t *</type>
+          <declname>shared_secret</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>shared_secret_size</declname>
+        </param>
+        <param>
+          <type>size_t *</type>
+          <declname>shared_secret_length</declname>
+        </param>
+        <briefdescription>
+<para>Generate a shared secret using private key and peer&apos;s public key. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="note"><para>The signature of this function is that of a PSA driver key_agreement entry point. This function behaves as a key_agreement entry point as defined in the PSA driver interface specification for transparent drivers.</para>
+</simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">alg</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The ECDH algorithm to compute (<computeroutput>PSA_ALG_XXX</computeroutput> value such that PSA_ALG_ECDH(<computeroutput>alg</computeroutput>) is true). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">attributes</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The attributes of the key to use for the operation. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">private_key</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The buffer containing the private key context. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">private_key_len</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Size of the <computeroutput>private_key</computeroutput> buffer in bytes. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">peer_key</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The buffer containing the peer public key context. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">peer_key_length</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Size of the <computeroutput>peer_key</computeroutput> buffer in bytes. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="inout">shared_secret</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Buffer where the output is to be written. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">shared_secret_size</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Size of the <computeroutput>shared_secret</computeroutput> buffer in bytes. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">shared_secret_length</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>On success, the number of bytes that make up the returned output. Initialized to zero by the core.</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<parameterlist kind="retval"><parameteritem>
+<parameternamelist>
+<parametername>PSA_SUCCESS</parametername>
+</parameternamelist>
+<parameterdescription>
+<para></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>PSA_ERROR_NOT_SUPPORTED</parametername>
+</parameternamelist>
+<parameterdescription>
+<para></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>PSA_ERROR_INSUFFICIENT_MEMORY</parametername>
+</parameternamelist>
+<parameterdescription>
+<para></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>PSA_ERROR_CORRUPTION_DETECTED</parametername>
+</parameternamelist>
+<parameterdescription>
+<para></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>PSA_ERROR_BUFFER_TOO_SMALL</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The size of the <computeroutput>shared_secret</computeroutput> buffer is small. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/ecdh/inc/sl_si91x_psa_ecdh.h" line="137" column="14" declfile="components/device/silabs/si91x/wireless/crypto/ecdh/inc/sl_si91x_psa_ecdh.h" declline="137" declcolumn="14"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="comment">/*******************************************************************************</highlight></codeline>
+<codeline lineno="2"><highlight class="comment"><sp/>*<sp/>@file<sp/><sp/>sl_si91x_psa_ecdh.h</highlight></codeline>
+<codeline lineno="3"><highlight class="comment"><sp/>*<sp/>@brief</highlight></codeline>
+<codeline lineno="4"><highlight class="comment"><sp/>*******************************************************************************</highlight></codeline>
+<codeline lineno="5"><highlight class="comment"><sp/>*<sp/>#<sp/>License</highlight></codeline>
+<codeline lineno="6"><highlight class="comment"><sp/>*<sp/>&lt;b&gt;Copyright<sp/>2025<sp/>Silicon<sp/>Laboratories<sp/>Inc.<sp/>www.silabs.com&lt;/b&gt;</highlight></codeline>
+<codeline lineno="7"><highlight class="comment"><sp/>*******************************************************************************</highlight></codeline>
+<codeline lineno="8"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="9"><highlight class="comment"><sp/>*<sp/>SPDX-License-Identifier:<sp/>Zlib</highlight></codeline>
+<codeline lineno="10"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="11"><highlight class="comment"><sp/>*<sp/>The<sp/>licensor<sp/>of<sp/>this<sp/>software<sp/>is<sp/>Silicon<sp/>Laboratories<sp/>Inc.</highlight></codeline>
+<codeline lineno="12"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="13"><highlight class="comment"><sp/>*<sp/>This<sp/>software<sp/>is<sp/>provided<sp/>&apos;as-is&apos;,<sp/>without<sp/>any<sp/>express<sp/>or<sp/>implied</highlight></codeline>
+<codeline lineno="14"><highlight class="comment"><sp/>*<sp/>warranty.<sp/>In<sp/>no<sp/>event<sp/>will<sp/>the<sp/>authors<sp/>be<sp/>held<sp/>liable<sp/>for<sp/>any<sp/>damages</highlight></codeline>
+<codeline lineno="15"><highlight class="comment"><sp/>*<sp/>arising<sp/>from<sp/>the<sp/>use<sp/>of<sp/>this<sp/>software.</highlight></codeline>
+<codeline lineno="16"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="17"><highlight class="comment"><sp/>*<sp/>Permission<sp/>is<sp/>granted<sp/>to<sp/>anyone<sp/>to<sp/>use<sp/>this<sp/>software<sp/>for<sp/>any<sp/>purpose,</highlight></codeline>
+<codeline lineno="18"><highlight class="comment"><sp/>*<sp/>including<sp/>commercial<sp/>applications,<sp/>and<sp/>to<sp/>alter<sp/>it<sp/>and<sp/>redistribute<sp/>it</highlight></codeline>
+<codeline lineno="19"><highlight class="comment"><sp/>*<sp/>freely,<sp/>subject<sp/>to<sp/>the<sp/>following<sp/>restrictions:</highlight></codeline>
+<codeline lineno="20"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="21"><highlight class="comment"><sp/>*<sp/>1.<sp/>The<sp/>origin<sp/>of<sp/>this<sp/>software<sp/>must<sp/>not<sp/>be<sp/>misrepresented;<sp/>you<sp/>must<sp/>not</highlight></codeline>
+<codeline lineno="22"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/>claim<sp/>that<sp/>you<sp/>wrote<sp/>the<sp/>original<sp/>software.<sp/>If<sp/>you<sp/>use<sp/>this<sp/>software</highlight></codeline>
+<codeline lineno="23"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/>in<sp/>a<sp/>product,<sp/>an<sp/>acknowledgment<sp/>in<sp/>the<sp/>product<sp/>documentation<sp/>would<sp/>be</highlight></codeline>
+<codeline lineno="24"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/>appreciated<sp/>but<sp/>is<sp/>not<sp/>required.</highlight></codeline>
+<codeline lineno="25"><highlight class="comment"><sp/>*<sp/>2.<sp/>Altered<sp/>source<sp/>versions<sp/>must<sp/>be<sp/>plainly<sp/>marked<sp/>as<sp/>such,<sp/>and<sp/>must<sp/>not<sp/>be</highlight></codeline>
+<codeline lineno="26"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/>misrepresented<sp/>as<sp/>being<sp/>the<sp/>original<sp/>software.</highlight></codeline>
+<codeline lineno="27"><highlight class="comment"><sp/>*<sp/>3.<sp/>This<sp/>notice<sp/>may<sp/>not<sp/>be<sp/>removed<sp/>or<sp/>altered<sp/>from<sp/>any<sp/>source<sp/>distribution.</highlight></codeline>
+<codeline lineno="28"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="29"><highlight class="comment"><sp/>******************************************************************************/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="30"><highlight class="normal"></highlight></codeline>
+<codeline lineno="31"><highlight class="normal"></highlight><highlight class="preprocessor">#ifndef<sp/>SL_SI91X_PSA_ECDH_H</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="32"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>SL_SI91X_PSA_ECDH_H</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="33"><highlight class="normal"></highlight></codeline>
+<codeline lineno="34"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;psa/crypto.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="35"><highlight class="normal"></highlight></codeline>
+<codeline lineno="36"><highlight class="normal"></highlight><highlight class="comment">//<sp/>-----------------------------------------------------------------------------</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="37"><highlight class="normal"></highlight><highlight class="comment">//<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Macros<sp/>and<sp/>Typedefs</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="38"><highlight class="normal"></highlight><highlight class="comment">//<sp/>-----------------------------------------------------------------------------</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="39"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ECC_P256_LEN<sp/><sp/><sp/><sp/><sp/><sp/>32</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="40"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ECC_P192_LEN<sp/><sp/><sp/><sp/><sp/><sp/>24</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="41"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ECC_P256_BITS_LEN<sp/>256</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="42"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ECC_P192_BITS_LEN<sp/>192</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="43"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>BUFFER_SIZE<sp/><sp/><sp/><sp/><sp/><sp/><sp/>32</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="44"><highlight class="normal"></highlight><highlight class="comment">//<sp/>-----------------------------------------------------------------------------</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="45"><highlight class="normal"></highlight><highlight class="comment">//<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Global<sp/>Variables</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="46"><highlight class="normal"></highlight><highlight class="comment">//<sp/>-----------------------------------------------------------------------------</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="47"><highlight class="normal"></highlight><highlight class="comment">//<sp/>-----------------------------------------------------------------------------</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="48"><highlight class="normal"></highlight><highlight class="comment">//<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Public<sp/>Function<sp/>Declarations</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="49"><highlight class="normal"></highlight><highlight class="comment">//<sp/>-----------------------------------------------------------------------------</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="50"><highlight class="normal"></highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="51"><highlight class="comment">/**<sp/>Generate<sp/>a<sp/>private<sp/>key<sp/>using<sp/>random<sp/>number<sp/>generator.</highlight></codeline>
+<codeline lineno="52"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="53"><highlight class="comment"><sp/>*<sp/>\note<sp/>The<sp/>signature<sp/>of<sp/>this<sp/>function<sp/>is<sp/>that<sp/>of<sp/>a<sp/>PSA<sp/>driver</highlight></codeline>
+<codeline lineno="54"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/>generate_key<sp/>entry<sp/>point.<sp/>This<sp/>function<sp/>behaves<sp/>as<sp/>a</highlight></codeline>
+<codeline lineno="55"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/>generate_key<sp/>entry<sp/>point<sp/>as<sp/>defined<sp/>in<sp/>the<sp/>PSA<sp/>driver</highlight></codeline>
+<codeline lineno="56"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/>interface<sp/>specification<sp/>for<sp/>transparent<sp/>drivers.</highlight></codeline>
+<codeline lineno="57"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="58"><highlight class="comment"><sp/>*<sp/>\param[in]<sp/><sp/>attributes<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>The<sp/>attributes<sp/>of<sp/>the<sp/>key<sp/>to<sp/>use<sp/>for<sp/>the</highlight></codeline>
+<codeline lineno="59"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>operation.</highlight></codeline>
+<codeline lineno="60"><highlight class="comment"><sp/>*<sp/>\param[in,out]<sp/><sp/>key_buffer<sp/><sp/><sp/><sp/>The<sp/>buffer<sp/>containing<sp/>the<sp/>key<sp/>context.</highlight></codeline>
+<codeline lineno="61"><highlight class="comment"><sp/>*<sp/>\param[in]<sp/><sp/>key_buffer_size<sp/><sp/><sp/>Size<sp/>of<sp/>the<sp/>\p<sp/>key_buffer<sp/>buffer<sp/>in<sp/>bytes.</highlight></codeline>
+<codeline lineno="62"><highlight class="comment"><sp/>*<sp/>\param[out]<sp/>key_buffer_length<sp/>On<sp/>success,<sp/>the<sp/>number<sp/>of<sp/>bytes<sp/>that<sp/>make<sp/>up</highlight></codeline>
+<codeline lineno="63"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>the<sp/>returned<sp/>output.<sp/>Initialized<sp/>to<sp/>zero</highlight></codeline>
+<codeline lineno="64"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>by<sp/>the<sp/>core.</highlight></codeline>
+<codeline lineno="65"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="66"><highlight class="comment"><sp/>*<sp/>\retval<sp/>PSA_SUCCESS</highlight></codeline>
+<codeline lineno="67"><highlight class="comment"><sp/>*<sp/>\retval<sp/>PSA_ERROR_NOT_SUPPORTED</highlight></codeline>
+<codeline lineno="68"><highlight class="comment"><sp/>*<sp/>\retval<sp/>PSA_ERROR_INSUFFICIENT_MEMORY</highlight></codeline>
+<codeline lineno="69"><highlight class="comment"><sp/>*<sp/>\retval<sp/>PSA_ERROR_CORRUPTION_DETECTED</highlight></codeline>
+<codeline lineno="70"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="71"><highlight class="normal"></highlight></codeline>
+<codeline lineno="72"><highlight class="normal">psa_status_t<sp/>sli_si91x_psa_generate_key_ecdh(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>psa_key_attributes_t<sp/>*attributes,</highlight></codeline>
+<codeline lineno="73"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint8_t<sp/>*key_buffer,</highlight></codeline>
+<codeline lineno="74"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>key_buffer_size,</highlight></codeline>
+<codeline lineno="75"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>*key_buffer_length);</highlight></codeline>
+<codeline lineno="76"><highlight class="normal"></highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="77"><highlight class="comment">/**<sp/>Generate<sp/>a<sp/>public<sp/>key<sp/>using<sp/>ecdh<sp/>multiplication.</highlight></codeline>
+<codeline lineno="78"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="79"><highlight class="comment"><sp/>*<sp/>\note<sp/>The<sp/>signature<sp/>of<sp/>this<sp/>function<sp/>is<sp/>that<sp/>of<sp/>a<sp/>PSA<sp/>driver</highlight></codeline>
+<codeline lineno="80"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/>export_public_key<sp/>entry<sp/>point.<sp/>This<sp/>function<sp/>behaves<sp/>as<sp/>a</highlight></codeline>
+<codeline lineno="81"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/>export_public_key<sp/>entry<sp/>point<sp/>as<sp/>defined<sp/>in<sp/>the<sp/>PSA<sp/>driver</highlight></codeline>
+<codeline lineno="82"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/>interface<sp/>specification<sp/>for<sp/>transparent<sp/>drivers.</highlight></codeline>
+<codeline lineno="83"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="84"><highlight class="comment"><sp/>*<sp/>\param[in]<sp/><sp/>attributes<sp/><sp/><sp/><sp/><sp/><sp/><sp/>The<sp/>attributes<sp/>of<sp/>the<sp/>key<sp/>to<sp/>use<sp/>for<sp/>the</highlight></codeline>
+<codeline lineno="85"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>operation.</highlight></codeline>
+<codeline lineno="86"><highlight class="comment"><sp/>*<sp/>\param[in]<sp/><sp/>key_buffer<sp/><sp/><sp/><sp/><sp/><sp/><sp/>The<sp/>buffer<sp/>containing<sp/>the<sp/>key<sp/>context.</highlight></codeline>
+<codeline lineno="87"><highlight class="comment"><sp/>*<sp/>\param[in]<sp/><sp/>key_buffer_size<sp/><sp/>Size<sp/>of<sp/>the<sp/>\p<sp/>key_buffer<sp/>buffer<sp/>in<sp/>bytes.</highlight></codeline>
+<codeline lineno="88"><highlight class="comment"><sp/>*<sp/>\param[in,out]<sp/>data<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Buffer<sp/>where<sp/>the<sp/>output<sp/>is<sp/>to<sp/>be<sp/>written.</highlight></codeline>
+<codeline lineno="89"><highlight class="comment"><sp/>*<sp/>\param[in]<sp/><sp/>data_size<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Size<sp/>of<sp/>the<sp/>\p<sp/>data<sp/>buffer<sp/>in<sp/>bytes.</highlight></codeline>
+<codeline lineno="90"><highlight class="comment"><sp/>*<sp/>\param[out]<sp/>data_length<sp/><sp/><sp/><sp/><sp/><sp/>On<sp/>success,<sp/>the<sp/>number<sp/>of<sp/>bytes<sp/>that<sp/>make<sp/>up</highlight></codeline>
+<codeline lineno="91"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>the<sp/>returned<sp/>output.<sp/>Initialized<sp/>to<sp/>zero</highlight></codeline>
+<codeline lineno="92"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>by<sp/>the<sp/>core.</highlight></codeline>
+<codeline lineno="93"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="94"><highlight class="comment"><sp/>*<sp/>\retval<sp/>PSA_SUCCESS</highlight></codeline>
+<codeline lineno="95"><highlight class="comment"><sp/>*<sp/>\retval<sp/>PSA_ERROR_NOT_SUPPORTED</highlight></codeline>
+<codeline lineno="96"><highlight class="comment"><sp/>*<sp/>\retval<sp/>PSA_ERROR_INSUFFICIENT_MEMORY</highlight></codeline>
+<codeline lineno="97"><highlight class="comment"><sp/>*<sp/>\retval<sp/>PSA_ERROR_CORRUPTION_DETECTED</highlight></codeline>
+<codeline lineno="98"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="99"><highlight class="normal"></highlight></codeline>
+<codeline lineno="100"><highlight class="normal">psa_status_t<sp/>sli_si91x_psa_export_public_key_ecdh(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>psa_key_attributes_t<sp/>*attributes,</highlight></codeline>
+<codeline lineno="101"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint8_t<sp/>*key_buffer,</highlight></codeline>
+<codeline lineno="102"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>key_buffer_size,</highlight></codeline>
+<codeline lineno="103"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>uint8_t<sp/>*data,</highlight></codeline>
+<codeline lineno="104"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>data_size,</highlight></codeline>
+<codeline lineno="105"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>*data_length);</highlight></codeline>
+<codeline lineno="106"><highlight class="normal"></highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="107"><highlight class="comment">/**<sp/>Generate<sp/>a<sp/>shared<sp/>secret<sp/>using<sp/>private<sp/>key<sp/>and<sp/>peer&apos;s<sp/>public<sp/>key.</highlight></codeline>
+<codeline lineno="108"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="109"><highlight class="comment"><sp/>*<sp/>\note<sp/>The<sp/>signature<sp/>of<sp/>this<sp/>function<sp/>is<sp/>that<sp/>of<sp/>a<sp/>PSA<sp/>driver</highlight></codeline>
+<codeline lineno="110"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/>key_agreement<sp/>entry<sp/>point.<sp/>This<sp/>function<sp/>behaves<sp/>as<sp/>a</highlight></codeline>
+<codeline lineno="111"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/>key_agreement<sp/>entry<sp/>point<sp/>as<sp/>defined<sp/>in<sp/>the<sp/>PSA<sp/>driver</highlight></codeline>
+<codeline lineno="112"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/>interface<sp/>specification<sp/>for<sp/>transparent<sp/>drivers.</highlight></codeline>
+<codeline lineno="113"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="114"><highlight class="comment"><sp/>*<sp/>\param[in]<sp/>alg<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>The<sp/>ECDH<sp/>algorithm<sp/>to<sp/>compute</highlight></codeline>
+<codeline lineno="115"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>(\c<sp/>PSA_ALG_XXX<sp/>value<sp/>such<sp/>that</highlight></codeline>
+<codeline lineno="116"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>PSA_ALG_ECDH(\p<sp/>alg)<sp/>is<sp/>true).</highlight></codeline>
+<codeline lineno="117"><highlight class="comment"><sp/>*<sp/>\param[in]<sp/><sp/>attributes<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>The<sp/>attributes<sp/>of<sp/>the<sp/>key<sp/>to<sp/>use<sp/>for<sp/>the</highlight></codeline>
+<codeline lineno="118"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>operation.</highlight></codeline>
+<codeline lineno="119"><highlight class="comment"><sp/>*<sp/>\param[in]<sp/><sp/>private_key<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>The<sp/>buffer<sp/>containing<sp/>the<sp/>private<sp/>key<sp/>context.</highlight></codeline>
+<codeline lineno="120"><highlight class="comment"><sp/>*<sp/>\param[in]<sp/><sp/>private_key_len<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Size<sp/>of<sp/>the<sp/>\p<sp/>private_key<sp/>buffer<sp/>in<sp/>bytes.</highlight></codeline>
+<codeline lineno="121"><highlight class="comment"><sp/>*<sp/>\param[in]<sp/><sp/>peer_key<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>The<sp/>buffer<sp/>containing<sp/>the<sp/>peer<sp/>public<sp/>key<sp/>context.</highlight></codeline>
+<codeline lineno="122"><highlight class="comment"><sp/>*<sp/>\param[in]<sp/><sp/>peer_key_length<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Size<sp/>of<sp/>the<sp/>\p<sp/>peer_key<sp/>buffer<sp/>in<sp/>bytes.</highlight></codeline>
+<codeline lineno="123"><highlight class="comment"><sp/>*<sp/>\param[in,out]<sp/>shared_secret<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Buffer<sp/>where<sp/>the<sp/>output<sp/>is<sp/>to<sp/>be<sp/>written.</highlight></codeline>
+<codeline lineno="124"><highlight class="comment"><sp/>*<sp/>\param[in]<sp/><sp/>shared_secret_size<sp/><sp/><sp/><sp/><sp/><sp/><sp/>Size<sp/>of<sp/>the<sp/>\p<sp/>shared_secret<sp/>buffer<sp/>in<sp/>bytes.</highlight></codeline>
+<codeline lineno="125"><highlight class="comment"><sp/>*<sp/>\param[out]<sp/>shared_secret_length<sp/><sp/><sp/><sp/><sp/>On<sp/>success,<sp/>the<sp/>number<sp/>of<sp/>bytes<sp/>that<sp/>make<sp/>up</highlight></codeline>
+<codeline lineno="126"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>the<sp/>returned<sp/>output.<sp/>Initialized<sp/>to<sp/>zero</highlight></codeline>
+<codeline lineno="127"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>by<sp/>the<sp/>core.</highlight></codeline>
+<codeline lineno="128"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="129"><highlight class="comment"><sp/>*<sp/>\retval<sp/>PSA_SUCCESS</highlight></codeline>
+<codeline lineno="130"><highlight class="comment"><sp/>*<sp/>\retval<sp/>PSA_ERROR_NOT_SUPPORTED</highlight></codeline>
+<codeline lineno="131"><highlight class="comment"><sp/>*<sp/>\retval<sp/>PSA_ERROR_INSUFFICIENT_MEMORY</highlight></codeline>
+<codeline lineno="132"><highlight class="comment"><sp/>*<sp/>\retval<sp/>PSA_ERROR_CORRUPTION_DETECTED</highlight></codeline>
+<codeline lineno="133"><highlight class="comment"><sp/>*<sp/>\retval<sp/>PSA_ERROR_BUFFER_TOO_SMALL</highlight></codeline>
+<codeline lineno="134"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>The<sp/>size<sp/>of<sp/>the<sp/>\p<sp/>shared_secret<sp/>buffer<sp/>is<sp/>small.</highlight></codeline>
+<codeline lineno="135"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="136"><highlight class="normal"></highlight></codeline>
+<codeline lineno="137"><highlight class="normal">psa_status_t<sp/>sli_si91x_psa_ecdh_key_agreement(psa_algorithm_t<sp/>alg,</highlight></codeline>
+<codeline lineno="138"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>psa_key_attributes_t<sp/>*attributes,</highlight></codeline>
+<codeline lineno="139"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint8_t<sp/>*private_key,</highlight></codeline>
+<codeline lineno="140"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>private_key_len,</highlight></codeline>
+<codeline lineno="141"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint8_t<sp/>*peer_key,</highlight></codeline>
+<codeline lineno="142"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>peer_key_length,</highlight></codeline>
+<codeline lineno="143"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>uint8_t<sp/>*shared_secret,</highlight></codeline>
+<codeline lineno="144"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>shared_secret_size,</highlight></codeline>
+<codeline lineno="145"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>*shared_secret_length);</highlight></codeline>
+<codeline lineno="146"><highlight class="normal"></highlight><highlight class="preprocessor">#endif<sp/></highlight><highlight class="comment">/*<sp/>SLI_SI91X_PSA_ECDH_H<sp/>*/</highlight><highlight class="preprocessor"></highlight></codeline>
+    </programlisting>
+    <location file="components/device/silabs/si91x/wireless/crypto/ecdh/inc/sl_si91x_psa_ecdh.h"/>
+  </compounddef>
+</doxygen>

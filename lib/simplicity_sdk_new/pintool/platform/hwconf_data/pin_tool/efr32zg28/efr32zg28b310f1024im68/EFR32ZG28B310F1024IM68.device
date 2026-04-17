@@ -1,0 +1,213 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<device:DocumentRoot xmlns:device="http://www.silabs.com/ss/hwconfig/device.ecore">
+  <device description="" label="EFR32ZG28B310F1024IM68" name="pin_tool.EFR32ZG28B310F1024IM68" partId="mcu.arm.efr32.zg28.efr32zg28b310f1024im68" deviceExtensionIdRef="pin_tool.efr32.efr32zg28.efr32zg28b310f1024im68.extension" revision="A" singleMode="true">
+    <powerModel/>
+    <portIo componentIdRef="pin_tool.efr32.efr32zg28.efr32zg28b310f1024im68.portio" name="PORTIO" revision="A">
+      <crossBars/>
+      <interfaceToPinLists/>
+      <portBanks>
+        <portBank componentIdRef="pin_tool.efr32.efr32zg28.port" displayName="Port A" name="SL_GPIO_PORT_A" revision="A" index="0">
+          <pin componentIdRef="pin_tool.efr32.efr32zg28.pin" displayName="PA00" name="PA00" index="0"/>
+          <pin componentIdRef="pin_tool.efr32.efr32zg28.pin" displayName="PA01" name="PA01" index="1"/>
+          <pin componentIdRef="pin_tool.efr32.efr32zg28.pin" displayName="PA02" name="PA02" index="2"/>
+          <pin componentIdRef="pin_tool.efr32.efr32zg28.pin" displayName="PA03" name="PA03" index="3"/>
+          <pin componentIdRef="pin_tool.efr32.efr32zg28.pin" displayName="PA04" name="PA04" index="4"/>
+          <pin componentIdRef="pin_tool.efr32.efr32zg28.pin" displayName="PA05" name="PA05" index="5"/>
+          <pin componentIdRef="pin_tool.efr32.efr32zg28.pin" displayName="PA06" name="PA06" index="6"/>
+          <pin componentIdRef="pin_tool.efr32.efr32zg28.pin" displayName="PA07" name="PA07" index="7"/>
+          <pin componentIdRef="pin_tool.efr32.efr32zg28.pin" displayName="PA08" name="PA08" index="8"/>
+          <pin componentIdRef="pin_tool.efr32.efr32zg28.pin" displayName="PA09" name="PA09" index="9"/>
+          <pin componentIdRef="pin_tool.efr32.efr32zg28.pin" displayName="PA10" name="PA10" index="10"/>
+          <pin componentIdRef="pin_tool.efr32.efr32zg28.pin" displayName="PA11" name="PA11" index="11"/>
+          <pin componentIdRef="pin_tool.efr32.efr32zg28.pin" displayName="PA12" name="PA12" index="12"/>
+          <pin componentIdRef="pin_tool.efr32.efr32zg28.pin" displayName="PA13" name="PA13" index="13"/>
+          <pin componentIdRef="pin_tool.efr32.efr32zg28.pin" displayName="PA14" name="PA14" index="14"/>
+        </portBank>
+        <portBank componentIdRef="pin_tool.efr32.efr32zg28.port" displayName="Port B" name="SL_GPIO_PORT_B" revision="A" index="1">
+          <pin componentIdRef="pin_tool.efr32.efr32zg28.pin" displayName="PB00" name="PB00" index="0"/>
+          <pin componentIdRef="pin_tool.efr32.efr32zg28.pin" displayName="PB01" name="PB01" index="1"/>
+          <pin componentIdRef="pin_tool.efr32.efr32zg28.pin" displayName="PB02" name="PB02" index="2"/>
+          <pin componentIdRef="pin_tool.efr32.efr32zg28.pin" displayName="PB03" name="PB03" index="3"/>
+          <pin componentIdRef="pin_tool.efr32.efr32zg28.pin" displayName="PB04" name="PB04" index="4"/>
+          <pin componentIdRef="pin_tool.efr32.efr32zg28.pin" displayName="PB05" name="PB05" index="5"/>
+        </portBank>
+        <portBank componentIdRef="pin_tool.efr32.efr32zg28.port" displayName="Port C" name="SL_GPIO_PORT_C" revision="A" index="2">
+          <pin componentIdRef="pin_tool.efr32.efr32zg28.pin" displayName="PC00" name="PC00" index="0"/>
+          <pin componentIdRef="pin_tool.efr32.efr32zg28.pin" displayName="PC01" name="PC01" index="1"/>
+          <pin componentIdRef="pin_tool.efr32.efr32zg28.pin" displayName="PC02" name="PC02" index="2"/>
+          <pin componentIdRef="pin_tool.efr32.efr32zg28.pin" displayName="PC03" name="PC03" index="3"/>
+          <pin componentIdRef="pin_tool.efr32.efr32zg28.pin" displayName="PC04" name="PC04" index="4"/>
+          <pin componentIdRef="pin_tool.efr32.efr32zg28.pin" displayName="PC05" name="PC05" index="5"/>
+          <pin componentIdRef="pin_tool.efr32.efr32zg28.pin" displayName="PC06" name="PC06" index="6"/>
+          <pin componentIdRef="pin_tool.efr32.efr32zg28.pin" displayName="PC07" name="PC07" index="7"/>
+          <pin componentIdRef="pin_tool.efr32.efr32zg28.pin" displayName="PC08" name="PC08" index="8"/>
+          <pin componentIdRef="pin_tool.efr32.efr32zg28.pin" displayName="PC09" name="PC09" index="9"/>
+          <pin componentIdRef="pin_tool.efr32.efr32zg28.pin" displayName="PC10" name="PC10" index="10"/>
+          <pin componentIdRef="pin_tool.efr32.efr32zg28.pin" displayName="PC11" name="PC11" index="11"/>
+        </portBank>
+        <portBank componentIdRef="pin_tool.efr32.efr32zg28.port" displayName="Port D" name="SL_GPIO_PORT_D" revision="A" index="3">
+          <pin componentIdRef="pin_tool.efr32.efr32zg28.pin" displayName="PD00" name="PD00" index="0"/>
+          <pin componentIdRef="pin_tool.efr32.efr32zg28.pin" displayName="PD01" name="PD01" index="1"/>
+          <pin componentIdRef="pin_tool.efr32.efr32zg28.pin" displayName="PD02" name="PD02" index="2"/>
+          <pin componentIdRef="pin_tool.efr32.efr32zg28.pin" displayName="PD03" name="PD03" index="3"/>
+          <pin componentIdRef="pin_tool.efr32.efr32zg28.pin" displayName="PD04" name="PD04" index="4"/>
+          <pin componentIdRef="pin_tool.efr32.efr32zg28.pin" displayName="PD05" name="PD05" index="5"/>
+          <pin componentIdRef="pin_tool.efr32.efr32zg28.pin" displayName="PD06" name="PD06" index="6"/>
+          <pin componentIdRef="pin_tool.efr32.efr32zg28.pin" displayName="PD07" name="PD07" index="7"/>
+          <pin componentIdRef="pin_tool.efr32.efr32zg28.pin" displayName="PD08" name="PD08" index="8"/>
+          <pin componentIdRef="pin_tool.efr32.efr32zg28.pin" displayName="PD09" name="PD09" index="9"/>
+          <pin componentIdRef="pin_tool.efr32.efr32zg28.pin" displayName="PD10" name="PD10" index="10"/>
+          <pin componentIdRef="pin_tool.efr32.efr32zg28.pin" displayName="PD11" name="PD11" index="11"/>
+          <pin componentIdRef="pin_tool.efr32.efr32zg28.pin" displayName="PD12" name="PD12" index="12"/>
+          <pin componentIdRef="pin_tool.efr32.efr32zg28.pin" displayName="PD13" name="PD13" index="13"/>
+          <pin componentIdRef="pin_tool.efr32.efr32zg28.pin" displayName="PD14" name="PD14" index="14"/>
+          <pin componentIdRef="pin_tool.efr32.efr32zg28.pin" displayName="PD15" name="PD15" index="15"/>
+        </portBank>
+      </portBanks>
+    </portIo>
+    <pinOut description="68-pin QFN, 8x8" indicatorLocation="topleft" package="QFN" padDescription="VSS" subtitle="(top view)">
+      <pin defaultLabel="PD01" location="left:0" number="1" pinIndex="1" portBankIndex="3"/>
+      <pin defaultLabel="PD00" location="left:1" number="2" pinIndex="0" portBankIndex="3"/>
+      <pin defaultLabel="PC00" location="left:2" number="3" pinIndex="0" portBankIndex="2"/>
+      <pin defaultLabel="PC01" location="left:3" number="4" pinIndex="1" portBankIndex="2"/>
+      <pin defaultLabel="PC02" location="left:4" number="5" pinIndex="2" portBankIndex="2"/>
+      <pin defaultLabel="IOVDD" location="left:5" number="6"/>
+      <pin defaultLabel="PC03" location="left:6" number="7" pinIndex="3" portBankIndex="2"/>
+      <pin defaultLabel="PC04" location="left:7" number="8" pinIndex="4" portBankIndex="2"/>
+      <pin defaultLabel="PC05" location="left:8" number="9" pinIndex="5" portBankIndex="2"/>
+      <pin defaultLabel="PC06" location="left:9" number="10" pinIndex="6" portBankIndex="2"/>
+      <pin defaultLabel="PC07" location="left:10" number="11" pinIndex="7" portBankIndex="2"/>
+      <pin defaultLabel="PC08" location="left:11" number="12" pinIndex="8" portBankIndex="2"/>
+      <pin defaultLabel="PC09" location="left:12" number="13" pinIndex="9" portBankIndex="2"/>
+      <pin defaultLabel="PC10" location="left:13" number="14" pinIndex="10" portBankIndex="2"/>
+      <pin defaultLabel="PC11" location="left:14" number="15" pinIndex="11" portBankIndex="2"/>
+      <pin defaultLabel="HFXTAL_I" location="left:15" number="16"/>
+      <pin defaultLabel="HFXTAL_O" location="left:16" number="17"/>
+      <pin defaultLabel="RESETn" location="bottom:0" number="18"/>
+      <pin defaultLabel="RFVDD" location="bottom:1" number="19"/>
+      <pin defaultLabel="RFVSS" location="bottom:2" number="20"/>
+      <pin defaultLabel="SUBG_I1" location="bottom:3" number="21"/>
+      <pin defaultLabel="SUBG_I0" location="bottom:4" number="22"/>
+      <pin defaultLabel="SUBG_O1" location="bottom:5" number="23"/>
+      <pin defaultLabel="SUBG_O0" location="bottom:6" number="24"/>
+      <pin defaultLabel="PAVDD" location="bottom:7" number="25"/>
+      <pin defaultLabel="PB05" location="bottom:8" number="26" pinIndex="5" portBankIndex="1"/>
+      <pin defaultLabel="PB04" location="bottom:9" number="27" pinIndex="4" portBankIndex="1"/>
+      <pin defaultLabel="PB03" location="bottom:10" number="28" pinIndex="3" portBankIndex="1"/>
+      <pin defaultLabel="PB02" location="bottom:11" number="29" pinIndex="2" portBankIndex="1"/>
+      <pin defaultLabel="PB01" location="bottom:12" number="30" pinIndex="1" portBankIndex="1"/>
+      <pin defaultLabel="PB00" location="bottom:13" number="31" pinIndex="0" portBankIndex="1"/>
+      <pin defaultLabel="PA00" location="bottom:14" number="32" pinIndex="0" portBankIndex="0"/>
+      <pin defaultLabel="IOVDD" location="bottom:15" number="33"/>
+      <pin defaultLabel="PA01" location="bottom:16" number="34" pinIndex="1" portBankIndex="0"/>
+      <pin defaultLabel="PA02" location="right:0" number="35" pinIndex="2" portBankIndex="0"/>
+      <pin defaultLabel="PA03" location="right:1" number="36" pinIndex="3" portBankIndex="0"/>
+      <pin defaultLabel="PA04" location="right:2" number="37" pinIndex="4" portBankIndex="0"/>
+      <pin defaultLabel="PA05" location="right:3" number="38" pinIndex="5" portBankIndex="0"/>
+      <pin defaultLabel="PA06" location="right:4" number="39" pinIndex="6" portBankIndex="0"/>
+      <pin defaultLabel="PA07" location="right:5" number="40" pinIndex="7" portBankIndex="0"/>
+      <pin defaultLabel="PA08" location="right:6" number="41" pinIndex="8" portBankIndex="0"/>
+      <pin defaultLabel="PA09" location="right:7" number="42" pinIndex="9" portBankIndex="0"/>
+      <pin defaultLabel="PA10" location="right:8" number="43" pinIndex="10" portBankIndex="0"/>
+      <pin defaultLabel="PA11" location="right:9" number="44" pinIndex="11" portBankIndex="0"/>
+      <pin defaultLabel="PA12" location="right:10" number="45" pinIndex="12" portBankIndex="0"/>
+      <pin defaultLabel="PA13" location="right:11" number="46" pinIndex="13" portBankIndex="0"/>
+      <pin defaultLabel="PA14" location="right:12" number="47" pinIndex="14" portBankIndex="0"/>
+      <pin defaultLabel="DECOUPLE" location="right:13" number="48"/>
+      <pin defaultLabel="VREGSW" location="right:14" number="49"/>
+      <pin defaultLabel="VREGVDD" location="right:15" number="50"/>
+      <pin defaultLabel="VREGVSS" location="right:16" number="51"/>
+      <pin defaultLabel="DVDD" location="top:0" number="52"/>
+      <pin defaultLabel="AVDD" location="top:1" number="53"/>
+      <pin defaultLabel="IOVDD" location="top:2" number="54"/>
+      <pin defaultLabel="PD15" location="top:3" number="55" pinIndex="15" portBankIndex="3"/>
+      <pin defaultLabel="PD14" location="top:4" number="56" pinIndex="14" portBankIndex="3"/>
+      <pin defaultLabel="PD13" location="top:5" number="57" pinIndex="13" portBankIndex="3"/>
+      <pin defaultLabel="PD12" location="top:6" number="58" pinIndex="12" portBankIndex="3"/>
+      <pin defaultLabel="PD11" location="top:7" number="59" pinIndex="11" portBankIndex="3"/>
+      <pin defaultLabel="PD10" location="top:8" number="60" pinIndex="10" portBankIndex="3"/>
+      <pin defaultLabel="PD09" location="top:9" number="61" pinIndex="9" portBankIndex="3"/>
+      <pin defaultLabel="PD08" location="top:10" number="62" pinIndex="8" portBankIndex="3"/>
+      <pin defaultLabel="PD07" location="top:11" number="63" pinIndex="7" portBankIndex="3"/>
+      <pin defaultLabel="PD06" location="top:12" number="64" pinIndex="6" portBankIndex="3"/>
+      <pin defaultLabel="PD05" location="top:13" number="65" pinIndex="5" portBankIndex="3"/>
+      <pin defaultLabel="PD04" location="top:14" number="66" pinIndex="4" portBankIndex="3"/>
+      <pin defaultLabel="PD03" location="top:15" number="67" pinIndex="3" portBankIndex="3"/>
+      <pin defaultLabel="PD02" location="top:16" number="68" pinIndex="2" portBankIndex="3"/>
+    </pinOut>
+    <peripherals>
+      <peripheral componentIdRef="pin_tool.efr32.efr32zg28.scratchpad" displayName="SCRATCHPAD" name="SCRATCHPAD" revision="A" category="Other" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.efr32.efr32zg28.emu" displayName="EMU" name="EMU" revision="A" category="Core" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.efr32.efr32zg28.cmu" displayName="CMU" name="CMU" revision="A" category="Clocking" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.efr32.efr32zg28.hfrco" displayName="HFRCO0" name="HFRCO0" revision="A" category="Clocking" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.efr32.efr32zg28.fsrco" displayName="FSRCO" name="FSRCO" revision="A" category="Clocking" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.efr32.efr32zg28.dpll" displayName="DPLL0" name="DPLL0" revision="A" category="Clocking" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.efr32.efr32zg28.lfxo" displayName="LFXO" name="LFXO" revision="A" category="Clocking" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.efr32.efr32zg28.lfrco" displayName="LFRCO" name="LFRCO" revision="A" category="Clocking" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.efr32.efr32zg28.ulfrco" displayName="ULFRCO" name="ULFRCO" revision="A" category="Clocking" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.efr32.efr32zg28.msc" displayName="MSC" name="MSC" revision="A" category="Core" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.efr32.efr32zg28.prs.asynch0" displayName="PRS Channel ASYNCH0" name="PRS.ASYNCH0" revision="A" category="PRS" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.efr32.efr32zg28.prs.asynch1" displayName="PRS Channel ASYNCH1" name="PRS.ASYNCH1" revision="A" category="PRS" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.efr32.efr32zg28.prs.asynch2" displayName="PRS Channel ASYNCH2" name="PRS.ASYNCH2" revision="A" category="PRS" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.efr32.efr32zg28.prs.asynch3" displayName="PRS Channel ASYNCH3" name="PRS.ASYNCH3" revision="A" category="PRS" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.efr32.efr32zg28.prs.asynch4" displayName="PRS Channel ASYNCH4" name="PRS.ASYNCH4" revision="A" category="PRS" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.efr32.efr32zg28.prs.asynch5" displayName="PRS Channel ASYNCH5" name="PRS.ASYNCH5" revision="A" category="PRS" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.efr32.efr32zg28.prs.asynch6" displayName="PRS Channel ASYNCH6" name="PRS.ASYNCH6" revision="A" category="PRS" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.efr32.efr32zg28.prs.asynch7" displayName="PRS Channel ASYNCH7" name="PRS.ASYNCH7" revision="A" category="PRS" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.efr32.efr32zg28.prs.asynch8" displayName="PRS Channel ASYNCH8" name="PRS.ASYNCH8" revision="A" category="PRS" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.efr32.efr32zg28.prs.asynch9" displayName="PRS Channel ASYNCH9" name="PRS.ASYNCH9" revision="A" category="PRS" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.efr32.efr32zg28.prs.asynch10" displayName="PRS Channel ASYNCH10" name="PRS.ASYNCH10" revision="A" category="PRS" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.efr32.efr32zg28.prs.asynch11" displayName="PRS Channel ASYNCH11" name="PRS.ASYNCH11" revision="A" category="PRS" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.efr32.efr32zg28.prs.synch0" displayName="PRS Channel SYNCH0" name="PRS.SYNCH0" revision="A" category="PRS" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.efr32.efr32zg28.prs.synch1" displayName="PRS Channel SYNCH1" name="PRS.SYNCH1" revision="A" category="PRS" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.efr32.efr32zg28.prs.synch2" displayName="PRS Channel SYNCH2" name="PRS.SYNCH2" revision="A" category="PRS" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.efr32.efr32zg28.prs.synch3" displayName="PRS Channel SYNCH3" name="PRS.SYNCH3" revision="A" category="PRS" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.efr32.efr32zg28.gpio" displayName="GPIO" name="GPIO" revision="A" category="Core" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.efr32.efr32zg28.ldma" displayName="LDMA" name="LDMA" revision="A" category="Core" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.efr32.efr32zg28.ldmaxbar" displayName="LDMAXBAR" name="LDMAXBAR" revision="A" category="Core" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.efr32.efr32zg28.timer" displayName="TIMER0" name="TIMER0" revision="A" category="Timers" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.efr32.efr32zg28.timer" displayName="TIMER1" name="TIMER1" revision="A" category="Timers" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.efr32.efr32zg28.timer" displayName="TIMER2" name="TIMER2" revision="A" category="Timers" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.efr32.efr32zg28.timer" displayName="TIMER3" name="TIMER3" revision="A" category="Timers" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.efr32.efr32zg28.timer" displayName="TIMER4" name="TIMER4" revision="A" category="Timers" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.efr32.efr32zg28.usart" displayName="USART0" name="USART0" revision="A" category="Communications" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.efr32.efr32zg28.burtc" displayName="BURTC" name="BURTC" revision="A" category="Timers" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.efr32.efr32zg28.i2c" displayName="I2C1" name="I2C1" revision="A" category="Communications" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.efr32.efr32zg28.syscfg" displayName="SYSCFG" name="SYSCFG" revision="A" category="Core" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.efr32.efr32zg28.gpcrc" displayName="GPCRC" name="GPCRC" revision="A" category="Other" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.efr32.efr32zg28.mailbox" displayName="HOSTMAILBOX" name="HOSTMAILBOX" revision="A" category="Core" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.efr32.efr32zg28.eusart" displayName="EUSART1" name="EUSART1" revision="A" category="Communications" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.efr32.efr32zg28.eusart" displayName="EUSART2" name="EUSART2" revision="A" category="Communications" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.efr32.efr32zg28.sysrtc" displayName="SYSRTC0" name="SYSRTC0" revision="A" category="Timers" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.efr32.efr32zg28.lcd" displayName="LCD" name="LCD" revision="A" category="Other" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.efr32.efr32zg28.keyscan" displayName="KEYSCAN" name="KEYSCAN" revision="A" category="Other" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.efr32.efr32zg28.aes" displayName="RADIOAES" name="RADIOAES" revision="A" category="Security" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.efr32.efr32zg28.smu" displayName="SMU" name="SMU" revision="A" category="Core" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.efr32.efr32zg28.letimer" displayName="LETIMER0" name="LETIMER0" revision="A" category="Timers" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.efr32.efr32zg28.iadc" displayName="IADC0" name="IADC0" revision="A" category="Analog" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.efr32.efr32zg28.acmp" displayName="ACMP0" name="ACMP0" revision="A" category="Other" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.efr32.efr32zg28.acmp" displayName="ACMP1" name="ACMP1" revision="A" category="Other" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.efr32.efr32zg28.vdac" displayName="VDAC0" name="VDAC0" revision="A" category="Analog" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.efr32.efr32zg28.pcnt" displayName="PCNT0" name="PCNT0" revision="A" category="Timers" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.efr32.efr32zg28.lesense" displayName="LESENSE" name="LESENSE" revision="A" category="Communications" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.efr32.efr32zg28.hfrco" displayName="HFRCOEM23" name="HFRCOEM23" revision="A" category="Clocking" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.efr32.efr32zg28.hfxo" displayName="HFXO0" name="HFXO0" revision="A" category="Clocking" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.efr32.efr32zg28.i2c" displayName="I2C0" name="I2C0" revision="A" category="Communications" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.efr32.efr32zg28.wdog" displayName="WDOG0" name="WDOG0" revision="A" category="Core" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.efr32.efr32zg28.wdog" displayName="WDOG1" name="WDOG1" revision="A" category="Core" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.efr32.efr32zg28.eusart" displayName="EUSART0" name="EUSART0" revision="A" category="Communications" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.efr32.efr32zg28.semailbox" displayName="SEMAILBOX" name="SEMAILBOX" revision="A" category="Other" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.efr32.efr32zg28.mvp" displayName="MVP" name="MVP" revision="A" category="Core" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.efr32.efr32zg28.pti" displayName="PTI" name="PTI" revision="A" category="Radio" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.efr32.efr32zg28.modem" displayName="MODEM" name="MODEM" revision="A" category="Radio" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.efr32.efr32zg28.scratchpad" displayName="RFSCRATCHPAD" name="RFSCRATCHPAD" revision="A" category="Other" hidden="false"/>
+      <peripheral componentIdRef="pin_tool.efr32.efr32zg28.mailbox" displayName="RFMAILBOX" name="RFMAILBOX" revision="A" category="Core" hidden="false"/>
+    </peripherals>
+    <script uri="../../script/entrypoint.py">
+      <path>../../script</path>
+    </script>
+    <sourceMappings initialGroup="main_template">
+      <sourceMapping uri="../../script/generator/source_generator.srcmap"/>
+    </sourceMappings>
+  </device>
+</device:DocumentRoot>

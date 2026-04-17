@@ -1,0 +1,27 @@
+id: tfm_tz_sl_interface
+package: security_tfm
+label: Interface for TrustZone Secure Key Library
+description: This component provides tf-m source for the TrustZone secure library interface files
+category: Platform|Security|TrustZone
+quality: production
+ui_hints:
+  visibility: never
+provides:
+- name: tfm_tz_sl_interface
+include:
+- path: ../
+  condition:
+  - trustzone_secure
+- path: interface/include
+  unless:
+  - tz_service_common
+  file_list:
+  - path: tfm_crypto_defs.h
+  - path: tfm_api.h
+  - path: psa_config.h
+  - path: psa/client.h
+  - path: psa/error.h
+metadata:
+  sbom:
+    reference: tfm_sbom
+root_path: security_tfm

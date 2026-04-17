@@ -1,0 +1,107 @@
+<ns0:MDescriptors xmlns:ns0="http://www.silabs.com/ss/Studio.ecore">
+  <descriptors name="bootloader-uart-xmodem" label="Bootloader - NCP UART XMODEM" description="Standalone Bootloader using XMODEM-CRC over UART. The bootloader shows a menu, where an XMODEM transfer can be started by sending ASCII '1', or the application can be started by sending ASCII '2'. This is the recommended UART bootloader for the EmberZNet and Connect protocol stacks.&#xA;">
+    <properties key="namespace" value="template.uc" />
+    <properties key="keywords" value="universal\ configurator" />
+    <properties key="solutionReferenceId" value="platform.bootloader.series3.sample-apps.bootloader-uart-xmodem.bootloader-uart-xmodem.slcp" />
+    <properties key="projectFilePaths" value="series3/sample-apps/bootloader-uart-xmodem/bootloader-uart-xmodem.slcp" />
+    <properties key="readmeFiles" value="series3/sample-apps/bootloader-uart-xmodem/readme.md" />
+    <properties key="boardCompatibility" value="brd1019a com.silabs.board.none" />
+    <properties key="partCompatibility" value=".*simg301.*" />
+    <properties key="ideCompatibility" value="generic-template makefile-ide simplicity-ide visual-studio-code" />
+    <properties key="toolchainCompatibility" value="gcc" />
+    <properties key="category" value="Example|Bootloader"/>
+    <properties key="quality" value="PRODUCTION" />
+    <properties key="stockConfigCompatibility" value="com.silabs.ss.framework.project.toolchain.core.default" />
+    <properties key="filters" value="Device\ Type|SoC MCU|Bootloader Project\ Difficulty|Advanced"/>
+  </descriptors>
+  <descriptors name="bootloader-uart-bgapi" label="Bootloader - NCP BGAPI UART DFU" description="Standalone Bootloader using the BGAPI protocol for UART DFU. This is the recommended UART bootloader for the BLE protocol stack.&#xA;">
+    <properties key="namespace" value="template.uc"/>
+    <properties key="keywords" value="universal\ configurator"/>
+    <properties key="solutionReferenceId" value="platform.bootloader.series3.sample-apps.bootloader-uart-bgapi.bootloader-uart-bgapi.slcp"/>
+    <properties key="projectFilePaths" value="series3/sample-apps/bootloader-uart-bgapi/bootloader-uart-bgapi.slcp"/>
+    <properties key="readmeFiles" value="series3/sample-apps/bootloader-uart-bgapi/readme.md"/>
+    <properties key="boardCompatibility" value="brd1019a com.silabs.board.none" />
+    <properties key="partCompatibility" value=".*simg301.*" />
+    <properties key="ideCompatibility" value="generic-template makefile-ide simplicity-ide visual-studio-code" />
+    <properties key="toolchainCompatibility" value="gcc" />
+    <properties key="category" value="Example|Bootloader"/>
+    <properties key="quality" value="PRODUCTION" />
+    <properties key="stockConfigCompatibility" value="com.silabs.ss.framework.project.toolchain.core.default" />
+    <properties key="filters" value="Device\ Type|SoC MCU|Bootloader Project\ Difficulty|Advanced"/>
+  </descriptors>
+  <descriptors name="bootloader-storage-single" label="Bootloader - SoC Storage (single OTA image of size 1024kB for 4MB flash)" description="This sample configuration of the Gecko bootloader configures the bootloader to use the flash to store firmware update images. The storage configuration is set up to store a single firmware update image at a time, in a single storage slot. The storage slot is configured to start at address 0x01200000, and have a size of 1024 kB. This can be configured on the &quot;Storage&quot; tab.&#xA;">
+    <properties key="namespace" value="template.uc"/>
+    <properties key="keywords" value="universal\ configurator"/>
+    <properties key="solutionReferenceId" value="platform.bootloader.series3.sample-apps.bootloader-storage-single.bootloader-storage-single.slcp"/>
+    <properties key="projectFilePaths" value="series3/sample-apps/bootloader-storage-single/bootloader-storage-single.slcp"/>
+    <properties key="readmeFiles" value="series3/sample-apps/bootloader-storage-single/readme.md"/>
+    <properties key="boardCompatibility" value="brd1019a com.silabs.board.none" />
+    <properties key="partCompatibility" value=".*simg301.*" />
+    <properties key="ideCompatibility" value="generic-template makefile-ide simplicity-ide visual-studio-code" />
+    <properties key="toolchainCompatibility" value="gcc" />
+    <properties key="category" value="Example|Bootloader"/>
+    <properties key="quality" value="PRODUCTION" />
+    <properties key="stockConfigCompatibility" value="com.silabs.ss.framework.project.toolchain.core.default" />
+    <properties key="filters" value="Device\ Type|SoC MCU|Bootloader Project\ Difficulty|Advanced"/>
+  </descriptors>
+  <descriptors name="bootloader-storage-single-4096k" label="Bootloader - SoC Storage (single OTA image of size 1540kB for 4MB flash)" description="This sample configuration of the Gecko bootloader configures the bootloader to use the flash to store firmware update images. The storage configuration is set up to store a single firmware update image at a time, in a single storage slot. The storage slot is configured to start at address 0x011F8000 for device with 0x01000000 flash base, and have a size of 1540 kB. This can be configured on the &quot;Storage&quot; tab.&#xA;">
+    <properties key="namespace" value="template.uc"/>
+    <properties key="keywords" value="universal\ configurator"/>
+    <properties key="solutionReferenceId" value="platform.bootloader.series3.sample-apps.bootloader-storage-single-4096k.bootloader-storage-single-4096k.slcp"/>
+    <properties key="projectFilePaths" value="series3/sample-apps/bootloader-storage-single-4096k/bootloader-storage-single-4096k.slcp"/>
+    <properties key="readmeFiles" value="series3/sample-apps/bootloader-storage-single-4096k/readme.md"/>
+    <properties key="boardCompatibility" value="brd1019a com.silabs.board.none" />
+    <properties key="partCompatibility" value=".*simg301.*" />
+    <properties key="ideCompatibility" value="generic-template makefile-ide simplicity-ide visual-studio-code" />
+    <properties key="toolchainCompatibility" value="gcc" />
+    <properties key="category" value="Example|Bootloader"/>
+    <properties key="quality" value="PRODUCTION" />
+    <properties key="stockConfigCompatibility" value="com.silabs.ss.framework.project.toolchain.core.default" />
+    <properties key="filters" value="Device\ Type|SoC MCU|Bootloader Project\ Difficulty|Advanced"/>
+  </descriptors>
+  <descriptors name="bootloader-storage-multi-4096k" label="Bootloader - SoC Storage (Multiple OTA images of size 756kB for 4MB flash)" description="This sample configuration of the Gecko bootloader configures the bootloader to use the flash to store firmware update images to store up to two firmware update images at a time, in two storage slots. The storage slots are configured to start at address 0x011FA000 and 0x012B7000 of the flash respectively, and have a size of 756kB. This can be configured on the &quot;Storage&quot; tab.&#xA;">
+    <properties key="namespace" value="template.uc"/>
+    <properties key="keywords" value="universal\ configurator"/>
+    <properties key="solutionReferenceId" value="platform.bootloader.series3.sample-apps.bootloader-storage-multi-4096k.bootloader-storage-multi-4096k.slcp"/>
+    <properties key="projectFilePaths" value="series3/sample-apps/bootloader-storage-multi-4096k/bootloader-storage-multi-4096k.slcp"/>
+    <properties key="readmeFiles" value="series3/sample-apps/bootloader-storage-multi-4096k/readme.md"/>
+    <properties key="boardCompatibility" value="brd1019a com.silabs.board.none" />
+    <properties key="partCompatibility" value=".*simg301.*" />
+    <properties key="ideCompatibility" value="generic-template makefile-ide simplicity-ide visual-studio-code" />
+    <properties key="toolchainCompatibility" value="gcc" />
+    <properties key="category" value="Example|Bootloader"/>
+    <properties key="quality" value="PRODUCTION" />
+    <properties key="stockConfigCompatibility" value="com.silabs.ss.framework.project.toolchain.core.default" />
+    <properties key="filters" value="Device\ Type|SoC MCU|Bootloader Project\ Difficulty|Advanced"/>
+  </descriptors>
+  <descriptors name="bootloader-storage-single-3072k" label="Bootloader - SoC Storage (single OTA image of size 1180kB for 3MB flash)" description="This sample configuration of the Gecko bootloader configures the bootloader to use the flash to store firmware update images. The storage configuration is set up to store a single firmware update image at a time, in a single storage slot. The storage slot is configured to start at address 0x01168000 for device with 0x01000000 flash base, and have a size of 1180 kB. This can be configured on the &quot;Storage&quot; tab.&#xA;">
+    <properties key="namespace" value="template.uc"/>
+    <properties key="keywords" value="universal\ configurator"/>
+    <properties key="solutionReferenceId" value="platform.bootloader.series3.sample-apps.bootloader-storage-single-3072k.bootloader-storage-single-3072k.slcp"/>
+    <properties key="projectFilePaths" value="series3/sample-apps/bootloader-storage-single-3072k/bootloader-storage-single-3072k.slcp"/>
+    <properties key="readmeFiles" value="series3/sample-apps/bootloader-storage-single-3072k/readme.md"/>
+    <properties key="boardCompatibility" value="brd1019a com.silabs.board.none" />
+    <properties key="partCompatibility" value=".*simg301.*" />
+    <properties key="ideCompatibility" value="generic-template makefile-ide simplicity-ide visual-studio-code" />
+    <properties key="toolchainCompatibility" value="gcc" />
+    <properties key="category" value="Example|Bootloader"/>
+    <properties key="quality" value="PRODUCTION" />
+    <properties key="stockConfigCompatibility" value="com.silabs.ss.framework.project.toolchain.core.default" />
+    <properties key="filters" value="Device\ Type|SoC MCU|Bootloader Project\ Difficulty|Advanced"/>
+  </descriptors>
+  <descriptors name="bootloader-storage-single-2048k" label="Bootloader - SoC Storage (single OTA image of size 792kB for 2MB flash)" description="This sample configuration of the Gecko bootloader configures the bootloader to use the flash to store firmware update images. The storage configuration is set up to store a single firmware update image at a time, in a single storage slot. The storage slot is configured to start at address 0x010E0000 for device with 0x01000000 flash base, and have a size of 792 kB. This can be configured on the &quot;Storage&quot; tab.&#xA;">
+    <properties key="namespace" value="template.uc"/>
+    <properties key="keywords" value="universal\ configurator"/>
+    <properties key="solutionReferenceId" value="platform.bootloader.series3.sample-apps.bootloader-storage-single-2048k.bootloader-storage-single-2048k.slcp"/>
+    <properties key="projectFilePaths" value="series3/sample-apps/bootloader-storage-single-2048k/bootloader-storage-single-2048k.slcp"/>
+    <properties key="readmeFiles" value="series3/sample-apps/bootloader-storage-single-2048k/readme.md"/>
+    <properties key="boardCompatibility" value="brd1019a com.silabs.board.none" />
+    <properties key="partCompatibility" value=".*simg301.*" />
+    <properties key="ideCompatibility" value="generic-template makefile-ide simplicity-ide visual-studio-code" />
+    <properties key="toolchainCompatibility" value="gcc" />
+    <properties key="category" value="Example|Bootloader"/>
+    <properties key="quality" value="PRODUCTION" />
+    <properties key="stockConfigCompatibility" value="com.silabs.ss.framework.project.toolchain.core.default" />
+    <properties key="filters" value="Device\ Type|SoC MCU|Bootloader Project\ Difficulty|Advanced"/>
+  </descriptors>
+</ns0:MDescriptors>

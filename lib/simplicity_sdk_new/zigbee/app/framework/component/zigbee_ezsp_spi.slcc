@@ -1,0 +1,52 @@
+package: zigbee
+description: This is the SPI implementation of EZSP.
+label: EZSP SPI
+quality: production
+id: zigbee_ezsp_spi
+category: Zigbee|Utility
+toolchain_settings: []
+ui_hints: {}
+template_file: []
+provides:
+- name: zigbee_ezsp_serial_interface
+- name: zigbee_ezsp_spi
+requires:
+- name: zigbee_ezsp
+- name: device_host
+   # cli_threaded_host component is required to correctly read I/O in a nonblocking fashion
+- name: cli_threaded_host
+  condition:
+  - cli
+- name: emlib_core
+define:
+- name: EZSP_SPI
+- name: EM_AF_LINK_PTHREAD
+  value: 1
+
+config_file:
+- path: platform/service/legacy_hal/config/spi-protocol-linux-config.h
+
+source:
+- path: app/util/ezsp/serial-interface-spi.c
+- path: app/ezsp-host/spi/spi-host-ui.c
+- path: app/ezsp-host/spi/spi-host.c
+- path: platform/service/legacy_hal/src/spi-protocol-linux.c
+  unless:
+  - zigbee_host_simulation
+
+include:
+- path: .
+  file_list:
+  - path: app/ezsp-host/spi/spi-host.h
+  - path: app/ezsp-host/spi/spi-host-ui.h
+- path: platform/service/legacy_hal/inc
+  file_list:
+  - path: spi-protocol-common.h
+
+template_contribution:
+- name: component_catalog
+  value: zigbee_ezsp_spi
+metadata:
+  sbom:
+    license: MSLA
+root_path: zigbee

@@ -1,0 +1,36 @@
+id: "sl_rail_sdk_wmbus_support"
+label: "Wireless M-Bus support"
+package: "rail_sdk"
+description: "Adds minimalist Wireless M-Bus support for coding and decoding packets."
+category: "RAIL-SDK|Wireless M-Bus"
+quality: "production"
+metadata:
+  sbom:
+    license: Zlib
+root_path: "rail_sdk/component/sl_rail_sdk_wmbus_support"
+
+provides:
+- name: sl_rail_sdk_wmbus_support
+
+config_file:
+- path: config/sl_rail_sdk_wmbus_support_config.h
+
+requires:
+- name: "mbedtls_aes"
+- name: "mbedtls_cipher_cbc"
+- name: "mbedtls_slcrypto"
+- name: "emlib_gpcrc"
+- name: "device_has_radio"
+
+source:
+- path: "sl_rail_sdk_wmbus_support.c"
+include:
+- path: "."
+  file_list:
+  - "path": "sl_rail_sdk_wmbus_support.h"
+
+#-------------- Template Contribution ----------------
+template_contribution:
+#---------------- Component Catalog ------------------
+- name: component_catalog
+  value: wmbus_support

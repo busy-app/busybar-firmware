@@ -1,0 +1,27 @@
+id: mdns
+package: wifi
+description: >
+  The MDNS provides a simple, easy-to-use API to start a service that advertises service on network
+label: MDNS
+category: Service
+quality: production
+metadata:
+  sbom:
+    license: MSLA
+component_root_path: ./components/service/mdns
+provides:
+- name: mdns
+source:
+- path: si91x/sl_mdns.c
+include:
+- path: inc
+- path: inc
+  file_list:
+    - path: sl_mdns.h
+
+define:
+- name: SLI_SI91X_INTERNAL_MDNS
+
+requires:
+- name: sl_si91x_internal_stack
+

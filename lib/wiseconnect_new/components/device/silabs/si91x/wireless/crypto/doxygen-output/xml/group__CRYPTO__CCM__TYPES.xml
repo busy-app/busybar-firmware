@@ -1,0 +1,16 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__CRYPTO__CCM__TYPES" kind="group">
+    <compoundname>CRYPTO_CCM_TYPES</compoundname>
+    <title>Types</title>
+    <innerclass refid="structsl__si91x__ccm__key__config__a0__t" prot="public">sl_si91x_ccm_key_config_a0_t</innerclass>
+    <innerclass refid="structsl__si91x__ccm__key__config__b0__t" prot="public">sl_si91x_ccm_key_config_b0_t</innerclass>
+    <innerclass refid="unionsl__si91x__ccm__key__config__t" prot="public">sl_si91x_ccm_key_config_t</innerclass>
+    <innerclass refid="structsl__si91x__ccm__config__t" prot="public">sl_si91x_ccm_config_t</innerclass>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para>This section provides a reference to the CCM Crypto API types. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

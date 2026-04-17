@@ -1,0 +1,26 @@
+id: tfm_psa_its
+package: security_tfm
+label: PSA Persistent Storage Support (ITS)
+description: 'This component provides tf-m source for the persistent storage driver. '
+category: Platform|Security|PSA Crypto
+quality: production
+provides:
+- name: tfm_psa_its
+include:
+- path: interface/include
+  condition:
+  - trustzone_secure
+  unless:
+  - tz_service_psa_its
+  file_list:
+  - path: psa/internal_trusted_storage.h
+  - path: psa/error.h
+- path: interface/include
+  condition:
+  - trustzone_secure
+  file_list:
+  - path: psa/storage_common.h
+metadata:
+  sbom:
+    reference: tfm_sbom
+root_path: security_tfm

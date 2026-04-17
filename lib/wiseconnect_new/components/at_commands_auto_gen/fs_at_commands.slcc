@@ -1,0 +1,68 @@
+id: fs_at_commands
+package: wifi
+description: >
+  File System AT commands
+category: Service| AT Commands Autogen| File System AT commands
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+component_root_path: ./components/at_commands_auto_gen
+provides:
+  - name: fs_at_commands
+
+template_contribution:
+  - name: console_commands
+    value:
+      fs-format:
+        handler: fs_format_command_handler
+      fs-mount:
+        handler: fs_mount_command_handler
+      fs-unmount:
+        handler: fs_unmount_command_handler
+      fs-ls:
+        handler: fs_ls_command_handler
+        arguments:
+          - "string"    # path
+      fs-fopen:
+        handler: fs_fopen_command_handler
+        arguments:
+          - "string"    # path
+          - "uint32"    # flags
+      fs-fseek:
+        handler: fs_fseek_command_handler
+        arguments:
+          - "uint16"    # file-id
+          - "uint32"    # offset
+          - "uint32"    # whence
+      fs-fsize:
+        handler: fs_fsize_command_handler
+        arguments:
+          - "uint16"    # file-id
+      fs-frewind:
+        handler: fs_frewind_command_handler
+        arguments:
+          - "uint16"    # file-id
+      fs-fread:
+        handler: fs_fread_command_handler
+        arguments:
+          - "uint16"    # file-id
+          - "uint32"    # size
+      fs-fwrite:
+        handler: fs_fwrite_command_handler
+        arguments:
+          - "uint16"    # file-id
+          - "uint32"    # size
+      fs-ftrunc:
+        handler: fs_ftrunc_command_handler
+        arguments:
+          - "uint16"    # file-id
+          - "uint32"    # size
+      fs-fclose:
+        handler: fs_fclose_command_handler
+        arguments:
+          - "uint16"    # file-id
+      fs-fremove:
+        handler: fs_fremove_command_handler
+        arguments:
+          - "string"    # path

@@ -1,0 +1,20 @@
+%%{init: {'theme': 'forest' } }%%
+sequenceDiagram
+    participant A as AppThread
+    participant E as EventThread
+    participant B as CommandEngine
+    participant R as RoutingUtility
+
+    Note over A: User calls API to send a command<br>A command packet is prepared with<br>all the command parameters
+
+    rect rgba(255, 0, 0, .2)
+        opt sli_event_engine_init()
+            A->>A: Initialize the Event Id provided in Input argument
+
+            Note over A: This Event ID is required for other components to<br>trigger events to Event Engine.
+
+            A-->>E: Create Event Engine Thread
+            Note over E: Event Engine Thread is created and<br>it will be responsible for handling<br>all the asynchronous events.
+            E-->>A: Event Engine Thread created successfully.
+        end
+    end

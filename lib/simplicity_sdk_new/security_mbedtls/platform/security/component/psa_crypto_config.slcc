@@ -1,0 +1,158 @@
+id: psa_crypto_config
+package: security_mbedtls
+label: Configuration
+description: >-
+  This component includes the PSA Crypto configuration.
+category: Platform|Security|PSA Crypto
+quality: production
+provides:
+- name: psa_crypto_config
+
+include:
+
+- path: config
+  file_list:
+  - path: sli_psa_acceleration.h
+  - path: sli_psa_tfm_translation.h
+    condition: [tz_secure_key_library_s]
+  - path: sli_psa_tfm_translation.h
+    condition: [tz_secure_key_library_ns]
+
+- path: config/preset
+  file_list:
+  - path: sli_psa_config_se_cpc_primary.h
+    condition: [se_cpc_primary]
+
+template_file:
+- path: config/template/sli_psa_config_autogen.h.jinja
+    # We use tz_secure_key_library_s instead of trustzone_secure since the
+    # secure bootloader will need this file to build.
+  unless: [tz_secure_key_library_s, trustzone_nonsecure, se_cpc_primary]
+- path: config/template/sli_psa_config_autogen.h.jinja
+  export: true
+  condition: [trustzone_nonsecure]
+
+- path: config/template/sli_psa_builtin_config_autogen.h.jinja
+    # We use tz_secure_key_library_s instead of trustzone_secure since the
+    # secure bootloader will need this file to build.
+  unless: [tz_secure_key_library_s, trustzone_nonsecure]
+- path: config/template/sli_psa_builtin_config_autogen.h.jinja
+  export: true
+  condition: [trustzone_nonsecure]
+
+config_file:
+- path: config/template/psa_crypto_config.h
+  file_id: psa_crypto_config
+    # We use tz_secure_key_library_s instead of trustzone_secure since the
+    # secure bootloader will need this file to build.
+  unless: [tz_secure_key_library_s, trustzone_nonsecure]
+- path: config/template/psa_crypto_config.h
+  file_id: psa_crypto_config
+  export: true
+  condition: [trustzone_nonsecure]
+
+define:
+
+- name: MBEDTLS_PSA_CRYPTO_CONFIG_FILE
+  value: "<psa_crypto_config.h>"
+
+- name: SLI_PSA_CONFIG_AUTOGEN_OVERRIDE_FILE
+  value: "<sli_psa_config_se_cpc_primary.h>"
+  condition: [se_cpc_primary]
+
+template_contribution:
+- name: mbedtls_config
+  value: MBEDTLS_PSA_CRYPTO_CONFIG
+
+  # When defining MBEDTLS_PSA_CRYPTO_CONFIG, we are responsible for setting
+  # PSA_WANT_xxx and PSA_ACCEL_xxx based on what's available. If a user has
+  # selected mbedtls_xxx components for inclusion, we need to translate that
+  # here.
+- name: psa_crypto_config
+  value: PSA_WANT_ALG_SHA_1 1
+  condition: [mbedtls_sha1]
+- name: psa_crypto_config
+  value: PSA_WANT_ALG_SHA_224 1
+  condition: [mbedtls_sha224]
+- name: psa_crypto_config
+  value: PSA_WANT_ALG_SHA_256 1
+  condition: [mbedtls_sha256]
+- name: psa_crypto_config
+  value: PSA_WANT_ALG_SHA_384 1
+  condition: [mbedtls_sha384]
+- name: psa_crypto_config
+  value: PSA_WANT_ALG_SHA_512 1
+  condition: [mbedtls_sha512]
+- name: psa_crypto_config
+  value: PSA_WANT_ALG_MD5 1
+  condition: [mbedtls_md5]
+- name: psa_crypto_config
+  value: PSA_WANT_ALG_CCM 1
+  condition: [mbedtls_ccm]
+- name: psa_crypto_config
+  value: PSA_WANT_ALG_GCM 1
+  condition: [mbedtls_gcm]
+- name: psa_crypto_config
+  value: PSA_WANT_ALG_CMAC 1
+  condition: [mbedtls_cmac]
+- name: psa_crypto_config
+  value: PSA_WANT_ALG_CFB 1
+  condition: [mbedtls_cipher_cfb]
+- name: psa_crypto_config
+  value: PSA_WANT_ALG_CHACHA20_POLY1305 1
+  condition: [mbedtls_chachapoly]
+- name: psa_crypto_config
+  value: PSA_WANT_ALG_CTR 1
+  condition: [mbedtls_cipher_ctr]
+- name: psa_crypto_config
+  value: PSA_WANT_ALG_CBC_NO_PADDING 1
+  condition: [mbedtls_cipher_cbc]
+- name: psa_crypto_config
+  value: PSA_WANT_ALG_CBC_PKCS7 1
+  condition: [mbedtls_cipher_padding_pkcs7]
+- name: psa_crypto_config
+  value: PSA_WANT_ALG_ECB_NO_PADDING 1
+  condition: [mbedtls_aes]
+- name: psa_crypto_config
+  value: PSA_WANT_ALG_XTS 1
+  condition: [mbedtls_cipher_xts]
+- name: psa_crypto_config
+  value: PSA_WANT_ALG_ECDSA 1
+  condition: [mbedtls_ecdsa]
+- name: psa_crypto_config
+  value: PSA_WANT_ALG_ECDH 1
+  condition: [mbedtls_ecdh]
+- name: psa_crypto_config
+  value: PSA_WANT_KEY_TYPE_ECC_KEY_PAIR 1
+  condition: [mbedtls_ecc]
+- name: psa_crypto_config
+  value: PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY 1
+  condition: [mbedtls_ecc]
+- name: psa_crypto_config
+  value: PSA_WANT_KEY_TYPE_AES 1
+  condition: [mbedtls_aes]
+- name: psa_crypto_config
+  value: PSA_WANT_KEY_TYPE_CHACHA20 1
+  condition: [mbedtls_chachapoly]
+- name: psa_crypto_config
+  value: PSA_WANT_ECC_SECP_R1_192 1
+  condition: [mbedtls_ecc_secp192r1]
+- name: psa_crypto_config
+  value: PSA_WANT_ECC_SECP_R1_224 1
+  condition: [mbedtls_ecc_secp224r1]
+- name: psa_crypto_config
+  value: PSA_WANT_ECC_SECP_R1_256 1
+  condition: [mbedtls_ecc_secp256r1]
+- name: psa_crypto_config
+  value: PSA_WANT_ECC_SECP_R1_384 1
+  condition: [mbedtls_ecc_secp384r1]
+- name: psa_crypto_config
+  value: PSA_WANT_ECC_SECP_R1_521 1
+  condition: [mbedtls_ecc_secp521r1]
+- name: psa_crypto_config
+  value: PSA_WANT_ECC_MONTGOMERY_255 1
+  condition: [mbedtls_ecc_curve25519]
+metadata:
+  sbom:
+    license: Zlib
+root_path: security_mbedtls/platform/security/sl_component/sl_mbedtls_support

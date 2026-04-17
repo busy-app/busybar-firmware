@@ -1,0 +1,8 @@
+id=com.silabs.sdk.stack.zigbee
+version=9.0.1.0
+label=Zigbee components
+description=Zigbee components
+
+
+prop.file.zcl.zigbeeZclJsonFile=app/zcl/zcl-zap.json
+prop.file.zcl.zigbeeTemplateJsonFile=app/framework/gen-template/gen-templates.json

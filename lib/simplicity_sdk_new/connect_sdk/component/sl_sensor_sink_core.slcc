@@ -1,0 +1,32 @@
+id: "sl_sensor_sink_core"
+label: "Sensor/Sink Core"
+package: "connect_sdk"
+description: >
+  Common files among the Sensor and Sink sample apps.
+category: "Connect|Core"
+quality: "production"
+metadata:
+  sbom:
+    license: Zlib
+root_path: "connect_sdk/component/sl_sensor_sink"
+
+requires:
+- name: "device_has_radio"
+
+include:
+- path: "."
+  file_list:
+  - "path": "sl_app_common.h"
+
+config_file:
+- path: "config/sl_sensor_sink_config.h"
+
+#-------- Hides Component for user in Studio ---------
+ui_hints:
+  visibility: never
+
+#-------------- Template Contribution ----------------
+template_contribution:
+#---------------- Component Catalog ------------------
+- name: component_catalog
+  value: sl_sensor_sink_core

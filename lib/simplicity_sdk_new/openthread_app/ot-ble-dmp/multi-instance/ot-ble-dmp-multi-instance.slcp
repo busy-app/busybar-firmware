@@ -1,0 +1,168 @@
+project_name: ot-ble-dmp-multi-instance
+label: OpenThread BLE DMP - SoC FreeRTOS (multi-instance)
+package: openthread
+description: >
+  This is a simple application to test DMP (Dynamic MultiProtocol) with OpenThread multi-instance and Bluetooth running on FreeRTOS.
+category: OpenThread Examples
+quality: production
+
+component:
+  - id: sl_main
+  - id: ot_stack_ftd
+  - id: ot_cli_source
+  - id: bluetooth_stack
+  - id: gatt_configuration
+  - id: bluetooth_feature_system
+  - id: bluetooth_feature_gap
+
+  # Use legacy scanner to only scan advertisements that use legacy advertising
+  # PDUs. Include bluetooth_feature_extended_scanner if scanning extended
+  # advertising PDUs is also required. That component is not included currently
+  # for minimizing the application size.
+  - id: "bluetooth_feature_legacy_scanner"
+
+  - id: bluetooth_feature_legacy_advertiser
+  - id: bluetooth_feature_connection_role_central
+  - id: bluetooth_feature_connection_role_peripheral
+  - id: bluetooth_feature_gatt
+  - id: bluetooth_feature_gatt_server
+  - id: bluetooth_feature_nvm
+  - id: bluetooth_feature_sm
+  - id: freertos
+  - id: freertos_heap_3
+  - id: rail_lib_multiprotocol
+  - id: nvm3_lib
+  - id: simple_button
+    instance:
+      - btn0
+      - btn1
+  - id: ot_crash_handler
+  - id: iostream_recommended_console
+  - id: rail_util_pti
+  - id: bootloader_interface
+  - id: clock_manager
+  - id: ot_reset_utils
+  # Platform - Enable LTO for gcc by installing the following component
+  - id: toolchain_gcc_lto
+  - id: ot_multi_instance_cli
+
+include:
+  - path: .
+    file_list:
+    - path: app.h
+
+source:
+  - path: app.c
+  - path: ../bluetooth_event_callback.c
+
+configuration:
+  - name: SL_BOARD_ENABLE_VCOM
+    value: 1
+  - name: SL_MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
+    value: 1
+  - name: SL_MBEDTLS_KEY_EXCHANGE_PSK_ENABLED
+    value: 1
+  - name: SL_IOSTREAM_USART_VCOM_RX_BUFFER_SIZE
+    value: 128 # Increase from default 32
+    condition: [iostream_usart]
+  - name: SL_IOSTREAM_EUSART_VCOM_RX_BUFFER_SIZE
+    value: 128 # Increase from default 32
+    condition: [iostream_eusart]
+  - name: SL_HEAP_SIZE
+    value: 16384
+  # This stack size is dependent on LTO optimization. In the cases, where LTO merges more than 1 functions in a single one
+  # (includes inlining) causing the stack to increase. This project wide configuration, it is recommended to ensure this
+  # configuration is updated with appropriate values based on the additional components installed and application code added.
+  - name: SL_STACK_SIZE
+    value: 6144
+    condition: [toolchain_lto]
+    unless: [freertos]
+  - name: SL_STACK_SIZE
+    value: 4608
+    condition: [freertos]
+    unless: [toolchain_lto]
+  - name: SL_STACK_SIZE
+    value: 5120
+    condition: [toolchain_lto, freertos]
+  - name: SL_STACK_SIZE
+    value: 5120
+    unless: [toolchain_lto, freertos]
+  # Stack size config end
+  - name: SL_MAIN_START_TASK_STACK_SIZE_BYTES
+    value: 4608
+    condition: [sl_main]
+  - name: OPENTHREAD_CONFIG_TMF_NETDIAG_CLIENT_ENABLE
+    value: 0
+  - name: OPENTHREAD_CONFIG_LOG_OUTPUT
+    value: OPENTHREAD_CONFIG_LOG_OUTPUT_PLATFORM_DEFINED
+    condition: [ot_rtt_log]
+  - name: BUFFER_SIZE_UP
+    value: 768
+    condition: [ot_rtt_log]
+  - name: BUFFER_SIZE_DOWN
+    value: 0
+    condition: [ot_rtt_log]
+  - name: configTIMER_TASK_PRIORITY
+    value: 53
+  - name: CIRCULAR_QUEUE_LEN_MAX
+    value: 16
+  - name: SL_IOSTREAM_USART_VCOM_FLOW_CONTROL_TYPE
+    value: usartHwFlowControlCtsAndRts
+    condition: [iostream_usart]
+  - name: SL_IOSTREAM_EUSART_VCOM_FLOW_CONTROL_TYPE
+    value: SL_IOSTREAM_EUSART_UART_FLOW_CTRL_CTS_RTS
+    condition: [iostream_eusart]
+  - name: SL_OPENTHREAD_SERIAL_TASK_MEM_SIZE
+    value: 5120
+    condition: [toolchain_lto]
+  - name: SL_OPENTHREAD_STACK_TASK_MEM_SIZE
+    value: 7168
+    condition: [toolchain_lto]
+  - name: configTOTAL_HEAP_SIZE
+    value: 16384
+    condition: [toolchain_lto]
+  # Multi-instance configuration
+  - name: OPENTHREAD_CONFIG_MULTIPLE_INSTANCE_ENABLE
+    value: 1
+  - name: OPENTHREAD_CONFIG_MULTIPLE_STATIC_INSTANCE_ENABLE
+    value: 1
+  - name: OPENTHREAD_CONFIG_MULTIPLE_INSTANCE_NUM
+    value: 2
+
+config_file:
+  - override:
+      component: gatt_configuration
+      file_id: gatt_configuration_file_id
+    path: ../config/gatt_configuration.btconf
+    directory: btconf
+
+tag:
+  - hardware:device:flash:768
+  - hwfilter:device:device_supports_thread
+  - hwfilter:device:device_supports_bluetooth
+  - hwfilter:!device:device_family_efr32mr21
+  - hwfilter:board:simple_button:btn0
+  - hwfilter:board:simple_button:btn1
+  - hwfilter:flash:768k
+  - toolchain:gcc
+
+readme:
+  - path: ../README.md
+  - path: README.md
+
+filter:
+  - name: "Wireless Technology"
+    value: ["Thread", "Bluetooth"]
+  - name: "Device Type"
+    value: ["SoC"]
+  - name: "Capability"
+    value: ["Multiprotocol"]
+  - name: "Project Difficulty"
+    value: ["Advanced"]
+
+ui_hints:
+  highlight:
+    - path: config/btconf/gatt_configuration.btconf
+    - path: ../README.md
+    - path: README.md
+      focus: true

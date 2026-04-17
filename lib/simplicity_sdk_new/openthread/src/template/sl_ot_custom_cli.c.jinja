@@ -1,0 +1,69 @@
+/*******************************************************************************
+ * @file
+ * @brief Custom CLI support for OpenThread
+ *******************************************************************************
+ * # License
+ * <b>Copyright 2024 Silicon Laboratories Inc. www.silabs.com</b>
+ *******************************************************************************
+ *
+ * SPDX-License-Identifier: Zlib
+ *
+ * The licensor of this software is Silicon Laboratories Inc.
+ *
+ * This software is provided 'as-is', without any express or implied
+ * warranty. In no event will the authors be held liable for any damages
+ * arising from the use of this software.
+ *
+ * Permission is granted to anyone to use this software for any purpose,
+ * including commercial applications, and to alter it and redistribute it
+ * freely, subject to the following restrictions:
+ *
+ * 1. The origin of this software must not be misrepresented; you must not
+ *    claim that you wrote the original software. If you use this software
+ *    in a product, an acknowledgment in the product documentation would be
+ *    appreciated but is not required.
+ * 2. Altered source versions must be plainly marked as such, and must not be
+ *    misrepresented as being the original software.
+ * 3. This notice may not be removed or altered from any source distribution.
+ *
+ ******************************************************************************/
+
+#include <openthread/cli.h>
+#include <common/code_utils.hpp>
+#include <string.h>
+#include "sl_ot_custom_cli.h"
+
+/*******************************************************************************
+ * Example syntax (.slcc or .slcp) for populating this file:
+ *
+ *   template_contribution:
+ *     - name: sl_ot_cli_command    # Register a command
+ *       value:
+ *         name: status             # Name of command
+ *         handler: status_command  # Function to be called. Must be defined
+ *
+ ******************************************************************************/
+
+
+{%- for command in sl_ot_cli_command %}
+extern otError {{ command.handler }}(void *aContext, uint8_t aArgsLength, char *aArgs[]);
+{%- endfor %}
+
+otCliCommand sl_ot_custom_commands[] = {
+{%- for command in sl_ot_cli_command %}
+#ifdef {{command.macro}}
+    {"{{command.name}}", {{command.handler}}},
+#endif
+{% endfor %}
+};
+
+// This is needed because `sizeof` is calculated at compile time and can't be calculated outside of this source file.
+const uint8_t sl_ot_custom_commands_count = OT_ARRAY_LENGTH(sl_ot_custom_commands);
+
+void sl_ot_custom_cli_init(void)
+{
+    if (sl_ot_custom_commands_count > 0) 
+    {
+        IgnoreError(otCliSetUserCommands(sl_ot_custom_commands, sl_ot_custom_commands_count, NULL));
+    }
+}

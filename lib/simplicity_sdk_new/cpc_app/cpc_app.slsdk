@@ -1,0 +1,4 @@
+id=com.silabs.sdk.cpc_app
+version=1.0.2
+prop.file.templatesFile=templates.xml
+prop.file.demosFile=demo.xml

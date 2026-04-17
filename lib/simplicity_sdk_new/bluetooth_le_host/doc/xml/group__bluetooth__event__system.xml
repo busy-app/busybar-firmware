@@ -1,0 +1,15 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__bluetooth__event__system" kind="group">
+    <compoundname>bluetooth_event_system</compoundname>
+    <title>Bluetooth Event System IPC</title>
+    <innergroup refid="group__sl__bt__event__masks">BT Event System Event Masks</innergroup>
+    <briefdescription>
+<para>Bluetooth Event System IPC. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>The Bluetooth Event System IPC component (<computeroutput>bluetooth_event_system_ipc</computeroutput>) is an optional component that can be included to use Event System IPC to deliver Bluetooth events in an application that uses an RTOS. When the component is included, the Bluetooth stack will not deliver events via callback functions but uses the IPC mechanism provided by the <computeroutput>event_system</computeroutput> component to publish events to the application.</para>
+<para>When <computeroutput>bluetooth_event_system_ipc</computeroutput> is included in the application, use the APIs provided by <computeroutput>event_system</computeroutput> to create the subscriber event queue and to subscribe to the Bluetooth events. To make sure the application does not miss any event, perform the subscription already in the <computeroutput>app_init</computeroutput> function. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

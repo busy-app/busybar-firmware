@@ -1,0 +1,61 @@
+id: wifi_resources
+package: wifi
+description: >
+  WiSeConnect SDK default values and certificates
+label: WiSeConnect Resources
+category: Resources
+quality: production
+metadata:
+  sbom:
+    license: MSLA
+component_root_path: ./resources
+provides:
+- name: wifi_resources
+include:
+- path: defaults
+- path: certificates
+  file_list:
+    - path: aws_client_certificate.pem.crt.h
+    - path: aws_client_private_key.pem.key.h
+    - path: aws_starfield_ca.pem.h
+    - path: aws_ota_certificate.pem.h
+    - path: azure_baltimore_ca.pem.h
+    - path: cacert.pem.h
+    - path: clientcert.pem.h
+    - path: clientkey.pem.h
+    - path: servercert.pem.h
+    - path: serverkey.pem.h
+    - path: wifiuser.pem.h
+    - path: silabs_client_cert.pem.h
+    - path: silabs_client_key.pem.h
+    - path: mydevkitcertificate.pem.h
+    - path: mydevkitkey.pem.h
+    - path: silabs_dgcert_ca.pem.h
+    - path: eap.pem.h
+- path: html
+  file_list:
+    - path: login.h
+    - path: helloworld.h
+    - path: provisioning.h
+- path: other
+  file_list:
+    - path: index.html.h
+
+config_file:
+- path: defaults/sl_net_default_values.h
+  file_id: sl_net_default_values
+- path: defaults/sl_wifi_region_db_config.h
+  file_id: sl_wifi_region_db_config
+- path: lwip_defaults/lwipopts.h
+  file_id: lwipopts
+  condition: ["sl_si91x_lwip_stack"]
+- path: lwip_defaults/lwipopts.h
+  file_id: lwipopts
+  condition: ["sl_lwip_series3_stack"]
+- path: lwip_defaults/lwipopts.h
+  file_id: lwipopts
+  condition: ["sl_si91x_network_dual_stack"]
+- path: defaults/aws_iot_config.h
+  file_id: aws_iot_config
+  condition: ["aws_sdk"]
+

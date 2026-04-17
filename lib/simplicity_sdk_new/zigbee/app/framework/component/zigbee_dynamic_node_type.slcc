@@ -1,0 +1,77 @@
+package: zigbee
+id: zigbee_dynamic_node_type
+label: Zigbee Dynamic Node Type
+category: Zigbee|Utility
+quality: production
+description: Zigbee Dynamic Node Type
+provides:
+- name: zigbee_dynamic_node_type
+requires:
+- name: zigbee_system_common
+- name: zigbee_pro_stack
+
+source:
+- path: app/framework/plugin/dynamic-node-type/dynamic-node-type.c
+- path: stack/zigbee/dynamic-node-type.c
+- path: app/framework/plugin/dynamic-node-type/dynamic-node-type-cli.c
+  condition:
+  - cli
+- path: stack/internal/src/ipc/zigbee-dynamic-node-type-ipc-command-messages.c
+  condition:
+  - zigbee_use_ipc
+- path: stack/internal/src/baremetal/zigbee-dynamic-node-type-baremetal-wrapper.c
+  unless:
+  - zigbee_use_ipc
+  - native_host
+
+include:
+- path: app/framework/plugin/dynamic-node-type
+  file_list:
+  - path: dynamic-node-type.h
+- path: stack/include
+  file_list:
+  - path: zigbee-dynamic-node-type.h
+- path: stack/zigbee
+  file_list:
+  - path: dynamic-node-type.h
+- path: stack/internal/src/ipc
+  file_list:
+  - path: zigbee-dynamic-node-type-ipc-command-messages.h
+  condition:
+  - zigbee_use_ipc
+- path: stack/internal/inc
+  file_list:
+  - path: zigbee-dynamic-node-type-internal-def.h
+
+template_contribution:
+- name: component_catalog
+  value: zigbee_dynamic_node_type
+
+# CLI Commands
+- name: cli_group
+  value:
+    group: plugin
+    name: dynamic-node-type
+    help: Custom commands
+
+- name: cli_command
+  value:
+    group: dynamic-node-type
+    name: switch-to-router
+    handler: sl_zigbee_af_dynamic_node_type_switch_to_router_cli_handler
+    help: Sets the Zigbee node type to router
+
+- name: cli_command
+  value:
+    group: dynamic-node-type
+    name: switch-to-sed
+    handler: sl_zigbee_af_dynamic_node_type_switch_to_sleepy_end_device_cli_handler
+    help: Sets the Zigbee node type to sleepy end device
+    argument:
+    - type: uint8
+      help: The end device configuration flags
+
+metadata:
+  sbom:
+    license: MSLA
+root_path: zigbee

@@ -1,0 +1,15 @@
+id: pressure_driver
+package: board_drivers
+label: Pressure sensor
+description: >
+  Pressure sensor driver
+category: Platform|Board Drivers
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: board_drivers/hardware/driver/pressure
+provides:
+- name: pressure_driver
+requires:
+- name: pressure_device_driver

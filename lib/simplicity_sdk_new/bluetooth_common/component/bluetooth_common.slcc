@@ -1,0 +1,29 @@
+id: "bluetooth_common"
+label: Bluetooth Low Energy Common Component
+package: bluetooth_common
+description: |-
+  BLE common component to be used by upper BLE components
+
+category: Bluetooth|Common
+quality: production
+provides:
+- name: "bluetooth_common"
+ui_hints:
+  visibility: never
+include:
+- path: "inc/"
+  file_list:
+  - path: "sli_bgcommon_debug.h"
+source:
+- path: "src/sli_bgcommon_debug_efr32.c"
+requires:
+- name: memory_profiler_api
+- name: bluetooth_common_libraries
+recommends:
+- id: "bluetooth_common_libraries_release"
+  vendor: silabs
+metadata:
+  sbom:
+    license: MSLA
+
+root_path: bluetooth_common

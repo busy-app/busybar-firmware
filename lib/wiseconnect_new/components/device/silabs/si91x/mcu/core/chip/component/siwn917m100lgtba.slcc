@@ -1,0 +1,22 @@
+!!omap
+- id: SIWN917M100LGTBA
+- package: platform_siwx91x
+- description: Silicon Labs CMSIS-Device part headers for SIWN917M100LGTBA.
+- category: Device|Si91x|MCU|Device Part|SIWG917
+- quality: production
+- metadata:
+    sbom:
+      license: MSLA
+- define:
+  - name: SIWN917M100LGTBA
+    unless:
+    - device_content_override
+  - name: SLI_SI917
+    value: '1'
+  - name: SLI_SI917B0
+    value: '1'
+  - name: SLI_SI91X_MCU_CONFIG_RADIO_BOARD_VER2
+    value: '1'
+- provides:
+  - name: siwn917m100lgtba
+  - name: device_family_siwg917

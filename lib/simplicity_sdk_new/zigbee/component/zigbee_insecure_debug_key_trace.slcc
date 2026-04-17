@@ -1,0 +1,34 @@
+id: zigbee_insecure_debug_key_trace
+label: Insecure Debug Key Trace
+package: zigbee
+category: Zigbee|Testing
+quality: evaluation
+description: Enables generation of special zigbee packets that are decoded by WireShark or Network Analyzer to extract security key information. NOTE extreme caution is advised when enabling this component. This component should only be used during development and testing. DO NOT enable this on production.
+
+provides:
+- name: zigbee_insecure_debug_key_trace
+
+requires:
+- name: zigbee_pro_stack_support
+
+source:
+- path: stack/framework/slx_zigbee_insecure_debug_key_trace.c
+
+config_file:
+- path: stack/config/component_config/slx_zigbee_insecure_debug_key_trace_config.h
+
+template_contribution:
+- name: component_catalog
+  value: zigbee_r23_zcp_test_support
+- name: cli_command
+  value:
+    name: insecure_debug_key_enable
+    handler: insecure_debug_key_enable
+    help: toggles insecure debug key trace
+    argument:
+    - type: uint8opt
+      help: optional boolean indicating state of the toggle (default true)
+metadata:
+  sbom:
+    license: MSLA
+root_path: zigbee

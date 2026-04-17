@@ -1,0 +1,27 @@
+id: "btmesh_stack_advertiser_extended"
+label: "Proprietary Extended Advertiser"
+package: bluetooth_mesh
+description: >
+  This component provides an implementation of advertising capabilities that use extended advertising PDUs.
+  It uses Bluetooth extended advertiser API.
+  It is recommended to use this component, if extended advertising capabilities are needed.
+  Please be aware that BT Mesh 1.1 specification does not allow extended advertising,
+  so the selection of this component can result in a non compliant code to the BT Mesh spec.
+
+category: "Bluetooth Mesh|Advertiser Types"
+quality: "production"
+
+requires:
+- name: "bluetooth_feature_extended_advertiser"
+provides:
+- name: "btmesh_stack_advertiser_extended"
+- name: "btmesh_nonconnectable_advertiser"
+  allow_multiple: true
+template_contribution:
+- name: btmesh_advertiser_init
+  value:
+    function: mesh_advertiser_extended
+metadata:
+  sbom:
+    reference: btmesh_stack
+root_path: bluetooth_mesh

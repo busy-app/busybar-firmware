@@ -1,0 +1,50 @@
+id: sl_fault_injection_hardening_source
+label: Fault Injection Hardening Source
+package: security_tfm
+description: 'This component provides the source implementation and header files for fault injection hardening library.
+
+  '
+category: Platform|Security
+quality: production
+source:
+- path: lib/fih/src/fih.c
+- path: platform/ext/target/siliconlabs/vse/sli_cryptoacc.c
+  condition:
+  - device_has_cryptoacc
+  unless:
+  - trustzone_nonsecure
+- path: platform/ext/target/siliconlabs/hse/sli_se.c
+  condition:
+  - device_has_semailbox
+  unless:
+  - trustzone_nonsecure
+include:
+- path: lib/fih/inc
+  file_list:
+  - path: fih.h
+- path: platform/include
+  file_list:
+  - path: tfm_hal_defs.h
+  - path: tfm_hal_platform.h
+provides:
+- name: sl_fault_injection_hardening_source
+config_file:
+- path: config/sl_fault_injection_hardening_cfg.h
+  file_id: sl_fault_injection_hardening_cfg
+toolchain_settings:
+- option: gcc_compiler_option
+  value: -Wno-ignored-qualifiers
+- option: gcc_compiler_option
+  value: -Wno-sign-compare
+- option: iar_compiler_option
+  value: --diag_suppress Pa082
+metadata:
+  sbom:
+    license: Zlib AND BSD-3-Clause
+    upstream:
+      name: TrustedFirmware-M (TF-M)
+      version: v1.5
+      supplier: Trusted Firmware
+      url: https://review.trustedfirmware.org/TF-M/trusted-firmware-m.git
+      comment: Trusted Firmware for M profile Arm CPUs
+root_path: security_tfm

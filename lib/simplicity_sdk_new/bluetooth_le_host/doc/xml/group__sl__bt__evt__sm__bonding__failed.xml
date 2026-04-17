@@ -1,0 +1,42 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__evt__sm__bonding__failed" kind="group">
+    <compoundname>sl_bt_evt_sm_bonding_failed</compoundname>
+    <title>sl_bt_evt_sm_bonding_failed</title>
+    <innerclass refid="structsl__bt__evt__sm__bonding__failed__s" prot="public">sl_bt_evt_sm_bonding_failed_s</innerclass>
+      <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="group__sl__bt__evt__sm__bonding__failed_1gac5ffc27a188f92736c36b1ac6a27aaa7" prot="public" static="no">
+        <type>struct <ref refid="structsl__bt__evt__sm__bonding__failed__s" kindref="compound">sl_bt_evt_sm_bonding_failed_s</ref></type>
+        <definition>typedef struct sl_bt_evt_sm_bonding_failed_s sl_bt_evt_sm_bonding_failed_t</definition>
+        <argsstring></argsstring>
+        <name>sl_bt_evt_sm_bonding_failed_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11425" column="44" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="11425" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__evt__sm__bonding__failed_1ga5b32fcfb3e11cbeb67bbf6ba8570355b" prot="public" static="no">
+        <name>sl_bt_evt_sm_bonding_failed_id</name>
+        <initializer>0x040f00a0</initializer>
+        <briefdescription>
+<para>Identifier of the bonding_failed event. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="11413" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="11413" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>This event is triggered if the pairing or bonding procedure fails. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

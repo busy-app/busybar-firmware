@@ -1,0 +1,47 @@
+# This HAL applies only to series 2 devices.
+id: hal_msc
+label: MSC
+package: platform_core
+description: >
+  Flash controller (MSC) peripheral API
+category: Platform|Peripheral|HAL
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+source:
+- path: src/sl_hal_msc.c
+  unless: [trustzone_nonsecure]
+include:
+- path: inc
+  file_list:
+  - path: sl_hal_msc.h
+provides:
+- name: hal_msc
+requires:
+- name: device
+- name: device_has_msc
+- name: hal_common
+- name: cmsis_core
+documentation:
+  docset: gecko-platform
+  document:
+  - page: platform-peripheral-efr32xg21/msc
+    condition: [device_sdid_200]
+  - page: platform-peripheral-efr32xg22/msc
+    condition: [device_sdid_205]
+  - page: platform-peripheral-efr32xg23/msc
+    condition: [device_sdid_210]
+  - page: platform-peripheral-efr32xg24/msc
+    condition: [device_sdid_215]
+  - page: platform-peripheral-efr32xg25/msc
+    condition: [device_sdid_220]
+  - page: platform-peripheral-efr32xg26/msc
+    condition: [device_sdid_225]
+  - page: platform-peripheral-efr32xg27/msc
+    condition: [device_sdid_230]
+  - page: platform-peripheral-efr32xg28/msc
+    condition: [device_sdid_235]
+  - page: platform-peripheral-efr32xg29/msc
+    condition: [device_sdid_240]
+root_path: platform_core/platform/peripheral

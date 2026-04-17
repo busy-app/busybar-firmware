@@ -1,0 +1,84 @@
+!!omap
+- id: brd4183b
+- label: BRD4183B
+- package: boards
+- description: Board support for BRD4183B.
+- category: Platform|Board|Radio Board
+- quality: production
+- metadata:
+    sbom:
+      license: Zlib
+- requires:
+  - name: efr32bg22c112f352gm32
+  - name: brd4183b_config
+  - name: hardware_board_mainboard
+- provides:
+  - name: brd4183b
+  - name: hardware_board
+  - name: hardware_board_rb
+  - name: hardware_board_from_stk
+  - name: hardware_board_has_vcom
+  - name: hardware_board_has_vcom_hardware_flowcontrol
+  - name: hardware_board_has_spiflash
+  - name: hardware_board_has_exp_12
+  - name: hardware_board_has_exp_14
+  - name: hardware_board_has_exp_7
+  - name: hardware_board_has_exp_9
+  - name: hardware_board_has_uart
+  - name: board_config_clock_manager
+  - name: hardware_board_has_hfxo_freq_38.4mhz
+  - name: hardware_board_has_hfxo
+  - name: hardware_board_has_lfxo
+  - name: hardware_board_supports_rf_band_2400
+  - name: hardware_board_supports_1_rf_band
+  - name: hardware_board_default_rf_band
+  - name: hardware_board_default_rf_band_2400
+- recommends:
+  - id: brd4001a
+    vendor: silabs
+  - id: iostream_eusart
+    instance:
+    - vcom
+    vendor: silabs
+  - id: bootloader_uart_driver
+    vendor: silabs
+  - id: simple_led
+    instance:
+    - led0
+    vendor: silabs
+  - id: simple_button
+    instance:
+    - btn0
+    vendor: silabs
+  - id: mx25_flash_shutdown_usart
+    vendor: silabs
+  - id: bootloader_spi_controller_usart_driver
+    vendor: silabs
+  - id: bootloader_spi_peripheral_usart_driver
+    vendor: silabs
+- template_contribution:
+  - name: board_default_init
+    value: sl_board_disable_vcom()
+- define:
+  - name: SL_BOARD_NAME
+    value: '"BRD4183B"'
+  - name: SL_BOARD_REV
+    value: '"A00"'
+  - name: HFXO_FREQ
+    value: 38400000
+  - name: HARDWARE_BOARD_SUPPORTS_RF_BAND_2400
+  - name: HARDWARE_BOARD_SUPPORTS_1_RF_BAND
+  - name: HARDWARE_BOARD_DEFAULT_RF_BAND_2400
+- tag:
+  - board:pn:BRD4183
+  - board:variant:B
+  - board:revision:A00
+  - board:device:efr32bg22c112f352gm32
+  - hardware:has:vcom
+  - hardware:has:vcom:vcom_hardware_flowcontrol
+  - hardware:has:pti
+  - hardware:has:led:1
+  - hardware:has:button:1
+  - hardware:has:memory:spi:mx25r8035f
+  - hardware:has:exp_header:uart
+- root_path: boards

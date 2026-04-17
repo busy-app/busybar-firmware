@@ -1,0 +1,235 @@
+project_name: zigbee_minimal_rtos
+label: Zigbee - MinimalRtos
+package: zigbee
+category: Zigbee Application
+quality: production
+
+description: This is test application with a bare minimum RTOS based Zigbee stack. This application is non-compliant since it does not have all the necessary component and configurations of a fully functional zigbee application. To build a standard zigbee application, please use the provided zigbee scenario application templates.
+author: Silicon Laboratories, Inc.
+
+component:
+  - id: sl_main
+  # cli
+  - id: cli
+    instance:
+      - example
+  - id: iostream_recommended_console
+  - id: zigbee_debug_basic
+  - id: zigbee_debug_print
+  - id: simple_led
+    instance:
+      - led0
+  # Zigbee Components
+  - id: zigbee_pro_router_stack
+  - id: zigbee_device_config
+  # RTOS Components
+  - id: zigbee_ipc
+  - id: clock_manager
+  # Platform - enable LTO for gcc
+  - id: toolchain_gcc_lto
+
+configuration:
+  - name: SLI_ZIGBEE_PRIMARY_NETWORK_DEVICE_TYPE
+    value: SLI_ZIGBEE_NETWORK_DEVICE_TYPE_ROUTER
+  - name: SLI_ZIGBEE_PRIMARY_NETWORK_SECURITY_TYPE
+    value: SLI_ZIGBEE_NETWORK_SECURITY_TYPE_3_0
+  - name: SL_STACK_SIZE
+    value: 512
+    unless:
+      - freertos
+  - name: SL_STACK_SIZE
+    value: 1024
+    unless:
+      - device_series_3
+  - name: SL_STACK_SIZE
+    value: 16384
+    condition:
+      - device_series_3
+  - name: SL_BOARD_ENABLE_VCOM
+    value: 1
+  - name: SL_IOSTREAM_USART_VCOM_FLOW_CONTROL_TYPE
+    value: usartHwFlowControlCtsAndRts
+    condition:
+      - iostream_usart
+  - name: SL_IOSTREAM_EUSART_VCOM_FLOW_CONTROL_TYPE
+    value: SL_IOSTREAM_EUSART_UART_FLOW_CTRL_CTS_RTS
+    condition:
+      - iostream_eusart
+  - name: SL_CLI_MAX_INPUT_ARGUMENTS
+    value: 16
+  - name: SL_CLI_INPUT_BUFFER_SIZE
+    value: 268
+  - name: SL_CLI_LOCAL_ECHO
+    value: 0
+  - name: NVM3_DEFAULT_NVM_SIZE
+    value: 32768
+    condition:
+      - device_series_2
+  - name: SL_LEGACY_HAL_WDOG_PERIOD
+    value: wdogPeriod_256k
+  # If using zigbee_secure_key_storage we do not need to support backwards
+  # compatibility because we have never deployed images with keys in PSA
+  # As a result, these lines end up saving some code space
+  - name: SL_PSA_ITS_SUPPORT_V1_DRIVER
+    value: 0
+  - name: SL_PSA_ITS_SUPPORT_V2_DRIVER
+    value: 0
+  - name: SL_PSA_ITS_SUPPORT_V3_DRIVER
+    value: 1
+  - name: SL_CLI_EXAMPLE_TASK_STACK_SIZE
+    value: 600
+    condition:
+      - cmsis_rtos2
+  # On series 3, the bootloader requires more stack to do context parsing of OTA images
+  - name: SL_CLI_EXAMPLE_TASK_STACK_SIZE
+    value: 1500
+    condition:
+      - device_series_3
+  - name: SL_ZIGBEE_STACK_RTOS_TASK_STACK_SIZE
+    value: 5800
+    condition:
+      - device_series_3
+  - name: SL_ZIGBEE_APP_FRAMEWORK_RTOS_TASK_STACK_SIZE
+    value: 6000
+    condition:
+      - device_series_3
+  - name: SL_ZIGBEE_AF_PLUGIN_ZCL_CLUSTER_DEFER_ATTRIBUTE_WRITES_TO_NVM_MS
+    value: 2000
+    condition:
+      - device_series_3
+
+source:
+  - path: main.c
+    unless: [cmsis_rtos2]
+  - path: app.c
+  - path: app_cli.c
+    condition:
+      - cli
+include:
+  - path: .
+    file_list:
+      - path: app.h
+
+template_contribution:
+  - name: event_handler
+    value:
+      event: stack_init
+      include: sl_zigbee_system_common.h
+      handler: sli_zigbee_app_rtos_task_init_cb
+    priority: -8997
+    condition:
+      - cmsis_rtos2
+  - name: cli_group
+    value:
+      name: plugin
+  - name: zigbee_af_callback
+    value:
+      callback_type: event_init
+      function_name: app_cli_init
+    condition:
+      - cli
+  - name: cli_command
+    value:
+      name: reset
+      handler: hal_reboot_command
+      help: Reset the node
+  - name: cli_command
+    value:
+      name: form
+      handler: form_network_command
+      help: Form Network
+      argument:
+        - type: uint8
+          help: Radio channel
+        - type: uint16
+          help: Pan ID
+        - type: int8
+          help: Radio tx power
+  - name: cli_command
+    value:
+      name: join
+      handler: join_network_command
+      help: Join Network
+      argument:
+        - type: uint8
+          help: Radio channel
+        - type: uint16
+          help: Pan ID
+        - type: int8
+          help: Radio tx power
+  - name: cli_command
+    value:
+      name: permit_join
+      handler: permit_join_command
+      help: Permit join
+      argument:
+        - type: uint8
+          help: Duration in seconds
+  - name: cli_command
+    value:
+      name: set_security
+      handler: set_security_command
+      help: Join Network
+      argument:
+        - type: uint32
+          help: Security bitmask
+        - type: hex
+          help: Preconfigured key
+        - type: hex
+          help: Network key
+        - type: uint8
+          help: Key sequence number
+  - name: cli_command
+    value:
+      name: set_tc_policy
+      handler: set_trust_center_policy_command
+      help: Set the trust center policy
+      argument:
+        - type: uint8
+          help: Policy
+  - name: cli_command
+    value:
+      name: info
+      handler: info_command
+      help: Get device info
+  - name: cli_command
+    value:
+      name: keys_print
+      handler: keys_print_command
+      help: Print keys
+  - name: cli_command
+    value:
+      name: msg_buffer
+      handler: msg_buffer_command
+      help: Sends a msg buffer test request
+      argument:
+        - type: uint16
+          help: NodeId of dest
+  - name: cli_command
+    value:
+      name: set_profile
+      handler: set_profile_command
+      help: Sets stack profile
+      argument:
+        - type: uint8
+          help: Stack Profile
+readme:
+  - path: ./readme.md
+
+ui_hints:
+  highlight:
+    - path: readme.md
+      focus: false
+
+filter:
+  - name: Wireless Technology
+    value: [Zigbee]
+  - name: Device Type
+    value: [SoC]
+  - name: Project Difficulty
+    value: [Advanced]
+tag:
+  - hwfilter:device:device_supports_zigbee
+  - hwfilter:ram:64k
+  - hwfilter:board:simple_led:led0
+  

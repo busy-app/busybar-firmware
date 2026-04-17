@@ -1,0 +1,34 @@
+id: wisun_br_dhcpv6_server
+label: DHCPv6 Server for Wi-SUN Border Router
+description: >
+  Implements a DHCPv6 server for WI-SUN SoC Border Router.
+package: wisun
+category: Wi-SUN|Application|Wi-SUN BR CLI
+quality: production
+
+
+requires:
+- name: wisun_br_stack
+
+provides:
+- name: wisun_br_dhcpv6
+- name: wisun_br_dhcpv6_server
+
+include:
+- path: plugin
+  file_list:
+  - path: sl_wisun_br_dhcpv6_server.h
+
+source:
+- path: plugin/sl_wisun_br_dhcpv6_server.c
+  project:
+    transfer_ownership: true
+
+template_contribution:
+- name: component_catalog
+  value: wisun_br_dhcpv6_server
+
+metadata:
+  sbom:
+    license: MSLA
+root_path: wisun

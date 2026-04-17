@@ -1,0 +1,21 @@
+id: bluetooth_feature_phy_support_config
+label: Restrict PHYs supported by the chip
+package: bluetooth_le_controller
+description: >
+  Select which PHYs the chip software supports.
+  Selecting fewer PHYs than the radio supports implies a smaller flash footprint.
+  Note that this component won't allow using PHYs which the device radio does not support.
+
+category: Bluetooth|Host Controller Interface (HCI)
+quality: production
+config_file:
+- path: config/sl_btctrl_phy_support_config.h
+provides:
+- name: bluetooth_feature_phy_support_config
+template_contribution:
+- name: component_catalog
+  value: bluetooth_feature_phy_support_config
+metadata:
+  sbom:
+    license: MSLA
+root_path: bluetooth_le_controller

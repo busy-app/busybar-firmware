@@ -1,0 +1,151 @@
+project_name: out_of_box_demo
+package: multi_protocol_siwx91x_app
+quality: production
+label: Out of Box Demo (SoC)
+category: Example|Wi-Fi_BLE
+description: 'This application demonstrates the WLAN, BLE, MCU peripheral features and NWP (network processor) powersave capabilities of SiWG917 with a ready to go, minimal software installation experience.
+
+  '
+filter:
+- name: Wireless Technology
+  value:
+  - WiFi BLE
+- name: Project Difficulty
+  value:
+  - Intermediate
+source:
+- path: app.c
+- path: ble_app.c
+- path: wifi_app.c
+include:
+- path: .
+  file_list:
+  - path: app.h
+  - path: ble_config.h
+  - path: wifi_config.h
+  - path: logo_bitmaps.h
+define:
+- name: SL_SI91X_PRINT_DBG_LOG
+- name: SPI_MULTI_SLAVE
+- name: SLI_SI91X_MCU_MOV_ROM_API_TO_FLASH
+provides:
+- name: si91x_soc
+component:
+- id: si91x_memory_default_config
+- id: si91x_debug
+- id: syscalls
+- id: rsilib_userconfig
+- id: rsilib_clock_update
+- id: udma_linker_config
+- id: sleeptimer
+- id: memlcd_917
+- id: sl_power_manager
+- id: cmsis_spi
+- id: sl_ulp_timer
+- id: dmd_memlcd
+- id: glib
+- instance:
+  - timer0
+  id: ulp_timers_instance
+- instance:
+  - btn0
+  id: sl_si91x_button_917
+requires:
+- name: component_catalog
+- name: sl_si91x_mcu
+- name: wiseconnect_common
+- name: sl_i2c
+- name: sl_main
+- name: aws_sdk
+- name: network_manager
+- name: wiseconnect_common
+- name: wifi
+- name: sl_si91x_wireless
+- name: ble
+- name: sl_si91x_internal_stack
+- name: sl_si91x_basic_buffers
+- name: wifi_resources
+- name: freertos
+- name: freertos_heap_4
+- name: slist
+- name: sl_si91x_asynchronous_socket
+- name: basic_network_config_manager
+- name: mqtt
+- name: iostream_retarget_stdio
+  condition:
+  - device_has_devinfo
+- name: iostream_recommended_stream
+  condition:
+  - device_has_devinfo
+- name: iostream_stdlib_config
+  condition:
+  - device_has_devinfo
+- name: device_init
+  condition:
+  - device_has_devinfo
+- name: emlib_common
+  condition:
+  - device_has_devinfo
+- name: emlib_ldma
+  condition:
+  - device_has_devinfo
+toolchain_settings: []
+configuration:
+- name: SL_BOARD_ENABLE_VCOM
+  value: '1'
+- name: SL_BUTTON_CONFIG_BTN1_INTR
+  value: RISE_EDGE_AND_FALL_EDGE_INTERRUPT
+readme:
+- path: readme.md
+other_file:
+- path: resources/readme/AEM_graph1.png
+- path: resources/readme/AEM_graph2.png
+- path: resources/readme/EFRConnect_APlist.png
+- path: resources/readme/EFRConnect_app.png
+- path: resources/readme/EFRConnect_bleconfigurator.png
+- path: resources/readme/EFRConnect_demo.png
+- path: resources/readme/EFRConnect_done.png
+- path: resources/readme/EFRConnect_enterpsk.png
+- path: resources/readme/EFRConnect_wificommisioning.png
+- path: resources/readme/MQTT_testclient1.png
+- path: resources/readme/MQTT_testclient2.png
+- path: resources/readme/MQTT_testclient3.png
+- path: resources/readme/MQTT_testclient4.png
+- path: resources/readme/MQTT_testclient5.png
+- path: resources/readme/MQTT_testclient6.png
+- path: resources/readme/MQTT_testclient7.png
+- path: resources/readme/oobdemo_soc.png
+- path: resources/readme/oob_energy_profiler_quick_access.png
+- path: resources/readme/oob_energy_profiler_start.png
+- path: resources/readme/oob_tools_dialog_box.png
+- path: resources/readme/oob_tools_section.png
+- path: resources/readme/output.png
+- path: resources/readme/output_v1_0.png
+- path: resources/readme/output_v2_0.png
+- path: resources/readme/SimplicityConnect_app.png
+- path: resources/readme/status_lcd1.png
+- path: resources/readme/status_lcd1_v1_0.png
+- path: resources/readme/status_lcd1_v2_0.png
+- path: resources/readme/status_lcd2.png
+- path: resources/readme/status_lcd2_v1_0.png
+- path: resources/readme/status_lcd3.png
+- path: resources/readme/status_lcd4.png
+- path: resources/readme/status_lcd5.png
+- path: resources/readme/status_print_button_pressed.png
+- path: resources/readme/status_print_message_received.png
+- path: resources/readme/status_print_mqtt_connected.png
+- path: resources/readme/status_print_startup.png
+ui_hints:
+  highlight:
+  - path: readme.md
+    focus: true
+post_build:
+  profile: wiseconnect_soc
+sdk_extension:
+- id: wiseconnect3_sdk
+  vendor: silabs
+  version: 4.0.1
+sdk:
+  id: simplicity_sdk
+  vendor: silabs
+  version: 2025.12.2

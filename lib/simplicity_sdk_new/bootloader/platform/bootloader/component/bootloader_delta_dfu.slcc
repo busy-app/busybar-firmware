@@ -1,0 +1,23 @@
+id: bootloader_gbl_delta_dfu
+label: GBL Delta DFU
+package: bootloader
+description: >
+  The Bootloader GBL Delta DFU component is used to parse the GBL Files with delta patch. The incoming GBL contains a diff patch for firmware upgrade. This component enables the bootloader to parse these GBL files.
+category: Platform|Bootloader|Core
+quality: production
+define:
+- name: BTL_PARSER_SUPPORT_DELTA_DFU
+  value: 1
+config_file:
+- path: "platform/bootloader/config/btl_delta_dfu_cfg.h"
+requires:
+- name: bootloader_gbl_version_dependency_tag
+- name: delta_dfu
+provides:
+- name: bootloader_gbl_delta_dfu
+- name: bootloader_nonsecure_incompatible
+  condition: [bootloader_core_nonsecure]
+metadata:
+  sbom:
+    license: MSLA
+root_path: bootloader

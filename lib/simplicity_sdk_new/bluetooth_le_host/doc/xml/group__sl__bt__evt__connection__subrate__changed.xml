@@ -1,0 +1,42 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__evt__connection__subrate__changed" kind="group">
+    <compoundname>sl_bt_evt_connection_subrate_changed</compoundname>
+    <title>sl_bt_evt_connection_subrate_changed</title>
+    <innerclass refid="structsl__bt__evt__connection__subrate__changed__s" prot="public">sl_bt_evt_connection_subrate_changed_s</innerclass>
+      <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="group__sl__bt__evt__connection__subrate__changed_1gae2a699cd768c6c7640b795706294be61" prot="public" static="no">
+        <type>struct <ref refid="structsl__bt__evt__connection__subrate__changed__s" kindref="compound">sl_bt_evt_connection_subrate_changed_s</ref></type>
+        <definition>typedef struct sl_bt_evt_connection_subrate_changed_s sl_bt_evt_connection_subrate_changed_t</definition>
+        <argsstring></argsstring>
+        <name>sl_bt_evt_connection_subrate_changed_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6914" column="53" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6914" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__evt__connection__subrate__changed_1ga1dda4d79620b71d6e971b5e209e9b20c" prot="public" static="no">
+        <name>sl_bt_evt_connection_subrate_changed_id</name>
+        <initializer>0x0e0600a0</initializer>
+        <briefdescription>
+<para>Identifier of the subrate_changed event. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6895" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6895" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>This event is triggered when the procedure started by <ref refid="group__sl__bt__connection_1ga58d82e8cfee3a03a27bea0d6c31b3c60" kindref="member">sl_bt_connection_request_subrate</ref> has completed successfully or when the subrate parameters have changed due to a peer request. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

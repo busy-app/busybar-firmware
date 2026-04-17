@@ -1,0 +1,10 @@
+{
+  "token_version": "0x00000001",
+  "uuid": "e4f1c2a3b4d5e6f7890abcde12345678",
+  "oob_config": {
+    "output_oob_size": "0x08",
+    "output_action": "0x001f",
+    "input_oob_size": "0x08",
+    "input_action": "0x000f"
+  }
+}

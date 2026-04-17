@@ -1,0 +1,29 @@
+id: "bluetooth_feature_pawr_advertiser"
+label: "Periodic Advertising using PAwR trains"
+package: bluetooth_le_controller
+description: >
+  This component provides the commands and events for advertising using the
+  Periodic Advertising with Responses (PAwR) feature.
+category: Bluetooth|Bluetooth LE Controller (Link Layer)|Features with Commands and Events
+quality: "production"
+config_file:
+- path: "config/sl_bt_pawr_advertiser_config.h"
+requires:
+- name: "bluetooth_controller"
+- name: "bluetooth_feature_periodic_advertiser"
+provides:
+- name: "bluetooth_feature_pawr_advertiser"
+- name: "bluetooth_feature_central_connection"
+  allow_multiple: true
+- name: "bluetooth_feature_connection_creation"
+  allow_multiple: true
+template_contribution:
+- name: component_catalog
+  value: bluetooth_feature_pawr_advertiser
+documentation:
+  docset: bluetooth
+  document: bluetooth-stack-api/sl-bt-pawr-advertiser
+metadata:
+  sbom:
+    license: Zlib AND MSLA
+root_path: bluetooth_le_controller

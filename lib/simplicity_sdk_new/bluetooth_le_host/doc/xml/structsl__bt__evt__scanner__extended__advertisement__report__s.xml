@@ -1,0 +1,356 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="structsl__bt__evt__scanner__extended__advertisement__report__s" kind="struct" language="C++" prot="public">
+    <compoundname>sl_bt_evt_scanner_extended_advertisement_report_s</compoundname>
+    <includes refid="sl__bt__api_8h" local="no">sl_bt_api.h</includes>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structsl__bt__evt__scanner__extended__advertisement__report__s_1a4e47698c3d01b3b8fac1fdbb13997140" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_scanner_extended_advertisement_report_s::event_flags</definition>
+        <argsstring></argsstring>
+        <name>event_flags</name>
+        <qualifiedname>sl_bt_evt_scanner_extended_advertisement_report_s::event_flags</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>The event type flag(s) in the advertisement packet. Value: One or more flags defined in <ref refid="group__sl__bt__scanner__event__flag" kindref="compound">Event Type Flags of Advertisement Reports</ref> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="3884" column="14" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="3884" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__scanner__extended__advertisement__report__s_1a9751beff24d6c4c6bd932e60f46a190a" prot="public" static="no" mutable="no">
+        <type><ref refid="structbd__addr" kindref="compound">bd_addr</ref></type>
+        <definition>bd_addr sl_bt_evt_scanner_extended_advertisement_report_s::address</definition>
+        <argsstring></argsstring>
+        <name>address</name>
+        <qualifiedname>sl_bt_evt_scanner_extended_advertisement_report_s::address</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Advertiser address </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="3888" column="14" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="3888" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__scanner__extended__advertisement__report__s_1afd0f11a1f1f8e0fd35386aa052fbea8d" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_scanner_extended_advertisement_report_s::address_type</definition>
+        <argsstring></argsstring>
+        <name>address_type</name>
+        <qualifiedname>sl_bt_evt_scanner_extended_advertisement_report_s::address_type</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Enum <ref refid="group__sl__bt__gap_1gac8d5431d3062e47c5d51b9fb9f36c104" kindref="member">sl_bt_gap_address_type_t</ref>.</para>
+<para>Advertiser address type.</para>
+<para>If the application does not include the bluetooth_feature_use_accurate_api_address_types component, <computeroutput>address_type</computeroutput> uses the following values:<itemizedlist>
+<listitem><para><bold>0:</bold> Public address</para>
+</listitem><listitem><para><bold>1:</bold> Random address</para>
+</listitem><listitem><para><bold>255:</bold> No address provided (anonymous advertising)</para>
+</listitem></itemizedlist>
+</para>
+<para>If the application includes the bluetooth_feature_use_accurate_api_address_types component, <computeroutput>address_type</computeroutput> uses enum <ref refid="group__sl__bt__gap_1gac8d5431d3062e47c5d51b9fb9f36c104" kindref="member">sl_bt_gap_address_type_t</ref> values:<itemizedlist>
+<listitem><para><bold>sl_bt_gap_public_address (0x0):</bold> Public device address</para>
+</listitem><listitem><para><bold>sl_bt_gap_static_address (0x1):</bold> Static device address</para>
+</listitem><listitem><para><bold>sl_bt_gap_random_resolvable_address (0x2):</bold> Resolvable private random address</para>
+</listitem><listitem><para><bold>sl_bt_gap_random_nonresolvable_address (0x3):</bold> Non-resolvable private random address</para>
+</listitem><listitem><para><bold>sl_bt_gap_anonymous_address (0xff):</bold> No address provided (anonymous advertising)</para>
+</listitem><listitem><para><bold>sl_bt_gap_public_address_resolved_from_rpa (0x4):</bold> Public identity address resolved from a resolvable private address (RPA)</para>
+</listitem><listitem><para><bold>sl_bt_gap_static_address_resolved_from_rpa (0x5):</bold> Static identity address resolved from a resolvable private address (RPA) </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="3889" column="14" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="3889" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__scanner__extended__advertisement__report__s_1a6e9d0b8d1481a416c530fe2e911e5917" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_scanner_extended_advertisement_report_s::bonding</definition>
+        <argsstring></argsstring>
+        <name>bonding</name>
+        <qualifiedname>sl_bt_evt_scanner_extended_advertisement_report_s::bonding</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Bonding handle if the remote advertising device has previously bonded with the local device. Values:<itemizedlist>
+<listitem><para><bold>SL_BT_INVALID_BONDING_HANDLE (0xff):</bold> No bonding</para>
+</listitem><listitem><para><bold>Other:</bold> Bonding handle </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="3927" column="14" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="3927" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__scanner__extended__advertisement__report__s_1aebb566cb1b7d3a8ff921d3b2315d235e" prot="public" static="no" mutable="no">
+        <type>int8_t</type>
+        <definition>int8_t sl_bt_evt_scanner_extended_advertisement_report_s::rssi</definition>
+        <argsstring></argsstring>
+        <name>rssi</name>
+        <qualifiedname>sl_bt_evt_scanner_extended_advertisement_report_s::rssi</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Signal strength indicator (RSSI) in the last received packet. Units: dBm<itemizedlist>
+<listitem><para><bold>Range:</bold> -127 to +20 </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="3933" column="14" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="3933" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__scanner__extended__advertisement__report__s_1a82a96e92217da7dd2175aac3f92e83de" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_scanner_extended_advertisement_report_s::channel</definition>
+        <argsstring></argsstring>
+        <name>channel</name>
+        <qualifiedname>sl_bt_evt_scanner_extended_advertisement_report_s::channel</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>The channel number on which the last packet was received </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="3936" column="14" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="3936" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__scanner__extended__advertisement__report__s_1a9932c56b7c1ffcc7fbbd54814b533d2d" prot="public" static="no" mutable="no">
+        <type><ref refid="structbd__addr" kindref="compound">bd_addr</ref></type>
+        <definition>bd_addr sl_bt_evt_scanner_extended_advertisement_report_s::target_address</definition>
+        <argsstring></argsstring>
+        <name>target_address</name>
+        <qualifiedname>sl_bt_evt_scanner_extended_advertisement_report_s::target_address</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>The target address if this is directed advertising, otherwise ignored </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="3938" column="14" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="3938" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__scanner__extended__advertisement__report__s_1ad0d096167e26d79fbb0856530fb43b6d" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_scanner_extended_advertisement_report_s::target_address_type</definition>
+        <argsstring></argsstring>
+        <name>target_address_type</name>
+        <qualifiedname>sl_bt_evt_scanner_extended_advertisement_report_s::target_address_type</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Enum <ref refid="group__sl__bt__gap_1gac8d5431d3062e47c5d51b9fb9f36c104" kindref="member">sl_bt_gap_address_type_t</ref>.</para>
+<para>The target address type if the advertisement is from directed advertising, otherwise ignored.</para>
+<para>If the application does not include the bluetooth_feature_use_accurate_api_address_types component, <computeroutput>target_address_type</computeroutput> uses the following values:<itemizedlist>
+<listitem><para><bold>0:</bold> Public address</para>
+</listitem><listitem><para><bold>1:</bold> Random address</para>
+</listitem></itemizedlist>
+</para>
+<para>If the application includes the bluetooth_feature_use_accurate_api_address_types component, <computeroutput>target_address_type</computeroutput> uses enum <ref refid="group__sl__bt__gap_1gac8d5431d3062e47c5d51b9fb9f36c104" kindref="member">sl_bt_gap_address_type_t</ref> values:<itemizedlist>
+<listitem><para><bold>sl_bt_gap_public_address (0x0):</bold> Public device address</para>
+</listitem><listitem><para><bold>sl_bt_gap_static_address (0x1):</bold> Static device address</para>
+</listitem><listitem><para><bold>sl_bt_gap_random_resolvable_address (0x2):</bold> Resolvable private random address</para>
+</listitem><listitem><para><bold>sl_bt_gap_random_nonresolvable_address (0x3):</bold> Non-resolvable private random address</para>
+</listitem><listitem><para><bold>sl_bt_gap_public_address_resolved_from_rpa (0x4):</bold> Public identity address resolved from a resolvable private address (RPA)</para>
+</listitem><listitem><para><bold>sl_bt_gap_static_address_resolved_from_rpa (0x5):</bold> Static identity address resolved from a resolvable private address (RPA) </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="3940" column="14" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="3940" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__scanner__extended__advertisement__report__s_1a0307722a801442b588477e573d3d63bf" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_scanner_extended_advertisement_report_s::adv_sid</definition>
+        <argsstring></argsstring>
+        <name>adv_sid</name>
+        <qualifiedname>sl_bt_evt_scanner_extended_advertisement_report_s::adv_sid</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Advertising set identifier </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="3976" column="14" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="3976" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__scanner__extended__advertisement__report__s_1a7c41094882ae5eb57850772a0abc1fe3" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_scanner_extended_advertisement_report_s::primary_phy</definition>
+        <argsstring></argsstring>
+        <name>primary_phy</name>
+        <qualifiedname>sl_bt_evt_scanner_extended_advertisement_report_s::primary_phy</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Enum <ref refid="group__sl__bt__gap_1ga05ce4496a6f87de7c67a9e32d816727c" kindref="member">sl_bt_gap_phy_t</ref>. The PHY on which advertising packets are transmitted on the primary advertising channel Values:<itemizedlist>
+<listitem><para><bold>sl_bt_gap_phy_1m (0x1):</bold> 1M PHY</para>
+</listitem><listitem><para><bold>sl_bt_gap_phy_coded (0x4):</bold> Coded PHY, 125k (S=8) or 500k (S=2) </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="3977" column="14" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="3977" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__scanner__extended__advertisement__report__s_1a66c1eb014a2c47a54dede67ae2423378" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_scanner_extended_advertisement_report_s::secondary_phy</definition>
+        <argsstring></argsstring>
+        <name>secondary_phy</name>
+        <qualifiedname>sl_bt_evt_scanner_extended_advertisement_report_s::secondary_phy</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Enum <ref refid="group__sl__bt__gap_1ga05ce4496a6f87de7c67a9e32d816727c" kindref="member">sl_bt_gap_phy_t</ref>. The PHY on which advertising packets are transmitted on the secondary advertising channel Values:<itemizedlist>
+<listitem><para><bold>sl_bt_gap_phy_1m (0x1):</bold> 1M PHY</para>
+</listitem><listitem><para><bold>sl_bt_gap_phy_2m (0x2):</bold> 2M PHY</para>
+</listitem><listitem><para><bold>sl_bt_gap_phy_coded (0x4):</bold> Coded PHY, 125k (S=8) or 500k (S=2) </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="3984" column="14" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="3984" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__scanner__extended__advertisement__report__s_1a6a11e2839fba0b7d23f7e17556a48d7e" prot="public" static="no" mutable="no">
+        <type>int8_t</type>
+        <definition>int8_t sl_bt_evt_scanner_extended_advertisement_report_s::tx_power</definition>
+        <argsstring></argsstring>
+        <name>tx_power</name>
+        <qualifiedname>sl_bt_evt_scanner_extended_advertisement_report_s::tx_power</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>TX power value in the received packet header. Units: dBm<itemizedlist>
+<listitem><para><bold>Range:</bold> -127 to 126</para>
+</listitem><listitem><para>Value 127: information unavailable </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="3992" column="14" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="3992" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__scanner__extended__advertisement__report__s_1a67a0cc0fd63f7de012041a8f6a29a2ad" prot="public" static="no" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t sl_bt_evt_scanner_extended_advertisement_report_s::periodic_interval</definition>
+        <argsstring></argsstring>
+        <name>periodic_interval</name>
+        <qualifiedname>sl_bt_evt_scanner_extended_advertisement_report_s::periodic_interval</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>The periodic advertising interval. Value 0 indicates no periodic advertising. Otherwise,<itemizedlist>
+<listitem><para><bold>Range:</bold> 0x06 to 0xFFFF</para>
+</listitem><listitem><para>Unit: 1.25 ms</para>
+</listitem><listitem><para>Time range: 7.5 ms to 81.92 s </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="3997" column="14" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="3997" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__scanner__extended__advertisement__report__s_1a8ed0dd6c8ff17691a949240735d7cf5a" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_scanner_extended_advertisement_report_s::data_completeness</definition>
+        <argsstring></argsstring>
+        <name>data_completeness</name>
+        <qualifiedname>sl_bt_evt_scanner_extended_advertisement_report_s::data_completeness</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Enum <ref refid="group__sl__bt__scanner_1ga198ccf77c614ae3f0a7b97f731489eb6" kindref="member">sl_bt_scanner_data_status_t</ref>. The data completeness status. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_scanner_data_status_complete (0x0):</bold> All data of the advertisement has been reported.</para>
+</listitem><listitem><para><bold>sl_bt_scanner_data_status_incomplete_more (0x1):</bold> Data of the advertisement is incomplete in this event, and more data will come in new events.</para>
+</listitem><listitem><para><bold>sl_bt_scanner_data_status_incomplete_nomore (0x2):</bold> Data of the advertisement is incomplete in this event, but no more data will come, i.e., the data of the advertisement is truncated. </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="4004" column="14" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="4004" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__scanner__extended__advertisement__report__s_1a4fcf034f4ce9e7bd32509a3f218b4687" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_scanner_extended_advertisement_report_s::counter</definition>
+        <argsstring></argsstring>
+        <name>counter</name>
+        <qualifiedname>sl_bt_evt_scanner_extended_advertisement_report_s::counter</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>The monotonically increasing counter as the sequence number of the event. This counter is specific to <ref refid="group__sl__bt__evt__scanner__extended__advertisement__report_1ga958175b03f821646230c2a8f651905fa" kindref="member">sl_bt_evt_scanner_extended_advertisement_report_id</ref>. It can be used to detect if one more <ref refid="group__sl__bt__evt__scanner__extended__advertisement__report" kindref="compound">sl_bt_evt_scanner_extended_advertisement_report</ref> events were dropped due to temporarily out of resources or other reasons. Ignore this field if event loss is not a concern. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="4018" column="14" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="4018" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__scanner__extended__advertisement__report__s_1ae312c8419f81c0c02797f68800e11ccc" prot="public" static="no" mutable="no">
+        <type><ref refid="structuint8array" kindref="compound">uint8array</ref></type>
+        <definition>uint8array sl_bt_evt_scanner_extended_advertisement_report_s::data</definition>
+        <argsstring></argsstring>
+        <name>data</name>
+        <qualifiedname>sl_bt_evt_scanner_extended_advertisement_report_s::data</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Advertising or scan response data </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="4028" column="14" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="4028" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Data structure of the extended_advertisement_report event. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="2">
+        <label>bd_addr</label>
+        <link refid="structbd__addr"/>
+      </node>
+      <node id="1">
+        <label>sl_bt_evt_scanner_extended_advertisement_report_s</label>
+        <link refid="structsl__bt__evt__scanner__extended__advertisement__report__s"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>address</edgelabel>
+          <edgelabel>target_address</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>data</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>uint8array</label>
+        <link refid="structuint8array"/>
+      </node>
+    </collaborationgraph>
+    <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="3882" column="1" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="3883" bodyend="4029"/>
+    <listofallmembers>
+      <member refid="structsl__bt__evt__scanner__extended__advertisement__report__s_1a9751beff24d6c4c6bd932e60f46a190a" prot="public" virt="non-virtual"><scope>sl_bt_evt_scanner_extended_advertisement_report_s</scope><name>address</name></member>
+      <member refid="structsl__bt__evt__scanner__extended__advertisement__report__s_1afd0f11a1f1f8e0fd35386aa052fbea8d" prot="public" virt="non-virtual"><scope>sl_bt_evt_scanner_extended_advertisement_report_s</scope><name>address_type</name></member>
+      <member refid="structsl__bt__evt__scanner__extended__advertisement__report__s_1a0307722a801442b588477e573d3d63bf" prot="public" virt="non-virtual"><scope>sl_bt_evt_scanner_extended_advertisement_report_s</scope><name>adv_sid</name></member>
+      <member refid="structsl__bt__evt__scanner__extended__advertisement__report__s_1a6e9d0b8d1481a416c530fe2e911e5917" prot="public" virt="non-virtual"><scope>sl_bt_evt_scanner_extended_advertisement_report_s</scope><name>bonding</name></member>
+      <member refid="structsl__bt__evt__scanner__extended__advertisement__report__s_1a82a96e92217da7dd2175aac3f92e83de" prot="public" virt="non-virtual"><scope>sl_bt_evt_scanner_extended_advertisement_report_s</scope><name>channel</name></member>
+      <member refid="structsl__bt__evt__scanner__extended__advertisement__report__s_1a4fcf034f4ce9e7bd32509a3f218b4687" prot="public" virt="non-virtual"><scope>sl_bt_evt_scanner_extended_advertisement_report_s</scope><name>counter</name></member>
+      <member refid="structsl__bt__evt__scanner__extended__advertisement__report__s_1ae312c8419f81c0c02797f68800e11ccc" prot="public" virt="non-virtual"><scope>sl_bt_evt_scanner_extended_advertisement_report_s</scope><name>data</name></member>
+      <member refid="structsl__bt__evt__scanner__extended__advertisement__report__s_1a8ed0dd6c8ff17691a949240735d7cf5a" prot="public" virt="non-virtual"><scope>sl_bt_evt_scanner_extended_advertisement_report_s</scope><name>data_completeness</name></member>
+      <member refid="structsl__bt__evt__scanner__extended__advertisement__report__s_1a4e47698c3d01b3b8fac1fdbb13997140" prot="public" virt="non-virtual"><scope>sl_bt_evt_scanner_extended_advertisement_report_s</scope><name>event_flags</name></member>
+      <member refid="structsl__bt__evt__scanner__extended__advertisement__report__s_1a67a0cc0fd63f7de012041a8f6a29a2ad" prot="public" virt="non-virtual"><scope>sl_bt_evt_scanner_extended_advertisement_report_s</scope><name>periodic_interval</name></member>
+      <member refid="structsl__bt__evt__scanner__extended__advertisement__report__s_1a7c41094882ae5eb57850772a0abc1fe3" prot="public" virt="non-virtual"><scope>sl_bt_evt_scanner_extended_advertisement_report_s</scope><name>primary_phy</name></member>
+      <member refid="structsl__bt__evt__scanner__extended__advertisement__report__s_1aebb566cb1b7d3a8ff921d3b2315d235e" prot="public" virt="non-virtual"><scope>sl_bt_evt_scanner_extended_advertisement_report_s</scope><name>rssi</name></member>
+      <member refid="structsl__bt__evt__scanner__extended__advertisement__report__s_1a66c1eb014a2c47a54dede67ae2423378" prot="public" virt="non-virtual"><scope>sl_bt_evt_scanner_extended_advertisement_report_s</scope><name>secondary_phy</name></member>
+      <member refid="structsl__bt__evt__scanner__extended__advertisement__report__s_1a9932c56b7c1ffcc7fbbd54814b533d2d" prot="public" virt="non-virtual"><scope>sl_bt_evt_scanner_extended_advertisement_report_s</scope><name>target_address</name></member>
+      <member refid="structsl__bt__evt__scanner__extended__advertisement__report__s_1ad0d096167e26d79fbb0856530fb43b6d" prot="public" virt="non-virtual"><scope>sl_bt_evt_scanner_extended_advertisement_report_s</scope><name>target_address_type</name></member>
+      <member refid="structsl__bt__evt__scanner__extended__advertisement__report__s_1a6a11e2839fba0b7d23f7e17556a48d7e" prot="public" virt="non-virtual"><scope>sl_bt_evt_scanner_extended_advertisement_report_s</scope><name>tx_power</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

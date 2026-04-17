@@ -1,0 +1,133 @@
+project_name: esl_lib
+package: bluetooth_le_app
+label: Bluetooth - ESL Library
+description: >
+  A cross-platform shared library designed for host integration in Bluetooth
+  LE Electronic Shelf Label systems. This project delivers a position-
+  independent dynamic extension that offers ESL operations through a
+  profile-level API, ensuring consistent behavior across Windows, Linux,
+  and macOS host environments.
+category: Bluetooth Examples
+quality: experimental
+
+filter:
+  - name: "Wireless Technology"
+    value: ["Bluetooth"]
+  - name: "Device Type"
+    value: ["Host"]
+  - name: "Project Difficulty"
+    value: ["Advanced"]
+
+component:
+  - id: toolchain_gcc
+  - id: esl_tag_core
+  - id: native_host
+  - id: sl_main
+  - id: sl_main_custom_main
+  - id: app_log
+  - id: app_timer
+  - id: app_assert
+  - id: iostream_stdio
+  - id: bluetooth_api_ncp_host
+  - id: sl_common
+  - id: host_ncp
+  - id: host_ncp_sec
+  - id: ncp_version
+  - id: ots_client
+
+source:
+  - path: esl_lib.c
+  - path: esl_lib_ap_control.c
+  - path: esl_lib_command_list.c
+  - path: esl_lib_connection.c
+  - path: esl_lib_core.c
+  - path: esl_lib_event_list.c
+  - path: esl_lib_filter_accept_list.c
+  - path: esl_lib_image_transfer.c
+  - path: esl_lib_log.c
+  - path: esl_lib_memory.c
+  - path: esl_lib_pawr.c
+  - path: esl_lib_storage.c
+  - path: simple_argparse.c
+  - path: skip_list.c
+
+include:
+  - path: .
+    file_list:
+      - path: esl_lib.h
+      - path: esl_lib_ap_control.h
+      - path: esl_lib_command_list.h
+      - path: esl_lib_connection.h
+      - path: esl_lib_core.h
+      - path: esl_lib_event_list.h
+      - path: esl_lib_filter_accept_list.h
+      - path: esl_lib_image_transfer.h
+      - path: esl_lib_log.h
+      - path: esl_lib_memory.h
+      - path: esl_lib_pawr.h
+      - path: esl_lib_storage.h
+      - path: simple_argparse.h
+      - path: skip_list.h
+
+define:
+  # See /usr/include/features.h for details.
+  - name: _DEFAULT_SOURCE
+    condition:
+      - linux
+
+configuration:
+  - name: RECV_FUNC_US_SLEEP
+    value: "1"
+  - name: PEEK_US_SLEEP
+    value: "1"
+  - name: MSG_RECV_TIMEOUT_MS
+    value: "2"
+  - name: DEFAULT_HOST_BUFLEN
+    value: "16384"
+  - name: NCP_REBOOT_TIMEOUT_INIT_MS
+    value: "200"
+  - name: NCP_REBOOT_TIMEOUT_RETRY_MS
+    value: "1000"
+
+toolchain_settings:
+  - option: gcc_compiler_option
+    value: -Wno-array-bounds
+  - option: gcc_compiler_option
+    value: -fPIC
+  - option: gcc_compiler_option
+    value: -shared
+    unless:
+      - macos
+  - option: gcc_compiler_option
+    value: -static-libgcc -DWIN_DLL
+    condition:
+      - win32
+  - option: gcc_linker_option
+    value: -shared -fPIC
+  - option: gcc_linker_option
+    value: -static
+    condition:
+      - win32
+library:
+  - system: pthread
+    unless:
+      - win32
+  - system: dl
+    unless:
+      - win32
+
+post_build:
+  - path: post_build/esl_lib_linux.slpb
+    condition:
+      - linux
+  - path: post_build/esl_lib_win32.slpb
+    condition:
+      - win32
+  - path: post_build/esl_lib_macos.slpb
+    condition:
+      - macos
+
+tag:
+  - companion:esl_ap
+  - toolchain:gcc
+  - hwfilter:device:device_family_host

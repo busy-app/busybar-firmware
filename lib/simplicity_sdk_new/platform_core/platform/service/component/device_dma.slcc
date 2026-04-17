@@ -1,0 +1,27 @@
+id: device_dma
+label: Device Manager DMA
+package: platform_core
+description: >
+  Provides portable, device-independent DMA configuration enums for higher-level
+  components and tools without requiring inclusion of device-specific LDMA HAL
+  headers.
+category: Services|Device Manager
+quality: evaluation
+metadata:
+  sbom:
+    license: Zlib
+provides:
+- name: device_dma
+requires:
+- name: enum
+- name: device_dma_hal
+root_path: platform_core/platform/service/device_manager
+source:
+- path: src/sl_device_dma.c
+include:
+- path: inc
+  file_list:
+  - path: sl_device_dma.h
+documentation:
+  docset: gecko-platform
+  document: platform-service/device-manager-dma

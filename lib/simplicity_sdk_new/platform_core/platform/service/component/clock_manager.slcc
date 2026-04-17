@@ -1,0 +1,207 @@
+id: clock_manager
+label: Clock Manager
+package: platform_core
+description: >
+  The Clock Manager module provides configuration of the different oscillators and the device clock tree through
+  CMSIS Configuration Wizard Annotations C header files. The module also provides an API to initialize the module
+  and functions to perfom a variety of oscillator and clock related operations. This includes:
+   - functions to fetch information about oscillators and clock branches frequency and precision.
+   - functions to interface the CMU module fonctionality and features like enabling modules' bus clock,
+     RCO calibration, retrieving or setting oscillator calibration values, output clocks on GPIO, etc.
+category: Services|Clock Manager
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+provides:
+- name: clock_manager_device_init
+- name: device_init_lfrco
+  condition: [clock_manager_device_init]
+- name: device_init_lfxo
+  condition: [clock_manager_device_init]
+- name: device_init_hfrco
+  condition: [clock_manager_device_init]
+- name: device_init_hfxo
+  condition: [clock_manager_device_init]
+- name: device_init_usbpll
+  condition: [clock_manager_device_init]
+- name: device_init_rffpll
+  condition: [clock_manager_device_init]
+- name: device_init_clocks
+  condition: [clock_manager_device_init]
+- name: device_init_dpll
+  condition: [clock_manager_device_init]
+- name: clock_manager_init_internal
+  condition: [device_series_3]
+requires:
+- name: clock_manager_runtime
+- name: clock_manager_init_hal
+- name: status
+root_path: platform_core/platform/service/clock_manager
+config_file:
+- path: config/EFX32XG21/sl_clock_manager_oscillator_config.h
+  file_id: clock_manager_oscillator_config
+  condition: [device_generic_family_efr32xg21]
+- path: config/EFX32XG21/sl_clock_manager_tree_config.h
+  file_id: clock_manager_tree_config
+  condition: [device_generic_family_efr32xg21]
+- path: config/EFX32XG22/38M/sl_clock_manager_oscillator_config.h
+  file_id: clock_manager_oscillator_config
+  condition: [bgm220sc12wga]
+- path: config/EFX32XG22/38M/sl_clock_manager_oscillator_config.h
+  file_id: clock_manager_oscillator_config
+  condition: [device_family_efr32fg22]
+- path: config/EFX32XG22/38M/sl_clock_manager_oscillator_config.h
+  file_id: clock_manager_oscillator_config
+  condition: [efr32bg22c112f352gm32]
+- path: config/EFX32XG22/38M/sl_clock_manager_oscillator_config.h
+  file_id: clock_manager_oscillator_config
+  condition: [efr32bg22c112f352gm40]
+- path: config/EFX32XG22/38M/sl_clock_manager_oscillator_config.h
+  file_id: clock_manager_oscillator_config
+  condition: [efr32bg22l122f352gm32]
+- path: config/EFX32XG22/sl_clock_manager_oscillator_config.h
+  file_id: clock_manager_oscillator_config
+  condition: [device_generic_family_efr32xg22]
+  unless: [bgm220sc12wga, device_family_efr32fg22, efr32bg22c112f352gm32, efr32bg22c112f352gm40, efr32bg22l122f352gm32]
+- path: config/EFX32XG22/sl_clock_manager_tree_config.h
+  file_id: clock_manager_tree_config
+  condition: [device_generic_family_efr32xg22]
+- path: config/EFX32XG2D/sl_clock_manager_oscillator_config.h
+  file_id: clock_manager_oscillator_config
+  condition: [device_generic_family_efr32xg2d]
+- path: config/EFX32XG2D/sl_clock_manager_tree_config.h
+  file_id: clock_manager_tree_config
+  condition: [device_generic_family_efr32xg2d]
+- path: config/EFX32XG22/sl_clock_manager_oscillator_config.h
+  file_id: clock_manager_oscillator_config
+  condition: [device_family_efm32pg22]
+- path: config/EFX32XG22/sl_clock_manager_tree_config.h
+  file_id: clock_manager_tree_config
+  condition: [device_family_efm32pg22]
+- path: config/EFX32XG23/sl_clock_manager_oscillator_config.h
+  file_id: clock_manager_oscillator_config
+  condition: [device_generic_family_efr32xg23]
+- path: config/EFX32XG23/sl_clock_manager_tree_config.h
+  file_id: clock_manager_tree_config
+  condition: [device_generic_family_efr32xg23]
+- path: config/EFX32XG23/sl_clock_manager_oscillator_config.h
+  file_id: clock_manager_oscillator_config
+  condition: [device_family_efm32pg23]
+- path: config/EFX32XG23/sl_clock_manager_tree_config.h
+  file_id: clock_manager_tree_config
+  condition: [device_family_efm32pg23]
+- path: config/EFX32XG24/sl_clock_manager_oscillator_config.h
+  file_id: clock_manager_oscillator_config
+  condition: [device_generic_family_efr32xg24]
+- path: config/EFX32XG24/sl_clock_manager_tree_config.h
+  file_id: clock_manager_tree_config
+  condition: [device_generic_family_efr32xg24]
+- path: config/EFX32XG25/sl_clock_manager_oscillator_config.h
+  file_id: clock_manager_oscillator_config
+  condition: [device_generic_family_efr32xg25]
+- path: config/EFX32XG25/sl_clock_manager_tree_config.h
+  file_id: clock_manager_tree_config
+  condition: [device_generic_family_efr32xg25]
+- path: config/EFX32XG26/sl_clock_manager_oscillator_config.h
+  file_id: clock_manager_oscillator_config
+  condition: [device_generic_family_efr32xg26]
+- path: config/EFX32XG26/sl_clock_manager_tree_config.h
+  file_id: clock_manager_tree_config
+  condition: [device_generic_family_efr32xg26]
+- path: config/EFX32XG26/sl_clock_manager_oscillator_config.h
+  file_id: clock_manager_oscillator_config
+  condition: [device_family_efm32pg26]
+- path: config/EFX32XG26/sl_clock_manager_tree_config.h
+  file_id: clock_manager_tree_config
+  condition: [device_family_efm32pg26]
+- path: config/EFX32XG27/sl_clock_manager_oscillator_config.h
+  file_id: clock_manager_oscillator_config
+  condition: [device_generic_family_efr32xg27]
+- path: config/EFX32XG27/sl_clock_manager_tree_config.h
+  file_id: clock_manager_tree_config
+  condition: [device_generic_family_efr32xg27]
+- path: config/EFX32XG28/sl_clock_manager_oscillator_config.h
+  file_id: clock_manager_oscillator_config
+  condition: [device_generic_family_efr32xg28]
+- path: config/EFX32XG28/sl_clock_manager_tree_config.h
+  file_id: clock_manager_tree_config
+  condition: [device_generic_family_efr32xg28]
+- path: config/EFX32XG28/sl_clock_manager_oscillator_config.h
+  file_id: clock_manager_oscillator_config
+  condition: [device_family_efm32pg28]
+- path: config/EFX32XG28/sl_clock_manager_tree_config.h
+  file_id: clock_manager_tree_config
+  condition: [device_family_efm32pg28]
+- path: config/EFX32XG29/sl_clock_manager_oscillator_config.h
+  file_id: clock_manager_oscillator_config
+  condition: [device_generic_family_efr32xg29]
+- path: config/EFX32XG29/sl_clock_manager_tree_config.h
+  file_id: clock_manager_tree_config
+  condition: [device_generic_family_efr32xg29]
+- path: config/SIXX301/sl_clock_manager_oscillator_config.h
+  file_id: clock_manager_oscillator_config
+  condition: [device_generic_family_sixx301]
+- path: config/SIXX301/sl_clock_manager_tree_config.h
+  file_id: clock_manager_tree_config
+  condition: [device_generic_family_sixx301]
+- path: config/sl_clock_manager_ext_flash_config.h
+  file_id: sl_clock_manager_ext_flash_config
+  condition: [device_has_ext_mem]
+source:
+- path: src/sl_clock_manager_init.c
+include:
+- path: inc
+  file_list:
+  - path: sl_clock_manager_init.h
+- path: src
+  file_list:
+  - path: sli_clock_manager_init_hal.h
+define:
+  # The Auto-Band feature requires the existence of a radio configuration file.
+  # If this symbol is not defined, Auto-Band will be ignored and 9xx band used.
+- name: SL_CLOCK_MANAGER_AUTO_BAND_VALID
+  value: '1'
+  condition:
+  - a_radio_config
+- name: SL_CLOCK_MANAGER_HFXO_STARTUP_TIME_MEASUREMENT_EN
+  value: '1'
+  condition:
+  - device_series_3
+  - power_manager
+- name: SL_CLOCK_MANAGER_HFXO_STARTUP_TIME_DEFAULT_VALUE
+  value: '22'
+  condition:
+  - device_series_3
+  - power_manager
+- name: SL_CLOCK_MANAGER_HFXO_STARTUP_TIME_MEASUREMENTS
+  value: HFXO_CFG_NUMSTUPMEAS_MEASURE8
+  condition:
+  - device_series_3
+  - power_manager
+- name: SL_CLOCK_MANAGER_HFXO0LFCLK_SOURCE
+  value: CMU_HFXO0LFCLKCTRL_CLKSEL_LFRCO
+  condition:
+  - device_series_3
+  - power_manager
+template_contribution:
+- name: component_catalog
+  value: clock_manager
+- name: event_handler
+  value:
+    event: platform_init
+    include: sl_clock_manager_init.h
+    handler: sl_clock_manager_init
+  priority: -9800
+  condition: [sl_system, kernel]
+- name: component_catalog
+  value: clock_manager_ext_flash
+  condition: [device_has_ext_mem]
+validation_helper:
+- path: clock_manager_validation.lua
+  condition: [device_series_2]
+- path: clock_manager_validation.lua
+  condition: [device_generic_family_sixx301]
+documentation:
+  docset: gecko-platform
+  document: platform-service/clock-manager

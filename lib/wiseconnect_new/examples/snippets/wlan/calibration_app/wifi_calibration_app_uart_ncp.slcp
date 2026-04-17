@@ -1,0 +1,91 @@
+project_name: wifi_calibration_app_uart_ncp
+package: wifi_app
+quality: production
+label: Wi-Fi - Calibration App (UART NCP)
+category: Example|Wi-Fi
+description: 'Calibrates carrier frequency offset and Tx gain offset and update that to the Flash/Efuse
+
+  '
+filter:
+- name: Wireless Technology
+  value:
+  - Wi-Fi
+- name: Project Difficulty
+  value:
+  - Beginner
+source:
+- path: app.c
+include:
+- path: .
+  file_list:
+  - path: app.h
+define:
+- name: SL_SI91X_PRINT_DBG_LOG
+component:
+- id: uartdrv_usart
+  instance:
+  - exp
+requires:
+- name: sl_main
+- name: bsd_socket
+- name: network_manager
+- name: basic_network_config_manager
+- name: wiseconnect_common
+- name: wifi
+- name: sl_si91x_wireless
+- name: sl_si91x_internal_stack
+- name: sl_si91x_uart_bus
+- name: sl_si91x_basic_buffers
+- name: wifi_resources
+- name: freertos
+- name: freertos_heap_4
+- name: slist
+- name: iostream_retarget_stdio
+  condition:
+  - device_has_devinfo
+- name: iostream_rtt
+  condition:
+  - device_has_devinfo
+- name: iostream_stdlib_config
+  condition:
+  - device_has_devinfo
+- name: device_init
+  condition:
+  - device_has_devinfo
+- name: emlib_common
+  condition:
+  - device_has_devinfo
+- name: emlib_ldma
+  condition:
+  - device_has_devinfo
+toolchain_settings:
+- option: gcc_compiler_option
+  value: -Wall -Werror
+configuration:
+- name: SL_BOARD_ENABLE_VCOM
+  value: '1'
+- name: configTOTAL_HEAP_SIZE
+  value: '51200'
+- name: configUSE_POSIX_ERRNO
+  value: '1'
+- name: configTIMER_TASK_PRIORITY
+  value: '55'
+readme:
+- path: readme.md
+other_file:
+- path: resources/readme/calibration_soc_ncp.png
+- path: resources/readme/image_c7.png
+- path: resources/readme/image_c9.png
+- path: resources/readme/output.png
+ui_hints:
+  highlight:
+  - path: readme.md
+    focus: true
+sdk_extension:
+- id: wiseconnect3_sdk
+  vendor: silabs
+  version: 4.0.1
+sdk:
+  id: simplicity_sdk
+  vendor: silabs
+  version: 2025.12.2

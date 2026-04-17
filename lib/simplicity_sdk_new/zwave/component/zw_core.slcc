@@ -1,0 +1,159 @@
+id: zw_core
+label: Z-Wave Core Component
+category: Z-Wave
+description: >
+  This component provides all the neccessary sources that an end device application needs and sets
+  up the flags for compiler. It includes the most important Z-Wave protocol-specific files.
+  It also includes the region configuration files, as well as hardware dependencies (non-volatile
+  memory usage, RAIL usage, etc.) Configuration can be done in the component by clicking the gear
+  icon.
+package: zwave
+quality: production
+metadata:
+  sbom:
+    reference: zw_sbom_license
+template_contribution:
+- name: linker_zwave_nvm
+  value: true
+- name: event_handler
+  value:
+    event: stack_init
+    include: ZW_basis_api.h
+    handler: sl_zwave_protocol_startup
+- name: application_type
+  value: "APPLICATION_TYPE_ZWAVE"
+- name: rodata_sections   # Ensure memory section define by Z-Wave stack are placed in the rodata section
+  value: zw_protocol_cmd_handlers
+- name: rodata_sections   # Ensure memory section define by Z-Wave stack are placed in the rodata section
+  value: zw_protocol_cmd_handlers_lr
+- name: component_catalog
+  value: SILICON_LABS_ZWAVE_APPLICATION
+- name: component_catalog
+  value: ZW_CORE
+requires:
+  # Z-Wave
+- name: zw_versions
+- name: zaf_protocol_config
+- name: sleeptimer
+- name: zw_toolchain_settings
+- name: zw_stack_libraries
+- name: zw_build_mode
+- name: zw_log
+- name: zw_board_attributes
+  # Platform
+- name: power_manager
+- name: freertos
+- name: bootloader_interface
+- name: emlib
+- name: status
+- name: nvm3_default
+- name: rail_lib
+- name: sl_rail_util_compatible_pa
+- name: component_catalog
+- name: common_token_manager
+- name: common_token_manager_compatibility
+  condition: [device_series_2]
+
+recommends:
+- id: zw_release
+  vendor: silabs
+- id: zw_stack_release_libraries
+  vendor: silabs
+- id: power_manager_deepsleep
+
+  vendor: silabs
+include:
+- path: "dist/include/zwave"
+  file_list:
+  - path: "ZW_security_api.h"
+  - path: "ZW_typedefs.h"
+  - path: "ZW_transport_api.h"
+  - path: "ZW_basis_api.h"
+  - path: "ZW_system_startup_api.h"
+  - path: "ZW_application_transport_interface.h"
+  - path: "ZW_slave_api.h"
+  - path: "ZW_UserTask.h"
+  - path: "ZW_classcmd.h"
+- path: "dist/include/zpal"
+  file_list:
+  - path: "zpal_bootloader.h"
+  - path: "zpal_status.h"
+  - path: "zpal_entropy.h"
+  - path: "zpal_init.h"
+  - path: "zpal_log.h"
+  - path: "zpal_log_internal.h"
+  - path: "zpal_misc.h"
+  - path: "zpal_nvm.h"
+  - path: "zpal_radio.h"
+  - path: "zpal_radio_utils.h"
+  - path: "zpal_retention_register.h"
+  - path: "zpal_uart.h"
+  - path: "zpal_watchdog.h"
+- path: "Components/SwTimer"
+  file_list:
+  - path: "SwTimer.h"
+  - path: "SwTimerLiaison.h"
+- path: "Components/Utils"
+  file_list:
+  - path: "SizeOf.h"
+- path: "Components/QueueNotifying"
+  file_list:
+  - path: "QueueNotifying.h"
+- path: "Components/NodeMask"
+  file_list:
+  - path: "NodeMask.h"
+- path: "platform/SiliconLabs/PAL/inc"
+  file_list:
+  - path: "system_startup.h"
+  - path: "zpal_uart_config_ext.h"
+- path: "platform/SiliconLabs/PAL/inc/application_properties"
+  file_list:
+  - path: "application_properties_config.h"
+- path: "ZAF/ApplicationUtilities/TrueStatusEngine"
+  file_list:
+  - path: "ZAF_TSE.h"
+- path: "ZAF/ApplicationUtilities/Actuator"
+  file_list:
+  - path: "ZAF_Actuator.h"
+- path: "ZAF/ApplicationUtilities/_commonIF"
+  file_list:
+  - path: "ZAF_Common_interface.h"
+  - path: "ZAF_Common_helper.h"
+- path: "Components/zw_crc"
+  file_list:
+  - path: "zw_crc.h"
+- path: "Components/EventDistributor"
+  file_list:
+  - path: "EventDistributor.h"
+- path: "Components/SyncEvent"
+  file_list:
+  - path: "SyncEvent.h"
+- path: "Components/MfgTokens"
+  file_list:
+  - path: "MfgTokens.h"
+- path: "Components/Utils"
+  file_list:
+  - path: "Min2Max2.h"
+define:
+- name: EFR32ZG
+  value: 1
+- name: SL_IOSTREAM_UART_FLUSH_TX_BUFFER
+- name: CONFIG_MBEDTLS_USE_FREERTOS_PVCALLOC
+- name: _GNU_SOURCE
+
+provides:
+- name: zw_core
+- name: wireless_stack
+  allow_multiple: true
+
+validation_helper:
+- path: component/scripts/zw_core_validation.lua
+
+config_file:
+- path: sample_apps/config/zw_region_config.h
+  file_id: region_config
+- path: sample_apps/config/zw_rf/zw_config_rf.h
+  file_id: config_rf
+- path: sample_apps/config/zw_hardware/zw_hardware_config.h
+  file_id: zw_hardware_config
+root_path: zwave

@@ -1,0 +1,28 @@
+id: se_manager_config
+label: Config
+package: security_se_manager
+description: >-
+  Provides SE Manager configuration options.
+category: Platform|Security|SE Manager
+quality: production
+ui_hints:
+  visibility: never
+include:
+- path: inc
+  file_list:
+  - path: sl_se_manager_check_config.h
+  - path: sl_se_manager_config.h
+
+conflicts:
+- name: native
+
+requires:
+- name: device
+
+provides:
+- name: se_manager_config
+
+metadata:
+  sbom:
+    license: Zlib
+root_path: security_se_manager/platform/security/sl_component/se_manager

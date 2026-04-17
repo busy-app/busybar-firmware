@@ -1,0 +1,29 @@
+id: ot_gp_interface
+label: Green Power Interface
+package: openthread
+category: OpenThread
+quality: production
+description: |-
+  This component provides an outgoing transmit queue for Zigbee Green Power on RCP.
+  It also provides an API that checks if a packet is a Green Power packet.
+provides:
+- name: ot_gp_interface
+config_file:
+- path: config/sl_gp_interface_config.h
+include:
+- path: platform-abstraction/efr32
+  file_list:
+  - path: ieee802154mac.h
+  - path: sl_gp_interface.h
+  - path: sl_packet_utils.h
+source:
+- path: platform-abstraction/efr32/sl_gp_interface.c
+template_contribution:
+- name: component_catalog
+  value: ot_gp_interface
+metadata:
+  sbom:
+    # BSD-3-Clause covers the files from platform-abstraction/efr32
+    # Zlib covers the files from config.
+    license: BSD-3-Clause AND Zlib
+root_path: openthread

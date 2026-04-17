@@ -1,0 +1,26 @@
+id: syscalls
+package: platform_siwx91x
+description: >
+  Provides system calls support for the Si91x.
+label: System Calls
+category: Device|Si91x|MCU|Common
+quality: production
+metadata:
+  sbom:
+    license: MSLA
+component_root_path: "components/device/silabs/si91x/mcu/core/common"
+source:
+  - path: "src/syscalls.c"
+    unless: [no_syscalls]
+include:
+  - path: inc
+    file_list:
+      - path: syscalls.h
+        unless: [no_syscalls]
+provides:
+  - name: syscalls
+  - name: no_syscalls
+    condition: [sl_usart_iostream]
+requires:
+  - name: si91x_debug
+  - name: sl_common

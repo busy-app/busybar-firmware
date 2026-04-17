@@ -1,0 +1,25 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<module:DocumentRoot xmlns:module="http://www.silabs.com/ss/hwconfig/module.ecore">
+  <module id="pin_tool.wfm.si91x.pwm" label="PWM" name="PWM" description="Common pins of PWM module" version="A">
+    <properties>
+      <stringProperty label="Type" id="type" defaultValue="pwm" transient="true" hidden="true" readonly="true" description=""/>
+      <stringProperty label="Custom Peripheral Name" id="peripheral.name" description=""/>
+    </properties>
+    <propertyCategories>
+      <category label="PWM">
+        <subCategory label="">
+          <propertyRef refId="peripheral.name"/>
+        </subCategory>
+      </category>
+    </propertyCategories>
+    <signals>
+      <signal name="FAULTA"/>
+      <signal name="FAULTB"/>
+      <signal name="TMR_EXT_TRIG_1"/>
+      <signal name="TMR_EXT_TRIG_2"/>
+      <signal name="TMR_EXT_TRIG_3"/>
+      <signal name="TMR_EXT_TRIG_4"/>
+      <signal name="SLEEP_EVT_TRIG"/>
+    </signals>
+  </module>
+</module:DocumentRoot>

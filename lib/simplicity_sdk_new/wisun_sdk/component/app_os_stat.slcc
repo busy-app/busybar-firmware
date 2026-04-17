@@ -1,0 +1,54 @@
+id: "app_os_stat"
+label: "Application memory statistic"
+package: "wisun_sdk"
+description: >
+  The service systematically collects heap and stack usage data from
+  active threads across various configurations involving FreeRTOS, MicriumOS,
+  and different toolchains such as GCC and IAR. This critical information is
+  then relayed to the Real-Time Transfer (RTT) console.
+  To ensure accurate reporting, proper RTT setup is essential.
+  The component includes a warning mechanism that provides hints about missing
+  or incorrect configurations. Within the component configuration, you can set
+  the service thread parameters, the update period time, the maximum count of
+  trackable threads, and enable heap usage statistics.
+  A common scenario involves increasing the measurable thread stack size and
+  the application heap size before beginning testing. Based on the measurement
+  results, adjustments can be made to the appropriate thread's stack and the
+  application heap size. Stack size is calculated using the highest watermarks,
+  and the last result always displays the maximum values.
+
+category: "Wi-SUN|Wi-SUN Services"
+quality: "evaluation"
+metadata:
+  sbom:
+    license: Zlib
+root_path: "wisun_sdk/component/app_os_stat"
+provides:
+- name: app_os_stat
+
+requires:
+- name: "segger_rtt"
+- name: "segger_rtt_printf"
+- name: "cmsis_rtos2"
+- name: "sl_mempool"
+
+source:
+- path: "app_os_stat.c"
+
+include:
+- path: "."
+  file_list:
+  - "path": "app_os_stat.h"
+config_file:
+- path: "config/app_os_stat_config.h"
+
+#-------------- Template Contribution ----------------
+template_contribution:
+- name: "event_handler"
+  value:
+    event: "internal_app_init"
+    include: "app_os_stat.h"
+    handler: "app_os_stat_init"
+#---------------- Component Catalog ------------------
+- name: component_catalog
+  value: app_os_stat

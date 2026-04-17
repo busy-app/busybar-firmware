@@ -1,0 +1,19 @@
+id: zw_dcdc_override
+label: Z-Wave dcdc Override Component
+category: Z-Wave
+description: >
+  This component changes the DC-DC configuration when the controller enters a lower energy usage state (EM2 or EM4 mode). It also handles voltage monitoring during the boot operation.
+  The possible configuration values that can be set are: AUTO, BYPASS, and DCDC_LOW_NOISE.
+package: zwave
+quality: production
+metadata:
+  sbom:
+    reference: zw_sbom_license
+
+include:
+- path: "platform/SiliconLabs/PAL/inc/"
+  file_list:
+  - path: "sl_dcdc.h"
+provides:
+- name: zw_dcdc_override
+root_path: zwave

@@ -1,0 +1,71 @@
+id: "sl_wisun_app_setting"
+label: "Wi-SUN Setting"
+package: "wisun_sdk"
+description: >
+  The Application Settings component provides the fundamental API for getting and setting Wi-SUN related settings within the application code.
+  After initializing with the app_wisun_setting_init() function, the setters and getters can be used in the application to interface
+  with runtime settings such as network name, network size, TX power, and PHY configuration.
+  A notification mechanism is implemented and is triggered by the appropriate settings changes.
+  This component also includes SoC Border Router specific functions, which are compiled only if the Border Router stack is selected.
+category: "Wi-SUN|Wi-SUN Services"
+quality: "production"
+metadata:
+  sbom:
+    license: Zlib
+root_path: "wisun_sdk/component/app_setting"
+provides:
+- name: sl_wisun_app_setting
+
+source:
+- path: "sl_wisun_app_setting.c"
+  unless:
+  - "wisun_br_stack"
+- path: "sl_wisun_app_setting_br.c"
+  condition:
+  - "wisun_br_stack"
+- path: "sl_wisun_app_setting_common.c"
+
+include:
+- path: "."
+  file_list:
+  - path: "sl_wisun_app_setting.h"
+    unless:
+    - "wisun_br_stack"
+  - path: "sl_wisun_app_setting_br.h"
+    condition:
+    - "wisun_br_stack"
+  - path: "sl_wisun_app_setting_common.h"
+
+requires:
+- name: "sl_string"
+- name: "sl_wisun_cli_util"
+- name: "wisun_config"
+- name: "wisun_br_config"
+  condition:
+  - "wisun_br_stack"
+
+#-------------- Template Contribution ----------------
+template_contribution:
+#---------------- Component Catalog ------------------
+- name: "event_handler"
+  value:
+    event: "internal_app_init"
+    include: "sl_wisun_app_setting.h"
+    handler: "app_wisun_setting_init"
+  unless:
+  - "wisun_br_stack"
+- name: "event_handler"
+  value:
+    event: "internal_app_init"
+    include: "sl_wisun_app_setting_br.h"
+    handler: "app_wisun_setting_init"
+  condition:
+  - "wisun_br_stack"
+- name: "event_handler"
+  value:
+    event: "internal_app_init"
+    include: "sl_wisun_app_setting_common.h"
+    handler: "app_wisun_setting_common_init"
+
+- name: component_catalog
+  value: wisun_app_setting

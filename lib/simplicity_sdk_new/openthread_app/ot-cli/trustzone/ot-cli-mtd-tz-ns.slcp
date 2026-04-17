@@ -1,0 +1,146 @@
+project_name: ot-cli-mtd-tz-ns
+label: OpenThread - SoC CLI (MTD) (TrustZone)
+package: openthread
+description: >
+    This is a variant of the openthread MTD CLI application with trustzone awareness enabled.
+category: OpenThread Examples
+quality: production
+
+component:
+  - id: sl_main
+  - id: ot_stack_mtd
+  - id: ot_cli_source
+  - id: iostream_recommended_console
+  - id: rail_util_pti
+  - id: bootloader_interface
+  - id: trustzone_nonsecure
+  - id: tz_secure_key_library
+  - id: clock_manager
+  - id: ot_reset_utils
+  # Platform - Enable LTO for gcc by installing the following component
+  - id: toolchain_gcc_lto
+
+include:
+  - path: ../
+    file_list:
+    - path: app.h
+
+source:
+  - path: ../app.c
+
+configuration:
+  - name: SL_BOARD_ENABLE_VCOM
+    value: 1
+  - name: SL_MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
+    value: 1
+  - name: SL_MBEDTLS_KEY_EXCHANGE_PSK_ENABLED
+    value: 1
+  - name: SL_IOSTREAM_USART_VCOM_RX_BUFFER_SIZE
+    value: 128 # Increase from default 32
+    condition: [iostream_usart]
+  - name: SL_IOSTREAM_EUSART_VCOM_RX_BUFFER_SIZE
+    value: 128 # Increase from default 32
+    condition: [iostream_eusart]
+  - name: SL_HEAP_SIZE
+    value: 16384
+    condition: [freertos]
+  # This stack size is dependent on LTO optimization. In the cases, where LTO merges more than 1 functions in a single one
+  # (includes inlining) causing the stack to increase. This project wide configuration, it is recommended to ensure this
+  # configuration is updated with appropriate values based on the additional components installed and application code added.
+  - name: SL_STACK_SIZE
+    value: 6144
+    condition: [toolchain_lto]
+    unless: [freertos]
+  - name: SL_STACK_SIZE
+    value: 4608
+    condition: [freertos]
+    unless: [toolchain_lto]
+  - name: SL_STACK_SIZE
+    value: 5120
+    condition: [toolchain_lto, freertos]
+  - name: SL_STACK_SIZE
+    value: 5120
+    unless: [toolchain_lto, freertos]
+  # Stack size config end
+  - name: SL_MAIN_START_TASK_STACK_SIZE_BYTES
+    value: 4608
+    condition: [sl_main,freertos]
+  - name: SL_MAIN_START_TASK_STACK_SIZE_BYTES
+    value: 5120
+    condition: [sl_main]
+    unless: [freertos]
+  - name: CIRCULAR_QUEUE_LEN_MAX
+    value: 16
+  - name: SL_IOSTREAM_USART_VCOM_FLOW_CONTROL_TYPE
+    value: usartHwFlowControlCtsAndRts
+    condition: [iostream_usart]
+  - name: SL_IOSTREAM_EUSART_VCOM_FLOW_CONTROL_TYPE
+    value: SL_IOSTREAM_EUSART_UART_FLOW_CTRL_CTS_RTS
+    condition: [iostream_eusart]
+  # FreeRTOS configuration
+  - name: configRUN_FREERTOS_SECURE_ONLY
+    value: 0
+    condition: [freertos]
+  - name: configENABLE_TRUSTZONE
+    value: 0
+    condition: [freertos]
+  - name: configTIMER_TASK_PRIORITY
+    value: 53
+    condition: [freertos]
+  - name: SL_OPENTHREAD_STACK_TASK_MEM_SIZE
+    value: 7168
+    condition: [toolchain_lto]
+  - name: configTOTAL_HEAP_SIZE
+    value: 16384
+    condition: [toolchain_lto, freertos]
+
+template_contribution:
+  - name: memory_flash_start
+    value: 0x20000
+    condition: [device_sdid_200]
+    unless: [bootloader_interface]
+  - name: memory_flash_start
+    value: 0x08020000
+    unless: [device_sdid_200, bootloader_interface]
+  - name: memory_flash_start
+    value: 0x24000
+    condition: [device_sdid_200, bootloader_interface]
+  - name: memory_flash_start
+    value: 0x08026000
+    condition: [bootloader_interface]
+    unless: [device_sdid_200]
+
+  - name: memory_ram_start
+    value: 0x20003000
+
+import:
+  # Import the config files from the TZ Secure application
+  - id: ot-tz-secure-application
+
+post_build:
+  profile: tz_nonsecure_application
+
+tag:
+  - companion:secure_app
+  - hwfilter:device:device_supports_thread
+  - hwfilter:!device:device_family_efr32mr21
+  - hwfilter:!device:device_series_3
+  - toolchain:gcc
+
+readme:
+  - path: ../README.md
+  - path: README.md
+
+filter:
+  - name: "Wireless Technology"
+    value: ["Thread"]
+  - name: "Device Type"
+    value: ["SoC"]
+  - name: "Project Difficulty"
+    value: ["Advanced"]
+
+ui_hints:
+  highlight:
+    - path: ../README.md
+    - path: README.md
+      focus: true

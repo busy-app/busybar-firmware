@@ -1,0 +1,64 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__advertiser__flags" kind="group">
+    <compoundname>sl_bt_advertiser_flags</compoundname>
+    <title>Generic Advertising Configuration Flags</title>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__advertiser__flags_1ga327262605ff2192741ab1c4a5b6dd701" prot="public" static="no">
+        <name>SL_BT_ADVERTISER_USE_NONRESOLVABLE_ADDRESS</name>
+        <initializer>0x4</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Use a non-resolvable private address managed by the stack. The advertising must be non-connectable when using this configuration. The stack generates a non-resolvable private address for the advertising set and the stack will update the address periodically in privacy mode. By default this flag is not set, i.e., the advertising address uses the device identity address. This configuration has no effect if the advertising address has been set with the <ref refid="group__sl__bt__advertiser_1gab7f12454d8502bce94240325a0eec4d4" kindref="member">sl_bt_advertiser_set_random_address</ref> command. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="2331" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="2331" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__advertiser__flags_1ga777d515d0ebd285e8e7b0d85e25118f2" prot="public" static="no">
+        <name>SL_BT_ADVERTISER_USE_DEVICE_IDENTITY_IN_PRIVACY</name>
+        <initializer>0x10</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Use the device identity address when privacy mode is enabled. By default, this flag is not set, i.e., the advertising address uses a resolvable private address managed by the stack in privacy mode. This configuration has no effect if the <ref refid="group__sl__bt__advertiser__flags_1ga327262605ff2192741ab1c4a5b6dd701" kindref="member">SL_BT_ADVERTISER_USE_NONRESOLVABLE_ADDRESS</ref> flag is set or the advertising address has been set with the <ref refid="group__sl__bt__advertiser_1gab7f12454d8502bce94240325a0eec4d4" kindref="member">sl_bt_advertiser_set_random_address</ref> command. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="2339" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="2339" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__advertiser__flags_1gadd001514f2f136ae119c67b651f52948" prot="public" static="no">
+        <name>SL_BT_ADVERTISER_USE_FILTER_FOR_SCAN_REQUESTS</name>
+        <initializer>0x20</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Use the Filter Accept List to filter scan requests received while performing scannable advertising with this advertising set. By default, this flag is not set and scan requests from all devices are processed. If the application sets this flag, scan requests are processed only from those devices that the application has added to the Filter Accept List.</para>
+<para>This configuration is supported only when the application has included the Bluetooth component bluetooth_feature_accept_list. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="2353" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="2353" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__advertiser__flags_1ga7ae97166020640291284569f566a45fd" prot="public" static="no">
+        <name>SL_BT_ADVERTISER_USE_FILTER_FOR_CONNECTION_REQUESTS</name>
+        <initializer>0x40</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Use the Filter Accept List to filter connection requests received while performing connectable advertising with this advertising set. By default, this flag is not set and connection requests from all devices are processed. If the application sets this flag, connection requests are processed only from those devices that the application has added to the Filter Accept List.</para>
+<para>This configuration is supported only when the application has included the Bluetooth component bluetooth_feature_accept_list. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="2367" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="2367" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para>This enum defines configuration flags common for legacy and extended advertisings. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

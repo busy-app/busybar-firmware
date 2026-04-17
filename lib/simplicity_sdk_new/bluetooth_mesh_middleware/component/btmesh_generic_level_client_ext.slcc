@@ -1,0 +1,52 @@
+id: "btmesh_generic_level_client_ext"
+label: "Generic Level Client Extension"
+package: bluetooth_mesh_middleware
+description: >
+  Generic Level extension that supports Generic Move and Generic Delta messages.
+
+  This component extends the Generic Base component with the additional support
+  of sending Generic Move Unacknowledged and Generic Delta Unacknownledged messages.
+  This allows the user to create an example that provides the Dimming Control NLC
+  Profile functionality.
+
+  This is a no-code component.
+category: "Bluetooth Mesh|Models|Generic"
+quality: "production"
+tag:
+- No-Code
+metadata:
+  sbom:
+    license: Zlib
+root_path: "bluetooth_mesh_middleware/common/btmesh_generic_level_client_ext"
+config_file:
+- path: btmesh_generic_level_client_ext.dcd
+  directory: btmeshconf
+- path: "config/sl_btmesh_generic_level_client_ext_config.h"
+source:
+- path: "sl_btmesh_generic_level_client_ext.c"
+include:
+- path: ""
+  file_list:
+  - path: "sl_btmesh_generic_level_client_ext.h"
+provides:
+- name: "btmesh_generic_level_client_ext"
+requires:
+- name: "app_assert"
+- name: "app_btmesh_util"
+- name: "app_btmesh_rta"
+- name: "btmesh_stack_generic_client"
+- name: "btmesh_stack_node"
+- name: "btmesh_generic_client"
+- name: "app_timer"
+
+template_contribution:
+- name: "btmesh_on_event"
+  value:
+    include: "sl_btmesh_generic_level_client_ext.h"
+    function: "sl_btmesh_generic_level_client_ext_on_event"
+  priority: -10
+- name: component_catalog
+  value: btmesh_generic_level_client_ext
+documentation:
+  docset: btmesh
+  document: btmesh-service-api/btmesh-generic-level-client-ext

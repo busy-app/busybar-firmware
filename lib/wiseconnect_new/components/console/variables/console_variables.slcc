@@ -1,0 +1,15 @@
+id: console_variables
+package: wifi
+description: >
+  Enables Console to read and write variables.
+label: Console Variables
+category: Service|Console
+quality: production
+metadata:
+  sbom:
+    license: MSLA
+component_root_path: ./components/console/variables
+provides:
+- name: console_variables
+source:
+- path: console_variables.c

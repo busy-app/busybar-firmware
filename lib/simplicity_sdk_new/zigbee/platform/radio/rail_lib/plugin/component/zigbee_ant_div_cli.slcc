@@ -1,0 +1,67 @@
+id: zigbee_ant_div_cli
+label: Zigbee Utility, Antenna Diversity CLI
+description: Zigbee antenna diversity CLI
+package: zigbee
+category: Platform|Radio
+quality: production
+metadata:
+  sbom:
+    id: zigbee_ant_div_cli
+    name: Zigbee Utility, Antenna Diversity CLI
+    license: Zlib
+root_path: zigbee/platform/radio/rail_lib
+requires:
+- name: rail_util_ant_div
+  condition:
+  - device_cortexm
+- name: cli
+- name: zigbee_debug_print
+provides:
+- name: zigbee_ant_div_cli
+include:
+- path: plugin/sl_rail_util_ant_div
+  file_list:
+  - path: sl_rail_util_ant_div.h
+source:
+- path: plugin/sl_rail_util_ant_div/sl_zigbee_ant_div_cli.c
+template_contribution:
+# CLI Commands < plugin antenna >
+- name: cli_group
+  value:
+    group: plugin
+    name: antenna
+    help: The antenna commands allow you run-time reconfiguration of the antenna plugin
+# CLI Commands < plugin antenna get-antenna-tx-mode >
+- name: cli_command
+  value:
+    group: antenna
+    name: get-antenna-tx-mode
+    handler: sl_util_af_antenna_get_antenna_tx_mode
+    help: Get the TX antenna mode
+# CLI Commands < plugin antenna set-antenna-tx-mode >
+- name: cli_command
+  value:
+    group: antenna
+    name: set-antenna-tx-mode
+    handler: sl_util_af_antenna_set_antenna_tx_mode
+    help: Set the TX antenna mode
+    argument:
+    - type: uint8
+      help: Configure the TX antenna mode(0-don't switch,1-primary,2-secondary,3-TX antenna diversity).
+# CLI Commands < plugin antenna get-antenna-rx-mode >
+- name: cli_command
+  value:
+    group: antenna
+    name: get-antenna-rx-mode
+    handler: sl_util_af_antenna_get_antenna_rx_mode
+    help: Get the RX antenna mode
+# CLI Commands < plugin antenna set-antenna-rx-mode >
+- name: cli_command
+  value:
+    group: antenna
+    name: set-antenna-rx-mode
+    handler: sl_util_af_antenna_set_antenna_rx_mode
+    help: Set the RX antenna mode
+    argument:
+    - type: uint8
+      help: Configure the RX antenna mode(0-don't switch,1-primary,2-secondary,3-RX antenna diversity).

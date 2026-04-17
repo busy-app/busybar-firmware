@@ -1,0 +1,49 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="structsl__bt__msg" kind="struct" language="C++" prot="public">
+    <compoundname>sl_bt_msg</compoundname>
+    <includes refid="sl__bt__api_8h" local="no">sl_bt_api.h</includes>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structsl__bt__msg_1af8e8cd7ef11067996f44bb2074784319" prot="public" static="no" mutable="no">
+        <type>uint32_t</type>
+        <definition>uint32_t sl_bt_msg::header</definition>
+        <argsstring></argsstring>
+        <name>header</name>
+        <qualifiedname>sl_bt_msg::header</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>API protocol header consisting of event identifier and data length </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16502" column="14" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="16502" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__msg_1aa2e55461097fb93e5501cce38d4d951d" prot="public" static="no" mutable="no">
+        <type>union sl_bt_msg::@0</type>
+        <definition>union sl_bt_msg::@0 sl_bt_msg::data</definition>
+        <argsstring></argsstring>
+        <name>data</name>
+        <qualifiedname>sl_bt_msg::data</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Union of API event types </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16592" column="8"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Data structure of <computeroutput>bt</computeroutput> API messages. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16500" column="1" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="16500" bodyend="16593"/>
+    <listofallmembers>
+      <member refid="structsl__bt__msg_1aa2e55461097fb93e5501cce38d4d951d" prot="public" virt="non-virtual"><scope>sl_bt_msg</scope><name>data</name></member>
+      <member refid="structsl__bt__msg_1af8e8cd7ef11067996f44bb2074784319" prot="public" virt="non-virtual"><scope>sl_bt_msg</scope><name>header</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

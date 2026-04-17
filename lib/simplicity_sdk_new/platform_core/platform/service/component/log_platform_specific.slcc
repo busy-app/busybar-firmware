@@ -1,0 +1,22 @@
+id: log_platform_specific
+label: Log Platform-Specific Implementation
+package: platform_core
+description: >
+  Platform specific calls related to timer module used for timestamps,
+  pre sleep and post sleep processes
+category: Services|Log
+quality: evaluation
+metadata:
+  sbom:
+    license: Zlib
+provides:
+- name: log_platform_core
+requires:
+- name: hal_timer
+  condition: [device_has_timer]
+root_path: platform_core/platform/service/sl_log/
+source:
+- path: src/sl_log_platform_specific.c
+ui_hints:
+  visibility: never
+  description: "Platform specific operations for series 2 and series 3"

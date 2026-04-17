@@ -1,0 +1,151 @@
+id: rail_lib
+label: RAIL Library, Core
+description: Radio Abstraction Interface Library (RAIL) Library Support
+package: rail_library
+category: Platform|Radio
+quality: production
+metadata:
+  sbom:
+    license: MSLA
+ui_hints:
+  visibility: never
+requires:
+- name: rail_lib_Xprotocol   # generic requirement
+- name: rail_lib_config_module
+  condition:
+  - device_is_module
+- name: wireless_stack
+  condition:
+  - device_no_rail_api     # require a stack if no direct RAIL API usage is allowed; provided by device component
+- name: cmsis_core
+
+- name: status
+- name: sl_core
+- name: emlib_cmu
+  condition:
+  - device_series_2
+- name: gpio
+  condition:
+  - device_has_gpio
+
+  # generic hal
+- name: hal_generic_emu
+- name: hal_generic_prs
+- name: hal_generic_system
+
+- name: fem_util
+  condition: [device_is_module]
+- name: fem_util
+  condition: [hardware_board_has_fem]
+- name: rail_util_sequencer
+  condition: [device_sdid_215]
+- name: rail_util_sequencer
+  condition: [device_sdid_225]
+- name: rail_util_features
+- name: rail_util_power_manager_init
+  condition: [power_manager]
+- name: rail_util_sfm_sequencer
+  condition: [device_sdid_220]
+- name: rail_util_ble_cs
+  condition: [hardware_board_supports_cs]
+- name: rail_util_load_devinfo
+  condition: [device_series_3]
+
+  # Note: In the future, this rail_util_rf_path dependency needs to be required by a more generic component.
+- name: rail_util_rf_path
+  condition:
+  - device_sdid_200     # efr32xg21 has a chip-internal rf path selection
+  - device_init
+- name: rail_util_rf_path_switch
+  condition:
+  - hardware_board_has_rfswitch_to_ground
+- name: device_init_hfxo
+  condition:
+  - device_init     # RAIL requires HFXO, but only require this specific implementation if device_init is in play.
+- name: emlib_acmp
+  condition:
+  - device_sdid_220     # Needed for EFF01
+- name: emlib_vdac
+  condition:
+  - device_sdid_220     # Needed for EFF01
+- name: emlib_timer
+  condition:
+  - device_sdid_215     # Needed for BLE channel sounding
+- name: emlib_ldma
+  condition:
+  - device_sdid_210     # Needed for TrustZone
+- name: emlib_ldma
+  condition:
+  - device_sdid_215     # Needed for IEEE802154 RX channel switching & BLE channel sounding
+- name: emlib_ldma
+  condition:
+  - device_sdid_225     # Needed for IEEE802154 RX channel switching
+- name: emlib_ldma
+  condition:
+  - device_sdid_235     # Needed for TrustZone
+- name: emlib_ldma
+  condition:
+  - device_sdid_260     # Needed for TrustZone
+- name: se_manager
+  condition:
+  - device_generic_family_sixx301
+- name: code_classification
+
+recommends:
+- id: rail_lib_singleprotocol   # default component to satisfy generic rail_lib_Xprotocol requirement
+  vendor: silabs
+- id: device_init_hfxo
+  vendor: silabs
+provides:
+- name: rail_lib
+include:
+- path: common
+  file_list:
+  - path: sl_rail.h
+  - path: sl_rail_mfm.h
+  - path: sl_rail_assert_error_codes.h
+  - path: sl_rail_types.h
+  - path: sl_rail_features.h
+  - path: rail.h
+  - path: rail_mfm.h
+  - path: rail_assert_error_codes.h
+  - path: rail_types.h
+  - path: rail_features.h
+- path: protocol/ble
+  file_list:
+  - path: sl_rail_ble.h
+  - path: rail_ble.h
+- path: protocol/ieee802154
+  file_list:
+  - path: sl_rail_ieee802154.h
+  - path: rail_ieee802154.h
+- path: protocol/wmbus
+  file_list:
+  - path: sl_rail_wmbus.h
+  - path: rail_wmbus.h
+- path: protocol/zwave
+  file_list:
+  - path: sl_rail_zwave.h
+  - path: rail_zwave.h
+- path: chip/efr32/efr32xg2x
+  file_list:
+  - path: sl_rail_chip_specific.h
+  - path: rail_chip_specific.h
+  condition:
+  - device_series_2
+- path: chip/efr32/sixg3xx
+  file_list:
+  - path: sl_rail_chip_specific.h
+  - path: rail_chip_specific.h
+  condition:
+  - device_series_3
+- path: protocol/sidewalk
+  file_list:
+  - path: sl_rail_sidewalk.h
+  - path: rail_sidewalk.h
+template_contribution:
+- name: component_catalog
+  value: rail_lib
+- name: code_classification_components
+  value: rail_lib
+root_path: rail_library

@@ -1,0 +1,19 @@
+id: "bluetooth_utility_bgapi_trace"
+label: "Bluetooth host BGAPI Trace utility"
+package: bluetooth_le_host
+description: >
+  Provides backwards-compatibility for projects that include the BGAPI Trace
+  utility previously provided by the Bluetooth host stack. For new projects, use
+  the <bgapi_trace> component directly.
+category: Bluetooth|Bluetooth Host (Stack)|Additional Features
+quality: "experimental"
+other_file:
+- path: "api/sli_bgapi_debug.xapi"
+requires:
+- name: bgapi_trace
+provides:
+- name: "bluetooth_utility_bgapi_trace"
+metadata:
+  sbom:
+    license: Zlib AND MSLA
+root_path: bluetooth_le_host

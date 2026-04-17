@@ -1,0 +1,44 @@
+id: psa_crypto_api
+package: security_mbedtls_source
+label: PSA Crypto API
+description: >-
+  This component provides the public PSA Crypto API header files.
+category: Platform|Security|PSA Crypto
+quality: production
+ui_hints:
+  visibility: never
+provides:
+- name: psa_crypto_api
+requires:
+- name: mbedtls_crypto_platform_api
+include:
+- path: include
+  file_list:
+  - path: psa/crypto.h
+  - path: psa/crypto_adjust_auto_enabled.h
+  - path: psa/crypto_adjust_config_dependencies.h
+  - path: psa/crypto_adjust_config_key_pair_types.h
+  - path: psa/crypto_adjust_config_synonyms.h
+  - path: psa/build_info.h
+  - path: psa/crypto_builtin_composites.h
+  - path: psa/crypto_builtin_primitives.h
+  - path: psa/crypto_builtin_key_derivation.h
+  - path: psa/crypto_compat.h
+  - path: psa/crypto_config.h
+  - path: psa/crypto_driver_common.h
+  - path: psa/crypto_driver_contexts_composites.h
+  - path: psa/crypto_driver_contexts_key_derivation.h
+  - path: psa/crypto_driver_contexts_primitives.h
+  - path: psa/crypto_extra.h
+  - path: psa/crypto_legacy.h
+  - path: psa/crypto_platform.h
+  - path: psa/crypto_se_driver.h
+  - path: psa/crypto_sizes.h
+  - path: psa/crypto_struct.h
+  - path: psa/crypto_types.h
+  - path: psa/crypto_values.h
+
+metadata:
+  sbom:
+    reference: mbedtls_sbom
+root_path: security_mbedtls_source

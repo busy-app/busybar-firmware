@@ -1,0 +1,7 @@
+parameters:
+  - name: build_dir
+steps:
+  - task: copy
+    input: "{{build_dir}}/{{project_name}}"
+    output: ../esl_ap/lib/esl_lib.so
+    export: esl_lib_binary

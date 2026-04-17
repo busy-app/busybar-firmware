@@ -1,0 +1,237 @@
+from pyradioconfig.protected_fields.base_protected_fields import ProtectedFieldsBase
+
+
+class ProtectedFieldsLion(ProtectedFieldsBase):
+
+    """
+    PTE has two types of protected fields
+    1) cal
+    2) set and forget
+
+    For radio configurator,
+    1) Protect all PTE cal fields (do not write)
+    2) Ensure set and forget fields are same as PTE if radio configurator is also programming the values
+
+    For rail_script,
+    1) protect all PTE cal fields
+    2) Protect set and forget field, if register contains pte cal field or radio configurator writes to the field
+
+    """
+
+    # From https://confluence.silabs.com/pages/viewpage.action?spaceKey=PGLION&title=Test+Plan+-+Feature+Write
+    # Omitting CMU, ULFRCO/LFRCO/HFRCO, EMU, DCDC, USB, ACMP, IADC, VDAC, cal fields
+    PTE_PROTECTED_FIELD_DICT = {
+        # 'CMU_CLKEN0_ULFRCO': 1,
+        # 'CMU_CLKEN0_LFXO': 1,
+        # 'CMU_CLKEN1_RFSENSE': 1,
+        # 'ULFRCO_CAL_FREQTRIM': 'cal',
+        # 'LFXO_CAL_CAPTUNE': 0,
+        # 'LFXO_CAL_Gain': 1,
+        # 'RFSENSE_TRIMBG_TRIMREF': 'cal',
+        # 'RFSENSE_TRIMPTAT_TRIMCURR': 'cal',
+        # 'RFSENSE_TRIMPTAT_TRIMRES': 'cal',
+        # 'RFSENSE_TRIMDAC_TRIMDM': 'cal',
+        # 'RFSENSE_TRIMDAC_INVDM': 'cal',
+        # 'RFSENSE_TRIMDAC_CMPOSCAL': 'cal',
+        # 'RFSENSE_TRIMDAC_TRIMCM': 'cal',
+        # 'CMU_CLKEN0_DCDC': 1,
+        # 'DCDC_EM23CTRL1_TEMPBIASCTRL': 0x3,
+        # 'DCDC_EM23CTRL1_VCMPIBIAS': 0,
+        # 'DCDC_TRIM0_VCMPTRIM': 'cal',
+        # 'DCDC_TRIM0_BSTVCMPTRIM': 'cal',
+        # 'DCDC_TRIM1_RCOTRIM': 'cal',
+        # 'DCDC_TRIM2_IPKTRIM': 'cal',
+        # 'DCDC_TRIM2_BSTIPKTRIM': 'cal',
+        # 'DCDC_BSTEM01CTRL_IPKVAL': 0xD,
+        # 'DCDC_BSTEM23CTRL_IPKVAL': 0xA,
+        # 'DCDC_TRIM3_IDACBSTGAIN': 'cal',
+        # 'EMU_TESTCTRL_MASKEXPORTRESET': 1,
+        # 'EMU_ISBIASREFRESHCFG_S1TEMPRANGECONT': 8,
+        # 'EMU_ISBIASREFRESHCFG_S1DIVRATIO': 2,
+        # 'EMU_ISBIASPFMREFRESHCFG_S2FASTREFRSHEM2ENTRYCTRL': 0x1,
+        # 'EMU_ISBIASPFMREFRESHCFG_S2ROOMTEMPDIV2': 0x1,
+        # 'EMU_DVDDLEBOD_DVDDLEBODTRIM': 'cal',
+        # 'EMU_DVDDLEBOD_DVDDLEBODMASK': 0,
+        # 'EMU_DVDDLEBOD_DVDDLEBODEN': 1,
+        # 'EMU_DVDDLEBOD_DVDDLEBODDISEM01': 1,
+        # 'EMU_DVDDLEBOD_LEBODBLANKINGDELAY': 0,
+        # 'EMU_VLMTHV_VLMTHVTRIM': 'cal',
+        # 'EMU_VLMTHV_VLMTHVFORCEUA': 0,
+        # 'EMU_RETREG_RETREGHIGHSIDETRIM': 'cal',
+        # 'EMU_RETREG_RETREGHSTRIMTEMPCOMPEN': 1,
+        # 'EMU_RETREGTEMPCOMP_R3RETREGHSTRIM': 'cal',
+        # 'EMU_RETREGTEMPCOMP_R2RETREGHSTRIM': 'cal',
+        # 'EMU_RETREGTEMPCOMP_R1RETREGHSTRIM': 'cal',
+        # 'EMU_RETREGTEMPCOMP_R0RETREGHSTRIM': 'cal',
+        # 'EMU_BOD3SENSETRIM_VDDIO1BODTRIM': 'cal',
+        # 'EMU_BOD3SENSETRIM_VDDIO0BODTRIM': 'cal',
+        # 'EMU_BOD3SENSETRIM_AVDDBODTRIM': 'cal',
+        # 'EMU_VSBTEMPCOMPTHR_R1VSBTEMPTHR': 0xFD,
+        # 'EMU_VSBTEMPCOMPTHR_R2VSBTEMPTHR': 0x11B,
+        # 'EMU_VSBTEMPCOMPTHR_R3VSBTEMPTHR': 0x152,
+        # 'EMU_VSBTEMPCOMP_R0VSB': 0,
+        # 'EMU_VSBTEMPCOMP_R1VSB': 1,
+        # 'EMU_VSBTEMPCOMP_R2VSB': 2,
+        # 'EMU_VSBTEMPCOMP_R3VSB': 0,
+        # 'EMU_VSBTEMPCOMP_VSBTEMPCOMPEN': 1,
+        # 'CMU_RADIOCLKCTRL_EN': 1,
+        # 'SYSCFG_RAMBIASCONF_RAMBIASCTRL': 2,
+        # 'AMUXCP_TRIM_BYPASSDIV2LO': 1,
+        # 'PLFRCO_HIPRECISION_TCINTTHRESH': 0x8,
+        # 'PLFRCO_HIPRECISION_TCTHRESH': 0x26,
+        # 'PLFRCO_STEPSIZE_STEPOFFSET': 0x39C3,
+        # 'PLFRCO_TRIM_TRIMCOARSE': 'cal',
+        # 'PLFRCO_TRIM_TRIM': 'cal',
+        # 'PLFRCO_TRIMHIPREC_TRIMHIPREC': 'cal',
+        # 'PLFRCO_TRIMHIPREC_TRIMTEMP': 'cal',
+        # 'ACMP_CAL_CMPWELLTIEENMASK': 0x0,
+        # 'IADC0_TRIM1_GCSAR': 'cal',
+        # 'IADC0_TRIM2_TRIMVROSHARS17': 'cal',
+        # 'IADC0_TRIM2_TRIMVROSHARS0': 'cal',
+        # 'IADC0_TRIM2_TRIMVMISNORM': 'cal',
+        # 'IADC0_TRIM2_TRIMVMISHISPD': 'cal',
+        # 'IADC0_TRIM3_TRIMVROSHS2RS17': 'cal',
+        # 'IADC0_TRIM3_TRIMVROSHS2RS0': 'cal',
+        # 'IADC0_TRIM3_TRIMVROSHS1RS17': 'cal',
+        # 'IADC0_TRIM3_TRIMVROSHS1RS0': 'cal',
+        # 'IADC0_HISPDTEST_SPARE2': 1,
+        # 'DPLL0_OFFSET_K0': 'cal',
+        # 'HFXO0_INTERNALCTRL_SQBUFFILTANA': 'cal',
+        # 'HFXO0_TRIM_SHUNTLVLANA': 'cal',
+        # 'HFXO0_TRIM_VTRREGTRIMANA': 'cal',
+        # 'HFXO0_TRIM_VTRCORETRIMANA': 'cal',
+        # 'HFXO0_TRIM_VTRCORETCANA': 0,
+        # 'HFXO0_TRIM_VTRREGTCANA': 2,
+        # 'HFXO0_LOWPWRCTRL_SHUNTBIASANA': 'cal',
+        # 'HFXO0_LOWPWRCTRL_SQBUFBIASANA': 3,
+        # 'HFXO0_LOWPWRCTRL_SQBUFBIASRESANA': 2,
+        # 'HFXO0_LOWPWRCTRL_LOWPOWERMODEANA': 15,
+        # 'HFXO0_XTALCFG_TIMEOUTCBLSB': 11,
+        # 'HFXO0_XTALCFG_TIMEOUTSTEADY': 11,
+        # 'HFXO0_XTALCFG_CTUNEXOSTARTUP': 0,
+        # 'HFXO0_XTALCFG_CTUNEXISTARTUP': 0,
+        # 'HFXO0_XTALCFG_COREBIASSTARTUP': 0x20,
+        # 'HFXO0_XTALCFG_COREBIASSTARTUPI': 0x20,
+        # 'HFXO0_XTALCTRL_COREDGENANA': 0,
+        # 'HFXO0_XTALCTRL_COREBIASANA': 60,
+        # 'HFXO0_XTALCTRL_CTUNEXIANA': 60,
+        # 'HFXO0_XTALCTRL_CTUNEXOANA': 60,
+        # 'HFXO0_PKDETCTRL_REGLVLANA': 0,
+        # 'HFXO0_PKDETCTRL_REGLVLSTARTUP': 4,
+        # 'HFXO0_PKDETCTRL_PKDETSTEP': 3,
+        # 'HFXO0_PKDETCTRL_PKDETTHHIGH': 7,
+        # 'HFXO0_PKDETCTRL_PKDETTHSTARTUP': 8,
+        # 'HFXO0_PKDETCTRL_PKDETTHSTARTUPI': 5,
+        # 'HFXO0_INTERNALCTRL_ENCLKTXANA': 0,
+        # 'HFXO0_INTERNALCTRL_ENCLKAUXADCANA': 0,
+        # 'HFXO0_INTERNALCTRL_ENCLKCLKMULTANA': 0,
+        'RAC_RFBIASCAL_RFBIASCALTC': 26,
+        'RAC_RFBIASCAL_RFBIASCALVREF': 'cal',
+        'RAC_RFBIASCAL_RFBIASCALBIAS': 'cal',
+        'RAC_RFBIASCTRL_RFBIASNONFLASHMODE': 1,
+        'RAC_PRECTRL_PREREGTRIM': 'cal',
+        'RAC_IFADCCAL_IFADCTUNERC': 'cal',
+        'RAC_IFADCTRIM0_IFADCLDOSHUNTAMPLVL1': 1,
+        'RAC_IFADCTRIM0_IFADCLDOSHUNTAMPLVL2': 1,
+        'RAC_IFADCTRIM0_IFADCLDOSHUNTCURLVL1': 7,
+        'RAC_IFADCTRIM0_IFADCLDOSHUNTCURLVL2': 2,
+        'RAC_PGACTRL_PGAPOWERMODE': 3,
+        'RAC_PGATRIM_PGACTUNE': 'cal',
+        'RAC_AUXADCTRIM_AUXADCRCTUNE': 'cal',
+        'RAC_AUXADCTRIM_AUXADCLDOVREFTRIM': 2,
+        'RAC_AUXADCTRIM_AUXADCTSENSETRIMVBE2': 1,
+        'RAC_CLKMULTEN0_CLKMULTREG2ADJV': 0x0,
+        'SYNTH_LPFCTRL2TX_LPFINCAPTX': 2, # : set in rail
+        'SYNTH_LPFCTRL2TX_CALCTX': 'cal',
+        'SYNTH_LPFCTRL2RX_LPFINCAPRX': 2, # : set in rail
+        'SYNTH_LPFCTRL2RX_CALCRX': 'cal',
+        'SYNTH_VCDACCTRL_VCDACVAL': 'cal',
+        'SYNTH_VCOGAIN_VCOKVFINE': 'cal',
+        'SYNTH_VCOGAIN_VCOKVCOARSE': 'cal',
+        'RAC_LNAMIXTRIM0_LNAMIXRFPKDCALCM': 'cal',
+        'RAC_LNAMIXTRIM0_LNAMIXLOWCUR': 'cal',
+        'RAC_LNAMIXTRIM1_LNAMIXIBIASADJ': 'cal',
+        'RAC_PATRIM0_TX0DBMTRIMDUTYCYP': 'cal',
+        'RAC_PATRIM0_TX0DBMTRIMDUTYCYN': 'cal',
+        'RAC_PATRIM0_TX0DBMTRIMBIASP': 'cal',
+        'RAC_PATRIM0_TX0DBMTRIMBIASN': 'cal',
+        'RAC_PATRIM1_TX0DBMTRIMREGVREF': 'cal',
+        'RAC_PATRIM1_TX0DBMTRIMREGFB': 'cal',
+        'RAC_PATRIM2_TX6DBMTRIMDUTYCYP': 'cal',
+        'RAC_PATRIM2_TX6DBMTRIMDUTYCYN': 'cal',
+        'RAC_PATRIM2_TX6DBMTRIMBIASP': 'cal',
+        'RAC_PATRIM2_TX6DBMTRIMBIASN': 'cal',
+        'RAC_PATRIM3_TX6DBMTRIMREGVREF': 'cal',
+        'RAC_PATRIM3_TX6DBMTRIMPREDRVREGVREF': 'cal',
+        'RAC_PATRIM3_TX6DBMTRIMPREDRVREGFB':0,
+        'RAC_PATRIM3_TX6DBMTRIMREGFB': 'cal',
+        'MODEM_IRCALCOEFWR0_CRVWD': 'cal',
+        'MODEM_IRCALCOEFWR0_CIVWD': 'cal',
+        'MODEM_IRCALCOEFWR0_CRVWEN': 1,
+        'MODEM_IRCALCOEFWR0_CIVWEN': 1,
+        'MODEM_IRCALCOEFWR1_CRVWD': 'cal',
+        'MODEM_IRCALCOEFWR1_CIVWD': 'cal',
+        'MODEM_IRCALCOEFWR1_CRVWEN': 1,
+        'MODEM_IRCALCOEFWR1_CIVWEN': 1,
+        'MODEM_IRCAL_MURSHF': 0,
+        'MODEM_IRCAL_MUISHF': 0,
+        'MODEM_IRCAL_IRCALEN': 1,
+        'MODEM_IRCAL_IRCORREN': 1,
+        'RAC_SPARE_TX0DBMSPARE': 7,
+        'RAC_SPARE_TX6DBMSPARE': 3,
+    }
+
+    # : List of fields found in PTE, but allow radio configurator to override the value
+    PTE_PROTECTED_FIELD_EXCEPTIONS = [
+        'SYNTH_LPFCTRL2TX_LPFINCAPTX', #: 2,  # : set in rail
+        'SYNTH_LPFCTRL2RX_LPFINCAPRX', #: 2,  # : set in rail
+        'RAC_PGACAL_PGAOFFPCALQ',#: 'cal',  # : cal by fw
+        'RAC_PGACAL_PGAOFFPCALI',#: 'cal',  # : cal by fw
+        'RAC_PGACAL_PGAOFFNCALQ',#: 'cal',  # : cal by fw
+        'RAC_PGACAL_PGAOFFNCALI',#: 'cal',  # : cal by fw
+        'MODEM_IRCALCOEFWR0_CRVWD', # : set by RAIL
+        'MODEM_IRCALCOEFWR0_CIVWD', # : set by RAIL
+        'MODEM_IRCALCOEFWR1_CRVWD',  # : set by RAIL
+        'MODEM_IRCALCOEFWR1_CIVWD',  # : set by RAIL
+    ]
+
+    # : List of fields protected by RAIL
+    RAIL_PROTECTED_FIELDS = [
+        'AGC_CTRL0_RSSISHIFT',
+        'AGC_CTRL1_CCATHRSH',
+        'FRC_RXCTRL_BUFRESTORERXABORTED',
+        'FRC_RXCTRL_BUFRESTOREFRAMEERROR',
+        'FRC_RXCTRL_BUFCLEAR',
+        'FRC_RXCTRL_TRACKABFRAME',
+        'FRC_RXCTRL_ACCEPTBLOCKERRORS',
+        'FRC_RXCTRL_ACCEPTCRCERRORS',
+        'FRC_RXCTRL_STORECRC',
+        'MODEM_IRCALCOEF_CIV',
+        'MODEM_IRCALCOEF_CRV',
+        'MODEM_IRCAL_MURSHF',
+        'MODEM_IRCAL_MUISHF',
+        'RAC_SYEN_SYENVCOBIAS',
+        'RAC_SYEN_SYENMMDREG',
+        'RAC_SYEN_SYLODIVLDOBIASEN',
+        'RAC_SYEN_SYENCHPREG',
+        'RAC_SYEN_SYENCHPREPLICA',
+        'RAC_SYEN_SYENMMDREPLICA1',
+        'RAC_SYEN_SYENVCOPFET',
+        'RAC_SYEN_SYENVCOREG',
+        'RAC_SYEN_SYLODIVLDOEN',
+        'RAC_SYEN_SYCHPEN',
+        'RAC_SYEN_SYLODIVEN',
+        'RAC_AUXADCTRIM_AUXADCLDOVREFTRIM',
+        'RAC_PATRIM3_TX6DBMTRIMREGFB',
+        'RAC_PATRIM3_TX6DBMTRIMPREDRVREGFB',
+        # : Following are not part of protected fields in rail_script, but should be protected
+        'RAC_IFADCTRIM0_IFADCLDOSHUNTAMPLVL1',
+        'RAC_IFADCTRIM0_IFADCLDOSHUNTAMPLVL2',
+        'RAC_IFADCTRIM0_IFADCLDOSHUNTCURLVL1',
+        'RAC_PGACTRL_PGAPOWERMODE',
+        'RAC_CLKMULTEN0_CLKMULTREG2ADJV',
+    ]
+
+    # : List of fields that are found in PTE list, but does not need to be protected by RAIL
+    RAIL_PROTECTED_FIELD_EXCEPTIONS = [
+    ]

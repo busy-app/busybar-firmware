@@ -1,0 +1,41 @@
+id: zw_cc_notification
+label: Notification Command Class
+category: Z-Wave|Command Classes
+description: >
+  The Notification Command Class is used to advertize events or states, such as movement detection,
+  door open/close or system failure. Notifications are categorized into logical groups called
+  Notification Types. A Notification is denoted with its type and event/state.
+
+  The notification and event number can be configured.
+
+  Note that this Command Class supports advanced configuration.
+  To use it, please make sure that configuration related to your project is added to cc_config file located in
+  <app_location>/config/cc_config/<app_name>.cc_config.
+  See DevTools/cc_configurator/README.md for more details.
+package: zwave
+quality: production
+metadata:
+  sbom:
+    reference: zw_sbom_license
+
+source:
+- path: ZAF/CommandClasses/Notification/src/CC_Notification.c
+include:
+- path: ZAF/CommandClasses/Notification/inc
+  file_list:
+  - path: CC_Notification.h
+  - path: cc_notification_types.h
+  - path: cc_notification_events.h
+- path: ZAF/CommandClasses/Notification/src
+  file_list:
+  - path: cc_notification_config_api.h
+  - path: cc_notification_io.h
+config_file:
+- path: sample_apps/config/cc_notification/cc_notification_config.h
+  file_id: cc_notification_config
+provides:
+- name: zw_cc_notification
+requires:
+- name: zw_app_timer_deep_sleep
+- name: zw_cc_notification_nvm
+root_path: zwave

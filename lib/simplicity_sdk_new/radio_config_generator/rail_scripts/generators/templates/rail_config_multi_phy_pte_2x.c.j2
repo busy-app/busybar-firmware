@@ -1,0 +1,82 @@
+{% extends "base.j2" %}
+{% block filename %}{{filename}}.c{% endblock %}
+{% block title %}{{title}}{% endblock %}
+{% block content -%}
+#include "em_device.h"
+#include "{{filename}}.h"
+
+{%- for modemConfigName, modemConfig in multiPhyConfig.commonStructures.modemConfigEntriesBase.items() %}
+const uint32_t {{modemConfigName}}[] = {
+{%- for entryName, entry in modemConfig.items() %}
+    {%- set firstValue = entry.encodedValues|first %}
+    {%- set remainingValues = entry.encodedValues[1:] %}
+    {{"0x{:08X}UL, ".format(entry.encodedAction)}}
+    {%- if rail_internal and not rail_secondary_config -%}
+        {{- "0x{:08X}UL,".format(firstValue) if firstValue is number else "(uint32_t) &{},".format(firstValue.value|default(firstValue._uniqueName|default(firstValue.name|default(firstValue))))}}
+        {{- " // {}".format(entry.encodedRegNames[0])}}
+        {%- for value in remainingValues %}
+  /*    {{"{:04X}".format(entry.encodedAction|formatActionAddress(loop.index))}} */ {{"0x{:08X}UL,".format(value) if value is number else "(uint32_t) &{},".format(value.value|default(value._uniqueName|default(value.name|default(value))))}}{{" /* {} */".format(entry.encodedRegNames[loop.index])}}
+        {%- endfor -%}
+    {%- else -%}
+        {{- "0x{:08X}UL,".format(firstValue) if firstValue is number else "(uint32_t) &{},".format(firstValue.value|default(firstValue._uniqueName|default(firstValue.name|default(firstValue))))}}
+        {{- "  // {}".format(entry.encodedRegNames[0])}}
+        {%- for value in remainingValues %}
+  /*    {{"{:04X}".format(entry.encodedAction|formatActionAddress(loop.index))}} */ {{"0x{:08X}UL,".format(value) if value is number else "(uint32_t) &{},".format(value.value|default(value._uniqueName|default(value.name|default(value))))}}
+        {%- endfor -%}
+    {%- endif -%}
+{% endfor %}
+    0x00000000,
+};
+{% endfor %}
+
+{%- for modemConfigName, modemConfig in multiPhyConfig.commonStructures.modemConfigEntries.items() %}
+const uint32_t {{modemConfigName}}[] = {
+{%- for entryName, entry in modemConfig.items() %}
+    {%- set firstValue = entry.encodedValues|first %}
+    {%- set remainingValues = entry.encodedValues[1:] %}
+    {{"0x{:08X}UL, ".format(entry.encodedAction)}}
+    {%- if rail_internal and not rail_secondary_config -%}
+        {{- "0x{:08X}UL,".format(firstValue) if firstValue is number else "(uint32_t) &{},".format(firstValue.value|default(firstValue._uniqueName|default(firstValue.name|default(firstValue))))}}
+        {{- " // {} ".format(entry.encodedRegNames[0])}}
+        {%- for value in remainingValues %}
+  /*    {{"{:04X}".format(entry.encodedAction|formatActionAddress(loop.index))}} */ {{"0x{:08X}UL,".format(value) if value is number else "(uint32_t) &{},".format(value.value|default(value._uniqueName|default(value.name|default(value))))}}{{" /* {} */".format(entry.encodedRegNames[loop.index])}}
+        {%- endfor -%}
+    {%- else -%}
+        {{- "0x{:08X}UL,".format(firstValue) if firstValue is number else "(uint32_t) &{},".format(firstValue.value|default(firstValue._uniqueName|default(firstValue.name|default(firstValue)))) -}}
+        {{- " // {} ".format(entry.encodedRegNames[0])}}
+        {%- for value in remainingValues %}
+  /*    {{"{:04X}".format(entry.encodedAction|formatActionAddress(loop.index))}} */ {{"0x{:08X}UL,".format(value) if value is number else "(uint32_t) &{},".format(value.value|default(value._uniqueName|default(value.name|default(value))))}}
+        {%- endfor -%}
+    {%- endif -%}
+{% endfor %}
+    0x00000000,
+};
+{% endfor %}
+
+{%- for modemConfigName, modemConfig in multiPhyConfig.commonStructures.modemConfigEntriesSubtract.items() %}
+const uint32_t {{modemConfigName}}[] = {
+{%- for entryName, entry in modemConfig.items() %}
+    {%- set firstValue = entry.encodedValues|first %}
+    {%- set remainingValues = entry.encodedValues[1:] %}
+    {{"0x{:08X}UL, ".format(entry.encodedAction)}}
+    {%- if rail_internal and not rail_secondary_config -%}
+       {{- "0x{:08X}UL,".format(firstValue) if firstValue is number else "(uint32_t) &{},".format(firstValue.value|default(firstValue._uniqueName|default(firstValue.name|default(firstValue))))}}
+       {{- " /* {} */".format(entry.encodedRegNames[0])}}
+       {%- for value in remainingValues %}
+  /*    {{"{:04X}".format(entry.encodedAction|formatActionAddress(loop.index))}} */ {{"0x{:08X}UL,".format(value) if value is number else "(uint32_t) &{},".format(value.value|default(value._uniqueName|default(value.name|default(value))))}}{{" /* {} */".format(entry.encodedRegNames[loop.index])}}
+        {%- endfor -%}
+    {%- else -%}
+        {{- "0x{:08X}UL,".format(firstValue) if firstValue is number else "(uint32_t) &{},".format(firstValue.value|default(firstValue._uniqueName|default(firstValue.name|default(firstValue))))}}
+        {%- for value in remainingValues %}
+  /*    {{"{:04X}".format(entry.encodedAction|formatActionAddress(loop.index))}} */ {{"0x{:08X}UL,".format(value) if value is number else "(uint32_t) &{},".format(value.value|default(value._uniqueName|default(value.name|default(value))))}}
+        {%- endfor -%}
+    {%- endif -%}
+{% endfor %}
+    0x00000000,
+};
+{% endfor %}
+
+
+
+
+{%- endblock %}

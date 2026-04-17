@@ -1,0 +1,28 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<module:DocumentRoot xmlns:module="http://www.silabs.com/ss/hwconfig/module.ecore">
+  <module id="pin_tool.efr32.efr32mr21.usart" label="USART" name="USART" description="" version="A">
+    <properties>
+      <stringProperty label="Type" id="type" defaultValue="usart" transient="true" hidden="true" readonly="true" description=""/>
+      <stringProperty label="Custom Peripheral Name" id="peripheral.name" description=""/>
+      <boolProperty label="IRDA capable" id="capability.irda" readonly="true" transient="true" hidden="true" defaultValue="false"/>
+      <boolProperty label="I2S capable" id="capability.i2s" readonly="true" transient="true" hidden="true" defaultValue="false"/>
+      <boolProperty label="High-Speed capable" id="capability.highspeed" readonly="true" transient="true" hidden="true" defaultValue="false"/>
+      <stringProperty label="High-Speed Locations" id="highspeed.location" defaultValue="" transient="true" hidden="true" readonly="true" description=""/>
+    </properties>
+    <propertyCategories>
+      <category label="USART">
+        <subCategory label="">
+          <propertyRef refId="peripheral.name"/>
+        </subCategory>
+      </category>
+    </propertyCategories>
+    <signals>
+      <signal name="CS"/>
+      <signal name="CTS"/>
+      <signal name="RTS"/>
+      <signal name="RX"/>
+      <signal name="CLK"/>
+      <signal name="TX"/>
+    </signals>
+  </module>
+</module:DocumentRoot>

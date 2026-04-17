@@ -1,0 +1,123 @@
+<?xml version='1.0' encoding='ASCII'?>
+<ns0:MDescriptors xmlns:ns0="http://www.silabs.com/ss/Studio.ecore">
+  <descriptors name="bootloader-apploader-nonsecure" label="Bootloader - SoC Bluetooth AppLoader OTA DFU Non-Secure part of Bootloader using TrustZone" description="TrustZone is used to split into a Secure and Non-Secure bootloader. This is the non-secure part of the bootloader. The secure part of the bootloader, which contains the core functionalities needs to be built separately and used together with the non-secure part of the bootloader.&#10;">
+    <properties key="namespace" value="template.uc" />
+    <properties key="keywords" value="universal\ configurator" />
+    <properties key="solutionReferenceId" value="platform.bootloader.sample-apps.bootloader-apploader.bootloader-apploader-nonsecure.slcp" />
+    <properties key="projectFilePaths" value="sample-apps/bootloader-apploader/bootloader-apploader-nonsecure.slcp" />
+    <properties key="readmeFiles" value="sample-apps/bootloader-apploader/readme.md" />
+    <properties key="boardCompatibility" value="com.silabs.board.none" />
+    <properties key="partCompatibility" value="none" />
+    <properties key="ideCompatibility" value="generic-template iar-embedded-workbench makefile-ide simplicity-ide visual-studio-code" />
+    <properties key="toolchainCompatibility" value="gcc iar llvm" />
+    <properties key="category" value="Example|Bootloader" />
+    <properties key="quality" value="EVALUATION" />
+    <properties key="stockConfigCompatibility" value="com.silabs.ss.framework.project.toolchain.core.default" />
+    <properties key="filters" value="Device\ Type|SoC MCU|Bootloader Project\ Difficulty|Advanced" />
+  </descriptors>
+  <descriptors name="bootloader-apploader-secure" label="Bootloader - SoC Bluetooth AppLoader OTA DFU Secure part of Bootloader using TrustZone" description="TrustZone is used to split into a Secure and Non-Secure bootloader. This is the secure part of the bootloader. The non-secure part of the bootloader, which contains the communication interfaces needs to be built separately and used together with the secure part of the bootloader.&#10;">
+    <properties key="namespace" value="template.uc" />
+    <properties key="keywords" value="universal\ configurator" />
+    <properties key="solutionReferenceId" value="platform.bootloader.sample-apps.bootloader-apploader.bootloader-apploader-secure.slcp" />
+    <properties key="projectFilePaths" value="sample-apps/bootloader-apploader/bootloader-apploader-secure.slcp" />
+    <properties key="readmeFiles" value="sample-apps/bootloader-apploader/readme.md" />
+    <properties key="boardCompatibility" value="com.silabs.board.none" />
+    <properties key="partCompatibility" value="none" />
+    <properties key="ideCompatibility" value="generic-template iar-embedded-workbench makefile-ide simplicity-ide visual-studio-code" />
+    <properties key="toolchainCompatibility" value="gcc iar llvm" />
+    <properties key="category" value="Example|Bootloader" />
+    <properties key="quality" value="EVALUATION" />
+    <properties key="stockConfigCompatibility" value="com.silabs.ss.framework.project.toolchain.core.default" />
+    <properties key="filters" value="Device\ Type|SoC MCU|Bootloader Project\ Difficulty|Advanced" />
+  </descriptors>
+  <descriptors name="bootloader-spi-ezsp-nonsecure" label="Bootloader - NCP EZSP SPI Non-Secure part of Bootloader using TrustZone" description="TrustZone is used to split into a Secure and Non-Secure bootloader. This is the non-secure part of the bootloader. The secure part of the bootloader, which contains the core functionalities needs to be built separately and used together with the non-secure part of the bootloader.&#10;">
+    <properties key="namespace" value="template.uc" />
+    <properties key="keywords" value="universal\ configurator" />
+    <properties key="solutionReferenceId" value="platform.bootloader.sample-apps.bootloader-spi-ezsp.bootloader-spi-ezsp-nonsecure.slcp" />
+    <properties key="projectFilePaths" value="sample-apps/bootloader-spi-ezsp/bootloader-spi-ezsp-nonsecure.slcp" />
+    <properties key="readmeFiles" value="sample-apps/bootloader-spi-ezsp/readme.md" />
+    <properties key="boardCompatibility" value="com.silabs.board.none" />
+    <properties key="partCompatibility" value="none" />
+    <properties key="ideCompatibility" value="generic-template iar-embedded-workbench makefile-ide simplicity-ide visual-studio-code" />
+    <properties key="toolchainCompatibility" value="gcc iar llvm" />
+    <properties key="category" value="Example|Bootloader" />
+    <properties key="quality" value="EVALUATION" />
+    <properties key="stockConfigCompatibility" value="com.silabs.ss.framework.project.toolchain.core.default" />
+    <properties key="filters" value="Device\ Type|NCP MCU|Bootloader Project\ Difficulty|Advanced" />
+  </descriptors>
+  <descriptors name="bootloader-spi-ezsp-secure" label="Bootloader - NCP EZSP SPI Secure part of Bootloader using TrustZone" description="TrustZone is used to split into a Secure and Non-Secure bootloader. This is the secure part of the bootloader. The non-secure part of the bootloader, which contains the communication interfaces needs to be built separately and used together with the secure part of the bootloader.&#10;">
+    <properties key="namespace" value="template.uc" />
+    <properties key="keywords" value="universal\ configurator" />
+    <properties key="solutionReferenceId" value="platform.bootloader.sample-apps.bootloader-spi-ezsp.bootloader-spi-ezsp-secure.slcp" />
+    <properties key="projectFilePaths" value="sample-apps/bootloader-spi-ezsp/bootloader-spi-ezsp-secure.slcp" />
+    <properties key="readmeFiles" value="sample-apps/bootloader-spi-ezsp/readme.md" />
+    <properties key="boardCompatibility" value="com.silabs.board.none" />
+    <properties key="partCompatibility" value="none" />
+    <properties key="ideCompatibility" value="generic-template iar-embedded-workbench makefile-ide simplicity-ide visual-studio-code" />
+    <properties key="toolchainCompatibility" value="gcc iar llvm" />
+    <properties key="category" value="Example|Bootloader" />
+    <properties key="quality" value="EVALUATION" />
+    <properties key="stockConfigCompatibility" value="com.silabs.ss.framework.project.toolchain.core.default" />
+    <properties key="filters" value="Device\ Type|NCP MCU|Bootloader Project\ Difficulty|Advanced" />
+  </descriptors>
+  <descriptors name="bootloader-uart-bgapi-nonsecure" label="Bootloader - NCP BGAPI UART DFU Non-Secure part of Bootloader using TrustZone" description="TrustZone is used to split into a Secure and Non-Secure bootloader. This is the non-secure part of the bootloader. The secure part of the bootloader, which contains the core functionalities needs to be built separately and used together with the non-secure part of the bootloader.&#10;">
+    <properties key="namespace" value="template.uc" />
+    <properties key="keywords" value="universal\ configurator" />
+    <properties key="solutionReferenceId" value="platform.bootloader.sample-apps.bootloader-uart-bgapi.bootloader-uart-bgapi-nonsecure.slcp" />
+    <properties key="projectFilePaths" value="sample-apps/bootloader-uart-bgapi/bootloader-uart-bgapi-nonsecure.slcp" />
+    <properties key="readmeFiles" value="sample-apps/bootloader-uart-bgapi/readme.md" />
+    <properties key="boardCompatibility" value="com.silabs.board.none" />
+    <properties key="partCompatibility" value="none" />
+    <properties key="ideCompatibility" value="generic-template iar-embedded-workbench makefile-ide simplicity-ide visual-studio-code" />
+    <properties key="toolchainCompatibility" value="gcc iar llvm" />
+    <properties key="category" value="Example|Bootloader" />
+    <properties key="quality" value="EVALUATION" />
+    <properties key="stockConfigCompatibility" value="com.silabs.ss.framework.project.toolchain.core.default" />
+    <properties key="filters" value="Device\ Type|NCP MCU|Bootloader Project\ Difficulty|Advanced" />
+  </descriptors>
+  <descriptors name="bootloader-uart-bgapi-secure" label="Bootloader - NCP BGAPI UART DFU Secure part of Bootloader using TrustZone" description="TrustZone is used to split into a Secure and Non-Secure bootloader. This is the secure part of the bootloader. The non-secure part of the bootloader, which contains the communication interfaces needs to be built separately and used together with the secure part of the bootloader.&#10;">
+    <properties key="namespace" value="template.uc" />
+    <properties key="keywords" value="universal\ configurator" />
+    <properties key="solutionReferenceId" value="platform.bootloader.sample-apps.bootloader-uart-bgapi.bootloader-uart-bgapi-secure.slcp" />
+    <properties key="projectFilePaths" value="sample-apps/bootloader-uart-bgapi/bootloader-uart-bgapi-secure.slcp" />
+    <properties key="readmeFiles" value="sample-apps/bootloader-uart-bgapi/readme.md" />
+    <properties key="boardCompatibility" value="com.silabs.board.none" />
+    <properties key="partCompatibility" value="none" />
+    <properties key="ideCompatibility" value="generic-template iar-embedded-workbench makefile-ide simplicity-ide visual-studio-code" />
+    <properties key="toolchainCompatibility" value="gcc iar llvm" />
+    <properties key="category" value="Example|Bootloader" />
+    <properties key="quality" value="EVALUATION" />
+    <properties key="stockConfigCompatibility" value="com.silabs.ss.framework.project.toolchain.core.default" />
+    <properties key="filters" value="Device\ Type|NCP MCU|Bootloader Project\ Difficulty|Advanced" />
+  </descriptors>
+  <descriptors name="bootloader-uart-xmodem-nonsecure" label="Bootloader - NCP UART XMODEM Non-Secure part of Bootloader using TrustZone" description="TrustZone is used to split into a Secure and Non-Secure bootloader. This is the non-secure part of the bootloader. The secure part of the bootloader, which contains the core functionalities needs to be built separately and used together with the non-secure part of the bootloader.&#10;">
+    <properties key="namespace" value="template.uc" />
+    <properties key="keywords" value="universal\ configurator" />
+    <properties key="solutionReferenceId" value="platform.bootloader.sample-apps.bootloader-uart-xmodem.bootloader-uart-xmodem-nonsecure.slcp" />
+    <properties key="projectFilePaths" value="sample-apps/bootloader-uart-xmodem/bootloader-uart-xmodem-nonsecure.slcp" />
+    <properties key="readmeFiles" value="sample-apps/bootloader-uart-xmodem/readme.md" />
+    <properties key="boardCompatibility" value="com.silabs.board.none" />
+    <properties key="partCompatibility" value="none" />
+    <properties key="ideCompatibility" value="generic-template iar-embedded-workbench makefile-ide simplicity-ide visual-studio-code" />
+    <properties key="toolchainCompatibility" value="gcc iar llvm" />
+    <properties key="category" value="Example|Bootloader" />
+    <properties key="quality" value="EVALUATION" />
+    <properties key="stockConfigCompatibility" value="com.silabs.ss.framework.project.toolchain.core.default" />
+    <properties key="filters" value="Device\ Type|NCP MCU|Bootloader Project\ Difficulty|Advanced" />
+  </descriptors>
+  <descriptors name="bootloader-uart-xmodem-secure" label="Bootloader - NCP UART XMODEM Secure part of Bootloader using TrustZone" description="TrustZone is used to split into a Secure and Non-Secure bootloader. This is the secure part of the bootloader. The non-secure part of the bootloader, which contains the communication interfaces needs to be built separately and used together with the secure part of the bootloader.&#10;">
+    <properties key="namespace" value="template.uc" />
+    <properties key="keywords" value="universal\ configurator" />
+    <properties key="solutionReferenceId" value="platform.bootloader.sample-apps.bootloader-uart-xmodem.bootloader-uart-xmodem-secure.slcp" />
+    <properties key="projectFilePaths" value="sample-apps/bootloader-uart-xmodem/bootloader-uart-xmodem-secure.slcp" />
+    <properties key="readmeFiles" value="sample-apps/bootloader-uart-xmodem/readme.md" />
+    <properties key="boardCompatibility" value="com.silabs.board.none" />
+    <properties key="partCompatibility" value="none" />
+    <properties key="ideCompatibility" value="generic-template iar-embedded-workbench makefile-ide simplicity-ide visual-studio-code" />
+    <properties key="toolchainCompatibility" value="gcc iar llvm" />
+    <properties key="category" value="Example|Bootloader" />
+    <properties key="quality" value="EVALUATION" />
+    <properties key="stockConfigCompatibility" value="com.silabs.ss.framework.project.toolchain.core.default" />
+    <properties key="filters" value="Device\ Type|NCP MCU|Bootloader Project\ Difficulty|Advanced" />
+  </descriptors>
+</ns0:MDescriptors>

@@ -1,0 +1,51 @@
+id: bluetooth_hci_uart
+label: HCI UART Handler
+package: bluetooth_le_controller
+description: UART Handler for HCI
+
+category: Bluetooth|Host Controller Interface (HCI)
+quality: production
+root_path: bluetooth_le_controller/utils/hci_packet
+source:
+- path: uart/src/sl_hci_packet.c
+- path: uart/src/sl_hci_uart.c
+- path: uart/src/sl_hci_uart_rtos.c
+  condition:
+  - "kernel"
+include:
+- path: inc
+  file_list:
+  - path: sl_btctrl_hci_packet.h
+  - path: sl_btctrl_hci_transport.h
+- path: uart/inc
+  file_list:
+  - path: sl_btctrl_hci_uart_rtos.h
+    condition:
+    - "kernel"
+- path: uart/src
+  file_list:
+  - path: sl_hci_uart.h
+provides:
+- name: bluetooth_hci_uart
+- name: bluetooth_hci_transport
+requires:
+- name: uartdrv_usart
+- name: bluetooth_hci
+template_contribution:
+- name: component_catalog
+  value: bluetooth_hci_transport
+- name: component_catalog
+  value: bluetooth_hci_uart
+- name: component_catalog
+  value: bluetooth_hci_uart_rtos
+  condition:
+  - kernel
+- name: event_handler
+  value:
+    event: service_process_action
+    include: sl_btctrl_hci_packet.h
+    handler: sl_btctrl_hci_packet_step
+  priority: 1
+metadata:
+  sbom:
+    license: MSLA

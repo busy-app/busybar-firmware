@@ -1,0 +1,43 @@
+id: gatt_service_light
+label: Environment Sensing - Ambient Light and UV Index GATT Service
+package: bluetooth_le_middleware
+description: >
+  Provides ambient light and UV index sensor data in GATT characteristics.
+  Designed for the Thunderboard smartphone app.
+category: Bluetooth|Application|GATT Services
+metadata:
+  sbom:
+    license: Zlib
+quality: production
+root_path: bluetooth_le_middleware/common/gatt_service_light
+tag:
+- No-Code
+config_file:
+- path: config/sl_gatt_service_light_config.h
+- path: gatt_service_light.xml
+  directory: btconf
+source:
+- path: sl_gatt_service_light.c
+include:
+- path: .
+  file_list:
+  - path: sl_gatt_service_light.h
+provides:
+- name: gatt_service_lux
+- name: gatt_service_light
+requires:
+- name: bluetooth_stack
+- name: gatt_configuration
+- name: bluetooth_feature_gatt_server
+- name: app_assert
+- name: sl_common
+template_contribution:
+- name: bluetooth_on_event
+  value:
+    include: sl_gatt_service_light.h
+    function: sl_gatt_service_light_on_event
+- name: component_catalog
+  value: gatt_service_light
+documentation:
+  docset: bluetooth
+  document: bluetooth-service-api/gatt-service-light

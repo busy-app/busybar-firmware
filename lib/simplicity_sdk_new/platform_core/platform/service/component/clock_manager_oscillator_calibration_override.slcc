@@ -1,0 +1,31 @@
+id: clock_manager_oscillator_calibration_override
+label: Clock Manager Calibration Override
+package: platform_core
+description: >
+  The Clock Manager Oscillator Calibration Override module provides an API to initialize oscillator calibration settings
+  using override key values stored in NVM. The module also provides API's to read and modify specific oscillator calibration
+  override values stored in NVM.
+category: Services|Clock Manager
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+provides:
+- name: clock_manager_oscillator_calibration_override
+requires:
+- name: nvm3
+- name: clock_manager_runtime
+root_path: platform_core/platform/service/clock_manager
+source:
+- path: src/sl_clock_manager_oscillator_calibration_override.c
+include:
+- path: inc
+  file_list:
+  - path: sl_clock_manager_oscillator_calibration_override.h
+template_contribution:
+- name: event_handler
+  value:
+    event: platform_init
+    include: sl_clock_manager_oscillator_calibration_override.h
+    handler: sl_clock_manager_init_oscillator_calibration_override
+  priority: 9999

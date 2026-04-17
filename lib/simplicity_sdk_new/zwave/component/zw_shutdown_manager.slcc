@@ -1,0 +1,30 @@
+id: zw_shutdown_manager
+label: Z-Wave shutdown manager Component
+category: Z-Wave|ShutDownManager
+description: >
+  The Z-Wave shutdown manager component is responsible for managing the shutdown
+  process of Z-Wave devices. It not only ensures that the device can safely power
+  down while maintaining the integrity of the Z-Wave network and preserving critical
+  data, but also allowing the device to go to a low-power state when not in use.
+package: zwave
+quality: production
+metadata:
+  sbom:
+    reference: zw_sbom_license
+source:
+- path: "platform/SiliconLabs/components/zw_shutdown_manager/zw_shutdown_manager.c"
+include:
+- path: "platform/SiliconLabs/components/zw_shutdown_manager/"
+  file_list:
+  - path: "zw_shutdown_manager.h"
+- path: "platform/SiliconLabs/PAL/inc/"
+  file_list:
+  - path: "zpal_retention_register_private.h"
+provides:
+- name: zw_shutdown_manager
+requires:
+- name: zw_dcdc_override
+template_contribution:
+- name: component_catalog
+  value: zw_shutdown_manager
+root_path: zwave

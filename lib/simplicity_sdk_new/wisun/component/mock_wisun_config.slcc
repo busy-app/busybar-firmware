@@ -1,0 +1,18 @@
+id: mock_wisun_config
+label: "Wi-SUN Configurator Mock"
+package: wisun
+description: "Mock Wi-SUN configurator component for build without Wi-SUN SDK package"
+category: Wi-SUN
+quality: production
+
+ui_hints:
+  visibility: never
+
+provides:
+- name: wisun_stack_configuration
+- name: wisun_phy_configuration
+
+metadata:
+  sbom:
+    license: MSLA
+root_path: wisun

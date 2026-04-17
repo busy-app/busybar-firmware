@@ -1,0 +1,30 @@
+package: zigbee
+description: This component implements storage for the prepayment snapshots.
+label: Prepayment Snapshot Storage
+quality: production
+id: zigbee_prepayment_snapshot_storage
+category: Zigbee|Cluster Library|Smart Energy
+provides:
+- name: zigbee_prepayment_snapshot_storage
+config_file:
+- path: app/framework/plugin/prepayment-snapshot-storage/config/prepayment-snapshot-storage-config.h
+source:
+- path: app/framework/plugin/prepayment-snapshot-storage/prepayment-snapshot-storage.c
+include:
+- path: app/framework/plugin/prepayment-snapshot-storage
+  file_list:
+  - path: prepayment-snapshot-storage.h
+template_contribution:
+- name: component_catalog
+  value: zigbee_prepayment_snapshot_storage
+- name: zigbee_af_callback
+  value:
+    callback_type: local_data_init
+    function_name: sl_zigbee_af_prepayment_snapshot_storage_init_cb
+documentation:
+  docset: zigbee
+  document: zigbee-af-api/prepayment-snapshot-storage
+metadata:
+  sbom:
+    license: MSLA
+root_path: zigbee

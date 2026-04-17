@@ -1,0 +1,80 @@
+project_name: wifi_provisioning_via_access_point_ncp
+package: wifi_app
+quality: production
+label: Wi-Fi - Provisioning via Access Point (NCP)
+category: Example|Wi-Fi
+description: 'Start Wi-Fi provisioning via Access Point, displaying scan results on an HTTP server, and connecting to a third-party Access Point using the STA instance.
+
+  '
+filter:
+- name: Wireless Technology
+  value:
+  - Wi-Fi
+- name: Project Difficulty
+  value:
+  - Beginner
+source:
+- path: app.c
+include:
+- path: resources
+  file_list:
+  - path: wifi_provisioning.h
+- path: .
+  file_list:
+  - path: app.h
+define:
+- name: SL_SI91X_PRINT_DBG_LOG
+component:
+- id: sl_main
+- id: freertos
+- id: freertos_heap_4
+- id: device_init
+- id: spidrv
+  instance:
+  - exp
+- id: iostream_retarget_stdio
+- id: iostream_recommended_stream
+- id: iostream_stdlib_config
+- id: wiseconnect_common
+- id: sl_si91x_spi_bus
+- id: sl_http_server
+- id: json_parser
+- id: wifi
+- id: sl_si91x_internal_stack
+- id: wifi_resources
+- id: network_manager
+- id: basic_network_config_manager
+- id: sl_si91x_basic_buffers
+toolchain_settings:
+- option: gcc_compiler_option
+  value: -Wall -Werror
+configuration:
+- name: SL_BOARD_ENABLE_VCOM
+  value: '1'
+- name: configUSE_POSIX_ERRNO
+  value: '1'
+- name: configTOTAL_HEAP_SIZE
+  value: '51200'
+- name: configTIMER_TASK_PRIORITY
+  value: '55'
+readme:
+- path: readme.md
+other_file:
+- path: resources/readme/connected-prints.png
+- path: resources/readme/connecting-to-a-network-connections.png
+- path: resources/readme/provisioning-webpage.png
+- path: resources/readme/scan.png
+- path: resources/readme/selecting-a-network.png
+- path: resources/readme/setup.png
+ui_hints:
+  highlight:
+  - path: readme.md
+    focus: true
+sdk_extension:
+- id: wiseconnect3_sdk
+  vendor: silabs
+  version: 4.0.1
+sdk:
+  id: simplicity_sdk
+  vendor: silabs
+  version: 2025.12.2

@@ -1,0 +1,36 @@
+id: "bluetooth_feature_advertiser"
+label: "Advertising Base Feature"
+package: bluetooth_le_controller
+description: >
+  This Bluetooth advertising component, corresponding to the "advertiser" class
+  in Bluetooth APIs, is the base of legacy, extended and periodic advertisings.
+  Functionalities in this component include advertising set creation, advertising
+  parameter and address settings etc. The application must choose which advertising
+  types are needed based on its use cases.
+  The <bluetooth_feature_legacy_advertiser> component provides the legacy advertising
+  feature. The <bluetooth_feature_extended_advertiser> component provides the extended
+  advertising feature. And the <bluetooth_feature_periodic_advertiser> component provides
+  the periodic advertising feature.
+category: Bluetooth|Bluetooth LE Controller (Link Layer)|Features with Commands and Events
+quality: "production"
+config_file:
+- path: "config/sl_bluetooth_advertiser_config.h"
+requires:
+- name: "bluetooth_controller"
+- name: "bluetooth_functionable_advertising"
+provides:
+- name: "bluetooth_feature_advertiser"
+- name: "bluetooth_feature_peripheral_connection"
+  allow_multiple: true
+- name: "bluetooth_feature_connection_creation"
+  allow_multiple: true
+template_contribution:
+- name: component_catalog
+  value: bluetooth_feature_advertiser
+documentation:
+  docset: bluetooth
+  document: bluetooth-stack-api/sl-bt-advertiser
+metadata:
+  sbom:
+    license: Zlib AND MSLA
+root_path: bluetooth_le_controller

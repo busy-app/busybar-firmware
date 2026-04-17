@@ -1,0 +1,85 @@
+id: "btmesh_factory_reset"
+label: "Factory Reset"
+package: bluetooth_mesh_middleware
+description: >
+  The Factory Reset is an application-level software module that
+  manages two types of device resets. The Factory Reset provides possibility
+  for node reset and full reset. Node reset removes all the keys and other
+  settings that have been configured for this node previously. Full reset removes
+  all NVM data as well. Callback is available for both reset types. After callback
+  execution the node reboots itself. After reboot in both reset cases the node
+  enters to unprovisioned state. These interface functions are available also
+  for CLI calls. This component is prepared for integration into SOC applications.
+
+  This is a No-Code component, but it only handles incoming factory reset commands from other nodes by default.
+category: "Bluetooth Mesh|Utility"
+quality: "production"
+metadata:
+  sbom:
+    license: Zlib
+root_path: "bluetooth_mesh_middleware/common/btmesh_factory_reset"
+tag:
+- No-Code
+
+source:
+- path: "sl_btmesh_factory_reset.c"
+include:
+- path: ""
+  file_list:
+  - path: "sl_btmesh_factory_reset.h"
+  - path: "sl_btmesh_node_reset_handler.h"
+
+template_file:
+- path: "sl_btmesh_node_reset_handler.c.jinja"
+
+provides:
+- name: "btmesh_factory_reset"
+requires:
+- name: "app_assert"
+- name: "app_btmesh_util"
+- name: "bluetooth_feature_system"
+- name: "btmesh_stack_node"
+- name: "component_catalog"
+- name: "sl_common"
+- name: "udelay"
+
+template_contribution:
+- name: cli_command
+  value:
+    group: factory
+    name: full_reset
+    handler: factory_reset_from_cli
+    shortcuts:
+    - name: r
+    help: "Triggers a factory reset that erase all NVM keys"
+  condition:
+  - "cli"
+
+- name: cli_command
+  value:
+    group: factory
+    name: node_reset
+    handler: node_reset_from_cli
+    shortcuts:
+    - name: n
+    help: "Triggers a node reset that erase all mesh stack data"
+  condition:
+  - "cli"
+
+- name: cli_group
+  value:
+    name: factory
+    help: "Factory functions (e.g. factory reset)."
+    shortcuts:
+    - name: f
+  condition:
+  - "cli"
+
+- name: component_catalog
+  value: "btmesh_factory_reset"
+
+validation_helper:
+- path: "../../script/validation/soc_ncp_compatibility.lua"
+documentation:
+  docset: btmesh
+  document: btmesh-service-api/btmesh-factory-reset

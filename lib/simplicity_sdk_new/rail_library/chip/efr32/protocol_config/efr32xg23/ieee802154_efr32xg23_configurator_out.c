@@ -1,0 +1,720 @@
+/***************************************************************************//**
+ * @brief RAIL Configuration
+ * @details
+ *   WARNING: Auto-Generated Radio Config  -  DO NOT EDIT
+ *   Radio Configurator Version: 2504.4.1 (2ab5c852a7)
+ *   RAIL Adapter Version: 2.4.33 (330b556b3a)
+ *   RAIL Compatibility: 2.x
+ *******************************************************************************
+ * # License
+ * <b>Copyright 2025 Silicon Laboratories Inc. www.silabs.com</b>
+ *******************************************************************************
+ *
+ * SPDX-License-Identifier: Zlib
+ *
+ * The licensor of this software is Silicon Laboratories Inc.
+ *
+ * This software is provided 'as-is', without any express or implied
+ * warranty. In no event will the authors be held liable for any damages
+ * arising from the use of this software.
+ *
+ * Permission is granted to anyone to use this software for any purpose,
+ * including commercial applications, and to alter it and redistribute it
+ * freely, subject to the following restrictions:
+ *
+ * 1. The origin of this software must not be misrepresented; you must not
+ *    claim that you wrote the original software. If you use this software
+ *    in a product, an acknowledgment in the product documentation would be
+ *    appreciated but is not required.
+ * 2. Altered source versions must be plainly marked as such, and must not be
+ *    misrepresented as being the original software.
+ * 3. This notice may not be removed or altered from any source distribution.
+ *
+ ******************************************************************************/
+#include "em_device.h"
+#include "ieee802154_efr32xg23_configurator_out.h"
+
+static const uint8_t irCalConfig[] = {
+  20, 41, 2, 0, 0, 49, 17, 0, 0, 0, 1, 0, 2, 100, 0, 1, 1, 47, 0, 0, 7
+};
+
+static const int32_t timingConfig[] = {
+  56500, 56500, 10000, 0
+};
+
+__ALIGNED(4) static const uint8_t hfxoRetimingConfigEntries[] = {
+  1, 0, 0, 0, 0x00, 0xf0, 0x49, 0x02, 4, 12, 0, 0, 0xe0, 0x02, 0, 0, 0, 0, 0x3c, 0x03, 1, 2, 5, 4, 0x98, 0x03, 1, 2, 5, 5, 0xf4, 0x03, 1, 2, 6, 5
+};
+
+#ifdef RADIO_CONFIG_ENABLE_STACK_INFO
+__ALIGNED(4) static const uint8_t stackInfo_0[2] = { 0x00, 0x00 };
+#endif // RADIO_CONFIG_ENABLE_STACK_INFO
+
+static RAIL_ChannelConfigEntryAttr_t channelConfigEntryAttr_0 = {
+#if RAIL_SUPPORTS_OFDM_PA
+  {
+#ifdef RADIO_CONFIG_ENABLE_IRCAL_MULTIPLE_RF_PATHS
+    { 0xFFFFFFFFUL, 0xFFFFFFFFUL, },
+#else
+    { 0xFFFFFFFFUL },
+#endif // RADIO_CONFIG_ENABLE_IRCAL_MULTIPLE_RF_PATHS
+    { 0xFFFFFFFFUL, 0xFFFFFFFFUL }
+  }
+#else // RAIL_SUPPORTS_OFDM_PA
+#ifdef RADIO_CONFIG_ENABLE_IRCAL_MULTIPLE_RF_PATHS
+  { 0xFFFFFFFFUL, 0xFFFFFFFFUL, },
+#else
+  { 0xFFFFFFFFUL },
+#endif // RADIO_CONFIG_ENABLE_IRCAL_MULTIPLE_RF_PATHS
+#endif // RAIL_SUPPORTS_OFDM_PA
+};
+
+static RAIL_ChannelConfigEntryAttr_t channelConfigEntryAttr_1 = {
+#if RAIL_SUPPORTS_OFDM_PA
+  {
+#ifdef RADIO_CONFIG_ENABLE_IRCAL_MULTIPLE_RF_PATHS
+    { 0xFFFFFFFFUL, 0xFFFFFFFFUL, },
+#else
+    { 0xFFFFFFFFUL },
+#endif // RADIO_CONFIG_ENABLE_IRCAL_MULTIPLE_RF_PATHS
+    { 0xFFFFFFFFUL, 0xFFFFFFFFUL }
+  }
+#else // RAIL_SUPPORTS_OFDM_PA
+#ifdef RADIO_CONFIG_ENABLE_IRCAL_MULTIPLE_RF_PATHS
+  { 0xFFFFFFFFUL, 0xFFFFFFFFUL, },
+#else
+  { 0xFFFFFFFFUL },
+#endif // RADIO_CONFIG_ENABLE_IRCAL_MULTIPLE_RF_PATHS
+#endif // RAIL_SUPPORTS_OFDM_PA
+};
+
+static const uint32_t phyInfo_0[] = {
+  20UL,
+  0x00266666UL, // 38.400000000000006
+  (uint32_t) NULL,
+  (uint32_t) irCalConfig,
+  (uint32_t) timingConfig,
+  0x00000000UL,
+  8UL,
+  0UL,
+  100000UL,
+  0x00F60101UL,
+  0x075015AFUL,
+  (uint32_t) NULL,
+  (uint32_t) hfxoRetimingConfigEntries,
+  (uint32_t) NULL,
+  0UL,
+  0UL,
+  100003UL,
+  (uint32_t) NULL,
+  (uint32_t) NULL,
+  (uint32_t) NULL,
+  (uint32_t) 0UL,
+};
+
+static const uint32_t phyInfo_1[] = {
+  20UL,
+  0x00266666UL, // 38.400000000000006
+  (uint32_t) NULL,
+  (uint32_t) irCalConfig,
+  (uint32_t) timingConfig,
+  0x00000000UL,
+  8UL,
+  0UL,
+  100000UL,
+  0x00F60101UL,
+  0x07501604UL,
+  (uint32_t) NULL,
+  (uint32_t) hfxoRetimingConfigEntries,
+  (uint32_t) NULL,
+  0UL,
+  0UL,
+  100003UL,
+  (uint32_t) NULL,
+  (uint32_t) NULL,
+  (uint32_t) NULL,
+  (uint32_t) 0UL,
+};
+
+const uint32_t ieee802154_gb868_863_modemConfigBase[] = {
+  0x03014FFCUL, (uint32_t) &phyInfo_0, /* Write: SEQ.PHYINFO */
+  0x0002400CUL, 0x0015B10CUL, /* Write: FRC.DFLCTRL */
+  /*    4010 */ 0x00004080UL, /* FRC.MAXLENGTH */
+  0x00024020UL, 0x00000000UL, /* Write: FRC.WCNTCMP0 */
+  /*    4024 */ 0x00000000UL, /* FRC.WCNTCMP1 */
+  0x00074030UL, 0x00000825UL, /* Write: FRC.WHITECTRL */
+  /*    4034 */ 0x00000100UL, /* FRC.WHITEPOLY */
+  /*    4038 */ 0x000000FFUL, /* FRC.WHITEINIT */
+  /*    403C */ 0x00000001UL, /* FRC.FECCTRL */
+  /*    4040 */ 0x00000000UL, /* FRC.BLOCKRAMADDR */
+  /*    4044 */ 0x00004000UL, /* FRC.CONVRAMADDR */
+  /*    4048 */ 0x000007A0UL, /* FRC.CTRL */
+  0x00014050UL, 0x00000000UL, /* Write: FRC.TRAILTXDATACTRL */
+  0x0002405CUL, 0x00000000UL, /* Write: FRC.CONVGENERATOR */
+  /*    4060 */ 0x00000000UL, /* FRC.PUNCTCTRL */
+  0x000140A8UL, 0x00000007UL, /* Write: FRC.AUTOCG */
+  0x000440BCUL, 0x00000000UL, /* Write: FRC.WCNTCMP3 */
+  /*    40C0 */ 0x00000000UL, /* FRC.BOICTRL */
+  /*    40C4 */ 0x00000000UL, /* FRC.DSLCTRL */
+  /*    40C8 */ 0x00000000UL, /* FRC.WCNTCMP4 */
+  0x00044108UL, 0x00004001UL, /* Write: FRC.FCD0 */
+  /*    410C */ 0x00000CFFUL, /* FRC.FCD1 */
+  /*    4110 */ 0x00004101UL, /* FRC.FCD2 */
+  /*    4114 */ 0x00000DFFUL, /* FRC.FCD3 */
+  0x1001C020UL, 0x0007F800UL, /* AND: AGC.CTRL0 */
+  0x3001C020UL, 0x002801F8UL, /* OR: AGC.CTRL0 */
+  0x1001C024UL, 0x000000FFUL, /* AND: AGC.CTRL1 */
+  0x3001C024UL, 0x00001300UL, /* OR: AGC.CTRL1 */
+  0x0008C028UL, 0x03B380ECUL, /* Write: AGC.CTRL2 */
+  /*    C02C */ 0x51407543UL, /* AGC.CTRL3 */
+  /*    C030 */ 0xF8000FA0UL, /* AGC.CTRL4 */
+  /*    C034 */ 0x00004030UL, /* AGC.CTRL5 */
+  /*    C038 */ 0x0007AAA8UL, /* AGC.CTRL6 */
+  /*    C03C */ 0x00000000UL, /* AGC.CTRL7 */
+  /*    C040 */ 0x00000000UL, /* AGC.RSSISTEPTHR */
+  /*    C044 */ 0x00000000UL, /* AGC.MANGAIN */
+  0x0014C054UL, 0x00302187UL, /* Write: AGC.GAINRANGE */
+  /*    C058 */ 0xE684008EUL, /* AGC.AGCPERIOD0 */
+  /*    C05C */ 0x000001AAUL, /* AGC.AGCPERIOD1 */
+  /*    C060 */ 0x80796B4EUL, /* AGC.HICNTREGION0 */
+  /*    C064 */ 0x00000084UL, /* AGC.HICNTREGION1 */
+  /*    C068 */ 0x0002C688UL, /* AGC.STEPDWN */
+  /*    C06C */ 0x00000440UL, /* AGC.GAINSTEPLIM0 */
+  /*    C070 */ 0x000010BAUL, /* AGC.GAINSTEPLIM1 */
+  /*    C074 */ 0x003F0000UL, /* AGC.PNRFATT0 */
+  /*    C078 */ 0x00EE008DUL, /* AGC.PNRFATT1 */
+  /*    C07C */ 0x03AC01F6UL, /* AGC.PNRFATT2 */
+  /*    C080 */ 0x079604F5UL, /* AGC.PNRFATT3 */
+  /*    C084 */ 0x0D9C09DEUL, /* AGC.PNRFATT4 */
+  /*    C088 */ 0x179311C3UL, /* AGC.PNRFATT5 */
+  /*    C08C */ 0x26F51DFEUL, /* AGC.PNRFATT6 */
+  /*    C090 */ 0x3FFF32BDUL, /* AGC.PNRFATT7 */
+  /*    C094 */ 0x1BF815FEUL, /* AGC.PNRFATT8 */
+  /*    C098 */ 0x2DB423DCUL, /* AGC.PNRFATT9 */
+  /*    C09C */ 0x3FFF39D0UL, /* AGC.PNRFATT10 */
+  /*    C0A0 */ 0x00003FFFUL, /* AGC.PNRFATT11 */
+  0x0005C0A8UL, 0x15724BBDUL, /* Write: AGC.LNAMIXCODE0 */
+  /*    C0AC */ 0x0518A311UL, /* AGC.LNAMIXCODE1 */
+  /*    C0B0 */ 0x76543210UL, /* AGC.PGACODE0 */
+  /*    C0B4 */ 0x00000A98UL, /* AGC.PGACODE1 */
+  /*    C0B8 */ 0x00000000UL, /* AGC.LBT */
+  0x0004C0CCUL, 0x000001FEUL, /* Write: AGC.LNABOOST */
+  /*    C0D0 */ 0x00000000UL, /* AGC.ANTDIV */
+  /*    C0D4 */ 0x000A0001UL, /* AGC.DUALRFPKDTHD0 */
+  /*    C0D8 */ 0x00280001UL, /* AGC.DUALRFPKDTHD1 */
+  0x01010008UL, 0x00000704UL, /* Write: RFCRC.CTRL */
+  0x01010018UL, 0x00000000UL, /* Write: RFCRC.INIT */
+  0x01010020UL, 0x00008408UL, /* Write: RFCRC.POLY */
+  0x01264040UL, 0x00000000UL, /* Write: MODEM.AFCADJRX */
+  /*    4044 */ 0x00000000UL, /* MODEM.AFCADJTX */
+  /*    4048 */ 0x00000010UL, /* MODEM.MIXCTRL */
+  /*    404C */ 0x04000000UL, /* MODEM.CTRL0 */
+  /*    4050 */ 0x0082C00FUL, /* MODEM.CTRL1 */
+  /*    4054 */ 0x00005000UL, /* MODEM.CTRL2 */
+  /*    4058 */ 0x000CD000UL, /* MODEM.CTRL3 */
+  /*    405C */ 0x03000000UL, /* MODEM.CTRL4 */
+  /*    4060 */ 0x20000000UL, /* MODEM.CTRL5 */
+  /*    4064 */ 0x00000000UL, /* MODEM.CTRL6 */
+  /*    4068 */ 0x00FF2FD0UL, /* MODEM.TXBR */
+  /*    406C */ 0x00000C41UL, /* MODEM.RXBR */
+  /*    4070 */ 0x0000003AUL, /* MODEM.CF */
+  /*    4074 */ 0x00200092UL, /* MODEM.PRE */
+  /*    4078 */ 0x00007209UL, /* MODEM.SYNC0 */
+  /*    407C */ 0x00000000UL, /* MODEM.SYNC1 */
+  /*    4080 */ 0x13C02714UL, /* MODEM.TIMING */
+  /*    4084 */ 0x00000000UL, /* MODEM.DSSS0 */
+  /*    4088 */ 0x002A0397UL, /* MODEM.MODINDEX */
+  /*    408C */ 0x60000000UL, /* MODEM.AFC */
+  /*    4090 */ 0x00000000UL, /* MODEM.AFCADJLIM */
+  /*    4094 */ 0x22140A04UL, /* MODEM.SHAPING0 */
+  /*    4098 */ 0x4F4A4132UL, /* MODEM.SHAPING1 */
+  /*    409C */ 0x00000000UL, /* MODEM.SHAPING2 */
+  /*    40A0 */ 0x00000000UL, /* MODEM.SHAPING3 */
+  /*    40A4 */ 0x00000000UL, /* MODEM.SHAPING4 */
+  /*    40A8 */ 0x00000000UL, /* MODEM.SHAPING5 */
+  /*    40AC */ 0x00000000UL, /* MODEM.SHAPING6 */
+  /*    40B0 */ 0x00000000UL, /* MODEM.SHAPING7 */
+  /*    40B4 */ 0x00000000UL, /* MODEM.SHAPING8 */
+  /*    40B8 */ 0x00000000UL, /* MODEM.SHAPING9 */
+  /*    40BC */ 0x00000000UL, /* MODEM.SHAPING10 */
+  /*    40C0 */ 0x00000000UL, /* MODEM.SHAPING11 */
+  /*    40C4 */ 0x00000000UL, /* MODEM.SHAPING12 */
+  /*    40C8 */ 0x00000000UL, /* MODEM.SHAPING13 */
+  /*    40CC */ 0x00000000UL, /* MODEM.SHAPING14 */
+  /*    40D0 */ 0x00000000UL, /* MODEM.SHAPING15 */
+  /*    40D4 */ 0x00000000UL, /* MODEM.OOKSHAPING */
+  0x110140E0UL, 0x000001F8UL, /* AND: MODEM.ANARAMPCTRL */
+  0x310140E0UL, 0x00000201UL, /* OR: MODEM.ANARAMPCTRL */
+  0x01024110UL, 0x00051E33UL, /* Write: MODEM.DCCOMP */
+  /*    4114 */ 0x00000000UL, /* MODEM.DCCOMPFILTINIT */
+  0x0103411CUL, 0x8B6DB000UL, /* Write: MODEM.SRCCHF */
+  /*    4120 */ 0x00000000UL, /* MODEM.INTAFC */
+  /*    4124 */ 0x078304FFUL, /* MODEM.DSATHD0 */
+  0x010A412CUL, 0x0C6606FFUL, /* Write: MODEM.DSATHD2 */
+  /*    4130 */ 0x078304FFUL, /* MODEM.DSATHD3 */
+  /*    4134 */ 0x03FF1388UL, /* MODEM.DSATHD4 */
+  /*    4138 */ 0xF00A20BCUL, /* MODEM.DSACTRL */
+  /*    413C */ 0x005073A5UL, /* MODEM.DIGMIXCTRL */
+  /*    4140 */ 0x00000000UL, /* MODEM.VITERBIDEMOD */
+  /*    4144 */ 0x123556B7UL, /* MODEM.VTCORRCFG0 */
+  /*    4148 */ 0x50000000UL, /* MODEM.VTCORRCFG1 */
+  /*    414C */ 0x00003B80UL, /* MODEM.VTTRACK */
+  /*    4150 */ 0x00000000UL, /* MODEM.VTBLETIMING */
+  0x01024158UL, 0x00000000UL, /* Write: MODEM.AUTOCG */
+  /*    415C */ 0x00000000UL, /* MODEM.CGCLKSTOP */
+  0x01014164UL, 0x0000010CUL, /* Write: MODEM.DIRECTMODE */
+  0x010B416CUL, 0x40000000UL, /* Write: MODEM.LONGRANGE1 */
+  /*    4170 */ 0x00000000UL, /* MODEM.LONGRANGE2 */
+  /*    4174 */ 0x00000000UL, /* MODEM.LONGRANGE3 */
+  /*    4178 */ 0x00000000UL, /* MODEM.LONGRANGE4 */
+  /*    417C */ 0x00000000UL, /* MODEM.LONGRANGE5 */
+  /*    4180 */ 0x00000000UL, /* MODEM.LONGRANGE6 */
+  /*    4184 */ 0x00000101UL, /* MODEM.LRFRC */
+  /*    4188 */ 0x00000000UL, /* MODEM.COH0 */
+  /*    418C */ 0x00000000UL, /* MODEM.COH1 */
+  /*    4190 */ 0x00000000UL, /* MODEM.COH2 */
+  /*    4194 */ 0x00000000UL, /* MODEM.COH3 */
+  0x010241A4UL, 0x00000000UL, /* Write: MODEM.SYNCPROPERTIES */
+  /*    41A8 */ 0x00000000UL, /* MODEM.DIGIGAINCTRL */
+  0x010C41B0UL, 0x00000000UL, /* Write: MODEM.PADEBUG */
+  /*    41B4 */ 0x00200000UL, /* MODEM.REALTIMCFE */
+  /*    41B8 */ 0x00000000UL, /* MODEM.ETSCTRL */
+  /*    41BC */ 0x00000000UL, /* MODEM.ETSTIM */
+  /*    41C0 */ 0x003C0000UL, /* MODEM.ANTSWCTRL */
+  /*    41C4 */ 0x0006AAAAUL, /* MODEM.ANTSWCTRL1 */
+  /*    41C8 */ 0x00000000UL, /* MODEM.ANTSWSTART */
+  /*    41CC */ 0x00000000UL, /* MODEM.ANTSWEND */
+  /*    41D0 */ 0x00000000UL, /* MODEM.TRECPMPATT */
+  /*    41D4 */ 0x000000D0UL, /* MODEM.TRECPMDET */
+  /*    41D8 */ 0x00020000UL, /* MODEM.TRECSCFG */
+  /*    41DC */ 0x00000000UL, /* MODEM.CFGANTPATT */
+  0x011541E4UL, 0x2CDDCFE2UL, /* Write: MODEM.CHFCOE00 */
+  /*    41E8 */ 0x003AB67EUL, /* MODEM.CHFCOE01 */
+  /*    41EC */ 0x00190960UL, /* MODEM.CHFCOE02 */
+  /*    41F0 */ 0x00E22251UL, /* MODEM.CHFCOE03 */
+  /*    41F4 */ 0x0E51B94CUL, /* MODEM.CHFCOE04 */
+  /*    41F8 */ 0x04A98239UL, /* MODEM.CHFCOE05 */
+  /*    41FC */ 0x299B22D8UL, /* MODEM.CHFCOE06 */
+  /*    4200 */ 0x2CDDCFE2UL, /* MODEM.CHFCOE10 */
+  /*    4204 */ 0x003AB67EUL, /* MODEM.CHFCOE11 */
+  /*    4208 */ 0x00190960UL, /* MODEM.CHFCOE12 */
+  /*    420C */ 0x00E22251UL, /* MODEM.CHFCOE13 */
+  /*    4210 */ 0x0E51B94CUL, /* MODEM.CHFCOE14 */
+  /*    4214 */ 0x04A98239UL, /* MODEM.CHFCOE15 */
+  /*    4218 */ 0x299B22D8UL, /* MODEM.CHFCOE16 */
+  /*    421C */ 0x00000000UL, /* MODEM.CHFCTRL */
+  /*    4220 */ 0x00000000UL, /* MODEM.CHFLATENCYCTRL */
+  /*    4224 */ 0x00000058UL, /* MODEM.FRMSCHTIME */
+  /*    4228 */ 0x00000000UL, /* MODEM.PREFILTCOEFF */
+  /*    422C */ 0x40001860UL, /* MODEM.RXRESTART */
+  /*    4230 */ 0x00000000UL, /* MODEM.SQ */
+  /*    4234 */ 0x00000000UL, /* MODEM.SQEXT */
+  0x0101423CUL, 0x00000000UL, /* Write: MODEM.ANTDIVCTRL */
+  0x01014244UL, 0x00000014UL, /* Write: MODEM.PHDMODANTDIV */
+  0x0101424CUL, 0x04000008UL, /* Write: MODEM.PHDMODCTRL */
+  0x010F4330UL, 0x00000000UL, /* Write: MODEM.BCRCTRL0 */
+  /*    4334 */ 0x00000000UL, /* MODEM.BCRCTRL1 */
+  /*    4338 */ 0x00000000UL, /* MODEM.BCRDEMODCTRL */
+  /*    433C */ 0x00000000UL, /* MODEM.BCRDEMODOOK */
+  /*    4340 */ 0x00000000UL, /* MODEM.BCRDEMODAFC0 */
+  /*    4344 */ 0x00000000UL, /* MODEM.BCRDEMODAFC1 */
+  /*    4348 */ 0x00000000UL, /* MODEM.BCRDEMOD4FSK0 */
+  /*    434C */ 0x00000000UL, /* MODEM.BCRDEMOD4FSK1 */
+  /*    4350 */ 0x00000000UL, /* MODEM.BCRDEMODANT */
+  /*    4354 */ 0x00000000UL, /* MODEM.BCRDEMODRSSI */
+  /*    4358 */ 0x00000000UL, /* MODEM.BCRDEMODARR0 */
+  /*    435C */ 0x38000000UL, /* MODEM.BCRDEMODARR1 */
+  /*    4360 */ 0x00000000UL, /* MODEM.BCRDEMODARR2 */
+  /*    4364 */ 0x00000000UL, /* MODEM.BCRDEMODKSI */
+  /*    4368 */ 0x58FF0000UL, /* MODEM.BCRDEMODPMEXP */
+  0x01018010UL, 0x00000003UL, /* Write: SYNTH.CTRL */
+  0x01028038UL, 0x001015AFUL, /* Write: SYNTH.IFFREQ */
+  /*    803C */ 0x00000003UL, /* SYNTH.DIVCTRL */
+  0x010280A0UL, 0x0003B870UL, /* Write: SYNTH.LPFCTRL1RX */
+  /*    80A4 */ 0x0003B870UL, /* SYNTH.LPFCTRL1TX */
+  0x110180A8UL, 0x000001F6UL, /* AND: SYNTH.LPFCTRL2RX */
+  0x310180A8UL, 0x01014201UL, /* OR: SYNTH.LPFCTRL2RX */
+  0x110180ACUL, 0x000001F6UL, /* AND: SYNTH.LPFCTRL2TX */
+  0x310180ACUL, 0x01014201UL, /* OR: SYNTH.LPFCTRL2TX */
+  0x010280B0UL, 0x02000300UL, /* Write: SYNTH.DSMCTRLRX */
+  /*    80B4 */ 0x02000300UL, /* SYNTH.DSMCTRLTX */
+  0x02030098UL, 0x00000000UL, /* Write: RAC.SYNTHENCTRL */
+  /*    009C */ 0x04000C00UL, /* RAC.SYNTHREGCTRL */
+  /*    00A0 */ 0x0000044CUL, /* RAC.VCOCTRL */
+  0x020200D8UL, 0xAA400005UL, /* Write: RAC.CLKMULTEN0 */
+  /*    00DC */ 0x00000188UL, /* RAC.CLKMULTEN1 */
+  0x120100ECUL, 0x00000FE0UL, /* AND: RAC.IFADCTRIM0 */
+  0x320100ECUL, 0x5151200DUL, /* OR: RAC.IFADCTRIM0 */
+  0x020100F0UL, 0x0000052BUL, /* Write: RAC.IFADCTRIM1 */
+  0x02010100UL, 0x00000110UL, /* Write: RAC.LNAMIXTRIM0 */
+  0x12010104UL, 0x00000000UL, /* AND: RAC.LNAMIXTRIM1 */
+  0x32010104UL, 0x00000110UL, /* OR: RAC.LNAMIXTRIM1 */
+  0x12010110UL, 0x000FFF00UL, /* AND: RAC.LNAMIXTRIM4 */
+  0x32010110UL, 0x42000002UL, /* OR: RAC.LNAMIXTRIM4 */
+  0x1201012CUL, 0x001FFC00UL, /* AND: RAC.PATRIM3 */
+  0x3201012CUL, 0x008000A9UL, /* OR: RAC.PATRIM3 */
+  0x02010140UL, 0x0000003FUL, /* Write: RAC.TXRAMP */
+  0x12010150UL, 0x0000C000UL, /* AND: RAC.PGACTRL */
+  0x32010150UL, 0x00510062UL, /* OR: RAC.PGACTRL */
+  0x02020168UL, 0x00060010UL, /* Write: RAC.RX */
+  /*    016C */ 0x00062000UL, /* RAC.TX */
+  0x02010174UL, 0x0C100169UL, /* Write: RAC.SYTRIM0 */
+  0x12010178UL, 0x001C0000UL, /* AND: RAC.SYTRIM1 */
+  0x32010178UL, 0xCFE00440UL, /* OR: RAC.SYTRIM1 */
+  0x12010180UL, 0x00000779UL, /* AND: RAC.SYEN */
+  0x32010180UL, 0x00000006UL, /* OR: RAC.SYEN */
+  0x02020188UL, 0x00000090UL, /* Write: RAC.SYMMDCTRL */
+  /*    018C */ 0x00000000UL, /* RAC.SYDIVCTRL */
+  0x120101ACUL, 0x000001F8UL, /* AND: RAC.IFADCPLLDCO */
+  0x320101ACUL, 0x00010204UL, /* OR: RAC.IFADCPLLDCO */
+  0x020101B0UL, 0x00000000UL, /* Write: RAC.IFADCPLLEN */
+  0x03014FF8UL, 0x00000000UL, /* Write: SEQ.MISC */
+  0xFFFFFFFFUL,
+};
+
+const uint32_t ieee802154_gb868_915_modemConfigBase[] = {
+  0x0002400CUL, 0x0015B10CUL, /* Write: FRC.DFLCTRL */
+  /*    4010 */ 0x00004080UL, /* FRC.MAXLENGTH */
+  0x00024020UL, 0x00000000UL, /* Write: FRC.WCNTCMP0 */
+  /*    4024 */ 0x00000000UL, /* FRC.WCNTCMP1 */
+  0x00074030UL, 0x00000825UL, /* Write: FRC.WHITECTRL */
+  /*    4034 */ 0x00000100UL, /* FRC.WHITEPOLY */
+  /*    4038 */ 0x000000FFUL, /* FRC.WHITEINIT */
+  /*    403C */ 0x00000001UL, /* FRC.FECCTRL */
+  /*    4040 */ 0x00000000UL, /* FRC.BLOCKRAMADDR */
+  /*    4044 */ 0x00004000UL, /* FRC.CONVRAMADDR */
+  /*    4048 */ 0x000007A0UL, /* FRC.CTRL */
+  0x00014050UL, 0x00000000UL, /* Write: FRC.TRAILTXDATACTRL */
+  0x0002405CUL, 0x00000000UL, /* Write: FRC.CONVGENERATOR */
+  /*    4060 */ 0x00000000UL, /* FRC.PUNCTCTRL */
+  0x000140A8UL, 0x00000007UL, /* Write: FRC.AUTOCG */
+  0x000440BCUL, 0x00000000UL, /* Write: FRC.WCNTCMP3 */
+  /*    40C0 */ 0x00000000UL, /* FRC.BOICTRL */
+  /*    40C4 */ 0x00000000UL, /* FRC.DSLCTRL */
+  /*    40C8 */ 0x00000000UL, /* FRC.WCNTCMP4 */
+  0x00044108UL, 0x00004001UL, /* Write: FRC.FCD0 */
+  /*    410C */ 0x00000CFFUL, /* FRC.FCD1 */
+  /*    4110 */ 0x00004101UL, /* FRC.FCD2 */
+  /*    4114 */ 0x00000DFFUL, /* FRC.FCD3 */
+  0x1001C020UL, 0x0007F800UL, /* AND: AGC.CTRL0 */
+  0x3001C020UL, 0x002801F8UL, /* OR: AGC.CTRL0 */
+  0x1001C024UL, 0x000000FFUL, /* AND: AGC.CTRL1 */
+  0x3001C024UL, 0x00001300UL, /* OR: AGC.CTRL1 */
+  0x0008C028UL, 0x03B380ECUL, /* Write: AGC.CTRL2 */
+  /*    C02C */ 0x51407543UL, /* AGC.CTRL3 */
+  /*    C030 */ 0xF8000FA0UL, /* AGC.CTRL4 */
+  /*    C034 */ 0x00004030UL, /* AGC.CTRL5 */
+  /*    C038 */ 0x0007AAA8UL, /* AGC.CTRL6 */
+  /*    C03C */ 0x00000000UL, /* AGC.CTRL7 */
+  /*    C040 */ 0x00000000UL, /* AGC.RSSISTEPTHR */
+  /*    C044 */ 0x00000000UL, /* AGC.MANGAIN */
+  0x0014C054UL, 0x00302187UL, /* Write: AGC.GAINRANGE */
+  /*    C058 */ 0xE682008CUL, /* AGC.AGCPERIOD0 */
+  /*    C05C */ 0x000001A4UL, /* AGC.AGCPERIOD1 */
+  /*    C060 */ 0x7E77694DUL, /* AGC.HICNTREGION0 */
+  /*    C064 */ 0x00000082UL, /* AGC.HICNTREGION1 */
+  /*    C068 */ 0x0002C688UL, /* AGC.STEPDWN */
+  /*    C06C */ 0x00000440UL, /* AGC.GAINSTEPLIM0 */
+  /*    C070 */ 0x000010BAUL, /* AGC.GAINSTEPLIM1 */
+  /*    C074 */ 0x003F0000UL, /* AGC.PNRFATT0 */
+  /*    C078 */ 0x00EE008DUL, /* AGC.PNRFATT1 */
+  /*    C07C */ 0x03AC01F6UL, /* AGC.PNRFATT2 */
+  /*    C080 */ 0x079604F5UL, /* AGC.PNRFATT3 */
+  /*    C084 */ 0x0D9C09DEUL, /* AGC.PNRFATT4 */
+  /*    C088 */ 0x179311C3UL, /* AGC.PNRFATT5 */
+  /*    C08C */ 0x26F51DFEUL, /* AGC.PNRFATT6 */
+  /*    C090 */ 0x3FFF32BDUL, /* AGC.PNRFATT7 */
+  /*    C094 */ 0x1BF815FEUL, /* AGC.PNRFATT8 */
+  /*    C098 */ 0x2DB423DCUL, /* AGC.PNRFATT9 */
+  /*    C09C */ 0x3FFF39D0UL, /* AGC.PNRFATT10 */
+  /*    C0A0 */ 0x00003FFFUL, /* AGC.PNRFATT11 */
+  0x0005C0A8UL, 0x15724BBDUL, /* Write: AGC.LNAMIXCODE0 */
+  /*    C0AC */ 0x0518A311UL, /* AGC.LNAMIXCODE1 */
+  /*    C0B0 */ 0x76543210UL, /* AGC.PGACODE0 */
+  /*    C0B4 */ 0x00000A98UL, /* AGC.PGACODE1 */
+  /*    C0B8 */ 0x00000000UL, /* AGC.LBT */
+  0x0004C0CCUL, 0x000001FEUL, /* Write: AGC.LNABOOST */
+  /*    C0D0 */ 0x00000000UL, /* AGC.ANTDIV */
+  /*    C0D4 */ 0x000A0001UL, /* AGC.DUALRFPKDTHD0 */
+  /*    C0D8 */ 0x00280001UL, /* AGC.DUALRFPKDTHD1 */
+  0x01010008UL, 0x00000704UL, /* Write: RFCRC.CTRL */
+  0x01010018UL, 0x00000000UL, /* Write: RFCRC.INIT */
+  0x01010020UL, 0x00008408UL, /* Write: RFCRC.POLY */
+  0x01264040UL, 0x00000000UL, /* Write: MODEM.AFCADJRX */
+  /*    4044 */ 0x00000000UL, /* MODEM.AFCADJTX */
+  /*    4048 */ 0x00000010UL, /* MODEM.MIXCTRL */
+  /*    404C */ 0x04000000UL, /* MODEM.CTRL0 */
+  /*    4050 */ 0x0082C00FUL, /* MODEM.CTRL1 */
+  /*    4054 */ 0x00005000UL, /* MODEM.CTRL2 */
+  /*    4058 */ 0x000CD000UL, /* MODEM.CTRL3 */
+  /*    405C */ 0x03000000UL, /* MODEM.CTRL4 */
+  /*    4060 */ 0x20000000UL, /* MODEM.CTRL5 */
+  /*    4064 */ 0x00000000UL, /* MODEM.CTRL6 */
+  /*    4068 */ 0x00FF2FD0UL, /* MODEM.TXBR */
+  /*    406C */ 0x00000C41UL, /* MODEM.RXBR */
+  /*    4070 */ 0x0000003AUL, /* MODEM.CF */
+  /*    4074 */ 0x00200092UL, /* MODEM.PRE */
+  /*    4078 */ 0x00007209UL, /* MODEM.SYNC0 */
+  /*    407C */ 0x00000000UL, /* MODEM.SYNC1 */
+  /*    4080 */ 0x13C02714UL, /* MODEM.TIMING */
+  /*    4084 */ 0x00000000UL, /* MODEM.DSSS0 */
+  /*    4088 */ 0x002A0397UL, /* MODEM.MODINDEX */
+  /*    408C */ 0x60000000UL, /* MODEM.AFC */
+  /*    4090 */ 0x00000000UL, /* MODEM.AFCADJLIM */
+  /*    4094 */ 0x22140A04UL, /* MODEM.SHAPING0 */
+  /*    4098 */ 0x4F4A4132UL, /* MODEM.SHAPING1 */
+  /*    409C */ 0x00000000UL, /* MODEM.SHAPING2 */
+  /*    40A0 */ 0x00000000UL, /* MODEM.SHAPING3 */
+  /*    40A4 */ 0x00000000UL, /* MODEM.SHAPING4 */
+  /*    40A8 */ 0x00000000UL, /* MODEM.SHAPING5 */
+  /*    40AC */ 0x00000000UL, /* MODEM.SHAPING6 */
+  /*    40B0 */ 0x00000000UL, /* MODEM.SHAPING7 */
+  /*    40B4 */ 0x00000000UL, /* MODEM.SHAPING8 */
+  /*    40B8 */ 0x00000000UL, /* MODEM.SHAPING9 */
+  /*    40BC */ 0x00000000UL, /* MODEM.SHAPING10 */
+  /*    40C0 */ 0x00000000UL, /* MODEM.SHAPING11 */
+  /*    40C4 */ 0x00000000UL, /* MODEM.SHAPING12 */
+  /*    40C8 */ 0x00000000UL, /* MODEM.SHAPING13 */
+  /*    40CC */ 0x00000000UL, /* MODEM.SHAPING14 */
+  /*    40D0 */ 0x00000000UL, /* MODEM.SHAPING15 */
+  /*    40D4 */ 0x00000000UL, /* MODEM.OOKSHAPING */
+  0x110140E0UL, 0x000001F8UL, /* AND: MODEM.ANARAMPCTRL */
+  0x310140E0UL, 0x00000201UL, /* OR: MODEM.ANARAMPCTRL */
+  0x01024110UL, 0x00051E33UL, /* Write: MODEM.DCCOMP */
+  /*    4114 */ 0x00000000UL, /* MODEM.DCCOMPFILTINIT */
+  0x0103411CUL, 0x8B6DB000UL, /* Write: MODEM.SRCCHF */
+  /*    4120 */ 0x00000000UL, /* MODEM.INTAFC */
+  /*    4124 */ 0x078304FFUL, /* MODEM.DSATHD0 */
+  0x010A412CUL, 0x0C6606FFUL, /* Write: MODEM.DSATHD2 */
+  /*    4130 */ 0x078304FFUL, /* MODEM.DSATHD3 */
+  /*    4134 */ 0x03FF1388UL, /* MODEM.DSATHD4 */
+  /*    4138 */ 0xF00A20BCUL, /* MODEM.DSACTRL */
+  /*    413C */ 0x0050756BUL, /* MODEM.DIGMIXCTRL */
+  /*    4140 */ 0x00000000UL, /* MODEM.VITERBIDEMOD */
+  /*    4144 */ 0x123556B7UL, /* MODEM.VTCORRCFG0 */
+  /*    4148 */ 0x50000000UL, /* MODEM.VTCORRCFG1 */
+  /*    414C */ 0x00003B80UL, /* MODEM.VTTRACK */
+  /*    4150 */ 0x00000000UL, /* MODEM.VTBLETIMING */
+  0x01024158UL, 0x00000000UL, /* Write: MODEM.AUTOCG */
+  /*    415C */ 0x00000000UL, /* MODEM.CGCLKSTOP */
+  0x01014164UL, 0x0000010CUL, /* Write: MODEM.DIRECTMODE */
+  0x010B416CUL, 0x40000000UL, /* Write: MODEM.LONGRANGE1 */
+  /*    4170 */ 0x00000000UL, /* MODEM.LONGRANGE2 */
+  /*    4174 */ 0x00000000UL, /* MODEM.LONGRANGE3 */
+  /*    4178 */ 0x00000000UL, /* MODEM.LONGRANGE4 */
+  /*    417C */ 0x00000000UL, /* MODEM.LONGRANGE5 */
+  /*    4180 */ 0x00000000UL, /* MODEM.LONGRANGE6 */
+  /*    4184 */ 0x00000101UL, /* MODEM.LRFRC */
+  /*    4188 */ 0x00000000UL, /* MODEM.COH0 */
+  /*    418C */ 0x00000000UL, /* MODEM.COH1 */
+  /*    4190 */ 0x00000000UL, /* MODEM.COH2 */
+  /*    4194 */ 0x00000000UL, /* MODEM.COH3 */
+  0x010241A4UL, 0x00000000UL, /* Write: MODEM.SYNCPROPERTIES */
+  /*    41A8 */ 0x00000000UL, /* MODEM.DIGIGAINCTRL */
+  0x010C41B0UL, 0x00000000UL, /* Write: MODEM.PADEBUG */
+  /*    41B4 */ 0x00200000UL, /* MODEM.REALTIMCFE */
+  /*    41B8 */ 0x00000000UL, /* MODEM.ETSCTRL */
+  /*    41BC */ 0x00000000UL, /* MODEM.ETSTIM */
+  /*    41C0 */ 0x003C0000UL, /* MODEM.ANTSWCTRL */
+  /*    41C4 */ 0x0006AAAAUL, /* MODEM.ANTSWCTRL1 */
+  /*    41C8 */ 0x00000000UL, /* MODEM.ANTSWSTART */
+  /*    41CC */ 0x00000000UL, /* MODEM.ANTSWEND */
+  /*    41D0 */ 0x00000000UL, /* MODEM.TRECPMPATT */
+  /*    41D4 */ 0x000000D0UL, /* MODEM.TRECPMDET */
+  /*    41D8 */ 0x00020000UL, /* MODEM.TRECSCFG */
+  /*    41DC */ 0x00000000UL, /* MODEM.CFGANTPATT */
+  0x011541E4UL, 0x2CDDCFE2UL, /* Write: MODEM.CHFCOE00 */
+  /*    41E8 */ 0x003AB67EUL, /* MODEM.CHFCOE01 */
+  /*    41EC */ 0x00190960UL, /* MODEM.CHFCOE02 */
+  /*    41F0 */ 0x00E22251UL, /* MODEM.CHFCOE03 */
+  /*    41F4 */ 0x0E51B94CUL, /* MODEM.CHFCOE04 */
+  /*    41F8 */ 0x04A98239UL, /* MODEM.CHFCOE05 */
+  /*    41FC */ 0x299B22D8UL, /* MODEM.CHFCOE06 */
+  /*    4200 */ 0x2CDDCFE2UL, /* MODEM.CHFCOE10 */
+  /*    4204 */ 0x003AB67EUL, /* MODEM.CHFCOE11 */
+  /*    4208 */ 0x00190960UL, /* MODEM.CHFCOE12 */
+  /*    420C */ 0x00E22251UL, /* MODEM.CHFCOE13 */
+  /*    4210 */ 0x0E51B94CUL, /* MODEM.CHFCOE14 */
+  /*    4214 */ 0x04A98239UL, /* MODEM.CHFCOE15 */
+  /*    4218 */ 0x299B22D8UL, /* MODEM.CHFCOE16 */
+  /*    421C */ 0x00000000UL, /* MODEM.CHFCTRL */
+  /*    4220 */ 0x00000000UL, /* MODEM.CHFLATENCYCTRL */
+  /*    4224 */ 0x00000058UL, /* MODEM.FRMSCHTIME */
+  /*    4228 */ 0x00000000UL, /* MODEM.PREFILTCOEFF */
+  /*    422C */ 0x40001860UL, /* MODEM.RXRESTART */
+  /*    4230 */ 0x00000000UL, /* MODEM.SQ */
+  /*    4234 */ 0x00000000UL, /* MODEM.SQEXT */
+  0x0101423CUL, 0x00000000UL, /* Write: MODEM.ANTDIVCTRL */
+  0x01014244UL, 0x00000014UL, /* Write: MODEM.PHDMODANTDIV */
+  0x0101424CUL, 0x04000008UL, /* Write: MODEM.PHDMODCTRL */
+  0x010F4330UL, 0x00000000UL, /* Write: MODEM.BCRCTRL0 */
+  /*    4334 */ 0x00000000UL, /* MODEM.BCRCTRL1 */
+  /*    4338 */ 0x00000000UL, /* MODEM.BCRDEMODCTRL */
+  /*    433C */ 0x00000000UL, /* MODEM.BCRDEMODOOK */
+  /*    4340 */ 0x00000000UL, /* MODEM.BCRDEMODAFC0 */
+  /*    4344 */ 0x00000000UL, /* MODEM.BCRDEMODAFC1 */
+  /*    4348 */ 0x00000000UL, /* MODEM.BCRDEMOD4FSK0 */
+  /*    434C */ 0x00000000UL, /* MODEM.BCRDEMOD4FSK1 */
+  /*    4350 */ 0x00000000UL, /* MODEM.BCRDEMODANT */
+  /*    4354 */ 0x00000000UL, /* MODEM.BCRDEMODRSSI */
+  /*    4358 */ 0x00000000UL, /* MODEM.BCRDEMODARR0 */
+  /*    435C */ 0x38000000UL, /* MODEM.BCRDEMODARR1 */
+  /*    4360 */ 0x00000000UL, /* MODEM.BCRDEMODARR2 */
+  /*    4364 */ 0x00000000UL, /* MODEM.BCRDEMODKSI */
+  /*    4368 */ 0x58FF0000UL, /* MODEM.BCRDEMODPMEXP */
+  0x01018010UL, 0x00000003UL, /* Write: SYNTH.CTRL */
+  0x01028038UL, 0x00101604UL, /* Write: SYNTH.IFFREQ */
+  /*    803C */ 0x00000003UL, /* SYNTH.DIVCTRL */
+  0x010280A0UL, 0x0003B870UL, /* Write: SYNTH.LPFCTRL1RX */
+  /*    80A4 */ 0x0003B870UL, /* SYNTH.LPFCTRL1TX */
+  0x110180A8UL, 0x000001F6UL, /* AND: SYNTH.LPFCTRL2RX */
+  0x310180A8UL, 0x01014201UL, /* OR: SYNTH.LPFCTRL2RX */
+  0x110180ACUL, 0x000001F6UL, /* AND: SYNTH.LPFCTRL2TX */
+  0x310180ACUL, 0x01014201UL, /* OR: SYNTH.LPFCTRL2TX */
+  0x010280B0UL, 0x02000300UL, /* Write: SYNTH.DSMCTRLRX */
+  /*    80B4 */ 0x02000300UL, /* SYNTH.DSMCTRLTX */
+  0x02030098UL, 0x00000000UL, /* Write: RAC.SYNTHENCTRL */
+  /*    009C */ 0x04000C00UL, /* RAC.SYNTHREGCTRL */
+  /*    00A0 */ 0x0000044CUL, /* RAC.VCOCTRL */
+  0x020200D8UL, 0xAA400005UL, /* Write: RAC.CLKMULTEN0 */
+  /*    00DC */ 0x00000188UL, /* RAC.CLKMULTEN1 */
+  0x120100ECUL, 0x00000FE0UL, /* AND: RAC.IFADCTRIM0 */
+  0x320100ECUL, 0x5151200DUL, /* OR: RAC.IFADCTRIM0 */
+  0x020100F0UL, 0x0000052BUL, /* Write: RAC.IFADCTRIM1 */
+  0x02010100UL, 0x00000110UL, /* Write: RAC.LNAMIXTRIM0 */
+  0x12010104UL, 0x00000000UL, /* AND: RAC.LNAMIXTRIM1 */
+  0x32010104UL, 0x00000110UL, /* OR: RAC.LNAMIXTRIM1 */
+  0x12010110UL, 0x000FFF00UL, /* AND: RAC.LNAMIXTRIM4 */
+  0x32010110UL, 0x42000002UL, /* OR: RAC.LNAMIXTRIM4 */
+  0x1201012CUL, 0x001FFC00UL, /* AND: RAC.PATRIM3 */
+  0x3201012CUL, 0x008000A9UL, /* OR: RAC.PATRIM3 */
+  0x02010140UL, 0x0000003FUL, /* Write: RAC.TXRAMP */
+  0x12010150UL, 0x0000C000UL, /* AND: RAC.PGACTRL */
+  0x32010150UL, 0x00510062UL, /* OR: RAC.PGACTRL */
+  0x02020168UL, 0x00060010UL, /* Write: RAC.RX */
+  /*    016C */ 0x00062000UL, /* RAC.TX */
+  0x02010174UL, 0x0C100169UL, /* Write: RAC.SYTRIM0 */
+  0x12010178UL, 0x001C0000UL, /* AND: RAC.SYTRIM1 */
+  0x32010178UL, 0xCFE00440UL, /* OR: RAC.SYTRIM1 */
+  0x12010180UL, 0x00000779UL, /* AND: RAC.SYEN */
+  0x32010180UL, 0x00000006UL, /* OR: RAC.SYEN */
+  0x02020188UL, 0x00000090UL, /* Write: RAC.SYMMDCTRL */
+  /*    018C */ 0x00000000UL, /* RAC.SYDIVCTRL */
+  0x120101ACUL, 0x000001F8UL, /* AND: RAC.IFADCPLLDCO */
+  0x320101ACUL, 0x00010204UL, /* OR: RAC.IFADCPLLDCO */
+  0x020101B0UL, 0x00000000UL, /* Write: RAC.IFADCPLLEN */
+  0x03024FF8UL, 0x00000000UL, /* Write: SEQ.MISC */
+  /*    4FFC */ (uint32_t) &phyInfo_1, /* SEQ.PHYINFO */
+  0xFFFFFFFFUL,
+};
+
+const RAIL_ChannelConfigEntry_t ieee802154_gb868_863_channels[] = {
+  {
+    .phyConfigDeltaAdd = NULL,
+    .baseFrequency = 863250000,
+    .channelSpacing = 200000,
+    .physicalChannelOffset = 128,
+    .channelNumberStart = 128,
+    .channelNumberEnd = 154,
+    .maxPower = RAIL_TX_POWER_MAX,
+    .attr = &channelConfigEntryAttr_0,
+#ifdef RADIO_CONFIG_ENABLE_CONC_PHY
+    .entryType = 0,
+#endif
+#ifdef RADIO_CONFIG_ENABLE_STACK_INFO
+    .stackInfo = stackInfo_0,
+#endif
+    .alternatePhy = NULL,
+  },
+  {
+    .phyConfigDeltaAdd = NULL,
+    .baseFrequency = 863250000,
+    .channelSpacing = 200000,
+    .physicalChannelOffset = 133,
+    .channelNumberStart = 160,
+    .channelNumberEnd = 167,
+    .maxPower = RAIL_TX_POWER_MAX,
+    .attr = &channelConfigEntryAttr_0,
+#ifdef RADIO_CONFIG_ENABLE_CONC_PHY
+    .entryType = 0,
+#endif
+#ifdef RADIO_CONFIG_ENABLE_STACK_INFO
+    .stackInfo = stackInfo_0,
+#endif
+    .alternatePhy = NULL,
+  },
+  {
+    .phyConfigDeltaAdd = NULL,
+    .baseFrequency = 863250000,
+    .channelSpacing = 200000,
+    .physicalChannelOffset = 106,
+    .channelNumberStart = 168,
+    .channelNumberEnd = 168,
+    .maxPower = RAIL_TX_POWER_MAX,
+    .attr = &channelConfigEntryAttr_0,
+#ifdef RADIO_CONFIG_ENABLE_CONC_PHY
+    .entryType = 0,
+#endif
+#ifdef RADIO_CONFIG_ENABLE_STACK_INFO
+    .stackInfo = stackInfo_0,
+#endif
+    .alternatePhy = NULL,
+  },
+  {
+    .phyConfigDeltaAdd = NULL,
+    .baseFrequency = 863250000,
+    .channelSpacing = 200000,
+    .physicalChannelOffset = 157,
+    .channelNumberStart = 192,
+    .channelNumberEnd = 218,
+    .maxPower = RAIL_TX_POWER_MAX,
+    .attr = &channelConfigEntryAttr_0,
+#ifdef RADIO_CONFIG_ENABLE_CONC_PHY
+    .entryType = 0,
+#endif
+#ifdef RADIO_CONFIG_ENABLE_STACK_INFO
+    .stackInfo = stackInfo_0,
+#endif
+    .alternatePhy = NULL,
+  },
+};
+
+const RAIL_ChannelConfigEntry_t ieee802154_gb868_915_channels[] = {
+  {
+    .phyConfigDeltaAdd = NULL,
+    .baseFrequency = 915350000,
+    .channelSpacing = 200000,
+    .physicalChannelOffset = 224,
+    .channelNumberStart = 224,
+    .channelNumberEnd = 250,
+    .maxPower = RAIL_TX_POWER_MAX,
+    .attr = &channelConfigEntryAttr_1,
+#ifdef RADIO_CONFIG_ENABLE_CONC_PHY
+    .entryType = 0,
+#endif
+#ifdef RADIO_CONFIG_ENABLE_STACK_INFO
+    .stackInfo = stackInfo_0,
+#endif
+    .alternatePhy = NULL,
+  },
+};
+
+const RAIL_ChannelConfig_t ieee802154_gb868_863_channelConfig = {
+  .phyConfigBase = ieee802154_gb868_863_modemConfigBase,
+  .phyConfigDeltaSubtract = NULL,
+  .configs = ieee802154_gb868_863_channels,
+  .length = 4U,
+  .signature = 0UL,
+  .xtalFrequencyHz = 38400000UL,
+};
+
+const RAIL_ChannelConfig_t ieee802154_gb868_915_channelConfig = {
+  .phyConfigBase = ieee802154_gb868_915_modemConfigBase,
+  .phyConfigDeltaSubtract = NULL,
+  .configs = ieee802154_gb868_915_channels,
+  .length = 1U,
+  .signature = 0UL,
+  .xtalFrequencyHz = 38400000UL,
+};
+
+uint32_t ieee802154AccelerationBuffer[465];

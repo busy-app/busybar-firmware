@@ -1,0 +1,16 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="doxygen__indexfile_8md" kind="file" language="Markdown">
+    <compoundname>doxygen_indexfile.md</compoundname>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline><highlight class="normal">@mainpage<sp/>Overview</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">The<sp/>Ping<sp/>application<sp/>programming<sp/>interface<sp/>(API)<sp/>provides<sp/>the<sp/>ability<sp/>to<sp/>use<sp/>the<sp/>Internet<sp/>Control<sp/>Message<sp/>Protocol<sp/>(ICMP)<sp/>to<sp/>check<sp/>for<sp/>the<sp/>existence<sp/>of<sp/>other<sp/>devices<sp/>in<sp/>the<sp/>local<sp/>area<sp/>network<sp/>(LAN).</highlight></codeline>
+    </programlisting>
+    <location file="components/device/silabs/si91x/wireless/icmp/docs/doxygen_indexfile.md"/>
+  </compounddef>
+</doxygen>

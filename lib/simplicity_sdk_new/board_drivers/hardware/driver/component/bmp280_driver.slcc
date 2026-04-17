@@ -1,0 +1,33 @@
+id: bmp280_driver
+package: board_drivers
+label: BMP280 - Pressure Sensor
+description: >
+  Driver for the Bosch Sensortec BMP280 barometric pressure sensor
+category: Platform|Board Drivers
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: board_drivers/hardware/driver/bmp280
+provides:
+- name: bmp280_driver
+requires:
+- name: i2cspm_core
+- name: status
+- name: sleeptimer
+include:
+- path: inc
+  file_list:
+  - path: sl_bmp280.h
+- path: bosch/BMP280_driver
+  file_list:
+  - path: bmp280.h
+source:
+- path: src/sl_bmp280.c
+- path: bosch/BMP280_driver/bmp280.c
+template_contribution:
+- name: component_catalog
+  value: bmp280_driver
+documentation:
+  docset: gecko-platform
+  document: platform-hardware-driver/bmp280

@@ -1,0 +1,23 @@
+id: "bluetooth_feature_l2cap"
+label: "L2CAP"
+package: bluetooth_le_host
+description: >
+  This component provides the L2CAP Connection Oriented Channel feature.
+category: Bluetooth|Bluetooth Host (Stack)|Features with Commands and Events
+quality: "production"
+requires:
+- name: "bluetooth_stack"
+config_file:
+- path: "config/sl_bluetooth_l2cap_config.h"
+provides:
+- name: "bluetooth_feature_l2cap"
+template_contribution:
+- name: component_catalog
+  value: bluetooth_feature_l2cap
+documentation:
+  docset: bluetooth
+  document: bluetooth-stack-api/sl-bt-l2cap
+metadata:
+  sbom:
+    license: Zlib AND MSLA
+root_path: bluetooth_le_host

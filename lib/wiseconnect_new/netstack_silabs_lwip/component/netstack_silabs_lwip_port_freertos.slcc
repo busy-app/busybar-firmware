@@ -1,0 +1,31 @@
+id: netstack_silabs_lwip_port_freertos
+label: "LwIP FreeRTOS port "
+package: netstack_silabs_lwip
+description: >
+  The LwIP FreeRTOS port component can be used for LwIP port contribution for FreeRTOS.
+category: Network Stack|LwIP|OS
+quality: production
+provides:
+- name: netstack_silabs_lwip_port_freertos
+requires:
+- name: netstack_silabs_lwip_core
+source:
+- path: lwip/contrib/ports/freertos/sys_arch.c
+include:
+- path: lwip/contrib/ports/freertos/include
+  file_list:
+  - path: arch/sys_arch.h
+  - path: arch/cc.h
+  - path: arch/bpstruct.h
+  - path: arch/epstruct.h
+metadata:
+  sbom:
+    license: BSD-3-Clause
+    upstream:
+      name: lwip
+      version: 2.2.1
+      supplier: lwIP Developers
+      url: https://savannah.nongnu.org/projects/lwip/
+      package_url: https://github.com/lwip-tcpip/lwip/
+      comment: lwIP is a small independent implementation of the TCP/IP protocol suite.
+root_path: netstack_silabs_lwip/

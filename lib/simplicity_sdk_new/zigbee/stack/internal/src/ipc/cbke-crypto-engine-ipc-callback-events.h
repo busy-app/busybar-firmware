@@ -1,0 +1,55 @@
+/***************************************************************************//**
+ * @file cbke-crypto-engine-ipc-callback-events.h
+ * @brief callback struct and event handlers for cbke-crypto-engine
+ *******************************************************************************
+ * # License
+ * <b>Copyright 2024 Silicon Laboratories Inc. www.silabs.com</b>
+ *******************************************************************************
+ *
+ * The licensor of this software is Silicon Laboratories Inc. Your use of this
+ * software is governed by the terms of Silicon Labs Master Software License
+ * Agreement (MSLA) available at
+ * www.silabs.com/about-us/legal/master-software-license-agreement. This
+ * software is distributed to you in Source Code format and is governed by the
+ * sections of the MSLA applicable to Source Code.
+ *
+ ******************************************************************************/
+// automatically generated from cbke-crypto-engine.h.  Do not manually edit
+#ifndef CBKE_CRYPTO_ENGINE_IPC_CALLBACK_EVENTS_H
+#define CBKE_CRYPTO_ENGINE_IPC_CALLBACK_EVENTS_H
+
+#include "stack/internal/inc/cbke-crypto-engine-internal-def.h"
+
+typedef struct {
+  sl_status_t status;
+  sl_zigbee_smac_data_t initiatorSmac;
+  sl_zigbee_smac_data_t responderSmac;
+} sli_zigbee_stack_calculate_smacs_283k1_handler_ipc_event_t;
+
+typedef struct {
+  sl_status_t status;
+  sl_zigbee_smac_data_t initiatorSmac;
+  sl_zigbee_smac_data_t responderSmac;
+} sli_zigbee_stack_calculate_smacs_handler_ipc_event_t;
+
+typedef struct {
+  sl_status_t status;
+  uint8_t messageLength;
+  uint8_t messageContents[MAX_IPC_VEC_ARG_CAPACITY];
+} sli_zigbee_stack_dsa_sign_handler_ipc_event_t;
+
+typedef struct {
+  sl_status_t status;
+} sli_zigbee_stack_dsa_verify_handler_ipc_event_t;
+
+typedef struct {
+  sl_status_t status;
+  sl_zigbee_public_key_283k1_data_t ephemeralPublicKey;
+} sli_zigbee_stack_generate_cbke_keys_283k1_handler_ipc_event_t;
+
+typedef struct {
+  sl_status_t status;
+  sl_zigbee_public_key_data_t ephemeralPublicKey;
+} sli_zigbee_stack_generate_cbke_keys_handler_ipc_event_t;
+
+#endif // CBKE_CRYPTO_ENGINE_IPC_CALLBACK_EVENTS_H

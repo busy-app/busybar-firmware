@@ -1,0 +1,41 @@
+id: zigbee_memory_usage_cli
+label: Memory Usage - CLI
+package: zigbee
+category: Zigbee|Utility
+quality: evaluation
+description: Provides CLIs for accessing flash and ram usage metrics on Host and SoC apps.
+provides:
+- name: zigbee_memory_usage_cli
+requires:
+- name: cli
+- name: zigbee_memory_usage
+source:
+- path: app/framework/plugin/memory_usage/sl_zigbee_memory_usage_cli.c
+include:
+- path: stack/include
+  file_list:
+  - path: sl_zigbee_memory_usage.h
+template_contribution:
+- name: component_catalog
+  value: zigbee_memory_usage_cli
+- name: cli_group
+  value:
+    group: plugin
+    name: zigbee_memory_usage
+    help: memory usage related commands
+- name: cli_command
+  value:
+    group: zigbee_memory_usage
+    name: print
+    handler: sli_zigbee_af_memory_usage_print_current_data
+    help: Print current memory usage stats.
+- name: cli_command
+  value:
+    group: zigbee_memory_usage
+    name: print_init
+    handler: sli_zigbee_af_memory_usage_print_init_data
+    help: Print boot memory usage stats.
+metadata:
+  sbom:
+    license: MSLA
+root_path: zigbee

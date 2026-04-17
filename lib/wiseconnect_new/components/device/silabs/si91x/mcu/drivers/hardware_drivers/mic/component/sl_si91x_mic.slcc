@@ -1,0 +1,26 @@
+id: sl_si91x_mic
+package: platform_siwx91x
+label: Mic
+description: >
+  The Simple MIC Driver provides an implementation of the ICS 43434 mic APIs.
+category: Device|Si91x|MCU|Hardware
+quality: production
+metadata:
+  sbom:
+    license: MSLA
+component_root_path: "components/device/silabs/si91x/mcu/drivers/hardware_drivers/mic"
+config_file:
+  - path: config/sl_si91x_mic_config.h
+    file_id: mic_config
+include:
+  - path: inc
+    file_list:
+      - path: sl_si91x_mic.h
+source:
+  - path: src/sl_si91x_mic.c
+requires:
+  - name: sl_gpio
+  - name: sl_i2s
+  - name: sl_dma
+provides:
+  - name: sl_si91x_mic

@@ -1,0 +1,62 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__scanner__event__flag" kind="group">
+    <compoundname>sl_bt_scanner_event_flag</compoundname>
+    <title>Event Type Flags of Advertisement Reports</title>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__scanner__event__flag_1gaf62947b2b89a980373db6d9be3ef0cad" prot="public" static="no">
+        <name>SL_BT_SCANNER_EVENT_FLAG_CONNECTABLE</name>
+        <initializer>0x1</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>A connectable advertising data packet </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="3715" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="3715" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__scanner__event__flag_1ga53cfedfa8038ef00f01c4f089694ccbf" prot="public" static="no">
+        <name>SL_BT_SCANNER_EVENT_FLAG_SCANNABLE</name>
+        <initializer>0x2</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>A scannable advertising data packet </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="3718" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="3718" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__scanner__event__flag_1gae5f6bda12970e585a4b6b61eeaf42467" prot="public" static="no">
+        <name>SL_BT_SCANNER_EVENT_FLAG_DIRECTED</name>
+        <initializer>0x4</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Directed advertising </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="3721" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="3721" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__scanner__event__flag_1ga908d3cc64612b9a5f354e89bbf8639f7" prot="public" static="no">
+        <name>SL_BT_SCANNER_EVENT_FLAG_SCAN_RESPONSE</name>
+        <initializer>0x8</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>A scan response packet that can be received in active scan mode only </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="3724" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="3724" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para>Defines the event type flags of the advertisement packets the scanner reports. An advertisement packet could have multiple applicable flags. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

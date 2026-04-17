@@ -1,0 +1,44 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__evt__pawr__advertiser__subevent__data__request" kind="group">
+    <compoundname>sl_bt_evt_pawr_advertiser_subevent_data_request</compoundname>
+    <title>sl_bt_evt_pawr_advertiser_subevent_data_request</title>
+    <innerclass refid="structsl__bt__evt__pawr__advertiser__subevent__data__request__s" prot="public">sl_bt_evt_pawr_advertiser_subevent_data_request_s</innerclass>
+      <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="group__sl__bt__evt__pawr__advertiser__subevent__data__request_1ga319f24bacbce2e3deef396a4000aec11" prot="public" static="no">
+        <type>struct <ref refid="structsl__bt__evt__pawr__advertiser__subevent__data__request__s" kindref="compound">sl_bt_evt_pawr_advertiser_subevent_data_request_s</ref></type>
+        <definition>typedef struct sl_bt_evt_pawr_advertiser_subevent_data_request_s sl_bt_evt_pawr_advertiser_subevent_data_request_t</definition>
+        <argsstring></argsstring>
+        <name>sl_bt_evt_pawr_advertiser_subevent_data_request_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="5813" column="64" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="5813" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__evt__pawr__advertiser__subevent__data__request_1gad9db69072ff8217260505f4d9c977214" prot="public" static="no">
+        <name>sl_bt_evt_pawr_advertiser_subevent_data_request_id</name>
+        <initializer>0x005500a0</initializer>
+        <briefdescription>
+<para>Identifier of the subevent_data_request event. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="5799" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="5799" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>This event is triggered to indicate that the Bluetooth stack is ready to accept data for the specified subevents of the PAwR train. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>To ensure effective use of the available memory, applications are encouraged to observe these events and set data using <ref refid="group__sl__bt__pawr__advertiser_1ga2d3e76e947a9678ebe4601c8b90be914" kindref="member">sl_bt_pawr_advertiser_set_subevent_data</ref> for the subevents that are being requested and for which the application has data to send</para>
+<para>If the application has no data to send, it does not need to call <ref refid="group__sl__bt__pawr__advertiser_1ga2d3e76e947a9678ebe4601c8b90be914" kindref="member">sl_bt_pawr_advertiser_set_subevent_data</ref> for that subevent. The application can attempt to set data for that subevent later when the application has new data to send. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

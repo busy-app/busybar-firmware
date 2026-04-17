@@ -1,0 +1,244 @@
+id: "sl_rail_sdk_packet_assistant"
+label: "Packet Assistant"
+package: "rail_sdk"
+description: >
+  This component is a versatile radio interface layer designed to support both
+  proprietary and standards-based wireless protocols. It empowers developers by
+  providing an intuitive and easily-customizable radio interface. The component
+  offers a consistent radio API. This ensures application portability and
+  simplifies complex radio register configurations.
+category: "RAIL-SDK|Utility"
+quality: "production"
+metadata:
+  sbom:
+    license: Zlib
+root_path: "rail_sdk/component/sl_rail_sdk_packet_assistant"
+provides:
+- name: sl_rail_sdk_packet_assistant
+
+requires:
+- name: sl_rail_sdk_packet_asm
+- name: device_has_radio
+- name: restrictions_profile_wisun_fan_1_0
+- name: restrictions_profile_wisun_fan_1_1
+- name: restrictions_profile_wisun_han
+- name: restrictions_profile_wisun_ofdm
+- name: restrictions_profile_sun
+- name: restrictions_profile_ieee802154_bpsk
+
+# according to standards the packet assembler is chosen.
+source:
+- path: "sl_rail_sdk_packet_assistant.c"
+- path: "sl_rail_sdk_packet_assistant_cli.c"
+  condition:
+  - "cli"
+include:
+- path: "."
+  file_list:
+  - "path": "sl_rail_sdk_packet_assistant.h"
+
+config_file:
+- path: config/sl_rail_sdk_packet_assistant_config.h
+
+#-------------- Template Contribution ----------------
+template_contribution:
+#---------------- Component Catalog ------------------
+- name: component_catalog
+  value: rail_packet_assistant
+
+- name: "cli_group"
+  value:
+    name: "packet_assistant"
+    help: "Packet assistant commands"
+    shortcuts:
+    - name: "pa"
+
+- name: cli_command
+  value:
+    group: "packet_assistant"
+    name: get_print_packet_info
+    handler: cli_get_print_packet_info
+    help: "Get the print setting"
+  condition:
+  - "cli"
+- name: cli_command
+  value:
+    group: "packet_assistant"
+    name: set_print_packet_info
+    handler: cli_set_print_packet_info
+    help: "Set the print setting"
+    argument:
+    - type: uint8
+      help: "ON/OFF"
+  condition:
+  - "cli"
+- name: cli_command
+  value:
+    group: "packet_assistant"
+    name: get_wisun_fsk_fcs
+    handler: cli_get_wisun_fsk_fcs
+    help: "Get the wisun fsk fcs setting"
+  condition:
+  - "cli"
+  - "device_supports_wisun"
+- name: cli_command
+  value:
+    group: "packet_assistant"
+    name: set_wisun_fsk_fcs
+    handler: cli_set_wisun_fsk_fcs
+    help: "Set the wisun fsk rate setting"
+    argument:
+    - type: uint8
+      help: "ON/OFF"
+  condition:
+  - "cli"
+  - "device_supports_wisun"
+- name: cli_command
+  value:
+    group: "packet_assistant"
+    name: get_wisun_fsk_whitening
+    handler: cli_get_wisun_fsk_whitening
+    help: "Get the wisun fsk whitening setting"
+  condition:
+  - "cli"
+  - "device_supports_wisun"
+- name: cli_command
+  value:
+    group: "packet_assistant"
+    name: set_wisun_fsk_whitening
+    handler: cli_set_wisun_fsk_whitening
+    help: "Set the wisun fsk whitening setting"
+    argument:
+    - type: uint8
+      help: "ON/OFF"
+  condition:
+  - "cli"
+  - "device_supports_wisun"
+- name: cli_command
+  value:
+    group: "packet_assistant"
+    name: get_wisun_ofdm_scrambler
+    handler: cli_get_wisun_ofdm_scrambler
+    help: "Get the ofdm scrambler setting"
+  condition:
+  - "cli"
+  - "device_generic_family_efr32xg25"
+- name: cli_command
+  value:
+    group: "packet_assistant"
+    name: set_wisun_ofdm_scrambler
+    handler: cli_set_wisun_ofdm_scrambler
+    help: "Set the ofdm scrambler setting, 2 bits wide (0-3)"
+    argument:
+    - type: uint8
+      help: "scrambler value"
+  condition:
+  - "cli"
+  - "device_generic_family_efr32xg25"
+- name: cli_command
+  value:
+    group: "packet_assistant"
+    name: get_wisun_ofdm_rate
+    handler: cli_get_wisun_ofdm_rate
+    help: "Get the ofdm rate setting"
+  condition:
+  - "cli"
+  - "device_generic_family_efr32xg25"
+- name: cli_command
+  value:
+    group: "packet_assistant"
+    name: set_wisun_ofdm_rate
+    handler: cli_set_wisun_ofdm_rate
+    help: "Set the ofdm rate setting"
+    argument:
+    - type: uint8
+      help: "rate value 0-6"
+  condition:
+  - "cli"
+  - "device_generic_family_efr32xg25"
+- name: cli_command
+  value:
+    group: "packet_assistant"
+    name: get_sun_oqpsk_spreading_mode
+    handler: cli_get_sun_oqpsk_spreading_mode
+    help: "Get the wisun OQPSK spreading mode setting"
+  condition:
+  - "cli"
+  - "device_supports_wisun"
+- name: cli_command
+  value:
+    group: "packet_assistant"
+    name: set_sun_oqpsk_spreading_mode
+    handler: cli_set_sun_oqpsk_spreading_mode
+    help: "Set the wisun OQPSK spreading mode setting"
+    argument:
+    - type: uint8
+      help: "ON/OFF"
+  condition:
+  - "cli"
+  - "device_supports_wisun"
+- name: cli_command
+  value:
+    group: "packet_assistant"
+    name: get_sun_oqpsk_rate_mode
+    handler: cli_get_sun_oqpsk_rate_mode
+    help: "Get the wisun OQPSK rate mode setting"
+  condition:
+  - "cli"
+  - "device_supports_wisun"
+- name: cli_command
+  value:
+    group: "packet_assistant"
+    name: set_sun_oqpsk_rate_mode
+    handler: cli_set_sun_oqpsk_rate_mode
+    help: "Set the wisun OQPSK rate mode setting"
+    argument:
+    - type: uint8
+      help: "value to set data rates and robustness levels (2 bit wide: 0-3)"
+  condition:
+  - "cli"
+  - "device_supports_wisun"
+- name: cli_command
+  value:
+    group: "packet_assistant"
+    name: get_sidewalk_fcs_type
+    handler: cli_get_sidewalk_fcs_type
+    help: "Get the Sidewalk fsk fcs setting"
+  condition:
+  - "cli"
+- name: cli_command
+  value:
+    group: "packet_assistant"
+    name: set_sidewalk_fcs_type
+    handler: cli_set_sidewalk_fcs_type
+    help: "Set the Sidewalk fsk rate setting"
+    argument:
+    - type: uint8
+      help: "ON/OFF"
+  condition:
+  - "cli"
+- name: cli_command
+  value:
+    group: "packet_assistant"
+    name: get_sidewalk_whitening
+    handler: cli_get_sidewalk_whitening
+    help: "Get the Sidewalk whitening setting"
+  condition:
+  - "cli"
+- name: cli_command
+  value:
+    group: "packet_assistant"
+    name: set_sidewalk_whitening
+    handler: cli_set_sidewalk_whitening
+    help: "Set the Sidewalk whitening setting"
+    argument:
+    - type: uint8
+      help: "ON/OFF"
+  condition:
+  - "cli"
+- name: event_handler
+  value:
+    event: internal_app_init
+    include: "sl_rail_sdk_packet_assistant.h"
+    handler: "validation_check"
+  priority: 1000

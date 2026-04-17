@@ -1,0 +1,85 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="structsl__bt__evt__linklayer__event__info__report__s" kind="struct" language="C++" prot="public">
+    <compoundname>sl_bt_evt_linklayer_event_info_report_s</compoundname>
+    <includes refid="sl__bt__api_8h" local="no">sl_bt_api.h</includes>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structsl__bt__evt__linklayer__event__info__report__s_1aafa964e7d56c99c0f953a45fe3b642b8" prot="public" static="no" mutable="no">
+        <type>uint32_t</type>
+        <definition>uint32_t sl_bt_evt_linklayer_event_info_report_s::configuration</definition>
+        <argsstring></argsstring>
+        <name>configuration</name>
+        <qualifiedname>sl_bt_evt_linklayer_event_info_report_s::configuration</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Bitmask to specify the event info reporting configuration. See the link layer documentation of HCI_VS_Siliconlabs_Event_Info_Reporting_Enable for detailed description of each bit. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="1754" column="14" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="1754" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__linklayer__event__info__report__s_1a839f5dc264eab5ed8d63ef0f591c7589" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_linklayer_event_info_report_s::procedure_type</definition>
+        <argsstring></argsstring>
+        <name>procedure_type</name>
+        <qualifiedname>sl_bt_evt_linklayer_event_info_report_s::procedure_type</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>The type of the procedure that is reporting an event. See the link layer documentation of HCI_VS_Siliconlabs_Event_Info_Reporting_Enable for detailed description of available procedure types. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="1759" column="14" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="1759" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__linklayer__event__info__report__s_1a9454584a3a08e929bd04ae89a2dea440" prot="public" static="no" mutable="no">
+        <type><ref refid="structuint8array" kindref="compound">uint8array</ref></type>
+        <definition>uint8array sl_bt_evt_linklayer_event_info_report_s::data</definition>
+        <argsstring></argsstring>
+        <name>data</name>
+        <qualifiedname>sl_bt_evt_linklayer_event_info_report_s::data</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>A variable-length byte array that consists of the following parameters in the specified order:<itemizedlist>
+<listitem><para><computeroutput>procedure_identifier_length</computeroutput> (1 byte)</para>
+</listitem><listitem><para><computeroutput>procedure_identifier</computeroutput> (<computeroutput>procedure_identifier_length</computeroutput> * 1 byte)</para>
+</listitem><listitem><para><computeroutput>event_info_length</computeroutput> (1 byte)</para>
+</listitem><listitem><para><computeroutput>event_info</computeroutput> (<computeroutput>event_info_length</computeroutput> * 1 byte)</para>
+</listitem></itemizedlist>
+</para>
+<para>The length of <computeroutput>data</computeroutput> must be (2 + <computeroutput>procedure_identifier_length</computeroutput> + <computeroutput>event_info_length</computeroutput>) bytes. See the link layer documentation of HCI_VS_Siliconlabs_Event_Info_Report for a detailed description of the parameters. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="1764" column="14" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="1764" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Data structure of the event_info_report event. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>sl_bt_evt_linklayer_event_info_report_s</label>
+        <link refid="structsl__bt__evt__linklayer__event__info__report__s"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>data</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>uint8array</label>
+        <link refid="structuint8array"/>
+      </node>
+    </collaborationgraph>
+    <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="1752" column="1" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="1753" bodyend="1780"/>
+    <listofallmembers>
+      <member refid="structsl__bt__evt__linklayer__event__info__report__s_1aafa964e7d56c99c0f953a45fe3b642b8" prot="public" virt="non-virtual"><scope>sl_bt_evt_linklayer_event_info_report_s</scope><name>configuration</name></member>
+      <member refid="structsl__bt__evt__linklayer__event__info__report__s_1a9454584a3a08e929bd04ae89a2dea440" prot="public" virt="non-virtual"><scope>sl_bt_evt_linklayer_event_info_report_s</scope><name>data</name></member>
+      <member refid="structsl__bt__evt__linklayer__event__info__report__s_1a839f5dc264eab5ed8d63ef0f591c7589" prot="public" virt="non-virtual"><scope>sl_bt_evt_linklayer_event_info_report_s</scope><name>procedure_type</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

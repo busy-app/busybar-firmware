@@ -1,0 +1,425 @@
+project_name: connect_soc_mac_mode_device
+label: "Connect - SoC MAC Mode Device"
+package: "connect_sdk_sample_app"
+description: >
+  This sample application offers a command-line interface (CLI) that facilitates
+  network formation and joining. Users can create new networks or connect to
+  existing ones. Additionally, the app enables data transmission between nodes
+  using either short or long addresses.
+category: Connect Examples
+quality: production
+
+#---------------- UC/UP components -------------------
+component:
+  - id: radio_config_simple_connect_singlephy
+  - id: sl_main
+  - id: clock_manager
+  - id: device_init
+  - id: board_control
+    condition: [hardware_board]
+  - id: connect_app_framework_common
+  - id: sl_rail_util_pti
+#-----------------MAC mode needs ---------------------
+  - id: connect_psa_security_library
+  - id: connect_mac_queue
+  - id: connect_parent_support
+  - id: connect_stack_counters
+  - id: connect_poll
+  - id: printf
+  - id: iostream_recommended_stream
+  - id: iostream_retarget_stdio
+  - id: cli
+    instance:
+    - example
+  - id: app_log
+  - id: app_assert
+  - id: token_manager
+#------------Memory Protection Unit-------------------
+  - id: mpu
+#-------------- Restriction rules -------------------
+  - id: restrictions_profile_connect
+  - id: restrictions_profile_connect_ofdm
+  - id: restrictions_profile_long_range
+#-------------- Connect-RAIL DMP --------------------
+  - id: rail_lib_multiprotocol
+    condition:
+      - sl_connect_rail_dmp
+  - id: sl_rail_util_init
+    instance:
+      - inst0
+    condition:
+      - sl_connect_rail_dmp
+#----------------- Require list ----------------------
+requires:
+  - name: a_radio_config
+  - name: radio_config_simple_connect_singlephy_device_family_fgm23
+    condition:
+      - "device_family_fgm23"
+
+#----------------- Project files ---------------------
+include:
+  - path: .
+    file_list:
+    - path: app_init.h
+    - path: app_process.h
+    - path: app_common.h
+
+source:
+  - path: app_init.c
+  - path: app_process.c
+  - path: app_cli.c
+
+other_file:
+  - path: "../../script/connect_create_gbl_image.bat"
+  - path: "../../script/connect_create_gbl_image.sh"
+  - path: "hw_filter_tags.yaml"
+    condition:
+      - "add_hw_filter_to_project"
+
+readme:
+  - path: ../../documentation/example/connect_soc_mac_mode_device/readme.md
+
+#------------ Configuration overrides ----------------
+configuration:
+#------------ RAIL init, Channel Config --------------
+  - name: SL_BOARD_ENABLE_VCOM
+    value: "1"
+  - name: SL_CLI_LOCAL_ECHO
+    value: "(1)"
+  - name: SL_IOSTREAM_USART_VCOM_CONVERT_BY_DEFAULT_LF_TO_CRLF
+    value: "(1)"
+  - name: SL_IOSTREAM_USART_VCOM_FLOW_CONTROL_TYPE
+    value: "usartHwFlowControlCtsAndRts"
+  - name: SL_IOSTREAM_EUSART_VCOM_CONVERT_BY_DEFAULT_LF_TO_CRLF
+    value: "(1)"
+  - name: SL_IOSTREAM_EUSART_VCOM_FLOW_CONTROL_TYPE
+    value: "SL_IOSTREAM_EUSART_UART_FLOW_CTRL_CTS_RTS"
+  - name: SL_CLI_MAX_INPUT_ARGUMENTS
+    value: "(9)"
+  - name: APP_LOG_PREFIX_ENABLE
+    value: "0"
+  - name: "SL_STACK_SIZE"
+    value: "8192"
+#-------------- Connect-RAIL DMP --------------------
+  - name: "SL_RAIL_UTIL_INIT_INIT_COMPLETE_CALLBACK_INST0_ENABLE"
+    value: "1"
+    condition:
+      - "sl_connect_rail_dmp"
+  - name: "SL_RAIL_UTIL_INIT_RX_PACKET_QUEUE_INST0_ENTRIES"
+    value: "16"
+    condition:
+      - "sl_connect_rail_dmp"
+  - name: "SL_RAIL_UTIL_INIT_RX_FIFO_INST0_BYTES"
+    value: "128"
+    condition:
+      - "sl_connect_rail_dmp"
+  - name: "SL_RAIL_UTIL_INIT_TX_FIFO_INST0_BYTES"
+    value: "128"
+    condition:
+      - "sl_connect_rail_dmp"
+  - name: "SL_RAIL_UTIL_INIT_PROTOCOL_INST0_DEFAULT"
+    value: "SL_RAIL_UTIL_PROTOCOL_PROPRIETARY"
+    condition:
+      - "sl_connect_rail_dmp"
+  - name: "SL_RAIL_UTIL_INIT_PROTOCOL_PROPRIETARY_INST0_INDEX"
+    value: "1"
+    condition:
+      - "sl_connect_rail_dmp"
+  - name: "SL_RAIL_UTIL_INIT_TRANSITION_INST0_RX_SUCCESS"
+    value: "RAIL_RF_STATE_RX"
+    condition:
+      - "sl_connect_rail_dmp"
+  - name: "SL_RAIL_UTIL_INIT_TRANSITION_INST0_RX_ERROR"
+    value: "RAIL_RF_STATE_RX"
+    condition:
+      - "sl_connect_rail_dmp"
+  - name: "SL_RAIL_UTIL_INIT_EVENTS_INST0_ENABLE"
+    value: "1"
+    condition:
+      - "sl_connect_rail_dmp"
+  - name: "SL_RAIL_UTIL_INIT_EVENT_RX_PACKET_RECEIVED_INST0_ENABLE"
+    value: "1"
+    condition:
+      - "sl_connect_rail_dmp"
+  - name: "SL_RAIL_UTIL_INIT_EVENT_RX_FRAME_ERROR_INST0_ENABLE"
+    value: "1"
+    condition:
+      - "sl_connect_rail_dmp"
+  - name: "SL_RAIL_UTIL_INIT_EVENT_RX_PACKET_ABORTED_INST0_ENABLE"
+    value: "1"
+    condition:
+      - "sl_connect_rail_dmp"
+  - name: "SL_RAIL_UTIL_INIT_EVENT_RX_TIMEOUT_INST0_ENABLE"
+    value: "1"
+    condition:
+      - "sl_connect_rail_dmp"
+  - name: "SL_RAIL_UTIL_INIT_EVENT_TX_PACKET_SENT_INST0_ENABLE"
+    value: "1"
+    condition:
+      - "sl_connect_rail_dmp"
+  - name: "SL_RAIL_UTIL_INIT_EVENT_TX_ABORTED_INST0_ENABLE"
+    value: "1"
+    condition:
+      - "sl_connect_rail_dmp"
+  - name: "SL_RAIL_UTIL_INIT_EVENT_TX_BLOCKED_INST0_ENABLE"
+    value: "1"
+    condition:
+      - "sl_connect_rail_dmp"
+  - name: "SL_RAIL_UTIL_INIT_EVENT_TX_STARTED_INST0_ENABLE"
+    value: "1"
+    condition:
+      - "sl_connect_rail_dmp"
+  - name: "SL_RAIL_UTIL_INIT_EVENT_SCHEDULER_STATUS_INST0_ENABLE"
+    value: "1"
+    condition:
+      - "sl_connect_rail_dmp"
+  - name: "SL_RAIL_UTIL_INIT_PROTOCOLS_INST0_ENABLE"
+    value: "1"
+    condition:
+      - "sl_connect_rail_dmp"
+  - name: "SL_RAIL_UTIL_INIT_RADIO_CONFIG_SUPPORT_INST0_ENABLE"
+    value: "1"
+    condition:
+      - "sl_connect_rail_dmp"
+  - name: "SL_RAIL_UTIL_INIT_CALIBRATIONS_INST0_ENABLE"
+    value: "1"
+    condition:
+      - "sl_connect_rail_dmp"
+  - name: "SL_RAIL_UTIL_INIT_TRANSITIONS_INST0_ENABLE"
+    value: "0"
+    condition:
+      - "sl_connect_rail_dmp"
+  - name: "SL_RAIL_UTIL_CALLBACKS_ASSERT_FAILED_OVERRIDE"
+    value: "0"
+    condition:
+      - "sl_connect_rail_dmp"
+
+define:
+  - name: SL_CONNECT_DISABLE_WATCHDOG
+
+#--------------------- HWFILTER ------------------------
+tag:
+  - hwfilter:board:hardware:has:vcom
+  - hwfilter:board:hardware:has:pti
+  - hwfilter:ram:33k
+  - hwfilter:flash:245k
+
+#-------------- Template Contribution ----------------
+template_contribution:
+#------------------ CLI commands ---------------------
+  - name: cli_command
+    value:
+      name: start_active_scan
+      handler: cli_start_active_scan
+      help: "Start active scanning on selected channel"
+      argument:
+      - type: uint16
+        help: "Selected channel"
+
+  - name: cli_command
+    value:
+      name: commission
+      handler: cli_commission
+      help: "Commission node parameters"
+      argument:
+      - type: uint8
+        help: "Node type"
+      - type: uint16
+        help: "Node id"
+      - type: uint16
+        help: "Pan id"
+      - type: int16
+        help: "Radio TX power"
+      - type: uint16
+        help: "Radio channel"
+
+  - name: cli_command
+    value:
+      name: start_energy_scan
+      handler: cli_start_energy_scan
+      help: "Start energy scanning on the given channel with samples (num)"
+      argument:
+      - type: uint16
+        help: "Channel to scan"
+      - type: uint8
+        help: "Samples"
+
+  - name: cli_command
+    value:
+      name: form
+      handler: cli_form
+      help: "Form network"
+      argument:
+      - type: uint16
+        help: "Pan id"
+      - type: int16
+        help: "Radio TX power"
+      - type: uint16
+        help: "Radio channel"
+
+  - name: cli_command
+    value:
+      name: info
+      handler: cli_info
+      help: "List network and device params"
+
+  - name: cli_command
+    value:
+      name: join
+      handler: cli_join_network
+      help: "Start to join network"
+      argument:
+      - type: uint8
+        help: "Node type"
+      - type: uint16
+        help: "Pan id"
+      - type: int16
+        help: "Radio TX power"
+      - type: uint16
+        help: "Radio channel"
+      - type: uint8
+        help: "Use long addressing"
+
+  - name: cli_command
+    value:
+      name: leave
+      handler: cli_leave
+      help: "Leave current network, reset states"
+
+  - name: cli_command
+    value:
+      name: pjoin
+      handler: cli_set_permit_join
+      help: "Permit join set with duration"
+      argument:
+      - type: uint8
+        help: "Duration"
+
+  - name: cli_command
+    value:
+      name: poll
+      handler: cli_poll
+      help: "Get poll status"
+
+  - name: cli_command
+    value:
+      name: purge_indirect
+      handler: cli_purge_indirect
+      help: "Indirect purge"
+
+  - name: cli_command
+    value:
+      name: reset
+      handler: cli_reset
+      help: "Reset device"
+
+  - name: cli_command
+    value:
+      name: send
+      handler: cli_send
+      help: "Send message"
+      argument:
+      - type: uint16
+        help: "MAC frame info"
+      - type: uint16
+        help: "Short Source id"
+      - type: hex
+        help: "Source long address"
+      - type: uint16
+        help: "Short Destination id"
+      - type: hex
+        help: "Destination long address"
+      - type: uint16
+        help: "Source pan id"
+      - type: uint16
+        help: "Destination pan id"
+      - type: hex
+        help: "Message"
+
+  - name: cli_command
+    value:
+      name: set_beacon_payload
+      handler: cli_set_beacon_payload
+      help: "Set beacon payload"
+      argument:
+      - type: hex
+        help: "Payload"
+
+  - name: cli_command
+    value:
+      name: set_channel
+      handler: cli_set_channel
+      help: "Radio channel set"
+      argument:
+      - type: uint16
+        help: "Channel"
+
+  - name: cli_command
+    value:
+      name: set_key
+      handler: cli_set_security_key
+      help: "Set security key"
+      argument:
+      - type: hex
+        help: "Security key (size:EMBER_ENCRYPTION_KEY_SIZE)"
+
+  - name: cli_command
+    value:
+      name: unset_key
+      handler: cli_unset_security_key
+      help: "Unset current security key"
+
+  - name: cli_command
+    value:
+      name: set_options
+      handler: cli_set_options
+      help: "Set options"
+      argument:
+      - type: uint8
+        help: "TX options"
+
+  - name: cli_command
+    value:
+      name: set_poll_dest
+      handler: cli_set_poll_destination
+      help: "Set Poll Destination"
+      argument:
+      - type: uint16
+        help: "Destination short address"
+      - type: hex
+        help: "Destination long address"
+
+  - name: cli_command
+    value:
+      name: set_security_mapping
+      handler: set_security_mapping_command
+      help: "The command fills up the Long address table to be able to use secure packets for communications later"
+      argument:
+      - type: uint16
+        help: "Short Address"
+      - type: hex
+        help: "Long Address"
+
+  - name: cli_command
+    value:
+      name: clear_security_mappings
+      handler: clear_security_mappings_command
+      help: "The command clears the Long address table used for secure packet communications"
+
+#--------------------- Toolchain ------------------------
+toolchain_settings:
+  - option: optimize
+    value: debug
+
+ui_hints:
+  highlight:
+    - path: readme.md
+      focus: true
+
+filter:
+  - name: "Wireless Technology"
+    value: ["Connect"]
+  - name: "Device Type"
+    value: ["SoC"]
+  - name: "Project Difficulty"
+    value: ["Beginner"]

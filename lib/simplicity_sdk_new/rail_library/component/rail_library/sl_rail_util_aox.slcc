@@ -1,0 +1,71 @@
+id: sl_rail_util_aox
+label: RAIL Utility, AoX (RAIL 3)
+description: Utility to aid with Angle of Arrival/Departure (AoX) Configuration
+package: rail_library
+category: Platform|Radio
+quality: production
+metadata:
+  sbom:
+    id: sl_rail_util_aox
+    name: RAIL Utility, AoX (RAIL 3)
+    license: Zlib
+documentation:
+  docset: rail
+  document: rail-api/rail-util-aox
+provides:
+- name: sl_rail_util_aox
+- name: rail_util_aox
+requires:
+- name: gpio
+- name: rail_lib
+- name: device_supports_bluetooth_cte
+- name: component_catalog
+config_file:
+- path: plugin/sl_rail_util_aox/config/efr32xg22/sl_rail_util_aox_config.h
+  file_id: rail_util_aox_config
+  condition:
+  - device_series_2
+  - device_sdid_205
+- path: plugin/sl_rail_util_aox/config/efr32xg24/sl_rail_util_aox_config.h
+  file_id: rail_util_aox_config
+  condition:
+  - device_series_2
+  - device_sdid_215
+- path: plugin/sl_rail_util_aox/config/efr32xg26/sl_rail_util_aox_config.h
+  file_id: rail_util_aox_config
+  condition:
+  - device_series_2
+  - device_sdid_225
+- path: plugin/sl_rail_util_aox/config/efr32xg27/sl_rail_util_aox_config.h
+  file_id: rail_util_aox_config
+  condition:
+  - device_series_2
+  - device_sdid_230
+- path: plugin/sl_rail_util_aox/config/efr32xg29/sl_rail_util_aox_config.h
+  file_id: rail_util_aox_config
+  condition:
+  - device_series_2
+  - device_sdid_240
+- path: plugin/sl_rail_util_aox/config/sixg301/sl_rail_util_aox_config.h
+  file_id: rail_util_aox_config
+  condition:
+  - device_series_3
+  - device_generic_family_sixx301
+include:
+- path: plugin/sl_rail_util_aox
+  file_list:
+  - path: sl_rail_util_aox.h
+source:
+- path: plugin/sl_rail_util_aox/sl_rail_util_aox.c
+template_contribution:
+- name: event_handler
+  value:
+    event: stack_init
+    include: sl_rail_util_aox.h
+    handler: sl_rail_util_aox_init
+  priority: -9010
+- name: component_catalog
+  value: sl_rail_util_aox
+- name: component_catalog
+  value: rail_util_aox
+root_path: rail_library

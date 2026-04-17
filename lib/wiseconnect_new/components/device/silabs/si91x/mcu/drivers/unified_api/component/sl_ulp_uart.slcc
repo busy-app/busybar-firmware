@@ -1,0 +1,43 @@
+id: sl_ulp_uart
+label: ULP_UART
+package: platform_siwx91x
+description: >
+  ULP UART stands for Ultra Low Power Universal Asynchronous Receiver/Transmitter. It is a communication protocol 
+  used for serial communication between devices. It is used to exchange data between microcontrollers,
+  sensors, and other peripherals. It supports half and full duplex communicationwith TX(transmitter) and 
+  RX(Receiving) lines. 
+  Configurable parameters in ULP UART:
+    - Baud Rate
+    - Data Width
+
+  Note: When utilizing the ULP UART instance in high power mode with DMA enabled, it is advisable to allocate buffers in the ULP Memory block. 
+  For further details on buffer allocation, please refer to the ULP UART example.
+category: Device|Si91x|MCU|Peripheral
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: "components/device/silabs/si91x/mcu/drivers/unified_api"
+config_file:
+  - path: config/sl_si91x_ulp_uart_config.h
+  - path: config/sl_si91x_ulp_uart_common_config.h
+    file_id: ulp_uart_config
+source:
+  - path: "src/sl_si91x_usart.c"
+include:
+  - path: "inc"
+    file_list:
+    - path: "sl_si91x_usart.h"  
+provides:
+  - name: sl_ulp_uart
+define:
+  - name: SL_SI91X_USART_DMA
+  - name: SL_SI91X_DMA
+  - name: ULP_UART_MODULE
+  - name: SL_SI91X_ULP_UART
+requires:
+  - name: udma_linker_config
+  - name: sl_dma
+documentation:
+    docset: wiseconnect
+    document: wiseconnect-api-reference-guide-si91x-peripherals/usart

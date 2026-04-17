@@ -1,0 +1,25 @@
+id: dst_ulp_component
+label: PM UULP Deep Sleep Timer
+package: platform_siwx91x
+description: >
+  ULP DST component will enable DST in the low-power mode. 
+  It moves all the peripheral dependencies to RAM. 
+  It also installs the peripheral component if already not installed.
+category: Device|Si91x|MCU|Service|Power Manager|UULP Wakeup Sources
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+provides:
+  - name: dst_ulp_component
+
+template_contribution:
+  - name: wakeup
+    value: 
+      event: wakeup_init
+      function:
+        name: sli_si91x_power_manager_dst_init
+        return: sl_status_t
+      include:
+        name: rsi_ds_timer.h
+    priority: -5000

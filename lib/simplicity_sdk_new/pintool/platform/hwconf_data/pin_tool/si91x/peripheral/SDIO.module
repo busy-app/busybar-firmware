@@ -1,0 +1,28 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<module:DocumentRoot xmlns:module="http://www.silabs.com/ss/hwconfig/module.ecore">
+  <module id="pin_tool.wfm.si91x.sdio" label="SDIO" name="SDIO" description="" version="A">
+    <properties>
+      <stringProperty label="Type" id="type" defaultValue="sdio" transient="true" hidden="true" readonly="true" description=""/>
+      <stringProperty label="Custom Peripheral Name" id="peripheral.name" description=""/>
+    </properties>
+    <propertyCategories>
+      <category label="SDIO">
+        <subCategory label="">
+          <propertyRef refId="peripheral.name"/>
+        </subCategory>
+      </category>
+    </propertyCategories>
+    <signals>
+      <signal name="SDIO_CLK"/>
+      <signal name="SDIO_CMD"/>
+      <signal name="SDIO_D0"/>
+      <signal name="SDIO_D1"/>
+      <signal name="SDIO_D2"/>
+      <signal name="SDIO_D3"/>
+      <signal name="JTAG_TCK_SWCLK"/>
+      <signal name="JTAG_TDI"/>
+      <signal name="JTAG_TMS_SWDIO"/>
+      <signal name="JTAG_TDO_SWO"/>
+    </signals>
+  </module>
+</module:DocumentRoot>

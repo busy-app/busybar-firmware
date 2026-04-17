@@ -1,0 +1,114 @@
+id: zigbee_host_framework_common
+label: Host Framework Common
+package: zigbee
+category: Zigbee
+quality: production
+description: This component declares all the required application framework globals, initializes the Zigbee stack and dispatches stack callbacks calls as needed to the application components.
+
+provides:
+- name: zigbee_host_framework_common
+requires:
+- name: zigbee_device_config
+- name: endianness
+- name: byte_utilities
+
+source:
+- path: app/framework/util/af-host.c
+- path: app/framework/common/sl_zigbee_system_common.c
+- path: app/framework/common/zigbee_app_framework_host_cb.c
+- path: app/util/security/security-address-cache-host.c
+- path: app/framework/util/service-discovery-host.c
+- path: app/util/zigbee-framework/zigbee-device-host.c
+
+include:
+- path: app/framework/common
+  file_list:
+  - path: sl_zigbee_system_common.h
+  - path: zigbee_app_framework_event.h
+  - path: zigbee_app_framework_callback.h
+- path: stack/include
+  file_list:
+  - path: aes-mmo.h
+  - path: binding-table.h
+  - path: bootload.h
+  - path: cbke-crypto-engine.h
+  - path: child.h
+  - path: sl_zigbee_alternate_mac.h
+  - path: sl_zigbee_debug.h
+  - path: sl_zigbee_dhc.h
+  - path: sl_zigbee_duty_cycle.h
+  - path: sl_zigbee_random_api.h
+  - path: gp-types.h
+  - path: library.h
+  - path: mac-layer.h
+  - path: message.h
+  - path: multi-network.h
+  - path: multi-phy.h
+  - path: network-formation.h
+  - path: raw-message.h
+  - path: source-route.h
+  - path: stack-info.h
+  - path: trust-center.h
+  - path: zigbee-device-stack.h
+  - path: zll-api.h
+  - path: zll-types.h
+- path: stack
+  file_list:
+  - path: config/config.h
+  - path: config/sl_zigbee_configuration_defaults.h
+  # TODO These should be treated as internal headers, see EMZIGBEE-6706
+- path: platform/radio/mac
+  file_list:
+  - path: mac-child.h
+  - path: mac-flat-header.h
+  - path: mac-header.h
+  - path: mac-packet-header.h
+  - path: mac-types.h
+  - path: mac-phy.h
+  - path: lower-mac-common.h
+- path: util/silicon_labs/silabs_core/
+  file_list:
+  - path: buffer_manager/legacy-packet-buffer.h
+  - path: buffer_manager/buffer-queue.h
+  - path: buffer_manager/buffer-management.h
+  - path: event_queue/event-queue.h
+
+define:
+- name: USE_ZAP_CONFIG
+  value: '1'
+
+template_file:
+- path: app/framework/common/template/zigbee_stack_callback_dispatcher.h.jinja
+- path: app/framework/common/template/zigbee_stack_callback_dispatcher.c.jinja
+- path: app/framework/common/template/zigbee_common_callback_dispatcher.h.jinja
+- path: app/framework/common/template/zigbee_common_callback_dispatcher.c.jinja
+- path: app/framework/common/template/zigbee_host_callback_dispatcher.h.jinja
+- path: app/framework/common/template/zigbee_host_callback_dispatcher.c.jinja
+template_contribution:
+- name: component_catalog
+  value: zigbee_system_common
+- name: event_handler
+  value:
+    event: stack_init
+    include: sl_zigbee_system_common.h
+    handler: sli_zigbee_app_framework_init_callback
+  priority: -8998
+- name: event_handler
+  value:
+    event: stack_process_action
+    include: sl_zigbee_system_common.h
+    handler: sli_zigbee_app_framework_tick_callback
+- name: zigbee_af_callback
+  value:
+    callback_type: tick
+    function_name: sli_zigbee_af_host_framework_tick
+  priority: -10000
+
+
+documentation:
+  docset: zigbee
+  document: zigbee-af-api/host-framework-common
+metadata:
+  sbom:
+    license: MSLA
+root_path: zigbee

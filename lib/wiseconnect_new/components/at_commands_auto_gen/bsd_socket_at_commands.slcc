@@ -1,0 +1,121 @@
+id: bsd_socket_at_commands
+package: wifi
+description: >
+  BSD socket AT commands
+category: Service| AT Commands Autogen| BSD socket AT commands
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+component_root_path: ./components/at_commands_auto_gen
+provides:
+  - name: bsd_socket_at_commands
+
+requires:
+  - name: bsd_socket
+  - name: sl_si91x_socket
+  - name: sl_si91x_asynchronous_socket
+
+template_contribution:
+  - name: console_headers
+    value: "socket.h"
+  - name: console_enums
+    value:
+      bsd_socket_family:
+        AF_INET: 2
+        AF_INET6: 24
+      bsd_socket_type:
+        SOCK_STREAM: 1
+        SOCK_DGRAM: 2
+      bsd_socket_protocol:
+        IPPROTO_TCP: 6
+        IPPROTO_UDP: 17
+      socket_domain:
+        af_inet: 2
+        af_inet6: 0
+      socket_type:
+        stream: "SOCK_STREAM"
+        dgram: "SOCK_DGRAM"
+        raw: "SOCK_RAW"
+      socket_protocol:
+        ip_proto: "IPPROTO_IP"
+        ip_icmp: "IPPROTO_ICMP"
+        ip_tcp: "IPPROTO_TCP"
+        ip_udp: "IPPROTO_UDP"
+        ip_udp_lite: "IPPROTO_UDPLITE"
+        ip_raw: "IPPROTO_RAW"
+  - name: console_commands
+    value:
+      socket:
+        handler: bsd_socket_create_handler
+        description: "BSD socket creation"
+        arguments:
+          - "uint32"
+          - "uint32"
+          - "uint32"
+      bind:
+        handler: bsd_socket_bind_handler
+        description: "BSD socket bind"
+        arguments:
+          - "int32"
+          - "string"
+          - "uint16"
+          - "uint8"
+      listen:
+        handler: bsd_socket_listen_handler
+        description: "BSD socket listen"
+        arguments:
+          - "int32"
+          - "int32"
+      accept:
+        handler: bsd_socket_accept_handler
+        description: "BSD socket listen"
+        arguments:
+          - "int32"
+          - "uint8"
+      connect:
+        handler: bsd_socket_connect_handler
+        description: "BSD socket connect"
+        arguments:
+          - "int32"
+          - "string"
+          - "uint32"
+          - "uint16"
+      close:
+        handler: bsd_socket_close_handler
+        description: "BSD socket close"
+        arguments:
+          - "int32"
+      recv:
+        handler: bsd_socket_receive_from_handler
+        description: "BSD socket receive from"
+        arguments:
+          - "int32"
+          - "string"
+          - "uint16"
+          - "uint16"
+          - "int32"
+      send:
+        handler: bsd_socket_send_to_handler
+        description: "BSD socket send"
+        arguments:
+          - "int32"
+          - "string"
+          - "uint16"
+          - "uint16"
+          - "string"
+      select:
+        handler: bsd_socket_select_handler
+        description: "Select"
+        arguments:
+          - "int32"
+          - "int32"
+      setsockopt:
+        handler: bsd_socket_setsockopt_handler
+        description: "BSD get the socket options"
+        arguments:
+          - "int32"
+          - "int32"
+          - "int32"
+          - "string"
+          - "uint32"

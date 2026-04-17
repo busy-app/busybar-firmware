@@ -1,0 +1,65 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="structsl__si91x__chachapoly__key__config__a0__t" kind="struct" language="C++" prot="public">
+    <compoundname>sl_si91x_chachapoly_key_config_a0_t</compoundname>
+    <includes refid="sl__si91x__chachapoly_8h" local="no">sl_si91x_chachapoly.h</includes>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structsl__si91x__chachapoly__key__config__a0__t_1a5460db4e9d0f95fd55fcaafb18c56cc2" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_si91x_chachapoly_key_config_a0_t::key_chacha[SL_SI91X_KEY_BUFFER_SIZE]</definition>
+        <argsstring>[SL_SI91X_KEY_BUFFER_SIZE]</argsstring>
+        <name>key_chacha</name>
+        <qualifiedname>sl_si91x_chachapoly_key_config_a0_t::key_chacha</qualifiedname>
+        <briefdescription>
+<para>Buffer to store the ChaCha key. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/chachapoly/inc/sl_si91x_chachapoly.h" line="99" column="11" bodyfile="components/device/silabs/si91x/wireless/crypto/chachapoly/inc/sl_si91x_chachapoly.h" bodystart="99" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__si91x__chachapoly__key__config__a0__t_1aad9953edc001d6e8470502d44f4f2a05" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_si91x_chachapoly_key_config_a0_t::keyr_in[16]</definition>
+        <argsstring>[16]</argsstring>
+        <name>keyr_in</name>
+        <qualifiedname>sl_si91x_chachapoly_key_config_a0_t::keyr_in</qualifiedname>
+        <briefdescription>
+<para>Buffer to store the R Key. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/chachapoly/inc/sl_si91x_chachapoly.h" line="100" column="11" bodyfile="components/device/silabs/si91x/wireless/crypto/chachapoly/inc/sl_si91x_chachapoly.h" bodystart="100" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__si91x__chachapoly__key__config__a0__t_1ac56659e39548ee8ea3a4939d75cf559e" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_si91x_chachapoly_key_config_a0_t::keys_in[16]</definition>
+        <argsstring>[16]</argsstring>
+        <name>keys_in</name>
+        <qualifiedname>sl_si91x_chachapoly_key_config_a0_t::keys_in</qualifiedname>
+        <briefdescription>
+<para>Buffer to store the S Key. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/chachapoly/inc/sl_si91x_chachapoly.h" line="101" column="11" bodyfile="components/device/silabs/si91x/wireless/crypto/chachapoly/inc/sl_si91x_chachapoly.h" bodystart="101" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Structure defines the ChaChaPoly key configuration for the non-B0 chip versions. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="components/device/silabs/si91x/wireless/crypto/chachapoly/inc/sl_si91x_chachapoly.h" line="98" column="1" bodyfile="components/device/silabs/si91x/wireless/crypto/chachapoly/inc/sl_si91x_chachapoly.h" bodystart="98" bodyend="102"/>
+    <listofallmembers>
+      <member refid="structsl__si91x__chachapoly__key__config__a0__t_1a5460db4e9d0f95fd55fcaafb18c56cc2" prot="public" virt="non-virtual"><scope>sl_si91x_chachapoly_key_config_a0_t</scope><name>key_chacha</name></member>
+      <member refid="structsl__si91x__chachapoly__key__config__a0__t_1aad9953edc001d6e8470502d44f4f2a05" prot="public" virt="non-virtual"><scope>sl_si91x_chachapoly_key_config_a0_t</scope><name>keyr_in</name></member>
+      <member refid="structsl__si91x__chachapoly__key__config__a0__t_1ac56659e39548ee8ea3a4939d75cf559e" prot="public" virt="non-virtual"><scope>sl_si91x_chachapoly_key_config_a0_t</scope><name>keys_in</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

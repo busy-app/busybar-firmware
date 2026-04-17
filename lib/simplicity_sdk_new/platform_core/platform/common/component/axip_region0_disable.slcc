@@ -1,0 +1,18 @@
+id: axip_region0_disable
+label: Disable Encryption and Authentication (AXiP) for Code Region 0
+package: platform_core
+description: >
+  This component should be added to an application when encryption and
+  authentication, also known as AXiP, is disabled for Code Region 0. This
+  component does not actually disable AXiP, rather it is necessary in order to
+  compute the correct memory layout for the application in the event that AXiP
+  is disabled. AXiP can be disabled via a DCI command using Simplicity Commander.
+category: Platform|Toolchain
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+provides:
+- name: axip_region0
+- name: axip_region0_disable
+root_path: platform_core

@@ -1,0 +1,26 @@
+id: "connect_mac_queue_library"
+label: "MAC Queue (Library)"
+package: "connect_stack"
+category: "Connect"
+quality: "production"
+ui_hints:
+  visibility: never
+description: "Provides the Connect MAC Queue library."
+provides:
+- name: "connect_mac_queue_implementation"
+requires:
+- name: "connect_mac_queue"
+library:
+- path: "libs/libconnect-packet-queue-library-efr32xg2x-iar.a"
+  condition:
+  - "toolchain_iar"
+  - device_series_2
+- path: "libs/libconnect-packet-queue-library-efr32xg2x-gcc.a"
+  condition:
+  - "toolchain_gcc"
+  - device_series_2
+
+metadata:
+  sbom:
+    license: Zlib
+root_path: connect_stack

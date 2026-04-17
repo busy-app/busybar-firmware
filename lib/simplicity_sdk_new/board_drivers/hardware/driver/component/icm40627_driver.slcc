@@ -1,0 +1,36 @@
+id: icm40627_driver
+package: board_drivers
+label: ICM40627 - Motion Sensor
+description: >
+  Driver for the Invensense ICM40627 6-axis motion sensor
+category: Platform|Board Drivers
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: board_drivers/hardware/driver/icm40627
+provides:
+- name: icm40627_driver
+requires:
+- name: hal_generic_common
+- name: clock_manager_runtime
+- name: gpio
+- name: hal_generic_eusart
+- name: sleeptimer
+- name: status
+include:
+- path: inc
+  file_list:
+  - path: sl_icm40627.h
+  - path: sl_icm40627_defs.h
+source:
+- path: src/sl_icm40627.c
+config_file:
+- path: config/sl_icm40627_config.h
+  file_id: icm40627_config
+template_contribution:
+- name: component_catalog
+  value: icm40627_driver
+documentation:
+  docset: gecko-platform
+  document: platform-hardware-driver/icm40627

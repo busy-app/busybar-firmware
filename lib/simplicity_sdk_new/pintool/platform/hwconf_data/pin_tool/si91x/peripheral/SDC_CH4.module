@@ -1,0 +1,20 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<module:DocumentRoot xmlns:module="http://www.silabs.com/ss/hwconfig/module.ecore">
+  <module id="pin_tool.wfm.si91x.sdc_ch4" label="SDC_CH4" name="SDC_CH4" description="SDC Channel 4 pins" version="A">
+    <properties>
+      <stringProperty label="Type" id="type" defaultValue="sdc_ch4" transient="true" hidden="true" readonly="true" description=""/>
+      <stringProperty label="Custom Peripheral Name" id="peripheral.name" description=""/>
+    </properties>
+    <propertyCategories>
+      <category label="SDC_CH4">
+        <subCategory label="">
+          <propertyRef refId="peripheral.name"/>
+        </subCategory>
+      </category>
+    </propertyCategories>
+    <signals>
+      <signal name="P"/>
+      <signal name="N"/>
+    </signals>
+  </module>
+</module:DocumentRoot>

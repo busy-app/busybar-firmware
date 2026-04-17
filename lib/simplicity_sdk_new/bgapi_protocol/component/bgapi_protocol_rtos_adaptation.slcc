@@ -1,0 +1,26 @@
+id: bgapi_protocol_rtos_adaptation
+label: BGAPI Protocol RTOS adaptation
+package: bgapi_protocol
+description: >
+  Provides the RTOS adaptation required by the BGAPI Protocol when running with
+  an RTOS. This component is automatically included when required and should not
+  be included directly by the application.
+category: Bluetooth|Bluetooth Host (Stack)
+quality: production
+ui_hints:
+  visibility: never
+include:
+- path: rtos_adaptation/inc/
+  file_list:
+  - path: sli_bgapi_rtos_adaptation.h
+requires:
+- name: bgapi_protocol
+provides:
+- name: bgapi_protocol_rtos_adaptation
+template_contribution:
+- name: component_catalog
+  value: bgapi_protocol_rtos_adaptation
+metadata:
+  sbom:
+    license: Zlib AND MSLA
+root_path: bgapi_protocol

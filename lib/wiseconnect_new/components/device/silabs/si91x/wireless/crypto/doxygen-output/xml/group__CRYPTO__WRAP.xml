@@ -1,0 +1,14 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__CRYPTO__WRAP" kind="group">
+    <compoundname>CRYPTO_WRAP</compoundname>
+    <title>Key Wrap</title>
+    <innergroup refid="group__CRYPTO__WRAP__FUNCTIONS">Functions</innergroup>
+    <innergroup refid="group__CRYPTO__WRAP__TYPES">Types</innergroup>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para>The wrap API is used to wrap keys used for AES/CCM/GCM/ChachaPoly algorithms. This section provides a reference to the WRAP Crypto API which includes functions, and data types. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

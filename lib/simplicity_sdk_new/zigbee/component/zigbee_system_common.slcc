@@ -1,0 +1,335 @@
+id: zigbee_system_common
+label: Application Framework Common
+package: zigbee
+category: Zigbee|Utility
+quality: production
+description: This component declares all the required application framework globals, initializes the Zigbee stack and dispatches stack callbacks calls as needed to the application components.
+
+provides:
+- name: zigbee_system_common
+- name: wireless_stack
+  allow_multiple: true
+config_file:
+- path: app/framework/common/config/zigbee_sleep_config.h
+- path: app/framework/common/config/sl_zigbee_rtos_task_config.h
+  condition:
+  - cmsis_rtos2
+requires:
+- name: zigbee_pro_stack_support
+- name: zigbee_enhanced_routing
+- name: zigbee_phy
+- name: event_system
+  condition:
+  - cmsis_rtos2
+- name: memory_manager
+  condition:
+  - cmsis_rtos2
+- name: cmsis_rtos2
+  condition:
+  - bluetooth_stack
+- name: rail_lib_multiprotocol
+  condition:
+  - bluetooth_stack
+- name: nvm3_lib
+  condition:
+  - bluetooth_stack
+- name: rail_util_pti
+  condition:
+  - device_cortexm
+- name: power_manager
+  condition:
+  - device_cortexm
+- name: cmsis_rtos2
+  condition:
+  - ot_stack
+- name: rail_mux
+  condition:
+  - ot_stack
+  # UID 1327639 : To prevent difference in behavior in the rail mux
+  # scheduled rx operation with and without DMP, we will enable DMP by default
+  # this will reduce the complexity in deadling with this in the mux layer
+- name: rail_lib_multiprotocol
+  condition:
+  - ot_stack
+  - rail_util_ieee802154_fast_channel_switching
+  # Free RTOS Heap 3 implementation matches Micrium's the closest
+  # Generally, we default to Heap 4. Therefore, we explicitly set this
+  # to heap 3.
+- name: freertos_heap_3
+  condition:
+  - freertos
+- name: radio_priority_15_4
+  condition:
+  - device_cortexm
+
+recommends:
+- id: zigbee_phy_2_4
+  vendor: silabs
+- id: freertos
+  condition:
+  - bluetooth_stack
+  vendor: silabs
+- id: freertos
+  condition:
+  - ot_stack
+
+  vendor: silabs
+source:
+- path: app/framework/common/sl_zigbee_system_common.c
+- path: app/framework/common/zigbee_app_framework_stack_cb.c
+  condition:
+  - zigbee_system_common_app_framework
+- path: app/framework/common/zigbee_app_framework_stack_cb.c
+  condition:
+  - native_host
+- path: app/framework/common/zigbee_stack_sleep.c
+  # This will be included from security-address-cache.c with root path from 
+  # There are more than one security.h, hence adding here as resource instead of include file_list.
+- path: app/util/security/security.h
+- path: app/framework/common/zigbee_stack_rtos_adaptation.c
+  condition:
+  - cmsis_rtos2
+- path: stack/internal/src/baremetal/security_baremetal_wrapper.c
+  unless:
+  - zigbee_use_ipc
+  - native_host
+- path: stack/internal/src/ipc/zigbee_ipc_callback_event_stub.c
+  condition:
+  - zigbee_use_ipc
+- path: stack/internal/src/ipc/security_ipc_command_messages.c
+  condition:
+  - zigbee_use_ipc
+- path: stack/internal/src/ipc/security_ipc_callback_events.c
+  condition:
+  - zigbee_use_ipc
+- path: stack/internal/src/baremetal/security_baremetal_callbacks.c
+  unless:
+  - zigbee_use_ipc
+  - native_host
+- path: stack/internal/src/ipc/zigbee_ipc_callback_events.c
+  condition:
+  - zigbee_use_ipc
+include:
+- path: app/framework/common
+  file_list:
+  - path: sl_zigbee_system_common.h
+  - path: zigbee_app_framework_event.h
+  - path: zigbee_app_framework_callback.h
+- path: app/framework/common
+  file_list:
+  - path: zigbee_rtos_adaptation.h
+  condition:
+  - cmsis_rtos2
+- path: stack/internal/src/ipc
+  file_list:
+  - path: zigbee_ipc_callback_events.h
+  - path: zigbee_ipc_command_messages.h
+  # PLATFORM_MTL-5145 : Temporary workaround until Platform Montreal incorporates this into their repo
+  # This file is required in order to set LIB_MEM_CFG_HEAP_SIZE to 0
+  # This also requires a project define symbol OS_CFG_COMPAT_INIT
+  # When this symbol is defined, this file os_cfg_app.h is required
+- path: app/framework/common
+  file_list:
+  - path: os_cfg_app.h
+  condition:
+  - cmsis_rtos2
+
+- path: stack/internal/src/ipc
+  file_list:
+  - path: security_ipc_callback_events.h
+  - path: security_ipc_command_messages.h
+  - path: zigbee_ipc_callback_events.h
+  - path: zigbee_ipc_command_messages.h
+  condition:
+  - cmsis_rtos2
+- path: stack/internal/inc
+  file_list:
+  - path: security_internal_def.h
+
+# NOTE: Some cflags come in via platform/common/toolchain/toolchains.slct
+# Example: -Wall, -Wextra. So there is no need to explicitly add them
+#toolchain_settings:
+    # turn on warnings as errors only when compiling from source
+
+template_file:
+- path: app/framework/common/template/zigbee_stack_callback_dispatcher.h.jinja
+- path: app/framework/common/template/zigbee_stack_callback_dispatcher.c.jinja
+- path: app/framework/common/template/zigbee_common_callback_dispatcher.h.jinja
+- path: app/framework/common/template/zigbee_common_callback_dispatcher.c.jinja
+
+template_contribution:
+- name: component_catalog
+  value: zigbee_system_common
+- name: event_handler
+  value:
+    event: stack_init
+    include: sl_zigbee_system_common.h
+    handler: sli_zigbee_stack_init_callback
+  priority: -8999
+  unless:
+  - cmsis_rtos2
+- name: event_handler
+  value:
+    event: stack_init
+    include: sl_zigbee_system_common.h
+    handler: sli_zigbee_app_framework_init_callback
+  priority: -8998
+  unless:
+  - cmsis_rtos2
+- name: event_handler
+  value:
+    event: stack_init
+    include: sl_zigbee_system_common.h
+    handler: sli_zigbee_stack_rtos_task_init_cb
+  priority: -8999
+  condition:
+  - cmsis_rtos2
+- name: event_handler
+  value:
+    event: stack_permanent_allocation
+    include: sl_zigbee_system_common.h
+    handler: sli_zigbee_stack_rtos_perm_allocation
+  priority: -8999
+  condition: [sl_main, cmsis_rtos2]
+- name: event_handler
+  value:
+    event: stack_permanent_allocation
+    include: sl_zigbee_system_common.h
+    handler: sli_legacy_buffer_manager_initialize_buffers
+  priority: -8999
+  condition: [sl_main]
+- name: event_handler
+  value:
+    event: stack_process_action
+    include: sl_zigbee_system_common.h
+    handler: sli_zigbee_stack_tick_callback
+  unless:
+  - cmsis_rtos2
+- name: event_handler
+  value:
+    event: stack_process_action
+    include: sl_zigbee_system_common.h
+    handler: sli_zigbee_app_framework_tick_callback
+  unless:
+  - cmsis_rtos2
+- name: event_handler
+  value:
+    event: stack_init
+    include: sl_zigbee_system_common.h
+    handler: sli_zigbee_stack_sleep_init
+  priority: -8998
+  condition:
+  - power_manager
+- name: power_manager_handler
+  value:
+    event: is_ok_to_sleep
+    include: sl_zigbee_system_common.h
+    handler: sli_zigbee_app_framework_is_ok_to_sleep
+  condition:
+  - power_manager
+  - zigbee_zcl_framework_core
+- name: power_manager_handler
+  value:
+    event: is_ok_to_sleep
+    include: sl_zigbee_system_common.h
+    handler: sli_zigbee_stack_is_ok_to_sleep
+  condition:
+  - power_manager
+- name: power_manager_handler
+  value:
+    event: sleep_on_isr_exit
+    include: sl_zigbee_system_common.h
+    handler: sli_zigbee_stack_sleep_on_isr_exit
+  condition:
+  - power_manager
+- name: cli_group
+  value:
+    group: plugin
+    name: idle-sleep
+    help: Commands to control idling/sleeping of the device
+  condition:
+  - power_manager
+  - zigbee_zcl_framework_core
+
+- name: cli_command
+  value:
+    group: idle-sleep
+    name: status
+    handler: sl_zigbee_af_idle_sleep_status_command
+    help: Display the sleep status
+  condition:
+  - power_manager
+  - zigbee_zcl_framework_core
+
+- name: cli_command
+  value:
+    group: idle-sleep
+    name: force-awake
+    handler: sl_zigbee_af_idle_sleep_stay_awake_command
+    help: Set or clear force awake
+    argument:
+    - type: uint8
+  condition:
+  - power_manager
+  - zigbee_zcl_framework_core
+
+- name: cli_command
+  value:
+    group: idle-sleep
+    name: awake-when-not-joined
+    handler: sl_zigbee_af_idle_sleep_awake_when_not_joined_command
+    help: Set or clear stay awake when not joined
+    argument:
+    - type: uint8
+  condition:
+  - power_manager
+  - zigbee_zcl_framework_core
+
+- name: cli_command
+  value:
+    group: idle-sleep
+    name: power-mode-performance
+    handler: sl_zigbee_af_idle_sleep_power_mode_performance_command
+    help: Set Power mode to performance
+  condition:
+  - power_manager
+  - zigbee_zcl_framework_core
+  - device_series_3
+
+- name: cli_command
+  value:
+    group: idle-sleep
+    name: power-mode-eco
+    handler: sl_zigbee_af_idle_sleep_power_mode_eco_command
+    help: Set Power mode to eco
+  condition:
+  - power_manager
+  - zigbee_zcl_framework_core
+  - device_series_3
+
+- name: cli_command
+  value:
+    name: radio-rx-duty-cycle
+    handler: sl_zigbee_af_radio_rx_duty_cycle_command
+    help: Start radio duty cycling on rx.
+  condition:
+  - sl_rail_util_ieee802154_rx_duty_cycling
+  - device_series_3
+
+tag:
+- idle-sleep
+- rtos
+- priority
+- stack-size
+- stay-awake-when-not-joined
+- minimum-sleep-duration
+- sleep-backoff
+- button-stay-awake
+
+documentation:
+  docset: zigbee
+  document: zigbee-af-api/app-framework-common
+metadata:
+  sbom:
+    license: MSLA
+root_path: zigbee

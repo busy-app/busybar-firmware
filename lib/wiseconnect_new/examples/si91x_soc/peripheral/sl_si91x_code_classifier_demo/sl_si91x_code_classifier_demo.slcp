@@ -1,0 +1,50 @@
+project_name: sl_si91x_code_classifier_demo
+package: platform_siwx91x_app
+description: 'This application demonstrates the use of code classifier for SiWx917. It highlights memory configuration for applications requiring execution from PSRAM, enabling expanded memory space usage and optimizing on-chip resources.
+
+  '
+category: example|peripheral
+quality: production
+label: SI91x - Code Classifier Demo
+component:
+- id: sl_main
+- id: sleeptimer
+- id: data_segment_in_psram
+- id: text_segment_in_psram
+- id: psram_core
+- id: psram_aps6404l_sqh
+- id: syscalls
+- id: si91x_memory_default_config
+- id: sl_si91x_code_classifier
+- id: sl_si91x_led_917
+  instance:
+  - led0
+source:
+- path: app.c
+- path: code_classifier.c
+include:
+- path: .
+  file_list:
+  - path: app.h
+  - path: code_classifier.h
+toolchain_settings:
+- option: gcc_compiler_option
+  value: -Wall -Werror
+other_file:
+- path: resources/readme/setupdiagram.png
+ui_hints:
+  highlight:
+  - path: readme.md
+    focus: true
+readme:
+- path: readme.md
+post_build:
+  profile: wiseconnect_soc
+sdk_extension:
+- id: wiseconnect3_sdk
+  vendor: silabs
+  version: 4.0.1
+sdk:
+  id: simplicity_sdk
+  vendor: silabs
+  version: 2025.12.2

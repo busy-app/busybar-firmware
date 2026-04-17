@@ -1,0 +1,42 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__evt__cs__security__enable__complete" kind="group">
+    <compoundname>sl_bt_evt_cs_security_enable_complete</compoundname>
+    <title>sl_bt_evt_cs_security_enable_complete</title>
+    <innerclass refid="structsl__bt__evt__cs__security__enable__complete__s" prot="public">sl_bt_evt_cs_security_enable_complete_s</innerclass>
+      <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="group__sl__bt__evt__cs__security__enable__complete_1ga2299d5eca50e08f933b61df674705b15" prot="public" static="no">
+        <type>struct <ref refid="structsl__bt__evt__cs__security__enable__complete__s" kindref="compound">sl_bt_evt_cs_security_enable_complete_s</ref></type>
+        <definition>typedef struct sl_bt_evt_cs_security_enable_complete_s sl_bt_evt_cs_security_enable_complete_t</definition>
+        <argsstring></argsstring>
+        <name>sl_bt_evt_cs_security_enable_complete_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="13067" column="54" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="13067" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__evt__cs__security__enable__complete_1ga66c8aad6e8d5412d2b1409bb07f06b2a" prot="public" static="no">
+        <name>sl_bt_evt_cs_security_enable_complete_id</name>
+        <initializer>0x005900a0</initializer>
+        <briefdescription>
+<para>Identifier of the security_enable_complete event. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="13057" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="13057" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Indicates that a locally initiated CS security start procedure has completed or the local controller has responded to a channel security request from the remote controller. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

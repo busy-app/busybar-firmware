@@ -1,0 +1,37 @@
+id: i2s_ulp_component
+label: PM ULP I2S
+package: platform_siwx91x
+description: >
+  ULP I2S component will enable I2S in the low-power mode. It moves all the peripheral dependencies to RAM. 
+  It also installs the peripheral component if already not installed.
+category: Device|Si91x|MCU|Service|Power Manager|ULP Peripheral
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+requires:
+  - name: sl_i2s
+  - name: cmsis_sai
+
+provides:
+  - name: i2s_ulp_component
+
+template_contribution:
+  - name: power_manager_ps2
+    value: 1
+    condition:
+      - pm_ps2_component  
+  - name: i2s_ps2
+    value: sl_si91x_i2s.*
+  - name: i2s_ps2
+    value: rsi_i2s.*
+  - name: i2s_ps2
+    value: SAI.*
+  - name: i2s_ps2
+    value: memcpy.*
+  - name: i2s_ps2
+    value: UDMA.*
+  - name: i2s_ps2
+    value: rsi_udma.*
+  - name: i2s_ps2
+    value: rsi_udma_wrapper.*

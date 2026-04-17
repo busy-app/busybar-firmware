@@ -1,0 +1,44 @@
+project_name: btmesh_host_empty
+package: bluetooth_mesh_app
+label: Bluetooth Mesh - Host Empty
+description: >-
+  Demonstrates the bare minimum needed for a Bluetooth Mesh host application.
+  This is a simple host application that provides the basic framework for
+  developing Bluetooth Mesh host applications using the NCP (Network Co-Processor)
+  architecture.
+
+category: Bluetooth Mesh Examples
+quality: production
+
+filter:
+  - name: "Wireless Technology"
+    value: ["Bluetooth Mesh"]
+  - name: "Device Type"
+    value: ["Host"]
+  - name: "Project Difficulty"
+    value: ["Beginner"]
+
+component:
+  - id: app_assert
+  - id: app_log
+  - id: app_timer
+  - id: btmesh_stack_api_ncp_host
+  - id: host_main
+  - id: host_ncp
+  - id: iostream_stdio
+  - id: native_host
+  - id: ncp_host_btmesh
+  - id: ncp_version
+  - id: toolchain_gcc
+
+source:
+  - path: app.c
+
+include:
+  - path: .
+    file_list:
+    - path: app.h
+
+tag:
+  - toolchain:gcc
+  - hwfilter:device:device_family_host

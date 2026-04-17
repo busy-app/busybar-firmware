@@ -1,0 +1,20 @@
+id: si91x_tickless_mode
+label: SI91X TICK-LESS MODE
+package: platform_siwx91x
+description: Free RTOS low power tickless mode with sleep timer. 
+category: Device|Si91x|MCU|Service
+quality: production
+metadata:
+  sbom:
+    license: MSLA
+component_root_path: "third_party/silicon_labs/freertos"
+source:
+  - path: "src/sl_si91x_low_power_tickless_mode.c"
+requires:
+  - name: sleeptimer_si91x
+  - name: sllib_m4_power_save
+provides:
+  - name: si91x_tickless_mode
+define:
+  - name: SL_SI91X_TICKLESS_MODE
+    unless: [SL_SI91X_PM_STATE_TRANSITION]

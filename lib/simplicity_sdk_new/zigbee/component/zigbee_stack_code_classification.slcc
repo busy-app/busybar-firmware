@@ -1,0 +1,37 @@
+id: zigbee_stack_code_classification
+label: Stack Code Classifications
+package: zigbee
+category: Zigbee|Stack|Pro Core
+quality: production
+ui_hints:
+  visibility: never
+description: >
+  this component provides the metadata hooks for integration with the code
+  classification system
+
+
+provides:
+- name: zigbee_stack_code_classification
+
+requires:
+- name: code_classification
+
+define:
+- name: SL_CODE_COMPONENT_ZIGBEE_STACK
+  value: zigbee_stack
+- name: SL_CODE_COMPONENT_BUFFER_MANAGER
+  value: buffer_manager
+- name: SL_CODE_COMPONENT_IEEE_802_15_4_MAC
+  value: ieee_802_15_4_mac
+
+template_contribution:
+- name: code_classification_components
+  value: zigbee_stack
+- name: code_classification_components
+  value: buffer_manager
+- name: code_classification_components
+  value: ieee_802_15_4_mac
+metadata:
+  sbom:
+    license: Zlib
+root_path: zigbee

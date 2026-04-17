@@ -1,0 +1,54 @@
+id: bluetooth_ncp_transport_usart
+label: Bluetooth NCP Transport over USART
+package: bluetooth_le_middleware
+description: >
+  Component that provides transport layer for Bluetooth NCP over USART.
+
+  This is a No-Code component if used together with NCP Interface or
+  NCP Host Communication Interface components.
+category: Application|Utility
+metadata:
+  sbom:
+    license: Zlib
+quality: production
+root_path: bluetooth_le_middleware/common/ncp_transport
+tag:
+- No-Code
+config_file:
+- path: config/sl_bt_ncp_transport_usart_config.h
+source:
+- path: sl_bt_ncp_transport_usart.c
+include:
+- path: .
+  file_list:
+  - path: sl_bt_ncp_transport.h
+  - path: sli_bt_ncp_transport.h
+provides:
+- name: bluetooth_ncp_transport_usart
+- name: bluetooth_ncp_transport
+requires:
+- name: component_catalog
+- name: uartdrv_usart
+- name: app_rta
+- name: status
+- name: sl_common
+- name: sl_core
+- name: clock_manager_runtime
+template_file:
+- path: template/sli_bt_ncp_transport_usart_isr.c.jinja
+template_contribution:
+- name: component_catalog
+  value: bluetooth_ncp_transport_usart
+- name: component_catalog
+  value: bluetooth_ncp_transport
+- name: app_rta_init
+  value:
+    include: sli_bt_ncp_transport.h
+    handler: sli_bt_ncp_transport_init
+- name: app_rta_ready
+  value:
+    include: sli_bt_ncp_transport.h
+    handler: sli_bt_ncp_transport_rta_ready
+documentation:
+  docset: bluetooth
+  document: bluetooth-service-api/bluetooth-ncp-transport

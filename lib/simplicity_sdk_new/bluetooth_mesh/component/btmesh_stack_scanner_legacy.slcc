@@ -1,0 +1,23 @@
+id: "btmesh_stack_scanner_legacy"
+label: "Standard Legacy Scanner"
+package: bluetooth_mesh
+description: >
+  This component lets the Bluetoot Mesh stack make use of legacy
+  advertisements. It uses Bluetooth legacy scanner API.
+
+  It is recommended to use this component. Standard-compliant
+  Mesh applications use legacy advertisements.
+
+category: "Bluetooth Mesh|Scanner Types"
+quality: "production"
+
+requires:
+- name: "bluetooth_feature_legacy_scanner"
+provides:
+- name: "btmesh_stack_scanner_legacy"
+- name: "btmesh_scanner"
+  allow_multiple: true
+metadata:
+  sbom:
+    reference: btmesh_stack
+root_path: bluetooth_mesh

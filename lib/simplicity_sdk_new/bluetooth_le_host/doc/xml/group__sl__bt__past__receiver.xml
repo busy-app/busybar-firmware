@@ -1,0 +1,577 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__past__receiver" kind="group">
+    <compoundname>sl_bt_past_receiver</compoundname>
+    <title>PAST Receiver</title>
+      <sectiondef kind="enum">
+      <memberdef kind="enum" id="group__sl__bt__past__receiver_1gae52bc349487a3a5ef0f221c7ad7dae74" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_bt_past_receiver_mode_t</name>
+        <enumvalue id="group__sl__bt__past__receiver_1ggae52bc349487a3a5ef0f221c7ad7dae74a03d877f107bfc67b5d9ab8f6029c1e1f" prot="public">
+          <name>sl_bt_past_receiver_mode_ignore</name>
+          <initializer>= 0x0</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x0) No attempt is made to synchronize to a periodic advertising train for which the synchronization information was received. No event will be triggered towards the application. </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__past__receiver_1ggae52bc349487a3a5ef0f221c7ad7dae74aa235ad4de6aaecad35ada927e0baee02" prot="public">
+          <name>sl_bt_past_receiver_mode_synchronize</name>
+          <initializer>= 0x1</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x1) Attempt to synchronize to a periodic advertising train for which the synchronization information was received. When the information is received, an event will be triggered to indicate success or failure and to provide the application with the periodic advertising synchronization handle. </para>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>Specifies the mode for receiving synchronization transfers over connections. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="4620" column="1" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="4621" bodyend="4641"/>
+      </memberdef>
+      <memberdef kind="enum" id="group__sl__bt__past__receiver_1ga19c4f0a4c5f89393d599a5240409ff66" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_bt_past_receiver_over_sync_mode_t</name>
+        <enumvalue id="group__sl__bt__past__receiver_1gga19c4f0a4c5f89393d599a5240409ff66acdcda47bd85c3a3ae7ab10bcd042c8ad" prot="public">
+          <name>sl_bt_past_receiver_over_sync_mode_ignore</name>
+          <initializer>= 0x0</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x0) No attempt is made to synchronize to a periodic advertising train that changed parameters (see command <ref refid="group__sl__bt__pawr__advertiser_1gad0d9c8cb421d6cc275d45cd42e581528" kindref="member">sl_bt_pawr_advertiser_change_parameters</ref>), or to synchronize to another train for which synchronization information was received (see command <ref refid="group__sl__bt__advertiser__past_1gaad39ebf8e5a41a30cec7fbe1eb88e726" kindref="member">sl_bt_advertiser_past_transfer_over_pawr_advertiser</ref>). If a parameter change for the current train or the sync info of another train is received on an established sync, the receiving sync will be closed, and the event <ref refid="group__sl__bt__evt__sync__closed" kindref="compound">sl_bt_evt_sync_closed</ref> will be triggered. </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__past__receiver_1gga19c4f0a4c5f89393d599a5240409ff66a871c5ffa838326303f9bac935881a240" prot="public">
+          <name>sl_bt_past_receiver_over_sync_mode_replace</name>
+          <initializer>= 0x1</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x1) Attempt to maintain synchronization to a periodic advertising train that changed parameters (see command <ref refid="group__sl__bt__pawr__advertiser_1gad0d9c8cb421d6cc275d45cd42e581528" kindref="member">sl_bt_pawr_advertiser_change_parameters</ref>), or to synchronize to another train for which synchronization information was received (see command <ref refid="group__sl__bt__advertiser__past_1gaad39ebf8e5a41a30cec7fbe1eb88e726" kindref="member">sl_bt_advertiser_past_transfer_over_pawr_advertiser</ref>). On successful synchronization, the new train replaces the old train in the same sync object and the event <ref refid="group__sl__bt__evt__pawr__sync__transfer__received" kindref="compound">sl_bt_evt_pawr_sync_transfer_received</ref> will be triggered with the same handle as the synchronization over which the sync info was received. If synchronization with the new info cannot be obtained, the synchronization to the current train is lost and the event <ref refid="group__sl__bt__evt__sync__closed" kindref="compound">sl_bt_evt_sync_closed</ref> will be triggered. </para>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>Specifies the mode for receiving synchronization transfers over periodic advertising trains. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="4647" column="1" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="4648" bodyend="4709"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="group__sl__bt__past__receiver_1ga843f12ca57c6b9f0579f32f341a90b34" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_past_receiver_set_default_sync_receive_parameters</definition>
+        <argsstring>(uint8_t mode, uint16_t skip, uint16_t timeout, uint8_t reporting_mode)</argsstring>
+        <name>sl_bt_past_receiver_set_default_sync_receive_parameters</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>mode</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>skip</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>timeout</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>reporting_mode</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Set the default parameters for receiving Periodic Advertising Synchronization Transfers (PAST) over connections. The default parameters will be in effect for all subsequent connections, unless overridden by command <ref refid="group__sl__bt__past__receiver_1gab00c2fe4209734d8fabb31ce3ac2ca47" kindref="member">sl_bt_past_receiver_set_sync_receive_parameters</ref> after the connection is opened.</para>
+<para>Irrespective of the value of the <computeroutput>skip</computeroutput> parameter, the Controller stops skipping packets if the skipping would cause a timeout.</para>
+<para>This command sets parameters that do not limit the synchronization based on the CTE type. If the application includes bluetooth_feature_aoa_receiver or bluetooth_feature_aod_receiver component and wants to specify a particular CTE limitation, the application should use the command <ref refid="group__sl__bt__cte__receiver_1ga46706070f26f07e524711ba95407ccde" kindref="member">sl_bt_cte_receiver_set_default_sync_receive_parameters</ref> to set the default parameters.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">mode</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>Enum <ref refid="group__sl__bt__past__receiver_1gae52bc349487a3a5ef0f221c7ad7dae74" kindref="member">sl_bt_past_receiver_mode_t</ref>. The mode to specify how the Bluetooth stack reacts when synchronization information is received over a connection. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_past_receiver_mode_ignore (0x0):</bold> No attempt is made to synchronize to a periodic advertising train for which the synchronization information was received. No event will be triggered towards the application.</para>
+</listitem><listitem><para><bold>sl_bt_past_receiver_mode_synchronize (0x1):</bold> Attempt to synchronize to a periodic advertising train for which the synchronization information was received. When the information is received, an event will be triggered to indicate success or failure and to provide the application with the periodic advertising synchronization handle.</para>
+</listitem></itemizedlist>
+</para>
+<para>Default: <ref refid="group__sl__bt__past__receiver_1ggae52bc349487a3a5ef0f221c7ad7dae74a03d877f107bfc67b5d9ab8f6029c1e1f" kindref="member">sl_bt_past_receiver_mode_ignore</ref> (No attempt is made to synchronize) </para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">skip</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>The maximum number of periodic advertising packets that can be skipped after a successful receive.<itemizedlist>
+<listitem><para><bold>Range:</bold> 0x0000 to 0x01F3</para>
+</listitem><listitem><para><bold>Default</bold> : 0 </para>
+</listitem></itemizedlist>
+</para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">timeout</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>The maximum permitted time between successful receives. If this time is exceeded, synchronization is lost. Unit: 10 ms.<itemizedlist>
+<listitem><para><bold>Range:</bold> 0x000A to 0x4000</para>
+</listitem><listitem><para>Unit: 10 ms</para>
+</listitem><listitem><para>Time range: 100 ms to 163.84 s</para>
+</listitem><listitem><para><bold>Default</bold> : 1000 ms </para>
+</listitem></itemizedlist>
+</para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">reporting_mode</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>Enum <ref refid="group__sl__bt__sync_1ga4d6dbc6ce7a4dfc5ba8e473253161d30" kindref="member">sl_bt_sync_reporting_mode_t</ref>. Specifies the initial mode for reporting data received in the periodic advertising train after it has achieved synchronization. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_sync_report_none (0x0):</bold> Data received in periodic advertising trains is not reported to the application.</para>
+</listitem><listitem><para><bold>sl_bt_sync_report_all (0x1):</bold> Data received in periodic advertising trains is reported to the application.</para>
+</listitem></itemizedlist>
+</para>
+<para>Default: <ref refid="group__sl__bt__sync_1gga4d6dbc6ce7a4dfc5ba8e473253161d30aac59b61bf5411ed41d7079f22c122f8b" kindref="member">sl_bt_sync_report_all</ref> (Data received in periodic advertising trains is reported to the application) </para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+<para><simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise.</para>
+</simplesect>
+<bold>Events</bold> <itemizedlist>
+<listitem><para><ref refid="group__sl__bt__evt__periodic__sync__transfer__received" kindref="compound">sl_bt_evt_periodic_sync_transfer_received</ref> - Triggered after synchronization transfer has been received for a periodic advertising train that does not have subevents or response slots. The event is triggered when the local device has either successfully synchronized to the train or timed out while attempting to synchronize.</para>
+</listitem><listitem><para><ref refid="group__sl__bt__evt__pawr__sync__transfer__received" kindref="compound">sl_bt_evt_pawr_sync_transfer_received</ref> - If the application includes the bluetooth_feature_pawr_sync component, triggered after synchronization transfer is received for a Periodic Advertising with Responses (PAwR) train. The event is triggered when the local device has either successfully synchronized to the train or timed out while attempting to synchronize. </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="4793" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="4793" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__past__receiver_1gab00c2fe4209734d8fabb31ce3ac2ca47" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_past_receiver_set_sync_receive_parameters</definition>
+        <argsstring>(uint8_t connection, uint8_t mode, uint16_t skip, uint16_t timeout, uint8_t reporting_mode)</argsstring>
+        <name>sl_bt_past_receiver_set_sync_receive_parameters</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>connection</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>mode</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>skip</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>timeout</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>reporting_mode</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Set the parameters for receiving Periodic Advertising Synchronization Transfers (PAST) over the specified connection. The parameters do not affect periodic advertising trains that the device has already synchronized to.</para>
+<para>Irrespective of the value of the <computeroutput>skip</computeroutput> parameter, the Controller stops skipping packets if the skipping would cause a timeout.</para>
+<para>This command sets parameters that do not limit the synchronization based on the CTE type. If the application includes bluetooth_feature_aoa_receiver or bluetooth_feature_aod_receiver component and wants to specify a particular CTE limitation, the application should use the command <ref refid="group__sl__bt__cte__receiver_1ga889325d579e213be73fba78e2831ea6b" kindref="member">sl_bt_cte_receiver_set_sync_receive_parameters</ref> to set the parameters.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">connection</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Connection handle of the connection used to receive the sync transfer </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">mode</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>Enum <ref refid="group__sl__bt__past__receiver_1gae52bc349487a3a5ef0f221c7ad7dae74" kindref="member">sl_bt_past_receiver_mode_t</ref>. The mode to specify how the Bluetooth stack reacts when synchronization information is received over a connection. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_past_receiver_mode_ignore (0x0):</bold> No attempt is made to synchronize to a periodic advertising train for which the synchronization information was received. No event will be triggered towards the application.</para>
+</listitem><listitem><para><bold>sl_bt_past_receiver_mode_synchronize (0x1):</bold> Attempt to synchronize to a periodic advertising train for which the synchronization information was received. When the information is received, an event will be triggered to indicate success or failure and to provide the application with the periodic advertising synchronization handle.</para>
+</listitem></itemizedlist>
+</para>
+<para>Default: <ref refid="group__sl__bt__past__receiver_1ggae52bc349487a3a5ef0f221c7ad7dae74a03d877f107bfc67b5d9ab8f6029c1e1f" kindref="member">sl_bt_past_receiver_mode_ignore</ref> (Do not attempt to synchronize) </para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">skip</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>The maximum number of periodic advertising packets that can be skipped after a successful receive.<itemizedlist>
+<listitem><para><bold>Range:</bold> 0x0000 to 0x01F3</para>
+</listitem><listitem><para><bold>Default</bold> : 0 </para>
+</listitem></itemizedlist>
+</para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">timeout</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>The maximum permitted time between successful receives. If this time is exceeded, synchronization is lost. Unit: 10 ms.<itemizedlist>
+<listitem><para><bold>Range:</bold> 0x000A to 0x4000</para>
+</listitem><listitem><para>Unit: 10 ms</para>
+</listitem><listitem><para>Time range: 100 ms to 163.84 s</para>
+</listitem><listitem><para><bold>Default</bold> : 1000 ms </para>
+</listitem></itemizedlist>
+</para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">reporting_mode</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>Enum <ref refid="group__sl__bt__sync_1ga4d6dbc6ce7a4dfc5ba8e473253161d30" kindref="member">sl_bt_sync_reporting_mode_t</ref>. Specifies the initial mode for reporting data received in the periodic advertising train after it has achieved synchronization. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_sync_report_none (0x0):</bold> Data received in periodic advertising trains is not reported to the application.</para>
+</listitem><listitem><para><bold>sl_bt_sync_report_all (0x1):</bold> Data received in periodic advertising trains is reported to the application.</para>
+</listitem></itemizedlist>
+</para>
+<para>Default: <ref refid="group__sl__bt__sync_1gga4d6dbc6ce7a4dfc5ba8e473253161d30aac59b61bf5411ed41d7079f22c122f8b" kindref="member">sl_bt_sync_report_all</ref> (Data received in periodic advertising trains is reported to the application) </para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+<para><simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise.</para>
+</simplesect>
+<bold>Events</bold> <itemizedlist>
+<listitem><para><ref refid="group__sl__bt__evt__periodic__sync__transfer__received" kindref="compound">sl_bt_evt_periodic_sync_transfer_received</ref> - Triggered after synchronization transfer has been received for a periodic advertising train that does not have subevents or response slots. The event is triggered when the local device has either successfully synchronized to the train or timed out while attempting to synchronize.</para>
+</listitem><listitem><para><ref refid="group__sl__bt__evt__pawr__sync__transfer__received" kindref="compound">sl_bt_evt_pawr_sync_transfer_received</ref> - If the application includes the bluetooth_feature_pawr_sync component, triggered after synchronization transfer is received for a Periodic Advertising with Responses (PAwR) train. The event is triggered when the local device has either successfully synchronized to the train or timed out while attempting to synchronize. </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="4879" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="4879" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__past__receiver_1ga2389e44b37d0ccdbf186425c78158cc9" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_past_receiver_set_default_sync_receive_over_sync_parameters</definition>
+        <argsstring>(uint8_t mode, uint16_t skip, uint16_t timeout, uint8_t reporting_mode)</argsstring>
+        <name>sl_bt_past_receiver_set_default_sync_receive_over_sync_parameters</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>mode</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>skip</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>timeout</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>reporting_mode</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Set the default parameters for receiving Periodic Advertising Synchronization Transfers (PAST) over periodic advertising trains that the local device has synchronized to. The default parameters will be in effect for all subsequent periodic advertising syncs, unless overridden by command <ref refid="group__sl__bt__past__receiver_1ga072017eb9b9c75d8bd4545a3d723ba84" kindref="member">sl_bt_past_receiver_set_sync_receive_over_sync_parameters</ref> after the sync is established.</para>
+<para>Irrespective of the value of the <computeroutput>skip</computeroutput> parameter, the Controller stops skipping packets if the skipping would cause a timeout.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">mode</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>Enum <ref refid="group__sl__bt__past__receiver_1ga19c4f0a4c5f89393d599a5240409ff66" kindref="member">sl_bt_past_receiver_over_sync_mode_t</ref>. The mode to specify how the Bluetooth stack reacts when synchronization information is received over periodic advertising. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_past_receiver_over_sync_mode_ignore (0x0):</bold> No attempt is made to synchronize to a periodic advertising train that changed parameters (see command <ref refid="group__sl__bt__pawr__advertiser_1gad0d9c8cb421d6cc275d45cd42e581528" kindref="member">sl_bt_pawr_advertiser_change_parameters</ref>), or to synchronize to another train for which synchronization information was received (see command <ref refid="group__sl__bt__advertiser__past_1gaad39ebf8e5a41a30cec7fbe1eb88e726" kindref="member">sl_bt_advertiser_past_transfer_over_pawr_advertiser</ref>). If a parameter change for the current train or the sync info of another train is received on an established sync, the receiving sync will be closed, and the event <ref refid="group__sl__bt__evt__sync__closed" kindref="compound">sl_bt_evt_sync_closed</ref> will be triggered.</para>
+</listitem><listitem><para><bold>sl_bt_past_receiver_over_sync_mode_replace (0x1):</bold> Attempt to maintain synchronization to a periodic advertising train that changed parameters (see command <ref refid="group__sl__bt__pawr__advertiser_1gad0d9c8cb421d6cc275d45cd42e581528" kindref="member">sl_bt_pawr_advertiser_change_parameters</ref>), or to synchronize to another train for which synchronization information was received (see command <ref refid="group__sl__bt__advertiser__past_1gaad39ebf8e5a41a30cec7fbe1eb88e726" kindref="member">sl_bt_advertiser_past_transfer_over_pawr_advertiser</ref>). On successful synchronization, the new train replaces the old train in the same sync object and the event <ref refid="group__sl__bt__evt__pawr__sync__transfer__received" kindref="compound">sl_bt_evt_pawr_sync_transfer_received</ref> will be triggered with the same handle as the synchronization over which the sync info was received. If synchronization with the new info cannot be obtained, the synchronization to the current train is lost and the event <ref refid="group__sl__bt__evt__sync__closed" kindref="compound">sl_bt_evt_sync_closed</ref> will be triggered.</para>
+</listitem></itemizedlist>
+</para>
+<para>Default: <ref refid="group__sl__bt__past__receiver_1gga19c4f0a4c5f89393d599a5240409ff66acdcda47bd85c3a3ae7ab10bcd042c8ad" kindref="member">sl_bt_past_receiver_over_sync_mode_ignore</ref> (No attempt is made to synchronize) </para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">skip</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>The maximum number of periodic advertising packets that can be skipped after a successful receive.<itemizedlist>
+<listitem><para><bold>Range:</bold> 0x0000 to 0x01F3</para>
+</listitem><listitem><para><bold>Default</bold> : 0 </para>
+</listitem></itemizedlist>
+</para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">timeout</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>The maximum permitted time between successful receives. If this time is exceeded, synchronization is lost. Unit: 10 ms.<itemizedlist>
+<listitem><para><bold>Range:</bold> 0x000A to 0x4000</para>
+</listitem><listitem><para>Unit: 10 ms</para>
+</listitem><listitem><para>Time range: 100 ms to 163.84 s</para>
+</listitem><listitem><para><bold>Default</bold> : 1000 ms </para>
+</listitem></itemizedlist>
+</para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">reporting_mode</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>Enum <ref refid="group__sl__bt__sync_1ga4d6dbc6ce7a4dfc5ba8e473253161d30" kindref="member">sl_bt_sync_reporting_mode_t</ref>. Specifies the initial mode for reporting data received in the periodic advertising train after it has achieved synchronization. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_sync_report_none (0x0):</bold> Data received in periodic advertising trains is not reported to the application.</para>
+</listitem><listitem><para><bold>sl_bt_sync_report_all (0x1):</bold> Data received in periodic advertising trains is reported to the application.</para>
+</listitem></itemizedlist>
+</para>
+<para>Default: <ref refid="group__sl__bt__sync_1gga4d6dbc6ce7a4dfc5ba8e473253161d30aac59b61bf5411ed41d7079f22c122f8b" kindref="member">sl_bt_sync_report_all</ref> (Data received in periodic advertising trains is reported to the application) </para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+<para><simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise.</para>
+</simplesect>
+<bold>Events</bold> <itemizedlist>
+<listitem><para><ref refid="group__sl__bt__evt__periodic__sync__transfer__received" kindref="compound">sl_bt_evt_periodic_sync_transfer_received</ref> - Triggered after synchronization transfer has been received for a periodic advertising train that does not have subevents or response slots. The event is triggered when the local device has either successfully synchronized to the train or timed out while attempting to synchronize.</para>
+</listitem><listitem><para><ref refid="group__sl__bt__evt__pawr__sync__transfer__received" kindref="compound">sl_bt_evt_pawr_sync_transfer_received</ref> - If the application includes the bluetooth_feature_pawr_sync component, triggered after synchronization transfer is received for a Periodic Advertising with Responses (PAwR) train. The event is triggered when the local device has either successfully synchronized to the train or timed out while attempting to synchronize. </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="4972" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="4972" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__past__receiver_1ga072017eb9b9c75d8bd4545a3d723ba84" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_past_receiver_set_sync_receive_over_sync_parameters</definition>
+        <argsstring>(uint16_t sync, uint8_t mode, uint16_t skip, uint16_t timeout, uint8_t reporting_mode)</argsstring>
+        <name>sl_bt_past_receiver_set_sync_receive_over_sync_parameters</name>
+        <param>
+          <type>uint16_t</type>
+          <declname>sync</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>mode</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>skip</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>timeout</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>reporting_mode</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Set the parameters for receiving Periodic Advertising Synchronization Transfers (PAST) over the specified periodic advertising synchronization.</para>
+<para>Irrespective of the value of the <computeroutput>skip</computeroutput> parameter, the Controller stops skipping packets if the skipping would cause a timeout.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">sync</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Synchronization handle of the periodic advertising sync used to receive the sync transfer </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">mode</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>Enum <ref refid="group__sl__bt__past__receiver_1gae52bc349487a3a5ef0f221c7ad7dae74" kindref="member">sl_bt_past_receiver_mode_t</ref>. The mode to specify how the Bluetooth stack reacts when synchronization information is received over periodic advertising. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_past_receiver_mode_ignore (0x0):</bold> No attempt is made to synchronize to a periodic advertising train for which the synchronization information was received. No event will be triggered towards the application.</para>
+</listitem><listitem><para><bold>sl_bt_past_receiver_mode_synchronize (0x1):</bold> Attempt to synchronize to a periodic advertising train for which the synchronization information was received. When the information is received, an event will be triggered to indicate success or failure and to provide the application with the periodic advertising synchronization handle.</para>
+</listitem></itemizedlist>
+</para>
+<para>Default: <ref refid="group__sl__bt__past__receiver_1ggae52bc349487a3a5ef0f221c7ad7dae74a03d877f107bfc67b5d9ab8f6029c1e1f" kindref="member">sl_bt_past_receiver_mode_ignore</ref> (Do not attempt to synchronize) </para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">skip</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>The maximum number of periodic advertising packets that can be skipped after a successful receive.<itemizedlist>
+<listitem><para><bold>Range:</bold> 0x0000 to 0x01F3</para>
+</listitem><listitem><para><bold>Default</bold> : 0 </para>
+</listitem></itemizedlist>
+</para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">timeout</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>The maximum permitted time between successful receives. If this time is exceeded, synchronization is lost. Unit: 10 ms.<itemizedlist>
+<listitem><para><bold>Range:</bold> 0x000A to 0x4000</para>
+</listitem><listitem><para>Unit: 10 ms</para>
+</listitem><listitem><para>Time range: 100 ms to 163.84 s</para>
+</listitem><listitem><para><bold>Default</bold> : 1000 ms </para>
+</listitem></itemizedlist>
+</para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">reporting_mode</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>Enum <ref refid="group__sl__bt__sync_1ga4d6dbc6ce7a4dfc5ba8e473253161d30" kindref="member">sl_bt_sync_reporting_mode_t</ref>. Specifies the initial mode for reporting data received in the periodic advertising train after it has achieved synchronization. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_sync_report_none (0x0):</bold> Data received in periodic advertising trains is not reported to the application.</para>
+</listitem><listitem><para><bold>sl_bt_sync_report_all (0x1):</bold> Data received in periodic advertising trains is reported to the application.</para>
+</listitem></itemizedlist>
+</para>
+<para>Default: <ref refid="group__sl__bt__sync_1gga4d6dbc6ce7a4dfc5ba8e473253161d30aac59b61bf5411ed41d7079f22c122f8b" kindref="member">sl_bt_sync_report_all</ref> (Data received in periodic advertising trains is reported to the application) </para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+<para><simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise.</para>
+</simplesect>
+<bold>Events</bold> <itemizedlist>
+<listitem><para><ref refid="group__sl__bt__evt__periodic__sync__transfer__received" kindref="compound">sl_bt_evt_periodic_sync_transfer_received</ref> - Triggered after synchronization transfer has been received for a periodic advertising train that does not have subevents or response slots. The event is triggered when the local device has either successfully synchronized to the train or timed out while attempting to synchronize.</para>
+</listitem><listitem><para><ref refid="group__sl__bt__evt__pawr__sync__transfer__received" kindref="compound">sl_bt_evt_pawr_sync_transfer_received</ref> - If the application includes the bluetooth_feature_pawr_sync component, triggered after synchronization transfer is received for a Periodic Advertising with Responses (PAwR) train. The event is triggered when the local device has either successfully synchronized to the train or timed out while attempting to synchronize. </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="5051" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="5051" declcolumn="13"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__past__receiver_1ga75630b9c9be050876a6299d87d70f7bd" prot="public" static="no">
+        <name>sl_bt_cmd_past_receiver_set_default_sync_receive_parameters_id</name>
+        <initializer>0x00510020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="4607" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="4607" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__past__receiver_1ga0434b7ab19b6662a55d586a1a3c678b7" prot="public" static="no">
+        <name>sl_bt_cmd_past_receiver_set_sync_receive_parameters_id</name>
+        <initializer>0x01510020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="4608" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="4608" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__past__receiver_1gad126f1be4f260a4fd37aae79482d025a" prot="public" static="no">
+        <name>sl_bt_cmd_past_receiver_set_default_sync_receive_over_sync_parameters_id</name>
+        <initializer>0x02510020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="4609" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="4609" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__past__receiver_1ga0c86fa4c8d5fd6d394546f7309a0bfa0" prot="public" static="no">
+        <name>sl_bt_cmd_past_receiver_set_sync_receive_over_sync_parameters_id</name>
+        <initializer>0x03510020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="4610" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="4610" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__past__receiver_1ga52ebe55babac0b2342c9f6bd579ce8d1" prot="public" static="no">
+        <name>sl_bt_rsp_past_receiver_set_default_sync_receive_parameters_id</name>
+        <initializer>0x00510020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="4611" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="4611" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__past__receiver_1gae96d4ee88cbacbf7619c258957579403" prot="public" static="no">
+        <name>sl_bt_rsp_past_receiver_set_sync_receive_parameters_id</name>
+        <initializer>0x01510020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="4612" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="4612" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__past__receiver_1gac3730d23b66ad00ce85d804b11183cd7" prot="public" static="no">
+        <name>sl_bt_rsp_past_receiver_set_default_sync_receive_over_sync_parameters_id</name>
+        <initializer>0x02510020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="4613" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="4613" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__past__receiver_1gab0fb2219e722d366953f721955cf5d71" prot="public" static="no">
+        <name>sl_bt_rsp_past_receiver_set_sync_receive_over_sync_parameters_id</name>
+        <initializer>0x03510020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="4614" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="4614" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>PAST Receiver. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>Synchronize to periodic advertising trains by receiving Periodic Advertising Synchronization Transfer over a connection. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

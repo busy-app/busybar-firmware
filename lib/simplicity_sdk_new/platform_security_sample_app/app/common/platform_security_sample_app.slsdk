@@ -1,0 +1,12 @@
+# Properties file for Simplicity Studio metadata.
+
+id=com.silabs.sdk.platform_security_sample_app
+
+label=Platform Security Sample App Package
+
+description=Platform Security Sample App Package
+
+version=1.0.1-beta.1
+
+prop.file.templatesFile=platform_security_production_templates.xml
+    

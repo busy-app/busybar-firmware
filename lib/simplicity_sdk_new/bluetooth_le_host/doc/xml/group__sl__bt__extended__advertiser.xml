@@ -1,0 +1,574 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__extended__advertiser" kind="group">
+    <compoundname>sl_bt_extended_advertiser</compoundname>
+    <title>Extended Advertiser</title>
+    <innergroup refid="group__sl__bt__extended__advertiser__flags">Extended Advertising Configuration Flags</innergroup>
+      <sectiondef kind="enum">
+      <memberdef kind="enum" id="group__sl__bt__extended__advertiser_1ga33cacc2aca33282bd319e1042b1bfc67" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_bt_extended_advertiser_connection_mode_t</name>
+        <enumvalue id="group__sl__bt__extended__advertiser_1gga33cacc2aca33282bd319e1042b1bfc67a3b4df31ee9a786a6b2e6005d2d1cbb2b" prot="public">
+          <name>sl_bt_extended_advertiser_non_connectable</name>
+          <initializer>= 0x0</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x0) Non-connectable and non-scannable extended advertising </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__extended__advertiser_1gga33cacc2aca33282bd319e1042b1bfc67a25a3be5a0fbf351694faaa62326b0c16" prot="public">
+          <name>sl_bt_extended_advertiser_scannable</name>
+          <initializer>= 0x3</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x3) Scannable extended advertising </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__extended__advertiser_1gga33cacc2aca33282bd319e1042b1bfc67ac6bdb08c9a5960099d0fcf3ebf1a89ff" prot="public">
+          <name>sl_bt_extended_advertiser_connectable</name>
+          <initializer>= 0x4</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x4) Connectable extended advertising </para>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>These values define the available connection modes in extended advertising. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="3027" column="1" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="3028" bodyend="3036"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="group__sl__bt__extended__advertiser_1gac7a6395d280c76bb3396ce6182c9d1ca" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_extended_advertiser_set_phy</definition>
+        <argsstring>(uint8_t advertising_set, uint8_t primary_phy, uint8_t secondary_phy)</argsstring>
+        <name>sl_bt_extended_advertiser_set_phy</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>advertising_set</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>primary_phy</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>secondary_phy</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Set the primary and secondary advertising PHYs used for extended and periodic advertising on an advertising set. This setting will take effect next time extended or periodic advertising is enabled. When advertising on the LE Coded PHY, coding scheme S=8 is used. The SL_STATUS_INVALID_PARAMETER error is returned if a PHY value is invalid or the device does not support a given PHY.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">advertising_set</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Advertising set handle </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">primary_phy</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>Enum <ref refid="group__sl__bt__gap_1ga05ce4496a6f87de7c67a9e32d816727c" kindref="member">sl_bt_gap_phy_t</ref>. The PHY on which the advertising packets are transmitted on the primary advertising channel. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_gap_phy_1m (0x1):</bold> 1M PHY</para>
+</listitem><listitem><para><bold>sl_bt_gap_phy_coded (0x4):</bold> Coded PHY, 125k (S=8)</para>
+</listitem><listitem><para><bold>Default</bold> : <ref refid="group__sl__bt__gap_1gga05ce4496a6f87de7c67a9e32d816727ca3ae0bf1d99d33066af4b6eea4b55414e" kindref="member">sl_bt_gap_phy_1m</ref> </para>
+</listitem></itemizedlist>
+</para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">secondary_phy</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>Enum <ref refid="group__sl__bt__gap_1ga05ce4496a6f87de7c67a9e32d816727c" kindref="member">sl_bt_gap_phy_t</ref>. The PHY on which the advertising packets are transmitted on the secondary advertising channel. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_gap_phy_1m (0x1):</bold> 1M PHY</para>
+</listitem><listitem><para><bold>sl_bt_gap_phy_2m (0x2):</bold> 2M PHY</para>
+</listitem><listitem><para><bold>sl_bt_gap_phy_coded (0x4):</bold> Coded PHY, 125k (S=8)</para>
+</listitem><listitem><para><bold>Default</bold> : <ref refid="group__sl__bt__gap_1gga05ce4496a6f87de7c67a9e32d816727ca3ae0bf1d99d33066af4b6eea4b55414e" kindref="member">sl_bt_gap_phy_1m</ref> </para>
+</listitem></itemizedlist>
+</para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+<para><simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="3085" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="3085" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__extended__advertiser_1gac039eff642bda360752cfe15a12a4801" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_extended_advertiser_set_data</definition>
+        <argsstring>(uint8_t advertising_set, size_t data_len, const uint8_t *data)</argsstring>
+        <name>sl_bt_extended_advertiser_set_data</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>advertising_set</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>data_len</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>data</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Set user-defined data for extended advertising. This overwrites the existing advertising data packet and scan response packet on this advertising set regardless of whether the data was set for the legacy or extended advertising. Maximum 191 bytes of data can be set for connectable extended advertising. Maximum 253 bytes of data can be set for non-connectable extended advertising. For setting longer advertising data, use command <ref refid="group__sl__bt__extended__advertiser_1gafd85f91fd16eaa5eda271928de21bf4a" kindref="member">sl_bt_extended_advertiser_set_long_data</ref>.</para>
+<para>If advertising mode is currently enabled, the new advertising data will be used immediately. Advertising mode can be enabled using command <ref refid="group__sl__bt__extended__advertiser_1ga030012183d731de694e4b8780770a487" kindref="member">sl_bt_extended_advertiser_start</ref>.</para>
+<para>The invalid parameter error is returned if the data is too long to fit into a single advertisement.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">advertising_set</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Advertising set handle </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">data_len</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Length of data in <computeroutput>data</computeroutput> </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">data</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Data to be set</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="3113" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="3113" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__extended__advertiser_1gafd85f91fd16eaa5eda271928de21bf4a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_extended_advertiser_set_long_data</definition>
+        <argsstring>(uint8_t advertising_set)</argsstring>
+        <name>sl_bt_extended_advertiser_set_long_data</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>advertising_set</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Set long user-defined data for extended advertising. This overwrites the existing advertising data packet and scan response packet on this advertising set regardless of whether the data was set for the legacy or extended advertising.</para>
+<para>Prior to calling this command, add data to the buffer with one or multiple calls to <ref refid="group__sl__bt__system_1ga2e185f6632d32051b0f431ea15abcc3c" kindref="member">sl_bt_system_data_buffer_write</ref>. When this command is called, the data in the system data buffer is extracted as the advertising data. The buffer will be emptied after this command regardless of the completion status.</para>
+<para>Maximum 191 bytes of data can be set for connectable extended advertising. Maximum 1650 bytes of data can be set for non-connectable extended advertising. Advertising parameters may limit the amount of data that can be sent in a single advertisement. See <ref refid="group__sl__bt__extended__advertiser_1gac039eff642bda360752cfe15a12a4801" kindref="member">sl_bt_extended_advertiser_set_data</ref> for more details.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">advertising_set</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Advertising set handle</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="3141" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="3141" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__extended__advertiser_1gab8d690a6e9b6266d69b560a3b11ebe39" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_extended_advertiser_generate_data</definition>
+        <argsstring>(uint8_t advertising_set, uint8_t discover)</argsstring>
+        <name>sl_bt_extended_advertiser_generate_data</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>advertising_set</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>discover</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Ask the stack to generate the extended advertising data on an advertising set. Alternatively, user-defined advertising data can be set using the <ref refid="group__sl__bt__extended__advertiser_1gac039eff642bda360752cfe15a12a4801" kindref="member">sl_bt_extended_advertiser_set_data</ref> command.</para>
+<para>This overwrites the existing advertising data packet and scan response packet on this advertising set regardless of whether the data was set for the legacy or extended advertising.</para>
+<para>If advertising mode is currently enabled, the new advertising data will be used immediately. To enable advertising mode, use command <ref refid="group__sl__bt__extended__advertiser_1ga030012183d731de694e4b8780770a487" kindref="member">sl_bt_extended_advertiser_start</ref>.</para>
+<para>See <ref refid="group__sl__bt__legacy__advertiser_1ga5f486c209a5a1300f05546cd505db485" kindref="member">sl_bt_legacy_advertiser_generate_data</ref> for the advertising data generation logic.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">advertising_set</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Advertising set handle </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">discover</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Enum <ref refid="group__sl__bt__advertiser_1ga5ba0781115b475f1f26eec61863b8d62" kindref="member">sl_bt_advertiser_discovery_mode_t</ref>. The discovery mode for the Flags data field in the packet. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_advertiser_non_discoverable (0x0):</bold> Not discoverable</para>
+</listitem><listitem><para><bold>sl_bt_advertiser_limited_discoverable (0x1):</bold> Discoverable by both limited and general discovery procedures</para>
+</listitem><listitem><para><bold>sl_bt_advertiser_general_discoverable (0x2):</bold> Discoverable by the general discovery procedure</para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="3172" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="3172" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__extended__advertiser_1ga030012183d731de694e4b8780770a487" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_extended_advertiser_start</definition>
+        <argsstring>(uint8_t advertising_set, uint8_t connect, uint32_t flags)</argsstring>
+        <name>sl_bt_extended_advertiser_start</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>advertising_set</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>connect</declname>
+        </param>
+        <param>
+          <type>uint32_t</type>
+          <declname>flags</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Start undirected extended advertising on an advertising set with the specified connection mode. Use <ref refid="group__sl__bt__advertiser_1gaa21542d22182e08604799e795c90db7b" kindref="member">sl_bt_advertiser_stop</ref> to stop the advertising.</para>
+<para>Use the <ref refid="group__sl__bt__extended__advertiser_1gac039eff642bda360752cfe15a12a4801" kindref="member">sl_bt_extended_advertiser_set_data</ref> or <ref refid="group__sl__bt__extended__advertiser_1gab8d690a6e9b6266d69b560a3b11ebe39" kindref="member">sl_bt_extended_advertiser_generate_data</ref> command to set the advertising data before calling this command. Advertising data is added into the scan response packet if the connection mode is scannable. Otherwise, data is in the advertising data packet.</para>
+<para>The number of concurrent connectable advertisings is limited by the connection number configuration. See <ref refid="group__sl__bt__legacy__advertiser_1gafbe2b47ed2e88b2c96ef028e1df388d3" kindref="member">sl_bt_legacy_advertiser_start</ref> for more details.</para>
+<para>This command fails with the invalid parameter error if the advertising uses a non-resolvable random address but the connection mode is <ref refid="group__sl__bt__extended__advertiser_1gga33cacc2aca33282bd319e1042b1bfc67ac6bdb08c9a5960099d0fcf3ebf1a89ff" kindref="member">sl_bt_extended_advertiser_connectable</ref>.</para>
+<para>This command returns the error SL_STATUS_BT_CONTROLLER_COMMAND_DISALLOWED when the connection mode is <ref refid="group__sl__bt__extended__advertiser_1gga33cacc2aca33282bd319e1042b1bfc67a25a3be5a0fbf351694faaa62326b0c16" kindref="member">sl_bt_extended_advertiser_scannable</ref> but no scan response data is provided.</para>
+<para>Event <ref refid="group__sl__bt__evt__connection__opened" kindref="compound">sl_bt_evt_connection_opened</ref> will be received when a remote device opens a connection to the advertiser on this advertising set. As a result, the advertising stops.</para>
+<para>Event <ref refid="group__sl__bt__evt__advertiser__timeout" kindref="compound">sl_bt_evt_advertiser_timeout</ref> will be received when the number of advertising events set by <ref refid="group__sl__bt__advertiser_1ga2124b32ebba98612731be0e2b7b9cf1f" kindref="member">sl_bt_advertiser_set_timing</ref> command is done and the advertising has stopped.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">advertising_set</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Advertising set handle </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">connect</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Enum <ref refid="group__sl__bt__extended__advertiser_1ga33cacc2aca33282bd319e1042b1bfc67" kindref="member">sl_bt_extended_advertiser_connection_mode_t</ref>. Connection mode. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_extended_advertiser_non_connectable (0x0):</bold> Non-connectable and non-scannable extended advertising</para>
+</listitem><listitem><para><bold>sl_bt_extended_advertiser_scannable (0x3):</bold> Scannable extended advertising</para>
+</listitem><listitem><para><bold>sl_bt_extended_advertiser_connectable (0x4):</bold> Connectable extended advertising </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">flags</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Additional extended advertising options. Value: 0 or bitmask of <ref refid="group__sl__bt__extended__advertiser__flags" kindref="compound">Extended Advertising Configuration Flags</ref></para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise.</para>
+</simplesect>
+<bold>Events</bold> <itemizedlist>
+<listitem><para><ref refid="group__sl__bt__evt__advertiser__timeout" kindref="compound">sl_bt_evt_advertiser_timeout</ref> - Triggered when the number of advertising events set by <ref refid="group__sl__bt__advertiser_1ga2124b32ebba98612731be0e2b7b9cf1f" kindref="member">sl_bt_advertiser_set_timing</ref> command is done and advertising has stopped on an advertising set.</para>
+</listitem><listitem><para><ref refid="group__sl__bt__evt__connection__opened" kindref="compound">sl_bt_evt_connection_opened</ref> - Triggered when a remote device opens a connection to the advertiser and the advertising has stopped. </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="3229" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="3229" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__extended__advertiser_1ga41a32f4a248cf50bed75f10f15e362a6" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_extended_advertiser_start_directed</definition>
+        <argsstring>(uint8_t advertising_set, uint8_t connect, uint32_t flags, bd_addr peer_addr, uint8_t peer_addr_type)</argsstring>
+        <name>sl_bt_extended_advertiser_start_directed</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>advertising_set</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>connect</declname>
+        </param>
+        <param>
+          <type>uint32_t</type>
+          <declname>flags</declname>
+        </param>
+        <param>
+          <type><ref refid="structbd__addr" kindref="compound">bd_addr</ref></type>
+          <declname>peer_addr</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>peer_addr_type</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Start directed extended advertising on an advertising set with the specified peer target device and connection mode. Use <ref refid="group__sl__bt__advertiser_1gaa21542d22182e08604799e795c90db7b" kindref="member">sl_bt_advertiser_stop</ref> to stop the advertising.</para>
+<para>The number of concurrent connectable advertisings is limited by the connection number configuration. See <ref refid="group__sl__bt__legacy__advertiser_1gafbe2b47ed2e88b2c96ef028e1df388d3" kindref="member">sl_bt_legacy_advertiser_start</ref> for more details.</para>
+<para>This command fails with the invalid parameter error if the advertising uses a non-resolvable random address but the connection mode is <ref refid="group__sl__bt__extended__advertiser_1gga33cacc2aca33282bd319e1042b1bfc67ac6bdb08c9a5960099d0fcf3ebf1a89ff" kindref="member">sl_bt_extended_advertiser_connectable</ref>.</para>
+<para>Event <ref refid="group__sl__bt__evt__connection__opened" kindref="compound">sl_bt_evt_connection_opened</ref> will be received when the target device opens a connection to the advertiser on this advertising set. As a result, the advertising stops.</para>
+<para>Event <ref refid="group__sl__bt__evt__advertiser__timeout" kindref="compound">sl_bt_evt_advertiser_timeout</ref> will be received when the advertising stops and no Bluetooth connection is opened to it.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">advertising_set</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Advertising set handle </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">connect</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Enum <ref refid="group__sl__bt__extended__advertiser_1ga33cacc2aca33282bd319e1042b1bfc67" kindref="member">sl_bt_extended_advertiser_connection_mode_t</ref>. Connection mode. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_extended_advertiser_non_connectable (0x0):</bold> Non-connectable and non-scannable extended advertising</para>
+</listitem><listitem><para><bold>sl_bt_extended_advertiser_scannable (0x3):</bold> Scannable extended advertising</para>
+</listitem><listitem><para><bold>sl_bt_extended_advertiser_connectable (0x4):</bold> Connectable extended advertising </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">flags</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Additional extended advertising options. Value: 0 or bitmask of <ref refid="group__sl__bt__extended__advertiser__flags" kindref="compound">Extended Advertising Configuration Flags</ref> </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">peer_addr</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Address of the peer target device the advertising is directed to </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">peer_addr_type</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>Enum <ref refid="group__sl__bt__gap_1gac8d5431d3062e47c5d51b9fb9f36c104" kindref="member">sl_bt_gap_address_type_t</ref>.</para>
+<para>Peer target device address type.</para>
+<para>If the application does not include the bluetooth_feature_use_accurate_api_address_types component, <computeroutput>peer_addr_type</computeroutput> uses the following values:<itemizedlist>
+<listitem><para><bold>0:</bold> Public address</para>
+</listitem><listitem><para><bold>1:</bold> Random address</para>
+</listitem></itemizedlist>
+</para>
+<para>If the application includes the bluetooth_feature_use_accurate_api_address_types component, <computeroutput>peer_addr_type</computeroutput> uses enum <ref refid="group__sl__bt__gap_1gac8d5431d3062e47c5d51b9fb9f36c104" kindref="member">sl_bt_gap_address_type_t</ref> values:<itemizedlist>
+<listitem><para><bold>sl_bt_gap_public_address (0x0):</bold> Public device address</para>
+</listitem><listitem><para><bold>sl_bt_gap_static_address (0x1):</bold> Static device address</para>
+</listitem><listitem><para><bold>sl_bt_gap_random_resolvable_address (0x2):</bold> Resolvable private random address</para>
+</listitem><listitem><para><bold>sl_bt_gap_random_nonresolvable_address (0x3):</bold> Non-resolvable private random address</para>
+</listitem><listitem><para><bold>sl_bt_gap_public_address_resolved_from_rpa (0x4):</bold> Public identity address resolved from a resolvable private address (RPA)</para>
+</listitem><listitem><para><bold>sl_bt_gap_static_address_resolved_from_rpa (0x5):</bold> Static identity address resolved from a resolvable private address (RPA) </para>
+</listitem></itemizedlist>
+</para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+<para><simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise.</para>
+</simplesect>
+<bold>Events</bold> <itemizedlist>
+<listitem><para><ref refid="group__sl__bt__evt__advertiser__timeout" kindref="compound">sl_bt_evt_advertiser_timeout</ref> - Triggered when the number of advertising events set by <ref refid="group__sl__bt__advertiser_1ga2124b32ebba98612731be0e2b7b9cf1f" kindref="member">sl_bt_advertiser_set_timing</ref> command is done and the advertising has stopped.</para>
+</listitem><listitem><para><ref refid="group__sl__bt__evt__connection__opened" kindref="compound">sl_bt_evt_connection_opened</ref> - Triggered when a remote device opens a connection to the advertiser and the advertising has stopped. </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="3303" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="3303" declcolumn="13"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__extended__advertiser_1ga10e2f0ceed0165d00a1b0e210801a8e0" prot="public" static="no">
+        <name>sl_bt_cmd_extended_advertiser_set_phy_id</name>
+        <initializer>0x00570020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="3010" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="3010" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__extended__advertiser_1ga93d1727a9a974edeba32de254f67a75b" prot="public" static="no">
+        <name>sl_bt_cmd_extended_advertiser_set_data_id</name>
+        <initializer>0x01570020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="3011" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="3011" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__extended__advertiser_1ga055a025d5a8cc701883f50664d25308a" prot="public" static="no">
+        <name>sl_bt_cmd_extended_advertiser_set_long_data_id</name>
+        <initializer>0x02570020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="3012" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="3012" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__extended__advertiser_1ga4ff0f8b8d143efef97e0c16a1543492a" prot="public" static="no">
+        <name>sl_bt_cmd_extended_advertiser_generate_data_id</name>
+        <initializer>0x03570020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="3013" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="3013" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__extended__advertiser_1ga1e778ab9b0b5221de70519a8901f25c6" prot="public" static="no">
+        <name>sl_bt_cmd_extended_advertiser_start_id</name>
+        <initializer>0x04570020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="3014" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="3014" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__extended__advertiser_1ga049eeaeb50bdf4edb16f79cfbb560505" prot="public" static="no">
+        <name>sl_bt_cmd_extended_advertiser_start_directed_id</name>
+        <initializer>0x05570020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="3015" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="3015" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__extended__advertiser_1ga5bee82bc3ff57df812d719f3f6ca1e42" prot="public" static="no">
+        <name>sl_bt_rsp_extended_advertiser_set_phy_id</name>
+        <initializer>0x00570020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="3016" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="3016" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__extended__advertiser_1gacc263380e56a0ecbe9270c3044f35926" prot="public" static="no">
+        <name>sl_bt_rsp_extended_advertiser_set_data_id</name>
+        <initializer>0x01570020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="3017" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="3017" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__extended__advertiser_1gaec8d23005823ad0331633d195a23c933" prot="public" static="no">
+        <name>sl_bt_rsp_extended_advertiser_set_long_data_id</name>
+        <initializer>0x02570020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="3018" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="3018" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__extended__advertiser_1ga266312650bb530164d6eed347bc88b57" prot="public" static="no">
+        <name>sl_bt_rsp_extended_advertiser_generate_data_id</name>
+        <initializer>0x03570020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="3019" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="3019" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__extended__advertiser_1gac74203415b50f747e9300f4ccec3f8eb" prot="public" static="no">
+        <name>sl_bt_rsp_extended_advertiser_start_id</name>
+        <initializer>0x04570020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="3020" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="3020" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__extended__advertiser_1ga308e1932c1e35eb852ee89785bdbcfaf" prot="public" static="no">
+        <name>sl_bt_rsp_extended_advertiser_start_directed_id</name>
+        <initializer>0x05570020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="3021" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="3021" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Extended Advertiser. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>The commands and events in this class are related to extended advertising functionalities in GAP peripheral and broadcaster roles. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

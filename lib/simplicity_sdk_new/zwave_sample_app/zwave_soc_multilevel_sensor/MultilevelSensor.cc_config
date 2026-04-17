@@ -1,0 +1,55 @@
+zw_cc_multilevel_sensor:
+  endpoints:
+    - endpoint: 0
+      sensors:
+        air_temperature:
+          name: SENSOR_NAME_AIR_TEMPERATURE
+          scales:
+            - SENSOR_SCALE_CELSIUS
+            - SENSOR_SCALE_FAHRENHEIT
+        humidity:
+          name: SENSOR_NAME_HUMIDITY
+          scales:
+            - SENSOR_SCALE_PERCENTAGE
+        ambient_light:
+          name: SENSOR_NAME_ILLUMINANCE
+          scales:
+            - SENSOR_SCALE_LUX
+        motion_axis_x:
+          name: SENSOR_NAME_ACCELERATION_X
+          scales:
+            - SENSOR_SCALE_METER_SQUARE_SECOND
+        motion_axis_y:
+          name: SENSOR_NAME_ACCELERATION_Y
+          scales:
+            - SENSOR_SCALE_METER_SQUARE_SECOND
+        motion_axis_z:
+          name: SENSOR_NAME_ACCELERATION_Z
+          scales:
+            - SENSOR_SCALE_METER_SQUARE_SECOND
+zw_cc_configuration:
+  configurations:
+    - name: "Minimum temperature limit"
+      number: 1
+      file_id: 0
+      info: "Minimum temperature limit celsius"
+      size: CC_CONFIG_PARAMETER_SIZE_32_BIT
+      format: CC_CONFIG_PARAMETER_FORMAT_SIGNED_INTEGER
+      min_value: -100
+      max_value: 50
+      default_value: 10
+      altering_capabilities: 0
+      read_only: 0
+      advanced: 0
+    - name: "Maximum temperature limit"
+      number: 2
+      file_id: 1
+      info: "Maximum temperature limit celsius"
+      size: CC_CONFIG_PARAMETER_SIZE_32_BIT
+      format: CC_CONFIG_PARAMETER_FORMAT_SIGNED_INTEGER
+      min_value: 10
+      max_value: 100
+      default_value: 35
+      altering_capabilities: 0
+      read_only: 0
+      advanced: 0

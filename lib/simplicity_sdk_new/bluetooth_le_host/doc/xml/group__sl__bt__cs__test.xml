@@ -1,0 +1,602 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__cs__test" kind="group">
+    <compoundname>sl_bt_cs_test</compoundname>
+    <title>Channel Sounding Test</title>
+    <innergroup refid="group__sl__bt__evt__cs__test__end__completed">sl_bt_evt_cs_test_end_completed</innergroup>
+      <sectiondef kind="enum">
+      <memberdef kind="enum" id="group__sl__bt__cs__test_1ga63927ecc8c3951878256e65b568b3f08" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_bt_cs_test_tone_extension_t</name>
+        <enumvalue id="group__sl__bt__cs__test_1gga63927ecc8c3951878256e65b568b3f08aee065f593ff9c1771b2dd2354e2c05fb" prot="public">
+          <name>sl_bt_cs_test_tone_extension_both_without</name>
+          <initializer>= 0x0</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x0) Initiator and Reflector tones sent without tone extension </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__cs__test_1gga63927ecc8c3951878256e65b568b3f08a2a95093bcd18bbacdcebb5ffc115ccb5" prot="public">
+          <name>sl_bt_cs_test_tone_extension_reflector_without</name>
+          <initializer>= 0x1</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x1) Initiator tone sent with extension; Reflector tone sent without extension </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__cs__test_1gga63927ecc8c3951878256e65b568b3f08a690179d918527fd6da49f5a86946fbe8" prot="public">
+          <name>sl_bt_cs_test_tone_extension_initiator_without</name>
+          <initializer>= 0x2</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x2) Initiator tone sent without extension; Reflector tone sent with extension </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__cs__test_1gga63927ecc8c3951878256e65b568b3f08a63f0be1f04cffe2c30c02ff04272fc04" prot="public">
+          <name>sl_bt_cs_test_tone_extension_both_with</name>
+          <initializer>= 0x3</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x3) Initiator and Reflector tones sent with extension </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__cs__test_1gga63927ecc8c3951878256e65b568b3f08a7c0b1eb28ff59b6cfb4aa1c4486b7a33" prot="public">
+          <name>sl_bt_cs_test_tone_extension_round_robin</name>
+          <initializer>= 0x4</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x4) Loop through values 0x00 to 0x03 </para>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>Defines tone extension for CS test. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="14494" column="1" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="14495" bodyend="14515"/>
+      </memberdef>
+      <memberdef kind="enum" id="group__sl__bt__cs__test_1ga33230168dbb19ffd8cb4f2579e82c16d" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_bt_cs_test_sounding_sequence_marker_t</name>
+        <enumvalue id="group__sl__bt__cs__test_1gga33230168dbb19ffd8cb4f2579e82c16dadc361fee95c4269ef72152fc17d5d7e4" prot="public">
+          <name>sl_bt_cs_test_sounding_sequence_marker_1</name>
+          <initializer>= 0x0</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x0) Use 0b0011 as the Sounding Sequence marker </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__cs__test_1gga33230168dbb19ffd8cb4f2579e82c16da37cff30910f83663e2f78dee2d40798b" prot="public">
+          <name>sl_bt_cs_test_sounding_sequence_marker_2</name>
+          <initializer>= 0x1</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x1) Use 0b1100 as the Sounding Sequence marker </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__cs__test_1gga33230168dbb19ffd8cb4f2579e82c16da619778e33723264d7eeabd1826060c4d" prot="public">
+          <name>sl_bt_cs_test_sounding_sequence_marker_round_robin</name>
+          <initializer>= 0x2</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x2) Loop through 0b0011 and 0b1100 </para>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>This defines sounding sequence marker for CS test. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="14520" column="1" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="14521" bodyend="14533"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="group__sl__bt__cs__test_1gaa66d7b45664c0c2e0b99db3946802ab2" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_cs_test_start</definition>
+        <argsstring>(uint8_t main_mode_type, uint8_t sub_mode_type, uint8_t main_mode_repetition, uint8_t mode_calibration_steps, uint8_t role, uint8_t rtt_type, uint8_t cs_sync_phy, uint8_t antenna_selection, const sl_bt_cs_subevent_length_t *subevent_len, uint16_t subevent_interval, uint8_t max_num_subevents, int8_t tx_power, uint8_t t_ip1_time, uint8_t t_ip2_time, uint8_t t_fcs_time, uint8_t t_pm_time, uint8_t t_sw_time, uint8_t tone_antenna_config, uint8_t reserved, uint8_t snr_control_initiator, uint8_t snr_control_reflector, uint16_t drbg_nonce, uint8_t channel_map_repetition, uint16_t override_config, size_t override_parameters_len, const uint8_t *override_parameters)</argsstring>
+        <name>sl_bt_cs_test_start</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>main_mode_type</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>sub_mode_type</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>main_mode_repetition</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>mode_calibration_steps</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>role</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>rtt_type</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>cs_sync_phy</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>antenna_selection</declname>
+        </param>
+        <param>
+          <type>const <ref refid="structsl__bt__cs__subevent__length__t" kindref="compound">sl_bt_cs_subevent_length_t</ref> *</type>
+          <declname>subevent_len</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>subevent_interval</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>max_num_subevents</declname>
+        </param>
+        <param>
+          <type>int8_t</type>
+          <declname>tx_power</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>t_ip1_time</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>t_ip2_time</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>t_fcs_time</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>t_pm_time</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>t_sw_time</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>tone_antenna_config</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>reserved</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>snr_control_initiator</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>snr_control_reflector</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>drbg_nonce</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>channel_map_repetition</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>override_config</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>override_parameters_len</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>override_parameters</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Start a single CS procedure using the given configuration. The reflector must be initialized before starting the initiator. To stop an ongoing test, use the <ref refid="group__sl__bt__test_1ga7f995817c8e2ec75377cc17e4e1ff233" kindref="member">sl_bt_test_dtm_end</ref> command.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">main_mode_type</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Enum <ref refid="group__sl__bt__cs_1ga631ba2f05b0fb5daf637468c2f0d7dc3" kindref="member">sl_bt_cs_mode_t</ref>. Main mode type. Values :<itemizedlist>
+<listitem><para><bold>sl_bt_cs_mode_rtt (0x1):</bold> Round Trip Time (RTT) measurement</para>
+</listitem><listitem><para><bold>sl_bt_cs_mode_pbr (0x2):</bold> Phase-Based Ranging (PBR) measurement</para>
+</listitem><listitem><para><bold>sl_bt_cs_submode_disabled (0xff):</bold> Submode disabled for the procedure. </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">sub_mode_type</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Enum <ref refid="group__sl__bt__cs_1ga631ba2f05b0fb5daf637468c2f0d7dc3" kindref="member">sl_bt_cs_mode_t</ref>. Sub mode type. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_cs_mode_rtt (0x1):</bold> Round Trip Time (RTT) measurement</para>
+</listitem><listitem><para><bold>sl_bt_cs_mode_pbr (0x2):</bold> Phase-Based Ranging (PBR) measurement</para>
+</listitem><listitem><para><bold>sl_bt_cs_submode_disabled (0xff):</bold> Submode disabled for the procedure. </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">main_mode_repetition</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of main mode steps taken from the end of the last CS subevent to be repeated at the beginning of the current CS subevent directly after the last Mode 0 step of that event.<itemizedlist>
+<listitem><para><bold>Range:</bold> 0 to 3 </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">mode_calibration_steps</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of calibration mode steps to be included at the beginning of the test CS subevent<itemizedlist>
+<listitem><para><bold>Range:</bold> 1 to 3 </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">role</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Enum <ref refid="group__sl__bt__cs_1gab16efa17cdb87c4313b5e15b9261aaf9" kindref="member">sl_bt_cs_role_t</ref>. Role during CS procedure Values:<itemizedlist>
+<listitem><para><bold>sl_bt_cs_role_initiator (0x0):</bold> The device will initiate the procedure</para>
+</listitem><listitem><para><bold>sl_bt_cs_role_reflector (0x1):</bold> The device will reciprocate transmission </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">rtt_type</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Enum <ref refid="group__sl__bt__cs_1ga706ac48e5976f2b902c86bf7fd305d18" kindref="member">sl_bt_cs_rtt_type_t</ref>. RTT payload type used in the CS procedure Values:<itemizedlist>
+<listitem><para><bold>sl_bt_cs_rtt_type_aa_only (0x0):</bold> RTT Access Address (AA) only</para>
+</listitem><listitem><para><bold>sl_bt_cs_rtt_type_fractional_32_bit_sounding (0x1):</bold> RTT Fractional with 32-bit Sounding Sequence</para>
+</listitem><listitem><para><bold>sl_bt_cs_rtt_type_fractional_96_bit_sounding (0x2):</bold> RTT Fractional with 96-bit Sounding Sequence</para>
+</listitem><listitem><para><bold>sl_bt_cs_rtt_type_fractional_32_bit_random (0x3):</bold> RTT Fractional with 32-bit Random Sequence</para>
+</listitem><listitem><para><bold>sl_bt_cs_rtt_type_fractional_64_bit_random (0x4):</bold> RTT Fractional with 64-bit Random Sequence</para>
+</listitem><listitem><para><bold>sl_bt_cs_rtt_type_fractional_96_bit_random (0x5):</bold> RTT Fractional with 96-bit Random Sequence</para>
+</listitem><listitem><para><bold>sl_bt_cs_rtt_type_fractional_128_bit_random (0x6):</bold> RTT Fractional with 128-bit Random Sequence </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">cs_sync_phy</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Enum <ref refid="group__sl__bt__gap_1ga05ce4496a6f87de7c67a9e32d816727c" kindref="member">sl_bt_gap_phy_t</ref>. Used PHY for CS_SYNC exchanges during a procedure Values:<itemizedlist>
+<listitem><para><bold>sl_bt_gap_phy_1m (0x1):</bold> 1M PHY</para>
+</listitem><listitem><para><bold>sl_bt_gap_phy_2m (0x2):</bold> 2M PHY</para>
+</listitem><listitem><para><bold>sl_bt_gap_phy_coded (0x4):</bold> Coded PHY, 125k (S=8) or 500k (S=2)</para>
+</listitem><listitem><para><bold>sl_bt_gap_phy_any (0xff):</bold> Any PHYs the device supports </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">antenna_selection</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>Antenna Identifier to be used for RTT packets<itemizedlist>
+<listitem><para><bold>Range:</bold> 1 to 4</para>
+</listitem><listitem><para>Value: 0xFE. Use antennas in repetitive order from 0x01 to 0x04 </para>
+</listitem></itemizedlist>
+</para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">subevent_len</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>CS subevent length in units of microseconds.<itemizedlist>
+<listitem><para><bold>Range:</bold> 1250 to 3999999</para>
+</listitem><listitem><para>Time range: 1250 us to 4s </para>
+</listitem></itemizedlist>
+</para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">subevent_interval</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Interval between the start of two consecutive CS events. Units: 0.625 ms.<itemizedlist>
+<listitem><para>Value: 0x0000. Single CS subevent </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">max_num_subevents</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>The maximum allowed number of subevents in the procedure.<itemizedlist>
+<listitem><para>Value: 0x00. This parameter is ignored when determining the number of subevents in the procedure</para>
+</listitem><listitem><para><bold>Range:</bold> 1 to 32 </para>
+</listitem></itemizedlist>
+</para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">tx_power</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>Transmit power level for the transmission. Units: dBm.<itemizedlist>
+<listitem><para><bold>Range:</bold> -127 to +20</para>
+</listitem><listitem><para>Value: 0x7E. Set transmitter to minimum transmit power level</para>
+</listitem><listitem><para>Value: 0x7F. Set transmitter to maximum transmit power level </para>
+</listitem></itemizedlist>
+</para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">t_ip1_time</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Idle time in microseconds between the RTT packets<itemizedlist>
+<listitem><para>Values: 10, 20, 30, 40, 50, 60, 80 or 145 </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">t_ip2_time</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Interlude time in microseconds between the CS tones<itemizedlist>
+<listitem><para>Values: 10, 20, 30, 40, 50, 60, 80 or 145 </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">t_fcs_time</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Time in microseconds for frequency changes<itemizedlist>
+<listitem><para>Values: 15, 20, 30, 40, 50, 60, 80, 100, 120 or 150 </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">t_pm_time</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Time in microseconds for the phase measurement period of the CS tones<itemizedlist>
+<listitem><para>Values: 10, 20 or 40 </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">t_sw_time</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Time in microseconds for the antenna switch period of the CS tones<itemizedlist>
+<listitem><para>Values: 0, 1, 2, 4 or 10 </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">tone_antenna_config</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Antenna Configuration Index used during antenna switching<itemizedlist>
+<listitem><para><bold>Range:</bold> 0 to 7 </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">reserved</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Reserved for future use. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">snr_control_initiator</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Enum <ref refid="group__sl__bt__cs_1gae36bfcc29d4bffeae51b5c6ee64eea9b" kindref="member">sl_bt_cs_snr_control_adjustment_t</ref>. The Signal Noise Ratio (SNR) control adjustment for the CS_SYNC transmissions of the initiator. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_cs_snr_control_adjustment_not_applied (0xff):</bold> SNR control adjustment not to be applied </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">snr_control_reflector</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Enum <ref refid="group__sl__bt__cs_1gae36bfcc29d4bffeae51b5c6ee64eea9b" kindref="member">sl_bt_cs_snr_control_adjustment_t</ref>. The Signal Noise Ratio (SNR) control adjustment for the CS_SYNC transmissions of the reflector. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_cs_snr_control_adjustment_not_applied (0xff):</bold> SNR control adjustment not to be applied </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">drbg_nonce</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The DRBG_Nonce value determines octets 14 and 15 of the initial value of the DRBG nonce. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">channel_map_repetition</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of times the channel_map field will be cycled through for non-Mode 0 steps within an CS procedure.<itemizedlist>
+<listitem><para><bold>Range:</bold> 1 to 255 </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">override_config</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Configuration of the parameters in override_parameters. Please refer to the Bluetooth Specification document on the HCI_CS_Test comamnd for more information on the override configuration details. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">override_parameters_len</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Length of data in <computeroutput>override_parameters</computeroutput> </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">override_parameters</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Variable set of parameters. Please refer to the Bluetooth Specification document on the HCI_CS_Test comamnd for more information on the override parameters details.</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise.</para>
+</simplesect>
+<bold>Events</bold> <itemizedlist>
+<listitem><para><ref refid="group__sl__bt__evt__cs__result" kindref="compound">sl_bt_evt_cs_result</ref> - Triggered when local controller has results to report for every CS subevent within the CS procedure </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="14682" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="14682" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__cs__test_1gab5af1068c11f2652091144188451c3b1" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_cs_test_end</definition>
+        <argsstring>(void)</argsstring>
+        <name>sl_bt_cs_test_end</name>
+        <param>
+          <type>void</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Stops any ongoing CS test. When the local controller has sent all the remaining subevents for the ongoing procedure it will generate an <ref refid="group__sl__bt__evt__cs__test__end__completed" kindref="compound">sl_bt_evt_cs_test_end_completed</ref> event.</para>
+<para><simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise.</para>
+</simplesect>
+<bold>Events</bold> <itemizedlist>
+<listitem><para><ref refid="group__sl__bt__evt__cs__test__end__completed" kindref="compound">sl_bt_evt_cs_test_end_completed</ref> - Triggered when local controller has stopped the CS procedure started with the <ref refid="group__sl__bt__cs__test_1gaa66d7b45664c0c2e0b99db3946802ab2" kindref="member">sl_bt_cs_test_start</ref> command. </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="14724" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="14724" declcolumn="13"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__cs__test_1ga9402e24cbe4b765d9b6ac4e759dbcb2d" prot="public" static="no">
+        <name>sl_bt_cmd_cs_test_start_id</name>
+        <initializer>0x005a0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="14486" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="14486" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__cs__test_1ga1fe4b9d53825f41be92ee9036c435850" prot="public" static="no">
+        <name>sl_bt_cmd_cs_test_end_id</name>
+        <initializer>0x015a0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="14487" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="14487" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__cs__test_1ga8a7dacabe7d4db9530a293c377048ac5" prot="public" static="no">
+        <name>sl_bt_rsp_cs_test_start_id</name>
+        <initializer>0x005a0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="14488" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="14488" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__cs__test_1gae19bde7d61dfa39d5c94414622eafa01" prot="public" static="no">
+        <name>sl_bt_rsp_cs_test_end_id</name>
+        <initializer>0x015a0020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="14489" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="14489" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Channel Sounding Test. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>This class provides optional test commands and events for CS between Bluetooth devices. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

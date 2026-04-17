@@ -1,0 +1,52 @@
+project_name: sl_si91x_mutex
+package: platform_siwx91x_app
+description: 'This application demonstrates how to use RTOS concept Mutex in an application.
+
+  '
+category: example|cmsis-rtos
+quality: production
+label: Si91x - SL_RTOS_MUTEX
+component:
+- id: sl_main
+- id: status
+- id: syscalls
+- id: si91x_memory_default_config
+- id: freertos
+- id: freertos_heap_4
+- id: sleeptimer
+- id: sl_si91x_led_917
+  instance:
+  - led0
+source:
+- path: app.c
+- path: src/blinky.c
+include:
+- path: .
+  file_list:
+  - path: app.h
+- path: src/inc
+  file_list:
+  - path: blinky.h
+define:
+- name: SYSCALLS_WRITE
+toolchain_settings:
+- option: gcc_compiler_option
+  value: -Wall -Werror
+other_file:
+- path: resources/readme/setupdiagram.png
+ui_hints:
+  highlight:
+  - path: readme.md
+    focus: true
+readme:
+- path: readme.md
+post_build:
+  profile: wiseconnect_soc
+sdk_extension:
+- id: wiseconnect3_sdk
+  vendor: silabs
+  version: 4.0.1
+sdk:
+  id: simplicity_sdk
+  vendor: silabs
+  version: 2025.12.2

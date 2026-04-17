@@ -1,0 +1,106 @@
+project_name: wifi_http_otaf_twt_soc
+package: wifi_app
+quality: production
+label: Wi-Fi - HTTP/HTTPS OTAF TWT Update (SoC)
+category: Example|Wi-Fi
+description: 'Update Firmware from remote AWS or Azure or Apache Server
+
+  '
+filter:
+- name: Wireless Technology
+  value:
+  - Wi-Fi
+- name: Project Difficulty
+  value:
+  - Beginner
+source:
+- path: app.c
+include:
+- path: .
+  file_list:
+  - path: app.h
+define:
+- name: RSI_DEBUG_PRINTS
+- name: AWS_ENABLE
+- name: M4_OTAF_DF
+- name: SLI_SI91X_CONFIG_WIFI6_PARAMS
+- name: SLI_SI91X_ENABLE_TWT_FEATURE
+component:
+- id: sl_main
+- id: freertos
+- id: freertos_heap_4
+- id: syscalls
+- id: si91x_memory_default_config
+- id: wiseconnect_common
+- id: wifi
+- id: sl_si91x_internal_stack
+- id: wifi_resources
+- id: network_manager
+- id: basic_network_config_manager
+- id: sl_si91x_soc_soft_reset
+- id: sl_si91x_mem_pool_buffers_with_quota
+requires:
+- name: device_needs_ram_execution
+  condition:
+  - si91x_common_flash
+toolchain_settings: []
+configuration:
+- name: SL_BOARD_ENABLE_VCOM
+  value: '1'
+readme:
+- path: readme.md
+other_file:
+- path: resources/readme/application_prints_aws.png
+- path: resources/readme/application_prints_azure.png
+- path: resources/readme/application_prints_apache.png
+- path: resources/readme/aws_bucket_acl_enable.png
+- path: resources/readme/aws_bucket_getting_url_1.png
+- path: resources/readme/aws_bucket_getting_url_2.png
+- path: resources/readme/aws_bucket_public_access.png
+- path: resources/readme/image388.png
+- path: resources/readme/image389.png
+- path: resources/readme/image390.png
+- path: resources/readme/image391.png
+- path: resources/readme/image392.png
+- path: resources/readme/image393.png
+- path: resources/readme/image394.png
+- path: resources/readme/image395.png
+- path: resources/readme/image396.png
+- path: resources/readme/image397.png
+- path: resources/readme/image398.png
+- path: resources/readme/image399.png
+- path: resources/readme/image400.png
+- path: resources/readme/image401.png
+- path: resources/readme/image402.png
+- path: resources/readme/image403.png
+- path: resources/readme/image404.png
+- path: resources/readme/image405.png
+- path: resources/readme/image406.png
+- path: resources/readme/image407.png
+- path: resources/readme/image408.png
+- path: resources/readme/image409.png
+- path: resources/readme/image410.png
+- path: resources/readme/image411.png
+- path: resources/readme/image412.png
+- path: resources/readme/image413.png
+- path: resources/readme/image414.png
+- path: resources/readme/image415.png
+- path: resources/readme/image416.png
+- path: resources/readme/image417.png
+- path: resources/readme/image418.png
+- path: resources/readme/image419.png
+- path: resources/readme/setup_soc_ncp.png
+ui_hints:
+  highlight:
+  - path: readme.md
+    focus: true
+post_build:
+  profile: wiseconnect_soc
+sdk_extension:
+- id: wiseconnect3_sdk
+  vendor: silabs
+  version: 4.0.1
+sdk:
+  id: simplicity_sdk
+  vendor: silabs
+  version: 2025.12.2

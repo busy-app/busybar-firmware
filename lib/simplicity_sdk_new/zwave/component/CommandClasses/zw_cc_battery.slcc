@@ -1,0 +1,31 @@
+id: zw_cc_battery
+label: Battery Command Class
+category: Z-Wave|Command Classes
+description: >
+  Battery Command Class is used to request and report the battery types,
+  status and levels of a given device. Defined levels are LOW, HIGH, FULL and WARNING. It is
+  possible to configure the minimum Hysteresis value to request a report on the battery status.
+package: zwave
+quality: production
+metadata:
+  sbom:
+    reference: zw_sbom_license
+
+config_file:
+- path: sample_apps/config/cc_battery/cc_battery_config.h
+  file_id: cc_battery_config
+source:
+- path: ZAF/CommandClasses/Battery/src/CC_Battery.c
+- path: ZAF/CommandClasses/Battery/src/cc_battery_io_weak.c
+- path: ZAF/CommandClasses/Battery/src/cc_battery_config_api.c
+  # Private header
+- path: ZAF/CommandClasses/Battery/src/cc_battery_io.h
+include:
+- path: ZAF/CommandClasses/Battery/inc/
+  file_list:
+  - path: CC_Battery.h
+provides:
+- name: zw_cc_battery
+requires:
+- name: zw_core
+root_path: zwave

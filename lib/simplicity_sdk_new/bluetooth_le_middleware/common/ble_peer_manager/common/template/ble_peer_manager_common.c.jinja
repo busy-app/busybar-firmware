@@ -1,0 +1,19 @@
+#include "ble_peer_manager_common.h"
+
+{# Deduplicate includes before printing #include statements -#}
+{% set includes = [] -%}
+{% for eh in ble_peer_manager_event_handler -%}
+  {% if 'include' in eh and eh['include'] not in includes -%}
+    {% if includes.append(eh['include']) %}{% endif -%}
+  {% endif -%}
+{% endfor -%}
+{%- for include in includes -%}
+#include "{{include}}"
+{% endfor %}
+void ble_peer_manager_on_event(ble_peer_manager_evt_type_t* event)
+{
+{%- for eh in ble_peer_manager_event_handler %}
+  {{ eh['handler'] }}(event);
+{% endfor %}
+}
+

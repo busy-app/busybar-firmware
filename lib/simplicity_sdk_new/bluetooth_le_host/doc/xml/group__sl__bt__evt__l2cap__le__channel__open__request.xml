@@ -1,0 +1,43 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__evt__l2cap__le__channel__open__request" kind="group">
+    <compoundname>sl_bt_evt_l2cap_le_channel_open_request</compoundname>
+    <title>sl_bt_evt_l2cap_le_channel_open_request</title>
+    <innerclass refid="structsl__bt__evt__l2cap__le__channel__open__request__s" prot="public">sl_bt_evt_l2cap_le_channel_open_request_s</innerclass>
+      <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="group__sl__bt__evt__l2cap__le__channel__open__request_1gaa2e213207ee422ed942f26bb23020ee1" prot="public" static="no">
+        <type>struct <ref refid="structsl__bt__evt__l2cap__le__channel__open__request__s" kindref="compound">sl_bt_evt_l2cap_le_channel_open_request_s</ref></type>
+        <definition>typedef struct sl_bt_evt_l2cap_le_channel_open_request_s sl_bt_evt_l2cap_le_channel_open_request_t</definition>
+        <argsstring></argsstring>
+        <name>sl_bt_evt_l2cap_le_channel_open_request_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="14909" column="56" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="14909" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__evt__l2cap__le__channel__open__request_1ga4370f1d85b77b7a8b9e07066f9e8876a" prot="public" static="no">
+        <name>sl_bt_evt_l2cap_le_channel_open_request_id</name>
+        <initializer>0x014300a0</initializer>
+        <briefdescription>
+<para>Identifier of the le_channel_open_request event. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="14888" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="14888" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Indicates that an LE credit-based connection request on a Bluetooth connection is received. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>The application must respond with the <ref refid="group__sl__bt__l2cap_1ga4e2fcca3a491c716b71584567667e095" kindref="member">sl_bt_l2cap_send_le_channel_open_response</ref> command. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

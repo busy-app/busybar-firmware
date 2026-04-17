@@ -1,0 +1,84 @@
+<HtermSequenceFile>
+    <ItemList>
+        <SequenceItem name="-- Commands --">
+            <description></description>
+            <sequence value="" />
+        </SequenceItem>
+        <SequenceItem name="help">
+            <description></description>
+            <sequence value="a[help] h[0D]" />
+        </SequenceItem>
+        <SequenceItem name="info">
+            <description></description>
+            <sequence value="a[info] h[0D]" />
+        </SequenceItem>
+        <SequenceItem name="send">
+            <description></description>
+            <sequence value="a[send] h[0D]" />
+        </SequenceItem>
+        <SequenceItem name="receive 0">
+            <description></description>
+            <sequence value="a[receive 0] h[0D]" />
+        </SequenceItem>
+        <SequenceItem name="receive 1">
+            <description></description>
+            <sequence value="a[receive 1] h[0D]" />
+        </SequenceItem>
+        <SequenceItem name="std b (IEEE802.15.4)">
+            <description></description>
+            <sequence value="a[std b] h[0D]" />
+        </SequenceItem>
+        <SequenceItem name="std g 863 (15.4g)">
+            <description></description>
+            <sequence value="a[std g 863] h[0D]" />
+        </SequenceItem>
+        <SequenceItem name="std g 915 (15.4g)">
+            <description></description>
+            <sequence value="a[std g 915] h[0D]" />
+        </SequenceItem>
+        <SequenceItem name="ackreq 0 (not requested)">
+            <description></description>
+            <sequence value="a[ackreq 0] h[0D]" />
+        </SequenceItem>
+        <SequenceItem name="ackreq 1 (requested)">
+            <description></description>
+            <sequence value="a[ackreq 1] h[0D]" />
+        </SequenceItem>
+        <SequenceItem name="panid 10">
+            <description></description>
+            <sequence value="a[panid 10] h[0D]" />
+        </SequenceItem>
+        <SequenceItem name="destaddr 11">
+            <description></description>
+            <sequence value="a[destaddr 11] h[0D]" />
+        </SequenceItem>
+        <SequenceItem name="destaddr 12">
+            <description></description>
+            <sequence value="a[destaddr 12] h[0D]" />
+        </SequenceItem>
+        <SequenceItem name="srcaddr 11">
+            <description></description>
+            <sequence value="a[srcaddr 11] h[0D]" />
+        </SequenceItem>
+        <SequenceItem name="srcaddr 12">
+            <description></description>
+            <sequence value="a[srcaddr 12] h[0D]" />
+        </SequenceItem>
+        <SequenceItem name="configdw 0 (DW Off)">
+            <description></description>
+            <sequence value="a[configdw 0] h[0D]" />
+        </SequenceItem>
+        <SequenceItem name="configdw 1 (DW On)">
+            <description></description>
+            <sequence value="a[configdw 1] h[0D]" />
+        </SequenceItem>
+        <SequenceItem name="configcrc 2 (2-byte CRC)">
+            <description></description>
+            <sequence value="a[configcrc 2] h[0D]" />
+        </SequenceItem>
+        <SequenceItem name="configcrc 4 (4-byte CRC)">
+            <description></description>
+            <sequence value="a[configcrc 4] h[0D]" />
+        </SequenceItem>
+    </ItemList>
+</HtermSequenceFile>

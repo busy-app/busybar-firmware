@@ -1,0 +1,52 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<module:DocumentRoot xmlns:module="http://www.silabs.com/ss/hwconfig/module.ecore">
+  <module id="pin_tool.efr32.mgm22.timer" label="TIMER" name="TIMER" description="" version="A">
+    <properties>
+      <stringProperty label="Type" id="type" defaultValue="timer" transient="true" hidden="true" readonly="true" description=""/>
+      <stringProperty label="Custom Peripheral Name" id="peripheral.name" description=""/>
+      <boolProperty label="DTI capable" id="capability.dti" readonly="true" transient="true" hidden="true" defaultValue="false"/>
+      <boolProperty label="32b capable" id="capability.32b" readonly="true" transient="true" hidden="true" defaultValue="false"/>
+      <integerProperty label="Channel count" id="channel.count" defaultValue="0" transient="true" hidden="true" readonly="true" description=""/>
+      <stringProperty label="Channel signal" id="channel.signal" defaultValue="CC" transient="true" hidden="true" readonly="true" description=""/>
+      <enumProperty label="Requirement 0 channel selection" id="requirement.0.channel" defaultValueIndex="0" hidden="true" transient="true" description="">
+        <enumValue label="Not selected" value="-1"/>
+        <enumValue label="Channel 0" value="0"/>
+        <enumValue label="Channel 1" value="1"/>
+        <enumValue label="Channel 2" value="2"/>
+      </enumProperty>
+      <enumProperty label="Requirement 1 channel selection" id="requirement.1.channel" defaultValueIndex="0" hidden="true" transient="true" description="">
+        <enumValue label="Not selected" value="-1"/>
+        <enumValue label="Channel 0" value="0"/>
+        <enumValue label="Channel 1" value="1"/>
+        <enumValue label="Channel 2" value="2"/>
+      </enumProperty>
+      <enumProperty label="Requirement 2 channel selection" id="requirement.2.channel" defaultValueIndex="0" hidden="true" transient="true" description="">
+        <enumValue label="Not selected" value="-1"/>
+        <enumValue label="Channel 0" value="0"/>
+        <enumValue label="Channel 1" value="1"/>
+        <enumValue label="Channel 2" value="2"/>
+      </enumProperty>
+      <stringProperty label="CC0 name" id="channel.0.name" hidden="true" readonly="true" description=""/>
+      <stringProperty label="CC1 name" id="channel.1.name" hidden="true" readonly="true" description=""/>
+      <stringProperty label="CC2 name" id="channel.2.name" hidden="true" readonly="true" description=""/>
+    </properties>
+    <propertyCategories>
+      <category label="TIMER">
+        <subCategory label="">
+          <propertyRef refId="peripheral.name"/>
+          <propertyRef refId="requirement.0.channel"/>
+          <propertyRef refId="requirement.1.channel"/>
+          <propertyRef refId="requirement.2.channel"/>
+        </subCategory>
+      </category>
+    </propertyCategories>
+    <signals>
+      <signal name="CC0"/>
+      <signal name="CC1"/>
+      <signal name="CC2"/>
+      <signal name="CDTI0"/>
+      <signal name="CDTI1"/>
+      <signal name="CDTI2"/>
+    </signals>
+  </module>
+</module:DocumentRoot>

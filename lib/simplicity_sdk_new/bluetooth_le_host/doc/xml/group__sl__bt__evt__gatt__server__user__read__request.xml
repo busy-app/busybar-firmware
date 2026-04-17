@@ -1,0 +1,43 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__evt__gatt__server__user__read__request" kind="group">
+    <compoundname>sl_bt_evt_gatt_server_user_read_request</compoundname>
+    <title>sl_bt_evt_gatt_server_user_read_request</title>
+    <innerclass refid="structsl__bt__evt__gatt__server__user__read__request__s" prot="public">sl_bt_evt_gatt_server_user_read_request_s</innerclass>
+      <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="group__sl__bt__evt__gatt__server__user__read__request_1ga284e4f54b2b3ec0017d037ae10f338e9" prot="public" static="no">
+        <type>struct <ref refid="structsl__bt__evt__gatt__server__user__read__request__s" kindref="compound">sl_bt_evt_gatt_server_user_read_request_s</ref></type>
+        <definition>typedef struct sl_bt_evt_gatt_server_user_read_request_s sl_bt_evt_gatt_server_user_read_request_t</definition>
+        <argsstring></argsstring>
+        <name>sl_bt_evt_gatt_server_user_read_request_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="9946" column="56" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="9946" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__evt__gatt__server__user__read__request_1ga7557f18f6c87a724f35eae1ab20e1eae" prot="public" static="no">
+        <name>sl_bt_evt_gatt_server_user_read_request_id</name>
+        <initializer>0x010a00a0</initializer>
+        <briefdescription>
+<para>Identifier of the user_read_request event. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="9929" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="9929" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Indicates that a remote GATT client is attempting to read a value of an attribute from the local GATT database, where the attribute was defined in the GATT database XML file to have the type=&quot;user&quot;. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>The parameter <computeroutput>att_opcode</computeroutput> informs which GATT procedure was used to read the value. The application needs to respond to this request by using the <ref refid="group__sl__bt__gatt__server_1ga6f42d2ae08604321a80befe6358b9b22" kindref="member">sl_bt_gatt_server_send_user_read_response</ref> command within 30 seconds, otherwise further GATT transactions are not allowed by the remote side. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

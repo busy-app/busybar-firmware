@@ -1,0 +1,33 @@
+objectType: docSpace
+id: protocol-usb
+version: "1.6.0"
+curators:
+  - natalija.svacina@silabs.com
+  - catherine.owens@silabs.com
+title: "Universal Serial Bus (USB)"
+menu:
+  items:
+    - USB Overview:
+      - docleaf://protocol-usb-overview/1.6.0
+    - Specifications and Features:
+      - docleaf://protocol-usb-specifications/1.6.0
+    - USB Device Configuration:
+      - docleaf://protocol-usb-configuration/1.6.0
+    - USB Device Programming Guide:
+      - docleaf://protocol-usb-programming-guide/1.6.0
+    - USB Device Classes:
+      - docleaf://protocol-usb-classes/1.6.0
+      - CDC ACM Class:
+        - docleaf://protocol-usb-cdc/1.6.0
+      - HID Class:
+        - docleaf://protocol-usb-hid/1.6.0
+      - MSC SCSI Class:
+        - docleaf://protocol-usb-msc-scsi/1.6.0
+      - Vendor Class:
+        - docleaf://protocol-usb-vendor/1.6.0
+    - USB API:
+      - docleaf://protocol-usb-api/1.6.0
+    - USB Device Troubleshooting:
+      - docleaf://protocol-usb-troubleshooting/1.6.0
+    - Microsoft Windows OS USB Host:
+      - docleaf://protocol-usb-host-microsoft-windows/1.6.0

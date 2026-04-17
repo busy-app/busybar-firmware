@@ -1,0 +1,102 @@
+project_name: bt_rcp_cpc_freertos
+package: bluetooth_le_app
+label: Bluetooth - RCP CPC FreeRTOS
+description: >
+  Radio Co-Processor (RCP) target application. Runs the Bluetooth Controller
+  (i.e. the Link Layer only) and provides access to it using the standard HCI
+  (Host-Controller Interface) over CPC (Co-Processor Communication) protocol
+  through UART connection.
+category: Bluetooth Examples
+quality: experimental
+
+filter:
+  - name: "Wireless Technology"
+    value: ["Bluetooth"]
+  - name: "Device Type"
+    value: ["RCP"]
+  - name: "Project Difficulty"
+    value: ["Advanced"]
+
+component:
+  - id: freertos
+  - id: bluetooth_hci_cpc
+  - id: cpc_secondary
+  - id: cpc_secondary_driver_uart_usart
+    instance: [vcom]
+    condition: [device_series_2]
+  - id: cpc_secondary_driver_uart_eusart
+    instance: [vcom]
+    condition: [device_series_3]
+  - id: board_control
+  - id: bluetooth_controller
+  - id: bluetooth_feature_connection_role_central
+  - id: bluetooth_feature_connection_role_peripheral
+  - id: bluetooth_feature_legacy_advertiser
+  - id: bluetooth_feature_extended_advertiser
+  - id: bluetooth_feature_periodic_advertiser
+  - id: bluetooth_feature_connection_phy_update
+  - id: bluetooth_feature_legacy_scanner
+  - id: bluetooth_feature_extended_scanner
+  - id: app_assert
+  - id: sl_main
+  - id: app_os_helper
+  - id: clock_manager
+  - id: device_init
+
+source:
+  - path: app.c
+
+include:
+  - path: .
+    file_list:
+      - path: app.h
+
+readme:
+  - path: readme_rcp_cpc.md
+
+other_file:
+  - path: image/readme_img0.png
+  - path: image/readme_img1.png
+  - path: image/readme_cpc_img0.png
+
+configuration:
+  - name: SL_STACK_SIZE
+    value: "2000"
+  - name: configTOTAL_HEAP_SIZE
+    value: "12000"
+  - name: configTIMER_TASK_STACK_DEPTH
+    value: "240"
+  - name: SL_BOARD_ENABLE_VCOM
+    value: 1
+  - name: SL_BT_CONFIG_USER_ADVERTISERS
+    value: 2
+  - name: SL_CPC_RX_BUFFER_MAX_COUNT
+    value: 5
+  - name: SL_CPC_DRV_UART_VCOM_RX_QUEUE_SIZE
+    value: 5
+  - name: SL_CPC_DRV_UART_VCOM_FLOW_CONTROL_TYPE
+    value: usartHwFlowControlNone
+    condition: [cpc_secondary_driver_uart_usart]
+  - name: SL_CPC_DRV_UART_VCOM_FLOW_CONTROL_TYPE
+    value: eusartHwFlowControlNone
+    condition: [cpc_secondary_driver_uart_eusart]
+  - name: SL_CLOCK_MANAGER_LFXO_TIMEOUT
+    value: LFXO_CFG_TIMEOUT_CYCLES4K
+    condition: ["device_sdid_200"]
+  - name: SL_CLOCK_MANAGER_LFXO_TIMEOUT
+    value: LFXO_CFG_TIMEOUT_CYCLES4K
+    condition: ["device_sdid_205"]
+  - name: SL_PSA_KEY_USER_SLOT_COUNT
+    value: "0"
+    condition:
+      - psa_crypto
+
+tag:
+  - hwfilter:device:device_supports_bluetooth
+  - hwfilter:!device:device_generic_family_efr32xg22
+  - hwfilter:+device:efr32mr21a020f512im32
+
+ui_hints:
+  highlight:
+    - path: readme_rcp_cpc.md
+      focus: true

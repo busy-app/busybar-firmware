@@ -1,0 +1,46 @@
+# This HAL applies to series 2 and 3 devices.
+id: hal_smu
+label: SMU
+package: platform_core
+description: >
+  Security Management Unit (SMU) Peripheral API
+category: Platform|Peripheral|HAL
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+include:
+- path: "inc"
+  file_list:
+  - path: "sl_hal_smu.h"
+provides:
+- name: hal_smu
+requires:
+- name: device
+- name: device_has_smu
+- name: hal_common
+- name: cmsis_core
+documentation:
+  docset: gecko-platform
+  document:
+  - page: platform-peripheral-efr32xg21/smu
+    condition: [device_sdid_200]
+  - page: platform-peripheral-efr32xg22/smu
+    condition: [device_sdid_205]
+  - page: platform-peripheral-efr32xg23/smu
+    condition: [device_sdid_210]
+  - page: platform-peripheral-efr32xg24/smu
+    condition: [device_sdid_215]
+  - page: platform-peripheral-efr32xg25/smu
+    condition: [device_sdid_220]
+  - page: platform-peripheral-efr32xg26/smu
+    condition: [device_sdid_225]
+  - page: platform-peripheral-efr32xg27/smu
+    condition: [device_sdid_230]
+  - page: platform-peripheral-efr32xg28/smu
+    condition: [device_sdid_235]
+  - page: platform-peripheral-efr32xg29/smu
+    condition: [device_sdid_240]
+  - page: platform-peripheral-sixg301/smu
+    condition: [device_generic_family_sixx301]
+root_path: platform_core/platform/peripheral

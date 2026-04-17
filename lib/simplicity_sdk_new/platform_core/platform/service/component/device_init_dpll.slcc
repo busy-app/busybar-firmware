@@ -1,0 +1,94 @@
+id: device_init_dpll
+label: Digital Phase-Locked Loop (DPLL)
+package: platform_core
+description: >
+  Instantiate the component for Digital Phase-Locked Loop (DPLL) initialization
+  and lock for the main High Frequency RC Oscillator (HFRCO), based on the
+  provided component configuration. The reference clock, target oscillator
+  frequency as well as other settings can be specified via the component
+  configuration.
+category: Services|Device Initialization|Peripherals
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: platform_core/platform/service/device_init/
+config_file:
+- path: config/s2/sdid200/sl_device_init_dpll_config.h
+  file_id: device_init_dpll_config
+  condition: [device_sdid_200]
+- path: config/s2/sdid205/38M/sl_device_init_dpll_config.h
+  file_id: device_init_dpll_config
+  condition: [bgm220sc12wga]
+- path: config/s2/sdid205/38M/sl_device_init_dpll_config.h
+  file_id: device_init_dpll_config
+  condition: [device_family_efr32fg22]
+- path: config/s2/sdid205/38M/sl_device_init_dpll_config.h
+  file_id: device_init_dpll_config
+  condition: [efr32bg22c112f352gm32]
+- path: config/s2/sdid205/38M/sl_device_init_dpll_config.h
+  file_id: device_init_dpll_config
+  condition: [efr32bg22c112f352gm40]
+- path: config/s2/sdid205/38M/sl_device_init_dpll_config.h
+  file_id: device_init_dpll_config
+  condition: [efr32bg22l122f352gm32]
+- path: config/s2/sdid205/sl_device_init_dpll_config.h
+  file_id: device_init_dpll_config
+  condition: [device_sdid_205]
+  unless: [bgm220sc12wga, device_family_efr32fg22, efr32bg22c112f352gm32, efr32bg22c112f352gm40, efr32bg22l122f352gm32]
+- path: config/s2/sdid210/sl_device_init_dpll_config.h
+  file_id: device_init_dpll_config
+  condition: [device_sdid_210]
+- path: config/s2/sdid215/sl_device_init_dpll_config.h
+  file_id: device_init_dpll_config
+  condition: [device_sdid_215]
+- path: config/s2/sdid220/sl_device_init_dpll_config.h
+  file_id: device_init_dpll_config
+  condition: [device_sdid_220]
+- path: config/s2/sdid225/sl_device_init_dpll_config.h
+  file_id: device_init_dpll_config
+  condition: [device_sdid_225]
+- path: config/s2/sdid230/sl_device_init_dpll_config.h
+  file_id: device_init_dpll_config
+  condition: [device_sdid_230]
+- path: config/s2/sdid235/sl_device_init_dpll_config.h
+  file_id: device_init_dpll_config
+  condition: [device_sdid_235]
+- path: config/s2/sdid240/sl_device_init_dpll_config.h
+  file_id: device_init_dpll_config
+  condition: [device_sdid_240]
+- path: config/s2/sdid260/sl_device_init_dpll_config.h
+  file_id: device_init_dpll_config
+  condition: [device_sdid_260]
+- path: config/s2/sdid250/sl_device_init_dpll_config.h
+  file_id: device_init_dpll_config
+  condition: [device_generic_family_efr32xg2b]
+include:
+- path: inc
+  file_list:
+  - path: sl_device_init_dpll.h
+source:
+- path: src/sl_device_init_dpll_s2.c
+  condition: [device_series_2]
+provides:
+- name: device_init_dpll
+- name: device_init_hfrco
+requires:
+- name: emlib_cmu
+- name: status
+- name: device_series_2
+template_contribution:
+- name: event_handler
+  value:
+    event: platform_init
+    include: sl_device_init_dpll.h
+    handler: sl_device_init_dpll
+  priority: -9550
+  condition: [sl_system, kernel]
+- name: device_init_clocks_present
+  value: dpll
+- name: component_catalog
+  value: device_init_dpll
+documentation:
+  docset: gecko-platform
+  document: platform-service/device-init-dpll

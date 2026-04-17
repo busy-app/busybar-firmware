@@ -1,0 +1,215 @@
+project_name: btmesh_ncp_empty_micriumos
+package: bluetooth_mesh_app
+label: Bluetooth Mesh - NCP Empty Micrium OS
+description: >-
+  An NCP Target C application that makes it possible for the NCP Host Controller to access
+  the Bluetooth Mesh stack via UART. It provides access to the host layer via BGAPI and not
+  to the link layer via HCI. This example runs on top of Micrium OS.
+
+category: Bluetooth Mesh Examples
+quality: production
+
+filter:
+  - name: "Wireless Technology"
+    value: ["Bluetooth Mesh"]
+  - name: "Device Type"
+    value: ["NCP"]
+  - name: "Project Difficulty"
+    value: ["Beginner"]
+
+component:
+  - id: app_assert
+  - id: bluetooth_feature_connection_role_central
+  - id: bluetooth_feature_connection_role_peripheral
+  - id: bluetooth_feature_gatt
+  - id: bluetooth_feature_gatt_server
+  - id: bluetooth_feature_nvm
+  - id: bluetooth_feature_sm
+  - id: btmesh_dcd_configuration
+  - id: btmesh_stack_dfu_model
+  - id: btmesh_stack_config_client
+  - id: btmesh_stack_friend
+  - id: btmesh_stack_fw_distribution_client
+  - id: btmesh_stack_fw_distribution_server
+  - id: btmesh_stack_fw_list_cache
+  - id: btmesh_stack_fw_standalone_updater
+  - id: btmesh_stack_fw_update_client
+  - id: btmesh_stack_fw_update_server
+  - id: btmesh_stack_gatt_prov_bearer
+  - id: btmesh_stack_generic_client
+  - id: btmesh_stack_generic_server
+  - id: btmesh_stack_health_client
+  - id: btmesh_stack_health_server
+  - id: btmesh_stack_lc_server
+  - id: btmesh_stack_lc_client
+  - id: btmesh_stack_lc_setup_server
+  - id: btmesh_stack_lpn
+  - id: btmesh_stack_mbt_client
+  - id: btmesh_stack_mbt_server
+  - id: btmesh_stack_migration
+  - id: btmesh_stack_node
+  - id: btmesh_stack_on_demand_private_proxy_client
+  - id: btmesh_stack_on_demand_private_proxy_server
+  - id: btmesh_stack_provisioner
+  - id: btmesh_stack_proxy
+  - id: btmesh_stack_proxy_server
+  - id: btmesh_stack_proxy_client
+  - id: btmesh_stack_relay
+  - id: btmesh_stack_remote_provisioning_client
+  - id: btmesh_stack_remote_provisioning_server
+  - id: btmesh_stack_sar_config_client
+  - id: btmesh_stack_sar_config_server
+  - id: btmesh_stack_scene_server
+  - id: btmesh_stack_scene_client
+  - id: btmesh_stack_scene_setup_server
+  - id: btmesh_stack_scheduler_server
+  - id: btmesh_stack_scheduler_client
+  - id: btmesh_stack_sensor_server
+  - id: btmesh_stack_sensor_client
+  - id: btmesh_stack_sensor_setup_server
+  - id: btmesh_stack_solicitation_config_client
+  - id: btmesh_stack_test
+  - id: btmesh_stack_time_server
+  - id: btmesh_stack_time_client
+  - id: btmesh_stack_vendor_model
+  - id: btmesh_stack_private_beacon_client
+  - id: btmesh_stack_private_beacon_server
+  - id: btmesh_proxy
+  - id: btmesh_stack
+  - id: clock_manager
+  - id: device_init
+  - id: gatt_configuration
+  - id: micriumos_kernel
+  - id: mpu
+  - id: ncp
+  - id: ncp_btmesh_dfu
+  - id: ncp_btmesh_user_cmd
+  - id: rail_util_pti
+  - id: toolchain_gcc_lto
+  - id: uartdrv_usart
+    instance:
+      - vcom
+  - id: sl_main
+
+source:
+  - path: app.c
+  - path: app_micriumos.c
+
+include:
+  - path: .
+    file_list:
+    - path: app.h
+
+config_file:
+  - override:
+      component: btmesh_dcd_configuration
+      file_id: dcd_configuration_file_id
+    path: dcd_config.btmeshconf
+    directory: "btmeshconf"
+
+readme:
+  - path: ../../documentation/example/btmesh_ncp_empty/readme.md
+
+other_file:
+  - path: ../../documentation/example/btmesh_ncp_empty/readme_img0.png
+  - path: ../../documentation/example/btmesh_ncp_empty/readme_img1.png
+  - path: ../../documentation/example/btmesh_ncp_empty/readme_img2.png
+  - path: ../../documentation/example/btmesh_ncp_empty/readme_img3.png
+  - path: ../../documentation/example/btmesh_ncp_empty/readme_img4.png
+  - path: ../../documentation/example/btmesh_ncp_empty/readme_img5.png
+  - path: ../../documentation/example/btmesh_ncp_empty/readme_img6.png
+  - path: ../../documentation/example/btmesh_ncp_empty/readme_img7.png
+  - path: ../../documentation/example/btmesh_ncp_empty/readme_img8.png
+  - path: ../../documentation/example/btmesh_ncp_empty/readme_img9.png
+
+configuration:
+  - name: EMDRV_DMADRV_DMA_CH_COUNT
+    value: 2
+  - name: SL_BT_RTOS_HOST_STACK_TASK_STACK_SIZE
+    value: "4000"
+  - name: OS_CFG_TMR_EN
+    value: "1"
+  - name: OS_CFG_DBG_EN
+    value: "0"
+  - name: OS_CFG_TS_EN
+    value: "0"
+  - name: OS_CFG_SCHED_ROUND_ROBIN_EN
+    value: "0"
+  - name: OS_CFG_STK_SIZE_MIN
+    value: "48"
+  - name: OS_CFG_Q_EN
+    value: "1"
+  - name: OS_CFG_MON_EN
+    value: "0"
+  - name: OS_CFG_STAT_TASK_EN
+    value: "0"
+  - name: OS_CFG_STAT_TASK_STK_CHK_EN
+    value: "0"
+  - name: OS_CFG_TASK_PROFILE_EN
+    value: "0"
+  - name: OS_CFG_TASK_Q_EN
+    value: "0"
+  - name: LIB_MEM_CFG_HEAP_SIZE
+    value: "3584"
+  - name: SL_BOARD_ENABLE_VCOM
+    value: 1
+  - name: SL_BTMESH_CONFIG_MAX_FOUNDATION_CLIENT_CMDS
+    value: "4"
+  - name: SL_BTMESH_CONFIG_MAX_PROVISIONED_DEVICE_APPKEYS
+    value: "4"
+  - name: SL_BTMESH_CONFIG_MAX_PROVISIONED_DEVICE_NETKEYS
+    value: "4"
+  - name: SL_BTMESH_CONFIG_MAX_PROVISIONED_DEVICES
+    value: "16"
+  - name: SL_BTMESH_CONFIG_MAX_PROV_BEARERS
+    value: "3"
+  - name: SL_BT_CONFIG_BUFFER_SIZE
+    value: "4200"
+  - name: SL_PSA_KEY_USER_SLOT_COUNT
+    value: "1"
+    condition:
+      - psa_crypto
+  - name: SL_BT_NCP_TRANSPORT_CONFIG_RX_BUF_SIZE
+    value: "528"
+    condition:
+      - ncp_sec
+  - name: SL_BT_NCP_TRANSPORT_CONFIG_TX_BUF_SIZE
+    value: "264"
+    condition:
+      - ncp_sec
+  - name: SL_NCP_CMD_BUF_SIZE
+    value: "264"
+    condition:
+      - ncp_sec
+  - name: SL_NCP_EVT_BUF_SIZE
+    value: "264"
+    condition:
+      - ncp_sec
+
+  - name: SL_UARTDRV_USART_VCOM_FLOW_CONTROL_TYPE
+    value: uartdrvFlowControlNone
+    condition:
+      - hardware_board_tb
+
+post_build:
+  - path: "../../postbuild_profile/btmesh_common_s2.slpb"
+    condition: [device_series_2, bootloader_app_properties]
+
+tag:
+  - hardware:device:sdid:!205
+  - hardware:device:sdid:!89
+  - hardware:rf:band:2400
+  - hwfilter:device:device_series_2
+  - hwfilter:device:device_supports_bluetooth
+  - hwfilter:ram:64k
+  - hwfilter:flash:512k
+  - hwfilter:!device:device_generic_family_efr32xg22
+
+ui_hints:
+  highlight:
+    - path: config/btconf/gatt_configuration.btconf
+      focus: false
+    - path: config/btmeshconf/dcd_config.btmeshconf
+      focus: false
+    - path: readme_rtos.md
+      focus: true

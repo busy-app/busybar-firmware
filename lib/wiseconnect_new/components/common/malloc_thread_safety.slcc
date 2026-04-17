@@ -1,0 +1,15 @@
+id: malloc_thread_safety
+package: wifi
+description: >
+  Provides thread safety to malloc() and free()
+label: Malloc thread safety
+category: Device|Si91x|MCU|Common
+quality: production
+metadata:
+  sbom:
+    license: MSLA
+component_root_path: "./components/common"
+source:
+  - path: "src/malloc_thread_safety.c"
+provides:
+  - name: malloc_thread_safety

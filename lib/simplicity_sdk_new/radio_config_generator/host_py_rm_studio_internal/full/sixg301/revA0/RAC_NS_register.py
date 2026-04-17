@@ -1,0 +1,3607 @@
+
+# -*- coding: utf-8 -*-
+
+from . static import Base_RM_Register
+from . RAC_NS_field import *
+
+
+class RM_Register_RAC_NS_IPVERSION(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_IPVERSION, self).__init__(rmio, label,
+            0xb0220000, 0x000,
+            'IPVERSION', 'RAC_NS.IPVERSION', 'read-only',
+            u"",
+            0x00000005, 0xFFFFFFFF,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.IPVERSION = RM_Field_RAC_NS_IPVERSION_IPVERSION(self)
+        self.zz_fdict['IPVERSION'] = self.IPVERSION
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_EN(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_EN, self).__init__(rmio, label,
+            0xb0220000, 0x004,
+            'EN', 'RAC_NS.EN', 'read-write',
+            u"",
+            0x00000000, 0x00000001,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.EN = RM_Field_RAC_NS_EN_EN(self)
+        self.zz_fdict['EN'] = self.EN
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_RXENSRCEN(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_RXENSRCEN, self).__init__(rmio, label,
+            0xb0220000, 0x008,
+            'RXENSRCEN', 'RAC_NS.RXENSRCEN', 'read-write',
+            u"",
+            0x00000000, 0x00003FFF,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.SWRXEN = RM_Field_RAC_NS_RXENSRCEN_SWRXEN(self)
+        self.zz_fdict['SWRXEN'] = self.SWRXEN
+        self.CHANNELBUSYEN = RM_Field_RAC_NS_RXENSRCEN_CHANNELBUSYEN(self)
+        self.zz_fdict['CHANNELBUSYEN'] = self.CHANNELBUSYEN
+        self.TIMDETEN = RM_Field_RAC_NS_RXENSRCEN_TIMDETEN(self)
+        self.zz_fdict['TIMDETEN'] = self.TIMDETEN
+        self.PREDETEN = RM_Field_RAC_NS_RXENSRCEN_PREDETEN(self)
+        self.zz_fdict['PREDETEN'] = self.PREDETEN
+        self.FRAMEDETEN = RM_Field_RAC_NS_RXENSRCEN_FRAMEDETEN(self)
+        self.zz_fdict['FRAMEDETEN'] = self.FRAMEDETEN
+        self.DEMODRXREQEN = RM_Field_RAC_NS_RXENSRCEN_DEMODRXREQEN(self)
+        self.zz_fdict['DEMODRXREQEN'] = self.DEMODRXREQEN
+        self.PRSRXEN = RM_Field_RAC_NS_RXENSRCEN_PRSRXEN(self)
+        self.zz_fdict['PRSRXEN'] = self.PRSRXEN
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_STATUS(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_STATUS, self).__init__(rmio, label,
+            0xb0220000, 0x00C,
+            'STATUS', 'RAC_NS.STATUS', 'read-only',
+            u"",
+            0x00000000, 0xFFC8FFFF,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.RXMASK = RM_Field_RAC_NS_STATUS_RXMASK(self)
+        self.zz_fdict['RXMASK'] = self.RXMASK
+        self.FORCESTATEACTIVE = RM_Field_RAC_NS_STATUS_FORCESTATEACTIVE(self)
+        self.zz_fdict['FORCESTATEACTIVE'] = self.FORCESTATEACTIVE
+        self.SEQSLEEPING = RM_Field_RAC_NS_STATUS_SEQSLEEPING(self)
+        self.zz_fdict['SEQSLEEPING'] = self.SEQSLEEPING
+        self.SEQSLEEPDEEP = RM_Field_RAC_NS_STATUS_SEQSLEEPDEEP(self)
+        self.zz_fdict['SEQSLEEPDEEP'] = self.SEQSLEEPDEEP
+        self.STATE = RM_Field_RAC_NS_STATUS_STATE(self)
+        self.zz_fdict['STATE'] = self.STATE
+        self.SEQACTIVE = RM_Field_RAC_NS_STATUS_SEQACTIVE(self)
+        self.zz_fdict['SEQACTIVE'] = self.SEQACTIVE
+        self.DEMODENS = RM_Field_RAC_NS_STATUS_DEMODENS(self)
+        self.zz_fdict['DEMODENS'] = self.DEMODENS
+        self.TXENS = RM_Field_RAC_NS_STATUS_TXENS(self)
+        self.zz_fdict['TXENS'] = self.TXENS
+        self.RXENS = RM_Field_RAC_NS_STATUS_RXENS(self)
+        self.zz_fdict['RXENS'] = self.RXENS
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_CMD(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_CMD, self).__init__(rmio, label,
+            0xb0220000, 0x010,
+            'CMD', 'RAC_NS.CMD', 'write-only',
+            u"",
+            0x00000000, 0xC000FDAF,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.TXEN = RM_Field_RAC_NS_CMD_TXEN(self)
+        self.zz_fdict['TXEN'] = self.TXEN
+        self.FORCETX = RM_Field_RAC_NS_CMD_FORCETX(self)
+        self.zz_fdict['FORCETX'] = self.FORCETX
+        self.TXONCCA = RM_Field_RAC_NS_CMD_TXONCCA(self)
+        self.zz_fdict['TXONCCA'] = self.TXONCCA
+        self.CLEARTXEN = RM_Field_RAC_NS_CMD_CLEARTXEN(self)
+        self.zz_fdict['CLEARTXEN'] = self.CLEARTXEN
+        self.TXDIS = RM_Field_RAC_NS_CMD_TXDIS(self)
+        self.zz_fdict['TXDIS'] = self.TXDIS
+        self.RXCAL = RM_Field_RAC_NS_CMD_RXCAL(self)
+        self.zz_fdict['RXCAL'] = self.RXCAL
+        self.RXDIS = RM_Field_RAC_NS_CMD_RXDIS(self)
+        self.zz_fdict['RXDIS'] = self.RXDIS
+        self.FRCWR = RM_Field_RAC_NS_CMD_FRCWR(self)
+        self.zz_fdict['FRCWR'] = self.FRCWR
+        self.FRCRD = RM_Field_RAC_NS_CMD_FRCRD(self)
+        self.zz_fdict['FRCRD'] = self.FRCRD
+        self.PAENSET = RM_Field_RAC_NS_CMD_PAENSET(self)
+        self.zz_fdict['PAENSET'] = self.PAENSET
+        self.PAENCLEAR = RM_Field_RAC_NS_CMD_PAENCLEAR(self)
+        self.zz_fdict['PAENCLEAR'] = self.PAENCLEAR
+        self.LNAENSET = RM_Field_RAC_NS_CMD_LNAENSET(self)
+        self.zz_fdict['LNAENSET'] = self.LNAENSET
+        self.LNAENCLEAR = RM_Field_RAC_NS_CMD_LNAENCLEAR(self)
+        self.zz_fdict['LNAENCLEAR'] = self.LNAENCLEAR
+        self.DEMODENSET = RM_Field_RAC_NS_CMD_DEMODENSET(self)
+        self.zz_fdict['DEMODENSET'] = self.DEMODENSET
+        self.DEMODENCLEAR = RM_Field_RAC_NS_CMD_DEMODENCLEAR(self)
+        self.zz_fdict['DEMODENCLEAR'] = self.DEMODENCLEAR
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_CTRL(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_CTRL, self).__init__(rmio, label,
+            0xb0220000, 0x014,
+            'CTRL', 'RAC_NS.CTRL', 'read-write',
+            u"",
+            0x08880010, 0xFFFFFFFB,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.FORCEDISABLE = RM_Field_RAC_NS_CTRL_FORCEDISABLE(self)
+        self.zz_fdict['FORCEDISABLE'] = self.FORCEDISABLE
+        self.PRSTXEN = RM_Field_RAC_NS_CTRL_PRSTXEN(self)
+        self.zz_fdict['PRSTXEN'] = self.PRSTXEN
+        self.PRSMODE = RM_Field_RAC_NS_CTRL_PRSMODE(self)
+        self.zz_fdict['PRSMODE'] = self.PRSMODE
+        self.FSMDEMODENSEARCH = RM_Field_RAC_NS_CTRL_FSMDEMODENSEARCH(self)
+        self.zz_fdict['FSMDEMODENSEARCH'] = self.FSMDEMODENSEARCH
+        self.PRSCLR = RM_Field_RAC_NS_CTRL_PRSCLR(self)
+        self.zz_fdict['PRSCLR'] = self.PRSCLR
+        self.TXPOSTPONE = RM_Field_RAC_NS_CTRL_TXPOSTPONE(self)
+        self.zz_fdict['TXPOSTPONE'] = self.TXPOSTPONE
+        self.ACTIVEPOL = RM_Field_RAC_NS_CTRL_ACTIVEPOL(self)
+        self.zz_fdict['ACTIVEPOL'] = self.ACTIVEPOL
+        self.PAENPOL = RM_Field_RAC_NS_CTRL_PAENPOL(self)
+        self.zz_fdict['PAENPOL'] = self.PAENPOL
+        self.LNAENPOL = RM_Field_RAC_NS_CTRL_LNAENPOL(self)
+        self.zz_fdict['LNAENPOL'] = self.LNAENPOL
+        self.PRSRXDIS = RM_Field_RAC_NS_CTRL_PRSRXDIS(self)
+        self.zz_fdict['PRSRXDIS'] = self.PRSRXDIS
+        self.AHBSYNC0MODE = RM_Field_RAC_NS_CTRL_AHBSYNC0MODE(self)
+        self.zz_fdict['AHBSYNC0MODE'] = self.AHBSYNC0MODE
+        self.AHBSYNC0REQ = RM_Field_RAC_NS_CTRL_AHBSYNC0REQ(self)
+        self.zz_fdict['AHBSYNC0REQ'] = self.AHBSYNC0REQ
+        self.AHBSYNC0ACK = RM_Field_RAC_NS_CTRL_AHBSYNC0ACK(self)
+        self.zz_fdict['AHBSYNC0ACK'] = self.AHBSYNC0ACK
+        self.PRSFORCETX = RM_Field_RAC_NS_CTRL_PRSFORCETX(self)
+        self.zz_fdict['PRSFORCETX'] = self.PRSFORCETX
+        self.FSMRXABORTHW = RM_Field_RAC_NS_CTRL_FSMRXABORTHW(self)
+        self.zz_fdict['FSMRXABORTHW'] = self.FSMRXABORTHW
+        self.FSMDEMODENWAIT = RM_Field_RAC_NS_CTRL_FSMDEMODENWAIT(self)
+        self.zz_fdict['FSMDEMODENWAIT'] = self.FSMDEMODENWAIT
+        self.FSMRXFRAMEEND = RM_Field_RAC_NS_CTRL_FSMRXFRAMEEND(self)
+        self.zz_fdict['FSMRXFRAMEEND'] = self.FSMRXFRAMEEND
+        self.FSMDEMODEN = RM_Field_RAC_NS_CTRL_FSMDEMODEN(self)
+        self.zz_fdict['FSMDEMODEN'] = self.FSMDEMODEN
+        self.FSMWRAPUPNEXTDIS = RM_Field_RAC_NS_CTRL_FSMWRAPUPNEXTDIS(self)
+        self.zz_fdict['FSMWRAPUPNEXTDIS'] = self.FSMWRAPUPNEXTDIS
+        self.HYDRARAMCLKDIS = RM_Field_RAC_NS_CTRL_HYDRARAMCLKDIS(self)
+        self.zz_fdict['HYDRARAMCLKDIS'] = self.HYDRARAMCLKDIS
+        self.SEQRESET = RM_Field_RAC_NS_CTRL_SEQRESET(self)
+        self.zz_fdict['SEQRESET'] = self.SEQRESET
+        self.EXITSHUTDOWNDIS = RM_Field_RAC_NS_CTRL_EXITSHUTDOWNDIS(self)
+        self.zz_fdict['EXITSHUTDOWNDIS'] = self.EXITSHUTDOWNDIS
+        self.CPUWAITDIS = RM_Field_RAC_NS_CTRL_CPUWAITDIS(self)
+        self.zz_fdict['CPUWAITDIS'] = self.CPUWAITDIS
+        self.SEQCLKDIS = RM_Field_RAC_NS_CTRL_SEQCLKDIS(self)
+        self.zz_fdict['SEQCLKDIS'] = self.SEQCLKDIS
+        self.AHBSYNC1MODE = RM_Field_RAC_NS_CTRL_AHBSYNC1MODE(self)
+        self.zz_fdict['AHBSYNC1MODE'] = self.AHBSYNC1MODE
+        self.AHBSYNC1REQ = RM_Field_RAC_NS_CTRL_AHBSYNC1REQ(self)
+        self.zz_fdict['AHBSYNC1REQ'] = self.AHBSYNC1REQ
+        self.AHBSYNC1ACK = RM_Field_RAC_NS_CTRL_AHBSYNC1ACK(self)
+        self.zz_fdict['AHBSYNC1ACK'] = self.AHBSYNC1ACK
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_FORCESTATE(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_FORCESTATE, self).__init__(rmio, label,
+            0xb0220000, 0x018,
+            'FORCESTATE', 'RAC_NS.FORCESTATE', 'read-write',
+            u"",
+            0x00000000, 0x0000000F,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.FORCESTATE = RM_Field_RAC_NS_FORCESTATE_FORCESTATE(self)
+        self.zz_fdict['FORCESTATE'] = self.FORCESTATE
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_IF(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_IF, self).__init__(rmio, label,
+            0xb0220000, 0x01C,
+            'IF', 'RAC_NS.IF', 'read-write',
+            u"",
+            0x00000000, 0xFFFFFF7F,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.STATECHANGE = RM_Field_RAC_NS_IF_STATECHANGE(self)
+        self.zz_fdict['STATECHANGE'] = self.STATECHANGE
+        self.STIMCMPEV = RM_Field_RAC_NS_IF_STIMCMPEV(self)
+        self.zz_fdict['STIMCMPEV'] = self.STIMCMPEV
+        self.SEQLOCKUP = RM_Field_RAC_NS_IF_SEQLOCKUP(self)
+        self.zz_fdict['SEQLOCKUP'] = self.SEQLOCKUP
+        self.SEQRESETREQ = RM_Field_RAC_NS_IF_SEQRESETREQ(self)
+        self.zz_fdict['SEQRESETREQ'] = self.SEQRESETREQ
+        self.FSWLOCKUP = RM_Field_RAC_NS_IF_FSWLOCKUP(self)
+        self.zz_fdict['FSWLOCKUP'] = self.FSWLOCKUP
+        self.FSWRESETREQ = RM_Field_RAC_NS_IF_FSWRESETREQ(self)
+        self.zz_fdict['FSWRESETREQ'] = self.FSWRESETREQ
+        self.PREREGBYPOUT = RM_Field_RAC_NS_IF_PREREGBYPOUT(self)
+        self.zz_fdict['PREREGBYPOUT'] = self.PREREGBYPOUT
+        self.SEQ = RM_Field_RAC_NS_IF_SEQ(self)
+        self.zz_fdict['SEQ'] = self.SEQ
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_IEN(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_IEN, self).__init__(rmio, label,
+            0xb0220000, 0x020,
+            'IEN', 'RAC_NS.IEN', 'read-write',
+            u"",
+            0x00000000, 0xFFFFFF7F,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.STATECHANGE = RM_Field_RAC_NS_IEN_STATECHANGE(self)
+        self.zz_fdict['STATECHANGE'] = self.STATECHANGE
+        self.STIMCMPEV = RM_Field_RAC_NS_IEN_STIMCMPEV(self)
+        self.zz_fdict['STIMCMPEV'] = self.STIMCMPEV
+        self.SEQLOCKUP = RM_Field_RAC_NS_IEN_SEQLOCKUP(self)
+        self.zz_fdict['SEQLOCKUP'] = self.SEQLOCKUP
+        self.SEQRESETREQ = RM_Field_RAC_NS_IEN_SEQRESETREQ(self)
+        self.zz_fdict['SEQRESETREQ'] = self.SEQRESETREQ
+        self.FSWLOCKUP = RM_Field_RAC_NS_IEN_FSWLOCKUP(self)
+        self.zz_fdict['FSWLOCKUP'] = self.FSWLOCKUP
+        self.FSWRESETREQ = RM_Field_RAC_NS_IEN_FSWRESETREQ(self)
+        self.zz_fdict['FSWRESETREQ'] = self.FSWRESETREQ
+        self.PREREGBYPOUT = RM_Field_RAC_NS_IEN_PREREGBYPOUT(self)
+        self.zz_fdict['PREREGBYPOUT'] = self.PREREGBYPOUT
+        self.SEQ = RM_Field_RAC_NS_IEN_SEQ(self)
+        self.zz_fdict['SEQ'] = self.SEQ
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_TESTCTRL(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_TESTCTRL, self).__init__(rmio, label,
+            0xb0220000, 0x024,
+            'TESTCTRL', 'RAC_NS.TESTCTRL', 'read-write',
+            u"",
+            0x00000000, 0x00000003,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.MODEN = RM_Field_RAC_NS_TESTCTRL_MODEN(self)
+        self.zz_fdict['MODEN'] = self.MODEN
+        self.DEMODEN = RM_Field_RAC_NS_TESTCTRL_DEMODEN(self)
+        self.zz_fdict['DEMODEN'] = self.DEMODEN
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_SEQIF(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_SEQIF, self).__init__(rmio, label,
+            0xb0220000, 0x028,
+            'SEQIF', 'RAC_NS.SEQIF', 'read-write',
+            u"",
+            0x00000000, 0xF1FF004F,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.STATECHANGE = RM_Field_RAC_NS_SEQIF_STATECHANGE(self)
+        self.zz_fdict['STATECHANGE'] = self.STATECHANGE
+        self.STIMCMPEV = RM_Field_RAC_NS_SEQIF_STIMCMPEV(self)
+        self.zz_fdict['STIMCMPEV'] = self.STIMCMPEV
+        self.DEMODRXREQCLR = RM_Field_RAC_NS_SEQIF_DEMODRXREQCLR(self)
+        self.zz_fdict['DEMODRXREQCLR'] = self.DEMODRXREQCLR
+        self.PRSEVENT = RM_Field_RAC_NS_SEQIF_PRSEVENT(self)
+        self.zz_fdict['PRSEVENT'] = self.PRSEVENT
+        self.PREREGBYPOUT = RM_Field_RAC_NS_SEQIF_PREREGBYPOUT(self)
+        self.zz_fdict['PREREGBYPOUT'] = self.PREREGBYPOUT
+        self.STATEOFF = RM_Field_RAC_NS_SEQIF_STATEOFF(self)
+        self.zz_fdict['STATEOFF'] = self.STATEOFF
+        self.STATERXWARM = RM_Field_RAC_NS_SEQIF_STATERXWARM(self)
+        self.zz_fdict['STATERXWARM'] = self.STATERXWARM
+        self.STATERXSEARCH = RM_Field_RAC_NS_SEQIF_STATERXSEARCH(self)
+        self.zz_fdict['STATERXSEARCH'] = self.STATERXSEARCH
+        self.STATERXFRAME = RM_Field_RAC_NS_SEQIF_STATERXFRAME(self)
+        self.zz_fdict['STATERXFRAME'] = self.STATERXFRAME
+        self.STATERXWRAPUP = RM_Field_RAC_NS_SEQIF_STATERXWRAPUP(self)
+        self.zz_fdict['STATERXWRAPUP'] = self.STATERXWRAPUP
+        self.STATETXWARM = RM_Field_RAC_NS_SEQIF_STATETXWARM(self)
+        self.zz_fdict['STATETXWARM'] = self.STATETXWARM
+        self.STATETX = RM_Field_RAC_NS_SEQIF_STATETX(self)
+        self.zz_fdict['STATETX'] = self.STATETX
+        self.STATETXWRAPUP = RM_Field_RAC_NS_SEQIF_STATETXWRAPUP(self)
+        self.zz_fdict['STATETXWRAPUP'] = self.STATETXWRAPUP
+        self.STATESHUTDOWN = RM_Field_RAC_NS_SEQIF_STATESHUTDOWN(self)
+        self.zz_fdict['STATESHUTDOWN'] = self.STATESHUTDOWN
+        self.BRERRAHB2AHB0 = RM_Field_RAC_NS_SEQIF_BRERRAHB2AHB0(self)
+        self.zz_fdict['BRERRAHB2AHB0'] = self.BRERRAHB2AHB0
+        self.BRERRAHB2AHB1 = RM_Field_RAC_NS_SEQIF_BRERRAHB2AHB1(self)
+        self.zz_fdict['BRERRAHB2AHB1'] = self.BRERRAHB2AHB1
+        self.BRERRLPW2HOST = RM_Field_RAC_NS_SEQIF_BRERRLPW2HOST(self)
+        self.zz_fdict['BRERRLPW2HOST'] = self.BRERRLPW2HOST
+        self.BRERRLPW2SYSMB = RM_Field_RAC_NS_SEQIF_BRERRLPW2SYSMB(self)
+        self.zz_fdict['BRERRLPW2SYSMB'] = self.BRERRLPW2SYSMB
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_SEQIEN(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_SEQIEN, self).__init__(rmio, label,
+            0xb0220000, 0x02C,
+            'SEQIEN', 'RAC_NS.SEQIEN', 'read-write',
+            u"",
+            0x00000000, 0xF1FF004F,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.STATECHANGE = RM_Field_RAC_NS_SEQIEN_STATECHANGE(self)
+        self.zz_fdict['STATECHANGE'] = self.STATECHANGE
+        self.STIMCMPEV = RM_Field_RAC_NS_SEQIEN_STIMCMPEV(self)
+        self.zz_fdict['STIMCMPEV'] = self.STIMCMPEV
+        self.DEMODRXREQCLR = RM_Field_RAC_NS_SEQIEN_DEMODRXREQCLR(self)
+        self.zz_fdict['DEMODRXREQCLR'] = self.DEMODRXREQCLR
+        self.PRSEVENT = RM_Field_RAC_NS_SEQIEN_PRSEVENT(self)
+        self.zz_fdict['PRSEVENT'] = self.PRSEVENT
+        self.PREREGBYPOUT = RM_Field_RAC_NS_SEQIEN_PREREGBYPOUT(self)
+        self.zz_fdict['PREREGBYPOUT'] = self.PREREGBYPOUT
+        self.STATEOFF = RM_Field_RAC_NS_SEQIEN_STATEOFF(self)
+        self.zz_fdict['STATEOFF'] = self.STATEOFF
+        self.STATERXWARM = RM_Field_RAC_NS_SEQIEN_STATERXWARM(self)
+        self.zz_fdict['STATERXWARM'] = self.STATERXWARM
+        self.STATERXSEARCH = RM_Field_RAC_NS_SEQIEN_STATERXSEARCH(self)
+        self.zz_fdict['STATERXSEARCH'] = self.STATERXSEARCH
+        self.STATERXFRAME = RM_Field_RAC_NS_SEQIEN_STATERXFRAME(self)
+        self.zz_fdict['STATERXFRAME'] = self.STATERXFRAME
+        self.STATERXWRAPUP = RM_Field_RAC_NS_SEQIEN_STATERXWRAPUP(self)
+        self.zz_fdict['STATERXWRAPUP'] = self.STATERXWRAPUP
+        self.STATETXWARM = RM_Field_RAC_NS_SEQIEN_STATETXWARM(self)
+        self.zz_fdict['STATETXWARM'] = self.STATETXWARM
+        self.STATETX = RM_Field_RAC_NS_SEQIEN_STATETX(self)
+        self.zz_fdict['STATETX'] = self.STATETX
+        self.STATETXWRAPUP = RM_Field_RAC_NS_SEQIEN_STATETXWRAPUP(self)
+        self.zz_fdict['STATETXWRAPUP'] = self.STATETXWRAPUP
+        self.STATESHUTDOWN = RM_Field_RAC_NS_SEQIEN_STATESHUTDOWN(self)
+        self.zz_fdict['STATESHUTDOWN'] = self.STATESHUTDOWN
+        self.BRERRAHB2AHB0 = RM_Field_RAC_NS_SEQIEN_BRERRAHB2AHB0(self)
+        self.zz_fdict['BRERRAHB2AHB0'] = self.BRERRAHB2AHB0
+        self.BRERRAHB2AHB1 = RM_Field_RAC_NS_SEQIEN_BRERRAHB2AHB1(self)
+        self.zz_fdict['BRERRAHB2AHB1'] = self.BRERRAHB2AHB1
+        self.BRERRLPW2HOST = RM_Field_RAC_NS_SEQIEN_BRERRLPW2HOST(self)
+        self.zz_fdict['BRERRLPW2HOST'] = self.BRERRLPW2HOST
+        self.BRERRLPW2SYSMB = RM_Field_RAC_NS_SEQIEN_BRERRLPW2SYSMB(self)
+        self.zz_fdict['BRERRLPW2SYSMB'] = self.BRERRLPW2SYSMB
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_STATUS1(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_STATUS1, self).__init__(rmio, label,
+            0xb0220000, 0x030,
+            'STATUS1', 'RAC_NS.STATUS1', 'read-only',
+            u"",
+            0x00000000, 0x0000007F,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.TXMASK = RM_Field_RAC_NS_STATUS1_TXMASK(self)
+        self.zz_fdict['TXMASK'] = self.TXMASK
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_FSWIF(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_FSWIF, self).__init__(rmio, label,
+            0xb0220000, 0x034,
+            'FSWIF', 'RAC_NS.FSWIF', 'read-write',
+            u"",
+            0x00000000, 0xF1FF000F,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.STATECHANGE = RM_Field_RAC_NS_FSWIF_STATECHANGE(self)
+        self.zz_fdict['STATECHANGE'] = self.STATECHANGE
+        self.STIMCMPEV = RM_Field_RAC_NS_FSWIF_STIMCMPEV(self)
+        self.zz_fdict['STIMCMPEV'] = self.STIMCMPEV
+        self.DEMODRXREQCLR = RM_Field_RAC_NS_FSWIF_DEMODRXREQCLR(self)
+        self.zz_fdict['DEMODRXREQCLR'] = self.DEMODRXREQCLR
+        self.PRSEVENT = RM_Field_RAC_NS_FSWIF_PRSEVENT(self)
+        self.zz_fdict['PRSEVENT'] = self.PRSEVENT
+        self.STATEOFF = RM_Field_RAC_NS_FSWIF_STATEOFF(self)
+        self.zz_fdict['STATEOFF'] = self.STATEOFF
+        self.STATERXWARM = RM_Field_RAC_NS_FSWIF_STATERXWARM(self)
+        self.zz_fdict['STATERXWARM'] = self.STATERXWARM
+        self.STATERXSEARCH = RM_Field_RAC_NS_FSWIF_STATERXSEARCH(self)
+        self.zz_fdict['STATERXSEARCH'] = self.STATERXSEARCH
+        self.STATERXFRAME = RM_Field_RAC_NS_FSWIF_STATERXFRAME(self)
+        self.zz_fdict['STATERXFRAME'] = self.STATERXFRAME
+        self.STATERXWRAPUP = RM_Field_RAC_NS_FSWIF_STATERXWRAPUP(self)
+        self.zz_fdict['STATERXWRAPUP'] = self.STATERXWRAPUP
+        self.STATETXWARM = RM_Field_RAC_NS_FSWIF_STATETXWARM(self)
+        self.zz_fdict['STATETXWARM'] = self.STATETXWARM
+        self.STATETX = RM_Field_RAC_NS_FSWIF_STATETX(self)
+        self.zz_fdict['STATETX'] = self.STATETX
+        self.STATETXWRAPUP = RM_Field_RAC_NS_FSWIF_STATETXWRAPUP(self)
+        self.zz_fdict['STATETXWRAPUP'] = self.STATETXWRAPUP
+        self.STATESHUTDOWN = RM_Field_RAC_NS_FSWIF_STATESHUTDOWN(self)
+        self.zz_fdict['STATESHUTDOWN'] = self.STATESHUTDOWN
+        self.BRERRAHB2AHB0 = RM_Field_RAC_NS_FSWIF_BRERRAHB2AHB0(self)
+        self.zz_fdict['BRERRAHB2AHB0'] = self.BRERRAHB2AHB0
+        self.BRERRAHB2AHB1 = RM_Field_RAC_NS_FSWIF_BRERRAHB2AHB1(self)
+        self.zz_fdict['BRERRAHB2AHB1'] = self.BRERRAHB2AHB1
+        self.BRERRLPW2HOST = RM_Field_RAC_NS_FSWIF_BRERRLPW2HOST(self)
+        self.zz_fdict['BRERRLPW2HOST'] = self.BRERRLPW2HOST
+        self.BRERRLPW2SYSMB = RM_Field_RAC_NS_FSWIF_BRERRLPW2SYSMB(self)
+        self.zz_fdict['BRERRLPW2SYSMB'] = self.BRERRLPW2SYSMB
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_FSWIEN(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_FSWIEN, self).__init__(rmio, label,
+            0xb0220000, 0x038,
+            'FSWIEN', 'RAC_NS.FSWIEN', 'read-write',
+            u"",
+            0x00000000, 0xF1FF000F,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.STATECHANGE = RM_Field_RAC_NS_FSWIEN_STATECHANGE(self)
+        self.zz_fdict['STATECHANGE'] = self.STATECHANGE
+        self.STIMCMPEV = RM_Field_RAC_NS_FSWIEN_STIMCMPEV(self)
+        self.zz_fdict['STIMCMPEV'] = self.STIMCMPEV
+        self.DEMODRXREQCLR = RM_Field_RAC_NS_FSWIEN_DEMODRXREQCLR(self)
+        self.zz_fdict['DEMODRXREQCLR'] = self.DEMODRXREQCLR
+        self.PRSEVENT = RM_Field_RAC_NS_FSWIEN_PRSEVENT(self)
+        self.zz_fdict['PRSEVENT'] = self.PRSEVENT
+        self.STATEOFF = RM_Field_RAC_NS_FSWIEN_STATEOFF(self)
+        self.zz_fdict['STATEOFF'] = self.STATEOFF
+        self.STATERXWARM = RM_Field_RAC_NS_FSWIEN_STATERXWARM(self)
+        self.zz_fdict['STATERXWARM'] = self.STATERXWARM
+        self.STATERXSEARCH = RM_Field_RAC_NS_FSWIEN_STATERXSEARCH(self)
+        self.zz_fdict['STATERXSEARCH'] = self.STATERXSEARCH
+        self.STATERXFRAME = RM_Field_RAC_NS_FSWIEN_STATERXFRAME(self)
+        self.zz_fdict['STATERXFRAME'] = self.STATERXFRAME
+        self.STATERXWRAPUP = RM_Field_RAC_NS_FSWIEN_STATERXWRAPUP(self)
+        self.zz_fdict['STATERXWRAPUP'] = self.STATERXWRAPUP
+        self.STATETXWARM = RM_Field_RAC_NS_FSWIEN_STATETXWARM(self)
+        self.zz_fdict['STATETXWARM'] = self.STATETXWARM
+        self.STATETX = RM_Field_RAC_NS_FSWIEN_STATETX(self)
+        self.zz_fdict['STATETX'] = self.STATETX
+        self.STATETXWRAPUP = RM_Field_RAC_NS_FSWIEN_STATETXWRAPUP(self)
+        self.zz_fdict['STATETXWRAPUP'] = self.STATETXWRAPUP
+        self.STATESHUTDOWN = RM_Field_RAC_NS_FSWIEN_STATESHUTDOWN(self)
+        self.zz_fdict['STATESHUTDOWN'] = self.STATESHUTDOWN
+        self.BRERRAHB2AHB0 = RM_Field_RAC_NS_FSWIEN_BRERRAHB2AHB0(self)
+        self.zz_fdict['BRERRAHB2AHB0'] = self.BRERRAHB2AHB0
+        self.BRERRAHB2AHB1 = RM_Field_RAC_NS_FSWIEN_BRERRAHB2AHB1(self)
+        self.zz_fdict['BRERRAHB2AHB1'] = self.BRERRAHB2AHB1
+        self.BRERRLPW2HOST = RM_Field_RAC_NS_FSWIEN_BRERRLPW2HOST(self)
+        self.zz_fdict['BRERRLPW2HOST'] = self.BRERRLPW2HOST
+        self.BRERRLPW2SYSMB = RM_Field_RAC_NS_FSWIEN_BRERRLPW2SYSMB(self)
+        self.zz_fdict['BRERRLPW2SYSMB'] = self.BRERRLPW2SYSMB
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_TXWRAPUPNEXT(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_TXWRAPUPNEXT, self).__init__(rmio, label,
+            0xb0220000, 0x03C,
+            'TXWRAPUPNEXT', 'RAC_NS.TXWRAPUPNEXT', 'read-write',
+            u"",
+            0x00000000, 0x0000000F,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.TXWRAPUPNEXT = RM_Field_RAC_NS_TXWRAPUPNEXT_TXWRAPUPNEXT(self)
+        self.zz_fdict['TXWRAPUPNEXT'] = self.TXWRAPUPNEXT
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_RXWRAPUPNEXT(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_RXWRAPUPNEXT, self).__init__(rmio, label,
+            0xb0220000, 0x040,
+            'RXWRAPUPNEXT', 'RAC_NS.RXWRAPUPNEXT', 'read-write',
+            u"",
+            0x00000000, 0x0000000F,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.RXWRAPUPNEXT = RM_Field_RAC_NS_RXWRAPUPNEXT_RXWRAPUPNEXT(self)
+        self.zz_fdict['RXWRAPUPNEXT'] = self.RXWRAPUPNEXT
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_SEQEND(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_SEQEND, self).__init__(rmio, label,
+            0xb0220000, 0x044,
+            'SEQEND', 'RAC_NS.SEQEND', 'read-write',
+            u"",
+            0x00000000, 0x01FF0000,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.STATEOFFSEQEND = RM_Field_RAC_NS_SEQEND_STATEOFFSEQEND(self)
+        self.zz_fdict['STATEOFFSEQEND'] = self.STATEOFFSEQEND
+        self.STATERXWARMSEQEND = RM_Field_RAC_NS_SEQEND_STATERXWARMSEQEND(self)
+        self.zz_fdict['STATERXWARMSEQEND'] = self.STATERXWARMSEQEND
+        self.STATERXSEARCHSEQEND = RM_Field_RAC_NS_SEQEND_STATERXSEARCHSEQEND(self)
+        self.zz_fdict['STATERXSEARCHSEQEND'] = self.STATERXSEARCHSEQEND
+        self.STATERXFRAMESEQEND = RM_Field_RAC_NS_SEQEND_STATERXFRAMESEQEND(self)
+        self.zz_fdict['STATERXFRAMESEQEND'] = self.STATERXFRAMESEQEND
+        self.STATERXWRAPUPSEQEND = RM_Field_RAC_NS_SEQEND_STATERXWRAPUPSEQEND(self)
+        self.zz_fdict['STATERXWRAPUPSEQEND'] = self.STATERXWRAPUPSEQEND
+        self.STATETXWARMSEQEND = RM_Field_RAC_NS_SEQEND_STATETXWARMSEQEND(self)
+        self.zz_fdict['STATETXWARMSEQEND'] = self.STATETXWARMSEQEND
+        self.STATETXSEQEND = RM_Field_RAC_NS_SEQEND_STATETXSEQEND(self)
+        self.zz_fdict['STATETXSEQEND'] = self.STATETXSEQEND
+        self.STATETXWRAPUPSEQEND = RM_Field_RAC_NS_SEQEND_STATETXWRAPUPSEQEND(self)
+        self.zz_fdict['STATETXWRAPUPSEQEND'] = self.STATETXWRAPUPSEQEND
+        self.STATESHUTDOWNSEQEND = RM_Field_RAC_NS_SEQEND_STATESHUTDOWNSEQEND(self)
+        self.zz_fdict['STATESHUTDOWNSEQEND'] = self.STATESHUTDOWNSEQEND
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_SEQENDEN(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_SEQENDEN, self).__init__(rmio, label,
+            0xb0220000, 0x048,
+            'SEQENDEN', 'RAC_NS.SEQENDEN', 'read-write',
+            u"",
+            0x00000000, 0x01FF0000,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.STATEOFFSEQENDEN = RM_Field_RAC_NS_SEQENDEN_STATEOFFSEQENDEN(self)
+        self.zz_fdict['STATEOFFSEQENDEN'] = self.STATEOFFSEQENDEN
+        self.STATERXWARMSEQENDEN = RM_Field_RAC_NS_SEQENDEN_STATERXWARMSEQENDEN(self)
+        self.zz_fdict['STATERXWARMSEQENDEN'] = self.STATERXWARMSEQENDEN
+        self.STATERXSEARCHSEQENDEN = RM_Field_RAC_NS_SEQENDEN_STATERXSEARCHSEQENDEN(self)
+        self.zz_fdict['STATERXSEARCHSEQENDEN'] = self.STATERXSEARCHSEQENDEN
+        self.STATERXFRAMESEQENDEN = RM_Field_RAC_NS_SEQENDEN_STATERXFRAMESEQENDEN(self)
+        self.zz_fdict['STATERXFRAMESEQENDEN'] = self.STATERXFRAMESEQENDEN
+        self.STATERXWRAPUPSEQENDEN = RM_Field_RAC_NS_SEQENDEN_STATERXWRAPUPSEQENDEN(self)
+        self.zz_fdict['STATERXWRAPUPSEQENDEN'] = self.STATERXWRAPUPSEQENDEN
+        self.STATETXWARMSEQENDEN = RM_Field_RAC_NS_SEQENDEN_STATETXWARMSEQENDEN(self)
+        self.zz_fdict['STATETXWARMSEQENDEN'] = self.STATETXWARMSEQENDEN
+        self.STATETXSEQENDEN = RM_Field_RAC_NS_SEQENDEN_STATETXSEQENDEN(self)
+        self.zz_fdict['STATETXSEQENDEN'] = self.STATETXSEQENDEN
+        self.STATETXWRAPUPSEQENDEN = RM_Field_RAC_NS_SEQENDEN_STATETXWRAPUPSEQENDEN(self)
+        self.zz_fdict['STATETXWRAPUPSEQENDEN'] = self.STATETXWRAPUPSEQENDEN
+        self.STATESHUTDOWNSEQENDEN = RM_Field_RAC_NS_SEQENDEN_STATESHUTDOWNSEQENDEN(self)
+        self.zz_fdict['STATESHUTDOWNSEQENDEN'] = self.STATESHUTDOWNSEQENDEN
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_FRCCLKDIS(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_FRCCLKDIS, self).__init__(rmio, label,
+            0xb0220000, 0x04C,
+            'FRCCLKDIS', 'RAC_NS.FRCCLKDIS', 'read-write',
+            u"",
+            0x00000006, 0x000001FF,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.STATEOFFFRCCLKDIS = RM_Field_RAC_NS_FRCCLKDIS_STATEOFFFRCCLKDIS(self)
+        self.zz_fdict['STATEOFFFRCCLKDIS'] = self.STATEOFFFRCCLKDIS
+        self.STATERXWARMFRCCLKDIS = RM_Field_RAC_NS_FRCCLKDIS_STATERXWARMFRCCLKDIS(self)
+        self.zz_fdict['STATERXWARMFRCCLKDIS'] = self.STATERXWARMFRCCLKDIS
+        self.STATERXSEARCHFRCCLKDIS = RM_Field_RAC_NS_FRCCLKDIS_STATERXSEARCHFRCCLKDIS(self)
+        self.zz_fdict['STATERXSEARCHFRCCLKDIS'] = self.STATERXSEARCHFRCCLKDIS
+        self.STATERXFRAMEFRCCLKDIS = RM_Field_RAC_NS_FRCCLKDIS_STATERXFRAMEFRCCLKDIS(self)
+        self.zz_fdict['STATERXFRAMEFRCCLKDIS'] = self.STATERXFRAMEFRCCLKDIS
+        self.STATERXWRAPUPFRCCLKDIS = RM_Field_RAC_NS_FRCCLKDIS_STATERXWRAPUPFRCCLKDIS(self)
+        self.zz_fdict['STATERXWRAPUPFRCCLKDIS'] = self.STATERXWRAPUPFRCCLKDIS
+        self.STATETXWARMFRCCLKDIS = RM_Field_RAC_NS_FRCCLKDIS_STATETXWARMFRCCLKDIS(self)
+        self.zz_fdict['STATETXWARMFRCCLKDIS'] = self.STATETXWARMFRCCLKDIS
+        self.STATETXFRCCLKDIS = RM_Field_RAC_NS_FRCCLKDIS_STATETXFRCCLKDIS(self)
+        self.zz_fdict['STATETXFRCCLKDIS'] = self.STATETXFRCCLKDIS
+        self.STATETXWRAPUPFRCCLKDIS = RM_Field_RAC_NS_FRCCLKDIS_STATETXWRAPUPFRCCLKDIS(self)
+        self.zz_fdict['STATETXWRAPUPFRCCLKDIS'] = self.STATETXWRAPUPFRCCLKDIS
+        self.STATESHUTDOWNFRCCLKDIS = RM_Field_RAC_NS_FRCCLKDIS_STATESHUTDOWNFRCCLKDIS(self)
+        self.zz_fdict['STATESHUTDOWNFRCCLKDIS'] = self.STATESHUTDOWNFRCCLKDIS
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_BUFCCLKDIS(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_BUFCCLKDIS, self).__init__(rmio, label,
+            0xb0220000, 0x050,
+            'BUFCCLKDIS', 'RAC_NS.BUFCCLKDIS', 'read-write',
+            u"",
+            0x00000006, 0x000001FF,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.STATEOFFBUFCCLKDIS = RM_Field_RAC_NS_BUFCCLKDIS_STATEOFFBUFCCLKDIS(self)
+        self.zz_fdict['STATEOFFBUFCCLKDIS'] = self.STATEOFFBUFCCLKDIS
+        self.STATERXWARMBUFCCLKDIS = RM_Field_RAC_NS_BUFCCLKDIS_STATERXWARMBUFCCLKDIS(self)
+        self.zz_fdict['STATERXWARMBUFCCLKDIS'] = self.STATERXWARMBUFCCLKDIS
+        self.STATERXSEARCHBUFCCLKDIS = RM_Field_RAC_NS_BUFCCLKDIS_STATERXSEARCHBUFCCLKDIS(self)
+        self.zz_fdict['STATERXSEARCHBUFCCLKDIS'] = self.STATERXSEARCHBUFCCLKDIS
+        self.STATERXFRAMEBUFCCLKDIS = RM_Field_RAC_NS_BUFCCLKDIS_STATERXFRAMEBUFCCLKDIS(self)
+        self.zz_fdict['STATERXFRAMEBUFCCLKDIS'] = self.STATERXFRAMEBUFCCLKDIS
+        self.STATERXWRAPUPBUFCCLKDIS = RM_Field_RAC_NS_BUFCCLKDIS_STATERXWRAPUPBUFCCLKDIS(self)
+        self.zz_fdict['STATERXWRAPUPBUFCCLKDIS'] = self.STATERXWRAPUPBUFCCLKDIS
+        self.STATETXWARMBUFCCLKDIS = RM_Field_RAC_NS_BUFCCLKDIS_STATETXWARMBUFCCLKDIS(self)
+        self.zz_fdict['STATETXWARMBUFCCLKDIS'] = self.STATETXWARMBUFCCLKDIS
+        self.STATETXBUFCCLKDIS = RM_Field_RAC_NS_BUFCCLKDIS_STATETXBUFCCLKDIS(self)
+        self.zz_fdict['STATETXBUFCCLKDIS'] = self.STATETXBUFCCLKDIS
+        self.STATETXWRAPUPBUFCCLKDIS = RM_Field_RAC_NS_BUFCCLKDIS_STATETXWRAPUPBUFCCLKDIS(self)
+        self.zz_fdict['STATETXWRAPUPBUFCCLKDIS'] = self.STATETXWRAPUPBUFCCLKDIS
+        self.STATESHUTDOWNBUFCCLKDIS = RM_Field_RAC_NS_BUFCCLKDIS_STATESHUTDOWNBUFCCLKDIS(self)
+        self.zz_fdict['STATESHUTDOWNBUFCCLKDIS'] = self.STATESHUTDOWNBUFCCLKDIS
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_RACSPARE(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_RACSPARE, self).__init__(rmio, label,
+            0xb0220000, 0x054,
+            'RACSPARE', 'RAC_NS.RACSPARE', 'read-write',
+            u"",
+            0x00000000, 0x000000FF,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.RACSPARE = RM_Field_RAC_NS_RACSPARE_RACSPARE(self)
+        self.zz_fdict['RACSPARE'] = self.RACSPARE
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_PRSCTRL(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_PRSCTRL, self).__init__(rmio, label,
+            0xb0220000, 0x058,
+            'PRSCTRL', 'RAC_NS.PRSCTRL', 'read-write',
+            u"",
+            0x00000000, 0x0000000F,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.CTI0SEL = RM_Field_RAC_NS_PRSCTRL_CTI0SEL(self)
+        self.zz_fdict['CTI0SEL'] = self.CTI0SEL
+        self.CTI1SEL = RM_Field_RAC_NS_PRSCTRL_CTI1SEL(self)
+        self.zz_fdict['CTI1SEL'] = self.CTI1SEL
+        self.CTI2SEL = RM_Field_RAC_NS_PRSCTRL_CTI2SEL(self)
+        self.zz_fdict['CTI2SEL'] = self.CTI2SEL
+        self.CTI3SEL = RM_Field_RAC_NS_PRSCTRL_CTI3SEL(self)
+        self.zz_fdict['CTI3SEL'] = self.CTI3SEL
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_SWDBG(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_SWDBG, self).__init__(rmio, label,
+            0xb0220000, 0x05C,
+            'SWDBG', 'RAC_NS.SWDBG', 'read-write',
+            u"",
+            0x00000000, 0x0000000F,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.SWDBG0 = RM_Field_RAC_NS_SWDBG_SWDBG0(self)
+        self.zz_fdict['SWDBG0'] = self.SWDBG0
+        self.SWDBG1 = RM_Field_RAC_NS_SWDBG_SWDBG1(self)
+        self.zz_fdict['SWDBG1'] = self.SWDBG1
+        self.SWDBG2 = RM_Field_RAC_NS_SWDBG_SWDBG2(self)
+        self.zz_fdict['SWDBG2'] = self.SWDBG2
+        self.SWDBG3 = RM_Field_RAC_NS_SWDBG_SWDBG3(self)
+        self.zz_fdict['SWDBG3'] = self.SWDBG3
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_STIMER(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_STIMER, self).__init__(rmio, label,
+            0xb0220000, 0x060,
+            'STIMER', 'RAC_NS.STIMER', 'read-only',
+            u"",
+            0x00000000, 0x0000FFFF,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.STIMER = RM_Field_RAC_NS_STIMER_STIMER(self)
+        self.zz_fdict['STIMER'] = self.STIMER
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_STIMERCOMP(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_STIMERCOMP, self).__init__(rmio, label,
+            0xb0220000, 0x064,
+            'STIMERCOMP', 'RAC_NS.STIMERCOMP', 'read-write',
+            u"",
+            0x00000000, 0x0000FFFF,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.STIMERCOMP = RM_Field_RAC_NS_STIMERCOMP_STIMERCOMP(self)
+        self.zz_fdict['STIMERCOMP'] = self.STIMERCOMP
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_SEQCTRL(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_SEQCTRL, self).__init__(rmio, label,
+            0xb0220000, 0x068,
+            'SEQCTRL', 'RAC_NS.SEQCTRL', 'read-write',
+            u"",
+            0x00000000, 0x0300007F,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.COMPACT = RM_Field_RAC_NS_SEQCTRL_COMPACT(self)
+        self.zz_fdict['COMPACT'] = self.COMPACT
+        self.COMPINVALMODE = RM_Field_RAC_NS_SEQCTRL_COMPINVALMODE(self)
+        self.zz_fdict['COMPINVALMODE'] = self.COMPINVALMODE
+        self.RELATIVE = RM_Field_RAC_NS_SEQCTRL_RELATIVE(self)
+        self.zz_fdict['RELATIVE'] = self.RELATIVE
+        self.STIMERALWAYSRUN = RM_Field_RAC_NS_SEQCTRL_STIMERALWAYSRUN(self)
+        self.zz_fdict['STIMERALWAYSRUN'] = self.STIMERALWAYSRUN
+        self.STIMERDEBUGRUN = RM_Field_RAC_NS_SEQCTRL_STIMERDEBUGRUN(self)
+        self.zz_fdict['STIMERDEBUGRUN'] = self.STIMERDEBUGRUN
+        self.STATEDEBUGRUN = RM_Field_RAC_NS_SEQCTRL_STATEDEBUGRUN(self)
+        self.zz_fdict['STATEDEBUGRUN'] = self.STATEDEBUGRUN
+        self.SWIRQ = RM_Field_RAC_NS_SEQCTRL_SWIRQ(self)
+        self.zz_fdict['SWIRQ'] = self.SWIRQ
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_PRESC(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_PRESC, self).__init__(rmio, label,
+            0xb0220000, 0x06C,
+            'PRESC', 'RAC_NS.PRESC', 'read-write',
+            u"",
+            0x00000007, 0x0000007F,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.STIMER = RM_Field_RAC_NS_PRESC_STIMER(self)
+        self.zz_fdict['STIMER'] = self.STIMER
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_SR0(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_SR0, self).__init__(rmio, label,
+            0xb0220000, 0x070,
+            'SR0', 'RAC_NS.SR0', 'read-write',
+            u"",
+            0x00000000, 0xFFFFFFFF,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.SR0 = RM_Field_RAC_NS_SR0_SR0(self)
+        self.zz_fdict['SR0'] = self.SR0
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_SR1(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_SR1, self).__init__(rmio, label,
+            0xb0220000, 0x074,
+            'SR1', 'RAC_NS.SR1', 'read-write',
+            u"",
+            0x00000000, 0xFFFFFFFF,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.SR1 = RM_Field_RAC_NS_SR1_SR1(self)
+        self.zz_fdict['SR1'] = self.SR1
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_SR2(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_SR2, self).__init__(rmio, label,
+            0xb0220000, 0x078,
+            'SR2', 'RAC_NS.SR2', 'read-write',
+            u"",
+            0x00000000, 0xFFFFFFFF,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.SR2 = RM_Field_RAC_NS_SR2_SR2(self)
+        self.zz_fdict['SR2'] = self.SR2
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_SR3(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_SR3, self).__init__(rmio, label,
+            0xb0220000, 0x07C,
+            'SR3', 'RAC_NS.SR3', 'read-write',
+            u"",
+            0x00000000, 0xFFFFFFFF,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.SR3 = RM_Field_RAC_NS_SR3_SR3(self)
+        self.zz_fdict['SR3'] = self.SR3
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_FRCTXWORD(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_FRCTXWORD, self).__init__(rmio, label,
+            0xb0220000, 0x084,
+            'FRCTXWORD', 'RAC_NS.FRCTXWORD', 'read-write',
+            u"",
+            0x00000000, 0x000000FF,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.WDATA = RM_Field_RAC_NS_FRCTXWORD_WDATA(self)
+        self.zz_fdict['WDATA'] = self.WDATA
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_FRCRXWORD(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_FRCRXWORD, self).__init__(rmio, label,
+            0xb0220000, 0x088,
+            'FRCRXWORD', 'RAC_NS.FRCRXWORD', 'read-only',
+            u"",
+            0x00000000, 0x000000FF,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.RDATA = RM_Field_RAC_NS_FRCRXWORD_RDATA(self)
+        self.zz_fdict['RDATA'] = self.RDATA
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_EM1PCSR(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_EM1PCSR, self).__init__(rmio, label,
+            0xb0220000, 0x08C,
+            'EM1PCSR', 'RAC_NS.EM1PCSR', 'read-write',
+            u"",
+            0x00000000, 0x00070033,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.RADIOEM1PMODE = RM_Field_RAC_NS_EM1PCSR_RADIOEM1PMODE(self)
+        self.zz_fdict['RADIOEM1PMODE'] = self.RADIOEM1PMODE
+        self.RADIOEM1PDISSWREQ = RM_Field_RAC_NS_EM1PCSR_RADIOEM1PDISSWREQ(self)
+        self.zz_fdict['RADIOEM1PDISSWREQ'] = self.RADIOEM1PDISSWREQ
+        self.MCUEM1PMODE = RM_Field_RAC_NS_EM1PCSR_MCUEM1PMODE(self)
+        self.zz_fdict['MCUEM1PMODE'] = self.MCUEM1PMODE
+        self.MCUEM1PDISSWREQ = RM_Field_RAC_NS_EM1PCSR_MCUEM1PDISSWREQ(self)
+        self.zz_fdict['MCUEM1PDISSWREQ'] = self.MCUEM1PDISSWREQ
+        self.RADIOEM1PREQ = RM_Field_RAC_NS_EM1PCSR_RADIOEM1PREQ(self)
+        self.zz_fdict['RADIOEM1PREQ'] = self.RADIOEM1PREQ
+        self.RADIOEM1PACK = RM_Field_RAC_NS_EM1PCSR_RADIOEM1PACK(self)
+        self.zz_fdict['RADIOEM1PACK'] = self.RADIOEM1PACK
+        self.RADIOEM1PHWREQ = RM_Field_RAC_NS_EM1PCSR_RADIOEM1PHWREQ(self)
+        self.zz_fdict['RADIOEM1PHWREQ'] = self.RADIOEM1PHWREQ
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_HYDRARAMREMAP(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_HYDRARAMREMAP, self).__init__(rmio, label,
+            0xb0220000, 0x090,
+            'HYDRARAMREMAP', 'RAC_NS.HYDRARAMREMAP', 'read-write',
+            u"",
+            0x00000000, 0x000001FF,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.HYDRARAMREMAP = RM_Field_RAC_NS_HYDRARAMREMAP_HYDRARAMREMAP(self)
+        self.zz_fdict['HYDRARAMREMAP'] = self.HYDRARAMREMAP
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_SYNTHENCTRL(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_SYNTHENCTRL, self).__init__(rmio, label,
+            0xb0220000, 0x098,
+            'SYNTHENCTRL', 'RAC_NS.SYNTHENCTRL', 'read-write',
+            u"",
+            0x00000000, 0x00100200,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.SYNTHSTARTREQ = RM_Field_RAC_NS_SYNTHENCTRL_SYNTHSTARTREQ(self)
+        self.zz_fdict['SYNTHSTARTREQ'] = self.SYNTHSTARTREQ
+        self.LPFBWSEL = RM_Field_RAC_NS_SYNTHENCTRL_LPFBWSEL(self)
+        self.zz_fdict['LPFBWSEL'] = self.LPFBWSEL
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_RFSTATUS(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_RFSTATUS, self).__init__(rmio, label,
+            0xb0220000, 0x0AC,
+            'RFSTATUS', 'RAC_NS.RFSTATUS', 'read-only',
+            u"",
+            0x00000000, 0x00000001,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.MODRAMPUPDONE = RM_Field_RAC_NS_RFSTATUS_MODRAMPUPDONE(self)
+        self.zz_fdict['MODRAMPUPDONE'] = self.MODRAMPUPDONE
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_STATUS2(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_STATUS2, self).__init__(rmio, label,
+            0xb0220000, 0x0B0,
+            'STATUS2', 'RAC_NS.STATUS2', 'read-only',
+            u"",
+            0x00000000, 0x0000FFFF,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.PREVSTATE1 = RM_Field_RAC_NS_STATUS2_PREVSTATE1(self)
+        self.zz_fdict['PREVSTATE1'] = self.PREVSTATE1
+        self.PREVSTATE2 = RM_Field_RAC_NS_STATUS2_PREVSTATE2(self)
+        self.zz_fdict['PREVSTATE2'] = self.PREVSTATE2
+        self.PREVSTATE3 = RM_Field_RAC_NS_STATUS2_PREVSTATE3(self)
+        self.zz_fdict['PREVSTATE3'] = self.PREVSTATE3
+        self.CURRSTATE = RM_Field_RAC_NS_STATUS2_CURRSTATE(self)
+        self.zz_fdict['CURRSTATE'] = self.CURRSTATE
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_IFPGACTRL(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_IFPGACTRL, self).__init__(rmio, label,
+            0xb0220000, 0x0B4,
+            'IFPGACTRL', 'RAC_NS.IFPGACTRL', 'read-write',
+            u"",
+            0x00000000, 0x0FF80000,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.DCCALON = RM_Field_RAC_NS_IFPGACTRL_DCCALON(self)
+        self.zz_fdict['DCCALON'] = self.DCCALON
+        self.DCRSTEN = RM_Field_RAC_NS_IFPGACTRL_DCRSTEN(self)
+        self.zz_fdict['DCRSTEN'] = self.DCRSTEN
+        self.DCESTIEN = RM_Field_RAC_NS_IFPGACTRL_DCESTIEN(self)
+        self.zz_fdict['DCESTIEN'] = self.DCESTIEN
+        self.DCCALDEC0 = RM_Field_RAC_NS_IFPGACTRL_DCCALDEC0(self)
+        self.zz_fdict['DCCALDEC0'] = self.DCCALDEC0
+        self.DCCALDCGEAR = RM_Field_RAC_NS_IFPGACTRL_DCCALDCGEAR(self)
+        self.zz_fdict['DCCALDCGEAR'] = self.DCCALDCGEAR
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_PAENCTRL(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_PAENCTRL, self).__init__(rmio, label,
+            0xb0220000, 0x0B8,
+            'PAENCTRL', 'RAC_NS.PAENCTRL', 'read-write',
+            u"",
+            0x00000000, 0x0000001F,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.PARAMP = RM_Field_RAC_NS_PAENCTRL_PARAMP(self)
+        self.zz_fdict['PARAMP'] = self.PARAMP
+        self.INVRAMPCLK = RM_Field_RAC_NS_PAENCTRL_INVRAMPCLK(self)
+        self.zz_fdict['INVRAMPCLK'] = self.INVRAMPCLK
+        self.DIV2RAMPCLK = RM_Field_RAC_NS_PAENCTRL_DIV2RAMPCLK(self)
+        self.zz_fdict['DIV2RAMPCLK'] = self.DIV2RAMPCLK
+        self.RSTDIV2RAMPCLK = RM_Field_RAC_NS_PAENCTRL_RSTDIV2RAMPCLK(self)
+        self.zz_fdict['RSTDIV2RAMPCLK'] = self.RSTDIV2RAMPCLK
+        self.INVRFCLKTXDAC = RM_Field_RAC_NS_PAENCTRL_INVRFCLKTXDAC(self)
+        self.zz_fdict['INVRFCLKTXDAC'] = self.INVRFCLKTXDAC
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_APC(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_APC, self).__init__(rmio, label,
+            0xb0220000, 0x0BC,
+            'APC', 'RAC_NS.APC', 'read-write',
+            u"",
+            0x00000000, 0x00000004,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.ENAPCSW = RM_Field_RAC_NS_APC_ENAPCSW(self)
+        self.zz_fdict['ENAPCSW'] = self.ENAPCSW
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_ANTDIV(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_ANTDIV, self).__init__(rmio, label,
+            0xb0220000, 0x0C0,
+            'ANTDIV', 'RAC_NS.ANTDIV', 'read-write',
+            u"",
+            0x00000000, 0x00000DA0,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.INTDIVLNAMIXEN1 = RM_Field_RAC_NS_ANTDIV_INTDIVLNAMIXEN1(self)
+        self.zz_fdict['INTDIVLNAMIXEN1'] = self.INTDIVLNAMIXEN1
+        self.INTDIVLNAMIXRFATTDCEN1 = RM_Field_RAC_NS_ANTDIV_INTDIVLNAMIXRFATTDCEN1(self)
+        self.zz_fdict['INTDIVLNAMIXRFATTDCEN1'] = self.INTDIVLNAMIXRFATTDCEN1
+        self.INTDIVLNAMIXRFPKDENRF1 = RM_Field_RAC_NS_ANTDIV_INTDIVLNAMIXRFPKDENRF1(self)
+        self.zz_fdict['INTDIVLNAMIXRFPKDENRF1'] = self.INTDIVLNAMIXRFPKDENRF1
+        self.ANTDIVSTATUS = RM_Field_RAC_NS_ANTDIV_ANTDIVSTATUS(self)
+        self.zz_fdict['ANTDIVSTATUS'] = self.ANTDIVSTATUS
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_DCCAL(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_DCCAL, self).__init__(rmio, label,
+            0xb0220000, 0x0C4,
+            'DCCAL', 'RAC_NS.DCCAL', 'read-write',
+            u"",
+            0x00000000, 0xFFF01FFF,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.DCRUN = RM_Field_RAC_NS_DCCAL_DCRUN(self)
+        self.zz_fdict['DCRUN'] = self.DCRUN
+        self.DCBUSY = RM_Field_RAC_NS_DCCAL_DCBUSY(self)
+        self.zz_fdict['DCBUSY'] = self.DCBUSY
+        self.DCDONE = RM_Field_RAC_NS_DCCAL_DCDONE(self)
+        self.zz_fdict['DCDONE'] = self.DCDONE
+        self.MAXITERS = RM_Field_RAC_NS_DCCAL_MAXITERS(self)
+        self.zz_fdict['MAXITERS'] = self.MAXITERS
+        self.SETTLECNT = RM_Field_RAC_NS_DCCAL_SETTLECNT(self)
+        self.zz_fdict['SETTLECNT'] = self.SETTLECNT
+        self.DCPKDINV = RM_Field_RAC_NS_DCCAL_DCPKDINV(self)
+        self.zz_fdict['DCPKDINV'] = self.DCPKDINV
+        self.DCCTRLOX = RM_Field_RAC_NS_DCCAL_DCCTRLOX(self)
+        self.zz_fdict['DCCTRLOX'] = self.DCCTRLOX
+        self.OXICAL = RM_Field_RAC_NS_DCCAL_OXICAL(self)
+        self.zz_fdict['OXICAL'] = self.OXICAL
+        self.OXQCAL = RM_Field_RAC_NS_DCCAL_OXQCAL(self)
+        self.zz_fdict['OXQCAL'] = self.OXQCAL
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_AUXADCEN(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_AUXADCEN, self).__init__(rmio, label,
+            0xb0220000, 0x0CC,
+            'AUXADCEN', 'RAC_NS.AUXADCEN', 'read-write',
+            u"",
+            0x00000000, 0x0000003F,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.AUXADCENTSENSE = RM_Field_RAC_NS_AUXADCEN_AUXADCENTSENSE(self)
+        self.zz_fdict['AUXADCENTSENSE'] = self.AUXADCENTSENSE
+        self.AUXADCENTSENSECAL = RM_Field_RAC_NS_AUXADCEN_AUXADCENTSENSECAL(self)
+        self.zz_fdict['AUXADCENTSENSECAL'] = self.AUXADCENTSENSECAL
+        self.AUXADCENAUXADC = RM_Field_RAC_NS_AUXADCEN_AUXADCENAUXADC(self)
+        self.zz_fdict['AUXADCENAUXADC'] = self.AUXADCENAUXADC
+        self.AUXADCENINPUTBUFFER = RM_Field_RAC_NS_AUXADCEN_AUXADCENINPUTBUFFER(self)
+        self.zz_fdict['AUXADCENINPUTBUFFER'] = self.AUXADCENINPUTBUFFER
+        self.AUXADCENPMON = RM_Field_RAC_NS_AUXADCEN_AUXADCENPMON(self)
+        self.zz_fdict['AUXADCENPMON'] = self.AUXADCENPMON
+        self.AUXADCENRESONDIAGA = RM_Field_RAC_NS_AUXADCEN_AUXADCENRESONDIAGA(self)
+        self.zz_fdict['AUXADCENRESONDIAGA'] = self.AUXADCENRESONDIAGA
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_AUXADCCTRL1(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_AUXADCCTRL1, self).__init__(rmio, label,
+            0xb0220000, 0x0D4,
+            'AUXADCCTRL1', 'RAC_NS.AUXADCCTRL1', 'read-write',
+            u"",
+            0x00000000, 0x0000FFFF,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.AUXADCINPUTRESSEL = RM_Field_RAC_NS_AUXADCCTRL1_AUXADCINPUTRESSEL(self)
+        self.zz_fdict['AUXADCINPUTRESSEL'] = self.AUXADCINPUTRESSEL
+        self.AUXADCTSENSESELVBE = RM_Field_RAC_NS_AUXADCCTRL1_AUXADCTSENSESELVBE(self)
+        self.zz_fdict['AUXADCTSENSESELVBE'] = self.AUXADCTSENSESELVBE
+        self.AUXADCINPUTBUFFERBYPASS = RM_Field_RAC_NS_AUXADCCTRL1_AUXADCINPUTBUFFERBYPASS(self)
+        self.zz_fdict['AUXADCINPUTBUFFERBYPASS'] = self.AUXADCINPUTBUFFERBYPASS
+        self.AUXADCINPUTSELECT = RM_Field_RAC_NS_AUXADCCTRL1_AUXADCINPUTSELECT(self)
+        self.zz_fdict['AUXADCINPUTSELECT'] = self.AUXADCINPUTSELECT
+        self.AUXADCTSENSETRIMVBE2 = RM_Field_RAC_NS_AUXADCCTRL1_AUXADCTSENSETRIMVBE2(self)
+        self.zz_fdict['AUXADCTSENSETRIMVBE2'] = self.AUXADCTSENSETRIMVBE2
+        self.AUXADCPMONSELECT = RM_Field_RAC_NS_AUXADCCTRL1_AUXADCPMONSELECT(self)
+        self.zz_fdict['AUXADCPMONSELECT'] = self.AUXADCPMONSELECT
+        self.AUXADCENVOLTSCALING = RM_Field_RAC_NS_AUXADCCTRL1_AUXADCENVOLTSCALING(self)
+        self.zz_fdict['AUXADCENVOLTSCALING'] = self.AUXADCENVOLTSCALING
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_CLKMULTEN0(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_CLKMULTEN0, self).__init__(rmio, label,
+            0xb0220000, 0x0DC,
+            'CLKMULTEN0', 'RAC_NS.CLKMULTEN0', 'read-write',
+            u"",
+            0x00400301, 0x07FFFFFF,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.CLKMULTDISICO = RM_Field_RAC_NS_CLKMULTEN0_CLKMULTDISICO(self)
+        self.zz_fdict['CLKMULTDISICO'] = self.CLKMULTDISICO
+        self.CLKMULTENBBDET = RM_Field_RAC_NS_CLKMULTEN0_CLKMULTENBBDET(self)
+        self.zz_fdict['CLKMULTENBBDET'] = self.CLKMULTENBBDET
+        self.CLKMULTENBBXLDET = RM_Field_RAC_NS_CLKMULTEN0_CLKMULTENBBXLDET(self)
+        self.zz_fdict['CLKMULTENBBXLDET'] = self.CLKMULTENBBXLDET
+        self.CLKMULTENBBXMDET = RM_Field_RAC_NS_CLKMULTEN0_CLKMULTENBBXMDET(self)
+        self.zz_fdict['CLKMULTENBBXMDET'] = self.CLKMULTENBBXMDET
+        self.CLKMULTLDFNIB = RM_Field_RAC_NS_CLKMULTEN0_CLKMULTLDFNIB(self)
+        self.zz_fdict['CLKMULTLDFNIB'] = self.CLKMULTLDFNIB
+        self.CLKMULTENCFDET = RM_Field_RAC_NS_CLKMULTEN0_CLKMULTENCFDET(self)
+        self.zz_fdict['CLKMULTENCFDET'] = self.CLKMULTENCFDET
+        self.CLKMULTLDMNIB = RM_Field_RAC_NS_CLKMULTEN0_CLKMULTLDMNIB(self)
+        self.zz_fdict['CLKMULTLDMNIB'] = self.CLKMULTLDMNIB
+        self.CLKMULTENDITHER = RM_Field_RAC_NS_CLKMULTEN0_CLKMULTENDITHER(self)
+        self.zz_fdict['CLKMULTENDITHER'] = self.CLKMULTENDITHER
+        self.CLKMULTRDNIBBLE = RM_Field_RAC_NS_CLKMULTEN0_CLKMULTRDNIBBLE(self)
+        self.zz_fdict['CLKMULTRDNIBBLE'] = self.CLKMULTRDNIBBLE
+        self.CLKMULTENDRVN = RM_Field_RAC_NS_CLKMULTEN0_CLKMULTENDRVN(self)
+        self.zz_fdict['CLKMULTENDRVN'] = self.CLKMULTENDRVN
+        self.CLKMULTLDCNIB = RM_Field_RAC_NS_CLKMULTEN0_CLKMULTLDCNIB(self)
+        self.zz_fdict['CLKMULTLDCNIB'] = self.CLKMULTLDCNIB
+        self.CLKMULTENDRVADC = RM_Field_RAC_NS_CLKMULTEN0_CLKMULTENDRVADC(self)
+        self.zz_fdict['CLKMULTENDRVADC'] = self.CLKMULTENDRVADC
+        self.CLKMULTENDRVP = RM_Field_RAC_NS_CLKMULTEN0_CLKMULTENDRVP(self)
+        self.zz_fdict['CLKMULTENDRVP'] = self.CLKMULTENDRVP
+        self.CLKMULTENFBDIV = RM_Field_RAC_NS_CLKMULTEN0_CLKMULTENFBDIV(self)
+        self.zz_fdict['CLKMULTENFBDIV'] = self.CLKMULTENFBDIV
+        self.CLKMULTENREFDIV = RM_Field_RAC_NS_CLKMULTEN0_CLKMULTENREFDIV(self)
+        self.zz_fdict['CLKMULTENREFDIV'] = self.CLKMULTENREFDIV
+        self.CLKMULTENREG1 = RM_Field_RAC_NS_CLKMULTEN0_CLKMULTENREG1(self)
+        self.zz_fdict['CLKMULTENREG1'] = self.CLKMULTENREG1
+        self.CLKMULTENREG2 = RM_Field_RAC_NS_CLKMULTEN0_CLKMULTENREG2(self)
+        self.zz_fdict['CLKMULTENREG2'] = self.CLKMULTENREG2
+        self.CLKMULTENDRVDAC = RM_Field_RAC_NS_CLKMULTEN0_CLKMULTENDRVDAC(self)
+        self.zz_fdict['CLKMULTENDRVDAC'] = self.CLKMULTENDRVDAC
+        self.CLKMULTENROTDET = RM_Field_RAC_NS_CLKMULTEN0_CLKMULTENROTDET(self)
+        self.zz_fdict['CLKMULTENROTDET'] = self.CLKMULTENROTDET
+        self.CLKMULTENBYPASS40MHZ = RM_Field_RAC_NS_CLKMULTEN0_CLKMULTENBYPASS40MHZ(self)
+        self.zz_fdict['CLKMULTENBYPASS40MHZ'] = self.CLKMULTENBYPASS40MHZ
+        self.CLKMULTENDRVIRCAL = RM_Field_RAC_NS_CLKMULTEN0_CLKMULTENDRVIRCAL(self)
+        self.zz_fdict['CLKMULTENDRVIRCAL'] = self.CLKMULTENDRVIRCAL
+        self.CLKMULTENREG1FORCEDSTARTUP = RM_Field_RAC_NS_CLKMULTEN0_CLKMULTENREG1FORCEDSTARTUP(self)
+        self.zz_fdict['CLKMULTENREG1FORCEDSTARTUP'] = self.CLKMULTENREG1FORCEDSTARTUP
+        self.CLKMULTENREG1IBIAS = RM_Field_RAC_NS_CLKMULTEN0_CLKMULTENREG1IBIAS(self)
+        self.zz_fdict['CLKMULTENREG1IBIAS'] = self.CLKMULTENREG1IBIAS
+        self.CLKMULTENREG1REPLICA = RM_Field_RAC_NS_CLKMULTEN0_CLKMULTENREG1REPLICA(self)
+        self.zz_fdict['CLKMULTENREG1REPLICA'] = self.CLKMULTENREG1REPLICA
+        self.CLKMULTENREG1STBLOAD = RM_Field_RAC_NS_CLKMULTEN0_CLKMULTENREG1STBLOAD(self)
+        self.zz_fdict['CLKMULTENREG1STBLOAD'] = self.CLKMULTENREG1STBLOAD
+        self.CLKMULTENDRVTEST = RM_Field_RAC_NS_CLKMULTEN0_CLKMULTENDRVTEST(self)
+        self.zz_fdict['CLKMULTENDRVTEST'] = self.CLKMULTENDRVTEST
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_CLKMULTEN1(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_CLKMULTEN1, self).__init__(rmio, label,
+            0xb0220000, 0x0E0,
+            'CLKMULTEN1', 'RAC_NS.CLKMULTEN1', 'read-write',
+            u"",
+            0x01607018, 0x7FFFFFFF,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.CLKMULTINNIBBLE = RM_Field_RAC_NS_CLKMULTEN1_CLKMULTINNIBBLE(self)
+        self.zz_fdict['CLKMULTINNIBBLE'] = self.CLKMULTINNIBBLE
+        self.CLKMULTBWCAL = RM_Field_RAC_NS_CLKMULTEN1_CLKMULTBWCAL(self)
+        self.zz_fdict['CLKMULTBWCAL'] = self.CLKMULTBWCAL
+        self.CLKMULTDRVAMPSEL = RM_Field_RAC_NS_CLKMULTEN1_CLKMULTDRVAMPSEL(self)
+        self.zz_fdict['CLKMULTDRVAMPSEL'] = self.CLKMULTDRVAMPSEL
+        self.CLKMULTILOADREG2 = RM_Field_RAC_NS_CLKMULTEN1_CLKMULTILOADREG2(self)
+        self.zz_fdict['CLKMULTILOADREG2'] = self.CLKMULTILOADREG2
+        self.CLKMULTDIVN = RM_Field_RAC_NS_CLKMULTEN1_CLKMULTDIVN(self)
+        self.zz_fdict['CLKMULTDIVN'] = self.CLKMULTDIVN
+        self.CLKMULTFREQCAL = RM_Field_RAC_NS_CLKMULTEN1_CLKMULTFREQCAL(self)
+        self.zz_fdict['CLKMULTFREQCAL'] = self.CLKMULTFREQCAL
+        self.CLKMULTDIVR = RM_Field_RAC_NS_CLKMULTEN1_CLKMULTDIVR(self)
+        self.zz_fdict['CLKMULTDIVR'] = self.CLKMULTDIVR
+        self.CLKMULTDIVX = RM_Field_RAC_NS_CLKMULTEN1_CLKMULTDIVX(self)
+        self.zz_fdict['CLKMULTDIVX'] = self.CLKMULTDIVX
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_CLKMULTCTRL(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_CLKMULTCTRL, self).__init__(rmio, label,
+            0xb0220000, 0x0E4,
+            'CLKMULTCTRL', 'RAC_NS.CLKMULTCTRL', 'read-write',
+            u"",
+            0x00002448, 0x00003FFF,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.CLKMULTENRESYNC = RM_Field_RAC_NS_CLKMULTCTRL_CLKMULTENRESYNC(self)
+        self.zz_fdict['CLKMULTENRESYNC'] = self.CLKMULTENRESYNC
+        self.CLKMULTVALID = RM_Field_RAC_NS_CLKMULTCTRL_CLKMULTVALID(self)
+        self.zz_fdict['CLKMULTVALID'] = self.CLKMULTVALID
+        self.CLKMULTRESETPHFRQDET = RM_Field_RAC_NS_CLKMULTCTRL_CLKMULTRESETPHFRQDET(self)
+        self.zz_fdict['CLKMULTRESETPHFRQDET'] = self.CLKMULTRESETPHFRQDET
+        self.CLKMULTTRIMVREF1 = RM_Field_RAC_NS_CLKMULTCTRL_CLKMULTTRIMVREF1(self)
+        self.zz_fdict['CLKMULTTRIMVREF1'] = self.CLKMULTTRIMVREF1
+        self.CLKMULTTRIMVREF2 = RM_Field_RAC_NS_CLKMULTCTRL_CLKMULTTRIMVREF2(self)
+        self.zz_fdict['CLKMULTTRIMVREF2'] = self.CLKMULTTRIMVREF2
+        self.CLKMULTTRIMVREG1 = RM_Field_RAC_NS_CLKMULTCTRL_CLKMULTTRIMVREG1(self)
+        self.zz_fdict['CLKMULTTRIMVREG1'] = self.CLKMULTTRIMVREG1
+        self.CLKMULTTRIMREG2IBIAS = RM_Field_RAC_NS_CLKMULTCTRL_CLKMULTTRIMREG2IBIAS(self)
+        self.zz_fdict['CLKMULTTRIMREG2IBIAS'] = self.CLKMULTTRIMREG2IBIAS
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_CLKMULTSTATUS(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_CLKMULTSTATUS, self).__init__(rmio, label,
+            0xb0220000, 0x0E8,
+            'CLKMULTSTATUS', 'RAC_NS.CLKMULTSTATUS', 'read-only',
+            u"",
+            0x00000000, 0x0000001F,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.CLKMULTOUTNIBBLE = RM_Field_RAC_NS_CLKMULTSTATUS_CLKMULTOUTNIBBLE(self)
+        self.zz_fdict['CLKMULTOUTNIBBLE'] = self.CLKMULTOUTNIBBLE
+        self.CLKMULTACKVALID = RM_Field_RAC_NS_CLKMULTSTATUS_CLKMULTACKVALID(self)
+        self.zz_fdict['CLKMULTACKVALID'] = self.CLKMULTACKVALID
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_ADCSTATUS(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_ADCSTATUS, self).__init__(rmio, label,
+            0xb0220000, 0x0FC,
+            'ADCSTATUS', 'RAC_NS.ADCSTATUS', 'read-only',
+            u"",
+            0x00000000, 0x00000001,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.ADCRCCALOUT = RM_Field_RAC_NS_ADCSTATUS_ADCRCCALOUT(self)
+        self.zz_fdict['ADCRCCALOUT'] = self.ADCRCCALOUT
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_LNAMIXTRIM0(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_LNAMIXTRIM0, self).__init__(rmio, label,
+            0xb0220000, 0x104,
+            'LNAMIXTRIM0', 'RAC_NS.LNAMIXTRIM0', 'read-write',
+            u"",
+            0x008EF870, 0x00FFFFFF,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.LNAMIXTRIMVREG = RM_Field_RAC_NS_LNAMIXTRIM0_LNAMIXTRIMVREG(self)
+        self.zz_fdict['LNAMIXTRIMVREG'] = self.LNAMIXTRIMVREG
+        self.LNAMIXIRCAL1AMP = RM_Field_RAC_NS_LNAMIXTRIM0_LNAMIXIRCAL1AMP(self)
+        self.zz_fdict['LNAMIXIRCAL1AMP'] = self.LNAMIXIRCAL1AMP
+        self.LNAMIXENREGVHIGH = RM_Field_RAC_NS_LNAMIXTRIM0_LNAMIXENREGVHIGH(self)
+        self.zz_fdict['LNAMIXENREGVHIGH'] = self.LNAMIXENREGVHIGH
+        self.LNAMIXLNA1CAPSEL = RM_Field_RAC_NS_LNAMIXTRIM0_LNAMIXLNA1CAPSEL(self)
+        self.zz_fdict['LNAMIXLNA1CAPSEL'] = self.LNAMIXLNA1CAPSEL
+        self.LNAMIXRFPKDBWSEL = RM_Field_RAC_NS_LNAMIXTRIM0_LNAMIXRFPKDBWSEL(self)
+        self.zz_fdict['LNAMIXRFPKDBWSEL'] = self.LNAMIXRFPKDBWSEL
+        self.LNAMIXMXRBIAS1 = RM_Field_RAC_NS_LNAMIXTRIM0_LNAMIXMXRBIAS1(self)
+        self.zz_fdict['LNAMIXMXRBIAS1'] = self.LNAMIXMXRBIAS1
+        self.LNAMIXIBIAS1TRIM = RM_Field_RAC_NS_LNAMIXTRIM0_LNAMIXIBIAS1TRIM(self)
+        self.zz_fdict['LNAMIXIBIAS1TRIM'] = self.LNAMIXIBIAS1TRIM
+        self.LNAMIXTRIMLOW1EN = RM_Field_RAC_NS_LNAMIXTRIM0_LNAMIXTRIMLOW1EN(self)
+        self.zz_fdict['LNAMIXTRIMLOW1EN'] = self.LNAMIXTRIMLOW1EN
+        self.LNAMIXNCAS1ADJ = RM_Field_RAC_NS_LNAMIXTRIM0_LNAMIXNCAS1ADJ(self)
+        self.zz_fdict['LNAMIXNCAS1ADJ'] = self.LNAMIXNCAS1ADJ
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_LNAMIXTRIM1(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_LNAMIXTRIM1, self).__init__(rmio, label,
+            0xb0220000, 0x108,
+            'LNAMIXTRIM1', 'RAC_NS.LNAMIXTRIM1', 'read-write',
+            u"",
+            0x00000820, 0x00000FFF,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.LNAMIXRFPKDCALCMLO = RM_Field_RAC_NS_LNAMIXTRIM1_LNAMIXRFPKDCALCMLO(self)
+        self.zz_fdict['LNAMIXRFPKDCALCMLO'] = self.LNAMIXRFPKDCALCMLO
+        self.LNAMIXRFPKDCALCMHI = RM_Field_RAC_NS_LNAMIXTRIM1_LNAMIXRFPKDCALCMHI(self)
+        self.zz_fdict['LNAMIXRFPKDCALCMHI'] = self.LNAMIXRFPKDCALCMHI
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_LNAMIXCAL(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_LNAMIXCAL, self).__init__(rmio, label,
+            0xb0220000, 0x118,
+            'LNAMIXCAL', 'RAC_NS.LNAMIXCAL', 'read-write',
+            u"",
+            0x00000000, 0x10000000,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.LNAMIXENMXRBIASCAL1 = RM_Field_RAC_NS_LNAMIXCAL_LNAMIXENMXRBIASCAL1(self)
+        self.zz_fdict['LNAMIXENMXRBIASCAL1'] = self.LNAMIXENMXRBIASCAL1
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_PRECTRL(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_PRECTRL, self).__init__(rmio, label,
+            0xb0220000, 0x120,
+            'PRECTRL', 'RAC_NS.PRECTRL', 'read-write',
+            u"",
+            0x00000000, 0x0000005F,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.PREREGBYPFORCE = RM_Field_RAC_NS_PRECTRL_PREREGBYPFORCE(self)
+        self.zz_fdict['PREREGBYPFORCE'] = self.PREREGBYPFORCE
+        self.PREREGENBYPCMP = RM_Field_RAC_NS_PRECTRL_PREREGENBYPCMP(self)
+        self.zz_fdict['PREREGENBYPCMP'] = self.PREREGENBYPCMP
+        self.PREREGENINTBIAS = RM_Field_RAC_NS_PRECTRL_PREREGENINTBIAS(self)
+        self.zz_fdict['PREREGENINTBIAS'] = self.PREREGENINTBIAS
+        self.PREREGENVTRMINI = RM_Field_RAC_NS_PRECTRL_PREREGENVTRMINI(self)
+        self.zz_fdict['PREREGENVTRMINI'] = self.PREREGENVTRMINI
+        self.PREREGENVTRMINISTARTUP = RM_Field_RAC_NS_PRECTRL_PREREGENVTRMINISTARTUP(self)
+        self.zz_fdict['PREREGENVTRMINISTARTUP'] = self.PREREGENVTRMINISTARTUP
+        self.PREREGPOWERSEQUENCEFLAG = RM_Field_RAC_NS_PRECTRL_PREREGPOWERSEQUENCEFLAG(self)
+        self.zz_fdict['PREREGPOWERSEQUENCEFLAG'] = self.PREREGPOWERSEQUENCEFLAG
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_RADIOEN(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_RADIOEN, self).__init__(rmio, label,
+            0xb0220000, 0x160,
+            'RADIOEN', 'RAC_NS.RADIOEN', 'read-write',
+            u"",
+            0x00000000, 0x00000001,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.PREREGENREG = RM_Field_RAC_NS_RADIOEN_PREREGENREG(self)
+        self.zz_fdict['PREREGENREG'] = self.PREREGENREG
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_RFPATHEN0(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_RFPATHEN0, self).__init__(rmio, label,
+            0xb0220000, 0x164,
+            'RFPATHEN0', 'RAC_NS.RFPATHEN0', 'read-write',
+            u"",
+            0x00000001, 0x00000001,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.LNAMIXRFATTDCEN1 = RM_Field_RAC_NS_RFPATHEN0_LNAMIXRFATTDCEN1(self)
+        self.zz_fdict['LNAMIXRFATTDCEN1'] = self.LNAMIXRFATTDCEN1
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_RFPATHEN1(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_RFPATHEN1, self).__init__(rmio, label,
+            0xb0220000, 0x168,
+            'RFPATHEN1', 'RAC_NS.RFPATHEN1', 'read-write',
+            u"",
+            0x00000000, 0x00000007,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.LNAMIXEN1 = RM_Field_RAC_NS_RFPATHEN1_LNAMIXEN1(self)
+        self.zz_fdict['LNAMIXEN1'] = self.LNAMIXEN1
+        self.LNAMIXRFPKDENRF1 = RM_Field_RAC_NS_RFPATHEN1_LNAMIXRFPKDENRF1(self)
+        self.zz_fdict['LNAMIXRFPKDENRF1'] = self.LNAMIXRFPKDENRF1
+        self.LNAMIXTRSW1 = RM_Field_RAC_NS_RFPATHEN1_LNAMIXTRSW1(self)
+        self.zz_fdict['LNAMIXTRSW1'] = self.LNAMIXTRSW1
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_RX(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_RX, self).__init__(rmio, label,
+            0xb0220000, 0x16C,
+            'RX', 'RAC_NS.RX', 'read-write',
+            u"",
+            0x00000000, 0x00000004,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.LNAMIXENMXRBIAS1 = RM_Field_RAC_NS_RX_LNAMIXENMXRBIAS1(self)
+        self.zz_fdict['LNAMIXENMXRBIAS1'] = self.LNAMIXENMXRBIAS1
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_TX(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_TX, self).__init__(rmio, label,
+            0xb0220000, 0x170,
+            'TX', 'RAC_NS.TX', 'read-write',
+            u"",
+            0x03FC0201, 0x83FFFFFF,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.ENPAPOWER = RM_Field_RAC_NS_TX_ENPAPOWER(self)
+        self.zz_fdict['ENPAPOWER'] = self.ENPAPOWER
+        self.ENMANPAPOWER = RM_Field_RAC_NS_TX_ENMANPAPOWER(self)
+        self.zz_fdict['ENMANPAPOWER'] = self.ENMANPAPOWER
+        self.PAPOWERSCALOR = RM_Field_RAC_NS_TX_PAPOWERSCALOR(self)
+        self.zz_fdict['PAPOWERSCALOR'] = self.PAPOWERSCALOR
+        self.MANPAPOWER = RM_Field_RAC_NS_TX_MANPAPOWER(self)
+        self.zz_fdict['MANPAPOWER'] = self.MANPAPOWER
+        self.SWPAPOWERLIMIT = RM_Field_RAC_NS_TX_SWPAPOWERLIMIT(self)
+        self.zz_fdict['SWPAPOWERLIMIT'] = self.SWPAPOWERLIMIT
+        self.ENPASELSLICE = RM_Field_RAC_NS_TX_ENPASELSLICE(self)
+        self.zz_fdict['ENPASELSLICE'] = self.ENPASELSLICE
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_SYDEBUG(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_SYDEBUG, self).__init__(rmio, label,
+            0xb0220000, 0x174,
+            'SYDEBUG', 'RAC_NS.SYDEBUG', 'read-write',
+            u"",
+            0x00000000, 0x00000003,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.XOINJMUXSEL = RM_Field_RAC_NS_SYDEBUG_XOINJMUXSEL(self)
+        self.zz_fdict['XOINJMUXSEL'] = self.XOINJMUXSEL
+        self.XOINJFORCEOFF = RM_Field_RAC_NS_SYDEBUG_XOINJFORCEOFF(self)
+        self.zz_fdict['XOINJFORCEOFF'] = self.XOINJFORCEOFF
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_SYTRIM0(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_SYTRIM0, self).__init__(rmio, label,
+            0xb0220000, 0x178,
+            'SYTRIM0', 'RAC_NS.SYTRIM0', 'read-write',
+            u"",
+            0x00000008, 0x0000000F,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.SYDTCRDACTRIM1 = RM_Field_RAC_NS_SYTRIM0_SYDTCRDACTRIM1(self)
+        self.zz_fdict['SYDTCRDACTRIM1'] = self.SYDTCRDACTRIM1
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_SYTRIM1(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_SYTRIM1, self).__init__(rmio, label,
+            0xb0220000, 0x17C,
+            'SYTRIM1', 'RAC_NS.SYTRIM1', 'read-write',
+            u"",
+            0x58AAB0D6, 0x7FFFFFFF,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.SYTDCTRIMDLYSTOPRING = RM_Field_RAC_NS_SYTRIM1_SYTDCTRIMDLYSTOPRING(self)
+        self.zz_fdict['SYTDCTRIMDLYSTOPRING'] = self.SYTDCTRIMDLYSTOPRING
+        self.SYTDCTRIMDLYCNT = RM_Field_RAC_NS_SYTRIM1_SYTDCTRIMDLYCNT(self)
+        self.zz_fdict['SYTDCTRIMDLYCNT'] = self.SYTDCTRIMDLYCNT
+        self.SYTDCTRIMDLYLOAD = RM_Field_RAC_NS_SYTRIM1_SYTDCTRIMDLYLOAD(self)
+        self.zz_fdict['SYTDCTRIMDLYLOAD'] = self.SYTDCTRIMDLYLOAD
+        self.SYTDCTRIMDLYSTOPMETA = RM_Field_RAC_NS_SYTRIM1_SYTDCTRIMDLYSTOPMETA(self)
+        self.zz_fdict['SYTDCTRIMDLYSTOPMETA'] = self.SYTDCTRIMDLYSTOPMETA
+        self.SYDTCREGTRIMVREF = RM_Field_RAC_NS_SYTRIM1_SYDTCREGTRIMVREF(self)
+        self.zz_fdict['SYDTCREGTRIMVREF'] = self.SYDTCREGTRIMVREF
+        self.SYTDCTRIMDLYCK1 = RM_Field_RAC_NS_SYTRIM1_SYTDCTRIMDLYCK1(self)
+        self.zz_fdict['SYTDCTRIMDLYCK1'] = self.SYTDCTRIMDLYCK1
+        self.SYTDCTRIMPERLOAD = RM_Field_RAC_NS_SYTRIM1_SYTDCTRIMPERLOAD(self)
+        self.zz_fdict['SYTDCTRIMPERLOAD'] = self.SYTDCTRIMPERLOAD
+        self.SYDSMDACREGTRIMVREF = RM_Field_RAC_NS_SYTRIM1_SYDSMDACREGTRIMVREF(self)
+        self.zz_fdict['SYDSMDACREGTRIMVREF'] = self.SYDSMDACREGTRIMVREF
+        self.SYDTCRDACTRIM = RM_Field_RAC_NS_SYTRIM1_SYDTCRDACTRIM(self)
+        self.zz_fdict['SYDTCRDACTRIM'] = self.SYDTCRDACTRIM
+        self.SYTDCREGTRIMTEMPCOP = RM_Field_RAC_NS_SYTRIM1_SYTDCREGTRIMTEMPCOP(self)
+        self.zz_fdict['SYTDCREGTRIMTEMPCOP'] = self.SYTDCREGTRIMTEMPCOP
+        self.SYTDCREGTRIMTEMPCON = RM_Field_RAC_NS_SYTRIM1_SYTDCREGTRIMTEMPCON(self)
+        self.zz_fdict['SYTDCREGTRIMTEMPCON'] = self.SYTDCREGTRIMTEMPCON
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_SYLOEN0(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_SYLOEN0, self).__init__(rmio, label,
+            0xb0220000, 0x188,
+            'SYLOEN0', 'RAC_NS.SYLOEN0', 'read-write',
+            u"",
+            0x00000000, 0x00004000,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.SYENLODIVDSMDACCLK = RM_Field_RAC_NS_SYLOEN0_SYENLODIVDSMDACCLK(self)
+        self.zz_fdict['SYENLODIVDSMDACCLK'] = self.SYENLODIVDSMDACCLK
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_SYMMDCTRL(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_SYMMDCTRL, self).__init__(rmio, label,
+            0xb0220000, 0x18C,
+            'SYMMDCTRL', 'RAC_NS.SYMMDCTRL', 'read-write',
+            u"",
+            0x00000000, 0x000701FE,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.SYMMDCLKDTCPULSEWIDTH = RM_Field_RAC_NS_SYMMDCTRL_SYMMDCLKDTCPULSEWIDTH(self)
+        self.zz_fdict['SYMMDCLKDTCPULSEWIDTH'] = self.SYMMDCLKDTCPULSEWIDTH
+        self.SYMMDCYCSLIPSTROBECOUNT = RM_Field_RAC_NS_SYMMDCTRL_SYMMDCYCSLIPSTROBECOUNT(self)
+        self.zz_fdict['SYMMDCYCSLIPSTROBECOUNT'] = self.SYMMDCYCSLIPSTROBECOUNT
+        self.SYMMDSEL56STG = RM_Field_RAC_NS_SYMMDCTRL_SYMMDSEL56STG(self)
+        self.zz_fdict['SYMMDSEL56STG'] = self.SYMMDSEL56STG
+        self.SYMMDCLKINJXOINTN = RM_Field_RAC_NS_SYMMDCTRL_SYMMDCLKINJXOINTN(self)
+        self.zz_fdict['SYMMDCLKINJXOINTN'] = self.SYMMDCLKINJXOINTN
+        self.SYMMDCLKINJXOINTNFORCE = RM_Field_RAC_NS_SYMMDCTRL_SYMMDCLKINJXOINTNFORCE(self)
+        self.zz_fdict['SYMMDCLKINJXOINTNFORCE'] = self.SYMMDCLKINJXOINTNFORCE
+        self.SYMMDSEL56STGTX = RM_Field_RAC_NS_SYMMDCTRL_SYMMDSEL56STGTX(self)
+        self.zz_fdict['SYMMDSEL56STGTX'] = self.SYMMDSEL56STGTX
+        self.SYMMDCLKDTCPULSEWIDTHTX = RM_Field_RAC_NS_SYMMDCTRL_SYMMDCLKDTCPULSEWIDTHTX(self)
+        self.zz_fdict['SYMMDCLKDTCPULSEWIDTHTX'] = self.SYMMDCLKDTCPULSEWIDTHTX
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_DIGCLKRETIMECTRL(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_DIGCLKRETIMECTRL, self).__init__(rmio, label,
+            0xb0220000, 0x194,
+            'DIGCLKRETIMECTRL', 'RAC_NS.DIGCLKRETIMECTRL', 'read-write',
+            u"",
+            0x00000000, 0x0007FFFF,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.DIGCLKRETIMEENRETIME = RM_Field_RAC_NS_DIGCLKRETIMECTRL_DIGCLKRETIMEENRETIME(self)
+        self.zz_fdict['DIGCLKRETIMEENRETIME'] = self.DIGCLKRETIMEENRETIME
+        self.DIGCLKRETIMEDISRETIME = RM_Field_RAC_NS_DIGCLKRETIMECTRL_DIGCLKRETIMEDISRETIME(self)
+        self.zz_fdict['DIGCLKRETIMEDISRETIME'] = self.DIGCLKRETIMEDISRETIME
+        self.DIGCLKRETIMERESETN = RM_Field_RAC_NS_DIGCLKRETIMECTRL_DIGCLKRETIMERESETN(self)
+        self.zz_fdict['DIGCLKRETIMERESETN'] = self.DIGCLKRETIMERESETN
+        self.DIGCLKLPWRETIMERESETN = RM_Field_RAC_NS_DIGCLKRETIMECTRL_DIGCLKLPWRETIMERESETN(self)
+        self.zz_fdict['DIGCLKLPWRETIMERESETN'] = self.DIGCLKLPWRETIMERESETN
+        self.DIGCLKRETIMELIMITH = RM_Field_RAC_NS_DIGCLKRETIMECTRL_DIGCLKRETIMELIMITH(self)
+        self.zz_fdict['DIGCLKRETIMELIMITH'] = self.DIGCLKRETIMELIMITH
+        self.DIGCLKRETIMELIMITL = RM_Field_RAC_NS_DIGCLKRETIMECTRL_DIGCLKRETIMELIMITL(self)
+        self.zz_fdict['DIGCLKRETIMELIMITL'] = self.DIGCLKRETIMELIMITL
+        self.ENCLKQSPIDIGCLK = RM_Field_RAC_NS_DIGCLKRETIMECTRL_ENCLKQSPIDIGCLK(self)
+        self.zz_fdict['ENCLKQSPIDIGCLK'] = self.ENCLKQSPIDIGCLK
+        self.QSPIHIGHCOUNTDIGCLK = RM_Field_RAC_NS_DIGCLKRETIMECTRL_QSPIHIGHCOUNTDIGCLK(self)
+        self.zz_fdict['QSPIHIGHCOUNTDIGCLK'] = self.QSPIHIGHCOUNTDIGCLK
+        self.QSPILOWCOUNTDIGCLK = RM_Field_RAC_NS_DIGCLKRETIMECTRL_QSPILOWCOUNTDIGCLK(self)
+        self.zz_fdict['QSPILOWCOUNTDIGCLK'] = self.QSPILOWCOUNTDIGCLK
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_DIGCLKRETIMESTATUS(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_DIGCLKRETIMESTATUS, self).__init__(rmio, label,
+            0xb0220000, 0x198,
+            'DIGCLKRETIMESTATUS', 'RAC_NS.DIGCLKRETIMESTATUS', 'read-only',
+            u"",
+            0x00000000, 0x00000003,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.DIGCLKRETIMECLKSEL = RM_Field_RAC_NS_DIGCLKRETIMESTATUS_DIGCLKRETIMECLKSEL(self)
+        self.zz_fdict['DIGCLKRETIMECLKSEL'] = self.DIGCLKRETIMECLKSEL
+        self.DIGCLKRETIMERESETNLO = RM_Field_RAC_NS_DIGCLKRETIMESTATUS_DIGCLKRETIMERESETNLO(self)
+        self.zz_fdict['DIGCLKRETIMERESETNLO'] = self.DIGCLKRETIMERESETNLO
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_XORETIMECTRL(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_XORETIMECTRL, self).__init__(rmio, label,
+            0xb0220000, 0x19C,
+            'XORETIMECTRL', 'RAC_NS.XORETIMECTRL', 'read-write',
+            u"",
+            0x00000000, 0x0003FFFF,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.XORETIMEENRETIME = RM_Field_RAC_NS_XORETIMECTRL_XORETIMEENRETIME(self)
+        self.zz_fdict['XORETIMEENRETIME'] = self.XORETIMEENRETIME
+        self.XORETIMEDISRETIME = RM_Field_RAC_NS_XORETIMECTRL_XORETIMEDISRETIME(self)
+        self.zz_fdict['XORETIMEDISRETIME'] = self.XORETIMEDISRETIME
+        self.XORETIMERESETN = RM_Field_RAC_NS_XORETIMECTRL_XORETIMERESETN(self)
+        self.zz_fdict['XORETIMERESETN'] = self.XORETIMERESETN
+        self.XORETIMELIMITH = RM_Field_RAC_NS_XORETIMECTRL_XORETIMELIMITH(self)
+        self.zz_fdict['XORETIMELIMITH'] = self.XORETIMELIMITH
+        self.XORETIMELIMITL = RM_Field_RAC_NS_XORETIMECTRL_XORETIMELIMITL(self)
+        self.zz_fdict['XORETIMELIMITL'] = self.XORETIMELIMITL
+        self.ENCLKQSPIXO = RM_Field_RAC_NS_XORETIMECTRL_ENCLKQSPIXO(self)
+        self.zz_fdict['ENCLKQSPIXO'] = self.ENCLKQSPIXO
+        self.QSPIHIGHCOUNTXO = RM_Field_RAC_NS_XORETIMECTRL_QSPIHIGHCOUNTXO(self)
+        self.zz_fdict['QSPIHIGHCOUNTXO'] = self.QSPIHIGHCOUNTXO
+        self.QSPILOWCOUNTXO = RM_Field_RAC_NS_XORETIMECTRL_QSPILOWCOUNTXO(self)
+        self.zz_fdict['QSPILOWCOUNTXO'] = self.QSPILOWCOUNTXO
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_XORETIMESTATUS(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_XORETIMESTATUS, self).__init__(rmio, label,
+            0xb0220000, 0x1A0,
+            'XORETIMESTATUS', 'RAC_NS.XORETIMESTATUS', 'read-only',
+            u"",
+            0x00000000, 0x00000003,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.XORETIMECLKSEL = RM_Field_RAC_NS_XORETIMESTATUS_XORETIMECLKSEL(self)
+        self.zz_fdict['XORETIMECLKSEL'] = self.XORETIMECLKSEL
+        self.XORETIMERESETNLO = RM_Field_RAC_NS_XORETIMESTATUS_XORETIMERESETNLO(self)
+        self.zz_fdict['XORETIMERESETNLO'] = self.XORETIMERESETNLO
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_AGCOVERWRITE0(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_AGCOVERWRITE0, self).__init__(rmio, label,
+            0xb0220000, 0x1A4,
+            'AGCOVERWRITE0', 'RAC_NS.AGCOVERWRITE0', 'read-write',
+            u"",
+            0x00000000, 0x1FFFFFFF,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.ENMANLNAMIXRFATT = RM_Field_RAC_NS_AGCOVERWRITE0_ENMANLNAMIXRFATT(self)
+        self.zz_fdict['ENMANLNAMIXRFATT'] = self.ENMANLNAMIXRFATT
+        self.ENMANLNAMIXSLICE = RM_Field_RAC_NS_AGCOVERWRITE0_ENMANLNAMIXSLICE(self)
+        self.zz_fdict['ENMANLNAMIXSLICE'] = self.ENMANLNAMIXSLICE
+        self.ENMANPGAGAIN = RM_Field_RAC_NS_AGCOVERWRITE0_ENMANPGAGAIN(self)
+        self.zz_fdict['ENMANPGAGAIN'] = self.ENMANPGAGAIN
+        self.ENMANIFADCSCALE = RM_Field_RAC_NS_AGCOVERWRITE0_ENMANIFADCSCALE(self)
+        self.zz_fdict['ENMANIFADCSCALE'] = self.ENMANIFADCSCALE
+        self.MANLNAMIXSLICE0 = RM_Field_RAC_NS_AGCOVERWRITE0_MANLNAMIXSLICE0(self)
+        self.zz_fdict['MANLNAMIXSLICE0'] = self.MANLNAMIXSLICE0
+        self.MANLNAMIXSLICE1 = RM_Field_RAC_NS_AGCOVERWRITE0_MANLNAMIXSLICE1(self)
+        self.zz_fdict['MANLNAMIXSLICE1'] = self.MANLNAMIXSLICE1
+        self.ENMANTIACOMP = RM_Field_RAC_NS_AGCOVERWRITE0_ENMANTIACOMP(self)
+        self.zz_fdict['ENMANTIACOMP'] = self.ENMANTIACOMP
+        self.MANTIACOMP = RM_Field_RAC_NS_AGCOVERWRITE0_MANTIACOMP(self)
+        self.zz_fdict['MANTIACOMP'] = self.MANTIACOMP
+        self.MANPGAGAIN = RM_Field_RAC_NS_AGCOVERWRITE0_MANPGAGAIN(self)
+        self.zz_fdict['MANPGAGAIN'] = self.MANPGAGAIN
+        self.MANIFADCSCALE = RM_Field_RAC_NS_AGCOVERWRITE0_MANIFADCSCALE(self)
+        self.zz_fdict['MANIFADCSCALE'] = self.MANIFADCSCALE
+        self.ENMANLNAMIXCUREN = RM_Field_RAC_NS_AGCOVERWRITE0_ENMANLNAMIXCUREN(self)
+        self.zz_fdict['ENMANLNAMIXCUREN'] = self.ENMANLNAMIXCUREN
+        self.MANLNAMIXCUREN0 = RM_Field_RAC_NS_AGCOVERWRITE0_MANLNAMIXCUREN0(self)
+        self.zz_fdict['MANLNAMIXCUREN0'] = self.MANLNAMIXCUREN0
+        self.MANLNAMIXCUREN1 = RM_Field_RAC_NS_AGCOVERWRITE0_MANLNAMIXCUREN1(self)
+        self.zz_fdict['MANLNAMIXCUREN1'] = self.MANLNAMIXCUREN1
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_AGCOVERWRITE1(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_AGCOVERWRITE1, self).__init__(rmio, label,
+            0xb0220000, 0x1A8,
+            'AGCOVERWRITE1', 'RAC_NS.AGCOVERWRITE1', 'read-write',
+            u"",
+            0x00000000, 0x3FFF3FFF,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.MANLNAMIXRFATT0 = RM_Field_RAC_NS_AGCOVERWRITE1_MANLNAMIXRFATT0(self)
+        self.zz_fdict['MANLNAMIXRFATT0'] = self.MANLNAMIXRFATT0
+        self.MANLNAMIXRFATT1 = RM_Field_RAC_NS_AGCOVERWRITE1_MANLNAMIXRFATT1(self)
+        self.zz_fdict['MANLNAMIXRFATT1'] = self.MANLNAMIXRFATT1
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_SPARE(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_SPARE, self).__init__(rmio, label,
+            0xb0220000, 0x1C8,
+            'SPARE', 'RAC_NS.SPARE', 'read-write',
+            u"",
+            0x00000000, 0x01FF87FF,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.CLKMULTSPARE = RM_Field_RAC_NS_SPARE_CLKMULTSPARE(self)
+        self.zz_fdict['CLKMULTSPARE'] = self.CLKMULTSPARE
+        self.MIXDACTRIMSPAREVREGCORE = RM_Field_RAC_NS_SPARE_MIXDACTRIMSPAREVREGCORE(self)
+        self.zz_fdict['MIXDACTRIMSPAREVREGCORE'] = self.MIXDACTRIMSPAREVREGCORE
+        self.MIXDACTRIMSPARE02 = RM_Field_RAC_NS_SPARE_MIXDACTRIMSPARE02(self)
+        self.zz_fdict['MIXDACTRIMSPARE02'] = self.MIXDACTRIMSPARE02
+        self.MIXDACTRIMSPARE01 = RM_Field_RAC_NS_SPARE_MIXDACTRIMSPARE01(self)
+        self.zz_fdict['MIXDACTRIMSPARE01'] = self.MIXDACTRIMSPARE01
+        self.MIXDACENSPARE02 = RM_Field_RAC_NS_SPARE_MIXDACENSPARE02(self)
+        self.zz_fdict['MIXDACENSPARE02'] = self.MIXDACENSPARE02
+        self.MIXDACTRIMSPAREVREGDIG = RM_Field_RAC_NS_SPARE_MIXDACTRIMSPAREVREGDIG(self)
+        self.zz_fdict['MIXDACTRIMSPAREVREGDIG'] = self.MIXDACTRIMSPAREVREGDIG
+        self.MIXDACENSPARE01 = RM_Field_RAC_NS_SPARE_MIXDACENSPARE01(self)
+        self.zz_fdict['MIXDACENSPARE01'] = self.MIXDACENSPARE01
+        self.SYMMDSPARES = RM_Field_RAC_NS_SPARE_SYMMDSPARES(self)
+        self.zz_fdict['SYMMDSPARES'] = self.SYMMDSPARES
+        self.SYVCOSPARES = RM_Field_RAC_NS_SPARE_SYVCOSPARES(self)
+        self.zz_fdict['SYVCOSPARES'] = self.SYVCOSPARES
+        self.SYTDCSPARES = RM_Field_RAC_NS_SPARE_SYTDCSPARES(self)
+        self.zz_fdict['SYTDCSPARES'] = self.SYTDCSPARES
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_MIXDACTRIM(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_MIXDACTRIM, self).__init__(rmio, label,
+            0xb0220000, 0x1D8,
+            'MIXDACTRIM', 'RAC_NS.MIXDACTRIM', 'read-write',
+            u"",
+            0x00005B8C, 0x0FFFFFFF,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.MIXDACTRIMBBFILTERRES = RM_Field_RAC_NS_MIXDACTRIM_MIXDACTRIMBBFILTERRES(self)
+        self.zz_fdict['MIXDACTRIMBBFILTERRES'] = self.MIXDACTRIMBBFILTERRES
+        self.MIXDACTRIMLOBIASNMOS = RM_Field_RAC_NS_MIXDACTRIM_MIXDACTRIMLOBIASNMOS(self)
+        self.zz_fdict['MIXDACTRIMLOBIASNMOS'] = self.MIXDACTRIMLOBIASNMOS
+        self.MIXDACTRIMLOBIASPMOS = RM_Field_RAC_NS_MIXDACTRIM_MIXDACTRIMLOBIASPMOS(self)
+        self.zz_fdict['MIXDACTRIMLOBIASPMOS'] = self.MIXDACTRIMLOBIASPMOS
+        self.MIXDACTRIMNDACCASC = RM_Field_RAC_NS_MIXDACTRIM_MIXDACTRIMNDACCASC(self)
+        self.zz_fdict['MIXDACTRIMNDACCASC'] = self.MIXDACTRIMNDACCASC
+        self.MIXDACTRIMPDACCASC = RM_Field_RAC_NS_MIXDACTRIM_MIXDACTRIMPDACCASC(self)
+        self.zz_fdict['MIXDACTRIMPDACCASC'] = self.MIXDACTRIMPDACCASC
+        self.MIXDACTRIMREFCURRENT = RM_Field_RAC_NS_MIXDACTRIM_MIXDACTRIMREFCURRENT(self)
+        self.zz_fdict['MIXDACTRIMREFCURRENT'] = self.MIXDACTRIMREFCURRENT
+        self.MIXDACTRIMVREGCORE = RM_Field_RAC_NS_MIXDACTRIM_MIXDACTRIMVREGCORE(self)
+        self.zz_fdict['MIXDACTRIMVREGCORE'] = self.MIXDACTRIMVREGCORE
+        self.MIXDACTRIMVREGCOREVREF = RM_Field_RAC_NS_MIXDACTRIM_MIXDACTRIMVREGCOREVREF(self)
+        self.zz_fdict['MIXDACTRIMVREGCOREVREF'] = self.MIXDACTRIMVREGCOREVREF
+        self.MIXDACTRIMVREGDIG = RM_Field_RAC_NS_MIXDACTRIM_MIXDACTRIMVREGDIG(self)
+        self.zz_fdict['MIXDACTRIMVREGDIG'] = self.MIXDACTRIMVREGDIG
+        self.MIXDACTRIMVREGDIGVREF = RM_Field_RAC_NS_MIXDACTRIM_MIXDACTRIMVREGDIGVREF(self)
+        self.zz_fdict['MIXDACTRIMVREGDIGVREF'] = self.MIXDACTRIMVREGDIGVREF
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_SYTRIM2(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_SYTRIM2, self).__init__(rmio, label,
+            0xb0220000, 0x1E0,
+            'SYTRIM2', 'RAC_NS.SYTRIM2', 'read-write',
+            u"",
+            0x00006C09, 0x0007FFFB,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.SYMMDREGTRIMVREF = RM_Field_RAC_NS_SYTRIM2_SYMMDREGTRIMVREF(self)
+        self.zz_fdict['SYMMDREGTRIMVREF'] = self.SYMMDREGTRIMVREF
+        self.SYDTCREGVTTRACKSEL = RM_Field_RAC_NS_SYTRIM2_SYDTCREGVTTRACKSEL(self)
+        self.zz_fdict['SYDTCREGVTTRACKSEL'] = self.SYDTCREGVTTRACKSEL
+        self.SYDTCCOFFSETTRIM = RM_Field_RAC_NS_SYTRIM2_SYDTCCOFFSETTRIM(self)
+        self.zz_fdict['SYDTCCOFFSETTRIM'] = self.SYDTCCOFFSETTRIM
+        self.SYENVCOPKD = RM_Field_RAC_NS_SYTRIM2_SYENVCOPKD(self)
+        self.zz_fdict['SYENVCOPKD'] = self.SYENVCOPKD
+        self.SYDTCREGTRIMVTTRACK = RM_Field_RAC_NS_SYTRIM2_SYDTCREGTRIMVTTRACK(self)
+        self.zz_fdict['SYDTCREGTRIMVTTRACK'] = self.SYDTCREGTRIMVTTRACK
+        self.SYTDCREGTRIMVREF = RM_Field_RAC_NS_SYTRIM2_SYTDCREGTRIMVREF(self)
+        self.zz_fdict['SYTDCREGTRIMVREF'] = self.SYTDCREGTRIMVREF
+        self.SYMMDREGTRIMVREGOFFS = RM_Field_RAC_NS_SYTRIM2_SYMMDREGTRIMVREGOFFS(self)
+        self.zz_fdict['SYMMDREGTRIMVREGOFFS'] = self.SYMMDREGTRIMVREGOFFS
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_SYDLFCTRL1(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_SYDLFCTRL1, self).__init__(rmio, label,
+            0xb0220000, 0x1E8,
+            'SYDLFCTRL1', 'RAC_NS.SYDLFCTRL1', 'read-write',
+            u"",
+            0x00000000, 0x00007FFF,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.SYDLFDQNCGAIN = RM_Field_RAC_NS_SYDLFCTRL1_SYDLFDQNCGAIN(self)
+        self.zz_fdict['SYDLFDQNCGAIN'] = self.SYDLFDQNCGAIN
+        self.SYDLFDTHIN = RM_Field_RAC_NS_SYDLFCTRL1_SYDLFDTHIN(self)
+        self.zz_fdict['SYDLFDTHIN'] = self.SYDLFDTHIN
+        self.SYDLFREADXIMAPPING = RM_Field_RAC_NS_SYDLFCTRL1_SYDLFREADXIMAPPING(self)
+        self.zz_fdict['SYDLFREADXIMAPPING'] = self.SYDLFREADXIMAPPING
+        self.SYDLFDQNCGAINTX = RM_Field_RAC_NS_SYDLFCTRL1_SYDLFDQNCGAINTX(self)
+        self.zz_fdict['SYDLFDQNCGAINTX'] = self.SYDLFDQNCGAINTX
+        self.SYDLFDTHINTX = RM_Field_RAC_NS_SYDLFCTRL1_SYDLFDTHINTX(self)
+        self.zz_fdict['SYDLFDTHINTX'] = self.SYDLFDTHINTX
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_SYSTATUS(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_SYSTATUS, self).__init__(rmio, label,
+            0xb0220000, 0x1EC,
+            'SYSTATUS', 'RAC_NS.SYSTATUS', 'read-only',
+            u"",
+            0x00000000, 0x0003FFFF,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.SYDLFLMSP0M = RM_Field_RAC_NS_SYSTATUS_SYDLFLMSP0M(self)
+        self.zz_fdict['SYDLFLMSP0M'] = self.SYDLFLMSP0M
+        self.SYDLFVCTRLHI = RM_Field_RAC_NS_SYSTATUS_SYDLFVCTRLHI(self)
+        self.zz_fdict['SYDLFVCTRLHI'] = self.SYDLFVCTRLHI
+        self.SYDLFVCTRLLO = RM_Field_RAC_NS_SYSTATUS_SYDLFVCTRLLO(self)
+        self.zz_fdict['SYDLFVCTRLLO'] = self.SYDLFVCTRLLO
+        self.SYDLFPFDLOCKSAMPLE = RM_Field_RAC_NS_SYSTATUS_SYDLFPFDLOCKSAMPLE(self)
+        self.zz_fdict['SYDLFPFDLOCKSAMPLE'] = self.SYDLFPFDLOCKSAMPLE
+        self.SYDLFPFDREFLEAD = RM_Field_RAC_NS_SYSTATUS_SYDLFPFDREFLEAD(self)
+        self.zz_fdict['SYDLFPFDREFLEAD'] = self.SYDLFPFDREFLEAD
+        self.SYDLFSTATE = RM_Field_RAC_NS_SYSTATUS_SYDLFSTATE(self)
+        self.zz_fdict['SYDLFSTATE'] = self.SYDLFSTATE
+        self.SYMMDCYCSLIPDETECTED = RM_Field_RAC_NS_SYSTATUS_SYMMDCYCSLIPDETECTED(self)
+        self.zz_fdict['SYMMDCYCSLIPDETECTED'] = self.SYMMDCYCSLIPDETECTED
+        self.SYDLFLOCKDETECTED = RM_Field_RAC_NS_SYSTATUS_SYDLFLOCKDETECTED(self)
+        self.zz_fdict['SYDLFLOCKDETECTED'] = self.SYDLFLOCKDETECTED
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_SYCTRL2(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_SYCTRL2, self).__init__(rmio, label,
+            0xb0220000, 0x1F0,
+            'SYCTRL2', 'RAC_NS.SYCTRL2', 'read-write',
+            u"",
+            0x0000000A, 0x0000000F,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.SYDTCREGILOAD = RM_Field_RAC_NS_SYCTRL2_SYDTCREGILOAD(self)
+        self.zz_fdict['SYDTCREGILOAD'] = self.SYDTCREGILOAD
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_TIATRIM0(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_TIATRIM0, self).__init__(rmio, label,
+            0xb0220000, 0x1F4,
+            'TIATRIM0', 'RAC_NS.TIATRIM0', 'read-write',
+            u"",
+            0x000000C8, 0x000000FF,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.TIATRIMVREF = RM_Field_RAC_NS_TIATRIM0_TIATRIMVREF(self)
+        self.zz_fdict['TIATRIMVREF'] = self.TIATRIMVREF
+        self.TIATRIMVREG = RM_Field_RAC_NS_TIATRIM0_TIATRIMVREG(self)
+        self.zz_fdict['TIATRIMVREG'] = self.TIATRIMVREG
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_TIAEN(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_TIAEN, self).__init__(rmio, label,
+            0xb0220000, 0x1FC,
+            'TIAEN', 'RAC_NS.TIAEN', 'read-write',
+            u"",
+            0x00000008, 0x080061FF,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.TIAENBIAS = RM_Field_RAC_NS_TIAEN_TIAENBIAS(self)
+        self.zz_fdict['TIAENBIAS'] = self.TIAENBIAS
+        self.TIABIASCURR = RM_Field_RAC_NS_TIAEN_TIABIASCURR(self)
+        self.zz_fdict['TIABIASCURR'] = self.TIABIASCURR
+        self.TIAENREG = RM_Field_RAC_NS_TIAEN_TIAENREG(self)
+        self.zz_fdict['TIAENREG'] = self.TIAENREG
+        self.TIAENSTBLOAD = RM_Field_RAC_NS_TIAEN_TIAENSTBLOAD(self)
+        self.zz_fdict['TIAENSTBLOAD'] = self.TIAENSTBLOAD
+        self.TIAENLATCHI = RM_Field_RAC_NS_TIAEN_TIAENLATCHI(self)
+        self.zz_fdict['TIAENLATCHI'] = self.TIAENLATCHI
+        self.TIAENPKD = RM_Field_RAC_NS_TIAEN_TIAENPKD(self)
+        self.zz_fdict['TIAENPKD'] = self.TIAENPKD
+        self.TIAENLATCHQ = RM_Field_RAC_NS_TIAEN_TIAENLATCHQ(self)
+        self.zz_fdict['TIAENLATCHQ'] = self.TIAENLATCHQ
+        self.TIAENTIAI = RM_Field_RAC_NS_TIAEN_TIAENTIAI(self)
+        self.zz_fdict['TIAENTIAI'] = self.TIAENTIAI
+        self.TIAENTIAQ = RM_Field_RAC_NS_TIAEN_TIAENTIAQ(self)
+        self.zz_fdict['TIAENTIAQ'] = self.TIAENTIAQ
+        self.TIAENDCOC = RM_Field_RAC_NS_TIAEN_TIAENDCOC(self)
+        self.zz_fdict['TIAENDCOC'] = self.TIAENDCOC
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_VTRCTRL0(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_VTRCTRL0, self).__init__(rmio, label,
+            0xb0220000, 0x200,
+            'VTRCTRL0', 'RAC_NS.VTRCTRL0', 'read-write',
+            u"",
+            0x00000028, 0x000000BF,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.VTRENINTBIAS = RM_Field_RAC_NS_VTRCTRL0_VTRENINTBIAS(self)
+        self.zz_fdict['VTRENINTBIAS'] = self.VTRENINTBIAS
+        self.VTRENBIASREG = RM_Field_RAC_NS_VTRCTRL0_VTRENBIASREG(self)
+        self.zz_fdict['VTRENBIASREG'] = self.VTRENBIASREG
+        self.VTRENFORCEDVTRSTARTUP = RM_Field_RAC_NS_VTRCTRL0_VTRENFORCEDVTRSTARTUP(self)
+        self.zz_fdict['VTRENFORCEDVTRSTARTUP'] = self.VTRENFORCEDVTRSTARTUP
+        self.VTRDISABLEVTRSTARTUP = RM_Field_RAC_NS_VTRCTRL0_VTRDISABLEVTRSTARTUP(self)
+        self.zz_fdict['VTRDISABLEVTRSTARTUP'] = self.VTRDISABLEVTRSTARTUP
+        self.VTRENCORE = RM_Field_RAC_NS_VTRCTRL0_VTRENCORE(self)
+        self.zz_fdict['VTRENCORE'] = self.VTRENCORE
+        self.VTRENSTBLOADREG = RM_Field_RAC_NS_VTRCTRL0_VTRENSTBLOADREG(self)
+        self.zz_fdict['VTRENSTBLOADREG'] = self.VTRENSTBLOADREG
+        self.VTRENREG = RM_Field_RAC_NS_VTRCTRL0_VTRENREG(self)
+        self.zz_fdict['VTRENREG'] = self.VTRENREG
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_AUXADCCAL(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_AUXADCCAL, self).__init__(rmio, label,
+            0xb0220000, 0x204,
+            'AUXADCCAL', 'RAC_NS.AUXADCCAL', 'read-write',
+            u"",
+            0x00000040, 0x0000007F,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.AUXADCTSENSESELCURR = RM_Field_RAC_NS_AUXADCCAL_AUXADCTSENSESELCURR(self)
+        self.zz_fdict['AUXADCTSENSESELCURR'] = self.AUXADCTSENSESELCURR
+        self.AUXADCTRIMCURRINPUTBUF = RM_Field_RAC_NS_AUXADCCAL_AUXADCTRIMCURRINPUTBUF(self)
+        self.zz_fdict['AUXADCTRIMCURRINPUTBUF'] = self.AUXADCTRIMCURRINPUTBUF
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_AUXADCCTRL2(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_AUXADCCTRL2, self).__init__(rmio, label,
+            0xb0220000, 0x20C,
+            'AUXADCCTRL2', 'RAC_NS.AUXADCCTRL2', 'read-write',
+            u"",
+            0x00000000, 0x0000000D,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.IFADCDISABLECLK = RM_Field_RAC_NS_AUXADCCTRL2_IFADCDISABLECLK(self)
+        self.zz_fdict['IFADCDISABLECLK'] = self.IFADCDISABLECLK
+        self.IFADCS2PRSTN = RM_Field_RAC_NS_AUXADCCTRL2_IFADCS2PRSTN(self)
+        self.zz_fdict['IFADCS2PRSTN'] = self.IFADCS2PRSTN
+        self.IFADCS2PRSTEDGE = RM_Field_RAC_NS_AUXADCCTRL2_IFADCS2PRSTEDGE(self)
+        self.zz_fdict['IFADCS2PRSTEDGE'] = self.IFADCS2PRSTEDGE
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_LNAMIXEN0(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_LNAMIXEN0, self).__init__(rmio, label,
+            0xb0220000, 0x210,
+            'LNAMIXEN0', 'RAC_NS.LNAMIXEN0', 'read-write',
+            u"",
+            0x00000000, 0x000001C3,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.LNAMIXENIRCAL1 = RM_Field_RAC_NS_LNAMIXEN0_LNAMIXENIRCAL1(self)
+        self.zz_fdict['LNAMIXENIRCAL1'] = self.LNAMIXENIRCAL1
+        self.LNAMIXENREG = RM_Field_RAC_NS_LNAMIXEN0_LNAMIXENREG(self)
+        self.zz_fdict['LNAMIXENREG'] = self.LNAMIXENREG
+        self.LNAMIXENLOTHRESH = RM_Field_RAC_NS_LNAMIXEN0_LNAMIXENLOTHRESH(self)
+        self.zz_fdict['LNAMIXENLOTHRESH'] = self.LNAMIXENLOTHRESH
+        self.LNAMIXENRFPKD = RM_Field_RAC_NS_LNAMIXEN0_LNAMIXENRFPKD(self)
+        self.zz_fdict['LNAMIXENRFPKD'] = self.LNAMIXENRFPKD
+        self.IRCALON = RM_Field_RAC_NS_LNAMIXEN0_IRCALON(self)
+        self.zz_fdict['IRCALON'] = self.IRCALON
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_MIXDACEN(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_MIXDACEN, self).__init__(rmio, label,
+            0xb0220000, 0x214,
+            'MIXDACEN', 'RAC_NS.MIXDACEN', 'read-write',
+            u"",
+            0x00000000, 0x00033FFF,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.MIXDACEN0DBMPA = RM_Field_RAC_NS_MIXDACEN_MIXDACEN0DBMPA(self)
+        self.zz_fdict['MIXDACEN0DBMPA'] = self.MIXDACEN0DBMPA
+        self.MIXDACENBIASVREGDIG = RM_Field_RAC_NS_MIXDACEN_MIXDACENBIASVREGDIG(self)
+        self.zz_fdict['MIXDACENBIASVREGDIG'] = self.MIXDACENBIASVREGDIG
+        self.MIXDACEN10DBMPA = RM_Field_RAC_NS_MIXDACEN_MIXDACEN10DBMPA(self)
+        self.zz_fdict['MIXDACEN10DBMPA'] = self.MIXDACEN10DBMPA
+        self.MIXDACENCLKMULT2P4G = RM_Field_RAC_NS_MIXDACEN_MIXDACENCLKMULT2P4G(self)
+        self.zz_fdict['MIXDACENCLKMULT2P4G'] = self.MIXDACENCLKMULT2P4G
+        self.MIXDACENCORE = RM_Field_RAC_NS_MIXDACEN_MIXDACENCORE(self)
+        self.zz_fdict['MIXDACENCORE'] = self.MIXDACENCORE
+        self.MIXDACENSTBLOADVREGCORE = RM_Field_RAC_NS_MIXDACEN_MIXDACENSTBLOADVREGCORE(self)
+        self.zz_fdict['MIXDACENSTBLOADVREGCORE'] = self.MIXDACENSTBLOADVREGCORE
+        self.MIXDACENSTBLOADVREGDIG = RM_Field_RAC_NS_MIXDACEN_MIXDACENSTBLOADVREGDIG(self)
+        self.zz_fdict['MIXDACENSTBLOADVREGDIG'] = self.MIXDACENSTBLOADVREGDIG
+        self.MIXDACENBIASVREGCORE = RM_Field_RAC_NS_MIXDACEN_MIXDACENBIASVREGCORE(self)
+        self.zz_fdict['MIXDACENBIASVREGCORE'] = self.MIXDACENBIASVREGCORE
+        self.MIXDACENVREGCORE = RM_Field_RAC_NS_MIXDACEN_MIXDACENVREGCORE(self)
+        self.zz_fdict['MIXDACENVREGCORE'] = self.MIXDACENVREGCORE
+        self.MIXDACENVREGDIG = RM_Field_RAC_NS_MIXDACEN_MIXDACENVREGDIG(self)
+        self.zz_fdict['MIXDACENVREGDIG'] = self.MIXDACENVREGDIG
+        self.MIXDACENFORCEDSTARTUPVREGDIG = RM_Field_RAC_NS_MIXDACEN_MIXDACENFORCEDSTARTUPVREGDIG(self)
+        self.zz_fdict['MIXDACENFORCEDSTARTUPVREGDIG'] = self.MIXDACENFORCEDSTARTUPVREGDIG
+        self.MIXDACENIRCAL = RM_Field_RAC_NS_MIXDACEN_MIXDACENIRCAL(self)
+        self.zz_fdict['MIXDACENIRCAL'] = self.MIXDACENIRCAL
+        self.MIXDACENPOSEDGEDACCLK = RM_Field_RAC_NS_MIXDACEN_MIXDACENPOSEDGEDACCLK(self)
+        self.zz_fdict['MIXDACENPOSEDGEDACCLK'] = self.MIXDACENPOSEDGEDACCLK
+        self.MIXDACENRFSYNTH = RM_Field_RAC_NS_MIXDACEN_MIXDACENRFSYNTH(self)
+        self.zz_fdict['MIXDACENRFSYNTH'] = self.MIXDACENRFSYNTH
+        self.MIXDACENSTBLOADVREGDIGREPLICA = RM_Field_RAC_NS_MIXDACEN_MIXDACENSTBLOADVREGDIGREPLICA(self)
+        self.zz_fdict['MIXDACENSTBLOADVREGDIGREPLICA'] = self.MIXDACENSTBLOADVREGDIGREPLICA
+        self.MIXDACENVREGDIGREPLICA = RM_Field_RAC_NS_MIXDACEN_MIXDACENVREGDIGREPLICA(self)
+        self.zz_fdict['MIXDACENVREGDIGREPLICA'] = self.MIXDACENVREGDIGREPLICA
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_SYCTRL1(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_SYCTRL1, self).__init__(rmio, label,
+            0xb0220000, 0x218,
+            'SYCTRL1', 'RAC_NS.SYCTRL1', 'read-write',
+            u"",
+            0x00000080, 0x000701F3,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.SYMMDTRIMSYNCTMARGIN = RM_Field_RAC_NS_SYCTRL1_SYMMDTRIMSYNCTMARGIN(self)
+        self.zz_fdict['SYMMDTRIMSYNCTMARGIN'] = self.SYMMDTRIMSYNCTMARGIN
+        self.SYLODIVSELFP4G82G4 = RM_Field_RAC_NS_SYCTRL1_SYLODIVSELFP4G82G4(self)
+        self.zz_fdict['SYLODIVSELFP4G82G4'] = self.SYLODIVSELFP4G82G4
+        self.SYVCOFASTSTARTUP = RM_Field_RAC_NS_SYCTRL1_SYVCOFASTSTARTUP(self)
+        self.zz_fdict['SYVCOFASTSTARTUP'] = self.SYVCOFASTSTARTUP
+        self.SYLODIVSELFP4G82G4TX = RM_Field_RAC_NS_SYCTRL1_SYLODIVSELFP4G82G4TX(self)
+        self.zz_fdict['SYLODIVSELFP4G82G4TX'] = self.SYLODIVSELFP4G82G4TX
+        self.SYMMDREGTRIMVREG = RM_Field_RAC_NS_SYCTRL1_SYMMDREGTRIMVREG(self)
+        self.zz_fdict['SYMMDREGTRIMVREG'] = self.SYMMDREGTRIMVREG
+        self.SYMMDREGTRIMVREGTX = RM_Field_RAC_NS_SYCTRL1_SYMMDREGTRIMVREGTX(self)
+        self.zz_fdict['SYMMDREGTRIMVREGTX'] = self.SYMMDREGTRIMVREGTX
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_TX0DBMEN(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_TX0DBMEN, self).__init__(rmio, label,
+            0xb0220000, 0x224,
+            'TX0DBMEN', 'RAC_NS.TX0DBMEN', 'read-write',
+            u"",
+            0x00000000, 0x000000FF,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.TX0DBMENPAREG = RM_Field_RAC_NS_TX0DBMEN_TX0DBMENPAREG(self)
+        self.zz_fdict['TX0DBMENPAREG'] = self.TX0DBMENPAREG
+        self.TX0DBMENPREDRVREG = RM_Field_RAC_NS_TX0DBMEN_TX0DBMENPREDRVREG(self)
+        self.zz_fdict['TX0DBMENPREDRVREG'] = self.TX0DBMENPREDRVREG
+        self.TX0DBMENPREDRV = RM_Field_RAC_NS_TX0DBMEN_TX0DBMENPREDRV(self)
+        self.zz_fdict['TX0DBMENPREDRV'] = self.TX0DBMENPREDRV
+        self.TX0DBMENBYPASSREGPA = RM_Field_RAC_NS_TX0DBMEN_TX0DBMENBYPASSREGPA(self)
+        self.zz_fdict['TX0DBMENBYPASSREGPA'] = self.TX0DBMENBYPASSREGPA
+        self.TX0DBMENREPLICABIASREGPA = RM_Field_RAC_NS_TX0DBMEN_TX0DBMENREPLICABIASREGPA(self)
+        self.zz_fdict['TX0DBMENREPLICABIASREGPA'] = self.TX0DBMENREPLICABIASREGPA
+        self.TX0DBMENPA = RM_Field_RAC_NS_TX0DBMEN_TX0DBMENPA(self)
+        self.zz_fdict['TX0DBMENPA'] = self.TX0DBMENPA
+        self.TX0DBMENPAREGSTBLOAD = RM_Field_RAC_NS_TX0DBMEN_TX0DBMENPAREGSTBLOAD(self)
+        self.zz_fdict['TX0DBMENPAREGSTBLOAD'] = self.TX0DBMENPAREGSTBLOAD
+        self.TX0DBMENPREDRVREGSTBLOAD = RM_Field_RAC_NS_TX0DBMEN_TX0DBMENPREDRVREGSTBLOAD(self)
+        self.zz_fdict['TX0DBMENPREDRVREGSTBLOAD'] = self.TX0DBMENPREDRVREGSTBLOAD
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_TX0DBMCTRL(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_TX0DBMCTRL, self).__init__(rmio, label,
+            0xb0220000, 0x228,
+            'TX0DBMCTRL', 'RAC_NS.TX0DBMCTRL', 'read-write',
+            u"",
+            0x00000000, 0x00000060,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.TX0DBMPOWERRAMPRESET = RM_Field_RAC_NS_TX0DBMCTRL_TX0DBMPOWERRAMPRESET(self)
+        self.zz_fdict['TX0DBMPOWERRAMPRESET'] = self.TX0DBMPOWERRAMPRESET
+        self.TX0DBMRAMPCLKBYPASS = RM_Field_RAC_NS_TX0DBMCTRL_TX0DBMRAMPCLKBYPASS(self)
+        self.zz_fdict['TX0DBMRAMPCLKBYPASS'] = self.TX0DBMRAMPCLKBYPASS
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_TX0DBMTRIM1(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_TX0DBMTRIM1, self).__init__(rmio, label,
+            0xb0220000, 0x22C,
+            'TX0DBMTRIM1', 'RAC_NS.TX0DBMTRIM1', 'read-write',
+            u"",
+            0x04020770, 0x07FFFFFF,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.TX0DBMTRIMDUTYCYN = RM_Field_RAC_NS_TX0DBMTRIM1_TX0DBMTRIMDUTYCYN(self)
+        self.zz_fdict['TX0DBMTRIMDUTYCYN'] = self.TX0DBMTRIMDUTYCYN
+        self.TX0DBMTRIMNBIASPA = RM_Field_RAC_NS_TX0DBMTRIM1_TX0DBMTRIMNBIASPA(self)
+        self.zz_fdict['TX0DBMTRIMNBIASPA'] = self.TX0DBMTRIMNBIASPA
+        self.TX0DBMTRIMPBIASPA = RM_Field_RAC_NS_TX0DBMTRIM1_TX0DBMTRIMPBIASPA(self)
+        self.zz_fdict['TX0DBMTRIMPBIASPA'] = self.TX0DBMTRIMPBIASPA
+        self.TX0DBMTRIMLOINTVDDAPREDRV = RM_Field_RAC_NS_TX0DBMTRIM1_TX0DBMTRIMLOINTVDDAPREDRV(self)
+        self.zz_fdict['TX0DBMTRIMLOINTVDDAPREDRV'] = self.TX0DBMTRIMLOINTVDDAPREDRV
+        self.TX0DBMTRIMRFBREGPA = RM_Field_RAC_NS_TX0DBMTRIM1_TX0DBMTRIMRFBREGPA(self)
+        self.zz_fdict['TX0DBMTRIMRFBREGPA'] = self.TX0DBMTRIMRFBREGPA
+        self.TX0DBMTRIMPREDRVREGEXTRALOAD = RM_Field_RAC_NS_TX0DBMTRIM1_TX0DBMTRIMPREDRVREGEXTRALOAD(self)
+        self.zz_fdict['TX0DBMTRIMPREDRVREGEXTRALOAD'] = self.TX0DBMTRIMPREDRVREGEXTRALOAD
+        self.TX0DBMTRIMPAREGEXTRALOAD = RM_Field_RAC_NS_TX0DBMTRIM1_TX0DBMTRIMPAREGEXTRALOAD(self)
+        self.zz_fdict['TX0DBMTRIMPAREGEXTRALOAD'] = self.TX0DBMTRIMPAREGEXTRALOAD
+        self.TX0DBMTRIMDUTYCYP = RM_Field_RAC_NS_TX0DBMTRIM1_TX0DBMTRIMDUTYCYP(self)
+        self.zz_fdict['TX0DBMTRIMDUTYCYP'] = self.TX0DBMTRIMDUTYCYP
+        self.TX0DBMTRIMVREFREGPREDRV = RM_Field_RAC_NS_TX0DBMTRIM1_TX0DBMTRIMVREFREGPREDRV(self)
+        self.zz_fdict['TX0DBMTRIMVREFREGPREDRV'] = self.TX0DBMTRIMVREFREGPREDRV
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_TX0DBMTRIM0(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_TX0DBMTRIM0, self).__init__(rmio, label,
+            0xb0220000, 0x230,
+            'TX0DBMTRIM0', 'RAC_NS.TX0DBMTRIM0', 'read-write',
+            u"",
+            0x0008080C, 0x000F0FFF,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.TX0DBMTRIMPSRBSTREGPREDRV = RM_Field_RAC_NS_TX0DBMTRIM0_TX0DBMTRIMPSRBSTREGPREDRV(self)
+        self.zz_fdict['TX0DBMTRIMPSRBSTREGPREDRV'] = self.TX0DBMTRIMPSRBSTREGPREDRV
+        self.TX0DBMTRIMPREDRVSLOPE = RM_Field_RAC_NS_TX0DBMTRIM0_TX0DBMTRIMPREDRVSLOPE(self)
+        self.zz_fdict['TX0DBMTRIMPREDRVSLOPE'] = self.TX0DBMTRIMPREDRVSLOPE
+        self.TX0DBMTRIMPSRBSTREGPA = RM_Field_RAC_NS_TX0DBMTRIM0_TX0DBMTRIMPSRBSTREGPA(self)
+        self.zz_fdict['TX0DBMTRIMPSRBSTREGPA'] = self.TX0DBMTRIMPSRBSTREGPA
+        self.TX0DBMTRIMTAPCAP100F = RM_Field_RAC_NS_TX0DBMTRIM0_TX0DBMTRIMTAPCAP100F(self)
+        self.zz_fdict['TX0DBMTRIMTAPCAP100F'] = self.TX0DBMTRIMTAPCAP100F
+        self.TX0DBMTRIMTAPCAP200F = RM_Field_RAC_NS_TX0DBMTRIM0_TX0DBMTRIMTAPCAP200F(self)
+        self.zz_fdict['TX0DBMTRIMTAPCAP200F'] = self.TX0DBMTRIMTAPCAP200F
+        self.TX0DBMTRIMVREFREGPA = RM_Field_RAC_NS_TX0DBMTRIM0_TX0DBMTRIMVREFREGPA(self)
+        self.zz_fdict['TX0DBMTRIMVREFREGPA'] = self.TX0DBMTRIMVREFREGPA
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_TX10DBMEN(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_TX10DBMEN, self).__init__(rmio, label,
+            0xb0220000, 0x234,
+            'TX10DBMEN', 'RAC_NS.TX10DBMEN', 'read-write',
+            u"",
+            0x00000000, 0x0007077E,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.TX10DBMENPA = RM_Field_RAC_NS_TX10DBMEN_TX10DBMENPA(self)
+        self.zz_fdict['TX10DBMENPA'] = self.TX10DBMENPA
+        self.TX10DBMENPAREG = RM_Field_RAC_NS_TX10DBMEN_TX10DBMENPAREG(self)
+        self.zz_fdict['TX10DBMENPAREG'] = self.TX10DBMENPAREG
+        self.TX10DBMENPREDRV = RM_Field_RAC_NS_TX10DBMEN_TX10DBMENPREDRV(self)
+        self.zz_fdict['TX10DBMENPREDRV'] = self.TX10DBMENPREDRV
+        self.TX10DBMENPREDRVREG = RM_Field_RAC_NS_TX10DBMEN_TX10DBMENPREDRVREG(self)
+        self.zz_fdict['TX10DBMENPREDRVREG'] = self.TX10DBMENPREDRVREG
+        self.TX10DBMENPAREGPULLDOWN = RM_Field_RAC_NS_TX10DBMEN_TX10DBMENPAREGPULLDOWN(self)
+        self.zz_fdict['TX10DBMENPAREGPULLDOWN'] = self.TX10DBMENPAREGPULLDOWN
+        self.TX10DBMENPAREGSTBLOAD = RM_Field_RAC_NS_TX10DBMEN_TX10DBMENPAREGSTBLOAD(self)
+        self.zz_fdict['TX10DBMENPAREGSTBLOAD'] = self.TX10DBMENPAREGSTBLOAD
+        self.TX10DBMENPAOUTBIAS = RM_Field_RAC_NS_TX10DBMEN_TX10DBMENPAOUTBIAS(self)
+        self.zz_fdict['TX10DBMENPAOUTBIAS'] = self.TX10DBMENPAOUTBIAS
+        self.TX10DBMENRXPADATTN = RM_Field_RAC_NS_TX10DBMEN_TX10DBMENRXPADATTN(self)
+        self.zz_fdict['TX10DBMENRXPADATTN'] = self.TX10DBMENRXPADATTN
+        self.TX10DBMENPREDRVREGSTBLOAD = RM_Field_RAC_NS_TX10DBMEN_TX10DBMENPREDRVREGSTBLOAD(self)
+        self.zz_fdict['TX10DBMENPREDRVREGSTBLOAD'] = self.TX10DBMENPREDRVREGSTBLOAD
+        self.TX10DBMENPAREGPULLDOWNTX = RM_Field_RAC_NS_TX10DBMEN_TX10DBMENPAREGPULLDOWNTX(self)
+        self.zz_fdict['TX10DBMENPAREGPULLDOWNTX'] = self.TX10DBMENPAREGPULLDOWNTX
+        self.TX10DBMENPAOUTBIASTX = RM_Field_RAC_NS_TX10DBMEN_TX10DBMENPAOUTBIASTX(self)
+        self.zz_fdict['TX10DBMENPAOUTBIASTX'] = self.TX10DBMENPAOUTBIASTX
+        self.TX10DBMENRXPADATTNTX = RM_Field_RAC_NS_TX10DBMEN_TX10DBMENRXPADATTNTX(self)
+        self.zz_fdict['TX10DBMENRXPADATTNTX'] = self.TX10DBMENRXPADATTNTX
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_TX10DBMCTRL0(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_TX10DBMCTRL0, self).__init__(rmio, label,
+            0xb0220000, 0x238,
+            'TX10DBMCTRL0', 'RAC_NS.TX10DBMCTRL0', 'read-write',
+            u"",
+            0x00000000, 0x0000187F,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.TX10DBMPOWER = RM_Field_RAC_NS_TX10DBMCTRL0_TX10DBMPOWER(self)
+        self.zz_fdict['TX10DBMPOWER'] = self.TX10DBMPOWER
+        self.TX10DBMRAMPCLKBYPASS = RM_Field_RAC_NS_TX10DBMCTRL0_TX10DBMRAMPCLKBYPASS(self)
+        self.zz_fdict['TX10DBMRAMPCLKBYPASS'] = self.TX10DBMRAMPCLKBYPASS
+        self.TX10DBMPOWERRAMPRESET = RM_Field_RAC_NS_TX10DBMCTRL0_TX10DBMPOWERRAMPRESET(self)
+        self.zz_fdict['TX10DBMPOWERRAMPRESET'] = self.TX10DBMPOWERRAMPRESET
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_TX10DBMTRIM1(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_TX10DBMTRIM1, self).__init__(rmio, label,
+            0xb0220000, 0x244,
+            'TX10DBMTRIM1', 'RAC_NS.TX10DBMTRIM1', 'read-write',
+            u"",
+            0x002022AD, 0x03FFFFFF,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.TX10DBMTRIMBIASDION = RM_Field_RAC_NS_TX10DBMTRIM1_TX10DBMTRIMBIASDION(self)
+        self.zz_fdict['TX10DBMTRIMBIASDION'] = self.TX10DBMTRIMBIASDION
+        self.TX10DBMTRIMBIASDIOP = RM_Field_RAC_NS_TX10DBMTRIM1_TX10DBMTRIMBIASDIOP(self)
+        self.zz_fdict['TX10DBMTRIMBIASDIOP'] = self.TX10DBMTRIMBIASDIOP
+        self.TX10DBMTRIMNSWBIAS = RM_Field_RAC_NS_TX10DBMTRIM1_TX10DBMTRIMNSWBIAS(self)
+        self.zz_fdict['TX10DBMTRIMNSWBIAS'] = self.TX10DBMTRIMNSWBIAS
+        self.TX10DBMTRIMPSWBIAS = RM_Field_RAC_NS_TX10DBMTRIM1_TX10DBMTRIMPSWBIAS(self)
+        self.zz_fdict['TX10DBMTRIMPSWBIAS'] = self.TX10DBMTRIMPSWBIAS
+        self.TX10DBMTRIMBIASN = RM_Field_RAC_NS_TX10DBMTRIM1_TX10DBMTRIMBIASN(self)
+        self.zz_fdict['TX10DBMTRIMBIASN'] = self.TX10DBMTRIMBIASN
+        self.TX10DBMTRIMDUTYN = RM_Field_RAC_NS_TX10DBMTRIM1_TX10DBMTRIMDUTYN(self)
+        self.zz_fdict['TX10DBMTRIMDUTYN'] = self.TX10DBMTRIMDUTYN
+        self.TX10DBMTRIMBIASP = RM_Field_RAC_NS_TX10DBMTRIM1_TX10DBMTRIMBIASP(self)
+        self.zz_fdict['TX10DBMTRIMBIASP'] = self.TX10DBMTRIMBIASP
+        self.TX10DBMTRIMDUTYP = RM_Field_RAC_NS_TX10DBMTRIM1_TX10DBMTRIMDUTYP(self)
+        self.zz_fdict['TX10DBMTRIMDUTYP'] = self.TX10DBMTRIMDUTYP
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_TX10DBMTRIM2(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_TX10DBMTRIM2, self).__init__(rmio, label,
+            0xb0220000, 0x248,
+            'TX10DBMTRIM2', 'RAC_NS.TX10DBMTRIM2', 'read-write',
+            u"",
+            0x00B2EE14, 0x00FFFFFF,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.TX10DBMTRIMPREDRVREGSLICES = RM_Field_RAC_NS_TX10DBMTRIM2_TX10DBMTRIMPREDRVREGSLICES(self)
+        self.zz_fdict['TX10DBMTRIMPREDRVREGSLICES'] = self.TX10DBMTRIMPREDRVREGSLICES
+        self.TX10DBMTRIMPREDRVSLC = RM_Field_RAC_NS_TX10DBMTRIM2_TX10DBMTRIMPREDRVSLC(self)
+        self.zz_fdict['TX10DBMTRIMPREDRVSLC'] = self.TX10DBMTRIMPREDRVSLC
+        self.TX10DBMTRIMPREDRVREGPSR = RM_Field_RAC_NS_TX10DBMTRIM2_TX10DBMTRIMPREDRVREGPSR(self)
+        self.zz_fdict['TX10DBMTRIMPREDRVREGPSR'] = self.TX10DBMTRIMPREDRVREGPSR
+        self.TX10DBMTRIMPREDRVREG = RM_Field_RAC_NS_TX10DBMTRIM2_TX10DBMTRIMPREDRVREG(self)
+        self.zz_fdict['TX10DBMTRIMPREDRVREG'] = self.TX10DBMTRIMPREDRVREG
+        self.TX10DBMTRIMPAREG = RM_Field_RAC_NS_TX10DBMTRIM2_TX10DBMTRIMPAREG(self)
+        self.zz_fdict['TX10DBMTRIMPAREG'] = self.TX10DBMTRIMPAREG
+        self.TX10DBMTRIMPAREGVREF = RM_Field_RAC_NS_TX10DBMTRIM2_TX10DBMTRIMPAREGVREF(self)
+        self.zz_fdict['TX10DBMTRIMPAREGVREF'] = self.TX10DBMTRIMPAREGVREF
+        self.TX10DBMTRIMPREDRVREGVREF = RM_Field_RAC_NS_TX10DBMTRIM2_TX10DBMTRIMPREDRVREGVREF(self)
+        self.zz_fdict['TX10DBMTRIMPREDRVREGVREF'] = self.TX10DBMTRIMPREDRVREGVREF
+        self.TX10DBMTRIMPAREGPSR = RM_Field_RAC_NS_TX10DBMTRIM2_TX10DBMTRIMPAREGPSR(self)
+        self.zz_fdict['TX10DBMTRIMPAREGPSR'] = self.TX10DBMTRIMPAREGPSR
+        self.TX10DBMTRIMPREDRVCAP = RM_Field_RAC_NS_TX10DBMTRIM2_TX10DBMTRIMPREDRVCAP(self)
+        self.zz_fdict['TX10DBMTRIMPREDRVCAP'] = self.TX10DBMTRIMPREDRVCAP
+        self.TX10DBMTRIMLOINTVDDAPREDRV = RM_Field_RAC_NS_TX10DBMTRIM2_TX10DBMTRIMLOINTVDDAPREDRV(self)
+        self.zz_fdict['TX10DBMTRIMLOINTVDDAPREDRV'] = self.TX10DBMTRIMLOINTVDDAPREDRV
+        self.TX10DBMENPAREGSTBLOADAUTO = RM_Field_RAC_NS_TX10DBMTRIM2_TX10DBMENPAREGSTBLOADAUTO(self)
+        self.zz_fdict['TX10DBMENPAREGSTBLOADAUTO'] = self.TX10DBMENPAREGSTBLOADAUTO
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_PREREGTRIM(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_PREREGTRIM, self).__init__(rmio, label,
+            0xb0220000, 0x24C,
+            'PREREGTRIM', 'RAC_NS.PREREGTRIM', 'read-write',
+            u"",
+            0x0000D5CD, 0x0001FFFF,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.PREREGTRIMVREG = RM_Field_RAC_NS_PREREGTRIM_PREREGTRIMVREG(self)
+        self.zz_fdict['PREREGTRIMVREG'] = self.PREREGTRIMVREG
+        self.PREREGTRIMVTRMINIVOLTAGE = RM_Field_RAC_NS_PREREGTRIM_PREREGTRIMVTRMINIVOLTAGE(self)
+        self.zz_fdict['PREREGTRIMVTRMINIVOLTAGE'] = self.PREREGTRIMVTRMINIVOLTAGE
+        self.PREREGTRIMBYPCMPVREF = RM_Field_RAC_NS_PREREGTRIM_PREREGTRIMBYPCMPVREF(self)
+        self.zz_fdict['PREREGTRIMBYPCMPVREF'] = self.PREREGTRIMBYPCMPVREF
+        self.PREREGTRIMVTRMINITEMPCO = RM_Field_RAC_NS_PREREGTRIM_PREREGTRIMVTRMINITEMPCO(self)
+        self.zz_fdict['PREREGTRIMVTRMINITEMPCO'] = self.PREREGTRIMVTRMINITEMPCO
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_MIXDACTRIM1(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_MIXDACTRIM1, self).__init__(rmio, label,
+            0xb0220000, 0x250,
+            'MIXDACTRIM1', 'RAC_NS.MIXDACTRIM1', 'read-write',
+            u"",
+            0x00000002, 0x00000003,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.MIXDACTRIMBBSUPPLYSERIESRES = RM_Field_RAC_NS_MIXDACTRIM1_MIXDACTRIMBBSUPPLYSERIESRES(self)
+        self.zz_fdict['MIXDACTRIMBBSUPPLYSERIESRES'] = self.MIXDACTRIMBBSUPPLYSERIESRES
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_SYDLF1(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_SYDLF1, self).__init__(rmio, label,
+            0xb0220000, 0x254,
+            'SYDLF1', 'RAC_NS.SYDLF1', 'read-write',
+            u"",
+            0x00000110, 0x03FF03FF,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.SYDLFTDCDBIAS = RM_Field_RAC_NS_SYDLF1_SYDLFTDCDBIAS(self)
+        self.zz_fdict['SYDLFTDCDBIAS'] = self.SYDLFTDCDBIAS
+        self.SYDLFTDCDBIASTX = RM_Field_RAC_NS_SYDLF1_SYDLFTDCDBIASTX(self)
+        self.zz_fdict['SYDLFTDCDBIASTX'] = self.SYDLFTDCDBIASTX
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_SPARE1(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_SPARE1, self).__init__(rmio, label,
+            0xb0220000, 0x25C,
+            'SPARE1', 'RAC_NS.SPARE1', 'read-write',
+            u"",
+            0x00000004, 0x00003FFF,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.LNAMIXSPARE1 = RM_Field_RAC_NS_SPARE1_LNAMIXSPARE1(self)
+        self.zz_fdict['LNAMIXSPARE1'] = self.LNAMIXSPARE1
+        self.LNAMIXSPARE2 = RM_Field_RAC_NS_SPARE1_LNAMIXSPARE2(self)
+        self.zz_fdict['LNAMIXSPARE2'] = self.LNAMIXSPARE2
+        self.TIASPARE = RM_Field_RAC_NS_SPARE1_TIASPARE(self)
+        self.zz_fdict['TIASPARE'] = self.TIASPARE
+        self.TX10DBMSPARE = RM_Field_RAC_NS_SPARE1_TX10DBMSPARE(self)
+        self.zz_fdict['TX10DBMSPARE'] = self.TX10DBMSPARE
+        self.VTRSPARES = RM_Field_RAC_NS_SPARE1_VTRSPARES(self)
+        self.zz_fdict['VTRSPARES'] = self.VTRSPARES
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_PREREGSTATUS(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_PREREGSTATUS, self).__init__(rmio, label,
+            0xb0220000, 0x260,
+            'PREREGSTATUS', 'RAC_NS.PREREGSTATUS', 'read-only',
+            u"",
+            0x00000000, 0x00000001,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.PREREGBYPOUTCOLLAPSED = RM_Field_RAC_NS_PREREGSTATUS_PREREGBYPOUTCOLLAPSED(self)
+        self.zz_fdict['PREREGBYPOUTCOLLAPSED'] = self.PREREGBYPOUTCOLLAPSED
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_VTRTRIM(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_VTRTRIM, self).__init__(rmio, label,
+            0xb0220000, 0x264,
+            'VTRTRIM', 'RAC_NS.VTRTRIM', 'read-write',
+            u"",
+            0x008A7768, 0x00FFFFFF,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.VTRTRIMIBIAS = RM_Field_RAC_NS_VTRTRIM_VTRTRIMIBIAS(self)
+        self.zz_fdict['VTRTRIMIBIAS'] = self.VTRTRIMIBIAS
+        self.VTRTRIMVREF = RM_Field_RAC_NS_VTRTRIM_VTRTRIMVREF(self)
+        self.zz_fdict['VTRTRIMVREF'] = self.VTRTRIMVREF
+        self.VTRTRIMTC = RM_Field_RAC_NS_VTRTRIM_VTRTRIMTC(self)
+        self.zz_fdict['VTRTRIMTC'] = self.VTRTRIMTC
+        self.VTRTRIMVREFPREREG = RM_Field_RAC_NS_VTRTRIM_VTRTRIMVREFPREREG(self)
+        self.zz_fdict['VTRTRIMVREFPREREG'] = self.VTRTRIMVREFPREREG
+        self.VTRTRIMVREFVTR = RM_Field_RAC_NS_VTRTRIM_VTRTRIMVREFVTR(self)
+        self.zz_fdict['VTRTRIMVREFVTR'] = self.VTRTRIMVREFVTR
+        self.VTRTRIMVREG = RM_Field_RAC_NS_VTRTRIM_VTRTRIMVREG(self)
+        self.zz_fdict['VTRTRIMVREG'] = self.VTRTRIMVREG
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_ADCCTRL0(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_ADCCTRL0, self).__init__(rmio, label,
+            0xb0220000, 0x268,
+            'ADCCTRL0', 'RAC_NS.ADCCTRL0', 'read-write',
+            u"",
+            0x18CE2400, 0x3FFFFFFF,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.ADCTUNERCCALMODE = RM_Field_RAC_NS_ADCCTRL0_ADCTUNERCCALMODE(self)
+        self.zz_fdict['ADCTUNERCCALMODE'] = self.ADCTUNERCCALMODE
+        self.ADCCAPRESET = RM_Field_RAC_NS_ADCCTRL0_ADCCAPRESET(self)
+        self.zz_fdict['ADCCAPRESET'] = self.ADCCAPRESET
+        self.ADCCLKSEL = RM_Field_RAC_NS_ADCCTRL0_ADCCLKSEL(self)
+        self.zz_fdict['ADCCLKSEL'] = self.ADCCLKSEL
+        self.ADCCTRLRESERVED = RM_Field_RAC_NS_ADCCTRL0_ADCCTRLRESERVED(self)
+        self.zz_fdict['ADCCTRLRESERVED'] = self.ADCCTRLRESERVED
+        self.ADCINVERTCLK = RM_Field_RAC_NS_ADCCTRL0_ADCINVERTCLK(self)
+        self.zz_fdict['ADCINVERTCLK'] = self.ADCINVERTCLK
+        self.ADCCTRLRESERVEDLV = RM_Field_RAC_NS_ADCCTRL0_ADCCTRLRESERVEDLV(self)
+        self.zz_fdict['ADCCTRLRESERVEDLV'] = self.ADCCTRLRESERVEDLV
+        self.ADCZEROOPT = RM_Field_RAC_NS_ADCCTRL0_ADCZEROOPT(self)
+        self.zz_fdict['ADCZEROOPT'] = self.ADCZEROOPT
+        self.ADCLOWCUR = RM_Field_RAC_NS_ADCCTRL0_ADCLOWCUR(self)
+        self.zz_fdict['ADCLOWCUR'] = self.ADCLOWCUR
+        self.ADCNEGRESVCM = RM_Field_RAC_NS_ADCCTRL0_ADCNEGRESVCM(self)
+        self.zz_fdict['ADCNEGRESVCM'] = self.ADCNEGRESVCM
+        self.ADCLDOSHUNTCURLVL2 = RM_Field_RAC_NS_ADCCTRL0_ADCLDOSHUNTCURLVL2(self)
+        self.zz_fdict['ADCLDOSHUNTCURLVL2'] = self.ADCLDOSHUNTCURLVL2
+        self.ADCNEGRESCURRENT = RM_Field_RAC_NS_ADCCTRL0_ADCNEGRESCURRENT(self)
+        self.zz_fdict['ADCNEGRESCURRENT'] = self.ADCNEGRESCURRENT
+        self.ADCLDOSHUNTAMPLVL2 = RM_Field_RAC_NS_ADCCTRL0_ADCLDOSHUNTAMPLVL2(self)
+        self.zz_fdict['ADCLDOSHUNTAMPLVL2'] = self.ADCLDOSHUNTAMPLVL2
+        self.ADCLDOSHUNTAMPLVL1 = RM_Field_RAC_NS_ADCCTRL0_ADCLDOSHUNTAMPLVL1(self)
+        self.zz_fdict['ADCLDOSHUNTAMPLVL1'] = self.ADCLDOSHUNTAMPLVL1
+        self.ADCTUNERC = RM_Field_RAC_NS_ADCCTRL0_ADCTUNERC(self)
+        self.zz_fdict['ADCTUNERC'] = self.ADCTUNERC
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_ADCCTRL1(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_ADCCTRL1, self).__init__(rmio, label,
+            0xb0220000, 0x26C,
+            'ADCCTRL1', 'RAC_NS.ADCCTRL1', 'read-write',
+            u"",
+            0x00000000, 0x00000003,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.ADCENHALFBW = RM_Field_RAC_NS_ADCCTRL1_ADCENHALFBW(self)
+        self.zz_fdict['ADCENHALFBW'] = self.ADCENHALFBW
+        self.ADCENHALFMODE = RM_Field_RAC_NS_ADCCTRL1_ADCENHALFMODE(self)
+        self.zz_fdict['ADCENHALFMODE'] = self.ADCENHALFMODE
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_ADCEN0(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_ADCEN0, self).__init__(rmio, label,
+            0xb0220000, 0x270,
+            'ADCEN0', 'RAC_NS.ADCEN0', 'read-write',
+            u"",
+            0x00000000, 0x000000FF,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.ADCENADC = RM_Field_RAC_NS_ADCEN0_ADCENADC(self)
+        self.zz_fdict['ADCENADC'] = self.ADCENADC
+        self.ADCENRCCAL = RM_Field_RAC_NS_ADCEN0_ADCENRCCAL(self)
+        self.zz_fdict['ADCENRCCAL'] = self.ADCENRCCAL
+        self.ADCENSIDETONE = RM_Field_RAC_NS_ADCEN0_ADCENSIDETONE(self)
+        self.zz_fdict['ADCENSIDETONE'] = self.ADCENSIDETONE
+        self.ADCENLDOSHUNT = RM_Field_RAC_NS_ADCEN0_ADCENLDOSHUNT(self)
+        self.zz_fdict['ADCENLDOSHUNT'] = self.ADCENLDOSHUNT
+        self.ADCENCLK = RM_Field_RAC_NS_ADCEN0_ADCENCLK(self)
+        self.zz_fdict['ADCENCLK'] = self.ADCENCLK
+        self.ADCENLDOSERIES = RM_Field_RAC_NS_ADCEN0_ADCENLDOSERIES(self)
+        self.zz_fdict['ADCENLDOSERIES'] = self.ADCENLDOSERIES
+        self.ADCENNEGRES = RM_Field_RAC_NS_ADCEN0_ADCENNEGRES(self)
+        self.zz_fdict['ADCENNEGRES'] = self.ADCENNEGRES
+        self.ADCENLDOBIASSERIES = RM_Field_RAC_NS_ADCEN0_ADCENLDOBIASSERIES(self)
+        self.zz_fdict['ADCENLDOBIASSERIES'] = self.ADCENLDOBIASSERIES
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_ADCTRIM0(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_ADCTRIM0, self).__init__(rmio, label,
+            0xb0220000, 0x274,
+            'ADCTRIM0', 'RAC_NS.ADCTRIM0', 'read-write',
+            u"",
+            0x0034521C, 0x007FFFFF,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.ADCLDOSHUNTCURLVL1 = RM_Field_RAC_NS_ADCTRIM0_ADCLDOSHUNTCURLVL1(self)
+        self.zz_fdict['ADCLDOSHUNTCURLVL1'] = self.ADCLDOSHUNTCURLVL1
+        self.ADCLDOSERIESAMPLVL = RM_Field_RAC_NS_ADCTRIM0_ADCLDOSERIESAMPLVL(self)
+        self.zz_fdict['ADCLDOSERIESAMPLVL'] = self.ADCLDOSERIESAMPLVL
+        self.ADCLDOSERIESAMPLVL2 = RM_Field_RAC_NS_ADCTRIM0_ADCLDOSERIESAMPLVL2(self)
+        self.zz_fdict['ADCLDOSERIESAMPLVL2'] = self.ADCLDOSERIESAMPLVL2
+        self.ADCSIDETONEFREQ = RM_Field_RAC_NS_ADCTRIM0_ADCSIDETONEFREQ(self)
+        self.zz_fdict['ADCSIDETONEFREQ'] = self.ADCSIDETONEFREQ
+        self.ADCSIDETONEAMP = RM_Field_RAC_NS_ADCTRIM0_ADCSIDETONEAMP(self)
+        self.zz_fdict['ADCSIDETONEAMP'] = self.ADCSIDETONEAMP
+        self.ADCREFBUFCURLVL = RM_Field_RAC_NS_ADCTRIM0_ADCREFBUFCURLVL(self)
+        self.zz_fdict['ADCREFBUFCURLVL'] = self.ADCREFBUFCURLVL
+        self.ADCVCMLVL = RM_Field_RAC_NS_ADCTRIM0_ADCVCMLVL(self)
+        self.zz_fdict['ADCVCMLVL'] = self.ADCVCMLVL
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_ADCCTRL2(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_ADCCTRL2, self).__init__(rmio, label,
+            0xb0220000, 0x278,
+            'ADCCTRL2', 'RAC_NS.ADCCTRL2', 'read-write',
+            u"",
+            0x0000400C, 0x00007FFF,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.ADCOTACURRENT = RM_Field_RAC_NS_ADCCTRL2_ADCOTACURRENT(self)
+        self.zz_fdict['ADCOTACURRENT'] = self.ADCOTACURRENT
+        self.ADCVCMBUFBYPASS = RM_Field_RAC_NS_ADCCTRL2_ADCVCMBUFBYPASS(self)
+        self.zz_fdict['ADCVCMBUFBYPASS'] = self.ADCVCMBUFBYPASS
+        self.ADCRCCALCOUNTERSTARTVAL = RM_Field_RAC_NS_ADCCTRL2_ADCRCCALCOUNTERSTARTVAL(self)
+        self.zz_fdict['ADCRCCALCOUNTERSTARTVAL'] = self.ADCRCCALCOUNTERSTARTVAL
+        self.ADCSHORTINPUT = RM_Field_RAC_NS_ADCCTRL2_ADCSHORTINPUT(self)
+        self.zz_fdict['ADCSHORTINPUT'] = self.ADCSHORTINPUT
+        self.ADCLDOSERIESFORCEDSTARTUP = RM_Field_RAC_NS_ADCCTRL2_ADCLDOSERIESFORCEDSTARTUP(self)
+        self.zz_fdict['ADCLDOSERIESFORCEDSTARTUP'] = self.ADCLDOSERIESFORCEDSTARTUP
+        self.ADCSETVINCM400M = RM_Field_RAC_NS_ADCCTRL2_ADCSETVINCM400M(self)
+        self.zz_fdict['ADCSETVINCM400M'] = self.ADCSETVINCM400M
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_LNAMIXEN1(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_LNAMIXEN1, self).__init__(rmio, label,
+            0xb0220000, 0x27C,
+            'LNAMIXEN1', 'RAC_NS.LNAMIXEN1', 'read-write',
+            u"",
+            0x00000000, 0x00000002,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.LNAMIXMXRLOSEL = RM_Field_RAC_NS_LNAMIXEN1_LNAMIXMXRLOSEL(self)
+        self.zz_fdict['LNAMIXMXRLOSEL'] = self.LNAMIXMXRLOSEL
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_LNAMIXCTRL0(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_LNAMIXCTRL0, self).__init__(rmio, label,
+            0xb0220000, 0x280,
+            'LNAMIXCTRL0', 'RAC_NS.LNAMIXCTRL0', 'read-write',
+            u"",
+            0x00000000, 0x00000007,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.LNAMIXENSTBLOAD = RM_Field_RAC_NS_LNAMIXCTRL0_LNAMIXENSTBLOAD(self)
+        self.zz_fdict['LNAMIXENSTBLOAD'] = self.LNAMIXENSTBLOAD
+        self.LNAMIXREGLOWPWR = RM_Field_RAC_NS_LNAMIXCTRL0_LNAMIXREGLOWPWR(self)
+        self.zz_fdict['LNAMIXREGLOWPWR'] = self.LNAMIXREGLOWPWR
+        self.LNAMIXTXIRCALSEL = RM_Field_RAC_NS_LNAMIXCTRL0_LNAMIXTXIRCALSEL(self)
+        self.zz_fdict['LNAMIXTXIRCALSEL'] = self.LNAMIXTXIRCALSEL
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_LNAMIXCTRL1(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_LNAMIXCTRL1, self).__init__(rmio, label,
+            0xb0220000, 0x284,
+            'LNAMIXCTRL1', 'RAC_NS.LNAMIXCTRL1', 'read-write',
+            u"",
+            0x00000031, 0x000000FF,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.LNAMIXRFPKDTHRESHSELLO = RM_Field_RAC_NS_LNAMIXCTRL1_LNAMIXRFPKDTHRESHSELLO(self)
+        self.zz_fdict['LNAMIXRFPKDTHRESHSELLO'] = self.LNAMIXRFPKDTHRESHSELLO
+        self.LNAMIXRFPKDTHRESHSELHI = RM_Field_RAC_NS_LNAMIXCTRL1_LNAMIXRFPKDTHRESHSELHI(self)
+        self.zz_fdict['LNAMIXRFPKDTHRESHSELHI'] = self.LNAMIXRFPKDTHRESHSELHI
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_PREREGEN(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_PREREGEN, self).__init__(rmio, label,
+            0xb0220000, 0x288,
+            'PREREGEN', 'RAC_NS.PREREGEN', 'read-write',
+            u"",
+            0x00000000, 0x00000003,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.PREREGENSTBILOAD = RM_Field_RAC_NS_PREREGEN_PREREGENSTBILOAD(self)
+        self.zz_fdict['PREREGENSTBILOAD'] = self.PREREGENSTBILOAD
+        self.PREREGENCALLOAD = RM_Field_RAC_NS_PREREGEN_PREREGENCALLOAD(self)
+        self.zz_fdict['PREREGENCALLOAD'] = self.PREREGENCALLOAD
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_PREDEBUG(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_PREDEBUG, self).__init__(rmio, label,
+            0xb0220000, 0x28C,
+            'PREDEBUG', 'RAC_NS.PREDEBUG', 'read-write',
+            u"",
+            0x00000000, 0x00000001,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.PREREGSTARTUPFORCE = RM_Field_RAC_NS_PREDEBUG_PREREGSTARTUPFORCE(self)
+        self.zz_fdict['PREREGSTARTUPFORCE'] = self.PREREGSTARTUPFORCE
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_SYDLFCTRL0(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_SYDLFCTRL0, self).__init__(rmio, label,
+            0xb0220000, 0x290,
+            'SYDLFCTRL0', 'RAC_NS.SYDLFCTRL0', 'read-write',
+            u"",
+            0x00080007, 0xFFFFFFFF,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.SYDLFCLAMPTH = RM_Field_RAC_NS_SYDLFCTRL0_SYDLFCLAMPTH(self)
+        self.zz_fdict['SYDLFCLAMPTH'] = self.SYDLFCLAMPTH
+        self.SYDLFTDCA2 = RM_Field_RAC_NS_SYDLFCTRL0_SYDLFTDCA2(self)
+        self.zz_fdict['SYDLFTDCA2'] = self.SYDLFTDCA2
+        self.SYDLFLOCKTHRESHOLD = RM_Field_RAC_NS_SYDLFCTRL0_SYDLFLOCKTHRESHOLD(self)
+        self.zz_fdict['SYDLFLOCKTHRESHOLD'] = self.SYDLFLOCKTHRESHOLD
+        self.SYDLFREADXI = RM_Field_RAC_NS_SYDLFCTRL0_SYDLFREADXI(self)
+        self.zz_fdict['SYDLFREADXI'] = self.SYDLFREADXI
+        self.SYDLFREADXF = RM_Field_RAC_NS_SYDLFCTRL0_SYDLFREADXF(self)
+        self.zz_fdict['SYDLFREADXF'] = self.SYDLFREADXF
+        self.SYDLFREADACAPCK2 = RM_Field_RAC_NS_SYDLFCTRL0_SYDLFREADACAPCK2(self)
+        self.zz_fdict['SYDLFREADACAPCK2'] = self.SYDLFREADACAPCK2
+        self.SYDLFPFDLOCKSAMPLETH = RM_Field_RAC_NS_SYDLFCTRL0_SYDLFPFDLOCKSAMPLETH(self)
+        self.zz_fdict['SYDLFPFDLOCKSAMPLETH'] = self.SYDLFPFDLOCKSAMPLETH
+        self.SYDLFPOSITIVECOEFF = RM_Field_RAC_NS_SYDLFCTRL0_SYDLFPOSITIVECOEFF(self)
+        self.zz_fdict['SYDLFPOSITIVECOEFF'] = self.SYDLFPOSITIVECOEFF
+        self.SYDLFCONTRDEN = RM_Field_RAC_NS_SYDLFCTRL0_SYDLFCONTRDEN(self)
+        self.zz_fdict['SYDLFCONTRDEN'] = self.SYDLFCONTRDEN
+        self.SYDLFRDPRDMAN = RM_Field_RAC_NS_SYDLFCTRL0_SYDLFRDPRDMAN(self)
+        self.zz_fdict['SYDLFRDPRDMAN'] = self.SYDLFRDPRDMAN
+        self.SYDLFRDPRDEXP = RM_Field_RAC_NS_SYDLFCTRL0_SYDLFRDPRDEXP(self)
+        self.zz_fdict['SYDLFRDPRDEXP'] = self.SYDLFRDPRDEXP
+        self.SYDLFRDDLY = RM_Field_RAC_NS_SYDLFCTRL0_SYDLFRDDLY(self)
+        self.zz_fdict['SYDLFRDDLY'] = self.SYDLFRDDLY
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_SYEN0(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_SYEN0, self).__init__(rmio, label,
+            0xb0220000, 0x294,
+            'SYEN0', 'RAC_NS.SYEN0', 'read-write',
+            u"",
+            0x00000000, 0x00000013,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.SYENDLFTDCA2 = RM_Field_RAC_NS_SYEN0_SYENDLFTDCA2(self)
+        self.zz_fdict['SYENDLFTDCA2'] = self.SYENDLFTDCA2
+        self.SYENMMDCLKINJXO = RM_Field_RAC_NS_SYEN0_SYENMMDCLKINJXO(self)
+        self.zz_fdict['SYENMMDCLKINJXO'] = self.SYENMMDCLKINJXO
+        self.SYENDLFTDCA2TX = RM_Field_RAC_NS_SYEN0_SYENDLFTDCA2TX(self)
+        self.zz_fdict['SYENDLFTDCA2TX'] = self.SYENDLFTDCA2TX
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_SYEN1(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_SYEN1, self).__init__(rmio, label,
+            0xb0220000, 0x298,
+            'SYEN1', 'RAC_NS.SYEN1', 'read-write',
+            u"",
+            0x00000000, 0x0000FFFF,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.SYENVCOREG = RM_Field_RAC_NS_SYEN1_SYENVCOREG(self)
+        self.zz_fdict['SYENVCOREG'] = self.SYENVCOREG
+        self.SYENMMDREGSTBLOAD = RM_Field_RAC_NS_SYEN1_SYENMMDREGSTBLOAD(self)
+        self.zz_fdict['SYENMMDREGSTBLOAD'] = self.SYENMMDREGSTBLOAD
+        self.SYENTDCREG = RM_Field_RAC_NS_SYEN1_SYENTDCREG(self)
+        self.zz_fdict['SYENTDCREG'] = self.SYENTDCREG
+        self.SYENTDCREGSTBLOAD = RM_Field_RAC_NS_SYEN1_SYENTDCREGSTBLOAD(self)
+        self.zz_fdict['SYENTDCREGSTBLOAD'] = self.SYENTDCREGSTBLOAD
+        self.SYENTDC = RM_Field_RAC_NS_SYEN1_SYENTDC(self)
+        self.zz_fdict['SYENTDC'] = self.SYENTDC
+        self.SYENDLF = RM_Field_RAC_NS_SYEN1_SYENDLF(self)
+        self.zz_fdict['SYENDLF'] = self.SYENDLF
+        self.SYENVCOIBIAS = RM_Field_RAC_NS_SYEN1_SYENVCOIBIAS(self)
+        self.zz_fdict['SYENVCOIBIAS'] = self.SYENVCOIBIAS
+        self.SYENDSMDAC = RM_Field_RAC_NS_SYEN1_SYENDSMDAC(self)
+        self.zz_fdict['SYENDSMDAC'] = self.SYENDSMDAC
+        self.SYENVCOBIAS = RM_Field_RAC_NS_SYEN1_SYENVCOBIAS(self)
+        self.zz_fdict['SYENVCOBIAS'] = self.SYENVCOBIAS
+        self.SYENDSMDACREG = RM_Field_RAC_NS_SYEN1_SYENDSMDACREG(self)
+        self.zz_fdict['SYENDSMDACREG'] = self.SYENDSMDACREG
+        self.SYENVCOREGLOAD = RM_Field_RAC_NS_SYEN1_SYENVCOREGLOAD(self)
+        self.zz_fdict['SYENVCOREGLOAD'] = self.SYENVCOREGLOAD
+        self.SYENMMDREG = RM_Field_RAC_NS_SYEN1_SYENMMDREG(self)
+        self.zz_fdict['SYENMMDREG'] = self.SYENMMDREG
+        self.SYENDTCCORE = RM_Field_RAC_NS_SYEN1_SYENDTCCORE(self)
+        self.zz_fdict['SYENDTCCORE'] = self.SYENDTCCORE
+        self.SYENDTCREG = RM_Field_RAC_NS_SYEN1_SYENDTCREG(self)
+        self.zz_fdict['SYENDTCREG'] = self.SYENDTCREG
+        self.SYENMMDOUTPUTS = RM_Field_RAC_NS_SYEN1_SYENMMDOUTPUTS(self)
+        self.zz_fdict['SYENMMDOUTPUTS'] = self.SYENMMDOUTPUTS
+        self.SYENMMDREGBIAS = RM_Field_RAC_NS_SYEN1_SYENMMDREGBIAS(self)
+        self.zz_fdict['SYENMMDREGBIAS'] = self.SYENMMDREGBIAS
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_SYEN2(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_SYEN2, self).__init__(rmio, label,
+            0xb0220000, 0x29C,
+            'SYEN2', 'RAC_NS.SYEN2', 'read-write',
+            u"",
+            0x00000000, 0x00000003,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.SYENTDCAQNC = RM_Field_RAC_NS_SYEN2_SYENTDCAQNC(self)
+        self.zz_fdict['SYENTDCAQNC'] = self.SYENTDCAQNC
+        self.SELSYDTCRDACTRIM = RM_Field_RAC_NS_SYEN2_SELSYDTCRDACTRIM(self)
+        self.zz_fdict['SELSYDTCRDACTRIM'] = self.SELSYDTCRDACTRIM
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_SYCTRL0(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_SYCTRL0, self).__init__(rmio, label,
+            0xb0220000, 0x2A0,
+            'SYCTRL0', 'RAC_NS.SYCTRL0', 'read-write',
+            u"",
+            0x0023004D, 0x3FFFFFFF,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.SYVCOTRIMIPTAT = RM_Field_RAC_NS_SYCTRL0_SYVCOTRIMIPTAT(self)
+        self.zz_fdict['SYVCOTRIMIPTAT'] = self.SYVCOTRIMIPTAT
+        self.SYENMMDREGREPLICA = RM_Field_RAC_NS_SYCTRL0_SYENMMDREGREPLICA(self)
+        self.zz_fdict['SYENMMDREGREPLICA'] = self.SYENMMDREGREPLICA
+        self.SYDSMDACREGILOAD = RM_Field_RAC_NS_SYCTRL0_SYDSMDACREGILOAD(self)
+        self.zz_fdict['SYDSMDACREGILOAD'] = self.SYDSMDACREGILOAD
+        self.SYDSMDACREGTRIMSTBLOAD = RM_Field_RAC_NS_SYCTRL0_SYDSMDACREGTRIMSTBLOAD(self)
+        self.zz_fdict['SYDSMDACREGTRIMSTBLOAD'] = self.SYDSMDACREGTRIMSTBLOAD
+        self.SYENMMDSYNC = RM_Field_RAC_NS_SYCTRL0_SYENMMDSYNC(self)
+        self.zz_fdict['SYENMMDSYNC'] = self.SYENMMDSYNC
+        self.SYVCOTRIMPKDAMP = RM_Field_RAC_NS_SYCTRL0_SYVCOTRIMPKDAMP(self)
+        self.zz_fdict['SYVCOTRIMPKDAMP'] = self.SYVCOTRIMPKDAMP
+        self.SYVCOREGLOWCUR = RM_Field_RAC_NS_SYCTRL0_SYVCOREGLOWCUR(self)
+        self.zz_fdict['SYVCOREGLOWCUR'] = self.SYVCOREGLOWCUR
+        self.SYENLODIVDIVSE = RM_Field_RAC_NS_SYCTRL0_SYENLODIVDIVSE(self)
+        self.zz_fdict['SYENLODIVDIVSE'] = self.SYENLODIVDIVSE
+        self.SYENMMDAQNC = RM_Field_RAC_NS_SYCTRL0_SYENMMDAQNC(self)
+        self.zz_fdict['SYENMMDAQNC'] = self.SYENMMDAQNC
+        self.SYVCOTRIMIBIAS = RM_Field_RAC_NS_SYCTRL0_SYVCOTRIMIBIAS(self)
+        self.zz_fdict['SYVCOTRIMIBIAS'] = self.SYVCOTRIMIBIAS
+        self.SYDSMDACTRIMLOADBALDLF = RM_Field_RAC_NS_SYCTRL0_SYDSMDACTRIMLOADBALDLF(self)
+        self.zz_fdict['SYDSMDACTRIMLOADBALDLF'] = self.SYDSMDACTRIMLOADBALDLF
+        self.SYDSMDACTRIMLOADBALDSM = RM_Field_RAC_NS_SYCTRL0_SYDSMDACTRIMLOADBALDSM(self)
+        self.zz_fdict['SYDSMDACTRIMLOADBALDSM'] = self.SYDSMDACTRIMLOADBALDSM
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_SYLOEN1(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_SYLOEN1, self).__init__(rmio, label,
+            0xb0220000, 0x2A4,
+            'SYLOEN1', 'RAC_NS.SYLOEN1', 'read-write',
+            u"",
+            0x00000000, 0x0000010F,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.SYENLODIVREGREPLICA = RM_Field_RAC_NS_SYLOEN1_SYENLODIVREGREPLICA(self)
+        self.zz_fdict['SYENLODIVREGREPLICA'] = self.SYENLODIVREGREPLICA
+        self.SYENLODIVREGBIAS = RM_Field_RAC_NS_SYLOEN1_SYENLODIVREGBIAS(self)
+        self.zz_fdict['SYENLODIVREGBIAS'] = self.SYENLODIVREGBIAS
+        self.SYENLODIVREG = RM_Field_RAC_NS_SYLOEN1_SYENLODIVREG(self)
+        self.zz_fdict['SYENLODIVREG'] = self.SYENLODIVREG
+        self.SYENLODIVREGSTBLOAD = RM_Field_RAC_NS_SYLOEN1_SYENLODIVREGSTBLOAD(self)
+        self.zz_fdict['SYENLODIVREGSTBLOAD'] = self.SYENLODIVREGSTBLOAD
+        self.SYENLODIVREGREPLICATX = RM_Field_RAC_NS_SYLOEN1_SYENLODIVREGREPLICATX(self)
+        self.zz_fdict['SYENLODIVREGREPLICATX'] = self.SYENLODIVREGREPLICATX
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_SYLOEN2(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_SYLOEN2, self).__init__(rmio, label,
+            0xb0220000, 0x2A8,
+            'SYLOEN2', 'RAC_NS.SYLOEN2', 'read-write',
+            u"",
+            0x00000000, 0x00000011,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.SYENLODIVADCCLK = RM_Field_RAC_NS_SYLOEN2_SYENLODIVADCCLK(self)
+        self.zz_fdict['SYENLODIVADCCLK'] = self.SYENLODIVADCCLK
+        self.SYENLODIVADCCLKTX = RM_Field_RAC_NS_SYLOEN2_SYENLODIVADCCLKTX(self)
+        self.zz_fdict['SYENLODIVADCCLKTX'] = self.SYENLODIVADCCLKTX
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_SYLOCTRL0(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_SYLOCTRL0, self).__init__(rmio, label,
+            0xb0220000, 0x2AC,
+            'SYLOCTRL0', 'RAC_NS.SYLOCTRL0', 'read-write',
+            u"",
+            0x01000000, 0x1FFFFFFF,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.SYLODIVSELFPSRC2G4 = RM_Field_RAC_NS_SYLOCTRL0_SYLODIVSELFPSRC2G4(self)
+        self.zz_fdict['SYLODIVSELFPSRC2G4'] = self.SYLODIVSELFPSRC2G4
+        self.SYLODIVBYPASSIQCLKBIASDELTA = RM_Field_RAC_NS_SYLOCTRL0_SYLODIVBYPASSIQCLKBIASDELTA(self)
+        self.zz_fdict['SYLODIVBYPASSIQCLKBIASDELTA'] = self.SYLODIVBYPASSIQCLKBIASDELTA
+        self.SYLODIVSELFCALCLK = RM_Field_RAC_NS_SYLOCTRL0_SYLODIVSELFCALCLK(self)
+        self.zz_fdict['SYLODIVSELFCALCLK'] = self.SYLODIVSELFCALCLK
+        self.SYLODIVTRIMIQCLKBIASDELTA = RM_Field_RAC_NS_SYLOCTRL0_SYLODIVTRIMIQCLKBIASDELTA(self)
+        self.zz_fdict['SYLODIVTRIMIQCLKBIASDELTA'] = self.SYLODIVTRIMIQCLKBIASDELTA
+        self.SYLODIVDSMDACCLKDIVRATIO = RM_Field_RAC_NS_SYLOCTRL0_SYLODIVDSMDACCLKDIVRATIO(self)
+        self.zz_fdict['SYLODIVDSMDACCLKDIVRATIO'] = self.SYLODIVDSMDACCLKDIVRATIO
+        self.SYLODIVSPARES = RM_Field_RAC_NS_SYLOCTRL0_SYLODIVSPARES(self)
+        self.zz_fdict['SYLODIVSPARES'] = self.SYLODIVSPARES
+        self.SYLODIVSMUXCLKDIVRATIO = RM_Field_RAC_NS_SYLOCTRL0_SYLODIVSMUXCLKDIVRATIO(self)
+        self.zz_fdict['SYLODIVSMUXCLKDIVRATIO'] = self.SYLODIVSMUXCLKDIVRATIO
+        self.SYLODIVTRIMIQCLKBIASNDIO = RM_Field_RAC_NS_SYLOCTRL0_SYLODIVTRIMIQCLKBIASNDIO(self)
+        self.zz_fdict['SYLODIVTRIMIQCLKBIASNDIO'] = self.SYLODIVTRIMIQCLKBIASNDIO
+        self.SYLODIVTRIMIQCLKBIASIBIAS = RM_Field_RAC_NS_SYLOCTRL0_SYLODIVTRIMIQCLKBIASIBIAS(self)
+        self.zz_fdict['SYLODIVTRIMIQCLKBIASIBIAS'] = self.SYLODIVTRIMIQCLKBIASIBIAS
+        self.SYLODIVADCDIVRATIO = RM_Field_RAC_NS_SYLOCTRL0_SYLODIVADCDIVRATIO(self)
+        self.zz_fdict['SYLODIVADCDIVRATIO'] = self.SYLODIVADCDIVRATIO
+        self.SYLODIVREGTRIMVREG = RM_Field_RAC_NS_SYLOCTRL0_SYLODIVREGTRIMVREG(self)
+        self.zz_fdict['SYLODIVREGTRIMVREG'] = self.SYLODIVREGTRIMVREG
+        self.SYLODIVREGTRIMVREGTX = RM_Field_RAC_NS_SYLOCTRL0_SYLODIVREGTRIMVREGTX(self)
+        self.zz_fdict['SYLODIVREGTRIMVREGTX'] = self.SYLODIVREGTRIMVREGTX
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_SYLOCTRL1(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_SYLOCTRL1, self).__init__(rmio, label,
+            0xb0220000, 0x2B0,
+            'SYLOCTRL1', 'RAC_NS.SYLOCTRL1', 'read-write',
+            u"",
+            0x00000000, 0x000007FF,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.SYENLODIVHADMDIV = RM_Field_RAC_NS_SYLOCTRL1_SYENLODIVHADMDIV(self)
+        self.zz_fdict['SYENLODIVHADMDIV'] = self.SYENLODIVHADMDIV
+        self.SYENLODIVHADMLO = RM_Field_RAC_NS_SYLOCTRL1_SYENLODIVHADMLO(self)
+        self.zz_fdict['SYENLODIVHADMLO'] = self.SYENLODIVHADMLO
+        self.SYENLODIVHADMRXLO = RM_Field_RAC_NS_SYLOCTRL1_SYENLODIVHADMRXLO(self)
+        self.zz_fdict['SYENLODIVHADMRXLO'] = self.SYENLODIVHADMRXLO
+        self.SYENLODIVHADMTXLO = RM_Field_RAC_NS_SYLOCTRL1_SYENLODIVHADMTXLO(self)
+        self.zz_fdict['SYENLODIVHADMTXLO'] = self.SYENLODIVHADMTXLO
+        self.SYENLODIVLPRXLO = RM_Field_RAC_NS_SYLOCTRL1_SYENLODIVLPRXLO(self)
+        self.zz_fdict['SYENLODIVLPRXLO'] = self.SYENLODIVLPRXLO
+        self.SYENLODIVLPRXDIV = RM_Field_RAC_NS_SYLOCTRL1_SYENLODIVLPRXDIV(self)
+        self.zz_fdict['SYENLODIVLPRXDIV'] = self.SYENLODIVLPRXDIV
+        self.SYENLODIVIQCLKBIAS = RM_Field_RAC_NS_SYLOCTRL1_SYENLODIVIQCLKBIAS(self)
+        self.zz_fdict['SYENLODIVIQCLKBIAS'] = self.SYENLODIVIQCLKBIAS
+        self.SYENLODIVSECLKBIAS = RM_Field_RAC_NS_SYLOCTRL1_SYENLODIVSECLKBIAS(self)
+        self.zz_fdict['SYENLODIVSECLKBIAS'] = self.SYENLODIVSECLKBIAS
+        self.SYENLODIVSMUXCLK = RM_Field_RAC_NS_SYLOCTRL1_SYENLODIVSMUXCLK(self)
+        self.zz_fdict['SYENLODIVSMUXCLK'] = self.SYENLODIVSMUXCLK
+        self.SYENLODIVTXRF0DBM = RM_Field_RAC_NS_SYLOCTRL1_SYENLODIVTXRF0DBM(self)
+        self.zz_fdict['SYENLODIVTXRF0DBM'] = self.SYENLODIVTXRF0DBM
+        self.SYENLODIVHADMRXTXMAN = RM_Field_RAC_NS_SYLOCTRL1_SYENLODIVHADMRXTXMAN(self)
+        self.zz_fdict['SYENLODIVHADMRXTXMAN'] = self.SYENLODIVHADMRXTXMAN
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_SYLOTRIM0(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_SYLOTRIM0, self).__init__(rmio, label,
+            0xb0220000, 0x2B4,
+            'SYLOTRIM0', 'RAC_NS.SYLOTRIM0', 'read-write',
+            u"",
+            0x00000001, 0x0000001F,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.SYLODIVREGTRIMVREF = RM_Field_RAC_NS_SYLOTRIM0_SYLODIVREGTRIMVREF(self)
+        self.zz_fdict['SYLODIVREGTRIMVREF'] = self.SYLODIVREGTRIMVREF
+        self.SYLODIVREGTRIMVREGOFFS = RM_Field_RAC_NS_SYLOTRIM0_SYLODIVREGTRIMVREGOFFS(self)
+        self.zz_fdict['SYLODIVREGTRIMVREGOFFS'] = self.SYLODIVREGTRIMVREGOFFS
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_SYTRIM3(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_SYTRIM3, self).__init__(rmio, label,
+            0xb0220000, 0x2B8,
+            'SYTRIM3', 'RAC_NS.SYTRIM3', 'read-write',
+            u"",
+            0x669856D9, 0xFFFFFFFF,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.SYVCOREGTRIMVREF = RM_Field_RAC_NS_SYTRIM3_SYVCOREGTRIMVREF(self)
+        self.zz_fdict['SYVCOREGTRIMVREF'] = self.SYVCOREGTRIMVREF
+        self.SYVCOTRIMR = RM_Field_RAC_NS_SYTRIM3_SYVCOTRIMR(self)
+        self.zz_fdict['SYVCOTRIMR'] = self.SYVCOTRIMR
+        self.SYVCOREGTRIMVREG = RM_Field_RAC_NS_SYTRIM3_SYVCOREGTRIMVREG(self)
+        self.zz_fdict['SYVCOREGTRIMVREG'] = self.SYVCOREGTRIMVREG
+        self.SYVCOTRIMBIASVREF = RM_Field_RAC_NS_SYTRIM3_SYVCOTRIMBIASVREF(self)
+        self.zz_fdict['SYVCOTRIMBIASVREF'] = self.SYVCOTRIMBIASVREF
+        self.SYTDCREGTRIMBW = RM_Field_RAC_NS_SYTRIM3_SYTDCREGTRIMBW(self)
+        self.zz_fdict['SYTDCREGTRIMBW'] = self.SYTDCREGTRIMBW
+        self.SYDTCSPARES = RM_Field_RAC_NS_SYTRIM3_SYDTCSPARES(self)
+        self.zz_fdict['SYDTCSPARES'] = self.SYDTCSPARES
+        self.SYTDCREGTRIMVREG = RM_Field_RAC_NS_SYTRIM3_SYTDCREGTRIMVREG(self)
+        self.zz_fdict['SYTDCREGTRIMVREG'] = self.SYTDCREGTRIMVREG
+        self.SYTDCREGTRIMVREGTX = RM_Field_RAC_NS_SYTRIM3_SYTDCREGTRIMVREGTX(self)
+        self.zz_fdict['SYTDCREGTRIMVREGTX'] = self.SYTDCREGTRIMVREGTX
+        self.SYVCOREGTRIMVREGTX = RM_Field_RAC_NS_SYTRIM3_SYVCOREGTRIMVREGTX(self)
+        self.zz_fdict['SYVCOREGTRIMVREGTX'] = self.SYVCOREGTRIMVREGTX
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_TIACTRL0(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_TIACTRL0, self).__init__(rmio, label,
+            0xb0220000, 0x2BC,
+            'TIACTRL0', 'RAC_NS.TIACTRL0', 'read-write',
+            u"",
+            0x000077DF, 0x00FFFFFF,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.TIAOXI = RM_Field_RAC_NS_TIACTRL0_TIAOXI(self)
+        self.zz_fdict['TIAOXI'] = self.TIAOXI
+        self.TIAOXQ = RM_Field_RAC_NS_TIACTRL0_TIAOXQ(self)
+        self.zz_fdict['TIAOXQ'] = self.TIAOXQ
+        self.TIASETVCM = RM_Field_RAC_NS_TIACTRL0_TIASETVCM(self)
+        self.zz_fdict['TIASETVCM'] = self.TIASETVCM
+        self.TIATHRPKDLOSEL = RM_Field_RAC_NS_TIACTRL0_TIATHRPKDLOSEL(self)
+        self.zz_fdict['TIATHRPKDLOSEL'] = self.TIATHRPKDLOSEL
+        self.TIATHRPKDHISEL = RM_Field_RAC_NS_TIACTRL0_TIATHRPKDHISEL(self)
+        self.zz_fdict['TIATHRPKDHISEL'] = self.TIATHRPKDHISEL
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_TX10DBMTRIM0(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_TX10DBMTRIM0, self).__init__(rmio, label,
+            0xb0220000, 0x2C8,
+            'TX10DBMTRIM0', 'RAC_NS.TX10DBMTRIM0', 'read-write',
+            u"",
+            0x000000AA, 0x000000FF,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.TX10DBMTRIMHFCTAP = RM_Field_RAC_NS_TX10DBMTRIM0_TX10DBMTRIMHFCTAP(self)
+        self.zz_fdict['TX10DBMTRIMHFCTAP'] = self.TX10DBMTRIMHFCTAP
+        self.TX10DBMTRIMHFCTAPTX = RM_Field_RAC_NS_TX10DBMTRIM0_TX10DBMTRIMHFCTAPTX(self)
+        self.zz_fdict['TX10DBMTRIMHFCTAPTX'] = self.TX10DBMTRIMHFCTAPTX
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_SYCTRLTX0(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_SYCTRLTX0, self).__init__(rmio, label,
+            0xb0220000, 0x2CC,
+            'SYCTRLTX0', 'RAC_NS.SYCTRLTX0', 'read-write',
+            u"",
+            0x0020004D, 0x3FF81FFF,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.SYVCOTRIMIPTATTX = RM_Field_RAC_NS_SYCTRLTX0_SYVCOTRIMIPTATTX(self)
+        self.zz_fdict['SYVCOTRIMIPTATTX'] = self.SYVCOTRIMIPTATTX
+        self.SYENMMDREGREPLICATX = RM_Field_RAC_NS_SYCTRLTX0_SYENMMDREGREPLICATX(self)
+        self.zz_fdict['SYENMMDREGREPLICATX'] = self.SYENMMDREGREPLICATX
+        self.SYDSMDACREGILOADTX = RM_Field_RAC_NS_SYCTRLTX0_SYDSMDACREGILOADTX(self)
+        self.zz_fdict['SYDSMDACREGILOADTX'] = self.SYDSMDACREGILOADTX
+        self.SYDSMDACREGTRIMSTBLOADTX = RM_Field_RAC_NS_SYCTRLTX0_SYDSMDACREGTRIMSTBLOADTX(self)
+        self.zz_fdict['SYDSMDACREGTRIMSTBLOADTX'] = self.SYDSMDACREGTRIMSTBLOADTX
+        self.SYENMMDSYNCTX = RM_Field_RAC_NS_SYCTRLTX0_SYENMMDSYNCTX(self)
+        self.zz_fdict['SYENMMDSYNCTX'] = self.SYENMMDSYNCTX
+        self.SYENMMDAQNCTX = RM_Field_RAC_NS_SYCTRLTX0_SYENMMDAQNCTX(self)
+        self.zz_fdict['SYENMMDAQNCTX'] = self.SYENMMDAQNCTX
+        self.SYVCOTRIMIBIASTX = RM_Field_RAC_NS_SYCTRLTX0_SYVCOTRIMIBIASTX(self)
+        self.zz_fdict['SYVCOTRIMIBIASTX'] = self.SYVCOTRIMIBIASTX
+        self.SYDSMDACTRIMLOADBALDLFTX = RM_Field_RAC_NS_SYCTRLTX0_SYDSMDACTRIMLOADBALDLFTX(self)
+        self.zz_fdict['SYDSMDACTRIMLOADBALDLFTX'] = self.SYDSMDACTRIMLOADBALDLFTX
+        self.SYDSMDACTRIMLOADBALDSMTX = RM_Field_RAC_NS_SYCTRLTX0_SYDSMDACTRIMLOADBALDSMTX(self)
+        self.zz_fdict['SYDSMDACTRIMLOADBALDSMTX'] = self.SYDSMDACTRIMLOADBALDSMTX
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_SYLOCTRLTX0(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_SYLOCTRLTX0, self).__init__(rmio, label,
+            0xb0220000, 0x2D0,
+            'SYLOCTRLTX0', 'RAC_NS.SYLOCTRLTX0', 'read-write',
+            u"",
+            0x00000000, 0x007FE1FB,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.SYLODIVSELFPSRC2G4TX = RM_Field_RAC_NS_SYLOCTRLTX0_SYLODIVSELFPSRC2G4TX(self)
+        self.zz_fdict['SYLODIVSELFPSRC2G4TX'] = self.SYLODIVSELFPSRC2G4TX
+        self.SYLODIVBYPASSIQCLKBIASDELTATX = RM_Field_RAC_NS_SYLOCTRLTX0_SYLODIVBYPASSIQCLKBIASDELTATX(self)
+        self.zz_fdict['SYLODIVBYPASSIQCLKBIASDELTATX'] = self.SYLODIVBYPASSIQCLKBIASDELTATX
+        self.SYLODIVTRIMIQCLKBIASDELTATX = RM_Field_RAC_NS_SYLOCTRLTX0_SYLODIVTRIMIQCLKBIASDELTATX(self)
+        self.zz_fdict['SYLODIVTRIMIQCLKBIASDELTATX'] = self.SYLODIVTRIMIQCLKBIASDELTATX
+        self.SYLODIVDSMDACCLKDIVRATIOTX = RM_Field_RAC_NS_SYLOCTRLTX0_SYLODIVDSMDACCLKDIVRATIOTX(self)
+        self.zz_fdict['SYLODIVDSMDACCLKDIVRATIOTX'] = self.SYLODIVDSMDACCLKDIVRATIOTX
+        self.SYLODIVSMUXCLKDIVRATIOTX = RM_Field_RAC_NS_SYLOCTRLTX0_SYLODIVSMUXCLKDIVRATIOTX(self)
+        self.zz_fdict['SYLODIVSMUXCLKDIVRATIOTX'] = self.SYLODIVSMUXCLKDIVRATIOTX
+        self.SYLODIVTRIMIQCLKBIASNDIOTX = RM_Field_RAC_NS_SYLOCTRLTX0_SYLODIVTRIMIQCLKBIASNDIOTX(self)
+        self.zz_fdict['SYLODIVTRIMIQCLKBIASNDIOTX'] = self.SYLODIVTRIMIQCLKBIASNDIOTX
+        self.SYLODIVTRIMIQCLKBIASIBIASTX = RM_Field_RAC_NS_SYLOCTRLTX0_SYLODIVTRIMIQCLKBIASIBIASTX(self)
+        self.zz_fdict['SYLODIVTRIMIQCLKBIASIBIASTX'] = self.SYLODIVTRIMIQCLKBIASIBIASTX
+        self.SYLODIVADCDIVRATIOTX = RM_Field_RAC_NS_SYLOCTRLTX0_SYLODIVADCDIVRATIOTX(self)
+        self.zz_fdict['SYLODIVADCDIVRATIOTX'] = self.SYLODIVADCDIVRATIOTX
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_SYLOCTRLTX1(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_SYLOCTRLTX1, self).__init__(rmio, label,
+            0xb0220000, 0x2D4,
+            'SYLOCTRLTX1', 'RAC_NS.SYLOCTRLTX1', 'read-write',
+            u"",
+            0x00000000, 0x0000037F,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.SYENLODIVHADMDIVTX = RM_Field_RAC_NS_SYLOCTRLTX1_SYENLODIVHADMDIVTX(self)
+        self.zz_fdict['SYENLODIVHADMDIVTX'] = self.SYENLODIVHADMDIVTX
+        self.SYENLODIVHADMLOTX = RM_Field_RAC_NS_SYLOCTRLTX1_SYENLODIVHADMLOTX(self)
+        self.zz_fdict['SYENLODIVHADMLOTX'] = self.SYENLODIVHADMLOTX
+        self.SYENLODIVHADMRXLOTX = RM_Field_RAC_NS_SYLOCTRLTX1_SYENLODIVHADMRXLOTX(self)
+        self.zz_fdict['SYENLODIVHADMRXLOTX'] = self.SYENLODIVHADMRXLOTX
+        self.SYENLODIVHADMTXLOTX = RM_Field_RAC_NS_SYLOCTRLTX1_SYENLODIVHADMTXLOTX(self)
+        self.zz_fdict['SYENLODIVHADMTXLOTX'] = self.SYENLODIVHADMTXLOTX
+        self.SYENLODIVLPRXLOTX = RM_Field_RAC_NS_SYLOCTRLTX1_SYENLODIVLPRXLOTX(self)
+        self.zz_fdict['SYENLODIVLPRXLOTX'] = self.SYENLODIVLPRXLOTX
+        self.SYENLODIVLPRXDIVTX = RM_Field_RAC_NS_SYLOCTRLTX1_SYENLODIVLPRXDIVTX(self)
+        self.zz_fdict['SYENLODIVLPRXDIVTX'] = self.SYENLODIVLPRXDIVTX
+        self.SYENLODIVIQCLKBIASTX = RM_Field_RAC_NS_SYLOCTRLTX1_SYENLODIVIQCLKBIASTX(self)
+        self.zz_fdict['SYENLODIVIQCLKBIASTX'] = self.SYENLODIVIQCLKBIASTX
+        self.SYENLODIVSMUXCLKTX = RM_Field_RAC_NS_SYLOCTRLTX1_SYENLODIVSMUXCLKTX(self)
+        self.zz_fdict['SYENLODIVSMUXCLKTX'] = self.SYENLODIVSMUXCLKTX
+        self.SYENLODIVTXRF0DBMTX = RM_Field_RAC_NS_SYLOCTRLTX1_SYENLODIVTXRF0DBMTX(self)
+        self.zz_fdict['SYENLODIVTXRF0DBMTX'] = self.SYENLODIVTXRF0DBMTX
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_CLKMULTEN2(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_CLKMULTEN2, self).__init__(rmio, label,
+            0xb0220000, 0x2D8,
+            'CLKMULTEN2', 'RAC_NS.CLKMULTEN2', 'read-write',
+            u"",
+            0x00000180, 0x00007FFF,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.CLKMULTENBYPASS40MHZTX = RM_Field_RAC_NS_CLKMULTEN2_CLKMULTENBYPASS40MHZTX(self)
+        self.zz_fdict['CLKMULTENBYPASS40MHZTX'] = self.CLKMULTENBYPASS40MHZTX
+        self.CLKMULTDIVNTX = RM_Field_RAC_NS_CLKMULTEN2_CLKMULTDIVNTX(self)
+        self.zz_fdict['CLKMULTDIVNTX'] = self.CLKMULTDIVNTX
+        self.CLKMULTDIVRTX = RM_Field_RAC_NS_CLKMULTEN2_CLKMULTDIVRTX(self)
+        self.zz_fdict['CLKMULTDIVRTX'] = self.CLKMULTDIVRTX
+        self.CLKMULTDIVXTX = RM_Field_RAC_NS_CLKMULTEN2_CLKMULTDIVXTX(self)
+        self.zz_fdict['CLKMULTDIVXTX'] = self.CLKMULTDIVXTX
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_HFXOCTRL(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_HFXOCTRL, self).__init__(rmio, label,
+            0xb0220000, 0x2DC,
+            'HFXOCTRL', 'RAC_NS.HFXOCTRL', 'read-write',
+            u"",
+            0x00000099, 0x000007FF,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.ENCLKSYANA = RM_Field_RAC_NS_HFXOCTRL_ENCLKSYANA(self)
+        self.zz_fdict['ENCLKSYANA'] = self.ENCLKSYANA
+        self.ENCLKCLKMULTANA = RM_Field_RAC_NS_HFXOCTRL_ENCLKCLKMULTANA(self)
+        self.zz_fdict['ENCLKCLKMULTANA'] = self.ENCLKCLKMULTANA
+        self.ENCLKDIFANA = RM_Field_RAC_NS_HFXOCTRL_ENCLKDIFANA(self)
+        self.zz_fdict['ENCLKDIFANA'] = self.ENCLKDIFANA
+        self.SQBUFBIASANA = RM_Field_RAC_NS_HFXOCTRL_SQBUFBIASANA(self)
+        self.zz_fdict['SQBUFBIASANA'] = self.SQBUFBIASANA
+        self.SQBUFBIASRESANA = RM_Field_RAC_NS_HFXOCTRL_SQBUFBIASRESANA(self)
+        self.zz_fdict['SQBUFBIASRESANA'] = self.SQBUFBIASRESANA
+        self.SQBUFBIASANAOVR = RM_Field_RAC_NS_HFXOCTRL_SQBUFBIASANAOVR(self)
+        self.zz_fdict['SQBUFBIASANAOVR'] = self.SQBUFBIASANAOVR
+        self.SQBUFBIASRESANAOVR = RM_Field_RAC_NS_HFXOCTRL_SQBUFBIASRESANAOVR(self)
+        self.zz_fdict['SQBUFBIASRESANAOVR'] = self.SQBUFBIASRESANAOVR
+        self.SHUNTBIASANAHPEN = RM_Field_RAC_NS_HFXOCTRL_SHUNTBIASANAHPEN(self)
+        self.zz_fdict['SHUNTBIASANAHPEN'] = self.SHUNTBIASANAHPEN
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_HFRCORETIMECTRL(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_HFRCORETIMECTRL, self).__init__(rmio, label,
+            0xb0220000, 0x2E0,
+            'HFRCORETIMECTRL', 'RAC_NS.HFRCORETIMECTRL', 'read-write',
+            u"",
+            0x00000000, 0x0003FFFF,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.HFRCORETIMEENRETIME = RM_Field_RAC_NS_HFRCORETIMECTRL_HFRCORETIMEENRETIME(self)
+        self.zz_fdict['HFRCORETIMEENRETIME'] = self.HFRCORETIMEENRETIME
+        self.HFRCORETIMEDISRETIME = RM_Field_RAC_NS_HFRCORETIMECTRL_HFRCORETIMEDISRETIME(self)
+        self.zz_fdict['HFRCORETIMEDISRETIME'] = self.HFRCORETIMEDISRETIME
+        self.HFRCORETIMERESETN = RM_Field_RAC_NS_HFRCORETIMECTRL_HFRCORETIMERESETN(self)
+        self.zz_fdict['HFRCORETIMERESETN'] = self.HFRCORETIMERESETN
+        self.HFRCORETIMELIMITH = RM_Field_RAC_NS_HFRCORETIMECTRL_HFRCORETIMELIMITH(self)
+        self.zz_fdict['HFRCORETIMELIMITH'] = self.HFRCORETIMELIMITH
+        self.HFRCORETIMELIMITL = RM_Field_RAC_NS_HFRCORETIMECTRL_HFRCORETIMELIMITL(self)
+        self.zz_fdict['HFRCORETIMELIMITL'] = self.HFRCORETIMELIMITL
+        self.ENCLKQSPIHFRCOLPW = RM_Field_RAC_NS_HFRCORETIMECTRL_ENCLKQSPIHFRCOLPW(self)
+        self.zz_fdict['ENCLKQSPIHFRCOLPW'] = self.ENCLKQSPIHFRCOLPW
+        self.QSPIHIGHCOUNTHFRCOLPW = RM_Field_RAC_NS_HFRCORETIMECTRL_QSPIHIGHCOUNTHFRCOLPW(self)
+        self.zz_fdict['QSPIHIGHCOUNTHFRCOLPW'] = self.QSPIHIGHCOUNTHFRCOLPW
+        self.QSPILOWCOUNTHFRCOLPW = RM_Field_RAC_NS_HFRCORETIMECTRL_QSPILOWCOUNTHFRCOLPW(self)
+        self.zz_fdict['QSPILOWCOUNTHFRCOLPW'] = self.QSPILOWCOUNTHFRCOLPW
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_HFRCORETIMESTATUS(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_HFRCORETIMESTATUS, self).__init__(rmio, label,
+            0xb0220000, 0x2E4,
+            'HFRCORETIMESTATUS', 'RAC_NS.HFRCORETIMESTATUS', 'read-only',
+            u"",
+            0x00000000, 0x00000003,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.HFRCORETIMECLKSEL = RM_Field_RAC_NS_HFRCORETIMESTATUS_HFRCORETIMECLKSEL(self)
+        self.zz_fdict['HFRCORETIMECLKSEL'] = self.HFRCORETIMECLKSEL
+        self.HFRCORETIMERESETNLO = RM_Field_RAC_NS_HFRCORETIMESTATUS_HFRCORETIMERESETNLO(self)
+        self.zz_fdict['HFRCORETIMERESETNLO'] = self.HFRCORETIMERESETNLO
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_AGCOVERWRITE2(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_AGCOVERWRITE2, self).__init__(rmio, label,
+            0xb0220000, 0x2E8,
+            'AGCOVERWRITE2', 'RAC_NS.AGCOVERWRITE2', 'read-write',
+            u"",
+            0x00000000, 0x000001FF,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.ENMANTIACAPFB = RM_Field_RAC_NS_AGCOVERWRITE2_ENMANTIACAPFB(self)
+        self.zz_fdict['ENMANTIACAPFB'] = self.ENMANTIACAPFB
+        self.MANTIACAPFB = RM_Field_RAC_NS_AGCOVERWRITE2_MANTIACAPFB(self)
+        self.zz_fdict['MANTIACAPFB'] = self.MANTIACAPFB
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_SCRATCH0(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_SCRATCH0, self).__init__(rmio, label,
+            0xb0220000, 0x3E0,
+            'SCRATCH0', 'RAC_NS.SCRATCH0', 'read-write',
+            u"",
+            0x00000000, 0xFFFFFFFF,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.SCRATCH0 = RM_Field_RAC_NS_SCRATCH0_SCRATCH0(self)
+        self.zz_fdict['SCRATCH0'] = self.SCRATCH0
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_SCRATCH1(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_SCRATCH1, self).__init__(rmio, label,
+            0xb0220000, 0x3E4,
+            'SCRATCH1', 'RAC_NS.SCRATCH1', 'read-write',
+            u"",
+            0x00000000, 0xFFFFFFFF,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.SCRATCH1 = RM_Field_RAC_NS_SCRATCH1_SCRATCH1(self)
+        self.zz_fdict['SCRATCH1'] = self.SCRATCH1
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_SCRATCH2(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_SCRATCH2, self).__init__(rmio, label,
+            0xb0220000, 0x3E8,
+            'SCRATCH2', 'RAC_NS.SCRATCH2', 'read-write',
+            u"",
+            0x00000000, 0xFFFFFFFF,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.SCRATCH2 = RM_Field_RAC_NS_SCRATCH2_SCRATCH2(self)
+        self.zz_fdict['SCRATCH2'] = self.SCRATCH2
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_SCRATCH3(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_SCRATCH3, self).__init__(rmio, label,
+            0xb0220000, 0x3EC,
+            'SCRATCH3', 'RAC_NS.SCRATCH3', 'read-write',
+            u"",
+            0x00000000, 0xFFFFFFFF,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.SCRATCH3 = RM_Field_RAC_NS_SCRATCH3_SCRATCH3(self)
+        self.zz_fdict['SCRATCH3'] = self.SCRATCH3
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_SCRATCH4(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_SCRATCH4, self).__init__(rmio, label,
+            0xb0220000, 0x3F0,
+            'SCRATCH4', 'RAC_NS.SCRATCH4', 'read-write',
+            u"",
+            0x00000000, 0xFFFFFFFF,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.SCRATCH4 = RM_Field_RAC_NS_SCRATCH4_SCRATCH4(self)
+        self.zz_fdict['SCRATCH4'] = self.SCRATCH4
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_SCRATCH5(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_SCRATCH5, self).__init__(rmio, label,
+            0xb0220000, 0x3F4,
+            'SCRATCH5', 'RAC_NS.SCRATCH5', 'read-write',
+            u"",
+            0x00000000, 0xFFFFFFFF,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.SCRATCH5 = RM_Field_RAC_NS_SCRATCH5_SCRATCH5(self)
+        self.zz_fdict['SCRATCH5'] = self.SCRATCH5
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_SCRATCH6(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_SCRATCH6, self).__init__(rmio, label,
+            0xb0220000, 0x3F8,
+            'SCRATCH6', 'RAC_NS.SCRATCH6', 'read-write',
+            u"",
+            0x00000000, 0xFFFFFFFF,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.SCRATCH6 = RM_Field_RAC_NS_SCRATCH6_SCRATCH6(self)
+        self.zz_fdict['SCRATCH6'] = self.SCRATCH6
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_SCRATCH7(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_SCRATCH7, self).__init__(rmio, label,
+            0xb0220000, 0x3FC,
+            'SCRATCH7', 'RAC_NS.SCRATCH7', 'read-write',
+            u"",
+            0x00000000, 0xFFFFFFFF,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.SCRATCH7 = RM_Field_RAC_NS_SCRATCH7_SCRATCH7(self)
+        self.zz_fdict['SCRATCH7'] = self.SCRATCH7
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_FSWCTRL(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_FSWCTRL, self).__init__(rmio, label,
+            0xb0220000, 0x600,
+            'FSWCTRL', 'RAC_NS.FSWCTRL', 'read-write',
+            u"",
+            0x00000001, 0x00000003,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.FSWRISCVCLKDIS = RM_Field_RAC_NS_FSWCTRL_FSWRISCVCLKDIS(self)
+        self.zz_fdict['FSWRISCVCLKDIS'] = self.FSWRISCVCLKDIS
+        self.FSWRISCVRESET = RM_Field_RAC_NS_FSWCTRL_FSWRISCVRESET(self)
+        self.zz_fdict['FSWRISCVRESET'] = self.FSWRISCVRESET
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_THMSW(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_THMSW, self).__init__(rmio, label,
+            0xb0220000, 0x7E8,
+            'THMSW', 'RAC_NS.THMSW', 'read-write',
+            u"",
+            0x00000000, 0x00000003,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.EN = RM_Field_RAC_NS_THMSW_EN(self)
+        self.zz_fdict['EN'] = self.EN
+        self.HALFSWITCH = RM_Field_RAC_NS_THMSW_HALFSWITCH(self)
+        self.zz_fdict['HALFSWITCH'] = self.HALFSWITCH
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_DIAGAALTEN(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_DIAGAALTEN, self).__init__(rmio, label,
+            0xb0220000, 0x7EC,
+            'DIAGAALTEN', 'RAC_NS.DIAGAALTEN', 'read-write',
+            u"",
+            0x00000000, 0x00000002,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.RFEN = RM_Field_RAC_NS_DIAGAALTEN_RFEN(self)
+        self.zz_fdict['RFEN'] = self.RFEN
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_DIAGAALTSEL(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_DIAGAALTSEL, self).__init__(rmio, label,
+            0xb0220000, 0x7F0,
+            'DIAGAALTSEL', 'RAC_NS.DIAGAALTSEL', 'read-write',
+            u"",
+            0x00000000, 0x00007F3F,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.TP = RM_Field_RAC_NS_DIAGAALTSEL_TP(self)
+        self.zz_fdict['TP'] = self.TP
+        self.BLK = RM_Field_RAC_NS_DIAGAALTSEL_BLK(self)
+        self.zz_fdict['BLK'] = self.BLK
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_DIAGAALTBRIDGECTRL(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_DIAGAALTBRIDGECTRL, self).__init__(rmio, label,
+            0xb0220000, 0x7F4,
+            'DIAGAALTBRIDGECTRL', 'RAC_NS.DIAGAALTBRIDGECTRL', 'read-write',
+            u"",
+            0x00000000, 0x00000020,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.RFSHORTDIS = RM_Field_RAC_NS_DIAGAALTBRIDGECTRL_RFSHORTDIS(self)
+        self.zz_fdict['RFSHORTDIS'] = self.RFSHORTDIS
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_RFLOCK0(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_RFLOCK0, self).__init__(rmio, label,
+            0xb0220000, 0x7F8,
+            'RFLOCK0', 'RAC_NS.RFLOCK0', 'read-write',
+            u"",
+            0x80000000, 0xF7E003FF,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.SYNTHLODIVFREQCTRL = RM_Field_RAC_NS_RFLOCK0_SYNTHLODIVFREQCTRL(self)
+        self.zz_fdict['SYNTHLODIVFREQCTRL'] = self.SYNTHLODIVFREQCTRL
+        self.MODEMHADM = RM_Field_RAC_NS_RFLOCK0_MODEMHADM(self)
+        self.zz_fdict['MODEMHADM'] = self.MODEMHADM
+        self.FRCCONVMODE = RM_Field_RAC_NS_RFLOCK0_FRCCONVMODE(self)
+        self.zz_fdict['FRCCONVMODE'] = self.FRCCONVMODE
+        self.FRCPAUSING = RM_Field_RAC_NS_RFLOCK0_FRCPAUSING(self)
+        self.zz_fdict['FRCPAUSING'] = self.FRCPAUSING
+        self.MODEMANTSWENABLE = RM_Field_RAC_NS_RFLOCK0_MODEMANTSWENABLE(self)
+        self.zz_fdict['MODEMANTSWENABLE'] = self.MODEMANTSWENABLE
+        self.MODEMLRBLE = RM_Field_RAC_NS_RFLOCK0_MODEMLRBLE(self)
+        self.zz_fdict['MODEMLRBLE'] = self.MODEMLRBLE
+        self.MODEMDSSS = RM_Field_RAC_NS_RFLOCK0_MODEMDSSS(self)
+        self.zz_fdict['MODEMDSSS'] = self.MODEMDSSS
+        self.MODEMMODFORMAT = RM_Field_RAC_NS_RFLOCK0_MODEMMODFORMAT(self)
+        self.zz_fdict['MODEMMODFORMAT'] = self.MODEMMODFORMAT
+        self.MODEMDUALSYNC = RM_Field_RAC_NS_RFLOCK0_MODEMDUALSYNC(self)
+        self.zz_fdict['MODEMDUALSYNC'] = self.MODEMDUALSYNC
+        self.MODEMANTDIVMODE = RM_Field_RAC_NS_RFLOCK0_MODEMANTDIVMODE(self)
+        self.zz_fdict['MODEMANTDIVMODE'] = self.MODEMANTDIVMODE
+        self.UNLOCKED = RM_Field_RAC_NS_RFLOCK0_UNLOCKED(self)
+        self.zz_fdict['UNLOCKED'] = self.UNLOCKED
+        self.__dict__['zz_frozen'] = True
+
+
+class RM_Register_RAC_NS_RFLOCK1(Base_RM_Register):
+    def __init__(self, rmio, label):
+        self.__dict__['zz_frozen'] = False
+        super(RM_Register_RAC_NS_RFLOCK1, self).__init__(rmio, label,
+            0xb0220000, 0x7FC,
+            'RFLOCK1', 'RAC_NS.RFLOCK1', 'read-write',
+            u"",
+            0x00000FFF, 0x00000FFF,
+            0x00001000, 0x00002000,
+            0x00003000)
+
+        self.TX0DBMPOWERLIMIT = RM_Field_RAC_NS_RFLOCK1_TX0DBMPOWERLIMIT(self)
+        self.zz_fdict['TX0DBMPOWERLIMIT'] = self.TX0DBMPOWERLIMIT
+        self.TX10DBMPOWERLIMIT = RM_Field_RAC_NS_RFLOCK1_TX10DBMPOWERLIMIT(self)
+        self.zz_fdict['TX10DBMPOWERLIMIT'] = self.TX10DBMPOWERLIMIT
+        self.__dict__['zz_frozen'] = True
+
+

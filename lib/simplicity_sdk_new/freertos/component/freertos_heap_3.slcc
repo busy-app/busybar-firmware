@@ -1,0 +1,32 @@
+id: freertos_heap_3
+label: FreeRTOS Heap 3
+package: freertos
+description: 'A heap implementation for FreeRTOS.
+
+  Implementation of pvPortMalloc() and vPortFree() that relies on the memory manager own malloc() and free() implementations.
+
+  This file can only be used if the linker is configured to generate a heap memory area.
+
+  '
+category: RTOS|FreeRTOS
+quality: production
+metadata:
+  sbom:
+    reference: freertos
+source:
+- path: kernel/portable/MemMang/heap_3.c
+provides:
+- name: freertos_heap
+- name: freertos_heap_3
+- name: freertos_heap_3_arch
+  condition:
+  - device_cortexm
+requires:
+- name: cmsis_core
+- name: freertos
+- name: memory_manager
+- name: freertos_heap_3_arch
+template_contribution:
+- name: rte_components
+  value: RTE_RTOS_FreeRTOS_HEAP_3
+root_path: freertos

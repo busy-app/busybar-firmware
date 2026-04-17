@@ -1,0 +1,26 @@
+id: zw_cc_basiccontroller
+label: Basic Command Class Control
+category: Z-Wave|Command Classes
+description: >
+  Basic Command Class allows a controlling device to operate
+  the primary functionality of another device without any further knowledge.
+  Basic Command Class ensures a basic interoperability if no other Command Class
+  is shared by two devices.
+
+  Basic Controller component provides control of other devices using Basic Command Class.
+
+package: zwave
+quality: production
+metadata:
+  sbom:
+    reference: zw_sbom_license
+
+source:
+- path: ZAF/CommandClasses/Basic/src/CC_BasicController.c
+include:
+- path: ZAF/CommandClasses/Basic/inc/
+  file_list:
+  - path: CC_Basic.h
+provides:
+- name: zw_cc_basiccontroller
+root_path: zwave

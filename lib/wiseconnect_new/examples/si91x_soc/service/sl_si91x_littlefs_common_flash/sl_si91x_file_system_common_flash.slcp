@@ -1,0 +1,48 @@
+project_name: sl_si91x_file_system_common_flash
+package: platform_nwp_siwx91x_app
+description: 'This example project configures QSPI read and write from flash.
+
+  '
+category: example|Service
+quality: production
+label: SI91x - SL_File_System_Common_Flash
+component:
+- id: sl_main
+- id: freertos
+- id: freertos_heap_4
+- id: status
+- id: syscalls
+- id: si91x_memory_default_config
+- id: sl_si91x_internal_stack
+- id: sl_si91x_basic_buffers
+- id: sl_si91x_littlefs_common_flash
+source:
+- path: app.c
+include:
+- path: .
+  file_list:
+  - path: app.h
+define:
+- name: SLI_SI91X_MCU_CONFIG_RADIO_BOARD_BASE_VER
+toolchain_settings:
+- option: gcc_compiler_option
+  value: -Wall -Werror
+other_file:
+- path: resources/readme/setupdiagram.png
+- path: resources/readme/file_system_output.png
+ui_hints:
+  highlight:
+  - path: readme.md
+    focus: true
+readme:
+- path: readme.md
+post_build:
+  profile: wiseconnect_soc
+sdk_extension:
+- id: wiseconnect3_sdk
+  vendor: silabs
+  version: 4.0.1
+sdk:
+  id: simplicity_sdk
+  vendor: silabs
+  version: 2025.12.2

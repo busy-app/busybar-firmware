@@ -1,0 +1,117 @@
+project_name: siwx917_dev_kit
+package: platform_nwp_siwx91x_app
+description: This application demonstrates the features of the SiWx917 Dev Kit Board. This can be tested with the Simplicity Connect mobile app.
+category: Example|Wi-Fi
+quality: production
+label: Wi-Fi - SiWx917 Dev Kit
+component:
+- id: sl_main
+- id: slist
+- id: freertos
+- id: freertos_heap_4
+- id: syscalls
+- id: sl_http_server
+- id: json_parser
+- id: si91x_memory_default_config
+- id: wifi
+- id: sl_si91x_internal_stack
+- id: wifi_resources
+- id: network_manager
+- id: basic_network_config_manager
+- id: bsd_socket
+- id: sl_si91x_asynchronous_socket
+- id: sl_si91x_wireless
+- id: sl_si91x_mem_pool_buffers_with_quota
+- instance:
+  - i2c2
+  id: i2c_instance
+- id: sl_veml6035
+- id: sl_gpio
+- id: sl_icm40627
+- id: sl_ssi
+- id: sl_ssi_instance
+  instance:
+  - ulp_primary
+- id: ssi_ulp_component
+- id: sl_si70xx
+- id: sl_si91x_rgb_led_917
+  instance:
+  - red
+  - green
+  - blue
+- id: ble
+source:
+- path: app.c
+- path: ble_app.c
+- path: wifi_app.c
+- path: sensor_app.c
+- path: sensors/humidity_sensor.c
+- path: sensors/light_sensor.c
+- path: sensors/motion_sensor.c
+- path: sensors/rgb_led.c
+include:
+- path: .
+  file_list:
+  - path: app.h
+  - path: sensor_app.h
+  - path: ble_config.h
+  - path: wifi_config.h
+- path: sensors
+  file_list:
+  - path: humidity_sensor.h
+  - path: light_sensor.h
+  - path: motion_sensor.h
+  - path: rgb_led.h
+define:
+- name: SL_SI91X_PRINT_DBG_LOG
+- name: SLI_SI91X_ENABLE_IPV6
+toolchain_settings:
+- option: gcc_compiler_option
+  value: -Wall -Werror
+other_file:
+- path: resources/readme/connected-prints.png
+- path: resources/readme/connecting-to-webserver.png
+- path: resources/readme/create-project.png
+- path: resources/readme/demo-run.png
+- path: resources/readme/embedded-sensor-demo-setup.png
+- path: resources/readme/entering-password.png
+- path: resources/readme/led-control.png
+- path: resources/readme/led-selection.png
+- path: resources/readme/selecting-a-network.png
+- path: resources/readme/startup-prints.png
+- path: resources/readme/temperature.png
+- path: resources/readme/wifi-sensor-device-selection.png
+- path: resources/readme/wifi-sensors-data.png
+- path: resources/readme/wifi-sensors-demo.png
+configuration:
+- name: SL_BOARD_ENABLE_VCOM
+  value: '1'
+- name: SL_SSI_DEVICE_MODE
+  value: SL_SSI_ULP_MASTER_ACTIVE
+- name: SL_SPI_BAUD
+  value: 5000000
+- name: SL_ULP_TIMER_DIRECTION
+  value: '1'
+ui_hints:
+  highlight:
+  - path: readme.md
+    focus: true
+readme:
+- path: readme.md
+post_build:
+  profile: wiseconnect_soc
+filter:
+- name: Wireless Technology
+  value:
+  - Wi-Fi
+- name: Project Difficulty
+  value:
+  - Beginner
+sdk_extension:
+- id: wiseconnect3_sdk
+  vendor: silabs
+  version: 4.0.1
+sdk:
+  id: simplicity_sdk
+  vendor: silabs
+  version: 2025.12.2

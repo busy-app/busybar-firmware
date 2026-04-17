@@ -1,0 +1,26 @@
+!!omap
+- id: sixg301_rb1019a
+- label: SIXG301-RB1019A
+- package: boards
+- description: Kit BSP support for the SixG301 QFN32 Socket Radio board.
+- category: Platform|Board|Kit|Radio Board
+- quality: evaluation
+- metadata:
+    sbom:
+      license: Zlib
+- requires:
+  - name: hardware_board_from_sixg301-rb1019a
+- provides:
+  - name: hardware_kit
+  - name: hardware_kit_rb
+- define:
+  - name: SL_KIT_NAME
+    value: '"SIXG301-RB1019A"'
+  - name: SL_KIT_REV
+    value: '"A00"'
+- tag:
+  - kit:opn:SixG301-RB1019A
+  - kit:pn:RB1019
+  - kit:variant:A
+  - kit:revision:A00
+- root_path: boards

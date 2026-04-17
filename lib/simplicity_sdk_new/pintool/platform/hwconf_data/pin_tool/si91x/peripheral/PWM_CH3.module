@@ -1,0 +1,20 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<module:DocumentRoot xmlns:module="http://www.silabs.com/ss/hwconfig/module.ecore">
+  <module id="pin_tool.wfm.si91x.pwm_ch3" label="PWM_CH3" name="PWM_CH3" description="PWM Channel 3 pins" version="A">
+    <properties>
+      <stringProperty label="Type" id="type" defaultValue="pwm_ch3" transient="true" hidden="true" readonly="true" description=""/>
+      <stringProperty label="Custom Peripheral Name" id="peripheral.name" description=""/>
+    </properties>
+    <propertyCategories>
+      <category label="PWM_CH3">
+        <subCategory label="">
+          <propertyRef refId="peripheral.name"/>
+        </subCategory>
+      </category>
+    </propertyCategories>
+    <signals>
+      <signal name="3H"/>
+      <signal name="3L"/>
+    </signals>
+  </module>
+</module:DocumentRoot>

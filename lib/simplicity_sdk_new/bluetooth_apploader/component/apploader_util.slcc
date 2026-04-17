@@ -1,0 +1,28 @@
+id: "apploader_util"
+label: "AppLoader Utility"
+package: bluetooth_apploader
+description: >
+  This component provides utility functions related to OTA DFU with Apploader
+  for series 2 devices, such as a unified API for resetting the device to DFU
+  mode.
+category: Bluetooth|Apploader
+quality: "production"
+include:
+- path: "inc/"
+  file_list:
+  - path: "sl_apploader_util.h"
+source:
+- path: "src/sl_apploader_util.c"
+
+requires:
+- name: bootloader_interface
+- name: device_series_2
+provides:
+- name: "apploader_util"
+template_contribution:
+- name: component_catalog
+  value: apploader_util
+metadata:
+  sbom:
+    license: MSLA
+root_path: bluetooth_apploader

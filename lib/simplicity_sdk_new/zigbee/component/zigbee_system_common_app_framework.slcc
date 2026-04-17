@@ -1,0 +1,56 @@
+id: zigbee_system_common_app_framework
+label: Zigbee System Common, Application Framework Task
+package: zigbee
+category: Zigbee|Utility
+quality: production
+description: Subset of the common system component dealing with the application framework RTOS task.
+provides:
+- name: zigbee_system_common_app_framework
+
+
+source:
+- path: app/framework/common/zigbee_app_framework_sleep.c
+- path: app/framework/common/zigbee_app_framework_sleep_cli.c
+  condition:
+  - cli
+- path: app/framework/common/zigbee_app_framework_rtos_adaptation.c
+  condition:
+  - cmsis_rtos2
+
+template_contribution:
+- name: component_catalog
+  value: zigbee_system_common_app_framework
+- name: event_handler
+  value:
+    event: stack_init
+    include: sl_zigbee_system_common.h
+    handler: sli_zigbee_app_framework_rtos_task_init_cb
+  priority: -8997
+  condition:
+  - cmsis_rtos2
+- name: event_handler
+  value:
+    event: stack_permanent_allocation
+    include: sl_zigbee_system_common.h
+    handler: sli_zigbee_app_framework_rtos_perm_allocation
+  priority: -8997
+  condition: [sl_main, cmsis_rtos2]
+- name: event_handler
+  value:
+    event: stack_init
+    include: sl_zigbee_system_common.h
+    handler: sli_zigbee_app_framework_sleep_init
+  priority: -8996
+  condition:
+  - power_manager
+- name: power_manager_handler
+  value:
+    event: sleep_on_isr_exit
+    include: sl_zigbee_system_common.h
+    handler: sli_zigbee_af_sleep_on_isr_exit
+  condition:
+  - power_manager
+metadata:
+  sbom:
+    license: MSLA
+root_path: zigbee

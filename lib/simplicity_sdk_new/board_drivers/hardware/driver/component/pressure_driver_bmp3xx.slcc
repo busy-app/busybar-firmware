@@ -1,0 +1,25 @@
+id: pressure_driver_bmp3xx
+package: board_drivers
+label: Pressure device driver for BMP3XX
+description: >
+  Pressure sensor driver for BMP3XX
+category: Platform|Board Drivers
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: board_drivers/hardware/driver/pressure
+provides:
+- name: pressure_device_driver
+- name: pressure_driver_bmp3xx
+requires:
+- name: bmp3xx_driver
+include:
+- path: inc
+  file_list:
+  - path: sl_pressure.h
+source:
+- path: src/sl_pressure_bmp3xx.c
+documentation:
+  docset: gecko-platform
+  document: platform-hardware-driver/bmp3xx

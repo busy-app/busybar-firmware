@@ -1,0 +1,40 @@
+id: ibeacon
+label: iBeacon
+package: bluetooth_le_middleware
+description: "iBeacon component for beacon advertising\nThis is a No-Code component."
+category: Bluetooth|Application|Miscellaneous
+metadata:
+  sbom:
+    license: Zlib
+quality: production
+root_path: bluetooth_le_middleware/common/ibeacon
+tag:
+- No-Code
+source:
+- path: sl_bt_ibeacon.c
+include:
+- path: .
+  file_list:
+  - path: sl_bt_ibeacon.h
+provides:
+- name: ibeacon
+requires:
+- name: bluetooth_stack
+- name: gatt_configuration
+- name: bluetooth_feature_legacy_advertiser
+- name: bluetooth_feature_system
+- name: app_assert
+template_contribution:
+- name: bluetooth_on_event
+  value:
+    include: sl_bt_ibeacon.h
+    function: sli_bt_ibeacon_on_event
+- name: bluetooth_advertisers
+  value:
+    name: ibeacon_advertiser
+    count: 1
+- name: component_catalog
+  value: ibeacon
+documentation:
+  docset: bluetooth
+  document: bluetooth-service-api/ibeacon

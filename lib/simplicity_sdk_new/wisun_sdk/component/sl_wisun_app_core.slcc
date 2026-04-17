@@ -1,0 +1,71 @@
+id: "sl_wisun_app_core"
+label: "Wi-SUN Application Core"
+package: "wisun_sdk"
+description: >
+  The Application Core component is designed to offer essential utilities commonly used in Wi-SUN applications.
+  The sl_wisun_app_core_util_connect_and_wait() function configures the network size setting, the TX output power, the certificates and keys.
+  The function is waiting for the connected state. Its final action is to initiate the Wi-SUN connection process.
+  The sl_wisun_app_core_network_connect() and sl_wisun_app_core_util_network_is_connected() functions also provide
+  an easy way to establish a connection and wait for it to be ready.
+  Event handlers for basic Wi-SUN network events include the basic event handler implementations.
+  The sl_wisun_app_core_get_current_addresses() function retrieves known IPv6 addresses.
+  Use sl_wisun_app_core_get_state() function to get the status of the Stack API calls.
+  The sl_wisun_app_core_get_time_stat() function retrieves the connection time, disconnection time stamps and total elapsed time in those states.
+  Use sl_wisun_app_core_get_device_type() to get the selected device type for the project.
+  The device type can be changed in the Wi-SUN configurator interface.
+  sl_wisun_app_core_get_lfn_profile() and sl_wisun_app_core_get_lfn_params() provide an interface to access the selected LFN profile and its parameters.
+  This component also includes SoC Border Router specific functions, which are compiled only if the Border Router stack is selected.
+category: "Wi-SUN|Wi-SUN Services"
+quality: "production"
+metadata:
+  sbom:
+    license: Zlib
+root_path: "wisun_sdk/component/app_core"
+provides:
+- name: sl_wisun_app_core
+
+source:
+- path: "sl_wisun_app_core.c"
+  unless:
+  - "wisun_br_stack"
+- path: "sl_wisun_app_br_core.c"
+  condition:
+  - "wisun_br_stack"
+- path: "sl_wisun_app_core_util.c"
+
+include:
+- path: "."
+  file_list:
+  - path: "sl_wisun_app_core.h"
+  - path: "sl_wisun_app_core_util.h"
+  - path: "sl_wisun_app_br_core.h"
+    condition:
+    - "wisun_br_stack"
+
+requires:
+- name: "wisun_config"
+- name: "wisun_keychain"
+- name: "sl_wisun_app_brd_feature"
+- name: "sl_wisun_full_config"
+- name: "sl_wisun_event_mgr"
+- name: "sleeptimer"
+- name: "app_project_info"
+
+config_file:
+- path: "config/sl_wisun_app_core_config.h"
+
+#-------------- Template Contribution ----------------
+template_contribution:
+#---------------- Component Catalog ------------------
+- name: "event_handler"
+  value:
+    event: "internal_app_init"
+    include: "sl_wisun_app_core.h"
+    handler: "sl_wisun_app_core_init"
+
+- name: component_catalog
+  value: wisun_app_core
+
+documentation:
+  docset: wisun
+  document: wisun-stack-api/sl-wisun-app-core-api

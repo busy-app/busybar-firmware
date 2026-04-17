@@ -1,0 +1,19 @@
+id: nn_util
+label: NN Utilities
+package: compute
+description: >
+  This component provides some NN (neural network) utilities.
+category: Compute
+quality: production
+root_path: compute/nn
+metadata:
+  sbom:
+    license: Zlib
+source:
+- path: src/sl_nn_util.c
+include:
+- path: inc
+  file_list:
+  - path: sl_nn_util.h
+provides:
+- name: nn_util

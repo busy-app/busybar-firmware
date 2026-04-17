@@ -1,0 +1,39 @@
+id: iostream_debug_si91x
+package: platform_siwx91x
+label: "IO Stream: SI91X Debug"
+description: Instantiate the driver for using IO Stream over the
+  Single Wire Output (SWO) Stimulus 8 debug peripheral.
+category: Device|Si91x|MCU|Service
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: components/device/silabs/si91x/mcu/drivers/service/iostream
+provides:
+  - name: iostream_debug_si91x
+  - name: iostream_transport
+    allow_multiple: true
+requires:
+  - name: iostream
+  - name: si91x_debug_swo
+include:
+  - path: inc
+    file_list:
+      - path: sl_si91x_iostream_debug.h
+      - path: sli_si91x_iostream_swo_itm_8.h
+      - path: sl_si91x_iostream_swo_itm_8.h
+source:
+  - path: src/sl_si91x_iostream_debug.c
+  - path: src/sl_si91x_iostream_swo_itm_8.c
+template_contribution:
+  - name: event_handler
+    value:
+      event: iostream_instance_init_stage_1
+      include: sl_si91x_iostream_debug.h
+      handler: sl_si91x_iostream_debug_init
+  - name: iostream_instance_info
+    value:
+      include: sl_si91x_iostream_debug.h
+      handler: sl_si91x_iostream_instance_debug_info
+  - name: component_catalog
+    value: iostream_debug_si91x

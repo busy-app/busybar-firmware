@@ -1,0 +1,86 @@
+project_name: wifi_wlan_throughput_ncp
+package: wifi_app
+quality: production
+label: Wi-Fi - Throughput (NCP)
+category: Example|Wi-Fi
+description: "Start a Wi-Fi client and transmits/receives data to measure WLAN UDP/TCP/TLS throughput performance using a remote iPerf client/server \n"
+filter:
+- name: Wireless Technology
+  value:
+  - Wi-Fi
+- name: Project Difficulty
+  value:
+  - Beginner
+source:
+- path: app.c
+include:
+- path: .
+  file_list:
+  - path: app.h
+define:
+- name: SL_SI91X_PRINT_DBG_LOG
+component:
+- id: sl_main
+- id: freertos
+- id: freertos_heap_4
+- id: device_init
+- id: spidrv
+  instance:
+  - exp
+- id: iostream_retarget_stdio
+- id: iostream_recommended_stream
+- id: iostream_stdlib_config
+- id: wiseconnect_common
+- id: wifi
+- id: sl_si91x_internal_stack
+- id: sl_si91x_spi_bus
+- id: wifi_resources
+- id: network_manager
+- id: basic_network_config_manager
+- id: bsd_socket
+- id: sl_si91x_asynchronous_socket
+- id: sl_si91x_basic_buffers
+toolchain_settings:
+- option: gcc_linker_option
+  value: -u _printf_float
+- option: gcc_compiler_option
+  value: -Wall -Werror
+configuration:
+- name: SL_BOARD_ENABLE_VCOM
+  value: '1'
+- name: configUSE_POSIX_ERRNO
+  value: '1'
+- name: configTOTAL_HEAP_SIZE
+  value: '51200'
+- name: configTIMER_TASK_PRIORITY
+  value: '55'
+readme:
+- path: readme.md
+other_file:
+- path: resources/readme/UDP_TX.png
+- path: resources/readme/UDP_RX.png
+- path: resources/readme/TCP_TX.png
+- path: resources/readme/TCP_RX.png
+- path: resources/readme/TLS_TX.png
+- path: resources/readme/TLS_RX.png
+- path: resources/readme/UDP_TX_NCP.png
+- path: resources/readme/UDP_RX_NCP.png
+- path: resources/readme/TCP_TX_NCP.png
+- path: resources/readme/TCP_RX_NCP.png
+- path: resources/readme/TLS_TX_NCP.png
+- path: resources/readme/TLS_RX_NCP.png
+- path: resources/readme/output_stm32.png
+- path: resources/readme/setup_soc_ncp.png
+- path: resources/readme/stm32_setup.png
+ui_hints:
+  highlight:
+  - path: readme.md
+    focus: true
+sdk_extension:
+- id: wiseconnect3_sdk
+  vendor: silabs
+  version: 4.0.1
+sdk:
+  id: simplicity_sdk
+  vendor: silabs
+  version: 2025.12.2

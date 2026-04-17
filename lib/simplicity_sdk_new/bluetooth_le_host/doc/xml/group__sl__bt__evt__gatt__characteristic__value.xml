@@ -1,0 +1,43 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__evt__gatt__characteristic__value" kind="group">
+    <compoundname>sl_bt_evt_gatt_characteristic_value</compoundname>
+    <title>sl_bt_evt_gatt_characteristic_value</title>
+    <innerclass refid="structsl__bt__evt__gatt__characteristic__value__s" prot="public">sl_bt_evt_gatt_characteristic_value_s</innerclass>
+      <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="group__sl__bt__evt__gatt__characteristic__value_1ga2160dfc9dd6ad6a9e5997dae603fb861" prot="public" static="no">
+        <type>struct <ref refid="structsl__bt__evt__gatt__characteristic__value__s" kindref="compound">sl_bt_evt_gatt_characteristic_value_s</ref></type>
+        <definition>typedef struct sl_bt_evt_gatt_characteristic_value_s sl_bt_evt_gatt_characteristic_value_t</definition>
+        <argsstring></argsstring>
+        <name>sl_bt_evt_gatt_characteristic_value_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="8298" column="52" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="8298" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__evt__gatt__characteristic__value_1gafc7888e6d7da4caae55b72f80df00178" prot="public" static="no">
+        <name>sl_bt_evt_gatt_characteristic_value_id</name>
+        <initializer>0x070900a0</initializer>
+        <briefdescription>
+<para>Identifier of the characteristic_value event. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="8280" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="8280" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Indicates that the value of one or several characteristics in the remote GATT server was received. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>It is triggered by several commands: <ref refid="group__sl__bt__gatt_1ga875a2cfdfb8e5c6cad354b4c88846856" kindref="member">sl_bt_gatt_read_characteristic_value</ref>, <ref refid="group__sl__bt__gatt_1gaf8ccce3c700fbfa4268ebb77dc300b78" kindref="member">sl_bt_gatt_read_characteristic_value_from_offset</ref>, <ref refid="group__sl__bt__gatt_1gaa0d581898bf4869cc80eeb040b2a8611" kindref="member">sl_bt_gatt_read_characteristic_value_by_uuid</ref>, <ref refid="group__sl__bt__gatt_1ga1280056328305064307fee152f656623" kindref="member">sl_bt_gatt_read_multiple_characteristic_values</ref> and <ref refid="group__sl__bt__gatt_1ga5bbdba2c22ea0808e4de16e781894a9d" kindref="member">sl_bt_gatt_read_variable_length_characteristic_values</ref>. When the remote GATT server sends indications or notifications after enabling notifications with <ref refid="group__sl__bt__gatt_1ga7d92298836408fba164c46cdb0e32b3d" kindref="member">sl_bt_gatt_set_characteristic_notification</ref>. The parameter <computeroutput>att_opcode</computeroutput> indicates which type of GATT transaction triggered this event. In particular, if the <computeroutput>att_opcode</computeroutput> type is <ref refid="group__sl__bt__gatt_1gga459acca869ec6d9edd49c57ff6357dd8aea444b30c7d2924fc5098f7b870afa22" kindref="member">sl_bt_gatt_handle_value_indication</ref> (0x1d), the application needs to confirm the indication with <ref refid="group__sl__bt__gatt_1ga691b8ffe8734ea853fe9315d0767db75" kindref="member">sl_bt_gatt_send_characteristic_confirmation</ref>. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

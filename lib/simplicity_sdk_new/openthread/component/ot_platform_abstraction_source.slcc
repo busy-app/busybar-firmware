@@ -1,0 +1,44 @@
+id: ot_platform_abstraction_source
+label: Platform Abstraction (Source)
+package: openthread
+category: OpenThread
+quality: production
+description: This component provides the source files for the platform abstraction layer between the OpenThread stack and Silicon Labs platform
+provides:
+- name: ot_platform_abstraction_source
+- name: ot_platform_abstraction_implementation
+requires:
+- name: security_manager
+- name: ot_gp_interface
+- name: ot_headers
+- name: ot_platform_abstraction_utils
+- name: ot_platform_abstraction_headers
+ui_hints:
+  visibility: never
+source:
+- path: platform-abstraction/efr32/soft_source_match_table.c
+- path: platform-abstraction/efr32/alarm.c
+- path: platform-abstraction/efr32/diag.c
+  unless: ["ot_diags_stubs"]
+- path: platform-abstraction/efr32/entropy.c
+- path: platform-abstraction/efr32/memory.c
+- path: platform-abstraction/efr32/misc.c
+- path: platform-abstraction/efr32/crypto.c
+- path: platform-abstraction/efr32/ieee802154-packet-utils.cpp
+- path: platform-abstraction/efr32/radio.cpp
+- path: platform-abstraction/efr32/radio_channel_switching.cpp
+- path: platform-abstraction/efr32/radio_coex.c
+- path: platform-abstraction/efr32/radio_csl.cpp
+- path: platform-abstraction/efr32/radio_energy_scan.cpp
+- path: platform-abstraction/efr32/radio_extension.c
+- path: platform-abstraction/efr32/radio_interface.cpp
+- path: platform-abstraction/efr32/radio_instance.cpp
+- path: platform-abstraction/efr32/radio_power_manager.cpp
+- path: platform-abstraction/efr32/radio_security.cpp
+- path: platform-abstraction/efr32/settings.cpp
+- path: platform-abstraction/efr32/startup-gcc.c
+- path: platform-abstraction/efr32/system.c
+metadata:
+  sbom:
+    license: BSD-3-Clause
+root_path: openthread

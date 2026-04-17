@@ -1,0 +1,31 @@
+id: cpc_config_vcom
+label: 'CPC: Auto Configure VCOM Speed'
+package: cpc
+description: This component enables automatic configuration of the UART speed (WSTK/WPK) for the VCOM.
+category: Services|Co-Processor Communication|Secondary Device
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+instantiable:
+  prefix: inst
+provides:
+- name: cpc_config_vcom
+include:
+- path: inc
+  condition:
+  - cpc_core_v1
+  file_list:
+  - path: sl_cpc_config_vcom.h
+requires:
+- name: configuration_over_swo
+template_file:
+- path: template/sl_cpc_config_vcom.c.jinja
+template_contribution:
+- name: event_handler
+  value:
+    event: driver_init
+    include: sl_cpc_config_vcom.h
+    handler: sl_cpc_config_vcom
+  priority: 9999
+root_path: cpc

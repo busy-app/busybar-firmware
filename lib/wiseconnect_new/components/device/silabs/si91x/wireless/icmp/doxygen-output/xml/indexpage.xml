@@ -1,0 +1,13 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="indexpage" kind="page">
+    <compoundname>index</compoundname>
+    <title>Overview</title>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para>The Ping application programming interface (API) provides the ability to use the Internet Control Message Protocol (ICMP) to check for the existence of other devices in the local area network (LAN). </para>
+    </detaileddescription>
+    <location file="components/device/silabs/si91x/wireless/icmp/docs/doxygen_indexfile.md"/>
+  </compounddef>
+</doxygen>

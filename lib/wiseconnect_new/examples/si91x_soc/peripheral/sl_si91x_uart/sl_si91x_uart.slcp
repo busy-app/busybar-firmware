@@ -1,0 +1,47 @@
+project_name: sl_si91x_uart
+package: platform_siwx91x_app
+description: 'This application demonstrates the usage of UART transmits and receives data in full duplex mode.
+
+  '
+category: example|peripheral
+quality: production
+label: SI91x - SL_UART
+component:
+- id: sl_main
+- id: status
+- id: syscalls
+- id: si91x_memory_default_config
+- id: sl_uart
+source:
+- path: app.c
+- path: uart_example.c
+include:
+- path: .
+  file_list:
+  - path: app.h
+  - path: uart_example.h
+toolchain_settings:
+- option: gcc_compiler_option
+  value: -Wall -Werror
+define:
+- name: SLI_SI91X_MCU_CONFIG_RADIO_BOARD_BASE_VER
+other_file:
+- path: resources/readme/setupdiagram.png
+- path: resources/uc_screen/uart_uc.png
+- path: resources/readme/output_console_uart.png
+ui_hints:
+  highlight:
+  - path: readme.md
+    focus: true
+readme:
+- path: readme.md
+post_build:
+  profile: wiseconnect_soc
+sdk_extension:
+- id: wiseconnect3_sdk
+  vendor: silabs
+  version: 4.0.1
+sdk:
+  id: simplicity_sdk
+  vendor: silabs
+  version: 2025.12.2

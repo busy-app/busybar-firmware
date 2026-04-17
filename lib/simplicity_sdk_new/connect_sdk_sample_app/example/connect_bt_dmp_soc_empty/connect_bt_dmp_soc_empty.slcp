@@ -1,0 +1,131 @@
+project_name: connect_bt_dmp_soc_empty
+label: "Connect Bluetooth DMP - SoC Empty"
+package: "connect_sdk_sample_app"
+description: >
+  The Connect Empty DMP (Dynamic Multiprotocol) example serves as an RTOS-based
+  project, providing a foundational skeleton for Connect. While it lacks
+  additional functions beyond the basic framework, it does incorporate a BLE
+  Task featuring a straightforward command line interface (CLI). Developers can
+  build upon this groundwork to create more robust and feature-rich applications.
+category: Connect Examples
+quality: production
+
+#---------------- UC/UP components -------------------
+component:
+  - id: radio_config_simple_connect_singlephy
+  - id: sl_main
+  - id: clock_manager
+  - id: device_init
+  - id: board_control
+    condition: [hardware_board]
+  - id: cli
+    instance:
+      - "example"
+  - id: connect_app_framework_common
+  - id: connect_ble_cli
+  - id: token_manager
+  - id: micriumos_kernel
+  - id: sl_rail_util_pti
+  - id: bt_ipc_listener
+    condition: [device_series_3]
+#------------Memory Protection Unit-------------------
+  - id: mpu
+#---------------Workaround for DMP issue -------------
+  - id: nvm3_lib
+#-----------Need while connect uses printf -----------
+  - id: printf
+  - id: iostream_recommended_stream
+  - id: iostream_retarget_stdio
+#-------------- Restriction rules -------------------
+  - id: restrictions_profile_connect
+  - id: restrictions_profile_connect_ofdm
+  - id: restrictions_profile_long_range
+
+#----------------- Require list ----------------------
+requires:
+  - name: a_radio_config
+
+#----------------- Project files ---------------------
+include:
+  - path: .
+    file_list:
+    - path: app_init.h
+    - path: app_process.h
+
+config_file:
+  - override:
+      component: gatt_configuration
+      file_id: gatt_configuration_file_id
+    path: gatt_configuration.btconf
+    directory: btconf
+
+source:
+  - path: app_init.c
+  - path: app_process.c
+  - path: app_bluetooth.c
+
+other_file:
+  - path: "../../script/connect_create_gbl_image.bat"
+  - path: "../../script/connect_create_gbl_image.sh"
+  - path: "hw_filter_tags.yaml"
+    condition:
+      - "add_hw_filter_to_project"
+
+readme:
+  - path: ../../documentation/example/connect_bt_dmp_soc_empty/readme.md
+
+#------------ Configuration overrides ----------------
+configuration:
+#----------------- OS --------------------------------
+  - name: SL_STACK_SIZE
+    value: "8192"
+  - name: "configTOTAL_HEAP_SIZE"
+    value: "12288"
+    condition: [device_generic_family_efr32xg27]
+  - name: "configTOTAL_HEAP_SIZE"
+    value: "12288"
+    condition: [device_generic_family_efr32xg28]
+
+#----------------- USART configs ---------------------
+  - name: SL_BOARD_ENABLE_VCOM
+    value: "1"
+  - name: SL_IOSTREAM_USART_VCOM_FLOW_CONTROL_TYPE
+    value: "usartHwFlowControlCtsAndRts"
+  - name: SL_IOSTREAM_EUSART_VCOM_FLOW_CONTROL_TYPE
+    value: "SL_IOSTREAM_EUSART_UART_FLOW_CTRL_CTS_RTS"
+  - name: SL_IOSTREAM_USART_VCOM_CONVERT_BY_DEFAULT_LF_TO_CRLF
+    value: "(1)"
+  - name: SL_IOSTREAM_EUSART_VCOM_CONVERT_BY_DEFAULT_LF_TO_CRLF
+    value: "(1)"
+#----------------- Watchdog  -------------------------
+define:
+  - name: SL_CONNECT_DISABLE_WATCHDOG
+
+#--------------------- HWFILTER ------------------------
+tag:
+  - hwfilter:board:hardware:has:vcom
+  - hwfilter:board:hardware:has:pti
+  - hwfilter:ram:53k
+  - hwfilter:flash:321k
+  - hwfilter:board:hardware_board_supports_rf_band_2400
+
+#--------------------- Toolchain ------------------------
+toolchain_settings:
+  - option: optimize
+    value: debug
+
+ui_hints:
+  highlight:
+    - path: "config/btconf/gatt_configuration.btconf"
+    - path: "readme.md"
+      focus: true
+
+filter:
+  - name: "Wireless Technology"
+    value: ["Connect", "Bluetooth"]
+  - name: "Device Type"
+    value: ["SoC"]
+  - name: "Capability"
+    value: ["Multiprotocol"]
+  - name: "Project Difficulty"
+    value: ["Beginner"]

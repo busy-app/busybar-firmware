@@ -1,0 +1,44 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__evt__test__dtm__completed" kind="group">
+    <compoundname>sl_bt_evt_test_dtm_completed</compoundname>
+    <title>sl_bt_evt_test_dtm_completed</title>
+    <innerclass refid="structsl__bt__evt__test__dtm__completed__s" prot="public">sl_bt_evt_test_dtm_completed_s</innerclass>
+      <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="group__sl__bt__evt__test__dtm__completed_1gaab5678684ed45c65dcdcc6e32fb5654a" prot="public" static="no">
+        <type>struct <ref refid="structsl__bt__evt__test__dtm__completed__s" kindref="compound">sl_bt_evt_test_dtm_completed_s</ref></type>
+        <definition>typedef struct sl_bt_evt_test_dtm_completed_s sl_bt_evt_test_dtm_completed_t</definition>
+        <argsstring></argsstring>
+        <name>sl_bt_evt_test_dtm_completed_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="10925" column="45" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="10925" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__evt__test__dtm__completed_1gabd39d23dfb7a5ba2470a297c38cb7511" prot="public" static="no">
+        <name>sl_bt_evt_test_dtm_completed_id</name>
+        <initializer>0x000e00a0</initializer>
+        <briefdescription>
+<para>Identifier of the dtm_completed event. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="10911" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="10911" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Indicates that the radio has processed a test start or end command. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>The <computeroutput>result</computeroutput> parameter indicates the success of the command.</para>
+<para>After the receiver or transmitter test is stopped, the <computeroutput>number_of_packets</computeroutput> parameter in this event indicates the number of received or transmitted packets. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

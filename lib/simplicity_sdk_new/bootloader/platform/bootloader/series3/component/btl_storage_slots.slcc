@@ -1,0 +1,19 @@
+id: btl_storage_slots
+label: Bootloader Storage Slot Setup (Series-3)
+package: bootloader
+description: >
+  The Bootloader Storage Slot component allows the user to configure the various bootloader storage slots.
+  It verifies slot overlaps and ensure that storage slots are page-aligned for that particular device.
+category: Platform|Bootloader|Storage
+quality: production
+provides:
+- name: btl_storage_slots
+config_file:
+- path: platform/bootloader/series3/config/btl_storage_slot_cfg.h
+  file_id: btl_storage_slot_cfg
+- path: platform/bootloader/series3/config/btl_storage_slot_cfg_default.h
+  file_id: btl_storage_slot_cfg_default
+metadata:
+  sbom:
+    license: MSLA
+root_path: bootloader

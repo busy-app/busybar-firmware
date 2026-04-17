@@ -1,0 +1,44 @@
+<HtermSequenceFile>
+    <ItemList>
+        <SequenceItem name="rx 0">
+            <description></description>
+            <sequence value="a[rx 0 ] h[0A]" />
+        </SequenceItem>
+        <SequenceItem name="setBleMode 1">
+            <description></description>
+            <sequence value="a[setBleMode 1 ] h[0A]" />
+        </SequenceItem>
+        <SequenceItem name="setBle2Mbps 1">
+            <description></description>
+            <sequence value="a[setBle2Mbps 1] h[0A]" />
+        </SequenceItem>
+        <SequenceItem name="setBleChannelParams 37 0x8E89BED6">
+            <description></description>
+            <sequence value="a[setBleChannelParams 37 0x8E89BED6] h[0A]" />
+        </SequenceItem>
+        <SequenceItem name="setChannel 0">
+            <description></description>
+            <sequence value="a[setChannel 0] h[0A]" />
+        </SequenceItem>
+        <SequenceItem name="rx 1">
+            <description></description>
+            <sequence value="a[rx 1] h[0A]" />
+        </SequenceItem>
+        <SequenceItem name="settxlength 21">
+            <description></description>
+            <sequence value="a[settxlength 21] h[0A]" />
+        </SequenceItem>
+        <SequenceItem name="setTxPayload 0 0x02 0x13 0xC1 0x29 0xD8 0x57 0x0B 0x00 0x02 0x01 0x06">
+            <description></description>
+            <sequence value="a[setTxPayload 0 0x02 0x13 0xC1 0x29 0xD8 0x57 0x0B 0x00 0x02 0x01 0x06] h[0A]" />
+        </SequenceItem>
+        <SequenceItem name="setTxPayload 11 0x09 0xFF 0xFF 0x02 0x01 0x02 0x00 0x00 0x00 0xFF">
+            <description></description>
+            <sequence value="a[setTxPayload 11 0x09 0xFF 0xFF 0x02 0x01 0x02 0x00 0x00 0x00 0xFF] h[0A]" />
+        </SequenceItem>
+        <SequenceItem name="tx 1">
+            <description></description>
+            <sequence value="a[tx 1] h[0A]" />
+        </SequenceItem>
+    </ItemList>
+</HtermSequenceFile>

@@ -1,0 +1,42 @@
+id: http_client
+package: wifi
+description: >
+  The HTTP Client provides an API to start a HTTP client service
+label: HTTP Client
+category: Service
+quality: production
+metadata:
+  sbom:
+    license: MSLA
+component_root_path: ./components/service/http_client
+provides:
+- name: http_client
+source:
+- path: si91x_socket/sl_http_client.c
+  condition: ["sl_si91x_internal_stack"]
+include:
+- path: inc
+- path: inc
+  file_list:
+    - path: sl_http_client.h
+
+define:
+- name: SLI_SI91X_INTERNAL_HTTP_CLIENT
+
+requires:
+- name: sl_si91x_socket
+
+
+template_contribution:
+- name: console_headers
+  value: 'sl_http_client.h'
+- name: console_enums
+  value:
+    http_client_version:
+      http_v_1_0: SL_HTTP_V_1_0
+      http_v_1_1: SL_HTTP_V_1_1
+    http_client_tls_version:
+      tls_v_1_0: SL_TLS_V_1_0
+      tls_v_1_1: SL_TLS_V_1_1
+      tls_v_1_2: SL_TLS_V_1_2
+      tls_v_1_3: SL_TLS_V_1_3

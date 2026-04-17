@@ -1,0 +1,19 @@
+id: zigbee_recommended_linux_arch
+description: Recommended architecture for Zigbee Host application
+label: Recommended Linux architecture
+package: zigbee
+category: Zigbee|Unix Host
+quality: production
+provides:
+- name: zigbee_recommended_linux_arch
+requires:
+- name: zigbee_arm32
+  condition:
+  - linux_arch_arm32v7
+- name: zigbee_arm64
+  condition:
+  - linux_arch_aarch64
+metadata:
+  sbom:
+    license: MSLA
+root_path: zigbee

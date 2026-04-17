@@ -1,0 +1,28 @@
+id: zw_cc_binary_switch
+label: Binary Switch Command Class
+category: Z-Wave|Command Classes
+description: >
+  Binary Switch Command Class is used to control the On/Off state of supporting nodes. The GET
+  command is used to request the current On/Off state from a node. The SET command is used to set
+  the On/Off state at the receiving node.
+  Note that this Command Class supports advanced configuration.
+  To use it, please make sure that configuration related to your project is added to cc_config file located in
+  <app_location>/config/cc_config/<app_name>.cc_config.
+  See DevTools/cc_configurator/README.md for more details.
+
+package: zwave
+quality: production
+metadata:
+  sbom:
+    reference: zw_sbom_license
+
+config_file:
+- path: sample_apps/config/cc_binary_switch/cc_binary_switch_config.h
+  file_id: cc_binary_switch_config
+source:
+- path: ZAF/CommandClasses/BinarySwitch/src/CC_BinarySwitch.c
+include:
+- path: ZAF/CommandClasses/BinarySwitch/inc/
+  file_list:
+  - path: CC_BinarySwitch.h
+root_path: zwave

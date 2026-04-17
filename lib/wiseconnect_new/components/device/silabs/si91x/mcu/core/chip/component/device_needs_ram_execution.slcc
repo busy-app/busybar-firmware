@@ -1,0 +1,22 @@
+id: device_needs_ram_execution
+package: platform_siwx91x
+description: >
+  RAM Execution Component is used to enable a pre-determined selection of components to execute from RAM.
+  Note:
+  For an Application that requires writing into Flash, Including this component is a Mandatory.
+category: Device|Si91x|MCU|Core
+label: RAM Execution
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+provides:
+  - name: device_needs_ram_execution
+define:
+  - name: SLI_SI91X_MCU_ENABLE_RAM_BASED_EXECUTION 
+template_contribution:
+  - name: ram_execution
+    value: true
+  - name: device_ram_addr
+    value: 1024
+    priority: -2

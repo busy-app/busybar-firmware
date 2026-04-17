@@ -1,0 +1,49 @@
+id: zw_cc_association
+label: Association Command Class
+category: Z-Wave|Command Classes
+description: >
+  Association Group Information (AGI) Command Class allows a node to advertize
+  the capabilities of each association group supported by a given application resource.
+
+  Association Command Class is used to manage associations to NodeID destinations.
+  A NodeID destination may be a simple device or the Root Device of a Multi Channel device.
+
+  Multi Channel Association Command Class is used to manage associations
+  to Multi Channel endpoint destinations as well as to NodeID destinations.
+
+  Note that this Command Class supports advanced configuration.
+  To use it, please make sure that configuration related to your project is added to cc_config file located in
+  <app_location>/config/cc_config/<app_name>.cc_config.
+  See DevTools/cc_configurator/README.md for more details.
+
+package: zwave
+quality: production
+metadata:
+  sbom:
+    reference: zw_sbom_license
+
+source:
+- path: ZAF/CommandClasses/Association/src/association_plus.c
+- path: ZAF/CommandClasses/Association/src/CC_Association.c
+- path: ZAF/CommandClasses/Association/src/CC_AssociationGroupInfo.c
+- path: ZAF/CommandClasses/Association/src/CC_MultiChanAssociation.c
+include:
+- path: ZAF/CommandClasses/Association/inc/
+  file_list:
+  - path: association_plus.h
+  - path: association_plus_base.h
+  - path: association_plus_file.h
+  - path: cc_agi_config_api.h
+- path: ZAF/CommandClasses/Association/src/
+  file_list:
+  - path: CC_AssociationGroupInfo.h
+  - path: CC_Association.h
+provides:
+- name: zw_cc_association
+requires:
+- name: zw_core
+config_file:
+- path: sample_apps/config/cc_association/cc_association_config.h
+  file_id: cc_association_config
+
+root_path: zwave

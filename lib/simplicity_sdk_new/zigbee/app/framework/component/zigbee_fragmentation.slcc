@@ -1,0 +1,73 @@
+package: zigbee
+description: This component supports sending long packets through fragmentation and reassembly.
+label: Fragmentation
+quality: production
+id: zigbee_fragmentation
+category: Zigbee|Utility
+provides:
+- name: zigbee_fragmentation
+config_file:
+- path: app/framework/plugin/fragmentation/config/fragmentation-config.h
+source:
+- path: app/framework/plugin/fragmentation/fragmentation.c
+- path: app/framework/plugin/fragmentation/fragmentation-cli.c
+  condition:
+  - cli
+- path: app/framework/plugin/fragmentation/fragmentation-host.c
+  condition:
+  - zigbee_ezsp
+- path: app/framework/plugin/fragmentation/fragmentation-soc.c
+  condition:
+  - zigbee_stack_common
+include:
+- path: app/framework/plugin/fragmentation
+  file_list:
+  - path: fragmentation.h
+template_contribution:
+- name: component_catalog
+  value: zigbee_fragmentation
+- name: zigbee_af_callback
+  value:
+    callback_type: event_init
+    function_name: sl_zigbee_af_fragmentation_init_cb
+- name: zigbee_af_callback
+  value:
+    callback_type: local_data_init
+    function_name: sl_zigbee_af_fragmentation_init_cb
+- name: zigbee_af_callback
+  value:
+    callback_type: ncp_init
+    function_name: sl_zigbee_af_fragmentation_ncp_init_cb
+  condition:
+  - zigbee_ezsp
+- name: cli_group
+  value:
+    group: plugin
+    name: fragmentation
+    help: fragmentation related commands.
+- name: cli_command
+  value:
+    group: fragmentation
+    name: set-rx-window-size
+    handler: sli_zigbee_af_fragmentation_set_window_size_command
+    help: Sets the receive window size.  By definition in the Smart Energy profile it must be set to 1 but this allows it to be changed.
+    argument:
+    - type: uint8
+      help: The max number of the blocks received before an APS ack is generated
+- name: cli_command
+  value:
+    group: fragmentation
+    name: artificial-block-drop
+    handler: sli_zigbee_af_fragmentation_artificial_block_drop_command
+    help: Artificially drops the block number defined by the passed argument only once, and then allows it upon a retry.
+    argument:
+    - type: uint8
+      help: The block number to artificially drop to force a retry - set to 0xFF to disable
+
+documentation:
+  docset: zigbee
+  document: zigbee-af-api/fragmentation
+metadata:
+  sbom:
+    license: MSLA
+root_path: zigbee

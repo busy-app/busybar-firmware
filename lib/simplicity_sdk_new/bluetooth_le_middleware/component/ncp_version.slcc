@@ -1,0 +1,27 @@
+id: ncp_version
+label: NCP version check
+package: bluetooth_le_middleware
+description: >
+  Compare the BGAPI version on NCP host and target side and warn in case of mismatch.
+category: Bluetooth|NCP Interface
+metadata:
+  sbom:
+    license: Zlib
+quality: experimental
+root_path: bluetooth_le_middleware/common_host/ncp_version
+source:
+- path: ncp_version.c
+include:
+- path: .
+  file_list:
+  - path: ncp_version.h
+provides:
+- name: ncp_version
+requires:
+- name: bluetooth_api_ncp_host
+template_contribution:
+- name: bluetooth_on_event
+  value:
+    include: ncp_version.h
+    function: ncp_version_on_event
+  priority: -9001

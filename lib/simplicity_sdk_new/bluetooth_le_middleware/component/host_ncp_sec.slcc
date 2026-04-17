@@ -1,0 +1,33 @@
+id: host_ncp_sec
+label: Secure NCP communication layer for host projects
+package: bluetooth_le_middleware
+description: >
+  Component that provides secure (encrypted) Bluetooth Network Co-Processor (NCP) communication interface for host projects.
+
+  This is a No-Code component if used together with host NCP Interface component.
+category: Bluetooth|Application|Miscellaneous
+metadata:
+  sbom:
+    license: Zlib
+quality: experimental
+root_path: bluetooth_le_middleware/common_host/ncp_sec
+tag:
+- No-Code
+include:
+- path: .
+  file_list:
+  - path: ncp_sec_host.h
+source:
+- path: ncp_sec_host.c
+library:
+- system: openssl
+- system: ws2_32
+  condition:
+  - win32
+define:
+- name: SECURITY
+  value: "1"
+requires:
+- name: host_ncp
+provides:
+- name: host_ncp_sec

@@ -1,0 +1,64 @@
+id: ddp
+label: Dynamic Data Provisioning (DDP) framework
+description: |
+  This component provides the generic framework for Dynamic Data Provisioning
+  (DDP). It converts the application to be RAM-based. This enables leaving
+  the original firmware untouched. DDP uses SEGGER RTT for communication.
+package: bluetooth_le_middleware
+category: Bluetooth|Application|Miscellaneous
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+ui_hints:
+  visibility: never
+root_path: bluetooth_le_middleware/common/ddp
+provides:
+- name: ddp
+- name: toolchain_linker_type
+requires:
+- name: sl_common
+- name: iostream_rtt
+- name: toolchain_gcc   # linkerfile is only prepared for gcc atm
+include:
+- path: inc
+  file_list:
+  - path: sl_ddp_types.h
+  - path: sl_ddp_common.h
+  - path: sl_ddp_rtt.h
+source:
+- path: src/sl_ddp_common.c
+- path: src/sl_ddp_rtt.c
+other_file:
+- path: script/ddp_rtt.py
+  project:
+    transfer_ownership: true
+    directory: script
+- path: script/ddp_cmd.py
+  project:
+    transfer_ownership: true
+    directory: script
+- path: script/requirements.txt
+  project:
+    transfer_ownership: true
+    directory: script
+template_contribution:
+- name: event_handler
+  value:
+    event: internal_app_init
+    include: sl_ddp_rtt.h
+    handler: sl_ddp_rtt_init
+- name: event_handler
+  value:
+    event: internal_app_process_action
+    include: sl_ddp_rtt.h
+    handler: sl_ddp_rtt_process_action
+template_file:
+- path: template/sl_ddp_command_table.c.jinja
+- path: template/sl_ddp_rtt_config.py.jinja
+- path: template/linkerfile_ram.ld.jinja
+toolchain_settings:
+- option: linkerfile
+  value: autogen/linkerfile_ram.ld
+define:
+- name: SL_RAM_LINKER

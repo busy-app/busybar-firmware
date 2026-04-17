@@ -1,0 +1,117 @@
+id: azure_freertos_middleware
+package: wifi
+description: >
+  AZURE IoT Device SDK for Embedded C
+label: AZURE FreeRTOS Middleware
+category: Third Party
+quality: production
+metadata:
+  sbom:
+    license: MIT
+    upstream:
+      name: AZURE FreeRTOS Middleware
+      version: 1.1.0
+      supplier: Azure
+      url: https://github.com/Azure/azure-iot-middleware-freertos
+      package_url: pkg:github/Azure/azure-iot-middleware-freertos@1.1.0
+component_root_path: ./third_party/azure_freertos_middleware
+provides:
+- name: azure_freertos_middleware
+source:
+- path: source/azure_iot_hub_client.c
+- path: source/azure_iot_hub_client_properties.c
+- path: source/azure_iot.c
+- path: source/azure_iot_message.c
+- path: libraries/azure-sdk-for-c/sdk/src/azure/core/az_span.c
+- path: libraries/azure-sdk-for-c/sdk/src/azure/core/az_log.c
+- path: libraries/azure-sdk-for-c/sdk/src/azure/core/az_precondition.c
+- path: libraries/azure-sdk-for-c/sdk/src/azure/core/az_base64.c
+- path: libraries/azure-sdk-for-c/sdk/src/azure/core/az_context.c
+- path: libraries/azure-sdk-for-c/sdk/src/azure/iot/az_iot_common.c
+- path: libraries/azure-sdk-for-c/sdk/src/azure/iot/az_iot_hub_client.c
+- path: libraries/azure-sdk-for-c/sdk/src/azure/iot/az_iot_hub_client_c2d.c
+- path: libraries/azure-sdk-for-c/sdk/src/azure/iot/az_iot_hub_client_commands.c
+- path: libraries/azure-sdk-for-c/sdk/src/azure/iot/az_iot_hub_client_methods.c
+- path: libraries/azure-sdk-for-c/sdk/src/azure/iot/az_iot_hub_client_properties.c
+- path: libraries/azure-sdk-for-c/sdk/src/azure/iot/az_iot_hub_client_sas.c
+- path: libraries/azure-sdk-for-c/sdk/src/azure/iot/az_iot_hub_client_telemetry.c
+- path: libraries/azure-sdk-for-c/sdk/src/azure/iot/az_iot_hub_client_twin.c
+include:
+- path: source/include
+- path: source/interface
+- path: source/include
+  file_list:
+    - path: azure_iot.h
+    - path: azure_iot_adu_client.h
+    - path: azure_iot_config_defaults.h
+    - path: azure_iot_hub_client.h
+    - path: azure_iot_hub_client_properties.h
+    - path: azure_iot_json_reader.h
+    - path: azure_iot_json_writer.h
+    - path: azure_iot_message.h
+    - path: azure_iot_provisioning_client.h
+    - path: azure_iot_result.h
+    - path: azure_iot_version.h
+- path: source
+  file_list:
+    - path: azure_iot_private.h
+- path: source/interface
+  file_list:
+    - path: azure_iot_crypto.h
+    - path: azure_iot_flash_platform.h
+    - path: azure_iot_http.h
+    - path: azure_iot_jws.h
+    - path: azure_iot_mqtt.h
+    - path: azure_iot_transport_interface.h
+- path: libraries/azure-sdk-for-c/sdk/inc
+  file_list:
+    - path: azure/az_core.h
+    - path: azure/az_iot.h
+    - path: azure/core/az_base64.h
+    - path: azure/core/az_config.h
+    - path: azure/core/az_context.h
+    - path: azure/core/az_credentials.h
+    - path: azure/core/az_http.h
+    - path: azure/core/az_http_transport.h
+    - path: azure/core/az_json.h
+    - path: azure/core/az_log.h
+    - path: azure/core/az_platform.h
+    - path: azure/core/az_precondition.h
+    - path: azure/core/az_result.h
+    - path: azure/core/az_span.h
+    - path: azure/core/az_version.h
+    - path: azure/core/internal/az_config_internal.h
+    - path: azure/core/internal/az_credentials_internal.h
+    - path: azure/core/internal/az_http_internal.h
+    - path: azure/core/internal/az_log_internal.h
+    - path: azure/core/internal/az_precondition_internal.h
+    - path: azure/core/internal/az_result_internal.h
+    - path: azure/core/internal/az_retry_internal.h
+    - path: azure/core/internal/az_span_internal.h
+    - path: azure/core/_az_cfg.h
+    - path: azure/core/_az_cfg_prefix.h
+    - path: azure/core/_az_cfg_suffix.h
+    - path: azure/iot/az_iot_adu_client.h
+    - path: azure/iot/az_iot_common.h
+    - path: azure/iot/az_iot_hub_client.h
+    - path: azure/iot/az_iot_hub_client_properties.h
+    - path: azure/iot/az_iot_provisioning_client.h
+    - path: azure/iot/internal/az_iot_adu_internal.h
+    - path: azure/iot/internal/az_iot_common_internal.h
+- path: libraries/azure-sdk-for-c/sdk/src/azure/core
+  file_list:
+    - path: az_hex_private.h
+    - path: az_http_header_validation_private.h
+    - path: az_http_policy_logging_private.h
+    - path: az_http_private.h
+    - path: az_json_private.h
+    - path: az_span_private.h
+
+define:
+- name: AZURE_IOT_NO_CUSTOM_CONFIG
+
+requires:
+- name: bsd_socket
+- name: mqtt
+- name: coreMQTT
+

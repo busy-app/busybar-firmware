@@ -1,0 +1,368 @@
+<?xml version="1.0" encoding="ASCII"?>
+<model:MDescriptors xmlns:model="http://www.silabs.com/ss/Studio.ecore">
+  <descriptors name="bootloader-storage-internal-single-zwave-ota" label="Bootloader - SoC Internal Storage (OTA for Z-Wave Applications)" description="This sample configuration of the Gecko bootloader configures the bootloader to use the internal main flash to store firmware update images. The storage configuration is set up to store a single firmware update image at a time, in a single storage slot.
+">
+    <properties key="namespace" value="template.uc"/>
+    <properties key="keywords" value="universal\ configurator"/>
+    <properties key="solutionReferenceId" value="zwave_sample_app.bootloaders.bootloader-storage-internal-single-zwave-ota.slcp"/>
+    <properties key="projectFilePaths" value="bootloaders/bootloader-storage-internal-single-zwave-ota.slcp"/>
+    <properties key="readmeFiles" value=""/>
+    <properties key="boardCompatibility" value="brd2603a brd2705a brd4204a brd4204b brd4204c brd4204d brd4205b brd4210a brd4400b brd4400c brd4401b brd4401c com.silabs.board.none"/>
+    <properties key="partCompatibility" value=".*efr32zg23a010f512gm40.* .*efr32zg23a010f512gm48.* .*efr32zg23a020f512gm40.* .*efr32zg23a020f512gm48.* .*efr32zg23b010f512im40.* .*efr32zg23b010f512im48.* .*efr32zg23b011f512im40.* .*efr32zg23b020f512im40.* .*efr32zg23b020f512im48.* .*efr32zg23b021f512im40.* .*efr32zg28a110f1024gm48.* .*efr32zg28a110f1024gm68.* .*efr32zg28a112f1024gm48.* .*efr32zg28a112f1024gm68.* .*efr32zg28a120f1024gm48.* .*efr32zg28a120f1024gm68.* .*efr32zg28a122f1024gm48.* .*efr32zg28a122f1024gm68.* .*efr32zg28b310f1024im48.* .*efr32zg28b310f1024im68.* .*efr32zg28b312f1024im48.* .*efr32zg28b312f1024im68.* .*efr32zg28b320f1024im48.* .*efr32zg28b320f1024im68.* .*efr32zg28b322f1024im48.* .*efr32zg28b322f1024im68.* .*zgm230sa27hgn.* .*zgm230sa27hnn.* .*zgm230sb27hgn.* .*zgm230sb27hnn.*"/>
+    <properties key="ideCompatibility" value="generic-template makefile-ide simplicity-ide visual-studio-code"/>
+    <properties key="toolchainCompatibility" value="gcc"/>
+    <properties key="category" value="Z-Wave|Bootloaders"/>
+    <properties key="quality" value="PRODUCTION"/>
+    <properties key="stockConfigCompatibility" value="com.silabs.ss.framework.project.toolchain.core.default"/>
+    <properties key="filters" value="Device\ Type|SoC MCU|Bootloader Project\ Difficulty|Advanced Wireless\ Technology|Z-Wave"/>
+  </descriptors>
+  <descriptors name="bootloader-uart-xmodem-zwave-otw" label="Bootloader - NCP UART XMODEM (OTW for Z-Wave Applications)" description="Standalone Bootloader using XMODEM-CRC over UART. The bootloader shows a menu, where an XMODEM transfer can be started by sending ASCII &#39;1&#39;, or the application can be started by sending ASCII &#39;2&#39;. This is the recommended UART bootloader for the EmberZNet and Connect protocol stacks. This bootloader was created from the bootloader-uart-xmodem sample. Pay attention to the UART configuration when using a custom board.
+">
+    <properties key="namespace" value="template.uc"/>
+    <properties key="keywords" value="universal\ configurator"/>
+    <properties key="solutionReferenceId" value="zwave_sample_app.bootloaders.bootloader-uart-xmodem-zwave-otw.slcp"/>
+    <properties key="projectFilePaths" value="bootloaders/bootloader-uart-xmodem-zwave-otw.slcp"/>
+    <properties key="readmeFiles" value=""/>
+    <properties key="boardCompatibility" value="brd2603a brd2705a brd4204a brd4204b brd4204c brd4204d brd4205b brd4210a brd4400b brd4400c brd4401b brd4401c com.silabs.board.none"/>
+    <properties key="partCompatibility" value=".*efr32zg23a010f512gm40.* .*efr32zg23a010f512gm48.* .*efr32zg23a020f512gm40.* .*efr32zg23a020f512gm48.* .*efr32zg23b010f512im40.* .*efr32zg23b010f512im48.* .*efr32zg23b011f512im40.* .*efr32zg23b020f512im40.* .*efr32zg23b020f512im48.* .*efr32zg23b021f512im40.* .*efr32zg28a110f1024gm48.* .*efr32zg28a110f1024gm68.* .*efr32zg28a112f1024gm48.* .*efr32zg28a112f1024gm68.* .*efr32zg28a120f1024gm48.* .*efr32zg28a120f1024gm68.* .*efr32zg28a122f1024gm48.* .*efr32zg28a122f1024gm68.* .*efr32zg28b310f1024im48.* .*efr32zg28b310f1024im68.* .*efr32zg28b312f1024im48.* .*efr32zg28b312f1024im68.* .*efr32zg28b320f1024im48.* .*efr32zg28b320f1024im68.* .*efr32zg28b322f1024im48.* .*efr32zg28b322f1024im68.* .*zgm230sa27hgn.* .*zgm230sa27hnn.* .*zgm230sb27hgn.* .*zgm230sb27hnn.*"/>
+    <properties key="ideCompatibility" value="generic-template makefile-ide simplicity-ide visual-studio-code"/>
+    <properties key="toolchainCompatibility" value="gcc"/>
+    <properties key="category" value="Z-Wave|Bootloaders"/>
+    <properties key="quality" value="PRODUCTION"/>
+    <properties key="stockConfigCompatibility" value="com.silabs.ss.framework.project.toolchain.core.default"/>
+    <properties key="filters" value="Device\ Type|NCP MCU|Bootloader Project\ Difficulty|Advanced Wireless\ Technology|Z-Wave"/>
+  </descriptors>
+  <descriptors name="ZWave_NCP_SerialAPI_Controller_Solution" label="ZWave_NCP_SerialAPI_Controller_Solution" description="Demonstrates Serial Applications Programming Interface (Serial API) combined with OTW bootloader. The Serial Applications Programming Interface (Serial API) allows a host to communicate with a Z-Wave chip. The host may be a PC or a less powerful embedded host CPU, such as in a remote control or in a gateway device, and so on.
+">
+    <properties key="namespace" value="template.solution.uc"/>
+    <properties key="keywords" value="universal\ configurator"/>
+    <properties key="solutionReferenceId" value="zwave_sample_app.workspaces.zwave_ncp_serial_api_controller_otw.slcw"/>
+    <properties key="projectFilePaths" value="workspaces/zwave_ncp_serial_api_controller_otw.slcw"/>
+    <properties key="readmeFiles" value="zwave_ncp_serial_api/README.md"/>
+    <properties key="boardCompatibility" value="brd2603a brd2705a brd4204a brd4204b brd4204c brd4204d brd4205b brd4210a brd4400b brd4400c brd4401b brd4401c com.silabs.board.none"/>
+    <properties key="partCompatibility" value=".*efr32zg23a010f512gm40.* .*efr32zg23a010f512gm48.* .*efr32zg23a020f512gm40.* .*efr32zg23a020f512gm48.* .*efr32zg23b010f512im40.* .*efr32zg23b010f512im48.* .*efr32zg23b011f512im40.* .*efr32zg23b020f512im40.* .*efr32zg23b020f512im48.* .*efr32zg23b021f512im40.* .*efr32zg28a110f1024gm48.* .*efr32zg28a110f1024gm68.* .*efr32zg28a112f1024gm48.* .*efr32zg28a112f1024gm68.* .*efr32zg28a120f1024gm48.* .*efr32zg28a120f1024gm68.* .*efr32zg28a122f1024gm48.* .*efr32zg28a122f1024gm68.* .*efr32zg28b310f1024im48.* .*efr32zg28b310f1024im68.* .*efr32zg28b312f1024im48.* .*efr32zg28b312f1024im68.* .*efr32zg28b320f1024im48.* .*efr32zg28b320f1024im68.* .*efr32zg28b322f1024im48.* .*efr32zg28b322f1024im68.* .*zgm230sa27hgn.* .*zgm230sa27hnn.* .*zgm230sb27hgn.* .*zgm230sb27hnn.*"/>
+    <properties key="ideCompatibility" value="generic-template makefile-ide simplicity-ide visual-studio-code"/>
+    <properties key="toolchainCompatibility" value="gcc"/>
+    <properties key="category" value="Z-Wave|Apps"/>
+    <properties key="quality" value="PRODUCTION"/>
+    <properties key="stockConfigCompatibility" value="com.silabs.ss.framework.project.toolchain.core.default"/>
+    <properties key="filters" value="Device\ Type|NCP Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave"/>
+    <properties key="solutionProjects" value="zwave_sample_app.bootloaders.bootloader-uart-xmodem-zwave-otw.slcp zwave_sample_app.zwave_ncp_serial_api.zwave_ncp_serial_api_controller.slcp"/>
+  </descriptors>
+  <descriptors name="ZWave_NCP_SerialAPI_EndDevice_Solution" label="ZWave_NCP_SerialAPI_EndDevice_Solution" description="Demonstrates Serial Applications Programming Interface (Serial API) combined with OTW bootloader. The Serial API End Device allows the user to create a product with a host application with different capabilites than the Z-Wave device, such as drive a high performance display, but does not require the Z-Wave Controller role.
+">
+    <properties key="namespace" value="template.solution.uc"/>
+    <properties key="keywords" value="universal\ configurator"/>
+    <properties key="solutionReferenceId" value="zwave_sample_app.workspaces.zwave_ncp_serial_api_end_device_otw.slcw"/>
+    <properties key="projectFilePaths" value="workspaces/zwave_ncp_serial_api_end_device_otw.slcw"/>
+    <properties key="readmeFiles" value=""/>
+    <properties key="boardCompatibility" value="brd2603a brd2705a brd4204a brd4204b brd4204c brd4204d brd4205b brd4210a brd4400b brd4400c brd4401b brd4401c com.silabs.board.none"/>
+    <properties key="partCompatibility" value=".*efr32zg23a010f512gm40.* .*efr32zg23a010f512gm48.* .*efr32zg23a020f512gm40.* .*efr32zg23a020f512gm48.* .*efr32zg23b010f512im40.* .*efr32zg23b010f512im48.* .*efr32zg23b011f512im40.* .*efr32zg23b020f512im40.* .*efr32zg23b020f512im48.* .*efr32zg23b021f512im40.* .*efr32zg28a110f1024gm48.* .*efr32zg28a110f1024gm68.* .*efr32zg28a112f1024gm48.* .*efr32zg28a112f1024gm68.* .*efr32zg28a120f1024gm48.* .*efr32zg28a120f1024gm68.* .*efr32zg28a122f1024gm48.* .*efr32zg28a122f1024gm68.* .*efr32zg28b310f1024im48.* .*efr32zg28b310f1024im68.* .*efr32zg28b312f1024im48.* .*efr32zg28b312f1024im68.* .*efr32zg28b320f1024im48.* .*efr32zg28b320f1024im68.* .*efr32zg28b322f1024im48.* .*efr32zg28b322f1024im68.* .*zgm230sa27hgn.* .*zgm230sa27hnn.* .*zgm230sb27hgn.* .*zgm230sb27hnn.*"/>
+    <properties key="ideCompatibility" value="generic-template makefile-ide simplicity-ide visual-studio-code"/>
+    <properties key="toolchainCompatibility" value="gcc"/>
+    <properties key="category" value="Z-Wave|Apps"/>
+    <properties key="quality" value="PRODUCTION"/>
+    <properties key="stockConfigCompatibility" value="com.silabs.ss.framework.project.toolchain.core.default"/>
+    <properties key="filters" value="Device\ Type|NCP Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave"/>
+    <properties key="solutionProjects" value="zwave_sample_app.bootloaders.bootloader-uart-xmodem-zwave-otw.slcp zwave_sample_app.zwave_ncp_serial_api.zwave_ncp_serial_api_end_device.slcp"/>
+  </descriptors>
+  <descriptors name="ZWave_NCP_Zniffer_Solution" label="ZWave_NCP_Zniffer_Solution" description="Demonstrates Zniffer application combined with OTW bootloader. The Z-Wave Interface application helps with analyzing the communication between devices and debugging the application. It is possible to log and filter datagrams in any supported region. The log can be saved for later analysis.
+">
+    <properties key="namespace" value="template.solution.uc"/>
+    <properties key="keywords" value="universal\ configurator"/>
+    <properties key="solutionReferenceId" value="zwave_sample_app.workspaces.zwave_ncp_zniffer_otw.slcw"/>
+    <properties key="projectFilePaths" value="workspaces/zwave_ncp_zniffer_otw.slcw"/>
+    <properties key="readmeFiles" value="zwave_ncp_zniffer/README.md"/>
+    <properties key="boardCompatibility" value="brd2603a brd2705a brd4204a brd4204b brd4204c brd4204d brd4205b brd4210a brd4400b brd4400c brd4401b brd4401c com.silabs.board.none"/>
+    <properties key="partCompatibility" value=".*efr32zg23a010f512gm40.* .*efr32zg23a010f512gm48.* .*efr32zg23a020f512gm40.* .*efr32zg23a020f512gm48.* .*efr32zg23b010f512im40.* .*efr32zg23b010f512im48.* .*efr32zg23b011f512im40.* .*efr32zg23b020f512im40.* .*efr32zg23b020f512im48.* .*efr32zg23b021f512im40.* .*efr32zg28a110f1024gm48.* .*efr32zg28a110f1024gm68.* .*efr32zg28a112f1024gm48.* .*efr32zg28a112f1024gm68.* .*efr32zg28a120f1024gm48.* .*efr32zg28a120f1024gm68.* .*efr32zg28a122f1024gm48.* .*efr32zg28a122f1024gm68.* .*efr32zg28b310f1024im48.* .*efr32zg28b310f1024im68.* .*efr32zg28b312f1024im48.* .*efr32zg28b312f1024im68.* .*efr32zg28b320f1024im48.* .*efr32zg28b320f1024im68.* .*efr32zg28b322f1024im48.* .*efr32zg28b322f1024im68.* .*zgm230sa27hgn.* .*zgm230sa27hnn.* .*zgm230sb27hgn.* .*zgm230sb27hnn.*"/>
+    <properties key="ideCompatibility" value="generic-template makefile-ide simplicity-ide visual-studio-code"/>
+    <properties key="toolchainCompatibility" value="gcc"/>
+    <properties key="category" value="Z-Wave|Apps"/>
+    <properties key="quality" value="PRODUCTION"/>
+    <properties key="stockConfigCompatibility" value="com.silabs.ss.framework.project.toolchain.core.default"/>
+    <properties key="filters" value="Device\ Type|NCP Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave"/>
+    <properties key="solutionProjects" value="zwave_sample_app.bootloaders.bootloader-uart-xmodem-zwave-otw.slcp zwave_sample_app.zwave_ncp_zniffer.zwave_ncp_zniffer.slcp"/>
+  </descriptors>
+  <descriptors name="ZWave_SoC_DoorLockKeypad_Solution" label="ZWave_SoC_DoorLockKeypad_Solution" description="Demonstrates Door Lock application combined with OTA bootloader. The Z-Wave certified Door Lock application shows a lock implementation. It will support user codes to open a door and thereby eliminate the need for traditional keys. It is possible to both lock and unlock the door remotely through the Z-Wave protocol.
+">
+    <properties key="namespace" value="template.solution.uc"/>
+    <properties key="keywords" value="universal\ configurator"/>
+    <properties key="solutionReferenceId" value="zwave_sample_app.workspaces.zwave_soc_door_lock_keypad_ota.slcw"/>
+    <properties key="projectFilePaths" value="workspaces/zwave_soc_door_lock_keypad_ota.slcw"/>
+    <properties key="readmeFiles" value="zwave_soc_door_lock_keypad/README.md"/>
+    <properties key="boardCompatibility" value="brd2603a brd2705a brd4204a brd4204b brd4204c brd4204d brd4205b brd4210a brd4400b brd4400c brd4401b brd4401c com.silabs.board.none"/>
+    <properties key="partCompatibility" value=".*efr32zg23a010f512gm40.* .*efr32zg23a010f512gm48.* .*efr32zg23a020f512gm40.* .*efr32zg23a020f512gm48.* .*efr32zg23b010f512im40.* .*efr32zg23b010f512im48.* .*efr32zg23b011f512im40.* .*efr32zg23b020f512im40.* .*efr32zg23b020f512im48.* .*efr32zg23b021f512im40.* .*efr32zg28a110f1024gm48.* .*efr32zg28a110f1024gm68.* .*efr32zg28a112f1024gm48.* .*efr32zg28a112f1024gm68.* .*efr32zg28a120f1024gm48.* .*efr32zg28a120f1024gm68.* .*efr32zg28a122f1024gm48.* .*efr32zg28a122f1024gm68.* .*efr32zg28b310f1024im48.* .*efr32zg28b310f1024im68.* .*efr32zg28b312f1024im48.* .*efr32zg28b312f1024im68.* .*efr32zg28b320f1024im48.* .*efr32zg28b320f1024im68.* .*efr32zg28b322f1024im48.* .*efr32zg28b322f1024im68.* .*zgm230sa27hgn.* .*zgm230sa27hnn.* .*zgm230sb27hgn.* .*zgm230sb27hnn.*"/>
+    <properties key="ideCompatibility" value="generic-template makefile-ide simplicity-ide visual-studio-code"/>
+    <properties key="toolchainCompatibility" value="gcc"/>
+    <properties key="category" value="Z-Wave|Apps"/>
+    <properties key="quality" value="PRODUCTION"/>
+    <properties key="stockConfigCompatibility" value="com.silabs.ss.framework.project.toolchain.core.default"/>
+    <properties key="filters" value="Device\ Type|SoC Project\ Difficulty|Advanced Wireless\ Technology|Z-Wave"/>
+    <properties key="solutionProjects" value="zwave_sample_app.bootloaders.bootloader-storage-internal-single-zwave-ota.slcp zwave_sample_app.zwave_soc_door_lock_keypad.zwave_soc_door_lock_keypad.slcp"/>
+  </descriptors>
+  <descriptors name="ZWave_SoC_LEDBulb_Solution" label="ZWave_SoC_LEDBulb_Solution" description="Demonstrates LED Bulb application combined with OTA bootloader. The Z-Wave LED Bulb application shows an implementation of a remotely controlled color switch. An example is an LED bulb or any other color-capable device. The app supports dimming of an RGB LED.
+">
+    <properties key="namespace" value="template.solution.uc"/>
+    <properties key="keywords" value="universal\ configurator"/>
+    <properties key="solutionReferenceId" value="zwave_sample_app.workspaces.zwave_soc_led_bulb_ota.slcw"/>
+    <properties key="projectFilePaths" value="workspaces/zwave_soc_led_bulb_ota.slcw"/>
+    <properties key="readmeFiles" value="zwave_soc_led_bulb/README.md"/>
+    <properties key="boardCompatibility" value="brd2603a brd2705a brd4204a brd4204b brd4204c brd4204d brd4205b brd4210a brd4400b brd4400c brd4401b brd4401c com.silabs.board.none"/>
+    <properties key="partCompatibility" value=".*efr32zg23a010f512gm40.* .*efr32zg23a010f512gm48.* .*efr32zg23a020f512gm40.* .*efr32zg23a020f512gm48.* .*efr32zg23b010f512im40.* .*efr32zg23b010f512im48.* .*efr32zg23b011f512im40.* .*efr32zg23b020f512im40.* .*efr32zg23b020f512im48.* .*efr32zg23b021f512im40.* .*efr32zg28a110f1024gm48.* .*efr32zg28a110f1024gm68.* .*efr32zg28a112f1024gm48.* .*efr32zg28a112f1024gm68.* .*efr32zg28a120f1024gm48.* .*efr32zg28a120f1024gm68.* .*efr32zg28a122f1024gm48.* .*efr32zg28a122f1024gm68.* .*efr32zg28b310f1024im48.* .*efr32zg28b310f1024im68.* .*efr32zg28b312f1024im48.* .*efr32zg28b312f1024im68.* .*efr32zg28b320f1024im48.* .*efr32zg28b320f1024im68.* .*efr32zg28b322f1024im48.* .*efr32zg28b322f1024im68.* .*zgm230sa27hgn.* .*zgm230sa27hnn.* .*zgm230sb27hgn.* .*zgm230sb27hnn.*"/>
+    <properties key="ideCompatibility" value="generic-template makefile-ide simplicity-ide visual-studio-code"/>
+    <properties key="toolchainCompatibility" value="gcc"/>
+    <properties key="category" value="Z-Wave|Apps"/>
+    <properties key="quality" value="PRODUCTION"/>
+    <properties key="stockConfigCompatibility" value="com.silabs.ss.framework.project.toolchain.core.default"/>
+    <properties key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave"/>
+    <properties key="solutionProjects" value="zwave_sample_app.bootloaders.bootloader-storage-internal-single-zwave-ota.slcp zwave_sample_app.zwave_soc_led_bulb.zwave_soc_led_bulb.slcp"/>
+  </descriptors>
+  <descriptors name="ZWave_SoC_MultilevelSensor_Solution" label="ZWave_SoC_MultilevelSensor_Solution" description="Demonstrates Switch Multilevel Sensor application combined with OTA bootloader. The Z-Wave Switch Multilevel Sensor application shows the ability to advertize numerical sensor readings, such as temperature and humidity, and so on. Multiple parameters can be set for the minimum and maximum values, and a notification will be sent if the measured temperature value is out of the range.
+">
+    <properties key="namespace" value="template.solution.uc"/>
+    <properties key="keywords" value="universal\ configurator"/>
+    <properties key="solutionReferenceId" value="zwave_sample_app.workspaces.zwave_soc_multilevel_sensor_ota.slcw"/>
+    <properties key="projectFilePaths" value="workspaces/zwave_soc_multilevel_sensor_ota.slcw"/>
+    <properties key="readmeFiles" value="zwave_soc_multilevel_sensor/README.md"/>
+    <properties key="boardCompatibility" value="brd2603a brd2705a brd4204a brd4204b brd4204c brd4204d brd4205b brd4210a brd4400b brd4400c brd4401b brd4401c com.silabs.board.none"/>
+    <properties key="partCompatibility" value=".*efr32zg23a010f512gm40.* .*efr32zg23a010f512gm48.* .*efr32zg23a020f512gm40.* .*efr32zg23a020f512gm48.* .*efr32zg23b010f512im40.* .*efr32zg23b010f512im48.* .*efr32zg23b011f512im40.* .*efr32zg23b020f512im40.* .*efr32zg23b020f512im48.* .*efr32zg23b021f512im40.* .*efr32zg28a110f1024gm48.* .*efr32zg28a110f1024gm68.* .*efr32zg28a112f1024gm48.* .*efr32zg28a112f1024gm68.* .*efr32zg28a120f1024gm48.* .*efr32zg28a120f1024gm68.* .*efr32zg28a122f1024gm48.* .*efr32zg28a122f1024gm68.* .*efr32zg28b310f1024im48.* .*efr32zg28b310f1024im68.* .*efr32zg28b312f1024im48.* .*efr32zg28b312f1024im68.* .*efr32zg28b320f1024im48.* .*efr32zg28b320f1024im68.* .*efr32zg28b322f1024im48.* .*efr32zg28b322f1024im68.* .*zgm230sa27hgn.* .*zgm230sa27hnn.* .*zgm230sb27hgn.* .*zgm230sb27hnn.*"/>
+    <properties key="ideCompatibility" value="generic-template makefile-ide simplicity-ide visual-studio-code"/>
+    <properties key="toolchainCompatibility" value="gcc"/>
+    <properties key="category" value="Z-Wave|Apps"/>
+    <properties key="quality" value="PRODUCTION"/>
+    <properties key="stockConfigCompatibility" value="com.silabs.ss.framework.project.toolchain.core.default"/>
+    <properties key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave"/>
+    <properties key="solutionProjects" value="zwave_sample_app.bootloaders.bootloader-storage-internal-single-zwave-ota.slcp zwave_sample_app.zwave_soc_multilevel_sensor.zwave_soc_multilevel_sensor.slcp"/>
+  </descriptors>
+  <descriptors name="ZWave_SoC_PowerStrip_Solution" label="ZWave_SoC_PowerStrip_Solution" description="Demonstrates Power Strip application combined with OTA bootloader. The Z-Wave certified Power Strip application shows an extension block implementation used to turn on several devices that are connected to power. Examples include lights, appliances, etc.
+">
+    <properties key="namespace" value="template.solution.uc"/>
+    <properties key="keywords" value="universal\ configurator"/>
+    <properties key="solutionReferenceId" value="zwave_sample_app.workspaces.zwave_soc_power_strip_ota.slcw"/>
+    <properties key="projectFilePaths" value="workspaces/zwave_soc_power_strip_ota.slcw"/>
+    <properties key="readmeFiles" value="zwave_soc_power_strip/README.md"/>
+    <properties key="boardCompatibility" value="brd2603a brd2705a brd4204a brd4204b brd4204c brd4204d brd4205b brd4210a brd4400b brd4400c brd4401b brd4401c com.silabs.board.none"/>
+    <properties key="partCompatibility" value=".*efr32zg23a010f512gm40.* .*efr32zg23a010f512gm48.* .*efr32zg23a020f512gm40.* .*efr32zg23a020f512gm48.* .*efr32zg23b010f512im40.* .*efr32zg23b010f512im48.* .*efr32zg23b011f512im40.* .*efr32zg23b020f512im40.* .*efr32zg23b020f512im48.* .*efr32zg23b021f512im40.* .*efr32zg28a110f1024gm48.* .*efr32zg28a110f1024gm68.* .*efr32zg28a112f1024gm48.* .*efr32zg28a112f1024gm68.* .*efr32zg28a120f1024gm48.* .*efr32zg28a120f1024gm68.* .*efr32zg28a122f1024gm48.* .*efr32zg28a122f1024gm68.* .*efr32zg28b310f1024im48.* .*efr32zg28b310f1024im68.* .*efr32zg28b312f1024im48.* .*efr32zg28b312f1024im68.* .*efr32zg28b320f1024im48.* .*efr32zg28b320f1024im68.* .*efr32zg28b322f1024im48.* .*efr32zg28b322f1024im68.* .*zgm230sa27hgn.* .*zgm230sa27hnn.* .*zgm230sb27hgn.* .*zgm230sb27hnn.*"/>
+    <properties key="ideCompatibility" value="generic-template makefile-ide simplicity-ide visual-studio-code"/>
+    <properties key="toolchainCompatibility" value="gcc"/>
+    <properties key="category" value="Z-Wave|Apps"/>
+    <properties key="quality" value="PRODUCTION"/>
+    <properties key="stockConfigCompatibility" value="com.silabs.ss.framework.project.toolchain.core.default"/>
+    <properties key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave"/>
+    <properties key="solutionProjects" value="zwave_sample_app.bootloaders.bootloader-storage-internal-single-zwave-ota.slcp zwave_sample_app.zwave_soc_power_strip.zwave_soc_power_strip.slcp"/>
+  </descriptors>
+  <descriptors name="ZWave_SoC_SensorPIR_Solution" label="ZWave_SoC_SensorPIR_Solution" description="Demonstrates passive infrared (PIR) sensor application combined with OTA bootloader. The Z-Wave certified passive infrared (PIR) sensor application shows a presence/movement detector implementation for controlling other devices and for sending notifications.
+">
+    <properties key="namespace" value="template.solution.uc"/>
+    <properties key="keywords" value="universal\ configurator"/>
+    <properties key="solutionReferenceId" value="zwave_sample_app.workspaces.zwave_soc_sensor_pir_ota.slcw"/>
+    <properties key="projectFilePaths" value="workspaces/zwave_soc_sensor_pir_ota.slcw"/>
+    <properties key="readmeFiles" value="zwave_soc_sensor_pir/README.md"/>
+    <properties key="boardCompatibility" value="brd2603a brd2705a brd4204a brd4204b brd4204c brd4204d brd4205b brd4210a brd4400b brd4400c brd4401b brd4401c com.silabs.board.none"/>
+    <properties key="partCompatibility" value=".*efr32zg23a010f512gm40.* .*efr32zg23a010f512gm48.* .*efr32zg23a020f512gm40.* .*efr32zg23a020f512gm48.* .*efr32zg23b010f512im40.* .*efr32zg23b010f512im48.* .*efr32zg23b011f512im40.* .*efr32zg23b020f512im40.* .*efr32zg23b020f512im48.* .*efr32zg23b021f512im40.* .*efr32zg28a110f1024gm48.* .*efr32zg28a110f1024gm68.* .*efr32zg28a112f1024gm48.* .*efr32zg28a112f1024gm68.* .*efr32zg28a120f1024gm48.* .*efr32zg28a120f1024gm68.* .*efr32zg28a122f1024gm48.* .*efr32zg28a122f1024gm68.* .*efr32zg28b310f1024im48.* .*efr32zg28b310f1024im68.* .*efr32zg28b312f1024im48.* .*efr32zg28b312f1024im68.* .*efr32zg28b320f1024im48.* .*efr32zg28b320f1024im68.* .*efr32zg28b322f1024im48.* .*efr32zg28b322f1024im68.* .*zgm230sa27hgn.* .*zgm230sa27hnn.* .*zgm230sb27hgn.* .*zgm230sb27hnn.*"/>
+    <properties key="ideCompatibility" value="generic-template makefile-ide simplicity-ide visual-studio-code"/>
+    <properties key="toolchainCompatibility" value="gcc"/>
+    <properties key="category" value="Z-Wave|Apps"/>
+    <properties key="quality" value="PRODUCTION"/>
+    <properties key="stockConfigCompatibility" value="com.silabs.ss.framework.project.toolchain.core.default"/>
+    <properties key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave"/>
+    <properties key="solutionProjects" value="zwave_sample_app.bootloaders.bootloader-storage-internal-single-zwave-ota.slcp zwave_sample_app.zwave_soc_sensor_pir.zwave_soc_sensor_pir.slcp"/>
+  </descriptors>
+  <descriptors name="ZWave_SoC_SwitchOnOff_Solution" label="ZWave_SoC_SwitchOnOff_Solution" description="Demonstrates Switch On/Off application combined with OTA bootloader. The Z-Wave certified Switch On/Off application shows a switch implementation that turns on any device that is connected to power. Examples include lights, appliances, and so on.
+">
+    <properties key="namespace" value="template.solution.uc"/>
+    <properties key="keywords" value="universal\ configurator"/>
+    <properties key="solutionReferenceId" value="zwave_sample_app.workspaces.zwave_soc_switch_on_off_ota.slcw"/>
+    <properties key="projectFilePaths" value="workspaces/zwave_soc_switch_on_off_ota.slcw"/>
+    <properties key="readmeFiles" value="zwave_soc_switch_on_off/README.md"/>
+    <properties key="boardCompatibility" value="brd2603a brd2705a brd4204a brd4204b brd4204c brd4204d brd4205b brd4210a brd4400b brd4400c brd4401b brd4401c com.silabs.board.none"/>
+    <properties key="partCompatibility" value=".*efr32zg23a010f512gm40.* .*efr32zg23a010f512gm48.* .*efr32zg23a020f512gm40.* .*efr32zg23a020f512gm48.* .*efr32zg23b010f512im40.* .*efr32zg23b010f512im48.* .*efr32zg23b011f512im40.* .*efr32zg23b020f512im40.* .*efr32zg23b020f512im48.* .*efr32zg23b021f512im40.* .*efr32zg28a110f1024gm48.* .*efr32zg28a110f1024gm68.* .*efr32zg28a112f1024gm48.* .*efr32zg28a112f1024gm68.* .*efr32zg28a120f1024gm48.* .*efr32zg28a120f1024gm68.* .*efr32zg28a122f1024gm48.* .*efr32zg28a122f1024gm68.* .*efr32zg28b310f1024im48.* .*efr32zg28b310f1024im68.* .*efr32zg28b312f1024im48.* .*efr32zg28b312f1024im68.* .*efr32zg28b320f1024im48.* .*efr32zg28b320f1024im68.* .*efr32zg28b322f1024im48.* .*efr32zg28b322f1024im68.* .*zgm230sa27hgn.* .*zgm230sa27hnn.* .*zgm230sb27hgn.* .*zgm230sb27hnn.*"/>
+    <properties key="ideCompatibility" value="generic-template makefile-ide simplicity-ide visual-studio-code"/>
+    <properties key="toolchainCompatibility" value="gcc"/>
+    <properties key="category" value="Z-Wave|Apps"/>
+    <properties key="quality" value="PRODUCTION"/>
+    <properties key="stockConfigCompatibility" value="com.silabs.ss.framework.project.toolchain.core.default"/>
+    <properties key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave"/>
+    <properties key="solutionProjects" value="zwave_sample_app.bootloaders.bootloader-storage-internal-single-zwave-ota.slcp zwave_sample_app.zwave_soc_switch_on_off.zwave_soc_switch_on_off.slcp"/>
+  </descriptors>
+  <descriptors name="ZWave_SoC_WallController_Solution" label="ZWave_SoC_WallController_Solution" description="Demonstrates Wall Controller application combined with OTA bootloader. The Z-Wave certified Wall Controller application shows a push-button switch panel implementation to control devices in the Z-Wave network from push buttons (physical or virtual) on a device that is meant to be mounted on a wall. Examples include scene and zone controllers and wall-mounted AV controllers.
+">
+    <properties key="namespace" value="template.solution.uc"/>
+    <properties key="keywords" value="universal\ configurator"/>
+    <properties key="solutionReferenceId" value="zwave_sample_app.workspaces.zwave_soc_wall_controller_ota.slcw"/>
+    <properties key="projectFilePaths" value="workspaces/zwave_soc_wall_controller_ota.slcw"/>
+    <properties key="readmeFiles" value="zwave_soc_wall_controller/README.md"/>
+    <properties key="boardCompatibility" value="brd2603a brd2705a brd4204a brd4204b brd4204c brd4204d brd4205b brd4210a brd4400b brd4400c brd4401b brd4401c com.silabs.board.none"/>
+    <properties key="partCompatibility" value=".*efr32zg23a010f512gm40.* .*efr32zg23a010f512gm48.* .*efr32zg23a020f512gm40.* .*efr32zg23a020f512gm48.* .*efr32zg23b010f512im40.* .*efr32zg23b010f512im48.* .*efr32zg23b011f512im40.* .*efr32zg23b020f512im40.* .*efr32zg23b020f512im48.* .*efr32zg23b021f512im40.* .*efr32zg28a110f1024gm48.* .*efr32zg28a110f1024gm68.* .*efr32zg28a112f1024gm48.* .*efr32zg28a112f1024gm68.* .*efr32zg28a120f1024gm48.* .*efr32zg28a120f1024gm68.* .*efr32zg28a122f1024gm48.* .*efr32zg28a122f1024gm68.* .*efr32zg28b310f1024im48.* .*efr32zg28b310f1024im68.* .*efr32zg28b312f1024im48.* .*efr32zg28b312f1024im68.* .*efr32zg28b320f1024im48.* .*efr32zg28b320f1024im68.* .*efr32zg28b322f1024im48.* .*efr32zg28b322f1024im68.* .*zgm230sa27hgn.* .*zgm230sa27hnn.* .*zgm230sb27hgn.* .*zgm230sb27hnn.*"/>
+    <properties key="ideCompatibility" value="generic-template makefile-ide simplicity-ide visual-studio-code"/>
+    <properties key="toolchainCompatibility" value="gcc"/>
+    <properties key="category" value="Z-Wave|Apps"/>
+    <properties key="quality" value="PRODUCTION"/>
+    <properties key="stockConfigCompatibility" value="com.silabs.ss.framework.project.toolchain.core.default"/>
+    <properties key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave"/>
+    <properties key="solutionProjects" value="zwave_sample_app.bootloaders.bootloader-storage-internal-single-zwave-ota.slcp zwave_sample_app.zwave_soc_wall_controller.zwave_soc_wall_controller.slcp"/>
+  </descriptors>
+  <descriptors name="zwave_ncp_serial_api_controller" label="Z-Wave - NCP Serial API Controller" description="The Serial Applications Programming Interface (Serial API) allows a host to communicate with a Z-Wave chip. The host may be a PC or a less powerful embedded host CPU, such as in a remote control or in a gateway device, and so on.
+">
+    <properties key="namespace" value="template.uc"/>
+    <properties key="keywords" value="universal\ configurator"/>
+    <properties key="solutionReferenceId" value="zwave_sample_app.zwave_ncp_serial_api.zwave_ncp_serial_api_controller.slcp"/>
+    <properties key="projectFilePaths" value="zwave_ncp_serial_api/zwave_ncp_serial_api_controller.slcp"/>
+    <properties key="readmeFiles" value="zwave_ncp_serial_api/README.md"/>
+    <properties key="boardCompatibility" value="brd2603a brd2705a brd4204a brd4204b brd4204c brd4204d brd4205b brd4210a brd4400b brd4400c brd4401b brd4401c com.silabs.board.none"/>
+    <properties key="partCompatibility" value=".*efr32zg23a010f512gm40.* .*efr32zg23a010f512gm48.* .*efr32zg23a020f512gm40.* .*efr32zg23a020f512gm48.* .*efr32zg23b010f512im40.* .*efr32zg23b010f512im48.* .*efr32zg23b011f512im40.* .*efr32zg23b020f512im40.* .*efr32zg23b020f512im48.* .*efr32zg23b021f512im40.* .*efr32zg28a110f1024gm48.* .*efr32zg28a110f1024gm68.* .*efr32zg28a112f1024gm48.* .*efr32zg28a112f1024gm68.* .*efr32zg28a120f1024gm48.* .*efr32zg28a120f1024gm68.* .*efr32zg28a122f1024gm48.* .*efr32zg28a122f1024gm68.* .*efr32zg28b310f1024im48.* .*efr32zg28b310f1024im68.* .*efr32zg28b312f1024im48.* .*efr32zg28b312f1024im68.* .*efr32zg28b320f1024im48.* .*efr32zg28b320f1024im68.* .*efr32zg28b322f1024im48.* .*efr32zg28b322f1024im68.* .*zgm230sa27hgn.* .*zgm230sa27hnn.* .*zgm230sb27hgn.* .*zgm230sb27hnn.*"/>
+    <properties key="ideCompatibility" value="generic-template makefile-ide simplicity-ide visual-studio-code"/>
+    <properties key="toolchainCompatibility" value="gcc"/>
+    <properties key="category" value="Z-Wave|Apps"/>
+    <properties key="quality" value="PRODUCTION"/>
+    <properties key="stockConfigCompatibility" value="com.silabs.ss.framework.project.toolchain.core.default"/>
+    <properties key="filters" value="Device\ Type|NCP Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave"/>
+  </descriptors>
+  <descriptors name="zwave_ncp_serial_api_end_device" label="Z-Wave - NCP Serial API End Device" description="The Serial Application Programming Interface (Serial API) allows a host to communicate with a Z-Wave chip. The host may be PC or a less powerful embedded host CPU, e.g., in a remote control or in a gateway device.
+The Serial API End Device allows the user to create a product with a host application with different capabilites than the Z-Wave device, such as drive a high performance display, but does not require the Z-Wave Controller role.
+">
+    <properties key="namespace" value="template.uc"/>
+    <properties key="keywords" value="universal\ configurator"/>
+    <properties key="solutionReferenceId" value="zwave_sample_app.zwave_ncp_serial_api.zwave_ncp_serial_api_end_device.slcp"/>
+    <properties key="projectFilePaths" value="zwave_ncp_serial_api/zwave_ncp_serial_api_end_device.slcp"/>
+    <properties key="readmeFiles" value=""/>
+    <properties key="boardCompatibility" value="brd2603a brd2705a brd4204a brd4204b brd4204c brd4204d brd4205b brd4210a brd4400b brd4400c brd4401b brd4401c com.silabs.board.none"/>
+    <properties key="partCompatibility" value=".*efr32zg23a010f512gm40.* .*efr32zg23a010f512gm48.* .*efr32zg23a020f512gm40.* .*efr32zg23a020f512gm48.* .*efr32zg23b010f512im40.* .*efr32zg23b010f512im48.* .*efr32zg23b011f512im40.* .*efr32zg23b020f512im40.* .*efr32zg23b020f512im48.* .*efr32zg23b021f512im40.* .*efr32zg28a110f1024gm48.* .*efr32zg28a110f1024gm68.* .*efr32zg28a112f1024gm48.* .*efr32zg28a112f1024gm68.* .*efr32zg28a120f1024gm48.* .*efr32zg28a120f1024gm68.* .*efr32zg28a122f1024gm48.* .*efr32zg28a122f1024gm68.* .*efr32zg28b310f1024im48.* .*efr32zg28b310f1024im68.* .*efr32zg28b312f1024im48.* .*efr32zg28b312f1024im68.* .*efr32zg28b320f1024im48.* .*efr32zg28b320f1024im68.* .*efr32zg28b322f1024im48.* .*efr32zg28b322f1024im68.* .*zgm230sa27hgn.* .*zgm230sa27hnn.* .*zgm230sb27hgn.* .*zgm230sb27hnn.*"/>
+    <properties key="ideCompatibility" value="generic-template makefile-ide simplicity-ide visual-studio-code"/>
+    <properties key="toolchainCompatibility" value="gcc"/>
+    <properties key="category" value="Z-Wave|Apps"/>
+    <properties key="quality" value="PRODUCTION"/>
+    <properties key="stockConfigCompatibility" value="com.silabs.ss.framework.project.toolchain.core.default"/>
+    <properties key="filters" value="Device\ Type|NCP Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave"/>
+  </descriptors>
+  <descriptors name="zwave_ncp_zniffer" label="Z-Wave - NCP Zniffer Beta" description="The Z-Wave Zniffer Application">
+    <properties key="namespace" value="template.uc"/>
+    <properties key="keywords" value="universal\ configurator"/>
+    <properties key="solutionReferenceId" value="zwave_sample_app.zwave_ncp_zniffer.zwave_ncp_zniffer.slcp"/>
+    <properties key="projectFilePaths" value="zwave_ncp_zniffer/zwave_ncp_zniffer.slcp"/>
+    <properties key="readmeFiles" value="zwave_ncp_zniffer/README.md"/>
+    <properties key="boardCompatibility" value="brd2603a brd2705a brd4204a brd4204b brd4204c brd4204d brd4205b brd4210a brd4400b brd4400c brd4401b brd4401c com.silabs.board.none"/>
+    <properties key="partCompatibility" value=".*efr32zg23a010f512gm40.* .*efr32zg23a010f512gm48.* .*efr32zg23a020f512gm40.* .*efr32zg23a020f512gm48.* .*efr32zg23b010f512im40.* .*efr32zg23b010f512im48.* .*efr32zg23b011f512im40.* .*efr32zg23b020f512im40.* .*efr32zg23b020f512im48.* .*efr32zg23b021f512im40.* .*efr32zg28a110f1024gm48.* .*efr32zg28a110f1024gm68.* .*efr32zg28a112f1024gm48.* .*efr32zg28a112f1024gm68.* .*efr32zg28a120f1024gm48.* .*efr32zg28a120f1024gm68.* .*efr32zg28a122f1024gm48.* .*efr32zg28a122f1024gm68.* .*efr32zg28b310f1024im48.* .*efr32zg28b310f1024im68.* .*efr32zg28b312f1024im48.* .*efr32zg28b312f1024im68.* .*efr32zg28b320f1024im48.* .*efr32zg28b320f1024im68.* .*efr32zg28b322f1024im48.* .*efr32zg28b322f1024im68.* .*zgm230sa27hgn.* .*zgm230sa27hnn.* .*zgm230sb27hgn.* .*zgm230sb27hnn.*"/>
+    <properties key="ideCompatibility" value="generic-template makefile-ide simplicity-ide visual-studio-code"/>
+    <properties key="toolchainCompatibility" value="gcc"/>
+    <properties key="category" value="Z-Wave|Apps"/>
+    <properties key="quality" value="PRODUCTION"/>
+    <properties key="stockConfigCompatibility" value="com.silabs.ss.framework.project.toolchain.core.default"/>
+    <properties key="filters" value="Device\ Type|NCP Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave"/>
+  </descriptors>
+  <descriptors name="zwave_soc_door_lock_keypad" label="Z-Wave - SoC Door Lock Keypad" description="The Z-Wave certified Door Lock application shows a lock implementation. It will support user codes to open a door and thereby eliminate the need for traditional keys. It is possible to both lock and unlock the door remotely through the Z-Wave protocol.
+For certain devices, the application supports and uses the User Credential Command Class. See README file for details.
+">
+    <properties key="namespace" value="template.uc"/>
+    <properties key="keywords" value="universal\ configurator"/>
+    <properties key="solutionReferenceId" value="zwave_sample_app.zwave_soc_door_lock_keypad.zwave_soc_door_lock_keypad.slcp"/>
+    <properties key="projectFilePaths" value="zwave_soc_door_lock_keypad/zwave_soc_door_lock_keypad.slcp"/>
+    <properties key="readmeFiles" value="zwave_soc_door_lock_keypad/README.md"/>
+    <properties key="boardCompatibility" value="brd2603a brd2705a brd4204a brd4204b brd4204c brd4204d brd4205b brd4210a brd4400b brd4400c brd4401b brd4401c com.silabs.board.none"/>
+    <properties key="partCompatibility" value=".*efr32zg23a010f512gm40.* .*efr32zg23a010f512gm48.* .*efr32zg23a020f512gm40.* .*efr32zg23a020f512gm48.* .*efr32zg23b010f512im40.* .*efr32zg23b010f512im48.* .*efr32zg23b011f512im40.* .*efr32zg23b020f512im40.* .*efr32zg23b020f512im48.* .*efr32zg23b021f512im40.* .*efr32zg28a110f1024gm48.* .*efr32zg28a110f1024gm68.* .*efr32zg28a112f1024gm48.* .*efr32zg28a112f1024gm68.* .*efr32zg28a120f1024gm48.* .*efr32zg28a120f1024gm68.* .*efr32zg28a122f1024gm48.* .*efr32zg28a122f1024gm68.* .*efr32zg28b310f1024im48.* .*efr32zg28b310f1024im68.* .*efr32zg28b312f1024im48.* .*efr32zg28b312f1024im68.* .*efr32zg28b320f1024im48.* .*efr32zg28b320f1024im68.* .*efr32zg28b322f1024im48.* .*efr32zg28b322f1024im68.* .*zgm230sa27hgn.* .*zgm230sa27hnn.* .*zgm230sb27hgn.* .*zgm230sb27hnn.*"/>
+    <properties key="ideCompatibility" value="generic-template makefile-ide simplicity-ide visual-studio-code"/>
+    <properties key="toolchainCompatibility" value="gcc"/>
+    <properties key="category" value="Z-Wave|Apps"/>
+    <properties key="quality" value="PRODUCTION"/>
+    <properties key="stockConfigCompatibility" value="com.silabs.ss.framework.project.toolchain.core.default"/>
+    <properties key="filters" value="Device\ Type|SoC Project\ Difficulty|Advanced Wireless\ Technology|Z-Wave"/>
+  </descriptors>
+  <descriptors name="zwave_soc_led_bulb" label="Z-Wave - SoC LED Bulb" description="The Z-Wave LED Bulb application shows an implementation of a remotely controlled color switch. An example is an LED bulb or any other color-capable device. The app supports dimming of an RGB LED.
+">
+    <properties key="namespace" value="template.uc"/>
+    <properties key="keywords" value="universal\ configurator"/>
+    <properties key="solutionReferenceId" value="zwave_sample_app.zwave_soc_led_bulb.zwave_soc_led_bulb.slcp"/>
+    <properties key="projectFilePaths" value="zwave_soc_led_bulb/zwave_soc_led_bulb.slcp"/>
+    <properties key="readmeFiles" value="zwave_soc_led_bulb/README.md"/>
+    <properties key="boardCompatibility" value="brd2603a brd2705a brd4204a brd4204b brd4204c brd4204d brd4205b brd4210a brd4400b brd4400c brd4401b brd4401c com.silabs.board.none"/>
+    <properties key="partCompatibility" value=".*efr32zg23a010f512gm40.* .*efr32zg23a010f512gm48.* .*efr32zg23a020f512gm40.* .*efr32zg23a020f512gm48.* .*efr32zg23b010f512im40.* .*efr32zg23b010f512im48.* .*efr32zg23b011f512im40.* .*efr32zg23b020f512im40.* .*efr32zg23b020f512im48.* .*efr32zg23b021f512im40.* .*efr32zg28a110f1024gm48.* .*efr32zg28a110f1024gm68.* .*efr32zg28a112f1024gm48.* .*efr32zg28a112f1024gm68.* .*efr32zg28a120f1024gm48.* .*efr32zg28a120f1024gm68.* .*efr32zg28a122f1024gm48.* .*efr32zg28a122f1024gm68.* .*efr32zg28b310f1024im48.* .*efr32zg28b310f1024im68.* .*efr32zg28b312f1024im48.* .*efr32zg28b312f1024im68.* .*efr32zg28b320f1024im48.* .*efr32zg28b320f1024im68.* .*efr32zg28b322f1024im48.* .*efr32zg28b322f1024im68.* .*zgm230sa27hgn.* .*zgm230sa27hnn.* .*zgm230sb27hgn.* .*zgm230sb27hnn.*"/>
+    <properties key="ideCompatibility" value="generic-template makefile-ide simplicity-ide visual-studio-code"/>
+    <properties key="toolchainCompatibility" value="gcc"/>
+    <properties key="category" value="Z-Wave|Apps"/>
+    <properties key="quality" value="PRODUCTION"/>
+    <properties key="stockConfigCompatibility" value="com.silabs.ss.framework.project.toolchain.core.default"/>
+    <properties key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave"/>
+  </descriptors>
+  <descriptors name="zwave_soc_multilevel_sensor" label="Z-Wave - SoC Multilevel Sensor" description="The Z-Wave Switch Multilevel Sensor application shows the ability to advertize numerical sensor readings, such as temperature and humidity, and so on. Multiple parameters can be set for the minimum and maximum values, and a notification will be sent if the measured temperature value is out of the range.
+">
+    <properties key="namespace" value="template.uc"/>
+    <properties key="keywords" value="universal\ configurator"/>
+    <properties key="solutionReferenceId" value="zwave_sample_app.zwave_soc_multilevel_sensor.zwave_soc_multilevel_sensor.slcp"/>
+    <properties key="projectFilePaths" value="zwave_soc_multilevel_sensor/zwave_soc_multilevel_sensor.slcp"/>
+    <properties key="readmeFiles" value="zwave_soc_multilevel_sensor/README.md"/>
+    <properties key="boardCompatibility" value="brd2603a brd2705a brd4204a brd4204b brd4204c brd4204d brd4205b brd4210a brd4400b brd4400c brd4401b brd4401c com.silabs.board.none"/>
+    <properties key="partCompatibility" value=".*efr32zg23a010f512gm40.* .*efr32zg23a010f512gm48.* .*efr32zg23a020f512gm40.* .*efr32zg23a020f512gm48.* .*efr32zg23b010f512im40.* .*efr32zg23b010f512im48.* .*efr32zg23b011f512im40.* .*efr32zg23b020f512im40.* .*efr32zg23b020f512im48.* .*efr32zg23b021f512im40.* .*efr32zg28a110f1024gm48.* .*efr32zg28a110f1024gm68.* .*efr32zg28a112f1024gm48.* .*efr32zg28a112f1024gm68.* .*efr32zg28a120f1024gm48.* .*efr32zg28a120f1024gm68.* .*efr32zg28a122f1024gm48.* .*efr32zg28a122f1024gm68.* .*efr32zg28b310f1024im48.* .*efr32zg28b310f1024im68.* .*efr32zg28b312f1024im48.* .*efr32zg28b312f1024im68.* .*efr32zg28b320f1024im48.* .*efr32zg28b320f1024im68.* .*efr32zg28b322f1024im48.* .*efr32zg28b322f1024im68.* .*zgm230sa27hgn.* .*zgm230sa27hnn.* .*zgm230sb27hgn.* .*zgm230sb27hnn.*"/>
+    <properties key="ideCompatibility" value="generic-template makefile-ide simplicity-ide visual-studio-code"/>
+    <properties key="toolchainCompatibility" value="gcc"/>
+    <properties key="category" value="Z-Wave|Apps"/>
+    <properties key="quality" value="PRODUCTION"/>
+    <properties key="stockConfigCompatibility" value="com.silabs.ss.framework.project.toolchain.core.default"/>
+    <properties key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave"/>
+  </descriptors>
+  <descriptors name="zwave_soc_power_strip" label="Z-Wave - SoC Power Strip" description="The Z-Wave certified Power Strip application shows an extension block implementation used to turn on several devices that are connected to power. Examples include lights, appliances, etc.
+Endpoint 1 device type - generic type switch binary and specific type on/off power switch.
+Endpoint 2 device type - generic type light dimmer switch and specific type light dimmer switch.
+">
+    <properties key="namespace" value="template.uc"/>
+    <properties key="keywords" value="universal\ configurator"/>
+    <properties key="solutionReferenceId" value="zwave_sample_app.zwave_soc_power_strip.zwave_soc_power_strip.slcp"/>
+    <properties key="projectFilePaths" value="zwave_soc_power_strip/zwave_soc_power_strip.slcp"/>
+    <properties key="readmeFiles" value="zwave_soc_power_strip/README.md"/>
+    <properties key="boardCompatibility" value="brd2603a brd2705a brd4204a brd4204b brd4204c brd4204d brd4205b brd4210a brd4400b brd4400c brd4401b brd4401c com.silabs.board.none"/>
+    <properties key="partCompatibility" value=".*efr32zg23a010f512gm40.* .*efr32zg23a010f512gm48.* .*efr32zg23a020f512gm40.* .*efr32zg23a020f512gm48.* .*efr32zg23b010f512im40.* .*efr32zg23b010f512im48.* .*efr32zg23b011f512im40.* .*efr32zg23b020f512im40.* .*efr32zg23b020f512im48.* .*efr32zg23b021f512im40.* .*efr32zg28a110f1024gm48.* .*efr32zg28a110f1024gm68.* .*efr32zg28a112f1024gm48.* .*efr32zg28a112f1024gm68.* .*efr32zg28a120f1024gm48.* .*efr32zg28a120f1024gm68.* .*efr32zg28a122f1024gm48.* .*efr32zg28a122f1024gm68.* .*efr32zg28b310f1024im48.* .*efr32zg28b310f1024im68.* .*efr32zg28b312f1024im48.* .*efr32zg28b312f1024im68.* .*efr32zg28b320f1024im48.* .*efr32zg28b320f1024im68.* .*efr32zg28b322f1024im48.* .*efr32zg28b322f1024im68.* .*zgm230sa27hgn.* .*zgm230sa27hnn.* .*zgm230sb27hgn.* .*zgm230sb27hnn.*"/>
+    <properties key="ideCompatibility" value="generic-template makefile-ide simplicity-ide visual-studio-code"/>
+    <properties key="toolchainCompatibility" value="gcc"/>
+    <properties key="category" value="Z-Wave|Apps"/>
+    <properties key="quality" value="PRODUCTION"/>
+    <properties key="stockConfigCompatibility" value="com.silabs.ss.framework.project.toolchain.core.default"/>
+    <properties key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave"/>
+  </descriptors>
+  <descriptors name="zwave_soc_sensor_pir" label="Z-Wave - SoC Sensor PIR" description="The Z-Wave certified passive infrared (PIR) sensor application shows a presence/movement detector implementation for controlling other devices and for sending notifications.
+">
+    <properties key="namespace" value="template.uc"/>
+    <properties key="keywords" value="universal\ configurator"/>
+    <properties key="solutionReferenceId" value="zwave_sample_app.zwave_soc_sensor_pir.zwave_soc_sensor_pir.slcp"/>
+    <properties key="projectFilePaths" value="zwave_soc_sensor_pir/zwave_soc_sensor_pir.slcp"/>
+    <properties key="readmeFiles" value="zwave_soc_sensor_pir/README.md"/>
+    <properties key="boardCompatibility" value="brd2603a brd2705a brd4204a brd4204b brd4204c brd4204d brd4205b brd4210a brd4400b brd4400c brd4401b brd4401c com.silabs.board.none"/>
+    <properties key="partCompatibility" value=".*efr32zg23a010f512gm40.* .*efr32zg23a010f512gm48.* .*efr32zg23a020f512gm40.* .*efr32zg23a020f512gm48.* .*efr32zg23b010f512im40.* .*efr32zg23b010f512im48.* .*efr32zg23b011f512im40.* .*efr32zg23b020f512im40.* .*efr32zg23b020f512im48.* .*efr32zg23b021f512im40.* .*efr32zg28a110f1024gm48.* .*efr32zg28a110f1024gm68.* .*efr32zg28a112f1024gm48.* .*efr32zg28a112f1024gm68.* .*efr32zg28a120f1024gm48.* .*efr32zg28a120f1024gm68.* .*efr32zg28a122f1024gm48.* .*efr32zg28a122f1024gm68.* .*efr32zg28b310f1024im48.* .*efr32zg28b310f1024im68.* .*efr32zg28b312f1024im48.* .*efr32zg28b312f1024im68.* .*efr32zg28b320f1024im48.* .*efr32zg28b320f1024im68.* .*efr32zg28b322f1024im48.* .*efr32zg28b322f1024im68.* .*zgm230sa27hgn.* .*zgm230sa27hnn.* .*zgm230sb27hgn.* .*zgm230sb27hnn.*"/>
+    <properties key="ideCompatibility" value="generic-template makefile-ide simplicity-ide visual-studio-code"/>
+    <properties key="toolchainCompatibility" value="gcc"/>
+    <properties key="category" value="Z-Wave|Apps"/>
+    <properties key="quality" value="PRODUCTION"/>
+    <properties key="stockConfigCompatibility" value="com.silabs.ss.framework.project.toolchain.core.default"/>
+    <properties key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave"/>
+  </descriptors>
+  <descriptors name="zwave_soc_switch_on_off" label="Z-Wave - SoC Switch On/Off" description="[RECOMMENDED STARTER PROJECT] The Z-Wave certified Switch On/Off application shows a switch implementation that turns on any device that is connected to power. Examples include lights, appliances, and so on.
+">
+    <properties key="namespace" value="template.uc"/>
+    <properties key="keywords" value="universal\ configurator"/>
+    <properties key="solutionReferenceId" value="zwave_sample_app.zwave_soc_switch_on_off.zwave_soc_switch_on_off.slcp"/>
+    <properties key="projectFilePaths" value="zwave_soc_switch_on_off/zwave_soc_switch_on_off.slcp"/>
+    <properties key="readmeFiles" value="zwave_soc_switch_on_off/README.md"/>
+    <properties key="boardCompatibility" value="brd2603a brd2705a brd4204a brd4204b brd4204c brd4204d brd4205b brd4210a brd4400b brd4400c brd4401b brd4401c com.silabs.board.none"/>
+    <properties key="partCompatibility" value=".*efr32zg23a010f512gm40.* .*efr32zg23a010f512gm48.* .*efr32zg23a020f512gm40.* .*efr32zg23a020f512gm48.* .*efr32zg23b010f512im40.* .*efr32zg23b010f512im48.* .*efr32zg23b011f512im40.* .*efr32zg23b020f512im40.* .*efr32zg23b020f512im48.* .*efr32zg23b021f512im40.* .*efr32zg28a110f1024gm48.* .*efr32zg28a110f1024gm68.* .*efr32zg28a112f1024gm48.* .*efr32zg28a112f1024gm68.* .*efr32zg28a120f1024gm48.* .*efr32zg28a120f1024gm68.* .*efr32zg28a122f1024gm48.* .*efr32zg28a122f1024gm68.* .*efr32zg28b310f1024im48.* .*efr32zg28b310f1024im68.* .*efr32zg28b312f1024im48.* .*efr32zg28b312f1024im68.* .*efr32zg28b320f1024im48.* .*efr32zg28b320f1024im68.* .*efr32zg28b322f1024im48.* .*efr32zg28b322f1024im68.* .*zgm230sa27hgn.* .*zgm230sa27hnn.* .*zgm230sb27hgn.* .*zgm230sb27hnn.*"/>
+    <properties key="ideCompatibility" value="generic-template makefile-ide simplicity-ide visual-studio-code"/>
+    <properties key="toolchainCompatibility" value="gcc"/>
+    <properties key="category" value="Z-Wave|Apps"/>
+    <properties key="quality" value="PRODUCTION"/>
+    <properties key="stockConfigCompatibility" value="com.silabs.ss.framework.project.toolchain.core.default"/>
+    <properties key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave"/>
+  </descriptors>
+  <descriptors name="zwave_soc_wall_controller" label="Z-Wave - SoC Wall Controller" description="The Z-Wave certified Wall Controller application shows a push-button switch panel implementation to control devices in the Z-Wave network from push buttons (physical or virtual) on a device that is meant to be mounted on a wall. Examples include scene and zone controllers and wall-mounted AV controllers.
+">
+    <properties key="namespace" value="template.uc"/>
+    <properties key="keywords" value="universal\ configurator"/>
+    <properties key="solutionReferenceId" value="zwave_sample_app.zwave_soc_wall_controller.zwave_soc_wall_controller.slcp"/>
+    <properties key="projectFilePaths" value="zwave_soc_wall_controller/zwave_soc_wall_controller.slcp"/>
+    <properties key="readmeFiles" value="zwave_soc_wall_controller/README.md"/>
+    <properties key="boardCompatibility" value="brd2603a brd2705a brd4204a brd4204b brd4204c brd4204d brd4205b brd4210a brd4400b brd4400c brd4401b brd4401c com.silabs.board.none"/>
+    <properties key="partCompatibility" value=".*efr32zg23a010f512gm40.* .*efr32zg23a010f512gm48.* .*efr32zg23a020f512gm40.* .*efr32zg23a020f512gm48.* .*efr32zg23b010f512im40.* .*efr32zg23b010f512im48.* .*efr32zg23b011f512im40.* .*efr32zg23b020f512im40.* .*efr32zg23b020f512im48.* .*efr32zg23b021f512im40.* .*efr32zg28a110f1024gm48.* .*efr32zg28a110f1024gm68.* .*efr32zg28a112f1024gm48.* .*efr32zg28a112f1024gm68.* .*efr32zg28a120f1024gm48.* .*efr32zg28a120f1024gm68.* .*efr32zg28a122f1024gm48.* .*efr32zg28a122f1024gm68.* .*efr32zg28b310f1024im48.* .*efr32zg28b310f1024im68.* .*efr32zg28b312f1024im48.* .*efr32zg28b312f1024im68.* .*efr32zg28b320f1024im48.* .*efr32zg28b320f1024im68.* .*efr32zg28b322f1024im48.* .*efr32zg28b322f1024im68.* .*zgm230sa27hgn.* .*zgm230sa27hnn.* .*zgm230sb27hgn.* .*zgm230sb27hnn.*"/>
+    <properties key="ideCompatibility" value="generic-template makefile-ide simplicity-ide visual-studio-code"/>
+    <properties key="toolchainCompatibility" value="gcc"/>
+    <properties key="category" value="Z-Wave|Apps"/>
+    <properties key="quality" value="PRODUCTION"/>
+    <properties key="stockConfigCompatibility" value="com.silabs.ss.framework.project.toolchain.core.default"/>
+    <properties key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave"/>
+  </descriptors>
+</model:MDescriptors>

@@ -1,0 +1,189 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="structsl__si91x__gcm__config__t" kind="struct" language="C++" prot="public">
+    <compoundname>sl_si91x_gcm_config_t</compoundname>
+    <includes refid="sl__si91x__gcm_8h" local="no">sl_si91x_gcm.h</includes>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structsl__si91x__gcm__config__t_1a75c6aae2f80dd83028250441c76f8a07" prot="public" static="no" mutable="no">
+        <type><ref refid="group__CRYPTO__GCM__CONSTANTS_1ga21ad2549f5e9572d41a6e506fb3503af" kindref="member">sl_si91x_gcm_type_t</ref></type>
+        <definition>sl_si91x_gcm_type_t sl_si91x_gcm_config_t::encrypt_decrypt</definition>
+        <argsstring></argsstring>
+        <name>encrypt_decrypt</name>
+        <qualifiedname>sl_si91x_gcm_config_t::encrypt_decrypt</qualifiedname>
+        <briefdescription>
+<para>Encryption or decryption. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/gcm/inc/sl_si91x_gcm.h" line="141" column="23" bodyfile="components/device/silabs/si91x/wireless/crypto/gcm/inc/sl_si91x_gcm.h" bodystart="141" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__si91x__gcm__config__t_1ac98554c714c0345677e4a07e6bb15dc3" prot="public" static="no" mutable="no">
+        <type><ref refid="group__CRYPTO__GCM__CONSTANTS_1ga7ab695ba0bf504742a0a790461bc00e0" kindref="member">sl_si91x_gcm_dma_use_t</ref></type>
+        <definition>sl_si91x_gcm_dma_use_t sl_si91x_gcm_config_t::dma_use</definition>
+        <argsstring></argsstring>
+        <name>dma_use</name>
+        <qualifiedname>sl_si91x_gcm_config_t::dma_use</qualifiedname>
+        <briefdescription>
+<para>DMA Disable or Enable. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/gcm/inc/sl_si91x_gcm.h" line="145" column="26" bodyfile="components/device/silabs/si91x/wireless/crypto/gcm/inc/sl_si91x_gcm.h" bodystart="145" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__si91x__gcm__config__t_1a35698d3347fd3b7c62c08bba7bdff652" prot="public" static="no" mutable="no">
+        <type>const uint8_t *</type>
+        <definition>const uint8_t* sl_si91x_gcm_config_t::msg</definition>
+        <argsstring></argsstring>
+        <name>msg</name>
+        <qualifiedname>sl_si91x_gcm_config_t::msg</qualifiedname>
+        <briefdescription>
+<para>Pointer to the input message. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/gcm/inc/sl_si91x_gcm.h" line="146" column="17" bodyfile="components/device/silabs/si91x/wireless/crypto/gcm/inc/sl_si91x_gcm.h" bodystart="146" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__si91x__gcm__config__t_1ad996c4c63fe1246e24dc0959e366a1e3" prot="public" static="no" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t sl_si91x_gcm_config_t::msg_length</definition>
+        <argsstring></argsstring>
+        <name>msg_length</name>
+        <qualifiedname>sl_si91x_gcm_config_t::msg_length</qualifiedname>
+        <briefdescription>
+<para>Length of the message. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/gcm/inc/sl_si91x_gcm.h" line="147" column="12" bodyfile="components/device/silabs/si91x/wireless/crypto/gcm/inc/sl_si91x_gcm.h" bodystart="147" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__si91x__gcm__config__t_1a664ad3557a994cb0c6df9c3e2ffa6e3f" prot="public" static="no" mutable="no">
+        <type>const uint8_t *</type>
+        <definition>const uint8_t* sl_si91x_gcm_config_t::nonce</definition>
+        <argsstring></argsstring>
+        <name>nonce</name>
+        <qualifiedname>sl_si91x_gcm_config_t::nonce</qualifiedname>
+        <briefdescription>
+<para>Pointer to the Initialization vector. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/gcm/inc/sl_si91x_gcm.h" line="148" column="17" bodyfile="components/device/silabs/si91x/wireless/crypto/gcm/inc/sl_si91x_gcm.h" bodystart="148" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__si91x__gcm__config__t_1a1ccbbb5bfc40c63cd6f275f0d699a1a9" prot="public" static="no" mutable="no">
+        <type>const uint8_t *</type>
+        <definition>const uint8_t* sl_si91x_gcm_config_t::ad</definition>
+        <argsstring></argsstring>
+        <name>ad</name>
+        <qualifiedname>sl_si91x_gcm_config_t::ad</qualifiedname>
+        <briefdescription>
+<para>Pointer to the additional data. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/gcm/inc/sl_si91x_gcm.h" line="149" column="17" bodyfile="components/device/silabs/si91x/wireless/crypto/gcm/inc/sl_si91x_gcm.h" bodystart="149" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__si91x__gcm__config__t_1a1da460f3e252f94d484de6722589e4f7" prot="public" static="no" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t sl_si91x_gcm_config_t::nonce_length</definition>
+        <argsstring></argsstring>
+        <name>nonce_length</name>
+        <qualifiedname>sl_si91x_gcm_config_t::nonce_length</qualifiedname>
+        <briefdescription>
+<para>Length of the Initialization vector (Supports fixed 12 Bytes of IV) </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/gcm/inc/sl_si91x_gcm.h" line="150" column="12" bodyfile="components/device/silabs/si91x/wireless/crypto/gcm/inc/sl_si91x_gcm.h" bodystart="150" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__si91x__gcm__config__t_1ad4f6f28e97dfe711f3c067e547a54e97" prot="public" static="no" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t sl_si91x_gcm_config_t::ad_length</definition>
+        <argsstring></argsstring>
+        <name>ad_length</name>
+        <qualifiedname>sl_si91x_gcm_config_t::ad_length</qualifiedname>
+        <briefdescription>
+<para>Length of the additional data. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/gcm/inc/sl_si91x_gcm.h" line="151" column="12" bodyfile="components/device/silabs/si91x/wireless/crypto/gcm/inc/sl_si91x_gcm.h" bodystart="151" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__si91x__gcm__config__t_1a8bb0cb5334c81781694b7ccb0972070a" prot="public" static="no" mutable="no">
+        <type><ref refid="unionsl__si91x__gcm__key__config__t" kindref="compound">sl_si91x_gcm_key_config_t</ref></type>
+        <definition>sl_si91x_gcm_key_config_t sl_si91x_gcm_config_t::key_config</definition>
+        <argsstring></argsstring>
+        <name>key_config</name>
+        <qualifiedname>sl_si91x_gcm_config_t::key_config</qualifiedname>
+        <briefdescription>
+<para>Key configuration. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/gcm/inc/sl_si91x_gcm.h" line="152" column="29" bodyfile="components/device/silabs/si91x/wireless/crypto/gcm/inc/sl_si91x_gcm.h" bodystart="152" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Structure defining GCM configuration. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>This structure defines the GCM configuration required for the operation, which includes the type of operation, input message, length of the input message, key configuration structure, and so on. </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>sl_si91x_gcm_config_t</label>
+        <link refid="structsl__si91x__gcm__config__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>key_config</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>sl_si91x_gcm_key_config_a0_t</label>
+        <link refid="structsl__si91x__gcm__key__config__a0__t"/>
+      </node>
+      <node id="4">
+        <label>sl_si91x_gcm_key_config_b0_t</label>
+        <link refid="structsl__si91x__gcm__key__config__b0__t"/>
+      </node>
+      <node id="2">
+        <label>sl_si91x_gcm_key_config_t</label>
+        <link refid="unionsl__si91x__gcm__key__config__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>a0</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>b0</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="components/device/silabs/si91x/wireless/crypto/gcm/inc/sl_si91x_gcm.h" line="140" column="1" bodyfile="components/device/silabs/si91x/wireless/crypto/gcm/inc/sl_si91x_gcm.h" bodystart="140" bodyend="153"/>
+    <listofallmembers>
+      <member refid="structsl__si91x__gcm__config__t_1a1ccbbb5bfc40c63cd6f275f0d699a1a9" prot="public" virt="non-virtual"><scope>sl_si91x_gcm_config_t</scope><name>ad</name></member>
+      <member refid="structsl__si91x__gcm__config__t_1ad4f6f28e97dfe711f3c067e547a54e97" prot="public" virt="non-virtual"><scope>sl_si91x_gcm_config_t</scope><name>ad_length</name></member>
+      <member refid="structsl__si91x__gcm__config__t_1ac98554c714c0345677e4a07e6bb15dc3" prot="public" virt="non-virtual"><scope>sl_si91x_gcm_config_t</scope><name>dma_use</name></member>
+      <member refid="structsl__si91x__gcm__config__t_1a75c6aae2f80dd83028250441c76f8a07" prot="public" virt="non-virtual"><scope>sl_si91x_gcm_config_t</scope><name>encrypt_decrypt</name></member>
+      <member refid="structsl__si91x__gcm__config__t_1a8bb0cb5334c81781694b7ccb0972070a" prot="public" virt="non-virtual"><scope>sl_si91x_gcm_config_t</scope><name>key_config</name></member>
+      <member refid="structsl__si91x__gcm__config__t_1a35698d3347fd3b7c62c08bba7bdff652" prot="public" virt="non-virtual"><scope>sl_si91x_gcm_config_t</scope><name>msg</name></member>
+      <member refid="structsl__si91x__gcm__config__t_1ad996c4c63fe1246e24dc0959e366a1e3" prot="public" virt="non-virtual"><scope>sl_si91x_gcm_config_t</scope><name>msg_length</name></member>
+      <member refid="structsl__si91x__gcm__config__t_1a664ad3557a994cb0c6df9c3e2ffa6e3f" prot="public" virt="non-virtual"><scope>sl_si91x_gcm_config_t</scope><name>nonce</name></member>
+      <member refid="structsl__si91x__gcm__config__t_1a1da460f3e252f94d484de6722589e4f7" prot="public" virt="non-virtual"><scope>sl_si91x_gcm_config_t</scope><name>nonce_length</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

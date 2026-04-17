@@ -1,0 +1,333 @@
+#WARNING: This is a generated file. Do not modify.
+#run "sled lib export <FILENAME> to generate
+id: zigbee_pro_stack_mac_test_cmds_library
+label: Zigbee PRO MAC Command Test (Library)
+package: zigbee
+category: Zigbee|Stack
+quality: production
+ui_hints:
+  visibility: never
+description: Provides Zigbee PRO with MAC Command Test (Library)
+
+provides:
+- name: zigbee_pro_stack_mac_test_cmds_implementation
+- name: zigbee_pro_stack_mac_test_cmds_library
+
+requires:
+- name: zigbee_pro_stack_mac_test_cmds
+
+library:
+- path: build/gcc/aarch64_cortex-a72_gcc-12.3.0_musl/zigbee-pro-stack-mac-test-cmds/release/libzigbee-pro-stack-mac-test-cmds.a
+  condition:
+  - toolchain_gcc
+  - aarch64_cortex-a72_gcc-12.3.0_musl
+  - zigbee_stack_unix
+  - zigbee_multi_network
+  - zigbee_aarch64_cortex_a72_gcc_12_3_0_musl
+  - zigbee_mac_test_commands_support
+  unless:
+  - zigbee_x86_64
+- path: build/gcc/aarch64_cortex-a72_gcc-12.3.0_musl/zigbee-pro-stack-mac-test-cmds/release_singlenetwork/libzigbee-pro-stack-mac-test-cmds.a
+  condition:
+  - toolchain_gcc
+  - aarch64_cortex-a72_gcc-12.3.0_musl
+  - zigbee_stack_unix
+  - zigbee_aarch64_cortex_a72_gcc_12_3_0_musl
+  - zigbee_mac_test_commands_support
+  unless:
+  - zigbee_multi_network
+  - zigbee_x86_64
+- path: build/gcc/aarch64_tizen-0.1-13.1_gcc-9.2-softfp/zigbee-pro-stack-mac-test-cmds/release/libzigbee-pro-stack-mac-test-cmds.a
+  condition:
+  - toolchain_gcc
+  - aarch64_tizen-0.1-13.1_gcc-9.2-softfp
+  - zigbee_stack_unix
+  - zigbee_multi_network
+  - zigbee_mac_test_commands_support
+  unless: []
+- path: build/gcc/aarch64_tizen-0.1-13.1_gcc-9.2-softfp/zigbee-pro-stack-mac-test-cmds/release_singlenetwork/libzigbee-pro-stack-mac-test-cmds.a
+  condition:
+  - toolchain_gcc
+  - aarch64_tizen-0.1-13.1_gcc-9.2-softfp
+  - zigbee_stack_unix
+  - zigbee_mac_test_commands_support
+  unless:
+  - zigbee_multi_network
+- path: build/gcc/arm32v7/zigbee-pro-stack-mac-test-cmds/release/libzigbee-pro-stack-mac-test-cmds.a
+  condition:
+  - toolchain_gcc
+  - arm32v7
+  - zigbee_stack_unix
+  - zigbee_multi_network
+  - linux_arch_arm32v7
+  - zigbee_mac_test_commands_support
+  unless:
+  - zigbee_i386
+- path: build/gcc/arm32v7/zigbee-pro-stack-mac-test-cmds/release_singlenetwork/libzigbee-pro-stack-mac-test-cmds.a
+  condition:
+  - toolchain_gcc
+  - arm32v7
+  - zigbee_stack_unix
+  - linux_arch_arm32v7
+  - zigbee_mac_test_commands_support
+  unless:
+  - zigbee_multi_network
+  - zigbee_i386
+- path: build/gcc/arm64v8/zigbee-pro-stack-mac-test-cmds/release/libzigbee-pro-stack-mac-test-cmds.a
+  condition:
+  - toolchain_gcc
+  - arm64v8
+  - zigbee_stack_unix
+  - zigbee_multi_network
+  - linux_arch_aarch64
+  - zigbee_mac_test_commands_support
+  unless:
+  - zigbee_x86_64
+  - zigbee_aarch64_cortex_a72_gcc_12_3_0_musl
+- path: build/gcc/arm64v8/zigbee-pro-stack-mac-test-cmds/release_singlenetwork/libzigbee-pro-stack-mac-test-cmds.a
+  condition:
+  - toolchain_gcc
+  - arm64v8
+  - zigbee_stack_unix
+  - linux_arch_aarch64
+  - zigbee_mac_test_commands_support
+  unless:
+  - zigbee_multi_network
+  - zigbee_x86_64
+  - zigbee_aarch64_cortex_a72_gcc_12_3_0_musl
+- path: build/gcc/armv7l_tizen-0.1-13.1_gcc-9.2-softfp/zigbee-pro-stack-mac-test-cmds/release/libzigbee-pro-stack-mac-test-cmds.a
+  condition:
+  - toolchain_gcc
+  - armv7l_tizen-0.1-13.1_gcc-9.2-softfp
+  - zigbee_stack_unix
+  - zigbee_multi_network
+  - zigbee_mac_test_commands_support
+  unless: []
+- path: build/gcc/armv7l_tizen-0.1-13.1_gcc-9.2-softfp/zigbee-pro-stack-mac-test-cmds/release_singlenetwork/libzigbee-pro-stack-mac-test-cmds.a
+  condition:
+  - toolchain_gcc
+  - armv7l_tizen-0.1-13.1_gcc-9.2-softfp
+  - zigbee_stack_unix
+  - zigbee_mac_test_commands_support
+  unless:
+  - zigbee_multi_network
+- path: build/gcc/cortex-m33/zigbee-pro-stack-mac-test-cmds/release/libzigbee-pro-stack-mac-test-cmds.a
+  condition:
+  - toolchain_gcc
+  - cortexm33
+  - zigbee_phy_2_4
+  - zigbee_multi_network
+  - zigbee_mac_test_commands_support
+  unless:
+  - zigbee_phy_2_4_subghz_selection_end_device
+  - zigbee_phy_2_4_subghz_switch_coordinator
+  - toolchain_llvm
+- path: build/gcc/cortex-m33/zigbee-pro-stack-mac-test-cmds/release_dualrail/libzigbee-pro-stack-mac-test-cmds.a
+  condition:
+  - toolchain_gcc
+  - cortexm33
+  - zigbee_phy_2_4_subghz_switch_coordinator
+  - zigbee_multi_network
+  - zigbee_mac_test_commands_support
+  unless:
+  - zigbee_phy_2_4_subghz_selection_end_device
+  - toolchain_llvm
+- path: build/gcc/cortex-m33/zigbee-pro-stack-mac-test-cmds/release_dualrail_singlenetwork/libzigbee-pro-stack-mac-test-cmds.a
+  condition:
+  - toolchain_gcc
+  - cortexm33
+  - zigbee_phy_2_4_subghz_switch_coordinator
+  - zigbee_mac_test_commands_support
+  unless:
+  - zigbee_multi_network
+  - zigbee_phy_2_4_subghz_selection_end_device
+  - toolchain_llvm
+- path: build/gcc/cortex-m33/zigbee-pro-stack-mac-test-cmds/release_singlenetwork/libzigbee-pro-stack-mac-test-cmds.a
+  condition:
+  - toolchain_gcc
+  - cortexm33
+  - zigbee_phy_2_4
+  - zigbee_mac_test_commands_support
+  unless:
+  - zigbee_multi_network
+  - zigbee_phy_2_4_subghz_selection_end_device
+  - zigbee_phy_2_4_subghz_switch_coordinator
+  - toolchain_llvm
+- path: build/gcc/i386/zigbee-pro-stack-mac-test-cmds/release/libzigbee-pro-stack-mac-test-cmds.a
+  condition:
+  - toolchain_gcc
+  - i386
+  - zigbee_stack_unix
+  - zigbee_multi_network
+  - zigbee_i386
+  - zigbee_mac_test_commands_support
+  unless: []
+- path: build/gcc/i386/zigbee-pro-stack-mac-test-cmds/release_singlenetwork/libzigbee-pro-stack-mac-test-cmds.a
+  condition:
+  - toolchain_gcc
+  - i386
+  - zigbee_stack_unix
+  - zigbee_i386
+  - zigbee_mac_test_commands_support
+  unless:
+  - zigbee_multi_network
+- path: build/gcc/x86-64/zigbee-pro-stack-mac-test-cmds/release/libzigbee-pro-stack-mac-test-cmds.a
+  condition:
+  - toolchain_gcc
+  - x86-64
+  - zigbee_stack_unix
+  - zigbee_multi_network
+  - zigbee_x86_64
+  - zigbee_mac_test_commands_support
+  unless: []
+- path: build/gcc/x86-64/zigbee-pro-stack-mac-test-cmds/release_singlenetwork/libzigbee-pro-stack-mac-test-cmds.a
+  condition:
+  - toolchain_gcc
+  - x86-64
+  - zigbee_stack_unix
+  - zigbee_x86_64
+  - zigbee_mac_test_commands_support
+  unless:
+  - zigbee_multi_network
+- path: build/iar/cortex-m33/zigbee-pro-stack-mac-test-cmds/release/libzigbee-pro-stack-mac-test-cmds.a
+  condition:
+  - toolchain_iar
+  - cortexm33
+  - zigbee_phy_2_4
+  - zigbee_multi_network
+  - zigbee_mac_test_commands_support
+  unless:
+  - zigbee_phy_2_4_subghz_selection_end_device
+  - zigbee_phy_2_4_subghz_switch_coordinator
+  - stack_protection_iar
+- path: build/iar/cortex-m33/zigbee-pro-stack-mac-test-cmds/release_dualrail/libzigbee-pro-stack-mac-test-cmds.a
+  condition:
+  - toolchain_iar
+  - cortexm33
+  - zigbee_phy_2_4_subghz_switch_coordinator
+  - zigbee_multi_network
+  - zigbee_mac_test_commands_support
+  unless:
+  - zigbee_phy_2_4_subghz_selection_end_device
+  - stack_protection_iar
+- path: build/iar/cortex-m33/zigbee-pro-stack-mac-test-cmds/release_dualrail_singlenetwork/libzigbee-pro-stack-mac-test-cmds.a
+  condition:
+  - toolchain_iar
+  - cortexm33
+  - zigbee_phy_2_4_subghz_switch_coordinator
+  - zigbee_mac_test_commands_support
+  unless:
+  - zigbee_multi_network
+  - zigbee_phy_2_4_subghz_selection_end_device
+  - stack_protection_iar
+- path: build/iar/cortex-m33/zigbee-pro-stack-mac-test-cmds/release_singlenetwork/libzigbee-pro-stack-mac-test-cmds.a
+  condition:
+  - toolchain_iar
+  - cortexm33
+  - zigbee_phy_2_4
+  - zigbee_mac_test_commands_support
+  unless:
+  - zigbee_multi_network
+  - zigbee_phy_2_4_subghz_selection_end_device
+  - zigbee_phy_2_4_subghz_switch_coordinator
+  - stack_protection_iar
+- path: build/iar/cortex-m33/zigbee-pro-stack-mac-test-cmds/release_stackprotection/libzigbee-pro-stack-mac-test-cmds.a
+  condition:
+  - toolchain_iar
+  - cortexm33
+  - zigbee_phy_2_4
+  - zigbee_multi_network
+  - zigbee_mac_test_commands_support
+  - stack_protection_iar
+  unless:
+  - zigbee_phy_2_4_subghz_selection_end_device
+  - zigbee_phy_2_4_subghz_switch_coordinator
+- path: build/iar/cortex-m33/zigbee-pro-stack-mac-test-cmds/release_stackprotection_dualrail/libzigbee-pro-stack-mac-test-cmds.a
+  condition:
+  - toolchain_iar
+  - cortexm33
+  - zigbee_phy_2_4_subghz_switch_coordinator
+  - zigbee_multi_network
+  - zigbee_mac_test_commands_support
+  - stack_protection_iar
+  unless:
+  - zigbee_phy_2_4_subghz_selection_end_device
+- path: build/iar/cortex-m33/zigbee-pro-stack-mac-test-cmds/release_stackprotection_dualrail_singlenetwork/libzigbee-pro-stack-mac-test-cmds.a
+  condition:
+  - toolchain_iar
+  - cortexm33
+  - zigbee_phy_2_4_subghz_switch_coordinator
+  - zigbee_mac_test_commands_support
+  - stack_protection_iar
+  unless:
+  - zigbee_multi_network
+  - zigbee_phy_2_4_subghz_selection_end_device
+- path: build/iar/cortex-m33/zigbee-pro-stack-mac-test-cmds/release_stackprotection_singlenetwork/libzigbee-pro-stack-mac-test-cmds.a
+  condition:
+  - toolchain_iar
+  - cortexm33
+  - zigbee_phy_2_4
+  - zigbee_mac_test_commands_support
+  - stack_protection_iar
+  unless:
+  - zigbee_multi_network
+  - zigbee_phy_2_4_subghz_selection_end_device
+  - zigbee_phy_2_4_subghz_switch_coordinator
+- path: build/llvm/aarch64-android-ndk-r25c/zigbee-pro-stack-mac-test-cmds/release/libzigbee-pro-stack-mac-test-cmds.a
+  condition:
+  - toolchain_llvm
+  - aarch64-android-ndk-r25c
+  - zigbee_stack_unix
+  - zigbee_multi_network
+  - zigbee_mac_test_commands_support
+  unless: []
+- path: build/llvm/aarch64-android-ndk-r25c/zigbee-pro-stack-mac-test-cmds/release_singlenetwork/libzigbee-pro-stack-mac-test-cmds.a
+  condition:
+  - toolchain_llvm
+  - aarch64-android-ndk-r25c
+  - zigbee_stack_unix
+  - zigbee_mac_test_commands_support
+  unless:
+  - zigbee_multi_network
+- path: build/llvm/cortex-m33/zigbee-pro-stack-mac-test-cmds/release/libzigbee-pro-stack-mac-test-cmds.a
+  condition:
+  - toolchain_llvm
+  - cortexm33
+  - zigbee_phy_2_4
+  - zigbee_multi_network
+  - zigbee_mac_test_commands_support
+  unless:
+  - zigbee_phy_2_4_subghz_selection_end_device
+  - zigbee_phy_2_4_subghz_switch_coordinator
+- path: build/llvm/cortex-m33/zigbee-pro-stack-mac-test-cmds/release_dualrail/libzigbee-pro-stack-mac-test-cmds.a
+  condition:
+  - toolchain_llvm
+  - cortexm33
+  - zigbee_phy_2_4_subghz_switch_coordinator
+  - zigbee_multi_network
+  - zigbee_mac_test_commands_support
+  unless:
+  - zigbee_phy_2_4_subghz_selection_end_device
+- path: build/llvm/cortex-m33/zigbee-pro-stack-mac-test-cmds/release_dualrail_singlenetwork/libzigbee-pro-stack-mac-test-cmds.a
+  condition:
+  - toolchain_llvm
+  - cortexm33
+  - zigbee_phy_2_4_subghz_switch_coordinator
+  - zigbee_mac_test_commands_support
+  unless:
+  - zigbee_multi_network
+  - zigbee_phy_2_4_subghz_selection_end_device
+- path: build/llvm/cortex-m33/zigbee-pro-stack-mac-test-cmds/release_singlenetwork/libzigbee-pro-stack-mac-test-cmds.a
+  condition:
+  - toolchain_llvm
+  - cortexm33
+  - zigbee_phy_2_4
+  - zigbee_mac_test_commands_support
+  unless:
+  - zigbee_multi_network
+  - zigbee_phy_2_4_subghz_selection_end_device
+  - zigbee_phy_2_4_subghz_switch_coordinator
+metadata:
+  sbom:
+    license: MSLA
+root_path: zigbee

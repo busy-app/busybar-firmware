@@ -1,0 +1,40 @@
+project_name: segment_lcd_ldma
+package: platform
+quality: production
+label: Platform - Segment LCD LDMA
+description: |
+  This project shows how to use the LCD segment peripheral with the LDMA, this will update the segment LCD in EM2 using segment LCD driver.
+category: Example|Platform
+filter:
+  - name: "Device Type"
+    value: ["SoC"]
+  - name: "MCU"
+    value: ["32-bit MCU"]
+  - name: "Project Difficulty"
+    value: ["Beginner"]
+source:
+  - path: app.c
+  - path: segment_lcd_app.c
+include:
+  - path: .
+    file_list:
+    - path: app.h
+    - path: segment_lcd_app.h
+component:
+  - id: hal_lcd
+  - id: sl_main
+  - id: hal_ldma
+  - id: device_init
+  - id: clock_manager
+  - id: segment_lcd_driver
+define:
+  - name: DEBUG_EFM
+readme:
+  - path: readme.md
+ui_hints:
+  highlight: readme.md
+tag:
+  - hardware:component:segment_lcd_driver:cl010-1087-04
+configuration:
+  - name: SL_SEGMENT_LCD_LDMA_MODE
+    value: SL_HAL_LCD_DMA_MODE_FRAME_COUNTER_EVENT

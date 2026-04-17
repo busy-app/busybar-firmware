@@ -1,0 +1,53 @@
+id: i2c_core
+package: platform_core
+label: I2C Core
+description: >
+  This is an I2C High-Level Driver (HLD) that supports leader and follower modes.
+  It enables both blocking and non-blocking transfer types.
+
+  This component includes only the I2C driver core. To configure and create
+  instances of this driver, the I2C component should be included in the
+  project.
+
+  The driver core provides essential functionalities for I2C communication
+  such as initialization, configuration, and data transfer management.
+category: Platform|Driver|I2C
+quality: evaluation
+metadata:
+  sbom:
+    license: Zlib
+ui_hints:
+  visibility: never
+root_path: platform_core/platform/driver/i2c
+provides:
+- name: i2c_core
+requires:
+- name: status
+- name: device_manager
+- name: udelay
+- name: sl_assert
+- name: hal_gpio
+- name: hal_i2c
+- name: dmadrv
+- name: sleeptimer
+include:
+- path: inc
+  file_list:
+  - path: sl_i2c.h
+- path: src
+  file_list:
+  - path: sli_i2c.h
+source:
+- path: src/sl_i2c.c
+template_file:
+- path: init/sl_i2c_init.c.jinja
+  condition: [i2c]
+- path: init/sl_i2c_instances.h.jinja
+  condition: [i2c]
+template_contribution:
+- name: event_handler
+  condition: [i2c]
+  value:
+    event: driver_init
+    include: "sl_i2c_instances.h"
+    handler: sl_i2c_init_instances

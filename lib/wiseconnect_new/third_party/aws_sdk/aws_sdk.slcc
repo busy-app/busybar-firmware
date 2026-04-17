@@ -1,0 +1,142 @@
+id: aws_sdk
+package: wifi
+description: >
+  AWS IoT Device SDK for Embedded C
+label: AWS IoT Device SDK
+category: Third Party
+quality: production
+metadata:
+  sbom:
+    license: MSLA AND MIT
+    upstream:
+      name: aws sdk
+      version: 3.1.0
+      supplier: aws
+      url: https://github.com/aws/aws-iot-device-sdk-embedded-C
+      package_url: pkg:github/aws/aws-iot-device-sdk-embedded-C@v3.1.0
+component_root_path: ./third_party/aws_sdk
+provides:
+- name: aws_sdk
+source:
+- path: src/aws_iot_jobs_interface.c
+- path: src/aws_iot_jobs_json.c
+- path: src/aws_iot_jobs_topics.c
+- path: src/aws_iot_jobs_types.c
+- path: src/aws_iot_json_utils.c
+- path: src/aws_iot_mqtt_client_common_internal.c
+- path: src/aws_iot_mqtt_client_connect.c
+- path: src/aws_iot_mqtt_client_publish.c
+- path: src/aws_iot_mqtt_client_subscribe.c
+- path: src/aws_iot_mqtt_client_unsubscribe.c
+- path: src/aws_iot_mqtt_client_yield.c
+- path: src/aws_iot_mqtt_client.c
+- path: src/aws_iot_shadow_actions.c
+- path: src/aws_iot_shadow_json.c
+- path: src/aws_iot_shadow_records.c
+- path: src/aws_iot_shadow.c
+- path: src/jsmn.c
+- path: platform/silabs/src/network_sl_api_wrapper.c
+  condition: ["sl_si91x_internal_stack"]
+- path: platform/silabs/src/sli_aws_iot_lwip_api_wrapper.c
+  condition: ["sl_si91x_lwip_stack"]
+- path: platform/silabs/src/timer.c
+include:
+- path: include
+- path: platform/silabs/inc
+- path: include
+  file_list:
+    - path: aws_iot_error.h
+    - path: aws_iot_jobs_interface.h
+    - path: aws_iot_jobs_json.h
+    - path: aws_iot_jobs_topics.h
+    - path: aws_iot_jobs_types.h
+    - path: aws_iot_json_utils.h
+    - path: aws_iot_log.h
+    - path: aws_iot_mqtt_client_common_internal.h
+    - path: aws_iot_mqtt_client_interface.h
+    - path: aws_iot_mqtt_client.h
+    - path: aws_iot_shadow_actions.h
+    - path: aws_iot_shadow_interface.h
+    - path: aws_iot_shadow_json_data.h
+    - path: aws_iot_shadow_json.h
+    - path: aws_iot_shadow_key.h
+    - path: aws_iot_shadow_records.h
+    - path: aws_iot_version.h
+    - path: jsmn.h
+- path: platform/silabs/inc
+  file_list:
+    - path: timer_platform.h
+    - path: timer_interface.h
+    - path: network_interface.h
+    - path: sli_aws_iot_mbedtls_config.h
+      condition: ["sl_si91x_lwip_stack"]
+
+requires:
+- name: bsd_socket
+  condition: ["sl_si91x_internal_stack"]
+- name: mbedtls_random
+  condition: ["sl_si91x_lwip_stack"]
+- name: mbedtls_tls
+  condition: ["sl_si91x_lwip_stack"]
+- name: mbedtls_x509
+  condition: ["sl_si91x_lwip_stack"]
+- name: mbedtls_source
+  condition: ["sl_si91x_lwip_stack"]
+- name: mbedtls_oid
+  condition: ["sl_si91x_lwip_stack"]
+- name: mbedtls_asn1
+  condition: ["sl_si91x_lwip_stack"]
+- name: mbedtls_rsa
+  condition: ["sl_si91x_lwip_stack"]
+- name: psa_crypto_tls12_prf
+  condition: ["sl_si91x_lwip_stack"]
+- name: mbedtls_cipher
+  condition: ["sl_si91x_lwip_stack"]
+- name: mbedtls_cipher_cbc
+  condition: ["sl_si91x_lwip_stack"]
+- name: mbedtls_ecc
+  condition: ["sl_si91x_lwip_stack"]
+- name: mbedtls_ecdsa
+  condition: ["sl_si91x_lwip_stack"]
+- name: mbedtls_ccm
+  condition: ["sl_si91x_lwip_stack"]
+- name: mbedtls_gcm
+  condition: ["sl_si91x_lwip_stack"]
+- name: mbedtls_aes
+  condition: ["sl_si91x_lwip_stack"]
+- name: mbedtls_hash
+  condition: ["sl_si91x_lwip_stack"]
+- name: mbedtls_md5
+  condition: ["sl_si91x_lwip_stack"]
+- name: mbedtls_cmac
+  condition: ["sl_si91x_lwip_stack"]
+- name: mbedtls_ecdh
+  condition: ["sl_si91x_lwip_stack"]
+- name: mbedtls_sha512
+  condition: ["sl_si91x_lwip_stack"]
+- name: mbedtls_sha256
+  condition: ["sl_si91x_lwip_stack"]
+- name: mbedtls_sha1
+  condition: ["sl_si91x_lwip_stack"]
+- name: mbedtls_sha384
+  condition: ["sl_si91x_lwip_stack"]
+- name: mbedtls_debug
+  condition: ["sl_si91x_lwip_stack"]
+- name: mbedtls_error
+  condition: ["sl_si91x_lwip_stack"]
+- name: psa_its
+  condition: ["sl_si91x_lwip_stack"]
+- name: mbedtls_ecdhe_key_exchange
+  condition: ["sl_si91x_lwip_stack"]
+- name: mbedtls_config
+  condition: ["sl_si91x_lwip_stack"]
+
+define:
+  - name: MBEDTLS_CONFIG_FILE
+    value: <sli_aws_iot_mbedtls_config.h>
+    condition: ["sl_si91x_lwip_stack"]
+  - name: MBEDTLS_SSL_ALPN
+    condition: ["sl_si91x_lwip_stack"]
+  - name: MBEDTLS_ENTROPY_MIN_HARDWARE
+    value: '128'
+    condition: ["sl_si91x_lwip_stack"]

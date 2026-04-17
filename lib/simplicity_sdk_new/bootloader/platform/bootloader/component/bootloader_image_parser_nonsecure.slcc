@@ -1,0 +1,17 @@
+id: bootloader_image_parser_nonsecure
+label: Image Parser (Non-Secure)
+package: bootloader
+description: >
+  The Bootloader Image Parser (Non-Secure) component supports parsing GBL files based on the GBL file format specification.
+category: Platform|Bootloader|TrustZone NonSecure|Core
+quality: production
+source:
+  # NS interface
+- path: platform/bootloader/parser/gbl/btl_gbl_parser_ns.c
+provides:
+- name: bootloader_image_parser
+- name: bootloader_image_parser_nonsecure
+metadata:
+  sbom:
+    license: MSLA
+root_path: bootloader

@@ -1,0 +1,2710 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__connection" kind="group">
+    <compoundname>sl_bt_connection</compoundname>
+    <title>Connection</title>
+    <innergroup refid="group__sl__bt__connection__rssi__const">RSSI Value Constants</innergroup>
+    <innergroup refid="group__sl__bt__connection__tx__power__const">Transmit Power Reporting Constants</innergroup>
+    <innergroup refid="group__sl__bt__evt__connection__opened">sl_bt_evt_connection_opened</innergroup>
+    <innergroup refid="group__sl__bt__evt__connection__parameters">sl_bt_evt_connection_parameters</innergroup>
+    <innergroup refid="group__sl__bt__evt__connection__set__parameters__failed">sl_bt_evt_connection_set_parameters_failed</innergroup>
+    <innergroup refid="group__sl__bt__evt__connection__phy__status">sl_bt_evt_connection_phy_status</innergroup>
+    <innergroup refid="group__sl__bt__evt__connection__get__remote__tx__power__completed">sl_bt_evt_connection_get_remote_tx_power_completed</innergroup>
+    <innergroup refid="group__sl__bt__evt__connection__tx__power">sl_bt_evt_connection_tx_power</innergroup>
+    <innergroup refid="group__sl__bt__evt__connection__remote__tx__power">sl_bt_evt_connection_remote_tx_power</innergroup>
+    <innergroup refid="group__sl__bt__evt__connection__remote__used__features">sl_bt_evt_connection_remote_used_features</innergroup>
+    <innergroup refid="group__sl__bt__evt__connection__data__length">sl_bt_evt_connection_data_length</innergroup>
+    <innergroup refid="group__sl__bt__evt__connection__statistics">sl_bt_evt_connection_statistics</innergroup>
+    <innergroup refid="group__sl__bt__evt__connection__request__subrate__failed">sl_bt_evt_connection_request_subrate_failed</innergroup>
+    <innergroup refid="group__sl__bt__evt__connection__subrate__changed">sl_bt_evt_connection_subrate_changed</innergroup>
+    <innergroup refid="group__sl__bt__evt__connection__channel__classification">sl_bt_evt_connection_channel_classification</innergroup>
+    <innergroup refid="group__sl__bt__evt__connection__closed">sl_bt_evt_connection_closed</innergroup>
+      <sectiondef kind="enum">
+      <memberdef kind="enum" id="group__sl__bt__connection_1gab7587d83e86c8d88ecd98f7d20af9ab6" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_bt_connection_role_t</name>
+        <enumvalue id="group__sl__bt__connection_1ggab7587d83e86c8d88ecd98f7d20af9ab6a4ef4abde4e72cb4a362bb7092c8b79f4" prot="public">
+          <name>sl_bt_connection_role_peripheral</name>
+          <initializer>= 0x0</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x0) The Peripheral role </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__connection_1ggab7587d83e86c8d88ecd98f7d20af9ab6a744e83e3bb7190bdea0cf752b528cfd9" prot="public">
+          <name>sl_bt_connection_role_central</name>
+          <initializer>= 0x1</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x1) The Central role </para>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>Types of device roles in a Bluetooth connection. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6271" column="1" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6272" bodyend="6275"/>
+      </memberdef>
+      <memberdef kind="enum" id="group__sl__bt__connection_1ga0bcac2d0bd0f1beb06e5af863a66382d" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_bt_connection_state_t</name>
+        <enumvalue id="group__sl__bt__connection_1gga0bcac2d0bd0f1beb06e5af863a66382dae69003e850dc19a76b228bb2ac2d3e49" prot="public">
+          <name>sl_bt_connection_state_closed</name>
+          <initializer>= 0x0</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x0) Connection closed </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__connection_1gga0bcac2d0bd0f1beb06e5af863a66382daed365c2d6e36b148e56992852e786e2f" prot="public">
+          <name>sl_bt_connection_state_closing</name>
+          <initializer>= 0x1</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x1) Connection is being closed </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__connection_1gga0bcac2d0bd0f1beb06e5af863a66382da1d74a7568eff2e0894b542d1baafcef6" prot="public">
+          <name>sl_bt_connection_state_open</name>
+          <initializer>= 0x2</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x2) Connection open </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__connection_1gga0bcac2d0bd0f1beb06e5af863a66382dab83119a70fbbc224ca65bd6ca1602c48" prot="public">
+          <name>sl_bt_connection_state_opening</name>
+          <initializer>= 0x3</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x3) Connection is being opened </para>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>Connection states. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6280" column="1" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6281" bodyend="6286"/>
+      </memberdef>
+      <memberdef kind="enum" id="group__sl__bt__connection_1gaa978c6a4744e442da21c790679af4eae" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_bt_connection_security_t</name>
+        <enumvalue id="group__sl__bt__connection_1ggaa978c6a4744e442da21c790679af4eaea048c2dcf4e5b707bbdb22f97395f1be9" prot="public">
+          <name>sl_bt_connection_mode1_level1</name>
+          <initializer>= 0x0</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x0) No security </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__connection_1ggaa978c6a4744e442da21c790679af4eaea4804c8d4c42f24c9133622678868feb4" prot="public">
+          <name>sl_bt_connection_mode1_level2</name>
+          <initializer>= 0x1</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x1) Unauthenticated pairing with encryption </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__connection_1ggaa978c6a4744e442da21c790679af4eaea908c437f430f6447244654ee94959dc4" prot="public">
+          <name>sl_bt_connection_mode1_level3</name>
+          <initializer>= 0x2</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x2) Authenticated pairing with encryption </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__connection_1ggaa978c6a4744e442da21c790679af4eaea2d9c2b4bb82bab1213dc99c8def2fdb6" prot="public">
+          <name>sl_bt_connection_mode1_level4</name>
+          <initializer>= 0x3</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x3) Authenticated Secure Connections pairing with encryption using a 128-bit strength encryption key </para>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>Indicate the Bluetooth Security Mode. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6291" column="1" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6292" bodyend="6302"/>
+      </memberdef>
+      <memberdef kind="enum" id="group__sl__bt__connection_1gaaac541dbe1a895990b3e8d2793107d0e" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_bt_connection_power_reporting_mode_t</name>
+        <enumvalue id="group__sl__bt__connection_1ggaaac541dbe1a895990b3e8d2793107d0ea628e810e6741584889f9d95e6961df1c" prot="public">
+          <name>sl_bt_connection_power_reporting_disable</name>
+          <initializer>= 0x0</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x0) Disable transmit power reporting </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__connection_1ggaaac541dbe1a895990b3e8d2793107d0ea8695f2a618e4c1622dc7321e99d6bd74" prot="public">
+          <name>sl_bt_connection_power_reporting_enable</name>
+          <initializer>= 0x1</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x1) Enable transmit power reporting </para>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>These values define transmit power reporting modes in LE power control. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6308" column="1" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6309" bodyend="6314"/>
+      </memberdef>
+      <memberdef kind="enum" id="group__sl__bt__connection_1ga817c9d6f24d206939cbd02f82c1313a7" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_bt_connection_tx_power_flag_t</name>
+        <enumvalue id="group__sl__bt__connection_1gga817c9d6f24d206939cbd02f82c1313a7ad0d94bb3a1b858bf228cd4e7b134939f" prot="public">
+          <name>sl_bt_connection_tx_power_flag_none</name>
+          <initializer>= 0x0</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x0) No flag is defined for the reported TX power level </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__connection_1gga817c9d6f24d206939cbd02f82c1313a7a731463b7b8e51685b9218b433e142188" prot="public">
+          <name>sl_bt_connection_tx_power_at_minimum</name>
+          <initializer>= 0x1</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x1) Transmit power level is at minimum level. </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__sl__bt__connection_1gga817c9d6f24d206939cbd02f82c1313a7a249bb5e36ec28c4bab0d6e273e09dbbe" prot="public">
+          <name>sl_bt_connection_tx_power_at_maximum</name>
+          <initializer>= 0x2</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+<para>(0x2) Transmit power level is at maximum level. </para>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>This enum defines the flag values for a reported transmit power level. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6319" column="1" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6320" bodyend="6327"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="group__sl__bt__connection_1gac2453ab6efcbfc71b3bb23b3fffce1df" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_connection_set_default_parameters</definition>
+        <argsstring>(uint16_t min_interval, uint16_t max_interval, uint16_t latency, uint16_t timeout, uint16_t min_ce_length, uint16_t max_ce_length)</argsstring>
+        <name>sl_bt_connection_set_default_parameters</name>
+        <param>
+          <type>uint16_t</type>
+          <declname>min_interval</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>max_interval</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>latency</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>timeout</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>min_ce_length</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>max_ce_length</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Set default Bluetooth connection parameters. The values are valid for all subsequent connections initiated by this device.</para>
+<para><computeroutput>min_ce_length</computeroutput> and <computeroutput>max_ce_length</computeroutput> specify the preference of the connection event length so that the Link Layer can prioritize tasks accordingly in simultaneous connections, or scanning and so on. A connection event starts at an anchor point of a connection interval and lasts until the lesser of <computeroutput>max_ce_length</computeroutput> and the actual connection interval. Packets that do not fit into the connection event will be sent in the next connection interval.</para>
+<para>To change parameters of an already established connection, use the command <ref refid="group__sl__bt__connection_1ga322a5f4020bef878c5fb309371d1f867" kindref="member">sl_bt_connection_set_parameters</ref>.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">min_interval</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>Minimum value for the connection event interval. This must be set less than or equal to <computeroutput>max_interval</computeroutput>.<itemizedlist>
+<listitem><para><bold>Range:</bold> 0x0006 to 0x0c80</para>
+</listitem><listitem><para>Time = Value x 1.25 ms</para>
+</listitem><listitem><para>Time Range: 7.5 ms to 4 s</para>
+</listitem><listitem><para><bold>Default</bold> : 20 ms </para>
+</listitem></itemizedlist>
+</para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">max_interval</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>Maximum value for the connection event interval. This must be set greater than or equal to <computeroutput>min_interval</computeroutput>.<itemizedlist>
+<listitem><para><bold>Range:</bold> 0x0006 to 0x0c80</para>
+</listitem><listitem><para>Time = Value x 1.25 ms</para>
+</listitem><listitem><para>Time Range: 7.5 ms to 4 s</para>
+</listitem><listitem><para><bold>Default</bold> : 50 ms </para>
+</listitem></itemizedlist>
+</para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">latency</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>Peripheral latency, which defines how many connection intervals the peripheral can skip if it has no data to send<itemizedlist>
+<listitem><para><bold>Range:</bold> 0x0000 to 0x01f3</para>
+</listitem><listitem><para><bold>Default</bold> : 0 </para>
+</listitem></itemizedlist>
+</para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">timeout</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>Supervision timeout, which defines the time that the connection is maintained although the devices can&apos;t communicate at the currently configured connection intervals.<itemizedlist>
+<listitem><para><bold>Range:</bold> 0x000a to 0x0c80</para>
+</listitem><listitem><para>Time = Value x 10 ms</para>
+</listitem><listitem><para>Time Range: 100 ms to 32 s</para>
+</listitem><listitem><para>The value in milliseconds must be larger than (1 + <computeroutput>latency</computeroutput>) * <computeroutput>max_interval</computeroutput> * 2, where <computeroutput>max_interval</computeroutput> is given in milliseconds</para>
+</listitem></itemizedlist>
+</para>
+<para>Set the supervision timeout at a value which allows communication attempts over at least a few connection intervals.<itemizedlist>
+<listitem><para><bold>Default</bold> : 1000 ms </para>
+</listitem></itemizedlist>
+</para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">min_ce_length</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>Minimum length of the connection event. It must be less than or equal to <computeroutput>max_ce_length</computeroutput>.</para>
+<para>This value defines the minimum time that should be given to the connection event in a situation where other tasks need to run immediately after the connection event. When the value is very small, the connection event still has at least one TX/RX operation. If this value is increased, more time is reserved for the connection event so it can transmit and receive more packets in a connection interval.</para>
+<para>Use the default value if the application doesn&apos;t care about the connection event length or doesn&apos;t want to do fine tuning.</para>
+<para><itemizedlist>
+<listitem><para>Time = Value x 0.625 ms</para>
+</listitem><listitem><para><bold>Range:</bold> 0x0000 to 0xffff</para>
+</listitem><listitem><para><bold>Default</bold> : 0x0000 </para>
+</listitem></itemizedlist>
+</para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">max_ce_length</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>Maximum length of the connection event. It must be greater than or equal to <computeroutput>min_ce_length</computeroutput>.</para>
+<para>This value is used for limiting the connection event length so that a connection that has large amounts of data to transmit or receive doesn&apos;t block other tasks. Limiting the connection event is a hard stop. If there is no enough time to send or receive a packet, the connection event will be closed.</para>
+<para>If the value is set to 0, the connection event still has at least one TX/RX operation. This is useful to limit power consumption or leave more time to other tasks.</para>
+<para>Use the default value if the application doesn&apos;t care about the connection event length or doesn&apos;t want to do fine tuning.<itemizedlist>
+<listitem><para>Time = Value x 0.625 ms</para>
+</listitem><listitem><para><bold>Range:</bold> 0x0000 to 0xffff</para>
+</listitem><listitem><para><bold>Default</bold> : 0xffff </para>
+</listitem></itemizedlist>
+</para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+<para><simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="7103" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="7103" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__connection_1gaff87bb1575d6eed0271deed1eb81d92b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_connection_set_default_preferred_phy</definition>
+        <argsstring>(uint8_t preferred_phy, uint8_t accepted_phy)</argsstring>
+        <name>sl_bt_connection_set_default_preferred_phy</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>preferred_phy</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>accepted_phy</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Set default preferred and accepted PHYs. PHY settings will be used for all subsequent connections. Non-preferred PHY can also be set if the remote device does not accept any of the preferred PHYs.</para>
+<para>The parameter <computeroutput>accepted_phy</computeroutput> is used to specify PHYs that the stack can accept in a remotely-initiated PHY update request. A PHY update will not happen if none of the accepted PHYs are present in the request.</para>
+<para><bold>NOTE:</bold> 2M and Coded PHYs are not supported by all devices.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">preferred_phy</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>Preferred PHYs. This parameter is a bitfield and multiple PHYs can be set.<itemizedlist>
+<listitem><para><bold>0x01:</bold> 1M PHY</para>
+</listitem><listitem><para><bold>0x02:</bold> 2M PHY</para>
+</listitem><listitem><para><bold>0x04:</bold> Coded PHY</para>
+</listitem><listitem><para><bold>0xff:</bold> Any PHYs</para>
+</listitem></itemizedlist>
+</para>
+<para>Default: 0xff (no preference) </para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">accepted_phy</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>Accepted PHYs in remotely-initiated PHY update request. This parameter is a bitfield and multiple PHYs can be set.<itemizedlist>
+<listitem><para><bold>0x01:</bold> 1M PHY</para>
+</listitem><listitem><para><bold>0x02:</bold> 2M PHY</para>
+</listitem><listitem><para><bold>0x04:</bold> Coded PHY</para>
+</listitem><listitem><para><bold>0xff:</bold> Any PHYs</para>
+</listitem></itemizedlist>
+</para>
+<para>Default: 0xff (all PHYs accepted) </para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+<para><simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="7145" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="7145" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__connection_1gaca398cb0f6e16c552cb54f557cd6417a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_connection_set_default_data_length</definition>
+        <argsstring>(uint16_t tx_data_len)</argsstring>
+        <name>sl_bt_connection_set_default_data_length</name>
+        <param>
+          <type>uint16_t</type>
+          <declname>tx_data_len</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Set the default preferred maximum TX payload length to be used for new connections.</para>
+<para>When a connection is open, the maximum TX payload length is 27. Either device could initiate a data length update procedure and event <ref refid="group__sl__bt__evt__connection__data__length" kindref="compound">sl_bt_evt_connection_data_length</ref> is generated when the data length has been changed on the connection.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">tx_data_len</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>Preferred maximum payload octets of a packet that the local Controller will send</para>
+<para><itemizedlist>
+<listitem><para><bold>Range:</bold> 0x001B to 0x00FB</para>
+</listitem><listitem><para><bold>Default</bold> : 251 </para>
+</listitem></itemizedlist>
+</para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+<para><simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="7170" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="7170" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__connection_1ga362f7be2dd9780113826ccc59323bf53" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_connection_set_default_acceptable_subrate</definition>
+        <argsstring>(uint16_t min_subrate, uint16_t max_subrate, uint16_t max_latency, uint16_t continuation_number, uint16_t max_timeout)</argsstring>
+        <name>sl_bt_connection_set_default_acceptable_subrate</name>
+        <param>
+          <type>uint16_t</type>
+          <declname>min_subrate</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>max_subrate</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>max_latency</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>continuation_number</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>max_timeout</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Set the default acceptable parameters for subrating requests made by the peripheral on future ACL connections where this device is the central. The application must include the Connection Subrating feature (bluetooth_feature_connection_subrating) in order to use this command.</para>
+<para>When a connection is established, central will store these values to determine if future subrate requests from the peripheral are acceptable. Peripheral may store it&apos;s own set of parameters independently but they will not be used in that role. Running this command has no effect on connections that are already active, instead to change the stored acceptable values, use the command <ref refid="group__sl__bt__connection_1ga58d82e8cfee3a03a27bea0d6c31b3c60" kindref="member">sl_bt_connection_request_subrate</ref> on the central device.</para>
+<para>Subrating is not automatically enabled on new a connection. Use the command <ref refid="group__sl__bt__connection_1ga58d82e8cfee3a03a27bea0d6c31b3c60" kindref="member">sl_bt_connection_request_subrate</ref> to set the subrate parameters and enable subrating of a specific connection.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">min_subrate</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>Minimum subrate factor allowed in requests by a peripheral. This parameter must be set to less or equal to <computeroutput>max_subrate</computeroutput>.<itemizedlist>
+<listitem><para><bold>Range:</bold> 1 to 500</para>
+</listitem><listitem><para><bold>Default</bold> : 1 </para>
+</listitem></itemizedlist>
+</para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">max_subrate</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>Maximum subrate factor allowed in requests by a peripheral. This parameter must be set greater or equal to <computeroutput>min_subrate</computeroutput>.<itemizedlist>
+<listitem><para><bold>Range:</bold> 1 to 500</para>
+</listitem><listitem><para><bold>Default</bold> : 1 </para>
+</listitem></itemizedlist>
+</para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">max_latency</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>Maximum Peripheral latency allowed in requests, in units of subrated connection intervals. The result of (<computeroutput>max_latency</computeroutput> + 1) x <computeroutput>max_subrate</computeroutput> must be less than or equal to 500.<itemizedlist>
+<listitem><para><bold>Range:</bold> 0 to 499</para>
+</listitem><listitem><para><bold>Default</bold> : 0 </para>
+</listitem></itemizedlist>
+</para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">continuation_number</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>Minimum number of underlying connection events to remain active after a packet containing a Controller PDU with a non-zero Length field is sent or received in requests by a peripheral. This number must be set to be smaller than <computeroutput>max_subrate</computeroutput>.<itemizedlist>
+<listitem><para><bold>Range:</bold> 0 to 499</para>
+</listitem><listitem><para><bold>Default</bold> : 0 </para>
+</listitem></itemizedlist>
+</para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">max_timeout</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>Maximum supervision timeout allowed in requests by a peripheral.<itemizedlist>
+<listitem><para><bold>Range:</bold> 10 (100 ms) to 3200 (32 s)</para>
+</listitem><listitem><para>Time = Value x 10 ms</para>
+</listitem><listitem><para>Time Range: 100 ms to 32 s</para>
+</listitem><listitem><para><bold>Default</bold> : 10 (100 ms) </para>
+</listitem></itemizedlist>
+</para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+<para><simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="7234" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="7234" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__connection_1gabb952445e50f64228b279fe9969001fe" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_connection_open</definition>
+        <argsstring>(bd_addr address, uint8_t address_type, uint8_t initiating_phy, uint8_t *connection)</argsstring>
+        <name>sl_bt_connection_open</name>
+        <param>
+          <type><ref refid="structbd__addr" kindref="compound">bd_addr</ref></type>
+          <declname>address</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>address_type</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>initiating_phy</declname>
+        </param>
+        <param>
+          <type>uint8_t *</type>
+          <declname>connection</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Connect to an advertising device with the specified initiating PHY on which connectable advertisements on primary advertising channels are received. The Bluetooth stack will enter a state where it continuously scans for the connectable advertising packets from the remote device, which matches the Bluetooth address given as a parameter. Scan parameters set in <ref refid="group__sl__bt__scanner_1ga99c05204881bd06221cebf3ef7b60532" kindref="member">sl_bt_scanner_set_parameters</ref> are used in this operation. Upon receiving the advertising packet, the module will send a connection request packet to the target device to initiate a Bluetooth connection. To cancel an ongoing connection process, use <ref refid="group__sl__bt__connection_1ga7f55470c777dd3c65617d9493ea595c7" kindref="member">sl_bt_connection_close</ref> command with the handle received in response from this command.</para>
+<para>A connection is opened in no-security mode. If the GATT client needs to read or write the attributes on GATT server requiring encryption or authentication, it must first encrypt the connection using an appropriate authentication method.</para>
+<para>If a connection can&apos;t be established, for example, the remote device has gone out of range, has entered into deep sleep, or is not advertising, the stack will try to connect forever. In this case, the application will not get an event related to the connection request. To recover from this situation, the application can implement a timeout and call <ref refid="group__sl__bt__connection_1ga7f55470c777dd3c65617d9493ea595c7" kindref="member">sl_bt_connection_close</ref> to cancel the connection request.</para>
+<para>This command fails with the connection limit exceeded error if the number of connections attempted exceeds the configured MAX_CONNECTIONS value.</para>
+<para>This command fails with the invalid parameter error if the initiating PHY value is invalid or the device does not support PHY.</para>
+<para>Subsequent calls of this command have to wait for the ongoing command to complete. A received event <ref refid="group__sl__bt__evt__connection__opened" kindref="compound">sl_bt_evt_connection_opened</ref> indicates that the connection opened successfully and a received event <ref refid="group__sl__bt__evt__connection__closed" kindref="compound">sl_bt_evt_connection_closed</ref> indicates that connection failures have occurred.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">address</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Address of the device to connect to </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">address_type</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Enum <ref refid="group__sl__bt__gap_1gac8d5431d3062e47c5d51b9fb9f36c104" kindref="member">sl_bt_gap_address_type_t</ref>. Address type of the device to connect to. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_gap_public_address (0x0):</bold> Public device address</para>
+</listitem><listitem><para><bold>sl_bt_gap_static_address (0x1):</bold> Static device address</para>
+</listitem><listitem><para><bold>sl_bt_gap_random_resolvable_address (0x2):</bold> Resolvable private random address</para>
+</listitem><listitem><para><bold>sl_bt_gap_random_nonresolvable_address (0x3):</bold> Non-resolvable private random address</para>
+</listitem><listitem><para><bold>sl_bt_gap_public_address_resolved_from_rpa (0x4):</bold> Public identity address resolved from a resolvable private address (RPA)</para>
+</listitem><listitem><para><bold>sl_bt_gap_static_address_resolved_from_rpa (0x5):</bold> Static identity address resolved from a resolvable private address (RPA) </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">initiating_phy</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Enum <ref refid="group__sl__bt__gap_1ga05ce4496a6f87de7c67a9e32d816727c" kindref="member">sl_bt_gap_phy_t</ref>. The initiating PHY. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_gap_phy_1m (0x1):</bold> 1M PHY</para>
+</listitem><listitem><para><bold>sl_bt_gap_phy_coded (0x4):</bold> Coded PHY, 125k (S=8) or 500k (S=2) </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">connection</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Handle that will be assigned to the connection after the connection is established. This handle is valid only if the result code of this response is 0 (zero).</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise.</para>
+</simplesect>
+<bold>Events</bold> <itemizedlist>
+<listitem><para><ref refid="group__sl__bt__evt__connection__opened" kindref="compound">sl_bt_evt_connection_opened</ref> - This event is triggered after the connection is opened and indicates whether the devices are already bonded and the role of the device in this connection.</para>
+</listitem><listitem><para><ref refid="group__sl__bt__evt__connection__parameters" kindref="compound">sl_bt_evt_connection_parameters</ref> - This event indicates the connection parameters and security mode of the connection. </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="7307" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="7307" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__connection_1ga3db044fa811b54e9cc5265a647ddcfb0" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_connection_open_with_accept_list</definition>
+        <argsstring>(uint8_t initiating_phy, uint8_t *connection)</argsstring>
+        <name>sl_bt_connection_open_with_accept_list</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>initiating_phy</declname>
+        </param>
+        <param>
+          <type>uint8_t *</type>
+          <declname>connection</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Connect to any device in the Filter Accept List, which enables the Auto Connection Establishment procedure on the local controller. The behavior of this command is the same as <ref refid="group__sl__bt__connection_1gabb952445e50f64228b279fe9969001fe" kindref="member">sl_bt_connection_open</ref>. The only difference is that <ref refid="group__sl__bt__connection_1gabb952445e50f64228b279fe9969001fe" kindref="member">sl_bt_connection_open</ref> opens a connection to a given peer device address.</para>
+<para>See <ref refid="group__sl__bt__connection_1gabb952445e50f64228b279fe9969001fe" kindref="member">sl_bt_connection_open</ref> for more details.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">initiating_phy</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Enum <ref refid="group__sl__bt__gap_1ga05ce4496a6f87de7c67a9e32d816727c" kindref="member">sl_bt_gap_phy_t</ref>. The initiating PHY. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_gap_phy_1m (0x1):</bold> 1M PHY</para>
+</listitem><listitem><para><bold>sl_bt_gap_phy_coded (0x4):</bold> Coded PHY, 125k (S=8) or 500k (S=2) </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">connection</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Handle that will be assigned to the connection after the connection is established. This handle is valid only if the result code of this response is 0 (zero).</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise.</para>
+</simplesect>
+<bold>Events</bold> <itemizedlist>
+<listitem><para><ref refid="group__sl__bt__evt__connection__opened" kindref="compound">sl_bt_evt_connection_opened</ref> - This event is triggered after the connection is opened and indicates whether the devices are already bonded and the role of the device in this connection.</para>
+</listitem><listitem><para><ref refid="group__sl__bt__evt__connection__parameters" kindref="compound">sl_bt_evt_connection_parameters</ref> - This event indicates the connection parameters and security mode of the connection. </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="7340" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="7340" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__connection_1ga322a5f4020bef878c5fb309371d1f867" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_connection_set_parameters</definition>
+        <argsstring>(uint8_t connection, uint16_t min_interval, uint16_t max_interval, uint16_t latency, uint16_t timeout, uint16_t min_ce_length, uint16_t max_ce_length)</argsstring>
+        <name>sl_bt_connection_set_parameters</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>connection</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>min_interval</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>max_interval</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>latency</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>timeout</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>min_ce_length</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>max_ce_length</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Request a change in the connection parameters of a Bluetooth connection.<itemizedlist>
+<listitem><para>On the central device the HCI LE Connection Update command is used to update the parameters.</para>
+</listitem><listitem><para>On the peripheral device an L2CAP connection parameter update request is sent to the peer device to update the parameters.</para>
+</listitem></itemizedlist>
+</para>
+<para><computeroutput>min_ce_length</computeroutput> and <computeroutput>max_ce_length</computeroutput> specify the preference of the connection event length so that the Link Layer can prioritize tasks accordingly in simultaneous connections, or scanning and so on. A connection event starts at an anchor point of a connection interval and lasts until the lesser of <computeroutput>max_ce_length</computeroutput> and the actual connection interval. Packets that do not fit into the connection event will be sent in the next connection interval.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">connection</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Connection Handle </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">min_interval</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>Minimum value for the connection event interval. This must be set less than or equal to <computeroutput>max_interval</computeroutput>.<itemizedlist>
+<listitem><para><bold>Range:</bold> 0x0006 to 0x0c80</para>
+</listitem><listitem><para>Time = Value x 1.25 ms</para>
+</listitem><listitem><para>Time Range: 7.5 ms to 4 s </para>
+</listitem></itemizedlist>
+</para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">max_interval</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>Maximum value for the connection event interval. This must be set greater than or equal to <computeroutput>min_interval</computeroutput>.<itemizedlist>
+<listitem><para><bold>Range:</bold> 0x0006 to 0x0c80</para>
+</listitem><listitem><para>Time = Value x 1.25 ms</para>
+</listitem><listitem><para>Time Range: 7.5 ms to 4 s </para>
+</listitem></itemizedlist>
+</para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">latency</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Peripheral latency, which defines how many connection intervals the peripheral can skip if it has no data to send<itemizedlist>
+<listitem><para><bold>Range:</bold> 0x0000 to 0x01f3 </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">timeout</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>Supervision timeout, which defines the time that the connection is maintained although the devices can&apos;t communicate at the currently configured connection intervals.<itemizedlist>
+<listitem><para><bold>Range:</bold> 0x000a to 0x0c80</para>
+</listitem><listitem><para>Time = Value x 10 ms</para>
+</listitem><listitem><para>Time Range: 100 ms to 32 s</para>
+</listitem><listitem><para>The value in milliseconds must be larger than (1 + <computeroutput>latency</computeroutput>) * <computeroutput>max_interval</computeroutput> * 2, where <computeroutput>max_interval</computeroutput> is given in milliseconds</para>
+</listitem></itemizedlist>
+</para>
+<para>Set the supervision timeout at a value which allows communication attempts over at least a few connection intervals. </para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">min_ce_length</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>Minimum length of the connection event. It must be less than or equal to <computeroutput>max_ce_length</computeroutput>.</para>
+<para>This value defines the minimum time that should be given to the connection event in a situation where other tasks need to run immediately after the connection event. When the value is very small, the connection event still has at least one TX/RX operation. If this value is increased, more time is reserved for the connection event so it can transmit and receive more packets in a connection interval.</para>
+<para>Use value 0x0000 if the application doesn&apos;t care about the connection event length or doesn&apos;t want to do fine tuning.</para>
+<para><itemizedlist>
+<listitem><para>Time = Value x 0.625 ms</para>
+</listitem><listitem><para><bold>Range:</bold> 0x0000 to 0xffff </para>
+</listitem></itemizedlist>
+</para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">max_ce_length</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>Maximum length of the connection event. It must be greater than or equal to <computeroutput>min_ce_length</computeroutput>.</para>
+<para>This value is used for limiting the connection event length so that a connection that has large amounts of data to transmit or receive doesn&apos;t block other tasks. Limiting the connection event is a hard stop. If there is no enough time to send or receive a packet, the connection event will be closed.</para>
+<para>If the value is set to 0, the connection event still has at least one TX/RX operation. This is useful to limit power consumption or leave more time to other tasks.</para>
+<para>Use value 0xffff if the application doesn&apos;t care about the connection event length or doesn&apos;t want to do fine tuning.<itemizedlist>
+<listitem><para>Time = Value x 0.625 ms</para>
+</listitem><listitem><para><bold>Range:</bold> 0x0000 to 0xffff </para>
+</listitem></itemizedlist>
+</para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+<para><simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise.</para>
+</simplesect>
+<bold>Events</bold> <itemizedlist>
+<listitem><para><ref refid="group__sl__bt__evt__connection__parameters" kindref="compound">sl_bt_evt_connection_parameters</ref> - Triggered after new connection parameters are applied on the connection.</para>
+</listitem><listitem><para><ref refid="group__sl__bt__evt__connection__set__parameters__failed" kindref="compound">sl_bt_evt_connection_set_parameters_failed</ref> - Triggered when the peer device rejected an L2CAP connection parameter update request. </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="7441" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="7441" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__connection_1ga99cc41717415928e08b79e1cc3b1a04e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_connection_set_preferred_phy</definition>
+        <argsstring>(uint8_t connection, uint8_t preferred_phy, uint8_t accepted_phy)</argsstring>
+        <name>sl_bt_connection_set_preferred_phy</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>connection</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>preferred_phy</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>accepted_phy</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Set preferred and accepted PHYs for a given connection. Event <ref refid="group__sl__bt__evt__connection__phy__status" kindref="compound">sl_bt_evt_connection_phy_status</ref> is received when PHY update procedure is completed. Non-preferred PHY can also be set if remote device does not accept any of the preferred PHYs.</para>
+<para>The parameter <computeroutput>accepted_phy</computeroutput> is used for specifying the PHYs that the stack can accept in a remote initiated PHY update request. A PHY update will not occur if none of the accepted PHYs presents in the request.</para>
+<para><bold>NOTE:</bold> 2M and Coded PHYs are not supported by all devices.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">connection</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Connection handle </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">preferred_phy</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>Preferred PHYs. This parameter is a bitfield and multiple PHYs can be set.<itemizedlist>
+<listitem><para><bold>0x01:</bold> 1M PHY</para>
+</listitem><listitem><para><bold>0x02:</bold> 2M PHY</para>
+</listitem><listitem><para><bold>0x04:</bold> 125k Coded PHY (S=8)</para>
+</listitem><listitem><para><bold>0x08:</bold> 500k Coded PHY (S=2)</para>
+</listitem></itemizedlist>
+</para>
+<para>Default: 0xff (no preference) </para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">accepted_phy</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>Accepted PHYs in remotely-initiated PHY update requests. This parameter is a bitfield and multiple PHYs can be set.<itemizedlist>
+<listitem><para><bold>0x01:</bold> 1M PHY</para>
+</listitem><listitem><para><bold>0x02:</bold> 2M PHY</para>
+</listitem><listitem><para><bold>0x04:</bold> Coded PHY</para>
+</listitem><listitem><para><bold>0xff:</bold> Any PHYs</para>
+</listitem></itemizedlist>
+</para>
+<para>Default: 0xff (all PHYs accepted) </para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+<para><simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise.</para>
+</simplesect>
+<bold>Events</bold> <itemizedlist>
+<listitem><para><ref refid="group__sl__bt__evt__connection__phy__status" kindref="compound">sl_bt_evt_connection_phy_status</ref> </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="7489" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="7489" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__connection_1ga92c4ee2ce006445af24337077ba988e5" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_connection_disable_slave_latency</definition>
+        <argsstring>(uint8_t connection, uint8_t disable)</argsstring>
+        <name>sl_bt_connection_disable_slave_latency</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>connection</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>disable</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Temporarily enable or disable peripheral latency. Used only when Bluetooth device is acting as a peripheral. When peripheral latency is disabled, the peripheral latency connection parameter is not set to 0 but the device will wake up on every connection interval to receive and send packets.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">connection</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Connection Handle </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">disable</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>0 enable, 1 disable peripheral latency. Default: 0</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="7506" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="7506" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__connection_1ga17a52143a34b1d4b73680210b60c086b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_connection_get_median_rssi</definition>
+        <argsstring>(uint8_t connection, int8_t *rssi)</argsstring>
+        <name>sl_bt_connection_get_median_rssi</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>connection</declname>
+        </param>
+        <param>
+          <type>int8_t *</type>
+          <declname>rssi</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Get the RSSI value measured on a connection.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">connection</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Connection handle </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">rssi</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The median of the last seven measured RSSI values. Units: dBm.<itemizedlist>
+<listitem><para><bold>Range:</bold> -127 to +20</para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="7521" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="7521" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__connection_1ga13b32994ecfe0e7129182bba734ff5c4" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_connection_read_channel_map</definition>
+        <argsstring>(uint8_t connection, size_t max_channel_map_size, size_t *channel_map_len, uint8_t *channel_map)</argsstring>
+        <name>sl_bt_connection_read_channel_map</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>connection</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>max_channel_map_size</declname>
+        </param>
+        <param>
+          <type>size_t *</type>
+          <declname>channel_map_len</declname>
+        </param>
+        <param>
+          <type>uint8_t *</type>
+          <declname>channel_map</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Read channel map for a specified connection.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">connection</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Connection Handle </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">max_channel_map_size</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Size of output buffer passed in <computeroutput>channel_map</computeroutput> </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">channel_map_len</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>On return, set to the length of output data written to <computeroutput>channel_map</computeroutput> </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">channel_map</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>This parameter is 5 bytes and contains 37 1-bit fields.</para>
+<para>The nth field (in the range 0 to 36) contains the value for the link layer channel index n.</para>
+<para><itemizedlist>
+<listitem><para><bold>0:</bold> Channel n is unused.</para>
+</listitem><listitem><para><bold>1:</bold> Channel n is used.</para>
+</listitem></itemizedlist>
+</para>
+<para>The most significant bits are reserved for future use. </para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+<para><simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="7547" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="7547" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__connection_1ga609a3741e23e5ff8eaf7a4794bc1953f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_connection_set_power_reporting</definition>
+        <argsstring>(uint8_t connection, uint8_t mode)</argsstring>
+        <name>sl_bt_connection_set_power_reporting</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>connection</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>mode</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Enable or disable the transmit power reporting for the local device on a connection. When transmit power reporting is enabled, event <ref refid="group__sl__bt__evt__connection__tx__power" kindref="compound">sl_bt_evt_connection_tx_power</ref> is generated when transmit power on the local device changes.</para>
+<para>The command is a built-in feature in the stack and is supported regardless of whether the LE Power Control feature is used. By default, power reporting for local device is enabled.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">connection</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Handle of the connection </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">mode</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Enum <ref refid="group__sl__bt__connection_1gaaac541dbe1a895990b3e8d2793107d0e" kindref="member">sl_bt_connection_power_reporting_mode_t</ref>. Transmit power reporting mode. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_connection_power_reporting_disable (0x0):</bold> Disable transmit power reporting</para>
+</listitem><listitem><para><bold>sl_bt_connection_power_reporting_enable (0x1):</bold> Enable transmit power reporting</para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise.</para>
+</simplesect>
+<bold>Events</bold> <itemizedlist>
+<listitem><para><ref refid="group__sl__bt__evt__connection__tx__power" kindref="compound">sl_bt_evt_connection_tx_power</ref> </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="7577" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="7577" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__connection_1gacf6622b4231baa2c3a7bb89e2022e081" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_connection_set_remote_power_reporting</definition>
+        <argsstring>(uint8_t connection, uint8_t mode)</argsstring>
+        <name>sl_bt_connection_set_remote_power_reporting</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>connection</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>mode</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Enable or disable reporting the transmit power change on the remote device. The application must include the LE Power Control feature (bluetooth_feature_power_control) in order to use this command.</para>
+<para>When the remote transmit power reporting is enabled, event <ref refid="group__sl__bt__evt__connection__remote__tx__power" kindref="compound">sl_bt_evt_connection_remote_tx_power</ref> is generated when transmit power on the remote device changes.</para>
+<para>By default, power reporting for the remote device is disabled.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">connection</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Handle of the connection </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">mode</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Enum <ref refid="group__sl__bt__connection_1gaaac541dbe1a895990b3e8d2793107d0e" kindref="member">sl_bt_connection_power_reporting_mode_t</ref>. Transmit power reporting mode. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_connection_power_reporting_disable (0x0):</bold> Disable transmit power reporting</para>
+</listitem><listitem><para><bold>sl_bt_connection_power_reporting_enable (0x1):</bold> Enable transmit power reporting</para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise.</para>
+</simplesect>
+<bold>Events</bold> <itemizedlist>
+<listitem><para><ref refid="group__sl__bt__evt__connection__remote__tx__power" kindref="compound">sl_bt_evt_connection_remote_tx_power</ref> </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="7606" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="7606" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__connection_1ga3b6563e2c6cea4c88170a7716c30f094" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_connection_get_tx_power</definition>
+        <argsstring>(uint8_t connection, uint8_t phy, int8_t *current_level, int8_t *max_level)</argsstring>
+        <name>sl_bt_connection_get_tx_power</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>connection</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>phy</declname>
+        </param>
+        <param>
+          <type>int8_t *</type>
+          <declname>current_level</declname>
+        </param>
+        <param>
+          <type>int8_t *</type>
+          <declname>max_level</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Get the transmit power of the local device on the given connection and PHY. The application must include the LE Power Control feature (bluetooth_feature_power_control) in order to use this command.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">connection</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Handle of the connection </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">phy</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Enum <ref refid="group__sl__bt__gap_1ga1644548686ce4cbe4ff0c55b5760c24d" kindref="member">sl_bt_gap_phy_coding_t</ref>. The PHY. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_gap_phy_coding_1m_uncoded (0x1):</bold> 1M PHY</para>
+</listitem><listitem><para><bold>sl_bt_gap_phy_coding_2m_uncoded (0x2):</bold> 2M PHY</para>
+</listitem><listitem><para><bold>sl_bt_gap_phy_coding_125k_coded (0x4):</bold> 125k Coded PHY (S=8)</para>
+</listitem><listitem><para><bold>sl_bt_gap_phy_coding_500k_coded (0x8):</bold> 500k Coded PHY (S=2) </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">current_level</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>The current transmit power level in dBm of the PHY on the connection. Values:<itemizedlist>
+<listitem><para><bold>Range:</bold> -127 to +20</para>
+</listitem><listitem><para><bold><ref refid="group__sl__bt__connection__tx__power__const_1gac9f8c677a74eeba96ff3314126676696" kindref="member">SL_BT_CONNECTION_TX_POWER_UNAVAILABLE</ref> (0x7F):</bold> Transmit power level is not available. </para>
+</listitem></itemizedlist>
+</para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">max_level</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The maximum transmit power level in dBm of the PHY on the connection.<itemizedlist>
+<listitem><para><bold>Range:</bold> -127 to +20</para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="7636" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="7636" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__connection_1ga8cadd42340a29a6e76442f7b4f085617" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_connection_get_remote_tx_power</definition>
+        <argsstring>(uint8_t connection, uint8_t phy)</argsstring>
+        <name>sl_bt_connection_get_remote_tx_power</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>connection</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>phy</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Get the transmit power of the remote device on the given connection and PHY. The application must include the LE Power Control feature (bluetooth_feature_power_control) in order to use this command. Transmit power levels are returned in event <ref refid="group__sl__bt__evt__connection__get__remote__tx__power__completed" kindref="compound">sl_bt_evt_connection_get_remote_tx_power_completed</ref> after the operation completed.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">connection</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Handle of the connection </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">phy</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Enum <ref refid="group__sl__bt__gap_1ga1644548686ce4cbe4ff0c55b5760c24d" kindref="member">sl_bt_gap_phy_coding_t</ref>. The PHY. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_gap_phy_coding_1m_uncoded (0x1):</bold> 1M PHY</para>
+</listitem><listitem><para><bold>sl_bt_gap_phy_coding_2m_uncoded (0x2):</bold> 2M PHY</para>
+</listitem><listitem><para><bold>sl_bt_gap_phy_coding_125k_coded (0x4):</bold> 125k Coded PHY (S=8)</para>
+</listitem><listitem><para><bold>sl_bt_gap_phy_coding_500k_coded (0x8):</bold> 500k Coded PHY (S=2)</para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if the command is accepted. Error code otherwise.</para>
+</simplesect>
+<bold>Events</bold> <itemizedlist>
+<listitem><para><ref refid="group__sl__bt__evt__connection__get__remote__tx__power__completed" kindref="compound">sl_bt_evt_connection_get_remote_tx_power_completed</ref> </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="7663" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="7663" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__connection_1ga59392872bf8e6a72348d08222cc8017c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_connection_set_tx_power</definition>
+        <argsstring>(uint8_t connection, int16_t tx_power, int16_t *tx_power_out)</argsstring>
+        <name>sl_bt_connection_set_tx_power</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>connection</declname>
+        </param>
+        <param>
+          <type>int16_t</type>
+          <declname>tx_power</declname>
+        </param>
+        <param>
+          <type>int16_t *</type>
+          <declname>tx_power_out</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Set the transmit power of a connection. The application must include component bluetooth_feature_user_power_control in order to use this command for controlling the transmit power of the connection at application level. This command is unavailable if the standard Bluetooth feature LE power control (component bluetooth_feature_power_control) is used by the application.</para>
+<para>The actual selected power level is returned from this command. The value may be different than the requested one because of system-wide TX power setting by the application, Bluetooth feature restrictions, or radio characteristics.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">connection</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The connection handle </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">tx_power</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The requested TX power. Unit: 0.1 dBm </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">tx_power_out</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The selected TX power. Unit: 0.1 dBm</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="7686" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="7686" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__connection_1gaa893d35e613cedf7f18971e98890757b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_connection_read_remote_used_features</definition>
+        <argsstring>(uint8_t connection)</argsstring>
+        <name>sl_bt_connection_read_remote_used_features</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>connection</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Read link layer features supported by the remote device.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">connection</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Connection Handle</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise.</para>
+</simplesect>
+<bold>Events</bold> <itemizedlist>
+<listitem><para><ref refid="group__sl__bt__evt__connection__remote__used__features" kindref="compound">sl_bt_evt_connection_remote_used_features</ref> </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="7702" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="7702" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__connection_1ga0e23529a980e102d2ca3ec7582e0b7ff" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_connection_get_security_status</definition>
+        <argsstring>(uint8_t connection, uint8_t *security_mode, uint8_t *key_size, uint8_t *bonding_handle)</argsstring>
+        <name>sl_bt_connection_get_security_status</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>connection</declname>
+        </param>
+        <param>
+          <type>uint8_t *</type>
+          <declname>security_mode</declname>
+        </param>
+        <param>
+          <type>uint8_t *</type>
+          <declname>key_size</declname>
+        </param>
+        <param>
+          <type>uint8_t *</type>
+          <declname>bonding_handle</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Get the security status of the connection.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">connection</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Connection handle </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">security_mode</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Enum <ref refid="group__sl__bt__connection_1gaa978c6a4744e442da21c790679af4eae" kindref="member">sl_bt_connection_security_t</ref>. Connection security mode. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_connection_mode1_level1 (0x0):</bold> No security</para>
+</listitem><listitem><para><bold>sl_bt_connection_mode1_level2 (0x1):</bold> Unauthenticated pairing with encryption</para>
+</listitem><listitem><para><bold>sl_bt_connection_mode1_level3 (0x2):</bold> Authenticated pairing with encryption</para>
+</listitem><listitem><para><bold>sl_bt_connection_mode1_level4 (0x3):</bold> Authenticated Secure Connections pairing with encryption using a 128-bit strength encryption key </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">key_size</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The size of encryption key </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">bonding_handle</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Bonding handle. Values:<itemizedlist>
+<listitem><para><bold>SL_BT_INVALID_BONDING_HANDLE (0xff):</bold> No bonding</para>
+</listitem><listitem><para><bold>Other:</bold> Bonding handle</para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="7727" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="7727" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__connection_1ga4092b2c91f37aa4be8c9c3357cf5b20a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_connection_set_data_length</definition>
+        <argsstring>(uint8_t connection, uint16_t tx_data_len, uint16_t tx_time_us)</argsstring>
+        <name>sl_bt_connection_set_data_length</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>connection</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>tx_data_len</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>tx_time_us</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Request to update the maximum TX payload length and maximum packet TX time of a Bluetooth connection.</para>
+<para>Event <ref refid="group__sl__bt__evt__connection__data__length" kindref="compound">sl_bt_evt_connection_data_length</ref> is generated when the data length has been changed on the connection.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">connection</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Connection handle </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">tx_data_len</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>Preferred maximum payload octets of a packet that the local Controller will send</para>
+<para><itemizedlist>
+<listitem><para><bold>Range:</bold> 20 (0x1B) to 251 (0XFB) </para>
+</listitem></itemizedlist>
+</para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">tx_time_us</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>Preferred maximum TX time in microseconds that the local Controller will take to send a packet</para>
+<para><itemizedlist>
+<listitem><para><bold>Range:</bold> 328 (0x0148) to 17040 (0x4290) </para>
+</listitem></itemizedlist>
+</para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+<para><simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise.</para>
+</simplesect>
+<bold>Events</bold> <itemizedlist>
+<listitem><para><ref refid="group__sl__bt__evt__connection__data__length" kindref="compound">sl_bt_evt_connection_data_length</ref> </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="7760" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="7760" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__connection_1ga5eca2b6ff75c05e52d2595fab6e0977b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_connection_read_statistics</definition>
+        <argsstring>(uint8_t connection, uint8_t reset)</argsstring>
+        <name>sl_bt_connection_read_statistics</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>connection</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>reset</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Read the statistic values collected on the specified connection. The application must include component bluetooth_feature_connection_statistics in order to use this command. If the component is not included in the application this command returns the error SL_STATUS_NOT_AVAILABLE. If this command is called before the connection has opened, the command returns the error SL_STATUS_NOT_READY.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">connection</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The connection handle </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">reset</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Reset statistics if parameter value is not zero</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise.</para>
+</simplesect>
+<bold>Events</bold> <itemizedlist>
+<listitem><para><ref refid="group__sl__bt__evt__connection__statistics" kindref="compound">sl_bt_evt_connection_statistics</ref> - Triggered to deliver the statistic values of the connection at the time the command was issued. </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="7783" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="7783" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__connection_1gad62e5d430b422114957d0d45005cd8bb" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_connection_get_scheduling_details</definition>
+        <argsstring>(uint8_t connection, uint32_t *access_address, uint8_t *role, uint32_t *crc_init, uint16_t *interval, uint16_t *supervision_timeout, uint8_t *central_clock_accuracy, uint8_t *central_phy, uint8_t *peripheral_phy, uint8_t *channel_selection_algorithm, uint8_t *hop, sl_bt_connection_channel_map_t *channel_map, uint8_t *channel, uint16_t *event_counter, uint32_t *start_time_us)</argsstring>
+        <name>sl_bt_connection_get_scheduling_details</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>connection</declname>
+        </param>
+        <param>
+          <type>uint32_t *</type>
+          <declname>access_address</declname>
+        </param>
+        <param>
+          <type>uint8_t *</type>
+          <declname>role</declname>
+        </param>
+        <param>
+          <type>uint32_t *</type>
+          <declname>crc_init</declname>
+        </param>
+        <param>
+          <type>uint16_t *</type>
+          <declname>interval</declname>
+        </param>
+        <param>
+          <type>uint16_t *</type>
+          <declname>supervision_timeout</declname>
+        </param>
+        <param>
+          <type>uint8_t *</type>
+          <declname>central_clock_accuracy</declname>
+        </param>
+        <param>
+          <type>uint8_t *</type>
+          <declname>central_phy</declname>
+        </param>
+        <param>
+          <type>uint8_t *</type>
+          <declname>peripheral_phy</declname>
+        </param>
+        <param>
+          <type>uint8_t *</type>
+          <declname>channel_selection_algorithm</declname>
+        </param>
+        <param>
+          <type>uint8_t *</type>
+          <declname>hop</declname>
+        </param>
+        <param>
+          <type><ref refid="structsl__bt__connection__channel__map__t" kindref="compound">sl_bt_connection_channel_map_t</ref> *</type>
+          <declname>channel_map</declname>
+        </param>
+        <param>
+          <type>uint8_t *</type>
+          <declname>channel</declname>
+        </param>
+        <param>
+          <type>uint16_t *</type>
+          <declname>event_counter</declname>
+        </param>
+        <param>
+          <type>uint32_t *</type>
+          <declname>start_time_us</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Get parameters and next connection event scheduling details of a connection. Returned values from this command provide the necessary information for following the packet transmissions of the connection on an external device. Note that the stack cannot ensure a determined timing latency from the time when issuing this command to the time when another device starts to follow the connection, and the stack cannot guarantee that a scheduled connection event will always happen.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">connection</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Connection handle </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">access_address</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Access address of the connection </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">role</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Enum <ref refid="group__sl__bt__connection_1gab7587d83e86c8d88ecd98f7d20af9ab6" kindref="member">sl_bt_connection_role_t</ref>. The role the local device operates in the connection. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_connection_role_peripheral (0x0):</bold> The Peripheral role</para>
+</listitem><listitem><para><bold>sl_bt_connection_role_central (0x1):</bold> The Central role </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">crc_init</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The CRC initialization value </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">interval</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The connection interval. Time = Value x 1.25 ms </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">supervision_timeout</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The connection supervision time. Time = Value x 10 ms </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">central_clock_accuracy</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The central device&apos;s clock accuracy index value </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">central_phy</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Enum <ref refid="group__sl__bt__gap_1ga05ce4496a6f87de7c67a9e32d816727c" kindref="member">sl_bt_gap_phy_t</ref>. The PHY that the Central device is transmitting on. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_gap_phy_1m (0x1):</bold> 1M PHY</para>
+</listitem><listitem><para><bold>sl_bt_gap_phy_2m (0x2):</bold> 2M PHY</para>
+</listitem><listitem><para><bold>sl_bt_gap_phy_coded (0x4):</bold> Coded PHY, 125k (S=8) or 500k (S=2) </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">peripheral_phy</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Enum <ref refid="group__sl__bt__gap_1ga05ce4496a6f87de7c67a9e32d816727c" kindref="member">sl_bt_gap_phy_t</ref>. The PHY that the Peripheral device is transmitting on. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_gap_phy_1m (0x1):</bold> 1M PHY</para>
+</listitem><listitem><para><bold>sl_bt_gap_phy_2m (0x2):</bold> 2M PHY</para>
+</listitem><listitem><para><bold>sl_bt_gap_phy_coded (0x4):</bold> Coded PHY, 125k (S=8) or 500k (S=2) </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">channel_selection_algorithm</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Enum <ref refid="group__sl__bt__gap_1gac8f8f7951d8100e1e969cdf90127a086" kindref="member">sl_bt_gap_channel_selection_algorithm_t</ref>. The channel selection algorithm. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_gap_channel_selection_algorithm_1 (0x0):</bold> Channel selection algorithm #1</para>
+</listitem><listitem><para><bold>sl_bt_gap_channel_selection_algorithm_2 (0x1):</bold> Channel selection algorithm #2 </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">hop</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The hop increment when the channel selection algorithm #1 is used on the connection. Ignore if <computeroutput>channel_selection_algorithm</computeroutput> indicates that the connection uses channel selection algorithm #2. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">channel_map</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>5 byte bit field in little endian format. Only the first 37 bits are used. Bit 0 of the first byte is channel 0, bit 0 of the second byte is channel 8, etc. Ignore bits 37-39 that are reserved for future use.</para>
+<para>A channel is unused when its bit is 0. A channel is used when its bit is 1. </para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">channel</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The data channel number that transmissions will use in the next connection event </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">event_counter</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The event counter of the next connection event </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">start_time_us</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Time in microseconds from the PROTIMER tick when the next connection event is scheduled to happen</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="7843" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="7843" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__connection_1ga177b36178d9eea5499d698847a0131ae" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_connection_get_remote_address</definition>
+        <argsstring>(uint8_t connection, bd_addr *address, uint8_t *address_type)</argsstring>
+        <name>sl_bt_connection_get_remote_address</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>connection</declname>
+        </param>
+        <param>
+          <type><ref refid="structbd__addr" kindref="compound">bd_addr</ref> *</type>
+          <declname>address</declname>
+        </param>
+        <param>
+          <type>uint8_t *</type>
+          <declname>address_type</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Get the Bluetooth address of the remote device on the given connection.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">connection</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Connection handle </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">address</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Bluetooth address of the remote device </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">address_type</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Enum <ref refid="group__sl__bt__gap_1gac8d5431d3062e47c5d51b9fb9f36c104" kindref="member">sl_bt_gap_address_type_t</ref>. Remote device address type. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_gap_public_address (0x0):</bold> Public device address</para>
+</listitem><listitem><para><bold>sl_bt_gap_static_address (0x1):</bold> Static device address</para>
+</listitem><listitem><para><bold>sl_bt_gap_random_resolvable_address (0x2):</bold> Resolvable private random address</para>
+</listitem><listitem><para><bold>sl_bt_gap_random_nonresolvable_address (0x3):</bold> Non-resolvable private random address</para>
+</listitem><listitem><para><bold>sl_bt_gap_public_address_resolved_from_rpa (0x4):</bold> Public identity address resolved from a resolvable private address (RPA)</para>
+</listitem><listitem><para><bold>sl_bt_gap_static_address_resolved_from_rpa (0x5):</bold> Static identity address resolved from a resolvable private address (RPA)</para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="7881" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="7881" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__connection_1ga58d82e8cfee3a03a27bea0d6c31b3c60" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_connection_request_subrate</definition>
+        <argsstring>(uint8_t connection, uint16_t min_subrate, uint16_t max_subrate, uint16_t max_latency, uint16_t continuation_number, uint16_t timeout)</argsstring>
+        <name>sl_bt_connection_request_subrate</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>connection</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>min_subrate</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>max_subrate</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>max_latency</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>continuation_number</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>timeout</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Request a change to the subrating factor and other parameters applied to an existing connection. The application must include the Connection Subrating feature (bluetooth_feature_connection_subrating) in order to use this command.</para>
+<para>If the local device is in the central role on this connection, this command overrides the default acceptable subrating parameters set by <ref refid="group__sl__bt__connection_1ga362f7be2dd9780113826ccc59323bf53" kindref="member">sl_bt_connection_set_default_acceptable_subrate</ref> and uses the specified subrate parameters for this connection. If the local device is in the peripheral role on this connection, this command requests a change to the parameters but they may not be accepted by the peer central device.</para>
+<para>If the connection parameters are changed (see command <ref refid="group__sl__bt__connection_1ga322a5f4020bef878c5fb309371d1f867" kindref="member">sl_bt_connection_set_parameters</ref> and event <ref refid="group__sl__bt__evt__connection__parameters" kindref="compound">sl_bt_evt_connection_parameters</ref>) after subrate parameters were successfully applied, the <computeroutput>latency</computeroutput> and <computeroutput>timeout</computeroutput> from <ref refid="group__sl__bt__evt__connection__parameters" kindref="compound">sl_bt_evt_connection_parameters</ref> take effect and the <computeroutput>subrate_factor</computeroutput> is reset to 1 and the <computeroutput>continuation_number</computeroutput> to 0 for the connection. Use this command <ref refid="group__sl__bt__connection_1ga58d82e8cfee3a03a27bea0d6c31b3c60" kindref="member">sl_bt_connection_request_subrate</ref> again after the connection parameter change to re-enable subrating.</para>
+<para>This command returns SL_STATUS_BT_CTRL_UNSUPPORTED_REMOTE_FEATURE when the device is in central role on the connection and the peripheral does not support the subrate feature.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">connection</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Connection handle </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">min_subrate</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>Minimum subrate factor to be applied to the underlying connection interval. This parameter must be set to less or equal to <computeroutput>max_subrate</computeroutput>.<itemizedlist>
+<listitem><para><bold>Range:</bold> 1 to 500</para>
+</listitem><listitem><para><bold>Default</bold> : 1 </para>
+</listitem></itemizedlist>
+</para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">max_subrate</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>Maximum subrate factor to be applied to the underlying connection interval. This parameter must be set greater or equal to <computeroutput>min_subrate</computeroutput>.<itemizedlist>
+<listitem><para><bold>Range:</bold> 1 to 500</para>
+</listitem><listitem><para><bold>Default</bold> : 1 </para>
+</listitem></itemizedlist>
+</para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">max_latency</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>Maximum Peripheral latency for the connection in units of subrated connection intervals. The result of (<computeroutput>max_latency</computeroutput> + 1) x <computeroutput>max_subrate</computeroutput> must be less than or equal to 500.<itemizedlist>
+<listitem><para><bold>Range:</bold> 0 to 499</para>
+</listitem><listitem><para><bold>Default</bold> : 0 </para>
+</listitem></itemizedlist>
+</para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">continuation_number</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>Minimum number of underlying connection events to remain active after a packet containing a Link Layer PDU with a non-zero Length field is sent or received. This number must be set to be smaller than <computeroutput>max_subrate</computeroutput>.<itemizedlist>
+<listitem><para><bold>Range:</bold> 0 to 499</para>
+</listitem><listitem><para><bold>Default</bold> : 0 </para>
+</listitem></itemizedlist>
+</para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">timeout</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>Supervision timeout, which defines the time that the connection is maintained although the devices can&apos;t communicate at the currently configured connection intervals.<itemizedlist>
+<listitem><para><bold>Range:</bold> 10 (100 ms) to 3200 (32 s)</para>
+</listitem><listitem><para><bold>Default</bold> : 10 (100 ms)</para>
+</listitem><listitem><para>Time = Value x 10 ms</para>
+</listitem><listitem><para>Time Range: 100 ms to 32 s</para>
+</listitem><listitem><para>The value in milliseconds must be larger than (1 + <computeroutput>max_latency</computeroutput>) * factor * <computeroutput>max_interval</computeroutput> * 1.25 * 2. The factor is <computeroutput>max_subrate</computeroutput> if the central requests the subrating, or <computeroutput>min_subrate</computeroutput> if the peripheral requests the subrating.</para>
+</listitem></itemizedlist>
+</para>
+<para>Set the supervision timeout at a value which allows communication attempts over at least a few connection intervals. </para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+<para><simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise.</para>
+</simplesect>
+<bold>Events</bold> <itemizedlist>
+<listitem><para><ref refid="group__sl__bt__evt__connection__subrate__changed" kindref="compound">sl_bt_evt_connection_subrate_changed</ref> - Triggered when the request to change the subrate parameters has been successfully completed.</para>
+</listitem><listitem><para><ref refid="group__sl__bt__evt__connection__request__subrate__failed" kindref="compound">sl_bt_evt_connection_request_subrate_failed</ref> - Triggered when the request to change the subrate parameters has failed. </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="7971" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="7971" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__connection_1gaef10e01345140ec150c130d17c6ab102" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_connection_get_state</definition>
+        <argsstring>(uint8_t connection, uint8_t *state)</argsstring>
+        <name>sl_bt_connection_get_state</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>connection</declname>
+        </param>
+        <param>
+          <type>uint8_t *</type>
+          <declname>state</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Get the state of the given connection.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">connection</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Connection handle </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">state</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Enum <ref refid="group__sl__bt__connection_1ga0bcac2d0bd0f1beb06e5af863a66382d" kindref="member">sl_bt_connection_state_t</ref>. State of the given connection. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_connection_state_closed (0x0):</bold> Connection closed</para>
+</listitem><listitem><para><bold>sl_bt_connection_state_closing (0x1):</bold> Connection is being closed</para>
+</listitem><listitem><para><bold>sl_bt_connection_state_open (0x2):</bold> Connection open</para>
+</listitem><listitem><para><bold>sl_bt_connection_state_opening (0x3):</bold> Connection is being opened</para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="7993" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="7993" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__connection_1ga7f55470c777dd3c65617d9493ea595c7" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_connection_close</definition>
+        <argsstring>(uint8_t connection)</argsstring>
+        <name>sl_bt_connection_close</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>connection</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Close a Bluetooth connection gracefully by performing the ACL Termination procedure or cancel an ongoing connection establishment process. The parameter is a connection handle which is reported in <ref refid="group__sl__bt__evt__connection__opened" kindref="compound">sl_bt_evt_connection_opened</ref> event or <ref refid="group__sl__bt__connection_1gabb952445e50f64228b279fe9969001fe" kindref="member">sl_bt_connection_open</ref> command response.</para>
+<para>Disconnecting a connection is an asynchronous operation. The disconnection is completed when a <ref refid="group__sl__bt__evt__connection__closed" kindref="compound">sl_bt_evt_connection_closed</ref> event for the given connection handle is received. To open a new connection to the same remote device, wait for the <ref refid="group__sl__bt__evt__connection__closed" kindref="compound">sl_bt_evt_connection_closed</ref> event and then initiate the connection.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">connection</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Handle of the connection to be closed</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise.</para>
+</simplesect>
+<bold>Events</bold> <itemizedlist>
+<listitem><para><ref refid="group__sl__bt__evt__connection__closed" kindref="compound">sl_bt_evt_connection_closed</ref> </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="8017" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="8017" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__connection_1ga6e3bebbe55844dcb63dde4ef9cc61d64" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_connection_forcefully_close</definition>
+        <argsstring>(uint8_t connection)</argsstring>
+        <name>sl_bt_connection_forcefully_close</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>connection</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Forcefully close a Bluetooth connection without performing the ACL Termination procedure. The parameter is a connection handle which is reported in <ref refid="group__sl__bt__evt__connection__opened" kindref="compound">sl_bt_evt_connection_opened</ref> event or <ref refid="group__sl__bt__connection_1gabb952445e50f64228b279fe9969001fe" kindref="member">sl_bt_connection_open</ref> command response.</para>
+<para>Closing a connection using this command could result in the observation of connection loss or supervision timeout on the remote device. Only use this command for special cases, for example, when disconnecting a connection with <ref refid="group__sl__bt__connection_1ga7f55470c777dd3c65617d9493ea595c7" kindref="member">sl_bt_connection_close</ref> did not complete in expected time period.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">connection</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Handle of the connection to be closed</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise.</para>
+</simplesect>
+<bold>Events</bold> <itemizedlist>
+<listitem><para><ref refid="group__sl__bt__evt__connection__closed" kindref="compound">sl_bt_evt_connection_closed</ref> </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="8039" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="8039" declcolumn="13"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__connection_1gab272df92c762bad1200018b16459e0c9" prot="public" static="no">
+        <name>sl_bt_cmd_connection_set_default_parameters_id</name>
+        <initializer>0x00060020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6215" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6215" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__connection_1gace21413ac481cdde8c3caff30c34bcd6" prot="public" static="no">
+        <name>sl_bt_cmd_connection_set_default_preferred_phy_id</name>
+        <initializer>0x01060020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6216" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6216" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__connection_1gac75ecc665339b72babff4ddfa4180161" prot="public" static="no">
+        <name>sl_bt_cmd_connection_set_default_data_length_id</name>
+        <initializer>0x10060020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6217" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6217" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__connection_1ga44cf34b4d7fe8f538c1949642dbccac0" prot="public" static="no">
+        <name>sl_bt_cmd_connection_set_default_acceptable_subrate_id</name>
+        <initializer>0x19060020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6218" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6218" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__connection_1ga6e784ca5d76de29af9bb409c1a396f58" prot="public" static="no">
+        <name>sl_bt_cmd_connection_open_id</name>
+        <initializer>0x04060020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6219" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6219" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__connection_1gabb2583f0d15cb9d4eb4af4c38eda1b8e" prot="public" static="no">
+        <name>sl_bt_cmd_connection_open_with_accept_list_id</name>
+        <initializer>0x16060020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6220" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6220" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__connection_1ga8e73a14265c5756f301dc709ba986717" prot="public" static="no">
+        <name>sl_bt_cmd_connection_set_parameters_id</name>
+        <initializer>0x06060020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6221" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6221" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__connection_1ga21202eaccfa9ba551fd2978ee19f179b" prot="public" static="no">
+        <name>sl_bt_cmd_connection_set_preferred_phy_id</name>
+        <initializer>0x08060020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6222" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6222" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__connection_1ga8389e4a4b5c67f1dcd30ff567af49618" prot="public" static="no">
+        <name>sl_bt_cmd_connection_disable_slave_latency_id</name>
+        <initializer>0x03060020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6223" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6223" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__connection_1ga7ea41f09b466cf82eca6bc454102e380" prot="public" static="no">
+        <name>sl_bt_cmd_connection_get_median_rssi_id</name>
+        <initializer>0x15060020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6224" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6224" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__connection_1ga0ae86d143e843c2a43ba50bce3053d5f" prot="public" static="no">
+        <name>sl_bt_cmd_connection_read_channel_map_id</name>
+        <initializer>0x07060020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6225" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6225" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__connection_1ga29a895c59d576861bcc9e3c2a2b488f9" prot="public" static="no">
+        <name>sl_bt_cmd_connection_set_power_reporting_id</name>
+        <initializer>0x09060020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6226" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6226" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__connection_1gaa513f80152b43edd9d7b81dc855c36a9" prot="public" static="no">
+        <name>sl_bt_cmd_connection_set_remote_power_reporting_id</name>
+        <initializer>0x0a060020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6227" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6227" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__connection_1gad203d7ae6a1b8cbda20254399734ba88" prot="public" static="no">
+        <name>sl_bt_cmd_connection_get_tx_power_id</name>
+        <initializer>0x0b060020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6228" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6228" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__connection_1ga384881ab1b1f6b0c3dbf3f006333aa02" prot="public" static="no">
+        <name>sl_bt_cmd_connection_get_remote_tx_power_id</name>
+        <initializer>0x0c060020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6229" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6229" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__connection_1ga7f1c29da354d2e0c1f1b2794875aae8f" prot="public" static="no">
+        <name>sl_bt_cmd_connection_set_tx_power_id</name>
+        <initializer>0x12060020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6230" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6230" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__connection_1gaccb33ecbcc2f33f035efc14dd2f88475" prot="public" static="no">
+        <name>sl_bt_cmd_connection_read_remote_used_features_id</name>
+        <initializer>0x0d060020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6231" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6231" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__connection_1gac58b55457867092667d209f2eb404406" prot="public" static="no">
+        <name>sl_bt_cmd_connection_get_security_status_id</name>
+        <initializer>0x0e060020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6232" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6232" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__connection_1ga5f3e361004e227b34bc029a6544075b8" prot="public" static="no">
+        <name>sl_bt_cmd_connection_set_data_length_id</name>
+        <initializer>0x11060020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6233" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6233" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__connection_1gac5319770a42ac52a6170b7d3423801ad" prot="public" static="no">
+        <name>sl_bt_cmd_connection_read_statistics_id</name>
+        <initializer>0x13060020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6234" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6234" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__connection_1ga950e74bc85683656c1b0bd70300aae12" prot="public" static="no">
+        <name>sl_bt_cmd_connection_get_scheduling_details_id</name>
+        <initializer>0x14060020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6235" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6235" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__connection_1gac2c72e151ed00f00b8732e8c283950d0" prot="public" static="no">
+        <name>sl_bt_cmd_connection_get_remote_address_id</name>
+        <initializer>0x17060020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6236" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6236" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__connection_1ga668a028174bb5c6068b392d161d8a4fc" prot="public" static="no">
+        <name>sl_bt_cmd_connection_request_subrate_id</name>
+        <initializer>0x1a060020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6237" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6237" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__connection_1ga308bbdbe975ce3566e8a715f9e0b1be6" prot="public" static="no">
+        <name>sl_bt_cmd_connection_get_state_id</name>
+        <initializer>0x18060020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6238" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6238" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__connection_1ga726cc237581c857fde36beea4bcb73db" prot="public" static="no">
+        <name>sl_bt_cmd_connection_close_id</name>
+        <initializer>0x05060020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6239" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6239" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__connection_1gab207806eb9895087a47e41153c44b28d" prot="public" static="no">
+        <name>sl_bt_cmd_connection_forcefully_close_id</name>
+        <initializer>0x0f060020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6240" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6240" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__connection_1gaacc641b0b48b2e40eab2ff4901631606" prot="public" static="no">
+        <name>sl_bt_rsp_connection_set_default_parameters_id</name>
+        <initializer>0x00060020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6241" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6241" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__connection_1gaf90de792aa6927a7677067b4de9133f8" prot="public" static="no">
+        <name>sl_bt_rsp_connection_set_default_preferred_phy_id</name>
+        <initializer>0x01060020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6242" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6242" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__connection_1gac270e3a164c28b2b27243aa36380a6b0" prot="public" static="no">
+        <name>sl_bt_rsp_connection_set_default_data_length_id</name>
+        <initializer>0x10060020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6243" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6243" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__connection_1gaa5af8908e78bef4ecee06647223464d3" prot="public" static="no">
+        <name>sl_bt_rsp_connection_set_default_acceptable_subrate_id</name>
+        <initializer>0x19060020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6244" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6244" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__connection_1gab273558c255946eef11e3ec360b84062" prot="public" static="no">
+        <name>sl_bt_rsp_connection_open_id</name>
+        <initializer>0x04060020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6245" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6245" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__connection_1gaab0a57c8b6e6734570cdcf1a6897e9ae" prot="public" static="no">
+        <name>sl_bt_rsp_connection_open_with_accept_list_id</name>
+        <initializer>0x16060020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6246" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6246" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__connection_1gac81a4e4aa1fd296e05bc6a5c4962ee77" prot="public" static="no">
+        <name>sl_bt_rsp_connection_set_parameters_id</name>
+        <initializer>0x06060020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6247" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6247" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__connection_1ga58213660677fa6b5e01f0d8feb47d531" prot="public" static="no">
+        <name>sl_bt_rsp_connection_set_preferred_phy_id</name>
+        <initializer>0x08060020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6248" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6248" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__connection_1ga5eef1df1d8fffc9913452def37ae1891" prot="public" static="no">
+        <name>sl_bt_rsp_connection_disable_slave_latency_id</name>
+        <initializer>0x03060020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6249" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6249" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__connection_1ga363231fac7a413a4cbb0b564c7c3f8e3" prot="public" static="no">
+        <name>sl_bt_rsp_connection_get_median_rssi_id</name>
+        <initializer>0x15060020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6250" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6250" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__connection_1gad911257a79432f555d4d39b620582b3e" prot="public" static="no">
+        <name>sl_bt_rsp_connection_read_channel_map_id</name>
+        <initializer>0x07060020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6251" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6251" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__connection_1ga0e7232d8fa5bfc3d5098b800f9a3296a" prot="public" static="no">
+        <name>sl_bt_rsp_connection_set_power_reporting_id</name>
+        <initializer>0x09060020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6252" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6252" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__connection_1gaa441dc472637b52d3339024bbc7e2c07" prot="public" static="no">
+        <name>sl_bt_rsp_connection_set_remote_power_reporting_id</name>
+        <initializer>0x0a060020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6253" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6253" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__connection_1ga423296b7fd437e5706dedccd7f9b8908" prot="public" static="no">
+        <name>sl_bt_rsp_connection_get_tx_power_id</name>
+        <initializer>0x0b060020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6254" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6254" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__connection_1ga104f98cb10fa3373fee47ce5e54b35e2" prot="public" static="no">
+        <name>sl_bt_rsp_connection_get_remote_tx_power_id</name>
+        <initializer>0x0c060020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6255" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6255" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__connection_1gad1f10fd66c6a99571e39d31c669aabd5" prot="public" static="no">
+        <name>sl_bt_rsp_connection_set_tx_power_id</name>
+        <initializer>0x12060020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6256" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6256" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__connection_1gaae12deda821ad98db69c49bb93c68d97" prot="public" static="no">
+        <name>sl_bt_rsp_connection_read_remote_used_features_id</name>
+        <initializer>0x0d060020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6257" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6257" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__connection_1ga73a2ebc39a92b4f2f6b2662ab0981493" prot="public" static="no">
+        <name>sl_bt_rsp_connection_get_security_status_id</name>
+        <initializer>0x0e060020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6258" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6258" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__connection_1ga23025f3bfa2ab2b2523986004268487a" prot="public" static="no">
+        <name>sl_bt_rsp_connection_set_data_length_id</name>
+        <initializer>0x11060020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6259" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6259" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__connection_1ga05b76dbe2d1eaa77ea2e17787c27e1a2" prot="public" static="no">
+        <name>sl_bt_rsp_connection_read_statistics_id</name>
+        <initializer>0x13060020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6260" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6260" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__connection_1gacc1eabc17ec80adb6331142135755b9d" prot="public" static="no">
+        <name>sl_bt_rsp_connection_get_scheduling_details_id</name>
+        <initializer>0x14060020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6261" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6261" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__connection_1ga615abd05765b6ef28157e6891fdd6eee" prot="public" static="no">
+        <name>sl_bt_rsp_connection_get_remote_address_id</name>
+        <initializer>0x17060020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6262" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6262" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__connection_1gaf3ff8e32bd29e616b9762705c40604bc" prot="public" static="no">
+        <name>sl_bt_rsp_connection_request_subrate_id</name>
+        <initializer>0x1a060020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6263" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6263" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__connection_1gae5e7bf99be642e883be522385c846402" prot="public" static="no">
+        <name>sl_bt_rsp_connection_get_state_id</name>
+        <initializer>0x18060020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6264" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6264" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__connection_1ga07f9bc4fa4a3c6c65a4227028e330655" prot="public" static="no">
+        <name>sl_bt_rsp_connection_close_id</name>
+        <initializer>0x05060020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6265" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6265" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__connection_1gaf70251ef96fcdc8d169d948b7bf42606" prot="public" static="no">
+        <name>sl_bt_rsp_connection_forcefully_close_id</name>
+        <initializer>0x0f060020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="6266" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="6266" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Connection. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>The commands and events in this class are related to managing connection establishment, parameter setting, and disconnection procedures. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

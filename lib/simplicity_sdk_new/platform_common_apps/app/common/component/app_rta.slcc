@@ -1,0 +1,153 @@
+id: app_rta
+label: Application Runtime Adaptor (RTA)
+package: platform_common_apps
+description: >
+  Application Runtime Adaptor (RTA) component provides runtime context for
+  application level software components.
+
+
+  The runtime context implementation is available for bare-metal, FreeRTOS
+  and Micrium OS.
+
+
+  The Application Runtime Adaptor handles task creation based on the module
+  preferences utilizing the underlying OS.
+  Provides a common API for basic internal state protection (mutexing),
+  signalling (semaphore) and queueing.
+
+
+  For bare-metal Application Runtime Adaptor provides a seamless
+  integration with the system.
+category: Application|Utility
+quality: evaluation
+metadata:
+  sbom:
+    license: Zlib
+tag:
+- Low-Code
+provides:
+- name: app_rta
+requires:
+- name: app_queue
+- name: slist
+- name: memory_manager
+- name: power_manager
+- name: sl_core
+- name: component_catalog
+root_path: platform_common_apps/app/common/util/app_rta
+include:
+- path: inc
+  file_list:
+  - path: app_rta.h
+- path: inc/rtos
+  file_list:
+  - path: app_rta_internal.h
+  - path: app_rta_runtime.h
+  - path: app_rta_list.h
+  condition:
+  - kernel
+- path: inc/bm
+  file_list:
+  - path: app_rta_internal_bm.h
+  unless:
+  - kernel
+source:
+- path: src/bm/app_rta_bm.c
+  unless:
+  - kernel
+- path: src/rtos/app_rta_rtos.c
+  condition:
+  - kernel
+- path: src/rtos/app_rta_list.c
+  condition:
+  - kernel
+- path: src/rtos/app_rta_freertos.c
+  condition:
+  - freertos
+- path: src/rtos/app_rta_micriumos.c
+  condition:
+  - micriumos_kernel
+template_file:
+- path: template/app_rta_init.c.jinja
+template_contribution:
+  # Initialization with sl_system
+- name: event_handler
+  value:
+    event: internal_app_init
+    include: app_rta_internal.h
+    handler: app_rta_internal_init
+  condition:
+  - sl_system
+  - kernel
+- name: event_handler
+  value:
+    event: internal_app_init
+    include: app_rta_internal_bm.h
+    handler: app_rta_internal_init
+  condition:
+  - sl_system
+  unless:
+  - kernel
+
+  # Initialization with sl_main
+  ## Initialization stage 1
+- name: event_handler
+  value:
+    event: internal_init_early
+    include: app_rta_internal.h
+    handler: app_rta_internal_init
+  condition:
+  - sl_main
+  - kernel
+- name: event_handler
+  value:
+    event: internal_init_early
+    include: app_rta_internal_bm.h
+    handler: app_rta_internal_init
+  condition:
+  - sl_main
+  unless:
+  - kernel
+
+  ## Initialization stage 2
+- name: event_handler
+  value:
+    event: internal_app_init
+    include: app_rta_internal.h
+    handler: app_rta_ready
+  condition:
+  - sl_main
+  - kernel
+- name: event_handler
+  value:
+    event: internal_app_init
+    include: app_rta_internal_bm.h
+    handler: app_rta_ready
+  condition:
+  - sl_main
+  unless:
+  - kernel
+
+- name: power_manager_handler
+  value:
+    event: is_ok_to_sleep
+    include: app_rta_internal_bm.h
+    handler: app_rta_is_ok_to_sleep
+  unless:
+  - kernel
+
+- name: power_manager_handler
+  value:
+    event: sleep_on_isr_exit
+    include: app_rta_internal_bm.h
+    handler: app_rta_on_isr_exit
+  unless:
+  - kernel
+
+- name: event_handler
+  value:
+    event: internal_app_process_action
+    include: app_rta_internal_bm.h
+    handler: app_rta_step
+  unless:
+  - kernel

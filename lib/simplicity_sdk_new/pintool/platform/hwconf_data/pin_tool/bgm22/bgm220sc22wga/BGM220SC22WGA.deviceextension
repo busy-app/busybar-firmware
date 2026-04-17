@@ -1,0 +1,154 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<deviceextension:DocumentRoot xmlns:deviceextension="http://www.silabs.com/ss/hwconfig/deviceextension.ecore">
+  <deviceExtension id="pin_tool.efr32.bgm22.bgm220sc22wga.extension">
+    <componentExtension componentName="TIMER0">
+      <overriddenProperties>
+        <integerProperty id="channel.count" defaultValue="3"/>
+        <stringProperty id="channel.0.name" hidden="false"/>
+        <stringProperty id="channel.1.name" hidden="false"/>
+        <stringProperty id="channel.2.name" hidden="false"/>
+        <boolProperty id="capability.32b" defaultValue="true"/>
+        <boolProperty id="capability.dti" defaultValue="true"/>
+      </overriddenProperties>
+    </componentExtension>
+    <componentExtension componentName="TIMER1">
+      <overriddenProperties>
+        <integerProperty id="channel.count" defaultValue="3"/>
+        <stringProperty id="channel.0.name" hidden="false"/>
+        <stringProperty id="channel.1.name" hidden="false"/>
+        <stringProperty id="channel.2.name" hidden="false"/>
+        <boolProperty id="capability.dti" defaultValue="true"/>
+      </overriddenProperties>
+    </componentExtension>
+    <componentExtension componentName="TIMER2">
+      <overriddenProperties>
+        <integerProperty id="channel.count" defaultValue="3"/>
+        <stringProperty id="channel.0.name" hidden="false"/>
+        <stringProperty id="channel.1.name" hidden="false"/>
+        <stringProperty id="channel.2.name" hidden="false"/>
+        <boolProperty id="capability.dti" defaultValue="true"/>
+      </overriddenProperties>
+    </componentExtension>
+    <componentExtension componentName="TIMER3">
+      <overriddenProperties>
+        <integerProperty id="channel.count" defaultValue="3"/>
+        <stringProperty id="channel.0.name" hidden="false"/>
+        <stringProperty id="channel.1.name" hidden="false"/>
+        <stringProperty id="channel.2.name" hidden="false"/>
+        <boolProperty id="capability.dti" defaultValue="true"/>
+      </overriddenProperties>
+    </componentExtension>
+    <componentExtension componentName="TIMER4">
+      <overriddenProperties>
+        <integerProperty id="channel.count" defaultValue="3"/>
+        <stringProperty id="channel.0.name" hidden="false"/>
+        <stringProperty id="channel.1.name" hidden="false"/>
+        <stringProperty id="channel.2.name" hidden="false"/>
+        <boolProperty id="capability.dti" defaultValue="true"/>
+      </overriddenProperties>
+    </componentExtension>
+    <componentExtension componentName="USART0">
+      <overriddenProperties>
+        <boolProperty id="capability.i2s" defaultValue="true"/>
+        <boolProperty id="capability.irda" defaultValue="true"/>
+      </overriddenProperties>
+    </componentExtension>
+    <componentExtension componentName="USART1">
+      <overriddenProperties>
+        <boolProperty id="capability.i2s" defaultValue="true"/>
+        <boolProperty id="capability.irda" defaultValue="true"/>
+      </overriddenProperties>
+    </componentExtension>
+    <componentExtension componentName="PA00">
+      <overriddenProperties>
+        <boolProperty id="capability.em2" defaultValue="true"/>
+      </overriddenProperties>
+    </componentExtension>
+    <componentExtension componentName="PA01">
+      <overriddenProperties>
+        <boolProperty id="capability.em2" defaultValue="true"/>
+      </overriddenProperties>
+    </componentExtension>
+    <componentExtension componentName="PA02">
+      <overriddenProperties>
+        <boolProperty id="capability.em2" defaultValue="true"/>
+      </overriddenProperties>
+    </componentExtension>
+    <componentExtension componentName="PA03">
+      <overriddenProperties>
+        <boolProperty id="capability.em2" defaultValue="true"/>
+      </overriddenProperties>
+    </componentExtension>
+    <componentExtension componentName="PA04">
+      <overriddenProperties>
+        <boolProperty id="capability.em2" defaultValue="true"/>
+      </overriddenProperties>
+    </componentExtension>
+    <componentExtension componentName="PA05">
+      <overriddenProperties>
+        <boolProperty id="capability.em4" defaultValue="true"/>
+        <boolProperty id="capability.em2" defaultValue="true"/>
+      </overriddenProperties>
+    </componentExtension>
+    <componentExtension componentName="PA06">
+      <overriddenProperties>
+        <boolProperty id="capability.em2" defaultValue="true"/>
+      </overriddenProperties>
+    </componentExtension>
+    <componentExtension componentName="PA07">
+      <overriddenProperties>
+        <boolProperty id="capability.em2" defaultValue="true"/>
+      </overriddenProperties>
+    </componentExtension>
+    <componentExtension componentName="PA08">
+      <overriddenProperties>
+        <boolProperty id="capability.em2" defaultValue="true"/>
+      </overriddenProperties>
+    </componentExtension>
+    <componentExtension componentName="PB00">
+      <overriddenProperties>
+        <boolProperty id="capability.em2" defaultValue="true"/>
+      </overriddenProperties>
+    </componentExtension>
+    <componentExtension componentName="PB01">
+      <overriddenProperties>
+        <boolProperty id="capability.em4" defaultValue="true"/>
+        <boolProperty id="capability.em2" defaultValue="true"/>
+      </overriddenProperties>
+    </componentExtension>
+    <componentExtension componentName="PB02">
+      <overriddenProperties>
+        <boolProperty id="capability.em2" defaultValue="true"/>
+      </overriddenProperties>
+    </componentExtension>
+    <componentExtension componentName="PB03">
+      <overriddenProperties>
+        <boolProperty id="capability.em4" defaultValue="true"/>
+        <boolProperty id="capability.em2" defaultValue="true"/>
+      </overriddenProperties>
+    </componentExtension>
+    <componentExtension componentName="PB04">
+      <overriddenProperties>
+        <boolProperty id="capability.em2" defaultValue="true"/>
+      </overriddenProperties>
+    </componentExtension>
+    <componentExtension componentName="PC00">
+      <overriddenProperties>
+        <boolProperty id="capability.em4" defaultValue="true"/>
+        <boolProperty id="capability.em2" defaultValue="true"/>
+      </overriddenProperties>
+    </componentExtension>
+    <componentExtension componentName="PC05">
+      <overriddenProperties>
+        <boolProperty id="capability.em4" defaultValue="true"/>
+        <boolProperty id="capability.em2" defaultValue="true"/>
+      </overriddenProperties>
+    </componentExtension>
+    <componentExtension componentName="PD02">
+      <overriddenProperties>
+        <boolProperty id="capability.em4" defaultValue="true"/>
+        <boolProperty id="capability.em2" defaultValue="true"/>
+      </overriddenProperties>
+    </componentExtension>
+  </deviceExtension>
+</deviceextension:DocumentRoot>

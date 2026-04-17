@@ -1,0 +1,28 @@
+id: sl_qei
+label: QEI
+package: platform_siwx91x
+description: >
+  The quadrature encoder interface(QEI) decodes the digital pulses from a quadrature encoder wheel to integrate position over time and determine direction of rotation. QEI is also known as a 2-channel incremental encoder, converts angular displacement into two pulse signals.These two pulses are positioned 90 degrees out of phase. By monitoring both the number of pulses and the relative phase of the two signals, the user code can track the position, direction of rotation, and velocity. 
+category: Device|Si91x|MCU|Peripheral
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: "components/device/silabs/si91x/mcu/drivers/unified_api"
+config_file:
+  - path: config/sl_si91x_qei_config.h
+    file_id: qei_config
+source:
+  - path: "src/sl_si91x_qei.c"
+include:
+  - path: "inc"
+    file_list:
+    - path: "sl_si91x_qei.h"
+provides:
+  - name: sl_qei
+requires:
+  - name: rsilib_qei
+  - name: sl_gpio
+documentation:
+    docset: wiseconnect
+    document: wiseconnect-api-reference-guide-si91x-peripherals/qei

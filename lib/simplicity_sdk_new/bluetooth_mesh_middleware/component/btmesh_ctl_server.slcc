@@ -1,0 +1,76 @@
+id: "btmesh_ctl_server"
+label: "CTL Server"
+package: bluetooth_mesh_middleware
+description: >
+  Color Tunable Lighting (CTL) Server model. Used to support the control and
+  reporting functionality of a node with a light source that is dimmable and whose
+  color temperature can be selected.
+
+  This component implements this control and reporting functionality, extending
+  on lighting server, and also provides callbacks on lighting related events.
+
+  For more details about lighting, please see Lighting Server.
+  This component is prepared for integration into SOC applications.
+
+  This is a Low-Code component. The following weak callbacks are available to
+  implement the relevant light source handling:
+
+  void sl_btmesh_lighting_level_pwm_cb(uint16_t level);
+  void sl_btmesh_lighting_color_pwm_cb(uint16_t color);
+category: "Bluetooth Mesh|Models|Lighting"
+quality: "production"
+metadata:
+  sbom:
+    license: Zlib
+root_path: "bluetooth_mesh_middleware/common/btmesh_ctl_server"
+tag:
+- Low-Code
+
+config_file:
+- path: btmesh_ctl_server.dcd
+  directory: btmeshconf
+- path: "config/sl_btmesh_ctl_server_config.h"
+source:
+- path: "sl_btmesh_ctl_signal_transition_handler.c"
+- path: "sl_btmesh_ctl_server.c"
+include:
+- path: ""
+  file_list:
+  - path: "sl_btmesh_ctl_server.h"
+  - path: "sl_btmesh_ctl_signal_transition_handler.h"
+provides:
+- name: "btmesh_ctl_server"
+requires:
+- name: "app_assert"
+- name: "app_btmesh_util"
+- name: "btmesh_stack_generic_server"
+- name: "btmesh_stack_node"
+- name: "btmesh_generic_server"
+- name: "btmesh_lighting_server"
+- name: "component_catalog"
+- name: "sl_common"
+- name: "app_timer"
+
+template_contribution:
+- name: "btmesh_on_event"
+  value:
+    include: "sl_btmesh_ctl_server.h"
+    function: "sl_btmesh_ctl_server_on_event"
+  priority: -9
+- name: btmesh_generic_handler
+  value:
+    name: ctl_server
+    count: 4
+- name: component_catalog
+  value: "btmesh_ctl_server"
+- name: "btmesh_app_node_reset"
+  value:
+    include: "sl_btmesh_ctl_server.h"
+    function: "sl_btmesh_ctl_server_on_node_reset"
+  priority: -9
+
+validation_helper:
+- path: "../../script/validation/soc_ncp_compatibility.lua"
+documentation:
+  docset: btmesh
+  document: btmesh-service-api/btmesh-ctl-server

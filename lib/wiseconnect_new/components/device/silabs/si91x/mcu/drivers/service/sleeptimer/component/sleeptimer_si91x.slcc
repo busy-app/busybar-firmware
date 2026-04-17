@@ -1,0 +1,38 @@
+id: sleeptimer_si91x
+label: Sleep Timer for Si91x
+package: platform_siwx91x
+description: >
+  The Si91x Sleeptimer  driver provides software timers and delays using a low-frequency 
+  real-time clock peripheral. Sleep Timer uses one Hardware Timer and creates multiple software timer instances.
+  Sleep Timer can be used for creating timers.
+  When you install this component, it will also be installing the Sleep timer dependency component, 
+  which is the Sleep timer driver's implementation.
+category: Device|Si91x|MCU|Service
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+component_root_path: "components/device/silabs/si91x/mcu/drivers/service/sleeptimer"
+source:
+  - path: src/sl_sleeptimer_hal_si91x_sysrtc.c
+include:
+  - path: inc
+    file_list:
+      - path: sli_sleeptimer_hal.h
+define:
+  - name: __STATIC_INLINE
+    value: "static inline"
+  - name: __WEAK
+    value: "__attribute__((weak))"
+  - name: SI91X_SYSRTC_PRESENT
+    value: 1
+  - name: SI91X_PLATFORM
+    value: 1
+  - name: SL_SLEEP_TIMER
+requires:
+  - name: sleeptimer
+  - name: rsilib_sysrtc
+conflicts:
+  - name: sl_sysrtc
+provides:
+  - name: sleeptimer_si91x

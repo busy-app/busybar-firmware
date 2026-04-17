@@ -1,0 +1,123 @@
+id: ot_cert_libs
+label: OpenThread Certification Libraries
+package: openthread
+category: OpenThread
+quality: production
+description: >
+  Includes OpenThread stack libraries that could be used for certification by inheritance. Uses default certification configurations.
+  Note: Please refer to the release notes to verify if the SDK has been qualified for certification.
+provides:
+- name: ot_cert_libs
+- name: ot_stack_implementation
+- name: ot_stack_tcp_implementation
+  allow_multiple: true
+- name: ot_stack_configuration
+requires:
+- name: ot_platform_abstraction_utils
+- name: ot_diags_implementation
+recommends:
+- id: ot_diags_stubs
+  vendor: silabs
+library:
+- path: libs/libsl_ot_stack_ftd_efr32mg21_gcc.a
+  condition:
+  - toolchain_gcc
+  - device_sdid_200
+  - ot_stack_ftd
+  unless:
+  - ot_coap_cert_libs
+  - ot_multi_instance_cert_libs
+  - ot_multicast_cert_libs
+- path: libs/libsl_ot_stack_mtd_efr32mg21_gcc.a
+  condition:
+  - toolchain_gcc
+  - device_sdid_200
+  - ot_stack_mtd
+  unless:
+  - ot_coap_cert_libs
+  - ot_multi_instance_cert_libs
+  - ot_multicast_cert_libs
+- path: libs/libsl_ot_stack_tcp_efr32mg21_gcc.a
+  condition:
+  - toolchain_gcc
+  - device_sdid_200
+  unless:
+  - ot_stack_tcp_stubs
+- path: libs/libsl_ot_stack_ftd_efr32mg24_gcc.a
+  condition:
+  - toolchain_gcc
+  - device_sdid_215
+  - ot_stack_ftd
+  unless:
+  - ot_coap_cert_libs
+  - ot_multi_instance_cert_libs
+  - ot_multicast_cert_libs
+- path: libs/libsl_ot_stack_mtd_efr32mg24_gcc.a
+  condition:
+  - toolchain_gcc
+  - device_sdid_215
+  - ot_stack_mtd
+  unless:
+  - ot_coap_cert_libs
+  - ot_multi_instance_cert_libs
+  - ot_multicast_cert_libs
+- path: libs/libsl_ot_stack_tcp_efr32mg24_gcc.a
+  condition:
+  - toolchain_gcc
+  - device_sdid_215
+  unless:
+  - ot_stack_tcp_stubs
+- path: libs/libsl_ot_stack_ftd_efr32mg26_gcc.a
+  condition:
+  - toolchain_gcc
+  - device_sdid_225
+  - ot_stack_ftd
+  unless:
+  - ot_coap_cert_libs
+  - ot_multi_instance_cert_libs
+  - ot_multicast_cert_libs
+- path: libs/libsl_ot_stack_mtd_efr32mg26_gcc.a
+  condition:
+  - toolchain_gcc
+  - device_sdid_225
+  - ot_stack_mtd
+  unless:
+  - ot_coap_cert_libs
+  - ot_multi_instance_cert_libs
+  - ot_multicast_cert_libs
+- path: libs/libsl_ot_stack_tcp_efr32mg26_gcc.a
+  condition:
+  - toolchain_gcc
+  - device_sdid_225
+  unless:
+  - ot_stack_tcp_stubs
+- path: libs/libsl_ot_stack_ftd_simg301_gcc.a
+  condition:
+  - toolchain_gcc
+  - device_generic_family_sixx301
+  - ot_stack_ftd
+  unless:
+  - ot_coap_cert_libs
+  - ot_multi_instance_cert_libs
+  - ot_multicast_cert_libs
+- path: libs/libsl_ot_stack_mtd_simg301_gcc.a
+  condition:
+  - toolchain_gcc
+  - device_generic_family_sixx301
+  - ot_stack_mtd
+  unless:
+  - ot_coap_cert_libs
+  - ot_multi_instance_cert_libs
+  - ot_multicast_cert_libs
+- path: libs/libsl_ot_stack_tcp_simg301_gcc.a
+  condition:
+  - toolchain_gcc
+  - device_generic_family_sixx301
+  unless:
+  - ot_stack_tcp_stubs
+metadata:
+  sbom:
+    # BSD-3-Clause covers the files included in the libraries from
+    # util/third_party/openthread and platform-abstraction/efr32.
+    license: BSD-3-Clause
+root_path: openthread

@@ -1,0 +1,38 @@
+id: iostream_rtt_si91x
+package: platform_siwx91x
+label: "IO Stream:SI91X RTT"
+description: >
+  Instantiate the driver for using IO Stream over RTT peripheral.
+category: Device|Si91x|MCU|Service
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: components/device/silabs/si91x/mcu/drivers/service/iostream
+provides:
+  - name: iostream_rtt_si91x
+  - name: si91x_iostream_transport
+    allow_multiple: true
+  - name: iostream_transport
+    allow_multiple: true
+requires:
+  - name: segger_rtt
+  - name: iostream
+include:
+  - path: inc
+    file_list:
+      - path: sl_si91x_iostream_rtt.h
+source:
+  - path: src/sl_si91x_iostream_rtt.c
+template_contribution:
+  - name: component_catalog
+    value: iostream_rtt_si91x
+  - name: event_handler
+    value:
+      event: iostream_instance_init_stage_1
+      include: sl_si91x_iostream_rtt.h
+      handler: sl_si91x_iostream_rtt_init
+  - name: iostream_instance_info
+    value:
+      include: sl_si91x_iostream_rtt.h
+      handler: sl_si91x_iostream_instance_rtt_info

@@ -1,0 +1,142 @@
+project_name: wifi_commander_soc
+package: wifi_app
+quality: production
+label: wifi_commander_soc
+category: Example|Wi-Fi
+description: 'Demonstrates to run all commands individually
+
+  '
+filter:
+- name: Wireless Technology
+  value:
+  - Wi-Fi
+- name: Project Difficulty
+  value:
+  - Beginner
+source:
+- path: demo.c
+- path: xapi/xapi/xapi.c
+- path: xapi/autogen/app_wifi_commander.c
+- path: xapi/autogen/app_wifi_system_xapi_cmd_lut_handler.c
+- path: xapi/autogen/app_wifi_ap_xapi_cmd_lut_handler.c
+- path: xapi/autogen/app_wifi_net_intf_xapi_cmd_lut_handler.c
+- path: xapi/autogen/app_wifi_net_cred_xapi_cmd_lut_handler.c
+- path: xapi/autogen/app_wifi_net_profile_xapi_cmd_lut_handler.c
+- path: xapi/autogen/app_wifi_common_xapi_cmd_lut_handler.c
+- path: xapi/autogen/app_wifi_scan_xapi_cmd_lut_handler.c
+- path: xapi/autogen/app_wifi_ping_xapi_cmd_lut_handler.c
+- path: xapi/autogen/app_wifi_client_xapi_cmd_lut_handler.c
+- path: xapi/autogen/app_wifi_mqtt_client_xapi_cmd_lut_handler.c
+- path: xapi/xcommon/src/x_bit.c
+- path: xapi/xcommon/src/x_compat.c
+- path: xapi/ncp/app_ncp_freertos.c
+- path: xapi/ncp/app_ncp.c
+- path: xapi/ncp/app_simple_com_freertos.c
+- path: xapi/ncp/app_simple_com_si91x.c
+- path: xapi/app_xapi/app_xapi_system.c
+- path: xapi/app_xapi/app_xapi_ap.c
+- path: xapi/app_xapi/app_xapi_net_intf.c
+- path: xapi/app_xapi/app_xapi_net_cred.c
+- path: xapi/app_xapi/app_xapi_net_profile.c
+- path: xapi/app_xapi/app_xapi_cmd_event.c
+- path: xapi/app_xapi/app_xapi_global.c
+- path: xapi/app_xapi/app_xapi_common.c
+- path: xapi/app_xapi/app_xapi_scan.c
+- path: xapi/app_xapi/app_xapi_ping.c
+- path: xapi/app_xapi/app_xapi_client.c
+- path: xapi/app_xapi/app_xapi_mqtt_client.c
+include:
+- path: .
+  file_list:
+  - path: app.h
+- path: xapi/autogen
+  file_list:
+  - path: app_wifi_class.h
+  - path: app_wifi_api.h
+  - path: app_wifi_xapi_cmd_rx_handler.h
+  - path: app_internal_wifi_api.h
+- path: xapi/xapi
+  file_list:
+  - path: xapi.h
+  - path: app_xapi.h
+- path: xapi/xcommon/include
+  file_list:
+  - path: x_bit.h
+  - path: x_compat.h
+  - path: x_config.h
+  - path: x_types.h
+- path: xapi/ncp
+  file_list:
+  - path: app_ncp.h
+  - path: app_simple_com.h
+  - path: app_simple_com_config.h
+  - path: app_simple_com_freertos_config.h
+- path: xapi/ncp/config
+  file_list:
+  - path: app_ncp_config.h
+  - path: app_ncp_freertos_config.h
+- path: xapi/app_xapi
+  file_list:
+  - path: app_xapi_global.h
+  - path: app_xapi_cmd_event.h
+  - path: app_xapi_ap.h
+define:
+- name: SLI_SI91X_OFFLOAD_NETWORK_STACK
+  value: 1
+- name: SL_SI91X_PRINT_DBG_LOG
+- name: SLI_SI91X_DBG_MIDDLEWARE_EN
+- name: SLI_SI91X_MCU_INTR_BASED_RX_ON_UART
+- name: APP_WIFI_API_FULL
+component:
+- id: sl_main
+- id: freertos
+- id: freertos_heap_4
+- id: syscalls
+- id: si91x_memory_default_config
+- id: wiseconnect_common
+- id: wifi
+- id: sl_si91x_internal_stack
+- id: wifi_resources
+- id: network_manager
+- id: basic_network_config_manager
+- id: device_needs_ram_execution
+- id: iot_socket
+- id: sl_si91x_basic_buffers
+- id: sl_usart
+- id: app_timer
+- id: sl_ulp_uart
+- id: sl_si91x_soc_soft_reset
+- id: mqtt
+toolchain_settings:
+- option: gcc_compiler_option
+  value: -Wall -Werror
+configuration:
+- name: SL_BOARD_ENABLE_VCOM
+  value: '1'
+readme:
+- path: readme.md
+other_file:
+- path: resources/readme/wifi_commander_demo.png
+- path: resources/readme/wifi_commander_launcher.png
+- path: resources/readme/wifi_commander_connection_interface.png
+- path: resources/readme/wifi_commander_serial_port.png
+- path: resources/readme/wifi_commander_access_point.png
+- path: resources/readme/wifi_commander_ap_settings.png
+- path: resources/readme/wifi_commander_ap_outcome.png
+- path: resources/readme/wifi_commander_smart_console.png
+- path: resources/readme/wifi_commander_hello_command.png
+- path: resources/readme/wifi_commander_api_ref_guide.png
+ui_hints:
+  highlight:
+  - path: readme.md
+    focus: true
+post_build:
+  profile: wiseconnect_soc
+sdk_extension:
+- id: wiseconnect3_sdk
+  vendor: silabs
+  version: 4.0.1
+sdk:
+  id: simplicity_sdk
+  vendor: silabs
+  version: 2025.12.2

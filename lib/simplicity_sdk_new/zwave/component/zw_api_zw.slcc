@@ -1,0 +1,19 @@
+id: zw_api_zw
+label: Z-Wave API ZW
+category: Z-Wave|API
+description: API for ZW
+package: zwave
+quality: production
+metadata:
+  sbom:
+    reference: zw_sbom_license
+ui_hints:
+  visibility: never
+
+include:
+- path: "dist/include/zwave"
+  file_list:
+  - path: "ZW.h"
+provides:
+- name: zw_api_zw
+root_path: zwave

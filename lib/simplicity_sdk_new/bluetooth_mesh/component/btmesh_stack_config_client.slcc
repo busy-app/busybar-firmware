@@ -1,0 +1,21 @@
+id: "btmesh_stack_config_client"
+label: "Configuration Client"
+package: bluetooth_mesh
+description: "Provides Bluetooth mesh Configuration Client model. This model is used by a Configuration Manager node to configure the publication and subscription settings of nodes, set up relay nodes and manage other settings on the nodes of the network."
+category: "Bluetooth Mesh|Stack|Models|Core"
+quality: "production"
+
+requires:
+- name: "btmesh_stack"
+- name: "btmesh_stack_provisioner"
+provides:
+- name: "btmesh_stack_config_client"
+template_contribution:
+- name: btmesh_bgapi_class
+  value:
+    class: "config_client"
+  priority: 1
+metadata:
+  sbom:
+    reference: btmesh_stack
+root_path: bluetooth_mesh

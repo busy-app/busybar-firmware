@@ -1,0 +1,5 @@
+from pyradioconfig.parts.lynx.phys.Phys_RAIL_Base_Standard_IEEE802154 import PhysRAILBaseStandardIEEE802154Lynx
+
+
+class PhysRAILBaseStandardIEEE802154Leopard(PhysRAILBaseStandardIEEE802154Lynx):
+    pass

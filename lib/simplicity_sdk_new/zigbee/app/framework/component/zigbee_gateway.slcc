@@ -1,0 +1,55 @@
+package: zigbee
+description: Software that supports a CLI-based application running on a gateway-style device that has a POSIX compatible operating system. This component is NOT compatible with an system-on-a-chip (SoC) platform.
+label: Gateway Support
+quality: production
+id: zigbee_gateway
+category: Zigbee|Unix Host
+toolchain_settings: []
+ui_hints: {}
+template_file: []
+provides:
+- name: zigbee_gateway
+requires:
+- name: zigbee_file_descriptor_dispatch
+- name: device_host
+config_file:
+- path: app/framework/plugin-host/gateway/config/gateway-config.h
+include:
+- path: app/framework/plugin-host/gateway
+  file_list:
+  - path: gateway-support-cli.h
+
+source:
+- path: app/framework/plugin-host/gateway/gateway-support.c
+- path: app/framework/plugin-host/gateway/gateway-support-cli.c
+  condition:
+  - cli
+- path: app/framework/plugin-host/gateway/gateway-cb.c
+template_contribution:
+- name: component_catalog
+  value: zigbee_gateway
+- name: zigbee_af_callback
+  value:
+    callback_type: init_done
+    function_name: sl_zigbee_af_gateway_init_cb
+- name: zigbee_af_callback
+  value:
+    callback_type: tick
+    function_name: sl_zigbee_af_gateway_tick_cb
+- name: cli_group
+  value:
+    group: plugin
+    name: gateway
+    help: gateway related commands
+- name: cli_command
+  value:
+    group: gateway
+    name: time-sync-local
+    handler: sl_zigbee_af_gateway_support_time_sync_local
+documentation:
+  docset: zigbee
+  document: zigbee-af-api/gateway
+metadata:
+  sbom:
+    license: MSLA
+root_path: zigbee

@@ -1,0 +1,28 @@
+<HtermSequenceFile>
+    <ItemList>
+        <SequenceItem name="-- Commands --">
+            <description></description>
+            <sequence value="" />
+        </SequenceItem>
+        <SequenceItem name="help">
+            <description></description>
+            <sequence value="a[help] h[0D]" />
+        </SequenceItem>
+        <SequenceItem name="info">
+            <description></description>
+            <sequence value="a[info] h[0D]" />
+        </SequenceItem>
+        <SequenceItem name="send">
+            <description></description>
+            <sequence value="a[send] h[0D]" />
+        </SequenceItem>
+        <SequenceItem name="receive 0">
+            <description></description>
+            <sequence value="a[receive 0] h[0D]" />
+        </SequenceItem>
+        <SequenceItem name="receive 1">
+            <description></description>
+            <sequence value="a[receive 1] h[0D]" />
+        </SequenceItem>
+    </ItemList>
+</HtermSequenceFile>

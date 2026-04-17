@@ -1,0 +1,48 @@
+project_name: sl_si91x_qei
+package: platform_siwx91x_app
+description: 'This application demonstrates how to use the QEI on the SI91x SoC device.
+
+  '
+category: example|peripheral
+quality: production
+label: SI91x - SL_QEI
+component:
+- id: sl_main
+- id: status
+- id: syscalls
+- id: si91x_memory_default_config
+- id: sl_qei
+- instance:
+  - timer0
+  id: ulp_timers_instance
+source:
+- path: app.c
+- path: qei_example.c
+include:
+- path: .
+  file_list:
+  - path: app.h
+  - path: qei_example.h
+toolchain_settings:
+- option: gcc_compiler_option
+  value: -Wall -Werror
+other_file:
+- path: resources/readme/setupdiagram.png
+- path: resources/uc_screen/qei_uc_screen.png
+- path: resources/readme/output_qei.png
+ui_hints:
+  highlight:
+  - path: readme.md
+    focus: true
+readme:
+- path: readme.md
+post_build:
+  profile: wiseconnect_soc
+sdk_extension:
+- id: wiseconnect3_sdk
+  vendor: silabs
+  version: 4.0.1
+sdk:
+  id: simplicity_sdk
+  vendor: silabs
+  version: 2025.12.2

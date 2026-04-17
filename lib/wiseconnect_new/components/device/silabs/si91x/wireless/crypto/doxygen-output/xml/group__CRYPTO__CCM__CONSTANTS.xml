@@ -1,0 +1,84 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__CRYPTO__CCM__CONSTANTS" kind="group">
+    <compoundname>CRYPTO_CCM_CONSTANTS</compoundname>
+    <title>Constants</title>
+      <sectiondef kind="enum">
+      <memberdef kind="enum" id="group__CRYPTO__CCM__CONSTANTS_1gafb56b83af116d04420ceaeffaca882f1" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_si91x_ccm_type_t</name>
+        <enumvalue id="group__CRYPTO__CCM__CONSTANTS_1ggafb56b83af116d04420ceaeffaca882f1a9dded5d4ac340b935b1647c8f4effba8" prot="public">
+          <name>SL_SI91X_CCM_ENCRYPT</name>
+          <initializer>= 0</initializer>
+          <briefdescription>
+<para>CCM Encryption. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__CCM__CONSTANTS_1ggafb56b83af116d04420ceaeffaca882f1a3bb826abf66861cf6f32971279a8a49f" prot="public">
+          <name>SL_SI91X_CCM_DECRYPT</name>
+          <briefdescription>
+<para>CCM Decryption. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>Enumeration defines the CCM encryption and decryption types. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>This enumeration defines the types of CCM operations supported, which includes encryption, and decryption. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/ccm/inc/sl_si91x_ccm.h" line="49" column="1" bodyfile="components/device/silabs/si91x/wireless/crypto/ccm/inc/sl_si91x_ccm.h" bodystart="49" bodyend="52"/>
+      </memberdef>
+      <memberdef kind="enum" id="group__CRYPTO__CCM__CONSTANTS_1gacd989fb5d8038b724895d36c08396ee5" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_si91x_ccm_key_size_t</name>
+        <enumvalue id="group__CRYPTO__CCM__CONSTANTS_1ggacd989fb5d8038b724895d36c08396ee5a14e8d7a71c938e4fc52f49dcef35397a" prot="public">
+          <name>SL_SI91X_CCM_KEY_SIZE_128</name>
+          <initializer>= 16</initializer>
+          <briefdescription>
+<para>Key size of 128 bits. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__CCM__CONSTANTS_1ggacd989fb5d8038b724895d36c08396ee5a0ea2c3150893be8f2ac2f59335c43ff7" prot="public">
+          <name>SL_SI91X_CCM_KEY_SIZE_192</name>
+          <initializer>= 24</initializer>
+          <briefdescription>
+<para>Key size of 192 bits. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__CCM__CONSTANTS_1ggacd989fb5d8038b724895d36c08396ee5a554790d09c24d35567be6f04b13b4ddc" prot="public">
+          <name>SL_SI91X_CCM_KEY_SIZE_256</name>
+          <initializer>= 32</initializer>
+          <briefdescription>
+<para>Key size of 256 bits. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>Enumeration defines the CCM key sizes supported by the SI91X device. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>This enumeration defines the key sizes supported by the CCM encryption algorithm on the SI91X device, which includes 128-bit, 192-bit, and 256-bit key sizes. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/ccm/inc/sl_si91x_ccm.h" line="60" column="1" bodyfile="components/device/silabs/si91x/wireless/crypto/ccm/inc/sl_si91x_ccm.h" bodystart="60" bodyend="64"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para>This section provides a reference to the CCM Crypto API constants. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

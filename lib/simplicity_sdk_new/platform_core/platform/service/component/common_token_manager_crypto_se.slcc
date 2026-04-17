@@ -1,0 +1,25 @@
+id: common_token_manager_crypto_se
+label: HAL for SE crypto
+package: platform_core
+description: >
+  Crypto HAL for cryptographic hardware residing on the SE subsystem.
+category: Services|Token Manager
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+source:
+- path: platform/service/token_manager/src/sli_token_manager_hal_crypto_se.c
+  unless: [trustzone_nonsecure]
+include:
+- path: platform/service/token_manager/src
+  file_list:
+  - path: sli_token_manager_hal_crypto.h
+  unless: [trustzone_nonsecure]
+provides:
+- name: common_token_manager_crypto_se
+requires:
+- name: se_manager
+ui_hints:
+  visibility: never
+root_path: platform_core

@@ -1,0 +1,26 @@
+id: sl_sdc_peripheral
+label: SDC
+package: platform_siwx91x
+description: >
+  Sensor Data Collector Peripheral API's
+category: Device|Si91x|MCU|Internal|RSI Peripheral Drivers
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+component_root_path: "components/device/silabs/si91x/mcu/drivers/unified_peripheral_drivers"
+source:
+  - path: "src/sl_si91x_peripheral_sdc.c"
+include:
+  - path: "inc"
+    file_list:
+    - path: "sl_si91x_peripheral_sdc.h"
+ui_hints:
+  visibility: never
+provides:
+  - name: sl_sdc_peripheral
+requires:
+  - name: rsilib_aux_reference_volt_config
+  - name: systemlevel_bod
+  - name: rsilib_adc
+  - name: systemlevel_rtc

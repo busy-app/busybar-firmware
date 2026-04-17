@@ -1,0 +1,29 @@
+id: memory_usage_api
+label: Memory Usage - API
+package: common_15_4
+category: Utility|Memory
+quality: evaluation
+description: Provides APIs for recording and acquiring flash and ram usage metrics.
+provides:
+- name: memory_usage_api
+requires:
+- name: memory_manager
+include:
+- path: util/plugin/plugin-common/generic-memory-usage/
+  file_list:
+  - path: memory_usage.h
+source:
+- path: util/plugin/plugin-common/generic-memory-usage/memory_usage.c
+template_contribution:
+- name: component_catalog
+  value: memory_usage_api
+- name: event_handler
+  value:
+    event: internal_app_init
+    include: memory_usage.h
+    handler: sl_memory_usage_init
+  priority: 100
+metadata:
+  sbom:
+    license: MSLA
+root_path: common_15_4

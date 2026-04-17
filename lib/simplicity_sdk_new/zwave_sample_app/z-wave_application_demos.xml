@@ -1,0 +1,1911 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<demos xmlns:ns1="http://www.silabs.com/ss/Studio.ecore" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.silabs.com/ss/Demo.ecore">
+  <demo name="brd4401c.demo.bootloader-storage-internal-single-zwave-ota" label="Bootloader - SoC Internal Storage (OTA for Z-Wave Applications)">
+    <ns1:description>This sample configuration of the Gecko bootloader configures the bootloader to use the internal main flash to store firmware update images. The storage configuration is set up to store a single firmware update image at a time, in a single storage slot.
+</ns1:description>
+    <property key="demos.blurb" value="Bootloader - SoC Internal Storage (OTA for Z-Wave Applications)" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4401c" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4401c/bootloader-storage-internal-single-zwave-ota-brd4401c.s37" />
+    <property key="core.readmeFiles" value="" />
+    <property key="filters" value="Device\ Type|SoC MCU|Bootloader Project\ Difficulty|Advanced Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4401b.demo.bootloader-storage-internal-single-zwave-ota" label="Bootloader - SoC Internal Storage (OTA for Z-Wave Applications)">
+    <ns1:description>This sample configuration of the Gecko bootloader configures the bootloader to use the internal main flash to store firmware update images. The storage configuration is set up to store a single firmware update image at a time, in a single storage slot.
+</ns1:description>
+    <property key="demos.blurb" value="Bootloader - SoC Internal Storage (OTA for Z-Wave Applications)" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4401b" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4401b/bootloader-storage-internal-single-zwave-ota-brd4401b.s37" />
+    <property key="core.readmeFiles" value="" />
+    <property key="filters" value="Device\ Type|SoC MCU|Bootloader Project\ Difficulty|Advanced Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd2603a.demo.bootloader-storage-internal-single-zwave-ota" label="Bootloader - SoC Internal Storage (OTA for Z-Wave Applications)">
+    <ns1:description>This sample configuration of the Gecko bootloader configures the bootloader to use the internal main flash to store firmware update images. The storage configuration is set up to store a single firmware update image at a time, in a single storage slot.
+</ns1:description>
+    <property key="demos.blurb" value="Bootloader - SoC Internal Storage (OTA for Z-Wave Applications)" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd2603a" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd2603a/bootloader-storage-internal-single-zwave-ota-brd2603a.s37" />
+    <property key="core.readmeFiles" value="" />
+    <property key="filters" value="Device\ Type|SoC MCU|Bootloader Project\ Difficulty|Advanced Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd2705a.demo.bootloader-storage-internal-single-zwave-ota" label="Bootloader - SoC Internal Storage (OTA for Z-Wave Applications)">
+    <ns1:description>This sample configuration of the Gecko bootloader configures the bootloader to use the internal main flash to store firmware update images. The storage configuration is set up to store a single firmware update image at a time, in a single storage slot.
+</ns1:description>
+    <property key="demos.blurb" value="Bootloader - SoC Internal Storage (OTA for Z-Wave Applications)" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd2705a" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd2705a/bootloader-storage-internal-single-zwave-ota-brd2705a.s37" />
+    <property key="core.readmeFiles" value="" />
+    <property key="filters" value="Device\ Type|SoC MCU|Bootloader Project\ Difficulty|Advanced Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4400b.demo.bootloader-storage-internal-single-zwave-ota" label="Bootloader - SoC Internal Storage (OTA for Z-Wave Applications)">
+    <ns1:description>This sample configuration of the Gecko bootloader configures the bootloader to use the internal main flash to store firmware update images. The storage configuration is set up to store a single firmware update image at a time, in a single storage slot.
+</ns1:description>
+    <property key="demos.blurb" value="Bootloader - SoC Internal Storage (OTA for Z-Wave Applications)" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4400b" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4400b/bootloader-storage-internal-single-zwave-ota-brd4400b.s37" />
+    <property key="core.readmeFiles" value="" />
+    <property key="filters" value="Device\ Type|SoC MCU|Bootloader Project\ Difficulty|Advanced Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4204a.demo.bootloader-storage-internal-single-zwave-ota" label="Bootloader - SoC Internal Storage (OTA for Z-Wave Applications)">
+    <ns1:description>This sample configuration of the Gecko bootloader configures the bootloader to use the internal main flash to store firmware update images. The storage configuration is set up to store a single firmware update image at a time, in a single storage slot.
+</ns1:description>
+    <property key="demos.blurb" value="Bootloader - SoC Internal Storage (OTA for Z-Wave Applications)" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4204a" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4204a/bootloader-storage-internal-single-zwave-ota-brd4204a.s37" />
+    <property key="core.readmeFiles" value="" />
+    <property key="filters" value="Device\ Type|SoC MCU|Bootloader Project\ Difficulty|Advanced Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4204b.demo.bootloader-storage-internal-single-zwave-ota" label="Bootloader - SoC Internal Storage (OTA for Z-Wave Applications)">
+    <ns1:description>This sample configuration of the Gecko bootloader configures the bootloader to use the internal main flash to store firmware update images. The storage configuration is set up to store a single firmware update image at a time, in a single storage slot.
+</ns1:description>
+    <property key="demos.blurb" value="Bootloader - SoC Internal Storage (OTA for Z-Wave Applications)" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4204b" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4204b/bootloader-storage-internal-single-zwave-ota-brd4204b.s37" />
+    <property key="core.readmeFiles" value="" />
+    <property key="filters" value="Device\ Type|SoC MCU|Bootloader Project\ Difficulty|Advanced Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4204c.demo.bootloader-storage-internal-single-zwave-ota" label="Bootloader - SoC Internal Storage (OTA for Z-Wave Applications)">
+    <ns1:description>This sample configuration of the Gecko bootloader configures the bootloader to use the internal main flash to store firmware update images. The storage configuration is set up to store a single firmware update image at a time, in a single storage slot.
+</ns1:description>
+    <property key="demos.blurb" value="Bootloader - SoC Internal Storage (OTA for Z-Wave Applications)" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4204c" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4204c/bootloader-storage-internal-single-zwave-ota-brd4204c.s37" />
+    <property key="core.readmeFiles" value="" />
+    <property key="filters" value="Device\ Type|SoC MCU|Bootloader Project\ Difficulty|Advanced Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4204d.demo.bootloader-storage-internal-single-zwave-ota" label="Bootloader - SoC Internal Storage (OTA for Z-Wave Applications)">
+    <ns1:description>This sample configuration of the Gecko bootloader configures the bootloader to use the internal main flash to store firmware update images. The storage configuration is set up to store a single firmware update image at a time, in a single storage slot.
+</ns1:description>
+    <property key="demos.blurb" value="Bootloader - SoC Internal Storage (OTA for Z-Wave Applications)" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4204d" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4204d/bootloader-storage-internal-single-zwave-ota-brd4204d.s37" />
+    <property key="core.readmeFiles" value="" />
+    <property key="filters" value="Device\ Type|SoC MCU|Bootloader Project\ Difficulty|Advanced Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4210a.demo.bootloader-storage-internal-single-zwave-ota" label="Bootloader - SoC Internal Storage (OTA for Z-Wave Applications)">
+    <ns1:description>This sample configuration of the Gecko bootloader configures the bootloader to use the internal main flash to store firmware update images. The storage configuration is set up to store a single firmware update image at a time, in a single storage slot.
+</ns1:description>
+    <property key="demos.blurb" value="Bootloader - SoC Internal Storage (OTA for Z-Wave Applications)" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4210a" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4210a/bootloader-storage-internal-single-zwave-ota-brd4210a.s37" />
+    <property key="core.readmeFiles" value="" />
+    <property key="filters" value="Device\ Type|SoC MCU|Bootloader Project\ Difficulty|Advanced Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4400c.demo.bootloader-storage-internal-single-zwave-ota" label="Bootloader - SoC Internal Storage (OTA for Z-Wave Applications)">
+    <ns1:description>This sample configuration of the Gecko bootloader configures the bootloader to use the internal main flash to store firmware update images. The storage configuration is set up to store a single firmware update image at a time, in a single storage slot.
+</ns1:description>
+    <property key="demos.blurb" value="Bootloader - SoC Internal Storage (OTA for Z-Wave Applications)" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4400c" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4400c/bootloader-storage-internal-single-zwave-ota-brd4400c.s37" />
+    <property key="core.readmeFiles" value="" />
+    <property key="filters" value="Device\ Type|SoC MCU|Bootloader Project\ Difficulty|Advanced Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4205b.demo.bootloader-storage-internal-single-zwave-ota" label="Bootloader - SoC Internal Storage (OTA for Z-Wave Applications)">
+    <ns1:description>This sample configuration of the Gecko bootloader configures the bootloader to use the internal main flash to store firmware update images. The storage configuration is set up to store a single firmware update image at a time, in a single storage slot.
+</ns1:description>
+    <property key="demos.blurb" value="Bootloader - SoC Internal Storage (OTA for Z-Wave Applications)" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4205b" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4205b/bootloader-storage-internal-single-zwave-ota-brd4205b.s37" />
+    <property key="core.readmeFiles" value="" />
+    <property key="filters" value="Device\ Type|SoC MCU|Bootloader Project\ Difficulty|Advanced Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4401c.demo.bootloader-uart-xmodem-zwave-otw" label="Bootloader - NCP UART XMODEM (OTW for Z-Wave Applications)">
+    <ns1:description>Standalone Bootloader using XMODEM-CRC over UART. The bootloader shows a menu, where an XMODEM transfer can be started by sending ASCII '1', or the application can be started by sending ASCII '2'. This is the recommended UART bootloader for the EmberZNet and Connect protocol stacks. This bootloader was created from the bootloader-uart-xmodem sample. Pay attention to the UART configuration when using a custom board.
+</ns1:description>
+    <property key="demos.blurb" value="Bootloader - NCP UART XMODEM (OTW for Z-Wave Applications)" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4401c" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4401c/bootloader-uart-xmodem-zwave-otw-brd4401c.s37" />
+    <property key="core.readmeFiles" value="" />
+    <property key="filters" value="Device\ Type|NCP MCU|Bootloader Project\ Difficulty|Advanced Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4401b.demo.bootloader-uart-xmodem-zwave-otw" label="Bootloader - NCP UART XMODEM (OTW for Z-Wave Applications)">
+    <ns1:description>Standalone Bootloader using XMODEM-CRC over UART. The bootloader shows a menu, where an XMODEM transfer can be started by sending ASCII '1', or the application can be started by sending ASCII '2'. This is the recommended UART bootloader for the EmberZNet and Connect protocol stacks. This bootloader was created from the bootloader-uart-xmodem sample. Pay attention to the UART configuration when using a custom board.
+</ns1:description>
+    <property key="demos.blurb" value="Bootloader - NCP UART XMODEM (OTW for Z-Wave Applications)" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4401b" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4401b/bootloader-uart-xmodem-zwave-otw-brd4401b.s37" />
+    <property key="core.readmeFiles" value="" />
+    <property key="filters" value="Device\ Type|NCP MCU|Bootloader Project\ Difficulty|Advanced Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd2603a.demo.bootloader-uart-xmodem-zwave-otw" label="Bootloader - NCP UART XMODEM (OTW for Z-Wave Applications)">
+    <ns1:description>Standalone Bootloader using XMODEM-CRC over UART. The bootloader shows a menu, where an XMODEM transfer can be started by sending ASCII '1', or the application can be started by sending ASCII '2'. This is the recommended UART bootloader for the EmberZNet and Connect protocol stacks. This bootloader was created from the bootloader-uart-xmodem sample. Pay attention to the UART configuration when using a custom board.
+</ns1:description>
+    <property key="demos.blurb" value="Bootloader - NCP UART XMODEM (OTW for Z-Wave Applications)" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd2603a" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd2603a/bootloader-uart-xmodem-zwave-otw-brd2603a.s37" />
+    <property key="core.readmeFiles" value="" />
+    <property key="filters" value="Device\ Type|NCP MCU|Bootloader Project\ Difficulty|Advanced Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd2705a.demo.bootloader-uart-xmodem-zwave-otw" label="Bootloader - NCP UART XMODEM (OTW for Z-Wave Applications)">
+    <ns1:description>Standalone Bootloader using XMODEM-CRC over UART. The bootloader shows a menu, where an XMODEM transfer can be started by sending ASCII '1', or the application can be started by sending ASCII '2'. This is the recommended UART bootloader for the EmberZNet and Connect protocol stacks. This bootloader was created from the bootloader-uart-xmodem sample. Pay attention to the UART configuration when using a custom board.
+</ns1:description>
+    <property key="demos.blurb" value="Bootloader - NCP UART XMODEM (OTW for Z-Wave Applications)" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd2705a" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd2705a/bootloader-uart-xmodem-zwave-otw-brd2705a.s37" />
+    <property key="core.readmeFiles" value="" />
+    <property key="filters" value="Device\ Type|NCP MCU|Bootloader Project\ Difficulty|Advanced Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4400b.demo.bootloader-uart-xmodem-zwave-otw" label="Bootloader - NCP UART XMODEM (OTW for Z-Wave Applications)">
+    <ns1:description>Standalone Bootloader using XMODEM-CRC over UART. The bootloader shows a menu, where an XMODEM transfer can be started by sending ASCII '1', or the application can be started by sending ASCII '2'. This is the recommended UART bootloader for the EmberZNet and Connect protocol stacks. This bootloader was created from the bootloader-uart-xmodem sample. Pay attention to the UART configuration when using a custom board.
+</ns1:description>
+    <property key="demos.blurb" value="Bootloader - NCP UART XMODEM (OTW for Z-Wave Applications)" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4400b" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4400b/bootloader-uart-xmodem-zwave-otw-brd4400b.s37" />
+    <property key="core.readmeFiles" value="" />
+    <property key="filters" value="Device\ Type|NCP MCU|Bootloader Project\ Difficulty|Advanced Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4204a.demo.bootloader-uart-xmodem-zwave-otw" label="Bootloader - NCP UART XMODEM (OTW for Z-Wave Applications)">
+    <ns1:description>Standalone Bootloader using XMODEM-CRC over UART. The bootloader shows a menu, where an XMODEM transfer can be started by sending ASCII '1', or the application can be started by sending ASCII '2'. This is the recommended UART bootloader for the EmberZNet and Connect protocol stacks. This bootloader was created from the bootloader-uart-xmodem sample. Pay attention to the UART configuration when using a custom board.
+</ns1:description>
+    <property key="demos.blurb" value="Bootloader - NCP UART XMODEM (OTW for Z-Wave Applications)" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4204a" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4204a/bootloader-uart-xmodem-zwave-otw-brd4204a.s37" />
+    <property key="core.readmeFiles" value="" />
+    <property key="filters" value="Device\ Type|NCP MCU|Bootloader Project\ Difficulty|Advanced Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4204b.demo.bootloader-uart-xmodem-zwave-otw" label="Bootloader - NCP UART XMODEM (OTW for Z-Wave Applications)">
+    <ns1:description>Standalone Bootloader using XMODEM-CRC over UART. The bootloader shows a menu, where an XMODEM transfer can be started by sending ASCII '1', or the application can be started by sending ASCII '2'. This is the recommended UART bootloader for the EmberZNet and Connect protocol stacks. This bootloader was created from the bootloader-uart-xmodem sample. Pay attention to the UART configuration when using a custom board.
+</ns1:description>
+    <property key="demos.blurb" value="Bootloader - NCP UART XMODEM (OTW for Z-Wave Applications)" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4204b" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4204b/bootloader-uart-xmodem-zwave-otw-brd4204b.s37" />
+    <property key="core.readmeFiles" value="" />
+    <property key="filters" value="Device\ Type|NCP MCU|Bootloader Project\ Difficulty|Advanced Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4204c.demo.bootloader-uart-xmodem-zwave-otw" label="Bootloader - NCP UART XMODEM (OTW for Z-Wave Applications)">
+    <ns1:description>Standalone Bootloader using XMODEM-CRC over UART. The bootloader shows a menu, where an XMODEM transfer can be started by sending ASCII '1', or the application can be started by sending ASCII '2'. This is the recommended UART bootloader for the EmberZNet and Connect protocol stacks. This bootloader was created from the bootloader-uart-xmodem sample. Pay attention to the UART configuration when using a custom board.
+</ns1:description>
+    <property key="demos.blurb" value="Bootloader - NCP UART XMODEM (OTW for Z-Wave Applications)" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4204c" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4204c/bootloader-uart-xmodem-zwave-otw-brd4204c.s37" />
+    <property key="core.readmeFiles" value="" />
+    <property key="filters" value="Device\ Type|NCP MCU|Bootloader Project\ Difficulty|Advanced Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4204d.demo.bootloader-uart-xmodem-zwave-otw" label="Bootloader - NCP UART XMODEM (OTW for Z-Wave Applications)">
+    <ns1:description>Standalone Bootloader using XMODEM-CRC over UART. The bootloader shows a menu, where an XMODEM transfer can be started by sending ASCII '1', or the application can be started by sending ASCII '2'. This is the recommended UART bootloader for the EmberZNet and Connect protocol stacks. This bootloader was created from the bootloader-uart-xmodem sample. Pay attention to the UART configuration when using a custom board.
+</ns1:description>
+    <property key="demos.blurb" value="Bootloader - NCP UART XMODEM (OTW for Z-Wave Applications)" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4204d" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4204d/bootloader-uart-xmodem-zwave-otw-brd4204d.s37" />
+    <property key="core.readmeFiles" value="" />
+    <property key="filters" value="Device\ Type|NCP MCU|Bootloader Project\ Difficulty|Advanced Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4210a.demo.bootloader-uart-xmodem-zwave-otw" label="Bootloader - NCP UART XMODEM (OTW for Z-Wave Applications)">
+    <ns1:description>Standalone Bootloader using XMODEM-CRC over UART. The bootloader shows a menu, where an XMODEM transfer can be started by sending ASCII '1', or the application can be started by sending ASCII '2'. This is the recommended UART bootloader for the EmberZNet and Connect protocol stacks. This bootloader was created from the bootloader-uart-xmodem sample. Pay attention to the UART configuration when using a custom board.
+</ns1:description>
+    <property key="demos.blurb" value="Bootloader - NCP UART XMODEM (OTW for Z-Wave Applications)" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4210a" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4210a/bootloader-uart-xmodem-zwave-otw-brd4210a.s37" />
+    <property key="core.readmeFiles" value="" />
+    <property key="filters" value="Device\ Type|NCP MCU|Bootloader Project\ Difficulty|Advanced Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4400c.demo.bootloader-uart-xmodem-zwave-otw" label="Bootloader - NCP UART XMODEM (OTW for Z-Wave Applications)">
+    <ns1:description>Standalone Bootloader using XMODEM-CRC over UART. The bootloader shows a menu, where an XMODEM transfer can be started by sending ASCII '1', or the application can be started by sending ASCII '2'. This is the recommended UART bootloader for the EmberZNet and Connect protocol stacks. This bootloader was created from the bootloader-uart-xmodem sample. Pay attention to the UART configuration when using a custom board.
+</ns1:description>
+    <property key="demos.blurb" value="Bootloader - NCP UART XMODEM (OTW for Z-Wave Applications)" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4400c" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4400c/bootloader-uart-xmodem-zwave-otw-brd4400c.s37" />
+    <property key="core.readmeFiles" value="" />
+    <property key="filters" value="Device\ Type|NCP MCU|Bootloader Project\ Difficulty|Advanced Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4205b.demo.bootloader-uart-xmodem-zwave-otw" label="Bootloader - NCP UART XMODEM (OTW for Z-Wave Applications)">
+    <ns1:description>Standalone Bootloader using XMODEM-CRC over UART. The bootloader shows a menu, where an XMODEM transfer can be started by sending ASCII '1', or the application can be started by sending ASCII '2'. This is the recommended UART bootloader for the EmberZNet and Connect protocol stacks. This bootloader was created from the bootloader-uart-xmodem sample. Pay attention to the UART configuration when using a custom board.
+</ns1:description>
+    <property key="demos.blurb" value="Bootloader - NCP UART XMODEM (OTW for Z-Wave Applications)" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4205b" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4205b/bootloader-uart-xmodem-zwave-otw-brd4205b.s37" />
+    <property key="core.readmeFiles" value="" />
+    <property key="filters" value="Device\ Type|NCP MCU|Bootloader Project\ Difficulty|Advanced Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4401c.demo.zwave_ncp_serial_api_controller" label="Z-Wave - NCP Serial API Controller">
+    <ns1:description>The Serial Applications Programming Interface (Serial API) allows a host to communicate with a Z-Wave chip. The host may be a PC or a less powerful embedded host CPU, such as in a remote control or in a gateway device, and so on.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - NCP Serial API Controller" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4401c" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4401c/zwave_ncp_serial_api_controller-brd4401c.hex" />
+    <property key="core.readmeFiles" value="zwave_ncp_serial_api/README.md" />
+    <property key="filters" value="Device\ Type|NCP Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="controller-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="controller-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4401b.demo.zwave_ncp_serial_api_controller" label="Z-Wave - NCP Serial API Controller">
+    <ns1:description>The Serial Applications Programming Interface (Serial API) allows a host to communicate with a Z-Wave chip. The host may be a PC or a less powerful embedded host CPU, such as in a remote control or in a gateway device, and so on.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - NCP Serial API Controller" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4401b" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4401b/zwave_ncp_serial_api_controller-brd4401b.hex" />
+    <property key="core.readmeFiles" value="zwave_ncp_serial_api/README.md" />
+    <property key="filters" value="Device\ Type|NCP Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="controller-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="controller-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd2603a.demo.zwave_ncp_serial_api_controller" label="Z-Wave - NCP Serial API Controller">
+    <ns1:description>The Serial Applications Programming Interface (Serial API) allows a host to communicate with a Z-Wave chip. The host may be a PC or a less powerful embedded host CPU, such as in a remote control or in a gateway device, and so on.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - NCP Serial API Controller" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd2603a" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd2603a/zwave_ncp_serial_api_controller-brd2603a.hex" />
+    <property key="core.readmeFiles" value="zwave_ncp_serial_api/README.md" />
+    <property key="filters" value="Device\ Type|NCP Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="controller-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="controller-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd2705a.demo.zwave_ncp_serial_api_controller" label="Z-Wave - NCP Serial API Controller">
+    <ns1:description>The Serial Applications Programming Interface (Serial API) allows a host to communicate with a Z-Wave chip. The host may be a PC or a less powerful embedded host CPU, such as in a remote control or in a gateway device, and so on.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - NCP Serial API Controller" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd2705a" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd2705a/zwave_ncp_serial_api_controller-brd2705a.hex" />
+    <property key="core.readmeFiles" value="zwave_ncp_serial_api/README.md" />
+    <property key="filters" value="Device\ Type|NCP Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="controller-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="controller-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4400b.demo.zwave_ncp_serial_api_controller" label="Z-Wave - NCP Serial API Controller">
+    <ns1:description>The Serial Applications Programming Interface (Serial API) allows a host to communicate with a Z-Wave chip. The host may be a PC or a less powerful embedded host CPU, such as in a remote control or in a gateway device, and so on.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - NCP Serial API Controller" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4400b" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4400b/zwave_ncp_serial_api_controller-brd4400b.hex" />
+    <property key="core.readmeFiles" value="zwave_ncp_serial_api/README.md" />
+    <property key="filters" value="Device\ Type|NCP Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="controller-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="controller-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4204a.demo.zwave_ncp_serial_api_controller" label="Z-Wave - NCP Serial API Controller">
+    <ns1:description>The Serial Applications Programming Interface (Serial API) allows a host to communicate with a Z-Wave chip. The host may be a PC or a less powerful embedded host CPU, such as in a remote control or in a gateway device, and so on.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - NCP Serial API Controller" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4204a" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4204a/zwave_ncp_serial_api_controller-brd4204a.hex" />
+    <property key="core.readmeFiles" value="zwave_ncp_serial_api/README.md" />
+    <property key="filters" value="Device\ Type|NCP Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="controller-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="controller-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4204b.demo.zwave_ncp_serial_api_controller" label="Z-Wave - NCP Serial API Controller">
+    <ns1:description>The Serial Applications Programming Interface (Serial API) allows a host to communicate with a Z-Wave chip. The host may be a PC or a less powerful embedded host CPU, such as in a remote control or in a gateway device, and so on.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - NCP Serial API Controller" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4204b" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4204b/zwave_ncp_serial_api_controller-brd4204b.hex" />
+    <property key="core.readmeFiles" value="zwave_ncp_serial_api/README.md" />
+    <property key="filters" value="Device\ Type|NCP Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="controller-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="controller-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4204c.demo.zwave_ncp_serial_api_controller" label="Z-Wave - NCP Serial API Controller">
+    <ns1:description>The Serial Applications Programming Interface (Serial API) allows a host to communicate with a Z-Wave chip. The host may be a PC or a less powerful embedded host CPU, such as in a remote control or in a gateway device, and so on.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - NCP Serial API Controller" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4204c" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4204c/zwave_ncp_serial_api_controller-brd4204c.hex" />
+    <property key="core.readmeFiles" value="zwave_ncp_serial_api/README.md" />
+    <property key="filters" value="Device\ Type|NCP Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="controller-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="controller-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4204d.demo.zwave_ncp_serial_api_controller" label="Z-Wave - NCP Serial API Controller">
+    <ns1:description>The Serial Applications Programming Interface (Serial API) allows a host to communicate with a Z-Wave chip. The host may be a PC or a less powerful embedded host CPU, such as in a remote control or in a gateway device, and so on.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - NCP Serial API Controller" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4204d" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4204d/zwave_ncp_serial_api_controller-brd4204d.hex" />
+    <property key="core.readmeFiles" value="zwave_ncp_serial_api/README.md" />
+    <property key="filters" value="Device\ Type|NCP Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="controller-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="controller-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4210a.demo.zwave_ncp_serial_api_controller" label="Z-Wave - NCP Serial API Controller">
+    <ns1:description>The Serial Applications Programming Interface (Serial API) allows a host to communicate with a Z-Wave chip. The host may be a PC or a less powerful embedded host CPU, such as in a remote control or in a gateway device, and so on.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - NCP Serial API Controller" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4210a" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4210a/zwave_ncp_serial_api_controller-brd4210a.hex" />
+    <property key="core.readmeFiles" value="zwave_ncp_serial_api/README.md" />
+    <property key="filters" value="Device\ Type|NCP Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="controller-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="controller-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4400c.demo.zwave_ncp_serial_api_controller" label="Z-Wave - NCP Serial API Controller">
+    <ns1:description>The Serial Applications Programming Interface (Serial API) allows a host to communicate with a Z-Wave chip. The host may be a PC or a less powerful embedded host CPU, such as in a remote control or in a gateway device, and so on.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - NCP Serial API Controller" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4400c" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4400c/zwave_ncp_serial_api_controller-brd4400c.hex" />
+    <property key="core.readmeFiles" value="zwave_ncp_serial_api/README.md" />
+    <property key="filters" value="Device\ Type|NCP Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="controller-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="controller-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4205b.demo.zwave_ncp_serial_api_controller" label="Z-Wave - NCP Serial API Controller">
+    <ns1:description>The Serial Applications Programming Interface (Serial API) allows a host to communicate with a Z-Wave chip. The host may be a PC or a less powerful embedded host CPU, such as in a remote control or in a gateway device, and so on.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - NCP Serial API Controller" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4205b" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4205b/zwave_ncp_serial_api_controller-brd4205b.hex" />
+    <property key="core.readmeFiles" value="zwave_ncp_serial_api/README.md" />
+    <property key="filters" value="Device\ Type|NCP Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="controller-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="controller-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4401c.demo.zwave_ncp_serial_api_end_device" label="Z-Wave - NCP Serial API End Device">
+    <ns1:description>The Serial Application Programming Interface (Serial API) allows a host to communicate with a Z-Wave chip. The host may be PC or a less powerful embedded host CPU, e.g., in a remote control or in a gateway device.
+The Serial API End Device allows the user to create a product with a host application with different capabilites than the Z-Wave device, such as drive a high performance display, but does not require the Z-Wave Controller role.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - NCP Serial API End Device" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4401c" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4401c/zwave_ncp_serial_api_end_device-brd4401c.hex" />
+    <property key="core.readmeFiles" value="" />
+    <property key="filters" value="Device\ Type|NCP Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4401b.demo.zwave_ncp_serial_api_end_device" label="Z-Wave - NCP Serial API End Device">
+    <ns1:description>The Serial Application Programming Interface (Serial API) allows a host to communicate with a Z-Wave chip. The host may be PC or a less powerful embedded host CPU, e.g., in a remote control or in a gateway device.
+The Serial API End Device allows the user to create a product with a host application with different capabilites than the Z-Wave device, such as drive a high performance display, but does not require the Z-Wave Controller role.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - NCP Serial API End Device" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4401b" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4401b/zwave_ncp_serial_api_end_device-brd4401b.hex" />
+    <property key="core.readmeFiles" value="" />
+    <property key="filters" value="Device\ Type|NCP Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd2603a.demo.zwave_ncp_serial_api_end_device" label="Z-Wave - NCP Serial API End Device">
+    <ns1:description>The Serial Application Programming Interface (Serial API) allows a host to communicate with a Z-Wave chip. The host may be PC or a less powerful embedded host CPU, e.g., in a remote control or in a gateway device.
+The Serial API End Device allows the user to create a product with a host application with different capabilites than the Z-Wave device, such as drive a high performance display, but does not require the Z-Wave Controller role.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - NCP Serial API End Device" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd2603a" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd2603a/zwave_ncp_serial_api_end_device-brd2603a.hex" />
+    <property key="core.readmeFiles" value="" />
+    <property key="filters" value="Device\ Type|NCP Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd2705a.demo.zwave_ncp_serial_api_end_device" label="Z-Wave - NCP Serial API End Device">
+    <ns1:description>The Serial Application Programming Interface (Serial API) allows a host to communicate with a Z-Wave chip. The host may be PC or a less powerful embedded host CPU, e.g., in a remote control or in a gateway device.
+The Serial API End Device allows the user to create a product with a host application with different capabilites than the Z-Wave device, such as drive a high performance display, but does not require the Z-Wave Controller role.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - NCP Serial API End Device" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd2705a" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd2705a/zwave_ncp_serial_api_end_device-brd2705a.hex" />
+    <property key="core.readmeFiles" value="" />
+    <property key="filters" value="Device\ Type|NCP Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4400b.demo.zwave_ncp_serial_api_end_device" label="Z-Wave - NCP Serial API End Device">
+    <ns1:description>The Serial Application Programming Interface (Serial API) allows a host to communicate with a Z-Wave chip. The host may be PC or a less powerful embedded host CPU, e.g., in a remote control or in a gateway device.
+The Serial API End Device allows the user to create a product with a host application with different capabilites than the Z-Wave device, such as drive a high performance display, but does not require the Z-Wave Controller role.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - NCP Serial API End Device" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4400b" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4400b/zwave_ncp_serial_api_end_device-brd4400b.hex" />
+    <property key="core.readmeFiles" value="" />
+    <property key="filters" value="Device\ Type|NCP Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4204a.demo.zwave_ncp_serial_api_end_device" label="Z-Wave - NCP Serial API End Device">
+    <ns1:description>The Serial Application Programming Interface (Serial API) allows a host to communicate with a Z-Wave chip. The host may be PC or a less powerful embedded host CPU, e.g., in a remote control or in a gateway device.
+The Serial API End Device allows the user to create a product with a host application with different capabilites than the Z-Wave device, such as drive a high performance display, but does not require the Z-Wave Controller role.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - NCP Serial API End Device" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4204a" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4204a/zwave_ncp_serial_api_end_device-brd4204a.hex" />
+    <property key="core.readmeFiles" value="" />
+    <property key="filters" value="Device\ Type|NCP Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4204b.demo.zwave_ncp_serial_api_end_device" label="Z-Wave - NCP Serial API End Device">
+    <ns1:description>The Serial Application Programming Interface (Serial API) allows a host to communicate with a Z-Wave chip. The host may be PC or a less powerful embedded host CPU, e.g., in a remote control or in a gateway device.
+The Serial API End Device allows the user to create a product with a host application with different capabilites than the Z-Wave device, such as drive a high performance display, but does not require the Z-Wave Controller role.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - NCP Serial API End Device" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4204b" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4204b/zwave_ncp_serial_api_end_device-brd4204b.hex" />
+    <property key="core.readmeFiles" value="" />
+    <property key="filters" value="Device\ Type|NCP Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4204c.demo.zwave_ncp_serial_api_end_device" label="Z-Wave - NCP Serial API End Device">
+    <ns1:description>The Serial Application Programming Interface (Serial API) allows a host to communicate with a Z-Wave chip. The host may be PC or a less powerful embedded host CPU, e.g., in a remote control or in a gateway device.
+The Serial API End Device allows the user to create a product with a host application with different capabilites than the Z-Wave device, such as drive a high performance display, but does not require the Z-Wave Controller role.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - NCP Serial API End Device" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4204c" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4204c/zwave_ncp_serial_api_end_device-brd4204c.hex" />
+    <property key="core.readmeFiles" value="" />
+    <property key="filters" value="Device\ Type|NCP Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4204d.demo.zwave_ncp_serial_api_end_device" label="Z-Wave - NCP Serial API End Device">
+    <ns1:description>The Serial Application Programming Interface (Serial API) allows a host to communicate with a Z-Wave chip. The host may be PC or a less powerful embedded host CPU, e.g., in a remote control or in a gateway device.
+The Serial API End Device allows the user to create a product with a host application with different capabilites than the Z-Wave device, such as drive a high performance display, but does not require the Z-Wave Controller role.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - NCP Serial API End Device" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4204d" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4204d/zwave_ncp_serial_api_end_device-brd4204d.hex" />
+    <property key="core.readmeFiles" value="" />
+    <property key="filters" value="Device\ Type|NCP Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4210a.demo.zwave_ncp_serial_api_end_device" label="Z-Wave - NCP Serial API End Device">
+    <ns1:description>The Serial Application Programming Interface (Serial API) allows a host to communicate with a Z-Wave chip. The host may be PC or a less powerful embedded host CPU, e.g., in a remote control or in a gateway device.
+The Serial API End Device allows the user to create a product with a host application with different capabilites than the Z-Wave device, such as drive a high performance display, but does not require the Z-Wave Controller role.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - NCP Serial API End Device" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4210a" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4210a/zwave_ncp_serial_api_end_device-brd4210a.hex" />
+    <property key="core.readmeFiles" value="" />
+    <property key="filters" value="Device\ Type|NCP Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4400c.demo.zwave_ncp_serial_api_end_device" label="Z-Wave - NCP Serial API End Device">
+    <ns1:description>The Serial Application Programming Interface (Serial API) allows a host to communicate with a Z-Wave chip. The host may be PC or a less powerful embedded host CPU, e.g., in a remote control or in a gateway device.
+The Serial API End Device allows the user to create a product with a host application with different capabilites than the Z-Wave device, such as drive a high performance display, but does not require the Z-Wave Controller role.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - NCP Serial API End Device" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4400c" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4400c/zwave_ncp_serial_api_end_device-brd4400c.hex" />
+    <property key="core.readmeFiles" value="" />
+    <property key="filters" value="Device\ Type|NCP Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4205b.demo.zwave_ncp_serial_api_end_device" label="Z-Wave - NCP Serial API End Device">
+    <ns1:description>The Serial Application Programming Interface (Serial API) allows a host to communicate with a Z-Wave chip. The host may be PC or a less powerful embedded host CPU, e.g., in a remote control or in a gateway device.
+The Serial API End Device allows the user to create a product with a host application with different capabilites than the Z-Wave device, such as drive a high performance display, but does not require the Z-Wave Controller role.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - NCP Serial API End Device" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4205b" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4205b/zwave_ncp_serial_api_end_device-brd4205b.hex" />
+    <property key="core.readmeFiles" value="" />
+    <property key="filters" value="Device\ Type|NCP Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4401c.demo.zwave_ncp_zniffer" label="Z-Wave - NCP Zniffer Beta">
+    <ns1:description>The Z-Wave Zniffer Application</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - NCP Zniffer Beta" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4401c" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4401c/zwave_ncp_zniffer-brd4401c.hex" />
+    <property key="core.readmeFiles" value="zwave_ncp_zniffer/README.md" />
+    <property key="filters" value="Device\ Type|NCP Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4401b.demo.zwave_ncp_zniffer" label="Z-Wave - NCP Zniffer Beta">
+    <ns1:description>The Z-Wave Zniffer Application</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - NCP Zniffer Beta" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4401b" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4401b/zwave_ncp_zniffer-brd4401b.hex" />
+    <property key="core.readmeFiles" value="zwave_ncp_zniffer/README.md" />
+    <property key="filters" value="Device\ Type|NCP Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd2603a.demo.zwave_ncp_zniffer" label="Z-Wave - NCP Zniffer Beta">
+    <ns1:description>The Z-Wave Zniffer Application</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - NCP Zniffer Beta" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd2603a" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd2603a/zwave_ncp_zniffer-brd2603a.hex" />
+    <property key="core.readmeFiles" value="zwave_ncp_zniffer/README.md" />
+    <property key="filters" value="Device\ Type|NCP Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd2705a.demo.zwave_ncp_zniffer" label="Z-Wave - NCP Zniffer Beta">
+    <ns1:description>The Z-Wave Zniffer Application</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - NCP Zniffer Beta" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd2705a" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd2705a/zwave_ncp_zniffer-brd2705a.hex" />
+    <property key="core.readmeFiles" value="zwave_ncp_zniffer/README.md" />
+    <property key="filters" value="Device\ Type|NCP Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4400b.demo.zwave_ncp_zniffer" label="Z-Wave - NCP Zniffer Beta">
+    <ns1:description>The Z-Wave Zniffer Application</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - NCP Zniffer Beta" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4400b" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4400b/zwave_ncp_zniffer-brd4400b.hex" />
+    <property key="core.readmeFiles" value="zwave_ncp_zniffer/README.md" />
+    <property key="filters" value="Device\ Type|NCP Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4204a.demo.zwave_ncp_zniffer" label="Z-Wave - NCP Zniffer Beta">
+    <ns1:description>The Z-Wave Zniffer Application</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - NCP Zniffer Beta" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4204a" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4204a/zwave_ncp_zniffer-brd4204a.hex" />
+    <property key="core.readmeFiles" value="zwave_ncp_zniffer/README.md" />
+    <property key="filters" value="Device\ Type|NCP Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4204b.demo.zwave_ncp_zniffer" label="Z-Wave - NCP Zniffer Beta">
+    <ns1:description>The Z-Wave Zniffer Application</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - NCP Zniffer Beta" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4204b" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4204b/zwave_ncp_zniffer-brd4204b.hex" />
+    <property key="core.readmeFiles" value="zwave_ncp_zniffer/README.md" />
+    <property key="filters" value="Device\ Type|NCP Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4204c.demo.zwave_ncp_zniffer" label="Z-Wave - NCP Zniffer Beta">
+    <ns1:description>The Z-Wave Zniffer Application</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - NCP Zniffer Beta" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4204c" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4204c/zwave_ncp_zniffer-brd4204c.hex" />
+    <property key="core.readmeFiles" value="zwave_ncp_zniffer/README.md" />
+    <property key="filters" value="Device\ Type|NCP Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4204d.demo.zwave_ncp_zniffer" label="Z-Wave - NCP Zniffer Beta">
+    <ns1:description>The Z-Wave Zniffer Application</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - NCP Zniffer Beta" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4204d" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4204d/zwave_ncp_zniffer-brd4204d.hex" />
+    <property key="core.readmeFiles" value="zwave_ncp_zniffer/README.md" />
+    <property key="filters" value="Device\ Type|NCP Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4210a.demo.zwave_ncp_zniffer" label="Z-Wave - NCP Zniffer Beta">
+    <ns1:description>The Z-Wave Zniffer Application</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - NCP Zniffer Beta" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4210a" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4210a/zwave_ncp_zniffer-brd4210a.hex" />
+    <property key="core.readmeFiles" value="zwave_ncp_zniffer/README.md" />
+    <property key="filters" value="Device\ Type|NCP Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4400c.demo.zwave_ncp_zniffer" label="Z-Wave - NCP Zniffer Beta">
+    <ns1:description>The Z-Wave Zniffer Application</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - NCP Zniffer Beta" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4400c" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4400c/zwave_ncp_zniffer-brd4400c.hex" />
+    <property key="core.readmeFiles" value="zwave_ncp_zniffer/README.md" />
+    <property key="filters" value="Device\ Type|NCP Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4205b.demo.zwave_ncp_zniffer" label="Z-Wave - NCP Zniffer Beta">
+    <ns1:description>The Z-Wave Zniffer Application</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - NCP Zniffer Beta" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4205b" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4205b/zwave_ncp_zniffer-brd4205b.hex" />
+    <property key="core.readmeFiles" value="zwave_ncp_zniffer/README.md" />
+    <property key="filters" value="Device\ Type|NCP Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4401c.demo.zwave_soc_door_lock_keypad" label="Z-Wave - SoC Door Lock Keypad">
+    <ns1:description>The Z-Wave certified Door Lock application shows a lock implementation. It will support user codes to open a door and thereby eliminate the need for traditional keys. It is possible to both lock and unlock the door remotely through the Z-Wave protocol.
+For certain devices, the application supports and uses the User Credential Command Class. See README file for details.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - SoC Door Lock Keypad" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4401c" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4401c/zwave_soc_door_lock_keypad-brd4401c.hex" />
+    <property key="core.readmeFiles" value="zwave_soc_door_lock_keypad/README.md" />
+    <property key="filters" value="Device\ Type|SoC Project\ Difficulty|Advanced Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4401b.demo.zwave_soc_door_lock_keypad" label="Z-Wave - SoC Door Lock Keypad">
+    <ns1:description>The Z-Wave certified Door Lock application shows a lock implementation. It will support user codes to open a door and thereby eliminate the need for traditional keys. It is possible to both lock and unlock the door remotely through the Z-Wave protocol.
+For certain devices, the application supports and uses the User Credential Command Class. See README file for details.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - SoC Door Lock Keypad" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4401b" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4401b/zwave_soc_door_lock_keypad-brd4401b.hex" />
+    <property key="core.readmeFiles" value="zwave_soc_door_lock_keypad/README.md" />
+    <property key="filters" value="Device\ Type|SoC Project\ Difficulty|Advanced Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd2603a.demo.zwave_soc_door_lock_keypad" label="Z-Wave - SoC Door Lock Keypad">
+    <ns1:description>The Z-Wave certified Door Lock application shows a lock implementation. It will support user codes to open a door and thereby eliminate the need for traditional keys. It is possible to both lock and unlock the door remotely through the Z-Wave protocol.
+For certain devices, the application supports and uses the User Credential Command Class. See README file for details.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - SoC Door Lock Keypad" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd2603a" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd2603a/zwave_soc_door_lock_keypad-brd2603a.hex" />
+    <property key="core.readmeFiles" value="zwave_soc_door_lock_keypad/README.md" />
+    <property key="filters" value="Device\ Type|SoC Project\ Difficulty|Advanced Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd2705a.demo.zwave_soc_door_lock_keypad" label="Z-Wave - SoC Door Lock Keypad">
+    <ns1:description>The Z-Wave certified Door Lock application shows a lock implementation. It will support user codes to open a door and thereby eliminate the need for traditional keys. It is possible to both lock and unlock the door remotely through the Z-Wave protocol.
+For certain devices, the application supports and uses the User Credential Command Class. See README file for details.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - SoC Door Lock Keypad" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd2705a" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd2705a/zwave_soc_door_lock_keypad-brd2705a.hex" />
+    <property key="core.readmeFiles" value="zwave_soc_door_lock_keypad/README.md" />
+    <property key="filters" value="Device\ Type|SoC Project\ Difficulty|Advanced Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4400b.demo.zwave_soc_door_lock_keypad" label="Z-Wave - SoC Door Lock Keypad">
+    <ns1:description>The Z-Wave certified Door Lock application shows a lock implementation. It will support user codes to open a door and thereby eliminate the need for traditional keys. It is possible to both lock and unlock the door remotely through the Z-Wave protocol.
+For certain devices, the application supports and uses the User Credential Command Class. See README file for details.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - SoC Door Lock Keypad" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4400b" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4400b/zwave_soc_door_lock_keypad-brd4400b.hex" />
+    <property key="core.readmeFiles" value="zwave_soc_door_lock_keypad/README.md" />
+    <property key="filters" value="Device\ Type|SoC Project\ Difficulty|Advanced Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4204a.demo.zwave_soc_door_lock_keypad" label="Z-Wave - SoC Door Lock Keypad">
+    <ns1:description>The Z-Wave certified Door Lock application shows a lock implementation. It will support user codes to open a door and thereby eliminate the need for traditional keys. It is possible to both lock and unlock the door remotely through the Z-Wave protocol.
+For certain devices, the application supports and uses the User Credential Command Class. See README file for details.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - SoC Door Lock Keypad" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4204a" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4204a/zwave_soc_door_lock_keypad-brd4204a.hex" />
+    <property key="core.readmeFiles" value="zwave_soc_door_lock_keypad/README.md" />
+    <property key="filters" value="Device\ Type|SoC Project\ Difficulty|Advanced Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4204b.demo.zwave_soc_door_lock_keypad" label="Z-Wave - SoC Door Lock Keypad">
+    <ns1:description>The Z-Wave certified Door Lock application shows a lock implementation. It will support user codes to open a door and thereby eliminate the need for traditional keys. It is possible to both lock and unlock the door remotely through the Z-Wave protocol.
+For certain devices, the application supports and uses the User Credential Command Class. See README file for details.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - SoC Door Lock Keypad" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4204b" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4204b/zwave_soc_door_lock_keypad-brd4204b.hex" />
+    <property key="core.readmeFiles" value="zwave_soc_door_lock_keypad/README.md" />
+    <property key="filters" value="Device\ Type|SoC Project\ Difficulty|Advanced Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4204c.demo.zwave_soc_door_lock_keypad" label="Z-Wave - SoC Door Lock Keypad">
+    <ns1:description>The Z-Wave certified Door Lock application shows a lock implementation. It will support user codes to open a door and thereby eliminate the need for traditional keys. It is possible to both lock and unlock the door remotely through the Z-Wave protocol.
+For certain devices, the application supports and uses the User Credential Command Class. See README file for details.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - SoC Door Lock Keypad" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4204c" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4204c/zwave_soc_door_lock_keypad-brd4204c.hex" />
+    <property key="core.readmeFiles" value="zwave_soc_door_lock_keypad/README.md" />
+    <property key="filters" value="Device\ Type|SoC Project\ Difficulty|Advanced Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4204d.demo.zwave_soc_door_lock_keypad" label="Z-Wave - SoC Door Lock Keypad">
+    <ns1:description>The Z-Wave certified Door Lock application shows a lock implementation. It will support user codes to open a door and thereby eliminate the need for traditional keys. It is possible to both lock and unlock the door remotely through the Z-Wave protocol.
+For certain devices, the application supports and uses the User Credential Command Class. See README file for details.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - SoC Door Lock Keypad" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4204d" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4204d/zwave_soc_door_lock_keypad-brd4204d.hex" />
+    <property key="core.readmeFiles" value="zwave_soc_door_lock_keypad/README.md" />
+    <property key="filters" value="Device\ Type|SoC Project\ Difficulty|Advanced Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4210a.demo.zwave_soc_door_lock_keypad" label="Z-Wave - SoC Door Lock Keypad">
+    <ns1:description>The Z-Wave certified Door Lock application shows a lock implementation. It will support user codes to open a door and thereby eliminate the need for traditional keys. It is possible to both lock and unlock the door remotely through the Z-Wave protocol.
+For certain devices, the application supports and uses the User Credential Command Class. See README file for details.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - SoC Door Lock Keypad" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4210a" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4210a/zwave_soc_door_lock_keypad-brd4210a.hex" />
+    <property key="core.readmeFiles" value="zwave_soc_door_lock_keypad/README.md" />
+    <property key="filters" value="Device\ Type|SoC Project\ Difficulty|Advanced Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4400c.demo.zwave_soc_door_lock_keypad" label="Z-Wave - SoC Door Lock Keypad">
+    <ns1:description>The Z-Wave certified Door Lock application shows a lock implementation. It will support user codes to open a door and thereby eliminate the need for traditional keys. It is possible to both lock and unlock the door remotely through the Z-Wave protocol.
+For certain devices, the application supports and uses the User Credential Command Class. See README file for details.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - SoC Door Lock Keypad" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4400c" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4400c/zwave_soc_door_lock_keypad-brd4400c.hex" />
+    <property key="core.readmeFiles" value="zwave_soc_door_lock_keypad/README.md" />
+    <property key="filters" value="Device\ Type|SoC Project\ Difficulty|Advanced Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4205b.demo.zwave_soc_door_lock_keypad" label="Z-Wave - SoC Door Lock Keypad">
+    <ns1:description>The Z-Wave certified Door Lock application shows a lock implementation. It will support user codes to open a door and thereby eliminate the need for traditional keys. It is possible to both lock and unlock the door remotely through the Z-Wave protocol.
+For certain devices, the application supports and uses the User Credential Command Class. See README file for details.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - SoC Door Lock Keypad" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4205b" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4205b/zwave_soc_door_lock_keypad-brd4205b.hex" />
+    <property key="core.readmeFiles" value="zwave_soc_door_lock_keypad/README.md" />
+    <property key="filters" value="Device\ Type|SoC Project\ Difficulty|Advanced Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4401c.demo.zwave_soc_led_bulb" label="Z-Wave - SoC LED Bulb">
+    <ns1:description>The Z-Wave LED Bulb application shows an implementation of a remotely controlled color switch. An example is an LED bulb or any other color-capable device. The app supports dimming of an RGB LED.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - SoC LED Bulb" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4401c" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4401c/zwave_soc_led_bulb-brd4401c.hex" />
+    <property key="core.readmeFiles" value="zwave_soc_led_bulb/README.md" />
+    <property key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4401b.demo.zwave_soc_led_bulb" label="Z-Wave - SoC LED Bulb">
+    <ns1:description>The Z-Wave LED Bulb application shows an implementation of a remotely controlled color switch. An example is an LED bulb or any other color-capable device. The app supports dimming of an RGB LED.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - SoC LED Bulb" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4401b" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4401b/zwave_soc_led_bulb-brd4401b.hex" />
+    <property key="core.readmeFiles" value="zwave_soc_led_bulb/README.md" />
+    <property key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd2603a.demo.zwave_soc_led_bulb" label="Z-Wave - SoC LED Bulb">
+    <ns1:description>The Z-Wave LED Bulb application shows an implementation of a remotely controlled color switch. An example is an LED bulb or any other color-capable device. The app supports dimming of an RGB LED.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - SoC LED Bulb" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd2603a" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd2603a/zwave_soc_led_bulb-brd2603a.hex" />
+    <property key="core.readmeFiles" value="zwave_soc_led_bulb/README.md" />
+    <property key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd2705a.demo.zwave_soc_led_bulb" label="Z-Wave - SoC LED Bulb">
+    <ns1:description>The Z-Wave LED Bulb application shows an implementation of a remotely controlled color switch. An example is an LED bulb or any other color-capable device. The app supports dimming of an RGB LED.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - SoC LED Bulb" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd2705a" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd2705a/zwave_soc_led_bulb-brd2705a.hex" />
+    <property key="core.readmeFiles" value="zwave_soc_led_bulb/README.md" />
+    <property key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4400b.demo.zwave_soc_led_bulb" label="Z-Wave - SoC LED Bulb">
+    <ns1:description>The Z-Wave LED Bulb application shows an implementation of a remotely controlled color switch. An example is an LED bulb or any other color-capable device. The app supports dimming of an RGB LED.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - SoC LED Bulb" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4400b" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4400b/zwave_soc_led_bulb-brd4400b.hex" />
+    <property key="core.readmeFiles" value="zwave_soc_led_bulb/README.md" />
+    <property key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4204a.demo.zwave_soc_led_bulb" label="Z-Wave - SoC LED Bulb">
+    <ns1:description>The Z-Wave LED Bulb application shows an implementation of a remotely controlled color switch. An example is an LED bulb or any other color-capable device. The app supports dimming of an RGB LED.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - SoC LED Bulb" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4204a" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4204a/zwave_soc_led_bulb-brd4204a.hex" />
+    <property key="core.readmeFiles" value="zwave_soc_led_bulb/README.md" />
+    <property key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4204b.demo.zwave_soc_led_bulb" label="Z-Wave - SoC LED Bulb">
+    <ns1:description>The Z-Wave LED Bulb application shows an implementation of a remotely controlled color switch. An example is an LED bulb or any other color-capable device. The app supports dimming of an RGB LED.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - SoC LED Bulb" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4204b" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4204b/zwave_soc_led_bulb-brd4204b.hex" />
+    <property key="core.readmeFiles" value="zwave_soc_led_bulb/README.md" />
+    <property key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4204c.demo.zwave_soc_led_bulb" label="Z-Wave - SoC LED Bulb">
+    <ns1:description>The Z-Wave LED Bulb application shows an implementation of a remotely controlled color switch. An example is an LED bulb or any other color-capable device. The app supports dimming of an RGB LED.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - SoC LED Bulb" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4204c" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4204c/zwave_soc_led_bulb-brd4204c.hex" />
+    <property key="core.readmeFiles" value="zwave_soc_led_bulb/README.md" />
+    <property key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4204d.demo.zwave_soc_led_bulb" label="Z-Wave - SoC LED Bulb">
+    <ns1:description>The Z-Wave LED Bulb application shows an implementation of a remotely controlled color switch. An example is an LED bulb or any other color-capable device. The app supports dimming of an RGB LED.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - SoC LED Bulb" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4204d" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4204d/zwave_soc_led_bulb-brd4204d.hex" />
+    <property key="core.readmeFiles" value="zwave_soc_led_bulb/README.md" />
+    <property key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4210a.demo.zwave_soc_led_bulb" label="Z-Wave - SoC LED Bulb">
+    <ns1:description>The Z-Wave LED Bulb application shows an implementation of a remotely controlled color switch. An example is an LED bulb or any other color-capable device. The app supports dimming of an RGB LED.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - SoC LED Bulb" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4210a" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4210a/zwave_soc_led_bulb-brd4210a.hex" />
+    <property key="core.readmeFiles" value="zwave_soc_led_bulb/README.md" />
+    <property key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4400c.demo.zwave_soc_led_bulb" label="Z-Wave - SoC LED Bulb">
+    <ns1:description>The Z-Wave LED Bulb application shows an implementation of a remotely controlled color switch. An example is an LED bulb or any other color-capable device. The app supports dimming of an RGB LED.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - SoC LED Bulb" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4400c" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4400c/zwave_soc_led_bulb-brd4400c.hex" />
+    <property key="core.readmeFiles" value="zwave_soc_led_bulb/README.md" />
+    <property key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4205b.demo.zwave_soc_led_bulb" label="Z-Wave - SoC LED Bulb">
+    <ns1:description>The Z-Wave LED Bulb application shows an implementation of a remotely controlled color switch. An example is an LED bulb or any other color-capable device. The app supports dimming of an RGB LED.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - SoC LED Bulb" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4205b" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4205b/zwave_soc_led_bulb-brd4205b.hex" />
+    <property key="core.readmeFiles" value="zwave_soc_led_bulb/README.md" />
+    <property key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4401c.demo.zwave_soc_multilevel_sensor" label="Z-Wave - SoC Multilevel Sensor">
+    <ns1:description>The Z-Wave Switch Multilevel Sensor application shows the ability to advertize numerical sensor readings, such as temperature and humidity, and so on. Multiple parameters can be set for the minimum and maximum values, and a notification will be sent if the measured temperature value is out of the range.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - SoC Multilevel Sensor" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4401c" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4401c/zwave_soc_multilevel_sensor-brd4401c.hex" />
+    <property key="core.readmeFiles" value="zwave_soc_multilevel_sensor/README.md" />
+    <property key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4401b.demo.zwave_soc_multilevel_sensor" label="Z-Wave - SoC Multilevel Sensor">
+    <ns1:description>The Z-Wave Switch Multilevel Sensor application shows the ability to advertize numerical sensor readings, such as temperature and humidity, and so on. Multiple parameters can be set for the minimum and maximum values, and a notification will be sent if the measured temperature value is out of the range.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - SoC Multilevel Sensor" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4401b" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4401b/zwave_soc_multilevel_sensor-brd4401b.hex" />
+    <property key="core.readmeFiles" value="zwave_soc_multilevel_sensor/README.md" />
+    <property key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd2603a.demo.zwave_soc_multilevel_sensor" label="Z-Wave - SoC Multilevel Sensor">
+    <ns1:description>The Z-Wave Switch Multilevel Sensor application shows the ability to advertize numerical sensor readings, such as temperature and humidity, and so on. Multiple parameters can be set for the minimum and maximum values, and a notification will be sent if the measured temperature value is out of the range.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - SoC Multilevel Sensor" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd2603a" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd2603a/zwave_soc_multilevel_sensor-brd2603a.hex" />
+    <property key="core.readmeFiles" value="zwave_soc_multilevel_sensor/README.md" />
+    <property key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd2705a.demo.zwave_soc_multilevel_sensor" label="Z-Wave - SoC Multilevel Sensor">
+    <ns1:description>The Z-Wave Switch Multilevel Sensor application shows the ability to advertize numerical sensor readings, such as temperature and humidity, and so on. Multiple parameters can be set for the minimum and maximum values, and a notification will be sent if the measured temperature value is out of the range.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - SoC Multilevel Sensor" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd2705a" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd2705a/zwave_soc_multilevel_sensor-brd2705a.hex" />
+    <property key="core.readmeFiles" value="zwave_soc_multilevel_sensor/README.md" />
+    <property key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4400b.demo.zwave_soc_multilevel_sensor" label="Z-Wave - SoC Multilevel Sensor">
+    <ns1:description>The Z-Wave Switch Multilevel Sensor application shows the ability to advertize numerical sensor readings, such as temperature and humidity, and so on. Multiple parameters can be set for the minimum and maximum values, and a notification will be sent if the measured temperature value is out of the range.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - SoC Multilevel Sensor" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4400b" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4400b/zwave_soc_multilevel_sensor-brd4400b.hex" />
+    <property key="core.readmeFiles" value="zwave_soc_multilevel_sensor/README.md" />
+    <property key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4204a.demo.zwave_soc_multilevel_sensor" label="Z-Wave - SoC Multilevel Sensor">
+    <ns1:description>The Z-Wave Switch Multilevel Sensor application shows the ability to advertize numerical sensor readings, such as temperature and humidity, and so on. Multiple parameters can be set for the minimum and maximum values, and a notification will be sent if the measured temperature value is out of the range.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - SoC Multilevel Sensor" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4204a" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4204a/zwave_soc_multilevel_sensor-brd4204a.hex" />
+    <property key="core.readmeFiles" value="zwave_soc_multilevel_sensor/README.md" />
+    <property key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4204b.demo.zwave_soc_multilevel_sensor" label="Z-Wave - SoC Multilevel Sensor">
+    <ns1:description>The Z-Wave Switch Multilevel Sensor application shows the ability to advertize numerical sensor readings, such as temperature and humidity, and so on. Multiple parameters can be set for the minimum and maximum values, and a notification will be sent if the measured temperature value is out of the range.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - SoC Multilevel Sensor" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4204b" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4204b/zwave_soc_multilevel_sensor-brd4204b.hex" />
+    <property key="core.readmeFiles" value="zwave_soc_multilevel_sensor/README.md" />
+    <property key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4204c.demo.zwave_soc_multilevel_sensor" label="Z-Wave - SoC Multilevel Sensor">
+    <ns1:description>The Z-Wave Switch Multilevel Sensor application shows the ability to advertize numerical sensor readings, such as temperature and humidity, and so on. Multiple parameters can be set for the minimum and maximum values, and a notification will be sent if the measured temperature value is out of the range.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - SoC Multilevel Sensor" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4204c" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4204c/zwave_soc_multilevel_sensor-brd4204c.hex" />
+    <property key="core.readmeFiles" value="zwave_soc_multilevel_sensor/README.md" />
+    <property key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4204d.demo.zwave_soc_multilevel_sensor" label="Z-Wave - SoC Multilevel Sensor">
+    <ns1:description>The Z-Wave Switch Multilevel Sensor application shows the ability to advertize numerical sensor readings, such as temperature and humidity, and so on. Multiple parameters can be set for the minimum and maximum values, and a notification will be sent if the measured temperature value is out of the range.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - SoC Multilevel Sensor" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4204d" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4204d/zwave_soc_multilevel_sensor-brd4204d.hex" />
+    <property key="core.readmeFiles" value="zwave_soc_multilevel_sensor/README.md" />
+    <property key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4210a.demo.zwave_soc_multilevel_sensor" label="Z-Wave - SoC Multilevel Sensor">
+    <ns1:description>The Z-Wave Switch Multilevel Sensor application shows the ability to advertize numerical sensor readings, such as temperature and humidity, and so on. Multiple parameters can be set for the minimum and maximum values, and a notification will be sent if the measured temperature value is out of the range.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - SoC Multilevel Sensor" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4210a" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4210a/zwave_soc_multilevel_sensor-brd4210a.hex" />
+    <property key="core.readmeFiles" value="zwave_soc_multilevel_sensor/README.md" />
+    <property key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4400c.demo.zwave_soc_multilevel_sensor" label="Z-Wave - SoC Multilevel Sensor">
+    <ns1:description>The Z-Wave Switch Multilevel Sensor application shows the ability to advertize numerical sensor readings, such as temperature and humidity, and so on. Multiple parameters can be set for the minimum and maximum values, and a notification will be sent if the measured temperature value is out of the range.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - SoC Multilevel Sensor" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4400c" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4400c/zwave_soc_multilevel_sensor-brd4400c.hex" />
+    <property key="core.readmeFiles" value="zwave_soc_multilevel_sensor/README.md" />
+    <property key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4205b.demo.zwave_soc_multilevel_sensor" label="Z-Wave - SoC Multilevel Sensor">
+    <ns1:description>The Z-Wave Switch Multilevel Sensor application shows the ability to advertize numerical sensor readings, such as temperature and humidity, and so on. Multiple parameters can be set for the minimum and maximum values, and a notification will be sent if the measured temperature value is out of the range.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - SoC Multilevel Sensor" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4205b" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4205b/zwave_soc_multilevel_sensor-brd4205b.hex" />
+    <property key="core.readmeFiles" value="zwave_soc_multilevel_sensor/README.md" />
+    <property key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4401c.demo.zwave_soc_power_strip" label="Z-Wave - SoC Power Strip">
+    <ns1:description>The Z-Wave certified Power Strip application shows an extension block implementation used to turn on several devices that are connected to power. Examples include lights, appliances, etc.
+Endpoint 1 device type - generic type switch binary and specific type on/off power switch.
+Endpoint 2 device type - generic type light dimmer switch and specific type light dimmer switch.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - SoC Power Strip" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4401c" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4401c/zwave_soc_power_strip-brd4401c.hex" />
+    <property key="core.readmeFiles" value="zwave_soc_power_strip/README.md" />
+    <property key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4401b.demo.zwave_soc_power_strip" label="Z-Wave - SoC Power Strip">
+    <ns1:description>The Z-Wave certified Power Strip application shows an extension block implementation used to turn on several devices that are connected to power. Examples include lights, appliances, etc.
+Endpoint 1 device type - generic type switch binary and specific type on/off power switch.
+Endpoint 2 device type - generic type light dimmer switch and specific type light dimmer switch.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - SoC Power Strip" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4401b" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4401b/zwave_soc_power_strip-brd4401b.hex" />
+    <property key="core.readmeFiles" value="zwave_soc_power_strip/README.md" />
+    <property key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd2603a.demo.zwave_soc_power_strip" label="Z-Wave - SoC Power Strip">
+    <ns1:description>The Z-Wave certified Power Strip application shows an extension block implementation used to turn on several devices that are connected to power. Examples include lights, appliances, etc.
+Endpoint 1 device type - generic type switch binary and specific type on/off power switch.
+Endpoint 2 device type - generic type light dimmer switch and specific type light dimmer switch.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - SoC Power Strip" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd2603a" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd2603a/zwave_soc_power_strip-brd2603a.hex" />
+    <property key="core.readmeFiles" value="zwave_soc_power_strip/README.md" />
+    <property key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd2705a.demo.zwave_soc_power_strip" label="Z-Wave - SoC Power Strip">
+    <ns1:description>The Z-Wave certified Power Strip application shows an extension block implementation used to turn on several devices that are connected to power. Examples include lights, appliances, etc.
+Endpoint 1 device type - generic type switch binary and specific type on/off power switch.
+Endpoint 2 device type - generic type light dimmer switch and specific type light dimmer switch.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - SoC Power Strip" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd2705a" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd2705a/zwave_soc_power_strip-brd2705a.hex" />
+    <property key="core.readmeFiles" value="zwave_soc_power_strip/README.md" />
+    <property key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4400b.demo.zwave_soc_power_strip" label="Z-Wave - SoC Power Strip">
+    <ns1:description>The Z-Wave certified Power Strip application shows an extension block implementation used to turn on several devices that are connected to power. Examples include lights, appliances, etc.
+Endpoint 1 device type - generic type switch binary and specific type on/off power switch.
+Endpoint 2 device type - generic type light dimmer switch and specific type light dimmer switch.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - SoC Power Strip" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4400b" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4400b/zwave_soc_power_strip-brd4400b.hex" />
+    <property key="core.readmeFiles" value="zwave_soc_power_strip/README.md" />
+    <property key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4204a.demo.zwave_soc_power_strip" label="Z-Wave - SoC Power Strip">
+    <ns1:description>The Z-Wave certified Power Strip application shows an extension block implementation used to turn on several devices that are connected to power. Examples include lights, appliances, etc.
+Endpoint 1 device type - generic type switch binary and specific type on/off power switch.
+Endpoint 2 device type - generic type light dimmer switch and specific type light dimmer switch.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - SoC Power Strip" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4204a" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4204a/zwave_soc_power_strip-brd4204a.hex" />
+    <property key="core.readmeFiles" value="zwave_soc_power_strip/README.md" />
+    <property key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4204b.demo.zwave_soc_power_strip" label="Z-Wave - SoC Power Strip">
+    <ns1:description>The Z-Wave certified Power Strip application shows an extension block implementation used to turn on several devices that are connected to power. Examples include lights, appliances, etc.
+Endpoint 1 device type - generic type switch binary and specific type on/off power switch.
+Endpoint 2 device type - generic type light dimmer switch and specific type light dimmer switch.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - SoC Power Strip" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4204b" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4204b/zwave_soc_power_strip-brd4204b.hex" />
+    <property key="core.readmeFiles" value="zwave_soc_power_strip/README.md" />
+    <property key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4204c.demo.zwave_soc_power_strip" label="Z-Wave - SoC Power Strip">
+    <ns1:description>The Z-Wave certified Power Strip application shows an extension block implementation used to turn on several devices that are connected to power. Examples include lights, appliances, etc.
+Endpoint 1 device type - generic type switch binary and specific type on/off power switch.
+Endpoint 2 device type - generic type light dimmer switch and specific type light dimmer switch.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - SoC Power Strip" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4204c" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4204c/zwave_soc_power_strip-brd4204c.hex" />
+    <property key="core.readmeFiles" value="zwave_soc_power_strip/README.md" />
+    <property key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4204d.demo.zwave_soc_power_strip" label="Z-Wave - SoC Power Strip">
+    <ns1:description>The Z-Wave certified Power Strip application shows an extension block implementation used to turn on several devices that are connected to power. Examples include lights, appliances, etc.
+Endpoint 1 device type - generic type switch binary and specific type on/off power switch.
+Endpoint 2 device type - generic type light dimmer switch and specific type light dimmer switch.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - SoC Power Strip" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4204d" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4204d/zwave_soc_power_strip-brd4204d.hex" />
+    <property key="core.readmeFiles" value="zwave_soc_power_strip/README.md" />
+    <property key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4210a.demo.zwave_soc_power_strip" label="Z-Wave - SoC Power Strip">
+    <ns1:description>The Z-Wave certified Power Strip application shows an extension block implementation used to turn on several devices that are connected to power. Examples include lights, appliances, etc.
+Endpoint 1 device type - generic type switch binary and specific type on/off power switch.
+Endpoint 2 device type - generic type light dimmer switch and specific type light dimmer switch.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - SoC Power Strip" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4210a" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4210a/zwave_soc_power_strip-brd4210a.hex" />
+    <property key="core.readmeFiles" value="zwave_soc_power_strip/README.md" />
+    <property key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4400c.demo.zwave_soc_power_strip" label="Z-Wave - SoC Power Strip">
+    <ns1:description>The Z-Wave certified Power Strip application shows an extension block implementation used to turn on several devices that are connected to power. Examples include lights, appliances, etc.
+Endpoint 1 device type - generic type switch binary and specific type on/off power switch.
+Endpoint 2 device type - generic type light dimmer switch and specific type light dimmer switch.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - SoC Power Strip" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4400c" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4400c/zwave_soc_power_strip-brd4400c.hex" />
+    <property key="core.readmeFiles" value="zwave_soc_power_strip/README.md" />
+    <property key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4205b.demo.zwave_soc_power_strip" label="Z-Wave - SoC Power Strip">
+    <ns1:description>The Z-Wave certified Power Strip application shows an extension block implementation used to turn on several devices that are connected to power. Examples include lights, appliances, etc.
+Endpoint 1 device type - generic type switch binary and specific type on/off power switch.
+Endpoint 2 device type - generic type light dimmer switch and specific type light dimmer switch.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - SoC Power Strip" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4205b" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4205b/zwave_soc_power_strip-brd4205b.hex" />
+    <property key="core.readmeFiles" value="zwave_soc_power_strip/README.md" />
+    <property key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4401c.demo.zwave_soc_sensor_pir" label="Z-Wave - SoC Sensor PIR">
+    <ns1:description>The Z-Wave certified passive infrared (PIR) sensor application shows a presence/movement detector implementation for controlling other devices and for sending notifications.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - SoC Sensor PIR" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4401c" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4401c/zwave_soc_sensor_pir-brd4401c.hex" />
+    <property key="core.readmeFiles" value="zwave_soc_sensor_pir/README.md" />
+    <property key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4401b.demo.zwave_soc_sensor_pir" label="Z-Wave - SoC Sensor PIR">
+    <ns1:description>The Z-Wave certified passive infrared (PIR) sensor application shows a presence/movement detector implementation for controlling other devices and for sending notifications.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - SoC Sensor PIR" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4401b" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4401b/zwave_soc_sensor_pir-brd4401b.hex" />
+    <property key="core.readmeFiles" value="zwave_soc_sensor_pir/README.md" />
+    <property key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd2603a.demo.zwave_soc_sensor_pir" label="Z-Wave - SoC Sensor PIR">
+    <ns1:description>The Z-Wave certified passive infrared (PIR) sensor application shows a presence/movement detector implementation for controlling other devices and for sending notifications.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - SoC Sensor PIR" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd2603a" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd2603a/zwave_soc_sensor_pir-brd2603a.hex" />
+    <property key="core.readmeFiles" value="zwave_soc_sensor_pir/README.md" />
+    <property key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd2705a.demo.zwave_soc_sensor_pir" label="Z-Wave - SoC Sensor PIR">
+    <ns1:description>The Z-Wave certified passive infrared (PIR) sensor application shows a presence/movement detector implementation for controlling other devices and for sending notifications.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - SoC Sensor PIR" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd2705a" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd2705a/zwave_soc_sensor_pir-brd2705a.hex" />
+    <property key="core.readmeFiles" value="zwave_soc_sensor_pir/README.md" />
+    <property key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4400b.demo.zwave_soc_sensor_pir" label="Z-Wave - SoC Sensor PIR">
+    <ns1:description>The Z-Wave certified passive infrared (PIR) sensor application shows a presence/movement detector implementation for controlling other devices and for sending notifications.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - SoC Sensor PIR" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4400b" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4400b/zwave_soc_sensor_pir-brd4400b.hex" />
+    <property key="core.readmeFiles" value="zwave_soc_sensor_pir/README.md" />
+    <property key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4204a.demo.zwave_soc_sensor_pir" label="Z-Wave - SoC Sensor PIR">
+    <ns1:description>The Z-Wave certified passive infrared (PIR) sensor application shows a presence/movement detector implementation for controlling other devices and for sending notifications.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - SoC Sensor PIR" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4204a" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4204a/zwave_soc_sensor_pir-brd4204a.hex" />
+    <property key="core.readmeFiles" value="zwave_soc_sensor_pir/README.md" />
+    <property key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4204b.demo.zwave_soc_sensor_pir" label="Z-Wave - SoC Sensor PIR">
+    <ns1:description>The Z-Wave certified passive infrared (PIR) sensor application shows a presence/movement detector implementation for controlling other devices and for sending notifications.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - SoC Sensor PIR" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4204b" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4204b/zwave_soc_sensor_pir-brd4204b.hex" />
+    <property key="core.readmeFiles" value="zwave_soc_sensor_pir/README.md" />
+    <property key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4204c.demo.zwave_soc_sensor_pir" label="Z-Wave - SoC Sensor PIR">
+    <ns1:description>The Z-Wave certified passive infrared (PIR) sensor application shows a presence/movement detector implementation for controlling other devices and for sending notifications.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - SoC Sensor PIR" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4204c" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4204c/zwave_soc_sensor_pir-brd4204c.hex" />
+    <property key="core.readmeFiles" value="zwave_soc_sensor_pir/README.md" />
+    <property key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4204d.demo.zwave_soc_sensor_pir" label="Z-Wave - SoC Sensor PIR">
+    <ns1:description>The Z-Wave certified passive infrared (PIR) sensor application shows a presence/movement detector implementation for controlling other devices and for sending notifications.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - SoC Sensor PIR" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4204d" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4204d/zwave_soc_sensor_pir-brd4204d.hex" />
+    <property key="core.readmeFiles" value="zwave_soc_sensor_pir/README.md" />
+    <property key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4210a.demo.zwave_soc_sensor_pir" label="Z-Wave - SoC Sensor PIR">
+    <ns1:description>The Z-Wave certified passive infrared (PIR) sensor application shows a presence/movement detector implementation for controlling other devices and for sending notifications.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - SoC Sensor PIR" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4210a" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4210a/zwave_soc_sensor_pir-brd4210a.hex" />
+    <property key="core.readmeFiles" value="zwave_soc_sensor_pir/README.md" />
+    <property key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4400c.demo.zwave_soc_sensor_pir" label="Z-Wave - SoC Sensor PIR">
+    <ns1:description>The Z-Wave certified passive infrared (PIR) sensor application shows a presence/movement detector implementation for controlling other devices and for sending notifications.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - SoC Sensor PIR" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4400c" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4400c/zwave_soc_sensor_pir-brd4400c.hex" />
+    <property key="core.readmeFiles" value="zwave_soc_sensor_pir/README.md" />
+    <property key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4205b.demo.zwave_soc_sensor_pir" label="Z-Wave - SoC Sensor PIR">
+    <ns1:description>The Z-Wave certified passive infrared (PIR) sensor application shows a presence/movement detector implementation for controlling other devices and for sending notifications.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - SoC Sensor PIR" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4205b" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4205b/zwave_soc_sensor_pir-brd4205b.hex" />
+    <property key="core.readmeFiles" value="zwave_soc_sensor_pir/README.md" />
+    <property key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4401c.demo.zwave_soc_switch_on_off" label="Z-Wave - SoC Switch On/Off">
+    <ns1:description>[RECOMMENDED STARTER PROJECT] The Z-Wave certified Switch On/Off application shows a switch implementation that turns on any device that is connected to power. Examples include lights, appliances, and so on.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - SoC Switch On/Off" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4401c" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4401c/zwave_soc_switch_on_off-brd4401c.hex" />
+    <property key="core.readmeFiles" value="zwave_soc_switch_on_off/README.md" />
+    <property key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4401b.demo.zwave_soc_switch_on_off" label="Z-Wave - SoC Switch On/Off">
+    <ns1:description>[RECOMMENDED STARTER PROJECT] The Z-Wave certified Switch On/Off application shows a switch implementation that turns on any device that is connected to power. Examples include lights, appliances, and so on.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - SoC Switch On/Off" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4401b" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4401b/zwave_soc_switch_on_off-brd4401b.hex" />
+    <property key="core.readmeFiles" value="zwave_soc_switch_on_off/README.md" />
+    <property key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd2603a.demo.zwave_soc_switch_on_off" label="Z-Wave - SoC Switch On/Off">
+    <ns1:description>[RECOMMENDED STARTER PROJECT] The Z-Wave certified Switch On/Off application shows a switch implementation that turns on any device that is connected to power. Examples include lights, appliances, and so on.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - SoC Switch On/Off" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd2603a" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd2603a/zwave_soc_switch_on_off-brd2603a.hex" />
+    <property key="core.readmeFiles" value="zwave_soc_switch_on_off/README.md" />
+    <property key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd2705a.demo.zwave_soc_switch_on_off" label="Z-Wave - SoC Switch On/Off">
+    <ns1:description>[RECOMMENDED STARTER PROJECT] The Z-Wave certified Switch On/Off application shows a switch implementation that turns on any device that is connected to power. Examples include lights, appliances, and so on.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - SoC Switch On/Off" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd2705a" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd2705a/zwave_soc_switch_on_off-brd2705a.hex" />
+    <property key="core.readmeFiles" value="zwave_soc_switch_on_off/README.md" />
+    <property key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4400b.demo.zwave_soc_switch_on_off" label="Z-Wave - SoC Switch On/Off">
+    <ns1:description>[RECOMMENDED STARTER PROJECT] The Z-Wave certified Switch On/Off application shows a switch implementation that turns on any device that is connected to power. Examples include lights, appliances, and so on.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - SoC Switch On/Off" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4400b" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4400b/zwave_soc_switch_on_off-brd4400b.hex" />
+    <property key="core.readmeFiles" value="zwave_soc_switch_on_off/README.md" />
+    <property key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4204a.demo.zwave_soc_switch_on_off" label="Z-Wave - SoC Switch On/Off">
+    <ns1:description>[RECOMMENDED STARTER PROJECT] The Z-Wave certified Switch On/Off application shows a switch implementation that turns on any device that is connected to power. Examples include lights, appliances, and so on.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - SoC Switch On/Off" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4204a" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4204a/zwave_soc_switch_on_off-brd4204a.hex" />
+    <property key="core.readmeFiles" value="zwave_soc_switch_on_off/README.md" />
+    <property key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4204b.demo.zwave_soc_switch_on_off" label="Z-Wave - SoC Switch On/Off">
+    <ns1:description>[RECOMMENDED STARTER PROJECT] The Z-Wave certified Switch On/Off application shows a switch implementation that turns on any device that is connected to power. Examples include lights, appliances, and so on.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - SoC Switch On/Off" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4204b" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4204b/zwave_soc_switch_on_off-brd4204b.hex" />
+    <property key="core.readmeFiles" value="zwave_soc_switch_on_off/README.md" />
+    <property key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4204c.demo.zwave_soc_switch_on_off" label="Z-Wave - SoC Switch On/Off">
+    <ns1:description>[RECOMMENDED STARTER PROJECT] The Z-Wave certified Switch On/Off application shows a switch implementation that turns on any device that is connected to power. Examples include lights, appliances, and so on.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - SoC Switch On/Off" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4204c" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4204c/zwave_soc_switch_on_off-brd4204c.hex" />
+    <property key="core.readmeFiles" value="zwave_soc_switch_on_off/README.md" />
+    <property key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4204d.demo.zwave_soc_switch_on_off" label="Z-Wave - SoC Switch On/Off">
+    <ns1:description>[RECOMMENDED STARTER PROJECT] The Z-Wave certified Switch On/Off application shows a switch implementation that turns on any device that is connected to power. Examples include lights, appliances, and so on.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - SoC Switch On/Off" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4204d" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4204d/zwave_soc_switch_on_off-brd4204d.hex" />
+    <property key="core.readmeFiles" value="zwave_soc_switch_on_off/README.md" />
+    <property key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4210a.demo.zwave_soc_switch_on_off" label="Z-Wave - SoC Switch On/Off">
+    <ns1:description>[RECOMMENDED STARTER PROJECT] The Z-Wave certified Switch On/Off application shows a switch implementation that turns on any device that is connected to power. Examples include lights, appliances, and so on.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - SoC Switch On/Off" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4210a" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4210a/zwave_soc_switch_on_off-brd4210a.hex" />
+    <property key="core.readmeFiles" value="zwave_soc_switch_on_off/README.md" />
+    <property key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4400c.demo.zwave_soc_switch_on_off" label="Z-Wave - SoC Switch On/Off">
+    <ns1:description>[RECOMMENDED STARTER PROJECT] The Z-Wave certified Switch On/Off application shows a switch implementation that turns on any device that is connected to power. Examples include lights, appliances, and so on.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - SoC Switch On/Off" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4400c" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4400c/zwave_soc_switch_on_off-brd4400c.hex" />
+    <property key="core.readmeFiles" value="zwave_soc_switch_on_off/README.md" />
+    <property key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4205b.demo.zwave_soc_switch_on_off" label="Z-Wave - SoC Switch On/Off">
+    <ns1:description>[RECOMMENDED STARTER PROJECT] The Z-Wave certified Switch On/Off application shows a switch implementation that turns on any device that is connected to power. Examples include lights, appliances, and so on.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - SoC Switch On/Off" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4205b" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4205b/zwave_soc_switch_on_off-brd4205b.hex" />
+    <property key="core.readmeFiles" value="zwave_soc_switch_on_off/README.md" />
+    <property key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="sample-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="sample-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4401c.demo.zwave_soc_wall_controller" label="Z-Wave - SoC Wall Controller">
+    <ns1:description>The Z-Wave certified Wall Controller application shows a push-button switch panel implementation to control devices in the Z-Wave network from push buttons (physical or virtual) on a device that is meant to be mounted on a wall. Examples include scene and zone controllers and wall-mounted AV controllers.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - SoC Wall Controller" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4401c" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4401c/zwave_soc_wall_controller-brd4401c.hex" />
+    <property key="core.readmeFiles" value="zwave_soc_wall_controller/README.md" />
+    <property key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="controller-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="controller-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4401b.demo.zwave_soc_wall_controller" label="Z-Wave - SoC Wall Controller">
+    <ns1:description>The Z-Wave certified Wall Controller application shows a push-button switch panel implementation to control devices in the Z-Wave network from push buttons (physical or virtual) on a device that is meant to be mounted on a wall. Examples include scene and zone controllers and wall-mounted AV controllers.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - SoC Wall Controller" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4401b" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4401b/zwave_soc_wall_controller-brd4401b.hex" />
+    <property key="core.readmeFiles" value="zwave_soc_wall_controller/README.md" />
+    <property key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="controller-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="controller-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd2603a.demo.zwave_soc_wall_controller" label="Z-Wave - SoC Wall Controller">
+    <ns1:description>The Z-Wave certified Wall Controller application shows a push-button switch panel implementation to control devices in the Z-Wave network from push buttons (physical or virtual) on a device that is meant to be mounted on a wall. Examples include scene and zone controllers and wall-mounted AV controllers.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - SoC Wall Controller" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd2603a" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd2603a/zwave_soc_wall_controller-brd2603a.hex" />
+    <property key="core.readmeFiles" value="zwave_soc_wall_controller/README.md" />
+    <property key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="controller-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="controller-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd2705a.demo.zwave_soc_wall_controller" label="Z-Wave - SoC Wall Controller">
+    <ns1:description>The Z-Wave certified Wall Controller application shows a push-button switch panel implementation to control devices in the Z-Wave network from push buttons (physical or virtual) on a device that is meant to be mounted on a wall. Examples include scene and zone controllers and wall-mounted AV controllers.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - SoC Wall Controller" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd2705a" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd2705a/zwave_soc_wall_controller-brd2705a.hex" />
+    <property key="core.readmeFiles" value="zwave_soc_wall_controller/README.md" />
+    <property key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="controller-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="controller-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4400b.demo.zwave_soc_wall_controller" label="Z-Wave - SoC Wall Controller">
+    <ns1:description>The Z-Wave certified Wall Controller application shows a push-button switch panel implementation to control devices in the Z-Wave network from push buttons (physical or virtual) on a device that is meant to be mounted on a wall. Examples include scene and zone controllers and wall-mounted AV controllers.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - SoC Wall Controller" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4400b" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4400b/zwave_soc_wall_controller-brd4400b.hex" />
+    <property key="core.readmeFiles" value="zwave_soc_wall_controller/README.md" />
+    <property key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="controller-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="controller-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4204a.demo.zwave_soc_wall_controller" label="Z-Wave - SoC Wall Controller">
+    <ns1:description>The Z-Wave certified Wall Controller application shows a push-button switch panel implementation to control devices in the Z-Wave network from push buttons (physical or virtual) on a device that is meant to be mounted on a wall. Examples include scene and zone controllers and wall-mounted AV controllers.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - SoC Wall Controller" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4204a" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4204a/zwave_soc_wall_controller-brd4204a.hex" />
+    <property key="core.readmeFiles" value="zwave_soc_wall_controller/README.md" />
+    <property key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="controller-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="controller-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4204b.demo.zwave_soc_wall_controller" label="Z-Wave - SoC Wall Controller">
+    <ns1:description>The Z-Wave certified Wall Controller application shows a push-button switch panel implementation to control devices in the Z-Wave network from push buttons (physical or virtual) on a device that is meant to be mounted on a wall. Examples include scene and zone controllers and wall-mounted AV controllers.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - SoC Wall Controller" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4204b" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4204b/zwave_soc_wall_controller-brd4204b.hex" />
+    <property key="core.readmeFiles" value="zwave_soc_wall_controller/README.md" />
+    <property key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="controller-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="controller-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4204c.demo.zwave_soc_wall_controller" label="Z-Wave - SoC Wall Controller">
+    <ns1:description>The Z-Wave certified Wall Controller application shows a push-button switch panel implementation to control devices in the Z-Wave network from push buttons (physical or virtual) on a device that is meant to be mounted on a wall. Examples include scene and zone controllers and wall-mounted AV controllers.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - SoC Wall Controller" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4204c" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4204c/zwave_soc_wall_controller-brd4204c.hex" />
+    <property key="core.readmeFiles" value="zwave_soc_wall_controller/README.md" />
+    <property key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="controller-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="controller-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4204d.demo.zwave_soc_wall_controller" label="Z-Wave - SoC Wall Controller">
+    <ns1:description>The Z-Wave certified Wall Controller application shows a push-button switch panel implementation to control devices in the Z-Wave network from push buttons (physical or virtual) on a device that is meant to be mounted on a wall. Examples include scene and zone controllers and wall-mounted AV controllers.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - SoC Wall Controller" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4204d" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4204d/zwave_soc_wall_controller-brd4204d.hex" />
+    <property key="core.readmeFiles" value="zwave_soc_wall_controller/README.md" />
+    <property key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="controller-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="controller-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4210a.demo.zwave_soc_wall_controller" label="Z-Wave - SoC Wall Controller">
+    <ns1:description>The Z-Wave certified Wall Controller application shows a push-button switch panel implementation to control devices in the Z-Wave network from push buttons (physical or virtual) on a device that is meant to be mounted on a wall. Examples include scene and zone controllers and wall-mounted AV controllers.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - SoC Wall Controller" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4210a" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4210a/zwave_soc_wall_controller-brd4210a.hex" />
+    <property key="core.readmeFiles" value="zwave_soc_wall_controller/README.md" />
+    <property key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="controller-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="controller-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4400c.demo.zwave_soc_wall_controller" label="Z-Wave - SoC Wall Controller">
+    <ns1:description>The Z-Wave certified Wall Controller application shows a push-button switch panel implementation to control devices in the Z-Wave network from push buttons (physical or virtual) on a device that is meant to be mounted on a wall. Examples include scene and zone controllers and wall-mounted AV controllers.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - SoC Wall Controller" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4400c" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4400c/zwave_soc_wall_controller-brd4400c.hex" />
+    <property key="core.readmeFiles" value="zwave_soc_wall_controller/README.md" />
+    <property key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="controller-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="controller-keys/sample_sign.key-tokens.txt" />
+  </demo>
+  <demo name="brd4205b.demo.zwave_soc_wall_controller" label="Z-Wave - SoC Wall Controller">
+    <ns1:description>The Z-Wave certified Wall Controller application shows a push-button switch panel implementation to control devices in the Z-Wave network from push buttons (physical or virtual) on a device that is meant to be mounted on a wall. Examples include scene and zone controllers and wall-mounted AV controllers.
+</ns1:description>
+    <property key="demos.blurb" value="Z-Wave - SoC Wall Controller" />
+    <property key="core.partCompatibility" value=".*" />
+    <property key="core.boardCompatibility" value="brd4205b" />
+    <property key="demos.imageFile" value="asset://com.silabs.sdk.stack.sisdk_2025.12.2/zwave_sample_app/brd4205b/zwave_soc_wall_controller-brd4205b.hex" />
+    <property key="core.readmeFiles" value="zwave_soc_wall_controller/README.md" />
+    <property key="filters" value="Device\ Type|SoC Project\ Difficulty|Beginner Wireless\ Technology|Z-Wave" />
+    <property key="core.quality" value="PRODUCTION" />
+      <property key="demos.encryptionKey" value="controller-keys/sample_encrypt.key" />
+      <property key="demos.signingKey" value="controller-keys/sample_sign.key-tokens.txt" />
+  </demo>
+</demos>

@@ -1,0 +1,68 @@
+id: spidrv_core
+label: SPIDRV Core
+package: platform_core
+description: >
+  The SPI driver sets up SPI communication and supports
+  both master and slave roles. Both blocking and interrupt driven asynchrounous
+  APIs are provided for transmit and receive operations.
+
+
+  This component includes only the SPI driver core. To configure and create
+  instances of this driver, the SPIDRV_USART or SPIDRV_EUSART component should be included in the  project.
+category: Platform|Driver|SPI
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: platform_core/platform/emdrv/spidrv
+provides:
+- name: spidrv_core
+requires:
+- name: device
+- name: clock_manager_runtime
+- name: device_manager
+- name: sl_core
+- name: interrupt_manager
+- name: hal_generic_common
+- name: gpio
+- name: emlib_usart
+  condition:
+  - device_has_usart
+- name: hal_generic_eusart
+  condition:
+  - device_has_eusart
+- name: sleeptimer
+- name: ecode
+- name: dmadrv
+- name: enum
+- name: slist
+- name: component_catalog
+- name: code_classification
+include:
+- path: inc
+  file_list:
+  - path: spidrv.h
+source:
+- path: src/spidrv.c
+config_file:
+- path: config/spidrv_config.h
+template_file:
+- path: init/sl_spidrv_init.c.jinja
+  condition: [spidrv_instance]
+- path: init/sl_spidrv_instances.h.jinja
+  condition: [spidrv_instance]
+template_contribution:
+- name: event_handler
+  condition: [spidrv_instance]
+  value:
+    event: driver_init
+    include: sl_spidrv_instances.h
+    handler: sl_spidrv_init_instances
+- name: code_classification_components
+  value: spidrv
+define:
+- name: SL_CODE_COMPONENT_SPIDRV
+  value: spidrv
+documentation:
+  docset: gecko-platform
+  document: platform-driver/spidrv

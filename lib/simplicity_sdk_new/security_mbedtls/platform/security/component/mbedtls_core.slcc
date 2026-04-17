@@ -1,0 +1,45 @@
+id: mbedtls_core
+label: Mbed TLS
+package: security_mbedtls
+quality: production
+category: Platform|Security|Mbed TLS
+
+description: "This component contains the core files needed for any project using Mbed TLS, as well as common header and source files.\n\nAlgorithms need to be enabled in order to be supported. This is done by including the components corresponding to the wanted primitives, key types, functionality, etc. that live in the different 'Platform|Security|Mbed TLS' subcategories.\n\nBased on the selected sub-components, the Mbed TLS configuration file will be auto-generated and included where necessary."
+
+provides:
+- name: mbedtls_core
+
+requires:
+- name: device
+  condition: [device_efx]
+
+- name: mbedtls_source
+- name: mbedtls_config
+
+- name: mbedtls_slcrypto
+  condition: [device_cortexm]
+
+  # It's no longer possible to separate PSA Crypto from Mbed TLS now that it's
+  # being used under the hood. Mbed TLS does not put effort into guarding
+  # includes of PSA Crypto specific files in Mbed TLS, whether or not
+  # MBEDTLS_USE_PSA_CRYPTO is set or not.
+- name: psa_crypto_common
+  condition: [trustzone_unaware]
+
+  # Inclusion of source and config components depends on which TZ state we are
+  # targeting. For apps that do not make active use of TZ, a dummy state
+  # (trustzone_unaware) should be used.
+- name: trustzone_security_state
+
+recommends:
+  # Assume that projects are TZ unaware unless a state is explicitly included.
+  # The condtion on device ensures that the recommendation does not exist before
+  # the device selection is completely resolved.
+- id: trustzone_unaware
+  condition: [device]
+  vendor: silabs
+
+metadata:
+  sbom:
+    reference: mbedtls_sbom
+root_path: security_mbedtls

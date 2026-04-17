@@ -1,0 +1,42 @@
+id: gatt_service_battery
+label: Battery GATT Service
+package: bluetooth_le_middleware
+description: >
+  Provides battery sensor data in GATT characteristics.
+  Designed for the Thunderboard smartphone app.
+category: Bluetooth|Application|GATT Services
+metadata:
+  sbom:
+    license: Zlib
+quality: production
+root_path: bluetooth_le_middleware/common/gatt_service_battery
+tag:
+- No-Code
+config_file:
+- path: gatt_service_battery.xml
+  directory: btconf
+source:
+- path: sl_gatt_service_battery.c
+include:
+- path: .
+  file_list:
+  - path: sl_gatt_service_battery.h
+provides:
+- name: gatt_service_battery
+requires:
+- name: bluetooth_stack
+- name: gatt_configuration
+- name: bluetooth_feature_gatt_server
+- name: app_timer
+- name: app_assert
+- name: sl_common
+template_contribution:
+- name: bluetooth_on_event
+  value:
+    include: sl_gatt_service_battery.h
+    function: sl_gatt_service_battery_on_event
+- name: component_catalog
+  value: gatt_service_battery
+documentation:
+  docset: bluetooth
+  document: bluetooth-service-api/gatt-service-battery

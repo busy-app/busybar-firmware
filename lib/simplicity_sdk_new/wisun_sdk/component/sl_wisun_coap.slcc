@@ -1,0 +1,100 @@
+id: "sl_wisun_coap"
+label: "Wi-SUN CoAP"
+package: "wisun_sdk"
+description: >
+  The Wi-SUN CoAP component offers an application layer implementation built on
+  top of the Wi-SUN stack and its socket API. The CoAP protocol is specifically
+  designed as an Internet Application Protocol for constrained devices operating
+  in lossy networks (as defined in RFC 7252). Wi-SUN FAN networks precisely fit
+  this definition.
+  The CoAP implementation relies on the UDP transport layer for sending and
+  receiving packets. Within the component, you'll find a set of helper functions
+  that assist in building CoAP payloads, parsing CoAP packets, and freeing CoAP
+  packets. Additionally, the CoAP Resource Handler service manages registered
+  resources.
+  For resource discovery, the Resource Discovery request provides an interface
+  to retrieve information about available resources. These resources have
+  additional attributes beyond the URI (Uniform Resource Identifier) path, which
+  can be selectively filtered using specific Resource Discovery requests.
+  Furthermore, the CoAP Notification service allows the creation and schedule
+  of notifications for the remote host.
+  The schedule time and send conditions can be customized based on the application requirements.
+  To incorporate the CoAP component into the application, simply add it to the
+  project and initialize it using sl_wisun_coap_init().
+  The CoAP component is compatible with third-party implementations, such as the
+  [libcoap](https://libcoap.net) server and client binaries.
+
+category: "Wi-SUN|Wi-SUN Services"
+quality: "production"
+metadata:
+  sbom:
+    license: Zlib AND Apache-2.0
+    upstream:
+      name: mbed-coap
+      version: 5.1.9
+      supplier: Pelion and affiliates
+      url: https://github.com/PelionIoT/mbed-coap/tree/v5.1.9
+
+root_path: "wisun_sdk/component/coap"
+
+requires:
+- name: "sl_mempool"
+- name: "sl_wisun_trace_util"
+- name: "sl_string"
+provides:
+- name: "sl_wisun_coap"
+
+source:
+- path: "sl_wisun_coap.c"
+- path: "sli_wisun_coap_mem.c"
+- path: "sl_wisun_coap_rhnd.c"
+- path: "sl_wisun_coap_notify.c"
+- path: "sli_wisun_coap_rd.c"
+- path: "mbed-coap/sn_coap_protocol.c"
+- path: "mbed-coap/sn_coap_parser.c"
+- path: "mbed-coap/sn_coap_header_check.c"
+- path: "mbed-coap/sn_coap_builder.c"
+
+include:
+- path: "."
+  file_list:
+  - "path": "sl_wisun_coap.h"
+  - "path": "sli_wisun_coap_mem.h"
+  - "path": "sl_wisun_coap_rhnd.h"
+  - "path": "sl_wisun_coap_notify.h"
+  - "path": "sli_wisun_coap_rd.h"
+- path: "mbed-coap"
+  file_list:
+  - "path": "sn_config.h"
+  - "path": "sn_coap_protocol.h"
+  - "path": "sn_coap_header.h"
+  - "path": "ns_list.h"
+- path: "mbed-trace"
+  file_list:
+  - "path": "mbed_trace.h"
+- path: "mbed-client-randlib"
+  file_list:
+  - "path": "randLIB.h"
+
+- path: "mbed-coap/include"
+  file_list:
+  - "path": "sn_coap_protocol_internal.h"
+  - "path": "sn_coap_header_internal.h"
+
+config_file:
+- path: "config/sl_wisun_coap_config.h"
+
+#-------------- Template Contribution ----------------
+template_contribution:
+- name: "event_handler"
+  value:
+    event: "stack_init"
+    include: "sl_wisun_coap.h"
+    handler: "sl_wisun_coap_init_default"
+#---------------- Component Catalog ------------------
+- name: component_catalog
+  value: wisun_coap
+
+documentation:
+  docset: wisun
+  document: wisun-stack-api/sl-wisun-coap-api

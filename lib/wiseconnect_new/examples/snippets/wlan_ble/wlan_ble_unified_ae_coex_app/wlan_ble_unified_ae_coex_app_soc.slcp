@@ -1,0 +1,117 @@
+project_name: wlan_ble_unified_ae_coex_app
+package: multi_protocol_siwx91x_app
+quality: production
+label: Unified AE app for Bluetooth and Wifi
+category: Example|BLE
+description: 'Bluetooth Low energy Extended Advertising features(Central/Peripheral) with Coex.
+
+  '
+filter:
+- name: Wireless Technology
+  value:
+  - WiFi BLE
+- name: Project Difficulty
+  value:
+  - Advanced
+source:
+- path: app.c
+- path: root_auto_gen.c
+- path: btc_auto_gen.c
+- path: ble/ble_cmd_hdlr_auto_gen.c
+- path: ble/ble_event_hdlr_auto_gen.c
+- path: ble/ble_ui_cmd_hdlr.c
+- path: ble/ble_user_cmd.c
+- path: ble/ble_user_event_hdlrs.c
+- path: user_input/rsi_user_input_DEMO_x.c
+- path: utils/command_parser.c
+- path: utils/event_loop.c
+- path: utils/rsi_common_utils.c
+- path: wifi/wifi_app.c
+include:
+- path: .
+  file_list:
+  - path: app.h
+  - path: ble_config.h
+  - path: wifi/wifi_app_config.h
+- path: ble
+  file_list:
+  - path: ble_cmd_hdlr_auto_gen.h
+  - path: ble_event_hdlr_auto_gen.h
+  - path: ble_private.h
+- path: inc
+  file_list:
+  - path: rsi_ble_config.h
+  - path: rsi_common_app.h
+- path: user_input
+  file_list:
+  - path: rsi_user_input_DEMO_x.h
+- path: utils
+  file_list:
+  - path: generic_command_handling.h
+  - path: rsi_common_utils.h
+  - path: event_loop.h
+component:
+- id: sl_main
+- id: freertos
+- id: freertos_heap_4
+- id: syscalls
+- id: si91x_memory_default_config
+- id: wiseconnect_common
+- id: wifi
+- id: sl_si91x_internal_stack
+- id: wifi_resources
+- id: network_manager
+- id: basic_network_config_manager
+- id: ble
+- id: sl_si91x_asynchronous_socket
+- id: bsd_socket
+- id: sl_si91x_mem_pool_buffers_with_quota
+- id: sl_power_manager
+requires:
+- name: device_needs_ram_execution
+  condition:
+  - si91x_common_flash
+toolchain_settings:
+- option: gcc_compiler_option
+  value: -Wall -Werror
+configuration:
+- name: SL_BOARD_ENABLE_VCOM
+  value: '1'
+readme:
+- path: readme.md
+other_file:
+- path: resources/readme/wlan_ble_ae_setup.png
+- path: resources/readme/remote_scanner.png
+- path: resources/readme/pairing_prompt_on_conn.png
+- path: resources/readme/pairing_prompt.png
+- path: resources/readme/passkey_entry.png
+- path: resources/readme/active_connection.png
+- path: resources/readme/add_heartrate_gatt_service.png
+- path: resources/readme/notification_enable.png
+- path: resources/readme/output_wlan_init.png
+- path: resources/readme/output_wlan_scan_conn.png
+- path: resources/readme/output_throughput.png
+- path: resources/readme/output_log1.png
+- path: resources/readme/output_log2.png
+- path: resources/readme/output_log3.png
+- path: resources/readme/output_log4.png
+- path: resources/readme/udp_tx.png
+- path: resources/readme/udp_rx.png
+- path: resources/readme/tcp_tx.png
+- path: resources/readme/tcp_rx.png
+- path: resources/readme/tls_tx.png
+- path: resources/readme/tls_rx.png
+ui_hints:
+  highlight:
+  - path: readme.md
+    focus: true
+post_build:
+  profile: wiseconnect_soc
+sdk_extension:
+- id: wiseconnect3_sdk
+  vendor: silabs
+  version: 4.0.1
+sdk:
+  id: simplicity_sdk
+  vendor: silabs
+  version: 2025.12.2

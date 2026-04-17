@@ -1,0 +1,42 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__evt__system__soft__timer" kind="group">
+    <compoundname>sl_bt_evt_system_soft_timer</compoundname>
+    <title>sl_bt_evt_system_soft_timer</title>
+    <innerclass refid="structsl__bt__evt__system__soft__timer__s" prot="public">sl_bt_evt_system_soft_timer_s</innerclass>
+      <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="group__sl__bt__evt__system__soft__timer_1ga9b11a5daf47cc9ec8bb3af2daacb5d32" prot="public" static="no">
+        <type>struct <ref refid="structsl__bt__evt__system__soft__timer__s" kindref="compound">sl_bt_evt_system_soft_timer_s</ref></type>
+        <definition>typedef struct sl_bt_evt_system_soft_timer_s sl_bt_evt_system_soft_timer_t</definition>
+        <argsstring></argsstring>
+        <name>sl_bt_evt_system_soft_timer_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="1175" column="44" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="1175" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__evt__system__soft__timer_1gabae9bb31e70cb251e1a7d539416bc127" prot="public" static="no">
+        <name>sl_bt_evt_system_soft_timer_id</name>
+        <initializer>0x070100a0</initializer>
+        <briefdescription>
+<para>Identifier of the soft_timer event. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="1165" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="1165" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Indicates that a soft timer has lapsed. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

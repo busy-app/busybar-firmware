@@ -4,6 +4,7 @@
 #include <sl_wifi.h>
 #include <sl_si91x_driver.h>
 #include <sl_wifi_callback_framework.h>
+#include <sli_wifi_utility.h>
 
 #include "wifi_config.h"
 #include "wifi_backend_util.h"

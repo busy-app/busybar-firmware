@@ -1,0 +1,39 @@
+id: sl_pwm
+label: PWM
+package: platform_siwx91x
+description: >
+  The Motor Control Pulse Width Modulation (MCPWM) controller driver is used to generate a periodic pulse waveform, which is useful in
+  motor control and power control applications. It supports 4 channel instances.
+  The MCPWM controller acts as a timer to count up to a period count value.
+  The time period and the duty cycle of the pulses are both programmable.
+  This driver suports 4 channels and by default it installs channel_0.
+
+  When you install this component, it will also be installing the  PWM dependency component, which is the PWM driver's implementation.
+category: Device|Si91x|MCU|Peripheral
+ui_hints:
+  visibility: never
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: "components/device/silabs/si91x/mcu/drivers"
+source:
+  - path: "unified_api/src/sl_si91x_pwm.c"
+  - path: "unified_peripheral_drivers/src/sl_si91x_peripheral_gpio.c"
+include:
+  - path: "unified_api/inc"
+    file_list:
+    - path: "sl_si91x_pwm.h"
+  - path: "unified_peripheral_drivers/inc"
+    file_list:
+    - path: "sl_si91x_peripheral_gpio.h"
+    - path: "sl_si91x_gpio.h"
+    - path: "sl_si91x_gpio_common.h"
+provides:
+  - name: sl_pwm
+requires:
+  - name: rsilib_pwm
+  - name: romdriver_pwm
+documentation:
+    docset: wiseconnect
+    document: wiseconnect-api-reference-guide-si91x-peripherals/pwm

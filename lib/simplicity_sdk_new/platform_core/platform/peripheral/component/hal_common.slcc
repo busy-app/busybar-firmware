@@ -1,0 +1,56 @@
+# This HAL applies to series 2 and 3 devices.
+id: hal_common
+label: Common Headers
+package: platform_core
+description: >
+  Common headers for the Peripheral's library providing register
+  and RAM access, ramfunc, assert functions, macros for alignment,
+  min/max/ceil/floor, pack, section, weak, noreturn, fallthrough
+  and the Silicon Labs CMSIS-Device part headers for the used part.
+category: Platform|Peripheral|HAL
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+include:
+- path: inc
+  file_list:
+  - path: sl_hal_bus.h
+provides:
+- name: hal_common
+- name: hal_generic_common
+  condition: [device_series_3]
+requires:
+- name: device
+- name: sl_common
+- name: sl_assert
+- name: sl_core
+- name: code_classification
+template_contribution:
+- name: code_classification_components
+  value: hal_common
+define:
+- name: SL_CODE_COMPONENT_HAL_COMMON
+  value: hal_common
+documentation:
+  docset: gecko-platform
+  document:
+  - page: platform-peripheral-efr32xg21/common
+    condition: [device_sdid_200]
+  - page: platform-peripheral-efr32xg22/common
+    condition: [device_sdid_205]
+  - page: platform-peripheral-efr32xg23/common
+    condition: [device_sdid_210]
+  - page: platform-peripheral-efr32xg24/common
+    condition: [device_sdid_215]
+  - page: platform-peripheral-efr32xg26/common
+    condition: [device_sdid_225]
+  - page: platform-peripheral-efr32xg27/common
+    condition: [device_sdid_230]
+  - page: platform-peripheral-efr32xg28/common
+    condition: [device_sdid_235]
+  - page: platform-peripheral-efr32xg29/common
+    condition: [device_sdid_240]
+  - page: platform-peripheral-sixg301/common
+    condition: [device_generic_family_sixx301]
+root_path: platform_core/platform/peripheral

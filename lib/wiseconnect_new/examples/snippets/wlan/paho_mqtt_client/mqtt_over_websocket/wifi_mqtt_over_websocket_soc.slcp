@@ -1,0 +1,68 @@
+project_name: wifi_mqtt_over_websocket_soc
+package: wifi_app
+quality: production
+label: Wi-Fi - Paho MQTT OVER WEBSOCKET
+category: Example|Wi-Fi
+description: 'Demonstrates how SiWx91x device is configured as an MQTT client over Websocket, connects to an MQTT broker, subscribes to a topic, and publishes messages on a particular MQTT topic using the Paho MQTT library
+
+  '
+filter:
+- name: Wireless Technology
+  value:
+  - Wi-Fi
+- name: Project Difficulty
+  value:
+  - Beginner
+source:
+- path: app.c
+include:
+- path: .
+  file_list:
+  - path: app.h
+define:
+- name: SL_SI91X_PRINT_DBG_LOG
+component:
+- id: sl_main
+- id: freertos
+- id: freertos_heap_4
+- id: syscalls
+- id: si91x_memory_default_config
+- id: wiseconnect_common
+- id: wifi
+- id: sl_si91x_internal_stack
+- id: wifi_resources
+- id: network_manager
+- id: basic_network_config_manager
+- id: sl_si91x_basic_buffers
+- id: paho_mqtt_embedded
+toolchain_settings:
+- option: gcc_compiler_option
+  value: -Wall -Werror
+configuration:
+- name: SL_BOARD_ENABLE_VCOM
+  value: '1'
+readme:
+- path: readme.md
+other_file:
+- path: resources/readme/mqtt_ws_add_topic_name.png
+- path: resources/readme/mqtt_ws_server.png
+- path: resources/readme/mqtt_ws_application_prints_soc_ncp.png
+- path: resources/readme/mqtt_ws_connect.PNG
+- path: resources/readme/mqtt_ws_delete_connections.png
+- path: resources/readme/mqtt_ws_explorer_msg.png
+- path: resources/readme/mqtt_ws_publish_msg_from_explorer.png
+- path: resources/readme/mqtt_ws_setup_soc_ncp.png
+ui_hints:
+  highlight:
+  - path: readme.md
+    focus: true
+post_build:
+  profile: wiseconnect_soc
+sdk_extension:
+- id: wiseconnect3_sdk
+  vendor: silabs
+  version: 4.0.1
+sdk:
+  id: simplicity_sdk
+  vendor: silabs
+  version: 2025.12.2

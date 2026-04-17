@@ -1,0 +1,23 @@
+id: macos
+label: MacOS
+package: devices
+description: OS component for MacOS.
+category: Platform|Device|Native
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+provides:
+- name: operating_system
+- name: macos
+- name: device_family_host
+toolchain_settings:
+- option: gcc_compiler_option
+  value: -mmacosx-version-min=10.14
+- option: gcc_linker_option
+  value: -mmacosx-version-min=10.14
+library:
+- system: System
+tag:
+- device:opn:macos
+root_path: devices

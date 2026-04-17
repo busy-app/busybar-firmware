@@ -1,0 +1,42 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__evt__cs__config__complete" kind="group">
+    <compoundname>sl_bt_evt_cs_config_complete</compoundname>
+    <title>sl_bt_evt_cs_config_complete</title>
+    <innerclass refid="structsl__bt__evt__cs__config__complete__s" prot="public">sl_bt_evt_cs_config_complete_s</innerclass>
+      <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="group__sl__bt__evt__cs__config__complete_1gade10f4891d6776ef479fe3233a1f40c5" prot="public" static="no">
+        <type>struct <ref refid="structsl__bt__evt__cs__config__complete__s" kindref="compound">sl_bt_evt_cs_config_complete_s</ref></type>
+        <definition>typedef struct sl_bt_evt_cs_config_complete_s sl_bt_evt_cs_config_complete_t</definition>
+        <argsstring></argsstring>
+        <name>sl_bt_evt_cs_config_complete_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="13308" column="45" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="13308" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__evt__cs__config__complete_1ga42ca6e6a6626797b2dca4cd215f8db98" prot="public" static="no">
+        <name>sl_bt_evt_cs_config_complete_id</name>
+        <initializer>0x015900a0</initializer>
+        <briefdescription>
+<para>Identifier of the config_complete event. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="13080" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="13080" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Indicates that a locally initiated CS configuration procedure has completed or the local controller has responded to an CS configuration request from the remote controller. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

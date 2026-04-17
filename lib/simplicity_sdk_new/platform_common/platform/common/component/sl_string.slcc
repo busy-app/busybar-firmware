@@ -1,0 +1,21 @@
+id: sl_string
+package: platform_common
+label: String Functions
+description: Component that provides safe string functions.
+category: Platform|Utilities
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: platform_common/platform/common
+include:
+- path: inc
+  file_list:
+  - path: sl_string.h
+source:
+- path: src/sl_string.c
+provides:
+- name: sl_string
+documentation:
+  docset: gecko-platform
+  document: platform-common/string

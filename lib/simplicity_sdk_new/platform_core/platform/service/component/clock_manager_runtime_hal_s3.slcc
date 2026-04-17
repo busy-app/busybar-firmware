@@ -1,0 +1,29 @@
+id: clock_manager_runtime_hal_s3
+label: Clock Manager Runtime HAL Series 3
+package: platform_core
+description: >
+  Series 3 HAL for Clock Manager Runtime part
+category: Services|Clock Manager
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+ui_hints:
+  visibility: never
+provides:
+- name: clock_manager_runtime_hal
+  condition: [device_generic_family_sixx301]
+- name: clock_manager_runtime_hal_s3
+requires:
+- name: device_series_3
+- name: status
+- name: enum
+- name: gpio
+- name: device_clock
+- name: clock_manager_runtime
+- name: sl_core
+- name: se_manager
+root_path: platform_core/platform/service/clock_manager
+source:
+- path: src/sl_clock_manager_hal_s3.c
+  condition: [device_series_3]

@@ -1,0 +1,17 @@
+workspace_name: bt_soc_iop_test_freertos_s3_btl
+label: Bluetooth - SoC Interoperability Test FreeRTOS + OTA DFU
+package: bluetooth_le_app
+description: >
+  This is a test procedure containing several test cases for Bluetooth Low
+  Energy communication. This demo is meant to be used with the Simplicity
+  Connect mobile app, through the "Interoperability Test" tile on the Develop
+  view of the app.
+  Combined solution with application and bootloader projects.
+quality: experimental
+project:
+  - path: bt_soc_iop_test_freertos.slcp
+    id: application
+  - path: ../../bootloader/bootloader-storage-single.slcp
+    id: bootloader
+post_build:
+  path: ../../postbuild_profile/bt_dfu_ws.slpb

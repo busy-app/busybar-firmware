@@ -1,0 +1,232 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="sl__si91x__crypto__utility_8h" kind="file" language="C++">
+    <compoundname>sl_si91x_crypto_utility.h</compoundname>
+    <includes local="no">stdint.h</includes>
+    <includes local="no">string.h</includes>
+    <incdepgraph>
+      <node id="1">
+        <label>components/device/silabs/si91x/wireless/crypto/crypto_utility/inc/sl_si91x_crypto_utility.h</label>
+        <link refid="sl__si91x__crypto__utility_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>stdint.h</label>
+      </node>
+      <node id="3">
+        <label>string.h</label>
+      </node>
+    </incdepgraph>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="group__CRYPTO__UTILITY__FUNCTIONS_1gabbf8c23ff0e0c848c473c4ed76a60558" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>uint8_t *</type>
+        <definition>uint8_t * pkcs7_padding</definition>
+        <argsstring>(const uint8_t *data, size_t data_length, size_t block_size, size_t *padded_data_length)</argsstring>
+        <name>pkcs7_padding</name>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>data</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>data_length</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>block_size</declname>
+        </param>
+        <param>
+          <type>size_t *</type>
+          <declname>padded_data_length</declname>
+        </param>
+        <briefdescription>
+<para>To perform PKCS #7 padding on the given data. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">data</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to the data to be padded. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">data_length</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Length of the data in bytes. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">block_size</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Size of the block in bytes (typically 16 for AES). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">padded_data_length</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><linebreak/>
+ Pointer to store the length of the padded data. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Returns a pointer to the padded data. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/crypto_utility/inc/sl_si91x_crypto_utility.h" line="59" column="9" declfile="components/device/silabs/si91x/wireless/crypto/crypto_utility/inc/sl_si91x_crypto_utility.h" declline="59" declcolumn="9"/>
+      </memberdef>
+      <memberdef kind="function" id="group__CRYPTO__UTILITY__FUNCTIONS_1gabac5d16db3bb54fda056f7e4ac1f32c7" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int pkcs7_unpad</definition>
+        <argsstring>(const unsigned char *data, size_t data_length)</argsstring>
+        <name>pkcs7_unpad</name>
+        <param>
+          <type>const unsigned char *</type>
+          <declname>data</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>data_length</declname>
+        </param>
+        <briefdescription>
+<para>To unpad a PKCS #7 padded data array in-place, and return the length of the unpadded data. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>This function performs PKCS #7 unpadding on the input data array. It checks the padding bytes at the end of the array, removes them if they are valid, and returns the length of the unpadded data. <linebreak/>
+ <parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">data</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to the data array containing PKCS #7 padded data. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">data_length</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Length of the data array. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>The length of the unpadded data, or -1, if the padding is invalid or data is empty. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/crypto_utility/inc/sl_si91x_crypto_utility.h" line="72" column="5" declfile="components/device/silabs/si91x/wireless/crypto/crypto_utility/inc/sl_si91x_crypto_utility.h" declline="72" declcolumn="5"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>SL SI91X Crypto Utility header file. </para>
+    </briefdescription>
+    <detaileddescription>
+<sect1 id="sl__si91x__crypto__utility_8h_1autotoc_md15">
+<title>License</title>
+<para><bold>Copyright 2023 Silicon Laboratories Inc. www.silabs.com</bold></para>
+<para>SPDX-License-Identifier: Zlib</para>
+<para>The licensor of this software is Silicon Laboratories Inc.</para>
+<para>This software is provided &apos;as-is&apos;, without any express or implied warranty. In no event will the authors be held liable for any damages arising from the use of this software.</para>
+<para>Permission is granted to anyone to use this software for any purpose, including commercial applications, and to alter it and redistribute it freely, subject to the following restrictions:</para>
+<para><orderedlist>
+<listitem><para>The origin of this software must not be misrepresented; you must not claim that you wrote the original software. If you use this software in a product, an acknowledgment in the product documentation would be appreciated but is not required.</para>
+</listitem><listitem><para>Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.</para>
+</listitem><listitem><para>This notice may not be removed or altered from any source distribution. </para>
+</listitem></orderedlist>
+</para>
+</sect1>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="comment">/***************************************************************************/</highlight><highlight class="normal"><sp/></highlight><highlight class="comment">/**</highlight></codeline>
+<codeline lineno="2"><highlight class="comment"><sp/>*<sp/>@file</highlight></codeline>
+<codeline lineno="3"><highlight class="comment"><sp/>*<sp/>@brief<sp/>SL<sp/>SI91X<sp/>Crypto<sp/>Utility<sp/>header<sp/>file</highlight></codeline>
+<codeline lineno="4"><highlight class="comment"><sp/>*******************************************************************************</highlight></codeline>
+<codeline lineno="5"><highlight class="comment"><sp/>*<sp/>#<sp/>License</highlight></codeline>
+<codeline lineno="6"><highlight class="comment"><sp/>*<sp/>&lt;b&gt;Copyright<sp/>2023<sp/>Silicon<sp/>Laboratories<sp/>Inc.<sp/>www.silabs.com&lt;/b&gt;</highlight></codeline>
+<codeline lineno="7"><highlight class="comment"><sp/>*******************************************************************************</highlight></codeline>
+<codeline lineno="8"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="9"><highlight class="comment"><sp/>*<sp/>SPDX-License-Identifier:<sp/>Zlib</highlight></codeline>
+<codeline lineno="10"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="11"><highlight class="comment"><sp/>*<sp/>The<sp/>licensor<sp/>of<sp/>this<sp/>software<sp/>is<sp/>Silicon<sp/>Laboratories<sp/>Inc.</highlight></codeline>
+<codeline lineno="12"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="13"><highlight class="comment"><sp/>*<sp/>This<sp/>software<sp/>is<sp/>provided<sp/>&apos;as-is&apos;,<sp/>without<sp/>any<sp/>express<sp/>or<sp/>implied</highlight></codeline>
+<codeline lineno="14"><highlight class="comment"><sp/>*<sp/>warranty.<sp/>In<sp/>no<sp/>event<sp/>will<sp/>the<sp/>authors<sp/>be<sp/>held<sp/>liable<sp/>for<sp/>any<sp/>damages</highlight></codeline>
+<codeline lineno="15"><highlight class="comment"><sp/>*<sp/>arising<sp/>from<sp/>the<sp/>use<sp/>of<sp/>this<sp/>software.</highlight></codeline>
+<codeline lineno="16"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="17"><highlight class="comment"><sp/>*<sp/>Permission<sp/>is<sp/>granted<sp/>to<sp/>anyone<sp/>to<sp/>use<sp/>this<sp/>software<sp/>for<sp/>any<sp/>purpose,</highlight></codeline>
+<codeline lineno="18"><highlight class="comment"><sp/>*<sp/>including<sp/>commercial<sp/>applications,<sp/>and<sp/>to<sp/>alter<sp/>it<sp/>and<sp/>redistribute<sp/>it</highlight></codeline>
+<codeline lineno="19"><highlight class="comment"><sp/>*<sp/>freely,<sp/>subject<sp/>to<sp/>the<sp/>following<sp/>restrictions:</highlight></codeline>
+<codeline lineno="20"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="21"><highlight class="comment"><sp/>*<sp/>1.<sp/>The<sp/>origin<sp/>of<sp/>this<sp/>software<sp/>must<sp/>not<sp/>be<sp/>misrepresented;<sp/>you<sp/>must<sp/>not</highlight></codeline>
+<codeline lineno="22"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/>claim<sp/>that<sp/>you<sp/>wrote<sp/>the<sp/>original<sp/>software.<sp/>If<sp/>you<sp/>use<sp/>this<sp/>software</highlight></codeline>
+<codeline lineno="23"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/>in<sp/>a<sp/>product,<sp/>an<sp/>acknowledgment<sp/>in<sp/>the<sp/>product<sp/>documentation<sp/>would<sp/>be</highlight></codeline>
+<codeline lineno="24"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/>appreciated<sp/>but<sp/>is<sp/>not<sp/>required.</highlight></codeline>
+<codeline lineno="25"><highlight class="comment"><sp/>*<sp/>2.<sp/>Altered<sp/>source<sp/>versions<sp/>must<sp/>be<sp/>plainly<sp/>marked<sp/>as<sp/>such,<sp/>and<sp/>must<sp/>not<sp/>be</highlight></codeline>
+<codeline lineno="26"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/>misrepresented<sp/>as<sp/>being<sp/>the<sp/>original<sp/>software.</highlight></codeline>
+<codeline lineno="27"><highlight class="comment"><sp/>*<sp/>3.<sp/>This<sp/>notice<sp/>may<sp/>not<sp/>be<sp/>removed<sp/>or<sp/>altered<sp/>from<sp/>any<sp/>source<sp/>distribution.</highlight></codeline>
+<codeline lineno="28"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="29"><highlight class="comment"><sp/>******************************************************************************/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="30"><highlight class="normal"></highlight></codeline>
+<codeline lineno="31"><highlight class="normal"></highlight><highlight class="preprocessor">#pragma<sp/>once</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="32"><highlight class="normal"></highlight></codeline>
+<codeline lineno="33"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stdint.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="34"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;string.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="35"><highlight class="normal"></highlight></codeline>
+<codeline lineno="36"><highlight class="normal"></highlight><highlight class="comment">/******************************************************</highlight></codeline>
+<codeline lineno="37"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Function<sp/>Declarations</highlight></codeline>
+<codeline lineno="38"><highlight class="comment">*******************************************************/</highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="39"><highlight class="comment">/**</highlight></codeline>
+<codeline lineno="40"><highlight class="comment"><sp/>*<sp/>@addtogroup<sp/>CRYPTO_UTILITY_FUNCTIONS<sp/></highlight></codeline>
+<codeline lineno="41"><highlight class="comment"><sp/>*<sp/>@{<sp/></highlight></codeline>
+<codeline lineno="42"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="43"><highlight class="normal"></highlight></codeline>
+<codeline lineno="44"><highlight class="normal"></highlight><highlight class="comment">/***************************************************************************/</highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="45"><highlight class="comment">/**</highlight></codeline>
+<codeline lineno="46"><highlight class="comment"><sp/>*<sp/>@brief<sp/></highlight></codeline>
+<codeline lineno="47"><highlight class="comment"><sp/>*<sp/><sp/><sp/>To<sp/>perform<sp/>PKCS<sp/>#7<sp/>padding<sp/>on<sp/>the<sp/>given<sp/>data.</highlight></codeline>
+<codeline lineno="48"><highlight class="comment"><sp/>*<sp/>@param[in]<sp/><sp/>data</highlight></codeline>
+<codeline lineno="49"><highlight class="comment"><sp/>*<sp/><sp/><sp/>Pointer<sp/>to<sp/>the<sp/>data<sp/>to<sp/>be<sp/>padded.</highlight></codeline>
+<codeline lineno="50"><highlight class="comment"><sp/>*<sp/>@param[in]<sp/><sp/>data_length</highlight></codeline>
+<codeline lineno="51"><highlight class="comment"><sp/>*<sp/><sp/><sp/>Length<sp/>of<sp/>the<sp/>data<sp/>in<sp/>bytes.</highlight></codeline>
+<codeline lineno="52"><highlight class="comment"><sp/>*<sp/>@param[in]<sp/><sp/>block_size</highlight></codeline>
+<codeline lineno="53"><highlight class="comment"><sp/>*<sp/><sp/><sp/>Size<sp/>of<sp/>the<sp/>block<sp/>in<sp/>bytes<sp/>(typically<sp/>16<sp/>for<sp/>AES).</highlight></codeline>
+<codeline lineno="54"><highlight class="comment"><sp/>*<sp/>@param[out]<sp/>padded_data_length<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight></codeline>
+<codeline lineno="55"><highlight class="comment"><sp/>*<sp/><sp/><sp/>Pointer<sp/>to<sp/>store<sp/>the<sp/>length<sp/>of<sp/>the<sp/>padded<sp/>data.</highlight></codeline>
+<codeline lineno="56"><highlight class="comment"><sp/>*<sp/>@return</highlight></codeline>
+<codeline lineno="57"><highlight class="comment"><sp/>*<sp/><sp/><sp/>Returns<sp/>a<sp/>pointer<sp/>to<sp/>the<sp/>padded<sp/>data.</highlight></codeline>
+<codeline lineno="58"><highlight class="comment"><sp/>******************************************************************************/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="59" refid="group__CRYPTO__UTILITY__FUNCTIONS_1gabbf8c23ff0e0c848c473c4ed76a60558" refkind="member"><highlight class="normal">uint8_t<sp/>*<ref refid="group__CRYPTO__UTILITY__FUNCTIONS_1gabbf8c23ff0e0c848c473c4ed76a60558" kindref="member">pkcs7_padding</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint8_t<sp/>*data,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>data_length,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>block_size,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>*padded_data_length);</highlight></codeline>
+<codeline lineno="60"><highlight class="normal"></highlight></codeline>
+<codeline lineno="61"><highlight class="normal"></highlight><highlight class="comment">/***************************************************************************/</highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="62"><highlight class="comment">/**</highlight></codeline>
+<codeline lineno="63"><highlight class="comment"><sp/>*<sp/>@brief</highlight></codeline>
+<codeline lineno="64"><highlight class="comment"><sp/>*<sp/><sp/><sp/>To<sp/>unpad<sp/>a<sp/>PKCS<sp/>#7<sp/>padded<sp/>data<sp/>array<sp/>in-place,<sp/>and<sp/>return<sp/>the<sp/>length<sp/>of<sp/>the<sp/>unpadded<sp/>data.<sp/>This<sp/>function<sp/>performs<sp/>PKCS<sp/>#7<sp/>unpadding<sp/>on<sp/>the<sp/>input<sp/>data<sp/>array.<sp/>It<sp/>checks<sp/>the<sp/>padding<sp/>bytes<sp/>at<sp/>the<sp/>end<sp/>of<sp/>the<sp/>array,<sp/>removes<sp/>them<sp/>if<sp/>they<sp/>are<sp/>valid,<sp/>and<sp/>returns<sp/>the<sp/>length<sp/>of<sp/>the<sp/>unpadded<sp/>data.<sp/><sp/><sp/></highlight></codeline>
+<codeline lineno="65"><highlight class="comment"><sp/>*<sp/>@param[in]<sp/><sp/>data<sp/></highlight></codeline>
+<codeline lineno="66"><highlight class="comment"><sp/>*<sp/><sp/><sp/>Pointer<sp/>to<sp/>the<sp/>data<sp/>array<sp/>containing<sp/>PKCS<sp/>#7<sp/>padded<sp/>data.</highlight></codeline>
+<codeline lineno="67"><highlight class="comment"><sp/>*<sp/>@param[in]<sp/><sp/>data_length<sp/></highlight></codeline>
+<codeline lineno="68"><highlight class="comment"><sp/>*<sp/><sp/><sp/>Length<sp/>of<sp/>the<sp/>data<sp/>array.</highlight></codeline>
+<codeline lineno="69"><highlight class="comment"><sp/>*<sp/>@return</highlight></codeline>
+<codeline lineno="70"><highlight class="comment"><sp/>*<sp/><sp/><sp/>The<sp/>length<sp/>of<sp/>the<sp/>unpadded<sp/>data,<sp/>or<sp/>-1,<sp/>if<sp/>the<sp/>padding<sp/>is<sp/>invalid<sp/>or<sp/>data<sp/>is<sp/>empty.</highlight></codeline>
+<codeline lineno="71"><highlight class="comment"><sp/>******************************************************************************/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="72" refid="group__CRYPTO__UTILITY__FUNCTIONS_1gabac5d16db3bb54fda056f7e4ac1f32c7" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="group__CRYPTO__UTILITY__FUNCTIONS_1gabac5d16db3bb54fda056f7e4ac1f32c7" kindref="member">pkcs7_unpad</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">unsigned</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*data,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>data_length);</highlight></codeline>
+<codeline lineno="73"><highlight class="normal"></highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="74"><highlight class="comment">/**<sp/>@}<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+    </programlisting>
+    <location file="components/device/silabs/si91x/wireless/crypto/crypto_utility/inc/sl_si91x_crypto_utility.h"/>
+  </compounddef>
+</doxygen>

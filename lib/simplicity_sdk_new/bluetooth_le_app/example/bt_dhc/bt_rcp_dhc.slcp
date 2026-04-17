@@ -1,0 +1,99 @@
+---
+project_name: bt_rcp_dhc
+package: bluetooth_le_app
+label: Bluetooth - Dynamic Hardware Configuration over RCP
+description: >
+  Enables runtime configuration of radio values such as RSSI offset,
+  PA curve, PA mode and CTUNE using HCI (RCP) messages.
+category: Bluetooth Examples
+quality: experimental
+
+filter:
+  - name: "Wireless Technology"
+    value: ["Bluetooth"]
+  - name: "Device Type"
+    value: ["RCP"]
+  - name: "Project Difficulty"
+    value: ["Advanced"]
+
+component:
+  - id: bluetooth_hci_uart
+  - id: uartdrv_usart
+    instance:
+      - vcom
+  - id: board_control
+  - id: bluetooth_controller
+  - id: bluetooth_feature_connection_role_central
+  - id: bluetooth_feature_connection_role_peripheral
+  - id: bluetooth_feature_legacy_advertiser
+  - id: bluetooth_feature_extended_advertiser
+  - id: bluetooth_feature_periodic_advertiser
+  - id: bluetooth_feature_connection_phy_update
+  - id: bluetooth_feature_legacy_scanner
+  - id: bluetooth_feature_extended_scanner
+  - id: memory_manager
+  - id: sl_main
+  - id: app_os_helper
+  - id: clock_manager
+  - id: device_init
+  - id: app_assert
+  - id: clock_manager_oscillator_calibration_override
+  - id: rail_util_rssi
+  - id: rail_util_pa_nvm_configs
+  - id: rail_lib
+  - id: nvm3_lib
+  - id: nvm3_default
+  - id: nvm3_default_config
+
+source:
+  - path: app.c
+  - path: sl_dhc.c
+  - path: sl_dhc_rcp.c
+
+include:
+  - path: .
+    file_list:
+      - path: app.h
+      - path: sl_dhc.h
+
+readme:
+  - path: readme.md
+
+other_file:
+  - path: image/readme_img0.png
+  - path: image/readme_img1.png
+  - path: host/configuration_sample.json
+  - path: host/dhc.py
+  - path: host/dhc_classes.py
+
+configuration:
+  - name: SL_STACK_SIZE
+    value: 2752
+  - name: SL_BT_CONTROLLER_BUFFER_MEMORY
+    value: 7168
+  - name: SL_BT_CONFIG_USER_ADVERTISERS
+    value: 2
+  - name: SL_BOARD_ENABLE_VCOM
+    value: 1
+  - name: SL_UARTDRV_USART_VCOM_FLOW_CONTROL_TYPE
+    value: uartdrvFlowControlHwUart
+  - name: SL_PSA_KEY_USER_SLOT_COUNT
+    value: "0"
+    condition:
+      - psa_crypto
+  - name: SL_RAIL_UTIL_RSSI_SUPPORTS_NVM_DATA
+    value: "1"
+
+define:
+  - name: RAILTEST
+    value: '1'  # Expose the powerCurvesState variable to access the current state of PA Curves
+
+tag:
+  - hwfilter:device:device_supports_bluetooth
+  - hwfilter:device:device_generic_family_efr32xg24
+  - hwfilter:!device:device_is_module
+
+ui_hints:
+  highlight:
+    - path: readme.md
+      focus: true

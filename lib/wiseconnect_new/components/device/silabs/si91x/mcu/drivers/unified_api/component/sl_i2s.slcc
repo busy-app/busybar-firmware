@@ -1,0 +1,46 @@
+id: sl_i2s
+label: I2S
+package: platform_siwx91x
+description: >
+  I2S, which stands for Inter-IC Sound or Integrated Interchip Sound, is a 
+  serial bus interface standard used for connecting digital audio devices. 
+  Unlike I2C or SPI, I2S is specifically designed for transferring audio data 
+  between integrated circuits (ICs).
+
+  The pins like CLK, FRAME, DIN, DOUT are used for transmitting and receiving the data 
+  in full duplex communication from master to target.
+  Offering non-blocking send and receive functions. 
+
+  When you install this component, it will also be installing the  I2S dependency component, 
+  which is the I2S driver's implementation.
+
+  Note: When utilizing the I2S1 instance in high power mode with DMA enabled, it is advisable to allocate buffers in the ULP Memory block. 
+  For further details on buffer allocation, please refer to the ULP I2S example.
+category: Device|Si91x|MCU|Peripheral
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: "components/device/silabs/si91x/mcu/drivers/unified_api"
+config_file:
+  - path: config/sl_i2s_config/sl_si91x_i2s_config.h
+    file_id: sl_i2s_config
+source:
+  - path: "src/sl_si91x_i2s.c"
+include:
+  - path: "inc"
+    file_list:
+    - path: "sl_si91x_i2s.h"
+define:
+  - name: SL_SI91X_I2S
+provides:
+  - name: sl_i2s
+requires:
+  - name: udma_linker_config
+  - name: rsilib_i2s
+  - name: cmsis_sai
+documentation:
+    docset: wiseconnect
+    document: wiseconnect-api-reference-guide-si91x-peripherals/i2-s
+ui_hints:
+  visibility: never

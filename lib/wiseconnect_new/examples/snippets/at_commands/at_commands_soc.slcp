@@ -1,0 +1,133 @@
+project_name: at_commands_soc
+package: wifi_app
+quality: production
+label: at_commands_soc
+category: Example|Wi-Fi_BLE
+description: 'Demonstrates to run all commands individually
+
+  '
+filter:
+- name: Wireless Technology
+  value:
+  - Wi-Fi BLE
+- name: Project Difficulty
+  value:
+  - Beginner
+source:
+- path: demo.c
+- path: at_utility.c
+- path: at_command_parser.c
+- path: wifi_commands.c
+- path: network_commands.c
+- path: bsd_socket_commands.c
+- path: at_m4_power_save.c
+- path: mqtt_commands.c
+- path: http_commands.c
+- path: fs_commands.c
+- path: ble_commands.c
+- path: fwup_commands.c
+- path: uart_commands.c
+- path: at_command_data_mode.c
+include:
+- path: .
+  file_list:
+  - path: app.h
+  - path: at_utility.h
+  - path: fs_commands.h
+  - path: ble_config.h
+  - path: at_command_data_mode.h
+define:
+- name: SL_SI91X_CLI_CONSOLE_MAX_ARG_COUNT
+  value: 30
+- name: SL_SI91X_PRINT_DBG_LOG
+- name: SLI_SI91X_DBG_MIDDLEWARE_EN
+- name: SLI_SI91X_MCU_INTR_BASED_RX_ON_UART
+- name: SLI_AT_COMMAND_SUPPORT
+- name: SLI_CONSOLE_SUPPRESS_AUTO_ECHO
+component:
+- id: sl_main
+- id: freertos
+- id: freertos_heap_4
+- id: syscalls
+- id: si91x_memory_default_config
+- id: wiseconnect_common
+- id: wifi
+- id: sl_si91x_internal_stack
+- id: wifi_resources
+- id: network_manager
+- id: basic_network_config_manager
+- id: device_needs_ram_execution
+- id: iot_socket
+- id: sl_si91x_soc_soft_reset
+- id: sl_si91x_mem_pool_buffers_with_quota
+- id: at_commands_auto_gen
+- id: wifi_at_commands
+- id: at_power_manager
+- id: net_at_commands
+- id: bsd_socket_at_commands
+- id: mqtt_at_commands
+- id: mqtt
+- id: http_at_commands
+- id: http_client
+- id: ble_at_commands
+- id: ble
+- id: fs_at_commands
+- id: sl_si91x_littlefs_common_flash
+- id: fwup_at_commands
+- id: uart_at_commands
+- id: sl_uart
+toolchain_settings:
+- option: gcc_compiler_option
+  value: -Wall -Werror
+- option: gcc_linker_option
+  value: -Wl,--wrap=Board_Debug_Init
+configuration:
+- name: SL_BOARD_ENABLE_VCOM
+  value: '1'
+- name: NVM3_DEFAULT_MAX_OBJECT_SIZE
+  value: '280'
+- name: SL_ENABLE_CALENDAR_WAKEUP_SOURCE
+  value: '1'
+- name: ENABLE_ALARM
+  value: '1'
+- name: ALARM_TIME_MSEC
+  value: '30000'
+- name: UART_UC
+  value: '0'
+  condition:
+  - sl_uart
+- name: USART_UC
+  value: '0'
+  condition:
+  - sl_usart
+- name: ULP_UART_UC
+  value: '0'
+  condition:
+  - sl_ulp_uart
+readme:
+- path: readme.md
+other_file:
+- path: resources/readme/Ready.PNG
+- path: resources/readme/sta.png
+- path: resources/readme/at_power_save_comp.png
+template_contribution:
+- name: event_handler
+  value:
+    event: platform_init
+    include: fs_commands.h
+    handler: fs_init
+    priority: -9999
+ui_hints:
+  highlight:
+  - path: readme.md
+    focus: true
+post_build:
+  profile: wiseconnect_soc
+sdk_extension:
+- id: wiseconnect3_sdk
+  vendor: silabs
+  version: 4.0.1
+sdk:
+  id: simplicity_sdk
+  vendor: silabs
+  version: 2025.12.2

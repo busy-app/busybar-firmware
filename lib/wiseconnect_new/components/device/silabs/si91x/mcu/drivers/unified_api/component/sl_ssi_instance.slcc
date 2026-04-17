@@ -1,0 +1,52 @@
+id: sl_ssi_instance
+label: SSI
+package: platform_siwx91x
+description: >
+  The SSI driver supports sending, receiving, and transferring data at 40 MHz. 
+  It enables full duplex and half duplex communication modes. 
+  Offering both blocking and non-blocking data transfer functions. 
+  The non-blocking functions utilize DMA to transfer data asynchronously, 
+  signaling transfer completion via callback functions.
+  This diriver can be configured as ULP-SSI using UC.
+  SSI can be configured in master, slave and ULP master modes.
+  
+  When you install this component, it will also be installing the  SSI  dependency component, 
+  which is the SSI driver's implementation.
+
+  Note: When utilizing the ULP SSI instance in high power mode with DMA enabled, it is advisable to allocate buffers in the ULP Memory block. 
+  For further details on buffer allocation, please refer to the ULP SSI MASTER example.
+
+  SSI Supports modes.
+  Modes created must be named as primary, secondary, ulp_primary. 
+category: Device|Si91x|MCU|Peripheral
+quality: production
+metadata:
+  sbom:
+   license: Zlib
+instantiable:
+  prefix: inst
+root_path: "components/device/silabs/si91x/mcu/drivers/unified_api"
+config_file:
+  - path: config/sl_si91x_ssi_{{instance}}_config.h
+    file_id: ssi_config
+  - path: config/sl_si91x_ssi_{{instance}}_common_config.h
+    file_id: ssi_common_config
+provides:
+  - name: sl_ssi_instance
+    allow_multiple: true
+template_file:
+  - path: init/sl_ssi_instances.h.jinja
+  - path: init/sl_ssi_common_config.h.jinja
+define:
+  - name: SSI_INSTANCE_CONFIG
+    value: 1
+template_contribution:
+  - name: sl_ssi_instances
+    value: "{{instance}}"
+  - name: component_catalog
+    value: "ssi_{{instance}}"
+requires:
+  - name: sl_ssi
+documentation:
+    docset: wiseconnect
+    document: wiseconnect-api-reference-guide-si91x-peripherals/ssi

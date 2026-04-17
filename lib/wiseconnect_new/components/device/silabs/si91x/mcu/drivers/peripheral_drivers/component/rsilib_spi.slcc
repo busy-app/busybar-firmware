@@ -1,0 +1,25 @@
+id: rsilib_spi
+label: SPI
+package: platform_siwx91x
+description: >
+  Serial Peripheral Interface API's
+category: Device|Si91x|MCU|Internal|RSI Peripheral Drivers
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+ui_hints:
+  visibility: never
+component_root_path: "components/device/silabs/si91x/mcu/drivers/peripheral_drivers"
+source:
+  - path: "src/rsi_spi.c"
+include:
+  - path: "inc"
+    file_list:
+    - path: "rsi_spi.h"
+provides:
+  - name: rsilib_spi
+requires:
+  - name: romdriver_udma_wrapper
+define: 
+  - name: SPI_MULTI_SLAVE

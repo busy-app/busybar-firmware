@@ -1,0 +1,131 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="structsl__bt__evt__l2cap__le__channel__open__response__s" kind="struct" language="C++" prot="public">
+    <compoundname>sl_bt_evt_l2cap_le_channel_open_response_s</compoundname>
+    <includes refid="sl__bt__api_8h" local="no">sl_bt_api.h</includes>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structsl__bt__evt__l2cap__le__channel__open__response__s_1a6d5a3c592f25cb7a996b9b7ff6833d38" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_l2cap_le_channel_open_response_s::connection</definition>
+        <argsstring></argsstring>
+        <name>connection</name>
+        <qualifiedname>sl_bt_evt_l2cap_le_channel_open_response_s::connection</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>The Bluetooth connection handle on which the response is received </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="14936" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="14936" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__l2cap__le__channel__open__response__s_1a83931ed86a801fb9b7921541651c574a" prot="public" static="no" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t sl_bt_evt_l2cap_le_channel_open_response_s::cid</definition>
+        <argsstring></argsstring>
+        <name>cid</name>
+        <qualifiedname>sl_bt_evt_l2cap_le_channel_open_response_s::cid</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>The channel identifier on the local device </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="14938" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="14938" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__l2cap__le__channel__open__response__s_1afe783869e56dabe3f0e80ea8a5e47abe" prot="public" static="no" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t sl_bt_evt_l2cap_le_channel_open_response_s::max_sdu</definition>
+        <argsstring></argsstring>
+        <name>max_sdu</name>
+        <qualifiedname>sl_bt_evt_l2cap_le_channel_open_response_s::max_sdu</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>The Maximum Service Data Unit size of the peer channel endpoint </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="14939" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="14939" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__l2cap__le__channel__open__response__s_1ae7e985af2ac31701c52fe73103a2c1cf" prot="public" static="no" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t sl_bt_evt_l2cap_le_channel_open_response_s::max_pdu</definition>
+        <argsstring></argsstring>
+        <name>max_pdu</name>
+        <qualifiedname>sl_bt_evt_l2cap_le_channel_open_response_s::max_pdu</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>The maximum PDU payload size of the peer channel endpoint </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="14941" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="14941" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__l2cap__le__channel__open__response__s_1a5acfbaad0534df143d243a537850d754" prot="public" static="no" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t sl_bt_evt_l2cap_le_channel_open_response_s::credit</definition>
+        <argsstring></argsstring>
+        <name>credit</name>
+        <qualifiedname>sl_bt_evt_l2cap_le_channel_open_response_s::credit</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>The initial credit value of the peer channel endpoint, i.e., number of PDUs the local channel endpoint can send </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="14943" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="14943" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__l2cap__le__channel__open__response__s_1ad1dd596008920ad9e5c001358c2533dd" prot="public" static="no" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t sl_bt_evt_l2cap_le_channel_open_response_s::errorcode</definition>
+        <argsstring></argsstring>
+        <name>errorcode</name>
+        <qualifiedname>sl_bt_evt_l2cap_le_channel_open_response_s::errorcode</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Enum <ref refid="group__sl__bt__l2cap_1gae9842dbd44c2e083436b58bcd06cdb42" kindref="member">sl_bt_l2cap_connection_result_t</ref>.</para>
+<para>An L2CAP error code as the outcome of the connection request.</para>
+<para>Result <ref refid="group__sl__bt__l2cap_1ggae9842dbd44c2e083436b58bcd06cdb42ac9cf1e0fa42f9d334727f0a95c63905a" kindref="member">sl_bt_l2cap_connection_result_successful</ref> indicates the connection request was accepted and the logical channel is established. Other error code value indicates the connection request was refused by the peer device and other parameters of this event must be ignored. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="14946" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="14946" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__l2cap__le__channel__open__response__s_1aa59eec5d77d66f9dfc4a0c3d1e19a270" prot="public" static="no" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t sl_bt_evt_l2cap_le_channel_open_response_s::remote_cid</definition>
+        <argsstring></argsstring>
+        <name>remote_cid</name>
+        <qualifiedname>sl_bt_evt_l2cap_le_channel_open_response_s::remote_cid</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>The channel identifier on the peer device </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="14957" column="12" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="14957" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Data structure of the le_channel_open_response event. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="14934" column="1" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="14935" bodyend="14958"/>
+    <listofallmembers>
+      <member refid="structsl__bt__evt__l2cap__le__channel__open__response__s_1a83931ed86a801fb9b7921541651c574a" prot="public" virt="non-virtual"><scope>sl_bt_evt_l2cap_le_channel_open_response_s</scope><name>cid</name></member>
+      <member refid="structsl__bt__evt__l2cap__le__channel__open__response__s_1a6d5a3c592f25cb7a996b9b7ff6833d38" prot="public" virt="non-virtual"><scope>sl_bt_evt_l2cap_le_channel_open_response_s</scope><name>connection</name></member>
+      <member refid="structsl__bt__evt__l2cap__le__channel__open__response__s_1a5acfbaad0534df143d243a537850d754" prot="public" virt="non-virtual"><scope>sl_bt_evt_l2cap_le_channel_open_response_s</scope><name>credit</name></member>
+      <member refid="structsl__bt__evt__l2cap__le__channel__open__response__s_1ad1dd596008920ad9e5c001358c2533dd" prot="public" virt="non-virtual"><scope>sl_bt_evt_l2cap_le_channel_open_response_s</scope><name>errorcode</name></member>
+      <member refid="structsl__bt__evt__l2cap__le__channel__open__response__s_1ae7e985af2ac31701c52fe73103a2c1cf" prot="public" virt="non-virtual"><scope>sl_bt_evt_l2cap_le_channel_open_response_s</scope><name>max_pdu</name></member>
+      <member refid="structsl__bt__evt__l2cap__le__channel__open__response__s_1afe783869e56dabe3f0e80ea8a5e47abe" prot="public" virt="non-virtual"><scope>sl_bt_evt_l2cap_le_channel_open_response_s</scope><name>max_sdu</name></member>
+      <member refid="structsl__bt__evt__l2cap__le__channel__open__response__s_1aa59eec5d77d66f9dfc4a0c3d1e19a270" prot="public" virt="non-virtual"><scope>sl_bt_evt_l2cap_le_channel_open_response_s</scope><name>remote_cid</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

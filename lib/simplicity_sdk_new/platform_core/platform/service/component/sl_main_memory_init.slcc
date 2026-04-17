@@ -1,0 +1,75 @@
+id: sl_main_memory_init
+label: sl_main Setup
+package: platform_core
+category: Services|System Setup
+ui_hints:
+  visibility: never
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: platform_core/platform/service/sl_main
+source:
+- path: src/sl_main_init_memory.c
+include:
+- path: src
+  file_list:
+  - path: sli_main_init_memory.h
+- path: inc
+  file_list:
+  - path: sl_main_init_memory.h
+provides:
+- name: sl_main_memory_init
+requires:
+- name: component_catalog
+- name: cmsis_core
+template_contribution:
+- name: event
+  value:
+    id: driver_permanent_allocation
+    function:
+      name: sli_driver_permanent_allocation
+      return: void
+  priority: -5010
+- name: event
+  value:
+    id: service_permanent_allocation
+    function:
+      name: sli_service_permanent_allocation
+      return: void
+  priority: -5009
+- name: event
+  value:
+    id: stack_permanent_allocation
+    function:
+      name: sli_stack_permanent_allocation
+      return: void
+  priority: -5008
+- name: event
+  value:
+    id: internal_permanent_allocation
+    function:
+      name: sli_internal_permanent_allocation
+      return: void
+  priority: -5007
+documentation:
+  docset: gecko-platform
+  document: platform-service/sl-main
+description: |-
+  Main memory init a function to do permanent memory allocations:
+
+    - sli_allocate_permanent_memory()
+
+  Handlers can be registered
+  for the following events using the Event Handler API provided by the
+  Event Handler component:
+
+    - driver_permanent_allocation   -> sli_driver_permanent_allocation()
+    - service_permanent_allocation  -> sli_service_permanent_allocation()
+    - stack_permanent_allocation    -> sli_stack_permanent_allocation()
+    - internal_permanent_allocation -> sli_internal_permanent_allocation()
+
+  After the handlers are called, the user defined function app_permanent_memory_alloc()
+  is called to allocate permanent memory blocks for the application.
+
+  This ensures an optimal RAM placement for efficient memory usage.

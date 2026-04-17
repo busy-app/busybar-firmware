@@ -1,0 +1,243 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="structsl__bt__evt__cte__receiver__silabs__iq__report__s" kind="struct" language="C++" prot="public">
+    <compoundname>sl_bt_evt_cte_receiver_silabs_iq_report_s</compoundname>
+    <includes refid="sl__bt__api_8h" local="no">sl_bt_api.h</includes>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structsl__bt__evt__cte__receiver__silabs__iq__report__s_1a35814d1f93e960c97d2a305fc5982e7c" prot="public" static="no" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t sl_bt_evt_cte_receiver_silabs_iq_report_s::status</definition>
+        <argsstring></argsstring>
+        <name>status</name>
+        <qualifiedname>sl_bt_evt_cte_receiver_silabs_iq_report_s::status</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Status of CTE IQ sampling </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15639" column="14" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="15639" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__cte__receiver__silabs__iq__report__s_1a67928dfb6a64bd2235244aa6e7612025" prot="public" static="no" mutable="no">
+        <type><ref refid="structbd__addr" kindref="compound">bd_addr</ref></type>
+        <definition>bd_addr sl_bt_evt_cte_receiver_silabs_iq_report_s::address</definition>
+        <argsstring></argsstring>
+        <name>address</name>
+        <qualifiedname>sl_bt_evt_cte_receiver_silabs_iq_report_s::address</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Bluetooth address of the remote device </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15640" column="14" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="15640" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__cte__receiver__silabs__iq__report__s_1a2742771930aabfc0a2b33def7267607b" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_cte_receiver_silabs_iq_report_s::address_type</definition>
+        <argsstring></argsstring>
+        <name>address_type</name>
+        <qualifiedname>sl_bt_evt_cte_receiver_silabs_iq_report_s::address_type</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Enum <ref refid="group__sl__bt__gap_1gac8d5431d3062e47c5d51b9fb9f36c104" kindref="member">sl_bt_gap_address_type_t</ref>.</para>
+<para>Advertiser address type.</para>
+<para>If the application does not include the bluetooth_feature_use_accurate_api_address_types component, <computeroutput>address_type</computeroutput> uses the following values:<itemizedlist>
+<listitem><para><bold>0:</bold> Public address</para>
+</listitem><listitem><para><bold>1:</bold> Random address</para>
+</listitem><listitem><para><bold>255:</bold> No address provided (anonymous advertising)</para>
+</listitem></itemizedlist>
+</para>
+<para>If the application includes the bluetooth_feature_use_accurate_api_address_types component, <computeroutput>address_type</computeroutput> uses enum <ref refid="group__sl__bt__gap_1gac8d5431d3062e47c5d51b9fb9f36c104" kindref="member">sl_bt_gap_address_type_t</ref> values:<itemizedlist>
+<listitem><para><bold>sl_bt_gap_public_address (0x0):</bold> Public device address</para>
+</listitem><listitem><para><bold>sl_bt_gap_static_address (0x1):</bold> Static device address</para>
+</listitem><listitem><para><bold>sl_bt_gap_random_resolvable_address (0x2):</bold> Resolvable private random address</para>
+</listitem><listitem><para><bold>sl_bt_gap_random_nonresolvable_address (0x3):</bold> Non-resolvable private random address</para>
+</listitem><listitem><para><bold>sl_bt_gap_anonymous_address (0xff):</bold> No address provided (anonymous advertising)</para>
+</listitem><listitem><para><bold>sl_bt_gap_public_address_resolved_from_rpa (0x4):</bold> Public identity address resolved from a resolvable private address (RPA)</para>
+</listitem><listitem><para><bold>sl_bt_gap_static_address_resolved_from_rpa (0x5):</bold> Static identity address resolved from a resolvable private address (RPA) </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15641" column="14" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="15641" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__cte__receiver__silabs__iq__report__s_1aad810e567ca6148b6cb0e8512402c20d" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_cte_receiver_silabs_iq_report_s::phy</definition>
+        <argsstring></argsstring>
+        <name>phy</name>
+        <qualifiedname>sl_bt_evt_cte_receiver_silabs_iq_report_s::phy</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>The PHY on which the packet is received.<itemizedlist>
+<listitem><para><bold>1:</bold> 1M PHY</para>
+</listitem><listitem><para><bold>2:</bold> 2M PHY </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15679" column="14" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="15679" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__cte__receiver__silabs__iq__report__s_1a0d5ff996755223e76113753aa5545e06" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_cte_receiver_silabs_iq_report_s::channel</definition>
+        <argsstring></argsstring>
+        <name>channel</name>
+        <qualifiedname>sl_bt_evt_cte_receiver_silabs_iq_report_s::channel</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>The channel on which the CTE packet was received </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15682" column="14" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="15682" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__cte__receiver__silabs__iq__report__s_1a6b59a4ee9d06bd6f97db97162dd5dda8" prot="public" static="no" mutable="no">
+        <type>int8_t</type>
+        <definition>int8_t sl_bt_evt_cte_receiver_silabs_iq_report_s::rssi</definition>
+        <argsstring></argsstring>
+        <name>rssi</name>
+        <qualifiedname>sl_bt_evt_cte_receiver_silabs_iq_report_s::rssi</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>RSSI in the received CTE packet. Unit: dBm </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15684" column="14" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="15684" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__cte__receiver__silabs__iq__report__s_1a9432c985f8f18aa9af2966e378eeba37" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_cte_receiver_silabs_iq_report_s::rssi_antenna_id</definition>
+        <argsstring></argsstring>
+        <name>rssi_antenna_id</name>
+        <qualifiedname>sl_bt_evt_cte_receiver_silabs_iq_report_s::rssi_antenna_id</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>The ID of the antenna on which RSSI was measured </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15685" column="14" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="15685" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__cte__receiver__silabs__iq__report__s_1a1118d135505d850044cebb3c4b340a2f" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_cte_receiver_silabs_iq_report_s::cte_type</definition>
+        <argsstring></argsstring>
+        <name>cte_type</name>
+        <qualifiedname>sl_bt_evt_cte_receiver_silabs_iq_report_s::cte_type</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>The CTE type<itemizedlist>
+<listitem><para><bold>0:</bold> AoA CTE response</para>
+</listitem><listitem><para><bold>1:</bold> AoD CTE response with 1us slots</para>
+</listitem><listitem><para><bold>2:</bold> AoD CTE response with 2us slots </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15687" column="14" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="15687" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__cte__receiver__silabs__iq__report__s_1afd73af6e6aa416b8657979769da45701" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_evt_cte_receiver_silabs_iq_report_s::slot_durations</definition>
+        <argsstring></argsstring>
+        <name>slot_durations</name>
+        <qualifiedname>sl_bt_evt_cte_receiver_silabs_iq_report_s::slot_durations</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Slot durations<itemizedlist>
+<listitem><para><bold>1:</bold> Switching and sampling slots are 1 us each</para>
+</listitem><listitem><para><bold>2:</bold> Switching and sampling slots are 2 us each </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15691" column="14" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="15691" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__cte__receiver__silabs__iq__report__s_1a8e4bef6546ff74e65cbabde8bd711eec" prot="public" static="no" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t sl_bt_evt_cte_receiver_silabs_iq_report_s::packet_counter</definition>
+        <argsstring></argsstring>
+        <name>packet_counter</name>
+        <qualifiedname>sl_bt_evt_cte_receiver_silabs_iq_report_s::packet_counter</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>The event counter of the periodic advertising train or the connection </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15696" column="14" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="15696" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structsl__bt__evt__cte__receiver__silabs__iq__report__s_1a7ca2d54bf76542867728ef10acb00610" prot="public" static="no" mutable="no">
+        <type><ref refid="structuint8array" kindref="compound">uint8array</ref></type>
+        <definition>uint8array sl_bt_evt_cte_receiver_silabs_iq_report_s::samples</definition>
+        <argsstring></argsstring>
+        <name>samples</name>
+        <qualifiedname>sl_bt_evt_cte_receiver_silabs_iq_report_s::samples</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>IQ samples of the received CTE packet. I and Q samples follow each other alternately (I, Q, I, Q, ...) </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15698" column="14" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="15698" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Data structure of the silabs_iq_report event. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="2">
+        <label>bd_addr</label>
+        <link refid="structbd__addr"/>
+      </node>
+      <node id="1">
+        <label>sl_bt_evt_cte_receiver_silabs_iq_report_s</label>
+        <link refid="structsl__bt__evt__cte__receiver__silabs__iq__report__s"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>address</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>samples</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>uint8array</label>
+        <link refid="structuint8array"/>
+      </node>
+    </collaborationgraph>
+    <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15637" column="1" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="15638" bodyend="15701"/>
+    <listofallmembers>
+      <member refid="structsl__bt__evt__cte__receiver__silabs__iq__report__s_1a67928dfb6a64bd2235244aa6e7612025" prot="public" virt="non-virtual"><scope>sl_bt_evt_cte_receiver_silabs_iq_report_s</scope><name>address</name></member>
+      <member refid="structsl__bt__evt__cte__receiver__silabs__iq__report__s_1a2742771930aabfc0a2b33def7267607b" prot="public" virt="non-virtual"><scope>sl_bt_evt_cte_receiver_silabs_iq_report_s</scope><name>address_type</name></member>
+      <member refid="structsl__bt__evt__cte__receiver__silabs__iq__report__s_1a0d5ff996755223e76113753aa5545e06" prot="public" virt="non-virtual"><scope>sl_bt_evt_cte_receiver_silabs_iq_report_s</scope><name>channel</name></member>
+      <member refid="structsl__bt__evt__cte__receiver__silabs__iq__report__s_1a1118d135505d850044cebb3c4b340a2f" prot="public" virt="non-virtual"><scope>sl_bt_evt_cte_receiver_silabs_iq_report_s</scope><name>cte_type</name></member>
+      <member refid="structsl__bt__evt__cte__receiver__silabs__iq__report__s_1a8e4bef6546ff74e65cbabde8bd711eec" prot="public" virt="non-virtual"><scope>sl_bt_evt_cte_receiver_silabs_iq_report_s</scope><name>packet_counter</name></member>
+      <member refid="structsl__bt__evt__cte__receiver__silabs__iq__report__s_1aad810e567ca6148b6cb0e8512402c20d" prot="public" virt="non-virtual"><scope>sl_bt_evt_cte_receiver_silabs_iq_report_s</scope><name>phy</name></member>
+      <member refid="structsl__bt__evt__cte__receiver__silabs__iq__report__s_1a6b59a4ee9d06bd6f97db97162dd5dda8" prot="public" virt="non-virtual"><scope>sl_bt_evt_cte_receiver_silabs_iq_report_s</scope><name>rssi</name></member>
+      <member refid="structsl__bt__evt__cte__receiver__silabs__iq__report__s_1a9432c985f8f18aa9af2966e378eeba37" prot="public" virt="non-virtual"><scope>sl_bt_evt_cte_receiver_silabs_iq_report_s</scope><name>rssi_antenna_id</name></member>
+      <member refid="structsl__bt__evt__cte__receiver__silabs__iq__report__s_1a7ca2d54bf76542867728ef10acb00610" prot="public" virt="non-virtual"><scope>sl_bt_evt_cte_receiver_silabs_iq_report_s</scope><name>samples</name></member>
+      <member refid="structsl__bt__evt__cte__receiver__silabs__iq__report__s_1afd73af6e6aa416b8657979769da45701" prot="public" virt="non-virtual"><scope>sl_bt_evt_cte_receiver_silabs_iq_report_s</scope><name>slot_durations</name></member>
+      <member refid="structsl__bt__evt__cte__receiver__silabs__iq__report__s_1a35814d1f93e960c97d2a305fc5982e7c" prot="public" virt="non-virtual"><scope>sl_bt_evt_cte_receiver_silabs_iq_report_s</scope><name>status</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

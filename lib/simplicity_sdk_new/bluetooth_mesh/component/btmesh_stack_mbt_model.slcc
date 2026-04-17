@@ -1,0 +1,33 @@
+id: "btmesh_stack_mbt_model"
+label: "Bluetooth Mesh BLOB Transfer Model Library"
+package: bluetooth_mesh
+description: "Provides Bluetooth Mesh Binary Large Object (BLOB) Transfer Model Library. Contains BLOB Transfer Client and Server models."
+category: "Bluetooth Mesh|Stack|DFU"
+quality: "production"
+include:
+- path: "inc"
+  file_list:
+  - path: "sl_btmesh_model_specification_v1_1_defs.h"
+requires:
+- name: "btmesh_stack_mbt_model_libraries"
+- name: "btmesh_stack"
+- name: "btmesh_core"
+recommends:
+- id: "btmesh_stack_mbt_model_libraries_release"
+  condition:
+  - "btmesh_stack_libraries_release"
+  vendor: silabs
+- id: "btmesh_stack_mbt_model_libraries_debug"
+  condition:
+  - "btmesh_stack_libraries_debug"
+  vendor: silabs
+provides:
+- name: "btmesh_stack_mbt_model"
+
+ui_hints:
+  visibility: never
+
+metadata:
+  sbom:
+    reference: btmesh_stack_models
+root_path: bluetooth_mesh

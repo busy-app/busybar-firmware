@@ -1,0 +1,51 @@
+id: device_init_rffpll
+label: Radio Frequency Friendly Phase-Locked Loop (RFFPLL)
+package: platform_core
+description: >
+  Instantiate the component for Radio Frequency Friendly Phase-Locked Loop  (RFFPLL) initialization. The RFFPLL helps with radio interference mitigation  between the core clocks and the Radio.
+category: Services|Device Initialization|Peripherals
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: platform_core/platform/service/device_init/
+config_file:
+- path: config/s2/sdid220/sl_device_init_rffpll_config.h
+  file_id: device_init_rffpll_config
+  condition: [device_sdid_220]
+include:
+- path: inc
+  file_list:
+  - path: sl_device_init_rffpll.h
+source:
+- path: src/sl_device_init_rffpll_s2.c
+  condition: [device_sdid_220]
+provides:
+- name: device_init_rffpll
+requires:
+- name: emlib_cmu
+- name: status
+- name: device_series_2
+- name: device_has_rffpll
+define:
+  # The Auto-Band feature requires the existence of a radio configuration file.
+  # If this symbol is not defined, Auto-Band will be ignored and 9xx band used.
+- name: SL_DEVICE_INIT_AUTO_BAND_VALID
+  value: '1'
+  condition:
+  - a_radio_config
+template_contribution:
+- name: event_handler
+  value:
+    event: platform_init
+    include: sl_device_init_rffpll.h
+    handler: sl_device_init_rffpll
+  priority: -9445
+  condition: [sl_system, kernel]
+- name: device_init_clocks_present
+  value: rffpll
+- name: component_catalog
+  value: device_init_rffpll
+documentation:
+  docset: gecko-platform
+  document: platform-service/device-init-rffpll

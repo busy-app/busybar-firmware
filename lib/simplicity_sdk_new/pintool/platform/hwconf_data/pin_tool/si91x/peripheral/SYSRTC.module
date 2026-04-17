@@ -1,0 +1,24 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<module:DocumentRoot xmlns:module="http://www.silabs.com/ss/hwconfig/module.ecore">
+  <module id="pin_tool.wfm.si91x.sysrtc" label="SYSRTC" name="SYSRTC" description="" version="A">
+    <properties>
+      <stringProperty label="Type" id="type" defaultValue="sysrtc" transient="true" hidden="true" readonly="true" description=""/>
+      <stringProperty label="Custom Peripheral Name" id="peripheral.name" description=""/>
+    </properties>
+    <propertyCategories>
+      <category label="SYSRTC">
+        <subCategory label="">
+          <propertyRef refId="peripheral.name"/>
+        </subCategory>
+      </category>
+    </propertyCategories>
+    <signals>
+      <signal name="SYSRTC_PRS_IN_G0"/>
+      <signal name="SYSRTC_PRS_OUT_G0_1"/>
+      <signal name="SYSRTC_PRS_IN_G1"/>
+      <signal name="SYSRTC_PRS_OUT_G1_0"/>
+      <signal name="SYSRTC_PRS_OUT_G1_1"/>
+      <signal name="SYSRTC_PRS_OUT_G0_0"/>
+    </signals>
+  </module>
+</module:DocumentRoot>

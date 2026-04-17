@@ -1,0 +1,23 @@
+id: romdriver_ulpss
+label: ROM DRIVER ULPSS
+package: platform_siwx91x
+description: >
+  Rom Driver ULPSS
+category: Device|Si91x|MCU|Internal|ROM Drivers
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+ui_hints:
+  visibility: never
+component_root_path: "components/device/silabs/si91x/mcu/drivers/rom_driver"
+include:
+  - path: "inc"
+    file_list:
+    - path: "rsi_rom_ulpss_clk.h"
+provides:
+  - name: romdriver_ulpss
+requires:
+  - name: romdriver_romtable
+define:
+  - name: ULPSS_CLOCK_ROMDRIVER_PRESENT

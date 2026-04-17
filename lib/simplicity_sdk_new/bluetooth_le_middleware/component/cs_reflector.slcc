@@ -1,0 +1,73 @@
+id: cs_reflector
+package: bluetooth_le_middleware
+label: CS Reflector
+description: >
+  Channel Sounding (CS) Reflector role implementation for all BLE Channel Sounding apps.
+category: Bluetooth|Application|Miscellaneous
+metadata:
+  sbom:
+    license: Zlib
+quality: production
+root_path: bluetooth_le_middleware/common/cs_reflector
+include:
+- path: .
+  file_list:
+  - path: cs_reflector.h
+  - path: cs_reflector_connmanager.h
+- path: ../cs_common
+  file_list:
+  - path: cs_sync_antenna.h
+config_file:
+- path: config/cs_reflector_config.h
+source:
+- path: cs_reflector.c
+- path: cs_reflector_connmanager.c
+requires:
+- name: app_log
+- name: app_assert
+- name: bluetooth_api
+- name: component_catalog
+- name: bluetooth_feature_connection_role_peripheral
+  condition:
+  - device_cortexm
+- name: bluetooth_feature_legacy_advertiser
+  condition:
+  - device_cortexm
+- name: bluetooth_feature_extended_advertiser
+  condition:
+  - device_cortexm
+- name: bluetooth_feature_gatt_server
+  condition:
+  - device_cortexm
+- name: bluetooth_feature_gatt
+  condition:
+  - device_cortexm
+- name: power_manager
+  condition:
+  - device_cortexm
+- name: bluetooth_feature_cs
+  condition:
+  - device_cortexm
+- name: cs_ras_server
+provides:
+- name: cs_reflector
+template_contribution:
+- name: component_catalog
+  value: cs_reflector
+- name: component_catalog
+  value: cs_reflector_config
+- name: ncp_local_evt_process
+  value:
+    include: cs_reflector.h
+    handler: cs_reflector_on_bt_event
+  condition:
+  - ncp
+- name: bluetooth_on_event
+  value:
+    include: cs_reflector.h
+    function: cs_reflector_on_bt_event
+  unless:
+  - ncp
+documentation:
+  docset: bluetooth
+  document: bluetooth-service-api/cs-reflector

@@ -1,0 +1,61 @@
+id: sl_rail_util_ant_div
+label: RAIL Utility, Antenna Diversity Configuration (RAIL 3)
+description: Utility to aid with antenna diversity configuration
+package: rail_library
+category: Platform|Radio
+quality: production
+metadata:
+  sbom:
+    id: sl_rail_util_ant_div
+    name: RAIL Utility, Antenna Diversity Configuration (RAIL 3)
+    license: MSLA
+documentation:
+  docset: rail
+  document: rail-api/rail-util-ant-div
+provides:
+- name: sl_rail_util_ant_div
+- name: rail_util_ant_div
+requires:
+- name: device
+- name: status
+- name: rail_lib
+- name: sl_rail_util_ieee802154_phy_select
+- name: sl_rail_util_rf_path
+  condition:
+  - device_sdid_200
+- name: sl_rail_util_rf_path
+  condition:
+  - device_sdid_210
+- name: gpio
+- name: component_catalog
+config_file:
+- path: plugin/sl_rail_util_ant_div/config/sl_rail_util_ant_div_config.h
+  file_id: rail_util_ant_div_config
+include:
+- path: plugin/sl_rail_util_ant_div
+  file_list:
+  - path: sl_rail_util_ant_div.h
+source:
+- path: plugin/sl_rail_util_ant_div/sl_rail_util_ant_div.c
+template_contribution:
+- name: event_handler
+  value:
+    event: stack_init
+    include: sl_rail_util_ant_div.h
+    handler: sl_rail_util_ant_div_init
+  priority: -7005
+- name: rail_util_ieee802154_phy_select_callbacks
+  value:
+    config_include: sl_rail_util_ant_div_config.h
+    include: sl_rail_util_ant_div.h
+    default_phy_features: SL_RAIL_IEEE802154_DEFAULT_PHY_FEATURES_ANT_DIV
+    runtime_phy_features: SL_RAIL_IEEE802154_RUNTIME_PHY_FEATURES_ANT_DIV
+    update_active_radio_config: sl_rail_util_ant_div_update_antenna_config
+    get_phy_features: sl_rail_util_ant_div_get_phy_features
+  priority: -9010
+- name: component_catalog
+  value: sl_rail_util_ant_div
+  unless: [rail2_util_ant_div]
+- name: component_catalog
+  value: rail_util_ant_div
+root_path: rail_library

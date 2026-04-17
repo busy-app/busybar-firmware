@@ -1,0 +1,74 @@
+id: cs_ras_client
+package: bluetooth_le_middleware
+label: CS Ranging Service Client
+description: >
+  Channel Sounding (CS) Ranging Service (RAS) Client implements the Client of
+  RAS GATT Service to retrieve Ranging Data from a RAS Server. Ranging Data is
+  the CS Procedure results that are raised by the Bluetooth stack on a device
+  and can be requested from the RAS Server. Ranging Data can be used by the
+  application on the device that is running the RAS Client to perform a
+  distance estimation.
+category: Bluetooth|Application|GATT Profiles
+metadata:
+  sbom:
+    license: Zlib
+quality: production
+root_path: bluetooth_le_middleware/common/cs_ras
+include:
+- path: common/inc
+  file_list:
+  - path: cs_ras_common.h
+  - path: cs_ras_format_converter.h
+- path: client/inc
+  file_list:
+  - path: cs_ras_client.h
+  - path: cs_ras_client_timeout.h
+  - path: cs_ras_client_internal.h
+  - path: cs_ras_client_control_point.h
+  - path: cs_ras_client_messaging.h
+  - path: cs_ras_client_log.h
+source:
+- path: client/src/cs_ras_client.c
+- path: client/src/cs_ras_client_control_point.c
+- path: client/src/cs_ras_client_messaging.c
+- path: common/src/cs_ras_format_converter.c
+config_file:
+- path: client/config/cs_ras_client_config.h
+  file_id: cs_ras_client_config
+requires:
+- name: bluetooth_stack
+- name: bluetooth_feature_gatt
+- name: bluetooth_feature_gatt_server
+- name: bluetooth_feature_connection
+- name: bluetooth_feature_sm
+- name: bluetooth_feature_system
+- name: sl_core
+- name: sl_common
+- name: slist
+- name: app_queue
+- name: power_manager
+provides:
+- name: cs_ras_client
+template_contribution:
+- name: event_handler
+  value:
+    event: internal_app_init
+    include: cs_ras_client_internal.h
+    handler: cs_ras_client_init
+- name: ncp_local_evt_process
+  value:
+    include: cs_ras_client_internal.h
+    handler: cs_ras_client_on_bt_event
+  priority: 69
+  condition:
+  - ncp
+- name: bluetooth_on_event
+  value:
+    include: cs_ras_client_internal.h
+    function: cs_ras_client_on_bt_event
+  priority: 69
+  unless:
+  - ncp
+documentation:
+  docset: bluetooth
+  document: bluetooth-service-api/cs-ras-client

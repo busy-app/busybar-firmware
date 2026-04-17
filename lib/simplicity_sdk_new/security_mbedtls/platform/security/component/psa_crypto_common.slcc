@@ -1,0 +1,22 @@
+id: psa_crypto_common
+package: security_mbedtls
+label: PSA Crypto Common
+description: >-
+  This component provides the PSA Crypto common functionality including
+  configuration and source implementation.
+category: Platform|Security|PSA Crypto
+quality: production
+ui_hints:
+  visibility: never
+
+provides:
+- name: psa_crypto_common
+
+requires:
+- name: psa_crypto_config
+- name: psa_crypto_common_source
+
+metadata:
+  sbom:
+    license: Zlib
+root_path: security_mbedtls

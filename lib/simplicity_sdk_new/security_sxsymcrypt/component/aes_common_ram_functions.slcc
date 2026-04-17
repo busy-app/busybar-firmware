@@ -1,0 +1,35 @@
+id: aes_common_ram_functions
+package: security_sxsymcrypt
+description: >-
+  Acceleration of AES by putting functions in RAM
+label: Accelerate AES
+category: Platform|Security|Hardware Acceleration Libraries
+quality: production
+ui_hints:
+  visibility: never
+
+provides:
+- name: aes_common_ram_functions
+  condition: [device_generic_family_sixx301]
+
+requires:
+- name: sxsymcrypt
+
+define:
+- name: SL_CODE_COMPONENT_AES_COMMON
+  value: aes_common
+- name: SL_CODE_CLASS_SECURITY
+  value: security
+
+template_contribution:
+- name: code_classification_components
+  value: aes_common
+- name: code_classification_selections
+  value:
+    component: aes_common
+    class: security
+
+metadata:
+  sbom:
+    license: Zlib
+root_path: security_sxsymcrypt

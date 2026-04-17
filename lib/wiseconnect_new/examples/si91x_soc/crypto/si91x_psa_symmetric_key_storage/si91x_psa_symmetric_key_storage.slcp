@@ -1,0 +1,67 @@
+project_name: si91x_psa_symmetric_key_storage
+package: platform_nwp_siwx91x_app
+description: 'This application demonstrates Key generate, import, export and PSA ITS write, read and erase functions for PERSISTENT PLAINTEXT and VOLATILE PLAINTEXT.
+
+  '
+category: example|crypto
+quality: production
+label: SI91x - SoC PSA symmetric key storage
+component:
+- id: sl_main
+- id: freertos
+- id: freertos_heap_4
+- id: psa_crypto
+- id: psa_driver
+- id: psa_crypto_aes
+- id: psa_crypto_trng
+- id: psa_its
+- id: nvm3_lib
+- id: slist
+- id: syscalls
+- id: si91x_memory_default_config
+- id: wiseconnect_common
+- id: wifi
+- id: sl_si91x_internal_stack
+- id: wifi_resources
+- id: network_manager
+- id: nvm3_network_config_manager
+- id: sl_si91x_basic_buffers
+source:
+- path: app.c
+- path: psa_symmetric_key_storage_app.c
+include:
+- path: .
+  file_list:
+  - path: app.h
+  - path: psa_symmetric_key_storage_app.h
+define:
+- name: SL_SI91X_PRINT_DBG_LOG
+toolchain_settings:
+- option: nano_c_libs
+  value: enabled
+other_file:
+- path: resources/readme/image508a.png
+- path: resources/readme/output.png
+ui_hints:
+  highlight:
+  - path: readme.md
+    focus: true
+readme:
+- path: readme.md
+post_build:
+  profile: wiseconnect_soc
+filter:
+- name: Wireless Technology
+  value:
+  - Wi-Fi
+- name: Project Difficulty
+  value:
+  - Beginner
+sdk_extension:
+- id: wiseconnect3_sdk
+  vendor: silabs
+  version: 4.0.1
+sdk:
+  id: simplicity_sdk
+  vendor: silabs
+  version: 2025.12.2

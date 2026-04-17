@@ -1,0 +1,1079 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__cte__receiver" kind="group">
+    <compoundname>sl_bt_cte_receiver</compoundname>
+    <title>CTE Receiver</title>
+    <innergroup refid="group__sl__bt__cte__receiver__sync__cte__type">CTE type flags for limiting periodic advertising synchronization</innergroup>
+    <innergroup refid="group__sl__bt__evt__cte__receiver__dtm__iq__report">sl_bt_evt_cte_receiver_dtm_iq_report</innergroup>
+    <innergroup refid="group__sl__bt__evt__cte__receiver__connection__iq__report">sl_bt_evt_cte_receiver_connection_iq_report</innergroup>
+    <innergroup refid="group__sl__bt__evt__cte__receiver__connectionless__iq__report">sl_bt_evt_cte_receiver_connectionless_iq_report</innergroup>
+    <innergroup refid="group__sl__bt__evt__cte__receiver__silabs__iq__report">sl_bt_evt_cte_receiver_silabs_iq_report</innergroup>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="group__sl__bt__cte__receiver_1ga8c9ade43479e0eeddff587b18f8f5b49" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_cte_receiver_set_dtm_parameters</definition>
+        <argsstring>(uint8_t cte_length, uint8_t cte_type, uint8_t slot_durations, size_t switching_pattern_len, const uint8_t *switching_pattern)</argsstring>
+        <name>sl_bt_cte_receiver_set_dtm_parameters</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>cte_length</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>cte_type</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>slot_durations</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>switching_pattern_len</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>switching_pattern</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Set CTE-related parameters of LE receiver test.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">cte_length</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>Expected CTE length in 8 us units<itemizedlist>
+<listitem><para><bold>0:</bold> No CTE</para>
+</listitem><listitem><para><bold>0x02 to 0x14:</bold> Expected CTE length</para>
+</listitem></itemizedlist>
+</para>
+<para>Default: 0 (no CTE) </para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">cte_type</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>Expected CTE type<itemizedlist>
+<listitem><para><bold>0:</bold> Expect AoA CTE</para>
+</listitem><listitem><para><bold>1:</bold> Expect AoD CTE with 1 us slots</para>
+</listitem><listitem><para><bold>2:</bold> Expect AoD CTE with 2 us slots</para>
+</listitem></itemizedlist>
+</para>
+<para>Default: 0 </para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">slot_durations</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>Slot durations<itemizedlist>
+<listitem><para><bold>1:</bold> Switching and sampling slots are 1 us each</para>
+</listitem><listitem><para><bold>2:</bold> Switching and sampling slots are 2 us each</para>
+</listitem></itemizedlist>
+</para>
+<para>Default: 1 </para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">switching_pattern_len</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Length of data in <computeroutput>switching_pattern</computeroutput> </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">switching_pattern</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Antenna switching pattern. Antennas will be switched in this order with the antenna switch pins during CTE. If the CTE is longer than the switching pattern, the pattern starts over. This can be an empty array if CTE is unused.</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise.</para>
+</simplesect>
+<bold>Events</bold> <itemizedlist>
+<listitem><para><ref refid="group__sl__bt__evt__cte__receiver__dtm__iq__report" kindref="compound">sl_bt_evt_cte_receiver_dtm_iq_report</ref> - Triggered when IQ samples have been received. </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15746" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="15746" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__cte__receiver_1ga3c5a54c3f1128dc4d0e3701134171555" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_cte_receiver_clear_dtm_parameters</definition>
+        <argsstring>(void)</argsstring>
+        <name>sl_bt_cte_receiver_clear_dtm_parameters</name>
+        <param>
+          <type>void</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Clear CTE-related parameters that were previously set for LE receiver test. Default values will be restored for these parameters.</para>
+<para><simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15761" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="15761" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__cte__receiver_1gab917c46b7cee63d8ccf2b2f57bb08bf5" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_cte_receiver_set_sync_cte_type</definition>
+        <argsstring>(uint8_t sync_cte_type)</argsstring>
+        <name>sl_bt_cte_receiver_set_sync_cte_type</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>sync_cte_type</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Set the sync CTE type to limit what types of periodic advertisers to sync to when scanning for periodic advertising synchronization. The set parameter takes effect immediately for all advertisers that have not already established synchronization.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">sync_cte_type</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>Sync CTE type flags. This value can be a bitmask of multiple flags from <ref refid="group__sl__bt__cte__receiver__sync__cte__type" kindref="compound">CTE type flags for limiting periodic advertising synchronization</ref>. Flags:<itemizedlist>
+<listitem><para><bold>SL_BT_CTE_RECEIVER_DO_NOT_SYNC_TO_AOA (0x01, bit 0):</bold> Do not sync to packets with an AoA Constant Tone Extension</para>
+</listitem><listitem><para><bold>SL_BT_CTE_RECEIVER_DO_NOT_SYNC_TO_AOD_1_US (0x02, bit 1):</bold> Do not sync to packets with an AoD Constant Tone Extension with 1 us slots</para>
+</listitem><listitem><para><bold>SL_BT_CTE_RECEIVER_DO_NOT_SYNC_TO_AOD_2_US (0x04, bit 2):</bold> Do not sync to packets with an AoD Constant Tone Extension with 2 us slots</para>
+</listitem><listitem><para><bold>SL_BT_CTE_RECEIVER_SYNC_TO_CTE_ONLY (0x10, bit 4):</bold> Do not sync to packets without a Constant Tone Extension</para>
+</listitem></itemizedlist>
+</para>
+<para>Default: 0 </para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+<para><simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15788" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="15788" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__cte__receiver_1ga46706070f26f07e524711ba95407ccde" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_cte_receiver_set_default_sync_receive_parameters</definition>
+        <argsstring>(uint8_t mode, uint16_t skip, uint16_t timeout, uint8_t sync_cte_type, uint8_t reporting_mode)</argsstring>
+        <name>sl_bt_cte_receiver_set_default_sync_receive_parameters</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>mode</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>skip</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>timeout</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>sync_cte_type</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>reporting_mode</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Set the default parameters and the CTE type limitation for receiving Periodic Advertising Synchronization Transfers (PAST) over connections. The default parameters will be in effect for all subsequent connections and do not affect connections that have already opened. The parameters can be overridden for a specific connection using command <ref refid="group__sl__bt__cte__receiver_1ga889325d579e213be73fba78e2831ea6b" kindref="member">sl_bt_cte_receiver_set_sync_receive_parameters</ref> after the connection is opened.</para>
+<para>Irrespective of the value of the <computeroutput>skip</computeroutput> parameter, the Controller stops skipping packets if the skipping would cause a timeout.</para>
+<para>This command is relevant and available only when the application has included the bluetooth_feature_past_receiver component into the build. If the PAST receiver component is not included, this command returns the error SL_STATUS_NOT_AVAILABLE.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">mode</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>Enum <ref refid="group__sl__bt__past__receiver_1gae52bc349487a3a5ef0f221c7ad7dae74" kindref="member">sl_bt_past_receiver_mode_t</ref>. The mode to specify how the Bluetooth stack reacts when synchronization information is received over a connection. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_past_receiver_mode_ignore (0x0):</bold> No attempt is made to synchronize to a periodic advertising train for which the synchronization information was received. No event will be triggered towards the application.</para>
+</listitem><listitem><para><bold>sl_bt_past_receiver_mode_synchronize (0x1):</bold> Attempt to synchronize to a periodic advertising train for which the synchronization information was received. When the information is received, an event will be triggered to indicate success or failure and to provide the application with the periodic advertising synchronization handle.</para>
+</listitem></itemizedlist>
+</para>
+<para>Default: <ref refid="group__sl__bt__past__receiver_1ggae52bc349487a3a5ef0f221c7ad7dae74a03d877f107bfc67b5d9ab8f6029c1e1f" kindref="member">sl_bt_past_receiver_mode_ignore</ref> (No attempt is made to synchronize) </para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">skip</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>The maximum number of periodic advertising packets that can be skipped after a successful receive.<itemizedlist>
+<listitem><para><bold>Range:</bold> 0 to 499</para>
+</listitem><listitem><para><bold>Default</bold> : 0 </para>
+</listitem></itemizedlist>
+</para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">timeout</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>The maximum permitted time between successful receives. If this time is exceeded, synchronization is lost. Unit: 10 ms.<itemizedlist>
+<listitem><para><bold>Range:</bold> 10 to 16384</para>
+</listitem><listitem><para>Unit: 10 ms</para>
+</listitem><listitem><para>Time range: 100 ms to 163.84 s</para>
+</listitem><listitem><para><itemizedlist>
+<listitem><para><bold>Default</bold> : 1000 ms </para>
+</listitem></itemizedlist>
+</para>
+</listitem></itemizedlist>
+</para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">sync_cte_type</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>Sync CTE type flags to limit what types of periodic advertising trains to sync to when receiving sync transfers. This value can be a bitmask of multiple flags from <ref refid="group__sl__bt__cte__receiver__sync__cte__type" kindref="compound">CTE type flags for limiting periodic advertising synchronization</ref>. Flags:<itemizedlist>
+<listitem><para><bold>SL_BT_CTE_RECEIVER_DO_NOT_SYNC_TO_AOA (0x01, bit 0):</bold> Do not sync to packets with an AoA Constant Tone Extension</para>
+</listitem><listitem><para><bold>SL_BT_CTE_RECEIVER_DO_NOT_SYNC_TO_AOD_1_US (0x02, bit 1):</bold> Do not sync to packets with an AoD Constant Tone Extension with 1 us slots</para>
+</listitem><listitem><para><bold>SL_BT_CTE_RECEIVER_DO_NOT_SYNC_TO_AOD_2_US (0x04, bit 2):</bold> Do not sync to packets with an AoD Constant Tone Extension with 2 us slots</para>
+</listitem><listitem><para><bold>SL_BT_CTE_RECEIVER_SYNC_TO_CTE_ONLY (0x10, bit 4):</bold> Do not sync to packets without a Constant Tone Extension</para>
+</listitem></itemizedlist>
+</para>
+<para>Default: 0 (do not limit synchronization by CTE type) </para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">reporting_mode</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>Enum <ref refid="group__sl__bt__sync_1ga4d6dbc6ce7a4dfc5ba8e473253161d30" kindref="member">sl_bt_sync_reporting_mode_t</ref>. Specifies the initial mode for reporting data received in the periodic advertising train after it has achieved synchronization. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_sync_report_none (0x0):</bold> Data received in periodic advertising trains is not reported to the application.</para>
+</listitem><listitem><para><bold>sl_bt_sync_report_all (0x1):</bold> Data received in periodic advertising trains is reported to the application.</para>
+</listitem></itemizedlist>
+</para>
+<para>Default: <ref refid="group__sl__bt__sync_1gga4d6dbc6ce7a4dfc5ba8e473253161d30aac59b61bf5411ed41d7079f22c122f8b" kindref="member">sl_bt_sync_report_all</ref> (Data received in periodic advertising trains is reported to the application) </para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+<para><simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise.</para>
+</simplesect>
+<bold>Events</bold> <itemizedlist>
+<listitem><para><ref refid="group__sl__bt__evt__periodic__sync__transfer__received" kindref="compound">sl_bt_evt_periodic_sync_transfer_received</ref> - Triggered after synchronization transfer has been received for a periodic advertising train that does not have subevents or response slots. The event is triggered when the local device has either successfully synchronized to the train or timed out while attempting to synchronize.</para>
+</listitem><listitem><para><ref refid="group__sl__bt__evt__pawr__sync__transfer__received" kindref="compound">sl_bt_evt_pawr_sync_transfer_received</ref> - If the application includes the bluetooth_feature_pawr_sync component, triggered after synchronization transfer is received for a Periodic Advertising with Responses (PAwR) train. The event is triggered when the local device has either successfully synchronized to the train or timed out while attempting to synchronize. </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15887" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="15887" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__cte__receiver_1ga889325d579e213be73fba78e2831ea6b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_cte_receiver_set_sync_receive_parameters</definition>
+        <argsstring>(uint8_t connection, uint8_t mode, uint16_t skip, uint16_t timeout, uint8_t sync_cte_type, uint8_t reporting_mode)</argsstring>
+        <name>sl_bt_cte_receiver_set_sync_receive_parameters</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>connection</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>mode</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>skip</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>timeout</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>sync_cte_type</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>reporting_mode</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Set the parameters and the CTE type limitation for receiving Periodic Advertising Synchronization Transfers (PAST) over the specified connection. The parameters do not affect periodic advertising trains that the device has already synchronized to.</para>
+<para>Irrespective of the value of the <computeroutput>skip</computeroutput> parameter, the Controller stops skipping packets if the skipping would cause a timeout.</para>
+<para>This command is relevant and available only when the application has included the bluetooth_feature_past_receiver component into the build. If the PAST receiver component is not included, this command returns the error SL_STATUS_NOT_AVAILABLE.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">connection</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Connection handle </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">mode</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>Enum <ref refid="group__sl__bt__past__receiver_1gae52bc349487a3a5ef0f221c7ad7dae74" kindref="member">sl_bt_past_receiver_mode_t</ref>. The mode to specify how the Bluetooth stack reacts when synchronization information is received over a connection. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_past_receiver_mode_ignore (0x0):</bold> No attempt is made to synchronize to a periodic advertising train for which the synchronization information was received. No event will be triggered towards the application.</para>
+</listitem><listitem><para><bold>sl_bt_past_receiver_mode_synchronize (0x1):</bold> Attempt to synchronize to a periodic advertising train for which the synchronization information was received. When the information is received, an event will be triggered to indicate success or failure and to provide the application with the periodic advertising synchronization handle.</para>
+</listitem></itemizedlist>
+</para>
+<para>Default: <ref refid="group__sl__bt__past__receiver_1ggae52bc349487a3a5ef0f221c7ad7dae74a03d877f107bfc67b5d9ab8f6029c1e1f" kindref="member">sl_bt_past_receiver_mode_ignore</ref> (Do not attempt to synchronize) </para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">skip</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>The maximum number of periodic advertising packets that can be skipped after a successful receive.<itemizedlist>
+<listitem><para><bold>Range:</bold> 0 to 499</para>
+</listitem><listitem><para><bold>Default</bold> : 0 </para>
+</listitem></itemizedlist>
+</para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">timeout</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>The maximum permitted time between successful receives. If this time is exceeded, synchronization is lost. Unit: 10 ms.<itemizedlist>
+<listitem><para><bold>Range:</bold> 10 to 16384</para>
+</listitem><listitem><para>Unit: 10 ms</para>
+</listitem><listitem><para>Time range: 100 ms to 163.84 s</para>
+</listitem><listitem><para><bold>Default</bold> : 1000 ms </para>
+</listitem></itemizedlist>
+</para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">sync_cte_type</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>Sync CTE type flags to limit what types of periodic advertising trains to sync to when receiving sync transfers. This value can be a bitmask of multiple flags from <ref refid="group__sl__bt__cte__receiver__sync__cte__type" kindref="compound">CTE type flags for limiting periodic advertising synchronization</ref>. Flags:<itemizedlist>
+<listitem><para><bold>SL_BT_CTE_RECEIVER_DO_NOT_SYNC_TO_AOA (0x01, bit 0):</bold> Do not sync to packets with an AoA Constant Tone Extension</para>
+</listitem><listitem><para><bold>SL_BT_CTE_RECEIVER_DO_NOT_SYNC_TO_AOD_1_US (0x02, bit 1):</bold> Do not sync to packets with an AoD Constant Tone Extension with 1 us slots</para>
+</listitem><listitem><para><bold>SL_BT_CTE_RECEIVER_DO_NOT_SYNC_TO_AOD_2_US (0x04, bit 2):</bold> Do not sync to packets with an AoD Constant Tone Extension with 2 us slots</para>
+</listitem><listitem><para><bold>SL_BT_CTE_RECEIVER_SYNC_TO_CTE_ONLY (0x10, bit 4):</bold> Do not sync to packets without a Constant Tone Extension</para>
+</listitem></itemizedlist>
+</para>
+<para>Default: 0 (do not limit synchronization by CTE type) </para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">reporting_mode</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>Enum <ref refid="group__sl__bt__sync_1ga4d6dbc6ce7a4dfc5ba8e473253161d30" kindref="member">sl_bt_sync_reporting_mode_t</ref>. Specifies the initial mode for reporting data received in the periodic advertising train after it has achieved synchronization. Values:<itemizedlist>
+<listitem><para><bold>sl_bt_sync_report_none (0x0):</bold> Data received in periodic advertising trains is not reported to the application.</para>
+</listitem><listitem><para><bold>sl_bt_sync_report_all (0x1):</bold> Data received in periodic advertising trains is reported to the application.</para>
+</listitem></itemizedlist>
+</para>
+<para>Default: <ref refid="group__sl__bt__sync_1gga4d6dbc6ce7a4dfc5ba8e473253161d30aac59b61bf5411ed41d7079f22c122f8b" kindref="member">sl_bt_sync_report_all</ref> (Data received in periodic advertising trains is reported to the application) </para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+<para><simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise.</para>
+</simplesect>
+<bold>Events</bold> <itemizedlist>
+<listitem><para><ref refid="group__sl__bt__evt__periodic__sync__transfer__received" kindref="compound">sl_bt_evt_periodic_sync_transfer_received</ref> - Triggered after synchronization transfer has been received for a periodic advertising train that does not have subevents or response slots. The event is triggered when the local device has either successfully synchronized to the train or timed out while attempting to synchronize.</para>
+</listitem><listitem><para><ref refid="group__sl__bt__evt__pawr__sync__transfer__received" kindref="compound">sl_bt_evt_pawr_sync_transfer_received</ref> - If the application includes the bluetooth_feature_pawr_sync component, triggered after synchronization transfer is received for a Periodic Advertising with Responses (PAwR) train. The event is triggered when the local device has either successfully synchronized to the train or timed out while attempting to synchronize. </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15988" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="15988" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__cte__receiver_1ga83b9c7f10f89dd5b39bc73fd89bcf2df" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_cte_receiver_configure</definition>
+        <argsstring>(uint8_t flags)</argsstring>
+        <name>sl_bt_cte_receiver_configure</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>flags</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16015" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="16015" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__cte__receiver_1ga85a539f4ab27fa956f3f456d77738dda" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_cte_receiver_enable_connection_cte</definition>
+        <argsstring>(uint8_t connection, uint16_t interval, uint8_t cte_length, uint8_t cte_type, uint8_t slot_durations, size_t switching_pattern_len, const uint8_t *switching_pattern)</argsstring>
+        <name>sl_bt_cte_receiver_enable_connection_cte</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>connection</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>interval</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>cte_length</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>cte_type</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>slot_durations</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>switching_pattern_len</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>switching_pattern</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Start IQ samplings on a connection. A CTE requests will be initiated periodically on the given connection and IQ sampling will be made on the received CTE responses.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">connection</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Connection handle </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">interval</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Measurement interval. CTE requests may be sent less often. For example, if a connection event is missed for any reason, the CTE request will be sent in the next connection event.<itemizedlist>
+<listitem><para><bold>0:</bold> No interval. The request is initiated only once.</para>
+</listitem><listitem><para><bold>Other values N:</bold> Initiate the request every N-th connection events </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">cte_length</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><parblock><para>Minimum CTE length requested in 8 us units.<itemizedlist>
+<listitem><para><bold>Range:</bold> 2 to 20</para>
+</listitem><listitem><para>Time Range: 16 us to 160 us </para>
+</listitem></itemizedlist>
+</para>
+</parblock></para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">cte_type</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Requested CTE type<itemizedlist>
+<listitem><para><bold>0:</bold> AoA CTE</para>
+</listitem><listitem><para><bold>1:</bold> AoD CTE with 1 us slots</para>
+</listitem><listitem><para><bold>2:</bold> AoD CTE with 2 us slots </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">slot_durations</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Slot durations<itemizedlist>
+<listitem><para><bold>1:</bold> Switching and sampling slots are 1 us each</para>
+</listitem><listitem><para><bold>2:</bold> Switching and sampling slots are 2 us each </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">switching_pattern_len</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Length of data in <computeroutput>switching_pattern</computeroutput> </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">switching_pattern</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Antenna switching pattern. Antennas will be switched in this order with the antenna switch pins during CTE. If the CTE is longer than the switching pattern, the pattern starts over.</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise.</para>
+</simplesect>
+<bold>Events</bold> <itemizedlist>
+<listitem><para><ref refid="group__sl__bt__evt__cte__receiver__connection__iq__report" kindref="compound">sl_bt_evt_cte_receiver_connection_iq_report</ref> - Triggered when IQ samples have been received. </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16055" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="16055" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__cte__receiver_1ga5baac4de4263a7ab3f3d750f4631803b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_cte_receiver_disable_connection_cte</definition>
+        <argsstring>(uint8_t connection)</argsstring>
+        <name>sl_bt_cte_receiver_disable_connection_cte</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>connection</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Stop the IQ sampling on a connection. CTEs will not be requested on the given connection.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">connection</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Connection handle</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16073" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="16073" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__cte__receiver_1ga8f7472ae5d7047fbe1d09d0d72247ece" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_cte_receiver_enable_connectionless_cte</definition>
+        <argsstring>(uint16_t sync, uint8_t slot_durations, uint8_t cte_count, size_t switching_pattern_len, const uint8_t *switching_pattern)</argsstring>
+        <name>sl_bt_cte_receiver_enable_connectionless_cte</name>
+        <param>
+          <type>uint16_t</type>
+          <declname>sync</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>slot_durations</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>cte_count</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>switching_pattern_len</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>switching_pattern</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Start IQ sampling on a periodic advertising synchronization. IQ samples are taken on each CTE found in the periodic advertisements.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">sync</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Periodic advertising synchronization handle </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">slot_durations</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Slot durations<itemizedlist>
+<listitem><para><bold>1:</bold> Switching and sampling slots are 1 us each</para>
+</listitem><listitem><para><bold>2:</bold> Switching and sampling slots are 2 us each </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">cte_count</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>- <bold>0:</bold> Sample and report all available CTEs<itemizedlist>
+<listitem><para><bold>Other values:</bold> Maximum number of sampled CTEs in each periodic advertising interval </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">switching_pattern_len</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Length of data in <computeroutput>switching_pattern</computeroutput> </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">switching_pattern</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Antenna switching pattern. Antennas will be switched in this order with the antenna switch pins during CTE. If the CTE is longer than the switching pattern, the pattern starts over.</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise.</para>
+</simplesect>
+<bold>Events</bold> <itemizedlist>
+<listitem><para><ref refid="group__sl__bt__evt__cte__receiver__connectionless__iq__report" kindref="compound">sl_bt_evt_cte_receiver_connectionless_iq_report</ref> - Triggered when IQ samples have been received. </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16099" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="16099" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__cte__receiver_1ga39810885827b3638f54e8a29fd8976cc" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_cte_receiver_disable_connectionless_cte</definition>
+        <argsstring>(uint16_t sync)</argsstring>
+        <name>sl_bt_cte_receiver_disable_connectionless_cte</name>
+        <param>
+          <type>uint16_t</type>
+          <declname>sync</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Stop IQ sampling on a periodic advertising synchronization.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">sync</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Periodic advertising synchronization handle</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16114" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="16114" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__cte__receiver_1ga25e401e84b119977021a8071f75c532e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_cte_receiver_enable_silabs_cte</definition>
+        <argsstring>(uint8_t slot_durations, uint8_t cte_count, size_t switching_pattern_len, const uint8_t *switching_pattern)</argsstring>
+        <name>sl_bt_cte_receiver_enable_silabs_cte</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>slot_durations</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>cte_count</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>switching_pattern_len</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>switching_pattern</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Enable IQ sampling of Silicon Labs CTE found in extended advertisements.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">slot_durations</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Slot durations<itemizedlist>
+<listitem><para><bold>1:</bold> Switching and sampling slots are 1 us each</para>
+</listitem><listitem><para><bold>2:</bold> Switching and sampling slots are 2 us each </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">cte_count</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>- <bold>0:</bold> Sample and report all available CTEs<itemizedlist>
+<listitem><para><bold>Other values:</bold> Maximum number of sampled CTEs in each extended advertising interval </para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">switching_pattern_len</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Length of data in <computeroutput>switching_pattern</computeroutput> </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">switching_pattern</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Antenna switching pattern. Antennas will be switched in this order with the antenna switch pins during CTE. If the CTE is longer than the switching pattern, the pattern starts over.</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise.</para>
+</simplesect>
+<bold>Events</bold> <itemizedlist>
+<listitem><para><ref refid="group__sl__bt__evt__cte__receiver__silabs__iq__report" kindref="compound">sl_bt_evt_cte_receiver_silabs_iq_report</ref> - Triggered when IQ samples of Silicon Labs CTE have been received. </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16138" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="16138" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="group__sl__bt__cte__receiver_1gaa3a17f6e060e7c46fef5ed4abea8690f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>sl_status_t</type>
+        <definition>sl_status_t sl_bt_cte_receiver_disable_silabs_cte</definition>
+        <argsstring>(void)</argsstring>
+        <name>sl_bt_cte_receiver_disable_silabs_cte</name>
+        <param>
+          <type>void</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Disable IQ sampling of Silicon Labs CTE.</para>
+<para><simplesect kind="return"><para>SL_STATUS_OK if successful. Error code otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="16151" column="13" declfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" declline="16151" declcolumn="13"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__cte__receiver_1gaf6a0327ca1dc83bea8159bef90fc2295" prot="public" static="no">
+        <name>sl_bt_cmd_cte_receiver_set_dtm_parameters_id</name>
+        <initializer>0x05450020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15450" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="15450" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__cte__receiver_1ga2a6f13287031846a6a4f9aed371a6e61" prot="public" static="no">
+        <name>sl_bt_cmd_cte_receiver_clear_dtm_parameters_id</name>
+        <initializer>0x06450020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15451" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="15451" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__cte__receiver_1ga36fddfb07b43bbdc8dbf0057721a7e5a" prot="public" static="no">
+        <name>sl_bt_cmd_cte_receiver_set_sync_cte_type_id</name>
+        <initializer>0x09450020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15452" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="15452" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__cte__receiver_1ga407faba3bfa6eff1a674f5978167726e" prot="public" static="no">
+        <name>sl_bt_cmd_cte_receiver_set_default_sync_receive_parameters_id</name>
+        <initializer>0x0a450020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15453" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="15453" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__cte__receiver_1ga1140c970d8b514135851d9f06656007b" prot="public" static="no">
+        <name>sl_bt_cmd_cte_receiver_set_sync_receive_parameters_id</name>
+        <initializer>0x0b450020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15454" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="15454" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__cte__receiver_1ga57759147025e4083254ccc2cfdbd3fc6" prot="public" static="no">
+        <name>sl_bt_cmd_cte_receiver_configure_id</name>
+        <initializer>0x00450020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15455" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="15455" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__cte__receiver_1gacb9b22d74c1946c26b8e2883cc74ce3a" prot="public" static="no">
+        <name>sl_bt_cmd_cte_receiver_enable_connection_cte_id</name>
+        <initializer>0x01450020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15456" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="15456" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__cte__receiver_1gac4eea307fd2707f214de2b1e295d2be2" prot="public" static="no">
+        <name>sl_bt_cmd_cte_receiver_disable_connection_cte_id</name>
+        <initializer>0x02450020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15457" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="15457" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__cte__receiver_1ga708d8a0c11a2a377d73c5f15d13a5586" prot="public" static="no">
+        <name>sl_bt_cmd_cte_receiver_enable_connectionless_cte_id</name>
+        <initializer>0x03450020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15458" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="15458" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__cte__receiver_1gaf1764922c9afd239675320d590fde03e" prot="public" static="no">
+        <name>sl_bt_cmd_cte_receiver_disable_connectionless_cte_id</name>
+        <initializer>0x04450020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15459" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="15459" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__cte__receiver_1ga016490840ce64448d009bada6bc114c4" prot="public" static="no">
+        <name>sl_bt_cmd_cte_receiver_enable_silabs_cte_id</name>
+        <initializer>0x07450020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15460" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="15460" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__cte__receiver_1gadacf8227e8e2fff72b10086d2a1fc22a" prot="public" static="no">
+        <name>sl_bt_cmd_cte_receiver_disable_silabs_cte_id</name>
+        <initializer>0x08450020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15461" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="15461" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__cte__receiver_1gae07fc62d8d27c6da4a1269291c532106" prot="public" static="no">
+        <name>sl_bt_rsp_cte_receiver_set_dtm_parameters_id</name>
+        <initializer>0x05450020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15462" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="15462" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__cte__receiver_1ga126fcc8bf8022c3b15e04923b097e7b4" prot="public" static="no">
+        <name>sl_bt_rsp_cte_receiver_clear_dtm_parameters_id</name>
+        <initializer>0x06450020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15463" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="15463" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__cte__receiver_1ga2783575ec014eae5712a13ddccb49d92" prot="public" static="no">
+        <name>sl_bt_rsp_cte_receiver_set_sync_cte_type_id</name>
+        <initializer>0x09450020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15464" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="15464" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__cte__receiver_1gad41fd24d310b72d3e17964d905796041" prot="public" static="no">
+        <name>sl_bt_rsp_cte_receiver_set_default_sync_receive_parameters_id</name>
+        <initializer>0x0a450020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15465" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="15465" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__cte__receiver_1ga971bb8ada55f4116fd399c9b0d7e2765" prot="public" static="no">
+        <name>sl_bt_rsp_cte_receiver_set_sync_receive_parameters_id</name>
+        <initializer>0x0b450020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15466" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="15466" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__cte__receiver_1ga7ed849a3c8dd9c0338195c8a278f27b5" prot="public" static="no">
+        <name>sl_bt_rsp_cte_receiver_configure_id</name>
+        <initializer>0x00450020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15467" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="15467" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__cte__receiver_1gac78c905e2461744e61f78f584f666af2" prot="public" static="no">
+        <name>sl_bt_rsp_cte_receiver_enable_connection_cte_id</name>
+        <initializer>0x01450020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15468" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="15468" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__cte__receiver_1ga6bf43690bcaba796bd7d5e16886c0d59" prot="public" static="no">
+        <name>sl_bt_rsp_cte_receiver_disable_connection_cte_id</name>
+        <initializer>0x02450020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15469" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="15469" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__cte__receiver_1ga20b89b097fc10c40f9637268b3bf2770" prot="public" static="no">
+        <name>sl_bt_rsp_cte_receiver_enable_connectionless_cte_id</name>
+        <initializer>0x03450020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15470" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="15470" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__cte__receiver_1ga3a74d69b436f118c2f77e1e749189b1d" prot="public" static="no">
+        <name>sl_bt_rsp_cte_receiver_disable_connectionless_cte_id</name>
+        <initializer>0x04450020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15471" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="15471" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__cte__receiver_1ga77878c495f5a127d36ec852c1fd943e9" prot="public" static="no">
+        <name>sl_bt_rsp_cte_receiver_enable_silabs_cte_id</name>
+        <initializer>0x07450020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15472" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="15472" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__cte__receiver_1ga9ab99df88f6b281498930bc96f4cc3c3" prot="public" static="no">
+        <name>sl_bt_rsp_cte_receiver_disable_silabs_cte_id</name>
+        <initializer>0x08450020</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="15473" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="15473" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>CTE Receiver. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>Commands and events in this class manage Constant Tone Extension (CTE) receiving.</para>
+<para>CTE feature is only supported by specific devices. Commands from this class will return SL_STATUS_NOT_SUPPORTED on devices that do not support CTE. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

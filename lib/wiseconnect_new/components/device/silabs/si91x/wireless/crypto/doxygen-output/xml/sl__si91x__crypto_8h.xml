@@ -1,0 +1,660 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="sl__si91x__crypto_8h" kind="file" language="C++">
+    <compoundname>sl_si91x_crypto.h</compoundname>
+    <includedby refid="sl__si91x__aes_8h" local="yes">components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_aes.h</includedby>
+    <includedby refid="sl__si91x__psa__aes_8h" local="yes">components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_psa_aes.h</includedby>
+    <includedby refid="sl__si91x__attestation_8h" local="yes">components/device/silabs/si91x/wireless/crypto/attestation/inc/sl_si91x_attestation.h</includedby>
+    <includedby refid="sl__si91x__ccm_8h" local="yes">components/device/silabs/si91x/wireless/crypto/ccm/inc/sl_si91x_ccm.h</includedby>
+    <includedby refid="sl__si91x__chachapoly_8h" local="yes">components/device/silabs/si91x/wireless/crypto/chachapoly/inc/sl_si91x_chachapoly.h</includedby>
+    <includedby refid="sl__si91x__ecdsa_8h" local="yes">components/device/silabs/si91x/wireless/crypto/ecdsa/inc/sl_si91x_ecdsa.h</includedby>
+    <includedby refid="sl__si91x__psa__ecdsa_8h" local="yes">components/device/silabs/si91x/wireless/crypto/ecdsa/inc/sl_si91x_psa_ecdsa.h</includedby>
+    <includedby refid="sl__si91x__gcm_8h" local="yes">components/device/silabs/si91x/wireless/crypto/gcm/inc/sl_si91x_gcm.h</includedby>
+    <includedby refid="sl__si91x__hmac_8h" local="yes">components/device/silabs/si91x/wireless/crypto/hmac/inc/sl_si91x_hmac.h</includedby>
+    <includedby refid="sli__si91x__crypto__driver__functions_8h" local="yes">components/device/silabs/si91x/wireless/crypto/inc/sli_si91x_crypto_driver_functions.h</includedby>
+    <includedby refid="sl__si91x__sha_8h" local="yes">components/device/silabs/si91x/wireless/crypto/sha/inc/sl_si91x_sha.h</includedby>
+    <includedby refid="sl__si91x__psa__trng_8h" local="yes">components/device/silabs/si91x/wireless/crypto/trng/inc/sl_si91x_psa_trng.h</includedby>
+    <includedby refid="sl__si91x__trng_8h" local="yes">components/device/silabs/si91x/wireless/crypto/trng/inc/sl_si91x_trng.h</includedby>
+    <includedby refid="sl__si91x__psa__wrap_8h" local="yes">components/device/silabs/si91x/wireless/crypto/wrap/inc/sl_si91x_psa_wrap.h</includedby>
+    <includedby refid="sl__si91x__wrap_8h" local="yes">components/device/silabs/si91x/wireless/crypto/wrap/inc/sl_si91x_wrap.h</includedby>
+    <invincdepgraph>
+      <node id="2">
+        <label>components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_aes.h</label>
+        <link refid="sl__si91x__aes_8h"/>
+        <childnode refid="3" relation="include">
+        </childnode>
+      </node>
+      <node id="3">
+        <label>components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_psa_aes.h</label>
+        <link refid="sl__si91x__psa__aes_8h_source"/>
+      </node>
+      <node id="4">
+        <label>components/device/silabs/si91x/wireless/crypto/attestation/inc/sl_si91x_attestation.h</label>
+        <link refid="sl__si91x__attestation_8h"/>
+      </node>
+      <node id="5">
+        <label>components/device/silabs/si91x/wireless/crypto/ccm/inc/sl_si91x_ccm.h</label>
+        <link refid="sl__si91x__ccm_8h"/>
+      </node>
+      <node id="6">
+        <label>components/device/silabs/si91x/wireless/crypto/chachapoly/inc/sl_si91x_chachapoly.h</label>
+        <link refid="sl__si91x__chachapoly_8h"/>
+      </node>
+      <node id="7">
+        <label>components/device/silabs/si91x/wireless/crypto/ecdsa/inc/sl_si91x_ecdsa.h</label>
+        <link refid="sl__si91x__ecdsa_8h"/>
+      </node>
+      <node id="8">
+        <label>components/device/silabs/si91x/wireless/crypto/ecdsa/inc/sl_si91x_psa_ecdsa.h</label>
+        <link refid="sl__si91x__psa__ecdsa_8h_source"/>
+      </node>
+      <node id="9">
+        <label>components/device/silabs/si91x/wireless/crypto/gcm/inc/sl_si91x_gcm.h</label>
+        <link refid="sl__si91x__gcm_8h"/>
+      </node>
+      <node id="10">
+        <label>components/device/silabs/si91x/wireless/crypto/hmac/inc/sl_si91x_hmac.h</label>
+        <link refid="sl__si91x__hmac_8h"/>
+      </node>
+      <node id="1">
+        <label>components/device/silabs/si91x/wireless/crypto/inc/sl_si91x_crypto.h</label>
+        <link refid="sl__si91x__crypto_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="4" relation="include">
+        </childnode>
+        <childnode refid="5" relation="include">
+        </childnode>
+        <childnode refid="6" relation="include">
+        </childnode>
+        <childnode refid="7" relation="include">
+        </childnode>
+        <childnode refid="8" relation="include">
+        </childnode>
+        <childnode refid="9" relation="include">
+        </childnode>
+        <childnode refid="10" relation="include">
+        </childnode>
+        <childnode refid="11" relation="include">
+        </childnode>
+        <childnode refid="13" relation="include">
+        </childnode>
+        <childnode refid="14" relation="include">
+        </childnode>
+        <childnode refid="15" relation="include">
+        </childnode>
+        <childnode refid="12" relation="include">
+        </childnode>
+        <childnode refid="16" relation="include">
+        </childnode>
+      </node>
+      <node id="11">
+        <label>components/device/silabs/si91x/wireless/crypto/inc/sli_si91x_crypto_driver_functions.h</label>
+        <link refid="sli__si91x__crypto__driver__functions_8h"/>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="8" relation="include">
+        </childnode>
+        <childnode refid="12" relation="include">
+        </childnode>
+      </node>
+      <node id="13">
+        <label>components/device/silabs/si91x/wireless/crypto/sha/inc/sl_si91x_sha.h</label>
+        <link refid="sl__si91x__sha_8h_source"/>
+      </node>
+      <node id="14">
+        <label>components/device/silabs/si91x/wireless/crypto/trng/inc/sl_si91x_psa_trng.h</label>
+        <link refid="sl__si91x__psa__trng_8h_source"/>
+      </node>
+      <node id="15">
+        <label>components/device/silabs/si91x/wireless/crypto/trng/inc/sl_si91x_trng.h</label>
+        <link refid="sl__si91x__trng_8h"/>
+      </node>
+      <node id="12">
+        <label>components/device/silabs/si91x/wireless/crypto/wrap/inc/sl_si91x_psa_wrap.h</label>
+        <link refid="sl__si91x__psa__wrap_8h_source"/>
+      </node>
+      <node id="16">
+        <label>components/device/silabs/si91x/wireless/crypto/wrap/inc/sl_si91x_wrap.h</label>
+        <link refid="sl__si91x__wrap_8h"/>
+      </node>
+    </invincdepgraph>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__CRYPTO__CONSTANTS_1ga51711f7644807c80a92f9fef873ec598" prot="public" static="no">
+        <name>SL_SI91X_MAX_DATA_SIZE_IN_BYTES</name>
+        <initializer>1400</initializer>
+        <briefdescription>
+<para>Maximum length of the message in bytes that can be handled in one go. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/inc/sl_si91x_crypto.h" line="44" column="9" bodyfile="components/device/silabs/si91x/wireless/crypto/inc/sl_si91x_crypto.h" bodystart="44" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__CRYPTO__CONSTANTS_1ga35e35e3e50e208dbc0bf0c71a72a6a26" prot="public" static="no">
+        <name>SL_SI91X_MAX_DATA_SIZE_IN_BYTES_FOR_CCM</name>
+        <initializer>1200</initializer>
+        <briefdescription>
+<para>Maximum length of the CCM message in bytes that can be handled in one go. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/inc/sl_si91x_crypto.h" line="49" column="9" bodyfile="components/device/silabs/si91x/wireless/crypto/inc/sl_si91x_crypto.h" bodystart="49" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__CRYPTO__CONSTANTS_1ga3711f91e5c2e6ea50f6d75036dff9e27" prot="public" static="no">
+        <name>SL_SI91X_MAX_DATA_SIZE_IN_BYTES_FOR_CHACHAPOLY</name>
+        <initializer>1200</initializer>
+        <briefdescription>
+<para>Maximum length of the CHACHAPOLY message in bytes that can be handled in one go. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/inc/sl_si91x_crypto.h" line="54" column="9" bodyfile="components/device/silabs/si91x/wireless/crypto/inc/sl_si91x_crypto.h" bodystart="54" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__CRYPTO__CONSTANTS_1ga3936c05c79c2c129da5eeaec5d7fbd3d" prot="public" static="no">
+        <name>SL_SI91X_IV_SIZE</name>
+        <initializer>16</initializer>
+        <briefdescription>
+<para>Length of the initialization vector in bytes. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/inc/sl_si91x_crypto.h" line="59" column="9" bodyfile="components/device/silabs/si91x/wireless/crypto/inc/sl_si91x_crypto.h" bodystart="59" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__CRYPTO__CONSTANTS_1ga70acbe34bfae6519370054a881bc1bb7" prot="public" static="no">
+        <name>SL_SI91X_KEY_BUFFER_SIZE</name>
+        <initializer>32</initializer>
+        <briefdescription>
+<para>Key size in bytes. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/inc/sl_si91x_crypto.h" line="64" column="9" bodyfile="components/device/silabs/si91x/wireless/crypto/inc/sl_si91x_crypto.h" bodystart="64" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__CRYPTO__CONSTANTS_1ga5b8939661c60bc78f84602e61caf3686" prot="public" static="no">
+        <name>SL_SI91X_MAX_DATA_SIZE_IN_BYTES_FOR_ECDSA</name>
+        <initializer>1000</initializer>
+        <briefdescription>
+<para>Maximum length of the ECDSA message in bytes that can be handled in one go. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/inc/sl_si91x_crypto.h" line="69" column="9" bodyfile="components/device/silabs/si91x/wireless/crypto/inc/sl_si91x_crypto.h" bodystart="69" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__CRYPTO__CONSTANTS_1ga5e5a14ca74c2cc47f71067ff1bba27ac" prot="public" static="no">
+        <name>FIRST_CHUNK</name>
+        <initializer>BIT(0)</initializer>
+        <briefdescription>
+<para>Indicator to pinpoint the first data segment undergoing processing within the API. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/inc/sl_si91x_crypto.h" line="74" column="9" bodyfile="components/device/silabs/si91x/wireless/crypto/inc/sl_si91x_crypto.h" bodystart="74" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__CRYPTO__CONSTANTS_1ga93c6dbc17a4845a4a9b816307748770a" prot="public" static="no">
+        <name>MIDDLE_CHUNK</name>
+        <initializer>BIT(1)</initializer>
+        <briefdescription>
+<para>Indicator to pinpoint the middle data segment undergoing processing within the API. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/inc/sl_si91x_crypto.h" line="79" column="9" bodyfile="components/device/silabs/si91x/wireless/crypto/inc/sl_si91x_crypto.h" bodystart="79" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__CRYPTO__CONSTANTS_1ga73a45e3fc7c2b833932177c1c8a1a92d" prot="public" static="no">
+        <name>LAST_CHUNK</name>
+        <initializer>BIT(2)</initializer>
+        <briefdescription>
+<para>Indicator to pinpoint the last data segment undergoing processing within the API. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/inc/sl_si91x_crypto.h" line="84" column="9" bodyfile="components/device/silabs/si91x/wireless/crypto/inc/sl_si91x_crypto.h" bodystart="84" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="enum">
+      <memberdef kind="enum" id="group__CRYPTO__CONSTANTS_1gab2fb3cd3f463bc7fb4f94ae5e1c58352" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_si91x_crypto_key_slot_t</name>
+        <enumvalue id="group__CRYPTO__CONSTANTS_1ggab2fb3cd3f463bc7fb4f94ae5e1c58352a0ff2257e963b4728d506a02e75728300" prot="public">
+          <name>SL_SI91X_KEY_SLOT_1</name>
+          <initializer>= 1</initializer>
+          <briefdescription>
+<para>M4 OTA key slot. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__CONSTANTS_1ggab2fb3cd3f463bc7fb4f94ae5e1c58352a8b2b6c0aab15d318b18cd6646fe07077" prot="public">
+          <name>SL_SI91X_KEY_SLOT_2</name>
+          <briefdescription>
+<para>M4 Public key slot. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>Enumeration defining different key slots for built-in keys supported by the SI91X device. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>This enumeration defines different key slots for built-in keys supported by the SI91X device. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/inc/sl_si91x_crypto.h" line="91" column="1" bodyfile="components/device/silabs/si91x/wireless/crypto/inc/sl_si91x_crypto.h" bodystart="91" bodyend="94"/>
+      </memberdef>
+      <memberdef kind="enum" id="group__CRYPTO__CONSTANTS_1ga6461b1ebbd4867d2f670b6c79e66b649" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_si91x_crypto_key_size_t</name>
+        <enumvalue id="group__CRYPTO__CONSTANTS_1gga6461b1ebbd4867d2f670b6c79e66b649a9acd2931412b3c2bd44c5a2ce9fd14e4" prot="public">
+          <name>SL_SI91X_KEY_SIZE_1</name>
+          <initializer>= 32</initializer>
+          <briefdescription>
+<para>M4 OTA key size. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__CONSTANTS_1gga6461b1ebbd4867d2f670b6c79e66b649aa2e6bb1cece4df212d1104a165a3f09a" prot="public">
+          <name>SL_SI91X_KEY_SIZE_2</name>
+          <initializer>= 96</initializer>
+          <briefdescription>
+<para>M4 Public key size. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>Enumeration defining different key sizes for built-in keys supported by the SI91X device. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>This enumeration defines different key sizes for built-in keys supported by the SI91X device, such as 32, and 96 bytes. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/inc/sl_si91x_crypto.h" line="102" column="1" bodyfile="components/device/silabs/si91x/wireless/crypto/inc/sl_si91x_crypto.h" bodystart="102" bodyend="105"/>
+      </memberdef>
+      <memberdef kind="enum" id="group__CRYPTO__CONSTANTS_1gaa4ae5ba737ea708d60d4c58f83d6d7be" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_si91x_crypto_key_type_t</name>
+        <enumvalue id="group__CRYPTO__CONSTANTS_1ggaa4ae5ba737ea708d60d4c58f83d6d7beaa684d25501a85326f0598635e8d27684" prot="public">
+          <name>SL_SI91X_TRANSPARENT_KEY</name>
+          <initializer>= 0</initializer>
+          <briefdescription>
+<para>Plain key. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__CONSTANTS_1ggaa4ae5ba737ea708d60d4c58f83d6d7bea112fe2d5446f908928117926da327fe1" prot="public">
+          <name>SL_SI91X_WRAPPED_KEY</name>
+          <briefdescription>
+<para>Wrapped version of the plain key. To use the wrapped keys, security should be enabled in the module. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__CONSTANTS_1ggaa4ae5ba737ea708d60d4c58f83d6d7bead6c025e071741da349fd924fbee045fd" prot="public">
+          <name>SL_SI91X_BUILT_IN_KEY</name>
+          <briefdescription>
+<para>Firmware built-in keys. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>Enumeration defining keys supported by the SI91X device. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>This enumeration defines different keys supported by the SI91X device, such as transparent key, wrapped key, and built-in keys. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/inc/sl_si91x_crypto.h" line="113" column="1" bodyfile="components/device/silabs/si91x/wireless/crypto/inc/sl_si91x_crypto.h" bodystart="113" bodyend="117"/>
+      </memberdef>
+      <memberdef kind="enum" id="group__CRYPTO__CONSTANTS_1gaac5c8069f16fca3b9d5936ef034537de" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_si91x_crypto_wrap_mode_t</name>
+        <enumvalue id="group__CRYPTO__CONSTANTS_1ggaac5c8069f16fca3b9d5936ef034537deac565feb5d012f480bc84374c73202867" prot="public">
+          <name>SL_SI91X_WRAP_IV_ECB_MODE</name>
+          <initializer>= 0</initializer>
+          <briefdescription>
+<para>Wrap IV using ECB mode. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__CONSTANTS_1ggaac5c8069f16fca3b9d5936ef034537dea2f64655874226f1d0b9fbd5da4c87048" prot="public">
+          <name>SL_SI91X_WRAP_IV_CBC_MODE</name>
+          <briefdescription>
+<para>Wrap IV using CBC mode. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>Enumeration defining Wrap IV modes supported by the SI91X device. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>This enumeration defines different modes supported by the SI91X device during the WRAP process, such as ECB and CBC modes. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/inc/sl_si91x_crypto.h" line="125" column="1" bodyfile="components/device/silabs/si91x/wireless/crypto/inc/sl_si91x_crypto.h" bodystart="125" bodyend="128"/>
+      </memberdef>
+      <memberdef kind="enum" id="group__CRYPTO__CONSTANTS_1ga6ad34a0b8e121a6a30c44909aaf2820f" prot="public" static="no" strong="no">
+        <type></type>
+        <name>sl_si91x_crypto_algorithm_type_t</name>
+        <enumvalue id="group__CRYPTO__CONSTANTS_1gga6ad34a0b8e121a6a30c44909aaf2820faaa28d81449f4bae922bb5e79f6f06be6" prot="public">
+          <name>AES</name>
+          <initializer>= 2</initializer>
+          <briefdescription>
+<para>AES. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__CONSTANTS_1gga6ad34a0b8e121a6a30c44909aaf2820fa7c74ffad5ddce949f36534629bc5310c" prot="public">
+          <name>SHA</name>
+          <initializer>= 4</initializer>
+          <briefdescription>
+<para>SHA. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__CONSTANTS_1gga6ad34a0b8e121a6a30c44909aaf2820fa86af0475f3f6b2966e256784b6c9cb8b" prot="public">
+          <name>HMAC_SHA</name>
+          <initializer>= 5</initializer>
+          <briefdescription>
+<para>HMAC. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__CONSTANTS_1gga6ad34a0b8e121a6a30c44909aaf2820fa85000c9eddf9978c0e2261ea0fa53816" prot="public">
+          <name>DH</name>
+          <initializer>= 14</initializer>
+          <briefdescription>
+<para>DH. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__CONSTANTS_1gga6ad34a0b8e121a6a30c44909aaf2820fa451db34215a1733e42cce38b5a551c6e" prot="public">
+          <name>ECDH</name>
+          <initializer>= 15</initializer>
+          <briefdescription>
+<para>ECDH. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__CONSTANTS_1gga6ad34a0b8e121a6a30c44909aaf2820fae25059a23e46efa3f9c9c6ee6ee82fd3" prot="public">
+          <name>SHA3</name>
+          <initializer>= 16</initializer>
+          <briefdescription>
+<para>SHA3. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__CONSTANTS_1gga6ad34a0b8e121a6a30c44909aaf2820fa61c75f5aa833f31a972f4831179342e2" prot="public">
+          <name>CHACHAPOLY</name>
+          <initializer>= 17</initializer>
+          <briefdescription>
+<para>CHACHAPOLY. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__CONSTANTS_1gga6ad34a0b8e121a6a30c44909aaf2820fa313f9e8f1ff4fdfe84c642fdb62b8aab" prot="public">
+          <name>GCM</name>
+          <initializer>= 18</initializer>
+          <briefdescription>
+<para>GCM. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__CONSTANTS_1gga6ad34a0b8e121a6a30c44909aaf2820fa8e7838b96be55048186754b37db105dd" prot="public">
+          <name>WRAP</name>
+          <initializer>= 20</initializer>
+          <briefdescription>
+<para>WRAP. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__CONSTANTS_1gga6ad34a0b8e121a6a30c44909aaf2820fa2304b1adc71e45940228c5f362479770" prot="public">
+          <name>TRNG</name>
+          <initializer>= 21</initializer>
+          <briefdescription>
+<para>TRNG. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__CONSTANTS_1gga6ad34a0b8e121a6a30c44909aaf2820fa4742ab5add31bcbe14b900f9db45a012" prot="public">
+          <name>CCM</name>
+          <initializer>= 31</initializer>
+          <briefdescription>
+<para>CCM. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__CRYPTO__CONSTANTS_1gga6ad34a0b8e121a6a30c44909aaf2820fa533fb8b894a39de8097e0ae397b7d61d" prot="public">
+          <name>ECDSA</name>
+          <initializer>= 32</initializer>
+          <briefdescription>
+<para>ECDSA. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>Enumeration defining crypto algorithms supported by the SI91X device. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>This enumeration defines different crypto algorithms supported by the SI91X device, including AES, SHA, HMAC_SHA, ECDH, and so on. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="components/device/silabs/si91x/wireless/crypto/inc/sl_si91x_crypto.h" line="136" column="1" bodyfile="components/device/silabs/si91x/wireless/crypto/inc/sl_si91x_crypto.h" bodystart="136" bodyend="149"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>SL SI91X Crypto common utility file. </para>
+    </briefdescription>
+    <detaileddescription>
+<sect1 id="sl__si91x__crypto_8h_1autotoc_md0">
+<title>License</title>
+<para><bold>Copyright 2023 Silicon Laboratories Inc. www.silabs.com</bold></para>
+<para>SPDX-License-Identifier: Zlib</para>
+<para>The licensor of this software is Silicon Laboratories Inc.</para>
+<para>This software is provided &apos;as-is&apos;, without any express or implied warranty. In no event will the authors be held liable for any damages arising from the use of this software.</para>
+<para>Permission is granted to anyone to use this software for any purpose, including commercial applications, and to alter it and redistribute it freely, subject to the following restrictions:</para>
+<para><orderedlist>
+<listitem><para>The origin of this software must not be misrepresented; you must not claim that you wrote the original software. If you use this software in a product, an acknowledgment in the product documentation would be appreciated but is not required.</para>
+</listitem><listitem><para>Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.</para>
+</listitem><listitem><para>This notice may not be removed or altered from any source distribution. </para>
+</listitem></orderedlist>
+</para>
+</sect1>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="comment">/***************************************************************************/</highlight><highlight class="normal"><sp/></highlight><highlight class="comment">/**</highlight></codeline>
+<codeline lineno="2"><highlight class="comment"><sp/>*<sp/>@file</highlight></codeline>
+<codeline lineno="3"><highlight class="comment"><sp/>*<sp/>@brief<sp/>SL<sp/>SI91X<sp/>Crypto<sp/>common<sp/>utility<sp/>file</highlight></codeline>
+<codeline lineno="4"><highlight class="comment"><sp/>*******************************************************************************</highlight></codeline>
+<codeline lineno="5"><highlight class="comment"><sp/>*<sp/>#<sp/>License</highlight></codeline>
+<codeline lineno="6"><highlight class="comment"><sp/>*<sp/>&lt;b&gt;Copyright<sp/>2023<sp/>Silicon<sp/>Laboratories<sp/>Inc.<sp/>www.silabs.com&lt;/b&gt;</highlight></codeline>
+<codeline lineno="7"><highlight class="comment"><sp/>*******************************************************************************</highlight></codeline>
+<codeline lineno="8"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="9"><highlight class="comment"><sp/>*<sp/>SPDX-License-Identifier:<sp/>Zlib</highlight></codeline>
+<codeline lineno="10"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="11"><highlight class="comment"><sp/>*<sp/>The<sp/>licensor<sp/>of<sp/>this<sp/>software<sp/>is<sp/>Silicon<sp/>Laboratories<sp/>Inc.</highlight></codeline>
+<codeline lineno="12"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="13"><highlight class="comment"><sp/>*<sp/>This<sp/>software<sp/>is<sp/>provided<sp/>&apos;as-is&apos;,<sp/>without<sp/>any<sp/>express<sp/>or<sp/>implied</highlight></codeline>
+<codeline lineno="14"><highlight class="comment"><sp/>*<sp/>warranty.<sp/>In<sp/>no<sp/>event<sp/>will<sp/>the<sp/>authors<sp/>be<sp/>held<sp/>liable<sp/>for<sp/>any<sp/>damages</highlight></codeline>
+<codeline lineno="15"><highlight class="comment"><sp/>*<sp/>arising<sp/>from<sp/>the<sp/>use<sp/>of<sp/>this<sp/>software.</highlight></codeline>
+<codeline lineno="16"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="17"><highlight class="comment"><sp/>*<sp/>Permission<sp/>is<sp/>granted<sp/>to<sp/>anyone<sp/>to<sp/>use<sp/>this<sp/>software<sp/>for<sp/>any<sp/>purpose,</highlight></codeline>
+<codeline lineno="18"><highlight class="comment"><sp/>*<sp/>including<sp/>commercial<sp/>applications,<sp/>and<sp/>to<sp/>alter<sp/>it<sp/>and<sp/>redistribute<sp/>it</highlight></codeline>
+<codeline lineno="19"><highlight class="comment"><sp/>*<sp/>freely,<sp/>subject<sp/>to<sp/>the<sp/>following<sp/>restrictions:</highlight></codeline>
+<codeline lineno="20"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="21"><highlight class="comment"><sp/>*<sp/>1.<sp/>The<sp/>origin<sp/>of<sp/>this<sp/>software<sp/>must<sp/>not<sp/>be<sp/>misrepresented;<sp/>you<sp/>must<sp/>not</highlight></codeline>
+<codeline lineno="22"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/>claim<sp/>that<sp/>you<sp/>wrote<sp/>the<sp/>original<sp/>software.<sp/>If<sp/>you<sp/>use<sp/>this<sp/>software</highlight></codeline>
+<codeline lineno="23"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/>in<sp/>a<sp/>product,<sp/>an<sp/>acknowledgment<sp/>in<sp/>the<sp/>product<sp/>documentation<sp/>would<sp/>be</highlight></codeline>
+<codeline lineno="24"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/>appreciated<sp/>but<sp/>is<sp/>not<sp/>required.</highlight></codeline>
+<codeline lineno="25"><highlight class="comment"><sp/>*<sp/>2.<sp/>Altered<sp/>source<sp/>versions<sp/>must<sp/>be<sp/>plainly<sp/>marked<sp/>as<sp/>such,<sp/>and<sp/>must<sp/>not<sp/>be</highlight></codeline>
+<codeline lineno="26"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/>misrepresented<sp/>as<sp/>being<sp/>the<sp/>original<sp/>software.</highlight></codeline>
+<codeline lineno="27"><highlight class="comment"><sp/>*<sp/>3.<sp/>This<sp/>notice<sp/>may<sp/>not<sp/>be<sp/>removed<sp/>or<sp/>altered<sp/>from<sp/>any<sp/>source<sp/>distribution.</highlight></codeline>
+<codeline lineno="28"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="29"><highlight class="comment"><sp/>******************************************************************************/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="30"><highlight class="normal"></highlight></codeline>
+<codeline lineno="31"><highlight class="normal"></highlight><highlight class="preprocessor">#pragma<sp/>once</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="32"><highlight class="normal"></highlight></codeline>
+<codeline lineno="33"><highlight class="normal"></highlight><highlight class="comment">/******************************************************</highlight></codeline>
+<codeline lineno="34"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Constants</highlight></codeline>
+<codeline lineno="35"><highlight class="comment"><sp/>******************************************************/</highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="36"><highlight class="comment">/**</highlight></codeline>
+<codeline lineno="37"><highlight class="comment"><sp/>*<sp/>@addtogroup<sp/>CRYPTO_CONSTANTS</highlight></codeline>
+<codeline lineno="38"><highlight class="comment"><sp/>*<sp/>@{<sp/></highlight></codeline>
+<codeline lineno="39"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="40"><highlight class="normal"></highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="41"><highlight class="comment">/**</highlight></codeline>
+<codeline lineno="42"><highlight class="comment"><sp/>*<sp/>@brief<sp/>Maximum<sp/>length<sp/>of<sp/>the<sp/>message<sp/>in<sp/>bytes<sp/>that<sp/>can<sp/>be<sp/>handled<sp/>in<sp/>one<sp/>go.</highlight></codeline>
+<codeline lineno="43"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="44" refid="group__CRYPTO__CONSTANTS_1ga51711f7644807c80a92f9fef873ec598" refkind="member"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>SL_SI91X_MAX_DATA_SIZE_IN_BYTES<sp/>1400</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="45"><highlight class="normal"></highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="46"><highlight class="comment">/**</highlight></codeline>
+<codeline lineno="47"><highlight class="comment"><sp/>*<sp/>@brief<sp/>Maximum<sp/>length<sp/>of<sp/>the<sp/>CCM<sp/>message<sp/>in<sp/>bytes<sp/>that<sp/>can<sp/>be<sp/>handled<sp/>in<sp/>one<sp/>go.</highlight></codeline>
+<codeline lineno="48"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="49" refid="group__CRYPTO__CONSTANTS_1ga35e35e3e50e208dbc0bf0c71a72a6a26" refkind="member"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>SL_SI91X_MAX_DATA_SIZE_IN_BYTES_FOR_CCM<sp/>1200</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="50"><highlight class="normal"></highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="51"><highlight class="comment">/**</highlight></codeline>
+<codeline lineno="52"><highlight class="comment"><sp/>*<sp/>@brief<sp/>Maximum<sp/>length<sp/>of<sp/>the<sp/>CHACHAPOLY<sp/>message<sp/>in<sp/>bytes<sp/>that<sp/>can<sp/>be<sp/>handled<sp/>in<sp/>one<sp/>go.</highlight></codeline>
+<codeline lineno="53"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="54" refid="group__CRYPTO__CONSTANTS_1ga3711f91e5c2e6ea50f6d75036dff9e27" refkind="member"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>SL_SI91X_MAX_DATA_SIZE_IN_BYTES_FOR_CHACHAPOLY<sp/>1200</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="55"><highlight class="normal"></highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="56"><highlight class="comment">/**</highlight></codeline>
+<codeline lineno="57"><highlight class="comment"><sp/>*<sp/>@brief<sp/>Length<sp/>of<sp/>the<sp/>initialization<sp/>vector<sp/>in<sp/>bytes.</highlight></codeline>
+<codeline lineno="58"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="59" refid="group__CRYPTO__CONSTANTS_1ga3936c05c79c2c129da5eeaec5d7fbd3d" refkind="member"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>SL_SI91X_IV_SIZE<sp/>16</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="60"><highlight class="normal"></highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="61"><highlight class="comment">/**</highlight></codeline>
+<codeline lineno="62"><highlight class="comment"><sp/>*<sp/>@brief<sp/>Key<sp/>size<sp/>in<sp/>bytes.</highlight></codeline>
+<codeline lineno="63"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="64" refid="group__CRYPTO__CONSTANTS_1ga70acbe34bfae6519370054a881bc1bb7" refkind="member"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>SL_SI91X_KEY_BUFFER_SIZE<sp/>32</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="65"><highlight class="normal"></highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="66"><highlight class="comment">/**</highlight></codeline>
+<codeline lineno="67"><highlight class="comment"><sp/>*<sp/>@brief<sp/>Maximum<sp/>length<sp/>of<sp/>the<sp/>ECDSA<sp/>message<sp/>in<sp/>bytes<sp/>that<sp/>can<sp/>be<sp/>handled<sp/>in<sp/>one<sp/>go.</highlight></codeline>
+<codeline lineno="68"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="69" refid="group__CRYPTO__CONSTANTS_1ga5b8939661c60bc78f84602e61caf3686" refkind="member"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>SL_SI91X_MAX_DATA_SIZE_IN_BYTES_FOR_ECDSA<sp/>1000</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="70"><highlight class="normal"></highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="71"><highlight class="comment">/**</highlight></codeline>
+<codeline lineno="72"><highlight class="comment"><sp/>*<sp/>@brief<sp/>Indicator<sp/>to<sp/>pinpoint<sp/>the<sp/>first<sp/>data<sp/>segment<sp/>undergoing<sp/>processing<sp/>within<sp/>the<sp/>API.</highlight></codeline>
+<codeline lineno="73"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="74" refid="group__CRYPTO__CONSTANTS_1ga5e5a14ca74c2cc47f71067ff1bba27ac" refkind="member"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>FIRST_CHUNK<sp/>BIT(0)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="75"><highlight class="normal"></highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="76"><highlight class="comment">/**</highlight></codeline>
+<codeline lineno="77"><highlight class="comment"><sp/>*<sp/>@brief<sp/>Indicator<sp/>to<sp/>pinpoint<sp/>the<sp/>middle<sp/>data<sp/>segment<sp/>undergoing<sp/>processing<sp/>within<sp/>the<sp/>API.</highlight></codeline>
+<codeline lineno="78"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="79" refid="group__CRYPTO__CONSTANTS_1ga93c6dbc17a4845a4a9b816307748770a" refkind="member"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>MIDDLE_CHUNK<sp/>BIT(1)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="80"><highlight class="normal"></highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="81"><highlight class="comment">/**</highlight></codeline>
+<codeline lineno="82"><highlight class="comment"><sp/>*<sp/>@brief<sp/>Indicator<sp/>to<sp/>pinpoint<sp/>the<sp/>last<sp/>data<sp/>segment<sp/>undergoing<sp/>processing<sp/>within<sp/>the<sp/>API.</highlight></codeline>
+<codeline lineno="83"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="84" refid="group__CRYPTO__CONSTANTS_1ga73a45e3fc7c2b833932177c1c8a1a92d" refkind="member"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>LAST_CHUNK<sp/>BIT(2)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="85"><highlight class="normal"></highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="86"><highlight class="comment">/**</highlight></codeline>
+<codeline lineno="87"><highlight class="comment"><sp/>*<sp/>@brief<sp/>Enumeration<sp/>defining<sp/>different<sp/>key<sp/>slots<sp/>for<sp/>built-in<sp/>keys<sp/>supported<sp/>by<sp/>the<sp/>SI91X<sp/>device.</highlight></codeline>
+<codeline lineno="88"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="89"><highlight class="comment"><sp/>*<sp/>This<sp/>enumeration<sp/>defines<sp/>different<sp/>key<sp/>slots<sp/>for<sp/>built-in<sp/>keys<sp/>supported<sp/>by<sp/>the<sp/>SI91X<sp/>device.</highlight></codeline>
+<codeline lineno="90"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="91" refid="group__CRYPTO__CONSTANTS_1gab2fb3cd3f463bc7fb4f94ae5e1c58352" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">enum</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="92" refid="group__CRYPTO__CONSTANTS_1ggab2fb3cd3f463bc7fb4f94ae5e1c58352a0ff2257e963b4728d506a02e75728300" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="group__CRYPTO__CONSTANTS_1ggab2fb3cd3f463bc7fb4f94ae5e1c58352a0ff2257e963b4728d506a02e75728300" kindref="member">SL_SI91X_KEY_SLOT_1</ref><sp/>=<sp/>1,<sp/></highlight><highlight class="comment">///&lt;<sp/>M4<sp/>OTA<sp/>key<sp/>slot</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="93"><highlight class="normal"><sp/><sp/><ref refid="group__CRYPTO__CONSTANTS_1ggab2fb3cd3f463bc7fb4f94ae5e1c58352a8b2b6c0aab15d318b18cd6646fe07077" kindref="member">SL_SI91X_KEY_SLOT_2</ref><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">///&lt;<sp/>M4<sp/>Public<sp/>key<sp/>slot</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="94" refid="group__CRYPTO__CONSTANTS_1ggab2fb3cd3f463bc7fb4f94ae5e1c58352a8b2b6c0aab15d318b18cd6646fe07077" refkind="member"><highlight class="normal">}<sp/><ref refid="group__CRYPTO__CONSTANTS_1gab2fb3cd3f463bc7fb4f94ae5e1c58352" kindref="member">sl_si91x_crypto_key_slot_t</ref>;</highlight></codeline>
+<codeline lineno="95"><highlight class="normal"></highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="96"><highlight class="comment">/**</highlight></codeline>
+<codeline lineno="97"><highlight class="comment"><sp/>*<sp/>@brief<sp/>Enumeration<sp/>defining<sp/>different<sp/>key<sp/>sizes<sp/>for<sp/>built-in<sp/>keys<sp/>supported<sp/>by<sp/>the<sp/>SI91X<sp/>device.</highlight></codeline>
+<codeline lineno="98"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="99"><highlight class="comment"><sp/>*<sp/>This<sp/>enumeration<sp/>defines<sp/>different<sp/>key<sp/>sizes<sp/>for<sp/>built-in<sp/>keys<sp/>supported<sp/>by<sp/>the<sp/>SI91X<sp/>device,</highlight></codeline>
+<codeline lineno="100"><highlight class="comment"><sp/>*<sp/>such<sp/>as<sp/>32,<sp/>and<sp/>96<sp/>bytes.</highlight></codeline>
+<codeline lineno="101"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="102" refid="group__CRYPTO__CONSTANTS_1ga6461b1ebbd4867d2f670b6c79e66b649" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">enum</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="103" refid="group__CRYPTO__CONSTANTS_1gga6461b1ebbd4867d2f670b6c79e66b649a9acd2931412b3c2bd44c5a2ce9fd14e4" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="group__CRYPTO__CONSTANTS_1gga6461b1ebbd4867d2f670b6c79e66b649a9acd2931412b3c2bd44c5a2ce9fd14e4" kindref="member">SL_SI91X_KEY_SIZE_1</ref><sp/>=<sp/>32,<sp/></highlight><highlight class="comment">///&lt;<sp/>M4<sp/>OTA<sp/>key<sp/>size</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="104"><highlight class="normal"><sp/><sp/><ref refid="group__CRYPTO__CONSTANTS_1gga6461b1ebbd4867d2f670b6c79e66b649aa2e6bb1cece4df212d1104a165a3f09a" kindref="member">SL_SI91X_KEY_SIZE_2</ref><sp/>=<sp/>96<sp/><sp/></highlight><highlight class="comment">///&lt;<sp/>M4<sp/>Public<sp/>key<sp/>size</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="105" refid="group__CRYPTO__CONSTANTS_1gga6461b1ebbd4867d2f670b6c79e66b649aa2e6bb1cece4df212d1104a165a3f09a" refkind="member"><highlight class="normal">}<sp/><ref refid="group__CRYPTO__CONSTANTS_1ga6461b1ebbd4867d2f670b6c79e66b649" kindref="member">sl_si91x_crypto_key_size_t</ref>;</highlight></codeline>
+<codeline lineno="106"><highlight class="normal"></highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="107"><highlight class="comment">/**</highlight></codeline>
+<codeline lineno="108"><highlight class="comment"><sp/>*<sp/>@brief<sp/>Enumeration<sp/>defining<sp/>keys<sp/>supported<sp/>by<sp/>the<sp/>SI91X<sp/>device.</highlight></codeline>
+<codeline lineno="109"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="110"><highlight class="comment"><sp/>*<sp/>This<sp/>enumeration<sp/>defines<sp/>different<sp/>keys<sp/>supported<sp/>by<sp/>the<sp/>SI91X<sp/>device,</highlight></codeline>
+<codeline lineno="111"><highlight class="comment"><sp/>*<sp/>such<sp/>as<sp/>transparent<sp/>key,<sp/>wrapped<sp/>key,<sp/>and<sp/>built-in<sp/>keys.</highlight></codeline>
+<codeline lineno="112"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="113" refid="group__CRYPTO__CONSTANTS_1gaa4ae5ba737ea708d60d4c58f83d6d7be" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">enum</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="114" refid="group__CRYPTO__CONSTANTS_1ggaa4ae5ba737ea708d60d4c58f83d6d7beaa684d25501a85326f0598635e8d27684" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="group__CRYPTO__CONSTANTS_1ggaa4ae5ba737ea708d60d4c58f83d6d7beaa684d25501a85326f0598635e8d27684" kindref="member">SL_SI91X_TRANSPARENT_KEY</ref><sp/>=<sp/>0,<sp/></highlight><highlight class="comment">///&lt;<sp/>Plain<sp/>key</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="115" refid="group__CRYPTO__CONSTANTS_1ggaa4ae5ba737ea708d60d4c58f83d6d7bea112fe2d5446f908928117926da327fe1" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="group__CRYPTO__CONSTANTS_1ggaa4ae5ba737ea708d60d4c58f83d6d7bea112fe2d5446f908928117926da327fe1" kindref="member">SL_SI91X_WRAPPED_KEY</ref>,<sp/></highlight><highlight class="comment">///&lt;<sp/>Wrapped<sp/>version<sp/>of<sp/>the<sp/>plain<sp/>key.<sp/>To<sp/>use<sp/>the<sp/>wrapped<sp/>keys,<sp/>security<sp/>should<sp/>be<sp/>enabled<sp/>in<sp/>the<sp/>module.</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="116"><highlight class="normal"><sp/><sp/><ref refid="group__CRYPTO__CONSTANTS_1ggaa4ae5ba737ea708d60d4c58f83d6d7bead6c025e071741da349fd924fbee045fd" kindref="member">SL_SI91X_BUILT_IN_KEY</ref><sp/></highlight><highlight class="comment">///&lt;<sp/>Firmware<sp/>built-in<sp/>keys</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="117" refid="group__CRYPTO__CONSTANTS_1ggaa4ae5ba737ea708d60d4c58f83d6d7bead6c025e071741da349fd924fbee045fd" refkind="member"><highlight class="normal">}<sp/><ref refid="group__CRYPTO__CONSTANTS_1gaa4ae5ba737ea708d60d4c58f83d6d7be" kindref="member">sl_si91x_crypto_key_type_t</ref>;</highlight></codeline>
+<codeline lineno="118"><highlight class="normal"></highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="119"><highlight class="comment">/**</highlight></codeline>
+<codeline lineno="120"><highlight class="comment"><sp/>*<sp/>@brief<sp/>Enumeration<sp/>defining<sp/>Wrap<sp/>IV<sp/>modes<sp/>supported<sp/>by<sp/>the<sp/>SI91X<sp/>device.</highlight></codeline>
+<codeline lineno="121"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="122"><highlight class="comment"><sp/>*<sp/>This<sp/>enumeration<sp/>defines<sp/>different<sp/>modes<sp/>supported<sp/>by<sp/>the<sp/>SI91X<sp/>device</highlight></codeline>
+<codeline lineno="123"><highlight class="comment"><sp/>*<sp/>during<sp/>the<sp/>WRAP<sp/>process,<sp/>such<sp/>as<sp/>ECB<sp/>and<sp/>CBC<sp/>modes.</highlight></codeline>
+<codeline lineno="124"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="125" refid="group__CRYPTO__CONSTANTS_1gaac5c8069f16fca3b9d5936ef034537de" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">enum</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="126" refid="group__CRYPTO__CONSTANTS_1ggaac5c8069f16fca3b9d5936ef034537deac565feb5d012f480bc84374c73202867" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="group__CRYPTO__CONSTANTS_1ggaac5c8069f16fca3b9d5936ef034537deac565feb5d012f480bc84374c73202867" kindref="member">SL_SI91X_WRAP_IV_ECB_MODE</ref><sp/>=<sp/>0,<sp/></highlight><highlight class="comment">///&lt;<sp/>Wrap<sp/>IV<sp/>using<sp/>ECB<sp/>mode</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="127"><highlight class="normal"><sp/><sp/><ref refid="group__CRYPTO__CONSTANTS_1ggaac5c8069f16fca3b9d5936ef034537dea2f64655874226f1d0b9fbd5da4c87048" kindref="member">SL_SI91X_WRAP_IV_CBC_MODE</ref><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">///&lt;<sp/>Wrap<sp/>IV<sp/>using<sp/>CBC<sp/>mode</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="128" refid="group__CRYPTO__CONSTANTS_1ggaac5c8069f16fca3b9d5936ef034537dea2f64655874226f1d0b9fbd5da4c87048" refkind="member"><highlight class="normal">}<sp/><ref refid="group__CRYPTO__CONSTANTS_1gaac5c8069f16fca3b9d5936ef034537de" kindref="member">sl_si91x_crypto_wrap_mode_t</ref>;</highlight></codeline>
+<codeline lineno="129"><highlight class="normal"></highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="130"><highlight class="comment">/**</highlight></codeline>
+<codeline lineno="131"><highlight class="comment"><sp/>*<sp/>@brief<sp/>Enumeration<sp/>defining<sp/>crypto<sp/>algorithms<sp/>supported<sp/>by<sp/>the<sp/>SI91X<sp/>device.</highlight></codeline>
+<codeline lineno="132"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="133"><highlight class="comment"><sp/>*<sp/>This<sp/>enumeration<sp/>defines<sp/>different<sp/>crypto<sp/>algorithms<sp/>supported<sp/>by<sp/>the<sp/>SI91X<sp/>device,</highlight></codeline>
+<codeline lineno="134"><highlight class="comment"><sp/>*<sp/>including<sp/>AES,<sp/>SHA,<sp/>HMAC_SHA,<sp/>ECDH,<sp/>and<sp/>so<sp/>on.</highlight></codeline>
+<codeline lineno="135"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="136" refid="group__CRYPTO__CONSTANTS_1ga6ad34a0b8e121a6a30c44909aaf2820f" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">enum</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="137" refid="group__CRYPTO__CONSTANTS_1gga6ad34a0b8e121a6a30c44909aaf2820faaa28d81449f4bae922bb5e79f6f06be6" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="group__CRYPTO__CONSTANTS_1gga6ad34a0b8e121a6a30c44909aaf2820faaa28d81449f4bae922bb5e79f6f06be6" kindref="member">AES</ref><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>=<sp/>2,<sp/><sp/></highlight><highlight class="comment">///&lt;<sp/>AES</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="138" refid="group__CRYPTO__CONSTANTS_1gga6ad34a0b8e121a6a30c44909aaf2820fa7c74ffad5ddce949f36534629bc5310c" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="group__CRYPTO__CONSTANTS_1gga6ad34a0b8e121a6a30c44909aaf2820fa7c74ffad5ddce949f36534629bc5310c" kindref="member">SHA</ref><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>=<sp/>4,<sp/><sp/></highlight><highlight class="comment">///&lt;<sp/>SHA</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="139" refid="group__CRYPTO__CONSTANTS_1gga6ad34a0b8e121a6a30c44909aaf2820fa86af0475f3f6b2966e256784b6c9cb8b" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="group__CRYPTO__CONSTANTS_1gga6ad34a0b8e121a6a30c44909aaf2820fa86af0475f3f6b2966e256784b6c9cb8b" kindref="member">HMAC_SHA</ref><sp/><sp/><sp/>=<sp/>5,<sp/><sp/></highlight><highlight class="comment">///&lt;<sp/>HMAC</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="140" refid="group__CRYPTO__CONSTANTS_1gga6ad34a0b8e121a6a30c44909aaf2820fa85000c9eddf9978c0e2261ea0fa53816" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="group__CRYPTO__CONSTANTS_1gga6ad34a0b8e121a6a30c44909aaf2820fa85000c9eddf9978c0e2261ea0fa53816" kindref="member">DH</ref><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>=<sp/>14,<sp/></highlight><highlight class="comment">///&lt;<sp/>DH</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="141" refid="group__CRYPTO__CONSTANTS_1gga6ad34a0b8e121a6a30c44909aaf2820fa451db34215a1733e42cce38b5a551c6e" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="group__CRYPTO__CONSTANTS_1gga6ad34a0b8e121a6a30c44909aaf2820fa451db34215a1733e42cce38b5a551c6e" kindref="member">ECDH</ref><sp/><sp/><sp/><sp/><sp/><sp/><sp/>=<sp/>15,<sp/></highlight><highlight class="comment">///&lt;<sp/>ECDH</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="142" refid="group__CRYPTO__CONSTANTS_1gga6ad34a0b8e121a6a30c44909aaf2820fae25059a23e46efa3f9c9c6ee6ee82fd3" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="group__CRYPTO__CONSTANTS_1gga6ad34a0b8e121a6a30c44909aaf2820fae25059a23e46efa3f9c9c6ee6ee82fd3" kindref="member">SHA3</ref><sp/><sp/><sp/><sp/><sp/><sp/><sp/>=<sp/>16,<sp/></highlight><highlight class="comment">///&lt;<sp/>SHA3</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="143" refid="group__CRYPTO__CONSTANTS_1gga6ad34a0b8e121a6a30c44909aaf2820fa61c75f5aa833f31a972f4831179342e2" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="group__CRYPTO__CONSTANTS_1gga6ad34a0b8e121a6a30c44909aaf2820fa61c75f5aa833f31a972f4831179342e2" kindref="member">CHACHAPOLY</ref><sp/>=<sp/>17,<sp/></highlight><highlight class="comment">///&lt;<sp/>CHACHAPOLY</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="144" refid="group__CRYPTO__CONSTANTS_1gga6ad34a0b8e121a6a30c44909aaf2820fa313f9e8f1ff4fdfe84c642fdb62b8aab" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="group__CRYPTO__CONSTANTS_1gga6ad34a0b8e121a6a30c44909aaf2820fa313f9e8f1ff4fdfe84c642fdb62b8aab" kindref="member">GCM</ref><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>=<sp/>18,<sp/></highlight><highlight class="comment">///&lt;<sp/>GCM</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="145" refid="group__CRYPTO__CONSTANTS_1gga6ad34a0b8e121a6a30c44909aaf2820fa8e7838b96be55048186754b37db105dd" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="group__CRYPTO__CONSTANTS_1gga6ad34a0b8e121a6a30c44909aaf2820fa8e7838b96be55048186754b37db105dd" kindref="member">WRAP</ref><sp/><sp/><sp/><sp/><sp/><sp/><sp/>=<sp/>20,<sp/></highlight><highlight class="comment">///&lt;<sp/>WRAP</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="146" refid="group__CRYPTO__CONSTANTS_1gga6ad34a0b8e121a6a30c44909aaf2820fa2304b1adc71e45940228c5f362479770" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="group__CRYPTO__CONSTANTS_1gga6ad34a0b8e121a6a30c44909aaf2820fa2304b1adc71e45940228c5f362479770" kindref="member">TRNG</ref><sp/><sp/><sp/><sp/><sp/><sp/><sp/>=<sp/>21,<sp/></highlight><highlight class="comment">///&lt;<sp/>TRNG</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="147" refid="group__CRYPTO__CONSTANTS_1gga6ad34a0b8e121a6a30c44909aaf2820fa4742ab5add31bcbe14b900f9db45a012" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="group__CRYPTO__CONSTANTS_1gga6ad34a0b8e121a6a30c44909aaf2820fa4742ab5add31bcbe14b900f9db45a012" kindref="member">CCM</ref><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>=<sp/>31,<sp/></highlight><highlight class="comment">///&lt;<sp/>CCM</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="148"><highlight class="normal"><sp/><sp/><ref refid="group__CRYPTO__CONSTANTS_1gga6ad34a0b8e121a6a30c44909aaf2820fa533fb8b894a39de8097e0ae397b7d61d" kindref="member">ECDSA</ref><sp/><sp/><sp/><sp/><sp/><sp/>=<sp/>32<sp/><sp/></highlight><highlight class="comment">///&lt;<sp/>ECDSA</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="149" refid="group__CRYPTO__CONSTANTS_1gga6ad34a0b8e121a6a30c44909aaf2820fa533fb8b894a39de8097e0ae397b7d61d" refkind="member"><highlight class="normal">}<sp/><ref refid="group__CRYPTO__CONSTANTS_1ga6ad34a0b8e121a6a30c44909aaf2820f" kindref="member">sl_si91x_crypto_algorithm_type_t</ref>;</highlight></codeline>
+<codeline lineno="150"><highlight class="normal"></highlight><highlight class="comment"></highlight></codeline>
+<codeline lineno="151"><highlight class="comment">/**<sp/>@}<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+    </programlisting>
+    <location file="components/device/silabs/si91x/wireless/crypto/inc/sl_si91x_crypto.h"/>
+  </compounddef>
+</doxygen>

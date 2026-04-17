@@ -1,0 +1,19 @@
+id: tz_secure_execution
+label: TrustZone Secure Execution
+description: >
+  This component prevents the Non-Secure execution startup  from being executed. However, to ensure compatibility and  seamless integration with prebuilt libraries like Rail,  the Non-Secure execution should be used instead.
+
+  Note: This component is intended only for TrustZone-unaware  applications. It is not a template or framework for building  either Secure or Non-Secure applications. For those use cases,  please use the `trustzone_secure` and `trustzone_nonsecure`  components.
+package: platform_core
+category: Platform|TrustZone
+quality: production
+root_path: platform_core/platform/common
+provides:
+- name: tz_secure_execution
+- name: tz_execution
+requires:
+- name: device_series_3
+- name: trustzone_unaware
+metadata:
+  sbom:
+    license: Zlib

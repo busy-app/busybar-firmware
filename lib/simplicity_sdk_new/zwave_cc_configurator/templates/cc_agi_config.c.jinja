@@ -1,0 +1,123 @@
+/**
+ * @file
+ * Command Class Association Group Information
+ * @remarks This file is auto generated
+ * @copyright 2022 Silicon Laboratories Inc.
+ */
+
+#include "cc_agi_config_api.h"
+#include "SizeOf.h"
+#include "cc_association_config.h"
+
+{# Warn if the number of groups for any endpoint is higher than allowed. #}
+{% set maximum = namespace(endpoint=0, most_groups=0) %}
+{% for endpoint in endpoints %}
+  {% if (endpoint.groups | length) > maximum.most_groups %}
+    {% set maximum.most_groups = endpoint.groups | length %}
+    {% set maximum.endpoint = endpoint.endpoint %}
+  {% endif %}
+{% endfor %}
+#define CC_AGI_MOST_GROUPS_PER_ENDPOINT {{ maximum.most_groups }}
+
+#if (CC_AGI_MOST_GROUPS_PER_ENDPOINT > CC_ASSOCIATION_MAX_GROUPS_PER_ENDPOINT)
+#error "Endpoint {{ maximum.endpoint }} has more groups ({{ maximum.most_groups }}) than the upper limit (CC_ASSOCIATION_MAX_GROUPS_PER_ENDPOINT)."
+#endif
+
+{# Generate group names and array of commands for each endpoint.
+ #}
+{% set endpoints_sorted = endpoints|sort(attribute='endpoint') %}
+{% for endpoint in endpoints_sorted %}
+  {% for group in endpoint.groups %}
+static const char GROUP_NAME_ENDPOINT_{{ endpoint.endpoint }}_GROUP_{{ loop.index + 1 }}[] = "{{ group.name }}";
+static const ccc_pair_t COMMANDS_ENDPOINT_{{ endpoint.endpoint }}_GROUP_{{ loop.index + 1 }}[] = {
+    {% for command in group.commands %}
+  {
+    .cmdClass = {{ command.command_class }},
+    .cmd = {{ command.command }}
+  },
+    {% endfor %}
+};
+  {% endfor %}
+{% endfor %}
+
+{# Generate group array for root device.
+ # For an application without endpoints, this array will contain the groups defined for the root
+ # device. For an application with endpoints, this array will contain a copy of all the groups from
+ # each endpoint.
+ #}
+static const cc_agi_group_t ROOT_DEVICE_GROUPS[] =
+{
+{% for endpoint in endpoints_sorted %}
+{% for group in endpoint.groups %}
+  {
+    .name = GROUP_NAME_ENDPOINT_{{ endpoint.endpoint }}_GROUP_{{ loop.index + 1 }},
+    .name_length = sizeof(GROUP_NAME_ENDPOINT_{{ endpoint.endpoint }}_GROUP_{{ loop.index + 1 }}),
+    .profile = {
+      .profile_MS = {{ group.profile_msb }},
+      .profile_LS = {{ group.profile_lsb }}
+    },
+    .ccc_pairs = COMMANDS_ENDPOINT_{{ endpoint.endpoint }}_GROUP_{{ loop.index + 1 }},
+    .ccc_pair_count = sizeof_array(COMMANDS_ENDPOINT_{{ endpoint.endpoint }}_GROUP_{{ loop.index + 1 }}),
+  },
+{% endfor %}
+{% endfor %}
+};
+
+{# Generate group arrays for each endpoint if more than one endpoint is defined.
+ # An application cannot have one endpoint only. Hence, if more than one endpoint is defined, it
+ # means that the application supports endpoints.
+ #}
+{% if endpoints_sorted | length > 1 %}
+
+{% for endpoint in endpoints_sorted %}
+static const cc_agi_group_t ENDPOINT_{{ endpoint.endpoint }}_GROUPS[] =
+{
+{% for group in endpoint.groups %}
+  {
+    .name = GROUP_NAME_ENDPOINT_{{ endpoint.endpoint }}_GROUP_{{ loop.index + 1 }},
+    .name_length = sizeof(GROUP_NAME_ENDPOINT_{{ endpoint.endpoint }}_GROUP_{{ loop.index + 1 }}),
+    .profile = {
+      .profile_MS = {{ group.profile_msb }},
+      .profile_LS = {{ group.profile_lsb }}
+    }, 
+    .ccc_pairs = COMMANDS_ENDPOINT_{{ endpoint.endpoint }}_GROUP_{{ loop.index + 1 }},
+    .ccc_pair_count = sizeof_array(COMMANDS_ENDPOINT_{{ endpoint.endpoint }}_GROUP_{{ loop.index + 1 }}),
+  },
+{% endfor %}
+};
+{% endfor %}
+
+{% endif %}
+static const cc_agi_config_t config[] = {
+  {
+    .groups = ROOT_DEVICE_GROUPS,
+    .group_count = sizeof_array(ROOT_DEVICE_GROUPS)
+  },
+{% if endpoints_sorted | length > 1 %}
+  {% for endpoint in endpoints_sorted %}
+  {
+    .groups = ENDPOINT_{{ endpoint.endpoint }}_GROUPS,
+    .group_count = sizeof_array(ENDPOINT_{{ endpoint.endpoint }}_GROUPS)
+  },
+  {% endfor %}
+{% endif %}
+};
+
+const cc_agi_config_t * cc_agi_get_config(void)
+{
+  return config;
+}
+
+uint8_t cc_agi_config_get_group_count_by_endpoint(uint8_t endpoint)
+{
+  if (endpoint > sizeof_array(config)) {
+    return 0;
+  }
+  return config[endpoint].group_count;
+}
+
+const cc_agi_group_t * cc_agi_get_rootdevice_groups(void)
+{
+  return ROOT_DEVICE_GROUPS;
+}
+

@@ -1,0 +1,56 @@
+id: sl_si91x_mcu
+package: platform_siwx91x
+label: Si91x MCU Subsystem
+description: >
+  The Si91x MCU component initialises the Si91x MCU subsystem at startup.
+category: Device|Si91x|MCU
+quality: production
+metadata:
+  sbom:
+    license: MSLA
+root_path: components/device/silabs/si91x/mcu
+ui_hints:
+  visibility: never
+provides:
+  - name: sl_si91x_mcu
+  - name: sli_si91x_mcu_interface
+  - name: hal_generic_common
+    condition: [sl_si91x_mcu]
+requires:
+  - name: component_catalog
+  - name: rsilib_userconfig
+  - name: si91x_device_init_nvic
+  - name: romdriver_egpio
+  - name: rsilib_clock_update
+  - name: udma_linker_config
+  - name: si91x_debug
+  - name: rsilib_headers
+    condition: ["device_si91x"]
+  - name: romdriver_headers
+    condition: ["device_si91x"]
+  - name: cmsis_driver_headers
+    condition: ["device_si91x"]
+  - name: romdriver_romtable_headers 
+    condition: ["device_si91x"]
+  - name: si91x_log_none  
+define:
+  - name: SLI_SI91X_ENABLE_OS
+    condition: [freertos]
+  - name: SLI_SI91X_ENABLE_OS
+    condition: [micriumos_kernel]
+  - name: SLI_SI91X_MCU_INTERFACE
+  - name: TA_DEEP_SLEEP_COMMON_FLASH
+  - name: SI917
+    condition: [device_family_siwg917]
+  
+template_contribution:
+  - name: event_handler
+    priority: -9998
+    condition: ["freertos"]
+    value: 
+      event: platform_init
+      handler: sl_si91x_device_init_nvic
+      include: rsi_nvic_priorities_config.h
+  - name: device_ram_addr
+    priority: -1
+    value: 12

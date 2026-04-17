@@ -1,0 +1,27 @@
+id: byte_utilities
+package: zigbee
+label: Byte Utilities
+description: |-
+  Data store and fetch routines
+category: Platform|Utilities
+quality: production
+metadata:
+  sbom:
+    license: MSLA
+provides:
+- name: byte_utilities
+include:
+- path: util/plugin/byte_utilities
+  file_list:
+  - path: byte-utilities.h
+source:
+- path: util/plugin/byte_utilities/byte-utilities.c
+template_contribution:
+- name: component_catalog
+  value: byte_utilities
+- name: code_classification_components
+  value: byte_utilities
+define:
+- name: SL_CODE_COMPONENT_BYTE_UTILITIES
+  value: byte_utilities
+root_path: zigbee

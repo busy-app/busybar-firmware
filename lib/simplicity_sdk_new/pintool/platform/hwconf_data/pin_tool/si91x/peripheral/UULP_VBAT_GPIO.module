@@ -1,0 +1,33 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<module:DocumentRoot xmlns:module="http://www.silabs.com/ss/hwconfig/module.ecore">
+  <module id="pin_tool.wfm.si91x.uulp_module" label="UULP_MODULE" name="UULP_MODULE" description="" version="A">
+    <properties>
+      <stringProperty label="Type" id="type" defaultValue="uulp_module" transient="true" hidden="true" readonly="true" description=""/>
+      <stringProperty label="Custom Peripheral Name" id="peripheral.name" description=""/>
+    </properties>
+    <propertyCategories>
+      <category label="UULP_MODULE">
+        <subCategory label="">
+          <propertyRef refId="peripheral.name"/>
+        </subCategory>
+      </category>
+    </propertyCategories>
+    <signals>
+      <signal name="EXT_PG_EN"/>
+      <signal name="GPIO0_WAKEUP"/>
+      <signal name="NPSS_32KHZ_XTAL_CLK"/>
+      <signal name="NPSS_TEST_MODE_0"/>
+      <signal name="XTAL_EN"/>
+      <signal name="GPIO1_WAKEUP"/>
+      <signal name="GPIO_TOGGLE"/>
+      <signal name="NWP_GPIO0_WAKEUP"/>
+      <signal name="GPIO2_WAKEUP"/>
+      <signal name="NPSS_TEST_MODE_1"/>
+      <signal name="VOLT_SENSE"/>
+      <signal name="NWP_GPIO1_WAKEUP"/>
+      <signal name="NPSS_TEST_MODE_2"/>
+      <signal name="COMP_P"/>
+      <signal name="BOD_BUTTON_VIN"/>
+    </signals>
+  </module>
+</module:DocumentRoot>

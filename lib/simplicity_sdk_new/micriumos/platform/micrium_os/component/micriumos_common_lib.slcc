@@ -1,0 +1,18 @@
+id: micriumos_common_lib
+label: Micrium OS Common Libraries Module
+package: micriumos
+description: Micrium OS Extension to Common libraries provide additional libraries that are not essential to the kernel
+category: Services|Micrium|Common
+quality: production
+metadata:
+  sbom:
+    license: MSLA
+source:
+- path: source/common/common.c
+- path: source/lib/lib_math.c
+provides:
+- name: common_lib
+requires:
+- name: common_core
+- name: common_platform_manager
+root_path: micriumos/platform/micrium_os/common

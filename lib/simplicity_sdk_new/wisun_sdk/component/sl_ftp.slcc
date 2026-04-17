@@ -1,0 +1,54 @@
+id: "sl_ftp"
+label: "File Transfer Protocol"
+package: "wisun_sdk"
+description: >
+  FTP (File Transfer Protocol) and TFTP (Trivial File Transfer Protocol)
+  implementation. The FTP Client facilitates file exchange between a client and
+  any remote host over TCP.
+  The TFTP Client facilitates file exchange between a client and any remote host over UDP.
+  This component provides an easy-to-use solution for downloading and uploading files from a remote host.
+  The TFTP client can be initialized with sl_tftp_clnt_init(), and the functions sl_tftp_clnt_get()
+  and sl_tftp_clnt_put() can be used to download and upload files, respectively.
+  Additionally, the block size and timeout options can be configured to negotiate between the server and the client,
+  optimizing the transmission.
+  The component implements the TFTP protocol as specified in RFC 1350.
+  To ensure proper functionality, a TFTP server, such as tftpd-hpa, must be prepared on the remote host.
+
+category: "Wi-SUN|Wi-SUN Services"
+quality: "evaluation"
+metadata:
+  sbom:
+    license: Zlib
+root_path: "wisun_sdk/component/ftp"
+provides:
+- name: sl_ftp
+
+source:
+- path: "sl_ftp.c"
+- path: "sl_ftp_clnt.c"
+- path: "sl_tftp_clnt.c"
+
+include:
+- path: "."
+  file_list:
+  - "path": "sl_ftp.h"
+  - "path": "sl_ftp_clnt.h"
+  - "path": "sl_tftp_clnt.h"
+config_file:
+- path: "config/sl_ftp_config.h"
+
+requires:
+- name: "sl_wisun_ftp_posix_port"
+- name: "sl_string"
+
+#-------------- Template Contribution ----------------
+template_contribution:
+- name: "event_handler"
+  value:
+    event: "internal_app_init"
+    include: "sl_ftp.h"
+    handler: "sl_ftp_init"
+
+#---------------- Component Catalog ------------------
+- name: component_catalog
+  value: ftp

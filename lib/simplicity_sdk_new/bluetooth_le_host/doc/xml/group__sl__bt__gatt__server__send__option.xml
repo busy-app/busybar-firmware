@@ -1,0 +1,38 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="group__sl__bt__gatt__server__send__option" kind="group">
+    <compoundname>sl_bt_gatt_server_send_option</compoundname>
+    <title>GATT Send Options</title>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__sl__bt__gatt__server__send__option_1gab4b6a3e2ca899d4eac4c79726719e26e" prot="public" static="no">
+        <name>SL_BT_GATT_SERVER_SEND_OPTION_NONE</name>
+        <initializer>0x0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Perform the standard notification or indication procedure. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="9875" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="9875" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="group__sl__bt__gatt__server__send__option_1ga973a660ff838fc173522671045407afe" prot="public" static="no">
+        <name>SL_BT_GATT_SERVER_SEND_OPTION_IGNORE_CCCD</name>
+        <initializer>0x1</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Send the notification or indication regardless of whether the corresponding configuration in the Client Characteristic Configuration of the connected client has been set. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" line="9880" column="9" bodyfile="/var/lib/jenkins/github@3/bluetooth_le_host/build/native/ble_bgapi/inc/sl_bt_api.h" bodystart="9880" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para>Defines the option flags used with <ref refid="group__sl__bt__gatt__server_1ga62c23503814ddae97606ca6b5adc4c2a" kindref="member">sl_bt_gatt_server_send_notification_with_options</ref> and <ref refid="group__sl__bt__gatt__server_1ga4fd805f19a22030c5ee03861b792dc68" kindref="member">sl_bt_gatt_server_send_indication_with_options</ref>. </para>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,22 @@
+id: zw_cc_multilevelswitchcontrol
+label: Multilevel Switch Command Class Control
+category: Z-Wave|Command Classes
+description: >
+  The Mulitilevel Switch Command Class is used to request the supported Switch Types of a
+  supporting devices, such as a wall controller or a wall switch.
+  Devices with multilevel capability can be controlled by the Command Class, for example dimming lights.
+package: zwave
+quality: production
+metadata:
+  sbom:
+    reference: zw_sbom_license
+
+source:
+- path: ZAF/CommandClasses/MultilevelSwitch/src/CC_MultilevelSwitch_Control.c
+include:
+- path: ZAF/CommandClasses/MultilevelSwitch/inc
+  file_list:
+  - path: CC_MultilevelSwitch_Control.h
+provides:
+- name: zw_cc_multilevelswitchcontrol
+root_path: zwave

@@ -1,0 +1,33 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="structsl__bt__uuid__64__t" kind="struct" language="C++" prot="public">
+    <compoundname>sl_bt_uuid_64_t</compoundname>
+    <includes refid="sl__bgapi_8h" local="no">sl_bgapi.h</includes>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structsl__bt__uuid__64__t_1a4b47b6b700f7c775bec3f8bb8195fb16" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t sl_bt_uuid_64_t::data[8]</definition>
+        <argsstring>[8]</argsstring>
+        <name>data</name>
+        <qualifiedname>sl_bt_uuid_64_t::data</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>64-bit UUID </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" line="124" column="11" bodyfile="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" bodystart="124" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>64-bit UUID </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" line="123" column="1" bodyfile="/var/lib/jenkins/github@3/bgapi_protocol/protocol/inc/sl_bgapi.h" bodystart="123" bodyend="125"/>
+    <listofallmembers>
+      <member refid="structsl__bt__uuid__64__t_1a4b47b6b700f7c775bec3f8bb8195fb16" prot="public" virt="non-virtual"><scope>sl_bt_uuid_64_t</scope><name>data</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

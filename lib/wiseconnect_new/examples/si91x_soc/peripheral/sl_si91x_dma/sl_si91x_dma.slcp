@@ -1,0 +1,50 @@
+project_name: sl_si91x_dma
+package: platform_siwx91x_app
+description: 'demostrate UDMA functionality.
+
+  '
+category: example|peripheral
+quality: production
+label: SI91x - SL_DMA
+component:
+- id: sl_main
+- id: status
+- id: sl_dma
+- id: syscalls
+- id: si91x_memory_default_config
+source:
+- path: app.c
+- path: dma_example.c
+include:
+- path: .
+  file_list:
+  - path: dma_example.h
+  - path: app.h
+define:
+- name: __STATIC_INLINE
+  value: static inline
+toolchain_settings:
+- option: gcc_compiler_option
+  value: -Wall -Werror
+other_file:
+- path: resources/readme/outputConsoleI_DMA.png
+- path: resources/readme/setupdiagram.png
+- path: resources/uc_screen/ucScreenDMA.png
+provides:
+- name: si91x_soc
+ui_hints:
+  highlight:
+  - path: readme.md
+    focus: true
+readme:
+- path: readme.md
+post_build:
+  profile: wiseconnect_soc
+sdk_extension:
+- id: wiseconnect3_sdk
+  vendor: silabs
+  version: 4.0.1
+sdk:
+  id: simplicity_sdk
+  vendor: silabs
+  version: 2025.12.2

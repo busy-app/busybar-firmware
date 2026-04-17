@@ -1,0 +1,59 @@
+project_name: bt_host_uart_dfu
+package: bluetooth_le_app
+label: Bluetooth - Host UART DFU
+description: >
+  NCP (Network Co-Processor) host example to perform firmware update of
+  NCP target devices over UART. It can connect to an NCP target running
+  the NCP Example via UART to perform Device Firmware Update (DFU) using BGAPI.
+category: Bluetooth Examples
+quality: experimental
+
+filter:
+  - name: "Wireless Technology"
+    value: ["Bluetooth"]
+  - name: "Device Type"
+    value: ["Host"]
+  - name: "Project Difficulty"
+    value: ["Beginner"]
+
+component:
+  - id: toolchain_gcc
+  - id: native_host
+  - id: ncp_version
+  - id: host_main
+  - id: host_ncp
+  - id: app_log
+  - id: app_assert
+  - id: iostream_stdio
+
+source:
+  - path: app.c
+  - path: uart_dfu.c
+  - path: ../common/app_log/app_log_cli.c
+
+include:
+  - path: ./
+    file_list:
+      - path: app.h
+      - path: uart_dfu.h
+  - path: ../common/app_log
+    file_list:
+      - path: app_log_cli.h
+
+configuration:
+  - name: ACCEPT_DFU_BOOT
+    value: 1
+  - name: APP_LOG_LEVEL_FILTER_DYNAMIC 
+    value: 1
+
+tag:
+  - toolchain:gcc
+  - hwfilter:device:device_family_host
+
+readme:
+  - path: readme.md
+
+ui_hints:
+  highlight:
+    - path: readme.md
+      focus: true

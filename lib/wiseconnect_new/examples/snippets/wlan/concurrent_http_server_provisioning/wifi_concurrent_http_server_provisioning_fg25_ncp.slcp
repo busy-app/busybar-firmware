@@ -1,0 +1,78 @@
+project_name: wifi_concurrent_http_server_provisioning_fg25_ncp
+package: wifi_app
+quality: production
+label: Wi-Fi - Concurrent HTTP Server Provisioning (NCP)
+category: Example|Wi-Fi
+description: Start a Wi-Fi Client and Wi-Fi Access Point in IPv4 and IPv6 simultaneously through provisioning from HTTP Server
+filter:
+- name: Wireless Technology
+  value:
+  - Wi-Fi
+- name: Project Difficulty
+  value:
+  - Beginner
+source:
+- path: app.c
+- path: wifi_app.c
+include:
+- path: .
+  file_list:
+  - path: app.h
+define:
+- name: SL_SI91X_PRINT_DBG_LOG
+- name: SLI_SI91X_ENABLE_IPV6
+component:
+- id: sl_main
+- id: slist
+- id: freertos
+- id: freertos_heap_4
+- id: device_init
+- id: iostream_retarget_stdio
+- id: iostream_recommended_stream
+- id: iostream_stdlib_config
+- id: wiseconnect_common
+- id: wifi
+- id: sl_si91x_internal_stack
+- id: sl_http_server
+- id: json_parser
+- id: wifi_resources
+- id: sl_si91x_spi_bus
+- id: network_manager
+- id: basic_network_config_manager
+- id: bsd_socket
+- id: sl_si91x_asynchronous_socket
+- id: sl_si91x_wireless
+- id: sl_si91x_mem_pool_buffers_with_quota
+toolchain_settings:
+- option: gcc_compiler_option
+  value: -Wall -Werror
+configuration:
+- name: SL_BOARD_ENABLE_VCOM
+  value: '1'
+- name: configUSE_POSIX_ERRNO
+  value: '1'
+- name: configTOTAL_HEAP_SIZE
+  value: '51200'
+- name: configTIMER_TASK_PRIORITY
+  value: '55'
+readme:
+- path: readme.md
+other_file:
+- path: resources/readme/concurrent_http_server_provisioning_soc_ncp.png
+- path: resources/readme/HTTP_webpage.png
+- path: resources/readme/application_console_output_soc_ncp_1.png
+- path: resources/readme/application_console_output_soc_ncp_2.png
+- path: resources/readme/application_console_output_soc_ncp_3.png
+- path: resources/readme/state_machine_diagram.png
+ui_hints:
+  highlight:
+  - path: readme.md
+    focus: true
+sdk_extension:
+- id: wiseconnect3_sdk
+  vendor: silabs
+  version: 4.0.1
+sdk:
+  id: simplicity_sdk
+  vendor: silabs
+  version: 2025.12.2

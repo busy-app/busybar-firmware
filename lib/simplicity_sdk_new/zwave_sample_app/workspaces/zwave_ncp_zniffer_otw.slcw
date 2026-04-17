@@ -1,0 +1,17 @@
+label: ZWave_NCP_Zniffer_Solution
+description: >
+  Demonstrates Zniffer application combined with OTW bootloader.
+  The Z-Wave Interface application helps with analyzing the
+  communication between devices and debugging the application. It is possible to
+  log and filter datagrams in any supported region. The log can be saved for later analysis.
+package: zwave_sample_app
+quality: production
+project:
+  - path: ../zwave_ncp_zniffer/zwave_ncp_zniffer.slcp
+    id: application
+    output: application
+  - path: ../bootloaders/bootloader-uart-xmodem-zwave-otw.slcp
+    id: bootloader
+    output: bootloader
+post_build:
+  profile: zwave_workspace

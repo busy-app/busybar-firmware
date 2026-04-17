@@ -1,0 +1,72 @@
+id: tfm_tz_service_psa_crypto
+package: security_tfm
+description: This component component includes tf-m source for the PSA Crypto core support.
+category: Platform|Security|TrustZone
+ui_hints:
+  visibility: never
+quality: production
+provides:
+- name: tfm_tz_service_psa_crypto
+include:
+  # Add third_party as include path in order to redirect
+  # inclusion of the PSA Crypto headers to the mbedtls submodule (when the
+  # corresponding headers in third_party/trusted-firmware-m/interface/include are used).
+- path: .
+
+- path: interface/include
+  condition: [trustzone_secure]
+  file_list:
+  - path: tfm_crypto_defs.h
+
+- path: secure_fw/partitions/crypto
+  condition: [trustzone_secure]
+  file_list:
+  - path: tfm_mbedcrypto_include.h
+  - path: tfm_crypto_api.h
+  - path: tfm_crypto_private.h
+
+- path: secure_fw/spm/include
+  condition: [trustzone_secure]
+  file_list:
+  - path: tfm_memory_utils.h
+
+source:
+  # Core sources
+- path: secure_fw/partitions/crypto/crypto_init_sl.c
+  condition: [trustzone_secure]
+- path: secure_fw/partitions/crypto/crypto_alloc.c
+  condition: [trustzone_secure]
+- path: secure_fw/partitions/crypto/crypto_key.c
+  condition: [trustzone_secure]
+
+  # Function specific sources
+- path: secure_fw/partitions/crypto/crypto_aead.c
+  condition: [trustzone_secure]
+- path: secure_fw/partitions/crypto/crypto_asymmetric.c
+  condition: [trustzone_secure]
+- path: secure_fw/partitions/crypto/crypto_cipher.c
+  condition: [trustzone_secure]
+- path: secure_fw/partitions/crypto/crypto_hash.c
+  condition: [trustzone_secure]
+- path: secure_fw/partitions/crypto/crypto_key_derivation.c
+  condition: [trustzone_secure]
+- path: secure_fw/partitions/crypto/crypto_key_management.c
+  condition: [trustzone_secure]
+- path: secure_fw/partitions/crypto/crypto_mac.c
+  condition: [trustzone_secure]
+- path: secure_fw/partitions/crypto/crypto_rng.c
+  condition: [trustzone_secure]
+- path: secure_fw/partitions/crypto/crypto_pake.c
+  condition: [trustzone_secure]
+
+  # Service interface (NS)
+- path: interface/src/tfm_crypto_func_api.c
+  condition: [trustzone_nonsecure]
+
+define:
+- name: TFM_PARTITION_CRYPTO
+  condition: [trustzone_secure]
+metadata:
+  sbom:
+    reference: tfm_sbom
+root_path: security_tfm

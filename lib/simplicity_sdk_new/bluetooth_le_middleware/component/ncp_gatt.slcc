@@ -1,0 +1,35 @@
+id: ncp_gatt
+label: NCP GATT
+package: bluetooth_le_middleware
+description: >
+  Composes the GATT database on the NCP target using the Dynamic GATT API.
+
+  This is a No-Code component.
+category: Bluetooth|Application|NCP Host Demo
+metadata:
+  sbom:
+    license: Zlib
+quality: production
+root_path: bluetooth_le_middleware/common/ncp_gatt
+tag:
+- No-Code
+include:
+- path: .
+  file_list:
+  - path: sl_ncp_gatt.h
+source:
+- path: sl_ncp_gatt.c
+requires:
+- name: gatt_configuration
+- name: app_assert
+provides:
+- name: ncp_gatt
+template_contribution:
+- name: bluetooth_on_event
+  value:
+    include: sl_ncp_gatt.h
+    function: sl_ncp_gatt_on_event
+  priority: -9000
+documentation:
+  docset: bluetooth
+  document: bluetooth-service-api/ncp-gatt

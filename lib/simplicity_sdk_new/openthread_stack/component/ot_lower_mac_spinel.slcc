@@ -1,0 +1,142 @@
+id: "ot_lower_mac_spinel"
+label: "Implements lower mac using a SPINEL RCP"
+package: openthread_stack
+category: OpenThread
+quality: "production"
+description: "Hidden component which includes the openthread files needed to implement the lower mac portion of the silabs 802.15.4 unified mac using SPINEL talking to an OpenThread 15.4 RCP. Used for running 15.4 stacks such as Zigbee on a posix host connected to an RCP."
+
+provides:
+- name: "ot_lower_mac_spinel"
+
+requires:
+- name: "mbedtls_random"
+- name: "ot_headers"
+
+ui_hints:
+  visibility: never
+
+include:
+# Required OT includes (separate from ot_headers component above)
+- path: "util/third_party/openthread/src"
+  file_list:
+  - path: lib/spinel/spinel_interface.hpp
+  - path: lib/hdlc/hdlc.hpp
+  - path: lib/spinel/coprocessor_type.h
+  - path: lib/spinel/logger.hpp
+  - path: lib/spinel/multi_frame_buffer.hpp
+  - path: lib/spinel/radio_spinel_metrics.h
+  - path: lib/spinel/radio_spinel.hpp
+  - path: lib/spinel/spi_frame.hpp
+  - path: lib/spinel/spinel.h
+  - path: lib/spinel/spinel_buffer.hpp
+  - path: lib/spinel/spinel_decoder.hpp
+  - path: lib/spinel/spinel_driver.hpp
+  - path: lib/spinel/spinel_encoder.hpp
+  - path: lib/spinel/spinel_helper.hpp
+  - path: lib/spinel/spinel_platform.h
+  - path: lib/spinel/spinel_prop_codec.hpp
+  - path: lib/spinel/openthread-spinel-config.h
+  - path: lib/url/url.hpp
+  - path: lib/utils/endian.hpp
+  - path: lib/utils/math.hpp
+  - path: ncp/ncp_config.h
+- path: "util/third_party/openthread/src/posix/platform/include"
+  file_list:
+  - path: openthread/openthread-system.h
+- path: "util/third_party/openthread/src/posix/platform"
+  file_list:
+  - path: daemon.hpp
+  - path: dhcp6_pd_socket.hpp
+  - path: firewall.hpp
+  - path: hdlc_interface.hpp
+  - path: infra_if.hpp
+  - path: ip6_utils.hpp
+  - path: logger.hpp
+  - path: mainloop.hpp
+  - path: mdns_socket.hpp
+  - path: multicast_routing.hpp
+  - path: openthread-core-posix-config.h
+  - path: openthread-posix-config.h
+  - path: platform-posix.h
+  - path: radio.hpp
+  - path: radio_url.hpp
+  - path: rcp_caps_diag.hpp
+  - path: resolver.hpp
+  - path: settings_file.hpp
+  - path: spi_interface.hpp
+  - path: spinel_driver_getter.hpp
+  - path: spinel_manager.hpp
+  - path: system.hpp
+  - path: tmp_storage.hpp
+  - path: udp.hpp
+  - path: vendor_interface.hpp
+
+source:
+# OT Spinel files
+- path: "util/third_party/openthread/src/lib/spinel/logger.cpp"
+- path: "util/third_party/openthread/src/lib/spinel/radio_spinel.cpp"
+- path: "util/third_party/openthread/src/lib/spinel/spinel.c"
+- path: "util/third_party/openthread/src/lib/spinel/spinel_buffer.cpp"
+- path: "util/third_party/openthread/src/lib/spinel/spinel_decoder.cpp"
+- path: "util/third_party/openthread/src/lib/spinel/spinel_driver.cpp"
+- path: "util/third_party/openthread/src/lib/spinel/spinel_encoder.cpp"
+- path: "util/third_party/openthread/src/lib/spinel/spinel_helper.cpp"
+- path: "util/third_party/openthread/src/lib/spinel/spinel_prop_codec.cpp"
+- path: "util/third_party/openthread/src/lib/url/url.cpp"
+
+
+# OT posix platform files
+- path: "util/third_party/openthread/src/posix/platform/alarm.cpp"
+- path: "util/third_party/openthread/src/posix/platform/backtrace.cpp"
+- path: "util/third_party/openthread/src/posix/platform/ble.cpp"
+- path: "util/third_party/openthread/src/posix/platform/dhcp6_pd_socket.cpp"
+- path: "util/third_party/openthread/src/posix/platform/entropy.cpp"
+- path: "util/third_party/openthread/src/posix/platform/logging.cpp"
+- path: "util/third_party/openthread/src/posix/platform/mainloop.cpp"
+- path: "util/third_party/openthread/src/posix/platform/mdns_socket.cpp"
+- path: "util/third_party/openthread/src/posix/platform/memory.cpp"
+- path: "util/third_party/openthread/src/posix/platform/radio.cpp"
+- path: "util/third_party/openthread/src/posix/platform/radio_url.cpp"
+- path: "util/third_party/openthread/src/posix/platform/rcp_caps_diag.cpp"
+- path: "util/third_party/openthread/src/posix/platform/resolver.cpp"
+- path: "util/third_party/openthread/src/posix/platform/settings_file.cpp"
+- path: "util/third_party/openthread/src/posix/platform/spinel_manager.cpp"
+- path: "util/third_party/openthread/src/posix/platform/system.cpp"
+- path: "util/third_party/openthread/src/posix/platform/tmp_storage.cpp"
+
+# OT Core files
+- path: "util/third_party/openthread/src/core/api/error_api.cpp"
+- path: "util/third_party/openthread/src/core/api/logging_api.cpp"
+- path: "util/third_party/openthread/src/core/common/error.cpp"
+- path: "util/third_party/openthread/src/core/common/frame_builder.cpp"
+- path: "util/third_party/openthread/src/core/common/log.cpp"
+- path: "util/third_party/openthread/src/core/common/string.cpp"
+- path: "util/third_party/openthread/src/core/common/timer.cpp"
+  # The following files were brought in when 15.4 security support was
+  # added to the RCP in Thread 1.2. What happens is the SPINEL adapter
+  # updates its copy of the frame security key index and frame counter
+  # with the one filled in by the RCP in HandleTransmitDone(). 
+- path: "util/third_party/openthread/src/core/common/heap.cpp"
+- path: "util/third_party/openthread/src/core/common/offset_range.cpp"
+- path: "util/third_party/openthread/src/core/common/random.cpp"
+- path: "util/third_party/openthread/src/core/crypto/aes_ccm.cpp"
+- path: "util/third_party/openthread/src/core/crypto/aes_ecb.cpp"
+- path: "util/third_party/openthread/src/core/crypto/mbedtls.cpp"
+- path: "util/third_party/openthread/src/core/crypto/storage.cpp"
+- path: "util/third_party/openthread/src/core/mac/mac_frame.cpp"
+- path: "util/third_party/openthread/src/core/mac/mac_header_ie.cpp"
+- path: "util/third_party/openthread/src/core/mac/mac_types.cpp"
+- path: "util/third_party/openthread/src/lib/platform/exit_code.c"
+
+template_contribution:
+- name: component_catalog
+  value: ot_lower_mac_spinel
+
+define:
+- name: "SPINEL_PLATFORM_HEADER"
+  value: "\"spinel_platform.h\""
+
+metadata:
+  sbom:
+    reference: ot_sbom_openthread
+root_path: openthread_stack

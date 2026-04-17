@@ -1,0 +1,19 @@
+id: sl_si91x_errno
+label: SL errno
+package: wifi
+description: >
+  Enables thread-safe errno
+category: Device|Si91x|MCU|Service
+quality: production
+metadata:
+  sbom:
+    license: Zlib
+root_path: components/device/silabs/si91x/wireless/errno
+include:
+  - path: inc
+    file_list:
+      - path: errno.h
+source:
+  - path: src/sl_si91x_errno.c
+provides:
+  - name: sl_si91x_errno
