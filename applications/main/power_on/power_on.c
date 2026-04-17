@@ -49,9 +49,20 @@ static bool power_on_input_callback(const InputEvent* event, void* context) {
 
     bool consumed = false;
     if(event->type == InputTypeShort) {
-        if(event->key == InputKeyStart)
+        switch(event->key) {
+        case InputKeyStart:
+        case InputKeyOk:
+        case InputKeyBusy:
+        case InputKeyCustom:
+        case InputKeyOff:
+        case InputKeyApps:
+        case InputKeySettings:
             furi_thread_flags_set(instance->thread, PowerOnAppThreadFlagExitToMenu);
-        consumed = true;
+            consumed = true;
+            break;
+        default:
+            break;
+        }
     } else if(event->type == InputTypeLong) {
         if(event->key == InputKeyBack)
             furi_thread_flags_set(instance->thread, PowerOnAppThreadFlagExitToTransportMode);

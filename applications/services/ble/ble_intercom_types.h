@@ -4,6 +4,8 @@
 #include <intercom/intercom_frame.h>
 #include <furi.h>
 
+#define BLE_INTERCOM_TX_TIMEOUT_MS (1000)
+
 typedef enum {
     BleIntercomFrameSourceUnknown,
     BleIntercomFrameSourceSystem,

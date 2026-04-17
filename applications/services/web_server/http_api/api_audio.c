@@ -104,8 +104,16 @@ static bool api_audio_volume_callback(
             int value_num = sscanf(value_str, "%u", &volume);
 
             int silent_len = mg_http_get_var(&msg->query, "silent", value_str, sizeof(value_str));
-            if(silent_len == 1 && value_str[0] == '1') {
-                silent = true;
+            if(silent_len == 1) {
+                if(value_str[0] == '1') {
+                    silent = true;
+                } else if(value_str[0] == '0') {
+                    silent = false;
+                } else {
+                    break;
+                }
+            } else if(silent_len != -4) { /* -4 = var not present, see mg_http_get_var */
+                break;
             }
 
             if(value_num == 1) {

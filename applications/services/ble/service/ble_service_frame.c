@@ -56,10 +56,12 @@ bool ble_service_frame_lock(BleServiceFrame* instance) {
 
 void ble_service_frame_unlock(BleServiceFrame* instance) {
     furi_assert(instance);
-    memset(instance->buf, 0, instance->size);
-    instance->pending = false;
-    instance->free_offset = instance->buf;
-    furi_semaphore_release(instance->lock);
+    if(instance->pending) {
+        memset(instance->buf, 0, instance->size);
+        instance->pending = false;
+        instance->free_offset = instance->buf;
+        furi_semaphore_release(instance->lock);
+    }
 }
 
 bool ble_service_frame_pending(BleServiceFrame* instance) {

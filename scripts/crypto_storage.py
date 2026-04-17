@@ -21,6 +21,8 @@ class CryptoStorage(Cli):
     def __enter__(self):
         Cli.__enter__(self)
         self.send_and_wait_prompt("sl_cli\r")
+        # Initialize NWP crypto subsystem (required on older firmware)
+        self.send_and_wait_prompt(f"{self.CRYPTO_CMD} init\r")
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
@@ -113,6 +115,24 @@ class CryptoStorage(Cli):
             print(parsed_data)
         return ret
 
+    def gen_key(
+        self,
+        partition: int,
+        key_type: int,
+        key_id: int,
+        flags: int,
+        *,
+        echo: bool = True,
+    ):
+        data = self.send_and_wait_prompt(
+            f"{self.CRYPTO_CMD} gen {partition} {key_type} {key_id:x} {flags:x}\r"
+        )
+        parsed_data, ret = self._parse_response(data)
+
+        if echo:
+            print(parsed_data)
+        return ret
+
     def gen_csr(
         self,
         partition: int,
@@ -194,27 +214,25 @@ class CryptoStorage(Cli):
 
         return entries
 
+    _ANSI_RE = re.compile(r"\x1b\[[0-9;]*m")
+
     def _parse_response(self, data: bytes) -> tuple[str, int]:
-        """
-        Regex explanation:
-            - Skip the first line (command echo): ".+\n"
-            - Capture all lines before return code: "(^(?s:.)+)"
-            - Skip the last newline before return code: "\n"
-            - Capture the return code: "RET: (\\d+)"
-        """
-        match = re.search(
-            ".+\n(^(?s:.)+)\nRET: (\\d+)", data.decode("ascii"), re.MULTILINE
-        )
+        # Strip ANSI escape codes and normalize line endings
+        text = self._ANSI_RE.sub("", data.decode("ascii", errors="replace"))
+        text = text.replace("\r\n", "\n").replace("\r", "\n")
 
-        if not match:
+        # Find the return code line
+        ret_match = re.search(r"^RET: (\d+)", text, re.MULTILINE)
+        if not ret_match:
+            print(f"Unexpected response format:\n{text}")
+            print(f"Raw bytes: {data!r}")
             raise Exception("Response format error")
 
-        groups = match.groups()
+        # Everything between the echo (first line) and the RET line is the body
+        first_nl = text.find("\n")
+        body = text[first_nl + 1 : ret_match.start()].strip("\n")
 
-        if len(groups) != 2:
-            raise Exception("Response format error")
-
-        return (groups[0], int(groups[1]))
+        return (body, int(ret_match.group(1)))
 
 
 class Main(App):
