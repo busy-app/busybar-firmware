@@ -430,7 +430,7 @@ static const MqttProfile mqtt_profile_table[MqttProfileIdMax] = {
         },
     [MqttProfileIdProduction] =
         {
-            .url = MQTT_URL_TLS_PREFIX "mqtt.cloud.dev.busy.app:8883",
+            .url = MQTT_URL_TLS_PREFIX "mqtt.stage.busy.app:8883",
             .use_tls = true,
         },
     [MqttProfileIdLocal] =
