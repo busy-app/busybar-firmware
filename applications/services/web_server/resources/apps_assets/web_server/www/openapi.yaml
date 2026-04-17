@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: BUSY Bar HTTP API
   description: HTTP API for BUSY Bar web server
-  version: 18.2.0
+  version: 19.0.0
   contact:
     name: tbd
 
@@ -1940,7 +1940,7 @@ components:
           description: Element type
         name:
           type: string
-          pattern: "^[a-zA-Z0-9._/-]+$"
+          pattern: "^[^\\x00-\\x1F\\\\/:*?\"<>|]+$"
           description: File or directory name
       discriminator:
         propertyName: type
@@ -2201,6 +2201,7 @@ components:
           properties:
             timestamp:
               type: string
+              pattern: "^[0-9]+$"
               description: "Seconds-based Unix UTC timestamp to count down or up to. Note: it's a number in a string."
             color:
               type: string
