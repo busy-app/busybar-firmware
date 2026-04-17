@@ -61,6 +61,7 @@ FuriHalCryptoKeyIter furi_hal_crypto_key_iter_init(FuriHalCryptoPartition partit
  *    - FuriHalCryptoStatusNotFound if there are no more keys
  *    - other errors corresponding to various storage failures
  */
+FURI_CHECK_RETURN
 FuriHalCryptoStatus furi_hal_crypto_key_iter_get_and_advance(
     FuriHalCryptoKeyIter* iter,
     FuriHalCryptoKey** key_out,
@@ -72,6 +73,7 @@ FuriHalCryptoStatus furi_hal_crypto_key_iter_get_and_advance(
 * @param[in] id ID of the key to write.
 * @return FuriHalCryptoStatus indicating the result of the operation.
 */
+FURI_CHECK_RETURN
 FuriHalCryptoStatus furi_hal_crypto_storage_write(
     const FuriHalCryptoKey* key,
     FuriHalCryptoPartition partition,
@@ -84,6 +86,7 @@ FuriHalCryptoStatus furi_hal_crypto_storage_write(
 * @param[out] slot Key storage slot metadata. Can be NULL.
 * @return FuriHalCryptoStatus indicating the result of the operation.
 */
+FURI_CHECK_RETURN
 FuriHalCryptoStatus furi_hal_crypto_storage_write_ex(
     const FuriHalCryptoKey* key,
     FuriHalCryptoPartition partition,
@@ -97,6 +100,7 @@ FuriHalCryptoStatus furi_hal_crypto_storage_write_ex(
 * @param[in] id ID of the key to read.
 * @return FuriHalCryptoStatus indicating the result of the operation.
 */
+FURI_CHECK_RETURN
 FuriHalCryptoStatus furi_hal_crypto_storage_read(
     FuriHalCryptoKey** key,
     FuriHalCryptoPartition partition,
@@ -112,6 +116,7 @@ FuriHalCryptoStatus furi_hal_crypto_storage_read(
 * @param[in] id ID of the key to read.
 * @return FuriHalCryptoStatus indicating the result of the operation.
 */
+FURI_CHECK_RETURN
 FuriHalCryptoStatus furi_hal_crypto_storage_read_ex(
     FuriHalCryptoKey** key,
     FuriHalCryptoKeySlot* slot,
