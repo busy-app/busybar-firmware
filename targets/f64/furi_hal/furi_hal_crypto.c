@@ -147,8 +147,6 @@ FuriHalCryptoStatus furi_hal_crypto_aes_init(
         handle->config.key_config.b0.key_type = SL_SI91X_TRANSPARENT_KEY;
     } else {
         handle->config.key_config.b0.key_type = SL_SI91X_WRAPPED_KEY;
-        //for 128 bits key, wrap key size is 128 bits,
-        //for 192 and 256 bits keys, wrap key size is 256 bits
     }
 
     *aes = handle;
@@ -539,10 +537,17 @@ FuriHalCryptoStatus
         wrap_config->padding = (1 << 0); //SL_SI91X_HMAC_PADDING;
         wrap_config->hmac_sha_mode = sl_hmac_sha_mode_lookup[key->type];
         break;
-    default:
+    case FuriHalCryptoKeyTypeAes128:
+    case FuriHalCryptoKeyTypeAes192:
+    case FuriHalCryptoKeyTypeAes256:
+    case FuriHalCryptoKeyTypeEcdsaPriv224:
+    case FuriHalCryptoKeyTypeEcdsaPriv256:
         wrap_config->wrap_iv_mode = SL_SI91X_WRAP_IV_CBC_MODE;
         wrap_config->padding = 0;
         break;
+    default:
+        free(wrap_config);
+        return FuriHalCryptoStatusInvalidParameter;
     }
 
     memcpy(wrap_config->key_buffer, key->data, wrap_config->key_size);
@@ -556,7 +561,7 @@ FuriHalCryptoStatus
     if(status == SL_STATUS_OK) {
         wrapped_key->type = key->type;
         wrapped_key->flags = key->flags | FuriHalCryptoKeyFlagWrap;
-        wrapped_key->length = wrap_config->key_size;
+        wrapped_key->length = FURI_HAL_CRYPTO_AES_KEY_SIZE_256;
         *wrapped_key_out = wrapped_key;
     } else if(status == SL_STATUS_SI91X_CRYPTO_DEVICE_SECURITY_IS_DISABLED) {
         ret = FuriHalCryptoStatusUnavailable;

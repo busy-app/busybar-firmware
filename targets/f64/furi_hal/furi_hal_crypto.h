@@ -409,6 +409,7 @@ FuriHalCryptoStatus furi_hal_crypto_sha(
  *    - FuriHalCryptoStatusOk on success
  *    - FuriHalCryptoStatusInvalidParameter if key is too long
  *    - FuriHalCryptoStatusInvalidParameter if key is already wrapped
+ *    - FuriHalCryptoStatusInvalidParameter if key type is not supported for wrapping
  *    - FuriHalCryptoStatusUnsupported if device security is not enabled (key wrapping is not possible)
  *    - FuriHalCryptoStatusDriverError otherwise
  */
