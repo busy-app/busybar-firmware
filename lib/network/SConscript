@@ -4,6 +4,9 @@ env.Append(
     CPPPATH=[
         Dir("dhserver").srcnode(),
     ],
+    LINT_SOURCES=[
+        Dir(".").srcnode(),
+    ],
 )
 
 

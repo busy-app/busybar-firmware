@@ -33,35 +33,31 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include <stdio.h>
 #include <string.h>
-#include "lwip/err.h"
-#include "lwip/udp.h"
-#include "netif/etharp.h"
 
-typedef struct dhcp_entry
-{
-	uint8_t    mac[6];
-	ip4_addr_t addr;
-	uint32_t   lease;
-} dhcp_entry_t;
+#include <lwip/err.h>
+#include <lwip/udp.h>
+#include <netif/etharp.h>
 
-typedef struct dhcp_config
-{
-	struct netif* netif;
-	ip4_addr_t    router;
-	uint16_t      port;
-	ip4_addr_t    dns;
-	const char   *domain;
-	int           num_entry;
-	dhcp_entry_t *entries;
+typedef struct dhcp_config {
+    struct netif* netif;
+    ip4_addr_t router;
+    uint16_t port;
+    ip4_addr_t dns;
+    const char* domain;
+    uint8_t max_lease_count;
 } dhcp_config_t;
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-err_t dhserv_init(const dhcp_config_t *config);
-void dhserv_free(void);
+
+err_t dhserv_init(const dhcp_config_t* config);
+
+void dhserv_deinit(void);
+
+bool dhserv_has_lease(const ip4_addr_t addr);
+
 #ifdef __cplusplus
 }
 #endif

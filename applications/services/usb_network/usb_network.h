@@ -11,7 +11,7 @@ extern "C" {
 
 typedef struct UsbNetwork UsbNetwork;
 
-bool usb_network_is_dhcp_addr(UsbNetwork* usb_network, uint8_t* addr);
+bool usb_network_is_dhcp_addr(UsbNetwork* usb_network, const uint8_t* addr);
 
 #ifdef __cplusplus
 }

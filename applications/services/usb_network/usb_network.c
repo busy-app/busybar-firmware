@@ -83,25 +83,7 @@ static void usb_network_mdns_txt_callback(struct mdns_service* service, void* tx
     }
 }
 
-static void usb_network_init_dhcp_entries(UsbNetwork* instance, UsbNetworkIpAddress start_addr) {
-    UsbNetworkIpAddress entry_addr = start_addr;
-
-    for(uint32_t i = 0; i < DHCP_ENTRIES_MAX; i++) {
-        uint8_t device_octet = entry_addr.bytes[3] + 1;
-
-        while(device_octet == start_addr.bytes[3] || device_octet == 0) {
-            ++device_octet;
-        }
-
-        entry_addr.bytes[3] = device_octet;
-
-        dhcp_entry_t* entry = &instance->dhcp_entries[i];
-        entry->addr.addr = entry_addr.val;
-        entry->lease = DHCP_LEASE_DEFAULT;
-    }
-}
-
-static void usb_network_dhcp_init(UsbNetwork* instance, UsbNetworkIpAddress start_addr) {
+static void usb_network_dhcp_init(UsbNetwork* instance) {
     dhcp_config_t* dhcp_config = &instance->dhcp_config;
 
     dhcp_config->netif = &instance->netif;
@@ -109,10 +91,7 @@ static void usb_network_dhcp_init(UsbNetwork* instance, UsbNetworkIpAddress star
     dhcp_config->port = 67;
     dhcp_config->dns.addr = 0;
     dhcp_config->domain = "usb";
-    dhcp_config->num_entry = DHCP_ENTRIES_MAX;
-    dhcp_config->entries = instance->dhcp_entries;
-
-    usb_network_init_dhcp_entries(instance, start_addr);
+    dhcp_config->max_lease_count = 3;
 }
 
 static void usb_network_dhcp_start(UsbNetwork* instance) {
@@ -123,7 +102,7 @@ static void usb_network_dhcp_start(UsbNetwork* instance) {
 
 static void usb_network_dhcp_stop(UsbNetwork* instance) {
     UNUSED(instance);
-    dhserv_free();
+    dhserv_deinit();
 }
 
 static void usb_network_mdns_init(UsbNetwork* instance) {
@@ -163,7 +142,7 @@ static void usb_network_init_netif(UsbNetwork* instance) {
     netif_create_ip6_linklocal_address(netif, 1);
 #endif
 
-    usb_network_dhcp_init(instance, ip_config->address);
+    usb_network_dhcp_init(instance);
     usb_network_mdns_init(instance);
 
 #ifdef USB_NET_IPERF
@@ -254,15 +233,17 @@ uint16_t usb_network_tx(uint8_t* data, void* context) {
     return pbuf_copy_partial(pbuf, data, pbuf->tot_len, 0);
 }
 
-bool usb_network_is_dhcp_addr(UsbNetwork* instance, uint8_t* addr) {
+bool usb_network_is_dhcp_addr(UsbNetwork* instance, const uint8_t* addr) {
     furi_assert(instance);
     furi_assert(addr);
-    for(uint8_t i = 0; i < DHCP_ENTRIES_MAX; i++) {
-        if(memcmp(&instance->dhcp_entries[i].addr.addr, addr, 4) == 0) {
-            return true;
-        }
-    }
-    return false;
+
+    const ip_addr_t* ip4_addr = (ip4_addr_t*)addr;
+
+    LOCK_TCPIP_CORE();
+    const bool result = dhserv_has_lease(*ip4_addr);
+    UNLOCK_TCPIP_CORE();
+
+    return result;
 }
 
 static UsbNetwork* usb_network_alloc(void) {
