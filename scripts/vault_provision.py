@@ -126,7 +126,7 @@ class VaultClient:
         return cls(addr, token)
 
     def sign_csr_pem(
-        self, csr_pem: str, common_name: str, role: str, ttl: str = "43800h"
+        self, csr_pem: str, common_name: str, role: str, ttl: str = "175200h"
     ) -> dict:
         """Submit a CSR to Vault for signing. Returns the response data dict."""
         resp = self.session.post(
@@ -440,7 +440,7 @@ class Main(App):
         org = conf.get("PKI_ORGANIZATION", "Flipper FZCO")
         country = conf.get("PKI_COUNTRY", "AE")
         role = conf.get("PKI_VAULT_ROLE", "busybar-device")
-        ttl = conf.get("PKI_DEVICE_TTL", "43800h")
+        ttl = conf.get("PKI_DEVICE_TTL", "175200h")
         cn = cn_template.format(uid=device_uid)
         subject = f"CN={cn},O={org},C={country}"
         print("  Generating wrapped key pair + CSR on device...")
@@ -484,7 +484,7 @@ class Main(App):
         conf: dict[str, str],
     ):
         role = conf.get("PKI_VAULT_ROLE", "busybar-device")
-        ttl = conf.get("PKI_DEVICE_TTL", "43800h")
+        ttl = conf.get("PKI_DEVICE_TTL", "175200h")
         cn_template = conf.get("PKI_DEVICE_CN_TEMPLATE", "BusyBar device {uid}")
         cn = cn_template.format(uid=device_uid)
 

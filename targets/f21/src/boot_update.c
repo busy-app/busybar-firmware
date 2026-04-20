@@ -28,7 +28,8 @@ typedef struct {
 static MountPoint* mount_point[_VOLUMES];
 
 static void platform_boot_update_sys_init(void) {
-    furi_hal_mpu_init();
+    furi_hal_mpu_init_early();
+
     furi_hal_clock_init();
     furi_hal_interrupt_init();
     furi_hal_sdmmc_init(false);

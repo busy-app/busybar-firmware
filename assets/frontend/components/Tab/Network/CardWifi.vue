@@ -35,13 +35,13 @@
         Connected
       </div>
       <div
-        v-else-if="wifiStore.wifi?.state === 'connecting'"
+        v-else-if="connecting"
         data-id="network-section-wifi-status-connecting"
       >
         Connecting...
       </div>
       <div
-        v-else-if="wifiStore.wifi?.state === 'reconnecting'"
+        v-else-if="reconnecting"
         data-id="network-section-wifi-status-reconnecting"
       >
         Reconnecting...
@@ -56,18 +56,18 @@
 
     <template #actions>
       <UButton
-        v-if="!connected && !showNetworksList"
+        v-if="!connected && !reconnecting && !showNetworksList"
         data-id="network-section-wifi-select-button"
-        :label="wifiStore.wifi?.state === 'connecting' ? 'Connecting...' : 'Select network'"
+        :label="connecting ? 'Connecting...' : 'Select network'"
         :ui="{
           base: 'rounded-full'
         }"
         class="justify-center sm:justify-start"
-        :loading="loading.state || loading.list || wifiStore.wifi?.state === 'connecting'"
+        :loading="loading.state || loading.list || connecting"
         @click="listWifiNetworks"
       />
       <UButton
-        v-if="(connected || wifiStore.wifi?.state === 'reconnecting') && !showNetworksList"
+        v-if="(connected || reconnecting) && !showNetworksList"
         data-id="network-section-wifi-forget-button"
         label="Forget network"
         variant="outline"
@@ -513,9 +513,6 @@ async function connectToNetwork () {
 }
 
 async function forgetNetwork () {
-  if (!wifiStore.wifi || !wifiStore.wifi.ssid) {
-    return;
-  }
   const wasConnectedViaWifi = useDeviceStore().connectionType === 'wifi';
   loading.value.forget = true;
   await wifiStore.disconnectFromWifiNetwork();
@@ -528,9 +525,11 @@ async function forgetNetwork () {
 }
 
 const connected = computed(() => wifiStore.wifi?.state === 'connected');
+const connecting = computed(() => wifiStore.wifi?.state === 'connecting');
+const reconnecting = computed(() => wifiStore.wifi?.state === 'reconnecting');
 
 const title = computed(() => {
-  if (wifiStore.wifi?.state === 'connected' || wifiStore.wifi?.state === 'connecting' || wifiStore.wifi?.state === 'reconnecting') {
+  if (connected.value || connecting.value || reconnecting.value) {
     return wifiStore.wifi?.ssid || 'Wi-Fi';
   } else if (networks.value.length > 0) {
     return 'Select network';
@@ -558,7 +557,7 @@ const sectionIcon = computed(() => {
   if (showNetworksList.value) {
     return undefined;
   }
-  if (wifiStore.wifi?.state === 'connecting' || wifiStore.wifi?.state === 'reconnecting') {
+  if (connecting.value || reconnecting.value) {
     return 'i-bi-wifi-4';
   }
   if (connected.value) {
