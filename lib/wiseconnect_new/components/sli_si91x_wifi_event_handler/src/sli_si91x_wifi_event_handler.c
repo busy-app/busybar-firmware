@@ -45,6 +45,10 @@
 #include "sl_utility.h"
 #include "sl_log_helper_si91x.h"
 
+#include <furi.h>
+
+#define TAG "SL_LOG"
+
 #ifdef SL_NET_COMPONENT_INCLUDED
 #include "sl_net_types.h"
 #include "sl_net_constants.h"
@@ -355,7 +359,7 @@ static sl_status_t bus_write_frame(sli_wifi_command_queue_t *queue,
       sli_si91x_config_m4_dma_desc_on_reset();
     }
 #endif
-    SL_PRINT_STRING_DEBUG("<>>>> Tx -> queueId : %u, frameId : 0x%x, length : %u\n",
+    FURI_LOG_D(TAG, "<>>>> Tx -> queueId : %u, frameId : 0x%x, length : %u",
                           node->firmware_queue_id,
                           packet->command,
                           length);
@@ -439,7 +443,7 @@ static sl_status_t bus_write_data_frame(sli_wifi_buffer_queue_t *queue)
     SL_PRINT_STRING_ERROR("\r\n BUS_WRITE_ERROR \r\n");
     sli_command_engine_status_queue_enqueue_and_set_event(SL_STATUS_BUS_ERROR);
   } else {
-    SL_PRINT_STRING_DEBUG("<>>>> Tx -> queueId : %u, frameId : 0x%x, length : %u\n", 5, 0, length);
+    FURI_LOG_D(TAG, "<>>>> Tx -> queueId : %u, frameId : 0x%x, length : %u", 5, 0, length);
   }
 
   if (current_performance_profile != HIGH_PERFORMANCE) {
@@ -660,8 +664,7 @@ static inline void sli_si91x_wifi_handle_rx_events(uint32_t *event)
 #endif
 
     const sl_wifi_system_packet_t *response = (const sl_wifi_system_packet_t *)data;
-    SL_PRINT_STRING_DEBUG("><<<< Rx -> queueId : %u, frameId : 0x%x, ", queue_id, frame_type);
-    SL_PRINT_STRING_DEBUG("frameStatus: 0x%x, length : %u\n", frame_status, (response->length & (~(0xF000))));
+    FURI_LOG_D(TAG, "><<<< Rx -> queueId : %u, frameId : 0x%x, frameStatus: 0x%x, length : %u", queue_id, frame_type,frame_status, (response->length & (~(0xF000))));
 
     switch (queue_id) {
       case SLI_WLAN_MGMT_Q: {
