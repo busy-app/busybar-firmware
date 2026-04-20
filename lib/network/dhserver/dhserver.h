@@ -27,17 +27,14 @@
  * brief:   tiny dhcp ipv4 server using lwip (pcb)
  * ref:     https://lists.gnu.org/archive/html/lwip-users/2012-12/msg00016.html
  */
-
-#ifndef DHSERVER_H
-#define DHSERVER_H
-
-#include <stdint.h>
-#include <stdbool.h>
-#include <string.h>
+#pragma once
 
 #include <lwip/err.h>
-#include <lwip/udp.h>
-#include <netif/etharp.h>
+#include <lwip/netif.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef struct dhcp_config {
     struct netif* netif;
@@ -48,10 +45,6 @@ typedef struct dhcp_config {
     uint8_t max_lease_count;
 } dhcp_config_t;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 err_t dhserv_init(const dhcp_config_t* config);
 
 void dhserv_deinit(void);
@@ -61,5 +54,3 @@ bool dhserv_has_lease(const ip4_addr_t addr);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* DHSERVER_H */

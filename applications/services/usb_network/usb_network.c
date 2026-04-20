@@ -8,6 +8,7 @@
 
 #include <lwip/udp.h>
 #include <lwip/tcpip.h>
+#include <lwip/etharp.h>
 
 #include <lwip/apps/mdns.h>
 #include <lwip/apps/lwiperf.h>

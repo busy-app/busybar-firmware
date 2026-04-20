@@ -24,6 +24,9 @@
 
 #include "dhserver.h"
 
+#include <lwip/udp.h>
+#include <lwip/etharp.h>
+
 /* DHCP message type */
 #define DHCP_DISCOVER 1
 #define DHCP_OFFER    2
@@ -91,7 +94,7 @@ typedef struct {
 } DHCP_TYPE;
 
 typedef struct dhcp_entry {
-    uint8_t mac[6];
+    uint8_t mac[ETH_HWADDR_LEN];
     ip4_addr_t addr;
     uint32_t lease_time_s;
 } dhcp_entry_t;
@@ -119,6 +122,7 @@ static dhcp_entry_t* entry_by_ip(ip4_addr_t ip) {
     for(uint32_t i = 0; i < config->max_lease_count; i++) {
         if(entries[i].addr.addr == ip.addr) {
             entry = &entries[i];
+            break;
         }
     }
 
@@ -131,6 +135,7 @@ static dhcp_entry_t* entry_by_mac(uint8_t* mac) {
     for(uint32_t i = 0; i < config->max_lease_count; i++) {
         if(memcmp(entries[i].mac, mac, sizeof(entries[i].mac)) == 0) {
             entry = &entries[i];
+            break;
         }
     }
 
@@ -148,6 +153,7 @@ static dhcp_entry_t* vacant_address(void) {
     for(uint32_t i = 0; i < config->max_lease_count; i++) {
         if(is_vacant(&entries[i])) {
             entry = &entries[i];
+            break;
         }
     }
 
