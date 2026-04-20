@@ -16,7 +16,7 @@ struct Countdown {
     const lv_font_t* loaded_font;
 
     time_t timestamp;
-    uint8_t last_update_second;
+    DateTime last_update_time;
     CountdownDirection direction;
     CountdownShowHour hours;
 
@@ -33,11 +33,11 @@ const lv_obj_class_t countdown_lvgl_class;
 static void countdown_update(Countdown* countdown) {
     furi_assert(countdown);
 
-    DateTimeMs datetime = furi_hal_rtc_get_datetime();
-    if(datetime.dt.second == countdown->last_update_second) return;
-    countdown->last_update_second = datetime.dt.second;
+    DateTime datetime = furi_hal_rtc_get_datetime().dt;
+    if(utz_udatetime_cmp(&countdown->last_update_time, &datetime) == 0) return;
+    countdown->last_update_time = datetime;
 
-    time_t now = datetime_datetime_to_timestamp(&datetime.dt);
+    time_t now = datetime_datetime_to_timestamp(&datetime);
 
     time_t delta = countdown->timestamp - now;
     if(countdown->direction == CountdownDirectionTimeSince) delta = -delta;
