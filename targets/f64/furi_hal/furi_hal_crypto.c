@@ -422,9 +422,7 @@ FuriHalCryptoStatus
     } else {
         handle->config.key_config.B0.key_type = SL_SI91X_WRAPPED_KEY;
         handle->config.key_config.B0.wrap_iv_mode = SL_SI91X_WRAP_IV_CBC_MODE;
-        if(handle->config.key_config.B0.wrap_iv_mode == SL_SI91X_WRAP_IV_CBC_MODE) {
-            memcpy(handle->config.key_config.B0.wrap_iv, wrap_iv, SL_SI91X_IV_SIZE);
-        }
+        memcpy(handle->config.key_config.B0.wrap_iv, wrap_iv, SL_SI91X_IV_SIZE);
     }
     handle->config.key_config.B0.key_size = key->length;
     handle->config.key_config.B0.key = malloc(key->length);
@@ -529,11 +527,13 @@ FuriHalCryptoStatus
     sl_si91x_wrap_config_t* wrap_config = malloc(sizeof(sl_si91x_wrap_config_t));
     wrap_config->key_type = SL_SI91X_TRANSPARENT_KEY;
     wrap_config->key_size = key->length;
+    bool is_hmac = false;
     switch(key->type) {
     case FuriHalCryptoKeyTypeHmacSha1:
     case FuriHalCryptoKeyTypeHmacSha256:
     case FuriHalCryptoKeyTypeHmacSha384:
     case FuriHalCryptoKeyTypeHmacSha512:
+        is_hmac = true;
         wrap_config->padding = (1 << 0); //SL_SI91X_HMAC_PADDING;
         wrap_config->hmac_sha_mode = sl_hmac_sha_mode_lookup[key->type];
         break;
@@ -542,7 +542,6 @@ FuriHalCryptoStatus
     case FuriHalCryptoKeyTypeAes256:
     case FuriHalCryptoKeyTypeEcdsaPriv224:
     case FuriHalCryptoKeyTypeEcdsaPriv256:
-        wrap_config->wrap_iv_mode = SL_SI91X_WRAP_IV_CBC_MODE;
         wrap_config->padding = 0;
         break;
     default:
@@ -550,10 +549,9 @@ FuriHalCryptoStatus
         return FuriHalCryptoStatusInvalidParameter;
     }
 
+    wrap_config->wrap_iv_mode = SL_SI91X_WRAP_IV_CBC_MODE;
     memcpy(wrap_config->key_buffer, key->data, wrap_config->key_size);
-    if(wrap_config->wrap_iv_mode == SL_SI91X_WRAP_IV_CBC_MODE) {
-        memcpy(wrap_config->wrap_iv, wrap_iv, SL_SI91X_IV_SIZE);
-    }
+    memcpy(wrap_config->wrap_iv, wrap_iv, SL_SI91X_IV_SIZE);
 
     FuriHalCryptoKey* wrapped_key = key_alloc();
     sl_status_t status = sl_si91x_wrap(wrap_config, wrapped_key->data);
@@ -561,7 +559,11 @@ FuriHalCryptoStatus
     if(status == SL_STATUS_OK) {
         wrapped_key->type = key->type;
         wrapped_key->flags = key->flags | FuriHalCryptoKeyFlagWrap;
-        wrapped_key->length = FURI_HAL_CRYPTO_AES_KEY_SIZE_256;
+        if(is_hmac) {
+            wrapped_key->length = wrap_config->key_size;
+        } else {
+            wrapped_key->length = FURI_HAL_CRYPTO_AES_KEY_SIZE_256;
+        }
         *wrapped_key_out = wrapped_key;
     } else if(status == SL_STATUS_SI91X_CRYPTO_DEVICE_SECURITY_IS_DISABLED) {
         ret = FuriHalCryptoStatusUnavailable;
