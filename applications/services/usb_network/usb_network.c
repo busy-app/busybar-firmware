@@ -6,9 +6,9 @@
 
 #include <tusb.h>
 
-#include <lwip/init.h>
 #include <lwip/udp.h>
 #include <lwip/tcpip.h>
+
 #include <lwip/apps/mdns.h>
 #include <lwip/apps/lwiperf.h>
 
@@ -26,11 +26,13 @@
 #define PBUF_DROP_PADDING(p)
 #endif // ETH_PAD_SIZE != 0
 
+#define MDNS_TXT_DATA "path=/"
+
 #define TAG "UsbNet"
 
 static UsbNetwork* usb_network = NULL;
 
-static err_t linkoutput_fn(struct netif* netif, struct pbuf* p) {
+static err_t usb_network_link_output_callback(struct netif* netif, struct pbuf* p) {
     UNUSED(netif);
 
     err_t ret = ERR_IF;
@@ -38,7 +40,7 @@ static err_t linkoutput_fn(struct netif* netif, struct pbuf* p) {
     PBUF_DROP_PADDING(p);
 
     do {
-        if(!tud_ready()) {
+        if(!tud_mounted()) {
             break;
         }
 
@@ -56,7 +58,7 @@ static err_t linkoutput_fn(struct netif* netif, struct pbuf* p) {
     return ret;
 }
 
-static err_t netif_init_cb(struct netif* netif) {
+static err_t usb_network_netif_init_callback(struct netif* netif) {
     furi_assert(netif);
 
     netif->mtu = CFG_TUD_NET_MTU;
@@ -64,7 +66,7 @@ static err_t netif_init_cb(struct netif* netif) {
     netif->name[0] = 'E';
     netif->name[1] = 'X';
     netif->output = etharp_output;
-    netif->linkoutput = linkoutput_fn;
+    netif->linkoutput = usb_network_link_output_callback;
 #if LWIP_IPV6
     netif->output_ip6 = ethip6_output;
 #endif
@@ -72,10 +74,9 @@ static err_t netif_init_cb(struct netif* netif) {
     return ERR_OK;
 }
 
-static void mdns_srv_txt(struct mdns_service* service, void* txt_userdata) {
+static void usb_network_mdns_txt_callback(struct mdns_service* service, void* txt_userdata) {
     UNUSED(txt_userdata);
-
-    const err_t res = mdns_resp_add_service_txtitem(service, "path=/", 6);
+    const err_t res = mdns_resp_add_service_txtitem(service, MDNS_TXT_DATA, strlen(MDNS_TXT_DATA));
 
     if(res != ERR_OK) {
         FURI_LOG_E(TAG, "mdns add service txt failed");
@@ -122,16 +123,21 @@ static void usb_network_init_mdns(UsbNetwork* instance) {
 
     mdns_resp_init();
     mdns_resp_add_netif(netif, "busybar");
-    mdns_resp_add_service(netif, "httpd", "_http", DNSSD_PROTO_TCP, 80, mdns_srv_txt, NULL);
-    mdns_resp_announce(netif);
+    mdns_resp_add_service(
+        netif, "httpd", "_http", DNSSD_PROTO_TCP, 80, usb_network_mdns_txt_callback, NULL);
+}
+
+static void usb_network_netif_set_hw_address(struct netif* netif) {
+    memcpy(netif->hwaddr, furi_hal_version_get_usb_mac(), ETH_HWADDR_LEN);
+    netif->hwaddr[5] ^= 0x01;
+    netif->hwaddr_len = ETH_HWADDR_LEN;
 }
 
 static void usb_network_init_netif(UsbNetwork* instance) {
-    struct netif* netif = &instance->netif;
+    LOCK_TCPIP_CORE();
 
-    memcpy(netif->hwaddr, furi_hal_version_get_usb_mac(), 6);
-    netif->hwaddr[5] ^= 0x01;
-    netif->hwaddr_len = 6;
+    struct netif* netif = &instance->netif;
+    usb_network_netif_set_hw_address(netif);
 
     const UsbNetworkIpConfig* ip_config = &instance->settings.ip_config;
 
@@ -139,9 +145,7 @@ static void usb_network_init_netif(UsbNetwork* instance) {
     const ip4_addr_t gateway = {ip_config->gateway.val};
     const ip4_addr_t netmask = {ip_config->netmask.val};
 
-    LOCK_TCPIP_CORE();
-
-    netif_add(netif, &ip, &netmask, &gateway, NULL, netif_init_cb, tcpip_input);
+    netif_add(netif, &ip, &netmask, &gateway, NULL, usb_network_netif_init_callback, tcpip_input);
 #if LWIP_IPV6
     netif_create_ip6_linklocal_address(netif, 1);
 #endif
@@ -164,6 +168,7 @@ void usb_network_up(void) {
     // TODO: DHCP server
     netif_set_up(netif);
     netif_set_link_up(netif);
+    mdns_resp_announce(netif);
     UNLOCK_TCPIP_CORE();
 }
 
