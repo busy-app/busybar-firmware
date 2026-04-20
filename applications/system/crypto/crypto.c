@@ -203,6 +203,11 @@ void crypto_command_write(PipeSide* pipe, FuriString* args, void* context) {
         uint16_t length = 0;
         parse_err |= strint_to_uint16(args_cstr, &args_cstr, &length, 10);
 
+        if(length == 0 || length > FURI_HAL_CRYPTO_DATA_SIZE_MAX) {
+            printf("Invalid data length\r\n");
+            break;
+        }
+
         uint8_t* buf = malloc(length);
 
         furi_string_printf(args, "%s", args_cstr);
@@ -250,7 +255,7 @@ void crypto_command_write(PipeSide* pipe, FuriString* args, void* context) {
         cli_print_usage(
             "crypto write",
             "<partition> <type> <id: in HEX> <wrap: 0 or 1> <size> <data: in byte>\r\n",
-            furi_string_get_cstr(args));
+            NULL);
         printf(CLI_STATUS_ERROR);
     }
 }
