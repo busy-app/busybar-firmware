@@ -10,6 +10,8 @@ typedef struct {
     ClockView* front_clock;
 
     MirrorCard* back_card;
+
+    LocalTime displayed_time;
 } ClockSceneClock;
 
 static const TransitionOverlayPreset clock_scene_clock_back_transition_overlay_preset = {
@@ -33,7 +35,7 @@ static void clock_scene_clock_on_enter(void* context) {
     TimeSettings* time_settings = malloc(sizeof(*time_settings));
     time_get_settings(instance->time, time_settings);
 
-    LocalTime local_time = time_get_local_time(instance->time);
+    scene->displayed_time = time_get_local_time(instance->time);
 
     with_gui(instance->gui, {
         /* front layout setup */
@@ -45,7 +47,7 @@ static void clock_scene_clock_on_enter(void* context) {
         clock_view_set_show_seconds(scene->front_clock, instance->settings.show_seconds);
         clock_view_set_blink_colons(scene->front_clock, instance->settings.blink_colons);
 
-        clock_view_set_date_time(scene->front_clock, &local_time.dt);
+        clock_view_set_date_time(scene->front_clock, &scene->displayed_time.dt);
 
         /* back layout setup */
         scene->back_card = mirror_card_alloc(instance->back_scene_window);
@@ -84,9 +86,12 @@ static bool clock_scene_clock_on_event(const SceneManagerEvent* event, void* con
         switch(event->event) {
         case ClockEventTimerUpdate:
             LocalTime local_time = time_get_local_time(instance->time);
-            with_gui(instance->gui, {
-                clock_view_set_date_time(scene->front_clock, &local_time.dt);
-            });
+            if(utz_udatetime_cmp(&scene->displayed_time.dt, &local_time.dt) != 0) {
+                with_gui(instance->gui, {
+                    clock_view_set_date_time(scene->front_clock, &local_time.dt);
+                });
+            }
+            scene->displayed_time = local_time;
             return true;
 
         default:

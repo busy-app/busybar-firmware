@@ -39,8 +39,6 @@ struct ClockView {
     bool show_date;
     bool show_seconds;
     bool blink_colons;
-
-    uint8_t displayed_second;
 };
 
 const lv_obj_class_t clock_view_lvgl_class;
@@ -201,8 +199,6 @@ ClockView* clock_view_alloc(Widget* parent) {
     instance->show_seconds = true;
     instance->blink_colons = true;
 
-    instance->displayed_second = -1;
-
     return instance;
 }
 
@@ -318,28 +314,22 @@ void clock_view_set_date_time(ClockView* instance, const DateTime* date_time) {
     furi_string_printf(instance->string_builder, "%02" PRIu8, date_time->minute);
     lv_span_set_text(instance->time_minute_span, furi_string_get_cstr(instance->string_builder));
 
-    if(instance->displayed_second != date_time->second) {
-        if(instance->show_seconds) {
-            furi_string_printf(instance->string_builder, "%02" PRIu8, date_time->second);
-            lv_span_set_text(
-                instance->time_second_span, furi_string_get_cstr(instance->string_builder));
-        }
+    if(instance->show_seconds) {
+        furi_string_printf(instance->string_builder, "%02" PRIu8, date_time->second);
+        lv_span_set_text(
+            instance->time_second_span, furi_string_get_cstr(instance->string_builder));
+    }
 
-        if(instance->blink_colons) {
-            lv_style_set_text_opa(
-                lv_span_get_style(instance->time_second_colon_span), LV_OPA_COVER);
-            lv_style_set_text_opa(
-                lv_span_get_style(instance->time_minute_colon_span), LV_OPA_COVER);
+    if(instance->blink_colons) {
+        lv_style_set_text_opa(lv_span_get_style(instance->time_second_colon_span), LV_OPA_COVER);
+        lv_style_set_text_opa(lv_span_get_style(instance->time_minute_colon_span), LV_OPA_COVER);
 
-            lv_timer_set_repeat_count(instance->colon_blink_timer, 1);
-            lv_timer_resume(instance->colon_blink_timer);
-            lv_timer_reset(instance->colon_blink_timer);
-        }
+        lv_timer_set_repeat_count(instance->colon_blink_timer, 1);
+        lv_timer_resume(instance->colon_blink_timer);
+        lv_timer_reset(instance->colon_blink_timer);
     }
 
     lv_spangroup_refresh(instance->time_spangroup);
-
-    instance->displayed_second = date_time->second;
 }
 
 /* LVGL class descriptor */
