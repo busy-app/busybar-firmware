@@ -218,7 +218,7 @@ const tabStore = useTabStore();
 
 const colorMode = useColorMode();
 
-const passwordSetItems = [
+const passwordSetItems = computed(() => [
   {
     label: 'Manage password',
     icon: 'i-bi-password',
@@ -249,9 +249,9 @@ const passwordSetItems = [
     icon: colorMode.value === 'dark' ? 'i-bi-brightness' : 'i-bi-moon',
     onSelect: () => colorMode.preference = colorMode.value === 'dark' ? 'light' : 'dark'
   }
-];
+]);
 
-const passwordUnsetItems = [
+const passwordUnsetItems = computed(() => [
   {
     label: 'Set password',
     icon: 'i-bi-password',
@@ -267,7 +267,7 @@ const passwordUnsetItems = [
     icon: colorMode.value === 'dark' ? 'i-bi-brightness' : 'i-bi-moon',
     onSelect: () => colorMode.preference = colorMode.value === 'dark' ? 'light' : 'dark'
   }
-];
+]);
 
 const userDropdownItems = computed(() => {
   const baseItems = [
@@ -298,9 +298,9 @@ const userDropdownItems = computed(() => {
       ...baseItems
     ];
   } else if (deviceStore.httpAPIAccess.mode === 'key') {
-    return [[...passwordSetItems], ...baseItems];
+    return [[...passwordSetItems.value], ...baseItems];
   } else {
-    return [[...passwordUnsetItems], ...baseItems];
+    return [[...passwordUnsetItems.value], ...baseItems];
   }
 });
 
@@ -363,7 +363,7 @@ async function init () {
 
   await deviceStore.detectConnectionType();
   if (deviceStore.connectionType === 'usb') {
-    passwordSetItems.splice(0, 1);
+    passwordSetItems.value.splice(0, 1);
   }
 
   nameModel.value = await deviceStore.fetchDeviceName();

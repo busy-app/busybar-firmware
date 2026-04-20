@@ -55,6 +55,19 @@ static bool ble_service_command_handler_init(
     return result;
 }
 
+static bool ble_service_command_handler_deinit(
+    BleServiceObject* instance,
+    BleIntercomFrameType frame_type,
+    size_t data_size,
+    const void* data) {
+    UNUSED(instance);
+    UNUSED(frame_type);
+    UNUSED(data);
+    UNUSED(data_size);
+    BLE_LOG_D("%s - ble_service_command_handler_deinit", instance->config->name);
+    return false;
+}
+
 static bool ble_service_command_handler_update(
     BleServiceObject* instance,
     BleIntercomFrameType frame_type,
@@ -101,6 +114,9 @@ bool ble_service_target_execute(
     switch(command) {
     case BleServiceCommandInit:
         result = ble_service_command_handler_init(instance, frame_type, data_size, data);
+        break;
+    case BleServiceCommandDeinit:
+        result = ble_service_command_handler_deinit(instance, frame_type, data_size, data);
         break;
     case BleServiceCommandRun:
         ble_service_command_handler_run(instance, frame_type, data_size, data);

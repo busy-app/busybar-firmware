@@ -35,6 +35,8 @@ void state_publisher_free_state_update(BSB_State_StateUpdate* update);
 SHARED_PTR_DEF(SharedStateUpdate, BSB_State_StateUpdate, STATE_UPDATE_OPLIST);
 ARRAY_DEF(StateUpdateArray, SharedStateUpdate_t, SHARED_PTR_OPLIST(SharedStateUpdate));
 
+#define MAX_SEQ_UPDATES 128
+
 typedef struct Transport {
     bool valid;
 
@@ -76,6 +78,7 @@ struct StatePublisher {
 
 typedef enum {
     MessageTypePublishUpdate,
+    MessageTypeTransportResumed,
     MessageTypePowerEvent,
     MessageTypeAudioEvent,
     MessageTypeMatterEvent,

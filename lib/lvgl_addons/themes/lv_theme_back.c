@@ -237,13 +237,13 @@ static void style_init(my_theme_t* theme, FontRegistry* font_registry) {
 
     lv_style_init(&theme->styles.status_view_header);
     lv_style_set_align(&theme->styles.status_view_header, LV_ALIGN_CENTER);
-    lv_style_set_y(&theme->styles.status_view_header, 12);
+    lv_style_set_y(&theme->styles.status_view_header, 7);
     lv_style_set_text_color(&theme->styles.status_view_header, COLOR_FG_FOCUSED);
     lv_style_set_text_align(&theme->styles.status_view_header, LV_TEXT_ALIGN_CENTER);
 
     lv_style_init(&theme->styles.status_view_additional_text);
     lv_style_set_align(&theme->styles.status_view_additional_text, LV_ALIGN_CENTER);
-    lv_style_set_y(&theme->styles.status_view_additional_text, 15);
+    lv_style_set_y(&theme->styles.status_view_additional_text, 22);
     lv_style_set_text_color(&theme->styles.status_view_additional_text, COLOR_FG_NORMAL);
 }
 

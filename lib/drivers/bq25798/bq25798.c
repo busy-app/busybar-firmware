@@ -265,6 +265,14 @@ bool bq25798_charge_enable(FuriHalI2cBusHandle* handle, bool enabled) {
     return bq25798_write_reg_8(handle, BQ25798_REG0F_CHARGER_CONTROL_0, *(uint8_t*)&reg_temp);
 }
 
+bool bq25798_is_charge_enabled(FuriHalI2cBusHandle* handle) {
+    furi_assert(handle);
+
+    Bq25798Reg0FChargerControl0 reg_temp = {0};
+    bq25798_read_reg_8(handle, BQ25798_REG0F_CHARGER_CONTROL_0, (uint8_t*)&reg_temp);
+    return reg_temp.EN_CHG;
+}
+
 void bq25798_power_switch(FuriHalI2cBusHandle* handle, Bq25798PowerSwitch mode) {
     furi_assert(handle);
     furi_assert(mode <= Bq25798PowerReset);

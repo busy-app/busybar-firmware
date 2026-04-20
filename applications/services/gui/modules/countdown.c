@@ -12,6 +12,9 @@ struct Countdown {
     lv_obj_t* label;
     lv_timer_t* timer;
 
+    FontRegistry* font_registry;
+    const lv_font_t* loaded_font;
+
     time_t timestamp;
     uint8_t last_update_second;
     CountdownDirection direction;
@@ -98,6 +101,18 @@ void countdown_set_text_color(Countdown* instance, Color color) {
     lv_obj_set_style_text_opa(instance->label, color.a, LV_PART_MAIN);
 }
 
+void countdown_set_text_font(Countdown* instance, const char* font_path) {
+    furi_check(instance);
+    furi_check(font_path);
+
+    if(instance->loaded_font) {
+        font_registry_unload_font(instance->font_registry, instance->loaded_font);
+    }
+
+    instance->loaded_font = font_registry_load_font(instance->font_registry, font_path);
+    lv_obj_set_style_text_font(instance->label, instance->loaded_font, LV_PART_MAIN);
+}
+
 void countdown_begin(
     Countdown* instance,
     time_t time,
@@ -130,6 +145,7 @@ static void countdown_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* 
     lv_obj_remove_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
 
     Countdown* instance = (Countdown*)obj;
+    instance->font_registry = furi_record_open(RECORD_FONT_REGISTRY);
     instance->label = lv_label_create(obj);
 
     instance->timer = lv_timer_create(countdown_timer_callback, UPDATE_PERIOD_MS, instance);
@@ -141,7 +157,14 @@ static void countdown_lvgl_destructor(const lv_obj_class_t* class_p, lv_obj_t* o
     UNUSED(class_p);
 
     Countdown* instance = (Countdown*)obj;
+
     lv_timer_delete(instance->timer);
+
+    if(instance->loaded_font) {
+        font_registry_unload_font(instance->font_registry, instance->loaded_font);
+    }
+
+    furi_record_close(RECORD_FONT_REGISTRY);
 }
 
 const lv_obj_class_t countdown_lvgl_class = {

@@ -13,6 +13,10 @@ on:
             - "applications/services/web_server/resources/apps_assets/web_server/www/openapi.yaml"
             - "applications/services/web_server/http_api/http_api.h"
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
     oasdiff:
         runs-on: ubuntu-latest

@@ -3,9 +3,16 @@
 
 #if !defined(BSB_MCU_SI917)
 #include "http/ble_http_repeater.h"
+#include "streaming/ble_streaming.h"
 #endif
 
 #define TAG "BLE"
+
+#define BLE_SERVICE_LOCK_TIMEOUT         (100)
+#define BLE_SERVICE_MAILBOX_LOCK_TIMEOUT (100)
+#define BLE_COMMAND_INVOKE_RETRY_TIMEOUT (100)
+
+static void ble_backend_intercom_rx_callback(const void* data, size_t data_size, void* context);
 
 void ble_set_service_post_process_callback(Ble* ble, BleServicePostProcessCallback callback) {
     furi_assert(ble);
@@ -45,6 +52,23 @@ static void
 #endif
 }
 
+static void ble_allocate_services(Ble* instance) {
+    for(size_t i = 0; i < BLE_SERVICES_COUNT; i++) {
+        instance->services[i] =
+            ble_service_alloc(service_config[i], instance->message_queue, instance->intercom_ch);
+    }
+}
+
+static void ble_custom_event_handler_init(Ble* instance) {
+    instance->intercom_ch = intercom_channel_open(
+        instance->intercom, IntercomChannelIdBle, ble_backend_intercom_rx_callback, instance);
+
+    ble_allocate_services(instance);
+#if !defined(BSB_MCU_SI917)
+    furi_event_loop_set_custom_event(instance->event_loop, BleEventTypeInitOnStart);
+#endif
+}
+
 static void ble_event_loop_msg_queue_handler(FuriEventLoopObject* object, void* context) {
     furi_assert(context);
     Ble* ble = context;
@@ -61,29 +85,53 @@ static void ble_event_loop_msg_queue_handler(FuriEventLoopObject* object, void* 
 static void ble_custom_event_callback(uint32_t events, void* context) {
     Ble* instance = context;
 
-    if(furi_mutex_acquire(instance->ble_lock, 100) == FuriStatusOk) {
+    if(furi_mutex_acquire(instance->ble_lock, BLE_SERVICE_LOCK_TIMEOUT) == FuriStatusOk) {
+        if(events & BleEventTypeIntercomInit) {
+            ble_custom_event_handler_init(instance);
+        }
+
+        if(events & BleEventTypeIntercomDeinit) {
+            ble_command_unblock_with_result(instance, false);
+            ble_invoke_retry_command_on_internal_event(
+                instance,
+                BleCommandDeinit,
+                BleEventTypeIntercomDeinit,
+                BLE_COMMAND_INVOKE_RETRY_TIMEOUT);
+        }
+
         if(events & BleEventTypeDeviceNameChanged) {
             ble_invoke_retry_command_on_internal_event(
-                instance, BleCommandSetDeviceName, BleEventTypeDeviceNameChanged, 100);
+                instance,
+                BleCommandSetDeviceName,
+                BleEventTypeDeviceNameChanged,
+                BLE_COMMAND_INVOKE_RETRY_TIMEOUT);
         }
 
         if(events & BleEventTypeInitOnStart) {
             ble_invoke_retry_command_on_internal_event(
-                instance, BleCommandInit, BleEventTypeInitOnStart, 100);
+                instance,
+                BleCommandInit,
+                BleEventTypeInitOnStart,
+                BLE_COMMAND_INVOKE_RETRY_TIMEOUT);
         }
 
         if(events & BleEventTypeEnableOnStart) {
             ble_invoke_retry_command_on_internal_event(
-                instance, BleCommandEnable, BleEventTypeEnableOnStart, 100);
+                instance,
+                BleCommandEnable,
+                BleEventTypeEnableOnStart,
+                BLE_COMMAND_INVOKE_RETRY_TIMEOUT);
         }
 
-        if((events & BleEventTypeFrameReceived) || (events & BleEventTypeIncomingMessage)) {
-            BleIntercomFrameGeneric* frame = ble_command_preprocess(instance, events);
-            ble_command_engine_run(instance->engine, frame, instance);
+        if(events & BleEventTypeFrameReceived) {
+            ble_command_engine_run(
+                instance->engine, BleCommandEngineExtractFrameSourceIntercomBuffer);
+            furi_semaphore_release(instance->mailbox_lock);
+        }
 
-            if(events & BleEventTypeFrameReceived) {
-                furi_semaphore_release(instance->mailbox_lock);
-            }
+        if(events & BleEventTypeApiCommand) {
+            ble_command_engine_run(
+                instance->engine, BleCommandEngineExtractFrameSourceCommandBuffer);
         }
         furi_mutex_release(instance->ble_lock);
     } else
@@ -100,7 +148,8 @@ static void ble_backend_intercom_rx_callback(const void* data, size_t data_size,
     furi_check(frame->header.frame_type != BleIntercomFrameTypeUnknown);
 
     if(frame->header.source == BleIntercomFrameSourceSystem) {
-        if(furi_semaphore_acquire(instance->mailbox_lock, 100) == FuriStatusOk) {
+        if(furi_semaphore_acquire(instance->mailbox_lock, BLE_SERVICE_MAILBOX_LOCK_TIMEOUT) ==
+           FuriStatusOk) {
             memcpy(&instance->mailbox, data, data_size);
             furi_event_loop_set_custom_event(instance->event_loop, BleEventTypeFrameReceived);
         } else
@@ -108,6 +157,20 @@ static void ble_backend_intercom_rx_callback(const void* data, size_t data_size,
     } else {
         BleServiceObject* service = instance->services[frame->header.service_index];
         ble_service_process_mailbox(service, frame);
+    }
+}
+
+static void ble_intercom_state_callback(const void* item, void* context) {
+    furi_assert(item);
+    furi_assert(context);
+
+    Ble* instance = context;
+    const IntercomStatus intercom_status = *(IntercomStatus*)item;
+
+    if(intercom_status == IntercomStatusOk) {
+        furi_event_loop_set_custom_event(instance->event_loop, BleEventTypeIntercomInit);
+    } else if(intercom_status != IntercomStatusUnknown) {
+        furi_event_loop_set_custom_event(instance->event_loop, BleEventTypeIntercomDeinit);
     }
 }
 
@@ -120,7 +183,8 @@ static Ble* ble_alloc() {
 
     instance->message_queue =
         furi_message_queue_alloc(BLE_SERVICES_COUNT, sizeof(BleServiceObject*));
-    instance->engine = ble_command_engine_alloc(ble_commands, BleCommandCount, NULL, NULL);
+    instance->engine = ble_command_engine_alloc(
+        instance, ble_commands, BleCommandCount, ble_command_extract_frame);
 
     furi_event_loop_set_custom_event_callback(
         instance->event_loop, ble_custom_event_callback, instance);
@@ -132,26 +196,20 @@ static Ble* ble_alloc() {
         ble_event_loop_msg_queue_handler,
         instance);
 
-    Intercom* intercom = furi_record_open(RECORD_INTERCOM);
-    instance->intercom_ch = intercom_channel_open(
-        intercom, IntercomChannelIdBle, ble_backend_intercom_rx_callback, instance);
-
-    for(size_t i = 0; i < BLE_SERVICES_COUNT; i++) {
-        instance->services[i] =
-            ble_service_alloc(service_config[i], instance->message_queue, instance->intercom_ch);
-    }
+    instance->intercom = furi_record_open(RECORD_INTERCOM);
+    furi_state_subscribe(
+        intercom_get_state(instance->intercom), ble_intercom_state_callback, instance);
 
     instance->error = furi_string_alloc();
 #if !defined(BSB_MCU_SI917)
     ble_http_repeater_init();
+    instance->streaming = ble_streaming_alloc(instance);
 
     instance->on_status_change = furi_pubsub_alloc();
     instance->current_command_lock = furi_mutex_alloc(FuriMutexTypeNormal);
     instance->current_command_api_lock = api_lock_alloc_locked();
     instance->current_command_size = sizeof(BleIntercomFrameHeader) + sizeof(bool);
     instance->current_command = malloc(instance->current_command_size);
-
-    furi_event_loop_set_custom_event(instance->event_loop, BleEventTypeInitOnStart);
 #endif
 
     furi_record_create(RECORD_BLE, instance);

@@ -8,17 +8,37 @@ fwenv.SetDefault(BKP_RESOURCES_ROOT=fwenv.Dir("${BUILD_DIR}/resources_bkp"))
 
 fw_assets_env = fwenv.Clone(tools=["bsb_assets"])
 
-if fwenv.get("IS_BASE_FIRMWARE", False):
-    assets_dir = fwenv.Dir("${BUILD_DIR}/resources_bkp")
-    resources_dist = []
+def convert_animations():
+    src_files = fwenv.GlobRecursive("*.zip", Dir("#/assets_bkp/animations/"))
+    converted = []
 
-    # Animations
-    anim_src_files = fwenv.GlobRecursive("*.zip", Dir("#/assets_bkp/animations/"))
-
-    for f in anim_src_files:
+    for f in src_files:
         file_node = assets_dir.File(
             f.Dir(".").name + "/animations/" + splitext(f.name)[0] + ".anim"
         )
-        resources_dist.extend(fw_assets_env.AnimationConverter(file_node, f))
+        converted.extend(fw_assets_env.AnimationConverter(file_node, f))
+
+    return converted
+
+def convert_power_cal():
+    src_files = fwenv.GlobRecursive("*.bat_cal", Dir("#/assets_bkp/power/"))
+    converted = []
+
+    for src in src_files:
+        dest = assets_dir.Dir(src.Dir(".").name + "/")
+        converted.append(fwenv.Install(dest, src))
+
+    return converted
+
+if fwenv.get("IS_BASE_FIRMWARE", False):
+    assets_dir = fwenv.Dir("${BUILD_DIR}/resources_bkp")
+
+    resources_dist = []
+    converters = [
+        convert_animations,
+        convert_power_cal,
+    ]
+    for converter in converters:
+        resources_dist += converter()
 
     fwenv.Replace(FW_BKP_RESOURCES=resources_dist)

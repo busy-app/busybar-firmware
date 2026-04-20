@@ -461,7 +461,7 @@ static bool api_update_changelog_callback(
         FuriString* check_version = furi_string_alloc();
         do {
             if(check_state.result != UpdaterCheckResultAvailable) {
-                error_text = "Update not available";
+                error_text = "Changelog not available";
                 break;
             }
 

@@ -22,7 +22,7 @@
 // HM-10 Bluetooth UUIDs
 // HM10_UART_SERVICE_UUID = "0000ffe0-0000-1000-8000-00805f9b34fb"
 // HM10_UART_TX_CHAR_UUID = "0000ffe1-0000-1000-8000-00805f9b34fb"
-// HM10_UART_RX_CHAR_UUID = "0000ffe1-0000-1000-8000-00805f9b34fb"
+// HM10_UART_RX_CHAR_UUID = "0000ffe2-0000-1000-8000-00805f9b34fb"
 #define HM10_UART_SERVICE_UUID \
     {0x00, 0x00, 0xFF, 0xE0, 0x00, 0x00, 0x10, 0x00, 0x80, 0x00, 0x00, 0x80, 0x5F, 0x9B, 0x34, 0xFB}
 #define HM10_UART_TX_CHAR_UUID \
@@ -31,6 +31,7 @@
     {0x00, 0x00, 0xFF, 0xE2, 0x00, 0x00, 0x10, 0x00, 0x80, 0x00, 0x00, 0x80, 0x5F, 0x9B, 0x34, 0xFB}
 
 #define NORDIC_UART_INITIAL_DATA_SIZE (237) //RSI_DEV_ATT_LEN - ATTRIBUTE_HEADER_SIZE (240-3 = 237)
+#define HM10_UART_INITIAL_DATA_SIZE   (237)
 
 static bool ble_service_uart_init(void* object) {
     furi_assert(object);
@@ -96,7 +97,7 @@ static const BleCharacteristicDescriptor hm10_uart_service_characteristics[] = {
     {
         .intercom_index = BleUartCharacteristicIndexRx,
         .name = "HM10 Rx",
-        .initial_data_size = 100,
+        .initial_data_size = HM10_UART_INITIAL_DATA_SIZE,
 #if defined(BSB_MCU_SI917)
         .uuid = {.Char_UUID_128 = HM10_UART_RX_CHAR_UUID},
         .uuid_size = 16,
@@ -106,7 +107,7 @@ static const BleCharacteristicDescriptor hm10_uart_service_characteristics[] = {
     {
         .intercom_index = BleUartCharacteristicIndexTx,
         .name = "HM10 Tx",
-        .initial_data_size = 100,
+        .initial_data_size = HM10_UART_INITIAL_DATA_SIZE,
 #if defined(BSB_MCU_SI917)
         .uuid = {.Char_UUID_128 = HM10_UART_TX_CHAR_UUID},
         .uuid_size = 16,

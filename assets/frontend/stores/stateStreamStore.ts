@@ -274,7 +274,6 @@ export const useStateStreamStore = defineStore('stateStream', () => {
 
     if (status === 'BATTERY_LOW') {
       firmwareStore.autoUpdate.isAllowed = false;
-      firmwareStore.autoUpdate.modals.batteryLow = true;
       return;
     }
 
@@ -282,7 +281,6 @@ export const useStateStreamStore = defineStore('stateStream', () => {
       firmwareStore.autoUpdate.error.stage = firmwareStore.autoUpdate.stage;
       firmwareStore.autoUpdate.error.message = `Update failed: ${lowerCaseEnum(status)}`;
       firmwareStore.autoUpdate.stage = UpdateStage.ERROR;
-      firmwareStore.autoUpdate.modals.updating = true;
       firmwareStore.autoUpdate.isAllowed = false;
       return;
     }
@@ -291,13 +289,11 @@ export const useStateStreamStore = defineStore('stateStream', () => {
 
     if (action === 'DOWNLOAD') {
       firmwareStore.autoUpdate.stage = UpdateStage.LOADING;
-      firmwareStore.autoUpdate.modals.updating = true;
       return;
     }
 
     if (action && action !== 'ACTION_NONE') {
       firmwareStore.autoUpdate.stage = UpdateStage.UPDATING;
-      firmwareStore.autoUpdate.modals.updating = true;
       return;
     }
 

@@ -128,21 +128,24 @@ function handleModalClose () {
 }
 
 const downloadErrorMarkdown = `
-- Ensure you have a stable internet connection
-- Make sure you are using the latest browser version
-- Wait a few minutes, refresh the page, and try again
-- Go to your browser's settings and find the option to clear browsing cache, close the browser and reopen it, and try again
-- Try to update using a different browser
-- Try connecting to another Wi-Fi network
-
-If none of the above steps helped, please contact our [Customer Support team](https://support.busy.app).
+1. Check internet connection on your BUSY Bar\n
+    [How to connect BUSY Bar to Wi-Fi](https://go.busy.app/bar-wifi-connect)
+2. Restart your BUSY Bar by holding Start and Back buttons for 3 seconds\n
+    [How to restart BUSY Bar](https://go.busy.app/bar-restart)
+3. Charge your BUSY Bar up to 40%\n
+    [How to charge BUSY Bar](https://go.busy.app/bar-battery-charge)
+4. Update your BUSY Bar from another device via BUSY App\n
+    [How to update BUSY Bar firmware](https://go.busy.app/bar-firmware-update)
+5. Try again later — the update server may be unavailable right now
 `;
 const updateErrorMarkdown = `
-- Make sure you are using the correct update package (.tar or .tgz)
-- Restart your BUSY Bar (hold Start and Back for 3 seconds, then release), and try again
-- Charge device completely, and try again
-
-If none of the above steps helped, please contact our [Customer Support team](https://support.busy.app).
+1. Restart your BUSY Bar by holding Start and Back buttons for 3 seconds\n
+    [How to restart BUSY Bar](https://go.busy.app/bar-restart)
+3. Charge your BUSY Bar up to 40%\n
+    [How to charge BUSY Bar](https://go.busy.app/bar-battery-charge)
+4. Update your BUSY Bar from another device via BUSY App\n
+    [How to update BUSY Bar firmware](https://go.busy.app/bar-firmware-update)
+5. If you’re using a custom file, make sure it’s the correct package (.tar or .tgz)
 `;
 
 const indeterminateProgressModel = ref(null);
