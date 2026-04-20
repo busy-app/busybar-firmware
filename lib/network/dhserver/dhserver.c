@@ -117,29 +117,29 @@ static void set_ip(uint8_t* pnt, ip4_addr_t value) {
 }
 
 static dhcp_entry_t* entry_by_ip(ip4_addr_t ip) {
-    dhcp_entry_t* entry = NULL;
+    dhcp_entry_t* result = NULL;
 
     for(uint32_t i = 0; i < config->max_lease_count; i++) {
         if(entries[i].addr.addr == ip.addr) {
-            entry = &entries[i];
+            result = &entries[i];
             break;
         }
     }
 
-    return entry;
+    return result;
 }
 
 static dhcp_entry_t* entry_by_mac(uint8_t* mac) {
-    dhcp_entry_t* entry = NULL;
+    dhcp_entry_t* result = NULL;
 
     for(uint32_t i = 0; i < config->max_lease_count; i++) {
         if(memcmp(entries[i].mac, mac, sizeof(entries[i].mac)) == 0) {
-            entry = &entries[i];
+            result = &entries[i];
             break;
         }
     }
 
-    return entry;
+    return result;
 }
 
 static FURI_ALWAYS_INLINE bool is_vacant(const dhcp_entry_t* entry) {
@@ -148,16 +148,16 @@ static FURI_ALWAYS_INLINE bool is_vacant(const dhcp_entry_t* entry) {
 }
 
 static dhcp_entry_t* vacant_address(void) {
-    dhcp_entry_t* entry = NULL;
+    dhcp_entry_t* result = NULL;
 
     for(uint32_t i = 0; i < config->max_lease_count; i++) {
         if(is_vacant(&entries[i])) {
-            entry = &entries[i];
+            result = &entries[i];
             break;
         }
     }
 
-    return entry;
+    return result;
 }
 
 static FURI_ALWAYS_INLINE void free_entry(dhcp_entry_t* entry) {
