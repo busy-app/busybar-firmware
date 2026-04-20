@@ -183,41 +183,57 @@ void crypto_command_write(PipeSide* pipe, FuriString* args, void* context) {
     FuriHalCryptoStatus status = FuriHalCryptoStatusOk;
     bool success = false;
     do {
-        if(furi_string_size(args)) {
-            char* args_cstr = (char*)furi_string_get_cstr(args);
-            StrintParseError parse_err = StrintParseNoError;
+        if(furi_string_size(args) == 0) {
+            break;
+        }
+        char* args_cstr = (char*)furi_string_get_cstr(args);
+        StrintParseError parse_err = StrintParseNoError;
 
-            parse_err |= strint_to_uint32(args_cstr, &args_cstr, &temp, 10);
-            partition = (FuriHalCryptoPartition)temp;
-            if(parse_err || (partition >= FuriHalCryptoPartitionMax)) {
-                break;
-            }
+        parse_err |= strint_to_uint32(args_cstr, &args_cstr, &temp, 10);
+        partition = (FuriHalCryptoPartition)temp;
+        if(parse_err || (partition >= FuriHalCryptoPartitionMax)) {
+            break;
+        }
 
-            parse_err |= strint_to_uint32(args_cstr, &args_cstr, &temp, 10);
-            FuriHalCryptoKeyType type = (FuriHalCryptoKeyType)temp;
-            parse_err |= strint_to_uint32(args_cstr, &args_cstr, &key_id, 16);
-            parse_err |= strint_to_uint32(args_cstr, &args_cstr, &temp, 16);
-            FuriHalCryptoKeyFlag flags = (FuriHalCryptoKeyFlag)temp;
-            if(flags) {
-                printf("Unsupported flags: %d\r\n", flags);
-                break;
-            }
-            uint16_t length = 0;
-            parse_err |= strint_to_uint16(args_cstr, &args_cstr, &length, 10);
+        parse_err |= strint_to_uint32(args_cstr, &args_cstr, &temp, 10);
+        FuriHalCryptoKeyType type = (FuriHalCryptoKeyType)temp;
+        parse_err |= strint_to_uint32(args_cstr, &args_cstr, &key_id, 16);
+        parse_err |= strint_to_uint32(args_cstr, &args_cstr, &temp, 16);
+        bool wrap = temp != 0;
+        uint16_t length = 0;
+        parse_err |= strint_to_uint16(args_cstr, &args_cstr, &length, 10);
 
-            uint8_t* buf = malloc(length);
+        uint8_t* buf = malloc(length);
 
-            furi_string_printf(args, "%s", args_cstr);
-            furi_string_trim(args);
-            if(parse_err || !args_read_hex_bytes(args, buf, length)) {
-                break;
-            }
+        furi_string_printf(args, "%s", args_cstr);
+        furi_string_trim(args);
+        if(parse_err || !args_read_hex_bytes(args, buf, length)) {
+            break;
+        }
 
-            status = furi_hal_crypto_key_init_raw(&key, type, buf, length);
-            free(buf);
-            if(status != FuriHalCryptoStatusOk) {
-                printf("Invalid data length for selected key type\r\n");
-                break;
+        status = furi_hal_crypto_key_init_raw(&key, type, buf, length);
+        explicit_bzero(buf, length);
+        free(buf);
+        if(status != FuriHalCryptoStatusOk) {
+            printf("Invalid data length for selected key type\r\n");
+            break;
+        }
+
+        do {
+            if(wrap) {
+                printf("Wrapping the key\r\n");
+                FuriHalCryptoKey* wrapped_key = NULL;
+                status = furi_hal_crypto_wrap_key(key, &wrapped_key);
+                if(status == FuriHalCryptoStatusUnavailable) {
+                    printf("Key wrapping is unavailable on this device\r\n");
+                    break;
+                } else if(status != FuriHalCryptoStatusOk) {
+                    printf("Wrapping failed: %d\r\n", status);
+                    break;
+                } else {
+                    furi_hal_crypto_key_free(key);
+                    key = wrapped_key;
+                }
             }
 
             FuriHalCryptoKeySlot slot;
@@ -225,17 +241,15 @@ void crypto_command_write(PipeSide* pipe, FuriString* args, void* context) {
                 furi_hal_crypto_storage_write_ex(key, partition, key_id, &slot);
 
             show_status(status, &slot, "write");
-            furi_hal_crypto_key_free(key);
-            success = status == FuriHalCryptoStatusOk;
-        } else {
-            break;
-        }
+        } while(false);
+        furi_hal_crypto_key_free(key);
+        success = status == FuriHalCryptoStatusOk;
     } while(false);
 
     if(!success) {
         cli_print_usage(
             "crypto write",
-            "<partition> <type> <id: in HEX> <flags: in HEX> <size> <data: in byte>\r\n",
+            "<partition> <type> <id: in HEX> <wrap: 0 or 1> <size> <data: in byte>\r\n",
             furi_string_get_cstr(args));
         printf(CLI_STATUS_ERROR);
     }
