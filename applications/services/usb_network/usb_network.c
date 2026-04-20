@@ -87,7 +87,7 @@ static void usb_network_init_dhcp_entries(UsbNetwork* instance, UsbNetworkIpAddr
     UsbNetworkIpAddress entry_addr = start_addr;
 
     for(uint32_t i = 0; i < DHCP_ENTRIES_MAX; i++) {
-        uint8_t device_octet = entry_addr.bytes[3];
+        uint8_t device_octet = entry_addr.bytes[3] + 1;
 
         while(device_octet == start_addr.bytes[3] || device_octet == 0) {
             ++device_octet;
@@ -101,23 +101,32 @@ static void usb_network_init_dhcp_entries(UsbNetwork* instance, UsbNetworkIpAddr
     }
 }
 
-static void usb_network_init_dhcp(UsbNetwork* instance, UsbNetworkIpAddress start_addr) {
-    instance->dhcp_config.netif = &instance->netif;
-    instance->dhcp_config.router.addr = 0;
-    instance->dhcp_config.port = 67;
-    instance->dhcp_config.dns.addr = 0;
-    instance->dhcp_config.domain = "usb";
-    instance->dhcp_config.num_entry = DHCP_ENTRIES_MAX;
-    instance->dhcp_config.entries = instance->dhcp_entries;
+static void usb_network_dhcp_init(UsbNetwork* instance, UsbNetworkIpAddress start_addr) {
+    dhcp_config_t* dhcp_config = &instance->dhcp_config;
+
+    dhcp_config->netif = &instance->netif;
+    dhcp_config->router.addr = 0;
+    dhcp_config->port = 67;
+    dhcp_config->dns.addr = 0;
+    dhcp_config->domain = "usb";
+    dhcp_config->num_entry = DHCP_ENTRIES_MAX;
+    dhcp_config->entries = instance->dhcp_entries;
 
     usb_network_init_dhcp_entries(instance, start_addr);
+}
 
+static void usb_network_dhcp_start(UsbNetwork* instance) {
     while(dhserv_init(&instance->dhcp_config) != ERR_OK) {
-        // Busy poll
+        // TODO: Max attempt count?
     }
 }
 
-static void usb_network_init_mdns(UsbNetwork* instance) {
+static void usb_network_dhcp_stop(UsbNetwork* instance) {
+    UNUSED(instance);
+    dhserv_free();
+}
+
+static void usb_network_mdns_init(UsbNetwork* instance) {
     // TODO: use device name as hostname
     struct netif* netif = &instance->netif;
 
@@ -125,6 +134,10 @@ static void usb_network_init_mdns(UsbNetwork* instance) {
     mdns_resp_add_netif(netif, "busybar");
     mdns_resp_add_service(
         netif, "httpd", "_http", DNSSD_PROTO_TCP, 80, usb_network_mdns_txt_callback, NULL);
+}
+
+static void usb_network_mdns_start(UsbNetwork* instance) {
+    mdns_resp_announce(&instance->netif);
 }
 
 static void usb_network_netif_set_hw_address(struct netif* netif) {
@@ -150,8 +163,8 @@ static void usb_network_init_netif(UsbNetwork* instance) {
     netif_create_ip6_linklocal_address(netif, 1);
 #endif
 
-    usb_network_init_dhcp(instance, ip_config->address);
-    usb_network_init_mdns(instance);
+    usb_network_dhcp_init(instance, ip_config->address);
+    usb_network_mdns_init(instance);
 
 #ifdef USB_NET_IPERF
     lwiperf_start_tcp_server_default(NULL, NULL);
@@ -165,10 +178,11 @@ void usb_network_up(void) {
     struct netif* netif = &usb_network->netif;
 
     LOCK_TCPIP_CORE();
-    // TODO: DHCP server
     netif_set_up(netif);
     netif_set_link_up(netif);
-    mdns_resp_announce(netif);
+
+    usb_network_dhcp_start(usb_network);
+    usb_network_mdns_start(usb_network);
     UNLOCK_TCPIP_CORE();
 }
 
@@ -177,7 +191,8 @@ void usb_network_down(void) {
     struct netif* netif = &usb_network->netif;
 
     LOCK_TCPIP_CORE();
-    // TODO: DHCP server
+    usb_network_dhcp_stop(usb_network);
+
     netif_set_link_down(netif);
     netif_set_down(netif);
     UNLOCK_TCPIP_CORE();
