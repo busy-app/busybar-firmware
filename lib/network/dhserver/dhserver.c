@@ -101,7 +101,7 @@ static struct udp_pcb* pcb = NULL;
 static const dhcp_config_t* config = NULL;
 static dhcp_entry_t* entries = NULL;
 
-char magic_cookie[] = {0x63, 0x82, 0x53, 0x63};
+static const char magic_cookie[] = {0x63, 0x82, 0x53, 0x63};
 
 static ip4_addr_t get_ip(const uint8_t* pnt) {
     ip4_addr_t result;
