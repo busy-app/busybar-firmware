@@ -33,6 +33,8 @@ struct ClockView {
     const lv_font_t* font_busy_regular_5;
     const lv_font_t* font_busy_superscript_7;
 
+    FuriString* string_builder;
+
     TimeSettingTimeFormat time_format;
     bool show_date;
     bool show_seconds;
@@ -152,7 +154,7 @@ static void clock_view_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t*
     instance->colon_blink_timer = lv_timer_create(
         clock_view_colon_blink_timer_callback, COLON_BLINK_TIMER_PERIOD_MS, instance);
     lv_timer_set_auto_delete(instance->colon_blink_timer, false);
-    lv_timer_set_repeat_count(instance->colon_blink_timer, 0);
+    lv_timer_pause(instance->colon_blink_timer);
 }
 
 static void clock_view_lvgl_destructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
@@ -170,13 +172,13 @@ static void clock_view_lvgl_destructor(const lv_obj_class_t* class_p, lv_obj_t* 
 
 /* internals */
 
-const char* clock_view_get_month_short_name(uint8_t month) {
+static const char* clock_view_get_month_short_name(uint8_t month) {
     furi_assert(month >= 1 && month <= COUNT_OF(month_short_names));
 
     return month_short_names[month - 1];
 }
 
-const char* clock_view_get_weekday_short_name(uint8_t dayofweek) {
+static const char* clock_view_get_weekday_short_name(uint8_t dayofweek) {
     furi_assert(dayofweek >= 1 && dayofweek <= COUNT_OF(weekday_short_names));
 
     return weekday_short_names[dayofweek - 1];
@@ -192,6 +194,8 @@ ClockView* clock_view_alloc(Widget* parent) {
 
     ClockView* instance = (ClockView*)obj;
 
+    instance->string_builder = furi_string_alloc();
+
     instance->time_format = TimeSettingTimeFormat12h;
     instance->show_date = true;
     instance->show_seconds = true;
@@ -204,6 +208,8 @@ ClockView* clock_view_alloc(Widget* parent) {
 
 void clock_view_free(ClockView* instance) {
     furi_check(instance);
+
+    furi_string_free(instance->string_builder);
 
     lv_obj_delete(TO_LV_OBJ(instance));
 }
@@ -306,18 +312,17 @@ void clock_view_set_date_time(ClockView* instance, const DateTime* date_time) {
         furi_crash();
     }
 
-    FuriString* string_builder = furi_string_alloc();
+    furi_string_printf(instance->string_builder, "%0*" PRIu8, display_hour_width, display_hour);
+    lv_span_set_text(instance->time_hour_span, furi_string_get_cstr(instance->string_builder));
 
-    furi_string_printf(string_builder, "%0*" PRIu8, display_hour_width, display_hour);
-    lv_span_set_text(instance->time_hour_span, furi_string_get_cstr(string_builder));
-
-    furi_string_printf(string_builder, "%02" PRIu8, date_time->minute);
-    lv_span_set_text(instance->time_minute_span, furi_string_get_cstr(string_builder));
+    furi_string_printf(instance->string_builder, "%02" PRIu8, date_time->minute);
+    lv_span_set_text(instance->time_minute_span, furi_string_get_cstr(instance->string_builder));
 
     if(instance->displayed_second != date_time->second) {
         if(instance->show_seconds) {
-            furi_string_printf(string_builder, "%02" PRIu8, date_time->second);
-            lv_span_set_text(instance->time_second_span, furi_string_get_cstr(string_builder));
+            furi_string_printf(instance->string_builder, "%02" PRIu8, date_time->second);
+            lv_span_set_text(
+                instance->time_second_span, furi_string_get_cstr(instance->string_builder));
         }
 
         if(instance->blink_colons) {
@@ -332,7 +337,6 @@ void clock_view_set_date_time(ClockView* instance, const DateTime* date_time) {
         }
     }
 
-    furi_string_free(string_builder);
     lv_spangroup_refresh(instance->time_spangroup);
 
     instance->displayed_second = date_time->second;
