@@ -15,7 +15,7 @@ extern "C" {
 /**
  * @brief Initialize memory protection unit
  */
-void furi_hal_mpu_init(void);
+void furi_hal_mpu_init_early(void);
 
 #ifdef __cplusplus
 }

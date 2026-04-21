@@ -16,7 +16,7 @@
 // ~60mV up. This offset is not present when discharging and not dependent on
 // charging current (i.e. not caused by a resistance). This offset was not
 // present in out-of-band measurements.
-#define CHARGER_OFFSET_MV         60
+#define CHARGER_OFFSET_MV         10
 #define CHARGER_OFFSET_TRIGGER_MA +2
 
 static const uint8_t power_crude_cal_curves[] = {

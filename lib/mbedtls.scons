@@ -52,6 +52,7 @@ sources = [
     File("mbedtls/library/pem.c"),
     File("mbedtls/library/base64.c"),
     File("mbedtls/library/debug.c"),
+    File("mbedtls/library/error.c"),
     File("mbedtls/library/constant_time.c"),
     libenv.Glob("mbedtls/library/x509*.c"),
     libenv.Glob("mbedtls/library/asn1*.c"),

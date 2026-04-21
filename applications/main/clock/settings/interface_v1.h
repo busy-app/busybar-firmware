@@ -5,6 +5,7 @@
 typedef enum {
     ClockSettingV1IdxShowDate,
     ClockSettingV1IdxShowSeconds,
+    ClockSettingV1IdxBlinkColons,
 
     ClockSettingV1IdxsCount,
 } ClockSettingV1Idx;
@@ -12,6 +13,7 @@ typedef enum {
 typedef struct {
     bool show_date;
     bool show_seconds;
+    bool blink_colons;
 } ClockSettingsV1;
 
 extern const SettingProviderSetting clock_v1_settings[];

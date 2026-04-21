@@ -3,41 +3,40 @@
 struct BleCommandEngine {
     uint8_t commands_count;
     const BleCommandItem* commands;
-    BleEngineCommandPreProcess pre_process;
-    BleEngineCommandPostProcess post_process;
+    BleCommandEngineExtractFrame extract_frame;
+    Ble* ble;
 };
 
 ///TODO: Here we should make some factory which
 //will return certain type of engine depending on System/Service parameter
 //In that case we can do extern command lists here and not in upper layers
 BleCommandEngine* ble_command_engine_alloc(
+    Ble* ble,
     const BleCommandItem* commands,
     uint8_t commands_count,
-    BleEngineCommandPreProcess pre_process,
-    BleEngineCommandPostProcess post_process) {
+    BleCommandEngineExtractFrame extract_frame) {
+    furi_assert(ble);
     furi_assert(commands);
     furi_assert(commands_count > 0);
+    furi_assert(extract_frame);
 
     BleCommandEngine* instance = malloc(sizeof(BleCommandEngine));
+    instance->ble = ble;
     instance->commands = commands;
     instance->commands_count = commands_count;
-
-    instance->pre_process = pre_process;
-    instance->post_process = post_process;
+    instance->extract_frame = extract_frame;
     return instance;
 }
 
-///TODO: possibly frame should be extracted in pre_process step and not put from the outside
-bool ble_command_engine_run(
-    BleCommandEngine* instance,
-    BleIntercomFrameGeneric* frame,
-    void* context) {
+bool ble_command_engine_run(BleCommandEngine* instance, BleCommandEngineExtractFrameSource source) {
     furi_assert(instance);
-    furi_assert(frame);
-    furi_assert(context);
+    furi_assert(
+        source == BleCommandEngineExtractFrameSourceCommandBuffer ||
+        source == BleCommandEngineExtractFrameSourceIntercomBuffer);
+
+    BleIntercomFrameGeneric* frame = instance->extract_frame(instance->ble, source);
 
     const BleIntercomFrameType frame_type = frame->header.frame_type;
-
     const BleCommandCode command = (BleCommandCode)frame->header.command;
     const BleCommandCode unknown_command = 0;
     furi_check(command != unknown_command);
@@ -46,19 +45,13 @@ bool ble_command_engine_run(
 
     bool result = false;
 
-    do {
-        if(instance->pre_process) instance->pre_process(frame, context);
-
-        if(frame_type == BleIntercomFrameTypeRequest && item->request) {
-            result = item->request(frame, context);
-        } else if(frame_type == BleIntercomFrameTypeResponse && item->response) {
-            result = item->response(frame, context);
-        } else {
-            __furi_crash("Unknown frame");
-        }
-
-        if(instance->post_process) instance->post_process(frame, context);
-    } while(false);
+    if(frame_type == BleIntercomFrameTypeRequest && item->request) {
+        result = item->request(frame, instance->ble);
+    } else if(frame_type == BleIntercomFrameTypeResponse && item->response) {
+        result = item->response(frame, instance->ble);
+    } else {
+        furi_crash("Unknown frame");
+    }
 
     return result;
 }

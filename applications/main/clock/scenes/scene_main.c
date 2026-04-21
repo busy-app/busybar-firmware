@@ -15,6 +15,8 @@ typedef struct {
     ClockView* front_clock;
 
     Menu* back_menu;
+
+    LocalTime displayed_time;
 } ClockSceneMain;
 
 static const TransitionOverlayPreset clock_scene_main_start_transition_overlay_preset = {
@@ -44,7 +46,7 @@ static void clock_scene_main_on_enter(void* context) {
     ClockSceneMain* scene =
         scene_manager_get_scene_data(instance->scene_manager, ClockSceneIdxMain);
 
-    LocalTime local_time = time_get_local_time(instance->time);
+    scene->displayed_time = time_get_local_time(instance->time);
 
     TimeSettings* time_settings = malloc(sizeof(*time_settings));
     time_get_settings(instance->time, time_settings);
@@ -56,9 +58,12 @@ static void clock_scene_main_on_enter(void* context) {
         scene->front_clock = clock_view_alloc(scene->front_container);
         widget_set_align(clock_view_get_base(scene->front_clock), AlignLeftMid);
 
-        clock_view_set_show_seconds(scene->front_clock, false);
         clock_view_set_time_format(scene->front_clock, time_settings->time_format);
-        clock_view_set_date_time(scene->front_clock, &local_time.dt);
+        clock_view_set_show_date(scene->front_clock, true);
+        clock_view_set_show_seconds(scene->front_clock, false);
+        clock_view_set_blink_colons(scene->front_clock, instance->settings.blink_colons);
+
+        clock_view_set_date_time(scene->front_clock, &scene->displayed_time.dt);
 
         AnimMenu* front_menu = anim_menu_alloc(scene->front_container);
         anim_menu_set_source(front_menu, SHARED_ANIM_PATH("start_menu_31x16.anim"), 2);
@@ -118,9 +123,12 @@ static bool clock_scene_main_on_event(const SceneManagerEvent* event, void* cont
         switch(event->event) {
         case ClockEventTimerUpdate:
             LocalTime local_time = time_get_local_time(instance->time);
-            with_gui(instance->gui, {
-                clock_view_set_date_time(scene->front_clock, &local_time.dt);
-            });
+            if(utz_udatetime_cmp(&scene->displayed_time.dt, &local_time.dt) != 0) {
+                with_gui(instance->gui, {
+                    clock_view_set_date_time(scene->front_clock, &local_time.dt);
+                });
+            }
+            scene->displayed_time = local_time;
             return true;
 
         case ClockSceneMainEventStart:
