@@ -11,7 +11,7 @@ VARS.AddVariables(
     (
         "SI917_NWP_STACK",
         "NWP stack to use for the SI917 target",
-        "#lib/wiseconnect_extra/connectivity_firmware/standard/RS9117_WC_SI_4.rps",
+        "#lib/wiseconnect/connectivity_firmware/standard/SiWG917-B.2.14.5.2.0.7.rps",
     ),
     (
         "SI917_SIGN_KEYSTORE",
