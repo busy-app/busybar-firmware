@@ -21,7 +21,7 @@
 #define FRAME_INTERVAL_MS            (100)
 #define CLIENT_HEARTBEAT_INTERVAL_MS (10000)
 
-#define WEBSOCKET_FLAG_TEST(flags, test) ((flags & test) == test)
+#define WEBSOCKET_FLAG_TEST(flags, test) ((flags & 0x0f) == test)
 #define WEBSOCKET_PING(flags)            (WEBSOCKET_FLAG_TEST(flags, WEBSOCKET_OP_PING))
 #define WEBSOCKET_PONG(flags)            (WEBSOCKET_FLAG_TEST(flags, WEBSOCKET_OP_PONG))
 #define WEBSOCKET_TEXT(flags)            (WEBSOCKET_FLAG_TEST(flags, WEBSOCKET_OP_TEXT))
@@ -280,6 +280,10 @@ static void client_on_message(struct mg_connection* conn, struct mg_ws_message* 
         } else {
             FURI_LOG_E(TAG, "bad request");
         }
+    } else if(WEBSOCKET_PING(ws_msg->flags)) {
+        STREAM_LOG_D("PING");
+        mg_ws_send(conn, ws_msg->data.buf, ws_msg->data.len, WEBSOCKET_OP_PONG);
+        mg_wakeup(web_srv_get_mgr(), client->conn->id, NULL, 0);
     }
 }
 
