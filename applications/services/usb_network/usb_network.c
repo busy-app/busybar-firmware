@@ -27,7 +27,10 @@
 #define PBUF_DROP_PADDING(p)
 #endif // ETH_PAD_SIZE != 0
 
+#define DHCP_INIT_ATTEMPTS (10)
+
 #define MDNS_TXT_DATA "path=/"
+#define MDNS_HOSTNAME "busybar"
 
 #define TAG "UsbNet"
 
@@ -96,8 +99,16 @@ static void usb_network_dhcp_init(UsbNetwork* instance) {
 }
 
 static void usb_network_dhcp_start(UsbNetwork* instance) {
-    while(dhserv_init(&instance->dhcp_config) != ERR_OK) {
-        // TODO: Max attempt count?
+    uint32_t num_attempts;
+
+    for(num_attempts = 0; num_attempts < DHCP_INIT_ATTEMPTS; ++num_attempts) {
+        if(dhserv_init(&instance->dhcp_config) == ERR_OK) {
+            break;
+        }
+    }
+
+    if(num_attempts == DHCP_INIT_ATTEMPTS) {
+        FURI_LOG_E(TAG, "Failed to start DHCP server");
     }
 }
 
@@ -107,11 +118,11 @@ static void usb_network_dhcp_stop(UsbNetwork* instance) {
 }
 
 static void usb_network_mdns_init(UsbNetwork* instance) {
-    // TODO: use device name as hostname
     struct netif* netif = &instance->netif;
 
     mdns_resp_init();
-    mdns_resp_add_netif(netif, "busybar");
+    // TODO: use device name as the hostname ?
+    mdns_resp_add_netif(netif, MDNS_HOSTNAME);
     mdns_resp_add_service(
         netif, "httpd", "_http", DNSSD_PROTO_TCP, 80, usb_network_mdns_txt_callback, NULL);
 }
@@ -187,7 +198,7 @@ bool usb_network_rx(const uint8_t* data, uint16_t data_size) {
     do {
         // TODO: Is this really possible?
         if(data_size == 0) {
-            FURI_LOG_W(TAG, "Data size is zero");
+            FURI_LOG_W(TAG, "data_size == 0");
             break;
         }
 
@@ -205,7 +216,7 @@ bool usb_network_rx(const uint8_t* data, uint16_t data_size) {
         PBUF_ADD_PADDING(pbuf);
 
         if(lwip_err != ERR_OK) {
-            FURI_LOG_W(TAG, "pbuf_take() failed with error: %d", lwip_err);
+            FURI_LOG_D(TAG, "pbuf_take() failed with error: %d", lwip_err);
             break;
         }
 
@@ -213,7 +224,7 @@ bool usb_network_rx(const uint8_t* data, uint16_t data_size) {
         lwip_err = netif->input(pbuf, netif);
 
         if(lwip_err != ERR_OK) {
-            FURI_LOG_W(TAG, "netif->input() failed with error: %d", lwip_err);
+            FURI_LOG_D(TAG, "netif->input() failed with error: %d", lwip_err);
             break;
         }
 
