@@ -11,53 +11,94 @@
 #define USB_OTG_DEV     ((USB_OTG_DeviceTypeDef*)(USB_OTG_HS_BASE + USB_OTG_DEVICE_BASE))
 #define USB_OTG_PCGCCTL (*(volatile uint32_t*)(USB_OTG_HS_BASE + USB_OTG_PCGCCTL_BASE))
 
-#define USB_RESET_TIMEOUT_US (10000U)
+#define USB_TIMEOUT_US (10000U)
 
 #define TAG "FuriHalUsb"
+
+typedef bool (*FuriHalUsbConditionCallback)(void);
+
+static bool furi_hal_usb_wait_for_condition(FuriHalUsbConditionCallback callback) {
+    bool success = false;
+    FuriHalCortexTimer timer = furi_hal_cortex_timer_get(USB_TIMEOUT_US);
+
+    do {
+        success = callback();
+    } while(!(success || furi_hal_cortex_timer_is_expired(timer)));
+
+    return success;
+}
 
 static void furi_hal_usb_disable_global_interrupt(void) {
     CLEAR_BIT(USB_OTG_HS->GAHBCFG, USB_OTG_GAHBCFG_GINT);
 }
 
-static void furi_hal_usb_wait_ahb_idle(void) {
-    FuriHalCortexTimer timer = furi_hal_cortex_timer_get(USB_RESET_TIMEOUT_US);
-
-    do {
-        if(READ_BIT(USB_OTG_HS->GRSTCTL, USB_OTG_GRSTCTL_AHBIDL) != 0) {
-            break;
-        }
-    } while(!furi_hal_cortex_timer_is_expired(timer));
+static bool furi_hal_usb_is_ahb_idle(void) {
+    return READ_BIT(USB_OTG_HS->GRSTCTL, USB_OTG_GRSTCTL_AHBIDL) != 0;
 }
 
-static void furi_hal_usb_core_reset(void) {
-    furi_hal_usb_wait_ahb_idle();
-
-    SET_BIT(USB_OTG_HS->GRSTCTL, USB_OTG_GRSTCTL_CSRST);
-
-    FuriHalCortexTimer timer = furi_hal_cortex_timer_get(USB_RESET_TIMEOUT_US);
-
-    do {
-        if(READ_BIT(USB_OTG_HS->GRSTCTL, USB_OTG_GRSTCTL_CSRST) == 0) {
-            FURI_LOG_I(TAG, "Core reset");
-            break;
-        }
-    } while(!furi_hal_cortex_timer_is_expired(timer));
-
-    furi_hal_usb_wait_ahb_idle();
+static bool furi_hal_usb_is_core_reset(void) {
+    return READ_BIT(USB_OTG_HS->GRSTCTL, USB_OTG_GRSTCTL_CSRST) == 0;
 }
 
-static void furi_hal_usb_enable_power(void) {
-    LL_PWR_EnableVddUSB();
+static bool furi_hal_usb_core_reset(void) {
+    bool success = false;
 
-    LL_PWR_EnableEPODBooster();
-    while(LL_PWR_IsActiveFlag_BOOST() == 0) {
-    }
+    do {
+        if(!furi_hal_usb_wait_for_condition(furi_hal_usb_is_ahb_idle)) {
+            FURI_LOG_E(TAG, "AHB is not idle before core reset");
+            break;
+        }
 
-    LL_PWR_EnableUSBPowerSupply();
+        SET_BIT(USB_OTG_HS->GRSTCTL, USB_OTG_GRSTCTL_CSRST);
 
-    LL_PWR_EnableUSBEPODBooster();
-    while(LL_PWR_IsActiveFlag_USBBOOST() == 0) {
-    }
+        if(!furi_hal_usb_wait_for_condition(furi_hal_usb_is_core_reset)) {
+            FURI_LOG_E(TAG, "Failed to reset USB core");
+            break;
+        }
+
+        if(!furi_hal_usb_wait_for_condition(furi_hal_usb_is_ahb_idle)) {
+            FURI_LOG_E(TAG, "AHB is not idle after core reset");
+            break;
+        }
+
+        success = true;
+    } while(false);
+
+    return success;
+}
+
+static bool furi_hal_usb_is_epod_booster_enabled(void) {
+    return LL_PWR_IsActiveFlag_BOOST() != 0;
+}
+
+static bool furi_hal_usb_is_usbepod_booster_enabled(void) {
+    return LL_PWR_IsActiveFlag_USBBOOST() != 0;
+}
+
+static bool furi_hal_usb_enable_power(void) {
+    bool success = false;
+
+    do {
+        LL_PWR_EnableVddUSB();
+        LL_PWR_EnableEPODBooster();
+
+        if(!furi_hal_usb_wait_for_condition(furi_hal_usb_is_epod_booster_enabled)) {
+            FURI_LOG_E(TAG, "Failed to enable EPOD booster");
+            break;
+        }
+
+        LL_PWR_EnableUSBPowerSupply();
+        LL_PWR_EnableUSBEPODBooster();
+
+        if(!furi_hal_usb_wait_for_condition(furi_hal_usb_is_usbepod_booster_enabled)) {
+            FURI_LOG_E(TAG, "Failed to enable USBEPOD booster");
+            break;
+        }
+
+        success = true;
+    } while(false);
+
+    return success;
 }
 
 static void furi_hal_usb_enable_phy(void) {
@@ -74,22 +115,41 @@ static void furi_hal_usb_enable_phy(void) {
         &gpio_usb_dp, GpioModeAltFunctionPushPull, GpioPullNo, GpioSpeedHigh, GpioAltFn10USB_HS);
 }
 
-void furi_hal_usb_init(void) {
-    furi_hal_bus_enable(FuriHalBusUSBPHY);
-    furi_hal_bus_enable(FuriHalBusOTG_HS);
-
-    furi_hal_usb_enable_phy();
-    furi_hal_usb_enable_power();
-
-    furi_hal_usb_disable_global_interrupt();
-    furi_hal_usb_core_reset();
-
-    // Disable VBUS sense (B device)
+static void furi_hal_usb_disable_vbus_sense(void) {
     CLEAR_BIT(USB_OTG_HS->GCCFG, USB_OTG_GCCFG_PULLDOWNEN | USB_OTG_GCCFG_VBDEN);
-    // B-peripheral session valid override enable
-    SET_BIT(USB_OTG_HS->GCCFG, USB_OTG_GCCFG_VBVALEXTOEN | USB_OTG_GCCFG_VBVALOVAL);
+}
 
+static void furi_hal_usb_set_b_session_override(void) {
+    SET_BIT(USB_OTG_HS->GCCFG, USB_OTG_GCCFG_VBVALEXTOEN | USB_OTG_GCCFG_VBVALOVAL);
+}
+
+static void furi_hal_usb_set_software_disconnect(void) {
     SET_BIT(USB_OTG_DEV->DCTL, USB_OTG_DCTL_SDIS);
+}
+
+void furi_hal_usb_init(void) {
+    do {
+        furi_hal_bus_enable(FuriHalBusUSBPHY);
+        furi_hal_bus_enable(FuriHalBusOTG_HS);
+
+        furi_hal_usb_enable_phy();
+
+        if(!furi_hal_usb_enable_power()) {
+            break;
+        }
+
+        furi_hal_usb_disable_global_interrupt();
+
+        if(!furi_hal_usb_core_reset()) {
+            break;
+        }
+
+        furi_hal_usb_disable_vbus_sense();
+        furi_hal_usb_set_b_session_override();
+        furi_hal_usb_set_software_disconnect();
+
+        FURI_LOG_I(TAG, "Init OK");
+    } while(false);
 }
 
 void furi_hal_usb_set_irq(FuriHalInterruptISR usb_isr, void* isr_ctx) {
