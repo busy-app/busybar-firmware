@@ -82,7 +82,7 @@ static WifiSettings* wifi_settings_alloc() {
     WifiSettings* instance = malloc(sizeof(WifiSettings));
     instance->event_loop = furi_event_loop_alloc();
     instance->input_queue = furi_message_queue_alloc(4, sizeof(InputEvent));
-    instance->event_queue = furi_message_queue_alloc(4, sizeof(uint32_t));
+    instance->event_queue = furi_message_queue_alloc(8, sizeof(uint32_t));
     instance->scene_manager =
         scene_manager_alloc(wifi_settings_scenes, COUNT_OF(wifi_settings_scenes), instance);
 

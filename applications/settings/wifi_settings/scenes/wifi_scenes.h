@@ -8,6 +8,7 @@ typedef enum {
     SceneIdMenu,
     SceneIdInfo,
     SceneIdForget,
+    SceneIdDisconnecting,
     SceneIdsCount,
 } SceneId;
 

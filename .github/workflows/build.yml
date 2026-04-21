@@ -26,9 +26,6 @@ jobs:
       default_target_spec: ${{ env.DEFAULT_TARGET_SPEC }}
       bundle_target_spec: ${{ steps.set-url.outputs.target }}
       update_url: ${{ steps.set-url.outputs.update_url }}
-    concurrency:
-      group: build-${{ github.workflow }}-${{ github.ref }}-${{ matrix.target_spec }}
-      cancel-in-progress: true
 
     steps:
       - name: 'Wipe workspace'
@@ -173,6 +170,3 @@ jobs:
       update_url: ${{ needs.build.outputs.update_url }}
       target: ${{ needs.build.outputs.bundle_target_spec }}
     secrets: inherit
-    concurrency:
-      group: integration-tests-${{ github.workflow }}-${{ github.ref }}-${{ needs.build.outputs.bundle_target_spec }}
-      cancel-in-progress: true
