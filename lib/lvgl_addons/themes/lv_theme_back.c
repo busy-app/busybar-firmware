@@ -53,6 +53,7 @@ typedef struct {
     lv_style_t slider_view_bar;
     lv_style_t slider_view_image;
     lv_style_t slider_view_text_container;
+    lv_style_t slider_view_arrow;
 
     lv_style_t progress_bar;
     lv_style_t progress_bar_fill;
@@ -222,6 +223,11 @@ static void style_init(my_theme_t* theme, FontRegistry* font_registry) {
     lv_style_set_pad_column(&theme->styles.slider_view_text_container, 3);
     lv_style_set_text_font(&theme->styles.slider_view_text_container, theme->base.font_normal);
 
+    lv_style_init(&theme->styles.slider_view_arrow);
+    lv_style_set_text_font(
+        &theme->styles.slider_view_arrow,
+        font_registry_load_font(font_registry, FONT_BUSY_REGULAR_9));
+
     lv_style_init(&theme->styles.progress_bar);
     lv_style_set_bg_opa(&theme->styles.progress_bar, LV_OPA_20);
     lv_style_set_radius(&theme->styles.progress_bar, 3);
@@ -379,6 +385,7 @@ static void theme_apply_callback(lv_theme_t* th, lv_obj_t* obj) {
 
     } else if(lv_obj_check_type(obj, &slider_view_arrow_label_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.disabled, LV_PART_MAIN | LV_STATE_DISABLED);
+        lv_obj_add_style(obj, &theme->styles.slider_view_arrow, LV_PART_MAIN);
 #endif // SETTINGS_SOUND
 
     } else if(lv_obj_check_type(obj, &status_view_lvgl_class)) {
