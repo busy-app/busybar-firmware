@@ -13,7 +13,7 @@
 
 struct UsbNetwork {
     struct netif netif;
-    dhcp_config_t dhcp_config;
+    DhcpServerConfig dhcp_config;
     UsbNetworkSettings settings;
 };
 

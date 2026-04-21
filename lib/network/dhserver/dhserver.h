@@ -42,9 +42,9 @@ typedef struct {
     ip4_addr_t dns;
     const char* domain;
     uint8_t max_lease_count;
-} dhcp_config_t;
+} DhcpServerConfig;
 
-bool dhserv_init(const dhcp_config_t* config);
+bool dhserv_init(const DhcpServerConfig* config);
 
 void dhserv_deinit(void);
 

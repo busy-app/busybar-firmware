@@ -88,7 +88,7 @@ static void usb_network_mdns_txt_callback(struct mdns_service* service, void* tx
 }
 
 static void usb_network_dhcp_init(UsbNetwork* instance) {
-    dhcp_config_t* dhcp_config = &instance->dhcp_config;
+    DhcpServerConfig* dhcp_config = &instance->dhcp_config;
 
     dhcp_config->netif = &instance->netif;
     dhcp_config->router.addr = 0;

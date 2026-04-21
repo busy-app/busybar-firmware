@@ -93,16 +93,16 @@ typedef struct {
     uint8_t dp_options[275]; /* options area */
 } DHCP_TYPE;
 
-typedef struct dhcp_entry {
+typedef struct {
     uint8_t mac[ETH_HWADDR_LEN];
     ip4_addr_t addr;
     uint32_t lease_time_s;
-} dhcp_entry_t;
+} DhcpServerEntry;
 
 static DHCP_TYPE dhcp_data;
 static struct udp_pcb* pcb = NULL;
-static const dhcp_config_t* config = NULL;
-static dhcp_entry_t* entries = NULL;
+static const DhcpServerConfig* config = NULL;
+static DhcpServerEntry* entries = NULL;
 
 static const char magic_cookie[] = {0x63, 0x82, 0x53, 0x63};
 
@@ -116,8 +116,8 @@ static void set_ip(uint8_t* pnt, ip4_addr_t value) {
     memcpy(pnt, &value.addr, sizeof(value.addr));
 }
 
-static dhcp_entry_t* entry_by_ip(ip4_addr_t ip) {
-    dhcp_entry_t* result = NULL;
+static DhcpServerEntry* entry_by_ip(ip4_addr_t ip) {
+    DhcpServerEntry* result = NULL;
 
     for(uint32_t i = 0; i < config->max_lease_count; i++) {
         if(entries[i].addr.addr == ip.addr) {
@@ -129,8 +129,8 @@ static dhcp_entry_t* entry_by_ip(ip4_addr_t ip) {
     return result;
 }
 
-static dhcp_entry_t* entry_by_mac(uint8_t* mac) {
-    dhcp_entry_t* result = NULL;
+static DhcpServerEntry* entry_by_mac(uint8_t* mac) {
+    DhcpServerEntry* result = NULL;
 
     for(uint32_t i = 0; i < config->max_lease_count; i++) {
         if(memcmp(entries[i].mac, mac, sizeof(entries[i].mac)) == 0) {
@@ -142,13 +142,13 @@ static dhcp_entry_t* entry_by_mac(uint8_t* mac) {
     return result;
 }
 
-static FURI_ALWAYS_INLINE bool is_vacant(const dhcp_entry_t* entry) {
+static FURI_ALWAYS_INLINE bool is_vacant(const DhcpServerEntry* entry) {
     const uint8_t zeroes[sizeof(entry->mac)] = {0};
     return memcmp(zeroes, entry->mac, sizeof(zeroes)) == 0;
 }
 
-static dhcp_entry_t* vacant_address(void) {
-    dhcp_entry_t* result = NULL;
+static DhcpServerEntry* vacant_address(void) {
+    DhcpServerEntry* result = NULL;
 
     for(uint32_t i = 0; i < config->max_lease_count; i++) {
         if(is_vacant(&entries[i])) {
@@ -160,7 +160,7 @@ static dhcp_entry_t* vacant_address(void) {
     return result;
 }
 
-static FURI_ALWAYS_INLINE void free_entry(dhcp_entry_t* entry) {
+static FURI_ALWAYS_INLINE void free_entry(DhcpServerEntry* entry) {
     memset(entry->mac, 0, sizeof(entry->mac));
 }
 
@@ -247,7 +247,7 @@ static void udp_recv_proc(
     const ip_addr_t* addr,
     u16_t port) {
     uint8_t* ptr;
-    dhcp_entry_t* entry;
+    DhcpServerEntry* entry;
     struct pbuf* pp;
     struct netif* netif = netif_get_by_index(p->if_idx);
 
@@ -346,22 +346,22 @@ static void udp_recv_proc(
     pbuf_free(p);
 }
 
-static void dhserv_init_entries(const dhcp_config_t* c) {
+static void dhserv_init_entries(const DhcpServerConfig* c) {
     const uint32_t num_entries = c->max_lease_count;
     const uint32_t start_addr = lwip_ntohl(c->netif->ip_addr.addr) + 1;
 
     furi_assert(entries == NULL);
-    entries = malloc(sizeof(dhcp_entry_t) * num_entries);
+    entries = malloc(sizeof(DhcpServerEntry) * num_entries);
 
     for(uint32_t i = 0; i < num_entries; ++i) {
-        dhcp_entry_t* entry = &entries[i];
+        DhcpServerEntry* entry = &entries[i];
 
         entry->addr.addr = lwip_htonl(start_addr + i);
         entry->lease_time_s = DHCP_LEASE_TIME_S;
     }
 }
 
-bool dhserv_init(const dhcp_config_t* c) {
+bool dhserv_init(const DhcpServerConfig* c) {
     bool success = false;
 
     do {
@@ -407,7 +407,7 @@ bool dhserv_has_lease(ip4_addr_t address) {
     bool has_lease = false;
 
     if(entries != NULL) {
-        const dhcp_entry_t* entry = entry_by_ip(address);
+        const DhcpServerEntry* entry = entry_by_ip(address);
         has_lease = !(entry == NULL || is_vacant(entry));
     }
 
