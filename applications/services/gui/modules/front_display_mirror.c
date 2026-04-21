@@ -1,23 +1,26 @@
 #include "front_display_mirror.h"
 
 #include <gui/gui_i.h>
+#include <furi_hal_cortex.h>
 
 #define MY_CLASS (&display_mirror_lvgl_class)
+
+#define DISPLAY_MIRROR_MIN_REFRESH_US 33000 /* 30 fps */
 
 struct DisplayMirror {
     Widget base;
     lv_display_t* display;
     lv_obj_t* mirror_image;
     lv_image_dsc_t mirror_image_dsc;
-    uint32_t refresh_count;
+    FuriHalCortexTimer last_refresh_timer;
 };
 
 const lv_obj_class_t display_mirror_lvgl_class;
 
 static void display_mirror_refresh_callback(lv_event_t* event) {
     DisplayMirror* instance = lv_event_get_user_data(event);
-    // Limit mirror refresh rate to half of the original
-    if(instance->refresh_count++ % 2 == 0) {
+    if(furi_hal_cortex_timer_is_expired(instance->last_refresh_timer)) {
+        instance->last_refresh_timer = furi_hal_cortex_timer_get(DISPLAY_MIRROR_MIN_REFRESH_US);
         lv_obj_invalidate(instance->mirror_image);
     }
 }
@@ -50,6 +53,7 @@ static void display_mirror_lvgl_constructor(const lv_obj_class_t* class_p, lv_ob
     lv_image_set_src(instance->mirror_image, image_dsc);
 
     instance->display = front->lv_display;
+    instance->last_refresh_timer = furi_hal_cortex_timer_get(0);
     lv_display_add_event_cb(
         instance->display, display_mirror_refresh_callback, LV_EVENT_REFR_READY, instance);
 }
