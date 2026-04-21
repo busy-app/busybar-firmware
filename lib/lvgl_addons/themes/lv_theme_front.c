@@ -36,6 +36,7 @@ typedef struct {
     lv_style_t dialog;
     lv_style_t dialog_text;
 
+    lv_style_t var_item;
     lv_style_t var_item_editor;
 
     lv_style_t margin_right;
@@ -130,8 +131,14 @@ static void style_init(my_theme_t* theme, FontRegistry* font_registry) {
     lv_style_set_pad_ver(&theme->styles.dialog_text, 0);
     lv_style_set_width(&theme->styles.dialog_text, LV_PCT(60));
 
+    lv_style_init(&theme->styles.var_item);
+    lv_style_set_margin_top(&theme->styles.var_item, -2);
+    lv_style_set_text_line_space(&theme->styles.var_item, -2);
+
     lv_style_init(&theme->styles.var_item_editor);
-    lv_style_set_pad_column(&theme->styles.var_item_editor, 2);
+    lv_style_set_pad_column(&theme->styles.var_item_editor, 1);
+    lv_style_set_pad_top(&theme->styles.var_item_editor, 1);
+    lv_style_set_pad_right(&theme->styles.var_item_editor, 1);
     lv_style_set_pad_left(&theme->styles.var_item_editor, 2);
 
     lv_style_init(&theme->styles.margin_right);
@@ -275,6 +282,7 @@ static void theme_apply_callback(lv_theme_t* th, lv_obj_t* obj) {
         lv_obj_add_style(obj, &theme->styles.scrollbar, LV_PART_SCROLLBAR);
 
     } else if(lv_obj_check_type(obj, &var_item_lvgl_class)) {
+        lv_obj_add_style(obj, &theme->styles.var_item, LV_PART_MAIN);
         lv_obj_add_style(obj, &theme->styles.normal, LV_PART_MAIN);
         lv_obj_add_style(obj, &theme->styles.focused, LV_PART_MAIN | LV_STATE_FOCUSED);
 
