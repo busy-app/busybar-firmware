@@ -38,3 +38,6 @@ lv_font_conv --font busy_regular_9px.ttf -o "$baked_fonts_dir/lv_font_busy_regul
 
 lv_font_conv --font busy_superscript_7px.ttf -o ../busy_superscript_7.font \
              --bpp 1 --size 16 --no-compress --format bin --range 0-65535
+
+lv_font_conv --font busy_tiny.ttf -o ../busy_tiny.font \
+             --bpp 1 --size 6 --no-compress --format bin --range 0-65535

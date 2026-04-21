@@ -4,6 +4,7 @@
 
 #define SHOW_DATE_DEFAULT    true
 #define SHOW_SECONDS_DEFAULT false
+#define BLINK_COLONS_DEFAULT true
 
 const SettingProviderSetting clock_v1_settings[] = {
     [ClockSettingV1IdxShowDate] =
@@ -24,6 +25,16 @@ const SettingProviderSetting clock_v1_settings[] = {
                     .default_value = SHOW_SECONDS_DEFAULT,
                 },
             .field_offset = offsetof(ClockSettingsV1, show_seconds),
+            .type = SettingProviderSettingTypeBool,
+        },
+    [ClockSettingV1IdxBlinkColons] =
+        {
+            .name = "blink_colons",
+            .interface =
+                &(const SettingProviderBoolInterface){
+                    .default_value = BLINK_COLONS_DEFAULT,
+                },
+            .field_offset = offsetof(ClockSettingsV1, blink_colons),
             .type = SettingProviderSettingTypeBool,
         },
 };
