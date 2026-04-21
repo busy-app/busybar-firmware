@@ -1,10 +1,10 @@
 #include "http_api.h"
 #include <mqtt/mqtt.h>
+#include <cjson/cJSON.h>
 
 #define TAG "HttpAccount"
 
-#define CUSTOM_URL_LEN_MAX 64
-#define LINK_TIMEOUT       3000
+#define LINK_TIMEOUT 3000
 
 static bool http_api_account_get_info(
     FuriString* path,
@@ -225,6 +225,38 @@ static bool http_api_account_unlink(
     return true;
 }
 
+static bool custom_profile_cfg_parse(const char* payload, MqttCustomProfileConfig* cfg) {
+    cJSON* cfg_root = cJSON_Parse(payload);
+    bool success = false;
+
+    do {
+        cJSON* url_item = cJSON_GetObjectItem(cfg_root, "url");
+        if(!cJSON_IsString(url_item)) break;
+        furi_string_set(cfg->url, url_item->valuestring);
+
+        cJSON* ignore_cert_item = cJSON_GetObjectItem(cfg_root, "ignore_server_cert");
+        if(!cJSON_IsBool(ignore_cert_item)) break;
+        cfg->skip_server_cert_check = cJSON_IsTrue(ignore_cert_item);
+
+        cJSON* client_cert_item = cJSON_GetObjectItem(cfg_root, "client_cert");
+        if(!cJSON_IsString(client_cert_item)) break;
+        if(strcmp(client_cert_item->valuestring, "none") == 0) {
+            cfg->client_cert_type = MqttClientCertTypeNone;
+        } else if(strcmp(client_cert_item->valuestring, "stock") == 0) {
+            cfg->client_cert_type = MqttClientCertTypeStock;
+        } else if(strcmp(client_cert_item->valuestring, "custom") == 0) {
+            cfg->client_cert_type = MqttClientCertTypeCustom;
+        } else {
+            break;
+        }
+        success = true;
+    } while(0);
+
+    cJSON_Delete(cfg_root);
+
+    return success;
+}
+
 static bool http_api_account_mqtt_profile(
     FuriString* path,
     HttpMethod method,
@@ -236,53 +268,61 @@ static bool http_api_account_mqtt_profile(
 
     if(!IS_HTTP_ENDPOINT(path)) return false;
 
+    MqttCustomProfileConfig custom_cfg;
+    custom_cfg.url = furi_string_alloc();
+
     if(method == HttpMethodGet) {
-        FuriString* url = furi_string_alloc();
         Mqtt* mqtt = furi_record_open(RECORD_MQTT);
-        const MqttProfileId profile_id = mqtt_get_profile(mqtt, url);
+        const MqttProfileId profile_id = mqtt_get_profile(mqtt, &custom_cfg);
         furi_record_close(RECORD_MQTT);
 
         if(profile_id == MqttProfileIdProduction) {
-            MG_REPLY_OK_BODY(conn, "{\"profile\":\"%s\"}\n", "prod");
-        } else if(profile_id == MqttProfileIdDevelopment) {
-            MG_REPLY_OK_BODY(conn, "{\"profile\":\"%s\"}\n", "dev");
-        } else if(profile_id == MqttProfileIdLocal) {
-            MG_REPLY_OK_BODY(conn, "{\"profile\":\"%s\"}\n", "local");
+            MG_REPLY_OK_BODY(conn, "{\"profile\":\"%s\"}\n", "production");
         } else {
+            FuriString* custom_cfg_str = furi_string_alloc();
+            furi_string_cat_printf(
+                custom_cfg_str, "\"url\":\"%s\",", furi_string_get_cstr(custom_cfg.url));
+            furi_string_cat_printf(
+                custom_cfg_str,
+                "\"ignore_server_cert\":\"%s\",",
+                custom_cfg.skip_server_cert_check ? "true" : "false");
+            const char* client_cert_str = "none";
+            if(custom_cfg.client_cert_type == MqttClientCertTypeStock) {
+                client_cert_str = "stock";
+            } else if(custom_cfg.client_cert_type == MqttClientCertTypeCustom) {
+                client_cert_str = "custom";
+            }
+            furi_string_cat_printf(custom_cfg_str, "\"client_cert\":\"%s\"", client_cert_str);
+
             MG_REPLY_OK_BODY(
                 conn,
-                "{\"profile\":\"%s\",\"custom_url\":\"%s\"}\n",
+                "{\"profile\":\"%s\",\"custom_config\":{%s}}\n",
                 "custom",
-                furi_string_get_cstr(url));
+                furi_string_get_cstr(custom_cfg_str));
+            furi_string_free(custom_cfg_str);
         }
-
-        furi_string_free(url);
 
     } else if(method == HttpMethodPost) {
         bool success = false;
         do {
             if(msg->query.len == 0) break;
 
-            char temp_str[CUSTOM_URL_LEN_MAX];
+            char temp_str[16];
             int var_len = mg_http_get_var(&msg->query, "profile", temp_str, sizeof(temp_str));
             if(var_len <= 0) break;
 
             MqttProfileId profile_id;
-            if(strncmp("prod", temp_str, var_len) == 0) {
+            if(strncmp("production", temp_str, var_len) == 0) {
                 profile_id = MqttProfileIdProduction;
-            } else if(strncmp("dev", temp_str, var_len) == 0) {
-                profile_id = MqttProfileIdDevelopment;
-            } else if(strncmp("local", temp_str, var_len) == 0) {
-                profile_id = MqttProfileIdLocal;
             } else if(strncmp("custom", temp_str, var_len) == 0) {
                 profile_id = MqttProfileIdCustom;
-                var_len = mg_http_get_var(&msg->query, "custom_url", temp_str, sizeof(temp_str));
-                if(var_len <= 0) break;
+                if(!custom_profile_cfg_parse(msg->body.buf, &custom_cfg)) break;
             } else
                 break;
 
             Mqtt* mqtt = furi_record_open(RECORD_MQTT);
-            mqtt_set_profile(mqtt, profile_id, temp_str);
+            mqtt_set_profile(
+                mqtt, profile_id, (profile_id == MqttProfileIdCustom) ? &custom_cfg : NULL);
             furi_record_close(RECORD_MQTT);
 
             success = true;
@@ -293,6 +333,8 @@ static bool http_api_account_mqtt_profile(
         else
             MG_REPLY_BAD_REQUEST(conn);
     }
+
+    furi_string_free(custom_cfg.url);
 
     return true;
 }

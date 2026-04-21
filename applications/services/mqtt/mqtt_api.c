@@ -69,7 +69,7 @@ void mqtt_get_session_info(Mqtt* instance, MqttSessionInfo* info) {
     mqtt_send_message(instance, &message);
 }
 
-MqttProfileId mqtt_get_profile(Mqtt* instance, FuriString* custom_url) {
+MqttProfileId mqtt_get_profile(Mqtt* instance, MqttCustomProfileConfig* custom_cfg) {
     furi_check(instance);
 
     MqttProfileId profile_id;
@@ -79,7 +79,7 @@ MqttProfileId mqtt_get_profile(Mqtt* instance, FuriString* custom_url) {
         .data.get_profile =
             {
                 .profile_id = &profile_id,
-                .custom_url = custom_url,
+                .custom_cfg = custom_cfg,
             },
     };
 
@@ -87,7 +87,10 @@ MqttProfileId mqtt_get_profile(Mqtt* instance, FuriString* custom_url) {
     return profile_id;
 }
 
-void mqtt_set_profile(Mqtt* instance, MqttProfileId profile_id, const char* custom_url) {
+void mqtt_set_profile(
+    Mqtt* instance,
+    MqttProfileId profile_id,
+    const MqttCustomProfileConfig* custom_cfg) {
     furi_check(instance);
     furi_check(profile_id < MqttProfileIdMax);
 
@@ -96,7 +99,7 @@ void mqtt_set_profile(Mqtt* instance, MqttProfileId profile_id, const char* cust
         .data.set_profile =
             {
                 .profile_id = profile_id,
-                .custom_url = custom_url,
+                .custom_cfg = custom_cfg,
             },
     };
 
@@ -313,8 +316,18 @@ static void mqtt_get_profile_api_message_handler(Mqtt* instance, const MqttApiMe
     *(get_profile->profile_id) = profile_id;
 
     if(profile_id == MqttProfileIdCustom) {
-        if(get_profile->custom_url) {
-            furi_string_set(get_profile->custom_url, settings->custom_url);
+        if(get_profile->custom_cfg) {
+            if(get_profile->custom_cfg->url) {
+                furi_string_set(get_profile->custom_cfg->url, settings->custom_url);
+            }
+            get_profile->custom_cfg->skip_server_cert_check = settings->custom_ignore_server_cert;
+            if(settings->custom_use_mtls) {
+                get_profile->custom_cfg->client_cert_type = settings->custom_client_cert ?
+                                                                MqttClientCertTypeCustom :
+                                                                MqttClientCertTypeStock;
+            } else {
+                get_profile->custom_cfg->client_cert_type = MqttClientCertTypeNone;
+            }
         }
     }
 }
@@ -331,8 +344,18 @@ static void mqtt_set_profile_api_message_handler(Mqtt* instance, const MqttApiMe
 
     if(profile_id == MqttProfileIdCustom) {
         // TODO: Better checks for custom url
-        if(set_profile->custom_url) {
-            strlcpy(settings->custom_url, set_profile->custom_url, sizeof(settings->custom_url));
+        if(set_profile->custom_cfg) {
+            if(set_profile->custom_cfg->url) {
+                strlcpy(
+                    settings->custom_url,
+                    furi_string_get_cstr(set_profile->custom_cfg->url),
+                    sizeof(settings->custom_url));
+            }
+            settings->custom_ignore_server_cert = set_profile->custom_cfg->skip_server_cert_check;
+            settings->custom_use_mtls =
+                (set_profile->custom_cfg->client_cert_type != MqttClientCertTypeNone);
+            settings->custom_client_cert =
+                (set_profile->custom_cfg->client_cert_type == MqttClientCertTypeCustom);
         }
     }
 

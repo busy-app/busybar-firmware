@@ -234,28 +234,45 @@ void mqtt_get_session_info(Mqtt* instance, MqttSessionInfo* info);
 // =========================== Profile management ==================================
 
 /**
+ * @brief Data type describing the custom MQTT profile configuration.
+ */
+typedef struct {
+    FuriString*
+        url; /**< Custom MQTT broker URL string pointer, should be allocated before. Set to NULL if not used */
+    bool skip_server_cert_check; /**< Whether to skip the server certificate validation when connecting to the broker */
+    enum {
+        MqttClientCertTypeNone, /**< No client certificate will be used for authentication */
+        MqttClientCertTypeStock, /**< Use the client certificate from 917 crypto storage */
+        MqttClientCertTypeCustom, /**< Use a custom client certificate from file */
+    } client_cert_type;
+} MqttCustomProfileConfig;
+
+/**
  * @brief Get the currently active profile.
  *
- * @note FuriString object passed as @p custom_url will only be filled
+ * @note MqttCustomProfileConfig object passed as @p custom_cfg will only be filled
  *       if the current profile is set to @c MqttProfileIdCustom.
  *       It may also be @c NULL if it is not needed.
  *
  * @param[in] instance pointer to the MQTT service instance to be queried
- * @param[out] custom_url pointer to a FuriString to contain the custom broker URL, if applicable
+ * @param[out] custom_cfg pointer to a MqttCustomProfileConfig structure, if applicable
  */
-MqttProfileId mqtt_get_profile(Mqtt* instance, FuriString* custom_url);
+MqttProfileId mqtt_get_profile(Mqtt* instance, MqttCustomProfileConfig* custom_cfg);
 
 /**
  * @brief Set the current profile to another one.
  *
- * @note String passed as @p custom_url will only have an effect
+ * @note MqttCustomProfileConfig object passed as @p custom_cfg will only have an effect
  *       if @p profile_id is set to @c MqttProfileIdCustom.
  *
  * @param[in,out] instance pointer to the MQTT service instance to be modified
  * @param[in] profile_id
- * @param[in] custom_url C-string containing the custom MQTT broker url
+ * @param[in] custom_cfg pointer to a MqttCustomProfileConfig structure containing the custom MQTT broker configuration
  */
-void mqtt_set_profile(Mqtt* instance, MqttProfileId profile_id, const char* custom_url);
+void mqtt_set_profile(
+    Mqtt* instance,
+    MqttProfileId profile_id,
+    const MqttCustomProfileConfig* custom_cfg);
 
 // =========================== Subscription management ==================================
 

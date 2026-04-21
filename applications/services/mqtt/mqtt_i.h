@@ -116,12 +116,12 @@ typedef struct {
 
 typedef struct {
     MqttProfileId* profile_id;
-    FuriString* custom_url;
+    MqttCustomProfileConfig* custom_cfg;
 } MqttApiMessageGetProfile;
 
 typedef struct {
     MqttProfileId profile_id;
-    const char* custom_url;
+    const MqttCustomProfileConfig* custom_cfg;
 } MqttApiMessageSetProfile;
 
 typedef struct {
@@ -222,6 +222,6 @@ bool mqtt_tls_init(
     struct mg_connection* conn,
     struct mg_str name,
     struct mg_str ca,
-    bool custom_certs);
+    const MqttSettings* settings);
 
 void mqtt_tls_free_ca(struct mg_connection* conn);

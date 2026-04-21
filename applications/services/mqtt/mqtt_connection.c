@@ -158,9 +158,8 @@ static void mqtt_connect_mg_event_handler(
 
     if(mqtt_is_tls_enabled(instance)) {
         const struct mg_str name = mg_url_host(mqtt_get_server_url(instance));
-        const bool has_custom_certs = (instance->settings.profile_id == MqttProfileIdCustom);
 
-        if(!mqtt_tls_init(connection, name, mg_str(instance->ca_bundle), has_custom_certs)) {
+        if(!mqtt_tls_init(connection, name, mg_str(instance->ca_bundle), &instance->settings)) {
             mqtt_connection_close(instance, false);
             mqtt_set_status(instance, MqttStatusError);
         }
@@ -423,20 +422,10 @@ void mqtt_connection_close(Mqtt* instance, bool reconnect_now) {
 }
 
 static const MqttProfile mqtt_profile_table[MqttProfileIdMax] = {
-    [MqttProfileIdDevelopment] =
-        {
-            .url = MQTT_URL_TLS_PREFIX "mqtt.cloud.dev.busy.app:8883",
-            .use_tls = true,
-        },
     [MqttProfileIdProduction] =
         {
-            .url = MQTT_URL_TLS_PREFIX "mqtt.stage.busy.app:8883",
+            .url = MQTT_URL_TLS_PREFIX "mqtt.busy.app:8883",
             .use_tls = true,
-        },
-    [MqttProfileIdLocal] =
-        {
-            .url = MQTT_URL_PREFIX "10.0.4.21:1883",
-            .use_tls = false,
         },
     [MqttProfileIdCustom] =
         {

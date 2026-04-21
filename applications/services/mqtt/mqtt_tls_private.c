@@ -1,3 +1,4 @@
+#include "mqtt_i.h"
 #include <mongoose.h>
 
 #include <mbedtls/ssl.h>
@@ -8,7 +9,7 @@
 #include <storage/storage.h>
 #include <tls_crypto/tls_crypto.h>
 
-#define TAG "MqttTls"
+#define TAG_TLS TAG "Tls"
 
 #define TLS_DEBUG_LEVEL 0
 
@@ -18,7 +19,6 @@
 #define TLS_KEY_SLOT_DEVICE TlsCryptoKeyIdDevice
 
 #define TLS_CUSTOM_CERT_DEVICE APP_ASSETS_PATH("device.crt")
-#define TLS_CUSTOM_CERT_SIGN   APP_ASSETS_PATH("signing-ca.crt")
 #define TLS_CUSTOM_KEY         APP_ASSETS_PATH("device.key")
 
 static const char* mqtt_alpn_list[] = {"mqtt", NULL};
@@ -33,7 +33,7 @@ static void tls_debug_cb(void* ctx, int lev, const char* file, int line, const c
     UNUSED(file);
     UNUSED(line);
     size_t len = strlen(str) - 1;
-    FURI_LOG_I(TAG, "%lu %d %.*s", ((struct mg_connection*)ctx)->id, lev, len, str);
+    FURI_LOG_I(TAG_TLS, "%lu %d %.*s", ((struct mg_connection*)ctx)->id, lev, len, str);
 }
 
 static size_t tls_pk_get_bitlen(mbedtls_pk_context* pk) {
@@ -56,7 +56,7 @@ static int tls_pk_sign_with_hw_crypto(
 
     do {
         if(md_alg != MBEDTLS_MD_SHA256) {
-            FURI_LOG_E(TAG, "Unsupported MD algorithm 0x%02X", md_alg);
+            FURI_LOG_E(TAG_TLS, "Unsupported MD algorithm 0x%02X", md_alg);
             ret = MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
             break;
         }
@@ -71,10 +71,10 @@ static int tls_pk_sign_with_hw_crypto(
 
         if(crypto_status != TlsCryptoStatusOk) {
             if(crypto_status == TlsCryptoStatusErrorTimeout) {
-                FURI_LOG_E(TAG, "Failed to sign with hw crypto: timeout");
+                FURI_LOG_E(TAG_TLS, "Failed to sign with hw crypto: timeout");
                 ret = MBEDTLS_ERR_SSL_TIMEOUT;
             } else {
-                FURI_LOG_E(TAG, "Failed to sign with hw crypto: internal error");
+                FURI_LOG_E(TAG_TLS, "Failed to sign with hw crypto: internal error");
                 ret = MBEDTLS_ERR_SSL_INTERNAL_ERROR;
             }
             break;
@@ -124,7 +124,7 @@ static bool tls_load_ca(struct mg_str str, mbedtls_x509_crt* p) {
     if(str.buf[0] == '-') str.len++; // PEM, include trailing NUL
     int ret = mbedtls_x509_crt_parse(p, (uint8_t*)str.buf, str.len);
     if(ret != 0) {
-        FURI_LOG_E(TAG, "Cert parse error -0x%04X", -ret);
+        FURI_LOG_E(TAG_TLS, "Cert parse error -0x%04X", -ret);
         return false;
     }
     return true;
@@ -144,9 +144,9 @@ static bool tls_load_cert_from_hw_crypto(uint8_t slot, mbedtls_x509_crt* crt) {
 
         if(crypto_status != TlsCryptoStatusOk) {
             if(crypto_status == TlsCryptoStatusErrorTimeout) {
-                FURI_LOG_E(TAG, "Failed to get certificate from hw crypto: timeout");
+                FURI_LOG_E(TAG_TLS, "Failed to get certificate from hw crypto: timeout");
             } else {
-                FURI_LOG_E(TAG, "Failed to get certificate from hw crypto: internal error");
+                FURI_LOG_E(TAG_TLS, "Failed to get certificate from hw crypto: internal error");
             }
             break;
         }
@@ -155,7 +155,7 @@ static bool tls_load_cert_from_hw_crypto(uint8_t slot, mbedtls_x509_crt* crt) {
             mbedtls_x509_crt_parse(crt, certificate.bytes, certificate.length);
 
         if(parse_result != 0) {
-            FURI_LOG_E(TAG, "Cert parse error -0x%04X", -parse_result);
+            FURI_LOG_E(TAG_TLS, "Cert parse error -0x%04X", -parse_result);
             break;
         }
 
@@ -175,7 +175,7 @@ static bool tls_load_cert_from_file(char* path, mbedtls_x509_crt* crt) {
 
     do {
         if(!storage_file_open(file, path, FSAM_READ, FSOM_OPEN_EXISTING)) {
-            FURI_LOG_E(TAG, "Cert file error: %s", storage_file_get_error_desc(file));
+            FURI_LOG_E(TAG_TLS, "Cert file error: %s", storage_file_get_error_desc(file));
             break;
         }
 
@@ -183,14 +183,14 @@ static bool tls_load_cert_from_file(char* path, mbedtls_x509_crt* crt) {
         cert_buf = malloc(cert_len + 1);
 
         if(storage_file_read(file, cert_buf, cert_len) != cert_len) {
-            FURI_LOG_E(TAG, "Cert file read error");
+            FURI_LOG_E(TAG_TLS, "Cert file read error");
             break;
         }
 
         const int parse_result = mbedtls_x509_crt_parse(crt, cert_buf, cert_len + 1);
 
         if(parse_result != 0) {
-            FURI_LOG_E(TAG, "Cert parse error -0x%04X", -parse_result);
+            FURI_LOG_E(TAG_TLS, "Cert parse error -0x%04X", -parse_result);
             break;
         }
 
@@ -217,7 +217,7 @@ static bool tls_load_key_from_file(char* path, mbedtls_pk_context* pk) {
 
     do {
         if(!storage_file_open(file, path, FSAM_READ, FSOM_OPEN_EXISTING)) {
-            FURI_LOG_E(TAG, "Key file error: %s", storage_file_get_error_desc(file));
+            FURI_LOG_E(TAG_TLS, "Key file error: %s", storage_file_get_error_desc(file));
             return false;
         }
 
@@ -225,7 +225,7 @@ static bool tls_load_key_from_file(char* path, mbedtls_pk_context* pk) {
         cert_buf = malloc(cert_len + 1);
 
         if(storage_file_read(file, cert_buf, cert_len) != cert_len) {
-            FURI_LOG_E(TAG, "Key file read error");
+            FURI_LOG_E(TAG_TLS, "Key file read error");
             return false;
         }
         success = true;
@@ -242,7 +242,7 @@ static bool tls_load_key_from_file(char* path, mbedtls_pk_context* pk) {
     int ret = mbedtls_pk_parse_key(pk, cert_buf, cert_len + 1, NULL, 0, tls_random, 0);
     free(cert_buf);
     if(ret != 0) {
-        FURI_LOG_E(TAG, "Key parse error -0x%04X", -ret);
+        FURI_LOG_E(TAG_TLS, "Key parse error -0x%04X", -ret);
         return false;
     }
     return true;
@@ -268,9 +268,11 @@ bool mqtt_tls_init(
     struct mg_connection* conn,
     struct mg_str name,
     struct mg_str ca,
-    bool custom_certs) {
+    const MqttSettings* settings) {
     struct mg_tls* tls = (struct mg_tls*)calloc(1, sizeof(*tls));
     conn->tls = tls;
+
+    bool is_custom_profile = settings->profile_id == MqttProfileIdCustom;
 
     do {
         if(conn->is_listening) {
@@ -313,33 +315,37 @@ bool mqtt_tls_init(
             mbedtls_ssl_set_hostname(&tls->ssl, host);
             free(host);
         }
-        mbedtls_ssl_conf_authmode(&tls->conf, MBEDTLS_SSL_VERIFY_REQUIRED);
-        if(custom_certs) {
-            if(!tls_load_cert_from_file(TLS_CUSTOM_CERT_DEVICE, &tls->cert)) {
-                break;
-            }
-            if(!tls_load_cert_from_file(TLS_CUSTOM_CERT_SIGN, &tls->cert)) {
-                break;
-            }
-            if(!tls_load_key_from_file(TLS_CUSTOM_KEY, &tls->pk)) {
-                break;
-            }
-        } else {
-            if(!tls_load_cert_from_hw_crypto(TLS_KEY_SLOT_DEVICE, &tls->cert)) {
-                break;
-            }
-            if(!tls_load_cert_from_hw_crypto(TLS_KEY_SLOT_SIGN, &tls->cert)) {
-                break;
+        mbedtls_ssl_conf_authmode(
+            &tls->conf,
+            (is_custom_profile && settings->custom_ignore_server_cert) ?
+                MBEDTLS_SSL_VERIFY_NONE :
+                MBEDTLS_SSL_VERIFY_REQUIRED);
+
+        if(!(is_custom_profile && !settings->custom_use_mtls)) {
+            if(is_custom_profile && settings->custom_client_cert) {
+                if(!tls_load_cert_from_file(TLS_CUSTOM_CERT_DEVICE, &tls->cert)) {
+                    break;
+                }
+                if(!tls_load_key_from_file(TLS_CUSTOM_KEY, &tls->pk)) {
+                    break;
+                }
+            } else {
+                if(!tls_load_cert_from_hw_crypto(TLS_KEY_SLOT_DEVICE, &tls->cert)) {
+                    break;
+                }
+                if(!tls_load_cert_from_hw_crypto(TLS_KEY_SLOT_SIGN, &tls->cert)) {
+                    break;
+                }
+
+                // Setup custom PK wrapper for private key operations
+                mbedtls_pk_setup(&tls->pk, &tls_pk_wrap_hw_crypto);
             }
 
-            // Setup custom PK wrapper for private key operations
-            mbedtls_pk_setup(&tls->pk, &tls_pk_wrap_hw_crypto);
-        }
-
-        ret = mbedtls_ssl_conf_own_cert(&tls->conf, &tls->cert, &tls->pk);
-        if(tls->cert.version && ret != 0) {
-            mg_error(conn, "Config own cert -%04X", -ret);
-            break;
+            ret = mbedtls_ssl_conf_own_cert(&tls->conf, &tls->cert, &tls->pk);
+            if(tls->cert.version && ret != 0) {
+                mg_error(conn, "Config own cert -%04X", -ret);
+                break;
+            }
         }
 
 #ifdef MBEDTLS_SSL_SESSION_TICKETS
