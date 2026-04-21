@@ -513,6 +513,23 @@ FuriHalCryptoStatus furi_hal_crypto_sha(
 }
 
 //#################### Wrap Key ####################
+FuriHalCryptoStatus furi_hal_crypto_is_key_wrapping_supported(void) {
+    FuriHalCryptoKey* key = NULL;
+    static const uint8_t key_data[FURI_HAL_CRYPTO_AES_KEY_SIZE_128] = {
+        1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
+    FuriHalCryptoStatus status = furi_hal_crypto_key_init_raw(
+        &key, FuriHalCryptoKeyTypeAes128, key_data, FURI_HAL_CRYPTO_AES_KEY_SIZE_128);
+    if(status == FuriHalCryptoStatusOk) {
+        FuriHalCryptoKey* wrapped_key = NULL;
+        status = furi_hal_crypto_wrap_key(key, &wrapped_key);
+        if(status == FuriHalCryptoStatusOk) {
+            furi_hal_crypto_key_free(wrapped_key);
+        }
+        furi_hal_crypto_key_free(key);
+    }
+    return status;
+}
+
 FuriHalCryptoStatus
     furi_hal_crypto_wrap_key(const FuriHalCryptoKey* key, FuriHalCryptoKey** wrapped_key_out) {
     furi_assert(key);

@@ -401,6 +401,15 @@ FuriHalCryptoStatus furi_hal_crypto_sha(
 
 //#################### Wrap Key ####################
 /**
+ * Check if key wrapping is supported on this device.
+ *
+ * @return status of the operation
+ *    - FuriHalCryptoStatusOk if wrapping is supported
+ *    - FuriHalCryptoStatusUnsupported if wrapping is not supported
+ *    - FuriHalCryptoStatusDriverError otherwise
+ */
+FuriHalCryptoStatus furi_hal_crypto_is_key_wrapping_supported(void);
+/**
  * Wrap a key. The key is wrapped using the key wrapping algorithm.
  *
  * @param[in] uint8_t* key Pointer to the key.

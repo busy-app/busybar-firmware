@@ -29,3 +29,8 @@ void crypto_common_print_key(const char* tag, const FuriHalCryptoKey* key) {
     }
     crypto_common_print_buffer_hex("", key->data, key->length);
 }
+
+CryptoCommonTestResult
+    crypto_common_test_result_compose(CryptoCommonTestResult a, CryptoCommonTestResult b) {
+    return MAX(a, b);
+}

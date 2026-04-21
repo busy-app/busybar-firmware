@@ -66,6 +66,7 @@ void crypto_csr_command(PipeSide* pipe, FuriString* args, void* context) {
     psa_key_id_t key_id;
     mbedtls_pk_context key_ctx;
     mbedtls_x509write_csr csr_ctx;
+    bool result = true;
 
     size_t max_size = 2048;
     uint8_t* buffer = malloc(max_size);
@@ -78,6 +79,7 @@ void crypto_csr_command(PipeSide* pipe, FuriString* args, void* context) {
             ANSI_FG_RED
             "PSA crypto library initialization failed with error: 0x%08lX\r\n" ANSI_RESET,
             psa_status);
+        result = false;
     } else {
         printf(ANSI_FG_GREEN "PSA crypto library initialization Success\r\n" ANSI_RESET);
     }
@@ -97,6 +99,7 @@ void crypto_csr_command(PipeSide* pipe, FuriString* args, void* context) {
     if(psa_status != PSA_SUCCESS) {
         printf(
             ANSI_FG_RED "Import Key failed with error: status 0x%08lX\r\n" ANSI_RESET, psa_status);
+        result = false;
     } else {
         printf(ANSI_FG_GREEN "Import Key success\r\n" ANSI_RESET);
     }
@@ -140,6 +143,7 @@ void crypto_csr_command(PipeSide* pipe, FuriString* args, void* context) {
     int err = mbedtls_x509write_csr_set_subject_name(&csr_ctx, subject_name);
     if(err != 0) {
         printf(ANSI_FG_RED "Failed to set subject name: %d\r\n" ANSI_RESET, err);
+        result = false;
     } else {
         printf(ANSI_FG_GREEN "Subject name set to: %s\r\n" ANSI_RESET, subject_name);
     }
@@ -159,6 +163,7 @@ void crypto_csr_command(PipeSide* pipe, FuriString* args, void* context) {
     err = mbedtls_pk_setup_opaque(&key_ctx, key_id);
     if(err != 0) {
         printf(ANSI_FG_RED "Failed to setup key context: %d\r\n" ANSI_RESET, err);
+        result = false;
     } else {
         printf(ANSI_FG_GREEN "Key context setup successful\r\n" ANSI_RESET);
     }
@@ -170,6 +175,7 @@ void crypto_csr_command(PipeSide* pipe, FuriString* args, void* context) {
     err = mbedtls_x509write_csr_pem(&csr_ctx, (uint8_t*)buffer, max_size, NULL, NULL);
     if(err != 0) {
         printf(ANSI_FG_RED "Failed to write CSR in PEM format: %d\r\n" ANSI_RESET, err);
+        result = false;
     } else {
         printf(ANSI_FG_GREEN "CSR in PEM format generated successfully\r\n" ANSI_RESET);
         printf("CSR in PEM format:\r\n\r\n%s\r\n", buffer);
@@ -179,6 +185,7 @@ void crypto_csr_command(PipeSide* pipe, FuriString* args, void* context) {
     int len_or_err = mbedtls_x509write_csr_der(&csr_ctx, (uint8_t*)buffer, max_size, NULL, NULL);
     if(len_or_err < 0) {
         printf(ANSI_FG_RED "Failed to write CSR in DER format: %d\r\n" ANSI_RESET, len_or_err);
+        result = false;
     } else {
         printf(ANSI_FG_GREEN "CSR in DER format generated successfully\r\n" ANSI_RESET);
         printf("CSR in DER format, size: %d bytes\r\n\r\n", len_or_err);
@@ -199,4 +206,9 @@ void crypto_csr_command(PipeSide* pipe, FuriString* args, void* context) {
     psa_destroy_key(key_id);
 
     free(buffer);
+    if(result) {
+        printf("SUCCESS\r\n");
+    } else {
+        printf("FAIL\r\n");
+    }
 }
