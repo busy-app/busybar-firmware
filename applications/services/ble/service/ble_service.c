@@ -3,8 +3,10 @@
 
 #define TAG "BleServiceBase"
 
+#define BLE_SERVICE_LOCK_TIMEOUT (5000)
+
 bool ble_service_lock(BleServiceObject* instance) {
-    if(furi_mutex_acquire(instance->service_lock, FuriWaitForever) != FuriStatusOk) {
+    if(furi_mutex_acquire(instance->service_lock, BLE_SERVICE_LOCK_TIMEOUT) != FuriStatusOk) {
         BLE_LOG_W("%s - service lock failed", instance->config->name);
         return false;
     }
@@ -34,7 +36,7 @@ static inline void ble_service_prepare_intercom_frame_header(
     header->num = num;
 }
 
-static void ble_service_prepare_send_intercom_frame(
+static bool ble_service_prepare_send_intercom_frame(
     BleServiceObject* instance,
     BleIntercomFrameType frame_type,
     BleServiceCommandEnum command,
@@ -51,6 +53,7 @@ static void ble_service_prepare_send_intercom_frame(
         data_size,
         instance->sequence_num);
 
+    bool send_result = false;
     if(ble_service_frame_lock(instance->output_frame)) {
         ble_service_frame_append_data(
             instance->output_frame, &header, sizeof(BleIntercomFrameHeader));
@@ -62,11 +65,20 @@ static void ble_service_prepare_send_intercom_frame(
         const void* frame = ble_service_frame_get_data_ptr(instance->output_frame);
         const size_t frame_size = ble_service_frame_get_data_size(instance->output_frame);
 
-        size_t tx = intercom_tx(instance->intercom_ch, frame, frame_size, FuriWaitForever);
-        furi_assert(tx == frame_size);
-        instance->sequence_num += 1;
+        size_t tx =
+            intercom_tx(instance->intercom_ch, frame, frame_size, BLE_INTERCOM_TX_TIMEOUT_MS);
+
+        if(tx == frame_size) {
+            instance->sequence_num += 1;
+            send_result = true;
+        } else {
+            ble_service_set_error(instance, "Unable to send data via intercom");
+        }
+
         ble_service_frame_unlock(instance->output_frame);
     }
+
+    return send_result;
 }
 
 bool ble_service_is_ready(BleServiceObject* instance) {
@@ -220,6 +232,23 @@ void ble_service_enqueue_run(BleServiceObject* instance) {
 
     ble_service_enqueue_message(instance);
 }
+void ble_service_deinit(BleServiceObject* instance) {
+    if(instance && ble_service_lock(instance)) {
+        BLE_LOG_D("%s - ble_service_reset", instance->config->name);
+        ble_service_target_execute(
+            instance, BleIntercomFrameTypeRequest, BleServiceCommandDeinit, 0, NULL);
+
+        ble_service_frame_unlock(instance->input_frame);
+        ble_service_frame_unlock(instance->output_frame);
+
+        for(uint8_t i = 0; i < instance->config->char_count; i++) {
+            ble_characteristic_reset(instance->chars[i]);
+        }
+
+        instance->ready = false;
+        ble_service_unlock(instance);
+    }
+}
 
 void ble_service_write_data(
     BleServiceObject* instance,
@@ -352,9 +381,8 @@ bool ble_service_send_data(
         ble_service_create_intercom_service_data_pack(instance, modified_only, &total_size);
 
     if(config->char_count > 0) {
-        result = true;
-        ble_service_prepare_send_intercom_frame(
-            instance, frame_type, command, result, total_size, config);
+        result = ble_service_prepare_send_intercom_frame(
+            instance, frame_type, command, true, total_size, config);
     }
 
     free(config);

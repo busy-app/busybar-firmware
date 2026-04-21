@@ -53,7 +53,8 @@ static bool http_api_version_callback(
 }
 
 static bool is_usb_connection(struct mg_connection* conn) {
-    uint8_t* ip = conn->rem.ip;
+    if(conn->rem.is_ip6) return false;
+    uint8_t* ip = conn->rem.addr.ip;
     UsbNetwork* usb_network = furi_record_open(RECORD_USB_NETWORK);
     bool is_usb_addr = usb_network_is_dhcp_addr(usb_network, ip);
     furi_record_close(RECORD_USB_NETWORK);
@@ -175,8 +176,9 @@ static bool http_api_is_access_allowed(
 
     bool is_usb = is_usb_connection(conn);
 
-    uint8_t* ip = conn->rem.ip;
-    bool is_localhost = (ip[0] == 127) && (ip[1] == 0) && (ip[2] == 0) && (ip[3] == 1);
+    uint8_t* ip = conn->rem.addr.ip;
+    bool is_localhost = !conn->rem.is_ip6;
+    is_localhost &= (ip[0] == 127) && (ip[1] == 0) && (ip[2] == 0) && (ip[3] == 1);
 
     if(!is_usb && !is_localhost) {
         if(context->access_mode == ApiAccessEnabled) {

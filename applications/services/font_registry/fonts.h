@@ -17,3 +17,4 @@
 #define FONT_BUSY_REGULAR_9     FONT_PATH("busy_regular_9")
 #define FONT_BUSY_REGULAR_14    FONT_PATH("busy_regular_14")
 #define FONT_BUSY_SUPERSCRIPT_7 FONT_PATH("busy_superscript_7")
+#define FONT_BUSY_TINY          FONT_PATH("busy_tiny")

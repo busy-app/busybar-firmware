@@ -9,6 +9,19 @@
 #define BLE_STREAM_RATE_LIMITER_PERIOD_MS    (1000)
 #define BLE_STREAM_RATE_LIMITER_MAX_PACK_CNT (1)
 
+typedef struct FURI_PACKED {
+    uint16_t num;
+    uint16_t count;
+    uint16_t size;
+} BleStreamingDataHeader;
+
+#define BLE_STREAMING_MAX_DATA_SIZE (MAX_TX_CHUNK_SIZE - sizeof(BleStreamingDataHeader))
+
+typedef struct FURI_PACKED {
+    BleStreamingDataHeader header;
+    uint8_t data[BLE_STREAMING_MAX_DATA_SIZE];
+} BleStreamingData;
+
 typedef enum {
     BleStreamingEventFramePending = (1 << 0),
     BleStreamingEventFrameExit = (1 << 1)
@@ -16,6 +29,7 @@ typedef enum {
 
 struct BleStreaming {
     bool run;
+    BleStreamingData send_buf;
     FuriMutex* lock;
     FuriSemaphore* wait_tx;
     StatePublisherTransportHandle handle;
@@ -33,20 +47,36 @@ static void ble_uart_tx_done_callback(void* context) {
     furi_semaphore_release(instance->wait_tx);
 }
 
+static inline uint16_t ble_streaming_get_total_chunks_count(const size_t data_size) {
+    uint16_t count = data_size / BLE_STREAMING_MAX_DATA_SIZE;
+    if((data_size % BLE_STREAMING_MAX_DATA_SIZE) > 0) count += 1;
+    return count;
+}
+
 static void
     ble_streaming_send_data(BleStreaming* instance, const uint8_t* data, size_t data_size) {
     size_t index = 0;
-    while(data_size && instance->run) {
-        size_t send_size = data_size > MAX_TX_CHUNK_SIZE ? MAX_TX_CHUNK_SIZE : data_size;
 
-        ble_uart_tx_data(instance->ble, BleUartChannelHM10, &data[index], send_size);
+    instance->send_buf.header.num = 0;
+    instance->send_buf.header.count = ble_streaming_get_total_chunks_count(data_size);
+    while(data_size && instance->run) {
+        size_t send_size = data_size > BLE_STREAMING_MAX_DATA_SIZE ? BLE_STREAMING_MAX_DATA_SIZE :
+                                                                     data_size;
+
+        instance->send_buf.header.size = send_size;
+        memcpy(instance->send_buf.data, &data[index], send_size);
+
+        ble_uart_tx_data(
+            instance->ble, BleUartChannelHM10, &instance->send_buf, sizeof(BleStreamingData));
 
         FuriStatus status =
             furi_semaphore_acquire(instance->wait_tx, BLE_STREAM_WAIT_TX_TIMEOUT_MS);
         if(status != FuriStatusOk) break;
 
+        memset(instance->send_buf.data, 0, BLE_STREAMING_MAX_DATA_SIZE);
         data_size -= send_size;
         index += send_size;
+        instance->send_buf.header.num += 1;
     }
 }
 

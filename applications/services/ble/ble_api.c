@@ -5,41 +5,49 @@
 
 #define TAG "BleAPI"
 
+#define BLE_API_LOCK_TIMEOUT (100)
+
+///TODO: Rework command mechanism to reduce complexity
 static void ble_send_message(
     Ble* instance,
     const BleSystemCommand command,
     void* data,
     size_t data_size,
     bool* result) {
-    furi_mutex_acquire(instance->current_command_lock, FuriWaitForever);
-    api_lock_relock(instance->current_command_api_lock);
+    FuriStatus status = furi_mutex_acquire(instance->current_command_lock, BLE_API_LOCK_TIMEOUT);
+    if(status == FuriStatusOk) {
+        api_lock_relock(instance->current_command_api_lock);
 
-    const size_t new_msg_size = sizeof(BleIntercomFrameHeader) + data_size + sizeof(bool);
-    if(new_msg_size > instance->current_command_size) {
-        free(instance->current_command);
+        const size_t new_msg_size = sizeof(BleIntercomFrameHeader) + data_size + sizeof(bool);
+        if(new_msg_size > instance->current_command_size) {
+            free(instance->current_command);
 
-        instance->current_command = malloc(new_msg_size);
-        furi_check(instance->current_command);
-        instance->current_command_size = new_msg_size;
+            instance->current_command = malloc(new_msg_size);
+            furi_check(instance->current_command);
+            instance->current_command_size = new_msg_size;
+        }
+
+        BleIntercomFrameHeader* header = &instance->current_command->header;
+        header->frame_type = BleIntercomFrameTypeRequest;
+        header->command = command;
+        header->source = BleIntercomFrameSourceSystem;
+        header->data_size = data_size;
+        if(data_size > 0) memcpy(instance->current_command->data, data, data_size);
+
+        furi_event_loop_set_custom_event(instance->event_loop, BleEventTypeApiCommand);
+
+        api_lock_wait_unlock(instance->current_command_api_lock);
+
+        *result = instance->current_command->header.result;
+        if(data && data_size > 0) {
+            memcpy(data, instance->current_command->data, data_size);
+        }
+        memset(instance->current_command, 0, instance->current_command_size);
+        furi_mutex_release(instance->current_command_lock);
+    } else {
+        FURI_LOG_W(TAG, "API command lock missed");
+        *result = false;
     }
-
-    BleIntercomFrameHeader* header = &instance->current_command->header;
-    header->frame_type = BleIntercomFrameTypeRequest;
-    header->command = command;
-    header->source = BleIntercomFrameSourceSystem;
-    header->data_size = data_size;
-    if(data_size > 0) memcpy(instance->current_command->data, data, data_size);
-
-    furi_event_loop_set_custom_event(instance->event_loop, BleEventTypeIncomingMessage);
-
-    api_lock_wait_unlock(instance->current_command_api_lock);
-
-    *result = instance->current_command->header.result;
-    if(data && data_size > 0) {
-        memcpy(data, instance->current_command->data, data_size);
-    }
-    memset(instance->current_command, 0, instance->current_command_size);
-    furi_mutex_release(instance->current_command_lock);
 }
 
 bool ble_get_state(Ble* ble, BleState* const output) {
