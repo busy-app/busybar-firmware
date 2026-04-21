@@ -31,6 +31,23 @@ from clients.api.assets import (
     AssetsAPI,
     DEFAULT_ELEMENT_PRIORITY,
 )
+from clients.api import StreamingAPI
+
+_RENDER_SETTLE = 1.0  # seconds to wait after draw before capturing screenshot
+_MISSING_IMAGE = "nonexistent/does_not_exist.image"
+_MISSING_ANIM = "nonexistent/does_not_exist.anim"
+
+
+def _capture_after_draw(
+    assets_api: AssetsAPI,
+    streaming_api: StreamingAPI,
+    elements: list[dict],
+    display: int = 0,
+) -> bytes:
+    """Draw elements, wait for render, return display screenshot bytes."""
+    _draw(assets_api, elements)
+    time.sleep(_RENDER_SETTLE)
+    return streaming_api.get_screen_bytes(display=display)
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -75,9 +92,11 @@ def _countdown(overrides: dict | None = None, **extra) -> dict:
     return base
 
 
-# Smallest real builtin assets on the device (from /ext/apps_assets):
-_BUILTIN_IMAGE = "busy/pause_5x5"  # 25 bytes
-_BUILTIN_ANIM = "ble_settings/ble_pairing_8x8"  # 758 bytes
+# Smallest real shared assets on the device (from /ext/shared/images and /ext/shared/animations).
+# stock_path resolution: firmware takes the filename after the last "/" and
+# looks it up in /ext/shared/images/ (image) or /ext/shared/animations/ (anim).
+_BUILTIN_IMAGE = "shared/checkmark_front_8x8.image"  # 28 bytes
+_BUILTIN_ANIM = "shared/spinner_front_8x8.anim"  # 2985 bytes
 
 
 def _image(overrides: dict | None = None, **extra) -> dict:
@@ -588,19 +607,22 @@ class TestImageElement:
         # 200 if the canvas app can process it; never 400 for valid schema
         assert resp.status_code != 400, f"Unexpected 400: {resp.text}"
 
-    @allure.title("Image with stock_path accepted")
+    @allure.title("Image with stock_path renders different pixels than missing asset")
     @pytest.mark.api
     @pytest.mark.frontend
-    def test_image_with_builtin(self, assets_api: AssetsAPI, busy_timer_stopped):
-        elem = {
-            "id": "bi1",
-            "type": "image",
-            "stock_path": _BUILTIN_IMAGE,
-            "timeout": 5,
-        }
-        resp = _draw(assets_api, [elem])
-        # Should not be a schema error; actual rendering depends on asset presence
-        assert resp.status_code != 400, f"Unexpected 400: {resp.text}"
+    def test_image_with_builtin(
+        self, assets_api: AssetsAPI, streaming_api: StreamingAPI, busy_timer_stopped
+    ):
+        valid_elem = {"id": "bi1", "type": "image", "stock_path": _BUILTIN_IMAGE, "timeout": 10}
+        missing_elem = {"id": "bi1", "type": "image", "stock_path": _MISSING_IMAGE, "timeout": 10}
+
+        valid_screen = _capture_after_draw(assets_api, streaming_api, [valid_elem])
+        missing_screen = _capture_after_draw(assets_api, streaming_api, [missing_elem])
+
+        assert valid_screen != missing_screen, (
+            f"stock_path {_BUILTIN_IMAGE!r} rendered same pixels as a missing asset — "
+            "file may not exist on the device"
+        )
 
     @allure.title("Image with both path and stock_path \u2192 400")
     @pytest.mark.api
@@ -647,18 +669,22 @@ class TestAnimElement:
         resp = _draw(assets_api, [_anim()])
         assert resp.status_code != 400, f"Unexpected 400: {resp.text}"
 
-    @allure.title("Anim with stock_path accepted")
+    @allure.title("Anim with stock_path renders different pixels than missing asset")
     @pytest.mark.api
     @pytest.mark.frontend
-    def test_anim_with_builtin(self, assets_api: AssetsAPI, busy_timer_stopped):
-        elem = {
-            "id": "ba1",
-            "type": "animation",
-            "stock_path": _BUILTIN_ANIM,
-            "timeout": 5,
-        }
-        resp = _draw(assets_api, [elem])
-        assert resp.status_code != 400, f"Unexpected 400: {resp.text}"
+    def test_anim_with_builtin(
+        self, assets_api: AssetsAPI, streaming_api: StreamingAPI, busy_timer_stopped
+    ):
+        valid_elem = {"id": "ba1", "type": "animation", "stock_path": _BUILTIN_ANIM, "timeout": 10}
+        missing_elem = {"id": "ba1", "type": "animation", "stock_path": _MISSING_ANIM, "timeout": 10}
+
+        valid_screen = _capture_after_draw(assets_api, streaming_api, [valid_elem])
+        missing_screen = _capture_after_draw(assets_api, streaming_api, [missing_elem])
+
+        assert valid_screen != missing_screen, (
+            f"stock_path {_BUILTIN_ANIM!r} rendered same pixels as a missing asset — "
+            "file may not exist on the device"
+        )
 
     @allure.title("Anim with both path and stock_path \u2192 400")
     @pytest.mark.api

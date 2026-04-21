@@ -52,7 +52,7 @@ class TestWifiAPI:
             )
 
         with allure.step("Disconnect if connected"):
-            if initial_status.state in ["connected", "connecting"]:
+            if initial_status.state in ["connected", "connecting", "reconnecting"]:
                 wifi_api.disconnect()
                 wait_for_wifi_state(
                     wifi_api,

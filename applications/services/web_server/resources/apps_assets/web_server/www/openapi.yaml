@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: BUSY Bar HTTP API
   description: HTTP API for BUSY Bar web server
-  version: 18.3.0
+  version: 19.0.0
   contact:
     name: tbd
 
@@ -87,7 +87,7 @@ paths:
           required: false
           schema:
             type: string
-            pattern: "^[0-9]+$"
+            pattern: "^[0-9]{4,10}$"
           description: Access key (4-10 digits length). Required when mode is "key".
           example: "12345678"
       responses:
@@ -477,7 +477,7 @@ paths:
           required: true
           schema:
             type: string
-            pattern: "^[a-zA-Z0-9._\\-/]+$"
+            pattern: "^/ext(/[a-zA-Z0-9._\\-]*)*$"
           description: Path for the uploaded file
           example: "/ext/test.png"
       requestBody:
@@ -521,7 +521,7 @@ paths:
           required: true
           schema:
             type: string
-            pattern: "^[a-zA-Z0-9._\\-/]+$"
+            pattern: "^/ext(/[a-zA-Z0-9._\\-]*)*$"
           description: Path to the file
           example: "/ext/test.png"
       responses:
@@ -552,7 +552,7 @@ paths:
           required: true
           schema:
             type: string
-            pattern: "^[a-zA-Z0-9._\\-/]+$"
+            pattern: "^/ext(/[a-zA-Z0-9._\\-]*)*$"
           description: Path to the file
           example: "/ext"
       responses:
@@ -582,7 +582,7 @@ paths:
           required: true
           schema:
             type: string
-            pattern: "^[a-zA-Z0-9._\\-/]+$"
+            pattern: "^/ext(/[a-zA-Z0-9._\\-]*)*$"
           description: Path of a file to remove
           example: "/ext/test.png"
       responses:
@@ -612,7 +612,7 @@ paths:
           required: true
           schema:
             type: string
-            pattern: "^[a-zA-Z0-9._\\-/]+$"
+            pattern: "^/ext(/[a-zA-Z0-9._\\-]*)*$"
           description: Path to a new directory
           example: "/ext/newdir"
       responses:
@@ -642,7 +642,7 @@ paths:
           required: true
           schema:
             type: string
-            pattern: "^[a-zA-Z0-9._\\-/]+$"
+            pattern: "^/ext(/[a-zA-Z0-9._\\-]*)*$"
           description: Old location path
           example: "/ext/old_name.txt"
         - name: new_path
@@ -650,7 +650,7 @@ paths:
           required: true
           schema:
             type: string
-            pattern: "^[a-zA-Z0-9._\\-/]+$"
+            pattern: "^/ext(/[a-zA-Z0-9._\\-]*)*$"
           description: New location path
           example: "/ext/new_name.txt"
       responses:
@@ -776,7 +776,7 @@ paths:
           required: true
           schema:
             type: string
-            pattern: "^[a-zA-Z0-9._-]+$"
+            pattern: "^(auto|[0-9]{1,2}|100)$"
           description: Displays brightness (0-100/auto)
           example: "50"
       responses:
@@ -1140,6 +1140,7 @@ paths:
     get:
       tags:
         - Wi-Fi
+      operationId: getWifiNetworks
       description: Scans environment for available Wi-Fi networks
       parameters: []
       responses:
@@ -1409,7 +1410,7 @@ paths:
           required: true
           schema:
             type: string
-            pattern: "^[0-9]{4}(-?)[0-9]{2}\\1[0-9]{2}T[0-9]{2}(:?)[0-9]{2}\\2[0-9]{2}(Z|([+-][0-9]{2}(:?[0-9]{2})?))$"
+            pattern: "^20[0-9]{2}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](Z|[+-]([01][0-9]|2[0-3])(:?[0-5][0-9])?)$"
           description: ISO 8601 timestamp (e.g., 2025-10-02T14:30:45+02:00 for local time or 2025-10-02T14:30:45Z for UTC)
           example: "2025-10-02T14:30:45+0100"
       responses:
@@ -1458,9 +1459,9 @@ paths:
           required: true
           schema:
             type: string
-            pattern: "^.+$"
-          description: Timezone name
-          example: "Stuttgart"
+            pattern: "^[A-Za-z][A-Za-z0-9 _+\\-]{0,50}$"
+          description: Timezone name (use /api/time/tzlist to get available names)
+          example: "Berlin"
       responses:
         "200":
           description: Timezone set successfully
@@ -1879,7 +1880,9 @@ components:
       properties:
         name:
           type: string
-          description: Device name
+          minLength: 1
+          pattern: "^[a-zA-Z0-9 !()_=+;:,.?'|@#$%^&*\\[\\]{}/\\\\\"<>-]+$"
+          description: Device name (letters, digits, spaces and common punctuation; no backtick or tilde)
           example: "BUSY bar"
       required:
         - name
@@ -1943,7 +1946,7 @@ components:
           description: Element type
         name:
           type: string
-          pattern: "^[a-zA-Z0-9._/-]+$"
+          pattern: "^[^\\x00-\\x1F\\\\/:*?\"<>|]+$"
           description: File or directory name
       discriminator:
         propertyName: type
@@ -2058,6 +2061,7 @@ components:
       properties:
         id:
           type: string
+          pattern: "^[a-zA-Z0-9._-]+$"
           description: Unique identifier for the element
         timeout:
           type: integer
@@ -2072,10 +2076,14 @@ components:
           description: Type of display element
         x:
           type: integer
+          minimum: -4096
+          maximum: 4095
           description: X coordinate of selected anchor point relative to top-left of display
           default: 0
         y:
           type: integer
+          minimum: -4096
+          maximum: 4095
           description: Y coordinate of selected anchor point relative to top-left of display
           default: 0
         display:
@@ -2114,7 +2122,9 @@ components:
           properties:
             text:
               type: string
-              description: Text content to display
+              minLength: 1
+              pattern: "^[\\x20-\\x7E]+$"
+              description: Text content to display (printable ASCII only; fonts are bitmap ASCII)
             font:
               type: string
               description: One of the available fonts to display the text in
@@ -2197,6 +2207,7 @@ components:
           properties:
             timestamp:
               type: string
+              pattern: "^[0-9]+$"
               description: "Seconds-based Unix UTC timestamp to count down or up to. Note: it's a number in a string."
             color:
               type: string
@@ -2448,7 +2459,7 @@ components:
         bssid:
           type: string
           description: Only present when connected
-          pattern: "^([A-F0-9]:){5}[A-F0-9]$"
+          pattern: "^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$"
           example: "EC:5A:00:0B:55:1D"
         channel:
           type: integer

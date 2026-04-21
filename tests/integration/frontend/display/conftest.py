@@ -163,10 +163,30 @@ def busy_timer_paused(
     The busy app calls loader_set_priority(LOADER_DEFAULT_APP_PRIORITY) in
     this state (is_paused=True suppresses the active-priority promotion).
 
+    Transition path: whatever → ACTIVE → PAUSED.
+    Going through ACTIVE first ensures the busy app is fully running before
+    the pause is applied, avoiding the NOT_STARTED → paused race (FW-832)
+    where notify_initial_state fires before the scene subscribes to pubsub.
+
     Yields nothing – the original state is restored by busy_state_guard.
     """
     current = busy_state_guard
     settings = current.get("snapshot", {}).get("busy_bar_settings", {})
+
+    # Step 1: activate — ensures the app is running before we pause
+    active_body = {
+        "snapshot": {
+            "type": "INFINITE",
+            "card_id": _WORK_CARD_UUID,
+            "is_paused": False,
+            "busy_bar_settings": settings,
+        },
+        "snapshot_timestamp_ms": _next_timestamp(api_session, web_base_url),
+    }
+    _set_snapshot(api_session, web_base_url, active_body)
+    time.sleep(_STATE_SETTLE_S)
+
+    # Step 2: pause
     paused_body = {
         "snapshot": {
             "type": "INFINITE",

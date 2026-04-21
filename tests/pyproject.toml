@@ -18,6 +18,7 @@ colorlog = "^6.7.0"
 pytest-asyncio = ">=0.20,<0.24"
 pytest-timeout = "^2.2"
 beautifulsoup4 = "^4.13.5"
+schemathesis = ">=4.0"
 Pillow = ">=10.0"
 
 [tool.poetry.group.dev.dependencies]
@@ -47,6 +48,7 @@ markers = [
     "asyncio: marks tests as async tests",
     "story_commands_check: marks tests for commands check story",
     "story_ui_validation: marks tests for UI validation story",
+    "schemathesis: marks tests as OpenAPI schema conformance tests (schemathesis)",
 ]
 
 [tool.allure.pytest_plugin]

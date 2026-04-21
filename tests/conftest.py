@@ -123,16 +123,30 @@ def web_session() -> requests.Session:
         # Set default timeout if not provided (prevent infinite hang)
         if "timeout" not in kwargs:
             kwargs["timeout"] = 10
+        method = args[0] if args else kwargs.get("method", "GET")
+        url = args[1] if len(args) > 1 else kwargs.get("url", "")
+        params = kwargs.get("params", {})
+        if params:
+            import urllib.parse
+            url = f"{url}?{urllib.parse.urlencode(params, doseq=True)}"
+        response = None
+        error = None
         start_time = time.time()
-        response = original_request(*args, **kwargs)
-        duration = time.time() - start_time
-        log_web_request(
-            method=args[0] if args else kwargs.get("method", "GET"),
-            url=args[1] if len(args) > 1 else kwargs.get("url", ""),
-            status_code=response.status_code,
-            duration=duration,
-        )
-        return response
+        try:
+            response = original_request(*args, **kwargs)
+            return response
+        except requests.RequestException as exc:
+            error = exc
+            raise
+        finally:
+            duration = time.time() - start_time
+            log_web_request(
+                method=method,
+                url=url,
+                duration=duration,
+                status_code=getattr(response, "status_code", None),
+                error=error,
+            )
 
     session.request = logged_request
     return session
@@ -205,6 +219,7 @@ def pytest_configure(config):
         "feature_cli: Feature 6. CLI",
         "feature_web_frontend: Feature 5. Web Frontend",
         "connection_test: Fresh connection tests",
+        "schemathesis: OpenAPI schema conformance tests (schemathesis)",
     ]
 
     for marker in markers:

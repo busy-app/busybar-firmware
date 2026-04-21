@@ -267,6 +267,69 @@ class TestDrawWithRunningApp:
         resp = _simple_draw(assets_api, priority=DEFAULT_ELEMENT_PRIORITY)
         assets_api.assert_status(resp, 200)
 
+    @allure.title(
+        "Draw at app priority (10) returns 200 after NOT_STARTED → paused transition [FW-832]"
+    )
+    @pytest.mark.skip(
+        reason="FW-832: loader priority stuck at 90 after NOT_STARTED → INFINITE/paused "
+        "snapshot — busy app restarts and misses notify_paused event from notify_initial_state"
+    )
+    @pytest.mark.api
+    @pytest.mark.frontend
+    def test_not_started_to_paused_priority_regression(
+        self,
+        assets_api: AssetsAPI,
+        api_session,
+        web_base_url: str,
+        busy_state_guard: dict,
+    ):
+        """
+        Regression test for FW-832.
+
+        When transitioning directly from NOT_STARTED to INFINITE/is_paused=True,
+        busy_timer_apply_snapshot calls busy_timer_start_app (restarts the app)
+        and then busy_timer_notify_initial_state. The scene may not have subscribed
+        to the pubsub yet when notify_initial_state fires, so the pause event is
+        missed. The loader priority stays at 90 (Work state default) instead of
+        dropping to 10, causing draws at priority=10 to get 409.
+
+        Expected: 200. Actual: 409 (until FW-832 is fixed).
+        """
+        import time as _time
+
+        settings = busy_state_guard.get("snapshot", {}).get("busy_bar_settings", {})
+
+        # Ensure NOT_STARTED state
+        stopped_body = {
+            "snapshot": {"type": "NOT_STARTED", "busy_bar_settings": settings},
+            "snapshot_timestamp_ms": max(
+                busy_state_guard.get("snapshot_timestamp_ms", 0),
+                int(_time.time() * 1000),
+            ) + 2000,
+        }
+        api_session.put(f"{web_base_url}/api/busy/snapshot", json=stopped_body, timeout=10).raise_for_status()
+        _time.sleep(1.0)
+
+        # Transition directly to paused INFINITE (the problematic path)
+        current = api_session.get(f"{web_base_url}/api/busy/snapshot", timeout=10).json()
+        paused_body = {
+            "snapshot": {
+                "type": "INFINITE",
+                "card_id": "00000000-0000-0000-0000-000000000001",
+                "is_paused": True,
+                "busy_bar_settings": settings,
+            },
+            "snapshot_timestamp_ms": max(
+                current.get("snapshot_timestamp_ms", 0),
+                int(_time.time() * 1000),
+            ) + 2000,
+        }
+        api_session.put(f"{web_base_url}/api/busy/snapshot", json=paused_body, timeout=10).raise_for_status()
+        _time.sleep(1.0)
+
+        resp = _simple_draw(assets_api, priority=LOADER_DEFAULT_APP_PRIORITY)
+        assets_api.assert_status(resp, 200)
+
 
 @allure.feature("5. Web Frontend")
 @allure.story("Display Priority – Busy Timer Transitions")
