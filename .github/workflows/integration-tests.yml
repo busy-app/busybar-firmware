@@ -115,7 +115,7 @@ jobs:
 
       - name: 'Flash firmware'
         id: flashing
-        timeout-minutes: 20
+        timeout-minutes: 10
         run: |
           set -euo pipefail
           source scripts/toolchain/fbtenv.sh
@@ -142,6 +142,7 @@ jobs:
 
       - name: Run integration tests
         id: smoke_tests
+        timeout-minutes: 20
         run: |
           set +e
           cd tests

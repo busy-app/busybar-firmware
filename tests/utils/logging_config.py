@@ -165,16 +165,23 @@ def log_cli_command(command: str, response: str, duration: float = None):
     )
 
 
-def log_web_request(method: str, url: str, status_code: int, duration: float = None):
-    """Log web request"""
+def log_web_request(
+    method: str, url: str, duration: float = None, *, status_code: int = None, error: Exception = None
+):
+    """Log web request (success or failure)."""
     logger = get_web_logger()
 
     duration_str = f", took {round(duration * 1000, 2)}ms" if duration else ""
-    level = "info" if 200 <= status_code < 400 else "warning"
 
-    getattr(logger, level)(
-        f"Web request: {method} {url} -> {status_code}{duration_str}"
-    )
+    if error is not None:
+        logger.warning(
+            f"Web request failed: {method} {url} -> {type(error).__name__}: {error}{duration_str}"
+        )
+    else:
+        level = "info" if 200 <= status_code < 400 else "warning"
+        getattr(logger, level)(
+            f"Web request: {method} {url} -> {status_code}{duration_str}"
+        )
 
 
 def log_test_step(step_name: str, **kwargs):
