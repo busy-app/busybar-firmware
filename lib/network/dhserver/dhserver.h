@@ -29,14 +29,13 @@
  */
 #pragma once
 
-#include <lwip/err.h>
 #include <lwip/netif.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-typedef struct dhcp_config {
+typedef struct {
     struct netif* netif;
     ip4_addr_t router;
     uint16_t port;
@@ -45,11 +44,11 @@ typedef struct dhcp_config {
     uint8_t max_lease_count;
 } dhcp_config_t;
 
-err_t dhserv_init(const dhcp_config_t* config);
+bool dhserv_init(const dhcp_config_t* config);
 
 void dhserv_deinit(void);
 
-bool dhserv_has_lease(const ip4_addr_t addr);
+bool dhserv_has_lease(ip4_addr_t addr);
 
 #ifdef __cplusplus
 }

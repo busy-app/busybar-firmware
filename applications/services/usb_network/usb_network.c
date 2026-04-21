@@ -102,7 +102,7 @@ static void usb_network_dhcp_start(UsbNetwork* instance) {
     uint32_t num_attempts;
 
     for(num_attempts = 0; num_attempts < DHCP_INIT_ATTEMPTS; ++num_attempts) {
-        if(dhserv_init(&instance->dhcp_config) == ERR_OK) {
+        if(dhserv_init(&instance->dhcp_config)) {
             break;
         }
     }

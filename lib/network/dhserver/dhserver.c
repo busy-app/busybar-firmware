@@ -361,36 +361,35 @@ static void dhserv_init_entries(const dhcp_config_t* c) {
     }
 }
 
-err_t dhserv_init(const dhcp_config_t* c) {
-    err_t err;
+bool dhserv_init(const dhcp_config_t* c) {
+    bool success = false;
 
     do {
         dhserv_deinit();
-
         dhserv_init_entries(c);
 
         pcb = udp_new();
-
         if(pcb == NULL) {
-            err = ERR_MEM;
             break;
         }
 
         udp_bind_netif(pcb, c->netif);
 
-        err = udp_bind(pcb, IP_ADDR_ANY, c->port);
-        if(err != ERR_OK) {
-            dhserv_deinit();
+        if(udp_bind(pcb, IP_ADDR_ANY, c->port) != ERR_OK) {
             break;
         }
 
         udp_recv(pcb, udp_recv_proc, NULL);
         config = c;
 
-        err = ERR_OK;
+        success = true;
     } while(false);
 
-    return err;
+    if(!success) {
+        dhserv_deinit();
+    }
+
+    return success;
 }
 
 void dhserv_deinit(void) {
@@ -404,7 +403,7 @@ void dhserv_deinit(void) {
     }
 }
 
-bool dhserv_has_lease(const ip4_addr_t address) {
+bool dhserv_has_lease(ip4_addr_t address) {
     bool has_lease = false;
 
     if(entries != NULL) {
