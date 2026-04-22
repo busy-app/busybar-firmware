@@ -593,6 +593,7 @@ FuriHalCryptoStatus
         furi_hal_crypto_key_free(wrapped_key);
     }
 
+    explicit_bzero(wrap_config, sizeof(*wrap_config));
     free(wrap_config);
     return ret;
 }
