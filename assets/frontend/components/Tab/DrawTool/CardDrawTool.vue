@@ -336,18 +336,67 @@
                   ref="transformerRef"
                   :config="transformerConfig"
                 />
-                <VGroup
-                  v-if="deleteButtonPosition"
-                  :config="deleteButtonGroupConfig"
-                  @click="deleteSelectedShape"
-                  @tap="deleteSelectedShape"
-                >
-                  <VCircle :config="deleteButtonCircleConfig" />
-                  <VText :config="deleteButtonTextConfig" />
-                </VGroup>
               </VLayer>
             </VStage>
           </div>
+
+          <textarea
+            v-if="selectedTextTextareaStyle"
+            ref="textEditorRef"
+            :value="activeTextValue"
+            :style="selectedTextTextareaStyle"
+            class="absolute z-20 resize-none overflow-hidden border-0 bg-transparent p-0 outline-none"
+            autofocus
+            rows="1"
+            spellcheck="false"
+            wrap="off"
+            @input="handleTextTextareaInput"
+            @keydown.enter.prevent="handleTextTextareaEnter"
+            @blur="commitActiveTextChange"
+            @mousedown.stop
+            @wheel.prevent
+            @click.stop
+          />
+
+          <UButton
+            v-if="deleteButtonStyle"
+            aria-label="Delete selected element"
+            color="error"
+            variant="solid"
+            square
+            size="xs"
+            icon="i-bi-trash"
+            :style="deleteButtonStyle"
+            class="absolute z-30 rounded-full"
+            @pointerdown.stop.prevent
+            @click.stop="deleteSelectedShape"
+          />
+
+          <UButton
+            v-if="selectionHandleStyle"
+            :aria-label="selectedTextShape ? 'Move selected text' : 'Resize selected element'"
+            color="neutral"
+            variant="solid"
+            square
+            size="xs"
+            :icon="selectedTextShape ? 'i-bi-location' : 'i-bi-plus'"
+            :style="selectionHandleStyle"
+            class="absolute z-30 rounded-full"
+            @pointerdown.stop.prevent="handleSelectionHandlePointerDown"
+          />
+
+          <UButton
+            v-if="rotationHandleStyle"
+            aria-label="Rotate selected element"
+            color="neutral"
+            variant="solid"
+            square
+            size="xs"
+            icon="i-bi-arrow-clockwise"
+            :style="rotationHandleStyle"
+            class="absolute z-30 rounded-full"
+            @pointerdown.stop.prevent="handleRotationHandlePointerDown"
+          />
         </div>
 
         <ModalGeneric
@@ -400,7 +449,6 @@
 <script setup lang="ts">
 import Konva from 'konva';
 import {
-  Circle as VCircle,
   Group as VGroup,
   Image as VImage,
   Layer as VLayer,
@@ -420,6 +468,7 @@ const MIN_STAGE_HEIGHT = 400;
 const HISTORY_LIMIT = 10;
 const ROTATION_SNAP_STEP = 5;
 const DEFAULT_WORKSPACE_BACKGROUND = '#101010';
+const DEFAULT_GRID_COLOR = '#000000';
 const DEFAULT_BACKGROUND_PICKER_COLOR = '#000000';
 const DEFAULT_BORDER_PICKER_COLOR = '#000000';
 const DEFAULT_BORDER_DASH_SIZE = 4;
@@ -464,6 +513,23 @@ type BorderPixelConfig = {
   fill: string;
   listening: boolean;
   perfectDrawEnabled: boolean;
+};
+
+type OverlayControlPosition = {
+  x: number;
+  y: number;
+};
+
+type SelectionHandleDragState = {
+  pointerId: number;
+  shapeId: string;
+  mode: 'move' | 'resize' | 'rotate';
+  startClientX: number;
+  startClientY: number;
+  startShape: EditorShape;
+  centerX?: number;
+  centerY?: number;
+  startPointerAngle?: number;
 };
 
 type FontOption = {
@@ -525,6 +591,7 @@ const TEXT_FONT_OPTIONS: FontOption[] = [
 ];
 
 const stageContainerRef = ref<HTMLDivElement | null>(null);
+const textEditorRef = ref<HTMLTextAreaElement | null>(null);
 const stageWidth = ref(MIN_STAGE_WIDTH);
 const resizeObserver = ref<ResizeObserver | null>(null);
 
@@ -536,7 +603,10 @@ const transformerRef = ref<KonvaRef<Konva.Transformer> | null>(null);
 
 const shapes = ref<EditorShape[]>([]);
 const selectedShapeId = ref<string | null>(null);
-const deleteButtonPosition = ref<{ x: number; y: number } | null>(null);
+const deleteButtonPosition = ref<OverlayControlPosition | null>(null);
+const rotationHandlePosition = ref<OverlayControlPosition | null>(null);
+const selectionHandlePosition = ref<OverlayControlPosition | null>(null);
+const activeSelectionHandleDrag = ref<SelectionHandleDragState | null>(null);
 const backgroundColor = ref<string | undefined>();
 const borderColor = ref<string | undefined>();
 const borderGapSize = ref(DEFAULT_BORDER_GAP_SIZE);
@@ -615,8 +685,7 @@ const workspaceCustomBackgroundGroupConfig = computed(() => ({
 
 const workspaceGridGroupConfig = computed(() => ({
   ...workspaceDisplayGroupConfig.value,
-  listening: false,
-  opacity: 0.5
+  listening: false
 }));
 
 const workspaceBackgroundConfig = computed(() => ({
@@ -714,7 +783,7 @@ const verticalGridLines = computed(() => {
   return Array.from({ length: WORKSPACE_WIDTH + 1 }, (_, index) => ({
     key: `vertical-${index}`,
     points: [index, 0, index, WORKSPACE_HEIGHT],
-    stroke: index === 0 || index === WORKSPACE_WIDTH ? '#4b5563' : '#1f1f1f',
+    stroke: index === 0 || index === WORKSPACE_WIDTH ? '#4b5563' : DEFAULT_GRID_COLOR,
     strokeWidth: 1,
     strokeScaleEnabled: false,
     listening: false,
@@ -726,7 +795,7 @@ const horizontalGridLines = computed(() => {
   return Array.from({ length: WORKSPACE_HEIGHT + 1 }, (_, index) => ({
     key: `horizontal-${index}`,
     points: [0, index, WORKSPACE_WIDTH, index],
-    stroke: index === 0 || index === WORKSPACE_HEIGHT ? '#4b5563' : '#1f1f1f',
+    stroke: index === 0 || index === WORKSPACE_HEIGHT ? '#4b5563' : DEFAULT_GRID_COLOR,
     strokeWidth: 1,
     strokeScaleEnabled: false,
     listening: false,
@@ -823,6 +892,91 @@ const textFontSelectItems = computed(() => TEXT_FONT_OPTIONS.map(font => ({
   label: font.label,
   value: font.id
 })));
+const deleteButtonStyle = computed<Record<string, string> | null>(() => {
+  if (!deleteButtonPosition.value) {
+    return null;
+  }
+
+  return {
+    left: `${deleteButtonPosition.value.x}px`,
+    top: `${deleteButtonPosition.value.y}px`,
+    transform: 'translate(-50%, -50%)'
+  };
+});
+const rotationHandleStyle = computed<Record<string, string> | null>(() => {
+  if (!rotationHandlePosition.value || selectedTextShape.value) {
+    return null;
+  }
+
+  return {
+    left: `${rotationHandlePosition.value.x}px`,
+    top: `${rotationHandlePosition.value.y}px`,
+    transform: 'translate(-50%, -50%)',
+    cursor: activeSelectionHandleDrag.value?.mode === 'rotate' ? 'grabbing' : 'grab',
+    touchAction: 'none'
+  };
+});
+const selectionHandleStyle = computed<Record<string, string> | null>(() => {
+  if (!selectionHandlePosition.value) {
+    return null;
+  }
+
+  return {
+    left: `${selectionHandlePosition.value.x}px`,
+    top: `${selectionHandlePosition.value.y}px`,
+    transform: 'translate(-50%, -50%)',
+    cursor: selectedTextShape.value ? 'move' : 'nwse-resize',
+    touchAction: 'none'
+  };
+});
+const selectedTextTextareaStyle = computed<Record<string, string> | null>(() => {
+  if (!selectedTextShape.value) {
+    return null;
+  }
+
+  const font = getFontOption(selectedTextShape.value.fontId);
+  const displayConfig = getDisplayTextConfig(selectedTextShape.value);
+  const textConfig = getTextConfig(selectedTextShape.value);
+  const fontSize = font.fontSize * stageMetrics.value.cellSize;
+  const textareaWidth = (textConfig.width + 4) * stageMetrics.value.cellSize;
+  const textareaHeight = (textConfig.height + Math.max(0, font.offsetY)) * stageMetrics.value.cellSize;
+
+  return {
+    left: `${stageMetrics.value.workspaceX + (displayConfig.x * stageMetrics.value.cellSize)}px`,
+    top: `${stageMetrics.value.workspaceY + (displayConfig.y * stageMetrics.value.cellSize)}px`,
+    width: `${textareaWidth}px`,
+    height: `${textareaHeight}px`,
+    color: selectedTextShape.value.fill,
+    opacity: '0.6',
+    fontFamily: font.family,
+    fontSize: `${fontSize}px`,
+    lineHeight: `${fontSize}px`,
+    overflow: 'hidden',
+    overflowX: 'hidden',
+    overflowY: 'hidden',
+    whiteSpace: 'pre',
+    overflowWrap: 'normal',
+    textAlign: 'left',
+    caretShape: 'underscore',
+    caretColor: 'red'
+  };
+});
+
+watch(
+  () => selectedTextShape.value?.id,
+  async selectedTextId => {
+    if (!selectedTextId) {
+      return;
+    }
+
+    await nextTick();
+    textEditorRef.value?.focus();
+    const textLength = textEditorRef.value?.value.length ?? 0;
+
+    textEditorRef.value?.setSelectionRange(0, textLength);
+  },
+  { flush: 'post' }
+);
 
 function normalizeBorderSettings () {
   borderGapSize.value = Math.min(MAX_BORDER_GAP_SIZE, Math.max(0, borderGapSize.value));
@@ -997,6 +1151,252 @@ function handleActiveTextValueInput (value: string | number) {
   }));
 }
 
+function handleTextTextareaInput (event: Event) {
+  const textarea = event.target as HTMLTextAreaElement;
+  const nextValue = textarea.value.replace(/[\r\n]+/g, '');
+
+  if (textarea.value !== nextValue) {
+    textarea.value = nextValue;
+  }
+
+  handleActiveTextValueInput(nextValue);
+}
+
+function handleTextTextareaEnter () {
+  commitActiveTextChange();
+  selectedShapeId.value = null;
+}
+
+function getRotatedLogicalDelta (deltaX: number, deltaY: number, rotation: number) {
+  const radians = rotation * (Math.PI / 180);
+  const localDeltaX = (deltaX * Math.cos(radians)) + (deltaY * Math.sin(radians));
+  const localDeltaY = (-deltaX * Math.sin(radians)) + (deltaY * Math.cos(radians));
+
+  return {
+    x: stageDeltaToLogical(localDeltaX),
+    y: stageDeltaToLogical(localDeltaY)
+  };
+}
+
+function getStageDeltaFromLocalDelta (deltaX: number, deltaY: number, rotation: number) {
+  const radians = rotation * (Math.PI / 180);
+
+  return {
+    x: (deltaX * Math.cos(radians)) - (deltaY * Math.sin(radians)),
+    y: (deltaX * Math.sin(radians)) + (deltaY * Math.cos(radians))
+  };
+}
+
+function getLogicalCenter (shape: ShapeBase) {
+  const centerOffset = getStageDeltaFromLocalDelta(shape.width / 2, shape.height / 2, shape.rotation);
+
+  return {
+    x: shape.x + centerOffset.x,
+    y: shape.y + centerOffset.y
+  };
+}
+
+function getShapePositionForRotation (shape: ShapeBase, rotation: number) {
+  const center = getLogicalCenter(shape);
+  const rotatedOffset = getStageDeltaFromLocalDelta(shape.width / 2, shape.height / 2, rotation);
+
+  return {
+    x: center.x - rotatedOffset.x,
+    y: center.y - rotatedOffset.y
+  };
+}
+
+function getRotationHandleAngle (clientX: number, clientY: number, centerX: number, centerY: number) {
+  return Math.atan2(clientY - centerY, clientX - centerX);
+}
+
+function snapRotationValue (rotation: number) {
+  return Math.round(rotation / ROTATION_SNAP_STEP) * ROTATION_SNAP_STEP;
+}
+
+function getHandleResizeDimensions (
+  shape: ShapeBase,
+  deltaX: number,
+  deltaY: number,
+  preserveAspectRatio: boolean,
+  resizeFromCenter: boolean
+) {
+  let nextWidth = Math.max(1, shape.width + deltaX);
+  let nextHeight = Math.max(1, shape.height + deltaY);
+
+  if (preserveAspectRatio) {
+    const widthScale = nextWidth / shape.width;
+    const heightScale = nextHeight / shape.height;
+    const nextScale = Math.max(
+      1 / shape.width,
+      1 / shape.height,
+      Math.abs(widthScale - 1) >= Math.abs(heightScale - 1) ? widthScale : heightScale
+    );
+
+    nextWidth = Math.max(1, Math.round(shape.width * nextScale));
+    nextHeight = Math.max(1, Math.round(shape.height * nextScale));
+  }
+
+  if (!resizeFromCenter) {
+    return {
+      x: shape.x,
+      y: shape.y,
+      width: nextWidth,
+      height: nextHeight
+    };
+  }
+
+  const stageOffset = getStageDeltaFromLocalDelta(
+    -(nextWidth - shape.width) / 2,
+    -(nextHeight - shape.height) / 2,
+    shape.rotation
+  );
+
+  return {
+    x: shape.x + stageOffset.x,
+    y: shape.y + stageOffset.y,
+    width: nextWidth,
+    height: nextHeight
+  };
+}
+
+function stopSelectionHandleDrag (shouldCommit: boolean) {
+  window.removeEventListener('pointermove', handleSelectionHandlePointerMove);
+  window.removeEventListener('pointerup', handleSelectionHandlePointerUp);
+  window.removeEventListener('pointercancel', handleSelectionHandlePointerUp);
+
+  if (!activeSelectionHandleDrag.value) {
+    return;
+  }
+
+  activeSelectionHandleDrag.value = null;
+
+  if (shouldCommit) {
+    pushHistorySnapshot();
+  }
+}
+
+function handleSelectionHandlePointerDown (event: PointerEvent) {
+  const currentShape = selectedShape.value;
+  const selectedNode = getSelectedNode();
+
+  if (!currentShape || !selectedNode) {
+    return;
+  }
+
+  activeSelectionHandleDrag.value = {
+    pointerId: event.pointerId,
+    shapeId: currentShape.id,
+    mode: currentShape.type === 'text' ? 'move' : 'resize',
+    startClientX: event.clientX,
+    startClientY: event.clientY,
+    startShape: cloneShape(currentShape)
+  };
+
+  window.addEventListener('pointermove', handleSelectionHandlePointerMove);
+  window.addEventListener('pointerup', handleSelectionHandlePointerUp);
+  window.addEventListener('pointercancel', handleSelectionHandlePointerUp);
+}
+
+function handleRotationHandlePointerDown (event: PointerEvent) {
+  const currentShape = selectedShape.value;
+  const selectedNode = getSelectedNode();
+  const stageContainerRect = stageContainerRef.value?.getBoundingClientRect();
+
+  if (!currentShape || !selectedNode || currentShape.type === 'text' || !stageContainerRect) {
+    return;
+  }
+
+  const center = selectedNode.getAbsoluteTransform().point({
+    x: selectedNode.width() / 2,
+    y: selectedNode.height() / 2
+  });
+  const centerClientX = stageContainerRect.left + center.x;
+  const centerClientY = stageContainerRect.top + center.y;
+
+  activeSelectionHandleDrag.value = {
+    pointerId: event.pointerId,
+    shapeId: currentShape.id,
+    mode: 'rotate',
+    startClientX: event.clientX,
+    startClientY: event.clientY,
+    startShape: cloneShape(currentShape),
+    centerX: centerClientX,
+    centerY: centerClientY,
+    startPointerAngle: getRotationHandleAngle(event.clientX, event.clientY, centerClientX, centerClientY)
+  };
+
+  window.addEventListener('pointermove', handleSelectionHandlePointerMove);
+  window.addEventListener('pointerup', handleSelectionHandlePointerUp);
+  window.addEventListener('pointercancel', handleSelectionHandlePointerUp);
+}
+
+function handleSelectionHandlePointerMove (event: PointerEvent) {
+  const dragState = activeSelectionHandleDrag.value;
+  const selectedNode = getSelectedNode();
+
+  if (!dragState || event.pointerId !== dragState.pointerId || !selectedNode || selectedNode.id() !== dragState.shapeId) {
+    return;
+  }
+
+  const pointerDeltaX = event.clientX - dragState.startClientX;
+  const pointerDeltaY = event.clientY - dragState.startClientY;
+
+  if (dragState.mode === 'move') {
+    selectedNode.position({
+      x: dragState.startShape.x + stageDeltaToLogical(pointerDeltaX),
+      y: dragState.startShape.y + stageDeltaToLogical(pointerDeltaY)
+    });
+    syncNodePosition(selectedNode);
+  } else if (dragState.mode === 'rotate') {
+    if (dragState.centerX === undefined || dragState.centerY === undefined || dragState.startPointerAngle === undefined) {
+      return;
+    }
+
+    const currentPointerAngle = getRotationHandleAngle(event.clientX, event.clientY, dragState.centerX, dragState.centerY);
+    const rotationDelta = (currentPointerAngle - dragState.startPointerAngle) * (180 / Math.PI);
+    const nextRotation = snapRotationValue(dragState.startShape.rotation + rotationDelta);
+    const nextPosition = getShapePositionForRotation(dragState.startShape, nextRotation);
+
+    selectedNode.position(nextPosition);
+    selectedNode.rotation(nextRotation);
+    syncRotatingNode(selectedNode);
+  } else {
+    const resizedDelta = getRotatedLogicalDelta(pointerDeltaX, pointerDeltaY, dragState.startShape.rotation);
+    const nextSize = getHandleResizeDimensions(
+      dragState.startShape,
+      resizedDelta.x,
+      resizedDelta.y,
+      event.shiftKey,
+      event.altKey
+    );
+
+    selectedNode.position({
+      x: nextSize.x,
+      y: nextSize.y
+    });
+    selectedNode.width(nextSize.width);
+    selectedNode.height(nextSize.height);
+    selectedNode.scaleX(1);
+    selectedNode.scaleY(1);
+    normalizeTransformedNode(selectedNode);
+  }
+
+  transformerRef.value?.getNode().forceUpdate();
+  updateDeleteButtonPosition();
+  overlayLayerRef.value?.getNode().batchDraw();
+}
+
+function handleSelectionHandlePointerUp (event: PointerEvent) {
+  const dragState = activeSelectionHandleDrag.value;
+
+  if (!dragState || event.pointerId !== dragState.pointerId) {
+    return;
+  }
+
+  stopSelectionHandleDrag(true);
+}
+
 function handleActiveTextColorChange (value?: string) {
   const nextColor = value || DEFAULT_TEXT_COLOR;
 
@@ -1031,6 +1431,14 @@ function handleActiveTextFontChange (value: string | number) {
 }
 
 function commitActiveTextChange () {
+  if (!selectedTextShape.value) {
+    return;
+  }
+
+  pushHistorySnapshot();
+}
+
+function commitSelectedTextBeforeSelectionChange () {
   if (!selectedTextShape.value) {
     return;
   }
@@ -1087,6 +1495,16 @@ function measureStage () {
   stageWidth.value = stageContainerRef.value?.clientWidth || MIN_STAGE_WIDTH;
 }
 
+function getSelectedNode (): Konva.Rect | Konva.Image | Konva.Text | null {
+  const stage = stageRef.value?.getNode();
+
+  if (!stage || !selectedShapeId.value) {
+    return null;
+  }
+
+  return stage.findOne(`#${selectedShapeId.value}`) as Konva.Rect | Konva.Image | Konva.Text | null;
+}
+
 function syncTransformer () {
   const transformer = transformerRef.value?.getNode();
   const stage = stageRef.value?.getNode();
@@ -1098,6 +1516,8 @@ function syncTransformer () {
   if (!selectedShapeId.value) {
     transformer.nodes([]);
     deleteButtonPosition.value = null;
+    rotationHandlePosition.value = null;
+    selectionHandlePosition.value = null;
     overlayLayerRef.value?.getNode().batchDraw();
     return;
   }
@@ -1111,19 +1531,34 @@ function syncTransformer () {
 }
 
 function updateDeleteButtonPosition () {
-  const stage = stageRef.value?.getNode();
-  const selectedNode = selectedShapeId.value ? stage?.findOne(`#${selectedShapeId.value}`) : null;
+  const selectedNode = getSelectedNode();
 
-  if (!stage || !selectedNode) {
+  if (!selectedNode) {
     deleteButtonPosition.value = null;
+    rotationHandlePosition.value = null;
+    selectionHandlePosition.value = null;
     return;
   }
 
-  const topLeftCorner = selectedNode.getAbsoluteTransform().point({ x: 0, y: 0 });
+  const transform = selectedNode.getAbsoluteTransform();
+  const topLeftCorner = transform.point({ x: 0, y: 0 });
+  const topCenterCorner = transform.point({ x: selectedNode.width() / 2, y: 0 });
+  const rotationOffset = getStageDeltaFromLocalDelta(0, -stageMetrics.value.cellSize * 6, selectedNode.rotation());
+  const bottomRightCorner = transform.point({ x: selectedNode.width(), y: selectedNode.height() });
 
   deleteButtonPosition.value = {
     x: topLeftCorner.x,
     y: topLeftCorner.y
+  };
+
+  rotationHandlePosition.value = {
+    x: topCenterCorner.x + rotationOffset.x,
+    y: topCenterCorner.y + rotationOffset.y
+  };
+
+  selectionHandlePosition.value = {
+    x: bottomRightCorner.x,
+    y: bottomRightCorner.y
   };
 }
 
@@ -1359,10 +1794,15 @@ function handleStagePointerDown (event: Konva.KonvaEventObject<MouseEvent | Touc
     return;
   }
 
+  commitSelectedTextBeforeSelectionChange();
   selectedShapeId.value = null;
 }
 
 function handleShapePointerDown (event: Konva.KonvaEventObject<MouseEvent | TouchEvent>) {
+  if (event.target.id() !== selectedShapeId.value) {
+    commitSelectedTextBeforeSelectionChange();
+  }
+
   selectedShapeId.value = event.target.id();
 }
 
@@ -1451,43 +1891,6 @@ function handleShapeTransformEnd (event: Konva.KonvaEventObject<Event>) {
   pushHistorySnapshot();
   nextTick(syncTransformer);
 }
-
-const deleteButtonGroupConfig = computed(() => {
-  if (!deleteButtonPosition.value) {
-    return {
-      visible: false
-    };
-  }
-
-  return {
-    x: deleteButtonPosition.value.x,
-    y: deleteButtonPosition.value.y,
-    listening: true
-  };
-});
-
-const deleteButtonCircleConfig = computed(() => ({
-  x: 0,
-  y: 0,
-  radius: 12,
-  fill: '#ef4444',
-  stroke: '#ffffff',
-  strokeWidth: 1.5,
-  shadowColor: '#000000',
-  shadowBlur: 4,
-  shadowOpacity: 0.35,
-  listening: true
-}));
-
-const deleteButtonTextConfig = computed(() => ({
-  x: -4,
-  y: -8,
-  text: 'x',
-  fill: '#ffffff',
-  fontSize: 16,
-  fontStyle: 'bold',
-  listening: false
-}));
 
 function resetImageUploadModal () {
   imageUploadFile.value = null;
@@ -1705,6 +2108,7 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
+  stopSelectionHandleDrag(false);
   resizeObserver.value?.disconnect();
 });
 </script>
