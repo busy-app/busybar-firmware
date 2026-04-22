@@ -1,11 +1,12 @@
 #pragma once
 
+#include <stdbool.h>
+
+#include <stm32u5xx_safe.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include <stm32u5xx_safe.h>
-#include "stdbool.h"
 
 typedef enum {
     /* AHB1 GRP1 */
