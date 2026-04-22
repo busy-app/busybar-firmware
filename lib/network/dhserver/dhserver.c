@@ -129,7 +129,7 @@ static DhcpServerEntry* entry_by_ip(ip4_addr_t ip) {
     return result;
 }
 
-static DhcpServerEntry* entry_by_mac(uint8_t* mac) {
+static DhcpServerEntry* entry_by_mac(const uint8_t* mac) {
     DhcpServerEntry* result = NULL;
 
     for(uint32_t i = 0; i < config->max_lease_count; i++) {
@@ -164,7 +164,7 @@ static FURI_ALWAYS_INLINE void free_entry(DhcpServerEntry* entry) {
     memset(entry->mac, 0, sizeof(entry->mac));
 }
 
-uint8_t* find_dhcp_option(uint8_t* attrs, int size, uint8_t attr) {
+static uint8_t* find_dhcp_option(uint8_t* attrs, int size, uint8_t attr) {
     int i = 0;
     while((i + 1) < size) {
         int next = i + attrs[i + 1] + 2;
@@ -175,7 +175,7 @@ uint8_t* find_dhcp_option(uint8_t* attrs, int size, uint8_t attr) {
     return NULL;
 }
 
-int fill_options(
+static int fill_options(
     void* dest,
     uint8_t msg_type,
     const char* domain,
@@ -350,8 +350,7 @@ static void dhserv_init_entries(const DhcpServerConfig* c) {
     const uint32_t num_entries = c->max_lease_count;
     const uint32_t start_addr = lwip_ntohl(c->netif->ip_addr.addr) + 1;
 
-    furi_assert(entries == NULL);
-    entries = malloc(sizeof(DhcpServerEntry) * num_entries);
+    entries = calloc(num_entries, sizeof(DhcpServerEntry));
 
     for(uint32_t i = 0; i < num_entries; ++i) {
         DhcpServerEntry* entry = &entries[i];
