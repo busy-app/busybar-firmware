@@ -3,7 +3,7 @@
 #include <cjson/cJSON.h>
 #include <core/string.h>
 #include <furi.h>
-#include <path.h>
+#include <toolbox/path.h>
 
 #define MANIFEST_FILE_SIZE_MAX (10 * 1024) // 10 KB should be enough
 
