@@ -84,4 +84,5 @@ void wifi_model_set_state_callback(
 void wifi_model_forget(WifiModel* model) {
     furi_assert(model);
     wifi_disconnect(model->wifi);
+    wifi_forget(model->wifi);
 }

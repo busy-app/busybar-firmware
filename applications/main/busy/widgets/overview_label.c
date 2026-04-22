@@ -26,6 +26,9 @@ typedef struct {
 struct OverviewLabel {
     Widget base;
     OverviewLabelColumn columns[OverviewLabelColumnIdxMax];
+
+    FontRegistry* font_registry;
+    const lv_font_t* font_busy_tiny;
 };
 
 const lv_obj_class_t overview_label_lvgl_class;
@@ -61,6 +64,9 @@ static void overview_label_lvgl_constructor(const lv_obj_class_t* class_p, lv_ob
 
     OverviewLabel* instance = (OverviewLabel*)obj;
 
+    instance->font_registry = furi_record_open(RECORD_FONT_REGISTRY);
+    instance->font_busy_tiny = font_registry_load_font(instance->font_registry, FONT_BUSY_TINY);
+
     for(uint32_t i = 0; i < OverviewLabelColumnIdxMax; ++i) {
         OverviewLabelColumn* column = &instance->columns[i];
 
@@ -70,7 +76,7 @@ static void overview_label_lvgl_constructor(const lv_obj_class_t* class_p, lv_ob
         lv_obj_set_flex_align(
             layout, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
         lv_obj_set_flex_grow(layout, 1);
-        lv_obj_set_style_pad_row(layout, 1, LV_PART_MAIN);
+        lv_obj_set_style_pad_top(layout, 1, LV_PART_MAIN);
 
         column->top_label = lv_label_create(layout);
         column->bottom_label = lv_label_create(layout);
@@ -78,6 +84,7 @@ static void overview_label_lvgl_constructor(const lv_obj_class_t* class_p, lv_ob
         lv_obj_set_style_text_font(
             column->bottom_label, lv_theme_get_font_large(obj), LV_PART_MAIN);
         lv_obj_set_content_height(column->top_label, 5);
+        lv_obj_set_style_text_font(column->top_label, instance->font_busy_tiny, LV_PART_MAIN);
 
         if(i == OverviewLabelColumnIdxWork) {
             lv_label_set_text(column->top_label, "WORK");
@@ -100,6 +107,15 @@ static void overview_label_lvgl_constructor(const lv_obj_class_t* class_p, lv_ob
 
         lv_anim_start(&anim);
     }
+}
+
+static void overview_label_lvgl_destructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
+    UNUSED(class_p);
+
+    OverviewLabel* instance = (OverviewLabel*)obj;
+
+    font_registry_unload_font(instance->font_registry, instance->font_busy_tiny);
+    furi_record_close(RECORD_FONT_REGISTRY);
 }
 
 // Implementation
@@ -161,6 +177,7 @@ void overview_label_set_intervals(
 const lv_obj_class_t overview_label_lvgl_class = {
     .base_class = &widget_lvgl_class,
     .constructor_cb = overview_label_lvgl_constructor,
+    .destructor_cb = overview_label_lvgl_destructor,
     .name = "widget-overview-label",
     .width_def = LV_PCT(100),
     .height_def = LV_PCT(100),

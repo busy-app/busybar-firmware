@@ -13,7 +13,7 @@ typedef struct {
     FuriMutex* settings_mutex;
 } ClockSceneSetup;
 
-static void clock_scene_setup_list_show_date_callback(VarItem* item, void* context) {
+static void clock_scene_setup_show_date_callback(VarItem* item, void* context) {
     Clock* instance = context;
     ClockSceneSetup* scene =
         scene_manager_get_scene_data(instance->scene_manager, ClockSceneIdxSetup);
@@ -25,13 +25,25 @@ static void clock_scene_setup_list_show_date_callback(VarItem* item, void* conte
     clock_internal_fire_event(instance, ClockSceneSetupEventChange);
 }
 
-static void clock_scene_setup_list_show_seconds_callback(VarItem* item, void* context) {
+static void clock_scene_setup_show_seconds_callback(VarItem* item, void* context) {
     Clock* instance = context;
     ClockSceneSetup* scene =
         scene_manager_get_scene_data(instance->scene_manager, ClockSceneIdxSetup);
 
     furi_mutex_acquire(scene->settings_mutex, FuriWaitForever);
     instance->settings.show_seconds = var_item_get_value(item);
+    furi_mutex_release(scene->settings_mutex);
+
+    clock_internal_fire_event(instance, ClockSceneSetupEventChange);
+}
+
+static void clock_scene_setup_blink_colons_callback(VarItem* item, void* context) {
+    Clock* instance = context;
+    ClockSceneSetup* scene =
+        scene_manager_get_scene_data(instance->scene_manager, ClockSceneIdxSetup);
+
+    furi_mutex_acquire(scene->settings_mutex, FuriWaitForever);
+    instance->settings.blink_colons = var_item_get_value(item);
     furi_mutex_release(scene->settings_mutex);
 
     clock_internal_fire_event(instance, ClockSceneSetupEventChange);
@@ -51,15 +63,16 @@ static void clock_scene_setup_on_enter(void* context) {
         scene->front_list = var_item_list_alloc(instance->front_scene_window);
 
         VarItem* front_show_date_item = var_item_list_add_switch(
-            scene->front_list, "Show date", clock_scene_setup_list_show_date_callback, instance);
+            scene->front_list, "Show date", clock_scene_setup_show_date_callback, instance);
         var_item_set_value(front_show_date_item, instance->settings.show_date);
 
         VarItem* front_show_seconds_item = var_item_list_add_switch(
-            scene->front_list,
-            "Show seconds",
-            clock_scene_setup_list_show_seconds_callback,
-            instance);
+            scene->front_list, "Show\nseconds", clock_scene_setup_show_seconds_callback, instance);
         var_item_set_value(front_show_seconds_item, instance->settings.show_seconds);
+
+        VarItem* front_blink_colons_item = var_item_list_add_switch(
+            scene->front_list, "Colon blink", clock_scene_setup_blink_colons_callback, instance);
+        var_item_set_value(front_blink_colons_item, instance->settings.blink_colons);
 
         /* back layout setup */
         scene->back_list = var_item_list_alloc(instance->back_scene_window);
@@ -71,6 +84,10 @@ static void clock_scene_setup_on_enter(void* context) {
         VarItem* back_show_seconds_item =
             var_item_list_add_switch(scene->back_list, "Show seconds", NULL, NULL);
         var_item_set_value(back_show_seconds_item, instance->settings.show_seconds);
+
+        VarItem* back_blink_colons_item =
+            var_item_list_add_switch(scene->back_list, "Colon blink", NULL, NULL);
+        var_item_set_value(back_blink_colons_item, instance->settings.blink_colons);
     });
 }
 

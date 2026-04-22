@@ -114,6 +114,7 @@
         "mongoose",
         "zlib",
         "toolbox",
+        "toolbox_old",
         "formatters",
         "flipper_format",
         "flipper_application",

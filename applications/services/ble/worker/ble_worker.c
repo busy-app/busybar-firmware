@@ -176,7 +176,7 @@ typedef struct {
 } BleWorker;
 
 //==========================================================
-static BleWorker* ble_worker_instance;
+static BleWorker* ble_worker_instance = NULL;
 /*==============================================*/
 /**
  * @fn         ble_worker_echo_app_on_adv_report_event
@@ -1243,9 +1243,15 @@ void ble_worker_start() {
 }
 
 void ble_worker_stop() {
-    furi_thread_flags_set(furi_thread_get_id(ble_worker_instance->thread), BLEWorkerEvtExit);
-    furi_thread_join(ble_worker_instance->thread);
-    BLE_LOG_I("BLE Stopped");
+    if(ble_worker_instance) {
+        FuriThreadState state = furi_thread_get_state(ble_worker_instance->thread);
+        if(state == FuriThreadStateRunning) {
+            furi_thread_flags_set(
+                furi_thread_get_id(ble_worker_instance->thread), BLEWorkerEvtExit);
+            furi_thread_join(ble_worker_instance->thread);
+            BLE_LOG_I("BLE Stopped");
+        }
+    }
 }
 
 static inline bool ble_worker_indicate_retry(

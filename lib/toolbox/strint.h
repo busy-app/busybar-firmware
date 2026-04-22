@@ -65,6 +65,12 @@ StrintParseError strint_to_uint16(const char* str, char** end, uint16_t* out, ui
 /** See `strint_to_uint32` */
 StrintParseError strint_to_int16(const char* str, char** end, int16_t* out, uint8_t base);
 
+/** See `strint_to_uint32` */
+StrintParseError strint_to_uint8(const char* str, char** end, uint8_t* out, uint8_t base);
+
+/** See `strint_to_uint32` */
+StrintParseError strint_to_int8(const char* str, char** end, int8_t* out, uint8_t base);
+
 #ifdef __cplusplus
 }
 #endif

@@ -9,6 +9,7 @@ BleCharacteristicObject* ble_characteristic_alloc(
     const BleCharacteristicDescriptor* config,
     BleServiceObject* parent_service);
 void ble_characteristic_free(BleCharacteristicObject* instance);
+void ble_characteristic_reset(BleCharacteristicObject* instance);
 
 const void* ble_characteristic_get_data(BleCharacteristicObject* instance);
 size_t ble_characteristic_get_data_size(BleCharacteristicObject* instance);

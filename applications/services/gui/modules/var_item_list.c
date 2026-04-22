@@ -11,9 +11,10 @@
 #define MY_CURSOR_CLASS (&var_item_cursor_lvgl_class)
 #define MY_ARROW_CLASS  (&var_item_arrow_lvgl_class)
 
-#define SYM_INFINITY    "∞"
-#define SYM_ARROW_LEFT  "<"
-#define SYM_ARROW_RIGHT ">"
+#define SYM_INFINITY         "∞"
+#define SYM_CURSOR_ARROW     "▶" // U+25B6
+#define SYM_EDIT_ARROW_LEFT  "‹" // U+2039
+#define SYM_EDIT_ARROW_RIGHT "›" // U+203A
 
 #define SCROLL_ANIM_DURATION_MS (0)
 
@@ -116,6 +117,7 @@ static void var_item_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* o
     LV_UNUSED(class_p);
 
     lv_obj_set_flex_flow(obj, LV_FLEX_FLOW_ROW);
+    lv_obj_set_style_flex_cross_place(obj, LV_FLEX_ALIGN_CENTER, LV_PART_MAIN);
 
     lv_obj_remove_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_add_flag(obj, LV_OBJ_FLAG_SCROLL_ON_FOCUS);
@@ -123,7 +125,7 @@ static void var_item_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* o
     VarItem* instance = (VarItem*)obj;
     instance->cursor = lv_obj_class_create_obj(MY_CURSOR_CLASS, obj);
     lv_obj_class_init_obj(instance->cursor);
-    lv_label_set_text(instance->cursor, SYM_ARROW_RIGHT);
+    lv_label_set_text(instance->cursor, SYM_CURSOR_ARROW);
 
     instance->label = lv_label_create(obj);
     lv_obj_set_flex_grow(instance->label, 1);
@@ -171,8 +173,8 @@ static void var_item_editor_lvgl_constructor(const lv_obj_class_t* class_p, lv_o
     instance->arrow_right = lv_obj_class_create_obj(MY_ARROW_CLASS, obj);
     lv_obj_class_init_obj(instance->arrow_right);
 
-    lv_label_set_text(instance->arrow_left, SYM_ARROW_LEFT);
-    lv_label_set_text(instance->arrow_right, SYM_ARROW_RIGHT);
+    lv_label_set_text(instance->arrow_left, SYM_EDIT_ARROW_LEFT);
+    lv_label_set_text(instance->arrow_right, SYM_EDIT_ARROW_RIGHT);
 }
 
 static void var_item_editor_lvgl_destructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
@@ -437,10 +439,10 @@ static VarItem* var_item_alloc(
     lv_obj_t* obj = lv_obj_class_create_obj(MY_ITEM_CLASS, (lv_obj_t*)parent);
     lv_obj_class_init_obj(obj);
 
-    lv_group_add_obj(parent->group, obj);
-
     VarItem* instance = (VarItem*)obj;
     lv_label_set_text(instance->label, label);
+
+    lv_group_add_obj(parent->group, obj);
 
     VarItemEditor* editor = instance->editor;
     editor->callback = callback;

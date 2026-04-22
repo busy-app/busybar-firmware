@@ -2,8 +2,8 @@
 
 #include <setting_provider/setting_provider.h>
 
-#define UPDATER_CHECK_URL_MAX_SIZE        (512 + 1)
-#define UPDATER_CHECK_CHANNEL_ID_MAX_SIZE (32 + 1)
+#define UPDATER_SETTINGS_V1_CHECK_URL_MAX_SIZE        (512 + 1)
+#define UPDATER_SETTINGS_V1_CHECK_CHANNEL_ID_MAX_SIZE (32 + 1)
 
 typedef enum {
     UpdaterSettingV1IdxCheckUrl,
@@ -19,8 +19,8 @@ typedef enum {
 } UpdaterSettingV1Idx;
 
 typedef struct {
-    char check_url[UPDATER_CHECK_URL_MAX_SIZE];
-    char check_channel_id[UPDATER_CHECK_CHANNEL_ID_MAX_SIZE];
+    char check_url[UPDATER_SETTINGS_V1_CHECK_URL_MAX_SIZE];
+    char check_channel_id[UPDATER_SETTINGS_V1_CHECK_CHANNEL_ID_MAX_SIZE];
     int check_startup_interval;
     int check_interval;
 

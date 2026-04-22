@@ -214,7 +214,7 @@ bool api_wifi_parse_ip_address(
             break;
         }
 
-        memcpy(result_bytes, addr.ip, 4);
+        memcpy(result_bytes, addr.addr.ip, 4);
         result = true;
     } while(false);
     return result;
