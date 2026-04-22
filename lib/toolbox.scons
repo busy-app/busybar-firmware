@@ -13,9 +13,14 @@ env.Append(
         File(f"{LIB_DIR}/api_lock.h"),
         File(f"{LIB_DIR}/color.h"),
         File(f"{LIB_DIR}/crc32_calc.h"),
+        File(f"{LIB_DIR}/dsp.h"),
         File(f"{LIB_DIR}/hex.h"),
+        File(f"{LIB_DIR}/md5_calc.h"),
         File(f"{LIB_DIR}/property.h"),
+        File(f"{LIB_DIR}/rle_encode.h"),
+        File(f"{LIB_DIR}/sha256_calc.h"),
         File(f"{LIB_DIR}/strint.h"),
+        File(f"{LIB_DIR}/value_index.h"),
     ],
 )
 
@@ -25,9 +30,14 @@ libenv.ApplyLibFlags()
 sources = [
     f"{LIB_DIR}/color.c",
     f"{LIB_DIR}/crc32_calc.c",
+    f"{LIB_DIR}/dsp.c",
     f"{LIB_DIR}/hex.c",
+    f"{LIB_DIR}/md5_calc.c",
     f"{LIB_DIR}/property.c",
+    f"{LIB_DIR}/rle_encode.c",
+    f"{LIB_DIR}/sha256_calc.c",
     f"{LIB_DIR}/strint.c",
+    f"{LIB_DIR}/value_index.c",
 ]
 
 lib = libenv.StaticLibrary("${FW_LIB_NAME}", sources)

@@ -11,22 +11,17 @@ env.Append(
     ],
     SDK_HEADERS=[
         File(f"{LIB_DIR}/compress.h"),
-        File(f"{LIB_DIR}/crc32_calc.h"),
         File(f"{LIB_DIR}/dir_walk.h"),
         File(f"{LIB_DIR}/fetch/fetch_client.h"),
         File(f"{LIB_DIR}/fetch/fetch_file_save.h"),
         File(f"{LIB_DIR}/fetch/fetch_loader.h"),
-        File(f"{LIB_DIR}/md5_calc.h"),
         File(f"{LIB_DIR}/path.h"),
-        File(f"{LIB_DIR}/sha256_calc.h"),
         File(f"{LIB_DIR}/stream/buffered_file_stream.h"),
         File(f"{LIB_DIR}/stream/file_stream.h"),
         File(f"{LIB_DIR}/stream/stream.h"),
         File(f"{LIB_DIR}/stream/string_stream.h"),
         File(f"{LIB_DIR}/tar/tar_archive.h"),
         File(f"{LIB_DIR}/update_fw_tar.h"),
-        File(f"{LIB_DIR}/value_index.h"),
-        File(f"{LIB_DIR}/varint.h"),
     ],
 )
 
@@ -36,16 +31,12 @@ libenv.ApplyLibFlags()
 sources = [
     f"{LIB_DIR}/compress.c",
     f"{LIB_DIR}/dir_walk.c",
-    f"{LIB_DIR}/dsp.c",
     f"{LIB_DIR}/json_helper.c",
-    f"{LIB_DIR}/md5_calc.c",
     f"{LIB_DIR}/path.c",
-    f"{LIB_DIR}/rle_encode.c",
-    f"{LIB_DIR}/sha256_calc.c",
     f"{LIB_DIR}/tzutil.c",
-    f"{LIB_DIR}/value_index.c",
 ]
 
+# TODO: Isolate to separate libraries
 sources += libenv.Glob(f"{LIB_DIR}/tar/*.c", source=True)
 sources += libenv.Glob(f"{LIB_DIR}/fetch/*.c", source=True)
 sources += libenv.Glob(f"{LIB_DIR}/stream/*.c", source=True)
