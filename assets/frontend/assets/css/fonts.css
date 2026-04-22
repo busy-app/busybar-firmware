@@ -21,40 +21,30 @@
   font-family: 'busy_regular_5px';
   src: url('../fonts/busy_regular_5px.ttf') format('truetype');
   font-display: block;
-  ascent-override: 0%;
-  descent-override: 0%;
 }
 
 @font-face {
   font-family: 'busy_bold_7px';
   src: url('../fonts/busy_bold_7px.ttf') format('truetype');
   font-display: block;
-  ascent-override: 0%;
-  descent-override: 0%;
 }
 
 @font-face {
   font-family: 'busy_regular_7px';
   src: url('../fonts/busy_regular_7px.ttf') format('truetype');
   font-display: block;
-  ascent-override: 0%;
-  descent-override: 0%;
 }
 
 @font-face {
   font-family: 'busy_bold_10px';
   src: url('../fonts/busy_bold_10px.ttf') format('truetype');
   font-display: block;
-  ascent-override: 0%;
-  descent-override: 0%;
 }
 
 @font-face {
   font-family: 'busy_regular_9px';
   src: url('../fonts/busy_regular_9px.ttf') format('truetype');
   font-display: block;
-  ascent-override: 0%;
-  descent-override: 0%;
 }
 
 @font-face {

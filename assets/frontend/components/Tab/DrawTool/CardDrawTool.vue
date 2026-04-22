@@ -536,9 +536,8 @@ type FontOption = {
   id: string;
   label: string;
   family: string;
-  fontSize: number;
-  offsetY: number;
-  heightMultiplier: number;
+  fontSize: number; // 16 for fonts with upm 16?
+  capHeight: number; // as in font name
 };
 
 interface HistorySnapshot {
@@ -581,13 +580,13 @@ interface TextShape extends ShapeBase {
 type EditorShape = RectShape | ImageShape | TextShape;
 
 const TEXT_FONT_OPTIONS: FontOption[] = [
-  { id: 'busy_regular_5px', label: 'SMALL', family: 'busy_regular_5px', fontSize: 16, offsetY: 3, heightMultiplier: 0.5 },
-  { id: 'busy_bold_7px', label: 'BOLD SMALL', family: 'busy_bold_7px', fontSize: 16, offsetY: 1, heightMultiplier: 0.5 },
-  { id: 'busy_regular_7px', label: 'MEDIUM', family: 'busy_regular_7px', fontSize: 16, offsetY: 1, heightMultiplier: 0.5 },
-  { id: 'busy_bold_10px', label: 'BOLD MEDIUM', family: 'busy_bold_10px', fontSize: 16, offsetY: -2, heightMultiplier: 0.5 },
-  { id: 'busy_regular_9px', label: 'LARGE', family: 'busy_regular_9px', fontSize: 16, offsetY: -1, heightMultiplier: 0.5 },
-  { id: 'LanaPixel_regular_11px', label: 'LanaPixel', family: 'LanaPixel_regular_11px', fontSize: 11, offsetY: 1, heightMultiplier: 1 },
-  { id: 'busy_regular_14px', label: 'EXTRA LARGE', family: 'busy_regular_7px', fontSize: 32, offsetY: 2, heightMultiplier: 0.5 }
+  { id: 'busy_regular_5px', label: 'SMALL', family: 'busy_regular_5px', fontSize: 16, capHeight: 5 },
+  { id: 'busy_bold_7px', label: 'BOLD SMALL', family: 'busy_bold_7px', fontSize: 16, capHeight: 7 },
+  { id: 'busy_regular_7px', label: 'MEDIUM', family: 'busy_regular_7px', fontSize: 16, capHeight: 7 },
+  { id: 'busy_bold_10px', label: 'BOLD MEDIUM', family: 'busy_bold_10px', fontSize: 16, capHeight: 10 },
+  { id: 'busy_regular_9px', label: 'LARGE', family: 'busy_regular_9px', fontSize: 16, capHeight: 9 },
+  { id: 'LanaPixel_regular_11px', label: 'LanaPixel', family: 'LanaPixel_regular_11px', fontSize: 11, capHeight: 11 },
+  { id: 'busy_regular_14px', label: 'EXTRA LARGE', family: 'busy_regular_7px', fontSize: 32, capHeight: 14 }
 ];
 
 const stageContainerRef = ref<HTMLDivElement | null>(null);
@@ -834,15 +833,6 @@ const transformerConfig = computed(() => ({
   })
 }));
 
-watch(
-  () => [selectedShapeId.value, stageMetrics.value.cellSize, shapes.value.length],
-  async () => {
-    await nextTick();
-    syncTransformer();
-  },
-  { flush: 'post' }
-);
-
 watch(showImageUploadModal, isOpen => {
   if (!isOpen) {
     imageUploadFile.value = null;
@@ -871,6 +861,17 @@ const canUndo = computed(() => historyIndex.value > 0);
 const canRedo = computed(() => historyIndex.value < historyEntries.value.length - 1);
 const selectedShape = computed(() => shapes.value.find(shape => shape.id === selectedShapeId.value) || null);
 const selectedTextShape = computed(() => selectedShape.value?.type === 'text' ? selectedShape.value : null);
+const selectedShapeSyncKey = computed(() => {
+  const shape = selectedShape.value;
+
+  if (!shape) {
+    return 'none';
+  }
+
+  return shape.type === 'text'
+    ? [shape.id, shape.type, shape.x, shape.y, shape.width, shape.height, shape.rotation, shape.fontId, shape.text].join(':')
+    : [shape.id, shape.type, shape.x, shape.y, shape.width, shape.height, shape.rotation].join(':');
+});
 const backgroundColorChipStyle = computed(() => ({
   backgroundColor: backgroundColor.value || DEFAULT_WORKSPACE_BACKGROUND
 }));
@@ -938,29 +939,38 @@ const selectedTextTextareaStyle = computed<Record<string, string> | null>(() => 
   const displayConfig = getDisplayTextConfig(selectedTextShape.value);
   const textConfig = getTextConfig(selectedTextShape.value);
   const fontSize = font.fontSize * stageMetrics.value.cellSize;
-  const textareaWidth = (textConfig.width + 4) * stageMetrics.value.cellSize;
-  const textareaHeight = (textConfig.height + Math.max(0, font.offsetY)) * stageMetrics.value.cellSize;
+  const lineHeight = font.capHeight * stageMetrics.value.cellSize;
+  const textareaWidth = textConfig.width * stageMetrics.value.cellSize;
+  const textareaHeight = textConfig.height * stageMetrics.value.cellSize;
 
   return {
     left: `${stageMetrics.value.workspaceX + (displayConfig.x * stageMetrics.value.cellSize)}px`,
-    top: `${stageMetrics.value.workspaceY + (displayConfig.y * stageMetrics.value.cellSize)}px`,
+    top: `${stageMetrics.value.workspaceY + ((displayConfig.y + (font.fontSize - font.capHeight) / 2) * stageMetrics.value.cellSize)}px`,
     width: `${textareaWidth}px`,
     height: `${textareaHeight}px`,
     color: selectedTextShape.value.fill,
-    opacity: '0.6',
+    caretColor: 'white',
+    opacity: '0.9',
     fontFamily: font.family,
     fontSize: `${fontSize}px`,
-    lineHeight: `${fontSize}px`,
+    lineHeight: `${lineHeight}px`,
     overflow: 'hidden',
     overflowX: 'hidden',
     overflowY: 'hidden',
     whiteSpace: 'pre',
     overflowWrap: 'normal',
-    textAlign: 'left',
-    caretShape: 'underscore',
-    caretColor: 'red'
+    textAlign: 'left'
   };
 });
+
+watch(
+  () => [selectedShapeSyncKey.value, stageMetrics.value.cellSize],
+  async () => {
+    await nextTick();
+    syncTransformer();
+  },
+  { flush: 'post' }
+);
 
 watch(
   () => selectedTextShape.value?.id,
@@ -1671,9 +1681,11 @@ function getDisplayImageConfig (shape: ImageShape) {
 function getDisplayTextConfig (shape: TextShape) {
   const font = getFontOption(shape.fontId);
 
+  const displayOffsetY = (font.fontSize - font.capHeight) / 2;
+
   return {
     x: shape.x,
-    y: shape.y - font.offsetY,
+    y: shape.y - displayOffsetY,
     width: shape.width,
     height: font.fontSize,
     rotation: shape.rotation,
@@ -1683,8 +1695,7 @@ function getDisplayTextConfig (shape: TextShape) {
     fontSize: font.fontSize,
     letterSpacing: 0,
     listening: false,
-    perfectDrawEnabled: false,
-    verticalAlign: 'middle'
+    perfectDrawEnabled: false
   };
 }
 
@@ -1729,14 +1740,13 @@ function getTextConfig (shape: TextShape) {
     x: shape.x,
     y: shape.y,
     width: shape.width,
-    height: font.fontSize * font.heightMultiplier - font.offsetY,
+    height: font.capHeight,
     rotation: shape.rotation,
     text: shape.text,
     opacity: 0,
     fontFamily: font.family,
     fontSize: font.fontSize,
     letterSpacing: 0,
-    verticalAlign: 'middle',
     draggable: true,
     dragBoundFunc: getDragBoundPosition,
     perfectDrawEnabled: false
