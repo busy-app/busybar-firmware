@@ -5,12 +5,6 @@ Import("env")
 LIB_DIR = "toolbox"
 
 env.Append(
-    CPPPATH=[
-        Dir(f"{LIB_DIR}").rdir(),
-    ],
-    LINT_SOURCES=[
-        Dir(f"{LIB_DIR}").rdir(),
-    ],
     SDK_HEADERS=[
         File(f"{LIB_DIR}/compress.h"),
         File(f"{LIB_DIR}/dir_walk.h"),
