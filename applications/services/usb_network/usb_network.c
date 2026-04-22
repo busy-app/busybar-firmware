@@ -249,10 +249,11 @@ bool usb_network_is_dhcp_addr(UsbNetwork* instance, const uint8_t* addr) {
     furi_assert(instance);
     furi_assert(addr);
 
-    const ip_addr_t* ip4_addr = (ip4_addr_t*)addr;
+    ip4_addr_t ip4_addr;
+    memcpy(&ip4_addr, addr, sizeof(ip4_addr));
 
     LOCK_TCPIP_CORE();
-    const bool result = dhserv_has_lease(*ip4_addr);
+    const bool result = dhserv_has_lease(ip4_addr);
     UNLOCK_TCPIP_CORE();
 
     return result;
