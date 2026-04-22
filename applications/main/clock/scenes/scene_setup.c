@@ -67,7 +67,7 @@ static void clock_scene_setup_on_enter(void* context) {
         var_item_set_value(front_show_date_item, instance->settings.show_date);
 
         VarItem* front_show_seconds_item = var_item_list_add_switch(
-            scene->front_list, "Show seconds", clock_scene_setup_show_seconds_callback, instance);
+            scene->front_list, "Show\nseconds", clock_scene_setup_show_seconds_callback, instance);
         var_item_set_value(front_show_seconds_item, instance->settings.show_seconds);
 
         VarItem* front_blink_colons_item = var_item_list_add_switch(
