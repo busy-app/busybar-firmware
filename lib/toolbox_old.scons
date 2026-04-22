@@ -1,3 +1,5 @@
+# TODO: Isolate everything in this file to separate libraries
+
 Import("env")
 
 LIB_DIR = "toolbox"
@@ -36,7 +38,6 @@ sources = [
     f"{LIB_DIR}/tzutil.c",
 ]
 
-# TODO: Isolate to separate libraries
 sources += libenv.Glob(f"{LIB_DIR}/tar/*.c", source=True)
 sources += libenv.Glob(f"{LIB_DIR}/fetch/*.c", source=True)
 sources += libenv.Glob(f"{LIB_DIR}/stream/*.c", source=True)

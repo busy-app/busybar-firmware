@@ -5,7 +5,6 @@ for libname in [
     "internal_assets",
     "drivers",
     "tinyusb",
-    "nema_gfx",
     "lwip",
     "cjson",
     "cli",
