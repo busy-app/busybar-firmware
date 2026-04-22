@@ -21,6 +21,7 @@ for libname in [
     "mbedtls",
     "icon_assets",
     "toolbox",
+    "toolbox_old",
     "formatters",
     "flipper_format",
     "flipper_application",
@@ -38,8 +39,8 @@ for libname in [
     "sl_glue",
     "simplicity_sdk",
     "wiseconnect",
+    "libm_fix",
     "matter_ext",
-    "toolbox_f64",
     "firmware_applications_si917",
 ]:
     env.RegisterComponent(f"fwlib_{libname}", env.FindComponentSconscript(libname))

@@ -1,0 +1,35 @@
+Import("env")
+
+LIB_DIR = "toolbox"
+
+env.Append(
+    CPPPATH=[
+        Dir(f"{LIB_DIR}").rdir(),
+    ],
+    LINT_SOURCES=[
+        Dir(f"{LIB_DIR}").rdir(),
+    ],
+    SDK_HEADERS=[
+        File(f"{LIB_DIR}/api_lock.h"),
+        File(f"{LIB_DIR}/color.h"),
+        File(f"{LIB_DIR}/crc32_calc.h"),
+        File(f"{LIB_DIR}/hex.h"),
+        File(f"{LIB_DIR}/property.h"),
+        File(f"{LIB_DIR}/strint.h"),
+    ],
+)
+
+libenv = env.Clone(FW_LIB_NAME=f"{LIB_DIR}")
+libenv.ApplyLibFlags()
+
+sources = [
+    f"{LIB_DIR}/color.c",
+    f"{LIB_DIR}/crc32_calc.c",
+    f"{LIB_DIR}/hex.c",
+    f"{LIB_DIR}/property.c",
+    f"{LIB_DIR}/strint.c",
+]
+
+lib = libenv.StaticLibrary("${FW_LIB_NAME}", sources)
+libenv.Install("${LIB_DIST_DIR}", lib)
+Return("lib")

@@ -1,7 +1,7 @@
 #include <furi_hal_crypto_storage.h>
 #include <furi_hal_crypto.h>
 #include <sl_si91x_driver.h>
-#include <toolbox_f64/crc32_calc.h>
+#include <toolbox/crc32_calc.h>
 
 #include <sl_si91x_trng.h>
 #include <psa/crypto.h>
