@@ -45,7 +45,7 @@ int usb_srv_log(const char* fmt, ...) {
     furi_string_trim(string, "\r\n");
 
     if(!furi_string_empty(string)) {
-        FURI_LOG_D("tUSB", "%s", furi_string_get_cstr(string));
+        FURI_LOG_D(TAG, "%s", furi_string_get_cstr(string));
     }
 
     furi_string_free(string);
