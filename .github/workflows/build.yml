@@ -143,7 +143,7 @@ jobs:
         id: set-url
         if: ${{ matrix.target_spec == env.DEFAULT_TARGET_SPEC }}
         run: |
-          echo "update_url=${{ steps.names.outputs.branch_name }}/busybar-f${{ steps.build-fw.outputs.u5_target_hw }}-update-${{ steps.names.outputs.suffix }}.tar" >> "$GITHUB_OUTPUT"
+          echo "update_url=${{ steps.names.outputs.branch_name }}/busybar-f${{ steps.build-fw.outputs.u5_target_hw }}-update-${{ steps.names.outputs.suffix }}.tgz" >> "$GITHUB_OUTPUT"
           echo "target=${{ steps.build-fw.outputs.u5_target_hw }}" >> "$GITHUB_OUTPUT"
 
   updater-tests:
