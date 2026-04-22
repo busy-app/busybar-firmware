@@ -1,0 +1,5 @@
+Import("env")
+
+env.Append(
+    FW_NOARCHIVE_LIBS=["m"],
+)
