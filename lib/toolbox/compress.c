@@ -335,6 +335,7 @@ static void gz_free(CompressStreamDecoder* instance) {
     furi_check(instance);
 
     inflateEnd(&instance->zs);
+    free(instance->decode_buffer);
     free(instance);
 }
 
@@ -343,6 +344,7 @@ static bool gz_read(CompressStreamDecoder* instance, uint8_t* data_out, size_t d
     furi_check(data_out);
 
     z_stream* zs = &instance->zs;
+    int inflate_result = Z_OK;
 
     zs->next_out = data_out;
     zs->avail_out = data_out_size;
@@ -350,30 +352,36 @@ static bool gz_read(CompressStreamDecoder* instance, uint8_t* data_out, size_t d
     while(zs->avail_out > 0) {
         if(zs->avail_in == 0 && !instance->is_eof) {
             // need more data
-            int32_t r = instance->read_cb(
+            int32_t read_result = instance->read_cb(
                 instance->read_context, instance->decode_buffer, instance->decode_buffer_size);
 
-            if(r < 0) {
+            if(read_result < 0) {
+                FURI_LOG_E(TAG, "gz_read: read_cb failed with %ld", (long)read_result);
                 return false;
-            } else if(r == 0) {
+            } else if(read_result == 0) {
                 instance->is_eof = true;
             } else {
                 zs->next_in = instance->decode_buffer;
-                zs->avail_in = (uInt)r;
+                zs->avail_in = (uInt)read_result;
             }
         }
 
-        int r = inflate(zs, Z_NO_FLUSH);
+        inflate_result = inflate(zs, Z_NO_FLUSH);
 
-        if(r == Z_STREAM_END) {
+        if(inflate_result == Z_STREAM_END) {
             // done
             break;
-        } else if(r != Z_OK) {
-            FURI_LOG_E(TAG, "gz_read: inflate returned %d (%s)", r, zs->msg);
-            return false;
-        } else if(instance->is_eof && zs->avail_in == 0) {
-            // also done
+        } else if(inflate_result == Z_BUF_ERROR || (instance->is_eof && zs->avail_in == 0)) {
+            // Z_BUF_ERROR is non-fatal: inflate made no progress (avail_in was 0).
+            // Also done when EOF is reached and all input has been consumed.
             break;
+        } else if(inflate_result != Z_OK) {
+            FURI_LOG_E(
+                TAG,
+                "gz_read: inflate returned %d (%s)",
+                inflate_result,
+                zs->msg ? zs->msg : "no message");
+            return false;
         } else {
             // might need more input, continue
         }
@@ -381,7 +389,7 @@ static bool gz_read(CompressStreamDecoder* instance, uint8_t* data_out, size_t d
 
     size_t produced = data_out_size - zs->avail_out;
 
-    return produced > 0;
+    return produced == data_out_size;
 }
 
 static bool gz_seek(CompressStreamDecoder* instance, size_t position) {
