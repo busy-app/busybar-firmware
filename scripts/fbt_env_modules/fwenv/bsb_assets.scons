@@ -92,7 +92,7 @@ def convert_web_api(dst_dir):
 
 if fwenv.get("IS_BASE_FIRMWARE", False):
     app_assets_dir = fwenv.Dir("${BUILD_DIR}/apps_assets")
-    shared_assets_dir = fwenv.Dir("${BUILD_DIR}/shared")
+    shared_assets_dir = fwenv.Dir("${BUILD_DIR}/apps_assets/shared")
 
     resources_dist = []
     converters_app = [
@@ -121,7 +121,6 @@ if fwenv.get("IS_BASE_FIRMWARE", False):
         _EXTRA_DIST=[
             app_assets_dir,
             (convert_web_api(app_assets_dir), "apps_assets/web_server/www"),
-            shared_assets_dir,
         ],
     )
     manifest = resources_env.ManifestBuilder(
