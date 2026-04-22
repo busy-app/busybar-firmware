@@ -10,6 +10,7 @@
     <template v-if="tabStore.showHiddenTabs">
       <TabFiles v-if="tabStore.currentTab === 'files'" />
       <TabAnimations v-if="tabStore.currentTab === 'animations'" />
+      <TabDrawTool v-if="tabStore.currentTab === 'draw-tool'" />
     </template>
   </div>
 </template>
