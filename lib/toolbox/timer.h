@@ -18,10 +18,9 @@ extern "C" {
 /**
  * @brief Condition test function type.
  *
- * @param[in,out] context pointer to the user-specific object (may be @c NULL)
  * @returns @c true if the condition has been fulfilled, @c false otherwise
  */
-typedef bool (*TimerConditionCallback)(void* context);
+typedef bool (*TimerConditionCallback)(void);
 
 /** @} */
 
@@ -63,6 +62,14 @@ CoarseTimer coarse_timer_create(uint32_t timeout_ms);
 CoarseTimer coarse_timer_create_synced(const CoarseTimer previous, uint32_t timeout_ms);
 
 /**
+ * @brief Get the time elapsed since the timer creation, in milliseconds.
+ *
+ * @param[in] timer coarse timer object to query
+ * @returns time elapsed since the timer creation, in milliseconds
+ */
+uint32_t coarse_timer_get_elapsed(const CoarseTimer timer);
+
+/**
  * @brief Check whether a coarse timer is past its timeout.
  *
  * @param[in] timer coarse timer object to check
@@ -78,7 +85,8 @@ bool coarse_timer_is_expired(const CoarseTimer timer);
  * Timers with MICROsecond precision.
  *
  * Can be used anytime anywhere (including critical sections),
- * but the maximum timeout is limited to TBD microseconds.
+ * but the maximum timeout is limited usually to
+ * several seconds, depending on the system configuration.
  *
  * Typical applications include (but not limited to):
  * - Delays/waiting in critical sections
@@ -117,6 +125,14 @@ PreciseTimer precise_timer_create(uint32_t timeout_us);
 PreciseTimer precise_timer_create_synced(const PreciseTimer previous, uint32_t timeout_us);
 
 /**
+ * @brief Get the time elapsed since the timer creation, in microseconds.
+ *
+ * @param[in] timer precise timer object to query
+ * @returns time elapsed since the timer creation, in microseconds
+ */
+uint32_t precise_timer_get_elapsed(const PreciseTimer timer);
+
+/**
  * @brief Check whether a precise timer is past its timeout.
  *
  * @param[in] timer precise timer object to check
@@ -144,21 +160,6 @@ void precise_timer_wait(const PreciseTimer timer);
  * @returns @c true if the condition has been reached before the timeout, @c false otherwise
  */
 bool precise_timer_wait_for(const PreciseTimer timer, TimerConditionCallback condition_cb);
-
-/**
- * @brief Block the caller until the timer is expired OR a condition is reached, extended.
- *
- * Same behaviour as precise_timer_wait_for(), but with an optional context pointer.
- *
- * @param[in] timer precise timer object to use
- * @param[in] condition_cb pointer to the condition check (predicate) function
- * @param[in,out] context pointer to a user-specific object (will be passed to the callback)
- * @returns @c true if the condition has been reached before the timeout, @c false otherwise
- */
-bool precise_timer_wait_for_ex(
-    const PreciseTimer timer,
-    TimerConditionCallback condition_cb,
-    void* context);
 
 /** @} */
 

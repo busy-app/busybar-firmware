@@ -1,5 +1,7 @@
 #include "timer.h"
 
+#include <furi_hal_cpu.h>
+
 #include <core/check.h>
 #include <core/kernel.h>
 
@@ -28,36 +30,38 @@ CoarseTimer coarse_timer_create_synced(const CoarseTimer previous, uint32_t time
         }};
 }
 
+uint32_t coarse_timer_get_elapsed(const CoarseTimer timer) {
+    return (furi_get_tick() - TIMER_GET_START(timer)) / furi_ms_to_ticks(1);
+}
+
 bool coarse_timer_is_expired(const CoarseTimer timer) {
     return (furi_get_tick() - TIMER_GET_START(timer)) >= TIMER_GET_VALUE(timer);
 }
 
 PreciseTimer precise_timer_create(uint32_t timeout_us) {
-    // TODO: Proper check
-    furi_check(timeout_us);
-
+    furi_check(timeout_us < (UINT32_MAX / furi_hal_cpu_get_cycles_per_us()));
     return (PreciseTimer){
         .data = {
-            [TimerDataIdxStart] = 0, // TODO: Implementation
-            [TimerDataIdxValue] = 0,
+            [TimerDataIdxStart] = furi_hal_cpu_get_cycle_count(),
+            [TimerDataIdxValue] = furi_hal_cpu_get_cycles_per_us() * timeout_us,
         }};
 }
 
 PreciseTimer precise_timer_create_synced(const PreciseTimer previous, uint32_t timeout_us) {
-    // TODO: Proper check
-    furi_check(timeout_us);
-
     return (PreciseTimer){
         .data = {
             [TimerDataIdxStart] = TIMER_GET_START(previous) + TIMER_GET_VALUE(previous),
-            [TimerDataIdxValue] = 0, // TODO: Implementation
+            [TimerDataIdxValue] = furi_hal_cpu_get_cycles_per_us() * timeout_us,
         }};
 }
 
+uint32_t precise_timer_get_elapsed(const PreciseTimer timer) {
+    return (furi_hal_cpu_get_cycle_count() - TIMER_GET_START(timer)) /
+           furi_hal_cpu_get_cycles_per_us();
+}
+
 bool precise_timer_is_expired(const PreciseTimer timer) {
-    UNUSED(timer);
-    // TODO: Implementation
-    return false;
+    return (furi_hal_cpu_get_cycle_count() - TIMER_GET_START(timer)) >= TIMER_GET_VALUE(timer);
 }
 
 void precise_timer_wait(const PreciseTimer timer) {
@@ -67,19 +71,12 @@ void precise_timer_wait(const PreciseTimer timer) {
 }
 
 bool precise_timer_wait_for(const PreciseTimer timer, TimerConditionCallback condition_cb) {
-    return precise_timer_wait_for_ex(timer, condition_cb, NULL);
-}
-
-bool precise_timer_wait_for_ex(
-    const PreciseTimer timer,
-    TimerConditionCallback condition_cb,
-    void* context) {
     furi_check(condition_cb);
 
     bool condition_reached;
 
     do {
-        condition_reached = condition_cb(context);
+        condition_reached = condition_cb();
     } while(!(condition_reached || precise_timer_is_expired(timer)));
 
     return condition_reached;
