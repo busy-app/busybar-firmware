@@ -405,7 +405,7 @@ FuriHalCryptoStatus furi_hal_crypto_sha(
  *
  * @return status of the operation
  *    - FuriHalCryptoStatusOk if wrapping is supported
- *    - FuriHalCryptoStatusUnsupported if wrapping is not supported
+ *    - FuriHalCryptoStatusUnavailable if device security is not enabled (key wrapping is not possible)
  *    - FuriHalCryptoStatusDriverError otherwise
  */
 FuriHalCryptoStatus furi_hal_crypto_is_key_wrapping_supported(void);
@@ -419,7 +419,7 @@ FuriHalCryptoStatus furi_hal_crypto_is_key_wrapping_supported(void);
  *    - FuriHalCryptoStatusInvalidParameter if key is too long
  *    - FuriHalCryptoStatusInvalidParameter if key is already wrapped
  *    - FuriHalCryptoStatusInvalidParameter if key type is not supported for wrapping
- *    - FuriHalCryptoStatusUnsupported if device security is not enabled (key wrapping is not possible)
+ *    - FuriHalCryptoStatusUnavailable if device security is not enabled (key wrapping is not possible)
  *    - FuriHalCryptoStatusDriverError otherwise
  */
 FURI_CHECK_RETURN
@@ -445,10 +445,8 @@ FuriHalCryptoStatus furi_hal_crypto_gen_random_buf(uint8_t* buf, size_t size);
  *    - FuriHalCryptoStatusDriverError if random buffer cannot be generated
  */
 FURI_CHECK_RETURN
-FuriHalCryptoStatus furi_hal_crypto_gen_random_key(
-    FuriHalCryptoKey** key,
-    FuriHalCryptoKeyType type,
-    FuriHalCryptoKeyFlag flags);
+FuriHalCryptoStatus
+    furi_hal_crypto_gen_random_key(FuriHalCryptoKey** key, FuriHalCryptoKeyType type);
 
 /** Generate an asymmetric public key from a private key.
 * @param[in] priv_key Pointer to the private key.

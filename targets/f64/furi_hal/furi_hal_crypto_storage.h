@@ -54,7 +54,7 @@ extern "C" {
  */
 FuriHalCryptoKeyIter furi_hal_crypto_key_iter_init(FuriHalCryptoPartition partition);
 
-/** Get current key pointed by the key iterator and andvance the iterator to the next key.
+/** Get current key pointed by the key iterator and advance the iterator to the next key.
  * @return FuriHalCryptoStatus status of the operation.
  *    - FuriHalCryptoStatusOk on success
  *    - FuriHalCryptoStatusStorageFull on reaching the end of the storage

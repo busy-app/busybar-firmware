@@ -80,6 +80,7 @@ FuriHalCryptoStatus furi_hal_crypto_key_init_raw(
 }
 
 void furi_hal_crypto_key_free(FuriHalCryptoKey* key) {
+    furi_check(key);
     explicit_bzero(key->data, sizeof(key->data));
     free(key);
 }
@@ -515,8 +516,7 @@ FuriHalCryptoStatus furi_hal_crypto_sha(
 //#################### Wrap Key ####################
 FuriHalCryptoStatus furi_hal_crypto_is_key_wrapping_supported(void) {
     FuriHalCryptoKey* key = NULL;
-    static const uint8_t key_data[FURI_HAL_CRYPTO_AES_KEY_SIZE_128] = {
-        1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
+    static const uint8_t key_data[FURI_HAL_CRYPTO_AES_KEY_SIZE_128] = {0};
     FuriHalCryptoStatus status = furi_hal_crypto_key_init_raw(
         &key, FuriHalCryptoKeyTypeAes128, key_data, FURI_HAL_CRYPTO_AES_KEY_SIZE_128);
     if(status == FuriHalCryptoStatusOk) {
@@ -632,10 +632,8 @@ FuriHalCryptoStatus furi_hal_crypto_gen_random_buf(uint8_t* buf, size_t size) {
     return FuriHalCryptoStatusOk;
 }
 
-FuriHalCryptoStatus furi_hal_crypto_gen_random_key(
-    FuriHalCryptoKey** key_out,
-    FuriHalCryptoKeyType type,
-    FuriHalCryptoKeyFlag flags) {
+FuriHalCryptoStatus
+    furi_hal_crypto_gen_random_key(FuriHalCryptoKey** key_out, FuriHalCryptoKeyType type) {
     furi_check(key_out);
 
     size_t length = 0;
@@ -675,7 +673,7 @@ FuriHalCryptoStatus furi_hal_crypto_gen_random_key(
 
     key->length = length;
     key->type = type;
-    key->flags = flags;
+    key->flags = FuriHalCryptoKeyFlagNone;
     FuriHalCryptoStatus status = furi_hal_crypto_gen_random_buf(key->data, key->length);
     if(status == FuriHalCryptoStatusOk) {
         *key_out = key;

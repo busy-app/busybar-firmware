@@ -371,16 +371,6 @@ FuriHalCryptoStatus furi_hal_crypto_storage_read_ex(
     return ret;
 }
 
-FuriHalCryptoKeySlot* furi_hal_crypto_storage_save(
-    const FuriHalCryptoKey* key,
-    FuriHalCryptoPartition partition,
-    uint32_t id);
-
-FuriHalCryptoStatus furi_hal_crypto_storage_load(
-    FuriHalCryptoKey* key,
-    FuriHalCryptoPartition partition,
-    uint32_t id);
-
 FuriHalCryptoKeyIter furi_hal_crypto_key_iter_init(FuriHalCryptoPartition partition) {
     return (FuriHalCryptoKeyIter){
         .address = {

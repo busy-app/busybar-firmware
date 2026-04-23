@@ -53,19 +53,31 @@ PipeDiscardUntilResult pipe_discard_until_either(
     furi_check(source);
     furi_check(terminators);
 
-    size_t** failures = malloc(sizeof(size_t*) * num_terminators);
     size_t* terminator_lens = malloc(sizeof(size_t) * num_terminators);
-    for(size_t i = 0; i != num_terminators; ++i) {
-        const size_t terminator_len = strlen(terminators[i]);
-        if(terminator_len == 0) {
+    {
+        bool found = false;
+        size_t i = 0;
+        for(; !found && i != num_terminators; ++i) {
+            const size_t terminator_len = strlen(terminators[i]);
+            if(terminator_len == 0) {
+                found = true;
+            }
+            terminator_lens[i] = terminator_len;
+        }
+        if(found) {
+            free(terminator_lens);
             return (PipeDiscardUntilResult){
                 .success = true,
                 .found_idx = i,
             };
         }
+    }
+
+    size_t** failures = malloc(sizeof(size_t*) * num_terminators);
+    for(size_t i = 0; i != num_terminators; ++i) {
+        const size_t terminator_len = terminator_lens[i];
         failures[i] = malloc(sizeof(size_t) * terminator_len);
         kmp_build_failure(terminators[i], terminator_len, failures[i]);
-        terminator_lens[i] = terminator_len;
     }
 
     size_t* matched_cnts = malloc(sizeof(size_t) * num_terminators);

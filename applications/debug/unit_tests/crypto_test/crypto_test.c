@@ -1,7 +1,3 @@
-/**
- * @file pipe_test.c
- */
-
 #include "../unit_tests.h"
 #include <furi.h>
 #include <containers/pipe.h>

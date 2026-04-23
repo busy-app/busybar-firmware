@@ -213,6 +213,7 @@ void crypto_command_write(PipeSide* pipe, FuriString* args, void* context) {
         furi_string_printf(args, "%s", args_cstr);
         furi_string_trim(args);
         if(parse_err || !args_read_hex_bytes(args, buf, length)) {
+            free(buf);
             break;
         }
 
@@ -242,8 +243,7 @@ void crypto_command_write(PipeSide* pipe, FuriString* args, void* context) {
             }
 
             FuriHalCryptoKeySlot slot;
-            FuriHalCryptoStatus status =
-                furi_hal_crypto_storage_write_ex(key, partition, key_id, &slot);
+            status = furi_hal_crypto_storage_write_ex(key, partition, key_id, &slot);
 
             show_status(status, &slot, "write");
         } while(false);
@@ -374,7 +374,7 @@ void crypto_command_gen(PipeSide* pipe, FuriString* args, void* context) {
 
     FuriHalCryptoPartition partition = FuriHalCryptoPartitionMax;
     FuriHalCryptoKeyType type = FuriHalCryptoKeyTypeNone;
-    FuriHalCryptoKeyFlag flags = FuriHalCryptoKeyFlagNone;
+    bool wrap = false;
     uint32_t id = 0;
     uint32_t temp = 0xFF;
     bool asymmetric_key = false;
@@ -396,11 +396,11 @@ void crypto_command_gen(PipeSide* pipe, FuriString* args, void* context) {
         type = (FuriHalCryptoKeyType)temp;
         parse_err |= strint_to_uint32(args_cstr, &args_cstr, &id, 16);
         parse_err |= strint_to_uint32(args_cstr, &args_cstr, &temp, 16);
-        flags = (FuriHalCryptoKeyFlag)temp;
+        wrap = temp != 0;
         if(parse_err) {
             cli_print_usage(
                 "crypto gen",
-                "<partition> <type> <id: in HEX> <flags: in HEX> Generate key from NWP flash.\r\n",
+                "<partition> <type> <id: in HEX> <wrap: 0 or 1> Generate key from NWP flash.\r\n",
                 furi_string_get_cstr(args));
             printf(CLI_STATUS_ERROR);
             return;
@@ -425,7 +425,7 @@ void crypto_command_gen(PipeSide* pipe, FuriString* args, void* context) {
         break;
     }
 
-    FuriHalCryptoStatus status = furi_hal_crypto_gen_random_key(&key, type, flags);
+    FuriHalCryptoStatus status = furi_hal_crypto_gen_random_key(&key, type);
     if(status == FuriHalCryptoStatusInvalidParameter) {
         printf("Error: Unsupported key type: %ld\r\n", (uint32_t)type);
         printf(CLI_STATUS_ERROR);
@@ -436,7 +436,6 @@ void crypto_command_gen(PipeSide* pipe, FuriString* args, void* context) {
         return;
     }
 
-    FuriHalCryptoKeySlot slot;
     do {
         if(asymmetric_key) {
             // For asymmetric keys, we need to generate public key
@@ -448,29 +447,45 @@ void crypto_command_gen(PipeSide* pipe, FuriString* args, void* context) {
                            "\r\n");
                     break;
                 }
-                status = furi_hal_crypto_storage_write_ex(pub_key, partition, id, &slot);
-                if(status != FuriHalCryptoStatusOk) {
-                    printf("Error: Failed to write public key"
-                           "\r\n");
-                    show_status(status, &slot, "write");
-                    break;
-                }
-                printf("Generated public key successfully\r\n");
+                do {
+                    FuriHalCryptoKeySlot slot;
+                    status = furi_hal_crypto_storage_write_ex(pub_key, partition, id, &slot);
+                    if(status != FuriHalCryptoStatusOk) {
+                        printf("Error: Failed to write public key"
+                               "\r\n");
+                        show_status(status, &slot, "write");
+                        break;
+                    }
+                    printf("Generated public key successfully\r\n");
+                } while(false);
                 furi_hal_crypto_key_free(pub_key);
             } while(false);
         }
 
+        if(wrap) {
+            FuriHalCryptoKey* wrapped_key = NULL;
+            status = furi_hal_crypto_wrap_key(key, &wrapped_key);
+            if(status == FuriHalCryptoStatusOk) {
+                furi_hal_crypto_key_free(key);
+                key = wrapped_key;
+            } else if(status == FuriHalCryptoStatusUnavailable) {
+                printf("Error: Key wrapping is unsupported\r\n");
+                break;
+            } else {
+                printf("Error: Key wrapping failed\r\n");
+                break;
+            }
+        }
+        FuriHalCryptoKeySlot slot;
         status = furi_hal_crypto_storage_write_ex(key, partition, id, &slot);
         if(status == FuriHalCryptoStatusOk) {
             printf("Generated private key successfully\r\n");
         } else {
-            printf("Error: Failed to generate private key"
+            printf("Error: Failed to write private key"
                    "\r\n");
         }
-
+        show_status(status, &slot, "write");
     } while(false);
-
-    show_status(status, &slot, "write");
 
     furi_hal_crypto_key_free(key);
 }
@@ -480,7 +495,6 @@ void crypto_command_gen_csr(PipeSide* pipe, FuriString* args, void* context) {
     UNUSED(pipe);
 
     FuriHalCryptoPartition partition = FuriHalCryptoPartitionMax;
-    FuriHalCryptoKeyFlag flags = FuriHalCryptoKeyFlagNone;
     uint32_t id = 0;
     uint32_t temp = 0xFF;
 
@@ -499,13 +513,12 @@ void crypto_command_gen_csr(PipeSide* pipe, FuriString* args, void* context) {
         }
         parse_err |= strint_to_uint32(args_cstr, &args_cstr, &id, 16);
         parse_err |= strint_to_uint32(args_cstr, &args_cstr, &temp, 16);
-        flags = (FuriHalCryptoKeyFlag)temp;
         furi_string_printf(args, "%s", args_cstr);
         furi_string_trim(args);
         if(parse_err) {
             cli_print_usage(
                 "crypto gen_csr",
-                "<partition> <id: in HEX> <flags: in HEX> <subject_name> Generate CSR from NWP flash.\r\n",
+                "<partition> <id: in HEX> <reserved: in HEX> <subject_name> Generate CSR from NWP flash.\r\n",
                 furi_string_get_cstr(args));
             printf(CLI_STATUS_ERROR);
             return;
@@ -513,7 +526,7 @@ void crypto_command_gen_csr(PipeSide* pipe, FuriString* args, void* context) {
     } else {
         cli_print_usage(
             "crypto gen_csr",
-            "<partition> <id: in HEX> <flags: in HEX> <subject_name> Generate CSR from NWP flash.\r\n",
+            "<partition> <id: in HEX> <reserved: in HEX> <subject_name> Generate CSR from NWP flash.\r\n",
             furi_string_get_cstr(args));
         printf(CLI_STATUS_ERROR);
         return;
@@ -533,8 +546,7 @@ void crypto_command_gen_csr(PipeSide* pipe, FuriString* args, void* context) {
         // Generate random private key
         FuriHalCryptoStatus status = furi_hal_crypto_gen_random_key(
             &priv_key,
-            FuriHalCryptoKeyTypeEcdsaPriv256,
-            flags); // CSR is generated from private key
+            FuriHalCryptoKeyTypeEcdsaPriv256); // CSR is generated from private key
         if(status != FuriHalCryptoStatusOk) {
             printf("Error: Failed to generate random key: %d\r\n", status);
             printf(CLI_STATUS_ERROR);
@@ -660,11 +672,11 @@ static void crypto_command_print_usage(void) {
     printf("\tcrypto dump Dump crypto storage.\r\n");
     printf("\tcrypto read <partition> <type> <id: in HEX> Read key from NWP flash.\r\n");
     printf(
-        "\tcrypto write <partition> <type> <id: in HEX> <flags: in HEX> <size> <data: in Byte> Write key to NWP flash\r\n");
+        "\tcrypto write <partition> <type> <id: in HEX> <wrap: 0 or 1> <size> <data: in Byte> Write key to NWP flash\r\n");
     printf(
-        "\tcrypto gen <partition> <type> <id: in HEX> <flags: in HEX> Generate key from NWP flash\r\n");
+        "\tcrypto gen <partition> <type> <id: in HEX> <wrap: 0 or 1> Generate key from NWP flash\r\n");
     printf(
-        "\tcrypto gen_csr <partition> <id: in HEX> <flags: in HEX> <subject_name> Generate CSR from NWP flash\r\n");
+        "\tcrypto gen_csr <partition> <id: in HEX> <reserved: in HEX> <subject_name> Generate CSR from NWP flash\r\n");
     printf("\tcrypto list <partition> List keys from NWP flash\r\n");
     printf("\t\t<partition> 0-partition_main, 1-partition_user.\r\n");
 }
