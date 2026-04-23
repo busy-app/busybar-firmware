@@ -6,16 +6,21 @@
 
 #define PRECISE_TIMER_TIMEOUT_US (1000)
 #define MAGIC_DELAY_US           (PRECISE_TIMER_TIMEOUT_US / 2)
+#define COUNTER_THRESHOLD        (10)
 
-static bool always_false(void) {
+static bool always_false(void* context) {
+    UNUSED(context);
     return false;
 }
 
-static bool always_true(void) {
-    return true;
+static bool eventually_true(void* context) {
+    furi_assert(context);
+    uint32_t *counter = context;
+    return ++(*counter) == COUNTER_THRESHOLD;
 }
 
-static bool true_after_expire(void) {
+static bool true_after_expire(void* context) {
+    UNUSED(context);
     furi_delay_us(PRECISE_TIMER_TIMEOUT_US * 2);
     return true;
 }
@@ -68,7 +73,8 @@ MU_TEST(precise_timer_test_condition) {
     const bool timer1_is_expired = precise_timer_is_expired(timer1);
 
     const PreciseTimer timer2 = precise_timer_create(PRECISE_TIMER_TIMEOUT_US);
-    const bool timer2_condition_reached = precise_timer_wait_for(timer2, always_true);
+    uint32_t counter = 0;
+    const bool timer2_condition_reached = precise_timer_wait_for_ex(timer2, eventually_true, &counter);
     const bool timer2_is_expired = precise_timer_is_expired(timer2);
 
     const PreciseTimer timer3 = precise_timer_create(PRECISE_TIMER_TIMEOUT_US);
@@ -84,6 +90,8 @@ MU_TEST(precise_timer_test_condition) {
     mu_check(timer1_is_expired);
     mu_check(!timer2_is_expired);
     mu_check(timer3_is_expired);
+
+    mu_assert_int_eq(COUNTER_THRESHOLD, counter);
 }
 
 MU_TEST_SUITE(timer_test_suite) {
