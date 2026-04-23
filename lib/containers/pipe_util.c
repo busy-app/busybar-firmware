@@ -68,7 +68,7 @@ PipeDiscardUntilResult pipe_discard_until_either(
             free(terminator_lens);
             return (PipeDiscardUntilResult){
                 .success = true,
-                .found_idx = i,
+                .found_idx = i - 1,
             };
         }
     }
