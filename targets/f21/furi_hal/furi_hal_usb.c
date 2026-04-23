@@ -1,12 +1,13 @@
 #include <furi_hal_usb.h>
 
 #include <furi_hal_bus.h>
-#include <furi_hal_cortex.h>
 #include <furi_hal_interrupt.h>
 #include <furi_hal_resources.h>
 
 #include <stm32u5xx_ll_rcc.h>
 #include <stm32u5xx_ll_pwr.h>
+
+#include <toolbox/timer.h>
 
 #define USB_OTG_DEV     ((USB_OTG_DeviceTypeDef*)(USB_OTG_HS_BASE + USB_OTG_DEVICE_BASE))
 #define USB_OTG_PCGCCTL (*(volatile uint32_t*)(USB_OTG_HS_BASE + USB_OTG_PCGCCTL_BASE))
@@ -15,17 +16,9 @@
 
 #define TAG "FuriHalUsb"
 
-typedef bool (*FuriHalUsbConditionCallback)(void);
-
-static bool furi_hal_usb_wait_for_condition(FuriHalUsbConditionCallback callback) {
-    bool success = false;
-    FuriHalCortexTimer timer = furi_hal_cortex_timer_get(USB_TIMEOUT_US);
-
-    do {
-        success = callback();
-    } while(!(success || furi_hal_cortex_timer_is_expired(timer)));
-
-    return success;
+static bool furi_hal_usb_wait_for_condition(TimerConditionCallback callback) {
+    PreciseTimer timer = precise_timer_create(USB_TIMEOUT_US);
+    return precise_timer_wait_for(timer, callback);
 }
 
 static void furi_hal_usb_disable_global_interrupt(void) {
