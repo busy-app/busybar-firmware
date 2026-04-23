@@ -89,7 +89,7 @@ bool coarse_timer_is_expired(const CoarseTimer timer);
  */
 typedef struct {
     /** Opaque data. The calling code should NOT modify it directly. */
-    const uint32_t data[2];
+    uint32_t data[2];
 } PreciseTimer;
 
 /**
