@@ -91,7 +91,7 @@ static int32_t kermit_src_file_read(void* context, uint8_t* buffer, size_t lengt
         if(file_size > 0) {
             uint8_t percentage = (uint8_t)((file_pos * 100) / file_size);
             app->progress_callback(
-                SL_UPDATER_PROGRESS_PHASE_UPLOADING, percentage, app->progress_callback_context);
+                SlUpdaterProgressPhaseUploading, percentage, app->progress_callback_context);
         }
     }
     return bytes_read;
@@ -301,9 +301,7 @@ static void sl_updater_handle_rx(SlUpdater* instance) {
 
             if(instance->progress_callback) {
                 instance->progress_callback(
-                    SL_UPDATER_PROGRESS_PHASE_AWAITING_INSTALL,
-                    0,
-                    instance->progress_callback_context);
+                    SlUpdaterProgressPhaseAwaitingInstall, 0, instance->progress_callback_context);
             }
         }
         break;
@@ -382,7 +380,7 @@ static void sl_updater_tick(void* context) {
         size_t passed = interval - remaining;
 
         instance->progress_callback(
-            SL_UPDATER_PROGRESS_PHASE_AWAITING_INSTALL,
+            SlUpdaterProgressPhaseAwaitingInstall,
             (passed * 100) / interval,
             instance->progress_callback_context);
     }

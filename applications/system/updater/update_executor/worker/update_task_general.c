@@ -33,11 +33,11 @@ static void update_task_sl_updater_progress_callback(
     UpdateExecutorTaskStage current_stage = current_task_state->stage;
 
     switch(phase) {
-    case SL_UPDATER_PROGRESS_PHASE_UPLOADING:
+    case SlUpdaterProgressPhaseUploading:
         update_executor_task_set_progress(
             update_task, UpdateExecutorTaskStageProgress, percentage);
         break;
-    case SL_UPDATER_PROGRESS_PHASE_AWAITING_INSTALL:
+    case SlUpdaterProgressPhaseAwaitingInstall:
         if(current_stage == UpdateExecutorTaskStage917RadioWrite) {
             update_executor_task_set_progress(
                 update_task, UpdateExecutorTaskStage917RadioInstall, 0);
@@ -315,11 +315,13 @@ static bool update_task_write_917(UpdateExecutorTask* update_task, bool use_stac
             FURI_LOG_I(TAG, "%s flashed", img_type);
             success = true;
             break;
-        } else {
-            FURI_LOG_W(TAG, "%s update attempt %d failed", img_type, i + 1);
-            if(i == SL_UPDATE_RETRIES - 1) {
-                FURI_LOG_E(TAG, "%s update failed after all retries", img_type);
-            }
+        }
+
+        if(update_status == SlUpdaterStatusFileNotFound) break;
+
+        FURI_LOG_W(TAG, "%s update attempt %d failed", img_type, i + 1);
+        if(i == SL_UPDATE_RETRIES - 1) {
+            FURI_LOG_E(TAG, "%s update failed after all retries", img_type);
         }
     }
 

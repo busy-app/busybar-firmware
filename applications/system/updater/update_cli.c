@@ -35,7 +35,7 @@ static void
     }
 
     switch(phase) {
-    case SL_UPDATER_PROGRESS_PHASE_UPLOADING: {
+    case SlUpdaterProgressPhaseUploading: {
         printf(
             ANSI_CURSOR_UP_BY("1")
                 ANSI_ERASE_LINE(ANSI_ERASE_FROM_CURSOR_TO_END) "\rUploading: %d%%...\r\n",
@@ -43,13 +43,13 @@ static void
         break;
     }
 
-    case SL_UPDATER_PROGRESS_PHASE_AWAITING_INSTALL: {
-        static const char spinner_items[] = {'|', '/', '-', '\\', '\\'};
+    case SlUpdaterProgressPhaseAwaitingInstall: {
+        static const char spinner_items[] = {'|', '/', '-', '\\'};
 
         printf(
             ANSI_CURSOR_UP_BY("1")
                 ANSI_ERASE_LINE(ANSI_ERASE_FROM_CURSOR_TO_END) "\rAwaiting installation... %c\r\n",
-            spinner_items[callback_context->spinner_item_idx % (COUNT_OF(spinner_items) - 1)]);
+            spinner_items[callback_context->spinner_item_idx % COUNT_OF(spinner_items)]);
 
         callback_context->spinner_item_idx++;
         break;
@@ -76,7 +76,7 @@ static SlUpdaterStatus
         instance,
         updater_cli_progress_callback,
         &(UpdateCliProgressCallbackContext){
-            .progress_phase = SL_UPDATER_PROGRESS_PHASE_NONE,
+            .progress_phase = SlUpdaterProgressPhaseNone,
             .spinner_item_idx = 0,
         });
 

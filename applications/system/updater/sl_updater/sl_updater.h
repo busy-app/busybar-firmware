@@ -14,10 +14,10 @@ typedef struct SlUpdater SlUpdater;
  * @brief Enum defining the phases of the SlUpdater progress.
  */
 typedef enum {
-    SL_UPDATER_PROGRESS_PHASE_UPLOADING, /**< Firmware image is being uploaded */
-    SL_UPDATER_PROGRESS_PHASE_AWAITING_INSTALL, /**< Upload complete, awaiting installation */
+    SlUpdaterProgressPhaseUploading, /**< Firmware image is being uploaded */
+    SlUpdaterProgressPhaseAwaitingInstall, /**< Upload complete, awaiting installation */
 
-    SL_UPDATER_PROGRESS_PHASE_NONE, /**< Special value */
+    SlUpdaterProgressPhaseNone, /**< Special value */
 } SlUpdaterProgressPhase;
 
 /**
