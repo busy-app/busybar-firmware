@@ -7,8 +7,7 @@
 #include <stm32u5xx_ll_icache.h>
 #include <stm32u5xx_ll_dcache.h>
 
-#define FURI_HAL_CORTEX_INSTRUCTIONS_PER_MICROSECOND (SystemCoreClock / 1000000)
-#define DFU_ROM_BASE_ADDR                            0x0BF90000
+#define DFU_ROM_BASE_ADDR 0x0BF90000
 
 void furi_hal_cortex_init_early(void) {
     CoreDebug->DEMCR |= (CoreDebug_DEMCR_TRCENA_Msk | CoreDebug_DEMCR_MON_EN_Msk);
