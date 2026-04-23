@@ -55,12 +55,19 @@ void precise_timer_wait(const PreciseTimer timer) {
 }
 
 bool precise_timer_wait_for(const PreciseTimer timer, TimerConditionCallback condition_cb) {
+    return precise_timer_wait_for_ex(timer, condition_cb, NULL);
+}
+
+bool precise_timer_wait_for_ex(
+    const PreciseTimer timer,
+    TimerConditionCallback condition_cb,
+    void* context) {
     furi_check(condition_cb);
 
     bool condition_reached;
 
     do {
-        condition_reached = condition_cb();
+        condition_reached = condition_cb(context);
     } while(!(condition_reached || precise_timer_is_expired(timer)));
 
     return condition_reached;

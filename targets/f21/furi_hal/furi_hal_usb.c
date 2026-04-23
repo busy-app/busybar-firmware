@@ -9,8 +9,7 @@
 
 #include <toolbox/timer.h>
 
-#define USB_OTG_DEV     ((USB_OTG_DeviceTypeDef*)(USB_OTG_HS_BASE + USB_OTG_DEVICE_BASE))
-#define USB_OTG_PCGCCTL (*(volatile uint32_t*)(USB_OTG_HS_BASE + USB_OTG_PCGCCTL_BASE))
+#define USB_OTG_DEV ((USB_OTG_DeviceTypeDef*)(USB_OTG_HS_BASE + USB_OTG_DEVICE_BASE))
 
 #define USB_TIMEOUT_US (10000U)
 
@@ -25,11 +24,13 @@ static void furi_hal_usb_disable_global_interrupt(void) {
     CLEAR_BIT(USB_OTG_HS->GAHBCFG, USB_OTG_GAHBCFG_GINT);
 }
 
-static bool furi_hal_usb_is_ahb_idle(void) {
+static bool furi_hal_usb_is_ahb_idle(void* context) {
+    UNUSED(context);
     return READ_BIT(USB_OTG_HS->GRSTCTL, USB_OTG_GRSTCTL_AHBIDL) != 0;
 }
 
-static bool furi_hal_usb_is_core_reset(void) {
+static bool furi_hal_usb_is_core_reset(void* context) {
+    UNUSED(context);
     return READ_BIT(USB_OTG_HS->GRSTCTL, USB_OTG_GRSTCTL_CSRST) == 0;
 }
 
@@ -60,11 +61,13 @@ static bool furi_hal_usb_core_reset(void) {
     return success;
 }
 
-static bool furi_hal_usb_is_epod_booster_enabled(void) {
+static bool furi_hal_usb_is_epod_booster_enabled(void* context) {
+    UNUSED(context);
     return LL_PWR_IsActiveFlag_BOOST() != 0;
 }
 
-static bool furi_hal_usb_is_usbepod_booster_enabled(void) {
+static bool furi_hal_usb_is_usbepod_booster_enabled(void* context) {
+    UNUSED(context);
     return LL_PWR_IsActiveFlag_USBBOOST() != 0;
 }
 
