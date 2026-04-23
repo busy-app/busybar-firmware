@@ -94,8 +94,9 @@ typedef enum {
 _Static_assert(sizeof(FuriHalCryptoKeyType) == 4, "FuriHalCryptoKeyType must be 32 bit");
 
 typedef enum {
+    FuriHalCryptoKeyFlagNone = 0,
     FuriHalCryptoKeyFlagWrap = (1 << 0UL),
-    FuriHalCryptoKeyFlagNone = 0xFFFFFFFF,
+    FuriHalCryptoKeyFlagAll = 0xFFFFFFFF,
 } FuriHalCryptoKeyFlag;
 _Static_assert(sizeof(FuriHalCryptoKeyFlag) == 4, "FuriHalCryptoKeyFlag must be 32 bit");
 
