@@ -454,7 +454,7 @@ void sl_updater_set_progress_callback(
     instance->progress_callback_context = context;
 }
 
-static bool
+static SlUpdaterStatus
     sl_update_inner_run(SlUpdater* instance, Si917BootloaderMode mode, uint8_t baud_throttle) {
     if(baud_throttle < COUNT_OF(sl_updater_baudrate)) {
         instance->baud_throttle = baud_throttle;
@@ -484,7 +484,9 @@ static bool
 
     furi_event_loop_run(instance->event_loop);
 
-    bool success = instance->bootloader_state == Si917BootloaderStateInstallSuccess;
+    SlUpdaterStatus status = (instance->bootloader_state == Si917BootloaderStateInstallSuccess) ?
+                                 SlUpdaterStatusOk :
+                                 SlUpdaterStatusFailure;
 
     furi_hal_power_reset_917(false);
 
@@ -493,10 +495,10 @@ static bool
     furi_hal_serial_control_release(instance->serial_handle);
     instance->serial_handle = NULL;
 
-    return success;
+    return status;
 }
 
-bool sl_update_probe(SlUpdater* instance, uint8_t baud_throttle, FuriString* version) {
+SlUpdaterStatus sl_update_probe(SlUpdater* instance, uint8_t baud_throttle, FuriString* version) {
     furi_check(instance);
     furi_assert(version);
     furi_assert(baud_throttle <= COUNT_OF(sl_updater_baudrate));
@@ -505,7 +507,7 @@ bool sl_update_probe(SlUpdater* instance, uint8_t baud_throttle, FuriString* ver
     return sl_update_inner_run(instance, Si917BootloaderModeProbe, baud_throttle);
 }
 
-bool sl_updater_run(
+SlUpdaterStatus sl_updater_run(
     SlUpdater* instance,
     const char* firmware_path,
     bool is_stack_image,
@@ -521,10 +523,11 @@ bool sl_updater_run(
 
     if(!storage_file_open(instance->firmware_file, firmware_path, FSAM_READ, FSOM_OPEN_EXISTING)) {
         FURI_LOG_E(TAG, "Failed to open firmware file");
-        return false;
+        return SlUpdaterStatusFileNotFound;
     }
 
-    bool result = sl_update_inner_run(instance, Si917BootloaderModeDefault, baud_throttle);
+    SlUpdaterStatus status =
+        sl_update_inner_run(instance, Si917BootloaderModeDefault, baud_throttle);
     storage_file_close(instance->firmware_file);
-    return result;
+    return status;
 }

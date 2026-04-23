@@ -304,12 +304,14 @@ static bool update_task_write_917(UpdateExecutorTask* update_task, bool use_stac
             img_type,
             i);
 
-        if(sl_updater_run(
-               sl_updater,
-               firmware_path_cstr,
-               use_stack_image,
-               use_stack_image ? SL_UPDATE_NWP_COMM_TIMEOUT_S : SL_UPDATE_M4_COMM_TIMEOUT_S,
-               (uint8_t)i)) {
+        SlUpdaterStatus update_status = sl_updater_run(
+            sl_updater,
+            firmware_path_cstr,
+            use_stack_image,
+            use_stack_image ? SL_UPDATE_NWP_COMM_TIMEOUT_S : SL_UPDATE_M4_COMM_TIMEOUT_S,
+            (uint8_t)i);
+
+        if(update_status == SlUpdaterStatusOk) {
             FURI_LOG_I(TAG, "%s flashed", img_type);
             success = true;
             break;
