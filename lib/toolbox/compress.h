@@ -69,9 +69,9 @@ void compress_stream_decoder_free(CompressStreamDecoder* instance);
  * @param      data_out       The data out
  * @param[in]  data_out_size  The data out size
  *
- * @return     true on success, false on EOF or error.
+ * @return     number of bytes read, 0 on EOF, negative on error.
  */
-bool compress_stream_decoder_read(
+int32_t compress_stream_decoder_read(
     CompressStreamDecoder* instance,
     uint8_t* data_out,
     size_t data_out_size);
