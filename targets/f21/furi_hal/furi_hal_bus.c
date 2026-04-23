@@ -57,8 +57,7 @@
     FURI_HAL_BUS_RESET_ASSERT(bus, value, grp);    \
     FURI_HAL_BUS_RESET_DEASSERT(bus, value, grp)
 
-// TODO: static
-const uint32_t furi_hal_bus[] = {
+static const uint32_t furi_hal_bus[] = {
     [FuriHalBusAHB1_GRP1] = FURI_HAL_BUS_IGNORE,
     [FuriHalBusGPDMA1] = LL_AHB1_GRP1_PERIPH_GPDMA1,
     [FuriHalBusCORDIC] = LL_AHB1_GRP1_PERIPH_CORDIC,

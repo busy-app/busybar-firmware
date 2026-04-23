@@ -27,43 +27,29 @@
  * brief:   tiny dhcp ipv4 server using lwip (pcb)
  * ref:     https://lists.gnu.org/archive/html/lwip-users/2012-12/msg00016.html
  */
+#pragma once
 
-#ifndef DHSERVER_H
-#define DHSERVER_H
-
-#include <stdint.h>
-#include <stdbool.h>
-#include <stdio.h>
-#include <string.h>
-#include "lwip/err.h"
-#include "lwip/udp.h"
-#include "netif/etharp.h"
-
-typedef struct dhcp_entry
-{
-	uint8_t    mac[6];
-	ip4_addr_t addr;
-	uint32_t   lease;
-} dhcp_entry_t;
-
-typedef struct dhcp_config
-{
-	struct netif* netif;
-	ip4_addr_t    router;
-	uint16_t      port;
-	ip4_addr_t    dns;
-	const char   *domain;
-	int           num_entry;
-	dhcp_entry_t *entries;
-} dhcp_config_t;
+#include <lwip/netif.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-err_t dhserv_init(const dhcp_config_t *config);
-void dhserv_free(void);
+
+typedef struct {
+    struct netif* netif;
+    ip4_addr_t router;
+    uint16_t port;
+    ip4_addr_t dns;
+    const char* domain;
+    uint8_t max_lease_count;
+} DhcpServerConfig;
+
+bool dhserv_init(const DhcpServerConfig* config);
+
+void dhserv_deinit(void);
+
+bool dhserv_has_lease(ip4_addr_t addr);
+
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* DHSERVER_H */
