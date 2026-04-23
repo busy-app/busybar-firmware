@@ -536,25 +536,57 @@ def pytest_runtest_teardown(item, nextitem):
     _write_test_context(item.name, test_nodeid=item.nodeid, phase="teardown")
 
 
+def _probe_api_health(base_url: str) -> Optional[str]:
+    """Cheap HTTP liveness probe for /api/version.
+
+    Returns None on success, or a short error string on failure. We only care
+    that the server answers 200 — body validation is a test's job.
+
+    Uses a one-shot `requests.get` so each probe opens and closes its own
+    connection; keeping a pooled session across device resets risks stale
+    sockets that would falsely signal "API down" right after recovery.
+    """
+    try:
+        response = requests.get(f"{base_url}/api/version", timeout=2.0)
+    except requests.RequestException as exc:
+        return f"{type(exc).__name__}: {exc}"
+    if response.status_code != 200:
+        return f"HTTP {response.status_code}"
+    return None
+
+
 @pytest.fixture(autouse=True)
-def device_health_monitor(request, device_flasher):
+def device_health_monitor(request, device_flasher, web_base_url):
     """
     Auto-use fixture that monitors device health and recovers from failures.
 
     Before test:
-    - Check if device is reachable
-    - If not reachable, reset and wait for recovery
+    - Always verify TCP port 80 is open (cheap).
+    - Skip the HTTP API probe if the previous test ended healthy
+      (device_flasher._post_test_healthy == True) — nothing happens between
+      tests that could wedge the API on its own, and skipping saves one GET
+      per test on large suites.
+    - If either check fails, reset and wait for recovery.
 
-    After test:
-    - Check for crash flag
-    - Check if test failed with ConnectionError
-    - If either, reset device for next test
+    After test, pick the first matching reason and reset once:
+    - Crash flag raised by serial_logger
+    - TCP port 80 closed
+    - Test raised a ConnectionError
+    - HTTP API stopped serving (GET /api/version non-200 / exception)
     """
-    # Pre-test: ensure device is reachable
+    # Pre-test: TCP always, API only if previous post-test didn't vouch for health.
+    pre_reason: Optional[str] = None
     if not device_flasher.check_device_available():
-        logger.warning("Device unreachable before test, resetting...")
-        with allure.step("Resetting unreachable device before test"):
-            if not device_flasher.reset_and_wait():
+        pre_reason = "TCP port 80 unreachable"
+    elif not getattr(device_flasher, "_post_test_healthy", False):
+        api_error = _probe_api_health(web_base_url)
+        if api_error:
+            pre_reason = f"API unhealthy ({api_error})"
+
+    if pre_reason:
+        logger.warning("Device not ready before test (%s), resetting...", pre_reason)
+        with allure.step(f"Resetting device before test: {pre_reason}"):
+            if not device_flasher.reset_and_wait(wait_timeout=30, reset_interval=10):
                 pytest.fail("Device not recoverable - check hardware connection")
 
     # Capture crash detector state
@@ -563,24 +595,35 @@ def device_health_monitor(request, device_flasher):
 
     yield detector
 
-    # Post-test: check for crash or connection failure
+    # Post-test: evaluate reasons in priority order, reset at most once.
+    reset_reason: Optional[str] = None
     crash_info = detector.check_for_crash()
+
     if crash_info:
         request.node._crash_info = crash_info
-
-    # Check device availability after test
-    if not device_flasher.check_device_available():
-        logger.warning("Device unreachable after test!")
+        reset_reason = f"crash detected ({crash_info.processor})"
+    elif not device_flasher.check_device_available():
         request.node._device_unavailable = True
-        # Attempt recovery for next test
-        with allure.step("Resetting unreachable device after test"):
-            device_flasher.reset_and_wait()
+        reset_reason = "TCP port 80 unreachable"
+    elif hasattr(request.node, "_connection_error"):
+        reset_reason = "test raised ConnectionError"
+    else:
+        api_error = _probe_api_health(web_base_url)
+        if api_error:
+            request.node._api_unhealthy = api_error
+            reset_reason = f"API health check failed: {api_error}"
 
-    # Check if test failed with connection error
-    if hasattr(request.node, "_connection_error"):
-        logger.warning("Test failed with connection error, resetting device...")
-        with allure.step("Resetting device after connection error"):
-            device_flasher.reset_and_wait()
+    if reset_reason:
+        # Next pre-test must re-verify — reset leaves the health state unknown.
+        device_flasher._post_test_healthy = False
+        logger.warning("Resetting device after test: %s", reset_reason)
+        with allure.step(f"Resetting device: {reset_reason}"):
+            if not device_flasher.reset_and_wait(wait_timeout=30, reset_interval=10):
+                logger.error("reset_and_wait failed after test: %s", reset_reason)
+                request.node._reset_failed = reset_reason
+    else:
+        # Clean teardown — tell the next pre-test it can skip the API probe.
+        device_flasher._post_test_healthy = True
 
 
 @pytest.hookimpl(hookwrapper=True)
@@ -591,6 +634,13 @@ def pytest_runtest_makereport(item, call):
     2. Mark test as failed if device crash was detected
     3. Capture display screenshots on test failure/error
     """
+
+    def _append_longrepr(msg: str) -> None:
+        """Append a message to report.longrepr without discarding existing context
+        (e.g. a crash trace set earlier in this hook)."""
+        existing = report.longrepr
+        report.longrepr = f"{existing}\n\n{msg}" if existing else msg
+
     outcome = yield
     report = outcome.get_result()
 
@@ -635,10 +685,36 @@ def pytest_runtest_makereport(item, call):
 
     if device_unavailable and report.when == "teardown":
         report.outcome = "failed"
-        report.longrepr = (
+        _append_longrepr(
             "DEVICE UNAVAILABLE after test!\n"
             "The device became unreachable during test execution.\n"
             "This may indicate a crash, hang, or network issue."
+        )
+
+    api_unhealthy = getattr(item, "_api_unhealthy", None)
+
+    if api_unhealthy and report.when == "teardown" and report.outcome != "failed":
+        report.outcome = "failed"
+        _append_longrepr(
+            "API UNHEALTHY after test!\n"
+            "Device TCP port 80 was reachable but GET /api/version failed:\n"
+            f"{api_unhealthy}"
+        )
+
+    # Reset-and-wait failed: device could not be recovered after test.
+    # Surface it even if another failure already claimed the report, but
+    # append to longrepr so we don't lose the crash trace / prior context.
+    reset_failed = getattr(item, "_reset_failed", None)
+
+    if reset_failed and report.when == "teardown":
+        report.outcome = "failed"
+        allure.dynamic.tag("DEVICE_NOT_RECOVERABLE")
+        _append_longrepr(
+            "DEVICE RECOVERY FAILED after test!\n"
+            f"Trigger: {reset_failed}\n"
+            "reset_and_wait() did not bring the device back — hardware may be "
+            "wedged. Subsequent tests are likely to fail until the runner is "
+            "manually recovered."
         )
 
 @pytest.fixture
