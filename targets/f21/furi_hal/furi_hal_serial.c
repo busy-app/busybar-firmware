@@ -684,21 +684,17 @@ size_t furi_hal_serial_tx(
     return transmitted;
 }
 
+static bool furi_hal_serial_is_tx_complete(void* context) {
+    const USART_TypeDef* periph = context;
+    return LL_USART_IsActiveFlag_TXFE(periph);
+}
+
 bool furi_hal_serial_tx_wait_complete(FuriHalSerialHandle* handle, uint32_t timeout) {
     furi_check(handle);
-
-    bool success = false;
+    USART_TypeDef* periph = furi_hal_serial_resources[handle->id].periph;
 
     PreciseTimer timer = precise_timer_create(timeout * 1000);
-
-    while(!precise_timer_is_expired(timer)) {
-        if(LL_USART_IsActiveFlag_TXFE(furi_hal_serial_resources[handle->id].periph)) {
-            success = true;
-            break;
-        }
-    }
-
-    return success;
+    return precise_timer_wait_for(timer, furi_hal_serial_is_tx_complete, periph);
 }
 
 bool furi_hal_serial_rx_available(FuriHalSerialHandle* handle) {

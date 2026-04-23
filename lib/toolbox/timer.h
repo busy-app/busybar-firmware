@@ -134,21 +134,10 @@ void precise_timer_wait(const PreciseTimer timer);
  *
  * @param[in] timer precise timer object to use
  * @param[in] condition_cb pointer to the condition check (predicate) function
- * @returns @c true if the condition has been reached before the timeout, @c false otherwise
- */
-bool precise_timer_wait_for(const PreciseTimer timer, TimerConditionCallback condition_cb);
-
-/**
- * @brief Block the caller until the timer is expired OR a condition is reached (extended version).
- *
- * Same behaviour as precise_timer_wait_for(), but with the ability to set a custom condition context.
- *
- * @param[in] timer precise timer object to use
- * @param[in] condition_cb pointer to the condition check (predicate) function
  * @param[in,out] context pointer to the user-specific object (will be passed to the callback)
  * @returns @c true if the condition has been reached before the timeout, @c false otherwise
  */
-bool precise_timer_wait_for_ex(
+bool precise_timer_wait_for(
     const PreciseTimer timer,
     TimerConditionCallback condition_cb,
     void* context);

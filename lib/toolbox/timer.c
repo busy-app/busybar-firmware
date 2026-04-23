@@ -54,11 +54,7 @@ void precise_timer_wait(const PreciseTimer timer) {
     }
 }
 
-bool precise_timer_wait_for(const PreciseTimer timer, TimerConditionCallback condition_cb) {
-    return precise_timer_wait_for_ex(timer, condition_cb, NULL);
-}
-
-bool precise_timer_wait_for_ex(
+bool precise_timer_wait_for(
     const PreciseTimer timer,
     TimerConditionCallback condition_cb,
     void* context) {

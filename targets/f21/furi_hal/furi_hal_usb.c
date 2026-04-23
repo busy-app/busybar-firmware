@@ -17,7 +17,7 @@
 
 static bool furi_hal_usb_wait_for_condition(TimerConditionCallback callback) {
     PreciseTimer timer = precise_timer_create(USB_TIMEOUT_US);
-    return precise_timer_wait_for(timer, callback);
+    return precise_timer_wait_for(timer, callback, NULL);
 }
 
 static void furi_hal_usb_disable_global_interrupt(void) {

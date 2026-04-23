@@ -15,7 +15,7 @@ static bool always_false(void* context) {
 
 static bool eventually_true(void* context) {
     furi_assert(context);
-    uint32_t *counter = context;
+    uint32_t* counter = context;
     return ++(*counter) == COUNTER_THRESHOLD;
 }
 
@@ -69,17 +69,18 @@ MU_TEST(precise_timer_test) {
 MU_TEST(precise_timer_test_condition) {
     FURI_CRITICAL_ENTER();
     const PreciseTimer timer1 = precise_timer_create(PRECISE_TIMER_TIMEOUT_US);
-    const bool timer1_condition_reached = precise_timer_wait_for(timer1, always_false);
+    const bool timer1_condition_reached = precise_timer_wait_for(timer1, always_false, NULL);
     const bool timer1_is_expired = precise_timer_is_expired(timer1);
 
     const PreciseTimer timer2 = precise_timer_create(PRECISE_TIMER_TIMEOUT_US);
     uint32_t counter = 0;
-    const bool timer2_condition_reached = precise_timer_wait_for_ex(timer2, eventually_true, &counter);
+    const bool timer2_condition_reached =
+        precise_timer_wait_for(timer2, eventually_true, &counter);
     const bool timer2_is_expired = precise_timer_is_expired(timer2);
 
     const PreciseTimer timer3 = precise_timer_create(PRECISE_TIMER_TIMEOUT_US);
     // NOTE: Condition is still reported as reached despite the timer being expired
-    const bool timer3_condition_reached = precise_timer_wait_for(timer3, true_after_expire);
+    const bool timer3_condition_reached = precise_timer_wait_for(timer3, true_after_expire, NULL);
     const bool timer3_is_expired = precise_timer_is_expired(timer3);
     FURI_CRITICAL_EXIT();
 
