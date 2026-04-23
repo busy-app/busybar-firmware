@@ -10,7 +10,7 @@
 
 #define TAG "BlePairScene"
 
-#define NAME_LABEL_TEXT_COLOR ((Color)COLOR_MAKE_HEX(0x444444))
+#define NAME_LABEL_TEXT_COLOR ((Color)COLOR_MAKE_HEX(0x888888))
 #define STATUS_LIGHTS_COLOR   ((Color)COLOR_MAKE_RGB(0, 0, 0xFF))
 
 typedef enum {
@@ -64,8 +64,9 @@ static void scene_pairing_mode_on_enter(void* context) {
         const char* pairing_text = "Pairing mode...";
         //Front screen
         data->front_flex = flex_layout_alloc(instance->front_scene_window, FlexLayoutTypeRow);
+        flex_layout_set_align(
+            data->front_flex, FlexLayoutAlignStart, FlexLayoutAlignCenter, FlexLayoutAlignCenter);
         flex_layout_set_spacing(data->front_flex, 2);
-        widget_set_height_content(flex_layout_get_base(data->front_flex));
         widget_set_align(flex_layout_get_base(data->front_flex), AlignLeftMid);
 
         data->front_anim = anim_player_alloc(flex_layout_get_base(data->front_flex));
@@ -73,7 +74,9 @@ static void scene_pairing_mode_on_enter(void* context) {
         widget_set_height_content(anim_player_get_base(data->front_anim));
 
         data->front_label = label_alloc(flex_layout_get_base(data->front_flex));
+        label_set_font(data->front_label, FONT_BUSY_REGULAR_5);
         label_set_text(data->front_label, pairing_text);
+        widget_set_padding(label_get_base(data->front_label), 0, 0, 0, 1);
         widget_set_height_content(label_get_base(data->front_label));
 
         //Back screen
@@ -84,11 +87,13 @@ static void scene_pairing_mode_on_enter(void* context) {
         data->back_image = image_alloc(flex_layout_get_base(data->back_flex));
         image_set_source(data->back_image, IMG_PATH("ble_back_white_11x11.image"));
         widget_set_size_content(image_get_base(data->back_image));
+        widget_set_padding(image_get_base(data->back_image), 2, 3, 2, 3);
         widget_set_margin(image_get_base(data->back_image), 0, 0, 0, 6);
 
         data->back_label = label_alloc(flex_layout_get_base(data->back_flex));
-        widget_set_width_content(label_get_base(data->back_label));
+        label_set_font(data->back_label, FONT_BUSY_REGULAR_9);
         label_set_text(data->back_label, pairing_text);
+        widget_set_width_content(label_get_base(data->back_label));
         widget_set_margin(label_get_base(data->back_label), 0, 0, 0, 2);
 
         data->name_view = named_label_view_back_alloc(flex_layout_get_base(data->back_flex));

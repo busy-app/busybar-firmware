@@ -5,8 +5,6 @@
 
 #define MY_CLASS (&clock_view_lvgl_class)
 
-#define COLON_BLINK_TIMER_PERIOD_MS 500
-
 #define ICON_LABEL_DATE_TEXT_COLOR_HEX 0x323232
 
 struct ClockView {
@@ -25,8 +23,6 @@ struct ClockView {
     lv_obj_t* time_meridian_label;
 
     lv_obj_t* date_label;
-
-    lv_timer_t* colon_blink_timer;
 
     FontRegistry* font_registry;
     const lv_font_t* font_busy_bold_7;
@@ -69,15 +65,6 @@ static const char* const weekday_short_names[] = {
 };
 
 /* LVGL-specific code */
-
-static void clock_view_colon_blink_timer_callback(lv_timer_t* timer) {
-    ClockView* instance = timer->user_data;
-
-    lv_style_set_text_opa(lv_span_get_style(instance->time_minute_colon_span), LV_OPA_40);
-    lv_style_set_text_opa(lv_span_get_style(instance->time_second_colon_span), LV_OPA_40);
-
-    lv_spangroup_refresh(instance->time_spangroup);
-}
 
 static void clock_view_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
     UNUSED(class_p);
@@ -148,19 +135,12 @@ static void clock_view_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t*
     lv_obj_set_style_text_color(instance->date_label, lv_color_white(), LV_PART_MAIN);
     lv_obj_set_style_text_opa(instance->date_label, LV_OPA_50, LV_PART_MAIN);
     lv_obj_set_style_margin_top(instance->date_label, -2, LV_PART_MAIN);
-
-    instance->colon_blink_timer = lv_timer_create(
-        clock_view_colon_blink_timer_callback, COLON_BLINK_TIMER_PERIOD_MS, instance);
-    lv_timer_set_auto_delete(instance->colon_blink_timer, false);
-    lv_timer_pause(instance->colon_blink_timer);
 }
 
 static void clock_view_lvgl_destructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
     UNUSED(class_p);
 
     ClockView* instance = (ClockView*)obj;
-
-    lv_timer_delete(instance->colon_blink_timer);
 
     font_registry_unload_font(instance->font_registry, instance->font_busy_superscript_7);
     font_registry_unload_font(instance->font_registry, instance->font_busy_regular_5);
@@ -266,8 +246,6 @@ void clock_view_set_blink_colons(ClockView* instance, bool blink_colons) {
     if(!blink_colons) {
         lv_style_set_text_opa(lv_span_get_style(instance->time_second_colon_span), LV_OPA_COVER);
         lv_style_set_text_opa(lv_span_get_style(instance->time_minute_colon_span), LV_OPA_COVER);
-
-        lv_timer_pause(instance->colon_blink_timer);
     }
 
     instance->blink_colons = blink_colons;
@@ -321,12 +299,9 @@ void clock_view_set_date_time(ClockView* instance, const DateTime* date_time) {
     }
 
     if(instance->blink_colons) {
-        lv_style_set_text_opa(lv_span_get_style(instance->time_second_colon_span), LV_OPA_COVER);
-        lv_style_set_text_opa(lv_span_get_style(instance->time_minute_colon_span), LV_OPA_COVER);
-
-        lv_timer_set_repeat_count(instance->colon_blink_timer, 1);
-        lv_timer_resume(instance->colon_blink_timer);
-        lv_timer_reset(instance->colon_blink_timer);
+        lv_opa_t target_opacity = (date_time->second % 2 != 0) ? LV_OPA_40 : LV_OPA_COVER;
+        lv_style_set_text_opa(lv_span_get_style(instance->time_second_colon_span), target_opacity);
+        lv_style_set_text_opa(lv_span_get_style(instance->time_minute_colon_span), target_opacity);
     }
 
     lv_spangroup_refresh(instance->time_spangroup);
