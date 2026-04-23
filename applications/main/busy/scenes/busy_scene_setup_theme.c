@@ -1,15 +1,16 @@
 #include "../busy_i.h"
+#include "../widgets/theme_picker.h"
+
+#include <gui/modules/front_display_mirror.h>
 
 #include <m-array.h>
-
-#include "../widgets/theme_picker.h"
 
 #define THEME_NAME_LEN_MAX (64)
 
 typedef struct {
     ThemePickerModel* picker_model;
     ThemePicker* front_picker;
-    ThemePicker* back_picker;
+    DisplayMirror* back_mirror;
 } BusySceneSetupTheme;
 
 static void busy_scene_setup_theme_picker_callback(uint32_t index, void* context) {
@@ -97,13 +98,10 @@ static void busy_scene_setup_theme_on_enter(void* context) {
         theme_picker_set_model(data->front_picker, data->picker_model);
         widget_set_align(theme_picker_get_base(data->front_picker), AlignCenter);
 
-        data->back_picker = theme_picker_alloc(instance->back_window);
-        theme_picker_set_model(data->back_picker, data->picker_model);
-        widget_set_align(theme_picker_get_base(data->back_picker), AlignCenter);
+        data->back_mirror = display_mirror_alloc(instance->back_window);
 
         if(selected_theme_index != THEME_PICKER_MODEL_INVALID_INDEX) {
             theme_picker_set_current_item(data->front_picker, selected_theme_index);
-            theme_picker_set_current_item(data->back_picker, selected_theme_index);
         }
 
         theme_picker_set_callback(
@@ -120,7 +118,7 @@ static void busy_scene_setup_theme_on_exit(void* context) {
 
     with_gui(instance->gui, {
         theme_picker_free(data->front_picker);
-        theme_picker_free(data->back_picker);
+        display_mirror_free(data->back_mirror);
         theme_picker_model_free(data->picker_model);
     });
 }
