@@ -299,7 +299,7 @@ void clock_view_set_date_time(ClockView* instance, const DateTime* date_time) {
     }
 
     if(instance->blink_colons) {
-        lv_opa_t target_opacity = (date_time->second % 2 > 0) ? LV_OPA_40 : LV_OPA_COVER;
+        lv_opa_t target_opacity = (date_time->second % 2 != 0) ? LV_OPA_40 : LV_OPA_COVER;
         lv_style_set_text_opa(lv_span_get_style(instance->time_second_colon_span), target_opacity);
         lv_style_set_text_opa(lv_span_get_style(instance->time_minute_colon_span), target_opacity);
     }

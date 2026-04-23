@@ -40,7 +40,7 @@ static void named_label_view_back_lvgl_constructor(const lv_obj_class_t* class_p
     lv_obj_t* message = lv_label_create(obj);
     lv_obj_set_style_text_font(message, instance->font_busy_regular_7, LV_PART_MAIN);
     lv_obj_set_style_anim_time(message, NAME_LABEL_ANIMATION_DURATION_MS, LV_PART_MAIN);
-    lv_obj_set_width(title, LV_SIZE_CONTENT);
+    lv_obj_set_width(message, LV_SIZE_CONTENT);
     lv_label_set_long_mode(message, LV_LABEL_LONG_SCROLL);
     instance->text_obj = message;
 }
