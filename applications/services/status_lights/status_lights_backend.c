@@ -11,6 +11,7 @@
 
 typedef enum {
     StatusLightsEventSyncDone = 1UL << 0,
+    StatusLightsEventIntercomError = 1UL << 1,
 } StatusLightsEvent;
 
 typedef void (*CommandHandler)(StatusLights* instance, const StatusLightsCommand* command);
@@ -100,11 +101,25 @@ static void status_lights_intercom_state_callback(const void* message, void* con
 
     StatusLights* instance = context;
 
-    const IntercomStatus intercom_status = *(IntercomStatus*)message;
+    StatusLightsEvent event;
+    switch(*(const IntercomStatus*)message) {
+    case IntercomStatusOk:
+        event = StatusLightsEventSyncDone;
+        break;
 
-    if(intercom_status == IntercomStatusOk) {
-        furi_event_loop_set_custom_event(instance->event_loop, StatusLightsEventSyncDone);
+    case IntercomStatusErrorSync:
+    /* fall-through */
+    case IntercomStatusErrorFraming:
+    /* fall-through */
+    case IntercomStatusErrorTimeout:
+        event = StatusLightsEventIntercomError;
+        break;
+
+    default:
+        return;
     }
+
+    furi_event_loop_set_custom_event(instance->event_loop, event);
 }
 
 static void status_lights_event_callback(uint32_t events, void* context) {
@@ -119,6 +134,20 @@ static void status_lights_event_callback(uint32_t events, void* context) {
             instance);
         // Not sending anything to the channel
         UNUSED(intercom_ch);
+    }
+
+    if(events & StatusLightsEventIntercomError) {
+        if(instance->preset_instance) {
+            furi_assert(instance->preset_api);
+
+            instance->preset_api->free(instance->preset_instance);
+            instance->preset_instance = NULL;
+            instance->preset_api = NULL;
+
+            furi_event_loop_timer_stop(instance->timer);
+        }
+
+        furi_hal_pwm_stop();
     }
 }
 
