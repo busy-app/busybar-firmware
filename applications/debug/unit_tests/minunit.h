@@ -276,7 +276,7 @@ void minunit_printf_warning(const char* format, ...);
         minunit_tmp_e = (expected_lower);                                          \
         minunit_tmp_m = (expected_upper);                                          \
         minunit_tmp_r = (result);                                                  \
-        if(minuint_tmp_r < minunit_tmp_e || minuint_tmp_r > minunit_tmp_m) {       \
+        if(minunit_tmp_r < minunit_tmp_e || minunit_tmp_r > minunit_tmp_m) {       \
             snprintf(                                                              \
                 minunit_last_message,                                              \
                 MINUNIT_MESSAGE_LEN,                                               \
