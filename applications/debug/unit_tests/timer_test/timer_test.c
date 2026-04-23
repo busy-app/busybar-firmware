@@ -2,8 +2,10 @@
 
 #include <toolbox/timer.h>
 
+#define COARSE_TIMER_TIMEOUT_MS (10)
+
 #define PRECISE_TIMER_TIMEOUT_US (1000)
-#define MAGIC_DELAY_US           (500)
+#define MAGIC_DELAY_US           (PRECISE_TIMER_TIMEOUT_US / 2)
 
 static bool always_false(void) {
     return false;
@@ -16,6 +18,27 @@ static bool always_true(void) {
 static bool true_after_expire(void) {
     furi_delay_us(PRECISE_TIMER_TIMEOUT_US * 2);
     return true;
+}
+
+MU_TEST(coarse_timer_test) {
+    FURI_CRITICAL_ENTER();
+    const CoarseTimer timer = coarse_timer_create(COARSE_TIMER_TIMEOUT_MS);
+
+    const uint32_t elapsed_start_ms = coarse_timer_get_elapsed(timer);
+    const bool is_expired_start = coarse_timer_is_expired(timer);
+    FURI_CRITICAL_EXIT();
+
+    furi_delay_ms(COARSE_TIMER_TIMEOUT_MS);
+
+    const uint32_t elapsed_end_ms = coarse_timer_get_elapsed(timer);
+    const bool is_expired_end = coarse_timer_is_expired(timer);
+
+    mu_check(!is_expired_start);
+    mu_check(is_expired_end);
+
+    mu_assert_int_eq(0, elapsed_start_ms);
+    mu_assert_int_between(
+        COARSE_TIMER_TIMEOUT_MS - 1, COARSE_TIMER_TIMEOUT_MS + 1, (int32_t)elapsed_end_ms);
 }
 
 MU_TEST(precise_timer_test) {
@@ -36,37 +59,6 @@ MU_TEST(precise_timer_test) {
 
     mu_assert_int_eq(0, elapsed_start_us);
     mu_assert_int_eq(PRECISE_TIMER_TIMEOUT_US, elapsed_end_us);
-}
-
-MU_TEST(precise_timer_test_synced) {
-    FURI_CRITICAL_ENTER();
-    const PreciseTimer timer1 = precise_timer_create(PRECISE_TIMER_TIMEOUT_US);
-
-    precise_timer_wait(timer1);
-
-    const uint32_t timer1_elapsed_end_us = precise_timer_get_elapsed(timer1);
-
-    furi_delay_us(MAGIC_DELAY_US);
-
-    const PreciseTimer timer2 = precise_timer_create_synced(timer1, PRECISE_TIMER_TIMEOUT_US);
-
-    const uint32_t timer2_elapsed_start_us = precise_timer_get_elapsed(timer2);
-    const bool timer2_is_expired_start = precise_timer_is_expired(timer2);
-
-    precise_timer_wait(timer2);
-
-    const uint32_t timer2_elapsed_end_us = precise_timer_get_elapsed(timer2);
-    const bool timer2_is_expired_end = precise_timer_is_expired(timer2);
-
-    FURI_CRITICAL_EXIT();
-
-    mu_check(!timer2_is_expired_start);
-    mu_check(timer2_is_expired_end);
-
-    // Add some slack for possible rounding errors
-    mu_assert_int_between(MAGIC_DELAY_US - 1, MAGIC_DELAY_US + 2, (int)timer2_elapsed_start_us);
-    mu_assert_int_eq(PRECISE_TIMER_TIMEOUT_US, timer2_elapsed_end_us);
-    mu_assert_int_eq(PRECISE_TIMER_TIMEOUT_US * 2, timer1_elapsed_end_us + timer2_elapsed_end_us);
 }
 
 MU_TEST(precise_timer_test_condition) {
@@ -95,8 +87,8 @@ MU_TEST(precise_timer_test_condition) {
 }
 
 MU_TEST_SUITE(timer_test_suite) {
+    MU_RUN_TEST(coarse_timer_test);
     MU_RUN_TEST(precise_timer_test);
-    MU_RUN_TEST(precise_timer_test_synced);
     MU_RUN_TEST(precise_timer_test_condition);
 }
 

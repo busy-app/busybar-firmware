@@ -50,18 +50,6 @@ typedef struct {
 CoarseTimer coarse_timer_create(uint32_t timeout_ms);
 
 /**
- * @brief Create a coarse timer that is synced to the previous one.
- *
- * The created timer will expire exactly @c tiemout_ms milliseconds after the
- * @c previous timer expiration time.
- *
- * @param[in] previous previous coarse timer object to use as the starting point
- * @param[in] timeout_ms timeout value, in milliseconds
- * @returns initialised CoarseTimer object
- */
-CoarseTimer coarse_timer_create_synced(const CoarseTimer previous, uint32_t timeout_ms);
-
-/**
  * @brief Get the time elapsed since the timer creation, in milliseconds.
  *
  * @param[in] timer coarse timer object to query
@@ -111,18 +99,6 @@ typedef struct {
  * @returns initialised PreciseTimer object
  */
 PreciseTimer precise_timer_create(uint32_t timeout_us);
-
-/**
- * @brief Create a precise timer that is synced to the previous one.
- *
- * The created timer will expire exactly @c tiemout_us microseconds after the
- * @c previous timer expiration time.
- *
- * @param[in] previous previous precise timer object to use as the starting point
- * @param[in] timeout_ms timeout value, in microseconds
- * @returns initialised PreciseTimer object
- */
-PreciseTimer precise_timer_create_synced(const PreciseTimer previous, uint32_t timeout_us);
 
 /**
  * @brief Get the time elapsed since the timer creation, in microseconds.

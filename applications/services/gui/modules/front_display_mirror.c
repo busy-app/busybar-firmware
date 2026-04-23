@@ -23,8 +23,7 @@ static void display_mirror_refresh_callback(lv_event_t* event) {
 
     if(coarse_timer_is_expired(instance->refresh_timer)) {
         lv_obj_invalidate(instance->mirror_image);
-        instance->refresh_timer =
-            coarse_timer_create_synced(instance->refresh_timer, DISPLAY_MIRROR_MIN_REFRESH_MS);
+        instance->refresh_timer = coarse_timer_create(DISPLAY_MIRROR_MIN_REFRESH_MS);
     }
 }
 
