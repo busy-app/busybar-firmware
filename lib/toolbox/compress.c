@@ -117,7 +117,7 @@ void compress_stream_decoder_free(CompressStreamDecoder* instance) {
     instance->ops->free(instance);
 }
 
-int32_t compress_stream_decoder_read(
+ssize_t compress_stream_decoder_read(
     CompressStreamDecoder* instance,
     uint8_t* data_out,
     size_t data_out_size) {

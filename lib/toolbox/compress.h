@@ -4,9 +4,11 @@
  */
 #pragma once
 
+#include <sys/types.h>
+
 #include <stdbool.h>
-#include <stdint.h>
 #include <stddef.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -37,7 +39,7 @@ extern const CompressConfigHeatshrink compress_config_heatshrink_default;
  * 
  * @return number of bytes read/written, 0 on end of stream, negative on error
  */
-typedef int32_t (*CompressIoCallback)(void* context, uint8_t* buffer, size_t size);
+typedef ssize_t (*CompressIoCallback)(void* context, uint8_t* buffer, size_t size);
 
 /** CompressStreamDecoder control structure */
 typedef struct CompressStreamDecoder CompressStreamDecoder;
@@ -71,7 +73,7 @@ void compress_stream_decoder_free(CompressStreamDecoder* instance);
  *
  * @return     number of bytes read, 0 on EOF, negative on error.
  */
-int32_t compress_stream_decoder_read(
+ssize_t compress_stream_decoder_read(
     CompressStreamDecoder* instance,
     uint8_t* data_out,
     size_t data_out_size);
