@@ -89,14 +89,15 @@ typedef enum {
     FuriHalCryptoKeyTypeMatterSetup = 14,
     FuriHalCryptoKeyTypeMatterDeviceInfo = 15,
 
-    FuriHalCryptoKeyTypeNone = 0xFFFFFFFF,
+    _FuriHalCryptoKeyTypeMaxWidth = 0xFFFFFFFF,
 } FuriHalCryptoKeyType;
 _Static_assert(sizeof(FuriHalCryptoKeyType) == 4, "FuriHalCryptoKeyType must be 32 bit");
 
 typedef enum {
     FuriHalCryptoKeyFlagNone = 0,
     FuriHalCryptoKeyFlagWrap = (1 << 0UL),
-    FuriHalCryptoKeyFlagAll = 0xFFFFFFFF,
+
+    _FuriHalCryptoKeyFlagMaxWidth = 0xFFFFFFFF,
 } FuriHalCryptoKeyFlag;
 _Static_assert(sizeof(FuriHalCryptoKeyFlag) == 4, "FuriHalCryptoKeyFlag must be 32 bit");
 

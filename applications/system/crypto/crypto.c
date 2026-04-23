@@ -265,7 +265,7 @@ void crypto_command_read(PipeSide* pipe, FuriString* args, void* context) {
     UNUSED(pipe);
 
     FuriHalCryptoPartition partition = FuriHalCryptoPartitionMax;
-    FuriHalCryptoKeyType type = FuriHalCryptoKeyTypeNone;
+    FuriHalCryptoKeyType type = 0;
     uint32_t id = 0;
     uint32_t temp = 0xFF;
 
@@ -373,7 +373,7 @@ void crypto_command_gen(PipeSide* pipe, FuriString* args, void* context) {
     UNUSED(pipe);
 
     FuriHalCryptoPartition partition = FuriHalCryptoPartitionMax;
-    FuriHalCryptoKeyType type = FuriHalCryptoKeyTypeNone;
+    FuriHalCryptoKeyType type = 0;
     bool wrap = false;
     uint32_t id = 0;
     uint32_t temp = 0xFF;
