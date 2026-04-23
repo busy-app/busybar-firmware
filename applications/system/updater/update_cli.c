@@ -7,6 +7,7 @@
 #include <furi_hal_power.h>
 
 #include <cli/cli_command.h>
+#include <cli/cli_ansi.h>
 #include <cli/args.h>
 
 #include <toolbox/update_lib/update_config.h>
@@ -19,16 +20,41 @@
 #define UPDATE_STAGING_ROOT "update"
 #define UPDATE_TAR_TEMP     "upload.tar"
 
+typedef struct {
+    SlUpdaterProgressPhase progress_phase;
+    size_t spinner_item_idx;
+} UpdateCliProgressCallbackContext;
+
 static void
     updater_cli_progress_callback(SlUpdaterProgressPhase phase, uint8_t percentage, void* context) {
-    UNUSED(context);
+    UpdateCliProgressCallbackContext* callback_context = context;
+
+    if(phase != callback_context->progress_phase) {
+        callback_context->progress_phase = phase;
+        putchar('\n');
+    }
+
     switch(phase) {
-    case SL_UPDATER_PROGRESS_PHASE_UPLOADING:
-        printf("Uploading: %d%%\r", percentage);
+    case SL_UPDATER_PROGRESS_PHASE_UPLOADING: {
+        printf(
+            ANSI_CURSOR_UP_BY("1")
+                ANSI_ERASE_LINE(ANSI_ERASE_FROM_CURSOR_TO_END) "\rUploading: %d%%...\r\n",
+            percentage);
         break;
-    case SL_UPDATER_PROGRESS_PHASE_AWAITING_INSTALL:
-        printf("\nUpload complete. Awaiting installation...\r\n");
+    }
+
+    case SL_UPDATER_PROGRESS_PHASE_AWAITING_INSTALL: {
+        static const char spinner_items[] = {'|', '/', '-', '\\', '\\'};
+
+        printf(
+            ANSI_CURSOR_UP_BY("1")
+                ANSI_ERASE_LINE(ANSI_ERASE_FROM_CURSOR_TO_END) "\rAwaiting installation... %c\r\n",
+            spinner_items[callback_context->spinner_item_idx % (COUNT_OF(spinner_items) - 1)]);
+
+        callback_context->spinner_item_idx++;
         break;
+    }
+
     default:
         break;
     }
@@ -45,13 +71,22 @@ static void updater_cli_command_print_usage(void) {
 static SlUpdaterStatus
     updater_cli_execute(const char* path, bool is_stack_image, uint8_t baud_throttle_ratio) {
     SlUpdater* instance = sl_updater_alloc();
-    sl_updater_set_progress_callback(instance, updater_cli_progress_callback, NULL);
+
+    sl_updater_set_progress_callback(
+        instance,
+        updater_cli_progress_callback,
+        &(UpdateCliProgressCallbackContext){
+            .progress_phase = SL_UPDATER_PROGRESS_PHASE_NONE,
+            .spinner_item_idx = 0,
+        });
+
     SlUpdaterStatus status = sl_updater_run(
         instance,
         path,
         is_stack_image,
         is_stack_image ? SL_UPDATE_NWP_COMM_TIMEOUT_S : SL_UPDATE_M4_COMM_TIMEOUT_S,
         baud_throttle_ratio);
+
     sl_updater_free(instance);
     return status;
 }
