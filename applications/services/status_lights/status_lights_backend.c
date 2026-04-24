@@ -42,11 +42,13 @@ static uint16_t status_lights_scale_component(uint8_t component, float brightnes
 
     const float constrained = CLAMP(brightness, 1.0f, 0.0f);
 
-    /* gamma tuned so 5% brightness becomes the first visible step */
-    const float gamma = 2.08f;
+    /* tuned to provide minimal dynamic range for low-value components at 5% brightness */
+    const float gamma = 1.85f;
     const float pwm_scale = powf(constrained, gamma) * (UINT16_MAX / UINT8_MAX);
 
-    const float scaled = (float)component * pwm_scale;
+    /* tuned to make LEDs light up at 1-value components */
+    const float offset = 4.f;
+    const float scaled = (float)component * pwm_scale + offset;
 
     return (uint16_t)CLAMP(scaled + 0.5f, (float)UINT16_MAX, 0.0f);
 }
