@@ -1,6 +1,27 @@
 /**
  * @file timer.h
- * @brief TBD
+ * @brief Low-level timers API.
+ *
+ * The timers found in this file can be used
+ * as a convenient means for storing points in time
+ * and then checking whether some amount of time
+ * (timeout) has passed.
+ *
+ * CoarseTimer class uses the OS tick counter, so it
+ * can only be used when an OS is running, and its precision
+ * is limited to that of the OS ticks.
+ *
+ * PreciseTimer class uses the CPU cycle counter and
+ * has microsecond resolution, however, its maximum timeout
+ * is limited to several seconds, depending on the underlying
+ * implementation and CPU frequency.
+ * Additionally, it can be used in critical sections and/or
+ * when an OS is not running.
+ *
+ * Both timer types are only useful for measuring time
+ * and waiting, if a function needs to be called periodically,
+ * consider using FuriEventLoopTimer if there is a FuriEventLoop
+ * available, or a regular FuriTimer instead.
  */
 #pragma once
 
