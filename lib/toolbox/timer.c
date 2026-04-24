@@ -60,11 +60,17 @@ bool precise_timer_wait_for(
     void* context) {
     furi_check(condition_cb);
 
-    bool condition_reached;
+    bool success;
 
-    do {
-        condition_reached = condition_cb(context);
-    } while(!(condition_reached || precise_timer_is_expired(timer)));
+    for(;;) {
+        const bool condition_reached = condition_cb(context);
+        const bool timer_expired = precise_timer_is_expired(timer);
 
-    return condition_reached;
+        if(condition_reached || timer_expired) {
+            success = condition_reached && !timer_expired;
+            break;
+        }
+    }
+
+    return success;
 }

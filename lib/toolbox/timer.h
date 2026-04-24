@@ -148,10 +148,8 @@ void precise_timer_wait(const PreciseTimer timer);
 /**
  * @brief Block the caller until the timer is expired OR a condition is reached.
  *
- * @note This function may still report true even if the timer has expired,
- *       e.g. if the function gets interrupted for a long time after calling condition_cb().
- *       This is the intended behaviour, as the calling code usually only cares about
- *       the condition being reached at all, not necessarily within a precise time frame.
+ * @note If the timer has expired, this function will always
+ * return @c false even if the callback returns @c true.
  *
  * @param[in] timer precise timer object to use
  * @param[in] condition_cb pointer to the condition check (predicate) function
