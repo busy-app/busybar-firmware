@@ -51,7 +51,7 @@ static uint16_t status_lights_scale_component(uint8_t component, float brightnes
     return (uint16_t)CLAMP(scaled + 0.5f, (float)UINT16_MAX, 0.0f);
 }
 
-static void status_lights_update_output(Color color, float brightness) {
+static void status_lights_set_output(Color color, float brightness) {
     uint16_t r = status_lights_scale_component(color.r, brightness);
     uint16_t g = status_lights_scale_component(color.g, brightness);
     uint16_t b = status_lights_scale_component(color.b, brightness);
@@ -71,7 +71,7 @@ static void status_lights_run_pattern(void* context) {
     instance->preset_api->run(instance->preset_instance, &base_color);
     instance->active_color = base_color;
 
-    status_lights_update_output(base_color, instance->brightness);
+    status_lights_set_output(base_color, instance->brightness);
 }
 
 static void status_lights_message_queue_callback(FuriEventLoopObject* object, void* context) {
@@ -229,7 +229,7 @@ static void
     instance->brightness = status_lights_normalize_brightness(brightness);
 
     if(instance->preset_api) {
-        status_lights_update_output(instance->active_color, instance->brightness);
+        status_lights_set_output(instance->active_color, instance->brightness);
     }
 }
 
