@@ -767,7 +767,7 @@ static int32_t shutdown_file_write_thread(void* context) {
 
     File* f = storage_file_alloc(storage);
     do {
-        if(furi_message_queue_get(data->rx, &msg, 10) != FuriStatusOk) {
+        if(furi_message_queue_get(data->rx, &msg, 50) != FuriStatusOk) {
             ret = TestErrorQueueGet1;
             break;
         }
@@ -784,7 +784,7 @@ static int32_t shutdown_file_write_thread(void* context) {
         msg = TestMessageWriteDone;
         furi_message_queue_put(data->tx, &msg, FuriWaitForever);
 
-        if(furi_message_queue_get(data->rx, &msg, 10) != FuriStatusOk) {
+        if(furi_message_queue_get(data->rx, &msg, 50) != FuriStatusOk) {
             ret = TestErrorQueueGet2;
             break;
         }

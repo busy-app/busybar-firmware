@@ -13,6 +13,8 @@
 #define SUPERVISOR_BATTERY_TIME_TO_DIE_S  30
 
 #define SUPERVISOR_REBOOT_GRACE_PERIOD_MS (30000)
+#define RESET_BUTTON_COMBO                ((1 << InputKeyBack) | (1 << InputKeyStart))
+#define RESET_COMBO_TIMEOUT_MS            1000
 
 typedef struct Supervisor Supervisor;
 
@@ -32,10 +34,12 @@ struct Supervisor {
     FuriMessageQueue* message_queue;
     FuriEventLoopTimer* battery_low_timer;
     FuriEventLoopTimer* battery_critical_timer;
+    FuriEventLoopTimer* reset_combo_timer;
     size_t battery_critical_counter;
     Power* power;
     Storage* storage;
     Intercom* intercom;
+    uint32_t button_mask;
 
     SupervisorGui gui;
 };
@@ -50,6 +54,8 @@ typedef enum {
     SupervisorEventTypeTickToDie,
     SupervisorEventTypeIntercomStatusChanged,
     SupervisorEventTypeOKPressed,
+    SupervisorEventTypeResetComboPressed,
+    SupervisorEventTypeResetComboReleased,
 } SupervisorEventType;
 
 typedef struct {
@@ -225,6 +231,12 @@ static void supervisor_timer_bat_critical_callback(void* context) {
     supervisor_send_event(instance, SupervisorEventTypeTickToDie);
 }
 
+static void supervisor_timer_reset_combo_callback(void* context) {
+    Supervisor* instance = context;
+    FURI_LOG_I(TAG, "Reset imminent");
+    storage_common_shutdown(instance->storage);
+}
+
 static int32_t supervisor_get_topmost_warning(SupervisorGui* gui) {
     for(uint32_t i = 0; i < SUPERVISOR_WARNINGS_SIZE; ++i) {
         if((gui->current_warnings & (1 << i)) != 0) {
@@ -338,6 +350,28 @@ static bool supervisor_input(const InputEvent* event, void* context) {
     }
 
     return false;
+}
+
+static void supervisor_input_raw(const void* msg, void* context) {
+    const InputEvent* event = msg;
+    Supervisor* instance = context;
+
+    uint32_t old_button_mask = instance->button_mask;
+    if(event->type == InputTypePress) {
+        instance->button_mask |= (1 << event->key);
+    } else if(event->type == InputTypeRelease) {
+        instance->button_mask &= ~(1 << event->key);
+    }
+
+    bool reset_combo_was_pressed = (old_button_mask & RESET_BUTTON_COMBO) == RESET_BUTTON_COMBO;
+    bool reset_combo_is_pressed = (instance->button_mask & RESET_BUTTON_COMBO) ==
+                                  RESET_BUTTON_COMBO;
+
+    if(!reset_combo_was_pressed && reset_combo_is_pressed) {
+        supervisor_send_event(instance, SupervisorEventTypeResetComboPressed);
+    } else if(reset_combo_was_pressed && !reset_combo_is_pressed) {
+        supervisor_send_event(instance, SupervisorEventTypeResetComboReleased);
+    }
 }
 
 static void supervisor_reset(void) {
@@ -484,6 +518,20 @@ static void supervisor_process(FuriEventLoopObject* object, void* context) {
             instance->gui.ok_callback(instance);
         }
         break;
+    case SupervisorEventTypeResetComboPressed:
+        FURI_LOG_I(TAG, "Reset combo pressed event received");
+        furi_event_loop_timer_start(
+            instance->reset_combo_timer, furi_ms_to_ticks(RESET_COMBO_TIMEOUT_MS));
+        break;
+    case SupervisorEventTypeResetComboReleased:
+        FURI_LOG_I(TAG, "Reset combo released event received");
+        if(furi_event_loop_timer_is_running(instance->reset_combo_timer)) {
+            furi_event_loop_timer_stop(instance->reset_combo_timer);
+        } else {
+            FURI_LOG_I(TAG, "False alarm, reset cancelled");
+            storage_common_revive(instance->storage);
+        }
+        break;
     case SupervisorEventTypeTickToDie: {
         size_t topmost_warning_type = supervisor_get_topmost_warning(&instance->gui);
 
@@ -525,6 +573,11 @@ int32_t supervisor_start(void* p) {
         supervisor_timer_bat_critical_callback,
         FuriEventLoopTimerTypePeriodic,
         instance);
+    instance->reset_combo_timer = furi_event_loop_timer_alloc(
+        instance->event_loop,
+        supervisor_timer_reset_combo_callback,
+        FuriEventLoopTimerTypeOnce,
+        instance);
     furi_event_loop_subscribe_message_queue(
         instance->event_loop,
         instance->message_queue,
@@ -544,6 +597,9 @@ int32_t supervisor_start(void* p) {
 
     gui_layer_add_input_callback(
         gui_get_layer(instance->gui.gui, GuiLayerIdSystem), supervisor_input, instance);
+
+    FuriPubSub* input_pubsub = furi_record_open(RECORD_INPUT_EVENTS);
+    furi_pubsub_subscribe(input_pubsub, supervisor_input_raw, instance);
 
     if(!power_is_battery_ready(instance->power)) {
         supervisor_update_warning(&instance->gui, SupervisorWarningTypeBatteryNotReady, true);
@@ -568,6 +624,8 @@ int32_t supervisor_start(void* p) {
     }
 
     furi_event_loop_run(instance->event_loop);
+
+    furi_record_close(RECORD_INPUT_EVENTS);
 
     return 0;
 }
