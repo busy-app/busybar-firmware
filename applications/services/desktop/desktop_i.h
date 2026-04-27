@@ -11,7 +11,9 @@
 #include "desktop_start_request.h"
 
 // Time to wait for the rotary switch steady state.
-#define SWITCH_DELAY_MS   (100)
+#define SWITCH_DELAY_MS    (100)
+#define STARTUP_TIMEOUT_MS (1500)
+
 // Maximum and initial counts for synchronisation primitives
 #define INPUT_QUEUE_COUNT (8)
 #define START_QUEUE_COUNT (3)
@@ -27,6 +29,7 @@ struct Desktop {
     FuriMessageQueue* start_queue;
     FuriEventLoopTimer* switch_timer;
     FuriEventLoopTimer* start_timer;
+    FuriEventLoopTimer* startup_timer;
     FuriString* error_message;
     Loader* loader;
     DesktopOverlay* overlay;
