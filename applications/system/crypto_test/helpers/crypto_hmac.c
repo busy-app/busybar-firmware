@@ -42,7 +42,8 @@ static const uint8_t digest_output_sha512[FURI_HAL_CRYPTO_HMAC_SHA512_DIGEST_SIZ
     0x5D, 0x17, 0x54, 0x26, 0x51, 0x67, 0x4D, 0xFC, 0xE0, 0xFC, 0x29, 0xBF, 0x0A,
     0x01, 0x06, 0x28, 0xD9, 0x9A, 0x62, 0xC3, 0x1B, 0x0C, 0x91, 0x54, 0x98};
 
-void crypto_hmac_check(
+FURI_CHECK_RETURN
+bool crypto_hmac_check(
     char* tag,
     const uint8_t* digest,
     const uint8_t* digest_out,
@@ -52,12 +53,15 @@ void crypto_hmac_check(
     crypto_common_print_buffer_hex("Expected =\t", digest_out, digest_length);
     if(memcmp(digest, digest_out, digest_length) != 0) {
         printf(ANSI_FG_RED "%s mode failed" ANSI_RESET "\r\n", tag);
+        return false;
     } else {
         printf(ANSI_FG_GREEN "%s mode success" ANSI_RESET "\r\n", tag);
+        return true;
     }
 }
 
-void crypto_hmac_test_custom_sha_mode(FuriHalCryptoHmacShaMode hmac_sha_mode) {
+FURI_CHECK_RETURN
+bool crypto_hmac_test_custom_sha_mode(FuriHalCryptoHmacShaMode hmac_sha_mode) {
     // Buffer to store response
     uint8_t digest[FURI_HAL_CRYPTO_HMAC_SHA512_DIGEST_SIZE] = {0};
     size_t digest_length = 0;
@@ -80,37 +84,74 @@ void crypto_hmac_test_custom_sha_mode(FuriHalCryptoHmacShaMode hmac_sha_mode) {
         break;
     }
 
-    // Initialize HMAC
-    FuriHalCryptoHmac* handle = furi_hal_crypto_hmac_init(
-        hmac_sha_mode, (uint8_t*)key_hmac, sizeof(key_hmac), FuriHalCryptoWrappingModeOff);
-    // Compute HMAC digest
-    furi_hal_crypto_hmac_digest(handle, (uint8_t*)message, sizeof(message), digest, digest_length);
-    // Deinitialize HMAC
-    furi_hal_crypto_hmac_deinit(handle);
+    bool result = true;
 
-    switch(hmac_sha_mode) {
-    case FuriHalCryptoHmacShaModeSha1:
-        crypto_hmac_check(
-            "HMAC_SHA1", digest, digest_output_sha1, FURI_HAL_CRYPTO_HMAC_SHA1_DIGEST_SIZE);
-        break;
-    case FuriHalCryptoHmacShaModeSha256:
-        crypto_hmac_check(
-            "HMAC_SHA256", digest, digest_output_sha256, FURI_HAL_CRYPTO_HMAC_SHA256_DIGEST_SIZE);
-        break;
-    case FuriHalCryptoHmacShaModeSha384:
-        crypto_hmac_check(
-            "HMAC_SHA384", digest, digest_output_sha384, FURI_HAL_CRYPTO_HMAC_SHA384_DIGEST_SIZE);
-        break;
-    case FuriHalCryptoHmacShaModeSha512:
-        crypto_hmac_check(
-            "HMAC_SHA512", digest, digest_output_sha512, FURI_HAL_CRYPTO_HMAC_SHA512_DIGEST_SIZE);
-        break;
-    default:
-        break;
+    do {
+        // Initialize HMAC
+        FuriHalCryptoKey* key = NULL;
+        FuriHalCryptoStatus status =
+            furi_hal_crypto_key_init_hmac(&key, hmac_sha_mode, key_hmac, sizeof(key_hmac));
+        CRYPTO_COMMON_CHECK_STATUS(status, "hmac key init");
+        crypto_common_print_key("Key =\t\t", key);
+        do {
+            FuriHalCryptoHmac* handle = NULL;
+            status = furi_hal_crypto_hmac_init(&handle, key);
+            CRYPTO_COMMON_CHECK_STATUS(status, "hmac init");
+            do {
+                // Compute HMAC digest
+                status = furi_hal_crypto_hmac_digest(
+                    handle, (uint8_t*)message, sizeof(message), digest, digest_length);
+                CRYPTO_COMMON_CHECK_STATUS(status, "hmac digest");
+            } while(false);
+            // Deinitialize HMAC
+            furi_hal_crypto_hmac_deinit(handle);
+        } while(false);
+        furi_hal_crypto_key_free(key);
+    } while(false);
+
+    if(result) {
+        switch(hmac_sha_mode) {
+        case FuriHalCryptoHmacShaModeSha1:
+            result = crypto_hmac_check(
+                         "HMAC_SHA1",
+                         digest,
+                         digest_output_sha1,
+                         FURI_HAL_CRYPTO_HMAC_SHA1_DIGEST_SIZE) &&
+                     result;
+            break;
+        case FuriHalCryptoHmacShaModeSha256:
+            result = crypto_hmac_check(
+                         "HMAC_SHA256",
+                         digest,
+                         digest_output_sha256,
+                         FURI_HAL_CRYPTO_HMAC_SHA256_DIGEST_SIZE) &&
+                     result;
+            break;
+        case FuriHalCryptoHmacShaModeSha384:
+            result = crypto_hmac_check(
+                         "HMAC_SHA384",
+                         digest,
+                         digest_output_sha384,
+                         FURI_HAL_CRYPTO_HMAC_SHA384_DIGEST_SIZE) &&
+                     result;
+            break;
+        case FuriHalCryptoHmacShaModeSha512:
+            result = crypto_hmac_check(
+                         "HMAC_SHA512",
+                         digest,
+                         digest_output_sha512,
+                         FURI_HAL_CRYPTO_HMAC_SHA512_DIGEST_SIZE) &&
+                     result;
+            break;
+        default:
+            break;
+        }
     }
+    return result;
 }
 
-void crypto_hmac_test_custom_sha_mode_wrap_on(FuriHalCryptoHmacShaMode hmac_sha_mode) {
+FURI_CHECK_RETURN
+bool crypto_hmac_test_custom_sha_mode_wrap_on(FuriHalCryptoHmacShaMode hmac_sha_mode) {
     // Buffer to store response
     uint8_t digest[FURI_HAL_CRYPTO_HMAC_SHA512_DIGEST_SIZE] = {0};
     size_t digest_length = 0;
@@ -133,42 +174,80 @@ void crypto_hmac_test_custom_sha_mode_wrap_on(FuriHalCryptoHmacShaMode hmac_sha_
         break;
     }
 
-    size_t wrap_key_size = 256;
-    uint8_t wrapped_key[256] = {0};
-    furi_hal_crypto_hmac_wrap_key(
-        sizeof(key_hmac), (uint8_t*)key_hmac, hmac_sha_mode, wrapped_key, &wrap_key_size);
-    crypto_common_print_buffer_hex("Key =\t\t", key_hmac, sizeof(key_hmac));
-    printf("Wrapped key size = %d\r\n", wrap_key_size);
-    crypto_common_print_buffer_hex("Wrapped key =\t", wrapped_key, wrap_key_size);
+    bool result = true;
 
-    // Initialize HMAC
-    FuriHalCryptoHmac* handle = furi_hal_crypto_hmac_init(
-        hmac_sha_mode, wrapped_key, wrap_key_size, FuriHalCryptoWrappingModeOn);
-    // Compute HMAC digest
-    furi_hal_crypto_hmac_digest(handle, (uint8_t*)message, sizeof(message), digest, digest_length);
-    // Deinitialize HMAC
-    furi_hal_crypto_hmac_deinit(handle);
+    do {
+        FuriHalCryptoKey* key = NULL;
+        FuriHalCryptoStatus status =
+            furi_hal_crypto_key_init_hmac(&key, hmac_sha_mode, key_hmac, sizeof(key_hmac));
+        CRYPTO_COMMON_CHECK_STATUS(status, "hmac key init");
+        FuriHalCryptoKey* wrapped_key = NULL;
+        do {
+            status = furi_hal_crypto_wrap_key(key, &wrapped_key);
+            CRYPTO_COMMON_CHECK_STATUS(status, "wrap key");
 
-    switch(hmac_sha_mode) {
-    case FuriHalCryptoHmacShaModeSha1:
-        crypto_hmac_check(
-            "HMAC_SHA1", digest, digest_output_sha1, FURI_HAL_CRYPTO_HMAC_SHA1_DIGEST_SIZE);
-        break;
-    case FuriHalCryptoHmacShaModeSha256:
-        crypto_hmac_check(
-            "HMAC_SHA256", digest, digest_output_sha256, FURI_HAL_CRYPTO_HMAC_SHA256_DIGEST_SIZE);
-        break;
-    case FuriHalCryptoHmacShaModeSha384:
-        crypto_hmac_check(
-            "HMAC_SHA384", digest, digest_output_sha384, FURI_HAL_CRYPTO_HMAC_SHA384_DIGEST_SIZE);
-        break;
-    case FuriHalCryptoHmacShaModeSha512:
-        crypto_hmac_check(
-            "HMAC_SHA512", digest, digest_output_sha512, FURI_HAL_CRYPTO_HMAC_SHA512_DIGEST_SIZE);
-        break;
-    default:
-        break;
+            do {
+                crypto_common_print_key("Key =\t\t", key);
+                crypto_common_print_key("Wrapped key =\t", wrapped_key);
+
+                // Initialize HMAC
+                FuriHalCryptoHmac* handle = NULL;
+                status = furi_hal_crypto_hmac_init(&handle, wrapped_key);
+                CRYPTO_COMMON_CHECK_STATUS(status, "hmac init");
+
+                do {
+                    // Compute HMAC digest
+                    status = furi_hal_crypto_hmac_digest(
+                        handle, (uint8_t*)message, sizeof(message), digest, digest_length);
+                    CRYPTO_COMMON_CHECK_STATUS(status, "hmac digest");
+                } while(false);
+                // Deinitialize HMAC
+                furi_hal_crypto_hmac_deinit(handle);
+            } while(false);
+            furi_hal_crypto_key_free(wrapped_key);
+        } while(false);
+        furi_hal_crypto_key_free(key);
+    } while(false);
+
+    if(result) {
+        switch(hmac_sha_mode) {
+        case FuriHalCryptoHmacShaModeSha1:
+            result = crypto_hmac_check(
+                         "HMAC_SHA1",
+                         digest,
+                         digest_output_sha1,
+                         FURI_HAL_CRYPTO_HMAC_SHA1_DIGEST_SIZE) &&
+                     result;
+            break;
+        case FuriHalCryptoHmacShaModeSha256:
+            result = crypto_hmac_check(
+                         "HMAC_SHA256",
+                         digest,
+                         digest_output_sha256,
+                         FURI_HAL_CRYPTO_HMAC_SHA256_DIGEST_SIZE) &&
+                     result;
+            break;
+        case FuriHalCryptoHmacShaModeSha384:
+            result = crypto_hmac_check(
+                         "HMAC_SHA384",
+                         digest,
+                         digest_output_sha384,
+                         FURI_HAL_CRYPTO_HMAC_SHA384_DIGEST_SIZE) &&
+                     result;
+            break;
+        case FuriHalCryptoHmacShaModeSha512:
+            result = crypto_hmac_check(
+                         "HMAC_SHA512",
+                         digest,
+                         digest_output_sha512,
+                         FURI_HAL_CRYPTO_HMAC_SHA512_DIGEST_SIZE) &&
+                     result;
+            break;
+        default:
+            break;
+        }
     }
+    return result;
 }
 
 void crypto_hmac_command(PipeSide* pipe, FuriString* args, void* context) {
@@ -176,17 +255,46 @@ void crypto_hmac_command(PipeSide* pipe, FuriString* args, void* context) {
     UNUSED(args);
     UNUSED(context);
 
-    printf(ANSI_FG_YELLOW "HMAC key wrap off test" ANSI_RESET "\r\n");
-    crypto_hmac_test_custom_sha_mode(FuriHalCryptoHmacShaModeSha1);
-    crypto_hmac_test_custom_sha_mode(FuriHalCryptoHmacShaModeSha256);
-    crypto_hmac_test_custom_sha_mode(FuriHalCryptoHmacShaModeSha384);
-    crypto_hmac_test_custom_sha_mode(FuriHalCryptoHmacShaModeSha512);
+    FuriHalCryptoStatus status = furi_hal_crypto_is_key_wrapping_supported();
 
-    printf(ANSI_FG_YELLOW "HMAC key wrap on test" ANSI_RESET "\r\n");
-    crypto_hmac_test_custom_sha_mode_wrap_on(FuriHalCryptoHmacShaModeSha1);
-    crypto_hmac_test_custom_sha_mode_wrap_on(FuriHalCryptoHmacShaModeSha256);
-    crypto_hmac_test_custom_sha_mode_wrap_on(FuriHalCryptoHmacShaModeSha384);
-    crypto_hmac_test_custom_sha_mode_wrap_on(FuriHalCryptoHmacShaModeSha512);
+    bool wrap = false;
+
+    switch(status) {
+    case FuriHalCryptoStatusOk:
+        wrap = true;
+        break;
+    case FuriHalCryptoStatusUnavailable:
+        printf(ANSI_FG_YELLOW "Key wrapping is unsupported\r\n" ANSI_RESET);
+        wrap = false;
+        break;
+    default:
+        printf(ANSI_FG_RED "Key wrapping check failed\r\n" ANSI_RESET);
+        printf("FAIL\r\n");
+        return;
+    }
+
+    bool result = true;
+    printf(ANSI_FG_YELLOW "HMAC key wrap off test" ANSI_RESET "\r\n");
+    result = crypto_hmac_test_custom_sha_mode(FuriHalCryptoHmacShaModeSha1) && result;
+    result = crypto_hmac_test_custom_sha_mode(FuriHalCryptoHmacShaModeSha256) && result;
+    result = crypto_hmac_test_custom_sha_mode(FuriHalCryptoHmacShaModeSha384) && result;
+    result = crypto_hmac_test_custom_sha_mode(FuriHalCryptoHmacShaModeSha512) && result;
+
+    if(wrap) {
+        printf(ANSI_FG_YELLOW "HMAC key wrap on test" ANSI_RESET "\r\n");
+        result = crypto_hmac_test_custom_sha_mode_wrap_on(FuriHalCryptoHmacShaModeSha1) && result;
+        result = crypto_hmac_test_custom_sha_mode_wrap_on(FuriHalCryptoHmacShaModeSha256) &&
+                 result;
+        result = crypto_hmac_test_custom_sha_mode_wrap_on(FuriHalCryptoHmacShaModeSha384) &&
+                 result;
+        result = crypto_hmac_test_custom_sha_mode_wrap_on(FuriHalCryptoHmacShaModeSha512) &&
+                 result;
+    }
 
     printf("Crypto HMAC done\r\n");
+    if(result) {
+        printf("SUCCESS\r\n");
+    } else {
+        printf("FAIL\r\n");
+    }
 }

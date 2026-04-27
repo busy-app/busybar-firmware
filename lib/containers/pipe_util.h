@@ -11,6 +11,11 @@
 extern "C" {
 #endif
 
+typedef struct PipeDiscardUntilResult {
+    bool success;
+    size_t found_idx;
+} PipeDiscardUntilResult;
+
 /**
  * @brief Copies data from one pipe to another until a specific sequence is met.
  * 
@@ -22,6 +27,19 @@ extern "C" {
  *          closed prematurely.
  */
 bool pipe_copy_until(PipeSide* source, PipeSide* dest, const char* terminator);
+
+/**
+ * @brief Discards data from a pipe until (including) any of specific sequences is met.
+ *
+ * @param[in] source      Pipe to read data from
+ * @param[in] terminators Terminator sequences
+ * @param[in] num_terminators Number of terminator sequences
+ *
+ */
+PipeDiscardUntilResult pipe_discard_until_either(
+    PipeSide* source,
+    const char* const* terminators,
+    size_t num_terminators);
 
 #ifdef __cplusplus
 }

@@ -8,6 +8,9 @@ struct NamedLabelView {
     Widget base;
     lv_obj_t* title_obj;
     lv_obj_t* text_obj;
+
+    FontRegistry* font_registry;
+    const lv_font_t* font_busy_regular_7;
 };
 
 const lv_obj_class_t named_label_view_back_lvgl_class;
@@ -16,25 +19,39 @@ const lv_obj_class_t named_label_view_back_lvgl_class;
 
 static void named_label_view_back_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
     UNUSED(class_p);
+
     NamedLabelView* instance = (NamedLabelView*)obj;
-    UNUSED(instance);
+
+    instance->font_registry = furi_record_open(RECORD_FONT_REGISTRY);
+    instance->font_busy_regular_7 =
+        font_registry_load_font(instance->font_registry, FONT_BUSY_REGULAR_7);
 
     lv_obj_set_flex_flow(obj, LV_FLEX_FLOW_ROW);
     lv_obj_set_flex_align(obj, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
     lv_obj_set_height(obj, LV_SIZE_CONTENT);
-    lv_obj_set_style_pad_ver(obj, 2, LV_PART_MAIN);
     lv_obj_set_scrollbar_mode(obj, LV_SCROLLBAR_MODE_OFF);
 
     lv_obj_t* title = lv_label_create(obj);
+    lv_obj_set_style_text_font(title, instance->font_busy_regular_7, LV_PART_MAIN);
     lv_obj_set_width(title, LV_SIZE_CONTENT);
     lv_label_set_long_mode(title, LV_LABEL_LONG_WRAP);
     instance->title_obj = title;
 
     lv_obj_t* message = lv_label_create(obj);
+    lv_obj_set_style_text_font(message, instance->font_busy_regular_7, LV_PART_MAIN);
     lv_obj_set_style_anim_time(message, NAME_LABEL_ANIMATION_DURATION_MS, LV_PART_MAIN);
-    lv_obj_set_width(title, LV_SIZE_CONTENT);
+    lv_obj_set_width(message, LV_SIZE_CONTENT);
     lv_label_set_long_mode(message, LV_LABEL_LONG_SCROLL);
     instance->text_obj = message;
+}
+
+static void named_label_view_back_lvgl_destructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
+    UNUSED(class_p);
+
+    NamedLabelView* instance = (NamedLabelView*)obj;
+
+    font_registry_unload_font(instance->font_registry, instance->font_busy_regular_7);
+    furi_record_close(RECORD_FONT_REGISTRY);
 }
 
 /* Public API */
@@ -89,6 +106,7 @@ void named_label_set_text_color(NamedLabelView* instance, Color color) {
 const lv_obj_class_t named_label_view_back_lvgl_class = {
     .base_class = &widget_lvgl_class,
     .constructor_cb = named_label_view_back_lvgl_constructor,
+    .destructor_cb = named_label_view_back_lvgl_destructor,
     .name = "widget-named-label-view-back",
     .width_def = LV_PCT(100),
     .height_def = LV_PCT(100),
