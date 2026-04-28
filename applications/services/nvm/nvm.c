@@ -1,5 +1,7 @@
 #include "nvm.h"
 
+#include <sl_si91x_driver.h>
+
 #include <nvm3.h>
 #include <nvm3_default_config.h>
 
@@ -14,6 +16,20 @@ struct Nvm {
 };
 
 static Nvm nvm_instance;
+
+extern uint32_t __nvm3Base;
+
+// Redefinitions of weak SDK functions
+
+void nvm3_lockBegin(void) {
+    furi_check(furi_mutex_acquire(nvm_instance.lock, FuriWaitForever) == FuriStatusOk);
+}
+
+void nvm3_lockEnd(void) {
+    furi_check(furi_mutex_release(nvm_instance.lock) == FuriStatusOk);
+}
+
+// Public API functions
 
 bool nvm_exists(Nvm* instance, uint32_t key, size_t* len) {
     furi_check(instance);
@@ -78,6 +94,19 @@ bool nvm_erase_all(Nvm* instance) {
     return nvm3_eraseAll(nvm3_defaultHandle) == SL_STATUS_OK;
 }
 
+bool nvm_purge_all(Nvm* instance) {
+    furi_check(instance);
+
+    nvm3_lockBegin();
+
+    const sl_status_t status = sl_si91x_command_to_write_common_flash(
+        (uint32_t)&__nvm3Base, NULL, NVM3_DEFAULT_NVM_SIZE, 1);
+
+    nvm3_lockEnd();
+
+    return status == SL_STATUS_OK;
+}
+
 // Startup hook
 
 void nvm_on_system_start(void) {
@@ -91,14 +120,4 @@ void nvm_on_system_start(void) {
     furi_record_create(RECORD_NVM, &nvm_instance);
 
     FURI_LOG_I(TAG, "Init OK");
-}
-
-// Redefinitions of weak SDK functions
-
-void nvm3_lockBegin(void) {
-    furi_check(furi_mutex_acquire(nvm_instance.lock, FuriWaitForever) == FuriStatusOk);
-}
-
-void nvm3_lockEnd(void) {
-    furi_check(furi_mutex_release(nvm_instance.lock) == FuriStatusOk);
 }
