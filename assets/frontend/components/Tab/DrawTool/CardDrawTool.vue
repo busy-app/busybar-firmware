@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div ref="drawToolRootRef">
     <SectionCard
       data-id="draw-tool-section-primary"
       class="overflow-visible"
@@ -322,7 +322,11 @@
       </template>
     </SectionCard>
 
-    <div class="fixed inset-x-0 bottom-6 z-40 flex justify-center px-4">
+    <div
+      ref="toolbarContainerRef"
+      :class="toolbarContainerClass"
+      :style="toolbarContainerStyle"
+    >
       <div class="flex max-w-[calc(100vw-2rem)] items-center gap-4 overflow-x-auto rounded-2xl p-2 ring-1 ring-glass bg-surface-container backdrop-blur-sm">
         <UPopover>
           <UButton
@@ -556,11 +560,15 @@ import {
 import type { TransformerBox } from '@/util/drawTool';
 
 const toast = useToast();
+const drawToolRootRef = ref<HTMLDivElement | null>(null);
 const resizeObserver = ref<ResizeObserver | null>(null);
 const pixelatedDisplayFrame = ref<number | null>(null);
 const transformerFrame = ref<number | null>(null);
 const stageContainerViewportTop = ref(0);
 const preserveSelectionUntilClick = ref(false);
+const toolbarContainerRef = ref<HTMLDivElement | null>(null);
+const toolbarFixedTop = ref(0);
+const toolbarShouldStickToViewport = ref(true);
 const showGrid = ref(true);
 
 const dts = useDrawToolStore();
@@ -568,8 +576,24 @@ const dtsRefs = storeToRefs(dts);
 
 const FLOATING_TEXT_MENU_HEIGHT = 40;
 const FLOATING_TEXT_MENU_GAP = 8;
+const TOOLBAR_MAX_CANVAS_GAP = 48;
+const TOOLBAR_VIEWPORT_BOTTOM_OFFSET = 24;
 const toolbarLabeledButtonClass = 'flex flex-col items-center gap-2 p-2 rounded-xl text-xs';
 const toolbarIconButtonClass = 'rounded-xl';
+const toolbarContainerClass = computed(() => {
+  return toolbarShouldStickToViewport.value
+    ? 'fixed inset-x-0 z-40 flex justify-center px-4'
+    : 'mt-6 flex justify-center px-4';
+});
+const toolbarContainerStyle = computed(() => {
+  if (!toolbarShouldStickToViewport.value) {
+    return undefined;
+  }
+
+  return {
+    top: `${toolbarFixedTop.value}px`
+  };
+});
 
 const stageMetrics = computed(() => getStageMetrics(dts.stageWidth));
 
@@ -894,7 +918,21 @@ watch(() => selectedTextShape.value?.id, async selectedTextId => {
 }, { flush: 'post' });
 
 function updateStageContainerViewportTop () {
-  stageContainerViewportTop.value = dts.stageContainerRef?.getBoundingClientRect().top ?? 0;
+  const stageContainerRect = dts.stageContainerRef?.getBoundingClientRect();
+  const componentRootRect = drawToolRootRef.value?.getBoundingClientRect();
+  const toolbarHeight = toolbarContainerRef.value?.getBoundingClientRect().height ?? 0;
+  const desiredToolbarTop = window.innerHeight - toolbarHeight - TOOLBAR_VIEWPORT_BOTTOM_OFFSET;
+
+  stageContainerViewportTop.value = stageContainerRect?.top ?? 0;
+
+  if (!stageContainerRect || !componentRootRect) {
+    toolbarFixedTop.value = Math.max(0, desiredToolbarTop);
+    toolbarShouldStickToViewport.value = true;
+    return;
+  }
+
+  toolbarFixedTop.value = Math.max(componentRootRect.top, desiredToolbarTop);
+  toolbarShouldStickToViewport.value = toolbarFixedTop.value - stageContainerRect.bottom <= TOOLBAR_MAX_CANVAS_GAP;
 }
 
 function shouldPreserveSelectionForEvent (event: Event) {
