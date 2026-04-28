@@ -187,9 +187,15 @@ onBeforeUnmount(() => {
 
 function handleOpaqueColorUpdate (value: string | undefined) {
   const parsedColor = parseColor(value) ?? parseColor(opaqueHex.value) ?? DEFAULT_COLOR;
+  const nextAlpha = currentAlpha.value <= 0 ? 1 : currentAlpha.value;
 
   opaqueHex.value = formatHex(parsedColor);
-  emitCurrentColor();
+
+  if (nextAlpha === 1 && alphaPercent.value !== 100) {
+    alphaPercent.value = 100;
+  }
+
+  emitCurrentColorWithAlpha(nextAlpha);
 }
 
 function syncFromExternalValue (value: string | undefined) {
@@ -198,11 +204,6 @@ function syncFromExternalValue (value: string | undefined) {
   opaqueHex.value = formatHex(parsedColor);
   alphaPercent.value = Math.round(parsedColor.alpha * 100);
 }
-
-function emitCurrentColor () {
-  emitCurrentColorWithAlpha(currentAlpha.value);
-}
-
 function emitCurrentColorWithAlpha (alpha: number) {
   const parsedOpaqueColor = parseColor(opaqueHex.value) ?? DEFAULT_COLOR;
 

@@ -41,7 +41,7 @@
 
             <template #content>
               <div class="flex flex-col gap-3 p-3">
-                <UColorPicker
+                <ColorPicker
                   :model-value="backgroundPickerColor"
                   class="p-1"
                   :throttle="50"
@@ -51,7 +51,7 @@
                   label="Clear background"
                   color="neutral"
                   variant="ghost"
-                  :disabled="!backgroundColor"
+                  :disabled="!hasVisibleBackgroundColor"
                   @click="clearBackgroundColor"
                 />
               </div>
@@ -469,7 +469,7 @@ const HISTORY_LIMIT = 10;
 const ROTATION_SNAP_STEP = 5;
 const DEFAULT_WORKSPACE_BACKGROUND = '#101010';
 const DEFAULT_GRID_COLOR = '#000000';
-const DEFAULT_BACKGROUND_PICKER_COLOR = '#000000';
+const DEFAULT_BACKGROUND_COLOR = '#00000000';
 const DEFAULT_BORDER_PICKER_COLOR = '#000000';
 const DEFAULT_BORDER_DASH_SIZE = 4;
 const DEFAULT_BORDER_GAP_SIZE = 0;
@@ -543,7 +543,7 @@ type FontOption = {
 interface HistorySnapshot {
   shapes: EditorShape[];
   selectedShapeId: string | null;
-  backgroundColor?: string;
+  backgroundColor: string;
   borderColor?: string;
   borderGapSize: number;
   borderDashSize: number;
@@ -606,7 +606,7 @@ const deleteButtonPosition = ref<OverlayControlPosition | null>(null);
 const rotationHandlePosition = ref<OverlayControlPosition | null>(null);
 const selectionHandlePosition = ref<OverlayControlPosition | null>(null);
 const activeSelectionHandleDrag = ref<SelectionHandleDragState | null>(null);
-const backgroundColor = ref<string | undefined>();
+const backgroundColor = ref(DEFAULT_BACKGROUND_COLOR);
 const borderColor = ref<string | undefined>();
 const borderGapSize = ref(DEFAULT_BORDER_GAP_SIZE);
 const borderDashSize = ref(DEFAULT_BORDER_DASH_SIZE);
@@ -619,7 +619,7 @@ const textDraftFontId = ref(DEFAULT_TEXT_FONT_ID);
 const historyEntries = ref<HistorySnapshot[]>([{
   shapes: [],
   selectedShapeId: null,
-  backgroundColor: undefined,
+  backgroundColor: DEFAULT_BACKGROUND_COLOR,
   borderColor: undefined,
   borderGapSize: DEFAULT_BORDER_GAP_SIZE,
   borderDashSize: DEFAULT_BORDER_DASH_SIZE,
@@ -687,13 +687,48 @@ const workspaceGridGroupConfig = computed(() => ({
   listening: false
 }));
 
+function getColorAlpha (value: string): number {
+  const normalizedValue = value.trim();
+
+  if (normalizedValue.startsWith('#')) {
+    const hexValue = normalizedValue.slice(1);
+
+    if (hexValue.length === 4 || hexValue.length === 8) {
+      const alphaHex = hexValue.length === 4
+        ? `${hexValue[3]}${hexValue[3]}`
+        : hexValue.slice(6, 8);
+      const alpha = Number.parseInt(alphaHex, 16) / 255;
+
+      return Number.isNaN(alpha) ? 1 : Math.min(Math.max(alpha, 0), 1);
+    }
+
+    return 1;
+  }
+
+  const rgbaMatch = normalizedValue.match(/^rgba?\(\s*[\d.]+\s*,\s*[\d.]+\s*,\s*[\d.]+(?:\s*,\s*([\d.]+))?\s*\)$/i);
+
+  if (!rgbaMatch) {
+    return 1;
+  }
+
+  const alpha = Number.parseFloat(rgbaMatch[1] ?? '1');
+
+  return Number.isNaN(alpha) ? 1 : Math.min(Math.max(alpha, 0), 1);
+}
+
+function isColorFullyTransparent (value: string): boolean {
+  return getColorAlpha(value) <= 0;
+}
+
+const hasVisibleBackgroundColor = computed(() => !isColorFullyTransparent(backgroundColor.value));
+
 const workspaceBackgroundConfig = computed(() => ({
   x: 0,
   y: 0,
   width: WORKSPACE_WIDTH,
   height: WORKSPACE_HEIGHT,
   fill: DEFAULT_WORKSPACE_BACKGROUND,
-  visible: !backgroundColor.value,
+  visible: !hasVisibleBackgroundColor.value,
   listening: false
 }));
 
@@ -702,8 +737,8 @@ const workspaceColorLayerConfig = computed(() => ({
   y: 0,
   width: WORKSPACE_WIDTH,
   height: WORKSPACE_HEIGHT,
-  fill: backgroundColor.value || 'transparent',
-  visible: Boolean(backgroundColor.value),
+  fill: backgroundColor.value,
+  visible: hasVisibleBackgroundColor.value,
   listening: false
 }));
 
@@ -873,9 +908,9 @@ const selectedShapeSyncKey = computed(() => {
     : [shape.id, shape.type, shape.x, shape.y, shape.width, shape.height, shape.rotation].join(':');
 });
 const backgroundColorChipStyle = computed(() => ({
-  backgroundColor: backgroundColor.value || DEFAULT_WORKSPACE_BACKGROUND
+  backgroundColor: backgroundColor.value
 }));
-const backgroundPickerColor = computed(() => backgroundColor.value || DEFAULT_BACKGROUND_PICKER_COLOR);
+const backgroundPickerColor = computed(() => backgroundColor.value);
 const borderColorChipStyle = computed(() => ({
   backgroundColor: borderColor.value || 'transparent'
 }));
@@ -1112,16 +1147,16 @@ function restoreSnapshot (snapshot: HistorySnapshot) {
 }
 
 function clearBackgroundColor () {
-  if (!backgroundColor.value) {
+  if (!hasVisibleBackgroundColor.value) {
     return;
   }
 
-  backgroundColor.value = undefined;
+  backgroundColor.value = DEFAULT_BACKGROUND_COLOR;
   pushHistorySnapshot();
 }
 
 function handleBackgroundColorChange (value?: string) {
-  backgroundColor.value = value;
+  backgroundColor.value = value || DEFAULT_BACKGROUND_COLOR;
   pushHistorySnapshot();
 }
 
@@ -1994,7 +2029,7 @@ function createExportStage (): { stage: Konva.Stage; container: HTMLDivElement }
 function buildExportLayer (): Konva.Layer {
   const layer = new Konva.Layer({ listening: false });
 
-  if (backgroundColor.value) {
+  if (hasVisibleBackgroundColor.value) {
     layer.add(new Konva.Rect({
       x: 0,
       y: 0,
