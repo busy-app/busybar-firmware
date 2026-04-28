@@ -11,15 +11,15 @@
             label="Undo"
             color="neutral"
             variant="outline"
-            :disabled="!canUndo"
-            @click="undo"
+            :disabled="!(dts.historyIndex > 0)"
+            @click="dts.undo"
           />
           <UButton
             label="Redo"
             color="neutral"
             variant="outline"
-            :disabled="!canRedo"
-            @click="redo"
+            :disabled="!(dts.historyIndex < dts.historyEntries.length - 1)"
+            @click="dts.redo"
           />
         </div>
 
@@ -34,7 +34,7 @@
               <template #leading>
                 <span
                   class="size-3 rounded-full ring-1 ring-default"
-                  :style="backgroundColorChipStyle"
+                  :style="`background-color: ${dts.backgroundColor}`"
                 />
               </template>
             </UButton>
@@ -42,17 +42,17 @@
             <template #content>
               <div class="flex flex-col gap-3 p-3">
                 <ColorPicker
-                  :model-value="backgroundPickerColor"
+                  :model-value="dts.backgroundColor"
                   class="p-1"
                   :throttle="50"
-                  @update:model-value="handleBackgroundColorChange"
+                  @update:model-value="dts.handleBackgroundColorChange"
                 />
                 <UButton
                   label="Clear background"
                   color="neutral"
                   variant="ghost"
                   :disabled="!hasVisibleBackgroundColor"
-                  @click="clearBackgroundColor"
+                  @click="dts.clearBackgroundColor"
                 />
               </div>
             </template>
@@ -67,7 +67,7 @@
               <template #leading>
                 <span
                   class="size-3 rounded-full ring-1 ring-default"
-                  :style="borderColorChipStyle"
+                  :style="`background-color: ${dts.borderColor}`"
                 />
               </template>
             </UButton>
@@ -75,10 +75,10 @@
             <template #content>
               <div class="flex w-80 flex-col gap-3 p-3">
                 <ColorPicker
-                  :model-value="borderPickerColor"
+                  :model-value="dts.borderColor"
                   class="p-1"
                   :throttle="50"
-                  @update:model-value="handleBorderColorChange"
+                  @update:model-value="dts.handleBorderColorChange"
                 />
 
                 <div class="flex gap-2">
@@ -87,7 +87,7 @@
                     color="neutral"
                     variant="ghost"
                     :disabled="!canResetBorder"
-                    @click="clearBorderColor"
+                    @click="dts.clearBorderColor"
                   />
                 </div>
 
@@ -97,42 +97,42 @@
                   <div class="flex flex-col gap-2">
                     <div class="flex items-center justify-between text-sm text-muted">
                       <span>Gap size</span>
-                      <span>{{ borderGapSize }}px</span>
+                      <span>{{ dts.borderGapSize }}px</span>
                     </div>
                     <USlider
-                      v-model="borderGapSize"
+                      v-model="dts.borderGapSize"
                       :min="0"
-                      :max="borderGapSliderMax"
+                      :max="MAX_BORDER_GAP_SIZE"
                       :step="1"
-                      @change="handleBorderSettingsChange"
+                      @change="dts.handleBorderSettingsChange"
                     />
                   </div>
 
                   <div class="flex flex-col gap-2">
                     <div class="flex items-center justify-between text-sm text-muted">
                       <span>Dash size</span>
-                      <span>{{ borderDashSize }}px</span>
+                      <span>{{ dts.borderDashSize }}px</span>
                     </div>
                     <USlider
-                      v-model="borderDashSize"
+                      v-model="dts.borderDashSize"
                       :min="1"
-                      :max="borderDashSliderMax"
+                      :max="MAX_BORDER_DASH_SIZE"
                       :step="1"
-                      @change="handleBorderSettingsChange"
+                      @change="dts.handleBorderSettingsChange"
                     />
                   </div>
 
                   <div class="flex flex-col gap-2">
                     <div class="flex items-center justify-between text-sm text-muted">
                       <span>Gap offset</span>
-                      <span>{{ borderGapOffset }}px</span>
+                      <span>{{ dts.borderGapOffset }}px</span>
                     </div>
                     <USlider
-                      v-model="borderGapOffset"
+                      v-model="dts.borderGapOffset"
                       :min="0"
-                      :max="borderGapOffsetSliderMax"
+                      :max="Math.max(0, dts.borderDashSize + dts.borderGapSize)"
                       :step="1"
-                      @change="handleBorderSettingsChange"
+                      @change="dts.handleBorderSettingsChange"
                     />
                   </div>
                 </div>
@@ -147,13 +147,13 @@
             label="Add rectangle"
             color="neutral"
             variant="outline"
-            @click="addRectangle"
+            @click="dts.addRectangle"
           />
           <UButton
             label="Add image"
             color="neutral"
             variant="outline"
-            @click="showImageUploadModal = true"
+            @click="dts.showImageUploadModal = true"
           />
         </div>
 
@@ -163,7 +163,7 @@
             label="Add text"
             color="neutral"
             variant="outline"
-            @click="addText"
+            @click="dts.addText(activeTextValue, activeTextColor, activeTextFontId)"
           />
 
           <UPopover>
@@ -175,7 +175,7 @@
               <template #leading>
                 <span
                   class="size-3 rounded-full ring-1 ring-default"
-                  :style="textColorChipStyle"
+                  :style="`background-color: ${activeTextColor}`"
                 />
               </template>
             </UButton>
@@ -185,21 +185,22 @@
                 <UInput
                   :model-value="activeTextValue"
                   placeholder="Text"
-                  @update:model-value="handleActiveTextValueInput"
-                  @blur="commitActiveTextChange"
+                  @update:model-value="dts.handleActiveTextValueInput"
+                  @blur="dts.commitActiveTextChange"
                 />
 
                 <USelect
                   :model-value="activeTextFontId"
-                  :items="textFontSelectItems"
-                  @update:model-value="handleActiveTextFontChange"
+                  :items="TEXT_FONT_OPTIONS"
+                  :value-key="'id'"
+                  @update:model-value="dts.handleActiveTextFontChange"
                 />
 
                 <UColorPicker
                   :model-value="activeTextColor"
                   class="p-1"
                   :throttle="50"
-                  @update:model-value="handleActiveTextColorChange"
+                  @update:model-value="dts.handleActiveTextColorChange"
                 />
               </div>
             </template>
@@ -219,17 +220,17 @@
 
       <div class="flex flex-col gap-4">
         <div
-          ref="stageContainerRef"
+          :ref="dtsRefs.stageContainerRef"
           class="relative w-full min-h-[400px] rounded-[28px] border border-default/60 bg-elevated/35"
         >
           <div class="w-full overflow-hidden rounded-2xl bg-[#050505]">
             <VStage
-              ref="stageRef"
+              :ref="dtsRefs.stageRef"
               :config="stageConfig"
-              @mousedown="handleStagePointerDown"
-              @tap="handleStagePointerDown"
+              @mousedown="dts.handleStagePointerDown"
+              @tap="dts.handleStagePointerDown"
             >
-              <VLayer ref="displayLayerRef">
+              <VLayer :ref="dtsRefs.displayLayerRef">
                 <VRect :config="stageBackgroundConfig" />
 
                 <VGroup :config="workspaceBackgroundGroupConfig">
@@ -241,12 +242,12 @@
                 </VGroup>
 
                 <VGroup
-                  ref="displayGroupRef"
+                  :ref="dtsRefs.displayGroupRef"
                   :config="displayGroupConfig"
                 >
                   <VGroup :config="displayShapesGroupConfig">
                     <template
-                      v-for="shape in shapes"
+                      v-for="shape in dts.shapes"
                       :key="`${shape.id}-display`"
                     >
                       <VRect
@@ -287,46 +288,46 @@
               <VLayer>
                 <VGroup :config="shapeClipGroupConfig">
                   <template
-                    v-for="shape in shapes"
+                    v-for="shape in dts.shapes"
                     :key="shape.id"
                   >
                     <VRect
                       v-if="shape.type === 'rect'"
                       :config="getRectConfig(shape)"
-                      @mousedown="handleShapePointerDown"
-                      @tap="handleShapePointerDown"
-                      @dragmove="handleShapeDragMove"
-                      @transform="handleShapeTransform"
-                      @dragend="handleShapeDragEnd"
-                      @transformend="handleShapeTransformEnd"
+                      @mousedown="dts.handleShapePointerDown"
+                      @tap="dts.handleShapePointerDown"
+                      @dragmove="dts.handleShapeDragMove"
+                      @transform="dts.handleShapeTransform"
+                      @dragend="dts.handleShapeDragEnd"
+                      @transformend="dts.handleShapeTransformEnd"
                     />
                     <VText
                       v-else-if="shape.type === 'text'"
                       :config="getTextConfig(shape)"
-                      @mousedown="handleShapePointerDown"
-                      @tap="handleShapePointerDown"
-                      @dragmove="handleShapeDragMove"
-                      @transform="handleShapeTransform"
-                      @dragend="handleShapeDragEnd"
-                      @transformend="handleShapeTransformEnd"
+                      @mousedown="dts.handleShapePointerDown"
+                      @tap="dts.handleShapePointerDown"
+                      @dragmove="dts.handleShapeDragMove"
+                      @transform="dts.handleShapeTransform"
+                      @dragend="dts.handleShapeDragEnd"
+                      @transformend="dts.handleShapeTransformEnd"
                     />
                     <VImage
                       v-else
                       :config="getImageConfig(shape)"
-                      @mousedown="handleShapePointerDown"
-                      @tap="handleShapePointerDown"
-                      @dragmove="handleShapeDragMove"
-                      @transform="handleShapeTransform"
-                      @dragend="handleShapeDragEnd"
-                      @transformend="handleShapeTransformEnd"
+                      @mousedown="dts.handleShapePointerDown"
+                      @tap="dts.handleShapePointerDown"
+                      @dragmove="dts.handleShapeDragMove"
+                      @transform="dts.handleShapeTransform"
+                      @dragend="dts.handleShapeDragEnd"
+                      @transformend="dts.handleShapeTransformEnd"
                     />
                   </template>
                 </VGroup>
               </VLayer>
 
-              <VLayer ref="overlayLayerRef">
+              <VLayer :ref="dtsRefs.overlayLayerRef">
                 <VTransformer
-                  ref="transformerRef"
+                  :ref="dtsRefs.transformerRef"
                   :config="transformerConfig"
                 />
               </VLayer>
@@ -335,17 +336,17 @@
 
           <textarea
             v-if="selectedTextTextareaStyle"
-            ref="textEditorRef"
+            :ref="dtsRefs.textEditorRef"
             :value="activeTextValue"
             :style="selectedTextTextareaStyle"
-            class="absolute z-20 resize-none overflow-hidden border-0 bg-transparent p-0 outline-none"
             autofocus
             rows="1"
             spellcheck="false"
             wrap="off"
-            @input="handleTextTextareaInput"
-            @keydown.enter.prevent="handleTextTextareaEnter"
-            @blur="commitActiveTextChange"
+            class="absolute z-20 resize-none overflow-hidden border-0 bg-transparent p-0 outline-none"
+            @input="dts.handleTextTextareaInput"
+            @keydown.enter.prevent="dts.handleTextTextareaEnter"
+            @blur="dts.commitActiveTextChange"
             @mousedown.stop
             @wheel.prevent
             @click.stop
@@ -353,65 +354,62 @@
 
           <UButton
             v-if="deleteButtonStyle"
-            aria-label="Delete selected element"
             color="error"
             variant="solid"
             square
             size="xs"
             icon="i-bi-trash"
-            :style="deleteButtonStyle"
             class="absolute z-30 rounded-full"
+            :style="deleteButtonStyle"
             @pointerdown.stop.prevent
-            @click.stop="deleteSelectedShape"
+            @click.stop="dts.deleteSelectedShape"
           />
 
           <UButton
             v-if="selectionHandleStyle"
-            :aria-label="selectedTextShape ? 'Move selected text' : 'Resize selected element'"
             color="neutral"
             variant="solid"
             square
             size="xs"
             :icon="selectedTextShape ? 'i-bi-location' : 'i-bi-plus'"
-            :style="selectionHandleStyle"
             class="absolute z-30 rounded-full"
-            @pointerdown.stop.prevent="handleSelectionHandlePointerDown"
+            :style="selectionHandleStyle"
+            @pointerdown.stop.prevent="dts.handleSelectionHandlePointerDown"
           />
 
           <UButton
             v-if="rotationHandleStyle"
-            aria-label="Rotate selected element"
             color="neutral"
             variant="solid"
             square
             size="xs"
             icon="i-bi-arrow-clockwise"
-            :style="rotationHandleStyle"
             class="absolute z-30 rounded-full"
-            @pointerdown.stop.prevent="handleRotationHandlePointerDown"
+            :style="rotationHandleStyle"
+            @pointerdown.stop.prevent="dts.handleRotationHandlePointerDown"
           />
         </div>
 
         <ModalGeneric
-          v-model:open="showImageUploadModal"
+          v-model:open="dts.showImageUploadModal"
           data-id="modal-draw-tool-image-upload"
           title="Add image"
           wide
           show-close-button
           :primary-action-props="{
             label: 'Insert image',
-            disabled: !imageUploadFile,
+            disabled: !dts.imageUploadFile,
             onClick: insertImage
           }"
           :secondary-action-props="{
             label: 'Cancel',
             variant: 'ghost',
-            onClick: resetImageUploadModal
+            onClick: dts.resetImageUploadModal
           }"
         >
           <template #body>
             <UFileUpload
-              v-model="imageUploadFile"
+              v-model="dts.imageUploadFile"
               data-id="draw-tool-image-upload"
               accept="image/*"
               class="w-full rounded-xl"
@@ -441,6 +439,7 @@
 
 <script setup lang="ts">
 import Konva from 'konva';
+import { storeToRefs } from 'pinia';
 import {
   Group as VGroup,
   Image as VImage,
@@ -451,196 +450,15 @@ import {
   Text as VText,
   Transformer as VTransformer
 } from 'vue-konva';
+import type { TransformerBox } from '@/util/drawTool';
 
-const WORKSPACE_WIDTH = 72;
-const WORKSPACE_HEIGHT = 16;
-const STAGE_PADDING_X = 20;
-const STAGE_PADDING_Y = 28;
-const MIN_STAGE_WIDTH = 320;
-const MIN_STAGE_HEIGHT = 400;
-const HISTORY_LIMIT = 10;
-const ROTATION_SNAP_STEP = 5;
-const DEFAULT_WORKSPACE_BACKGROUND = '#101010';
-const DEFAULT_GRID_COLOR = '#000000';
-const DEFAULT_BACKGROUND_COLOR = '#00000000';
-const DEFAULT_BORDER_COLOR = '#00000000';
-const DEFAULT_BORDER_DASH_SIZE = 4;
-const DEFAULT_BORDER_GAP_SIZE = 0;
-const DEFAULT_BORDER_GAP_OFFSET = 0;
-const MAX_BORDER_GAP_SIZE = 14;
-const MAX_BORDER_DASH_SIZE = 72;
-const DEFAULT_TEXT_VALUE = 'Text';
-const DEFAULT_TEXT_COLOR = '#ffffff';
-const DEFAULT_TEXT_FONT_ID = 'busy_regular_7px';
-
-const BORDER_RING_PIXELS = [
-  ...Array.from({ length: WORKSPACE_WIDTH }, (_, x) => ({ x, y: 0 })),
-  ...Array.from({ length: WORKSPACE_HEIGHT - 1 }, (_, index) => ({ x: WORKSPACE_WIDTH - 1, y: index + 1 })),
-  ...Array.from({ length: WORKSPACE_WIDTH - 1 }, (_, index) => ({ x: WORKSPACE_WIDTH - 2 - index, y: WORKSPACE_HEIGHT - 1 })),
-  ...Array.from({ length: WORKSPACE_HEIGHT - 2 }, (_, index) => ({ x: 0, y: WORKSPACE_HEIGHT - 2 - index }))
-];
-
-type KonvaRef<T extends Konva.Node> = {
-  getNode: () => T;
-};
-
-type TransformerBox = {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  rotation?: number;
-};
-
-type BorderPixel = {
-  x: number;
-  y: number;
-};
-
-type BorderPixelConfig = {
-  key: string;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  fill: string;
-  listening: boolean;
-  perfectDrawEnabled: boolean;
-};
-
-type OverlayControlPosition = {
-  x: number;
-  y: number;
-};
-
-type SelectionHandleDragState = {
-  pointerId: number;
-  shapeId: string;
-  mode: 'move' | 'resize' | 'rotate';
-  startClientX: number;
-  startClientY: number;
-  startShape: EditorShape;
-  centerX?: number;
-  centerY?: number;
-  startPointerAngle?: number;
-};
-
-type FontOption = {
-  id: string;
-  label: string;
-  family: string;
-  fontSize: number; // 16 for fonts with upm 16?
-  capHeight: number; // as in font name
-};
-
-interface HistorySnapshot {
-  shapes: EditorShape[];
-  selectedShapeId: string | null;
-  backgroundColor: string;
-  borderColor: string;
-  borderGapSize: number;
-  borderDashSize: number;
-  borderGapOffset: number;
-}
-
-interface ShapeBase {
-  id: string;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  rotation: number;
-}
-
-interface RectShape extends ShapeBase {
-  type: 'rect';
-  fill: string;
-}
-
-interface ImageShape extends ShapeBase {
-  type: 'image';
-  fileName: string;
-  image: HTMLImageElement;
-}
-
-interface TextShape extends ShapeBase {
-  type: 'text';
-  text: string;
-  fill: string;
-  fontId: string;
-}
-
-type EditorShape = RectShape | ImageShape | TextShape;
-
-const TEXT_FONT_OPTIONS: FontOption[] = [
-  { id: 'busy_regular_5px', label: 'SMALL', family: 'busy_regular_5px', fontSize: 16, capHeight: 5 },
-  { id: 'busy_bold_7px', label: 'BOLD SMALL', family: 'busy_bold_7px', fontSize: 16, capHeight: 7 },
-  { id: 'busy_regular_7px', label: 'MEDIUM', family: 'busy_regular_7px', fontSize: 16, capHeight: 7 },
-  { id: 'busy_bold_10px', label: 'BOLD MEDIUM', family: 'busy_bold_10px', fontSize: 16, capHeight: 10 },
-  { id: 'busy_regular_9px', label: 'LARGE', family: 'busy_regular_9px', fontSize: 16, capHeight: 9 },
-  { id: 'LanaPixel_regular_11px', label: 'LanaPixel', family: 'LanaPixel_regular_11px', fontSize: 11, capHeight: 11 },
-  { id: 'busy_regular_14px', label: 'EXTRA LARGE', family: 'busy_regular_7px', fontSize: 32, capHeight: 14 }
-];
-
-const stageContainerRef = ref<HTMLDivElement | null>(null);
-const textEditorRef = ref<HTMLTextAreaElement | null>(null);
-const stageWidth = ref(MIN_STAGE_WIDTH);
+const toast = useToast();
 const resizeObserver = ref<ResizeObserver | null>(null);
 
-const stageRef = ref<KonvaRef<Konva.Stage> | null>(null);
-const displayLayerRef = ref<KonvaRef<Konva.Layer> | null>(null);
-const displayGroupRef = ref<KonvaRef<Konva.Group> | null>(null);
-const overlayLayerRef = ref<KonvaRef<Konva.Layer> | null>(null);
-const transformerRef = ref<KonvaRef<Konva.Transformer> | null>(null);
+const dts = useDrawToolStore();
+const dtsRefs = storeToRefs(dts);
 
-const shapes = ref<EditorShape[]>([]);
-const selectedShapeId = ref<string | null>(null);
-const deleteButtonPosition = ref<OverlayControlPosition | null>(null);
-const rotationHandlePosition = ref<OverlayControlPosition | null>(null);
-const selectionHandlePosition = ref<OverlayControlPosition | null>(null);
-const activeSelectionHandleDrag = ref<SelectionHandleDragState | null>(null);
-const backgroundColor = ref(DEFAULT_BACKGROUND_COLOR);
-const borderColor = ref(DEFAULT_BORDER_COLOR);
-const borderGapSize = ref(DEFAULT_BORDER_GAP_SIZE);
-const borderDashSize = ref(DEFAULT_BORDER_DASH_SIZE);
-const borderGapOffset = ref(DEFAULT_BORDER_GAP_OFFSET);
-const textDraftValue = ref(DEFAULT_TEXT_VALUE);
-const textDraftColor = ref(DEFAULT_TEXT_COLOR);
-const textDraftFontId = ref(DEFAULT_TEXT_FONT_ID);
-
-const historyEntries = ref<HistorySnapshot[]>([{
-  shapes: [],
-  selectedShapeId: null,
-  backgroundColor: DEFAULT_BACKGROUND_COLOR,
-  borderColor: DEFAULT_BORDER_COLOR,
-  borderGapSize: DEFAULT_BORDER_GAP_SIZE,
-  borderDashSize: DEFAULT_BORDER_DASH_SIZE,
-  borderGapOffset: DEFAULT_BORDER_GAP_OFFSET
-}]);
-const historyIndex = ref(0);
-
-const showImageUploadModal = ref(false);
-const imageUploadFile = ref<File | null>(null);
-
-const stageMetrics = computed(() => {
-  const width = Math.max(MIN_STAGE_WIDTH, stageWidth.value || MIN_STAGE_WIDTH);
-  const height = MIN_STAGE_HEIGHT;
-  const usableWidth = Math.max(width - STAGE_PADDING_X * 2, WORKSPACE_WIDTH);
-  const usableHeight = Math.max(height - STAGE_PADDING_Y * 2, WORKSPACE_HEIGHT);
-  const cellSize = Math.max(1, Math.floor(Math.min(usableWidth / WORKSPACE_WIDTH, usableHeight / WORKSPACE_HEIGHT)));
-  const workspaceWidth = WORKSPACE_WIDTH * cellSize;
-  const workspaceHeight = WORKSPACE_HEIGHT * cellSize;
-
-  return {
-    width,
-    height,
-    cellSize,
-    workspaceWidth,
-    workspaceHeight,
-    workspaceX: (width - workspaceWidth) / 2,
-    workspaceY: (height - workspaceHeight) / 2
-  };
-});
+const stageMetrics = computed(() => getStageMetrics(dts.stageWidth));
 
 const stageConfig = computed(() => ({
   width: stageMetrics.value.width,
@@ -679,40 +497,7 @@ const workspaceGridGroupConfig = computed(() => ({
   listening: false
 }));
 
-function getColorAlpha (value: string): number {
-  const normalizedValue = value.trim();
-
-  if (normalizedValue.startsWith('#')) {
-    const hexValue = normalizedValue.slice(1);
-
-    if (hexValue.length === 4 || hexValue.length === 8) {
-      const alphaHex = hexValue.length === 4
-        ? `${hexValue[3]}${hexValue[3]}`
-        : hexValue.slice(6, 8);
-      const alpha = Number.parseInt(alphaHex, 16) / 255;
-
-      return Number.isNaN(alpha) ? 1 : Math.min(Math.max(alpha, 0), 1);
-    }
-
-    return 1;
-  }
-
-  const rgbaMatch = normalizedValue.match(/^rgba?\(\s*[\d.]+\s*,\s*[\d.]+\s*,\s*[\d.]+(?:\s*,\s*([\d.]+))?\s*\)$/i);
-
-  if (!rgbaMatch) {
-    return 1;
-  }
-
-  const alpha = Number.parseFloat(rgbaMatch[1] ?? '1');
-
-  return Number.isNaN(alpha) ? 1 : Math.min(Math.max(alpha, 0), 1);
-}
-
-function isColorFullyTransparent (value: string): boolean {
-  return getColorAlpha(value) <= 0;
-}
-
-const hasVisibleBackgroundColor = computed(() => !isColorFullyTransparent(backgroundColor.value));
+const hasVisibleBackgroundColor = computed(() => !isColorFullyTransparent(dts.backgroundColor));
 
 const workspaceBackgroundConfig = computed(() => ({
   x: 0,
@@ -729,53 +514,25 @@ const workspaceColorLayerConfig = computed(() => ({
   y: 0,
   width: WORKSPACE_WIDTH,
   height: WORKSPACE_HEIGHT,
-  fill: backgroundColor.value,
+  fill: dts.backgroundColor,
   visible: hasVisibleBackgroundColor.value,
   listening: false
 }));
 
-const hasVisibleBorderColor = computed(() => !isColorFullyTransparent(borderColor.value));
-
-function isBorderPixelActive (index: number): boolean {
-  if (borderGapSize.value <= 0) {
-    return true;
-  }
-
-  const patternLength = borderDashSize.value + borderGapSize.value;
-  const normalizedIndex = ((index - borderGapOffset.value) % patternLength + patternLength) % patternLength;
-
-  return normalizedIndex < borderDashSize.value;
-}
-
-function createBorderPixelConfigs (fill: string): BorderPixelConfig[] {
-  if (!fill) {
-    return [];
-  }
-
-  return BORDER_RING_PIXELS.flatMap((pixel: BorderPixel, index) => {
-    if (!isBorderPixelActive(index)) {
-      return [];
-    }
-
-    return [{
-      key: `border-${pixel.x}-${pixel.y}`,
-      x: pixel.x,
-      y: pixel.y,
-      width: 1,
-      height: 1,
-      fill,
-      listening: false,
-      perfectDrawEnabled: false
-    }];
-  });
-}
+const hasVisibleBorderColor = computed(() => !isColorFullyTransparent(dts.borderColor));
 
 const borderPixelConfigs = computed(() => {
   if (!hasVisibleBorderColor.value) {
     return [];
   }
 
-  return createBorderPixelConfigs(borderColor.value);
+  return createBorderPixelConfigs(
+    dts.borderColor,
+    BORDER_RING_PIXELS,
+    dts.borderDashSize,
+    dts.borderGapSize,
+    dts.borderGapOffset
+  );
 });
 
 const shapeClipGroupConfig = computed(() => ({
@@ -857,38 +614,33 @@ const transformerConfig = computed(() => ({
     return result;
   },
   anchorDragBoundFunc: (_oldAbsPos: Konva.Vector2d, newAbsPos: Konva.Vector2d) => ({
-    x: snapStageCoordinate(newAbsPos.x),
-    y: snapStageCoordinate(newAbsPos.y)
+    x: snapStageCoordinate(newAbsPos.x, stageMetrics.value),
+    y: snapStageCoordinate(newAbsPos.y, stageMetrics.value)
   })
 }));
 
-watch(showImageUploadModal, isOpen => {
+watch(() => dts.showImageUploadModal, isOpen => {
   if (!isOpen) {
-    imageUploadFile.value = null;
+    dts.imageUploadFile = null;
   }
 });
 
-watch(
-  shapes,
-  async () => {
-    await nextTick();
-    syncPixelatedDisplay();
-  },
-  { deep: true }
-);
+watch(stageMetrics, metrics => {
+  dts.setStageMetrics(metrics);
+}, { immediate: true });
 
-watch(
-  () => stageMetrics.value.cellSize,
-  async () => {
-    await nextTick();
-    syncPixelatedDisplay();
-    syncTransformer();
-  }
-);
+watch(dts.shapes, async () => {
+  await nextTick();
+  dts.syncPixelatedDisplay();
+}, { deep: true });
 
-const canUndo = computed(() => historyIndex.value > 0);
-const canRedo = computed(() => historyIndex.value < historyEntries.value.length - 1);
-const selectedShape = computed(() => shapes.value.find(shape => shape.id === selectedShapeId.value) || null);
+watch(() => stageMetrics.value.cellSize, async () => {
+  await nextTick();
+  dts.syncPixelatedDisplay();
+  dts.syncTransformer();
+});
+
+const selectedShape = computed(() => dts.shapes.find(shape => shape.id === dts.selectedShapeId) || null);
 const selectedTextShape = computed(() => selectedShape.value?.type === 'text' ? selectedShape.value : null);
 const selectedShapeSyncKey = computed(() => {
   const shape = selectedShape.value;
@@ -901,75 +653,60 @@ const selectedShapeSyncKey = computed(() => {
     ? [shape.id, shape.type, shape.x, shape.y, shape.width, shape.height, shape.rotation, shape.fontId, shape.text].join(':')
     : [shape.id, shape.type, shape.x, shape.y, shape.width, shape.height, shape.rotation].join(':');
 });
-const backgroundColorChipStyle = computed(() => ({
-  backgroundColor: backgroundColor.value
-}));
-const backgroundPickerColor = computed(() => backgroundColor.value);
-const borderColorChipStyle = computed(() => ({
-  backgroundColor: borderColor.value
-}));
-const borderPickerColor = computed(() => borderColor.value);
-const hasModifiedBorderSettings = computed(() => {
-  return borderGapSize.value !== DEFAULT_BORDER_GAP_SIZE
-    || borderDashSize.value !== DEFAULT_BORDER_DASH_SIZE
-    || borderGapOffset.value !== DEFAULT_BORDER_GAP_OFFSET;
-});
+
 const canResetBorder = computed(() => {
-  return borderColor.value !== DEFAULT_BORDER_COLOR || hasModifiedBorderSettings.value;
+  return dts.borderColor !== DEFAULT_BORDER_COLOR
+    || (
+      dts.borderGapSize !== DEFAULT_BORDER_GAP_SIZE
+      || dts.borderDashSize !== DEFAULT_BORDER_DASH_SIZE
+      || dts.borderGapOffset !== DEFAULT_BORDER_GAP_OFFSET
+    );
 });
-const borderGapSliderMax = computed(() => MAX_BORDER_GAP_SIZE);
-const borderDashSliderMax = computed(() => MAX_BORDER_DASH_SIZE);
-const borderGapOffsetSliderMax = computed(() => Math.max(0, borderDashSize.value + borderGapSize.value));
-const activeTextValue = computed(() => selectedTextShape.value?.text ?? textDraftValue.value);
-const activeTextColor = computed(() => selectedTextShape.value?.fill ?? textDraftColor.value);
-const activeTextFontId = computed(() => selectedTextShape.value?.fontId ?? textDraftFontId.value);
-const textColorChipStyle = computed(() => ({
-  backgroundColor: activeTextColor.value
-}));
-const textFontSelectItems = computed(() => TEXT_FONT_OPTIONS.map(font => ({
-  label: font.label,
-  value: font.id
-})));
-const deleteButtonStyle = computed<Record<string, string> | null>(() => {
-  if (!deleteButtonPosition.value) {
-    return null;
+
+const activeTextValue = computed(() => selectedTextShape.value?.text ?? dts.textDraftValue);
+const activeTextColor = computed(() => selectedTextShape.value?.fill ?? dts.textDraftColor);
+const activeTextFontId = computed(() => selectedTextShape.value?.fontId ?? dts.textDraftFontId);
+
+const deleteButtonStyle = computed(() => {
+  if (!dts.deleteButtonPosition) {
+    return '';
   }
 
   return {
-    left: `${deleteButtonPosition.value.x}px`,
-    top: `${deleteButtonPosition.value.y}px`,
+    left: `${dts.deleteButtonPosition.x}px`,
+    top: `${dts.deleteButtonPosition.y}px`,
     transform: 'translate(-50%, -50%)'
   };
 });
-const rotationHandleStyle = computed<Record<string, string> | null>(() => {
-  if (!rotationHandlePosition.value || selectedTextShape.value) {
-    return null;
+const rotationHandleStyle = computed(() => {
+  if (!dts.rotationHandlePosition || selectedTextShape.value) {
+    return '';
   }
 
   return {
-    left: `${rotationHandlePosition.value.x}px`,
-    top: `${rotationHandlePosition.value.y}px`,
+    left: `${dts.rotationHandlePosition.x}px`,
+    top: `${dts.rotationHandlePosition.y}px`,
     transform: 'translate(-50%, -50%)',
-    cursor: activeSelectionHandleDrag.value?.mode === 'rotate' ? 'grabbing' : 'grab',
+    cursor: dts.activeSelectionHandleDrag?.mode === 'rotate' ? 'grabbing' : 'grab',
     touchAction: 'none'
   };
 });
-const selectionHandleStyle = computed<Record<string, string> | null>(() => {
-  if (!selectionHandlePosition.value) {
-    return null;
+const selectionHandleStyle = computed(() => {
+  if (!dts.selectionHandlePosition) {
+    return '';
   }
 
   return {
-    left: `${selectionHandlePosition.value.x}px`,
-    top: `${selectionHandlePosition.value.y}px`,
+    left: `${dts.selectionHandlePosition.x}px`,
+    top: `${dts.selectionHandlePosition.y}px`,
     transform: 'translate(-50%, -50%)',
     cursor: selectedTextShape.value ? 'move' : 'nwse-resize',
     touchAction: 'none'
   };
 });
-const selectedTextTextareaStyle = computed<Record<string, string> | null>(() => {
+const selectedTextTextareaStyle = computed(() => {
   if (!selectedTextShape.value) {
-    return null;
+    return '';
   }
 
   const font = getFontOption(selectedTextShape.value.fontId);
@@ -992,1043 +729,47 @@ const selectedTextTextareaStyle = computed<Record<string, string> | null>(() => 
     fontSize: `${fontSize}px`,
     lineHeight: `${lineHeight}px`,
     overflow: 'hidden',
-    overflowX: 'hidden',
-    overflowY: 'hidden',
     whiteSpace: 'pre',
-    overflowWrap: 'normal',
     textAlign: 'left'
-  };
+  } as const;
 });
 
-watch(
-  () => [selectedShapeSyncKey.value, stageMetrics.value.cellSize],
-  async () => {
-    await nextTick();
-    syncTransformer();
-  },
-  { flush: 'post' }
-);
+watch(() => [selectedShapeSyncKey.value, stageMetrics.value.cellSize], async () => {
+  await nextTick();
+  dts.syncTransformer();
+}, { flush: 'post' });
 
-watch(
-  () => selectedTextShape.value?.id,
-  async selectedTextId => {
-    if (!selectedTextId) {
-      return;
-    }
-
-    await nextTick();
-    textEditorRef.value?.focus();
-    const textLength = textEditorRef.value?.value.length ?? 0;
-
-    textEditorRef.value?.setSelectionRange(0, textLength);
-  },
-  { flush: 'post' }
-);
-
-function normalizeBorderSettings () {
-  borderGapSize.value = Math.min(MAX_BORDER_GAP_SIZE, Math.max(0, borderGapSize.value));
-  borderDashSize.value = Math.min(MAX_BORDER_DASH_SIZE, Math.max(1, borderDashSize.value));
-  borderGapOffset.value = Math.min(borderGapOffsetSliderMax.value, Math.max(0, borderGapOffset.value));
-}
-
-function getFontOption (fontId: string): FontOption {
-  return TEXT_FONT_OPTIONS.find(option => option.id === fontId) || TEXT_FONT_OPTIONS[2];
-}
-
-function measureTextShapeDimensions (text: string, fontId: string): Pick<TextShape, 'width' | 'height'> {
-  const font = getFontOption(fontId);
-  const node = new Konva.Text({
-    text: text || ' ',
-    fontFamily: font.family,
-    fontSize: font.fontSize,
-    listening: false,
-    perfectDrawEnabled: false
-  });
-
-  return {
-    width: Math.max(1, Math.ceil(node.width())),
-    height: Math.max(1, Math.ceil(node.height()))
-  };
-}
-
-function createShapeId (): string {
-  return crypto.randomUUID();
-}
-
-function cloneShape (shape: EditorShape): EditorShape {
-  return {
-    ...shape
-  };
-}
-
-function createHistorySnapshot (): HistorySnapshot {
-  return {
-    shapes: shapes.value.map(cloneShape),
-    selectedShapeId: selectedShapeId.value,
-    backgroundColor: backgroundColor.value,
-    borderColor: borderColor.value,
-    borderGapSize: borderGapSize.value,
-    borderDashSize: borderDashSize.value,
-    borderGapOffset: borderGapOffset.value
-  };
-}
-
-function areShapesEqual (left: EditorShape, right: EditorShape): boolean {
-  if (
-    left.id !== right.id
-    || left.type !== right.type
-    || left.x !== right.x
-    || left.y !== right.y
-    || left.width !== right.width
-    || left.height !== right.height
-    || left.rotation !== right.rotation
-  ) {
-    return false;
-  }
-
-  if (left.type === 'rect') {
-    return left.fill === (right as RectShape).fill;
-  }
-
-  if (left.type === 'text') {
-    return left.text === (right as TextShape).text
-      && left.fill === (right as TextShape).fill
-      && left.fontId === (right as TextShape).fontId;
-  }
-
-  return left.fileName === (right as ImageShape).fileName
-    && left.image === (right as ImageShape).image;
-}
-
-function areSnapshotsEqual (left: HistorySnapshot | undefined, right: HistorySnapshot): boolean {
-  if (
-    !left
-    || left.selectedShapeId !== right.selectedShapeId
-    || left.backgroundColor !== right.backgroundColor
-    || left.borderColor !== right.borderColor
-    || left.borderGapSize !== right.borderGapSize
-    || left.borderDashSize !== right.borderDashSize
-    || left.borderGapOffset !== right.borderGapOffset
-    || left.shapes.length !== right.shapes.length
-  ) {
-    return false;
-  }
-
-  return left.shapes.every((shape, index) => areShapesEqual(shape, right.shapes[index]));
-}
-
-function pushHistorySnapshot () {
-  const nextSnapshot = createHistorySnapshot();
-  const currentSnapshot = historyEntries.value[historyIndex.value];
-
-  if (areSnapshotsEqual(currentSnapshot, nextSnapshot)) {
+watch(() => selectedTextShape.value?.id, async selectedTextId => {
+  if (!selectedTextId) {
     return;
   }
 
-  const nextEntries = historyEntries.value.slice(0, historyIndex.value + 1);
-  nextEntries.push(nextSnapshot);
-
-  if (nextEntries.length > HISTORY_LIMIT + 1) {
-    nextEntries.shift();
-  }
-
-  historyEntries.value = nextEntries;
-  historyIndex.value = nextEntries.length - 1;
-}
-
-function restoreSnapshot (snapshot: HistorySnapshot) {
-  shapes.value = snapshot.shapes.map(cloneShape);
-  selectedShapeId.value = snapshot.selectedShapeId;
-  backgroundColor.value = snapshot.backgroundColor;
-  borderColor.value = snapshot.borderColor;
-  borderGapSize.value = snapshot.borderGapSize;
-  borderDashSize.value = snapshot.borderDashSize;
-  borderGapOffset.value = snapshot.borderGapOffset;
-  normalizeBorderSettings();
-  nextTick(syncTransformer);
-}
-
-function clearBackgroundColor () {
-  if (!hasVisibleBackgroundColor.value) {
-    return;
-  }
-
-  backgroundColor.value = DEFAULT_BACKGROUND_COLOR;
-  pushHistorySnapshot();
-}
-
-function handleBackgroundColorChange (value?: string) {
-  backgroundColor.value = value || DEFAULT_BACKGROUND_COLOR;
-  pushHistorySnapshot();
-}
-
-function clearBorderColor () {
-  if (!canResetBorder.value) {
-    return;
-  }
-
-  borderColor.value = DEFAULT_BORDER_COLOR;
-  borderGapSize.value = DEFAULT_BORDER_GAP_SIZE;
-  borderDashSize.value = DEFAULT_BORDER_DASH_SIZE;
-  borderGapOffset.value = DEFAULT_BORDER_GAP_OFFSET;
-  pushHistorySnapshot();
-}
-
-function handleBorderColorChange (value?: string) {
-  borderColor.value = value || DEFAULT_BORDER_COLOR;
-  pushHistorySnapshot();
-}
-
-function handleBorderSettingsChange () {
-  normalizeBorderSettings();
-  pushHistorySnapshot();
-}
-
-function handleActiveTextValueInput (value: string | number) {
-  const nextValue = String(value ?? '');
-
-  if (!selectedTextShape.value) {
-    textDraftValue.value = nextValue;
-    return;
-  }
-
-  const dimensions = measureTextShapeDimensions(nextValue, selectedTextShape.value.fontId);
-
-  updateShape(selectedTextShape.value.id, shape => ({
-    ...(shape as TextShape),
-    text: nextValue,
-    ...dimensions
-  }));
-}
-
-function handleTextTextareaInput (event: Event) {
-  const textarea = event.target as HTMLTextAreaElement;
-  const nextValue = textarea.value.replace(/[\r\n]+/g, '');
-
-  if (textarea.value !== nextValue) {
-    textarea.value = nextValue;
-  }
-
-  handleActiveTextValueInput(nextValue);
-}
-
-function handleTextTextareaEnter () {
-  commitActiveTextChange();
-  selectedShapeId.value = null;
-}
-
-function getRotatedLogicalDelta (deltaX: number, deltaY: number, rotation: number) {
-  const radians = rotation * (Math.PI / 180);
-  const localDeltaX = (deltaX * Math.cos(radians)) + (deltaY * Math.sin(radians));
-  const localDeltaY = (-deltaX * Math.sin(radians)) + (deltaY * Math.cos(radians));
-
-  return {
-    x: stageDeltaToLogical(localDeltaX),
-    y: stageDeltaToLogical(localDeltaY)
-  };
-}
-
-function getStageDeltaFromLocalDelta (deltaX: number, deltaY: number, rotation: number) {
-  const radians = rotation * (Math.PI / 180);
-
-  return {
-    x: (deltaX * Math.cos(radians)) - (deltaY * Math.sin(radians)),
-    y: (deltaX * Math.sin(radians)) + (deltaY * Math.cos(radians))
-  };
-}
-
-function getLogicalCenter (shape: ShapeBase) {
-  const centerOffset = getStageDeltaFromLocalDelta(shape.width / 2, shape.height / 2, shape.rotation);
-
-  return {
-    x: shape.x + centerOffset.x,
-    y: shape.y + centerOffset.y
-  };
-}
-
-function getShapePositionForRotation (shape: ShapeBase, rotation: number) {
-  const center = getLogicalCenter(shape);
-  const rotatedOffset = getStageDeltaFromLocalDelta(shape.width / 2, shape.height / 2, rotation);
-
-  return {
-    x: center.x - rotatedOffset.x,
-    y: center.y - rotatedOffset.y
-  };
-}
-
-function getRotationHandleAngle (clientX: number, clientY: number, centerX: number, centerY: number) {
-  return Math.atan2(clientY - centerY, clientX - centerX);
-}
-
-function snapRotationValue (rotation: number) {
-  return Math.round(rotation / ROTATION_SNAP_STEP) * ROTATION_SNAP_STEP;
-}
-
-function getHandleResizeDimensions (
-  shape: ShapeBase,
-  deltaX: number,
-  deltaY: number,
-  preserveAspectRatio: boolean,
-  resizeFromCenter: boolean
-) {
-  let nextWidth = Math.max(1, shape.width + deltaX);
-  let nextHeight = Math.max(1, shape.height + deltaY);
-
-  if (preserveAspectRatio) {
-    const widthScale = nextWidth / shape.width;
-    const heightScale = nextHeight / shape.height;
-    const nextScale = Math.max(
-      1 / shape.width,
-      1 / shape.height,
-      Math.abs(widthScale - 1) >= Math.abs(heightScale - 1) ? widthScale : heightScale
-    );
-
-    nextWidth = Math.max(1, Math.round(shape.width * nextScale));
-    nextHeight = Math.max(1, Math.round(shape.height * nextScale));
-  }
-
-  if (!resizeFromCenter) {
-    return {
-      x: shape.x,
-      y: shape.y,
-      width: nextWidth,
-      height: nextHeight
-    };
-  }
-
-  const stageOffset = getStageDeltaFromLocalDelta(
-    -(nextWidth - shape.width) / 2,
-    -(nextHeight - shape.height) / 2,
-    shape.rotation
-  );
-
-  return {
-    x: shape.x + stageOffset.x,
-    y: shape.y + stageOffset.y,
-    width: nextWidth,
-    height: nextHeight
-  };
-}
-
-function stopSelectionHandleDrag (shouldCommit: boolean) {
-  window.removeEventListener('pointermove', handleSelectionHandlePointerMove);
-  window.removeEventListener('pointerup', handleSelectionHandlePointerUp);
-  window.removeEventListener('pointercancel', handleSelectionHandlePointerUp);
-
-  if (!activeSelectionHandleDrag.value) {
-    return;
-  }
-
-  activeSelectionHandleDrag.value = null;
-
-  if (shouldCommit) {
-    pushHistorySnapshot();
-  }
-}
-
-function handleSelectionHandlePointerDown (event: PointerEvent) {
-  const currentShape = selectedShape.value;
-  const selectedNode = getSelectedNode();
-
-  if (!currentShape || !selectedNode) {
-    return;
-  }
-
-  activeSelectionHandleDrag.value = {
-    pointerId: event.pointerId,
-    shapeId: currentShape.id,
-    mode: currentShape.type === 'text' ? 'move' : 'resize',
-    startClientX: event.clientX,
-    startClientY: event.clientY,
-    startShape: cloneShape(currentShape)
-  };
-
-  window.addEventListener('pointermove', handleSelectionHandlePointerMove);
-  window.addEventListener('pointerup', handleSelectionHandlePointerUp);
-  window.addEventListener('pointercancel', handleSelectionHandlePointerUp);
-}
-
-function handleRotationHandlePointerDown (event: PointerEvent) {
-  const currentShape = selectedShape.value;
-  const selectedNode = getSelectedNode();
-  const stageContainerRect = stageContainerRef.value?.getBoundingClientRect();
-
-  if (!currentShape || !selectedNode || currentShape.type === 'text' || !stageContainerRect) {
-    return;
-  }
-
-  const center = selectedNode.getAbsoluteTransform().point({
-    x: selectedNode.width() / 2,
-    y: selectedNode.height() / 2
-  });
-  const centerClientX = stageContainerRect.left + center.x;
-  const centerClientY = stageContainerRect.top + center.y;
-
-  activeSelectionHandleDrag.value = {
-    pointerId: event.pointerId,
-    shapeId: currentShape.id,
-    mode: 'rotate',
-    startClientX: event.clientX,
-    startClientY: event.clientY,
-    startShape: cloneShape(currentShape),
-    centerX: centerClientX,
-    centerY: centerClientY,
-    startPointerAngle: getRotationHandleAngle(event.clientX, event.clientY, centerClientX, centerClientY)
-  };
-
-  window.addEventListener('pointermove', handleSelectionHandlePointerMove);
-  window.addEventListener('pointerup', handleSelectionHandlePointerUp);
-  window.addEventListener('pointercancel', handleSelectionHandlePointerUp);
-}
-
-function handleSelectionHandlePointerMove (event: PointerEvent) {
-  const dragState = activeSelectionHandleDrag.value;
-  const selectedNode = getSelectedNode();
-
-  if (!dragState || event.pointerId !== dragState.pointerId || !selectedNode || selectedNode.id() !== dragState.shapeId) {
-    return;
-  }
-
-  const pointerDeltaX = event.clientX - dragState.startClientX;
-  const pointerDeltaY = event.clientY - dragState.startClientY;
-
-  if (dragState.mode === 'move') {
-    selectedNode.position({
-      x: dragState.startShape.x + stageDeltaToLogical(pointerDeltaX),
-      y: dragState.startShape.y + stageDeltaToLogical(pointerDeltaY)
-    });
-    syncNodePosition(selectedNode);
-  } else if (dragState.mode === 'rotate') {
-    if (dragState.centerX === undefined || dragState.centerY === undefined || dragState.startPointerAngle === undefined) {
-      return;
-    }
-
-    const currentPointerAngle = getRotationHandleAngle(event.clientX, event.clientY, dragState.centerX, dragState.centerY);
-    const rotationDelta = (currentPointerAngle - dragState.startPointerAngle) * (180 / Math.PI);
-    const nextRotation = snapRotationValue(dragState.startShape.rotation + rotationDelta);
-    const nextPosition = getShapePositionForRotation(dragState.startShape, nextRotation);
-
-    selectedNode.position(nextPosition);
-    selectedNode.rotation(nextRotation);
-    syncRotatingNode(selectedNode);
-  } else {
-    const resizedDelta = getRotatedLogicalDelta(pointerDeltaX, pointerDeltaY, dragState.startShape.rotation);
-    const nextSize = getHandleResizeDimensions(
-      dragState.startShape,
-      resizedDelta.x,
-      resizedDelta.y,
-      event.shiftKey,
-      event.altKey
-    );
-
-    selectedNode.position({
-      x: nextSize.x,
-      y: nextSize.y
-    });
-    selectedNode.width(nextSize.width);
-    selectedNode.height(nextSize.height);
-    selectedNode.scaleX(1);
-    selectedNode.scaleY(1);
-    normalizeTransformedNode(selectedNode);
-  }
-
-  transformerRef.value?.getNode().forceUpdate();
-  updateDeleteButtonPosition();
-  overlayLayerRef.value?.getNode().batchDraw();
-}
-
-function handleSelectionHandlePointerUp (event: PointerEvent) {
-  const dragState = activeSelectionHandleDrag.value;
-
-  if (!dragState || event.pointerId !== dragState.pointerId) {
-    return;
-  }
-
-  stopSelectionHandleDrag(true);
-}
-
-function handleActiveTextColorChange (value?: string) {
-  const nextColor = value || DEFAULT_TEXT_COLOR;
-
-  if (!selectedTextShape.value) {
-    textDraftColor.value = nextColor;
-    return;
-  }
-
-  updateShape(selectedTextShape.value.id, shape => ({
-    ...(shape as TextShape),
-    fill: nextColor
-  }));
-  pushHistorySnapshot();
-}
-
-function handleActiveTextFontChange (value: string | number) {
-  const nextFontId = String(value);
-
-  if (!selectedTextShape.value) {
-    textDraftFontId.value = nextFontId;
-    return;
-  }
-
-  const dimensions = measureTextShapeDimensions(selectedTextShape.value.text, nextFontId);
-
-  updateShape(selectedTextShape.value.id, shape => ({
-    ...(shape as TextShape),
-    fontId: nextFontId,
-    ...dimensions
-  }));
-  pushHistorySnapshot();
-}
-
-function commitActiveTextChange () {
-  if (!selectedTextShape.value) {
-    return;
-  }
-
-  pushHistorySnapshot();
-}
-
-function commitSelectedTextBeforeSelectionChange () {
-  if (!selectedTextShape.value) {
-    return;
-  }
-
-  pushHistorySnapshot();
-}
-
-function undo () {
-  if (!canUndo.value) {
-    return;
-  }
-
-  historyIndex.value -= 1;
-  restoreSnapshot(historyEntries.value[historyIndex.value]);
-}
-
-function redo () {
-  if (!canRedo.value) {
-    return;
-  }
-
-  historyIndex.value += 1;
-  restoreSnapshot(historyEntries.value[historyIndex.value]);
-}
-
-function snapLogical (value: number): number {
-  return Math.round(value);
-}
-
-function snapStageCoordinate (value: number): number {
-  const { workspaceX, cellSize } = stageMetrics.value;
-  return workspaceX + (Math.round((value - workspaceX) / cellSize) * cellSize);
-}
-
-function workspaceViewportBounds () {
-  return {
-    left: stageMetrics.value.workspaceX,
-    top: stageMetrics.value.workspaceY,
-    right: stageMetrics.value.workspaceX + stageMetrics.value.workspaceWidth,
-    bottom: stageMetrics.value.workspaceY + stageMetrics.value.workspaceHeight
-  };
-}
-
-function stageDeltaToLogical (delta: number): number {
-  if (delta === 0) {
-    return 0;
-  }
-
-  const logicalDelta = delta / stageMetrics.value.cellSize;
-  return delta > 0 ? Math.ceil(logicalDelta) : Math.floor(logicalDelta);
-}
-
-function measureStage () {
-  stageWidth.value = stageContainerRef.value?.clientWidth || MIN_STAGE_WIDTH;
-}
-
-function getSelectedNode (): Konva.Rect | Konva.Image | Konva.Text | null {
-  const stage = stageRef.value?.getNode();
-
-  if (!stage || !selectedShapeId.value) {
-    return null;
-  }
-
-  return stage.findOne(`#${selectedShapeId.value}`) as Konva.Rect | Konva.Image | Konva.Text | null;
-}
-
-function syncTransformer () {
-  const transformer = transformerRef.value?.getNode();
-  const stage = stageRef.value?.getNode();
-
-  if (!transformer || !stage) {
-    return;
-  }
-
-  if (!selectedShapeId.value) {
-    transformer.nodes([]);
-    deleteButtonPosition.value = null;
-    rotationHandlePosition.value = null;
-    selectionHandlePosition.value = null;
-    overlayLayerRef.value?.getNode().batchDraw();
-    return;
-  }
-
-  const node = stage.findOne(`#${selectedShapeId.value}`);
-  transformer.nodes(node ? [node] : []);
-  transformer.forceUpdate();
-
-  updateDeleteButtonPosition();
-  overlayLayerRef.value?.getNode().batchDraw();
-}
-
-function updateDeleteButtonPosition () {
-  const selectedNode = getSelectedNode();
-
-  if (!selectedNode) {
-    deleteButtonPosition.value = null;
-    rotationHandlePosition.value = null;
-    selectionHandlePosition.value = null;
-    return;
-  }
-
-  const transform = selectedNode.getAbsoluteTransform();
-  const topLeftCorner = transform.point({ x: 0, y: 0 });
-  const topCenterCorner = transform.point({ x: selectedNode.width() / 2, y: 0 });
-  const rotationOffset = getStageDeltaFromLocalDelta(0, -stageMetrics.value.cellSize * 6, selectedNode.rotation());
-  const bottomRightCorner = transform.point({ x: selectedNode.width(), y: selectedNode.height() });
-
-  deleteButtonPosition.value = {
-    x: topLeftCorner.x,
-    y: topLeftCorner.y
-  };
-
-  rotationHandlePosition.value = {
-    x: topCenterCorner.x + rotationOffset.x,
-    y: topCenterCorner.y + rotationOffset.y
-  };
-
-  selectionHandlePosition.value = {
-    x: bottomRightCorner.x,
-    y: bottomRightCorner.y
-  };
-}
-
-function syncPixelatedDisplay () {
-  const displayGroup = displayGroupRef.value?.getNode();
-
-  if (!displayGroup) {
-    return;
-  }
-
-  displayGroup.clearCache();
-  displayGroup.cache({
-    x: 0,
-    y: 0,
-    width: stageMetrics.value.workspaceWidth,
-    height: stageMetrics.value.workspaceHeight,
-    pixelRatio: 1,
-    hitCanvasPixelRatio: 1,
-    imageSmoothingEnabled: false
-  });
-  displayGroup.filters([Konva.Filters.Pixelate]);
-  displayGroup.pixelSize(stageMetrics.value.cellSize);
-  displayLayerRef.value?.getNode().batchDraw();
-}
-
-function updateShape (shapeId: string, updater: (shape: EditorShape) => EditorShape) {
-  const shapeIndex = shapes.value.findIndex(shape => shape.id === shapeId);
-
-  if (shapeIndex === -1) {
-    return;
-  }
-
-  shapes.value.splice(shapeIndex, 1, updater(shapes.value[shapeIndex]));
-}
-
-function keepNodeVisibleInViewport (node: Konva.Rect | Konva.Image | Konva.Text) {
-  const stage = stageRef.value?.getNode();
-
-  if (!stage) {
-    return;
-  }
-
-  const rect = node.getClientRect({
-    relativeTo: stage,
-    skipStroke: true,
-    skipShadow: true
-  });
-  const viewport = workspaceViewportBounds();
-  const minVisible = stageMetrics.value.cellSize;
-
-  let deltaX = 0;
-  let deltaY = 0;
-
-  if (rect.x > viewport.right - minVisible) {
-    deltaX = viewport.right - minVisible - rect.x;
-  } else if (rect.x + rect.width < viewport.left + minVisible) {
-    deltaX = viewport.left + minVisible - (rect.x + rect.width);
-  }
-
-  if (rect.y > viewport.bottom - minVisible) {
-    deltaY = viewport.bottom - minVisible - rect.y;
-  } else if (rect.y + rect.height < viewport.top + minVisible) {
-    deltaY = viewport.top + minVisible - (rect.y + rect.height);
-  }
-
-  if (deltaX === 0 && deltaY === 0) {
-    return;
-  }
-
-  node.position({
-    x: snapLogical(node.x() + stageDeltaToLogical(deltaX)),
-    y: snapLogical(node.y() + stageDeltaToLogical(deltaY))
-  });
-}
-
-function getDragBoundPosition (position: Konva.Vector2d): Konva.Vector2d {
-  return {
-    x: snapLogical(position.x),
-    y: snapLogical(position.y)
-  };
-}
-
-function getDisplayRectConfig (shape: RectShape) {
-  return {
-    x: shape.x,
-    y: shape.y,
-    width: shape.width,
-    height: shape.height,
-    rotation: shape.rotation,
-    fill: shape.fill,
-    listening: false,
-    perfectDrawEnabled: false
-  };
-}
-
-function getDisplayImageConfig (shape: ImageShape) {
-  return {
-    x: shape.x,
-    y: shape.y,
-    width: shape.width,
-    height: shape.height,
-    rotation: shape.rotation,
-    image: shape.image,
-    listening: false,
-    imageSmoothingEnabled: false,
-    perfectDrawEnabled: false
-  };
-}
-
-function getDisplayTextConfig (shape: TextShape) {
-  const font = getFontOption(shape.fontId);
-
-  const displayOffsetY = (font.fontSize - font.capHeight) / 2;
-
-  return {
-    x: shape.x,
-    y: shape.y - displayOffsetY,
-    width: shape.width,
-    height: font.fontSize,
-    rotation: shape.rotation,
-    text: shape.text,
-    fill: shape.fill,
-    fontFamily: font.family,
-    fontSize: font.fontSize,
-    letterSpacing: 0,
-    listening: false,
-    perfectDrawEnabled: false
-  };
-}
-
-function getRectConfig (shape: RectShape) {
-  return {
-    id: shape.id,
-    x: shape.x,
-    y: shape.y,
-    width: shape.width,
-    height: shape.height,
-    rotation: shape.rotation,
-    fill: shape.fill,
-    opacity: 0,
-    draggable: true,
-    dragBoundFunc: getDragBoundPosition,
-    perfectDrawEnabled: false
-  };
-}
-
-function getImageConfig (shape: ImageShape) {
-  return {
-    id: shape.id,
-    x: shape.x,
-    y: shape.y,
-    width: shape.width,
-    height: shape.height,
-    rotation: shape.rotation,
-    image: shape.image,
-    opacity: 0,
-    draggable: true,
-    dragBoundFunc: getDragBoundPosition,
-    imageSmoothingEnabled: false,
-    perfectDrawEnabled: false
-  };
-}
-
-function getTextConfig (shape: TextShape) {
-  const font = getFontOption(shape.fontId);
-
-  return {
-    id: shape.id,
-    x: shape.x,
-    y: shape.y,
-    width: shape.width,
-    height: font.capHeight,
-    rotation: shape.rotation,
-    text: shape.text,
-    opacity: 0,
-    fontFamily: font.family,
-    fontSize: font.fontSize,
-    letterSpacing: 0,
-    draggable: true,
-    dragBoundFunc: getDragBoundPosition,
-    perfectDrawEnabled: false
-  };
-}
-
-function addRectangle () {
-  const rectangle: RectShape = {
-    id: createShapeId(),
-    type: 'rect',
-    x: 0,
-    y: 0,
-    width: 12,
-    height: 6,
-    rotation: 0,
-    fill: '#7dd3fc'
-  };
-
-  shapes.value.push(rectangle);
-  selectedShapeId.value = rectangle.id;
-  pushHistorySnapshot();
-}
-
-function addText () {
-  const dimensions = measureTextShapeDimensions(activeTextValue.value, activeTextFontId.value);
-  const textShape: TextShape = {
-    id: createShapeId(),
-    type: 'text',
-    x: 0,
-    y: 0,
-    rotation: 0,
-    text: activeTextValue.value,
-    fill: activeTextColor.value,
-    fontId: activeTextFontId.value,
-    ...dimensions
-  };
-
-  shapes.value.push(textShape);
-  selectedShapeId.value = textShape.id;
-  pushHistorySnapshot();
-}
-
-function deleteSelectedShape () {
-  if (!selectedShapeId.value) {
-    return;
-  }
-
-  shapes.value = shapes.value.filter(shape => shape.id !== selectedShapeId.value);
-  selectedShapeId.value = null;
-  pushHistorySnapshot();
-}
-
-function handleStagePointerDown (event: Konva.KonvaEventObject<MouseEvent | TouchEvent>) {
-  if (event.target !== event.target.getStage()) {
-    return;
-  }
-
-  commitSelectedTextBeforeSelectionChange();
-  selectedShapeId.value = null;
-}
-
-function handleShapePointerDown (event: Konva.KonvaEventObject<MouseEvent | TouchEvent>) {
-  if (event.target.id() !== selectedShapeId.value) {
-    commitSelectedTextBeforeSelectionChange();
-  }
-
-  selectedShapeId.value = event.target.id();
-}
-
-function syncNodePosition (node: Konva.Rect | Konva.Image | Konva.Text) {
-  const x = snapLogical(node.x());
-  const y = snapLogical(node.y());
-
-  node.position({ x, y });
-  keepNodeVisibleInViewport(node);
-
-  updateShape(node.id(), shape => ({
-    ...shape,
-    x: node.x(),
-    y: node.y()
-  }));
-}
-
-function normalizeTransformedNode (node: Konva.Rect | Konva.Image | Konva.Text) {
-  const width = Math.max(1, snapLogical(node.width() * node.scaleX()));
-  const height = Math.max(1, snapLogical(node.height() * node.scaleY()));
-  const rotation = node.rotation();
-
-  node.position({ x: snapLogical(node.x()), y: snapLogical(node.y()) });
-  node.width(width);
-  node.height(height);
-  node.rotation(rotation);
-  node.scaleX(1);
-  node.scaleY(1);
-  keepNodeVisibleInViewport(node);
-
-  updateShape(node.id(), shape => ({
-    ...shape,
-    x: node.x(),
-    y: node.y(),
-    width,
-    height,
-    rotation
-  }));
-}
-
-function syncRotatingNode (node: Konva.Rect | Konva.Image | Konva.Text) {
-  updateShape(node.id(), shape => ({
-    ...shape,
-    x: node.x(),
-    y: node.y(),
-    rotation: node.rotation()
-  }));
-}
-
-function handleShapeDragMove (event: Konva.KonvaEventObject<DragEvent>) {
-  syncNodePosition(event.target as Konva.Rect | Konva.Image | Konva.Text);
-  updateDeleteButtonPosition();
-  overlayLayerRef.value?.getNode().batchDraw();
-}
-
-function handleShapeDragEnd (event: Konva.KonvaEventObject<DragEvent>) {
-  syncNodePosition(event.target as Konva.Rect | Konva.Image | Konva.Text);
-  pushHistorySnapshot();
-}
-
-function handleShapeTransform () {
-  const transformer = transformerRef.value?.getNode();
-  const node = transformer?.nodes()[0] as Konva.Rect | Konva.Image | Konva.Text | undefined;
-
-  if (!node) {
-    return;
-  }
-
-  if (transformer?.getActiveAnchor() === 'rotater') {
-    syncRotatingNode(node);
-  } else {
-    normalizeTransformedNode(node);
-    transformer?.forceUpdate();
-  }
-
-  updateDeleteButtonPosition();
-  nextTick(syncPixelatedDisplay);
-  overlayLayerRef.value?.getNode().batchDraw();
-}
-
-function handleShapeTransformEnd (event: Konva.KonvaEventObject<Event>) {
-  const node = event.target as Konva.Rect | Konva.Image | Konva.Text;
-
-  normalizeTransformedNode(node);
-
-  pushHistorySnapshot();
-  nextTick(syncTransformer);
-}
-
-function resetImageUploadModal () {
-  imageUploadFile.value = null;
-  showImageUploadModal.value = false;
-}
-
-async function loadImage (file: File): Promise<HTMLImageElement> {
-  const url = URL.createObjectURL(file);
-
-  return new Promise((resolve, reject) => {
-    const image = new window.Image();
-
-    image.onload = () => {
-      URL.revokeObjectURL(url);
-      resolve(image);
-    };
-    image.onerror = () => {
-      URL.revokeObjectURL(url);
-      reject(new Error('Could not decode image file'));
-    };
-
-    image.src = url;
-  });
-}
+  await nextTick();
+  dts.textEditorRef?.focus();
+  const textLength = dts.textEditorRef?.value.length ?? 0;
+
+  dts.textEditorRef?.setSelectionRange(0, textLength);
+}, { flush: 'post' });
 
 async function insertImage () {
-  if (!imageUploadFile.value) {
+  if (!dts.imageUploadFile) {
     return;
   }
 
   try {
-    const imageElement = await loadImage(imageUploadFile.value);
-    const height = WORKSPACE_HEIGHT;
-    const width = Math.max(1, Math.round((imageElement.width / imageElement.height) * height));
+    const imageElement = await loadImageFile(dts.imageUploadFile);
 
-    const imageShape: ImageShape = {
-      id: createShapeId(),
-      type: 'image',
-      fileName: imageUploadFile.value.name,
-      x: 0,
-      y: 0,
-      width,
-      height,
-      rotation: 0,
-      image: imageElement
-    };
-
-    shapes.value.push(imageShape);
-    selectedShapeId.value = imageShape.id;
-    pushHistorySnapshot();
-    resetImageUploadModal();
+    dts.addImageShape(imageElement, dts.imageUploadFile.name);
+    dts.resetImageUploadModal();
   } catch (error) {
     toast.add({
       id: 'draw-tool-image-error',
-      title: 'Could not load image',
+      title: 'Failed to load image',
       description: error instanceof Error ? error.message : String(error),
       color: 'error',
       duration: 10000
     });
   }
-}
-
-async function loadEditorFonts () {
-  if (!('fonts' in document)) {
-    return;
-  }
-
-  await Promise.all(TEXT_FONT_OPTIONS.map(font => document.fonts.load(`${font.fontSize}px "${font.family}"`)));
-}
-
-function createExportStage (): { stage: Konva.Stage; container: HTMLDivElement } {
-  const container = document.createElement('div');
-
-  container.style.position = 'fixed';
-  container.style.left = '-99999px';
-  container.style.top = '0';
-  container.style.width = `${WORKSPACE_WIDTH}px`;
-  container.style.height = `${WORKSPACE_HEIGHT}px`;
-  document.body.append(container);
-
-  const stage = new Konva.Stage({
-    container,
-    width: WORKSPACE_WIDTH,
-    height: WORKSPACE_HEIGHT,
-    listening: false
-  });
-
-  return { stage, container };
 }
 
 function buildExportLayer (): Konva.Layer {
@@ -2040,13 +781,13 @@ function buildExportLayer (): Konva.Layer {
       y: 0,
       width: WORKSPACE_WIDTH,
       height: WORKSPACE_HEIGHT,
-      fill: backgroundColor.value,
+      fill: dts.backgroundColor,
       listening: false,
       perfectDrawEnabled: false
     }));
   }
 
-  shapes.value.forEach(shape => {
+  dts.shapes.forEach(shape => {
     if (shape.type === 'rect') {
       layer.add(new Konva.Rect({
         x: shape.x,
@@ -2096,7 +837,13 @@ function buildExportLayer (): Konva.Layer {
   });
 
   if (hasVisibleBorderColor.value) {
-    createBorderPixelConfigs(borderColor.value).forEach(({ key: _key, ...config }) => {
+    createBorderPixelConfigs(
+      dts.borderColor,
+      BORDER_RING_PIXELS,
+      dts.borderDashSize,
+      dts.borderGapSize,
+      dts.borderGapOffset
+    ).forEach(({ key: _key, ...config }) => {
       layer.add(new Konva.Rect(config));
     });
   }
@@ -2141,24 +888,24 @@ function downloadImage () {
 }
 
 onMounted(() => {
-  measureStage();
+  dts.measureStage();
 
   resizeObserver.value = new ResizeObserver(() => {
-    measureStage();
+    dts.measureStage();
   });
 
-  if (stageContainerRef.value) {
-    resizeObserver.value.observe(stageContainerRef.value);
+  if (dts.stageContainerRef) {
+    resizeObserver.value.observe(dts.stageContainerRef);
   }
 
   loadEditorFonts().then(() => {
-    nextTick(syncPixelatedDisplay);
+    nextTick(() => dts.syncPixelatedDisplay());
   });
-  nextTick(syncPixelatedDisplay);
+  nextTick(() => dts.syncPixelatedDisplay());
 });
 
 onBeforeUnmount(() => {
-  stopSelectionHandleDrag(false);
+  dts.stopSelectionHandleDrag(false);
   resizeObserver.value?.disconnect();
 });
 </script>
