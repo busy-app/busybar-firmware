@@ -167,7 +167,6 @@ static void ble_settings_set_icon_by_status(
         icon.front = "ble_front_checkmark_8x8.image";
         icon.back = "ble_back_paired_11x11.image";
     } else {
-        FURI_LOG_W(TAG, "Wrong state!");
         icon.front = "ble_front_gray_8x8.image";
         icon.back = "ble_back_11x11.image";
     }
