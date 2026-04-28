@@ -97,13 +97,12 @@ export type FontOption = {
 };
 
 export const TEXT_FONT_OPTIONS: FontOption[] = [
-  { id: 'busy_regular_5px', label: 'SMALL', family: 'busy_regular_5px', fontSize: 16, capHeight: 5 },
-  { id: 'busy_bold_7px', label: 'BOLD SMALL', family: 'busy_bold_7px', fontSize: 16, capHeight: 7 },
-  { id: 'busy_regular_7px', label: 'MEDIUM', family: 'busy_regular_7px', fontSize: 16, capHeight: 7 },
-  { id: 'busy_bold_10px', label: 'BOLD MEDIUM', family: 'busy_bold_10px', fontSize: 16, capHeight: 10 },
-  { id: 'busy_regular_9px', label: 'LARGE', family: 'busy_regular_9px', fontSize: 16, capHeight: 9 },
-  { id: 'LanaPixel_regular_11px', label: 'LanaPixel', family: 'LanaPixel_regular_11px', fontSize: 11, capHeight: 11 },
-  { id: 'busy_regular_14px', label: 'EXTRA LARGE', family: 'busy_regular_7px', fontSize: 32, capHeight: 14 }
+  { id: 'busy_regular_5px', label: 'Small', family: 'busy_regular_5px', fontSize: 16, capHeight: 5 },
+  { id: 'busy_regular_7px', label: 'Basic', family: 'busy_regular_7px', fontSize: 16, capHeight: 7 },
+  { id: 'busy_bold_7px', label: 'Basic bold', family: 'busy_bold_7px', fontSize: 16, capHeight: 7 },
+  { id: 'LanaPixel_regular_11px', label: 'Basic global', family: 'LanaPixel_regular_11px', fontSize: 11, capHeight: 11 },
+  { id: 'busy_regular_9px', label: 'Large', family: 'busy_regular_9px', fontSize: 16, capHeight: 9 },
+  { id: 'busy_bold_10px', label: 'Extra large', family: 'busy_bold_10px', fontSize: 16, capHeight: 10 }
 ];
 
 export const BORDER_RING_PIXELS: BorderPixel[] = [

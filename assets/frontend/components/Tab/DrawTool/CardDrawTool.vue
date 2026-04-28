@@ -14,46 +14,6 @@
               @click="dts.addRectangle"
             />
 
-            <UPopover>
-              <UButton
-                color="neutral"
-                variant="outline"
-                label="Edit text"
-              >
-                <template #leading>
-                  <span
-                    class="size-3 rounded-full ring-1 ring-default"
-                    :style="`background-color: ${activeTextColor}`"
-                  />
-                </template>
-              </UButton>
-
-              <template #content>
-                <div class="flex w-80 flex-col gap-3 p-3">
-                  <UInput
-                    :model-value="activeTextValue"
-                    placeholder="Text"
-                    @update:model-value="dts.handleActiveTextValueInput"
-                    @blur="dts.commitActiveTextChange"
-                  />
-
-                  <USelect
-                    :model-value="activeTextFontId"
-                    :items="TEXT_FONT_OPTIONS"
-                    :value-key="'id'"
-                    @update:model-value="dts.handleActiveTextFontChange"
-                  />
-
-                  <UColorPicker
-                    :model-value="activeTextColor"
-                    class="p-1"
-                    :throttle="50"
-                    @update:model-value="dts.handleActiveTextColorChange"
-                  />
-                </div>
-              </template>
-            </UPopover>
-
             <UButton
               label="Download image"
               color="neutral"
@@ -198,6 +158,77 @@
               @wheel.prevent
               @click.stop
             />
+
+            <div
+              v-if="selectedTextMenuStyle"
+              class="absolute z-30 flex items-center gap-2 bg-transparent"
+              :style="selectedTextMenuStyle"
+              @mousedown.stop
+              @click.stop
+            >
+              <USelect
+                :model-value="activeTextFontId"
+                :items="TEXT_FONT_OPTIONS"
+                :value-key="'id'"
+                color="neutral"
+                variant="outline"
+                size="sm"
+                class="w-40"
+                @update:model-value="dts.handleActiveTextFontChange"
+                >
+                  <template #default>
+                    <span
+                      :style="{
+                        fontFamily: activeTextFont.family,
+                        fontSize: `calc(1rem + ${activeTextFont.fontSize - activeTextFont.capHeight}px)`,
+                        lineHeight: '1rem'
+                      }"
+                    >
+                      {{ activeTextFont.label }}
+                    </span>
+                  </template>
+
+                  <template #item-label="{ item }">
+                    <span
+                      :style="{
+                        fontFamily: item.family,
+                        fontSize: `calc(1rem + ${item.fontSize - item.capHeight}px)`,
+                        lineHeight: '1rem'
+                      }"
+                    >
+                      {{ item.label }}
+                    </span>
+                  </template>
+                </USelect>
+
+              <UPopover>
+                <UButton
+                  color="neutral"
+                  variant="outline"
+                  size="sm"
+                  label="Color"
+                  class="bg-default"
+                >
+                  <template #leading>
+                    <span
+                      class="size-3 rounded-full ring-1 ring-default"
+                      :style="`background-color: ${activeTextColor}`"
+                    />
+                  </template>
+                </UButton>
+
+                <template #content>
+                  <div class="p-3">
+                    <ColorPicker
+                      :model-value="activeTextColor"
+                      class="p-1"
+                      :throttle="50"
+                      @update:model-value="dts.handleActiveTextColorChange"
+                    />
+                  </div>
+                </template>
+              </UPopover>
+            </div>
 
             <UButton
               v-if="deleteButtonStyle"
@@ -519,6 +550,8 @@ const showGrid = ref(true);
 const dts = useDrawToolStore();
 const dtsRefs = storeToRefs(dts);
 
+const FLOATING_TEXT_MENU_HEIGHT = 40;
+const FLOATING_TEXT_MENU_GAP = 8;
 const toolbarLabeledButtonClass = 'flex flex-col items-center gap-2 p-2 rounded-xl text-xs';
 const toolbarIconButtonClass = 'rounded-xl';
 
@@ -730,6 +763,26 @@ const canResetBorder = computed(() => {
 const activeTextValue = computed(() => selectedTextShape.value?.text ?? dts.textDraftValue);
 const activeTextColor = computed(() => selectedTextShape.value?.fill ?? dts.textDraftColor);
 const activeTextFontId = computed(() => selectedTextShape.value?.fontId ?? dts.textDraftFontId);
+const activeTextFont = computed(() => getFontOption(activeTextFontId.value));
+const selectedTextEditorBounds = computed(() => {
+  if (!selectedTextShape.value) {
+    return null;
+  }
+
+  const font = getFontOption(selectedTextShape.value.fontId);
+  const displayConfig = getDisplayTextConfig(selectedTextShape.value);
+  const textConfig = getTextConfig(selectedTextShape.value);
+
+  return {
+    left: stageMetrics.value.workspaceX + (displayConfig.x * stageMetrics.value.cellSize),
+    top: stageMetrics.value.workspaceY + ((displayConfig.y + (font.fontSize - font.capHeight) / 2) * stageMetrics.value.cellSize),
+    width: textConfig.width * stageMetrics.value.cellSize,
+    height: textConfig.height * stageMetrics.value.cellSize,
+    fontFamily: font.family,
+    fontSize: font.fontSize * stageMetrics.value.cellSize,
+    lineHeight: font.capHeight * stageMetrics.value.cellSize
+  };
+});
 
 const deleteButtonStyle = computed(() => {
   if (!dts.deleteButtonPosition) {
@@ -769,33 +822,42 @@ const selectionHandleStyle = computed(() => {
   };
 });
 const selectedTextTextareaStyle = computed(() => {
-  if (!selectedTextShape.value) {
+  if (!selectedTextShape.value || !selectedTextEditorBounds.value) {
     return '';
   }
 
-  const font = getFontOption(selectedTextShape.value.fontId);
-  const displayConfig = getDisplayTextConfig(selectedTextShape.value);
-  const textConfig = getTextConfig(selectedTextShape.value);
-  const fontSize = font.fontSize * stageMetrics.value.cellSize;
-  const lineHeight = font.capHeight * stageMetrics.value.cellSize;
-  const textareaWidth = textConfig.width * stageMetrics.value.cellSize;
-  const textareaHeight = textConfig.height * stageMetrics.value.cellSize;
-
   return {
-    left: `${stageMetrics.value.workspaceX + (displayConfig.x * stageMetrics.value.cellSize)}px`,
-    top: `${stageMetrics.value.workspaceY + ((displayConfig.y + (font.fontSize - font.capHeight) / 2) * stageMetrics.value.cellSize)}px`,
-    width: `${textareaWidth}px`,
-    height: `${textareaHeight}px`,
+    left: `${selectedTextEditorBounds.value.left}px`,
+    top: `${selectedTextEditorBounds.value.top}px`,
+    width: `${selectedTextEditorBounds.value.width}px`,
+    height: `${selectedTextEditorBounds.value.height}px`,
     color: selectedTextShape.value.fill,
     caretColor: 'white',
     opacity: '0.9',
-    fontFamily: font.family,
-    fontSize: `${fontSize}px`,
-    lineHeight: `${lineHeight}px`,
+    fontFamily: selectedTextEditorBounds.value.fontFamily,
+    fontSize: `${selectedTextEditorBounds.value.fontSize}px`,
+    lineHeight: `${selectedTextEditorBounds.value.lineHeight}px`,
     overflow: 'hidden',
     whiteSpace: 'pre',
     textAlign: 'left'
   } as const;
+});
+const selectedTextMenuStyle = computed<Record<string, string> | null>(() => {
+  if (!selectedTextEditorBounds.value) {
+    return null;
+  }
+
+  const stageContainerRect = dts.stageContainerRef?.getBoundingClientRect();
+  const editorTopInViewport = (stageContainerRect?.top ?? 0) + selectedTextEditorBounds.value.top;
+  const hasSpaceAbove = editorTopInViewport >= FLOATING_TEXT_MENU_HEIGHT + FLOATING_TEXT_MENU_GAP;
+  const top = hasSpaceAbove
+    ? selectedTextEditorBounds.value.top - FLOATING_TEXT_MENU_HEIGHT - FLOATING_TEXT_MENU_GAP
+    : selectedTextEditorBounds.value.top + selectedTextEditorBounds.value.height + FLOATING_TEXT_MENU_GAP;
+
+  return {
+    left: `${selectedTextEditorBounds.value.left}px`,
+    top: `${top}px`
+  };
 });
 
 watch(() => [selectedShapeSyncKey.value, stageMetrics.value.cellSize], async () => {
