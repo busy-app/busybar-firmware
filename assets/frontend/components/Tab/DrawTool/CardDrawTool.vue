@@ -5,21 +5,78 @@
       class="overflow-visible"
     >
       <template #raw-body>
-        <div class="flex flex-col gap-6 my-6">
-          <div class="flex flex-wrap gap-4">
-            <UButton
-              label="Add rectangle"
-              color="neutral"
-              variant="outline"
-              @click="dts.addRectangle"
-            />
+        <div class="flex flex-col gap-6 mb-6 pt-6">
+          <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <div class="min-w-0 text-lg font-medium text-toned truncate">
+              {{ displayStatusFileName }}
+            </div>
 
-            <UButton
-              label="Download image"
-              color="neutral"
-              variant="solid"
-              @click="downloadImage"
-            />
+            <div class="flex flex-wrap gap-4">
+              <!-- <UButton
+                label="Add rectangle"
+                color="neutral"
+                variant="outline"
+                @click="dts.addRectangle"
+              /> -->
+
+              <UTooltip
+                :delay-duration="0"
+                :text="!dts.hasEditorContent ? 'Nothing to save' : undefined"
+              >
+                <UButtonGroup>
+                  <UTooltip
+                    :delay-duration="0"
+                    :text="dts.hasEditorContent ? (!hasSavedStatusFile ? 'Save to BUSY Bar' : 'Save changes to file') : undefined"
+                    :kbds="['meta', 'S']"
+                  >
+                    <UButton
+                      label="Save"
+                      color="neutral"
+                      variant="outline"
+                      :disabled="!dts.hasEditorContent"
+                      @click="saveStatus()"
+                    />
+                  </UTooltip>
+                  <UDropdownMenu
+                    :items="[
+                      ...(hasSavedStatusFile
+                        ? [
+                          {
+                            label: 'Save as new file',
+                            icon: 'i-bi-plus',
+                            disabled: !dts.hasEditorContent,
+                            onClick: () => saveStatus({ saveAsNew: true })
+                          }
+                        ]
+                        : []),
+                      {
+                        label: 'Download PNG',
+                        icon: 'i-bi-download',
+                        onClick: downloadImage
+                      }
+                    ]"
+                    :content="{
+                      align: 'end',
+                      side: 'bottom',
+                      sideOffset: 8
+                    }"
+                    :ui="{
+                      content: 'min-w-40 bg-elevated ring-accented/50',
+                      group: 'border-accented/50',
+                      item: 'data-[state=open]:before:bg-accented/50 data-highlighted:before:bg-accented/50',
+                      itemLabelExternalIcon: 'hidden'
+                    }"
+                  >
+                    <UButton
+                      icon="i-bi-chevron-down"
+                      color="neutral"
+                      variant="outline"
+                      :disabled="!dts.hasEditorContent"
+                    />
+                  </UDropdownMenu>
+                </UButtonGroup>
+              </UTooltip>
+            </div>
           </div>
         </div>
 
@@ -531,8 +588,8 @@
           variant="ghost"
           square
           :class="toolbarIconButtonClass"
-          :disabled="!selectedShape"
-          @click="dts.deleteSelectedShape"
+          :disabled="!dts.hasEditorContent"
+          @click="dts.clearStage"
         >
           <UIcon
             name="i-bi-trash"
@@ -573,13 +630,22 @@ const showGrid = ref(true);
 
 const dts = useDrawToolStore();
 const dtsRefs = storeToRefs(dts);
+const { statusFileName, savedStatusFilePath, hasSavedStatusFile } = dtsRefs;
+const displayStatusFileName = computed(() => {
+  if (statusFileName.value === DEFAULT_STATUS_FILE_NAME) {
+    return statusFileName.value;
+  }
+  return dts.hasUnsavedChanges ? `${statusFileName.value}*` : statusFileName.value;
+});
 
 const FLOATING_TEXT_MENU_HEIGHT = 40;
 const FLOATING_TEXT_MENU_GAP = 8;
+const DRAW_TOOL_SAVE_DIR = '/ext/apps_assets/draw_tool';
 const TOOLBAR_MAX_CANVAS_GAP = 48;
 const TOOLBAR_VIEWPORT_BOTTOM_OFFSET = 24;
 const toolbarLabeledButtonClass = 'flex flex-col items-center gap-2 p-2 rounded-xl text-xs';
 const toolbarIconButtonClass = 'rounded-xl';
+const isSavingStatus = ref(false);
 const toolbarContainerClass = computed(() => {
   return toolbarShouldStickToViewport.value
     ? 'fixed inset-x-0 z-40 flex justify-center px-4'
@@ -984,12 +1050,24 @@ function isEditableKeyboardTarget (target: EventTarget | null) {
 }
 
 function handleWindowKeyDown (event: KeyboardEvent) {
+  const normalizedKey = event.key.toLowerCase();
+  const isPrimaryModifierPressed = (event.metaKey || event.ctrlKey) && !event.altKey;
+
+  if (isPrimaryModifierPressed && normalizedKey === 's' && !event.shiftKey) {
+    event.preventDefault();
+
+    if (!isSavingStatus.value) {
+      void saveStatus();
+    }
+
+    return;
+  }
+
   if (isEditableKeyboardTarget(event.target)) {
     return;
   }
 
-  const normalizedKey = event.key.toLowerCase();
-  const isUndoModifierPressed = (event.metaKey || event.ctrlKey) && !event.altKey;
+  const isUndoModifierPressed = isPrimaryModifierPressed;
 
   if (isUndoModifierPressed) {
     if (normalizedKey === 'z') {
@@ -1133,21 +1211,7 @@ function buildExportLayer (): Konva.Layer {
     }
 
     if (shape.type === 'text') {
-      const font = getFontOption(shape.fontId);
-
-      layer.add(new Konva.Text({
-        x: shape.x,
-        y: shape.y,
-        width: shape.width,
-        height: shape.height,
-        rotation: shape.rotation,
-        text: shape.text,
-        fill: shape.fill,
-        fontFamily: font.family,
-        fontSize: font.fontSize,
-        listening: false,
-        perfectDrawEnabled: false
-      }));
+      layer.add(new Konva.Text(getDisplayTextConfig(shape)));
 
       return;
     }
@@ -1180,7 +1244,28 @@ function buildExportLayer (): Konva.Layer {
   return layer;
 }
 
-function downloadImage () {
+function createStatusTimestamp (date = new Date()) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  const seconds = String(date.getSeconds()).padStart(2, '0');
+
+  return `${year}-${month}-${day}_${hours}-${minutes}-${seconds}`;
+}
+
+function createNextStatusFileName () {
+  let candidate = `${createStatusTimestamp()}.png`;
+
+  if (candidate === statusFileName.value) {
+    candidate = `${createStatusTimestamp(new Date(Date.now() + 1000))}.png`;
+  }
+
+  return candidate;
+}
+
+function renderExportPngDataUrl () {
   let exportStage: Konva.Stage | null = null;
   let exportContainer: HTMLDivElement | null = null;
 
@@ -1197,11 +1282,91 @@ function downloadImage () {
       mimeType: 'image/png',
       pixelRatio: 1
     });
-    const link = document.createElement('a');
+    return dataUrl;
+  } finally {
+    exportStage?.destroy();
+    exportContainer?.remove();
+  }
+}
 
-    link.href = dataUrl;
-    link.download = 'draw-tool.png';
+async function createExportPngFile (fileName: string) {
+  const dataUrl = renderExportPngDataUrl();
+  const response = await fetch(dataUrl);
+  const blob = await response.blob();
+
+  return new File([blob], fileName, { type: 'image/png' });
+}
+
+async function ensureSaveDirectoryExists () {
+  const deviceStore = useDeviceStore();
+
+  try {
+    await deviceStore.busyBar.StorageMkdir({ path: DRAW_TOOL_SAVE_DIR, timeout: 10000 });
+  } catch (mkdirError) {
+    try {
+      await deviceStore.busyBar.StorageListGet({ path: DRAW_TOOL_SAVE_DIR, timeout: 10000 });
+    } catch {
+      throw mkdirError;
+    }
+  }
+}
+
+async function saveStatus (options?: { saveAsNew?: boolean }) {
+  if (!dts.hasEditorContent) {
+    return;
+  }
+
+  const deviceStore = useDeviceStore();
+  const saveAsNew = !!options?.saveAsNew;
+  const hadSavedStatusFile = hasSavedStatusFile.value;
+  const fileName = saveAsNew || !savedStatusFilePath.value
+    ? createNextStatusFileName()
+    : statusFileName.value;
+  const targetPath = saveAsNew || !savedStatusFilePath.value
+    ? `${DRAW_TOOL_SAVE_DIR}/${fileName}`
+    : savedStatusFilePath.value;
+
+  if (!targetPath) {
+    return;
+  }
+
+  isSavingStatus.value = true;
+
+  try {
+    await ensureSaveDirectoryExists();
+
+    const file = await createExportPngFile(fileName);
+
+    await deviceStore.busyBar.StorageWrite({
+      path: targetPath,
+      file,
+      timeout: 0
+    });
+
+    dts.markStatusSaved(fileName, targetPath);
+    toast.add({
+      id: 'draw-tool-save-success',
+      title: saveAsNew || !hadSavedStatusFile ? 'Saved as new file' : 'Saved to device',
+      description: `${DRAW_TOOL_SAVE_DIR}/${fileName}`,
+      color: 'success'
+    });
+  } catch (error) {
+    await handleHTTPError(error, `Couldn't save ${fileName}`, false, 10000);
+  } finally {
+    isSavingStatus.value = false;
+  }
+}
+
+async function downloadImage () {
+  try {
+    const file = await createExportPngFile('draw-tool.png');
+    const link = document.createElement('a');
+    const objectUrl = URL.createObjectURL(file);
+
+    link.href = objectUrl;
+    link.download = file.name;
     link.click();
+    URL.revokeObjectURL(objectUrl);
   } catch (error) {
     toast.add({
       id: 'draw-tool-download-error',
@@ -1210,9 +1375,6 @@ function downloadImage () {
       color: 'error',
       duration: 10000
     });
-  } finally {
-    exportStage?.destroy();
-    exportContainer?.remove();
   }
 }
 

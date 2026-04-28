@@ -20,6 +20,7 @@ export const MAX_BORDER_DASH_SIZE = 72;
 export const DEFAULT_TEXT_VALUE = 'Text';
 export const DEFAULT_TEXT_COLOR = '#ffffff';
 export const DEFAULT_TEXT_FONT_ID = 'busy_regular_7px';
+export const DEFAULT_STATUS_FILE_NAME = 'New status';
 
 export type KonvaRef<T extends Konva.Node> = {
   getNode: () => T;

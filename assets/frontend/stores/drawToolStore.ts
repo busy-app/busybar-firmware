@@ -18,15 +18,20 @@ type SelectionHandleDragState = {
   startPointerAngle?: number;
 };
 
-interface HistorySnapshot {
+interface EditorSnapshot {
   shapes: EditorShape[];
-  selectedShapeId: string | null;
   backgroundColor: string;
   borderColor: string;
   borderGapSize: number;
   borderDashSize: number;
   borderGapOffset: number;
 }
+
+interface HistorySnapshot extends EditorSnapshot {
+  selectedShapeId: string | null;
+}
+
+let hasRegisteredDrawToolBeforeUnloadListener = false;
 
 export const useDrawToolStore = defineStore('drawTool', () => {
   const stageContainerRef = ref<HTMLDivElement | null>(null);
@@ -56,17 +61,41 @@ export const useDrawToolStore = defineStore('drawTool', () => {
   const textDraftFontId = ref(DEFAULT_TEXT_FONT_ID);
   const showImageUploadModal = ref(false);
   const imageUploadFile = ref<File | null>(null);
+  const statusFileName = ref(DEFAULT_STATUS_FILE_NAME);
+  const savedStatusFilePath = ref<string | null>(null);
+  const lastSavedSnapshot = ref<EditorSnapshot | null>(null);
+
+  function createDefaultEditorSnapshot (): EditorSnapshot {
+    return {
+      shapes: [],
+      backgroundColor: DEFAULT_BACKGROUND_COLOR,
+      borderColor: DEFAULT_BORDER_COLOR,
+      borderGapSize: DEFAULT_BORDER_GAP_SIZE,
+      borderDashSize: DEFAULT_BORDER_DASH_SIZE,
+      borderGapOffset: DEFAULT_BORDER_GAP_OFFSET
+    };
+  }
+
+  const defaultEditorSnapshot = createDefaultEditorSnapshot();
 
   const historyEntries = ref<HistorySnapshot[]>([{
-    shapes: [],
-    selectedShapeId: null,
-    backgroundColor: DEFAULT_BACKGROUND_COLOR,
-    borderColor: DEFAULT_BORDER_COLOR,
-    borderGapSize: DEFAULT_BORDER_GAP_SIZE,
-    borderDashSize: DEFAULT_BORDER_DASH_SIZE,
-    borderGapOffset: DEFAULT_BORDER_GAP_OFFSET
+    ...createDefaultEditorSnapshot(),
+    selectedShapeId: null
   }]);
   const historyIndex = ref(0);
+  const hasSavedStatusFile = computed(() => !!savedStatusFilePath.value);
+  const hasEditorContent = computed(() => {
+    return !areEditorSnapshotsEqual(defaultEditorSnapshot, createEditorSnapshot());
+  });
+  const hasUnsavedChanges = computed(() => {
+    const currentSnapshot = createEditorSnapshot();
+
+    if (lastSavedSnapshot.value) {
+      return !areEditorSnapshotsEqual(lastSavedSnapshot.value, currentSnapshot);
+    }
+
+    return !areEditorSnapshotsEqual(defaultEditorSnapshot, currentSnapshot);
+  });
 
   function setStageMetrics (metrics: DrawToolStageMetrics) {
     stageMetrics.value = metrics;
@@ -108,10 +137,9 @@ export const useDrawToolStore = defineStore('drawTool', () => {
     borderGapOffset.value = nextBorderSettings.borderGapOffset;
   }
 
-  function createHistorySnapshot (): HistorySnapshot {
+  function createEditorSnapshot (): EditorSnapshot {
     return {
       shapes: shapes.value.map(shape => cloneShape(shape)),
-      selectedShapeId: selectedShapeId.value,
       backgroundColor: backgroundColor.value,
       borderColor: borderColor.value,
       borderGapSize: borderGapSize.value,
@@ -120,10 +148,16 @@ export const useDrawToolStore = defineStore('drawTool', () => {
     };
   }
 
-  function areSnapshotsEqual (left: HistorySnapshot | undefined, right: HistorySnapshot): boolean {
+  function createHistorySnapshot (): HistorySnapshot {
+    return {
+      ...createEditorSnapshot(),
+      selectedShapeId: selectedShapeId.value
+    };
+  }
+
+  function areEditorSnapshotsEqual (left: EditorSnapshot | undefined, right: EditorSnapshot): boolean {
     if (
       !left
-      || left.selectedShapeId !== right.selectedShapeId
       || left.backgroundColor !== right.backgroundColor
       || left.borderColor !== right.borderColor
       || left.borderGapSize !== right.borderGapSize
@@ -135,6 +169,37 @@ export const useDrawToolStore = defineStore('drawTool', () => {
     }
 
     return left.shapes.every((shape, index) => areShapesEqual(shape, right.shapes[index]));
+  }
+
+  function areSnapshotsEqual (left: HistorySnapshot | undefined, right: HistorySnapshot): boolean {
+    if (
+      !left
+      || left.selectedShapeId !== right.selectedShapeId
+    ) {
+      return false;
+    }
+
+    return areEditorSnapshotsEqual(left, right);
+  }
+
+  function markStatusSaved (fileName: string, path: string) {
+    statusFileName.value = fileName;
+    savedStatusFilePath.value = path;
+    lastSavedSnapshot.value = createEditorSnapshot();
+  }
+
+  const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+    if (!hasUnsavedChanges.value) {
+      return;
+    }
+
+    event.preventDefault();
+    event.returnValue = '';
+  };
+
+  if (import.meta.client && !hasRegisteredDrawToolBeforeUnloadListener) {
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    hasRegisteredDrawToolBeforeUnloadListener = true;
   }
 
   function pushHistorySnapshot () {
@@ -695,6 +760,21 @@ export const useDrawToolStore = defineStore('drawTool', () => {
     pushHistorySnapshot();
   }
 
+  function clearStage () {
+    if (!hasEditorContent.value) {
+      return;
+    }
+
+    shapes.value = [];
+    selectedShapeId.value = null;
+    backgroundColor.value = DEFAULT_BACKGROUND_COLOR;
+    borderColor.value = DEFAULT_BORDER_COLOR;
+    borderGapSize.value = DEFAULT_BORDER_GAP_SIZE;
+    borderDashSize.value = DEFAULT_BORDER_DASH_SIZE;
+    borderGapOffset.value = DEFAULT_BORDER_GAP_OFFSET;
+    pushHistorySnapshot();
+  }
+
   function moveSelectedShape (deltaX: number, deltaY: number) {
     if (!selectedShapeId.value || (deltaX === 0 && deltaY === 0)) {
       return;
@@ -819,6 +899,11 @@ export const useDrawToolStore = defineStore('drawTool', () => {
     textDraftValue,
     textDraftColor,
     textDraftFontId,
+    statusFileName,
+    savedStatusFilePath,
+    hasSavedStatusFile,
+    hasEditorContent,
+    hasUnsavedChanges,
     historyEntries,
     historyIndex,
     showImageUploadModal,
@@ -846,6 +931,8 @@ export const useDrawToolStore = defineStore('drawTool', () => {
     addRectangle,
     addText,
     addImageShape,
+    markStatusSaved,
+    clearStage,
     deleteSelectedShape,
     moveSelectedShape,
     rotateSelectedShape,
