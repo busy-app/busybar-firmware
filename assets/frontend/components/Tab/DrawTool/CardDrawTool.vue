@@ -693,7 +693,7 @@ watch(stageMetrics, metrics => {
   dts.setStageMetrics(metrics);
 }, { immediate: true });
 
-watch(dts.shapes, async () => {
+watch(() => dts.shapes, async () => {
   await nextTick();
   dts.syncPixelatedDisplay();
 }, { deep: true });
