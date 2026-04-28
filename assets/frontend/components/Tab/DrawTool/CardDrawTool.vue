@@ -220,6 +220,7 @@
                 <template #content>
                   <div class="p-3">
                     <ColorPicker
+                  data-draw-tool-preserve-selection
                       :model-value="activeTextColor"
                       class="p-1"
                       :throttle="50"
@@ -431,6 +432,7 @@
           color="neutral"
           variant="ghost"
           :class="toolbarLabeledButtonClass"
+          data-draw-tool-preserve-selection
           @click="dts.addText(activeTextValue, activeTextColor, activeTextFontId)"
         >
           <UIcon
@@ -884,6 +886,29 @@ function updateStageContainerViewportTop () {
   stageContainerViewportTop.value = dts.stageContainerRef?.getBoundingClientRect().top ?? 0;
 }
 
+function handleWindowClick (event: MouseEvent) {
+  if (!dts.selectedShapeId) {
+    return;
+  }
+
+  const path = typeof event.composedPath === 'function' ? event.composedPath() : [];
+
+  if (dts.stageContainerRef && path.includes(dts.stageContainerRef)) {
+    return;
+  }
+
+  const shouldPreserveSelection = path.some(target => {
+    return target instanceof HTMLElement && target.hasAttribute('data-draw-tool-preserve-selection');
+  });
+
+  if (shouldPreserveSelection) {
+    return;
+  }
+
+  dts.commitActiveTextChange();
+  dts.selectedShapeId = null;
+}
+
 function schedulePixelatedDisplaySync () {
   if (pixelatedDisplayFrame.value !== null) {
     return;
@@ -1057,6 +1082,7 @@ onMounted(() => {
 
   window.addEventListener('scroll', updateStageContainerViewportTop, { passive: true });
   window.addEventListener('resize', updateStageContainerViewportTop);
+  window.addEventListener('click', handleWindowClick);
 
   loadEditorFonts().then(() => {
     nextTick(schedulePixelatedDisplaySync);
@@ -1069,6 +1095,7 @@ onBeforeUnmount(() => {
   resizeObserver.value?.disconnect();
   window.removeEventListener('scroll', updateStageContainerViewportTop);
   window.removeEventListener('resize', updateStageContainerViewportTop);
+  window.removeEventListener('click', handleWindowClick);
 
   if (pixelatedDisplayFrame.value !== null) {
     cancelAnimationFrame(pixelatedDisplayFrame.value);
