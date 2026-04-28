@@ -163,6 +163,7 @@
               v-if="selectedTextMenuStyle"
               class="absolute z-30 flex items-center gap-2 bg-transparent"
               :style="selectedTextMenuStyle"
+              data-draw-tool-preserve-selection
               @mousedown.stop
               @click.stop
             >
@@ -170,10 +171,12 @@
                 :model-value="activeTextFontId"
                 :items="TEXT_FONT_OPTIONS"
                 :value-key="'id'"
+                :ui="{ content: 'draw-tool-preserve-selection' }"
                 color="neutral"
                 variant="outline"
                 size="sm"
                 class="w-40"
+                data-draw-tool-preserve-selection
                 @update:model-value="dts.handleActiveTextFontChange"
                 >
                   <template #default>
@@ -208,6 +211,7 @@
                   size="sm"
                   label="Color"
                   class="bg-default"
+                  data-draw-tool-preserve-selection
                 >
                   <template #leading>
                     <span
@@ -218,9 +222,12 @@
                 </UButton>
 
                 <template #content>
-                  <div class="p-3">
+                  <div
+                    class="p-3"
+                    data-draw-tool-preserve-selection
+                  >
                     <ColorPicker
-                  data-draw-tool-preserve-selection
+                      data-draw-tool-preserve-selection
                       :model-value="activeTextColor"
                       class="p-1"
                       :throttle="50"
@@ -553,6 +560,7 @@ const resizeObserver = ref<ResizeObserver | null>(null);
 const pixelatedDisplayFrame = ref<number | null>(null);
 const transformerFrame = ref<number | null>(null);
 const stageContainerViewportTop = ref(0);
+const preserveSelectionUntilClick = ref(false);
 const showGrid = ref(true);
 
 const dts = useDrawToolStore();
@@ -889,20 +897,34 @@ function updateStageContainerViewportTop () {
   stageContainerViewportTop.value = dts.stageContainerRef?.getBoundingClientRect().top ?? 0;
 }
 
-function handleWindowClick (event: MouseEvent) {
-  if (!dts.selectedShapeId) {
-    return;
-  }
-
+function shouldPreserveSelectionForEvent (event: Event) {
   const path = typeof event.composedPath === 'function' ? event.composedPath() : [];
 
   if (dts.stageContainerRef && path.includes(dts.stageContainerRef)) {
+    return true;
+  }
+
+  return path.some(target => {
+    return target instanceof HTMLElement
+      && (
+        target.hasAttribute('data-draw-tool-preserve-selection')
+        || target.classList.contains('draw-tool-preserve-selection')
+      );
+  });
+}
+
+function handleWindowPointerDown (event: PointerEvent) {
+  preserveSelectionUntilClick.value = shouldPreserveSelectionForEvent(event);
+}
+
+function handleWindowClick (event: MouseEvent) {
+  if (!dts.selectedShapeId) {
+    preserveSelectionUntilClick.value = false;
     return;
   }
 
-  const shouldPreserveSelection = path.some(target => {
-    return target instanceof HTMLElement && target.hasAttribute('data-draw-tool-preserve-selection');
-  });
+  const shouldPreserveSelection = preserveSelectionUntilClick.value || shouldPreserveSelectionForEvent(event);
+  preserveSelectionUntilClick.value = false;
 
   if (shouldPreserveSelection) {
     return;
@@ -1171,6 +1193,7 @@ onMounted(() => {
 
   window.addEventListener('scroll', updateStageContainerViewportTop, { passive: true });
   window.addEventListener('resize', updateStageContainerViewportTop);
+  window.addEventListener('pointerdown', handleWindowPointerDown);
   window.addEventListener('click', handleWindowClick);
   window.addEventListener('keydown', handleWindowKeyDown);
 
@@ -1185,6 +1208,7 @@ onBeforeUnmount(() => {
   resizeObserver.value?.disconnect();
   window.removeEventListener('scroll', updateStageContainerViewportTop);
   window.removeEventListener('resize', updateStageContainerViewportTop);
+  window.removeEventListener('pointerdown', handleWindowPointerDown);
   window.removeEventListener('click', handleWindowClick);
   window.removeEventListener('keydown', handleWindowKeyDown);
 
