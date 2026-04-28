@@ -1195,8 +1195,12 @@ async function insertImage () {
   }
 }
 
-function buildExportLayer (): Konva.Layer {
-  const layer = new Konva.Layer({ listening: false });
+function buildExportLayer (scale = 1): Konva.Layer {
+  const layer = new Konva.Layer({
+    listening: false,
+    scaleX: scale,
+    scaleY: scale
+  });
 
   if (hasVisibleBackgroundColor.value) {
     layer.add(new Konva.Rect({
@@ -1260,6 +1264,84 @@ function buildExportLayer (): Konva.Layer {
   return layer;
 }
 
+function parseRgbaKey (key: string) {
+  const [red, green, blue, alpha] = key.split(',').map(Number);
+
+  return { red, green, blue, alpha };
+}
+
+function getDominantCellColor (
+  pixels: Uint8ClampedArray,
+  sourceWidth: number,
+  startX: number,
+  startY: number,
+  cellSize: number
+) {
+  let dominantKey = '0,0,0,0';
+  let dominantCount = 0;
+  const colorCounts = new Map<string, number>();
+
+  for (let y = startY; y < startY + cellSize; y += 1) {
+    for (let x = startX; x < startX + cellSize; x += 1) {
+      const pixelIndex = ((y * sourceWidth) + x) * 4;
+      const colorKey = [
+        pixels[pixelIndex],
+        pixels[pixelIndex + 1],
+        pixels[pixelIndex + 2],
+        pixels[pixelIndex + 3]
+      ].join(',');
+      const nextCount = (colorCounts.get(colorKey) || 0) + 1;
+
+      colorCounts.set(colorKey, nextCount);
+
+      if (nextCount > dominantCount) {
+        dominantKey = colorKey;
+        dominantCount = nextCount;
+      }
+    }
+  }
+
+  return parseRgbaKey(dominantKey);
+}
+
+function buildLogicalExportCanvas (sourceCanvas: HTMLCanvasElement, cellSize: number) {
+  const sourceContext = sourceCanvas.getContext('2d', { willReadFrequently: true });
+  const logicalCanvas = document.createElement('canvas');
+  const logicalContext = logicalCanvas.getContext('2d');
+
+  logicalCanvas.width = WORKSPACE_WIDTH;
+  logicalCanvas.height = WORKSPACE_HEIGHT;
+
+  if (!sourceContext || !logicalContext) {
+    throw new Error('Could not create export canvas context');
+  }
+
+  const sourceImageData = sourceContext.getImageData(0, 0, sourceCanvas.width, sourceCanvas.height);
+  const logicalImageData = logicalContext.createImageData(WORKSPACE_WIDTH, WORKSPACE_HEIGHT);
+
+  for (let y = 0; y < WORKSPACE_HEIGHT; y += 1) {
+    for (let x = 0; x < WORKSPACE_WIDTH; x += 1) {
+      const dominantColor = getDominantCellColor(
+        sourceImageData.data,
+        sourceImageData.width,
+        x * cellSize,
+        y * cellSize,
+        cellSize
+      );
+      const logicalPixelIndex = ((y * WORKSPACE_WIDTH) + x) * 4;
+
+      logicalImageData.data[logicalPixelIndex] = dominantColor.red;
+      logicalImageData.data[logicalPixelIndex + 1] = dominantColor.green;
+      logicalImageData.data[logicalPixelIndex + 2] = dominantColor.blue;
+      logicalImageData.data[logicalPixelIndex + 3] = dominantColor.alpha;
+    }
+  }
+
+  logicalContext.putImageData(logicalImageData, 0, 0);
+
+  return logicalCanvas;
+}
+
 function createStatusTimestamp (date = new Date()) {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -1286,19 +1368,22 @@ function renderExportPngDataUrl () {
   let exportContainer: HTMLDivElement | null = null;
 
   try {
-    const exportSurface = createExportStage();
+    const exportCellSize = Math.max(1, stageMetrics.value.cellSize);
+    const exportSurface = createExportStage(
+      WORKSPACE_WIDTH * exportCellSize,
+      WORKSPACE_HEIGHT * exportCellSize
+    );
     exportStage = exportSurface.stage;
     exportContainer = exportSurface.container;
 
-    const layer = buildExportLayer();
+    const layer = buildExportLayer(exportCellSize);
     exportStage.add(layer);
     layer.draw();
 
-    const dataUrl = exportStage.toDataURL({
-      mimeType: 'image/png',
-      pixelRatio: 1
-    });
-    return dataUrl;
+    const sourceCanvas = exportStage.toCanvas({ pixelRatio: 1 });
+    const logicalCanvas = buildLogicalExportCanvas(sourceCanvas, exportCellSize);
+
+    return logicalCanvas.toDataURL('image/png');
   } finally {
     exportStage?.destroy();
     exportContainer?.remove();

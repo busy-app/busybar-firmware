@@ -502,20 +502,23 @@ export async function loadImageFile (file: File): Promise<HTMLImageElement> {
   });
 }
 
-export function createExportStage (): { stage: Konva.Stage; container: HTMLDivElement } {
+export function createExportStage (
+  width = WORKSPACE_WIDTH,
+  height = WORKSPACE_HEIGHT
+): { stage: Konva.Stage; container: HTMLDivElement } {
   const container = document.createElement('div');
 
   container.style.position = 'fixed';
   container.style.left = '-99999px';
   container.style.top = '0';
-  container.style.width = `${WORKSPACE_WIDTH}px`;
-  container.style.height = `${WORKSPACE_HEIGHT}px`;
+  container.style.width = `${width}px`;
+  container.style.height = `${height}px`;
   document.body.append(container);
 
   const stage = new Konva.Stage({
     container,
-    width: WORKSPACE_WIDTH,
-    height: WORKSPACE_HEIGHT,
+    width,
+    height,
     listening: false
   });
 
