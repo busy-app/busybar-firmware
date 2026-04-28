@@ -1,237 +1,82 @@
 <template>
-  <SectionCard
-    data-id="draw-tool-section-primary"
-    class="overflow-visible"
-  >
-    <template #raw-body>
-      <div class="flex flex-col gap-6 my-6">
-        <!-- undo/redo -->
-        <div class="flex flex-wrap gap-4">
-          <UButton
-            label="Undo"
-            color="neutral"
-            variant="outline"
-            :disabled="!(dts.historyIndex > 0)"
-            @click="dts.undo"
-          />
-          <UButton
-            label="Redo"
-            color="neutral"
-            variant="outline"
-            :disabled="!(dts.historyIndex < dts.historyEntries.length - 1)"
-            @click="dts.redo"
-          />
-        </div>
-
-        <!-- background/border -->
-        <div class="flex flex-wrap gap-4">
-          <UPopover>
+  <div>
+    <SectionCard
+      data-id="draw-tool-section-primary"
+      class="overflow-visible"
+    >
+      <template #raw-body>
+        <div class="flex flex-col gap-6 my-6">
+          <div class="flex flex-wrap gap-4">
             <UButton
+              label="Add rectangle"
               color="neutral"
               variant="outline"
-              label="Background"
-            >
-              <template #leading>
-                <span
-                  class="size-3 rounded-full ring-1 ring-default"
-                  :style="`background-color: ${dts.backgroundColor}`"
-                />
-              </template>
-            </UButton>
+              @click="dts.addRectangle"
+            />
 
-            <template #content>
-              <div class="flex flex-col gap-3 p-3">
-                <ColorPicker
-                  :model-value="dts.backgroundColor"
-                  class="p-1"
-                  :throttle="50"
-                  @update:model-value="dts.handleBackgroundColorChange"
-                />
-                <UButton
-                  label="Clear background"
-                  color="neutral"
-                  variant="ghost"
-                  :disabled="!hasVisibleBackgroundColor"
-                  @click="dts.clearBackgroundColor"
-                />
-              </div>
-            </template>
-          </UPopover>
+            <UPopover>
+              <UButton
+                color="neutral"
+                variant="outline"
+                label="Edit text"
+              >
+                <template #leading>
+                  <span
+                    class="size-3 rounded-full ring-1 ring-default"
+                    :style="`background-color: ${activeTextColor}`"
+                  />
+                </template>
+              </UButton>
 
-          <UPopover>
-            <UButton
-              color="neutral"
-              variant="outline"
-              label="Border"
-            >
-              <template #leading>
-                <span
-                  class="size-3 rounded-full ring-1 ring-default"
-                  :style="`background-color: ${dts.borderColor}`"
-                />
-              </template>
-            </UButton>
+              <template #content>
+                <div class="flex w-80 flex-col gap-3 p-3">
+                  <UInput
+                    :model-value="activeTextValue"
+                    placeholder="Text"
+                    @update:model-value="dts.handleActiveTextValueInput"
+                    @blur="dts.commitActiveTextChange"
+                  />
 
-            <template #content>
-              <div class="flex w-80 flex-col gap-3 p-3">
-                <ColorPicker
-                  :model-value="dts.borderColor"
-                  class="p-1"
-                  :throttle="50"
-                  @update:model-value="dts.handleBorderColorChange"
-                />
+                  <USelect
+                    :model-value="activeTextFontId"
+                    :items="TEXT_FONT_OPTIONS"
+                    :value-key="'id'"
+                    @update:model-value="dts.handleActiveTextFontChange"
+                  />
 
-                <div class="flex gap-2">
-                  <UButton
-                    label="Reset border"
-                    color="neutral"
-                    variant="ghost"
-                    :disabled="!canResetBorder"
-                    @click="dts.clearBorderColor"
+                  <UColorPicker
+                    :model-value="activeTextColor"
+                    class="p-1"
+                    :throttle="50"
+                    @update:model-value="dts.handleActiveTextColorChange"
                   />
                 </div>
-
-                <div
-                  class="flex flex-col gap-4 rounded-xl border border-default/70 p-3"
-                >
-                  <div class="flex flex-col gap-2">
-                    <div class="flex items-center justify-between text-sm text-muted">
-                      <span>Gap size</span>
-                      <span>{{ dts.borderGapSize }}px</span>
-                    </div>
-                    <USlider
-                      v-model="dts.borderGapSize"
-                      :min="0"
-                      :max="MAX_BORDER_GAP_SIZE"
-                      :step="1"
-                      @change="dts.handleBorderSettingsChange"
-                    />
-                  </div>
-
-                  <div class="flex flex-col gap-2">
-                    <div class="flex items-center justify-between text-sm text-muted">
-                      <span>Dash size</span>
-                      <span>{{ dts.borderDashSize }}px</span>
-                    </div>
-                    <USlider
-                      v-model="dts.borderDashSize"
-                      :min="1"
-                      :max="MAX_BORDER_DASH_SIZE"
-                      :step="1"
-                      @change="dts.handleBorderSettingsChange"
-                    />
-                  </div>
-
-                  <div class="flex flex-col gap-2">
-                    <div class="flex items-center justify-between text-sm text-muted">
-                      <span>Gap offset</span>
-                      <span>{{ dts.borderGapOffset }}px</span>
-                    </div>
-                    <USlider
-                      v-model="dts.borderGapOffset"
-                      :min="0"
-                      :max="Math.max(0, dts.borderDashSize + dts.borderGapSize)"
-                      :step="1"
-                      @change="dts.handleBorderSettingsChange"
-                    />
-                  </div>
-                </div>
-              </div>
-            </template>
-          </UPopover>
-        </div>
-
-        <!-- shapes/images -->
-        <div class="flex flex-wrap gap-4">
-          <UButton
-            label="Add rectangle"
-            color="neutral"
-            variant="outline"
-            @click="dts.addRectangle"
-          />
-          <UButton
-            label="Add image"
-            color="neutral"
-            variant="outline"
-            @click="dts.showImageUploadModal = true"
-          />
-        </div>
-
-        <!-- text -->
-        <div class="flex flex-wrap gap-4">
-          <UButton
-            label="Add text"
-            color="neutral"
-            variant="outline"
-            @click="dts.addText(activeTextValue, activeTextColor, activeTextFontId)"
-          />
-
-          <UPopover>
-            <UButton
-              color="neutral"
-              variant="outline"
-              label="Edit text"
-            >
-              <template #leading>
-                <span
-                  class="size-3 rounded-full ring-1 ring-default"
-                  :style="`background-color: ${activeTextColor}`"
-                />
               </template>
-            </UButton>
+            </UPopover>
 
-            <template #content>
-              <div class="flex w-80 flex-col gap-3 p-3">
-                <UInput
-                  :model-value="activeTextValue"
-                  placeholder="Text"
-                  @update:model-value="dts.handleActiveTextValueInput"
-                  @blur="dts.commitActiveTextChange"
-                />
-
-                <USelect
-                  :model-value="activeTextFontId"
-                  :items="TEXT_FONT_OPTIONS"
-                  :value-key="'id'"
-                  @update:model-value="dts.handleActiveTextFontChange"
-                />
-
-                <UColorPicker
-                  :model-value="activeTextColor"
-                  class="p-1"
-                  :throttle="50"
-                  @update:model-value="dts.handleActiveTextColorChange"
-                />
-              </div>
-            </template>
-          </UPopover>
+            <UButton
+              label="Download image"
+              color="neutral"
+              variant="solid"
+              @click="downloadImage"
+            />
+          </div>
         </div>
 
-        <!-- export -->
-        <div class="flex flex-wrap gap-4">
-          <UButton
-            label="Download image"
-            color="neutral"
-            variant="solid"
-            @click="downloadImage"
-          />
-        </div>
-      </div>
-
-      <div class="flex flex-col gap-4">
-        <div
-          :ref="dtsRefs.stageContainerRef"
-          class="relative w-full min-h-[400px] rounded-[28px] border border-default/60 bg-elevated/35"
-        >
-          <div class="w-full overflow-hidden rounded-2xl bg-[#050505]">
-            <VStage
-              :ref="dtsRefs.stageRef"
-              :config="stageConfig"
-              @mousedown="dts.handleStagePointerDown"
-              @tap="dts.handleStagePointerDown"
-            >
-              <VLayer :ref="dtsRefs.displayLayerRef">
-                <VRect :config="stageBackgroundConfig" />
+        <div class="flex flex-col gap-4">
+          <div
+            :ref="dtsRefs.stageContainerRef"
+            class="relative w-full min-h-[400px] rounded-[28px] border border-default/60 bg-elevated/35"
+          >
+            <div class="w-full overflow-hidden rounded-2xl bg-[#050505]">
+              <VStage
+                :ref="dtsRefs.stageRef"
+                :config="stageConfig"
+                @mousedown="dts.handleStagePointerDown"
+                @tap="dts.handleStagePointerDown"
+              >
+                <VLayer :ref="dtsRefs.displayLayerRef">
+                  <VRect :config="stageBackgroundConfig" />
 
                 <VGroup :config="workspaceBackgroundGroupConfig">
                   <VRect :config="workspaceBackgroundConfig" />
@@ -267,174 +112,389 @@
                 </VGroup>
 
                 <VGroup :config="workspaceGridGroupConfig">
-                  <VLine
-                    v-for="line in verticalGridLines"
-                    :key="line.key"
-                    :config="line"
-                  />
-                  <VLine
-                    v-for="line in horizontalGridLines"
-                    :key="line.key"
-                    :config="line"
-                  />
+                  <template v-if="showGrid">
+                    <VLine
+                      v-for="line in verticalGridLines"
+                      :key="line.key"
+                      :config="line"
+                    />
+                    <VLine
+                      v-for="line in horizontalGridLines"
+                      :key="line.key"
+                      :config="line"
+                    />
+                  </template>
                   <VRect
                     v-for="pixel in borderPixelConfigs"
                     :key="pixel.key"
                     :config="pixel"
                   />
                 </VGroup>
-              </VLayer>
+                </VLayer>
 
-              <VLayer>
-                <VGroup :config="shapeClipGroupConfig">
-                  <template
-                    v-for="shape in dts.shapes"
-                    :key="shape.id"
-                  >
-                    <VRect
-                      v-if="shape.type === 'rect'"
-                      :config="getRectConfig(shape)"
-                      @mousedown="dts.handleShapePointerDown"
-                      @tap="dts.handleShapePointerDown"
-                      @dragmove="dts.handleShapeDragMove"
-                      @transform="dts.handleShapeTransform"
-                      @dragend="dts.handleShapeDragEnd"
-                      @transformend="dts.handleShapeTransformEnd"
-                    />
-                    <VText
-                      v-else-if="shape.type === 'text'"
-                      :config="getTextConfig(shape)"
-                      @mousedown="dts.handleShapePointerDown"
-                      @tap="dts.handleShapePointerDown"
-                      @dragmove="dts.handleShapeDragMove"
-                      @transform="dts.handleShapeTransform"
-                      @dragend="dts.handleShapeDragEnd"
-                      @transformend="dts.handleShapeTransformEnd"
-                    />
-                    <VImage
-                      v-else
-                      :config="getImageConfig(shape)"
-                      @mousedown="dts.handleShapePointerDown"
-                      @tap="dts.handleShapePointerDown"
-                      @dragmove="dts.handleShapeDragMove"
-                      @transform="dts.handleShapeTransform"
-                      @dragend="dts.handleShapeDragEnd"
-                      @transformend="dts.handleShapeTransformEnd"
-                    />
-                  </template>
-                </VGroup>
-              </VLayer>
+                <VLayer>
+                  <VGroup :config="shapeClipGroupConfig">
+                    <template
+                      v-for="shape in dts.shapes"
+                      :key="shape.id"
+                    >
+                      <VRect
+                        v-if="shape.type === 'rect'"
+                        :config="getRectConfig(shape)"
+                        @mousedown="dts.handleShapePointerDown"
+                        @tap="dts.handleShapePointerDown"
+                        @dragmove="dts.handleShapeDragMove"
+                        @transform="dts.handleShapeTransform"
+                        @dragend="dts.handleShapeDragEnd"
+                        @transformend="dts.handleShapeTransformEnd"
+                      />
+                      <VText
+                        v-else-if="shape.type === 'text'"
+                        :config="getTextConfig(shape)"
+                        @mousedown="dts.handleShapePointerDown"
+                        @tap="dts.handleShapePointerDown"
+                        @dragmove="dts.handleShapeDragMove"
+                        @transform="dts.handleShapeTransform"
+                        @dragend="dts.handleShapeDragEnd"
+                        @transformend="dts.handleShapeTransformEnd"
+                      />
+                      <VImage
+                        v-else
+                        :config="getImageConfig(shape)"
+                        @mousedown="dts.handleShapePointerDown"
+                        @tap="dts.handleShapePointerDown"
+                        @dragmove="dts.handleShapeDragMove"
+                        @transform="dts.handleShapeTransform"
+                        @dragend="dts.handleShapeDragEnd"
+                        @transformend="dts.handleShapeTransformEnd"
+                      />
+                    </template>
+                  </VGroup>
+                </VLayer>
 
-              <VLayer :ref="dtsRefs.overlayLayerRef">
-                <VTransformer
-                  :ref="dtsRefs.transformerRef"
-                  :config="transformerConfig"
-                />
-              </VLayer>
-            </VStage>
+                <VLayer :ref="dtsRefs.overlayLayerRef">
+                  <VTransformer
+                    :ref="dtsRefs.transformerRef"
+                    :config="transformerConfig"
+                  />
+                </VLayer>
+              </VStage>
+            </div>
+
+            <textarea
+              v-if="selectedTextTextareaStyle"
+              :ref="dtsRefs.textEditorRef"
+              :value="activeTextValue"
+              :style="selectedTextTextareaStyle"
+              autofocus
+              rows="1"
+              spellcheck="false"
+              wrap="off"
+              class="absolute z-20 resize-none overflow-hidden border-0 bg-transparent p-0 outline-none"
+              @input="dts.handleTextTextareaInput"
+              @keydown.enter.prevent="dts.handleTextTextareaEnter"
+              @blur="dts.commitActiveTextChange"
+              @mousedown.stop
+              @wheel.prevent
+              @click.stop
+            />
+
+            <UButton
+              v-if="deleteButtonStyle"
+              color="error"
+              variant="solid"
+              square
+              size="xs"
+              icon="i-bi-trash"
+              class="absolute z-30 rounded-full"
+              :style="deleteButtonStyle"
+              @pointerdown.stop.prevent
+              @click.stop="dts.deleteSelectedShape"
+            />
+
+            <UButton
+              v-if="selectionHandleStyle"
+              color="neutral"
+              variant="solid"
+              square
+              size="xs"
+              :icon="selectedTextShape ? 'i-bi-location' : 'i-bi-plus'"
+              class="absolute z-30 rounded-full"
+              :style="selectionHandleStyle"
+              @pointerdown.stop.prevent="dts.handleSelectionHandlePointerDown"
+            />
+
+            <UButton
+              v-if="rotationHandleStyle"
+              color="neutral"
+              variant="solid"
+              square
+              size="xs"
+              icon="i-bi-arrow-clockwise"
+              class="absolute z-30 rounded-full"
+              :style="rotationHandleStyle"
+              @pointerdown.stop.prevent="dts.handleRotationHandlePointerDown"
+            />
           </div>
 
-          <textarea
-            v-if="selectedTextTextareaStyle"
-            :ref="dtsRefs.textEditorRef"
-            :value="activeTextValue"
-            :style="selectedTextTextareaStyle"
-            autofocus
-            rows="1"
-            spellcheck="false"
-            wrap="off"
-            class="absolute z-20 resize-none overflow-hidden border-0 bg-transparent p-0 outline-none"
-            @input="dts.handleTextTextareaInput"
-            @keydown.enter.prevent="dts.handleTextTextareaEnter"
-            @blur="dts.commitActiveTextChange"
-            @mousedown.stop
-            @wheel.prevent
-            @click.stop
-          />
-
-          <UButton
-            v-if="deleteButtonStyle"
-            color="error"
-            variant="solid"
-            square
-            size="xs"
-            icon="i-bi-trash"
-            class="absolute z-30 rounded-full"
-            :style="deleteButtonStyle"
-            @pointerdown.stop.prevent
-            @click.stop="dts.deleteSelectedShape"
-          />
-
-          <UButton
-            v-if="selectionHandleStyle"
-            color="neutral"
-            variant="solid"
-            square
-            size="xs"
-            :icon="selectedTextShape ? 'i-bi-location' : 'i-bi-plus'"
-            class="absolute z-30 rounded-full"
-            :style="selectionHandleStyle"
-            @pointerdown.stop.prevent="dts.handleSelectionHandlePointerDown"
-          />
-
-          <UButton
-            v-if="rotationHandleStyle"
-            color="neutral"
-            variant="solid"
-            square
-            size="xs"
-            icon="i-bi-arrow-clockwise"
-            class="absolute z-30 rounded-full"
-            :style="rotationHandleStyle"
-            @pointerdown.stop.prevent="dts.handleRotationHandlePointerDown"
-          />
+          <ModalGeneric
+            v-model:open="dts.showImageUploadModal"
+            data-id="modal-draw-tool-image-upload"
+            title="Add image"
+            wide
+            show-close-button
+            :primary-action-props="{
+              label: 'Insert image',
+              disabled: !dts.imageUploadFile,
+              onClick: insertImage
+            }"
+            :secondary-action-props="{
+              label: 'Cancel',
+              variant: 'ghost',
+              onClick: dts.resetImageUploadModal
+            }"
+          >
+            <template #body>
+              <UFileUpload
+                v-model="dts.imageUploadFile"
+                data-id="draw-tool-image-upload"
+                accept="image/*"
+                class="w-full rounded-xl"
+                label="Upload image"
+                description="Drag and drop to upload"
+                :ui="{
+                  base: 'cursor-pointer',
+                  icon: 'size-6',
+                  label: 'text-lg',
+                  description: 'text-sm'
+                }"
+              >
+                <template #actions>
+                  <UButton
+                    label="Select file"
+                    color="neutral"
+                    class="mt-2"
+                  />
+                </template>
+              </UFileUpload>
+            </template>
+          </ModalGeneric>
         </div>
+      </template>
+    </SectionCard>
 
-        <ModalGeneric
-          v-model:open="dts.showImageUploadModal"
-          data-id="modal-draw-tool-image-upload"
-          title="Add image"
-          wide
-          show-close-button
-          :primary-action-props="{
-            label: 'Insert image',
-            disabled: !dts.imageUploadFile,
-            onClick: insertImage
-          }"
-          :secondary-action-props="{
-            label: 'Cancel',
-            variant: 'ghost',
-            onClick: dts.resetImageUploadModal
-          }"
-        >
-          <template #body>
-            <UFileUpload
-              v-model="dts.imageUploadFile"
-              data-id="draw-tool-image-upload"
-              accept="image/*"
-              class="w-full rounded-xl"
-              label="Upload image"
-              description="Drag and drop to upload"
-              :ui="{
-                base: 'cursor-pointer',
-                icon: 'size-6',
-                label: 'text-lg',
-                description: 'text-sm'
-              }"
-            >
-              <template #actions>
-                <UButton
-                  label="Select file"
-                  color="neutral"
-                  class="mt-2"
-                />
-              </template>
-            </UFileUpload>
+    <div class="fixed inset-x-0 bottom-6 z-40 flex justify-center px-4">
+      <div class="flex max-w-[calc(100vw-2rem)] items-center gap-4 overflow-x-auto rounded-2xl p-2 ring-1 ring-glass bg-surface-container backdrop-blur-sm">
+        <UPopover>
+          <UButton
+            color="neutral"
+            variant="ghost"
+            :class="toolbarLabeledButtonClass"
+          >
+            <UIcon
+              name="i-bi-background-color"
+              class="size-6"
+            />
+            <span>Fill</span>
+          </UButton>
+
+          <template #content>
+            <div class="flex flex-col gap-3 p-3">
+              <ColorPicker
+                :model-value="dts.backgroundColor"
+                class="p-1"
+                :throttle="50"
+                @update:model-value="dts.handleBackgroundColorChange"
+              />
+              <UButton
+                label="Clear background"
+                color="neutral"
+                variant="ghost"
+                :disabled="!hasVisibleBackgroundColor"
+                @click="dts.clearBackgroundColor"
+              />
+            </div>
           </template>
-        </ModalGeneric>
+        </UPopover>
+
+        <UPopover>
+          <UButton
+            color="neutral"
+            variant="ghost"
+            :class="toolbarLabeledButtonClass"
+          >
+            <UIcon
+              name="i-bi-border-color"
+              class="size-6"
+            />
+            <span>Border</span>
+          </UButton>
+
+          <template #content>
+            <div class="flex w-80 flex-col gap-3 p-3">
+              <ColorPicker
+                :model-value="dts.borderColor"
+                class="p-1"
+                :throttle="50"
+                @update:model-value="dts.handleBorderColorChange"
+              />
+
+              <div class="flex gap-2">
+                <UButton
+                  label="Reset border"
+                  color="neutral"
+                  variant="ghost"
+                  :disabled="!canResetBorder"
+                  @click="dts.clearBorderColor"
+                />
+              </div>
+
+              <div class="flex flex-col gap-4 rounded-xl border border-default/70 p-3">
+                <div class="flex flex-col gap-2">
+                  <div class="flex items-center justify-between text-sm text-muted">
+                    <span>Gap size</span>
+                    <span>{{ dts.borderGapSize }}px</span>
+                  </div>
+                  <USlider
+                    v-model="dts.borderGapSize"
+                    :min="0"
+                    :max="MAX_BORDER_GAP_SIZE"
+                    :step="1"
+                    @change="dts.handleBorderSettingsChange"
+                  />
+                </div>
+
+                <div class="flex flex-col gap-2">
+                  <div class="flex items-center justify-between text-sm text-muted">
+                    <span>Dash size</span>
+                    <span>{{ dts.borderDashSize }}px</span>
+                  </div>
+                  <USlider
+                    v-model="dts.borderDashSize"
+                    :min="1"
+                    :max="MAX_BORDER_DASH_SIZE"
+                    :step="1"
+                    @change="dts.handleBorderSettingsChange"
+                  />
+                </div>
+
+                <div class="flex flex-col gap-2">
+                  <div class="flex items-center justify-between text-sm text-muted">
+                    <span>Gap offset</span>
+                    <span>{{ dts.borderGapOffset }}px</span>
+                  </div>
+                  <USlider
+                    v-model="dts.borderGapOffset"
+                    :min="0"
+                    :max="Math.max(0, dts.borderDashSize + dts.borderGapSize)"
+                    :step="1"
+                    @change="dts.handleBorderSettingsChange"
+                  />
+                </div>
+              </div>
+            </div>
+          </template>
+        </UPopover>
+
+        <UButton
+          color="neutral"
+          variant="ghost"
+          :class="toolbarLabeledButtonClass"
+          @click="dts.addText(activeTextValue, activeTextColor, activeTextFontId)"
+        >
+          <UIcon
+            name="i-bi-text"
+            class="size-6"
+          />
+          <span>Text</span>
+        </UButton>
+
+        <UButton
+          color="neutral"
+          variant="ghost"
+          :class="toolbarLabeledButtonClass"
+        >
+          <UIcon
+            name="i-bi-emoji"
+            class="size-6"
+          />
+          <span>Icon</span>
+        </UButton>
+
+        <UButton
+          color="neutral"
+          variant="ghost"
+          :class="toolbarLabeledButtonClass"
+          @click="dts.showImageUploadModal = true"
+        >
+          <UIcon
+            name="i-bi-image"
+            class="size-6"
+          />
+          <span>Image</span>
+        </UButton>
+
+        <div class="h-[calc(100%_-_1em)] w-0.5 shrink-0 bg-accented" />
+
+        <UButton
+          color="neutral"
+          variant="ghost"
+          :class="toolbarLabeledButtonClass"
+          @click="showGrid = !showGrid"
+        >
+          <UIcon
+            name="i-bi-grid"
+            class="size-6"
+          />
+          <span>Grid</span>
+        </UButton>
+
+        <div class="h-[calc(100%_-_1em)] w-0.5 shrink-0 bg-accented" />
+
+        <UButton
+          color="neutral"
+          variant="ghost"
+          square
+          :class="toolbarIconButtonClass"
+          :disabled="!(dts.historyIndex > 0)"
+          @click="dts.undo"
+        >
+          <UIcon
+            name="i-bi-undo"
+            class="size-6"
+          />
+        </UButton>
+
+        <UButton
+          color="neutral"
+          variant="ghost"
+          square
+          :class="toolbarIconButtonClass"
+          :disabled="!(dts.historyIndex < dts.historyEntries.length - 1)"
+          @click="dts.redo"
+        >
+          <UIcon
+            name="i-bi-redo"
+            class="size-6"
+          />
+        </UButton>
+
+        <UButton
+          color="neutral"
+          variant="ghost"
+          square
+          :class="toolbarIconButtonClass"
+          :disabled="!selectedShape"
+          @click="dts.deleteSelectedShape"
+        >
+          <UIcon
+            name="i-bi-trash"
+            class="size-6"
+          />
+        </UButton>
       </div>
-    </template>
-  </SectionCard>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -454,9 +514,13 @@ import type { TransformerBox } from '@/util/drawTool';
 
 const toast = useToast();
 const resizeObserver = ref<ResizeObserver | null>(null);
+const showGrid = ref(true);
 
 const dts = useDrawToolStore();
 const dtsRefs = storeToRefs(dts);
+
+const toolbarLabeledButtonClass = 'flex flex-col items-center gap-2 p-2 rounded-xl text-xs';
+const toolbarIconButtonClass = 'rounded-xl';
 
 const stageMetrics = computed(() => getStageMetrics(dts.stageWidth));
 
