@@ -323,7 +323,7 @@
               variant="solid"
               square
               size="xs"
-              :icon="selectedTextShape ? 'i-bi-location' : 'i-bi-plus'"
+              :icon="selectedTextShape ? 'i-bi-move' : 'i-bi-resize-alt'"
               class="absolute z-30 rounded-full"
               :style="selectionHandleStyle"
               @pointerdown.stop.prevent="dts.handleSelectionHandlePointerDown"
@@ -335,7 +335,7 @@
               variant="solid"
               square
               size="xs"
-              icon="i-bi-arrow-clockwise"
+              icon="i-bi-rotate"
               class="absolute z-30 rounded-full"
               :style="rotationHandleStyle"
               @pointerdown.stop.prevent="dts.handleRotationHandlePointerDown"
@@ -936,7 +936,7 @@ const selectionHandleStyle = computed(() => {
     left: `${dts.selectionHandlePosition.x}px`,
     top: `${dts.selectionHandlePosition.y}px`,
     transform: 'translate(-50%, -50%)',
-    cursor: selectedTextShape.value ? 'move' : 'nwse-resize',
+    cursor: selectedTextShape.value ? dts.activeSelectionHandleDrag?.mode === 'move' ? 'grabbing' : 'grab' : 'nwse-resize',
     touchAction: 'none'
   };
 });
