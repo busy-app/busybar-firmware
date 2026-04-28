@@ -70,6 +70,21 @@
                   </UDropdownMenu>
                 </UButtonGroup>
               </UTooltip>
+
+              <UTooltip
+                :delay-duration="0"
+                :text="!dts.hasEditorContent ? 'Nothing to show' : undefined"
+              >
+                <UButton
+                  label="Show on BUSY Bar"
+                  color="neutral"
+                  variant="solid"
+                  icon="i-bi-play-fill"
+                  :disabled="!dts.hasEditorContent"
+                  :loading="isShowingStatusOnDevice"
+                  @click="showStatusOnBusyBar"
+                />
+              </UTooltip>
             </div>
           </div>
         </div>
@@ -609,6 +624,7 @@ import {
   Transformer as VTransformer
 } from 'vue-konva';
 import type { TransformerBox } from '@/util/drawTool';
+import type { DisplayDrawParams } from '@busy-app/busy-lib';
 
 const toast = useToast();
 const drawToolRootRef = ref<HTMLDivElement | null>(null);
@@ -634,12 +650,15 @@ const displayStatusFileName = computed(() => {
 
 const FLOATING_TEXT_MENU_HEIGHT = 40;
 const FLOATING_TEXT_MENU_GAP = 8;
+const DRAW_TOOL_DISPLAY_APPLICATION_NAME = 'draw_tool';
+const DRAW_TOOL_DISPLAY_FILE_NAME = 'status.png';
 const DRAW_TOOL_SAVE_DIR = '/ext/apps_assets/draw_tool';
 const TOOLBAR_MAX_CANVAS_GAP = 48;
 const TOOLBAR_VIEWPORT_BOTTOM_OFFSET = 24;
 const toolbarLabeledButtonClass = 'flex flex-col items-center gap-2 p-2 rounded-xl text-xs';
 const toolbarIconButtonClass = 'rounded-xl';
 const isSavingStatus = ref(false);
+const isShowingStatusOnDevice = ref(false);
 const toolbarContainerClass = computed(() => {
   return toolbarShouldStickToViewport.value
     ? 'fixed inset-x-0 z-40 flex justify-center px-4'
@@ -1291,6 +1310,85 @@ async function createExportPngFile (fileName: string) {
   return new File([blob], fileName, { type: 'image/png' });
 }
 
+function isAssetDeleteFailedError (error: unknown) {
+  return String(error).includes('File delete failed');
+}
+
+async function clearStatusDisplay (): Promise<void> {
+  const deviceStore = useDeviceStore();
+
+  try {
+    await deviceStore.busyBar.DisplayClear({
+      application_name: DRAW_TOOL_DISPLAY_APPLICATION_NAME
+    });
+  } catch (error) {
+    await handleHTTPError(error, 'Couldn\'t clear existing status display', true);
+    throw error;
+  }
+}
+
+async function deleteStatusAssets (hasRetried = false): Promise<void> {
+  const deviceStore = useDeviceStore();
+
+  try {
+    await deviceStore.busyBar.AssetsDelete({
+      application_name: DRAW_TOOL_DISPLAY_APPLICATION_NAME
+    });
+  } catch (error) {
+    if (String(error).includes('Assets missing')) {
+      return;
+    }
+
+    if (!hasRetried && isAssetDeleteFailedError(error)) {
+      await clearStatusDisplay();
+      await deleteStatusAssets(true);
+      return;
+    }
+
+    await handleHTTPError(error, 'Couldn\'t delete existing status assets', true);
+    throw error;
+  }
+}
+
+async function uploadStatusAsset (image: Blob) {
+  const deviceStore = useDeviceStore();
+
+  return deviceStore.busyBar.AssetsUpload({
+    application_name: DRAW_TOOL_DISPLAY_APPLICATION_NAME,
+    data: image,
+    file: DRAW_TOOL_DISPLAY_FILE_NAME
+  })
+    .catch(async error => {
+      await handleHTTPError(error, 'Couldn\'t upload status image', true);
+      throw error;
+    });
+}
+
+async function drawStatusOnBusyBar () {
+  const deviceStore = useDeviceStore();
+
+  return deviceStore.busyBar.DisplayDraw({
+    application_name: DRAW_TOOL_DISPLAY_APPLICATION_NAME,
+    elements: [
+      {
+        id: '0',
+        timeout: 0,
+        align: 'top_left',
+        display: 'front',
+        x: 0,
+        y: 0,
+        type: 'image',
+        path: DRAW_TOOL_DISPLAY_FILE_NAME
+      }
+    ],
+    priority: 50
+  } as DisplayDrawParams)
+    .catch(async error => {
+      await handleHTTPError(error, 'Display draw command failed', true);
+      throw error;
+    });
+}
+
 async function listSaveDirectory () {
   const deviceStore = useDeviceStore();
   const result = await deviceStore.busyBar.StorageListGet({ path: DRAW_TOOL_SAVE_DIR, timeout: 10000 });
@@ -1401,6 +1499,34 @@ async function saveStatus (options?: { saveAsNew?: boolean }) {
     await handleHTTPError(error, `Couldn't save ${fileName}`, false, 10000);
   } finally {
     isSavingStatus.value = false;
+  }
+}
+
+async function showStatusOnBusyBar () {
+  if (!dts.hasEditorContent) {
+    return;
+  }
+
+  isShowingStatusOnDevice.value = true;
+
+  try {
+    const image = await createExportPngFile(DRAW_TOOL_DISPLAY_FILE_NAME);
+
+    await deleteStatusAssets();
+    await uploadStatusAsset(image);
+    await drawStatusOnBusyBar();
+
+    toast.add({
+      id: 'draw-tool-display-success',
+      title: 'Status shown on BUSY Bar',
+      description: 'Check the front display to view it',
+      color: 'success',
+      duration: 10000
+    });
+  } catch {
+    // Request errors are already handled by the helper chain above.
+  } finally {
+    isShowingStatusOnDevice.value = false;
   }
 }
 
