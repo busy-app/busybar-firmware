@@ -24,19 +24,13 @@
                 :text="!dts.hasEditorContent ? 'Nothing to save' : undefined"
               >
                 <UButtonGroup>
-                  <UTooltip
-                    :delay-duration="0"
-                    :text="dts.hasEditorContent ? (!hasSavedStatusFile ? 'Save to BUSY Bar' : 'Save changes to file') : undefined"
-                    :kbds="['meta', 'S']"
-                  >
-                    <UButton
-                      label="Save"
-                      color="neutral"
-                      variant="outline"
-                      :disabled="!dts.hasEditorContent"
-                      @click="saveStatus()"
-                    />
-                  </UTooltip>
+                  <UButton
+                    label="Save"
+                    color="neutral"
+                    variant="outline"
+                    :disabled="!dts.hasEditorContent"
+                    @click="saveStatus()"
+                  />
                   <UDropdownMenu
                     :items="[
                       ...(hasSavedStatusFile
@@ -1297,18 +1291,61 @@ async function createExportPngFile (fileName: string) {
   return new File([blob], fileName, { type: 'image/png' });
 }
 
+async function listSaveDirectory () {
+  const deviceStore = useDeviceStore();
+  const result = await deviceStore.busyBar.StorageListGet({ path: DRAW_TOOL_SAVE_DIR, timeout: 10000 });
+
+  if (!result.list) {
+    throw new Error('Empty response');
+  }
+
+  return result.list;
+}
+
+async function tryListSaveDirectory () {
+  try {
+    return await listSaveDirectory();
+  } catch {
+    return null;
+  }
+}
+
 async function ensureSaveDirectoryExists () {
   const deviceStore = useDeviceStore();
 
   try {
     await deviceStore.busyBar.StorageMkdir({ path: DRAW_TOOL_SAVE_DIR, timeout: 10000 });
-  } catch (mkdirError) {
-    try {
-      await deviceStore.busyBar.StorageListGet({ path: DRAW_TOOL_SAVE_DIR, timeout: 10000 });
-    } catch {
-      throw mkdirError;
-    }
+  } catch {
+    // Ignore mkdir failure here and let the follow-up list call decide whether the directory is usable.
   }
+
+  return await listSaveDirectory();
+}
+
+async function initializeSaveDirectory () {
+  const listedFiles = await tryListSaveDirectory();
+
+  if (listedFiles) {
+    console.debug('Draw tool save directory contents', listedFiles);
+    return;
+  }
+
+  try {
+    const ensuredFiles = await ensureSaveDirectoryExists();
+    console.debug('Draw tool save directory contents', ensuredFiles);
+  } catch (error) {
+    await handleHTTPError(error, `Couldn't prepare ${DRAW_TOOL_SAVE_DIR}`, false, 10000);
+  }
+}
+
+async function writeStatusFile (path: string, file: File) {
+  const deviceStore = useDeviceStore();
+
+  await deviceStore.busyBar.StorageWrite({
+    path,
+    file,
+    timeout: 0
+  });
 }
 
 async function saveStatus (options?: { saveAsNew?: boolean }) {
@@ -1316,7 +1353,6 @@ async function saveStatus (options?: { saveAsNew?: boolean }) {
     return;
   }
 
-  const deviceStore = useDeviceStore();
   const saveAsNew = !!options?.saveAsNew;
   const hadSavedStatusFile = hasSavedStatusFile.value;
   const fileName = saveAsNew || !savedStatusFilePath.value
@@ -1333,15 +1369,26 @@ async function saveStatus (options?: { saveAsNew?: boolean }) {
   isSavingStatus.value = true;
 
   try {
-    await ensureSaveDirectoryExists();
-
     const file = await createExportPngFile(fileName);
 
-    await deviceStore.busyBar.StorageWrite({
-      path: targetPath,
-      file,
-      timeout: 0
-    });
+    try {
+      await writeStatusFile(targetPath, file);
+    } catch (error) {
+      const listedFiles = await tryListSaveDirectory();
+
+      if (listedFiles) {
+        await handleHTTPError(error, `Couldn't save ${fileName}`, false, 10000);
+        return;
+      }
+
+      try {
+        await ensureSaveDirectoryExists();
+        await writeStatusFile(targetPath, file);
+      } catch (retryError) {
+        await handleHTTPError(retryError, `Couldn't save ${fileName}`, false, 10000);
+        return;
+      }
+    }
 
     dts.markStatusSaved(fileName, targetPath);
     toast.add({
@@ -1401,6 +1448,7 @@ onMounted(() => {
     nextTick(schedulePixelatedDisplaySync);
   });
   nextTick(schedulePixelatedDisplaySync);
+  void initializeSaveDirectory();
 });
 
 onBeforeUnmount(() => {
