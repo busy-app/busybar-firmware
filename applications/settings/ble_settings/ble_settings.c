@@ -104,9 +104,15 @@ static BleSettings* ble_settings_alloc() {
         ble_settings_event_queue_callback,
         instance);
 
-    const bool not_paired = !ble_model_is_device_paired(instance->model);
-    scene_manager_next_scene(
-        instance->scene_manager, not_paired ? SceneIdPairingMode : SceneIdForgetDevice);
+    if(ble_model_ready(instance->model)) {
+        const bool not_paired = !ble_model_is_device_paired(instance->model);
+        scene_manager_next_scene(
+            instance->scene_manager, not_paired ? SceneIdPairingMode : SceneIdForgetDevice);
+    } else {
+        FURI_LOG_D(TAG, "Ble not ready");
+        desktop_replace_current_app(instance->desktop, MAIN_SETTINGS_APP, THIS_SETTINGS_APP);
+    }
+
     return instance;
 }
 
