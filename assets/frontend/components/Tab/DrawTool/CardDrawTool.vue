@@ -545,6 +545,9 @@ import type { TransformerBox } from '@/util/drawTool';
 
 const toast = useToast();
 const resizeObserver = ref<ResizeObserver | null>(null);
+const pixelatedDisplayFrame = ref<number | null>(null);
+const transformerFrame = ref<number | null>(null);
+const stageContainerViewportTop = ref(0);
 const showGrid = ref(true);
 
 const dts = useDrawToolStore();
@@ -728,13 +731,13 @@ watch(stageMetrics, metrics => {
 
 watch(() => dts.shapes, async () => {
   await nextTick();
-  dts.syncPixelatedDisplay();
+  schedulePixelatedDisplaySync();
 }, { deep: true });
 
 watch(() => stageMetrics.value.cellSize, async () => {
   await nextTick();
-  dts.syncPixelatedDisplay();
-  dts.syncTransformer();
+  schedulePixelatedDisplaySync();
+  scheduleTransformerSync();
 });
 
 const selectedShape = computed(() => dts.shapes.find(shape => shape.id === dts.selectedShapeId) || null);
@@ -847,8 +850,7 @@ const selectedTextMenuStyle = computed<Record<string, string> | null>(() => {
     return null;
   }
 
-  const stageContainerRect = dts.stageContainerRef?.getBoundingClientRect();
-  const editorTopInViewport = (stageContainerRect?.top ?? 0) + selectedTextEditorBounds.value.top;
+  const editorTopInViewport = stageContainerViewportTop.value + selectedTextEditorBounds.value.top;
   const hasSpaceAbove = editorTopInViewport >= FLOATING_TEXT_MENU_HEIGHT + FLOATING_TEXT_MENU_GAP;
   const top = hasSpaceAbove
     ? selectedTextEditorBounds.value.top - FLOATING_TEXT_MENU_HEIGHT - FLOATING_TEXT_MENU_GAP
@@ -862,7 +864,7 @@ const selectedTextMenuStyle = computed<Record<string, string> | null>(() => {
 
 watch(() => [selectedShapeSyncKey.value, stageMetrics.value.cellSize], async () => {
   await nextTick();
-  dts.syncTransformer();
+  scheduleTransformerSync();
 }, { flush: 'post' });
 
 watch(() => selectedTextShape.value?.id, async selectedTextId => {
@@ -871,11 +873,38 @@ watch(() => selectedTextShape.value?.id, async selectedTextId => {
   }
 
   await nextTick();
+  updateStageContainerViewportTop();
   dts.textEditorRef?.focus();
   const textLength = dts.textEditorRef?.value.length ?? 0;
 
   dts.textEditorRef?.setSelectionRange(0, textLength);
 }, { flush: 'post' });
+
+function updateStageContainerViewportTop () {
+  stageContainerViewportTop.value = dts.stageContainerRef?.getBoundingClientRect().top ?? 0;
+}
+
+function schedulePixelatedDisplaySync () {
+  if (pixelatedDisplayFrame.value !== null) {
+    return;
+  }
+
+  pixelatedDisplayFrame.value = requestAnimationFrame(() => {
+    pixelatedDisplayFrame.value = null;
+    dts.syncPixelatedDisplay();
+  });
+}
+
+function scheduleTransformerSync () {
+  if (transformerFrame.value !== null) {
+    return;
+  }
+
+  transformerFrame.value = requestAnimationFrame(() => {
+    transformerFrame.value = null;
+    dts.syncTransformer();
+  });
+}
 
 async function insertImage () {
   if (!dts.imageUploadFile) {
@@ -1015,23 +1044,38 @@ function downloadImage () {
 
 onMounted(() => {
   dts.measureStage();
+  updateStageContainerViewportTop();
 
   resizeObserver.value = new ResizeObserver(() => {
     dts.measureStage();
+    updateStageContainerViewportTop();
   });
 
   if (dts.stageContainerRef) {
     resizeObserver.value.observe(dts.stageContainerRef);
   }
 
+  window.addEventListener('scroll', updateStageContainerViewportTop, { passive: true });
+  window.addEventListener('resize', updateStageContainerViewportTop);
+
   loadEditorFonts().then(() => {
-    nextTick(() => dts.syncPixelatedDisplay());
+    nextTick(schedulePixelatedDisplaySync);
   });
-  nextTick(() => dts.syncPixelatedDisplay());
+  nextTick(schedulePixelatedDisplaySync);
 });
 
 onBeforeUnmount(() => {
   dts.stopSelectionHandleDrag(false);
   resizeObserver.value?.disconnect();
+  window.removeEventListener('scroll', updateStageContainerViewportTop);
+  window.removeEventListener('resize', updateStageContainerViewportTop);
+
+  if (pixelatedDisplayFrame.value !== null) {
+    cancelAnimationFrame(pixelatedDisplayFrame.value);
+  }
+
+  if (transformerFrame.value !== null) {
+    cancelAnimationFrame(transformerFrame.value);
+  }
 });
 </script>
