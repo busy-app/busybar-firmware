@@ -695,6 +695,46 @@ export const useDrawToolStore = defineStore('drawTool', () => {
     pushHistorySnapshot();
   }
 
+  function moveSelectedShape (deltaX: number, deltaY: number) {
+    if (!selectedShapeId.value || (deltaX === 0 && deltaY === 0)) {
+      return;
+    }
+
+    const selectedNode = getSelectedNode();
+
+    if (!selectedNode) {
+      return;
+    }
+
+    selectedNode.position({
+      x: selectedNode.x() + deltaX,
+      y: selectedNode.y() + deltaY
+    });
+    syncNodePosition(selectedNode);
+    updateOverlayControlPositions();
+    overlayLayerRef.value?.getNode().batchDraw();
+    pushHistorySnapshot();
+  }
+
+  function rotateSelectedShape (rotationDelta: number) {
+    const currentShape = getSelectedShapeState();
+    const selectedNode = getSelectedNode();
+
+    if (!currentShape || !selectedNode || currentShape.type === 'text' || rotationDelta === 0) {
+      return;
+    }
+
+    const nextRotation = snapRotationValue(currentShape.rotation + rotationDelta, ROTATION_SNAP_STEP);
+    const nextPosition = getShapePositionForRotation(currentShape, nextRotation);
+
+    selectedNode.position(nextPosition);
+    selectedNode.rotation(nextRotation);
+    syncRotatingNode(selectedNode);
+    updateOverlayControlPositions();
+    overlayLayerRef.value?.getNode().batchDraw();
+    pushHistorySnapshot();
+  }
+
   function handleStagePointerDown (event: Konva.KonvaEventObject<MouseEvent | TouchEvent>) {
     if (event.target !== event.target.getStage()) {
       return;
@@ -807,6 +847,8 @@ export const useDrawToolStore = defineStore('drawTool', () => {
     addText,
     addImageShape,
     deleteSelectedShape,
+    moveSelectedShape,
+    rotateSelectedShape,
     handleStagePointerDown,
     handleShapePointerDown,
     handleShapeDragMove,

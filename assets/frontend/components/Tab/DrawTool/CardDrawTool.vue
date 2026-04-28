@@ -912,6 +912,92 @@ function handleWindowClick (event: MouseEvent) {
   dts.selectedShapeId = null;
 }
 
+function isEditableKeyboardTarget (target: EventTarget | null) {
+  if (!(target instanceof HTMLElement)) {
+    return false;
+  }
+
+  return target instanceof HTMLInputElement
+    || target instanceof HTMLTextAreaElement
+    || target instanceof HTMLSelectElement
+    || target.isContentEditable;
+}
+
+function handleWindowKeyDown (event: KeyboardEvent) {
+  if (isEditableKeyboardTarget(event.target)) {
+    return;
+  }
+
+  const normalizedKey = event.key.toLowerCase();
+  const isUndoModifierPressed = (event.metaKey || event.ctrlKey) && !event.altKey;
+
+  if (isUndoModifierPressed) {
+    if (normalizedKey === 'z') {
+      event.preventDefault();
+
+      if (event.shiftKey) {
+        dts.redo();
+      } else {
+        dts.undo();
+      }
+
+      return;
+    }
+
+    if (normalizedKey === 'y') {
+      event.preventDefault();
+      dts.redo();
+      return;
+    }
+
+    return;
+  }
+
+  if (!dts.selectedShapeId || event.ctrlKey || event.metaKey || event.altKey) {
+    return;
+  }
+
+  if (event.key === 'Backspace' || event.key === 'Delete') {
+    event.preventDefault();
+    dts.deleteSelectedShape();
+    return;
+  }
+
+  if (event.key === 'Escape') {
+    event.preventDefault();
+    dts.commitActiveTextChange();
+    dts.selectedShapeId = null;
+    return;
+  }
+
+  if (normalizedKey === 'q') {
+    event.preventDefault();
+    dts.rotateSelectedShape(-ROTATION_SNAP_STEP);
+    return;
+  }
+
+  if (normalizedKey === 'e') {
+    event.preventDefault();
+    dts.rotateSelectedShape(ROTATION_SNAP_STEP);
+    return;
+  }
+
+  const movementByKey: Record<string, { x: number; y: number }> = {
+    ArrowUp: { x: 0, y: -1 },
+    ArrowDown: { x: 0, y: 1 },
+    ArrowLeft: { x: -1, y: 0 },
+    ArrowRight: { x: 1, y: 0 }
+  };
+  const movement = movementByKey[event.key];
+
+  if (!movement) {
+    return;
+  }
+
+  event.preventDefault();
+  dts.moveSelectedShape(movement.x, movement.y);
+}
+
 function schedulePixelatedDisplaySync () {
   if (pixelatedDisplayFrame.value !== null) {
     return;
@@ -1086,6 +1172,7 @@ onMounted(() => {
   window.addEventListener('scroll', updateStageContainerViewportTop, { passive: true });
   window.addEventListener('resize', updateStageContainerViewportTop);
   window.addEventListener('click', handleWindowClick);
+  window.addEventListener('keydown', handleWindowKeyDown);
 
   loadEditorFonts().then(() => {
     nextTick(schedulePixelatedDisplaySync);
@@ -1099,6 +1186,7 @@ onBeforeUnmount(() => {
   window.removeEventListener('scroll', updateStageContainerViewportTop);
   window.removeEventListener('resize', updateStageContainerViewportTop);
   window.removeEventListener('click', handleWindowClick);
+  window.removeEventListener('keydown', handleWindowKeyDown);
 
   if (pixelatedDisplayFrame.value !== null) {
     cancelAnimationFrame(pixelatedDisplayFrame.value);
