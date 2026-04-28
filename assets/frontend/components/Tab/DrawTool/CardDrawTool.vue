@@ -331,7 +331,7 @@
           </UButton>
 
           <template #content>
-            <div class="flex flex-col gap-3 p-3">
+            <div class="flex flex-col items-end gap-3 p-3">
               <ColorPicker
                 :model-value="dts.backgroundColor"
                 class="p-1"
@@ -341,7 +341,8 @@
               <UButton
                 label="Clear background"
                 color="neutral"
-                variant="ghost"
+                variant="outline"
+                size="sm"
                 :disabled="!hasVisibleBackgroundColor"
                 @click="dts.clearBackgroundColor"
               />
@@ -363,7 +364,7 @@
           </UButton>
 
           <template #content>
-            <div class="flex w-80 flex-col gap-3 p-3">
+            <div class="flex gap-6 p-3">
               <ColorPicker
                 :model-value="dts.borderColor"
                 class="p-1"
@@ -371,17 +372,7 @@
                 @update:model-value="dts.handleBorderColorChange"
               />
 
-              <div class="flex gap-2">
-                <UButton
-                  label="Reset border"
-                  color="neutral"
-                  variant="ghost"
-                  :disabled="!canResetBorder"
-                  @click="dts.clearBorderColor"
-                />
-              </div>
-
-              <div class="flex flex-col gap-4 rounded-xl border border-default/70 p-3">
+              <div class="flex flex-col gap-4 rounded-xl">
                 <div class="flex flex-col gap-2">
                   <div class="flex items-center justify-between text-sm text-muted">
                     <span>Gap size</span>
@@ -392,6 +383,7 @@
                     :min="0"
                     :max="MAX_BORDER_GAP_SIZE"
                     :step="1"
+                    class="min-w-36"
                     @change="dts.handleBorderSettingsChange"
                   />
                 </div>
@@ -421,6 +413,17 @@
                     :max="Math.max(0, dts.borderDashSize + dts.borderGapSize)"
                     :step="1"
                     @change="dts.handleBorderSettingsChange"
+                  />
+                </div>
+
+                <div class="flex justify-end">
+                  <UButton
+                    label="Reset border"
+                    color="neutral"
+                    variant="outline"
+                    size="sm"
+                    :disabled="!canResetBorder"
+                    @click="dts.clearBorderColor"
                   />
                 </div>
               </div>
@@ -476,7 +479,7 @@
           @click="showGrid = !showGrid"
         >
           <UIcon
-            name="i-bi-grid"
+            :name="showGrid ? 'i-bi-grid' : 'i-bi-grid-off'"
             class="size-6"
           />
           <span>Grid</span>
