@@ -187,9 +187,10 @@ onBeforeUnmount(() => {
 
 function handleOpaqueColorUpdate (value: string | undefined) {
   const parsedColor = parseColor(value) ?? parseColor(opaqueHex.value) ?? DEFAULT_COLOR;
-  const nextAlpha = currentAlpha.value <= 0 ? 1 : currentAlpha.value;
+  const nextOpaqueHex = formatHex(parsedColor);
+  const nextAlpha = currentAlpha.value <= 0 && nextOpaqueHex !== opaqueHex.value ? 1 : currentAlpha.value;
 
-  opaqueHex.value = formatHex(parsedColor);
+  opaqueHex.value = nextOpaqueHex;
 
   if (nextAlpha === 1 && alphaPercent.value !== 100) {
     alphaPercent.value = 100;
