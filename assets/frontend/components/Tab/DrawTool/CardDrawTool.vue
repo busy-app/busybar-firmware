@@ -79,9 +79,12 @@
                   label="Show on BUSY Bar"
                   color="neutral"
                   variant="solid"
-                  icon="i-bi-play-fill"
+                  :icon="showStatusCheckmarkIcon ? 'i-bi-checkmark' : 'i-bi-play-fill'"
                   :disabled="!dts.hasEditorContent"
                   :loading="isShowingStatusOnDevice"
+                  :ui="{
+                    leadingIcon: `${showStatusCheckmarkIcon ? 'text-success' : ''}`
+                  }"
                   @click="showStatusOnBusyBar"
                 />
               </UTooltip>
@@ -1502,6 +1505,7 @@ async function saveStatus (options?: { saveAsNew?: boolean }) {
   }
 }
 
+const showStatusCheckmarkIcon = ref(false);
 async function showStatusOnBusyBar () {
   if (!dts.hasEditorContent) {
     return;
@@ -1516,13 +1520,10 @@ async function showStatusOnBusyBar () {
     await uploadStatusAsset(image);
     await drawStatusOnBusyBar();
 
-    toast.add({
-      id: 'draw-tool-display-success',
-      title: 'Status shown on BUSY Bar',
-      description: 'Check the front display to view it',
-      color: 'success',
-      duration: 10000
-    });
+    showStatusCheckmarkIcon.value = true;
+    setTimeout(() => {
+      showStatusCheckmarkIcon.value = false;
+    }, 5000);
   } catch {
     // Request errors are already handled by the helper chain above.
   } finally {
