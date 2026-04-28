@@ -74,7 +74,7 @@
 
             <template #content>
               <div class="flex w-80 flex-col gap-3 p-3">
-                <UColorPicker
+                <ColorPicker
                   :model-value="borderPickerColor"
                   class="p-1"
                   :throttle="50"
@@ -86,19 +86,12 @@
                     label="Reset border"
                     color="neutral"
                     variant="ghost"
-                    :disabled="!borderColor"
+                    :disabled="!canResetBorder"
                     @click="clearBorderColor"
-                  />
-                  <UButton
-                    :label="showBorderGapControls ? 'Hide gap controls' : 'Gap controls'"
-                    color="neutral"
-                    variant="ghost"
-                    @click="showBorderGapControls = !showBorderGapControls"
                   />
                 </div>
 
                 <div
-                  v-if="showBorderGapControls"
                   class="flex flex-col gap-4 rounded-xl border border-default/70 p-3"
                 >
                   <div class="flex flex-col gap-2">
@@ -470,7 +463,7 @@ const ROTATION_SNAP_STEP = 5;
 const DEFAULT_WORKSPACE_BACKGROUND = '#101010';
 const DEFAULT_GRID_COLOR = '#000000';
 const DEFAULT_BACKGROUND_COLOR = '#00000000';
-const DEFAULT_BORDER_PICKER_COLOR = '#000000';
+const DEFAULT_BORDER_COLOR = '#00000000';
 const DEFAULT_BORDER_DASH_SIZE = 4;
 const DEFAULT_BORDER_GAP_SIZE = 0;
 const DEFAULT_BORDER_GAP_OFFSET = 0;
@@ -544,7 +537,7 @@ interface HistorySnapshot {
   shapes: EditorShape[];
   selectedShapeId: string | null;
   backgroundColor: string;
-  borderColor?: string;
+  borderColor: string;
   borderGapSize: number;
   borderDashSize: number;
   borderGapOffset: number;
@@ -607,11 +600,10 @@ const rotationHandlePosition = ref<OverlayControlPosition | null>(null);
 const selectionHandlePosition = ref<OverlayControlPosition | null>(null);
 const activeSelectionHandleDrag = ref<SelectionHandleDragState | null>(null);
 const backgroundColor = ref(DEFAULT_BACKGROUND_COLOR);
-const borderColor = ref<string | undefined>();
+const borderColor = ref(DEFAULT_BORDER_COLOR);
 const borderGapSize = ref(DEFAULT_BORDER_GAP_SIZE);
 const borderDashSize = ref(DEFAULT_BORDER_DASH_SIZE);
 const borderGapOffset = ref(DEFAULT_BORDER_GAP_OFFSET);
-const showBorderGapControls = ref(false);
 const textDraftValue = ref(DEFAULT_TEXT_VALUE);
 const textDraftColor = ref(DEFAULT_TEXT_COLOR);
 const textDraftFontId = ref(DEFAULT_TEXT_FONT_ID);
@@ -620,7 +612,7 @@ const historyEntries = ref<HistorySnapshot[]>([{
   shapes: [],
   selectedShapeId: null,
   backgroundColor: DEFAULT_BACKGROUND_COLOR,
-  borderColor: undefined,
+  borderColor: DEFAULT_BORDER_COLOR,
   borderGapSize: DEFAULT_BORDER_GAP_SIZE,
   borderDashSize: DEFAULT_BORDER_DASH_SIZE,
   borderGapOffset: DEFAULT_BORDER_GAP_OFFSET
@@ -742,6 +734,8 @@ const workspaceColorLayerConfig = computed(() => ({
   listening: false
 }));
 
+const hasVisibleBorderColor = computed(() => !isColorFullyTransparent(borderColor.value));
+
 function isBorderPixelActive (index: number): boolean {
   if (borderGapSize.value <= 0) {
     return true;
@@ -777,7 +771,7 @@ function createBorderPixelConfigs (fill: string): BorderPixelConfig[] {
 }
 
 const borderPixelConfigs = computed(() => {
-  if (!borderColor.value) {
+  if (!hasVisibleBorderColor.value) {
     return [];
   }
 
@@ -912,9 +906,17 @@ const backgroundColorChipStyle = computed(() => ({
 }));
 const backgroundPickerColor = computed(() => backgroundColor.value);
 const borderColorChipStyle = computed(() => ({
-  backgroundColor: borderColor.value || 'transparent'
+  backgroundColor: borderColor.value
 }));
-const borderPickerColor = computed(() => borderColor.value || DEFAULT_BORDER_PICKER_COLOR);
+const borderPickerColor = computed(() => borderColor.value);
+const hasModifiedBorderSettings = computed(() => {
+  return borderGapSize.value !== DEFAULT_BORDER_GAP_SIZE
+    || borderDashSize.value !== DEFAULT_BORDER_DASH_SIZE
+    || borderGapOffset.value !== DEFAULT_BORDER_GAP_OFFSET;
+});
+const canResetBorder = computed(() => {
+  return borderColor.value !== DEFAULT_BORDER_COLOR || hasModifiedBorderSettings.value;
+});
 const borderGapSliderMax = computed(() => MAX_BORDER_GAP_SIZE);
 const borderDashSliderMax = computed(() => MAX_BORDER_DASH_SIZE);
 const borderGapOffsetSliderMax = computed(() => Math.max(0, borderDashSize.value + borderGapSize.value));
@@ -1161,16 +1163,19 @@ function handleBackgroundColorChange (value?: string) {
 }
 
 function clearBorderColor () {
-  if (!borderColor.value) {
+  if (!canResetBorder.value) {
     return;
   }
 
-  borderColor.value = undefined;
+  borderColor.value = DEFAULT_BORDER_COLOR;
+  borderGapSize.value = DEFAULT_BORDER_GAP_SIZE;
+  borderDashSize.value = DEFAULT_BORDER_DASH_SIZE;
+  borderGapOffset.value = DEFAULT_BORDER_GAP_OFFSET;
   pushHistorySnapshot();
 }
 
 function handleBorderColorChange (value?: string) {
-  borderColor.value = value;
+  borderColor.value = value || DEFAULT_BORDER_COLOR;
   pushHistorySnapshot();
 }
 
@@ -2090,7 +2095,7 @@ function buildExportLayer (): Konva.Layer {
     }));
   });
 
-  if (borderColor.value) {
+  if (hasVisibleBorderColor.value) {
     createBorderPixelConfigs(borderColor.value).forEach(({ key: _key, ...config }) => {
       layer.add(new Konva.Rect(config));
     });
