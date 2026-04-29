@@ -3,95 +3,86 @@
     <SectionCard
       data-id="draw-tool-section-primary"
       class="overflow-visible"
+      :title="statusFileName"
+      :subtitle="dts.hasUnsavedChanges ? 'Unsaved changes' : undefined"
+      :ui="{
+        title: 'text-lg',
+        subtitle: 'text-sm',
+        titleWrapper: 'h-12'
+      }"
     >
-      <template #raw-body>
-        <div class="flex flex-col gap-6 mb-6 pt-6">
-          <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-            <div class="min-w-0 text-lg font-medium text-toned truncate">
-              {{ displayStatusFileName }}
-            </div>
-
-            <div class="flex flex-wrap gap-4">
-              <!-- <UButton
-                label="Add rectangle"
+      <template #actions>
+        <UTooltip
+          :delay-duration="0"
+          :text="!dts.hasEditorContent ? 'Nothing to save' : undefined"
+        >
+          <UButtonGroup>
+            <UButton
+              label="Save"
+              color="neutral"
+              variant="outline"
+              :disabled="!dts.hasEditorContent"
+              @click="saveStatus()"
+            />
+            <UDropdownMenu
+              :items="[
+                ...(hasSavedStatusFile
+                  ? [
+                    {
+                      label: 'Save as new file',
+                      icon: 'i-bi-plus',
+                      disabled: !dts.hasEditorContent,
+                      onClick: () => saveStatus({ saveAsNew: true })
+                    }
+                  ]
+                  : []),
+                {
+                  label: 'Download PNG',
+                  icon: 'i-bi-download',
+                  onClick: downloadImage
+                }
+              ]"
+              :content="{
+                align: 'end',
+                side: 'bottom',
+                sideOffset: 8
+              }"
+              :ui="{
+                content: 'min-w-40 bg-elevated ring-accented/50',
+                group: 'border-accented/50',
+                item: 'data-[state=open]:before:bg-accented/50 data-highlighted:before:bg-accented/50',
+                itemLabelExternalIcon: 'hidden'
+              }"
+            >
+              <UButton
+                icon="i-bi-chevron-down"
                 color="neutral"
                 variant="outline"
-                @click="dts.addRectangle"
-              /> -->
+                :disabled="!dts.hasEditorContent"
+              />
+            </UDropdownMenu>
+          </UButtonGroup>
+        </UTooltip>
 
-              <UTooltip
-                :delay-duration="0"
-                :text="!dts.hasEditorContent ? 'Nothing to save' : undefined"
-              >
-                <UButtonGroup>
-                  <UButton
-                    label="Save"
-                    color="neutral"
-                    variant="outline"
-                    :disabled="!dts.hasEditorContent"
-                    @click="saveStatus()"
-                  />
-                  <UDropdownMenu
-                    :items="[
-                      ...(hasSavedStatusFile
-                        ? [
-                          {
-                            label: 'Save as new file',
-                            icon: 'i-bi-plus',
-                            disabled: !dts.hasEditorContent,
-                            onClick: () => saveStatus({ saveAsNew: true })
-                          }
-                        ]
-                        : []),
-                      {
-                        label: 'Download PNG',
-                        icon: 'i-bi-download',
-                        onClick: downloadImage
-                      }
-                    ]"
-                    :content="{
-                      align: 'end',
-                      side: 'bottom',
-                      sideOffset: 8
-                    }"
-                    :ui="{
-                      content: 'min-w-40 bg-elevated ring-accented/50',
-                      group: 'border-accented/50',
-                      item: 'data-[state=open]:before:bg-accented/50 data-highlighted:before:bg-accented/50',
-                      itemLabelExternalIcon: 'hidden'
-                    }"
-                  >
-                    <UButton
-                      icon="i-bi-chevron-down"
-                      color="neutral"
-                      variant="outline"
-                      :disabled="!dts.hasEditorContent"
-                    />
-                  </UDropdownMenu>
-                </UButtonGroup>
-              </UTooltip>
-
-              <UTooltip
-                :delay-duration="0"
-                :text="!dts.hasEditorContent ? 'Nothing to show' : undefined"
-              >
-                <UButton
-                  label="Show on BUSY Bar"
-                  color="neutral"
-                  variant="solid"
-                  :icon="showStatusCheckmarkIcon ? 'i-bi-checkmark' : 'i-bi-play-fill'"
-                  :disabled="!dts.hasEditorContent"
-                  :loading="isShowingStatusOnDevice"
-                  :ui="{
-                    leadingIcon: `${showStatusCheckmarkIcon ? 'text-success' : ''}`
-                  }"
-                  @click="showStatusOnBusyBar"
-                />
-              </UTooltip>
-            </div>
-          </div>
-        </div>
-
+        <UTooltip
+          :delay-duration="0"
+          :text="!dts.hasEditorContent ? 'Nothing to show' : undefined"
+        >
+          <UButton
+            label="Show on BUSY Bar"
+            color="neutral"
+            variant="solid"
+            :icon="showStatusCheckmarkIcon ? 'i-bi-checkmark' : 'i-bi-play-fill'"
+            :disabled="!dts.hasEditorContent"
+            :loading="isShowingStatusOnDevice"
+            :ui="{
+              leadingIcon: `${showStatusCheckmarkIcon ? 'text-success' : ''}`
+            }"
+            @click="showStatusOnBusyBar"
+          />
+        </UTooltip>
+      </template>
+      <template #raw-body>
         <div class="flex flex-col gap-4">
           <div
             :ref="dtsRefs.stageContainerRef"
@@ -812,12 +803,6 @@ const showGrid = ref(true);
 const dts = useDrawToolStore();
 const dtsRefs = storeToRefs(dts);
 const { statusFileName, savedStatusFilePath, hasSavedStatusFile } = dtsRefs;
-const displayStatusFileName = computed(() => {
-  if (statusFileName.value === DEFAULT_STATUS_FILE_NAME) {
-    return statusFileName.value;
-  }
-  return dts.hasUnsavedChanges ? `${statusFileName.value}*` : statusFileName.value;
-});
 
 const FLOATING_TEXT_MENU_HEIGHT = 40;
 const FLOATING_TEXT_MENU_GAP = 8;
