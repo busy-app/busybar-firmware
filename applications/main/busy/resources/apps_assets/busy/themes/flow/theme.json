@@ -1,3 +1,4 @@
 {
-    "bg_path": "/ext/apps_assets/shared/animations/flow_72x16.anim"
+    "bg_path": "/ext/apps_assets/shared/animations/flow_72x16.anim",
+    "order": 80
 }
