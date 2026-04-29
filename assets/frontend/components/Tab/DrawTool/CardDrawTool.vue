@@ -88,7 +88,7 @@
             :ref="dtsRefs.stageContainerRef"
             class="relative w-full min-h-[400px] rounded-[28px]"
           >
-            <div class="w-full overflow-hidden rounded-2xl bg-neutral-500 dark:bg-neutral-950">
+            <div class="relative w-full overflow-hidden rounded-2xl bg-neutral-500 dark:bg-neutral-950">
               <VStage
                 :ref="dtsRefs.stageRef"
                 :config="stageConfig"
@@ -129,6 +129,30 @@
                       />
                     </template>
                   </VGroup>
+                </VGroup>
+
+                <VGroup
+                  v-for="overflowGroup in overflowPreviewClipGroups"
+                  :key="overflowGroup.key"
+                  :config="overflowGroup"
+                >
+                  <template
+                    v-for="shape in dts.shapes"
+                    :key="`${shape.id}-${overflowGroup.key}`"
+                  >
+                    <VRect
+                      v-if="shape.type === 'rect'"
+                      :config="getOverflowPreviewRectConfig(shape)"
+                    />
+                    <VText
+                      v-else-if="shape.type === 'text'"
+                      :config="getOverflowPreviewTextConfig(shape)"
+                    />
+                    <VImage
+                      v-else
+                      :config="getOverflowPreviewImageConfig(shape)"
+                    />
+                  </template>
                 </VGroup>
 
                 <VGroup :config="workspaceGridGroupConfig">
@@ -199,6 +223,45 @@
                   />
                 </VLayer>
               </VStage>
+
+              <div class="pointer-events-none absolute inset-0 z-30 overflow-hidden rounded-2xl">
+                <UButton
+                  v-if="deleteButtonStyle"
+                  color="error"
+                  variant="solid"
+                  square
+                  size="xs"
+                  icon="i-bi-trash"
+                  class="pointer-events-auto absolute rounded-full"
+                  :style="deleteButtonStyle"
+                  @pointerdown.stop.prevent
+                  @click.stop="dts.deleteSelectedShape"
+                />
+
+                <UButton
+                  v-if="selectionHandleStyle"
+                  color="neutral"
+                  variant="solid"
+                  square
+                  size="xs"
+                  :icon="selectedTextShape ? 'i-bi-move' : 'i-bi-resize-alt'"
+                  class="pointer-events-auto absolute rounded-full"
+                  :style="selectionHandleStyle"
+                  @pointerdown.stop.prevent="dts.handleSelectionHandlePointerDown"
+                />
+
+                <UButton
+                  v-if="rotationHandleStyle"
+                  color="neutral"
+                  variant="solid"
+                  square
+                  size="xs"
+                  icon="i-bi-rotate"
+                  class="pointer-events-auto absolute rounded-full"
+                  :style="rotationHandleStyle"
+                  @pointerdown.stop.prevent="dts.handleRotationHandlePointerDown"
+                />
+              </div>
             </div>
 
             <textarea
@@ -298,42 +361,6 @@
               </UPopover>
             </div>
 
-            <UButton
-              v-if="deleteButtonStyle"
-              color="error"
-              variant="solid"
-              square
-              size="xs"
-              icon="i-bi-trash"
-              class="absolute z-30 rounded-full"
-              :style="deleteButtonStyle"
-              @pointerdown.stop.prevent
-              @click.stop="dts.deleteSelectedShape"
-            />
-
-            <UButton
-              v-if="selectionHandleStyle"
-              color="neutral"
-              variant="solid"
-              square
-              size="xs"
-              :icon="selectedTextShape ? 'i-bi-move' : 'i-bi-resize-alt'"
-              class="absolute z-30 rounded-full"
-              :style="selectionHandleStyle"
-              @pointerdown.stop.prevent="dts.handleSelectionHandlePointerDown"
-            />
-
-            <UButton
-              v-if="rotationHandleStyle"
-              color="neutral"
-              variant="solid"
-              square
-              size="xs"
-              icon="i-bi-rotate"
-              class="absolute z-30 rounded-full"
-              :style="rotationHandleStyle"
-              @pointerdown.stop.prevent="dts.handleRotationHandlePointerDown"
-            />
           </div>
 
           <ModalGeneric
@@ -888,6 +915,7 @@ const DRAW_TOOL_TEMP_FILE_NAME = 'temp.png';
 const DRAW_TOOL_SAVE_DIR = '/ext/user_assets/draw_tool';
 const TOOLBAR_MAX_CANVAS_GAP = 48;
 const TOOLBAR_VIEWPORT_BOTTOM_OFFSET = 24;
+const OVERFLOW_PREVIEW_OPACITY = 0.35;
 
 // const toolbarLabeledButtonClass = 'flex flex-col items-center gap-2 p-2 rounded-lg text-xs';
 const toolbarIconButtonClass = 'rounded-lg';
@@ -1082,12 +1110,59 @@ const shapeClipGroupConfig = computed(() => ({
   x: stageMetrics.value.workspaceX,
   y: stageMetrics.value.workspaceY,
   scaleX: stageMetrics.value.cellSize,
-  scaleY: stageMetrics.value.cellSize,
-  clipX: 0,
-  clipY: 0,
-  clipWidth: WORKSPACE_WIDTH,
-  clipHeight: WORKSPACE_HEIGHT
+  scaleY: stageMetrics.value.cellSize
 }));
+
+const overflowPreviewClipGroups = computed(() => {
+  const stageWidthInCells = stageMetrics.value.width / stageMetrics.value.cellSize;
+  const stageHeightInCells = stageMetrics.value.height / stageMetrics.value.cellSize;
+  const workspaceOffsetXInCells = stageMetrics.value.workspaceX / stageMetrics.value.cellSize;
+  const workspaceOffsetYInCells = stageMetrics.value.workspaceY / stageMetrics.value.cellSize;
+  const stageLeftInCells = -workspaceOffsetXInCells;
+  const stageTopInCells = -workspaceOffsetYInCells;
+  const groups = [
+    {
+      key: 'top',
+      clipX: stageLeftInCells,
+      clipY: stageTopInCells,
+      clipWidth: stageWidthInCells,
+      clipHeight: workspaceOffsetYInCells
+    },
+    {
+      key: 'bottom',
+      clipX: stageLeftInCells,
+      clipY: WORKSPACE_HEIGHT,
+      clipWidth: stageWidthInCells,
+      clipHeight: stageHeightInCells - WORKSPACE_HEIGHT - workspaceOffsetYInCells
+    },
+    {
+      key: 'left',
+      clipX: stageLeftInCells,
+      clipY: 0,
+      clipWidth: workspaceOffsetXInCells,
+      clipHeight: WORKSPACE_HEIGHT
+    },
+    {
+      key: 'right',
+      clipX: WORKSPACE_WIDTH,
+      clipY: 0,
+      clipWidth: stageWidthInCells - WORKSPACE_WIDTH - workspaceOffsetXInCells,
+      clipHeight: WORKSPACE_HEIGHT
+    }
+  ];
+
+  return groups
+    .filter(group => group.clipWidth > 0 && group.clipHeight > 0)
+    .map(group => ({
+      ...group,
+      x: stageMetrics.value.workspaceX,
+      y: stageMetrics.value.workspaceY,
+      scaleX: stageMetrics.value.cellSize,
+      scaleY: stageMetrics.value.cellSize,
+      listening: false,
+      perfectDrawEnabled: false
+    }));
+});
 
 const displayGroupConfig = computed(() => ({
   x: stageMetrics.value.workspaceX,
@@ -1541,6 +1616,27 @@ function handleIconTriggerClick () {
 
 function handleIconTriggerPointerLeave () {
   isIconTooltipSuppressed.value = false;
+}
+
+function getOverflowPreviewRectConfig (shape: Parameters<typeof getDisplayRectConfig>[0]) {
+  return {
+    ...getDisplayRectConfig(shape),
+    opacity: OVERFLOW_PREVIEW_OPACITY
+  };
+}
+
+function getOverflowPreviewImageConfig (shape: Parameters<typeof getDisplayImageConfig>[0]) {
+  return {
+    ...getDisplayImageConfig(shape),
+    opacity: OVERFLOW_PREVIEW_OPACITY
+  };
+}
+
+function getOverflowPreviewTextConfig (shape: Parameters<typeof getDisplayTextConfig>[0]) {
+  return {
+    ...getDisplayTextConfig(shape),
+    opacity: OVERFLOW_PREVIEW_OPACITY
+  };
 }
 
 async function insertDrawToolIcon (icon: ResolvedDrawToolIcon) {
