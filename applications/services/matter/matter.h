@@ -146,11 +146,11 @@ MatterStatus matter_enable_commissioning(Matter* instance, MatterCommissioningIn
 MatterStatus matter_get_commissioned_fabrics(Matter* instance, MatterCommissionedFabrics* fabrics);
 
 /**
- * @brief Delete all Matter pairing data.
+ * @brief Delete all Matter pairing data, then reboot on success
  *
  * @param[in,out] instance pointer to the service instance
  *
- * @returns @c MatterStatusOk on success, any other value from @c MatterStatus enum on error
+ * @returns @c MatterStatus enum on error. @c MatterStatusOk is never returned.
  */
 MatterStatus matter_factory_reset(Matter* instance);
 

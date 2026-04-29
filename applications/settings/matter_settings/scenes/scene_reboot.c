@@ -1,8 +1,6 @@
 #include "../matter_settings_i.h"
 #include <settings_helpers/status_view.h>
 
-#include <power/power_service/power.h>
-
 #define REBOOT_TIMER_MS (2500)
 
 typedef struct {
@@ -33,12 +31,6 @@ static void matter_scene_reboot_on_enter(void* context) {
             status_view_set_header(scene->statuses[disp], "Restarting device...");
         }
     });
-
-    furi_delay_ms(REBOOT_TIMER_MS);
-    Power* power = furi_record_open(RECORD_POWER);
-    power_reboot(power, PowerRebootNormal);
-    while(1)
-        ;
 }
 
 static void matter_scene_reboot_on_exit(void* context) {
