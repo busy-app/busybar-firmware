@@ -15,7 +15,7 @@ const dts = useDrawToolStore();
 const editorStore = useDrawToolEditorStore();
 
 const isEditorOpen = ref(false);
-const statusDirectoryRefreshTimer = ref<number | null>(null);
+const statusDirectoryRefreshTimer = ref<NodeJS.Timeout | null>(null);
 
 const STATUS_DIRECTORY_REFRESH_INTERVAL_MS = 30000;
 
@@ -29,11 +29,11 @@ async function handleEditorBack () {
   await dts.refreshStatusDirectory();
 }
 
-onMounted(() => {
-  void dts.refreshStatusDirectory();
+onMounted(async () => {
+  await dts.refreshStatusDirectory();
 
-  statusDirectoryRefreshTimer.value = window.setInterval(() => {
-    void dts.refreshStatusDirectory({ silent: true });
+  statusDirectoryRefreshTimer.value = setInterval(async () => {
+    await dts.refreshStatusDirectory({ silent: true });
   }, STATUS_DIRECTORY_REFRESH_INTERVAL_MS);
 });
 

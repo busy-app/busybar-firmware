@@ -1,6 +1,6 @@
-import type { StorageListElement } from '@busy-app/busy-lib';
+import type { StorageListElement, DisplayDrawParams } from '@busy-app/busy-lib';
 import { defineStore } from 'pinia';
-import { DRAW_TOOL_SAVE_DIR, DRAW_TOOL_TEMP_FILE_NAME } from '@/util/drawTool';
+import { DRAW_TOOL_DISPLAY_APPLICATION_NAME, DRAW_TOOL_SAVE_DIR, DRAW_TOOL_TEMP_FILE_NAME } from '@/util/drawTool';
 
 type DrawToolStatusDirectoryFile = {
   name: string;
@@ -41,11 +41,16 @@ export const useDrawToolStore = defineStore('drawTool', () => {
   }
 
   async function downloadStatusPreview (path: string) {
-    const deviceStore = useDeviceStore();
-    const file = await deviceStore.busyBar.StorageRead({ path, timeout: 0 });
-    const blob = file instanceof Blob ? file : new Blob([file], { type: 'image/png' });
+    const blob = await readStatusFile(path);
 
     return URL.createObjectURL(blob);
+  }
+
+  async function readStatusFile (path: string) {
+    const deviceStore = useDeviceStore();
+    const file = await deviceStore.busyBar.StorageRead({ path, timeout: 0 });
+
+    return file instanceof Blob ? file : new Blob([file], { type: 'image/png' });
   }
 
   function revokeStatusPreviewUrl (previewUrl: string) {
@@ -136,11 +141,84 @@ export const useDrawToolStore = defineStore('drawTool', () => {
     }
   }
 
+  async function clearStatusDisplay () {
+    const deviceStore = useDeviceStore();
+
+    try {
+      await deviceStore.busyBar.DisplayClear({
+        application_name: DRAW_TOOL_DISPLAY_APPLICATION_NAME
+      });
+    } catch (error) {
+      await handleHTTPError(error, 'Couldn\'t clear existing status display', true);
+      throw error;
+    }
+  }
+
+  async function showSavedStatusOnBusyBar (fileName: string) {
+    const deviceStore = useDeviceStore();
+
+    await clearStatusDisplay();
+
+    return deviceStore.busyBar.DisplayDraw({
+      application_name: DRAW_TOOL_DISPLAY_APPLICATION_NAME,
+      elements: [
+        {
+          id: '0',
+          timeout: 0,
+          align: 'top_left',
+          display: 'front',
+          x: 0,
+          y: 0,
+          type: 'image',
+          path: fileName
+        }
+      ],
+      priority: 50
+    } as DisplayDrawParams)
+      .catch(async error => {
+        await handleHTTPError(error, 'Display draw command failed', true);
+        throw error;
+      });
+  }
+
+  async function downloadStatusFile (fileName: string) {
+    const blob = await readStatusFile(createStatusFilePath(fileName));
+    const objectUrl = URL.createObjectURL(blob);
+
+    try {
+      const link = document.createElement('a');
+      link.href = objectUrl;
+      link.download = fileName;
+      link.click();
+    } finally {
+      URL.revokeObjectURL(objectUrl);
+    }
+  }
+
+  async function deleteStatusFiles (fileNames: string[]) {
+    const deviceStore = useDeviceStore();
+
+    for (const fileName of [...new Set(fileNames)]) {
+      const fullPath = createStatusFilePath(fileName);
+
+      await deviceStore.busyBar.StorageRemove({ path: fullPath, timeout: 10000 })
+        .catch(async error => {
+          await handleHTTPError(error, `Couldn't delete ${fullPath}`, false, 0);
+        });
+    }
+
+    await refreshStatusDirectory({ silent: true });
+  }
+
   return {
     isRefreshingStatusDirectory,
     statusDirectoryFiles,
     statusGalleryFiles,
     syncStatusDirectory,
-    refreshStatusDirectory
+    refreshStatusDirectory,
+    clearStatusDisplay,
+    showSavedStatusOnBusyBar,
+    downloadStatusFile,
+    deleteStatusFiles
   };
 });
