@@ -4,24 +4,34 @@
       data-id="draw-tool-section-primary"
       class="overflow-visible"
       :title="statusFileName"
-      :subtitle="dts.hasUnsavedChanges ? 'Unsaved changes' : 'Saved to file'"
+      :subtitle="es.hasUnsavedChanges ? 'Unsaved changes' : 'Saved to file'"
       :ui="{
         title: 'text-lg',
         subtitle: 'text-sm',
         titleWrapper: 'h-12'
       }"
     >
+      <template #leading-actions>
+        <UButton
+          data-id="draw-tool-editor-back"
+          icon="i-bi-arrow-left"
+          color="neutral"
+          variant="ghost"
+          @click="handleBackButtonClick"
+        />
+      </template>
+
       <template #actions>
         <UTooltip
           :delay-duration="0"
-          :text="!dts.hasEditorContent ? 'Nothing to save' : undefined"
+          :text="!es.hasEditorContent ? 'Nothing to save' : undefined"
         >
           <UButtonGroup>
             <UButton
               label="Save"
               color="neutral"
               variant="outline"
-              :disabled="!dts.hasEditorContent"
+              :disabled="!es.hasEditorContent"
               @click="saveStatus()"
             />
             <UDropdownMenu
@@ -31,7 +41,7 @@
                     {
                       label: 'Save as new file',
                       icon: 'i-bi-plus',
-                      disabled: !dts.hasEditorContent,
+                      disabled: !es.hasEditorContent,
                       onClick: () => saveStatus({ saveAsNew: true })
                     }
                   ]
@@ -58,7 +68,7 @@
                 icon="i-bi-chevron-down"
                 color="neutral"
                 variant="outline"
-                :disabled="!dts.hasEditorContent"
+                :disabled="!es.hasEditorContent"
               />
             </UDropdownMenu>
           </UButtonGroup>
@@ -66,14 +76,14 @@
 
         <UTooltip
           :delay-duration="0"
-          :text="!dts.hasEditorContent ? 'Nothing to show' : undefined"
+          :text="!es.hasEditorContent ? 'Nothing to show' : undefined"
         >
           <UButton
             label="Show on BUSY Bar"
             color="neutral"
             variant="solid"
             :icon="showStatusCheckmarkIcon ? 'i-bi-checkmark' : 'i-bi-play-fill'"
-            :disabled="!dts.hasEditorContent"
+            :disabled="!es.hasEditorContent"
             :loading="isShowingStatusOnDevice"
             :ui="{
               leadingIcon: `${showStatusCheckmarkIcon ? 'text-success' : ''}`
@@ -85,17 +95,17 @@
       <template #raw-body>
         <div class="flex flex-col gap-4">
           <div
-            :ref="dtsRefs.stageContainerRef"
+            :ref="esRefs.stageContainerRef"
             class="relative w-full min-h-[400px] rounded-[28px]"
           >
             <div class="relative w-full overflow-hidden rounded-2xl bg-neutral-500 dark:bg-neutral-950">
               <VStage
-                :ref="dtsRefs.stageRef"
+                :ref="esRefs.stageRef"
                 :config="stageConfig"
-                @mousedown="dts.handleStagePointerDown"
-                @tap="dts.handleStagePointerDown"
+                @mousedown="es.handleStagePointerDown"
+                @tap="es.handleStagePointerDown"
               >
-                <VLayer :ref="dtsRefs.displayLayerRef">
+                <VLayer :ref="esRefs.displayLayerRef">
                   <VRect :config="stageBackgroundConfig" />
 
                 <VGroup :config="workspaceBackgroundGroupConfig">
@@ -107,12 +117,12 @@
                 </VGroup>
 
                 <VGroup
-                  :ref="dtsRefs.displayGroupRef"
+                  :ref="esRefs.displayGroupRef"
                   :config="displayGroupConfig"
                 >
                   <VGroup :config="displayShapesGroupConfig">
                     <template
-                      v-for="shape in dts.shapes"
+                      v-for="shape in es.shapes"
                       :key="`${shape.id}-display`"
                     >
                       <VRect
@@ -137,7 +147,7 @@
                   :config="overflowGroup"
                 >
                   <template
-                    v-for="shape in dts.shapes"
+                    v-for="shape in es.shapes"
                     :key="`${shape.id}-${overflowGroup.key}`"
                   >
                     <VRect
@@ -179,46 +189,46 @@
                 <VLayer>
                   <VGroup :config="shapeClipGroupConfig">
                     <template
-                      v-for="shape in dts.shapes"
+                      v-for="shape in es.shapes"
                       :key="shape.id"
                     >
                       <VRect
                         v-if="shape.type === 'rect'"
                         :config="getRectConfig(shape)"
-                        @mousedown="dts.handleShapePointerDown"
-                        @tap="dts.handleShapePointerDown"
-                        @dragmove="dts.handleShapeDragMove"
-                        @transform="dts.handleShapeTransform"
-                        @dragend="dts.handleShapeDragEnd"
-                        @transformend="dts.handleShapeTransformEnd"
+                        @mousedown="es.handleShapePointerDown"
+                        @tap="es.handleShapePointerDown"
+                        @dragmove="es.handleShapeDragMove"
+                        @transform="es.handleShapeTransform"
+                        @dragend="es.handleShapeDragEnd"
+                        @transformend="es.handleShapeTransformEnd"
                       />
                       <VText
                         v-else-if="shape.type === 'text'"
                         :config="getTextConfig(shape)"
-                        @mousedown="dts.handleShapePointerDown"
-                        @tap="dts.handleShapePointerDown"
-                        @dragmove="dts.handleShapeDragMove"
-                        @transform="dts.handleShapeTransform"
-                        @dragend="dts.handleShapeDragEnd"
-                        @transformend="dts.handleShapeTransformEnd"
+                        @mousedown="es.handleShapePointerDown"
+                        @tap="es.handleShapePointerDown"
+                        @dragmove="es.handleShapeDragMove"
+                        @transform="es.handleShapeTransform"
+                        @dragend="es.handleShapeDragEnd"
+                        @transformend="es.handleShapeTransformEnd"
                       />
                       <VImage
                         v-else
                         :config="getImageConfig(shape)"
-                        @mousedown="dts.handleShapePointerDown"
-                        @tap="dts.handleShapePointerDown"
-                        @dragmove="dts.handleShapeDragMove"
-                        @transform="dts.handleShapeTransform"
-                        @dragend="dts.handleShapeDragEnd"
-                        @transformend="dts.handleShapeTransformEnd"
+                        @mousedown="es.handleShapePointerDown"
+                        @tap="es.handleShapePointerDown"
+                        @dragmove="es.handleShapeDragMove"
+                        @transform="es.handleShapeTransform"
+                        @dragend="es.handleShapeDragEnd"
+                        @transformend="es.handleShapeTransformEnd"
                       />
                     </template>
                   </VGroup>
                 </VLayer>
 
-                <VLayer :ref="dtsRefs.overlayLayerRef">
+                <VLayer :ref="esRefs.overlayLayerRef">
                   <VTransformer
-                    :ref="dtsRefs.transformerRef"
+                    :ref="esRefs.transformerRef"
                     :config="transformerConfig"
                   />
                 </VLayer>
@@ -235,7 +245,7 @@
                   class="pointer-events-auto absolute rounded-full"
                   :style="deleteButtonStyle"
                   @pointerdown.stop.prevent
-                  @click.stop="dts.deleteSelectedShape"
+                  @click.stop="es.deleteSelectedShape"
                 />
 
                 <UButton
@@ -247,7 +257,7 @@
                   :icon="selectedTextShape ? 'i-bi-move' : 'i-bi-resize-alt'"
                   class="pointer-events-auto absolute rounded-full"
                   :style="selectionHandleStyle"
-                  @pointerdown.stop.prevent="dts.handleSelectionHandlePointerDown"
+                  @pointerdown.stop.prevent="es.handleSelectionHandlePointerDown"
                 />
 
                 <UButton
@@ -259,14 +269,14 @@
                   icon="i-bi-rotate"
                   class="pointer-events-auto absolute rounded-full"
                   :style="rotationHandleStyle"
-                  @pointerdown.stop.prevent="dts.handleRotationHandlePointerDown"
+                  @pointerdown.stop.prevent="es.handleRotationHandlePointerDown"
                 />
               </div>
             </div>
 
             <textarea
               v-if="selectedTextTextareaStyle"
-              :ref="dtsRefs.textEditorRef"
+              :ref="esRefs.textEditorRef"
               :value="activeTextValue"
               :style="selectedTextTextareaStyle"
               autofocus
@@ -274,9 +284,9 @@
               spellcheck="false"
               wrap="off"
               class="absolute z-20 resize-none overflow-hidden border-0 bg-transparent p-0 outline-none"
-              @input="dts.handleTextTextareaInput"
-              @keydown.enter.prevent="dts.handleTextTextareaEnter"
-              @blur="dts.commitActiveTextChange"
+              @input="es.handleTextTextareaInput"
+              @keydown.enter.prevent="es.handleTextTextareaEnter"
+              @blur="es.commitActiveTextChange"
               @mousedown.stop
               @wheel.prevent
               @click.stop
@@ -300,7 +310,7 @@
                 size="sm"
                 class="w-40"
                 data-draw-tool-preserve-selection
-                @update:model-value="dts.handleActiveTextFontChange"
+                @update:model-value="es.handleActiveTextFontChange"
                 >
                   <template #default>
                     <span
@@ -354,7 +364,7 @@
                       :model-value="activeTextColor"
                       class="p-1"
                       :throttle="50"
-                      @update:model-value="dts.handleActiveTextColorChange"
+                      @update:model-value="es.handleActiveTextColorChange"
                     />
                   </div>
                 </template>
@@ -364,25 +374,25 @@
           </div>
 
           <ModalGeneric
-            v-model:open="dts.showImageUploadModal"
+            v-model:open="es.showImageUploadModal"
             data-id="modal-draw-tool-image-upload"
             title="Add image"
             wide
             show-close-button
             :primary-action-props="{
               label: 'Insert image',
-              disabled: !dts.imageUploadFile,
+              disabled: !es.imageUploadFile,
               onClick: insertImage
             }"
             :secondary-action-props="{
               label: 'Cancel',
               variant: 'ghost',
-              onClick: dts.resetImageUploadModal
+              onClick: es.resetImageUploadModal
             }"
           >
             <template #body>
               <UFileUpload
-                v-model="dts.imageUploadFile"
+                v-model="es.imageUploadFile"
                 data-id="draw-tool-image-upload"
                 accept="image/*"
                 class="w-full rounded-xl"
@@ -403,6 +413,40 @@
                   />
                 </template>
               </UFileUpload>
+            </template>
+          </ModalGeneric>
+
+          <ModalGeneric
+            v-model:open="isExitConfirmOpen"
+            data-id="modal-draw-tool-exit-confirm"
+            title="Leave editor?"
+            description="You have unsaved changes. Save them before returning to the gallery?"
+            show-close-button
+            no-actions
+          >
+            <template #actions>
+              <div class="mt-8 flex flex-wrap justify-end gap-2">
+                <UButton
+                  label="Discard changes"
+                  color="neutral"
+                  variant="ghost"
+                  :disabled="isSavingStatus"
+                  @click="discardAndExitEditor"
+                />
+                <UButton
+                  label="Cancel"
+                  color="neutral"
+                  variant="ghost"
+                  :disabled="isSavingStatus"
+                  @click="isExitConfirmOpen = false"
+                />
+                <UButton
+                  label="Save and go back"
+                  color="neutral"
+                  :loading="isSavingStatus"
+                  @click="saveAndExitEditor"
+                />
+              </div>
             </template>
           </ModalGeneric>
         </div>
@@ -448,10 +492,10 @@
           <template #content>
             <div class="flex flex-col items-end gap-3 p-3">
               <ColorPicker
-                :model-value="dts.backgroundColor"
+                :model-value="es.backgroundColor"
                 class="p-1"
                 :throttle="50"
-                @update:model-value="dts.handleBackgroundColorChange"
+                @update:model-value="es.handleBackgroundColorChange"
               />
               <UButton
                 label="Clear background"
@@ -459,7 +503,7 @@
                 variant="outline"
                 size="sm"
                 :disabled="!hasVisibleBackgroundColor"
-                @click="dts.clearBackgroundColor"
+                @click="es.clearBackgroundColor"
               />
             </div>
           </template>
@@ -498,53 +542,53 @@
           <template #content>
             <div class="flex gap-6 p-3">
               <ColorPicker
-                :model-value="dts.borderColor"
+                :model-value="es.borderColor"
                 class="p-1"
                 :throttle="50"
-                @update:model-value="dts.handleBorderColorChange"
+                @update:model-value="es.handleBorderColorChange"
               />
 
               <div class="flex flex-col gap-4 rounded-xl">
                 <div class="flex flex-col gap-2">
                   <div class="flex items-center justify-between text-sm text-muted">
                     <span>Gap size</span>
-                    <span>{{ dts.borderGapSize }}px</span>
+                    <span>{{ es.borderGapSize }}px</span>
                   </div>
                   <USlider
-                    v-model="dts.borderGapSize"
+                    v-model="es.borderGapSize"
                     :min="0"
                     :max="MAX_BORDER_GAP_SIZE"
                     :step="1"
                     class="min-w-36"
-                    @change="dts.handleBorderSettingsChange"
+                    @change="es.handleBorderSettingsChange"
                   />
                 </div>
 
                 <div class="flex flex-col gap-2">
                   <div class="flex items-center justify-between text-sm text-muted">
                     <span>Dash size</span>
-                    <span>{{ dts.borderDashSize }}px</span>
+                    <span>{{ es.borderDashSize }}px</span>
                   </div>
                   <USlider
-                    v-model="dts.borderDashSize"
+                    v-model="es.borderDashSize"
                     :min="1"
                     :max="MAX_BORDER_DASH_SIZE"
                     :step="1"
-                    @change="dts.handleBorderSettingsChange"
+                    @change="es.handleBorderSettingsChange"
                   />
                 </div>
 
                 <div class="flex flex-col gap-2">
                   <div class="flex items-center justify-between text-sm text-muted">
                     <span>Gap offset</span>
-                    <span>{{ dts.borderGapOffset }}px</span>
+                    <span>{{ es.borderGapOffset }}px</span>
                   </div>
                   <USlider
-                    v-model="dts.borderGapOffset"
+                    v-model="es.borderGapOffset"
                     :min="0"
-                    :max="Math.max(0, dts.borderDashSize + dts.borderGapSize)"
+                    :max="Math.max(0, es.borderDashSize + es.borderGapSize)"
                     :step="1"
-                    @change="dts.handleBorderSettingsChange"
+                    @change="es.handleBorderSettingsChange"
                   />
                 </div>
 
@@ -555,7 +599,7 @@
                     variant="outline"
                     size="sm"
                     :disabled="!canResetBorder"
-                    @click="dts.clearBorderColor"
+                    @click="es.clearBorderColor"
                   />
                 </div>
               </div>
@@ -577,7 +621,7 @@
             square
             :class="toolbarIconButtonClass"
             data-draw-tool-preserve-selection
-            @click="dts.addText(activeTextValue, activeTextColor, activeTextFontId)"
+            @click="es.addText(activeTextValue, activeTextColor, activeTextFontId)"
           >
             <UIcon
               name="i-bi-text"
@@ -683,7 +727,7 @@
             variant="ghost"
             square
             :class="toolbarIconButtonClass"
-            @click="dts.showImageUploadModal = true"
+            @click="es.showImageUploadModal = true"
           >
             <UIcon
               name="i-bi-image"
@@ -799,8 +843,8 @@
             variant="ghost"
             square
             :class="toolbarIconButtonClass"
-            :disabled="!(dts.historyIndex > 0)"
-            @click="dts.undo"
+            :disabled="!(es.historyIndex > 0)"
+            @click="es.undo"
           >
             <UIcon
               name="i-bi-undo"
@@ -822,8 +866,8 @@
             variant="ghost"
             square
             :class="toolbarIconButtonClass"
-            :disabled="!(dts.historyIndex < dts.historyEntries.length - 1)"
-            @click="dts.redo"
+            :disabled="!(es.historyIndex < es.historyEntries.length - 1)"
+            @click="es.redo"
           >
             <UIcon
               name="i-bi-redo"
@@ -845,8 +889,8 @@
             variant="ghost"
             square
             :class="toolbarIconButtonClass"
-            :disabled="!dts.hasEditorContent"
-            @click="dts.clearStage"
+            :disabled="!es.hasEditorContent"
+            @click="es.clearStage"
           >
             <UIcon
               name="i-bi-trash"
@@ -892,6 +936,9 @@ type ShortcutToken = {
 };
 
 const toast = useToast();
+const emit = defineEmits<{
+  back: [];
+}>();
 
 const drawToolRootRef = ref<HTMLDivElement | null>(null);
 const resizeObserver = ref<ResizeObserver | null>(null);
@@ -903,16 +950,14 @@ const toolbarContainerRef = ref<HTMLDivElement | null>(null);
 const toolbarFixedTop = ref(0);
 const toolbarShouldStickToViewport = ref(true);
 const showGrid = ref(true);
+const isExitConfirmOpen = ref(false);
 
-const dts = useDrawToolStore();
-const dtsRefs = storeToRefs(dts);
-const { statusFileName, savedStatusFilePath, hasSavedStatusFile } = dtsRefs;
+const es = useDrawToolEditorStore();
+const esRefs = storeToRefs(es);
+const { statusFileName, savedStatusFilePath, hasSavedStatusFile } = esRefs;
 
 const FLOATING_TEXT_MENU_HEIGHT = 40;
 const FLOATING_TEXT_MENU_GAP = 8;
-const DRAW_TOOL_DISPLAY_APPLICATION_NAME = 'draw_tool';
-const DRAW_TOOL_TEMP_FILE_NAME = 'temp.png';
-const DRAW_TOOL_SAVE_DIR = '/ext/user_assets/draw_tool';
 const TOOLBAR_MAX_CANVAS_GAP = 48;
 const TOOLBAR_VIEWPORT_BOTTOM_OFFSET = 24;
 const OVERFLOW_PREVIEW_OPACITY = 0.35;
@@ -1029,7 +1074,7 @@ const toolbarContainerStyle = computed(() => {
   };
 });
 
-const stageMetrics = computed(() => getStageMetrics(dts.stageWidth));
+const stageMetrics = computed(() => getStageMetrics(es.stageWidth));
 
 const stageConfig = computed(() => ({
   width: stageMetrics.value.width,
@@ -1068,7 +1113,7 @@ const workspaceGridGroupConfig = computed(() => ({
   listening: false
 }));
 
-const hasVisibleBackgroundColor = computed(() => !isColorFullyTransparent(dts.backgroundColor));
+const hasVisibleBackgroundColor = computed(() => !isColorFullyTransparent(es.backgroundColor));
 
 const workspaceBackgroundConfig = computed(() => ({
   x: 0,
@@ -1085,12 +1130,12 @@ const workspaceColorLayerConfig = computed(() => ({
   y: 0,
   width: WORKSPACE_WIDTH,
   height: WORKSPACE_HEIGHT,
-  fill: dts.backgroundColor,
+  fill: es.backgroundColor,
   visible: hasVisibleBackgroundColor.value,
   listening: false
 }));
 
-const hasVisibleBorderColor = computed(() => !isColorFullyTransparent(dts.borderColor));
+const hasVisibleBorderColor = computed(() => !isColorFullyTransparent(es.borderColor));
 
 const borderPixelConfigs = computed(() => {
   if (!hasVisibleBorderColor.value) {
@@ -1098,11 +1143,11 @@ const borderPixelConfigs = computed(() => {
   }
 
   return createBorderPixelConfigs(
-    dts.borderColor,
+    es.borderColor,
     BORDER_RING_PIXELS,
-    dts.borderDashSize,
-    dts.borderGapSize,
-    dts.borderGapOffset
+    es.borderDashSize,
+    es.borderGapSize,
+    es.borderGapOffset
   );
 });
 
@@ -1237,17 +1282,17 @@ const transformerConfig = computed(() => ({
   })
 }));
 
-watch(() => dts.showImageUploadModal, isOpen => {
+watch(() => es.showImageUploadModal, isOpen => {
   if (!isOpen) {
-    dts.imageUploadFile = null;
+    es.imageUploadFile = null;
   }
 });
 
 watch(stageMetrics, metrics => {
-  dts.setStageMetrics(metrics);
+  es.setStageMetrics(metrics);
 }, { immediate: true });
 
-watch(() => dts.shapes, async () => {
+watch(() => es.shapes, async () => {
   await nextTick();
   schedulePixelatedDisplaySync();
 }, { deep: true });
@@ -1258,7 +1303,7 @@ watch(() => stageMetrics.value.cellSize, async () => {
   scheduleTransformerSync();
 });
 
-const selectedShape = computed(() => dts.shapes.find(shape => shape.id === dts.selectedShapeId) || null);
+const selectedShape = computed(() => es.shapes.find(shape => shape.id === es.selectedShapeId) || null);
 const selectedTextShape = computed(() => selectedShape.value?.type === 'text' ? selectedShape.value : null);
 const selectedShapeSyncKey = computed(() => {
   const shape = selectedShape.value;
@@ -1273,17 +1318,17 @@ const selectedShapeSyncKey = computed(() => {
 });
 
 const canResetBorder = computed(() => {
-  return dts.borderColor !== DEFAULT_BORDER_COLOR
+  return es.borderColor !== DEFAULT_BORDER_COLOR
     || (
-      dts.borderGapSize !== DEFAULT_BORDER_GAP_SIZE
-      || dts.borderDashSize !== DEFAULT_BORDER_DASH_SIZE
-      || dts.borderGapOffset !== DEFAULT_BORDER_GAP_OFFSET
+      es.borderGapSize !== DEFAULT_BORDER_GAP_SIZE
+      || es.borderDashSize !== DEFAULT_BORDER_DASH_SIZE
+      || es.borderGapOffset !== DEFAULT_BORDER_GAP_OFFSET
     );
 });
 
-const activeTextValue = computed(() => selectedTextShape.value?.text ?? dts.textDraftValue);
-const activeTextColor = computed(() => selectedTextShape.value?.fill ?? dts.textDraftColor);
-const activeTextFontId = computed(() => selectedTextShape.value?.fontId ?? dts.textDraftFontId);
+const activeTextValue = computed(() => selectedTextShape.value?.text ?? es.textDraftValue);
+const activeTextColor = computed(() => selectedTextShape.value?.fill ?? es.textDraftColor);
+const activeTextFontId = computed(() => selectedTextShape.value?.fontId ?? es.textDraftFontId);
 const activeTextFont = computed(() => getFontOption(activeTextFontId.value));
 const selectedTextEditorBounds = computed(() => {
   if (!selectedTextShape.value) {
@@ -1306,39 +1351,39 @@ const selectedTextEditorBounds = computed(() => {
 });
 
 const deleteButtonStyle = computed(() => {
-  if (!dts.deleteButtonPosition) {
+  if (!es.deleteButtonPosition) {
     return '';
   }
 
   return {
-    left: `${dts.deleteButtonPosition.x}px`,
-    top: `${dts.deleteButtonPosition.y}px`,
+    left: `${es.deleteButtonPosition.x}px`,
+    top: `${es.deleteButtonPosition.y}px`,
     transform: 'translate(-50%, -50%)'
   };
 });
 const rotationHandleStyle = computed(() => {
-  if (!dts.rotationHandlePosition || selectedTextShape.value) {
+  if (!es.rotationHandlePosition || selectedTextShape.value) {
     return '';
   }
 
   return {
-    left: `${dts.rotationHandlePosition.x}px`,
-    top: `${dts.rotationHandlePosition.y}px`,
+    left: `${es.rotationHandlePosition.x}px`,
+    top: `${es.rotationHandlePosition.y}px`,
     transform: 'translate(-50%, -50%)',
-    cursor: dts.activeSelectionHandleDrag?.mode === 'rotate' ? 'grabbing' : 'grab',
+    cursor: es.activeSelectionHandleDrag?.mode === 'rotate' ? 'grabbing' : 'grab',
     touchAction: 'none'
   };
 });
 const selectionHandleStyle = computed(() => {
-  if (!dts.selectionHandlePosition) {
+  if (!es.selectionHandlePosition) {
     return '';
   }
 
   return {
-    left: `${dts.selectionHandlePosition.x}px`,
-    top: `${dts.selectionHandlePosition.y}px`,
+    left: `${es.selectionHandlePosition.x}px`,
+    top: `${es.selectionHandlePosition.y}px`,
     transform: 'translate(-50%, -50%)',
-    cursor: selectedTextShape.value ? dts.activeSelectionHandleDrag?.mode === 'move' ? 'grabbing' : 'grab' : 'nwse-resize',
+    cursor: selectedTextShape.value ? es.activeSelectionHandleDrag?.mode === 'move' ? 'grabbing' : 'grab' : 'nwse-resize',
     touchAction: 'none'
   };
 });
@@ -1392,14 +1437,14 @@ watch(() => selectedTextShape.value?.id, async selectedTextId => {
 
   await nextTick();
   updateStageContainerViewportTop();
-  dts.textEditorRef?.focus();
-  const textLength = dts.textEditorRef?.value.length ?? 0;
+  es.textEditorRef?.focus();
+  const textLength = es.textEditorRef?.value.length ?? 0;
 
-  dts.textEditorRef?.setSelectionRange(0, textLength);
+  es.textEditorRef?.setSelectionRange(0, textLength);
 }, { flush: 'post' });
 
 function updateStageContainerViewportTop () {
-  const stageContainerRect = dts.stageContainerRef?.getBoundingClientRect();
+  const stageContainerRect = es.stageContainerRef?.getBoundingClientRect();
   const componentRootRect = drawToolRootRef.value?.getBoundingClientRect();
   const toolbarHeight = toolbarContainerRef.value?.getBoundingClientRect().height ?? 0;
   const desiredToolbarTop = window.innerHeight - toolbarHeight - TOOLBAR_VIEWPORT_BOTTOM_OFFSET;
@@ -1419,7 +1464,7 @@ function updateStageContainerViewportTop () {
 function shouldPreserveSelectionForEvent (event: Event) {
   const path = typeof event.composedPath === 'function' ? event.composedPath() : [];
 
-  if (dts.stageContainerRef && path.includes(dts.stageContainerRef)) {
+  if (es.stageContainerRef && path.includes(es.stageContainerRef)) {
     return true;
   }
 
@@ -1437,7 +1482,7 @@ function handleWindowPointerDown (event: PointerEvent) {
 }
 
 function handleWindowClick (event: MouseEvent) {
-  if (!dts.selectedShapeId) {
+  if (!es.selectedShapeId) {
     preserveSelectionUntilClick.value = false;
     return;
   }
@@ -1449,8 +1494,8 @@ function handleWindowClick (event: MouseEvent) {
     return;
   }
 
-  dts.commitActiveTextChange();
-  dts.selectedShapeId = null;
+  es.commitActiveTextChange();
+  es.selectedShapeId = null;
 }
 
 function isEditableKeyboardTarget (target: EventTarget | null) {
@@ -1489,9 +1534,9 @@ function handleWindowKeyDown (event: KeyboardEvent) {
       event.preventDefault();
 
       if (event.shiftKey) {
-        dts.redo();
+        es.redo();
       } else {
-        dts.undo();
+        es.undo();
       }
 
       return;
@@ -1499,39 +1544,39 @@ function handleWindowKeyDown (event: KeyboardEvent) {
 
     if (normalizedKey === 'y') {
       event.preventDefault();
-      dts.redo();
+      es.redo();
       return;
     }
 
     return;
   }
 
-  if (!dts.selectedShapeId || event.ctrlKey || event.metaKey || event.altKey) {
+  if (!es.selectedShapeId || event.ctrlKey || event.metaKey || event.altKey) {
     return;
   }
 
   if (event.key === 'Backspace' || event.key === 'Delete') {
     event.preventDefault();
-    dts.deleteSelectedShape();
+    es.deleteSelectedShape();
     return;
   }
 
   if (event.key === 'Escape') {
     event.preventDefault();
-    dts.commitActiveTextChange();
-    dts.selectedShapeId = null;
+    es.commitActiveTextChange();
+    es.selectedShapeId = null;
     return;
   }
 
   if (normalizedKey === 'q') {
     event.preventDefault();
-    dts.rotateSelectedShape(-ROTATION_SNAP_STEP);
+    es.rotateSelectedShape(-ROTATION_SNAP_STEP);
     return;
   }
 
   if (normalizedKey === 'e') {
     event.preventDefault();
-    dts.rotateSelectedShape(ROTATION_SNAP_STEP);
+    es.rotateSelectedShape(ROTATION_SNAP_STEP);
     return;
   }
 
@@ -1548,7 +1593,7 @@ function handleWindowKeyDown (event: KeyboardEvent) {
   }
 
   event.preventDefault();
-  dts.moveSelectedShape(movement.x, movement.y);
+  es.moveSelectedShape(movement.x, movement.y);
 }
 
 function schedulePixelatedDisplaySync () {
@@ -1558,7 +1603,7 @@ function schedulePixelatedDisplaySync () {
 
   pixelatedDisplayFrame.value = requestAnimationFrame(() => {
     pixelatedDisplayFrame.value = null;
-    dts.syncPixelatedDisplay();
+    es.syncPixelatedDisplay();
   });
 }
 
@@ -1569,20 +1614,20 @@ function scheduleTransformerSync () {
 
   transformerFrame.value = requestAnimationFrame(() => {
     transformerFrame.value = null;
-    dts.syncTransformer();
+    es.syncTransformer();
   });
 }
 
 async function insertImage () {
-  if (!dts.imageUploadFile) {
+  if (!es.imageUploadFile) {
     return;
   }
 
   try {
-    const imageElement = await loadImageFile(dts.imageUploadFile);
+    const imageElement = await loadImageFile(es.imageUploadFile);
 
-    dts.addImageShape(imageElement, dts.imageUploadFile.name);
-    dts.resetImageUploadModal();
+    es.addImageShape(imageElement, es.imageUploadFile.name);
+    es.resetImageUploadModal();
   } catch (error) {
     toast.add({
       id: 'draw-tool-image-error',
@@ -1643,7 +1688,7 @@ async function insertDrawToolIcon (icon: ResolvedDrawToolIcon) {
   try {
     const imageElement = await loadImageFromUrl(icon.src);
 
-    dts.addImageShape(imageElement, icon.fileName);
+    es.addImageShape(imageElement, icon.fileName);
     isIconTooltipOpen.value = false;
     isIconTooltipSuppressed.value = true;
     isIconPickerOpen.value = false;
@@ -1671,13 +1716,13 @@ function buildExportLayer (scale = 1): Konva.Layer {
       y: 0,
       width: WORKSPACE_WIDTH,
       height: WORKSPACE_HEIGHT,
-      fill: dts.backgroundColor,
+      fill: es.backgroundColor,
       listening: false,
       perfectDrawEnabled: false
     }));
   }
 
-  dts.shapes.forEach(shape => {
+  es.shapes.forEach(shape => {
     if (shape.type === 'rect') {
       layer.add(new Konva.Rect({
         x: shape.x,
@@ -1714,11 +1759,11 @@ function buildExportLayer (scale = 1): Konva.Layer {
 
   if (hasVisibleBorderColor.value) {
     createBorderPixelConfigs(
-      dts.borderColor,
+      es.borderColor,
       BORDER_RING_PIXELS,
-      dts.borderDashSize,
-      dts.borderGapSize,
-      dts.borderGapOffset
+      es.borderDashSize,
+      es.borderGapSize,
+      es.borderGapOffset
     ).forEach(({ key: _key, ...config }) => {
       layer.add(new Konva.Rect(config));
     });
@@ -1861,10 +1906,6 @@ async function createExportPngFile (fileName: string) {
   return new File([blob], fileName, { type: 'image/png' });
 }
 
-function isAssetDeleteFailedError (error: unknown) {
-  return String(error).includes('File delete failed');
-}
-
 async function clearStatusDisplay (): Promise<void> {
   const deviceStore = useDeviceStore();
 
@@ -1874,29 +1915,6 @@ async function clearStatusDisplay (): Promise<void> {
     });
   } catch (error) {
     await handleHTTPError(error, 'Couldn\'t clear existing status display', true);
-    throw error;
-  }
-}
-
-async function deleteStatusAssets (hasRetried = false): Promise<void> {
-  const deviceStore = useDeviceStore();
-
-  try {
-    await deviceStore.busyBar.AssetsDelete({
-      application_name: DRAW_TOOL_DISPLAY_APPLICATION_NAME
-    });
-  } catch (error) {
-    if (String(error).includes('Assets missing')) {
-      return;
-    }
-
-    if (!hasRetried && isAssetDeleteFailedError(error)) {
-      await clearStatusDisplay();
-      await deleteStatusAssets(true);
-      return;
-    }
-
-    await handleHTTPError(error, 'Couldn\'t delete existing status assets', true);
     throw error;
   }
 }
@@ -1971,22 +1989,6 @@ async function ensureSaveDirectoryExists () {
   return await listSaveDirectory();
 }
 
-async function initializeSaveDirectory () {
-  const listedFiles = await tryListSaveDirectory();
-
-  if (listedFiles) {
-    console.debug('Draw tool save directory contents', listedFiles);
-    return;
-  }
-
-  try {
-    const ensuredFiles = await ensureSaveDirectoryExists();
-    console.debug('Draw tool save directory contents', ensuredFiles);
-  } catch (error) {
-    await handleHTTPError(error, `Couldn't prepare ${DRAW_TOOL_SAVE_DIR}`, false, 10000);
-  }
-}
-
 async function writeStatusFile (path: string, file: File) {
   const deviceStore = useDeviceStore();
 
@@ -1998,8 +2000,8 @@ async function writeStatusFile (path: string, file: File) {
 }
 
 async function saveStatus (options?: { saveAsNew?: boolean }) {
-  if (!dts.hasEditorContent) {
-    return;
+  if (!es.hasEditorContent) {
+    return false;
   }
 
   const saveAsNew = !!options?.saveAsNew;
@@ -2012,7 +2014,7 @@ async function saveStatus (options?: { saveAsNew?: boolean }) {
     : savedStatusFilePath.value;
 
   if (!targetPath) {
-    return;
+    return false;
   }
 
   isSavingStatus.value = true;
@@ -2027,7 +2029,7 @@ async function saveStatus (options?: { saveAsNew?: boolean }) {
 
       if (listedFiles) {
         await handleHTTPError(error, `Couldn't save ${fileName}`, false, 10000);
-        return;
+        return false;
       }
 
       try {
@@ -2035,37 +2037,64 @@ async function saveStatus (options?: { saveAsNew?: boolean }) {
         await writeStatusFile(targetPath, file);
       } catch (retryError) {
         await handleHTTPError(retryError, `Couldn't save ${fileName}`, false, 10000);
-        return;
+        return false;
       }
     }
 
-    dts.markStatusSaved(fileName, targetPath);
+    es.markStatusSaved(fileName, targetPath);
     toast.add({
       id: 'draw-tool-save-success',
       title: saveAsNew || !hadSavedStatusFile ? 'Saved as new file' : 'Saved to device',
       description: fileName /* `${DRAW_TOOL_SAVE_DIR}/${fileName}` */,
       color: 'success'
     });
+
+    return true;
   } catch (error) {
     await handleHTTPError(error, `Couldn't save ${fileName}`, false, 10000);
+    return false;
   } finally {
     isSavingStatus.value = false;
   }
 }
 
+function handleBackButtonClick () {
+  if (!es.hasUnsavedChanges) {
+    emit('back');
+    return;
+  }
+
+  isExitConfirmOpen.value = true;
+}
+
+function discardAndExitEditor () {
+  isExitConfirmOpen.value = false;
+  emit('back');
+}
+
+async function saveAndExitEditor () {
+  const didSave = await saveStatus();
+
+  if (!didSave) {
+    return;
+  }
+
+  isExitConfirmOpen.value = false;
+  emit('back');
+}
+
 const showStatusCheckmarkIcon = ref(false);
 async function showStatusOnBusyBar () {
-  if (!dts.hasEditorContent) {
+  if (!es.hasEditorContent) {
     return;
   }
 
   isShowingStatusOnDevice.value = true;
 
   try {
-    if (!hasSavedStatusFile.value || dts.hasUnsavedChanges) {
+    if (!hasSavedStatusFile.value || es.hasUnsavedChanges) {
       const image = await createExportPngFile(DRAW_TOOL_TEMP_FILE_NAME);
 
-      await deleteStatusAssets();
       await uploadStatusAsset(image);
       await clearStatusDisplay();
       await drawStatusOnBusyBar(DRAW_TOOL_TEMP_FILE_NAME);
@@ -2107,16 +2136,16 @@ async function downloadImage () {
 }
 
 onMounted(() => {
-  dts.measureStage();
+  es.measureStage();
   updateStageContainerViewportTop();
 
   resizeObserver.value = new ResizeObserver(() => {
-    dts.measureStage();
+    es.measureStage();
     updateStageContainerViewportTop();
   });
 
-  if (dts.stageContainerRef) {
-    resizeObserver.value.observe(dts.stageContainerRef);
+  if (es.stageContainerRef) {
+    resizeObserver.value.observe(es.stageContainerRef);
   }
 
   window.addEventListener('scroll', updateStageContainerViewportTop, { passive: true });
@@ -2129,11 +2158,10 @@ onMounted(() => {
     nextTick(schedulePixelatedDisplaySync);
   });
   nextTick(schedulePixelatedDisplaySync);
-  void initializeSaveDirectory();
 });
 
 onBeforeUnmount(() => {
-  dts.stopSelectionHandleDrag(false);
+  es.stopSelectionHandleDrag(false);
   resizeObserver.value?.disconnect();
   window.removeEventListener('scroll', updateStageContainerViewportTop);
   window.removeEventListener('resize', updateStageContainerViewportTop);

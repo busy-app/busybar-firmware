@@ -22,6 +22,11 @@ export const DEFAULT_TEXT_VALUE = 'Text';
 export const DEFAULT_TEXT_COLOR = '#ffffff';
 export const DEFAULT_TEXT_FONT_ID = 'busy_regular_7px';
 export const DEFAULT_STATUS_FILE_NAME = 'New status';
+export const DRAW_TOOL_DISPLAY_APPLICATION_NAME = 'draw_tool';
+export const DRAW_TOOL_TEMP_FILE_NAME = 'temp.png';
+export const DRAW_TOOL_SAVE_DIR = '/ext/user_assets/draw_tool';
+
+let drawToolShapeIdCounter = 0;
 
 export type KonvaRef<T extends Konva.Node> = {
   getNode: () => T;
@@ -176,7 +181,9 @@ export function measureTextShapeDimensions (
 }
 
 export function createShapeId (): string {
-  return crypto.randomUUID();
+  drawToolShapeIdCounter += 1;
+
+  return `shape-${Date.now().toString(36)}-${drawToolShapeIdCounter.toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
 export function cloneShape<T extends EditorShape> (shape: T): T {
