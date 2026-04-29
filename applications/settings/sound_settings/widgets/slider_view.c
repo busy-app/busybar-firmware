@@ -192,7 +192,6 @@ SliderView* slider_view_alloc(Widget* parent) {
     lv_obj_class_init_obj(obj);
 
     SliderView* instance = (SliderView*)obj;
-    widget_set_input_feed_callback(&instance->base, slider_view_input_callback);
 
     return instance;
 }
@@ -293,6 +292,15 @@ const lv_obj_class_t slider_view_lvgl_class = {
     .width_def = LV_PCT(100),
     .height_def = LV_PCT(100),
     .instance_size = sizeof(SliderView),
+    .user_data =
+        (void*)&(const WidgetClassCallbacks){
+            .input = slider_view_input_callback,
+            .styles =
+                {
+                    [GuiDisplayIdFront] = NULL,
+                    [GuiDisplayIdBack] = NULL,
+                },
+        },
 };
 
 const lv_obj_class_t slider_view_bar_lvgl_class = {
