@@ -89,8 +89,8 @@ libenv = env.Clone(FW_LIB_NAME="wiseconnect")
 libenv.ApplyLibFlags()
 
 libenv.AppendUnique(
-    CCFLAGS=[
-        "-Wno-error",
+    CPPFLAGS=[
+        "-Wno-deprecated-declarations",
     ],
 )
 
