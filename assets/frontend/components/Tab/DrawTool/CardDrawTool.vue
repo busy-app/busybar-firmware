@@ -654,8 +654,8 @@ const displayStatusFileName = computed(() => {
 const FLOATING_TEXT_MENU_HEIGHT = 40;
 const FLOATING_TEXT_MENU_GAP = 8;
 const DRAW_TOOL_DISPLAY_APPLICATION_NAME = 'draw_tool';
-const DRAW_TOOL_DISPLAY_FILE_NAME = 'status.png';
-const DRAW_TOOL_SAVE_DIR = '/ext/apps_assets/draw_tool';
+const DRAW_TOOL_TEMP_FILE_NAME = 'temp.png';
+const DRAW_TOOL_SAVE_DIR = '/ext/user_assets/draw_tool';
 const TOOLBAR_MAX_CANVAS_GAP = 48;
 const TOOLBAR_VIEWPORT_BOTTOM_OFFSET = 24;
 const toolbarLabeledButtonClass = 'flex flex-col items-center gap-2 p-2 rounded-xl text-xs';
@@ -1444,7 +1444,7 @@ async function uploadStatusAsset (image: Blob) {
   return deviceStore.busyBar.AssetsUpload({
     application_name: DRAW_TOOL_DISPLAY_APPLICATION_NAME,
     data: image,
-    file: DRAW_TOOL_DISPLAY_FILE_NAME
+    file: DRAW_TOOL_TEMP_FILE_NAME
   })
     .catch(async error => {
       await handleHTTPError(error, 'Couldn\'t upload status image', true);
@@ -1452,7 +1452,7 @@ async function uploadStatusAsset (image: Blob) {
     });
 }
 
-async function drawStatusOnBusyBar () {
+async function drawStatusOnBusyBar (fileName: string) {
   const deviceStore = useDeviceStore();
 
   return deviceStore.busyBar.DisplayDraw({
@@ -1466,7 +1466,7 @@ async function drawStatusOnBusyBar () {
         x: 0,
         y: 0,
         type: 'image',
-        path: DRAW_TOOL_DISPLAY_FILE_NAME
+        path: fileName
       }
     ],
     priority: 50
@@ -1599,11 +1599,17 @@ async function showStatusOnBusyBar () {
   isShowingStatusOnDevice.value = true;
 
   try {
-    const image = await createExportPngFile(DRAW_TOOL_DISPLAY_FILE_NAME);
+    if (!hasSavedStatusFile.value || dts.hasUnsavedChanges) {
+      const image = await createExportPngFile(DRAW_TOOL_TEMP_FILE_NAME);
 
-    await deleteStatusAssets();
-    await uploadStatusAsset(image);
-    await drawStatusOnBusyBar();
+      await deleteStatusAssets();
+      await uploadStatusAsset(image);
+      await clearStatusDisplay();
+      await drawStatusOnBusyBar(DRAW_TOOL_TEMP_FILE_NAME);
+    } else {
+      await clearStatusDisplay();
+      await drawStatusOnBusyBar(statusFileName.value);
+    }
 
     showStatusCheckmarkIcon.value = true;
     setTimeout(() => {
