@@ -406,17 +406,26 @@
             content: 'rounded-xl bg-surface-container ring-accented/75'
           }"
         >
-          <UButton
-            color="neutral"
-            variant="ghost"
-            :class="toolbarLabeledButtonClass"
+          <UTooltip
+            :delay-duration="0"
+            :content="{
+              side: 'top',
+              sideOffset: 16
+            }"
+            text="Background color"
           >
-            <UIcon
-              name="i-bi-background-color"
-              class="size-6"
-            />
-            <span>Fill</span>
-          </UButton>
+            <UButton
+              color="neutral"
+              variant="ghost"
+              square
+              :class="toolbarIconButtonClass"
+            >
+              <UIcon
+                name="i-bi-background-color"
+                class="size-6"
+              />
+            </UButton>
+          </UTooltip>
 
           <template #content>
             <div class="flex flex-col items-end gap-3 p-3">
@@ -447,17 +456,26 @@
             content: 'rounded-xl bg-surface-container ring-accented/75'
           }"
         >
-          <UButton
-            color="neutral"
-            variant="ghost"
-            :class="toolbarLabeledButtonClass"
+          <UTooltip
+            :delay-duration="0"
+            :content="{
+              side: 'top',
+              sideOffset: 16
+            }"
+            text="Border"
           >
-            <UIcon
-              name="i-bi-border-color"
-              class="size-6"
-            />
-            <span>Border</span>
-          </UButton>
+            <UButton
+              color="neutral"
+              variant="ghost"
+              square
+              :class="toolbarIconButtonClass"
+            >
+              <UIcon
+                name="i-bi-border-color"
+                class="size-6"
+              />
+            </UButton>
+          </UTooltip>
 
           <template #content>
             <div class="flex gap-6 p-3">
@@ -527,19 +545,28 @@
           </template>
         </UPopover>
 
-        <UButton
-          color="neutral"
-          variant="ghost"
-          :class="toolbarLabeledButtonClass"
-          data-draw-tool-preserve-selection
-          @click="dts.addText(activeTextValue, activeTextColor, activeTextFontId)"
+        <UTooltip
+          :delay-duration="0"
+          :content="{
+            side: 'top',
+            sideOffset: 16
+          }"
+          text="Text"
         >
-          <UIcon
-            name="i-bi-text"
-            class="size-6"
-          />
-          <span>Text</span>
-        </UButton>
+          <UButton
+            color="neutral"
+            variant="ghost"
+            square
+            :class="toolbarIconButtonClass"
+            data-draw-tool-preserve-selection
+            @click="dts.addText(activeTextValue, activeTextColor, activeTextFontId)"
+          >
+            <UIcon
+              name="i-bi-text"
+              class="size-6"
+            />
+          </UButton>
+        </UTooltip>
 
         <UPopover
           v-model:open="isIconPickerOpen"
@@ -551,18 +578,27 @@
             content: 'rounded-xl bg-surface-container ring-accented/75'
           }"
         >
-          <UButton
-            color="neutral"
-            variant="ghost"
-            :class="toolbarLabeledButtonClass"
-            data-draw-tool-preserve-selection
+          <UTooltip
+            :delay-duration="0"
+            :content="{
+              side: 'top',
+              sideOffset: 16
+            }"
+            text="Icon"
           >
-            <UIcon
-              name="i-bi-emoji"
-              class="size-6"
-            />
-            <span>Icon</span>
-          </UButton>
+            <UButton
+              color="neutral"
+              variant="ghost"
+              square
+              :class="toolbarIconButtonClass"
+              data-draw-tool-preserve-selection
+            >
+              <UIcon
+                name="i-bi-emoji"
+                class="size-6"
+              />
+            </UButton>
+          </UTooltip>
 
           <template #content>
             <div
@@ -612,77 +648,122 @@
           </template>
         </UPopover>
 
-        <UButton
-          color="neutral"
-          variant="ghost"
-          :class="toolbarLabeledButtonClass"
-          @click="dts.showImageUploadModal = true"
+        <UTooltip
+          :delay-duration="0"
+          :content="{
+            side: 'top',
+            sideOffset: 16
+          }"
+          text="Image"
         >
-          <UIcon
-            name="i-bi-image"
-            class="size-6"
-          />
-          <span>Image</span>
-        </UButton>
+          <UButton
+            color="neutral"
+            variant="ghost"
+            square
+            :class="toolbarIconButtonClass"
+            @click="dts.showImageUploadModal = true"
+          >
+            <UIcon
+              name="i-bi-image"
+              class="size-6"
+            />
+          </UButton>
+        </UTooltip>
 
         <div class="h-[calc(100%_-_1em)] w-0.5 shrink-0 bg-accented" />
 
-        <UButton
-          color="neutral"
-          variant="ghost"
-          :class="toolbarLabeledButtonClass"
-          @click="showGrid = !showGrid"
+        <UTooltip
+          :delay-duration="0"
+          :content="{
+            side: 'top',
+            sideOffset: 16
+          }"
+          :text="showGrid ? 'Hide grid' : 'Show grid'"
         >
-          <UIcon
-            :name="showGrid ? 'i-bi-grid' : 'i-bi-grid-off'"
-            class="size-6"
-          />
-          <span>Grid</span>
-        </UButton>
+          <UButton
+            color="neutral"
+            variant="ghost"
+            square
+            :class="toolbarIconButtonClass"
+            @click="showGrid = !showGrid"
+          >
+            <UIcon
+              :name="showGrid ? 'i-bi-grid' : 'i-bi-grid-off'"
+              class="size-6"
+            />
+          </UButton>
+        </UTooltip>
 
         <div class="h-[calc(100%_-_1em)] w-0.5 shrink-0 bg-accented" />
 
-        <UButton
-          color="neutral"
-          variant="ghost"
-          square
-          :class="toolbarIconButtonClass"
-          :disabled="!(dts.historyIndex > 0)"
-          @click="dts.undo"
+        <UTooltip
+          :delay-duration="0"
+          :content="{
+            side: 'top',
+            sideOffset: 16
+          }"
+          text="Undo"
         >
-          <UIcon
-            name="i-bi-undo"
-            class="size-6"
-          />
-        </UButton>
+          <UButton
+            color="neutral"
+            variant="ghost"
+            square
+            :class="toolbarIconButtonClass"
+            :disabled="!(dts.historyIndex > 0)"
+            @click="dts.undo"
+          >
+            <UIcon
+              name="i-bi-undo"
+              class="size-6"
+            />
+          </UButton>
+        </UTooltip>
 
-        <UButton
-          color="neutral"
-          variant="ghost"
-          square
-          :class="toolbarIconButtonClass"
-          :disabled="!(dts.historyIndex < dts.historyEntries.length - 1)"
-          @click="dts.redo"
+        <UTooltip
+          :delay-duration="0"
+          :content="{
+            side: 'top',
+            sideOffset: 16
+          }"
+          text="Redo"
         >
-          <UIcon
-            name="i-bi-redo"
-            class="size-6"
-          />
-        </UButton>
+          <UButton
+            color="neutral"
+            variant="ghost"
+            square
+            :class="toolbarIconButtonClass"
+            :disabled="!(dts.historyIndex < dts.historyEntries.length - 1)"
+            @click="dts.redo"
+          >
+            <UIcon
+              name="i-bi-redo"
+              class="size-6"
+            />
+          </UButton>
+        </UTooltip>
 
-        <UButton
-          color="neutral"
-          variant="ghost"
-          square
-          :class="toolbarIconButtonClass"
-          :disabled="!dts.hasEditorContent"
-          @click="dts.clearStage"
+        <UTooltip
+          :delay-duration="0"
+          :content="{
+            side: 'top',
+            sideOffset: 16
+          }"
+          text="Clear editor"
         >
-          <UIcon
-            name="i-bi-trash"
-            class="size-6"
-          />
-        </UButton>
+          <UButton
+            color="neutral"
+            variant="ghost"
+            square
+            :class="toolbarIconButtonClass"
+            :disabled="!dts.hasEditorContent"
+            @click="dts.clearStage"
+          >
+            <UIcon
+              name="i-bi-trash"
+              class="size-6"
+            />
+          </UButton>
+        </UTooltip>
       </div>
     </div>
   </div>
@@ -746,8 +827,8 @@ const DRAW_TOOL_SAVE_DIR = '/ext/user_assets/draw_tool';
 const TOOLBAR_MAX_CANVAS_GAP = 48;
 const TOOLBAR_VIEWPORT_BOTTOM_OFFSET = 24;
 
-const toolbarLabeledButtonClass = 'flex flex-col items-center gap-2 p-2 rounded-xl text-xs';
-const toolbarIconButtonClass = 'rounded-xl';
+// const toolbarLabeledButtonClass = 'flex flex-col items-center gap-2 p-2 rounded-lg text-xs';
+const toolbarIconButtonClass = 'rounded-lg';
 
 const isSavingStatus = ref(false);
 const isShowingStatusOnDevice = ref(false);
