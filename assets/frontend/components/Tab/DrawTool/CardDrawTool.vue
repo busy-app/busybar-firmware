@@ -95,9 +95,9 @@
         <div class="flex flex-col gap-4">
           <div
             :ref="dtsRefs.stageContainerRef"
-            class="relative w-full min-h-[400px] rounded-[28px] border border-default/60 bg-elevated/35"
+            class="relative w-full min-h-[400px] rounded-[28px]"
           >
-            <div class="w-full overflow-hidden rounded-2xl bg-[#050505]">
+            <div class="w-full overflow-hidden rounded-2xl bg-neutral-500 dark:bg-neutral-950">
               <VStage
                 :ref="dtsRefs.stageRef"
                 :config="stageConfig"
@@ -716,6 +716,7 @@ type ResolvedDrawToolIcon = DrawToolIcon & {
 };
 
 const toast = useToast();
+
 const drawToolRootRef = ref<HTMLDivElement | null>(null);
 const resizeObserver = ref<ResizeObserver | null>(null);
 const pixelatedDisplayFrame = ref<number | null>(null);
@@ -821,7 +822,7 @@ const stageBackgroundConfig = computed(() => ({
   y: 0,
   width: stageMetrics.value.width,
   height: stageMetrics.value.height,
-  fill: '#050505',
+  fill: 'transparent',
   listening: false
 }));
 
@@ -919,7 +920,7 @@ const verticalGridLines = computed(() => {
   return Array.from({ length: WORKSPACE_WIDTH + 1 }, (_, index) => ({
     key: `vertical-${index}`,
     points: [index, 0, index, WORKSPACE_HEIGHT],
-    stroke: index === 0 || index === WORKSPACE_WIDTH ? '#4b5563' : DEFAULT_GRID_COLOR,
+    stroke: index === 0 || index === WORKSPACE_WIDTH ? DEFAULT_GRID_BORDER_COLOR : DEFAULT_GRID_COLOR,
     strokeWidth: 1,
     strokeScaleEnabled: false,
     listening: false,
@@ -931,7 +932,7 @@ const horizontalGridLines = computed(() => {
   return Array.from({ length: WORKSPACE_HEIGHT + 1 }, (_, index) => ({
     key: `horizontal-${index}`,
     points: [0, index, WORKSPACE_WIDTH, index],
-    stroke: index === 0 || index === WORKSPACE_HEIGHT ? '#4b5563' : DEFAULT_GRID_COLOR,
+    stroke: index === 0 || index === WORKSPACE_HEIGHT ? DEFAULT_GRID_BORDER_COLOR : DEFAULT_GRID_COLOR,
     strokeWidth: 1,
     strokeScaleEnabled: false,
     listening: false,
@@ -952,7 +953,7 @@ const transformerConfig = computed(() => ({
   borderStrokeWidth: 1,
   borderDash: [4, 4],
   anchorFill: '#f5f5f5',
-  anchorStroke: '#050505',
+  anchorStroke: '#0a0a0a',
   anchorStrokeWidth: 1,
   anchorSize: 10,
   enabledAnchors: selectedTextShape.value ? [] : ['bottom-right'],
@@ -1744,7 +1745,7 @@ async function saveStatus (options?: { saveAsNew?: boolean }) {
     toast.add({
       id: 'draw-tool-save-success',
       title: saveAsNew || !hadSavedStatusFile ? 'Saved as new file' : 'Saved to device',
-      description: `${DRAW_TOOL_SAVE_DIR}/${fileName}`,
+      description: fileName /* `${DRAW_TOOL_SAVE_DIR}/${fileName}` */,
       color: 'success'
     });
   } catch (error) {
