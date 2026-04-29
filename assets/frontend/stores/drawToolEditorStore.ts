@@ -34,6 +34,9 @@ interface HistorySnapshot extends EditorSnapshot {
 let hasRegisteredDrawToolBeforeUnloadListener = false;
 
 export const useDrawToolEditorStore = defineStore('drawToolEditor', () => {
+  let pendingLeaveEditorAction: (() => void | Promise<void>) | null = null;
+  let saveBeforeLeaveEditorHandler: (() => Promise<boolean>) | null = null;
+
   const stageContainerRef = ref<HTMLDivElement | null>(null);
   const textEditorRef = ref<HTMLTextAreaElement | null>(null);
   const stageWidth = ref(MIN_STAGE_WIDTH);
@@ -61,6 +64,8 @@ export const useDrawToolEditorStore = defineStore('drawToolEditor', () => {
   const textDraftFontId = ref(DEFAULT_TEXT_FONT_ID);
   const showImageUploadModal = ref(false);
   const imageUploadFile = ref<File | null>(null);
+  const showLeaveEditorModal = ref(false);
+  const isLeavingEditor = ref(false);
   const statusFileName = ref(DEFAULT_STATUS_FILE_NAME);
   const savedStatusFilePath = ref<string | null>(null);
   const lastSavedSnapshot = ref<EditorSnapshot | null>(null);
@@ -907,6 +912,63 @@ export const useDrawToolEditorStore = defineStore('drawToolEditor', () => {
     showImageUploadModal.value = false;
   }
 
+  function registerSaveBeforeLeaveEditorHandler (handler: (() => Promise<boolean>) | null) {
+    saveBeforeLeaveEditorHandler = handler;
+  }
+
+  async function requestLeaveEditor (afterLeave: () => void | Promise<void>) {
+    if (!hasUnsavedChanges.value) {
+      await afterLeave();
+      return;
+    }
+
+    pendingLeaveEditorAction = afterLeave;
+    showLeaveEditorModal.value = true;
+  }
+
+  function cancelLeaveEditorRequest () {
+    if (isLeavingEditor.value) {
+      return;
+    }
+
+    showLeaveEditorModal.value = false;
+    pendingLeaveEditorAction = null;
+  }
+
+  async function discardAndLeaveEditor () {
+    if (isLeavingEditor.value) {
+      return;
+    }
+
+    const pendingAction = pendingLeaveEditorAction;
+    showLeaveEditorModal.value = false;
+    pendingLeaveEditorAction = null;
+    await pendingAction?.();
+  }
+
+  async function saveAndLeaveEditor () {
+    if (isLeavingEditor.value || !saveBeforeLeaveEditorHandler) {
+      return;
+    }
+
+    isLeavingEditor.value = true;
+
+    try {
+      const didSave = await saveBeforeLeaveEditorHandler();
+
+      if (!didSave) {
+        return;
+      }
+
+      const pendingAction = pendingLeaveEditorAction;
+      showLeaveEditorModal.value = false;
+      pendingLeaveEditorAction = null;
+      await pendingAction?.();
+    } finally {
+      isLeavingEditor.value = false;
+    }
+  }
+
   return {
     stageContainerRef,
     textEditorRef,
@@ -939,6 +1001,8 @@ export const useDrawToolEditorStore = defineStore('drawToolEditor', () => {
     historyIndex,
     showImageUploadModal,
     imageUploadFile,
+    showLeaveEditorModal,
+    isLeavingEditor,
     setStageMetrics,
     measureStage,
     syncTransformer,
@@ -974,6 +1038,11 @@ export const useDrawToolEditorStore = defineStore('drawToolEditor', () => {
     handleShapeDragEnd,
     handleShapeTransform,
     handleShapeTransformEnd,
-    resetImageUploadModal
+    resetImageUploadModal,
+    registerSaveBeforeLeaveEditorHandler,
+    requestLeaveEditor,
+    cancelLeaveEditorRequest,
+    discardAndLeaveEditor,
+    saveAndLeaveEditor
   };
 });

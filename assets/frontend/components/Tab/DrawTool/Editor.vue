@@ -416,39 +416,6 @@
             </template>
           </ModalGeneric>
 
-          <ModalGeneric
-            v-model:open="isExitConfirmOpen"
-            data-id="modal-draw-tool-exit-confirm"
-            title="Leave editor?"
-            description="You have unsaved changes. Save them before returning to the gallery?"
-            show-close-button
-            no-actions
-          >
-            <template #actions>
-              <div class="mt-8 flex flex-wrap justify-end gap-2">
-                <UButton
-                  label="Discard changes"
-                  color="neutral"
-                  variant="ghost"
-                  :disabled="isSavingStatus"
-                  @click="discardAndExitEditor"
-                />
-                <UButton
-                  label="Cancel"
-                  color="neutral"
-                  variant="ghost"
-                  :disabled="isSavingStatus"
-                  @click="isExitConfirmOpen = false"
-                />
-                <UButton
-                  label="Save and go back"
-                  color="neutral"
-                  :loading="isSavingStatus"
-                  @click="saveAndExitEditor"
-                />
-              </div>
-            </template>
-          </ModalGeneric>
         </div>
       </template>
     </SectionCard>
@@ -950,7 +917,6 @@ const toolbarContainerRef = ref<HTMLDivElement | null>(null);
 const toolbarFixedTop = ref(0);
 const toolbarShouldStickToViewport = ref(true);
 const showGrid = ref(true);
-const isExitConfirmOpen = ref(false);
 
 const es = useDrawToolEditorStore();
 const esRefs = storeToRefs(es);
@@ -1517,7 +1483,7 @@ function handleWindowKeyDown (event: KeyboardEvent) {
     event.preventDefault();
 
     if (!isSavingStatus.value) {
-      void saveStatus();
+      saveStatus();
     }
 
     return;
@@ -2059,28 +2025,7 @@ async function saveStatus (options?: { saveAsNew?: boolean }) {
 }
 
 function handleBackButtonClick () {
-  if (!es.hasUnsavedChanges) {
-    emit('back');
-    return;
-  }
-
-  isExitConfirmOpen.value = true;
-}
-
-function discardAndExitEditor () {
-  isExitConfirmOpen.value = false;
-  emit('back');
-}
-
-async function saveAndExitEditor () {
-  const didSave = await saveStatus();
-
-  if (!didSave) {
-    return;
-  }
-
-  isExitConfirmOpen.value = false;
-  emit('back');
+  void es.requestLeaveEditor(() => emit('back'));
 }
 
 const showStatusCheckmarkIcon = ref(false);
@@ -2136,6 +2081,7 @@ async function downloadImage () {
 }
 
 onMounted(() => {
+  es.registerSaveBeforeLeaveEditorHandler(saveStatus);
   es.measureStage();
   updateStageContainerViewportTop();
 
@@ -2161,6 +2107,7 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
+  es.registerSaveBeforeLeaveEditorHandler(null);
   es.stopSelectionHandleDrag(false);
   resizeObserver.value?.disconnect();
   window.removeEventListener('scroll', updateStageContainerViewportTop);

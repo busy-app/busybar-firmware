@@ -280,7 +280,7 @@ function getStatusMenuItems (statusName: string): DropdownMenuItem[] {
     {
       label: 'Download PNG',
       icon: 'i-bi-download',
-      onClick: () => void dts.downloadStatusFile(statusName)
+      onClick: () => dts.downloadStatusFile(statusName)
     },
     {
       label: 'Delete',
