@@ -689,6 +689,74 @@
           </UButton>
         </UTooltip>
 
+        <UPopover
+          :content="{
+            side: 'top',
+            sideOffset: 16
+          }"
+          :ui="{
+            content: 'rounded-xl bg-surface-container ring-accented/75'
+          }"
+        >
+          <UTooltip
+            :delay-duration="0"
+            :content="{
+              side: 'top',
+              sideOffset: 16
+            }"
+            text="Keyboard shortcuts"
+          >
+            <UButton
+              color="neutral"
+              variant="ghost"
+              square
+              :class="toolbarIconButtonClass"
+            >
+              <UIcon
+                name="i-bi-info"
+                class="size-6"
+              />
+            </UButton>
+          </UTooltip>
+
+          <template #content>
+            <div class="w-[20rem] max-w-[calc(100vw-2rem)] p-2">
+              <div class="px-2 py-1.5 text-sm font-medium text-muted">
+                Keyboard shortcuts
+              </div>
+
+              <div
+                v-for="shortcut in toolbarKeyboardShortcuts"
+                :key="shortcut.label"
+                class="flex items-center gap-6 px-2 py-2"
+              >
+                <div class="min-w-0 flex-1 text-sm text-default">
+                  {{ shortcut.label }}
+                </div>
+
+                <div class="flex shrink-0 items-center gap-1">
+                  <template
+                    v-for="token in shortcut.tokens"
+                    :key="`${shortcut.label}-${token.label}-${token.kind}`"
+                  >
+                    <span
+                      v-if="token.kind === 'text'"
+                      class="text-xs text-muted"
+                    >
+                      {{ token.label }}
+                    </span>
+                    <UKbd
+                      v-else
+                      class="size-6 justify-center px-1.5 bg-accented/25"
+                      :value="token.label"
+                    />
+                  </template>
+                </div>
+              </div>
+            </div>
+          </template>
+        </UPopover>
+
         <div class="h-[calc(100%_-_1em)] w-0.5 shrink-0 bg-accented" />
 
         <UTooltip
@@ -791,6 +859,11 @@ type ResolvedDrawToolIcon = DrawToolIcon & {
   src: string;
 };
 
+type ShortcutToken = {
+  kind: 'key' | 'text';
+  label: string;
+};
+
 const toast = useToast();
 
 const drawToolRootRef = ref<HTMLDivElement | null>(null);
@@ -818,6 +891,52 @@ const TOOLBAR_VIEWPORT_BOTTOM_OFFSET = 24;
 
 // const toolbarLabeledButtonClass = 'flex flex-col items-center gap-2 p-2 rounded-lg text-xs';
 const toolbarIconButtonClass = 'rounded-lg';
+const toolbarKeyboardShortcuts: Array<{ label: string; tokens: ShortcutToken[] }> = [
+  {
+    label: 'Undo',
+    tokens: [
+      { kind: 'key', label: 'meta' },
+      { kind: 'key', label: 'Z' }
+    ]
+  },
+  {
+    label: 'Redo',
+    tokens: [
+      { kind: 'key', label: 'meta' },
+      { kind: 'key', label: 'shift' },
+      { kind: 'key', label: 'Z' }
+    ]
+  },
+  {
+    label: 'Rotate object',
+    tokens: [
+      { kind: 'key', label: 'Q' },
+      { kind: 'key', label: 'E' }
+    ]
+  },
+  {
+    label: 'Move object',
+    tokens: [
+      { kind: 'key', label: 'arrowleft' },
+      { kind: 'key', label: 'arrowup' },
+      { kind: 'key', label: 'arrowright' },
+      { kind: 'key', label: 'arrowdown' }
+    ]
+  },
+  {
+    label: 'Delete object',
+    tokens: [
+      { kind: 'key', label: 'backspace' }
+    ]
+  },
+  {
+    label: 'Save status to device',
+    tokens: [
+      { kind: 'key', label: 'meta' },
+      { kind: 'key', label: 'S' }
+    ]
+  }
+];
 
 const isSavingStatus = ref(false);
 const isShowingStatusOnDevice = ref(false);
