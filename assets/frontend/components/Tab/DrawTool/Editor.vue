@@ -4,7 +4,7 @@
       data-id="draw-tool-section-primary"
       class="overflow-visible"
       :title="statusFileName"
-      :subtitle="es.hasUnsavedChanges ? 'Unsaved changes' : 'Saved to file'"
+      :subtitle="es.hasUnsavedChanges ? 'Unsaved changes' : statusFileName !== DEFAULT_STATUS_FILE_NAME ? 'Saved to file' : undefined"
       :ui="{
         title: 'text-lg',
         subtitle: 'text-sm',
@@ -14,7 +14,7 @@
       <template #leading-actions>
         <UButton
           data-id="draw-tool-editor-back"
-          icon="i-bi-arrow-left"
+          icon="i-bi-arrow-back"
           color="neutral"
           variant="ghost"
           @click="handleBackButtonClick"
