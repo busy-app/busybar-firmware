@@ -570,7 +570,9 @@
           }"
         >
           <UTooltip
+            v-model:open="isIconTooltipOpen"
             :delay-duration="0"
+            :disabled="isIconTooltipSuppressed"
             :content="{
               side: 'top',
               sideOffset: 16
@@ -583,6 +585,8 @@
               square
               :class="toolbarIconButtonClass"
               data-draw-tool-preserve-selection
+              @click="handleIconTriggerClick"
+              @pointerleave="handleIconTriggerPointerLeave"
             >
               <UIcon
                 name="i-bi-emoji"
@@ -819,6 +823,8 @@ const isSavingStatus = ref(false);
 const isShowingStatusOnDevice = ref(false);
 
 const isIconPickerOpen = ref(false);
+const isIconTooltipOpen = ref(false);
+const isIconTooltipSuppressed = ref(false);
 const iconAssets = import.meta.glob('../../../assets/icons/draw_tool/**/*.svg', {
   eager: true,
   import: 'default',
@@ -1409,11 +1415,22 @@ async function loadImageFromUrl (url: string): Promise<HTMLImageElement> {
   });
 }
 
+function handleIconTriggerClick () {
+  isIconTooltipOpen.value = false;
+  isIconTooltipSuppressed.value = true;
+}
+
+function handleIconTriggerPointerLeave () {
+  isIconTooltipSuppressed.value = false;
+}
+
 async function insertDrawToolIcon (icon: ResolvedDrawToolIcon) {
   try {
     const imageElement = await loadImageFromUrl(icon.src);
 
     dts.addImageShape(imageElement, icon.fileName);
+    isIconTooltipOpen.value = false;
+    isIconTooltipSuppressed.value = true;
     isIconPickerOpen.value = false;
   } catch (error) {
     toast.add({
