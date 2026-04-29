@@ -25,6 +25,7 @@ extern "C" {
 #include "datetime_test/datetime_test.h"
 #include "misc_test/misc_test.h"
 #include "rate_limiter_test/rate_limiter_test.h"
+#include "crypto_test/crypto_test.h"
 #undef TEST_FUNCTION_DECLS
 
 typedef int (*TestCallback)(void);
@@ -44,6 +45,7 @@ static TestCallback unit_test_callbacks[] = {
 #include "datetime_test/datetime_test.h"
 #include "misc_test/misc_test.h"
 #include "rate_limiter_test/rate_limiter_test.h"
+#include "crypto_test/crypto_test.h"
 #undef TEST_FUNCTION_REFS
 };
 

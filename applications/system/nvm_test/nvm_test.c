@@ -253,6 +253,22 @@ static void nvm_test_erase_command(PipeSide* pipe, FuriString* args, void* conte
     }
 }
 
+static void nvm_test_purge_command(PipeSide* pipe, FuriString* args, void* context) {
+    UNUSED(pipe);
+    UNUSED(args);
+
+    furi_assert(context);
+    NvmTestApp* instance = context;
+
+    printf("Purging nvm storage...\r\n");
+
+    if(nvm_purge_all(instance->nvm)) {
+        printf("Successfully purged nvm storage\r\n");
+    } else {
+        printf("Failed to purge nvm storage\r\n");
+    }
+}
+
 static void nvm_test_motd(void* context) {
     UNUSED(context);
     printf("\r\n+----------------------------+\r\n");
@@ -281,6 +297,8 @@ void nvm_test_command(PipeSide* pipe, FuriString* args, void* context) {
         registry, "test", CliCommandFlagDefault, nvm_test_test_command, instance);
     cli_registry_add_command(
         registry, "erase", CliCommandFlagDefault, nvm_test_erase_command, instance);
+    cli_registry_add_command(
+        registry, "purge", CliCommandFlagDefault, nvm_test_purge_command, instance);
 
     CliShell* shell = cli_shell_alloc(nvm_test_motd, NULL, pipe, registry, NULL);
     cli_shell_set_prompt(shell, "nvm_test");

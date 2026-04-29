@@ -1,4 +1,4 @@
-#include "usb_network_settings.h"
+#include "settings/usb_network_settings.h"
 
 #include <furi.h>
 #include <furi_hal_version.h>
@@ -9,6 +9,9 @@
 #include <class/net/ncm.h>
 
 #define VERSION_BCD(maj, min, rev) (((maj & 0xFF) << 8) | ((min & 0x0F) << 4) | (rev & 0x0F))
+
+// NCM Capabilities, bitmap of NCM_NETWORK_CAPS_* bits.
+#define TUD_CDC_NCM_CAPS (NCM_NETWORK_CAPS_ETH_FILTER)
 
 // Length of template descriptor
 #define USB_NET_NCM_DESC_LEN (8 + 9 + 5 + 5 + 13 + 6 + 7 + 9 + 9 + 7 + 7)
@@ -28,7 +31,7 @@
   /* CDC-NCM Functional Descriptor */\
   13, TUSB_DESC_CS_INTERFACE, CDC_FUNC_DESC_ETHERNET_NETWORKING, _mac_stridx, 0, 0, 0, 0, U16_TO_U8S_LE(_maxsegmentsize), U16_TO_U8S_LE(0), 0, \
   /* CDC-NCM Functional Descriptor */\
-  6, TUSB_DESC_CS_INTERFACE, CDC_FUNC_DESC_NCM, U16_TO_U8S_LE(0x0100), 0, \
+  6, TUSB_DESC_CS_INTERFACE, CDC_FUNC_DESC_NCM, U16_TO_U8S_LE(0x0100), TUD_CDC_NCM_CAPS, \
   /* Endpoint Notification */\
   7, TUSB_DESC_ENDPOINT, _ep_notif, TUSB_XFER_INTERRUPT, U16_TO_U8S_LE(_ep_notif_size), 10,\
   /* CDC Data Interface (default inactive) */\
@@ -194,7 +197,7 @@ uint16_t const* tud_descriptor_string_cb(uint8_t index, uint16_t langid) {
         break;
 
     case UsbStrNcmMac:
-        const uint8_t* ncm_mac = usb_network_settings_get_mac_address();
+        const uint8_t* ncm_mac = furi_hal_version_get_usb_mac();
         for(uint8_t i = 0; i < 6; i++) {
             desc_string_temp[i * 2 + 1] = "0123456789ABCDEF"[(ncm_mac[i] >> 4) & 0xf];
             desc_string_temp[i * 2 + 2] = "0123456789ABCDEF"[(ncm_mac[i] >> 0) & 0xf];
@@ -316,9 +319,9 @@ bool tud_vendor_control_xfer_cb(
     case TUSB_REQ_TYPE_VENDOR:
         switch(request->bRequest) {
         case UsbVendorReqWebUsb:
-
             // Get landing page url
-            const char* hostname = usb_network_settings_get_hostname();
+            // TODO: use device name
+            const char* hostname = "busybar";
             const char* zone = ".local";
 
             size_t webusb_url_desc_size =

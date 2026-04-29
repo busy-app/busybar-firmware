@@ -1,231 +1,278 @@
-#include "usb_i.h"
-#include "usb_network.h"
-#include "usb_network_settings.h"
+#include "usb_network_i.h"
+
+#include <furi_hal_version.h>
 
 #include <furi.h>
 
 #include <tusb.h>
 
-#include <lwip/api.h>
-#include <lwip/init.h>
 #include <lwip/udp.h>
 #include <lwip/tcpip.h>
+#include <lwip/etharp.h>
+
 #include <lwip/apps/mdns.h>
 #include <lwip/apps/lwiperf.h>
 
-#include <dhserver.h>
-
 #include <network/network.h>
+
+#ifndef ETH_PAD_SIZE
+#define ETH_PAD_SIZE 0
+#endif // ETH_PAD_SIZE
+
+#if(ETH_PAD_SIZE != 0)
+#define PBUF_ADD_PADDING(p)  pbuf_header((p), ETH_PAD_SIZE)
+#define PBUF_DROP_PADDING(p) pbuf_header((p), -ETH_PAD_SIZE)
+#else // ETH_PAD_SIZE != 0
+#define PBUF_ADD_PADDING(p)
+#define PBUF_DROP_PADDING(p)
+#endif // ETH_PAD_SIZE != 0
+
+#define DHCP_INIT_ATTEMPTS (10)
+
+#define MDNS_TXT_DATA "path=/"
+#define MDNS_HOSTNAME "busybar"
 
 #define TAG "UsbNet"
 
-#define USB_NET_IPERF
-#define DHCP_ENTRIES_MAX   3
-#define DHCP_LEASE_DEFAULT (24 * 60 * 60)
-
-struct UsbNetwork {
-    struct netif netif_data;
-    struct netif* netif;
-
-    dhcp_config_t dhcp_config;
-    dhcp_entry_t dhcp_entries[DHCP_ENTRIES_MAX];
-};
-
 static UsbNetwork* usb_network = NULL;
 
-static err_t linkoutput_fn(struct netif* netif, struct pbuf* p) {
-    (void)netif;
+static err_t usb_network_link_output_callback(struct netif* netif, struct pbuf* p) {
+    UNUSED(netif);
 
-#if(ETH_PAD_SIZE != 0)
-    pbuf_header(p, -ETH_PAD_SIZE); /* drop the padding word */
-#endif
+    err_t ret = ERR_IF;
 
-    if(!tud_ready()) {
-        return ERR_USE;
-    }
+    PBUF_DROP_PADDING(p);
 
-    if(!tud_network_can_xmit(p->tot_len)) {
-        return ERR_USE;
-    }
-    tud_network_xmit(p, 0);
+    do {
+        if(!tud_mounted()) {
+            break;
+        }
 
-#if(ETH_PAD_SIZE != 0)
-    pbuf_header(p, ETH_PAD_SIZE); /* reclaim the padding word */
-#endif
-    return ERR_OK;
+        if(!tud_network_can_xmit(p->tot_len)) {
+            break;
+        }
+
+        tud_network_xmit(p, 0);
+
+        ret = ERR_OK;
+    } while(false);
+
+    PBUF_ADD_PADDING(p);
+
+    return ret;
 }
 
-static err_t ip4_output_fn(struct netif* netif, struct pbuf* p, const ip4_addr_t* addr) {
-    return etharp_output(netif, p, addr);
-}
+static err_t usb_network_netif_init_callback(struct netif* netif) {
+    furi_assert(netif);
 
-#if LWIP_IPV6
-static err_t ip6_output_fn(struct netif* netif, struct pbuf* p, const ip6_addr_t* addr) {
-    return ethip6_output(netif, p, addr);
-}
-#endif
-
-static err_t netif_init_cb(struct netif* netif) {
-    LWIP_ASSERT("netif != NULL", (netif != NULL));
     netif->mtu = CFG_TUD_NET_MTU;
-    netif->flags = NETIF_FLAG_BROADCAST | NETIF_FLAG_ETHARP | NETIF_FLAG_IGMP |
-                   NETIF_FLAG_LINK_UP | NETIF_FLAG_UP;
-    netif->state = NULL;
+    netif->flags = NETIF_FLAG_BROADCAST | NETIF_FLAG_ETHARP | NETIF_FLAG_IGMP;
     netif->name[0] = 'E';
     netif->name[1] = 'X';
-    netif->linkoutput = linkoutput_fn;
-    netif->output = ip4_output_fn;
+    netif->output = etharp_output;
+    netif->linkoutput = usb_network_link_output_callback;
 #if LWIP_IPV6
-    netif->output_ip6 = ip6_output_fn;
+    netif->output_ip6 = ethip6_output;
 #endif
+
     return ERR_OK;
 }
 
-static void mdns_srv_txt(struct mdns_service* service, void* txt_userdata) {
+static void usb_network_mdns_txt_callback(struct mdns_service* service, void* txt_userdata) {
     UNUSED(txt_userdata);
+    const err_t res = mdns_resp_add_service_txtitem(service, MDNS_TXT_DATA, strlen(MDNS_TXT_DATA));
 
-    err_t res = mdns_resp_add_service_txtitem(service, "path=/", 6);
     if(res != ERR_OK) {
         FURI_LOG_E(TAG, "mdns add service txt failed");
     }
 }
 
-bool tud_network_recv_cb(const uint8_t* src, uint16_t size) {
-    if(size != 0) {
-#if(ETH_PAD_SIZE != 0)
-        size += ETH_PAD_SIZE; /* allow room for Ethernet padding */
-#endif
-        struct pbuf* p = pbuf_alloc(PBUF_RAW, size, PBUF_POOL);
+static void usb_network_dhcp_init(UsbNetwork* instance) {
+    DhcpServerConfig* dhcp_config = &instance->dhcp_config;
 
-        if(!p) {
-            FURI_LOG_T(TAG, "cannot receive frame, pbuf_alloc failed");
-            tud_network_recv_renew();
-            return true;
+    dhcp_config->netif = &instance->netif;
+    dhcp_config->router.addr = 0;
+    dhcp_config->port = 67;
+    dhcp_config->dns.addr = 0;
+    dhcp_config->domain = "usb";
+    dhcp_config->max_lease_count = 3;
+}
+
+static void usb_network_dhcp_start(UsbNetwork* instance) {
+    uint32_t num_attempts;
+
+    for(num_attempts = 0; num_attempts < DHCP_INIT_ATTEMPTS; ++num_attempts) {
+        if(dhserv_init(&instance->dhcp_config)) {
+            break;
         }
-
-#if(ETH_PAD_SIZE != 0)
-        pbuf_header(p, -ETH_PAD_SIZE); /* drop the padding word */
-#endif
-
-        for(struct pbuf* q = p; q != NULL && size > 0; q = q->next) {
-            /* Read enough bytes to fill this pbuf in the chain. 
-             * The available data in the pbuf is given by the q->len variable. */
-            memcpy(q->payload, src, size < q->len ? size : q->len);
-            src += q->len;
-            size -= q->len;
-        }
-
-#if(ETH_PAD_SIZE != 0)
-        pbuf_header(p, ETH_PAD_SIZE); /* reclaim the padding word */
-#endif
-
-        if(usb_network && usb_network->netif) { /* Check if netif is initialized */
-            err_t err = usb_network->netif->input(p, usb_network->netif);
-            if(err != ERR_OK) {
-                FURI_LOG_W(TAG, "netif->input failed with error: %d", err);
-                pbuf_free(p); /* Free pbuf if input failed */
-            }
-        } else {
-            FURI_LOG_E(TAG, "usb_network->netif is NULL in recv_cb");
-            pbuf_free(p); /* Free pbuf as it cannot be processed */
-        }
-        tud_network_recv_renew();
     }
 
-    return true;
-}
-
-uint16_t tud_network_xmit_cb(uint8_t* dst, void* ref, uint16_t arg) {
-    struct pbuf* p = (struct pbuf*)ref;
-    UNUSED(arg);
-
-    uint16_t res = pbuf_copy_partial(p, dst, p->tot_len, 0);
-    return res;
-}
-
-void tud_network_init_cb(void) {
-}
-
-static void usb_network_init_netif(void* arg) {
-    UNUSED(arg);
-
-    usb_network->netif = &(usb_network->netif_data);
-
-    usb_network->netif_data.hwaddr_len = 6;
-    memcpy(usb_network->netif_data.hwaddr, usb_network_settings_get_mac_address(), 6);
-    usb_network->netif_data.hwaddr[5] ^= 0x01;
-
-    UsbNetworkAddress address = usb_network_settings_get_address();
-
-    const ip4_addr_t ip = {
-        PP_HTONL(LWIP_MAKEU32(address.ip.a, address.ip.b, address.ip.c, address.ip.d))};
-    const ip4_addr_t gateway = {PP_HTONL(
-        LWIP_MAKEU32(address.gateway.a, address.gateway.b, address.gateway.c, address.gateway.d))};
-    const ip4_addr_t netmask = {PP_HTONL(
-        LWIP_MAKEU32(address.netmask.a, address.netmask.b, address.netmask.c, address.netmask.d))};
-
-    usb_network->netif = netif_add(
-        &(usb_network->netif_data), &ip, &netmask, &gateway, NULL, netif_init_cb, tcpip_input);
-#if LWIP_IPV6
-    netif_create_ip6_linklocal_address(usb_network->netif, 1);
-#endif
-    while(!netif_is_up(usb_network->netif))
-        ;
-
-    // Prepare DHCP configuration
-    uint8_t counter = address.ip.d;
-    for(uint8_t i = 0; i < DHCP_ENTRIES_MAX; i++) {
-        // check for collision with our own address
-        if(counter == address.ip.d || counter == 0) {
-            counter++;
-        }
-
-        usb_network->dhcp_entries[i].addr.addr =
-            PP_HTONL(LWIP_MAKEU32(address.ip.a, address.ip.b, address.ip.c, counter));
-        usb_network->dhcp_entries[i].lease = DHCP_LEASE_DEFAULT;
-        counter++;
+    if(num_attempts == DHCP_INIT_ATTEMPTS) {
+        FURI_LOG_E(TAG, "Failed to start DHCP server");
     }
+}
 
-    usb_network->dhcp_config.netif = usb_network->netif;
-    usb_network->dhcp_config.router.addr = 0;
-    usb_network->dhcp_config.port = 67;
-    usb_network->dhcp_config.dns.addr = 0;
-    usb_network->dhcp_config.domain = "usb";
-    usb_network->dhcp_config.num_entry = DHCP_ENTRIES_MAX;
-    usb_network->dhcp_config.entries = usb_network->dhcp_entries;
+static void usb_network_dhcp_stop(UsbNetwork* instance) {
+    UNUSED(instance);
+    dhserv_deinit();
+}
 
-    while(dhserv_init(&(usb_network->dhcp_config)) != ERR_OK)
-        ;
+static void usb_network_mdns_init(UsbNetwork* instance) {
+    struct netif* netif = &instance->netif;
 
     mdns_resp_init();
-    mdns_resp_add_netif(usb_network->netif, usb_network_settings_get_hostname());
+    // TODO: use device name as the hostname ?
+    mdns_resp_add_netif(netif, MDNS_HOSTNAME);
     mdns_resp_add_service(
-        usb_network->netif, "httpd", "_http", DNSSD_PROTO_TCP, 80, mdns_srv_txt, NULL);
-    mdns_resp_announce(usb_network->netif);
+        netif, "httpd", "_http", DNSSD_PROTO_TCP, 80, usb_network_mdns_txt_callback, NULL);
+}
+
+static void usb_network_mdns_start(UsbNetwork* instance) {
+    mdns_resp_announce(&instance->netif);
+}
+
+static void usb_network_netif_set_hw_address(struct netif* netif) {
+    memcpy(netif->hwaddr, furi_hal_version_get_usb_mac(), ETH_HWADDR_LEN);
+    netif->hwaddr[5] ^= 0x01;
+    netif->hwaddr_len = ETH_HWADDR_LEN;
+}
+
+static void usb_network_init_netif(UsbNetwork* instance) {
+    LOCK_TCPIP_CORE();
+
+    struct netif* netif = &instance->netif;
+    usb_network_netif_set_hw_address(netif);
+
+    const UsbNetworkIpConfig* ip_config = &instance->settings.ip_config;
+
+    const ip4_addr_t ip = {ip_config->address.val};
+    const ip4_addr_t gateway = {ip_config->gateway.val};
+    const ip4_addr_t netmask = {ip_config->netmask.val};
+
+    netif_add(netif, &ip, &netmask, &gateway, NULL, usb_network_netif_init_callback, tcpip_input);
+#if LWIP_IPV6
+    netif_create_ip6_linklocal_address(netif, 1);
+#endif
+
+    usb_network_dhcp_init(instance);
+    usb_network_mdns_init(instance);
 
 #ifdef USB_NET_IPERF
     lwiperf_start_tcp_server_default(NULL, NULL);
 #endif
+
+    UNLOCK_TCPIP_CORE();
 }
 
-bool usb_network_is_dhcp_addr(UsbNetwork* usb_network, uint8_t* addr) {
+void usb_network_up(void) {
     furi_assert(usb_network);
-    furi_assert(addr);
-    for(uint8_t i = 0; i < DHCP_ENTRIES_MAX; i++) {
-        if(memcmp(&usb_network->dhcp_entries[i].addr.addr, addr, 4) == 0) {
-            return true;
+    struct netif* netif = &usb_network->netif;
+
+    LOCK_TCPIP_CORE();
+    netif_set_up(netif);
+    netif_set_link_up(netif);
+
+    usb_network_dhcp_start(usb_network);
+    usb_network_mdns_start(usb_network);
+    UNLOCK_TCPIP_CORE();
+}
+
+void usb_network_down(void) {
+    furi_assert(usb_network);
+    struct netif* netif = &usb_network->netif;
+
+    LOCK_TCPIP_CORE();
+    usb_network_dhcp_stop(usb_network);
+
+    netif_set_link_down(netif);
+    netif_set_down(netif);
+    UNLOCK_TCPIP_CORE();
+}
+
+bool usb_network_rx(const uint8_t* data, uint16_t data_size) {
+    furi_assert(usb_network);
+
+    bool success = false;
+    struct pbuf* pbuf = NULL;
+
+    do {
+        // TODO: Is this really possible?
+        if(data_size == 0) {
+            FURI_LOG_W(TAG, "data_size == 0");
+            break;
         }
+
+        pbuf = pbuf_alloc(PBUF_RAW, data_size + ETH_PAD_SIZE, PBUF_POOL);
+
+        if(!pbuf) {
+            FURI_LOG_T(TAG, "pbuf_alloc() failed");
+            break;
+        }
+
+        err_t lwip_err;
+
+        PBUF_DROP_PADDING(pbuf);
+        lwip_err = pbuf_take(pbuf, data, data_size);
+        PBUF_ADD_PADDING(pbuf);
+
+        if(lwip_err != ERR_OK) {
+            FURI_LOG_D(TAG, "pbuf_take() failed with error: %d", lwip_err);
+            break;
+        }
+
+        struct netif* netif = &usb_network->netif;
+        lwip_err = netif->input(pbuf, netif);
+
+        if(lwip_err != ERR_OK) {
+            FURI_LOG_D(TAG, "netif->input() failed with error: %d", lwip_err);
+            break;
+        }
+
+        success = true;
+    } while(false);
+
+    if(!success && pbuf) {
+        pbuf_free(pbuf);
     }
-    return false;
+
+    tud_network_recv_renew();
+
+    return true;
+}
+
+uint16_t usb_network_tx(uint8_t* data, void* context) {
+    struct pbuf* pbuf = context;
+    return pbuf_copy_partial(pbuf, data, pbuf->tot_len, 0);
+}
+
+bool usb_network_is_dhcp_addr(UsbNetwork* instance, const uint8_t* addr) {
+    furi_assert(instance);
+    furi_assert(addr);
+
+    ip4_addr_t ip4_addr;
+    memcpy(&ip4_addr, addr, sizeof(ip4_addr));
+
+    LOCK_TCPIP_CORE();
+    const bool result = dhserv_has_lease(ip4_addr);
+    UNLOCK_TCPIP_CORE();
+
+    return result;
+}
+
+static UsbNetwork* usb_network_alloc(void) {
+    UsbNetwork* instance = malloc(sizeof(UsbNetwork));
+
+    usb_network_settings_load(&instance->settings);
+    usb_network_init_netif(instance);
+
+    return instance;
 }
 
 void usb_network_init(void) {
-    usb_network_settings_init();
-
     furi_record_open(RECORD_NETWORK);
 
-    usb_network = malloc(sizeof(UsbNetwork));
-    tcpip_callback(usb_network_init_netif, NULL);
+    furi_check(usb_network == NULL);
+    usb_network = usb_network_alloc();
 
     furi_record_create(RECORD_USB_NETWORK, usb_network);
 }

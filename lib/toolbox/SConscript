@@ -1,6 +1,3 @@
-from fbt.version import get_fast_git_version_id
-
-
 Import("env")
 
 env.Append(
@@ -12,45 +9,36 @@ env.Append(
     ],
     SDK_HEADERS=[
         File("api_lock.h"),
-        File("compress.h"),
-        File("manchester_decoder.h"),
-        File("manchester_encoder.h"),
-        File("path.h"),
-        File("name_generator.h"),
+        File("color.h"),
         File("crc32_calc.h"),
-        File("dir_walk.h"),
-        File("args.h"),
-        File("saved_struct.h"),
+        File("dsp.h"),
         File("float_tools.h"),
-        File("value_index.h"),
-        File("tar/tar_archive.h"),
-        File("stream/stream.h"),
-        File("stream/file_stream.h"),
-        File("stream/string_stream.h"),
-        File("stream/buffered_file_stream.h"),
-        File("protocols/protocol_dict.h"),
-        File("pretty_format.h"),
         File("hex.h"),
-        File("simple_array.h"),
-        File("bit_buffer.h"),
-        File("keys_dict.h"),
-        File("pulse_protocols/pulse_glue.h"),
         File("md5_calc.h"),
-        File("varint.h"),
-        File("strint.h"),
-        File("fetch/fetch_client.h"),
-        File("fetch/fetch_file_save.h"),
-        File("fetch/fetch_loader.h"),
-        File("update_fw_tar.h"),
+        File("property.h"),
+        File("rle_encode.h"),
         File("sha256_calc.h"),
+        File("strint.h"),
+        File("value_index.h"),
     ],
 )
-
 
 libenv = env.Clone(FW_LIB_NAME="toolbox")
 libenv.ApplyLibFlags()
 
-sources = libenv.GlobRecursive("*.c")
+sources = [
+    "color.c",
+    "crc32_calc.c",
+    "dsp.c",
+    "float_tools.c",
+    "hex.c",
+    "md5_calc.c",
+    "property.c",
+    "rle_encode.c",
+    "sha256_calc.c",
+    "strint.c",
+    "value_index.c",
+]
 
 lib = libenv.StaticLibrary("${FW_LIB_NAME}", sources)
 libenv.Install("${LIB_DIST_DIR}", lib)
