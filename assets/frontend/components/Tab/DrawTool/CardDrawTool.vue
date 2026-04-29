@@ -397,7 +397,15 @@
       :style="toolbarContainerStyle"
     >
       <div class="flex max-w-[calc(100vw-2rem)] items-center gap-4 overflow-x-auto rounded-2xl p-2 ring-1 ring-glass bg-surface-container backdrop-blur-sm">
-        <UPopover>
+        <UPopover
+          :content="{
+            side: 'top',
+            sideOffset: 16
+          }"
+          :ui="{
+            content: 'rounded-xl bg-surface-container ring-accented/75'
+          }"
+        >
           <UButton
             color="neutral"
             variant="ghost"
@@ -430,7 +438,15 @@
           </template>
         </UPopover>
 
-        <UPopover>
+        <UPopover
+          :content="{
+            side: 'top',
+            sideOffset: 16
+          }"
+          :ui="{
+            content: 'rounded-xl bg-surface-container ring-accented/75'
+          }"
+        >
           <UButton
             color="neutral"
             variant="ghost"
@@ -525,17 +541,76 @@
           <span>Text</span>
         </UButton>
 
-        <UButton
-          color="neutral"
-          variant="ghost"
-          :class="toolbarLabeledButtonClass"
+        <UPopover
+          v-model:open="isIconPickerOpen"
+          :content="{
+            side: 'top',
+            sideOffset: 16
+          }"
+          :ui="{
+            content: 'rounded-xl bg-surface-container ring-accented/75'
+          }"
         >
-          <UIcon
-            name="i-bi-emoji"
-            class="size-6"
-          />
-          <span>Icon</span>
-        </UButton>
+          <UButton
+            color="neutral"
+            variant="ghost"
+            :class="toolbarLabeledButtonClass"
+            data-draw-tool-preserve-selection
+          >
+            <UIcon
+              name="i-bi-emoji"
+              class="size-6"
+            />
+            <span>Icon</span>
+          </UButton>
+
+          <template #content>
+            <div
+              class="max-w-[calc(100vw-2rem)] overflow-y-auto px-2 pt-1 pb-2"
+              data-draw-tool-preserve-selection
+            >
+              <UTabs
+                v-model="activeIconCategoryIndex"
+                :items="iconCategories"
+                :content="false"
+                color="neutral"
+                variant="link"
+                class="w-full mb-3"
+              />
+
+              <div class="h-36 overflow-y-auto">
+                <div
+                  v-if="activeIcons.length"
+                  class="grid grid-cols-4 gap-2 overflow-y-auto pr-1 sm:grid-cols-10"
+                  data-draw-tool-preserve-selection
+                >
+                  <UButton
+                    v-for="icon in activeIcons"
+                    :key="icon.id"
+                    data-draw-tool-preserve-selection
+                    color="neutral"
+                    variant="ghost"
+                    class="p-1 rounded-xl"
+                    @click="insertDrawToolIcon(icon)"
+                  >
+                    <img
+                      :src="icon.src"
+                      class="size-12 object-contain"
+                      draggable="false"
+                    >
+                  </UButton>
+                </div>
+                <div
+                  v-else
+                  class="flex min-h-32 items-center justify-center rounded-xl border border-dashed border-accented/40 px-4 text-sm text-muted"
+                  data-draw-tool-preserve-selection
+                >
+                  No icons in this category.
+                </div>
+              </div>
+            </div>
+          </template>
+        </UPopover>
 
         <UButton
           color="neutral"
@@ -626,8 +701,19 @@ import {
   Text as VText,
   Transformer as VTransformer
 } from 'vue-konva';
+import drawToolIconsData from '@/generated/drawTool/icons.json';
 import type { TransformerBox } from '@/util/drawTool';
 import type { DisplayDrawParams } from '@busy-app/busy-lib';
+
+type DrawToolIcon = {
+  id: string;
+  fileName: string;
+  path: string;
+};
+
+type ResolvedDrawToolIcon = DrawToolIcon & {
+  src: string;
+};
 
 const toast = useToast();
 const drawToolRootRef = ref<HTMLDivElement | null>(null);
@@ -658,10 +744,56 @@ const DRAW_TOOL_TEMP_FILE_NAME = 'temp.png';
 const DRAW_TOOL_SAVE_DIR = '/ext/user_assets/draw_tool';
 const TOOLBAR_MAX_CANVAS_GAP = 48;
 const TOOLBAR_VIEWPORT_BOTTOM_OFFSET = 24;
+
 const toolbarLabeledButtonClass = 'flex flex-col items-center gap-2 p-2 rounded-xl text-xs';
 const toolbarIconButtonClass = 'rounded-xl';
+
 const isSavingStatus = ref(false);
 const isShowingStatusOnDevice = ref(false);
+
+const isIconPickerOpen = ref(false);
+const iconAssets = import.meta.glob('../../../assets/icons/draw_tool/**/*.svg', {
+  eager: true,
+  import: 'default',
+  query: '?url'
+}) as Record<string, string>;
+const iconsByCategory = drawToolIconsData as Record<string, DrawToolIcon[]>;
+const iconCategoriesMap = [
+  { id: 'faces', label: 'Smiles & Emotions' },
+  { id: 'food', label: 'Food & Drinks' },
+  { id: 'nature', label: 'Nature' },
+  { id: 'work', label: 'Work & Study' },
+  { id: 'sport', label: 'Sports' },
+  { id: 'hearts', label: 'Hearts & Sparks' }
+];
+const iconCategories = Object.keys(iconsByCategory).map(category => {
+  const mappedCategory = iconCategoriesMap.find(c => c.id === category);
+  if (mappedCategory) {
+    return mappedCategory;
+  }
+
+  return {
+    id: category,
+    label: category.charAt(0).toUpperCase() + category.slice(1)
+  };
+});
+const iconUrlByPath = Object.fromEntries(Object.entries(iconAssets).flatMap(([assetPath, assetUrl]) => {
+  const normalizedAssetPath = assetPath
+    .replace(/\\/g, '/')
+    .match(/assets\/icons\/(.+)$/)?.[1];
+
+  return normalizedAssetPath ? [[normalizedAssetPath, assetUrl]] : [];
+})) as Record<string, string>;
+const activeIconCategoryIndex = ref(0);
+const activeIconCategory = computed(() => iconCategories[activeIconCategoryIndex.value].id);
+const activeIcons = computed<ResolvedDrawToolIcon[]>(() => {
+  return (iconsByCategory[activeIconCategory.value] || []).flatMap(icon => {
+    const src = iconUrlByPath[icon.path];
+
+    return src ? [{ ...icon, src }] : [];
+  });
+});
+
 const toolbarContainerClass = computed(() => {
   return toolbarShouldStickToViewport.value
     ? 'fixed inset-x-0 z-40 flex justify-center px-4'
@@ -1188,6 +1320,38 @@ async function insertImage () {
     toast.add({
       id: 'draw-tool-image-error',
       title: 'Failed to load image',
+      description: error instanceof Error ? error.message : String(error),
+      color: 'error',
+      duration: 10000
+    });
+  }
+}
+
+async function loadImageFromUrl (url: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const image = new window.Image();
+
+    image.onload = () => {
+      resolve(image);
+    };
+    image.onerror = () => {
+      reject(new Error('Could not load icon asset'));
+    };
+
+    image.src = url;
+  });
+}
+
+async function insertDrawToolIcon (icon: ResolvedDrawToolIcon) {
+  try {
+    const imageElement = await loadImageFromUrl(icon.src);
+
+    dts.addImageShape(imageElement, icon.fileName);
+    isIconPickerOpen.value = false;
+  } catch (error) {
+    toast.add({
+      id: 'draw-tool-icon-error',
+      title: 'Failed to insert icon',
       description: error instanceof Error ? error.message : String(error),
       color: 'error',
       duration: 10000
