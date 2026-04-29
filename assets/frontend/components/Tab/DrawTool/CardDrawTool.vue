@@ -4,7 +4,7 @@
       data-id="draw-tool-section-primary"
       class="overflow-visible"
       :title="statusFileName"
-      :subtitle="dts.hasUnsavedChanges ? 'Unsaved changes' : undefined"
+      :subtitle="dts.hasUnsavedChanges ? 'Unsaved changes' : 'Saved to file'"
       :ui="{
         title: 'text-lg',
         subtitle: 'text-sm',
@@ -1862,7 +1862,7 @@ async function showStatusOnBusyBar () {
     showStatusCheckmarkIcon.value = true;
     setTimeout(() => {
       showStatusCheckmarkIcon.value = false;
-    }, 5000);
+    }, 3000);
   } catch {
     // Request errors are already handled by the helper chain above.
   } finally {
