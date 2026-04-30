@@ -247,13 +247,6 @@ FuriHalCryptoStatus furi_hal_crypto_ecdsa_sign_init(
         curve_id = SL_SI91X_ECC_SECP224R1;
     } else if(key->type == FuriHalCryptoKeyTypeEcdsaPriv256) {
         curve_id = SL_SI91X_ECC_SECP256R1;
-    } else if(key->type == FuriHalCryptoKeyTypeMatterAttestation) {
-        // HACK: Some of the matter attestation keys are ECDSA-256 private keys
-        if(key->length == FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_256) {
-            curve_id = SL_SI91X_ECC_SECP256R1;
-        } else {
-            return FuriHalCryptoStatusInvalidParameter;
-        }
     } else {
         return FuriHalCryptoStatusInvalidParameter;
     }
@@ -566,18 +559,9 @@ FuriHalCryptoStatus
     case FuriHalCryptoKeyTypeAes256:
     case FuriHalCryptoKeyTypeEcdsaPriv224:
     case FuriHalCryptoKeyTypeEcdsaPriv256:
+    default:
         wrap_config->padding = 0;
         break;
-    case FuriHalCryptoKeyTypeMatterAttestation:
-        // HACK: Some of the matter attestation keys are ECDSA-256 private keys
-        if(key->length == FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_256) {
-            wrap_config->padding = 0;
-            break;
-        }
-        // fall-through
-    default:
-        free(wrap_config);
-        return FuriHalCryptoStatusInvalidParameter;
     }
 
     wrap_config->wrap_iv_mode = SL_SI91X_WRAP_IV_CBC_MODE;
