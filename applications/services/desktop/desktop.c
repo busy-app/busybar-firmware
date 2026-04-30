@@ -258,21 +258,6 @@ static void desktop_start_timer_callback(void* context) {
     desktop_do_replace_current_app(instance);
 }
 
-static void desktop_startup_timer_callback(void* context) {
-    furi_assert(context);
-
-    Desktop* instance = context;
-
-    if(instance->switch_pos == InputSwitchPositionMAX) {
-        instance->switch_pos = InputSwitchPositionBusy;
-        instance->switch_direction = DesktopSwitchDirectionDown;
-
-        desktop_handle_switch_start(instance);
-
-        furi_event_loop_timer_start(instance->switch_timer, SWITCH_DELAY_MS);
-    }
-}
-
 // Called in the Desktop thread when one or more apps have been scheduled for start using desktop_enqueue_start_request()
 static void desktop_app_queue_callback(FuriEventLoopObject* object, void* context) {
     furi_assert(context);
@@ -338,8 +323,6 @@ static Desktop* desktop_alloc(void) {
         instance->event_loop, desktop_switch_timer_callback, FuriEventLoopTimerTypeOnce, instance);
     instance->start_timer = furi_event_loop_timer_alloc(
         instance->event_loop, desktop_start_timer_callback, FuriEventLoopTimerTypeOnce, instance);
-    instance->startup_timer = furi_event_loop_timer_alloc(
-        instance->event_loop, desktop_startup_timer_callback, FuriEventLoopTimerTypeOnce, instance);
     instance->error_message = furi_string_alloc();
     instance->loader = furi_record_open(RECORD_LOADER);
 
@@ -372,8 +355,6 @@ static Desktop* desktop_alloc(void) {
     // TODO: Should the startup app be handled by Loader internally?
     // Such functionality already exists via FLIPPER_AUTORUN_APP_NAME
     desktop_run_startup_app(instance);
-
-    furi_event_loop_timer_start(instance->startup_timer, STARTUP_TIMEOUT_MS);
 
 #if defined(SRV_INPUT)
     Input* input = furi_record_open(RECORD_INPUT);
