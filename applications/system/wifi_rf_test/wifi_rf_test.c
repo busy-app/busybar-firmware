@@ -78,6 +78,8 @@ static const sl_wifi_device_configuration_t wifi_rf_test_configuration = {
         .ble_ext_feature_bit_map = 0,
         .config_feature_bit_map = SL_SI91X_FEAT_SLEEP_GPIO_SEL_BITMAP}};
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 static const sl_si91x_request_tx_test_info_t tx_test_info_default = {
     .enable = 1,
     .power = WIFI_RF_TEST_POWER_DEFAULT,
@@ -132,6 +134,7 @@ typedef struct {
     bool msg_send;
     FuriThread* thread;
 } WifiRfTestApp;
+#pragma GCC diagnostic pop
 
 void wifi_rf_test_app_stop(void* app_handle);
 static sl_status_t wifi_rf_test_stats_receive_handler(
@@ -154,8 +157,11 @@ void* wifi_rf_test_app_start(CliShell* shell) {
     instance->max_receive_stats_count = WIFI_RF_TEST_RECEIVE_STATS_COUNT_DEFAULT;
     instance->exit = false;
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
     memcpy(
         &instance->tx_test_info, &tx_test_info_default, sizeof(sl_si91x_request_tx_test_info_t));
+#pragma GCC diagnostic pop
 
     sl_status_t status = SL_STATUS_FAIL;
     do {
@@ -240,7 +246,10 @@ static sl_status_t wifi_rf_test_stats_receive_handler(
     }
 
     if(event == SL_WIFI_STATS_ASYNC_EVENT) {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
         sl_si91x_async_stats_response_t* result = (sl_si91x_async_stats_response_t*)reponse;
+#pragma GCC diagnostic pop
 
         if(instance->stats_count == 0) {
             instance->stats_count++;

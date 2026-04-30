@@ -3,6 +3,22 @@ Import("env")
 SDK_DIR = "simplicity_sdk"
 SDK_INCDIR = f"#/lib/{SDK_DIR}"
 
+# New SDK component directories
+SDK_PLATFORM_COMMON_DIR = f"{SDK_DIR}/platform_common"
+SDK_PLATFORM_COMMON_INCDIR = f"#/lib/{SDK_PLATFORM_COMMON_DIR}"
+SDK_PLATFORM_CORE_DIR = f"{SDK_DIR}/platform_core"
+SDK_PLATFORM_CORE_INCDIR = f"#/lib/{SDK_PLATFORM_CORE_DIR}"
+SDK_CMSIS_COMMON_DIR = f"{SDK_DIR}/cmsis_common"
+SDK_CMSIS_COMMON_INCDIR = f"#/lib/{SDK_CMSIS_COMMON_DIR}"
+SDK_SECURITY_MBEDTLS_DIR = f"{SDK_DIR}/security_mbedtls"
+SDK_SECURITY_MBEDTLS_INCDIR = f"#/lib/{SDK_SECURITY_MBEDTLS_DIR}"
+SDK_SECURITY_MBEDTLS_SRC_DIR = f"{SDK_DIR}/security_mbedtls_source"
+SDK_SECURITY_MBEDTLS_SRC_INCDIR = f"#/lib/{SDK_SECURITY_MBEDTLS_SRC_DIR}"
+SDK_SECURITY_SE_MANAGER_DIR = f"{SDK_DIR}/security_se_manager"
+SDK_SECURITY_SE_MANAGER_INCDIR = f"#/lib/{SDK_SECURITY_SE_MANAGER_DIR}"
+SDK_OPENTHREAD_DIR = f"{SDK_DIR}/openthread_stack"
+SDK_OPENTHREAD_INCDIR = f"#/lib/{SDK_OPENTHREAD_DIR}"
+
 FREERTOS_DIR = "FreeRTOS-Kernel"
 FREERTOS_INCDIR = f"#/lib/{FREERTOS_DIR}"
 
@@ -11,11 +27,12 @@ WISECONNECT_INCDIR = f"#/lib/{WISECONNECT_DIR}"
 
 env.Append(
     CPPPATH=[
-        Dir(f"{SDK_INCDIR}/platform/common/inc").rdir(),
+        Dir(f"{SDK_PLATFORM_COMMON_INCDIR}/platform/common/inc").rdir(),
+        Dir(f"{SDK_PLATFORM_CORE_INCDIR}/platform/common/inc").rdir(),
+        Dir(f"{SDK_CMSIS_COMMON_INCDIR}/platform/common/inc").rdir(),
         # SDK Wifi Silabs
-        Dir(f"{SDK_INCDIR}/platform/emlib/inc").rdir(),
-        Dir(f"{SDK_INCDIR}/platform/common/inc").rdir(),
-        Dir(f"{SDK_INCDIR}/platform/service/mem_pool/inc").rdir(),
+        Dir(f"{SDK_PLATFORM_CORE_INCDIR}/platform/emlib/inc").rdir(),
+        Dir(f"{SDK_PLATFORM_CORE_INCDIR}/platform/service/mem_pool/inc").rdir(),
         # Break cyclic dependency on FreeRTOS
         Dir(f"{FREERTOS_INCDIR}/include").rdir(),
         Dir(f"{FREERTOS_INCDIR}/portable/GCC/ARM_CM4F").rdir(),
@@ -23,40 +40,58 @@ env.Append(
         Dir(f"{WISECONNECT_INCDIR}/device/silabs/si91x/mcu/core/config").rdir(),
         Dir(f"{WISECONNECT_INCDIR}/device/silabs/si91x/mcu/core/chip/inc").rdir(),
         # NVM3
-        Dir(f"{SDK_INCDIR}/platform/emdrv/common/inc").rdir(),
-        Dir(f"{SDK_INCDIR}/platform/emdrv/nvm3/inc").rdir(),
-        Dir(f"{SDK_INCDIR}/platform/emdrv/nvm3/config").rdir(),
-        #Mbed TLS
+        Dir(f"{SDK_PLATFORM_CORE_INCDIR}/platform/emdrv/common/inc").rdir(),
+        Dir(f"{SDK_PLATFORM_CORE_INCDIR}/platform/emdrv/nvm3/inc").rdir(),
+        Dir(f"{SDK_PLATFORM_CORE_INCDIR}/platform/emdrv/nvm3/config").rdir(),
+        # Mbed TLS
         Dir(f"{WISECONNECT_INCDIR}/device/silabs/si91x/wireless/crypto/inc").rdir(),
-        Dir(f"{WISECONNECT_INCDIR}/device/silabs/si91x/wireless/crypto/aead/inc").rdir(),
-        Dir(f"{WISECONNECT_INCDIR}/device/silabs/si91x/wireless/crypto/ecdh/inc").rdir(),
-        Dir(f"{WISECONNECT_INCDIR}/device/silabs/si91x/wireless/crypto/ecdsa/inc").rdir(),
+        Dir(
+            f"{WISECONNECT_INCDIR}/device/silabs/si91x/wireless/crypto/aead/inc"
+        ).rdir(),
+        Dir(
+            f"{WISECONNECT_INCDIR}/device/silabs/si91x/wireless/crypto/ecdh/inc"
+        ).rdir(),
+        Dir(
+            f"{WISECONNECT_INCDIR}/device/silabs/si91x/wireless/crypto/ecdsa/inc"
+        ).rdir(),
         Dir(f"{WISECONNECT_INCDIR}/device/silabs/si91x/wireless/crypto/mac/inc").rdir(),
         Dir(f"{WISECONNECT_INCDIR}/device/silabs/si91x/wireless/crypto/sha/inc").rdir(),
-        Dir(f"{WISECONNECT_INCDIR}/device/silabs/si91x/wireless/crypto/crypto_utility/inc").rdir(),
+        Dir(
+            f"{WISECONNECT_INCDIR}/device/silabs/si91x/wireless/crypto/crypto_utility/inc"
+        ).rdir(),
         Dir(f"{WISECONNECT_INCDIR}/device/silabs/si91x/wireless/crypto/aes/inc").rdir(),
-        Dir(f"{WISECONNECT_INCDIR}/device/silabs/si91x/wireless/crypto/wrap/inc").rdir(), #Todo no matter
-        Dir(f"{WISECONNECT_INCDIR}/device/silabs/si91x/wireless/crypto/wrap/config").rdir(),
-        Dir(f"{WISECONNECT_INCDIR}/device/silabs/si91x/wireless/crypto/hmac/inc").rdir(),
+        Dir(
+            f"{WISECONNECT_INCDIR}/device/silabs/si91x/wireless/crypto/wrap/inc"
+        ).rdir(),  # Todo no matter
+        Dir(
+            f"{WISECONNECT_INCDIR}/device/silabs/si91x/wireless/crypto/wrap/config"
+        ).rdir(),
+        Dir(
+            f"{WISECONNECT_INCDIR}/device/silabs/si91x/wireless/crypto/hmac/inc"
+        ).rdir(),
         Dir(f"{WISECONNECT_INCDIR}/device/silabs/si91x/wireless/crypto/gcm/inc").rdir(),
         Dir(f"{WISECONNECT_INCDIR}/device/silabs/si91x/wireless/crypto/ccm/inc").rdir(),
-        Dir(f"{WISECONNECT_INCDIR}/device/silabs/si91x/wireless/crypto/trng/inc").rdir(),
         Dir(
-            f"{SDK_INCDIR}/platform/security/sl_component/sl_mbedtls_support/inc"
+            f"{WISECONNECT_INCDIR}/device/silabs/si91x/wireless/crypto/trng/inc"
         ).rdir(),
         Dir(
-            f"{SDK_INCDIR}/platform/security/sl_component/sl_mbedtls_support/config"
-        ).rdir(),
-        Dir(f"{SDK_INCDIR}/util/third_party/mbedtls/include/").rdir(),
-        Dir(f"{SDK_INCDIR}/util/third_party/openthread/include").rdir(),
-        Dir(f"{SDK_INCDIR}/util/third_party/mbedtls/library").rdir(),
-        Dir(
-            f"{SDK_INCDIR}/platform/security/sl_component/sl_mbedtls_support/config/preset"
+            f"{SDK_SECURITY_MBEDTLS_INCDIR}/platform/security/sl_component/sl_mbedtls_support/inc"
         ).rdir(),
         Dir(
-            f"{SDK_INCDIR}/platform/security/sl_component/sl_mbedtls_support/inc").rdir(),
-        Dir(f"{SDK_INCDIR}/platform/security/sl_component/sl_psa_driver/inc").rdir(),
-        Dir(f"{SDK_INCDIR}/platform/security/sl_component/sli_psec_osal/inc").rdir(),
+            f"{SDK_SECURITY_MBEDTLS_INCDIR}/platform/security/sl_component/sl_mbedtls_support/config"
+        ).rdir(),
+        Dir(f"{SDK_SECURITY_MBEDTLS_SRC_INCDIR}/include/").rdir(),
+        Dir(f"{SDK_OPENTHREAD_INCDIR}/util/third_party/openthread/include").rdir(),
+        Dir(f"{SDK_SECURITY_MBEDTLS_SRC_INCDIR}/library").rdir(),
+        Dir(
+            f"{SDK_SECURITY_MBEDTLS_INCDIR}/platform/security/sl_component/sl_mbedtls_support/config/preset"
+        ).rdir(),
+        Dir(
+            f"{SDK_SECURITY_MBEDTLS_INCDIR}/platform/security/sl_component/sl_psa_driver/inc"
+        ).rdir(),
+        Dir(
+            f"{SDK_SECURITY_SE_MANAGER_INCDIR}/platform/security/sl_component/sli_psec_osal/inc"
+        ).rdir(),
     ],
     CPPDEFINES=[
         # SDK Wifi Silabs
@@ -76,7 +111,7 @@ env.Append(
         ("MBEDTLS_USER_CONFIG_FILE", '\\"siwx917-chip-mbedtls-config.h\\"'),
         "SL_CODE_COMPONENT_PSEC_OSAL=psec_osal",
         "SLI_AEAD_DEVICE_SI91X=1",
-        #"SLI_CODE_CLASSIFICATION_DISABLE=1",
+        # "SLI_CODE_CLASSIFICATION_DISABLE=1",
         "SLI_ECDH_DEVICE_SI91X=1",
         "SLI_ECDSA_DEVICE_SI91X=1",
         "SLI_MAC_DEVICE_SI91X=1",
@@ -94,91 +129,91 @@ libenv = env.Clone(FW_LIB_NAME="simplicity_sdk")
 libenv.ApplyLibFlags()
 
 sources = [
-    f"{SDK_DIR}/platform/common/src/sli_cmsis_os2_ext_task_register.c",
-    f"{SDK_DIR}/platform/common/src/sl_core_cortexm.c",
-    f"{SDK_DIR}/platform/common/src/sl_string.c",
-    f"{SDK_DIR}/platform/service/mem_pool/src/sl_mem_pool.c",
-    f"{SDK_DIR}/platform/emdrv/nvm3/src/nvm3_default_common_linker.c",
-    f"{SDK_DIR}/platform/emdrv/nvm3/src/nvm3.c",
-    f"{SDK_DIR}/platform/emdrv/nvm3/src/nvm3_cache.c",
-    f"{SDK_DIR}/platform/emdrv/nvm3/src/nvm3_lock.c",
-    f"{SDK_DIR}/platform/emdrv/nvm3/src/nvm3_object.c",
-    f"{SDK_DIR}/platform/emdrv/nvm3/src/nvm3_page.c",
-    f"{SDK_DIR}/platform/emdrv/nvm3/src/nvm3_utils.c",
+    f"{SDK_CMSIS_COMMON_DIR}/platform/common/src/sli_cmsis_os2_ext_task_register.c",
+    f"{SDK_PLATFORM_CORE_DIR}/platform/common/src/sl_core_cortexm.c",
+    f"{SDK_PLATFORM_COMMON_DIR}/platform/common/src/sl_string.c",
+    f"{SDK_PLATFORM_CORE_DIR}/platform/service/mem_pool/src/sl_mem_pool.c",
+    f"{SDK_PLATFORM_CORE_DIR}/platform/emdrv/nvm3/src/nvm3_default_common_linker.c",
+    f"{SDK_PLATFORM_CORE_DIR}/platform/emdrv/nvm3/src/nvm3.c",
+    f"{SDK_PLATFORM_CORE_DIR}/platform/emdrv/nvm3/src/nvm3_cache.c",
+    f"{SDK_PLATFORM_CORE_DIR}/platform/emdrv/nvm3/src/nvm3_lock.c",
+    f"{SDK_PLATFORM_CORE_DIR}/platform/emdrv/nvm3/src/nvm3_object.c",
+    f"{SDK_PLATFORM_CORE_DIR}/platform/emdrv/nvm3/src/nvm3_page.c",
+    f"{SDK_PLATFORM_CORE_DIR}/platform/emdrv/nvm3/src/nvm3_utils.c",
     # Mbed TLS
-    f"{SDK_DIR}/platform/security/sl_component/sl_mbedtls_support/src/error.c",
-    f"{SDK_DIR}/platform/security/sl_component/sl_mbedtls_support/src/mbedtls_ccm.c",
-    f"{SDK_DIR}/platform/security/sl_component/sl_mbedtls_support/src/sl_mbedtls.c",
-    f"{SDK_DIR}/platform/security/sl_component/sl_mbedtls_support/src/sl_psa_crypto.c",
-    f"{SDK_DIR}/platform/security/sl_component/sl_mbedtls_support/src/sli_psa_crypto.c",
-    f"{SDK_DIR}/platform/security/sl_component/sl_mbedtls_support/src/version_features.c",
-    f"{SDK_DIR}/platform/security/sl_component/sl_psa_driver/src/sli_psa_driver_common.c",
-    f"{SDK_DIR}/platform/security/sl_component/sl_psa_driver/src/sli_psa_driver_init.c",
-    f"{SDK_DIR}/platform/security/sl_component/sl_psa_driver/src/sli_psa_trng.c",
-    f"{SDK_DIR}/platform/security/sl_component/sl_psa_driver/src/sli_se_version_dependencies.c",
-    f"{SDK_DIR}/platform/security/sl_component/sli_psec_osal/src/sli_psec_osal_cmsis_rtos2.c",
-    f"{SDK_DIR}/util/third_party/mbedtls/library/aes.c",
-    f"{SDK_DIR}/util/third_party/mbedtls/library/asn1parse.c",
-    f"{SDK_DIR}/util/third_party/mbedtls/library/asn1write.c",
-    f"{SDK_DIR}/util/third_party/mbedtls/library/base64.c",
-    f"{SDK_DIR}/util/third_party/mbedtls/library/bignum.c",
-    f"{SDK_DIR}/util/third_party/mbedtls/library/bignum_core.c",
-    f"{SDK_DIR}/util/third_party/mbedtls/library/bignum_mod.c",
-    f"{SDK_DIR}/util/third_party/mbedtls/library/bignum_mod_raw.c",
-    f"{SDK_DIR}/util/third_party/mbedtls/library/block_cipher.c",
-    f"{SDK_DIR}/util/third_party/mbedtls/library/ccm.c",
-    f"{SDK_DIR}/util/third_party/mbedtls/library/cipher.c",
-    f"{SDK_DIR}/util/third_party/mbedtls/library/cipher_wrap.c",
-    f"{SDK_DIR}/util/third_party/mbedtls/library/constant_time.c",
-    f"{SDK_DIR}/util/third_party/mbedtls/library/ctr_drbg.c",
-    f"{SDK_DIR}/util/third_party/mbedtls/library/ecdh.c",
-    f"{SDK_DIR}/util/third_party/mbedtls/library/ecdsa.c",
-    f"{SDK_DIR}/util/third_party/mbedtls/library/ecjpake.c",
-    f"{SDK_DIR}/util/third_party/mbedtls/library/ecp.c",
-    f"{SDK_DIR}/util/third_party/mbedtls/library/ecp_curves.c",
-    f"{SDK_DIR}/util/third_party/mbedtls/library/ecp_curves_new.c",
-    f"{SDK_DIR}/util/third_party/mbedtls/library/entropy.c",
-    f"{SDK_DIR}/util/third_party/mbedtls/library/entropy_poll.c",
-    f"{SDK_DIR}/util/third_party/mbedtls/library/hkdf.c",
-    f"{SDK_DIR}/util/third_party/mbedtls/library/hmac_drbg.c",
-    f"{SDK_DIR}/util/third_party/mbedtls/library/md.c",
-    f"{SDK_DIR}/util/third_party/mbedtls/library/oid.c",
-    f"{SDK_DIR}/util/third_party/mbedtls/library/pem.c",
-    f"{SDK_DIR}/util/third_party/mbedtls/library/pk.c",
-    f"{SDK_DIR}/util/third_party/mbedtls/library/pk_ecc.c",
-    f"{SDK_DIR}/util/third_party/mbedtls/library/pk_wrap.c",
-    f"{SDK_DIR}/util/third_party/mbedtls/library/pkcs5.c",
-    f"{SDK_DIR}/util/third_party/mbedtls/library/pkparse.c",
-    f"{SDK_DIR}/util/third_party/mbedtls/library/pkwrite.c",
-    f"{SDK_DIR}/util/third_party/mbedtls/library/platform.c",
-    f"{SDK_DIR}/util/third_party/mbedtls/library/platform_util.c",
-    f"{SDK_DIR}/util/third_party/mbedtls/library/psa_crypto.c",
-    f"{SDK_DIR}/util/third_party/mbedtls/library/psa_crypto_aead.c",
-    f"{SDK_DIR}/util/third_party/mbedtls/library/psa_crypto_cipher.c",
-    f"{SDK_DIR}/util/third_party/mbedtls/library/psa_crypto_client.c",
-    f"{SDK_DIR}/util/third_party/mbedtls/library/psa_crypto_driver_wrappers_no_static.c",
-    f"{SDK_DIR}/util/third_party/mbedtls/library/psa_crypto_ecp.c",
-    f"{SDK_DIR}/util/third_party/mbedtls/library/psa_crypto_ffdh.c",
-    f"{SDK_DIR}/util/third_party/mbedtls/library/psa_crypto_hash.c",
-    f"{SDK_DIR}/util/third_party/mbedtls/library/psa_crypto_mac.c",
-    f"{SDK_DIR}/util/third_party/mbedtls/library/psa_crypto_pake.c",
-    f"{SDK_DIR}/util/third_party/mbedtls/library/psa_crypto_rsa.c",
-    f"{SDK_DIR}/util/third_party/mbedtls/library/psa_crypto_se.c",
-    f"{SDK_DIR}/util/third_party/mbedtls/library/psa_crypto_slot_management.c",
-    f"{SDK_DIR}/util/third_party/mbedtls/library/psa_crypto_storage.c",
-    f"{SDK_DIR}/util/third_party/mbedtls/library/psa_util.c",
-    f"{SDK_DIR}/util/third_party/mbedtls/library/sha256.c",
-    f"{SDK_DIR}/util/third_party/mbedtls/library/sha512.c",
-    f"{SDK_DIR}/util/third_party/mbedtls/library/threading.c",
-    f"{SDK_DIR}/util/third_party/mbedtls/library/version.c",
-    f"{SDK_DIR}/util/third_party/mbedtls/library/x509.c",
-    f"{SDK_DIR}/util/third_party/mbedtls/library/x509_create.c",
-    f"{SDK_DIR}/util/third_party/mbedtls/library/x509_crl.c",
-    f"{SDK_DIR}/util/third_party/mbedtls/library/x509_crt.c",
-    f"{SDK_DIR}/util/third_party/mbedtls/library/x509_csr.c",
-    f"{SDK_DIR}/util/third_party/mbedtls/library/x509write.c",
-    f"{SDK_DIR}/util/third_party/mbedtls/library/x509write_crt.c",
-    f"{SDK_DIR}/util/third_party/mbedtls/library/x509write_csr.c",
+    f"{SDK_SECURITY_MBEDTLS_DIR}/platform/security/sl_component/sl_mbedtls_support/src/error.c",
+    f"{SDK_SECURITY_MBEDTLS_DIR}/platform/security/sl_component/sl_mbedtls_support/src/mbedtls_ccm.c",
+    f"{SDK_SECURITY_MBEDTLS_DIR}/platform/security/sl_component/sl_mbedtls_support/src/sl_mbedtls.c",
+    f"{SDK_SECURITY_MBEDTLS_DIR}/platform/security/sl_component/sl_mbedtls_support/src/sl_psa_crypto.c",
+    f"{SDK_SECURITY_MBEDTLS_DIR}/platform/security/sl_component/sl_mbedtls_support/src/sli_psa_crypto.c",
+    f"{SDK_SECURITY_MBEDTLS_DIR}/platform/security/sl_component/sl_mbedtls_support/src/version_features.c",
+    f"{SDK_SECURITY_MBEDTLS_DIR}/platform/security/sl_component/sl_psa_driver/src/sli_psa_driver_common.c",
+    f"{SDK_SECURITY_MBEDTLS_DIR}/platform/security/sl_component/sl_psa_driver/src/sli_psa_driver_init.c",
+    f"{SDK_SECURITY_MBEDTLS_DIR}/platform/security/sl_component/sl_psa_driver/src/sli_psa_trng.c",
+    f"{SDK_SECURITY_MBEDTLS_DIR}/platform/security/sl_component/sl_psa_driver/src/sli_se_version_dependencies.c",
+    f"{SDK_SECURITY_SE_MANAGER_DIR}/platform/security/sl_component/sli_psec_osal/src/sli_psec_osal_cmsis_rtos2.c",
+    f"{SDK_SECURITY_MBEDTLS_SRC_DIR}/library/aes.c",
+    f"{SDK_SECURITY_MBEDTLS_SRC_DIR}/library/asn1parse.c",
+    f"{SDK_SECURITY_MBEDTLS_SRC_DIR}/library/asn1write.c",
+    f"{SDK_SECURITY_MBEDTLS_SRC_DIR}/library/base64.c",
+    f"{SDK_SECURITY_MBEDTLS_SRC_DIR}/library/bignum.c",
+    f"{SDK_SECURITY_MBEDTLS_SRC_DIR}/library/bignum_core.c",
+    f"{SDK_SECURITY_MBEDTLS_SRC_DIR}/library/bignum_mod.c",
+    f"{SDK_SECURITY_MBEDTLS_SRC_DIR}/library/bignum_mod_raw.c",
+    f"{SDK_SECURITY_MBEDTLS_SRC_DIR}/library/block_cipher.c",
+    f"{SDK_SECURITY_MBEDTLS_SRC_DIR}/library/ccm.c",
+    f"{SDK_SECURITY_MBEDTLS_SRC_DIR}/library/cipher.c",
+    f"{SDK_SECURITY_MBEDTLS_SRC_DIR}/library/cipher_wrap.c",
+    f"{SDK_SECURITY_MBEDTLS_SRC_DIR}/library/constant_time.c",
+    f"{SDK_SECURITY_MBEDTLS_SRC_DIR}/library/ctr_drbg.c",
+    f"{SDK_SECURITY_MBEDTLS_SRC_DIR}/library/ecdh.c",
+    f"{SDK_SECURITY_MBEDTLS_SRC_DIR}/library/ecdsa.c",
+    f"{SDK_SECURITY_MBEDTLS_SRC_DIR}/library/ecjpake.c",
+    f"{SDK_SECURITY_MBEDTLS_SRC_DIR}/library/ecp.c",
+    f"{SDK_SECURITY_MBEDTLS_SRC_DIR}/library/ecp_curves.c",
+    f"{SDK_SECURITY_MBEDTLS_SRC_DIR}/library/ecp_curves_new.c",
+    f"{SDK_SECURITY_MBEDTLS_SRC_DIR}/library/entropy.c",
+    f"{SDK_SECURITY_MBEDTLS_SRC_DIR}/library/entropy_poll.c",
+    f"{SDK_SECURITY_MBEDTLS_SRC_DIR}/library/hkdf.c",
+    f"{SDK_SECURITY_MBEDTLS_SRC_DIR}/library/hmac_drbg.c",
+    f"{SDK_SECURITY_MBEDTLS_SRC_DIR}/library/md.c",
+    f"{SDK_SECURITY_MBEDTLS_SRC_DIR}/library/oid.c",
+    f"{SDK_SECURITY_MBEDTLS_SRC_DIR}/library/pem.c",
+    f"{SDK_SECURITY_MBEDTLS_SRC_DIR}/library/pk.c",
+    f"{SDK_SECURITY_MBEDTLS_SRC_DIR}/library/pk_ecc.c",
+    f"{SDK_SECURITY_MBEDTLS_SRC_DIR}/library/pk_wrap.c",
+    f"{SDK_SECURITY_MBEDTLS_SRC_DIR}/library/pkcs5.c",
+    f"{SDK_SECURITY_MBEDTLS_SRC_DIR}/library/pkparse.c",
+    f"{SDK_SECURITY_MBEDTLS_SRC_DIR}/library/pkwrite.c",
+    f"{SDK_SECURITY_MBEDTLS_SRC_DIR}/library/platform.c",
+    f"{SDK_SECURITY_MBEDTLS_SRC_DIR}/library/platform_util.c",
+    f"{SDK_SECURITY_MBEDTLS_SRC_DIR}/library/psa_crypto.c",
+    f"{SDK_SECURITY_MBEDTLS_SRC_DIR}/library/psa_crypto_aead.c",
+    f"{SDK_SECURITY_MBEDTLS_SRC_DIR}/library/psa_crypto_cipher.c",
+    f"{SDK_SECURITY_MBEDTLS_SRC_DIR}/library/psa_crypto_client.c",
+    f"{SDK_SECURITY_MBEDTLS_SRC_DIR}/library/psa_crypto_driver_wrappers_no_static.c",
+    f"{SDK_SECURITY_MBEDTLS_SRC_DIR}/library/psa_crypto_ecp.c",
+    f"{SDK_SECURITY_MBEDTLS_SRC_DIR}/library/psa_crypto_ffdh.c",
+    f"{SDK_SECURITY_MBEDTLS_SRC_DIR}/library/psa_crypto_hash.c",
+    f"{SDK_SECURITY_MBEDTLS_SRC_DIR}/library/psa_crypto_mac.c",
+    f"{SDK_SECURITY_MBEDTLS_SRC_DIR}/library/psa_crypto_pake.c",
+    f"{SDK_SECURITY_MBEDTLS_SRC_DIR}/library/psa_crypto_rsa.c",
+    f"{SDK_SECURITY_MBEDTLS_SRC_DIR}/library/psa_crypto_se.c",
+    f"{SDK_SECURITY_MBEDTLS_SRC_DIR}/library/psa_crypto_slot_management.c",
+    f"{SDK_SECURITY_MBEDTLS_SRC_DIR}/library/psa_crypto_storage.c",
+    f"{SDK_SECURITY_MBEDTLS_SRC_DIR}/library/psa_util.c",
+    f"{SDK_SECURITY_MBEDTLS_SRC_DIR}/library/sha256.c",
+    f"{SDK_SECURITY_MBEDTLS_SRC_DIR}/library/sha512.c",
+    f"{SDK_SECURITY_MBEDTLS_SRC_DIR}/library/threading.c",
+    f"{SDK_SECURITY_MBEDTLS_SRC_DIR}/library/version.c",
+    f"{SDK_SECURITY_MBEDTLS_SRC_DIR}/library/x509.c",
+    f"{SDK_SECURITY_MBEDTLS_SRC_DIR}/library/x509_create.c",
+    f"{SDK_SECURITY_MBEDTLS_SRC_DIR}/library/x509_crl.c",
+    f"{SDK_SECURITY_MBEDTLS_SRC_DIR}/library/x509_crt.c",
+    f"{SDK_SECURITY_MBEDTLS_SRC_DIR}/library/x509_csr.c",
+    f"{SDK_SECURITY_MBEDTLS_SRC_DIR}/library/x509write.c",
+    f"{SDK_SECURITY_MBEDTLS_SRC_DIR}/library/x509write_crt.c",
+    f"{SDK_SECURITY_MBEDTLS_SRC_DIR}/library/x509write_csr.c",
 ]
 
 lib = libenv.StaticLibrary("${FW_LIB_NAME}", sources)

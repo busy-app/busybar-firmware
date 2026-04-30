@@ -14,9 +14,20 @@ typedef struct SlUpdater SlUpdater;
  * @brief Enum defining the phases of the SlUpdater progress.
  */
 typedef enum {
-    SL_UPDATER_PROGRESS_PHASE_UPLOADING, /**< Firmware image is being uploaded */
-    SL_UPDATER_PROGRESS_PHASE_AWAITING_INSTALL, /**< Upload complete, awaiting installation */
+    SlUpdaterProgressPhaseUploading, /**< Firmware image is being uploaded */
+    SlUpdaterProgressPhaseAwaitingInstall, /**< Upload complete, awaiting installation */
+
+    SlUpdaterProgressPhaseNone, /**< Special value */
 } SlUpdaterProgressPhase;
+
+/**
+ * @brief Enum defining the result status of an updater operation.
+ */
+typedef enum {
+    SlUpdaterStatusOk, /**< Operation completed successfully */
+    SlUpdaterStatusFileNotFound, /**< Firmware file not found at the specified path */
+    SlUpdaterStatusFailure, /**< Operation failed */
+} SlUpdaterStatus;
 
 /**
  * @brief Callback type for reporting firmware update progress.
@@ -40,10 +51,10 @@ SlUpdater* sl_updater_alloc(void);
  * @param is_stack_image True if the image is a stack image, false otherwise.
  * @param install_timeout_seconds Timeout in seconds for the installation phase.
  * @param baud_throttle Baud rate throttle value.
- * @return True if the update was successful, false otherwise.
+ * @return Operation result status.
  * @note Can only be called once per instance.
  */
-bool sl_updater_run(
+SlUpdaterStatus sl_updater_run(
     SlUpdater* instance,
     const char* firmware_path,
     bool is_stack_image,
@@ -66,9 +77,9 @@ void sl_updater_set_progress_callback(
  * @param instance Pointer to the SlUpdater instance.
  * @param baud_throttle Baud rate throttle value.
  * @param version Pointer to an FuriString to store the version information.
- * @return True if probing was successful, false otherwise.
+ * @return Operation result status.
  */
-bool sl_update_probe(SlUpdater* instance, uint8_t baud_throttle, FuriString* version);
+SlUpdaterStatus sl_update_probe(SlUpdater* instance, uint8_t baud_throttle, FuriString* version);
 
 /**
  * @brief Frees the SlUpdater instance.

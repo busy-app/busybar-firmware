@@ -87,8 +87,8 @@ static int mtar_compress_file_close(void* stream) {
 
 static int mtar_compress_file_read(void* stream, void* data, unsigned size) {
     CompressStream* hs_stream = stream;
-    bool read_success = compress_stream_decoder_read(hs_stream->decoder, data, size);
-    return read_success ? (int)size : MTAR_EREADFAIL;
+    ssize_t read_size = compress_stream_decoder_read(hs_stream->decoder, data, size);
+    return read_size >= 0 ? read_size : MTAR_EREADFAIL;
 }
 
 static int mtar_compress_file_seek(void* stream, unsigned offset) {
@@ -198,7 +198,7 @@ TarArchive* tar_archive_alloc(Storage* storage) {
     return archive;
 }
 
-static int32_t file_read_cb(void* context, uint8_t* buffer, size_t buffer_size) {
+static ssize_t file_read_cb(void* context, uint8_t* buffer, size_t buffer_size) {
     File* file = context;
     return storage_file_read(file, buffer, buffer_size);
 }
