@@ -421,7 +421,9 @@ static FURI_ALWAYS_INLINE uint32_t osKernelGetTickCount(void) {
 
 // /// Get the RTOS kernel tick frequency.
 // /// \return frequency of the kernel tick in hertz, i.e. kernel ticks per second.
-// uint32_t osKernelGetTickFreq (void);
+static FURI_ALWAYS_INLINE uint32_t osKernelGetTickFreq (void) {
+    return furi_kernel_get_tick_frequency();
+}
 
 // /// Get the RTOS kernel system timer count.
 // /// \return RTOS kernel current system timer count as 32-bit value.
@@ -512,7 +514,11 @@ static FURI_ALWAYS_INLINE osStatus_t osThreadYield(void) {
 // /// Suspend execution of a thread.
 // /// \param[in]     thread_id     thread ID obtained by \ref osThreadNew or \ref osThreadGetId.
 // /// \return status code that indicates the execution status of the function.
-// osStatus_t osThreadSuspend (osThreadId_t thread_id);
+static FURI_ALWAYS_INLINE osStatus_t osThreadSuspend (osThreadId_t thread_id) {
+    FuriThreadAdapter* adapter = (FuriThreadAdapter*)thread_id;
+    furi_thread_suspend(adapter->thread);
+    return osOK;
+}
 
 // /// Resume execution of a thread.
 // /// \param[in]     thread_id     thread ID obtained by \ref osThreadNew or \ref osThreadGetId.
