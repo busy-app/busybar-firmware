@@ -2,6 +2,7 @@
 
 #include <sl_net.h>
 #include <sl_wifi.h>
+#include <sli_wifi_utility.h>
 #include <sl_si91x_driver.h>
 #include <sl_wifi_callback_framework.h>
 
@@ -86,9 +87,9 @@ static void wifi_backend_info_callback(void* context) {
             break;
         }
 
-        sl_si91x_rsp_wireless_info_t wl_info;
+        sl_wifi_interface_info_t wl_info;
 
-        status = sl_wifi_get_wireless_info(&wl_info);
+        status = sl_wifi_get_interface_info(SL_WIFI_CLIENT_2_4GHZ_INTERFACE, &wl_info);
 
         if(status != SL_STATUS_OK) {
             FURI_LOG_E(TAG, "Failed to get wireless info: %lX", status);
