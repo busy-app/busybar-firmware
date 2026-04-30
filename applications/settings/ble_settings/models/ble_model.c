@@ -27,7 +27,9 @@ static void ble_model_on_state_change_callback(const void* message, void* contex
 
     furi_mutex_acquire(model->lock, FuriWaitForever);
     memcpy(&model->state, state, sizeof(BleState));
-    furi_timer_stop(model->pairing_timer);
+    if(model->state.status == BleServiceStatusConnected) {
+        furi_timer_stop(model->pairing_timer);
+    }
     furi_mutex_release(model->lock);
 
     if(model->callback) {
