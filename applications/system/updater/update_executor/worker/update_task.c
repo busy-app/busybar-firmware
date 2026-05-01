@@ -34,73 +34,79 @@ static const struct {
     {
         .stage = UpdateExecutorTaskStageReadManifest,
         .percent_min = 0,
-        .percent_max = 13,
-        .descr = "Wrong Updater HW",
+        .percent_max = 9,
+        .descr = "HW version mismatch",
     },
     {
         .stage = UpdateExecutorTaskStageReadManifest,
-        .percent_min = 14,
-        .percent_max = 20,
+        .percent_min = 10,
+        .percent_max = 19,
         .descr = "Manifest pointer error",
     },
     {
         .stage = UpdateExecutorTaskStageReadManifest,
-        .percent_min = 21,
-        .percent_max = 30,
+        .percent_min = 20,
+        .percent_max = 34,
         .descr = "Manifest load error",
     },
     {
         .stage = UpdateExecutorTaskStageReadManifest,
-        .percent_min = 31,
-        .percent_max = 40,
-        .descr = "Wrong package version",
+        .percent_min = 35,
+        .percent_max = 44,
+        .descr = "Invalid manifest",
     },
     {
         .stage = UpdateExecutorTaskStageReadManifest,
-        .percent_min = 41,
-        .percent_max = 50,
-        .descr = "HW Target mismatch",
-    },
-    {
-        .stage = UpdateExecutorTaskStageReadManifest,
-        .percent_min = 51,
-        .percent_max = 60,
+        .percent_min = 55,
+        .percent_max = 64,
         .descr = "No DFU file",
     },
     {
         .stage = UpdateExecutorTaskStageReadManifest,
-        .percent_min = 61,
-        .percent_max = 80,
-        .descr = "No Radio file",
+        .percent_min = 65,
+        .percent_max = 74,
+        .descr = "No 917 FW file",
+    },
+    {
+        .stage = UpdateExecutorTaskStageReadManifest,
+        .percent_min = 75,
+        .percent_max = 84,
+        .descr = "No NWP FW file",
+    },
+    {
+        .stage = UpdateExecutorTaskStageReadManifest,
+        .percent_min = 85,
+        .percent_max = 100,
+        .descr = "No Resources file",
     },
     {
         .stage = UpdateExecutorTaskStage917Write,
         .percent_min = 0,
         .percent_max = 100,
-        .descr = "917 FW write: error",
+        .descr = "917 FW write error",
     },
     {
         .stage = UpdateExecutorTaskStage917Install,
         .percent_min = 0,
-        .percent_max = 10,
-        .descr = "917 FW write: error",
+        .percent_max = 100,
+        .descr = "917 FW install error",
     },
     {
         .stage = UpdateExecutorTaskStage917RadioWrite,
-        .percent_min = 11,
+        .percent_min = 0,
         .percent_max = 100,
-        .descr = "Stack install: wait failed",
+        .descr = "NWP write error",
     },
     {
         .stage = UpdateExecutorTaskStage917RadioInstall,
         .percent_min = 0,
-        .percent_max = 10,
-        .descr = "Failed to start C2",
+        .percent_max = 100,
+        .descr = "NWP install error",
     },
     {
         .stage = UpdateExecutorTaskStageValidateDFUImage,
         .percent_min = 0,
-        .percent_max = 1,
+        .percent_max = 0,
         .descr = "Failed to open DFU file",
     },
     {
@@ -131,19 +137,19 @@ static const struct {
         .stage = UpdateExecutorTaskStageResourcesFileCleanup,
         .percent_min = 0,
         .percent_max = 100,
-        .descr = "SD I/O error",
+        .descr = "SD cleanup error",
     },
     {
         .stage = UpdateExecutorTaskStageResourcesDirCleanup,
         .percent_min = 0,
         .percent_max = 100,
-        .descr = "SD I/O error",
+        .descr = "SD rmdir error",
     },
     {
         .stage = UpdateExecutorTaskStageResourcesFileUnpack,
         .percent_min = 0,
         .percent_max = 100,
-        .descr = "SD I/O error",
+        .descr = "SD unpack error",
     },
 };
 
@@ -405,15 +411,16 @@ bool update_executor_task_parse_manifest(UpdateExecutorTask* update_task) {
     FuriString* manifest_path = furi_string_alloc();
 
     do {
-        update_executor_task_set_progress(update_task, UpdateExecutorTaskStageProgress, 13);
+        update_executor_task_set_progress(update_task, UpdateExecutorTaskStageProgress, 5);
         CHECK_RESULT(furi_hal_version_check_target_match());
 
+        update_executor_task_set_progress(update_task, UpdateExecutorTaskStageProgress, 15);
         CHECK_RESULT(update_config_read_pointer_file(update_task->storage, manifest_path));
         // furi_string_set(update_task->update_path, manifest_path);
 
         updater_session_config_load(&update_task->session_config);
 
-        update_executor_task_set_progress(update_task, UpdateExecutorTaskStageProgress, 20);
+        update_executor_task_set_progress(update_task, UpdateExecutorTaskStageProgress, 25);
         UpdateConfigValidation res =
             update_config_load(update_task->config, furi_string_get_cstr(manifest_path));
 
@@ -422,12 +429,14 @@ bool update_executor_task_parse_manifest(UpdateExecutorTask* update_task) {
             break;
         }
 
+        update_executor_task_set_progress(update_task, UpdateExecutorTaskStageProgress, 35);
+
         const UpdateManifest* manifest = update_config_get_manifest(update_task->config);
         if(manifest == NULL) {
             break;
         }
 
-        update_executor_task_set_progress(update_task, UpdateExecutorTaskStageProgress, 50);
+        update_executor_task_set_progress(update_task, UpdateExecutorTaskStageProgress, 45);
 
         update_task->state.groups = update_task_get_task_groups(update_task);
         for(size_t stage_counter = 0; stage_counter < COUNT_OF(update_task_stage_progress);
@@ -438,14 +447,14 @@ bool update_executor_task_parse_manifest(UpdateExecutorTask* update_task) {
             }
         }
 
-        update_executor_task_set_progress(update_task, UpdateExecutorTaskStageProgress, 60);
+        update_executor_task_set_progress(update_task, UpdateExecutorTaskStageProgress, 55);
         if((update_task->state.groups & UpdateExecutorTaskStageGroupFirmware) &&
            !update_task_check_file_exists(
                update_task, updater_manifest_get_path(manifest, UpdateManifestPathDfu))) {
             break;
         }
 
-        update_executor_task_set_progress(update_task, UpdateExecutorTaskStageProgress, 70);
+        update_executor_task_set_progress(update_task, UpdateExecutorTaskStageProgress, 65);
         if((update_task->state.groups & UpdateExecutorTaskStageGroup917) &&
            (!update_task_check_file_exists(
                update_task, updater_manifest_get_path(manifest, UpdateManifestPath917))
@@ -454,16 +463,16 @@ bool update_executor_task_parse_manifest(UpdateExecutorTask* update_task) {
             break;
         }
 
-        update_executor_task_set_progress(update_task, UpdateExecutorTaskStageProgress, 80);
+        update_executor_task_set_progress(update_task, UpdateExecutorTaskStageProgress, 75);
         if((update_task->state.groups & UpdateExecutorTaskStageGroup917Radio) &&
            (!update_task_check_file_exists(
-               update_task, updater_manifest_get_path(manifest, UpdateManifestPath917))
+               update_task, updater_manifest_get_path(manifest, UpdateManifestPath917Radio))
             // TODO:  || (manifest->radio_version.version.type == 0)
             )) {
             break;
         }
 
-        update_executor_task_set_progress(update_task, UpdateExecutorTaskStageProgress, 80);
+        update_executor_task_set_progress(update_task, UpdateExecutorTaskStageProgress, 90);
         if((update_task->state.groups & UpdateExecutorTaskStageGroupResources) &&
            (!update_task_check_file_exists(
                update_task, updater_manifest_get_path(manifest, UpdateManifestPathResources)))) {
