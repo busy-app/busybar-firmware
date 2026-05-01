@@ -221,21 +221,21 @@ void furi_hal_pwm_stop(void) {
     mcpwm_counter_reset(MCPWM, FURI_HAL_PWM_CHANNEL_BLUE);
 }
 
-void furi_hal_pwm_set_rgb(uint8_t red, uint8_t green, uint8_t blue) {
+void furi_hal_pwm_set_rgb(uint16_t red, uint16_t green, uint16_t blue) {
     uint32_t ticks = 0;
 
     // Set the duty cycle for the red channel
-    ticks = (uint32_t)((FURI_HAL_PWM_RATE * red) >> 8);
+    ticks = (uint32_t)((FURI_HAL_PWM_RATE * red) >> 16);
     MCPWM->PWM_DUTYCYCLE_REG_WR_VALUE_b[FURI_HAL_PWM_CHANNEL_RED].PWM_DUTYCYCLE_REG_WR_VALUE_CH =
         ticks;
 
     // Set the duty cycle for the green channel
-    ticks = (uint32_t)((FURI_HAL_PWM_RATE * green) >> 8);
+    ticks = (uint32_t)((FURI_HAL_PWM_RATE * green) >> 16);
     MCPWM->PWM_DUTYCYCLE_REG_WR_VALUE_b[FURI_HAL_PWM_CHANNEL_GREEN].PWM_DUTYCYCLE_REG_WR_VALUE_CH =
         ticks;
 
     // Set the duty cycle for the blue channel
-    ticks = (uint32_t)((FURI_HAL_PWM_RATE * blue) >> 8);
+    ticks = (uint32_t)((FURI_HAL_PWM_RATE * blue) >> 16);
     MCPWM->PWM_DUTYCYCLE_REG_WR_VALUE_b[FURI_HAL_PWM_CHANNEL_BLUE].PWM_DUTYCYCLE_REG_WR_VALUE_CH =
         ticks;
 }

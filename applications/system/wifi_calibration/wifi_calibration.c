@@ -98,6 +98,8 @@ https://www.silabs.com/documents/public/application-notes/an1436-siwx917-qms-cry
  • Tx CW mode is not implemented in this example. To access CW mode, modify the app.c file based as mentioned in the following
  section.
 */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 sl_si91x_request_tx_test_info_t tx_test_info = {
     .enable = 1,
     .power = 12, // Sets TX power in dBm. The valid values are from (2 to 18)dBm and 127.
@@ -132,6 +134,7 @@ sl_si91x_request_tx_test_info_t tx_test_info = {
     .sigb_compression_field = 0,
 #endif
 };
+#pragma GCC diagnostic pop
 
 static const sl_wifi_device_configuration_t calibration_configuration = {
     .boot_option = LOAD_NWP_FW,
