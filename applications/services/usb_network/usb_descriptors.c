@@ -10,6 +10,9 @@
 
 #define VERSION_BCD(maj, min, rev) (((maj & 0xFF) << 8) | ((min & 0x0F) << 4) | (rev & 0x0F))
 
+// NCM Capabilities, bitmap of NCM_NETWORK_CAPS_* bits.
+#define TUD_CDC_NCM_CAPS (NCM_NETWORK_CAPS_ETH_FILTER)
+
 // Length of template descriptor
 #define USB_NET_NCM_DESC_LEN (8 + 9 + 5 + 5 + 13 + 6 + 7 + 9 + 9 + 7 + 7)
 
@@ -28,7 +31,7 @@
   /* CDC-NCM Functional Descriptor */\
   13, TUSB_DESC_CS_INTERFACE, CDC_FUNC_DESC_ETHERNET_NETWORKING, _mac_stridx, 0, 0, 0, 0, U16_TO_U8S_LE(_maxsegmentsize), U16_TO_U8S_LE(0), 0, \
   /* CDC-NCM Functional Descriptor */\
-  6, TUSB_DESC_CS_INTERFACE, CDC_FUNC_DESC_NCM, U16_TO_U8S_LE(0x0100), 0, \
+  6, TUSB_DESC_CS_INTERFACE, CDC_FUNC_DESC_NCM, U16_TO_U8S_LE(0x0100), TUD_CDC_NCM_CAPS, \
   /* Endpoint Notification */\
   7, TUSB_DESC_ENDPOINT, _ep_notif, TUSB_XFER_INTERRUPT, U16_TO_U8S_LE(_ep_notif_size), 10,\
   /* CDC Data Interface (default inactive) */\

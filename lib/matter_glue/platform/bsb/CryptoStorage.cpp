@@ -80,6 +80,13 @@ CHIP_ERROR SignWithECDSA256Key(
             break;
         }
 
+        if(private_key->length != FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_256) {
+            ChipLogError(Crypto, "Wrong ECDSA-256 private key length");
+            return CHIP_ERROR_UNKNOWN_KEY_TYPE;
+        }
+
+        private_key->type = FuriHalCryptoKeyTypeEcdsaPriv256;
+
         if(!furi_hal_crypto_key_is_wrapped(private_key)) {
             ChipLogDetail(Crypto, "WARNING: Using unwrapped private key");
         }

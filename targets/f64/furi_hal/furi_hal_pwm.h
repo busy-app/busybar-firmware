@@ -32,7 +32,7 @@ void furi_hal_pwm_stop(void);
  * @param green Green color
  * @param blue  Blue color
  */
-void furi_hal_pwm_set_rgb(uint8_t red, uint8_t green, uint8_t blue);
+void furi_hal_pwm_set_rgb(uint16_t red, uint16_t green, uint16_t blue);
 
 #ifdef __cplusplus
 }
