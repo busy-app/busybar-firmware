@@ -23,7 +23,7 @@
 
       <template #actions>
         <UTooltip
-          :delay-duration="0"
+          :delay-duration="80"
           :text="!es.hasEditorContent ? 'Nothing to save' : undefined"
         >
           <UButtonGroup>
@@ -75,7 +75,7 @@
         </UTooltip>
 
         <UTooltip
-          :delay-duration="0"
+          :delay-duration="80"
           :text="!es.hasEditorContent ? 'Nothing to show' : undefined"
         >
           <UButton
@@ -111,7 +111,7 @@
                   }"
                 >
                   <UTooltip
-                    :delay-duration="0"
+                    :delay-duration="80"
                     :content="{
                       side: 'right',
                       sideOffset: 12
@@ -507,7 +507,7 @@
           }"
         >
           <UTooltip
-            :delay-duration="0"
+            :delay-duration="80"
             :content="{
               side: 'top',
               sideOffset: 16
@@ -557,7 +557,7 @@
           }"
         >
           <UTooltip
-            :delay-duration="0"
+            :delay-duration="80"
             :content="{
               side: 'top',
               sideOffset: 16
@@ -646,7 +646,7 @@
         </UPopover>
 
         <UTooltip
-          :delay-duration="0"
+          :delay-duration="80"
           :content="{
             side: 'top',
             sideOffset: 16
@@ -680,7 +680,7 @@
         >
           <UTooltip
             v-model:open="isIconTooltipOpen"
-            :delay-duration="0"
+            :delay-duration="80"
             :disabled="isIconTooltipSuppressed"
             :content="{
               side: 'top',
@@ -753,7 +753,7 @@
         </UPopover>
 
         <UTooltip
-          :delay-duration="0"
+          :delay-duration="80"
           :content="{
             side: 'top',
             sideOffset: 16
@@ -777,7 +777,7 @@
         <div class="h-[calc(100%_-_1em)] w-0.5 shrink-0 bg-accented" />
 
         <UTooltip
-          :delay-duration="0"
+          :delay-duration="80"
           :content="{
             side: 'top',
             sideOffset: 16
@@ -799,7 +799,7 @@
         </UTooltip>
 
         <UTooltip
-          :delay-duration="0"
+          :delay-duration="80"
           :content="{
             side: 'top',
             sideOffset: 16
@@ -822,7 +822,7 @@
         </UTooltip>
 
         <UTooltip
-          :delay-duration="0"
+          :delay-duration="80"
           :content="{
             side: 'top',
             sideOffset: 16
@@ -847,7 +847,7 @@
         <div class="h-[calc(100%_-_1em)] w-0.5 shrink-0 bg-accented" />
 
         <UTooltip
-          :delay-duration="0"
+          :delay-duration="80"
           :content="{
             side: 'top',
             sideOffset: 16
@@ -870,7 +870,7 @@
         </UTooltip>
 
         <UTooltip
-          :delay-duration="0"
+          :delay-duration="80"
           :content="{
             side: 'top',
             sideOffset: 16
@@ -893,7 +893,7 @@
         </UTooltip>
 
         <UTooltip
-          :delay-duration="0"
+          :delay-duration="80"
           :content="{
             side: 'top',
             sideOffset: 16
