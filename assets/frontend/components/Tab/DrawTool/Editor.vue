@@ -975,7 +975,7 @@ const FLOATING_TEXT_MENU_HEIGHT = 40;
 const FLOATING_TEXT_MENU_GAP = 8;
 const TOOLBAR_MAX_CANVAS_GAP = 48;
 const TOOLBAR_VIEWPORT_BOTTOM_OFFSET = 24;
-const OVERFLOW_PREVIEW_OPACITY = 0.35;
+const OVERFLOW_PREVIEW_OPACITY = 0.18;
 
 // const toolbarLabeledButtonClass = 'flex flex-col items-center gap-2 p-2 rounded-lg text-xs';
 const toolbarIconButtonClass = 'rounded-lg';
