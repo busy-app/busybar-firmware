@@ -851,6 +851,36 @@ export const useDrawToolEditorStore = defineStore('drawToolEditor', () => {
     pushHistorySnapshot();
   }
 
+  function reorderSelectedShapeLayer (direction: 'up' | 'down', moveToEdge = false) {
+    if (!selectedShapeId.value || shapes.value.length < 2) {
+      return false;
+    }
+
+    const currentIndex = shapes.value.findIndex(shape => shape.id === selectedShapeId.value);
+
+    if (currentIndex < 0) {
+      return false;
+    }
+
+    const targetIndex = direction === 'up'
+      ? moveToEdge ? shapes.value.length - 1 : currentIndex + 1
+      : moveToEdge ? 0 : currentIndex - 1;
+
+    if (targetIndex === currentIndex || targetIndex < 0 || targetIndex >= shapes.value.length) {
+      return false;
+    }
+
+    const nextShapes = [...shapes.value];
+    const [selectedShape] = nextShapes.splice(currentIndex, 1);
+    nextShapes.splice(targetIndex, 0, selectedShape);
+    shapes.value = nextShapes;
+    nextTick(syncTransformer);
+    nextTick(syncPixelatedDisplay);
+    pushHistorySnapshot();
+
+    return true;
+  }
+
   function handleStagePointerDown (event: Konva.KonvaEventObject<MouseEvent | TouchEvent>) {
     if (event.target !== event.target.getStage()) {
       return;
@@ -1030,6 +1060,7 @@ export const useDrawToolEditorStore = defineStore('drawToolEditor', () => {
     clearStage,
     resetEditor,
     deleteSelectedShape,
+    reorderSelectedShapeLayer,
     moveSelectedShape,
     rotateSelectedShape,
     handleStagePointerDown,

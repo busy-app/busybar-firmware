@@ -241,8 +241,8 @@
                   variant="solid"
                   square
                   size="xs"
-                  icon="i-bi-trash"
-                  class="pointer-events-auto absolute rounded-full"
+                  icon="i-bi-trash-fill"
+                  class="pointer-events-auto absolute rounded-full text-white"
                   :style="deleteButtonStyle"
                   @pointerdown.stop.prevent
                   @click.stop="es.deleteSelectedShape"
@@ -450,7 +450,7 @@
               :class="toolbarIconButtonClass"
             >
               <UIcon
-                name="i-bi-background-color"
+                name="i-bi-background-fill"
                 class="size-6"
               />
             </UButton>
@@ -727,6 +727,52 @@
           </UButton>
         </UTooltip>
 
+        <UTooltip
+          :delay-duration="0"
+          :content="{
+            side: 'top',
+            sideOffset: 16
+          }"
+          text="Move down"
+        >
+          <UButton
+            color="neutral"
+            variant="ghost"
+            square
+            :class="toolbarIconButtonClass"
+            :disabled="!canMoveSelectedLayerDown"
+            @click="handleMoveLayerClick('down', $event)"
+          >
+            <UIcon
+              name="i-bi-layer-down"
+              class="size-6"
+            />
+          </UButton>
+        </UTooltip>
+
+        <UTooltip
+          :delay-duration="0"
+          :content="{
+            side: 'top',
+            sideOffset: 16
+          }"
+          text="Move up"
+        >
+          <UButton
+            color="neutral"
+            variant="ghost"
+            square
+            :class="toolbarIconButtonClass"
+            :disabled="!canMoveSelectedLayerUp"
+            @click="handleMoveLayerClick('up', $event)"
+          >
+            <UIcon
+              name="i-bi-layer-up"
+              class="size-6"
+            />
+          </UButton>
+        </UTooltip>
+
         <UPopover
           :content="{
             side: 'top',
@@ -860,7 +906,7 @@
             @click="es.clearStage"
           >
             <UIcon
-              name="i-bi-trash"
+              name="i-bi-clear"
               class="size-6"
             />
           </UButton>
@@ -960,6 +1006,23 @@ const toolbarKeyboardShortcuts: Array<{ label: string; tokens: ShortcutToken[] }
       { kind: 'key', label: 'arrowup' },
       { kind: 'key', label: 'arrowright' },
       { kind: 'key', label: 'arrowdown' }
+    ]
+  },
+  {
+    label: 'Move down/up',
+    tokens: [
+      { kind: 'key', label: '[' },
+      { kind: 'key', label: ']' }
+    ]
+  },
+  {
+    label: 'Send to back/front',
+    tokens: [
+      { kind: 'key', label: 'shift' },
+      { kind: 'key', label: '[' },
+      { kind: 'text', label: '/' },
+      { kind: 'key', label: 'shift' },
+      { kind: 'key', label: ']' }
     ]
   },
   {
@@ -1270,6 +1333,20 @@ watch(() => stageMetrics.value.cellSize, async () => {
 });
 
 const selectedShape = computed(() => es.shapes.find(shape => shape.id === es.selectedShapeId) || null);
+const selectedShapeIndex = computed(() => {
+  if (!es.selectedShapeId) {
+    return -1;
+  }
+
+  return es.shapes.findIndex(shape => shape.id === es.selectedShapeId);
+});
+const hasMultipleLayers = computed(() => es.shapes.length > 1);
+const canMoveSelectedLayerUp = computed(() => {
+  return hasMultipleLayers.value && selectedShapeIndex.value >= 0 && selectedShapeIndex.value < es.shapes.length - 1;
+});
+const canMoveSelectedLayerDown = computed(() => {
+  return hasMultipleLayers.value && selectedShapeIndex.value > 0;
+});
 const selectedTextShape = computed(() => selectedShape.value?.type === 'text' ? selectedShape.value : null);
 const selectedShapeSyncKey = computed(() => {
   const shape = selectedShape.value;
@@ -1475,6 +1552,14 @@ function isEditableKeyboardTarget (target: EventTarget | null) {
     || target.isContentEditable;
 }
 
+function moveSelectedLayer (direction: 'up' | 'down', moveToEdge = false) {
+  return es.reorderSelectedShapeLayer(direction, moveToEdge);
+}
+
+function handleMoveLayerClick (direction: 'up' | 'down', event: MouseEvent) {
+  moveSelectedLayer(direction, event.shiftKey);
+}
+
 function handleWindowKeyDown (event: KeyboardEvent) {
   const normalizedKey = event.key.toLowerCase();
   const isPrimaryModifierPressed = (event.metaKey || event.ctrlKey) && !event.altKey;
@@ -1543,6 +1628,18 @@ function handleWindowKeyDown (event: KeyboardEvent) {
   if (normalizedKey === 'e') {
     event.preventDefault();
     es.rotateSelectedShape(ROTATION_SNAP_STEP);
+    return;
+  }
+
+  if (event.code === 'BracketLeft') {
+    event.preventDefault();
+    moveSelectedLayer('down', event.shiftKey);
+    return;
+  }
+
+  if (event.code === 'BracketRight') {
+    event.preventDefault();
+    moveSelectedLayer('up', event.shiftKey);
     return;
   }
 
