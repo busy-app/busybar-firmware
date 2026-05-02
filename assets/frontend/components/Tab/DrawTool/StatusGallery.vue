@@ -86,7 +86,7 @@
     </template>
 
     <template #raw-body>
-      <div class="min-h-50 p-4 sm:p-6 ring-1 ring-accented rounded-xl">
+      <div class="min-h-48 p-4 sm:p-6 ring-1 ring-accented rounded-xl">
         <div
           v-if="!statusGalleryFiles.length"
           class="h-38 flex items-center justify-center text-center text-sm text-muted transition-all"
@@ -97,7 +97,7 @@
 
         <div
           v-else
-          class="grid grid-cols-2 gap-6"
+          class="grid grid-cols-2 gap-4"
         >
           <article
             v-for="status in statusGalleryFiles"
