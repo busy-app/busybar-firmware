@@ -668,7 +668,7 @@ export const useDrawToolEditorStore = defineStore('drawToolEditor', () => {
         dragState.startShape,
         resizedDelta.x,
         resizedDelta.y,
-        event.shiftKey,
+        !(event.shiftKey || event.altKey),
         event.altKey
       );
 

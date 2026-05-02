@@ -962,6 +962,7 @@ const pixelatedDisplayFrame = ref<number | null>(null);
 const transformerFrame = ref<number | null>(null);
 const stageContainerViewportTop = ref(0);
 const preserveSelectionUntilClick = ref(false);
+const isResizeAspectRatioUnlocked = ref(false);
 const toolbarContainerRef = ref<HTMLDivElement | null>(null);
 const toolbarFixedTop = ref(0);
 const toolbarShouldStickToViewport = ref(true);
@@ -1026,6 +1027,14 @@ const toolbarKeyboardShortcuts: Array<{ label: string; tokens: ShortcutToken[] }
       { kind: 'text', label: '/' },
       { kind: 'key', label: 'shift' },
       { kind: 'key', label: ']' }
+    ]
+  },
+  {
+    label: 'Unlock resize ratio',
+    tokens: [
+      { kind: 'key', label: 'shift' },
+      { kind: 'text', label: '/' },
+      { kind: 'key', label: 'alt' }
     ]
   },
   {
@@ -1288,7 +1297,8 @@ const transformerConfig = computed(() => ({
   rotationSnaps: Array.from({ length: 360 / ROTATION_SNAP_STEP }, (_, index) => index * ROTATION_SNAP_STEP),
   rotationSnapTolerance: ROTATION_SNAP_STEP / 2,
   flipEnabled: false,
-  keepRatio: false,
+  keepRatio: !isResizeAspectRatioUnlocked.value,
+  shiftBehavior: 'inverted',
   resizeEnabled: !selectedTextShape.value,
   ignoreStroke: true,
   padding: 0,
@@ -1527,6 +1537,17 @@ function handleWindowPointerDown (event: PointerEvent) {
   preserveSelectionUntilClick.value = shouldPreserveSelectionForEvent(event);
 }
 
+function updateResizeAspectRatioUnlockState (event: KeyboardEvent | null) {
+  const shouldUnlockAspectRatio = !!event && (event.shiftKey || event.altKey);
+
+  if (isResizeAspectRatioUnlocked.value === shouldUnlockAspectRatio) {
+    return;
+  }
+
+  isResizeAspectRatioUnlocked.value = shouldUnlockAspectRatio;
+  scheduleTransformerSync();
+}
+
 function handleWindowClick (event: MouseEvent) {
   if (!es.selectedShapeId) {
     preserveSelectionUntilClick.value = false;
@@ -1564,6 +1585,8 @@ function handleMoveLayerClick (direction: 'up' | 'down', event: MouseEvent) {
 }
 
 function handleWindowKeyDown (event: KeyboardEvent) {
+  updateResizeAspectRatioUnlockState(event);
+
   const normalizedKey = event.key.toLowerCase();
   const isPrimaryModifierPressed = (event.metaKey || event.ctrlKey) && !event.altKey;
 
@@ -1660,6 +1683,19 @@ function handleWindowKeyDown (event: KeyboardEvent) {
 
   event.preventDefault();
   es.moveSelectedShape(movement.x, movement.y);
+}
+
+function handleWindowKeyUp (event: KeyboardEvent) {
+  updateResizeAspectRatioUnlockState(event);
+}
+
+function handleWindowBlur () {
+  if (!isResizeAspectRatioUnlocked.value) {
+    return;
+  }
+
+  isResizeAspectRatioUnlocked.value = false;
+  scheduleTransformerSync();
 }
 
 function schedulePixelatedDisplaySync () {
@@ -2199,6 +2235,8 @@ onMounted(() => {
   window.addEventListener('pointerdown', handleWindowPointerDown);
   window.addEventListener('click', handleWindowClick);
   window.addEventListener('keydown', handleWindowKeyDown);
+  window.addEventListener('keyup', handleWindowKeyUp);
+  window.addEventListener('blur', handleWindowBlur);
 
   loadEditorFonts().then(() => {
     nextTick(schedulePixelatedDisplaySync);
@@ -2215,6 +2253,8 @@ onBeforeUnmount(() => {
   window.removeEventListener('pointerdown', handleWindowPointerDown);
   window.removeEventListener('click', handleWindowClick);
   window.removeEventListener('keydown', handleWindowKeyDown);
+  window.removeEventListener('keyup', handleWindowKeyUp);
+  window.removeEventListener('blur', handleWindowBlur);
 
   if (pixelatedDisplayFrame.value !== null) {
     cancelAnimationFrame(pixelatedDisplayFrame.value);
