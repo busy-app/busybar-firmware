@@ -324,10 +324,10 @@ export const useDrawToolEditorStore = defineStore('drawToolEditor', () => {
 
   function handleActiveTextColorChange (value?: string) {
     const nextColor = value || DEFAULT_TEXT_COLOR;
+    textDraftColor.value = nextColor;
     const selectedTextShape = getSelectedTextShapeState();
 
     if (!selectedTextShape) {
-      textDraftColor.value = nextColor;
       return;
     }
 
@@ -340,10 +340,10 @@ export const useDrawToolEditorStore = defineStore('drawToolEditor', () => {
 
   function handleActiveTextFontChange (value: string | number) {
     const nextFontId = String(value);
+    textDraftFontId.value = nextFontId;
     const selectedTextShape = getSelectedTextShapeState();
 
     if (!selectedTextShape) {
-      textDraftFontId.value = nextFontId;
       return;
     }
 
@@ -729,6 +729,9 @@ export const useDrawToolEditorStore = defineStore('drawToolEditor', () => {
       ...dimensions
     };
 
+    textDraftValue.value = DEFAULT_TEXT_VALUE;
+    textDraftColor.value = fill;
+    textDraftFontId.value = fontId;
     shapes.value.push(textShape);
     selectedShapeId.value = textShape.id;
     pushHistorySnapshot();
@@ -794,8 +797,6 @@ export const useDrawToolEditorStore = defineStore('drawToolEditor', () => {
     borderDashSize.value = DEFAULT_BORDER_DASH_SIZE;
     borderGapOffset.value = DEFAULT_BORDER_GAP_OFFSET;
     textDraftValue.value = DEFAULT_TEXT_VALUE;
-    textDraftColor.value = DEFAULT_TEXT_COLOR;
-    textDraftFontId.value = DEFAULT_TEXT_FONT_ID;
     showImageUploadModal.value = false;
     imageUploadFile.value = null;
     statusFileName.value = DEFAULT_STATUS_FILE_NAME;

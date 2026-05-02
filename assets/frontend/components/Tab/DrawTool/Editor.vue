@@ -659,7 +659,7 @@
             square
             :class="toolbarIconButtonClass"
             data-draw-tool-preserve-selection
-            @click="es.addText(activeTextValue, activeTextColor, activeTextFontId)"
+            @click="es.addText(DEFAULT_TEXT_VALUE, activeTextColor, activeTextFontId)"
           >
             <UIcon
               name="i-bi-text"
