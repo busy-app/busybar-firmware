@@ -63,7 +63,7 @@ static void check_done_callback(bool is_success, UpdaterCheckerInfo* update_info
 
             check_state->result = UpdaterCheckResultAvailable;
         } else {
-            check_state->result = UpdaterCheckResultNotAvailable;
+            check_state->result = UpdaterCheckResultAvailable;
         }
     } else {
         check_state->result = UpdaterCheckResultFailure;
