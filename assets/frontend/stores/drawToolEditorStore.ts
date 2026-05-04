@@ -288,6 +288,36 @@ export const useDrawToolEditorStore = defineStore('drawToolEditor', () => {
     shapes.value.splice(shapeIndex, 1, updater(shapes.value[shapeIndex]));
   }
 
+  function fitTextValueToWorkspaceWidth (value: string, fontId: string, availableWidth: number) {
+    if (!value || availableWidth <= 0) {
+      return '';
+    }
+
+    const characters = Array.from(value);
+    let low = 0;
+    let high = characters.length;
+
+    while (low < high) {
+      const middle = Math.ceil((low + high) / 2);
+      const candidate = characters.slice(0, middle).join('');
+      const leadingText = characters.slice(0, Math.max(0, middle - 1)).join('');
+      const { width } = measureTextShapeDimensions(leadingText, fontId, TEXT_FONT_OPTIONS);
+
+      if (width < availableWidth) {
+        low = middle;
+      } else {
+        high = middle - 1;
+      }
+    }
+
+    return characters.slice(0, low).join('');
+  }
+
+  function clampTextValueToSelectedTextWorkspace (value: string, selectedTextShape: TextShape) {
+    const availableWidth = WORKSPACE_WIDTH - selectedTextShape.x;
+    return fitTextValueToWorkspaceWidth(value, selectedTextShape.fontId, availableWidth);
+  }
+
   function handleActiveTextValueInput (value: string | number) {
     const nextValue = String(value ?? '');
     const selectedTextShape = getSelectedTextShapeState();
@@ -308,10 +338,22 @@ export const useDrawToolEditorStore = defineStore('drawToolEditor', () => {
 
   function handleTextTextareaInput (event: Event) {
     const textarea = event.target as HTMLTextAreaElement;
-    const nextValue = textarea.value.replace(/[\r\n]+/g, '');
+    const selectedTextShape = getSelectedTextShapeState();
+    let nextValue = textarea.value.replace(/[\r\n]+/g, '');
+
+    if (selectedTextShape) {
+      nextValue = clampTextValueToSelectedTextWorkspace(nextValue, selectedTextShape);
+    }
 
     if (textarea.value !== nextValue) {
+      const selectionStart = textarea.selectionStart ?? nextValue.length;
+      const selectionEnd = textarea.selectionEnd ?? nextValue.length;
+
       textarea.value = nextValue;
+      textarea.setSelectionRange(
+        Math.min(selectionStart, nextValue.length),
+        Math.min(selectionEnd, nextValue.length)
+      );
     }
 
     handleActiveTextValueInput(nextValue);
