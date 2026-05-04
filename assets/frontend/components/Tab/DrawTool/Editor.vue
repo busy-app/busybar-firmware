@@ -804,6 +804,7 @@
             side: 'top',
             sideOffset: 16
           }"
+          data-draw-tool-preserve-selection
           text="Move down"
         >
           <UButton
@@ -827,6 +828,7 @@
             side: 'top',
             sideOffset: 16
           }"
+          data-draw-tool-preserve-selection
           text="Move up"
         >
           <UButton
