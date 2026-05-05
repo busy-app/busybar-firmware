@@ -1,12 +1,10 @@
 #include <furi.h>
 
 #include <gui/gui.h>
-#include <gui/modules/anim_player.h>
 #include <gui/modules/label.h>
+#include <gui/modules/anim_player.h>
 
 #include <storage/storage.h>
-#include <back_display/back_display.h>
-#include <front_display/front_display.h>
 #include <power/power_service/power.h>
 
 #define TAG "PowerOn"
@@ -31,8 +29,6 @@ typedef enum {
 
 typedef struct {
     Gui* gui;
-    FrontDisplaySrv* front_display;
-    BackDisplaySrv* back_display;
     Power* power;
     Storage* storage;
 
@@ -88,8 +84,6 @@ static PowerOnApp* power_on_app_alloc(void) {
     PowerOnApp* instance = malloc(sizeof(PowerOnApp));
 
     instance->gui = furi_record_open(RECORD_GUI);
-    instance->front_display = furi_record_open(RECORD_FRONT_DISPLAY);
-    instance->back_display = furi_record_open(RECORD_BACK_DISPLAY);
     instance->power = furi_record_open(RECORD_POWER);
     instance->storage = furi_record_open(RECORD_STORAGE);
 
@@ -107,8 +101,6 @@ static PowerOnApp* power_on_app_alloc(void) {
 static void power_on_app_free(PowerOnApp* instance) {
     furi_record_close(RECORD_STORAGE);
     furi_record_close(RECORD_POWER);
-    furi_record_close(RECORD_BACK_DISPLAY);
-    furi_record_close(RECORD_FRONT_DISPLAY);
     furi_record_close(RECORD_GUI);
 
     furi_timer_free(instance->back_to_transport_timer);
