@@ -8,8 +8,9 @@
 #include <intercom/intercom.h>
 #endif
 
-#define INPUT_PRESS_TICKS       150
-#define INPUT_LONG_PRESS_COUNTS 2
+#define INPUT_PRESS_TICKS               150
+#define INPUT_LONG_PRESS_COUNTS         2
+#define INPUT_SWITCH_STARTUP_TIMEOUT_MS 1500
 
 #define INPUT_KEY_PRESS(key)   (1UL << key)
 #define INPUT_KEY_RELEASE(key) (1UL << (key + InputKeyMAX))
@@ -30,6 +31,7 @@ struct Input {
     FuriPubSub* event_pubsub;
     FuriState* switch_pos;
     FuriEventLoop* event_loop;
+    FuriEventLoopTimer* switch_startup_timer;
     InputPinState* pin_states;
     volatile uint32_t sequence;
 };
@@ -97,6 +99,18 @@ static void input_update_absolute_state(Input* input, InputEvent* event) {
             InputSwitchPosition pos = key - INPUT_SWITCH_RANGE_START;
             furi_state_set(input->switch_pos, &pos);
         }
+    }
+}
+
+static void input_switch_startup_timer_callback(void* context) {
+    Input* input = context;
+
+    InputSwitchPosition current_pos;
+    furi_state_get(input->switch_pos, &current_pos);
+
+    if(current_pos == InputSwitchPositionMAX) {
+        InputSwitchPosition pos = InputSwitchPositionBusy;
+        furi_state_set(input->switch_pos, &pos);
     }
 }
 
@@ -221,6 +235,10 @@ int32_t input_srv(void* p) {
     input->switch_pos = furi_state_alloc(sizeof(InputSwitchPosition));
     InputSwitchPosition position = InputSwitchPositionMAX;
     furi_state_set(input->switch_pos, &position);
+
+    input->switch_startup_timer = furi_event_loop_timer_alloc(
+        input->event_loop, input_switch_startup_timer_callback, FuriEventLoopTimerTypeOnce, input);
+    furi_event_loop_timer_start(input->switch_startup_timer, INPUT_SWITCH_STARTUP_TIMEOUT_MS);
 
     furi_record_create(RECORD_INPUT, input);
 
