@@ -374,6 +374,11 @@ static MatterStatus
     MatterStatus status = matter_send_frame(instance, &frame);
     if(status != MatterStatusOk) return status;
 
+    MatterEvent event = {
+        .type = MatterEventTypeWillReboot,
+    };
+    furi_pubsub_publish(instance->pubsub, &event);
+
     furi_delay_ms(REBOOT_TIMER_MS);
 
     Power* power = furi_record_open(RECORD_POWER);

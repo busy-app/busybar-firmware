@@ -27,6 +27,7 @@ typedef struct Matter Matter;
 typedef enum {
     MatterEventTypeCommissioning, //<! Started, completed or failed commissioning
     MatterEventTypeFabricCountChanged, //<! Number of fabric the device is commissioned into has changed
+    MatterEventTypeWillReboot, //<! A reboot will be performed shortly
 } MatterEventType;
 
 /**
