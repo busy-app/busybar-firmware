@@ -1,9 +1,6 @@
 [submodule "lib/tinyusb"]
 	path = lib/tinyusb
-	url = https://github.com/hathach/tinyusb.git
-[submodule "lib/nema_gfx"]
-	path = lib/nema_gfx
-	url = https://github.com/flipperdevices/nema-gfx.git
+	url = https://github.com/flipperdevices/tinyusb.git
 [submodule "lib/mongoose"]
 	path = lib/mongoose
 	url = https://github.com/cesanta/mongoose.git
@@ -12,7 +9,7 @@
 	url = https://github.com/flipperdevices/lwip.git
 [submodule "targets/lib/simplicity_sdk"]
 	path = lib/simplicity_sdk
-	url = https://github.com/SiliconLabs/simplicity_sdk.git
+	url = https://github.com/flipperdevices/simplicity-sdk.git
 [submodule "lib/wiseconnect"]
 	path = lib/wiseconnect
 	url = https://github.com/flipperdevices/wiseconnect.git

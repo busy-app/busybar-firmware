@@ -90,11 +90,12 @@
         "targets",
         "furi",
         "version",
-        "toolbox_f64",
+        "toolbox",
         "formatters",
         "firmware_applications_si917",
         "containers",
-        "cli"
+        "cli",
+        "libm_fix"
     ],
     "fw_modules": [
         "fw_elf",

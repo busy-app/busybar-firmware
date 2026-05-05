@@ -99,7 +99,7 @@ jobs:
           echo "Flashing bricked firmware: $BRICK_TAR"
           python3 scripts/testops.py update-fw "$BRICK_TAR" -r 3 --connect-timeout 10 --openocd-reboot
           # Short wait - device will boot but SI917 will crash immediately
-          python3 scripts/testops.py wait -t 240 --fallback
+          python3 scripts/testops.py wait -t 320 --fallback
 
       - name: 'Verify bricked state'
         id: verify_brick
@@ -124,7 +124,7 @@ jobs:
           python3 scripts/testops.py debug 1
           echo "Flashing normal firmware to recover..."
           python3 scripts/testops.py update-fw normal-update.tgz -r 3 --connect-timeout 10 --fallback
-          python3 scripts/testops.py wait -t 240
+          python3 scripts/testops.py wait -t 320
 
       - name: 'Verify recovery'
         id: verify_recovery

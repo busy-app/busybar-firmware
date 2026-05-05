@@ -121,7 +121,7 @@ jobs:
           source scripts/toolchain/fbtenv.sh
           python3 scripts/testops.py format --no-confirm
           python3 scripts/testops.py update-fw busybar-f${{ env.U5_HW_TARGET }}-update.tgz -r 3 --connect-timeout 10
-          python3 scripts/testops.py wait -t 260
+          python3 scripts/testops.py wait -t 320
 
       - name: 'Sanity check after flashing'
         if: steps.flashing.outcome == 'success'
@@ -143,10 +143,26 @@ jobs:
       - name: Run integration tests
         id: smoke_tests
         timeout-minutes: 20
+        env:
+          BSB_FIRMWARE_PATH: ${{ github.workspace }}
+          CLI_HOST: ${{ secrets.CLI_HOST || '10.0.4.20' }}
+          CLI_PORT: ${{ secrets.CLI_PORT || '23' }}
+          WEB_BASE_URL: ${{ secrets.WEB_BASE_URL || 'http://10.0.4.20' }}
+          LOG_LEVEL: INFO
+          LOG_TO_FILE: true
+          RUN_SCHEMATHESIS: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/dev') || startsWith(github.ref, 'refs/tags/') }}
         run: |
           set +e
           cd tests
+          PYTEST_MARK_ARGS=()
+          if [ "$RUN_SCHEMATHESIS" != "true" ]; then
+            PYTEST_MARK_ARGS=(-m "not schemathesis")
+            echo "Skipping schemathesis tests (event=${{ github.event_name }}, ref=${{ github.ref }})"
+          else
+            echo "Running full suite including schemathesis"
+          fi
           python3 -m pytest . -v \
+            "${PYTEST_MARK_ARGS[@]}" \
             --alluredir=allure-results \
             --clean-alluredir \
             --junitxml=test-results.xml
@@ -158,13 +174,6 @@ jobs:
             echo "Pytest failed to run properly (exit code $PYTEST_EXIT)"
             exit $PYTEST_EXIT
           fi
-        env:
-          BSB_FIRMWARE_PATH: ${{ github.workspace }}
-          CLI_HOST: ${{ secrets.CLI_HOST || '10.0.4.20' }}
-          CLI_PORT: ${{ secrets.CLI_PORT || '23' }}
-          WEB_BASE_URL: ${{ secrets.WEB_BASE_URL || 'http://10.0.4.20' }}
-          LOG_LEVEL: INFO
-          LOG_TO_FILE: true
 
       - name: Setup allurectl
         continue-on-error: true

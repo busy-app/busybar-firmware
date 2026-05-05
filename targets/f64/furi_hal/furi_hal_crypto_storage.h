@@ -1,5 +1,6 @@
 #pragma once
 #include <furi.h>
+#include "furi_hal_crypto.h"
 
 #define FURI_HAL_CRYPTO_STORAGE_START_ADDRESS (0UL)
 #define FURI_HAL_CRYPTO_STORAGE_END_ADDRESS   (0x00005000UL) // 20KB partition
@@ -10,43 +11,11 @@
 #define FURI_HAL_CRYPTO_STORAGE_PARTITION_USER_START_ADDRESS (0x00004000UL)
 #define FURI_HAL_CRYPTO_STORAGE_PARTITION_USER_END_ADDRESS   (0x00004FFFUL) // 4KB partition
 
-#define FURI_HAL_CRYPTO_STORAGE_DATA_SIZE_MAX (996UL) // Maximum data size for keys
-
 typedef enum {
     FuriHalCryptoPartitionMain,
     FuriHalCryptoPartitionUser,
     FuriHalCryptoPartitionMax,
 } FuriHalCryptoPartition;
-
-typedef enum {
-    FuriHalCryptoKeyTypeAes128,
-    FuriHalCryptoKeyTypeAes192,
-    FuriHalCryptoKeyTypeAes256,
-    FuriHalCryptoKeyTypeHmacSha1,
-    FuriHalCryptoKeyTypeHmacSha256,
-    FuriHalCryptoKeyTypeHmacSha384,
-    FuriHalCryptoKeyTypeHmacSha512,
-    FuriHalCryptoKeyTypeEcdsaPriv224,
-    FuriHalCryptoKeyTypeEcdsaPriv256,
-    FuriHalCryptoKeyTypeEcdsaPub224,
-    FuriHalCryptoKeyTypeEcdsaPub256,
-
-    FuriHalCryptoKeyTypeCsrDerEcdsa256,
-    FuriHalCryptoKeyTypeCrtDerEcdsa256,
-
-    FuriHalCryptoKeyTypeMatterAttestation,
-    FuriHalCryptoKeyTypeMatterSetup,
-    FuriHalCryptoKeyTypeMatterDeviceInfo,
-
-    FuriHalCryptoKeyTypeNone = 0xFFFFFFFF,
-} FuriHalCryptoKeyType;
-_Static_assert(sizeof(FuriHalCryptoKeyType) == 4, "Size check for 'FuriHalCryptoKeyType' failed.");
-
-typedef enum {
-    FuriHalCryptoKeyFlagWrap = (1 << 0UL),
-    FuriHalCryptoKeyFlagNone = 0xFFFFFFFF,
-} FuriHalCryptoKeyFlag;
-_Static_assert(sizeof(FuriHalCryptoKeyFlag) == 4, "Size check for 'FuriHalCryptoKeyFlag' failed.");
 
 typedef struct {
     uint32_t magic_number;
@@ -57,87 +26,103 @@ typedef struct {
     uint32_t id;
     uint32_t reserved1;
     uint32_t crc32;
-} FURI_PACKED FuriHalCryptoKeyHeader;
+} FURI_PACKED FuriHalCryptoKeySlotHeader;
 _Static_assert(
-    sizeof(FuriHalCryptoKeyHeader) == 28,
-    "Size check for 'FuriHalCryptoKeyHeader' failed.");
+    sizeof(FuriHalCryptoKeySlotHeader) == 28,
+    "Size check for 'FuriHalCryptoKeySlotHeader' failed.");
+
+typedef struct FuriHalCryptoKeyAddress {
+    FuriHalCryptoPartition partition;
+    uint32_t offset; // Address in NWP flash where the key is stored (offset from partition start)
+} FuriHalCryptoKeyAddress;
+
+typedef struct FuriHalCryptoKeySlot {
+    FuriHalCryptoKeySlotHeader header;
+    FuriHalCryptoKeyAddress address;
+} FuriHalCryptoKeySlot;
 
 typedef struct {
-    FuriHalCryptoKeyHeader header;
-    FuriHalCryptoPartition partition;
-    uint32_t address; // Address in NWP flash where the key is stored
-    uint16_t length;
-    uint8_t data[FURI_HAL_CRYPTO_STORAGE_DATA_SIZE_MAX];
-} FuriHalCryptoKey;
-
-typedef enum {
-    FuriHalCryptoStatusOk,
-    FuriHalCryptoStatusFail,
-    FuriHalCryptoStatusFailWrite,
-    FuriHalCryptoStatusStorageFull,
-    FuriHalCryptoStatusDuplicate,
-    FuriHalCryptoStatusNotFound,
-    FuriHalCryptoStatusErrorCrc,
-} FuriHalCryptoStatus;
+    FuriHalCryptoKeyAddress address;
+} FuriHalCryptoKeyIter;
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/*
-* Allocate a key structure.
-* @param[in] partition Partition to get the start address of.
-* @return Pointer to the allocated key structure.
-*/
-FuriHalCryptoKey* furi_hal_crypto_storage_alloc(FuriHalCryptoPartition partition);
+/** Initialize a key iterator.
+ * @param[in] partition Partition to iterate in.
+ */
+FuriHalCryptoKeyIter furi_hal_crypto_key_iter_init(FuriHalCryptoPartition partition);
 
-/*
-* Free the key structure.
-* @param[in] key Pointer to the key structure to free.
-*/
-void furi_hal_crypto_storage_free(FuriHalCryptoKey* key);
+/** Get current key pointed by the key iterator and advance the iterator to the next key.
+ * @return FuriHalCryptoStatus status of the operation.
+ *    - FuriHalCryptoStatusOk on success
+ *    - FuriHalCryptoStatusStorageFull on reaching the end of the storage
+ *    - FuriHalCryptoStatusNotFound if there are no more keys
+ *    - other errors corresponding to various storage failures
+ */
+FURI_CHECK_RETURN
+FuriHalCryptoStatus furi_hal_crypto_key_iter_get_and_advance(
+    FuriHalCryptoKeyIter* iter,
+    FuriHalCryptoKey** key_out,
+    FuriHalCryptoKeySlot* slot_out);
 
 /** Write a key to the NWP flash.
 * @param[in] key Pointer to the key
+* @param[in] partition Partition where to store the key.
+* @param[in] id ID of the key to write.
 * @return FuriHalCryptoStatus indicating the result of the operation.
 */
-FuriHalCryptoStatus furi_hal_crypto_storage_write(FuriHalCryptoKey* key);
+FURI_CHECK_RETURN
+FuriHalCryptoStatus furi_hal_crypto_storage_write(
+    const FuriHalCryptoKey* key,
+    FuriHalCryptoPartition partition,
+    uint32_t id);
 
-/** Read a key from the NWP flash.
+/** Write a key to the NWP flash, providing its slot metadata.
 * @param[in] key Pointer to the key
+* @param[in] partition Partition where to store the key.
+* @param[in] id ID of the key to write.
+* @param[out] slot Key storage slot metadata. Can be NULL.
+* @return FuriHalCryptoStatus indicating the result of the operation.
+*/
+FURI_CHECK_RETURN
+FuriHalCryptoStatus furi_hal_crypto_storage_write_ex(
+    const FuriHalCryptoKey* key,
+    FuriHalCryptoPartition partition,
+    uint32_t id,
+    FuriHalCryptoKeySlot* slot_out);
+
+/** Read a key from the NWP flash. Keys inside a partition are uniquely identified by (id, type).
+* @param[in] key Pointer to the key
+* @param[in] partition Partition where to look for the key.
 * @param[in] type Type of the key to read.
 * @param[in] id ID of the key to read.
 * @return FuriHalCryptoStatus indicating the result of the operation.
 */
-FuriHalCryptoStatus
-    furi_hal_crypto_storage_read(FuriHalCryptoKey* key, FuriHalCryptoKeyType type, uint32_t id);
+FURI_CHECK_RETURN
+FuriHalCryptoStatus furi_hal_crypto_storage_read(
+    FuriHalCryptoKey** key,
+    FuriHalCryptoPartition partition,
+    FuriHalCryptoKeyType type,
+    uint32_t id);
 
-/** Get the next key in the storage.
-* @param[in] key Pointer to the key structure to fill with the next key.
+/** Read a key and its slot (metadata) from the NWP flash.
+* Keys inside a partition are uniquely identified by (id, type).
+* @param[in] key Pointer to the key
+* @param[out] slot Key storage slot metadata. Can be NULL.
+* @param[in] partition Partition where to look for the key.
+* @param[in] type Type of the key to read.
+* @param[in] id ID of the key to read.
 * @return FuriHalCryptoStatus indicating the result of the operation.
 */
-FuriHalCryptoStatus furi_hal_crypto_storage_get_next_key(FuriHalCryptoKey* key);
-
-/** Generate an asymmetric public key from a private key.
-* @param[in] key Pointer to the private key.
-* @return FuriHalCryptoStatus indicating the result of the operation.
-*/
-FuriHalCryptoStatus furi_hal_crypto_storage_gen_asymmetric_pub_key(FuriHalCryptoKey* key);
-
-/** Generate a CSR in DER format for ECDSA 256.
-* @param[in] key Pointer to the private key.
-* @param[in] subject_name Subject name for the CSR.
-* @return FuriHalCryptoStatus indicating the result of the operation.
-*/
-FuriHalCryptoStatus
-    furi_hal_crypto_storage_gen_csr_der_ecdsa256(FuriHalCryptoKey* key, const char* subject_name);
-
-/** Generate a random buffer of the specified size.
-* @param[out] buf Pointer to the buffer to fill with random data.
-* @param[in] size Size of the buffer to fill.
-* @return FuriHalCryptoStatus indicating the result of the operation.
-*/
-FuriHalCryptoStatus furi_hal_crypto_storage_gen_random_buf(uint8_t* buf, size_t size);
+FURI_CHECK_RETURN
+FuriHalCryptoStatus furi_hal_crypto_storage_read_ex(
+    FuriHalCryptoKey** key,
+    FuriHalCryptoKeySlot* slot,
+    FuriHalCryptoPartition partition,
+    FuriHalCryptoKeyType type,
+    uint32_t id);
 #ifdef __cplusplus
 }
 #endif

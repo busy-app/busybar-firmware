@@ -117,6 +117,7 @@ static void var_item_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* o
     LV_UNUSED(class_p);
 
     lv_obj_set_flex_flow(obj, LV_FLEX_FLOW_ROW);
+    lv_obj_set_style_flex_cross_place(obj, LV_FLEX_ALIGN_CENTER, LV_PART_MAIN);
 
     lv_obj_remove_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_add_flag(obj, LV_OBJ_FLAG_SCROLL_ON_FOCUS);
@@ -438,10 +439,10 @@ static VarItem* var_item_alloc(
     lv_obj_t* obj = lv_obj_class_create_obj(MY_ITEM_CLASS, (lv_obj_t*)parent);
     lv_obj_class_init_obj(obj);
 
-    lv_group_add_obj(parent->group, obj);
-
     VarItem* instance = (VarItem*)obj;
     lv_label_set_text(instance->label, label);
+
+    lv_group_add_obj(parent->group, obj);
 
     VarItemEditor* editor = instance->editor;
     editor->callback = callback;

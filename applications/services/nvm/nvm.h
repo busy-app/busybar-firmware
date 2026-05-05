@@ -161,6 +161,20 @@ bool nvm_repack(Nvm* instance);
  */
 bool nvm_erase_all(Nvm* instance);
 
+/**
+ * @brief Erase all data AND metadata from the storage.
+ *
+ * @warning This will ERASE ALL THE DATA on the storage, use with caution
+ *
+ * Unlike nvm_erase_all() which will keep the partition initialised,
+ * calling this function will completely reset it to a clean slate.
+ *
+ * @param[in,out] instance pointer to the Nvm instance
+ *
+ * @returns true if the storage could be purged, false otherwise.
+ */
+bool nvm_purge_all(Nvm* instance);
+
 #ifdef __cplusplus
 }
 #endif

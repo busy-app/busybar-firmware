@@ -83,9 +83,7 @@ void factory_reset_perform(Updater* updater, bool shipping_mode) {
     // Wifi settings will be reset here because they live on EMMC
     format_emmc_ext();
 
-#ifndef FURI_DEBUG
     furi_hal_nvm_reset();
-#endif
 
     if(shipping_mode) {
         furi_hal_nvm_set_flag(FuriHalNvmFlagRebootIntoShippingMode);
