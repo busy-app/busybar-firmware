@@ -2,12 +2,12 @@
 
 #include <formatters/sl_rps/sl_rps.h>
 #include <version/version.h>
-#include <furi.h>
 
 #include <sl_wifi.h>
 #include <rsi_bt_common_apis.h>
 
 #include <wifi/wifi_common.h>
+#include <applications/system/crypto_backup/crypto_backup_verify.h>
 
 #define TAG "FuriHalInfo"
 
@@ -440,6 +440,14 @@ void furi_hal_info_get(PropertyValueCallback out, char sep, void* context) {
             "m4",
             "debug",
             furi_hal_info_917_mbr->disable_m4_jtag ? "false" : "true");
+        property_value_out(
+            &property_context,
+            NULL,
+            3,
+            "sl",
+            "enclave",
+            "valid",
+            crypto_backup_verify_enclave() ? "true" : "false");
         property_value_out(
             &property_context,
             NULL,
