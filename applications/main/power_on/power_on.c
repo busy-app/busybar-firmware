@@ -8,9 +8,8 @@
 #include <back_display/back_display.h>
 #include <front_display/front_display.h>
 #include <power/power_service/power.h>
-#include <intercom/intercom.h>
 
-#define TAG "PowerON"
+#define TAG "PowerOn"
 
 #define POWER_ON_START_TIMEOUT_TICKS furi_ms_to_ticks(500)
 #define POWER_ON_APP_TIMEOUT_MIN     (15)
@@ -28,13 +27,12 @@ typedef enum {
 } PowerOnAppThreadFlag;
 
 #define POWER_ON_APP_ANIMATION_FLAGS \
-    (PowerOnAppThreadFlagExitToMenu | PowerOnAppThreadFlagExitToTransportMode)
+    (PowerOnAppThreadFlagExitToMenu | PowerOnAppThreadFlagExitToTransportMode | PowerOnAppThreadFlagDeviceStarted)
 
 typedef struct {
     Gui* gui;
     FrontDisplaySrv* front_display;
     BackDisplaySrv* back_display;
-    Input* input;
     Power* power;
     Storage* storage;
 
@@ -53,11 +51,6 @@ static bool power_on_input_callback(const InputEvent* event, void* context) {
         case InputKeyOk:
         case InputKeyBack:
         case InputKeyStart:
-        case InputKeyBusy:
-        case InputKeyCustom:
-        case InputKeyOff:
-        case InputKeyApps:
-        case InputKeySettings:
             furi_thread_flags_set(instance->thread, PowerOnAppThreadFlagExitToMenu);
             consumed = true;
             break;
