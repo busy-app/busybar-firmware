@@ -122,8 +122,8 @@ static const SupervisorWarning supervisor_warnings[] = {
     [SupervisorWarningTypeRebooting] =
         {
             .style = SupervisorWarningStyleTextAndImage,
-            .image.front = SHARED_IMG_PATH("spinner_front_7x7.image"),
-            .image.back = SHARED_IMG_PATH("spinner_back_16x16.image"),
+            .image.front = SHARED_ANIM_PATH("spinner_front_7x7.anim"),
+            .image.back = SHARED_ANIM_PATH("spinner_back_16x16.anim"),
             .text.front = "Restarting device...",
             .text.back = "Restarting device...",
             .input_locked = true,
