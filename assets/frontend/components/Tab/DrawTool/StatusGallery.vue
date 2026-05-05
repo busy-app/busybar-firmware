@@ -33,7 +33,7 @@
         <USeparator
           v-if="!areAllStatusesSelected"
           orientation="vertical"
-          class="my-auto h-6"
+          class="hidden md:block my-auto h-6"
         />
 
         <UButton
@@ -97,12 +97,12 @@
 
         <div
           v-else
-          class="grid grid-cols-2 gap-4"
+          class="grid grid-cols-1 md:grid-cols-2 gap-4"
         >
           <article
             v-for="status in statusGalleryFiles"
             :key="status.name"
-            class="relative h-16 w-72 overflow-hidden rounded-md ring-1 ring-default"
+            class="relative md:h-16 w-full md:w-72 overflow-hidden rounded-md ring-1 ring-default"
             @mouseenter="hoveredStatusName = status.name"
             @mouseleave="hoveredStatusName = hoveredStatusName === status.name ? null : hoveredStatusName"
           >
@@ -115,7 +115,7 @@
 
               <div
                 class="absolute inset-0 rounded-md bg-elevated/50 transition-opacity"
-                :class="hasSelection || hoveredStatusName === status.name || !!statusMenuOpenStates[status.name] ? 'opacity-100' : 'pointer-events-none opacity-0'"
+                :class="shouldShowStatusHoverOverlaysByDefault || hasSelection || hoveredStatusName === status.name || !!statusMenuOpenStates[status.name] ? 'opacity-100' : 'pointer-events-none opacity-0'"
               >
                 <div class="absolute inset-y-0 left-5 z-10 flex items-center">
                   <input
@@ -128,7 +128,7 @@
                 </div>
 
                 <div
-                  v-if="hoveredStatusName === status.name || !!statusMenuOpenStates[status.name]"
+                  v-if="shouldShowStatusHoverOverlaysByDefault || hoveredStatusName === status.name || !!statusMenuOpenStates[status.name]"
                   class="pointer-events-none absolute inset-0 flex items-center justify-center"
                 >
                   <UButton
@@ -148,7 +148,7 @@
                 </div>
 
                 <div
-                  v-if="hoveredStatusName === status.name || !!statusMenuOpenStates[status.name]"
+                  v-if="shouldShowStatusHoverOverlaysByDefault || hoveredStatusName === status.name || !!statusMenuOpenStates[status.name]"
                   class="absolute inset-y-0 right-3 flex items-center"
                 >
                   <UDropdownMenu
@@ -226,6 +226,8 @@ const isDeletingSelected = ref(false);
 const isDeleteConfirmOpen = ref(false);
 const pendingDeleteStatusNames = ref<string[]>([]);
 const showStatusIconResetTimeout = ref<ReturnType<typeof setTimeout> | null>(null);
+const hoverInaccessibleMediaQuery = ref<MediaQueryList | null>(null);
+const shouldShowStatusHoverOverlaysByDefault = ref(false);
 
 const hasSelection = computed(() => selectedStatusNames.value.length > 0);
 const sectionTitle = computed(() => hasSelection.value ? `${selectedStatusNames.value.length} selected` : 'Your statuses');
@@ -236,6 +238,10 @@ const deleteConfirmTitle = computed(() => pendingDeleteStatusNames.value.length 
 const deleteConfirmDescription = computed(() => pendingDeleteStatusNames.value.length > 1
   ? `${pendingDeleteStatusNames.value.length} statuses will be deleted. This action cannot be undone.`
   : 'Status will be deleted. This action cannot be undone.');
+
+function updateStatusHoverOverlayAccessibility () {
+  shouldShowStatusHoverOverlaysByDefault.value = hoverInaccessibleMediaQuery.value?.matches ?? false;
+}
 
 function clearSelection () {
   selectedStatusNames.value = [];
@@ -370,7 +376,19 @@ watch(statusGalleryFiles, files => {
   }
 }, { immediate: true });
 
+onMounted(() => {
+  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+    return;
+  }
+
+  hoverInaccessibleMediaQuery.value = window.matchMedia('(hover: none), (any-hover: none), (pointer: coarse), (any-pointer: coarse), (pointer: none), (any-pointer: none)');
+  updateStatusHoverOverlayAccessibility();
+  hoverInaccessibleMediaQuery.value.addEventListener('change', updateStatusHoverOverlayAccessibility);
+});
+
 onBeforeUnmount(() => {
+  hoverInaccessibleMediaQuery.value?.removeEventListener('change', updateStatusHoverOverlayAccessibility);
+
   if (showStatusIconResetTimeout.value) {
     clearTimeout(showStatusIconResetTimeout.value);
   }

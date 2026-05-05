@@ -29,6 +29,11 @@ export const useTabStore = defineStore('tabs', () => {
       value: 'settings'
     },
     {
+      label: 'Draw tool',
+      icon: 'i-ri-pencil-line',
+      value: 'draw-tool'
+    },
+    {
       label: 'Files',
       icon: 'i-bi-folder',
       value: 'files',
@@ -38,12 +43,6 @@ export const useTabStore = defineStore('tabs', () => {
       label: 'Animations',
       icon: 'i-bi-control-play',
       value: 'animations',
-      hidden: true
-    },
-    {
-      label: 'Draw tool',
-      icon: 'i-ri-pencil-line',
-      value: 'draw-tool',
       hidden: true
     }
   ];

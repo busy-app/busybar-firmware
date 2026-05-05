@@ -31,6 +31,7 @@
               label="Save"
               color="neutral"
               variant="outline"
+              class="w-full"
               :disabled="!es.hasEditorContent"
               @click="saveStatus()"
             />
@@ -122,7 +123,7 @@
                       color="neutral"
                       variant="soft"
                       square
-                      class="rounded-xl bg-accented/25"
+                      class="hidden sm:block rounded-xl bg-accented/25"
                     >
                       <UIcon
                         name="i-bi-info"

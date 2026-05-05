@@ -299,7 +299,6 @@ export const useDrawToolEditorStore = defineStore('drawToolEditor', () => {
 
     while (low < high) {
       const middle = Math.ceil((low + high) / 2);
-      const candidate = characters.slice(0, middle).join('');
       const leadingText = characters.slice(0, Math.max(0, middle - 1)).join('');
       const { width } = measureTextShapeDimensions(leadingText, fontId, TEXT_FONT_OPTIONS);
 
