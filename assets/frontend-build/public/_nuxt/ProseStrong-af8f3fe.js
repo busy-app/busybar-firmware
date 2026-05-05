@@ -1,5 +1,0 @@
-<<<<<<<< HEAD:assets/frontend-build/public/_nuxt/ProseStrong-af8f3fe.js
-import{_ as r,c as o,o as t,r as n}from"./entry-af8f3fe.js";const s={};function c(e,a){return t(),o("strong",null,[n(e.$slots,"default")])}const _=r(s,[["render",c]]);export{_ as default};
-========
-import{_ as r,c as o,o as t,r as n}from"./entry-a082b03.js";const s={};function c(e,a){return t(),o("strong",null,[n(e.$slots,"default")])}const _=r(s,[["render",c]]);export{_ as default};
->>>>>>>> dev:assets/frontend-build/public/_nuxt/ProseStrong-a082b03.js

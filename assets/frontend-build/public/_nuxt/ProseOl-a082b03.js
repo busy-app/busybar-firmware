@@ -1,5 +1,0 @@
-<<<<<<<< HEAD:assets/frontend-build/public/_nuxt/ProseOl-af8f3fe.js
-import{_ as o,c as r,o as s,r as t}from"./entry-af8f3fe.js";const c={};function n(e,l){return s(),r("ol",null,[t(e.$slots,"default")])}const _=o(c,[["render",n]]);export{_ as default};
-========
-import{_ as o,c as r,o as s,r as t}from"./entry-a082b03.js";const c={};function n(e,l){return s(),r("ol",null,[t(e.$slots,"default")])}const _=o(c,[["render",n]]);export{_ as default};
->>>>>>>> dev:assets/frontend-build/public/_nuxt/ProseOl-a082b03.js
