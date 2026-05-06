@@ -212,9 +212,9 @@ const lv_obj_class_t prompt_overlay_lvgl_class = {
     .height_def = LV_SIZE_CONTENT,
     .instance_size = sizeof(PromptOverlay),
     .user_data =
-        (void*)&(const WidgetClassCallbacks){
-            .input = prompt_overlay_input_callback,
-            .styles =
+        (void*)&(const WidgetClassData){
+            .input_callback = prompt_overlay_input_callback,
+            .style_callbacks =
                 {
                     [GuiDisplayIdFront] = NULL,
                     [GuiDisplayIdBack] = NULL,

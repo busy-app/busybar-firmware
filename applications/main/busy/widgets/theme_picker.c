@@ -192,9 +192,9 @@ const lv_obj_class_t theme_picker_lvgl_class = {
     .height_def = LV_SIZE_CONTENT,
     .instance_size = sizeof(ThemePicker),
     .user_data =
-        (void*)&(const WidgetClassCallbacks){
-            .input = theme_picker_input_callback,
-            .styles =
+        (void*)&(const WidgetClassData){
+            .input_callback = theme_picker_input_callback,
+            .style_callbacks =
                 {
                     [GuiDisplayIdFront] = NULL,
                     [GuiDisplayIdBack] = NULL,

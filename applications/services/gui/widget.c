@@ -234,9 +234,9 @@ bool widget_input(Widget* instance, const InputEvent* event) {
         }
 
         const lv_obj_class_t* lv_class = lv_obj_get_class(lv_object);
-        const WidgetClassCallbacks* callbacks = lv_class->user_data;
-        if(callbacks && callbacks->input) {
-            consumed = callbacks->input(instance, event);
+        const WidgetClassData* class_data = lv_class->user_data;
+        if(class_data && class_data->input_callback) {
+            consumed = class_data->input_callback(instance, event);
 
             if(consumed) break;
         }
@@ -269,8 +269,8 @@ void widget_style(Widget* instance, GuiDisplayId display_id) {
     const lv_obj_class_t* lv_class = lv_obj_get_class(lv_object);
 
     if(lv_class->user_data) {
-        const WidgetClassCallbacks* callbacks = lv_class->user_data;
-        WidgetStyleCallback style_callback = callbacks->styles[display_id];
+        const WidgetClassData* class_data = lv_class->user_data;
+        WidgetStyleCallback style_callback = class_data->style_callbacks[display_id];
 
         if(style_callback) style_callback(instance);
     }

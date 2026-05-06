@@ -638,9 +638,9 @@ const lv_obj_class_t var_item_list_lvgl_class = {
     .height_def = LV_PCT(100),
     .instance_size = sizeof(VarItemList),
     .user_data =
-        (void*)&(const WidgetClassCallbacks){
-            .input = var_item_list_input_callback,
-            .styles =
+        (void*)&(const WidgetClassData){
+            .input_callback = var_item_list_input_callback,
+            .style_callbacks =
                 {
                     [GuiDisplayIdFront] = NULL,
                     [GuiDisplayIdBack] = NULL,

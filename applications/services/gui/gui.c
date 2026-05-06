@@ -122,7 +122,7 @@ static bool gui_layer_feed_input(GuiLayer* layer, const InputEvent* event) {
     return consumed;
 }
 
-static void gui_display_create_object_callback(lv_event_t* event) {
+static void gui_display_object_created_callback(lv_event_t* event) {
     lv_obj_t* lv_object = lv_event_get_param(event);
 
     if(IS_WIDGET_CLASS(lv_object)) {
@@ -191,7 +191,7 @@ static void gui_init_front(GuiDisplay* display) {
 
     lv_display_add_event_cb(
         display->lv_display,
-        gui_display_create_object_callback,
+        gui_display_object_created_callback,
         LV_EVENT_CREATE,
         (void*)GuiDisplayIdFront);
 }
@@ -219,7 +219,7 @@ static void gui_init_back(GuiDisplay* display) {
 
     lv_display_add_event_cb(
         display->lv_display,
-        gui_display_create_object_callback,
+        gui_display_object_created_callback,
         LV_EVENT_CREATE,
         (void*)GuiDisplayIdBack);
 }

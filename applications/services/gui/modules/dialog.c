@@ -265,9 +265,9 @@ const lv_obj_class_t dialog_lvgl_class = {
     .height_def = LV_PCT(100),
     .instance_size = sizeof(Dialog),
     .user_data =
-        (void*)&(const WidgetClassCallbacks){
-            .input = dialog_input_callback,
-            .styles =
+        (void*)&(const WidgetClassData){
+            .input_callback = dialog_input_callback,
+            .style_callbacks =
                 {
                     [GuiDisplayIdFront] = NULL,
                     [GuiDisplayIdBack] = NULL,

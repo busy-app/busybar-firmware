@@ -174,7 +174,10 @@ static void slider_view_lvgl_destructor(const lv_obj_class_t* class_p, lv_obj_t*
 
     SliderView* instance = (SliderView*)obj;
 
-    font_registry_unload_font(instance->font_registry, instance->font_text);
+    if(instance->font_text) {
+        font_registry_unload_font(instance->font_registry, instance->font_text);
+    }
+
     furi_record_close(RECORD_FONT_REGISTRY);
 
     free(instance->suffix);
@@ -270,6 +273,8 @@ void slider_view_add_level_image(SliderView* instance, int32_t level, const char
 }
 
 void slider_view_set_bar_gradient(SliderView* instance, Color start, Color end) {
+    furi_check(instance);
+
     lv_obj_set_style_bg_color(instance->bar, TO_LV_COLOR(start), LV_PART_INDICATOR);
     lv_obj_set_style_bg_grad_color(instance->bar, TO_LV_COLOR(end), LV_PART_INDICATOR);
     lv_obj_set_style_bg_grad_dir(instance->bar, LV_GRAD_DIR_HOR, LV_PART_INDICATOR);
@@ -336,9 +341,9 @@ static const lv_obj_class_t slider_view_lvgl_class = {
     .instance_size = sizeof(SliderView),
 
     .user_data =
-        (void*)&(const WidgetClassCallbacks){
-            .input = slider_view_input_callback,
-            .styles =
+        (void*)&(const WidgetClassData){
+            .input_callback = slider_view_input_callback,
+            .style_callbacks =
                 {
                     [GuiDisplayIdFront] = slider_view_style_front,
                     [GuiDisplayIdBack] = slider_view_style_back,

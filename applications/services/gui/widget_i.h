@@ -23,9 +23,9 @@ typedef bool (*WidgetInputCallback)(Widget* obj, const InputEvent* event);
 typedef void (*WidgetStyleCallback)(Widget* obj);
 
 typedef struct {
-    WidgetInputCallback input;
-    WidgetStyleCallback styles[GuiDisplayIdMax];
-} WidgetClassCallbacks;
+    WidgetInputCallback input_callback;
+    WidgetStyleCallback style_callbacks[GuiDisplayIdMax];
+} WidgetClassData;
 
 struct Widget {
     lv_obj_t base;
@@ -33,6 +33,11 @@ struct Widget {
 
 static_assert(offsetof(Widget, base) == 0);
 
+/*
+ * Widget class contract: every lv_obj_class_t descending from widget_lvgl_class
+ * must set user_data to either NULL or a pointer to a WidgetClassData instance.
+ * widget_input() and widget_style() read user_data to dispatch callbacks.
+ */
 extern const lv_obj_class_t widget_lvgl_class;
 
 bool widget_input(Widget* instance, const InputEvent* event);

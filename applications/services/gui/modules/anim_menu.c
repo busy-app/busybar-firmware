@@ -139,9 +139,9 @@ const lv_obj_class_t anim_menu_lvgl_class = {
     .height_def = LV_SIZE_CONTENT,
     .instance_size = sizeof(AnimMenu),
     .user_data =
-        (void*)&(const WidgetClassCallbacks){
-            .input = anim_menu_input_callback,
-            .styles =
+        (void*)&(const WidgetClassData){
+            .input_callback = anim_menu_input_callback,
+            .style_callbacks =
                 {
                     [GuiDisplayIdFront] = NULL,
                     [GuiDisplayIdBack] = NULL,

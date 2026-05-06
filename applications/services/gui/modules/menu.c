@@ -281,9 +281,9 @@ const lv_obj_class_t menu_lvgl_class = {
     .height_def = LV_PCT(100),
     .instance_size = sizeof(Menu),
     .user_data =
-        (void*)&(const WidgetClassCallbacks){
-            .input = menu_input_callback,
-            .styles =
+        (void*)&(const WidgetClassData){
+            .input_callback = menu_input_callback,
+            .style_callbacks =
                 {
                     [GuiDisplayIdFront] = NULL,
                     [GuiDisplayIdBack] = NULL,
