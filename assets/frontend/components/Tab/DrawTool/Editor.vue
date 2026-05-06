@@ -123,7 +123,7 @@
                       color="neutral"
                       variant="soft"
                       square
-                      class="hidden sm:block rounded-xl bg-accented/25"
+                      class="hidden sm:block rounded-xl bg-accented/25 size-9"
                     >
                       <UIcon
                         name="i-bi-info"
