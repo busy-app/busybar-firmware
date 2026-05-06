@@ -19,13 +19,13 @@
 #define POWER_ON_DONE_PATH       APP_DATA_PATH("done.txt")
 
 typedef enum {
-    PowerOnAppThreadFlagExit = 1 << 0,
-    PowerOnAppThreadFlagShutdown = 1 << 1,
-    PowerOnAppThreadFlagDeviceStarted = 1 << 2,
-} PowerOnAppThreadFlag;
+    PowerOnAppFlagStartupComplete = 1UL << 0,
+    PowerOnAppFlagUserInteracted = 1UL << 1,
+    PowerOnAppFlagShutdownRequired = 1UL << 2,
+} PowerOnAppFlag;
 
 #define POWER_ON_APP_ANIMATION_FLAGS \
-    (PowerOnAppThreadFlagExit | PowerOnAppThreadFlagShutdown | PowerOnAppThreadFlagDeviceStarted)
+    (PowerOnAppFlagStartupComplete | PowerOnAppFlagUserInteracted | PowerOnAppFlagShutdownRequired)
 
 typedef struct {
     Gui* gui;
@@ -53,7 +53,7 @@ static bool power_on_input_callback(const InputEvent* event, void* context) {
         case InputKeyOk:
         case InputKeyBack:
         case InputKeyStart:
-            furi_thread_flags_set(instance->thread_id, PowerOnAppThreadFlagExit);
+            furi_thread_flags_set(instance->thread_id, PowerOnAppFlagUserInteracted);
             consumed = true;
             break;
         default:
@@ -66,10 +66,10 @@ static bool power_on_input_callback(const InputEvent* event, void* context) {
 
 static void power_on_shutdown_timer_callback(void* ctx) {
     PowerOnApp* instance = ctx;
-    furi_thread_flags_set(instance->thread_id, PowerOnAppThreadFlagShutdown);
+    furi_thread_flags_set(instance->thread_id, PowerOnAppFlagShutdownRequired);
 }
 
-static bool power_on_thread_signal(uint32_t signal, void* arg, void* context) {
+static bool power_on_thread_signal_callback(uint32_t signal, void* arg, void* context) {
     UNUSED(arg);
     furi_assert(context);
 
@@ -78,7 +78,7 @@ static bool power_on_thread_signal(uint32_t signal, void* arg, void* context) {
     if(signal == FuriSignalExit) {
         // Desktop has received the initial switch state and wants to close us
         furi_check(
-            !(furi_thread_flags_set(instance->thread_id, PowerOnAppThreadFlagDeviceStarted) &
+            !(furi_thread_flags_set(instance->thread_id, PowerOnAppFlagStartupComplete) &
               FuriFlagError));
         return true;
     }
@@ -86,50 +86,7 @@ static bool power_on_thread_signal(uint32_t signal, void* arg, void* context) {
     return false;
 }
 
-static PowerOnApp* power_on_app_alloc(void) {
-    PowerOnApp* instance = malloc(sizeof(PowerOnApp));
-
-    instance->gui = furi_record_open(RECORD_GUI);
-    instance->power = furi_record_open(RECORD_POWER);
-    instance->storage = furi_record_open(RECORD_STORAGE);
-
-    instance->thread_id = furi_thread_get_current_id();
-    instance->shutdown_timer =
-        furi_timer_alloc(power_on_shutdown_timer_callback, FuriTimerTypeOnce, instance);
-    furi_timer_start(
-        instance->shutdown_timer, furi_ms_to_ticks(MIN_TO_MS(POWER_ON_APP_TIMEOUT_MIN)));
-
-    furi_thread_set_signal_callback(furi_thread_get_current(), power_on_thread_signal, instance);
-
-    return instance;
-}
-
-static void power_on_app_free(PowerOnApp* instance) {
-    furi_timer_free(instance->shutdown_timer);
-
-    with_gui(instance->gui, {
-        for(GuiDisplayId id = 0; id < GuiDisplayIdMax; ++id) {
-            if(instance->labels[id]) {
-                label_free(instance->labels[id]);
-            }
-
-            if(instance->anims[id]) {
-                anim_player_free(instance->anims[id]);
-            }
-        }
-
-        GuiLayer* layer_main = gui_get_layer(instance->gui, GuiLayerIdMain);
-        gui_layer_remove_input_callback(layer_main, power_on_input_callback);
-    });
-
-    furi_record_close(RECORD_STORAGE);
-    furi_record_close(RECORD_POWER);
-    furi_record_close(RECORD_GUI);
-
-    free(instance);
-}
-
-static inline bool power_on_done_flag_present(PowerOnApp* instance) {
+static inline bool power_on_is_done_flag_present(PowerOnApp* instance) {
     return storage_file_exists(instance->storage, POWER_ON_DONE_PATH);
 }
 
@@ -185,7 +142,7 @@ static void power_on_show_first_boot_animation(PowerOnApp* instance) {
 
 static void power_on_wait_for_start_condition(PowerOnApp* instance) {
     // avoid showing text for < 500ms
-    const uint32_t wanted_flags = PowerOnAppThreadFlagDeviceStarted;
+    const uint32_t wanted_flags = PowerOnAppFlagStartupComplete;
     const uint32_t flags = furi_thread_flags_wait(
         wanted_flags, FuriFlagWaitAny, furi_ms_to_ticks(POWER_ON_START_TIMEOUT_MS));
 
@@ -201,14 +158,58 @@ static void power_on_wait_for_exit_condition(PowerOnApp* instance) {
     const uint32_t flags =
         furi_thread_flags_wait(POWER_ON_APP_ANIMATION_FLAGS, FuriFlagWaitAny, FuriWaitForever);
 
-    if(flags & PowerOnAppThreadFlagShutdown) {
+    if(flags & PowerOnAppFlagShutdownRequired) {
         power_off(instance->power);
     }
 
-    if(flags & PowerOnAppThreadFlagExit) {
+    if(flags & PowerOnAppFlagUserInteracted) {
         furi_timer_stop(instance->shutdown_timer);
         power_on_done_flag_create(instance);
     }
+}
+
+static PowerOnApp* power_on_app_alloc(void) {
+    PowerOnApp* instance = malloc(sizeof(PowerOnApp));
+
+    instance->gui = furi_record_open(RECORD_GUI);
+    instance->power = furi_record_open(RECORD_POWER);
+    instance->storage = furi_record_open(RECORD_STORAGE);
+
+    instance->thread_id = furi_thread_get_current_id();
+    instance->shutdown_timer =
+        furi_timer_alloc(power_on_shutdown_timer_callback, FuriTimerTypeOnce, instance);
+    furi_timer_start(
+        instance->shutdown_timer, furi_ms_to_ticks(MIN_TO_MS(POWER_ON_APP_TIMEOUT_MIN)));
+
+    furi_thread_set_signal_callback(
+        furi_thread_get_current(), power_on_thread_signal_callback, instance);
+
+    return instance;
+}
+
+static void power_on_app_free(PowerOnApp* instance) {
+    furi_timer_free(instance->shutdown_timer);
+
+    with_gui(instance->gui, {
+        for(GuiDisplayId id = 0; id < GuiDisplayIdMax; ++id) {
+            if(instance->labels[id]) {
+                label_free(instance->labels[id]);
+            }
+
+            if(instance->anims[id]) {
+                anim_player_free(instance->anims[id]);
+            }
+        }
+
+        GuiLayer* layer_main = gui_get_layer(instance->gui, GuiLayerIdMain);
+        gui_layer_remove_input_callback(layer_main, power_on_input_callback);
+    });
+
+    furi_record_close(RECORD_STORAGE);
+    furi_record_close(RECORD_POWER);
+    furi_record_close(RECORD_GUI);
+
+    free(instance);
 }
 
 int32_t power_on_app(void* arg) {
@@ -218,7 +219,7 @@ int32_t power_on_app(void* arg) {
 
     power_on_wait_for_start_condition(instance);
 
-    if(!power_on_done_flag_present(instance)) {
+    if(!power_on_is_done_flag_present(instance)) {
         power_on_show_first_boot_animation(instance);
         power_on_wait_for_exit_condition(instance);
     }
