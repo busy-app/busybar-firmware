@@ -102,7 +102,7 @@
           trailing-icon="i-bi-caret-down"
           color="neutral"
           variant="ghost"
-          class="text-xl rounded-md"
+          class="max-w-[calc(100vw-2rem-5.625rem-2.25rem)] sm:max-w-auto relative -right-4 xl:-right-2 text-xl rounded-md truncate"
           :ui="{
             trailingIcon: 'size-6 text-neutral-500'
           }"
@@ -135,13 +135,25 @@
         <template #body>
           <UInput
             v-model="nameModel"
+            :maxlength="maxNameLength"
             name="new-name"
             size="xl"
             variant="soft"
             :ui="{ base: 'ring-1 ring-glass bg-accented/50' }"
             :disabled="loading.rename"
             @keyup.enter="updateDeviceName"
-          />
+          >
+          <template #trailing>
+            <div
+              id="character-count"
+              class="text-xs text-muted tabular-nums"
+              aria-live="polite"
+              role="status"
+            >
+              {{ nameModel?.length }}/{{ maxNameLength }}
+            </div>
+          </template>
+        </UInput>
         </template>
       </ModalGeneric>
 
@@ -217,6 +229,7 @@ const pms = usePasswordModalStore();
 const tabStore = useTabStore();
 
 const colorMode = useColorMode();
+const maxNameLength = 18;
 
 const passwordSetItems = computed(() => [
   {
@@ -332,12 +345,6 @@ async function restartDevice () {
     showRestartModal.value = false;
   }
 }
-
-/* async function lockDown () {
-  apiStore.apiKey = null;
-  deviceStore.busyBar.setApiKey('');
-  await navigateTo('/login', { external: true });
-} */
 
 const power = computed(() => deviceStore.deviceStatus?.power);
 
