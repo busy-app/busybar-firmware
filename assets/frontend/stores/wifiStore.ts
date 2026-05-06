@@ -50,6 +50,9 @@ export const useWifiStore = defineStore('wifi', () => {
         return response.networks;
       })
       .catch(async error => {
+        if (wifi.value?.state === 'connected') {
+          return;
+        }
         await handleHTTPError(error, 'Couldn\'t list WiFi networks', false, 0);
         return [];
       })
