@@ -67,10 +67,10 @@ static bool api_audio_play_stop_callback(
                     file_name = c + 1;
                 }
             }
-            if(!file_name) {
+            if(!file_name || *file_name == '\0') {
                 MG_REPLY_ERROR(conn, 400, "Wrong file name");
                 break;
-            };
+            }
 
             file_path = furi_string_alloc_printf(SHARED_SOUND_PATH("%s"), file_name);
         }
