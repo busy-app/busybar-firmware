@@ -7,12 +7,13 @@
 #include <storage/storage.h>
 #include <power/power_service/power.h>
 
+#include <busy_timer/time_macros.h>
+
 #define TAG "PowerOn"
 
 #define POWER_ON_START_TIMEOUT_MS (500)
 #define POWER_ON_APP_TIMEOUT_MIN  (15)
 
-#define MIN_TO_MS(minutes)    (minutes * 60U * 1000U)
 #define POWER_ON_LOOP_SECTION "loop"
 
 #define POWER_ON_ANIM_PATH(path) BACKUP_PATH("recovery/resources/power_on/animations") "/" path
@@ -184,7 +185,7 @@ static PowerOnApp* power_on_app_alloc(void) {
     instance->shutdown_timer =
         furi_timer_alloc(power_on_shutdown_timer_callback, FuriTimerTypeOnce, instance);
     furi_timer_start(
-        instance->shutdown_timer, furi_ms_to_ticks(MIN_TO_MS(POWER_ON_APP_TIMEOUT_MIN)));
+        instance->shutdown_timer, furi_ms_to_ticks(M_TO_MS(POWER_ON_APP_TIMEOUT_MIN)));
 
     furi_thread_set_signal_callback(
         furi_thread_get_current(), power_on_thread_signal_callback, instance);
