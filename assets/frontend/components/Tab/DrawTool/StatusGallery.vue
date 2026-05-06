@@ -114,7 +114,7 @@
               >
 
               <div
-                class="absolute inset-0 rounded-md bg-elevated/50 transition-opacity"
+                class="absolute inset-0 rounded-md bg-elevated/90 transition-opacity"
                 :class="shouldShowStatusHoverOverlaysByDefault || hasSelection || hoveredStatusName === status.name || !!statusMenuOpenStates[status.name] ? 'opacity-100' : 'pointer-events-none opacity-0'"
               >
                 <div class="absolute inset-y-0 left-5 z-10 flex items-center">
