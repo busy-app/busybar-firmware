@@ -19,8 +19,7 @@
 
         <div
           v-if="firmwareStore.autoUpdate.status === 'available' && tab.value === 'firmware'"
-          class="size-2 rounded-full"
-          :class="firmwareStore.autoUpdate.isAllowed ? 'bg-success' : 'bg-warning'"
+          class="size-2 rounded-full bg-success"
         />
       </div>
     </div>
