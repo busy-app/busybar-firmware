@@ -21,7 +21,8 @@ export default {
                 "input",
                 "timer",
                 "ble",
-                "autoUpdateState"
+                "autoUpdateState",
+                "timerProfiles"
               ]
             }
           },
@@ -81,6 +82,10 @@ export default {
             "autoUpdateState": {
               "type": "BSB_Update.AutoUpdateState",
               "id": 14
+            },
+            "timerProfiles": {
+              "type": "BSB_Timer.Profiles",
+              "id": 15
             }
           }
         },
@@ -604,6 +609,27 @@ export default {
     },
     "BSB_Timer": {
       "nested": {
+        "Profile": {
+          "fields": {
+            "name": {
+              "type": "string",
+              "id": 1
+            },
+            "json": {
+              "type": "BSB_Util.Json",
+              "id": 2
+            }
+          }
+        },
+        "Profiles": {
+          "fields": {
+            "profiles": {
+              "rule": "repeated",
+              "type": "Profile",
+              "id": 1
+            }
+          }
+        },
         "Timer": {
           "fields": {
             "json": {
