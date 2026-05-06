@@ -25,7 +25,7 @@ typedef enum {
 } PowerOnAppFlag;
 
 #define POWER_ON_APP_ANIMATION_FLAGS \
-    (PowerOnAppFlagStartupComplete | PowerOnAppFlagUserInteracted | PowerOnAppFlagShutdownRequired)
+    (PowerOnAppFlagUserInteracted | PowerOnAppFlagShutdownRequired)
 
 typedef struct {
     Gui* gui;
@@ -53,6 +53,11 @@ static bool power_on_input_callback(const InputEvent* event, void* context) {
         case InputKeyOk:
         case InputKeyBack:
         case InputKeyStart:
+        case InputKeyBusy:
+        case InputKeyCustom:
+        case InputKeyOff:
+        case InputKeyApps:
+        case InputKeySettings:
             furi_thread_flags_set(instance->thread_id, PowerOnAppFlagUserInteracted);
             consumed = true;
             break;
