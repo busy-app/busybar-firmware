@@ -1033,14 +1033,6 @@ const toolbarKeyboardShortcuts: Array<{ label: string; tokens: ShortcutToken[] }
     ]
   },
   {
-    label: 'Unlock resize ratio',
-    tokens: [
-      { kind: 'key', label: 'shift' },
-      { kind: 'text', label: '/' },
-      { kind: 'key', label: 'alt' }
-    ]
-  },
-  {
     label: 'Delete object',
     tokens: [
       { kind: 'key', label: 'backspace' }
