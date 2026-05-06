@@ -2,6 +2,7 @@
 
 #include <furi_hal_rtc.h>
 #include <furi_hal_version.h>
+#include <power/power_service/power.h>
 
 #define TAG "Matter"
 
@@ -9,6 +10,7 @@
 
 #define REQUEST_TIMEOUT_MS  (furi_ms_to_ticks(5000))
 #define RESPONSE_TIMEOUT_MS (5000)
+#define REBOOT_TIMER_MS     (2500)
 
 #define DEFAULT_HARDWARE_VERSION        4
 #define DEFAULT_HARDWARE_VERSION_STRING "4.F22.B7.C2"
@@ -369,7 +371,21 @@ static MatterStatus
         .type = MatterIntercomFrameTypeReset,
     };
 
-    return matter_send_frame(instance, &frame);
+    MatterStatus status = matter_send_frame(instance, &frame);
+    if(status != MatterStatusOk) return status;
+
+    MatterEvent event = {
+        .type = MatterEventTypeWillReboot,
+    };
+    furi_pubsub_publish(instance->pubsub, &event);
+
+    furi_delay_ms(REBOOT_TIMER_MS);
+
+    Power* power = furi_record_open(RECORD_POWER);
+
+    power_reboot(power, PowerRebootNormal);
+    while(1)
+        ;
 }
 
 static const MatterApiMessageHandler matter_api_message_handlers[MatterApiMessageTypeMax] = {

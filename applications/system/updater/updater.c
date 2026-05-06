@@ -141,21 +141,14 @@ static UpdaterStatus updater_do_session_stop(Updater* instance, UpdaterMessage* 
     return UpdaterStatusOk;
 }
 
-static UpdaterStatus updater_do_get_settings(Updater* instance, UpdaterMessage* message) {
-    *message->as_get_settings.get_settings = instance->settings;
-    return UpdaterStatusOk;
-}
-
 static UpdaterStatus updater_do_set_settings(Updater* instance, UpdaterMessage* message) {
     if(!updater_settings_save(message->as_set_settings.set_settings))
         return UpdaterStatusUnknownFailure;
 
     instance->settings = *message->as_set_settings.set_settings;
+    furi_state_set(instance->settings_state, &instance->settings);
 
     updater_internal_settings_change_build_specific(instance);
-
-    furi_pubsub_publish(
-        instance->pubsub, &(UpdaterEvent){.type = UpdaterEventTypeSettingsChanged});
 
     return UpdaterStatusOk;
 }
@@ -383,12 +376,7 @@ void updater_get_settings(const Updater* instance, UpdaterSettings* settings) {
     furi_check(instance);
     furi_check(settings);
 
-    UpdaterMessage message = {
-        .as_get_settings.get_settings = settings,
-        .type = MessageTypeGetSettings,
-    };
-
-    updater_internal_invoke_sync((Updater*)instance, &message);
+    furi_state_get(instance->settings_state, settings);
 }
 
 bool updater_set_settings(Updater* instance, const UpdaterSettings* settings) {
@@ -403,10 +391,10 @@ bool updater_set_settings(Updater* instance, const UpdaterSettings* settings) {
     return updater_internal_invoke_sync(instance, &message) == UpdaterStatusOk;
 }
 
-FuriPubSub* updater_get_pubsub(Updater* instance) {
+FuriState* updater_get_settings_state(Updater* instance) {
     furi_check(instance);
 
-    return instance->pubsub;
+    return instance->settings_state;
 }
 
 static Updater* updater_alloc(void) {
@@ -421,9 +409,11 @@ static Updater* updater_alloc(void) {
 
     updater_settings_load(&instance->settings);
 
+    instance->settings_state = furi_state_alloc(sizeof(UpdaterSettings));
+    furi_state_set(instance->settings_state, &instance->settings);
+
     instance->update_lock = furi_semaphore_alloc(1, 1);
     instance->update_state = furi_state_alloc(sizeof(UpdaterUpdateState));
-    instance->pubsub = furi_pubsub_alloc();
 
     updater_internal_setup_build_specific(instance);
 
@@ -521,11 +511,6 @@ static const MessageHandler message_handlers[] = {
     [MessageTypeCheckForUpdate] =
         {
             .callback = updater_internal_do_check_for_update,
-            .action = UpdaterUpdateActionNone,
-        },
-    [MessageTypeGetSettings] =
-        {
-            .callback = updater_do_get_settings,
             .action = UpdaterUpdateActionNone,
         },
     [MessageTypeSetSettings] =

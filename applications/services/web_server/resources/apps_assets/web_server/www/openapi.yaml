@@ -2361,6 +2361,10 @@ components:
           type: string
           description: Radio firmware version
           example: "1711.2.14.5.2.0.7"
+        matter_version:
+          type: string
+          description: Matter version
+          example: "1.0"
       required:
         - version
         - target
