@@ -206,8 +206,14 @@ export const useStateStreamStore = defineStore('stateStream', () => {
     const previousIpConfig = wifiStore.wifi?.ip_config;
     const address = isProtoMessage(primaryIp) ? getString(primaryIp.address) : undefined;
 
+    // FW-883: reconnecting still reports connected state
+    let _nextStateKey = nextStateKey;
+    if (nextStateKey === 'connected' && connected?.status === 'RECONNECTING') {
+      _nextStateKey = 'reconnecting';
+    }
+
     const nextWifiState = {
-      state: lowerCaseEnum(nextStateKey) as 'unknown' | 'disconnected' | 'connected' | 'connecting' | 'disconnecting' | 'reconnecting' | undefined,
+      state: lowerCaseEnum(_nextStateKey) as 'unknown' | 'disconnected' | 'connected' | 'connecting' | 'disconnecting' | 'reconnecting' | undefined,
       ssid: getString(connected?.ssid),
       bssid: getString(connected?.bssid),
       channel: getNumber(connected?.channel),
