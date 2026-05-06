@@ -14,6 +14,7 @@
 #include <status_lights/status_lights.h>
 #include <brightness_control/brightness_control.h>
 #include <wifi/wifi.h>
+#include <furi_hal_rtc.h>
 
 #include <gui/scene_manager.h>
 #include <gui/modules/nav_bar.h>
@@ -27,6 +28,14 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#define RECORD_MATTER_SETTINGS_STATUS_ACK "matter_settings_status_ack"
+
+typedef struct {
+    time_t user_knowledge_timestamp;
+} MatterStatusAck;
+
+void matter_settings_acknowledge_status(MatterStatusAck* status_ack);
 
 typedef enum {
     AppEventAboutToExit,
@@ -60,6 +69,7 @@ typedef struct {
     StatusLights* status_lights;
     BrightnessControl* brightness_control;
     Wifi* wifi;
+    MatterStatusAck* status_ack;
 
     Widget* front_scene_window;
 

@@ -17,8 +17,8 @@ static void matter_scene_commission_fail_on_enter(void* context) {
     };
 
     static const char* const images[GuiDisplayIdMax] = {
-        [GuiDisplayIdFront] = SETTINGS_IMG_PATH("cross_front_7x7.image"),
-        [GuiDisplayIdBack] = SETTINGS_IMG_PATH("cross_back_10x11.image"),
+        [GuiDisplayIdFront] = SETTINGS_IMG_PATH("error_front_7x7.image"),
+        [GuiDisplayIdBack] = SETTINGS_IMG_PATH("error_back_10x10.image"),
     };
 
     with_gui(app->gui, {
@@ -41,6 +41,8 @@ static void matter_scene_commission_fail_on_exit(void* context) {
             status_view_free(scene->statuses[disp]);
         }
     });
+
+    matter_settings_acknowledge_status(app->status_ack);
 }
 
 static bool matter_scene_commission_fail_on_event(const SceneManagerEvent* event, void* context) {

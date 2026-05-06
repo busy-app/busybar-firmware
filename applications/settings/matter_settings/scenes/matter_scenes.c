@@ -8,6 +8,7 @@ extern const Scene matter_scene_commission_done;
 extern const Scene matter_scene_commission_fail;
 
 extern const Scene matter_scene_reboot;
+extern const Scene matter_scene_wrecked;
 
 const Scene* const matter_scenes[SceneIdsCount] = {
     [SceneIdMain] = &matter_scene_main,
@@ -18,4 +19,5 @@ const Scene* const matter_scenes[SceneIdsCount] = {
     [SceneIdCommissionFail] = &matter_scene_commission_fail,
 
     [SceneIdReboot] = &matter_scene_reboot,
+    [SceneIdWrecked] = &matter_scene_wrecked,
 };
