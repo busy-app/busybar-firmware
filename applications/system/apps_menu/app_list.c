@@ -6,6 +6,7 @@
 
 const char* const apps_menu_entries[] = {
     [AppsMenuEntryIdxClock] = "clock",
+    [AppsMenuEntryIdxDummy] = NULL,
 };
 
 static_assert(COUNT_OF(apps_menu_entries) == AppsMenuEntryIdxsCount);

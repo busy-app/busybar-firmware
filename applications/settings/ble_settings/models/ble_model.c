@@ -7,6 +7,7 @@
 #define BLE_PAIRING_TIMEOUT_MIN (5)
 
 struct BleModel {
+    bool ready;
     DeviceName* device_name;
     Ble* ble;
     FuriMutex* lock;
@@ -26,8 +27,11 @@ static void ble_model_on_state_change_callback(const void* message, void* contex
     const BleState* state = message;
 
     furi_mutex_acquire(model->lock, FuriWaitForever);
+    model->ready = true;
     memcpy(&model->state, state, sizeof(BleState));
-    furi_timer_stop(model->pairing_timer);
+    if(model->state.status == BleServiceStatusConnected) {
+        furi_timer_stop(model->pairing_timer);
+    }
     furi_mutex_release(model->lock);
 
     if(model->callback) {
@@ -65,8 +69,7 @@ BleModel* ble_model_alloc(void) {
     model->ble = furi_record_open(RECORD_BLE);
     model->lock = furi_mutex_alloc(FuriMutexTypeNormal);
 
-    bool result = ble_get_state(model->ble, &model->state);
-    furi_assert(result);
+    model->ready = ble_get_state(model->ble, &model->state);
 
     FuriPubSub* pubsub = ble_get_pubsub(model->ble);
     model->ble_subscription =
@@ -90,6 +93,11 @@ void ble_model_free(BleModel* model) {
     furi_record_close(RECORD_BLE);
     furi_record_close(RECORD_DEVICE_NAME);
     free(model);
+}
+
+bool ble_model_ready(BleModel* model) {
+    furi_assert(model);
+    return model->ready;
 }
 
 void ble_model_get_state(BleModel* model, BleState* output) {

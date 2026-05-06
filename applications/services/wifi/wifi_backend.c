@@ -324,12 +324,12 @@ static void wifi_scan_finished_event_handler(Wifi* instance, const WifiScanFinis
     if(response.status == WifiStatusOk) {
         uint16_t results_count = 0;
 
-        const size_t results_size = sizeof(sl_wifi_extended_scan_result_t) * SCAN_MAX_RESULTS;
-        sl_wifi_extended_scan_result_t* scan_results = malloc(results_size);
+        sl_wifi_extended_scan_result_t* scan_results =
+            malloc(sizeof(sl_wifi_extended_scan_result_t) * SCAN_MAX_RESULTS);
 
         sl_wifi_extended_scan_result_parameters_t params = {
             .scan_results = scan_results,
-            .array_length = results_size,
+            .array_length = SCAN_MAX_RESULTS,
             .result_count = &results_count,
         };
 

@@ -9,6 +9,8 @@
 
 #define TAG "HttpStatus"
 
+#define MATTER_VERSION_STR "1.0"
+
 typedef struct {
     time_t boot_timestamp;
 } ApiStatusCtx;
@@ -102,6 +104,8 @@ static bool status_get_firmware(FuriString* json_str, ApiStatusCtx* context) {
         version_get_dirty_flag(firmware_version) ? "-dirty" : "");
 
     status_append_sl_firmware_info(json_str);
+
+    furi_string_cat_printf(json_str, ",\"matter_version\":\"%s\"", MATTER_VERSION_STR);
 
     furi_string_cat_printf(json_str, "}");
 

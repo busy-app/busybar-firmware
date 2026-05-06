@@ -216,6 +216,11 @@ void state_publisher_free_state_update(BSB_State_StateUpdate* update) {
     case BSB_State_StateUpdate_frame_tag:
         free(update->state.frame.data);
         break;
+    case BSB_State_StateUpdate_timer_profiles_tag:
+        for(size_t i = 0; i != update->state.timer_profiles.profiles_count; ++i) {
+            free(update->state.timer_profiles.profiles[i].json.data);
+        }
+        free(update->state.timer_profiles.profiles);
     default:
         break;
     }
@@ -421,6 +426,12 @@ static bool handle_busy_timer(StatePublisher* instance, const Message* message) 
     return true;
 }
 
+static bool handle_busy_timer_profiles(StatePublisher* instance, const Message* message) {
+    furi_assert(message->type == MessageTypeBusyTimerProfiles);
+    state_publisher_publish_busy_timer_profiles(instance);
+    return true;
+}
+
 static bool handle_autoupdate_event(StatePublisher* instance, const Message* message) {
     furi_assert(message->type == MessageTypeAutoupdateEvent);
     state_publisher_publish_autoupdate(instance);
@@ -441,6 +452,7 @@ static const MessageHandler message_handlers[] = {
     [MessageTypeMatterEvent] = handle_matter_event,
     [MessageTypeUpdaterCheckEvent] = handle_updater_check_event,
     [MessageTypeBusyTimer] = handle_busy_timer,
+    [MessageTypeBusyTimerProfiles] = handle_busy_timer_profiles,
     [MessageTypeAutoupdateEvent] = handle_autoupdate_event,
     [MessageTypeBle] = handle_ble,
 };
