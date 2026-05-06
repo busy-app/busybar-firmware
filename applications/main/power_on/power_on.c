@@ -14,7 +14,8 @@
 #define POWER_ON_START_TIMEOUT_MS (500)
 #define POWER_ON_APP_TIMEOUT_MIN  (15)
 
-#define POWER_ON_LOOP_SECTION "loop"
+#define POWER_ON_ANIM_SECTION "loop"
+#define POWER_ON_ANIM_FLAGS   (AnimFilePlayFlagFinishCurrent | AnimFilePlayFlagLoop)
 
 #define POWER_ON_ANIM_PATH(path) BACKUP_PATH("recovery/resources/power_on/animations") "/" path
 #define POWER_ON_DONE_PATH       APP_DATA_PATH("done.txt")
@@ -25,6 +26,7 @@ typedef enum {
     PowerOnAppFlagShutdownRequired = 1UL << 2,
 } PowerOnAppFlag;
 
+#define POWER_ON_APP_STARTUP_FLAGS (PowerOnAppFlagStartupComplete)
 #define POWER_ON_APP_ANIMATION_FLAGS \
     (PowerOnAppFlagUserInteracted | PowerOnAppFlagShutdownRequired)
 
@@ -83,9 +85,9 @@ static bool power_on_thread_signal_callback(uint32_t signal, void* arg, void* co
 
     if(signal == FuriSignalExit) {
         // Desktop has received the initial switch state and wants to close us
-        furi_check(
-            !(furi_thread_flags_set(instance->thread_id, PowerOnAppFlagStartupComplete) &
-              FuriFlagError));
+        const uint32_t flags =
+            furi_thread_flags_set(instance->thread_id, PowerOnAppFlagStartupComplete);
+        furi_check((flags & FuriFlagError) == 0);
         return true;
     }
 
@@ -111,8 +113,7 @@ static AnimPlayer* power_on_animation_alloc(Widget* widget, GuiDisplayId display
     AnimPlayer* anim = anim_player_alloc(widget);
 
     if(anim_player_set_source(anim, power_on_anim_paths[display_id])) {
-        anim_player_set_section(
-            anim, AnimFilePlayFlagFinishCurrent | AnimFilePlayFlagLoop, POWER_ON_LOOP_SECTION);
+        anim_player_set_section(anim, POWER_ON_ANIM_FLAGS, POWER_ON_ANIM_SECTION);
     }
 
     return anim;
@@ -148,16 +149,18 @@ static void power_on_show_first_boot_animation(PowerOnApp* instance) {
 
 static void power_on_wait_for_start_condition(PowerOnApp* instance) {
     // avoid showing text for < 500ms
-    const uint32_t wanted_flags = PowerOnAppFlagStartupComplete;
-    const uint32_t flags = furi_thread_flags_wait(
-        wanted_flags, FuriFlagWaitAny, furi_ms_to_ticks(POWER_ON_START_TIMEOUT_MS));
+    uint32_t flags;
+
+    flags = furi_thread_flags_wait(
+        POWER_ON_APP_STARTUP_FLAGS, FuriFlagWaitAny, furi_ms_to_ticks(POWER_ON_START_TIMEOUT_MS));
 
     if(flags == FuriFlagErrorTimeout) {
         power_on_show_startup_message(instance);
-        furi_thread_flags_wait(wanted_flags, FuriFlagWaitAny, FuriWaitForever);
-    } else {
-        furi_check((flags & FuriFlagError) == 0);
+        flags =
+            furi_thread_flags_wait(POWER_ON_APP_STARTUP_FLAGS, FuriFlagWaitAny, FuriWaitForever);
     }
+
+    furi_check((flags & FuriFlagError) == 0);
 }
 
 static void power_on_wait_for_exit_condition(PowerOnApp* instance) {
