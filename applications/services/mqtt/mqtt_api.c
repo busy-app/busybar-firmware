@@ -69,38 +69,38 @@ void mqtt_get_session_info(Mqtt* instance, MqttSessionInfo* info) {
     mqtt_send_message(instance, &message);
 }
 
-MqttProfileId mqtt_get_profile(Mqtt* instance, FuriString* custom_url) {
+void mqtt_get_profile(Mqtt* instance, MqttProfile* profile) {
     furi_check(instance);
-
-    MqttProfileId profile_id;
+    furi_check(profile);
 
     MqttApiMessage message = {
         .type = MqttApiMessageTypeGetProfile,
         .data.get_profile =
             {
-                .profile_id = &profile_id,
-                .custom_url = custom_url,
+                .profile = profile,
             },
     };
 
     mqtt_send_message(instance, &message);
-    return profile_id;
 }
 
-void mqtt_set_profile(Mqtt* instance, MqttProfileId profile_id, const char* custom_url) {
+bool mqtt_set_profile(Mqtt* instance, const MqttProfile* profile) {
     furi_check(instance);
-    furi_check(profile_id < MqttProfileIdMax);
+    furi_check(profile);
+
+    bool is_success = false;
 
     MqttApiMessage message = {
         .type = MqttApiMessageTypeSetProfile,
         .data.set_profile =
             {
-                .profile_id = profile_id,
-                .custom_url = custom_url,
+                .profile = profile,
+                .is_success = &is_success,
             },
     };
 
     mqtt_send_message(instance, &message);
+    return is_success;
 }
 
 bool mqtt_publish(
@@ -306,17 +306,8 @@ static void mqtt_get_profile_api_message_handler(Mqtt* instance, const MqttApiMe
     furi_assert(data);
 
     const MqttApiMessageGetProfile* get_profile = &data->get_profile;
-
-    MqttSettings* settings = &instance->settings;
-    const MqttProfileId profile_id = settings->profile_id;
-
-    *(get_profile->profile_id) = profile_id;
-
-    if(profile_id == MqttProfileIdCustom) {
-        if(get_profile->custom_url) {
-            furi_string_set(get_profile->custom_url, settings->custom_url);
-        }
-    }
+    const MqttSettings* settings = &instance->settings;
+    *get_profile->profile = settings->profile;
 }
 
 static void mqtt_set_profile_api_message_handler(Mqtt* instance, const MqttApiMessageData* data) {
@@ -324,20 +315,19 @@ static void mqtt_set_profile_api_message_handler(Mqtt* instance, const MqttApiMe
     furi_assert(data);
 
     const MqttApiMessageSetProfile* set_profile = &data->set_profile;
-    const MqttProfileId profile_id = set_profile->profile_id;
+    const MqttProfile* profile = set_profile->profile;
 
-    MqttSettings* settings = &instance->settings;
-    settings->profile_id = profile_id;
+    bool is_success = false;
 
-    if(profile_id == MqttProfileIdCustom) {
-        // TODO: Better checks for custom url
-        if(set_profile->custom_url) {
-            strlcpy(settings->custom_url, set_profile->custom_url, sizeof(settings->custom_url));
-        }
+    if(mqtt_profile_is_valid(profile)) {
+        MqttSettings* settings = &instance->settings;
+        settings->profile = *set_profile->profile;
+
+        mqtt_settings_save(settings);
+        mqtt_connection_close(instance, true);
     }
 
-    mqtt_settings_save(settings);
-    mqtt_connection_close(instance, true);
+    *set_profile->is_success = is_success;
 }
 
 static void mqtt_publish_api_message_handler(Mqtt* instance, const MqttApiMessageData* data) {

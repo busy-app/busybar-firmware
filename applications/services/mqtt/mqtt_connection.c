@@ -13,13 +13,6 @@
 #define STATUS_ONLINE  "\"status\":\"online\""
 #define STATUS_OFFLINE "\"status\":\"offline\""
 
-typedef struct {
-    const char* url;
-    bool use_tls;
-} MqttProfile;
-
-static const MqttProfile mqtt_profile_table[MqttProfileIdMax];
-
 static void mqtt_ping_timer_callback(void* data) {
     furi_assert(data);
     Mqtt* mqtt = data;
@@ -92,26 +85,30 @@ static void mqtt_set_status(Mqtt* instance, MqttStatus status) {
 }
 
 static bool mqtt_is_tls_enabled(const Mqtt* instance) {
-    const MqttSettings* settings = &instance->settings;
-    const MqttProfileId profile_id = settings->profile_id;
-
-    if(profile_id != MqttProfileIdCustom) {
-        return mqtt_profile_table[profile_id].use_tls;
-    } else {
-        return strncmp(settings->custom_url, MQTT_URL_TLS_PREFIX, strlen(MQTT_URL_TLS_PREFIX)) ==
-               0;
-    }
+    UNUSED(instance);
+    return false;
+    // const MqttSettings* settings = &instance->settings;
+    // const MqttProfileId profile_id = settings->profile_id;
+    //
+    // if(profile_id != MqttProfileIdCustom) {
+    //     return mqtt_profile_table[profile_id].use_tls;
+    // } else {
+    //     return strncmp(settings->custom_url, MQTT_URL_TLS_PREFIX, strlen(MQTT_URL_TLS_PREFIX)) ==
+    //            0;
+    // }
 }
 
 static const char* mqtt_get_server_url(const Mqtt* instance) {
-    const MqttSettings* settings = &instance->settings;
-    const MqttProfileId profile_id = settings->profile_id;
-
-    if(profile_id != MqttProfileIdCustom) {
-        return mqtt_profile_table[profile_id].url;
-    } else {
-        return settings->custom_url;
-    }
+    UNUSED(instance);
+    return "dummy";
+    // const MqttSettings* settings = &instance->settings;
+    // const MqttProfileId profile_id = settings->profile_id;
+    //
+    // if(profile_id != MqttProfileIdCustom) {
+    //     return mqtt_profile_table[profile_id].url;
+    // } else {
+    //     return settings->custom_url;
+    // }
 }
 
 static bool mqtt_load_ca_bundle(Mqtt* instance) {
@@ -158,7 +155,8 @@ static void mqtt_connect_mg_event_handler(
 
     if(mqtt_is_tls_enabled(instance)) {
         const struct mg_str name = mg_url_host(mqtt_get_server_url(instance));
-        const bool has_custom_certs = (instance->settings.profile_id == MqttProfileIdCustom);
+        // const bool has_custom_certs = (instance->settings.profile_id == MqttProfileIdCustom);
+        const bool has_custom_certs = false;
 
         if(!mqtt_tls_init(connection, name, mg_str(instance->ca_bundle), has_custom_certs)) {
             mqtt_connection_close(instance, false);
@@ -422,25 +420,25 @@ void mqtt_connection_close(Mqtt* instance, bool reconnect_now) {
     }
 }
 
-static const MqttProfile mqtt_profile_table[MqttProfileIdMax] = {
-    [MqttProfileIdDevelopment] =
-        {
-            .url = MQTT_URL_TLS_PREFIX "mqtt.cloud.dev.busy.app:8883",
-            .use_tls = true,
-        },
-    [MqttProfileIdProduction] =
-        {
-            .url = MQTT_URL_TLS_PREFIX "mqtt.cloud.dev.busy.app:8883",
-            .use_tls = true,
-        },
-    [MqttProfileIdLocal] =
-        {
-            .url = MQTT_URL_PREFIX "10.0.4.21:1883",
-            .use_tls = false,
-        },
-    [MqttProfileIdCustom] =
-        {
-            .url = NULL,
-            .use_tls = false,
-        },
-};
+// static const MqttProfile mqtt_profile_table[MqttProfileIdMax] = {
+//     [MqttProfileIdDevelopment] =
+//         {
+//             .url = MQTT_URL_TLS_PREFIX "mqtt.cloud.dev.busy.app:8883",
+//             .use_tls = true,
+//         },
+//     [MqttProfileIdProduction] =
+//         {
+//             .url = MQTT_URL_TLS_PREFIX "mqtt.cloud.dev.busy.app:8883",
+//             .use_tls = true,
+//         },
+//     [MqttProfileIdLocal] =
+//         {
+//             .url = MQTT_URL_PREFIX "10.0.4.21:1883",
+//             .use_tls = false,
+//         },
+//     [MqttProfileIdCustom] =
+//         {
+//             .url = NULL,
+//             .use_tls = false,
+//         },
+// };

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "mqtt.h"
+#include "mqtt_profile_i.h"
 
 #include <furi.h>
 #include <api_lock.h>
@@ -115,13 +116,12 @@ typedef struct {
 } MqttApiMessageRequestPin;
 
 typedef struct {
-    MqttProfileId* profile_id;
-    FuriString* custom_url;
+    MqttProfile* profile;
 } MqttApiMessageGetProfile;
 
 typedef struct {
-    MqttProfileId profile_id;
-    const char* custom_url;
+    const MqttProfile* profile;
+    bool* is_success;
 } MqttApiMessageSetProfile;
 
 typedef struct {
