@@ -13,6 +13,7 @@
 #include <back_display/back_display.h>
 #include <status_lights/status_lights.h>
 #include <brightness_control/brightness_control.h>
+#include <wifi/wifi.h>
 
 #include <gui/scene_manager.h>
 #include <gui/modules/nav_bar.h>
@@ -20,7 +21,6 @@
 #include <settings_helpers/gui_params.h>
 
 #include "scenes/matter_scenes.h"
-#include "helpers/wifi_poller.h"
 
 #include "../wifi_settings/wifi_settings.h"
 
@@ -50,7 +50,6 @@ typedef struct {
     FuriMessageQueue* input_queue;
     FuriMessageQueue* event_queue;
     SceneManager* scene_manager;
-    WifiPoller* wifi_poller;
 
     Matter* matter;
     FuriPubSubSubscription* matter_subscription;
@@ -60,6 +59,7 @@ typedef struct {
     BackDisplaySrv* back_display;
     StatusLights* status_lights;
     BrightnessControl* brightness_control;
+    Wifi* wifi;
 
     Widget* front_scene_window;
 

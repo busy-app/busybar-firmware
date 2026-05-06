@@ -168,7 +168,7 @@ static MatterSettings* matter_settings_alloc(void) {
         matter_settings_event_queue_callback,
         instance);
 
-    instance->wifi_poller = wifi_poller_alloc();
+    instance->wifi = furi_record_open(RECORD_WIFI);
 
     scene_manager_next_scene(instance->scene_manager, SceneIdMain);
 
@@ -184,11 +184,10 @@ static void matter_settings_free(MatterSettings* instance) {
         flex_layout_free(instance->back_container);
     });
 
-    wifi_poller_free(instance->wifi_poller);
-
     furi_pubsub_unsubscribe(matter_get_pubsub(instance->matter), instance->matter_subscription);
     furi_record_close(RECORD_MATTER);
 
+    furi_record_close(RECORD_WIFI);
     furi_record_close(RECORD_DESKTOP);
     furi_record_close(RECORD_GUI);
     furi_record_close(RECORD_FRONT_DISPLAY);
@@ -237,12 +236,19 @@ void matter_settings_send_custom_event(MatterSettings* instance, uint32_t event)
 bool matter_settings_check_wifi_connectivity(MatterSettings* instance) {
     furi_assert(instance);
 
-    if(wifi_poller_get_state(instance->wifi_poller) & WifiPollerStateLinkUp) {
-        return true;
-    } else {
+    bool is_connected = false;
+    do {
+        WifiInfo info;
+        if(wifi_get_info(instance->wifi, &info) != WifiStatusOk) break;
+
+        is_connected = info.state == WifiStateConnected;
+    } while(0);
+
+    if(!is_connected) {
         matter_settings_send_custom_event(instance, AppEventRequiredWifiNotAvailable);
-        return false;
     }
+
+    return is_connected;
 }
 
 bool matter_settings_exit_if_last(MatterSettings* instance) {
