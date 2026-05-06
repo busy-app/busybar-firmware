@@ -32,10 +32,16 @@ typedef struct {
     Gui* gui;
     Power* power;
     Storage* storage;
-
     FuriThreadId thread_id;
     FuriTimer* back_to_transport_timer;
+    Label* labels[GuiDisplayIdMax];
+    AnimPlayer* anims[GuiDisplayIdMax];
 } PowerOnApp;
+
+static const char* const power_on_anim_paths[GuiDisplayIdMax] = {
+    POWER_ON_ANIM_PATH("front_power_on_72x16.anim"),
+    POWER_ON_ANIM_PATH("back_power_on_148x80.anim"),
+};
 
 static bool power_on_input_callback(const InputEvent* event, void* context) {
     furi_assert(event);
@@ -122,15 +128,13 @@ static inline void power_on_done_flag_create(PowerOnApp* instance) {
     storage_file_free(file);
 }
 
-static AnimPlayer* power_on_animation_alloc(Widget* widget, const char* anim_path) {
+static AnimPlayer* power_on_animation_alloc(Widget* widget, GuiDisplayId display_id) {
     AnimPlayer* anim = anim_player_alloc(widget);
 
-    do {
-        if(!anim_player_set_source(anim, anim_path)) break;
-        if(!anim_player_set_section(
-               anim, AnimFilePlayFlagFinishCurrent | AnimFilePlayFlagLoop, POWER_ON_LOOP_SECTION))
-            break;
-    } while(0);
+    if(anim_player_set_source(anim, power_on_anim_paths[display_id])) {
+        anim_player_set_section(
+            anim, AnimFilePlayFlagFinishCurrent | AnimFilePlayFlagLoop, POWER_ON_LOOP_SECTION);
+    }
 
     return anim;
 }
@@ -140,16 +144,6 @@ int32_t power_on_app(void* arg) {
 
     PowerOnApp* instance = power_on_app_alloc();
 
-    GuiLayer* layer_main = gui_get_layer(instance->gui, GuiLayerIdMain);
-    Widget* front_root = gui_layer_get_root_widget(layer_main, GuiDisplayIdFront);
-    Widget* back_root = gui_layer_get_root_widget(layer_main, GuiDisplayIdBack);
-
-    AnimPlayer* front_anim = NULL;
-    AnimPlayer* back_anim = NULL;
-
-    Label* front_label = NULL;
-    Label* back_label = NULL;
-
     // avoid showing text for <500ms
     uint32_t wanted_flags = PowerOnAppThreadFlagDeviceStarted;
     uint32_t flags =
@@ -157,14 +151,17 @@ int32_t power_on_app(void* arg) {
 
     if(flags == FuriFlagErrorTimeout) {
         with_gui(instance->gui, {
-            front_label = label_alloc(front_root);
-            back_label = label_alloc(back_root);
+            GuiLayer* layer_main = gui_get_layer(instance->gui, GuiLayerIdMain);
 
-            label_set_text(front_label, "Starting...");
-            label_set_text(back_label, "Starting...");
+            for(GuiDisplayId id = 0; id < GuiDisplayIdMax; ++id) {
+                Widget* root = gui_layer_get_root_widget(layer_main, id);
 
-            widget_set_align(label_get_base(front_label), AlignCenter);
-            widget_set_align(label_get_base(back_label), AlignCenter);
+                Label* label = label_alloc(root);
+                label_set_text(label, "Starting...");
+                widget_set_align(label_get_base(label), AlignCenter);
+
+                instance->labels[id] = label;
+            }
         });
 
         furi_thread_flags_wait(wanted_flags, FuriFlagWaitAny, FuriWaitForever);
@@ -177,15 +174,13 @@ int32_t power_on_app(void* arg) {
         if(power_on_done_flag_present(instance)) break;
 
         with_gui(instance->gui, {
+            GuiLayer* layer_main = gui_get_layer(instance->gui, GuiLayerIdMain);
             gui_layer_add_input_callback(layer_main, power_on_input_callback, instance);
 
-            if(front_label) label_free(front_label);
-            if(back_label) label_free(back_label);
-
-            front_anim = power_on_animation_alloc(
-                front_root, POWER_ON_ANIM_PATH("front_power_on_72x16.anim"));
-            back_anim = power_on_animation_alloc(
-                back_root, POWER_ON_ANIM_PATH("back_power_on_148x80.anim"));
+            for(GuiDisplayId id = 0; id < GuiDisplayIdMax; ++id) {
+                Widget* root = gui_layer_get_root_widget(layer_main, id);
+                instance->anims[id] = power_on_animation_alloc(root, id);
+            }
         });
 
         uint32_t flags =
@@ -202,12 +197,17 @@ int32_t power_on_app(void* arg) {
     } while(0);
 
     with_gui(instance->gui, {
-        if(front_anim) anim_player_free(front_anim);
-        if(back_anim) anim_player_free(back_anim);
+        for(GuiDisplayId id = 0; id < GuiDisplayIdMax; ++id) {
+            if(instance->labels[id]) {
+                label_free(instance->labels[id]);
+            }
 
-        if(front_label) label_free(front_label);
-        if(back_label) label_free(back_label);
+            if(instance->anims[id]) {
+                anim_player_free(instance->anims[id]);
+            }
+        }
 
+        GuiLayer* layer_main = gui_get_layer(instance->gui, GuiLayerIdMain);
         gui_layer_remove_input_callback(layer_main, power_on_input_callback);
     });
 
