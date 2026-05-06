@@ -1,7 +1,10 @@
 #pragma once
 
+#include <furi.h>
+
 typedef enum {
     AppsMenuEntryIdxClock,
+    AppsMenuEntryIdxDummy,
 
     AppsMenuEntryIdxsCount,
 } AppsMenuEntryIdx;

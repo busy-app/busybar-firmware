@@ -173,6 +173,8 @@ static bool api_storage_read_callback(
             furi_string_get_cstr(filename));
         furi_string_free(filename);
 
+        furi_string_cat(content_header, HEADER_CORS);
+
         struct mg_http_serve_opts opts = {
             .ssi_pattern = NULL,
             .extra_headers = furi_string_get_cstr(content_header),

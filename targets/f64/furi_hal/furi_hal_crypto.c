@@ -559,11 +559,9 @@ FuriHalCryptoStatus
     case FuriHalCryptoKeyTypeAes256:
     case FuriHalCryptoKeyTypeEcdsaPriv224:
     case FuriHalCryptoKeyTypeEcdsaPriv256:
+    default:
         wrap_config->padding = 0;
         break;
-    default:
-        free(wrap_config);
-        return FuriHalCryptoStatusInvalidParameter;
     }
 
     wrap_config->wrap_iv_mode = SL_SI91X_WRAP_IV_CBC_MODE;
