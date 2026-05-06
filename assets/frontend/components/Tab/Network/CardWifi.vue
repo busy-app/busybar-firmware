@@ -50,7 +50,7 @@
         v-else
         data-id="network-section-wifi-status-disconnected"
       >
-        Disconnected
+        Not connected
       </div>
     </template>
 
