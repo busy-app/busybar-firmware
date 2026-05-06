@@ -103,7 +103,8 @@ typedef enum {
     BLEWorkerSmpEncryptStarted = (1 << 14),
     BLEWorkerSmpLtkRequest = (1 << 15),
     BLEWorkerSmpSecurityKeys = (1 << 16),
-    BLEWorkerAdjustConnectionRequest = (1 << 17),
+    BleWorkerSmpPairingFailed = (1 << 17),
+    BLEWorkerAdjustConnectionRequest = (1 << 18),
 } BLEWorkerEvt;
 
 #define BLE_WORKER_ALL_EVENTS                                                                     \
@@ -112,7 +113,8 @@ typedef enum {
      BLEWorkerEvtDataLengthChange | BLEWorkerEvtReceiveRemoteFeatures | BLEWorkerEvtMoreDataReq | \
      BLEWorkerEvtWrite | BLEWorkerEvtDataTransmit | BLEWorkerEvtMtu |                             \
      BLEWorkerEvtIndicateConfirm | BLEWorkerSmpResponse | BLEWorkerSmpLtkRequest |                \
-     BLEWorkerSmpEncryptStarted | BLEWorkerSmpSecurityKeys | BLEWorkerAdjustConnectionRequest)
+     BLEWorkerSmpEncryptStarted | BLEWorkerSmpSecurityKeys | BleWorkerSmpPairingFailed |          \
+     BLEWorkerAdjustConnectionRequest)
 
 typedef struct {
     ///TODO: for now this is ok, for future maybe it is worth to make each characteristic
@@ -445,7 +447,8 @@ static void
     rsi_ble_on_smp_failed(uint16_t resp_status, rsi_bt_event_smp_failed_t* remote_dev_address) {
     UNUSED(resp_status);
     UNUSED(remote_dev_address);
-    BLE_LOG_W("rsi_ble_on_smp_failed status: %X", resp_status);
+    furi_thread_flags_set(
+        furi_thread_get_id(ble_worker_instance->thread), BleWorkerSmpPairingFailed);
 }
 
 static void rsi_ble_on_encrypt_started(
@@ -966,6 +969,14 @@ static int32_t ble_worker_thread_callback(void* context) {
                     ble_worker_instance->str_remote_address);
                 BLE_LOG_I("Security keys saved");
             } while(false);
+        }
+
+        if(events & BleWorkerSmpPairingFailed) {
+            BLE_LOG_I("BleWorkerSmpPairingFailed");
+            status = rsi_ble_disconnect((int8_t*)instance->remote_dev_address);
+            if(status != RSI_SUCCESS) {
+                BLE_LOG_W("failed disconnect status = %lx \n", status);
+            }
         }
     }
 

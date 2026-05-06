@@ -46,6 +46,14 @@ static void apps_menu_scene_main_on_enter(void* context) {
             AppsMenuEntryIdxClock,
             apps_scene_setup_menu_callback,
             instance);
+        menu_add_item(
+            data->front_menu,
+            "Coming soon...",
+            "",
+            APPS_MENU_IMG_PATH("soon_front_8x6.image"),
+            AppsMenuEntryIdxDummy,
+            apps_scene_setup_menu_callback,
+            instance);
 
         // back:
         data->back_menu = menu_alloc(instance->back_scene_window);
@@ -54,6 +62,14 @@ static void apps_menu_scene_main_on_enter(void* context) {
             "Clock",
             "",
             APPS_MENU_IMG_PATH("clock_back_11x11.image"),
+            0,
+            NULL,
+            NULL);
+        menu_add_item(
+            data->back_menu,
+            "More apps coming soon...",
+            "",
+            APPS_MENU_IMG_PATH("soon_back_11x11.image"),
             0,
             NULL,
             NULL);
@@ -87,15 +103,17 @@ static bool apps_menu_scene_main_on_event(const SceneManagerEvent* event, void* 
 
             const char* target_application = apps_menu_entries[data->menu_idx];
 
-            strlcpy(
-                instance->settings.active_application,
-                target_application,
-                sizeof(instance->settings.active_application));
-            apps_menu_settings_save(&instance->settings);
+            if(target_application) {
+                strlcpy(
+                    instance->settings.active_application,
+                    target_application,
+                    sizeof(instance->settings.active_application));
+                apps_menu_settings_save(&instance->settings);
 
-            Desktop* desktop = furi_record_open(RECORD_DESKTOP);
-            desktop_replace_current_app(desktop, target_application, NULL);
-            furi_record_close(RECORD_DESKTOP);
+                Desktop* desktop = furi_record_open(RECORD_DESKTOP);
+                desktop_replace_current_app(desktop, target_application, NULL);
+                furi_record_close(RECORD_DESKTOP);
+            }
             return true;
 
         default:

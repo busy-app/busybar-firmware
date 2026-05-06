@@ -211,6 +211,37 @@ class VaultClient:
         )
         resp.raise_for_status()
 
+    # -- PKI URL configuration --------------------------------------------
+
+    def set_pki_urls(
+        self,
+        crl_distribution_points: list[str] | None = None,
+        issuing_certificates: list[str] | None = None,
+        ocsp_servers: list[str] | None = None,
+    ):
+        """Configure PKI URL fields on the intermediate CA mount.
+
+        Each argument is optional; only the fields provided are updated.
+        Vault merges the supplied values with the existing configuration.
+
+        See: https://developer.hashicorp.com/vault/api-docs/secret/pki#set-urls
+        """
+        payload: dict = {}
+        if crl_distribution_points is not None:
+            payload["crl_distribution_points"] = crl_distribution_points
+        if issuing_certificates is not None:
+            payload["issuing_certificates"] = issuing_certificates
+        if ocsp_servers is not None:
+            payload["ocsp_servers"] = ocsp_servers
+        if not payload:
+            return
+        resp = self.session.post(
+            f"{self.addr}/v1/pki_int/config/urls",
+            json=payload,
+            timeout=10,
+        )
+        resp.raise_for_status()
+
 
 def _make_subject(device_uid: str, conf: dict[str, str]) -> x509.Name:
     cn_template = conf.get("PKI_DEVICE_CN_TEMPLATE", "BusyBar device {uid}")
@@ -220,7 +251,6 @@ def _make_subject(device_uid: str, conf: dict[str, str]) -> x509.Name:
             x509.NameAttribute(
                 NameOID.ORGANIZATION_NAME, conf.get("PKI_ORGANIZATION", "Flipper FZCO")
             ),
-            x509.NameAttribute(NameOID.COUNTRY_NAME, conf.get("PKI_COUNTRY", "AE")),
         ]
     )
 
@@ -360,6 +390,44 @@ class Main(App):
         )
         self.delete_key_parser.set_defaults(func=self.delete_key)
 
+        # Configure PKI URLs command (admin)
+        self.configure_pki_urls_parser = self.subparsers.add_parser(
+            "configure-pki-urls",
+            help="Update CRL and/or AIA URLs on the Vault PKI intermediate CA",
+        )
+        self.configure_pki_urls_parser.add_argument(
+            "--crl-url",
+            type=str,
+            default=None,
+            help="CRL distribution point URL (overrides PKI_CRL_DISTRIBUTION_POINT in pki.conf)",
+        )
+        _aia_group = self.configure_pki_urls_parser.add_mutually_exclusive_group()
+        _aia_group.add_argument(
+            "--aia-url",
+            type=str,
+            default=None,
+            help="Authority Information Access URL (overrides PKI_AIA_URL in pki.conf)",
+        )
+        _aia_group.add_argument(
+            "--no-aia",
+            action="store_true",
+            default=False,
+            help="Disable the AIA extension in issued certificates (devices present the CA cert themselves)",
+        )
+        self.configure_pki_urls_parser.add_argument(
+            "--vault-addr",
+            type=str,
+            default=VAULT_ADDR_DEFAULT,
+            help=f"Vault server address (default: {VAULT_ADDR_DEFAULT})",
+        )
+        self.configure_pki_urls_parser.add_argument(
+            "--pki-conf",
+            type=str,
+            default=PKI_CONF_DEFAULT,
+            help=f"Path to pki.conf (default: {PKI_CONF_DEFAULT})",
+        )
+        self.configure_pki_urls_parser.set_defaults(func=self.configure_pki_urls)
+
     def get_portname(self):
         addr = getattr(self.args, "device_addr", DEVICE_ADDR_DEFAULT)
         host, _, port = addr.rpartition(":")
@@ -438,11 +506,10 @@ class Main(App):
     ):
         cn_template = conf.get("PKI_DEVICE_CN_TEMPLATE", "BusyBar device {uid}")
         org = conf.get("PKI_ORGANIZATION", "Flipper FZCO")
-        country = conf.get("PKI_COUNTRY", "AE")
         role = conf.get("PKI_VAULT_ROLE", "busybar-device")
         ttl = conf.get("PKI_DEVICE_TTL", "175200h")
         cn = cn_template.format(uid=device_uid)
-        subject = f"CN={cn},O={org},C={country}"
+        subject = f"CN={cn},O={org}"
         print("  Generating wrapped key pair + CSR on device...")
         ret = crypto_storage.gen_csr(0, KEY_ID_TLS_DEVICE, 0, subject, echo=False)
         if ret != 0:
@@ -720,6 +787,57 @@ class Main(App):
         vault = _vault_client_from_env(self.args.vault_addr)
         vault.kv_delete(self.args.name)
         print(f"Deleted key '{self.args.name}' from Vault.")
+
+    @CatchExceptions
+    def configure_pki_urls(self):
+        conf: dict[str, str] = {}
+        pki_conf_path = self.args.pki_conf
+        if os.path.isfile(pki_conf_path):
+            conf = _load_pki_conf(pki_conf_path)
+
+        # -- CRL distribution point --
+        crl_url = (
+            self.args.crl_url or conf.get("PKI_CRL_DISTRIBUTION_POINT", "").strip()
+        )
+
+        # -- AIA (issuing certificates) --
+        no_aia = self.args.no_aia
+        aia_url = self.args.aia_url
+        if not no_aia and not aia_url:
+            raw = conf.get("PKI_AIA_URL", "").strip()
+            if raw.lower() == "disable":
+                no_aia = True
+            else:
+                aia_url = raw  # may be empty → not updated
+
+        if not crl_url and not no_aia and not aia_url:
+            raise RuntimeError(
+                "Nothing to configure. Provide at least one of:\n"
+                "  --crl-url, --aia-url, --no-aia\n"
+                "or set PKI_CRL_DISTRIBUTION_POINT / PKI_AIA_URL in pki.conf"
+            )
+
+        kwargs: dict = {}
+        if crl_url:
+            kwargs["crl_distribution_points"] = [crl_url]
+        if no_aia:
+            kwargs["issuing_certificates"] = []
+        elif aia_url:
+            kwargs["issuing_certificates"] = [aia_url]
+
+        vault = _vault_client_from_env(self.args.vault_addr)
+        vault.set_pki_urls(**kwargs)
+
+        if crl_url:
+            print(f"CRL distribution point:    {crl_url}")
+        if no_aia:
+            print("AIA (issuing_certificates): disabled")
+        elif aia_url:
+            print(f"AIA (issuing_certificates): {aia_url}")
+        print(
+            "Note: only certificates issued after this change will include "
+            "the updated URL extensions."
+        )
 
     @CatchExceptions
     def cleanup(self):

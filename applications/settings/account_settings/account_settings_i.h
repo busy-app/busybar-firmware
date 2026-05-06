@@ -11,6 +11,7 @@
 #include <front_display/front_display.h>
 #include <back_display/back_display.h>
 #include <status_lights/status_lights.h>
+#include <brightness_control/brightness_control.h>
 
 #include <gui/scene_manager.h>
 #include <gui/modules/nav_bar.h>
@@ -49,6 +50,9 @@ typedef struct {
     FuriMessageQueue* input_queue;
     FuriMessageQueue* event_queue;
     SceneManager* scene_manager;
+
+    StatusLights* status_lights;
+    BrightnessControl* brightness_control;
 
     Desktop* desktop;
     Gui* gui;

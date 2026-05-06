@@ -11,6 +11,7 @@
 
 typedef enum {
     StatusLightsEventSyncDone = 1UL << 0,
+    StatusLightsEventIntercomError = 1UL << 1,
 } StatusLightsEvent;
 
 typedef void (*CommandHandler)(StatusLights* instance, const StatusLightsCommand* command);
@@ -34,28 +35,30 @@ static float status_lights_normalize_brightness(uint8_t brightness) {
     return ((1.f / 100.f) * (float)(brightness));
 }
 
-static uint8_t status_lights_scale_component(uint8_t component, float brightness) {
+static uint16_t status_lights_scale_component(uint8_t component, float brightness) {
     if(component == 0) {
         return 0;
     }
 
     const float constrained = CLAMP(brightness, 1.0f, 0.0f);
 
-    /* gamma tuned so 5% brightness becomes the first visible step */
-    const float gamma = 2.08f;
-    const float pwm_scale = powf(constrained, gamma);
+    /* tuned to provide minimal dynamic range for low-value components at 5% brightness */
+    const float gamma = 1.85f;
+    const float pwm_scale = powf(constrained, gamma) * (UINT16_MAX / UINT8_MAX);
 
-    const float scaled = (float)component * pwm_scale;
+    /* tuned to make LEDs light up at 1-value components */
+    const float offset = 4.f;
+    const float scaled = (float)component * pwm_scale + offset;
 
-    return (uint8_t)CLAMP(scaled + 0.5f, 255.0f, 0.0f);
+    return (uint16_t)CLAMP(scaled + 0.5f, (float)UINT16_MAX, 0.0f);
 }
 
-static void status_lights_apply_brightness(Color* color, float brightness) {
-    furi_assert(color);
+static void status_lights_set_output(Color color, float brightness) {
+    uint16_t r = status_lights_scale_component(color.r, brightness);
+    uint16_t g = status_lights_scale_component(color.g, brightness);
+    uint16_t b = status_lights_scale_component(color.b, brightness);
 
-    color->r = status_lights_scale_component(color->r, brightness);
-    color->g = status_lights_scale_component(color->g, brightness);
-    color->b = status_lights_scale_component(color->b, brightness);
+    furi_hal_pwm_set_rgb(r, g, b);
 }
 
 static void status_lights_run_pattern(void* context) {
@@ -70,10 +73,7 @@ static void status_lights_run_pattern(void* context) {
     instance->preset_api->run(instance->preset_instance, &base_color);
     instance->active_color = base_color;
 
-    Color scaled_color = base_color;
-    status_lights_apply_brightness(&scaled_color, instance->brightness);
-
-    furi_hal_pwm_set_rgb(scaled_color.r, scaled_color.g, scaled_color.b);
+    status_lights_set_output(base_color, instance->brightness);
 }
 
 static void status_lights_message_queue_callback(FuriEventLoopObject* object, void* context) {
@@ -103,11 +103,25 @@ static void status_lights_intercom_state_callback(const void* message, void* con
 
     StatusLights* instance = context;
 
-    const IntercomStatus intercom_status = *(IntercomStatus*)message;
+    StatusLightsEvent event;
+    switch(*(const IntercomStatus*)message) {
+    case IntercomStatusOk:
+        event = StatusLightsEventSyncDone;
+        break;
 
-    if(intercom_status == IntercomStatusOk) {
-        furi_event_loop_set_custom_event(instance->event_loop, StatusLightsEventSyncDone);
+    case IntercomStatusErrorSync:
+    /* fall-through */
+    case IntercomStatusErrorFraming:
+    /* fall-through */
+    case IntercomStatusErrorTimeout:
+        event = StatusLightsEventIntercomError;
+        break;
+
+    default:
+        return;
     }
+
+    furi_event_loop_set_custom_event(instance->event_loop, event);
 }
 
 static void status_lights_event_callback(uint32_t events, void* context) {
@@ -122,6 +136,20 @@ static void status_lights_event_callback(uint32_t events, void* context) {
             instance);
         // Not sending anything to the channel
         UNUSED(intercom_ch);
+    }
+
+    if(events & StatusLightsEventIntercomError) {
+        if(instance->preset_instance) {
+            furi_assert(instance->preset_api);
+
+            instance->preset_api->free(instance->preset_instance);
+            instance->preset_instance = NULL;
+            instance->preset_api = NULL;
+
+            furi_event_loop_timer_stop(instance->timer);
+        }
+
+        furi_hal_pwm_stop();
     }
 }
 
@@ -203,10 +231,7 @@ static void
     instance->brightness = status_lights_normalize_brightness(brightness);
 
     if(instance->preset_api) {
-        Color scaled_color = instance->active_color;
-        status_lights_apply_brightness(&scaled_color, instance->brightness);
-
-        furi_hal_pwm_set_rgb(scaled_color.r, scaled_color.g, scaled_color.b);
+        status_lights_set_output(instance->active_color, instance->brightness);
     }
 }
 

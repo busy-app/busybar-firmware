@@ -41,6 +41,10 @@ FURI_ALWAYS_INLINE static inline uint32_t _osal_ms2tick(uint32_t msec) {
     return ticks;
 }
 
+FURI_ALWAYS_INLINE static inline uint32_t osal_time_millis(void) {
+    return furi_get_tick();
+}
+
 FURI_ALWAYS_INLINE static inline void osal_task_delay(uint32_t msec) {
     furi_delay_ms(msec);
 }
