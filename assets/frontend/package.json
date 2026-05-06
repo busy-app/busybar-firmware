@@ -3,12 +3,13 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "pnpm proto:generate && pnpx nuxi cleanup && BUILD_ID=$(git -C \"$(git rev-parse --show-toplevel)\" log -1 --pretty=format:%h -- assets/frontend | cut -c1-7) && echo \"BUILD_ID=$BUILD_ID\" && BUILD_ID=$BUILD_ID nuxt generate",
-    "build/ci": "pnpm proto:generate && BUILD_ID=$(git -C \"$(git rev-parse --show-toplevel)\" log -1 --pretty=format:%h -- assets/frontend | cut -c1-7) && echo \"BUILD_ID=$BUILD_ID\" && BUILD_ID=$BUILD_ID nuxt generate",
-    "dev": "pnpm proto:generate && nuxt dev --dotenv .env.development",
+    "build": "pnpm postinstall && pnpx nuxi cleanup && BUILD_ID=$(git -C \"$(git rev-parse --show-toplevel)\" log -1 --pretty=format:%h -- assets/frontend | cut -c1-7) && echo \"BUILD_ID=$BUILD_ID\" && BUILD_ID=$BUILD_ID nuxt generate",
+    "build/ci": "pnpm postinstall && BUILD_ID=$(git -C \"$(git rev-parse --show-toplevel)\" log -1 --pretty=format:%h -- assets/frontend | cut -c1-7) && echo \"BUILD_ID=$BUILD_ID\" && BUILD_ID=$BUILD_ID nuxt generate",
+    "dev": "pnpm postinstall && nuxt dev --dotenv .env.development",
     "preview": "nuxt preview",
-    "postinstall": "pnpm proto:generate && nuxt prepare",
+    "postinstall": "pnpm proto:generate && pnpm draw-tool-icons:generate && nuxt prepare",
     "proto:generate": "node ./scripts/generate-protobuf-state-module.mjs",
+    "draw-tool-icons:generate": "node ./scripts/generate-draw-tool-icons-json.mjs",
     "lint": "eslint --ext .js,.ts,.vue --ignore-pattern .gitignore .",
     "lint/tsc": "tsc --noEmit"
   },
@@ -19,6 +20,7 @@
     "@nuxtjs/mdc": "0.20.1",
     "@pinia/nuxt": "^0.10.1",
     "eslint": "^9.35.0",
+    "konva": "^10.2.5",
     "maska": "^3.2.0",
     "nuxt": "^3.19.2",
     "pinia": "^3.0.3",
@@ -28,6 +30,7 @@
     "tailwindcss": "^4.1.13",
     "vite-plugin-eslint2": "^5.0.4",
     "vue": "^3.5.21",
+    "vue-konva": "^3.4.0",
     "vue-router": "^4.5.1",
     "worker-timers": "^8.0.30"
   },

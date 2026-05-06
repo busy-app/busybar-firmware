@@ -29,6 +29,11 @@ export const useTabStore = defineStore('tabs', () => {
       value: 'settings'
     },
     {
+      label: 'Draw tool',
+      icon: 'i-ri-pencil-line',
+      value: 'draw-tool'
+    },
+    {
       label: 'Files',
       icon: 'i-bi-folder',
       value: 'files',

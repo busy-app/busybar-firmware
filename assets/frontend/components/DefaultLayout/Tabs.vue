@@ -6,9 +6,9 @@
     <div
       v-for="tab in options"
       :key="tab.value"
-      class="grid items-center grid-cols-[24px_auto] gap-[10px] p-3 rounded-xl cursor-pointer"
+      class="grid items-center grid-cols-[24px_auto] gap-[10px] p-3 rounded-xl cursor-pointer whitespace-nowrap"
       :class="tabStore.currentTab === tab.value ? 'bg-accented/50 dark:bg-elevated ring-1 ring-glass' : 'text-muted hover:text-default'"
-      @click="tabStore.currentTab = tab.value"
+      @click="void handleTabClick(tab.value)"
     >
       <UIcon
         :name="tab.activeIcon ? tabStore.currentTab === tab.value ? tab.activeIcon : tab.icon : tab.icon"
@@ -30,6 +30,7 @@
 <script setup lang="ts">
 const tabStore = useTabStore();
 const firmwareStore = useFirmwareStore();
+const drawToolEditorStore = useDrawToolEditorStore();
 
 const options = computed(() => {
   return tabStore.tabOptions.filter(tab => {
@@ -39,4 +40,19 @@ const options = computed(() => {
     return true;
   });
 });
+
+async function handleTabClick (nextTab: TabOption['value']) {
+  if (tabStore.currentTab === nextTab) {
+    return;
+  }
+
+  if (tabStore.currentTab !== 'draw-tool') {
+    tabStore.currentTab = nextTab;
+    return;
+  }
+
+  await drawToolEditorStore.requestLeaveEditor(() => {
+    tabStore.currentTab = nextTab;
+  });
+}
 </script>
