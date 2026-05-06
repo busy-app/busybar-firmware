@@ -24,15 +24,16 @@ typedef enum {
     PowerOnAppThreadFlagDeviceStarted = 1 << 2,
 } PowerOnAppThreadFlag;
 
-#define POWER_ON_APP_ANIMATION_FLAGS \
-    (PowerOnAppThreadFlagExitToMenu | PowerOnAppThreadFlagExitToTransportMode | PowerOnAppThreadFlagDeviceStarted)
+#define POWER_ON_APP_ANIMATION_FLAGS                                            \
+    (PowerOnAppThreadFlagExitToMenu | PowerOnAppThreadFlagExitToTransportMode | \
+     PowerOnAppThreadFlagDeviceStarted)
 
 typedef struct {
     Gui* gui;
     Power* power;
     Storage* storage;
 
-    FuriThread* thread;
+    FuriThreadId thread_id;
     FuriTimer* back_to_transport_timer;
 } PowerOnApp;
 
@@ -47,7 +48,7 @@ static bool power_on_input_callback(const InputEvent* event, void* context) {
         case InputKeyOk:
         case InputKeyBack:
         case InputKeyStart:
-            furi_thread_flags_set(instance->thread, PowerOnAppThreadFlagExitToMenu);
+            furi_thread_flags_set(instance->thread_id, PowerOnAppThreadFlagExitToMenu);
             consumed = true;
             break;
         default:
@@ -60,7 +61,7 @@ static bool power_on_input_callback(const InputEvent* event, void* context) {
 
 static void back_to_transport_timer_callback(void* ctx) {
     PowerOnApp* instance = ctx;
-    furi_thread_flags_set(instance->thread, PowerOnAppThreadFlagExitToTransportMode);
+    furi_thread_flags_set(instance->thread_id, PowerOnAppThreadFlagExitToTransportMode);
 }
 
 static bool power_on_thread_signal(uint32_t signal, void* arg, void* context) {
@@ -72,7 +73,7 @@ static bool power_on_thread_signal(uint32_t signal, void* arg, void* context) {
     if(signal == FuriSignalExit) {
         // Desktop has received the initial switch state and wants to close us
         furi_check(
-            !(furi_thread_flags_set(instance->thread, PowerOnAppThreadFlagDeviceStarted) &
+            !(furi_thread_flags_set(instance->thread_id, PowerOnAppThreadFlagDeviceStarted) &
               FuriFlagError));
         return true;
     }
@@ -87,7 +88,7 @@ static PowerOnApp* power_on_app_alloc(void) {
     instance->power = furi_record_open(RECORD_POWER);
     instance->storage = furi_record_open(RECORD_STORAGE);
 
-    instance->thread = furi_thread_get_current();
+    instance->thread_id = furi_thread_get_current_id();
     instance->back_to_transport_timer =
         furi_timer_alloc(back_to_transport_timer_callback, FuriTimerTypeOnce, instance);
     furi_timer_start(
