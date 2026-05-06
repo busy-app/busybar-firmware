@@ -233,6 +233,9 @@ export const useFirmwareStore = defineStore('firmware', () => {
   }
   async function startAutoUpdate () {
     console.debug('Starting auto-update process');
+    autoUpdate.value.progress = 0;
+    autoUpdate.value.error.stage = UpdateStage.IDLE;
+    autoUpdate.value.error.message = null;
 
     // enable loading before sending the request
     autoUpdate.value.stage = UpdateStage.LOADING;
