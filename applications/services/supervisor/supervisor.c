@@ -309,7 +309,10 @@ static void supervisor_set_label(
     Widget* root = gui_layer_get_root_widget(main_layer, display);
 
     if(labels_needed && !*label) *label = label_alloc(root);
-    if(!labels_needed && *label) label_free(*label);
+    if(!labels_needed && *label) {
+        label_free(*label);
+        *label = NULL;
+    }
 
     if(!labels_needed) return;
     furi_assert(warning);
@@ -355,7 +358,10 @@ static void supervisor_set_status_view(
     Widget* root = gui_layer_get_root_widget(main_layer, display);
 
     if(status_needed && !*status) *status = status_view_alloc(root);
-    if(!status_needed && *status) status_view_free(*status);
+    if(!status_needed && *status) {
+        status_view_free(*status);
+        *status = NULL;
+    }
 
     if(!status_needed) return;
     furi_assert(warning);
