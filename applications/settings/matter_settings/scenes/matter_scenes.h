@@ -10,8 +10,6 @@ typedef enum {
     SceneIdCommissionDone,
     SceneIdCommissionFail,
 
-    SceneIdReboot,
-
     SceneIdsCount,
 } SceneId;
 

@@ -171,7 +171,7 @@ static void matter_cli_cmd_reset(PipeSide* pipe, FuriString* args, void* context
 
     matter_factory_reset(matter_cli->matter);
 
-    printf("Done. Please do a manual hardware reset of both chips.\r\n");
+    printf("Done. Device will reboot shortly.\r\n");
 }
 
 static void matter_cli_cmd_comm(PipeSide* pipe, FuriString* args, void* context) {
