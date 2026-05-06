@@ -185,6 +185,8 @@ export const useStateStreamStore = defineStore('stateStream', () => {
     const brightness = getNumber(manual?.brightness);
     if (brightness !== undefined) {
       brightnessStore.displayBrightness = { value: brightness };
+    } else {
+      brightnessStore.displayBrightness = { value: 0 };
     }
   }
 
@@ -192,6 +194,8 @@ export const useStateStreamStore = defineStore('stateStream', () => {
     const volume = getNumber(payload.volume);
     if (volume !== undefined) {
       audioStore.audio = { volume };
+    } else {
+      audioStore.audio = { volume: 0 };
     }
   }
 
