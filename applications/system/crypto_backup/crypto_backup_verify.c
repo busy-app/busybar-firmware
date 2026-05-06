@@ -111,7 +111,7 @@ static bool crypto_backup_verify_keys(void) {
 
     FURI_LOG_E(
         TAG,
-        "Some keys are missing: %zu/%zu",
+        "Some of the keys are missing: %zu/%zu.",
         found_keys_count,
         COUNT_OF(crypto_backup_verify_key_setups));
 
@@ -151,7 +151,7 @@ static bool crypto_backup_verify_aes(void) {
         }
 
         if(memcmp(encrypted_output, setup->expected_output, sizeof(encrypted_output)) != 0) {
-            FURI_LOG_E(TAG, "AES key 0x%02lx ciphertext mismatch", setup->key_id);
+            FURI_LOG_E(TAG, "AES key 0x%02lx ciphertext mismatch.", setup->key_id);
             return false;
         }
     }
