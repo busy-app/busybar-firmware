@@ -34,7 +34,7 @@ jobs:
           find ./ -mount -maxdepth 1 -exec rm -rf {} \;
 
       - name: 'Checkout code'
-        uses: actions/checkout@v4
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0
@@ -119,7 +119,7 @@ jobs:
 
       - name: 'Find previous comment'
         if: ${{ !github.event.pull_request.head.repo.fork && matrix.target_spec == env.DEFAULT_TARGET_SPEC && github.event.pull_request }}
-        uses: peter-evans/find-comment@v3
+        uses: peter-evans/find-comment@3eae4d37986fb5a8592848f6a574fdf654e61f9e
         id: find-comment
         with:
           issue-number: ${{ github.event.pull_request.number }}
@@ -128,7 +128,7 @@ jobs:
 
       - name: 'Create or update comment'
         if: ${{ !github.event.pull_request.head.repo.fork && matrix.target_spec == env.DEFAULT_TARGET_SPEC && github.event.pull_request }}
-        uses: peter-evans/create-or-update-comment@v4
+        uses: peter-evans/create-or-update-comment@71345be0265236311c031f5c7866368bd1eff043
         with:
           comment-id: ${{ steps.find-comment.outputs.comment-id }}
           issue-number: ${{ github.event.pull_request.number }}
