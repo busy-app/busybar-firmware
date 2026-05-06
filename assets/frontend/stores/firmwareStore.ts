@@ -267,6 +267,17 @@ export const useFirmwareStore = defineStore('firmware', () => {
               console.warn('Received session_stop event with status busy. Is this a firmware bug?');
               // ignore and wait for the device to reboot
               return;
+            } else if (status.install.status === 'download_abort') {
+              console.warn('Update download was aborted');
+              autoUpdate.value.modals.updating = false;
+              autoUpdate.value.stage = UpdateStage.IDLE;
+              autoUpdate.value.progress = 0;
+              toast.add({
+                title: 'Update aborted',
+                description: 'The update download has been aborted.',
+                duration: 10000
+              });
+              return;
             }
 
             // all other status codes indicate a failure

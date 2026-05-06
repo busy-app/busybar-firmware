@@ -1,7 +1,6 @@
 import { defineStore } from 'pinia';
 import { useApiStore } from '@/stores/apiStore';
 import { decodeStateMessage, type StateMessage } from '@/util/stateStreamMessage';
-import { UpdateStage } from '@/stores/firmwareStore';
 import {
   stateStreamWebSocketClient,
   type StateStreamSubscription
@@ -269,43 +268,6 @@ export const useStateStreamStore = defineStore('stateStream', () => {
     firmwareStore.autoUpdate.status = null;
   }
 
-  function applyUpdateState (payload: Record<string, unknown>) {
-    const event = getString(payload.event);
-    const action = getString(payload.action);
-    const status = getString(payload.status);
-
-    firmwareStore.autoUpdate.isChecking = false;
-
-    if (status === 'BATTERY_LOW') {
-      firmwareStore.autoUpdate.isAllowed = false;
-      return;
-    }
-
-    if (status && status !== 'OK' && status !== 'BUSY') {
-      firmwareStore.autoUpdate.error.stage = firmwareStore.autoUpdate.stage;
-      firmwareStore.autoUpdate.error.message = `Update failed: ${lowerCaseEnum(status)}`;
-      firmwareStore.autoUpdate.stage = UpdateStage.ERROR;
-      firmwareStore.autoUpdate.isAllowed = false;
-      return;
-    }
-
-    firmwareStore.autoUpdate.isAllowed = true;
-
-    if (action === 'DOWNLOAD') {
-      firmwareStore.autoUpdate.stage = UpdateStage.LOADING;
-      return;
-    }
-
-    if (action && action !== 'ACTION_NONE') {
-      firmwareStore.autoUpdate.stage = UpdateStage.UPDATING;
-      return;
-    }
-
-    if (event === 'SESSION_STOP' && status === 'OK') {
-      firmwareStore.autoUpdate.stage = UpdateStage.UPDATING;
-    }
-  }
-
   function applyTimezoneUpdate (payload: Record<string, unknown>) {
     const timezone = getString(payload.name);
     if (timezone) {
@@ -358,11 +320,6 @@ export const useStateStreamStore = defineStore('stateStream', () => {
         case 'updateCheck':
           if (isProtoMessage(update.updateCheck)) {
             applyUpdateCheck(update.updateCheck);
-          }
-          break;
-        case 'updateState':
-          if (isProtoMessage(update.updateState)) {
-            applyUpdateState(update.updateState);
           }
           break;
         case 'timezone':
