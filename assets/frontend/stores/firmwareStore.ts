@@ -325,16 +325,15 @@ export const useFirmwareStore = defineStore('firmware', () => {
   });
   async function uploadFirmware () {
     const xhr = new XMLHttpRequest();
-    xhr.open('POST', `${useRuntimeConfig().public.barUrl || window.location.origin}/api/update?name=${fileUpdate.value.firmwareBundleName}`);
+    xhr.open('POST', `${useRuntimeConfig().public.barUrl || window.location.origin}/api/update`);
     xhr.setRequestHeader('Content-Type', 'application/octet-stream');
     if (useApiStore().apiKey) {
-      xhr.setRequestHeader('X-API-Key', useApiStore().apiKey!);
+      xhr.setRequestHeader('X-API-Token', useApiStore().apiKey!);
     }
 
     xhr.upload.onprogress = event => {
       if (event.lengthComputable) {
         fileUpdate.value.progress = Math.round((event.loaded / event.total) * 100);
-        // fixme: use unified update state
         autoUpdate.value.progress = fileUpdate.value.progress;
 
         if (fileUpdate.value.progress === 100) {

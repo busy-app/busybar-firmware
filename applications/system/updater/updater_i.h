@@ -24,7 +24,6 @@ typedef enum {
     MessageTypeInstallationPrepare,
     MessageTypeInstallationApply,
     MessageTypeCheckForUpdate,
-    MessageTypeGetSettings,
     MessageTypeSetSettings,
 
     MessageTypesCount
@@ -57,10 +56,6 @@ typedef struct {
         } as_get_check_info;
 
         struct {
-            UpdaterSettings* get_settings;
-        } as_get_settings;
-
-        struct {
             const UpdaterSettings* set_settings;
         } as_set_settings;
     };
@@ -77,8 +72,7 @@ struct Updater {
     FuriEventLoop* event_loop;
     FuriMessageQueue* message_queue;
     UpdaterSettings settings;
-
-    FuriPubSub* pubsub;
+    FuriState* settings_state;
 
     FuriSemaphore* update_lock;
     FuriState* update_state;

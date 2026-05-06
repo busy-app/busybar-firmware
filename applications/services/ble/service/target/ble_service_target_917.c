@@ -48,6 +48,7 @@ static bool ble_service_command_handler_init(
             break;
         }
 
+        instance->ready = true;
         result = ble_service_send_data(
             instance, BleServiceCommandInit, BleIntercomFrameTypeResponse, false);
 

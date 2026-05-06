@@ -16,6 +16,7 @@ static void time_settings_state_callback(const void* item, void* context);
 static void wifi_info_state_callback(const void* item, void* context);
 static void updater_update_state_callback(const void* item, void* context);
 static void updater_check_state_callback(const void* item, void* context);
+static void updater_settings_state_callback(const void* item, void* context);
 
 static void power_pubsub_callback(const void* message, void* context);
 static void audio_pubsub_callback(const void* message, void* context);
@@ -23,7 +24,7 @@ static void device_name_pubsub_callback(const void* message, void* context);
 static void matter_pubsub_callback(const void* message, void* context);
 static void input_event_pubsub_callback(const void* message, void* context);
 static void busy_timer_pubsub_callback(const void* message, void* context);
-static void updater_pubsub_callback(const void* message, void* context);
+static void busy_timer_profiles_pubsub_callback(const void* message, void* context);
 static void ble_pubsub_callback(const void* message, void* context);
 
 void state_publisher_subscribe(StatePublisher* instance) {
@@ -66,10 +67,10 @@ void state_publisher_subscribe(StatePublisher* instance) {
         instance->updater = furi_record_open(RECORD_UPDATER);
         FuriState* update_state = updater_get_update_state(instance->updater);
         FuriState* check_state = updater_get_check_state(instance->updater);
+        FuriState* settings_state = updater_get_settings_state(instance->updater);
         furi_state_subscribe(update_state, updater_update_state_callback, instance);
         furi_state_subscribe(check_state, updater_check_state_callback, instance);
-        FuriPubSub* updater_pubsub = updater_get_pubsub(instance->updater);
-        furi_pubsub_subscribe(updater_pubsub, updater_pubsub_callback, instance);
+        furi_state_subscribe(settings_state, updater_settings_state_callback, instance);
     }
     {
         FuriPubSub* input_pubsub = furi_record_open(RECORD_INPUT_EVENTS);
@@ -79,6 +80,9 @@ void state_publisher_subscribe(StatePublisher* instance) {
         instance->busy_timer = furi_record_open(RECORD_BUSY_TIMER);
         FuriPubSub* pubsub = busy_timer_get_pubsub(instance->busy_timer);
         furi_pubsub_subscribe(pubsub, busy_timer_pubsub_callback, instance);
+
+        pubsub = busy_timer_get_profiles_pubsub(instance->busy_timer);
+        furi_pubsub_subscribe(pubsub, busy_timer_profiles_pubsub_callback, instance);
     }
     {
         instance->ble = furi_record_open(RECORD_BLE);
@@ -230,22 +234,52 @@ void state_publisher_publish_autoupdate(StatePublisher* instance) {
     state_publisher_schedule_state_update(instance, update, StreamFlagAll);
 }
 
+static void set_json_from_text(BSB_Util_Json* json, const char* text) {
+    json->compression = BSB_Util_Compression_PLAIN;
+    size_t len = strlen(text);
+    json->data = malloc(PB_BYTES_ARRAY_T_ALLOCSIZE(len));
+    json->data->size = len;
+    memcpy(&json->data->bytes, text, len);
+}
+
 void state_publisher_publish_busy_timer(StatePublisher* instance) {
     BSB_State_StateUpdate* update = malloc(sizeof(BSB_State_StateUpdate));
 
     update->which_state = BSB_State_StateUpdate_timer_tag;
 
     update->state.timer.has_json = true;
-    update->state.timer.json.compression = BSB_Util_Compression_PLAIN;
 
     BusyTimerSnapshot snapshot;
     busy_timer_get_snapshot(instance->busy_timer, &snapshot);
     char* json_text = busy_timer_snapshot_serialize(&snapshot);
-    size_t len = strlen(json_text);
-    update->state.timer.json.data = malloc(PB_BYTES_ARRAY_T_ALLOCSIZE(len));
-    update->state.timer.json.data->size = len;
-    memcpy(&update->state.timer.json.data->bytes, json_text, len);
+    set_json_from_text(&update->state.timer.json, json_text);
     free(json_text);
+
+    state_publisher_schedule_state_update(instance, update, StreamFlagAll);
+}
+
+void state_publisher_publish_busy_timer_profiles(StatePublisher* instance) {
+    BSB_State_StateUpdate* update = malloc(sizeof(BSB_State_StateUpdate));
+
+    update->which_state = BSB_State_StateUpdate_timer_profiles_tag;
+
+    update->state.timer_profiles.profiles_count = BusyTimerProfileIdMax;
+    update->state.timer_profiles.profiles =
+        malloc(sizeof(BSB_Timer_Profile) * BusyTimerProfileIdMax);
+
+    for(BusyTimerProfileId id = 0; id != BusyTimerProfileIdMax; ++id) {
+        BSB_Timer_Profile* profile_rec = update->state.timer_profiles.profiles + id;
+
+        strlcpy(profile_rec->name, busy_timer_get_profile_name(id), sizeof(profile_rec->name));
+
+        BusyTimerProfile profile;
+        busy_timer_get_profile(instance->busy_timer, id, &profile);
+
+        char* json_text = busy_timer_profile_serialize(&profile);
+        profile_rec->has_json = true;
+        set_json_from_text(&profile_rec->json, json_text);
+        free(json_text);
+    }
 
     state_publisher_schedule_state_update(instance, update, StreamFlagAll);
 }
@@ -422,16 +456,14 @@ static void busy_timer_pubsub_callback(const void* message, void* context) {
     state_publisher_send_message(instance, &msg);
 }
 
-static void updater_pubsub_callback(const void* message, void* context) {
-    const UpdaterEvent* event = message;
+static void busy_timer_profiles_pubsub_callback(const void* message, void* context) {
+    UNUSED(message);
     StatePublisher* instance = context;
 
-    if(event->type == UpdaterEventTypeSettingsChanged) {
-        Message msg = {
-            .type = MessageTypeAutoupdateEvent,
-        };
-        state_publisher_send_message(instance, &msg);
-    }
+    Message msg = {
+        .type = MessageTypeBusyTimerProfiles,
+    };
+    state_publisher_send_message(instance, &msg);
 }
 
 static void ble_pubsub_callback(const void* message, void* context) {
@@ -655,6 +687,22 @@ static void updater_check_state_callback(const void* item, void* context) {
 
     Message msg = {.type = MessageTypeUpdaterCheckEvent, .updater_check_state = *info};
     state_publisher_send_message(instance, &msg);
+}
+
+static void updater_settings_state_callback(const void* item, void* context) {
+    StatePublisher* instance = context;
+    const UpdaterSettings* settings = item;
+
+    BSB_State_StateUpdate* update = malloc(sizeof(*update));
+    update->which_state = BSB_State_StateUpdate_auto_update_state_tag;
+
+    update->state.auto_update_state.enabled = settings->autoupdate_enabled;
+
+    update->state.auto_update_state.has_interval = true;
+    update->state.auto_update_state.interval.start = settings->autoupdate_interval_start;
+    update->state.auto_update_state.interval.end = settings->autoupdate_interval_end;
+
+    state_publisher_schedule_state_update(instance, update, StreamFlagAll);
 }
 
 void screen_streamer_callback(

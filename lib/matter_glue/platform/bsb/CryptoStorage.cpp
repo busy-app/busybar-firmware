@@ -24,6 +24,12 @@ static CHIP_ERROR TranslateFuriHalCryptoStatus(FuriHalCryptoStatus status) {
         return CHIP_ERROR_PERSISTED_STORAGE_VALUE_NOT_FOUND;
     case FuriHalCryptoStatusErrorCrc:
         return CHIP_ERROR_INTEGRITY_CHECK_FAILED;
+    case FuriHalCryptoStatusInvalidParameter:
+        return CHIP_ERROR_INVALID_ARGUMENT;
+    case FuriHalCryptoStatusUnavailable:
+        return CHIP_ERROR_PERSISTED_STORAGE_FAILED;
+    case FuriHalCryptoStatusDriverError:
+        return CHIP_ERROR_INTERNAL;
     default:
         return CHIP_ERROR_INTERNAL;
     }
@@ -39,20 +45,20 @@ CHIP_ERROR LoadCryptoStorageKey(
     MutableByteSpan& out_span) {
     CHIP_ERROR err;
 
-    FuriHalCryptoKey* key = furi_hal_crypto_storage_alloc(FuriHalCryptoPartitionMain);
+    FuriHalCryptoKey* key = nullptr;
 
     do {
-        err = TranslateFuriHalCryptoStatus(furi_hal_crypto_storage_read(key, key_type, key_id));
+        err = TranslateFuriHalCryptoStatus(
+            furi_hal_crypto_storage_read(&key, FuriHalCryptoPartitionMain, key_type, key_id));
 
         if(!CHIP_ERROR::IsSuccess(err)) {
             break;
         }
 
-        err = CopySpanToMutableSpan(ByteSpan{key->data, key->header.size}, out_span);
+        err = CopySpanToMutableSpan(ByteSpan{key->data, key->length}, out_span);
 
+        furi_hal_crypto_key_free(key);
     } while(false);
-
-    furi_hal_crypto_storage_free(key);
 
     return err;
 }
@@ -64,49 +70,55 @@ CHIP_ERROR SignWithECDSA256Key(
     MutableByteSpan& out_span) {
     CHIP_ERROR err;
 
-    FuriHalCryptoKey* private_key = furi_hal_crypto_storage_alloc(FuriHalCryptoPartitionMain);
+    FuriHalCryptoKey* private_key = nullptr;
 
     do {
-        err = TranslateFuriHalCryptoStatus(
-            furi_hal_crypto_storage_read(private_key, key_type, key_id));
+        err = TranslateFuriHalCryptoStatus(furi_hal_crypto_storage_read(
+            &private_key, FuriHalCryptoPartitionMain, key_type, key_id));
 
         if(!CHIP_ERROR::IsSuccess(err)) {
             break;
         }
 
-        const FuriHalCryptoWrappingMode wrap_mode =
-            private_key->header.flags & FuriHalCryptoKeyFlagWrap ? FuriHalCryptoWrappingModeOn :
-                                                                   FuriHalCryptoWrappingModeOff;
-        if(wrap_mode == FuriHalCryptoWrappingModeOff) {
+        if(private_key->length != FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_256) {
+            ChipLogError(Crypto, "Wrong ECDSA-256 private key length");
+            return CHIP_ERROR_UNKNOWN_KEY_TYPE;
+        }
+
+        private_key->type = FuriHalCryptoKeyTypeEcdsaPriv256;
+
+        if(!furi_hal_crypto_key_is_wrapped(private_key)) {
             ChipLogDetail(Crypto, "WARNING: Using unwrapped private key");
         }
 
-        FuriHalCryptoEcdsa* ecdsa = furi_hal_crypto_ecdsa_sign_init(
-            FuriHalCryptoEcdsaModeSha256,
-            private_key->data,
-            FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_256,
-            wrap_mode);
+        do {
+            FuriHalCryptoEcdsaSign* ecdsa = nullptr;
+            err = TranslateFuriHalCryptoStatus(furi_hal_crypto_ecdsa_sign_init(
+                &ecdsa, FuriHalCryptoEcdsaModeSha256, private_key));
+            if(!CHIP_ERROR::IsSuccess(err)) {
+                break;
+            }
 
-        uint8_t asn1_sig[FURI_HAL_CRYPTO_ECDSA_MAX_SIGNATURE_SIZE] = {0};
-        size_t asn1_sig_len = 0;
+            uint8_t asn1_sig[FURI_HAL_CRYPTO_ECDSA_MAX_SIGNATURE_SIZE] = {0};
+            size_t asn1_sig_len = 0;
 
-        const bool sign_success = furi_hal_crypto_ecdsa_sign(
-            ecdsa, message.data(), message.size(), asn1_sig, &asn1_sig_len);
+            FuriHalCryptoStatus status = furi_hal_crypto_ecdsa_sign(
+                ecdsa, message.data(), message.size(), asn1_sig, &asn1_sig_len);
 
-        furi_hal_crypto_ecdsa_deinit(ecdsa);
+            furi_hal_crypto_ecdsa_sign_deinit(ecdsa);
 
-        if(!sign_success) {
-            ChipLogError(Crypto, "Failed to sign message with device private key");
-            err = CHIP_ERROR_INTERNAL;
-            break;
-        }
+            if(status != FuriHalCryptoStatusOk) {
+                ChipLogError(Crypto, "Failed to sign message with device private key");
+                err = TranslateFuriHalCryptoStatus(status);
+                break;
+            }
 
-        err = Crypto::EcdsaAsn1SignatureToRaw(
-            Crypto::kP256_FE_Length, ByteSpan{asn1_sig, asn1_sig_len}, out_span);
+            err = Crypto::EcdsaAsn1SignatureToRaw(
+                Crypto::kP256_FE_Length, ByteSpan{asn1_sig, asn1_sig_len}, out_span);
+        } while(false);
 
+        furi_hal_crypto_key_free(private_key);
     } while(false);
-
-    furi_hal_crypto_storage_free(private_key);
 
     return err;
 }
