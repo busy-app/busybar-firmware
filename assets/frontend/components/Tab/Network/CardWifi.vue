@@ -107,7 +107,7 @@
         :delay-duration="0"
       >
         <UButton
-          data-id="network-section-wifi-add-button"
+          data-id="network-section-wifi-refresh-button"
           icon="i-bi-refresh"
           variant="ghost"
           color="neutral"
@@ -117,6 +117,7 @@
           }"
           class="justify-center sm:justify-start"
           :class="loading.list ? 'animate-spin' : ''"
+          :disabled="loading.state || loading.list || connecting"
           @click="() => {
             listWifiNetworks();
           }"
