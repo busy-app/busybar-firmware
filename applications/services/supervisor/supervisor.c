@@ -22,16 +22,14 @@ typedef void (*SupervisorGuiOkCb)(Supervisor* supervisor);
 
 typedef struct {
     Gui* gui;
-    union {
-        struct {
-            Label* front;
-            Label* back;
-        } label;
-        struct {
-            StatusView* front;
-            StatusView* back;
-        } status_view;
-    };
+    struct {
+        Label* front;
+        Label* back;
+    } label;
+    struct {
+        StatusView* front;
+        StatusView* back;
+    } status_view;
     bool input_locked;
     SupervisorGuiOkCb ok_callback;
     uint32_t current_warnings;
@@ -122,7 +120,7 @@ static const SupervisorWarning supervisor_warnings[] = {
     [SupervisorWarningTypeRebooting] =
         {
             .style = SupervisorWarningStyleTextAndImage,
-            .image.front = SHARED_ANIM_PATH("spinner_front_7x7.anim"),
+            .image.front = SHARED_ANIM_PATH("spinner_front_8x8.anim"),
             .image.back = SHARED_ANIM_PATH("spinner_back_16x16.anim"),
             .text.front = "Restarting device...",
             .text.back = "Restarting device...",
@@ -331,7 +329,7 @@ static void supervisor_set_label(
     widget_set_align(widget, AlignCenter);
     widget_set_background_color(widget, background);
 
-    label_set_text_fmt(*label, text);
+    label_set_text(*label, text);
     label_set_text_align(*label, TextAlignCenter);
 
     if(display == GuiDisplayIdBack) {
