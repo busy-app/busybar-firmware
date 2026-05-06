@@ -6,6 +6,7 @@
     <TabNetwork v-if="tabStore.currentTab === 'network'" />
     <TabFirmware v-if="tabStore.currentTab === 'firmware'" />
     <TabSettings v-if="tabStore.currentTab === 'settings'" />
+    <TabDrawTool v-if="tabStore.currentTab === 'draw-tool'" />
 
     <template v-if="tabStore.showHiddenTabs">
       <TabFiles v-if="tabStore.currentTab === 'files'" />

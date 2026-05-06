@@ -26,6 +26,9 @@ importers:
       eslint:
         specifier: ^9.35.0
         version: 9.35.0(jiti@2.5.1)
+      konva:
+        specifier: ^10.2.5
+        version: 10.2.5
       maska:
         specifier: ^3.2.0
         version: 3.2.0
@@ -53,6 +56,9 @@ importers:
       vue:
         specifier: ^3.5.21
         version: 3.5.21(typescript@5.9.2)
+      vue-konva:
+        specifier: ^3.4.0
+        version: 3.4.0(konva@10.2.5)(vue@3.5.21(typescript@5.9.2))
       vue-router:
         specifier: ^4.5.1
         version: 4.5.1(vue@3.5.21(typescript@5.9.2))
@@ -3327,6 +3333,9 @@ packages:
   kolorist@1.8.0:
     resolution: {integrity: sha512-Y+60/zizpJ3HRH8DCss+q95yr6145JXZo46OTpFvDZWLfRCE4qChOyk1b26nMaNpfHHgxagk9dXT5OP0Tfe+dQ==}
 
+  konva@10.2.5:
+    resolution: {integrity: sha512-WwBoe/EBhFcv+seL1Wnp3OAOwOFjCY4nCCgpLRrzUzw1IX4lKf/lYhj2Z3qo9P9q2fA3h+OdGDlimSNqZJaY5A==}
+
   launch-editor@2.11.1:
     resolution: {integrity: sha512-SEET7oNfgSaB6Ym0jufAdCeo3meJVeCaaDyzRygy0xsp2BFKCprcfHljTq4QkzTLUxEKkFK6OK4811YM2oSrRg==}
 
@@ -5143,6 +5152,13 @@ packages:
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
     peerDependencies:
       eslint: ^8.57.0 || ^9.0.0
+
+  vue-konva@3.4.0:
+    resolution: {integrity: sha512-l7yqAPmc6gPbdXzxoukTiXzA6EdqTtPhzQp1pTdppwWLiimPCgFHcqp8nApXQN5dqF11p2OejwjKv150cf9ncA==}
+    engines: {node: '>= 4.0.0', npm: '>= 3.0.0'}
+    peerDependencies:
+      konva: '>7'
+      vue: ^3
 
   vue-router@4.5.1:
     resolution: {integrity: sha512-ogAF3P97NPm8fJsE4by9dwSYtDwXIY1nFY9T6DyQnGHd1E2Da94w9JIolpe42LJGIl0DwOHBi8TcRPlPGwbTtw==}
@@ -8988,6 +9004,8 @@ snapshots:
 
   kolorist@1.8.0: {}
 
+  konva@10.2.5: {}
+
   launch-editor@2.11.1:
     dependencies:
       picocolors: 1.1.1
@@ -11348,6 +11366,11 @@ snapshots:
       semver: 7.7.2
     transitivePeerDependencies:
       - supports-color
+
+  vue-konva@3.4.0(konva@10.2.5)(vue@3.5.21(typescript@5.9.2)):
+    dependencies:
+      konva: 10.2.5
+      vue: 3.5.21(typescript@5.9.2)
 
   vue-router@4.5.1(vue@3.5.21(typescript@5.9.2)):
     dependencies:
