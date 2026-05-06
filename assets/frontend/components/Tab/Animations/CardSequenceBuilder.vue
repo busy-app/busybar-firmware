@@ -94,6 +94,7 @@ import type { ColorMode } from '@/util/seq2anim';
 import type { DisplayDrawParams } from '@busy-app/busy-lib';
 
 const deviceStore = useDeviceStore();
+const animationApplicationName = 'virtual-lan-animation-test';
 
 const filesModel = ref<File[] | null>(null);
 const fpsModel = ref<number>(30);
@@ -174,24 +175,50 @@ async function composeAndUpload () {
   }
 }
 
-async function deleteAssets () {
-  return deviceStore.busyBar.AssetsDelete({
-    application_name: 'virtual-lan-animation-test'
-  })
-    .catch(async error => {
-      if (String(error).includes('Assets missing')) {
-        // if there are no existing assets, we can ignore the error and proceed with upload
-        return;
-      }
+async function deleteAssets (): Promise<void> {
+  await tryDeleteAssets();
+}
 
-      await handleHTTPError(error, 'Couldn\'t delete existing animation assets', true);
-      throw error;
+async function tryDeleteAssets (hasRetried = false): Promise<void> {
+  try {
+    await deviceStore.busyBar.AssetsDelete({
+      application_name: animationApplicationName
     });
+  } catch (error) {
+    if (String(error).includes('Assets missing')) {
+      // if there are no existing assets, we can ignore the error and proceed with upload
+      return;
+    }
+
+    if (!hasRetried && isFileDeleteFailedError(error)) {
+      await clearAnimationDisplay();
+      await tryDeleteAssets(true);
+      return;
+    }
+
+    await handleHTTPError(error, 'Couldn\'t delete existing animation assets', true);
+    throw error;
+  }
+}
+
+async function clearAnimationDisplay (): Promise<void> {
+  try {
+    await deviceStore.busyBar.DisplayClear({
+      application_name: animationApplicationName
+    });
+  } catch (error) {
+    await handleHTTPError(error, 'Couldn\'t clear existing animation display', true);
+    throw error;
+  }
+}
+
+function isFileDeleteFailedError (error: unknown) {
+  return String(error).includes('File delete failed');
 }
 
 async function uploadAnimation (animation: Blob) {
   return deviceStore.busyBar.AssetsUpload({
-    application_name: 'virtual-lan-animation-test',
+    application_name: animationApplicationName,
     data: animation,
     file: 'test.anim'
   })
@@ -203,7 +230,7 @@ async function uploadAnimation (animation: Blob) {
 
 async function drawAnimation () {
   return deviceStore.busyBar.DisplayDraw({
-    application_name: 'virtual-lan-animation-test',
+    application_name: animationApplicationName,
     elements: [
       {
         id: '0',
