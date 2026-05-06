@@ -161,7 +161,7 @@ static bool api_display_draw_parse_image_path(
                 }
             }
 
-            if(!image_name) break;
+            if(!image_name || *image_name == '\0') break;
 
             *file_path = furi_string_alloc_printf(
                 is_animated ? SHARED_ANIM_PATH("%s") : SHARED_IMG_PATH("%s"), image_name);

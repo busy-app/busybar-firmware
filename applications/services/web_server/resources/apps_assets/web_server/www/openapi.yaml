@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: BUSY Bar HTTP API
   description: HTTP API for BUSY Bar web server
-  version: 19.1.0
+  version: 20.0.0
   contact:
     name: tbd
 
@@ -802,23 +802,12 @@ paths:
         Plays an audio file from the assets directory.
         Supported formats include .snd files.
       operationId: playAudio
-      parameters:
-        - name: application_name
-          in: query
-          required: true
-          schema:
-            type: string
-            pattern: "^[a-zA-Z0-9._-]+$"
-          description: Application ID for organizing assets
-          example: "my_app"
-        - name: path
-          in: query
-          required: true
-          schema:
-            type: string
-            pattern: "^[a-zA-Z0-9._/-]+$"
-          description: Path to audio file within app's assets directory
-          example: "data.snd"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PlayAudio"
       responses:
         "200":
           description: Audio playback started successfully
@@ -2164,7 +2153,7 @@ components:
               properties:
                 stock_path:
                   type: string
-                  pattern: "shared/[a-z0-9_]+$"
+                  pattern: "shared/[a-z0-9_.]+$"
                   description: Stock image file name
 
     AnimationElement:
@@ -2181,7 +2170,7 @@ components:
                 - properties:
                     stock_path:
                       type: string
-                      pattern: "shared/[a-z0-9_]+$"
+                      pattern: "shared/[a-z0-9_.]+$"
                       description: Stock animation file name
             - properties:
                 loop:
@@ -2238,6 +2227,34 @@ components:
           type: number
           description: Audio volume value (0-100)
           example: 50
+    
+    PlayAudio:
+      type: object
+      allOf:
+        - properties:
+            application_name:
+              type: string
+              pattern: "^[a-zA-Z0-9._-]+$"
+              description: Application ID for organizing assets
+              example: "my_app"
+          required:
+            - application_name
+        - oneOf:
+          - properties:
+              path:
+                type: string
+                pattern: "^[a-zA-Z0-9._/-]+$"
+                description: Path to audio file within app's assets directory
+                example: "data.snd"
+            required:
+              - path
+          - properties:
+              stock_path:
+                type: string
+                pattern: "shared/[a-z0-9_.]+$"
+                description: Stock audio file name
+            required:
+              - stock_path
 
     TimestampInfo:
       type: object
