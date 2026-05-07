@@ -18,7 +18,6 @@ export interface AutoUpdateSelfCheckState {
 
 export const useFirmwareStore = defineStore('firmware', () => {
   const deviceStore = useDeviceStore();
-  const screenStreamStore = useScreenStreamStore();
 
   const BACKGROUND_AUTO_UPDATE_CHECK_INTERVAL_MS = 30 * 60 * 1000; // 30 minutes
   const autoUpdate = ref({
@@ -412,8 +411,6 @@ export const useFirmwareStore = defineStore('firmware', () => {
   }
   async function startFirmwareUpdateFromFile () {
     try {
-      await screenStreamStore.stopScreenStream();
-
       fileUpdate.value.showFileUploadModal = false;
       autoUpdate.value.modals.updating = true;
 

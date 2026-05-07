@@ -24,6 +24,7 @@
           <div class="w-full max-w-[688px] flex flex-col gap-4 mx-auto">
             <DefaultLayoutUpdateBanner />
             <DefaultLayoutStateStreamFailBanner />
+            <DefaultLayoutStateStreamResourceLimitBanner />
 
             <slot />
           </div>
@@ -42,6 +43,9 @@
 </template>
 
 <script setup lang="ts">
+import type { ProcessedState } from '@busy-app/busy-lib';
+import { BSB_Error, StateStreamErrorCode, StreamLifecycle } from '@busy-app/busy-lib';
+
 const deviceStore = useDeviceStore();
 const firmwareStore = useFirmwareStore();
 const wifiStore = useWifiStore();
@@ -78,25 +82,62 @@ async function init () {
   shouldLoadDefaultPage.value = true;
 }
 
-const lastMessageTimestamp = ref(0);
-function logStateUpdates (message: StateMessage) {
-  const currentMessageTimestamp = Number(message.timestamp);
+function logStateUpdates (message: ProcessedState) {
+  if (!message.updates) {
+    message.updates = [];
+  }
   for (const update of message.updates) {
-    console.debug(`[${currentMessageTimestamp}] (Δ${String(currentMessageTimestamp - lastMessageTimestamp.value).padStart(4, ' ')}ms)`, update);
+    console.debug(`[state stream message] (${Number(message.timestamp)})`, update);
   }
   if (message.updates.length === 0) {
-    console.debug(`[${currentMessageTimestamp}] (Δ${String(currentMessageTimestamp - lastMessageTimestamp.value).padStart(4, ' ')}ms) heartbeat (no updates)`);
+    console.debug(`[state stream message] (${Number(message.timestamp)}) heartbeat (no updates)`);
   }
-  lastMessageTimestamp.value = currentMessageTimestamp;
 }
 
-async function initStateStream () {
+function handleStateStreamFailure () {
+  console.warn('Falling back to polling for device state updates');
+  deviceStore.setRefreshInterval();
+  firmwareStore.setAutoUpdateBackgroundCheckInterval();
+}
+function initStateStream () {
   try {
     stateStreamStore.showStateStreamFailBanner = false;
 
     const now = Date.now();
     console.debug('Starting state stream');
-    await stateStreamStore.startStateStream(logStateUpdates, console.error);
+    stateStreamStore.stream.start({
+      dataCallback: message => {
+        stateStreamStore.applyStateMessage(message);
+        logStateUpdates(message);
+      },
+      statusCallback: stateStreamStore.applyStreamStatus,
+      errorCallback: error => {
+        if (error.data?.severity === BSB_Error.Severity.WARNING) {
+          console.warn(`[state stream warning] ${error.code}: ${error.message}`);
+          return;
+        }
+        console.error(`[state stream error] ${error.code}: ${error.message}`);
+        if (error.code === StateStreamErrorCode.DEVICE_ERROR && error.data?.cause === BSB_Error.Cause.RESOURCE_LIMIT) {
+          if (stateStreamStore.showStateStreamFailBanner) {
+            stateStreamStore.showStateStreamFailBanner = false;
+          }
+          stateStreamStore.showResourceLimitErrorBanner = true;
+        } else {
+          if (error.code === StateStreamErrorCode.CONNECTION_TIMEOUT || error.code === StateStreamErrorCode.CONNECTION_LOST || error.data?.severity === BSB_Error.Severity.FATAL) {
+            if (stateStreamStore.showResourceLimitErrorBanner) {
+              stateStreamStore.showResourceLimitErrorBanner = false;
+            }
+            stateStreamStore.showStateStreamFailBanner = true;
+            try {
+              stateStreamStore.stream.stop();
+            } catch (stopError) {
+              console.warn('Failed to stop state stream after fatal error:', stopError);
+            }
+            handleStateStreamFailure();
+          }
+        }
+      }
+    });
     console.debug(`State stream started (took ${Date.now() - now}ms)`);
 
     // if polling was active, stop it since we now have a successful state stream connection
@@ -104,20 +145,41 @@ async function initStateStream () {
     firmwareStore.clearAutoUpdateBackgroundCheckInterval();
   } catch (error) {
     console.error('Error starting state websocket:', error);
-
     stateStreamStore.showStateStreamFailBanner = true;
-
-    console.log('Falling back to polling for device state updates');
-    deviceStore.setRefreshInterval();
-    firmwareStore.setAutoUpdateBackgroundCheckInterval();
+    handleStateStreamFailure();
   }
 }
 
 async function handleDeviceReconnected () {
+  await waitForStateStreamRestartableState();
+
   await init();
 }
 
+const STATE_STREAM_RESTARTABLE_STATE_TIMEOUT_MS = 5000;
+async function waitForStateStreamRestartableState (): Promise<void> {
+  if (stateStreamStore.streamStatus?.main.status !== StreamLifecycle.IDLE && stateStreamStore.streamStatus?.main.status !== StreamLifecycle.STOPPED) {
+    await new Promise((resolve, reject) => {
+      const restartableStateTimeout = setTimeout(() => {
+        clearInterval(restartableStateInterval);
+        reject(new Error('State stream is not in a restartable state'));
+      }, STATE_STREAM_RESTARTABLE_STATE_TIMEOUT_MS);
+
+      const restartableStateInterval = setInterval(() => {
+        if (stateStreamStore.streamStatus?.main.status === StreamLifecycle.IDLE || stateStreamStore.streamStatus?.main.status === StreamLifecycle.STOPPED) {
+          clearTimeout(restartableStateTimeout);
+          clearInterval(restartableStateInterval);
+          resolve(true);
+        }
+      }, 100);
+    });
+  }
+}
 async function handleStateStreamRestart () {
+  if (stateStreamStore.streamStatus?.main.status !== StreamLifecycle.IDLE && stateStreamStore.streamStatus?.main.status !== StreamLifecycle.STOPPED) {
+    await waitForStateStreamRestartableState();
+  }
+
   await initStateStream();
 }
 
@@ -131,7 +193,7 @@ onMounted(async () => {
 onBeforeUnmount(() => {
   deviceStore.clearRefreshInterval();
   firmwareStore.clearAutoUpdateBackgroundCheckInterval();
-  stateStreamStore.stopStateStream();
+  stateStreamStore.stream.stop();
   window.removeEventListener('device-reconnected', handleDeviceReconnected);
   window.removeEventListener('protobuf-websocket-restart', handleStateStreamRestart);
   window.removeEventListener('wifi-reconnected', firmwareStore.requestAutoUpdateCheck);

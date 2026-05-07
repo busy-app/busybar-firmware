@@ -20,9 +20,10 @@ export const useDeviceStore = defineStore('device', () => {
   // Upon stream failure, a probing HTTP request is sent. If it fails too, set isConnected to false.
   const isConnected = ref<boolean>(true);
   const checkingConnection = ref<boolean>(false);
-  async function checkConnection () {
+  type ConnCheckResult = true | false | 'aborted';
+  async function checkConnection (): Promise<ConnCheckResult> {
     if (checkingConnection.value) {
-      return;
+      return 'aborted';
     }
     checkingConnection.value = true;
     const wasConnected = isConnected.value;
@@ -45,7 +46,7 @@ export const useDeviceStore = defineStore('device', () => {
         const e = error as any;
         if (e?.name === 'AbortError' || e?.message?.toLowerCase().includes('abort') || e?.code === 'ECONNABORTED') {
           checkingConnection.value = false;
-          return;
+          return 'aborted';
         }
       }
 
@@ -72,6 +73,8 @@ export const useDeviceStore = defineStore('device', () => {
       }
     }
     checkingConnection.value = false;
+
+    return isConnected.value;
   }
 
   const refreshInterval = ref<NodeJS.Timeout>();
