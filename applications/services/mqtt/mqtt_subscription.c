@@ -19,8 +19,10 @@ static void mqtt_subscription_free(MqttSubscription* subscription) {
 static bool mqtt_is_valid_scope_for_current_status(Mqtt* instance, MqttScope scope) {
     bool is_valid = false;
 
-    if(instance->status == MqttStatusConnectedLinked && scope == MqttScopeSession) {
-        is_valid = true;
+    if(scope == MqttScopeSession) {
+        if(instance->status == MqttStatusConnectedLinked) {
+            is_valid = true;
+        }
     } else if(scope == MqttScopeDevice) {
         if(instance->status == MqttStatusConnectedLinked ||
            instance->status == MqttStatusConnectedNotLinked) {
