@@ -82,7 +82,7 @@
             label: 'Rename',
             icon: 'i-bi-edit',
             onSelect: () => {
-              nameModel = '';
+              nameModel = deviceStore.deviceName || '';
               showRenameModal = true;
             }
           }
