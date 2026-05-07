@@ -1,7 +1,7 @@
 #include "http_api.h"
 #include <version.h>
 #include <json_helper.h>
-#include <usb_network/usb_network.h>
+#include <lwip/tcpip.h>
 
 #define TAG "HttpApi"
 
@@ -52,13 +52,24 @@ static bool http_api_version_callback(
     return true;
 }
 
+static bool is_wifi_connection(struct mg_connection* conn) {
+    if(conn->loc.is_ip6) return false;
+    LOCK_TCPIP_CORE();
+    struct netif* wifi_netif = network_find_netif(NETWORK_WIFI_NETIF);
+    bool is_wifi = wifi_netif &&
+                   (memcmp(conn->loc.addr.ip, netif_ip4_addr(wifi_netif), sizeof(ip4_addr_t)) == 0);
+    UNLOCK_TCPIP_CORE();
+    return is_wifi;
+}
+
 static bool is_usb_connection(struct mg_connection* conn) {
-    if(conn->rem.is_ip6) return false;
-    uint8_t* ip = conn->rem.addr.ip;
-    UsbNetwork* usb_network = furi_record_open(RECORD_USB_NETWORK);
-    bool is_usb_addr = usb_network_is_dhcp_addr(usb_network, ip);
-    furi_record_close(RECORD_USB_NETWORK);
-    return is_usb_addr;
+    if(conn->loc.is_ip6) return false;
+    LOCK_TCPIP_CORE();
+    struct netif* usb_netif = network_find_netif(NETWORK_USB_NETIF);
+    bool is_usb = usb_netif &&
+                  (memcmp(conn->loc.addr.ip, netif_ip4_addr(usb_netif), sizeof(ip4_addr_t)) == 0);
+    UNLOCK_TCPIP_CORE();
+    return is_usb;
 }
 
 static bool http_api_transport_callback(
@@ -73,8 +84,8 @@ static bool http_api_transport_callback(
 
     if(!IS_HTTP_ENDPOINT(path)) return false;
 
-    bool is_usb = is_usb_connection(conn);
-    MG_REPLY_OK_BODY(conn, "{\"type\":\"%s\"}\n", is_usb ? "usb" : "wifi");
+    bool is_wifi = is_wifi_connection(conn);
+    MG_REPLY_OK_BODY(conn, "{\"type\":\"%s\"}\n", is_wifi ? "wifi" : "usb");
 
     return true;
 }

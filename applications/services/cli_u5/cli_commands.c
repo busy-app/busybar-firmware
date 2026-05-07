@@ -7,6 +7,9 @@
 #include "cli_command_otp.h"
 #include "cli_command_rtc.h"
 
+#include <cli_socket/cli_socket.h>
+#include <cli_socket/settings/sysctl_settings.h>
+
 #include <core/thread.h>
 #include <core/thread_list.h>
 #include <furi_hal.h>
@@ -86,11 +89,35 @@ static void
     }
 }
 
+static void
+    cli_command_sysctl_cli_wifi_enabled(PipeSide* pipe, FuriString* args, void* context) {
+    UNUSED(pipe);
+    UNUSED(context);
+
+    SysctlSettings settings;
+    sysctl_settings_load(&settings);
+
+    if(furi_string_equal_str(args, "0")) {
+        settings.cli_wifi_enabled = false;
+        sysctl_settings_save(&settings);
+        cli_socket_set_wifi_enabled(false);
+        printf("CLI over WiFi disabled.");
+    } else if(furi_string_equal_str(args, "1")) {
+        settings.cli_wifi_enabled = true;
+        sysctl_settings_save(&settings);
+        cli_socket_set_wifi_enabled(true);
+        printf("CLI over WiFi enabled.");
+    } else {
+        cli_print_usage("sysctl cli_wifi_enabled", "<1|0>", furi_string_get_cstr(args));
+    }
+}
+
 static void cli_command_sysctl_print_usage() {
     printf("Usage:\r\n");
     printf("sysctl <cmd>\r\n");
     printf("Cmd list:\r\n");
     printf("\tdebug - enables or disables debug mode\r\n");
+    printf("\tcli_wifi_enabled - enables or disables CLI access over WiFi\r\n");
 
     if(furi_hal_nvm_is_flag_set(FuriHalNvmFlagDebug)) {
         printf("\tstorage_bkp_unlock - locks or unlocks backup storage\r\n");
@@ -109,6 +136,11 @@ static void cli_command_sysctl(PipeSide* pipe, FuriString* args, void* context) 
 
         if(furi_string_cmp_str(cmd, "debug") == 0) {
             cli_command_sysctl_debug(pipe, args, context);
+            break;
+        }
+
+        if(furi_string_cmp_str(cmd, "cli_wifi_enabled") == 0) {
+            cli_command_sysctl_cli_wifi_enabled(pipe, args, context);
             break;
         }
 

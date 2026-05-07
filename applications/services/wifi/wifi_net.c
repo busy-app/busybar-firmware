@@ -1,5 +1,6 @@
 #include "wifi_i.h"
 
+#include <network/network.h>
 #include <lwip/tcpip.h>
 #include <lwip/etharp.h>
 #include <lwip/dhcp.h>
@@ -42,8 +43,8 @@ static err_t wifi_init_netif_callback(struct netif* netif) {
 
     netif->mtu = WIRELESS_MTU;
     netif->flags = NETIF_FLAG_BROADCAST | NETIF_FLAG_ETHARP | NETIF_FLAG_IGMP;
-    netif->name[0] = 'W';
-    netif->name[1] = 'L';
+    netif->name[0] = NETWORK_WIFI_NETIF[0];
+    netif->name[1] = NETWORK_WIFI_NETIF[1];
 
     netif->output = etharp_output;
     netif->linkoutput = wifi_link_output_callback;

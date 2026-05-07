@@ -4,12 +4,32 @@
  */
 #pragma once
 
+#include <lwip/netif.h>
+
 /**
  * @brief The string key for Network instance access
  *
  * Get the instance pointer by calling `furi_record_open(RECORD_NETWORK)`
  */
 #define RECORD_NETWORK "network"
+
+/** lwIP netif name string for the WiFi interface (name[0..1] = "WL"). */
+#define NETWORK_WIFI_NETIF "WL"
+
+/** lwIP netif name string for the USB-NCM interface (name[0..1] = "EX"). */
+#define NETWORK_USB_NETIF "EX"
+
+/**
+ * @brief Find a netif by its 2-character lwIP name, ignoring the instance number.
+ *
+ * Must be called with the lwIP core lock held — either from within the lwIP thread
+ * or between LOCK_TCPIP_CORE / UNLOCK_TCPIP_CORE.
+ *
+ * @param netif_name  A string whose first two characters are the lwIP netif name
+ *                    (e.g. NETWORK_WIFI_NETIF, NETWORK_USB_NETIF).
+ * @return First matching netif, or NULL if not found.
+ */
+struct netif* network_find_netif(const char* netif_name);
 
 #ifdef __cplusplus
 extern "C" {

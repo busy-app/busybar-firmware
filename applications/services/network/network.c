@@ -11,6 +11,16 @@
 
 #define TAG "Network"
 
+struct netif* network_find_netif(const char* netif_name) {
+    struct netif* n;
+    NETIF_FOREACH(n) {
+        if(n->name[0] == netif_name[0] && n->name[1] == netif_name[1]) {
+            return n;
+        }
+    }
+    return NULL;
+}
+
 static void network_tcpip_init_done_callback(void* arg) {
     furi_assert(arg);
     FuriSemaphore* lwip_start_sem = arg;
