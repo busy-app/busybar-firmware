@@ -21,8 +21,11 @@ static bool mqtt_is_valid_scope_for_current_status(Mqtt* instance, MqttScope sco
 
     if(instance->status == MqttStatusConnectedLinked && scope == MqttScopeSession) {
         is_valid = true;
-    } else if(instance->status == MqttStatusConnectedNotLinked && scope == MqttScopeDevice) {
-        is_valid = true;
+    } else if(scope == MqttScopeDevice) {
+        if(instance->status == MqttStatusConnectedLinked ||
+           instance->status == MqttStatusConnectedNotLinked) {
+            is_valid = true;
+        }
     }
 
     return is_valid;
