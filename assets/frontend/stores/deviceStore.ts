@@ -4,7 +4,8 @@ import type {
   VersionInfo,
   Status as DeviceStatus,
   HttpAccessInfo,
-  HttpAccessParams
+  HttpAccessParams,
+  NetworkInterfaceInfo
 } from '@busy-app/busy-lib';
 
 export const useDeviceStore = defineStore('device', () => {
@@ -115,14 +116,11 @@ export const useDeviceStore = defineStore('device', () => {
   }
 
   // Connection type
-  const connectionType = ref<'usb' | 'wifi'>('wifi');
-  interface TransportResponse {
-    type: 'usb' | 'wifi' | string;
-  }
+  const connectionType = ref<NetworkInterfaceInfo['type']>('wifi');
   async function detectConnectionType () {
-    await apiRequest<TransportResponse>('/api/transport', { timeout: 3000 })
+    await busyBar.value.SystemTransportGet()
       .then(response => {
-        connectionType.value = response.type === 'usb' ? 'usb' : 'wifi';
+        connectionType.value = response.type;
         console.debug('Detected connection type:', connectionType.value);
       })
       .catch(async error => {
