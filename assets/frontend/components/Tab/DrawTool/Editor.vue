@@ -2156,7 +2156,7 @@ async function saveStatus (options?: { saveAsNew?: boolean }) {
 }
 
 function handleBackButtonClick () {
-  void es.requestLeaveEditor(() => emit('back'));
+  es.requestLeaveEditor(() => emit('back'));
 }
 
 const showStatusCheckmarkIcon = ref(false);

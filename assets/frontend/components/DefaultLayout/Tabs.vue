@@ -8,7 +8,7 @@
       :key="tab.value"
       class="grid items-center grid-cols-[24px_auto] gap-[10px] p-3 rounded-xl cursor-pointer whitespace-nowrap"
       :class="tabStore.currentTab === tab.value ? 'bg-accented/50 dark:bg-elevated ring-1 ring-glass' : 'text-muted hover:text-default'"
-      @click="void handleTabClick(tab.value)"
+      @click="handleTabClick(tab.value)"
     >
       <UIcon
         :name="tab.activeIcon ? tabStore.currentTab === tab.value ? tab.activeIcon : tab.icon : tab.icon"
