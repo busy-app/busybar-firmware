@@ -225,45 +225,45 @@ static bool http_api_account_unlink(
     return true;
 }
 
-static void http_api_account_mqtt_profile_get(struct mg_connection* conn) {
-    MqttProfile profile;
-
+static void http_api_account_mqtt_backend_get(struct mg_connection* conn) {
     Mqtt* mqtt = furi_record_open(RECORD_MQTT);
-    mqtt_get_profile(mqtt, &profile);
+
+    MqttConfig config;
+    mqtt_get_config(mqtt, &config);
+
     furi_record_close(RECORD_MQTT);
 
-    char* json_text = mqtt_profile_serialize(&profile);
+    char* json_text = mqtt_config_serialize(&config);
 
     if(json_text) {
         MG_REPLY_OK_BODY(conn, json_text);
         free(json_text);
-
     } else {
         MG_REPLY_INTERNAL_ERROR(conn);
     }
 }
 
 static void
-    http_api_account_mqtt_profile_put(struct mg_connection* conn, struct mg_http_message* msg) {
+    http_api_account_mqtt_backend_put(struct mg_connection* conn, struct mg_http_message* msg) {
     bool success = false;
 
+    Mqtt* mqtt = furi_record_open(RECORD_MQTT);
+
     do {
-        MqttProfile profile;
+        MqttConfig config;
 
-        if(!mqtt_profile_deserialize(&profile, msg->body.buf, msg->body.len)) {
+        if(!mqtt_config_deserialize(&config, msg->body.buf, msg->body.len)) {
             break;
         }
 
-        if(!mqtt_profile_is_valid(&profile)) {
+        if(!mqtt_set_config(mqtt, &config)) {
             break;
         }
-
-        Mqtt* mqtt = furi_record_open(RECORD_MQTT);
-        mqtt_set_profile(mqtt, &profile);
-        furi_record_close(RECORD_MQTT);
 
         success = true;
     } while(false);
+
+    furi_record_close(RECORD_MQTT);
 
     if(success) {
         MG_REPLY_OK(conn);
@@ -272,7 +272,7 @@ static void
     }
 }
 
-static bool http_api_account_mqtt_profile(
+static bool http_api_account_mqtt_backend(
     FuriString* path,
     HttpMethod method,
     struct mg_connection* conn,
@@ -283,9 +283,9 @@ static bool http_api_account_mqtt_profile(
     if(!IS_HTTP_ENDPOINT(path)) return false;
 
     if(method == HttpMethodGet) {
-        http_api_account_mqtt_profile_get(conn);
+        http_api_account_mqtt_backend_get(conn);
     } else if(method == HttpMethodPut) {
-        http_api_account_mqtt_profile_put(conn, msg);
+        http_api_account_mqtt_backend_put(conn, msg);
     }
 
     return true;
@@ -317,10 +317,10 @@ static const HttpHandler api_account_handlers[] = {
         .on_request = http_api_account_get_status,
     },
     {
-        .uri = "profile",
+        .uri = "backend",
         .method = HttpMethodGet | HttpMethodPut,
         .type = HttpHandlerCustom,
-        .on_request = http_api_account_mqtt_profile,
+        .on_request = http_api_account_mqtt_backend,
     },
 };
 

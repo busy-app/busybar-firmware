@@ -32,7 +32,7 @@
  */
 #pragma once
 
-#include "mqtt_profile.h"
+#include "mqtt_config.h"
 
 #include <core/pubsub.h>
 #include <core/string.h>
@@ -234,21 +234,21 @@ void mqtt_get_session_info(Mqtt* instance, MqttSessionInfo* info);
 // =========================== Profile management ==================================
 
 /**
- * @brief Get the currently active profile.
+ * @brief Get the current backend configuration.
  *
  * @param[in] instance pointer to the MQTT service instance to be queried
- * @param[out] profile pointer to a MqttProfile structure to contain the result (must be allocated)
+ * @param[out] config pointer to a MqttConfig structure to contain the result (must be allocated)
  */
-void mqtt_get_profile(Mqtt* instance, MqttProfile* profile);
+void mqtt_get_config(Mqtt* instance, MqttConfig* config);
 
 /**
- * @brief Set the current profile to another one.
+ * @brief Set the backend configuration.
  *
  * @param[in,out] instance pointer to the MQTT service instance to be modified
- * @param[in] profile pointer to a MqttProfile structure containing the profile to be set
- * @returns @c true if the profile could be successfully set, @c false otherwise
+ * @param[in] config pointer to a MqttConfig structure containing the configuration to be set
+ * @returns @c true if the configuration could be successfully set, @c false otherwise
  */
-bool mqtt_set_profile(Mqtt* instance, const MqttProfile* profile);
+bool mqtt_set_config(Mqtt* instance, const MqttConfig* config);
 
 // =========================== Subscription management ==================================
 
