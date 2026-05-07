@@ -1338,32 +1338,32 @@ paths:
               schema:
                 $ref: "#/components/schemas/AccountStatus"
 
-  /api/account/profile:
+  /api/account/backend:
     get:
       tags:
         - Account
-      summary: Get MQTT profile
-      description: Retrieves MQTT backend profile
-      operationId: getAccountProfile
+      summary: Get MQTT configuration
+      description: Retrieves MQTT backend configuration
+      operationId: getAccountBackend
       responses:
         "200":
           description: Data retrieved successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/AccountProfile"
+                $ref: "#/components/schemas/AccountBackend"
     put:
       tags:
         - Account
-      summary: Set MQTT profile
-      description: Sets MQTT backend profile
-      operationId: setAccountProfile
+      summary: Set MQTT configuration
+      description: Sets MQTT backend configuration
+      operationId: setAccountBackend
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/AccountProfile"
+              $ref: "#/components/schemas/AccountBackend"
       responses:
         "200":
           description: Set successfully
@@ -2570,19 +2570,34 @@ components:
           example: "connected"
           enum: ["error", "disconnected", "connected"]
 
-    AccountProfile:
+    AccountBackend:
       type: object
       properties:
-        profile_type:
+        server_url:
           type: string
-          example: "default"
+          description: MQTT server url to connect to
+          examples:
+            - "default"
+            - "mqtts://mqtt.example.com:8883"
+        client_cert_type:
+          type: string
+          description: Client certificate type to use
+          examples:
+            - "default"
+            - "custom"
           enum:
             - "default"
             - "custom"
-        custom_config:
-          $ref: "#/components/schemas/AccountCustomConfig"
+            - "none"
+        ignore_server_cert:
+          type: boolean
+          description: Whether to ignore the server certificate
+          examples:
+            - false
       required:
-        - profile_type
+        - server_url
+        - client_cert_type
+        - ignore_server_cert
 
     AccountLink:
       type: object
@@ -2593,26 +2608,6 @@ components:
         expires_at:
           type: integer
           example: 1761060863
-
-    AccountCustomConfig:
-      type: object
-      properties:
-        server_url:
-          type: string
-          description: MQTT server url to connect to
-          example: "mqtts://mqtt.example.com:8883"
-        client_cert_type:
-          type: string
-          description: Client certificate type to use
-          example: "default"
-          enum:
-            - "default"
-            - "custom"
-            - "none"
-        ignore_server_cert:
-          type: boolean
-          description: Whether to ignore the server certificate
-          example: false
 
     BleStatusResponse:
       type: object
