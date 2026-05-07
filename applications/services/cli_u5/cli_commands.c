@@ -7,9 +7,6 @@
 #include "cli_command_otp.h"
 #include "cli_command_rtc.h"
 
-#include <cli_socket/cli_socket.h>
-#include <cli_socket/settings/sysctl_settings.h>
-
 #include <core/thread.h>
 #include <core/thread_list.h>
 #include <furi_hal.h>
@@ -27,6 +24,11 @@
 #include <storage/storage_backup.h>
 #include <device_name/device_name.h>
 #include <sl_info/sl_info.h>
+
+#ifdef SRV_CLI_SOCKET
+#include <cli_socket/cli_socket.h>
+#include <cli_socket/settings/sysctl_settings.h>
+#endif
 
 static void cli_command_update_debug_mode(void) {
     CliRegistry* registry = furi_record_open(RECORD_CLI);
@@ -89,6 +91,7 @@ static void
     }
 }
 
+#ifdef SRV_CLI_SOCKET
 static void cli_command_sysctl_cli_wifi_enabled(PipeSide* pipe, FuriString* args, void* context) {
     UNUSED(pipe);
     UNUSED(context);
@@ -110,13 +113,16 @@ static void cli_command_sysctl_cli_wifi_enabled(PipeSide* pipe, FuriString* args
         cli_print_usage("sysctl cli_wifi_enabled", "<1|0>", furi_string_get_cstr(args));
     }
 }
+#endif // SRV_CLI_SOCKET
 
 static void cli_command_sysctl_print_usage() {
     printf("Usage:\r\n");
     printf("sysctl <cmd>\r\n");
     printf("Cmd list:\r\n");
     printf("\tdebug - enables or disables debug mode\r\n");
+#ifdef SRV_CLI_SOCKET
     printf("\tcli_wifi_enabled - enables or disables CLI access over WiFi\r\n");
+#endif
 
     if(furi_hal_nvm_is_flag_set(FuriHalNvmFlagDebug)) {
         printf("\tstorage_bkp_unlock - locks or unlocks backup storage\r\n");
@@ -138,10 +144,12 @@ static void cli_command_sysctl(PipeSide* pipe, FuriString* args, void* context) 
             break;
         }
 
+#ifdef SRV_CLI_SOCKET
         if(furi_string_cmp_str(cmd, "cli_wifi_enabled") == 0) {
             cli_command_sysctl_cli_wifi_enabled(pipe, args, context);
             break;
         }
+#endif
 
         if(furi_hal_nvm_is_flag_set(FuriHalNvmFlagDebug)) {
             if(furi_string_cmp_str(cmd, "storage_bkp_unlock") == 0) {
