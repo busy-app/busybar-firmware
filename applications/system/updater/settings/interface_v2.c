@@ -114,6 +114,22 @@ const SettingProviderSetting updater_v2_settings[] = {
             .field_offset = offsetof(UpdaterSettingsV2, autoupdate_interval_end),
             .type = SettingProviderSettingTypeInt,
         },
+    [UpdaterSettingV2IdxAutoupdateAttemptDelay] =
+        {
+            .name = "autoupdate_attempt_delay",
+            .interface =
+                &(const SettingProviderIntInterface){
+                    .is_valid_callback = int_min_max_validate,
+                    .default_value = UPDATER_SETTINGS_V2_AUTOUPDATE_ATTEMPT_DELAY_DEFAULT,
+                },
+            .context =
+                &(const IntMinMaxValidationContext){
+                    .min = UPDATER_SETTINGS_V2_AUTOUPDATE_ATTEMPT_DELAY_MIN,
+                    .max = UPDATER_SETTINGS_V2_AUTOUPDATE_ATTEMPT_DELAY_MAX,
+                },
+            .field_offset = offsetof(UpdaterSettingsV2, autoupdate_attempt_delay),
+            .type = SettingProviderSettingTypeInt,
+        },
 };
 
 const SettingProviderSetting updater_v2_settings_root = {

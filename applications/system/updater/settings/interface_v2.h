@@ -28,6 +28,10 @@
 #define UPDATER_SETTINGS_V2_AUTOUPDATE_INTERVAL_END_MAX     (24 * 60 - 1)
 #define UPDATER_SETTINGS_V2_AUTOUPDATE_INTERVAL_END_DEFAULT (5 * 60)
 
+#define UPDATER_SETTINGS_V2_AUTOUPDATE_ATTEMPT_DELAY_MIN     (1 * 60 * 1000)
+#define UPDATER_SETTINGS_V2_AUTOUPDATE_ATTEMPT_DELAY_MAX     (60 * 60 * 1000)
+#define UPDATER_SETTINGS_V2_AUTOUPDATE_ATTEMPT_DELAY_DEFAULT (5 * 60 * 1000)
+
 typedef enum {
     UpdaterSettingV2IdxCheckUrl,
     UpdaterSettingV2IdxCheckChannelId,
@@ -37,6 +41,7 @@ typedef enum {
     UpdaterSettingV2IdxAutoupdateEnabled,
     UpdaterSettingV2IdxAutoupdateIntervalStart,
     UpdaterSettingV2IdxAutoupdateIntervalEnd,
+    UpdaterSettingV2IdxAutoupdateAttemptDelay,
 
     UpdaterSettingV2IdxsCount,
 } UpdaterSettingV2Idx;
@@ -50,6 +55,7 @@ typedef struct {
     bool autoupdate_enabled;
     int autoupdate_interval_start; /* minutes since midnight */
     int autoupdate_interval_end; /* minutes since midnight */
+    int autoupdate_attempt_delay;
 } UpdaterSettingsV2;
 
 bool updater_settings_v2_migrate(SettingProvider* provider);

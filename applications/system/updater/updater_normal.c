@@ -13,8 +13,6 @@
 #define INSTALL_FROM_URL_THREAD_NAME       "UpdateInstall"
 #define INSTALL_FROM_URL_THREAD_STACK_SIZE (2 * 1024)
 
-#define AUTOUPDATE_TIMER_INTERVAL (5 * 60 * 1000)
-
 typedef struct {
     bool is_abort_request;
     UpdaterStatus status;
@@ -586,7 +584,8 @@ void updater_internal_settings_change_build_specific(Updater* instance) {
 #ifdef SRV_TIME
     if(instance->settings.autoupdate_enabled) {
         furi_event_loop_timer_start(
-            instance->autoupdate_timer, furi_ms_to_ticks(AUTOUPDATE_TIMER_INTERVAL));
+            instance->autoupdate_timer,
+            furi_ms_to_ticks(instance->settings.autoupdate_attempt_delay));
     } else {
         furi_event_loop_timer_stop(instance->autoupdate_timer);
     }
@@ -637,7 +636,8 @@ void updater_internal_setup_build_specific(Updater* instance) {
 #ifdef SRV_TIME
     if(instance->settings.autoupdate_enabled) {
         furi_event_loop_timer_start(
-            instance->autoupdate_timer, furi_ms_to_ticks(AUTOUPDATE_TIMER_INTERVAL));
+            instance->autoupdate_timer,
+            furi_ms_to_ticks(instance->settings.autoupdate_attempt_delay));
     }
 #endif /* SRV_TIME */
 }
