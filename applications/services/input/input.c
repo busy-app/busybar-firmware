@@ -220,7 +220,7 @@ static void input_intercom_rx_callback(const void* data, size_t data_size, void*
 static void input_fallback_timer_callback(void* context) {
     Input* input = context;
 
-    bool is_pressed = furi_hal_gpio_read(&gpio_audio_en);
+    bool is_pressed = furi_hal_gpio_read(&gpio_fallback_confirm);
     bool is_changing = false;
 
     if(is_pressed) {
@@ -284,7 +284,7 @@ int32_t input_srv(void* p) {
     intercom_channel_open(intercom, IntercomChannelIdInput, input_intercom_rx_callback, input);
 #else /* SRV_INTERCOM */
     /* we assume, audio isn't used by running firmware */
-    furi_hal_gpio_init(&gpio_audio_en, GpioModeInput, GpioPullNo, GpioSpeedLow);
+    furi_hal_gpio_init(&gpio_fallback_confirm, GpioModeInput, GpioPullNo, GpioSpeedLow);
 
     furi_event_loop_timer_start(
         furi_event_loop_timer_alloc(
