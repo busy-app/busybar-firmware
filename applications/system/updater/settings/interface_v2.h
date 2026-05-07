@@ -1,9 +1,9 @@
 #pragma once
 
-#include "interface_v1.h"
+#include <setting_provider/setting_provider.h>
 
-#define UPDATER_SETTINGS_V2_CHECK_URL_MAX_SIZE        UPDATER_SETTINGS_V1_CHECK_URL_MAX_SIZE
-#define UPDATER_SETTINGS_V2_CHECK_CHANNEL_ID_MAX_SIZE UPDATER_SETTINGS_V1_CHECK_CHANNEL_ID_MAX_SIZE
+#define UPDATER_SETTINGS_V2_CHECK_URL_MAX_SIZE        (512 + 1)
+#define UPDATER_SETTINGS_V2_CHECK_CHANNEL_ID_MAX_SIZE (32 + 1)
 
 #define UPDATER_SETTINGS_V2_CHECK_URL_DEFAULT \
     "https://update.busy.app/busybar-firmware/directory.json"
@@ -57,8 +57,6 @@ typedef struct {
     int autoupdate_interval_end; /* minutes since midnight */
     int autoupdate_attempt_delay;
 } UpdaterSettingsV2;
-
-bool updater_settings_v2_migrate(SettingProvider* provider);
 
 extern const SettingProviderSetting updater_v2_settings[];
 extern const SettingProviderSetting updater_v2_settings_root;

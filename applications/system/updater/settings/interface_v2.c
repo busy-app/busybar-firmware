@@ -144,29 +144,3 @@ const SettingProviderSetting updater_v2_settings_root = {
 };
 
 static_assert(COUNT_OF(updater_v2_settings) == UpdaterSettingV2IdxsCount);
-
-bool updater_settings_v2_migrate(SettingProvider* provider) {
-    UpdaterSettingsV1 settings_v1;
-    if(!setting_provider_load(provider, &updater_v1_settings_root, &settings_v1)) {
-        return false;
-    }
-
-    if(strncmp(
-           settings_v1.check_url,
-           UPDATER_SETTINGS_V1_CHECK_URL_DEFAULT,
-           sizeof(settings_v1.check_url)) != 0) {
-        return true;
-    }
-
-    UpdaterSettingsV2 settings_v2;
-    if(!setting_provider_load(provider, &updater_v2_settings_root, &settings_v2)) {
-        return false;
-    }
-
-    strlcpy(
-        settings_v2.check_url,
-        UPDATER_SETTINGS_V2_CHECK_URL_DEFAULT,
-        sizeof(settings_v2.check_url));
-
-    return setting_provider_save(provider, &updater_v2_settings_root, &settings_v2);
-}
