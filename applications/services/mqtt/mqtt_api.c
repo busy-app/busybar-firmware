@@ -325,6 +325,8 @@ static void mqtt_set_config_api_message_handler(Mqtt* instance, const MqttApiMes
 
         mqtt_settings_save(settings);
         mqtt_connection_close(instance, true);
+
+        is_success = true;
     }
 
     *set_config->is_success = is_success;

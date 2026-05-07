@@ -3,6 +3,8 @@
 #include <core/check.h>
 #include <toolbox/value_index.h>
 
+#include "mqtt_common.h"
+
 #define KEY_CONFIG_SERVER_URL         "server_url"
 #define KEY_CONFIG_CLIENT_CERT_TYPE   "client_cert_type"
 #define KEY_CONFIG_IGNORE_SERVER_CERT "ignore_server_cert"
@@ -98,5 +100,27 @@ bool mqtt_config_deserialize(MqttConfig* config, const char* json_text, size_t j
 
 bool mqtt_config_is_valid(const MqttConfig* profile) {
     furi_check(profile);
-    return true;
+
+    bool is_valid = false;
+
+    do {
+        const char* server_url = profile->server_url;
+        if(strlen(server_url) == 0) {
+            break;
+        }
+
+        if((strcmp(server_url, MQTT_CONFIG_SERVER_URL_DEFAULT) != 0) &&
+           (strncmp(server_url, MQTT_URL_PREFIX, strlen(MQTT_URL_PREFIX)) != 0) &&
+           (strncmp(server_url, MQTT_URL_TLS_PREFIX, strlen(MQTT_URL_TLS_PREFIX)) != 0)) {
+            break;
+        }
+
+        if(profile->client_cert_type >= MqttClientCertTypeMax) {
+            break;
+        }
+
+        is_valid = true;
+    } while(false);
+
+    return is_valid;
 }
