@@ -3,7 +3,8 @@
 #include <stddef.h>
 #include <stdbool.h>
 
-#define MQTT_CONFIG_SERVER_URL_LEN (64)
+#define MQTT_CONFIG_SERVER_URL_LEN     (64)
+#define MQTT_CONFIG_SERVER_URL_DEFAULT "default"
 
 typedef enum {
     MqttClientCertTypeDefault,

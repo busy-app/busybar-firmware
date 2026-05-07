@@ -1,9 +1,6 @@
 #include "mqtt_settings_interface_v1.h"
 
-#include "../mqtt_common.h"
 #include "../mqtt_config_i.h"
-
-#define MQTT_SETTINGS_V1_SERVER_URL_DEFAULT MQTT_URL_TLS_PREFIX "mqtt.busy.app:8883"
 
 static bool mqtt_settings_v1_config_is_valid_callback(
     const SettingProviderSetting* setting,
@@ -47,7 +44,7 @@ static const SettingProviderRawInterface mqtt_settings_v1_config_interface = {
     .default_value_size = sizeof(MqttConfig),
     .default_value =
         &(const MqttConfig){
-            .server_url = MQTT_SETTINGS_V1_SERVER_URL_DEFAULT,
+            .server_url = MQTT_CONFIG_SERVER_URL_DEFAULT,
             .client_cert_type = MqttClientCertTypeDefault,
             .ignore_server_cert = false,
         },
