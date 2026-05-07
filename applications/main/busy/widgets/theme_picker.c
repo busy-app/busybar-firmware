@@ -61,7 +61,6 @@ static void theme_picker_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_
     UNUSED(class_p);
 
     ThemePicker* instance = (ThemePicker*)obj;
-    widget_set_input_feed_callback((Widget*)instance, theme_picker_input_callback);
 
     instance->image = image_alloc((Widget*)obj);
     instance->anim_player = anim_player_alloc((Widget*)obj);
@@ -192,6 +191,15 @@ const lv_obj_class_t theme_picker_lvgl_class = {
     .width_def = LV_SIZE_CONTENT,
     .height_def = LV_SIZE_CONTENT,
     .instance_size = sizeof(ThemePicker),
+    .user_data =
+        (void*)&(const WidgetClassData){
+            .input_callback = theme_picker_input_callback,
+            .style_callbacks =
+                {
+                    [GuiDisplayIdFront] = NULL,
+                    [GuiDisplayIdBack] = NULL,
+                },
+        },
 };
 
 const lv_obj_class_t theme_picker_arrow_lvgl_class = {

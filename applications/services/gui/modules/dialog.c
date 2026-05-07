@@ -185,7 +185,6 @@ Dialog* dialog_alloc(Widget* widget) {
     lv_obj_class_init_obj(obj);
 
     Dialog* instance = (Dialog*)obj;
-    widget_set_input_feed_callback((Widget*)instance, dialog_input_callback);
 
     return instance;
 }
@@ -265,6 +264,15 @@ const lv_obj_class_t dialog_lvgl_class = {
     .width_def = LV_PCT(100),
     .height_def = LV_PCT(100),
     .instance_size = sizeof(Dialog),
+    .user_data =
+        (void*)&(const WidgetClassData){
+            .input_callback = dialog_input_callback,
+            .style_callbacks =
+                {
+                    [GuiDisplayIdFront] = NULL,
+                    [GuiDisplayIdBack] = NULL,
+                },
+        },
 };
 
 const lv_obj_class_t dialog_text_lvgl_class = {
