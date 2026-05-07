@@ -18,9 +18,9 @@ Widget* slider_view_get_base(SliderView* instance);
 
 void slider_view_add_level_image(SliderView* instance, int32_t level, const char* file_path);
 
-void slider_view_set_suffix(SliderView* instance, const char* suffix);
-
 void slider_view_set_bar_gradient(SliderView* instance, Color start, Color end);
+
+void slider_view_set_suffix(SliderView* instance, const char* suffix);
 
 void slider_view_set_range(SliderView* instance, int32_t min, int32_t max);
 
