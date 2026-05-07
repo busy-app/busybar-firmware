@@ -246,6 +246,7 @@ static void http_api_account_mqtt_backend_get(struct mg_connection* conn) {
 static void
     http_api_account_mqtt_backend_put(struct mg_connection* conn, struct mg_http_message* msg) {
     bool success = false;
+    const char* error_msg = NULL;
 
     Mqtt* mqtt = furi_record_open(RECORD_MQTT);
 
@@ -253,10 +254,12 @@ static void
         MqttConfig config;
 
         if(!mqtt_config_deserialize(&config, msg->body.buf, msg->body.len)) {
+            error_msg = "Malformed request";
             break;
         }
 
         if(!mqtt_set_config(mqtt, &config)) {
+            error_msg = "Invalid value";
             break;
         }
 
@@ -268,7 +271,7 @@ static void
     if(success) {
         MG_REPLY_OK(conn);
     } else {
-        MG_REPLY_BAD_REQUEST(conn);
+        MG_REPLY_ERROR(conn, 400, error_msg);
     }
 }
 
