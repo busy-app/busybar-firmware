@@ -89,8 +89,7 @@ static void
     }
 }
 
-static void
-    cli_command_sysctl_cli_wifi_enabled(PipeSide* pipe, FuriString* args, void* context) {
+static void cli_command_sysctl_cli_wifi_enabled(PipeSide* pipe, FuriString* args, void* context) {
     UNUSED(pipe);
     UNUSED(context);
 

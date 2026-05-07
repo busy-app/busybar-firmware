@@ -13,10 +13,10 @@
  */
 #define RECORD_NETWORK "network"
 
-/** lwIP netif name string for the WiFi interface (name[0..1] = "WL"). */
+/** lwIP netif name string for the WiFi interface */
 #define NETWORK_WIFI_NETIF "WL"
 
-/** lwIP netif name string for the USB-NCM interface (name[0..1] = "EX"). */
+/** lwIP netif name string for the USB-NCM interface */
 #define NETWORK_USB_NETIF "EX"
 
 /**

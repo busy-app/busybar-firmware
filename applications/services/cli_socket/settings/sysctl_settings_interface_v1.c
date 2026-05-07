@@ -1,15 +1,16 @@
 #include "sysctl_settings_interface_v1.h"
 
 const SettingProviderSetting sysctl_settings_v1[] = {
-    [SysctlSettingsV1IdxCliWifiEnabled] = {
-        .name = "cli_wifi_enabled",
-        .interface =
-            &(const SettingProviderBoolInterface){
-                .default_value = false,
-            },
-        .field_offset = offsetof(SysctlSettingsV1, cli_wifi_enabled),
-        .type = SettingProviderSettingTypeBool,
-    },
+    [SysctlSettingsV1IdxCliWifiEnabled] =
+        {
+            .name = "cli_wifi_enabled",
+            .interface =
+                &(const SettingProviderBoolInterface){
+                    .default_value = false,
+                },
+            .field_offset = offsetof(SysctlSettingsV1, cli_wifi_enabled),
+            .type = SettingProviderSettingTypeBool,
+        },
 };
 
 static_assert(COUNT_OF(sysctl_settings_v1) == SysctlSettingsV1IdxMax);

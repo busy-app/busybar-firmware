@@ -74,4 +74,3 @@ void cli_socket_on_system_start(void) {
     furi_record_open(RECORD_NETWORK);
     tcpip_callback(cli_socket_init_callback, NULL);
 }
-

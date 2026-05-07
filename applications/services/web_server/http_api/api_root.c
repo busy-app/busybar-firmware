@@ -56,8 +56,9 @@ static bool is_wifi_connection(struct mg_connection* conn) {
     if(conn->loc.is_ip6) return false;
     LOCK_TCPIP_CORE();
     struct netif* wifi_netif = network_find_netif(NETWORK_WIFI_NETIF);
-    bool is_wifi = wifi_netif &&
-                   (memcmp(conn->loc.addr.ip, netif_ip4_addr(wifi_netif), sizeof(ip4_addr_t)) == 0);
+    bool is_wifi =
+        wifi_netif &&
+        (memcmp(conn->loc.addr.ip, netif_ip4_addr(wifi_netif), sizeof(ip4_addr_t)) == 0);
     UNLOCK_TCPIP_CORE();
     return is_wifi;
 }
