@@ -18,12 +18,14 @@ static const char* const netif_names[] = {
 
 void network_netif_assign_name(struct netif* netif, NetworkNetif id) {
     furi_assert(netif);
+    furi_assert(id < NetworkNetifCount);
     const char* name = netif_names[id];
     netif->name[0] = name[0];
     netif->name[1] = name[1];
 }
 
 struct netif* network_find_netif(NetworkNetif id) {
+    furi_assert(id < NetworkNetifCount);
     const char* name = netif_names[id];
     struct netif* n;
     NETIF_FOREACH(n) {

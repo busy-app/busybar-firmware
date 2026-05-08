@@ -17,6 +17,7 @@
 typedef enum {
     NetworkNetifWifi, /**< Wi-Fi (WL) interface */
     NetworkNetifUsb,  /**< USB-NCM (EX) interface */
+    NetworkNetifCount, /**< Sentinel — not a valid interface */
 } NetworkNetif;
 
 #ifdef __cplusplus
