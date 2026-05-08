@@ -1116,7 +1116,8 @@ SdCardState sdmmc_get_card_state(void) {
 }
 
 static bool sdmmc_wait_for_transfer_state(size_t timeout_ms) {
-    PreciseTimer timer = precise_timer_create(timeout_ms * 1000);
+    // TODO: FW-889 Fix time units
+    PreciseTimer timer = precise_timer_create(timeout_ms);
     SdCardState card_state = sdmmc_get_card_state();
     while(card_state != SdCardStateTransfer) {
         if(precise_timer_is_expired(timer)) {
