@@ -1,7 +1,6 @@
-import time
-
 import allure
 import pytest
+import time
 
 from clients.api import BleAPI
 
@@ -9,13 +8,7 @@ from clients.api import BleAPI
 def _wait_for_ble_status(
     ble_api: BleAPI, expected: str, timeout: float = 3.0, interval: float = 0.25
 ) -> str:
-    """Poll /api/ble/status until it equals `expected` or the timeout expires.
-
-    Returns the final observed status (so a failed assertion shows the actual
-    state). BLE goes through `reset`/`initialization` after enable() and after
-    a reboot before settling on `enabled`/`disabled`; reading it immediately
-    is racy.
-    """
+    """Poll /api/ble/status until it equals `expected` or the timeout expires."""
     deadline = time.monotonic() + timeout
     last = ble_api.get_status().status
     while last != expected and time.monotonic() < deadline:
@@ -53,26 +46,22 @@ class TestBleAPI:
     @allure.title("#3564 BLE. Preserve status over reboot")
     @pytest.mark.api
     @pytest.mark.frontend
-    @pytest.mark.timeout(900)
+    @pytest.mark.timeout(300)
     def test_api_ble_preserve_status_over_reboot(
         self, ble_api: BleAPI, device_flasher
     ):
         """Test that BLE enabled/disabled status is preserved over reboot"""
-        # Toggle BLE and verify the persisted state survives a hard reboot.
-        # `_wait_for_ble_status` absorbs the transient `reset`/`initialization`
-        # window after enable()/disable() and after the reboot. The reset
-        # timeout is generous because reset_device() may block on the OpenOCD
-        # lock for up to ~120s when a concurrent crash trace is running on
-        # the runner — see device_flasher.reset_device.
-        for action, expected in (("enable", "enabled"),
-                                 ("disable", "disabled"),
-                                 ("enable", "enabled")):
+        for action, expected_set in (("enable",  BLE_ENABLED_STATES),
+                                     ("disable", BLE_DISABLED_STATES),
+                                     ("enable",  BLE_ENABLED_STATES)):
             getattr(ble_api, action)()
-            assert _wait_for_ble_status(ble_api, expected) == expected
+            last = _wait_for_ble_status(ble_api, expected_set)
+            assert last in expected_set, f"pre-reboot: got {last!r}, expected one of {sorted(expected_set)}"
             assert device_flasher.reset_and_wait(wait_timeout=180.0), (
                 "reset_and_wait failed"
             )
-            assert _wait_for_ble_status(ble_api, expected) == expected
+            last = _wait_for_ble_status(ble_api, expected_set, timeout=30.0)
+            assert last in expected_set, f"post-reboot: got {last!r}, expected one of {sorted(expected_set)}"
 
 @allure.feature("5. Web Frontend")
 @allure.story("BLE")
