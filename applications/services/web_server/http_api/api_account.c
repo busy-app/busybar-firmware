@@ -236,7 +236,7 @@ static void http_api_account_mqtt_backend_get(struct mg_connection* conn) {
     char* json_text = mqtt_config_serialize(&config);
 
     if(json_text) {
-        MG_REPLY_OK_BODY(conn, json_text);
+        MG_REPLY_OK_BODY(conn, "%s\n", json_text);
         free(json_text);
     } else {
         MG_REPLY_INTERNAL_ERROR(conn);
