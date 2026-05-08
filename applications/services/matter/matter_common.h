@@ -23,6 +23,7 @@ typedef enum {
     MatterStatusTimeout,
     MatterStatusFsError,
     MatterStatusBadConfig,
+    MatterStatusUnprovisioned,
     MatterStatusMax,
 } MatterStatus;
 

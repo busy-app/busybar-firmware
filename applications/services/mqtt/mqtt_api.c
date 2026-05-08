@@ -69,38 +69,38 @@ void mqtt_get_session_info(Mqtt* instance, MqttSessionInfo* info) {
     mqtt_send_message(instance, &message);
 }
 
-MqttProfileId mqtt_get_profile(Mqtt* instance, FuriString* custom_url) {
+void mqtt_get_config(Mqtt* instance, MqttConfig* config) {
     furi_check(instance);
-
-    MqttProfileId profile_id;
+    furi_check(config);
 
     MqttApiMessage message = {
-        .type = MqttApiMessageTypeGetProfile,
-        .data.get_profile =
+        .type = MqttApiMessageTypeGetConfig,
+        .data.get_config =
             {
-                .profile_id = &profile_id,
-                .custom_url = custom_url,
+                .config = config,
             },
     };
 
     mqtt_send_message(instance, &message);
-    return profile_id;
 }
 
-void mqtt_set_profile(Mqtt* instance, MqttProfileId profile_id, const char* custom_url) {
+bool mqtt_set_config(Mqtt* instance, const MqttConfig* config) {
     furi_check(instance);
-    furi_check(profile_id < MqttProfileIdMax);
+    furi_check(config);
+
+    bool is_success = false;
 
     MqttApiMessage message = {
-        .type = MqttApiMessageTypeSetProfile,
-        .data.set_profile =
+        .type = MqttApiMessageTypeSetConfig,
+        .data.set_config =
             {
-                .profile_id = profile_id,
-                .custom_url = custom_url,
+                .config = config,
+                .is_success = &is_success,
             },
     };
 
     mqtt_send_message(instance, &message);
+    return is_success;
 }
 
 bool mqtt_publish(
@@ -301,43 +301,35 @@ static void
     *get_session_info->is_valid = mqtt_saved_state_is_valid(saved_state);
 }
 
-static void mqtt_get_profile_api_message_handler(Mqtt* instance, const MqttApiMessageData* data) {
+static void mqtt_get_config_api_message_handler(Mqtt* instance, const MqttApiMessageData* data) {
     furi_assert(instance);
     furi_assert(data);
 
-    const MqttApiMessageGetProfile* get_profile = &data->get_profile;
-
-    MqttSettings* settings = &instance->settings;
-    const MqttProfileId profile_id = settings->profile_id;
-
-    *(get_profile->profile_id) = profile_id;
-
-    if(profile_id == MqttProfileIdCustom) {
-        if(get_profile->custom_url) {
-            furi_string_set(get_profile->custom_url, settings->custom_url);
-        }
-    }
+    const MqttApiMessageGetConfig* get_config = &data->get_config;
+    const MqttSettings* settings = &instance->settings;
+    *get_config->config = settings->config;
 }
 
-static void mqtt_set_profile_api_message_handler(Mqtt* instance, const MqttApiMessageData* data) {
+static void mqtt_set_config_api_message_handler(Mqtt* instance, const MqttApiMessageData* data) {
     furi_assert(instance);
     furi_assert(data);
 
-    const MqttApiMessageSetProfile* set_profile = &data->set_profile;
-    const MqttProfileId profile_id = set_profile->profile_id;
+    const MqttApiMessageSetConfig* set_config = &data->set_config;
+    const MqttConfig* config = set_config->config;
 
-    MqttSettings* settings = &instance->settings;
-    settings->profile_id = profile_id;
+    bool is_success = false;
 
-    if(profile_id == MqttProfileIdCustom) {
-        // TODO: Better checks for custom url
-        if(set_profile->custom_url) {
-            strlcpy(settings->custom_url, set_profile->custom_url, sizeof(settings->custom_url));
-        }
+    if(mqtt_config_is_valid(config)) {
+        MqttSettings* settings = &instance->settings;
+        settings->config = *set_config->config;
+
+        mqtt_settings_save(settings);
+        mqtt_connection_close(instance, true);
+
+        is_success = true;
     }
 
-    mqtt_settings_save(settings);
-    mqtt_connection_close(instance, true);
+    *set_config->is_success = is_success;
 }
 
 static void mqtt_publish_api_message_handler(Mqtt* instance, const MqttApiMessageData* data) {
@@ -405,8 +397,8 @@ static const MqttApiMessageHandler mqtt_api_message_handlers[MqttApiMessageTypeM
     [MqttApiMessageTypeUnlink] = mqtt_unlink_api_message_handler,
     [MqttApiMessageTypeRequestPin] = mqtt_request_pin_api_message_handler,
     [MqttApiMessageTypeGetSessionInfo] = mqtt_get_session_info_api_message_handler,
-    [MqttApiMessageTypeGetProfile] = mqtt_get_profile_api_message_handler,
-    [MqttApiMessageTypeSetProfile] = mqtt_set_profile_api_message_handler,
+    [MqttApiMessageTypeGetConfig] = mqtt_get_config_api_message_handler,
+    [MqttApiMessageTypeSetConfig] = mqtt_set_config_api_message_handler,
     [MqttApiMessageTypePublish] = mqtt_publish_api_message_handler,
     [MqttApiMessageTypeSubscribe] = mqtt_subscribe_api_message_handler,
     [MqttApiMessageTypeUnsubscribe] = mqtt_unsubscribe_api_message_handler,

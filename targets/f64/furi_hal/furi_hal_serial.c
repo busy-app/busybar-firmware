@@ -2,11 +2,12 @@
 #include <furi_hal_serial_types_i.h>
 
 #include <furi_hal_resources.h>
-#include <furi_hal_cortex.h>
 #include <furi_hal_bus.h>
 #include <furi_hal_dma.h>
 
 #include <si91x_device.h>
+
+#include <toolbox/timers.h>
 
 #define FRAC_BITS       (6UL)
 #define FRAC_MULTIPLIER (1UL << FRAC_BITS)
@@ -437,13 +438,13 @@ size_t furi_hal_serial_tx(
     bool wait_forever = timeout == FuriWaitForever;
 
     size_t transmitted = 0;
-    FuriHalCortexTimer timer = furi_hal_cortex_timer_get(wait_forever ? 1 : (timeout * 1000));
+    PreciseTimer timer = precise_timer_create(wait_forever ? 1 : (timeout * 1000));
     USART0_Type* periph = furi_hal_serial_resources[handle->id].periph;
 
     while(buffer_size > 0) {
-        bool timed_out = furi_hal_cortex_timer_is_expired(timer);
+        bool timed_out = precise_timer_is_expired(timer);
         while(!periph->USR_b.TFNF && (wait_forever || !timed_out)) {
-            timed_out = furi_hal_cortex_timer_is_expired(timer);
+            timed_out = precise_timer_is_expired(timer);
         }
 
         if(!wait_forever && timed_out) break;
@@ -458,21 +459,17 @@ size_t furi_hal_serial_tx(
     return transmitted;
 }
 
+static bool furi_hal_serial_is_tx_complete(void* context) {
+    const USART0_Type* periph = context;
+    return periph->USR_b.TFE;
+}
+
 bool furi_hal_serial_tx_wait_complete(FuriHalSerialHandle* handle, uint32_t timeout) {
     furi_check(handle);
+    USART0_Type* periph = furi_hal_serial_resources[handle->id].periph;
 
-    bool success = false;
-
-    FuriHalCortexTimer timer = furi_hal_cortex_timer_get(timeout * 1000);
-
-    while(!furi_hal_cortex_timer_is_expired(timer)) {
-        if(furi_hal_serial_resources[handle->id].periph->USR_b.TFE) {
-            success = true;
-            break;
-        }
-    }
-
-    return success;
+    PreciseTimer timer = precise_timer_create(timeout * 1000);
+    return precise_timer_wait_for(timer, furi_hal_serial_is_tx_complete, periph);
 }
 
 bool furi_hal_serial_rx_available(FuriHalSerialHandle* handle) {

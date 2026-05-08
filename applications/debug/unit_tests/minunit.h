@@ -276,7 +276,7 @@ void minunit_printf_warning(const char* format, ...);
         minunit_tmp_e = (expected_lower);                                          \
         minunit_tmp_m = (expected_upper);                                          \
         minunit_tmp_r = (result);                                                  \
-        if(result < minunit_tmp_e || result > minunit_tmp_m) {                     \
+        if(minunit_tmp_r < minunit_tmp_e || minunit_tmp_r > minunit_tmp_m) {       \
             snprintf(                                                              \
                 minunit_last_message,                                              \
                 MINUNIT_MESSAGE_LEN,                                               \
@@ -284,8 +284,8 @@ void minunit_printf_warning(const char* format, ...);
                 __func__,                                                          \
                 __FILE__,                                                          \
                 __LINE__,                                                          \
-                minunit_tmp_e,                                                     \
                 minunit_tmp_r,                                                     \
+                minunit_tmp_e,                                                     \
                 minunit_tmp_m);                                                    \
             minunit_status = 1;                                                    \
             return;                                                                \
