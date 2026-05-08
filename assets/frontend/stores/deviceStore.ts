@@ -33,6 +33,7 @@ export const useDeviceStore = defineStore('device', () => {
     if (isConnected.value && successfulConnchecksWithDataStale.value >= 3) {
       console.warn('Data has been stale for a while and multiple connection checks have succeeded, restarting state stream as it seems to be in a bad state');
       stateStreamStore.stopStream();
+      successfulConnchecksWithDataStale.value = 0;
       window.dispatchEvent(new Event('protobuf-websocket-restart'));
     }
 
@@ -49,12 +50,6 @@ export const useDeviceStore = defineStore('device', () => {
       isConnected.value = true;
       console.debug('Device is connected');
       toast.remove('device-disconnected');
-
-      if (stateStreamStore.streamStatus?.data.status === DataStatus.STALE) {
-        successfulConnchecksWithDataStale.value++;
-      } else {
-        successfulConnchecksWithDataStale.value = 0;
-      }
     } catch (error) {
       // if the request was aborted/cancelled, don't treat it as disconnection
       if (!refreshInterval.value) {
@@ -90,6 +85,12 @@ export const useDeviceStore = defineStore('device', () => {
       }
     }
     checkingConnection.value = false;
+
+    if (isConnected.value && stateStreamStore.streamStatus?.data.status === DataStatus.STALE) {
+      successfulConnchecksWithDataStale.value++;
+    } else {
+      successfulConnchecksWithDataStale.value = 0;
+    }
 
     return isConnected.value;
   }
