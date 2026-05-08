@@ -11,10 +11,23 @@
 
 #define TAG "Network"
 
-struct netif* network_find_netif(const char* netif_name) {
+static const char* const netif_names[] = {
+    [NetworkNetifWifi] = "WL",
+    [NetworkNetifUsb]  = "EX",
+};
+
+void network_netif_assign_name(struct netif* netif, NetworkNetif id) {
+    furi_assert(netif);
+    const char* name = netif_names[id];
+    netif->name[0] = name[0];
+    netif->name[1] = name[1];
+}
+
+struct netif* network_find_netif(NetworkNetif id) {
+    const char* name = netif_names[id];
     struct netif* n;
     NETIF_FOREACH(n) {
-        if(n->name[0] == netif_name[0] && n->name[1] == netif_name[1]) {
+        if(n->name[0] == name[0] && n->name[1] == name[1]) {
             return n;
         }
     }

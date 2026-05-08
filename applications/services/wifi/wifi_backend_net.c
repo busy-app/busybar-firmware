@@ -51,8 +51,7 @@ static err_t wifi_net_tcpip_output_callback(struct netif* netif, struct pbuf* p)
 static err_t wifi_net_tcpip_netif_init_callback(struct netif* netif) {
     furi_assert(netif);
 
-    netif->name[0] = NETWORK_WIFI_NETIF[0];
-    netif->name[1] = NETWORK_WIFI_NETIF[1];
+    network_netif_assign_name(netif, NetworkNetifWifi);
 
     netif->output_ip6 = ethip6_output;
     netif->linkoutput = wifi_net_tcpip_output_callback;

@@ -25,7 +25,7 @@ void cli_socket_set_wifi_enabled(bool enabled) {
  */
 static bool cli_socket_is_wifi_connection(struct tcp_pcb* client_socket) {
     if(!IP_IS_V4_VAL(client_socket->local_ip)) return false;
-    struct netif* wifi_netif = network_find_netif(NETWORK_WIFI_NETIF);
+    struct netif* wifi_netif = network_find_netif(NetworkNetifWifi);
     if(!wifi_netif) return false;
     return ip4_addr_eq(ip_2_ip4(&client_socket->local_ip), netif_ip4_addr(wifi_netif));
 }
