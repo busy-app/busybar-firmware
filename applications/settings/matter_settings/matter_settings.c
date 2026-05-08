@@ -219,6 +219,8 @@ static MatterSettings* matter_settings_alloc(void) {
 }
 
 static void matter_settings_free(MatterSettings* instance) {
+    scene_manager_free(instance->scene_manager);
+
     with_gui(instance->gui, {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         gui_layer_remove_input_callback(layer, matter_settings_gui_input_callback);
