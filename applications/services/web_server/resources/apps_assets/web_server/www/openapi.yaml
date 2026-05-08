@@ -1859,10 +1859,12 @@ components:
 
     NameInfo:
       type: object
+      additionalProperties: false
       properties:
         name:
           type: string
           minLength: 1
+          maxLength: 20
           pattern: "^[a-zA-Z0-9 !()_=+;:,.?'|@#$%^&*\\[\\]{}/\\\\\"<>-]+$"
           description: Device name (letters, digits, spaces and common punctuation; no backtick or tilde)
           example: "BUSY bar"

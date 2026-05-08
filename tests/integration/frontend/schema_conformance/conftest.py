@@ -85,6 +85,12 @@ SKIP_OPERATION_IDS: frozenset[str] = frozenset(
         # schemathesis treats it as RejectedPositiveData when the busy timer is
         # active during the test run.  Tested explicitly in the display test suite.
         "drawOnDisplay",
+        # setTimeTimezone: schemathesis generates strings that match the
+        # ^[A-Za-z][A-Za-z0-9 _+\-]{0,50}$ pattern (e.g. "ucn") but are not in
+        # the firmware's compiled timezone list — RejectedPositiveData.  The full
+        # list of valid timezone names is not enumerated in the schema; tested
+        # separately in test_api_time.py.
+        "setTimeTimezone",
     }
 )
 
