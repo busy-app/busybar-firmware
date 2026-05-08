@@ -13,7 +13,7 @@
 
 static const char* const netif_names[] = {
     [NetworkNetifWifi] = "WL",
-    [NetworkNetifUsb]  = "EX",
+    [NetworkNetifUsb] = "EX",
 };
 
 void network_netif_assign_name(struct netif* netif, NetworkNetif id) {
