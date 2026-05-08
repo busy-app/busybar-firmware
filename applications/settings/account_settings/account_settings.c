@@ -162,7 +162,7 @@ static AccountSettings* account_settings_alloc() {
         nav_bar_set_header_image(instance->back_nav_bar, SETTINGS_ICON_BACK);
         nav_bar_push_location(instance->back_nav_bar, "ACCOUNT");
         widget_set_height(nav_bar_get_base(instance->back_nav_bar), SETTINGS_NAV_BAR_HEIGHT);
-        widget_set_padding(nav_bar_get_base(instance->back_nav_bar), 2, 2, 0, 0);
+        widget_set_padding(nav_bar_get_base(instance->back_nav_bar), 1, 0, 0, 2);
 
         instance->back_scene_window = widget_alloc(flex_layout_get_base(instance->back_container));
         flex_layout_set_child_widget_grow(
