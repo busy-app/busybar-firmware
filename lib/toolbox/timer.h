@@ -28,6 +28,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#include <core/common_defines.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -71,7 +73,7 @@ typedef struct {
  * @param[in] timeout_ms timeout value, in milliseconds
  * @returns initialised CoarseTimer object
  */
-CoarseTimer coarse_timer_create(uint32_t timeout_ms);
+CoarseTimer FURI_WARN_UNUSED coarse_timer_create(uint32_t timeout_ms);
 
 /**
  * @brief Get the time elapsed since the timer creation, in milliseconds.
@@ -124,7 +126,7 @@ typedef struct {
  * @param[in] timeout_us timeout value, in microseconds
  * @returns initialised PreciseTimer object
  */
-PreciseTimer precise_timer_create(uint32_t timeout_us);
+PreciseTimer FURI_WARN_UNUSED precise_timer_create(uint32_t timeout_us);
 
 /**
  * @brief Get the time elapsed since the timer creation, in microseconds.
