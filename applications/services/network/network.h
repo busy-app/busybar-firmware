@@ -19,6 +19,10 @@
 /** lwIP netif name string for the USB-NCM interface */
 #define NETWORK_USB_NETIF "EX"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * @brief Find a netif by its 2-character lwIP name, ignoring the instance number.
  *
@@ -30,10 +34,6 @@
  * @return First matching netif, or NULL if not found.
  */
 struct netif* network_find_netif(const char* netif_name);
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /** Opaque Network type declaration. */
 typedef struct Network Network;
