@@ -13,6 +13,7 @@
 #include <lwip/prot/ethernet.h>
 
 #include "wifi_backend_i.h"
+#include <network/network.h>
 
 #define LWIP_FRAME_ALIGNMENT (60U)
 #define ETHERTYPE_IPV6       (0xDD86)
@@ -50,8 +51,7 @@ static err_t wifi_net_tcpip_output_callback(struct netif* netif, struct pbuf* p)
 static err_t wifi_net_tcpip_netif_init_callback(struct netif* netif) {
     furi_assert(netif);
 
-    netif->name[0] = 'W';
-    netif->name[1] = 'L';
+    network_netif_assign_name(netif, NetworkNetifWifi);
 
     netif->output_ip6 = ethip6_output;
     netif->linkoutput = wifi_net_tcpip_output_callback;

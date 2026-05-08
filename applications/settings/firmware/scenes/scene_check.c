@@ -4,9 +4,9 @@
 #include <gui/modules/label.h>
 #include <gui/modules/anim_player.h>
 
-#include <furi_hal_cortex.h>
+#include <toolbox/timers.h>
 
-#define CHECK_TIMEOUT_US (10 * 1000 * 1000)
+#define CHECK_TIMEOUT_MS (10 * 1000)
 
 typedef enum {
     FirmwareSettingsCheckSceneEventAvailable = FirmwareSettingsEventSceneEventsStart,
@@ -19,7 +19,7 @@ typedef struct {
     FlexBox* back_box;
 
     FuriStateSub* check_subscription;
-    FuriHalCortexTimer timeout_timer;
+    CoarseTimer timeout_timer;
 } FirmwareSettingsCheckScene;
 
 static inline FirmwareSettingsCheckScene*
@@ -115,7 +115,7 @@ static void firmware_settings_check_scene_on_enter(void* context) {
     scene->check_subscription = furi_state_subscribe(
         check_state, firmware_settings_check_scene_update_check_callback, instance);
 
-    scene->timeout_timer = furi_hal_cortex_timer_get(CHECK_TIMEOUT_US);
+    scene->timeout_timer = coarse_timer_create(CHECK_TIMEOUT_MS);
     updater_check_for_update(instance->updater);
 }
 
@@ -153,7 +153,7 @@ static bool firmware_settings_check_scene_on_event(const SceneManagerEvent* even
             return true;
 
         case FirmwareSettingsCheckSceneEventFailure:
-            if(furi_hal_cortex_timer_is_expired(scene->timeout_timer)) {
+            if(coarse_timer_is_expired(scene->timeout_timer)) {
                 firmware_settings_check_scene_prepare_failure_result(instance);
                 scene_manager_replace_current_scene(
                     instance->scene_manager, FirmwareSettingsSceneIdxCheckResult);

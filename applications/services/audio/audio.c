@@ -338,7 +338,7 @@ static void audio_custom_event_callback(uint32_t events, void* context) {
         should_stop = true;
 
     } else {
-        furi_check(buffer_index < AudioBufferIndexBoth, "Possible SAI underrun");
+        if(buffer_index >= AudioBufferIndexBoth) FURI_LOG_W(TAG, "Possible SAI underrun");
 
         if(!audio_load_file_data(instance, buffer_index)) {
             should_stop = true;

@@ -2,6 +2,8 @@
 
 #include <gui/gui_i.h>
 
+#include <toolbox/timers.h>
+
 #define MY_CLASS (&display_mirror_lvgl_class)
 
 #define DISPLAY_MIRROR_MIN_REFRESH_MS 33 /* 30 fps */
@@ -11,7 +13,7 @@ struct DisplayMirror {
     lv_display_t* display;
     lv_obj_t* mirror_image;
     lv_image_dsc_t mirror_image_dsc;
-    uint32_t last_refresh_tick;
+    CoarseTimer refresh_timer;
 };
 
 const lv_obj_class_t display_mirror_lvgl_class;
@@ -19,10 +21,9 @@ const lv_obj_class_t display_mirror_lvgl_class;
 static void display_mirror_refresh_callback(lv_event_t* event) {
     DisplayMirror* instance = lv_event_get_user_data(event);
 
-    const uint32_t now_tick = furi_get_tick();
-    if(now_tick - instance->last_refresh_tick >= furi_ms_to_ticks(DISPLAY_MIRROR_MIN_REFRESH_MS)) {
+    if(coarse_timer_is_expired(instance->refresh_timer)) {
         lv_obj_invalidate(instance->mirror_image);
-        instance->last_refresh_tick = now_tick;
+        instance->refresh_timer = coarse_timer_create(DISPLAY_MIRROR_MIN_REFRESH_MS);
     }
 }
 
@@ -54,8 +55,7 @@ static void display_mirror_lvgl_constructor(const lv_obj_class_t* class_p, lv_ob
     lv_image_set_src(instance->mirror_image, image_dsc);
 
     instance->display = front->lv_display;
-    instance->last_refresh_tick =
-        furi_get_tick() - furi_ms_to_ticks(DISPLAY_MIRROR_MIN_REFRESH_MS);
+    instance->refresh_timer = coarse_timer_create(0);
 
     lv_display_add_event_cb(
         instance->display, display_mirror_refresh_callback, LV_EVENT_REFR_READY, instance);

@@ -25,6 +25,11 @@
 #include <device_name/device_name.h>
 #include <sl_info/sl_info.h>
 
+#ifdef SRV_CLI_SOCKET
+#include <cli_socket/cli_socket.h>
+#include <cli_socket/settings/sysctl_settings.h>
+#endif
+
 static void cli_command_update_debug_mode(void) {
     CliRegistry* registry = furi_record_open(RECORD_CLI);
 
@@ -86,11 +91,38 @@ static void
     }
 }
 
+#ifdef SRV_CLI_SOCKET
+static void cli_command_sysctl_cli_wifi_enabled(PipeSide* pipe, FuriString* args, void* context) {
+    UNUSED(pipe);
+    UNUSED(context);
+
+    SysctlSettings settings;
+    sysctl_settings_load(&settings);
+
+    if(furi_string_equal_str(args, "0")) {
+        settings.cli_wifi_enabled = false;
+        sysctl_settings_save(&settings);
+        cli_socket_set_wifi_enabled(false);
+        printf("CLI over WiFi disabled.");
+    } else if(furi_string_equal_str(args, "1")) {
+        settings.cli_wifi_enabled = true;
+        sysctl_settings_save(&settings);
+        cli_socket_set_wifi_enabled(true);
+        printf("CLI over WiFi enabled.");
+    } else {
+        cli_print_usage("sysctl cli_wifi_enabled", "<1|0>", furi_string_get_cstr(args));
+    }
+}
+#endif // SRV_CLI_SOCKET
+
 static void cli_command_sysctl_print_usage() {
     printf("Usage:\r\n");
     printf("sysctl <cmd>\r\n");
     printf("Cmd list:\r\n");
     printf("\tdebug - enables or disables debug mode\r\n");
+#ifdef SRV_CLI_SOCKET
+    printf("\tcli_wifi_enabled - enables or disables CLI access over WiFi\r\n");
+#endif
 
     if(furi_hal_nvm_is_flag_set(FuriHalNvmFlagDebug)) {
         printf("\tstorage_bkp_unlock - locks or unlocks backup storage\r\n");
@@ -111,6 +143,13 @@ static void cli_command_sysctl(PipeSide* pipe, FuriString* args, void* context) 
             cli_command_sysctl_debug(pipe, args, context);
             break;
         }
+
+#ifdef SRV_CLI_SOCKET
+        if(furi_string_cmp_str(cmd, "cli_wifi_enabled") == 0) {
+            cli_command_sysctl_cli_wifi_enabled(pipe, args, context);
+            break;
+        }
+#endif
 
         if(furi_hal_nvm_is_flag_set(FuriHalNvmFlagDebug)) {
             if(furi_string_cmp_str(cmd, "storage_bkp_unlock") == 0) {
