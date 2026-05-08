@@ -5,6 +5,7 @@
 #include <cli/cli_main_shell.h>
 #include <cli/cli_commands.h>
 #include <cli/cli_ansi.h>
+#include <netstat/netstat.h>
 
 #include <lwip/tcpip.h>
 
@@ -370,7 +371,10 @@ static void cli_socket_client_init_callback(void* context) {
     cli_socket_client_tcpip_unlock(client);
 }
 
-static void cli_socket_client_thread_init(CliSocketClient* client) {
+static CliSocketClient* cli_socket_client_thread_init(struct tcp_pcb* client_socket) {
+    CliSocketClient* client = malloc(sizeof(CliSocketClient));
+    client->socket = client_socket;
+
     client->event_loop = furi_event_loop_alloc();
 
     client->event_flag = furi_event_flag_alloc();
@@ -403,6 +407,8 @@ static void cli_socket_client_thread_init(CliSocketClient* client) {
         cli_shell_alloc(cli_main_motd, NULL, client->shell_pipe, client->main_registry, NULL);
     cli_shell_free_pipe_on_exit(client->shell);
     cli_shell_start(client->shell);
+
+    return client;
 }
 
 static void cli_socket_client_deinit_callback(void* context) {
@@ -458,13 +464,39 @@ static void cli_socket_client_thread_deinit(CliSocketClient* client) {
     furi_event_flag_free(client->event_flag);
 
     furi_event_loop_free(client->event_loop);
+
+    free(client);
 }
 
 static int32_t cli_socket_client_thread(void* context) {
-    CliSocketClient* client = context;
-    furi_check(client && client->socket);
+    struct tcp_pcb* client_socket = context;
+    furi_assert(client_socket);
 
-    cli_socket_client_thread_init(client);
+    if(netstat_is_overloaded(NetstatLogOnOverload)) {
+        const char* art = ANSI_FLIPPER_BRAND_ORANGE
+            "\r\n"
+            "    ____    _____________    ____ \r\n"
+            "  _L____J____I_________I____L____J_\r\n"
+            " / " ANSI_FG_BR_RED " ___ _   _ _____   __           " ANSI_FLIPPER_BRAND_ORANGE
+            "\\\r\n"
+            "|  " ANSI_FG_BR_RED "| _ ) | | / __\\ \\ / /   X    X   " ANSI_FLIPPER_BRAND_ORANGE
+            "|\r\n"
+            "|  " ANSI_FG_BR_RED "| _ \\ |_| \\__ \\\\ V /   --------  " ANSI_FLIPPER_BRAND_ORANGE
+            "|\r\n"
+            "|  " ANSI_FG_BR_RED "|___/\\___/|___/ |_|   /        \\ " ANSI_FLIPPER_BRAND_ORANGE
+            "|\r\n"
+            " \\_________________________________/\r\n"
+            "\r\n" ANSI_FG_BR_RED NETSTAT_RECOMMENDED_ERROR ANSI_RESET "\r\n";
+
+        LOCK_TCPIP_CORE();
+        tcp_write(client_socket, art, strlen(art), TCP_WRITE_FLAG_COPY);
+        if(tcp_close(client_socket) != ERR_OK) tcp_abort(client_socket);
+        UNLOCK_TCPIP_CORE();
+
+        return -1;
+    }
+
+    CliSocketClient* client = cli_socket_client_thread_init(client_socket);
     FURI_LOG_D(
         TAG,
         "Started for %s:%d",
@@ -503,11 +535,8 @@ static void cli_socket_client_thread_state_callback(
 void cli_socket_client_start(struct tcp_pcb* client_socket) {
     furi_check(client_socket);
 
-    CliSocketClient* client = malloc(sizeof(CliSocketClient));
-    client->socket = client_socket;
-
     FuriThread* thread =
-        furi_thread_alloc_ex(TAG, THREAD_STACK_SIZE, cli_socket_client_thread, client);
+        furi_thread_alloc_ex(TAG, THREAD_STACK_SIZE, cli_socket_client_thread, client_socket);
     furi_thread_set_state_callback(thread, cli_socket_client_thread_state_callback);
     furi_thread_start(thread);
 }
