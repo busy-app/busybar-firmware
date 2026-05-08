@@ -17,7 +17,7 @@ const SettingProviderSetting updater_v2_settings[] = {
             .interface =
                 &(const SettingProviderStringInterface){
                     .is_valid_callback = NULL,
-                    .default_value = UPDATER_SETTINGS_V2_CHECK_URL_DEFAULT,
+                    .default_value = UPDATER_SETTINGS_V2_CHECK_URL_DEFAULT_ALIAS,
                     .max_size = SIZEOF_MEMBER(UpdaterSettingsV2, check_url),
                 },
             .field_offset = offsetof(UpdaterSettingsV2, check_url),
@@ -73,11 +73,6 @@ const SettingProviderSetting updater_v2_settings[] = {
             .interface =
                 &(const SettingProviderBoolInterface){
                     .default_value = UPDATER_SETTINGS_V2_AUTOUPDATE_ENABLED_DEFAULT,
-                },
-            .context =
-                &(const IntMinMaxValidationContext){
-                    .min = UPDATER_SETTINGS_V2_CHECK_STARTUP_INTERVAL_MIN,
-                    .max = UPDATER_SETTINGS_V2_CHECK_STARTUP_INTERVAL_MAX,
                 },
             .field_offset = offsetof(UpdaterSettingsV2, autoupdate_enabled),
             .type = SettingProviderSettingTypeBool,

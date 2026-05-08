@@ -1,5 +1,6 @@
 #include "updater_i.h"
 #include "updater_paths.h"
+#include "settings/settings_i.h"
 
 #include <time/time.h>
 
@@ -149,7 +150,7 @@ UpdaterStatus updater_internal_do_check_for_update(Updater* instance, UpdaterMes
 
     bool is_check_start_successful = update_checker_run(
         instance->update_checker,
-        instance->settings.check_url,
+        updater_settings_get_check_url_value(&instance->settings),
         instance->settings.check_channel_id);
 
     if(is_check_start_successful) {
