@@ -11,7 +11,6 @@
 typedef enum {
     TimerDataIdxStart,
     TimerDataIdxValue,
-    TimerDataIdxMax,
 } TimerDataIdx;
 
 CoarseTimer coarse_timer_create(uint32_t timeout_ms) {
