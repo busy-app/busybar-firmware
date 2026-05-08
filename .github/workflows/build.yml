@@ -61,9 +61,6 @@ jobs:
           echo "build_profile=$PROFILE" >> "$GITHUB_OUTPUT"
           python3 fbt_layers/fbtng/scripts/get_env.py "--event_file=${{ github.event_path }}" "--type=$TYPE" || (cat "${{ github.event_path }}" && exit 1)
 
-      - name: 'Setup Simplicity Commander'
-        uses: ./.github/actions/setup-commander
-
       - name: 'Build firmware artifacts'
         id: build-fw
         uses: ./.github/actions/build-artifacts
