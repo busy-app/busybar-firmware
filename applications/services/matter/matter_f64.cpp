@@ -203,7 +203,7 @@ static void matter_handle_frame(const void* data, size_t data_size, void* contex
         matter_send_frame(matter, &frame);
 
     } else {
-        furi_crash();
+        furi_crash("Wrong frame type, even though protocol version had been verified by Intercom");
     }
 }
 

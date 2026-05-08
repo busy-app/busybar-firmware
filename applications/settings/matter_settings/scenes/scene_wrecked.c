@@ -1,8 +1,6 @@
 #include "../matter_settings_i.h"
 #include <settings_helpers/status_view.h>
 
-#include <power/power_service/power.h>
-
 typedef struct {
     StatusView* statuses[GuiDisplayIdMax];
 } SettingsSceneWrecked;
@@ -64,6 +62,11 @@ static bool matter_scene_wrecked_on_event(const SceneManagerEvent* event, void* 
     UNUSED(event);
 
     bool consumed = false;
+
+    if(event->type == SceneManagerEventTypeBack) {
+        matter_settings_exit_if_last(app);
+    }
+
     return consumed;
 }
 
