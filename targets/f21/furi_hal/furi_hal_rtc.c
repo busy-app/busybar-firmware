@@ -6,7 +6,7 @@
 #include <stm32u5xx_ll_rcc.h>
 #include <stm32u5xx_ll_bus.h>
 
-#include <toolbox/timer.h>
+#include <toolbox/timers.h>
 
 #define TAG "FuriHalRtc"
 

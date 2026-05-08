@@ -7,7 +7,7 @@
 
 #include <si91x_device.h>
 
-#include <toolbox/timer.h>
+#include <toolbox/timers.h>
 
 #define FRAC_BITS       (6UL)
 #define FRAC_MULTIPLIER (1UL << FRAC_BITS)

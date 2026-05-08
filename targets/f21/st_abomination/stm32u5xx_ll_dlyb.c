@@ -52,7 +52,7 @@
 #include "stm32u5xx_ll_dlyb.h"
 #include "core/check.h"
 
-#include <toolbox/timer.h>
+#include <toolbox/timers.h>
 
 /** @addtogroup STM32U5xx_LL_Driver
   * @{

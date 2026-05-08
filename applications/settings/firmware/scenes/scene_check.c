@@ -4,7 +4,7 @@
 #include <gui/modules/label.h>
 #include <gui/modules/anim_player.h>
 
-#include <toolbox/timer.h>
+#include <toolbox/timers.h>
 
 #define CHECK_TIMEOUT_MS (10 * 1000)
 

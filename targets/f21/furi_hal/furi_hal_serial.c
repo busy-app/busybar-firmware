@@ -11,7 +11,7 @@
 #include <stm32u5xx_ll_usart.h>
 #include <stm32u5xx_ll_dma.h>
 
-#include <toolbox/timer.h>
+#include <toolbox/timers.h>
 
 typedef struct {
     FuriHalSerialHandle* handle;

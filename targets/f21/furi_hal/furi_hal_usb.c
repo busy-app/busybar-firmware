@@ -7,7 +7,7 @@
 #include <stm32u5xx_ll_rcc.h>
 #include <stm32u5xx_ll_pwr.h>
 
-#include <toolbox/timer.h>
+#include <toolbox/timers.h>
 
 #define USB_OTG_DEV ((USB_OTG_DeviceTypeDef*)(USB_OTG_HS_BASE + USB_OTG_DEVICE_BASE))
 

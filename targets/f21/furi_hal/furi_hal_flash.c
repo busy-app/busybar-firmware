@@ -6,7 +6,7 @@
 
 #include <stm32u5xx_ll_icache.h>
 
-#include <toolbox/timer.h>
+#include <toolbox/timers.h>
 
 #define FURI_HAL_FLASH_TOTAL_PAGES (2 * FLASH_PAGE_NB)
 #define FURI_HAL_FLASH_BUSY_WAIT_TIMEOUT_US \

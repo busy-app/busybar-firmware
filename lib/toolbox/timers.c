@@ -1,4 +1,4 @@
-#include "timer.h"
+#include "timers.h"
 
 #include <furi_hal_cpu.h>
 

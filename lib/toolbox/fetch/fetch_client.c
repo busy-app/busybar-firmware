@@ -4,7 +4,7 @@
 #include <storage/storage.h>
 
 #include <toolbox/path.h>
-#include <toolbox/timer.h>
+#include <toolbox/timers.h>
 
 #define TAG "FetchClient"
 

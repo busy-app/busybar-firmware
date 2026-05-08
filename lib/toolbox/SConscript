@@ -38,7 +38,7 @@ sources = [
     "rle_encode.c",
     "sha256_calc.c",
     "strint.c",
-    "timer.c",
+    "timers.c",
     "value_index.c",
 ]
 

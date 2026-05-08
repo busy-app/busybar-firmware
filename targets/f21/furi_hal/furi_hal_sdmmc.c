@@ -11,7 +11,7 @@
 
 #include <core/log.h>
 
-#include <toolbox/timer.h>
+#include <toolbox/timers.h>
 
 #define DMA_ALIGNMENT            4
 #define TAG                      "FuriHalSDMMC"

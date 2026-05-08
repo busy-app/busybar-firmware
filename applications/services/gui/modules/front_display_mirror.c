@@ -2,7 +2,7 @@
 
 #include <gui/gui_i.h>
 
-#include <toolbox/timer.h>
+#include <toolbox/timers.h>
 
 #define MY_CLASS (&display_mirror_lvgl_class)
 

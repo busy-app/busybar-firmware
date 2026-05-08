@@ -5,7 +5,7 @@
 
 #include <cli/args.h>
 #include <strint.h>
-#include <toolbox/timer.h>
+#include <toolbox/timers.h>
 
 #define TAG                      "BlePerCli"
 #define CLI_BUFFER_SIZE          (1024U)

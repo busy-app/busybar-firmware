@@ -5,7 +5,7 @@
 
 #include <furi.h>
 
-#include <toolbox/timer.h>
+#include <toolbox/timers.h>
 
 #define TAG "FuriHalI2c"
 

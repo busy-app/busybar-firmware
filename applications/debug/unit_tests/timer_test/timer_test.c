@@ -1,6 +1,6 @@
 #include "../unit_tests.h"
 
-#include <toolbox/timer.h>
+#include <toolbox/timers.h>
 
 #define COARSE_TIMER_TIMEOUT_MS (10)
 

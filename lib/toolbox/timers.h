@@ -1,5 +1,5 @@
 /**
- * @file timer.h
+ * @file timers.h
  * @brief Low-level timers API.
  *
  * The timers found in this file can be used
