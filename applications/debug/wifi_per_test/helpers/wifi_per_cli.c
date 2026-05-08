@@ -1,7 +1,6 @@
 #include "wifi_per_cli.h"
 #include <cli_intercom/cli_intercom.h>
 #include <containers/pipe_util.h>
-#include <furi_hal_cortex.h>
 #include <cli/args.h>
 #include <strint.h>
 #include <toolbox/timer.h>
