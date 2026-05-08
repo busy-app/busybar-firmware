@@ -106,7 +106,7 @@
             @mouseenter="hoveredStatusName = status.name"
             @mouseleave="hoveredStatusName = hoveredStatusName === status.name ? null : hoveredStatusName"
           >
-            <div class="h-full w-full overflow-hidden rounded-md bg-default">
+            <div class="h-full w-full overflow-hidden rounded-md bg-neutral-950">
               <img
                 :src="status.previewUrl"
                 :alt="status.name"
