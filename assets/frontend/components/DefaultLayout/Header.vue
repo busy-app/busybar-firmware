@@ -374,9 +374,6 @@ async function init () {
   await deviceStore.fetchHttpAPIAccess();
 
   await deviceStore.detectConnectionType();
-  if (deviceStore.connectionType === 'usb') {
-    passwordSetItems.value.splice(0, 1);
-  }
 
   nameModel.value = await deviceStore.fetchDeviceName();
 
@@ -389,5 +386,7 @@ onMounted(async () => {
   await init();
   window.addEventListener('device-reconnected', init);
 });
-onBeforeUnmount(() => window.removeEventListener('device-reconnected', init));
+onBeforeUnmount(() => {
+  window.removeEventListener('device-reconnected', init);
+});
 </script>
