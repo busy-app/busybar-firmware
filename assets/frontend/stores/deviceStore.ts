@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { BusyBar } from '@busy-app/busy-lib';
+import { BusyBar, DataStatus } from '@busy-app/busy-lib';
 import type {
   VersionInfo,
   Status as DeviceStatus,
@@ -13,6 +13,7 @@ export const useDeviceStore = defineStore('device', () => {
   const apiRequest = useApiStore().apiRequest;
   const wifiStore = useWifiStore();
   const firmwareStore = useFirmwareStore();
+  const stateStreamStore = useStateStreamStore();
 
   const busyBar = shallowRef(new BusyBar({
     addr: useRuntimeConfig().public.barUrl || window.location.origin
@@ -23,10 +24,19 @@ export const useDeviceStore = defineStore('device', () => {
   const isConnected = ref<boolean>(true);
   const checkingConnection = ref<boolean>(false);
   type ConnCheckResult = true | false | 'aborted';
+  const successfulConnchecksWithDataStale = ref(0);
   async function checkConnection (): Promise<ConnCheckResult> {
     if (checkingConnection.value) {
       return 'aborted';
     }
+
+    if (successfulConnchecksWithDataStale.value >= 3) {
+      console.warn('Data has been stale for a while and multiple connection checks have succeeded, restarting state stream as it seems to be in a bad state');
+      stateStreamStore.stream.stop();
+      window.dispatchEvent(new Event('protobuf-websocket-restart'));
+      return 'aborted';
+    }
+
     checkingConnection.value = true;
     const wasConnected = isConnected.value;
     try {
@@ -40,6 +50,12 @@ export const useDeviceStore = defineStore('device', () => {
       isConnected.value = true;
       console.debug('Device is connected');
       toast.remove('device-disconnected');
+
+      if (stateStreamStore.streamStatus?.data.status === DataStatus.STALE) {
+        successfulConnchecksWithDataStale.value++;
+      } else {
+        successfulConnchecksWithDataStale.value = 0;
+      }
     } catch (error) {
       // if the request was aborted/cancelled, don't treat it as disconnection
       if (!refreshInterval.value) {

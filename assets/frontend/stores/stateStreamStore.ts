@@ -97,7 +97,11 @@ export const useStateStreamStore = defineStore('stateStream', () => {
   const showStateStreamFailBanner = ref(false);
   const showResourceLimitErrorBanner = ref(false);
 
-  const stream = shallowRef(new LocalStateStream({ addr: barUrl, token: apiStore.apiKey || '' }, { timeout: 5000, dataTimeout: 2000 }));
+  const stream = shallowRef(new LocalStateStream(
+    { addr: barUrl, token: apiStore.apiKey || '' },
+    { timeout: 5000, dataTimeout: 2000, maxReconnectAttempts: 5, reconnectDelay: 250 }
+  ));
+
   const streamStatus = ref<StreamStatus | null>(null);
   const doCheckConnectionOnStreamDataStale = ref(true);
 
