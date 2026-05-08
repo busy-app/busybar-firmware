@@ -37,7 +37,6 @@ static void matter_scene_pairing_on_enter(void* context) {
         GuiLayer* top_layer = gui_get_layer(app->gui, GuiLayerIdSystem);
         Widget* top_back_layer_root = gui_layer_get_root_widget(top_layer, GuiDisplayIdBack);
         scene->back_codes = matter_code_view_alloc(top_back_layer_root);
-        matter_code_view_set_logo_path(scene->back_codes, IMG_PATH("matter_back_21x21.image"));
         matter_code_view_set_codes(scene->back_codes, info.qr_code, info.manual_code);
     });
 
