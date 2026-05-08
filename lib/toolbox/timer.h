@@ -66,6 +66,8 @@ typedef struct {
 /**
  * @brief Create a coarse timer with the designated timeout.
  *
+ * @note Passing 0 as @p timeout_ms will cause the timer to expire immediately
+ *
  * @param[in] timeout_ms timeout value, in milliseconds
  * @returns initialised CoarseTimer object
  */
@@ -116,6 +118,8 @@ typedef struct {
 
 /**
  * @brief Create a precise timer with the designated timeout.
+ *
+ * @note Passing 0 as @p timeout_ms will cause the timer to expire immediately
  *
  * @param[in] timeout_us timeout value, in microseconds
  * @returns initialised PreciseTimer object
