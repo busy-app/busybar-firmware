@@ -129,7 +129,7 @@ function initStateStream () {
             }
             stateStreamStore.showStateStreamFailBanner = true;
             try {
-              stateStreamStore.stream.stop();
+              stateStreamStore.stopStream();
             } catch (stopError) {
               console.warn('Failed to stop state stream after fatal error:', stopError);
             }
@@ -156,12 +156,14 @@ async function handleDeviceReconnected () {
   await init();
 }
 
-const STATE_STREAM_RESTARTABLE_STATE_TIMEOUT_MS = 5000;
+const STATE_STREAM_RESTARTABLE_STATE_TIMEOUT_MS = 7500;
 async function waitForStateStreamRestartableState (): Promise<void> {
   if (stateStreamStore.streamStatus?.main.status !== StreamLifecycle.IDLE && stateStreamStore.streamStatus?.main.status !== StreamLifecycle.STOPPED) {
     await new Promise((resolve, reject) => {
       const restartableStateTimeout = setTimeout(() => {
         clearInterval(restartableStateInterval);
+        stateStreamStore.streamNotRestartable = true;
+        stateStreamStore.showStateStreamFailBanner = true;
         reject(new Error('State stream is not in a restartable state'));
       }, STATE_STREAM_RESTARTABLE_STATE_TIMEOUT_MS);
 
@@ -193,7 +195,8 @@ onMounted(async () => {
 onBeforeUnmount(() => {
   deviceStore.clearRefreshInterval();
   firmwareStore.clearAutoUpdateBackgroundCheckInterval();
-  stateStreamStore.stream.stop();
+  stateStreamStore.stopStream();
+  stateStreamStore.streamStatus = null;
   window.removeEventListener('device-reconnected', handleDeviceReconnected);
   window.removeEventListener('protobuf-websocket-restart', handleStateStreamRestart);
   window.removeEventListener('wifi-reconnected', firmwareStore.requestAutoUpdateCheck);

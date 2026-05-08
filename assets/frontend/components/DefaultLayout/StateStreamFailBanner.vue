@@ -1,6 +1,6 @@
 <template>
   <div
-    v-if="useStateStreamStore().showStateStreamFailBanner"
+    v-if="stateStreamStore.showStateStreamFailBanner"
     class="w-full flex items-center justify-between p-4 pr-6 ring-1 ring-glass rounded-3xl
       bg-linear-to-r from-warning-50 to-warning-50
       dark:from-30% dark:from-warning-950/80 dark:to-warning-800/80"
@@ -29,7 +29,13 @@
 </template>
 
 <script setup lang="ts">
+const stateStreamStore = useStateStreamStore();
+
 function dispatchRestartEvent () {
+  if (stateStreamStore.streamNotRestartable) {
+    location.reload();
+    return;
+  }
   window.dispatchEvent(new CustomEvent('protobuf-websocket-restart'));
 }
 </script>

@@ -32,7 +32,7 @@ export const useDeviceStore = defineStore('device', () => {
 
     if (isConnected.value && successfulConnchecksWithDataStale.value >= 3) {
       console.warn('Data has been stale for a while and multiple connection checks have succeeded, restarting state stream as it seems to be in a bad state');
-      stateStreamStore.stream.stop();
+      stateStreamStore.stopStream();
       window.dispatchEvent(new Event('protobuf-websocket-restart'));
     }
 

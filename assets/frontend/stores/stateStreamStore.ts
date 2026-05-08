@@ -94,16 +94,24 @@ export const useStateStreamStore = defineStore('stateStream', () => {
   const screenStreamStore = useScreenStreamStore();
   const barUrl = useRuntimeConfig().public.barUrl || window.location.origin;
 
+  const streamNotRestartable = ref(false);
   const showStateStreamFailBanner = ref(false);
   const showResourceLimitErrorBanner = ref(false);
 
   const stream = shallowRef(new LocalStateStream(
     { addr: barUrl, token: apiStore.apiKey || '' },
-    { timeout: 7500, dataTimeout: 1500, maxReconnectAttempts: 5, reconnectDelay: 250 }
+    { timeout: 5000, dataTimeout: 1500, maxReconnectAttempts: 5, reconnectDelay: 250 }
   ));
-
   const streamStatus = ref<StreamStatus | null>(null);
   const doCheckConnectionOnStreamDataStale = ref(true);
+
+  function stopStream () {
+    stream.value.stop();
+    if (streamStatus.value?.data.status === DataStatus.STALE) {
+      streamStatus.value.data.status = DataStatus.NONE;
+    }
+    doCheckConnectionOnStreamDataStale.value = true;
+  }
 
   function applyDeviceNameUpdate (payload: BSB_State.DeviceName) {
     const name = payload.name;
@@ -331,18 +339,21 @@ export const useStateStreamStore = defineStore('stateStream', () => {
       deviceStore.setRefreshInterval();
       const conncheckResult = await deviceStore.checkConnection();
       if (conncheckResult === false) {
-        stream.value.stop();
+        console.debug('Connection check failed after state stream data stale, stopping stream');
+        stopStream();
       }
     }
   }
 
   return {
+    streamNotRestartable,
     showStateStreamFailBanner,
     showResourceLimitErrorBanner,
 
     streamStatus,
     stream,
     doCheckConnectionOnStreamDataStale,
+    stopStream,
 
     applyStateMessage,
     applyStreamStatus
