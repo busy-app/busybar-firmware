@@ -259,7 +259,7 @@ static void client_on_message(struct mg_connection* conn, struct mg_ws_message* 
     switch(client->state) {
     case ClientStateHandshake:
     case ClientStateInvalid:
-        furi_assert(false);
+        FURI_LOG_W(TAG, "WS message in invalid client state");
         break;
     default:
         break;

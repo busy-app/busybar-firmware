@@ -74,8 +74,6 @@ static void prompt_overlay_lvgl_constructor(const lv_obj_class_t* class_p, lv_ob
 
     lv_obj_set_style_blend_mode(obj, LV_BLEND_MODE_ADDITIVE, LV_PART_MAIN);
 
-    widget_set_input_feed_callback((Widget*)obj, prompt_overlay_input_callback);
-
     AnimPlayer* anim_player = (AnimPlayer*)obj;
     anim_player_set_source(anim_player, SHARED_ANIM_PATH("wave_invitation_72x16.anim"));
     furi_assert(
@@ -213,4 +211,13 @@ const lv_obj_class_t prompt_overlay_lvgl_class = {
     .width_def = LV_SIZE_CONTENT,
     .height_def = LV_SIZE_CONTENT,
     .instance_size = sizeof(PromptOverlay),
+    .user_data =
+        (void*)&(const WidgetClassData){
+            .input_callback = prompt_overlay_input_callback,
+            .style_callbacks =
+                {
+                    [GuiDisplayIdFront] = NULL,
+                    [GuiDisplayIdBack] = NULL,
+                },
+        },
 };

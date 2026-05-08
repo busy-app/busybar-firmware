@@ -121,7 +121,7 @@ static void firmware_settings_low_battery_scene_on_enter(void* context) {
         widget_set_align(flex_box_get_base(scene->back_box), AlignCenter);
 
         Image* back_image = image_alloc(flex_box_get_base(scene->back_box));
-        image_set_source(back_image, SHARED_IMG_PATH("error_back_11x11.bin"));
+        image_set_source(back_image, SHARED_IMG_PATH("error_back_11x11.image"));
         widget_set_padding(image_get_base(back_image), 0, 0, 2, 7);
 
         scene->back_primary_label = label_alloc(flex_box_get_base(scene->back_box));
@@ -182,7 +182,7 @@ static const FirmwareSettingsLowBatteryScenePreset firmware_settings_low_battery
     [FirmwareSettingsLowBatteryScenePresetIdxUsbConnected] =
         {
             /* front layout */
-            .front_image_path = THIS_IMG_PATH("charging_battery_front_8x8.bin"),
+            .front_image_path = THIS_IMG_PATH("charging_battery_front_8x8.image"),
             .front_text = "Charging to 40%\nto start update...",
 
             /* back layout */
@@ -192,7 +192,7 @@ static const FirmwareSettingsLowBatteryScenePreset firmware_settings_low_battery
     [FirmwareSettingsLowBatteryScenePresetIdxUsbDisconnected] =
         {
             /* front layout */
-            .front_image_path = THIS_IMG_PATH("low_battery_front_8x8.bin"),
+            .front_image_path = THIS_IMG_PATH("low_battery_front_8x8.image"),
             .front_text = "Charge device up\nto 40% to update",
 
             /* back layout */
