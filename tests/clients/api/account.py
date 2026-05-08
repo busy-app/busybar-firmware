@@ -4,8 +4,8 @@ Account API client and Pydantic models.
 Endpoints:
 - GET /api/account/info
 - GET /api/account/status
-- GET /api/account/profile
-- POST /api/account/profile
+- GET /api/account/backend
+- PUT /api/account/backend
 - POST /api/account/link
 - DELETE /api/account
 """
@@ -54,10 +54,23 @@ class AccountStatusResponse(BaseModel):
 
 
 class AccountProfileResponse(BaseModel):
-    """Response from GET /api/account/profile."""
+    """Response from GET /api/account/profile.
+
+    .. deprecated::
+        The /api/account/profile endpoint was replaced by /api/account/backend
+        in FW-881.  This model is retained for reference only.
+    """
 
     profile: Literal["dev", "prod", "local", "custom"]
     custom_url: str | None = None
+
+
+class AccountBackend(BaseModel):
+    """MQTT backend configuration from GET/PUT /api/account/backend."""
+
+    server_url: str
+    client_cert_type: Literal["default", "custom", "none"]
+    ignore_server_cert: bool
 
 
 class AccountLinkResponse(BaseModel):
@@ -90,8 +103,8 @@ class AccountAPI(BaseAPI):
     Endpoints:
     - GET /api/account/info - Get account info
     - GET /api/account/status - Get MQTT connection status
-    - GET /api/account/profile - Get backend profile
-    - POST /api/account/profile - Set backend profile
+    - GET /api/account/backend - Get MQTT backend configuration
+    - PUT /api/account/backend - Set MQTT backend configuration
     - POST /api/account/link - Request linking PIN
     - DELETE /api/account - Unlink account
     """
@@ -104,29 +117,19 @@ class AccountAPI(BaseAPI):
         """Get MQTT connection status."""
         return self.get("/api/account/status", AccountStatusResponse)
 
-    def get_profile(self) -> AccountProfileResponse:
-        """Get current backend profile."""
-        return self.get("/api/account/profile", AccountProfileResponse)
+    def get_backend(self) -> AccountBackend:
+        """Get MQTT backend configuration."""
+        return self.get("/api/account/backend", AccountBackend)
 
-    def set_profile(self, profile: str, custom_url: str = None) -> AccountResultResponse:
-        """
-        Set backend profile.
+    def set_backend(self, config: AccountBackend) -> AccountResultResponse:
+        """Set MQTT backend configuration."""
+        return self.put(
+            "/api/account/backend", AccountResultResponse, json=config.model_dump()
+        )
 
-        Args:
-            profile: Profile name (dev, prod, local, custom)
-            custom_url: Custom MQTT URL (required if profile is "custom")
-        """
-        params = {"profile": profile}
-        if custom_url:
-            params["custom_url"] = custom_url
-        return self.post("/api/account/profile", AccountResultResponse, params=params, data=b"")
-
-    def set_profile_raw(self, profile: str, custom_url: str = None):
-        """Set profile and return raw response (for error testing)."""
-        params = {"profile": profile}
-        if custom_url:
-            params["custom_url"] = custom_url
-        return self.post_raw("/api/account/profile", params=params, data=b"")
+    def set_backend_raw(self, payload: dict):
+        """Set backend config and return raw response (for error testing)."""
+        return self.put_raw("/api/account/backend", json=payload)
 
     def link(self) -> AccountLinkResponse:
         """Request account linking PIN code."""
@@ -136,35 +139,24 @@ class AccountAPI(BaseAPI):
         """Unlink account."""
         return self.delete("/api/account", AccountResultResponse)
 
-    # === Profile Switching Helpers ===
+    # === Backend Switching Helpers ===
 
-    def set_profile_prod(self) -> AccountResultResponse:
-        """Switch to production MQTT profile."""
-        return self.set_profile("prod")
+    def set_backend_default(self) -> AccountResultResponse:
+        """Switch to the default (built-in) MQTT backend."""
+        return self.set_backend(
+            AccountBackend(
+                server_url="default",
+                client_cert_type="default",
+                ignore_server_cert=False,
+            )
+        )
 
-    def set_profile_dev(self) -> AccountResultResponse:
-        """Switch to development MQTT profile."""
-        return self.set_profile("dev")
-
-    def set_profile_stage(self) -> AccountResultResponse:
-        """Switch to staging MQTT profile (custom URL)."""
-        return self.set_profile("custom", MQTTProfiles.STAGE)
-
-    def set_profile_test(self) -> AccountResultResponse:
-        """Switch to test MQTT profile (custom URL)."""
-        return self.set_profile("custom", MQTTProfiles.TEST)
-
-    def set_default_profile(self) -> AccountResultResponse:
-        """
-        Switch to the default test profile.
-
-        Uses MQTT_DEFAULT_PROFILE env var (defaults to 'dev').
-        """
-        profile_map = {
-            "prod": ("prod", None),
-            "dev": ("dev", None),
-            "stage": ("custom", MQTTProfiles.STAGE),
-            "test": ("custom", MQTTProfiles.TEST),
-        }
-        profile, url = profile_map.get(MQTTProfiles.DEFAULT, ("custom", MQTTProfiles.DEFAULT))
-        return self.set_profile(profile, url)
+    def set_backend_custom(self, server_url: str) -> AccountResultResponse:
+        """Switch to a custom MQTT backend URL."""
+        return self.set_backend(
+            AccountBackend(
+                server_url=server_url,
+                client_cert_type="default",
+                ignore_server_cert=False,
+            )
+        )
