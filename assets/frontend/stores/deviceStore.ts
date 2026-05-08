@@ -5,7 +5,8 @@ import type {
   Status as DeviceStatus,
   HttpAccessInfo,
   HttpAccessParams,
-  NetworkInterfaceInfo
+  NetworkInterfaceInfo,
+  AccountInfo
 } from '@busy-app/busy-lib';
 
 export const useDeviceStore = defineStore('device', () => {
@@ -237,6 +238,22 @@ export const useDeviceStore = defineStore('device', () => {
       });
   }
 
+  // Account
+  const accountInfo = ref<AccountInfo | null>(null);
+  async function fetchAccountInfo () {
+    const info = await busyBar.value.AccountInfoGet()
+      .then(response => {
+        accountInfo.value = response;
+        return response;
+      })
+      .catch(async error => {
+        await handleHTTPError(error, 'Couldn\'t get account info', true);
+        return null;
+      });
+
+    return info;
+  }
+
   return {
     busyBar,
 
@@ -260,6 +277,9 @@ export const useDeviceStore = defineStore('device', () => {
 
     httpAPIAccess,
     fetchHttpAPIAccess,
-    setHttpAPIAccess
+    setHttpAPIAccess,
+
+    accountInfo,
+    fetchAccountInfo
   };
 });

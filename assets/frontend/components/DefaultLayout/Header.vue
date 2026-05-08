@@ -218,7 +218,9 @@
                 class="size-5"
               />
             </div>
-            <div class="max-w-[230px] text-xs text-muted">Link your device to BUSY Account to sync your data across all platforms</div>
+            <div class="max-w-[230px] min-w-[200px] text-xs text-muted">
+              {{ accountLinked ? 'Manage your BUSY Account' : 'Link your device to BUSY Account to sync your data across all platforms' }}
+            </div>
           </div>
         </template>
       </UDropdownMenu>
@@ -366,6 +368,8 @@ function onLogoClick () {
   }
 }
 
+const accountLinked = computed(() => deviceStore.accountInfo?.linked);
+
 async function init () {
   await deviceStore.fetchHttpAPIAccess();
 
@@ -375,6 +379,8 @@ async function init () {
   }
 
   nameModel.value = await deviceStore.fetchDeviceName();
+
+  await deviceStore.fetchAccountInfo();
 }
 
 const urlHost = computed(() => window.location.host);
