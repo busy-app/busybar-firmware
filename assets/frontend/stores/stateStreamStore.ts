@@ -316,7 +316,7 @@ export const useStateStreamStore = defineStore('stateStream', () => {
     const diff = deepDiff(oldStatus, status) as Partial<StreamStatus> | undefined;
     if (diff) {
       for (const line of flattenDeepDiff(diff)) {
-        console.debug('[state stream status]', line);
+        console.debug('[state stream status]', line, '| full status:', status);
       }
     }
 
