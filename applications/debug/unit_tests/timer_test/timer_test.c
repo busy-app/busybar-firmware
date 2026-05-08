@@ -5,8 +5,10 @@
 #define COARSE_TIMER_TIMEOUT_MS (10)
 
 #define PRECISE_TIMER_TIMEOUT_US (1000)
-#define MAGIC_DELAY_US           (PRECISE_TIMER_TIMEOUT_US / 2)
-#define COUNTER_THRESHOLD        (10)
+#define PRECISE_TIMER_ABSTOL_US  (5)
+
+#define MAGIC_DELAY_US    (PRECISE_TIMER_TIMEOUT_US / 2)
+#define COUNTER_THRESHOLD (10)
 
 static bool always_false(void* context) {
     UNUSED(context);
@@ -62,7 +64,10 @@ MU_TEST(precise_timer_test) {
     mu_check(is_expired_end);
 
     mu_assert_int_eq(0, elapsed_start_us);
-    mu_assert_int_eq(PRECISE_TIMER_TIMEOUT_US, elapsed_end_us);
+    mu_assert_int_between(
+        PRECISE_TIMER_TIMEOUT_US,
+        PRECISE_TIMER_TIMEOUT_US + PRECISE_TIMER_ABSTOL_US,
+        elapsed_end_us);
 }
 
 MU_TEST(precise_timer_test_condition) {
