@@ -19,11 +19,17 @@ from .base import BaseAPI
 
 
 # === Test Network Configuration ===
-# Can be overridden via environment variables
+# CI runners expose these without the `TEST_` prefix (`WIFI_SSID`, ...);
+# `tests/config/.env` keeps the legacy `TEST_WIFI_*` names for local dev.
+# Accept either, preferring the prefixed form when both are set.
 
-TEST_WIFI_SSID = os.environ.get("TEST_WIFI_SSID", "")
-TEST_WIFI_PASSWORD = os.environ.get("TEST_WIFI_PASSWORD", "")
-TEST_WIFI_SECURITY = os.environ.get("TEST_WIFI_SECURITY", "WPA2")
+TEST_WIFI_SSID = os.environ.get("TEST_WIFI_SSID") or os.environ.get("WIFI_SSID", "")
+TEST_WIFI_PASSWORD = (
+    os.environ.get("TEST_WIFI_PASSWORD") or os.environ.get("WIFI_PASSWORD", "")
+)
+TEST_WIFI_SECURITY = (
+    os.environ.get("TEST_WIFI_SECURITY") or os.environ.get("WIFI_SECURITY", "WPA2")
+)
 
 
 # === Response Models ===

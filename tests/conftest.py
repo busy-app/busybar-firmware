@@ -799,9 +799,30 @@ def smart_home_api(api_factory):
 
 @pytest.fixture
 def cli_device_info(persistent_cli_connection):
-    """Fetch and attach CLI device_info for cross-verification."""
-    data = persistent_cli_connection.execute_command(
-        "device_info", timeout=20.0, slow_command=True
-    )
+    """Fetch and attach CLI device_info for cross-verification.
+
+    `execute_command` swallows telnet/EOF errors and returns an empty string,
+    so a session-scoped connection that silently degraded (e.g. a previous
+    test left it stuck in sl_cli, or the socket got dropped) would surface as
+    an opaque `assert ''` failure. Retry once with a forced reconnect so the
+    test gets a real answer when the degradation is recoverable.
+    """
+    cli = persistent_cli_connection
+    data = cli.execute_command("device_info", timeout=20.0, slow_command=True)
+
+    if not data.strip():
+        cli_logger = get_cli_logger()
+        cli_logger.warning(
+            "device_info returned empty output — reconnecting CLI and retrying"
+        )
+        try:
+            cli.disconnect()
+        except Exception:
+            pass
+        if cli.connect():
+            data = cli.execute_command(
+                "device_info", timeout=20.0, slow_command=True
+            )
+
     allure.attach(data, name="CLI device_info", attachment_type=allure.attachment_type.TEXT)
     return data

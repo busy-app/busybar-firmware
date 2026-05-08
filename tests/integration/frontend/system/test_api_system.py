@@ -51,7 +51,20 @@ class TestSystemAPI:
         assert 0 <= response.power.battery_charge <= 100
 
         with allure.step("Cross-verify with CLI device_info data"):
-            assert cli_device_info.strip(), "CLI device_info should return data"
+            data = cli_device_info.strip()
+            assert data, (
+                "CLI `device_info` returned no data. The session-scoped CLI "
+                "connection likely degraded (telnet timeout, socket reset, or a "
+                "previous test left it in sl_cli mode). The fixture already "
+                "retries once with a reconnect — empty output here means the "
+                "device CLI itself is unhealthy."
+            )
+            # Cross-verify: device_info must expose both U5 and 917 firmware sections,
+            # otherwise the API status above can't be meaningfully cross-checked.
+            for marker in ("u5_firmware_version", "sl_firmware_version"):
+                assert marker in data, (
+                    f"CLI `device_info` is missing {marker!r}. Output:\n{data}"
+                )
 
     @allure.id("2640")
     @allure.title("GET /api/status/system")

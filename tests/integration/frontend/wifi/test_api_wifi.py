@@ -6,7 +6,7 @@ import allure
 import pytest
 import requests
 
-from clients.api import TEST_WIFI_SSID, WifiAPI
+from clients.api import APIError, TEST_WIFI_SSID, WifiAPI
 
 
 def wait_for_wifi_state(wifi_api: WifiAPI, states: list[str], timeout: int = 20) -> str:
@@ -19,6 +19,31 @@ def wait_for_wifi_state(wifi_api: WifiAPI, states: list[str], timeout: int = 20)
             return last_state
         sleep(1)
     pytest.fail(f"Timed out waiting for WiFi state {states}, last state: {last_state}")
+
+
+def ensure_disconnected(wifi_api: WifiAPI, timeout: int = 20) -> None:
+    """Bring the device into the `disconnected` state, tolerating transitions.
+    """
+    if wifi_api.get_status().state == "disconnected":
+        return
+    try:
+        wifi_api.disconnect()
+    except APIError:
+        pass
+    wait_for_wifi_state(wifi_api, ["disconnected"], timeout=timeout)
+
+
+def connect_to_test_network_or_fail(wifi_api: WifiAPI, timeout: int = 30) -> None:
+    """Connect to the test SSID and fail with diagnostics if the API rejects it.
+    """
+    response = wifi_api.connect_to_test_network(timeout=timeout)
+    if response.status_code != 200:
+        body = response.text.strip() or "(empty body)"
+        pytest.fail(
+            f"POST /api/wifi/connect to {TEST_WIFI_SSID!r} failed: "
+            f"HTTP {response.status_code} — {body}"
+        )
+    wait_for_wifi_state(wifi_api, ["connected"], timeout=timeout)
 
 
 @pytest.fixture(scope="module", autouse=True)
@@ -51,21 +76,12 @@ class TestWifiAPI:
                 attachment_type=allure.attachment_type.JSON
             )
 
-        with allure.step("Disconnect if connected"):
-            if initial_status.state in ["connected", "connecting", "reconnecting"]:
-                wifi_api.disconnect()
-                wait_for_wifi_state(
-                    wifi_api,
-                    ["disconnected"],
-                    timeout=20,
-                )
-            else:
-                assert initial_status.state in ["disconnected", "unknown"]
+        with allure.step("Disconnect first (force a known starting state)"):
+            ensure_disconnected(wifi_api)
 
         with allure.step("Connect to test network"):
-            wifi_api.connect_to_test_network()
-            response = wifi_api.get_status()
-            assert response.state in ["connected", "connecting"]
+            connect_to_test_network_or_fail(wifi_api)
+            assert wifi_api.get_status().state == "connected"
 
     @allure.id("2660")
     @allure.title("GET /api/wifi/networks")
@@ -107,12 +123,16 @@ class TestWifiAPI:
     @pytest.mark.frontend
     def test_api_wifi_disconnect(self, wifi_api: WifiAPI):
         """Test POST /api/wifi/disconnect endpoint"""
-        with allure.step("Check WiFi status before disconnect"):
+        with allure.step("Ensure connected to test network before disconnect"):
             status = wifi_api.get_status()
-            allure.attach(json.dumps({"state": status.state}, indent=2), name="WiFi Status Before Disconnect", attachment_type=allure.attachment_type.JSON)
-
-            if status.state not in ["connected", "connecting"]:
-                wifi_api.connect_to_test_network()
+            allure.attach(
+                json.dumps({"state": status.state}, indent=2),
+                name="WiFi Status Before Disconnect",
+                attachment_type=allure.attachment_type.JSON,
+            )
+            if status.state != "connected":
+                ensure_disconnected(wifi_api)
+                connect_to_test_network_or_fail(wifi_api)
 
         wifi_api.disconnect()
         wait_for_wifi_state(wifi_api, ["disconnected"], timeout=20)
