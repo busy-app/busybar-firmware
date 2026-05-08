@@ -18,6 +18,7 @@ typedef struct {
 
     FlexBox* back_box;
     Label* back_primary_label;
+    Label* back_detail_label;
 
     FuriPubSubSubscription* power_event_subscription;
 } FirmwareSettingsLowBatteryScene;
@@ -34,6 +35,7 @@ typedef struct {
     const char* front_text;
 
     const char* back_primary_text;
+    const char* back_auxiliary_text;
 } FirmwareSettingsLowBatteryScenePreset;
 
 static const FirmwareSettingsLowBatteryScenePreset firmware_settings_low_battery_scene_presets[];
@@ -80,6 +82,7 @@ static void firmware_settings_low_battery_scene_on_usb_connection_state_update(
         label_set_text(scene->front_label, scene_preset->front_text);
 
         label_set_text(scene->back_primary_label, scene_preset->back_primary_text);
+        label_set_text(scene->back_detail_label, scene_preset->back_auxiliary_text);
     });
 }
 
@@ -128,10 +131,10 @@ static void firmware_settings_low_battery_scene_on_enter(void* context) {
         label_set_text(scene->back_primary_label, scene_preset->back_primary_text);
         label_set_text_align(scene->back_primary_label, TextAlignCenter);
 
-        Label* back_detail_label = label_alloc(flex_box_get_base(scene->back_box));
-        label_set_text_color(back_detail_label, BACK_DETAIL_LABEL_TEXT_COLOR);
-        label_set_text_align(back_detail_label, TextAlignCenter);
-        label_set_text(back_detail_label, "40% needed to\nstart update");
+        scene->back_detail_label = label_alloc(flex_box_get_base(scene->back_box));
+        label_set_text_color(scene->back_detail_label, BACK_DETAIL_LABEL_TEXT_COLOR);
+        label_set_text_align(scene->back_detail_label, TextAlignCenter);
+        label_set_text(scene->back_detail_label, scene_preset->back_auxiliary_text);
     });
 }
 
@@ -183,10 +186,11 @@ static const FirmwareSettingsLowBatteryScenePreset firmware_settings_low_battery
         {
             /* front layout */
             .front_image_path = THIS_IMG_PATH("charging_battery_front_8x8.image"),
-            .front_text = "Charging to 40%\nto start update...",
+            .front_text = "Update will start\nat 40% charge",
 
             /* back layout */
-            .back_primary_text = "Battery is charging...",
+            .back_primary_text = "Battery charging...",
+            .back_auxiliary_text = "Update will start at 40%",
         },
 
     [FirmwareSettingsLowBatteryScenePresetIdxUsbDisconnected] =
@@ -197,6 +201,7 @@ static const FirmwareSettingsLowBatteryScenePreset firmware_settings_low_battery
 
             /* back layout */
             .back_primary_text = "Charge your BUSY Bar",
+            .back_auxiliary_text = "40% needed to start update",
         },
 };
 
