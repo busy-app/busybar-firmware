@@ -93,7 +93,10 @@
           sideOffset: 8
         }"
         :ui="{
-          content: 'w-36'
+          content: 'w-36 bg-elevated ring-accented/50',
+          group: 'border-accented/50',
+          item: 'data-[state=open]:before:bg-accented/50 data-highlighted:before:bg-accented/50',
+          itemLabelExternalIcon: 'hidden'
         }"
       >
         <UButton
@@ -286,8 +289,6 @@ const userDropdownItems = computed(() => {
   const baseItems = [
     [
       {
-        label: 'Log in to BUSY Account',
-        icon: 'i-bi-user',
         slot: 'signin' as const,
         type: 'link',
         href: 'https://cloud.busy.app',
