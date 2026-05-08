@@ -25,8 +25,7 @@ static void matter_scene_pairing_on_enter(void* context) {
     const MatterStatus status = matter_enable_commissioning(app->matter, &info);
 
     if(status != MatterStatusOk) {
-        // TODO: Better way of handling errors at this point
-        furi_event_loop_stop(app->event_loop);
+        scene_manager_replace_current_scene(app->scene_manager, SceneIdWrecked);
         return;
     }
 

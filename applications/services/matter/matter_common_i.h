@@ -53,6 +53,7 @@ typedef struct {
  * @brief Pairing codes
  */
 typedef struct {
+    bool success;
     char qr_code[MATTER_QR_CODE_LEN_MAX + 1];
     char manual_code[MATTER_MAN_CODE_LEN_MAX + 1];
 } MatterIntercomPairingCodesFrame;

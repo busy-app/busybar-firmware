@@ -150,3 +150,9 @@ void matter_api_unlock(Matter* instance, MatterStatus status) {
 
     furi_check(furi_semaphore_release(instance->api_semaphore) == FuriStatusOk);
 }
+
+void matter_api_unlock_and_cancel_timeout(Matter* instance, MatterStatus status) {
+    furi_assert(instance);
+    furi_event_loop_timer_stop(instance->timeout_timer);
+    matter_api_unlock(instance, status);
+}
