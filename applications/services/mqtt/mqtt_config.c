@@ -53,9 +53,7 @@ bool mqtt_config_deserialize_raw(MqttConfig* config, const cJSON* json) {
 
         const char* cert_type_str = cJSON_GetStringValue(item);
         const MqttClientCertType cert_type = value_index_string(
-            cert_type_str,
-            mqtt_config_client_cert_types,
-            COUNT_OF(mqtt_config_client_cert_types));
+            cert_type_str, mqtt_config_client_cert_types, COUNT_OF(mqtt_config_client_cert_types));
         // value_index_string returns 0 for both "found at index 0" and "not found".
         // Verify the returned index actually maps back to the input string.
         if(cert_type >= MqttClientCertTypeMax ||
