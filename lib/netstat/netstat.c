@@ -6,6 +6,8 @@
 #define TAG                 "Netstat"
 #define USAGE_PERCENT_LIMIT 75UL
 
+static const char* monitored_pools = "NETCONN,TCP_PCB,SYS_TIMEOUT,PBUF_POOL";
+
 bool netstat_is_overloaded(NetstatLog log) {
     furi_check(log < NetstatLogMAX);
 
@@ -20,6 +22,9 @@ bool netstat_is_overloaded(NetstatLog log) {
 
         u32_t percent_used =
             (pool_stats->avail > 0) ? ((pool_stats->used * 100) / pool_stats->avail) : 0;
+
+        bool is_monitored = !!strstr(monitored_pools, pool_desc->desc);
+        if(!is_monitored) continue;
 
         if(percent_used >= USAGE_PERCENT_LIMIT) {
             is_overloaded = true;
