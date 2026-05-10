@@ -1730,8 +1730,11 @@ async function insertImage () {
       id: 'draw-tool-image-error',
       title: 'Failed to load image',
       description: error instanceof Error ? error.message : String(error),
+      icon: 'i-bi-alert',
       color: 'error',
-      duration: 10000
+      duration: 0,
+      close: true,
+      closeIcon: 'i-bi-cross'
     });
   }
 }
@@ -1794,8 +1797,11 @@ async function insertDrawToolIcon (icon: ResolvedDrawToolIcon) {
       id: 'draw-tool-icon-error',
       title: 'Failed to insert icon',
       description: error instanceof Error ? error.message : String(error),
+      icon: 'i-bi-alert',
       color: 'error',
-      duration: 10000
+      duration: 0,
+      close: true,
+      closeIcon: 'i-bi-cross'
     });
   }
 }
@@ -2205,8 +2211,11 @@ async function downloadImage () {
       id: 'draw-tool-download-error',
       title: 'Could not download image',
       description: error instanceof Error ? error.message : String(error),
+      icon: 'i-bi-alert',
       color: 'error',
-      duration: 10000
+      duration: 0,
+      close: true,
+      closeIcon: 'i-bi-cross'
     });
   }
 }

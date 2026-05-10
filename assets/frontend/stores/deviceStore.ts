@@ -78,7 +78,7 @@ export const useDeviceStore = defineStore('device', () => {
           title: 'Device disconnected',
           description: 'Device lost. Please check the connection.',
           icon: 'i-bi-alert',
-          color: 'warning',
+          color: 'error',
           duration: 0,
           close: true,
           closeIcon: 'i-bi-cross'

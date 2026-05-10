@@ -94,6 +94,7 @@ import type { ColorMode } from '@/util/seq2anim';
 import type { DisplayDrawParams } from '@busy-app/busy-lib';
 
 const deviceStore = useDeviceStore();
+const configStore = useConfigStore();
 const animationApplicationName = 'virtual-lan-animation-test';
 
 const filesModel = ref<File[] | null>(null);
@@ -165,9 +166,7 @@ async function composeAndUpload () {
         description: 'Check the front display to view it',
         icon: 'i-bi-checkmark-circle',
         color: 'success',
-        duration: 10000,
-        close: true,
-        closeIcon: 'i-bi-cross'
+        duration: Number(configStore.get('defaultNotificationDuration'))
       });
     } catch {
       // request errors are already handled
