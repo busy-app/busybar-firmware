@@ -228,7 +228,7 @@ onMounted(() => {
     return;
   }
   try {
-    const changes = JSON.parse(changesString);
+    const changes = JSON.parse(changesString).filter(change => configStore.items.some(i => i.name === change.name));
     changesStringOnPageLoad.value = changesString;
     for (const change of changes) {
       const item = configStore.items.find(i => i.name === change.name);
