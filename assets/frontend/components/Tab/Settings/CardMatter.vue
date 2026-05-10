@@ -16,6 +16,7 @@
       <UButton
         label="Pair device"
         icon="i-bi-plus"
+        color="neutral"
         @click="matterStore.requestMatterLink()"
       />
 
