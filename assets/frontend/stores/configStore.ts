@@ -41,17 +41,24 @@ export const useConfigStore = defineStore('config', () => {
     },
     {
       name: 'notificationDuration',
-      label: 'Default notification duration (ms)',
+      label: 'Notification duration (ms). Error notifications never close automatically.',
       type: 'number',
       value: 10000,
       default: 10000
     },
     {
       name: 'httpRequestTimeout',
-      label: 'Default HTTP request timeout (ms)',
+      label: 'Default HTTP request timeout (ms). Long requests like file upload don\'t have a timeout (browser default applies).',
       type: 'number',
       value: 3000,
       default: 3000
+    },
+    {
+      name: 'screenStreamCanvasBaseResolutionWidth',
+      label: 'Canvas resolution width. Gets multiplied by screen DPR for final resolution. Height is calculated based on screen aspect ratio.',
+      type: 'number',
+      value: 720,
+      default: 720
     }
   ]);
 
