@@ -67,12 +67,13 @@
           </UFormField>
         </div>
 
-        <div class="flex flex-wrap sm:flex-nowrap gap-2">
+        <div class="w-full sm:w-fit flex flex-wrap sm:flex-nowrap gap-2">
           <UButton
             icon="i-bi-download"
             label="Save animation file"
             color="neutral"
             variant="ghost"
+            class="w-full justify-center sm:justify-start"
             @click="composeAndDownload"
           />
           <UButton
@@ -80,6 +81,7 @@
             label="Play on device"
             color="neutral"
             variant="solid"
+            class="w-full justify-center sm:justify-start"
             @click="composeAndUpload"
           />
         </div>

@@ -31,8 +31,11 @@
               label="Save"
               color="neutral"
               variant="outline"
-              class="w-full"
+              class="w-full justify-center sm:justify-start"
               :disabled="!es.hasEditorContent"
+              :ui="{
+                label: 'relative -right-4 sm:static'
+              }"
               @click="saveStatus()"
             />
             <UDropdownMenu
@@ -83,6 +86,7 @@
             label="Show on BUSY Bar"
             color="neutral"
             variant="solid"
+            class="justify-center sm:justify-start"
             :icon="showStatusCheckmarkIcon ? 'i-bi-checkmark' : 'i-bi-play-fill'"
             :disabled="!es.hasEditorContent"
             :loading="isShowingStatusOnDevice"
@@ -93,6 +97,7 @@
           />
         </UTooltip>
       </template>
+
       <template #raw-body>
         <div class="flex flex-col gap-4">
           <div
