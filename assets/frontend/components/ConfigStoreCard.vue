@@ -2,6 +2,7 @@
   <div class="fixed right-4 bottom-4 z-50">
     <UPopover
       v-model:open="isPopoverOpen"
+      :dismissible="!configStore.pinPopover"
       :content="{
         side: 'top',
         align: 'end',
@@ -41,16 +42,16 @@
 
             <div class="flex items-center gap-2">
               <UTooltip
-                text="Open this card on page load"
+                text="Pin this card and open it on page load"
                 :delay-duration="0"
               >
                 <UButton
                   data-id="config-store-pin"
-                  :icon="configStore.openPopoverOnPageLoad ? 'i-busy-pin-fill' : 'i-busy-pin'"
-                  :color="configStore.openPopoverOnPageLoad ? 'primary' : 'neutral'"
+                  :icon="configStore.pinPopover ? 'i-busy-pin-fill' : 'i-busy-pin'"
+                  :color="configStore.pinPopover ? 'primary' : 'neutral'"
                   variant="ghost"
                   square
-                  @click="configStore.openPopoverOnPageLoad = !configStore.openPopoverOnPageLoad"
+                  @click="configStore.pinPopover = !configStore.pinPopover"
                 />
               </UTooltip>
 
@@ -220,7 +221,7 @@ function reload () {
 }
 
 onMounted(() => {
-  isPopoverOpen.value = configStore.openPopoverOnPageLoad;
+  isPopoverOpen.value = configStore.pinPopover;
 
   const changesString = localStorage.getItem('configStoreChanges');
   if (!changesString) {
