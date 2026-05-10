@@ -90,7 +90,7 @@ function logStateUpdates (message: ProcessedState) {
     message.updates = [];
   }
   for (const update of message.updates) {
-    if (update.state === 'frame' && configStore.get('stateStreamLogFrameUpdates') === false) {
+    if (update.state === 'frame' && configStore.get('stateStreamLogFrames') === false) {
       continue;
     }
     console.debug(`[state stream message] (${Number(message.timestamp)})`, update);
