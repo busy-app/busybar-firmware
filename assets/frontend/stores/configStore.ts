@@ -26,46 +26,18 @@ export const useConfigStore = defineStore('config', () => {
 
   const items = ref<ConfigStoreItem[]>([
     {
-      name: 'refreshDeviceDataAbortIfStreamActive',
-      label: 'Abort device data refresh if stream is active',
-      type: 'boolean',
-      value: true,
-      default: true
-    },
-    {
-      name: 'stateStreamTimeout',
-      label: 'State stream socket timeout (ms)',
-      type: 'number',
-      value: 5000,
-      default: 5000
-    },
-    {
-      name: 'stateStreamDataTimeout',
-      label: 'State stream data timeout (ms)',
-      type: 'number',
-      value: 1500,
-      default: 1500
-    },
-    {
-      name: 'stateStreamMaxReconnectAttempts',
-      label: 'State stream max reconnect attempts',
-      type: 'number',
-      value: 5,
-      default: 5
-    },
-    {
-      name: 'stateStreamReconnectDelay',
-      label: 'State stream reconnect delay (ms)',
-      type: 'number',
-      value: 250,
-      default: 250
-    },
-    {
       name: 'httpPollingInterval',
       label: 'HTTP polling interval (ms). Sound and brightness are polled 6x less often',
       type: 'number',
       value: 5000,
       default: 5000
+    },
+    {
+      name: 'httpRequestTimeout',
+      label: 'Default HTTP request timeout (ms). Long requests like file upload don\'t have a timeout (browser default applies)',
+      type: 'number',
+      value: 3000,
+      default: 3000
     },
     {
       name: 'notificationDuration',
@@ -75,11 +47,11 @@ export const useConfigStore = defineStore('config', () => {
       default: 10000
     },
     {
-      name: 'httpRequestTimeout',
-      label: 'Default HTTP request timeout (ms). Long requests like file upload don\'t have a timeout (browser default applies)',
-      type: 'number',
-      value: 3000,
-      default: 3000
+      name: 'refreshDeviceDataAbortIfStreamActive',
+      label: 'Abort HTTP polling attempt if stream is active',
+      type: 'boolean',
+      value: true,
+      default: true
     },
     {
       name: 'screenStreamCanvasBaseResolutionWidth',
@@ -96,22 +68,22 @@ export const useConfigStore = defineStore('config', () => {
       default: 250
     },
     {
-      name: 'stateStreamLogUpdates',
-      label: 'Log state stream updates to console (debug level). Disabling removes frames, heartbeats and state updates from console.debug',
-      type: 'boolean',
-      value: true,
-      default: true
+      name: 'stateStreamDataTimeout',
+      label: 'State stream data timeout (ms)',
+      type: 'number',
+      value: 1500,
+      default: 1500
     },
     {
-      name: 'stateStreamLogHeartbeats',
-      label: 'Log state stream heartbeats to console (debug level)',
+      name: 'stateStreamLogFrames',
+      label: 'Log state stream frames to console (debug level)',
       type: 'boolean',
       value: false,
       default: false
     },
     {
-      name: 'stateStreamLogFrames',
-      label: 'Log state stream frames to console (debug level)',
+      name: 'stateStreamLogHeartbeats',
+      label: 'Log state stream heartbeats to console (debug level)',
       type: 'boolean',
       value: false,
       default: false
@@ -122,6 +94,34 @@ export const useConfigStore = defineStore('config', () => {
       type: 'boolean',
       value: true,
       default: true
+    },
+    {
+      name: 'stateStreamLogUpdates',
+      label: 'Log state stream updates to console (debug level). Disabling removes frames, heartbeats and state updates from console.debug',
+      type: 'boolean',
+      value: true,
+      default: true
+    },
+    {
+      name: 'stateStreamMaxReconnectAttempts',
+      label: 'State stream max reconnect attempts',
+      type: 'number',
+      value: 5,
+      default: 5
+    },
+    {
+      name: 'stateStreamReconnectDelay',
+      label: 'State stream reconnect delay (ms)',
+      type: 'number',
+      value: 250,
+      default: 250
+    },
+    {
+      name: 'stateStreamTimeout',
+      label: 'State stream socket timeout (ms)',
+      type: 'number',
+      value: 5000,
+      default: 5000
     }
   ]);
 
