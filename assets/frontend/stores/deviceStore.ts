@@ -14,6 +14,7 @@ export const useDeviceStore = defineStore('device', () => {
   const wifiStore = useWifiStore();
   const firmwareStore = useFirmwareStore();
   const stateStreamStore = useStateStreamStore();
+  const configStore = useConfigStore();
 
   const busyBar = shallowRef(new BusyBar({
     addr: useRuntimeConfig().public.barUrl || window.location.origin
@@ -97,8 +98,7 @@ export const useDeviceStore = defineStore('device', () => {
 
   const refreshInterval = ref<NodeJS.Timeout>();
   async function refreshDeviceData () {
-    const configStore = useConfigStore();
-    if (configStore.refreshDeviceDataAbortIfStreamActive) {
+    if (configStore.get('refreshDeviceDataAbortIfStreamActive')) {
       console.debug('Checking whether to refresh device data. Stream status:', stateStreamStore.streamStatus);
       if (stateStreamStore.streamStatus?.main.status === StreamLifecycle.RUNNING && stateStreamStore.streamStatus?.data.status === DataStatus.ACTIVE) {
         console.debug('Skipping device data refresh because stream is active and config is set to abort in this case');
@@ -137,7 +137,7 @@ export const useDeviceStore = defineStore('device', () => {
     await fetchHttpAPIAccess();
   }
   function setRefreshInterval () {
-    refreshInterval.value = setInterval(refreshDeviceData, 5000);
+    refreshInterval.value = setInterval(refreshDeviceData, Number(configStore.get('httpPollingInterval')));
   }
   function clearRefreshInterval () {
     if (refreshInterval.value) {

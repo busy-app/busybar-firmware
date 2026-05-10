@@ -3,6 +3,8 @@
     data-id="layout-default"
     class="w-screen min-h-screen px-4 sm:px-6 py-4"
   >
+    <ConfigStoreCard v-if="configStore.showConfigUI === true" />
+
     <UContainer>
       <template v-if="shouldLoadDefaultPage">
         <DefaultLayoutHeader />
@@ -50,6 +52,7 @@ const deviceStore = useDeviceStore();
 const firmwareStore = useFirmwareStore();
 const wifiStore = useWifiStore();
 const stateStreamStore = useStateStreamStore();
+const configStore = useConfigStore();
 
 const shouldLoadDefaultPage = ref(false);
 async function init () {
@@ -193,9 +196,10 @@ onMounted(async () => {
 
   // check if config store is cached in localStorage
   if (localStorage.getItem('configStore') === null) {
-    // make it cache
-    useConfigStore().refreshDeviceDataAbortIfStreamActive = !useConfigStore().refreshDeviceDataAbortIfStreamActive;
-    useConfigStore().refreshDeviceDataAbortIfStreamActive = !useConfigStore().refreshDeviceDataAbortIfStreamActive;
+    // make it cache showConfigUI for external access
+    const showUI = configStore.showConfigUI;
+    configStore.showConfigUI = undefined;
+    configStore.showConfigUI = showUI;
   }
 });
 
