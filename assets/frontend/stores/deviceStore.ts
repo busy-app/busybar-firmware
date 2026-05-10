@@ -17,7 +17,8 @@ export const useDeviceStore = defineStore('device', () => {
   const configStore = useConfigStore();
 
   const busyBar = shallowRef(new BusyBar({
-    addr: useRuntimeConfig().public.barUrl || window.location.origin
+    addr: useRuntimeConfig().public.barUrl || window.location.origin,
+    timeout: Number(configStore.get('httpRequestTimeout'))
   }));
 
   // Assume device is connected unless the screenstream stops.
@@ -41,7 +42,7 @@ export const useDeviceStore = defineStore('device', () => {
     checkingConnection.value = true;
     const wasConnected = isConnected.value;
     try {
-      await apiRequest('/api/name', { timeout: 3000 });
+      await apiRequest('/api/name', { timeout: Number(configStore.get('httpRequestTimeout')) });
       if (!isConnected.value) {
         window.dispatchEvent(new Event('device-reconnected'));
         if (firmwareStore.autoUpdate.stage === UpdateStage.UPDATING) {

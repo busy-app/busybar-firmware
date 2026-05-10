@@ -2063,7 +2063,7 @@ async function drawStatusOnBusyBar (fileName: string) {
 
 async function listSaveDirectory () {
   const deviceStore = useDeviceStore();
-  const result = await deviceStore.busyBar.StorageListGet({ path: DRAW_TOOL_SAVE_DIR, timeout: 10000 });
+  const result = await deviceStore.busyBar.StorageListGet({ path: DRAW_TOOL_SAVE_DIR });
 
   if (!result.list) {
     throw new Error('Empty response');
@@ -2084,7 +2084,7 @@ async function ensureSaveDirectoryExists () {
   const deviceStore = useDeviceStore();
 
   try {
-    await deviceStore.busyBar.StorageMkdir({ path: DRAW_TOOL_SAVE_DIR, timeout: 10000 });
+    await deviceStore.busyBar.StorageMkdir({ path: DRAW_TOOL_SAVE_DIR });
   } catch {
     // Ignore mkdir failure here and let the follow-up list call decide whether the directory is usable.
   }

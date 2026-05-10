@@ -45,6 +45,13 @@ export const useConfigStore = defineStore('config', () => {
       type: 'number',
       value: 10000,
       default: 10000
+    },
+    {
+      name: 'httpRequestTimeout',
+      label: 'Default HTTP request timeout (ms)',
+      type: 'number',
+      value: 3000,
+      default: 3000
     }
   ]);
 

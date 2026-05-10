@@ -90,7 +90,7 @@ export const useFirmwareStore = defineStore('firmware', () => {
     autoUpdate.value.error.message = null;
   }
   async function fetchAutoUpdateStatus (attempt: number = 0): Promise<void> {
-    return deviceStore.busyBar.UpdateStatusGet({ timeout: 10000 })
+    return deviceStore.busyBar.UpdateStatusGet()
       .then(async status => {
         if (!status.check?.status || !status.check.event) {
           throw new Error('Invalid update status response: missing check info');
@@ -169,7 +169,7 @@ export const useFirmwareStore = defineStore('firmware', () => {
     }
     autoUpdate.value.isChecking = true;
 
-    return deviceStore.busyBar.UpdateCheck({ timeout: 10000 })
+    return deviceStore.busyBar.UpdateCheck()
       .then(async () => {
         console.debug('Auto-update check requested');
         await new Promise(resolve => setTimeout(resolve, 1000));
@@ -219,7 +219,7 @@ export const useFirmwareStore = defineStore('firmware', () => {
     }
     console.debug('Requesting auto-update installation');
 
-    return deviceStore.busyBar.UpdateInstall({ version: autoUpdate.value.availableVersion, timeout: 10000 });
+    return deviceStore.busyBar.UpdateInstall({ version: autoUpdate.value.availableVersion, timeout: 0 });
   }
   async function abortAutoUpdateDownload () {
     await deviceStore.busyBar.UpdateAbort()
@@ -249,7 +249,7 @@ export const useFirmwareStore = defineStore('firmware', () => {
       });
 
     autoUpdate.value.progressPollingInterval = setInterval(async () => {
-      await deviceStore.busyBar.UpdateStatusGet({ timeout: 10000 })
+      await deviceStore.busyBar.UpdateStatusGet()
         .then(status => {
           if (!status.install) {
             throw new Error('Invalid update status response: missing install info');

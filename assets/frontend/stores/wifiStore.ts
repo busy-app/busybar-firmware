@@ -31,7 +31,7 @@ export const useWifiStore = defineStore('wifi', () => {
     }
     stateStreamStore.doCheckConnectionOnStreamDataStale = false;
 
-    return await deviceStore.busyBar.WifiNetworksGet({ timeout: 45000 })
+    return await deviceStore.busyBar.WifiNetworksGet({ timeout: 0 })
       .then(response => {
         if (!response || !Array.isArray(response.networks)) {
           throw new Error('Failed to fetch WiFi networks');
@@ -71,7 +71,7 @@ export const useWifiStore = defineStore('wifi', () => {
       deviceStore.clearRefreshInterval();
     }
     stateStreamStore.doCheckConnectionOnStreamDataStale = false;
-    return await deviceStore.busyBar.WifiConnect({ ...params, timeout: 45000 })
+    return await deviceStore.busyBar.WifiConnect({ ...params, timeout: 0 })
       .catch(async error => {
         await handleHTTPError(error, 'Couldn\'t connect to WiFi network', false, 0);
         return false;
@@ -91,7 +91,7 @@ export const useWifiStore = defineStore('wifi', () => {
       deviceStore.clearRefreshInterval();
     }
     stateStreamStore.doCheckConnectionOnStreamDataStale = false;
-    return await deviceStore.busyBar.WifiDisconnect()
+    return await deviceStore.busyBar.WifiDisconnect({ timeout: 0 })
       .catch(async error => {
         await handleHTTPError(error, 'Couldn\'t disconnect from WiFi network', false, 0);
         return false;

@@ -428,7 +428,7 @@ async function onInputMenuModelUpdate (newValue: string) {
     filter = '';
   }
 
-  const options = await deviceStore.busyBar.StorageListGet({ path: `/ext${dir}`, timeout: 10000 })
+  const options = await deviceStore.busyBar.StorageListGet({ path: `/ext${dir}` })
     .then(result => {
       if (!result.list) {
         throw new Error('Empty response');
@@ -481,7 +481,7 @@ const selectStartIndex = ref(-1);
 async function list (path: string) {
   selectedItems.value.clear();
   loading.value.list = true;
-  await deviceStore.busyBar.StorageListGet({ path, timeout: 10000 })
+  await deviceStore.busyBar.StorageListGet({ path })
     .then(result => {
       if (!result.list) {
         throw new Error('Empty response');
@@ -735,7 +735,7 @@ async function remove () {
     const items = new Set(selectedItems.value);
     for (const name of items) {
       const fullPath = `${currentPath.value}/${name}`;
-      await deviceStore.busyBar.StorageRemove({ path: fullPath, timeout: 10000 })
+      await deviceStore.busyBar.StorageRemove({ path: fullPath, timeout: 0 })
         .catch(async error => {
           await handleHTTPError(error, `Couldn't delete ${fullPath}`, false, 0);
         });
@@ -763,7 +763,7 @@ async function remove () {
 
   loading.value.remove = true;
 
-  await deviceStore.busyBar.StorageRemove({ path: fullPath, timeout: 10000 })
+  await deviceStore.busyBar.StorageRemove({ path: fullPath, timeout: 0 })
     .then(() => {
       itemToDelete.value = null;
       showDeleteModal.value = false;
@@ -888,7 +888,7 @@ async function mkdir () {
   loading.value.mkdir = true;
 
   const fullPath = `${currentPath.value}/${mkdirNameModel.value}`;
-  await deviceStore.busyBar.StorageMkdir({ path: fullPath, timeout: 10000 })
+  await deviceStore.busyBar.StorageMkdir({ path: fullPath })
     .then(() => {
       showMkdirModal.value = false;
     })
