@@ -18,11 +18,11 @@
         label="Config"
         color="neutral"
         :variant="isPopoverOpen ? 'solid' : 'outline'"
-        class="rounded-full shadow-lg"
+        class="rounded-full shadow-lg bg-default"
       />
 
       <template #content>
-        <div class="h-100 h-max-calc[100vh-2rem] flex flex-col gap-2 p-2">
+        <div class="h-100 max-h-[calc(100vh-5rem)] flex flex-col gap-2 p-2">
           <div class="flex items-center justify-between gap-3">
             <UInput
               v-model="searchQuery"
