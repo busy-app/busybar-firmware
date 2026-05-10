@@ -18,7 +18,8 @@
         label="Config"
         color="neutral"
         :variant="isPopoverOpen ? 'solid' : 'outline'"
-        class="rounded-full shadow-lg bg-default"
+        class="rounded-full shadow-lg"
+        :class="isPopoverOpen ? '' : 'bg-default'"
       />
 
       <template #content>
