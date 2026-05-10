@@ -22,7 +22,7 @@ export type ConfigStoreItem = {
 
 export const useConfigStore = defineStore('config', () => {
   const showConfigUI = ref<boolean | undefined>(false);
-  const openPopoverOnPageLoad = ref(false);
+  const pinPopover = ref(false);
 
   const items = ref<ConfigStoreItem[]>([
     {
@@ -59,6 +59,13 @@ export const useConfigStore = defineStore('config', () => {
       type: 'number',
       value: 720,
       default: 720
+    },
+    {
+      name: 'sliderDebounceDelay',
+      label: 'Debounce delay for slider inputs (ms)',
+      type: 'number',
+      value: 250,
+      default: 250
     }
   ]);
 
@@ -69,7 +76,7 @@ export const useConfigStore = defineStore('config', () => {
 
   return {
     showConfigUI,
-    openPopoverOnPageLoad,
+    pinPopover,
 
     items,
     get

@@ -117,6 +117,7 @@
 <script setup lang="ts">
 const audioStore = useAudioStore();
 const brightnessStore = useBrightnessStore();
+const configStore = useConfigStore();
 
 const loading = ref({
   audio: false,
@@ -172,7 +173,7 @@ async function setAudioVolume () {
 
   setTimeout(() => {
     loading.value.audio = false;
-  }, 250);
+  }, Number(configStore.get('sliderDebounceDelay')));
 }
 
 async function setVolumeToMute () {
@@ -225,7 +226,7 @@ async function setDisplayBrightness () {
 
   setTimeout(() => {
     loading.value.brightness = false;
-  }, 250);
+  }, Number(configStore.get('sliderDebounceDelay')));
 }
 
 async function setBrightnessToAuto () {
@@ -252,7 +253,7 @@ async function init () {
   refreshInterval.value = setInterval(() => {
     refreshAudioVolume();
     refreshDisplayBrightness();
-  }, 30000);
+  }, Number(configStore.get('httpPollingInterval')) * 6);
 }
 
 onMounted(async () => {
