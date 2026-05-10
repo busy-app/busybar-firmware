@@ -327,14 +327,18 @@ export const useStateStreamStore = defineStore('stateStream', () => {
 
     if (oldStatus === null) {
       streamStatus.value = status;
-      console.debug('[state stream status] Initial stream status:', status);
+      if (configStore.get('stateStreamLogStatusUpdates')) {
+        console.debug('[state stream status] Initial stream status:', status);
+      }
       return;
     }
 
     const diff = deepDiff(oldStatus, status) as Partial<StreamStatus> | undefined;
     if (diff) {
       for (const line of flattenDeepDiff(diff)) {
-        console.debug('[state stream status]', line, '| full status:', status);
+        if (configStore.get('stateStreamLogStatusUpdates')) {
+          console.debug('[state stream status]', line, '| full status:', status);
+        }
       }
     }
 

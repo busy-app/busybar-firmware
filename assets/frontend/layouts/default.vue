@@ -90,9 +90,12 @@ function logStateUpdates (message: ProcessedState) {
     message.updates = [];
   }
   for (const update of message.updates) {
+    if (update.state === 'frame' && configStore.get('stateStreamLogFrameUpdates') === false) {
+      continue;
+    }
     console.debug(`[state stream message] (${Number(message.timestamp)})`, update);
   }
-  if (message.updates.length === 0) {
+  if (message.updates.length === 0 && configStore.get('stateStreamLogHeartbeats')) {
     console.debug(`[state stream message] (${Number(message.timestamp)}) heartbeat (no updates)`);
   }
 }
@@ -111,7 +114,9 @@ function initStateStream () {
     stateStreamStore.stream.start({
       dataCallback: message => {
         stateStreamStore.applyStateMessage(message);
-        logStateUpdates(message);
+        if (configStore.get('stateStreamLogUpdates')) {
+          logStateUpdates(message);
+        }
       },
       statusCallback: stateStreamStore.applyStreamStatus,
       errorCallback: error => {

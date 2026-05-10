@@ -94,6 +94,34 @@ export const useConfigStore = defineStore('config', () => {
       type: 'number',
       value: 250,
       default: 250
+    },
+    {
+      name: 'stateStreamLogUpdates',
+      label: 'Log state stream updates to console (debug level). Disabling removes frames, heartbeats and state updates from console.debug',
+      type: 'boolean',
+      value: true,
+      default: true
+    },
+    {
+      name: 'stateStreamLogHeartbeats',
+      label: 'Log state stream heartbeats to console (debug level)',
+      type: 'boolean',
+      value: false,
+      default: false
+    },
+    {
+      name: 'stateStreamLogFrames',
+      label: 'Log state stream frames to console (debug level)',
+      type: 'boolean',
+      value: false,
+      default: false
+    },
+    {
+      name: 'stateStreamLogStatusUpdates',
+      label: 'Log state stream status updates to console (debug level). This includes all status messages (main/connection/auth/data/worker)',
+      type: 'boolean',
+      value: true,
+      default: true
     }
   ]);
 
