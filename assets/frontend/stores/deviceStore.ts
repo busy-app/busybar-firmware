@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { BusyBar, DataStatus } from '@busy-app/busy-lib';
+import { BusyBar, DataStatus, StreamLifecycle } from '@busy-app/busy-lib';
 import type {
   VersionInfo,
   Status as DeviceStatus,
@@ -97,6 +97,20 @@ export const useDeviceStore = defineStore('device', () => {
 
   const refreshInterval = ref<NodeJS.Timeout>();
   async function refreshDeviceData () {
+    const configStore = useConfigStore();
+    if (configStore.refreshDeviceDataAbortIfStreamActive) {
+      console.debug('Checking whether to refresh device data. Stream status:', stateStreamStore.streamStatus);
+      if (stateStreamStore.streamStatus?.main.status === StreamLifecycle.RUNNING && stateStreamStore.streamStatus?.data.status === DataStatus.ACTIVE) {
+        console.debug('Skipping device data refresh because stream is active and config is set to abort in this case');
+        if (refreshInterval.value) {
+          clearInterval(refreshInterval.value);
+          refreshInterval.value = undefined;
+          console.debug('Cleared refresh interval to stop refreshing device data while stream is active');
+        }
+        return;
+      }
+    }
+
     const firmwareStore = useFirmwareStore();
     if (firmwareStore.autoUpdate.stage === UpdateStage.LOADING || firmwareStore.fileUpdate.stage === UpdateStage.LOADING) {
       // During auto update, the device is expected to be unresponsive, so skip connection check and just wait for it to come back

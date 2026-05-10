@@ -336,11 +336,11 @@ export const useStateStreamStore = defineStore('stateStream', () => {
 
     if (streamStatus.value.data.status === DataStatus.STALE && oldStatus?.data.status !== DataStatus.STALE && doCheckConnectionOnStreamDataStale.value) {
       console.debug('No state messages received for a while, checking connection...');
-      deviceStore.setRefreshInterval();
       const conncheckResult = await deviceStore.checkConnection();
       if (conncheckResult === false) {
-        console.debug('Connection check failed after state stream data stale, stopping stream');
+        console.debug('Connection check failed after state stream data stale, stopping stream and starting polling');
         stopStream();
+        deviceStore.setRefreshInterval();
       }
     }
   }

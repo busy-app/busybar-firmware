@@ -59,6 +59,7 @@ export const useWifiStore = defineStore('wifi', () => {
       .finally(() => {
         stateStreamStore.doCheckConnectionOnStreamDataStale = true;
         if (wasPolling) {
+          console.debug('wifiStore.listWifiNetworks: was polling before, resuming polling');
           deviceStore.setRefreshInterval();
         }
       });
@@ -78,6 +79,7 @@ export const useWifiStore = defineStore('wifi', () => {
       .finally(() => {
         stateStreamStore.doCheckConnectionOnStreamDataStale = true;
         if (wasPolling) {
+          console.debug('wifiStore.connectToWifiNetwork: was polling before, resuming polling');
           deviceStore.setRefreshInterval();
         }
       });
@@ -97,6 +99,7 @@ export const useWifiStore = defineStore('wifi', () => {
       .finally(() => {
         stateStreamStore.doCheckConnectionOnStreamDataStale = true;
         if (wasPolling) {
+          console.debug('wifiStore.disconnectFromWifiNetwork: was polling before, resuming polling');
           deviceStore.setRefreshInterval();
         }
       });

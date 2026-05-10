@@ -190,6 +190,13 @@ onMounted(async () => {
   window.addEventListener('device-reconnected', handleDeviceReconnected);
   window.addEventListener('protobuf-websocket-restart', handleStateStreamRestart);
   window.addEventListener('wifi-reconnected', firmwareStore.requestAutoUpdateCheck);
+
+  // check if config store is cached in localStorage
+  if (localStorage.getItem('configStore') === null) {
+    // make it cache
+    useConfigStore().refreshDeviceDataAbortIfStreamActive = !useConfigStore().refreshDeviceDataAbortIfStreamActive;
+    useConfigStore().refreshDeviceDataAbortIfStreamActive = !useConfigStore().refreshDeviceDataAbortIfStreamActive;
+  }
 });
 
 onBeforeUnmount(() => {
