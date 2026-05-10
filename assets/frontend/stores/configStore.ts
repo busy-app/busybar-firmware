@@ -33,6 +33,34 @@ export const useConfigStore = defineStore('config', () => {
       default: true
     },
     {
+      name: 'stateStreamTimeout',
+      label: 'State stream socket timeout (ms)',
+      type: 'number',
+      value: 5000,
+      default: 5000
+    },
+    {
+      name: 'stateStreamDataTimeout',
+      label: 'State stream data timeout (ms)',
+      type: 'number',
+      value: 1500,
+      default: 1500
+    },
+    {
+      name: 'stateStreamMaxReconnectAttempts',
+      label: 'State stream max reconnect attempts',
+      type: 'number',
+      value: 5,
+      default: 5
+    },
+    {
+      name: 'stateStreamReconnectDelay',
+      label: 'State stream reconnect delay (ms)',
+      type: 'number',
+      value: 250,
+      default: 250
+    },
+    {
       name: 'httpPollingInterval',
       label: 'HTTP polling interval (ms). Sound and brightness are polled 6x less often',
       type: 'number',

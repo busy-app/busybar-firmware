@@ -93,6 +93,7 @@ export const useStateStreamStore = defineStore('stateStream', () => {
   const wifiStore = useWifiStore();
   const screenStreamStore = useScreenStreamStore();
   const barUrl = useRuntimeConfig().public.barUrl || window.location.origin;
+  const configStore = useConfigStore();
 
   const streamNotRestartable = ref(false);
   const showStateStreamFailBanner = ref(false);
@@ -100,7 +101,12 @@ export const useStateStreamStore = defineStore('stateStream', () => {
 
   const stream = shallowRef(new LocalStateStream(
     { addr: barUrl, token: apiStore.apiKey || '' },
-    { timeout: 5000, dataTimeout: 1500, maxReconnectAttempts: 5, reconnectDelay: 250 }
+    {
+      timeout: Number(configStore.get('stateStreamTimeout')),
+      dataTimeout: Number(configStore.get('stateStreamDataTimeout')),
+      maxReconnectAttempts: Number(configStore.get('stateStreamMaxReconnectAttempts')),
+      reconnectDelay: Number(configStore.get('stateStreamReconnectDelay'))
+    }
   ));
   const streamStatus = ref<StreamStatus | null>(null);
   const doCheckConnectionOnStreamDataStale = ref(true);
