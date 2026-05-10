@@ -5,16 +5,19 @@ export type ConfigStoreItem = {
   label: string;
   type: 'boolean';
   value: boolean;
+  default: boolean;
 } | {
   name: string;
   label: string;
   type: 'string';
   value: string;
+  default: string;
 } | {
   name: string;
   label: string;
   type: 'number';
   value: number;
+  default: number;
 };
 
 export const useConfigStore = defineStore('config', () => {
@@ -26,13 +29,22 @@ export const useConfigStore = defineStore('config', () => {
       name: 'refreshDeviceDataAbortIfStreamActive',
       label: 'Abort device data refresh if stream is active',
       type: 'boolean',
-      value: true
+      value: true,
+      default: true
     },
     {
       name: 'httpPollingInterval',
       label: 'HTTP polling interval (ms)',
       type: 'number',
-      value: 5000
+      value: 5000,
+      default: 5000
+    },
+    {
+      name: 'defaultNotificationDuration',
+      label: 'Default notification duration (ms)',
+      type: 'number',
+      value: 10000,
+      default: 10000
     }
   ]);
 
@@ -51,6 +63,7 @@ export const useConfigStore = defineStore('config', () => {
 }, {
   persist: {
     key: 'configStore',
-    storage: piniaPluginPersistedstate.localStorage()
+    storage: piniaPluginPersistedstate.localStorage(),
+    omit: ['items'] // items are saved manually in ConfigStoreCard
   }
 });

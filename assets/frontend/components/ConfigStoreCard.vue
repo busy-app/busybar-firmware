@@ -21,7 +21,7 @@
       />
 
       <template #content>
-        <div class="h-100 flex flex-col gap-2 p-2">
+        <div class="h-100 h-max-calc[100vh-2rem] flex flex-col gap-2 p-2">
           <div class="flex items-center justify-between gap-3">
             <UInput
               v-model="searchQuery"
@@ -65,12 +65,27 @@
             </div>
           </div>
 
-          <div class="overflow-y-auto pr-1">
-            <div class="flex flex-col gap-2">
+          <div v-if="showReloadPrompt" class="rounded-xl flex items-center justify-between gap-2">
+            <div class="text-sm pl-3">
+              Changes saved. Reload the page to apply
+            </div>
+            <UButton
+              data-id="config-store-reload"
+              label="Reload"
+              icon="i-bi-arrow-clockwise"
+              color="primary"
+              size="sm"
+              @click="reload"
+            />
+          </div>
+
+          <div class="overflow-y-auto">
+            <div class="flex flex-col gap-1">
               <div
-                v-for="item in filteredItems"
+                v-for="item in filteredLocaleSortedItemsWithChangedFirst"
                 :key="item.name"
-                class="rounded-xl border border-default/70 bg-default/70 p-3"
+                class="rounded-xl ring ring-inset ring-default/70 bg-default/70 p-3"
+                :class="item.value !== item.default ? 'bg-warning/5 ring-warning/50' : ''"
               >
                 <div class="flex items-center justify-between gap-2">
                   <div class="flex flex-col gap-0.75 min-w-0">
@@ -82,7 +97,7 @@
                     </div>
                   </div>
 
-                  <div class="shrink-0">
+                  <div class="flex items-center justify-end gap-3 shrink-0">
                     <USwitch
                       v-if="item.type === 'boolean'"
                       :model-value="item.value"
@@ -91,18 +106,34 @@
 
                     <UInput
                       v-else-if="item.type === 'string'"
-                      :model-value="item.value"
+                      v-model.lazy="item.value"
                       class="w-44"
-                      @update:model-value="updateStringItem(item, $event)"
+                      @change="saveChangesToLocalStorage"
                     />
 
                     <UInput
                       v-else
-                      :model-value="String(item.value)"
+                      v-model.lazy="item.value"
                       type="number"
                       class="w-28"
-                      @update:model-value="updateNumberItem(item, $event)"
+                      @change="saveChangesToLocalStorage"
                     />
+
+                    <div
+                      v-if="item.value !== item.default"
+                      class="relative"
+                    >
+                      <div class="absolute -top-3.5 w-px h-[calc(100%+1.75rem)] bg-warning/50" />
+                      <UButton
+                        data-id="config-store-reset"
+                        icon="i-bi-arrow-counterclockwise"
+                        color="neutral"
+                        variant="ghost"
+                        class="relative -right-1.5"
+                        square
+                        @click="undoChangesToItem(item)"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -141,25 +172,72 @@ const filteredItems = computed(() => {
   });
 });
 
+const filteredLocaleSortedItems = computed(() => {
+  return [...filteredItems.value].sort((a, b) => {
+    return a.name.localeCompare(b.name);
+  });
+});
+
+const filteredLocaleSortedItemsWithChangedFirst = computed(() => {
+  const changedItems = filteredLocaleSortedItems.value.filter(item => item.value !== item.default);
+  const unchangedItems = filteredLocaleSortedItems.value.filter(item => item.value === item.default);
+
+  return [...changedItems, ...unchangedItems];
+});
+
 function updateBooleanItem (item: Extract<ConfigStoreItem, { type: 'boolean' }>, value: boolean) {
   item.value = value;
+  saveChangesToLocalStorage();
 }
 
-function updateStringItem (item: Extract<ConfigStoreItem, { type: 'string' }>, value: string | number) {
-  item.value = String(value);
+function undoChangesToItem (item: ConfigStoreItem) {
+  item.value = item.default;
+
+  saveChangesToLocalStorage();
 }
 
-function updateNumberItem (item: Extract<ConfigStoreItem, { type: 'number' }>, value: string | number) {
-  const nextValue = Number(value);
+const changesStringOnPageLoad = ref('[]');
+const changesString = computed(() => {
+  const changes = configStore.items
+    .filter(item => item.value !== item.default)
+    .map(item => ({
+      name: item.name,
+      value: item.value
+    }));
+  return JSON.stringify(changes);
+});
 
-  if (Number.isNaN(nextValue)) {
-    return;
-  }
+function saveChangesToLocalStorage () {
+  localStorage.setItem('configStoreChanges', changesString.value);
+}
 
-  item.value = nextValue;
+const showReloadPrompt = computed(() => {
+  return changesString.value !== changesStringOnPageLoad.value;
+});
+
+function reload () {
+  window.location.reload();
 }
 
 onMounted(() => {
   isPopoverOpen.value = configStore.openPopoverOnPageLoad;
+
+  const changesString = localStorage.getItem('configStoreChanges');
+  if (!changesString) {
+    return;
+  }
+  try {
+    const changes = JSON.parse(changesString);
+    changesStringOnPageLoad.value = changesString;
+    for (const change of changes) {
+      const item = configStore.items.find(i => i.name === change.name);
+      if (item) {
+        item.value = change.value;
+      }
+    }
+  } catch (error) {
+    console.error('Failed to parse saved config store changes from localStorage on page load:', error);
+    changesStringOnPageLoad.value = '[]';
+  }
 });
 </script>
