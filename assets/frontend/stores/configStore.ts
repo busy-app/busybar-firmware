@@ -40,7 +40,7 @@ export const useConfigStore = defineStore('config', () => {
       default: 5000
     },
     {
-      name: 'defaultNotificationDuration',
+      name: 'notificationDuration',
       label: 'Default notification duration (ms)',
       type: 'number',
       value: 10000,

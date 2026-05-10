@@ -147,7 +147,7 @@ export const useFirmwareStore = defineStore('firmware', () => {
             title: 'Your firmware version is up to date',
             icon: 'i-bi-checkmark-circle-fill',
             color: 'success',
-            duration: Number(configStore.get('defaultNotificationDuration'))
+            duration: Number(configStore.get('notificationDuration'))
           });
         }
 
@@ -372,7 +372,7 @@ export const useFirmwareStore = defineStore('firmware', () => {
           description: 'The device will reboot to apply the update. Pay attention to the front screen.',
           icon: 'i-bi-checkmark-circle-fill',
           color: 'success',
-          duration: Number(configStore.get('defaultNotificationDuration'))
+          duration: Number(configStore.get('notificationDuration'))
         });
       } else {
         console.error('Upload failed:', xhr.status, xhr.responseText);

@@ -166,7 +166,7 @@ async function composeAndUpload () {
         description: 'Check the front display to view it',
         icon: 'i-bi-checkmark-circle',
         color: 'success',
-        duration: Number(configStore.get('defaultNotificationDuration'))
+        duration: Number(configStore.get('notificationDuration'))
       });
     } catch {
       // request errors are already handled

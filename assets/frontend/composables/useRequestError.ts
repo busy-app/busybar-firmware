@@ -25,7 +25,7 @@ export async function handleHTTPError (error: any, title: string, shouldCheckFor
     description: parseError(error),
     icon: 'i-bi-alert',
     color: 'error',
-    duration: typeof duration === 'number' ? duration : Number(configStore.get('defaultNotificationDuration'))
+    duration: typeof duration === 'number' ? duration : Number(configStore.get('notificationDuration'))
   });
 }
 
