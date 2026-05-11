@@ -5,15 +5,28 @@ import time
 from clients.api import BleAPI
 
 
+BLE_ENABLED_STATES = frozenset({"enabled", "connectable", "connected"})
+BLE_DISABLED_STATES = frozenset({"disabled"})
+
+
 def _wait_for_ble_status(
-    ble_api: BleAPI, expected: str, timeout: float = 3.0, interval: float = 0.25
+    ble_api: BleAPI,
+    expected,
+    timeout: float = 3.0,
+    interval: float = 0.25,
 ) -> str:
-    """Poll /api/ble/status until it equals `expected` or the timeout expires."""
+    """Poll /api/ble/status until it lands in `expected` (str or set) or times out."""
+    expected_set = {expected} if isinstance(expected, str) else set(expected)
     deadline = time.monotonic() + timeout
-    last = ble_api.get_status().status
-    while last != expected and time.monotonic() < deadline:
+    last = ""
+    while time.monotonic() < deadline:
+        try:
+            last = ble_api.get_status().status
+            if last in expected_set:
+                return last
+        except Exception as exc:
+            last = f"<{type(exc).__name__}: {exc}>"
         time.sleep(interval)
-        last = ble_api.get_status().status
     return last
 
 
