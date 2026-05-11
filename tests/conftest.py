@@ -586,7 +586,7 @@ def device_health_monitor(request, device_flasher, web_base_url):
     if pre_reason:
         logger.warning("Device not ready before test (%s), resetting...", pre_reason)
         with allure.step(f"Resetting device before test: {pre_reason}"):
-            if not device_flasher.reset_and_wait(wait_timeout=30, reset_interval=10):
+            if not device_flasher.reset_and_wait(wait_timeout=60, reset_interval=15):
                 pytest.fail("Device not recoverable - check hardware connection")
 
     # Capture crash detector state
@@ -618,7 +618,7 @@ def device_health_monitor(request, device_flasher, web_base_url):
         device_flasher._post_test_healthy = False
         logger.warning("Resetting device after test: %s", reset_reason)
         with allure.step(f"Resetting device: {reset_reason}"):
-            if not device_flasher.reset_and_wait(wait_timeout=30, reset_interval=10):
+            if not device_flasher.reset_and_wait(wait_timeout=60, reset_interval=15):
                 logger.error("reset_and_wait failed after test: %s", reset_reason)
                 request.node._reset_failed = reset_reason
     else:

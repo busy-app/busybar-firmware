@@ -70,9 +70,9 @@ class TestBleAPI:
             getattr(ble_api, action)()
             last = _wait_for_ble_status(ble_api, expected_set)
             assert last in expected_set, f"pre-reboot: got {last!r}, expected one of {sorted(expected_set)}"
-            assert device_flasher.reset_and_wait(wait_timeout=180.0), (
-                "reset_and_wait failed"
-            )
+            assert device_flasher.reset_and_wait(
+                wait_timeout=180.0, reset_interval=30.0
+            ), "reset_and_wait failed"
             last = _wait_for_ble_status(ble_api, expected_set, timeout=30.0)
             assert last in expected_set, f"post-reboot: got {last!r}, expected one of {sorted(expected_set)}"
 
