@@ -122,6 +122,13 @@ export const useConfigStore = defineStore('config', () => {
       type: 'number',
       value: 5000,
       default: 5000
+    },
+    {
+      name: 'wifiAbortSimultaneousRequests',
+      label: 'Abort heavy WiFi HTTP request (list/connect/disconnect) if the same request is in progress',
+      type: 'boolean',
+      value: true,
+      default: true
     }
   ]);
 
