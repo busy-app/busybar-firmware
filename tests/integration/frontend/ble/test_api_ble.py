@@ -1,6 +1,7 @@
+import time
+
 import allure
 import pytest
-import time
 
 from clients.api import BleAPI
 
@@ -61,7 +62,7 @@ class TestBleAPI:
     @pytest.mark.frontend
     @pytest.mark.timeout(300)
     def test_api_ble_preserve_status_over_reboot(
-        self, ble_api: BleAPI, device_flasher
+        self, ble_api: BleAPI, persistent_cli_connection, web_base_url
     ):
         """Test that BLE enabled/disabled status is preserved over reboot"""
         for action, expected_set in (("enable",  BLE_ENABLED_STATES),
@@ -70,9 +71,9 @@ class TestBleAPI:
             getattr(ble_api, action)()
             last = _wait_for_ble_status(ble_api, expected_set)
             assert last in expected_set, f"pre-reboot: got {last!r}, expected one of {sorted(expected_set)}"
-            assert device_flasher.reset_and_wait(
-                wait_timeout=180.0, reset_interval=30.0
-            ), "reset_and_wait failed"
+            assert persistent_cli_connection.reboot_and_wait_for_api(
+                web_base_url
+            ), "device did not come back after CLI reboot"
             last = _wait_for_ble_status(ble_api, expected_set, timeout=30.0)
             assert last in expected_set, f"post-reboot: got {last!r}, expected one of {sorted(expected_set)}"
 

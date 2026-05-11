@@ -438,6 +438,54 @@ class SimpleCLIConnection:
         self.connected = False
         self._in_sl_cli = False
 
+    def reboot_and_wait_for_api(self, base_url: str, timeout: float = 60.0) -> bool:
+        """Send `power reboot sw` and wait for the HTTP API to come back.
+
+        Sends the command without reading the prompt back (the prompt won't
+        return — the device reboots), then closes the telnet socket and
+        polls `${base_url}/api/version` until it sees the device drop and
+        return. Re-establishes the CLI on success so the caller can keep
+        using the same fixture-scoped instance afterwards.
+        """
+        if not self.connected or not self.tn:
+            if not self.connect():
+                return False
+
+        self.logger.info("Sending `power reboot sw`...")
+        try:
+            self.tn.write(b"power reboot sw\r\n")
+            time.sleep(0.3)
+        except Exception as exc:
+            self.logger.error(f"Failed to send reboot command: {exc}")
+            return False
+        finally:
+            try:
+                self.tn.close()
+            except Exception:
+                pass
+            self.tn = None
+            self.connected = False
+            self._in_sl_cli = False
+
+        # Wait for the device to drop and come back.
+        t0 = time.monotonic()
+        gone = False
+        while time.monotonic() - t0 < timeout:
+            try:
+                r = requests.get(f"{base_url}/api/version", timeout=2)
+                if gone and r.status_code == 200:
+                    self.logger.info(
+                        f"API recovered after {time.monotonic() - t0:.1f}s"
+                    )
+                    # Re-establish the CLI for downstream uses.
+                    self.connect()
+                    return True
+            except requests.RequestException:
+                gone = True
+            time.sleep(0.5)
+        self.logger.error(f"Device did not come back within {timeout}s")
+        return False
+
 
 # New fixtures using SimpleCLIConnection
 @pytest.fixture(scope="session")
