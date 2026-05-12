@@ -236,10 +236,6 @@ static void audio_play_holdoff_finished(void* context) {
     Audio* instance = context;
 
     FURI_LOG_T(TAG, "holdoff fired");
-
-    furi_event_loop_timer_free(instance->play_holdoff);
-    instance->play_holdoff = NULL;
-
     audio_do_load_queued_file(instance);
 }
 
@@ -296,11 +292,6 @@ static void audio_message_queue_callback(FuriEventLoopObject* object, void* cont
         instance->enable_holders++;
         if(instance->enable_holders == 1) {
             furi_hal_sai_enable_amplifier();
-            instance->play_holdoff = furi_event_loop_timer_alloc(
-                instance->event_loop,
-                audio_play_holdoff_finished,
-                FuriEventLoopTimerTypeOnce,
-                instance);
             furi_event_loop_timer_start(instance->play_holdoff, AUDIO_PLAY_HOLDOFF);
         }
         result = true;
@@ -390,6 +381,9 @@ static Audio* audio_alloc(void) {
     instance->event_pubsub = furi_pubsub_alloc();
 
     instance->queued_file = furi_string_alloc();
+
+    instance->play_holdoff = furi_event_loop_timer_alloc(
+        instance->event_loop, audio_play_holdoff_finished, FuriEventLoopTimerTypeOnce, instance);
 
     // TODO: Create record only when MMC has been mounted
     furi_record_create(RECORD_AUDIO, instance);
