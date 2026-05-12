@@ -87,19 +87,13 @@ static void
     if(level >= 2) {
         struct mg_str* ua = mg_http_get_header(msg, "User-Agent");
         furi_string_cat_printf(
-            line,
-            " \"%.*s\"",
-            ua ? (int)ua->len : 1,
-            ua ? (ua->len ? ua->buf : "") : "-");
+            line, " \"%.*s\"", ua ? (int)ua->len : 1, ua ? (ua->len ? ua->buf : "") : "-");
     }
 
     // x-request-id (custom field, level 1+)
     if(level >= 1 && req_id) {
         furi_string_cat_printf(
-            line,
-            " x-request-id: %.*s",
-            (int)req_id->len,
-            req_id->len ? req_id->buf : "");
+            line, " x-request-id: %.*s", (int)req_id->len, req_id->len ? req_id->buf : "");
     }
 
     FURI_LOG_I(TAG, "%s", furi_string_get_cstr(line));
