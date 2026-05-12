@@ -4,6 +4,7 @@
 #include <lwip/tcpip.h>
 #include <time/time.h>
 #include <datetime.h>
+#include <sysctl/sysctl.h>
 
 #define TAG "HttpApi"
 
@@ -21,54 +22,86 @@ static int http_api_extract_status(const struct mg_connection* conn) {
     return status;
 }
 
-// Emit one Combined-Log-Format-style access log line.
-// status_code <= 0 is rendered as "-" (status not yet known).
+// Emit an access log line at the configured verbosity level.
+// Modelled on nginx combined format:
+//   $remote_addr - $remote_user [$time_local] "$request" $status "$http_user_agent"
+//
+// Level 0 (default): errors only (status >= 400) — "METHOD URI" STATUS
+// Level 1: all requests — IP - - "METHOD URI" STATUS [x-request-id: ID]
+// Level 2: level 1 + User-Agent — IP - - "METHOD URI" STATUS "UA" [x-request-id: ID]
+// Level 3: level 2 + timestamp — IP - - [TIMESTAMP] "METHOD URI" STATUS "UA" [x-request-id: ID]
 static void
     http_api_log_access(struct mg_connection* conn, struct mg_http_message* msg, int status_code) {
-    char ts[DATETIME_TIMESTAMP_STR_LEN + 1];
-    {
-        Time* time_svc = furi_record_open(RECORD_TIME);
-        LocalTime lt = time_get_local_time(time_svc);
-        furi_record_close(RECORD_TIME);
-        datetime_format_timestamp(&lt, ts);
-    }
+    int level = sysctl_get_websrv_accesslog_level();
+    bool is_error = status_code >= 400;
 
-    char ip[16] = "-";
-    if(!conn->rem.is_ip6) {
-        const uint8_t* a = conn->rem.addr.ip;
-        snprintf(ip, sizeof(ip), "%u.%u.%u.%u", a[0], a[1], a[2], a[3]);
-    }
-
-    struct mg_str* ua = mg_http_get_header(msg, "User-Agent");
+    // Level 0: only log errors
+    if(level <= 0 && !is_error) return;
 
     // x-request-id takes priority over x-trace-id
     struct mg_str* req_id = mg_http_get_header(msg, "x-request-id");
     if(!req_id) req_id = mg_http_get_header(msg, "x-trace-id");
 
-    FuriString* line = furi_string_alloc_printf(
-        "[%s] %s \"%.*s %.*s%s%.*s\"",
-        ts,
-        ip,
+    FuriString* line = furi_string_alloc();
+
+    // $remote_addr - $remote_user  (level 1+: real IP; level 0: placeholders)
+    if(level >= 1) {
+        char ip[16] = "-";
+        if(!conn->rem.is_ip6) {
+            const uint8_t* a = conn->rem.addr.ip;
+            snprintf(ip, sizeof(ip), "%u.%u.%u.%u", a[0], a[1], a[2], a[3]);
+        }
+        furi_string_cat_printf(line, "%s - - ", ip);
+    } else {
+        furi_string_cat(line, "- - - ");
+    }
+
+    // [$time_local]  (level 3+)
+    if(level >= 3) {
+        char ts[DATETIME_TIMESTAMP_STR_LEN + 1];
+        Time* time_svc = furi_record_open(RECORD_TIME);
+        LocalTime lt = time_get_local_time(time_svc);
+        furi_record_close(RECORD_TIME);
+        datetime_format_timestamp(&lt, ts);
+        furi_string_cat_printf(line, "[%s] ", ts);
+    }
+
+    // "$request"
+    furi_string_cat_printf(
+        line,
+        "\"%.*s %.*s%s%.*s\"",
         (int)msg->method.len,
-        msg->method.len ? msg->method.buf : "",
+        msg->method.len ? msg->method.buf : "-",
         (int)msg->uri.len,
-        msg->uri.len ? msg->uri.buf : "",
+        msg->uri.len ? msg->uri.buf : "-",
         msg->query.len ? "?" : "",
         (int)msg->query.len,
         msg->query.len ? msg->query.buf : "");
 
+    // $status
     if(status_code > 0) {
         furi_string_cat_printf(line, " %d", status_code);
     } else {
         furi_string_cat(line, " -");
     }
 
-    furi_string_cat_printf(
-        line, " \"%.*s\"", ua ? (int)ua->len : 1, ua ? (ua->len ? ua->buf : "") : "-");
-
-    if(req_id) {
+    // "$http_user_agent"  (level 2+)
+    if(level >= 2) {
+        struct mg_str* ua = mg_http_get_header(msg, "User-Agent");
         furi_string_cat_printf(
-            line, " x-request-id: %.*s", (int)req_id->len, req_id->len ? req_id->buf : "");
+            line,
+            " \"%.*s\"",
+            ua ? (int)ua->len : 1,
+            ua ? (ua->len ? ua->buf : "") : "-");
+    }
+
+    // x-request-id (custom field, level 1+)
+    if(level >= 1 && req_id) {
+        furi_string_cat_printf(
+            line,
+            " x-request-id: %.*s",
+            (int)req_id->len,
+            req_id->len ? req_id->buf : "");
     }
 
     FURI_LOG_I(TAG, "%s", furi_string_get_cstr(line));
