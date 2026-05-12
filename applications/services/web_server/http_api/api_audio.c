@@ -128,7 +128,8 @@ static bool api_audio_volume_callback(
 
             int value_len = mg_http_get_var(&msg->query, "volume", value_str, sizeof(value_str));
             if(value_len <= 0) break;
-            int value_num = sscanf(value_str, "%u", &volume);
+            bool value_present =
+                mg_str_to_num(mg_str_n(value_str, value_len), 10, &volume, sizeof(volume));
 
             int silent_len = mg_http_get_var(&msg->query, "silent", value_str, sizeof(value_str));
             if(silent_len == 1) {
@@ -143,7 +144,7 @@ static bool api_audio_volume_callback(
                 break;
             }
 
-            if(value_num == 1) {
+            if(value_present) {
                 if((volume > 100) || (volume < 0)) break;
                 Audio* audio = furi_record_open(RECORD_AUDIO);
                 audio_set_volume(audio, (float)volume / 100.f);
