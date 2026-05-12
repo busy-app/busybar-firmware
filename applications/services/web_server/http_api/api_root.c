@@ -9,10 +9,16 @@
 #define TAG "HttpApi"
 
 // Read the 3-digit HTTP status code from the queued response in conn->send.
-// "HTTP/1.1 NNN ..." — status digits start at byte offset 9.
-// Returns -1 if no response has been queued yet.
+// "HTTP/1.x NNN ..." — prefix is 9 bytes, then 3 ASCII status digits.
+// Returns -1 if no response has been queued yet or if the buffer does not
+// start with an HTTP/1.x response line (e.g. after a partial flush).
 static int http_api_extract_status(const struct mg_connection* conn) {
     if(conn->send.len < 12) return -1;
+    // Verify the response-line prefix before reading the status digits so that
+    // a partial flush (which shifts conn->send.buf forward) or an unexpected
+    // buffer state returns -1 instead of mis-parsed garbage.
+    if(memcmp(conn->send.buf, "HTTP/1.", 7) != 0) return -1;
+    if(conn->send.buf[8] != ' ') return -1;
     int status = 0;
     for(size_t i = 9; i < 12; i++) {
         char c = (char)conn->send.buf[i];
