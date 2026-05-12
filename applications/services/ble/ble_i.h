@@ -47,7 +47,7 @@ struct Ble {
     IntercomChannel* intercom_ch;
     FuriString* error;
 
-    BleServiceObject* services[BLE_SERVICES_COUNT];
+    BleServiceObject* services[BleServiceIndexCount];
     uint8_t remote_device_address[BLE_REMOTE_DEVICE_ADDRESS_STRING_SIZE];
 #if !defined(BSB_MCU_SI917)
     BleStreaming* streaming;

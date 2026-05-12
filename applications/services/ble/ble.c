@@ -53,7 +53,7 @@ static void
 }
 
 static void ble_allocate_services(Ble* instance) {
-    for(size_t i = 0; i < BLE_SERVICES_COUNT; i++) {
+    for(size_t i = 0; i < BleServiceIndexCount; i++) {
         instance->services[i] =
             ble_service_alloc(service_config[i], instance->message_queue, instance->intercom_ch);
     }
@@ -182,7 +182,7 @@ static Ble* ble_alloc() {
     instance->ble_lock = furi_mutex_alloc(FuriMutexTypeNormal);
 
     instance->message_queue =
-        furi_message_queue_alloc(BLE_SERVICES_COUNT, sizeof(BleServiceObject*));
+        furi_message_queue_alloc(BleServiceIndexCount, sizeof(BleServiceObject*));
     instance->engine = ble_command_engine_alloc(
         instance, ble_commands, BleCommandCount, ble_command_extract_frame);
 
