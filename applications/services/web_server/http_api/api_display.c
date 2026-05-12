@@ -515,7 +515,11 @@ static void api_display_set_brightness(struct mg_connection* conn, struct mg_htt
 
         if(strcmp(value_str, "auto") == 0) {
             is_auto = true;
-        } else if(sscanf(value_str, "%u", &brightness_value) != 1) {
+        } else if(!mg_str_to_num(
+                      mg_str_n(value_str, value_len),
+                      10,
+                      &brightness_value,
+                      sizeof(brightness_value))) {
             break;
         } else if(brightness_value < BRIGHTNESS_MIN || brightness_value > BRIGHTNESS_MAX) {
             break;

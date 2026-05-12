@@ -25,7 +25,9 @@
 #include <device_name/device_name.h>
 #include <sl_info/sl_info.h>
 
-static void cli_command_update_debug_mode(void) {
+#include "cli_debug_mode.h"
+
+void cli_command_update_debug_mode(void) {
     CliRegistry* registry = furi_record_open(RECORD_CLI);
 
     // Check if debug is enabled
@@ -49,81 +51,6 @@ static void cli_command_update_debug_mode(void) {
     furi_record_close(RECORD_CLI);
 }
 
-static void cli_command_sysctl_debug(PipeSide* pipe, FuriString* args, void* context) {
-    UNUSED(pipe);
-    UNUSED(context);
-
-    if(furi_string_equal_str(args, "0")) {
-        furi_hal_nvm_reset_flag(FuriHalNvmFlagDebug);
-        printf("Debug disabled.");
-    } else if(furi_string_equal_str(args, "1")) {
-        furi_hal_nvm_set_flag(FuriHalNvmFlagDebug);
-        printf("Debug enabled.");
-    } else {
-        cli_print_usage("sysctl debug", "<1|0>", furi_string_get_cstr(args));
-    }
-
-    cli_command_update_debug_mode();
-}
-
-static void
-    cli_command_sysctl_storage_bkp_unlock(PipeSide* pipe, FuriString* args, void* context) {
-    UNUSED(pipe);
-    UNUSED(context);
-
-    if(furi_string_equal_str(args, "0")) {
-        Storage* storage = furi_record_open(RECORD_STORAGE);
-        storage_backup_set_readonly(storage, true);
-        furi_record_close(RECORD_STORAGE);
-        printf("Backup storage locked.");
-    } else if(furi_string_equal_str(args, "1")) {
-        Storage* storage = furi_record_open(RECORD_STORAGE);
-        storage_backup_set_readonly(storage, false);
-        furi_record_close(RECORD_STORAGE);
-        printf("Backup storage unlocked.");
-    } else {
-        cli_print_usage("sysctl storage_bkp_unlock", "<1|0>", furi_string_get_cstr(args));
-    }
-}
-
-static void cli_command_sysctl_print_usage() {
-    printf("Usage:\r\n");
-    printf("sysctl <cmd>\r\n");
-    printf("Cmd list:\r\n");
-    printf("\tdebug - enables or disables debug mode\r\n");
-
-    if(furi_hal_nvm_is_flag_set(FuriHalNvmFlagDebug)) {
-        printf("\tstorage_bkp_unlock - locks or unlocks backup storage\r\n");
-    }
-}
-
-static void cli_command_sysctl(PipeSide* pipe, FuriString* args, void* context) {
-    FuriString* cmd;
-    cmd = furi_string_alloc();
-
-    do {
-        if(!args_read_string_and_trim(args, cmd)) {
-            cli_command_sysctl_print_usage();
-            break;
-        }
-
-        if(furi_string_cmp_str(cmd, "debug") == 0) {
-            cli_command_sysctl_debug(pipe, args, context);
-            break;
-        }
-
-        if(furi_hal_nvm_is_flag_set(FuriHalNvmFlagDebug)) {
-            if(furi_string_cmp_str(cmd, "storage_bkp_unlock") == 0) {
-                cli_command_sysctl_storage_bkp_unlock(pipe, args, context);
-                break;
-            }
-        }
-
-        cli_command_sysctl_print_usage();
-    } while(false);
-
-    furi_string_free(cmd);
-}
 static void
     cli_command_device_info_callback(const char* key, const char* value, bool last, void* context) {
     UNUSED(last);
@@ -168,9 +95,6 @@ static void cli_command_device_info(PipeSide* pipe, FuriString* args, void* cont
 static void cli_commands_init(CliRegistry* registry) {
     cli_registry_add_command(
         registry, "device_info", CliCommandFlagParallelSafe, cli_command_device_info, NULL);
-
-    cli_registry_add_command(
-        registry, "sysctl", CliCommandFlagParallelSafe, cli_command_sysctl, NULL);
 
     cli_registry_add_command(
         registry, "display", CliCommandFlagParallelSafe, cli_command_display, NULL);

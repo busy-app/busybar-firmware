@@ -120,7 +120,7 @@ async function handleComposeAnimation () {
       colorMode: colorModeModel.value
     });
     animationOutput.value = animation;
-    console.log('Composed animation:', animationOutput.value);
+    console.debug('Composed animation:', animationOutput.value);
   } catch (error) {
     console.error('Error composing animation:', error);
     toast.add({

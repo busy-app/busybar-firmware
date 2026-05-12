@@ -73,6 +73,8 @@ bool matter_api_is_waiting_for_response(Matter* instance, MatterApiMessageType m
 
 void matter_api_unlock(Matter* instance, MatterStatus status);
 
+void matter_api_unlock_and_cancel_timeout(Matter* instance, MatterStatus status);
+
 // matter_certification.c
 
 MatterStatus matter_certification_read_config(MatterCertificationConfig* cert_info);

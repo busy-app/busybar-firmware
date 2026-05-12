@@ -1,10 +1,10 @@
 #include "http_api.h"
+
 #include <mqtt/mqtt.h>
 
 #define TAG "HttpAccount"
 
-#define CUSTOM_URL_LEN_MAX 64
-#define LINK_TIMEOUT       3000
+#define LINK_TIMEOUT_MS 3000
 
 static bool http_api_account_get_info(
     FuriString* path,
@@ -188,7 +188,7 @@ static bool http_api_account_link(
     mg_timer_init(
         &web_srv_get_mgr()->timers,
         &link_ctx->timeout_timer,
-        LINK_TIMEOUT,
+        LINK_TIMEOUT_MS,
         MG_TIMER_ONCE,
         mqtt_link_timeout,
         link_ctx);
@@ -225,73 +225,70 @@ static bool http_api_account_unlink(
     return true;
 }
 
-static bool http_api_account_mqtt_profile(
+static void http_api_account_mqtt_backend_get(struct mg_connection* conn) {
+    Mqtt* mqtt = furi_record_open(RECORD_MQTT);
+
+    MqttConfig config;
+    mqtt_get_config(mqtt, &config);
+
+    furi_record_close(RECORD_MQTT);
+
+    char* json_text = mqtt_config_serialize(&config);
+
+    if(json_text) {
+        MG_REPLY_OK_BODY(conn, "%s\n", json_text);
+        free(json_text);
+    } else {
+        MG_REPLY_INTERNAL_ERROR(conn);
+    }
+}
+
+static void
+    http_api_account_mqtt_backend_put(struct mg_connection* conn, struct mg_http_message* msg) {
+    bool success = false;
+    const char* error_msg = NULL;
+
+    Mqtt* mqtt = furi_record_open(RECORD_MQTT);
+
+    do {
+        MqttConfig config;
+
+        if(!mqtt_config_deserialize(&config, msg->body.buf, msg->body.len)) {
+            error_msg = "Malformed request";
+            break;
+        }
+
+        if(!mqtt_set_config(mqtt, &config)) {
+            error_msg = "Invalid value";
+            break;
+        }
+
+        success = true;
+    } while(false);
+
+    furi_record_close(RECORD_MQTT);
+
+    if(success) {
+        MG_REPLY_OK(conn);
+    } else {
+        MG_REPLY_ERROR(conn, 400, error_msg);
+    }
+}
+
+static bool http_api_account_mqtt_backend(
     FuriString* path,
     HttpMethod method,
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx) {
-    UNUSED(msg);
     UNUSED(ctx);
 
     if(!IS_HTTP_ENDPOINT(path)) return false;
 
     if(method == HttpMethodGet) {
-        FuriString* url = furi_string_alloc();
-        Mqtt* mqtt = furi_record_open(RECORD_MQTT);
-        const MqttProfileId profile_id = mqtt_get_profile(mqtt, url);
-        furi_record_close(RECORD_MQTT);
-
-        if(profile_id == MqttProfileIdProduction) {
-            MG_REPLY_OK_BODY(conn, "{\"profile\":\"%s\"}\n", "prod");
-        } else if(profile_id == MqttProfileIdDevelopment) {
-            MG_REPLY_OK_BODY(conn, "{\"profile\":\"%s\"}\n", "dev");
-        } else if(profile_id == MqttProfileIdLocal) {
-            MG_REPLY_OK_BODY(conn, "{\"profile\":\"%s\"}\n", "local");
-        } else {
-            MG_REPLY_OK_BODY(
-                conn,
-                "{\"profile\":\"%s\",\"custom_url\":\"%s\"}\n",
-                "custom",
-                furi_string_get_cstr(url));
-        }
-
-        furi_string_free(url);
-
-    } else if(method == HttpMethodPost) {
-        bool success = false;
-        do {
-            if(msg->query.len == 0) break;
-
-            char temp_str[CUSTOM_URL_LEN_MAX];
-            int var_len = mg_http_get_var(&msg->query, "profile", temp_str, sizeof(temp_str));
-            if(var_len <= 0) break;
-
-            MqttProfileId profile_id;
-            if(strncmp("prod", temp_str, var_len) == 0) {
-                profile_id = MqttProfileIdProduction;
-            } else if(strncmp("dev", temp_str, var_len) == 0) {
-                profile_id = MqttProfileIdDevelopment;
-            } else if(strncmp("local", temp_str, var_len) == 0) {
-                profile_id = MqttProfileIdLocal;
-            } else if(strncmp("custom", temp_str, var_len) == 0) {
-                profile_id = MqttProfileIdCustom;
-                var_len = mg_http_get_var(&msg->query, "custom_url", temp_str, sizeof(temp_str));
-                if(var_len <= 0) break;
-            } else
-                break;
-
-            Mqtt* mqtt = furi_record_open(RECORD_MQTT);
-            mqtt_set_profile(mqtt, profile_id, temp_str);
-            furi_record_close(RECORD_MQTT);
-
-            success = true;
-        } while(0);
-
-        if(success)
-            MG_REPLY_OK(conn);
-        else
-            MG_REPLY_BAD_REQUEST(conn);
+        http_api_account_mqtt_backend_get(conn);
+    } else if(method == HttpMethodPut) {
+        http_api_account_mqtt_backend_put(conn, msg);
     }
 
     return true;
@@ -323,10 +320,10 @@ static const HttpHandler api_account_handlers[] = {
         .on_request = http_api_account_get_status,
     },
     {
-        .uri = "profile",
-        .method = HttpMethodGet | HttpMethodPost,
+        .uri = "backend",
+        .method = HttpMethodGet | HttpMethodPut,
         .type = HttpHandlerCustom,
-        .on_request = http_api_account_mqtt_profile,
+        .on_request = http_api_account_mqtt_backend,
     },
 };
 

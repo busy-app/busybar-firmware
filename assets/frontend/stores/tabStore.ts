@@ -30,7 +30,7 @@ export const useTabStore = defineStore('tabs', () => {
     },
     {
       label: 'Draw tool',
-      icon: 'i-ri-pencil-line',
+      icon: 'i-bi-palette',
       value: 'draw-tool'
     },
     {

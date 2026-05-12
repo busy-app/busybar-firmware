@@ -123,7 +123,7 @@
                       color="neutral"
                       variant="soft"
                       square
-                      class="hidden sm:block rounded-xl bg-accented/25"
+                      class="hidden sm:block rounded-xl bg-accented/25 size-9"
                     >
                       <UIcon
                         name="i-bi-info"
@@ -1030,14 +1030,6 @@ const toolbarKeyboardShortcuts: Array<{ label: string; tokens: ShortcutToken[] }
       { kind: 'text', label: '/' },
       { kind: 'key', label: 'shift' },
       { kind: 'key', label: ']' }
-    ]
-  },
-  {
-    label: 'Unlock resize ratio',
-    tokens: [
-      { kind: 'key', label: 'shift' },
-      { kind: 'text', label: '/' },
-      { kind: 'key', label: 'alt' }
     ]
   },
   {
@@ -2164,7 +2156,7 @@ async function saveStatus (options?: { saveAsNew?: boolean }) {
 }
 
 function handleBackButtonClick () {
-  void es.requestLeaveEditor(() => emit('back'));
+  es.requestLeaveEditor(() => emit('back'));
 }
 
 const showStatusCheckmarkIcon = ref(false);
