@@ -82,20 +82,6 @@ static bool anim_menu_input_callback(Widget* widget, const InputEvent* event) {
     return consumed;
 }
 
-static void anim_menu_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
-    UNUSED(class_p);
-
-    AnimMenu* instance = (AnimMenu*)obj;
-    widget_set_input_feed_callback((Widget*)instance, anim_menu_input_callback);
-}
-
-static void anim_menu_lvgl_destructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
-    UNUSED(class_p);
-
-    AnimMenu* instance = (AnimMenu*)obj;
-    UNUSED(instance);
-}
-
 // Public API
 
 AnimMenu* anim_menu_alloc(Widget* widget) {
@@ -148,10 +134,17 @@ void anim_menu_set_callback(AnimMenu* instance, AnimMenuCallback callback, void*
 
 const lv_obj_class_t anim_menu_lvgl_class = {
     .base_class = &anim_player_lvgl_class,
-    .constructor_cb = anim_menu_lvgl_constructor,
-    .destructor_cb = anim_menu_lvgl_destructor,
     .name = "widget-anim-menu",
     .width_def = LV_SIZE_CONTENT,
     .height_def = LV_SIZE_CONTENT,
     .instance_size = sizeof(AnimMenu),
+    .user_data =
+        (void*)&(const WidgetClassData){
+            .input_callback = anim_menu_input_callback,
+            .style_callbacks =
+                {
+                    [GuiDisplayIdFront] = NULL,
+                    [GuiDisplayIdBack] = NULL,
+                },
+        },
 };

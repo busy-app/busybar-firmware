@@ -18,7 +18,7 @@ import type { StatusPower } from '@busy-app/busy-lib';
 
 const props = defineProps<{
   charge: StatusPower['battery_charge'];
-  state: StatusPower['state'] | string; // to allow manually triggered unknown states
+  state?: StatusPower['state'] | string; // to allow manually triggered unknown states
 }>();
 
 const iconName = computed(() => {
@@ -32,13 +32,13 @@ const iconName = computed(() => {
     return 'i-busy-battery-full';
   }
   if (charge >= 66) {
-    return 'i-busy-battery-discharging-3';
+    return 'i-busy-battery-discharging-1';
   }
   if (charge >= 33) {
     return 'i-busy-battery-discharging-2';
   }
   if (charge < 33 && charge >= 0) {
-    return 'i-busy-battery-discharging-1';
+    return 'i-busy-battery-discharging-3';
   }
 
   return 'i-busy-battery-error';

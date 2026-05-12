@@ -18,7 +18,6 @@ export interface AutoUpdateSelfCheckState {
 
 export const useFirmwareStore = defineStore('firmware', () => {
   const deviceStore = useDeviceStore();
-  const screenStreamStore = useScreenStreamStore();
 
   const BACKGROUND_AUTO_UPDATE_CHECK_INTERVAL_MS = 30 * 60 * 1000; // 30 minutes
   const autoUpdate = ref({
@@ -233,6 +232,9 @@ export const useFirmwareStore = defineStore('firmware', () => {
   }
   async function startAutoUpdate () {
     console.debug('Starting auto-update process');
+    autoUpdate.value.progress = 0;
+    autoUpdate.value.error.stage = UpdateStage.IDLE;
+    autoUpdate.value.error.message = null;
 
     // enable loading before sending the request
     autoUpdate.value.stage = UpdateStage.LOADING;
@@ -263,6 +265,17 @@ export const useFirmwareStore = defineStore('firmware', () => {
             } else if (status.install.status === 'busy') {
               console.warn('Received session_stop event with status busy. Is this a firmware bug?');
               // ignore and wait for the device to reboot
+              return;
+            } else if (status.install.status === 'download_abort') {
+              console.warn('Update download was aborted');
+              autoUpdate.value.modals.updating = false;
+              autoUpdate.value.stage = UpdateStage.IDLE;
+              autoUpdate.value.progress = 0;
+              toast.add({
+                title: 'Update aborted',
+                description: 'The update download has been aborted.',
+                duration: 10000
+              });
               return;
             }
 
@@ -398,8 +411,6 @@ export const useFirmwareStore = defineStore('firmware', () => {
   }
   async function startFirmwareUpdateFromFile () {
     try {
-      await screenStreamStore.stopScreenStream();
-
       fileUpdate.value.showFileUploadModal = false;
       autoUpdate.value.modals.updating = true;
 

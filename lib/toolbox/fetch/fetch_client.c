@@ -2,13 +2,13 @@
 #include "fetch_client_i.h"
 
 #include <storage/storage.h>
-#include <toolbox/path.h>
 
-#include <furi_hal_cortex.h>
+#include <toolbox/path.h>
+#include <toolbox/timers.h>
 
 #define TAG "FetchClient"
 
-#define FETCH_CLIENT_INACTIVITY_TIMEOUT_USEC (5 * 1000 * 1000)
+#define FETCH_CLIENT_INACTIVITY_TIMEOUT_MS (5 * 1000)
 
 //#define FETCH_CLIENT_DEBUG
 
@@ -33,7 +33,7 @@ struct FetchClient {
     uint32_t started_download_ticks;
     size_t delta_received_bytes;
     uint32_t count_receive_packets;
-    FuriHalCortexTimer activity_timer;
+    CoarseTimer activity_timer;
     bool exit;
 
     FetchClientCallbackRawData callback_raw_data;
@@ -71,7 +71,7 @@ static void fetch_client_update_on_data_cb(struct mg_connection* conn, struct mg
 
     FETCH_CLIENT_INFO(TAG, "on_data: Received %zu bytes", io->len);
 
-    instance->activity_timer = furi_hal_cortex_timer_get(FETCH_CLIENT_INACTIVITY_TIMEOUT_USEC);
+    instance->activity_timer = coarse_timer_create(FETCH_CLIENT_INACTIVITY_TIMEOUT_MS);
 
     instance->status.received_download_size += io->len;
     instance->delta_received_bytes += io->len;
@@ -274,9 +274,9 @@ static int32_t fetch_client_thread_callback(void* context) {
         &instance->mgr, furi_string_get_cstr(instance->url), fetch_client_mg_handler, instance);
 
     if(conn) {
-        instance->activity_timer = furi_hal_cortex_timer_get(FETCH_CLIENT_INACTIVITY_TIMEOUT_USEC);
+        instance->activity_timer = coarse_timer_create(FETCH_CLIENT_INACTIVITY_TIMEOUT_MS);
         while(furi_semaphore_acquire(instance->done_poll_semaphore, 0) != FuriStatusOk) {
-            if(furi_hal_cortex_timer_is_expired(instance->activity_timer)) {
+            if(coarse_timer_is_expired(instance->activity_timer)) {
                 FETCH_CLIENT_ERROR(TAG, "Inactivity timeout");
                 if(instance->callback_error) {
                     instance->callback_error("Inactivity timeout", instance->context);

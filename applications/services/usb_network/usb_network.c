@@ -67,8 +67,7 @@ static err_t usb_network_netif_init_callback(struct netif* netif) {
 
     netif->mtu = CFG_TUD_NET_MTU;
     netif->flags = NETIF_FLAG_BROADCAST | NETIF_FLAG_ETHARP | NETIF_FLAG_IGMP;
-    netif->name[0] = 'E';
-    netif->name[1] = 'X';
+    network_netif_assign_name(netif, NetworkNetifUsb);
     netif->output = etharp_output;
     netif->linkoutput = usb_network_link_output_callback;
 #if LWIP_IPV6

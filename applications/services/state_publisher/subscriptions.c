@@ -185,6 +185,14 @@ void state_publisher_publish_update_check(StatePublisher* instance, const Update
     BSB_State_StateUpdate* update = malloc(sizeof(BSB_State_StateUpdate));
     update->which_state = BSB_State_StateUpdate_update_check_tag;
 
+    static const BSB_Update_CheckEvent check_event_lookup[] = {
+        [UpdaterCheckEventStart] = BSB_Update_CheckEvent_START,
+        [UpdaterCheckEventStop] = BSB_Update_CheckEvent_STOP,
+        [UpdaterCheckEventNone] = BSB_Update_CheckEvent_NONE,
+    };
+    static_assert(COUNT_OF(check_event_lookup) == UpdaterCheckEventsCount);
+    update->state.update_check.event = check_event_lookup[info->event];
+
     switch(info->result) {
     case UpdaterCheckResultAvailable: {
         update->state.update_check.which_status = BSB_Update_CheckState_available_tag;

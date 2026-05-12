@@ -8,6 +8,8 @@
 #include <storage/storage.h>
 #include <tls_crypto/tls_crypto.h>
 
+#include "mqtt_config.h"
+
 #define TAG "MqttTls"
 
 #define TLS_DEBUG_LEVEL 0
@@ -18,7 +20,6 @@
 #define TLS_KEY_SLOT_DEVICE TlsCryptoKeyIdDevice
 
 #define TLS_CUSTOM_CERT_DEVICE APP_ASSETS_PATH("device.crt")
-#define TLS_CUSTOM_CERT_SIGN   APP_ASSETS_PATH("signing-ca.crt")
 #define TLS_CUSTOM_KEY         APP_ASSETS_PATH("device.key")
 
 static const char* mqtt_alpn_list[] = {"mqtt", NULL};
@@ -264,67 +265,11 @@ static int tls_net_recv(void* ctx, unsigned char* buf, size_t len) {
     return (int)n;
 }
 
-bool mqtt_tls_init(
-    struct mg_connection* conn,
-    struct mg_str name,
-    struct mg_str ca,
-    bool custom_certs) {
-    struct mg_tls* tls = (struct mg_tls*)calloc(1, sizeof(*tls));
-    conn->tls = tls;
+static bool mqtt_tls_load_certificates(struct mg_tls* tls, MqttClientCertType cert_type) {
+    bool success = false;
 
     do {
-        if(conn->is_listening) {
-            break;
-        }
-
-        psa_crypto_init();
-        mbedtls_ssl_init(&tls->ssl);
-        mbedtls_ssl_config_init(&tls->conf);
-        mbedtls_x509_crt_init(&tls->ca);
-        mbedtls_x509_crt_init(&tls->cert);
-        mbedtls_pk_init(&tls->pk);
-        mbedtls_ssl_conf_dbg(&tls->conf, tls_debug_cb, conn);
-        mbedtls_debug_set_threshold(TLS_DEBUG_LEVEL);
-
-        int ret = mbedtls_ssl_config_defaults(
-            &tls->conf,
-            conn->is_client ? MBEDTLS_SSL_IS_CLIENT : MBEDTLS_SSL_IS_SERVER,
-            MBEDTLS_SSL_TRANSPORT_STREAM,
-            MBEDTLS_SSL_PRESET_DEFAULT);
-        if(ret != 0) {
-            mg_error(conn, "Config defaults -%04X", -ret);
-            break;
-        }
-        mbedtls_ssl_conf_rng(&tls->conf, tls_random, conn);
-
-        // Force TLS 1.3
-        mbedtls_ssl_conf_min_tls_version(&tls->conf, MBEDTLS_SSL_VERSION_TLS1_3);
-        mbedtls_ssl_conf_max_tls_version(&tls->conf, MBEDTLS_SSL_VERSION_TLS1_3);
-
-        // ALPN
-        mbedtls_ssl_conf_alpn_protocols(&tls->conf, mqtt_alpn_list);
-
-        if(tls_load_ca(ca, &tls->ca) == false) {
-            break;
-        }
-        mbedtls_ssl_conf_ca_chain(&tls->conf, &tls->ca, NULL);
-        if(conn->is_client && name.buf != NULL && name.buf[0] != '\0') {
-            char* host = mg_mprintf("%.*s", name.len, name.buf);
-            mbedtls_ssl_set_hostname(&tls->ssl, host);
-            free(host);
-        }
-        mbedtls_ssl_conf_authmode(&tls->conf, MBEDTLS_SSL_VERIFY_REQUIRED);
-        if(custom_certs) {
-            if(!tls_load_cert_from_file(TLS_CUSTOM_CERT_DEVICE, &tls->cert)) {
-                break;
-            }
-            if(!tls_load_cert_from_file(TLS_CUSTOM_CERT_SIGN, &tls->cert)) {
-                break;
-            }
-            if(!tls_load_key_from_file(TLS_CUSTOM_KEY, &tls->pk)) {
-                break;
-            }
-        } else {
+        if(cert_type == MqttClientCertTypeDefault) {
             if(!tls_load_cert_from_hw_crypto(TLS_KEY_SLOT_DEVICE, &tls->cert)) {
                 break;
             }
@@ -334,11 +279,119 @@ bool mqtt_tls_init(
 
             // Setup custom PK wrapper for private key operations
             mbedtls_pk_setup(&tls->pk, &tls_pk_wrap_hw_crypto);
+
+        } else if(cert_type == MqttClientCertTypeCustom) {
+            if(!tls_load_cert_from_file(TLS_CUSTOM_CERT_DEVICE, &tls->cert)) {
+                break;
+            }
+            if(!tls_load_key_from_file(TLS_CUSTOM_KEY, &tls->pk)) {
+                break;
+            }
+
+        } else {
+            success = true;
+            break;
         }
 
-        ret = mbedtls_ssl_conf_own_cert(&tls->conf, &tls->cert, &tls->pk);
+        const int ret = mbedtls_ssl_conf_own_cert(&tls->conf, &tls->cert, &tls->pk);
+
         if(tls->cert.version && ret != 0) {
-            mg_error(conn, "Config own cert -%04X", -ret);
+            FURI_LOG_E(TAG, "mbedtls_ssl_conf_own_cert() failed: -%04X", -ret);
+            break;
+        }
+
+        success = true;
+    } while(false);
+
+    return success;
+}
+
+static bool mqtt_tls_init_hostname(struct mg_tls* tls, const char* server_url) {
+    bool success = false;
+
+    do {
+        const struct mg_str hostname = mg_url_host(server_url);
+
+        if(hostname.buf == NULL || *hostname.buf == 0) {
+            break;
+        }
+
+        FuriString* trimmed = furi_string_alloc_printf("%.*s", hostname.len, hostname.buf);
+        mbedtls_ssl_set_hostname(&tls->ssl, furi_string_get_cstr(trimmed));
+        furi_string_free(trimmed);
+
+        success = true;
+    } while(false);
+
+    return success;
+}
+
+bool mqtt_tls_init(
+    struct mg_connection* conn,
+    const char* server_url,
+    const char* ca_bundle,
+    const MqttConfig* config) {
+    bool success = false;
+
+    struct mg_tls* tls = calloc(1, sizeof(*tls));
+    conn->tls = tls;
+
+    do {
+        if(conn->is_listening) {
+            break;
+        }
+
+        psa_crypto_init();
+
+        mbedtls_ssl_init(&tls->ssl);
+        mbedtls_ssl_config_init(&tls->conf);
+
+        mbedtls_x509_crt_init(&tls->ca);
+        mbedtls_x509_crt_init(&tls->cert);
+
+        mbedtls_pk_init(&tls->pk);
+
+        mbedtls_ssl_conf_dbg(&tls->conf, tls_debug_cb, conn);
+        mbedtls_debug_set_threshold(TLS_DEBUG_LEVEL);
+
+        int ret = mbedtls_ssl_config_defaults(
+            &tls->conf,
+            conn->is_client ? MBEDTLS_SSL_IS_CLIENT : MBEDTLS_SSL_IS_SERVER,
+            MBEDTLS_SSL_TRANSPORT_STREAM,
+            MBEDTLS_SSL_PRESET_DEFAULT);
+
+        if(ret != 0) {
+            mg_error(conn, "Config defaults -%04X", -ret);
+            break;
+        }
+
+        mbedtls_ssl_conf_rng(&tls->conf, tls_random, conn);
+
+        // Force TLS 1.3
+        mbedtls_ssl_conf_min_tls_version(&tls->conf, MBEDTLS_SSL_VERSION_TLS1_3);
+        mbedtls_ssl_conf_max_tls_version(&tls->conf, MBEDTLS_SSL_VERSION_TLS1_3);
+
+        // ALPN
+        mbedtls_ssl_conf_alpn_protocols(&tls->conf, mqtt_alpn_list);
+
+        if(!tls_load_ca(mg_str(ca_bundle), &tls->ca)) {
+            mg_error(conn, "Failed to load CA bundle");
+            break;
+        }
+
+        mbedtls_ssl_conf_ca_chain(&tls->conf, &tls->ca, NULL);
+
+        if(!mqtt_tls_init_hostname(tls, server_url)) {
+            mg_error(conn, "Failed to parse hostname");
+            break;
+        }
+
+        mbedtls_ssl_conf_authmode(
+            &tls->conf,
+            config->ignore_server_cert ? MBEDTLS_SSL_VERIFY_NONE : MBEDTLS_SSL_VERIFY_REQUIRED);
+
+        if(!mqtt_tls_load_certificates(tls, config->client_cert_type)) {
+            mg_error(conn, "Failed to load certificates");
             break;
         }
 
@@ -351,19 +404,25 @@ bool mqtt_tls_init(
 #endif
 
         ret = mbedtls_ssl_setup(&tls->ssl, &tls->conf);
+
         if(ret != 0) {
             mg_error(conn, "Setup error -%04X", -ret);
             break;
         }
+
         conn->is_tls = 1;
         conn->is_tls_hs = 1;
+
         mbedtls_ssl_set_bio(&tls->ssl, conn, tls_net_send, tls_net_recv, 0);
 
-        return true;
-    } while(0);
+        success = true;
+    } while(false);
 
-    mg_tls_free(conn);
-    return false;
+    if(!success) {
+        mg_tls_free(conn);
+    }
+
+    return success;
 }
 
 void mqtt_tls_free_ca(struct mg_connection* c) {

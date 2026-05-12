@@ -122,6 +122,16 @@ static bool gui_layer_feed_input(GuiLayer* layer, const InputEvent* event) {
     return consumed;
 }
 
+static void gui_display_object_created_callback(lv_event_t* event) {
+    lv_obj_t* lv_object = lv_event_get_param(event);
+
+    if(IS_WIDGET_CLASS(lv_object)) {
+        GuiDisplayId display_id = (GuiDisplayId)lv_event_get_user_data(event);
+
+        widget_style((Widget*)lv_object, display_id);
+    }
+}
+
 static bool gui_layer_feed_user_input(GuiLayer* layer, const InputEvent* event) {
     bool consumed = false;
 
@@ -178,6 +188,12 @@ static void gui_init_front(GuiDisplay* display) {
 
     lv_theme_t* theme = lv_theme_front_alloc(display->lv_display);
     lv_display_set_theme(display->lv_display, theme);
+
+    lv_display_add_event_cb(
+        display->lv_display,
+        gui_display_object_created_callback,
+        LV_EVENT_CREATE,
+        (void*)GuiDisplayIdFront);
 }
 
 static void gui_init_back(GuiDisplay* display) {
@@ -200,6 +216,12 @@ static void gui_init_back(GuiDisplay* display) {
 
     lv_theme_t* theme = lv_theme_back_alloc(display->lv_display);
     lv_display_set_theme(display->lv_display, theme);
+
+    lv_display_add_event_cb(
+        display->lv_display,
+        gui_display_object_created_callback,
+        LV_EVENT_CREATE,
+        (void*)GuiDisplayIdBack);
 }
 
 static void gui_init_input(Gui* instance) {

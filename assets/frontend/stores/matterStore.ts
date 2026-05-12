@@ -63,6 +63,10 @@ export const useMatterStore = defineStore('matter', () => {
         console.debug('All Matter pairings deleted, waiting for device to reboot');
       })
       .catch(async error => {
+        console.error(error.message);
+        if (error.message.includes('timed out')) {
+          return;
+        }
         await handleHTTPError(error, 'Couldn\'t delete pairings');
       });
   }

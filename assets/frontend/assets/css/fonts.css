@@ -16,3 +16,39 @@
   font-style: italic;
   font-display: swap;
 }
+
+@font-face {
+  font-family: 'busy_regular_5px';
+  src: url('../fonts/busy_regular_5px.ttf') format('truetype');
+  font-display: block;
+}
+
+@font-face {
+  font-family: 'busy_bold_7px';
+  src: url('../fonts/busy_bold_7px.ttf') format('truetype');
+  font-display: block;
+}
+
+@font-face {
+  font-family: 'busy_regular_7px';
+  src: url('../fonts/busy_regular_7px.ttf') format('truetype');
+  font-display: block;
+}
+
+@font-face {
+  font-family: 'busy_bold_10px';
+  src: url('../fonts/busy_bold_10px.ttf') format('truetype');
+  font-display: block;
+}
+
+@font-face {
+  font-family: 'busy_regular_9px';
+  src: url('../fonts/busy_regular_9px.ttf') format('truetype');
+  font-display: block;
+}
+
+@font-face {
+  font-family: 'LanaPixel_regular_11px';
+  src: url('../fonts/LanaPixel.ttf') format('truetype');
+  font-display: block;
+}

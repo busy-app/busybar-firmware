@@ -82,8 +82,8 @@ static void storage_benchmark_file_write(Storage* storage, size_t blocks) {
     if(error) {
         FURI_LOG_E(TAG, "Failed to write %zu blocks", blocks);
     } else {
-        float seconds = (float)(end - start) / furi_hal_cortex_instructions_per_microsecond() /
-                        1000000 / iterations;
+        float seconds =
+            (float)(end - start) / furi_hal_cpu_get_cycles_per_us() / 1000000 / iterations;
         float speed_kb = (float)(buffer_size) / seconds / 1024;
         FURI_LOG_I(
             TAG,
@@ -129,8 +129,8 @@ static void storage_benchmark_file_read(Storage* storage, size_t blocks) {
     if(error) {
         FURI_LOG_E(TAG, "Failed to read %zu blocks", blocks);
     } else {
-        float seconds = (float)(end - start) / furi_hal_cortex_instructions_per_microsecond() /
-                        1000000 / iterations;
+        float seconds =
+            (float)(end - start) / furi_hal_cpu_get_cycles_per_us() / 1000000 / iterations;
         float speed_kb = (float)(buffer_size) / seconds / 1024;
         FURI_LOG_I(
             TAG,
