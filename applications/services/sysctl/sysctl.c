@@ -1,7 +1,6 @@
 #include "sysctl.h"
 #include "settings/sysctl_settings.h"
 #include <furi.h>
-#include <storage/storage.h>
 
 typedef struct {
     SysctlSettings settings;
@@ -40,10 +39,5 @@ void sysctl_set_websrv_accesslog_level(int level) {
 
 void sysctl_on_system_start(void) {
     s_state.mutex = furi_mutex_alloc(FuriMutexTypeNormal);
-
-    Storage* storage = furi_record_open(RECORD_STORAGE);
-    storage_simply_mkdir(storage, EXT_PATH("apps_data/sysctl"));
-    furi_record_close(RECORD_STORAGE);
-
     sysctl_settings_load(&s_state.settings);
 }
