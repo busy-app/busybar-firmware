@@ -4,10 +4,10 @@ import type {
   WifiNetwork,
   WifiConnectParams
 } from '@busy-app/busy-lib';
-import { stateStreamWebSocketClient } from '@/util/state-stream/stateStreamWebSocketClient';
 
 export const useWifiStore = defineStore('wifi', () => {
   const deviceStore = useDeviceStore();
+  const stateStreamStore = useStateStreamStore();
   const wifi = ref<WifiState | undefined>(undefined);
 
   async function fetchWifiState (): Promise<WifiState | undefined> {
@@ -29,7 +29,7 @@ export const useWifiStore = defineStore('wifi', () => {
     if (wasPolling) {
       deviceStore.clearRefreshInterval();
     }
-    stateStreamWebSocketClient.pauseActivityChecks();
+    stateStreamStore.doCheckConnectionOnStreamDataStale = false;
 
     return await deviceStore.busyBar.WifiNetworksGet({ timeout: 45000 })
       .then(response => {
@@ -50,11 +50,14 @@ export const useWifiStore = defineStore('wifi', () => {
         return response.networks;
       })
       .catch(async error => {
+        if (wifi.value?.state === 'connected') {
+          return;
+        }
         await handleHTTPError(error, 'Couldn\'t list WiFi networks', false, 0);
         return [];
       })
       .finally(() => {
-        stateStreamWebSocketClient.resumeActivityChecks();
+        stateStreamStore.doCheckConnectionOnStreamDataStale = true;
         if (wasPolling) {
           deviceStore.setRefreshInterval();
         }
@@ -66,14 +69,14 @@ export const useWifiStore = defineStore('wifi', () => {
     if (wasPolling) {
       deviceStore.clearRefreshInterval();
     }
-    stateStreamWebSocketClient.pauseActivityChecks();
+    stateStreamStore.doCheckConnectionOnStreamDataStale = false;
     return await deviceStore.busyBar.WifiConnect({ ...params, timeout: 45000 })
       .catch(async error => {
         await handleHTTPError(error, 'Couldn\'t connect to WiFi network', false, 0);
         return false;
       })
       .finally(() => {
-        stateStreamWebSocketClient.resumeActivityChecks();
+        stateStreamStore.doCheckConnectionOnStreamDataStale = true;
         if (wasPolling) {
           deviceStore.setRefreshInterval();
         }
@@ -85,14 +88,14 @@ export const useWifiStore = defineStore('wifi', () => {
     if (wasPolling) {
       deviceStore.clearRefreshInterval();
     }
-    stateStreamWebSocketClient.pauseActivityChecks();
+    stateStreamStore.doCheckConnectionOnStreamDataStale = false;
     return await deviceStore.busyBar.WifiDisconnect()
       .catch(async error => {
         await handleHTTPError(error, 'Couldn\'t disconnect from WiFi network', false, 0);
         return false;
       })
       .finally(() => {
-        stateStreamWebSocketClient.resumeActivityChecks();
+        stateStreamStore.doCheckConnectionOnStreamDataStale = true;
         if (wasPolling) {
           deviceStore.setRefreshInterval();
         }

@@ -89,7 +89,10 @@
               name="i-bi-error-fill"
               class="size-6 text-red-600"
             />
-            <div>An error occurred during the {{ firmwareStore.autoUpdate.error.stage === UpdateStage.LOADING ? 'download' : 'update' }}</div>
+            <div>
+              {{ firmwareStore.autoUpdate.error.stage === UpdateStage.LOADING ? 'Unable to download update.' : 'Update failed.' }}
+              Try these steps until the issue is resolved:
+            </div>
           </div>
 
           <div class="p-4 bg-accented/25 rounded-xl text-sm">

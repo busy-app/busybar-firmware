@@ -6,6 +6,17 @@
 #define TAG              "MongooseGlue"
 #define MAX_FILENAME_LEN 255
 
+// Uncomment to enable verbose per-call logging for the FS glue layer
+// (fs_stat, fs_open, fs_close, fs_read, fs_write, fs_seek).
+// Normally silent to avoid flooding the log on every HTTP static-file request.
+// #define MONGOOSE_FS_VERBOSE_LOG
+
+#ifdef MONGOOSE_FS_VERBOSE_LOG
+#define MG_FS_LOG_V(...) FURI_LOG_T(TAG, __VA_ARGS__)
+#else
+#define MG_FS_LOG_V(...)
+#endif
+
 uint64_t mg_millis(void) {
     return furi_get_tick();
 }
@@ -78,7 +89,7 @@ bool mg_random(void* buf, size_t len) {
 }
 
 static int fs_stat(const char* path, size_t* size, time_t* mtime) {
-    FURI_LOG_D(TAG, "fs_stat: %s", path);
+    MG_FS_LOG_V("fs_stat: %s", path);
     Storage* fs_api = furi_record_open(RECORD_STORAGE);
     FileInfo file_info;
     FS_Error result = storage_common_stat(fs_api, path, &file_info);
@@ -102,7 +113,7 @@ static int fs_stat(const char* path, size_t* size, time_t* mtime) {
 }
 
 static void fs_list(const char* path, void (*fn)(const char*, void*), void* userdata) {
-    FURI_LOG_D(TAG, "fs_list: %s", path);
+    MG_FS_LOG_V("fs_list: %s", path);
     Storage* fs_api = furi_record_open(RECORD_STORAGE);
     File* file = storage_file_alloc(fs_api);
 
@@ -123,7 +134,7 @@ static void fs_list(const char* path, void (*fn)(const char*, void*), void* user
 }
 
 static void* fs_open(const char* path, int flags) {
-    FURI_LOG_D(TAG, "fs_open: %s (flags: 0x%x)", path, flags);
+    MG_FS_LOG_V("fs_open: %s (flags: 0x%x)", path, flags);
     if(flags & MG_FS_DIR) {
         FURI_LOG_W(TAG, "TODO: %s MG_FS_DIR", __func__);
         return NULL;
@@ -147,27 +158,26 @@ static void* fs_open(const char* path, int flags) {
 }
 
 static void fs_close(void* fp) {
-    FURI_LOG_D(TAG, "fs_close: fd=%p", fp);
+    MG_FS_LOG_V("fs_close: fd=%p", fp);
     storage_file_close(fp);
     storage_file_free(fp);
 }
 
 static size_t fs_read(void* fd, void* buf, size_t len) {
     size_t result = storage_file_read(fd, buf, len);
-    FURI_LOG_T(TAG, "fs_read: fd=%p, len=%zu, result=%zu", fd, len, result);
+    MG_FS_LOG_V("fs_read: fd=%p, len=%zu, result=%zu", fd, len, result);
     return result;
 }
 
 static size_t fs_write(void* fd, const void* buf, size_t len) {
-    FURI_LOG_T(TAG, "fs_write: fd=%p, len=%zu", fd, len);
     size_t ret = storage_file_write(fd, buf, len);
-    FURI_LOG_T(TAG, "fs_write: result=%zu", ret);
+    MG_FS_LOG_V("fs_write: fd=%p, len=%zu, result=%zu", fd, len, ret);
     return ret;
 }
 
 static size_t fs_seek(void* fd, size_t offset) {
     size_t result = storage_file_seek(fd, offset, true);
-    FURI_LOG_D(TAG, "fs_seek: fd=%p, offset=%zu, result=%zu", fd, offset, result);
+    MG_FS_LOG_V("fs_seek: fd=%p, offset=%zu, result=%zu", fd, offset, result);
     return result;
 }
 
