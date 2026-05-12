@@ -4,6 +4,8 @@
 
 #define TAG "BleHttp"
 
+#define THREAD_STACK_SIZE (1500)
+
 #define BLE_HTTP_HOST "http://127.0.0.1:80"
 
 #define BLE_HTTP_SESSION_TIMEOUT_ON_TX_CONFIRM_FAIL (4000)
@@ -170,7 +172,8 @@ static BleHttpRepeater* ble_http_repeater_alloc(Ble* ble) {
     instance->previous_request_num = 0;
     furi_mutex_release(instance->session_lock);
 
-    instance->thread = furi_thread_alloc_ex(TAG, 1024 * 8, ble_http_repeater_thread_handler, NULL);
+    instance->thread =
+        furi_thread_alloc_ex(TAG, THREAD_STACK_SIZE, ble_http_repeater_thread_handler, NULL);
     return instance;
 }
 
