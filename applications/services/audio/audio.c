@@ -260,7 +260,7 @@ static void audio_message_queue_callback(FuriEventLoopObject* object, void* cont
             instance->fade_direction = AudioFadeDirectionOut;
             // next file will be played after current one fades out
             result = true;
-        } else if(instance->play_holdoff) {
+        } else if(furi_event_loop_timer_is_running(instance->play_holdoff)) {
             // file will be played after holdoff fires
             result = true;
         } else {
@@ -298,7 +298,7 @@ static void audio_message_queue_callback(FuriEventLoopObject* object, void* cont
 
     } else if(msg.type == AudioMessageTypeDisable) {
         instance->enable_holders--;
-        if(instance->sai_running || instance->play_holdoff) {
+        if(instance->sai_running || furi_event_loop_timer_is_running(instance->play_holdoff)) {
             // will be disabled in SAI callback when the file finishes
         } else {
             furi_hal_sai_disable_amplifier();
@@ -385,7 +385,6 @@ static Audio* audio_alloc(void) {
     instance->play_holdoff = furi_event_loop_timer_alloc(
         instance->event_loop, audio_play_holdoff_finished, FuriEventLoopTimerTypeOnce, instance);
 
-    // TODO: Create record only when MMC has been mounted
     furi_record_create(RECORD_AUDIO, instance);
 
     return instance;
