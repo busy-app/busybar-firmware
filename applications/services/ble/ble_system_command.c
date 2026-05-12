@@ -21,7 +21,7 @@ bool ble_command_response_process(BleIntercomFrameGeneric* frame, void* context)
 }
 
 static void ble_deinit_services(Ble* instance) {
-    for(size_t i = 0; i < BLE_SERVICES_COUNT; i++) {
+    for(size_t i = 0; i < BleServiceIndexCount; i++) {
         ble_service_deinit(instance->services[i]);
     }
 }
