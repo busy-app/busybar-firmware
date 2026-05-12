@@ -26,7 +26,7 @@ static int http_api_extract_status(const struct mg_connection* conn) {
 // Modelled on nginx combined format:
 //   $remote_addr - $remote_user [$time_local] "$request" $status "$http_user_agent"
 //
-// Level 0 (default): errors only (status >= 400) — "METHOD URI" STATUS
+// Level 0 (default): errors only (status >= 400) — IP - - "METHOD URI" STATUS
 // Level 1: all requests — IP - - "METHOD URI" STATUS [x-request-id: ID]
 // Level 2: level 1 + User-Agent — IP - - "METHOD URI" STATUS "UA" [x-request-id: ID]
 // Level 3: level 2 + timestamp — IP - - [TIMESTAMP] "METHOD URI" STATUS "UA" [x-request-id: ID]
@@ -44,16 +44,14 @@ static void
 
     FuriString* line = furi_string_alloc();
 
-    // $remote_addr - $remote_user  (level 1+: real IP; level 0: placeholders)
-    if(level >= 1) {
+    // $remote_addr - $remote_user  (all levels: real IP when available)
+    {
         char ip[16] = "-";
         if(!conn->rem.is_ip6) {
             const uint8_t* a = conn->rem.addr.ip;
             snprintf(ip, sizeof(ip), "%u.%u.%u.%u", a[0], a[1], a[2], a[3]);
         }
         furi_string_cat_printf(line, "%s - - ", ip);
-    } else {
-        furi_string_cat(line, "- - - ");
     }
 
     // [$time_local]  (level 3+)
