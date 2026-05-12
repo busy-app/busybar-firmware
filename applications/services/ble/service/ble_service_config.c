@@ -4,7 +4,7 @@
 #include "uart/ble_service_uart.h"
 #include "device_events/ble_service_device_events.h"
 
-const BleServiceDescriptor* service_config[] = {
+const BleServiceDescriptor* service_config[BleServiceIndexCount] = {
     [BleServiceIndexDeviceInfo] = &ble_service_config_device_info,
     [BleServiceIndexBattery] = &ble_service_config_battery,
     [BleServiceIndexNordicUart] = &ble_service_config_nordic_uart,
