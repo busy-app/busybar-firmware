@@ -27,9 +27,9 @@ static int http_api_extract_status(const struct mg_connection* conn) {
 //   $remote_addr - $remote_user [$time_local] "$request" $status "$http_user_agent"
 //
 // Level 0 (default): errors only (status >= 400) — IP - - "METHOD URI" STATUS
-// Level 1: all requests — IP - - "METHOD URI" STATUS [x-request-id: ID]
-// Level 2: level 1 + User-Agent — IP - - "METHOD URI" STATUS "UA" [x-request-id: ID]
-// Level 3: level 2 + timestamp — IP - - [TIMESTAMP] "METHOD URI" STATUS "UA" [x-request-id: ID]
+// Level 1: all requests — IP - - "METHOD URI" STATUS ["request-id: ID"]
+// Level 2: level 1 + User-Agent — IP - - "METHOD URI" STATUS "UA" ["request-id: ID"]
+// Level 3: level 2 + timestamp — IP - - [TIMESTAMP] "METHOD URI" STATUS "UA" ["request-id: ID"]
 static void
     http_api_log_access(struct mg_connection* conn, struct mg_http_message* msg, int status_code) {
     int level = sysctl_get_websrv_accesslog_level();
@@ -90,10 +90,10 @@ static void
             line, " \"%.*s\"", ua ? (int)ua->len : 1, ua ? (ua->len ? ua->buf : "") : "-");
     }
 
-    // x-request-id (custom field, level 1+)
+    // request-id (custom field, level 1+)
     if(level >= 1 && req_id) {
         furi_string_cat_printf(
-            line, " x-request-id: %.*s", (int)req_id->len, req_id->len ? req_id->buf : "");
+            line, " \"request-id: %.*s\"", (int)req_id->len, req_id->len ? req_id->buf : "");
     }
 
     FURI_LOG_I(TAG, "%s", furi_string_get_cstr(line));
