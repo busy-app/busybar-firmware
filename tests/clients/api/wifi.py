@@ -18,6 +18,20 @@ from pydantic import BaseModel, field_validator
 from .base import BaseAPI
 
 
+# Matches the WifiSecurityMethod enum in the device's openapi.yaml.
+# Keep this in sync with `components.schemas.WifiSecurityMethod`.
+WifiSecurityMethod = Literal[
+    "Open",
+    "WPA",
+    "WPA2",
+    "WEP",
+    "WPA/WPA2",
+    "WPA3",
+    "WPA2/WPA3",
+    "Unsupported",
+]
+
+
 # === Test Network Configuration ===
 # Can be overridden via environment variables
 
@@ -30,8 +44,16 @@ TEST_WIFI_SECURITY = os.environ.get("WIFI_SECURITY", "WPA2")
 
 
 class WifiIpInfo(BaseModel):
-    """IP configuration returned in wifi status."""
+    """IP configuration returned in wifi status.
 
+    Matches the StatusResponse.ip_config shape in openapi.yaml: only
+    `ip_method`, `ip_type`, `address` are emitted by the firmware. The
+    legacy `gateway`/`netmask` fields are kept optional for backwards
+    compatibility with older firmware that still returned them.
+    """
+
+    ip_method: Literal["dhcp", "static"] | None = None
+    ip_type: Literal["ipv4", "ipv6"] | None = None
     address: str | None = None
     gateway: str | None = None
     netmask: str | None = None
@@ -45,6 +67,10 @@ class WifiStatusResponse(BaseModel):
         "connecting", "disconnecting", "reconnecting"
     ]
     ssid: str | None = None
+    bssid: str | None = None
+    channel: int | None = None
+    rssi: int | None = None
+    security: WifiSecurityMethod | None = None
     ip_config: WifiIpInfo | None = None
 
 
@@ -53,7 +79,7 @@ class WifiNetwork(BaseModel):
 
     ssid: str
     rssi: int | None = None
-    security: str | None = None
+    security: WifiSecurityMethod | None = None
 
 
 class WifiNetworksResponse(BaseModel):
@@ -94,7 +120,7 @@ class WifiConnectRequest(BaseModel):
 
     ssid: str
     password: str
-    security: str = "WPA2"
+    security: WifiSecurityMethod = "WPA2"
     ip_config: WifiIpConfig = WifiIpConfig()
 
 

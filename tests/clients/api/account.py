@@ -54,12 +54,7 @@ class AccountStatusResponse(BaseModel):
 
 
 class AccountProfileResponse(BaseModel):
-    """Response from GET /api/account/profile.
-
-    .. deprecated::
-        The /api/account/profile endpoint was replaced by /api/account/backend
-        in FW-881.  This model is retained for reference only.
-    """
+    """Response from GET /api/account/profile."""
 
     profile: Literal["dev", "prod", "local", "custom"]
     custom_url: str | None = None
