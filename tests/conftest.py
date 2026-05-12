@@ -12,6 +12,8 @@ import pytest
 import requests
 from dotenv import load_dotenv
 
+load_dotenv()
+
 from utils.logging_config import (TestLogContext, get_cli_logger,
                                   get_web_logger, log_cli_command,
                                   log_web_request, setup_logging)
@@ -34,8 +36,6 @@ from clients.api import (
     SmartHomeAPI,
 )
 from config.config import Config
-
-load_dotenv()
 
 
 def _write_test_context(test_name: str, **extra) -> None:
@@ -220,6 +220,7 @@ def pytest_configure(config):
         "feature_web_frontend: Feature 5. Web Frontend",
         "connection_test: Fresh connection tests",
         "schemathesis: OpenAPI schema conformance tests (schemathesis)",
+        "regression: Heavy regression tests; excluded from PR/dev runs, only fire on -rc tags",
     ]
 
     for marker in markers:
