@@ -89,6 +89,7 @@ struct Audio {
     AudioFadeDirection fade_direction;
     FuriString* queued_file;
 
+    bool play_holdoff_running;
     FuriEventLoopTimer* play_holdoff;
     size_t enable_holders;
 };
@@ -237,6 +238,8 @@ static void audio_play_holdoff_finished(void* context) {
 
     FURI_LOG_T(TAG, "holdoff fired");
     audio_do_load_queued_file(instance);
+
+    instance->play_holdoff_running = false;
 }
 
 static void audio_message_queue_callback(FuriEventLoopObject* object, void* context) {
@@ -260,7 +263,7 @@ static void audio_message_queue_callback(FuriEventLoopObject* object, void* cont
             instance->fade_direction = AudioFadeDirectionOut;
             // next file will be played after current one fades out
             result = true;
-        } else if(furi_event_loop_timer_is_running(instance->play_holdoff)) {
+        } else if(instance->play_holdoff_running) {
             // file will be played after holdoff fires
             result = true;
         } else {
@@ -293,12 +296,13 @@ static void audio_message_queue_callback(FuriEventLoopObject* object, void* cont
         if(instance->enable_holders == 1) {
             furi_hal_sai_enable_amplifier();
             furi_event_loop_timer_start(instance->play_holdoff, AUDIO_PLAY_HOLDOFF);
+            instance->play_holdoff_running = true;
         }
         result = true;
 
     } else if(msg.type == AudioMessageTypeDisable) {
         instance->enable_holders--;
-        if(instance->sai_running || furi_event_loop_timer_is_running(instance->play_holdoff)) {
+        if(instance->sai_running || instance->play_holdoff_running) {
             // will be disabled in SAI callback when the file finishes
         } else {
             furi_hal_sai_disable_amplifier();
