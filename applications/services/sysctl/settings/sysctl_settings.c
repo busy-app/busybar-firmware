@@ -7,7 +7,7 @@
 // which differs depending on which thread calls the API (startup vs. web server
 // vs. CLI). The absolute path below is what APP_DATA_PATH() produces when called
 // from the "sysctl" startup thread, and it stays stable for all callers.
-#define SYSCTL_SETTINGS_FILE_PATH EXT_PATH("apps_data/sysctl/sysctl.json")
+#define SYSCTL_SETTINGS_FILE_PATH EXT_PATH("apps_data/sysctl/settings.json")
 #define SYSCTL_SETTINGS_VERSION   1
 #define SYSCTL_SETTINGS_ROOT      sysctl_settings_v1_root
 
