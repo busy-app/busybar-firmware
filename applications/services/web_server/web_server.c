@@ -2,6 +2,7 @@
 #include <version.h>
 #include "web_server_i.h"
 #include "http_api/http_api.h"
+#include <sysctl/sysctl.h>
 
 #define TAG "HttpSrv"
 
@@ -87,10 +88,11 @@ static void http_event_handler(struct mg_connection* conn, int ev, void* ev_data
             FuriString* path = furi_string_alloc_printf("%.*s", msg->uri.len, msg->uri.buf);
             HttpMethod method = http_method_from_str(msg);
             bool result = http_handle_request(path, method, context->handlers, conn, msg);
-            furi_string_free(path);
             if(!result) {
                 MG_REPLY_BAD_REQUEST(conn);
             }
+            http_api_log_access(conn, msg, result ? http_api_extract_status(conn) : 400);
+            furi_string_free(path);
         }
 
     } else if(ev == MG_EV_HTTP_HDRS) {

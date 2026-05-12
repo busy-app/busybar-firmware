@@ -3,6 +3,10 @@
 
 #define API_VERSION {21, 0, 0}
 
+// Access logging (also used by web_server.c for static-file requests)
+int http_api_extract_status(const struct mg_connection* conn);
+void http_api_log_access(struct mg_connection* conn, struct mg_http_message* msg, int status_code);
+
 // Root API handlers
 void* http_api_root_alloc(void);
 void http_api_root_free(void* ctx);

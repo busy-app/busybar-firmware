@@ -90,6 +90,7 @@ extern const GpioPin gpio_i2s_sck;
 extern const GpioPin gpio_i2s_sd;
 
 extern const GpioPin gpio_audio_en;
+extern const GpioPin gpio_fallback_confirm;
 
 extern const GpioPinRecord gpio_pins[];
 extern const size_t gpio_pins_count;
