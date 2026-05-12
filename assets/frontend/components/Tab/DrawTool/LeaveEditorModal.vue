@@ -1,6 +1,6 @@
 <template>
   <ModalGeneric
-    v-model:open="isModalOpen"
+    v-model:open="es.showLeaveEditorModal"
     data-id="modal-draw-tool-exit-confirm"
     title="Leave editor?"
     description="You have unsaved changes. Do you want to save them?"
@@ -14,13 +14,13 @@
           color="neutral"
           variant="ghost"
           :disabled="es.isLeavingEditor"
-          @click="void es.discardAndLeaveEditor()"
+          @click="es.discardAndLeaveEditor"
         />
         <UButton
           label="Save and leave"
           color="neutral"
           :loading="es.isLeavingEditor"
-          @click="void es.saveAndLeaveEditor()"
+          @click="es.saveAndLeaveEditor"
         />
       </div>
     </template>
@@ -29,16 +29,4 @@
 
 <script setup lang="ts">
 const es = useDrawToolEditorStore();
-
-const isModalOpen = computed({
-  get: () => es.showLeaveEditorModal,
-  set: open => {
-    if (!open) {
-      es.cancelLeaveEditorRequest();
-      return;
-    }
-
-    es.showLeaveEditorModal = true;
-  }
-});
 </script>

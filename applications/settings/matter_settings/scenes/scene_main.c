@@ -40,8 +40,7 @@ static void matter_scene_on_enter(void* context) {
     const MatterStatus status = matter_get_commissioned_fabrics(app->matter, &fabrics);
 
     if(status != MatterStatusOk) {
-        // TODO: Better way of handling errors at this point
-        furi_event_loop_stop(app->event_loop);
+        scene_manager_next_scene(app->scene_manager, SceneIdWrecked);
         return;
     }
 

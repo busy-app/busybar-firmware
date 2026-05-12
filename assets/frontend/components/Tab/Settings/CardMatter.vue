@@ -160,6 +160,13 @@ async function init () {
   await matterStore.fetchMatterCommissioning();
 }
 
+watch(() => matterStore.matterCommissioning.fabricCount, (newValue, oldValue) => {
+  if (matterStore.matterLink.showModal && oldValue < newValue) {
+    matterStore.matterLink.showModal = false;
+    onMatterLinkModalClose();
+  }
+});
+
 watch(
   () => [matterStore.matterLink.showModal, matterStore.matterLink.qrCodeMatrix],
   async ([showModal, qrCodeMatrix]) => {

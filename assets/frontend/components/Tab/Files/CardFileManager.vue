@@ -427,7 +427,6 @@ async function onInputMenuModelUpdate (newValue: string) {
   if (filter === '/') {
     filter = '';
   }
-  console.log([dir, filter]);
 
   const options = await deviceStore.busyBar.StorageListGet({ path: `/ext${dir}`, timeout: 10000 })
     .then(result => {

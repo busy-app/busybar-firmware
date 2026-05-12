@@ -1,15 +1,15 @@
 #include "wifi_per_cli.h"
 #include <cli_intercom/cli_intercom.h>
 #include <containers/pipe_util.h>
-#include <furi_hal_cortex.h>
 #include <cli/args.h>
 #include <strint.h>
+#include <toolbox/timers.h>
 
-#define TAG                   "WifiPerCli"
-#define CLI_BUFFER_SIZE       (1024U)
-#define CLI_READ_TIMEOUT      (10U)
-#define CLI_START_APP_TIMEOUT (5000000U) // 5 seconds
-#define TRANSFER_BATCH_SIZE   512UL
+#define TAG                      "WifiPerCli"
+#define CLI_BUFFER_SIZE          (1024U)
+#define CLI_READ_TIMEOUT         (10U)
+#define CLI_START_APP_TIMEOUT_MS (5000U) // 5 seconds
+#define TRANSFER_BATCH_SIZE      512UL
 
 typedef struct {
     FuriStreamBuffer* rx_buffer;
@@ -259,7 +259,7 @@ bool wifi_per_cli_start(WifiPerTest* app_handle, WifiPerCliSettings settings) {
         return ret;
     }
 
-    FuriHalCortexTimer wait = furi_hal_cortex_timer_get(CLI_START_APP_TIMEOUT);
+    CoarseTimer wait = coarse_timer_create(CLI_START_APP_TIMEOUT_MS);
     FuriString* msg = furi_string_alloc();
     wifi_per_cli_instance = malloc(sizeof(CliCommandSlCli));
     wifi_per_cli_instance->app_handle = app_handle;
@@ -293,7 +293,7 @@ bool wifi_per_cli_start(WifiPerTest* app_handle, WifiPerCliSettings settings) {
     FURI_LOG_D(TAG, "%s", furi_string_get_cstr(msg));
 
     //wait for the app to start
-    while(!furi_hal_cortex_timer_is_expired(wait)) {
+    while(!coarse_timer_is_expired(wait)) {
         furi_thread_yield();
         if(wifi_per_cli_stats[WifiPerCliStatsCmdTypeStartApp].value) {
             break;

@@ -1,14 +1,17 @@
-#include <core/log.h>
 #include <furi_hal_bus.h>
-#include <furi_hal_cortex.h>
 #include <furi_hal_clock.h>
 #include <furi_hal_interrupt.h>
 #include <furi_hal_sdmmc.h>
 #include <furi_hal_resources.h>
+
 #include <stm32u5xx_ll_rcc.h>
 
 // #include <stm32u5xx_hal_conf.h> // TODO
 #include <stm32u5xx_ll_sdmmc.h> // FIXME
+
+#include <core/log.h>
+
+#include <toolbox/timers.h>
 
 #define DMA_ALIGNMENT            4
 #define TAG                      "FuriHalSDMMC"
@@ -381,12 +384,12 @@ static uint32_t furi_hal_sdmmc_event_wait(uint32_t mask, size_t timeout) {
         return furi_event_flag_wait(sdmmc_dma_context.event, mask, FuriFlagWaitAny, timeout);
     }
 
-    FuriHalCortexTimer timer = furi_hal_cortex_timer_get(timeout * 1000);
-    while(!(sdmmc_dma_context.event_flags & mask) && !furi_hal_cortex_timer_is_expired(timer)) {
+    PreciseTimer timer = precise_timer_create(timeout * 1000);
+    while(!(sdmmc_dma_context.event_flags & mask) && !precise_timer_is_expired(timer)) {
         // Loop until the event is set or timeout
     }
 
-    if(furi_hal_cortex_timer_is_expired(timer)) {
+    if(precise_timer_is_expired(timer)) {
         return FuriStatusErrorTimeout;
     }
 
@@ -681,7 +684,7 @@ static void sdmmc_parse_info(FuriHalSdInfo* info, CardCSDInfo* csd, uint32_t cid
 static uint32_t sdmmc_init_card(void) {
     uint32_t errorstate;
     uint16_t rca = 0U;
-    FuriHalCortexTimer timer = furi_hal_cortex_timer_get(SDMMC_CMDTIMEOUT * 1000U);
+    PreciseTimer timer = precise_timer_create(SDMMC_CMDTIMEOUT * 1000U);
 
     uint32_t CSD[4] = {0};
     uint32_t CID[4] = {0};
@@ -711,7 +714,7 @@ static uint32_t sdmmc_init_card(void) {
         if(errorstate != FuriHalSdErrorNone) {
             return errorstate;
         }
-        if(furi_hal_cortex_timer_is_expired(timer)) {
+        if(precise_timer_is_expired(timer)) {
             return FuriHalSdErrorTimeout;
         }
     }
@@ -752,7 +755,7 @@ static uint32_t sdmmc_init_card(void) {
 static FuriHalSdError sdmmc_send_status_command(uint32_t* pSDstatus) {
     SDMMC_DataInitTypeDef config = {0};
     FuriHalSdError errorstate;
-    FuriHalCortexTimer timer = furi_hal_cortex_timer_get(SDMMC_REAL_DATATIMEOUT);
+    PreciseTimer timer = precise_timer_create(SDMMC_REAL_DATATIMEOUT);
     uint32_t count;
     uint32_t* data = pSDstatus;
 
@@ -802,7 +805,7 @@ static FuriHalSdError sdmmc_send_status_command(uint32_t* pSDstatus) {
             }
         }
 
-        if(furi_hal_cortex_timer_is_expired(timer)) {
+        if(precise_timer_is_expired(timer)) {
             return FuriHalSdErrorTimeout;
         }
     }
@@ -821,7 +824,7 @@ static FuriHalSdError sdmmc_send_status_command(uint32_t* pSDstatus) {
         *data = SDMMC_ReadFIFO(FURI_SDMMC_BLOCK);
         data++;
 
-        if(furi_hal_cortex_timer_is_expired(timer)) {
+        if(precise_timer_is_expired(timer)) {
             return FuriHalSdErrorTimeout;
         }
     }
@@ -878,7 +881,7 @@ static bool sd_mmc_get_card_status(CardStatus* card_status) {
 static FuriHalSdError sdmmc_find_scr(uint32_t* p_scr) {
     SDMMC_DataInitTypeDef config = {0};
     FuriHalSdError errorstate;
-    FuriHalCortexTimer timer = furi_hal_cortex_timer_get(SDMMC_REAL_DATATIMEOUT);
+    PreciseTimer timer = precise_timer_create(SDMMC_REAL_DATATIMEOUT);
     uint32_t index = 0U;
     uint32_t tempscr[2U] = {0};
     uint32_t* scr = p_scr;
@@ -921,7 +924,7 @@ static FuriHalSdError sdmmc_find_scr(uint32_t* p_scr) {
             index++;
         }
 
-        if(furi_hal_cortex_timer_is_expired(timer)) {
+        if(precise_timer_is_expired(timer)) {
             FURI_LOG_E(TAG, "SDMMC_ReadFIFO failed with timeout");
             return FuriHalSdErrorTimeout;
         }
@@ -1113,10 +1116,11 @@ SdCardState sdmmc_get_card_state(void) {
 }
 
 static bool sdmmc_wait_for_transfer_state(size_t timeout_ms) {
-    FuriHalCortexTimer timer = furi_hal_cortex_timer_get(timeout_ms);
+    // TODO: FW-889 Fix time units
+    PreciseTimer timer = precise_timer_create(timeout_ms);
     SdCardState card_state = sdmmc_get_card_state();
     while(card_state != SdCardStateTransfer) {
-        if(furi_hal_cortex_timer_is_expired(timer)) {
+        if(precise_timer_is_expired(timer)) {
             FURI_LOG_E(TAG, "sdmmc_get_card_state failed");
             return false;
         }
@@ -1403,7 +1407,7 @@ static FuriHalSdError
 
     SDMMC_DataInitTypeDef config;
     FuriHalSdError errorstate = FuriHalSdErrorNone;
-    FuriHalCortexTimer timer = furi_hal_cortex_timer_get(timeout);
+    PreciseTimer timer = precise_timer_create(timeout);
     uint32_t count;
     uint32_t* tmp_buf;
 
@@ -1442,7 +1446,7 @@ static FuriHalSdError
             }
         }
 
-        if(furi_hal_cortex_timer_is_expired(timer)) {
+        if(precise_timer_is_expired(timer)) {
             /* Clear all the static flags */
             sdmmc_clear_static_flags();
             return FuriHalSdErrorTimeout;

@@ -460,7 +460,6 @@ VarItemList* var_item_list_alloc(Widget* parent) {
     lv_obj_class_init_obj(obj);
 
     VarItemList* instance = (VarItemList*)obj;
-    widget_set_input_feed_callback((Widget*)instance, var_item_list_input_callback);
 
     return instance;
 }
@@ -638,6 +637,15 @@ const lv_obj_class_t var_item_list_lvgl_class = {
     .width_def = LV_PCT(100),
     .height_def = LV_PCT(100),
     .instance_size = sizeof(VarItemList),
+    .user_data =
+        (void*)&(const WidgetClassData){
+            .input_callback = var_item_list_input_callback,
+            .style_callbacks =
+                {
+                    [GuiDisplayIdFront] = NULL,
+                    [GuiDisplayIdBack] = NULL,
+                },
+        },
 };
 
 const lv_obj_class_t var_item_lvgl_class = {

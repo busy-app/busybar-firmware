@@ -50,8 +50,9 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32u5xx_ll_dlyb.h"
-#include "furi_hal_cortex.h"
 #include "core/check.h"
+
+#include <toolbox/timers.h>
 
 /** @addtogroup STM32U5xx_LL_Driver
   * @{
@@ -162,10 +163,10 @@ uint32_t LL_DLYB_GetClockPeriod(DLYB_TypeDef* DLYBx, LL_DLYB_CfgTypeDef* pdlyb_c
         DLYBx->CFGR = DLYB_MAX_SELECT | (i << DLYB_CFGR_UNIT_Pos);
 
         /* Waiting for a LNG valid value */
-        FuriHalCortexTimer timer = furi_hal_cortex_timer_get(DLYB_TIMEOUT * 1000);
+        PreciseTimer timer = precise_timer_create(DLYB_TIMEOUT * 1000);
 
         while((DLYBx->CFGR & DLYB_CFGR_LNGF) == 0U) {
-            if(furi_hal_cortex_timer_is_expired(timer)) {
+            if(precise_timer_is_expired(timer)) {
                 if((DLYBx->CFGR & DLYB_CFGR_LNGF) == 0U) {
                     return ERROR;
                 } else {

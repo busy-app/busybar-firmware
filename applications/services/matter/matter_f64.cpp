@@ -193,14 +193,17 @@ static void matter_handle_frame(const void* data, size_t data_size, void* contex
             MutableCharSpan(frame.codes.manual_code, sizeof(frame.codes.manual_code));
 
         StackLock lock;
-        GetQRCode(qr_code, RENDEZVOUS_FLAGS);
-        GetManualPairingCode(manual_code, RENDEZVOUS_FLAGS);
 
+        bool success = true;
+        if(GetQRCode(qr_code, RENDEZVOUS_FLAGS) != CHIP_NO_ERROR) success = false;
+        if(GetManualPairingCode(manual_code, RENDEZVOUS_FLAGS) != CHIP_NO_ERROR) success = false;
+
+        frame.codes.success = success;
         matter_hyphenate_manual_code(frame.codes.manual_code, sizeof(frame.codes.manual_code));
         matter_send_frame(matter, &frame);
 
     } else {
-        FURI_LOG_E(TAG, "Other side is using a different Intercom protocol version");
+        furi_crash("Wrong frame type, even though protocol version had been verified by Intercom");
     }
 }
 

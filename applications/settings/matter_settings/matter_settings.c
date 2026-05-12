@@ -3,6 +3,14 @@
 #include <settings_helpers/app_desc.h>
 #include <settings_helpers/gui_params.h>
 
+// Time for the user to understand the status being shown to them
+#define USER_REACTION_TIME_MS 500
+
+void matter_settings_acknowledge_status(MatterStatusAck* status_ack) {
+    furi_assert(status_ack);
+    status_ack->user_knowledge_timestamp = furi_hal_rtc_get_timestamp_ms() - USER_REACTION_TIME_MS;
+}
+
 static bool matter_settings_thread_signal_callback(uint32_t signal, void* arg, void* context) {
     UNUSED(arg);
 
@@ -111,6 +119,33 @@ static void matter_settings_handle_matter_event(const void* message, void* conte
     if(do_send_event) matter_settings_send_custom_event(app, our_event);
 }
 
+static void matter_settings_set_initial_scenes(MatterSettings* app) {
+    furi_assert(app);
+
+    MatterCommissionedFabrics fabrics;
+    if(matter_get_commissioned_fabrics(app->matter, &fabrics) != MatterStatusOk) {
+        scene_manager_next_scene(app->scene_manager, SceneIdWrecked);
+        return;
+    }
+
+    scene_manager_next_scene(app->scene_manager, SceneIdMain);
+
+    if(fabrics.last_status == MatterCommissioningStatusStarted) {
+        scene_manager_next_scene(app->scene_manager, SceneIdCommissionStart);
+    }
+
+    bool user_seen_current_status = app->status_ack->user_knowledge_timestamp >=
+                                    fabrics.last_status_at;
+
+    if(!user_seen_current_status) {
+        if(fabrics.last_status == MatterCommissioningStatusComplete) {
+            scene_manager_next_scene(app->scene_manager, SceneIdCommissionDone);
+        } else if(fabrics.last_status == MatterCommissioningStatusFailed) {
+            scene_manager_next_scene(app->scene_manager, SceneIdCommissionFail);
+        }
+    }
+}
+
 static MatterSettings* matter_settings_alloc(void) {
     MatterSettings* instance = malloc(sizeof(MatterSettings));
 
@@ -131,6 +166,8 @@ static MatterSettings* matter_settings_alloc(void) {
 
     instance->status_lights = furi_record_open(RECORD_STATUS_LIGHTS);
     instance->brightness_control = furi_record_open(RECORD_BRIGHTNESS_CONTROL);
+
+    instance->wifi = furi_record_open(RECORD_WIFI);
 
     with_gui(instance->gui, {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
@@ -168,9 +205,15 @@ static MatterSettings* matter_settings_alloc(void) {
         matter_settings_event_queue_callback,
         instance);
 
-    instance->wifi_poller = wifi_poller_alloc();
+    if(!furi_record_exists(RECORD_MATTER_SETTINGS_STATUS_ACK)) {
+        MatterStatusAck* status_ack = malloc(sizeof(MatterStatusAck));
+        furi_record_create(RECORD_MATTER_SETTINGS_STATUS_ACK, status_ack);
+        instance->status_ack = status_ack;
+    } else {
+        instance->status_ack = furi_record_open(RECORD_MATTER_SETTINGS_STATUS_ACK);
+    }
 
-    scene_manager_next_scene(instance->scene_manager, SceneIdMain);
+    matter_settings_set_initial_scenes(instance);
 
     return instance;
 }
@@ -184,11 +227,10 @@ static void matter_settings_free(MatterSettings* instance) {
         flex_layout_free(instance->back_container);
     });
 
-    wifi_poller_free(instance->wifi_poller);
-
     furi_pubsub_unsubscribe(matter_get_pubsub(instance->matter), instance->matter_subscription);
     furi_record_close(RECORD_MATTER);
 
+    furi_record_close(RECORD_WIFI);
     furi_record_close(RECORD_DESKTOP);
     furi_record_close(RECORD_GUI);
     furi_record_close(RECORD_FRONT_DISPLAY);
@@ -198,8 +240,9 @@ static void matter_settings_free(MatterSettings* instance) {
 
     furi_event_loop_unsubscribe(instance->event_loop, instance->input_queue);
     furi_event_loop_unsubscribe(instance->event_loop, instance->event_queue);
-    furi_message_queue_free(instance->input_queue);
+    scene_manager_free(instance->scene_manager);
     furi_message_queue_free(instance->event_queue);
+    furi_message_queue_free(instance->input_queue);
     furi_event_loop_free(instance->event_loop);
 
     free(instance);
@@ -237,12 +280,19 @@ void matter_settings_send_custom_event(MatterSettings* instance, uint32_t event)
 bool matter_settings_check_wifi_connectivity(MatterSettings* instance) {
     furi_assert(instance);
 
-    if(wifi_poller_get_state(instance->wifi_poller) & WifiPollerStateLinkUp) {
-        return true;
-    } else {
+    bool is_connected = false;
+    do {
+        WifiInfo info;
+        if(wifi_get_info(instance->wifi, &info) != WifiStatusOk) break;
+
+        is_connected = info.state == WifiStateConnected;
+    } while(0);
+
+    if(!is_connected) {
         matter_settings_send_custom_event(instance, AppEventRequiredWifiNotAvailable);
-        return false;
     }
+
+    return is_connected;
 }
 
 bool matter_settings_exit_if_last(MatterSettings* instance) {

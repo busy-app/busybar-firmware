@@ -7,7 +7,7 @@ void cli_main_motd(void* context) {
     printf(ANSI_FLIPPER_BRAND_ORANGE
            "\r\n" ANSI_FG_BR_WHITE "Welcome to BUSY Bar " ANSI_FG_BR_YELLOW "917" ANSI_FG_BR_WHITE
            " Command Line Interface!\r\n"
-           "Read the manual: [insert docs link here]\r\n"
+           "Read the manual: https://docs.busy.app/\r\n"
            "Run `help` or `?` to list available commands\r\n"
            "\r\n" ANSI_RESET);
 

@@ -44,6 +44,8 @@ static void matter_scene_commission_start_on_exit(void* context) {
             status_view_free(scene->statuses[disp]);
         }
     });
+
+    matter_settings_acknowledge_status(app->status_ack);
 }
 
 static bool matter_scene_commission_start_on_event(const SceneManagerEvent* event, void* context) {

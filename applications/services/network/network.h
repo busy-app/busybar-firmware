@@ -4,6 +4,8 @@
  */
 #pragma once
 
+#include <lwip/netif.h>
+
 /**
  * @brief The string key for Network instance access
  *
@@ -11,9 +13,37 @@
  */
 #define RECORD_NETWORK "network"
 
+/** Identifies a logical network interface. */
+typedef enum {
+    NetworkNetifWifi, /**< Wi-Fi (WL) interface */
+    NetworkNetifUsb, /**< USB-NCM (EX) interface */
+    NetworkNetifCount, /**< Sentinel — not a valid interface */
+} NetworkNetif;
+
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/**
+ * @brief Find a netif by its logical interface identifier.
+ *
+ * Must be called with the lwIP core lock held — either from within the lwIP thread
+ * or between LOCK_TCPIP_CORE / UNLOCK_TCPIP_CORE.
+ *
+ * @param netif  Logical interface to find.
+ * @return First matching netif, or NULL if not found.
+ */
+struct netif* network_find_netif(NetworkNetif netif);
+
+/**
+ * @brief Assign the lwIP 2-character name to a netif.
+ *
+ * Encapsulates the interface-to-name mapping; call from netif init callbacks.
+ *
+ * @param netif  The lwIP netif to name.
+ * @param id     Logical interface identifier.
+ */
+void network_netif_assign_name(struct netif* netif, NetworkNetif id);
 
 /** Opaque Network type declaration. */
 typedef struct Network Network;

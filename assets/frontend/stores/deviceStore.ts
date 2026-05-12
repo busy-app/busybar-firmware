@@ -1,16 +1,19 @@
 import { defineStore } from 'pinia';
-import { BusyBar } from '@busy-app/busy-lib';
+import { BusyBar, DataStatus } from '@busy-app/busy-lib';
 import type {
   VersionInfo,
   Status as DeviceStatus,
   HttpAccessInfo,
-  HttpAccessParams
+  HttpAccessParams,
+  NetworkInterfaceInfo,
+  AccountInfo
 } from '@busy-app/busy-lib';
 
 export const useDeviceStore = defineStore('device', () => {
   const apiRequest = useApiStore().apiRequest;
   const wifiStore = useWifiStore();
   const firmwareStore = useFirmwareStore();
+  const stateStreamStore = useStateStreamStore();
 
   const busyBar = shallowRef(new BusyBar({
     addr: useRuntimeConfig().public.barUrl || window.location.origin
@@ -20,10 +23,20 @@ export const useDeviceStore = defineStore('device', () => {
   // Upon stream failure, a probing HTTP request is sent. If it fails too, set isConnected to false.
   const isConnected = ref<boolean>(true);
   const checkingConnection = ref<boolean>(false);
-  async function checkConnection () {
+  type ConnCheckResult = true | false | 'aborted';
+  const successfulConnchecksWithDataStale = ref(0);
+  async function checkConnection (): Promise<ConnCheckResult> {
     if (checkingConnection.value) {
-      return;
+      return 'aborted';
     }
+
+    if (isConnected.value && successfulConnchecksWithDataStale.value >= 3) {
+      console.warn('Data has been stale for a while and multiple connection checks have succeeded, restarting state stream as it seems to be in a bad state');
+      stateStreamStore.stopStream();
+      successfulConnchecksWithDataStale.value = 0;
+      window.dispatchEvent(new Event('protobuf-websocket-restart'));
+    }
+
     checkingConnection.value = true;
     const wasConnected = isConnected.value;
     try {
@@ -45,7 +58,7 @@ export const useDeviceStore = defineStore('device', () => {
         const e = error as any;
         if (e?.name === 'AbortError' || e?.message?.toLowerCase().includes('abort') || e?.code === 'ECONNABORTED') {
           checkingConnection.value = false;
-          return;
+          return 'aborted';
         }
       }
 
@@ -72,6 +85,14 @@ export const useDeviceStore = defineStore('device', () => {
       }
     }
     checkingConnection.value = false;
+
+    if (isConnected.value && stateStreamStore.streamStatus?.data.status === DataStatus.STALE) {
+      successfulConnchecksWithDataStale.value++;
+    } else {
+      successfulConnchecksWithDataStale.value = 0;
+    }
+
+    return isConnected.value;
   }
 
   const refreshInterval = ref<NodeJS.Timeout>();
@@ -112,14 +133,11 @@ export const useDeviceStore = defineStore('device', () => {
   }
 
   // Connection type
-  const connectionType = ref<'usb' | 'wifi'>('wifi');
-  interface TransportResponse {
-    type: 'usb' | 'wifi' | string;
-  }
+  const connectionType = ref<NetworkInterfaceInfo['type']>('wifi');
   async function detectConnectionType () {
-    await apiRequest<TransportResponse>('/api/transport', { timeout: 3000 })
+    await busyBar.value.SystemTransportGet()
       .then(response => {
-        connectionType.value = response.type === 'usb' ? 'usb' : 'wifi';
+        connectionType.value = response.type;
         console.debug('Detected connection type:', connectionType.value);
       })
       .catch(async error => {
@@ -236,6 +254,22 @@ export const useDeviceStore = defineStore('device', () => {
       });
   }
 
+  // Account
+  const accountInfo = ref<AccountInfo | null>(null);
+  async function fetchAccountInfo () {
+    const info = await busyBar.value.AccountInfoGet()
+      .then(response => {
+        accountInfo.value = response;
+        return response;
+      })
+      .catch(async error => {
+        await handleHTTPError(error, 'Couldn\'t get account info', true);
+        return null;
+      });
+
+    return info;
+  }
+
   return {
     busyBar,
 
@@ -259,6 +293,9 @@ export const useDeviceStore = defineStore('device', () => {
 
     httpAPIAccess,
     fetchHttpAPIAccess,
-    setHttpAPIAccess
+    setHttpAPIAccess,
+
+    accountInfo,
+    fetchAccountInfo
   };
 });
