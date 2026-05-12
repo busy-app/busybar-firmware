@@ -12,7 +12,7 @@
 // "HTTP/1.x NNN ..." — prefix is 9 bytes, then 3 ASCII status digits.
 // Returns -1 if no response has been queued yet or if the buffer does not
 // start with an HTTP/1.x response line (e.g. after a partial flush).
-static int http_api_extract_status(const struct mg_connection* conn) {
+int http_api_extract_status(const struct mg_connection* conn) {
     if(conn->send.len < 12) return -1;
     // Verify the response-line prefix before reading the status digits so that
     // a partial flush (which shifts conn->send.buf forward) or an unexpected
@@ -36,8 +36,7 @@ static int http_api_extract_status(const struct mg_connection* conn) {
 // Level 1: all requests — IP - - "METHOD URI" STATUS ["request-id: ID"]
 // Level 2: level 1 + User-Agent — IP - - "METHOD URI" STATUS "UA" ["request-id: ID"]
 // Level 3: level 2 + timestamp — IP - - [TIMESTAMP] "METHOD URI" STATUS "UA" ["request-id: ID"]
-static void
-    http_api_log_access(struct mg_connection* conn, struct mg_http_message* msg, int status_code) {
+void http_api_log_access(struct mg_connection* conn, struct mg_http_message* msg, int status_code) {
     int level = sysctl_get_websrv_accesslog_level();
     bool is_error = status_code >= 400;
 
@@ -559,8 +558,8 @@ bool http_api_root_callback(
     } else {
         handled = http_handle_request(path, method, context->handlers, conn, msg);
     }
-    // When handled==false, web_server.c will send 400 after we return.
-    http_api_log_access(conn, msg, handled ? http_api_extract_status(conn) : 400);
+    // Logging is done at the http_event_handler level in web_server.c,
+    // which covers both API and static-file routes in one place.
     return handled;
 }
 
