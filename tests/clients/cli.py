@@ -3,6 +3,7 @@ command execution plus 917-CLI mode helpers."""
 
 import os
 import re
+import socket
 import telnetlib  # TODO: Replace with alternative before Python 3.13 (deprecated)
 import time
 from typing import Optional
@@ -55,86 +56,108 @@ class SimpleCLIConnection:
     def execute_command(
         self, command: str, timeout: float = 5.0, slow_command: bool = False
     ) -> str:
-        """Execute a command and return response"""
-        if not self.connected or not self.tn:
-            raise RuntimeError("Not connected")
+        """Execute a command and return its response.
 
+        Auto-recovers from a dead telnet socket: reconnects on entry if the
+        previous session was killed externally (e.g. by a `power reboot`),
+        retries once on IO error, and probes the socket after success so a
+        silently peer-closed connection is surfaced before the next call
+        rather than failing on the next write.
+        """
         # Increase timeout for slow commands (only if custom timeout not provided)
         if slow_command and timeout == 5.0:  # Default timeout
             timeout = 15.0
 
-        try:
-            self.logger.debug(f"Executing command: {repr(command)}")
+        prompt = b"917>: " if self._in_sl_cli else b">: "
+        response_str = ""
 
-            # Send command
-            cmd_bytes = f"{command}\r\n".encode("utf-8")
-            self.tn.write(cmd_bytes)
+        for attempt in (1, 2):
+            if not self.connected or not self.tn:
+                self.logger.info("CLI not connected — (re)connecting")
+                if not self.connect():
+                    return ""
+            try:
+                self.logger.debug(f"Executing command: {repr(command)}")
+                self.tn.write(f"{command}\r\n".encode("utf-8"))
 
-            # Read response until we see the prompt again
-            # Use appropriate prompt based on CLI mode
-            prompt = b"917>: " if self._in_sl_cli else b">: "
-
-            # Special handling for device_info which has delayed response
-            if command.strip() == "device_info":
-                # First read with shorter timeout to get immediate response
-                response = self.tn.read_until(prompt, timeout=5.0)
-                response_str = response.decode("utf-8", errors="ignore")
-
-                # If we only got u5_* fields, wait for sl_* fields
-                if "u5_firmware" in response_str and "sl_firmware" not in response_str:
-                    self.logger.debug("Got u5_ fields, waiting for sl_ fields...")
-                    # Wait a bit more for the delayed sl_* response
-                    additional_response = self.tn.read_until(
-                        prompt, timeout=timeout - 5.0
+                if command.strip() == "device_info":
+                    response_str = self.tn.read_until(prompt, timeout=5.0).decode(
+                        "utf-8", "ignore"
                     )
-                    additional_str = additional_response.decode(
-                        "utf-8", errors="ignore"
-                    )
-                    response_str += additional_str
-                    self.logger.debug(
-                        f"Added {len(additional_str)} chars from delayed response"
-                    )
-            else:
-                response = self.tn.read_until(prompt, timeout=timeout)
-                response_str = response.decode("utf-8", errors="ignore")
-
-            self.logger.debug(
-                f"Raw response ({len(response_str)} chars): {repr(response_str[:100])}"
-            )
-
-            # Clean response - remove command echo and prompt
-            cleaned = self._clean_response(response_str, command)
-
-            if command == "sl_cli":
-                # Remove ANSI codes before checking for welcome message
-                clean_response = re.sub(r"\x1b\[[0-9;]*[A-Za-z]", "", response_str)
-                clean_response = re.sub(r"\x1b\([A-Z]", "", clean_response)
-                clean_response = re.sub(r"\x1b[>=]", "", clean_response)
-
-                if (
-                    "Welcome to BUSY Bar 917" in clean_response
-                    or "917 Command Line Interface" in clean_response
-                ):
-                    self._in_sl_cli = True
-                    self.logger.debug(
-                        f"Entered 917 CLI mode, response contains welcome message"
-                    )
+                    if (
+                        "u5_firmware" in response_str
+                        and "sl_firmware" not in response_str
+                    ):
+                        self.logger.debug("Got u5_ fields, waiting for sl_ fields...")
+                        response_str += self.tn.read_until(
+                            prompt, timeout=max(timeout - 5.0, 0.5)
+                        ).decode("utf-8", "ignore")
                 else:
-                    self.logger.warning(
-                        f"sl_cli executed but no welcome message found. Clean response: {repr(clean_response[:200])}"
+                    response_str = self.tn.read_until(prompt, timeout=timeout).decode(
+                        "utf-8", "ignore"
                     )
-            elif command == "exit" and self._in_sl_cli:
+                break
+            except (EOFError, OSError) as exc:
+                self.logger.warning(
+                    f"CLI IO error on {repr(command)} (attempt {attempt}/2): "
+                    f"{type(exc).__name__}: {exc}"
+                )
+                try:
+                    self.tn.close()
+                except Exception:
+                    pass
+                self.tn = None
+                self.connected = False
                 self._in_sl_cli = False
-                self.logger.debug(f"Exited 917 CLI mode")
-
-            duration = timeout
-            log_cli_command(command, cleaned, duration)
-
-            return cleaned
-
-        except Exception as e:
-            self.logger.error(f"Command execution failed: {type(e).__name__}: {e}")
+            except Exception as exc:
+                self.logger.error(
+                    f"Command execution failed: {type(exc).__name__}: {exc}"
+                )
+                return ""
+        else:
             return ""
+
+        self.logger.debug(
+            f"Raw response ({len(response_str)} chars): {repr(response_str[:100])}"
+        )
+
+        cleaned = self._clean_response(response_str, command)
+
+        if command == "sl_cli":
+            clean_response = re.sub(r"\x1b\[[0-9;]*[A-Za-z]", "", response_str)
+            clean_response = re.sub(r"\x1b\([A-Z]", "", clean_response)
+            clean_response = re.sub(r"\x1b[>=]", "", clean_response)
+            if (
+                "Welcome to BUSY Bar 917" in clean_response
+                or "917 Command Line Interface" in clean_response
+            ):
+                self._in_sl_cli = True
+                self.logger.debug("Entered 917 CLI mode")
+            else:
+                self.logger.warning(
+                    f"sl_cli executed but no welcome message found. Clean response: {repr(clean_response[:200])}"
+                )
+        elif command == "exit" and self._in_sl_cli:
+            self._in_sl_cli = False
+            self.logger.debug("Exited 917 CLI mode")
+
+        log_cli_command(command, cleaned, timeout)
+
+        # Peer-closed socket -> reset the flag so the next call reconnects
+        # instead of falling into the IO-error retry path.
+        if self.tn is not None:
+            try:
+                self.tn.sock.setblocking(False)
+                if self.tn.sock.recv(1, socket.MSG_PEEK) == b"":
+                    self.logger.info("CLI peer closed socket; will reconnect next call")
+                    self.connected = False
+                self.tn.sock.setblocking(True)
+            except BlockingIOError:
+                self.tn.sock.setblocking(True)
+            except OSError:
+                self.connected = False
+
+        return cleaned
 
     def _clean_response(self, response: str, command: str) -> str:
         """Clean response by removing command echo and prompts"""
