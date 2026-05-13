@@ -11,6 +11,8 @@
 #include <stm32u5xx_ll_usart.h>
 #include <stm32u5xx_ll_dma.h>
 
+#include <toolbox/timers.h>
+
 typedef struct {
     FuriHalSerialHandle* handle;
     USART_TypeDef* periph_ptr;
@@ -489,11 +491,11 @@ bool furi_hal_serial_set_auto_baud_rate(
 
     FuriHalSerial* serial = furi_hal_serial[handle->id];
     USART_TypeDef* periph = serial->periph_ptr;
-    FuriHalCortexTimer wait = furi_hal_cortex_timer_get(timeout * 1000);
+    PreciseTimer wait = precise_timer_create(timeout * 1000);
 
     LL_USART_SetAutoBaudRateMode(periph, furi_hal_serial_auto_baundrate_mode[mode]);
     LL_USART_EnableAutoBaudRate(periph);
-    while(!LL_USART_IsActiveFlag_ABR(periph) && !furi_hal_cortex_timer_is_expired(wait)) {
+    while(!LL_USART_IsActiveFlag_ABR(periph) && !precise_timer_is_expired(wait)) {
         furi_thread_yield();
     };
     return !LL_USART_IsActiveFlag_ABRE(periph);
@@ -661,13 +663,13 @@ size_t furi_hal_serial_tx(
     bool wait_forever = timeout == FuriWaitForever;
 
     size_t transmitted = 0;
-    FuriHalCortexTimer timer = furi_hal_cortex_timer_get(wait_forever ? 1 : (timeout * 1000));
+    PreciseTimer timer = precise_timer_create(wait_forever ? 1 : (timeout * 1000));
     USART_TypeDef* periph = furi_hal_serial_resources[handle->id].periph;
 
     while(buffer_size > 0) {
-        bool timed_out = furi_hal_cortex_timer_is_expired(timer);
+        bool timed_out = precise_timer_is_expired(timer);
         while(!LL_USART_IsActiveFlag_TXE_TXFNF(periph) && (wait_forever || !timed_out)) {
-            timed_out = furi_hal_cortex_timer_is_expired(timer);
+            timed_out = precise_timer_is_expired(timer);
         }
 
         if(!wait_forever && timed_out) break;
@@ -682,21 +684,17 @@ size_t furi_hal_serial_tx(
     return transmitted;
 }
 
+static bool furi_hal_serial_is_tx_complete(void* context) {
+    const USART_TypeDef* periph = context;
+    return LL_USART_IsActiveFlag_TXFE(periph);
+}
+
 bool furi_hal_serial_tx_wait_complete(FuriHalSerialHandle* handle, uint32_t timeout) {
     furi_check(handle);
+    USART_TypeDef* periph = furi_hal_serial_resources[handle->id].periph;
 
-    bool success = false;
-
-    FuriHalCortexTimer timer = furi_hal_cortex_timer_get(timeout * 1000);
-
-    while(!furi_hal_cortex_timer_is_expired(timer)) {
-        if(LL_USART_IsActiveFlag_TXFE(furi_hal_serial_resources[handle->id].periph)) {
-            success = true;
-            break;
-        }
-    }
-
-    return success;
+    PreciseTimer timer = precise_timer_create(timeout * 1000);
+    return precise_timer_wait_for(timer, furi_hal_serial_is_tx_complete, periph);
 }
 
 bool furi_hal_serial_rx_available(FuriHalSerialHandle* handle) {

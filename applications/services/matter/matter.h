@@ -54,7 +54,7 @@ typedef struct {
 typedef struct {
     uint32_t count; //<! Number of fabric the device is commissioned into
     MatterCommissioningStatus last_status; //<! Latest status update from the service PubSub
-    time_t last_status_at; //<! UTC Unix millisecond timestamp of latest status update..
+    time_t last_status_at; //<! UTC Unix millisecond timestamp of latest status update
 } MatterCommissionedFabrics;
 
 /**
@@ -81,7 +81,7 @@ typedef struct {
 /**
  * @brief Get a PubSub to listen to Matter events.
  *
- * The returned FuriPubSub object witll have an underlying type of MatterEvent.
+ * The returned FuriPubSub object will have an underlying type of MatterEvent.
  * Use furi_pubsub_subscribe() to get notifications about new events.
  * 
  * @param[in,out] instance pointer to the service instance

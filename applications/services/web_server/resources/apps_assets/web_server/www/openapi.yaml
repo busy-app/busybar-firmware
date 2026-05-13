@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: BUSY Bar HTTP API
   description: HTTP API for BUSY Bar web server
-  version: 20.0.0
+  version: 21.0.0
   contact:
     name: tbd
 
@@ -1338,39 +1338,32 @@ paths:
               schema:
                 $ref: "#/components/schemas/AccountStatus"
 
-  /api/account/profile:
+  /api/account/backend:
     get:
       tags:
         - Account
-      summary: Get MQTT profile
-      description: Retrieves MQTT backend type (dev/prod/local)
-      operationId: getAccountProfile
+      summary: Get MQTT configuration
+      description: Retrieves MQTT backend configuration
+      operationId: getAccountBackend
       responses:
         "200":
           description: Data retrieved successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/AccountProfile"
-    post:
+                $ref: "#/components/schemas/AccountBackend"
+    put:
       tags:
         - Account
-      summary: Set MQTT profile
-      description: Sets MQTT backend type (dev/prod/local)
-      operationId: setAccountProfile
-      parameters:
-        - name: profile
-          in: query
-          required: true
-          schema:
-            type: string
-            enum: ["dev", "prod", "local", "custom"]
-          example: "dev"
-        - name: custom_url
-          in: query
-          schema:
-            type: string
-            example: "mqtts://mqtt.example.com:8883"
+      summary: Set MQTT configuration
+      description: Sets MQTT backend configuration
+      operationId: setAccountBackend
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AccountBackend"
       responses:
         "200":
           description: Set successfully
@@ -2577,19 +2570,34 @@ components:
           example: "connected"
           enum: ["error", "disconnected", "connected"]
 
-    AccountProfile:
+    AccountBackend:
       type: object
       properties:
-        profile:
+        server_url:
           type: string
-          example: "dev"
-          enum: ["dev", "prod", "local", "custom"]
-        custom_url:
+          description: MQTT server url to connect to
+          examples:
+            - "default"
+            - "mqtts://mqtt.example.com:8883"
+        client_cert_type:
           type: string
-          description: Only present when profile is "custom"
-          example: "mqtts://mqtt.example.com:8883"
+          description: Client certificate type to use
+          examples:
+            - "default"
+            - "custom"
+          enum:
+            - "default"
+            - "custom"
+            - "none"
+        ignore_server_cert:
+          type: boolean
+          description: Whether to ignore the server certificate
+          examples:
+            - false
       required:
-        - profile
+        - server_url
+        - client_cert_type
+        - ignore_server_cert
 
     AccountLink:
       type: object

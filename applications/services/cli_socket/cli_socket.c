@@ -1,18 +1,42 @@
+#include "cli_socket_client.h"
+
 #include <furi.h>
 #include <lwip/tcp.h>
+#include <lwip/netif.h>
 #include <network/network.h>
-#include "cli_socket_client.h"
+#include <sysctl/sysctl.h>
 
 #include <lwip/tcpip.h>
 
 #define CLI_SOCKET_PORT 23
 #define TAG             "CliSocketServer"
 
+/**
+ * @brief Returns true if the accepted connection arrived on the WiFi netif ("WL0").
+ *
+ * Called from within the lwIP thread (accept callback), so netif_find is safe.
+ */
+static bool cli_socket_is_wifi_connection(struct tcp_pcb* client_socket) {
+    if(!IP_IS_V4_VAL(client_socket->local_ip)) return false;
+    struct netif* wifi_netif = network_find_netif(NetworkNetifWifi);
+    if(!wifi_netif) return false;
+    return ip4_addr_eq(ip_2_ip4(&client_socket->local_ip), netif_ip4_addr(wifi_netif));
+}
+
 static err_t cli_socket_accept_callback(void* context, struct tcp_pcb* client_socket, err_t err) {
     struct tcp_pcb* listen_socket = context;
     if(err != ERR_OK) {
         FURI_LOG_E(TAG, "Error accepting connection: %d", err);
         return err;
+    }
+
+    if(cli_socket_is_wifi_connection(client_socket) && !sysctl_get_cli_wifi_enabled()) {
+        FURI_LOG_I(
+            TAG,
+            "Rejected WiFi CLI from %s:%d (disabled by sysctl)",
+            ipaddr_ntoa(&client_socket->remote_ip),
+            client_socket->remote_port);
+        return ERR_MEM; /* lwIP aborts the PCB for us */
     }
 
     FURI_LOG_I(

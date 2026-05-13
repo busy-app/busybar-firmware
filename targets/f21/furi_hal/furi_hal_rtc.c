@@ -1,11 +1,12 @@
 #include <furi.h>
 #include <furi_hal_rtc.h>
-#include <furi_hal_cortex.h>
 
 #include <stm32u5xx_ll_pwr.h>
 #include <stm32u5xx_ll_rtc.h>
 #include <stm32u5xx_ll_rcc.h>
 #include <stm32u5xx_ll_bus.h>
+
+#include <toolbox/timers.h>
 
 #define TAG "FuriHalRtc"
 
@@ -96,11 +97,11 @@ DateTimeMs furi_hal_rtc_get_datetime(void) {
 
     for(;;) {
         /* only check timeout for consecutive RS wait cycles */
-        FuriHalCortexTimer timeout_timer = furi_hal_cortex_timer_get(FURI_HAL_RTC_SYNC_TIMEOUT_US);
+        PreciseTimer timeout_timer = precise_timer_create(FURI_HAL_RTC_SYNC_TIMEOUT_US);
         while(!LL_RTC_IsActiveFlag_RS(RTC)) {
             furi_thread_yield();
 
-            if(furi_hal_cortex_timer_is_expired(timeout_timer)) {
+            if(precise_timer_is_expired(timeout_timer)) {
                 furi_crash("RTC sync timeout: RS flag not set in time");
             }
         }

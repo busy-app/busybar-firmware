@@ -2,10 +2,11 @@
 #include "furi_hal_flash_otp.h"
 
 #include <furi.h>
-#include <furi_hal_cortex.h>
 #include <furi_hal_bits.h>
 
 #include <stm32u5xx_ll_icache.h>
+
+#include <toolbox/timers.h>
 
 #define FURI_HAL_FLASH_TOTAL_PAGES (2 * FLASH_PAGE_NB)
 #define FURI_HAL_FLASH_BUSY_WAIT_TIMEOUT_US \
@@ -70,7 +71,7 @@ static bool furi_hal_flash_program_quad_word_remainder(
     uint16_t* bytes_programmed_total, // Pointer to update the total
     const uint8_t* data,
     uint16_t total_length) {
-    FuriHalCortexTimer timer;
+    PreciseTimer timer;
 
     while(*bytes_programmed_total < total_length) {
         uint32_t current_qword_addr = page_start_addr + *bytes_programmed_total;
@@ -93,9 +94,9 @@ static bool furi_hal_flash_program_quad_word_remainder(
         }
 
         // 1. Wait for BSY = 0
-        timer = furi_hal_cortex_timer_get(FURI_HAL_FLASH_BUSY_WAIT_TIMEOUT_US);
+        timer = precise_timer_create(FURI_HAL_FLASH_BUSY_WAIT_TIMEOUT_US);
         while(FLASH->NSSR & FLASH_NSSR_BSY) {
-            if(furi_hal_cortex_timer_is_expired(timer)) {
+            if(precise_timer_is_expired(timer)) {
                 furi_crash("BSY timeout: QW pre-write");
                 return false; // Should not reach here due to furi_crash
             }
@@ -108,9 +109,9 @@ static bool furi_hal_flash_program_quad_word_remainder(
         }
 
         // 2. Wait until WDW is 0
-        timer = furi_hal_cortex_timer_get(FURI_HAL_FLASH_BUSY_WAIT_TIMEOUT_US);
+        timer = precise_timer_create(FURI_HAL_FLASH_BUSY_WAIT_TIMEOUT_US);
         while(FLASH->NSSR & FLASH_NSSR_WDW) {
-            if(furi_hal_cortex_timer_is_expired(timer)) {
+            if(precise_timer_is_expired(timer)) {
                 furi_crash("WDW timeout: QW pre-write");
                 return false;
             }
@@ -129,18 +130,18 @@ static bool furi_hal_flash_program_quad_word_remainder(
         *(volatile uint64_t*)(current_qword_addr + 8) = dword_val2;
 
         // 6. Wait until WDW is cleared
-        timer = furi_hal_cortex_timer_get(FURI_HAL_FLASH_PROGRAM_TIMEOUT_US);
+        timer = precise_timer_create(FURI_HAL_FLASH_PROGRAM_TIMEOUT_US);
         while(FLASH->NSSR & FLASH_NSSR_WDW) {
-            if(furi_hal_cortex_timer_is_expired(timer)) {
+            if(precise_timer_is_expired(timer)) {
                 furi_crash("WDW timeout: QW write");
                 return false;
             }
         }
 
         // 7. Wait until BSY is cleared
-        timer = furi_hal_cortex_timer_get(FURI_HAL_FLASH_PROGRAM_TIMEOUT_US);
+        timer = precise_timer_create(FURI_HAL_FLASH_PROGRAM_TIMEOUT_US);
         while(FLASH->NSSR & FLASH_NSSR_BSY) {
-            if(furi_hal_cortex_timer_is_expired(timer)) {
+            if(precise_timer_is_expired(timer)) {
                 furi_crash("BSY clear timeout: QW write");
                 return false;
             }
@@ -179,15 +180,15 @@ void furi_hal_flash_program_page(const uint8_t page, const uint8_t* data, uint16
 
     uint32_t page_start_addr = FLASH_BASE_NS + (page * FLASH_PAGE_SIZE);
     uint16_t bytes_programmed_total = 0;
-    FuriHalCortexTimer timer;
+    PreciseTimer timer;
 
     // --- Handle BURST programming part (128 bytes / 16 double-words per burst) ---
     uint16_t num_bursts = length / 128;
     for(uint16_t burst_idx = 0; burst_idx < num_bursts; ++burst_idx) {
         // 1. Wait for BSY = 0 (ensure no previous operation is ongoing)
-        timer = furi_hal_cortex_timer_get(FURI_HAL_FLASH_BUSY_WAIT_TIMEOUT_US);
+        timer = precise_timer_create(FURI_HAL_FLASH_BUSY_WAIT_TIMEOUT_US);
         while(FLASH->NSSR & FLASH_NSSR_BSY) {
-            if(furi_hal_cortex_timer_is_expired(timer)) {
+            if(precise_timer_is_expired(timer)) {
                 furi_crash("BSY timeout: Burst pre-op");
             }
         }
@@ -214,17 +215,17 @@ void furi_hal_flash_program_page(const uint8_t page, const uint8_t* data, uint16
         }
 
         // 6. Wait until BSY is set or WDW is cleared (operation started)
-        timer = furi_hal_cortex_timer_get(FURI_HAL_FLASH_PROGRAM_TIMEOUT_US);
+        timer = precise_timer_create(FURI_HAL_FLASH_PROGRAM_TIMEOUT_US);
         while(!(FLASH->NSSR & FLASH_NSSR_BSY) && (FLASH->NSSR & FLASH_NSSR_WDW)) {
-            if(furi_hal_cortex_timer_is_expired(timer)) {
+            if(precise_timer_is_expired(timer)) {
                 furi_crash("BSY/WDW timeout: Burst write");
             }
         }
 
         // 7. Wait until BSY is cleared (operation finished)
-        timer = furi_hal_cortex_timer_get(FURI_HAL_FLASH_PROGRAM_TIMEOUT_US);
+        timer = precise_timer_create(FURI_HAL_FLASH_PROGRAM_TIMEOUT_US);
         while(FLASH->NSSR & FLASH_NSSR_BSY) {
-            if(furi_hal_cortex_timer_is_expired(timer)) {
+            if(precise_timer_is_expired(timer)) {
                 furi_crash("BSY clear timeout: Burst write");
             }
         }
@@ -315,9 +316,9 @@ void furi_hal_flash_erase(const uint8_t page) {
     furi_hal_flash_unlock();
 
     // Wait for any previous operation to finish
-    FuriHalCortexTimer timer = furi_hal_cortex_timer_get(FURI_HAL_FLASH_BUSY_WAIT_TIMEOUT_US);
+    PreciseTimer timer = precise_timer_create(FURI_HAL_FLASH_BUSY_WAIT_TIMEOUT_US);
     while(FLASH->NSSR & FLASH_NSSR_BSY) {
-        if(furi_hal_cortex_timer_is_expired(timer)) {
+        if(precise_timer_is_expired(timer)) {
             furi_crash("BSY timeout: Erase pre-op");
         }
     }
@@ -339,9 +340,9 @@ void furi_hal_flash_erase(const uint8_t page) {
     FLASH->NSCR |= FLASH_NSCR_STRT; // Start erase operation
 
     // Wait for completion
-    timer = furi_hal_cortex_timer_get(FURI_HAL_FLASH_ERASE_TIMEOUT_US);
+    timer = precise_timer_create(FURI_HAL_FLASH_ERASE_TIMEOUT_US);
     while(FLASH->NSSR & FLASH_NSSR_BSY) {
-        if(furi_hal_cortex_timer_is_expired(timer)) {
+        if(precise_timer_is_expired(timer)) {
             furi_crash("erase timeout");
         }
     }
@@ -359,12 +360,12 @@ void furi_hal_flash_erase(const uint8_t page) {
 void furi_hal_flash_init(void) {
     // check that PA15_PUPEN is 0 and restore if necessary
     if(furi_hal_bits_is_set(FLASH->OPTR, FLASH_OPTR_PA15_PUPEN)) {
-        FuriHalCortexTimer timer = furi_hal_cortex_timer_get(FURI_HAL_FLASH_BUSY_WAIT_TIMEOUT_US);
+        PreciseTimer timer = precise_timer_create(FURI_HAL_FLASH_BUSY_WAIT_TIMEOUT_US);
 
         FURI_CRITICAL_ENTER();
         // Check that no flash memory operation is on going
         while(furi_hal_bits_is_set(FLASH->NSSR, FLASH_NSSR_BSY)) {
-            if(furi_hal_cortex_timer_is_expired(timer)) {
+            if(precise_timer_is_expired(timer)) {
                 furi_crash("BSY timeout");
             }
         }
@@ -381,7 +382,7 @@ void furi_hal_flash_init(void) {
 
         // Wait for the operation to complete
         while(furi_hal_bits_is_set(FLASH->NSSR, FLASH_NSSR_BSY)) {
-            if(furi_hal_cortex_timer_is_expired(timer)) {
+            if(precise_timer_is_expired(timer)) {
                 furi_crash("BSY timeout: programming option bytes");
             }
         }

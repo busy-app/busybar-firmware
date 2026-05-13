@@ -24,6 +24,7 @@
         <UButton
           data-id="firmware-section-primary-check-for-updates-button"
           label="Check for updates"
+          class="justify-center sm:justify-start"
           :disabled="wifiStore.wifi?.state !== 'connected'"
           :loading="firmwareStore.autoUpdate.isChecking"
           @click="firmwareStore.autoUpdate.isManualCheck = true; firmwareStore.requestAutoUpdateCheck()"

@@ -59,11 +59,11 @@ static void ble_service_init_wait_callback(BleServiceObject* service, bool resul
     Ble* instance = ctx;
 
     uint8_t total_ready;
-    for(total_ready = 0; total_ready < BLE_SERVICES_COUNT; total_ready++) {
+    for(total_ready = 0; total_ready < BleServiceIndexCount; total_ready++) {
         if(!ble_service_is_ready(instance->services[total_ready])) break;
     }
 
-    if(total_ready == BLE_SERVICES_COUNT) {
+    if(total_ready == BleServiceIndexCount) {
         instance->status = BleServiceStatusReady;
         ble_set_service_post_process_callback(instance, NULL);
 #ifdef BLE_DEBUG_PRINT_SERVICE_DATA_AFTER_INIT

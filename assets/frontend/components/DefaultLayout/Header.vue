@@ -82,7 +82,7 @@
             label: 'Rename',
             icon: 'i-bi-edit',
             onSelect: () => {
-              nameModel = '';
+              nameModel = deviceStore.deviceName || '';
               showRenameModal = true;
             }
           }
@@ -93,7 +93,10 @@
           sideOffset: 8
         }"
         :ui="{
-          content: 'w-36'
+          content: 'w-36 bg-elevated ring-accented/50',
+          group: 'border-accented/50',
+          item: 'data-[state=open]:before:bg-accented/50 data-highlighted:before:bg-accented/50',
+          itemLabelExternalIcon: 'hidden'
         }"
       >
         <UButton
@@ -102,7 +105,7 @@
           trailing-icon="i-bi-caret-down"
           color="neutral"
           variant="ghost"
-          class="text-xl rounded-md"
+          class="max-w-[calc(100vw-2rem-5.625rem-2.25rem)] sm:max-w-auto relative -right-4 xl:-right-2 text-xl rounded-md truncate"
           :ui="{
             trailingIcon: 'size-6 text-neutral-500'
           }"
@@ -135,13 +138,25 @@
         <template #body>
           <UInput
             v-model="nameModel"
+            :maxlength="maxNameLength"
             name="new-name"
             size="xl"
             variant="soft"
             :ui="{ base: 'ring-1 ring-glass bg-accented/50' }"
             :disabled="loading.rename"
             @keyup.enter="updateDeviceName"
-          />
+          >
+          <template #trailing>
+            <div
+              id="character-count"
+              class="text-xs text-muted tabular-nums"
+              aria-live="polite"
+              role="status"
+            >
+              {{ nameModel?.length }}/{{ maxNameLength }}
+            </div>
+          </template>
+        </UInput>
         </template>
       </ModalGeneric>
 
@@ -203,7 +218,9 @@
                 class="size-5"
               />
             </div>
-            <div class="max-w-[230px] text-xs text-muted">Link your device to BUSY Account to sync your data across all platforms</div>
+            <div class="max-w-[230px] min-w-[200px] text-xs text-muted">
+              {{ accountLinked ? 'Manage your BUSY Account' : 'Link your device to BUSY Account to sync your data across all platforms' }}
+            </div>
           </div>
         </template>
       </UDropdownMenu>
@@ -217,6 +234,7 @@ const pms = usePasswordModalStore();
 const tabStore = useTabStore();
 
 const colorMode = useColorMode();
+const maxNameLength = 18;
 
 const passwordSetItems = computed(() => [
   {
@@ -273,8 +291,6 @@ const userDropdownItems = computed(() => {
   const baseItems = [
     [
       {
-        label: 'Log in to BUSY Account',
-        icon: 'i-bi-user',
         slot: 'signin' as const,
         type: 'link',
         href: 'https://cloud.busy.app',
@@ -333,12 +349,6 @@ async function restartDevice () {
   }
 }
 
-/* async function lockDown () {
-  apiStore.apiKey = null;
-  deviceStore.busyBar.setApiKey('');
-  await navigateTo('/login', { external: true });
-} */
-
 const power = computed(() => deviceStore.deviceStatus?.power);
 
 const logoClickCounter = ref(0);
@@ -358,15 +368,16 @@ function onLogoClick () {
   }
 }
 
+const accountLinked = computed(() => deviceStore.accountInfo?.linked);
+
 async function init () {
   await deviceStore.fetchHttpAPIAccess();
 
   await deviceStore.detectConnectionType();
-  if (deviceStore.connectionType === 'usb') {
-    passwordSetItems.value.splice(0, 1);
-  }
 
   nameModel.value = await deviceStore.fetchDeviceName();
+
+  await deviceStore.fetchAccountInfo();
 }
 
 const urlHost = computed(() => window.location.host);
@@ -375,5 +386,7 @@ onMounted(async () => {
   await init();
   window.addEventListener('device-reconnected', init);
 });
-onBeforeUnmount(() => window.removeEventListener('device-reconnected', init));
+onBeforeUnmount(() => {
+  window.removeEventListener('device-reconnected', init);
+});
 </script>

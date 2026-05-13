@@ -1,190 +1,42 @@
 <template>
   <div
     data-id="state-screen-stream"
-    class="screen-stream-container"
+    class="relative w-fit mx-auto"
   >
-    <div class="device-image">
+    <div class="relative z-1">
       <img
         src="~/assets/images/busybar-device.png"
         class="w-[310px] sm:w-[385px]"
       >
     </div>
-    <div class="canvas-container">
+    <div
+      class="w-[288px] sm:w-[360px]
+        absolute top-[calc(50%+8.5px)] left-[calc(50%-0.5px)] transform -translate-x-1/2 -translate-y-1/2 z-2"
+    >
       <canvas
         ref="canvasRef"
         data-id="state-screen-stream-canvas"
-        :width="canvasWidth"
-        :height="canvasHeight"
-        class="aspect-[72/16]"
+        :width="Number(configStore.get('screenStreamCanvasBaseResolutionWidth')) * dpr"
+        :height="(Number(configStore.get('screenStreamCanvasBaseResolutionWidth')) / FRONT_SCREEN_WIDTH * FRONT_SCREEN_HEIGHT) * dpr"
+        class="w-full bg-transparent rounded-sm aspect-[72/16]"
       />
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { DeviceScreen } from '@busy-app/busy-lib';
-import { decodeFramePayload } from '@/util/stateFrameData';
-import type { StateFrameMessage } from '@/util/stateStreamMessage';
+import { BSB_Frame, LEDRenderer } from '@busy-app/busy-lib';
+import type { ProcessedFrame } from '@busy-app/busy-lib';
 
 const screenStreamStore = useScreenStreamStore();
 const deviceStore = useDeviceStore();
-const canvasRef = ref<HTMLCanvasElement | null>(null);
-const canvasCtx = ref<CanvasRenderingContext2D | null>(null);
+const configStore = useConfigStore();
 
-const currentFrame = computed(() => screenStreamStore.currentFrame);
-const originalDimensions = computed(() => {
-  if (currentFrame.value?.width && currentFrame.value?.height) {
-    return {
-      width: currentFrame.value.width,
-      height: currentFrame.value.height
-    };
-  }
-
-  return screenStreamStore.currentScreen === DeviceScreen.FRONT
-    ? { width: 72, height: 16 }
-    : { width: 160, height: 80 };
-});
-
-const windowWidth = ref(window.innerWidth);
-function handleResize () {
-  windowWidth.value = window.innerWidth;
-  if (windowWidth.value > 640 && scaleFactor.value !== 5) {
-    scaleFactor.value = 5;
-  } else if (windowWidth.value <= 640 && scaleFactor.value !== 4) {
-    scaleFactor.value = 4;
-  }
-}
-
-const scaleFactor = ref(windowWidth.value > 640 ? 5 : 4);
-const canvasWidth = computed(() => originalDimensions.value.width * scaleFactor.value);
-const canvasHeight = computed(() => originalDimensions.value.height * scaleFactor.value);
-
-function generateGrayscalePalette (): Array<[number, number, number]> {
-  const palette: Array<[number, number, number]> = [];
-  for (let value = 0; value < 16; value++) {
-    const brightness = (value / 15) * 255;
-    palette.push([brightness, brightness, brightness]);
-  }
-  return palette;
-}
-
-const backColorPalette = generateGrayscalePalette();
-let renderSequence = 0;
-
-function clearCanvas () {
-  if (canvasCtx.value) {
-    canvasCtx.value.clearRect(0, 0, canvasWidth.value, canvasHeight.value);
-  }
-}
-
-async function renderFrame (frame: StateFrameMessage) {
-  if (!canvasCtx.value) {
-    return;
-  }
-
-  const sequence = ++renderSequence;
-  let frameData: Uint8Array;
-
-  try {
-    frameData = await decodeFramePayload(frame);
-  } catch (error) {
-    console.error('Could not decode streamed frame', error);
-    return;
-  }
-
-  if (sequence !== renderSequence || !canvasCtx.value) {
-    return;
-  }
-
-  const ctx = canvasCtx.value;
-  const { width, height } = originalDimensions.value;
-  const pixelFormat = frame.pixelFormat ?? 'RGB888';
-
-  ctx.clearRect(0, 0, canvasWidth.value, canvasHeight.value);
-
-  const imageData = ctx.createImageData(width, height);
-
-  if (pixelFormat === 'RGB888') {
-    for (let index = 0; index < frameData.length; index += 3) {
-      const offset = index / 3 * 4;
-      imageData.data[offset] = frameData[index + 2];
-      imageData.data[offset + 1] = frameData[index + 1];
-      imageData.data[offset + 2] = frameData[index];
-      imageData.data[offset + 3] = frameData[index + 2] === 0 && frameData[index + 1] === 0 && frameData[index] === 0 ? 0 : 255;
-    }
-  } else {
-    for (let index = 0; index < frameData.length; index++) {
-      const offset = index * 4;
-      const pixelValue = pixelFormat === 'L8' ? Math.round((frameData[index] / 255) * 15) : frameData[index];
-      const [red, green, blue] = backColorPalette[Math.max(0, Math.min(15, pixelValue))];
-      imageData.data[offset] = red;
-      imageData.data[offset + 1] = green;
-      imageData.data[offset + 2] = blue;
-      imageData.data[offset + 3] = 255;
-    }
-  }
-
-  const tempCanvas = document.createElement('canvas');
-  tempCanvas.width = width;
-  tempCanvas.height = height;
-  const tempCtx = tempCanvas.getContext('2d');
-
-  if (!tempCtx) {
-    return;
-  }
-
-  tempCtx.putImageData(imageData, 0, 0);
-
-  ctx.imageSmoothingEnabled = false;
-  ctx.drawImage(tempCanvas, 0, 0, width, height, 0, 0, canvasWidth.value, canvasHeight.value);
-
-  const gap = scaleFactor.value;
-  ctx.save();
-  ctx.strokeStyle = 'black';
-  ctx.lineWidth = 1;
-
-  for (let x = 0; x <= canvasWidth.value; x += gap) {
-    ctx.beginPath();
-    ctx.moveTo(x + 0.5, 0);
-    ctx.lineTo(x + 0.5, canvasHeight.value);
-    ctx.stroke();
-  }
-
-  for (let y = 0; y <= canvasHeight.value; y += gap) {
-    ctx.beginPath();
-    ctx.moveTo(0, y + 0.5);
-    ctx.lineTo(canvasWidth.value, y + 0.5);
-    ctx.stroke();
-  }
-
-  const scaledImageData = ctx.getImageData(0, 0, canvasWidth.value, canvasHeight.value);
-  const pixels = scaledImageData.data;
-
-  for (let index = 0; index < pixels.length; index += 4) {
-    const brightness = 0.299 * pixels[index] + 0.587 * pixels[index + 1] + 0.114 * pixels[index + 2];
-    if (brightness <= 10) {
-      pixels[index + 3] = Math.round(255 * (brightness / 51) * 0.2);
-    }
-  }
-
-  ctx.putImageData(scaledImageData, 0, 0);
-  ctx.restore();
-}
-
-watch(currentFrame, frame => {
-  if (!frame) {
-    clearCanvas();
-    return;
-  }
-
-  void renderFrame(frame);
-}, { immediate: true });
-
-watch([canvasWidth, canvasHeight], () => {
-  if (currentFrame.value) {
-    void renderFrame(currentFrame.value);
-  }
-});
+const canvasRef = useTemplateRef('canvasRef');
+const dpr = window.devicePixelRatio || 1;
+const FRONT_SCREEN_WIDTH = 72;
+const FRONT_SCREEN_HEIGHT = 16;
+const FRONT_SCREEN_PIXEL_COUNT = FRONT_SCREEN_WIDTH * FRONT_SCREEN_HEIGHT;
 
 function isBase64FramePayload (value: string): boolean {
   const normalized = value.trim();
@@ -205,93 +57,125 @@ function decodeBase64FramePayload (value: string): Uint8Array {
   return data;
 }
 
+function setOpaqueAlphaChannel (source: Uint8Array): Uint8Array {
+  const data = source.slice();
+
+  for (let index = 3; index < data.length; index += 4) {
+    data[index] = 0xFF;
+  }
+
+  return data;
+}
+
+function expandRgbFramePayload (source: Uint8Array): Uint8Array {
+  const data = new Uint8Array((source.length / 3) * 4);
+
+  for (let sourceIndex = 0, targetIndex = 0; sourceIndex < source.length; sourceIndex += 3, targetIndex += 4) {
+    data[targetIndex] = source[sourceIndex + 2];
+    data[targetIndex + 1] = source[sourceIndex + 1];
+    data[targetIndex + 2] = source[sourceIndex];
+    data[targetIndex + 3] = 0xFF;
+  }
+
+  return data;
+}
+
+function normalizeInitialFramePixelData (source: Uint8Array): Uint8Array {
+  const expectedRgbLength = FRONT_SCREEN_PIXEL_COUNT * 3;
+  const expectedRgbaLength = FRONT_SCREEN_PIXEL_COUNT * 4;
+
+  if (source.length === expectedRgbLength) {
+    return expandRgbFramePayload(source);
+  }
+
+  if (source.length === expectedRgbaLength) {
+    return setOpaqueAlphaChannel(source);
+  }
+
+  return source;
+}
+
 async function normalizeInitialFramePayload (source: Blob | ArrayBuffer | Uint8Array | string): Promise<Uint8Array> {
   if (typeof source === 'string') {
-    return isBase64FramePayload(source) ? decodeBase64FramePayload(source) : new TextEncoder().encode(source);
+    const data = isBase64FramePayload(source) ? decodeBase64FramePayload(source) : new TextEncoder().encode(source);
+
+    return normalizeInitialFramePixelData(data);
   }
 
   if (source instanceof Blob) {
     const text = await source.text();
 
     if (isBase64FramePayload(text)) {
-      return decodeBase64FramePayload(text);
+      return normalizeInitialFramePixelData(decodeBase64FramePayload(text));
     }
 
-    return new Uint8Array(await source.arrayBuffer());
+    return normalizeInitialFramePixelData(new Uint8Array(await source.arrayBuffer()));
   }
 
   const data = source instanceof Uint8Array ? source : new Uint8Array(source);
   const text = new TextDecoder().decode(data);
 
-  return isBase64FramePayload(text) ? decodeBase64FramePayload(text) : data;
+  return normalizeInitialFramePixelData(isBase64FramePayload(text) ? decodeBase64FramePayload(text) : data);
 }
 
-async function convertInitialFrameToStateFrame (source: Blob | ArrayBuffer | Uint8Array | string): Promise<StateFrameMessage> {
+async function convertInitialFrameToStateFrame (source: Blob | ArrayBuffer | Uint8Array | string): Promise<ProcessedFrame> {
   const data = await normalizeInitialFramePayload(source);
 
   return {
-    screen: 'FRONT',
-    width: 72,
-    height: 16,
-    encoding: 'PLAIN',
-    pixelFormat: 'RGB888',
+    screen: BSB_Frame.Screen.FRONT,
+    width: FRONT_SCREEN_WIDTH,
+    height: FRONT_SCREEN_HEIGHT,
+    encoding: BSB_Frame.Encoding.PLAIN,
+    pixelFormat: BSB_Frame.PixelFormat.RGB888,
     data
   };
 }
 
-async function getInitialFrame () {
+async function getInitialFrame (): Promise<ProcessedFrame> {
   const busyBar = deviceStore.busyBar;
-  const screen = await busyBar.DisplayScreenFrameGet({ display: DeviceScreen.FRONT });
+  const screen = await busyBar.DisplayScreenFrameGet({ display: BSB_Frame.Screen.FRONT });
   const initialFrame = await convertInitialFrameToStateFrame(screen as Blob | ArrayBuffer | Uint8Array | string);
 
-  await renderFrame(initialFrame);
+  return initialFrame;
 }
 
-onMounted(async () => {
-  window.addEventListener('resize', handleResize);
+function renderFrame (frame: ProcessedFrame) {
+  if (canvasRef.value && frame?.data && frame.width && frame.height) {
+    LEDRenderer.renderFrame(
+      canvasRef.value,
+      frame.data,
+      frame.width,
+      frame.height
+    );
+  }
+}
 
-  if (canvasRef.value) {
-    canvasCtx.value = canvasRef.value.getContext('2d', { willReadFrequently: true });
-    if (canvasCtx.value) {
-      canvasCtx.value.imageSmoothingEnabled = false;
+watch(() => screenStreamStore.currentFrame, currentFrame => {
+  if (currentFrame) {
+    renderFrame(currentFrame);
+  }
+}, { flush: 'post' });
+
+onMounted(async () => {
+  if (screenStreamStore.currentFrame) {
+    renderFrame(screenStreamStore.currentFrame);
+  } else {
+    const initialFrame = await getInitialFrame();
+    if (initialFrame) {
+      screenStreamStore.currentFrame = initialFrame;
     }
   }
-
-  if (currentFrame.value) {
-    await renderFrame(currentFrame.value);
-  } else {
-    await getInitialFrame();
-  }
-});
-
-onBeforeUnmount(() => {
-  window.removeEventListener('resize', handleResize);
 });
 </script>
 
 <style scoped>
-.screen-stream-container {
-  position: relative;
-  width: fit-content;
-  margin: 0 auto;
-}
-
-.device-image {
-  position: relative;
-  z-index: 1;
-}
-
 .canvas-container {
+  max-width: 360px;
+  width: 100%;
   position: absolute;
   top: calc(50% + 8px);
   left: calc(50% - 1px);
   transform: translate(-50%, -50%);
   z-index: 2;
-}
-
-canvas {
-  display: block;
-  background-color: transparent;
-  border-radius: 2px;
 }
 </style>

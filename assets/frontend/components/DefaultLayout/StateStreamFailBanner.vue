@@ -1,6 +1,6 @@
 <template>
   <div
-    v-if="useStateStreamStore().showStateStreamFailBanner"
+    v-if="stateStreamStore.showStateStreamFailBanner"
     class="w-full flex items-center justify-between p-4 pr-6 ring-1 ring-glass rounded-3xl
       bg-linear-to-r from-warning-50 to-warning-50
       dark:from-30% dark:from-warning-950/80 dark:to-warning-800/80"
@@ -11,8 +11,8 @@
         class="size-7.5 text-warning"
       />
       <div class="flex flex-col gap-1">
-        <span class="text-warning font-medium">Failed to start state websocket</span>
-        <span class="text-sm text-highlighted/90">Are there too many connections to the device? Falling back to HTTP polling</span>
+        <span class="text-warning font-medium">Can’t access your BUSY Bar screen</span>
+        <span class="text-sm text-highlighted/90">Try again or reconnect your device</span>
       </div>
     </div>
 
@@ -29,7 +29,13 @@
 </template>
 
 <script setup lang="ts">
+const stateStreamStore = useStateStreamStore();
+
 function dispatchRestartEvent () {
+  if (stateStreamStore.streamNotRestartable) {
+    location.reload();
+    return;
+  }
   window.dispatchEvent(new CustomEvent('protobuf-websocket-restart'));
 }
 </script>

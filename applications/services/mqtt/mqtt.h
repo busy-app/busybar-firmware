@@ -32,7 +32,7 @@
  */
 #pragma once
 
-#include "mqtt_common.h"
+#include "mqtt_config.h"
 
 #include <core/pubsub.h>
 #include <core/string.h>
@@ -234,28 +234,21 @@ void mqtt_get_session_info(Mqtt* instance, MqttSessionInfo* info);
 // =========================== Profile management ==================================
 
 /**
- * @brief Get the currently active profile.
- *
- * @note FuriString object passed as @p custom_url will only be filled
- *       if the current profile is set to @c MqttProfileIdCustom.
- *       It may also be @c NULL if it is not needed.
+ * @brief Get the current backend configuration.
  *
  * @param[in] instance pointer to the MQTT service instance to be queried
- * @param[out] custom_url pointer to a FuriString to contain the custom broker URL, if applicable
+ * @param[out] config pointer to a MqttConfig structure to contain the result (must be allocated)
  */
-MqttProfileId mqtt_get_profile(Mqtt* instance, FuriString* custom_url);
+void mqtt_get_config(Mqtt* instance, MqttConfig* config);
 
 /**
- * @brief Set the current profile to another one.
- *
- * @note String passed as @p custom_url will only have an effect
- *       if @p profile_id is set to @c MqttProfileIdCustom.
+ * @brief Set the backend configuration.
  *
  * @param[in,out] instance pointer to the MQTT service instance to be modified
- * @param[in] profile_id
- * @param[in] custom_url C-string containing the custom MQTT broker url
+ * @param[in] config pointer to a MqttConfig structure containing the configuration to be set
+ * @returns @c true if the configuration could be successfully set, @c false otherwise
  */
-void mqtt_set_profile(Mqtt* instance, MqttProfileId profile_id, const char* custom_url);
+bool mqtt_set_config(Mqtt* instance, const MqttConfig* config);
 
 // =========================== Subscription management ==================================
 
