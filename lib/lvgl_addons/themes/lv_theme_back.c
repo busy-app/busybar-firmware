@@ -156,6 +156,7 @@ static void style_init(my_theme_t* theme, FontRegistry* font_registry) {
     lv_style_set_text_font(
         &theme->styles.dialog_text_main,
         font_registry_load_font(font_registry, FONT_BUSY_REGULAR_7));
+    lv_style_set_margin_bottom(&theme->styles.dialog_text_main, 2);
 
     lv_style_init(&theme->styles.dialog_text_sub);
     lv_style_set_flex_grow(&theme->styles.dialog_text_sub, 0);
@@ -170,6 +171,7 @@ static void style_init(my_theme_t* theme, FontRegistry* font_registry) {
     lv_style_init(&theme->styles.dialog_cursor);
     lv_style_set_width(&theme->styles.dialog_cursor, LV_SIZE_CONTENT);
     lv_style_set_margin_right(&theme->styles.dialog_cursor, 0);
+    lv_style_set_pad_left(&theme->styles.dialog_cursor, 3);
 
     lv_style_init(&theme->styles.title_card_label);
     lv_style_set_text_color(&theme->styles.title_card_label, COLOR_FG_FOCUSED);
