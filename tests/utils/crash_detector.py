@@ -4,9 +4,11 @@ Crash detection utilities for BSB firmware tests.
 Monitors device crashes by checking crash_detected.flag in SESSION_LOG_DIR.
 """
 
+import hashlib
 import json
 import logging
 import os
+import re
 import tempfile
 import time
 from dataclasses import dataclass
@@ -26,6 +28,8 @@ TRACE_COMPLETION_POLL = 1.0
 FORCE_TRACE_REQUEST_FILENAME = "force_trace_request.flag"
 FORCED_TRACE_TIMEOUT = 180.0
 FORCED_TRACE_POLL = 1.0
+FORCED_TRACE_S3_WAIT = 30.0
+FORCED_TRACE_S3_POLL = 0.5
 _TRACE_PENDING_STATUSES = {"pending", "in_progress"}
 
 
@@ -140,6 +144,7 @@ def request_forced_trace(
                     request_id,
                     status,
                 )
+                _wait_for_forced_trace_s3_urls(request_id, flag_data, log_dir)
                 return flag_data
             logger.debug(
                 "Waiting for forced GDB trace completion: request_id=%s status=%s",
@@ -156,6 +161,43 @@ def request_forced_trace(
         reason,
     )
     return None
+
+
+def _forced_trace_flag_path(request_id: str, log_dir: Optional[Path] = None) -> Optional[Path]:
+    base = log_dir or _session_log_dir()
+    if not base:
+        return None
+    return base / "forced_traces" / f"{request_id}.flag"
+
+
+def _wait_for_forced_trace_s3_urls(
+    request_id: str,
+    flag_data: dict,
+    log_dir: Optional[Path] = None,
+    timeout: float = FORCED_TRACE_S3_WAIT,
+) -> None:
+    """Best-effort: merge `s3_urls` into `flag_data` once notification_service
+    has uploaded the trace artifacts. The wait is bounded — if S3 is disabled
+    or the upload takes too long, we leave `s3_urls` absent and let the caller
+    render the comment without trace links."""
+    flag_path = _forced_trace_flag_path(request_id, log_dir=log_dir)
+    if not flag_path:
+        return
+
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        per_event = _read_json_file(flag_path)
+        if per_event and per_event.get("s3_urls"):
+            flag_data["s3_urls"] = per_event["s3_urls"]
+            return
+        time.sleep(FORCED_TRACE_S3_POLL)
+
+    logger.info(
+        "No s3_urls for forced trace within %.0fs: request_id=%s flag=%s",
+        timeout,
+        request_id,
+        flag_path,
+    )
 
 
 def serial_crash_recently_handled(lookback_seconds: float = 60.0) -> bool:
@@ -203,6 +245,81 @@ def record_forced_trace(node, trace: Optional[dict], phase: str) -> None:
     trace_record.setdefault("pytest_phase", phase)
     forced_traces.append(trace_record)
     node._forced_trace = trace_record
+    _write_forced_trace_sidecar(node, trace_record, phase)
+
+
+def _sanitize_nodeid_for_filename(nodeid: str) -> str:
+    raw = nodeid or "unknown"
+    cleaned = re.sub(r"[^\w.\-]+", "_", raw).strip("_") or "unknown"
+    if len(cleaned) <= 180:
+        return cleaned
+    digest = hashlib.sha1(raw.encode()).hexdigest()[:10]
+    return f"{cleaned[:170]}_{digest}"
+
+
+def _junit_id_from_nodeid(nodeid: str) -> str:
+    """Mirror pytest's JUnit `classname::name` format so report_test_results.py
+    can match failed-test names against forced-trace sidecars."""
+    if not nodeid or "::" not in nodeid:
+        return nodeid
+    path_part, _, rest = nodeid.partition("::")
+    if path_part.endswith(".py"):
+        path_part = path_part[:-3]
+    classname_path = path_part.replace("\\", "/").replace("/", ".")
+    pieces = rest.split("::")
+    name = pieces[-1]
+    extra = ".".join(pieces[:-1])
+    classname = f"{classname_path}.{extra}" if extra else classname_path
+    return f"{classname}::{name}"
+
+
+def _write_forced_trace_sidecar(node, trace: dict, phase: str) -> None:
+    """Append a thin record to a per-nodeid sidecar so report_test_results.py
+    can resolve failed-test names to forced-trace request_ids (and from there,
+    to per-request flag files containing `s3_urls`)."""
+    log_dir = _session_log_dir()
+    if not log_dir:
+        return
+    nodeid = getattr(node, "nodeid", "") or ""
+    if not nodeid:
+        return
+
+    sidecar_dir = log_dir / "forced_traces"
+    try:
+        sidecar_dir.mkdir(parents=True, exist_ok=True)
+    except OSError as exc:
+        logger.warning("Failed to create forced_traces dir %s: %s", sidecar_dir, exc)
+        return
+
+    sidecar_path = sidecar_dir / f"{_sanitize_nodeid_for_filename(nodeid)}.sidecar.json"
+
+    record = {
+        "nodeid": nodeid,
+        "junit_id": _junit_id_from_nodeid(nodeid),
+        "phase": phase,
+        "request_id": trace.get("request_id"),
+        "processor": _forced_trace_processor(trace),
+        "trace_status": trace.get("trace_status"),
+        "reason": trace.get("reason"),
+        "timestamp": trace.get("timestamp") or datetime.now().isoformat(),
+    }
+
+    existing: list = []
+    if sidecar_path.exists():
+        try:
+            loaded = json.loads(sidecar_path.read_text())
+            if isinstance(loaded, list):
+                existing = loaded
+            elif isinstance(loaded, dict):
+                existing = [loaded]
+        except (OSError, json.JSONDecodeError) as exc:
+            logger.warning("Discarding unreadable sidecar %s: %s", sidecar_path, exc)
+
+    existing.append(record)
+    try:
+        sidecar_path.write_text(json.dumps(existing, indent=2, sort_keys=True))
+    except OSError as exc:
+        logger.warning("Failed to write forced trace sidecar %s: %s", sidecar_path, exc)
 
 
 def request_forced_trace_for_node(node, reason: str, phase: str) -> Optional[dict]:

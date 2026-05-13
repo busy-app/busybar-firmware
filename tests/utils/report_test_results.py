@@ -8,6 +8,10 @@ import sys
 import xml.etree.ElementTree as ET
 
 
+JUNIT_FAILURE_MESSAGE_LIMIT = 800
+TRACE_LINK_KEYS = ("U5 Trace", "Si917 Trace", "Full Log", "Trimmed Crash Log")
+
+
 def parse_junit(xml_path: str) -> dict:
     if not os.path.exists(xml_path):
         return None
@@ -30,7 +34,7 @@ def parse_junit(xml_path: str) -> dict:
         if fail is not None or err is not None:
             node = fail if fail is not None else err
             name = tc.attrib.get("classname", "") + "::" + tc.attrib.get("name", "")
-            msg = node.attrib.get("message", "")[:200]
+            msg = node.attrib.get("message", "")[:JUNIT_FAILURE_MESSAGE_LIMIT]
             failed_tests.append((name, msg))
 
     return {
@@ -45,7 +49,121 @@ def parse_junit(xml_path: str) -> dict:
     }
 
 
-def build_pr_comment(results: dict | None, allure_url: str) -> str:
+def load_forced_traces(log_dir: str) -> dict:
+    """Index forced-trace artifacts by JUnit-style test id.
+
+    For each test that triggered a forced GDB trace, conftest writes a thin
+    sidecar (`<log_dir>/forced_traces/<sanitized_nodeid>.sidecar.json`)
+    listing the request_ids and a JUnit-style id we can match against
+    JUnit XML output. The actual S3 URLs live in a per-request flag
+    (`<log_dir>/forced_traces/<request_id>.flag`) enriched by
+    notification_service. We join them here so the PR-comment renderer
+    sees `{junit_id: [{processor, s3_urls, trace_status, ...}, ...]}`.
+    """
+    if not log_dir:
+        return {}
+    trace_dir = os.path.join(log_dir, "forced_traces")
+    if not os.path.isdir(trace_dir):
+        return {}
+
+    mapping: dict[str, list] = {}
+    for entry in sorted(os.listdir(trace_dir)):
+        if not entry.endswith(".sidecar.json"):
+            continue
+        sidecar_path = os.path.join(trace_dir, entry)
+        try:
+            with open(sidecar_path) as f:
+                records = json.load(f)
+        except (OSError, json.JSONDecodeError):
+            continue
+        if not isinstance(records, list):
+            records = [records] if isinstance(records, dict) else []
+        for record in records:
+            if not isinstance(record, dict):
+                continue
+            junit_id = record.get("junit_id") or record.get("nodeid")
+            if not junit_id:
+                continue
+            request_id = record.get("request_id")
+            flag = _read_forced_trace_flag(trace_dir, request_id) if request_id else None
+            mapping.setdefault(junit_id, []).append(
+                {
+                    "request_id": request_id,
+                    "phase": record.get("phase"),
+                    "processor": record.get("processor") or (flag or {}).get("processor"),
+                    "trace_status": (flag or {}).get("trace_status") or record.get("trace_status"),
+                    "s3_urls": (flag or {}).get("s3_urls") or {},
+                    "skip_reason": (flag or {}).get("skip_reason"),
+                    "reason": record.get("reason") or (flag or {}).get("reason"),
+                }
+            )
+    return mapping
+
+
+def _read_forced_trace_flag(trace_dir: str, request_id: str) -> dict | None:
+    flag_path = os.path.join(trace_dir, f"{request_id}.flag")
+    if not os.path.exists(flag_path):
+        return None
+    try:
+        with open(flag_path) as f:
+            return json.load(f)
+    except (OSError, json.JSONDecodeError):
+        return None
+
+
+def _summary_error(msg: str, limit: int = 120) -> str:
+    cleaned = (msg or "").replace("\n", " ").strip()
+    if not cleaned:
+        return "no error message"
+    return cleaned if len(cleaned) <= limit else cleaned[: limit - 1] + "…"
+
+
+def _blockquoted(msg: str) -> str:
+    text = (msg or "").strip() or "no error message"
+    return "\n".join(f"> {line}" if line else ">" for line in text.splitlines())
+
+
+def _trace_links(traces: list) -> list:
+    seen: set[str] = set()
+    lines: list[str] = []
+    for trace in traces or []:
+        for key in TRACE_LINK_KEYS:
+            url = (trace.get("s3_urls") or {}).get(key)
+            if not url or url in seen:
+                continue
+            seen.add(url)
+            lines.append(f"- [{key}]({url})")
+    return lines
+
+
+def _failed_test_block(name: str, msg: str, traces: list) -> str:
+    lines = [
+        "<details>",
+        f"<summary><code>{name}</code> — FAILED — {_summary_error(msg)}</summary>",
+        "",
+        _blockquoted(msg),
+        "",
+    ]
+    link_lines = _trace_links(traces)
+    if link_lines:
+        lines.extend(link_lines)
+        lines.append("")
+    elif traces:
+        # We have forced-trace records but no S3 URLs (upload disabled or
+        # still in flight when the workflow ran). Surface this so the
+        # reader does not assume traces were never attempted.
+        status = (traces[0].get("trace_status") or "unknown").strip()
+        skip_reason = traces[0].get("skip_reason")
+        if skip_reason:
+            lines.append(f"_Trace skipped: {skip_reason}_")
+        else:
+            lines.append(f"_Trace captured (status: {status}), no S3 links available._")
+        lines.append("")
+    lines.append("</details>")
+    return "\n".join(lines)
+
+
+def build_pr_comment(results: dict | None, allure_url: str, log_dir: str = "") -> str:
     lines = []
 
     if results is None:
@@ -67,21 +185,15 @@ def build_pr_comment(results: dict | None, allure_url: str) -> str:
         lines.append(f"[Allure Report]({allure_url})")
 
     if r["failed_tests"]:
+        traces_by_id = load_forced_traces(log_dir)
         lines.append("")
-        lines.append("<details>")
-        lines.append(f"<summary>{len(r['failed_tests'])} failed tests</summary>")
-        lines.append("")
-        lines.append("| Test | Error |")
-        lines.append("|------|-------|")
         for name, msg in r["failed_tests"][:30]:
-            safe_msg = msg.replace("|", "\\|").replace("\n", " ")
-            lines.append(f"| `{name}` | {safe_msg} |")
+            lines.append(_failed_test_block(name, msg, traces_by_id.get(name, [])))
+            lines.append("")
         if len(r["failed_tests"]) > 30:
-            lines.append(f"| ... | +{len(r['failed_tests']) - 30} more |")
-        lines.append("")
-        lines.append("</details>")
+            lines.append(f"_…and {len(r['failed_tests']) - 30} more failed tests._")
 
-    return "\n".join(lines)
+    return "\n".join(lines).rstrip() + "\n"
 
 
 def build_job_summary(results: dict | None, allure_url: str, firmware_url: str, branch: str) -> str:
@@ -292,6 +404,7 @@ def main():
     summary_file = os.environ.get("GITHUB_STEP_SUMMARY", "")
     pr_number = os.environ.get("PR_NUMBER", "")
     crash_flag = os.environ.get("CRASH_FLAG", "")
+    log_dir = os.environ.get("LOG_DIR", "")
 
     # Test results step (skipped on the crash-only invocation, where JUNIT_XML
     # is provided solely to extract the failed test name for the crash comment)
@@ -304,7 +417,7 @@ def main():
                 f.write(summary + "\n")
 
         if pr_number:
-            comment = build_pr_comment(results, allure_url)
+            comment = build_pr_comment(results, allure_url, log_dir)
             post_or_update_pr_comment(comment, "### Integration Tests:")
 
     if pr_number and crash_flag:

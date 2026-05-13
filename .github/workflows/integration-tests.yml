@@ -214,6 +214,7 @@ jobs:
           FIRMWARE_URL: ${{ steps.resolve_firmware.outputs.update_url }}
           BRANCH_NAME: ${{ inputs.branch_name || github.head_ref || github.ref_name }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
+          LOG_DIR: ${{ env.RUNNER_LOG_DIR }}/latest
         run: python3 tests/utils/report_test_results.py
 
       - name: 'Comment PR on crash'
