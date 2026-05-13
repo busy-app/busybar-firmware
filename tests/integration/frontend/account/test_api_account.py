@@ -32,6 +32,7 @@ class TestAccountInfoAPI:
 
 @allure.feature("5. Web Frontend")
 @allure.story("Account")
+@pytest.mark.uses_si917
 class TestAccountStatusAPI:
     """Test cases for Account Status (MQTT) API endpoint"""
 
@@ -48,6 +49,7 @@ class TestAccountStatusAPI:
 
 @allure.feature("5. Web Frontend")
 @allure.story("Account")
+@pytest.mark.uses_si917
 class TestAccountBackendAPI:
     """Test cases for MQTT backend configuration API endpoints (FW-881)."""
 

@@ -6,10 +6,14 @@ Monitors device crashes by checking crash_detected.flag in SESSION_LOG_DIR.
 
 import json
 import logging
+import os
+import tempfile
 import time
 from dataclasses import dataclass
+from datetime import datetime
 from pathlib import Path
 from typing import Optional
+from uuid import uuid4
 
 import allure
 
@@ -19,6 +23,292 @@ logger = logging.getLogger("bsb_automation.crash_detector")
 
 TRACE_COMPLETION_TIMEOUT = 180.0
 TRACE_COMPLETION_POLL = 1.0
+FORCE_TRACE_REQUEST_FILENAME = "force_trace_request.flag"
+FORCED_TRACE_TIMEOUT = 180.0
+FORCED_TRACE_POLL = 1.0
+_TRACE_PENDING_STATUSES = {"pending", "in_progress"}
+
+
+def _session_log_dir() -> Optional[Path]:
+    log_dir = Config.SESSION_LOG_DIR or os.getenv("SESSION_LOG_DIR", "")
+    return Path(log_dir) if log_dir else None
+
+
+def _crash_flag_path() -> Path:
+    if os.getenv("CRASH_FLAG_PATH"):
+        return Path(os.environ["CRASH_FLAG_PATH"])
+    log_dir = _session_log_dir()
+    if log_dir:
+        return log_dir / "crash_detected.flag"
+    return Path(Config.CRASH_FLAG_PATH)
+
+
+def _read_json_file(path: Path) -> Optional[dict]:
+    if not path.exists():
+        return None
+    try:
+        return json.loads(path.read_text())
+    except (json.JSONDecodeError, OSError) as exc:
+        logger.warning("Failed to read %s: %s", path, exc)
+        return None
+
+
+def _looks_like_legacy_crash_flag(data: dict) -> bool:
+    return bool(
+        data.get("processor")
+        and (
+            data.get("crash_line")
+            or data.get("trace_file_u5")
+            or data.get("trace_file_si917")
+            or data.get("trace_results")
+        )
+    )
+
+
+def request_forced_trace(
+    reason: str,
+    test_name: str,
+    primary_processor: str = "u5",
+    timeout: float = FORCED_TRACE_TIMEOUT,
+) -> Optional[dict]:
+    """Ask serial_logger to collect a GDB trace and wait for completion."""
+    log_dir = _session_log_dir()
+    if not log_dir:
+        logger.warning("SESSION_LOG_DIR is unset; forced GDB trace not requested")
+        return None
+    if not log_dir.is_dir():
+        logger.warning("SESSION_LOG_DIR does not exist: %s", log_dir)
+        return None
+
+    processor = (primary_processor or "u5").lower()
+    if processor not in {"u5", "si917"}:
+        logger.warning(
+            "Unknown forced trace processor %r; defaulting to u5",
+            primary_processor,
+        )
+        processor = "u5"
+
+    request_id = f"force-{uuid4().hex}"
+    request_path = log_dir / FORCE_TRACE_REQUEST_FILENAME
+    crash_flag_path = _crash_flag_path()
+    request_data = {
+        "request_id": request_id,
+        "reason": reason,
+        "source": "pytest_device_health_monitor",
+        "test_name": test_name,
+        "timestamp": datetime.now().isoformat(),
+        "primary_processor": processor,
+    }
+
+    tmp_path = None
+    try:
+        fd, tmp_name = tempfile.mkstemp(
+            dir=log_dir,
+            prefix=f".{FORCE_TRACE_REQUEST_FILENAME}.",
+            suffix=".tmp",
+        )
+        tmp_path = Path(tmp_name)
+        with os.fdopen(fd, "w") as tmp_file:
+            json.dump(request_data, tmp_file)
+        os.replace(tmp_path, request_path)
+    except OSError as exc:
+        logger.warning("Failed to write forced trace request %s: %s", request_path, exc)
+        if tmp_path and tmp_path.exists():
+            try:
+                tmp_path.unlink()
+            except OSError:
+                pass
+        return None
+
+    logger.warning(
+        "Requested forced GDB trace: request_id=%s processor=%s reason=%s",
+        request_id,
+        processor,
+        reason,
+    )
+
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        flag_data = _read_json_file(crash_flag_path)
+        if flag_data and flag_data.get("request_id") == request_id:
+            status = flag_data.get("trace_status", "unknown")
+            if status not in _TRACE_PENDING_STATUSES:
+                flag_data.setdefault("primary_processor", processor)
+                flag_data.setdefault("reason", reason)
+                logger.info(
+                    "Forced GDB trace completed: request_id=%s status=%s",
+                    request_id,
+                    status,
+                )
+                return flag_data
+            logger.debug(
+                "Waiting for forced GDB trace completion: request_id=%s status=%s",
+                request_id,
+                status,
+            )
+        time.sleep(FORCED_TRACE_POLL)
+
+    logger.warning(
+        "Forced GDB trace timed out after %.0fs: request_id=%s processor=%s reason=%s",
+        timeout,
+        request_id,
+        processor,
+        reason,
+    )
+    return None
+
+
+def serial_crash_recently_handled(lookback_seconds: float = 60.0) -> bool:
+    """Return true when serial_logger recently handled a natural crash trace."""
+    crash_flag_path = _crash_flag_path()
+    try:
+        mtime = crash_flag_path.stat().st_mtime
+    except OSError:
+        return False
+
+    if time.time() - mtime > lookback_seconds:
+        return False
+
+    flag_data = _read_json_file(crash_flag_path)
+    if not flag_data:
+        return False
+
+    event_type = flag_data.get("event_type")
+    if event_type == "forced_trace":
+        return False
+    if event_type == "crash":
+        return True
+    if event_type:
+        return False
+    return _looks_like_legacy_crash_flag(flag_data)
+
+
+def resolve_forced_trace_processor(node) -> str:
+    """Return the primary processor to trace for a pytest node."""
+    if node.get_closest_marker("uses_si917"):
+        return "si917"
+    return "u5"
+
+
+def record_forced_trace(node, trace: Optional[dict], phase: str) -> None:
+    """Store a forced trace result on a pytest node without overwriting prior traces."""
+    if not trace:
+        return
+    forced_traces = getattr(node, "_forced_traces", None)
+    if forced_traces is None:
+        forced_traces = []
+        node._forced_traces = forced_traces
+
+    trace_record = dict(trace)
+    trace_record.setdefault("pytest_phase", phase)
+    forced_traces.append(trace_record)
+    node._forced_trace = trace_record
+
+
+def request_forced_trace_for_node(node, reason: str, phase: str) -> Optional[dict]:
+    """Request and record a forced trace for a pytest node when no real crash handled it."""
+    if serial_crash_recently_handled():
+        return None
+
+    trace = request_forced_trace(
+        reason=reason,
+        test_name=node.nodeid,
+        primary_processor=resolve_forced_trace_processor(node),
+    )
+    record_forced_trace(node, trace, phase=phase)
+    return trace
+
+
+def _forced_trace_processor(trace: dict) -> str:
+    processor = (
+        trace.get("processor")
+        or trace.get("primary_processor")
+        or trace.get("requested_processor")
+    )
+    if processor:
+        return str(processor)
+
+    trace_results = trace.get("trace_results") or {}
+    if len(trace_results) == 1:
+        return next(iter(trace_results))
+    return "unknown"
+
+
+def _forced_trace_path(rel_path: str) -> Optional[str]:
+    if not rel_path:
+        return None
+    if os.path.isabs(rel_path):
+        return rel_path
+    log_dir = Config.SESSION_LOG_DIR or os.getenv("SESSION_LOG_DIR", "")
+    if not log_dir:
+        return None
+    return os.path.join(log_dir, rel_path)
+
+
+def _iter_forced_trace_files(trace: dict):
+    seen = set()
+    trace_results = trace.get("trace_results") or {}
+    for proc, entry in trace_results.items():
+        if not isinstance(entry, dict):
+            continue
+        rel_path = entry.get("file")
+        if rel_path and rel_path not in seen:
+            seen.add(rel_path)
+            yield str(proc), rel_path
+
+    for proc, key in (("u5", "trace_file_u5"), ("si917", "trace_file_si917")):
+        rel_path = trace.get(key)
+        if rel_path and rel_path not in seen:
+            seen.add(rel_path)
+            yield proc, rel_path
+
+
+def attach_forced_traces_to_allure(item, report, append_longrepr) -> None:
+    """Attach recorded forced trace results during setup/teardown reports."""
+    forced_traces = getattr(item, "_forced_traces", [])
+    if not forced_traces or report.when not in ("setup", "teardown"):
+        return
+
+    attached = getattr(item, "_forced_trace_attached_ids", set())
+    item._forced_trace_attached_ids = attached
+
+    for forced_trace in forced_traces:
+        phase = forced_trace.get("pytest_phase", "teardown")
+        if phase != report.when and report.when != "teardown":
+            continue
+
+        request_id = forced_trace.get("request_id") or f"{phase}:{id(forced_trace)}"
+        if request_id in attached:
+            continue
+        attached.add(request_id)
+
+        processor = _forced_trace_processor(forced_trace)
+        status = forced_trace.get("trace_status", "unknown")
+        reason = forced_trace.get("crash_line") or forced_trace.get("reason", "")
+
+        allure.dynamic.tag("FORCED_TRACE")
+        allure.dynamic.tag(f"forced_trace:{processor}")
+        allure.attach(
+            json.dumps(forced_trace, indent=2, sort_keys=True),
+            name=f"Forced Trace Summary ({phase}, {processor})",
+            attachment_type=allure.attachment_type.JSON,
+        )
+
+        for proc, rel_path in _iter_forced_trace_files(forced_trace):
+            path = _forced_trace_path(rel_path)
+            if path and os.path.exists(path):
+                allure.attach.file(
+                    path,
+                    name=f"GDB trace ({proc})",
+                    extension="log",
+                )
+
+        if report.failed or report.when == "teardown":
+            append_longrepr(
+                "FORCED TRACE collected: "
+                f"phase={phase}, processor={processor}, status={status}, "
+                f"request_id={request_id}, reason={reason}"
+            )
 
 
 @dataclass
@@ -145,6 +435,13 @@ class CrashDetector:
                 logger.error("Crash timestamp changed during test!")
 
         if not crash_detected:
+            return None
+
+        if current_state.get("event_type") == "forced_trace":
+            logger.info(
+                "Ignoring forced_trace flag update in crash detector: request_id=%s",
+                current_state.get("request_id"),
+            )
             return None
 
         with allure.step("Waiting for crash trace to complete"):

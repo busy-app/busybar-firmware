@@ -11,10 +11,16 @@ import pytest
 import requests
 from dotenv import load_dotenv
 
+load_dotenv()
+
 from utils.logging_config import (TestLogContext, get_cli_logger,
                                   get_web_logger, log_cli_command,
                                   log_web_request, setup_logging)
-from utils.crash_detector import CrashDetector
+from utils.crash_detector import (
+    CrashDetector,
+    attach_forced_traces_to_allure,
+    request_forced_trace_for_node,
+)
 from utils.device_flasher import DeviceFlasher
 
 # API client imports
@@ -34,8 +40,6 @@ from clients.api import (
 )
 from clients.cli import SimpleCLIConnection
 from config.config import Config
-
-load_dotenv()
 
 
 def _write_test_context(test_name: str, **extra) -> None:
@@ -220,6 +224,7 @@ def pytest_configure(config):
         "feature_web_frontend: Feature 5. Web Frontend",
         "connection_test: Fresh connection tests",
         "schemathesis: OpenAPI schema conformance tests (schemathesis)",
+        "uses_si917: test exercises the Si917 coprocessor; forced GDB trace targets Si917",
     ]
 
     for marker in markers:
@@ -373,6 +378,11 @@ def device_health_monitor(request, device_flasher, web_base_url):
             pre_reason = f"API unhealthy ({api_error})"
 
     if pre_reason:
+        request_forced_trace_for_node(
+            request.node,
+            reason=f"pre-test: {pre_reason}",
+            phase="setup",
+        )
         logger.warning("Device not ready before test (%s), resetting...", pre_reason)
         with allure.step(f"Resetting device before test: {pre_reason}"):
             if not device_flasher.reset_and_wait(wait_timeout=60, reset_interval=15):
@@ -403,6 +413,15 @@ def device_health_monitor(request, device_flasher, web_base_url):
             reset_reason = f"API health check failed: {api_error}"
 
     if reset_reason:
+        if not crash_info:
+            trace = request_forced_trace_for_node(
+                request.node,
+                reason=f"post-test: {reset_reason}",
+                phase="teardown",
+            )
+            if trace:
+                detector.capture_initial_state()
+
         # Next pre-test must re-verify — reset leaves the health state unknown.
         device_flasher._post_test_healthy = False
         logger.warning("Resetting device after test: %s", reset_reason)
@@ -505,6 +524,9 @@ def pytest_runtest_makereport(item, call):
             "wedged. Subsequent tests are likely to fail until the runner is "
             "manually recovered."
         )
+
+    attach_forced_traces_to_allure(item, report, _append_longrepr)
+
 
 @pytest.fixture
 def api_factory(api_session, web_base_url):
