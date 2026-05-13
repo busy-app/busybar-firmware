@@ -26,6 +26,7 @@
           icon="i-bi-checkmark"
           color="neutral"
           variant="ghost"
+          class="justify-center sm:justify-start"
           :disabled="areAllStatusesSelected"
           @click="selectAllStatuses"
         />
@@ -42,6 +43,7 @@
           color="neutral"
           variant="ghost"
           icon="i-bi-download"
+          class="justify-center sm:justify-start"
           :loading="isDownloadingSelected"
           @click="downloadSelectedStatuses"
         />
@@ -51,6 +53,7 @@
           color="error"
           variant="ghost"
           icon="i-bi-trash"
+          class="justify-center sm:justify-start"
           :loading="isDeletingSelected"
           @click="deleteSelectedStatuses"
         />
@@ -72,14 +75,15 @@
           icon="i-bi-control-stop"
           color="neutral"
           variant="outline"
+          class="justify-center sm:justify-start"
           @click="() => dts.clearStatusDisplay()"
         />
         <UButton
           data-id="draw-tool-gallery-new-status"
           label="Create"
           color="neutral"
-          variant="soft"
           icon="i-bi-plus"
+          class="justify-center sm:justify-start"
           @click="emit('newStatus')"
         />
       </template>
