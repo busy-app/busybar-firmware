@@ -1,8 +1,13 @@
 #include "sysctl_settings_interface_v1.h"
+#include <furi_hal_nvm.h>
 
 static bool websrv_accesslog_level_is_valid(const SettingProviderSetting* setting, int value) {
     UNUSED(setting);
     return value >= 0 && value <= 3;
+}
+
+static bool get_default_debug_enabled(void) {
+    return furi_hal_nvm_is_flag_set(FuriHalNvmFlagDebug);
 }
 
 const SettingProviderSetting sysctl_settings_v1[] = {
@@ -26,6 +31,16 @@ const SettingProviderSetting sysctl_settings_v1[] = {
                 },
             .field_offset = offsetof(SysctlSettingsV1, websrv_accesslog_level),
             .type = SettingProviderSettingTypeInt,
+        },
+    [SysctlSettingsV1IdxDebugEnabled] =
+        {
+            .name = "debug_enabled",
+            .interface =
+                &(const SettingProviderBoolInterface){
+                    .default_value_callback = get_default_debug_enabled,
+                },
+            .field_offset = offsetof(SysctlSettingsV1, debug_enabled),
+            .type = SettingProviderSettingTypeBool,
         },
 };
 
