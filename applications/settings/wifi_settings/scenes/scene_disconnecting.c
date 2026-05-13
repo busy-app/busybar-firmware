@@ -1,6 +1,7 @@
 #include "../wifi_settings_i.h"
-#include <settings_helpers/status_view.h>
 #include <settings_helpers/gui_params.h>
+
+#include <gui/modules/status_view.h>
 
 typedef struct {
     StatusView* front_status;

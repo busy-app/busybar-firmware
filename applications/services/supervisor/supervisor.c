@@ -3,7 +3,7 @@
 #include <power/power_service/power.h>
 #include <gui/gui.h>
 #include <gui/modules/label.h>
-#include <settings_helpers/status_view.h>
+#include <gui/modules/status_view.h>
 #include <storage/storage.h>
 #include <storage/storage_backup.h>
 #include <intercom/intercom.h>

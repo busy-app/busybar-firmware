@@ -1,6 +1,7 @@
 #include "../account_settings_i.h"
 #include <settings_helpers/gui_params.h>
-#include <settings_helpers/status_view.h>
+
+#include <gui/modules/status_view.h>
 
 typedef enum {
     SceneEventOpenWifiSettings = AppEventSceneEventsStart,

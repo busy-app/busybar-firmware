@@ -1,6 +1,7 @@
 #include "../matter_settings_i.h"
 #include "../widgets/matter_code_view.h"
-#include <settings_helpers/status_view.h>
+
+#include <gui/modules/status_view.h>
 
 #include <matter/matter.h>
 

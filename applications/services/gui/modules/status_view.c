@@ -100,6 +100,7 @@ static void status_view_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t
 
     instance->icon_static_box = lv_obj_create(TO_LV_OBJ(instance->internal_container));
     lv_obj_set_size(instance->icon_static_box, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
+    lv_obj_add_flag(instance->icon_static_box, LV_OBJ_FLAG_HIDDEN);
 
     instance->icon_static = lv_image_create(instance->icon_static_box);
     instance->icon_animated = anim_player_alloc(instance->internal_container);
@@ -171,7 +172,7 @@ void status_view_set_icon(StatusView* instance, const char* path) {
     furi_string_free(path_string);
 
     if(is_animated) {
-        lv_obj_add_flag(instance->icon_static, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(instance->icon_static_box, LV_OBJ_FLAG_HIDDEN);
         lv_image_set_src(instance->icon_static, NULL);
 
         anim_player_set_source(instance->icon_animated, path);
@@ -181,7 +182,7 @@ void status_view_set_icon(StatusView* instance, const char* path) {
         anim_player_set_source(instance->icon_animated, NULL);
 
         lv_image_set_src(instance->icon_static, path);
-        lv_obj_remove_flag(instance->icon_static, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_remove_flag(instance->icon_static_box, LV_OBJ_FLAG_HIDDEN);
     }
 }
 

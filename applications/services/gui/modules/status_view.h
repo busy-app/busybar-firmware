@@ -43,9 +43,7 @@ Widget* status_view_get_base(StatusView* instance);
 /**
  * @brief Set the icon displayed by the StatusView.
  *
- * Supports static image (.image) paths and animated icons (.anim).
- * Passing a path ending in ".anim" activates the animation player;
- * other paths are treated as static image sources.
+ * Supports static image paths (.image) and animated icons (.anim).
  *
  * @param[in,out] instance pointer to the StatusView instance to be modified
  * @param[in] path zero-terminated string containing the icon resource path

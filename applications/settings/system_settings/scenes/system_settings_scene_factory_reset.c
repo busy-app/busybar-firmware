@@ -1,7 +1,9 @@
 #include "../system_settings.h"
 
 #include <settings_helpers/gui_params.h>
-#include <settings_helpers/status_view.h>
+
+#include <gui/modules/status_view.h>
+
 #include <toolbox/update_lib/factory_reset.h>
 
 #define REBOOT_TIMER_MS       (2500)

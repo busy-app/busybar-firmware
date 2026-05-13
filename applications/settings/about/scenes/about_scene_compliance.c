@@ -1,10 +1,10 @@
 #include "../about.h"
 
 #include <settings_helpers/gui_params.h>
-#include <settings_helpers/status_view.h>
 
 #include <gui/modules/label.h>
 #include <gui/modules/image.h>
+#include <gui/modules/status_view.h>
 
 #include <furi_hal_version.h>
 
