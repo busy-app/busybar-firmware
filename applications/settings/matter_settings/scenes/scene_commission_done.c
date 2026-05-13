@@ -25,7 +25,7 @@ static void matter_scene_commission_done_on_enter(void* context) {
         for(GuiDisplayId disp = 0; disp < GuiDisplayIdMax; disp++) {
             scene->statuses[disp] = status_view_alloc(windows[disp]);
             status_view_set_icon(scene->statuses[disp], images[disp]);
-            status_view_set_header(scene->statuses[disp], "Connected");
+            status_view_set_primary_text(scene->statuses[disp], "Connected");
         }
     });
 }

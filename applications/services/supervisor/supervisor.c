@@ -375,7 +375,7 @@ static void supervisor_set_status_view(
                                                          warning->image.back;
 
     status_view_set_icon(*status, image);
-    status_view_set_header(*status, text);
+    status_view_set_primary_text(*status, text);
 
     Widget* widget = status_view_get_base(*status);
     Color background = COLOR_MAKE_HEXA(0x000000E5);
