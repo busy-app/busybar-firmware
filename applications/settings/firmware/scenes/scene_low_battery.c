@@ -1,10 +1,6 @@
 #include "../firmware_i.h"
 
-#include <gui/modules/flex_box.h>
-#include <gui/modules/label.h>
-#include <gui/modules/image.h>
-
-#define BACK_DETAIL_LABEL_TEXT_COLOR ((Color)COLOR_MAKE_RGB(0x88, 0x88, 0x88))
+#include <gui/modules/status_view.h>
 
 typedef enum {
     FirmwareSettingsLowBatterySceneEventChargeAmountUpdate = FirmwareSettingsEventSceneEventsStart,
@@ -12,13 +8,8 @@ typedef enum {
 } FirmwareSettingsLowBatterySceneEvent;
 
 typedef struct {
-    FlexBox* front_box;
-    Image* front_image;
-    Label* front_label;
-
-    FlexBox* back_box;
-    Label* back_primary_label;
-    Label* back_detail_label;
+    StatusView* front_status;
+    StatusView* back_status;
 
     FuriPubSubSubscription* power_event_subscription;
 } FirmwareSettingsLowBatteryScene;
@@ -78,11 +69,11 @@ static void firmware_settings_low_battery_scene_on_usb_connection_state_update(
                  FirmwareSettingsLowBatteryScenePresetIdxUsbDisconnected];
 
     with_gui(instance->gui, {
-        image_set_source(scene->front_image, scene_preset->front_image_path);
-        label_set_text(scene->front_label, scene_preset->front_text);
+        status_view_set_icon(scene->front_status, scene_preset->front_image_path);
+        status_view_set_primary_text(scene->front_status, scene_preset->front_text);
 
-        label_set_text(scene->back_primary_label, scene_preset->back_primary_text);
-        label_set_text(scene->back_detail_label, scene_preset->back_auxiliary_text);
+        status_view_set_primary_text(scene->back_status, scene_preset->back_primary_text);
+        status_view_set_auxiliary_text(scene->back_status, scene_preset->back_auxiliary_text);
     });
 }
 
@@ -103,38 +94,15 @@ static void firmware_settings_low_battery_scene_on_enter(void* context) {
 
     with_gui(instance->gui, {
         /* front layout setup */
-        scene->front_box = flex_box_alloc(instance->front_scene_window);
-        flex_box_set_flow(scene->front_box, FlexBoxFlowRow);
-        flex_box_set_align(scene->front_box, FlexBoxAlignStart, FlexBoxAlignCenter);
-        flex_box_set_spacing(scene->front_box, 2);
-        widget_set_align(flex_box_get_base(scene->front_box), AlignLeftMid);
-
-        scene->front_image = image_alloc(flex_box_get_base(scene->front_box));
-        image_set_source(scene->front_image, scene_preset->front_image_path);
-
-        scene->front_label = label_alloc(flex_box_get_base(scene->front_box));
-        label_set_line_spacing(scene->front_label, 0);
-        label_set_text(scene->front_label, scene_preset->front_text);
+        scene->front_status = status_view_alloc(instance->front_scene_window);
+        status_view_set_icon(scene->front_status, scene_preset->front_image_path);
+        status_view_set_primary_text(scene->front_status, scene_preset->front_text);
 
         /* back layout setup */
-        scene->back_box = flex_box_alloc(instance->back_scene_window);
-        flex_box_set_flow(scene->back_box, FlexBoxFlowColumn);
-        flex_box_set_align(scene->back_box, FlexBoxAlignCenter, FlexBoxAlignCenter);
-        flex_box_set_spacing(scene->back_box, 3);
-        widget_set_align(flex_box_get_base(scene->back_box), AlignCenter);
-
-        Image* back_image = image_alloc(flex_box_get_base(scene->back_box));
-        image_set_source(back_image, SHARED_IMG_PATH("error_back_11x11.image"));
-        widget_set_padding(image_get_base(back_image), 0, 0, 2, 7);
-
-        scene->back_primary_label = label_alloc(flex_box_get_base(scene->back_box));
-        label_set_text(scene->back_primary_label, scene_preset->back_primary_text);
-        label_set_text_align(scene->back_primary_label, TextAlignCenter);
-
-        scene->back_detail_label = label_alloc(flex_box_get_base(scene->back_box));
-        label_set_text_color(scene->back_detail_label, BACK_DETAIL_LABEL_TEXT_COLOR);
-        label_set_text_align(scene->back_detail_label, TextAlignCenter);
-        label_set_text(scene->back_detail_label, scene_preset->back_auxiliary_text);
+        scene->back_status = status_view_alloc(instance->back_scene_window);
+        status_view_set_icon(scene->back_status, SHARED_IMG_PATH("error_back_11x11.image"));
+        status_view_set_primary_text(scene->back_status, scene_preset->back_primary_text);
+        status_view_set_auxiliary_text(scene->back_status, scene_preset->back_auxiliary_text);
     });
 }
 
@@ -145,8 +113,8 @@ static void firmware_settings_low_battery_scene_on_exit(void* context) {
     furi_pubsub_unsubscribe(power_get_pubsub(instance->power), scene->power_event_subscription);
 
     with_gui(instance->gui, {
-        flex_box_free(scene->back_box);
-        flex_box_free(scene->front_box);
+        status_view_free(scene->back_status);
+        status_view_free(scene->front_status);
     });
 }
 
