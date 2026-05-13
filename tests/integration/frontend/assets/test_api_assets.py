@@ -5,7 +5,7 @@ import allure
 import pytest
 import requests
 
-from clients.api import AssetsAPI, SettingsAPI
+from clients.api import AssetsAPI, SettingsAPI, StorageAPI
 
 ASSETS_DIR = Path(__file__).resolve().parents[2] / "assets"
 
@@ -26,6 +26,35 @@ class TestAssetsAPI:
         test_content = b"Test asset content"
 
         assets_api.upload_asset(test_app_id, test_filename, test_content)
+
+    @allure.title("POST /api/assets/upload (verify storage location)")
+    @pytest.mark.api
+    @pytest.mark.frontend
+    def test_api_assets_upload_location(
+        self, assets_api: AssetsAPI, storage_api: StorageAPI
+    ):
+        """Verify that uploaded asset lands at /ext/user_assets/<app>/<file>."""
+        test_app_id = "test_asset_location"
+        test_filename = "where_am_i.txt"
+        test_content = b"locate me"
+        expected_path = f"/ext/user_assets/{test_app_id}/{test_filename}"
+
+        assets_api.upload_asset(test_app_id, test_filename, test_content)
+
+        try:
+            with allure.step(f"List app asset dir: /ext/user_assets/{test_app_id}"):
+                listing = storage_api.list(f"/ext/user_assets/{test_app_id}")
+                names = [item.name for item in listing.list]
+                assert test_filename in names, (
+                    f"Uploaded file {test_filename!r} not found in app dir; got {names!r}"
+                )
+
+            with allure.step(f"Read back uploaded file: {expected_path}"):
+                read_response = storage_api.read(expected_path)
+                assert read_response.status_code == 200
+                assert read_response.content == test_content
+        finally:
+            assets_api.delete_assets(test_app_id)
 
     @allure.id("2652")
     @allure.title("DELETE /api/assets/upload")
