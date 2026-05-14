@@ -225,6 +225,7 @@ def pytest_configure(config):
         "connection_test: Fresh connection tests",
         "schemathesis: OpenAPI schema conformance tests (schemathesis)",
         "uses_si917: test exercises the Si917 coprocessor; forced GDB trace targets Si917",
+        "regression: Heavy regression tests; excluded from PR/dev runs, only fire on -rc tags",
     ]
 
     for marker in markers:

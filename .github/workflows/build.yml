@@ -159,11 +159,30 @@ jobs:
 
   integration-tests:
     needs: build
-    if: ${{ needs.build.result == 'success' && needs.build.outputs.update_url != '' }}
+    if: |
+      needs.build.result == 'success'
+      && needs.build.outputs.update_url != ''
+      && !(github.ref_type == 'tag' && contains(github.ref_name, '-rc'))
     uses: './.github/workflows/integration-tests.yml'
     with:
       branch_name: ${{ github.head_ref || github.ref_name }}
       commit_sha: ${{ github.event.pull_request.head.sha || github.sha }}
       update_url: ${{ needs.build.outputs.update_url }}
       target: ${{ needs.build.outputs.bundle_target_spec }}
+    secrets: inherit
+
+  regression-tests:
+    needs: build
+    if: |
+      needs.build.result == 'success'
+      && needs.build.outputs.update_url != ''
+      && github.ref_type == 'tag'
+      && contains(github.ref_name, '-rc')
+    uses: './.github/workflows/integration-tests.yml'
+    with:
+      branch_name: ${{ github.ref_name }}
+      commit_sha: ${{ github.sha }}
+      update_url: ${{ needs.build.outputs.update_url }}
+      target: ${{ needs.build.outputs.bundle_target_spec }}
+      marker_filter: ''
     secrets: inherit

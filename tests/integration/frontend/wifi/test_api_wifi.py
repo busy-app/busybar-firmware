@@ -136,3 +136,60 @@ class TestWifiAPI:
 
         wifi_api.disconnect()
         wait_for_wifi_state(wifi_api, ["disconnected"], timeout=20)
+
+    @allure.title("WiFi regression: connect → disconnect → scan x3")
+    @pytest.mark.api
+    @pytest.mark.frontend
+    @pytest.mark.regression
+    def test_api_wifi_connect_disconnect_then_repeated_scan(self, wifi_api: WifiAPI):
+        """Reproduces the UI flow: connect, disconnect, then repeatedly press
+        'Select network' (= GET /api/wifi/networks).
+
+        The firmware should remain responsive across multiple back-to-back
+        scans following a disconnect — historically this path has wedged the
+        device for a couple of minutes.
+        """
+        with allure.step("Connect to test network"):
+            ensure_disconnected(wifi_api)
+            connect_to_test_network_or_fail(wifi_api)
+
+        with allure.step("Disconnect"):
+            wifi_api.disconnect()
+            wait_for_wifi_state(wifi_api, ["disconnected"], timeout=30)
+
+        scan_attempts = 3
+        scan_pause = 5
+        for attempt in range(1, scan_attempts + 1):
+            with allure.step(f"Scan attempt {attempt}/{scan_attempts}"):
+                t0 = time.time()
+                response = wifi_api.get_networks(timeout=60)
+                elapsed = time.time() - t0
+
+                allure.attach(
+                    json.dumps(
+                        {
+                            "attempt": attempt,
+                            "elapsed_s": round(elapsed, 2),
+                            "count": response.count,
+                            "ssids": [n.ssid for n in response.networks],
+                        },
+                        indent=2,
+                    ),
+                    name=f"Scan #{attempt}",
+                    attachment_type=allure.attachment_type.JSON,
+                )
+
+                assert isinstance(response.networks, list), (
+                    f"Scan #{attempt}: expected list, got {type(response.networks)}"
+                )
+                assert response.count >= 0, (
+                    f"Scan #{attempt}: negative count {response.count}"
+                )
+
+                state_after = wifi_api.get_status().state
+                assert state_after == "disconnected", (
+                    f"Scan #{attempt} flipped state to {state_after!r}"
+                )
+
+            if attempt < scan_attempts:
+                sleep(scan_pause)

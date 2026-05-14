@@ -17,6 +17,11 @@ on:
         required: false
         type: string
         default: '21'
+      marker_filter:
+        required: false
+        type: string
+        default: 'not regression'
+        description: 'Pytest -m marker expression. Empty string runs everything.'
 
   workflow_dispatch:
     inputs:
@@ -35,6 +40,11 @@ on:
         required: false
         type: string
         default: '21'
+      marker_filter:
+        description: 'Pytest -m marker expression. Empty runs everything.'
+        required: false
+        type: string
+        default: 'not regression'
 
 permissions:
   contents: read
@@ -78,11 +88,25 @@ jobs:
 
           if [ -n "${{ inputs.update_url }}" ]; then
             UPDATE_PATH="${{ inputs.update_url }}"
+            # Strip absolute base if a full URL was pasted into the dispatch
+            # input — downstream code expects a relative path.
+            UPDATE_PATH="${UPDATE_PATH#${FIRMWARE_BASE_URL}/}"
+            UPDATE_PATH="${UPDATE_PATH#https://update.flipperzero.one/builds/busybar-firmware/}"
+            if [[ "$UPDATE_PATH" == http*://* ]]; then
+              echo "ERROR: update_url points outside ${FIRMWARE_BASE_URL}: ${{ inputs.update_url }}"
+              exit 1
+            fi
           elif [ -n "${{ github.event.inputs.firmware_branch }}" ]; then
             BRANCH="${{ github.event.inputs.firmware_branch }}"
-            LISTING=$(curl -sL "${FIRMWARE_BASE_URL}/${BRANCH}/")
-            UPDATE_FILE=$(echo "$LISTING" | grep -oE "busybar-${TARGET}-update-[^\"]+\.(tgz|tar)" | sort -V | tail -1)
-            [ -n "$UPDATE_FILE" ] || { echo "ERROR: No update file for branch $BRANCH"; exit 1; }
+            LISTING=$(curl --fail -sL "${FIRMWARE_BASE_URL}/${BRANCH}/") || {
+              echo "ERROR: Failed to fetch listing for branch $BRANCH (${FIRMWARE_BASE_URL}/${BRANCH}/)"
+              exit 1
+            }
+            if [ -z "$LISTING" ]; then
+              echo "ERROR: Empty listing for branch $BRANCH"; exit 1
+            fi
+            UPDATE_FILE=$(echo "$LISTING" | grep -oE "busybar-${TARGET}-update-[^\"]+\.(tgz|tar)" | sort -V | tail -1 || true)
+            [ -n "$UPDATE_FILE" ] || { echo "ERROR: No update file for target $TARGET in branch $BRANCH"; exit 1; }
             UPDATE_PATH="${BRANCH}/${UPDATE_FILE}"
           else
             echo "ERROR: No update_url or firmware_branch provided"; exit 1
@@ -142,13 +166,22 @@ jobs:
 
       - name: Run integration tests
         id: smoke_tests
+        env:
+          MARKER_FILTER: ${{ inputs.marker_filter }}
         run: |
           set +e
           cd tests
-          python3 -m pytest . -v \
-            --alluredir=allure-results \
-            --clean-alluredir \
-            --junitxml=test-results.xml
+          # MARKER_FILTER is a `-m` expression; an empty string means
+          # "no filter" (collect everything, including `regression`-tagged
+          # tests such as schemathesis).
+          pytest_args=(. -v --alluredir=allure-results --clean-alluredir --junitxml=test-results.xml)
+          if [ -n "$MARKER_FILTER" ]; then
+            pytest_args+=(-m "$MARKER_FILTER")
+            echo "Running pytest with marker filter: $MARKER_FILTER"
+          else
+            echo "Running pytest without marker filter (full suite)"
+          fi
+          python3 -m pytest "${pytest_args[@]}"
           PYTEST_EXIT=$?
           echo "pytest_exit=$PYTEST_EXIT" >> $GITHUB_OUTPUT
           # 0 = all passed, 1 = some failed — both mean tests ran
@@ -207,6 +240,7 @@ jobs:
           fi
 
       - name: 'Report test results'
+        if: always()
         continue-on-error: true
         env:
           JUNIT_XML: tests/test-results.xml
@@ -214,16 +248,10 @@ jobs:
           FIRMWARE_URL: ${{ steps.resolve_firmware.outputs.update_url }}
           BRANCH_NAME: ${{ inputs.branch_name || github.head_ref || github.ref_name }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
-          LOG_DIR: ${{ env.RUNNER_LOG_DIR }}/latest
-        run: python3 tests/utils/report_test_results.py
-
-      - name: 'Comment PR on crash'
-        if: always() && github.event.pull_request.number
-        continue-on-error: true
-        env:
-          CRASH_FLAG: ${{ env.RUNNER_LOG_DIR }}/latest/crash_detected.flag
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-          JUNIT_XML: tests/test-results.xml
           GITHUB_RUN_ID: ${{ github.run_id }}
           RUNNER_NAME: ${{ runner.name }}
-        run: python3 tests/utils/report_test_results.py
+        run: |
+          status=0
+          LOG_DIR="$SESSION_LOG_DIR" python3 tests/utils/report_test_results.py || status=$?
+          CRASH_FLAG="$SESSION_LOG_DIR/crash_detected.flag" python3 tests/utils/report_test_results.py || status=$?
+          exit "$status"
