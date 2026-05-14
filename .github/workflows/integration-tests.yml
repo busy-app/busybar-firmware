@@ -168,6 +168,12 @@ jobs:
         id: smoke_tests
         env:
           MARKER_FILTER: ${{ inputs.marker_filter }}
+          BSB_FIRMWARE_PATH: ${{ github.workspace }}
+          CLI_HOST: ${{ secrets.CLI_HOST || '10.0.4.20' }}
+          CLI_PORT: ${{ secrets.CLI_PORT || '23' }}
+          WEB_BASE_URL: ${{ secrets.WEB_BASE_URL || 'http://10.0.4.20' }}
+          LOG_LEVEL: INFO
+          LOG_TO_FILE: true
         run: |
           set +e
           cd tests
@@ -190,13 +196,6 @@ jobs:
             echo "Pytest failed to run properly (exit code $PYTEST_EXIT)"
             exit $PYTEST_EXIT
           fi
-        env:
-          BSB_FIRMWARE_PATH: ${{ github.workspace }}
-          CLI_HOST: ${{ secrets.CLI_HOST || '10.0.4.20' }}
-          CLI_PORT: ${{ secrets.CLI_PORT || '23' }}
-          WEB_BASE_URL: ${{ secrets.WEB_BASE_URL || 'http://10.0.4.20' }}
-          LOG_LEVEL: INFO
-          LOG_TO_FILE: true
 
       - name: Setup allurectl
         continue-on-error: true
