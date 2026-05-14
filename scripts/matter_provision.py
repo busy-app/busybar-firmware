@@ -359,11 +359,6 @@ class Main(App):
                     print("  Writing device info...")
                     self.provision_device_info(storage, device_uid)
 
-                print("  Enabling read-only mode...")
-                ret = storage.set_protect(True, echo=False)
-                if ret != 0:
-                    raise Exception(f"protect failed with error {ret}")
-
         print(
             f"Matter provisioning OK"
             f"  passcode={self.args.passcode} discriminator={self.args.discriminator}"

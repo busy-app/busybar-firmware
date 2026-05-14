@@ -250,11 +250,12 @@ class ReadWriteScope:
         ret = self._storage.set_protect(False, echo=False)
         if ret != 0:
             raise Exception("Storage protect command failed")
+        return self
 
     def __exit__(self, exc_type, exc_value, traceback):
         ret = self._storage.set_protect(True, echo=False)
         if ret != 0:
-            raise Exception("Storage protect command failed")
+            print("Error while setting write protection")
 
 
 class Main(App):
