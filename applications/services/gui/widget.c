@@ -183,6 +183,7 @@ void widget_set_scrollbar_mode(Widget* instance, WidgetScrollBarMode scrollbar_m
     furi_check(instance);
     furi_check(scrollbar_mode < WidgetScrollBarModeCount);
     lv_obj_set_scrollbar_mode((lv_obj_t*)instance, (lv_scrollbar_mode_t)scrollbar_mode);
+    lv_obj_set_style_width((lv_obj_t*)instance, 1, LV_PART_SCROLLBAR);
     lv_obj_set_scroll_dir(
         (lv_obj_t*)instance,
         (scrollbar_mode == WidgetScrollBarModeOff) ? LV_DIR_NONE : LV_DIR_VER);

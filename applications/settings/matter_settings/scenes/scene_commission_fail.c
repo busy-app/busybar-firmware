@@ -1,5 +1,6 @@
 #include "../matter_settings_i.h"
-#include <settings_helpers/status_view.h>
+
+#include <gui/modules/status_view.h>
 
 typedef struct {
     StatusView* statuses[GuiDisplayIdMax];
@@ -17,15 +18,15 @@ static void matter_scene_commission_fail_on_enter(void* context) {
     };
 
     static const char* const images[GuiDisplayIdMax] = {
-        [GuiDisplayIdFront] = SETTINGS_IMG_PATH("error_front_7x7.image"),
-        [GuiDisplayIdBack] = SETTINGS_IMG_PATH("error_back_10x10.image"),
+        [GuiDisplayIdFront] = SETTINGS_IMG_PATH("error_front_8x8.image"),
+        [GuiDisplayIdBack] = SETTINGS_IMG_PATH("error_back_11x11.image"),
     };
 
     with_gui(app->gui, {
         for(GuiDisplayId disp = 0; disp < GuiDisplayIdMax; disp++) {
             scene->statuses[disp] = status_view_alloc(windows[disp]);
             status_view_set_icon(scene->statuses[disp], images[disp]);
-            status_view_set_header(scene->statuses[disp], "Cannot connect");
+            status_view_set_primary_text(scene->statuses[disp], "Cannot connect");
         }
     });
 }

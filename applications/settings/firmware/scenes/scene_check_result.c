@@ -1,16 +1,12 @@
 #include "../firmware_i.h"
 
-#include <gui/modules/flex_box.h>
-#include <gui/modules/label.h>
-#include <gui/modules/image.h>
+#include <gui/modules/status_view.h>
 
 #define SCENE_EXIT_TIMEOUT_MS 3000
 
-#define BACK_DETAIL_LABEL_TEXT_COLOR ((Color)COLOR_MAKE_RGB(0x88, 0x88, 0x88))
-
 typedef struct {
-    FlexBox* front_box;
-    FlexBox* back_box;
+    StatusView* front_status;
+    StatusView* back_status;
 
     FuriEventLoopTimer* timeout_timer;
 } FirmwareSettingsCheckResultScene;
@@ -34,41 +30,19 @@ static void firmware_settings_check_result_scene_on_enter(void* context) {
 
     with_gui(instance->gui, {
         /* front layout setup */
-        scene->front_box = flex_box_alloc(instance->front_scene_window);
-        flex_box_set_flow(scene->front_box, FlexBoxFlowRow);
-        flex_box_set_align(scene->front_box, FlexBoxAlignStart, FlexBoxAlignCenter);
-        flex_box_set_spacing(scene->front_box, 2);
-        widget_set_align(flex_box_get_base(scene->front_box), AlignLeftMid);
-
-        Image* front_image = image_alloc(flex_box_get_base(scene->front_box));
-        image_set_source(front_image, instance->check_result_preset.front_image_path);
-
-        Label* front_label = label_alloc(flex_box_get_base(scene->front_box));
-        label_set_line_spacing(front_label, 0);
-        label_set_text(
-            front_label, furi_string_get_cstr(instance->check_result_preset.front_text));
+        scene->front_status = status_view_alloc(instance->front_scene_window);
+        status_view_set_icon(scene->front_status, instance->check_result_preset.front_image_path);
+        status_view_set_primary_text(
+            scene->front_status, furi_string_get_cstr(instance->check_result_preset.front_text));
 
         /* back layout setup */
-        scene->back_box = flex_box_alloc(instance->back_scene_window);
-        flex_box_set_flow(scene->back_box, FlexBoxFlowColumn);
-        flex_box_set_align(scene->back_box, FlexBoxAlignCenter, FlexBoxAlignCenter);
-        flex_box_set_spacing(scene->back_box, 3);
-        widget_set_align(flex_box_get_base(scene->back_box), AlignCenter);
-
-        Image* back_image = image_alloc(flex_box_get_base(scene->back_box));
-        image_set_source(back_image, instance->check_result_preset.back_image_path);
-        widget_set_padding(image_get_base(back_image), 0, 0, 2, 7);
-
-        Label* back_primary_label = label_alloc(flex_box_get_base(scene->back_box));
-        label_set_text(
-            back_primary_label,
+        scene->back_status = status_view_alloc(instance->back_scene_window);
+        status_view_set_icon(scene->back_status, instance->check_result_preset.back_image_path);
+        status_view_set_primary_text(
+            scene->back_status,
             furi_string_get_cstr(instance->check_result_preset.back_primary_text));
-        label_set_text_align(back_primary_label, TextAlignCenter);
-
-        Label* back_detail_label = label_alloc(flex_box_get_base(scene->back_box));
-        label_set_text_color(back_detail_label, BACK_DETAIL_LABEL_TEXT_COLOR);
-        label_set_text(
-            back_detail_label,
+        status_view_set_auxiliary_text(
+            scene->back_status,
             furi_string_get_cstr(instance->check_result_preset.back_detail_text));
     });
 
@@ -89,8 +63,8 @@ static void firmware_settings_check_result_scene_on_exit(void* context) {
     furi_event_loop_timer_free(scene->timeout_timer);
 
     with_gui(instance->gui, {
-        flex_box_free(scene->back_box);
-        flex_box_free(scene->front_box);
+        status_view_free(scene->back_status);
+        status_view_free(scene->front_status);
     });
 }
 

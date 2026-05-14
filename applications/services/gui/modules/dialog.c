@@ -119,6 +119,7 @@ static void dialog_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj
         lv_obj_set_size(instance->text_cont, LV_PCT(100), LV_PCT(100));
 
         lv_obj_set_size(instance->options_cont, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
+        lv_obj_set_style_pad_row(instance->options_cont, -2, LV_PART_MAIN);
     }
 
     instance->options_group = lv_group_create();
