@@ -288,15 +288,15 @@ UpdaterStatus updater_internal_do_verify_bundle_sha(Updater* instance, UpdaterMe
             UpdaterStatusOk :
             UpdaterStatusShaMismatch;
 
-    furi_string_free(sha256_calc);
-    furi_string_free(message->as_verify_bundle_sha.tar_path);
-    furi_string_free(message->as_verify_bundle_sha.sha);
-
     if(update_status == UpdaterStatusOk) {
         FURI_LOG_D(TAG, "SHA256 checksum verified successfully");
     } else {
         FURI_LOG_E(TAG, "SHA256 checksum verification failed for %s", tar_path);
     }
+
+    furi_string_free(sha256_calc);
+    furi_string_free(message->as_verify_bundle_sha.tar_path);
+    furi_string_free(message->as_verify_bundle_sha.sha);
 
     return update_status;
 }
