@@ -1,6 +1,7 @@
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function handleHTTPError (error: any, title: string, shouldCheckForConnection?: boolean, duration?: number) {
   const deviceStore = useDeviceStore();
+  const configStore = useConfigStore();
 
   if (error?.status === 403) {
     await navigateTo('/login');
@@ -10,6 +11,7 @@ export async function handleHTTPError (error: any, title: string, shouldCheckFor
   console.error(title, error);
 
   if (shouldCheckForConnection) {
+    console.debug('[HTTP error handler]: checking device connection...');
     await deviceStore.checkConnection();
   }
 
@@ -23,7 +25,7 @@ export async function handleHTTPError (error: any, title: string, shouldCheckFor
     description: parseError(error),
     icon: 'i-bi-alert',
     color: 'error',
-    duration: typeof duration === 'number' ? duration : 10000
+    duration: typeof duration === 'number' ? duration : Number(configStore.get('notificationDuration'))
   });
 }
 

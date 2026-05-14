@@ -36,7 +36,7 @@
               data-id="volume-percentage"
               class="text-muted"
             >
-              {{ nextVolumeNumber || volumeNumber }}%
+              {{ displayedVolumeNumber }}%
             </div>
           </div>
 
@@ -84,7 +84,7 @@
               data-id="brightness-percentage"
               class="text-muted"
             >
-              {{ nextBrightnessNumber || brightnessNumber }}%
+              {{ nextBrightnessNumber ?? brightnessNumber }}%
             </div>
             <div
               v-else
@@ -117,6 +117,8 @@
 <script setup lang="ts">
 const audioStore = useAudioStore();
 const brightnessStore = useBrightnessStore();
+const deviceStore = useDeviceStore();
+const configStore = useConfigStore();
 
 const loading = ref({
   audio: false,
@@ -135,19 +137,43 @@ const mute = ref({
 });
 
 const nextVolumeNumber = ref<number | undefined>(undefined);
-const volumeNumber = computed(() => {
+const volumeNumber = computed(() => audioStore.audio?.volume ?? 50);
+const displayedVolumeNumber = computed(() => {
   if (mute.value.isMuted) {
     return mute.value.volumeBeforeMute;
-  } else {
-    return audioStore.audio?.volume === undefined ? 50 : audioStore.audio?.volume;
   }
+
+  return nextVolumeNumber.value ?? volumeNumber.value;
 });
 
-watch(volumeNumber, newValue => {
-  if (!mute.value.isMuted) {
+watch(volumeNumber, (newValue, oldValue) => {
+  if (mute.value.isMuted) {
+    if (newValue === 0) {
+      return;
+    }
+
+    mute.value.isMuted = false;
+  }
+
+  if (newValue > 0) {
+    mute.value.volumeBeforeMute = newValue;
+  }
+
+  if (newValue !== oldValue || nextVolumeNumber.value === undefined) {
     nextVolumeNumber.value = newValue;
   }
-});
+}, { immediate: true });
+
+async function refreshSlidersData () {
+  if (!deviceStore.refreshInterval) {
+    return;
+  }
+
+  await Promise.all([
+    refreshAudioVolume(),
+    refreshDisplayBrightness()
+  ]);
+}
 
 function unmute () {
   nextVolumeNumber.value = mute.value.volumeBeforeMute;
@@ -172,14 +198,15 @@ async function setAudioVolume () {
 
   setTimeout(() => {
     loading.value.audio = false;
-  }, 250);
+  }, Number(configStore.get('sliderDebounceDelay')));
 }
 
 async function setVolumeToMute () {
   loading.value.audio = true;
   mute.value.volumeBeforeMute = volumeNumber.value;
-  await audioStore.setAudioVolume(0);
+  nextVolumeNumber.value = mute.value.volumeBeforeMute;
   mute.value.isMuted = true;
+  await audioStore.setAudioVolume(0);
   loading.value.audio = false;
 }
 
@@ -193,11 +220,11 @@ const nextBrightnessNumber = ref<number | undefined>(undefined);
 const brightnessNumber = computed(() => isNaN(Number(brightnessStore.displayBrightness?.value)) ? 50 : Number(brightnessStore.displayBrightness?.value));
 const isBrightnessAuto = computed(() => brightnessStore.displayBrightness?.value === 'auto');
 
-watch(brightnessNumber, newValue => {
-  if (!isBrightnessAuto.value) {
-    nextBrightnessNumber.value = newValue;
+watch(() => brightnessStore.displayBrightness?.value, newValue => {
+  if (newValue !== 'auto') {
+    nextBrightnessNumber.value = Number(newValue ?? 50);
   }
-});
+}, { immediate: true });
 
 function disableAutoBrightness () {
   nextBrightnessNumber.value = 50;
@@ -225,7 +252,7 @@ async function setDisplayBrightness () {
 
   setTimeout(() => {
     loading.value.brightness = false;
-  }, 250);
+  }, Number(configStore.get('sliderDebounceDelay')));
 }
 
 async function setBrightnessToAuto () {
@@ -250,9 +277,8 @@ async function init () {
     clearInterval(refreshInterval.value);
   }
   refreshInterval.value = setInterval(() => {
-    refreshAudioVolume();
-    refreshDisplayBrightness();
-  }, 30000);
+    refreshSlidersData();
+  }, Number(configStore.get('httpPollingInterval')) * 6);
 }
 
 onMounted(async () => {

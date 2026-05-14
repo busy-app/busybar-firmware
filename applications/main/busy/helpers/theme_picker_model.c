@@ -57,3 +57,8 @@ uint32_t
 
     return index;
 }
+
+void theme_picker_model_sort(ThemePickerModel* instance) {
+    furi_assert(instance);
+    BusyThemeArray_special_stable_sort(instance->items);
+}

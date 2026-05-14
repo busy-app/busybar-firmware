@@ -20,7 +20,8 @@ SETTING_LOAD_DECLARATION(type_bool, json_node, setting, value) {
 
 SETTING_RESET_DECLARATION(type_bool, json_node, setting, value) {
     const SettingProviderBoolInterface* interface = setting->interface;
-    bool default_value = interface->default_value;
+    bool default_value = interface->default_value_callback ? interface->default_value_callback() :
+                                                             interface->default_value;
 
     FURI_LOG_T(
         TAG,

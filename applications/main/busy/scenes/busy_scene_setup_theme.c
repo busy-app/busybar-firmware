@@ -43,6 +43,8 @@ static void busy_scene_setup_theme_read_extra_themes(ThemePickerModel* model) {
     busy_theme_free(theme);
     storage_file_free(themes_dir);
 
+    theme_picker_model_sort(model);
+
     furi_record_close(RECORD_STORAGE);
 }
 
