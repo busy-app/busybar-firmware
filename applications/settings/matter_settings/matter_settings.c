@@ -242,7 +242,6 @@ static void matter_settings_free(MatterSettings* instance) {
 
     furi_event_loop_unsubscribe(instance->event_loop, instance->input_queue);
     furi_event_loop_unsubscribe(instance->event_loop, instance->event_queue);
-    scene_manager_free(instance->scene_manager);
     furi_message_queue_free(instance->event_queue);
     furi_message_queue_free(instance->input_queue);
     furi_event_loop_free(instance->event_loop);
