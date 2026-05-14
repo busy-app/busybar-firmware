@@ -9,7 +9,8 @@ import xml.etree.ElementTree as ET
 
 
 JUNIT_FAILURE_MESSAGE_LIMIT = 800
-TRACE_LINK_KEYS = ("U5 Trace", "Si917 Trace", "Full Log", "Trimmed Crash Log")
+FULL_LOG_LINK_KEY = "Full Log"
+TRACE_LINK_KEYS = ("U5 Trace", "Si917 Trace")
 
 
 def parse_junit(xml_path: str) -> dict:
@@ -136,6 +137,24 @@ def _trace_links(traces: list) -> list:
     return lines
 
 
+def _first_full_log_url(traces_by_id: dict) -> str:
+    for traces in traces_by_id.values():
+        for trace in traces or []:
+            url = (trace.get("s3_urls") or {}).get(FULL_LOG_LINK_KEY)
+            if url:
+                return url
+    return ""
+
+
+def _report_links(allure_url: str, full_log_url: str = "") -> str:
+    links = []
+    if allure_url:
+        links.append(f"[Allure Report]({allure_url})")
+    if full_log_url:
+        links.append(f"[{FULL_LOG_LINK_KEY}]({full_log_url})")
+    return " | ".join(links)
+
+
 def _failed_test_block(name: str, msg: str, traces: list) -> str:
     lines = [
         "<details>",
@@ -165,11 +184,15 @@ def _failed_test_block(name: str, msg: str, traces: list) -> str:
 
 def build_pr_comment(results: dict | None, allure_url: str, log_dir: str = "") -> str:
     lines = []
+    traces_by_id = {}
+    if results and results["failed_tests"]:
+        traces_by_id = load_forced_traces(log_dir)
+    report_links = _report_links(allure_url, _first_full_log_url(traces_by_id))
 
     if results is None:
         lines.append("### Integration Tests: results file not found")
-        if allure_url:
-            lines.append(f"[Allure Report]({allure_url})")
+        if report_links:
+            lines.append(report_links)
         return "\n".join(lines)
 
     r = results
@@ -181,11 +204,10 @@ def build_pr_comment(results: dict | None, allure_url: str, log_dir: str = "") -
             f"{r['passed']} passed / {r['total']} total"
         )
 
-    if allure_url:
-        lines.append(f"[Allure Report]({allure_url})")
+    if report_links:
+        lines.append(report_links)
 
     if r["failed_tests"]:
-        traces_by_id = load_forced_traces(log_dir)
         lines.append("")
         for name, msg in r["failed_tests"][:30]:
             lines.append(_failed_test_block(name, msg, traces_by_id.get(name, [])))
@@ -346,13 +368,10 @@ def build_crash_comment(flag_path: str, junit_xml: str | None = None) -> str | N
         lines.append(line)
     lines.append("")
 
-    log_links = []
-    for key in ("Full Log", "Trimmed Crash Log"):
-        if key in s3_urls:
-            log_links.append(f"- [{key}]({s3_urls[key]})")
-    if log_links:
+    full_log_url = s3_urls.get(FULL_LOG_LINK_KEY)
+    if full_log_url:
         lines.append("**Serial Logs:**")
-        lines.extend(log_links)
+        lines.append(f"- [{FULL_LOG_LINK_KEY}]({full_log_url})")
         lines.append("")
 
     if not both_ok:

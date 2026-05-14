@@ -25,26 +25,41 @@ on:
 
   workflow_dispatch:
     inputs:
+      test_scope:
+        description: 'What to run. Default matches PR runs.'
+        required: false
+        type: choice
+        default: smoke
+        options:
+          - smoke
+          - regression
+          - full
+          - custom
+      commit_sha:
+        description: 'Commit/ref to checkout. Empty uses the selected workflow ref.'
+        required: false
+        type: string
+        default: ''
       firmware_branch:
-        description: 'Firmware branch (e.g., dev, 0.6.0-rc). Will auto-detect latest build.'
+        description: 'Firmware branch/path prefix. Empty uses the selected workflow ref.'
         required: false
         type: string
-        default: "dev"
+        default: ''
       update_url:
-        description: 'Explicit firmware path (overrides firmware_branch if set)'
+        description: 'Explicit firmware path or URL. Overrides firmware_branch if set.'
         required: false
         type: string
-        default: ""
+        default: ''
       target:
         description: 'Hardware target'
         required: false
         type: string
         default: '21'
       marker_filter:
-        description: 'Pytest -m marker expression. Empty runs everything.'
+        description: 'Pytest -m expression, used only when test_scope=custom. Empty runs everything.'
         required: false
         type: string
-        default: 'not regression'
+        default: ''
 
 permissions:
   contents: read
@@ -78,26 +93,32 @@ jobs:
 
       - name: 'Update submodules'
         run: |
-          git submodule update --init --recursive --jobs=$(nproc) scripts/toolchain fbt_layers/fbtng || (git lfs logs last && exit 1)
+          git submodule update --init --recursive --jobs="$(nproc)" scripts/toolchain fbt_layers/fbtng || (git lfs logs last && exit 1)
 
       - name: 'Resolve firmware URLs'
         id: resolve_firmware
+        env:
+          FIRMWARE_BRANCH_INPUT: ${{ inputs.firmware_branch || '' }}
+          UPDATE_URL_INPUT: ${{ inputs.update_url || '' }}
         run: |
           set -euo pipefail
           TARGET="f${{ env.U5_HW_TARGET }}"
 
-          if [ -n "${{ inputs.update_url }}" ]; then
-            UPDATE_PATH="${{ inputs.update_url }}"
+          if [ -n "$UPDATE_URL_INPUT" ]; then
+            UPDATE_PATH="$UPDATE_URL_INPUT"
             # Strip absolute base if a full URL was pasted into the dispatch
             # input — downstream code expects a relative path.
-            UPDATE_PATH="${UPDATE_PATH#${FIRMWARE_BASE_URL}/}"
+            UPDATE_PATH="${UPDATE_PATH#"$FIRMWARE_BASE_URL"/}"
             UPDATE_PATH="${UPDATE_PATH#https://update.flipperzero.one/builds/busybar-firmware/}"
             if [[ "$UPDATE_PATH" == http*://* ]]; then
-              echo "ERROR: update_url points outside ${FIRMWARE_BASE_URL}: ${{ inputs.update_url }}"
+              echo "ERROR: update_url points outside ${FIRMWARE_BASE_URL}: $UPDATE_URL_INPUT"
               exit 1
             fi
-          elif [ -n "${{ github.event.inputs.firmware_branch }}" ]; then
-            BRANCH="${{ github.event.inputs.firmware_branch }}"
+          else
+            BRANCH="${FIRMWARE_BRANCH_INPUT:-${GITHUB_REF_NAME:-}}"
+            if [ -z "$BRANCH" ]; then
+              echo "ERROR: No update_url, firmware_branch, or selected ref provided"; exit 1
+            fi
             LISTING=$(curl --fail -sL "${FIRMWARE_BASE_URL}/${BRANCH}/") || {
               echo "ERROR: Failed to fetch listing for branch $BRANCH (${FIRMWARE_BASE_URL}/${BRANCH}/)"
               exit 1
@@ -108,8 +129,6 @@ jobs:
             UPDATE_FILE=$(echo "$LISTING" | grep -oE "busybar-${TARGET}-update-[^\"]+\.(tgz|tar)" | sort -V | tail -1 || true)
             [ -n "$UPDATE_FILE" ] || { echo "ERROR: No update file for target $TARGET in branch $BRANCH"; exit 1; }
             UPDATE_PATH="${BRANCH}/${UPDATE_FILE}"
-          else
-            echo "ERROR: No update_url or firmware_branch provided"; exit 1
           fi
 
           UPDATE_DIR="$(dirname "$UPDATE_PATH")"
@@ -121,9 +140,11 @@ jobs:
           SI917_ELF="${UPDATE_DIR}/${UPDATE_FILE/-update-/-sil_firmware-}"
           SI917_ELF="${SI917_ELF%.tgz}"; SI917_ELF="${SI917_ELF%.tar}.elf"
 
-          echo "update_url=${FIRMWARE_BASE_URL}/${UPDATE_PATH}" >> $GITHUB_OUTPUT
-          echo "u5_elf_url=${FIRMWARE_BASE_URL}/${U5_ELF}" >> $GITHUB_OUTPUT
-          echo "si917_elf_url=${FIRMWARE_BASE_URL}/${SI917_ELF}" >> $GITHUB_OUTPUT
+          {
+            echo "update_url=${FIRMWARE_BASE_URL}/${UPDATE_PATH}"
+            echo "u5_elf_url=${FIRMWARE_BASE_URL}/${U5_ELF}"
+            echo "si917_elf_url=${FIRMWARE_BASE_URL}/${SI917_ELF}"
+          } >> "$GITHUB_OUTPUT"
 
       - name: 'Download firmware artifacts'
         run: |
@@ -164,10 +185,48 @@ jobs:
           python3 -m pip install --upgrade pip
           pip install -r tests/requirements.txt
 
+      - name: Resolve pytest marker filter
+        id: pytest_filter
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          MARKER_FILTER_INPUT: ${{ inputs.marker_filter }}
+          TEST_SCOPE: ${{ inputs.test_scope || 'smoke' }}
+        run: |
+          set -euo pipefail
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            case "$TEST_SCOPE" in
+              smoke|"")
+                MARKER_FILTER="not regression"
+                ;;
+              regression)
+                MARKER_FILTER="regression"
+                ;;
+              full)
+                MARKER_FILTER=""
+                ;;
+              custom)
+                MARKER_FILTER="$MARKER_FILTER_INPUT"
+                ;;
+              *)
+                echo "ERROR: Unsupported test_scope: $TEST_SCOPE" >&2
+                exit 1
+                ;;
+            esac
+          else
+            MARKER_FILTER="$MARKER_FILTER_INPUT"
+          fi
+
+          echo "marker_filter=$MARKER_FILTER" >> "$GITHUB_OUTPUT"
+          if [ -n "$MARKER_FILTER" ]; then
+            echo "Resolved pytest marker filter: $MARKER_FILTER"
+          else
+            echo "Resolved pytest marker filter: <empty> (full suite)"
+          fi
+
       - name: Run integration tests
         id: smoke_tests
         env:
-          MARKER_FILTER: ${{ inputs.marker_filter }}
+          MARKER_FILTER: ${{ steps.pytest_filter.outputs.marker_filter }}
           BSB_FIRMWARE_PATH: ${{ github.workspace }}
           CLI_HOST: ${{ secrets.CLI_HOST || '10.0.4.20' }}
           CLI_PORT: ${{ secrets.CLI_PORT || '23' }}
@@ -189,10 +248,10 @@ jobs:
           fi
           python3 -m pytest "${pytest_args[@]}"
           PYTEST_EXIT=$?
-          echo "pytest_exit=$PYTEST_EXIT" >> $GITHUB_OUTPUT
+          echo "pytest_exit=$PYTEST_EXIT" >> "$GITHUB_OUTPUT"
           # 0 = all passed, 1 = some failed — both mean tests ran
           # 2+ = collection error, internal error, no tests collected
-          if [ $PYTEST_EXIT -ge 2 ]; then
+          if [ "$PYTEST_EXIT" -ge 2 ]; then
             echo "Pytest failed to run properly (exit code $PYTEST_EXIT)"
             exit $PYTEST_EXIT
           fi
@@ -208,17 +267,19 @@ jobs:
       - name: Upload test results to Allure TestOps
         id: allure_upload
         continue-on-error: true
+        env:
+          LAUNCH_BRANCH: ${{ inputs.branch_name || github.head_ref || github.ref_name }}
         run: |
           cd tests
           OUTPUT=$(allurectl upload allure-results \
             --endpoint "${{ secrets.ALLURE_TESTOPS_URL }}" \
             --token "${{ secrets.ALLURE_TESTOPS_TOKEN }}" \
             --project-id "${{ secrets.ALLURE_PROJECT_ID }}" \
-            --launch-name "BSB Firmware - Integration Tests - ${{ inputs.branch_name || github.head_ref || github.ref_name }} - ${GITHUB_SHA::7}" 2>&1) || true
+            --launch-name "BSB Firmware - Integration Tests - ${LAUNCH_BRANCH} - ${GITHUB_SHA::7}" 2>&1) || true
           echo "$OUTPUT"
           LAUNCH_ID=$(echo "$OUTPUT" | grep -oP 'Launch \[\K[0-9]+' | head -1)
           if [ -n "$LAUNCH_ID" ]; then
-            echo "allure_launch_url=${{ secrets.ALLURE_TESTOPS_URL }}/launch/$LAUNCH_ID" >> $GITHUB_OUTPUT
+            echo "allure_launch_url=${{ secrets.ALLURE_TESTOPS_URL }}/launch/$LAUNCH_ID" >> "$GITHUB_OUTPUT"
           fi
 
       - name: 'Configure AWS CLI'
