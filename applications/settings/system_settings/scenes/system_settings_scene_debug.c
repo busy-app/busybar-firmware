@@ -2,6 +2,7 @@
 
 #include <gui/modules/var_item_list.h>
 #include <furi_hal_nvm.h>
+#include <sysctl/sysctl.h>
 
 typedef enum {
     SceneEventDebugAppsChanged = AppEventSceneEventsStart,
@@ -95,9 +96,9 @@ static bool system_settings_scene_debug_on_event(const SceneManagerEvent* event,
             SettingsSceneDebug* data =
                 scene_manager_get_scene_data(instance->scene_manager, SceneIdDebug);
             if(data->debug_apps == DebugAppsOff) {
-                furi_hal_nvm_reset_flag(FuriHalNvmFlagDebug);
+                sysctl_set_debug_enabled(false);
             } else if(data->debug_apps == DebugAppsOn) {
-                furi_hal_nvm_set_flag(FuriHalNvmFlagDebug);
+                sysctl_set_debug_enabled(true);
             }
         }
         consumed = true;
