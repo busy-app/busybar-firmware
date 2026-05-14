@@ -11,7 +11,6 @@
 #include <cli/cli_status.h>
 
 #include <wifi/wifi_common.h>
-#include <nvm/nvm.h>
 
 static void print_status(FuriHalCryptoStatus status) {
     switch(status) {
@@ -654,9 +653,15 @@ void crypto_command_protect(PipeSide* pipe, FuriString* args, void* context) {
             printf(CLI_STATUS_ERROR);
             return;
         }
-        furi_hal_crypto_storage_set_access_mode(
+        FuriHalCryptoStatus status = furi_hal_crypto_storage_set_access_mode(
             readonly ? FuriHalCryptoStorageAccessModeReadOnly :
                        FuriHalCryptoStorageAccessModeReadWrite);
+        if(status != FuriHalCryptoStatusOk) {
+            printf("Cannot set write protect flag: ");
+            print_status(status);
+            printf(CLI_STATUS_ERROR);
+            return;
+        }
     }
     printf("Storage access mode is: ");
     if(furi_hal_crypto_storage_get_access_mode() == FuriHalCryptoStorageAccessModeReadOnly) {

@@ -54,8 +54,13 @@ typedef enum FuriHalCryptoStorageAccessMode {
 extern "C" {
 #endif
 
-/** Set crypto storage access mode (read-only or read-write). */
-void furi_hal_crypto_storage_set_access_mode(FuriHalCryptoStorageAccessMode mode);
+/** Set crypto storage access mode (read-only or read-write).
+ * @return FuriHalCryptoStatus indicating the result of the operation
+ *    - FuriHalCryptoStatusOk on success
+ *    - FuriHalCryptoStatusFail on NVM write failure
+ */
+FURI_CHECK_RETURN
+FuriHalCryptoStatus furi_hal_crypto_storage_set_access_mode(FuriHalCryptoStorageAccessMode mode);
 
 /** Get crypto storage access mode (read-only or read-write). */
 FuriHalCryptoStorageAccessMode furi_hal_crypto_storage_get_access_mode(void);

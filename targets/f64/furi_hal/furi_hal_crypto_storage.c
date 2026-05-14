@@ -235,10 +235,15 @@ static FuriHalCryptoStatus load_key(const FuriHalCryptoKeySlot* slot, FuriHalCry
     return FuriHalCryptoStatusOk;
 }
 
-void furi_hal_crypto_storage_set_access_mode(FuriHalCryptoStorageAccessMode mode) {
+FuriHalCryptoStatus furi_hal_crypto_storage_set_access_mode(FuriHalCryptoStorageAccessMode mode) {
     Nvm* nvm = furi_record_open(RECORD_NVM);
-    nvm_write_counter(nvm, NvmKeyCryptoAccessMode, mode);
+    bool success = nvm_write_counter(nvm, NvmKeyCryptoAccessMode, mode);
     furi_record_close(RECORD_NVM);
+    if(!success) {
+        return FuriHalCryptoStatusFail;
+    } else {
+        return FuriHalCryptoStatusOk;
+    }
 }
 
 FuriHalCryptoStorageAccessMode furi_hal_crypto_storage_get_access_mode(void) {
