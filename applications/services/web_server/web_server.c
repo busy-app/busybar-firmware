@@ -180,7 +180,7 @@ bool http_handle_request(
     bool handled = false;
 
     if(netstat_is_overloaded(NetstatLogOnOverload)) {
-        mg_http_reply(conn, 503, "", "{\"error\": \"" NETSTAT_RECOMMENDED_ERROR "}");
+        MG_REPLY_ERROR(conn, 503, NETSTAT_RECOMMENDED_ERROR);
         handled = true;
         return handled;
     }
