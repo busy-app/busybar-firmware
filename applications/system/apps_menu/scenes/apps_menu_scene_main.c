@@ -50,7 +50,7 @@ static void apps_menu_scene_main_on_enter(void* context) {
             data->front_menu,
             "Coming soon...",
             "",
-            APPS_MENU_IMG_PATH("soon_front_8x6.image"),
+            APPS_MENU_IMG_PATH("soon_front_8x8.image"),
             AppsMenuEntryIdxDummy,
             apps_scene_setup_menu_callback,
             instance);
@@ -67,7 +67,7 @@ static void apps_menu_scene_main_on_enter(void* context) {
             NULL);
         menu_add_item(
             data->back_menu,
-            "More apps coming soon...",
+            "Coming soon...",
             "",
             APPS_MENU_IMG_PATH("soon_back_11x11.image"),
             0,
