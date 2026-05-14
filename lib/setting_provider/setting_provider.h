@@ -55,6 +55,8 @@ typedef struct {
 
 /** Boolean interface - stores as JSON true/false. */
 typedef struct {
+    bool (*default_value_callback)(
+        void); /**< A callback to provide default value. If NULL, constant default_value is used. */
     bool default_value; /**< Default value when setting is not present in storage */
 } SettingProviderBoolInterface;
 

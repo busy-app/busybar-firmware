@@ -1,22 +1,15 @@
+#include "cli_socket_client.h"
+
 #include <furi.h>
 #include <lwip/tcp.h>
 #include <lwip/netif.h>
 #include <network/network.h>
-#include "cli_socket.h"
-#include "cli_socket_client.h"
-#include "settings/sysctl_settings.h"
+#include <sysctl/sysctl.h>
 
 #include <lwip/tcpip.h>
 
 #define CLI_SOCKET_PORT 23
 #define TAG             "CliSocketServer"
-
-/* Cached WiFi CLI enable state. Updated at startup and by cli_socket_set_wifi_enabled(). */
-static volatile bool cli_socket_wifi_enabled = false;
-
-void cli_socket_set_wifi_enabled(bool enabled) {
-    cli_socket_wifi_enabled = enabled;
-}
 
 /**
  * @brief Returns true if the accepted connection arrived on the WiFi netif ("WL0").
@@ -37,7 +30,7 @@ static err_t cli_socket_accept_callback(void* context, struct tcp_pcb* client_so
         return err;
     }
 
-    if(cli_socket_is_wifi_connection(client_socket) && !cli_socket_wifi_enabled) {
+    if(cli_socket_is_wifi_connection(client_socket) && !sysctl_get_cli_wifi_enabled()) {
         FURI_LOG_I(
             TAG,
             "Rejected WiFi CLI from %s:%d (disabled by sysctl)",
@@ -67,10 +60,6 @@ static void cli_socket_init_callback(void* context) {
 }
 
 void cli_socket_on_system_start(void) {
-    SysctlSettings sysctl_settings;
-    sysctl_settings_load(&sysctl_settings);
-    cli_socket_wifi_enabled = sysctl_settings.cli_wifi_enabled;
-
     furi_record_open(RECORD_NETWORK);
     tcpip_callback(cli_socket_init_callback, NULL);
 }

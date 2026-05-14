@@ -3,6 +3,8 @@
     data-id="layout-default"
     class="w-screen min-h-screen px-4 sm:px-6 py-4"
   >
+    <ConfigStoreCard v-if="configStore.showConfigUI === true" />
+
     <UContainer>
       <template v-if="shouldLoadDefaultPage">
         <DefaultLayoutHeader />
@@ -50,6 +52,7 @@ const deviceStore = useDeviceStore();
 const firmwareStore = useFirmwareStore();
 const wifiStore = useWifiStore();
 const stateStreamStore = useStateStreamStore();
+const configStore = useConfigStore();
 
 const shouldLoadDefaultPage = ref(false);
 async function init () {
@@ -87,9 +90,12 @@ function logStateUpdates (message: ProcessedState) {
     message.updates = [];
   }
   for (const update of message.updates) {
+    if (update.state === 'frame' && configStore.get('stateStreamLogFrames') === false) {
+      continue;
+    }
     console.debug(`[state stream message] (${Number(message.timestamp)})`, update);
   }
-  if (message.updates.length === 0) {
+  if (message.updates.length === 0 && configStore.get('stateStreamLogHeartbeats')) {
     console.debug(`[state stream message] (${Number(message.timestamp)}) heartbeat (no updates)`);
   }
 }
@@ -108,7 +114,9 @@ function initStateStream () {
     stateStreamStore.stream.start({
       dataCallback: message => {
         stateStreamStore.applyStateMessage(message);
-        logStateUpdates(message);
+        if (configStore.get('stateStreamLogUpdates')) {
+          logStateUpdates(message);
+        }
       },
       statusCallback: stateStreamStore.applyStreamStatus,
       errorCallback: error => {
@@ -190,6 +198,14 @@ onMounted(async () => {
   window.addEventListener('device-reconnected', handleDeviceReconnected);
   window.addEventListener('protobuf-websocket-restart', handleStateStreamRestart);
   window.addEventListener('wifi-reconnected', firmwareStore.requestAutoUpdateCheck);
+
+  // check if config store is cached in localStorage
+  if (localStorage.getItem('configStore') === null) {
+    // make it cache showConfigUI for external access
+    const showUI = configStore.showConfigUI;
+    configStore.showConfigUI = undefined;
+    configStore.showConfigUI = showUI;
+  }
 });
 
 onBeforeUnmount(() => {

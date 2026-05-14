@@ -18,6 +18,7 @@ export interface AutoUpdateSelfCheckState {
 
 export const useFirmwareStore = defineStore('firmware', () => {
   const deviceStore = useDeviceStore();
+  const configStore = useConfigStore();
 
   const BACKGROUND_AUTO_UPDATE_CHECK_INTERVAL_MS = 30 * 60 * 1000; // 30 minutes
   const autoUpdate = ref({
@@ -89,7 +90,7 @@ export const useFirmwareStore = defineStore('firmware', () => {
     autoUpdate.value.error.message = null;
   }
   async function fetchAutoUpdateStatus (attempt: number = 0): Promise<void> {
-    return deviceStore.busyBar.UpdateStatusGet({ timeout: 10000 })
+    return deviceStore.busyBar.UpdateStatusGet()
       .then(async status => {
         if (!status.check?.status || !status.check.event) {
           throw new Error('Invalid update status response: missing check info');
@@ -109,7 +110,9 @@ export const useFirmwareStore = defineStore('firmware', () => {
               description: 'Check your internet connection and try again.',
               icon: 'i-bi-alert',
               color: 'error',
-              duration: 10000
+              duration: 0,
+              close: true,
+              closeIcon: 'i-bi-cross'
             });
           }
           return;
@@ -144,7 +147,7 @@ export const useFirmwareStore = defineStore('firmware', () => {
             title: 'Your firmware version is up to date',
             icon: 'i-bi-checkmark-circle-fill',
             color: 'success',
-            duration: 10000
+            duration: Number(configStore.get('notificationDuration'))
           });
         }
 
@@ -166,7 +169,7 @@ export const useFirmwareStore = defineStore('firmware', () => {
     }
     autoUpdate.value.isChecking = true;
 
-    return deviceStore.busyBar.UpdateCheck({ timeout: 10000 })
+    return deviceStore.busyBar.UpdateCheck()
       .then(async () => {
         console.debug('Auto-update check requested');
         await new Promise(resolve => setTimeout(resolve, 1000));
@@ -216,7 +219,7 @@ export const useFirmwareStore = defineStore('firmware', () => {
     }
     console.debug('Requesting auto-update installation');
 
-    return deviceStore.busyBar.UpdateInstall({ version: autoUpdate.value.availableVersion, timeout: 10000 });
+    return deviceStore.busyBar.UpdateInstall({ version: autoUpdate.value.availableVersion, timeout: 0 });
   }
   async function abortAutoUpdateDownload () {
     await deviceStore.busyBar.UpdateAbort()
@@ -246,7 +249,7 @@ export const useFirmwareStore = defineStore('firmware', () => {
       });
 
     autoUpdate.value.progressPollingInterval = setInterval(async () => {
-      await deviceStore.busyBar.UpdateStatusGet({ timeout: 10000 })
+      await deviceStore.busyBar.UpdateStatusGet()
         .then(status => {
           if (!status.install) {
             throw new Error('Invalid update status response: missing install info');
@@ -274,7 +277,11 @@ export const useFirmwareStore = defineStore('firmware', () => {
               toast.add({
                 title: 'Update aborted',
                 description: 'The update download has been aborted.',
-                duration: 10000
+                icon: 'i-bi-alert',
+                color: 'error',
+                duration: 0,
+                close: true,
+                closeIcon: 'i-bi-cross'
               });
               return;
             }
@@ -365,7 +372,7 @@ export const useFirmwareStore = defineStore('firmware', () => {
           description: 'The device will reboot to apply the update. Pay attention to the front screen.',
           icon: 'i-bi-checkmark-circle-fill',
           color: 'success',
-          duration: 10000
+          duration: Number(configStore.get('notificationDuration'))
         });
       } else {
         console.error('Upload failed:', xhr.status, xhr.responseText);
@@ -375,7 +382,9 @@ export const useFirmwareStore = defineStore('firmware', () => {
           description: `Error ${xhr.status}: ${xhr.responseText}`,
           icon: 'i-bi-alert',
           color: 'error',
-          duration: 10000
+          duration: 0,
+          close: true,
+          closeIcon: 'i-bi-cross'
         });
         fileUpdate.value.error = `Error ${xhr.status}: ${xhr.responseText}`;
       }
@@ -389,7 +398,9 @@ export const useFirmwareStore = defineStore('firmware', () => {
         description: 'An error occurred during the upload.',
         icon: 'i-bi-alert',
         color: 'error',
-        duration: 10000
+        duration: 0,
+        close: true,
+        closeIcon: 'i-bi-cross'
       });
       fileUpdate.value.error = 'An error occurred during the upload.';
     };
