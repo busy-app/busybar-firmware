@@ -31,7 +31,7 @@ void BSBDACProvider::SetCertificationDeclaration(const uint8_t* buffer, size_t s
 }
 
 CHIP_ERROR BSBDACProvider::GetCertificationDeclaration(MutableByteSpan& out_cd_buffer) {
-    if(m_cd_buffer)  {
+    if(m_cd_buffer) {
         return CopySpanToMutableSpan(ByteSpan{m_cd_buffer, m_cd_size}, out_cd_buffer);
     }
 
