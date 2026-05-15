@@ -96,6 +96,26 @@ bool storage_file_open(
     FS_OpenMode open_mode);
 
 /**
+ * @brief Open an existing file or create a new one - non-blocking version.
+ *
+ * This function behaves the same as storage_file_open() but it will not block if the file is already opened. 
+ * Instead it will return false immediately.
+ *
+ * @warning The calling code MUST call storage_file_close() even if the open operation had failed.
+ *
+ * @param file pointer to the file instance to be opened.
+ * @param path pointer to a zero-terminated string containing the path to the file to be opened.
+ * @param access_mode access mode from FS_AccessMode.
+ * @param open_mode open mode from FS_OpenMode 
+ * @return true if the file was successfully opened, false otherwise.
+ */
+bool storage_file_open_nonblocking(
+    File* file,
+    const char* path,
+    FS_AccessMode access_mode,
+    FS_OpenMode open_mode);
+
+/**
  * @brief Close the file.
  *
  * @param file pointer to the file instance to be closed.

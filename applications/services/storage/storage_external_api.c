@@ -128,6 +128,24 @@ bool storage_file_open(
     return result;
 }
 
+bool storage_file_open_nonblocking(
+    File* file,
+    const char* path,
+    FS_AccessMode access_mode,
+    FS_OpenMode open_mode) {
+    furi_check(file);
+
+    bool result = storage_file_open_internal(file, path, access_mode, open_mode);
+    FURI_LOG_T(
+        TAG,
+        "File %p - %p open (%s)",
+        (void*)((uint32_t)file - SRAM_BASE),
+        (void*)(file->file_id - SRAM_BASE),
+        path);
+
+    return result;
+}
+
 bool storage_file_close(File* file) {
     S_FILE_API_PROLOGUE;
     S_API_PROLOGUE;
