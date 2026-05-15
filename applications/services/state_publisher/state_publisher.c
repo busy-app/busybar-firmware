@@ -107,7 +107,7 @@ static void update_screen_streamer_outputs(StatePublisher* instance) {
         uint32_t frame_interval_ms = UINT32_MAX;
         for(size_t i = 0; i != MAX_TRANSPORTS; ++i) {
             Transport* t = instance->transports + i;
-            if(t->valid) {
+            if(t->valid && (t->flags & (1 << transport_class))) {
                 enabled = true;
                 frame_interval_ms = MIN(frame_interval_ms, t->frame_interval_ms);
             }
