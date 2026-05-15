@@ -76,6 +76,8 @@ static bool ble_service_prepare_send_intercom_frame(
         }
 
         ble_service_frame_unlock(instance->output_frame);
+    } else {
+        BLE_LOG_W("Send intercom frame failed");
     }
 
     return send_result;
@@ -188,6 +190,8 @@ void ble_service_process_mailbox(
     if(ble_service_frame_lock(instance->input_frame)) {
         ble_service_frame_append_data(instance->input_frame, input_frame, fs);
         ble_service_enqueue_message(instance);
+    } else {
+        BLE_LOG_W("Mailbox process failed");
     }
 }
 
@@ -220,6 +224,8 @@ void ble_service_enqueue_init(BleServiceObject* instance) {
             ble_service_frame_append_data(
                 instance->input_frame, &init_data, sizeof(BleIntercomFrameHeader));
             ble_service_enqueue_message(instance);
+        } else {
+            BLE_LOG_W("Init process failed");
         }
 
         ble_service_unlock(instance);
