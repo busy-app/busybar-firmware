@@ -32,18 +32,29 @@ static bool api_display_draw_parse_text_element(
 
         char* font_name = mg_json_get_str(json_element, "$.font");
         if(!font_name) break;
+
         static const char* const font_names[] = {
+            "tiny",
             "small",
-            "medium",
-            "medium_condensed",
-            "big",
+            "normal",
+            "condensed",
+            "bold",
+            "large",
+            "extra_large",
+            "global",
         };
+
         static const char* const font_paths[] = {
+            FONT_BUSY_TINY,
             FONT_BUSY_REGULAR_5,
             FONT_BUSY_REGULAR_7,
             FONT_BUSY_CONDENSED_7,
+            FONT_BUSY_BOLD_7,
+            FONT_BUSY_REGULAR_9,
             FONT_BUSY_BOLD_10,
+            FONT_LANA_PIXEL_REGULAR_11,
         };
+
         const char* font_path =
             value_index_map_string(font_names, font_paths, COUNT_OF(font_names), font_name);
         if(strcmp(font_path, font_paths[0]) == 0 && strcmp(font_name, font_names[0]) != 0) {
