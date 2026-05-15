@@ -220,6 +220,13 @@ def pytest_configure(config):
         "feature_web_frontend: Feature 5. Web Frontend",
         "connection_test: Fresh connection tests",
         "schemathesis: OpenAPI schema conformance tests (schemathesis)",
+        "mqtt: requires configured MQTT test broker/cloud",
+        "uses_cloud: uses real test cloud account/session service",
+        "external_service: talks to service outside the device",
+        "state_publisher: state publisher transport and protobuf contract tests",
+        "uses_ble: requires BLE adapter/hardware path",
+        "rate_limiter: state publisher rate limiter tests",
+        "long_running: long-running hardware regression tests",
         "regression: Heavy regression tests; excluded from PR/dev runs, only fire on -rc tags",
     ]
 

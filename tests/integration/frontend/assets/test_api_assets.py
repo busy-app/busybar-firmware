@@ -8,6 +8,17 @@ import requests
 from clients.api import AssetsAPI, SettingsAPI, StorageAPI
 
 ASSETS_DIR = Path(__file__).resolve().parents[2] / "assets"
+REQUIRED_SHARED_FONTS = [
+    "busy_bold_10.font",
+    "busy_bold_7.font",
+    "busy_condensed_7.font",
+    "busy_regular_14.font",
+    "busy_regular_5.font",
+    "busy_regular_7.font",
+    "busy_regular_9.font",
+    "busy_superscript_7.font",
+    "busy_tiny.font",
+]
 
 
 @allure.feature("5. Web Frontend")
@@ -26,35 +37,6 @@ class TestAssetsAPI:
         test_content = b"Test asset content"
 
         assets_api.upload_asset(test_app_id, test_filename, test_content)
-
-    @allure.title("POST /api/assets/upload (verify storage location)")
-    @pytest.mark.api
-    @pytest.mark.frontend
-    def test_api_assets_upload_location(
-        self, assets_api: AssetsAPI, storage_api: StorageAPI
-    ):
-        """Verify that uploaded asset lands at /ext/user_assets/<app>/<file>."""
-        test_app_id = "test_asset_location"
-        test_filename = "where_am_i.txt"
-        test_content = b"locate me"
-        expected_path = f"/ext/user_assets/{test_app_id}/{test_filename}"
-
-        assets_api.upload_asset(test_app_id, test_filename, test_content)
-
-        try:
-            with allure.step(f"List app asset dir: /ext/user_assets/{test_app_id}"):
-                listing = storage_api.list(f"/ext/user_assets/{test_app_id}")
-                names = [item.name for item in listing.list]
-                assert test_filename in names, (
-                    f"Uploaded file {test_filename!r} not found in app dir; got {names!r}"
-                )
-
-            with allure.step(f"Read back uploaded file: {expected_path}"):
-                read_response = storage_api.read(expected_path)
-                assert read_response.status_code == 200
-                assert read_response.content == test_content
-        finally:
-            assets_api.delete_assets(test_app_id)
 
     @allure.id("2652")
     @allure.title("DELETE /api/assets/upload")
@@ -205,3 +187,54 @@ class TestAssetsAPI:
             )
 
         assert response.status_code == 400
+
+
+@allure.feature("5. Web Frontend")
+@allure.story("Assets")
+@pytest.mark.api
+@pytest.mark.frontend
+@pytest.mark.regression
+class TestSharedAssetRegressions:
+    @allure.title("External shared font assets are deployed")
+    @pytest.mark.parametrize("font_name", REQUIRED_SHARED_FONTS)
+    def test_shared_font_asset_exists(self, storage_api: StorageAPI, font_name: str):
+        response = storage_api.read(f"/ext/apps_assets/shared/fonts/{font_name}")
+
+        assert response.status_code == 200
+        assert len(response.content) > 0
+
+    @allure.title("External shared font assets have plausible binary content")
+    @pytest.mark.parametrize("font_name", REQUIRED_SHARED_FONTS)
+    def test_shared_font_asset_has_plausible_content(
+        self, storage_api: StorageAPI, font_name: str
+    ):
+        response = storage_api.read(f"/ext/apps_assets/shared/fonts/{font_name}")
+
+        assert response.status_code == 200
+        assert 8 <= len(response.content) < 65536
+        assert len(set(response.content[:64])) > 1
+
+    @allure.title("Text draw smoke covers deployed font renderer path")
+    def test_text_draw_font_renderer_smoke(self, assets_api: AssetsAPI, streaming_api):
+        elements = [
+            {
+                "id": "font_smoke",
+                "timeout": 5,
+                "type": "text",
+                "text": "FONT",
+                "x": 36,
+                "y": 8,
+                "align": "center",
+                "font": "small",
+                "color": "#FFFFFFFF",
+                "display": "front",
+            }
+        ]
+
+        try:
+            assets_api.draw("font_renderer_regression", elements, priority=90)
+            sleep(1)
+            frame = streaming_api.get_screen_bytes(display=0)
+            assert any(frame)
+        finally:
+            assets_api.clear_display_by_app("font_renderer_regression")

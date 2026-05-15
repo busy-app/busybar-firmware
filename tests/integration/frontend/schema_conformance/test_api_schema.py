@@ -106,3 +106,50 @@ def test_post_conformance(case: schemathesis.Case, web_session) -> None:
         attachment_type=allure.attachment_type.TEXT,
     )
     case.validate_response(response)
+
+
+@allure.feature("5. Web Frontend")
+@allure.story("Schema Conformance")
+@pytest.mark.api
+@pytest.mark.frontend
+@pytest.mark.regression
+def test_openapi_wrong_methods_return_allow_header(schemathesis_schema, api_session, web_base_url):
+    raw_schema = schemathesis_schema.raw_schema
+    candidates = []
+    for path, path_item in raw_schema.get("paths", {}).items():
+        allowed = {
+            method.upper()
+            for method in path_item
+            if method.upper() in {"GET", "POST", "PUT", "DELETE"}
+        }
+        if not allowed or "{" in path:
+            continue
+
+        required_query_params = [
+            param
+            for operation in path_item.values()
+            if isinstance(operation, dict)
+            for param in operation.get("parameters", [])
+            if param.get("in") == "query" and param.get("required")
+        ]
+        if required_query_params:
+            continue
+
+        unsupported = next(
+            (method for method in ("GET", "POST", "PUT", "DELETE") if method not in allowed),
+            None,
+        )
+        if unsupported:
+            candidates.append((unsupported, path, allowed))
+
+    assert candidates, "OpenAPI schema did not yield any wrong-method candidates"
+
+    for method, path, allowed in candidates:
+        response = api_session.request(method, f"{web_base_url}{path}", timeout=10)
+        assert response.status_code == 405, f"{method} {path} returned {response.status_code}"
+        actual_allow = {
+            item.strip()
+            for item in response.headers.get("Allow", "").split(",")
+            if item.strip()
+        }
+        assert actual_allow == allowed, f"{method} {path} Allow={actual_allow}, expected {allowed}"
