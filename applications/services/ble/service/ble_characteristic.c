@@ -81,7 +81,7 @@ size_t ble_characteristic_get_data_size(BleCharacteristicObject* instance) {
     return instance->data_size;
 }
 
-static void ble_characteristic_set_data_common(
+static bool ble_characteristic_set_data_common(
     BleCharacteristicObject* instance,
     const void* data,
     const size_t data_size) {
@@ -89,27 +89,29 @@ static void ble_characteristic_set_data_common(
     furi_assert(data);
     furi_assert(data_size > 0);
 
-    if(furi_semaphore_acquire(instance->lock, BLE_CHAR_LOCK_TIMEOUT_MS) != FuriStatusOk) {
-        BLE_LOG_W("%s - Unable to set, char is locked!", instance->descriptor->name);
-        return;
+    bool result = furi_semaphore_acquire(instance->lock, BLE_CHAR_LOCK_TIMEOUT_MS) == FuriStatusOk;
+    if(result) {
+        if(instance->data == NULL && instance->descriptor->initial_data_size == 0) {
+            instance->data = malloc(data_size);
+            instance->max_data_size = data_size;
+        }
+
+        furi_assert(instance->max_data_size >= data_size);
+        memcpy(instance->data, data, data_size);
+        instance->data_size = data_size;
     }
 
-    if(instance->data == NULL && instance->descriptor->initial_data_size == 0) {
-        instance->data = malloc(data_size);
-        instance->max_data_size = data_size;
-    }
-
-    furi_assert(instance->max_data_size >= data_size);
-    memcpy(instance->data, data, data_size);
-    instance->data_size = data_size;
+    return result;
 }
 
 void ble_characteristic_set_data(
     BleCharacteristicObject* instance,
     const void* data,
     const size_t data_size) {
-    ble_characteristic_set_data_common(instance, data, data_size);
-    instance->state = BleCharacteristicStateModifiedLocal;
+    if(ble_characteristic_set_data_common(instance, data, data_size))
+        instance->state = BleCharacteristicStateModifiedLocal;
+    else
+        BLE_LOG_W("%s - local set data failed!", instance->descriptor->name);
 }
 
 static void ble_characteristic_set_data_from_remote(
@@ -120,11 +122,13 @@ static void ble_characteristic_set_data_from_remote(
     furi_assert(data);
     furi_assert(data_size > 0);
 
-    ble_characteristic_set_data_common(instance, data, data_size);
-    instance->state = BleCharacteristicStateModifiedRemote;
-    if(instance->update_cb) {
-        instance->update_cb(data_size, instance->data, instance->update_ctx);
-    }
+    if(ble_characteristic_set_data_common(instance, data, data_size)) {
+        instance->state = BleCharacteristicStateModifiedRemote;
+        if(instance->update_cb) {
+            instance->update_cb(data_size, instance->data, instance->update_ctx);
+        }
+    } else
+        BLE_LOG_W("%s - remote set data failed!", instance->descriptor->name);
 }
 
 void ble_characteristic_tx_done(BleCharacteristicObject* instance) {
