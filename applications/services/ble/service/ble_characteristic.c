@@ -69,6 +69,7 @@ void ble_characteristic_reset(BleCharacteristicObject* instance) {
        instance->state == BleCharacteristicStateModifiedRemote) {
         furi_semaphore_release(instance->lock);
     }
+    instance->sequence_num = 0;
 }
 
 const void* ble_characteristic_get_data(BleCharacteristicObject* instance) {
