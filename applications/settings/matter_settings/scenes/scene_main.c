@@ -1,7 +1,7 @@
 #include "../matter_settings_i.h"
-#include <settings_helpers/status_view.h>
 
 #include <gui/modules/submenu.h>
+#include <gui/modules/status_view.h>
 
 typedef enum {
     SceneSubmenuIndexPairing,

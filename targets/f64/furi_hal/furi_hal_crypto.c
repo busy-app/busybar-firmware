@@ -350,16 +350,16 @@ FuriHalCryptoStatus furi_hal_crypto_ecdsa_verify(
     uint8_t* signature,
     uint16_t signature_length) {
     furi_check(handle && input && signature);
-    uint8_t* verify = NULL;
+    uint8_t verify = 0;
     handle->config.msg = input;
     handle->config.msg_length = input_length;
     handle->config.signature = signature;
     handle->config.signature_length = signature_length;
-    sl_status_t status = sl_si91x_ecdsa(&handle->config, verify);
+    sl_status_t status = sl_si91x_ecdsa(&handle->config, &verify);
     if(status != SL_STATUS_OK) {
         FURI_LOG_E(TAG, "Failed to verify data, Error Code : 0x%08lX", status);
         return FuriHalCryptoStatusDriverError;
-    } else if(*verify != 1) {
+    } else if(verify != 1) {
         return FuriHalCryptoStatusFail;
     }
     return FuriHalCryptoStatusOk;

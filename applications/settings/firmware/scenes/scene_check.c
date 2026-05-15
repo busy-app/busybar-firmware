@@ -1,8 +1,6 @@
 #include "../firmware_i.h"
 
-#include <gui/modules/flex_box.h>
-#include <gui/modules/label.h>
-#include <gui/modules/anim_player.h>
+#include <gui/modules/status_view.h>
 
 #include <toolbox/timers.h>
 
@@ -15,8 +13,8 @@ typedef enum {
 } FirmwareSettingsCheckSceneEvent;
 
 typedef struct {
-    FlexBox* front_box;
-    FlexBox* back_box;
+    StatusView* front_status;
+    StatusView* back_status;
 
     FuriStateSub* check_subscription;
     CoarseTimer timeout_timer;
@@ -85,30 +83,14 @@ static void firmware_settings_check_scene_on_enter(void* context) {
 
     with_gui(instance->gui, {
         /* front layout setup */
-        scene->front_box = flex_box_alloc(instance->front_scene_window);
-        flex_box_set_flow(scene->front_box, FlexBoxFlowRow);
-        flex_box_set_align(scene->front_box, FlexBoxAlignStart, FlexBoxAlignCenter);
-        flex_box_set_spacing(scene->front_box, 2);
-        widget_set_align(flex_box_get_base(scene->front_box), AlignLeftMid);
-
-        AnimPlayer* front_anim = anim_player_alloc(flex_box_get_base(scene->front_box));
-        anim_player_set_source(front_anim, SHARED_ANIM_PATH("spinner_front_8x8.anim"));
-
-        Label* front_label = label_alloc(flex_box_get_base(scene->front_box));
-        label_set_text(front_label, "Checking...");
+        scene->front_status = status_view_alloc(instance->front_scene_window);
+        status_view_set_icon(scene->front_status, SHARED_ANIM_PATH("spinner_front_8x8.anim"));
+        status_view_set_primary_text(scene->front_status, "Checking...");
 
         /* back layout setup */
-        scene->back_box = flex_box_alloc(instance->back_scene_window);
-        flex_box_set_flow(scene->back_box, FlexBoxFlowColumn);
-        flex_box_set_align(scene->back_box, FlexBoxAlignCenter, FlexBoxAlignCenter);
-        flex_box_set_spacing(scene->back_box, 8);
-        widget_set_align(flex_box_get_base(scene->back_box), AlignCenter);
-
-        AnimPlayer* back_anim = anim_player_alloc(flex_box_get_base(scene->back_box));
-        anim_player_set_source(back_anim, SHARED_ANIM_PATH("spinner_back_16x16.anim"));
-
-        Label* back_label = label_alloc(flex_box_get_base(scene->back_box));
-        label_set_text(back_label, "Checking for update...");
+        scene->back_status = status_view_alloc(instance->back_scene_window);
+        status_view_set_icon(scene->back_status, SHARED_ANIM_PATH("spinner_back_16x16.anim"));
+        status_view_set_primary_text(scene->back_status, "Checking for update...");
     });
 
     FuriState* check_state = updater_get_check_state(instance->updater);
@@ -128,8 +110,8 @@ static void firmware_settings_check_scene_on_exit(void* context) {
     furi_state_unsubscribe(scene->check_subscription);
 
     with_gui(instance->gui, {
-        flex_box_free(scene->back_box);
-        flex_box_free(scene->front_box);
+        status_view_free(scene->back_status);
+        status_view_free(scene->front_status);
     });
 }
 

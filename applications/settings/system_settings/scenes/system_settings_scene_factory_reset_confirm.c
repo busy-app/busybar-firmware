@@ -1,7 +1,9 @@
 #include "../system_settings.h"
+
 #include <settings_helpers/gui_params.h>
 
 #include <gui/modules/dialog.h>
+#include <gui/modules/image.h>
 
 typedef enum {
     SceneEventConfirm = AppEventSceneEventsStart,
@@ -9,7 +11,9 @@ typedef enum {
 } SceneEvent;
 
 typedef struct {
+    FlexLayout* front_layout;
     Dialog* front_dialog;
+
     Dialog* back_dialog;
 } SceneSystemFactoryResetConfirm;
 
@@ -32,21 +36,31 @@ static void system_settings_scene_factory_reset_confirm_on_enter(void* context) 
         scene_manager_get_scene_data(instance->scene_manager, SceneIdFactoryResetConfirm);
 
     with_gui(instance->gui, {
-        data->front_dialog = dialog_alloc(instance->front_scene_window);
-        data->back_dialog = dialog_alloc(instance->back_scene_window);
+        /* front layout setup */
+        data->front_layout = flex_layout_alloc(instance->front_scene_window, FlexLayoutTypeRow);
+        flex_layout_set_spacing(data->front_layout, 2);
+        flex_layout_set_align(
+            data->front_layout, FlexLayoutAlignStart, FlexLayoutAlignCenter, FlexLayoutAlignCenter);
 
-        dialog_set_text(data->back_dialog, "Reset the device? All user\ndata will be erased");
+        Image* front_image = image_alloc(flex_layout_get_base(data->front_layout));
+        image_set_source(front_image, SHARED_IMG_PATH("error_front_8x8.image"));
+        widget_set_size_content(image_get_base(front_image));
+
+        data->front_dialog = dialog_alloc(flex_layout_get_base(data->front_layout));
+        flex_layout_set_child_widget_grow(
+            data->front_layout, dialog_get_base(data->front_dialog), 1);
         dialog_set_text(data->front_dialog, "Reset\ndevice?");
-
-        Color color_reset = COLOR_MAKE_RGB(0xED, 0x00, 0x18);
-        Color color_cancel = COLOR_MAKE_RGB(0xFF, 0xFF, 0xFF);
-        dialog_set_option_colors(data->front_dialog, color_reset, color_cancel);
-
+        dialog_set_option_colors(
+            data->front_dialog,
+            (Color)COLOR_MAKE_RGB(0xED, 0x00, 0x18),
+            (Color)COLOR_MAKE_RGB(0xFF, 0xFF, 0xFF));
         dialog_set_options(data->front_dialog, "Reset", "Cancel");
-        dialog_set_options(data->back_dialog, "Reset", "Cancel");
-
         dialog_set_callback(
             data->front_dialog, system_settings_scene_factory_reset_confirm_callback, instance);
+
+        data->back_dialog = dialog_alloc(instance->back_scene_window);
+        dialog_set_text(data->back_dialog, "Reset the device? All user\ndata will be erased");
+        dialog_set_options(data->back_dialog, "Reset", "Cancel");
     });
 }
 
@@ -58,8 +72,8 @@ static void system_settings_scene_factory_reset_confirm_on_exit(void* context) {
         scene_manager_get_scene_data(instance->scene_manager, SceneIdFactoryResetConfirm);
 
     with_gui(instance->gui, {
-        dialog_free(data->front_dialog);
         dialog_free(data->back_dialog);
+        flex_layout_free(data->front_layout);
     });
 }
 

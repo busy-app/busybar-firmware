@@ -1,10 +1,10 @@
 #include "../about.h"
 
 #include <settings_helpers/gui_params.h>
-#include <settings_helpers/status_view.h>
 
 #include <gui/modules/label.h>
 #include <gui/modules/image.h>
+#include <gui/modules/status_view.h>
 
 #include <furi_hal_version.h>
 
@@ -50,8 +50,8 @@ static void about_scene_compliance_on_enter(void* context) {
 
     with_gui(instance->gui, {
         scene->front_status_view = status_view_alloc(instance->front_scene_window);
-        status_view_set_icon(scene->front_status_view, SETTINGS_IMG_PATH("info_front_7x7.image"));
-        status_view_set_header(scene->front_status_view, "Look at back\nscreen");
+        status_view_set_icon(scene->front_status_view, SETTINGS_IMG_PATH("info_front_8x8.image"));
+        status_view_set_primary_text(scene->front_status_view, "Look at back\nscreen");
 
         scene->info_flex = flex_layout_alloc(instance->back_scene_window, FlexLayoutTypeColumn);
         flex_layout_set_spacing(scene->info_flex, 3);

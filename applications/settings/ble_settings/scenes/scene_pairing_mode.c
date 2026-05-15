@@ -1,10 +1,8 @@
 #include "../ble_settings.h"
-#include "../widgets/named_label_view.h"
+
 #include <settings_helpers/gui_params.h>
 
-#include <gui/modules/anim_player.h>
-#include <gui/modules/image.h>
-#include <gui/modules/label.h>
+#include <gui/modules/status_view.h>
 
 #include <ble/ble.h>
 
@@ -20,16 +18,11 @@ typedef enum {
 } SceneEvent;
 
 typedef struct {
-    FlexLayout* front_flex;
-    AnimPlayer* front_anim;
-    Label* front_label;
+    StatusView* front_status;
+    StatusView* back_status;
 
-    FlexLayout* back_flex;
-    Image* back_image;
-    Label* back_label;
-    NamedLabelView* name_view;
-
-    FuriString* name_label_text;
+    FuriString* ble_name;
+    FuriString* auxiliary_text_builder;
 } BleSettingsPairingSceneData;
 
 static void scene_pairing_model_changed_callback(BleModelStateEvent event, void* context) {
@@ -55,51 +48,27 @@ static void scene_pairing_mode_on_enter(void* context) {
 
     ble_model_set_state_callback(instance->model, scene_pairing_model_changed_callback, instance);
 
-    data->name_label_text = furi_string_alloc();
-    ble_model_get_name(instance->model, data->name_label_text);
+    data->ble_name = furi_string_alloc();
+    data->auxiliary_text_builder = furi_string_alloc();
+
+    ble_model_get_name(instance->model, data->ble_name);
+    furi_string_printf(
+        data->auxiliary_text_builder, "Device name: %s", furi_string_get_cstr(data->ble_name));
 
     ble_model_start(instance->model);
 
     with_gui(instance->gui, {
-        const char* pairing_text = "Pairing mode...";
-        //Front screen
-        data->front_flex = flex_layout_alloc(instance->front_scene_window, FlexLayoutTypeRow);
-        flex_layout_set_align(
-            data->front_flex, FlexLayoutAlignStart, FlexLayoutAlignCenter, FlexLayoutAlignCenter);
-        flex_layout_set_spacing(data->front_flex, 2);
-        widget_set_align(flex_layout_get_base(data->front_flex), AlignLeftMid);
+        /* front layout setup */
+        data->front_status = status_view_alloc(instance->front_scene_window);
+        status_view_set_icon(data->front_status, ANIM_PATH("ble_pairing_8x8.anim"));
+        status_view_set_primary_text(data->front_status, "Pairing mode...");
 
-        data->front_anim = anim_player_alloc(flex_layout_get_base(data->front_flex));
-        anim_player_set_source(data->front_anim, ANIM_PATH("ble_pairing_8x8.anim"));
-        widget_set_height_content(anim_player_get_base(data->front_anim));
-
-        data->front_label = label_alloc(flex_layout_get_base(data->front_flex));
-        label_set_font(data->front_label, FONT_BUSY_REGULAR_5);
-        label_set_text(data->front_label, pairing_text);
-        widget_set_padding(label_get_base(data->front_label), 0, 0, 0, 1);
-        widget_set_height_content(label_get_base(data->front_label));
-
-        //Back screen
-        data->back_flex = flex_layout_alloc(instance->back_scene_window, FlexLayoutTypeColumn);
-        flex_layout_set_align(
-            data->back_flex, FlexLayoutAlignCenter, FlexLayoutAlignCenter, FlexLayoutAlignCenter);
-
-        data->back_image = image_alloc(flex_layout_get_base(data->back_flex));
-        image_set_source(data->back_image, IMG_PATH("ble_back_white_11x11.image"));
-        widget_set_size_content(image_get_base(data->back_image));
-        widget_set_padding(image_get_base(data->back_image), 2, 3, 2, 3);
-        widget_set_margin(image_get_base(data->back_image), 0, 0, 0, 6);
-
-        data->back_label = label_alloc(flex_layout_get_base(data->back_flex));
-        label_set_font(data->back_label, FONT_BUSY_REGULAR_9);
-        label_set_text(data->back_label, pairing_text);
-        widget_set_width_content(label_get_base(data->back_label));
-        widget_set_margin(label_get_base(data->back_label), 0, 0, 0, 2);
-
-        data->name_view = named_label_view_back_alloc(flex_layout_get_base(data->back_flex));
-        named_label_set_title(data->name_view, "Device name: ");
-        named_label_set_text(data->name_view, furi_string_get_cstr(data->name_label_text));
-        named_label_set_text_color(data->name_view, NAME_LABEL_TEXT_COLOR);
+        /* back layout setup */
+        data->back_status = status_view_alloc(instance->back_scene_window);
+        status_view_set_icon(data->back_status, IMG_PATH("ble_back_white_11x11.image"));
+        status_view_set_primary_text(data->back_status, "Pairing mode...");
+        status_view_set_auxiliary_text(
+            data->back_status, furi_string_get_cstr(data->auxiliary_text_builder));
     });
 
     brightness_control_set_brightness_override(
@@ -122,17 +91,13 @@ static void scene_pairing_mode_on_exit(void* context) {
     ble_model_set_state_callback(instance->model, NULL, NULL);
 
     with_gui(instance->gui, {
-        anim_player_free(data->front_anim);
-        label_free(data->front_label);
-        flex_layout_free(data->front_flex);
-
-        image_free(data->back_image);
-        label_free(data->back_label);
-        named_label_view_back_free(data->name_view);
-        flex_layout_free(data->back_flex);
+        status_view_free(data->back_status);
+        status_view_free(data->front_status);
     });
 
-    furi_string_free(data->name_label_text);
+    furi_string_free(data->auxiliary_text_builder);
+    furi_string_free(data->ble_name);
+
     status_lights_run_preset(instance->status_lights, StatusLightsPresetOff, (Color){});
     brightness_control_reset_brightness_override(
         instance->brightness_control, BrightnessControlModuleStatusLights);
@@ -154,9 +119,16 @@ static bool scene_pairing_mode_on_event(const SceneManagerEvent* event, void* co
         } else if(event->event == SceneEventDeviceNameChangedEvent) {
             BleSettingsPairingSceneData* data =
                 scene_manager_get_scene_data(instance->scene_manager, SceneIdPairingMode);
-            ble_model_get_name(instance->model, data->name_label_text);
+
+            ble_model_get_name(instance->model, data->ble_name);
+            furi_string_printf(
+                data->auxiliary_text_builder,
+                "Device name: %s",
+                furi_string_get_cstr(data->ble_name));
+
             with_gui(instance->gui, {
-                named_label_set_text(data->name_view, furi_string_get_cstr(data->name_label_text));
+                status_view_set_auxiliary_text(
+                    data->back_status, furi_string_get_cstr(data->auxiliary_text_builder));
             });
             consumed = true;
         } else if(event->event == SceneEventBlePairingTimeout) {

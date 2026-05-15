@@ -14,8 +14,6 @@ void matter_code_view_free(MatterCodeView* instance);
 
 Widget* matter_code_view_get_base(MatterCodeView* instance);
 
-void matter_code_view_set_logo_path(MatterCodeView* instance, const char* path);
-
 void matter_code_view_set_codes(MatterCodeView* instance, const char* qr, const char* manual);
 
 #ifdef __cplusplus

@@ -3,7 +3,7 @@
 #include <power/power_service/power.h>
 #include <gui/gui.h>
 #include <gui/modules/label.h>
-#include <settings_helpers/status_view.h>
+#include <gui/modules/status_view.h>
 #include <storage/storage.h>
 #include <storage/storage_backup.h>
 #include <intercom/intercom.h>
@@ -375,7 +375,7 @@ static void supervisor_set_status_view(
                                                          warning->image.back;
 
     status_view_set_icon(*status, image);
-    status_view_set_header(*status, text);
+    status_view_set_primary_text(*status, text);
 
     Widget* widget = status_view_get_base(*status);
     Color background = COLOR_MAKE_HEXA(0x000000E5);

@@ -1,5 +1,6 @@
 #include "../matter_settings_i.h"
-#include <settings_helpers/status_view.h>
+
+#include <gui/modules/status_view.h>
 
 typedef struct {
     StatusView* statuses[GuiDisplayIdMax];
@@ -37,7 +38,7 @@ static void matter_scene_wrecked_on_enter(void* context) {
         for(GuiDisplayId disp = 0; disp < GuiDisplayIdMax; disp++) {
             scene->statuses[disp] = status_view_alloc(windows[disp]);
             status_view_set_icon(scene->statuses[disp], displays[disp].image);
-            status_view_set_header(scene->statuses[disp], displays[disp].text);
+            status_view_set_primary_text(scene->statuses[disp], displays[disp].text);
         }
     });
 }
