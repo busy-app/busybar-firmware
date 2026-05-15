@@ -247,6 +247,7 @@ static Widget* canvas_element_update_specific(
             widget->countdown = countdown_alloc(root);
         }
         countdown_set_text_color(widget->countdown, element->countdown.color);
+        countdown_set_text_font(widget->countdown, FONT_BUSY_SUPERSCRIPT_7);
         countdown_begin(
             widget->countdown,
             element->countdown.timestamp,
@@ -288,40 +289,6 @@ static void canvas_element_reanchor(Widget* root, Align align, int32_t* x, int32
     *y -= lvgl_anchor_y;
 }
 
-/**
- * Slight vertical nudge for perceptually better aligned text at low resolution
- */
-static int32_t canvas_text_nudge_y(const char* font_path, Align align) {
-    AlignBitmask align_bm = widget_align_to_bitmask(align);
-    if(strcmp(font_path, FONT_BUSY_REGULAR_5) == 0) {
-        if(align_bm & AlignBitmaskBottom) return 0;
-        if(align_bm & AlignBitmaskVerCenter) return -1;
-        return -2; // BitmaskTop
-    } else if(
-        (strcmp(font_path, FONT_BUSY_REGULAR_7) == 0) ||
-        (strcmp(font_path, FONT_BUSY_CONDENSED_7) == 0)) {
-        if(align_bm & AlignBitmaskBottom) return 0;
-        if(align_bm & AlignBitmaskVerCenter) return -1;
-        return -2; // BitmaskTop
-    } else if(strcmp(font_path, FONT_BUSY_BOLD_10) == 0) {
-        if(align_bm & AlignBitmaskBottom) return 2;
-        if(align_bm & AlignBitmaskVerCenter) return 0;
-        return -2; // BitmaskTop
-    } else {
-        furi_crash();
-    }
-}
-
-static int32_t canvas_element_nudge_y(const CanvasElement* element) {
-    furi_assert(element);
-
-    if(element->type == CanvasElementTypeText) {
-        return canvas_text_nudge_y(element->text.font_path, element->align);
-    }
-
-    return 0;
-}
-
 static void
     canvas_element_update_generic(Widget* base, Widget* root, const CanvasElement* element) {
     furi_assert(base);
@@ -330,7 +297,6 @@ static void
     int32_t x = element->x;
     int32_t y = element->y;
     canvas_element_reanchor(root, element->align, &x, &y);
-    y += canvas_element_nudge_y(element);
 
     widget_set_align(base, element->align);
     widget_set_pos(base, x, y);
