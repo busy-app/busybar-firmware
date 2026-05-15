@@ -9,9 +9,13 @@ typedef enum {
     CryptoCommonTestResultFail,
 } CryptoCommonTestResult;
 
-#define CRYPTO_COMMON_CHECK_STATUS_EQ(expected, actual, tag)                                                 \
-    if((expected) != (actual)) {                                                     \
-        printf(ANSI_FG_RED "%s: unexpected status (expected = %u, actual = %u)" ANSI_RESET "\r\n", tag, expected, actual); \
+#define CRYPTO_COMMON_CHECK_STATUS_EQ(expected, actual, tag)                                    \
+    if((expected) != (actual)) {                                                                \
+        printf(                                                                                 \
+            ANSI_FG_RED "%s: unexpected status (expected = %u, actual = %u)" ANSI_RESET "\r\n", \
+            tag,                                                                                \
+            expected,                                                                           \
+            actual);                                                                            \
         result = false;                                                                         \
         break;                                                                                  \
     }
