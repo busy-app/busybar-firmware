@@ -247,6 +247,7 @@ static Widget* canvas_element_update_specific(
             widget->countdown = countdown_alloc(root);
         }
         countdown_set_text_color(widget->countdown, element->countdown.color);
+        countdown_set_text_font(widget->countdown, FONT_BUSY_SUPERSCRIPT_7);
         countdown_begin(
             widget->countdown,
             element->countdown.timestamp,
