@@ -4,7 +4,7 @@ import os
 import tempfile
 import time
 from datetime import datetime
-from typing import Optional
+from typing import Iterator, Optional
 
 import allure
 import pytest
@@ -112,13 +112,18 @@ def web_base_url() -> str:
 
 
 @pytest.fixture
-def web_session() -> requests.Session:
+def web_session() -> Iterator[requests.Session]:
     """HTTP session for web frontend tests"""
     logger = get_web_logger()
     logger.info("Creating web session")
 
     session = requests.Session()
-    session.headers.update({"User-Agent": "BSB-AutoTest/1.0"})
+    session.headers.update(
+        {
+            "User-Agent": "BSB-AutoTest/1.0",
+            "Connection": "close",
+        }
+    )
 
     # Add response logging and default timeout
     original_request = session.request
@@ -153,7 +158,11 @@ def web_session() -> requests.Session:
             )
 
     session.request = logged_request
-    return session
+    try:
+        yield session
+    finally:
+        logger.info("Closing web session")
+        session.close()
 
 
 @pytest.fixture
@@ -342,11 +351,15 @@ def _probe_api_health(base_url: str) -> Optional[str]:
     sockets that would falsely signal "API down" right after recovery.
     """
     try:
-        response = requests.get(f"{base_url}/api/version", timeout=2.0)
+        with requests.get(
+            f"{base_url}/api/version",
+            headers={"Connection": "close"},
+            timeout=2.0,
+        ) as response:
+            if response.status_code != 200:
+                return f"HTTP {response.status_code}"
     except requests.RequestException as exc:
         return f"{type(exc).__name__}: {exc}"
-    if response.status_code != 200:
-        return f"HTTP {response.status_code}"
     return None
 
 

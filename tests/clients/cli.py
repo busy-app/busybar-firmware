@@ -274,14 +274,18 @@ class SimpleCLIConnection:
         gone = False
         while time.monotonic() - t0 < timeout:
             try:
-                r = requests.get(f"{base_url}/api/version", timeout=2)
-                if gone and r.status_code == 200:
-                    self.logger.info(
-                        f"API recovered after {time.monotonic() - t0:.1f}s"
-                    )
-                    # Re-establish the CLI for downstream uses.
-                    self.connect()
-                    return True
+                with requests.get(
+                    f"{base_url}/api/version",
+                    headers={"Connection": "close"},
+                    timeout=2,
+                ) as response:
+                    if gone and response.status_code == 200:
+                        self.logger.info(
+                            f"API recovered after {time.monotonic() - t0:.1f}s"
+                        )
+                        # Re-establish the CLI for downstream uses.
+                        self.connect()
+                        return True
             except requests.RequestException:
                 gone = True
             time.sleep(0.5)

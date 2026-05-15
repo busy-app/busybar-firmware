@@ -38,7 +38,11 @@ def _busy_session_teardown(web_base_url: str):
     # --- teardown ---
     sess = requests.Session()
     sess.headers.update(
-        {"User-Agent": "BSB-AutoTest/1.0", "Accept": "application/json"}
+        {
+            "User-Agent": "BSB-AutoTest/1.0",
+            "Accept": "application/json",
+            "Connection": "close",
+        }
     )
     try:
         snapshot = _get_snapshot(sess, web_base_url)
