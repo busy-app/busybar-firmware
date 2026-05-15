@@ -121,7 +121,6 @@ def web_session() -> Iterator[requests.Session]:
     session.headers.update(
         {
             "User-Agent": "BSB-AutoTest/1.0",
-            "Connection": "close",
         }
     )
 
@@ -244,13 +243,17 @@ def pytest_configure(config):
 
 
 # Fixtures using SimpleCLIConnection
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="module")
 def persistent_cli_connection():
-    """Session-scoped CLI fixture - maintains single connection across all CLI tests for better performance"""
+    """Module-scoped CLI fixture.
+
+    Keep the convenience of a persistent CLI within one test module, but do not
+    hold a telnet TCP PCB for the full integration suite after CLI tests finish.
+    """
     cli = SimpleCLIConnection()
     cli_logger = get_cli_logger()
 
-    cli_logger.info("Setting up persistent CLI connection (session-scoped)")
+    cli_logger.info("Setting up persistent CLI connection (module-scoped)")
 
     # Connect
     if not cli.connect():
@@ -324,10 +327,16 @@ def skip_hello_screen(web_base_url):
     """
     url = f"{web_base_url}/api/input"
     try:
-        resp = requests.post(url, params={"key": "start"}, data=b"", timeout=5)
-        resp = requests.post(url, params={"key": "back"}, data=b"", timeout=5)
+        with requests.Session() as session:
+            session.headers.update({"User-Agent": "BSB-AutoTest/1.0"})
+            with session.post(url, params={"key": "start"}, data=b"", timeout=5):
+                pass
+            with session.post(
+                url, params={"key": "back"}, data=b"", timeout=5
+            ) as resp:
+                status_code = resp.status_code
         logger.info(
-            "skip_hello_screen: POST /api/input?key=start -> %s", resp.status_code
+            "skip_hello_screen: POST /api/input?key=back -> %s", status_code
         )
         time.sleep(1)  # let the device transition
     except requests.RequestException as exc:
@@ -340,56 +349,59 @@ def pytest_runtest_teardown(item, nextitem):
     _write_test_context(item.name, test_nodeid=item.nodeid, phase="teardown")
 
 
-def _probe_api_health(base_url: str) -> Optional[str]:
+def _probe_api_health(
+    base_url: str, session: Optional[requests.Session] = None
+) -> Optional[str]:
     """Cheap HTTP liveness probe for /api/version.
 
     Returns None on success, or a short error string on failure. We only care
     that the server answers 200 — body validation is a test's job.
 
-    Uses a one-shot `requests.get` so each probe opens and closes its own
-    connection; keeping a pooled session across device resets risks stale
-    sockets that would falsely signal "API down" right after recovery.
+    Prefer the per-test web_session so test traffic and health traffic can
+    reuse the same connection. Avoid `Connection: close`: on the device-side
+    lwIP stack that can make the firmware the active TCP closer and keep TCP
+    PCBs occupied long enough to trip the PR #699 overload guard.
     """
+    own_session = session is None
+    probe_session = session or requests.Session()
     try:
-        with requests.get(
-            f"{base_url}/api/version",
-            headers={"Connection": "close"},
-            timeout=2.0,
-        ) as response:
+        with probe_session.get(f"{base_url}/api/version", timeout=2.0) as response:
             if response.status_code != 200:
                 return f"HTTP {response.status_code}"
     except requests.RequestException as exc:
         return f"{type(exc).__name__}: {exc}"
+    finally:
+        if own_session:
+            probe_session.close()
     return None
 
 
 @pytest.fixture(autouse=True)
-def device_health_monitor(request, device_flasher, web_base_url):
+def device_health_monitor(request, device_flasher, web_base_url, web_session):
     """
     Auto-use fixture that monitors device health and recovers from failures.
 
     Before test:
-    - Always verify TCP port 80 is open (cheap).
-    - Skip the HTTP API probe if the previous test ended healthy
-      (device_flasher._post_test_healthy == True) — nothing happens between
-      tests that could wedge the API on its own, and skipping saves one GET
-      per test on large suites.
-    - If either check fails, reset and wait for recovery.
+    - If the previous test ended healthy, skip probing entirely.
+    - Otherwise probe /api/version through the per-test web_session.
+    - If the API probe fails, use a raw TCP check only to classify the failure.
 
     After test, pick the first matching reason and reset once:
     - Crash flag raised by serial_logger
-    - TCP port 80 closed
     - Test raised a ConnectionError
     - HTTP API stopped serving (GET /api/version non-200 / exception)
+    - TCP port 80 closed (checked only after API failure)
     """
-    # Pre-test: TCP always, API only if previous post-test didn't vouch for health.
+    # Pre-test: trust the previous clean teardown; otherwise one HTTP probe is
+    # enough for the normal path and avoids extra TCP connect churn.
     pre_reason: Optional[str] = None
-    if not device_flasher.check_device_available():
-        pre_reason = "TCP port 80 unreachable"
-    elif not getattr(device_flasher, "_post_test_healthy", False):
-        api_error = _probe_api_health(web_base_url)
+    if not getattr(device_flasher, "_post_test_healthy", False):
+        api_error = _probe_api_health(web_base_url, web_session)
         if api_error:
-            pre_reason = f"API unhealthy ({api_error})"
+            if not device_flasher.check_device_available():
+                pre_reason = "TCP port 80 unreachable"
+            else:
+                pre_reason = f"API unhealthy ({api_error})"
 
     if pre_reason:
         request_forced_trace_for_node(
@@ -415,16 +427,17 @@ def device_health_monitor(request, device_flasher, web_base_url):
     if crash_info:
         request.node._crash_info = crash_info
         reset_reason = f"crash detected ({crash_info.processor})"
-    elif not device_flasher.check_device_available():
-        request.node._device_unavailable = True
-        reset_reason = "TCP port 80 unreachable"
     elif hasattr(request.node, "_connection_error"):
         reset_reason = "test raised ConnectionError"
     else:
-        api_error = _probe_api_health(web_base_url)
+        api_error = _probe_api_health(web_base_url, web_session)
         if api_error:
-            request.node._api_unhealthy = api_error
-            reset_reason = f"API health check failed: {api_error}"
+            if not device_flasher.check_device_available():
+                request.node._device_unavailable = True
+                reset_reason = "TCP port 80 unreachable"
+            else:
+                request.node._api_unhealthy = api_error
+                reset_reason = f"API health check failed: {api_error}"
 
     if reset_reason:
         if not crash_info:

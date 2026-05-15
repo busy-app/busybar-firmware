@@ -269,25 +269,25 @@ class SimpleCLIConnection:
             self.connected = False
             self._in_sl_cli = False
 
-        # Wait for the device to drop and come back.
+        # Wait for the device to drop and come back. Reuse one local HTTP
+        # session without forcing server-side Connection: close; otherwise the
+        # firmware can accumulate TCP PCBs while reboot polling.
         t0 = time.monotonic()
         gone = False
-        while time.monotonic() - t0 < timeout:
-            try:
-                with requests.get(
-                    f"{base_url}/api/version",
-                    headers={"Connection": "close"},
-                    timeout=2,
-                ) as response:
-                    if gone and response.status_code == 200:
-                        self.logger.info(
-                            f"API recovered after {time.monotonic() - t0:.1f}s"
-                        )
-                        # Re-establish the CLI for downstream uses.
-                        self.connect()
-                        return True
-            except requests.RequestException:
-                gone = True
-            time.sleep(0.5)
+        with requests.Session() as session:
+            session.headers.update({"User-Agent": "BSB-AutoTest/1.0"})
+            while time.monotonic() - t0 < timeout:
+                try:
+                    with session.get(f"{base_url}/api/version", timeout=2) as response:
+                        if gone and response.status_code == 200:
+                            self.logger.info(
+                                f"API recovered after {time.monotonic() - t0:.1f}s"
+                            )
+                            # Re-establish the CLI for downstream uses.
+                            self.connect()
+                            return True
+                except requests.RequestException:
+                    gone = True
+                time.sleep(0.5)
         self.logger.error(f"Device did not come back within {timeout}s")
         return False

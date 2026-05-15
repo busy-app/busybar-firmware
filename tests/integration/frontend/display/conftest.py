@@ -41,7 +41,6 @@ def _busy_session_teardown(web_base_url: str):
         {
             "User-Agent": "BSB-AutoTest/1.0",
             "Accept": "application/json",
-            "Connection": "close",
         }
     )
     try:
