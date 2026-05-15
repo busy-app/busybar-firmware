@@ -45,12 +45,6 @@ extern const lv_obj_class_t progress_bar_fill_lvgl_class;
 // QRCode
 extern const lv_obj_class_t qr_code_card_lvgl_class;
 
-// StatusView
-extern const lv_obj_class_t status_view_lvgl_class;
-extern const lv_obj_class_t status_view_icon_lvgl_class;
-extern const lv_obj_class_t status_view_header_lvgl_class;
-extern const lv_obj_class_t status_view_additional_text_lvgl_class;
-
 // Countdown
 extern const lv_obj_class_t countdown_lvgl_class;
 

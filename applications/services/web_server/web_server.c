@@ -3,6 +3,7 @@
 #include "web_server_i.h"
 #include "http_api/http_api.h"
 #include <sysctl/sysctl.h>
+#include <netstat/netstat.h>
 
 #define TAG "HttpSrv"
 
@@ -177,6 +178,12 @@ bool http_handle_request(
     struct mg_connection* conn,
     struct mg_http_message* msg) {
     bool handled = false;
+
+    if(netstat_is_overloaded(NetstatLogOnOverload)) {
+        MG_REPLY_ERROR(conn, 503, NETSTAT_RECOMMENDED_ERROR);
+        handled = true;
+        return handled;
+    }
 
     HttpHandlersList_it_t it;
     for(HttpHandlersList_it(it, handlers); !HttpHandlersList_end_p(it);
