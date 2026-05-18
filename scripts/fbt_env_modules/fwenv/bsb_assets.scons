@@ -3,6 +3,36 @@ fwenv = FW_ENV
 
 from SCons.Util import splitext
 from fbt.version import get_git_commit_unix_timestamp
+import requests
+import hashlib
+
+def sha256sum(filename):
+    with open(filename, "rb") as f:
+        return hashlib.file_digest(f, "sha256").hexdigest()
+
+def download_file(src_url, src_url_sha256, dst_file):
+    try:
+        expected_sha = requests.get(src_url_sha256)
+        expected_sha.raise_for_status()
+        expected_sha = expected_sha.text.split(" ")[0]
+        current_sha = sha256sum(dst_file)
+
+        if current_sha == expected_sha:
+            print(f"{dst_file} is up to date")
+            return True
+        
+        file = requests.get(src_url)
+        file.raise_for_status()
+        with open(dst_file, "wb") as f:
+            f.write(file.content)
+
+        print(f"{dst_file} downloaded")
+
+        return True
+
+    except requests.HTTPError:
+        print(f"failed to download {dst_file}")
+        return False
 
 fwenv.SetDefault(RESOURCES_ROOT=fwenv.Dir("${BUILD_DIR}/resources"))
 
@@ -90,6 +120,18 @@ def convert_web_api(dst_dir):
     return fw_assets_env.Dir("#assets/frontend-build/public/").rdir()
 
 
+def update_certs(src_dir, dst_dir):
+    cert_file = File(src_dir + "ca/cacert.pem")
+    converted = dst_dir.File("ca/cacert.pem")
+
+    SRC_URL = "https://curl.se/ca/cacert.pem"
+    SRC_URL_SHA256 = "https://curl.se/ca/cacert.pem.sha256"
+
+    download_file(SRC_URL, SRC_URL_SHA256, cert_file.rfile().abspath)
+
+    return [fw_assets_env.Copy(converted, cert_file)]
+
+
 if fwenv.get("IS_BASE_FIRMWARE", False):
     app_assets_dir = fwenv.Dir("${BUILD_DIR}/apps_assets")
     shared_assets_dir = fwenv.Dir("${BUILD_DIR}/apps_assets/shared")
@@ -107,6 +149,7 @@ if fwenv.get("IS_BASE_FIRMWARE", False):
         convert_animations,
         convert_images,
         convert_fonts,
+        update_certs,
     ]
 
     for converter in converters_app:
