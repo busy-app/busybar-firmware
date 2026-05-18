@@ -52,7 +52,7 @@ class TestAssetsAPI:
                 "x": 36,
                 "y": 10,
                 "align": "center",
-                "font": "medium",
+                "font": "normal",
                 "color": "#FFFFFFFF",
                 "display": "front",
             }

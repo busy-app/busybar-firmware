@@ -80,7 +80,7 @@ BACK_DRAW_ELEMENTS = [
         "x": 80,
         "y": 20,
         "align": "center",
-        "font": "medium",
+        "font": "normal",
         "color": "#FFFFFFFF",
         "display": "back",
     },
@@ -92,7 +92,7 @@ BACK_DRAW_ELEMENTS = [
         "x": 80,
         "y": 50,
         "align": "center",
-        "font": "medium",
+        "font": "normal",
         "color": "#FFFFFFFF",
         "display": "back",
     },
@@ -320,14 +320,14 @@ class TestDisplayScreenshot:
                     "draw command may have had no visible effect"
                 )
 
-                # "SCREENSHOT" at (80, 20) center-aligned, medium font
+                # "SCREENSHOT" at (80, 20) center-aligned, normal font
                 top_bright = _count_bright_back_pixels(actual, 15, 12, 145, 30)
                 assert top_bright > 0, (
                     f"No bright pixels in 'SCREENSHOT' text region "
                     f"(rows 12-30, cols 15-145); got {top_bright}"
                 )
 
-                # "TEST" at (80, 50) center-aligned, medium font
+                # "TEST" at (80, 50) center-aligned, normal font
                 bot_bright = _count_bright_back_pixels(actual, 50, 43, 110, 60)
                 assert bot_bright > 0, (
                     f"No bright pixels in 'TEST' text region "
