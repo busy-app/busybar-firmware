@@ -1,17 +1,8 @@
 #include "ble_worker.h"
 #include <furi.h>
 
-#include <sl_status.h>
-#include <sl_wifi.h>
-#include <sl_wifi_callback_framework.h>
-
-#include "ble_config.h"
+#include "ble_nwp_core_callbacks.h"
 #include "ble_security.h"
-
-#include "rsi_ble.h"
-#include "rsi_ble_apis.h"
-#include "rsi_ble_common_config.h"
-#include "rsi_bt_common_apis.h"
 
 #include "ble_advertise.h"
 #include "ble_worker_util.h"
@@ -26,14 +17,14 @@
 // Uncomment macro below in order to force ble advertising with public address only
 // #define BLE_DEBUG_ADVERTISE_FORCE_PUBLIC
 
-#define BLE_WORKER_LOG_TX
+// #define BLE_WORKER_LOG_TX
 
-#ifdef BLE_WORKER_LOG_TX
-#define BLE_LOG_PAYLOAD(handle, index, data, send_size) \
-    (ble_worker_util_log_payload(handle, index, data, send_size))
-#else
-#define BLE_LOG_PAYLOAD(handle, index, data, send_size)
-#endif
+// #ifdef BLE_WORKER_LOG_TX
+// #define BLE_LOG_PAYLOAD(handle, index, data, send_size)
+//     (ble_worker_util_log_payload(handle, index, data, send_size))
+// #else
+// #define BLE_LOG_PAYLOAD(handle, index, data, send_size)
+// #endif
 
 #define BLE_NORDIC_UART_TX_HANDLE  (0x001D)
 #define BLE_NORDIC_UART_CNT_HANDLE (0x001F)
@@ -81,41 +72,6 @@
 
 #define MITM_REQ 1
 
-//! application events list
-typedef enum {
-    BLEWorkerEvtExit = (1 << 0),
-    BLEWorkerEvtAdvReport = (1 << 1),
-    BLEWorkerEvtConnected = (1 << 2),
-    BLEWorkerEvtDisconnected = (1 << 3),
-    BLEWorkerEvtPhyUpdateComplete = (1 << 4),
-    BLEWorkerEvtConnUpdate = (1 << 5),
-    BLEWorkerEvtDataLengthChange = (1 << 6),
-
-    BLEWorkerEvtReceiveRemoteFeatures = (1 << 7),
-    BLEWorkerEvtMoreDataReq = (1 << 8),
-
-    BLEWorkerEvtWrite = (1 << 9),
-    BLEWorkerEvtDataTransmit = (1 << 10),
-    BLEWorkerEvtMtu = (1 << 11),
-    BLEWorkerEvtIndicateConfirm = (1 << 12),
-
-    BLEWorkerSmpResponse = (1 << 13),
-    BLEWorkerSmpEncryptStarted = (1 << 14),
-    BLEWorkerSmpLtkRequest = (1 << 15),
-    BLEWorkerSmpSecurityKeys = (1 << 16),
-    BleWorkerSmpPairingFailed = (1 << 17),
-    BLEWorkerAdjustConnectionRequest = (1 << 18),
-} BLEWorkerEvt;
-
-#define BLE_WORKER_ALL_EVENTS                                                                     \
-    (BLEWorkerEvtExit | BLEWorkerEvtAdvReport | BLEWorkerEvtConnected |                           \
-     BLEWorkerEvtDisconnected | BLEWorkerEvtPhyUpdateComplete | BLEWorkerEvtConnUpdate |          \
-     BLEWorkerEvtDataLengthChange | BLEWorkerEvtReceiveRemoteFeatures | BLEWorkerEvtMoreDataReq | \
-     BLEWorkerEvtWrite | BLEWorkerEvtDataTransmit | BLEWorkerEvtMtu |                             \
-     BLEWorkerEvtIndicateConfirm | BLEWorkerSmpResponse | BLEWorkerSmpLtkRequest |                \
-     BLEWorkerSmpEncryptStarted | BLEWorkerSmpSecurityKeys | BleWorkerSmpPairingFailed |          \
-     BLEWorkerAdjustConnectionRequest)
-
 typedef struct {
     ///TODO: for now this is ok, for future maybe it is worth to make each characteristic
     /// know its own service.
@@ -132,8 +88,11 @@ typedef enum {
     BleWorkerStateError,
 } BleWorkerState;
 
-typedef struct {
+struct BleWorker {
     FuriThread* thread;
+    FuriEventLoop* event_loop;
+    BleEventQueuePtr event_queue;
+
     FuriSemaphore* receive_sem;
     FuriSemaphore* indication_sem;
     FuriTimer* retry_phy_timer;
@@ -142,7 +101,7 @@ typedef struct {
     uint16_t tx_pending_handle;
     ///TODO: this can be removed
     bool connected;
-    BleDebugCanary* first_tx_pack_canary;
+    // BleDebugCanary* first_tx_pack_canary;
     BleDebugCanary* first_tx_method_canary;
     BleDebugCanary* indicate_error_canary;
 
@@ -164,10 +123,10 @@ typedef struct {
 
     rsi_ble_event_remote_features_t remote_dev_feature;
 
-    rsi_ble_event_write_t app_ble_write_event;
+    // rsi_ble_event_write_t app_ble_write_event;
     rsi_ble_event_mtu_t app_ble_mtu_event;
 
-    rsi_bt_event_smp_resp_t rsi_bt_event_smp_resp;
+    // rsi_bt_event_smp_resp_t rsi_bt_event_smp_resp;
     rsi_bt_event_le_ltk_request_t ble_ltk_req;
     BleSecurityData* security_data;
     BleAdvertiseContext* advertise;
@@ -175,327 +134,19 @@ typedef struct {
     BleServiceEntryDict_t service_dict;
     BleConnectionStateChanged on_connection_changed_cb;
     void* on_connection_changed_ctx;
-} BleWorker;
+};
 
-//==========================================================
+//===========================================================================================
+///TODO:Remove this in future
 static BleWorker* ble_worker_instance = NULL;
-/*==============================================*/
-/**
- * @fn         ble_worker_echo_app_on_adv_report_event
- * @brief      invoked when advertise report event is received
- * @param[in]  adv_report, pointer to the received advertising report
- * @return     none.
- * @section description
- * This callback function updates the scanned remote devices list
- */
-static void ble_worker_on_adv_report_event(rsi_ble_event_adv_report_t* adv_report) {
-    BLE_LOG_W("ble_worker_on_adv_report_event");
-    if(ble_worker_instance->device_found == 1) {
-        return;
-    }
-
-    memset(&ble_worker_instance->remote_name, 0, sizeof(ble_worker_instance->remote_name));
-    BT_LE_ADPacketExtract(
-        ble_worker_instance->remote_name, adv_report->adv_data, adv_report->adv_data_len);
-
-    ble_worker_instance->remote_addr_type = adv_report->dev_addr_type;
-    rsi_6byte_dev_address_to_ascii(
-        ble_worker_instance->remote_dev_str_addr, (uint8_t*)adv_report->dev_addr);
-    memcpy((int8_t*)ble_worker_instance->remote_dev_bd_addr, (uint8_t*)adv_report->dev_addr, 6);
-
-#if(CONNECT_OPTION == CONN_BY_NAME)
-    if((ble_worker_instance->device_found == 0) &&
-       ((strcmp((const char*)ble_worker_instance->remote_name, RSI_REMOTE_DEVICE_NAME)) == 0)) {
-        ble_worker_instance->device_found = 1;
-
-        furi_thread_flags_set(
-            furi_thread_get_id(ble_worker_instance->thread), BLEWorkerEvtAdvReport);
-        return;
-    }
-#elif(CONNECT_OPTION == CONN_BY_ADDR)
-    if((!strcmp(RSI_BLE_REMOTE_DEV_ADDR, (char*)ble_worker_instance->remote_dev_str_addr))) {
-        ble_worker_instance->device_found = 1;
-        furi_thread_flags_set(
-            furi_thread_get_id(ble_worker_instance->thread), BLEWorkerEvtAdvReport);
-    }
-#endif
-
-    return;
-}
-
-/*==============================================*/
-
-/**
- * @fn         ble_worker_on_disconnect_event
- * @brief      invoked when disconnection event is received
- * @param[in]  resp_disconnect, disconnected remote device information
- * @param[in]  reason, reason for disconnection.
- * @return     none.
- * @section description
- * This callback function indicates disconnected device information and status
- */
-static void
-    ble_worker_on_disconnect_event(rsi_ble_event_disconnect_t* resp_disconnect, uint16_t reason) {
-    UNUSED(
-        reason); //This statement is added only to resolve compilation warning, value is unchanged
-    memcpy(ble_worker_instance->remote_dev_address, resp_disconnect->dev_addr, 6);
-    rsi_6byte_dev_address_to_ascii(
-        ble_worker_instance->str_remote_address, resp_disconnect->dev_addr);
-
-    furi_thread_flags_set(
-        furi_thread_get_id(ble_worker_instance->thread), BLEWorkerEvtDisconnected);
-}
-
-/**
- * @fn         ble_worker_phy_update_complete_event
- * @brief      invoked when disconnection event is received
- * @param[in]  resp_disconnect, disconnected remote device information
- * @param[in]  reason, reason for disconnection.
- * @return     none.
- * @section description
- * This Callback function indicates disconnected device information and status
- */
-static void ble_worker_phy_update_complete_event(
-    rsi_ble_event_phy_update_t* rsi_ble_event_phy_update_complete) {
-    BLE_LOG_D("ble_worker_phy_update_complete_event");
-    memcpy(
-        &ble_worker_instance->app_phy_update_complete,
-        rsi_ble_event_phy_update_complete,
-        sizeof(rsi_ble_event_phy_update_t));
-    furi_thread_flags_set(
-        furi_thread_get_id(ble_worker_instance->thread), BLEWorkerEvtPhyUpdateComplete);
-}
-
-/**
- * @fn         ble_worker_data_length_change_event
- * @brief      invoked when data length is set
- * @section description
- * This Callback function indicates data length is set
- */
-static void ble_worker_data_length_change_event(
-    rsi_ble_event_data_length_update_t* rsi_ble_data_length_update) {
-    memcpy(
-        &ble_worker_instance->data_length_update,
-        rsi_ble_data_length_update,
-        sizeof(rsi_ble_event_data_length_update_t));
-
-    furi_thread_flags_set(
-        furi_thread_get_id(ble_worker_instance->thread), BLEWorkerEvtDataLengthChange);
-}
-
-/**
- * @fn         ble_worker_on_enhance_conn_status_event
- * @brief      invoked when enhanced connection complete event is received
- * @param[out] resp_conn, connected remote device information
- * @return     none.
- * @section description
- * This callback function indicates the status of the connection
- */
-static void
-    ble_worker_on_enhance_conn_status_event(rsi_ble_event_enhance_conn_status_t* resp_enh_conn) {
-    memcpy(ble_worker_instance->remote_dev_address, resp_enh_conn->dev_addr, 6);
-    rsi_6byte_dev_address_to_ascii(
-        ble_worker_instance->str_remote_address, resp_enh_conn->dev_addr);
-    furi_thread_flags_set(furi_thread_get_id(ble_worker_instance->thread), BLEWorkerEvtConnected);
-}
-
-static void ble_worker_on_conn_update_complete_event(
-    rsi_ble_event_conn_update_t* rsi_ble_event_conn_update_complete,
-    uint16_t resp_status) {
-    UNUSED(resp_status);
-    memcpy(
-        &ble_worker_instance->event_conn_update_complete,
-        rsi_ble_event_conn_update_complete,
-        sizeof(rsi_ble_event_conn_update_t));
-    memcpy(
-        ble_worker_instance->remote_dev_address, rsi_ble_event_conn_update_complete->dev_addr, 6);
-
-    furi_thread_flags_set(furi_thread_get_id(ble_worker_instance->thread), BLEWorkerEvtConnUpdate);
-}
-
-static void rsi_ble_on_remote_conn_params_request(
-    rsi_ble_event_remote_conn_param_req_t* rsi_ble_event_remote_conn_param,
-    uint16_t resp_status) {
-    UNUSED(rsi_ble_event_remote_conn_param);
-    BLE_LOG_W("rsi_ble_on_remote_conn_params_request: %04X", resp_status);
-}
-
-static void rsi_ble_on_directed_adv_report_event(
-    rsi_ble_event_directedadv_report_t* rsi_ble_event_directed) {
-    BLE_LOG_W("rsi_ble_on_directed_adv_report_event");
-    UNUSED(rsi_ble_event_directed);
-}
-/*==============================================*/
-/**
- * @fn         ble_worker_simple_peripheral_on_remote_features_event
- * @brief      invoked when LE remote features event is received.
- * @param[in] resp_conn, connected remote device information
- * @return     none.
- * @section description
- * This callback function indicates the status of the connection
- */
-void ble_worker_simple_peripheral_on_remote_features_event(
-    rsi_ble_event_remote_features_t* rsi_ble_event_remote_features) {
-    memcpy(
-        &ble_worker_instance->remote_dev_feature,
-        rsi_ble_event_remote_features,
-        sizeof(rsi_ble_event_remote_features_t));
-    furi_thread_flags_set(
-        furi_thread_get_id(ble_worker_instance->thread), BLEWorkerEvtReceiveRemoteFeatures);
-}
-
-static void ble_worker_more_data_req_event(rsi_ble_event_le_dev_buf_ind_t* rsi_ble_more_data_evt) {
-    UNUSED(rsi_ble_more_data_evt);
-
-    //! set conn specific event
-    furi_thread_flags_set(
-        furi_thread_get_id(ble_worker_instance->thread), BLEWorkerEvtMoreDataReq);
-
-    return;
-}
-
-/*==============================================*/
-/**
- * @fn         ble_worker_on_gatt_write_event
- * @brief      its invoked when write/notify/indication events are received.
- * @param[in]  event_id, it indicates write/notification event id.
- * @param[in]  rsi_ble_write, write event parameters.
- * @return     none.
- * @section description
- * This callback function is invoked when write/notify/indication events are received
- */
-static void
-    ble_worker_on_gatt_write_event(uint16_t event_id, rsi_ble_event_write_t* rsi_ble_write) {
-    UNUSED(event_id);
-    memcpy(
-        &ble_worker_instance->app_ble_write_event, rsi_ble_write, sizeof(rsi_ble_event_write_t));
-    furi_thread_flags_set(furi_thread_get_id(ble_worker_instance->thread), BLEWorkerEvtWrite);
-}
-
-static void rsi_ble_on_gatt_prepare_write_event(
-    uint16_t event_id,
-    rsi_ble_event_prepare_write_t* rsi_ble_write) {
-    UNUSED(rsi_ble_write);
-    BLE_LOG_W("Prep: %04X", event_id);
-}
-
-static void rsi_ble_on_execute_write_event(
-    uint16_t event_id,
-    rsi_ble_execute_write_t* rsi_ble_execute_write) {
-    UNUSED(rsi_ble_execute_write);
-    BLE_LOG_W("Exec: %04X", event_id);
-}
-
-static void ble_worker_on_indicate_confirmation_event(
-    uint16_t event_status,
-    rsi_ble_set_att_resp_t* rsi_ble_event_set_att_rsp) {
-    UNUSED(rsi_ble_event_set_att_rsp);
-
-    if(event_status != 0) BLE_LOG_W("Indicate_CB: %d", event_status);
-
-    furi_thread_flags_set(
-        furi_thread_get_id(ble_worker_instance->thread), BLEWorkerEvtIndicateConfirm);
-}
-
-static void ble_worker_on_mtu_event(rsi_ble_event_mtu_t* rsi_ble_mtu) {
-    memcpy(&ble_worker_instance->app_ble_mtu_event, rsi_ble_mtu, sizeof(rsi_ble_event_mtu_t));
-
-    furi_thread_flags_set(furi_thread_get_id(ble_worker_instance->thread), BLEWorkerEvtMtu);
-}
-
-static void rsi_ble_on_att_desc_resp(
-    uint16_t resp_status,
-    rsi_ble_resp_att_descs_t* rsi_ble_resp_att_desc) {
-    UNUSED(resp_status);
-    UNUSED(rsi_ble_resp_att_desc);
-    BLE_LOG_W("rsi_ble_on_att_desc_resp_t");
-}
-
-static void rsi_ble_on_gatt_error_resp(
-    uint16_t event_status,
-    rsi_ble_event_error_resp_t* rsi_ble_gatt_error) {
-    uint16_t error = *(uint16_t*)rsi_ble_gatt_error->error;
-    uint16_t handle = *(uint16_t*)rsi_ble_gatt_error->handle;
-    BLE_LOG_W("Status: %04X, err: %04X, handle: %04X", event_status, error, handle);
-}
-
-void rsi_ble_on_char_services_resp(
-    uint16_t resp_status,
-    rsi_ble_resp_char_services_t* rsi_ble_resp_char_serv) {
-    UNUSED(rsi_ble_resp_char_serv);
-    BLE_LOG_W("rsi_ble_on_char_services_resp status: %04X", resp_status);
-}
 //===========================================================================================
 
-static void rsi_ble_on_smp_request(rsi_bt_event_smp_req_t* remote_dev_address) {
-    UNUSED(remote_dev_address);
-    BLE_LOG_W("rsi_ble_on_smp_request");
-}
-
-static void rsi_ble_on_smp_response(rsi_bt_event_smp_resp_t* resp) {
-    BLE_LOG_D("rsi_ble_on_smp_response");
-    memcpy(&ble_worker_instance->rsi_bt_event_smp_resp, resp, sizeof(rsi_bt_event_smp_resp_t));
-    furi_thread_flags_set(furi_thread_get_id(ble_worker_instance->thread), BLEWorkerSmpResponse);
-}
-
-static void rsi_ble_on_smp_passkey(rsi_bt_event_smp_passkey_t* remote_dev_address) {
-    UNUSED(remote_dev_address);
-    BLE_LOG_W("rsi_ble_on_smp_passkey");
-}
-
-static void
-    rsi_ble_on_smp_failed(uint16_t resp_status, rsi_bt_event_smp_failed_t* remote_dev_address) {
-    UNUSED(resp_status);
-    UNUSED(remote_dev_address);
-    furi_thread_flags_set(
-        furi_thread_get_id(ble_worker_instance->thread), BleWorkerSmpPairingFailed);
-}
-
-static void rsi_ble_on_encrypt_started(
-    uint16_t resp_status,
-    rsi_bt_event_encryption_enabled_t* enc_enabled) {
-    UNUSED(resp_status);
-    BLE_LOG_D("rsi_ble_on_encrypt_started status: %X", resp_status);
-    ble_security_set_pairing_data(ble_worker_instance->security_data, enc_enabled);
-
-    furi_thread_flags_set(
-        furi_thread_get_id(ble_worker_instance->thread), BLEWorkerSmpEncryptStarted);
-}
-
-static void
-    rsi_ble_on_le_ltk_req_event(rsi_bt_event_le_ltk_request_t* rsi_ble_event_le_ltk_request) {
-    UNUSED(rsi_ble_event_le_ltk_request);
-
-    BLE_LOG_D("rsi_ble_on_le_ltk_req_event");
-    memcpy(
-        &ble_worker_instance->ble_ltk_req,
-        rsi_ble_event_le_ltk_request,
-        sizeof(rsi_bt_event_le_ltk_request_t));
-    furi_thread_flags_set(furi_thread_get_id(ble_worker_instance->thread), BLEWorkerSmpLtkRequest);
-}
-
-static void
-    rsi_ble_on_le_security_keys(rsi_bt_event_le_security_keys_t* rsi_ble_event_le_security_keys) {
-    BLE_LOG_D("rsi_ble_on_le_security_keys");
-    ble_security_set_rpa_data(ble_worker_instance->security_data, rsi_ble_event_le_security_keys);
-
-    furi_thread_flags_set(
-        furi_thread_get_id(ble_worker_instance->thread), BLEWorkerSmpSecurityKeys);
-}
-
-static void ble_on_cli_smp_response_event(rsi_bt_event_smp_resp_t* remote_dev_address) {
-    UNUSED(remote_dev_address);
-    BLE_LOG_W("ble_on_cli_smp_response_event");
-}
-
-static void rsi_ble_on_sc_method(rsi_bt_event_sc_method_t* scmethod) {
-    UNUSED(scmethod);
-    BLE_LOG_W("rsi_ble_on_sc_method");
-}
 //===========================================================================================
 static void retry_phy_timer_callback(void* ctx) {
     BleWorker* instance = ctx;
-    furi_thread_flags_set(furi_thread_get_id(instance->thread), BLEWorkerEvtDataLengthChange);
+    ble_worker_spawn_event(instance->event_queue, BleWorkerEventTypeDataLengthChange, 0, NULL);
+    // BleWorker* instance = ctx;
+    // furi_thread_flags_set(furi_thread_get_id(instance->thread), BLEWorkerEvtDataLengthChange);
 }
 //===========================================================================================
 static bool ble_worker_start_advertising(
@@ -566,419 +217,520 @@ static bool ble_worker_stop_advertising() {
     return status == RSI_SUCCESS;
 }
 
-static void ble_hw_config() {
-    sl_status_t status = 0;
-    static uint8_t rsi_app_resp_get_dev_addr[RSI_DEV_ADDR_LEN] = {0};
-    uint8_t local_dev_addr[BLE_WORKER_LOCAL_DEV_ADDR_LEN] = {0};
+static bool ble_worker_event_handler_dummy(size_t data_size, void* data, void* context) {
+    BLE_LOG_W("ble_worker_event_handler_dummy");
+    UNUSED(data_size);
+    UNUSED(data);
+    UNUSED(context);
+    return false;
+}
 
-    ble_worker_instance->pairing_info_available =
-        ble_security_init(ble_worker_instance->security_data);
+static bool ble_worker_event_handler_exit(size_t data_size, void* data, void* context) {
+    BLE_LOG_I("ble_worker_event_handler_exit");
+    UNUSED(data_size);
+    UNUSED(data);
+    BleWorker* instance = context;
 
-    //! get the local device MAC address.
-    status = rsi_bt_get_local_device_address(rsi_app_resp_get_dev_addr);
+    instance->state = ble_worker_stop_advertising() ? BleWorkerStateIdle : BleWorkerStateError;
+    furi_event_loop_stop(instance->event_loop);
+    return true;
+}
+
+static bool
+    ble_worker_event_handler_advertise_report(size_t data_size, void* data, void* context) {
+    ///TODO: Think on this logic closer. Do we need it at all!
+    UNUSED(data_size);
+    BleWorker* instance = context;
+    if(instance->device_found == 0) {
+        rsi_ble_event_adv_report_t* adv_report = data;
+
+        memset(&instance->remote_name, 0, sizeof(instance->remote_name));
+        BT_LE_ADPacketExtract(
+            instance->remote_name, adv_report->adv_data, adv_report->adv_data_len);
+
+        instance->remote_addr_type = adv_report->dev_addr_type;
+        rsi_6byte_dev_address_to_ascii(
+            instance->remote_dev_str_addr, (uint8_t*)adv_report->dev_addr);
+        memcpy((int8_t*)instance->remote_dev_bd_addr, (uint8_t*)adv_report->dev_addr, 6);
+
+        instance->device_found = true;
+    }
+
+    return instance->device_found;
+}
+
+static bool ble_worker_event_handler_connected(size_t data_size, void* data, void* context) {
+    UNUSED(data_size);
+    BleWorker* instance = context;
+    rsi_ble_event_enhance_conn_status_t* resp_enh_conn = data;
+
+    memcpy(instance->remote_dev_address, resp_enh_conn->dev_addr, 6);
+    rsi_6byte_dev_address_to_ascii(instance->str_remote_address, resp_enh_conn->dev_addr);
+    BLE_LOG_I("Connected, str_remote_address : %s", instance->str_remote_address);
+
+    instance->state = BleWorkerStateConnected;
+    ///TODO: Commented due to issues with connect to different phones remove when interaction logic will be finalized
+    //! Setting MTU Exchange event
+    // status =
+    //     rsi_ble_mtu_exchange_event(instance->remote_dev_address, BLE_WORKER_MAX_MTU_SIZE);
+    // if(status != RSI_SUCCESS) {
+    //     BLE_LOG_W("MTU request cmd failed with error code = 0x%08lx", status);
+    //     furi_crash();
+    // } else {
+    //     BLE_LOG_I("MTU sent");
+    // }
+    instance->connected = true;
+#ifdef BLE_DEBUG_ADVERTISE_FORCE_PUBLIC
+    instance->on_connection_changed_cb(
+        instance->on_connection_changed_ctx, instance->connected, instance->str_remote_address);
+#endif
+    return true;
+}
+
+static bool ble_worker_event_handler_disconnected(size_t data_size, void* data, void* context) {
+    UNUSED(data_size);
+    UNUSED(data);
+
+    BleWorker* instance = context;
+
+    //! event invokes when disconnection was completed
+    BLE_LOG_I("Disconnected, str_remote_address : %s", instance->str_remote_address);
+
+    instance->device_found = 0;
+    instance->conn_params_updated = 0;
+    instance->connected = false;
+    if(instance->rx_pending_handle) {
+        BLE_LOG_W("Rx confirm not sent!");
+        furi_semaphore_release(instance->receive_sem);
+        instance->rx_pending_handle = 0;
+    }
+
+    if(instance->tx_pending_handle) {
+        BLE_LOG_W("No Tx confirm!");
+        furi_semaphore_release(instance->indication_sem);
+        instance->tx_pending_handle = 0;
+    }
+
+    BleServiceEntryDict_it_t entry_iter;
+    for(BleServiceEntryDict_it(entry_iter, instance->service_dict);
+        !BleServiceEntryDict_end_p(entry_iter);
+        BleServiceEntryDict_next(entry_iter)) {
+        BleServiceEntryDict_itref_t* entry_ref = BleServiceEntryDict_ref(entry_iter);
+
+        BleServiceEntry* entry = &entry_ref->value;
+        BleServiceObject* service = entry->service;
+        if(ble_service_lock(service)) {
+            BleCharacteristicObject* ch = service->chars[entry->char_index];
+            ble_characteristic_set_cccd_value(ch, 0);
+            ble_service_unlock(service);
+        }
+    }
+
+    //! start advertising
+    const rsi_bt_event_le_security_keys_t* rpa =
+        ble_security_get_rpa_data(instance->security_data);
+    instance->state =
+        ble_worker_start_advertising(instance->pairing_info_available, rpa, instance->advertise) ?
+            BleWorkerStateAdvertising :
+            BleWorkerStateError;
+
+    memset(instance->str_remote_address, 0, BLE_REMOTE_ADDRESS_STRING_SIZE);
+    instance->on_connection_changed_cb(
+        instance->on_connection_changed_ctx, instance->connected, instance->str_remote_address);
+
+    // ble_debug_canary_reset(instance->first_tx_pack_canary);
+    ble_debug_canary_reset(instance->first_tx_method_canary);
+    ble_debug_canary_reset(instance->indicate_error_canary);
+
+    return true;
+}
+
+static bool
+    ble_worker_event_handler_phy_update_complete(size_t data_size, void* data, void* context) {
+    BLE_LOG_I("ble_worker_event_handler_phy_update_complete");
+
+    BleWorker* instance = context;
+    memcpy(&instance->app_phy_update_complete, data, data_size);
+
+    BLE_LOG_I(
+        "Tx Phy rate = 0x%x  and Rx Phy rate = 0x%x",
+        instance->app_phy_update_complete.TxPhy,
+        instance->app_phy_update_complete.RxPhy);
+    return true;
+}
+
+static bool
+    ble_worker_event_handler_connection_update(size_t data_size, void* data, void* context) {
+    BLE_LOG_I("ble_worker_event_handler_connection_update");
+
+    BleWorker* instance = context;
+    memcpy(&instance->event_conn_update_complete, data, data_size);
+
+    BLE_LOG_I(
+        "Connection parameters update completed \r\n Connection interval = %d, Latency = %d, Supervision Timeout = %d",
+        instance->event_conn_update_complete.conn_interval,
+        instance->event_conn_update_complete.conn_latency,
+        instance->event_conn_update_complete.timeout);
+    return true;
+}
+
+static bool ble_worker_event_handler_length_change(size_t data_size, void* data, void* context) {
+    BLE_LOG_I("ble_worker_event_handler_length_change");
+    BleWorker* instance = context;
+    if(data_size > 0) memcpy(&instance->data_length_update, data, data_size);
+
+    UNUSED(instance);
+    bool result = false;
+    // if(instance->remote_dev_feature.remote_features[1] & 0x01) {
+    //     BLE_LOG_I("[BLEWorkerEvtDataLengthChange] rsi_ble_setphy");
+    //     sl_status_t status = rsi_ble_setphy(
+    //         (int8_t*)instance->remote_dev_address, TX_PHY_RATE, RX_PHY_RATE, CODDED_PHY_RATE);
+    //     if(status != RSI_SUCCESS) {
+    //         if(status == BLE_WORKER_BT_HCI_COMMAND_DISALLOWED) {
+    //             //retry the same command
+    //             BLE_LOG_W("Retry setphy");
+    //             furi_timer_start(
+    //                 instance->retry_phy_timer, furi_ms_to_ticks(BLE_WORKER_RETRY_PHY_TIMEOUT_MS));
+    //         } else {
+    //             BLE_LOG_W("Failed to set phy, error code : 0x%08lx", status);
+    //         }
+    //     } else {
+    //         BLE_LOG_I(
+    //             "PHY set done max_tx_octets: %d\r\nMax_tx_time: %d\r\nMax_rx_octets: %d\r\nMax_rx_time: %d",
+    //             instance->data_length_update.MaxTxOctets,
+    //             instance->data_length_update.MaxTxTime,
+    //             instance->data_length_update.MaxRxOctets,
+    //             instance->data_length_update.MaxRxTime);
+    //         result = true;
+    //     }
+    // } else {
+    //     BLE_LOG_W("[BLEWorkerEvtDataLengthChange] 2M Phy not supported");
+    // }
+
+    return result;
+}
+
+static bool
+    ble_worker_event_handler_receive_remote_features(size_t data_size, void* data, void* context) {
+    BLE_LOG_I("ble_worker_event_handler_receive_remote_features");
+    BleWorker* instance = context;
+    memcpy(&instance->remote_dev_feature, data, data_size);
+
+    BLE_LOG_I(
+        "Feature received is 0x%04X", *(uint16_t*)instance->remote_dev_feature.remote_features);
+
+    return true;
+}
+
+static bool
+    ble_worker_event_handler_more_data_request(size_t data_size, void* data, void* context) {
+    BLE_LOG_W("ble_worker_event_handler_more_data_request");
+    UNUSED(data_size);
+    UNUSED(data);
+    UNUSED(context);
+    return false;
+}
+
+///TODO: rework this shit to be less messy
+static bool ble_worker_event_handler_write_event(size_t data_size, void* data, void* context) {
+    UNUSED(data_size);
+    BleWorker* instance = context;
+
+    rsi_ble_event_write_t* app_ble_write_event = data;
+
+    uint16_t handle = *(uint16_t*)app_ble_write_event->handle;
+    if(app_ble_write_event->pkt_type == RSI_BLE_WRITE_REQUEST_EVENT) {
+        const void* data = app_ble_write_event->att_value;
+        const size_t data_size = app_ble_write_event->length;
+
+        BleServiceEntry* entry = BleServiceEntryDict_get(instance->service_dict, handle);
+
+        if(entry) {
+            if(furi_semaphore_acquire(instance->receive_sem, BLE_WORKER_RX_TIMEOUT_MS) ==
+               FuriStatusOk) {
+                BLE_LOG_D("Entry present");
+                BleServiceObject* service = entry->service;
+                if(ble_service_lock(service)) {
+                    BleCharacteristicObject* ch = service->chars[entry->char_index];
+
+                    if(ble_characteristic_is_cccd_handle(ch, handle)) {
+                        uint8_t ccd_val = *((uint8_t*)data);
+                        ble_characteristic_set_cccd_value(ch, ccd_val);
+                        sl_status_t status =
+                            rsi_ble_gatt_write_response(instance->remote_dev_address, 0);
+
+                        if(status != RSI_SUCCESS) BLE_LOG_W("Response fail");
+                        if(handle == BLE_NORDIC_UART_TX_HANDLE) BLE_LOG_W("Subscribed!");
+
+                        furi_semaphore_release(instance->receive_sem);
+                    } else {
+                        furi_check(data_size > 0);
+                        instance->rx_pending_handle = handle;
+                        ble_characteristic_set_data(ch, data, data_size);
+                        ble_service_enqueue_run(service);
+                        if(handle == BLE_NORDIC_UART_CNT_HANDLE) BLE_LOG_W("Session modified!");
+                    }
+
+                    ble_service_unlock(service);
+                }
+            } else {
+                BLE_LOG_W("receive_sem timeout!");
+            }
+        } else {
+            BLE_LOG_W("Not found: %04X", handle);
+            sl_status_t status = rsi_ble_gatt_write_response(instance->remote_dev_address, 0);
+            if(status != RSI_SUCCESS) BLE_LOG_W("Response fail");
+        }
+    } else if(app_ble_write_event->pkt_type == RSI_BLE_NOTIFICATION_EVENT) {
+        BLE_LOG_W("Notification event");
+    } else if(app_ble_write_event->pkt_type == RSI_BLE_INDICATION_EVENT) {
+        BLE_LOG_W("Indication event");
+    } else if(app_ble_write_event->pkt_type == RSI_BLE_WRITE_CMD_EVENT) {
+        BLE_LOG_W("CMD event");
+    }
+
+    return true;
+}
+
+static bool ble_worker_event_handler_mtu(size_t data_size, void* data, void* context) {
+    BLE_LOG_I("ble_worker_event_handler_mtu");
+
+    BleWorker* instance = context;
+    rsi_ble_event_mtu_t* rsi_ble_mtu = data;
+
+    memcpy(&instance->app_ble_mtu_event, rsi_ble_mtu, data_size);
+
+    BLE_LOG_I(
+        "MTU size received from remote device(%s) is %u",
+        instance->str_remote_address,
+        instance->app_ble_mtu_event.mtu_size);
+
+    instance->max_payload_size =
+        instance->app_ble_mtu_event.mtu_size - BLE_WORKER_ATTR_HEADER_SIZE;
+    BLE_LOG_I("Max payload size: %u", instance->max_payload_size);
+
+    sl_status_t status = rsi_ble_set_wo_resp_notify_buf_info(
+        instance->remote_dev_address, DLE_BUFFER_MODE, DLE_BUFFER_COUNT);
     if(status != RSI_SUCCESS) {
-        BLE_LOG_W("Get local device address failed = 0x%08lx", status);
-        ///TODO: don't crash, return false instead
-        furi_crash();
+        BLE_LOG_W("Failed to set the buffer configuration mode, error: 0x%08lx", status);
     } else {
-        rsi_6byte_dev_address_to_ascii(local_dev_addr, rsi_app_resp_get_dev_addr);
-        BLE_LOG_I("Local device address %s", local_dev_addr);
+        BLE_LOG_I(
+            "Buffer configuration done for notify and set_att cmds buf mode = %d , max buff count =%d",
+            DLE_BUFFER_MODE,
+            DLE_BUFFER_COUNT);
     }
 
-    // //! registering the GAP callback functions
-    rsi_ble_gap_register_callbacks(
-        ble_worker_on_adv_report_event,
-        NULL,
-        ble_worker_on_disconnect_event,
-        NULL,
-        ble_worker_phy_update_complete_event,
-        ble_worker_data_length_change_event,
-        ble_worker_on_enhance_conn_status_event,
-        rsi_ble_on_directed_adv_report_event,
-        ble_worker_on_conn_update_complete_event,
-        rsi_ble_on_remote_conn_params_request);
+    return true;
+}
 
-    rsi_ble_smp_register_callbacks(
-        rsi_ble_on_smp_request,
-        rsi_ble_on_smp_response,
-        rsi_ble_on_smp_passkey,
-        rsi_ble_on_smp_failed,
-        rsi_ble_on_encrypt_started,
-        NULL,
-        NULL,
-        rsi_ble_on_le_ltk_req_event,
-        rsi_ble_on_le_security_keys,
-        ble_on_cli_smp_response_event,
-        rsi_ble_on_sc_method);
+static bool
+    ble_worker_event_handler_indicate_confirm(size_t data_size, void* data, void* context) {
+    UNUSED(data_size);
+    UNUSED(data);
+    BLE_LOG_D("ble_worker_event_handler_indicate_confirm");
+    BleWorker* instance = context;
+    furi_semaphore_release(instance->indication_sem);
+    return true;
+}
 
-    rsi_ble_gap_extended_register_callbacks(
-        ble_worker_simple_peripheral_on_remote_features_event, ble_worker_more_data_req_event);
+static bool ble_worker_event_handler_smp_response(size_t data_size, void* data, void* context) {
+    UNUSED(data_size);
+    UNUSED(data);
+    BLE_LOG_I("ble_worker_event_handler_smp_response");
+    BleWorker* instance = context;
+    // rsi_bt_event_smp_resp_t* resp = data;
+    // memcpy(&instance->rsi_bt_event_smp_resp, resp, data_size);
 
-    rsi_ble_gatt_register_callbacks(
-        NULL,
-        NULL,
-        rsi_ble_on_char_services_resp,
-        NULL,
-        rsi_ble_on_att_desc_resp,
-        NULL,
-        NULL,
-        ble_worker_on_gatt_write_event,
-        rsi_ble_on_gatt_prepare_write_event,
-        rsi_ble_on_execute_write_event,
-        NULL,
-        ble_worker_on_mtu_event,
-        rsi_ble_on_gatt_error_resp,
-        NULL,
-        NULL,
-        NULL,
-        NULL,
-        NULL,
-        NULL,
-        NULL,
-        NULL,
-        ble_worker_on_indicate_confirmation_event,
-        NULL);
+    sl_status_t status = rsi_ble_smp_pair_response(
+        instance->remote_dev_address, RSI_BLE_SMP_IO_CAPABILITY, MITM_REQ);
 
-    //! Set local name
-    status = rsi_bt_set_local_name((const uint8_t*)BLE_DEFAULT_LOCAL_NAME);
+    if(status != SL_STATUS_OK) {
+        BLE_LOG_W("Passkey Status: %lX", status);
+    }
+    instance->pairing_info_available = 0;
+
+    return true;
+}
+
+static bool
+    ble_worker_event_handler_smp_encrypt_started(size_t data_size, void* data, void* context) {
+    UNUSED(data_size);
+    BLE_LOG_I("ble_worker_event_handler_smp_encrypt_started");
+    BleWorker* instance = context;
+    rsi_bt_event_encryption_enabled_t* enc_enabled = data;
+    ble_security_set_pairing_data(instance->security_data, enc_enabled);
+
+    if(instance->pairing_info_available == 0) {
+        instance->pairing_info_available = 1;
+
+        if(ble_security_save_data(instance->security_data))
+            BLE_LOG_I("Security data saved");
+        else
+            BLE_LOG_W("Failed to save Security");
+    }
+    return true;
+}
+
+static bool ble_worker_event_handler_smp_ltk_request(size_t data_size, void* data, void* context) {
+    UNUSED(data_size);
+    UNUSED(data);
+    BLE_LOG_I("ble_worker_event_handler_smp_ltk_request");
+    BleWorker* instance = context;
+    // rsi_bt_event_smp_resp_t* resp = data;
+    // memcpy(&instance->rsi_bt_event_smp_resp, resp, data_size);
+
+    ///TODO: Move this logic to ble_security module
+    sl_status_t status;
+
+    if(instance->pairing_info_available) {
+        const rsi_bt_event_encryption_enabled_t* encrypt_keys =
+            ble_security_get_pairing_data(instance->security_data);
+
+        status = rsi_ble_ltk_req_reply(
+            instance->remote_dev_address,
+            (1 | encrypt_keys->enabled | (encrypt_keys->sc_enable << 7)),
+            encrypt_keys->localltk);
+        if(status != RSI_SUCCESS) {
+            BLE_LOG_W("ltk req reply cmd failed with reason = %lx", status);
+        }
+        BLE_LOG_I("Paired device");
+        instance->on_connection_changed_cb(
+            instance->on_connection_changed_ctx,
+            instance->connected,
+            instance->str_remote_address);
+
+        // ble_worker_spawn_event(
+        //     instance->event_queue, BleWorkerEventTypeAdjustConnectionRequest, 0, NULL);
+    } else {
+        BLE_LOG_I("Not paired device");
+        status = rsi_ble_ltk_req_reply(instance->remote_dev_address, 0, NULL);
+        if(status != RSI_SUCCESS) {
+            BLE_LOG_W("ltk negative req reply cmd failed with reason = %lx \n", status);
+        }
+    }
+
+    return true;
+}
+
+static bool
+    ble_worker_event_handler_smp_security_keys(size_t data_size, void* data, void* context) {
+    UNUSED(data_size);
+    BLE_LOG_I("ble_worker_event_handler_smp_security_keys");
+    BleWorker* instance = context;
+    rsi_bt_event_le_security_keys_t* rsi_ble_event_le_security_keys = data;
+    ble_security_set_rpa_data(instance->security_data, rsi_ble_event_le_security_keys);
+
+    do {
+        if(!ble_security_rpa_enable(instance->security_data)) break;
+
+        if(!ble_security_save_data(instance->security_data)) {
+            BLE_LOG_W("Failed to save Security");
+            break;
+        }
+
+        instance->on_connection_changed_cb(
+            instance->on_connection_changed_ctx,
+            instance->connected,
+            instance->str_remote_address);
+        BLE_LOG_I("Security keys saved");
+    } while(false);
+
+    return true;
+}
+
+static bool
+    ble_worker_event_handler_smp_pairing_failed(size_t data_size, void* data, void* context) {
+    UNUSED(data_size);
+    UNUSED(data);
+    BLE_LOG_I("ble_worker_event_handler_smp_pairing_failed");
+    BleWorker* instance = context;
+
+    sl_status_t status = rsi_ble_disconnect((int8_t*)instance->remote_dev_address);
     if(status != RSI_SUCCESS) {
-        BLE_LOG_W("Failed to set default local name, error code : 0x%08lx", status);
+        BLE_LOG_W("failed disconnect status = %lx \n", status);
     }
 
-    ble_advertise_print_data(ble_worker_instance->advertise);
+    return true;
+}
 
-    status = rsi_ble_set_random_address_with_value(rsi_app_resp_get_dev_addr);
-    if(status != RSI_SUCCESS) {
-        BLE_LOG_W("Failed to set address: %08lX", status);
+static bool ble_worker_event_handler_adjust_connection_request(
+    size_t data_size,
+    void* data,
+    void* context) {
+    UNUSED(data_size);
+    UNUSED(data);
+    BLE_LOG_I("ble_worker_event_handler_adjust_connection_request");
+    BleWorker* instance = context;
+
+    if(instance->remote_dev_feature.remote_features[0] & 0x20) {
+        BLE_LOG_I("[BLEWorkerReconfigure] rsi_ble_set_data_len");
+        sl_status_t status = rsi_ble_set_data_len(instance->remote_dev_address, TX_LEN, TX_TIME);
+        if(status != RSI_SUCCESS) {
+            BLE_LOG_W("Failed to set data length, error code : 0x%08lx", status);
+        } else
+            BLE_LOG_I("LEN set done");
+    } else {
+        ble_worker_spawn_event(instance->event_queue, BleWorkerEventTypeDataLengthChange, 0, NULL);
     }
+    return true;
+}
+
+static const BleWorkerEventHandler event_handlers[BleWorkerEventTypeCount] = {
+    [BleWorkerEventTypeUnknown] = ble_worker_event_handler_dummy,
+    [BleWorkerEventTypeExit] = ble_worker_event_handler_exit,
+    [BleWorkerEventTypeAdvReport] = ble_worker_event_handler_advertise_report,
+    [BleWorkerEventTypeConnected] = ble_worker_event_handler_connected,
+    [BleWorkerEventTypeDisconnected] = ble_worker_event_handler_disconnected,
+    [BleWorkerEventTypePhyUpdateComplete] = ble_worker_event_handler_phy_update_complete,
+    [BleWorkerEventTypeConnUpdate] = ble_worker_event_handler_connection_update,
+    [BleWorkerEventTypeDataLengthChange] = ble_worker_event_handler_length_change,
+
+    [BleWorkerEventTypeReceiveRemoteFeatures] = ble_worker_event_handler_receive_remote_features,
+    [BleWorkerEventTypeMoreDataRequest] = ble_worker_event_handler_more_data_request,
+
+    [BleWorkerEventTypeWrite] = ble_worker_event_handler_write_event,
+    [BleWorkerEventTypeDataTransmit] = ble_worker_event_handler_dummy,
+    [BleWorkerEventTypeMtu] = ble_worker_event_handler_mtu,
+    [BleWorkerEventTypeIndicateConfirm] = ble_worker_event_handler_indicate_confirm,
+
+    [BleWorkerEventTypeSmpResponse] = ble_worker_event_handler_smp_response,
+    [BleWorkerEventTypeSmpEncryptStarted] = ble_worker_event_handler_smp_encrypt_started,
+    [BleWorkerEventTypeSmpLtkRequest] = ble_worker_event_handler_smp_ltk_request,
+    [BleWorkerEventTypeSmpSecurityKeys] = ble_worker_event_handler_smp_security_keys,
+    [BleWorkerEventTypeSmpPairingFailed] = ble_worker_event_handler_smp_pairing_failed,
+    [BleWorkerEventTypeAdjustConnectionRequest] =
+        ble_worker_event_handler_adjust_connection_request,
+};
+
+static void ble_worker_process_event_queue(FuriEventLoopObject* object, void* context) {
+    furi_assert(context);
+    ///TODO: think of moving this to ble_worker_event module
+    BleWorker* instance = context;
+    furi_assert(instance->event_queue == object);
+
+    ble_worker_process_event(instance->event_queue, event_handlers, context);
 }
 
 static int32_t ble_worker_thread_callback(void* context) {
     BleWorker* instance = context;
+    BLE_LOG_I("Worker Thread Start");
 
-    sl_status_t status = 0;
+    instance->event_loop = furi_event_loop_alloc();
 
-    FURI_LOG_D(TAG, "Worker Thread Start");
-    while(true) {
-        uint32_t events =
-            furi_thread_flags_wait(BLE_WORKER_ALL_EVENTS, FuriFlagWaitAny, FuriWaitForever);
+    furi_event_loop_subscribe_message_queue(
+        instance->event_loop,
+        instance->event_queue,
+        FuriEventLoopEventIn,
+        ble_worker_process_event_queue,
+        instance);
 
-        if(events & BLEWorkerEvtIndicateConfirm) {
-            BLE_LOG_D("BLEWorkerEvtIndicateConfirm");
-            furi_semaphore_release(ble_worker_instance->indication_sem);
-        }
+    furi_event_loop_run(instance->event_loop);
 
-        if(events & BLEWorkerEvtWrite) {
-            uint16_t handle = *(uint16_t*)instance->app_ble_write_event.handle;
-            if(instance->app_ble_write_event.pkt_type == RSI_BLE_WRITE_REQUEST_EVENT) {
-                const void* data = instance->app_ble_write_event.att_value;
-                const size_t data_size = instance->app_ble_write_event.length;
+    ble_worker_flush_events(instance->event_queue);
 
-                BleServiceEntry* entry =
-                    BleServiceEntryDict_get(ble_worker_instance->service_dict, handle);
+    furi_event_loop_unsubscribe(instance->event_loop, instance->event_queue);
 
-                if(entry) {
-                    if(furi_semaphore_acquire(
-                           ble_worker_instance->receive_sem, BLE_WORKER_RX_TIMEOUT_MS) ==
-                       FuriStatusOk) {
-                        BLE_LOG_D("Entry present");
-                        BleServiceObject* service = entry->service;
-                        if(ble_service_lock(service)) {
-                            BleCharacteristicObject* ch = service->chars[entry->char_index];
-
-                            if(ble_characteristic_is_cccd_handle(ch, handle)) {
-                                uint8_t ccd_val = *((uint8_t*)data);
-                                ble_characteristic_set_cccd_value(ch, ccd_val);
-                                status = rsi_ble_gatt_write_response(
-                                    ble_worker_instance->remote_dev_address, 0);
-                                if(handle == BLE_NORDIC_UART_TX_HANDLE) BLE_LOG_W("Subscribed!");
-
-                                furi_semaphore_release(ble_worker_instance->receive_sem);
-                            } else {
-                                furi_check(data_size > 0);
-                                instance->rx_pending_handle = handle;
-                                ble_characteristic_set_data(ch, data, data_size);
-                                ble_service_enqueue_run(service);
-                                if(handle == BLE_NORDIC_UART_CNT_HANDLE)
-                                    BLE_LOG_W("Session modified!");
-                            }
-
-                            ble_service_unlock(service);
-                        }
-                    } else {
-                        BLE_LOG_W("receive_sem timeout!");
-                    }
-                } else {
-                    BLE_LOG_W("Not found: %04X", handle);
-                    status =
-                        rsi_ble_gatt_write_response(ble_worker_instance->remote_dev_address, 0);
-                }
-            } else if(instance->app_ble_write_event.pkt_type == RSI_BLE_NOTIFICATION_EVENT) {
-                BLE_LOG_W("Notification event");
-            } else if(instance->app_ble_write_event.pkt_type == RSI_BLE_INDICATION_EVENT) {
-                BLE_LOG_W("Indication event");
-            } else if(instance->app_ble_write_event.pkt_type == RSI_BLE_WRITE_CMD_EVENT) {
-                BLE_LOG_W("CMD event");
-            }
-        }
-
-        if(events & BLEWorkerEvtConnected) {
-            //! event invokes when connection was completed
-            BLE_LOG_I("Connected, str_remote_address : %s", instance->str_remote_address);
-            instance->state = BleWorkerStateConnected;
-            ///TODO: Commented due to issues with connect to different phones remove when interaction logic will be finalized
-            //! Setting MTU Exchange event
-            // status =
-            //     rsi_ble_mtu_exchange_event(instance->remote_dev_address, BLE_WORKER_MAX_MTU_SIZE);
-            // if(status != RSI_SUCCESS) {
-            //     BLE_LOG_W("MTU request cmd failed with error code = 0x%08lx", status);
-            //     furi_crash();
-            // } else {
-            //     BLE_LOG_I("MTU sent");
-            // }
-            ble_worker_instance->connected = true;
-            ble_debug_canary_reset(instance->first_tx_pack_canary);
-            ble_debug_canary_reset(instance->first_tx_method_canary);
-            ble_debug_canary_reset(instance->indicate_error_canary);
-
-#ifdef BLE_DEBUG_ADVERTISE_FORCE_PUBLIC
-            ble_worker_instance->on_connection_changed_cb(
-                ble_worker_instance->on_connection_changed_ctx,
-                ble_worker_instance->connected,
-                ble_worker_instance->str_remote_address);
-#endif
-        }
-
-        if(events & BLEWorkerEvtDisconnected) {
-            //! event invokes when disconnection was completed
-            BLE_LOG_I("Disconnected, str_remote_address : %s", instance->str_remote_address);
-
-            instance->device_found = 0;
-            instance->conn_params_updated = 0;
-            instance->connected = false;
-            if(instance->rx_pending_handle) {
-                BLE_LOG_W("Rx confirm not sent!");
-                furi_semaphore_release(ble_worker_instance->receive_sem);
-                instance->rx_pending_handle = 0;
-            }
-
-            if(instance->tx_pending_handle) {
-                BLE_LOG_W("No Tx confirm!");
-                furi_semaphore_release(ble_worker_instance->indication_sem);
-                instance->tx_pending_handle = 0;
-            }
-
-            BleServiceEntryDict_it_t entry_iter;
-            for(BleServiceEntryDict_it(entry_iter, instance->service_dict);
-                !BleServiceEntryDict_end_p(entry_iter);
-                BleServiceEntryDict_next(entry_iter)) {
-                BleServiceEntryDict_itref_t* entry_ref = BleServiceEntryDict_ref(entry_iter);
-
-                BleServiceEntry* entry = &entry_ref->value;
-                BleServiceObject* service = entry->service;
-                if(ble_service_lock(service)) {
-                    BleCharacteristicObject* ch = service->chars[entry->char_index];
-                    ble_characteristic_set_cccd_value(ch, 0);
-                    ble_service_unlock(service);
-                }
-            }
-
-            //! start advertising
-            const rsi_bt_event_le_security_keys_t* rpa =
-                ble_security_get_rpa_data(ble_worker_instance->security_data);
-            instance->state = ble_worker_start_advertising(
-                                  ble_worker_instance->pairing_info_available,
-                                  rpa,
-                                  ble_worker_instance->advertise) ?
-                                  BleWorkerStateAdvertising :
-                                  BleWorkerStateError;
-
-            memset(ble_worker_instance->str_remote_address, 0, BLE_REMOTE_ADDRESS_STRING_SIZE);
-            ble_worker_instance->on_connection_changed_cb(
-                ble_worker_instance->on_connection_changed_ctx,
-                ble_worker_instance->connected,
-                ble_worker_instance->str_remote_address);
-        }
-
-        if(events & BLEWorkerEvtReceiveRemoteFeatures) {
-            BLE_LOG_I(
-                "Feature received is 0x%04X",
-                *(uint16_t*)instance->remote_dev_feature.remote_features);
-        }
-
-        if(events & BLEWorkerEvtDataLengthChange) {
-            if(instance->remote_dev_feature.remote_features[1] & 0x01) {
-                BLE_LOG_I("[BLEWorkerEvtDataLengthChange] rsi_ble_setphy");
-                status = rsi_ble_setphy(
-                    (int8_t*)instance->remote_dev_address,
-                    TX_PHY_RATE,
-                    RX_PHY_RATE,
-                    CODDED_PHY_RATE);
-                if(status != RSI_SUCCESS) {
-                    if(status == BLE_WORKER_BT_HCI_COMMAND_DISALLOWED) {
-                        //retry the same command
-                        BLE_LOG_W("Retry setphy");
-                        furi_timer_start(
-                            instance->retry_phy_timer,
-                            furi_ms_to_ticks(BLE_WORKER_RETRY_PHY_TIMEOUT_MS));
-                    } else {
-                        BLE_LOG_W("Failed to set phy, error code : 0x%08lx", status);
-                    }
-                } else {
-                    BLE_LOG_I(
-                        "PHY set done max_tx_octets: %d\r\nMax_tx_time: %d\r\nMax_rx_octets: %d\r\nMax_rx_time: %d",
-                        instance->data_length_update.MaxTxOctets,
-                        instance->data_length_update.MaxTxTime,
-                        instance->data_length_update.MaxRxOctets,
-                        instance->data_length_update.MaxRxTime);
-                }
-            } else {
-                BLE_LOG_W("[BLEWorkerEvtDataLengthChange] 2M Phy not supported");
-            }
-        }
-
-        if(events & BLEWorkerAdjustConnectionRequest) {
-            if(instance->remote_dev_feature.remote_features[0] & 0x20) {
-                BLE_LOG_I("[BLEWorkerReconfigure] rsi_ble_set_data_len");
-                status = rsi_ble_set_data_len(instance->remote_dev_address, TX_LEN, TX_TIME);
-                if(status != RSI_SUCCESS) {
-                    BLE_LOG_W("Failed to set data length, error code : 0x%08lx", status);
-                } else
-                    BLE_LOG_I("LEN set done");
-            } else {
-                furi_thread_flags_set(
-                    furi_thread_get_id(ble_worker_instance->thread), BLEWorkerEvtDataLengthChange);
-            }
-        }
-
-        if(events & BLEWorkerEvtPhyUpdateComplete) {
-            //! phy update complete event
-            BLE_LOG_I(
-                "Tx Phy rate = 0x%x  and Rx Phy rate = 0x%x",
-                instance->app_phy_update_complete.TxPhy,
-                instance->app_phy_update_complete.RxPhy);
-        }
-
-        if(events & BLEWorkerEvtConnUpdate) {
-            BLE_LOG_I(
-                "Connection parameters update completed \r\n Connection interval = %d, Latency = %d, Supervision Timeout = %d",
-                instance->event_conn_update_complete.conn_interval,
-                instance->event_conn_update_complete.conn_latency,
-                instance->event_conn_update_complete.timeout);
-        }
-
-        if(events & BLEWorkerEvtMtu) {
-            BLE_LOG_I(
-                "MTU size received from remote device(%s) is %u",
-                instance->str_remote_address,
-                instance->app_ble_mtu_event.mtu_size);
-
-            ble_worker_instance->max_payload_size =
-                instance->app_ble_mtu_event.mtu_size - BLE_WORKER_ATTR_HEADER_SIZE;
-            BLE_LOG_I("Max payload size: %u", ble_worker_instance->max_payload_size);
-
-            status = rsi_ble_set_wo_resp_notify_buf_info(
-                instance->remote_dev_address, DLE_BUFFER_MODE, DLE_BUFFER_COUNT);
-            if(status != RSI_SUCCESS) {
-                BLE_LOG_W("Failed to set the buffer configuration mode, error: 0x%08lx", status);
-            } else {
-                BLE_LOG_I(
-                    "Buffer configuration done for notify and set_att cmds buf mode = %d , max buff count =%d",
-                    DLE_BUFFER_MODE,
-                    DLE_BUFFER_COUNT);
-            }
-        }
-
-        if(events & BLEWorkerEvtMoreDataReq) {
-            BLE_LOG_D("BLEWorkerEvtMoreDataReq");
-        }
-
-        if(events & BLEWorkerEvtExit) {
-            instance->state = ble_worker_stop_advertising() ? BleWorkerStateIdle :
-                                                              BleWorkerStateError;
-            break;
-        }
-
-        if(events & BLEWorkerSmpResponse) {
-            BLE_LOG_I("BLEWorkerSmpResponse");
-            status = rsi_ble_smp_pair_response(
-                ble_worker_instance->remote_dev_address, RSI_BLE_SMP_IO_CAPABILITY, MITM_REQ);
-
-            if(status != SL_STATUS_OK) {
-                BLE_LOG_W("Passkey Status: %lX", status);
-            }
-            ble_worker_instance->pairing_info_available = 0;
-        }
-
-        if(events & BLEWorkerSmpEncryptStarted) {
-            BLE_LOG_I("BLEWorkerSmpEncryptStarted");
-            if(ble_worker_instance->pairing_info_available == 0) {
-                ble_worker_instance->pairing_info_available = 1;
-
-                if(ble_security_save_data(ble_worker_instance->security_data))
-                    BLE_LOG_I("Security data saved");
-                else
-                    BLE_LOG_W("Failed to save Security");
-            }
-        }
-
-        if(events & BLEWorkerSmpLtkRequest) {
-            BLE_LOG_I("BLEWorkerSmpLtkRequest");
-            ///TODO: Move this logic to ble_security module
-            if(ble_worker_instance->pairing_info_available) {
-                const rsi_bt_event_encryption_enabled_t* encrypt_keys =
-                    ble_security_get_pairing_data(ble_worker_instance->security_data);
-
-                status = rsi_ble_ltk_req_reply(
-                    ble_worker_instance->remote_dev_address,
-                    (1 | encrypt_keys->enabled | (encrypt_keys->sc_enable << 7)),
-                    encrypt_keys->localltk);
-                if(status != RSI_SUCCESS) {
-                    BLE_LOG_W("ltk req reply cmd failed with reason = %lx", status);
-                }
-                BLE_LOG_I("Paired device");
-                ble_worker_instance->on_connection_changed_cb(
-                    ble_worker_instance->on_connection_changed_ctx,
-                    ble_worker_instance->connected,
-                    ble_worker_instance->str_remote_address);
-                furi_thread_flags_set(
-                    furi_thread_get_id(ble_worker_instance->thread),
-                    BLEWorkerAdjustConnectionRequest);
-            } else {
-                BLE_LOG_I("Not paired device");
-                rsi_ble_ltk_req_reply(ble_worker_instance->remote_dev_address, 0, NULL);
-                if(status != RSI_SUCCESS) {
-                    BLE_LOG_W("ltk negative req reply cmd failed with reason = %lx \n", status);
-                }
-            }
-        }
-
-        if(events & BLEWorkerSmpSecurityKeys) {
-            BLE_LOG_I("BLEWorkerSmpSecurityKeys");
-            do {
-                if(!ble_security_rpa_enable(ble_worker_instance->security_data)) break;
-
-                if(!ble_security_save_data(ble_worker_instance->security_data)) {
-                    BLE_LOG_W("Failed to save Security");
-                    break;
-                }
-
-                ble_worker_instance->on_connection_changed_cb(
-                    ble_worker_instance->on_connection_changed_ctx,
-                    ble_worker_instance->connected,
-                    ble_worker_instance->str_remote_address);
-                BLE_LOG_I("Security keys saved");
-            } while(false);
-        }
-
-        if(events & BleWorkerSmpPairingFailed) {
-            BLE_LOG_I("BleWorkerSmpPairingFailed");
-            status = rsi_ble_disconnect((int8_t*)instance->remote_dev_address);
-            if(status != RSI_SUCCESS) {
-                BLE_LOG_W("failed disconnect status = %lx \n", status);
-            }
-        }
-    }
+    furi_event_loop_free(instance->event_loop);
 
     return 0;
 }
@@ -1117,49 +869,78 @@ static void ble_prepare_uuid(const Char_UUID_t* temp, const uint8_t size, uuid_t
         ble_worker_prepare_128bit_uuid(temp->Char_UUID_128, uuid);
 }
 
-typedef struct {
-    uint8_t chunk_num;
-    const uint8_t* data;
-    uint16_t handle;
-    uint16_t data_size;
-    uint16_t cccd_value;
-} BleCanaryFirstPackCtx;
+// typedef struct {
+//     uint8_t chunk_num;
+//     const uint8_t* data;
+//     uint16_t handle;
+//     uint16_t data_size;
+//     uint16_t cccd_value;
+// } BleCanaryFirstPackCtx;
 
-static void ble_canary_first_pack_callback(void* ctx) {
-    const BleCanaryFirstPackCtx* c = ctx;
-    BLE_LOG_PAYLOAD(c->handle, c->chunk_num, c->data, c->data_size);
-}
+// static void ble_canary_first_pack_callback(void* ctx) {
+//     const BleCanaryFirstPackCtx* c = ctx;
+//     BLE_LOG_PAYLOAD(c->handle, c->chunk_num, c->data, c->data_size);
+// }
 
-void ble_worker_init(BleConnectionStateChanged connect_callback, void* ctx) {
+BleWorker* ble_worker_init(BleConnectionStateChanged connect_callback, void* ctx) {
     furi_assert(connect_callback);
     furi_assert(ctx);
 
-    ble_worker_instance = malloc(sizeof(BleWorker));
-    ble_worker_instance->state = BleWorkerStateIdle;
-    ble_worker_instance->thread =
-        furi_thread_alloc_ex("BleWorker", 3072U, ble_worker_thread_callback, ble_worker_instance);
+    BleWorker* instance = malloc(sizeof(BleWorker));
+    instance->state = BleWorkerStateIdle;
+    instance->thread =
+        furi_thread_alloc_ex("BleWorker", 3072U, ble_worker_thread_callback, instance);
+    instance->event_queue = furi_message_queue_alloc(20, sizeof(BleWorkerEvent*));
 
-    ble_worker_instance->first_tx_pack_canary = ble_debug_canary_alloc(BleCanaryTypeHitOnce);
-    ble_debug_canary_set_hit_callback(
-        ble_worker_instance->first_tx_pack_canary, ble_canary_first_pack_callback);
-    ble_worker_instance->first_tx_method_canary = ble_debug_canary_alloc(BleCanaryTypeHitOnce);
-    ble_worker_instance->indicate_error_canary = ble_debug_canary_alloc(BleCanaryTypeHitOnce);
+    // instance->first_tx_pack_canary = ble_debug_canary_alloc(BleCanaryTypeHitOnce);
+    // ble_debug_canary_set_hit_callback(
+    //     instance->first_tx_pack_canary, ble_canary_first_pack_callback);
+    instance->first_tx_method_canary = ble_debug_canary_alloc(BleCanaryTypeHitOnce);
+    instance->indicate_error_canary = ble_debug_canary_alloc(BleCanaryTypeHitOnce);
 
-    ble_worker_instance->on_connection_changed_cb = connect_callback;
-    ble_worker_instance->on_connection_changed_ctx = ctx;
-    ble_worker_instance->indication_sem = furi_semaphore_alloc(1, 0);
-    ble_worker_instance->receive_sem = furi_semaphore_alloc(1, 1);
-    ble_worker_instance->max_payload_size = BLE_WORKER_MAX_MTU_SIZE - BLE_WORKER_ATTR_HEADER_SIZE;
-    ble_worker_instance->security_data = ble_security_alloc();
-    ble_worker_instance->advertise = ble_advertise_alloc();
-    ble_advertise_set_name(ble_worker_instance->advertise, BLE_DEFAULT_LOCAL_NAME);
+    instance->on_connection_changed_cb = connect_callback;
+    instance->on_connection_changed_ctx = ctx;
+    instance->indication_sem = furi_semaphore_alloc(1, 0);
+    instance->receive_sem = furi_semaphore_alloc(1, 1);
+    instance->max_payload_size = BLE_WORKER_MAX_MTU_SIZE - BLE_WORKER_ATTR_HEADER_SIZE;
+    instance->security_data = ble_security_alloc();
+    instance->advertise = ble_advertise_alloc();
+    ble_advertise_set_name(instance->advertise, BLE_DEFAULT_LOCAL_NAME);
 
-    BleServiceEntryDict_init(ble_worker_instance->service_dict);
+    BleServiceEntryDict_init(instance->service_dict);
 
-    ble_worker_instance->retry_phy_timer =
-        furi_timer_alloc(retry_phy_timer_callback, FuriTimerTypeOnce, ble_worker_instance);
+    instance->retry_phy_timer =
+        furi_timer_alloc(retry_phy_timer_callback, FuriTimerTypeOnce, instance);
 
-    ble_hw_config();
+    //----------------------------------------------------------------------------------------------------------------
+    static uint8_t rsi_app_resp_get_dev_addr[RSI_DEV_ADDR_LEN] = {0};
+    uint8_t local_dev_addr[BLE_WORKER_LOCAL_DEV_ADDR_LEN] = {0};
+
+    instance->pairing_info_available = ble_security_init(instance->security_data);
+
+    sl_status_t status = rsi_bt_get_local_device_address(rsi_app_resp_get_dev_addr);
+    if(status != RSI_SUCCESS) {
+        BLE_LOG_W("Get local device address failed = 0x%08lx", status);
+        furi_crash();
+    } else {
+        rsi_6byte_dev_address_to_ascii(local_dev_addr, rsi_app_resp_get_dev_addr);
+        BLE_LOG_I("Local device address %s", local_dev_addr);
+    }
+
+    ble_nwp_core_config_callbacks(instance->event_queue);
+    //----------------------------------------------------------------------------------------------------------------
+    //! Set local name
+    status = rsi_bt_set_local_name((const uint8_t*)BLE_DEFAULT_LOCAL_NAME);
+    if(status != RSI_SUCCESS) {
+        BLE_LOG_W("Failed to set default local name, error code : 0x%08lx", status);
+    }
+
+    status = rsi_ble_set_random_address_with_value(rsi_app_resp_get_dev_addr);
+    if(status != RSI_SUCCESS) {
+        BLE_LOG_W("Failed to set address: %08lX", status);
+    }
+    //----------------------------------------------------------------------------------------------------------------
+    ble_advertise_print_data(instance->advertise);
 
     //Appearance adjustment
     uuid_t uuid = {0};
@@ -1174,6 +955,10 @@ void ble_worker_init(BleConnectionStateChanged connect_callback, void* ctx) {
         BLE_LOG_D("Status: %lX", status);
     }
     //---------------------------------------
+    ///TODO:Remove this in future
+    ble_worker_instance = instance;
+    //---------------------------------------
+    return instance;
 }
 
 bool ble_worker_register_service(BleServiceObject* service) {
@@ -1258,7 +1043,7 @@ void ble_worker_stop() {
         FuriThreadState state = furi_thread_get_state(ble_worker_instance->thread);
         if(state == FuriThreadStateRunning) {
             furi_thread_flags_set(
-                furi_thread_get_id(ble_worker_instance->thread), BLEWorkerEvtExit);
+                furi_thread_get_id(ble_worker_instance->thread), BleWorkerEventTypeExit);
             furi_thread_join(ble_worker_instance->thread);
             BLE_LOG_I("BLE Stopped");
         }
@@ -1349,15 +1134,15 @@ static bool ble_worker_send_chunk(
 void ble_worker_send(uint16_t handle, uint16_t data_size, const uint8_t* data, uint16_t cccd_value) {
     size_t index = 0;
     size_t total_size = data_size;
-    uint8_t chunk = 0;
+    // uint8_t chunk = 0;
     while(total_size) {
         size_t send_size = total_size > ble_worker_instance->max_payload_size ?
                                ble_worker_instance->max_payload_size :
                                total_size;
 
-        BleCanaryFirstPackCtx ctx = {
-            .data_size = data_size, .data = &data[index], .chunk_num = chunk, .handle = handle};
-        ble_debug_canary_test(ble_worker_instance->first_tx_pack_canary, &ctx);
+        // BleCanaryFirstPackCtx ctx = {
+        //     .data_size = data_size, .data = &data[index], .chunk_num = chunk, .handle = handle};
+        // ble_debug_canary_test(instance->first_tx_pack_canary, &ctx);
 
         if(!ble_worker_send_chunk(handle, send_size, &data[index], cccd_value)) {
             BLE_LOG_W("Tx terminated!");
@@ -1366,7 +1151,7 @@ void ble_worker_send(uint16_t handle, uint16_t data_size, const uint8_t* data, u
 
         index += send_size;
         total_size -= send_size;
-        chunk += 1;
+        // chunk += 1;
     }
 }
 
