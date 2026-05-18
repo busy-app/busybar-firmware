@@ -2,50 +2,29 @@
 
 set -e
 
-EXPECTED_BRANCHES="Entering 'assets/proto'
-remotes/origin/HEAD
-Entering 'fbt_layers/core_libs'
-heads/bsb-2-g29c0c15
-Entering 'fbt_layers/fbtng'
-remotes/origin/bsb
-Entering 'fbt_layers/freertos'
-heads/dev
-Entering 'lib/cjson'
-tags/v1.7.18-11-g12c4bf1
-Entering 'lib/heatshrink'
-heads/master
-Entering 'lib/lvgl'
-remotes/origin/flipper_tweaks
-Entering 'lib/lwip'
-remotes/origin/bsb
-Entering 'lib/matter_ext'
-heads/main
-Entering 'lib/matter_zap'
-heads/dev
-Entering 'lib/mbedtls'
-tags/v3.6.4
-Entering 'lib/microtar'
-heads/master
-Entering 'lib/mongoose'
-tags/7.21
-Entering 'lib/nanopb'
-tags/nanopb-0.4.9.1
-Entering 'lib/simplicity_sdk'
-heads/sisdk-2025.12.2
-Entering 'lib/stb/stb_repo'
-f1c79c0
-Entering 'lib/thorvg'
-tags/v1.0-pre32-63-g9a5112d8
-Entering 'lib/tinyusb'
-remotes/origin/ncm_packet_filter
-Entering 'lib/wiseconnect'
-heads/bsb
-Entering 'lib/zlib'
-tags/v1.3.1.2-41-gedd8895
-Entering 'scripts/toolchain'
-heads/dev"
+EXPECTED_BRANCHES="assets/proto (remotes/origin/HEAD)
+fbt_layers/core_libs (heads/bsb-3-g7ad5713)
+fbt_layers/fbtng (remotes/origin/bsb)
+fbt_layers/freertos (heads/dev)
+lib/cjson (v1.7.15-44-g12c4bf1)
+lib/heatshrink (heads/master)
+lib/lvgl (remotes/origin/flipper_tweaks)
+lib/lwip (remotes/origin/bsb)
+lib/matter_ext (v1.0.5-16-gc880f40e1)
+lib/matter_zap (heads/dev)
+lib/mbedtls (v3.6.4)
+lib/microtar (v0.1.0-48-g1e92136)
+lib/mongoose (7.20-187-gb1c2ffe1)
+lib/nanopb (nanopb-0.4.9.1)
+lib/simplicity_sdk (heads/sisdk-2025.12.2)
+lib/stb/stb_repo (f1c79c0)
+lib/thorvg (v1.0-pre32-63-g9a5112d8)
+lib/tinyusb (0.16.0-3142-g405dadecc)
+lib/wiseconnect (heads/bsb)
+lib/zlib (v1.3.1.2-41-gedd8895)
+scripts/toolchain (heads/dev)"
 
-ACTUAL_BRANCHES=$(git submodule foreach git describe --all --always)
+ACTUAL_BRANCHES=$(git submodule status | sed "s/^ *//" | cut -d ' ' -f 2,3)
 
 if [ "$EXPECTED_BRANCHES" == "$ACTUAL_BRANCHES" ]; then
     echo "All submodules are on the correct branch"
