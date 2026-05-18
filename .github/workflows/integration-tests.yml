@@ -315,3 +315,11 @@ jobs:
           LOG_DIR="$SESSION_LOG_DIR" python3 tests/utils/report_test_results.py || status=$?
           CRASH_FLAG="$SESSION_LOG_DIR/crash_detected.flag" python3 tests/utils/report_test_results.py || status=$?
           exit "$status"
+
+      - name: 'Fail job on test failures'
+        if: always() && steps.smoke_tests.outputs.pytest_exit != '0' && steps.smoke_tests.outputs.pytest_exit != ''
+        env:
+          PYTEST_EXIT: ${{ steps.smoke_tests.outputs.pytest_exit }}
+        run: |
+          echo "::error::Integration tests reported failures (pytest exit code $PYTEST_EXIT)."
+          exit "$PYTEST_EXIT"

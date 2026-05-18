@@ -13,9 +13,12 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-from utils.logging_config import (TestLogContext, get_cli_logger,
-                                  get_web_logger, log_cli_command,
-                                  log_web_request, setup_logging)
+from utils.logging_config import (
+    get_cli_logger,
+    get_web_logger,
+    log_web_request,
+    setup_logging,
+)
 from utils.crash_detector import (
     CrashDetector,
     attach_forced_traces_to_allure,
@@ -40,6 +43,61 @@ from clients.api import (
 )
 from clients.cli import SimpleCLIConnection
 from config.config import Config
+
+
+_API_503_INCIDENT_FILENAME = "api_503_incidents.jsonl"
+_USER_AGENT = "BSB-AutoTest/1.0"
+_PYTEST_MARKERS = (
+    "cli: CLI command tests",
+    "frontend: Web frontend tests",
+    "api: API endpoint tests",
+    "story_commands_check: Commands Check story",
+    "story_ui_validation: UI validation story",
+    "story_ui_interaction: UI interaction story",
+    "story_interface_status: Interface status story",
+    "story_mqtt: MQTT story",
+    "feature_cli: Feature 6. CLI",
+    "feature_web_frontend: Feature 5. Web Frontend",
+    "connection_test: Fresh connection tests",
+    "schemathesis: OpenAPI schema conformance tests (schemathesis)",
+    "uses_si917: test exercises the Si917 coprocessor; forced GDB trace targets Si917",
+    "regression: Heavy regression tests; excluded from PR/dev runs, only fire on -rc tags",
+)
+
+
+def _api_503_incidents_path() -> str:
+    """Where to append 503 incident records.
+
+    Prefers `$SESSION_LOG_DIR` (matches `serial_logger` / `_write_test_context`
+    output) and falls back to `tests/logs/` so the file is captured even when
+    running locally without a session-log directory.
+    """
+    base = os.environ.get("SESSION_LOG_DIR")
+    if not base:
+        base = os.path.join(os.path.dirname(__file__), "logs")
+    os.makedirs(base, exist_ok=True)
+    return os.path.join(base, _API_503_INCIDENT_FILENAME)
+
+
+def _record_api_503_incident(
+    *, nodeid: str, phase: str, raw_error: str, reset_ok: Optional[bool]
+) -> Optional[str]:
+    """Append one JSONL record for a tolerated 503. Returns the file path or None."""
+    try:
+        path = _api_503_incidents_path()
+        record = {
+            "ts": datetime.now().isoformat(timespec="seconds"),
+            "nodeid": nodeid,
+            "phase": phase,
+            "error": raw_error,
+            "reset_ok": reset_ok,
+        }
+        with open(path, "a") as f:
+            f.write(json.dumps(record) + "\n")
+        return path
+    except Exception as exc:
+        logger.warning("Failed to record 503 incident: %s", exc)
+        return None
 
 
 def _write_test_context(test_name: str, **extra) -> None:
@@ -81,7 +139,7 @@ def validate_environment():
         print(f"Warning: Missing environment variables: {', '.join(missing_vars)}")
         print("Using default values. Check your .env file if tests fail.")
 
-    print(f"Test Configuration:")
+    print("Test Configuration:")
     print(f"  CLI_HOST: {os.getenv('CLI_HOST', 'Not set (will use default)')}")
     print(f"  CLI_PORT: {os.getenv('CLI_PORT', 'Not set (will use default)')}")
     print(f"  WEB_BASE_URL: {os.getenv('WEB_BASE_URL', 'Not set (will use default)')}")
@@ -118,11 +176,7 @@ def web_session() -> Iterator[requests.Session]:
     logger.info("Creating web session")
 
     session = requests.Session()
-    session.headers.update(
-        {
-            "User-Agent": "BSB-AutoTest/1.0",
-        }
-    )
+    session.headers.update({"User-Agent": _USER_AGENT})
 
     # Add response logging and default timeout
     original_request = session.request
@@ -169,26 +223,15 @@ def api_session(web_session) -> requests.Session:
     """API session with proper headers for API testing"""
     # Add API-specific headers - only Accept, not Content-Type
     # Content-Type will be set appropriately per request
-    web_session.headers.update(
-        {
-            "Accept": "application/json",
-        }
-    )
+    web_session.headers.update({"Accept": "application/json"})
     return web_session
 
 
 @pytest.fixture
-def api_auth_session(web_session) -> requests.Session:
+def api_auth_session(api_session) -> requests.Session:
     """API session with authentication headers"""
     # TODO: Add X-API-Token header when authentication is required
-    # Content-Type will be set appropriately per request
-    web_session.headers.update(
-        {
-            "Accept": "application/json",
-            # 'X-API-Token': 'test-token'  # Uncomment when auth is implemented
-        }
-    )
-    return web_session
+    return api_session
 
 
 def pytest_configure(config):
@@ -218,28 +261,26 @@ def pytest_configure(config):
     else:
         logger.warning("Allure TestOps configuration incomplete")
 
-    # Add markers
-    markers = [
-        "cli: CLI command tests",
-        "frontend: Web frontend tests",
-        "api: API endpoint tests",
-        "story_commands_check: Commands Check story",
-        "story_ui_validation: UI validation story",
-        "story_ui_interaction: UI interaction story",
-        "story_interface_status: Interface status story",
-        "story_mqtt: MQTT story",
-        "feature_cli: Feature 6. CLI",
-        "feature_web_frontend: Feature 5. Web Frontend",
-        "connection_test: Fresh connection tests",
-        "schemathesis: OpenAPI schema conformance tests (schemathesis)",
-        "uses_si917: test exercises the Si917 coprocessor; forced GDB trace targets Si917",
-        "regression: Heavy regression tests; excluded from PR/dev runs, only fire on -rc tags",
-    ]
-
-    for marker in markers:
+    for marker in _PYTEST_MARKERS:
         config.addinivalue_line("markers", marker)
 
     logger.info("Pytest configuration complete")
+
+
+def _cli_connection(label: str) -> Iterator[SimpleCLIConnection]:
+    cli = SimpleCLIConnection()
+    cli_logger = get_cli_logger()
+
+    cli_logger.info("Setting up %s CLI connection", label)
+    if not cli.connect():
+        cli_logger.error("%s CLI connection failed", label.title())
+        pytest.skip("Could not connect to CLI")
+
+    try:
+        yield cli
+    finally:
+        cli_logger.info("Cleaning up %s CLI connection", label)
+        cli.disconnect()
 
 
 # Fixtures using SimpleCLIConnection
@@ -250,46 +291,13 @@ def persistent_cli_connection():
     Keep the convenience of a persistent CLI within one test module, but do not
     hold a telnet TCP PCB for the full integration suite after CLI tests finish.
     """
-    cli = SimpleCLIConnection()
-    cli_logger = get_cli_logger()
-
-    cli_logger.info("Setting up persistent CLI connection (module-scoped)")
-
-    # Connect
-    if not cli.connect():
-        cli_logger.error("Persistent CLI connection failed")
-        pytest.skip("Could not connect to CLI")
-
-    try:
-        yield cli
-    finally:
-        cli_logger.info("Cleaning up persistent CLI connection")
-        cli.disconnect()
+    yield from _cli_connection("persistent module-scoped")
 
 
 @pytest.fixture(scope="function")
 def fresh_cli_connection():
     """Function-scoped CLI fixture - creates fresh connection per test (use for connection reliability tests)"""
-    cli = SimpleCLIConnection()
-    cli_logger = get_cli_logger()
-
-    cli_logger.info("Setting up fresh CLI connection (function-scoped)")
-
-    # Connect
-    if not cli.connect():
-        cli_logger.error("Fresh CLI connection failed")
-        pytest.skip("Could not connect to CLI")
-
-    try:
-        yield cli
-    finally:
-        cli_logger.info("Cleaning up fresh CLI connection")
-        cli.disconnect()
-
-
-def pytest_unconfigure(config):
-    """Pytest cleanup"""
-    pass
+    yield from _cli_connection("fresh function-scoped")
 
 
 def pytest_runtest_setup(item):
@@ -304,6 +312,7 @@ def pytest_runtest_setup(item):
         elif marker.name.startswith("feature_"):
             feature = marker.name.replace("feature_", "").replace("_", " ").title()
             allure.dynamic.feature(feature)
+
 
 @pytest.fixture(scope="session")
 def device_flasher():
@@ -328,7 +337,7 @@ def skip_hello_screen(web_base_url):
     url = f"{web_base_url}/api/input"
     try:
         with requests.Session() as session:
-            session.headers.update({"User-Agent": "BSB-AutoTest/1.0"})
+            session.headers.update({"User-Agent": _USER_AGENT})
             with session.post(url, params={"key": "start"}, data=b"", timeout=5):
                 pass
             with session.post(
@@ -376,6 +385,114 @@ def _probe_api_health(
     return None
 
 
+def _pre_test_reset_reason(device_flasher, web_base_url: str, web_session) -> Optional[str]:
+    # Pre-test: trust the previous clean teardown; otherwise one HTTP probe is
+    # enough for the normal path and avoids extra TCP connect churn.
+    if getattr(device_flasher, "_post_test_healthy", False):
+        return None
+
+    api_error = _probe_api_health(web_base_url, web_session)
+    if not api_error:
+        return None
+    if not device_flasher.check_device_available():
+        return "TCP port 80 unreachable"
+    return f"API unhealthy ({api_error})"
+
+
+def _reset_before_test(request, device_flasher, reason: str) -> None:
+    pre_is_503 = "HTTP 503" in reason
+    if not pre_is_503:
+        request_forced_trace_for_node(
+            request.node,
+            reason=f"pre-test: {reason}",
+            phase="setup",
+        )
+    logger.warning("Device not ready before test (%s), resetting...", reason)
+    with allure.step(f"Resetting device before test: {reason}"):
+        reset_ok = device_flasher.reset_and_wait(wait_timeout=60, reset_interval=15)
+        if pre_is_503:
+            _record_api_503_incident(
+                nodeid=request.node.nodeid,
+                phase="pre-test",
+                raw_error=reason,
+                reset_ok=reset_ok,
+            )
+        if not reset_ok:
+            pytest.fail("Device not recoverable - check hardware connection")
+
+
+def _post_test_reset_reason(
+    request,
+    device_flasher,
+    web_base_url: str,
+    web_session,
+    detector: CrashDetector,
+) -> tuple[Optional[str], Optional[object]]:
+    crash_info = detector.check_for_crash()
+    if crash_info:
+        request.node._crash_info = crash_info
+        return f"crash detected ({crash_info.processor})", crash_info
+    if hasattr(request.node, "_connection_error"):
+        return "test raised ConnectionError", None
+
+    api_error = _probe_api_health(web_base_url, web_session)
+    if not api_error:
+        return None, None
+    if not device_flasher.check_device_available():
+        request.node._device_unavailable = True
+        return "TCP port 80 unreachable", None
+    if api_error == "HTTP 503":
+        # Tolerated: reboot to free the stack but don't fail the test.
+        # The incident is recorded after reset_and_wait below.
+        request.node._api_503_tolerated = api_error
+        return f"API 503 (tolerated): {api_error}", None
+
+    request.node._api_unhealthy = api_error
+    return f"API health check failed: {api_error}", None
+
+
+def _reset_after_test(
+    request,
+    device_flasher,
+    detector: CrashDetector,
+    reason: str,
+    crash_info: Optional[object],
+) -> None:
+    is_503_tolerated = getattr(request.node, "_api_503_tolerated", None) is not None
+    if not crash_info and not is_503_tolerated:
+        trace = request_forced_trace_for_node(
+            request.node,
+            reason=f"post-test: {reason}",
+            phase="teardown",
+        )
+        if trace:
+            detector.capture_initial_state()
+
+    # Next pre-test must re-verify — reset leaves the health state unknown.
+    device_flasher._post_test_healthy = False
+    logger.warning("Resetting device after test: %s", reason)
+    with allure.step(f"Resetting device: {reason}"):
+        reset_ok = device_flasher.reset_and_wait(wait_timeout=60, reset_interval=15)
+
+    if is_503_tolerated:
+        incident_path = _record_api_503_incident(
+            nodeid=request.node.nodeid,
+            phase="post-test",
+            raw_error=request.node._api_503_tolerated,
+            reset_ok=reset_ok,
+        )
+        if incident_path:
+            request.node._api_503_incident_path = incident_path
+
+    if not reset_ok:
+        if is_503_tolerated:
+            # Even tolerated 503 needs to flag unrecoverable hardware loudly.
+            logger.error("reset_and_wait failed after tolerated 503")
+        else:
+            logger.error("reset_and_wait failed after test: %s", reason)
+        request.node._reset_failed = reason
+
+
 @pytest.fixture(autouse=True)
 def device_health_monitor(request, device_flasher, web_base_url, web_session):
     """
@@ -392,27 +509,9 @@ def device_health_monitor(request, device_flasher, web_base_url, web_session):
     - HTTP API stopped serving (GET /api/version non-200 / exception)
     - TCP port 80 closed (checked only after API failure)
     """
-    # Pre-test: trust the previous clean teardown; otherwise one HTTP probe is
-    # enough for the normal path and avoids extra TCP connect churn.
-    pre_reason: Optional[str] = None
-    if not getattr(device_flasher, "_post_test_healthy", False):
-        api_error = _probe_api_health(web_base_url, web_session)
-        if api_error:
-            if not device_flasher.check_device_available():
-                pre_reason = "TCP port 80 unreachable"
-            else:
-                pre_reason = f"API unhealthy ({api_error})"
-
+    pre_reason = _pre_test_reset_reason(device_flasher, web_base_url, web_session)
     if pre_reason:
-        request_forced_trace_for_node(
-            request.node,
-            reason=f"pre-test: {pre_reason}",
-            phase="setup",
-        )
-        logger.warning("Device not ready before test (%s), resetting...", pre_reason)
-        with allure.step(f"Resetting device before test: {pre_reason}"):
-            if not device_flasher.reset_and_wait(wait_timeout=60, reset_interval=15):
-                pytest.fail("Device not recoverable - check hardware connection")
+        _reset_before_test(request, device_flasher, pre_reason)
 
     # Capture crash detector state
     detector = CrashDetector()
@@ -421,130 +520,85 @@ def device_health_monitor(request, device_flasher, web_base_url, web_session):
     yield detector
 
     # Post-test: evaluate reasons in priority order, reset at most once.
-    reset_reason: Optional[str] = None
-    crash_info = detector.check_for_crash()
-
-    if crash_info:
-        request.node._crash_info = crash_info
-        reset_reason = f"crash detected ({crash_info.processor})"
-    elif hasattr(request.node, "_connection_error"):
-        reset_reason = "test raised ConnectionError"
-    else:
-        api_error = _probe_api_health(web_base_url, web_session)
-        if api_error:
-            if not device_flasher.check_device_available():
-                request.node._device_unavailable = True
-                reset_reason = "TCP port 80 unreachable"
-            else:
-                request.node._api_unhealthy = api_error
-                reset_reason = f"API health check failed: {api_error}"
-
+    reset_reason, crash_info = _post_test_reset_reason(
+        request, device_flasher, web_base_url, web_session, detector
+    )
     if reset_reason:
-        if not crash_info:
-            trace = request_forced_trace_for_node(
-                request.node,
-                reason=f"post-test: {reset_reason}",
-                phase="teardown",
-            )
-            if trace:
-                detector.capture_initial_state()
-
-        # Next pre-test must re-verify — reset leaves the health state unknown.
-        device_flasher._post_test_healthy = False
-        logger.warning("Resetting device after test: %s", reset_reason)
-        with allure.step(f"Resetting device: {reset_reason}"):
-            if not device_flasher.reset_and_wait(wait_timeout=60, reset_interval=15):
-                logger.error("reset_and_wait failed after test: %s", reset_reason)
-                request.node._reset_failed = reset_reason
+        _reset_after_test(request, device_flasher, detector, reset_reason, crash_info)
     else:
         # Clean teardown — tell the next pre-test it can skip the API probe.
         device_flasher._post_test_healthy = True
 
 
-@pytest.hookimpl(hookwrapper=True)
-def pytest_runtest_makereport(item, call):
-    """
-    Hook to:
-    1. Detect connection errors and mark for device reset
-    2. Mark test as failed if device crash was detected
-    3. Capture display screenshots on test failure/error
-    """
+def _append_longrepr(report, msg: str) -> None:
+    existing = report.longrepr
+    report.longrepr = f"{existing}\n\n{msg}" if existing else msg
 
-    def _append_longrepr(msg: str) -> None:
-        """Append a message to report.longrepr without discarding existing context
-        (e.g. a crash trace set earlier in this hook)."""
-        existing = report.longrepr
-        report.longrepr = f"{existing}\n\n{msg}" if existing else msg
 
-    outcome = yield
-    report = outcome.get_result()
+def _mark_call_connection_error(item, call) -> None:
+    if call.excinfo is None:
+        return
+    exc_type = call.excinfo.type.__name__
+    exc_value = str(call.excinfo.value)
+    if (
+        "ConnectionError" in exc_type
+        or "ConnectTimeout" in exc_type
+        or "Connection" in exc_value
+        or "No route to host" in exc_value
+    ):
+        item._connection_error = True
+        logger.warning("Connection issue detected in test: %s", exc_value[:100])
 
-    # Capture display screenshots when test fails or errors during call phase
-    if report.when == "call" and report.outcome in ("failed", "error"):
-        from clients.api.streaming import attach_failure_screenshots
-        base_url = os.getenv("WEB_BASE_URL", "http://10.0.4.20")
-        attach_failure_screenshots(base_url)
 
-    # Check for connection errors during test execution
-    if report.when == "call" and report.failed:
-        if call.excinfo is not None:
-            exc_type = call.excinfo.type
-            exc_value = str(call.excinfo.value)
-            # Check for requests connection errors
-            if "ConnectionError" in exc_type.__name__ or "ConnectTimeout" in exc_type.__name__:
-                item._connection_error = True
-                logger.warning(f"Connection error detected in test: {exc_value[:100]}")
-            # Also check the exception message for connection issues
-            elif "Connection" in exc_value or "No route to host" in exc_value:
-                item._connection_error = True
-                logger.warning(f"Connection issue detected in test: {exc_value[:100]}")
+def _apply_teardown_report_flags(item, report) -> None:
+    append = lambda msg: _append_longrepr(report, msg)
 
-    # Check for crash info stored by device_health_monitor fixture
     crash_info = getattr(item, "_crash_info", None)
-
-    if crash_info and report.when == "teardown":
+    if crash_info:
         report.outcome = "failed"
         allure.dynamic.tag("DEVICE_CRASH")
         allure.dynamic.tag(f"crash:{crash_info.processor}")
-        crash_msg = (
-            f"DEVICE CRASH DETECTED during test!\n"
+        report.longrepr = (
+            "DEVICE CRASH DETECTED during test!\n"
             f"Processor: {crash_info.processor}\n"
             f"Crash line: {crash_info.crash_line}\n"
             f"Timestamp: {crash_info.timestamp}\n"
-            f"See allure report for full crash trace."
+            "See allure report for full crash trace."
         )
-        report.longrepr = crash_msg
 
-    # Check for device unavailability (set by device_health_monitor fixture)
-    device_unavailable = getattr(item, "_device_unavailable", False)
-
-    if device_unavailable and report.when == "teardown":
+    if getattr(item, "_device_unavailable", False):
         report.outcome = "failed"
-        _append_longrepr(
+        append(
             "DEVICE UNAVAILABLE after test!\n"
             "The device became unreachable during test execution.\n"
             "This may indicate a crash, hang, or network issue."
         )
 
     api_unhealthy = getattr(item, "_api_unhealthy", None)
-
-    if api_unhealthy and report.when == "teardown" and report.outcome != "failed":
+    if api_unhealthy and report.outcome != "failed":
         report.outcome = "failed"
-        _append_longrepr(
+        append(
             "API UNHEALTHY after test!\n"
             "Device TCP port 80 was reachable but GET /api/version failed:\n"
             f"{api_unhealthy}"
         )
 
-    # Reset-and-wait failed: device could not be recovered after test.
-    # Surface it even if another failure already claimed the report, but
-    # append to longrepr so we don't lose the crash trace / prior context.
-    reset_failed = getattr(item, "_reset_failed", None)
+    api_503_tolerated = getattr(item, "_api_503_tolerated", None)
+    if api_503_tolerated:
+        allure.dynamic.tag("API_503_TOLERATED")
+        note = (
+            "API returned 503 after test (tolerated)\n"
+            f"Probe result: {api_503_tolerated}\n"
+            "Device was rebooted; the test result is preserved.\n"
+        )
+        incident_path = getattr(item, "_api_503_incident_path", None)
+        append(note + (f"Logged to: {incident_path}\n" if incident_path else ""))
 
-    if reset_failed and report.when == "teardown":
+    reset_failed = getattr(item, "_reset_failed", None)
+    if reset_failed:
         report.outcome = "failed"
         allure.dynamic.tag("DEVICE_NOT_RECOVERABLE")
-        _append_longrepr(
+        append(
             "DEVICE RECOVERY FAILED after test!\n"
             f"Trigger: {reset_failed}\n"
             "reset_and_wait() did not bring the device back — hardware may be "
@@ -552,86 +606,88 @@ def pytest_runtest_makereport(item, call):
             "manually recovered."
         )
 
-    attach_forced_traces_to_allure(item, report, _append_longrepr)
+
+@pytest.hookimpl(hookwrapper=True)
+def pytest_runtest_makereport(item, call):
+    """Attach diagnostics and convert device health markers into report failures."""
+    outcome = yield
+    report = outcome.get_result()
+
+    if report.when == "call":
+        if report.outcome in ("failed", "error"):
+            from clients.api.streaming import attach_failure_screenshots
+            attach_failure_screenshots(os.getenv("WEB_BASE_URL", "http://10.0.4.20"))
+        if report.failed:
+            _mark_call_connection_error(item, call)
+    elif report.when == "teardown":
+        _apply_teardown_report_flags(item, report)
+
+    attach_forced_traces_to_allure(item, report, lambda msg: _append_longrepr(report, msg))
 
 
 @pytest.fixture
 def api_factory(api_session, web_base_url):
     """Factory for creating API client instances."""
-    def _create(api_class):
-        return api_class(api_session, web_base_url)
-    return _create
+    return lambda api_class: api_class(api_session, web_base_url)
 
 
 @pytest.fixture
 def system_api(api_factory):
-    """System API client fixture."""
     return api_factory(SystemAPI)
 
 
 @pytest.fixture
 def wifi_api(api_factory):
-    """WiFi API client fixture."""
     return api_factory(WifiAPI)
 
 
 @pytest.fixture
 def storage_api(api_factory):
-    """Storage API client fixture."""
     return api_factory(StorageAPI)
 
 
 @pytest.fixture
 def assets_api(api_factory):
-    """Assets/Display/Audio API client fixture."""
     return api_factory(AssetsAPI)
 
 
 @pytest.fixture
 def account_api(api_factory):
-    """Account API client fixture."""
     return api_factory(AccountAPI)
 
 
 @pytest.fixture
 def ble_api(api_factory):
-    """BLE API client fixture."""
     return api_factory(BleAPI)
 
 
 @pytest.fixture
 def settings_api(api_factory):
-    """Settings API client fixture."""
     return api_factory(SettingsAPI)
 
 
 @pytest.fixture
 def input_api(api_factory):
-    """Input API client fixture."""
     return api_factory(InputAPI)
 
 
 @pytest.fixture
 def streaming_api(api_factory):
-    """Streaming API client fixture."""
     return api_factory(StreamingAPI)
 
 
 @pytest.fixture
 def update_api(api_factory):
-    """Update API client fixture."""
     return api_factory(UpdateAPI)
 
 
 @pytest.fixture
 def busy_api(api_factory):
-    """Busy Timer API client fixture."""
     return api_factory(BusyAPI)
 
 
 @pytest.fixture
 def smart_home_api(api_factory):
-    """Smart Home API client fixture."""
     return api_factory(SmartHomeAPI)
 
 
