@@ -13,12 +13,14 @@ static void
     MatterSwitchState switch_state = MatterSwitchStateMax;
 
     if(event_type == BusyTimerEventTypeStateChanged) {
-        const BusyTimerState timer_state = event->state_changed.state;
-        switch_state = (timer_state == BusyTimerStateWork) ? MatterSwitchStateOn :
-                                                             MatterSwitchStateOff;
+        if(instance->is_timer_running) {
+            const bool is_work = (event->state_changed.state == BusyTimerStateWork);
+            switch_state = is_work ? MatterSwitchStateOn : MatterSwitchStateOff;
+        }
+
     } else if(event_type == BusyTimerEventTypePaused) {
-        const bool is_paused = event->paused.is_paused;
         if(instance->state == BusyTimerStateWork) {
+            const bool is_paused = event->paused.is_paused;
             switch_state = is_paused ? MatterSwitchStateOff : MatterSwitchStateOn;
         }
 
