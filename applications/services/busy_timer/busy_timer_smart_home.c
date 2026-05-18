@@ -90,6 +90,8 @@ static MatterSwitchState busy_timer_smart_home_process_switch_on(BusyTimer* inst
             } else {
                 busy_timer_toggle_internal(instance);
             }
+        } else {
+            result = MatterSwitchStateOn;
         }
 
     } else if(instance->state == BusyTimerStateRest) {
