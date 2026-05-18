@@ -3,7 +3,7 @@
 set -e
 
 EXPECTED_BRANCHES="assets/proto (remotes/origin/HEAD)
-fbt_layers/core_libs (heads/bsb-3-g7ad5713)
+fbt_layers/core_libs (heads/bsb-2-g29c0c15)
 fbt_layers/fbtng (remotes/origin/bsb)
 fbt_layers/freertos (heads/dev)
 lib/cjson (v1.7.15-44-g12c4bf1)
