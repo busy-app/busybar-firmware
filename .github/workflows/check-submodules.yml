@@ -29,9 +29,16 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: 'Fetch submodules'
+      - name: 'Configure Git and LFS for submodules'
         run: |
-          git submodule update --init
+          git lfs install --skip-smudge
+          echo "https://x-access-token:${GH_TOKEN}@github.com" > ~/.git-credentials
+          git config credential.helper 'store --file ~/.git-credentials'
+          git config lfs.transfer.maxretries 3
+
+      - name: 'Update submodules'
+        run: |
+          git submodule update --init --recursive --jobs=$(nproc) scripts/toolchain fbt_layers/fbtng || (git lfs logs last && exit 1)
 
       - name: 'Check submodule branches'
         run: |
