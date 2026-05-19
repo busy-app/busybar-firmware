@@ -482,8 +482,6 @@ static void heartbeat_timer_callback(void* context) {
 void state_publisher_send_complete_snapshot(
     StatePublisher* instance,
     StatePublisherTransportHandle transport) {
-    Transport* t = instance->transports + transport;
-
     BSB_State_State* state = state_publisher_collect_all(instance);
 
     SharedByteArray_t data;
@@ -494,10 +492,16 @@ void state_publisher_send_complete_snapshot(
     pb_ostream_t stream = ostream_with_buffer(buf);
 
     bool result = pb_encode(&stream, BSB_State_State_fields, state);
-    if(!result) {
-        FURI_LOG_E(TAG, "cannot encode");
-    } else {
-        t->cb(data, t->cb_context);
+    {
+        furi_mutex_acquire(instance->transports_mutex, FuriWaitForever);
+        Transport* t = instance->transports + transport;
+        if(!result) {
+            FURI_LOG_E(TAG, "cannot encode");
+        } else {
+            t->cb(data, t->cb_context);
+            SharedStateUpdateArray_reset(t->state_updates);
+        }
+        furi_mutex_release(instance->transports_mutex);
     }
     SharedByteArray_clear(data);
     for(size_t i = 0; i != state->updates_count; ++i) {
@@ -505,6 +509,4 @@ void state_publisher_send_complete_snapshot(
     }
     free(state->updates);
     free(state);
-
-    SharedStateUpdateArray_reset(t->state_updates);
 }
