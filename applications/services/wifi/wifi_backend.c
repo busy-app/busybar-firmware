@@ -174,13 +174,14 @@ static sl_status_t wifi_connect_request_handler(
 
     do {
         const WifiCredentials* credentials = &request->connect_request.credentials;
+        const WifiSecurityMode security_mode = credentials->security_mode;
 
         // Initialise client profile
         sl_net_wifi_client_profile_t profile = {
             .config =
                 {
-                    .security = wifi_encode_security_mode(credentials->security_mode),
-                    .credential_id = SL_NET_DEFAULT_WIFI_CLIENT_CREDENTIAL_ID,
+                    .security = wifi_encode_security_mode(security_mode),
+                    .credential_id = wifi_get_credential_id(security_mode),
                 },
         };
 
@@ -195,9 +196,9 @@ static sl_status_t wifi_connect_request_handler(
             break;
         }
 
-        if(credentials->security_mode != WifiSecurityModeOpen) {
+        if(security_mode != WifiSecurityModeOpen) {
             status = sl_net_set_credential(
-                SL_NET_DEFAULT_WIFI_CLIENT_CREDENTIAL_ID,
+                wifi_get_credential_id(security_mode),
                 // TODO: Other passphrase types than PSK?
                 SL_NET_WIFI_PSK,
                 credentials->passphrase,
