@@ -62,7 +62,7 @@ jobs:
 
       - name: 'Update submodules'
         run: |
-          git submodule update --init --recursive --jobs=$(nproc) scripts/toolchain fbt_layers/fbtng
+          git submodule update --init --recursive --jobs="$(nproc)" scripts/toolchain fbt_layers/fbtng
 
       - name: 'Download brick firmware package'
         run: |
@@ -71,6 +71,26 @@ jobs:
           echo "Downloading brick firmware: $URL"
           curl --fail -L -o brick-package.zip "$URL"
           unzip -q brick-package.zip -d brick-firmware
+
+      - name: 'Prepare ELF files for crash traces'
+        run: |
+          set -euo pipefail
+          mkdir -p /_work/elf
+
+          U5_ELF=$(find brick-firmware -type f -name "busybar-f${{ inputs.target }}-firmware-*.elf" -print -quit)
+          SI917_ELF=$(find brick-firmware -type f -name "busybar-f${{ inputs.target }}-sil_firmware-*.elf" -print -quit)
+
+          if [ -z "$U5_ELF" ]; then
+            echo "ERROR: U5 ELF not found in brick firmware package"
+            exit 1
+          fi
+          if [ -z "$SI917_ELF" ]; then
+            echo "ERROR: SI917 ELF not found in brick firmware package"
+            exit 1
+          fi
+
+          cp "$U5_ELF" /_work/elf/busybar-f${{ inputs.target }}-firmware.elf
+          cp "$SI917_ELF" /_work/elf/busybar-f${{ inputs.target }}-sil_firmware.elf
 
       - name: 'Download normal firmware'
         run: |
@@ -154,8 +174,8 @@ jobs:
 
           if [ -f "$LOG_FILE" ]; then
             aws s3 cp "$LOG_FILE" "$S3_PATH"
-            echo "## Brick Test Runner Logs" >> $GITHUB_STEP_SUMMARY
-            echo "- [runlog.log]($PUBLIC_URL)" >> $GITHUB_STEP_SUMMARY
+            echo "## Brick Test Runner Logs" >> "$GITHUB_STEP_SUMMARY"
+            echo "- [runlog.log]($PUBLIC_URL)" >> "$GITHUB_STEP_SUMMARY"
           else
             echo "Log file not found: $LOG_FILE"
           fi
@@ -163,11 +183,13 @@ jobs:
       - name: 'Create test summary'
         if: always()
         run: |
-          echo "## 917 Brick Recovery Test Results" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "| Phase | Status |" >> $GITHUB_STEP_SUMMARY
-          echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
-          echo "| Flash brick firmware | ${{ steps.flash_brick.outcome }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Verify bricked state | ${{ steps.verify_brick.outcome == 'failure' && 'success (expected failure)' || 'unexpected' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Flash recovery firmware | ${{ steps.flash_recovery.outcome }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Verify recovery | ${{ steps.verify_recovery.outcome }} |" >> $GITHUB_STEP_SUMMARY
+          {
+            echo "## 917 Brick Recovery Test Results"
+            echo ""
+            echo "| Phase | Status |"
+            echo "|-------|--------|"
+            echo "| Flash brick firmware | ${{ steps.flash_brick.outcome }} |"
+            echo "| Verify bricked state | ${{ steps.verify_brick.outcome == 'failure' && 'success (expected failure)' || 'unexpected' }} |"
+            echo "| Flash recovery firmware | ${{ steps.flash_recovery.outcome }} |"
+            echo "| Verify recovery | ${{ steps.verify_recovery.outcome }} |"
+          } >> "$GITHUB_STEP_SUMMARY"

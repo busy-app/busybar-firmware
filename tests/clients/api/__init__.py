@@ -69,6 +69,7 @@ from .assets import (
 # Account API
 from .account import (
     AccountAPI,
+    AccountBackend,
     AccountInfoResponse,
     AccountLinkResponse,
     AccountProfileResponse,
@@ -167,6 +168,7 @@ __all__ = [
     "DisplayElement",
     "DisplayDrawRequest",
     "AccountAPI",
+    "AccountBackend",
     "AccountInfoResponse",
     "AccountStatusResponse",
     "AccountProfileResponse",

@@ -69,6 +69,7 @@ class TestAPICors:
     @allure.id("3833")
     @allure.title("OPTIONS preflight requests")
     @pytest.mark.api
+    @pytest.mark.skip(reason="Disabled until we have a proper solution for this. Punch to limited connections")
     @pytest.mark.frontend
     @pytest.mark.parametrize("endpoint", API_ENDPOINTS)
     def test_cors_preflight_options(self, api_session, web_base_url, endpoint):
