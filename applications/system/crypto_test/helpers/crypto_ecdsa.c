@@ -101,6 +101,15 @@ static bool test_custom_sha_mode(
                     signature,
                     signature_length);
                 CRYPTO_COMMON_CHECK_STATUS(status, "ECDSA verify");
+
+                const uint8_t false_data[INPUT_MSG_SIZE] = {1, 2, 3};
+                status = furi_hal_crypto_ecdsa_verify(
+                    verify_handle,
+                    (uint8_t*)false_data,
+                    INPUT_MSG_SIZE,
+                    signature,
+                    signature_length);
+                CRYPTO_COMMON_CHECK_STATUS_EQ(FuriHalCryptoStatusFail, status, "ECDSA verify");
                 printf(ANSI_FG_GREEN "ECDSA mode success\r\n" ANSI_RESET);
             } while(false);
 

@@ -56,9 +56,9 @@ void status_view_set_icon(StatusView* instance, const char* path);
  * Displayed in white. Passing NULL hides the label.
  *
  * @param[in,out] instance pointer to the StatusView instance to be modified
- * @param[in] header zero-terminated string with the primary text, or NULL to hide
+ * @param[in] text zero-terminated string with the primary text, or NULL to hide
  */
-void status_view_set_primary_text(StatusView* instance, const char* header);
+void status_view_set_primary_text(StatusView* instance, const char* text);
 
 /**
  * @brief Set the auxiliary text of the StatusView.
