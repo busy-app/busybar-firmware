@@ -50,7 +50,7 @@ static void about_scene_compliance_on_enter(void* context) {
 
     with_gui(instance->gui, {
         scene->front_status_view = status_view_alloc(instance->front_scene_window);
-        status_view_set_icon(scene->front_status_view, SETTINGS_IMG_PATH("info_front_8x8.image"));
+        status_view_set_icon(scene->front_status_view, SHARED_IMG_PATH("info_front_8x8.image"));
         status_view_set_primary_text(scene->front_status_view, "Look at back\nscreen");
 
         scene->info_flex = flex_layout_alloc(instance->back_scene_window, FlexLayoutTypeColumn);
