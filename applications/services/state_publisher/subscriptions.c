@@ -875,6 +875,5 @@ BSB_State_State* state_publisher_collect_all(StatePublisher* instance) {
         free(update);
     }
     StateUpdatePtrArray_clear(updates);
-    FURI_LOG_D(TAG, "updates count = %d", state->updates_count);
     return state;
 }
