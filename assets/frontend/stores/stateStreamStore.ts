@@ -4,7 +4,9 @@ import {
   LocalStateStream,
   DataStatus,
   BSB_State,
-  BSB_Update
+  BSB_Update,
+  StreamLifecycle,
+  ConnectionStatus
 } from '@busy-app/busy-lib';
 import type { ProcessedState, StreamStatus, SmartHomePairingInfo } from '@busy-app/busy-lib';
 
@@ -351,6 +353,20 @@ export const useStateStreamStore = defineStore('stateStream', () => {
         console.debug('Connection check failed after state stream data stale, stopping stream and starting polling');
         stopStream();
         deviceStore.setRefreshInterval();
+      }
+    }
+
+    if (streamStatus.value.data.status === DataStatus.ACTIVE
+      && streamStatus.value.connection.status === ConnectionStatus.CONNECTED
+      && streamStatus.value.main.status === StreamLifecycle.RUNNING
+    ) {
+      if (showResourceLimitErrorBanner.value) {
+        console.debug('Stream is active again, hiding resource limit error banner');
+        showResourceLimitErrorBanner.value = false;
+      }
+      if (showStateStreamFailBanner.value) {
+        console.debug('Stream is active again, hiding state stream failure banner');
+        showStateStreamFailBanner.value = false;
       }
     }
   }
