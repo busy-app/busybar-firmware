@@ -2,6 +2,7 @@
 """Parse JUnit XML and generate PR comment + Job Summary for GitHub Actions."""
 
 import json
+import html
 import os
 import subprocess
 import sys
@@ -121,7 +122,10 @@ def _summary_error(msg: str, limit: int = 120) -> str:
 
 def _blockquoted(msg: str) -> str:
     text = (msg or "").strip() or "no error message"
-    return "\n".join(f"> {line}" if line else ">" for line in text.splitlines())
+    return "\n".join(
+        f"> {html.escape(line)}" if line else ">"
+        for line in text.splitlines()
+    )
 
 
 def _trace_links(traces: list) -> list:
@@ -158,7 +162,10 @@ def _report_links(allure_url: str, full_log_url: str = "") -> str:
 def _failed_test_block(name: str, msg: str, traces: list) -> str:
     lines = [
         "<details>",
-        f"<summary><code>{name}</code> — FAILED — {_summary_error(msg)}</summary>",
+        (
+            f"<summary><code>{html.escape(name)}</code> — FAILED — "
+            f"{html.escape(_summary_error(msg))}</summary>"
+        ),
         "",
         _blockquoted(msg),
         "",
