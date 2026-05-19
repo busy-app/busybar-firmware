@@ -11,16 +11,17 @@ typedef enum {
     FSAM_READ = (1 << 0), /**< Read access */
     FSAM_WRITE = (1 << 1), /**< Write access */
     FSAM_READ_WRITE = FSAM_READ | FSAM_WRITE, /**< Read and write access */
-    FSAM_NONBLOCKING = (1 << 2), /**< Non-blocking file open mode */
 } FS_AccessMode;
 
 /** Open mode flags */
 typedef enum {
-    FSOM_OPEN_EXISTING = 1, /**< Open file, fail if file doesn't exist */
-    FSOM_OPEN_ALWAYS = 2, /**< Open file. Create new file if not exist */
-    FSOM_OPEN_APPEND = 4, /**< Open file. Create new file if not exist. Set R/W pointer to EOF */
-    FSOM_CREATE_NEW = 8, /**< Creates a new file. Fails if the file is exist */
-    FSOM_CREATE_ALWAYS = 16, /**< Creates a new file. If file exist, truncate to zero size */
+    FSOM_OPEN_EXISTING = (1 << 0), /**< Open file, fail if file doesn't exist */
+    FSOM_OPEN_ALWAYS = (1 << 1), /**< Open file. Create new file if not exist */
+    FSOM_OPEN_APPEND =
+        (1 << 2), /**< Open file. Create new file if not exist. Set R/W pointer to EOF */
+    FSOM_CREATE_NEW = (1 << 3), /**< Creates a new file. Fails if the file is exist */
+    FSOM_CREATE_ALWAYS = (1 << 4), /**< Creates a new file. If file exist, truncate to zero size */
+    FSOM_NONBLOCKING = (1 << 5), /**< Non-blocking file open mode */
 } FS_OpenMode;
 
 /** API errors enumeration */

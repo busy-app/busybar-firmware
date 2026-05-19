@@ -99,7 +99,7 @@ bool storage_file_open(
     FS_OpenMode open_mode) {
     furi_check(file);
 
-    if(access_mode & FSAM_NONBLOCKING) {
+    if(open_mode & FSOM_NONBLOCKING) {
         bool result = storage_file_open_internal(file, path, access_mode, open_mode);
         FURI_LOG_T(
             TAG,
