@@ -44,6 +44,8 @@ static void busy_scene_start_handle_start(BusyApp* instance) {
     BusyTimerPreset timer_preset;
     busy_get_timer_preset(instance, &timer_preset);
 
+    busy_set_app_config(instance, &timer_preset.app_config);
+
     const BusyTimerMode timer_mode = timer_preset.timer_config.mode;
 
     if(timer_mode == BusyTimerModeInterval) {
@@ -59,9 +61,6 @@ static void busy_scene_start_handle_setup(BusyApp* instance) {
 }
 
 static void busy_scene_start_apply_initial_params(BusyApp* instance) {
-    busy_load_app_config(instance);
-    busy_apply_app_config(instance);
-
     busy_set_front_display_blanking(instance, false);
     busy_set_priority(instance, false);
 }

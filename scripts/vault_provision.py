@@ -30,7 +30,7 @@ from cryptography.x509.oid import NameOID, ExtendedKeyUsageOID
 
 from flipper.cli import Cli
 from flipper.app import App, CatchExceptions
-from crypto_storage import CryptoStorage
+from crypto_storage import CryptoStorage, ReadWriteScope
 
 try:
     import requests
@@ -718,15 +718,16 @@ class Main(App):
         print(f"Vault TLS provisioning [{mode}] uid={device_uid}")
 
         with CryptoStorage(self.get_portname()) as crypto_storage:
-            print("  Checking TLS slots are empty...")
-            self.ensure_tls_slots_empty(crypto_storage)
-            if insecure:
-                self.provision_insecure(crypto_storage, vault, device_uid, conf)
-            else:
-                self.provision_secure(crypto_storage, vault, device_uid, conf)
+            with ReadWriteScope(crypto_storage):
+                print("  Checking TLS slots are empty...")
+                self.ensure_tls_slots_empty(crypto_storage)
+                if insecure:
+                    self.provision_insecure(crypto_storage, vault, device_uid, conf)
+                else:
+                    self.provision_secure(crypto_storage, vault, device_uid, conf)
 
-            # Provision raw keys from Vault KV store
-            self.provision_raw_keys(crypto_storage, vault, secure=secure)
+                # Provision raw keys from Vault KV store
+                self.provision_raw_keys(crypto_storage, vault, secure=secure)
 
         print("Vault TLS provisioning OK")
 
@@ -842,9 +843,10 @@ class Main(App):
     @CatchExceptions
     def cleanup(self):
         with CryptoStorage(self.get_portname()) as crypto_storage:
-            ret = crypto_storage.wipe_partition(0)
-            if ret != 0:
-                raise Exception(f"wipe_partition failed with error {ret}")
+            with ReadWriteScope(crypto_storage):
+                ret = crypto_storage.wipe_partition(0)
+                if ret != 0:
+                    raise Exception(f"wipe_partition failed with error {ret}")
 
 
 if __name__ == "__main__":

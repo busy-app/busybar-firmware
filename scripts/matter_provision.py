@@ -26,7 +26,7 @@ from ecdsa.curves import NIST256p
 
 from flipper.cli import Cli
 from flipper.app import App, CatchExceptions
-from crypto_storage import CryptoStorage
+from crypto_storage import CryptoStorage, ReadWriteScope
 from credentials import (
     Partition,
     KeyType,
@@ -316,47 +316,48 @@ class Main(App):
         print(f"Matter provisioning [{mode}, {certs_source} certs] uid={device_uid}")
 
         with CryptoStorage(self.get_portname()) as storage:
-            print("  Wiping crypto storage...")
-            ret = storage.wipe_partition(Partition.MAIN, echo=False)
-            if ret != 0:
-                raise Exception(f"wipe_partition failed with error {ret}")
+            with ReadWriteScope(storage):
+                print("  Wiping crypto storage...")
+                ret = storage.wipe_partition(Partition.MAIN, echo=False)
+                if ret != 0:
+                    raise Exception(f"wipe_partition failed with error {ret}")
 
-            if not self.args.no_attest:
-                print("  Writing attestation (DAC key + certs)...")
-                production_dir = (
-                    self.args.production_certs.expanduser().resolve()
-                    if self.args.production_certs
-                    else None
-                )
-                if production_dir:
-                    with _production_certs_bundle(production_dir) as (
-                        pai_cert,
-                        dac_key,
-                        dac_cert,
-                    ):
-                        self.provision_attestation(
-                            storage, pai_cert, dac_key, dac_cert, wrap
-                        )
-                else:
-                    vid, pid = self.args.vendor_id, self.args.product_id
-                    certs_dir = DEFAULT_CERTS_DIR
-                    self.provision_attestation(
-                        storage,
-                        certs_dir / f"test-PAI-{vid}-cert.pem",
-                        certs_dir / f"test-DAC-{vid}-{pid}-key.pem",
-                        certs_dir / f"test-DAC-{vid}-{pid}-cert.pem",
-                        wrap,
+                if not self.args.no_attest:
+                    print("  Writing attestation (DAC key + certs)...")
+                    production_dir = (
+                        self.args.production_certs.expanduser().resolve()
+                        if self.args.production_certs
+                        else None
                     )
+                    if production_dir:
+                        with _production_certs_bundle(production_dir) as (
+                            pai_cert,
+                            dac_key,
+                            dac_cert,
+                        ):
+                            self.provision_attestation(
+                                storage, pai_cert, dac_key, dac_cert, wrap
+                            )
+                    else:
+                        vid, pid = self.args.vendor_id, self.args.product_id
+                        certs_dir = DEFAULT_CERTS_DIR
+                        self.provision_attestation(
+                            storage,
+                            certs_dir / f"test-PAI-{vid}-cert.pem",
+                            certs_dir / f"test-DAC-{vid}-{pid}-key.pem",
+                            certs_dir / f"test-DAC-{vid}-{pid}-cert.pem",
+                            wrap,
+                        )
 
-            if not self.args.no_setup:
-                print("  Writing setup params (SPAKE2+, discriminator, passcode)...")
-                passcode = self.normalize_numeric(self.args.passcode)
-                discriminator = self.normalize_numeric(self.args.discriminator)
-                self.provision_setup(storage, passcode, discriminator)
+                if not self.args.no_setup:
+                    print("  Writing setup params (SPAKE2+, discriminator, passcode)...")
+                    passcode = self.normalize_numeric(self.args.passcode)
+                    discriminator = self.normalize_numeric(self.args.discriminator)
+                    self.provision_setup(storage, passcode, discriminator)
 
-            if not self.args.no_info:
-                print("  Writing device info...")
-                self.provision_device_info(storage, device_uid)
+                if not self.args.no_info:
+                    print("  Writing device info...")
+                    self.provision_device_info(storage, device_uid)
 
         print(
             f"Matter provisioning OK"
