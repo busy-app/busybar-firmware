@@ -189,11 +189,38 @@ def _failed_test_block(name: str, msg: str, traces: list) -> str:
     return "\n".join(lines)
 
 
-def build_pr_comment(results: dict | None, allure_url: str, log_dir: str = "") -> str:
+def load_pytest_reruns(path: str) -> list[str]:
+    if not path or not os.path.exists(path):
+        return []
+
+    reruns: list[str] = []
+    seen: set[str] = set()
+    try:
+        with open(path, errors="replace") as f:
+            for line in f:
+                if not line.startswith("RERUN "):
+                    continue
+                name = line.removeprefix("RERUN ").strip()
+                if not name or name in seen:
+                    continue
+                seen.add(name)
+                reruns.append(name)
+    except OSError:
+        return []
+    return reruns
+
+
+def build_pr_comment(
+    results: dict | None,
+    allure_url: str,
+    log_dir: str = "",
+    rerun_failures: list[str] | None = None,
+) -> str:
     lines = []
-    traces_by_id = {}
-    if results and results["failed_tests"]:
-        traces_by_id = load_forced_traces(log_dir)
+    rerun_failures = rerun_failures or []
+    recovered = bool(results and results["failed_count"] == 0 and rerun_failures)
+    failed_tests = (results or {}).get("failed_tests") or []
+    traces_by_id = load_forced_traces(log_dir) if failed_tests else {}
     report_links = _report_links(allure_url, _first_full_log_url(traces_by_id))
 
     if results is None:
@@ -203,7 +230,12 @@ def build_pr_comment(results: dict | None, allure_url: str, log_dir: str = "") -
         return "\n".join(lines)
 
     r = results
-    if r["failed_count"] == 0:
+    if recovered:
+        lines.append(
+            f"### Integration Tests: passed after retry "
+            f"({len(rerun_failures)} failed initially / {r['passed']} passed / {r['total']} total)"
+        )
+    elif r["failed_count"] == 0:
         lines.append(f"### Integration Tests: all {r['passed']} passed")
     else:
         lines.append(
@@ -214,13 +246,20 @@ def build_pr_comment(results: dict | None, allure_url: str, log_dir: str = "") -
     if report_links:
         lines.append(report_links)
 
-    if r["failed_tests"]:
+    if recovered:
         lines.append("")
-        for name, msg in r["failed_tests"][:30]:
+        lines.append("Recovered after retry:")
+        for name in rerun_failures[:30]:
+            lines.append(f"- <code>{html.escape(name)}</code>")
+        if len(rerun_failures) > 30:
+            lines.append(f"_…and {len(rerun_failures) - 30} more retried tests._")
+    elif failed_tests:
+        lines.append("")
+        for name, msg in failed_tests[:30]:
             lines.append(_failed_test_block(name, msg, traces_by_id.get(name, [])))
             lines.append("")
-        if len(r["failed_tests"]) > 30:
-            lines.append(f"_…and {len(r['failed_tests']) - 30} more failed tests._")
+        if len(failed_tests) > 30:
+            lines.append(f"_…and {len(failed_tests) - 30} more failed tests._")
 
     return "\n".join(lines).rstrip() + "\n"
 
@@ -436,6 +475,7 @@ def main():
     # is provided solely to extract the failed test name for the crash comment)
     if junit_xml and not crash_flag:
         results = parse_junit(junit_xml)
+        rerun_failures = load_pytest_reruns(os.environ.get("PYTEST_OUTPUT", ""))
 
         summary = build_job_summary(results, allure_url, firmware_url, branch)
         if summary_file:
@@ -443,7 +483,7 @@ def main():
                 f.write(summary + "\n")
 
         if pr_number:
-            comment = build_pr_comment(results, allure_url, log_dir)
+            comment = build_pr_comment(results, allure_url, log_dir, rerun_failures)
             post_or_update_pr_comment(comment, "### Integration Tests:")
 
     if pr_number and crash_flag:

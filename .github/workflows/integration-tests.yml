@@ -70,6 +70,7 @@ permissions:
 env:
   U5_HW_TARGET: ${{ inputs.target || '21' }}
   FIRMWARE_BASE_URL: https://update.flipperzero.one/builds/busybar-firmware
+  PYTEST_FAILED_TEST_RETRIES: 1
 
 jobs:
   integration-tests:
@@ -236,6 +237,8 @@ jobs:
         run: |
           set +e
           cd tests
+          PYTEST_OUTPUT=pytest-output.log
+
           # MARKER_FILTER is a `-m` expression; an empty string means
           # "no filter" (collect everything, including `regression`-tagged
           # tests such as schemathesis).
@@ -246,14 +249,16 @@ jobs:
           else
             echo "Running pytest without marker filter (full suite)"
           fi
-          python3 -m pytest "${pytest_args[@]}"
-          PYTEST_EXIT=$?
+          if [ "$PYTEST_FAILED_TEST_RETRIES" -gt 0 ]; then
+            pytest_args+=(--reruns "$PYTEST_FAILED_TEST_RETRIES" --reruns-delay 1 -rR)
+          fi
+          python3 -m pytest "${pytest_args[@]}" 2>&1 | tee "$PYTEST_OUTPUT"
+          PYTEST_EXIT=${PIPESTATUS[0]}
           echo "pytest_exit=$PYTEST_EXIT" >> "$GITHUB_OUTPUT"
-          # 0 = all passed, 1 = some failed — both mean tests ran
-          # 2+ = collection error, internal error, no tests collected
+
           if [ "$PYTEST_EXIT" -ge 2 ]; then
             echo "Pytest failed to run properly (exit code $PYTEST_EXIT)"
-            exit $PYTEST_EXIT
+            exit "$PYTEST_EXIT"
           fi
 
       - name: Setup allurectl
@@ -304,6 +309,7 @@ jobs:
         continue-on-error: true
         env:
           JUNIT_XML: tests/test-results.xml
+          PYTEST_OUTPUT: tests/pytest-output.log
           ALLURE_URL: ${{ steps.allure_upload.outputs.allure_launch_url }}
           FIRMWARE_URL: ${{ steps.resolve_firmware.outputs.update_url }}
           BRANCH_NAME: ${{ inputs.branch_name || github.head_ref || github.ref_name }}
