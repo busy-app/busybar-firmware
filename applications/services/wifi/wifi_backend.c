@@ -196,7 +196,7 @@ static sl_status_t wifi_connect_request_handler(
             break;
         }
 
-        if(credentials->security_mode != WifiSecurityModeOpen) {
+        if(security_mode != WifiSecurityModeOpen) {
             status = sl_net_set_credential(
                 wifi_get_credential_id(security_mode),
                 // TODO: Other passphrase types than PSK?
