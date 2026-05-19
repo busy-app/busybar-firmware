@@ -226,6 +226,7 @@ jobs:
 
       - name: Run integration tests
         id: smoke_tests
+        timeout-minutes: 20
         env:
           MARKER_FILTER: ${{ steps.pytest_filter.outputs.marker_filter }}
           BSB_FIRMWARE_PATH: ${{ github.workspace }}
