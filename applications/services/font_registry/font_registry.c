@@ -9,16 +9,19 @@ typedef struct {
     const lv_font_t* font;
 } FontRegistryBaked;
 
+extern const lv_font_t lv_font_busy_regular_5;
+extern const lv_font_t lv_font_busy_regular_9;
+
 #ifdef FURI_RAM_EXEC
 extern const lv_font_t lv_font_busy_regular_7;
-extern const lv_font_t lv_font_busy_regular_9;
 #endif
 
 static const FontRegistryBaked font_registry_baked[] = {
     {FONT_BUSY_REGULAR_5, &lv_font_busy_regular_5},
+    {FONT_BUSY_REGULAR_9, &lv_font_busy_regular_9},
+
 #ifdef FURI_RAM_EXEC
     {FONT_BUSY_REGULAR_7, &lv_font_busy_regular_7},
-    {FONT_BUSY_REGULAR_9, &lv_font_busy_regular_9},
 #endif
 };
 
