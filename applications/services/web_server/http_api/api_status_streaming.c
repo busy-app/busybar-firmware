@@ -291,11 +291,13 @@ static void client_on_message(struct mg_connection* conn, struct mg_ws_message* 
             client_set_enabled(client, enabled);
             success = true;
         }
-        if(strcmp("all", mg_json_get_str(ws_msg->data, "$.send")) == 0) {
+        char* send_value = mg_json_get_str(ws_msg->data, "$.send");
+        if(send_value && strcmp("all", send_value) == 0) {
             if(client_send_all(client)) {
                 success = true;
             }
         }
+        mg_free(send_value);
         if(!success) {
             FURI_LOG_E(TAG, "bad request");
         }
