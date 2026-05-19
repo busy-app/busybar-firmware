@@ -32,7 +32,7 @@ static void matter_scene_pairing_on_enter(void* context) {
 
     with_gui(app->gui, {
         scene->front_prompt = status_view_alloc(app->front_scene_window);
-        status_view_set_icon(scene->front_prompt, SETTINGS_IMG_PATH("info_front_8x8.image"));
+        status_view_set_icon(scene->front_prompt, SHARED_IMG_PATH("info_front_8x8.image"));
         status_view_set_primary_text(scene->front_prompt, "Look at back\nscreen");
 
         GuiLayer* top_layer = gui_get_layer(app->gui, GuiLayerIdSystem);
