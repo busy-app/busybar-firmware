@@ -99,6 +99,18 @@ bool storage_file_open(
     FS_OpenMode open_mode) {
     furi_check(file);
 
+    if(access_mode & FSAM_NONBLOCKING) {
+        bool result = storage_file_open_internal(file, path, access_mode, open_mode);
+        FURI_LOG_T(
+            TAG,
+            "File %p - %p open (%s)",
+            (void*)((uint32_t)file - SRAM_BASE),
+            (void*)(file->file_id - SRAM_BASE),
+            path);
+
+        return result;
+    }
+
     bool result;
     FuriEventFlag* event = furi_event_flag_alloc();
     FuriPubSubSubscription* subscription = furi_pubsub_subscribe(
@@ -118,24 +130,6 @@ bool storage_file_open(
     furi_pubsub_unsubscribe(storage_get_pubsub(file->storage), subscription);
     furi_event_flag_free(event);
 
-    FURI_LOG_T(
-        TAG,
-        "File %p - %p open (%s)",
-        (void*)((uint32_t)file - SRAM_BASE),
-        (void*)(file->file_id - SRAM_BASE),
-        path);
-
-    return result;
-}
-
-bool storage_file_open_nonblocking(
-    File* file,
-    const char* path,
-    FS_AccessMode access_mode,
-    FS_OpenMode open_mode) {
-    furi_check(file);
-
-    bool result = storage_file_open_internal(file, path, access_mode, open_mode);
     FURI_LOG_T(
         TAG,
         "File %p - %p open (%s)",

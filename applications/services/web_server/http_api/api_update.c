@@ -226,14 +226,14 @@ static void api_update_on_data_cb(struct mg_connection* conn, struct mg_iobuf* i
     ConnectionContext* conn_ctx = (ConnectionContext*)conn->data;
     HttpUpdateHandlerCtx* update_ctx = (HttpUpdateHandlerCtx*)conn_ctx->context;
 
-    update_ctx->timeout_stamp = mg_millis() + UPDATE_UPLOAD_IDLE_TIMEOUT_MS;
-
     if(!update_ctx || !update_ctx->file_save) {
         FURI_LOG_E(TAG, "on_data: Context or file saver invalid/closed. Draining.");
         mg_iobuf_del(io, 0, io->len); // Consume data to prevent further calls
         conn->is_draining = 1; // Mark connection to be closed
         return;
     }
+
+    update_ctx->timeout_stamp = mg_millis() + UPDATE_UPLOAD_IDLE_TIMEOUT_MS;
 
     size_t data_len = io->len;
     FURI_LOG_T(
