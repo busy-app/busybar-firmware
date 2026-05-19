@@ -31,8 +31,11 @@
               label="Save"
               color="neutral"
               variant="outline"
-              class="w-full"
+              class="w-full justify-center sm:justify-start"
               :disabled="!es.hasEditorContent"
+              :ui="{
+                label: 'relative -right-4 sm:static'
+              }"
               @click="saveStatus()"
             />
             <UDropdownMenu
@@ -83,6 +86,7 @@
             label="Show on BUSY Bar"
             color="neutral"
             variant="solid"
+            class="justify-center sm:justify-start"
             :icon="showStatusCheckmarkIcon ? 'i-bi-checkmark' : 'i-bi-play-fill'"
             :disabled="!es.hasEditorContent"
             :loading="isShowingStatusOnDevice"
@@ -93,6 +97,7 @@
           />
         </UTooltip>
       </template>
+
       <template #raw-body>
         <div class="flex flex-col gap-4">
           <div
@@ -1730,8 +1735,11 @@ async function insertImage () {
       id: 'draw-tool-image-error',
       title: 'Failed to load image',
       description: error instanceof Error ? error.message : String(error),
+      icon: 'i-bi-alert',
       color: 'error',
-      duration: 10000
+      duration: 0,
+      close: true,
+      closeIcon: 'i-bi-cross'
     });
   }
 }
@@ -1794,8 +1802,11 @@ async function insertDrawToolIcon (icon: ResolvedDrawToolIcon) {
       id: 'draw-tool-icon-error',
       title: 'Failed to insert icon',
       description: error instanceof Error ? error.message : String(error),
+      icon: 'i-bi-alert',
       color: 'error',
-      duration: 10000
+      duration: 0,
+      close: true,
+      closeIcon: 'i-bi-cross'
     });
   }
 }
@@ -2057,7 +2068,7 @@ async function drawStatusOnBusyBar (fileName: string) {
 
 async function listSaveDirectory () {
   const deviceStore = useDeviceStore();
-  const result = await deviceStore.busyBar.StorageListGet({ path: DRAW_TOOL_SAVE_DIR, timeout: 10000 });
+  const result = await deviceStore.busyBar.StorageListGet({ path: DRAW_TOOL_SAVE_DIR });
 
   if (!result.list) {
     throw new Error('Empty response');
@@ -2078,7 +2089,7 @@ async function ensureSaveDirectoryExists () {
   const deviceStore = useDeviceStore();
 
   try {
-    await deviceStore.busyBar.StorageMkdir({ path: DRAW_TOOL_SAVE_DIR, timeout: 10000 });
+    await deviceStore.busyBar.StorageMkdir({ path: DRAW_TOOL_SAVE_DIR });
   } catch {
     // Ignore mkdir failure here and let the follow-up list call decide whether the directory is usable.
   }
@@ -2205,8 +2216,11 @@ async function downloadImage () {
       id: 'draw-tool-download-error',
       title: 'Could not download image',
       description: error instanceof Error ? error.message : String(error),
+      icon: 'i-bi-alert',
       color: 'error',
-      duration: 10000
+      duration: 0,
+      close: true,
+      closeIcon: 'i-bi-cross'
     });
   }
 }

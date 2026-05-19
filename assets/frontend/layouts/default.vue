@@ -3,6 +3,8 @@
     data-id="layout-default"
     class="w-screen min-h-screen px-4 sm:px-6 py-4"
   >
+    <ConfigStoreCard v-if="configStore.showConfigUI === true" />
+
     <UContainer>
       <template v-if="shouldLoadDefaultPage">
         <DefaultLayoutHeader />
@@ -50,6 +52,7 @@ const deviceStore = useDeviceStore();
 const firmwareStore = useFirmwareStore();
 const wifiStore = useWifiStore();
 const stateStreamStore = useStateStreamStore();
+const configStore = useConfigStore();
 
 const shouldLoadDefaultPage = ref(false);
 async function init () {
@@ -87,9 +90,12 @@ function logStateUpdates (message: ProcessedState) {
     message.updates = [];
   }
   for (const update of message.updates) {
+    if (update.state === 'frame' && configStore.get('stateStreamLogFrames') === false) {
+      continue;
+    }
     console.debug(`[state stream message] (${Number(message.timestamp)})`, update);
   }
-  if (message.updates.length === 0) {
+  if (message.updates.length === 0 && configStore.get('stateStreamLogHeartbeats')) {
     console.debug(`[state stream message] (${Number(message.timestamp)}) heartbeat (no updates)`);
   }
 }
@@ -108,10 +114,21 @@ function initStateStream () {
     stateStreamStore.stream.start({
       dataCallback: message => {
         stateStreamStore.applyStateMessage(message);
-        logStateUpdates(message);
+        if (configStore.get('stateStreamLogUpdates')) {
+          logStateUpdates(message);
+        }
       },
       statusCallback: stateStreamStore.applyStreamStatus,
       errorCallback: error => {
+        function stop () {
+          try {
+            stateStreamStore.stopStream();
+          } catch (stopError) {
+            console.warn('Failed to stop state stream after error:', stopError);
+          }
+          handleStateStreamFailure();
+        }
+
         if (error.data?.severity === BSB_Error.Severity.WARNING) {
           console.warn(`[state stream warning] ${error.code}: ${error.message}`);
           return;
@@ -122,18 +139,14 @@ function initStateStream () {
             stateStreamStore.showStateStreamFailBanner = false;
           }
           stateStreamStore.showResourceLimitErrorBanner = true;
+          stop();
         } else {
           if (error.code === StateStreamErrorCode.CONNECTION_TIMEOUT || error.code === StateStreamErrorCode.CONNECTION_LOST || error.data?.severity === BSB_Error.Severity.FATAL) {
             if (stateStreamStore.showResourceLimitErrorBanner) {
               stateStreamStore.showResourceLimitErrorBanner = false;
             }
             stateStreamStore.showStateStreamFailBanner = true;
-            try {
-              stateStreamStore.stopStream();
-            } catch (stopError) {
-              console.warn('Failed to stop state stream after fatal error:', stopError);
-            }
-            handleStateStreamFailure();
+            stop();
           }
         }
       }
@@ -163,6 +176,9 @@ async function waitForStateStreamRestartableState (): Promise<void> {
       const restartableStateTimeout = setTimeout(() => {
         clearInterval(restartableStateInterval);
         stateStreamStore.streamNotRestartable = true;
+        if (stateStreamStore.showResourceLimitErrorBanner) {
+          stateStreamStore.showResourceLimitErrorBanner = false;
+        }
         stateStreamStore.showStateStreamFailBanner = true;
         reject(new Error('State stream is not in a restartable state'));
       }, STATE_STREAM_RESTARTABLE_STATE_TIMEOUT_MS);
@@ -178,6 +194,7 @@ async function waitForStateStreamRestartableState (): Promise<void> {
   }
 }
 async function handleStateStreamRestart () {
+  console.debug('Trying to restart state stream...');
   if (stateStreamStore.streamStatus?.main.status !== StreamLifecycle.IDLE && stateStreamStore.streamStatus?.main.status !== StreamLifecycle.STOPPED) {
     await waitForStateStreamRestartableState();
   }
@@ -190,6 +207,14 @@ onMounted(async () => {
   window.addEventListener('device-reconnected', handleDeviceReconnected);
   window.addEventListener('protobuf-websocket-restart', handleStateStreamRestart);
   window.addEventListener('wifi-reconnected', firmwareStore.requestAutoUpdateCheck);
+
+  // check if config store is cached in localStorage
+  if (localStorage.getItem('configStore') === null) {
+    // make it cache showConfigUI for external access
+    const showUI = configStore.showConfigUI;
+    configStore.showConfigUI = undefined;
+    configStore.showConfigUI = showUI;
+  }
 });
 
 onBeforeUnmount(() => {

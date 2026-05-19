@@ -13,11 +13,12 @@
 
 static bool sysctl_exec_debug(PipeSide* pipe, const char* arg) {
     UNUSED(pipe);
+
     if(strcmp(arg, "0") == 0) {
-        furi_hal_nvm_reset_flag(FuriHalNvmFlagDebug);
+        sysctl_set_debug_enabled(false);
         printf("Debug disabled.");
     } else if(strcmp(arg, "1") == 0) {
-        furi_hal_nvm_set_flag(FuriHalNvmFlagDebug);
+        sysctl_set_debug_enabled(true);
         printf("Debug enabled.");
     } else {
         return false;

@@ -16,8 +16,8 @@
       <canvas
         ref="canvasRef"
         data-id="state-screen-stream-canvas"
-        :width="360 * dpr * 2"
-        :height="80 * dpr * 2"
+        :width="Number(configStore.get('screenStreamCanvasBaseResolutionWidth')) * dpr"
+        :height="(Number(configStore.get('screenStreamCanvasBaseResolutionWidth')) / FRONT_SCREEN_WIDTH * FRONT_SCREEN_HEIGHT) * dpr"
         class="w-full bg-transparent rounded-sm aspect-[72/16]"
       />
     </div>
@@ -30,6 +30,8 @@ import type { ProcessedFrame } from '@busy-app/busy-lib';
 
 const screenStreamStore = useScreenStreamStore();
 const deviceStore = useDeviceStore();
+const configStore = useConfigStore();
+
 const canvasRef = useTemplateRef('canvasRef');
 const dpr = window.devicePixelRatio || 1;
 const FRONT_SCREEN_WIDTH = 72;

@@ -43,6 +43,8 @@ static void busy_scene_setup_theme_read_extra_themes(ThemePickerModel* model) {
     busy_theme_free(theme);
     storage_file_free(themes_dir);
 
+    theme_picker_model_sort(model);
+
     furi_record_close(RECORD_STORAGE);
 }
 
@@ -61,8 +63,6 @@ static void busy_scene_setup_theme_save_selected_theme(BusyApp* instance, uint32
         app_config->theme_name,
         busy_theme_get_name(selected_theme),
         sizeof(app_config->theme_name));
-
-    busy_theme_set(instance->theme, selected_theme);
 
     instance->config = *app_config;
     busy_set_timer_preset(instance, &timer_preset);
@@ -90,8 +90,11 @@ static void busy_scene_setup_theme_on_enter(void* context) {
 
     busy_scene_setup_theme_read_extra_themes(data->picker_model);
 
-    const uint32_t selected_theme_index =
-        theme_picker_model_get_item_index(data->picker_model, instance->theme);
+    BusyTimerPreset timer_preset;
+    busy_get_timer_preset(instance, &timer_preset);
+
+    const uint32_t selected_theme_index = theme_picker_model_get_item_index_by_name(
+        data->picker_model, timer_preset.app_config.theme_name);
 
     with_gui(instance->gui, {
         data->front_picker = theme_picker_alloc(instance->front_window);

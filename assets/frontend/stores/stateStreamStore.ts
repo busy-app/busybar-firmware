@@ -4,7 +4,9 @@ import {
   LocalStateStream,
   DataStatus,
   BSB_State,
-  BSB_Update
+  BSB_Update,
+  StreamLifecycle,
+  ConnectionStatus
 } from '@busy-app/busy-lib';
 import type { ProcessedState, StreamStatus, SmartHomePairingInfo } from '@busy-app/busy-lib';
 
@@ -93,6 +95,7 @@ export const useStateStreamStore = defineStore('stateStream', () => {
   const wifiStore = useWifiStore();
   const screenStreamStore = useScreenStreamStore();
   const barUrl = useRuntimeConfig().public.barUrl || window.location.origin;
+  const configStore = useConfigStore();
 
   const streamNotRestartable = ref(false);
   const showStateStreamFailBanner = ref(false);
@@ -100,7 +103,12 @@ export const useStateStreamStore = defineStore('stateStream', () => {
 
   const stream = shallowRef(new LocalStateStream(
     { addr: barUrl, token: apiStore.apiKey || '' },
-    { timeout: 5000, dataTimeout: 1500, maxReconnectAttempts: 5, reconnectDelay: 250 }
+    {
+      timeout: Number(configStore.get('stateStreamTimeout')),
+      dataTimeout: Number(configStore.get('stateStreamDataTimeout')),
+      maxReconnectAttempts: Number(configStore.get('stateStreamMaxReconnectAttempts')),
+      reconnectDelay: Number(configStore.get('stateStreamReconnectDelay'))
+    }
   ));
   const streamStatus = ref<StreamStatus | null>(null);
   const doCheckConnectionOnStreamDataStale = ref(true);
@@ -321,14 +329,18 @@ export const useStateStreamStore = defineStore('stateStream', () => {
 
     if (oldStatus === null) {
       streamStatus.value = status;
-      console.debug('[state stream status] Initial stream status:', status);
+      if (configStore.get('stateStreamLogStatusUpdates')) {
+        console.debug('[state stream status] Initial stream status:', status);
+      }
       return;
     }
 
     const diff = deepDiff(oldStatus, status) as Partial<StreamStatus> | undefined;
     if (diff) {
       for (const line of flattenDeepDiff(diff)) {
-        console.debug('[state stream status]', line, '| full status:', status);
+        if (configStore.get('stateStreamLogStatusUpdates')) {
+          console.debug('[state stream status]', line, '| full status:', status);
+        }
       }
     }
 
@@ -336,11 +348,25 @@ export const useStateStreamStore = defineStore('stateStream', () => {
 
     if (streamStatus.value.data.status === DataStatus.STALE && oldStatus?.data.status !== DataStatus.STALE && doCheckConnectionOnStreamDataStale.value) {
       console.debug('No state messages received for a while, checking connection...');
-      deviceStore.setRefreshInterval();
       const conncheckResult = await deviceStore.checkConnection();
       if (conncheckResult === false) {
-        console.debug('Connection check failed after state stream data stale, stopping stream');
+        console.debug('Connection check failed after state stream data stale, stopping stream and starting polling');
         stopStream();
+        deviceStore.setRefreshInterval();
+      }
+    }
+
+    if (streamStatus.value.data.status === DataStatus.ACTIVE
+      && streamStatus.value.connection.status === ConnectionStatus.CONNECTED
+      && streamStatus.value.main.status === StreamLifecycle.RUNNING
+    ) {
+      if (showResourceLimitErrorBanner.value) {
+        console.debug('Stream is active again, hiding resource limit error banner');
+        showResourceLimitErrorBanner.value = false;
+      }
+      if (showStateStreamFailBanner.value) {
+        console.debug('Stream is active again, hiding state stream failure banner');
+        showStateStreamFailBanner.value = false;
       }
     }
   }

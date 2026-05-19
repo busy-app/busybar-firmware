@@ -3,6 +3,7 @@
 #include "web_server_i.h"
 #include "http_api/http_api.h"
 #include <sysctl/sysctl.h>
+#include <netstat/netstat.h>
 
 #define TAG "HttpSrv"
 
@@ -94,14 +95,19 @@ static void http_event_handler(struct mg_connection* conn, int ev, void* ev_data
             http_api_log_access(conn, msg, result ? http_api_extract_status(conn) : 400);
             furi_string_free(path);
         }
-
     } else if(ev == MG_EV_HTTP_HDRS) {
         WebServer* context = conn->fn_data;
         struct mg_http_message* msg = (struct mg_http_message*)ev_data;
-        FuriString* path = furi_string_alloc_printf("%.*s", msg->uri.len, msg->uri.buf);
-        HttpMethod method = http_method_from_str(msg);
-        http_handle_headers(path, method, context->handlers, conn, msg);
-        furi_string_free(path);
+        if(netstat_is_overloaded(NetstatLogOnOverload)) {
+            http_api_log_access(conn, msg, 508);
+            MG_REPLY_OVERLOADED(conn);
+            MG_CLOSE_AFTER_HEADERS(conn, msg);
+        } else {
+            FuriString* path = furi_string_alloc_printf("%.*s", msg->uri.len, msg->uri.buf);
+            HttpMethod method = http_method_from_str(msg);
+            http_handle_headers(path, method, context->handlers, conn, msg);
+            furi_string_free(path);
+        }
     } else if(ev == MG_EV_READ) {
         if(!conn->is_websocket) {
             ConnectionContext* conn_ctx = (void*)conn->data;

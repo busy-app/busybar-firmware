@@ -7,6 +7,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <furi.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -29,6 +30,7 @@ typedef enum {
     NvmKeyRangeMin = 0x0UL, /**< Minimum key value (inclusive) */
     NvmKeyRangeUser1Min = 0x10000UL, /**< Free to use key range 1 start (inclusive) */
     NvmKeyBlePairingData = 0x10001UL,
+    NvmKeyCryptoAccessMode = 0x10002UL,
     /* Add more key ranges here */
     NvmKeyRangeUser1Max = 0x87000UL, /**< Free to use key range 1 end (non-inclusive) */
     NvmKeyRangeUser2Min = 0x88000UL, /**< Free to use key range 2 start (inclusive) */
@@ -62,6 +64,7 @@ bool nvm_exists(Nvm* instance, uint32_t key, size_t* len);
  *
  * @returns true if the record could be read, false otherwise
  */
+FURI_CHECK_RETURN
 bool nvm_read(Nvm* instance, uint32_t key, void* data, size_t len);
 
 /**
@@ -78,6 +81,7 @@ bool nvm_read(Nvm* instance, uint32_t key, void* data, size_t len);
  *
  * @returns true if the record could be read, false otherwise
  */
+FURI_CHECK_RETURN
 bool nvm_read_partial(Nvm* instance, uint32_t key, void* data, size_t offset, size_t len);
 
 /**
@@ -93,6 +97,7 @@ bool nvm_read_partial(Nvm* instance, uint32_t key, void* data, size_t offset, si
  *
  * @returns true if the record could be written, false otherwise
  */
+FURI_CHECK_RETURN
 bool nvm_write(Nvm* instance, uint32_t key, const void* data, size_t len);
 
 /**
@@ -104,6 +109,7 @@ bool nvm_write(Nvm* instance, uint32_t key, const void* data, size_t len);
  *
  * @returns true if the counter could be read, false otherwise
  */
+FURI_CHECK_RETURN
 bool nvm_read_counter(Nvm* instance, uint32_t key, uint32_t* value);
 
 /**
@@ -115,6 +121,7 @@ bool nvm_read_counter(Nvm* instance, uint32_t key, uint32_t* value);
  *
  * @returns true if the counter could be written, false otherwise
  */
+FURI_CHECK_RETURN
 bool nvm_write_counter(Nvm* instance, uint32_t key, uint32_t value);
 
 /**
@@ -126,6 +133,7 @@ bool nvm_write_counter(Nvm* instance, uint32_t key, uint32_t value);
  *
  * @returns true if the counter could be incremented, false otherwise
  */
+FURI_CHECK_RETURN
 bool nvm_increment_counter(Nvm* instance, uint32_t key, uint32_t* value);
 
 /**
@@ -136,6 +144,7 @@ bool nvm_increment_counter(Nvm* instance, uint32_t key, uint32_t* value);
  *
  * @returns true if the record could be deleted, false otherwise
  */
+FURI_CHECK_RETURN
 bool nvm_delete(Nvm* instance, uint32_t key);
 
 /**
@@ -148,6 +157,7 @@ bool nvm_delete(Nvm* instance, uint32_t key);
  *
  * @returns true if the storage could be repacked, false otherwise
  */
+FURI_CHECK_RETURN
 bool nvm_repack(Nvm* instance);
 
 /**
@@ -159,6 +169,7 @@ bool nvm_repack(Nvm* instance);
  *
  * @returns true if the storage could be erased, false otherwise.
  */
+FURI_CHECK_RETURN
 bool nvm_erase_all(Nvm* instance);
 
 /**
@@ -173,6 +184,7 @@ bool nvm_erase_all(Nvm* instance);
  *
  * @returns true if the storage could be purged, false otherwise.
  */
+FURI_CHECK_RETURN
 bool nvm_purge_all(Nvm* instance);
 
 #ifdef __cplusplus

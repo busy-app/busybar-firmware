@@ -4,6 +4,7 @@
 #include <json_helper.h>
 
 #define CONFIG_FILE_NAME "theme.json"
+#define CONFIG_KEY_ORDER "order"
 #define CONFIG_KEY_ASSET "bg_path"
 
 #define DEFAULT_NAME "busy"
@@ -14,6 +15,7 @@ struct BusyTheme {
     FuriString* name;
     FuriString* bg_path;
     BusyThemeFileType bg_type;
+    uint32_t order;
 };
 
 typedef struct {
@@ -59,6 +61,14 @@ static bool busy_theme_read_config(BusyTheme* instance, const char* root_path) {
             break;
         }
 
+        int order_temp = 999;
+        if(json_config_read_int(json, CONFIG_KEY_ORDER, &order_temp, NULL) ==
+           JsonConfigStatusError) {
+            FURI_LOG_D(TAG, "Failed to read %s key", CONFIG_KEY_ORDER);
+            break;
+        }
+        instance->order = order_temp;
+
         if(json_config_read_str(json, CONFIG_KEY_ASSET, theme_path, NULL) != JsonConfigStatusOk) {
             FURI_LOG_D(TAG, "Failed to read %s key", CONFIG_KEY_ASSET);
             break;
@@ -101,6 +111,7 @@ BusyTheme* busy_theme_alloc(void) {
 
     instance->name = furi_string_alloc();
     instance->bg_path = furi_string_alloc();
+    instance->order = 0;
 
     return instance;
 }
@@ -138,6 +149,7 @@ void busy_theme_set(BusyTheme* instance, const BusyTheme* other) {
     furi_string_set(instance->name, other->name);
     furi_string_set(instance->bg_path, other->bg_path);
     instance->bg_type = other->bg_type;
+    instance->order = other->order;
 }
 
 void busy_theme_get_info(const BusyTheme* instance, BusyThemeInfo* info) {
@@ -145,6 +157,7 @@ void busy_theme_get_info(const BusyTheme* instance, BusyThemeInfo* info) {
     furi_assert(info);
 
     info->name = furi_string_get_cstr(instance->name);
+    info->order = instance->order;
     info->bg_path = furi_string_get_cstr(instance->bg_path);
     info->bg_type = instance->bg_type;
 }
@@ -155,6 +168,7 @@ void busy_theme_set_default(BusyTheme* instance) {
     furi_string_set(instance->name, DEFAULT_NAME);
     furi_string_set(instance->bg_path, BUSY_ANIM_PATH("indicator_busy_72x16.anim"));
     instance->bg_type = BusyThemeFileTypeAnim;
+    instance->order = 0;
 }
 
 bool busy_theme_read(BusyTheme* instance, const char* name) {
@@ -201,6 +215,12 @@ const char* busy_theme_get_name(const BusyTheme* instance) {
     return furi_string_get_cstr(instance->name);
 }
 
+uint32_t busy_theme_get_order(const BusyTheme* instance) {
+    furi_assert(instance);
+
+    return instance->order;
+}
+
 bool busy_theme_is_default(const BusyTheme* instance) {
     furi_assert(instance);
 
@@ -208,5 +228,29 @@ bool busy_theme_is_default(const BusyTheme* instance) {
 }
 
 bool busy_theme_is_equal(const BusyTheme* instance, const BusyTheme* other) {
+    furi_assert(instance);
+    furi_assert(other);
+
     return furi_string_equal(instance->name, other->name);
+}
+
+int busy_theme_cmp(const BusyTheme* a, const BusyTheme* b) {
+    furi_assert(a);
+    furi_assert(b);
+
+    if(a->order != b->order) {
+        return (int)(a->order) - (int)(b->order);
+    } else {
+        return furi_string_cmp(a->name, b->name);
+    }
+}
+
+void busy_theme_swap(BusyTheme* a, BusyTheme* b) {
+    furi_assert(a);
+    furi_assert(b);
+
+    furi_string_swap(a->name, b->name);
+    furi_string_swap(a->bg_path, b->bg_path);
+    FURI_SWAP(a->bg_type, b->bg_type);
+    FURI_SWAP(a->order, b->order);
 }

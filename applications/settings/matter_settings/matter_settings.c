@@ -184,7 +184,7 @@ static MatterSettings* matter_settings_alloc(void) {
         nav_bar_set_header_text(instance->back_nav_bar, "SETTINGS");
         nav_bar_push_location(instance->back_nav_bar, "SMART HOME");
         widget_set_height(nav_bar_get_base(instance->back_nav_bar), SETTINGS_NAV_BAR_HEIGHT);
-        widget_set_padding(nav_bar_get_base(instance->back_nav_bar), 2, 2, 0, 0);
+        widget_set_padding(nav_bar_get_base(instance->back_nav_bar), 1, 0, 0, 2);
 
         instance->back_scene_window = widget_alloc(flex_layout_get_base(instance->back_container));
         flex_layout_set_child_widget_grow(
@@ -219,6 +219,8 @@ static MatterSettings* matter_settings_alloc(void) {
 }
 
 static void matter_settings_free(MatterSettings* instance) {
+    scene_manager_free(instance->scene_manager);
+
     with_gui(instance->gui, {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         gui_layer_remove_input_callback(layer, matter_settings_gui_input_callback);
@@ -240,7 +242,6 @@ static void matter_settings_free(MatterSettings* instance) {
 
     furi_event_loop_unsubscribe(instance->event_loop, instance->input_queue);
     furi_event_loop_unsubscribe(instance->event_loop, instance->event_queue);
-    scene_manager_free(instance->scene_manager);
     furi_message_queue_free(instance->event_queue);
     furi_message_queue_free(instance->input_queue);
     furi_event_loop_free(instance->event_loop);

@@ -17,4 +17,6 @@ const BusyTheme* theme_picker_model_get_item(const ThemePickerModel* instance, u
 uint32_t theme_picker_model_get_item_count(const ThemePickerModel* instance);
 
 uint32_t
-    theme_picker_model_get_item_index(const ThemePickerModel* instance, const BusyTheme* item);
+    theme_picker_model_get_item_index_by_name(const ThemePickerModel* instance, const char* name);
+
+void theme_picker_model_sort(ThemePickerModel* instance);
