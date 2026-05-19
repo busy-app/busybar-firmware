@@ -281,3 +281,8 @@ static int32_t screen_streamer_thread(void* context) {
     }
     return 0;
 }
+
+void screen_streamer_get_frame(ScreenStreamer* instance, ScreenStreamerFrameCb cb, void* context) {
+    ScreenStreamerFrame frame = get_frame(instance);
+    cb(instance->display_id, &frame, 0, context);
+}

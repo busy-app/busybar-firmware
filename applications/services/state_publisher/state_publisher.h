@@ -86,6 +86,13 @@ bool state_publisher_serialize_error_message(
     BSB_Error_Severity severity,
     BSB_Error_Cause cause);
 
+/**
+ * Collect and send a complete snapshot containing all possible state information.
+ */
+void state_publisher_send_complete_snapshot(
+    StatePublisher* instance,
+    StatePublisherTransportHandle transport);
+
 #ifdef __cplusplus
 }
 #endif
