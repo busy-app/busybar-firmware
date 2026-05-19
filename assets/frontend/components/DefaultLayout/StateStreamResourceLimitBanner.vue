@@ -29,7 +29,13 @@
 </template>
 
 <script setup lang="ts">
+const stateStreamStore = useStateStreamStore();
+
 function dispatchRestartEvent () {
+  if (stateStreamStore.streamNotRestartable) {
+    location.reload();
+    return;
+  }
   window.dispatchEvent(new CustomEvent('protobuf-websocket-restart'));
 }
 </script>

@@ -45,9 +45,36 @@ typedef struct {
     FuriHalCryptoKeyAddress address;
 } FuriHalCryptoKeyIter;
 
+typedef enum FuriHalCryptoStorageAccessMode {
+    FuriHalCryptoStorageAccessModeReadOnly = 0,
+    FuriHalCryptoStorageAccessModeReadWrite = 1,
+} FuriHalCryptoStorageAccessMode;
+
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/** Set crypto storage access mode (read-only or read-write).
+ * @return FuriHalCryptoStatus indicating the result of the operation
+ *    - FuriHalCryptoStatusOk on success
+ *    - FuriHalCryptoStatusFail on NVM write failure
+ */
+FURI_CHECK_RETURN
+FuriHalCryptoStatus furi_hal_crypto_storage_set_access_mode(FuriHalCryptoStorageAccessMode mode);
+
+/** Get crypto storage access mode (read-only or read-write). */
+FuriHalCryptoStorageAccessMode furi_hal_crypto_storage_get_access_mode(void);
+
+/** Wipe crypto storage partition.
+ *
+ * @param partition partition to wipe
+ * @return FuriHalCryptoStatus indicating the result of the operation
+ *    - FuriHalCryptoStatusOk on success
+ *    - FuriHalCryptoStatusErrorAccess if storage is in read-only mode
+ *    - FuriHalCryptoStatusFail on flash write failure
+ */
+FURI_CHECK_RETURN
+FuriHalCryptoStatus furi_hal_crypto_storage_wipe(FuriHalCryptoPartition partition);
 
 /** Initialize a key iterator.
  * @param[in] partition Partition to iterate in.
@@ -72,6 +99,9 @@ FuriHalCryptoStatus furi_hal_crypto_key_iter_get_and_advance(
 * @param[in] partition Partition where to store the key.
 * @param[in] id ID of the key to write.
 * @return FuriHalCryptoStatus indicating the result of the operation.
+*    - FuriHalCryptoStatusOk on success
+*    - FuriHalCryptoStatusErrorAccess if storage is in read-only mode
+*    - other errors corresponding to various storage failures
 */
 FURI_CHECK_RETURN
 FuriHalCryptoStatus furi_hal_crypto_storage_write(
@@ -85,6 +115,9 @@ FuriHalCryptoStatus furi_hal_crypto_storage_write(
 * @param[in] id ID of the key to write.
 * @param[out] slot Key storage slot metadata. Can be NULL.
 * @return FuriHalCryptoStatus indicating the result of the operation.
+*    - FuriHalCryptoStatusOk on success
+*    - FuriHalCryptoStatusErrorAccess if storage is in read-only mode
+*    - other errors corresponding to various storage failures
 */
 FURI_CHECK_RETURN
 FuriHalCryptoStatus furi_hal_crypto_storage_write_ex(
