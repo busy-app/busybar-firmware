@@ -18,7 +18,7 @@ def generate(env):
         FONT_CONVERTER=env.Real("${FBT_SCRIPT_DIR}/ttf2font.py"),
         IMAGE_CONVERTER=env.Real("${FBT_SCRIPT_DIR}/image.py"),
         SWAGGER_GENERATOR=env.Real("${FBT_SCRIPT_DIR}/swagger.py"),
-        COPY=env.Real("${FBT_SCRIPT_DIR}/copy.py"),
+        COPY=env.Real("${FBT_SCRIPT_DIR}/file_copy.py"),
         SWAGGER_DIST_DIR=env.Dir("swagger-dist"),
     )
 
