@@ -364,7 +364,7 @@ static bool api_update_raw_hdr_callback(
 
     // Allocate file saver (creates directory, removes existing file, opens for writing)
     FuriString* temp_path = furi_string_alloc_set(UPDATER_DEFAULT_DOWNLOAD_PATH);
-    update_ctx->file_save = fetch_file_save_alloc(temp_path);
+    update_ctx->file_save = fetch_file_save_alloc_nonblocking(temp_path);
     furi_string_free(temp_path);
 
     furi_thread_set_current_priority(FuriThreadPriorityLow);
