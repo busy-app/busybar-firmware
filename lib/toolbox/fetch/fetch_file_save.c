@@ -10,7 +10,8 @@ struct FetchFileSave {
 
 #define TAG "FetchFileSave"
 
-static FetchFileSave* fetch_file_save_alloc_internal(FuriString* file_path, FS_OpenMode open_mode) {
+static FetchFileSave*
+    fetch_file_save_alloc_internal(FuriString* file_path, FS_OpenMode open_mode) {
     furi_check(file_path);
 
     FetchFileSave* instance = malloc(sizeof(FetchFileSave));
