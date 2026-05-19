@@ -119,7 +119,7 @@ static lv_fs_res_t lv_storage_fs_dir_close(lv_fs_drv_t* drv, void* rddir_p) {
 
 static lv_fs_drv_t lv_storage_fs_driver = {
     .letter = 'C',
-    .cache_size = 0,
+    .cache_size = 1024 * 5,
     .ready_cb = NULL,
     .open_cb = lv_storage_fs_open,
     .close_cb = lv_storage_fs_close,

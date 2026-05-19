@@ -51,6 +51,8 @@
 #define MG_REPLY_INTERNAL_ERROR(conn, ...) \
     _MG_REPLY_INTERNAL_ERROR(conn, M_IF_EMPTY(__VA_ARGS__)("failed", (__VA_ARGS__)))
 
+#define MG_REPLY_OVERLOADED(conn) MG_REPLY_ERROR(conn, 508, "Resource Limit Reached")
+
 #define MG_CLOSE_AFTER_HEADERS(conn, msg)        \
     mg_iobuf_del(&conn->recv, 0, msg->head.len); \
     conn->pfn = NULL;                            \

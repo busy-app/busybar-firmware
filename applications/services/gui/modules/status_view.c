@@ -82,7 +82,6 @@ static void status_view_style_back(Widget* widget) {
 
     lv_obj_set_style_text_font(instance->auxiliary_label, instance->auxiliary_font, LV_PART_MAIN);
     lv_obj_set_style_text_align(instance->auxiliary_label, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
-    lv_obj_set_style_text_line_space(instance->auxiliary_label, -2, LV_PART_MAIN);
 }
 
 /* LVGL-specific */

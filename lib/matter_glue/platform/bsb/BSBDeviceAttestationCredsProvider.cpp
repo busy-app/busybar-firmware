@@ -18,25 +18,24 @@ enum {
 
 using namespace DeviceLayer::BSB;
 
-void BSBDACProvider::SetCertificationDeclaration(const void* buffer, size_t size) {
+void BSBDACProvider::SetCertificationDeclaration(const uint8_t* buffer, size_t size) {
     furi_check(buffer);
-    furi_check(!m_cd_buffer);
-    furi_check(!m_cd_size);
+    furi_check(m_cd_buffer == nullptr);
+    furi_check(m_cd_size == 0);
 
-    if(!size) return;
-
-    m_cd_buffer = malloc(size);
-    m_cd_size = size;
-    memcpy(m_cd_buffer, buffer, size);
+    if(size) {
+        m_cd_buffer = static_cast<uint8_t*>(malloc(size));
+        memcpy(m_cd_buffer, buffer, size);
+        m_cd_size = size;
+    }
 }
 
 CHIP_ERROR BSBDACProvider::GetCertificationDeclaration(MutableByteSpan& out_cd_buffer) {
-    if(!m_cd_buffer) return CHIP_ERROR_CERT_NOT_FOUND;
+    if(m_cd_buffer) {
+        return CopySpanToMutableSpan(ByteSpan{m_cd_buffer, m_cd_size}, out_cd_buffer);
+    }
 
-    size_t to_copy = MIN(m_cd_size, out_cd_buffer.size());
-    memcpy(out_cd_buffer.begin(), m_cd_buffer, to_copy);
-
-    return CHIP_NO_ERROR;
+    return CHIP_ERROR_CERT_NOT_FOUND;
 }
 
 CHIP_ERROR BSBDACProvider::GetFirmwareInformation(MutableByteSpan& out_firmware_info_buffer) {
