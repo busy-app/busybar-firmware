@@ -99,6 +99,7 @@ static void http_event_handler(struct mg_connection* conn, int ev, void* ev_data
         WebServer* context = conn->fn_data;
         struct mg_http_message* msg = (struct mg_http_message*)ev_data;
         if(netstat_is_overloaded(NetstatLogOnOverload)) {
+            http_api_log_access(conn, msg, 508);
             MG_REPLY_OVERLOADED(conn);
             MG_CLOSE_AFTER_HEADERS(conn, msg);
         } else {
