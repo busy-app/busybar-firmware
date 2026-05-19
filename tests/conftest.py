@@ -302,6 +302,18 @@ def fresh_cli_connection():
 
 def pytest_runtest_setup(item):
     """Test setup"""
+    for attr in (
+        "_connection_error",
+        "_crash_info",
+        "_device_unavailable",
+        "_api_unhealthy",
+        "_api_503_tolerated",
+        "_api_503_incident_path",
+        "_reset_failed",
+    ):
+        if hasattr(item, attr):
+            delattr(item, attr)
+
     logger.info(f"Setting up: {item.name}")
     _write_test_context(item.name, test_nodeid=item.nodeid, phase="setup")
 
