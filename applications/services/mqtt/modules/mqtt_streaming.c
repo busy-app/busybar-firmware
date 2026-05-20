@@ -136,22 +136,24 @@ static void mqtt_streaming_api_queue_callback(FuriEventLoopObject* obj, void* co
                         rate_limit,
                         mqtt_streaming_publish_callback,
                         instance);
-                    instance->response_topic = api_msg.response_topic;
+                    FURI_SWAP(instance->response_topic, api_msg.response_topic);
+                    furi_event_loop_timer_start(
+                        instance->timeout_timer, S_TO_MS(api_msg.expiry_interval));
                 } else {
                     FURI_LOG_E(TAG, "Empty response topic for a Start message");
-                    continue;
                 }
             } else {
                 state_publisher_set_rate_limit(
                     instance->state_publisher, instance->state_publisher_handle, rate_limit);
                 if(response_topic_valid) {
-                    furi_string_free(instance->response_topic);
-                    instance->response_topic = api_msg.response_topic;
+                    FURI_SWAP(instance->response_topic, api_msg.response_topic);
                 }
+                furi_event_loop_timer_start(
+                    instance->timeout_timer, S_TO_MS(api_msg.expiry_interval));
             }
-
-            furi_event_loop_timer_start(instance->timeout_timer, S_TO_MS(api_msg.expiry_interval));
-
+            if(api_msg.response_topic) {
+                furi_string_free(api_msg.response_topic);
+            }
         } else if(api_msg.type == MqttStreamingApiMessageTypeStop) {
             FURI_LOG_I(TAG, "Stop");
 
