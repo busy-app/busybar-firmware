@@ -118,19 +118,6 @@ def generate(env):
                     "${SWAGGERCOMSTR}",
                 ),
             ),
-            "Copy": Builder(
-                action=Action(
-                    [
-                        [
-                            "${PYTHON3}",
-                            "${COPY}",
-                            "${SOURCE}",
-                            "${TARGET}",
-                        ],
-                    ],
-                    "${SWAGGERCOMSTR}",
-                ),
-            ),
         }
     )
 

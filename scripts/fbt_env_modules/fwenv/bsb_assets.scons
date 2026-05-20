@@ -7,31 +7,36 @@ import requests
 import hashlib
 
 def sha256sum(filename):
-    with open(filename, "rb") as f:
-        return hashlib.file_digest(f, "sha256").hexdigest()
+    try:
+        with open(filename, "rb") as f:
+            return hashlib.file_digest(f, "sha256").hexdigest()
+    except OSError:
+        return None
 
 def download_file(src_url, src_url_sha256, dst_file):
     try:
         expected_sha = requests.get(src_url_sha256)
         expected_sha.raise_for_status()
         expected_sha = expected_sha.text.split(" ")[0]
-        current_sha = sha256sum(dst_file)
 
-        if current_sha == expected_sha:
-            print(f"{dst_file} is up to date")
+        if sha256sum(dst_file) == expected_sha:
+            print(f"File is up to date: {dst_file}")
             return True
         
         file = requests.get(src_url)
         file.raise_for_status()
+
         with open(dst_file, "wb") as f:
             f.write(file.content)
 
-        print(f"{dst_file} downloaded")
+        if sha256sum(dst_file) != expected_sha:
+            raise Exception(f"Downloaded file does not match digest: {dst_file}")
 
+        print(f"Updated file to new version: {dst_file}")
         return True
 
-    except requests.HTTPError:
-        print(f"failed to download {dst_file}")
+    except requests.RequestException:
+        print(f"Failed to download file: {dst_file}")
         return False
 
 fwenv.SetDefault(RESOURCES_ROOT=fwenv.Dir("${BUILD_DIR}/resources"))
@@ -122,14 +127,13 @@ def convert_web_api(dst_dir):
 
 def update_certs(src_dir, dst_dir):
     cert_file = File(src_dir + "ca/cacert.pem")
-    converted = dst_dir.File("ca/cacert.pem")
+    converted_location = dst_dir.File("ca/cacert.pem").Dir(".")
 
     SRC_URL = "https://curl.se/ca/cacert.pem"
     SRC_URL_SHA256 = "https://curl.se/ca/cacert.pem.sha256"
-
     download_file(SRC_URL, SRC_URL_SHA256, cert_file.rfile().abspath)
 
-    return [fw_assets_env.Copy(converted, cert_file)]
+    return [fw_assets_env.Install(converted_location, cert_file)]
 
 
 if fwenv.get("IS_BASE_FIRMWARE", False):
