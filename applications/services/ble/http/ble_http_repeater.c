@@ -4,9 +4,12 @@
 
 #define TAG "BleHttp"
 
+#define THREAD_STACK_SIZE (1500)
+
 #define BLE_HTTP_HOST "http://127.0.0.1:80"
 
 #define BLE_HTTP_SESSION_TIMEOUT_ON_TX_CONFIRM_FAIL (4000)
+#define BLE_HTTP_EV_ERROR_PAUSE_DELAY_MS            (500)
 
 typedef struct {
     struct mg_mgr mgr;
@@ -120,6 +123,11 @@ static void ble_event_handler(struct mg_connection* conn, int ev, void* ev_data)
     } else if(ev == MG_EV_CLOSE) {
         if(ble_http->exit) return;
         ble_session_update_on_close(ble_http);
+    } else if(ev == MG_EV_ERROR) {
+        ble_session_reset(ble_http);
+        FURI_LOG_W(
+            TAG, "Session reset due to error, pause for %d ms", BLE_HTTP_EV_ERROR_PAUSE_DELAY_MS);
+        furi_delay_ms(BLE_HTTP_EV_ERROR_PAUSE_DELAY_MS);
     }
 }
 
@@ -164,7 +172,8 @@ static BleHttpRepeater* ble_http_repeater_alloc(Ble* ble) {
     instance->previous_request_num = 0;
     furi_mutex_release(instance->session_lock);
 
-    instance->thread = furi_thread_alloc_ex(TAG, 1024 * 8, ble_http_repeater_thread_handler, NULL);
+    instance->thread =
+        furi_thread_alloc_ex(TAG, THREAD_STACK_SIZE, ble_http_repeater_thread_handler, NULL);
     return instance;
 }
 

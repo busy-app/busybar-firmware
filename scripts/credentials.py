@@ -16,7 +16,7 @@ from ecdsa.curves import NIST256p
 
 from flipper.cli import Cli
 from flipper.app import App, CatchExceptions
-from crypto_storage import CryptoStorage
+from crypto_storage import CryptoStorage, ReadWriteScope
 
 
 def auto_int(x):
@@ -239,18 +239,19 @@ class Main(App):
 
     def write_data(self, key_type: int, data: dict[int, bytes], wrap=False):
         with CryptoStorage(self.get_portname()) as storage:
-            for key_id, key_value in data.items():
-                flags = WriteFlag.WRAP if wrap else WriteFlag.NONE
-                ret = storage.write_key(
-                    Partition.MAIN,
-                    key_type,
-                    key_id,
-                    flags,
-                    len(key_value),
-                    key_value.hex(),
-                )
-                if ret != 0:
-                    raise Exception(f"write_key failed with error {ret}")
+            with ReadWriteScope(storage):
+                for key_id, key_value in data.items():
+                    flags = WriteFlag.WRAP if wrap else WriteFlag.NONE
+                    ret = storage.write_key(
+                        Partition.MAIN,
+                        key_type,
+                        key_id,
+                        flags,
+                        len(key_value),
+                        key_value.hex(),
+                    )
+                    if ret != 0:
+                        raise Exception(f"write_key failed with error {ret}")
 
     @CatchExceptions
     def provision_attestation_files(self):

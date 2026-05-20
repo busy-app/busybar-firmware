@@ -75,6 +75,14 @@ class CryptoStorage(Cli):
 
         return listing
 
+    def set_protect(self, protect: bool, echo: bool = True):
+        data = self.send_and_wait_prompt(f"{self.CRYPTO_CMD} protect {1 if protect else 0}\r")
+        parsed_data, ret = self._parse_response(data)
+
+        if echo:
+            print(parsed_data)
+        return ret
+
     def wipe_partition(self, partition: int, *, echo: bool = True):
         data = self.send_and_wait_prompt(f"{self.CRYPTO_CMD} wipe {partition}\r")
         parsed_data, ret = self._parse_response(data)
@@ -233,6 +241,21 @@ class CryptoStorage(Cli):
         body = text[first_nl + 1 : ret_match.start()].strip("\n")
 
         return (body, int(ret_match.group(1)))
+
+class ReadWriteScope:
+    def __init__(self, storage: CryptoStorage):
+        self._storage = storage
+
+    def __enter__(self):
+        ret = self._storage.set_protect(False, echo=False)
+        if ret != 0:
+            raise Exception("Storage protect command failed")
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        ret = self._storage.set_protect(True, echo=False)
+        if ret != 0:
+            print("Error while setting write protection")
 
 
 class Main(App):

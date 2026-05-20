@@ -42,18 +42,24 @@ uint32_t theme_picker_model_get_item_count(const ThemePickerModel* instance) {
 }
 
 uint32_t
-    theme_picker_model_get_item_index(const ThemePickerModel* instance, const BusyTheme* item) {
+    theme_picker_model_get_item_index_by_name(const ThemePickerModel* instance, const char* name) {
     furi_assert(instance);
-    furi_assert(item);
+    furi_assert(name);
 
     uint32_t index = THEME_PICKER_MODEL_INVALID_INDEX;
 
     for(uint32_t i = 0; i < BusyThemeArray_size(instance->items); ++i) {
-        if(busy_theme_is_equal(*BusyThemeArray_cget(instance->items, i), item)) {
+        const BusyTheme* theme = *BusyThemeArray_cget(instance->items, i);
+        if(strcmp(busy_theme_get_name(theme), name) == 0) {
             index = i;
             break;
         }
     }
 
     return index;
+}
+
+void theme_picker_model_sort(ThemePickerModel* instance) {
+    furi_assert(instance);
+    BusyThemeArray_special_stable_sort(instance->items);
 }

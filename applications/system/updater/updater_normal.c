@@ -1,5 +1,6 @@
 #include "updater_i.h"
 #include "updater_paths.h"
+#include "settings/settings_i.h"
 
 #include <time/time.h>
 
@@ -12,8 +13,6 @@
 
 #define INSTALL_FROM_URL_THREAD_NAME       "UpdateInstall"
 #define INSTALL_FROM_URL_THREAD_STACK_SIZE (2 * 1024)
-
-#define AUTOUPDATE_TIMER_INTERVAL (5 * 60 * 1000)
 
 typedef struct {
     bool is_abort_request;
@@ -151,7 +150,7 @@ UpdaterStatus updater_internal_do_check_for_update(Updater* instance, UpdaterMes
 
     bool is_check_start_successful = update_checker_run(
         instance->update_checker,
-        instance->settings.check_url,
+        updater_settings_get_check_url_value(&instance->settings),
         instance->settings.check_channel_id);
 
     if(is_check_start_successful) {
@@ -289,15 +288,15 @@ UpdaterStatus updater_internal_do_verify_bundle_sha(Updater* instance, UpdaterMe
             UpdaterStatusOk :
             UpdaterStatusShaMismatch;
 
-    furi_string_free(sha256_calc);
-    furi_string_free(message->as_verify_bundle_sha.tar_path);
-    furi_string_free(message->as_verify_bundle_sha.sha);
-
     if(update_status == UpdaterStatusOk) {
         FURI_LOG_D(TAG, "SHA256 checksum verified successfully");
     } else {
         FURI_LOG_E(TAG, "SHA256 checksum verification failed for %s", tar_path);
     }
+
+    furi_string_free(sha256_calc);
+    furi_string_free(message->as_verify_bundle_sha.tar_path);
+    furi_string_free(message->as_verify_bundle_sha.sha);
 
     return update_status;
 }
@@ -586,7 +585,8 @@ void updater_internal_settings_change_build_specific(Updater* instance) {
 #ifdef SRV_TIME
     if(instance->settings.autoupdate_enabled) {
         furi_event_loop_timer_start(
-            instance->autoupdate_timer, furi_ms_to_ticks(AUTOUPDATE_TIMER_INTERVAL));
+            instance->autoupdate_timer,
+            furi_ms_to_ticks(instance->settings.autoupdate_attempt_delay));
     } else {
         furi_event_loop_timer_stop(instance->autoupdate_timer);
     }
@@ -637,7 +637,8 @@ void updater_internal_setup_build_specific(Updater* instance) {
 #ifdef SRV_TIME
     if(instance->settings.autoupdate_enabled) {
         furi_event_loop_timer_start(
-            instance->autoupdate_timer, furi_ms_to_ticks(AUTOUPDATE_TIMER_INTERVAL));
+            instance->autoupdate_timer,
+            furi_ms_to_ticks(instance->settings.autoupdate_attempt_delay));
     }
 #endif /* SRV_TIME */
 }

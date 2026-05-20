@@ -14,7 +14,7 @@ export function drawQrCodeOnCanvas (
   canvas: HTMLCanvasElement,
   matrix: QrCodeMatrix | null,
   options: DrawQrCodeOptions = {}
-): void {
+) {
   const {
     size = DEFAULT_QR_CODE_SIZE,
     marginModules = DEFAULT_QR_MARGIN_MODULES,

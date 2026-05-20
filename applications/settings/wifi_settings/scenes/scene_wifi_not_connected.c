@@ -1,6 +1,9 @@
 #include "../wifi_settings_i.h"
-#include <settings_helpers/wifi_not_connected_view.h>
+#include "../widgets/wifi_not_connected_view.h"
+
 #include <settings_helpers/gui_params.h>
+
+#include <gui/modules/status_view.h>
 
 #include <wifi/wifi.h>
 
@@ -9,7 +12,7 @@ typedef enum {
 } SceneEvent;
 
 typedef struct {
-    WifiNotConnectedView* front_view;
+    StatusView* front_view;
     WifiNotConnectedView* back_view;
 } SceneWifiNotConnected;
 
@@ -21,11 +24,13 @@ static void wifi_scene_not_connected_on_enter(void* context) {
         scene_manager_get_scene_data(instance->scene_manager, SceneIdNotConnected);
 
     with_gui(instance->gui, {
-        data->front_view = wifi_not_connected_view_front_alloc(instance->front_scene_window);
+        data->front_view = status_view_alloc(instance->front_scene_window);
+        status_view_set_primary_text(data->front_view, "Connect Wi-Fi via\nPC or BUSY App");
+        status_view_set_icon(data->front_view, IMG_PATH("wifi_front_gray_8x8.image"));
 
         GuiLayer* top_layer = gui_get_layer(instance->gui, GuiLayerIdSystem);
         Widget* top_back_layer_root = gui_layer_get_root_widget(top_layer, GuiDisplayIdBack);
-        data->back_view = wifi_not_connected_view_back_alloc(top_back_layer_root);
+        data->back_view = wifi_not_connected_view_alloc(top_back_layer_root);
     });
 }
 
@@ -38,7 +43,7 @@ static void wifi_scene_not_connected_on_exit(void* context) {
         scene_manager_get_scene_data(instance->scene_manager, SceneIdNotConnected);
 
     with_gui(instance->gui, {
-        wifi_not_connected_view_free(data->front_view);
+        status_view_free(data->front_view);
         wifi_not_connected_view_free(data->back_view);
     });
 }

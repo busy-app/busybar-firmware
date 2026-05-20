@@ -33,6 +33,7 @@ def _wait_for_ble_status(
 
 @allure.feature("5. Web Frontend")
 @allure.story("BLE")
+@pytest.mark.uses_si917
 class TestBleAPI:
     """Test cases for BLE API endpoints"""
 
@@ -79,6 +80,7 @@ class TestBleAPI:
 
 @allure.feature("5. Web Frontend")
 @allure.story("BLE")
+@pytest.mark.uses_si917
 class TestBleStatusAPI:
     """Test cases for BLE Status API endpoints"""
 

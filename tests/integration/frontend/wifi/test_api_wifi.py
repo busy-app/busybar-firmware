@@ -52,9 +52,14 @@ def wifi_setup_teardown(web_base_url):
     yield
     # Teardown: Reconnect to known WiFi using a fresh session
     session = requests.Session()
-    session.headers.update({"Accept": "application/json"})
-    wifi_api = WifiAPI(session, web_base_url)
-    wifi_api.connect_to_test_network()
+    session.headers.update(
+        {"User-Agent": "BSB-AutoTest/1.0", "Accept": "application/json"}
+    )
+    try:
+        wifi_api = WifiAPI(session, web_base_url)
+        wifi_api.connect_to_test_network()
+    finally:
+        session.close()
 
 
 @allure.feature("5. Web Frontend")

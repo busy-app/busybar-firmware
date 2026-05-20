@@ -192,6 +192,7 @@
 #define TCP_KEEPIDLE_DEFAULT  600000UL // 10min
 #define TCP_KEEPINTVL_DEFAULT 60000UL
 #define TCP_KEEPCNT_DEFAULT   9U
+#define TCP_MSL               10000UL
 
 #define LWIP_STATS_DISPLAY                  1
 #define LINK_STATS                          1

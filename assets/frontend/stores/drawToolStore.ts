@@ -91,10 +91,7 @@ export const useDrawToolStore = defineStore('drawTool', () => {
 
   async function listStatusDirectory () {
     const deviceStore = useDeviceStore();
-    const result = await deviceStore.busyBar.StorageListGet({
-      path: DRAW_TOOL_SAVE_DIR,
-      timeout: 10000
-    });
+    const result = await deviceStore.busyBar.StorageListGet({ path: DRAW_TOOL_SAVE_DIR });
 
     if (!result.list) {
       throw new Error('Empty response');
@@ -107,7 +104,7 @@ export const useDrawToolStore = defineStore('drawTool', () => {
     const deviceStore = useDeviceStore();
 
     try {
-      await deviceStore.busyBar.StorageMkdir({ path: DRAW_TOOL_SAVE_DIR, timeout: 10000 });
+      await deviceStore.busyBar.StorageMkdir({ path: DRAW_TOOL_SAVE_DIR });
     } catch {
       // Ignore mkdir failure and rely on the follow-up list call.
     }
@@ -201,7 +198,7 @@ export const useDrawToolStore = defineStore('drawTool', () => {
     for (const fileName of [...new Set(fileNames)]) {
       const fullPath = createStatusFilePath(fileName);
 
-      await deviceStore.busyBar.StorageRemove({ path: fullPath, timeout: 10000 })
+      await deviceStore.busyBar.StorageRemove({ path: fullPath, timeout: 0 })
         .catch(async error => {
           await handleHTTPError(error, `Couldn't delete ${fullPath}`, false, 0);
         });

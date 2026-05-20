@@ -17,7 +17,7 @@ extern "C" {
 #define SETTINGS_ASSETS_PATH(path) EXT_PATH("apps_assets/settings") "/" path
 #define SETTINGS_IMG_PATH(path)    SETTINGS_ASSETS_PATH("images") "/" path
 #define SETTINGS_ANIM_PATH(path)   SETTINGS_ASSETS_PATH("animations") "/" path
-#define SETTINGS_ICON_BACK         SETTINGS_IMG_PATH("settings_back_7x7.image")
+#define SETTINGS_ICON_BACK         SETTINGS_IMG_PATH("settings_back_12x12.image")
 
 #ifdef __cplusplus
 }

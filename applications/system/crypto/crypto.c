@@ -35,6 +35,9 @@ static void print_status(FuriHalCryptoStatus status) {
     case FuriHalCryptoStatusErrorCrc:
         printf("CRC error\r\n");
         break;
+    case FuriHalCryptoStatusErrorAccess:
+        printf("Access denied\r\n");
+        break;
     default:
         printf("Unknown error\r\n");
         break;
@@ -129,46 +132,19 @@ void crypto_command_wipe(PipeSide* pipe, FuriString* args, void* context) {
         return;
     }
 
-    sl_status_t status = SL_STATUS_FAIL;
-    switch(partition) {
-    case FuriHalCryptoPartitionMain:
-        status = sl_si91x_command_to_write_common_flash(
-            FURI_HAL_CRYPTO_STORAGE_PARTITION_MAIN_START_ADDRESS,
-            NULL,
-            FURI_HAL_CRYPTO_STORAGE_PARTITION_MAIN_END_ADDRESS -
-                FURI_HAL_CRYPTO_STORAGE_PARTITION_MAIN_START_ADDRESS + 1,
-            1);
-        if(status != SL_STATUS_OK) {
-            printf(
-                "Error: Failed to wipe NWP flash partition_main: "
-                "0x%08lx\r\n",
-                status);
-            printf(CLI_STATUS_ERROR);
-        } else {
-            printf("Wipe NWP flash partition_main\r\n");
-            printf(CLI_STATUS_OK);
-        }
-        break;
-    case FuriHalCryptoPartitionUser:
-        status = sl_si91x_command_to_write_common_flash(
-            FURI_HAL_CRYPTO_STORAGE_PARTITION_USER_START_ADDRESS,
-            NULL,
-            FURI_HAL_CRYPTO_STORAGE_PARTITION_USER_END_ADDRESS -
-                FURI_HAL_CRYPTO_STORAGE_PARTITION_USER_START_ADDRESS + 1,
-            1);
-        if(status != SL_STATUS_OK) {
-            printf(
-                "Error: Failed to wipe NWP flash partition_user: "
-                "0x%08lx\r\n",
-                status);
-            printf(CLI_STATUS_ERROR);
-        } else {
-            printf("Wipe NWP flash partition_user\r\n");
-            printf(CLI_STATUS_OK);
-        }
-        break;
-    default:
-        furi_crash();
+    FuriHalCryptoStatus status = furi_hal_crypto_storage_wipe(partition);
+    static const char* const partition_names[] = {
+        [FuriHalCryptoPartitionMain] = "partition_main",
+        [FuriHalCryptoPartitionUser] = "partition_user",
+    };
+
+    if(status == FuriHalCryptoStatusOk) {
+        printf("Wipe NWP flash %s\r\n", partition_names[partition]);
+        printf(CLI_STATUS_OK);
+    } else {
+        printf("Error: Failed to wipe NWP flash %s: ", partition_names[partition]);
+        print_status(status);
+        printf(CLI_STATUS_ERROR);
     }
 }
 
@@ -663,11 +639,45 @@ void crypto_command_list(PipeSide* pipe, FuriString* args, void* context) {
     }
 }
 
+void crypto_command_protect(PipeSide* pipe, FuriString* args, void* context) {
+    UNUSED(context);
+    UNUSED(pipe);
+
+    if(furi_string_size(args)) {
+        char* args_cstr = (char*)furi_string_get_cstr(args);
+        uint32_t readonly = 0;
+        StrintParseError parse_err = strint_to_uint32(args_cstr, &args_cstr, &readonly, 10);
+        if(parse_err || readonly > 1) {
+            cli_print_usage(
+                "crypto protect", "<readonly: 0 or 1>\r\n", furi_string_get_cstr(args));
+            printf(CLI_STATUS_ERROR);
+            return;
+        }
+        FuriHalCryptoStatus status = furi_hal_crypto_storage_set_access_mode(
+            readonly ? FuriHalCryptoStorageAccessModeReadOnly :
+                       FuriHalCryptoStorageAccessModeReadWrite);
+        if(status != FuriHalCryptoStatusOk) {
+            printf("Cannot set write protect flag: ");
+            print_status(status);
+            printf(CLI_STATUS_ERROR);
+            return;
+        }
+    }
+    printf("Storage access mode is: ");
+    if(furi_hal_crypto_storage_get_access_mode() == FuriHalCryptoStorageAccessModeReadOnly) {
+        printf("read-only\r\n");
+    } else {
+        printf("read-write\r\n");
+    }
+    printf(CLI_STATUS_OK);
+}
+
 static void crypto_command_print_usage(void) {
     printf("Usage:\r\n");
     printf("crypto <cmd> <args>\r\n");
     printf("Cmd list:\r\n");
 
+    printf("\tcrypto protect <readonly: 0 or 1> Set or clear crypto storage read-only mode.\r\n");
     printf("\tcrypto wipe <partition> Clear crypto storage.\r\n");
     printf("\tcrypto dump Dump crypto storage.\r\n");
     printf("\tcrypto read <partition> <type> <id: in HEX> Read key from NWP flash.\r\n");
@@ -718,6 +728,10 @@ void crypto_command(PipeSide* pipe, FuriString* args, void* context) {
         }
         if(furi_string_cmp_str(cmd, "list") == 0) {
             crypto_command_list(pipe, args, context);
+            break;
+        }
+        if(furi_string_cmp_str(cmd, "protect") == 0) {
+            crypto_command_protect(pipe, args, context);
             break;
         }
 

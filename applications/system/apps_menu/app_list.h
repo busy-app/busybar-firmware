@@ -4,7 +4,7 @@
 
 typedef enum {
     AppsMenuEntryIdxClock,
-    AppsMenuEntryIdxDummy,
+    AppsMenuEntryIdxComingSoon,
 
     AppsMenuEntryIdxsCount,
 } AppsMenuEntryIdx;

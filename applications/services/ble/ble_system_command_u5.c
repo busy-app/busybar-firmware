@@ -101,11 +101,11 @@ static void ble_service_init_wait_callback(BleServiceObject* service, bool resul
     Ble* instance = ctx;
 
     uint8_t total_ready;
-    for(total_ready = 0; total_ready < BLE_SERVICES_COUNT; total_ready++) {
+    for(total_ready = 0; total_ready < BleServiceIndexCount; total_ready++) {
         if(!ble_service_is_ready(instance->services[total_ready])) break;
     }
 
-    if(total_ready == BLE_SERVICES_COUNT) {
+    if(total_ready == BleServiceIndexCount) {
         instance->status = BleServiceStatusReady;
         ble_subscribe_on_name_change(instance);
 
@@ -143,7 +143,7 @@ static bool ble_command_init_response(BleIntercomFrameGeneric* frame, void* cont
 
     ble_set_service_post_process_callback(instance, ble_service_init_wait_callback);
 
-    for(size_t i = 0; i < BLE_SERVICES_COUNT; i++) {
+    for(size_t i = 0; i < BleServiceIndexCount; i++) {
         ble_service_enqueue_init(instance->services[i]);
     }
 

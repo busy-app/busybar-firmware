@@ -8,11 +8,11 @@ namespace BSB {
 
 class BSBDACProvider : public DeviceAttestationCredentialsProvider {
 private:
-    void* m_cd_buffer = NULL;
+    uint8_t* m_cd_buffer = nullptr;
     size_t m_cd_size = 0;
 
 public:
-    void SetCertificationDeclaration(const void* buffer, size_t size);
+    void SetCertificationDeclaration(const uint8_t* buffer, size_t size);
     CHIP_ERROR GetCertificationDeclaration(MutableByteSpan& out_cd_buffer) override;
     CHIP_ERROR GetFirmwareInformation(MutableByteSpan& out_firmware_info_buffer) override;
     CHIP_ERROR GetDeviceAttestationCert(MutableByteSpan& out_dac_buffer) override;

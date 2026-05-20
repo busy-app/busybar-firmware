@@ -41,3 +41,6 @@ lv_font_conv --font busy_superscript_7px.ttf -o ../busy_superscript_7.font \
 
 lv_font_conv --font busy_tiny.ttf -o ../busy_tiny.font \
              --bpp 1 --size 6 --no-compress --format bin --range 0-65535
+
+lv_font_conv --font lana_pixel_regular_11px.ttf -o ../lana_pixel_regular_11.font \
+             --bpp 1 --size 11 --no-compress --format bin --range 0-65535

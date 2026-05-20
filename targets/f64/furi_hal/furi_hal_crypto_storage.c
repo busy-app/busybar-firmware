@@ -2,6 +2,7 @@
 #include <furi_hal_crypto.h>
 #include <sl_si91x_driver.h>
 #include <toolbox/crc32_calc.h>
+#include <nvm/nvm.h>
 
 #include <sl_si91x_trng.h>
 #include <psa/crypto.h>
@@ -234,6 +235,55 @@ static FuriHalCryptoStatus load_key(const FuriHalCryptoKeySlot* slot, FuriHalCry
     return FuriHalCryptoStatusOk;
 }
 
+FuriHalCryptoStatus furi_hal_crypto_storage_set_access_mode(FuriHalCryptoStorageAccessMode mode) {
+    Nvm* nvm = furi_record_open(RECORD_NVM);
+    bool success = nvm_write_counter(nvm, NvmKeyCryptoAccessMode, mode);
+    furi_record_close(RECORD_NVM);
+    if(!success) {
+        return FuriHalCryptoStatusFail;
+    } else {
+        return FuriHalCryptoStatusOk;
+    }
+}
+
+FuriHalCryptoStorageAccessMode furi_hal_crypto_storage_get_access_mode(void) {
+    Nvm* nvm = furi_record_open(RECORD_NVM);
+    uint32_t access_mode = 0;
+#if defined(FURI_DEBUG)
+    FuriHalCryptoStorageAccessMode result = FuriHalCryptoStorageAccessModeReadWrite;
+#else
+    FuriHalCryptoStorageAccessMode result = FuriHalCryptoStorageAccessModeReadOnly;
+#endif
+    if(nvm_read_counter(nvm, NvmKeyCryptoAccessMode, &access_mode)) {
+        switch(access_mode) {
+        case FuriHalCryptoStorageAccessModeReadOnly:
+        case FuriHalCryptoStorageAccessModeReadWrite:
+            result = access_mode;
+            break;
+        default:
+            break;
+        }
+    }
+    furi_record_close(RECORD_NVM);
+    return result;
+}
+
+FuriHalCryptoStatus furi_hal_crypto_storage_wipe(FuriHalCryptoPartition partition) {
+    if(furi_hal_crypto_storage_get_access_mode() != FuriHalCryptoStorageAccessModeReadWrite) {
+        return FuriHalCryptoStatusErrorAccess;
+    }
+
+    sl_status_t status = sl_si91x_command_to_write_common_flash(
+        get_partition_start(partition),
+        NULL,
+        get_partition_end(partition) - get_partition_start(partition) + 1,
+        1);
+    if(status != SL_STATUS_OK) {
+        return FuriHalCryptoStatusFail;
+    }
+    return FuriHalCryptoStatusOk;
+}
+
 FuriHalCryptoStatus furi_hal_crypto_storage_write(
     const FuriHalCryptoKey* key,
     FuriHalCryptoPartition partition,
@@ -247,6 +297,10 @@ FuriHalCryptoStatus furi_hal_crypto_storage_write_ex(
     uint32_t id,
     FuriHalCryptoKeySlot* slot_out) {
     furi_check(key);
+
+    if(furi_hal_crypto_storage_get_access_mode() != FuriHalCryptoStorageAccessModeReadWrite) {
+        return FuriHalCryptoStatusErrorAccess;
+    }
 
     FuriHalCryptoKeySlot slot;
     FuriHalCryptoStatus ret =

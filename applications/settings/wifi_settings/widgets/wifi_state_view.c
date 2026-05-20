@@ -1,7 +1,9 @@
 #include "wifi_state_view.h"
 #include "../wifi_settings_i.h"
-#include <storage/storage.h>
+
 #include <gui/widget_i.h>
+
+#include <font_registry/font_registry.h>
 
 #define WIFI_STATE_BACK_CLASS  (&wifi_state_view_back_lvgl_class)
 #define WIFI_STATE_FRONT_CLASS (&wifi_state_view_front_lvgl_class)
@@ -14,7 +16,13 @@ struct WifiStateView {
     lv_obj_t* state_label;
     lv_obj_t* ssid_label;
     lv_obj_t* state_image;
+
     bool is_back;
+
+    FontRegistry* font_registry;
+    const lv_font_t* font_regular_5;
+    const lv_font_t* font_regular_9;
+    const lv_font_t* font_regular_7;
 };
 
 const lv_obj_class_t wifi_state_view_back_lvgl_class;
@@ -26,6 +34,10 @@ static void wifi_state_view_front_lvgl_constructor(const lv_obj_class_t* class_p
     UNUSED(class_p);
     WifiStateView* instance = (WifiStateView*)obj;
     instance->is_back = false;
+
+    instance->font_registry = furi_record_open(RECORD_FONT_REGISTRY);
+    instance->font_regular_5 =
+        font_registry_load_font(instance->font_registry, FONT_BUSY_REGULAR_5);
 
     lv_obj_align(obj, LV_ALIGN_TOP_LEFT, 0, 0);
     lv_obj_set_flex_flow(obj, LV_FLEX_FLOW_ROW);
@@ -47,24 +59,23 @@ static void wifi_state_view_front_lvgl_constructor(const lv_obj_class_t* class_p
     lv_obj_set_style_pad_all(text_cont, 0, LV_PART_MAIN);
     lv_obj_set_style_pad_gap(text_cont, 0, LV_PART_MAIN);
 
-    const lv_font_t* font = lv_theme_get_font_small(obj);
-
     instance->state_label = lv_label_create(text_cont);
     lv_label_set_text(instance->state_label, "Connected");
     lv_obj_set_style_text_color(instance->state_label, COLOR_OK, LV_PART_MAIN);
-    lv_obj_set_style_text_font(instance->state_label, font, LV_PART_MAIN);
+    lv_obj_set_style_text_font(instance->state_label, instance->font_regular_5, LV_PART_MAIN);
 
     instance->ssid_label = lv_label_create(text_cont);
     lv_label_set_text(instance->ssid_label, "");
+    lv_obj_set_style_margin_top(instance->ssid_label, -2, LV_PART_MAIN);
     lv_obj_set_style_text_color(instance->ssid_label, lv_color_white(), LV_PART_MAIN);
-    lv_obj_set_style_text_font(instance->ssid_label, font, LV_PART_MAIN);
+    lv_obj_set_style_text_font(instance->ssid_label, instance->font_regular_5, LV_PART_MAIN);
     lv_obj_set_width(instance->ssid_label, LV_PCT(100));
     lv_label_set_long_mode(instance->ssid_label, LV_LABEL_LONG_SCROLL);
 
     lv_obj_t* arrow = lv_label_create(obj);
     lv_label_set_text(arrow, ">");
     lv_obj_set_style_text_color(arrow, lv_color_white(), LV_PART_MAIN);
-    lv_obj_set_style_text_font(arrow, font, LV_PART_MAIN);
+    lv_obj_set_style_text_font(arrow, instance->font_regular_5, LV_PART_MAIN);
     lv_obj_set_flex_grow(arrow, 0);
 }
 
@@ -73,21 +84,27 @@ static void wifi_state_view_back_lvgl_constructor(const lv_obj_class_t* class_p,
     WifiStateView* instance = (WifiStateView*)obj;
     instance->is_back = true;
 
+    instance->font_registry = furi_record_open(RECORD_FONT_REGISTRY);
+    instance->font_regular_9 =
+        font_registry_load_font(instance->font_registry, FONT_BUSY_REGULAR_9);
+    instance->font_regular_7 =
+        font_registry_load_font(instance->font_registry, FONT_BUSY_REGULAR_7);
+
     lv_obj_align(obj, LV_ALIGN_TOP_LEFT, 2, 2);
     lv_obj_set_flex_flow(obj, LV_FLEX_FLOW_ROW);
     lv_obj_set_flex_align(obj, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
 
     lv_obj_set_style_radius(obj, 5, LV_PART_MAIN);
-    lv_obj_set_style_border_width(obj, 1, LV_PART_MAIN);
-    lv_obj_set_style_border_color(obj, lv_color_white(), LV_PART_MAIN);
     lv_obj_set_style_bg_color(obj, lv_color_white(), LV_PART_MAIN);
     lv_obj_set_style_bg_opa(obj, LV_OPA_COVER, LV_PART_MAIN);
-    lv_obj_set_style_pad_all(obj, 5, LV_PART_MAIN);
-    lv_obj_set_style_pad_gap(obj, 6, LV_PART_MAIN);
+    lv_obj_set_style_pad_left(obj, 3, LV_PART_MAIN);
+    lv_obj_set_style_pad_right(obj, 2, LV_PART_MAIN);
+    lv_obj_set_style_pad_ver(obj, 1, LV_PART_MAIN);
+    lv_obj_set_style_pad_column(obj, 5, LV_PART_MAIN);
 
     instance->state_image = lv_image_create(obj);
     lv_image_set_src(instance->state_image, IMG_PATH("wifi_back_ok_11x11.image"));
-    lv_obj_set_flex_grow(instance->state_image, 0);
+    lv_obj_set_style_pad_top(instance->state_image, 1, LV_PART_MAIN);
     lv_obj_set_style_recolor(instance->state_image, lv_color_black(), LV_PART_MAIN);
     lv_obj_set_style_recolor_opa(instance->state_image, LV_OPA_COVER, LV_PART_MAIN);
 
@@ -97,28 +114,44 @@ static void wifi_state_view_back_lvgl_constructor(const lv_obj_class_t* class_p,
         text_cont, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START);
     lv_obj_set_size(text_cont, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
     lv_obj_set_flex_grow(text_cont, 1);
-    lv_obj_set_style_border_width(text_cont, 0, LV_PART_MAIN);
-    lv_obj_set_style_pad_all(text_cont, 0, LV_PART_MAIN);
-    lv_obj_set_style_pad_gap(text_cont, 2, LV_PART_MAIN);
-
-    const lv_font_t* font = lv_theme_get_font_normal(obj);
+    lv_obj_set_style_pad_row(text_cont, 2, LV_PART_MAIN);
 
     instance->state_label = lv_label_create(text_cont);
     lv_label_set_text(instance->state_label, "Connected");
     lv_obj_set_style_text_color(instance->state_label, lv_color_black(), LV_PART_MAIN);
-    lv_obj_set_style_text_font(instance->state_label, font, LV_PART_MAIN);
+    lv_obj_set_style_text_font(instance->state_label, instance->font_regular_9, LV_PART_MAIN);
 
     instance->ssid_label = lv_label_create(text_cont);
     lv_label_set_text(instance->ssid_label, "");
+    lv_obj_set_style_margin_top(instance->ssid_label, -2, LV_PART_MAIN);
     lv_obj_set_style_text_color(instance->ssid_label, lv_color_black(), LV_PART_MAIN);
+    lv_obj_set_style_text_font(instance->ssid_label, instance->font_regular_7, LV_PART_MAIN);
     lv_obj_set_width(instance->ssid_label, LV_PCT(100));
     lv_label_set_long_mode(instance->ssid_label, LV_LABEL_LONG_SCROLL);
 
     lv_obj_t* arrow = lv_label_create(obj);
     lv_label_set_text(arrow, ">");
     lv_obj_set_style_text_color(arrow, lv_color_black(), LV_PART_MAIN);
-    lv_obj_set_style_text_font(arrow, font, LV_PART_MAIN);
-    lv_obj_set_flex_grow(arrow, 0);
+    lv_obj_set_style_text_font(arrow, instance->font_regular_9, LV_PART_MAIN);
+}
+
+static void wifi_state_view_front_lvgl_destructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
+    UNUSED(class_p);
+    WifiStateView* instance = (WifiStateView*)obj;
+
+    font_registry_unload_font(instance->font_registry, instance->font_regular_5);
+
+    furi_record_close(RECORD_FONT_REGISTRY);
+}
+
+static void wifi_state_view_back_lvgl_destructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
+    UNUSED(class_p);
+    WifiStateView* instance = (WifiStateView*)obj;
+
+    font_registry_unload_font(instance->font_registry, instance->font_regular_9);
+    font_registry_unload_font(instance->font_registry, instance->font_regular_7);
+
+    furi_record_close(RECORD_FONT_REGISTRY);
 }
 
 /* Public API */
@@ -179,6 +212,7 @@ void wifi_state_view_set_state(WifiStateView* instance, bool connected, const ch
 const lv_obj_class_t wifi_state_view_front_lvgl_class = {
     .base_class = &widget_lvgl_class,
     .constructor_cb = wifi_state_view_front_lvgl_constructor,
+    .destructor_cb = wifi_state_view_front_lvgl_destructor,
     .name = "widget-wifi-state-view-front",
     .width_def = LV_PCT(100),
     .height_def = LV_PCT(100),
@@ -188,8 +222,9 @@ const lv_obj_class_t wifi_state_view_front_lvgl_class = {
 const lv_obj_class_t wifi_state_view_back_lvgl_class = {
     .base_class = &widget_lvgl_class,
     .constructor_cb = wifi_state_view_back_lvgl_constructor,
+    .destructor_cb = wifi_state_view_back_lvgl_destructor,
     .name = "widget-wifi-state-view-back",
     .width_def = LV_PCT(95),
-    .height_def = LV_PCT(50),
+    .height_def = LV_SIZE_CONTENT,
     .instance_size = sizeof(WifiStateView),
 };

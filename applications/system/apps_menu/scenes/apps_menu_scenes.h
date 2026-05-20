@@ -5,6 +5,7 @@
 typedef enum {
     AppsMenuSceneIdStart,
     AppsMenuSceneIdMain,
+    AppsMenuSceneIdComingSoon,
 
     AppsMenuSceneIdMAX
 } AppsMenuSceneId;

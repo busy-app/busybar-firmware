@@ -1,7 +1,8 @@
 #include "../system_settings.h"
 
-#include <settings_helpers/status_view.h>
 #include <settings_helpers/gui_params.h>
+
+#include <gui/modules/status_view.h>
 
 #define REBOOT_TIMER_MS (2500)
 
@@ -29,7 +30,7 @@ static void system_settings_scene_power_restart_on_enter(void* context) {
         for(GuiDisplayId disp = 0; disp < GuiDisplayIdMax; disp++) {
             scene->statuses[disp] = status_view_alloc(windows[disp]);
             status_view_set_icon(scene->statuses[disp], images[disp]);
-            status_view_set_header(scene->statuses[disp], "Restarting device...");
+            status_view_set_primary_text(scene->statuses[disp], "Restarting device...");
         }
     });
 

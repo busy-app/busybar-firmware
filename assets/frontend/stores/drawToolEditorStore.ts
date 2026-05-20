@@ -998,15 +998,6 @@ export const useDrawToolEditorStore = defineStore('drawToolEditor', () => {
     showLeaveEditorModal.value = true;
   }
 
-  function cancelLeaveEditorRequest () {
-    if (isLeavingEditor.value) {
-      return;
-    }
-
-    showLeaveEditorModal.value = false;
-    pendingLeaveEditorAction = null;
-  }
-
   async function discardAndLeaveEditor () {
     if (isLeavingEditor.value) {
       return;
@@ -1015,6 +1006,7 @@ export const useDrawToolEditorStore = defineStore('drawToolEditor', () => {
     const pendingAction = pendingLeaveEditorAction;
     showLeaveEditorModal.value = false;
     pendingLeaveEditorAction = null;
+    resetEditor();
     await pendingAction?.();
   }
 
@@ -1114,7 +1106,6 @@ export const useDrawToolEditorStore = defineStore('drawToolEditor', () => {
     resetImageUploadModal,
     registerSaveBeforeLeaveEditorHandler,
     requestLeaveEditor,
-    cancelLeaveEditorRequest,
     discardAndLeaveEditor,
     saveAndLeaveEditor
   };

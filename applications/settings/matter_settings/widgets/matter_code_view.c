@@ -1,37 +1,30 @@
 #include "matter_code_view.h"
+#include "../matter_settings_i.h"
 
 #include <gui/widget_i.h>
-#include <assets_images.h>
 
-#define MY_CLASS           (&matter_code_view_lvgl_class)
-#define MY_LOGO_CLASS      (&matter_code_view_logo_lvgl_class)
-#define MY_WORDMARK_CLASS  (&matter_code_view_wordmark_lvgl_class)
-#define MY_MAN_TITLE_CLASS (&matter_code_view_man_title_lvgl_class)
-#define MY_MAN_CODE_CLASS  (&matter_code_view_man_code_lvgl_class)
-#define MY_QR_CODE_CLASS   (&matter_code_view_qr_code_lvgl_class)
+#define MATTER_CODE_VIEW_MANUAL_CODE_COLOR lv_color_hex(0x666666)
 
-#define CARD_RADIUS     (4)
-#define MAN_TITLE_COLOR lv_color_hex(0x444444)
-#define BG_COLOR        lv_color_white()
-#define TEXT_COLOR      lv_color_black()
+#define MATTER_CODE_VIEW_ICON_IMAGE_PATH IMG_PATH("matter_back_21x21.image")
+#define MATTER_CODE_VIEW_TEXT_IMAGE_PATH IMG_PATH("matter_text_back_42x8.image")
 
 struct MatterCodeView {
     Widget base;
-    lv_obj_t* logo;
-    lv_obj_t* wordmark;
-    lv_obj_t* state_line;
-    lv_obj_t* man_title;
-    lv_obj_t* man_code;
+
     lv_obj_t* qr_code;
+
+    lv_obj_t* logo_icon_image;
+    lv_obj_t* logo_text_image;
+
+    lv_obj_t* manual_code_label;
+    lv_obj_t* manual_title_label;
+    lv_obj_t* state_line_label;
+
     FontRegistry* font_registry;
+    const lv_font_t* font_busy_regular_7;
 };
 
 const lv_obj_class_t matter_code_view_lvgl_class;
-const lv_obj_class_t matter_code_view_logo_lvgl_class;
-const lv_obj_class_t matter_code_view_wordmark_lvgl_class;
-const lv_obj_class_t matter_code_view_man_title_lvgl_class;
-const lv_obj_class_t matter_code_view_man_code_lvgl_class;
-const lv_obj_class_t matter_code_view_qr_code_lvgl_class;
 
 // ==========
 // Public API
@@ -40,14 +33,11 @@ const lv_obj_class_t matter_code_view_qr_code_lvgl_class;
 MatterCodeView* matter_code_view_alloc(Widget* parent) {
     furi_check(parent);
 
-    lv_obj_t* obj = lv_obj_class_create_obj(MY_CLASS, TO_LV_OBJ(parent));
+    lv_obj_t* obj = lv_obj_class_create_obj(&matter_code_view_lvgl_class, TO_LV_OBJ(parent));
     lv_obj_class_init_obj(obj);
-    lv_obj_set_style_radius(obj, CARD_RADIUS, LV_PART_MAIN);
-    lv_obj_set_style_pad_all(obj, 6, LV_PART_MAIN);
-    lv_obj_set_style_bg_opa(obj, LV_OPA_COVER, LV_PART_MAIN);
-    lv_obj_set_style_bg_color(obj, BG_COLOR, LV_PART_MAIN);
 
     MatterCodeView* instance = (MatterCodeView*)obj;
+
     return instance;
 }
 
@@ -61,19 +51,12 @@ Widget* matter_code_view_get_base(MatterCodeView* instance) {
     return &instance->base;
 }
 
-void matter_code_view_set_logo_path(MatterCodeView* instance, const char* path) {
-    furi_check(instance);
-    furi_check(path);
-    lv_image_set_src(instance->logo, path);
-}
-
 void matter_code_view_set_codes(MatterCodeView* instance, const char* qr, const char* manual) {
     furi_check(instance);
     furi_check(qr);
     furi_check(manual);
 
-    lv_label_set_text(instance->man_code, manual);
-    lv_qrcode_set_size(instance->qr_code, 66);
+    lv_label_set_text(instance->manual_code_label, manual);
     lv_qrcode_update(instance->qr_code, qr, strlen(qr));
 }
 
@@ -85,50 +68,54 @@ static void matter_code_view_lvgl_constructor(const lv_obj_class_t* class_p, lv_
     UNUSED(class_p);
 
     MatterCodeView* instance = (MatterCodeView*)obj;
+    lv_obj_set_style_pad_hor(obj, 3, LV_PART_MAIN);
+    lv_obj_set_style_pad_top(obj, 7, LV_PART_MAIN);
+    lv_obj_set_style_pad_bottom(obj, 5, LV_PART_MAIN);
+    lv_obj_set_style_radius(obj, 4, LV_PART_MAIN);
+    lv_obj_set_style_bg_opa(obj, LV_OPA_COVER, LV_PART_MAIN);
+    lv_obj_set_style_bg_color(obj, lv_color_white(), LV_PART_MAIN);
 
     instance->font_registry = furi_record_open(RECORD_FONT_REGISTRY);
+    instance->font_busy_regular_7 =
+        font_registry_load_font(instance->font_registry, FONT_BUSY_REGULAR_7);
 
-    instance->logo = lv_obj_class_create_obj(MY_LOGO_CLASS, obj);
-    lv_obj_class_init_obj(instance->logo);
-    lv_obj_set_style_align(instance->logo, LV_ALIGN_TOP_LEFT, LV_PART_MAIN);
+    instance->qr_code = lv_qrcode_create(obj);
+    lv_qrcode_set_size(instance->qr_code, 66);
+    lv_obj_set_style_align(instance->qr_code, LV_ALIGN_TOP_RIGHT, LV_PART_MAIN);
 
-    instance->wordmark = lv_obj_class_create_obj(MY_WORDMARK_CLASS, obj);
-    lv_obj_class_init_obj(instance->wordmark);
-    lv_label_set_text(instance->wordmark, "matter");
-    lv_obj_set_style_align(instance->wordmark, LV_ALIGN_TOP_LEFT, LV_PART_MAIN);
-    lv_obj_set_style_x(instance->wordmark, 29, LV_PART_MAIN);
-    lv_obj_set_style_y(instance->wordmark, 3, LV_PART_MAIN);
-    lv_obj_set_style_text_color(instance->wordmark, TEXT_COLOR, LV_PART_MAIN);
+    instance->logo_icon_image = lv_image_create(obj);
+    lv_image_set_src(instance->logo_icon_image, MATTER_CODE_VIEW_ICON_IMAGE_PATH);
+    lv_obj_set_align(instance->logo_icon_image, LV_ALIGN_TOP_LEFT);
+
+    instance->logo_text_image = lv_image_create(obj);
+    lv_image_set_src(instance->logo_text_image, MATTER_CODE_VIEW_TEXT_IMAGE_PATH);
+    lv_obj_set_style_pad_top(instance->logo_text_image, 1, LV_PART_MAIN);
+    lv_obj_align_to(
+        instance->logo_text_image, instance->logo_icon_image, LV_ALIGN_OUT_RIGHT_MID, 8, 0);
+
+    instance->manual_code_label = lv_label_create(obj);
+    lv_obj_set_style_align(instance->manual_code_label, LV_ALIGN_BOTTOM_LEFT, LV_PART_MAIN);
+    lv_obj_set_style_text_color(
+        instance->manual_code_label, MATTER_CODE_VIEW_MANUAL_CODE_COLOR, LV_PART_MAIN);
     lv_obj_set_style_text_font(
-        instance->wordmark,
-        font_registry_load_font(instance->font_registry, FONT_BUSY_REGULAR_9),
-        LV_PART_MAIN);
+        instance->manual_code_label, instance->font_busy_regular_7, LV_PART_MAIN);
 
-    instance->state_line = lv_obj_class_create_obj(MY_MAN_TITLE_CLASS, obj);
-    lv_obj_class_init_obj(instance->state_line);
-    lv_obj_set_style_text_font(instance->state_line, lv_theme_get_font_small(obj), LV_PART_MAIN);
-    lv_label_set_text(instance->state_line, "Ready to pair");
-    lv_obj_set_style_align(instance->state_line, LV_ALIGN_BOTTOM_LEFT, LV_PART_MAIN);
-    lv_obj_set_style_y(instance->state_line, -24, LV_PART_MAIN);
-    lv_obj_set_style_text_color(instance->state_line, TEXT_COLOR, LV_PART_MAIN);
+    instance->manual_title_label = lv_label_create(obj);
+    lv_label_set_text(instance->manual_title_label, "Manual code:");
+    lv_obj_align_to(
+        instance->manual_title_label, instance->manual_code_label, LV_ALIGN_OUT_TOP_LEFT, 0, -3);
+    lv_obj_set_style_text_color(
+        instance->manual_title_label, MATTER_CODE_VIEW_MANUAL_CODE_COLOR, LV_PART_MAIN);
+    lv_obj_set_style_text_font(
+        instance->manual_title_label, instance->font_busy_regular_7, LV_PART_MAIN);
 
-    instance->man_title = lv_obj_class_create_obj(MY_MAN_TITLE_CLASS, obj);
-    lv_obj_class_init_obj(instance->man_title);
-    lv_obj_set_style_text_font(instance->man_title, lv_theme_get_font_small(obj), LV_PART_MAIN);
-    lv_label_set_text(instance->man_title, "Manual code");
-    lv_obj_set_style_align(instance->man_title, LV_ALIGN_BOTTOM_LEFT, LV_PART_MAIN);
-    lv_obj_set_style_y(instance->man_title, -11, LV_PART_MAIN);
-    lv_obj_set_style_text_color(instance->man_title, MAN_TITLE_COLOR, LV_PART_MAIN);
-
-    instance->man_code = lv_obj_class_create_obj(MY_MAN_CODE_CLASS, obj);
-    lv_obj_class_init_obj(instance->man_code);
-    lv_obj_set_style_align(instance->man_code, LV_ALIGN_BOTTOM_LEFT, LV_PART_MAIN);
-    lv_obj_set_style_text_color(instance->man_code, TEXT_COLOR, LV_PART_MAIN);
-    lv_obj_set_style_text_font(instance->man_code, lv_theme_get_font_small(obj), LV_PART_MAIN);
-
-    instance->qr_code = lv_obj_class_create_obj(MY_QR_CODE_CLASS, obj);
-    lv_obj_class_init_obj(instance->qr_code);
-    lv_obj_set_style_align(instance->qr_code, LV_ALIGN_RIGHT_MID, LV_PART_MAIN);
+    instance->state_line_label = lv_label_create(obj);
+    lv_label_set_text(instance->state_line_label, "Ready to pair");
+    lv_obj_align_to(
+        instance->state_line_label, instance->manual_title_label, LV_ALIGN_OUT_TOP_LEFT, 0, -6);
+    lv_obj_set_style_text_color(instance->state_line_label, lv_color_black(), LV_PART_MAIN);
+    lv_obj_set_style_text_font(
+        instance->state_line_label, instance->font_busy_regular_7, LV_PART_MAIN);
 }
 
 static void matter_code_view_lvgl_destructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
@@ -136,8 +123,7 @@ static void matter_code_view_lvgl_destructor(const lv_obj_class_t* class_p, lv_o
 
     MatterCodeView* instance = (MatterCodeView*)obj;
 
-    font_registry_unload_font(
-        instance->font_registry, lv_obj_get_style_text_font(instance->wordmark, LV_PART_MAIN));
+    font_registry_unload_font(instance->font_registry, instance->font_busy_regular_7);
 
     furi_record_close(RECORD_FONT_REGISTRY);
 }
@@ -146,43 +132,8 @@ const lv_obj_class_t matter_code_view_lvgl_class = {
     .base_class = &widget_lvgl_class,
     .constructor_cb = matter_code_view_lvgl_constructor,
     .destructor_cb = matter_code_view_lvgl_destructor,
-    .name = "widget-status-view",
+    .name = "widget-matter-code-view",
     .width_def = LV_PCT(100),
     .height_def = LV_PCT(100),
     .instance_size = sizeof(MatterCodeView),
-};
-
-const lv_obj_class_t matter_code_view_logo_lvgl_class = {
-    .base_class = &lv_image_class,
-    .name = "matter-code-view-logo",
-    .width_def = LV_SIZE_CONTENT,
-    .height_def = LV_SIZE_CONTENT,
-};
-
-const lv_obj_class_t matter_code_view_wordmark_lvgl_class = {
-    .base_class = &lv_label_class,
-    .name = "matter-code-view-wordmark",
-    .width_def = LV_SIZE_CONTENT,
-    .height_def = LV_SIZE_CONTENT,
-};
-
-const lv_obj_class_t matter_code_view_man_title_lvgl_class = {
-    .base_class = &lv_label_class,
-    .name = "matter-code-view-man-title",
-    .width_def = LV_SIZE_CONTENT,
-    .height_def = LV_SIZE_CONTENT,
-};
-
-const lv_obj_class_t matter_code_view_man_code_lvgl_class = {
-    .base_class = &lv_label_class,
-    .name = "matter-code-view-man-code",
-    .width_def = LV_SIZE_CONTENT,
-    .height_def = LV_SIZE_CONTENT,
-};
-
-const lv_obj_class_t matter_code_view_qr_code_lvgl_class = {
-    .base_class = &lv_qrcode_class,
-    .name = "matter-code-view-qr-code",
-    .width_def = LV_SIZE_CONTENT,
-    .height_def = LV_SIZE_CONTENT,
 };

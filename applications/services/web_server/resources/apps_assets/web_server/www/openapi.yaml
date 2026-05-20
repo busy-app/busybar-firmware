@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: BUSY Bar HTTP API
   description: HTTP API for BUSY Bar web server
-  version: 21.1.0
+  version: 22.0.0
   contact:
     name: tbd
 
@@ -1859,12 +1859,10 @@ components:
 
     NameInfo:
       type: object
-      additionalProperties: false
       properties:
         name:
           type: string
           minLength: 1
-          maxLength: 20
           pattern: "^[a-zA-Z0-9 !()_=+;:,.?'|@#$%^&*\\[\\]{}/\\\\\"<>-]+$"
           description: Device name (letters, digits, spaces and common punctuation; no backtick or tilde)
           example: "BUSY bar"
@@ -2014,7 +2012,7 @@ components:
             y: 10
             type: text
             text: "Hello, World! Long text"
-            font: medium
+            font: normal
             color: "#FFFFFFFF"
             width: 72
             scroll_rate: 1000
@@ -2113,10 +2111,14 @@ components:
               type: string
               description: One of the available fonts to display the text in
               enum:
+                - tiny
                 - small
-                - medium
-                - medium_condensed
-                - big
+                - normal
+                - condensed
+                - bold
+                - large
+                - extra_large
+                - global
             color:
               type: string
               description: "Color to display the text in, in #RRGGBBAA format"
