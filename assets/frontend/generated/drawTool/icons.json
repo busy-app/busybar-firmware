@@ -1,0 +1,344 @@
+{
+  "faces": [
+    {
+      "id": "emoji-angry",
+      "fileName": "emoji-angry.svg",
+      "path": "draw_tool/faces/emoji-angry.svg"
+    },
+    {
+      "id": "emoji-awkward",
+      "fileName": "emoji-awkward.svg",
+      "path": "draw_tool/faces/emoji-awkward.svg"
+    },
+    {
+      "id": "emoji-cry",
+      "fileName": "emoji-cry.svg",
+      "path": "draw_tool/faces/emoji-cry.svg"
+    },
+    {
+      "id": "emoji-dead",
+      "fileName": "emoji-dead.svg",
+      "path": "draw_tool/faces/emoji-dead.svg"
+    },
+    {
+      "id": "emoji-evil",
+      "fileName": "emoji-evil.svg",
+      "path": "draw_tool/faces/emoji-evil.svg"
+    },
+    {
+      "id": "emoji-expressionless",
+      "fileName": "emoji-expressionless.svg",
+      "path": "draw_tool/faces/emoji-expressionless.svg"
+    },
+    {
+      "id": "emoji-eyes",
+      "fileName": "emoji-eyes.svg",
+      "path": "draw_tool/faces/emoji-eyes.svg"
+    },
+    {
+      "id": "emoji-fatigue",
+      "fileName": "emoji-fatigue.svg",
+      "path": "draw_tool/faces/emoji-fatigue.svg"
+    },
+    {
+      "id": "emoji-glasses",
+      "fileName": "emoji-glasses.svg",
+      "path": "draw_tool/faces/emoji-glasses.svg"
+    },
+    {
+      "id": "emoji-grinning",
+      "fileName": "emoji-grinning.svg",
+      "path": "draw_tool/faces/emoji-grinning.svg"
+    },
+    {
+      "id": "emoji-happy",
+      "fileName": "emoji-happy.svg",
+      "path": "draw_tool/faces/emoji-happy.svg"
+    },
+    {
+      "id": "emoji-heart-eyes",
+      "fileName": "emoji-heart-eyes.svg",
+      "path": "draw_tool/faces/emoji-heart-eyes.svg"
+    },
+    {
+      "id": "emoji-laught",
+      "fileName": "emoji-laught.svg",
+      "path": "draw_tool/faces/emoji-laught.svg"
+    },
+    {
+      "id": "emoji-melted",
+      "fileName": "emoji-melted.svg",
+      "path": "draw_tool/faces/emoji-melted.svg"
+    },
+    {
+      "id": "emoji-panic",
+      "fileName": "emoji-panic.svg",
+      "path": "draw_tool/faces/emoji-panic.svg"
+    },
+    {
+      "id": "emoji-relief",
+      "fileName": "emoji-relief.svg",
+      "path": "draw_tool/faces/emoji-relief.svg"
+    },
+    {
+      "id": "emoji-sad",
+      "fileName": "emoji-sad.svg",
+      "path": "draw_tool/faces/emoji-sad.svg"
+    },
+    {
+      "id": "emoji-sleep",
+      "fileName": "emoji-sleep.svg",
+      "path": "draw_tool/faces/emoji-sleep.svg"
+    },
+    {
+      "id": "emoji-surprised",
+      "fileName": "emoji-surprised.svg",
+      "path": "draw_tool/faces/emoji-surprised.svg"
+    },
+    {
+      "id": "emoji-sweat-smile",
+      "fileName": "emoji-sweat-smile.svg",
+      "path": "draw_tool/faces/emoji-sweat-smile.svg"
+    },
+    {
+      "id": "emoji-tounge",
+      "fileName": "emoji-tounge.svg",
+      "path": "draw_tool/faces/emoji-tounge.svg"
+    }
+  ],
+  "food": [
+    {
+      "id": "apple-green",
+      "fileName": "apple-green.svg",
+      "path": "draw_tool/food/apple-green.svg"
+    },
+    {
+      "id": "apple-red",
+      "fileName": "apple-red.svg",
+      "path": "draw_tool/food/apple-red.svg"
+    },
+    {
+      "id": "apple-yellow",
+      "fileName": "apple-yellow.svg",
+      "path": "draw_tool/food/apple-yellow.svg"
+    },
+    {
+      "id": "burger",
+      "fileName": "burger.svg",
+      "path": "draw_tool/food/burger.svg"
+    },
+    {
+      "id": "chicken",
+      "fileName": "chicken.svg",
+      "path": "draw_tool/food/chicken.svg"
+    },
+    {
+      "id": "coctail",
+      "fileName": "coctail.svg",
+      "path": "draw_tool/food/coctail.svg"
+    },
+    {
+      "id": "coffee",
+      "fileName": "coffee.svg",
+      "path": "draw_tool/food/coffee.svg"
+    },
+    {
+      "id": "drink-1",
+      "fileName": "drink-1.svg",
+      "path": "draw_tool/food/drink-1.svg"
+    },
+    {
+      "id": "drink-2",
+      "fileName": "drink-2.svg",
+      "path": "draw_tool/food/drink-2.svg"
+    },
+    {
+      "id": "pie",
+      "fileName": "pie.svg",
+      "path": "draw_tool/food/pie.svg"
+    },
+    {
+      "id": "pizza-margarita",
+      "fileName": "pizza-margarita.svg",
+      "path": "draw_tool/food/pizza-margarita.svg"
+    },
+    {
+      "id": "pizza-peperoni",
+      "fileName": "pizza-peperoni.svg",
+      "path": "draw_tool/food/pizza-peperoni.svg"
+    },
+    {
+      "id": "pizza",
+      "fileName": "pizza.svg",
+      "path": "draw_tool/food/pizza.svg"
+    },
+    {
+      "id": "tea",
+      "fileName": "tea.svg",
+      "path": "draw_tool/food/tea.svg"
+    },
+    {
+      "id": "toast",
+      "fileName": "toast.svg",
+      "path": "draw_tool/food/toast.svg"
+    },
+    {
+      "id": "tomato",
+      "fileName": "tomato.svg",
+      "path": "draw_tool/food/tomato.svg"
+    }
+  ],
+  "hearts": [
+    {
+      "id": "heart-blue",
+      "fileName": "heart-blue.svg",
+      "path": "draw_tool/hearts/heart-blue.svg"
+    },
+    {
+      "id": "heart-green",
+      "fileName": "heart-green.svg",
+      "path": "draw_tool/hearts/heart-green.svg"
+    },
+    {
+      "id": "heart-light-blue",
+      "fileName": "heart-light-blue.svg",
+      "path": "draw_tool/hearts/heart-light-blue.svg"
+    },
+    {
+      "id": "heart-orange",
+      "fileName": "heart-orange.svg",
+      "path": "draw_tool/hearts/heart-orange.svg"
+    },
+    {
+      "id": "heart-pink",
+      "fileName": "heart-pink.svg",
+      "path": "draw_tool/hearts/heart-pink.svg"
+    },
+    {
+      "id": "heart-red",
+      "fileName": "heart-red.svg",
+      "path": "draw_tool/hearts/heart-red.svg"
+    },
+    {
+      "id": "heart-violet",
+      "fileName": "heart-violet.svg",
+      "path": "draw_tool/hearts/heart-violet.svg"
+    },
+    {
+      "id": "heart-yellow",
+      "fileName": "heart-yellow.svg",
+      "path": "draw_tool/hearts/heart-yellow.svg"
+    },
+    {
+      "id": "sparks-1",
+      "fileName": "sparks-1.svg",
+      "path": "draw_tool/hearts/sparks-1.svg"
+    },
+    {
+      "id": "sparks-2",
+      "fileName": "sparks-2.svg",
+      "path": "draw_tool/hearts/sparks-2.svg"
+    }
+  ],
+  "nature": [
+    {
+      "id": "crescent-moon-1",
+      "fileName": "crescent-moon-1.svg",
+      "path": "draw_tool/nature/crescent-moon-1.svg"
+    },
+    {
+      "id": "crescent-moon-2",
+      "fileName": "crescent-moon-2.svg",
+      "path": "draw_tool/nature/crescent-moon-2.svg"
+    },
+    {
+      "id": "leaf",
+      "fileName": "leaf.svg",
+      "path": "draw_tool/nature/leaf.svg"
+    },
+    {
+      "id": "moon-1",
+      "fileName": "moon-1.svg",
+      "path": "draw_tool/nature/moon-1.svg"
+    },
+    {
+      "id": "moon-2",
+      "fileName": "moon-2.svg",
+      "path": "draw_tool/nature/moon-2.svg"
+    }
+  ],
+  "sport": [
+    {
+      "id": "basketball",
+      "fileName": "basketball.svg",
+      "path": "draw_tool/sport/basketball.svg"
+    },
+    {
+      "id": "football",
+      "fileName": "football.svg",
+      "path": "draw_tool/sport/football.svg"
+    },
+    {
+      "id": "tennis",
+      "fileName": "tennis.svg",
+      "path": "draw_tool/sport/tennis.svg"
+    }
+  ],
+  "work": [
+    {
+      "id": "available",
+      "fileName": "available.svg",
+      "path": "draw_tool/work/available.svg"
+    },
+    {
+      "id": "book",
+      "fileName": "book.svg",
+      "path": "draw_tool/work/book.svg"
+    },
+    {
+      "id": "dialog-no",
+      "fileName": "dialog-no.svg",
+      "path": "draw_tool/work/dialog-no.svg"
+    },
+    {
+      "id": "dialog-yes",
+      "fileName": "dialog-yes.svg",
+      "path": "draw_tool/work/dialog-yes.svg"
+    },
+    {
+      "id": "dialog",
+      "fileName": "dialog.svg",
+      "path": "draw_tool/work/dialog.svg"
+    },
+    {
+      "id": "home",
+      "fileName": "home.svg",
+      "path": "draw_tool/work/home.svg"
+    },
+    {
+      "id": "no",
+      "fileName": "no.svg",
+      "path": "draw_tool/work/no.svg"
+    },
+    {
+      "id": "study",
+      "fileName": "study.svg",
+      "path": "draw_tool/work/study.svg"
+    },
+    {
+      "id": "unavailable",
+      "fileName": "unavailable.svg",
+      "path": "draw_tool/work/unavailable.svg"
+    },
+    {
+      "id": "work",
+      "fileName": "work.svg",
+      "path": "draw_tool/work/work.svg"
+    },
+    {
+      "id": "yes",
+      "fileName": "yes.svg",
+      "path": "draw_tool/work/yes.svg"
+    }
+  ]
+}

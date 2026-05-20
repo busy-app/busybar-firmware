@@ -16,6 +16,8 @@
       <UButton
         label="Pair device"
         icon="i-bi-plus"
+        color="neutral"
+        class="justify-center sm:justify-start"
         @click="matterStore.requestMatterLink()"
       />
 
@@ -159,6 +161,13 @@ async function init () {
   showRebootingModal.value = false;
   await matterStore.fetchMatterCommissioning();
 }
+
+watch(() => matterStore.matterCommissioning.fabricCount, (newValue, oldValue) => {
+  if (matterStore.matterLink.showModal && oldValue < newValue) {
+    matterStore.matterLink.showModal = false;
+    onMatterLinkModalClose();
+  }
+});
 
 watch(
   () => [matterStore.matterLink.showModal, matterStore.matterLink.qrCodeMatrix],

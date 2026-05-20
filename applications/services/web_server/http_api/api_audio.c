@@ -30,26 +30,50 @@ static bool api_audio_play_stop_callback(
         return true;
     }
 
-    char temp_str[FILE_NAME_LEN_MAX];
+    FuriString* file_path = NULL;
+    char* app_name = NULL;
+    char* uploaded_path = NULL;
+    char* stock_path = NULL;
     bool success = false;
 
-    FuriString* file_path = furi_string_alloc();
     do {
-        if(msg->query.len == 0) {
+        app_name = mg_json_get_str(msg->body, "$.application_name");
+        if(!app_name) {
+            MG_REPLY_ERROR(conn, 400, "Missing application_name");
             break;
         }
 
-        int var_len = mg_http_get_var(&msg->query, "application_name", temp_str, sizeof(temp_str));
-        if(var_len <= 0) {
+        uploaded_path = mg_json_get_str(msg->body, "$.path");
+        stock_path = mg_json_get_str(msg->body, "$.stock_path");
+        if(uploaded_path && stock_path) {
+            MG_REPLY_ERROR(conn, 400, "Both path and stock_path are defined");
             break;
         }
-        furi_string_printf(file_path, "%s/%.*s", AUDIO_ASSETS_DIR, var_len, temp_str);
+        if(!uploaded_path && !stock_path) {
+            MG_REPLY_ERROR(conn, 400, "Missing path or stock_path");
+            break;
+        }
 
-        var_len = mg_http_get_var(&msg->query, "path", temp_str, sizeof(temp_str));
-        if(var_len <= 0) {
-            break;
+        if(uploaded_path) {
+            file_path =
+                furi_string_alloc_printf("%s/%s/%s", AUDIO_ASSETS_DIR, app_name, uploaded_path);
         }
-        furi_string_cat_printf(file_path, "/%.*s", var_len, temp_str);
+
+        if(stock_path) {
+            char* file_name = NULL;
+            for(char* c = stock_path; *c != 0; c++) {
+                if(*c == '/') {
+                    *c = '\0';
+                    file_name = c + 1;
+                }
+            }
+            if(!file_name || *file_name == '\0') {
+                MG_REPLY_ERROR(conn, 400, "Wrong file name");
+                break;
+            }
+
+            file_path = furi_string_alloc_printf(SHARED_SOUND_PATH("%s"), file_name);
+        }
 
         Audio* audio = furi_record_open(RECORD_AUDIO);
         audio_enable(audio);
@@ -57,14 +81,17 @@ static bool api_audio_play_stop_callback(
         audio_disable(audio);
         furi_record_close(RECORD_AUDIO);
 
+        if(success) {
+            MG_REPLY_OK(conn);
+        } else {
+            MG_REPLY_ERROR(conn, 500, "Failed to play audio");
+        }
     } while(0);
 
-    furi_string_free(file_path);
-    if(success) {
-        MG_REPLY_OK(conn);
-    } else {
-        MG_REPLY_BAD_REQUEST(conn);
-    }
+    if(app_name) free(app_name);
+    if(uploaded_path) free(uploaded_path);
+    if(stock_path) free(stock_path);
+    if(file_path) furi_string_free(file_path);
 
     return true;
 }
@@ -101,7 +128,8 @@ static bool api_audio_volume_callback(
 
             int value_len = mg_http_get_var(&msg->query, "volume", value_str, sizeof(value_str));
             if(value_len <= 0) break;
-            int value_num = sscanf(value_str, "%u", &volume);
+            bool value_present =
+                mg_str_to_num(mg_str_n(value_str, value_len), 10, &volume, sizeof(volume));
 
             int silent_len = mg_http_get_var(&msg->query, "silent", value_str, sizeof(value_str));
             if(silent_len == 1) {
@@ -116,7 +144,7 @@ static bool api_audio_volume_callback(
                 break;
             }
 
-            if(value_num == 1) {
+            if(value_present) {
                 if((volume > 100) || (volume < 0)) break;
                 Audio* audio = furi_record_open(RECORD_AUDIO);
                 audio_set_volume(audio, (float)volume / 100.f);

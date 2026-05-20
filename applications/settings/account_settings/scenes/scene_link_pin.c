@@ -2,6 +2,8 @@
 #include <settings_helpers/gui_params.h>
 #include "../widgets/link_pin_view.h"
 
+#define STATUS_LIGHTS_COLOR ((Color)COLOR_MAKE_RGB(0xFF, 0xFF, 0xFF))
+
 typedef enum {
     SceneEventRequestPin = AppEventSceneEventsStart,
 } SceneEvent;
@@ -73,6 +75,12 @@ static void account_scene_link_pin_on_enter(void* context) {
     });
 
     account_scene_link_pin_update(instance, data, false);
+
+    brightness_control_set_brightness_override(
+        instance->brightness_control, BrightnessControlModuleStatusLights, BRIGHTNESS_MAX);
+    status_lights_run_preset(
+        instance->status_lights, StatusLightsPresetBlink, STATUS_LIGHTS_COLOR);
+
     account_model_request_link_pin(instance->model);
 }
 
@@ -90,6 +98,10 @@ static void account_scene_link_pin_on_exit(void* context) {
         link_pin_view_free(data->back_view);
         link_pin_view_free(data->front_view);
     });
+
+    status_lights_run_preset(instance->status_lights, StatusLightsPresetOff, (Color){});
+    brightness_control_reset_brightness_override(
+        instance->brightness_control, BrightnessControlModuleStatusLights);
 }
 
 static bool account_scene_link_pin_on_event(const SceneManagerEvent* event, void* context) {

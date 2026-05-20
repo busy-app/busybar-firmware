@@ -69,25 +69,27 @@ def attach_failure_screenshots(base_url: str) -> None:
     Intended for use in pytest hooks where no StreamingAPI instance is available.
     Silently does nothing if the device cannot be reached.
     """
-    for display, name in (
-        (0, "Front Display (on failure)"),
-        (1, "Back Display (on failure)"),
-    ):
-        try:
-            resp = requests.get(
-                f"{base_url}/api/screen",
-                params={"display": display},
-                timeout=3,
-            )
-            if resp.ok and resp.content:
-                png_bytes = raw_to_png(base64.b64decode(resp.content), display)
-                allure.attach(
-                    png_bytes,
-                    name=name,
-                    attachment_type=allure.attachment_type.PNG,
-                )
-        except Exception:
-            pass  # device unreachable or decode error — skip
+    with requests.Session() as session:
+        session.headers.update({"User-Agent": "BSB-AutoTest/1.0"})
+        for display, name in (
+            (0, "Front Display (on failure)"),
+            (1, "Back Display (on failure)"),
+        ):
+            try:
+                with session.get(
+                    f"{base_url}/api/screen",
+                    params={"display": display},
+                    timeout=3,
+                ) as resp:
+                    if resp.ok and resp.content:
+                        png_bytes = raw_to_png(base64.b64decode(resp.content), display)
+                        allure.attach(
+                            png_bytes,
+                            name=name,
+                            attachment_type=allure.attachment_type.PNG,
+                        )
+            except Exception:
+                pass  # device unreachable or decode error — skip
 
 
 # === API Client ===

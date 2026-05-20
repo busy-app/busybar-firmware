@@ -1,7 +1,7 @@
 #include "../matter_settings_i.h"
-#include <settings_helpers/status_view.h>
 
 #include <gui/modules/submenu.h>
+#include <gui/modules/status_view.h>
 
 typedef enum {
     SceneSubmenuIndexPairing,
@@ -40,8 +40,7 @@ static void matter_scene_on_enter(void* context) {
     const MatterStatus status = matter_get_commissioned_fabrics(app->matter, &fabrics);
 
     if(status != MatterStatusOk) {
-        // TODO: Better way of handling errors at this point
-        furi_event_loop_stop(app->event_loop);
+        scene_manager_next_scene(app->scene_manager, SceneIdWrecked);
         return;
     }
 
@@ -103,7 +102,6 @@ static bool matter_scene_on_event(const SceneManagerEvent* event, void* context)
                 scene_manager_next_scene(app->scene_manager, SceneIdPairing);
             } else if(scene->menu_idx == SceneSubmenuIndexReset) {
                 matter_factory_reset(app->matter);
-                scene_manager_next_scene(app->scene_manager, SceneIdReboot);
             } else {
                 furi_crash();
             }

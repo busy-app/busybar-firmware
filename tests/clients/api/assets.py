@@ -192,12 +192,12 @@ class AssetsAPI(BaseAPI):
 
         Args:
             app_name: Application name
-            path: Audio file path
+            path: Audio file path (within app's assets directory)
         """
         return self.post(
             "/api/audio/play",
             AssetResultResponse,
-            params={"application_name": app_name, "path": path},
+            json={"application_name": app_name, "path": path},
         )
 
     def stop_audio(self) -> AssetResultResponse:

@@ -11,6 +11,8 @@
 #define COLOR_INACTIVE_HEX CONCATENATE(0x, COLOR_INACTIVE)
 #define COLOR_ACTIVE_HEX   CONCATENATE(0x, COLOR_ACTIVE)
 
+#define BREADCRUMBS_SPACER "\u200A"
+
 ARRAY_DEF(LocationStack, const char*, M_CSTR_OPLIST);
 
 struct NavBar {
@@ -42,6 +44,8 @@ static void nav_bar_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* ob
     lv_obj_set_style_text_align(instance->header_label, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
     lv_obj_set_style_text_color(
         instance->header_label, lv_color_hex(COLOR_INACTIVE_HEX), LV_PART_MAIN);
+    lv_obj_set_style_text_letter_space(instance->header_label, 1, LV_PART_MAIN);
+    lv_obj_set_style_pad_top(instance->header_label, 1, LV_PART_MAIN);
 
     instance->breadcrumbs_label = lv_label_create(obj);
     lv_obj_set_style_text_font(
@@ -49,6 +53,8 @@ static void nav_bar_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* ob
     lv_obj_set_style_text_color(
         instance->breadcrumbs_label, lv_color_hex(COLOR_INACTIVE_HEX), LV_PART_MAIN);
     lv_label_set_recolor(instance->breadcrumbs_label, true);
+    lv_obj_set_style_text_letter_space(instance->breadcrumbs_label, 1, LV_PART_MAIN);
+    lv_obj_set_style_pad_top(instance->breadcrumbs_label, 1, LV_PART_MAIN);
     lv_obj_add_flag(instance->breadcrumbs_label, LV_OBJ_FLAG_HIDDEN);
 
     LocationStack_init(instance->locations);
@@ -70,10 +76,12 @@ static void nav_bar_update_breadcrumbs(NavBar* instance) {
         LocationStack_it_t it;
         LocationStack_it(it, instance->locations);
         for(; !LocationStack_last_p(it); LocationStack_next(it)) {
-            furi_string_cat_printf(text, " %s >", *LocationStack_cref(it));
+            furi_string_cat_printf(
+                text, BREADCRUMBS_SPACER "%s" BREADCRUMBS_SPACER ">", *LocationStack_cref(it));
         }
 
-        furi_string_cat_printf(text, " #" TOSTRING(COLOR_ACTIVE) " %s #", *LocationStack_cref(it));
+        furi_string_cat_printf(
+            text, BREADCRUMBS_SPACER "#" TOSTRING(COLOR_ACTIVE) " %s #", *LocationStack_cref(it));
 
         lv_label_set_text(instance->breadcrumbs_label, furi_string_get_cstr(text));
         lv_obj_remove_flag(instance->breadcrumbs_label, LV_OBJ_FLAG_HIDDEN);

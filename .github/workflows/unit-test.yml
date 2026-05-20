@@ -34,14 +34,14 @@ jobs:
     timeout-minutes: 20
     steps:
       - name: 'Checkout code at the build’s commit'
-        uses: actions/checkout@v4
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 2
 
       - name: 'Update submodules'
         run: |
-          git submodule update --init --recursive --jobs=$(nproc) scripts/toolchain fbt_layers/fbtng
+          git submodule update --init --recursive --jobs="$(nproc)" scripts/toolchain fbt_layers/fbtng
 
       - name: 'Download unit test package'
         run: |
@@ -50,6 +50,26 @@ jobs:
           echo "Using URL: $URL"
           curl --fail -L -o busybar-f${{ inputs.target }}-unittests.zip "$URL"
           unzip -q busybar-f${{ inputs.target }}-unittests.zip -d unittests
+
+      - name: 'Prepare ELF files for crash traces'
+        run: |
+          set -euo pipefail
+          mkdir -p /_work/elf
+
+          U5_ELF=$(find unittests -type f -name "busybar-f${{ inputs.target }}-firmware-*.elf" -print -quit)
+          SI917_ELF=$(find unittests -type f -name "busybar-f${{ inputs.target }}-sil_firmware-*.elf" -print -quit)
+
+          if [ -z "$U5_ELF" ]; then
+            echo "ERROR: U5 ELF not found in unit test package"
+            exit 1
+          fi
+          if [ -z "$SI917_ELF" ]; then
+            echo "ERROR: SI917 ELF not found in unit test package"
+            exit 1
+          fi
+
+          cp "$U5_ELF" /_work/elf/busybar-f${{ inputs.target }}-firmware.elf
+          cp "$SI917_ELF" /_work/elf/busybar-f${{ inputs.target }}-sil_firmware.elf
 
       - name: 'Flash firmware'
         id: flashing
@@ -78,7 +98,7 @@ jobs:
 
       - name: 'Configure AWS CLI'
         if: always()
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@d979d5b3a71173a29b74b5b88418bfda9437d885 # v6.1.1
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -94,8 +114,8 @@ jobs:
 
           if [ -f "$LOG_FILE" ]; then
             aws s3 cp "$LOG_FILE" "$S3_PATH"
-            echo "## 📋 Runner Logs" >> $GITHUB_STEP_SUMMARY
-            echo "- [runlog.log]($PUBLIC_URL)" >> $GITHUB_STEP_SUMMARY
+            echo "## 📋 Runner Logs" >> "$GITHUB_STEP_SUMMARY"
+            echo "- [runlog.log]($PUBLIC_URL)" >> "$GITHUB_STEP_SUMMARY"
           else
             echo "Log file not found: $LOG_FILE"
           fi

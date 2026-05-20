@@ -46,6 +46,15 @@ static void apps_menu_scene_main_on_enter(void* context) {
             AppsMenuEntryIdxClock,
             apps_scene_setup_menu_callback,
             instance);
+        menu_add_item(
+            data->front_menu,
+            "Coming soon...",
+            "",
+            APPS_MENU_IMG_PATH("soon_front_8x8.image"),
+            AppsMenuEntryIdxComingSoon,
+            apps_scene_setup_menu_callback,
+            instance);
+        menu_set_selected_item_index(data->front_menu, data->menu_idx);
 
         // back:
         data->back_menu = menu_alloc(instance->back_scene_window);
@@ -57,6 +66,15 @@ static void apps_menu_scene_main_on_enter(void* context) {
             0,
             NULL,
             NULL);
+        menu_add_item(
+            data->back_menu,
+            "Coming soon...",
+            "",
+            APPS_MENU_IMG_PATH("soon_back_11x11.image"),
+            0,
+            NULL,
+            NULL);
+        menu_set_selected_item_index(data->back_menu, data->menu_idx);
 
         widget_set_visible(nav_bar_get_base(instance->back_nav_bar), true);
     });
@@ -76,6 +94,7 @@ static void apps_menu_scene_main_on_exit(void* context) {
 
 static bool apps_menu_scene_main_on_event(const SceneManagerEvent* event, void* context) {
     furi_assert(context);
+
     AppsMenu* instance = context;
     AppsMenuSceneMain* data =
         scene_manager_get_scene_data(instance->scene_manager, AppsMenuSceneIdMain);
@@ -87,15 +106,19 @@ static bool apps_menu_scene_main_on_event(const SceneManagerEvent* event, void* 
 
             const char* target_application = apps_menu_entries[data->menu_idx];
 
-            strlcpy(
-                instance->settings.active_application,
-                target_application,
-                sizeof(instance->settings.active_application));
-            apps_menu_settings_save(&instance->settings);
+            if(target_application) {
+                strlcpy(
+                    instance->settings.active_application,
+                    target_application,
+                    sizeof(instance->settings.active_application));
+                apps_menu_settings_save(&instance->settings);
 
-            Desktop* desktop = furi_record_open(RECORD_DESKTOP);
-            desktop_replace_current_app(desktop, target_application, NULL);
-            furi_record_close(RECORD_DESKTOP);
+                Desktop* desktop = furi_record_open(RECORD_DESKTOP);
+                desktop_replace_current_app(desktop, target_application, NULL);
+                furi_record_close(RECORD_DESKTOP);
+            } else {
+                scene_manager_next_scene(instance->scene_manager, AppsMenuSceneIdComingSoon);
+            }
             return true;
 
         default:

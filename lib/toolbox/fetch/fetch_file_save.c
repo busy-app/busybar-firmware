@@ -10,7 +10,8 @@ struct FetchFileSave {
 
 #define TAG "FetchFileSave"
 
-FetchFileSave* fetch_file_save_alloc(FuriString* file_path) {
+static FetchFileSave*
+    fetch_file_save_alloc_internal(FuriString* file_path, FS_OpenMode open_mode) {
     furi_check(file_path);
 
     FetchFileSave* instance = malloc(sizeof(FetchFileSave));
@@ -66,7 +67,7 @@ FetchFileSave* fetch_file_save_alloc(FuriString* file_path) {
                instance->file_handle,
                furi_string_get_cstr(instance->file_path),
                FSAM_WRITE,
-               FSOM_CREATE_ALWAYS)) {
+               open_mode)) {
             FURI_LOG_E(
                 TAG,
                 "Failed to open file for writing: %s",
@@ -84,6 +85,14 @@ FetchFileSave* fetch_file_save_alloc(FuriString* file_path) {
 
     furi_string_free(path);
     return instance;
+}
+
+FetchFileSave* fetch_file_save_alloc(FuriString* file_path) {
+    return fetch_file_save_alloc_internal(file_path, FSOM_CREATE_ALWAYS);
+}
+
+FetchFileSave* fetch_file_save_alloc_nonblocking(FuriString* file_path) {
+    return fetch_file_save_alloc_internal(file_path, FSOM_CREATE_ALWAYS | FSOM_NONBLOCKING);
 }
 
 void fetch_file_save_free(FetchFileSave* instance) {

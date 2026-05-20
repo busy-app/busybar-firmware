@@ -89,6 +89,7 @@ struct Audio {
     AudioFadeDirection fade_direction;
     FuriString* queued_file;
 
+    bool play_holdoff_running;
     FuriEventLoopTimer* play_holdoff;
     size_t enable_holders;
 };
@@ -236,11 +237,9 @@ static void audio_play_holdoff_finished(void* context) {
     Audio* instance = context;
 
     FURI_LOG_T(TAG, "holdoff fired");
-
-    furi_event_loop_timer_free(instance->play_holdoff);
-    instance->play_holdoff = NULL;
-
     audio_do_load_queued_file(instance);
+
+    instance->play_holdoff_running = false;
 }
 
 static void audio_message_queue_callback(FuriEventLoopObject* object, void* context) {
@@ -264,7 +263,7 @@ static void audio_message_queue_callback(FuriEventLoopObject* object, void* cont
             instance->fade_direction = AudioFadeDirectionOut;
             // next file will be played after current one fades out
             result = true;
-        } else if(instance->play_holdoff) {
+        } else if(instance->play_holdoff_running) {
             // file will be played after holdoff fires
             result = true;
         } else {
@@ -296,18 +295,14 @@ static void audio_message_queue_callback(FuriEventLoopObject* object, void* cont
         instance->enable_holders++;
         if(instance->enable_holders == 1) {
             furi_hal_sai_enable_amplifier();
-            instance->play_holdoff = furi_event_loop_timer_alloc(
-                instance->event_loop,
-                audio_play_holdoff_finished,
-                FuriEventLoopTimerTypeOnce,
-                instance);
             furi_event_loop_timer_start(instance->play_holdoff, AUDIO_PLAY_HOLDOFF);
+            instance->play_holdoff_running = true;
         }
         result = true;
 
     } else if(msg.type == AudioMessageTypeDisable) {
         instance->enable_holders--;
-        if(instance->sai_running || instance->play_holdoff) {
+        if(instance->sai_running || instance->play_holdoff_running) {
             // will be disabled in SAI callback when the file finishes
         } else {
             furi_hal_sai_disable_amplifier();
@@ -338,7 +333,7 @@ static void audio_custom_event_callback(uint32_t events, void* context) {
         should_stop = true;
 
     } else {
-        furi_check(buffer_index < AudioBufferIndexBoth, "Possible SAI underrun");
+        if(buffer_index >= AudioBufferIndexBoth) FURI_LOG_W(TAG, "Possible SAI underrun");
 
         if(!audio_load_file_data(instance, buffer_index)) {
             should_stop = true;
@@ -391,7 +386,9 @@ static Audio* audio_alloc(void) {
 
     instance->queued_file = furi_string_alloc();
 
-    // TODO: Create record only when MMC has been mounted
+    instance->play_holdoff = furi_event_loop_timer_alloc(
+        instance->event_loop, audio_play_holdoff_finished, FuriEventLoopTimerTypeOnce, instance);
+
     furi_record_create(RECORD_AUDIO, instance);
 
     return instance;

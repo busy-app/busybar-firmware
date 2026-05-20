@@ -52,7 +52,7 @@ class TestAssetsAPI:
                 "x": 36,
                 "y": 10,
                 "align": "center",
-                "font": "medium",
+                "font": "normal",
                 "color": "#FFFFFFFF",
                 "display": "front",
             }
@@ -120,7 +120,7 @@ class TestAssetsAPI:
     @pytest.mark.frontend
     def test_api_audio_play(self, assets_api: AssetsAPI, settings_api: SettingsAPI):
         """Test POST /api/audio/play endpoint"""
-        test_app_id = "test_audio_play"
+        test_app_id = "test_audio_play1"
         test_audio_file = "smb_powerup.snd"
         audio_path = ASSETS_DIR / test_audio_file
         # Set volume to a low level for testing to avoid loud audio during test runs
@@ -138,6 +138,7 @@ class TestAssetsAPI:
             )
 
         try:
+            sleep(0.5)
             assets_api.play_audio(test_app_id, test_audio_file)
             sleep(2)
             assets_api.stop_audio()

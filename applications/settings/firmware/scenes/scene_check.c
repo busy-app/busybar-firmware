@@ -1,12 +1,10 @@
 #include "../firmware_i.h"
 
-#include <gui/modules/flex_box.h>
-#include <gui/modules/label.h>
-#include <gui/modules/anim_player.h>
+#include <gui/modules/status_view.h>
 
-#include <furi_hal_cortex.h>
+#include <toolbox/timers.h>
 
-#define CHECK_TIMEOUT_US (10 * 1000 * 1000)
+#define CHECK_TIMEOUT_MS (10 * 1000)
 
 typedef enum {
     FirmwareSettingsCheckSceneEventAvailable = FirmwareSettingsEventSceneEventsStart,
@@ -15,11 +13,11 @@ typedef enum {
 } FirmwareSettingsCheckSceneEvent;
 
 typedef struct {
-    FlexBox* front_box;
-    FlexBox* back_box;
+    StatusView* front_status;
+    StatusView* back_status;
 
     FuriStateSub* check_subscription;
-    FuriHalCortexTimer timeout_timer;
+    CoarseTimer timeout_timer;
 } FirmwareSettingsCheckScene;
 
 static inline FirmwareSettingsCheckScene*
@@ -85,37 +83,21 @@ static void firmware_settings_check_scene_on_enter(void* context) {
 
     with_gui(instance->gui, {
         /* front layout setup */
-        scene->front_box = flex_box_alloc(instance->front_scene_window);
-        flex_box_set_flow(scene->front_box, FlexBoxFlowRow);
-        flex_box_set_align(scene->front_box, FlexBoxAlignStart, FlexBoxAlignCenter);
-        flex_box_set_spacing(scene->front_box, 2);
-        widget_set_align(flex_box_get_base(scene->front_box), AlignLeftMid);
-
-        AnimPlayer* front_anim = anim_player_alloc(flex_box_get_base(scene->front_box));
-        anim_player_set_source(front_anim, SHARED_ANIM_PATH("spinner_front_8x8.anim"));
-
-        Label* front_label = label_alloc(flex_box_get_base(scene->front_box));
-        label_set_text(front_label, "Checking...");
+        scene->front_status = status_view_alloc(instance->front_scene_window);
+        status_view_set_icon(scene->front_status, SHARED_ANIM_PATH("spinner_front_8x8.anim"));
+        status_view_set_primary_text(scene->front_status, "Checking...");
 
         /* back layout setup */
-        scene->back_box = flex_box_alloc(instance->back_scene_window);
-        flex_box_set_flow(scene->back_box, FlexBoxFlowColumn);
-        flex_box_set_align(scene->back_box, FlexBoxAlignCenter, FlexBoxAlignCenter);
-        flex_box_set_spacing(scene->back_box, 8);
-        widget_set_align(flex_box_get_base(scene->back_box), AlignCenter);
-
-        AnimPlayer* back_anim = anim_player_alloc(flex_box_get_base(scene->back_box));
-        anim_player_set_source(back_anim, SHARED_ANIM_PATH("spinner_back_16x16.anim"));
-
-        Label* back_label = label_alloc(flex_box_get_base(scene->back_box));
-        label_set_text(back_label, "Checking for update...");
+        scene->back_status = status_view_alloc(instance->back_scene_window);
+        status_view_set_icon(scene->back_status, SHARED_ANIM_PATH("spinner_back_16x16.anim"));
+        status_view_set_primary_text(scene->back_status, "Checking for update...");
     });
 
     FuriState* check_state = updater_get_check_state(instance->updater);
     scene->check_subscription = furi_state_subscribe(
         check_state, firmware_settings_check_scene_update_check_callback, instance);
 
-    scene->timeout_timer = furi_hal_cortex_timer_get(CHECK_TIMEOUT_US);
+    scene->timeout_timer = coarse_timer_create(CHECK_TIMEOUT_MS);
     updater_check_for_update(instance->updater);
 }
 
@@ -128,8 +110,8 @@ static void firmware_settings_check_scene_on_exit(void* context) {
     furi_state_unsubscribe(scene->check_subscription);
 
     with_gui(instance->gui, {
-        flex_box_free(scene->back_box);
-        flex_box_free(scene->front_box);
+        status_view_free(scene->back_status);
+        status_view_free(scene->front_status);
     });
 }
 
@@ -153,7 +135,7 @@ static bool firmware_settings_check_scene_on_event(const SceneManagerEvent* even
             return true;
 
         case FirmwareSettingsCheckSceneEventFailure:
-            if(furi_hal_cortex_timer_is_expired(scene->timeout_timer)) {
+            if(coarse_timer_is_expired(scene->timeout_timer)) {
                 firmware_settings_check_scene_prepare_failure_result(instance);
                 scene_manager_replace_current_scene(
                     instance->scene_manager, FirmwareSettingsSceneIdxCheckResult);

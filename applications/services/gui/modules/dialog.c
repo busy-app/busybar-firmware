@@ -119,6 +119,7 @@ static void dialog_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj
         lv_obj_set_size(instance->text_cont, LV_PCT(100), LV_PCT(100));
 
         lv_obj_set_size(instance->options_cont, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
+        lv_obj_set_style_pad_row(instance->options_cont, -2, LV_PART_MAIN);
     }
 
     instance->options_group = lv_group_create();
@@ -185,7 +186,6 @@ Dialog* dialog_alloc(Widget* widget) {
     lv_obj_class_init_obj(obj);
 
     Dialog* instance = (Dialog*)obj;
-    widget_set_input_feed_callback((Widget*)instance, dialog_input_callback);
 
     return instance;
 }
@@ -265,6 +265,15 @@ const lv_obj_class_t dialog_lvgl_class = {
     .width_def = LV_PCT(100),
     .height_def = LV_PCT(100),
     .instance_size = sizeof(Dialog),
+    .user_data =
+        (void*)&(const WidgetClassData){
+            .input_callback = dialog_input_callback,
+            .style_callbacks =
+                {
+                    [GuiDisplayIdFront] = NULL,
+                    [GuiDisplayIdBack] = NULL,
+                },
+        },
 };
 
 const lv_obj_class_t dialog_text_lvgl_class = {

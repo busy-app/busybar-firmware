@@ -6,11 +6,16 @@
 
 #ifdef SRV_INTERCOM
 #include <intercom/intercom.h>
-#endif
+#else /* SRV_INTERCOM */
+#include <furi_hal_gpio.h>
+#endif /* SRV_INTERCOM */
 
 #define INPUT_PRESS_TICKS               150
 #define INPUT_LONG_PRESS_COUNTS         2
 #define INPUT_SWITCH_STARTUP_TIMEOUT_MS 1500
+
+#define INPUT_FALLBACK_POLL_PERIOD_MS 10
+#define INPUT_FALLBACK_DEBOUNCE_TICKS 5
 
 #define INPUT_KEY_PRESS(key)   (1UL << key)
 #define INPUT_KEY_RELEASE(key) (1UL << (key + InputKeyMAX))
@@ -34,6 +39,11 @@ struct Input {
     FuriEventLoopTimer* switch_startup_timer;
     InputPinState* pin_states;
     volatile uint32_t sequence;
+
+#ifndef SRV_INTERCOM
+    size_t fallback_debounce_count;
+    bool fallback_is_button_pressed;
+#endif /* SRV_INTERCOM */
 };
 
 const char* input_get_key_name(InputKey key) {
@@ -206,7 +216,34 @@ static void input_intercom_rx_callback(const void* data, size_t data_size, void*
         input_key_toggle(input, key);
     }
 }
-#endif
+#else /* SRV_INTERCOM */
+static void input_fallback_timer_callback(void* context) {
+    Input* input = context;
+
+    bool is_pressed = furi_hal_gpio_read(&gpio_fallback_confirm);
+    bool is_changing = false;
+
+    if(is_pressed) {
+        if(input->fallback_debounce_count < INPUT_FALLBACK_DEBOUNCE_TICKS) {
+            input->fallback_debounce_count++;
+            is_changing = true;
+        }
+    } else if(input->fallback_debounce_count > 0) {
+        input->fallback_debounce_count--;
+        is_changing = true;
+    }
+
+    if(!is_changing && input->fallback_is_button_pressed != is_pressed) {
+        input->fallback_is_button_pressed = is_pressed;
+
+        if(is_pressed) {
+            input_key_press(input, InputKeyOk);
+        } else {
+            input_key_release(input, InputKeyOk);
+        }
+    }
+}
+#endif /* SRV_INTERCOM */
 
 int32_t input_srv(void* p) {
     UNUSED(p);
@@ -245,7 +282,18 @@ int32_t input_srv(void* p) {
 #ifdef SRV_INTERCOM
     Intercom* intercom = furi_record_open(RECORD_INTERCOM);
     intercom_channel_open(intercom, IntercomChannelIdInput, input_intercom_rx_callback, input);
-#endif
+#else /* SRV_INTERCOM */
+    /* we assume, audio isn't used by running firmware */
+    furi_hal_gpio_init(&gpio_fallback_confirm, GpioModeInput, GpioPullNo, GpioSpeedLow);
+
+    furi_event_loop_timer_start(
+        furi_event_loop_timer_alloc(
+            input->event_loop,
+            input_fallback_timer_callback,
+            FuriEventLoopTimerTypePeriodic,
+            input),
+        INPUT_FALLBACK_POLL_PERIOD_MS);
+#endif /* SRV_INTERCOM */
 
     furi_event_loop_run(input->event_loop);
 

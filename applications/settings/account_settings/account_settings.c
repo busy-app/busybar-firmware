@@ -145,6 +145,9 @@ static AccountSettings* account_settings_alloc() {
     instance->front_display = furi_record_open(RECORD_FRONT_DISPLAY);
     instance->back_display = furi_record_open(RECORD_BACK_DISPLAY);
 
+    instance->status_lights = furi_record_open(RECORD_STATUS_LIGHTS);
+    instance->brightness_control = furi_record_open(RECORD_BRIGHTNESS_CONTROL);
+
     with_gui(instance->gui, {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         gui_layer_add_input_callback(layer, account_settings_gui_input_callback, instance);
@@ -159,7 +162,7 @@ static AccountSettings* account_settings_alloc() {
         nav_bar_set_header_image(instance->back_nav_bar, SETTINGS_ICON_BACK);
         nav_bar_push_location(instance->back_nav_bar, "ACCOUNT");
         widget_set_height(nav_bar_get_base(instance->back_nav_bar), SETTINGS_NAV_BAR_HEIGHT);
-        widget_set_padding(nav_bar_get_base(instance->back_nav_bar), 2, 2, 0, 0);
+        widget_set_padding(nav_bar_get_base(instance->back_nav_bar), 1, 0, 0, 2);
 
         instance->back_scene_window = widget_alloc(flex_layout_get_base(instance->back_container));
         flex_layout_set_child_widget_grow(
@@ -229,6 +232,8 @@ static void account_settings_free(AccountSettings* instance) {
     furi_record_close(RECORD_GUI);
     furi_record_close(RECORD_FRONT_DISPLAY);
     furi_record_close(RECORD_BACK_DISPLAY);
+    furi_record_close(RECORD_STATUS_LIGHTS);
+    furi_record_close(RECORD_BRIGHTNESS_CONTROL);
 
     furi_event_loop_unsubscribe(instance->event_loop, instance->input_queue);
     furi_event_loop_unsubscribe(instance->event_loop, instance->event_queue);

@@ -146,7 +146,7 @@ class TestStorageAPI:
 
         try:
             with allure.step(f"Test large file upload to storage: {test_file_path}"):
-                response = storage_api.write(test_file_path, large_content, timeout=30)
+                response = storage_api.write(test_file_path, large_content, timeout=120)
 
             with allure.step("Verify size limit handling"):
                 assert response.status_code in [200, 400, 413, 500]

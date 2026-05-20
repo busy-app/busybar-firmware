@@ -1,6 +1,7 @@
 #include "../matter_settings_i.h"
 #include "../widgets/matter_code_view.h"
-#include <settings_helpers/status_view.h>
+
+#include <gui/modules/status_view.h>
 
 #include <matter/matter.h>
 
@@ -25,20 +26,18 @@ static void matter_scene_pairing_on_enter(void* context) {
     const MatterStatus status = matter_enable_commissioning(app->matter, &info);
 
     if(status != MatterStatusOk) {
-        // TODO: Better way of handling errors at this point
-        furi_event_loop_stop(app->event_loop);
+        scene_manager_replace_current_scene(app->scene_manager, SceneIdWrecked);
         return;
     }
 
     with_gui(app->gui, {
         scene->front_prompt = status_view_alloc(app->front_scene_window);
-        status_view_set_icon(scene->front_prompt, SETTINGS_IMG_PATH("info_front_7x7.image"));
-        status_view_set_header(scene->front_prompt, "Look at back\nscreen");
+        status_view_set_icon(scene->front_prompt, SHARED_IMG_PATH("info_front_8x8.image"));
+        status_view_set_primary_text(scene->front_prompt, "Look at back\nscreen");
 
         GuiLayer* top_layer = gui_get_layer(app->gui, GuiLayerIdSystem);
         Widget* top_back_layer_root = gui_layer_get_root_widget(top_layer, GuiDisplayIdBack);
         scene->back_codes = matter_code_view_alloc(top_back_layer_root);
-        matter_code_view_set_logo_path(scene->back_codes, IMG_PATH("matter_back_21x21.image"));
         matter_code_view_set_codes(scene->back_codes, info.qr_code, info.manual_code);
     });
 

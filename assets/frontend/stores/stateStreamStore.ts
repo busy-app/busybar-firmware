@@ -1,85 +1,59 @@
 import { defineStore } from 'pinia';
 import { useApiStore } from '@/stores/apiStore';
-import { decodeStateMessage, type StateMessage } from '@/util/stateStreamMessage';
-import { UpdateStage } from '@/stores/firmwareStore';
 import {
-  stateStreamWebSocketClient,
-  type StateStreamSubscription
-} from '@/util/state-stream/stateStreamWebSocketClient';
+  LocalStateStream,
+  DataStatus,
+  BSB_State,
+  BSB_Update,
+  StreamLifecycle,
+  ConnectionStatus
+} from '@busy-app/busy-lib';
+import type { ProcessedState, StreamStatus, SmartHomePairingInfo } from '@busy-app/busy-lib';
 
-function isProtoMessage (value: unknown): value is Record<string, unknown> {
-  return !!value && typeof value === 'object' && !Array.isArray(value) && !(value instanceof Uint8Array);
-}
-
-function getString (value: unknown): string | undefined {
-  return typeof value === 'string' ? value : undefined;
-}
-
-function getNumber (value: unknown): number | undefined {
-  return typeof value === 'number' ? value : undefined;
-}
-
-function getNumericValue (value: unknown): number | undefined {
-  if (typeof value === 'number') {
-    return value;
-  }
-
-  if (typeof value === 'string') {
-    const parsed = Number(value);
-    return Number.isFinite(parsed) ? parsed : undefined;
-  }
-
-  return undefined;
-}
-
-function lowerCaseEnum (value: string | undefined): string | undefined {
-  return value?.toLowerCase();
-}
-
-function mapWifiSecurity (value: string | undefined) {
+function mapWifiSecurity (value: BSB_State.WifiStateConnected['security']) {
   switch (value) {
-    case 'OPEN':
+    case BSB_State.WifiSecurity.OPEN:
       return 'Open';
-    case 'WPA':
+    case BSB_State.WifiSecurity.WPA:
       return 'WPA';
-    case 'WPA2':
+    case BSB_State.WifiSecurity.WPA2:
       return 'WPA2';
-    case 'WEP':
+    case BSB_State.WifiSecurity.WEP:
       return 'WEP';
-    case 'WPA_WPA2':
+    case BSB_State.WifiSecurity.WPA_WPA2:
       return 'WPA/WPA2';
-    case 'WPA3':
+    case BSB_State.WifiSecurity.WPA3:
       return 'WPA3';
-    case 'WPA2_WPA3':
+    case BSB_State.WifiSecurity.WPA2_WPA3:
       return 'WPA2/WPA3';
     default:
       return undefined;
   }
 }
 
-function mapWifiMethod (value: string | undefined) {
+function mapWifiMethod (value: BSB_State.IpAddress['method']) {
   switch (value) {
-    case 'DHCP':
+    case BSB_State.IpConfigurationMethod.DHCP:
       return 'dhcp';
-    case 'STATIC':
+    case BSB_State.IpConfigurationMethod.STATIC:
       return 'static';
     default:
       return undefined;
   }
 }
 
-function mapWifiProtocol (value: string | undefined) {
+function mapWifiProtocol (value: BSB_State.IpAddress['protocol']) {
   switch (value) {
-    case 'IPV4':
+    case BSB_State.IpProtocol.IPV4:
       return 'ipv4';
-    case 'IPV6':
+    case BSB_State.IpProtocol.IPV6:
       return 'ipv6';
     default:
       return undefined;
   }
 }
 
-function inferWifiProtocol (value: string | undefined) {
+function inferWifiProtocol (value: BSB_State.IpAddress['address']) {
   if (!value) {
     return undefined;
   }
@@ -95,15 +69,15 @@ function inferWifiProtocol (value: string | undefined) {
   return undefined;
 }
 
-function mapMatterStatus (value: string | undefined) {
+function mapMatterStatus (value: BSB_State.MatterCommissioningState['status']) {
   switch (value) {
-    case 'NEVER_STARTED':
+    case BSB_State.MatterCommissioningStatus.NEVER_STARTED:
       return 'never_started';
-    case 'STARTED':
+    case BSB_State.MatterCommissioningStatus.STARTED:
       return 'started';
-    case 'COMPLETED_SUCCESSFULLY':
+    case BSB_State.MatterCommissioningStatus.COMPLETED_SUCCESSFULLY:
       return 'completed_successfully';
-    case 'FAILED':
+    case BSB_State.MatterCommissioningStatus.FAILED:
       return 'failed';
     default:
       return undefined;
@@ -117,50 +91,53 @@ export const useStateStreamStore = defineStore('stateStream', () => {
   const brightnessStore = useBrightnessStore();
   const firmwareStore = useFirmwareStore();
   const matterStore = useMatterStore();
-  const screenStreamStore = useScreenStreamStore();
   const timezoneStore = useTimezoneStore();
   const wifiStore = useWifiStore();
+  const screenStreamStore = useScreenStreamStore();
   const barUrl = useRuntimeConfig().public.barUrl || window.location.origin;
+  const configStore = useConfigStore();
 
-  const isWebSocketConnected = ref(false);
+  const streamNotRestartable = ref(false);
   const showStateStreamFailBanner = ref(false);
+  const showResourceLimitErrorBanner = ref(false);
 
-  type DataCallback = (data: StateMessage) => void;
-  type StopCallback = () => void;
-
-  let activeSubscription: StateStreamSubscription | null = null;
-  let connectionGeneration = 0;
-
-  function releaseSubscription (subscription: StateStreamSubscription | null) {
-    if (!subscription) {
-      return;
+  const stream = shallowRef(new LocalStateStream(
+    { addr: barUrl, token: apiStore.apiKey || '' },
+    {
+      timeout: Number(configStore.get('stateStreamTimeout')),
+      dataTimeout: Number(configStore.get('stateStreamDataTimeout')),
+      maxReconnectAttempts: Number(configStore.get('stateStreamMaxReconnectAttempts')),
+      reconnectDelay: Number(configStore.get('stateStreamReconnectDelay'))
     }
+  ));
+  const streamStatus = ref<StreamStatus | null>(null);
+  const doCheckConnectionOnStreamDataStale = ref(true);
 
-    if (activeSubscription === subscription) {
-      activeSubscription = null;
+  function stopStream () {
+    stream.value.stop();
+    if (streamStatus.value?.data.status === DataStatus.STALE) {
+      streamStatus.value.data.status = DataStatus.NONE;
     }
-
-    stateStreamWebSocketClient.disconnect(subscription);
+    doCheckConnectionOnStreamDataStale.value = true;
   }
 
-  function applyDeviceNameUpdate (payload: Record<string, unknown>) {
-    const name = getString(payload.name);
+  function applyDeviceNameUpdate (payload: BSB_State.DeviceName) {
+    const name = payload.name;
     if (name) {
       deviceStore.deviceName = name;
     }
   }
 
-  function applyPowerUpdate (payload: Record<string, unknown>) {
-    const state = getString(payload.state);
-    const known = isProtoMessage(payload.known) ? payload.known : undefined;
+  function applyPowerUpdate (payload: BSB_State.Power) {
+    const known = payload.known;
 
-    const nextPower = state === 'known' && known
+    const nextPower = known
       ? {
-        state: lowerCaseEnum(getString(known.batteryStatus)) as 'discharging' | 'charging' | 'charged' | undefined,
-        battery_charge: getNumber(known.batteryChargePercent) ?? 0,
-        battery_voltage: getNumber(known.batteryVoltageMv) ?? 0,
-        battery_current: getNumber(known.batteryCurrentMa) ?? 0,
-        usb_voltage: getNumber(known.usbVoltageMv) ?? 0
+        state: known.batteryStatus ? BSB_State.BatteryStatus[known.batteryStatus] : undefined,
+        battery_charge: known.batteryChargePercent ?? 0,
+        battery_voltage: known.batteryVoltageMv ?? 0,
+        battery_current: known.batteryCurrentMa ?? 0,
+        usb_voltage: known.usbVoltageMv ?? 0
       }
       : undefined;
 
@@ -174,49 +151,57 @@ export const useStateStreamStore = defineStore('stateStream', () => {
     } as NonNullable<typeof deviceStore.deviceStatus>;
   }
 
-  function applyBrightnessUpdate (payload: Record<string, unknown>) {
-    const setting = getString(payload.setting);
-    if (setting === 'automatic') {
+  function applyBrightnessUpdate (payload: BSB_State.Brightness) {
+    if (payload.automatic) {
       brightnessStore.displayBrightness = { value: 'auto' };
       return;
     }
 
-    const manual = isProtoMessage(payload.manual) ? payload.manual : undefined;
-    const brightness = getNumber(manual?.brightness);
+    const brightness = payload.manual?.brightness;
     if (brightness !== undefined) {
       brightnessStore.displayBrightness = { value: brightness };
+    } else {
+      brightnessStore.displayBrightness = { value: 0 };
     }
   }
 
-  function applyAudioUpdate (payload: Record<string, unknown>) {
-    const volume = getNumber(payload.volume);
+  function applyAudioUpdate (payload: BSB_State.AudioVolume) {
+    const volume = payload.volume;
     if (volume !== undefined) {
-      audioStore.audio = { volume };
+      audioStore.audio = { volume: volume ?? 0 };
+    } else {
+      audioStore.audio = { volume: 0 };
     }
   }
 
-  function applyWifiUpdate (payload: Record<string, unknown>) {
-    const nextStateKey = getString(payload.wifiState);
-    const connected = isProtoMessage(payload.connected) ? payload.connected : undefined;
+  function applyWifiUpdate (payload: BSB_State.Wifi) {
+    const nextStateKey = Object.keys(payload).filter(key => key !== 'ipAddresses')[0] as keyof Omit<BSB_State.Wifi, 'ipAddresses'>;
+    const connected = payload.connected;
     const ipAddresses = Array.isArray(payload.ipAddresses) ? payload.ipAddresses : [];
-    const primaryIp = ipAddresses.find(isProtoMessage);
+    const primaryIp = ipAddresses.find(e => e.address);
     const previousIpConfig = wifiStore.wifi?.ip_config;
-    const address = isProtoMessage(primaryIp) ? getString(primaryIp.address) : undefined;
+    const address = primaryIp ? primaryIp.address : undefined;
+
+    // FW-883: reconnecting still reports connected state
+    let _nextStateKey = nextStateKey as typeof nextStateKey | 'reconnecting';
+    if (nextStateKey === 'connected' && connected?.status === BSB_State.WifiConnectionStatus.RECONNECTING) {
+      _nextStateKey = 'reconnecting';
+    }
 
     const nextWifiState = {
-      state: lowerCaseEnum(nextStateKey) as 'unknown' | 'disconnected' | 'connected' | 'connecting' | 'disconnecting' | 'reconnecting' | undefined,
-      ssid: getString(connected?.ssid),
-      bssid: getString(connected?.bssid),
-      channel: getNumber(connected?.channel),
-      rssi: getNumber(connected?.rssi),
-      security: mapWifiSecurity(getString(connected?.security)),
-      ip_config: isProtoMessage(primaryIp)
+      state: _nextStateKey,
+      ssid: connected?.ssid,
+      bssid: connected?.bssid,
+      channel: connected?.channel,
+      rssi: connected?.rssi,
+      security: mapWifiSecurity(connected?.security),
+      ip_config: primaryIp
         ? {
-          ip_method: mapWifiMethod(getString(primaryIp.method)) ?? previousIpConfig?.ip_method,
-          ip_type: mapWifiProtocol(getString(primaryIp.protocol)) ?? inferWifiProtocol(address) ?? previousIpConfig?.ip_type,
+          ip_method: mapWifiMethod(primaryIp.method) ?? previousIpConfig?.ip_method,
+          ip_type: mapWifiProtocol(primaryIp.protocol) ?? inferWifiProtocol(address) ?? previousIpConfig?.ip_type,
           address,
-          gateway: getString(primaryIp.gateway),
-          mask: getString(primaryIp.netmask)
+          gateway: primaryIp.gateway,
+          mask: primaryIp.netmask
         }
         : undefined
     };
@@ -233,30 +218,27 @@ export const useStateStreamStore = defineStore('stateStream', () => {
     }
   }
 
-  function applyUpdateCheck (payload: Record<string, unknown>) {
-    const status = getString(payload.status);
+  function applyUpdateCheck (payload: BSB_Update.CheckState) {
     firmwareStore.autoUpdate.isChecking = false;
 
-    if (status === 'available') {
-      const available = isProtoMessage(payload.available) ? payload.available : undefined;
+    if (payload.available) {
       firmwareStore.autoUpdate.status = 'available';
-      firmwareStore.autoUpdate.availableVersion = getString(available?.version) ?? null;
+      firmwareStore.autoUpdate.availableVersion = payload.available?.version ?? null;
       firmwareStore.autoUpdate.isAllowed = true;
       return;
     }
 
-    const unavailable = isProtoMessage(payload.unavailable) ? payload.unavailable : undefined;
-    const reason = getString(unavailable?.reason);
+    const reason = payload.unavailable?.reason;
 
     firmwareStore.autoUpdate.availableVersion = null;
 
-    if (reason === 'NOT_AVAILABLE') {
+    if (reason === BSB_Update.CheckError.NOT_AVAILABLE) {
       firmwareStore.autoUpdate.status = 'not_available';
       firmwareStore.autoUpdate.isAllowed = true;
       return;
     }
 
-    if (reason === 'FAILURE') {
+    if (reason === BSB_Update.CheckError.FAILURE) {
       firmwareStore.autoUpdate.status = 'failure';
       firmwareStore.autoUpdate.isAllowed = false;
       return;
@@ -265,115 +247,75 @@ export const useStateStreamStore = defineStore('stateStream', () => {
     firmwareStore.autoUpdate.status = null;
   }
 
-  function applyUpdateState (payload: Record<string, unknown>) {
-    const event = getString(payload.event);
-    const action = getString(payload.action);
-    const status = getString(payload.status);
-
-    firmwareStore.autoUpdate.isChecking = false;
-
-    if (status === 'BATTERY_LOW') {
-      firmwareStore.autoUpdate.isAllowed = false;
-      return;
-    }
-
-    if (status && status !== 'OK' && status !== 'BUSY') {
-      firmwareStore.autoUpdate.error.stage = firmwareStore.autoUpdate.stage;
-      firmwareStore.autoUpdate.error.message = `Update failed: ${lowerCaseEnum(status)}`;
-      firmwareStore.autoUpdate.stage = UpdateStage.ERROR;
-      firmwareStore.autoUpdate.isAllowed = false;
-      return;
-    }
-
-    firmwareStore.autoUpdate.isAllowed = true;
-
-    if (action === 'DOWNLOAD') {
-      firmwareStore.autoUpdate.stage = UpdateStage.LOADING;
-      return;
-    }
-
-    if (action && action !== 'ACTION_NONE') {
-      firmwareStore.autoUpdate.stage = UpdateStage.UPDATING;
-      return;
-    }
-
-    if (event === 'SESSION_STOP' && status === 'OK') {
-      firmwareStore.autoUpdate.stage = UpdateStage.UPDATING;
+  function applyTimezoneUpdate (payload: BSB_State.Timezone) {
+    if (payload.name) {
+      timezoneStore.timezone = payload.name;
     }
   }
 
-  function applyTimezoneUpdate (payload: Record<string, unknown>) {
-    const timezone = getString(payload.name);
-    if (timezone) {
-      timezoneStore.timezone = timezone;
-    }
-  }
-
-  function applyMatterUpdate (payload: Record<string, unknown>) {
-    const state = isProtoMessage(payload.state) ? payload.state : undefined;
+  function applyMatterUpdate (payload: BSB_State.Matter) {
+    const state = payload.state;
 
     matterStore.matterCommissioning = {
-      fabricCount: getNumber(payload.fabricCount) ?? 0,
+      fabricCount: payload.fabricCount ?? 0,
       latestStatus: state
         ? {
-          value: mapMatterStatus(getString(state.status)),
-          timestamp: getNumericValue(state.timestamp)
+          value: mapMatterStatus(state.status),
+          timestamp: (state.timestamp ?? 0) as NonNullable<SmartHomePairingInfo['latest_pairing_status']>['timestamp']
         }
         : undefined
     };
   }
 
-  function applyStateMessage (data: StateMessage) {
+  function applyStateMessage (data: ProcessedState) {
+    if (!data.updates) {
+      return;
+    }
     for (const update of data.updates) {
       switch (update.state) {
         case 'deviceName':
-          if (isProtoMessage(update.deviceName)) {
+          if (update.deviceName) {
             applyDeviceNameUpdate(update.deviceName);
           }
           break;
         case 'power':
-          if (isProtoMessage(update.power)) {
+          if (update.power) {
             applyPowerUpdate(update.power);
           }
           break;
         case 'brightness':
-          if (isProtoMessage(update.brightness)) {
+          if (update.brightness) {
             applyBrightnessUpdate(update.brightness);
           }
           break;
         case 'audioVolume':
-          if (isProtoMessage(update.audioVolume)) {
+          if (update.audioVolume) {
             applyAudioUpdate(update.audioVolume);
           }
           break;
         case 'wifi':
-          if (isProtoMessage(update.wifi)) {
+          if (update.wifi) {
             applyWifiUpdate(update.wifi);
           }
           break;
         case 'updateCheck':
-          if (isProtoMessage(update.updateCheck)) {
+          if (update.updateCheck) {
             applyUpdateCheck(update.updateCheck);
           }
           break;
-        case 'updateState':
-          if (isProtoMessage(update.updateState)) {
-            applyUpdateState(update.updateState);
-          }
-          break;
         case 'timezone':
-          if (isProtoMessage(update.timezone)) {
+          if (update.timezone) {
             applyTimezoneUpdate(update.timezone);
           }
           break;
         case 'matter':
-          if (isProtoMessage(update.matter)) {
+          if (update.matter) {
             applyMatterUpdate(update.matter);
           }
           break;
         case 'frame':
           if (update.frame) {
-            screenStreamStore.applyFrameUpdate(update.frame);
+            screenStreamStore.currentFrame = update.frame;
           }
           break;
         default:
@@ -382,92 +324,64 @@ export const useStateStreamStore = defineStore('stateStream', () => {
     }
   }
 
-  async function openStateWebsocket (
-    dataCallback: DataCallback = () => {
-    },
-    stopCallback: StopCallback | undefined = () => {
-    }
-  ) {
-    const generation = ++connectionGeneration;
-    releaseSubscription(activeSubscription);
+  async function applyStreamStatus (status: StreamStatus) {
+    const oldStatus = streamStatus.value;
 
-    const subscription = await stateStreamWebSocketClient.connect(barUrl, apiStore.apiKey, {
-      onStatus: (connected, reconnected) => {
-        if (generation !== connectionGeneration) {
-          return;
-        }
-
-        isWebSocketConnected.value = connected;
-
-        if (connected) {
-          return;
-        }
-
-        if (!reconnected) {
-          void deviceStore.checkConnection();
-          stopCallback?.();
-        }
-      },
-      onData: data => {
-        if (generation !== connectionGeneration) {
-          return;
-        }
-
-        try {
-          const message = decodeStateMessage(data);
-          applyStateMessage(message);
-          dataCallback(message);
-        } catch (error) {
-          console.error('State publisher websocket decode error', error);
-        }
-      },
-      onError: message => {
-        if (generation !== connectionGeneration) {
-          return;
-        }
-
-        console.error('State publisher websocket error', message);
-      },
-      onCheckConnection: async () => {
-        console.debug('No state updates received for a while, checking connection...');
-        deviceStore.setRefreshInterval();
-        await deviceStore.checkConnection();
+    if (oldStatus === null) {
+      streamStatus.value = status;
+      if (configStore.get('stateStreamLogStatusUpdates')) {
+        console.debug('[state stream status] Initial stream status:', status);
       }
-    });
-
-    if (generation !== connectionGeneration) {
-      releaseSubscription(subscription);
       return;
     }
 
-    activeSubscription = subscription;
-    isWebSocketConnected.value = true;
-  }
+    const diff = deepDiff(oldStatus, status) as Partial<StreamStatus> | undefined;
+    if (diff) {
+      for (const line of flattenDeepDiff(diff)) {
+        if (configStore.get('stateStreamLogStatusUpdates')) {
+          console.debug('[state stream status]', line, '| full status:', status);
+        }
+      }
+    }
 
-  function closeWebsocket (): Promise<void> {
-    connectionGeneration++;
-    isWebSocketConnected.value = false;
-    releaseSubscription(activeSubscription);
-    return Promise.resolve();
-  }
+    streamStatus.value = status;
 
-  function startStateStream (
-    dataCallback: DataCallback = () => {
-    },
-    stopCallback?: StopCallback
-  ) {
-    return openStateWebsocket(dataCallback, stopCallback);
-  }
+    if (streamStatus.value.data.status === DataStatus.STALE && oldStatus?.data.status !== DataStatus.STALE && doCheckConnectionOnStreamDataStale.value) {
+      console.debug('No state messages received for a while, checking connection...');
+      const conncheckResult = await deviceStore.checkConnection();
+      if (conncheckResult === false) {
+        console.debug('Connection check failed after state stream data stale, stopping stream and starting polling');
+        stopStream();
+        deviceStore.setRefreshInterval();
+      }
+    }
 
-  function stopStateStream () {
-    return closeWebsocket();
+    if (streamStatus.value.data.status === DataStatus.ACTIVE
+      && streamStatus.value.connection.status === ConnectionStatus.CONNECTED
+      && streamStatus.value.main.status === StreamLifecycle.RUNNING
+    ) {
+      if (showResourceLimitErrorBanner.value) {
+        console.debug('Stream is active again, hiding resource limit error banner');
+        showResourceLimitErrorBanner.value = false;
+      }
+      if (showStateStreamFailBanner.value) {
+        console.debug('Stream is active again, hiding state stream failure banner');
+        showStateStreamFailBanner.value = false;
+      }
+    }
   }
 
   return {
-    isWebSocketConnected,
+    streamNotRestartable,
     showStateStreamFailBanner,
+    showResourceLimitErrorBanner,
 
-    startStateStream,
-    stopStateStream
+    streamStatus,
+    stream,
+    doCheckConnectionOnStreamDataStale,
+    stopStream,
+
+    applyStateMessage,
+    applyStreamStatus
   };
 });

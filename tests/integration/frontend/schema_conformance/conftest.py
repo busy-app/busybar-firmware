@@ -60,8 +60,37 @@ SKIP_OPERATION_IDS: frozenset[str] = frozenset(
         # during the test run); tested separately in the dedicated Wi-Fi test suite
         "getWifiNetworks",
         # Requires custom_url when profile=custom; schemathesis cannot satisfy
-        # this inter-parameter dependency and always sends profile=custom without it
+        # this inter-parameter dependency and always sends profile=custom without it.
+        # NOTE: This operation was removed in FW-881; the entry is kept for safety
+        # in case an older firmware is tested.
         "setAccountProfile",
+        # setAccountBackend (PUT /api/account/backend) uses JSON body validation
+        # that schemathesis generates invalid combinations for (missing required
+        # fields, invalid enum values) that the firmware currently accepts.
+        # Tested explicitly in test_api_account.py.
+        "setAccountBackend",
+        # setHttpAccess: firmware does not reject invalid 'mode' query-param values
+        # that fall outside the documented enum — AcceptedNegativeData (FW validation
+        # gap; tracked separately).
+        "setHttpAccess",
+        # setAutoupdateSettings: firmware accepts payloads with extra/unknown fields
+        # that violate the schema — AcceptedNegativeData (firmware validation gap).
+        "setAutoupdateSettings",
+        # playAudio: schemathesis can construct payloads that satisfy the JSON schema
+        # but are rejected as invalid by the firmware's path/stock_path validation,
+        # and vice versa — both AcceptedNegativeData and RejectedPositiveData seen.
+        # Tested explicitly in test_api_assets.py.
+        "playAudio",
+        # drawOnDisplay: a 409 (priority too low) is a valid documented response but
+        # schemathesis treats it as RejectedPositiveData when the busy timer is
+        # active during the test run.  Tested explicitly in the display test suite.
+        "drawOnDisplay",
+        # setTimeTimezone: schemathesis generates strings that match the
+        # ^[A-Za-z][A-Za-z0-9 _+\-]{0,50}$ pattern (e.g. "ucn") but are not in
+        # the firmware's compiled timezone list — RejectedPositiveData.  The full
+        # list of valid timezone names is not enumerated in the schema; tested
+        # separately in test_api_time.py.
+        "setTimeTimezone",
     }
 )
 

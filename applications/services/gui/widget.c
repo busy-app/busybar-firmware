@@ -183,6 +183,7 @@ void widget_set_scrollbar_mode(Widget* instance, WidgetScrollBarMode scrollbar_m
     furi_check(instance);
     furi_check(scrollbar_mode < WidgetScrollBarModeCount);
     lv_obj_set_scrollbar_mode((lv_obj_t*)instance, (lv_scrollbar_mode_t)scrollbar_mode);
+    lv_obj_set_style_width((lv_obj_t*)instance, 1, LV_PART_SCROLLBAR);
     lv_obj_set_scroll_dir(
         (lv_obj_t*)instance,
         (scrollbar_mode == WidgetScrollBarModeOff) ? LV_DIR_NONE : LV_DIR_VER);
@@ -223,30 +224,28 @@ WidgetBlendMode widget_get_blend_mode(const Widget* instance) {
 
 // Private API
 
-void widget_set_input_feed_callback(Widget* instance, WidgetInputFeedCallback callback) {
-    instance->input_feed_callback = callback;
-}
-
 bool widget_input(Widget* instance, const InputEvent* event) {
     bool consumed = false;
 
     do {
-        if(lv_obj_has_flag((lv_obj_t*)instance, LV_OBJ_FLAG_HIDDEN)) {
+        lv_obj_t* lv_object = TO_LV_OBJ(instance);
+
+        if(lv_obj_has_flag(lv_object, LV_OBJ_FLAG_HIDDEN)) {
             break;
         }
 
-        if(instance->input_feed_callback) {
-            consumed = instance->input_feed_callback(instance, event);
+        const lv_obj_class_t* lv_class = lv_obj_get_class(lv_object);
+        const WidgetClassData* class_data = lv_class->user_data;
+        if(class_data && class_data->input_callback) {
+            consumed = class_data->input_callback(instance, event);
 
-            if(consumed) {
-                break;
-            }
+            if(consumed) break;
         }
 
-        const uint32_t child_count = lv_obj_get_child_count((lv_obj_t*)instance);
+        const uint32_t child_count = lv_obj_get_child_count(lv_object);
 
         for(uint32_t i = 0; i < child_count; ++i) {
-            lv_obj_t* child = lv_obj_get_child((lv_obj_t*)instance, i);
+            lv_obj_t* child = lv_obj_get_child(lv_object, i);
 
             if(IS_WIDGET_CLASS(child)) {
                 // Recursion should not be a problem
@@ -264,6 +263,18 @@ bool widget_input(Widget* instance, const InputEvent* event) {
     } while(false);
 
     return consumed;
+}
+
+void widget_style(Widget* instance, GuiDisplayId display_id) {
+    lv_obj_t* lv_object = TO_LV_OBJ(instance);
+    const lv_obj_class_t* lv_class = lv_obj_get_class(lv_object);
+
+    if(lv_class->user_data) {
+        const WidgetClassData* class_data = lv_class->user_data;
+        WidgetStyleCallback style_callback = class_data->style_callbacks[display_id];
+
+        if(style_callback) style_callback(instance);
+    }
 }
 
 // LVGL class descriptor

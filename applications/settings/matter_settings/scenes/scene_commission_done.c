@@ -1,5 +1,6 @@
 #include "../matter_settings_i.h"
-#include <settings_helpers/status_view.h>
+
+#include <gui/modules/status_view.h>
 
 typedef struct {
     StatusView* statuses[GuiDisplayIdMax];
@@ -17,15 +18,15 @@ static void matter_scene_commission_done_on_enter(void* context) {
     };
 
     static const char* const images[GuiDisplayIdMax] = {
-        [GuiDisplayIdFront] = SETTINGS_IMG_PATH("checkmark_front_8x6.image"),
-        [GuiDisplayIdBack] = SETTINGS_IMG_PATH("checkmark_back_12x10.image"),
+        [GuiDisplayIdFront] = SHARED_IMG_PATH("checkmark_front_8x8.image"),
+        [GuiDisplayIdBack] = SHARED_IMG_PATH("checkmark_back_11x11.image"),
     };
 
     with_gui(app->gui, {
         for(GuiDisplayId disp = 0; disp < GuiDisplayIdMax; disp++) {
             scene->statuses[disp] = status_view_alloc(windows[disp]);
             status_view_set_icon(scene->statuses[disp], images[disp]);
-            status_view_set_header(scene->statuses[disp], "Connected");
+            status_view_set_primary_text(scene->statuses[disp], "Connected");
         }
     });
 }
@@ -41,6 +42,8 @@ static void matter_scene_commission_done_on_exit(void* context) {
             status_view_free(scene->statuses[disp]);
         }
     });
+
+    matter_settings_acknowledge_status(app->status_ack);
 }
 
 static bool matter_scene_commission_done_on_event(const SceneManagerEvent* event, void* context) {

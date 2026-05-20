@@ -27,6 +27,7 @@ typedef struct Matter Matter;
 typedef enum {
     MatterEventTypeCommissioning, //<! Started, completed or failed commissioning
     MatterEventTypeFabricCountChanged, //<! Number of fabric the device is commissioned into has changed
+    MatterEventTypeWillReboot, //<! A reboot will be performed shortly
 } MatterEventType;
 
 /**
@@ -53,7 +54,7 @@ typedef struct {
 typedef struct {
     uint32_t count; //<! Number of fabric the device is commissioned into
     MatterCommissioningStatus last_status; //<! Latest status update from the service PubSub
-    time_t last_status_at; //<! UTC Unix millisecond timestamp of latest status update..
+    time_t last_status_at; //<! UTC Unix millisecond timestamp of latest status update
 } MatterCommissionedFabrics;
 
 /**
@@ -80,7 +81,7 @@ typedef struct {
 /**
  * @brief Get a PubSub to listen to Matter events.
  *
- * The returned FuriPubSub object witll have an underlying type of MatterEvent.
+ * The returned FuriPubSub object will have an underlying type of MatterEvent.
  * Use furi_pubsub_subscribe() to get notifications about new events.
  * 
  * @param[in,out] instance pointer to the service instance
@@ -146,11 +147,11 @@ MatterStatus matter_enable_commissioning(Matter* instance, MatterCommissioningIn
 MatterStatus matter_get_commissioned_fabrics(Matter* instance, MatterCommissionedFabrics* fabrics);
 
 /**
- * @brief Delete all Matter pairing data.
+ * @brief Delete all Matter pairing data, then reboot on success
  *
  * @param[in,out] instance pointer to the service instance
  *
- * @returns @c MatterStatusOk on success, any other value from @c MatterStatus enum on error
+ * @returns @c MatterStatus enum on error. @c MatterStatusOk is never returned.
  */
 MatterStatus matter_factory_reset(Matter* instance);
 

@@ -1,11 +1,11 @@
 #include <furi_hal_i2c.h>
-// #include <furi_hal_version.h>
-// #include <furi_hal_power.h>
-#include <furi_hal_cortex.h>
 
 #include <stm32u5xx_ll_i2c.h>
 #include <stm32u5xx_ll_gpio.h>
+
 #include <furi.h>
+
+#include <toolbox/timers.h>
 
 #define TAG "FuriHalI2c"
 
@@ -50,9 +50,9 @@ void furi_hal_i2c_release(FuriHalI2cBusHandle* handle) {
 }
 
 static bool
-    furi_hal_i2c_wait_for_idle(I2C_TypeDef* i2c, FuriHalI2cBegin begin, FuriHalCortexTimer timer) {
+    furi_hal_i2c_wait_for_idle(I2C_TypeDef* i2c, FuriHalI2cBegin begin, PreciseTimer timer) {
     do {
-        if(furi_hal_cortex_timer_is_expired(timer)) {
+        if(precise_timer_is_expired(timer)) {
             return false;
         }
     } while(begin == FuriHalI2cBeginStart && LL_I2C_IsActiveFlag_BUSY(i2c));
@@ -61,14 +61,13 @@ static bool
     return true;
 }
 
-static bool
-    furi_hal_i2c_wait_for_end(I2C_TypeDef* i2c, FuriHalI2cEnd end, FuriHalCortexTimer timer) {
+static bool furi_hal_i2c_wait_for_end(I2C_TypeDef* i2c, FuriHalI2cEnd end, PreciseTimer timer) {
     // If ending the transaction with a stop condition, wait for it to be detected, otherwise wait for a transfer complete flag
     bool wait_for_stop = end == FuriHalI2cEndStop;
     uint32_t end_mask = (wait_for_stop) ? I2C_ISR_STOPF : (I2C_ISR_TC | I2C_ISR_TCR);
 
     while((i2c->ISR & end_mask) == 0) {
-        if(furi_hal_cortex_timer_is_expired(timer)) {
+        if(precise_timer_is_expired(timer)) {
             return false;
         }
     }
@@ -118,11 +117,11 @@ static bool furi_hal_i2c_transfer(
     uint32_t size,
     FuriHalI2cEnd end,
     bool read,
-    FuriHalCortexTimer timer) {
+    PreciseTimer timer) {
     bool ret = true;
 
     while(size > 0) {
-        bool should_stop = furi_hal_cortex_timer_is_expired(timer) ||
+        bool should_stop = precise_timer_is_expired(timer) ||
                            furi_hal_i2c_transfer_is_aborted(i2c);
 
         // Modifying the data pointer's data is UB if read is true
@@ -161,7 +160,7 @@ static bool furi_hal_i2c_transaction(
     FuriHalI2cBegin begin,
     FuriHalI2cEnd end,
     bool read,
-    FuriHalCortexTimer timer) {
+    PreciseTimer timer) {
     uint32_t addr_size = ten_bit ? LL_I2C_ADDRSLAVE_10BIT : LL_I2C_ADDRSLAVE_7BIT;
     uint32_t start_signal = furi_hal_i2c_get_start_signal(begin, ten_bit, read);
 
@@ -205,7 +204,7 @@ bool furi_hal_i2c_rx_ext(
     uint32_t timeout) {
     furi_check(handle->bus->current_handle == handle);
 
-    FuriHalCortexTimer timer = furi_hal_cortex_timer_get(timeout * 1000);
+    PreciseTimer timer = precise_timer_create(timeout * 1000);
 
     return furi_hal_i2c_transaction(
         handle->bus->i2c, address, ten_bit, data, size, begin, end, true, timer);
@@ -222,7 +221,7 @@ bool furi_hal_i2c_tx_ext(
     uint32_t timeout) {
     furi_check(handle->bus->current_handle == handle);
 
-    FuriHalCortexTimer timer = furi_hal_cortex_timer_get(timeout * 1000);
+    PreciseTimer timer = precise_timer_create(timeout * 1000);
 
     return furi_hal_i2c_transaction(
         handle->bus->i2c, address, ten_bit, (uint8_t*)data, size, begin, end, false, timer);
@@ -286,7 +285,7 @@ bool furi_hal_i2c_is_device_ready(FuriHalI2cBusHandle* handle, uint8_t i2c_addr,
     furi_check(timeout > 0);
 
     bool ret = true;
-    FuriHalCortexTimer timer = furi_hal_cortex_timer_get(timeout * 1000);
+    PreciseTimer timer = precise_timer_create(timeout * 1000);
 
     if(!furi_hal_i2c_wait_for_idle(handle->bus->i2c, FuriHalI2cBeginStart, timer)) {
         return false;

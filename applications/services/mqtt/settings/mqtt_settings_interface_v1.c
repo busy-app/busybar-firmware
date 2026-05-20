@@ -1,60 +1,62 @@
 #include "mqtt_settings_interface_v1.h"
 
-#define MQTT_PROFILE_DEFAULT             MqttProfileIdDevelopment
-#define MQTT_SETTINGS_CUSTOM_URL_DEFAULT ""
+#include "../mqtt_config_i.h"
 
-static const char* mqtt_settings_v1_profile_string_map[] = {
-    [MqttProfileIdDevelopment] = "development",
-    [MqttProfileIdProduction] = "production",
-    [MqttProfileIdLocal] = "local",
-    [MqttProfileIdCustom] = "custom",
-};
-
-static_assert(COUNT_OF(mqtt_settings_v1_profile_string_map) == MqttProfileIdMax);
-
-static bool mqtt_settings_v1_custom_url_is_valid_cb(
+static bool mqtt_settings_v1_config_is_valid_callback(
     const SettingProviderSetting* setting,
-    const char* value) {
+    const void* value) {
     UNUSED(setting);
 
-    return strlen(value) == 0 ||
-           strncmp(value, MQTT_URL_TLS_PREFIX, strlen(MQTT_URL_TLS_PREFIX)) == 0 ||
-           strncmp(value, MQTT_URL_TLS_PREFIX, strlen(MQTT_URL_PREFIX)) == 0;
+    furi_assert(value);
+    const MqttConfig* config = value;
+
+    return mqtt_config_is_valid(config);
 }
 
-static const SettingProviderEnumInterface mqtt_settings_v1_profile_interface = {
-    .string_map = mqtt_settings_v1_profile_string_map,
-    .string_map_length = COUNT_OF(mqtt_settings_v1_profile_string_map),
-    .type_size = SIZEOF_MEMBER(MqttSettingsV1, profile_id),
-    .default_value = &(const MqttProfileId){MQTT_PROFILE_DEFAULT},
-};
+static bool mqtt_settings_v1_config_serialize_callback(
+    const SettingProviderSetting* setting,
+    const void* value,
+    cJSON* json_node) {
+    UNUSED(setting);
 
-static const SettingProviderStringInterface mqtt_settings_v1_custom_url_interface = {
-    .is_valid_callback = mqtt_settings_v1_custom_url_is_valid_cb,
-    .max_size = SIZEOF_MEMBER(MqttSettingsV1, custom_url),
-    .default_value = MQTT_SETTINGS_CUSTOM_URL_DEFAULT,
-};
+    furi_assert(value);
+    const MqttConfig* config = value;
 
-void mqtt_settings_v1_init(MqttSettingsV1* settings_v1) {
-    furi_check(settings_v1->custom_url == NULL);
-
-    settings_v1->profile_id = MqttProfileIdDevelopment;
+    return mqtt_config_serialize_raw(config, json_node);
 }
+
+static bool mqtt_settings_v1_config_deserialize_callback(
+    const SettingProviderSetting* setting,
+    const cJSON* json_node,
+    void* value) {
+    UNUSED(setting);
+
+    furi_assert(value);
+    MqttConfig* config = value;
+
+    return mqtt_config_deserialize_raw(config, json_node);
+}
+
+static const SettingProviderRawInterface mqtt_settings_v1_config_interface = {
+    .is_valid_callback = mqtt_settings_v1_config_is_valid_callback,
+    .serialize_callback = mqtt_settings_v1_config_serialize_callback,
+    .deserialize_callback = mqtt_settings_v1_config_deserialize_callback,
+    .default_value_size = sizeof(MqttConfig),
+    .default_value =
+        &(const MqttConfig){
+            .server_url = MQTT_CONFIG_SERVER_URL_DEFAULT,
+            .client_cert_type = MqttClientCertTypeDefault,
+            .ignore_server_cert = false,
+        },
+};
 
 const SettingProviderSetting mqtt_settings_v1[] = {
-    [MqttSettingsV1IdxProfileId] =
+    [MqttSettingsV1IdxConfig] =
         {
-            .name = "profile",
-            .interface = &mqtt_settings_v1_profile_interface,
-            .field_offset = offsetof(MqttSettingsV1, profile_id),
-            .type = SettingProviderSettingTypeEnum,
-        },
-    [MqttSettingsV1IdxCustomUrl] =
-        {
-            .name = "custom_url",
-            .interface = &mqtt_settings_v1_custom_url_interface,
-            .field_offset = offsetof(MqttSettingsV1, custom_url),
-            .type = SettingProviderSettingTypeString,
+            .name = "config",
+            .interface = &mqtt_settings_v1_config_interface,
+            .field_offset = offsetof(MqttSettingsV1, config),
+            .type = SettingProviderSettingTypeRaw,
         },
 };
 

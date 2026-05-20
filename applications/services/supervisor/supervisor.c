@@ -3,9 +3,11 @@
 #include <power/power_service/power.h>
 #include <gui/gui.h>
 #include <gui/modules/label.h>
+#include <gui/modules/status_view.h>
 #include <storage/storage.h>
 #include <storage/storage_backup.h>
 #include <intercom/intercom.h>
+#include <matter/matter.h>
 
 #define TAG "Supervisor"
 
@@ -20,8 +22,14 @@ typedef void (*SupervisorGuiOkCb)(Supervisor* supervisor);
 
 typedef struct {
     Gui* gui;
-    Label* front_label;
-    Label* back_label;
+    struct {
+        Label* front;
+        Label* back;
+    } label;
+    struct {
+        StatusView* front;
+        StatusView* back;
+    } status_view;
     bool input_locked;
     SupervisorGuiOkCb ok_callback;
     uint32_t current_warnings;
@@ -36,6 +44,7 @@ struct Supervisor {
     Power* power;
     Storage* storage;
     Intercom* intercom;
+    Matter* matter;
 
     SupervisorGui gui;
 };
@@ -50,6 +59,7 @@ typedef enum {
     SupervisorEventTypeTickToDie,
     SupervisorEventTypeIntercomStatusChanged,
     SupervisorEventTypeOKPressed,
+    SupervisorEventTypeWillReboot,
 } SupervisorEventType;
 
 typedef struct {
@@ -59,9 +69,23 @@ typedef struct {
     };
 } SupervisorEvent;
 
+typedef enum {
+    SupervisorWarningStyleTextOnly,
+    SupervisorWarningStyleTextAndImage,
+} SupervisorWarningStyle;
+
 typedef struct {
-    const char* front_text;
-    const char* back_text;
+    SupervisorWarningStyle style;
+    struct {
+        const char* front;
+        const char* back;
+    } text;
+    union {
+        struct {
+            const char* front;
+            const char* back;
+        } image;
+    };
     bool input_locked;
     SupervisorGuiOkCb ok_callback;
 } SupervisorWarning;
@@ -70,6 +94,7 @@ typedef struct {
 typedef enum {
     SupervisorWarningTypeBatteryNotReady,
     SupervisorWarningTypeBatteryCritical, // must be higher than others to power off properly
+    SupervisorWarningTypeRebooting,
     SupervisorWarningTypeStorageNoPartitions,
     SupervisorWarningTypeStorageNoBackup,
     SupervisorWarningTypeStorageNoExternal,
@@ -86,50 +111,67 @@ static void supervisor_format_external(Supervisor* supervisor);
 static const SupervisorWarning supervisor_warnings[] = {
     [SupervisorWarningTypeStorageNoPartitions] =
         {
-            .front_text = "No partitions\nPress OK to format",
-            .back_text = "Incorrect partitions\nPress OK to format\nDevice will reboot",
+            .style = SupervisorWarningStyleTextOnly,
+            .text.front = "No partitions\nPress OK to format",
+            .text.back = "Incorrect partitions\nPress OK to format\nDevice will reboot",
             .input_locked = true,
             .ok_callback = supervisor_make_filesystem,
         },
+    [SupervisorWarningTypeRebooting] =
+        {
+            .style = SupervisorWarningStyleTextAndImage,
+            .image.front = SHARED_ANIM_PATH("spinner_front_8x8.anim"),
+            .image.back = SHARED_ANIM_PATH("spinner_back_16x16.anim"),
+            .text.front = "Restarting device...",
+            .text.back = "Restarting device...",
+            .input_locked = true,
+            .ok_callback = NULL,
+        },
     [SupervisorWarningTypeStorageNoBackup] =
         {
-            .front_text = "Backup corrupted\nPress OK to format",
-            .back_text = "Backup partition corrupted\nPress OK to format\nDevice will reboot",
+            .style = SupervisorWarningStyleTextOnly,
+            .text.front = "Backup corrupted\nPress OK to format",
+            .text.back = "Backup partition corrupted\nPress OK to format\nDevice will reboot",
             .input_locked = true,
             .ok_callback = supervisor_format_backup,
         },
     [SupervisorWarningTypeStorageNoExternal] =
         {
-            .front_text = "Partition corrupted\nPress OK to format",
-            .back_text = "Main partition corrupted\nPress OK to format\nDevice will reboot",
+            .style = SupervisorWarningStyleTextOnly,
+            .text.front = "Partition corrupted\nPress OK to format",
+            .text.back = "Main partition corrupted\nPress OK to format\nDevice will reboot",
             .input_locked = true,
             .ok_callback = supervisor_format_external,
         },
     [SupervisorWarningTypeBatteryNotReady] =
         {
-            .front_text = "Battery not present\nConnect battery",
-            .back_text = "Battery not present\nPlease connect battery\n>_<",
+            .style = SupervisorWarningStyleTextOnly,
+            .text.front = "Battery not present\nConnect battery",
+            .text.back = "Battery not present\nPlease connect battery\n>_<",
             .input_locked = true,
             .ok_callback = NULL,
         },
     [SupervisorWarningTypeBatteryCritical] =
         {
-            .front_text = "Connect charger\nPower off in 30 sec.",
-            .back_text = "Battery critical\nPlease connect charger\nPower off in 30 sec.",
+            .style = SupervisorWarningStyleTextOnly,
+            .text.front = "Connect charger\nPower off in 30 sec.",
+            .text.back = "Battery critical\nPlease connect charger\nPower off in 30 sec.",
             .input_locked = false,
             .ok_callback = NULL,
         },
     [SupervisorWarningTypeBatteryLow] =
         {
-            .front_text = "Battery low",
-            .back_text = "Battery low",
+            .style = SupervisorWarningStyleTextOnly,
+            .text.front = "Battery low",
+            .text.back = "Battery low",
             .input_locked = false,
             .ok_callback = NULL,
         },
     [SupervisorWarningTypeIntercomError] =
         {
-            .front_text = "Intercom error\nReboot device",
-            .back_text = "Intercom error\nPlease reboot the device",
+            .style = SupervisorWarningStyleTextOnly,
+            .text.front = "Intercom error\nReboot device",
+            .text.back = "Intercom error\nPlease reboot the device",
             .input_locked = true,
             .ok_callback = NULL,
         },
@@ -215,6 +257,22 @@ static void supervisor_power_callback(const void* message, void* context) {
     }
 }
 
+static void supervisor_matter_callback(const void* message, void* context) {
+    furi_assert(message);
+    furi_assert(context);
+
+    const MatterEvent* event = message;
+    Supervisor* instance = context;
+
+    switch(event->type) {
+    case MatterEventTypeWillReboot:
+        supervisor_send_event(instance, SupervisorEventTypeWillReboot);
+        break;
+    default:
+        break;
+    }
+}
+
 static void supervisor_timer_bat_low_callback(void* context) {
     Supervisor* instance = context;
     supervisor_send_event(instance, SupervisorEventTypeBatteryLowStop);
@@ -232,6 +290,107 @@ static int32_t supervisor_get_topmost_warning(SupervisorGui* gui) {
         }
     }
     return -1; // No warnings
+}
+
+/**
+ * @note `warning` allowed to be `NULL`
+ */
+static void supervisor_set_label(
+    SupervisorGui* gui,
+    GuiDisplayId display,
+    const SupervisorWarning* warning) {
+    furi_assert(gui);
+
+    bool labels_needed = false;
+    if(warning) labels_needed = warning->style == SupervisorWarningStyleTextOnly;
+    Label** label = (display == GuiDisplayIdFront) ? &gui->label.front : &gui->label.back;
+
+    GuiLayer* main_layer = gui_get_layer(gui->gui, GuiLayerIdSystem);
+    Widget* root = gui_layer_get_root_widget(main_layer, display);
+
+    if(labels_needed && !*label) *label = label_alloc(root);
+    if(!labels_needed && *label) {
+        label_free(*label);
+        *label = NULL;
+    }
+
+    if(!labels_needed) return;
+    furi_assert(warning);
+    furi_assert(warning->text.front);
+    furi_assert(warning->text.back);
+
+    const char* text = (display == GuiDisplayIdFront) ? warning->text.front : warning->text.back;
+
+    Widget* widget = label_get_base(*label);
+    Color background = COLOR_MAKE_HEXA(0x000000E5);
+
+    size_t screen_width_half = widget_get_width(root) / 2;
+    size_t screen_height_half = widget_get_height(root) / 2;
+
+    widget_set_padding(
+        widget, screen_width_half, screen_width_half, screen_height_half, screen_height_half);
+    widget_set_align(widget, AlignCenter);
+    widget_set_background_color(widget, background);
+
+    label_set_text(*label, text);
+    label_set_text_align(*label, TextAlignCenter);
+
+    if(display == GuiDisplayIdBack) {
+        label_set_line_spacing(*label, 4);
+    }
+}
+
+/**
+ * @note `warning` allowed to be `NULL`
+ */
+static void supervisor_set_status_view(
+    SupervisorGui* gui,
+    GuiDisplayId display,
+    const SupervisorWarning* warning) {
+    furi_assert(gui);
+
+    bool status_needed = false;
+    if(warning) status_needed = warning->style == SupervisorWarningStyleTextAndImage;
+    StatusView** status = (display == GuiDisplayIdFront) ? &gui->status_view.front :
+                                                           &gui->status_view.back;
+
+    GuiLayer* main_layer = gui_get_layer(gui->gui, GuiLayerIdSystem);
+    Widget* root = gui_layer_get_root_widget(main_layer, display);
+
+    if(status_needed && !*status) *status = status_view_alloc(root);
+    if(!status_needed && *status) {
+        status_view_free(*status);
+        *status = NULL;
+    }
+
+    if(!status_needed) return;
+    furi_assert(warning);
+    furi_assert(warning->text.front);
+    furi_assert(warning->text.back);
+    furi_assert(warning->image.front);
+    furi_assert(warning->image.back);
+
+    const char* text = (display == GuiDisplayIdFront) ? warning->text.front : warning->text.back;
+    const char* image = (display == GuiDisplayIdFront) ? warning->image.front :
+                                                         warning->image.back;
+
+    status_view_set_icon(*status, image);
+    status_view_set_primary_text(*status, text);
+
+    Widget* widget = status_view_get_base(*status);
+    Color background = COLOR_MAKE_HEXA(0x000000E5);
+    widget_set_background_color(widget, background);
+}
+
+/**
+ * @note `warning` allowed to be `NULL`
+ */
+static void supervisor_render_warning(SupervisorGui* gui, const SupervisorWarning* warning) {
+    furi_assert(gui);
+    for(GuiDisplayId display = GuiDisplayIdFront; display < GuiDisplayIdMax; display++) {
+        supervisor_set_label(gui, display, warning);
+        supervisor_set_status_view(gui, display, warning);
+    }
 }
 
 static void
@@ -252,71 +411,12 @@ static void
             gui->input_locked = warning->input_locked;
             gui->ok_callback = warning->ok_callback;
 
-            GuiLayer* main_layer = gui_get_layer(gui->gui, GuiLayerIdSystem);
-            Color background = COLOR_MAKE_HEXA(0x000000E5);
+            supervisor_render_warning(gui, warning);
 
-            // back display label
-            {
-                Widget* root = gui_layer_get_root_widget(main_layer, GuiDisplayIdBack);
-                if(!gui->back_label) {
-                    gui->back_label = label_alloc(root);
-                }
-                Widget* widget = label_get_base(gui->back_label);
-
-                size_t screen_width_half = widget_get_width(root) / 2;
-                size_t screen_height_half = widget_get_height(root) / 2;
-
-                widget_set_padding(
-                    widget,
-                    screen_width_half,
-                    screen_width_half,
-                    screen_height_half,
-                    screen_height_half);
-                widget_set_align(widget, AlignCenter);
-                widget_set_background_color(widget, background);
-
-                label_set_text_fmt(gui->back_label, warning->back_text);
-                label_set_text_align(gui->back_label, TextAlignCenter);
-                label_set_line_spacing(gui->back_label, 4);
-            }
-
-            // front display label
-            {
-                Widget* root = gui_layer_get_root_widget(main_layer, GuiDisplayIdFront);
-                if(!gui->front_label) {
-                    gui->front_label = label_alloc(root);
-                }
-                Widget* widget = label_get_base(gui->front_label);
-
-                size_t screen_width_half = widget_get_width(root) / 2;
-                size_t screen_height_half = widget_get_height(root) / 2;
-
-                widget_set_padding(
-                    widget,
-                    screen_width_half,
-                    screen_width_half,
-                    screen_height_half,
-                    screen_height_half);
-                widget_set_align(widget, AlignCenter);
-                widget_set_background_color(widget, background);
-
-                label_set_text_fmt(gui->front_label, warning->front_text);
-                label_set_text_align(gui->front_label, TextAlignCenter);
-            }
         } else {
-            // No warnings, remove labels
-            if(gui->front_label) {
-                label_free(gui->front_label);
-                gui->front_label = NULL;
-            }
-
-            if(gui->back_label) {
-                label_free(gui->back_label);
-                gui->back_label = NULL;
-            }
-
             gui->input_locked = false;
             gui->ok_callback = NULL;
+            supervisor_render_warning(gui, NULL);
         }
     });
 }
@@ -352,8 +452,8 @@ static void supervisor_reset(void) {
 static void supervisor_make_filesystem(Supervisor* supervisor) {
     SupervisorGui* gui = &supervisor->gui;
     with_gui(gui->gui, {
-        label_set_text_fmt(gui->front_label, "Creating filesystem...\nPlease wait");
-        label_set_text_fmt(gui->back_label, "Creating filesystem...\nPlease wait");
+        label_set_text_fmt(gui->label.front, "Creating filesystem...\nPlease wait");
+        label_set_text_fmt(gui->label.back, "Creating filesystem...\nPlease wait");
     });
 
     FURI_LOG_I(TAG, "Creating filesystem...");
@@ -370,8 +470,8 @@ static void supervisor_make_filesystem(Supervisor* supervisor) {
 static void supervisor_format_backup(Supervisor* supervisor) {
     SupervisorGui* gui = &supervisor->gui;
     with_gui(gui->gui, {
-        label_set_text_fmt(gui->front_label, "Formatting backup...\nPlease wait");
-        label_set_text_fmt(gui->back_label, "Formatting backup partition...\nPlease wait");
+        label_set_text_fmt(gui->label.front, "Formatting backup...\nPlease wait");
+        label_set_text_fmt(gui->label.back, "Formatting backup partition...\nPlease wait");
     });
 
     FURI_LOG_I(TAG, "Formatting backup partition...");
@@ -389,8 +489,8 @@ static void supervisor_format_backup(Supervisor* supervisor) {
 static void supervisor_format_external(Supervisor* supervisor) {
     SupervisorGui* gui = &supervisor->gui;
     with_gui(gui->gui, {
-        label_set_text_fmt(gui->front_label, "Formatting external...\nPlease wait");
-        label_set_text_fmt(gui->back_label, "Formatting external partition...\nPlease wait");
+        label_set_text_fmt(gui->label.front, "Formatting external...\nPlease wait");
+        label_set_text_fmt(gui->label.back, "Formatting external partition...\nPlease wait");
     });
 
     FURI_LOG_I(TAG, "Formatting external partition...");
@@ -408,11 +508,11 @@ static void supervisor_format_external(Supervisor* supervisor) {
 static void supervisor_update_time_to_die(Supervisor* supervisor, size_t seconds) {
     SupervisorGui* gui = &supervisor->gui;
     with_gui(gui->gui, {
-        if(gui->front_label && gui->back_label) {
+        if(gui->label.front && gui->label.back) {
             label_set_text_fmt(
-                gui->front_label, "Connect charger\nPower off in %zu sec.", seconds);
+                gui->label.front, "Connect charger\nPower off in %zu sec.", seconds);
             label_set_text_fmt(
-                gui->back_label,
+                gui->label.back,
                 "Battery critical\nPlease connect charger\nPower off in %zu sec.",
                 seconds);
         }
@@ -506,6 +606,10 @@ static void supervisor_process(FuriEventLoopObject* object, void* context) {
     case SupervisorEventTypeIntercomStatusChanged: {
         supervisor_handle_intercom_status(instance, event.intercom_status);
     } break;
+    case SupervisorEventTypeWillReboot:
+        FURI_LOG_I(TAG, "Will Reboot event received");
+        supervisor_update_warning(&instance->gui, SupervisorWarningTypeRebooting, true);
+        break;
     }
 }
 
@@ -533,10 +637,10 @@ int32_t supervisor_start(void* p) {
         instance);
 
     instance->power = furi_record_open(RECORD_POWER);
-
     instance->gui.gui = furi_record_open(RECORD_GUI);
     instance->storage = furi_record_open(RECORD_STORAGE);
     instance->intercom = furi_record_open(RECORD_INTERCOM);
+    instance->matter = furi_record_open(RECORD_MATTER);
 
     furi_pubsub_subscribe(power_get_pubsub(instance->power), supervisor_power_callback, instance);
     furi_state_subscribe(
@@ -544,6 +648,9 @@ int32_t supervisor_start(void* p) {
 
     gui_layer_add_input_callback(
         gui_get_layer(instance->gui.gui, GuiLayerIdSystem), supervisor_input, instance);
+
+    furi_pubsub_subscribe(
+        matter_get_pubsub(instance->matter), supervisor_matter_callback, instance);
 
     if(!power_is_battery_ready(instance->power)) {
         supervisor_update_warning(&instance->gui, SupervisorWarningTypeBatteryNotReady, true);

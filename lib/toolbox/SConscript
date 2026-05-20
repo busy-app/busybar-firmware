@@ -19,6 +19,7 @@ env.Append(
         File("rle_encode.h"),
         File("sha256_calc.h"),
         File("strint.h"),
+        File("timer.h"),
         File("value_index.h"),
     ],
 )
@@ -37,6 +38,7 @@ sources = [
     "rle_encode.c",
     "sha256_calc.c",
     "strint.c",
+    "timers.c",
     "value_index.c",
 ]
 

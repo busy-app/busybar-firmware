@@ -29,9 +29,9 @@
       <div
         v-if="connected"
         data-id="network-section-wifi-status-connected"
-        class="flex items-center gap-2 text-green-500"
+        class="flex items-center gap-2 text-primary"
       >
-        <div class="relative top-[-1px] size-2.5 rounded-full bg-green-500" />
+        <div class="relative top-[-1px] size-2.5 rounded-full bg-primary" />
         Connected
       </div>
       <div
@@ -43,14 +43,21 @@
       <div
         v-else-if="reconnecting"
         data-id="network-section-wifi-status-reconnecting"
+        :class="showOffline ? 'flex items-center gap-2 text-red-500' : ''"
       >
-        Reconnecting...
+        <template v-if="!showOffline">
+          Reconnecting...
+        </template>
+        <template v-else>
+          <div class="relative top-[-1px] size-2.5 rounded-full bg-red-500" />
+          Offline
+        </template>
       </div>
       <div
         v-else
         data-id="network-section-wifi-status-disconnected"
       >
-        Disconnected
+        Not connected
       </div>
     </template>
 
@@ -107,7 +114,7 @@
         :delay-duration="0"
       >
         <UButton
-          data-id="network-section-wifi-add-button"
+          data-id="network-section-wifi-refresh-button"
           icon="i-bi-refresh"
           variant="ghost"
           color="neutral"
@@ -117,6 +124,7 @@
           }"
           class="justify-center sm:justify-start"
           :class="loading.list ? 'animate-spin' : ''"
+          :disabled="loading.state || loading.list || connecting"
           @click="() => {
             listWifiNetworks();
           }"
@@ -442,7 +450,7 @@ const showNetworksList = ref(false);
 async function listWifiNetworks () {
   loading.value.list = true;
   if (!(networks.value.length > 0 && showConnectModal.value)) {
-    networks.value = await wifiStore.listWifiNetworks();
+    networks.value = (await wifiStore.listWifiNetworks()) ?? [];
   }
   loading.value.list = false;
   showNetworksList.value = true;
@@ -528,6 +536,31 @@ const connected = computed(() => wifiStore.wifi?.state === 'connected');
 const connecting = computed(() => wifiStore.wifi?.state === 'connecting');
 const reconnecting = computed(() => wifiStore.wifi?.state === 'reconnecting');
 
+const reconnectTimeout = ref<NodeJS.Timeout | null>(null);
+const RECONNECT_TIMEOUT_DURATION = 10000;
+const showOffline = ref(false);
+function setReconnectTimeout () {
+  if (!reconnectTimeout.value) {
+    reconnectTimeout.value = setTimeout(() => {
+      if (wifiStore.wifi?.state === 'reconnecting') {
+        showOffline.value = true;
+      }
+      reconnectTimeout.value = null;
+    }, RECONNECT_TIMEOUT_DURATION);
+  }
+}
+watch(reconnecting, newValue => {
+  if (newValue) {
+    setReconnectTimeout();
+  } else {
+    if (reconnectTimeout.value) {
+      clearTimeout(reconnectTimeout.value);
+      reconnectTimeout.value = null;
+    }
+    showOffline.value = false;
+  }
+});
+
 const title = computed(() => {
   if (connected.value || connecting.value || reconnecting.value) {
     return wifiStore.wifi?.ssid || 'Wi-Fi';
@@ -554,11 +587,14 @@ function wifiIconByRssi (rssi: WifiNetwork['rssi']): string {
 }
 
 const sectionIcon = computed(() => {
+  if (showOffline.value) {
+    return 'i-bi-wifi-off';
+  }
   if (showNetworksList.value) {
     return undefined;
   }
   if (connecting.value || reconnecting.value) {
-    return 'i-bi-wifi-4';
+    return 'i-bi-wifi-1';
   }
   if (connected.value) {
     return wifiIconByRssi(wifiStore.wifi?.rssi);
@@ -614,6 +650,10 @@ async function init () {
 onMounted(async () => {
   await init();
   window.addEventListener('device-reconnected', init);
+
+  if (reconnecting.value) {
+    setReconnectTimeout();
+  }
 });
 onBeforeUnmount(() => window.removeEventListener('device-reconnected', init));
 </script>
