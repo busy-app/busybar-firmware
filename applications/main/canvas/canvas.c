@@ -433,6 +433,7 @@ static void canvas_app_queue_event_callback(FuriEventLoopObject* object, void* c
         } else {
             furi_string_reset(event.string);
         }
+        success = true;
     }
 
     if(event.app_id) {
