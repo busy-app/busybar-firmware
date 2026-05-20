@@ -119,14 +119,10 @@ class Main(App):
         try:
             manifest = {"target": args.target, "version": 1}
             if args.version_json:
-                with open(args.version_json, "r") as vf:
-                    version_data = json.load(vf)
-                if "firmware_version" not in version_data:
-                    self.logger.error(
-                        f"'firmware_version' key missing from {args.version_json}"
-                    )
-                    return 1
-                manifest["firmware_version"] = version_data["firmware_version"]
+                shutil.copy2(
+                    args.version_json,
+                    os.path.join(actual_output_path, "version.json"),
+                )
             if args.update_name:
                 manifest["update_name"] = args.update_name
             if args.security_flags:
