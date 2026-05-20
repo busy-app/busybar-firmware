@@ -26,8 +26,6 @@ void busy_timer_common_serialize_app_config(cJSON* json, const BusyAppConfig* ap
 
 void busy_timer_common_serialize_infinite_config(cJSON* json);
 
-void busy_timer_common_serialize_timer_mode(cJSON* json, BusyTimerMode timer_mode);
-
 void busy_timer_common_serialize_simple_config(
     cJSON* json,
     const BusyTimerSimpleConfig* simple_config);
