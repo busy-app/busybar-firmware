@@ -54,4 +54,7 @@ void screen_streamer_disable_output(
     ScreenStreamer* instance,
     StatePublisherTransportClass transport_class);
 
-void screen_streamer_get_frame(ScreenStreamer* instance, ScreenStreamerFrameCb cb, void* context);
+void screen_streamer_get_single_frame(
+    ScreenStreamer* instance,
+    ScreenStreamerFrameCb cb,
+    void* context);

@@ -859,7 +859,7 @@ BSB_State_State* state_publisher_collect_all(StatePublisher* instance) {
     }
     {
         BSB_State_StateUpdate* update = NULL;
-        screen_streamer_get_frame(instance->screen_streamer_front, get_frame_cb, &update);
+        screen_streamer_get_single_frame(instance->screen_streamer_front, get_frame_cb, &update);
         StateUpdatePtrArray_push_back(updates, update);
     }
 
