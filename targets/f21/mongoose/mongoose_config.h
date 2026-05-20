@@ -1,5 +1,9 @@
 #pragma once
 
+// Must be >= MEMP_NUM_NETCONN (128); defined before <stdio.h> so newlib's
+// <sys/select.h> respects it instead of hard-coding 64.
+#define FD_SETSIZE 128
+
 #include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
