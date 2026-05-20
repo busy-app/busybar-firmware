@@ -168,6 +168,9 @@ class BaseAPI:
     def post_raw(self, endpoint: str, **kwargs) -> requests.Response:
         return self._request_raw("POST", endpoint, **kwargs)
 
+    def put_raw(self, endpoint: str, **kwargs) -> requests.Response:
+        return self._request_raw("PUT", endpoint, **kwargs)
+
     def delete_raw(self, endpoint: str, **kwargs) -> requests.Response:
         return self._request_raw("DELETE", endpoint, **kwargs)
 

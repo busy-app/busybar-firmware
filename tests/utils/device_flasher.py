@@ -43,7 +43,7 @@ class DeviceFlasher:
     def reset_and_wait(
         self,
         wait_timeout: float = 60.0,
-        reset_interval: float = 5.0,
+        reset_interval: float = 15.0,
     ) -> bool:
         """
         Reset device and wait for it to recover, retrying reset periodically.
