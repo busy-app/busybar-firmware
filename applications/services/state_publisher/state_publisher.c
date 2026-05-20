@@ -43,8 +43,8 @@ void state_publisher_send_message(StatePublisher* instance, const Message* messa
         return;
     }
 
-    FuriStatus queue_status =
-        furi_message_queue_put(instance->message_queue, message, MESSAGE_QUEUE_TIMEOUT_MS);
+    FuriStatus queue_status = furi_message_queue_put(
+        instance->message_queue, message, furi_ms_to_ticks(MESSAGE_QUEUE_TIMEOUT_MS));
 
     if(queue_status != FuriStatusOk) {
         FURI_LOG_E(TAG, "Failed to put an item into message queue.");
