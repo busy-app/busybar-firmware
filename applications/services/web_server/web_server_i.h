@@ -130,6 +130,7 @@ typedef union {
             } ws;
             struct {
                 void (*on_data)(struct mg_connection* conn, struct mg_iobuf* data);
+                void (*on_poll)(struct mg_connection* conn);
             } raw;
         };
         void (*on_close)(struct mg_connection* conn);
@@ -161,5 +162,10 @@ void http_handler_remove(HttpHandlersList_t list, const HttpHandler* handler);
 void http_handler_remove_all(HttpHandlersList_t list);
 
 void http_reply_405_method_not_allowed(struct mg_connection* conn, HttpMethod allowed_methods);
+
+void http_upload_start(
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    const char* file_path);
 
 struct mg_mgr* web_srv_get_mgr(void);
