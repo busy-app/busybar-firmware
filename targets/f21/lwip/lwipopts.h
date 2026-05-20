@@ -178,7 +178,7 @@
 #define LWIP_SO_RCVTIMEO                   1
 #define LWIP_SO_SNDRCVTIMEO_NONSTANDARD    0
 #define LWIP_SO_RCVBUF                     1
-#define LWIP_SO_LINGER                     1
+#define LWIP_SO_LINGER                     0
 #define RECV_BUFSIZE_DEFAULT               (16 * 1024)
 #define LWIP_TCP_CLOSE_TIMEOUT_MS_DEFAULT  10000
 #define SO_REUSE                           1

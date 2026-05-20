@@ -215,10 +215,6 @@ static void http_event_handler(struct mg_connection* conn, int ev, void* ev_data
         if(netstat_is_overloaded(NetstatLogOnOverload)) {
             http_api_log_access(conn, msg, 508);
             MG_REPLY_OVERLOADED(conn);
-            // RST on close to avoid leaving a TIME_WAIT PCB — the 508 body is
-            // best-effort; freeing the PCB slot immediately is more important.
-            struct linger sl = {.l_onoff = 1, .l_linger = 0};
-            setsockopt((int)(size_t)conn->fd, SOL_SOCKET, SO_LINGER, &sl, sizeof(sl));
             MG_CLOSE_AFTER_HEADERS(conn, msg);
         } else {
             FuriString* path = furi_string_alloc_printf("%.*s", msg->uri.len, msg->uri.buf);
