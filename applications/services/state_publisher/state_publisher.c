@@ -8,7 +8,7 @@
 
 #include <time/time.h>
 
-#define MAX_MESSAGES 16
+#define MAX_MESSAGES             64
 
 #define HEARTBEAT_INTERVAL_MS 991
 
