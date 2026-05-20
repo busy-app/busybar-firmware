@@ -1,7 +1,7 @@
 #pragma once
 
-// Must be >= MEMP_NUM_NETCONN (128); defined before <stdio.h> so newlib's
-// <sys/select.h> respects it instead of hard-coding 64.
+// Reinforces the FD_SETSIZE=128 compiler flag (set in lwip.scons) for mongoose
+// TUs, ensuring <sys/select.h> doesn't override it with newlib's default of 64.
 #define FD_SETSIZE 128
 
 #include <stdio.h>
