@@ -413,12 +413,25 @@ static void api_display_canvas_draw(struct mg_connection* conn, struct mg_http_m
         }
 
         size_t active_priority = api_display_active_priority();
-        if((size_t)priority < active_priority) {
+        bool canvas_running = furi_record_exists(RECORD_CANVAS);
+        CanvasApp* canvas = canvas_running ? furi_record_open(RECORD_CANVAS) : NULL;
+
+        size_t priority_threshold = active_priority;
+
+        if(canvas_running) {
+            FuriString* canvas_app_id = furi_string_alloc();
+            canvas_get_app_id(canvas, canvas_app_id);
+
+            if(furi_string_cmp_str(canvas_app_id, app_name) == 0) priority_threshold--;
+
+            furi_string_free(canvas_app_id);
+        }
+
+        if((size_t)priority <= priority_threshold) {
             MG_REPLY_ERROR(conn, 409, "Not drawn due to low priority");
             break;
         }
 
-        bool canvas_running = furi_record_exists(RECORD_CANVAS);
         if(!canvas_running) {
             if(!api_display_draw_check_elements_visible(elements_array)) {
                 MG_REPLY_ERROR(conn, 400, "Nothing to display");
@@ -434,7 +447,7 @@ static void api_display_canvas_draw(struct mg_connection* conn, struct mg_http_m
             if(!canvas_running) break;
         }
 
-        CanvasApp* canvas = furi_record_open(RECORD_CANVAS);
+        if(!canvas) canvas = furi_record_open(RECORD_CANVAS);
         bool shown = canvas_show_elements(canvas, app_name, priority, elements_array);
         furi_record_close(RECORD_CANVAS);
 

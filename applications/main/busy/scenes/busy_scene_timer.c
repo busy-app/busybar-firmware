@@ -147,7 +147,7 @@ static void busy_scene_timer_update_tick(BusyApp* instance) {
 static void busy_scene_timer_update_priority(BusyApp* instance) {
     const BusySceneTimer* data =
         scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdTimer);
-    bool is_active = (data->timer_state == BusyTimerStateWork) && !data->is_paused;
+    bool is_active = data->timer_state != BusyTimerStateIdle;
     busy_set_priority(instance, is_active);
 }
 
