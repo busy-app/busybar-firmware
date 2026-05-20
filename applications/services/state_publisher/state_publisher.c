@@ -8,7 +8,8 @@
 
 #include <time/time.h>
 
-#define MAX_MESSAGES 16
+#define MAX_MESSAGES             64
+#define MESSAGE_QUEUE_TIMEOUT_MS 3000
 
 #define HEARTBEAT_INTERVAL_MS 991
 
@@ -39,10 +40,14 @@ static void message_queue_callback(FuriEventLoopObject* object, void* context) {
 void state_publisher_send_message(StatePublisher* instance, const Message* message) {
     if(furi_thread_get_current_id() == instance->main_thread_id) {
         message_handlers[message->type](instance, message);
-    } else {
-        furi_check(
-            furi_message_queue_put(instance->message_queue, message, FuriWaitForever) ==
-            FuriStatusOk);
+        return;
+    }
+
+    FuriStatus queue_status = furi_message_queue_put(
+        instance->message_queue, message, furi_ms_to_ticks(MESSAGE_QUEUE_TIMEOUT_MS));
+
+    if(queue_status != FuriStatusOk) {
+        FURI_LOG_E(TAG, "Failed to put an item into message queue.");
     }
 }
 
