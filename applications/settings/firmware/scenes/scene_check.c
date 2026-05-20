@@ -84,12 +84,14 @@ static void firmware_settings_check_scene_on_enter(void* context) {
     with_gui(instance->gui, {
         /* front layout setup */
         scene->front_status = status_view_alloc(instance->front_scene_window);
-        status_view_set_icon(scene->front_status, SHARED_ANIM_PATH("spinner_front_8x8.anim"));
+        status_view_set_icon(
+            scene->front_status, SHARED_ANIM_PATH("spinner_front_8x8.anim"), true);
         status_view_set_primary_text(scene->front_status, "Checking...");
 
         /* back layout setup */
         scene->back_status = status_view_alloc(instance->back_scene_window);
-        status_view_set_icon(scene->back_status, SHARED_ANIM_PATH("spinner_back_16x16.anim"));
+        status_view_set_icon(
+            scene->back_status, SHARED_ANIM_PATH("spinner_back_16x16.anim"), true);
         status_view_set_primary_text(scene->back_status, "Checking for update...");
     });
 

@@ -28,7 +28,8 @@ static void apps_menu_scene_coming_soon_on_enter(void* context) {
         widget_set_align(label_get_base(front_label), AlignCenter);
 
         scene->back_status_view = status_view_alloc(instance->back_scene_window);
-        status_view_set_icon(scene->back_status_view, SHARED_IMG_PATH("error_back_11x11.image"));
+        status_view_set_icon(
+            scene->back_status_view, SHARED_IMG_PATH("error_back_11x11.image"), false);
         status_view_set_primary_text(scene->back_status_view, "More apps soon");
         status_view_set_auxiliary_text(
             scene->back_status_view, "Keep your device up to date\nfor upcoming apps");

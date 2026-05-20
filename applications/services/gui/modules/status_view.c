@@ -162,15 +162,11 @@ Widget* status_view_get_base(StatusView* instance) {
     return &instance->base;
 }
 
-void status_view_set_icon(StatusView* instance, const char* path) {
+void status_view_set_icon(StatusView* instance, const char* path, bool is_animated) {
     furi_check(instance);
     furi_check(path);
 
     if(path) {
-        FuriString* path_string = furi_string_alloc_set(path);
-        bool is_animated = furi_string_end_with(path_string, ".anim");
-        furi_string_free(path_string);
-
         if(is_animated) {
             lv_obj_add_flag(instance->icon_static_box, LV_OBJ_FLAG_HIDDEN);
             lv_image_set_src(instance->icon_static, NULL);

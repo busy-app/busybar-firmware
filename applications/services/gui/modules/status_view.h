@@ -48,8 +48,9 @@ Widget* status_view_get_base(StatusView* instance);
  *
  * @param[in,out] instance pointer to the StatusView instance to be modified
  * @param[in] path zero-terminated string containing the icon resource path
+ * @param[in] is_animated true if the icon is an animation, false for a static image
  */
-void status_view_set_icon(StatusView* instance, const char* path);
+void status_view_set_icon(StatusView* instance, const char* path, bool is_animated);
 
 /**
  * @brief Set the primary text of the StatusView.
