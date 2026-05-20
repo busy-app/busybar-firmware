@@ -151,22 +151,19 @@ static void mqtt_streaming_api_queue_callback(FuriEventLoopObject* obj, void* co
                 furi_event_loop_timer_start(
                     instance->timeout_timer, S_TO_MS(api_msg.expiry_interval));
             }
-            if(api_msg.response_topic) {
-                furi_string_free(api_msg.response_topic);
-            }
         } else if(api_msg.type == MqttStreamingApiMessageTypeStop) {
             FURI_LOG_I(TAG, "Stop");
 
             stop_publisher(instance);
             furi_event_loop_timer_stop(instance->timeout_timer);
-            if(api_msg.response_topic) {
-                furi_string_free(api_msg.response_topic);
-            }
         } else {
             FURI_LOG_E(TAG, "Invalid MqttStreamingApiMessageType value: %d", api_msg.type);
         }
         if(api_msg.payload) {
             free(api_msg.payload);
+        }
+        if(api_msg.response_topic) {
+            furi_string_free(api_msg.response_topic);
         }
     }
 }
