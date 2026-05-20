@@ -7,7 +7,6 @@
 #include <rsi_bt_common_apis.h>
 
 #include <wifi/wifi_common.h>
-#include <applications/system/crypto_backup/crypto_backup_verify.h>
 
 #define TAG "FuriHalInfo"
 
@@ -77,6 +76,10 @@ typedef struct {
 FURI_WEAK void furi_hal_info_get_api_version(uint16_t* major, uint16_t* minor) {
     *major = 0;
     *minor = 0;
+}
+
+FURI_WEAK bool furi_hal_info_verify_crypto_enclave(void) {
+    return false;
 }
 
 static FuriHalInfoNwp* furi_hal_info_nwp_alloc(void) {
@@ -447,7 +450,7 @@ void furi_hal_info_get(PropertyValueCallback out, char sep, void* context) {
             "sl",
             "enclave",
             "valid",
-            crypto_backup_verify_enclave() ? "true" : "false");
+            furi_hal_info_verify_crypto_enclave() ? "true" : "false");
         property_value_out(
             &property_context,
             NULL,

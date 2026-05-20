@@ -162,3 +162,6 @@ static bool crypto_backup_verify_aes(void) {
 bool crypto_backup_verify_enclave(void) {
     return crypto_backup_verify_keys() && crypto_backup_verify_aes();
 }
+
+bool furi_hal_info_verify_crypto_enclave(void)
+    __attribute__((alias(STRINGIFY(crypto_backup_verify_enclave))));
