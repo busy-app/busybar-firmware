@@ -4,6 +4,7 @@
 #include "http_api/http_api.h"
 #include <sysctl/sysctl.h>
 #include <netstat/netstat.h>
+#include <toolbox/path.h>
 
 #define TAG "HttpSrv"
 
@@ -80,6 +81,119 @@ void http_reply_405_method_not_allowed(struct mg_connection* conn, HttpMethod al
     furi_string_free(headers);
 }
 
+#define HTTP_UPLOAD_IDLE_TIMEOUT_MS 3000
+
+typedef struct {
+    size_t len_remain;
+    void* file;
+    uint64_t timeout_stamp;
+} HttpUploadCtx;
+
+static void http_upload_data_callback(struct mg_connection* conn, struct mg_iobuf* data) {
+    ConnectionContext* conn_ctx = (void*)conn->data;
+    HttpUploadCtx* upload_ctx = conn_ctx->context;
+
+    bool do_close_file = false;
+
+    if(upload_ctx == NULL) return;
+    if(upload_ctx->file == NULL) return;
+
+    upload_ctx->timeout_stamp = mg_millis() + HTTP_UPLOAD_IDLE_TIMEOUT_MS;
+
+    if((data->len > 0) && (upload_ctx->file)) {
+        // Write file chunk
+        size_t write_len = MIN(data->len, upload_ctx->len_remain);
+        if(http_fs_get()->wr(upload_ctx->file, data->buf, write_len) != write_len) {
+            FURI_LOG_E(TAG, "Failed to write file chunk");
+            MG_REPLY_INTERNAL_ERROR(conn, "Failed to write file chunk");
+            do_close_file = true;
+        } else {
+            upload_ctx->len_remain -= write_len;
+            FURI_LOG_T(
+                TAG,
+                "Wrote %zu bytes to file, remaining %zu bytes",
+                write_len,
+                upload_ctx->len_remain);
+        }
+    }
+
+    if(upload_ctx->len_remain == 0) {
+        MG_REPLY_OK(conn);
+        do_close_file = true; // End of write
+    }
+
+    if(do_close_file) { // error or end of write
+        FURI_LOG_I(TAG, "Closing file after write data");
+        if(upload_ctx->file) {
+            http_fs_get()->cl(upload_ctx->file);
+            upload_ctx->file = NULL;
+        }
+        conn->is_draining = 1; // Drain connection
+    }
+    data->len = 0;
+}
+
+static void http_upload_close_callback(struct mg_connection* conn) {
+    ConnectionContext* conn_ctx = (void*)conn->data;
+    HttpUploadCtx* upload_ctx = conn_ctx->context;
+    if(upload_ctx->file) {
+        http_fs_get()->cl(upload_ctx->file);
+        upload_ctx->file = NULL;
+    }
+    free(upload_ctx);
+    conn_ctx->on_close = NULL;
+    conn_ctx->raw.on_data = NULL;
+    conn_ctx->raw.on_poll = NULL;
+    conn_ctx->context = NULL;
+}
+
+static void http_upload_poll_callback(struct mg_connection* conn) {
+    ConnectionContext* conn_ctx = (void*)conn->data;
+    HttpUploadCtx* upload_ctx = conn_ctx->context;
+    furi_assert(upload_ctx);
+
+    if(mg_timer_expired(&upload_ctx->timeout_stamp, HTTP_UPLOAD_IDLE_TIMEOUT_MS, mg_millis())) {
+        FURI_LOG_E(TAG, "Connection data timeout (%lu)", conn->id);
+        conn->is_draining = 1; // Force close hanging connection
+    }
+}
+
+void http_upload_start(
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    const char* file_path) {
+    // Create upload context
+    HttpUploadCtx* upload_ctx = malloc(sizeof(HttpUploadCtx));
+    upload_ctx->len_remain = msg->body.len;
+    upload_ctx->file = NULL;
+    upload_ctx->timeout_stamp = mg_millis() + HTTP_UPLOAD_IDLE_TIMEOUT_MS;
+
+    // Assign callbacks
+    ConnectionContext* conn_ctx = (void*)conn->data;
+    conn_ctx->on_close = http_upload_close_callback;
+    conn_ctx->raw.on_data = http_upload_data_callback;
+    conn_ctx->raw.on_poll = http_upload_poll_callback;
+    conn_ctx->context = upload_ctx;
+
+    http_fs_get()->rm(file_path); // Delete file if it exists
+    FuriString* dir_path = furi_string_alloc();
+    path_extract_dirname(file_path, dir_path);
+    http_fs_get()->mkd(furi_string_get_cstr(dir_path));
+    furi_string_free(dir_path);
+    upload_ctx->file = http_fs_get()->op(file_path, MG_FS_WRITE); // Open file for writing
+
+    if(upload_ctx->file == NULL) {
+        MG_REPLY_INTERNAL_ERROR(conn, "Failed to open file for writing");
+        conn->is_draining = 1;
+    }
+
+    mg_iobuf_del(&conn->recv, 0, msg->head.len); // Delete HTTP headers
+    conn->pfn = NULL; // Silence HTTP protocol handler, we'll use MG_EV_READ
+
+    // Also handle possible data in the buffer
+    http_upload_data_callback(conn, &conn->recv);
+}
+
 static void http_event_handler(struct mg_connection* conn, int ev, void* ev_data) {
     if(ev == MG_EV_HTTP_MSG) {
         WebServer* context = conn->fn_data;
@@ -137,6 +251,11 @@ static void http_event_handler(struct mg_connection* conn, int ev, void* ev_data
         ConnectionContext* conn_ctx = (void*)conn->data;
         if(conn_ctx->on_wakeup) {
             conn_ctx->on_wakeup(conn, wakeup_data->buf, wakeup_data->len);
+        }
+    } else if(ev == MG_EV_POLL) {
+        ConnectionContext* conn_ctx = (void*)conn->data;
+        if((conn_ctx->raw.on_poll) && (!conn->is_websocket)) {
+            conn_ctx->raw.on_poll(conn);
         }
     }
 }

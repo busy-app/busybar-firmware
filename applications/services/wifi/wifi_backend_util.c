@@ -107,3 +107,8 @@ void wifi_decode_ssid(char* ssid, const sl_wifi_ssid_t* sl_ssid) {
     strncpy(ssid, (char*)sl_ssid->value, sl_ssid->length);
     ssid[sl_ssid->length] = '\0';
 }
+
+sl_net_credential_id_t wifi_get_credential_id(WifiSecurityMode security_mode) {
+    return (security_mode == WifiSecurityModeOpen) ? SL_NET_NO_CREDENTIAL_ID :
+                                                     SL_NET_DEFAULT_WIFI_CLIENT_CREDENTIAL_ID;
+}

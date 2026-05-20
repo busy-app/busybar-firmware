@@ -9,68 +9,6 @@
 #define ASSETS_UPLOAD_DIR EXT_PATH("user_assets")
 #define FILE_NAME_LEN_MAX 32
 
-typedef struct {
-    size_t len_remain;
-    void* file;
-} UploadClientCtx;
-
-static void api_assets_upload_data_callback(struct mg_connection* conn, struct mg_iobuf* data) {
-    ConnectionContext* conn_ctx = (void*)conn->data;
-    UploadClientCtx* upload_ctx = conn_ctx->context;
-
-    bool do_close_file = false;
-
-    if(upload_ctx == NULL) return;
-    if(upload_ctx->file == NULL) return;
-
-    if((data->len > 0) && (upload_ctx->file)) {
-        // Write file chunk
-        size_t write_len = MIN(data->len, upload_ctx->len_remain);
-        if(http_fs_get()->wr(upload_ctx->file, data->buf, write_len) != write_len) {
-            FURI_LOG_E(TAG, "Failed to write file chunk");
-            MG_REPLY_INTERNAL_ERROR(conn, "Failed to write file chunk");
-            do_close_file = true;
-        } else {
-            upload_ctx->len_remain -= write_len;
-            FURI_LOG_T(
-                TAG,
-                "Wrote %zu bytes to file, remaining %zu bytes",
-                write_len,
-                upload_ctx->len_remain);
-        }
-    }
-
-    if(upload_ctx->len_remain == 0) {
-        MG_REPLY_OK(conn);
-        do_close_file = true; // End of upload
-    }
-
-    if(do_close_file) { // error or end of upload
-        FURI_LOG_I(TAG, "Closing file after upload data");
-        if(upload_ctx->file) {
-            http_fs_get()->cl(upload_ctx->file);
-            upload_ctx->file = NULL;
-        }
-        conn->is_draining = 1; // Drain connection
-    }
-    data->len = 0;
-}
-
-static void api_assets_upload_close_callback(struct mg_connection* conn) {
-    ConnectionContext* conn_ctx = (void*)conn->data;
-    UploadClientCtx* upload_ctx = conn_ctx->context;
-    furi_assert(upload_ctx);
-
-    if(upload_ctx->file) {
-        http_fs_get()->cl(upload_ctx->file);
-        upload_ctx->file = NULL;
-    }
-    free(upload_ctx);
-    conn_ctx->on_close = NULL;
-    conn_ctx->raw.on_data = NULL;
-    conn_ctx->context = NULL;
-}
-
 static bool api_assets_upload_parse_parameters(struct mg_str* params_str, FuriString* file_path) {
     if(params_str->len == 0) {
         return false;
@@ -90,7 +28,7 @@ static bool api_assets_upload_parse_parameters(struct mg_str* params_str, FuriSt
     }
     furi_string_cat_printf(file_path, "%.*s", var_len, temp_str);
 
-    return true;
+    return mg_path_is_sane(mg_str(furi_string_get_cstr(file_path)));
 }
 
 static bool api_assets_upload_headers_callback(
@@ -106,47 +44,13 @@ static bool api_assets_upload_headers_callback(
 
     FuriString* file_path = furi_string_alloc();
     if(api_assets_upload_parse_parameters(&msg->query, file_path)) {
-        FURI_LOG_I(
-            TAG, "Upload len = %u path = %s", msg->body.len, furi_string_get_cstr(file_path));
-        // Create upload context
-        UploadClientCtx* upload_ctx = malloc(sizeof(UploadClientCtx));
-        upload_ctx->len_remain = msg->body.len;
-        upload_ctx->file = NULL;
-
-        // Assign callbacks
-        ConnectionContext* conn_ctx = (void*)conn->data;
-        conn_ctx->on_close = api_assets_upload_close_callback;
-        conn_ctx->raw.on_data = api_assets_upload_data_callback;
-        conn_ctx->context = upload_ctx;
-
-        const char* path_temp = furi_string_get_cstr(file_path);
-        if(mg_path_is_sane(mg_str(path_temp))) {
-            http_fs_get()->rm(path_temp); // Delete file if it exists
-            FuriString* dir_path = furi_string_alloc();
-            path_extract_dirname(path_temp, dir_path);
-            http_fs_get()->mkd(furi_string_get_cstr(dir_path));
-            furi_string_free(dir_path);
-            upload_ctx->file = http_fs_get()->op(path_temp, MG_FS_WRITE); // Open file for writing
-        }
-
-        if(upload_ctx->file == NULL) {
-            MG_REPLY_INTERNAL_ERROR(conn, "Failed to open file for writing");
-            conn->is_draining = 1;
-        }
+        http_upload_start(conn, msg, furi_string_get_cstr(file_path));
     } else {
         MG_REPLY_BAD_REQUEST(conn);
-        conn->is_draining = 1;
-        ConnectionContext* conn_ctx = (void*)conn->data;
-        conn_ctx->context = NULL;
+        MG_CLOSE_AFTER_HEADERS(conn, msg);
     }
 
     furi_string_free(file_path);
-
-    mg_iobuf_del(&conn->recv, 0, msg->head.len); // Delete HTTP headers
-    conn->pfn = NULL; // Silence HTTP protocol handler, we'll use MG_EV_READ
-
-    // Also handle possible data in the buffer
-    api_assets_upload_data_callback(conn, &conn->recv);
 
     return true;
 }

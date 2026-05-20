@@ -83,8 +83,8 @@ static StatePublisher* state_publisher_alloc(void) {
     for(uint32_t i = 0; i != COUNT_OF(instance->transports); ++i) {
         Transport* t = instance->transports + i;
         t->valid = false;
-        StateUpdateArray_init(t->seq_updates);
-        StateUpdateArray_init(t->state_updates);
+        SharedStateUpdateArray_init(t->seq_updates);
+        SharedStateUpdateArray_init(t->state_updates);
     }
 
     state_publisher_subscribe(instance);
@@ -107,7 +107,7 @@ static void update_screen_streamer_outputs(StatePublisher* instance) {
         uint32_t frame_interval_ms = UINT32_MAX;
         for(size_t i = 0; i != MAX_TRANSPORTS; ++i) {
             Transport* t = instance->transports + i;
-            if(t->valid) {
+            if(t->valid && (t->flags & (1 << transport_class))) {
                 enabled = true;
                 frame_interval_ms = MIN(frame_interval_ms, t->frame_interval_ms);
             }
@@ -241,18 +241,18 @@ static bool is_sequential_update(const BSB_State_StateUpdate* update) {
 
 static bool send_out_for_transport(void* context, bool heartbeat) {
     Transport* t = context;
-    StateUpdateArray_t updates;
-    StateUpdateArray_init_move(updates, t->seq_updates);
-    StateUpdateArray_init(t->seq_updates);
+    SharedStateUpdateArray_t updates;
+    SharedStateUpdateArray_init_move(updates, t->seq_updates);
+    SharedStateUpdateArray_init(t->seq_updates);
 
-    for(size_t i = 0; i != StateUpdateArray_size(t->state_updates); ++i) {
-        SharedStateUpdate_t* shared = StateUpdateArray_get(t->state_updates, i);
+    for(size_t i = 0; i != SharedStateUpdateArray_size(t->state_updates); ++i) {
+        SharedStateUpdate_t* shared = SharedStateUpdateArray_get(t->state_updates, i);
         if(!SharedStateUpdate_NULL_p(*shared)) {
-            StateUpdateArray_push_move(updates, shared);
+            SharedStateUpdateArray_push_move(updates, shared);
         }
     }
 
-    size_t count = StateUpdateArray_size(updates);
+    size_t count = SharedStateUpdateArray_size(updates);
 
     bool sent = false;
 
@@ -261,7 +261,7 @@ static bool send_out_for_transport(void* context, bool heartbeat) {
         BSB_State_StateUpdate* raw_updates =
             count ? malloc(sizeof(BSB_State_StateUpdate) * count) : NULL;
         for(size_t i = 0; i != count; ++i) {
-            SharedStateUpdate_t* shared = StateUpdateArray_get(updates, i);
+            SharedStateUpdate_t* shared = SharedStateUpdateArray_get(updates, i);
             memcpy(
                 raw_updates + i, SharedStateUpdate_cref(*shared), sizeof(BSB_State_StateUpdate));
         }
@@ -291,7 +291,7 @@ static bool send_out_for_transport(void* context, bool heartbeat) {
 
         sent = true;
     }
-    StateUpdateArray_clear(updates);
+    SharedStateUpdateArray_clear(updates);
     return sent;
 }
 
@@ -346,11 +346,11 @@ static bool handle_publish_update(StatePublisher* instance, const Message* messa
             for(size_t i = 0; i != MAX_TRANSPORTS; ++i) {
                 Transport* t = instance->transports + i;
                 if(t->valid && (t->flags & flags)) {
-                    if(StateUpdateArray_size(t->seq_updates) >= MAX_SEQ_UPDATES) {
+                    if(SharedStateUpdateArray_size(t->seq_updates) >= MAX_SEQ_UPDATES) {
                         FURI_LOG_W(TAG, "Sequential updates full, dropping");
-                        StateUpdateArray_reset(t->seq_updates);
+                        SharedStateUpdateArray_reset(t->seq_updates);
                     }
-                    StateUpdateArray_push_back(t->seq_updates, shared_update);
+                    SharedStateUpdateArray_push_back(t->seq_updates, shared_update);
                 }
             }
             furi_mutex_release(instance->transports_mutex);
@@ -359,12 +359,12 @@ static bool handle_publish_update(StatePublisher* instance, const Message* messa
             for(size_t i = 0; i != MAX_TRANSPORTS; ++i) {
                 Transport* t = instance->transports + i;
                 if(t->valid && (t->flags & flags)) {
-                    size_t old_size = StateUpdateArray_size(t->state_updates);
-                    StateUpdateArray_resize(
+                    size_t old_size = SharedStateUpdateArray_size(t->state_updates);
+                    SharedStateUpdateArray_resize(
                         t->state_updates, MAX(old_size, (size_t)update->which_state + 1));
 
                     SharedStateUpdate_t* cell =
-                        StateUpdateArray_get(t->state_updates, update->which_state);
+                        SharedStateUpdateArray_get(t->state_updates, update->which_state);
                     SharedStateUpdate_set(*cell, shared_update);
                 }
             }
@@ -477,4 +477,36 @@ void state_publisher_schedule_state_update(
 static void heartbeat_timer_callback(void* context) {
     StatePublisher* instance = context;
     state_publisher_schedule_state_update(instance, NULL, StreamFlagAll);
+}
+
+void state_publisher_send_complete_snapshot(
+    StatePublisher* instance,
+    StatePublisherTransportHandle transport) {
+    BSB_State_State* state = state_publisher_collect_all(instance);
+
+    SharedByteArray_t data;
+
+    SharedByteArray_init_new(data);
+
+    ByteArray_t* buf = SharedByteArray_ref(data);
+    pb_ostream_t stream = ostream_with_buffer(buf);
+
+    bool result = pb_encode(&stream, BSB_State_State_fields, state);
+    {
+        furi_mutex_acquire(instance->transports_mutex, FuriWaitForever);
+        Transport* t = instance->transports + transport;
+        if(!result) {
+            FURI_LOG_E(TAG, "cannot encode");
+        } else {
+            t->cb(data, t->cb_context);
+            SharedStateUpdateArray_reset(t->state_updates);
+        }
+        furi_mutex_release(instance->transports_mutex);
+    }
+    SharedByteArray_clear(data);
+    for(size_t i = 0; i != state->updates_count; ++i) {
+        state_publisher_free_state_update(state->updates + i);
+    }
+    free(state->updates);
+    free(state);
 }

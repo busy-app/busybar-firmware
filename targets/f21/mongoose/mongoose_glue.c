@@ -145,6 +145,9 @@ static void* fs_open(const char* path, int flags) {
 
     FS_AccessMode access = (flags & MG_FS_WRITE) ? FSAM_READ_WRITE : FSAM_READ;
     FS_OpenMode open_mode = (flags & MG_FS_WRITE) ? FSOM_OPEN_APPEND : FSOM_OPEN_EXISTING;
+    if(flags & MG_FS_WRITE) {
+        open_mode |= FSOM_NONBLOCKING;
+    }
 
     if(!storage_file_open(file, path, access, open_mode)) {
         storage_file_close(file);

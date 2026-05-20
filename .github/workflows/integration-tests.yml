@@ -17,24 +17,49 @@ on:
         required: false
         type: string
         default: '21'
+      marker_filter:
+        required: false
+        type: string
+        default: 'not regression'
+        description: 'Pytest -m marker expression. Empty string runs everything.'
 
   workflow_dispatch:
     inputs:
+      test_scope:
+        description: 'What to run. Default matches PR runs.'
+        required: false
+        type: choice
+        default: smoke
+        options:
+          - smoke
+          - regression
+          - full
+          - custom
+      commit_sha:
+        description: 'Commit/ref to checkout. Empty uses the selected workflow ref.'
+        required: false
+        type: string
+        default: ''
       firmware_branch:
-        description: 'Firmware branch (e.g., dev, 0.6.0-rc). Will auto-detect latest build.'
+        description: 'Firmware branch/path prefix. Empty uses the selected workflow ref.'
         required: false
         type: string
-        default: "dev"
+        default: ''
       update_url:
-        description: 'Explicit firmware path (overrides firmware_branch if set)'
+        description: 'Explicit firmware path or URL. Overrides firmware_branch if set.'
         required: false
         type: string
-        default: ""
+        default: ''
       target:
         description: 'Hardware target'
         required: false
         type: string
         default: '21'
+      marker_filter:
+        description: 'Pytest -m expression, used only when test_scope=custom. Empty runs everything.'
+        required: false
+        type: string
+        default: ''
 
 permissions:
   contents: read
@@ -45,6 +70,7 @@ permissions:
 env:
   U5_HW_TARGET: ${{ inputs.target || '21' }}
   FIRMWARE_BASE_URL: https://update.flipperzero.one/builds/busybar-firmware
+  PYTEST_FAILED_TEST_RETRIES: 1
 
 jobs:
   integration-tests:
@@ -68,24 +94,42 @@ jobs:
 
       - name: 'Update submodules'
         run: |
-          git submodule update --init --recursive --jobs=$(nproc) scripts/toolchain fbt_layers/fbtng || (git lfs logs last && exit 1)
+          git submodule update --init --recursive --jobs="$(nproc)" || (git lfs logs last && exit 1)
 
       - name: 'Resolve firmware URLs'
         id: resolve_firmware
+        env:
+          FIRMWARE_BRANCH_INPUT: ${{ inputs.firmware_branch || '' }}
+          UPDATE_URL_INPUT: ${{ inputs.update_url || '' }}
         run: |
           set -euo pipefail
           TARGET="f${{ env.U5_HW_TARGET }}"
 
-          if [ -n "${{ inputs.update_url }}" ]; then
-            UPDATE_PATH="${{ inputs.update_url }}"
-          elif [ -n "${{ github.event.inputs.firmware_branch }}" ]; then
-            BRANCH="${{ github.event.inputs.firmware_branch }}"
-            LISTING=$(curl -sL "${FIRMWARE_BASE_URL}/${BRANCH}/")
-            UPDATE_FILE=$(echo "$LISTING" | grep -oE "busybar-${TARGET}-update-[^\"]+\.(tgz|tar)" | sort -V | tail -1)
-            [ -n "$UPDATE_FILE" ] || { echo "ERROR: No update file for branch $BRANCH"; exit 1; }
-            UPDATE_PATH="${BRANCH}/${UPDATE_FILE}"
+          if [ -n "$UPDATE_URL_INPUT" ]; then
+            UPDATE_PATH="$UPDATE_URL_INPUT"
+            # Strip absolute base if a full URL was pasted into the dispatch
+            # input — downstream code expects a relative path.
+            UPDATE_PATH="${UPDATE_PATH#"$FIRMWARE_BASE_URL"/}"
+            UPDATE_PATH="${UPDATE_PATH#https://update.flipperzero.one/builds/busybar-firmware/}"
+            if [[ "$UPDATE_PATH" == http*://* ]]; then
+              echo "ERROR: update_url points outside ${FIRMWARE_BASE_URL}: $UPDATE_URL_INPUT"
+              exit 1
+            fi
           else
-            echo "ERROR: No update_url or firmware_branch provided"; exit 1
+            BRANCH="${FIRMWARE_BRANCH_INPUT:-${GITHUB_REF_NAME:-}}"
+            if [ -z "$BRANCH" ]; then
+              echo "ERROR: No update_url, firmware_branch, or selected ref provided"; exit 1
+            fi
+            LISTING=$(curl --fail -sL "${FIRMWARE_BASE_URL}/${BRANCH}/") || {
+              echo "ERROR: Failed to fetch listing for branch $BRANCH (${FIRMWARE_BASE_URL}/${BRANCH}/)"
+              exit 1
+            }
+            if [ -z "$LISTING" ]; then
+              echo "ERROR: Empty listing for branch $BRANCH"; exit 1
+            fi
+            UPDATE_FILE=$(echo "$LISTING" | grep -oE "busybar-${TARGET}-update-[^\"]+\.(tgz|tar)" | sort -V | tail -1 || true)
+            [ -n "$UPDATE_FILE" ] || { echo "ERROR: No update file for target $TARGET in branch $BRANCH"; exit 1; }
+            UPDATE_PATH="${BRANCH}/${UPDATE_FILE}"
           fi
 
           UPDATE_DIR="$(dirname "$UPDATE_PATH")"
@@ -97,9 +141,11 @@ jobs:
           SI917_ELF="${UPDATE_DIR}/${UPDATE_FILE/-update-/-sil_firmware-}"
           SI917_ELF="${SI917_ELF%.tgz}"; SI917_ELF="${SI917_ELF%.tar}.elf"
 
-          echo "update_url=${FIRMWARE_BASE_URL}/${UPDATE_PATH}" >> $GITHUB_OUTPUT
-          echo "u5_elf_url=${FIRMWARE_BASE_URL}/${U5_ELF}" >> $GITHUB_OUTPUT
-          echo "si917_elf_url=${FIRMWARE_BASE_URL}/${SI917_ELF}" >> $GITHUB_OUTPUT
+          {
+            echo "update_url=${FIRMWARE_BASE_URL}/${UPDATE_PATH}"
+            echo "u5_elf_url=${FIRMWARE_BASE_URL}/${U5_ELF}"
+            echo "si917_elf_url=${FIRMWARE_BASE_URL}/${SI917_ELF}"
+          } >> "$GITHUB_OUTPUT"
 
       - name: 'Download firmware artifacts'
         run: |
@@ -115,13 +161,13 @@ jobs:
 
       - name: 'Flash firmware'
         id: flashing
-        timeout-minutes: 10
+        timeout-minutes: 20
         run: |
           set -euo pipefail
           source scripts/toolchain/fbtenv.sh
           python3 scripts/testops.py format --no-confirm
           python3 scripts/testops.py update-fw busybar-f${{ env.U5_HW_TARGET }}-update.tgz -r 3 --connect-timeout 10
-          python3 scripts/testops.py wait -t 320
+          python3 scripts/testops.py wait -t 260
 
       - name: 'Sanity check after flashing'
         if: steps.flashing.outcome == 'success'
@@ -140,39 +186,80 @@ jobs:
           python3 -m pip install --upgrade pip
           pip install -r tests/requirements.txt
 
+      - name: Resolve pytest marker filter
+        id: pytest_filter
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          MARKER_FILTER_INPUT: ${{ inputs.marker_filter }}
+          TEST_SCOPE: ${{ inputs.test_scope || 'smoke' }}
+        run: |
+          set -euo pipefail
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            case "$TEST_SCOPE" in
+              smoke|"")
+                MARKER_FILTER="not regression"
+                ;;
+              regression)
+                MARKER_FILTER="regression"
+                ;;
+              full)
+                MARKER_FILTER=""
+                ;;
+              custom)
+                MARKER_FILTER="$MARKER_FILTER_INPUT"
+                ;;
+              *)
+                echo "ERROR: Unsupported test_scope: $TEST_SCOPE" >&2
+                exit 1
+                ;;
+            esac
+          else
+            MARKER_FILTER="$MARKER_FILTER_INPUT"
+          fi
+
+          echo "marker_filter=$MARKER_FILTER" >> "$GITHUB_OUTPUT"
+          if [ -n "$MARKER_FILTER" ]; then
+            echo "Resolved pytest marker filter: $MARKER_FILTER"
+          else
+            echo "Resolved pytest marker filter: <empty> (full suite)"
+          fi
+
       - name: Run integration tests
         id: smoke_tests
         timeout-minutes: 20
         env:
+          MARKER_FILTER: ${{ steps.pytest_filter.outputs.marker_filter }}
           BSB_FIRMWARE_PATH: ${{ github.workspace }}
           CLI_HOST: ${{ secrets.CLI_HOST || '10.0.4.20' }}
           CLI_PORT: ${{ secrets.CLI_PORT || '23' }}
           WEB_BASE_URL: ${{ secrets.WEB_BASE_URL || 'http://10.0.4.20' }}
           LOG_LEVEL: INFO
           LOG_TO_FILE: true
-          RUN_SCHEMATHESIS: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/dev') || startsWith(github.ref, 'refs/tags/') }}
         run: |
           set +e
           cd tests
-          PYTEST_MARK_ARGS=()
-          if [ "$RUN_SCHEMATHESIS" != "true" ]; then
-            PYTEST_MARK_ARGS=(-m "not schemathesis")
-            echo "Skipping schemathesis tests (event=${{ github.event_name }}, ref=${{ github.ref }})"
+          PYTEST_OUTPUT=pytest-output.log
+
+          # MARKER_FILTER is a `-m` expression; an empty string means
+          # "no filter" (collect everything, including `regression`-tagged
+          # tests such as schemathesis).
+          pytest_args=(. -v --alluredir=allure-results --clean-alluredir --junitxml=test-results.xml)
+          if [ -n "$MARKER_FILTER" ]; then
+            pytest_args+=(-m "$MARKER_FILTER")
+            echo "Running pytest with marker filter: $MARKER_FILTER"
           else
-            echo "Running full suite including schemathesis"
+            echo "Running pytest without marker filter (full suite)"
           fi
-          python3 -m pytest . -v \
-            "${PYTEST_MARK_ARGS[@]}" \
-            --alluredir=allure-results \
-            --clean-alluredir \
-            --junitxml=test-results.xml
-          PYTEST_EXIT=$?
-          echo "pytest_exit=$PYTEST_EXIT" >> $GITHUB_OUTPUT
-          # 0 = all passed, 1 = some failed — both mean tests ran
-          # 2+ = collection error, internal error, no tests collected
-          if [ $PYTEST_EXIT -ge 2 ]; then
+          if [ "$PYTEST_FAILED_TEST_RETRIES" -gt 0 ]; then
+            pytest_args+=(--reruns "$PYTEST_FAILED_TEST_RETRIES" --reruns-delay 1 -rR)
+          fi
+          python3 -m pytest "${pytest_args[@]}" 2>&1 | tee "$PYTEST_OUTPUT"
+          PYTEST_EXIT=${PIPESTATUS[0]}
+          echo "pytest_exit=$PYTEST_EXIT" >> "$GITHUB_OUTPUT"
+
+          if [ "$PYTEST_EXIT" -ge 2 ]; then
             echo "Pytest failed to run properly (exit code $PYTEST_EXIT)"
-            exit $PYTEST_EXIT
+            exit "$PYTEST_EXIT"
           fi
 
       - name: Setup allurectl
@@ -186,17 +273,19 @@ jobs:
       - name: Upload test results to Allure TestOps
         id: allure_upload
         continue-on-error: true
+        env:
+          LAUNCH_BRANCH: ${{ inputs.branch_name || github.head_ref || github.ref_name }}
         run: |
           cd tests
           OUTPUT=$(allurectl upload allure-results \
             --endpoint "${{ secrets.ALLURE_TESTOPS_URL }}" \
             --token "${{ secrets.ALLURE_TESTOPS_TOKEN }}" \
             --project-id "${{ secrets.ALLURE_PROJECT_ID }}" \
-            --launch-name "BSB Firmware - Integration Tests - ${{ inputs.branch_name || github.head_ref || github.ref_name }} - ${GITHUB_SHA::7}" 2>&1) || true
+            --launch-name "BSB Firmware - Integration Tests - ${LAUNCH_BRANCH} - ${GITHUB_SHA::7}" 2>&1) || true
           echo "$OUTPUT"
           LAUNCH_ID=$(echo "$OUTPUT" | grep -oP 'Launch \[\K[0-9]+' | head -1)
           if [ -n "$LAUNCH_ID" ]; then
-            echo "allure_launch_url=${{ secrets.ALLURE_TESTOPS_URL }}/launch/$LAUNCH_ID" >> $GITHUB_OUTPUT
+            echo "allure_launch_url=${{ secrets.ALLURE_TESTOPS_URL }}/launch/$LAUNCH_ID" >> "$GITHUB_OUTPUT"
           fi
 
       - name: 'Configure AWS CLI'
@@ -217,19 +306,27 @@ jobs:
           fi
 
       - name: 'Report test results'
+        if: always()
         continue-on-error: true
         env:
           JUNIT_XML: tests/test-results.xml
+          PYTEST_OUTPUT: tests/pytest-output.log
           ALLURE_URL: ${{ steps.allure_upload.outputs.allure_launch_url }}
           FIRMWARE_URL: ${{ steps.resolve_firmware.outputs.update_url }}
           BRANCH_NAME: ${{ inputs.branch_name || github.head_ref || github.ref_name }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
-        run: python3 tests/utils/report_test_results.py
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          RUNNER_NAME: ${{ runner.name }}
+        run: |
+          status=0
+          LOG_DIR="$SESSION_LOG_DIR" python3 tests/utils/report_test_results.py || status=$?
+          CRASH_FLAG="$SESSION_LOG_DIR/crash_detected.flag" python3 tests/utils/report_test_results.py || status=$?
+          exit "$status"
 
-      - name: 'Comment PR on crash'
-        if: always() && github.event.pull_request.number
-        continue-on-error: true
+      - name: 'Fail job on test failures'
+        if: always() && steps.smoke_tests.outputs.pytest_exit != '0' && steps.smoke_tests.outputs.pytest_exit != ''
         env:
-          CRASH_FLAG: ${{ env.RUNNER_LOG_DIR }}/latest/crash_detected.flag
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-        run: python3 tests/utils/report_test_results.py
+          PYTEST_EXIT: ${{ steps.smoke_tests.outputs.pytest_exit }}
+        run: |
+          echo "::error::Integration tests reported failures (pytest exit code $PYTEST_EXIT)."
+          exit "$PYTEST_EXIT"

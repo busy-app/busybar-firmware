@@ -19,6 +19,17 @@ typedef struct Output {
     bool last_frame_skipped;
 } Output;
 
+typedef struct FrameData {
+    GuiDisplayId display_id;
+    ScreenStreamerPixelFormat pixel_format;
+    uint32_t image_w;
+    uint32_t image_h;
+    size_t conversion_buf_size;
+    void* conversion_buf;
+    size_t compression_buf_size;
+    void* compression_buf;
+} FrameData;
+
 typedef struct ScreenStreamer {
     Gui* gui;
 
@@ -29,13 +40,7 @@ typedef struct ScreenStreamer {
     Output outputs[StatePublisherTransportClassMax];
     FuriMutex* outputs_mutex;
 
-    ScreenStreamerPixelFormat pixel_format;
-    uint32_t image_w;
-    uint32_t image_h;
-    size_t conversion_buf_size;
-    void* conversion_buf;
-    size_t compression_buf_size;
-    void* compression_buf;
+    FrameData frame_data;
 
     ScreenStreamerFrameCb cb;
     void* cb_context;
@@ -48,19 +53,8 @@ typedef enum Message {
 
 static int32_t screen_streamer_thread(void* context);
 
-ScreenStreamer*
-    screen_streamer_alloc(GuiDisplayId display, Gui* gui, ScreenStreamerFrameCb cb, void* context) {
-    ScreenStreamer* instance = malloc(sizeof(ScreenStreamer));
-
-    instance->gui = gui;
-
-    instance->thread =
-        furi_thread_alloc_ex("ScreenStreamer", 1 * 1024, screen_streamer_thread, instance);
-    instance->thread_command_queue = furi_message_queue_alloc(MAX_MESSAGES, sizeof(Message));
-
+static void frame_data_init(FrameData* instance, GuiDisplayId display) {
     instance->display_id = display;
-    instance->outputs_mutex = furi_mutex_alloc(FuriMutexTypeNormal);
-
     switch(display) {
     case GuiDisplayIdFront:
         instance->pixel_format = ScreenStreamerPixelFormatR8G8B8;
@@ -82,6 +76,27 @@ ScreenStreamer*
     instance->compression_buf_size =
         instance->conversion_buf_size; // at max same size, otherwise compression failed
     instance->compression_buf = malloc(instance->compression_buf_size);
+}
+
+static void frame_data_free(FrameData* instance) {
+    free(instance->compression_buf);
+    free(instance->conversion_buf);
+}
+
+ScreenStreamer*
+    screen_streamer_alloc(GuiDisplayId display, Gui* gui, ScreenStreamerFrameCb cb, void* context) {
+    ScreenStreamer* instance = malloc(sizeof(ScreenStreamer));
+
+    instance->gui = gui;
+
+    instance->thread =
+        furi_thread_alloc_ex("ScreenStreamer", 1 * 1024, screen_streamer_thread, instance);
+    instance->thread_command_queue = furi_message_queue_alloc(MAX_MESSAGES, sizeof(Message));
+
+    instance->display_id = display;
+    instance->outputs_mutex = furi_mutex_alloc(FuriMutexTypeNormal);
+
+    frame_data_init(&instance->frame_data, display);
 
     instance->cb = cb;
     instance->cb_context = context;
@@ -106,8 +121,7 @@ void screen_streamer_free(ScreenStreamer* instance) {
     furi_mutex_free(instance->outputs_mutex);
     furi_message_queue_free(instance->thread_command_queue);
     furi_thread_free(instance->thread);
-    free(instance->compression_buf);
-    free(instance->conversion_buf);
+    frame_data_free(&instance->frame_data);
     free(instance);
 }
 
@@ -201,9 +215,9 @@ static uint32_t dispatch_frame(ScreenStreamer* instance, const ScreenStreamerFra
     return time_to_next_update;
 }
 
-static ScreenStreamerFrame get_frame(ScreenStreamer* instance) {
-    with_gui(instance->gui, {
-        const void* frame_data = gui_display_get_frame_buffer(instance->gui, instance->display_id);
+static ScreenStreamerFrame get_frame(Gui* gui, FrameData* instance) {
+    with_gui(gui, {
+        const void* frame_data = gui_display_get_frame_buffer(gui, instance->display_id);
         switch(instance->display_id) {
         case GuiDisplayIdFront:
             memcpy(instance->conversion_buf, frame_data, FRONT_DISPLAY_BUF_SIZE);
@@ -247,7 +261,7 @@ static int32_t screen_streamer_thread(void* context) {
         uint32_t sleep_time_ms = 0;
         if(needs_frame) {
             needs_frame = false;
-            ScreenStreamerFrame frame = get_frame(instance);
+            ScreenStreamerFrame frame = get_frame(instance->gui, &instance->frame_data);
             sleep_time_ms = dispatch_frame(instance, &frame);
         } else {
             sleep_time_ms = dispatch_frame(instance, NULL);
@@ -280,4 +294,15 @@ static int32_t screen_streamer_thread(void* context) {
         }
     }
     return 0;
+}
+
+void screen_streamer_get_single_frame(
+    ScreenStreamer* instance,
+    ScreenStreamerFrameCb cb,
+    void* context) {
+    FrameData frame_data;
+    frame_data_init(&frame_data, instance->display_id);
+    ScreenStreamerFrame frame = get_frame(instance->gui, &frame_data);
+    cb(instance->display_id, &frame, 0, context);
+    frame_data_free(&frame_data);
 }
