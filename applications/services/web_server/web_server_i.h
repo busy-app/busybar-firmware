@@ -35,6 +35,11 @@
 #define MG_REPLY_OK(conn)                      _MG_JSON_RESULT(conn, 200, RESPONSE_BODY_OK)
 #define MG_REPLY_OK_BODY(conn, json_body, ...) _MG_JSON_RESULT(conn, 200, json_body, ##__VA_ARGS__)
 
+// Force closing the connection - to prevent clients from reusing it
+// (e.g. after a streaming upload) and racing with the server-side FIN
+#define MG_REPLY_OK_CLOSE(conn) \
+    mg_http_reply(conn, 200, DEFAULT_JSON_HEADERS "Connection: close\r\n", RESPONSE_BODY_OK)
+
 #define MG_REPLY_ERROR(conn, code, ...) \
     _MG_JSON_ERROR(                     \
         conn, code, "{\"error\":\"%s\"}\n", M_IF_EMPTY(__VA_ARGS__)("failed", __VA_ARGS__))

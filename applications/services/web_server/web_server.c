@@ -96,7 +96,10 @@ static void http_upload_data_callback(struct mg_connection* conn, struct mg_iobu
     bool do_close_file = false;
 
     if(upload_ctx == NULL) return;
-    if(upload_ctx->file == NULL) return;
+    if(upload_ctx->file == NULL) {
+        data->len = 0; // drain any lingering data arriving on a completed/failed upload
+        return;
+    }
 
     upload_ctx->timeout_stamp = mg_millis() + HTTP_UPLOAD_IDLE_TIMEOUT_MS;
 
@@ -118,7 +121,7 @@ static void http_upload_data_callback(struct mg_connection* conn, struct mg_iobu
     }
 
     if(upload_ctx->len_remain == 0) {
-        MG_REPLY_OK(conn);
+        MG_REPLY_OK_CLOSE(conn);
         do_close_file = true; // End of write
     }
 
