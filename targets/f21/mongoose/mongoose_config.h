@@ -1,9 +1,5 @@
 #pragma once
 
-// Reinforces the FD_SETSIZE=128 compiler flag (set in lwip.scons) for mongoose
-// TUs, ensuring <sys/select.h> doesn't override it with newlib's default of 64.
-#define FD_SETSIZE 128
-
 #include <stdio.h>
 #include <string.h>
 #include <stdbool.h>

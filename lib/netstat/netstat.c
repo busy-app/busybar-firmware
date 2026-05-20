@@ -8,11 +8,6 @@
 
 static const char* const monitored_pools[] = {
     "NETCONN",
-    // TCP_PCB is intentionally excluded: TIME_WAIT PCBs occupy PCB slots but
-    // hold no NETCONN, heap buffers, or threads. lwIP auto-reclaims the oldest
-    // TIME_WAIT PCB in tcp_alloc() when the pool is truly exhausted, so the
-    // 85% threshold here would fire on phantom load and cause a self-reinforcing
-    // rejection loop. NETCONN already accurately reflects active connections.
     "SYS_TIMEOUT",
     "PBUF_POOL",
 };

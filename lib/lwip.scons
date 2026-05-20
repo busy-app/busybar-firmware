@@ -8,8 +8,6 @@ env.Append(
     CPPDEFINES=[
         '"LWIP_PROVIDE_ERRNO"',  # TODO:
         # FD_SETSIZE must be >= LWIP_SOCKET_OFFSET + MEMP_NUM_NETCONN (128).
-        # Defined here (compiler flag) so it's present in every TU before
-        # newlib's <sys/select.h> can hard-code 64.
         '"FD_SETSIZE=128"',
     ],
 )
