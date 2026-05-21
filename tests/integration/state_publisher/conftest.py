@@ -11,8 +11,8 @@ from clients.state_publisher.models import StateFrame
 from clients.state_publisher.transports.ble import BleStateTransport
 from clients.state_publisher.transports.mqtt import MqttStateTransport
 from clients.state_publisher.transports.ws import WsStateTransport
-from utils.busy_timer import STATE_SETTLE_S, WORK_CARD_UUID, next_timestamp
-from utils.busy_timer import get_snapshot, set_snapshot
+from utils.busy_timer import WORK_CARD_UUID, next_timestamp
+from utils.busy_timer import get_snapshot, set_snapshot, wait_for_snapshot_type
 
 
 def _requested_transports() -> list[str]:
@@ -28,7 +28,9 @@ def busy_state_guard(api_session, web_base_url):
         restore = dict(original)
         restore["snapshot_timestamp_ms"] = next_timestamp(api_session, web_base_url)
         set_snapshot(api_session, web_base_url, restore)
-        time.sleep(STATE_SETTLE_S)
+        original_type = original.get("snapshot", {}).get("type")
+        if original_type:
+            wait_for_snapshot_type(api_session, web_base_url, original_type)
     except Exception:
         pass
 
@@ -156,7 +158,7 @@ def state_event_driver(
             }
         )
         assert response.status_code == 200
-        time.sleep(STATE_SETTLE_S)
+        wait_for_snapshot_type(api_session, web_base_url, "SIMPLE")
 
     def brightness_event() -> None:
         original = settings_api.get_brightness().value
