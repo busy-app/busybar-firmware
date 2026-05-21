@@ -42,17 +42,17 @@
 #define MEMP_NUM_PBUF                          128
 #define MEMP_NUM_RAW_PCB                       8
 #define MEMP_NUM_UDP_PCB                       32
-#define MEMP_NUM_TCP_PCB                       64
+#define MEMP_NUM_TCP_PCB                       128
 #define MEMP_NUM_TCP_PCB_LISTEN                16
-#define MEMP_NUM_TCP_SEG                       256
+#define MEMP_NUM_TCP_SEG                       512
 #define MEMP_NUM_ALTCP_PCB                     MEMP_NUM_TCP_PCB
 #define MEMP_NUM_REASSDATA                     32
 #define MEMP_NUM_FRAG_PBUF                     32
 #define MEMP_NUM_ARP_QUEUE                     60
 #define MEMP_NUM_IGMP_GROUP                    16
-#define MEMP_NUM_SYS_TIMEOUT                   (LWIP_NUM_SYS_TIMEOUT_INTERNAL + 16)
+#define MEMP_NUM_SYS_TIMEOUT                   (LWIP_NUM_SYS_TIMEOUT_INTERNAL + 32)
 #define MEMP_NUM_NETBUF                        128
-#define MEMP_NUM_NETCONN                       64
+#define MEMP_NUM_NETCONN                       128
 #define MEMP_NUM_SELECT_CB                     32
 #define MEMP_NUM_TCPIP_MSG_API                 128
 #define MEMP_NUM_TCPIP_MSG_INPKT               128
@@ -192,6 +192,7 @@
 #define TCP_KEEPIDLE_DEFAULT  600000UL // 10min
 #define TCP_KEEPINTVL_DEFAULT 60000UL
 #define TCP_KEEPCNT_DEFAULT   9U
+#define TCP_MSL               1000UL
 
 #define LWIP_STATS_DISPLAY                  1
 #define LINK_STATS                          1

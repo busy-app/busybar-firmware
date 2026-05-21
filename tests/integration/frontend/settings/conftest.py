@@ -13,7 +13,11 @@ def preserve_settings(settings_api: SettingsAPI):
 
     yield
 
-    settings_api.set_name(name)
+    # Restore name only if it was non-empty.  An empty name means the device
+    # started (or rebooted) in a factory-reset state; POST /api/name rejects
+    # empty strings, so attempting the restore would fail and corrupt teardown.
+    if name:
+        settings_api.set_name(name)
     # When mode is "key", we can't restore the key (GET doesn't return it).
     # Fall back to "enabled" to keep some access protection.
     if access.mode == "key":

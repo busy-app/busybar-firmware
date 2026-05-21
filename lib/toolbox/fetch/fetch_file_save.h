@@ -12,6 +12,13 @@ typedef struct FetchFileSave FetchFileSave;
 FetchFileSave* fetch_file_save_alloc(FuriString* file_path);
 
 /*
+* Allocates a FetchFileSave instance using a non-blocking file open.
+* @param[in] file_path Pointer to the FuriString containing the file path to save
+* @returns Pointer to the allocated FetchFileSave instance, or NULL on failure.
+*/
+FetchFileSave* fetch_file_save_alloc_nonblocking(FuriString* file_path);
+
+/*
 * Free FetchFileSave instance.
 * @param[in] instance Pointer to the FetchFileSave instance to free.
 */

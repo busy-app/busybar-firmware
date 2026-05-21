@@ -42,6 +42,7 @@ _schema = schemathesis.openapi.from_url(f"{_base_url}/openapi.yaml")
 @allure.feature("5. Web Frontend")
 @allure.story("Schema Conformance")
 @pytest.mark.schemathesis
+@pytest.mark.regression
 @pytest.mark.frontend
 @_schema.include(
     method="GET",
@@ -77,6 +78,7 @@ def test_get_conformance(case: schemathesis.Case, web_session) -> None:
 @allure.feature("5. Web Frontend")
 @allure.story("Schema Conformance")
 @pytest.mark.schemathesis
+@pytest.mark.regression
 @pytest.mark.frontend
 @_schema.include(
     method="POST",

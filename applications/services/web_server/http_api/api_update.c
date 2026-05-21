@@ -33,6 +33,8 @@
 #define UPDATE_JSON_KEY_AUTOUPDATE_START   "interval_start"
 #define UPDATE_JSON_KEY_AUTOUPDATE_END     "interval_end"
 
+#define UPDATE_UPLOAD_IDLE_TIMEOUT_MS 3000
+
 // Context for the update handler (raw upload)
 typedef struct {
     Storage* storage;
@@ -45,6 +47,8 @@ typedef struct {
     size_t received_file_size; // Bytes received so far
 
     bool file_fully_received; // Flag: true if all bytes received and temp file closed
+
+    uint64_t timeout_stamp;
 } HttpUpdateHandlerCtx;
 
 static const char* const update_status_strings[] = {
@@ -229,6 +233,8 @@ static void api_update_on_data_cb(struct mg_connection* conn, struct mg_iobuf* i
         return;
     }
 
+    update_ctx->timeout_stamp = mg_millis() + UPDATE_UPLOAD_IDLE_TIMEOUT_MS;
+
     size_t data_len = io->len;
     FURI_LOG_T(
         TAG,
@@ -292,7 +298,19 @@ static void api_update_on_close_cb(struct mg_connection* conn) {
 
     // Clear callbacks
     conn_ctx->raw.on_data = NULL;
+    conn_ctx->raw.on_poll = NULL;
     conn_ctx->on_close = NULL;
+}
+
+static void api_update_on_poll_cb(struct mg_connection* conn) {
+    ConnectionContext* conn_ctx = (void*)conn->data;
+    HttpUpdateHandlerCtx* update_ctx = conn_ctx->context;
+    furi_assert(update_ctx);
+
+    if(mg_timer_expired(&update_ctx->timeout_stamp, UPDATE_UPLOAD_IDLE_TIMEOUT_MS, mg_millis())) {
+        FURI_LOG_E(TAG, "Connection data timeout (%lu)", conn->id);
+        conn->is_draining = 1; // Force close hanging connection
+    }
 }
 
 static bool api_update_raw_hdr_callback(
@@ -301,7 +319,6 @@ static bool api_update_raw_hdr_callback(
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* http_handler_ctx) {
-    UNUSED(method);
     UNUSED(http_handler_ctx);
     ConnectionContext* conn_ctx = (ConnectionContext*)conn->data;
     HttpUpdateHandlerCtx* update_ctx = NULL;
@@ -311,6 +328,7 @@ static bool api_update_raw_hdr_callback(
     FURI_LOG_I(
         TAG, "on_headers: Received update request for URI: %.*s", (int)msg->uri.len, msg->uri.buf);
 
+    if(method == HttpMethodOptions) return false; // let MG_EV_HTTP_MSG respond with preflight
     if(method != HttpMethodPost) {
         http_reply_405_method_not_allowed(conn, HttpMethodPost);
         conn->is_draining = 1;
@@ -326,9 +344,11 @@ static bool api_update_raw_hdr_callback(
 
     update_ctx = alloc_raw_update_context();
     conn_ctx->raw.on_data = api_update_on_data_cb;
+    conn_ctx->raw.on_poll = api_update_on_poll_cb;
     conn_ctx->on_close = api_update_on_close_cb;
     conn_ctx->context = update_ctx;
 
+    update_ctx->timeout_stamp = mg_millis() + UPDATE_UPLOAD_IDLE_TIMEOUT_MS;
     update_ctx->total_file_size = msg->body.len;
     if(update_ctx->total_file_size > MAX_UPLOAD_FILE_SIZE) {
         FURI_LOG_E(
@@ -344,7 +364,7 @@ static bool api_update_raw_hdr_callback(
 
     // Allocate file saver (creates directory, removes existing file, opens for writing)
     FuriString* temp_path = furi_string_alloc_set(UPDATER_DEFAULT_DOWNLOAD_PATH);
-    update_ctx->file_save = fetch_file_save_alloc(temp_path);
+    update_ctx->file_save = fetch_file_save_alloc_nonblocking(temp_path);
     furi_string_free(temp_path);
 
     furi_thread_set_current_priority(FuriThreadPriorityLow);
@@ -377,9 +397,13 @@ static bool api_update_raw_request_callback(
     struct mg_http_message* msg,
     void* ctx) {
     UNUSED(path);
-    UNUSED(method);
     UNUSED(msg);
     UNUSED(ctx);
+
+    if(method == HttpMethodOptions) {
+        http_reply_cors_preflight(conn, HttpMethodPost);
+        return true;
+    }
 
     MG_REPLY_BAD_REQUEST(conn);
 

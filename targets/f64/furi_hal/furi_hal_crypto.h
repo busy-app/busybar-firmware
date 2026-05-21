@@ -119,6 +119,7 @@ typedef enum {
     FuriHalCryptoStatusUnavailable,
     FuriHalCryptoStatusInvalidParameter,
     FuriHalCryptoStatusDriverError,
+    FuriHalCryptoStatusErrorAccess,
 } FuriHalCryptoStatus;
 
 #ifdef __cplusplus

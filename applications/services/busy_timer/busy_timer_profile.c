@@ -27,9 +27,10 @@ static void busy_timer_profile_serialize_timer_settings(
     cJSON* timer_settings_json = cJSON_AddObjectToObject(json, KEY_PROFILE_TIMER_SETTINGS);
 
     const BusyTimerMode timer_mode = timer_settings->mode;
-    busy_timer_common_serialize_timer_mode(timer_settings_json, timer_mode);
 
-    if(timer_mode == BusyTimerModeSimple) {
+    if(timer_mode == BusyTimerModeInfinite) {
+        busy_timer_common_serialize_infinite_config(timer_settings_json);
+    } else if(timer_mode == BusyTimerModeSimple) {
         busy_timer_common_serialize_simple_config(timer_settings_json, &timer_settings->simple);
     } else if(timer_mode == BusyTimerModeInterval) {
         busy_timer_common_serialize_interval_config(
