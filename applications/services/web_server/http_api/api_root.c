@@ -268,6 +268,9 @@ static bool http_api_is_access_allowed(
     HttpMethod method,
     struct mg_connection* conn,
     struct mg_http_message* msg) {
+    // CORS preflight requests cannot carry credentials; always allow
+    if(method == HttpMethodOptions) return true;
+
     for(size_t i = 0; i < COUNT_OF(api_access_whitelist); i++) {
         if(furi_string_equal(path, api_access_whitelist[i].uri) &&
            (method & api_access_whitelist[i].method)) {
@@ -414,7 +417,7 @@ static const HttpHandler handlers_api_root[] = {
     },
     {
         .uri = "status",
-        .method = HttpMethodAny,
+        .method = HttpMethodGet,
         .type = HttpHandlerCustom,
         .on_request = http_api_status_callback,
         .ctx_alloc = http_api_status_alloc,
@@ -447,7 +450,7 @@ static const HttpHandler handlers_api_root[] = {
     },
     {
         .uri = "screen",
-        .method = HttpMethodAny,
+        .method = HttpMethodGet,
         .type = HttpHandlerCustom,
         .on_request = http_api_streaming_single_frame_callback,
     },
@@ -551,6 +554,8 @@ bool http_api_root_callback(
             http_api_access_get_callback(context, conn);
         } else if(method == HttpMethodPost) {
             http_api_access_set_callback(context, conn, msg);
+        } else if(method == HttpMethodOptions) {
+            http_reply_cors_preflight(conn, HttpMethodGet | HttpMethodPost);
         } else {
             http_reply_405_method_not_allowed(conn, HttpMethodPost | HttpMethodGet);
         }
@@ -571,12 +576,7 @@ bool http_api_root_hdr_callback(
     void* ctx) {
     ApiRootCtx* context = ctx;
 
-    if(method == HttpMethodOptions) {
-        MG_REPLY_OPTIONS(conn);
-        http_api_log_access(conn, msg, 200);
-        MG_CLOSE_AFTER_HEADERS(conn, msg);
-        return true;
-    }
+    // OPTIONS preflights fall through to MG_EV_HTTP_MSG for http_reply_cors_preflight()
 
     if(!http_api_is_access_allowed(context, path, method, conn, msg)) {
         MG_REPLY_FORBIDDEN(conn);

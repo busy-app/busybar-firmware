@@ -12,6 +12,7 @@
 #include <busy_timer/busy_timer.h>
 #include <updater/updater.h>
 #include <ble/ble.h>
+#include <device_name/device_name.h>
 
 #include <mlib/m-array.h>
 #include <mlib/m-shared.h>
@@ -33,7 +34,7 @@ void state_publisher_free_state_update(BSB_State_StateUpdate* update);
 #define STATE_UPDATE_CLEAR(o) state_publisher_free_state_update(&(o))
 #define STATE_UPDATE_OPLIST   M_OPEXTEND(M_EMPTY_OPLIST, CLEAR(STATE_UPDATE_CLEAR))
 SHARED_PTR_DEF(SharedStateUpdate, BSB_State_StateUpdate, STATE_UPDATE_OPLIST);
-ARRAY_DEF(StateUpdateArray, SharedStateUpdate_t, SHARED_PTR_OPLIST(SharedStateUpdate));
+ARRAY_DEF(SharedStateUpdateArray, SharedStateUpdate_t, SHARED_PTR_OPLIST(SharedStateUpdate));
 
 #define MAX_SEQ_UPDATES 128
 
@@ -45,9 +46,9 @@ typedef struct Transport {
 
     RateLimiter limiter;
     /// Updates that must be sent all of: sequential array
-    StateUpdateArray_t seq_updates;
+    SharedStateUpdateArray_t seq_updates;
     /// State-like updates (only last one matters): array indexed by tag
-    StateUpdateArray_t state_updates;
+    SharedStateUpdateArray_t state_updates;
 
     StatePublisherPublishCb cb;
     void* cb_context;
@@ -71,6 +72,11 @@ struct StatePublisher {
     BusyTimer* busy_timer;
     Gui* gui;
     Ble* ble;
+    DeviceName* device_name;
+
+    FuriState* state_brightness;
+    FuriState* state_time_settings;
+    FuriState* state_wifi;
 
     FuriMutex* transports_mutex;
     Transport transports[MAX_TRANSPORTS];
@@ -114,6 +120,8 @@ void state_publisher_publish_busy_timer(StatePublisher* instance);
 void state_publisher_publish_busy_timer_profiles(StatePublisher* instance);
 void state_publisher_publish_autoupdate(StatePublisher* instance);
 void state_publisher_publish_ble(StatePublisher* instance);
+
+BSB_State_State* state_publisher_collect_all(StatePublisher* instance);
 
 void state_publisher_schedule_state_update(
     StatePublisher* instance,

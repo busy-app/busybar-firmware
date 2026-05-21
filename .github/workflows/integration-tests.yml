@@ -94,7 +94,7 @@ jobs:
 
       - name: 'Update submodules'
         run: |
-          git submodule update --init --recursive --jobs="$(nproc)" || (git lfs logs last && exit 1)
+          git submodule update --init --depth 1 --jobs="$(nproc)" || (git lfs logs last && exit 1)
 
       - name: 'Resolve firmware URLs'
         id: resolve_firmware

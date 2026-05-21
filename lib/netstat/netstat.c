@@ -8,7 +8,6 @@
 
 static const char* const monitored_pools[] = {
     "NETCONN",
-    "TCP_PCB",
     "SYS_TIMEOUT",
     "PBUF_POOL",
 };

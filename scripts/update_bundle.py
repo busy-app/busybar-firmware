@@ -51,6 +51,13 @@ class Main(App):
         )
         self.parser.add_argument("--dfu", required=False, help="Updater DFU file")
         self.parser.add_argument(
+            "--version-json",
+            required=False,
+            help="Path to firmware version JSON (to embed firmware_version in manifest)",
+            type=str,
+            default=None,
+        )
+        self.parser.add_argument(
             "--update-name",
             help="Optional short description of the update",
             type=str,
@@ -111,6 +118,9 @@ class Main(App):
 
         try:
             manifest = {"target": args.target, "version": 1}
+            if args.version_json:
+                with open(args.version_json, "r") as vf:
+                    manifest["firmware_info"] = json.load(vf)
             if args.update_name:
                 manifest["update_name"] = args.update_name
             if args.security_flags:
