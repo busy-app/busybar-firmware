@@ -1,0 +1,167 @@
+version = 1
+
+# ---------------------------------------------------------------------------
+# First-party firmware code
+# ---------------------------------------------------------------------------
+
+[[annotations]]
+path = [
+    "applications/**",
+    "targets/**",
+    "scripts/**",
+]
+SPDX-FileCopyrightText = "2024-2026 Flipper FZCO"
+SPDX-License-Identifier = "GPL-2.0-or-later"
+
+# fbt_layers: HAL interface headers (fbtng/targets)
+[[annotations]]
+path = "fbt_layers/fbtng/targets/**"
+SPDX-FileCopyrightText = "2024-2026 Flipper FZCO"
+SPDX-License-Identifier = "GPL-2.0-or-later"
+
+# fbt_layers: FreeRTOS glue (thin first-party wrapper)
+[[annotations]]
+path = "fbt_layers/freertos/lib/FreeRTOS-glue/**"
+SPDX-FileCopyrightText = "2024-2026 Flipper FZCO"
+SPDX-License-Identifier = "GPL-2.0-or-later"
+
+# fbt_layers: first-party core libraries
+[[annotations]]
+path = [
+    "fbt_layers/core_libs/lib/bit_lib/**",
+    "fbt_layers/core_libs/lib/datetime/**",
+    "fbt_layers/core_libs/lib/version/**",
+    "fbt_layers/core_libs/lib/print/wrappers.c",
+    "fbt_layers/core_libs/lib/print/wrappers.h",
+]
+SPDX-FileCopyrightText = "2024-2026 Flipper FZCO"
+SPDX-License-Identifier = "GPL-2.0-or-later"
+
+# ---------------------------------------------------------------------------
+# furi OS abstraction library (MIT)
+# ---------------------------------------------------------------------------
+
+[[annotations]]
+path = "fbt_layers/core_libs/lib/furi/**"
+SPDX-FileCopyrightText = "2024-2026 Flipper FZCO"
+SPDX-License-Identifier = "MIT"
+
+# ---------------------------------------------------------------------------
+# Third-party libraries — lib/
+# ---------------------------------------------------------------------------
+
+[[annotations]]
+path = "lib/mongoose/**"
+SPDX-FileCopyrightText = "2004-2013 Sergey Lyubka\n2013-2026 Cesanta Software Limited"
+SPDX-License-Identifier = "GPL-2.0-only"
+
+[[annotations]]
+path = "lib/lwip/**"
+SPDX-FileCopyrightText = "2001-2004 Swedish Institute of Computer Science"
+SPDX-License-Identifier = "BSD-3-Clause"
+
+[[annotations]]
+path = "lib/mbedtls/**"
+SPDX-FileCopyrightText = "ARM Limited"
+SPDX-License-Identifier = "Apache-2.0 OR GPL-2.0-or-later"
+
+[[annotations]]
+path = "lib/lvgl/**"
+SPDX-FileCopyrightText = "2025 LVGL Kft"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "lib/thorvg/**"
+SPDX-FileCopyrightText = "2020-2025 ThorVG Project"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "lib/tinyusb/**"
+SPDX-FileCopyrightText = "2012-2026 hathach (tinyusb.org)"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "lib/cjson/**"
+SPDX-FileCopyrightText = "2009-2017 Dave Gamble and cJSON contributors"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "lib/heatshrink/**"
+SPDX-FileCopyrightText = "2013-2015 Scott Vokes"
+SPDX-License-Identifier = "ISC"
+
+[[annotations]]
+path = "lib/microtar/**"
+SPDX-FileCopyrightText = "2017 rxi\n2021 Aidan MacDonald"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "lib/nanopb/**"
+SPDX-FileCopyrightText = "2011 Petteri Aimonen"
+SPDX-License-Identifier = "Zlib"
+
+[[annotations]]
+path = "lib/zlib/**"
+SPDX-FileCopyrightText = "1995-2025 Jean-loup Gailly and Mark Adler"
+SPDX-License-Identifier = "Zlib"
+
+[[annotations]]
+path = "lib/stb/**"
+SPDX-FileCopyrightText = "2017 Sean Barrett"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "lib/wiseconnect/**"
+SPDX-FileCopyrightText = "Silicon Laboratories Inc."
+SPDX-License-Identifier = "LicenseRef-Silabs-MSLA"
+
+[[annotations]]
+path = "lib/simplicity_sdk/**"
+SPDX-FileCopyrightText = "Silicon Laboratories Inc."
+SPDX-License-Identifier = "LicenseRef-Silabs-MSLA"
+
+[[annotations]]
+path = "lib/matter_ext/**"
+SPDX-FileCopyrightText = "Silicon Laboratories Inc."
+SPDX-License-Identifier = "LicenseRef-Silabs-MSLA"
+
+# ---------------------------------------------------------------------------
+# Third-party libraries — fbt_layers/core_libs
+# ---------------------------------------------------------------------------
+
+[[annotations]]
+path = "fbt_layers/core_libs/lib/mlib/**"
+SPDX-FileCopyrightText = "2017-2022 Patrick Pelissier"
+SPDX-License-Identifier = "BSD-2-Clause"
+
+[[annotations]]
+path = "fbt_layers/core_libs/lib/utz/**"
+SPDX-FileCopyrightText = "2015 eV Quirk"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "fbt_layers/core_libs/lib/fatfs/**"
+SPDX-FileCopyrightText = "2017 ChaN"
+SPDX-License-Identifier = "LicenseRef-FatFs"
+
+[[annotations]]
+path = [
+    "fbt_layers/core_libs/lib/print/printf_tiny.c",
+    "fbt_layers/core_libs/lib/print/printf_tiny.h",
+]
+SPDX-FileCopyrightText = "2014-2019 Marco Paland (info@paland.com), PALANDesign Hannover, Germany"
+SPDX-License-Identifier = "MIT"
+
+# ---------------------------------------------------------------------------
+# Third-party libraries — fbt_layers/freertos
+# ---------------------------------------------------------------------------
+
+[[annotations]]
+path = "fbt_layers/freertos/lib/FreeRTOS-Kernel/**"
+SPDX-FileCopyrightText = "Amazon.com, Inc. or its affiliates"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "fbt_layers/freertos/lib/cmsis_core/**"
+SPDX-FileCopyrightText = "ARM Limited"
+SPDX-License-Identifier = "BSD-3-Clause"

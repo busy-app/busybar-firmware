@@ -1,0 +1,13 @@
+Silicon Labs Master Software License Agreement (MSLA)
+
+The full text of this license is available at:
+https://www.silabs.com/about-us/legal/master-software-license-agreement
+
+Source code covered by this license is distributed by Silicon Laboratories Inc.
+and may be used, modified, and distributed only in accordance with the terms of
+the MSLA. By using this software, you agree to the terms of the MSLA.
+
+This license applies to the following components in this repository:
+- lib/wiseconnect/
+- lib/simplicity_sdk/
+- lib/matter_ext/
