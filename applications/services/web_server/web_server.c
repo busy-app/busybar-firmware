@@ -62,10 +62,14 @@ static HttpMethod http_method_from_str(struct mg_http_message* msg) {
     return HttpMethodUnknown;
 }
 
+#define HTTP_API_METHODS \
+    ((HttpMethod)(HttpMethodGet | HttpMethodPost | HttpMethodPut | HttpMethodDelete))
+
 void http_reply_405_method_not_allowed(struct mg_connection* conn, HttpMethod allowed_methods) {
     if(allowed_methods & HttpMethodWebSocket) {
-        allowed_methods = (allowed_methods & ~(HttpMethodWebSocket)) | HttpMethodGet;
+        allowed_methods = (HttpMethod)((allowed_methods & ~HttpMethodWebSocket) | HttpMethodGet);
     }
+    allowed_methods = (HttpMethod)(allowed_methods & HTTP_API_METHODS);
     FuriString* headers = furi_string_alloc_set(DEFAULT_JSON_HEADERS);
     furi_string_cat(headers, "Allow: ");
     bool is_first = true;
@@ -83,8 +87,9 @@ void http_reply_405_method_not_allowed(struct mg_connection* conn, HttpMethod al
 
 void http_reply_cors_preflight(struct mg_connection* conn, HttpMethod allowed_methods) {
     if(allowed_methods & HttpMethodWebSocket) {
-        allowed_methods = (allowed_methods & ~(HttpMethodWebSocket)) | HttpMethodGet;
+        allowed_methods = (HttpMethod)((allowed_methods & ~HttpMethodWebSocket) | HttpMethodGet);
     }
+    allowed_methods = (HttpMethod)(allowed_methods & HTTP_API_METHODS);
     FuriString* headers = furi_string_alloc_set(HEADER_CORS_ORIGIN HEADER_CORS_HEADERS
                                                 "Access-Control-Allow-Methods: ");
     bool is_first = true;
