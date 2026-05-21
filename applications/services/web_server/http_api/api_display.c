@@ -425,6 +425,8 @@ static void api_display_canvas_clear(struct mg_connection* conn, struct mg_http_
 
     if(res == CanvasResultOk) {
         MG_REPLY_OK(conn);
+    } else if(res == CanvasResultEmptyScreen) {
+        MG_REPLY_ERROR(conn, 410, "Display is empty");
     } else {
         MG_REPLY_BAD_REQUEST(conn);
     }
