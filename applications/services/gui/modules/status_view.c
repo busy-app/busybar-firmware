@@ -58,10 +58,9 @@ static void status_view_style_back(Widget* widget) {
     lv_obj_set_flex_flow(TO_LV_OBJ(instance->internal_container), LV_FLEX_FLOW_COLUMN);
     lv_obj_set_flex_align(
         TO_LV_OBJ(instance->internal_container),
-        LV_FLEX_ALIGN_START,
+        LV_FLEX_ALIGN_CENTER,
         LV_FLEX_ALIGN_CENTER,
         LV_FLEX_ALIGN_CENTER);
-    lv_obj_set_style_pad_top(TO_LV_OBJ(instance->internal_container), 8, LV_PART_MAIN);
     lv_obj_set_style_pad_hor(TO_LV_OBJ(instance->internal_container), 2, LV_PART_MAIN);
     lv_obj_set_style_pad_row(TO_LV_OBJ(instance->internal_container), 6, LV_PART_MAIN);
 
