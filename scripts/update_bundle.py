@@ -119,10 +119,8 @@ class Main(App):
         try:
             manifest = {"target": args.target, "version": 1}
             if args.version_json:
-                shutil.copy2(
-                    args.version_json,
-                    os.path.join(actual_output_path, "version.json"),
-                )
+                with open(args.version_json, "r") as vf:
+                    manifest["firmware_info"] = json.load(vf)
             if args.update_name:
                 manifest["update_name"] = args.update_name
             if args.security_flags:
