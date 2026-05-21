@@ -21,6 +21,7 @@ pytest-timeout = "^2.2"
 beautifulsoup4 = "^4.13.5"
 schemathesis = ">=4.0"
 Pillow = ">=10.0"
+PyYAML = "^6.0"
 
 [tool.poetry.group.dev.dependencies]
 black = "^23.0.0"
