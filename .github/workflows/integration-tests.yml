@@ -242,7 +242,7 @@ jobs:
           # MARKER_FILTER is a `-m` expression; an empty string means
           # "no filter" (collect everything, including `regression`-tagged
           # tests such as schemathesis).
-          pytest_args=(. -v --alluredir=allure-results --clean-alluredir --junitxml=test-results.xml)
+          pytest_args=(. -v --durations=25 --alluredir=allure-results --clean-alluredir --junitxml=test-results.xml)
           if [ -n "$MARKER_FILTER" ]; then
             pytest_args+=(-m "$MARKER_FILTER")
             echo "Running pytest with marker filter: $MARKER_FILTER"

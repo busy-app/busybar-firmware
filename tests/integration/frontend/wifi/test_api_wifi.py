@@ -64,6 +64,7 @@ def wifi_setup_teardown(web_base_url):
 
 @allure.feature("5. Web Frontend")
 @allure.story("Wi-Fi")
+@pytest.mark.regression
 class TestWifiAPI:
     """Test cases for WiFi API endpoints"""
 
