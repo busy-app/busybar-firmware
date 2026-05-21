@@ -1,9 +1,9 @@
 App(
     appid="canvas",
     name="Canvas",
-    apptype=FlipperAppType.APP,
+    apptype=FlipperAppType.SERVICE,
     order=60,
-    entry_point="canvas_app",
+    entry_point="canvas_service_start",
     requires=["gui"],
     stack_size=2 * 1024,
     targets=["f20", "f21", "f22"],
