@@ -122,6 +122,6 @@ CanvasResult canvas_show_elements(
  * 
  * Deletes ALL elements (`app_id` is NULL) or elements related to a non-NULL
  * `app_id`. If no elements are left after this possibly selective delete, the
- * Canvas terminates itself.
+ * Canvas closes itself.
  */
 CanvasResult canvas_delete_elements(CanvasSrv* canvas, const char* app_id);

@@ -165,7 +165,7 @@ static void canvas_announce_priority(CanvasSrv* canvas, size_t priority) {
     loader_set_priority(canvas->loader, priority);
 }
 
-size_t canvas_get_priority(CanvasSrv* canvas) {
+static size_t canvas_get_priority(CanvasSrv* canvas) {
     furi_assert(canvas);
     return loader_get_priority(canvas->loader);
 }
@@ -409,36 +409,37 @@ static void canvas_srv_queue_event_callback(FuriEventLoopObject* object, void* c
         furi_assert(event.result);
         furi_assert(event.priority);
 
-        size_t current_priority = canvas_get_priority(canvas);
-        if(*event.priority < current_priority) {
-            *event.result = CanvasResultLowPriority;
-            if(event.lock) api_lock_unlock(event.lock);
-            return;
-        }
-
-        if(canvas->gui == NULL) {
-            if(!canvas_srv_check_elements_visible(event.elements)) {
-                *event.result = CanvasResultEmptyScreen;
-                if(event.lock) api_lock_unlock(event.lock);
-                return;
+        do {
+            size_t current_priority = canvas_get_priority(canvas);
+            if(*event.priority < current_priority) {
+                *event.result = CanvasResultLowPriority;
+                break;
             }
-            canvas_screen_open(canvas);
-        }
 
-        if(canvas->app_id) {
-            bool new_id = (strcmp(event.app_id, canvas->app_id) != 0);
-            if(new_id) {
-                canvas_widget_destroy_all(canvas);
-                CanvasWidgetsDict_reset(canvas->widgets);
-                free(canvas->app_id);
+            if(canvas->gui == NULL) {
+                if(!canvas_srv_check_elements_visible(event.elements)) {
+                    *event.result = CanvasResultEmptyScreen;
+                    break;
+                }
+                canvas_screen_open(canvas);
+            }
+
+            if(canvas->app_id) {
+                bool new_id = (strcmp(event.app_id, canvas->app_id) != 0);
+                if(new_id) {
+                    canvas_widget_destroy_all(canvas);
+                    CanvasWidgetsDict_reset(canvas->widgets);
+                    free(canvas->app_id);
+                    canvas->app_id = strdup(event.app_id);
+                }
+            } else {
                 canvas->app_id = strdup(event.app_id);
             }
-        } else {
-            canvas->app_id = strdup(event.app_id);
-        }
-        canvas_announce_priority(canvas, *event.priority);
-        res = canvas_update_all(canvas, event.elements) ? CanvasResultOk :
-                                                          CanvasResultBadParameters;
+            canvas_announce_priority(canvas, *event.priority);
+            res = canvas_update_all(canvas, event.elements) ? CanvasResultOk :
+                                                              CanvasResultBadParameters;
+        } while(0);
+
         CanvasElementsArray_clear(event.elements);
 
     } else if(event.type == CanvasSrvEventClear) {
@@ -492,6 +493,7 @@ static bool canvas_srv_input_callback(const InputEvent* event, void* context) {
         }
     }
 
+    // Consume all input events
     return true;
 }
 
