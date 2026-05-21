@@ -1,8 +1,53 @@
 version = 1
 
-# ---------------------------------------------------------------------------
-# First-party firmware code
-# ---------------------------------------------------------------------------
+# ===========================================================================
+# Build system and project root files
+# ===========================================================================
+
+[[annotations]]
+path = [
+    "bsb_common_env_init.scons",
+    "project.scons",
+    "fbt",
+    "fbt.cmd",
+    "fbt-project.json",
+    "run",
+    "load.yaml",
+    "CLAUDE.md",
+    "README.md",
+    "LICENSE",
+    "docker-instructions.txt",
+    "review.json",
+    "test.json",
+    "minbuild.diff",
+    ".clang-format",
+    ".clangd",
+    ".gitignore",
+    ".gitmodules",
+    "data/**",
+    "conan_cache_save/**",
+    "upd_bundle.tar",
+    "upd_bundle.bad.tar",
+    "keys/**",
+    "private.pem",
+    "public.bin",
+]
+SPDX-FileCopyrightText = "2024-2026 Flipper FZCO"
+SPDX-License-Identifier = "GPL-2.0-or-later"
+
+# CI/CD infrastructure
+[[annotations]]
+path = [
+    ".github/**",
+    ".forgejo/**",
+    ".copilot/**",
+]
+SPDX-FileCopyrightText = "2024-2026 Flipper FZCO"
+SPDX-License-Identifier = "GPL-2.0-or-later"
+
+# ===========================================================================
+# Main firmware: applications, targets, scripts
+# ===========================================================================
 
 [[annotations]]
 path = [
@@ -13,46 +58,190 @@ path = [
 SPDX-FileCopyrightText = "2024-2026 Flipper FZCO"
 SPDX-License-Identifier = "GPL-2.0-or-later"
 
-# fbt_layers: HAL interface headers (fbtng/targets)
+# ===========================================================================
+# Integration and unit tests
+# ===========================================================================
+
 [[annotations]]
-path = "fbt_layers/fbtng/targets/**"
+path = "tests/**"
 SPDX-FileCopyrightText = "2024-2026 Flipper FZCO"
 SPDX-License-Identifier = "GPL-2.0-or-later"
 
-# fbt_layers: FreeRTOS glue (thin first-party wrapper)
-[[annotations]]
-path = "fbt_layers/freertos/lib/FreeRTOS-glue/**"
-SPDX-FileCopyrightText = "2024-2026 Flipper FZCO"
-SPDX-License-Identifier = "GPL-2.0-or-later"
+# ===========================================================================
+# Assets - first-party artwork, animations, sounds, UI
+# ===========================================================================
 
-# fbt_layers: first-party core libraries
 [[annotations]]
 path = [
-    "fbt_layers/core_libs/lib/bit_lib/**",
-    "fbt_layers/core_libs/lib/datetime/**",
-    "fbt_layers/core_libs/lib/version/**",
-    "fbt_layers/core_libs/lib/print/wrappers.c",
-    "fbt_layers/core_libs/lib/print/wrappers.h",
+    "assets/README.md",
+    "assets/animations/**",
+    "assets/images/**",
+    "assets/sounds/**",
+    "assets_bkp/**",
+    "assets/shared/**",
+    "assets/frontend/**",
+    "assets/frontend-build/**",
 ]
 SPDX-FileCopyrightText = "2024-2026 Flipper FZCO"
 SPDX-License-Identifier = "GPL-2.0-or-later"
 
-# ---------------------------------------------------------------------------
-# furi OS abstraction library (MIT)
-# ---------------------------------------------------------------------------
+# Inter font (OFL-1.1)
+[[annotations]]
+path = [
+    "assets/frontend/assets/fonts/Inter.ttf",
+    "assets/frontend/assets/fonts/Inter-Italic.ttf",
+    "assets/frontend-build/public/_nuxt/Inter-cf39d9f.ttf",
+    "assets/frontend-build/public/_nuxt/Inter-Italic-cf39d9f.ttf",
+]
+SPDX-FileCopyrightText = "2016 The Inter Project Authors (https://github.com/rsms/inter)"
+SPDX-License-Identifier = "OFL-1.1"
+
+# LanaPixel font (Humble Fonts Free by Eeve Somepx)
+[[annotations]]
+path = [
+    "assets/frontend/assets/fonts/LanaPixel.ttf",
+    "assets/shared/fonts/ttf/lana_pixel_regular_11px.ttf",
+    "assets/shared/fonts/lana_pixel_regular_11.font",
+    "assets/frontend-build/public/_nuxt/LanaPixel-cf39d9f.ttf",
+]
+SPDX-FileCopyrightText = "Eeve Somepx"
+SPDX-License-Identifier = "LicenseRef-LanaPixel"
+
+# Swagger UI (Apache-2.0)
+[[annotations]]
+path = "assets/swagger/**"
+SPDX-FileCopyrightText = "SmartBear Software"
+SPDX-License-Identifier = "Apache-2.0"
+
+# Silabs firmware binaries
+[[annotations]]
+path = [
+    "a.rps",
+    "ref_firmware.rps",
+    "siw917x-family-rm.pdf",
+]
+SPDX-FileCopyrightText = "Silicon Laboratories Inc."
+SPDX-License-Identifier = "LicenseRef-Silabs-MSLA"
+
+# assets/proto (first-party protobuf schemas)
+[[annotations]]
+path = "assets/proto/**"
+SPDX-FileCopyrightText = "2024-2026 Flipper FZCO"
+SPDX-License-Identifier = "GPL-2.0-or-later"
 
 [[annotations]]
-path = "fbt_layers/core_libs/lib/furi/**"
+path = "assets/proto/RS9117_B0_012512168a.rps"
+SPDX-FileCopyrightText = "Silicon Laboratories Inc."
+SPDX-License-Identifier = "LicenseRef-Silabs-MSLA"
+
+# ===========================================================================
+# lib/ - first-party library code
+# ===========================================================================
+
+[[annotations]]
+path = [
+    "lib/*.scons",
+    "lib/anim_file/**",
+    "lib/cli/**",
+    "lib/containers/**",
+    "lib/drivers/**",
+    "lib/firmware_applications_si917/**",
+    "lib/firmware_applications_u5/**",
+    "lib/flipper_application/**",
+    "lib/flipper_format/**",
+    "lib/formatters/**",
+    "lib/lvgl_addons/**",
+    "lib/mbedtls_patch/**",
+    "lib/netstat/**",
+    "lib/setting_provider/**",
+    "lib/settings_helpers/**",
+    "lib/stb/stb.c",
+    "lib/stb/stb.h",
+    "lib/stb/SConscript",
+    "lib/toolbox/**",
+    "lib/sl_glue/src/sl_debug.c",
+]
 SPDX-FileCopyrightText = "2024-2026 Flipper FZCO"
+SPDX-License-Identifier = "GPL-2.0-or-later"
+
+# lib/matter_glue - BSB Matter platform layer (CHIP-derived + first-party)
+[[annotations]]
+path = "lib/matter_glue/**"
+SPDX-FileCopyrightText = ["2024-2026 Flipper FZCO", "2020-2024 Project CHIP Authors"]
+SPDX-License-Identifier = "Apache-2.0"
+
+# lib/network - first-party networking code
+[[annotations]]
+path = "lib/network/**"
+SPDX-FileCopyrightText = "2024-2026 Flipper FZCO"
+SPDX-License-Identifier = "GPL-2.0-or-later"
+
+# lib/network/dhserver - MIT (Sergey Fetisov 2015)
+[[annotations]]
+path = [
+    "lib/network/dhserver/dhserver.c",
+    "lib/network/dhserver/dhserver.h",
+]
+SPDX-FileCopyrightText = "2015 Sergey Fetisov"
 SPDX-License-Identifier = "MIT"
 
-# ---------------------------------------------------------------------------
-# Third-party libraries — lib/
-# ---------------------------------------------------------------------------
+# lib/sl_glue - Silicon Labs generated/autogenerated config headers
+[[annotations]]
+path = [
+    "lib/sl_glue/inc/os_tick.h",
+    "lib/sl_glue/inc/psa_crypto_config.h",
+    "lib/sl_glue/inc/sl_component_catalog.h",
+    "lib/sl_glue/inc/sl_matter_config.h",
+    "lib/sl_glue/inc/sl_mbedtls_config.h",
+    "lib/sl_glue/inc/sl_mbedtls_device_config.h",
+    "lib/sl_glue/inc/sli_mbedtls_config_autogen.h",
+    "lib/sl_glue/inc/sli_mbedtls_config_transform_autogen.h",
+    "lib/sl_glue/inc/sli_psa_builtin_config_autogen.h",
+    "lib/sl_glue/inc/sli_psa_config_autogen.h",
+    "lib/sl_glue/inc/nvm3_default_config.h",
+    "lib/sl_glue/inc/sl_board_configuration.h",
+    "lib/sl_glue/inc/sl_net_default_values.h",
+]
+SPDX-FileCopyrightText = "Silicon Laboratories Inc."
+SPDX-License-Identifier = "LicenseRef-Silabs-MSLA"
+
+# lib/sl_glue - CHIP-derived mbedTLS config
+[[annotations]]
+path = "lib/sl_glue/inc/siwx917-chip-mbedtls-config.h"
+SPDX-FileCopyrightText = "2024 Project CHIP Authors"
+SPDX-License-Identifier = "Apache-2.0"
+
+# lib/sl_glue - ARM CMSIS RTE header (Zlib)
+[[annotations]]
+path = "lib/sl_glue/inc/RTE_Device_917.h"
+SPDX-FileCopyrightText = "2013-2016 ARM Ltd."
+SPDX-License-Identifier = "Zlib"
+
+# lib/wiseconnect_extra - Silabs radio firmware
+[[annotations]]
+path = "lib/wiseconnect_extra/**"
+SPDX-FileCopyrightText = "Silicon Laboratories Inc."
+SPDX-License-Identifier = "LicenseRef-Silabs-MSLA"
+
+# lib/matter_zap - ZAP-generated Matter configuration (Apache-2.0)
+[[annotations]]
+path = "lib/matter_zap/**"
+SPDX-FileCopyrightText = "2022 Project CHIP Authors"
+SPDX-License-Identifier = "Apache-2.0"
+
+# lib/stb/stb_repo - stb single-file libraries (MIT)
+[[annotations]]
+path = "lib/stb/stb_repo/**"
+SPDX-FileCopyrightText = "2017 Sean Barrett"
+SPDX-License-Identifier = "MIT"
+
+# ===========================================================================
+# lib/ - third-party submodules
+# ===========================================================================
 
 [[annotations]]
 path = "lib/mongoose/**"
-SPDX-FileCopyrightText = "2004-2013 Sergey Lyubka\n2013-2026 Cesanta Software Limited"
+SPDX-FileCopyrightText = ["2004-2013 Sergey Lyubka", "2013-2026 Cesanta Software Limited"]
 SPDX-License-Identifier = "GPL-2.0-only"
 
 [[annotations]]
@@ -92,7 +281,7 @@ SPDX-License-Identifier = "ISC"
 
 [[annotations]]
 path = "lib/microtar/**"
-SPDX-FileCopyrightText = "2017 rxi\n2021 Aidan MacDonald"
+SPDX-FileCopyrightText = ["2017 rxi", "2021 Aidan MacDonald"]
 SPDX-License-Identifier = "MIT"
 
 [[annotations]]
@@ -104,11 +293,6 @@ SPDX-License-Identifier = "Zlib"
 path = "lib/zlib/**"
 SPDX-FileCopyrightText = "1995-2025 Jean-loup Gailly and Mark Adler"
 SPDX-License-Identifier = "Zlib"
-
-[[annotations]]
-path = "lib/stb/**"
-SPDX-FileCopyrightText = "2017 Sean Barrett"
-SPDX-License-Identifier = "MIT"
 
 [[annotations]]
 path = "lib/wiseconnect/**"
@@ -125,25 +309,48 @@ path = "lib/matter_ext/**"
 SPDX-FileCopyrightText = "Silicon Laboratories Inc."
 SPDX-License-Identifier = "LicenseRef-Silabs-MSLA"
 
-# ---------------------------------------------------------------------------
-# Third-party libraries — fbt_layers/core_libs
-# ---------------------------------------------------------------------------
+# ===========================================================================
+# fbt_layers/fbtng - build system (GPL-3.0-only submodule)
+# ===========================================================================
 
 [[annotations]]
-path = "fbt_layers/core_libs/lib/mlib/**"
-SPDX-FileCopyrightText = "2017-2022 Patrick Pelissier"
-SPDX-License-Identifier = "BSD-2-Clause"
+path = "fbt_layers/fbtng/**"
+SPDX-FileCopyrightText = "2024-2026 Flipper FZCO"
+SPDX-License-Identifier = "GPL-3.0-only"
 
+# ===========================================================================
+# fbt_layers/core_libs - core library layer
+# ===========================================================================
+
+# Build scripts (first-party)
 [[annotations]]
-path = "fbt_layers/core_libs/lib/utz/**"
-SPDX-FileCopyrightText = "2015 eV Quirk"
+path = [
+    "fbt_layers/core_libs/*.scons",
+    "fbt_layers/core_libs/lib/*.scons",
+]
+SPDX-FileCopyrightText = "2024-2026 Flipper FZCO"
+SPDX-License-Identifier = "GPL-2.0-or-later"
+
+# furi OS abstraction library (MIT)
+[[annotations]]
+path = "fbt_layers/core_libs/lib/furi/**"
+SPDX-FileCopyrightText = "2024-2026 Flipper FZCO"
 SPDX-License-Identifier = "MIT"
 
+# First-party core libraries
 [[annotations]]
-path = "fbt_layers/core_libs/lib/fatfs/**"
-SPDX-FileCopyrightText = "2017 ChaN"
-SPDX-License-Identifier = "LicenseRef-FatFs"
+path = [
+    "fbt_layers/core_libs/lib/bit_lib/**",
+    "fbt_layers/core_libs/lib/datetime/**",
+    "fbt_layers/core_libs/lib/version/**",
+    "fbt_layers/core_libs/lib/print/wrappers.c",
+    "fbt_layers/core_libs/lib/print/wrappers.h",
+    "fbt_layers/core_libs/inc/**",
+]
+SPDX-FileCopyrightText = "2024-2026 Flipper FZCO"
+SPDX-License-Identifier = "GPL-2.0-or-later"
 
+# printf_tiny (MIT - Marco Paland)
 [[annotations]]
 path = [
     "fbt_layers/core_libs/lib/print/printf_tiny.c",
@@ -152,15 +359,50 @@ path = [
 SPDX-FileCopyrightText = "2014-2019 Marco Paland (info@paland.com), PALANDesign Hannover, Germany"
 SPDX-License-Identifier = "MIT"
 
-# ---------------------------------------------------------------------------
-# Third-party libraries — fbt_layers/freertos
-# ---------------------------------------------------------------------------
+# mlib (BSD-2-Clause - Patrick Pelissier)
+[[annotations]]
+path = "fbt_layers/core_libs/lib/mlib/**"
+SPDX-FileCopyrightText = "2017-2022 Patrick Pelissier"
+SPDX-License-Identifier = "BSD-2-Clause"
 
+# utz (MIT)
+[[annotations]]
+path = "fbt_layers/core_libs/lib/utz/**"
+SPDX-FileCopyrightText = "2015 eV Quirk"
+SPDX-License-Identifier = "MIT"
+
+# FatFs (LicenseRef-FatFs - ChaN)
+[[annotations]]
+path = "fbt_layers/core_libs/lib/fatfs/**"
+SPDX-FileCopyrightText = "2017 ChaN"
+SPDX-License-Identifier = "LicenseRef-FatFs"
+
+# ===========================================================================
+# fbt_layers/freertos - FreeRTOS layer
+# ===========================================================================
+
+# Build scripts (first-party)
+[[annotations]]
+path = [
+    "fbt_layers/freertos/*.scons",
+    "fbt_layers/freertos/lib/*.scons",
+]
+SPDX-FileCopyrightText = "2024-2026 Flipper FZCO"
+SPDX-License-Identifier = "GPL-2.0-or-later"
+
+# FreeRTOS glue (first-party thin wrapper)
+[[annotations]]
+path = "fbt_layers/freertos/lib/FreeRTOS-glue/**"
+SPDX-FileCopyrightText = "2024-2026 Flipper FZCO"
+SPDX-License-Identifier = "GPL-2.0-or-later"
+
+# FreeRTOS-Kernel (MIT - Amazon.com)
 [[annotations]]
 path = "fbt_layers/freertos/lib/FreeRTOS-Kernel/**"
 SPDX-FileCopyrightText = "Amazon.com, Inc. or its affiliates"
 SPDX-License-Identifier = "MIT"
 
+# CMSIS Core (BSD-3-Clause - ARM Limited)
 [[annotations]]
 path = "fbt_layers/freertos/lib/cmsis_core/**"
 SPDX-FileCopyrightText = "ARM Limited"

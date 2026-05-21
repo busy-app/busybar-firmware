@@ -39,6 +39,13 @@ jobs:
         run: |
           git submodule update --init --recursive --jobs=$(nproc) scripts/toolchain lib/lwip lib/matter_ext || (git lfs logs last && exit 1)
 
+      - name: 'Check REUSE compliance'
+        id: reuse_check
+        if: always()
+        run: |
+          pip install --quiet reuse
+          reuse lint
+
       - name: 'Check C/C++ code formatting for f21 and f64'
         id: syntax_check_cpp
         if: always()
