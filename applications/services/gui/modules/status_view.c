@@ -161,22 +161,21 @@ Widget* status_view_get_base(StatusView* instance) {
     return &instance->base;
 }
 
-void status_view_set_icon(StatusView* instance, const char* path, bool is_animated) {
+void status_view_set_icon(StatusView* instance, const void* source, bool is_animated) {
     furi_check(instance);
-    furi_check(path);
 
-    if(path) {
+    if(source) {
         if(is_animated) {
             lv_obj_add_flag(instance->icon_static_box, LV_OBJ_FLAG_HIDDEN);
             lv_image_set_src(instance->icon_static, NULL);
 
-            anim_player_set_source(instance->icon_animated, path);
+            anim_player_set_source(instance->icon_animated, source);
             lv_obj_remove_flag(TO_LV_OBJ(instance->icon_animated), LV_OBJ_FLAG_HIDDEN);
         } else {
             lv_obj_add_flag(TO_LV_OBJ(instance->icon_animated), LV_OBJ_FLAG_HIDDEN);
             anim_player_set_source(instance->icon_animated, NULL);
 
-            lv_image_set_src(instance->icon_static, path);
+            lv_image_set_src(instance->icon_static, source);
             lv_obj_remove_flag(instance->icon_static_box, LV_OBJ_FLAG_HIDDEN);
         }
     } else {

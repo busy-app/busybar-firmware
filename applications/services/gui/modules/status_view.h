@@ -47,10 +47,10 @@ Widget* status_view_get_base(StatusView* instance);
  * Passing NULL hides the icon.
  *
  * @param[in,out] instance pointer to the StatusView instance to be modified
- * @param[in] path zero-terminated string containing the icon resource path
+ * @param[in] source zero-terminated string containing the icon resource path or pointer to lv_image_dsc_t
  * @param[in] is_animated true if the icon is an animation, false for a static image
  */
-void status_view_set_icon(StatusView* instance, const char* path, bool is_animated);
+void status_view_set_icon(StatusView* instance, const void* source, bool is_animated);
 
 /**
  * @brief Set the primary text of the StatusView.

@@ -401,9 +401,17 @@ static bool supervisor_input(const InputEvent* event, void* context) {
 
     if(!warning) return false;
 
-    if(warning->ok_callback && event->type == InputTypePress && event->key == InputKeyOk) {
-        supervisor_send_event(instance, SupervisorEventTypeOkPressed);
-        return true;
+    if(warning->ok_callback && event->type == InputTypePress) {
+        switch(event->key) {
+        case InputKeyOk:
+        /* fall-through */
+        case InputKeyStart:
+            supervisor_send_event(instance, SupervisorEventTypeOkPressed);
+            return true;
+
+        default:
+            break;
+        }
     }
 
     return warning->do_lock_input;
@@ -427,8 +435,7 @@ static void supervisor_make_filesystem(Supervisor* instance, const void* context
         for(GuiDisplayId display = GuiDisplayIdFront; display < GuiDisplayIdMax; display++) {
             StatusView* status_view = instance->status_views[display];
 
-            widget_set_visible(status_view_get_base(status_view), false);
-            status_view_set_primary_text(status_view, "Resetting device...");
+            status_view_set_primary_text(status_view, "Resetting device...\nPlease wait");
             status_view_set_auxiliary_text(status_view, NULL);
             status_view_set_icon(status_view, NULL, false);
         }
@@ -456,8 +463,7 @@ static void supervisor_format_partition(Supervisor* instance, const void* contex
         for(GuiDisplayId display = GuiDisplayIdFront; display < GuiDisplayIdMax; display++) {
             StatusView* status_view = instance->status_views[display];
 
-            widget_set_visible(status_view_get_base(status_view), false);
-            status_view_set_primary_text(status_view, "Resetting device...");
+            status_view_set_primary_text(status_view, "Resetting device...\nPlease wait");
             status_view_set_auxiliary_text(status_view, NULL);
             status_view_set_icon(status_view, NULL, false);
         }
@@ -606,10 +612,11 @@ int32_t supervisor_start(void* argument) {
     instance->displayed_warning = NULL;
 
     with_gui(instance->gui, {
-        GuiLayer* gui_main_layer = gui_get_layer(instance->gui, GuiLayerIdSystem);
+        GuiLayer* gui_system_layer = gui_get_layer(instance->gui, GuiLayerIdSystem);
+        gui_layer_add_input_callback(gui_system_layer, supervisor_input, instance);
 
         for(GuiDisplayId display = GuiDisplayIdFront; display < GuiDisplayIdMax; display++) {
-            Widget* root_widget = gui_layer_get_root_widget(gui_main_layer, display);
+            Widget* root_widget = gui_layer_get_root_widget(gui_system_layer, display);
 
             StatusView* status_view = status_view_alloc(root_widget);
             widget_set_visible(status_view_get_base(status_view), false);
@@ -626,9 +633,6 @@ int32_t supervisor_start(void* argument) {
     furi_pubsub_subscribe(power_get_pubsub(instance->power), supervisor_power_callback, instance);
     furi_state_subscribe(
         intercom_get_state(instance->intercom), supervisor_intercom_state_callback, instance);
-
-    gui_layer_add_input_callback(
-        gui_get_layer(instance->gui, GuiLayerIdSystem), supervisor_input, instance);
 
     furi_pubsub_subscribe(
         matter_get_pubsub(instance->matter), supervisor_matter_callback, instance);
