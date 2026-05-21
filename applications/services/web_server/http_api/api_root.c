@@ -417,7 +417,7 @@ static const HttpHandler handlers_api_root[] = {
     },
     {
         .uri = "status",
-        .method = HttpMethodAny,
+        .method = HttpMethodGet,
         .type = HttpHandlerCustom,
         .on_request = http_api_status_callback,
         .ctx_alloc = http_api_status_alloc,
@@ -450,7 +450,7 @@ static const HttpHandler handlers_api_root[] = {
     },
     {
         .uri = "screen",
-        .method = HttpMethodAny,
+        .method = HttpMethodGet,
         .type = HttpHandlerCustom,
         .on_request = http_api_streaming_single_frame_callback,
     },
