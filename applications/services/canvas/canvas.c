@@ -14,8 +14,7 @@
 #include <gui/modules/front_display_mirror.h>
 #include <lvgl.h>
 #include <font_registry/fonts.h>
-
-#define CANVAS_LAYER GuiLayerIdTop
+#include <back_display/back_display.h>
 
 typedef struct {
     enum {
@@ -168,6 +167,16 @@ static void canvas_announce_priority(CanvasSrv* canvas, size_t priority) {
 static size_t canvas_get_priority(CanvasSrv* canvas) {
     furi_assert(canvas);
     return loader_get_priority(canvas->loader);
+}
+
+static bool is_in_power_off(CanvasSrv* canvas) {
+    FuriString* current_app_name = furi_string_alloc();
+
+    loader_get_application_name(canvas->loader, current_app_name);
+    bool result = furi_string_equal(current_app_name, "Software Power Off");
+
+    furi_string_free(current_app_name);
+    return result;
 }
 
 static bool canvas_srv_check_elements_visible(CanvasElementsArray_t elements) {
@@ -500,23 +509,33 @@ static bool canvas_srv_input_callback(const InputEvent* event, void* context) {
 static void canvas_screen_open(CanvasSrv* canvas) {
     canvas->gui = furi_record_open(RECORD_GUI);
     with_gui(canvas->gui, {
-        GuiLayer* main_layer = gui_get_layer(canvas->gui, CANVAS_LAYER);
-        gui_layer_add_input_callback(main_layer, canvas_srv_input_callback, canvas);
+        GuiLayer* input_layer = gui_get_layer(canvas->gui, GuiLayerIdSystem);
+        gui_layer_add_input_callback(input_layer, canvas_srv_input_callback, canvas);
 
+        GuiLayer* draw_layer = gui_get_layer(canvas->gui, GuiLayerIdMain);
         Color background = COLOR_MAKE_HEXA(0x000000FF);
         for(GuiDisplayId i = 0; i < GuiDisplayIdMax; i++) {
-            Widget* root = gui_layer_get_root_widget(main_layer, i);
+            Widget* root = gui_layer_get_root_widget(draw_layer, i);
             canvas->display[i] = widget_alloc(root);
             widget_set_background_color(canvas->display[i], background);
+            widget_set_pos(canvas->display[i], 0, 0);
         }
         canvas->display_mirror = display_mirror_alloc(canvas->display[GuiDisplayIdBack]);
     });
+
+    if(is_in_power_off(canvas)) {
+        // FIXME: Back display was shut down in power_off, we need to turn it on
+        BackDisplaySrv* back_display = furi_record_open(RECORD_BACK_DISPLAY);
+        back_display_sleep_mode(back_display, false);
+        furi_record_close(RECORD_BACK_DISPLAY);
+    }
 }
 
 static void canvas_screen_close(CanvasSrv* canvas) {
     with_gui(canvas->gui, {
-        GuiLayer* main_layer = gui_get_layer(canvas->gui, CANVAS_LAYER);
-        gui_layer_remove_input_callback(main_layer, canvas_srv_input_callback);
+        GuiLayer* input_layer = gui_get_layer(canvas->gui, GuiLayerIdSystem);
+        gui_layer_remove_input_callback(input_layer, canvas_srv_input_callback);
+
         display_mirror_free(canvas->display_mirror);
         for(GuiDisplayId i = 0; i < GuiDisplayIdMax; i++) {
             widget_free(canvas->display[i]);
@@ -526,6 +545,11 @@ static void canvas_screen_close(CanvasSrv* canvas) {
     furi_record_close(RECORD_GUI);
     canvas->gui = NULL;
     canvas_announce_priority(canvas, 0);
+    if(is_in_power_off(canvas)) {
+        BackDisplaySrv* back_display = furi_record_open(RECORD_BACK_DISPLAY);
+        back_display_sleep_mode(back_display, true);
+        furi_record_close(RECORD_BACK_DISPLAY);
+    }
 }
 
 static CanvasSrv* canvas_srv_alloc() {
