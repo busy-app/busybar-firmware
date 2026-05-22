@@ -1,6 +1,7 @@
 Import("FW_ENV")
 fwenv = FW_ENV
 
+import os
 from SCons.Util import splitext
 from fbt.version import get_git_commit_unix_timestamp
 
@@ -74,21 +75,32 @@ def convert_fonts(src_dir, dst_dir):
 
     return converted
 
+def compresses(f):
+    return f.suffix in [".html", ".js", ".css", ".svg"]
 
-def convert_web_api(dst_dir):
-    swagger_files = fw_assets_env.SwaggerGenerator(
-        dst_dir.File("web_server/www/docs/index.html"),
-        fw_assets_env.Real(
-            dst_dir.File(
-                "#/applications/services/web_server/resources/apps_assets/web_server/www/openapi.yaml"
-            )
-        ),
-        SWAGGER_DIST_DIR=fw_assets_env.Dir("#assets/swagger").rdir(),
-    )
-    resources_dist.append(swagger_files)
+def convert_web_assets(src_dir, dst_dir):
+    import SCons.Node.FS
 
-    return fw_assets_env.Dir("#assets/frontend-build/public/").rdir()
+    src_root = Dir(src_dir).abspath
+    dst_root = Dir(dst_dir).abspath
 
+    src_files = fwenv.GlobRecursive("*", Dir(src_dir))
+    converted = []
+
+    for src_file in src_files:
+        if not isinstance(src_file, SCons.Node.FS.File):
+            continue
+        rel_path = os.path.relpath(src_file.abspath, src_root)
+        if compresses(src_file):
+            target_file = fw_assets_env.File(os.path.join(dst_root, rel_path) + ".gz")
+            converted.append(fw_assets_env.Gzip(target_file, src_file))
+        else:
+            target_file = fw_assets_env.File(os.path.join(dst_root, rel_path))
+            converted.append(fw_assets_env.Command(target_file, src_file, Action(
+                Copy("$TARGET", "$SOURCE"),
+                "\tCOPY\t${TARGET}"
+            )))
+    return converted
 
 if fwenv.get("IS_BASE_FIRMWARE", False):
     app_assets_dir = fwenv.Dir("${BUILD_DIR}/apps_assets")
@@ -115,13 +127,25 @@ if fwenv.get("IS_BASE_FIRMWARE", False):
     for converter in converters_shared:
         resources_dist += converter("#/assets/shared/", shared_assets_dir)
 
+    swagger_files = fw_assets_env.SwaggerGenerator(
+        app_assets_dir.File("web_server/www/docs/index.html"),
+        fw_assets_env.Real(
+            app_assets_dir.File(
+                "#/applications/services/web_server/resources/apps_assets/web_server/www/openapi.yaml"
+            )
+        ),
+        SWAGGER_DIST_DIR=fw_assets_env.Dir("#assets/swagger").rdir(),
+    )
+    resources_dist.append(swagger_files)
+
+    resources_dist.append(convert_web_assets("#assets/frontend-build/public", fwenv.Dir("${BUILD_DIR}/apps_assets/web_server/www")))
+
     # Resources & manifest for SD card
     resources_env = fwenv.Clone(tools=["fbt_resources"])
     resources_dist_nodes = resources_env.ResourcesDistBuilder(
         _EXTRA_DIST=[
             app_assets_dir,
-            (convert_web_api(app_assets_dir), "apps_assets/web_server/www"),
-        ],
+        ]
     )
     manifest = resources_env.ManifestBuilder(
         "${RESOURCES_ROOT}/Manifest",

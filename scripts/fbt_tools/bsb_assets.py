@@ -10,6 +10,16 @@ def create_header_file_action(target, source, env):
         for f in source:
             fout.write(f"extern const lv_image_dsc_t {splitext(f.name)[0]};\r\n")
 
+def gzip_action(target, source, env):
+    import gzip
+    import shutil
+    src = source[0].abspath
+    dst = target[0].abspath
+
+    with open(src, "rb") as fin:
+        with gzip.open(dst, "wb", compresslevel=9) as fout:
+            shutil.copyfileobj(fin, fout)
+
 
 def generate(env):
     env.SetDefault(
@@ -29,6 +39,7 @@ def generate(env):
             IMAGECONVCOMSTR="\tIMGCONV\t${TARGET}",
             IMAGEHEADERCOMSTR="\tIMGHDR\t${TARGET}",
             SWAGGERCOMSTR="\tSWAG\t${TARGET}",
+            GZIPCOMSTR="\tGZIP\t${TARGET}",
         )
 
     env.Append(
@@ -115,6 +126,12 @@ def generate(env):
                         ],
                     ],
                     "${SWAGGERCOMSTR}",
+                ),
+            ),
+            "Gzip": Builder(
+                action=Action(
+                    gzip_action,
+                    "${GZIPCOMSTR}",
                 ),
             ),
         }
