@@ -20,6 +20,13 @@ def gzip_action(target, source, env):
         with gzip.open(dst, "wb", compresslevel=9) as fout:
             shutil.copyfileobj(fin, fout)
 
+def copy_action(target, source, env):
+    import shutil
+    src = source[0].abspath
+    dst = target[0].abspath
+
+    shutil.copyfile(src, dst)
+
 
 def generate(env):
     env.SetDefault(
@@ -40,6 +47,7 @@ def generate(env):
             IMAGEHEADERCOMSTR="\tIMGHDR\t${TARGET}",
             SWAGGERCOMSTR="\tSWAG\t${TARGET}",
             GZIPCOMSTR="\tGZIP\t${TARGET}",
+            COPYCOMSTR="\tCOPY\t${TARGET}",
         )
 
     env.Append(
@@ -132,6 +140,12 @@ def generate(env):
                 action=Action(
                     gzip_action,
                     "${GZIPCOMSTR}",
+                ),
+            ),
+            "Copy": Builder(
+                action=Action(
+                    copy_action,
+                    "${COPYCOMSTR}",
                 ),
             ),
         }

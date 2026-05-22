@@ -96,10 +96,7 @@ def convert_web_assets(src_dir, dst_dir):
             converted.append(fw_assets_env.Gzip(target_file, src_file))
         else:
             target_file = fw_assets_env.File(os.path.join(dst_root, rel_path))
-            converted.append(fw_assets_env.Command(target_file, src_file, Action(
-                Copy("$TARGET", "$SOURCE"),
-                "\tCOPY\t${TARGET}"
-            )))
+            converted.append(fw_assets_env.Copy(target_file, src_file))
     return converted
 
 if fwenv.get("IS_BASE_FIRMWARE", False):
