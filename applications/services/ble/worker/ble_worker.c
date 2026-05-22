@@ -26,6 +26,8 @@
 // Uncomment macro below in order to force ble advertising with public address only
 // #define BLE_DEBUG_ADVERTISE_FORCE_PUBLIC
 
+#define BLE_WORKER_WRITE_RESPONSE_BY_NWP
+
 #define BLE_WORKER_LOG_TX
 
 #ifdef BLE_WORKER_LOG_TX
@@ -179,6 +181,15 @@ typedef struct {
 
 //==========================================================
 static BleWorker* ble_worker_instance = NULL;
+
+static int32_t rsi_ble_gatt_write_response_dummy(uint8_t* dev_addr, uint8_t type);
+
+#ifdef BLE_WORKER_WRITE_RESPONSE_BY_NWP
+#define ble_worker_write_response(dev_addr, type) rsi_ble_gatt_write_response_dummy(dev_addr, type)
+#else
+#define ble_worker_write_response(dev_addr, type) rsi_ble_gatt_write_response(dev_addr, type)
+#endif
+
 /*==============================================*/
 /**
  * @fn         ble_worker_echo_app_on_adv_report_event
@@ -653,6 +664,14 @@ static void ble_hw_config() {
     }
 }
 
+#ifdef BLE_WORKER_WRITE_RESPONSE_BY_NWP
+static int32_t rsi_ble_gatt_write_response_dummy(uint8_t* dev_addr, uint8_t type) {
+    UNUSED(dev_addr);
+    UNUSED(type);
+    return RSI_SUCCESS;
+}
+#endif
+
 static int32_t ble_worker_thread_callback(void* context) {
     BleWorker* instance = context;
 
@@ -689,7 +708,7 @@ static int32_t ble_worker_thread_callback(void* context) {
                             if(ble_characteristic_is_cccd_handle(ch, handle)) {
                                 uint8_t ccd_val = *((uint8_t*)data);
                                 ble_characteristic_set_cccd_value(ch, ccd_val);
-                                status = rsi_ble_gatt_write_response(
+                                status = ble_worker_write_response(
                                     ble_worker_instance->remote_dev_address, 0);
                                 if(handle == BLE_NORDIC_UART_TX_HANDLE) BLE_LOG_W("Subscribed!");
 
@@ -710,8 +729,7 @@ static int32_t ble_worker_thread_callback(void* context) {
                     }
                 } else {
                     BLE_LOG_W("Not found: %04X", handle);
-                    status =
-                        rsi_ble_gatt_write_response(ble_worker_instance->remote_dev_address, 0);
+                    status = ble_worker_write_response(ble_worker_instance->remote_dev_address, 0);
                 }
             } else if(instance->app_ble_write_event.pkt_type == RSI_BLE_NOTIFICATION_EVENT) {
                 BLE_LOG_W("Notification event");
@@ -1364,7 +1382,7 @@ void ble_worker_receive_confirm(uint16_t handle, uint8_t cccd_value) {
     if(ble_worker_instance->connected && BLE_CCCD_INDICATION_ENABLED(cccd_value)) {
         status = rsi_ble_indicate_confirm(ble_worker_instance->remote_dev_address);
     } else {
-        status = rsi_ble_gatt_write_response(ble_worker_instance->remote_dev_address, 0);
+        status = ble_worker_write_response(ble_worker_instance->remote_dev_address, 0);
     }
 
     furi_assert(handle == ble_worker_instance->rx_pending_handle);
