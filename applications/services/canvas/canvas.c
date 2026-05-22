@@ -415,19 +415,18 @@ static void canvas_srv_queue_event_callback(FuriEventLoopObject* object, void* c
     CanvasResult res = CanvasResultOk;
 
     if(event.type == CanvasSrvEventUpdate) {
-        furi_assert(event.result);
         furi_assert(event.priority);
 
         do {
             size_t current_priority = canvas_get_priority(canvas);
             if(*event.priority < current_priority) {
-                *event.result = CanvasResultLowPriority;
+                res = CanvasResultLowPriority;
                 break;
             }
 
             if(canvas->gui == NULL) {
                 if(!canvas_srv_check_elements_visible(event.elements)) {
-                    *event.result = CanvasResultEmptyScreen;
+                    res = CanvasResultEmptyScreen;
                     break;
                 }
                 canvas_screen_open(canvas);
@@ -452,7 +451,6 @@ static void canvas_srv_queue_event_callback(FuriEventLoopObject* object, void* c
         CanvasElementsArray_clear(event.elements);
 
     } else if(event.type == CanvasSrvEventClear) {
-        furi_assert(event.result);
         if(canvas->gui == NULL) {
             res = CanvasResultEmptyScreen;
         } else if(event.app_id && canvas->app_id) {
@@ -467,6 +465,7 @@ static void canvas_srv_queue_event_callback(FuriEventLoopObject* object, void* c
         }
     } else if(event.type == CanvasSrvEventExit) {
         canvas_srv_clear_all(canvas);
+        res = CanvasResultOk;
     }
 
     if(event.app_id) {
@@ -520,6 +519,7 @@ static void canvas_screen_open(CanvasSrv* canvas) {
             widget_set_background_color(canvas->display[i], background);
             widget_set_pos(canvas->display[i], 0, 0);
             widget_set_padding(canvas->display[i], 0, 0, 0, 0);
+            widget_set_margin(canvas->display[i], 0, 0, 0, 0);
         }
         canvas->display_mirror = display_mirror_alloc(canvas->display[GuiDisplayIdBack]);
     });
