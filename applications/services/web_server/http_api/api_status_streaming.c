@@ -349,7 +349,7 @@ bool http_api_status_ws_callback(
         conn_ctx->context = client;
     }
 
-    mg_ws_upgrade(conn, msg, NULL);
+    mg_ws_upgrade(conn, msg, HEADER_CORS_ORIGIN);
 
     return true;
 }

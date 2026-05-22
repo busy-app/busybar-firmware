@@ -18,10 +18,6 @@ bool http_api_streaming_single_frame_callback(
     UNUSED(ctx);
 
     if(!IS_HTTP_ENDPOINT(path)) return false;
-    if(method != HttpMethodGet) {
-        http_reply_405_method_not_allowed(conn, HttpMethodGet);
-        return true;
-    }
 
     char display_str[2];
     int var_len = mg_http_get_var(&msg->query, "display", display_str, sizeof(display_str));

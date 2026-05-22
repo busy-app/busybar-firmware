@@ -319,7 +319,6 @@ static bool api_update_raw_hdr_callback(
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* http_handler_ctx) {
-    UNUSED(method);
     UNUSED(http_handler_ctx);
     ConnectionContext* conn_ctx = (ConnectionContext*)conn->data;
     HttpUpdateHandlerCtx* update_ctx = NULL;
@@ -329,6 +328,7 @@ static bool api_update_raw_hdr_callback(
     FURI_LOG_I(
         TAG, "on_headers: Received update request for URI: %.*s", (int)msg->uri.len, msg->uri.buf);
 
+    if(method == HttpMethodOptions) return false; // let MG_EV_HTTP_MSG respond with preflight
     if(method != HttpMethodPost) {
         http_reply_405_method_not_allowed(conn, HttpMethodPost);
         conn->is_draining = 1;
@@ -397,9 +397,13 @@ static bool api_update_raw_request_callback(
     struct mg_http_message* msg,
     void* ctx) {
     UNUSED(path);
-    UNUSED(method);
     UNUSED(msg);
     UNUSED(ctx);
+
+    if(method == HttpMethodOptions) {
+        http_reply_cors_preflight(conn, HttpMethodPost);
+        return true;
+    }
 
     MG_REPLY_BAD_REQUEST(conn);
 

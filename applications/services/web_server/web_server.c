@@ -62,10 +62,14 @@ static HttpMethod http_method_from_str(struct mg_http_message* msg) {
     return HttpMethodUnknown;
 }
 
+#define HTTP_API_METHODS \
+    ((HttpMethod)(HttpMethodGet | HttpMethodPost | HttpMethodPut | HttpMethodDelete))
+
 void http_reply_405_method_not_allowed(struct mg_connection* conn, HttpMethod allowed_methods) {
     if(allowed_methods & HttpMethodWebSocket) {
-        allowed_methods = (allowed_methods & ~(HttpMethodWebSocket)) | HttpMethodGet;
+        allowed_methods = (HttpMethod)((allowed_methods & ~HttpMethodWebSocket) | HttpMethodGet);
     }
+    allowed_methods = (HttpMethod)(allowed_methods & HTTP_API_METHODS);
     FuriString* headers = furi_string_alloc_set(DEFAULT_JSON_HEADERS);
     furi_string_cat(headers, "Allow: ");
     bool is_first = true;
@@ -78,6 +82,25 @@ void http_reply_405_method_not_allowed(struct mg_connection* conn, HttpMethod al
     furi_string_cat(headers, "\r\n");
     mg_http_reply(
         conn, 405, furi_string_get_cstr(headers), "{\"error\":\"%s\"}\n", "Method Not Allowed");
+    furi_string_free(headers);
+}
+
+void http_reply_cors_preflight(struct mg_connection* conn, HttpMethod allowed_methods) {
+    if(allowed_methods & HttpMethodWebSocket) {
+        allowed_methods = (HttpMethod)((allowed_methods & ~HttpMethodWebSocket) | HttpMethodGet);
+    }
+    allowed_methods = (HttpMethod)(allowed_methods & HTTP_API_METHODS);
+    FuriString* headers = furi_string_alloc_set(HEADER_CORS_ORIGIN HEADER_CORS_HEADERS
+                                                "Access-Control-Allow-Methods: ");
+    bool is_first = true;
+    for(size_t i = 0; i < COUNT_OF(http_methods); i++) {
+        if(allowed_methods & http_methods[i].method) {
+            furi_string_cat_printf(headers, "%s%s", is_first ? "" : ", ", http_methods[i].name);
+            is_first = false;
+        }
+    }
+    furi_string_cat(headers, "\r\n");
+    mg_http_reply(conn, 200, furi_string_get_cstr(headers), "");
     furi_string_free(headers);
 }
 
@@ -96,7 +119,10 @@ static void http_upload_data_callback(struct mg_connection* conn, struct mg_iobu
     bool do_close_file = false;
 
     if(upload_ctx == NULL) return;
-    if(upload_ctx->file == NULL) return;
+    if(upload_ctx->file == NULL) {
+        data->len = 0; // drain any lingering data arriving on a completed/failed upload
+        return;
+    }
 
     upload_ctx->timeout_stamp = mg_millis() + HTTP_UPLOAD_IDLE_TIMEOUT_MS;
 
@@ -118,7 +144,7 @@ static void http_upload_data_callback(struct mg_connection* conn, struct mg_iobu
     }
 
     if(upload_ctx->len_remain == 0) {
-        MG_REPLY_OK(conn);
+        MG_REPLY_OK_CLOSE(conn);
         do_close_file = true; // End of write
     }
 
@@ -311,8 +337,17 @@ bool http_handle_request(
             if(!furi_string_start_with(path, inst->handler->uri)) {
                 break;
             }
-            if(method == HttpMethodUnknown || !(method & inst->handler->method)) {
+            if(method == HttpMethodUnknown) {
                 http_reply_405_method_not_allowed(conn, inst->handler->method);
+                handled = true;
+                break;
+            }
+            if(!(method & inst->handler->method)) {
+                if(method == HttpMethodOptions) {
+                    http_reply_cors_preflight(conn, inst->handler->method);
+                } else {
+                    http_reply_405_method_not_allowed(conn, inst->handler->method);
+                }
                 handled = true;
                 break;
             }
@@ -377,10 +412,19 @@ bool http_handle_headers(
             if(!furi_string_start_with(path, inst->handler->uri)) {
                 break;
             }
-            if(method == HttpMethodUnknown || !(method & inst->handler->method)) {
+            if(method == HttpMethodUnknown) {
                 http_reply_405_method_not_allowed(conn, inst->handler->method);
                 MG_CLOSE_AFTER_HEADERS(conn, msg);
                 handled = true;
+                break;
+            }
+            if(!(method & inst->handler->method)) {
+                // OPTIONS preflight: let http_handle_request (MG_EV_HTTP_MSG) respond
+                if(method != HttpMethodOptions) {
+                    http_reply_405_method_not_allowed(conn, inst->handler->method);
+                    MG_CLOSE_AFTER_HEADERS(conn, msg);
+                    handled = true;
+                }
                 break;
             }
 
