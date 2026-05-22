@@ -578,7 +578,25 @@ void updater_resume_autoupdates(Updater* instance) {
 #endif /* SRV_TIME */
 }
 
-void updater_internal_settings_change_build_specific(Updater* instance) {
+void updater_internal_settings_change_build_specific(
+    Updater* instance,
+    const UpdaterSettings* settings) {
+    bool is_update_source_changing =
+        strncmp(instance->settings.check_url, settings->check_url, sizeof(settings->check_url)) ||
+        strncmp(
+            instance->settings.check_channel_id,
+            settings->check_channel_id,
+            sizeof(settings->check_channel_id));
+
+    instance->settings = *settings;
+
+    if(is_update_source_changing) {
+        UpdaterCheckState* check_state = furi_state_acquire(instance->check_state);
+        check_state->result = UpdaterCheckResultNone;
+        check_state->event = UpdaterCheckEventNone;
+        furi_state_release(instance->check_state);
+    }
+
     furi_event_loop_timer_start(
         instance->check_timer, furi_ms_to_ticks(instance->settings.check_startup_interval));
 
