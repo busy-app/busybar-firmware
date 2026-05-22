@@ -519,6 +519,7 @@ static void canvas_screen_open(CanvasSrv* canvas) {
             canvas->display[i] = widget_alloc(root);
             widget_set_background_color(canvas->display[i], background);
             widget_set_pos(canvas->display[i], 0, 0);
+            widget_set_padding(canvas->display[i], 0, 0, 0, 0);
         }
         canvas->display_mirror = display_mirror_alloc(canvas->display[GuiDisplayIdBack]);
     });
