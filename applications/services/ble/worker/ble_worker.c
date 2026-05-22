@@ -1161,18 +1161,6 @@ void ble_worker_init(BleConnectionStateChanged connect_callback, void* ctx) {
 
     ble_hw_config();
 
-    //Appearance adjustment
-    uuid_t uuid = {0};
-    uuid.size = 2;
-    uuid.val.val16 = 0x2A01;
-    uint16_t value_handle = 0;
-    if(ble_find_characteristic_value_handle_by_uuid(&uuid, 0x001E, &value_handle)) {
-        uint16_t data = 0x00C0;
-        BLE_LOG_D("Handle found: %04X", value_handle);
-        sl_status_t status = rsi_ble_set_local_att_value(value_handle, 2, (uint8_t*)&data);
-        UNUSED(status);
-        BLE_LOG_D("Status: %lX", status);
-    }
     //---------------------------------------
 }
 
