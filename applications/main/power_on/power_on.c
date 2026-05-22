@@ -1,7 +1,7 @@
 #include <furi.h>
 
 #include <gui/gui.h>
-#include <gui/modules/label.h>
+#include <gui/modules/status_view.h>
 #include <gui/modules/anim_player.h>
 
 #include <storage/storage.h>
@@ -36,14 +36,23 @@ typedef struct {
     Storage* storage;
     FuriThreadId thread_id;
     FuriTimer* shutdown_timer;
-    Label* labels[GuiDisplayIdMax];
+    StatusView* status_views[GuiDisplayIdMax];
     AnimPlayer* anims[GuiDisplayIdMax];
 } PowerOnApp;
 
-static const char* const power_on_anim_paths[GuiDisplayIdMax] = {
-    POWER_ON_ANIM_PATH("front_power_on_72x16.anim"),
-    POWER_ON_ANIM_PATH("back_power_on_148x80.anim"),
+static const char* const power_on_anim_paths[] = {
+    [GuiDisplayIdFront] = POWER_ON_ANIM_PATH("front_power_on_72x16.anim"),
+    [GuiDisplayIdBack] = POWER_ON_ANIM_PATH("back_power_on_148x80.anim"),
 };
+
+static_assert(COUNT_OF(power_on_anim_paths) == GuiDisplayIdMax);
+
+static const char* const power_on_spinner_paths[] = {
+    [GuiDisplayIdFront] = SHARED_ANIM_PATH("spinner_front_8x8.anim"),
+    [GuiDisplayIdBack] = SHARED_ANIM_PATH("spinner_back_16x16.anim"),
+};
+
+static_assert(COUNT_OF(power_on_spinner_paths) == GuiDisplayIdMax);
 
 static bool power_on_input_callback(const InputEvent* event, void* context) {
     furi_assert(event);
@@ -123,14 +132,14 @@ static void power_on_show_startup_message(PowerOnApp* instance) {
     with_gui(instance->gui, {
         GuiLayer* layer_main = gui_get_layer(instance->gui, GuiLayerIdMain);
 
-        for(GuiDisplayId id = 0; id < GuiDisplayIdMax; ++id) {
-            Widget* root = gui_layer_get_root_widget(layer_main, id);
+        for(GuiDisplayId display = GuiDisplayIdFront; display < GuiDisplayIdMax; display++) {
+            Widget* root = gui_layer_get_root_widget(layer_main, display);
 
-            Label* label = label_alloc(root);
-            label_set_text(label, "Starting...");
-            widget_set_align(label_get_base(label), AlignCenter);
+            StatusView* status_view = status_view_alloc(root);
+            status_view_set_icon(status_view, power_on_spinner_paths[display]);
+            status_view_set_primary_text(status_view, "Starting...");
 
-            instance->labels[id] = label;
+            instance->status_views[display] = status_view;
         }
     });
 }
@@ -201,8 +210,8 @@ static void power_on_app_free(PowerOnApp* instance) {
 
     with_gui(instance->gui, {
         for(GuiDisplayId id = 0; id < GuiDisplayIdMax; ++id) {
-            if(instance->labels[id]) {
-                label_free(instance->labels[id]);
+            if(instance->status_views[id]) {
+                status_view_free(instance->status_views[id]);
             }
 
             if(instance->anims[id]) {
