@@ -70,7 +70,8 @@ static BleWorker* ble_worker_instance = NULL;
 //===========================================================================================
 static void retry_phy_timer_callback(void* ctx) {
     BleWorker* instance = ctx;
-    ble_worker_spawn_event(instance->event_queue, BleWorkerEventTypeDataLengthChange, 0, NULL);
+    ble_worker_spawn_event(
+        instance->event_queue, BleIncomingNwpEventTypeDataLengthChange, 0, NULL);
     // BleWorker* instance = ctx;
     // furi_thread_flags_set(furi_thread_get_id(instance->thread), BLEWorkerEvtDataLengthChange);
 }
@@ -179,35 +180,37 @@ static bool ble_worker_event_handler_adjust_connection_request(
         } else
             BLE_LOG_I("LEN set done");
     } else {
-        ble_worker_spawn_event(instance->event_queue, BleWorkerEventTypeDataLengthChange, 0, NULL);
+        ble_worker_spawn_event(
+            instance->event_queue, BleIncomingNwpEventTypeDataLengthChange, 0, NULL);
     }
     return true;
 }
 
-static const BleWorkerEventHandler event_handlers[BleWorkerEventTypeCount] = {
-    [BleWorkerEventTypeUnknown] = ble_worker_event_handler_dummy,
-    [BleWorkerEventTypeExit] = ble_worker_event_handler_exit,
-    [BleWorkerEventTypeAdvReport] = ble_worker_event_handler_advertise_report,
-    [BleWorkerEventTypeConnected] = ble_worker_event_handler_connected,
-    [BleWorkerEventTypeDisconnected] = ble_worker_event_handler_disconnected,
-    [BleWorkerEventTypePhyUpdateComplete] = ble_worker_event_handler_phy_update_complete,
-    [BleWorkerEventTypeConnUpdate] = ble_worker_event_handler_connection_update,
-    [BleWorkerEventTypeDataLengthChange] = ble_worker_event_handler_length_change,
+static const BleWorkerEventHandler event_handlers[BleIncomingNwpEventTypeCount] = {
+    [BleIncomingNwpEventTypeUnknown] = ble_worker_event_handler_dummy,
+    [BleIncomingNwpEventTypeExit] = ble_worker_event_handler_exit,
+    [BleIncomingNwpEventTypeAdvReport] = ble_worker_event_handler_advertise_report,
+    [BleIncomingNwpEventTypeConnected] = ble_worker_event_handler_connected,
+    [BleIncomingNwpEventTypeDisconnected] = ble_worker_event_handler_disconnected,
+    [BleIncomingNwpEventTypePhyUpdateComplete] = ble_worker_event_handler_phy_update_complete,
+    [BleIncomingNwpEventTypeConnUpdate] = ble_worker_event_handler_connection_update,
+    [BleIncomingNwpEventTypeDataLengthChange] = ble_worker_event_handler_length_change,
 
-    [BleWorkerEventTypeReceiveRemoteFeatures] = ble_worker_event_handler_receive_remote_features,
-    [BleWorkerEventTypeMoreDataRequest] = ble_worker_event_handler_more_data_request,
+    [BleIncomingNwpEventTypeReceiveRemoteFeatures] =
+        ble_worker_event_handler_receive_remote_features,
+    [BleIncomingNwpEventTypeMoreDataRequest] = ble_worker_event_handler_more_data_request,
 
-    [BleWorkerEventTypeWrite] = ble_worker_event_handler_write_event,
-    [BleWorkerEventTypeDataTransmit] = ble_worker_event_handler_dummy,
-    [BleWorkerEventTypeMtu] = ble_worker_event_handler_mtu,
-    [BleWorkerEventTypeIndicateConfirm] = ble_worker_event_handler_indicate_confirm,
+    [BleIncomingNwpEventTypeWrite] = ble_worker_event_handler_write_event,
+    [BleIncomingNwpEventTypeDataTransmit] = ble_worker_event_handler_dummy,
+    [BleIncomingNwpEventTypeMtu] = ble_worker_event_handler_mtu,
+    [BleIncomingNwpEventTypeIndicateConfirm] = ble_worker_event_handler_indicate_confirm,
 
-    [BleWorkerEventTypeSmpResponse] = ble_worker_event_handler_smp_response,
-    [BleWorkerEventTypeSmpEncryptStarted] = ble_worker_event_handler_smp_encrypt_started,
-    [BleWorkerEventTypeSmpLtkRequest] = ble_worker_event_handler_smp_ltk_request,
-    [BleWorkerEventTypeSmpSecurityKeys] = ble_worker_event_handler_smp_security_keys,
-    [BleWorkerEventTypeSmpPairingFailed] = ble_worker_event_handler_smp_pairing_failed,
-    [BleWorkerEventTypeAdjustConnectionRequest] =
+    [BleIncomingNwpEventTypeSmpResponse] = ble_worker_event_handler_smp_response,
+    [BleIncomingNwpEventTypeSmpEncryptStarted] = ble_worker_event_handler_smp_encrypt_started,
+    [BleIncomingNwpEventTypeSmpLtkRequest] = ble_worker_event_handler_smp_ltk_request,
+    [BleIncomingNwpEventTypeSmpSecurityKeys] = ble_worker_event_handler_smp_security_keys,
+    [BleIncomingNwpEventTypeSmpPairingFailed] = ble_worker_event_handler_smp_pairing_failed,
+    [BleIncomingNwpEventTypeAdjustConnectionRequest] =
         ble_worker_event_handler_adjust_connection_request,
 };
 
@@ -552,7 +555,7 @@ void ble_worker_stop() {
         FuriThreadState state = furi_thread_get_state(ble_worker_instance->thread);
         if(state == FuriThreadStateRunning) {
             furi_thread_flags_set(
-                furi_thread_get_id(ble_worker_instance->thread), BleWorkerEventTypeExit);
+                furi_thread_get_id(ble_worker_instance->thread), BleIncomingNwpEventTypeExit);
             furi_thread_join(ble_worker_instance->thread);
             BLE_LOG_I("BLE Stopped");
         }
