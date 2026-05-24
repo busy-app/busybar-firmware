@@ -66,7 +66,7 @@ static void
         furi_assert(event->type < BleIncomingNwpEventTypeCount);
 
         BleWorkerEventHandler handler = event_handlers[event->type];
-        if(!handler(event->data_size, event->data, context)) {
+        if(!handler(event->data_size, event->data, instance->context)) {
             BLE_LOG_W("Failed event: %d, sz: %d", event->type, event->data_size);
         }
 
@@ -85,9 +85,12 @@ void ble_incoming_nwp_event_processor_spawn_event(
     furi_assert(furi_message_queue_put(instance->event_queue, &event, 100) == FuriStatusOk);
 }
 
-BleIncomingNwpEventProcessor* ble_incoming_nwp_event_processor_alloc() {
+BleIncomingNwpEventProcessor* ble_incoming_nwp_event_processor_alloc(void* context) {
+    furi_assert(context);
     BleIncomingNwpEventProcessor* instance = malloc(sizeof(BleIncomingNwpEventProcessor));
     instance->event_queue = furi_message_queue_alloc(20, sizeof(BleIncomingNwpEvent*));
+    instance->context = context;
+    ble_nwp_core_config_callbacks(instance);
 
     return instance;
 }
