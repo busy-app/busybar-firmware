@@ -1,54 +1,56 @@
 #include "ble_incoming_nwp_event_processor.h"
+#include "ble_incoming_nwp_event.h"
+
+#include "gap/ble_worker_gap_events.h"
+#include "gatt/ble_worker_gatt_events.h"
+#include "smp/ble_worker_smp_events.h"
+
 #include "../../ble_common.h"
 
 #define TAG "BleEvent"
 
-static BleWorkerEvent*
-    ble_worker_event_alloc(BleIncomingNwpEventType type, size_t data_size, void* data) {
-    furi_assert(type > BleIncomingNwpEventTypeUnknown);
-    furi_assert(type < BleIncomingNwpEventTypeCount);
+struct BleIncomingNwpEventProcessor {
+    FuriEventLoop* event_loop;
+    FuriMessageQueue* event_queue;
+};
 
-    BleWorkerEvent* instance = malloc(sizeof(BleWorkerEvent));
-    instance->type = type;
-    instance->data_size = data_size;
+static const BleWorkerEventHandler event_handlers[BleIncomingNwpEventTypeCount] = {
+    [BleIncomingNwpEventTypeUnknown] = ble_worker_event_handler_dummy,
+    [BleIncomingNwpEventTypeExit] = ble_worker_event_handler_exit,
+    [BleIncomingNwpEventTypeAdvReport] = ble_worker_event_handler_advertise_report,
+    [BleIncomingNwpEventTypeConnected] = ble_worker_event_handler_connected,
+    [BleIncomingNwpEventTypeDisconnected] = ble_worker_event_handler_disconnected,
+    [BleIncomingNwpEventTypePhyUpdateComplete] = ble_worker_event_handler_phy_update_complete,
+    [BleIncomingNwpEventTypeConnUpdate] = ble_worker_event_handler_connection_update,
+    [BleIncomingNwpEventTypeDataLengthChange] = ble_worker_event_handler_length_change,
 
-    if(data_size > 0) {
-        instance->data = malloc(data_size);
-        memcpy(instance->data, data, data_size);
-    }
+    [BleIncomingNwpEventTypeReceiveRemoteFeatures] =
+        ble_worker_event_handler_receive_remote_features,
+    [BleIncomingNwpEventTypeMoreDataRequest] = ble_worker_event_handler_more_data_request,
 
-    return instance;
-}
+    [BleIncomingNwpEventTypeWrite] = ble_worker_event_handler_write_event,
+    [BleIncomingNwpEventTypeDataTransmit] = ble_worker_event_handler_dummy,
+    [BleIncomingNwpEventTypeMtu] = ble_worker_event_handler_mtu,
+    [BleIncomingNwpEventTypeIndicateConfirm] = ble_worker_event_handler_indicate_confirm,
 
-static void ble_worker_event_free(BleWorkerEvent* instance) {
-    furi_assert(instance);
+    [BleIncomingNwpEventTypeSmpResponse] = ble_worker_event_handler_smp_response,
+    [BleIncomingNwpEventTypeSmpEncryptStarted] = ble_worker_event_handler_smp_encrypt_started,
+    [BleIncomingNwpEventTypeSmpLtkRequest] = ble_worker_event_handler_smp_ltk_request,
+    [BleIncomingNwpEventTypeSmpSecurityKeys] = ble_worker_event_handler_smp_security_keys,
+    [BleIncomingNwpEventTypeSmpPairingFailed] = ble_worker_event_handler_smp_pairing_failed,
+    [BleIncomingNwpEventTypeAdjustConnectionRequest] =
+        ble_worker_event_handler_adjust_connection_request,
+};
 
-    if(instance->data) {
-        free(instance->data);
-    }
-    free(instance);
-}
-
-void ble_worker_spawn_event(
-    BleEventQueuePtr queue,
-    BleIncomingNwpEventType type,
-    size_t data_size,
-    void* data) {
-    furi_assert(queue);
-
-    BleWorkerEvent* event = ble_worker_event_alloc(type, data_size, data);
-    furi_assert(furi_message_queue_put(queue, &event, 100) == FuriStatusOk);
-}
-
-void ble_worker_process_event(
-    BleEventQueuePtr queue,
-    const BleWorkerEventHandler* const event_handlers,
-    void* context) {
-    furi_assert(event_handlers);
+static void
+    ble_incoming_nwp_event_processor_queue_handler(FuriEventLoopObject* object, void* context) {
     furi_assert(context);
 
-    BleWorkerEvent* event = NULL;
-    while(furi_message_queue_get(queue, &event, 0) == FuriStatusOk) {
+    BleIncomingNwpEventProcessor* instance = context;
+    furi_assert(instance->event_queue == object);
+
+    BleIncomingNwpEvent* event = NULL;
+    while(furi_message_queue_get(instance->event_queue, &event, 0) == FuriStatusOk) {
         furi_assert(event->type > BleIncomingNwpEventTypeUnknown);
         furi_assert(event->type < BleIncomingNwpEventTypeCount);
 
@@ -57,13 +59,46 @@ void ble_worker_process_event(
             BLE_LOG_W("Failed event: %d, sz: %d", event->type, event->data_size);
         }
 
-        ble_worker_event_free(event);
+        ble_incoming_nwp_event_free(event);
     }
 }
 
-void ble_worker_flush_events(BleEventQueuePtr queue) {
-    BleWorkerEvent* event = NULL;
-    while(furi_message_queue_get(queue, &event, 250) == FuriStatusOk) {
-        ble_worker_event_free(event);
-    }
+void ble_incoming_nwp_event_processor_spawn_event(
+    BleIncomingNwpEventProcessor* instance,
+    BleIncomingNwpEventType type,
+    size_t data_size,
+    void* data) {
+    furi_assert(instance);
+
+    BleIncomingNwpEvent* event = ble_incoming_nwp_event_alloc(type, data_size, data);
+    furi_assert(furi_message_queue_put(instance->event_queue, &event, 100) == FuriStatusOk);
+}
+
+BleIncomingNwpEventProcessor* ble_incoming_nwp_event_processor_alloc() {
+    BleIncomingNwpEventProcessor* instance = malloc(sizeof(BleIncomingNwpEventProcessor));
+    instance->event_queue = furi_message_queue_alloc(20, sizeof(BleIncomingNwpEvent*));
+
+    return instance;
+}
+
+void ble_incoming_nwp_event_processor_run(
+    BleIncomingNwpEventProcessor* instance,
+    FuriEventLoop* event_loop) {
+    furi_assert(instance);
+    furi_assert(event_loop);
+
+    instance->event_loop = event_loop;
+    furi_event_loop_subscribe_message_queue(
+        instance->event_loop,
+        instance->event_queue,
+        FuriEventLoopEventIn,
+        ble_incoming_nwp_event_processor_queue_handler,
+        instance);
+
+    furi_event_loop_run(instance->event_loop);
+
+    // ble_worker_flush_events(instance->event_queue);
+    BLE_LOG_W("ble_worker_flush_events - not implemented!!!");
+
+    furi_event_loop_unsubscribe(instance->event_loop, instance->event_queue);
 }
