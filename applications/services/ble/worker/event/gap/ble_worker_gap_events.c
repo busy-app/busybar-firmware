@@ -193,3 +193,38 @@ bool ble_worker_event_handler_more_data_request(size_t data_size, void* data, vo
     UNUSED(context);
     return false;
 }
+//------------------------------------------------------------------------------------
+///TODO: Move this handlers to commands folder
+bool ble_worker_event_handler_exit(size_t data_size, void* data, void* context) {
+    BLE_LOG_I("ble_worker_event_handler_exit");
+    UNUSED(data_size);
+    UNUSED(data);
+    BleWorker* instance = context;
+
+    instance->state = ble_worker_stop_advertising() ? BleWorkerStateIdle : BleWorkerStateError;
+    furi_event_loop_stop(instance->event_loop);
+    return true;
+}
+
+bool ble_worker_event_handler_adjust_connection_request(
+    size_t data_size,
+    void* data,
+    void* context) {
+    UNUSED(data_size);
+    UNUSED(data);
+    BLE_LOG_I("ble_worker_event_handler_adjust_connection_request");
+    BleWorker* instance = context;
+
+    if(instance->remote_dev_feature.remote_features[0] & 0x20) {
+        BLE_LOG_I("[BLEWorkerReconfigure] rsi_ble_set_data_len");
+        sl_status_t status = rsi_ble_set_data_len(instance->remote_dev_address, TX_LEN, TX_TIME);
+        if(status != RSI_SUCCESS) {
+            BLE_LOG_W("Failed to set data length, error code : 0x%08lx", status);
+        } else
+            BLE_LOG_I("LEN set done");
+    } else {
+        ble_incoming_nwp_event_processor_spawn_event(
+            instance->event_proc, BleIncomingNwpEventTypeDataLengthChange, 0, NULL);
+    }
+    return true;
+}
