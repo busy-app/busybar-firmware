@@ -1,6 +1,7 @@
 #include "ble_incoming_nwp_event_processor.h"
 #include "ble_incoming_nwp_event.h"
 
+#include "_nwp_callbacks/ble_nwp_core_callbacks.h"
 #include "gap/ble_worker_gap_events.h"
 #include "gatt/ble_worker_gatt_events.h"
 #include "smp/ble_worker_smp_events.h"
@@ -12,7 +13,17 @@
 struct BleIncomingNwpEventProcessor {
     FuriEventLoop* event_loop;
     FuriMessageQueue* event_queue;
+    void* context;
 };
+
+typedef bool (*BleWorkerEventHandler)(size_t data_size, void* data, void* context);
+
+bool ble_worker_event_handler_dummy(size_t data_size, void* data, void* context) {
+    UNUSED(data_size);
+    UNUSED(data);
+    UNUSED(context);
+    furi_crash("Unknown event!");
+}
 
 static const BleWorkerEventHandler event_handlers[BleIncomingNwpEventTypeCount] = {
     [BleIncomingNwpEventTypeUnknown] = ble_worker_event_handler_dummy,

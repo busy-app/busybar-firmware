@@ -11,6 +11,8 @@
 
 #include <m-dict.h>
 
+#define BLE_WORKER_ATTR_HEADER_SIZE 3
+
 typedef struct {
     ///TODO: for now this is ok, for future maybe it is worth to make each characteristic
     /// know its own service.

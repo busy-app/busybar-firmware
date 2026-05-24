@@ -1,6 +1,6 @@
 #pragma once
 
-#include "event/ble_incoming_nwp_event_processor.h"
+#include "../ble_incoming_nwp_event_processor.h"
 
 #include "ble_config.h"
 #include <sl_status.h>

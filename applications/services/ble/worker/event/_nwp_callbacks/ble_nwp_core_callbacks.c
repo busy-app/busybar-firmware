@@ -1,6 +1,5 @@
 #include "ble_nwp_core_callbacks.h"
-#include "event/ble_event_processor.h"
-#include "../ble_common.h"
+#include "../../../ble_common.h"
 
 #define TAG "BleNWP"
 
