@@ -7,6 +7,11 @@
 
 #define MITM_REQ 1
 
+#ifdef RSI_BLE_SMP_IO_CAPABILITY
+#undef RSI_BLE_SMP_IO_CAPABILITY
+#define RSI_BLE_SMP_IO_CAPABILITY 0x03
+#endif
+
 bool ble_worker_event_handler_smp_response(size_t data_size, void* data, void* context) {
     UNUSED(data_size);
     UNUSED(data);

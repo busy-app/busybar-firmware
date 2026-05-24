@@ -57,11 +57,6 @@
 
 #define RSI_BLE_ATT_CONFIG_BITMAP (BLE_SECURITY_MODE)
 
-#ifdef RSI_BLE_SMP_IO_CAPABILITY
-#undef RSI_BLE_SMP_IO_CAPABILITY
-#define RSI_BLE_SMP_IO_CAPABILITY 0x03
-#endif
-
 //===========================================================================================
 ///TODO:Remove this in future
 static BleWorker* ble_worker_instance = NULL;
