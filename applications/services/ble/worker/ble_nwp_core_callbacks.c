@@ -19,8 +19,8 @@ static BleIncomingNwpEventProcessor* event_processor = NULL;
 static void rsi_ble_gap_on_adv_report_event(rsi_ble_event_adv_report_t* adv_report) {
     BLE_LOG_W("ble_worker_on_adv_report_event");
 
-    ble_worker_spawn_event(
-        ble_event_queue,
+    ble_incoming_nwp_event_processor_spawn_event(
+        event_processor,
         BleIncomingNwpEventTypeAdvReport,
         sizeof(rsi_ble_event_adv_report_t),
         adv_report);
@@ -38,8 +38,8 @@ static void rsi_ble_gap_on_adv_report_event(rsi_ble_event_adv_report_t* adv_repo
 static void
     rsi_ble_gap_on_disconnect_event(rsi_ble_event_disconnect_t* resp_disconnect, uint16_t reason) {
     UNUSED(reason);
-    ble_worker_spawn_event(
-        ble_event_queue,
+    ble_incoming_nwp_event_processor_spawn_event(
+        event_processor,
         BleIncomingNwpEventTypeDisconnected,
         sizeof(rsi_ble_event_disconnect_t),
         resp_disconnect);
@@ -62,8 +62,8 @@ static void rsi_ble_gap_event_le_ping_time_expired_event_dummy(
  */
 static void rsi_ble_gap_on_phy_update_complete_event(
     rsi_ble_event_phy_update_t* rsi_ble_event_phy_update_complete) {
-    ble_worker_spawn_event(
-        ble_event_queue,
+    ble_incoming_nwp_event_processor_spawn_event(
+        event_processor,
         BleIncomingNwpEventTypePhyUpdateComplete,
         sizeof(rsi_ble_event_phy_update_t),
         rsi_ble_event_phy_update_complete);
@@ -77,8 +77,8 @@ static void rsi_ble_gap_on_phy_update_complete_event(
  */
 static void rsi_ble_gap_on_data_length_update_event(
     rsi_ble_event_data_length_update_t* rsi_ble_data_length_update) {
-    ble_worker_spawn_event(
-        ble_event_queue,
+    ble_incoming_nwp_event_processor_spawn_event(
+        event_processor,
         BleIncomingNwpEventTypeDataLengthChange,
         sizeof(rsi_ble_event_data_length_update_t),
         rsi_ble_data_length_update);
@@ -94,8 +94,8 @@ static void rsi_ble_gap_on_data_length_update_event(
  */
 static void
     rsi_ble_gap_on_enhance_connect_event(rsi_ble_event_enhance_conn_status_t* resp_enh_conn) {
-    ble_worker_spawn_event(
-        ble_event_queue,
+    ble_incoming_nwp_event_processor_spawn_event(
+        event_processor,
         BleIncomingNwpEventTypeConnected,
         sizeof(rsi_ble_event_enhance_conn_status_t),
         resp_enh_conn);
@@ -106,8 +106,8 @@ static void rsi_ble_gap_on_conn_update_complete_event(
     uint16_t resp_status) {
     UNUSED(resp_status);
 
-    ble_worker_spawn_event(
-        ble_event_queue,
+    ble_incoming_nwp_event_processor_spawn_event(
+        event_processor,
         BleIncomingNwpEventTypeConnUpdate,
         sizeof(rsi_ble_event_conn_update_t),
         rsi_ble_event_conn_update_complete);
@@ -137,8 +137,8 @@ static void rsi_ble_gap_on_directed_adv_report_event_dummy(
  */
 void rsi_ble_gap_ext_on_remote_features_event(
     rsi_ble_event_remote_features_t* rsi_ble_event_remote_features) {
-    ble_worker_spawn_event(
-        ble_event_queue,
+    ble_incoming_nwp_event_processor_spawn_event(
+        event_processor,
         BleIncomingNwpEventTypeReceiveRemoteFeatures,
         sizeof(rsi_ble_event_remote_features_t),
         rsi_ble_event_remote_features);
@@ -148,8 +148,8 @@ static void rsi_ble_gap_ext_on_le_more_data_request_event(
     rsi_ble_event_le_dev_buf_ind_t* rsi_ble_more_data_evt) {
     UNUSED(rsi_ble_more_data_evt);
 
-    ble_worker_spawn_event(
-        ble_event_queue,
+    ble_incoming_nwp_event_processor_spawn_event(
+        event_processor,
         BleIncomingNwpEventTypeMoreDataRequest,
         sizeof(rsi_ble_event_le_dev_buf_ind_t),
         rsi_ble_more_data_evt);
@@ -226,8 +226,8 @@ static void rsi_ble_gatt_write_resp_event_dummy(uint16_t resp_status, uint16_t r
 static void rsi_ble_gatt_on_write_event(uint16_t event_id, rsi_ble_event_write_t* rsi_ble_write) {
     UNUSED(event_id);
 
-    ble_worker_spawn_event(
-        ble_event_queue,
+    ble_incoming_nwp_event_processor_spawn_event(
+        event_processor,
         BleIncomingNwpEventTypeWrite,
         sizeof(rsi_ble_event_write_t),
         rsi_ble_write);
@@ -257,8 +257,8 @@ static void
 }
 
 static void rsi_ble_gatt_on_mtu_event(rsi_ble_event_mtu_t* rsi_ble_mtu) {
-    ble_worker_spawn_event(
-        ble_event_queue, BleIncomingNwpEventTypeMtu, sizeof(rsi_ble_event_mtu_t), rsi_ble_mtu);
+    ble_incoming_nwp_event_processor_spawn_event(
+        event_processor, BleIncomingNwpEventTypeMtu, sizeof(rsi_ble_event_mtu_t), rsi_ble_mtu);
 }
 
 static void rsi_ble_gatt_on_error_resp_dummy(
@@ -340,8 +340,8 @@ static void rsi_ble_gatt_on_event_indicate_confirmation_event(
 
     if(event_status != 0) BLE_LOG_W("Indicate_CB: %d", event_status);
 
-    ble_worker_spawn_event(
-        ble_event_queue,
+    ble_incoming_nwp_event_processor_spawn_event(
+        event_processor,
         BleIncomingNwpEventTypeIndicateConfirm,
         sizeof(rsi_ble_set_att_resp_t),
         rsi_ble_event_set_att_rsp);
@@ -362,8 +362,8 @@ static void rsi_ble_smp_on_request_dummy(rsi_bt_event_smp_req_t* remote_dev_addr
 }
 
 static void rsi_ble_smp_on_response(rsi_bt_event_smp_resp_t* resp) {
-    ble_worker_spawn_event(
-        ble_event_queue, BleIncomingNwpEventTypeSmpResponse, sizeof(rsi_bt_event_smp_resp_t), resp);
+    ble_incoming_nwp_event_processor_spawn_event(
+        event_processor, BleIncomingNwpEventTypeSmpResponse, sizeof(rsi_bt_event_smp_resp_t), resp);
 }
 
 static void rsi_ble_smp_on_passkey_dummy(rsi_bt_event_smp_passkey_t* remote_dev_address) {
@@ -374,8 +374,8 @@ static void rsi_ble_smp_on_passkey_dummy(rsi_bt_event_smp_passkey_t* remote_dev_
 static void
     rsi_ble_smp_on_failed(uint16_t resp_status, rsi_bt_event_smp_failed_t* remote_dev_address) {
     UNUSED(resp_status);
-    ble_worker_spawn_event(
-        ble_event_queue,
+    ble_incoming_nwp_event_processor_spawn_event(
+        event_processor,
         BleIncomingNwpEventTypeSmpPairingFailed,
         sizeof(rsi_bt_event_smp_failed_t),
         remote_dev_address);
@@ -386,8 +386,8 @@ static void rsi_ble_smp_on_encrypt_started(
     rsi_bt_event_encryption_enabled_t* enc_enabled) {
     UNUSED(resp_status);
 
-    ble_worker_spawn_event(
-        ble_event_queue,
+    ble_incoming_nwp_event_processor_spawn_event(
+        event_processor,
         BleIncomingNwpEventTypeSmpEncryptStarted,
         sizeof(rsi_bt_event_encryption_enabled_t),
         enc_enabled);
@@ -408,8 +408,8 @@ static void
     rsi_ble_smp_on_le_ltk_req_event(rsi_bt_event_le_ltk_request_t* rsi_ble_event_le_ltk_request) {
     UNUSED(rsi_ble_event_le_ltk_request);
 
-    ble_worker_spawn_event(
-        ble_event_queue,
+    ble_incoming_nwp_event_processor_spawn_event(
+        event_processor,
         BleIncomingNwpEventTypeSmpLtkRequest,
         sizeof(rsi_bt_event_le_ltk_request_t),
         rsi_ble_event_le_ltk_request);
@@ -417,8 +417,8 @@ static void
 
 static void rsi_ble_smp_on_le_security_keys(
     rsi_bt_event_le_security_keys_t* rsi_ble_event_le_security_keys) {
-    ble_worker_spawn_event(
-        ble_event_queue,
+    ble_incoming_nwp_event_processor_spawn_event(
+        event_processor,
         BleIncomingNwpEventTypeSmpSecurityKeys,
         sizeof(rsi_bt_event_le_security_keys_t),
         rsi_ble_event_le_security_keys);
