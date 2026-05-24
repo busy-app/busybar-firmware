@@ -549,8 +549,9 @@ void ble_worker_stop() {
     if(ble_worker_instance) {
         FuriThreadState state = furi_thread_get_state(ble_worker_instance->thread);
         if(state == FuriThreadStateRunning) {
-            furi_thread_flags_set(
-                furi_thread_get_id(ble_worker_instance->thread), BleIncomingNwpEventTypeExit);
+            ble_incoming_nwp_event_processor_spawn_event(
+                ble_worker_instance->event_proc, BleIncomingNwpEventTypeExit, 0, NULL);
+
             furi_thread_join(ble_worker_instance->thread);
             BLE_LOG_I("BLE Stopped");
         }
