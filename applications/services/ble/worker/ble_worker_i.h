@@ -4,10 +4,20 @@
 
 #include "ble_security.h"
 #include "ble_advertise.h"
-#include "ble_nwp_core_callbacks.h"
+#include "event/ble_incoming_nwp_event_processor.h"
 #include "../service/ble_service_i.h"
 
 #include "../util/ble_canary.h"
+
+#include "ble_config.h"
+#include <sl_status.h>
+#include <sl_wifi.h>
+#include <sl_wifi_callback_framework.h>
+
+#include "rsi_ble.h"
+#include "rsi_ble_apis.h"
+#include "rsi_ble_common_config.h"
+#include "rsi_bt_common_apis.h"
 
 #include <m-dict.h>
 
@@ -32,7 +42,7 @@ typedef enum {
 struct BleWorker {
     FuriThread* thread;
     FuriEventLoop* event_loop;
-    BleEventQueuePtr event_queue;
+    BleIncomingNwpEventProcessor* event_proc;
 
     FuriSemaphore* receive_sem;
     FuriSemaphore* indication_sem;
@@ -81,3 +91,5 @@ bool ble_worker_start_advertising(
     bool advertise_to_paired_only,
     const rsi_bt_event_le_security_keys_t* key,
     const BleAdvertiseContext* advertise);
+
+bool ble_worker_stop_advertising();

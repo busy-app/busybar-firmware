@@ -2,11 +2,6 @@
 #include <furi.h>
 
 #include "ble_worker_util.h"
-// #include "../util/ble_canary.h"
-
-#include "event/gap/ble_worker_gap_events.h"
-#include "event/gatt/ble_worker_gatt_events.h"
-#include "event/smp/ble_worker_smp_events.h"
 
 #define TAG "BleWorker"
 
@@ -65,10 +60,8 @@ static BleWorker* ble_worker_instance = NULL;
 //===========================================================================================
 static void retry_phy_timer_callback(void* ctx) {
     BleWorker* instance = ctx;
-    ble_worker_spawn_event(
-        instance->event_queue, BleIncomingNwpEventTypeDataLengthChange, 0, NULL);
-    // BleWorker* instance = ctx;
-    // furi_thread_flags_set(furi_thread_get_id(instance->thread), BLEWorkerEvtDataLengthChange);
+    ble_incoming_nwp_event_processor_spawn_event(
+        instance->event_proc, BleIncomingNwpEventTypeDataLengthChange, 0, NULL);
 }
 //===========================================================================================
 bool ble_worker_start_advertising(
@@ -117,7 +110,7 @@ bool ble_worker_start_advertising(
     return status == RSI_SUCCESS;
 }
 
-static bool ble_worker_stop_advertising() {
+bool ble_worker_stop_advertising() {
     sl_status_t status;
     ///TODO: think of more reliable way of handling stop command when we are connected
     if(ble_worker_instance->connected) {
@@ -139,103 +132,13 @@ static bool ble_worker_stop_advertising() {
     return status == RSI_SUCCESS;
 }
 
-static bool ble_worker_event_handler_dummy(size_t data_size, void* data, void* context) {
-    BLE_LOG_W("ble_worker_event_handler_dummy");
-    UNUSED(data_size);
-    UNUSED(data);
-    UNUSED(context);
-    return false;
-}
-
-static bool ble_worker_event_handler_exit(size_t data_size, void* data, void* context) {
-    BLE_LOG_I("ble_worker_event_handler_exit");
-    UNUSED(data_size);
-    UNUSED(data);
-    BleWorker* instance = context;
-
-    instance->state = ble_worker_stop_advertising() ? BleWorkerStateIdle : BleWorkerStateError;
-    furi_event_loop_stop(instance->event_loop);
-    return true;
-}
-
-static bool ble_worker_event_handler_adjust_connection_request(
-    size_t data_size,
-    void* data,
-    void* context) {
-    UNUSED(data_size);
-    UNUSED(data);
-    BLE_LOG_I("ble_worker_event_handler_adjust_connection_request");
-    BleWorker* instance = context;
-
-    if(instance->remote_dev_feature.remote_features[0] & 0x20) {
-        BLE_LOG_I("[BLEWorkerReconfigure] rsi_ble_set_data_len");
-        sl_status_t status = rsi_ble_set_data_len(instance->remote_dev_address, TX_LEN, TX_TIME);
-        if(status != RSI_SUCCESS) {
-            BLE_LOG_W("Failed to set data length, error code : 0x%08lx", status);
-        } else
-            BLE_LOG_I("LEN set done");
-    } else {
-        ble_worker_spawn_event(
-            instance->event_queue, BleIncomingNwpEventTypeDataLengthChange, 0, NULL);
-    }
-    return true;
-}
-
-static const BleWorkerEventHandler event_handlers[BleIncomingNwpEventTypeCount] = {
-    [BleIncomingNwpEventTypeUnknown] = ble_worker_event_handler_dummy,
-    [BleIncomingNwpEventTypeExit] = ble_worker_event_handler_exit,
-    [BleIncomingNwpEventTypeAdvReport] = ble_worker_event_handler_advertise_report,
-    [BleIncomingNwpEventTypeConnected] = ble_worker_event_handler_connected,
-    [BleIncomingNwpEventTypeDisconnected] = ble_worker_event_handler_disconnected,
-    [BleIncomingNwpEventTypePhyUpdateComplete] = ble_worker_event_handler_phy_update_complete,
-    [BleIncomingNwpEventTypeConnUpdate] = ble_worker_event_handler_connection_update,
-    [BleIncomingNwpEventTypeDataLengthChange] = ble_worker_event_handler_length_change,
-
-    [BleIncomingNwpEventTypeReceiveRemoteFeatures] =
-        ble_worker_event_handler_receive_remote_features,
-    [BleIncomingNwpEventTypeMoreDataRequest] = ble_worker_event_handler_more_data_request,
-
-    [BleIncomingNwpEventTypeWrite] = ble_worker_event_handler_write_event,
-    [BleIncomingNwpEventTypeDataTransmit] = ble_worker_event_handler_dummy,
-    [BleIncomingNwpEventTypeMtu] = ble_worker_event_handler_mtu,
-    [BleIncomingNwpEventTypeIndicateConfirm] = ble_worker_event_handler_indicate_confirm,
-
-    [BleIncomingNwpEventTypeSmpResponse] = ble_worker_event_handler_smp_response,
-    [BleIncomingNwpEventTypeSmpEncryptStarted] = ble_worker_event_handler_smp_encrypt_started,
-    [BleIncomingNwpEventTypeSmpLtkRequest] = ble_worker_event_handler_smp_ltk_request,
-    [BleIncomingNwpEventTypeSmpSecurityKeys] = ble_worker_event_handler_smp_security_keys,
-    [BleIncomingNwpEventTypeSmpPairingFailed] = ble_worker_event_handler_smp_pairing_failed,
-    [BleIncomingNwpEventTypeAdjustConnectionRequest] =
-        ble_worker_event_handler_adjust_connection_request,
-};
-
-static void ble_worker_process_event_queue(FuriEventLoopObject* object, void* context) {
-    furi_assert(context);
-    ///TODO: think of moving this to ble_worker_event module
-    BleWorker* instance = context;
-    furi_assert(instance->event_queue == object);
-
-    ble_worker_process_event(instance->event_queue, event_handlers, context);
-}
-
 static int32_t ble_worker_thread_callback(void* context) {
     BleWorker* instance = context;
     BLE_LOG_I("Worker Thread Start");
 
     instance->event_loop = furi_event_loop_alloc();
 
-    furi_event_loop_subscribe_message_queue(
-        instance->event_loop,
-        instance->event_queue,
-        FuriEventLoopEventIn,
-        ble_worker_process_event_queue,
-        instance);
-
-    furi_event_loop_run(instance->event_loop);
-
-    ble_worker_flush_events(instance->event_queue);
-
-    furi_event_loop_unsubscribe(instance->event_loop, instance->event_queue);
+    ble_incoming_nwp_event_processor_run(instance->event_proc, instance->event_loop);
 
     furi_event_loop_free(instance->event_loop);
 
@@ -397,8 +300,6 @@ BleWorker* ble_worker_init(BleConnectionStateChanged connect_callback, void* ctx
     instance->state = BleWorkerStateIdle;
     instance->thread =
         furi_thread_alloc_ex("BleWorker", 3072U, ble_worker_thread_callback, instance);
-    instance->event_queue = furi_message_queue_alloc(20, sizeof(BleWorkerEvent*));
-
     // instance->first_tx_pack_canary = ble_debug_canary_alloc(BleCanaryTypeHitOnce);
     // ble_debug_canary_set_hit_callback(
     //     instance->first_tx_pack_canary, ble_canary_first_pack_callback);
@@ -434,7 +335,7 @@ BleWorker* ble_worker_init(BleConnectionStateChanged connect_callback, void* ctx
         BLE_LOG_I("Local device address %s", local_dev_addr);
     }
 
-    ble_nwp_core_config_callbacks(instance->event_queue);
+    instance->event_proc = ble_incoming_nwp_event_processor_alloc(instance);
     //----------------------------------------------------------------------------------------------------------------
     //! Set local name
     status = rsi_bt_set_local_name((const uint8_t*)BLE_DEFAULT_LOCAL_NAME);
