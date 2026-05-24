@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ble_worker_event.h"
+#include "event/ble_worker_event.h"
 
 #include "ble_config.h"
 #include <sl_status.h>

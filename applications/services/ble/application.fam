@@ -13,6 +13,7 @@ App(
         "ble_system_command_917.c",
         "ble_command_engine.c",
         "worker/*.c",
+        "worker/event/*.c",
         "service/*.c",
         "service/target/ble_service_target_917.c",
         "service/device_info/*.c",
