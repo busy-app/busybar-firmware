@@ -1,12 +1,12 @@
-#include "ble_worker_event.h"
+#include "ble_incoming_nwp_event_processor.h"
 #include "../../ble_common.h"
 
 #define TAG "BleEvent"
 
 static BleWorkerEvent*
-    ble_worker_event_alloc(BleWorkerEventType type, size_t data_size, void* data) {
-    furi_assert(type > BleWorkerEventTypeUnknown);
-    furi_assert(type < BleWorkerEventTypeCount);
+    ble_worker_event_alloc(BleIncomingNwpEventType type, size_t data_size, void* data) {
+    furi_assert(type > BleIncomingNwpEventTypeUnknown);
+    furi_assert(type < BleIncomingNwpEventTypeCount);
 
     BleWorkerEvent* instance = malloc(sizeof(BleWorkerEvent));
     instance->type = type;
@@ -31,7 +31,7 @@ static void ble_worker_event_free(BleWorkerEvent* instance) {
 
 void ble_worker_spawn_event(
     BleEventQueuePtr queue,
-    BleWorkerEventType type,
+    BleIncomingNwpEventType type,
     size_t data_size,
     void* data) {
     furi_assert(queue);
@@ -49,8 +49,8 @@ void ble_worker_process_event(
 
     BleWorkerEvent* event = NULL;
     while(furi_message_queue_get(queue, &event, 0) == FuriStatusOk) {
-        furi_assert(event->type > BleWorkerEventTypeUnknown);
-        furi_assert(event->type < BleWorkerEventTypeCount);
+        furi_assert(event->type > BleIncomingNwpEventTypeUnknown);
+        furi_assert(event->type < BleIncomingNwpEventTypeCount);
 
         BleWorkerEventHandler handler = event_handlers[event->type];
         if(!handler(event->data_size, event->data, context)) {
