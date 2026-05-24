@@ -6,7 +6,7 @@
 
 #define BLE_LOG_NWP_EVENT_NOT_IMPLEMENTED() BLE_LOG_W("%s - not implemented!", __func__)
 
-static BleEventQueuePtr ble_event_queue = NULL;
+static BleIncomingNwpEventProcessor* event_processor = NULL;
 
 /**
  * @fn         rsi_ble_gap_on_adv_report_event
@@ -435,10 +435,10 @@ static void rsi_ble_smp_on_sc_method_dummy(rsi_bt_event_sc_method_t* scmethod) {
     BLE_LOG_NWP_EVENT_NOT_IMPLEMENTED();
 }
 
-void ble_nwp_core_config_callbacks(BleEventQueuePtr queue) {
-    furi_assert(queue);
+void ble_nwp_core_config_callbacks(BleIncomingNwpEventProcessor* instance) {
+    furi_assert(instance);
 
-    ble_event_queue = queue;
+    event_processor = instance;
 
     rsi_ble_gap_register_callbacks(
         rsi_ble_gap_on_adv_report_event,
