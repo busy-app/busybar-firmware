@@ -2,7 +2,6 @@
 
 #include "rsi_ble.h"
 #include "rsi_ble_apis.h"
-#include "rsi_ble_common_config.h"
 #include "rsi_bt_common_apis.h"
 #include <furi.h>
 
