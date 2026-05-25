@@ -57,6 +57,15 @@
 static BleWorker* ble_worker_instance = NULL;
 //===========================================================================================
 
+int32_t ble_worker_write_response(uint8_t* dev_addr, uint8_t type) {
+#ifdef BLE_WORKER_WRITE_RESPONSE_BY_NWP
+    UNUSED(dev_addr);
+    UNUSED(type);
+    return RSI_SUCCESS;
+#else
+    return rsi_ble_gatt_write_response(addr, resp);
+#endif
+}
 //===========================================================================================
 static void retry_phy_timer_callback(void* ctx) {
     BleWorker* instance = ctx;
@@ -570,7 +579,7 @@ void ble_worker_receive_confirm(uint16_t handle, uint8_t cccd_value) {
     if(ble_worker_instance->connected && BLE_CCCD_INDICATION_ENABLED(cccd_value)) {
         status = rsi_ble_indicate_confirm(ble_worker_instance->remote_dev_address);
     } else {
-        status = rsi_ble_gatt_write_response(ble_worker_instance->remote_dev_address, 0);
+        status = ble_worker_write_response(ble_worker_instance->remote_dev_address, 0);
     }
 
     furi_assert(handle == ble_worker_instance->rx_pending_handle);

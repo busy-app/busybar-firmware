@@ -75,7 +75,7 @@ bool ble_worker_event_handler_write_event(size_t data_size, void* data, void* co
                         uint8_t ccd_val = *((uint8_t*)data);
                         ble_characteristic_set_cccd_value(ch, ccd_val);
                         sl_status_t status =
-                            rsi_ble_gatt_write_response(instance->remote_dev_address, 0);
+                            ble_worker_write_response(instance->remote_dev_address, 0);
 
                         if(status != RSI_SUCCESS) BLE_LOG_W("Response fail");
                         if(handle == BLE_NORDIC_UART_TX_HANDLE) BLE_LOG_W("Subscribed!");
@@ -96,7 +96,7 @@ bool ble_worker_event_handler_write_event(size_t data_size, void* data, void* co
             }
         } else {
             BLE_LOG_W("Not found: %04X", handle);
-            sl_status_t status = rsi_ble_gatt_write_response(instance->remote_dev_address, 0);
+            sl_status_t status = ble_worker_write_response(instance->remote_dev_address, 0);
             if(status != RSI_SUCCESS) BLE_LOG_W("Response fail");
         }
     } else if(app_ble_write_event->pkt_type == RSI_BLE_NOTIFICATION_EVENT) {
