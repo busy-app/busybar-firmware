@@ -94,6 +94,15 @@ bool ble_forget(Ble* ble) {
     return result;
 }
 
+bool ble_disconnect(Ble* ble) {
+    furi_assert(ble);
+
+    bool result = false;
+    ble_send_message(ble, BleCommandDisconnect, NULL, 0, &result);
+
+    return result;
+}
+
 FuriPubSub* ble_get_pubsub(Ble* ble) {
     furi_assert(ble);
     return ble->on_status_change;

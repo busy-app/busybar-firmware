@@ -11,6 +11,7 @@
 
 #if !defined(BSB_MCU_SI917)
 
+#include "http/ble_http_repeater.h"
 #include "streaming/ble_streaming.h"
 #include <api_lock.h>
 
@@ -50,6 +51,7 @@ struct Ble {
     BleServiceObject* services[BleServiceIndexCount];
     uint8_t remote_device_address[BLE_REMOTE_DEVICE_ADDRESS_STRING_SIZE];
 #if !defined(BSB_MCU_SI917)
+    BleHttpRepeater* http;
     BleStreaming* streaming;
     FuriPubSub* on_status_change;
     FuriApiLock current_command_api_lock;

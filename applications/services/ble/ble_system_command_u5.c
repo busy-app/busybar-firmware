@@ -187,7 +187,6 @@ static bool ble_command_enable_response(BleIntercomFrameGeneric* frame, void* co
     }
 
     ble_command_unblock_with_result(instance, frame->header.result);
-    ble_http_repeater_start(instance);
 
     BleState status = {
         .status = instance->status,
@@ -224,7 +223,6 @@ static bool ble_command_disable_response(BleIntercomFrameGeneric* frame, void* c
     ble_save_enabled_state(false);
 
     ble_command_unblock_with_result(instance, frame->header.result);
-    ble_http_repeater_stop();
 
     BleState status = {
         .status = instance->status,
@@ -318,6 +316,7 @@ static bool ble_command_set_status_request(BleIntercomFrameGeneric* frame, void*
     furi_pubsub_publish(instance->on_status_change, (void*)response);
 
     ble_streaming_update(instance->streaming, instance->status);
+    ble_http_repeater_update(instance->http, instance->status);
 
     return result;
 }
@@ -330,6 +329,20 @@ static bool ble_command_forget_pairing_request(BleIntercomFrameGeneric* frame, v
 
 static bool ble_command_forget_pairing_response(BleIntercomFrameGeneric* frame, void* context) {
     BLE_LOG_D("BleCommandForgetPairing response");
+    Ble* instance = context;
+
+    ble_command_unblock_with_result(instance, frame->header.result);
+    return true;
+}
+
+static bool ble_command_disconnect_request(BleIntercomFrameGeneric* frame, void* context) {
+    BLE_LOG_D("BleCommandDisconnect request");
+    frame->header.command = BleCommandDisconnect;
+    return ble_command_request_process(frame, context);
+}
+
+static bool ble_command_disconnect_response(BleIntercomFrameGeneric* frame, void* context) {
+    BLE_LOG_D("BleCommandDisconnect response");
     Ble* instance = context;
 
     ble_command_unblock_with_result(instance, frame->header.result);
@@ -380,6 +393,11 @@ const BleCommandItem ble_commands[BleCommandCount] = {
         {
             .request = ble_command_set_device_name_request,
             .response = ble_command_set_device_name_response,
+        },
+    [BleCommandDisconnect] =
+        {
+            .request = ble_command_disconnect_request,
+            .response = ble_command_disconnect_response,
         },
 };
 

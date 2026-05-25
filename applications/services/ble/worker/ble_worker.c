@@ -1409,6 +1409,19 @@ bool ble_worker_pairing_exists() {
     return ble_security_pairing_present(ble_worker_instance->security_data);
 }
 
+bool ble_worker_disconnect() {
+    bool result = false;
+    if(ble_worker_instance->connected) {
+        sl_status_t status = rsi_ble_disconnect((int8_t*)ble_worker_instance->remote_dev_address);
+        if(status == RSI_SUCCESS) {
+            BLE_LOG_I("Disconnected");
+            result = true;
+        } else
+            BLE_LOG_W("Failed to disconnect, error code : 0x%08lx", status);
+    }
+    return result;
+}
+
 void ble_worker_set_name(const char* new_name) {
     furi_assert(new_name);
 

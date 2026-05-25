@@ -18,6 +18,8 @@ void ble_worker_start();
 
 void ble_worker_stop();
 
+bool ble_worker_disconnect();
+
 bool ble_worker_forget_pairing();
 
 bool ble_worker_pairing_exists();

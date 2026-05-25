@@ -197,6 +197,20 @@ static bool ble_command_set_device_name_response(BleIntercomFrameGeneric* frame,
     return true;
 }
 
+static bool ble_command_disconnect_request(BleIntercomFrameGeneric* frame, void* context) {
+    BLE_LOG_D("BleCommandDisconnect request");
+    bool result = ble_worker_disconnect();
+    frame->header.result = result;
+    return ble_command_response_process(frame, context);
+}
+
+static bool ble_command_disconnect_response(BleIntercomFrameGeneric* frame, void* context) {
+    UNUSED(frame);
+    UNUSED(context);
+    BLE_LOG_D("BleCommandDisconnect response");
+    return true;
+}
+
 const BleCommandItem ble_commands[BleCommandCount] = {
     [BleCommandUnknown] =
         {
@@ -237,6 +251,11 @@ const BleCommandItem ble_commands[BleCommandCount] = {
         {
             .request = ble_command_set_device_name_request,
             .response = ble_command_set_device_name_response,
+        },
+    [BleCommandDisconnect] =
+        {
+            .request = ble_command_disconnect_request,
+            .response = ble_command_disconnect_response,
         },
 };
 
