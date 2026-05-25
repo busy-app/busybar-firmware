@@ -115,7 +115,6 @@ static BLETiBeaconApp* ble_ibeacon_app_instance = NULL;
 
 /*==============================================*/
 /**
- * @fn         rsi_ble_simple_peripheral_on_conn_status_event
  * @brief      invoked when connection complete event is received
  * @param[out] resp_conn, connected remote device information
  * @return     none.
@@ -133,7 +132,6 @@ void rsi_ble_simple_peripheral_on_conn_status_event(rsi_ble_event_conn_status_t*
 
 /*==============================================*/
 /**
- * @fn         rsi_ble_simple_peripheral_on_disconnect_event
  * @brief      invoked when disconnection event is received
  * @param[in]  resp_disconnect, disconnected remote device information
  * @param[in]  reason, reason for disconnection.
@@ -156,7 +154,6 @@ void rsi_ble_simple_peripheral_on_disconnect_event(
 
 /*==============================================*/
 /**
- * @fn         rsi_ble_simple_peripheral_on_enhance_conn_status_event
  * @brief      invoked when enhanced connection complete event is received
  * @param[out] resp_conn, connected remote device information
  * @return     none.
@@ -178,7 +175,6 @@ void rsi_ble_simple_peripheral_on_enhance_conn_status_event(
 
 /*==============================================*/
 /**
- * @fn         ble_ibeacon
  * @brief      Tests the BLE GAP peripheral role.
  * @param[in]  none
   * @return    none.
