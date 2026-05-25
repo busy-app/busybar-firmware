@@ -242,9 +242,15 @@ class TestWifiAPI:
     ):
         original_access = settings_api.get_access()
 
-        with allure.step("Connect to test network"):
-            ensure_disconnected(wifi_api)
-            connect_to_test_network_or_fail(wifi_api)
+        with allure.step("Use default test network connection"):
+            status = wifi_api.get_status()
+            connected_to_test_network = (
+                status.state == "connected"
+                and (not TEST_WIFI_SSID or status.ssid in (None, TEST_WIFI_SSID))
+            )
+            if not connected_to_test_network:
+                ensure_disconnected(wifi_api)
+                connect_to_test_network_or_fail(wifi_api)
             wifi_base_url = wifi_external_base_url_or_fail(wifi_api, web_base_url)
 
         try:
@@ -284,7 +290,7 @@ class TestWifiAPI:
                 assert status.json()["state"] == "connected"
         finally:
             if original_access.mode == "key":
-                settings_api.set_access("enabled")
+                settings_api.set_access("key", _WIFI_API_ACCESS_KEY)
             else:
                 settings_api.set_access(original_access.mode)
 

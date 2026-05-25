@@ -52,12 +52,12 @@ def _list_protos(proto_dir: Path) -> List[Path]:
     return sorted(proto_dir.rglob("*.proto"))
 
 
-def _hash_protos(proto_files: List[Path]) -> str:
+def _hash_protos(proto_dir: Path, proto_files: List[Path]) -> str:
     h = hashlib.sha256()
     for p in proto_files:
         st = p.stat()
         # rel path + size + mtime_ns
-        h.update(str(p.relative_to(p.parents[len(p.parents) - 1])).encode())
+        h.update(str(p.relative_to(proto_dir)).encode())
         h.update(b"|")
         h.update(str(st.st_size).encode())
         h.update(b"|")
@@ -122,7 +122,7 @@ def _generate_if_needed() -> Path:
     if not proto_files:
         raise RuntimeError(f"No .proto files under {proto_dir}")
 
-    current_hash = _hash_protos(proto_files)
+    current_hash = _hash_protos(proto_dir, proto_files)
     if _STAMP.exists() and _STAMP.read_text().strip() == current_hash and _GENERATED.exists():
         # Stamp matches; make sure subdir __init__.py shims are there in case
         # someone hand-cleaned them.

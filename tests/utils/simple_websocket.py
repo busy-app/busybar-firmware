@@ -4,6 +4,7 @@ import base64
 import hashlib
 import os
 import socket
+import ssl
 import struct
 from dataclasses import dataclass
 from urllib.parse import urlparse, urlunparse
@@ -24,25 +25,39 @@ class WebSocketFrame:
     payload: bytes
 
 
-def _target_from_url(url: str) -> tuple[str, int, str]:
+def _target_from_url(url: str) -> tuple[str, int, str, str]:
     parsed = urlparse(url)
-    if parsed.scheme not in {"ws", "http"}:
+    if parsed.scheme not in {"ws", "wss", "http", "https"}:
         raise ValueError(f"Unsupported WebSocket URL scheme: {parsed.scheme}")
 
     host = parsed.hostname
     if not host:
         raise ValueError(f"Missing host in WebSocket URL: {url}")
 
-    port = parsed.port or (443 if parsed.scheme == "wss" else 80)
+    scheme = {"http": "ws", "https": "wss"}.get(parsed.scheme, parsed.scheme)
+    port = parsed.port or (443 if scheme == "wss" else 80)
     path = parsed.path or "/"
     if parsed.query:
         path = f"{path}?{parsed.query}"
-    return host, port, path
+    return host, port, path, scheme
 
 
 def websocket_url(web_base_url: str, path: str) -> str:
     parsed = urlparse(web_base_url)
-    return urlunparse(("ws", parsed.netloc, path, "", "", ""))
+    scheme = "wss" if parsed.scheme in {"https", "wss"} else "ws"
+    return urlunparse((scheme, parsed.netloc, path, "", "", ""))
+
+
+def _create_connection(host: str, port: int, scheme: str, timeout: float) -> socket.socket:
+    sock = socket.create_connection((host, port), timeout=timeout)
+    sock.settimeout(timeout)
+    if scheme != "wss":
+        return sock
+    try:
+        return ssl.create_default_context().wrap_socket(sock, server_hostname=host)
+    except Exception:
+        sock.close()
+        raise
 
 
 def _read_headers(sock: socket.socket) -> bytes:
@@ -74,7 +89,7 @@ def _parse_handshake_response(raw: bytes) -> WebSocketUpgradeResult:
 
 
 def websocket_upgrade(url: str, timeout: float = 5.0) -> WebSocketUpgradeResult:
-    host, port, path = _target_from_url(url)
+    host, port, path, scheme = _target_from_url(url)
     key = base64.b64encode(os.urandom(16)).decode("ascii")
     request = (
         f"GET {path} HTTP/1.1\r\n"
@@ -86,8 +101,7 @@ def websocket_upgrade(url: str, timeout: float = 5.0) -> WebSocketUpgradeResult:
         "\r\n"
     ).encode("ascii")
 
-    with socket.create_connection((host, port), timeout=timeout) as sock:
-        sock.settimeout(timeout)
+    with _create_connection(host, port, scheme, timeout) as sock:
         sock.sendall(request)
         return _parse_handshake_response(_read_headers(sock))
 
@@ -106,7 +120,7 @@ class SimpleWebSocket:
         self.close()
 
     def connect(self) -> None:
-        host, port, path = _target_from_url(self.url)
+        host, port, path, scheme = _target_from_url(self.url)
         key = base64.b64encode(os.urandom(16)).decode("ascii")
         request = (
             f"GET {path} HTTP/1.1\r\n"
@@ -118,8 +132,7 @@ class SimpleWebSocket:
             "\r\n"
         ).encode("ascii")
 
-        sock = socket.create_connection((host, port), timeout=self.timeout)
-        sock.settimeout(self.timeout)
+        sock = _create_connection(host, port, scheme, self.timeout)
         try:
             sock.sendall(request)
             result = _parse_handshake_response(_read_headers(sock))

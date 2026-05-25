@@ -32,7 +32,6 @@ on:
         default: smoke
         options:
           - smoke
-          - regression
           - full
           - custom
       commit_sha:
@@ -200,9 +199,6 @@ jobs:
             case "$TEST_SCOPE" in
               smoke|"")
                 MARKER_FILTER="not regression"
-                ;;
-              regression)
-                MARKER_FILTER="regression"
                 ;;
               full)
                 MARKER_FILTER=""

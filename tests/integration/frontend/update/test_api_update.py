@@ -22,18 +22,20 @@ def autoupdate_guard(update_api: UpdateAPI):
         "interval_start": original.interval_start,
         "interval_end": original.interval_end,
     }
-    session = requests.Session()
-    session.headers.update({"Accept": "application/json"})
-    deadline = time.monotonic() + 10
-    while time.monotonic() < deadline:
-        try:
-            response = session.post(
-                f"{update_api.base_url}/api/update/autoupdate", json=payload, timeout=5
-            )
-            if response.status_code == 200:
-                return
-        except requests.RequestException:
-            time.sleep(0.5)
+    with requests.Session() as session:
+        session.headers.update({"Accept": "application/json"})
+        deadline = time.monotonic() + 10
+        while time.monotonic() < deadline:
+            try:
+                response = session.post(
+                    f"{update_api.base_url}/api/update/autoupdate",
+                    json=payload,
+                    timeout=5,
+                )
+                if response.status_code == 200:
+                    return
+            except requests.RequestException:
+                time.sleep(0.5)
 
 
 def attach_status_json(data: dict, name: str):
