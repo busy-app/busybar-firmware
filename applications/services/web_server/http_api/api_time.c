@@ -21,7 +21,10 @@ static bool api_time_get_timestamp_callback(
     UNUSED(ctx);
 
     if(!IS_HTTP_ENDPOINT(path)) return false;
-    if(method != HttpMethodGet) {
+    if(method == HttpMethodOptions) {
+        http_reply_cors_preflight(conn, HttpMethodGet);
+        return true;
+    } else if(method != HttpMethodGet) {
         http_reply_405_method_not_allowed(conn, HttpMethodGet);
         return true;
     }

@@ -206,12 +206,14 @@ static bool http_api_account_unlink(
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx) {
-    UNUSED(method);
     UNUSED(msg);
     UNUSED(ctx);
 
     if(!IS_HTTP_ENDPOINT(path)) return false;
-    if(method != HttpMethodDelete) {
+    if(method == HttpMethodOptions) {
+        http_reply_cors_preflight(conn, HttpMethodDelete);
+        return true;
+    } else if(method != HttpMethodDelete) {
         http_reply_405_method_not_allowed(conn, HttpMethodDelete);
         return true;
     }

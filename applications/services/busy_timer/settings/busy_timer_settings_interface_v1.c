@@ -116,12 +116,10 @@ static const time_t busy_timer_settings_v1_timestamp_default = 0;
 static bool busy_timer_settings_v1_timer_config_serialize_cb(
     const SettingProviderSetting* setting,
     const void* value,
-    FuriString* string) {
+    cJSON* json) {
     UNUSED(setting);
 
     const BusyTimerConfig* timer_settings = value;
-
-    cJSON* json = cJSON_CreateObject();
 
     if(timer_settings->mode == BusyTimerModeInfinite) {
         busy_timer_common_serialize_infinite_config(json);
@@ -131,26 +129,16 @@ static bool busy_timer_settings_v1_timer_config_serialize_cb(
         busy_timer_common_serialize_interval_config(json, &timer_settings->interval);
     }
 
-    char* json_text = cJSON_PrintUnformatted(json);
-    furi_check(json_text);
-
-    furi_string_set(string, json_text);
-    free(json_text);
-
-    cJSON_Delete(json);
-
     return true;
 }
 
 static bool busy_timer_settings_v1_timer_config_deserialize_cb(
     const SettingProviderSetting* setting,
-    const char* string,
+    const cJSON* json,
     void* value) {
     UNUSED(setting);
 
     bool success = false;
-
-    cJSON* json = cJSON_Parse(string);
 
     do {
         if(!cJSON_IsObject(json)) {
@@ -176,8 +164,6 @@ static bool busy_timer_settings_v1_timer_config_deserialize_cb(
 
         success = true;
     } while(false);
-
-    cJSON_Delete(json);
 
     return success;
 }
@@ -291,14 +277,14 @@ static const SettingProviderSetting busy_timer_settings_v1_profile[] = {
         {
             .name = "timer_config",
             .interface =
-                &(const SettingProviderCustomInterface){
+                &(const SettingProviderRawInterface){
                     .default_value = &busy_timer_settings_v1_timer_config_default,
                     .serialize_callback = busy_timer_settings_v1_timer_config_serialize_cb,
                     .deserialize_callback = busy_timer_settings_v1_timer_config_deserialize_cb,
                     .default_value_size = sizeof(busy_timer_settings_v1_timer_config_default),
                 },
             .field_offset = offsetof(BusyTimerProfile, timer_config),
-            .type = SettingProviderSettingTypeCustom,
+            .type = SettingProviderSettingTypeRaw,
         },
     [BusyTimerSettingsV1ProfileIdxMetadata] =
         {
