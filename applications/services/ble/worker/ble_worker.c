@@ -41,7 +41,7 @@
 #define BLE_SECURITY_MODE SEC_MODE_1_LEVEL_4
 #endif
 
-#define RSI_BLE_ATT_CONFIG_BITMAP (BLE_SECURITY_MODE)
+#define RSI_BLE_ATT_CONFIG_BITMAP (BLE_SECURITY_MODE | ATT_REC_MAINTAIN_IN_HOST)
 
 //===========================================================================================
 ///TODO:Remove this in future
