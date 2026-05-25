@@ -105,8 +105,6 @@ bool ble_worker_event_handler_disconnected(size_t data_size, void* data, void* c
     instance->on_connection_changed_cb(
         instance->on_connection_changed_ctx, instance->connected, instance->str_remote_address);
 
-    // ble_debug_canary_reset(instance->first_tx_pack_canary);
-    ble_debug_canary_reset(instance->first_tx_method_canary);
     ble_debug_canary_reset(instance->indicate_error_canary);
 
     return true;

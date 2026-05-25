@@ -9,15 +9,6 @@
 // Uncomment macro below in order to force ble advertising with public address only
 // #define BLE_DEBUG_ADVERTISE_FORCE_PUBLIC
 
-// #define BLE_WORKER_LOG_TX
-
-// #ifdef BLE_WORKER_LOG_TX
-// #define BLE_LOG_PAYLOAD(handle, index, data, send_size)
-//     (ble_worker_util_log_payload(handle, index, data, send_size))
-// #else
-// #define BLE_LOG_PAYLOAD(handle, index, data, send_size)
-// #endif
-
 #define BLE_DEFAULT_LOCAL_NAME "BUSY Bar"
 
 #define BLE_WORKER_TX_TIMEOUT_MS           (1000)
@@ -288,19 +279,6 @@ static void ble_prepare_uuid(const Char_UUID_t* temp, const uint8_t size, uuid_t
         ble_worker_prepare_128bit_uuid(temp->Char_UUID_128, uuid);
 }
 
-// typedef struct {
-//     uint8_t chunk_num;
-//     const uint8_t* data;
-//     uint16_t handle;
-//     uint16_t data_size;
-//     uint16_t cccd_value;
-// } BleCanaryFirstPackCtx;
-
-// static void ble_canary_first_pack_callback(void* ctx) {
-//     const BleCanaryFirstPackCtx* c = ctx;
-//     BLE_LOG_PAYLOAD(c->handle, c->chunk_num, c->data, c->data_size);
-// }
-
 BleWorker* ble_worker_init(BleConnectionStateChanged connect_callback, void* ctx) {
     furi_assert(connect_callback);
     furi_assert(ctx);
@@ -309,10 +287,7 @@ BleWorker* ble_worker_init(BleConnectionStateChanged connect_callback, void* ctx
     instance->state = BleWorkerStateIdle;
     instance->thread =
         furi_thread_alloc_ex("BleWorker", 3072U, ble_worker_thread_callback, instance);
-    // instance->first_tx_pack_canary = ble_debug_canary_alloc(BleCanaryTypeHitOnce);
-    // ble_debug_canary_set_hit_callback(
-    //     instance->first_tx_pack_canary, ble_canary_first_pack_callback);
-    instance->first_tx_method_canary = ble_debug_canary_alloc(BleCanaryTypeHitOnce);
+
     instance->indicate_error_canary = ble_debug_canary_alloc(BleCanaryTypeHitOnce);
 
     instance->on_connection_changed_cb = connect_callback;
@@ -535,15 +510,9 @@ static bool ble_worker_send_chunk(
 
     bool result = false;
     if(ble_worker_instance->connected && BLE_CCCD_INDICATION_ENABLED(cccd_value)) {
-        ble_debug_canary_test_log(
-            ble_worker_instance->first_tx_method_canary, TAG, "INDICATE: %04X", handle);
-
         result = ble_worker_indicate_chunk(
             ble_worker_instance->remote_dev_address, handle, data_size, data);
     } else {
-        ble_debug_canary_test_log(
-            ble_worker_instance->first_tx_method_canary, TAG, "SET_VALUE: %04X", handle);
-
         result = ble_worker_set_chunk(handle, data_size, data);
     }
     return result;
@@ -552,15 +521,10 @@ static bool ble_worker_send_chunk(
 void ble_worker_send(uint16_t handle, uint16_t data_size, const uint8_t* data, uint16_t cccd_value) {
     size_t index = 0;
     size_t total_size = data_size;
-    // uint8_t chunk = 0;
     while(total_size) {
         size_t send_size = total_size > ble_worker_instance->max_payload_size ?
                                ble_worker_instance->max_payload_size :
                                total_size;
-
-        // BleCanaryFirstPackCtx ctx = {
-        //     .data_size = data_size, .data = &data[index], .chunk_num = chunk, .handle = handle};
-        // ble_debug_canary_test(instance->first_tx_pack_canary, &ctx);
 
         if(!ble_worker_send_chunk(handle, send_size, &data[index], cccd_value)) {
             BLE_LOG_W("Tx terminated!");
@@ -569,7 +533,6 @@ void ble_worker_send(uint16_t handle, uint16_t data_size, const uint8_t* data, u
 
         index += send_size;
         total_size -= send_size;
-        // chunk += 1;
     }
 }
 

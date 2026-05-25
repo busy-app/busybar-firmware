@@ -54,8 +54,7 @@ struct BleWorker {
     uint16_t tx_pending_handle;
     ///TODO: this can be removed
     bool connected;
-    // BleDebugCanary* first_tx_pack_canary;
-    BleDebugCanary* first_tx_method_canary;
+
     BleDebugCanary* indicate_error_canary;
 
     BleWorkerState state;
@@ -76,11 +75,8 @@ struct BleWorker {
 
     rsi_ble_event_remote_features_t remote_dev_feature;
 
-    // rsi_ble_event_write_t app_ble_write_event;
     rsi_ble_event_mtu_t app_ble_mtu_event;
 
-    // rsi_bt_event_smp_resp_t rsi_bt_event_smp_resp;
-    rsi_bt_event_le_ltk_request_t ble_ltk_req;
     BleSecurityData* security_data;
     BleAdvertiseContext* advertise;
 
