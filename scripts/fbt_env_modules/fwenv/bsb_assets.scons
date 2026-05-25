@@ -5,6 +5,7 @@ from SCons.Util import splitext
 from fbt.version import get_git_commit_unix_timestamp
 import requests
 import hashlib
+import shutil
 
 def sha256sum(filename):
     try:
@@ -13,26 +14,28 @@ def sha256sum(filename):
     except OSError:
         return None
 
-def download_file(src_url, src_url_sha256, dst_file):
+def download_file(temp_out, dst_file, *_, src_url, src_url_sha256, **__):
     try:
-        expected_sha = requests.get(src_url_sha256)
+        expected_sha = requests.get(src_url_sha256, timeout=10)
         expected_sha.raise_for_status()
         expected_sha = expected_sha.text.split(" ")[0]
 
         if sha256sum(dst_file) == expected_sha:
             print(f"File is up to date: {dst_file}")
+            shutil.copy(dst_file, temp_out)
             return True
         
-        file = requests.get(src_url)
+        file = requests.get(src_url, timeout=10)
         file.raise_for_status()
 
-        with open(dst_file, "wb") as f:
+        with open(temp_out, "wb") as f:
             f.write(file.content)
 
-        if sha256sum(dst_file) != expected_sha:
+        if sha256sum(temp_out) != expected_sha:
             raise Exception(f"Downloaded file does not match digest: {dst_file}")
 
         print(f"Updated file to new version: {dst_file}")
+        shutil.copy(temp_out, dst_file) # deliberately update source tree too
         return True
 
     except requests.RequestException:
@@ -127,13 +130,14 @@ def convert_web_api(dst_dir):
 
 def update_certs(src_dir, dst_dir):
     cert_file = File(src_dir + "ca/cacert.pem")
-    converted_location = dst_dir.File("ca/cacert.pem").Dir(".")
+    cert_file_downloaded = fwenv.File("${BUILD_DIR}/cacert.pem")
 
     SRC_URL = "https://curl.se/ca/cacert.pem"
     SRC_URL_SHA256 = "https://curl.se/ca/cacert.pem.sha256"
-    download_file(SRC_URL, SRC_URL_SHA256, cert_file.rfile().abspath)
+    fw_assets_env.Command(target=cert_file_downloaded, source=cert_file, action=lambda target, source, **_: not download_file(target[0].rfile().abspath, source[0].rfile().abspath, src_url=SRC_URL, src_url_sha256=SRC_URL_SHA256))
+    fw_assets_env.AlwaysBuild(cert_file_downloaded)
 
-    return [fw_assets_env.Install(converted_location, cert_file)]
+    return [fw_assets_env.Install(dst_dir.Dir("ca"), cert_file_downloaded)]
 
 
 if fwenv.get("IS_BASE_FIRMWARE", False):
