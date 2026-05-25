@@ -76,7 +76,25 @@ def convert_fonts(src_dir, dst_dir):
     return converted
 
 def compresses(f):
-    return f.suffix in [".html", ".js", ".css", ".svg"]
+    return f.suffix in [".html", ".js", ".css", ".svg", ".ttf", ".ico"]
+
+
+def gzip_smaller(src_node):
+    """Return True if gzip compression produces a smaller file than the original.
+
+    Uses rfile() to resolve the actual repository path under SCons -Y overlays.
+    """
+    import gzip as gz_module
+    import io
+
+    src_path = src_node.rfile().abspath
+    with open(src_path, "rb") as f:
+        data = f.read()
+    buf = io.BytesIO()
+    with gz_module.GzipFile(fileobj=buf, mode="wb", mtime=0) as gz_f:
+        gz_f.write(data)
+    return len(buf.getvalue()) < len(data)
+
 
 def convert_web_assets(src_dir, dst_dir):
     import SCons.Node.FS
@@ -91,7 +109,7 @@ def convert_web_assets(src_dir, dst_dir):
         if not isinstance(src_file, SCons.Node.FS.File):
             continue
         rel_path = os.path.relpath(src_file.abspath, src_root)
-        if compresses(src_file):
+        if compresses(src_file) and gzip_smaller(src_file):
             target_file = fw_assets_env.File(os.path.join(dst_root, rel_path) + ".gz")
             converted.append(fw_assets_env.Gzip(target_file, src_file))
         else:
