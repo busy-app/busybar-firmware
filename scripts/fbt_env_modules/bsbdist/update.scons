@@ -18,12 +18,14 @@ sil_env = SIL_ENV
 fw_env = u5_env["FW_ENV"]
 
 # Environment with update bundle builder, configured with common bundle parameters
+_fw_version_json = fw_env.get("FW_VERSION_JSON")
 bundle_env = dist_env.Clone(
     tools=["bsb_update_bundle"],
     BUNDLE_TARGET_HW=u5_env.subst("$TARGET_HW"),
     BUNDLE_STAGE=u5_env["UPD_ENV"]["FW_BIN"][0],
     BUNDLE_DFU=fw_env["FW_DFU"][0],
     BUNDLE_SIL_FW=sil_env["FW_ENV"]["FW_RPS"][0],
+    **({"BUNDLE_VERSION_JSON": _fw_version_json} if _fw_version_json else {}),
 )
 
 # Common dependencies shared by all bundle variants
@@ -31,6 +33,7 @@ base_deps = [
     u5_env["UPD_ENV"]["FW_BIN"],
     fw_env["FW_DFU"],
     sil_env["FW_ENV"]["FW_RPS"],
+    *([_fw_version_json] if _fw_version_json else []),
 ]
 
 # --- Full update bundle (with resources + radio firmware) ---
