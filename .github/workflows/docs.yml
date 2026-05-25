@@ -57,7 +57,6 @@ jobs:
           else
             printf "Doxygen: all good ✨\n" >> $GITHUB_STEP_SUMMARY;
           fi
-          done
           if [ "${errors}" -ne 0 ]; then
             echo "errors=1" >> $GITHUB_OUTPUT;
             exit 1;
