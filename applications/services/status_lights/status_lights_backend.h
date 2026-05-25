@@ -1,6 +1,11 @@
 /**
  * @file status_lights_backend.h
  * @brief API for controlling Status Lights from f64 side.
+ *
+ * @cond BSB_MCU_SI917
+ *
+ * TODO: Doxygen warns about functions with the same names
+ *       but different signatures/docstrings
  */
 #pragma once
 
@@ -18,13 +23,6 @@ extern "C" {
 #define RECORD_STATUS_LIGHTS "status_lights"
 
 /**
- * @cond BSB_MCU_SI917
- *
- * TODO: Doxygen warns about functions with the same names
- *       but different signatures/docstrings
- */
-
-/**
  * @brief Run a preset animation with the specified color.
  *
  * @param instance status lights service instance
@@ -33,8 +31,8 @@ extern "C" {
  */
 void status_lights_run_preset(StatusLights* instance, StatusLightsPreset preset, Color color);
 
-/** @endcond BSB_MCU_SI917 */
-
 #ifdef __cplusplus
 }
 #endif
+
+/** @endcond BSB_MCU_SI917 */
