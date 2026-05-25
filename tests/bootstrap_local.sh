@@ -44,6 +44,9 @@ if [[ ! -f poetry.lock || pyproject.toml -nt poetry.lock ]]; then
 fi
 "$VENV/bin/poetry" install --no-root
 
+# Anchor Poetry to .venv so `poetry run pytest` works regardless of shell state.
+( unset VIRTUAL_ENV && "$VENV/bin/poetry" env use "$VENV/bin/python" >/dev/null )
+
 
 say "Checking .env file"
 if [[ ! -f config/.env ]]; then
