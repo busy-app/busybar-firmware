@@ -9,9 +9,6 @@ from typing import Iterator, Optional
 import allure
 import pytest
 import requests
-from dotenv import load_dotenv
-
-load_dotenv()
 
 from utils.logging_config import (
     get_cli_logger,
