@@ -77,7 +77,7 @@ static void audio_stop_handler(struct mg_connection* conn) {
 
     furi_record_close(RECORD_AUDIO);
 
-    // Hold connection untill play stop event
+    // Hold connection until play stop event
 }
 
 static bool api_audio_play_handler(

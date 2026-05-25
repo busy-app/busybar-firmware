@@ -384,9 +384,8 @@ static void power_pubsub_callback(const void* message, void* context) {
 }
 
 static void audio_pubsub_callback(const void* message, void* context) {
-    UNUSED(message);
     StatePublisher* instance = context;
-    AudioEvent* event = (AudioEvent*)message;
+    const AudioEvent* event = message;
 
     if(event->type == AudioEventVolumeUpdate) {
         // dispatch because audio_get_volume cannot be called from audio task
