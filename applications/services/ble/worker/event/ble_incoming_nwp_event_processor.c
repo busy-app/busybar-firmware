@@ -11,6 +11,8 @@
 #define TAG "BleEvent"
 
 struct BleIncomingNwpEventProcessor {
+    bool run;
+    FuriMutex* lock;
     FuriEventLoop* event_loop;
     FuriMessageQueue* event_queue;
     void* context;
@@ -53,6 +55,14 @@ static const BleWorkerEventHandler event_handlers[BleIncomingNwpEventTypeCount] 
         ble_worker_event_handler_adjust_connection_request,
 };
 
+static inline void ble_incoming_nwp_event_processor_set_run_gaurd(
+    BleIncomingNwpEventProcessor* instance,
+    bool new_run) {
+    furi_mutex_acquire(instance->lock, FuriWaitForever);
+    instance->run = new_run;
+    furi_mutex_release(instance->lock);
+}
+
 static void
     ble_incoming_nwp_event_processor_queue_handler(FuriEventLoopObject* object, void* context) {
     furi_assert(context);
@@ -81,18 +91,36 @@ void ble_incoming_nwp_event_processor_spawn_event(
     void* data) {
     furi_assert(instance);
 
-    BleIncomingNwpEvent* event = ble_incoming_nwp_event_alloc(type, data_size, data);
-    furi_assert(furi_message_queue_put(instance->event_queue, &event, 100) == FuriStatusOk);
+    furi_mutex_acquire(instance->lock, FuriWaitForever);
+
+    if(instance->run) {
+        BleIncomingNwpEvent* event = ble_incoming_nwp_event_alloc(type, data_size, data);
+        furi_assert(furi_message_queue_put(instance->event_queue, &event, 100) == FuriStatusOk);
+    } else {
+        BLE_LOG_W("Processor stopped, discard event: %d", type);
+    }
+
+    furi_mutex_release(instance->lock);
 }
 
 BleIncomingNwpEventProcessor* ble_incoming_nwp_event_processor_alloc(void* context) {
     furi_assert(context);
     BleIncomingNwpEventProcessor* instance = malloc(sizeof(BleIncomingNwpEventProcessor));
     instance->event_queue = furi_message_queue_alloc(20, sizeof(BleIncomingNwpEvent*));
+    instance->lock = furi_mutex_alloc(FuriMutexTypeNormal);
     instance->context = context;
     ble_nwp_core_config_callbacks(instance);
 
     return instance;
+}
+
+static void
+    ble_incoming_nwp_event_processor_flush_pending(BleIncomingNwpEventProcessor* instance) {
+    BleIncomingNwpEvent* event = NULL;
+
+    while(furi_message_queue_get(instance->event_queue, &event, 0) == FuriStatusOk) {
+        ble_incoming_nwp_event_free(event);
+    }
 }
 
 void ble_incoming_nwp_event_processor_run(
@@ -109,10 +137,12 @@ void ble_incoming_nwp_event_processor_run(
         ble_incoming_nwp_event_processor_queue_handler,
         instance);
 
+    ble_incoming_nwp_event_processor_set_run_gaurd(instance, true);
+
     furi_event_loop_run(instance->event_loop);
 
-    // ble_worker_flush_events(instance->event_queue);
-    BLE_LOG_W("ble_worker_flush_events - not implemented!!!");
+    ble_incoming_nwp_event_processor_set_run_gaurd(instance, false);
+    ble_incoming_nwp_event_processor_flush_pending(instance);
 
     furi_event_loop_unsubscribe(instance->event_loop, instance->event_queue);
 }
