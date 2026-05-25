@@ -41,22 +41,22 @@ jobs:
         id: doxygen_build
         if: always()
         run: |
-            set +e;
-            export FBT_GIT_SUBMODULE_SHALLOW=1;
-            errors=0;
-            log_file="doxygen-build.log";
-            echo "::group::Doxygen";
-            bash ./fbt doxygen 2>&1 | tee "${log_file}";
-            status=${PIPESTATUS[0]};
-            echo "::endgroup::";
-            if [ "${status}" -ne 0 ]; then
-              errors=1;
-              printf "Doxygen errors:\n\`\`\`\n" >> $GITHUB_STEP_SUMMARY;
-              cat "${log_file}" >> $GITHUB_STEP_SUMMARY;
-              printf "\n\`\`\`\n" >> $GITHUB_STEP_SUMMARY;
-            else
-              printf "Doxygen: all good ✨\n" >> $GITHUB_STEP_SUMMARY;
-            fi
+          set +e;
+          export FBT_GIT_SUBMODULE_SHALLOW=1;
+          errors=0;
+          log_file="doxygen-build.log";
+          echo "::group::Doxygen";
+          bash ./fbt doxygen 2>&1 | tee "${log_file}";
+          status=${PIPESTATUS[0]};
+          echo "::endgroup::";
+          if [ "${status}" -ne 0 ]; then
+            errors=1;
+            printf "Doxygen errors:\n\`\`\`\n" >> $GITHUB_STEP_SUMMARY;
+            cat "${log_file}" >> $GITHUB_STEP_SUMMARY;
+            printf "\n\`\`\`\n" >> $GITHUB_STEP_SUMMARY;
+          else
+            printf "Doxygen: all good ✨\n" >> $GITHUB_STEP_SUMMARY;
+          fi
           done
           if [ "${errors}" -ne 0 ]; then
             echo "errors=1" >> $GITHUB_OUTPUT;
