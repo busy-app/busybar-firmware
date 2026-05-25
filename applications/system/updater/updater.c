@@ -145,10 +145,9 @@ static UpdaterStatus updater_do_set_settings(Updater* instance, UpdaterMessage* 
     if(!updater_settings_save(message->as_set_settings.set_settings))
         return UpdaterStatusUnknownFailure;
 
-    instance->settings = *message->as_set_settings.set_settings;
+    updater_internal_settings_change_build_specific(
+        instance, message->as_set_settings.set_settings);
     furi_state_set(instance->settings_state, &instance->settings);
-
-    updater_internal_settings_change_build_specific(instance);
 
     return UpdaterStatusOk;
 }
