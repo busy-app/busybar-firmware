@@ -5,9 +5,16 @@ paths. Runs against a real BusyBar device on the local network.
 
 ## Quick start
 
+macOS / Linux:
 ```bash
 cd tests
 ./bootstrap_local.sh
+```
+
+Windows (PowerShell):
+```powershell
+cd tests
+powershell -ExecutionPolicy Bypass -File .\bootstrap_local.ps1
 ```
 
 The script creates `.venv` (Python 3.12), installs dependencies via Poetry,
