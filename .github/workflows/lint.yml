@@ -39,6 +39,27 @@ jobs:
         run: |
           git submodule update --init --recursive --jobs=$(nproc) scripts/toolchain lib/lwip lib/matter_ext || (git lfs logs last && exit 1)
 
+      - name: 'Check REUSE compliance'
+        id: reuse_check
+        if: always()
+        run: |
+          set +e
+          pip install --quiet reuse
+          log_file="lint-reuse.log"
+          echo "::group::REUSE lint"
+          reuse lint 2>&1 | tee "${log_file}"
+          status=${PIPESTATUS[0]}
+          echo "::endgroup::"
+          if [ "${status}" -ne 0 ]; then
+            echo "errors=1" >> $GITHUB_OUTPUT
+            printf "REUSE compliance errors:\n\`\`\`\n" >> $GITHUB_STEP_SUMMARY
+            cat "${log_file}" >> $GITHUB_STEP_SUMMARY
+            printf "\n\`\`\`\n" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          else
+            printf "REUSE compliance: all good ✨\n" >> $GITHUB_STEP_SUMMARY
+          fi
+
       - name: 'Check C/C++ code formatting for f21 and f64'
         id: syntax_check_cpp
         if: always()
@@ -95,7 +116,7 @@ jobs:
           fi
 
       - name: 'Report code formatting errors'
-        if: (steps.syntax_check_cpp.outputs.errors || steps.syntax_check_py.outputs.errors) && github.event.pull_request
+        if: (steps.syntax_check_cpp.outputs.errors || steps.syntax_check_py.outputs.errors || steps.reuse_check.outputs.errors) && github.event.pull_request
         run: |
           echo "Code formatting errors found";
           echo "Please run './fbt format' or './fbt format_py' to fix them";

@@ -8,6 +8,12 @@ static const char* const busy_timer_common_mode_names[BusyTimerModeMax] = {
     [BusyTimerModeInterval] = "INTERVAL",
 };
 
+static void busy_timer_common_serialize_timer_mode(cJSON* json, BusyTimerMode timer_mode) {
+    furi_assert(timer_mode < BusyTimerModeMax);
+    cJSON_AddStringToObject(
+        json, KEY_COMMON_TIMER_SETTINGS_TYPE, busy_timer_common_mode_names[timer_mode]);
+}
+
 void busy_timer_common_serialize_app_config(cJSON* json, const BusyAppConfig* app_config) {
     cJSON* busy_bar_settings_json = cJSON_AddObjectToObject(json, KEY_COMMON_BUSY_BAR_SETTINGS);
     cJSON_AddStringToObject(
@@ -23,21 +29,14 @@ void busy_timer_common_serialize_app_config(cJSON* json, const BusyAppConfig* ap
 }
 
 void busy_timer_common_serialize_infinite_config(cJSON* json) {
-    cJSON_AddStringToObject(
-        json, KEY_COMMON_TIMER_SETTINGS_TYPE, busy_timer_common_mode_names[BusyTimerModeInfinite]);
-}
-
-void busy_timer_common_serialize_timer_mode(cJSON* json, BusyTimerMode timer_mode) {
-    furi_assert(timer_mode < BusyTimerModeMax);
-    cJSON_AddStringToObject(
-        json, KEY_COMMON_TIMER_SETTINGS_TYPE, busy_timer_common_mode_names[timer_mode]);
+    busy_timer_common_serialize_timer_mode(json, BusyTimerModeInfinite);
 }
 
 void busy_timer_common_serialize_simple_config(
     cJSON* json,
     const BusyTimerSimpleConfig* simple_config) {
-    cJSON_AddStringToObject(
-        json, KEY_COMMON_TIMER_SETTINGS_TYPE, busy_timer_common_mode_names[BusyTimerModeSimple]);
+    busy_timer_common_serialize_timer_mode(json, BusyTimerModeSimple);
+
     cJSON_AddNumberToObject(
         json, KEY_COMMON_SIMPLE_SETTINGS_TOTAL_TIME, simple_config->total_time_ms);
 }
@@ -45,8 +44,8 @@ void busy_timer_common_serialize_simple_config(
 void busy_timer_common_serialize_interval_config(
     cJSON* json,
     const BusyTimerIntervalConfig* interval_config) {
-    cJSON_AddStringToObject(
-        json, KEY_COMMON_TIMER_SETTINGS_TYPE, busy_timer_common_mode_names[BusyTimerModeInterval]);
+    busy_timer_common_serialize_timer_mode(json, BusyTimerModeInterval);
+
     cJSON_AddNumberToObject(
         json, KEY_COMMON_INTERVAL_SETTINGS_WORK, interval_config->work_time_ms);
     cJSON_AddNumberToObject(
