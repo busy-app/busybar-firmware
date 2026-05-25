@@ -337,6 +337,27 @@ static bool http_handle_custom(
     return handled;
 }
 
+static void http_serve_html_404(const HttpHandlerInstance* inst, struct mg_connection* conn) {
+    struct mg_fs* fs = http_fs_get();
+    const char* page_path = WEB_ROOT "404.html";
+    size_t size = 0;
+    if(fs->st(page_path, &size, NULL) != 0 && size > 0) {
+        struct mg_fd* fd = mg_fs_open(fs, page_path, MG_FS_READ);
+        if(fd != NULL) {
+            char* buf = malloc(size);
+            size_t nread = fs->rd(fd->fd, buf, size);
+            mg_fs_close(fd);
+            const char* extra = inst->handler->extra_headers ? inst->handler->extra_headers : "";
+            char headers[256];
+            mg_snprintf(headers, sizeof(headers), "Content-Type: text/html\r\n%s", extra);
+            mg_http_reply(conn, 404, headers, "%.*s", (int)nread, buf);
+            free(buf);
+            return;
+        }
+    }
+    mg_http_reply(conn, 404, inst->handler->extra_headers, "Not found\n");
+}
+
 static bool http_handle_file(
     const HttpHandlerInstance* inst,
     struct mg_connection* conn,
@@ -345,7 +366,7 @@ static bool http_handle_file(
         .ssi_pattern = NULL,
         .extra_headers = inst->handler->extra_headers,
         .mime_types = inst->handler->mime_types_custom,
-        .page404 = WEB_ROOT "404.html",
+        .page404 = NULL,
         .fs = http_fs_get(),
     };
     mg_http_serve_file(conn, msg, inst->handler->path, &opts);
@@ -369,28 +390,32 @@ static bool http_handle_dir(
                 break;
             }
         }
-    } else if(!wants_gzip) {
-        // return 406 if we only have gzipped version
-        char decoded[MG_PATH_MAX], plain[MG_PATH_MAX], gz[MG_PATH_MAX];
-        int n = mg_url_decode(msg->uri.buf, msg->uri.len, decoded, sizeof(decoded), 0);
-        if(n > 0 && strstr(decoded, "..") == NULL) {
-            const char* rel = decoded[0] == '/' ? decoded + 1 : decoded;
-            // resolve dirs to index.html, matching Mongoose's own behaviour for mg_http_serve_dir
-            char resolved_rel[MG_PATH_MAX];
-            size_t rel_len = strlen(rel);
-            if(rel_len == 0 || rel[rel_len - 1] == '/') {
-                mg_snprintf(resolved_rel, sizeof(resolved_rel), "%sindex.html", rel);
-                rel = resolved_rel;
-            }
-            mg_snprintf(plain, sizeof(plain), "%s%s", inst->handler->path, rel);
-            mg_snprintf(gz, sizeof(gz), "%s.gz", plain);
-            struct mg_fs* fs = http_fs_get();
-            bool plain_exists = fs->st(plain, NULL, NULL) != 0;
-            bool gz_exists = fs->st(gz, NULL, NULL) != 0;
-            if(!plain_exists && gz_exists) {
-                mg_http_reply(conn, 406, inst->handler->extra_headers, "Not Acceptable\n");
-                return true;
-            }
+    }
+
+    // handle 404 and 406 before calling mg_http_serve_dir
+    char decoded[MG_PATH_MAX], plain[MG_PATH_MAX], gz[MG_PATH_MAX];
+    int n = mg_url_decode(msg->uri.buf, msg->uri.len, decoded, sizeof(decoded), 0);
+    if(n > 0 && strstr(decoded, "..") == NULL) {
+        const char* rel = decoded[0] == '/' ? decoded + 1 : decoded;
+        // resolve dirs to index.html, matching Mongoose's own behaviour for mg_http_serve_dir
+        char resolved_rel[MG_PATH_MAX];
+        size_t rel_len = strlen(rel);
+        if(rel_len == 0 || rel[rel_len - 1] == '/') {
+            mg_snprintf(resolved_rel, sizeof(resolved_rel), "%sindex.html", rel);
+            rel = resolved_rel;
+        }
+        mg_snprintf(plain, sizeof(plain), "%s%s", inst->handler->path, rel);
+        mg_snprintf(gz, sizeof(gz), "%s.gz", plain);
+        struct mg_fs* fs = http_fs_get();
+        bool plain_exists = fs->st(plain, NULL, NULL) != 0;
+        bool gz_exists = fs->st(gz, NULL, NULL) != 0;
+        if(!plain_exists && !gz_exists) {
+            http_serve_html_404(inst, conn);
+            return true;
+        }
+        if(has_ae && !wants_gzip && !plain_exists && gz_exists) {
+            mg_http_reply(conn, 406, inst->handler->extra_headers, "Not Acceptable\n");
+            return true;
         }
     }
 
@@ -399,7 +424,7 @@ static bool http_handle_dir(
         .ssi_pattern = NULL,
         .extra_headers = inst->handler->extra_headers,
         .mime_types = inst->handler->mime_types_custom,
-        .page404 = WEB_ROOT "404.html",
+        .page404 = NULL,
         .fs = http_fs_get(),
     };
     mg_http_serve_dir(conn, msg, &opts);

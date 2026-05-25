@@ -1,7 +1,11 @@
+import gzip as gzip_module
+import http.client
 import time
+from urllib.parse import urlparse
 
 import allure
 import pytest
+import requests
 from bs4 import BeautifulSoup
 
 
@@ -268,26 +272,41 @@ class TestWebFrontendGzip:
     @allure.title("BSB Front. No Accept-Encoding serves gzip (Case A)")
     @pytest.mark.frontend
     def test_no_accept_encoding_serves_gzip(self, web_base_url):
-        """Without Accept-Encoding the server injects gzip and serves the asset."""
-        # Pass Accept-Encoding=None to drop the header from the request entirely
-        response = requests.get(
-            web_base_url,
-            headers={"Accept-Encoding": None},
-            timeout=10,
-        )
+        """Without Accept-Encoding the server injects gzip and serves the asset.
+
+        Uses http.client with skip_accept_encoding=True to truly omit the header;
+        requests/urllib3 v2 and stdlib http.client.request() both inject
+        'Accept-Encoding: identity' when no encoding is specified by the caller.
+        """
+        parsed = urlparse(web_base_url)
+        host = parsed.hostname
+        port = parsed.port or 80
+        path = parsed.path or "/"
+
+        conn = http.client.HTTPConnection(host, port, timeout=10)
+        conn.connect()
+        # skip_accept_encoding=True prevents http.client from adding the default
+        # 'Accept-Encoding: identity', giving us a request with no AE header at all
+        conn.putrequest("GET", path, skip_host=True, skip_accept_encoding=True)
+        conn.putheader("Host", parsed.netloc)
+        conn.putheader("User-Agent", "test-client")
+        conn.endheaders()
+        resp = conn.getresponse()
+        body = resp.read()
+        conn.close()
 
         with allure.step("Verify 200 response"):
-            assert (
-                response.status_code == 200
-            ), f"Expected 200, got {response.status_code}"
+            assert resp.status == 200, f"Expected 200, got {resp.status}"
 
         with allure.step("Verify Content-Encoding: gzip header is present"):
+            content_encoding = resp.getheader("Content-Encoding", "")
             assert (
-                response.headers.get("Content-Encoding", "").lower() == "gzip"
-            ), f"Expected Content-Encoding: gzip, got: {response.headers.get('Content-Encoding')}"
+                content_encoding.lower() == "gzip"
+            ), f"Expected Content-Encoding: gzip, got: {content_encoding}"
 
         with allure.step("Verify HTML content is decompressed correctly"):
-            assert "html" in response.text.lower(), "Response should contain HTML"
+            decompressed = gzip_module.decompress(body).decode("utf-8", errors="replace")
+            assert "html" in decompressed.lower(), "Decompressed response should contain HTML"
 
     @allure.id("2741")
     @allure.title("BSB Front. Accept-Encoding: gzip serves gzip (Case B)")
