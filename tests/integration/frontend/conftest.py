@@ -19,6 +19,7 @@ from utils.busy_timer import (
     get_snapshot,
     next_timestamp,
     set_snapshot,
+    wait_for_snapshot_type,
 )
 
 
@@ -36,7 +37,13 @@ def busy_state_guard(api_session: requests.Session, web_base_url: str):
         restore = dict(original)
         restore["snapshot_timestamp_ms"] = next_timestamp(api_session, web_base_url)
         set_snapshot(api_session, web_base_url, restore)
-        time.sleep(STATE_SETTLE_S)
+        # Settle before the autouse device_health_monitor probes /api/version:
+        # a snapshot write immediately followed by a probe can trip the device's
+        # overload guard (503). Poll instead of a fixed sleep so we wait only as
+        # long as the device actually needs.
+        original_type = original.get("snapshot", {}).get("type")
+        if original_type:
+            wait_for_snapshot_type(api_session, web_base_url, original_type)
     except Exception:
         pass  # Best-effort restore; device_health_monitor will recover on failure
 
@@ -63,7 +70,7 @@ def busy_timer_stopped(
         "snapshot_timestamp_ms": next_timestamp(api_session, web_base_url),
     }
     set_snapshot(api_session, web_base_url, stopped_body)
-    time.sleep(STATE_SETTLE_S)
+    wait_for_snapshot_type(api_session, web_base_url, "NOT_STARTED")
     yield
 
 
@@ -92,7 +99,7 @@ def busy_timer_active(
         "snapshot_timestamp_ms": next_timestamp(api_session, web_base_url),
     }
     set_snapshot(api_session, web_base_url, active_body)
-    time.sleep(STATE_SETTLE_S)
+    wait_for_snapshot_type(api_session, web_base_url, "INFINITE")
     yield
 
 
