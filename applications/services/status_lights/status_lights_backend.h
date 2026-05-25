@@ -18,6 +18,13 @@ extern "C" {
 #define RECORD_STATUS_LIGHTS "status_lights"
 
 /**
+ * @cond BSB_MCU_SI917
+ *
+ * TODO: Doxygen warns about functions with the same names
+ *       but different signatures/docstrings
+ */
+
+/**
  * @brief Run a preset animation with the specified color.
  *
  * @param instance status lights service instance
@@ -25,6 +32,8 @@ extern "C" {
  * @param color the color to use for the animation
  */
 void status_lights_run_preset(StatusLights* instance, StatusLightsPreset preset, Color color);
+
+/** @endcond BSB_MCU_SI917 */
 
 #ifdef __cplusplus
 }
