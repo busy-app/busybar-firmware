@@ -42,7 +42,7 @@ jobs:
         if: always()
         run: |
           set +e;
-          export FBT_GIT_SUBMODULE_SHALLOW=1;
+          export FBT_NO_SYNC=1;
           errors=0;
           log_file="doxygen-build.log";
           echo "::group::Doxygen";
