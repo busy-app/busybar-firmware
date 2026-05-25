@@ -2,6 +2,8 @@
 
 #include <furi_hal_crypto_storage.h>
 
+#include <inttypes.h>
+
 #define TAG "CryptoBackupVerify"
 
 typedef struct {
@@ -224,7 +226,7 @@ static bool crypto_backup_verify_aes(void) {
             &key, FuriHalCryptoPartitionMain, FuriHalCryptoKeyTypeAes256, setup->key_id);
 
         if(status != FuriHalCryptoStatusOk) {
-            FURI_LOG_E(TAG, "AES key 0x%02lx read failed.", setup->key_id);
+            FURI_LOG_E(TAG, "AES key 0x%02" PRIx32 "read failed.", setup->key_id);
             return false;
         }
 
@@ -233,7 +235,7 @@ static bool crypto_backup_verify_aes(void) {
         furi_hal_crypto_key_free(key);
 
         if(status != FuriHalCryptoStatusOk) {
-            FURI_LOG_E(TAG, "AES key 0x%02lx init failed.", setup->key_id);
+            FURI_LOG_E(TAG, "AES key 0x%02" PRIx32 "init failed.", setup->key_id);
             return false;
         }
 
@@ -243,12 +245,12 @@ static bool crypto_backup_verify_aes(void) {
         furi_hal_crypto_aes_deinit(aes);
 
         if(status != FuriHalCryptoStatusOk) {
-            FURI_LOG_E(TAG, "AES key 0x%02lx encrypt failed.", setup->key_id);
+            FURI_LOG_E(TAG, "AES key 0x%02" PRIx32 "encrypt failed.", setup->key_id);
             return false;
         }
 
         if(memcmp(encrypted_output, setup->expected_output, sizeof(encrypted_output)) != 0) {
-            FURI_LOG_E(TAG, "AES key 0x%02lx ciphertext mismatch.", setup->key_id);
+            FURI_LOG_E(TAG, "AES key 0x%02" PRIx32 "ciphertext mismatch.", setup->key_id);
             return false;
         }
     }
