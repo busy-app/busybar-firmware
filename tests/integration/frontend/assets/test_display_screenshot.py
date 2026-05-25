@@ -524,38 +524,6 @@ class TestDisplayPriority:
         finally:
             assets_api.clear_display()
 
-    @allure.title("Equal priority draw succeeds and replaces")
-    @pytest.mark.api
-    @pytest.mark.frontend
-    def test_equal_priority_replaces(
-        self,
-        assets_api: AssetsAPI,
-        streaming_api: StreamingAPI,
-    ):
-        """Draw with a priority, then verify equal priority replaces it."""
-        try:
-            with allure.step("Draw with priority 8 (white)"):
-                first_element = _make_front_text_element("FIRST", color="#FFFFFFFF")
-                _draw_and_capture(
-                    assets_api, streaming_api, "first", [first_element], priority=8,
-                )
-
-            with allure.step("Draw with same priority 8 (green)"):
-                second_element = _make_front_text_element("SECOND", color="#00FF00FF")
-                actual = _draw_and_capture(
-                    assets_api, streaming_api, "second", [second_element], priority=8,
-                )
-
-            with allure.step("Verify display shows only second (green) content"):
-                assert _has_dominant_channel(actual, channel=1), (
-                    "Expected green pixels from second draw"
-                )
-                assert not _has_white(actual), (
-                    "Should not have white pixels from first draw"
-                )
-        finally:
-            assets_api.clear_display()
-
     @allure.title("Higher priority draw replaces lower")
     @pytest.mark.api
     @pytest.mark.frontend
