@@ -30,7 +30,10 @@ jobs:
 
       - name: 'Update submodules'
         run: |
-          git submodule update --init --recursive --jobs=$(nproc) scripts/toolchain fbt_layers/* documentation/doxygen/doxygen-awesome-css
+          git submodule update --init --recursive --jobs=$(nproc) \
+            fbt_layers/* \
+            scripts/toolchain \
+            documentation/doxygen/doxygen-awesome-css
 
       - name: install-doxygen
         uses: AdarshRawat1/Install-Doxygen@v1.0
