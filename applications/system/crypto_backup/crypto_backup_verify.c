@@ -190,31 +190,56 @@ static bool crypto_backup_verify_keys(void) {
     FuriHalCryptoKey* key;
     FuriHalCryptoKeySlot slot;
 
-    size_t found_keys_count = 0;
+    uint8_t keys_count[COUNT_OF(crypto_backup_verify_key_setups)] = {
+        [0 ... COUNT_OF(crypto_backup_verify_key_setups) - 1] = 0};
+
     while(furi_hal_crypto_key_iter_get_and_advance(&iter, &key, &slot) == FuriHalCryptoStatusOk) {
         for(size_t i = 0; i < COUNT_OF(crypto_backup_verify_key_setups); i++) {
             const CryptoBackupVerifyKeySetup* setup = &crypto_backup_verify_key_setups[i];
 
             if(slot.header.type == setup->type && slot.header.id == setup->key_id) {
-                found_keys_count++;
+                keys_count[i]++;
                 break;
             }
         }
 
         furi_hal_crypto_key_free(key);
+    }
 
-        if(found_keys_count == COUNT_OF(crypto_backup_verify_key_setups)) {
-            return true;
+    bool are_keys_valid = true;
+    for(size_t i = 0; i < COUNT_OF(crypto_backup_verify_key_setups); i++) {
+        uint8_t key_count = keys_count[i];
+
+        switch(key_count) {
+        case 0: {
+            const CryptoBackupVerifyKeySetup* key_setup = &crypto_backup_verify_key_setups[i];
+            FURI_LOG_E(
+                TAG,
+                "Key 0x%02" PRIX32 " of type 0x%02X is missing.",
+                key_setup->key_id,
+                key_setup->type);
+            are_keys_valid = false;
+            break;
+        }
+
+        case 1:
+            break;
+
+        default: {
+            const CryptoBackupVerifyKeySetup* key_setup = &crypto_backup_verify_key_setups[i];
+            FURI_LOG_E(
+                TAG,
+                "Key 0x%02" PRIX32 " of type 0x%02X has %" PRIu8 " duplicates.",
+                key_setup->key_id,
+                key_setup->type,
+                key_count - 1);
+            are_keys_valid = false;
+            break;
+        }
         }
     }
 
-    FURI_LOG_E(
-        TAG,
-        "Some of the keys are missing: %zu/%zu.",
-        found_keys_count,
-        COUNT_OF(crypto_backup_verify_key_setups));
-
-    return false;
+    return are_keys_valid;
 }
 
 static bool crypto_backup_verify_aes(void) {
@@ -226,7 +251,7 @@ static bool crypto_backup_verify_aes(void) {
             &key, FuriHalCryptoPartitionMain, FuriHalCryptoKeyTypeAes256, setup->key_id);
 
         if(status != FuriHalCryptoStatusOk) {
-            FURI_LOG_E(TAG, "AES key 0x%02" PRIx32 "read failed.", setup->key_id);
+            FURI_LOG_E(TAG, "AES key 0x%02" PRIX32 " read failed.", setup->key_id);
             return false;
         }
 
@@ -235,7 +260,7 @@ static bool crypto_backup_verify_aes(void) {
         furi_hal_crypto_key_free(key);
 
         if(status != FuriHalCryptoStatusOk) {
-            FURI_LOG_E(TAG, "AES key 0x%02" PRIx32 "init failed.", setup->key_id);
+            FURI_LOG_E(TAG, "AES key 0x%02" PRIX32 " init failed.", setup->key_id);
             return false;
         }
 
@@ -245,12 +270,12 @@ static bool crypto_backup_verify_aes(void) {
         furi_hal_crypto_aes_deinit(aes);
 
         if(status != FuriHalCryptoStatusOk) {
-            FURI_LOG_E(TAG, "AES key 0x%02" PRIx32 "encrypt failed.", setup->key_id);
+            FURI_LOG_E(TAG, "AES key 0x%02" PRIX32 " encrypt failed.", setup->key_id);
             return false;
         }
 
         if(memcmp(encrypted_output, setup->expected_output, sizeof(encrypted_output)) != 0) {
-            FURI_LOG_E(TAG, "AES key 0x%02" PRIx32 "ciphertext mismatch.", setup->key_id);
+            FURI_LOG_E(TAG, "AES key 0x%02" PRIX32 " ciphertext mismatch.", setup->key_id);
             return false;
         }
     }
