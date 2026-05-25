@@ -80,8 +80,7 @@ void http_reply_405_method_not_allowed(struct mg_connection* conn, HttpMethod al
         }
     }
     furi_string_cat(headers, "\r\n");
-    mg_http_reply(
-        conn, 405, furi_string_get_cstr(headers), "{\"error\":\"%s\"}\n", "Method Not Allowed");
+    MG_REPLY_METHOD_NOT_ALLOWED(conn, furi_string_get_cstr(headers));
     furi_string_free(headers);
 }
 
@@ -100,7 +99,7 @@ void http_reply_cors_preflight(struct mg_connection* conn, HttpMethod allowed_me
         }
     }
     furi_string_cat(headers, "\r\n");
-    mg_http_reply(conn, 200, furi_string_get_cstr(headers), "");
+    MG_REPLY_CORS_OPTIONS(conn, furi_string_get_cstr(headers));
     furi_string_free(headers);
 }
 
