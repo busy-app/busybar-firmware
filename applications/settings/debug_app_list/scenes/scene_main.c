@@ -44,7 +44,7 @@ static void scene_main_on_enter(void* context) {
                 SubmenuItemCallback callback =
                     (display == GuiDisplayIdFront) ? scene_main_submenu_item_callback : NULL;
                 submenu_add_item(
-                    scene->submenus[display], NULL, debug_app->name, i, callback, app);
+                    scene->submenus[display], debug_app->name, NULL, i, callback, app);
             }
         }
     });
