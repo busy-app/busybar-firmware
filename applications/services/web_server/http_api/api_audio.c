@@ -4,8 +4,8 @@
 
 #define TAG "HttpAudio"
 
-#define AUDIO_ASSETS_DIR     EXT_PATH("user_assets")
-#define FILE_NAME_LEN_MAX   32
+#define AUDIO_ASSETS_DIR      EXT_PATH("user_assets")
+#define FILE_NAME_LEN_MAX     32
 #define AUDIO_STOP_TIMEOUT_MS 30000
 
 typedef struct {
