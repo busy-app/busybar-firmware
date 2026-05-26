@@ -17,5 +17,5 @@ App(
     stack_size=1 * 1024,
     order=80,
     targets=["f64", "f65"],
-    sources=["crypto_backup_server.c"],
+    sources=["crypto_backup_server.c", "crypto_backup_verify.c"],
 )

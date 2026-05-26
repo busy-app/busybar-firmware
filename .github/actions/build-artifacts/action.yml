@@ -141,7 +141,7 @@ runs:
       shell: bash
       run: |
         set -euo pipefail
-        git submodule update --init --recursive --jobs="$(nproc)" scripts/toolchain fbt_layers/fbtng || (git lfs logs last && exit 1)
+        git submodule update --init --depth 1 --filter=blob:none --recursive --jobs="$(nproc)" scripts/toolchain fbt_layers/fbtng || (git lfs logs last && exit 1)
 
     - name: Build update package
       shell: bash

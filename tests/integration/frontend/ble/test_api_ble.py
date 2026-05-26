@@ -61,6 +61,7 @@ class TestBleAPI:
     @allure.title("#3564 BLE. Preserve status over reboot")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     @pytest.mark.timeout(300)
     def test_api_ble_preserve_status_over_reboot(
         self, ble_api: BleAPI, persistent_cli_connection, web_base_url

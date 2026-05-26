@@ -4,12 +4,38 @@ from time import sleep
 
 import allure
 import pytest
+import requests
 
 from clients.api import UpdateAPI
 
 
 # Example firmware version for negative testing
 ERROR_FIRMWARE_VERSION = "0.0.0"
+
+
+@pytest.fixture
+def autoupdate_guard(update_api: UpdateAPI):
+    original = update_api.get_autoupdate()
+    yield original
+    payload = {
+        "is_enabled": original.is_enabled,
+        "interval_start": original.interval_start,
+        "interval_end": original.interval_end,
+    }
+    with requests.Session() as session:
+        session.headers.update({"Accept": "application/json"})
+        deadline = time.monotonic() + 10
+        while time.monotonic() < deadline:
+            try:
+                response = session.post(
+                    f"{update_api.base_url}/api/update/autoupdate",
+                    json=payload,
+                    timeout=5,
+                )
+                if response.status_code == 200:
+                    return
+            except requests.RequestException:
+                time.sleep(0.5)
 
 
 def attach_status_json(data: dict, name: str):
@@ -180,6 +206,135 @@ class TestAutoupdateAPI:
             "interval_end": "25:00",
         })
         assert response.status_code == 400
+
+    @allure.title("POST /api/update/autoupdate supports partial updates")
+    @pytest.mark.api
+    @pytest.mark.frontend
+    @pytest.mark.regression
+    def test_autoupdate_partial_update_preserves_omitted_fields(
+        self, update_api: UpdateAPI, autoupdate_guard
+    ):
+        update_api.set_autoupdate(
+            {"is_enabled": False, "interval_start": "01:15", "interval_end": "22:45"}
+        )
+        update_api.set_autoupdate({"interval_start": "23:30"})
+
+        updated = update_api.get_autoupdate()
+        assert updated.is_enabled is False
+        assert updated.interval_start == "23:30"
+        assert updated.interval_end == "22:45"
+
+    @allure.title("POST /api/update/autoupdate accepts boundary windows")
+    @pytest.mark.api
+    @pytest.mark.frontend
+    @pytest.mark.regression
+    def test_autoupdate_boundary_window_values(
+        self, update_api: UpdateAPI, autoupdate_guard
+    ):
+        update_api.set_autoupdate(
+            {"is_enabled": True, "interval_start": "23:59", "interval_end": "00:00"}
+        )
+
+        updated = update_api.get_autoupdate()
+        assert updated.is_enabled is True
+        assert updated.interval_start == "23:59"
+        assert updated.interval_end == "00:00"
+
+    @allure.title("POST /api/update/autoupdate rejects invalid time values")
+    @pytest.mark.api
+    @pytest.mark.frontend
+    @pytest.mark.regression
+    @pytest.mark.parametrize(
+        "payload",
+        [
+            {"interval_start": "24:00"},
+            {"interval_start": "-01:00"},
+            {"interval_end": "10:60"},
+            {"interval_end": "not-a-time"},
+        ],
+    )
+    def test_autoupdate_invalid_time_values(self, update_api: UpdateAPI, payload):
+        response = update_api.set_autoupdate_raw(payload)
+
+        assert response.status_code == 400
+
+    @allure.title("POST /api/update/autoupdate invalid fields do not corrupt settings")
+    @pytest.mark.api
+    @pytest.mark.frontend
+    @pytest.mark.regression
+    @pytest.mark.parametrize(
+        "payload",
+        [
+            {"is_enabled": "true"},
+            {"is_enabled": 1},
+            {"interval_start": 930},
+            {"interval_end": None},
+        ],
+    )
+    def test_autoupdate_invalid_field_types_do_not_corrupt_settings(
+        self, update_api: UpdateAPI, autoupdate_guard, payload
+    ):
+        before = update_api.get_autoupdate()
+        response = update_api.set_autoupdate_raw(payload)
+        assert response.status_code in {200, 400}
+
+        after = update_api.get_autoupdate()
+        assert isinstance(after.is_enabled, bool)
+        assert after.interval_start
+        assert after.interval_end
+        if response.status_code == 400:
+            assert after == before
+
+    @allure.title("POST /api/update/autoupdate unknown fields do not change settings")
+    @pytest.mark.api
+    @pytest.mark.frontend
+    @pytest.mark.regression
+    def test_autoupdate_unknown_fields_do_not_change_settings(
+        self, update_api: UpdateAPI, autoupdate_guard
+    ):
+        before = update_api.get_autoupdate()
+        response = update_api.set_autoupdate_raw({"unexpected": "field"})
+        assert response.status_code in {200, 400}
+
+        after = update_api.get_autoupdate()
+        assert after == before
+
+    @allure.title("POST /api/update/autoupdate persists after reset")
+    @pytest.mark.api
+    @pytest.mark.frontend
+    @pytest.mark.regression
+    def test_autoupdate_settings_persist_after_reset(
+        self, update_api: UpdateAPI, autoupdate_guard, device_flasher
+    ):
+        expected = {
+            "is_enabled": True,
+            "interval_start": "04:00",
+            "interval_end": "05:30",
+        }
+        update_api.set_autoupdate(expected)
+        assert device_flasher.reset_and_wait(wait_timeout=90, reset_interval=15)
+
+        session = requests.Session()
+        session.headers.update({"Accept": "application/json"})
+        deadline = time.monotonic() + 10
+        last_error: Exception | None = None
+        while time.monotonic() < deadline:
+            try:
+                response = session.get(
+                    f"{update_api.base_url}/api/update/autoupdate", timeout=5
+                )
+                if response.status_code == 200:
+                    restored = response.json()
+                    break
+            except requests.RequestException as exc:
+                last_error = exc
+                time.sleep(0.5)
+        else:
+            raise AssertionError(f"Autoupdate settings not readable after reset: {last_error}")
+
+        assert restored["is_enabled"] == expected["is_enabled"]
+        assert restored["interval_start"] == expected["interval_start"]
+        assert restored["interval_end"] == expected["interval_end"]
 
 
 @allure.feature("5. Web Frontend")

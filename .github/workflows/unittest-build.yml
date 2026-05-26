@@ -43,7 +43,7 @@ jobs:
 
       - name: 'Bootstrap tooling submodule'
         run: |
-          git submodule update --init --depth 1 fbt_layers/fbtng
+          git submodule update --init --depth 1 --filter=blob:none fbt_layers/fbtng
 
       - name: 'Get commit details'
         id: names
