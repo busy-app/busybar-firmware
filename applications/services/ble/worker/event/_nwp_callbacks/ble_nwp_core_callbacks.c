@@ -249,10 +249,14 @@ static void rsi_ble_gatt_on_execute_write_event_dummy(
 }
 
 static void
-    rsi_ble_gatt_read_req_event_dummy(uint16_t event_id, rsi_ble_read_req_t* rsi_ble_read_req) {
+    rsi_ble_gatt_read_request_event(uint16_t event_id, rsi_ble_read_req_t* rsi_ble_read_req) {
     UNUSED(event_id);
-    UNUSED(rsi_ble_read_req);
-    BLE_LOG_NWP_EVENT_NOT_IMPLEMENTED();
+
+    ble_incoming_nwp_event_processor_spawn_event(
+        event_processor,
+        BleIncomingNwpEventTypeReadRequest,
+        sizeof(rsi_ble_read_req_t),
+        rsi_ble_read_req);
 }
 
 static void rsi_ble_gatt_on_mtu_event(rsi_ble_event_mtu_t* rsi_ble_mtu) {
@@ -465,7 +469,7 @@ void ble_nwp_core_config_callbacks(BleIncomingNwpEventProcessor* instance) {
         rsi_ble_gatt_on_write_event,
         rsi_ble_gatt_on_prepare_write_event_dummy,
         rsi_ble_gatt_on_execute_write_event_dummy,
-        rsi_ble_gatt_read_req_event_dummy,
+        rsi_ble_gatt_read_request_event,
         rsi_ble_gatt_on_mtu_event,
         rsi_ble_gatt_on_error_resp_dummy,
         rsi_ble_gatt_on_desc_val_event_dummy,

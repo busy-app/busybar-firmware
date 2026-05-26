@@ -109,3 +109,43 @@ bool ble_worker_event_handler_write_event(size_t data_size, void* data, void* co
 
     return true;
 }
+
+bool ble_worker_event_handler_read_request_event(size_t dat_sz, void* data, void* context) {
+    UNUSED(dat_sz);
+
+    BleWorker* instance = context;
+
+    rsi_ble_read_req_t* read_request = data;
+
+    BleServiceEntry* entry = BleServiceEntryDict_get(instance->service_dict, read_request->handle);
+    if(entry) {
+        BleServiceObject* service = entry->service;
+        if(ble_service_lock(service)) {
+            BleCharacteristicObject* ch = service->chars[entry->char_index];
+            size_t data_size = ble_characteristic_get_data_size(ch);
+            const void* data = ble_characteristic_get_data(ch);
+
+            BLE_LOG_I(
+                "Request: %04X, sz: %d off:%d t:%d",
+                read_request->handle,
+                data_size,
+                read_request->offset,
+                read_request->type);
+
+            sl_status_t status = rsi_ble_gatt_read_response(
+                read_request->dev_addr,
+                read_request->type,
+                read_request->handle,
+                read_request->offset,
+                data_size - read_request->offset,
+                data + read_request->offset);
+
+            if(status != RSI_SUCCESS) {
+                BLE_LOG_W("Read response failed status: %08lX", status);
+            }
+
+            ble_service_unlock(service);
+        }
+    }
+    return true;
+}

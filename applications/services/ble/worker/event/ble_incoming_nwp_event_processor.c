@@ -40,7 +40,7 @@ static const BleWorkerEventHandler event_handlers[BleIncomingNwpEventTypeCount] 
     [BleIncomingNwpEventTypeReceiveRemoteFeatures] =
         ble_worker_event_handler_receive_remote_features,
     [BleIncomingNwpEventTypeMoreDataRequest] = ble_worker_event_handler_more_data_request,
-
+    [BleIncomingNwpEventTypeReadRequest] = ble_worker_event_handler_read_request_event,
     [BleIncomingNwpEventTypeWrite] = ble_worker_event_handler_write_event,
     [BleIncomingNwpEventTypeDataTransmit] = ble_worker_event_handler_dummy,
     [BleIncomingNwpEventTypeMtu] = ble_worker_event_handler_mtu,

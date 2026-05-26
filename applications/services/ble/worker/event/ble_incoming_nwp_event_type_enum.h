@@ -11,6 +11,7 @@ typedef enum {
     BleIncomingNwpEventTypeDataLengthChange,
 
     BleIncomingNwpEventTypeReceiveRemoteFeatures,
+    BleIncomingNwpEventTypeReadRequest,
     BleIncomingNwpEventTypeMoreDataRequest,
 
     BleIncomingNwpEventTypeWrite,
