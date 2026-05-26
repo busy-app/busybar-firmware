@@ -4,7 +4,7 @@
 
 typedef enum {
     BleServiceIndexGenericAccess,
-    // BleServiceIndexGenericAttribute,
+    BleServiceIndexGenericAttribute,
     BleServiceIndexDeviceInfo,
     BleServiceIndexBattery,
     BleServiceIndexNordicUart,

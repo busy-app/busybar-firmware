@@ -7,7 +7,7 @@
 
 const BleServiceDescriptor* service_config[BleServiceIndexCount] = {
     [BleServiceIndexGenericAccess] = &ble_service_generic_access,
-    // [BleServiceIndexGenericAttribute] = &ble_service_generic_attribute,
+    [BleServiceIndexGenericAttribute] = &ble_service_generic_attribute,
     [BleServiceIndexDeviceInfo] = &ble_service_config_device_info,
     [BleServiceIndexBattery] = &ble_service_config_battery,
     [BleServiceIndexNordicUart] = &ble_service_config_nordic_uart,
