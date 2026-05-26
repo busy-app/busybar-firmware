@@ -1424,11 +1424,6 @@ void ble_worker_set_name(const char* new_name) {
 
     ble_advertise_set_name(ble_worker_instance->advertise, new_name);
 
-    sl_status_t status = rsi_bt_set_local_name((const uint8_t*)new_name);
-    if(status != RSI_SUCCESS) {
-        BLE_LOG_W("Failed to set local name, error code : 0x%08lx", status);
-    }
-
     if(ble_worker_instance->state == BleWorkerStateAdvertising) {
         ble_worker_start_advertising(false, NULL, ble_worker_instance->advertise);
     }
