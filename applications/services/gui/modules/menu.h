@@ -52,6 +52,8 @@ Widget* menu_get_base(Menu* instance);
  *
  * @param[in,out] instance pointer to the Menu instance to be modified
  * @param[in] label zero-terminated string containing the item text
+ * @param[in] sub_label zero-terminated string containing the auxiliary item text (may be @c NULL)
+ * @param[in] icon_source zero-terminated string containing a full path to the icon file
  * @param[in] index item identifier, doesn't have to be unique
  * @param[in] callback pointer to the function to be called when the item is clicked
  * @param[in,out] context pointer to a user-specific object, will be passed to callback

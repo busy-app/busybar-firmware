@@ -35,7 +35,11 @@ extern "C" {
 #endif
 
 /**
- * @defgroup GenericTimer
+ * @defgroup GenericTimer Generic timer APIs
+ *
+ * Applicable to both @ref CoarseTimer and @ref PreciseTimer types.
+ *
+ * @{
  */
 
 /**
@@ -49,7 +53,7 @@ typedef bool (*TimerConditionCallback)(void* context);
 /** @} */
 
 /**
- * @defgroup CoarseTimer
+ * @defgroup CoarseTimer Coarse timer APIs
  *
  * Timers with a single OS tick precision.
  * Can only be used when the scheduler is running.
@@ -94,7 +98,7 @@ bool coarse_timer_is_expired(const CoarseTimer timer);
 /** @} */
 
 /**
- * @defgroup PreciseTimer
+ * @defgroup PreciseTimer Precise timer APIs
  *
  * Timers with MICROsecond precision.
  *

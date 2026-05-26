@@ -9,7 +9,7 @@ fwenv.SetDefault(BKP_RESOURCES_ROOT=fwenv.Dir("${BUILD_DIR}/resources_bkp"))
 fw_assets_env = fwenv.Clone(tools=["bsb_assets"])
 
 def convert_animations():
-    src_files = fwenv.GlobRecursive("*.zip", Dir("#/assets_bkp/animations/"))
+    src_files = fwenv.GlobRecursive("*.zip", Dir("#/assets/bkp/animations/"))
     converted = []
 
     for f in src_files:
@@ -21,7 +21,7 @@ def convert_animations():
     return converted
 
 def convert_power_cal():
-    src_files = fwenv.GlobRecursive("*.bat_cal", Dir("#/assets_bkp/power/"))
+    src_files = fwenv.GlobRecursive("*.bat_cal", Dir("#/assets/bkp/power/"))
     converted = []
 
     for src in src_files:

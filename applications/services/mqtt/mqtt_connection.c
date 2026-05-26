@@ -10,7 +10,7 @@
 #define MQTT_VERSION     (5)
 #define MQTT_PING_PERIOD M_TO_MS(10)
 
-#define CERT_FILE_CA_BUNDLE EXT_PATH("apps_assets/ca/cacert.pem")
+#define CERT_FILE_CA_BUNDLE EXT_PATH("apps_assets/shared/ca/cacert.pem")
 
 #define STATUS_ONLINE  "\"status\":\"online\""
 #define STATUS_OFFLINE "\"status\":\"offline\""

@@ -9,7 +9,7 @@
 
 #define TAG "HttpsTest"
 
-#define CA_BUNDLE_PATH EXT_PATH("apps_assets/ca/cacert.pem")
+#define CA_BUNDLE_PATH EXT_PATH("apps_assets/shared/ca/cacert.pem")
 
 //#define HTTP_URL "https://www.example.com/"
 #define HTTP_URL "https://www.example.com/"
