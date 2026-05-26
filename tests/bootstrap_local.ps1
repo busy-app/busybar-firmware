@@ -14,6 +14,7 @@
 $ErrorActionPreference = 'Stop'
 
 $TestsDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$RepoRoot = (Resolve-Path (Join-Path $TestsDir '..')).Path
 $Venv     = Join-Path $TestsDir '.venv'
 Set-Location $TestsDir
 
@@ -81,11 +82,28 @@ $env:VIRTUAL_ENV = $prevVE
 # 4. Ensure .env file exists
 # ---------------------------------------------------------------------------
 Say 'Checking .env file'
-if (-not (Test-Path 'config\.env')) {
+$EnvFile = Join-Path $TestsDir 'config\.env'
+if (-not (Test-Path $EnvFile)) {
     if (Test-Path 'config\.env.example') {
-        Copy-Item 'config\.env.example' 'config\.env'
+        Copy-Item 'config\.env.example' $EnvFile
     }
     Warn 'tests\config\.env created from template — fill in real values'
+}
+
+# Patch Linux placeholder paths with Windows-correct values.
+# Only lines that still hold Linux defaults (start with / or ~) are replaced;
+# values already customized by the user are left unchanged.
+$envLines = Get-Content $EnvFile
+$needsPatch = $envLines | Where-Object { $_ -match '^(BSB_FIRMWARE_PATH|PROJECT_WORKSPACE|CRASH_FLAG_PATH)=[/~]' }
+if ($needsPatch) {
+    $envLines | ForEach-Object {
+        switch -Regex ($_) {
+            '^BSB_FIRMWARE_PATH=[/~]' { "BSB_FIRMWARE_PATH=$RepoRoot" }
+            '^PROJECT_WORKSPACE=[/~]' { "PROJECT_WORKSPACE=$RepoRoot" }
+            '^CRASH_FLAG_PATH=/tmp/'  { "CRASH_FLAG_PATH=$env:TEMP\crash_detected.flag" }
+            default                   { $_ }
+        }
+    } | Set-Content $EnvFile -Encoding utf8
 }
 
 # ---------------------------------------------------------------------------
