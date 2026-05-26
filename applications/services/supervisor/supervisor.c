@@ -567,8 +567,11 @@ static void supervisor_process(FuriEventLoopObject* object, void* context) {
 
             if(instance->battery_critical_counter >= SUPERVISOR_BATTERY_TIME_TO_DIE_S) {
                 FURI_LOG_I(TAG, "Battery critical timeout reached");
+
                 if(!power_off(instance->power)) {
                     FURI_LOG_E(TAG, "Power off failed");
+
+                    furi_event_loop_timer_stop(instance->battery_critical_timer);
                 }
             }
         }
