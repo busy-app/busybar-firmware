@@ -152,7 +152,8 @@ class TestAssetsAPI:
             sleep(0.5)
             assets_api.play_audio(test_app_id, test_audio_file)
             sleep(2)
-            assets_api.stop_audio()
+            # 200 if audio is still playing; 410 if the file finished before stop was called
+            assets_api.delete_raw("/api/audio/play")
         finally:
             try:
                 assets_api.delete_assets(test_app_id)
@@ -168,8 +169,9 @@ class TestAssetsAPI:
     @pytest.mark.api
     @pytest.mark.frontend
     def test_api_audio_stop(self, assets_api: AssetsAPI):
-        """Test DELETE /api/audio/play endpoint"""
-        assets_api.stop_audio()
+        """Test DELETE /api/audio/play endpoint returns 410 when no audio is playing."""
+        response = assets_api.delete_raw("/api/audio/play")
+        assert response.status_code == 410
 
     @allure.id("2672")
     @allure.title("POST /api/display/draw (malformed JSON)")

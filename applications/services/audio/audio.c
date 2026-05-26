@@ -274,6 +274,14 @@ static void audio_message_queue_callback(FuriEventLoopObject* object, void* cont
         if(instance->sai_running) {
             instance->fade_direction = AudioFadeDirectionOut;
             result = true;
+        } else if(instance->play_holdoff_running) {
+            // SAI never started; cancel the holdoff and signal play end immediately
+            furi_event_loop_timer_stop(instance->play_holdoff);
+            instance->play_holdoff_running = false;
+            if(!instance->enable_holders) furi_hal_sai_disable_amplifier();
+            AudioEvent pub_event = {.type = AudioEventPlayEnd};
+            furi_pubsub_publish(instance->event_pubsub, &pub_event);
+            result = true;
         }
         furi_string_reset(instance->queued_file);
 

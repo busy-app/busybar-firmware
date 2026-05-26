@@ -4,12 +4,14 @@
 
 #define TAG "HttpAudio"
 
-#define AUDIO_ASSETS_DIR  EXT_PATH("user_assets")
-#define FILE_NAME_LEN_MAX 32
+#define AUDIO_ASSETS_DIR     EXT_PATH("user_assets")
+#define FILE_NAME_LEN_MAX   32
+#define AUDIO_STOP_TIMEOUT_MS 30000
 
 typedef struct {
     struct mg_connection* conn;
     FuriPubSubSubscription* audio_event_sub;
+    struct mg_timer timeout_timer;
 } StopResponseContext;
 
 static void audio_stop_event_callback(const void* message, void* context) {
@@ -36,15 +38,27 @@ static void audio_stop_wakeup_callback(struct mg_connection* conn, void* data, s
     conn->is_draining = true;
 }
 
+static void audio_stop_timeout(void* data) {
+    furi_assert(data);
+    StopResponseContext* ctx = data;
+
+    MG_REPLY_INTERNAL_ERROR(ctx->conn, "Audio stop timeout");
+    ctx->conn->is_draining = true;
+}
+
 static void audio_stop_close_callback(struct mg_connection* conn) {
     furi_assert(conn);
     ConnectionContext* conn_ctx = (void*)conn->data;
     StopResponseContext* ctx = conn_ctx->context;
     furi_assert(ctx);
 
-    Audio* audio = furi_record_open(RECORD_AUDIO);
-    furi_pubsub_unsubscribe(audio_get_pubsub(audio), ctx->audio_event_sub);
-    furi_record_close(RECORD_AUDIO);
+    mg_timer_free(&web_srv_get_mgr()->timers, &ctx->timeout_timer);
+
+    if(ctx->audio_event_sub) {
+        Audio* audio = furi_record_open(RECORD_AUDIO);
+        furi_pubsub_unsubscribe(audio_get_pubsub(audio), ctx->audio_event_sub);
+        furi_record_close(RECORD_AUDIO);
+    }
 
     conn_ctx->on_wakeup = NULL;
     conn_ctx->on_close = NULL;
@@ -66,18 +80,28 @@ static void audio_stop_handler(struct mg_connection* conn) {
         furi_pubsub_subscribe(audio_get_pubsub(audio), audio_stop_event_callback, ctx);
 
     bool result = audio_stop(audio);
+
     if(!result) {
         furi_pubsub_unsubscribe(audio_get_pubsub(audio), ctx->audio_event_sub);
+        furi_record_close(RECORD_AUDIO);
         conn_ctx->on_wakeup = NULL;
         conn_ctx->on_close = NULL;
         conn_ctx->context = NULL;
         free(ctx);
         MG_REPLY_ERROR(conn, 410, "No audio is playing");
+        return;
     }
 
     furi_record_close(RECORD_AUDIO);
 
-    // Hold connection until play stop event
+    // Hold connection until AudioEventPlayEnd fires or timeout expires
+    mg_timer_init(
+        &web_srv_get_mgr()->timers,
+        &ctx->timeout_timer,
+        AUDIO_STOP_TIMEOUT_MS,
+        MG_TIMER_ONCE,
+        audio_stop_timeout,
+        ctx);
 }
 
 static bool api_audio_play_handler(
