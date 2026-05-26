@@ -243,10 +243,6 @@ static void client_set_enabled(Client* client, bool enabled) {
             RATE_LIMIT,
             client_publish_callback,
             client);
-        if(client->active.transport_handle != STATE_PUBLISHER_TRANSPORT_HANDLE_INVALID) {
-            state_publisher_send_complete_snapshot(
-                client->parent->state_publisher, client->active.transport_handle);
-        }
     } else if(was_enabled && !enabled) {
         state_publisher_del_transport(
             client->parent->state_publisher, client->active.transport_handle);
