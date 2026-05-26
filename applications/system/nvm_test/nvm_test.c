@@ -136,7 +136,7 @@ static void nvm_test_write_command(PipeSide* pipe, FuriString* args, void* conte
         }
 
         if(key < 0) {
-            printf("Key can't be negative");
+            printf("Key can't be negative\r\n");
             break;
         }
 
@@ -187,7 +187,7 @@ static void nvm_test_read_command(PipeSide* pipe, FuriString* args, void* contex
         }
 
         if(key < 0) {
-            printf("Key can't be negative");
+            printf("Key can't be negative\r\n");
             break;
         }
 
@@ -233,7 +233,7 @@ static void nvm_test_del_command(PipeSide* pipe, FuriString* args, void* context
         }
 
         if(key < 0) {
-            printf("Key can't be negative");
+            printf("Key can't be negative\r\n");
             break;
         }
 
