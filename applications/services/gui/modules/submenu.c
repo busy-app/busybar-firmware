@@ -20,7 +20,8 @@ struct Submenu {
 typedef struct {
     lv_obj_t base;
     lv_obj_t* cursor;
-    lv_obj_t* label;
+    lv_obj_t* primary_label;
+    lv_obj_t* auxiliary_label;
     uint32_t index;
     SubmenuItemCallback callback;
     void* context;
@@ -70,7 +71,8 @@ static bool submenu_input_callback(Widget* widget, const InputEvent* event) {
 
 static lv_obj_t* submenu_item_alloc(
     Submenu* parent,
-    const char* label,
+    const char* primary_text,
+    const char* auxiliary_text,
     uint32_t index,
     SubmenuItemCallback callback,
     void* context) {
@@ -82,7 +84,8 @@ static lv_obj_t* submenu_item_alloc(
     instance->callback = callback;
     instance->context = context;
 
-    lv_label_set_text(instance->label, label);
+    lv_label_set_text(instance->primary_label, primary_text);
+    lv_label_set_text(instance->auxiliary_label, auxiliary_text);
     lv_group_add_obj(parent->group, obj);
 
     return obj;
@@ -120,9 +123,13 @@ static void submenu_item_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_
     lv_obj_class_init_obj(instance->cursor);
     lv_label_set_text(instance->cursor, SYM_ARROW_RIGHT);
 
-    instance->label = lv_label_create(obj);
-    lv_label_set_long_mode(instance->label, LV_LABEL_LONG_MODE_CLIP);
-    lv_obj_set_flex_grow(instance->label, 1);
+    instance->primary_label = lv_label_create(obj);
+    lv_label_set_long_mode(instance->primary_label, LV_LABEL_LONG_MODE_CLIP);
+    lv_obj_set_flex_grow(instance->primary_label, 1);
+
+    instance->auxiliary_label = lv_label_create(obj);
+    lv_obj_add_flag(instance->auxiliary_label, LV_OBJ_FLAG_IGNORE_LAYOUT);
+    lv_obj_set_align(instance->auxiliary_label, LV_ALIGN_RIGHT_MID);
 }
 
 static void submenu_item_lvgl_event(const lv_obj_class_t* class_p, lv_event_t* event) {
@@ -167,15 +174,15 @@ Widget* submenu_get_base(Submenu* instance) {
 
 void submenu_add_item(
     Submenu* instance,
-    const char* label,
+    const char* primary_text,
+    const char* auxiliary_text,
     uint32_t index,
     SubmenuItemCallback callback,
     void* context) {
     furi_check(instance);
-    furi_check(label);
+    furi_check(primary_text);
 
-    lv_obj_t* item = submenu_item_alloc(instance, label, index, callback, context);
-    UNUSED(item);
+    submenu_item_alloc(instance, primary_text, auxiliary_text, index, callback, context);
 }
 
 void submenu_reset(Submenu* instance) {
