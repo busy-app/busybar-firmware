@@ -136,15 +136,6 @@ void label_set_text_align(Label* instance, TextAlign align);
 void label_set_long_content_mode(Label* instance, LabelLongContentMode mode);
 
 /**
- * @brief Calculate scroll duration for `label_set_long_content_mode`.
- * 
- * @param[in] instance pointer to the Label instance
- * @param[in] rate_ppm scroll rate for off-screen text in pixels per minute
- * 
- * @note the label text and width should be set before calling this function.
- */
-
-/**
  * @brief Set the scroll animation speed for a label.
  *
  * @warning Only valid for @c LabelLongContentModeScrollCircular.
