@@ -27,7 +27,7 @@ static const BleCharacteristicDescriptor generic_attribute_service_characteristi
     {
         .intercom_index = BleGenericAttributeCharacterServiceChanged,
         .name = "Service Changed",
-        .initial_data_size = sizeof(bool),
+        .initial_data_size = sizeof(uint32_t),
 #if defined(BSB_MCU_SI917)
         .uuid = {.Char_UUID_16 = 0x2A05},
         .uuid_size = 2,
