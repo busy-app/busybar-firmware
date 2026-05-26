@@ -44,8 +44,12 @@ typedef size_t StatePublisherTransportHandle;
 /**
  * Add transport (sink) to receive serialized updates.
  *
- * @param transport transport class.
+ * @param instance pointer to a StatePublisher instance to be manipulated
+ * @param transport_class class of this new transport. Each transport class has its own screen streaming frame rate.
  * @param frame_interval_ms minimum frame interval for this transport class.
+ * @param rate_limit rate limits description
+ * @param cb pointer to the transport output function
+ * @param context pointer to a user-specific object (may be @c NULL)
  * @return handle to be used in state_publisher_del_transport.
  */
 StatePublisherTransportHandle state_publisher_add_transport(
@@ -59,6 +63,7 @@ StatePublisherTransportHandle state_publisher_add_transport(
 /**
  * Delete transport (sink).
  *
+ * @param instance pointer to a StatePublisher instance to be manipulated
  * @param handle transport handle received from state_publisher_add_transport.
  */
 void state_publisher_del_transport(StatePublisher* instance, StatePublisherTransportHandle handle);
@@ -85,6 +90,13 @@ bool state_publisher_serialize_error_message(
     ByteArray_t* buf,
     BSB_Error_Severity severity,
     BSB_Error_Cause cause);
+
+/**
+ * Collect and send a complete snapshot containing all possible state information.
+ */
+void state_publisher_send_complete_snapshot(
+    StatePublisher* instance,
+    StatePublisherTransportHandle transport);
 
 #ifdef __cplusplus
 }

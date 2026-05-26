@@ -108,7 +108,7 @@ void flex_layout_set_align(
  *
  * @param[in,out] instance pointer to the FlexLayout instance to be modified
  * @param[in,out] child pointer to the widget instance to be modified, must be child if FlexLayout
- * @param[in] scrollbar_mode new grow value needs to be > 1 or 0 to disable grow on the child.
+ * @param[in] grow new grow value needs to be > 1 or 0 to disable grow on the child.
  */
 void flex_layout_set_child_widget_grow(FlexLayout* instance, Widget* child, uint8_t grow);
 #ifdef __cplusplus

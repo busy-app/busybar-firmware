@@ -1,12 +1,8 @@
 /**
- * @file furi_hal_light.h
- * Light control HAL API
+ * @file furi_hal_mpu.h
+ * @brief MPU Control API.
  */
-
 #pragma once
-
-#include <stdbool.h>
-#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {

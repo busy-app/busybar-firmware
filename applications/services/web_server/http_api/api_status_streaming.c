@@ -250,6 +250,17 @@ static void client_set_enabled(Client* client, bool enabled) {
     }
 }
 
+static bool client_send_all(Client* client) {
+    bool enabled = client->active.transport_handle != STATE_PUBLISHER_TRANSPORT_HANDLE_INVALID;
+    if(enabled) {
+        state_publisher_send_complete_snapshot(
+            client->parent->state_publisher, client->active.transport_handle);
+        return true;
+    } else {
+        return false;
+    }
+}
+
 static void client_on_message(struct mg_connection* conn, struct mg_ws_message* ws_msg) {
     furi_assert(conn);
 
@@ -274,10 +285,20 @@ static void client_on_message(struct mg_connection* conn, struct mg_ws_message* 
     } else if(WEBSOCKET_TEXT(ws_msg->flags)) {
         STREAM_LOG_D("MSG");
 
+        bool success = false;
         bool enabled = false;
         if(mg_json_get_bool(ws_msg->data, "$.enable", &enabled)) {
             client_set_enabled(client, enabled);
-        } else {
+            success = true;
+        }
+        char* send_value = mg_json_get_str(ws_msg->data, "$.send");
+        if(send_value && strcmp("all", send_value) == 0) {
+            if(client_send_all(client)) {
+                success = true;
+            }
+        }
+        mg_free(send_value);
+        if(!success) {
             FURI_LOG_E(TAG, "bad request");
         }
     } else if(WEBSOCKET_PING(ws_msg->flags)) {
@@ -328,7 +349,7 @@ bool http_api_status_ws_callback(
         conn_ctx->context = client;
     }
 
-    mg_ws_upgrade(conn, msg, NULL);
+    mg_ws_upgrade(conn, msg, HEADER_CORS_ORIGIN);
 
     return true;
 }

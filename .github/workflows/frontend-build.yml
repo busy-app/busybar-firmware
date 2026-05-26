@@ -24,7 +24,7 @@ jobs:
       - name: Checkout protobuf submodule
         run: |
           git submodule sync -- assets/proto
-          git submodule update --init --depth 1 assets/proto
+          git submodule update --init --depth 1 --filter=blob:none assets/proto
 
       - name: Copy frontend assets to working directory
         run: |

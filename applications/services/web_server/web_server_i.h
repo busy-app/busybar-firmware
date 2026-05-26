@@ -11,7 +11,7 @@
 #define HEADER_CORS_ORIGIN        "Access-Control-Allow-Origin: *\r\n"
 #define HEADER_CORS_METHODS       "Access-Control-Allow-Methods: GET, POST, PUT, DELETE\r\n"
 #define HEADER_CORS_HEADERS       "Access-Control-Allow-Headers: *\r\n"
-#define HEADER_CORS               HEADER_CORS_ORIGIN HEADER_CORS_METHODS HEADER_CORS_HEADERS
+#define HEADER_CORS               HEADER_CORS_ORIGIN HEADER_CORS_HEADERS
 #define HEADER_CONTENT_TYPE_JSON  "Content-Type: application/json\r\n"
 #define HEADER_CONTENT_TYPE_IMAGE "Content-Type: image/bmp\r\n"
 
@@ -20,23 +20,26 @@
 
 #define RESPONSE_BODY_OK "{\"result\":\"OK\"}\n"
 
-#define _MG_OPTIONS_RESULT(conn, code) mg_http_reply(conn, code, HEADER_CORS, "")
+#define _MG_OPTIONS_RESULT(conn, code) \
+    mg_http_reply(conn, code, HEADER_CORS HEADER_CORS_METHODS, "")
 
 #define _MG_JSON_RESULT(conn, code, body, ...) \
     mg_http_reply(conn, code, DEFAULT_JSON_HEADERS, body, ##__VA_ARGS__)
 
-#define _MG_JSON_ERROR(conn, code, body, ...) \
-    mg_http_reply(conn, code, DEFAULT_JSON_HEADERS, body, ##__VA_ARGS__)
-
 #define MG_REPLY_IMAGE(conn, image, size) \
-    mg_http_reply(conn, 200, DEFAULT_IMAGE_HEADERS, "%M\r\n", mg_print_base64, size, image)
+    mg_http_reply(conn, 200, DEFAULT_IMAGE_HEADERS, "%M", mg_print_base64, size, image)
 
 #define MG_REPLY_OPTIONS(conn)                 _MG_OPTIONS_RESULT(conn, 200)
 #define MG_REPLY_OK(conn)                      _MG_JSON_RESULT(conn, 200, RESPONSE_BODY_OK)
 #define MG_REPLY_OK_BODY(conn, json_body, ...) _MG_JSON_RESULT(conn, 200, json_body, ##__VA_ARGS__)
 
+// Force closing the connection - to prevent clients from reusing it
+// (e.g. after a streaming upload) and racing with the server-side FIN
+#define MG_REPLY_OK_CLOSE(conn) \
+    mg_http_reply(conn, 200, DEFAULT_JSON_HEADERS "Connection: close\r\n", RESPONSE_BODY_OK)
+
 #define MG_REPLY_ERROR(conn, code, ...) \
-    _MG_JSON_ERROR(                     \
+    _MG_JSON_RESULT(                    \
         conn, code, "{\"error\":\"%s\"}\n", M_IF_EMPTY(__VA_ARGS__)("failed", __VA_ARGS__))
 
 #define MG_REPLY_BAD_REQUEST(conn)     MG_REPLY_ERROR(conn, 400, "Bad Request")
@@ -52,6 +55,10 @@
     _MG_REPLY_INTERNAL_ERROR(conn, M_IF_EMPTY(__VA_ARGS__)("failed", (__VA_ARGS__)))
 
 #define MG_REPLY_OVERLOADED(conn) MG_REPLY_ERROR(conn, 508, "Resource Limit Reached")
+
+#define MG_REPLY_METHOD_NOT_ALLOWED(conn, headers_cstr) \
+    mg_http_reply(conn, 405, headers_cstr, "{\"error\":\"Method Not Allowed\"}\n")
+#define MG_REPLY_CORS_OPTIONS(conn, headers_cstr) mg_http_reply(conn, 200, headers_cstr, "")
 
 #define MG_CLOSE_AFTER_HEADERS(conn, msg)        \
     mg_iobuf_del(&conn->recv, 0, msg->head.len); \
@@ -162,6 +169,7 @@ void http_handler_remove(HttpHandlersList_t list, const HttpHandler* handler);
 void http_handler_remove_all(HttpHandlersList_t list);
 
 void http_reply_405_method_not_allowed(struct mg_connection* conn, HttpMethod allowed_methods);
+void http_reply_cors_preflight(struct mg_connection* conn, HttpMethod allowed_methods);
 
 void http_upload_start(
     struct mg_connection* conn,

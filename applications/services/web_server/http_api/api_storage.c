@@ -58,6 +58,12 @@ static bool api_storage_write_headers_callback(
     return true;
 }
 
+static bool api_storage_filename_is_header_safe(const FuriString* filename) {
+    return furi_string_search_char(filename, '"', 0) == FURI_STRING_FAILURE &&
+           furi_string_search_char(filename, '\r', 0) == FURI_STRING_FAILURE &&
+           furi_string_search_char(filename, '\n', 0) == FURI_STRING_FAILURE;
+}
+
 static bool api_storage_read_callback(
     FuriString* path,
     HttpMethod method,
@@ -80,6 +86,12 @@ static bool api_storage_read_callback(
     if(success) {
         FuriString* filename = furi_string_alloc();
         path_extract_filename(file_path, filename, false);
+        if(!api_storage_filename_is_header_safe(filename)) {
+            furi_string_free(filename);
+            furi_string_free(file_path);
+            MG_REPLY_BAD_REQUEST(conn);
+            return true;
+        }
         FuriString* content_header = furi_string_alloc_printf(
             "Content-Disposition: attachment; filename=\"%s\"\r\n",
             furi_string_get_cstr(filename));
