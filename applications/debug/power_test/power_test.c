@@ -56,22 +56,33 @@ static void power_test_menu_enter(PowerTest* instance) {
             submenu_alloc(gui_layer_get_root_widget(main_layer, GuiDisplayIdFront));
 
         submenu_add_item(
-            instance->submenu_front, "Off", PowerTestOff, power_test_submenu_callback, instance);
+            instance->submenu_front,
+            "Off",
+            NULL,
+            PowerTestOff,
+            power_test_submenu_callback,
+            instance);
         submenu_add_item(
             instance->submenu_front,
             "Reboot",
+            NULL,
             PowerTestReboot,
             power_test_submenu_callback,
             instance);
         submenu_add_item(
-            instance->submenu_front, "Info", PowerTestInfo, power_test_submenu_callback, instance);
+            instance->submenu_front,
+            "Info",
+            NULL,
+            PowerTestInfo,
+            power_test_submenu_callback,
+            instance);
 
         instance->submenu_back =
             submenu_alloc(gui_layer_get_root_widget(main_layer, GuiDisplayIdBack));
 
-        submenu_add_item(instance->submenu_back, "Off", PowerTestOff, NULL, NULL);
-        submenu_add_item(instance->submenu_back, "Reboot", PowerTestReboot, NULL, NULL);
-        submenu_add_item(instance->submenu_back, "Info", PowerTestInfo, NULL, NULL);
+        submenu_add_item(instance->submenu_back, "Off", NULL, PowerTestOff, NULL, NULL);
+        submenu_add_item(instance->submenu_back, "Reboot", NULL, PowerTestReboot, NULL, NULL);
+        submenu_add_item(instance->submenu_back, "Info", NULL, PowerTestInfo, NULL, NULL);
     });
 }
 

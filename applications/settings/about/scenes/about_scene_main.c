@@ -34,28 +34,31 @@ static void about_scene_main_on_enter(void* context) {
         submenu_add_item(
             data->front_menu,
             "General",
+            NULL,
             SceneEventGeneral,
             about_scene_main_menu_item_callback,
             instance);
         submenu_add_item(
             data->front_menu,
             "Firmware",
+            NULL,
             SceneEventFirmware,
             about_scene_main_menu_item_callback,
             instance);
         submenu_add_item(
             data->front_menu,
             "Compliance Info",
+            NULL,
             SceneEventComplianceInfo,
             about_scene_main_menu_item_callback,
             instance);
         submenu_set_selected_item_index(data->front_menu, data->menu_index);
 
         data->back_menu = submenu_alloc(instance->back_scene_window);
-        submenu_add_item(data->back_menu, "General", SceneEventGeneral, NULL, instance);
-        submenu_add_item(data->back_menu, "Firmware", SceneEventFirmware, NULL, instance);
+        submenu_add_item(data->back_menu, "General", NULL, SceneEventGeneral, NULL, instance);
+        submenu_add_item(data->back_menu, "Firmware", NULL, SceneEventFirmware, NULL, instance);
         submenu_add_item(
-            data->back_menu, "Compliance Info", SceneEventComplianceInfo, NULL, instance);
+            data->back_menu, "Compliance Info", NULL, SceneEventComplianceInfo, NULL, instance);
         submenu_set_selected_item_index(data->back_menu, data->menu_index);
     });
 }
