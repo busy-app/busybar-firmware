@@ -159,16 +159,6 @@ static void canvas_widget_destroy_all(CanvasSrv* canvas) {
     }
 }
 
-static void canvas_announce_priority(CanvasSrv* canvas, size_t priority) {
-    furi_assert(canvas);
-    loader_set_priority(canvas->loader, priority);
-}
-
-static size_t canvas_get_priority(CanvasSrv* canvas) {
-    furi_assert(canvas);
-    return loader_get_priority(canvas->loader);
-}
-
 static bool is_in_power_off(CanvasSrv* canvas) {
     FuriString* current_app_name = furi_string_alloc();
 
@@ -290,9 +280,12 @@ static void canvas_element_reanchor(Widget* root, Align align, int32_t* x, int32
     furi_assert(x);
     furi_assert(y);
 
-    int32_t disp_width = widget_get_width(root);
-    int32_t disp_height = widget_get_height(root);
+    int32_t disp_width = widget_get_max_width(root);
+    int32_t disp_height = widget_get_max_height(root);
     AlignBitmask align_bm = widget_align_to_bitmask(align);
+
+    furi_assert(disp_width > 0);
+    furi_assert(disp_height > 0);
 
     int32_t lvgl_anchor_x;
     if(align_bm & AlignBitmaskLeft) lvgl_anchor_x = 0;
@@ -418,7 +411,16 @@ static void canvas_srv_queue_event_callback(FuriEventLoopObject* object, void* c
         furi_assert(event.priority);
 
         do {
-            size_t current_priority = canvas_get_priority(canvas);
+            if(canvas->gui == NULL) {
+                canvas->priority = loader_get_priority(canvas->loader);
+            }
+
+            size_t current_priority = canvas->priority;
+            FURI_LOG_I(
+                "CanvasSrv",
+                "Received update event with priority %zu, current priority is %zu",
+                *event.priority,
+                current_priority);
             if(*event.priority < current_priority) {
                 res = CanvasResultLowPriority;
                 break;
@@ -443,7 +445,7 @@ static void canvas_srv_queue_event_callback(FuriEventLoopObject* object, void* c
             } else {
                 canvas->app_id = strdup(event.app_id);
             }
-            canvas_announce_priority(canvas, *event.priority);
+            canvas->priority = *event.priority;
             res = canvas_update_all(canvas, event.elements) ? CanvasResultOk :
                                                               CanvasResultBadParameters;
         } while(0);
@@ -515,11 +517,18 @@ static void canvas_screen_open(CanvasSrv* canvas) {
         Color background = COLOR_MAKE_HEXA(0x000000FF);
         for(GuiDisplayId i = 0; i < GuiDisplayIdMax; i++) {
             Widget* root = gui_layer_get_root_widget(draw_layer, i);
+            size_t root_w = widget_get_width(root);
+            size_t root_h = widget_get_height(root);
+
             canvas->display[i] = widget_alloc(root);
             widget_set_background_color(canvas->display[i], background);
             widget_set_pos(canvas->display[i], 0, 0);
             widget_set_padding(canvas->display[i], 0, 0, 0, 0);
             widget_set_margin(canvas->display[i], 0, 0, 0, 0);
+            widget_set_ignore_layout(canvas->display[i], true);
+
+            widget_set_size(canvas->display[i], root_w, root_h);
+            widget_set_max_size(canvas->display[i], root_w, root_h);
         }
         canvas->display_mirror = display_mirror_alloc(canvas->display[GuiDisplayIdBack]);
     });
@@ -545,7 +554,7 @@ static void canvas_screen_close(CanvasSrv* canvas) {
     });
     furi_record_close(RECORD_GUI);
     canvas->gui = NULL;
-    canvas_announce_priority(canvas, 0);
+    canvas->priority = 0;
     if(is_in_power_off(canvas)) {
         BackDisplaySrv* back_display = furi_record_open(RECORD_BACK_DISPLAY);
         back_display_sleep_mode(back_display, true);
@@ -567,7 +576,7 @@ static CanvasSrv* canvas_srv_alloc() {
     CanvasWidgetsDict_init(canvas->widgets);
 
     canvas->loader = furi_record_open(RECORD_LOADER);
-    canvas_announce_priority(canvas, 0);
+    canvas->priority = 0;
 
     return canvas;
 }

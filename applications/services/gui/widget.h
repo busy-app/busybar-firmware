@@ -218,6 +218,22 @@ void widget_set_width_content(Widget* instance);
 void widget_set_height_content(Widget* instance);
 
 /**
+ * @brief Get the Widget maximum width.
+ *
+ * @param[in] instance pointer to the Widget instance to be queried
+ * @returns widget maximum width in pixels
+ */
+int32_t widget_get_max_width(const Widget* instance);
+
+/**
+ * @brief Get the Widget maximum height.
+ *
+ * @param[in] instance pointer to the Widget instance to be queried
+ * @returns widget maximum height in pixels
+ */
+int32_t widget_get_max_height(const Widget* instance);
+
+/**
  * @brief Set the Widget x (horizontal) position.
  *
  * @note Widget positions are always relative to its parent.
