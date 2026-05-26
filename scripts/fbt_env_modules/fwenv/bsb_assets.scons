@@ -8,6 +8,28 @@ import hashlib
 import shutil
 import os
 
+def strip_pem_comments(path):
+    """Remove the curl bundle header and per-cert name labels; keep only PEM blocks."""
+    in_cert = False
+    out_lines = []
+    with open(path) as f:
+        for line in f:
+            line = line.rstrip("\r\n")
+            if line == "-----BEGIN CERTIFICATE-----":
+                in_cert = True
+                out_lines.append(line)
+            elif line == "-----END CERTIFICATE-----":
+                in_cert = False
+                out_lines.append(line)
+                out_lines.append("")  # blank line between certs
+            elif in_cert:
+                out_lines.append(line)
+    while out_lines and out_lines[-1] == "":
+        out_lines.pop()
+    with open(path, "w") as f:
+        f.write("\n".join(out_lines) + "\n")
+
+
 def sha256sum(filename):
     try:
         with open(filename, "rb") as f:
@@ -25,6 +47,7 @@ def download_file(build_output, src_tree_file, *_, src_url, src_url_sha256, **__
         if sha256sum(src_tree_file) == expected_sha:
             print(f"File is up to date: {src_tree_file}")
             shutil.copy(src_tree_file, build_output)
+            strip_pem_comments(build_output)
             return True
 
         file = requests.get(src_url, timeout=10)
@@ -36,12 +59,13 @@ def download_file(build_output, src_tree_file, *_, src_url, src_url_sha256, **__
         if sha256sum(build_output) != expected_sha:
             raise Exception(f"Downloaded file does not match digest: {src_tree_file}")
 
-        # Copy back to the source tree so the updated cert can be committed.
+        # Copy the unstripped file back so the next build can verify SHA against it.
         # This leaves a dirty working tree in CI — commit or reset the file afterward.
         shutil.copy(build_output, src_tree_file)
         print(
             f"WARNING: {src_tree_file} has been updated from {src_url}. Commit the change."
         )
+        strip_pem_comments(build_output)
         return True
 
     except requests.RequestException:
@@ -49,6 +73,7 @@ def download_file(build_output, src_tree_file, *_, src_url, src_url_sha256, **__
         if os.path.exists(src_tree_file):
             print(f"Network unavailable; using existing cert: {src_tree_file}")
             shutil.copy(src_tree_file, build_output)
+            strip_pem_comments(build_output)
             return True
         print(f"Failed to download cert and no local copy found: {src_tree_file}")
         return False
@@ -146,7 +171,16 @@ def update_certs(src_dir, dst_dir):
 
     SRC_URL = "https://curl.se/ca/cacert.pem"
     SRC_URL_SHA256 = "https://curl.se/ca/cacert.pem.sha256"
-    fw_assets_env.Command(target=cert_file_downloaded, source=cert_file, action=lambda target, source, **_: not download_file(target[0].rfile().abspath, source[0].rfile().abspath, src_url=SRC_URL, src_url_sha256=SRC_URL_SHA256))
+    fw_assets_env.Command(
+        target=cert_file_downloaded,
+        source=cert_file,
+        action=lambda target, source, **_: not download_file(
+            target[0].rfile().abspath,
+            source[0].rfile().abspath,
+            src_url=SRC_URL,
+            src_url_sha256=SRC_URL_SHA256,
+        ),
+    )
     fw_assets_env.AlwaysBuild(cert_file_downloaded)
 
     return [fw_assets_env.Install(dst_dir.Dir("ca"), cert_file_downloaded)]
