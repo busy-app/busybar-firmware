@@ -588,7 +588,8 @@
  *  @endcode
  */
 #define LV_FONT_CUSTOM_DECLARE \
-    LV_FONT_DECLARE(lv_font_busy_regular_5)
+    LV_FONT_DECLARE(lv_font_busy_regular_5) \
+    LV_FONT_DECLARE(lv_font_busy_regular_9)
 
 /** Always set a default font */
 #define LV_FONT_DEFAULT &lv_font_busy_regular_5

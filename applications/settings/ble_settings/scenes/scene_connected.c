@@ -32,12 +32,14 @@ static void scene_connected_on_enter(void* context) {
     with_gui(instance->gui, {
         /* front layout setup */
         data->front_status = status_view_alloc(instance->front_scene_window);
-        status_view_set_icon(data->front_status, SHARED_IMG_PATH("checkmark_front_8x8.image"));
+        status_view_set_icon(
+            data->front_status, SHARED_IMG_PATH("checkmark_front_8x8.image"), false);
         status_view_set_primary_text(data->front_status, "Connected");
 
         /* back layout setup */
         data->back_status = status_view_alloc(instance->back_scene_window);
-        status_view_set_icon(data->back_status, SHARED_IMG_PATH("checkmark_back_11x11.image"));
+        status_view_set_icon(
+            data->back_status, SHARED_IMG_PATH("checkmark_back_11x11.image"), false);
         status_view_set_primary_text(data->back_status, "Connected");
     });
 
