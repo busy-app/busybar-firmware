@@ -37,12 +37,11 @@ jobs:
 
       - name: 'Update submodules'
         run: |
-          git submodule update --init --recursive --jobs=$(nproc) scripts/toolchain lib/lwip lib/matter_ext || (git lfs logs last && exit 1)
+          git submodule update --init --recursive --jobs=$(nproc) || (git lfs logs last && exit 1)
 
       - name: 'Check submodule branches'
         if: always()
         run: |
-          git submodule update --init --jobs=$(nproc) || (git lfs logs last && exit 1)
           python3 scripts/check-submodules.py .github/expected-submodule-branches.txt
 
       - name: 'Check REUSE compliance'
@@ -71,7 +70,7 @@ jobs:
         if: always()
         run: |
           set +e;
-          export FBT_GIT_SUBMODULE_SHALLOW=1;
+          export FBT_NO_SYNC=1;
           errors=0;
           for target in 21 64; do
             log_file="lint-cpp-${target}.log";
@@ -99,7 +98,7 @@ jobs:
         if: false
         run: |
           set +e;
-          export FBT_GIT_SUBMODULE_SHALLOW=1;
+          export FBT_NO_SYNC=1;
           errors=0;
           for target in 21 64; do
             log_file="lint-py-${target}.log";

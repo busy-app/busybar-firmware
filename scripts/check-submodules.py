@@ -1,9 +1,14 @@
 #!/usr/bin/env python3
-"""Verify that each git submodule is on its expected remote branch."""
+"""Verify that each git submodule is on its expected remote branch.
+
+Requires all submodules to be initialized first:
+    git submodule update --init --recursive
+"""
 
 import argparse
 import subprocess
 import sys
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -23,16 +28,23 @@ def load_expected(data_file: Path) -> dict[str, str]:
     return result
 
 
-def containing_branches(submodule_path: Path) -> list[str]:
-    commit = subprocess.check_output(
-        ["git", "rev-parse", "HEAD"], cwd=submodule_path, text=True
-    ).strip()
-    out = subprocess.check_output(
-        ["git", "branch", "-r", "--contains", commit],
-        cwd=submodule_path,
-        text=True,
-    )
-    return [b.strip() for b in out.splitlines() if b.strip()]
+def check_one(sm_path: str, expected_branch: str) -> tuple[bool, str]:
+    prefix = f"  {sm_path}:"
+    sm_dir = REPO_ROOT / sm_path
+    if not sm_dir.is_dir():
+        return False, f"{prefix} not initialized (run 'git submodule update --init')"
+    try:
+        out = subprocess.check_output(
+            ["git", "-C", str(sm_dir), "branch", "-r", "--contains", "HEAD"],
+            text=True,
+            stderr=subprocess.DEVNULL,
+        )
+    except subprocess.CalledProcessError as exc:
+        return False, f"{prefix} git error — {exc}"
+    branches = [b.strip() for b in out.splitlines() if b.strip()]
+    if expected_branch in branches:
+        return True, f"{prefix} correct branch ({expected_branch})"
+    return False, f"{prefix} incorrect branch (expected {expected_branch})"
 
 
 def main() -> int:
@@ -43,35 +55,27 @@ def main() -> int:
         type=Path,
         default=DEFAULT_DATA_FILE,
         metavar="BRANCHES_FILE",
-        help="path to expected-submodule-branches.txt (default: .github/expected-submodule-branches.txt)",
+        help="path to expected-submodule-branches.txt"
+        " (default: .github/expected-submodule-branches.txt)",
     )
     args = parser.parse_args()
 
     expected = load_expected(args.data_file)
     failures: list[str] = []
 
-    for sm_path, expected_branch in expected.items():
-        full_path = REPO_ROOT / sm_path
-        prefix = f"  {sm_path}:"
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        futures = {
+            pool.submit(check_one, sm_path, branch): sm_path
+            for sm_path, branch in expected.items()
+        }
+        results: dict[str, tuple[bool, str]] = {}
+        for future in as_completed(futures):
+            results[futures[future]] = future.result()
 
-        if not full_path.is_dir():
-            print(f"{prefix} directory not found, skipping")
-            continue
-
-        try:
-            branches = containing_branches(full_path)
-        except subprocess.CalledProcessError as exc:
-            print(f"{prefix} git error — {exc}")
-            failures.append(sm_path)
-            continue
-
-        if expected_branch in branches:
-            print(f"{prefix} correct branch ({expected_branch})")
-        else:
-            actual = ", ".join(branches) or "(none)"
-            print(
-                f"{prefix} incorrect branch (expected {expected_branch}, got {actual})"
-            )
+    for sm_path in expected:  # stable order
+        ok, msg = results[sm_path]
+        print(msg)
+        if not ok:
             failures.append(sm_path)
 
     if failures:
