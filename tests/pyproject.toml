@@ -7,7 +7,7 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.9"
-pytest = "^7.4.0"
+pytest = ">=8.0,<9.0"
 pytest-xdist = "^3.3.1"
 allure-pytest = "^2.13.2"
 requests = "^2.31.0"
@@ -21,7 +21,11 @@ pytest-timeout = "^2.2"
 beautifulsoup4 = "^4.13.5"
 schemathesis = ">=4.0"
 Pillow = ">=10.0"
+protobuf = ">=5.0"
+grpcio-tools = "^1.80.0"
+paho-mqtt = ">=2.0"
 PyYAML = "^6.0"
+websocket-client = "^1.9.0"
 
 [tool.poetry.group.dev.dependencies]
 black = "^23.0.0"
@@ -47,6 +51,12 @@ markers = [
     "interface_status: marks tests as interface status tests",
     "commands_check: marks tests as command validation",
     "mqtt: marks tests as MQTT functionality",
+    "uses_cloud: marks tests that require real cloud test account/session service",
+    "external_service: marks tests that talk to services outside the device",
+    "state_publisher: marks state publisher transport/protobuf tests",
+    "uses_ble: marks tests that require BLE adapter/hardware path",
+    "rate_limiter: marks state publisher rate limiter tests",
+    "long_running: marks long-running hardware regression tests",
     "regression: marks heavy regression tests",
     "uses_si917: marks tests that exercise the Si917 coprocessor",
     "asyncio: marks tests as async tests",

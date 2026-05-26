@@ -1,7 +1,90 @@
+import json
+import time
+
 import allure
 import pytest
+import requests
 
-from clients.api import BusyAPI
+from clients.api import BusyAPI, StorageAPI, StreamingAPI
+from utils.busy_timer import STATE_SETTLE_S, WORK_CARD_UUID, next_timestamp
+
+
+BUSY_THEME_ANIMS = {
+    "back_soon": "back_soon_72x16.anim",
+    "booked": "booked_72x16.anim",
+    "chill_time": "chill_time_72x16.anim",
+    "dnd": "dnd_72x16.anim",
+    "flow": "flow_72x16.anim",
+    "keep_out": "keep_out_72x16.anim",
+    "lunch": "lunch_72x16.anim",
+    "meeting": "meeting_72x16.anim",
+    "on_air": "on_air_72x16.anim",
+    "on_call": "on_call_72x16.anim",
+}
+
+DEFAULT_BUSY_SETTINGS = {
+    "theme": "busy",
+    "show_work_phase_only": False,
+    "trigger_smart_home": False,
+}
+
+
+def _current_busy_settings(snapshot_doc: dict) -> dict:
+    return (
+        snapshot_doc.get("snapshot", {}).get("busy_bar_settings")
+        or snapshot_doc.get("busy_bar_settings")
+        or DEFAULT_BUSY_SETTINGS
+    )
+
+
+def _simple_snapshot(timestamp_ms: int, settings: dict, time_left_ms: int = 180000) -> dict:
+    return {
+        "snapshot": {
+            "type": "SIMPLE",
+            "card_id": WORK_CARD_UUID,
+            "is_paused": True,
+            "time_left_ms": time_left_ms,
+            "busy_bar_settings": settings,
+        },
+        "snapshot_timestamp_ms": timestamp_ms,
+    }
+
+
+def _infinite_snapshot(timestamp_ms: int, settings: dict) -> dict:
+    return {
+        "snapshot": {
+            "type": "INFINITE",
+            "card_id": WORK_CARD_UUID,
+            "is_paused": True,
+            "busy_bar_settings": settings,
+        },
+        "snapshot_timestamp_ms": timestamp_ms,
+    }
+
+
+def _interval_snapshot(timestamp_ms: int, settings: dict) -> dict:
+    return {
+        "snapshot": {
+            "type": "INTERVAL",
+            "card_id": WORK_CARD_UUID,
+            "is_paused": True,
+            "current_interval": 0,
+            "current_interval_time_total_ms": 300000,
+            "current_interval_time_left_ms": 240000,
+            "interval_settings": {
+                "interval_work_ms": 300000,
+                "interval_rest_ms": 300000,
+                "interval_work_cycles_count": 2,
+                "is_autostart_enabled": False,
+            },
+            "busy_bar_settings": settings,
+        },
+        "snapshot_timestamp_ms": timestamp_ms,
+    }
+
+
+def _front_frame_has_content(frame: bytes) -> bool:
+    return any(frame)
 
 
 @allure.feature("5. Web Frontend")
@@ -163,3 +246,304 @@ class TestBusyProfileAPI:
         """Test GET /api/busy/profiles with invalid slot returns error"""
         response = busy_api.get_profile_raw("invalid_slot")
         assert response.status_code == 400
+
+
+@allure.feature("5. Web Frontend")
+@allure.story("Busy Timer")
+@pytest.mark.api
+@pytest.mark.frontend
+@pytest.mark.regression
+class TestBusyThemeRegressions:
+    @allure.title("BUSY theme configs point to deployed shared animations")
+    @pytest.mark.parametrize("theme,anim_name", sorted(BUSY_THEME_ANIMS.items()))
+    def test_busy_theme_config_references_existing_shared_animation(
+        self, storage_api: StorageAPI, theme: str, anim_name: str
+    ):
+        config_path = f"/ext/apps_assets/busy/themes/{theme}/theme.json"
+        config_response = storage_api.read(config_path)
+        assert config_response.status_code == 200
+
+        config = json.loads(config_response.content.decode("utf-8"))
+        expected_bg_path = f"/ext/apps_assets/shared/animations/{anim_name}"
+        assert set(config).issubset({"bg_path", "order"})
+        assert config["bg_path"] == expected_bg_path
+        assert config["bg_path"]
+        if "order" in config:
+            assert isinstance(config["order"], int)
+
+        anim_response = storage_api.read(expected_bg_path)
+        assert anim_response.status_code == 200
+        assert len(anim_response.content) > 0
+
+    @allure.title("Missing BUSY theme config is not readable")
+    def test_missing_busy_theme_config_is_not_readable(self, storage_api: StorageAPI):
+        response = storage_api.read("/ext/apps_assets/busy/themes/not_a_theme/theme.json")
+
+        assert response.status_code in {400, 404}
+
+    @allure.title("BUSY theme render smoke uses shared theme assets")
+    def test_busy_theme_render_smoke(
+        self,
+        busy_api: BusyAPI,
+        streaming_api: StreamingAPI,
+        api_session,
+        web_base_url,
+        busy_state_guard,
+    ):
+        settings = dict(_current_busy_settings(busy_state_guard))
+        settings["theme"] = "on_air"
+        body = _simple_snapshot(
+            next_timestamp(api_session, web_base_url),
+            settings,
+            time_left_ms=180000,
+        )
+        body["snapshot"]["is_paused"] = False
+
+        assert busy_api.set_snapshot_raw(body).status_code == 200
+        time.sleep(STATE_SETTLE_S)
+
+        frame = streaming_api.get_screen_bytes(display=0)
+        assert _front_frame_has_content(frame)
+
+
+@allure.feature("5. Web Frontend")
+@allure.story("Busy Timer")
+@pytest.mark.api
+@pytest.mark.frontend
+@pytest.mark.regression
+class TestBusySnapshotRegressions:
+    @allure.title("BUSY SIMPLE and INTERVAL snapshots round-trip")
+    @pytest.mark.parametrize(
+        "factory,expected_type",
+        [(_simple_snapshot, "SIMPLE"), (_interval_snapshot, "INTERVAL")],
+    )
+    def test_busy_timer_snapshot_round_trip(
+        self,
+        busy_api: BusyAPI,
+        api_session,
+        web_base_url,
+        busy_state_guard,
+        factory,
+        expected_type,
+    ):
+        settings = _current_busy_settings(busy_state_guard)
+        body = factory(next_timestamp(api_session, web_base_url), settings)
+
+        response = busy_api.set_snapshot_raw(body)
+        assert response.status_code == 200
+        time.sleep(STATE_SETTLE_S)
+
+        updated = busy_api.get_snapshot()
+        assert updated.snapshot["type"] == expected_type
+        assert isinstance(updated.snapshot["is_paused"], bool)
+        assert updated.snapshot["busy_bar_settings"] == settings
+        if expected_type == "SIMPLE":
+            assert 0 < updated.snapshot["time_left_ms"] <= body["snapshot"]["time_left_ms"]
+
+    @allure.title("BUSY timer ignores stale snapshots")
+    def test_busy_timer_stale_snapshot_is_ignored(
+        self, busy_api: BusyAPI, api_session, web_base_url, busy_state_guard
+    ):
+        settings = _current_busy_settings(busy_state_guard)
+        accepted_ts = next_timestamp(api_session, web_base_url)
+        accepted = _simple_snapshot(accepted_ts, settings, time_left_ms=240000)
+        stale = {
+            "snapshot": {
+                "type": "NOT_STARTED",
+                "busy_bar_settings": settings,
+            },
+            "snapshot_timestamp_ms": accepted_ts - 1,
+        }
+
+        assert busy_api.set_snapshot_raw(accepted).status_code == 200
+        time.sleep(STATE_SETTLE_S)
+        current = busy_api.get_snapshot()
+        stale["snapshot_timestamp_ms"] = current.snapshot_timestamp_ms - 1
+        assert busy_api.set_snapshot_raw(stale).status_code == 200
+        time.sleep(STATE_SETTLE_S)
+
+        updated = busy_api.get_snapshot()
+        assert updated.snapshot_timestamp_ms == current.snapshot_timestamp_ms
+        assert updated.snapshot["type"] == "SIMPLE"
+        assert 0 < updated.snapshot["time_left_ms"] <= 240000
+
+    @allure.title("BUSY timer invalid semantic snapshots do not change current state")
+    @pytest.mark.parametrize(
+        "mutator",
+        [
+            lambda body: body["snapshot"].update({"card_id": "not-a-uuid"}),
+            lambda body: body["snapshot"].update({"time_left_ms": 999999999}),
+            lambda body: body["snapshot"].update({"type": "UNKNOWN"}),
+        ],
+    )
+    def test_busy_timer_invalid_simple_snapshots_do_not_apply(
+        self, busy_api: BusyAPI, api_session, web_base_url, busy_state_guard, mutator
+    ):
+        settings = _current_busy_settings(busy_state_guard)
+        baseline = _infinite_snapshot(next_timestamp(api_session, web_base_url), settings)
+        assert busy_api.set_snapshot_raw(baseline).status_code == 200
+        time.sleep(STATE_SETTLE_S)
+        before = busy_api.get_snapshot()
+
+        invalid = _simple_snapshot(next_timestamp(api_session, web_base_url), settings)
+        mutator(invalid)
+        response = busy_api.set_snapshot_raw(invalid)
+        assert response.status_code in {200, 400}
+        time.sleep(STATE_SETTLE_S)
+
+        after = busy_api.get_snapshot()
+        assert after.snapshot_timestamp_ms == before.snapshot_timestamp_ms
+        assert after.snapshot == before.snapshot
+
+    @allure.title("BUSY timer invalid INTERVAL state does not change current state")
+    def test_busy_timer_invalid_interval_snapshot_does_not_apply(
+        self, busy_api: BusyAPI, api_session, web_base_url, busy_state_guard
+    ):
+        settings = _current_busy_settings(busy_state_guard)
+        baseline = _infinite_snapshot(next_timestamp(api_session, web_base_url), settings)
+        assert busy_api.set_snapshot_raw(baseline).status_code == 200
+        time.sleep(STATE_SETTLE_S)
+        before = busy_api.get_snapshot()
+
+        invalid = _interval_snapshot(next_timestamp(api_session, web_base_url), settings)
+        invalid["snapshot"]["current_interval_time_left_ms"] = (
+            invalid["snapshot"]["current_interval_time_total_ms"] + 1
+        )
+        response = busy_api.set_snapshot_raw(invalid)
+        assert response.status_code in {200, 400}
+        time.sleep(STATE_SETTLE_S)
+
+        after = busy_api.get_snapshot()
+        assert after.snapshot_timestamp_ms == before.snapshot_timestamp_ms
+        assert after.snapshot == before.snapshot
+
+    @allure.title("BUSY timer invalid snapshot field matrix does not change state")
+    @pytest.mark.parametrize(
+        "factory,mutator",
+        [
+            (
+                _simple_snapshot,
+                lambda body: body["snapshot"].pop("card_id"),
+            ),
+            pytest.param(
+                _simple_snapshot,
+                lambda body: body["snapshot"].update({"time_left_ms": -1}),
+                marks=pytest.mark.xfail(
+                    reason="Known firmware validation gap: negative SIMPLE time is accepted",
+                    strict=False,
+                ),
+            ),
+            (
+                _interval_snapshot,
+                lambda body: body["snapshot"]["interval_settings"].update(
+                    {"interval_work_cycles_count": 0}
+                ),
+            ),
+            pytest.param(
+                _interval_snapshot,
+                lambda body: body["snapshot"].update({"current_interval": 9}),
+                marks=pytest.mark.xfail(
+                    reason="Known firmware validation gap: out-of-range INTERVAL index is accepted",
+                    strict=False,
+                ),
+            ),
+        ],
+    )
+    def test_busy_timer_invalid_field_matrix_does_not_apply(
+        self,
+        busy_api: BusyAPI,
+        api_session,
+        web_base_url,
+        busy_state_guard,
+        factory,
+        mutator,
+    ):
+        settings = _current_busy_settings(busy_state_guard)
+        baseline = _infinite_snapshot(next_timestamp(api_session, web_base_url), settings)
+        assert busy_api.set_snapshot_raw(baseline).status_code == 200
+        time.sleep(STATE_SETTLE_S)
+        before = busy_api.get_snapshot()
+
+        invalid = factory(next_timestamp(api_session, web_base_url), settings)
+        mutator(invalid)
+        response = busy_api.set_snapshot_raw(invalid)
+        assert response.status_code in {200, 400}
+        time.sleep(STATE_SETTLE_S)
+
+        after = busy_api.get_snapshot()
+        assert after.snapshot_timestamp_ms == before.snapshot_timestamp_ms
+        assert after.snapshot == before.snapshot
+
+    @allure.title("BUSY timer newer snapshot timestamp wins")
+    def test_busy_timer_newer_snapshot_timestamp_wins(
+        self, busy_api: BusyAPI, api_session, web_base_url, busy_state_guard
+    ):
+        settings = _current_busy_settings(busy_state_guard)
+        older = _simple_snapshot(
+            next_timestamp(api_session, web_base_url), settings, time_left_ms=240000
+        )
+
+        assert busy_api.set_snapshot_raw(older).status_code == 200
+        time.sleep(STATE_SETTLE_S)
+        newer = _simple_snapshot(
+            next_timestamp(api_session, web_base_url), settings, time_left_ms=120000
+        )
+        assert busy_api.set_snapshot_raw(newer).status_code == 200
+        time.sleep(STATE_SETTLE_S)
+
+        updated = busy_api.get_snapshot()
+        assert updated.snapshot_timestamp_ms >= newer["snapshot_timestamp_ms"]
+        assert updated.snapshot["type"] == "SIMPLE"
+        assert 0 < updated.snapshot["time_left_ms"] <= 120000
+
+    @allure.title("BUSY timer snapshot preserves non-default busy bar settings")
+    def test_busy_timer_snapshot_preserves_busy_bar_settings(
+        self, busy_api: BusyAPI, api_session, web_base_url, busy_state_guard
+    ):
+        settings = dict(_current_busy_settings(busy_state_guard))
+        settings.update(
+            {
+                "theme": "on_call",
+                "show_work_phase_only": True,
+                "trigger_smart_home": False,
+            }
+        )
+        body = _simple_snapshot(next_timestamp(api_session, web_base_url), settings)
+
+        assert busy_api.set_snapshot_raw(body).status_code == 200
+        time.sleep(STATE_SETTLE_S)
+
+        updated = busy_api.get_snapshot()
+        assert updated.snapshot["busy_bar_settings"] == settings
+
+    @allure.title("Paused BUSY SIMPLE snapshot is restored after reset")
+    def test_busy_timer_paused_simple_snapshot_persists_after_reset(
+        self,
+        busy_api: BusyAPI,
+        api_session,
+        web_base_url,
+        busy_state_guard,
+        device_flasher,
+    ):
+        settings = _current_busy_settings(busy_state_guard)
+        expected_time_left_ms = 123000
+        body = _simple_snapshot(
+            next_timestamp(api_session, web_base_url),
+            settings,
+            time_left_ms=expected_time_left_ms,
+        )
+
+        assert busy_api.set_snapshot_raw(body).status_code == 200
+        time.sleep(STATE_SETTLE_S)
+        assert device_flasher.reset_and_wait(wait_timeout=90, reset_interval=15)
+
+        session = requests.Session()
+        session.headers.update({"Accept": "application/json"})
+        response = session.get(f"{web_base_url}/api/busy/snapshot", timeout=10)
+        assert response.status_code == 200
+
+        restored = response.json()
+        assert restored["snapshot_timestamp_ms"] == body["snapshot_timestamp_ms"]
+        assert restored["snapshot"]["type"] == "SIMPLE"
+        assert restored["snapshot"]["is_paused"] is True
+        assert restored["snapshot"]["time_left_ms"] == expected_time_left_ms

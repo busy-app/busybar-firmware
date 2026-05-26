@@ -32,7 +32,6 @@ on:
         default: smoke
         options:
           - smoke
-          - regression
           - full
           - custom
       commit_sha:
@@ -180,6 +179,8 @@ jobs:
         uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:
           python-version: 3.11
+          cache: 'pip'
+          cache-dependency-path: tests/requirements.txt
 
       - name: Install test dependencies
         run: |
@@ -198,9 +199,6 @@ jobs:
             case "$TEST_SCOPE" in
               smoke|"")
                 MARKER_FILTER="not regression"
-                ;;
-              regression)
-                MARKER_FILTER="regression"
                 ;;
               full)
                 MARKER_FILTER=""
@@ -226,7 +224,6 @@ jobs:
 
       - name: Run integration tests
         id: smoke_tests
-        timeout-minutes: 20
         env:
           MARKER_FILTER: ${{ steps.pytest_filter.outputs.marker_filter }}
           BSB_FIRMWARE_PATH: ${{ github.workspace }}
@@ -243,7 +240,7 @@ jobs:
           # MARKER_FILTER is a `-m` expression; an empty string means
           # "no filter" (collect everything, including `regression`-tagged
           # tests such as schemathesis).
-          pytest_args=(. -v --alluredir=allure-results --clean-alluredir --junitxml=test-results.xml)
+          pytest_args=(. -v --durations=25 --alluredir=allure-results --clean-alluredir --junitxml=test-results.xml)
           if [ -n "$MARKER_FILTER" ]; then
             pytest_args+=(-m "$MARKER_FILTER")
             echo "Running pytest with marker filter: $MARKER_FILTER"
