@@ -107,6 +107,7 @@
         "sil917_flash",
         "debug",
         "lint",
+        "doxygen",
         "vscode_project",
         "subl_project"
     ],
