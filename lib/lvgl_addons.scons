@@ -2,6 +2,7 @@ Import("env")
 
 LIB_FOLDER = "lvgl_addons"
 
+EXTENSIONS_FOLDER = LIB_FOLDER + "/extensions"
 FONTS_FOLDER = LIB_FOLDER + "/fonts"
 THEMES_FOLDER = LIB_FOLDER + "/themes"
 STORAGE_FOLDER = LIB_FOLDER + "/fs"
@@ -28,6 +29,7 @@ libenv.AppendUnique(
 )
 
 sources = []
+sources += libenv.Glob(EXTENSIONS_FOLDER + "/*.c", source=True)
 sources += libenv.Glob(FONTS_FOLDER + "/*.c", source=True)
 sources += libenv.Glob(THEMES_FOLDER + "/*.c", source=True)
 sources += libenv.Glob(STORAGE_FOLDER + "/*.c", source=True)
