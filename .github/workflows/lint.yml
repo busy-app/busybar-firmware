@@ -39,6 +39,12 @@ jobs:
         run: |
           git submodule update --init --recursive --jobs=$(nproc) scripts/toolchain lib/lwip lib/matter_ext || (git lfs logs last && exit 1)
 
+      - name: 'Check submodule branches'
+        if: always()
+        run: |
+          git submodule update --init --jobs=$(nproc) || (git lfs logs last && exit 1)
+          python3 scripts/check-submodules.py .github/expected-submodule-branches.txt
+
       - name: 'Check REUSE compliance'
         id: reuse_check
         if: always()
