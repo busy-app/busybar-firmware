@@ -10,7 +10,8 @@
 
 #define SYM_ARROW_RIGHT "▶" // U+25B6
 
-#define SCROLL_ANIM_DURATION_MS (0)
+#define SCROLL_ANIM_DURATION_MS       0
+#define LONG_TEXT_ANIM_SPEED_PX_PER_S 16
 
 struct Submenu {
     Widget base;
@@ -125,6 +126,8 @@ static void submenu_item_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_
 
     instance->primary_label = lv_label_create(obj);
     lv_label_set_long_mode(instance->primary_label, LV_LABEL_LONG_MODE_CLIP);
+    lv_obj_set_style_anim_duration(
+        instance->primary_label, lv_anim_speed(LONG_TEXT_ANIM_SPEED_PX_PER_S), LV_PART_MAIN);
     lv_obj_set_flex_grow(instance->primary_label, 1);
 
     instance->auxiliary_label = lv_label_create(obj);
@@ -144,8 +147,10 @@ static void submenu_item_lvgl_event(const lv_obj_class_t* class_p, lv_event_t* e
 
     if(code == LV_EVENT_FOCUSED) {
         lv_obj_add_state(instance->cursor, LV_STATE_FOCUSED);
+        lv_label_set_long_mode(instance->primary_label, LV_LABEL_LONG_MODE_SCROLL_CIRCULAR);
     } else if(code == LV_EVENT_DEFOCUSED) {
         lv_obj_remove_state(instance->cursor, LV_STATE_FOCUSED);
+        lv_label_set_long_mode(instance->primary_label, LV_LABEL_LONG_MODE_CLIP);
     }
 }
 
