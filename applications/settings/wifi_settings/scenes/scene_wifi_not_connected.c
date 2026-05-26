@@ -1,9 +1,9 @@
 #include "../wifi_settings_i.h"
-#include "../widgets/wifi_not_connected_view.h"
 
 #include <settings_helpers/gui_params.h>
 
 #include <gui/modules/status_view.h>
+#include <gui/modules/qr_docs.h>
 
 #include <wifi/wifi.h>
 
@@ -13,7 +13,7 @@ typedef enum {
 
 typedef struct {
     StatusView* front_view;
-    WifiNotConnectedView* back_view;
+    QrDocs* back_view;
 } SceneWifiNotConnected;
 
 static void wifi_scene_not_connected_on_enter(void* context) {
@@ -30,7 +30,10 @@ static void wifi_scene_not_connected_on_enter(void* context) {
 
         GuiLayer* top_layer = gui_get_layer(instance->gui, GuiLayerIdSystem);
         Widget* top_back_layer_root = gui_layer_get_root_widget(top_layer, GuiDisplayIdBack);
-        data->back_view = wifi_not_connected_view_alloc(top_back_layer_root);
+        data->back_view = qr_docs_alloc(top_back_layer_root);
+        qr_docs_set_image(data->back_view, SETTINGS_IMG_PATH("wifi_back_12x12.image"));
+        qr_docs_set_text(data->back_view, "Connect to\nWi-Fi via PC\nor BUSY App");
+        qr_docs_set_url(data->back_view, "https://docs.busy.app/bar/basics/connect-wifi");
     });
 }
 
@@ -44,7 +47,7 @@ static void wifi_scene_not_connected_on_exit(void* context) {
 
     with_gui(instance->gui, {
         status_view_free(data->front_view);
-        wifi_not_connected_view_free(data->back_view);
+        qr_docs_free(data->back_view);
     });
 }
 

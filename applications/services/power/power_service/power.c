@@ -92,6 +92,8 @@ static void power_pubsub_publish(Power* power, PowerEventType type) {
 }
 
 static void power_handle_shutdown(Power* power, bool full_shutdown) {
+    if(power->state.usb_connected) return;
+
     power_pubsub_publish(power, PowerEventShutdown);
 
     furi_hal_i2c_acquire(POWER_I2C);

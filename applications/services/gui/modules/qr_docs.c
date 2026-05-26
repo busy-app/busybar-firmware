@@ -1,22 +1,24 @@
-#include "wifi_not_connected_view.h"
+#include "qr_docs.h"
 
 #include <gui/widget_i.h>
 
-#include <settings_helpers/gui_params.h>
+#define MY_CLASS (&qr_docs_lvgl_class)
 
-#define MY_CLASS (&wifi_not_connected_view_lvgl_class)
-
-struct WifiNotConnectedView {
+struct QrDocs {
     Widget base;
+    lv_obj_t* image;
+    lv_obj_t* message;
+    lv_obj_t* qr_code;
 };
 
-const lv_obj_class_t wifi_not_connected_view_lvgl_class;
+const lv_obj_class_t qr_docs_lvgl_class;
 
 /* LVGL-specific code */
 
-static void
-    wifi_not_connected_view_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
+static void qr_docs_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
     UNUSED(class_p);
+
+    QrDocs* instance = (QrDocs*)obj;
 
     lv_obj_set_style_bg_opa(obj, LV_OPA_COVER, LV_PART_MAIN);
     lv_obj_set_style_bg_color(obj, lv_color_black(), LV_PART_MAIN);
@@ -36,18 +38,18 @@ static void
     lv_obj_set_style_pad_row(text_column, 4, LV_PART_MAIN);
     lv_obj_set_scrollbar_mode(text_column, LV_SCROLLBAR_MODE_OFF);
 
-    lv_obj_t* logo = lv_image_create(text_column);
-    lv_image_set_src(logo, SETTINGS_IMG_PATH("wifi_back_12x12.image"));
-    lv_obj_set_style_pad_all(logo, 2, LV_PART_MAIN);
-    lv_obj_set_style_image_recolor_opa(logo, LV_OPA_COVER, 0);
-    lv_obj_set_style_image_recolor(logo, lv_color_white(), LV_PART_MAIN);
+    lv_obj_t* image = lv_image_create(text_column);
+    lv_obj_set_style_pad_all(image, 2, LV_PART_MAIN);
+    lv_obj_set_style_image_recolor_opa(image, LV_OPA_COVER, 0);
+    lv_obj_set_style_image_recolor(image, lv_color_white(), LV_PART_MAIN);
+    instance->image = image;
 
     lv_obj_t* message = lv_label_create(text_column);
-    lv_label_set_text(message, "Connect to\nWi-Fi via PC\nor BUSY App");
     lv_obj_set_style_text_color(message, lv_color_white(), LV_PART_MAIN);
     lv_obj_set_style_text_line_space(message, -1, LV_PART_MAIN);
     lv_obj_set_width(message, LV_PCT(100));
     lv_label_set_long_mode(message, LV_LABEL_LONG_WRAP);
+    instance->message = message;
 
     lv_obj_t* qr_code = lv_qrcode_create(obj);
     lv_qrcode_set_size(qr_code, 66);
@@ -55,37 +57,56 @@ static void
     lv_obj_set_style_pad_all(qr_code, 3, LV_PART_MAIN);
     lv_obj_set_style_bg_opa(qr_code, LV_OPA_COVER, LV_PART_MAIN);
     lv_obj_set_style_bg_color(qr_code, lv_color_white(), LV_PART_MAIN);
-
-    const char* qr_text = "https://docs.busy.app/bar/basics/connect-wifi";
-    lv_qrcode_update(qr_code, qr_text, strlen(qr_text));
+    instance->qr_code = qr_code;
 }
 
 /* Public API */
 
-WifiNotConnectedView* wifi_not_connected_view_alloc(Widget* parent) {
+QrDocs* qr_docs_alloc(Widget* parent) {
     furi_check(parent);
 
     lv_obj_t* obj = lv_obj_class_create_obj(MY_CLASS, TO_LV_OBJ(parent));
     lv_obj_class_init_obj(obj);
 
-    WifiNotConnectedView* instance = (WifiNotConnectedView*)obj;
+    QrDocs* instance = (QrDocs*)obj;
 
     return instance;
 }
 
-void wifi_not_connected_view_free(WifiNotConnectedView* instance) {
+void qr_docs_free(QrDocs* instance) {
     furi_check(instance);
 
     lv_obj_delete(TO_LV_OBJ(instance));
 }
 
+void qr_docs_set_url(QrDocs* instance, const char* url) {
+    furi_check(instance);
+    furi_check(url);
+
+    lv_qrcode_update(instance->qr_code, url, strlen(url));
+}
+
+void qr_docs_set_text(QrDocs* instance, const char* text) {
+    furi_check(instance);
+    furi_check(text);
+
+    lv_label_set_text(instance->message, text);
+}
+
+void qr_docs_set_image(QrDocs* instance, const char* path) {
+    furi_check(instance);
+    furi_check(path);
+
+    lv_image_set_src(instance->image, path);
+}
+
 /* LVGL class descriptors */
 
-const lv_obj_class_t wifi_not_connected_view_lvgl_class = {
+const lv_obj_class_t qr_docs_lvgl_class = {
     .base_class = &widget_lvgl_class,
-    .constructor_cb = wifi_not_connected_view_lvgl_constructor,
-    .name = "widget-wifi-not-connected-view",
+    .constructor_cb = qr_docs_lvgl_constructor,
+    .name = "qr-docs",
     .width_def = LV_PCT(100),
     .height_def = LV_PCT(100),
-    .instance_size = sizeof(WifiNotConnectedView),
+    .instance_size = sizeof(QrDocs),
 };
