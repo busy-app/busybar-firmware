@@ -1,6 +1,9 @@
 #include "submenu.h"
 
 #include <gui/widget_i.h>
+#include <gui/modules/label.h>
+
+#include <lvgl_addons/extensions/lv_label_ext.h>
 
 #include <lvgl/src/core/lv_obj_class_private.h>
 
@@ -11,7 +14,7 @@
 #define SYM_ARROW_RIGHT "▶" // U+25B6
 
 #define SCROLL_ANIM_DURATION_MS       0
-#define LONG_TEXT_ANIM_SPEED_PX_PER_S 16
+#define LONG_TEXT_ANIM_SPEED_PX_PER_M 1000
 
 struct Submenu {
     Widget base;
@@ -26,6 +29,8 @@ typedef struct {
     uint32_t index;
     SubmenuItemCallback callback;
     void* context;
+
+    bool awaits_lazy_setup;
 } SubmenuItem;
 
 const lv_obj_class_t submenu_lvgl_class;
@@ -84,6 +89,7 @@ static lv_obj_t* submenu_item_alloc(
     instance->index = index;
     instance->callback = callback;
     instance->context = context;
+    instance->awaits_lazy_setup = true;
 
     lv_label_set_text(instance->primary_label, primary_text);
     lv_label_set_text(instance->auxiliary_label, auxiliary_text);
@@ -126,8 +132,6 @@ static void submenu_item_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_
 
     instance->primary_label = lv_label_create(obj);
     lv_label_set_long_mode(instance->primary_label, LV_LABEL_LONG_MODE_CLIP);
-    lv_obj_set_style_anim_duration(
-        instance->primary_label, lv_anim_speed(LONG_TEXT_ANIM_SPEED_PX_PER_S), LV_PART_MAIN);
     lv_obj_set_flex_grow(instance->primary_label, 1);
 
     instance->auxiliary_label = lv_label_create(obj);
@@ -147,6 +151,12 @@ static void submenu_item_lvgl_event(const lv_obj_class_t* class_p, lv_event_t* e
 
     if(code == LV_EVENT_FOCUSED) {
         lv_obj_add_state(instance->cursor, LV_STATE_FOCUSED);
+
+        if(instance->awaits_lazy_setup) {
+            lv_label_ext_set_anim_speed(instance->primary_label, LONG_TEXT_ANIM_SPEED_PX_PER_M);
+            instance->awaits_lazy_setup = false;
+        }
+
         lv_label_set_long_mode(instance->primary_label, LV_LABEL_LONG_MODE_SCROLL_CIRCULAR);
     } else if(code == LV_EVENT_DEFOCUSED) {
         lv_obj_remove_state(instance->cursor, LV_STATE_FOCUSED);
