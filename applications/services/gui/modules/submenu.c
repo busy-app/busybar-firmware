@@ -92,7 +92,15 @@ static lv_obj_t* submenu_item_alloc(
     instance->awaits_lazy_setup = true;
 
     lv_label_set_text(instance->primary_label, primary_text);
-    lv_label_set_text(instance->auxiliary_label, auxiliary_text);
+
+    if(auxiliary_text) {
+        lv_label_set_text(instance->auxiliary_label, auxiliary_text);
+        lv_obj_clear_flag(instance->auxiliary_label, LV_OBJ_FLAG_HIDDEN);
+    } else {
+        lv_label_set_text_static(instance->auxiliary_label, "");
+        lv_obj_add_flag(instance->auxiliary_label, LV_OBJ_FLAG_HIDDEN);
+    }
+
     lv_group_add_obj(parent->group, obj);
 
     return obj;

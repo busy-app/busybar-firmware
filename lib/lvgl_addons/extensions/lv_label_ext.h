@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include <lvgl/lvgl.h>
+#include <lvgl.h>
 
 #ifdef __cplusplus
 extern "C" {

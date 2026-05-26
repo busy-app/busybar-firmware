@@ -13,6 +13,7 @@ env.Append(
         Dir(LIB_FOLDER).srcnode(),
     ],
     LINT_SOURCES=[
+        Dir(EXTENSIONS_FOLDER).srcnode(),
         Dir(THEMES_FOLDER).srcnode(),
         Dir(STORAGE_FOLDER).srcnode(),
         Dir(OSAL_FOLDER).srcnode(),

@@ -52,7 +52,8 @@ Widget* submenu_get_base(Submenu* instance);
  *
  * @param[in,out] instance pointer to the Submenu instance to be modified
  * @param[in] primary_text zero-terminated string for the item's primary label
- * @param[in] auxiliary_text zero-terminated string for the item's auxiliary label
+ * @param[in] auxiliary_text zero-terminated string for the item's auxiliary label,
+ *     passing NULL hides the label
  * @param[in] index item identifier, doesn't have to be unique
  * @param[in] callback pointer to the function to be called when the item is clicked
  * @param[in,out] context pointer to a user-specific object, will be passed to callback
