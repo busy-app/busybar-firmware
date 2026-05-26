@@ -43,7 +43,7 @@ path = [
     "assets/images/**",
     "assets/shared/**",
     "assets/sounds/**",
-    "assets_bkp/**",
+    "assets/bkp/**",
     "documentation/**",
 ]
 SPDX-FileCopyrightText = "2024-2026 Flipper FZCO"
