@@ -343,7 +343,7 @@ lv_theme_t* lv_theme_back_alloc(lv_display_t* disp) {
 
     theme->base.disp = disp;
     theme->base.font_small = font_registry_load_font(font_registry, FONT_BUSY_REGULAR_5);
-    theme->base.font_normal = &lv_font_busy_regular_9;
+    theme->base.font_normal = font_registry_load_font(font_registry, FONT_BUSY_REGULAR_9);
     theme->base.font_large = font_registry_load_font(font_registry, FONT_BUSY_BOLD_10);
     theme->base.apply_cb = theme_apply_callback;
 
