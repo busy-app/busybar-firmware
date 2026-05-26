@@ -125,3 +125,5 @@ CanvasResult canvas_show_elements(
  * Canvas closes itself.
  */
 CanvasResult canvas_delete_elements(CanvasSrv* canvas, const char* app_id);
+
+CanvasResult canvas_get_app_id(CanvasSrv* canvas, FuriString* string);

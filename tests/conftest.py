@@ -61,6 +61,13 @@ _PYTEST_MARKERS = (
     "connection_test: Fresh connection tests",
     "schemathesis: OpenAPI schema conformance tests (schemathesis)",
     "uses_si917: test exercises the Si917 coprocessor; forced GDB trace targets Si917",
+    "mqtt: requires configured MQTT test broker/cloud",
+    "uses_cloud: uses real test cloud account/session service",
+    "external_service: talks to service outside the device",
+    "state_publisher: state publisher transport and protobuf contract tests",
+    "uses_ble: requires BLE adapter/hardware path",
+    "rate_limiter: state publisher rate limiter tests",
+    "long_running: long-running hardware regression tests",
     "regression: Heavy regression tests; excluded from PR/dev runs, only fire on -rc tags",
 )
 
@@ -445,6 +452,18 @@ def _post_test_reset_reason(
         request.node._crash_info = crash_info
         return f"crash detected ({crash_info.processor})", crash_info
     if hasattr(request.node, "_connection_error"):
+        if request.node.get_closest_marker("schemathesis") is not None:
+            api_error = _probe_api_health(web_base_url)
+            if not api_error:
+                return None, None
+            if not device_flasher.check_device_available():
+                request.node._device_unavailable = True
+                return "TCP port 80 unreachable", None
+            if api_error == "HTTP 503":
+                request.node._api_503_tolerated = api_error
+                return f"API 503 (tolerated): {api_error}", None
+            request.node._api_unhealthy = api_error
+            return f"API health check failed: {api_error}", None
         return "test raised ConnectionError", None
 
     api_error = _probe_api_health(web_base_url, web_session)

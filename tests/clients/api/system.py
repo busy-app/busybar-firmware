@@ -70,6 +70,7 @@ class FirmwareInfo(BaseModel):
     build_date: str
     commit_hash: str
     nwp_version: str | None = None
+    matter_version: str | None = None
 
 
 class SystemInfo(BaseModel):
@@ -78,6 +79,7 @@ class SystemInfo(BaseModel):
     api_semver: str
     uptime: str
     boot_time: int
+    auto_update_enabled: bool
 
 
 class PowerInfo(BaseModel):

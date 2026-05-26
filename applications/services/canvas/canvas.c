@@ -21,11 +21,13 @@ typedef struct {
         CanvasSrvEventUpdate,
         CanvasSrvEventClear,
         CanvasSrvEventExit,
+        CanvasSrvEventGetAppId,
     } type;
     FuriApiLock lock;
     CanvasResult* result;
     char* app_id;
     size_t* priority;
+    FuriString* string;
     union {
         CanvasElementsArray_t elements;
     };
@@ -468,6 +470,14 @@ static void canvas_srv_queue_event_callback(FuriEventLoopObject* object, void* c
     } else if(event.type == CanvasSrvEventExit) {
         canvas_srv_clear_all(canvas);
         res = CanvasResultOk;
+
+    } else if(event.type == CanvasSrvEventGetAppId) {
+        if(canvas->app_id) {
+            furi_string_set_str(event.string, canvas->app_id);
+        } else {
+            furi_string_reset(event.string);
+        }
+        res = CanvasResultOk;
     }
 
     if(event.app_id) {
@@ -624,6 +634,24 @@ CanvasResult canvas_delete_elements(CanvasSrv* canvas, const char* app_id) {
         .lock = api_lock_alloc_locked(),
         .type = CanvasSrvEventClear,
         .app_id = app_id ? strdup(app_id) : NULL,
+        .result = &res,
+    };
+    furi_check(furi_message_queue_put(canvas->event_queue, &evt, FuriWaitForever) == FuriStatusOk);
+
+    api_lock_wait_unlock_and_free(evt.lock);
+    return res;
+}
+
+CanvasResult canvas_get_app_id(CanvasSrv* canvas, FuriString* string) {
+    furi_check(canvas);
+    furi_check(string);
+
+    CanvasResult res = CanvasResultOk;
+
+    CanvasSrvQueueEvent evt = {
+        .lock = api_lock_alloc_locked(),
+        .type = CanvasSrvEventGetAppId,
+        .string = string,
         .result = &res,
     };
     furi_check(furi_message_queue_put(canvas->event_queue, &evt, FuriWaitForever) == FuriStatusOk);

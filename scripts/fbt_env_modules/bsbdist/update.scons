@@ -258,3 +258,6 @@ if sil_sign_keystore or service_signing_enabled:
     ]
 
     dist_env.Alias("dist_signed", signed_installs)
+
+    bundle_env.FlashOverHttp("flash_usb_signed", signed_update_tgz)
+    bundle_env.FlashOverHttp("flash_usb_signed_tar", signed_update_tar)
