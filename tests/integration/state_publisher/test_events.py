@@ -9,7 +9,7 @@ EVENT_NAMES = ["input", "timer", "brightness", "timezone", "autoupdate"]
 @allure.story("Published events")
 @pytest.mark.api
 @pytest.mark.state_publisher
- class TestStatePublisherEvents:
+class TestStatePublisherEvents:
     @allure.title("State publisher emits expected update after device event")
     @pytest.mark.parametrize("event_name", EVENT_NAMES)
     def test_state_event_published(self, state_publisher, state_event_driver, event_name):
