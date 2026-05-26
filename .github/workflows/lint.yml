@@ -37,7 +37,7 @@ jobs:
 
       - name: 'Update submodules'
         run: |
-          git submodule update --init --recursive --jobs=$(nproc) || (git lfs logs last && exit 1)
+          git submodule update --init --recursive --filter=blob:none --jobs=$(nproc) || (git lfs logs last && exit 1)
 
       - name: 'Check submodule branches'
         if: always()
