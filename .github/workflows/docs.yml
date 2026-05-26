@@ -1,0 +1,72 @@
+name: 'Generate documentation with Doxygen'
+
+on:
+  push:
+    branches:
+      - dev
+    tags:
+      - '*'
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  SET_GH_OUTPUT: 1
+
+jobs:
+  doxygen:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: 'Checkout code'
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 2
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 'Update submodules'
+        run: |
+          git submodule update --init --recursive --jobs=$(nproc) \
+            fbt_layers/* \
+            scripts/toolchain \
+            documentation/doxygen/doxygen-awesome-css
+
+      - name: install-doxygen
+        uses: AdarshRawat1/Install-Doxygen@v1.0
+        with:
+          version: "1.12.0"
+
+      - name: 'Generate documentation'
+        id: doxygen_build
+        if: always()
+        run: |
+          set +e;
+          export FBT_NO_SYNC=1;
+          errors=0;
+          log_file="doxygen-build.log";
+          echo "::group::Doxygen";
+          bash ./fbt doxygen 2>&1 | tee "${log_file}";
+          status=${PIPESTATUS[0]};
+          echo "::endgroup::";
+          if [ "${status}" -ne 0 ]; then
+            errors=1;
+            printf "Doxygen errors:\n\`\`\`\n" >> $GITHUB_STEP_SUMMARY;
+            cat "${log_file}" >> $GITHUB_STEP_SUMMARY;
+            printf "\n\`\`\`\n" >> $GITHUB_STEP_SUMMARY;
+          else
+            printf "Doxygen: all good ✨\n" >> $GITHUB_STEP_SUMMARY;
+          fi
+          if [ "${errors}" -ne 0 ]; then
+            echo "errors=1" >> $GITHUB_OUTPUT;
+            exit 1;
+          fi
+
+      - name: 'Report Doxygen errors'
+        if: (steps.doxygen_build.outputs.errors) && github.event.pull_request
+        run: |
+          echo "Doxygen errors found";
+          exit 1;

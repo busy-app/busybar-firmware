@@ -173,7 +173,7 @@ typedef struct {
     uint8_t data_sector_size; /*!< Sector size [R][61]*/
     uint8_t use_native_sector; /*!< Sector size emulation [R/W][62]*/
     uint8_t native_sector_size; /*!< Native sector size [R][63]*/
-    uint8_t vendor_specific_field[64]; /*!< Vendor Specific Fields <vendor specific> [127:64]*/
+    uint8_t vendor_specific_field[64]; /*!< Vendor Specific Fields (vendor specific) [127:64]*/
     uint8_t reserved23[2]; /*!< Reserved [TBD][129:128]*/
     uint8_t program_cid_csd_ddr_support; /*!< Program CID/CSD in DDR mode support [R][130]*/
     uint8_t periodic_wakeup; /*!< Periodic Wake-up [R/W/E][131]*/

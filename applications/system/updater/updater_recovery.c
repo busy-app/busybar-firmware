@@ -102,8 +102,10 @@ void updater_resume_autoupdates(Updater* instance) {
     UNUSED(instance);
 }
 
-void updater_internal_settings_change_build_specific(Updater* instance) {
-    UNUSED(instance);
+void updater_internal_settings_change_build_specific(
+    Updater* instance,
+    const UpdaterSettings* settings) {
+    instance->settings = *settings;
 }
 
 void updater_internal_setup_build_specific(Updater* instance) {

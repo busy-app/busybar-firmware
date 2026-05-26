@@ -5,8 +5,6 @@
 #include <nvm3.h>
 #include <nvm3_default_config.h>
 
-#include <furi.h>
-
 #include <wifi/wifi_common.h>
 
 #define TAG "Nvm"

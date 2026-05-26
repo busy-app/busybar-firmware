@@ -24,6 +24,7 @@ def _update_bundle_action(target, source, env):
         ("BUNDLE_RESOURCES", "--resources"),
         ("BUNDLE_BKP_RESOURCES", "--bkp-resources"),
         ("BUNDLE_SECURITY_FLAGS", "--security-flags"),
+        ("BUNDLE_VERSION_JSON", "--version-json"),
     ]:
         val = env.get(env_key)
         if val:

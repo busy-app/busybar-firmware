@@ -194,7 +194,6 @@ static BLEUsartEchoApp* ble_usart_echo_app_instance = NULL;
 /*==============================================*/
 
 /**
- * @fn         ble_usart_echo_app_add_char_serv_att
  * @brief      this function is used to add characteristic service attribute..
  * @param[in]  serv_handler, service handler.
  * @param[in]  handle, characteristic service attribute handle.
@@ -202,7 +201,6 @@ static BLEUsartEchoApp* ble_usart_echo_app_instance = NULL;
  * @param[in]  att_val_handle, characteristic value handle
  * @param[in]  att_val_uuid, characteristic value uuid
  * @return     none.
- * @section description
  * This function is used at application to add characteristic attribute
  */
 static void ble_usart_echo_app_add_char_serv_att(
@@ -285,12 +283,10 @@ static void ble_usart_echo_app_add_char_val_att(
 }
 
 /**
- * @fn         ble_usart_echo_app_prepare_128bit_uuid
  * @brief      this function is used to prepare the 128bit UUID
  * @param[in]  temp_service,received 128-bit service.
  * @param[out] temp_uuid,formed 128-bit service structure.
  * @return     none.
- * @section description
  * This function prepares the 128bit UUID
  */
 static void
@@ -311,13 +307,11 @@ static void
 }
 
 /**
- * @fn         ble_usart_echo_app_add_simple_chat_serv
  * @brief      this function is used to add new servcie i.e.., simple chat service.
  * @param[in]  none.
  * @return     int32_t
  *             0  =  success
  *             !0 = failure
- * @section description
  * This function is used at application to create new service.
  */
 static uint32_t ble_usart_echo_app_add_simple_chat_serv(BLEUsartEchoApp* instance) {
@@ -381,11 +375,9 @@ static uint32_t ble_usart_echo_app_add_simple_chat_serv(BLEUsartEchoApp* instanc
 
 /*==============================================*/
 /**
- * @fn         ble_usart_echo_app_on_adv_report_event
  * @brief      invoked when advertise report event is received
  * @param[in]  adv_report, pointer to the received advertising report
  * @return     none.
- * @section description
  * This callback function updates the scanned remote devices list
  */
 void ble_usart_echo_app_on_adv_report_event(rsi_ble_event_adv_report_t* adv_report) {
@@ -432,11 +424,9 @@ void ble_usart_echo_app_on_adv_report_event(rsi_ble_event_adv_report_t* adv_repo
 
 /*==============================================*/
 /**
- * @fn         ble_usart_echo_app_on_connect_event
  * @brief      invoked when connection complete event is received
  * @param[out] resp_conn, connected remote device information
  * @return     none.
- * @section description
  * This callback function indicates the status of the connection
  */
 static void ble_usart_echo_app_on_connect_event(rsi_ble_event_conn_status_t* resp_conn) {
@@ -448,12 +438,10 @@ static void ble_usart_echo_app_on_connect_event(rsi_ble_event_conn_status_t* res
 }
 
 /**
- * @fn         ble_usart_echo_app_on_disconnect_event
  * @brief      invoked when disconnection event is received
  * @param[in]  resp_disconnect, disconnected remote device information
  * @param[in]  reason, reason for disconnection.
  * @return     none.
- * @section description
  * This callback function indicates disconnected device information and status
  */
 static void ble_usart_echo_app_on_disconnect_event(
@@ -470,12 +458,10 @@ static void ble_usart_echo_app_on_disconnect_event(
 }
 
 /**
- * @fn         ble_usart_echo_app_phy_update_complete_event
  * @brief      invoked when disconnection event is received
  * @param[in]  resp_disconnect, disconnected remote device information
  * @param[in]  reason, reason for disconnection.
  * @return     none.
- * @section description
  * This Callback function indicates disconnected device information and status
  */
 void ble_usart_echo_app_phy_update_complete_event(
@@ -489,9 +475,7 @@ void ble_usart_echo_app_phy_update_complete_event(
 }
 
 /**
- * @fn         ble_usart_echo_app_data_length_change_event
  * @brief      invoked when data length is set
- * @section description
  * This Callback function indicates data length is set
  */
 void ble_usart_echo_app_data_length_change_event(
@@ -506,11 +490,9 @@ void ble_usart_echo_app_data_length_change_event(
 }
 
 /**
- * @fn         ble_usart_echo_app_on_enhance_conn_status_event
  * @brief      invoked when enhanced connection complete event is received
  * @param[out] resp_conn, connected remote device information
  * @return     none.
- * @section description
  * This callback function indicates the status of the connection
  */
 void ble_usart_echo_app_on_enhance_conn_status_event(
@@ -540,11 +522,9 @@ void ble_usart_echo_app_on_conn_update_complete_event(
 }
 /*==============================================*/
 /**
- * @fn         ble_usart_echo_app_simple_peripheral_on_remote_features_event
  * @brief      invoked when LE remote features event is received.
  * @param[in] resp_conn, connected remote device information
  * @return     none.
- * @section description
  * This callback function indicates the status of the connection
  */
 void ble_usart_echo_app_simple_peripheral_on_remote_features_event(
@@ -571,12 +551,10 @@ static void
 
 /*==============================================*/
 /**
- * @fn         ble_usart_echo_app_on_gatt_write_event
  * @brief      its invoked when write/notify/indication events are received.
  * @param[in]  event_id, it indicates write/notification event id.
  * @param[in]  rsi_ble_write, write event parameters.
  * @return     none.
- * @section description
  * This callback function is invoked when write/notify/indication events are received
  */
 static void ble_usart_echo_app_on_gatt_write_event(
@@ -593,12 +571,10 @@ static void ble_usart_echo_app_on_gatt_write_event(
 }
 
 /**
- * @fn         ble_usart_echo_app_on_mtu_event
  * @brief      its invoked when write/notify/indication events are received.
  * @param[in]  event_id, it indicates write/notification event id.
  * @param[in]  rsi_ble_write, write event parameters.
  * @return     none.
- * @section description
  * This callback function is invoked when write/notify/indication events are received
  */
 static void ble_usart_echo_app_on_mtu_event(rsi_ble_event_mtu_t* rsi_ble_mtu) {

@@ -4,11 +4,10 @@
 #include <lwip/priv/tcp_priv.h>
 
 #define TAG                 "Netstat"
-#define USAGE_PERCENT_LIMIT 75UL
+#define USAGE_PERCENT_LIMIT 85UL
 
 static const char* const monitored_pools[] = {
     "NETCONN",
-    "TCP_PCB",
     "SYS_TIMEOUT",
     "PBUF_POOL",
 };

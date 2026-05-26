@@ -20,7 +20,7 @@ def _icons_emitter(target, source, env):
 
 def _common_path(source):
     source_dirs = {os.path.dirname(str(s)) for s in source}
-    return os.path.commonpath(list(source_dirs))
+    return os.path.commonpath(list(source_dirs)) if len(source_dirs) else ""
 
 def _proto_emitter(target, source, env):
     target = []

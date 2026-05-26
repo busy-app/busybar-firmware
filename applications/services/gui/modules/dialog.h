@@ -17,7 +17,7 @@ typedef struct Dialog Dialog;
 /**
  * @brief Dialog callback function type.
  *
- * @param[in] selected option (0/1)
+ * @param[in] result selected option (0/1)
  * @param[in,out] context pointer to a user-specific object
  */
 typedef void (*DialogCallback)(uint8_t result, void* context);
@@ -53,7 +53,7 @@ Widget* dialog_get_base(Dialog* instance);
  *
  * @param[in,out] instance pointer to the Dialog instance to be modified
  * @param[in] callback callback function pointer
- * @param[in] callback callback context
+ * @param[in] context callback context
  */
 void dialog_set_callback(Dialog* instance, DialogCallback callback, void* context);
 

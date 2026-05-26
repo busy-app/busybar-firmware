@@ -15,3 +15,5 @@ WifiStatus wifi_decode_sl_status(sl_status_t sl_status);
 WifiSecurityMode wifi_decode_security_mode(sl_wifi_security_t sl_security);
 
 void wifi_decode_ssid(char* ssid, const sl_wifi_ssid_t* sl_ssid);
+
+sl_net_credential_id_t wifi_get_credential_id(WifiSecurityMode security_mode);

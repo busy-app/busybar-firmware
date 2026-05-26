@@ -98,7 +98,7 @@ static About* about_alloc() {
         nav_bar_set_header_image(instance->back_nav_bar, SETTINGS_ICON_BACK);
         widget_set_height(nav_bar_get_base(instance->back_nav_bar), SETTINGS_NAV_BAR_HEIGHT);
         widget_set_padding(nav_bar_get_base(instance->back_nav_bar), 1, 0, 0, 2);
-        nav_bar_push_location(instance->back_nav_bar, "ABOUT DEVICE");
+        nav_bar_push_location(instance->back_nav_bar, "ABOUT");
 
         instance->back_scene_window = widget_alloc(flex_layout_get_base(instance->back_container));
         flex_layout_set_child_widget_grow(
@@ -153,11 +153,11 @@ static void about_free(About* instance) {
 int32_t about_entry(void* arg) {
     if(arg) {
         SettingsAppDescriptor* descriptor = arg;
-        furi_string_set_str(descriptor->front_title, "About");
-        furi_string_set_str(descriptor->back_title, "About");
+        furi_string_set_str(descriptor->front_title, "About device");
+        furi_string_set_str(descriptor->back_title, "About device");
 
-        furi_string_set_str(descriptor->front_icon, IMG_PATH("info_front_8x8.image"));
-        furi_string_set_str(descriptor->back_icon, IMG_PATH("info_back_11x11.image"));
+        furi_string_set_str(descriptor->front_icon, SHARED_IMG_PATH("info_front_8x8.image"));
+        furi_string_set_str(descriptor->back_icon, SHARED_IMG_PATH("info_back_11x11.image"));
         return 0;
     }
 

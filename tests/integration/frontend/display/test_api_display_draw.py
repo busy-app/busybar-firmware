@@ -36,6 +36,16 @@ from clients.api import StreamingAPI
 _RENDER_SETTLE = 1.0  # seconds to wait after draw before capturing screenshot
 _MISSING_IMAGE = "nonexistent/does_not_exist.image"
 _MISSING_ANIM = "nonexistent/does_not_exist.anim"
+_VALID_TEXT_FONTS = [
+    "tiny",
+    "small",
+    "normal",
+    "condensed",
+    "bold",
+    "large",
+    "extra_large",
+    "global",
+]
 
 
 def _capture_after_draw(
@@ -407,7 +417,7 @@ class TestTextElement:
     @allure.title("Valid font enum values are accepted")
     @pytest.mark.api
     @pytest.mark.frontend
-    @pytest.mark.parametrize("font", ["small", "medium", "medium_condensed", "big"])
+    @pytest.mark.parametrize("font", _VALID_TEXT_FONTS)
     def test_valid_font_values(
         self, assets_api: AssetsAPI, busy_timer_stopped, font: str
     ):

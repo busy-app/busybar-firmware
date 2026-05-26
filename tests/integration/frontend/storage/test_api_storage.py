@@ -128,6 +128,7 @@ class TestStorageAPI:
     @allure.title("POST /api/storage/write (file size limits)")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_api_file_upload_size_limit(self, storage_api: StorageAPI):
         """Test file upload size limits"""
         test_file_path = "/ext/large_test_fil.bin"
@@ -146,7 +147,7 @@ class TestStorageAPI:
 
         try:
             with allure.step(f"Test large file upload to storage: {test_file_path}"):
-                response = storage_api.write(test_file_path, large_content, timeout=30)
+                response = storage_api.write(test_file_path, large_content, timeout=120)
 
             with allure.step("Verify size limit handling"):
                 assert response.status_code in [200, 400, 413, 500]

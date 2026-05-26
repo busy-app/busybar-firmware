@@ -152,7 +152,7 @@ void furi_hal_gpio_enable_ulp_on_hp(const GpioPin* ulp_gpio, const GpioAltFn alt
 /**
  * Add and enable interrupt
  * @param gpio GpioPin
- * @param gpio GpioCondition for triggering the interrupt
+ * @param cond GpioCondition for triggering the interrupt
  * @param cb   GpioExtiCallback
  * @param ctx  context for callback
  */

@@ -1,3 +1,6 @@
+import os
+import time
+
 import allure
 import pytest
 
@@ -42,6 +45,56 @@ class TestSmartHomePairingAPI:
             assert "qr_code" in data
             assert "manual_code" in data
             assert "available_until" in data
+
+    @allure.title("GET /api/smart_home/pairing timestamp uses seconds resolution")
+    @pytest.mark.api
+    @pytest.mark.frontend
+    @pytest.mark.regression
+    def test_pairing_status_timestamp_is_seconds_resolution(
+        self, smart_home_api: SmartHomeAPI
+    ):
+        status = smart_home_api.get_pairing()
+        timestamp = status.latest_pairing_status.timestamp
+
+        if timestamp is None:
+            pytest.skip("Smart home pairing status has no timestamp yet")
+
+        assert isinstance(timestamp, int)
+        assert 0 < timestamp < 10_000_000_000, (
+            "Expected Unix seconds. A millisecond timestamp would be much larger."
+        )
+
+    @allure.title("POST /api/smart_home/pairing exposes seconds-level timing")
+    @pytest.mark.api
+    @pytest.mark.frontend
+    @pytest.mark.regression
+    def test_pairing_start_timing_fields_are_seconds_level(
+        self, smart_home_api: SmartHomeAPI
+    ):
+        if os.getenv("BSB_ENABLE_MATTER_PAIRING_REGRESSION", "").lower() not in {
+            "1",
+            "true",
+            "yes",
+        }:
+            pytest.skip("Matter active pairing regression is disabled on this bench")
+
+        response = smart_home_api.start_pairing()
+        if response.status_code == 503:
+            pytest.skip("Smart home pairing service is unavailable")
+        assert response.status_code == 200
+
+        payload = response.json()
+        assert payload["qr_code"]
+        assert payload["manual_code"]
+        assert payload["available_until"]
+        if str(payload["available_until"]).isdigit():
+            assert int(payload["available_until"]) < 10_000_000_000
+
+        time.sleep(0.5)
+        status = smart_home_api.get_pairing()
+        timestamp = status.latest_pairing_status.timestamp
+        assert isinstance(timestamp, int)
+        assert 0 < timestamp < 10_000_000_000
 
 
 @allure.feature("5. Web Frontend")

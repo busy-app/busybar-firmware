@@ -261,7 +261,10 @@ void SilabsConfig::RunConfigUnitTest() {
 #endif // CONFIG_BUILD_FOR_HOST_UNIT_TEST
 
 void SilabsConfig::RepackNvm3Flash(void) {
-    nvm_repack(mNvmInstance);
+    bool success = nvm_repack(mNvmInstance);
+    if(!success) {
+        FURI_LOG_W("SilabsConfig", "Cannot repack NVM storage");
+    }
 }
 
 template <typename T>

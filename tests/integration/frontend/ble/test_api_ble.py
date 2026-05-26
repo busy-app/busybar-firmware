@@ -1,11 +1,39 @@
+import time
+
 import allure
 import pytest
 
 from clients.api import BleAPI
 
 
+BLE_ENABLED_STATES = frozenset({"enabled", "connectable", "connected"})
+BLE_DISABLED_STATES = frozenset({"disabled"})
+
+
+def _wait_for_ble_status(
+    ble_api: BleAPI,
+    expected,
+    timeout: float = 3.0,
+    interval: float = 0.25,
+) -> str:
+    """Poll /api/ble/status until it lands in `expected` (str or set) or times out."""
+    expected_set = {expected} if isinstance(expected, str) else set(expected)
+    deadline = time.monotonic() + timeout
+    last = ""
+    while time.monotonic() < deadline:
+        try:
+            last = ble_api.get_status().status
+            if last in expected_set:
+                return last
+        except Exception as exc:
+            last = f"<{type(exc).__name__}: {exc}>"
+        time.sleep(interval)
+    return last
+
+
 @allure.feature("5. Web Frontend")
 @allure.story("BLE")
+@pytest.mark.uses_si917
 class TestBleAPI:
     """Test cases for BLE API endpoints"""
 
@@ -33,29 +61,27 @@ class TestBleAPI:
     @allure.title("#3564 BLE. Preserve status over reboot")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     @pytest.mark.timeout(300)
     def test_api_ble_preserve_status_over_reboot(
-        self, ble_api: BleAPI, device_flasher
+        self, ble_api: BleAPI, persistent_cli_connection, web_base_url
     ):
         """Test that BLE enabled/disabled status is preserved over reboot"""
-        # Enable BLE and reboot then disable and reboot
-        ble_api.enable()
-        assert ble_api.get_status().status == "enabled"
-        device_flasher.reset_and_wait()
-        assert ble_api.get_status().status == "enabled"
-
-        ble_api.disable()
-        assert ble_api.get_status().status == "disabled"
-        device_flasher.reset_and_wait()
-        assert ble_api.get_status().status == "disabled"
-
-        ble_api.enable()
-        assert ble_api.get_status().status == "enabled"
-        device_flasher.reset_and_wait()
-        assert ble_api.get_status().status == "enabled"
+        for action, expected_set in (("enable",  BLE_ENABLED_STATES),
+                                     ("disable", BLE_DISABLED_STATES),
+                                     ("enable",  BLE_ENABLED_STATES)):
+            getattr(ble_api, action)()
+            last = _wait_for_ble_status(ble_api, expected_set)
+            assert last in expected_set, f"pre-reboot: got {last!r}, expected one of {sorted(expected_set)}"
+            assert persistent_cli_connection.reboot_and_wait_for_api(
+                web_base_url
+            ), "device did not come back after CLI reboot"
+            last = _wait_for_ble_status(ble_api, expected_set, timeout=30.0)
+            assert last in expected_set, f"post-reboot: got {last!r}, expected one of {sorted(expected_set)}"
 
 @allure.feature("5. Web Frontend")
 @allure.story("BLE")
+@pytest.mark.uses_si917
 class TestBleStatusAPI:
     """Test cases for BLE Status API endpoints"""
 

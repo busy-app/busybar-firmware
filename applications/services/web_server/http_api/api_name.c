@@ -20,9 +20,9 @@ static bool http_api_name_parse(const char* payload, FuriString* output) {
 
     bool is_successful = false;
     if(cJSON_IsObject(json_root)) {
+        // Reject bodies with unexpected properties (schema: additionalProperties: false)
         cJSON* name_item = cJSON_GetObjectItem(json_root, "name");
-
-        if(cJSON_IsString(name_item)) {
+        if(cJSON_IsString(name_item) && cJSON_GetArraySize(json_root) == 1) {
             furi_string_set_str(output, name_item->valuestring);
             is_successful = true;
         }
