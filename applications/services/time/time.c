@@ -72,10 +72,17 @@ static void time_update_callback(Time* instance, bool is_success) {
 }
 
 static void time_do_update(Time* instance) {
+#ifdef FW_CFG_unit_tests
+    UNUSED(instance);
+
+    UNUSED(time_update_callback);
+#else /* FW_CFG_unit_tests */
     furi_assert(instance);
+
     if(instance->is_time_update_ongoing) return;
     instance->is_time_update_ongoing = true;
     time_update_run(instance, time_update_callback);
+#endif /* FW_CFG_unit_tests */
 }
 
 static void time_update_timer_callback(void* context) {
