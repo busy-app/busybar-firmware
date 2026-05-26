@@ -353,11 +353,29 @@ static bool api_display_draw_check_elements_visible(CanvasElementsArray_t elemen
     return elemets_visible > 0;
 }
 
-static size_t api_display_active_priority(void) {
+static bool
+    api_display_should_accept_draw_request(size_t request_priority, const char* requesting_app_id) {
     Loader* loader = furi_record_open(RECORD_LOADER);
-    size_t priority = loader_get_priority(loader);
+    size_t active_priority = loader_get_priority(loader);
     furi_record_close(RECORD_LOADER);
-    return priority;
+
+    bool request_comes_from_same_app = false;
+
+    if(furi_record_exists(RECORD_CANVAS)) {
+        CanvasApp* canvas = furi_record_open(RECORD_CANVAS);
+        FuriString* running_app = furi_string_alloc();
+        canvas_get_app_id(canvas, running_app);
+        if(furi_string_cmp_str(running_app, requesting_app_id) == 0)
+            request_comes_from_same_app = true;
+        furi_string_free(running_app);
+        furi_record_close(RECORD_CANVAS);
+    }
+
+    if(request_comes_from_same_app) {
+        return request_priority >= active_priority;
+    } else {
+        return request_priority > active_priority;
+    }
 }
 
 static void api_display_canvas_draw(struct mg_connection* conn, struct mg_http_message* msg) {
@@ -412,8 +430,7 @@ static void api_display_canvas_draw(struct mg_connection* conn, struct mg_http_m
             break;
         }
 
-        size_t active_priority = api_display_active_priority();
-        if((size_t)priority < active_priority) {
+        if(!api_display_should_accept_draw_request(priority, app_name)) {
             MG_REPLY_ERROR(conn, 409, "Not drawn due to low priority");
             break;
         }

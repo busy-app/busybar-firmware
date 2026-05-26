@@ -223,21 +223,41 @@ class Main(App):
         return dist_dir
 
     def _copy_swagger_assets(self, swagger_dist_dir: Path, target_dir: Path) -> None:
-        """Copy necessary Swagger UI assets."""
+        """Copy necessary Swagger UI assets, gzip-compressing JS and CSS files."""
+
+        import gzip
+        import io
 
         self.logger.info("Copying Swagger UI assets...")
 
+        compressible_suffixes = {".js", ".css"}
+
         for filename in self.REQUIRED_STATIC_FILES:
             src_file = swagger_dist_dir / filename
-            dst_file = target_dir / filename
-
-            if src_file.exists():
-                shutil.copy2(src_file, dst_file)
-                self.logger.info(f"  Copied {filename}")
-            else:
+            if not src_file.exists():
                 self.logger.warning(
                     f"  Warning: {filename} not found in Swagger UI distribution"
                 )
+                continue
+
+            suffix = src_file.suffix.lower()
+            if suffix in compressible_suffixes:
+                data = src_file.read_bytes()
+                buf = io.BytesIO()
+                with gzip.GzipFile(fileobj=buf, mode="wb", mtime=0) as gz_f:
+                    gz_f.write(data)
+                gz_data = buf.getvalue()
+                if len(gz_data) < len(data):
+                    dst_file = target_dir / (filename + ".gz")
+                    dst_file.write_bytes(gz_data)
+                    self.logger.info(
+                        f"  Gzipped {filename} ({len(data)} -> {len(gz_data)} bytes)"
+                    )
+                    continue
+
+            dst_file = target_dir / filename
+            shutil.copy2(src_file, dst_file)
+            self.logger.info(f"  Copied {filename}")
 
     def _create_swagger_html(self, target_dir: Path, api_yaml_path: str) -> None:
         """Create a customized Swagger UI HTML file."""

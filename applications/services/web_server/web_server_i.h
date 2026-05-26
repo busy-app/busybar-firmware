@@ -56,6 +56,10 @@
 
 #define MG_REPLY_OVERLOADED(conn) MG_REPLY_ERROR(conn, 508, "Resource Limit Reached")
 
+#define MG_REPLY_METHOD_NOT_ALLOWED(conn, headers_cstr) \
+    mg_http_reply(conn, 405, headers_cstr, "{\"error\":\"Method Not Allowed\"}\n")
+#define MG_REPLY_CORS_OPTIONS(conn, headers_cstr) mg_http_reply(conn, 200, headers_cstr, "")
+
 #define MG_CLOSE_AFTER_HEADERS(conn, msg)        \
     mg_iobuf_del(&conn->recv, 0, msg->head.len); \
     conn->pfn = NULL;                            \

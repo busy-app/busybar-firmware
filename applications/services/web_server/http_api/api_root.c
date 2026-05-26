@@ -417,7 +417,7 @@ static const HttpHandler handlers_api_root[] = {
     },
     {
         .uri = "status",
-        .method = HttpMethodGet,
+        .method = HttpMethodAny,
         .type = HttpHandlerCustom,
         .on_request = http_api_status_callback,
         .ctx_alloc = http_api_status_alloc,

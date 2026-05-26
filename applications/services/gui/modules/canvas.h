@@ -21,6 +21,8 @@ typedef struct Canvas Canvas;
  * @brief Create a new Canvas instance.
  *
  * @param[in,out] parent pointer to the parent Widget instance
+ * @param[in] width canvas width in pixels
+ * @param[in] height canvas height in pixels
  *
  * @returns pointer to the newly created Canvas instance
  */
@@ -148,8 +150,8 @@ void canvas_draw_line(Canvas* instance, int32_t x1, int32_t y1, int32_t x2, int3
  * @brief Draw a rectangle based on its top-left corner and dimensions.
  *
  * @param[in,out] instance pointer to the Canvas instance to be drawn on
- * @param[in] x1 horizontal (x) coordinate of the corner
- * @param[in] y1 vertical (y) coordinate of the corner
+ * @param[in] x horizontal (x) coordinate of the corner
+ * @param[in] y vertical (y) coordinate of the corner
  * @param[in] w horizontal dimension of the rectangle
  * @param[in] h vertical dimension of the rectangle
  * @param[in] fill if true, fill the rectangle with the fill color, otherwise draw only its border
@@ -160,8 +162,8 @@ void canvas_draw_rect(Canvas* instance, int32_t x, int32_t y, int32_t w, int32_t
  * @brief Draw a plain text label.
  *
  * @param[in,out] instance pointer to the Canvas instance to be drawn on
- * @param[in] x1 horizontal (x) offset of the text
- * @param[in] y1 vertical (y) offset of the text
+ * @param[in] x horizontal (x) offset of the text
+ * @param[in] y vertical (y) offset of the text
  * @param[in] text zero-terminated string containing the text to be shown
  */
 void canvas_draw_text(Canvas* instance, int32_t x, int32_t y, const char* text);

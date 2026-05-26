@@ -37,7 +37,18 @@ jobs:
 
       - name: 'Update submodules'
         run: |
-          git submodule update --init --recursive --jobs=$(nproc) scripts/toolchain lib/lwip lib/matter_ext || (git lfs logs last && exit 1)
+          git submodule update --init --recursive --filter=blob:none --jobs=$(nproc) || (git lfs logs last && exit 1)
+
+      - name: 'Restore toolchain cache'
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        with:
+          path: toolchain/
+          key: toolchain-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('scripts/toolchain/fbtenv.sh') }}
+
+      - name: 'Check submodule branches'
+        if: always()
+        run: |
+          python3 scripts/check-submodules.py .github/expected-submodule-branches.txt
 
       - name: 'Check REUSE compliance'
         id: reuse_check
@@ -65,7 +76,7 @@ jobs:
         if: always()
         run: |
           set +e;
-          export FBT_GIT_SUBMODULE_SHALLOW=1;
+          export FBT_NO_SYNC=1;
           errors=0;
           for target in 21 64; do
             log_file="lint-cpp-${target}.log";
@@ -93,7 +104,7 @@ jobs:
         if: false
         run: |
           set +e;
-          export FBT_GIT_SUBMODULE_SHALLOW=1;
+          export FBT_NO_SYNC=1;
           errors=0;
           for target in 21 64; do
             log_file="lint-py-${target}.log";

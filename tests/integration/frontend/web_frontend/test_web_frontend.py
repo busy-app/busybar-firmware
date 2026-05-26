@@ -1,4 +1,7 @@
+import gzip as gzip_module
+import http.client
 import time
+from urllib.parse import urlparse
 
 import allure
 import pytest
@@ -193,13 +196,23 @@ class TestWebFrontendErrorHandling:
     @allure.title("BSB Front. 404 Handling")
     @pytest.mark.frontend
     def test_404_handling(self, web_session, web_base_url):
-        """Test that non-existent paths return 404"""
+        """Test that non-existent paths return 404 with the custom HTML page"""
+
         response = web_session.get(f"{web_base_url}/nonexistent-page", timeout=10)
 
-        with allure.step("Verify 404 response"):
+        with allure.step("Verify 404 status code"):
             assert (
                 response.status_code == 404
             ), f"Expected 404, got {response.status_code}"
+
+        with allure.step("Verify 404 page is HTML"):
+            content_type = response.headers.get("content-type", "").lower()
+            assert (
+                "text/html" in content_type
+            ), f"Expected HTML 404 page, got {content_type}"
+
+        with allure.step("Verify 404 page body"):
+            assert "404" in response.text, "404 page body should contain '404'"
 
     @allure.id("2736")
     @allure.title("BSB Front. Invalid API Path")
@@ -240,6 +253,115 @@ class TestWebFrontendErrorHandling:
                 name="Response Info",
                 attachment_type=allure.attachment_type.TEXT
             )
+
+
+@allure.feature("5. Web Frontend")
+@allure.story("Gzip content negotiation")
+class TestWebFrontendGzip:
+    """Tests for gzip content negotiation on pre-compressed static assets.
+
+    The web assets are stored exclusively as .gz files. The server must:
+    - Case A: serve gzip-encoded content when client omits Accept-Encoding (RFC 7231 §5.3.4)
+    - Case B: serve gzip-encoded content when client advertises gzip support (baseline)
+    - Case C: return 406 for compressed-only resources when client opts out of gzip
+    - Case C (uncompressed): return 200 for resources that are not compressed
+    """
+
+    @allure.title("BSB Front. No Accept-Encoding serves gzip (Case A)")
+    @pytest.mark.frontend
+    def test_no_accept_encoding_serves_gzip(self, web_base_url):
+        """Without Accept-Encoding the server injects gzip and serves the asset.
+
+        Uses http.client with skip_accept_encoding=True to truly omit the header;
+        requests/urllib3 v2 and stdlib http.client.request() both inject
+        'Accept-Encoding: identity' when no encoding is specified by the caller.
+        """
+        parsed = urlparse(web_base_url)
+        host = parsed.hostname
+        port = parsed.port or 80
+        path = parsed.path or "/"
+
+        conn = http.client.HTTPConnection(host, port, timeout=10)
+        conn.connect()
+        # skip_accept_encoding=True prevents http.client from adding the default
+        # 'Accept-Encoding: identity', giving us a request with no AE header at all
+        conn.putrequest("GET", path, skip_host=True, skip_accept_encoding=True)
+        conn.putheader("Host", parsed.netloc)
+        conn.putheader("User-Agent", "test-client")
+        conn.endheaders()
+        resp = conn.getresponse()
+        body = resp.read()
+        conn.close()
+
+        with allure.step("Verify 200 response"):
+            assert resp.status == 200, f"Expected 200, got {resp.status}"
+
+        with allure.step("Verify Content-Encoding: gzip header is present"):
+            content_encoding = resp.getheader("Content-Encoding", "")
+            assert (
+                content_encoding.lower() == "gzip"
+            ), f"Expected Content-Encoding: gzip, got: {content_encoding}"
+
+        with allure.step("Verify HTML content is decompressed correctly"):
+            decompressed = gzip_module.decompress(body).decode("utf-8", errors="replace")
+            assert "html" in decompressed.lower(), "Decompressed response should contain HTML"
+
+    @allure.title("BSB Front. Accept-Encoding: gzip serves gzip (Case B)")
+    @pytest.mark.frontend
+    def test_explicit_gzip_serves_gzip(self, web_session, web_base_url):
+        """Explicit Accept-Encoding: gzip results in 200 with Content-Encoding: gzip."""
+        response = web_session.get(
+            web_base_url,
+            headers={"Accept-Encoding": "gzip"},
+        )
+
+        with allure.step("Verify 200 response"):
+            assert (
+                response.status_code == 200
+            ), f"Expected 200, got {response.status_code}"
+
+        with allure.step("Verify Content-Encoding: gzip header is present"):
+            assert (
+                response.headers.get("Content-Encoding", "").lower() == "gzip"
+            ), f"Expected Content-Encoding: gzip, got: {response.headers.get('Content-Encoding')}"
+
+    @allure.title(
+        "BSB Front. Accept-Encoding: identity returns 406 for compressed asset (Case C)"
+    )
+    @pytest.mark.frontend
+    def test_identity_only_returns_406_for_compressed_asset(self, web_session, web_base_url):
+        """When gzip is excluded, a compressed-only asset returns 406 Not Acceptable."""
+        response = web_session.get(
+            web_base_url,
+            headers={"Accept-Encoding": "identity"},
+        )
+
+        with allure.step("Verify 406 response"):
+            assert (
+                response.status_code == 406
+            ), f"Expected 406 Not Acceptable, got {response.status_code}"
+
+    @allure.id("2743")
+    @allure.title(
+        "BSB Front. Accept-Encoding: identity serves uncompressed asset (Case C, uncompressed)"
+    )
+    @pytest.mark.frontend
+    def test_identity_only_serves_uncompressed_asset(self, web_session, web_base_url):
+        """When gzip is excluded, an uncompressed asset (e.g. .yaml) is served normally."""
+        response = web_session.get(
+            f"{web_base_url}/openapi.yaml",
+            headers={"Accept-Encoding": "identity"},
+        )
+
+        with allure.step("Verify 200 response"):
+            assert (
+                response.status_code == 200
+            ), f"Expected 200, got {response.status_code}"
+
+        with allure.step("Verify no Content-Encoding header"):
+            assert (
+                "Content-Encoding" not in response.headers
+            ), f"Unexpected Content-Encoding: {response.headers.get('Content-Encoding')}"
 
 
 @allure.feature("5. Web Frontend")

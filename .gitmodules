@@ -62,3 +62,6 @@
 [submodule "assets/proto"]
 	path = assets/proto
 	url = https://github.com/flipperdevices/bsb-protobuf.git
+[submodule "documentation/doxygen/doxygen-awesome-css"]
+	path = documentation/doxygen/doxygen-awesome-css
+	url = https://github.com/jothepro/doxygen-awesome-css.git
