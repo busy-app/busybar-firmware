@@ -183,7 +183,7 @@ class TestAccountLinkAPI:
         # Validated by pydantic
         assert response.code
         assert len(response.code) > 0
-        assert response.expires_at > 1577836800  # After year 2020
+        assert response.expires_at > 1577836800
 
 
 @allure.feature("5. Web Frontend")

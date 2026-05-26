@@ -114,3 +114,5 @@ bool canvas_show_elements(
  * Canvas terminates itself.
  */
 bool canvas_delete_elements(CanvasApp* canvas, const char* app_id);
+
+bool canvas_get_app_id(CanvasApp* canvas, FuriString* string);

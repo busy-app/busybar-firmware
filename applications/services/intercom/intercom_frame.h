@@ -1,5 +1,5 @@
 /**
- * @file intercom_protocol.h
+ * @file intercom_frame.h
  * @brief Frame definitions and parsing for the Intercom service
  */
 #pragma once
