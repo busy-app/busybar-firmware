@@ -41,7 +41,13 @@
 #define BLE_SECURITY_MODE SEC_MODE_1_LEVEL_4
 #endif
 
+#define BLE_WORKER_MAINTAIN_CHARACTERISTICS
+
+#ifdef BLE_WORKER_MAINTAIN_CHARACTERISTICS
 #define RSI_BLE_ATT_CONFIG_BITMAP (BLE_SECURITY_MODE | ATT_REC_MAINTAIN_IN_HOST)
+#else
+#define RSI_BLE_ATT_CONFIG_BITMAP (BLE_SECURITY_MODE)
+#endif
 
 //===========================================================================================
 ///TODO:Remove this in future
@@ -49,12 +55,12 @@ static BleWorker* ble_worker_instance = NULL;
 //===========================================================================================
 
 int32_t ble_worker_write_response(uint8_t* dev_addr, uint8_t type) {
-#ifdef BLE_WORKER_WRITE_RESPONSE_BY_NWP
+#ifdef BLE_WORKER_MAINTAIN_CHARACTERISTICS
+    return rsi_ble_gatt_write_response(dev_addr, type);
+#else
     UNUSED(dev_addr);
     UNUSED(type);
     return RSI_SUCCESS;
-#else
-    return rsi_ble_gatt_write_response(addr, resp);
 #endif
 }
 //===========================================================================================

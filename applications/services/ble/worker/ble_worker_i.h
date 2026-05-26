@@ -23,8 +23,6 @@
 
 #define BLE_WORKER_ATTR_HEADER_SIZE 3
 
-#define BLE_WORKER_WRITE_RESPONSE_BY_NWP
-
 typedef struct {
     ///TODO: for now this is ok, for future maybe it is worth to make each characteristic
     /// know its own service.
