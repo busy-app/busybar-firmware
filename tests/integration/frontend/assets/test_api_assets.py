@@ -137,7 +137,6 @@ class TestAssetsAPI:
         # Set volume to a low level for testing to avoid loud audio during test runs
         settings_api.set_volume(10)
 
-
         assert audio_path.exists(), f"Test audio file not found: {audio_path}"
 
         with allure.step(f"Upload test audio: {test_audio_file}"):
@@ -152,7 +151,8 @@ class TestAssetsAPI:
             sleep(0.5)
             assets_api.play_audio(test_app_id, test_audio_file)
             sleep(2)
-            assets_api.stop_audio()
+            # 200 if audio is still playing; 410 if the file finished before stop was called
+            assets_api.delete_raw("/api/audio/play")
         finally:
             try:
                 assets_api.delete_assets(test_app_id)
@@ -168,9 +168,76 @@ class TestAssetsAPI:
     @pytest.mark.api
     @pytest.mark.frontend
     def test_api_audio_stop(self, assets_api: AssetsAPI):
-        """Test DELETE /api/audio/play endpoint"""
-        assets_api.stop_audio()
+        """Test DELETE /api/audio/play endpoint returns 410 when no audio is playing."""
+        response = assets_api.delete_raw("/api/audio/play")
+        assert response.status_code == 410
 
+    @allure.id("2657")
+    @allure.title("DELETE /api/audio/play while audio is playing")
+    @pytest.mark.api
+    @pytest.mark.frontend
+    def test_api_audio_stop_while_playing(
+        self, assets_api: AssetsAPI, settings_api: SettingsAPI
+    ):
+        """
+        Test that DELETE /api/audio/play returns 200 when audio is playing.
+
+        The connection is held by the server until AudioEventPlayEnd fires (async),
+        so this also verifies the async stop mechanism end-to-end.
+        Stop is issued during the 100ms holdoff period, exercising the holdoff
+        cancellation path added to audio.c.
+        """
+        test_app_id = "test_audio_stop_playing"
+        test_audio_file = "ping.snd"
+        audio_path = ASSETS_DIR / test_audio_file
+
+        settings_api.set_volume(10)
+        assert audio_path.exists(), f"Test audio file not found: {audio_path}"
+
+        with allure.step(f"Upload {test_audio_file}"):
+            with open(audio_path, "rb") as f:
+                assets_api.upload_asset(test_app_id, test_audio_file, f.read())
+
+        try:
+            with allure.step("Play audio"):
+                assets_api.play_audio(test_app_id, test_audio_file)
+
+            with allure.step("Stop audio while playing and assert 200"):
+                # Called within the 100ms holdoff window; the server holds the
+                # connection until PlayEnd fires, then responds 200.
+                assets_api.stop_audio()
+        finally:
+            try:
+                assets_api.delete_assets(test_app_id)
+            except requests.exceptions.RequestException as exc:
+                allure.attach(
+                    f"Asset cleanup failed: {exc}",
+                    name="Asset Cleanup Error",
+                    attachment_type=allure.attachment_type.TEXT,
+                )
+
+    @allure.id("2658")
+    @allure.title("POST /api/audio/play (stock_path)")
+    @pytest.mark.api
+    @pytest.mark.frontend
+    def test_api_audio_play_stock_path(
+        self, assets_api: AssetsAPI, settings_api: SettingsAPI
+    ):
+        """Test POST /api/audio/play with stock_path plays a built-in sound."""
+        settings_api.set_volume(10)
+
+        with allure.step("Play stock sound shared/volume_change.snd"):
+            response = assets_api.post_raw(
+                "/api/audio/play",
+                json={
+                    "application_name": "test_audio_stock",
+                    "stock_path": "shared/volume_change.snd",
+                },
+            )
+        assert response.status_code == 200
+
+        # cleanup — audio may already be done; either 200 or 410 is acceptable
+        assets_api.delete_raw("/api/audio/play")
     @allure.id("2672")
     @allure.title("POST /api/display/draw (malformed JSON)")
     @pytest.mark.api

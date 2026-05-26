@@ -69,7 +69,7 @@ static void firmware_settings_low_battery_scene_on_usb_connection_state_update(
                  FirmwareSettingsLowBatteryScenePresetIdxUsbDisconnected];
 
     with_gui(instance->gui, {
-        status_view_set_icon(scene->front_status, scene_preset->front_image_path);
+        status_view_set_icon(scene->front_status, scene_preset->front_image_path, false);
         status_view_set_primary_text(scene->front_status, scene_preset->front_text);
 
         status_view_set_primary_text(scene->back_status, scene_preset->back_primary_text);
@@ -95,12 +95,12 @@ static void firmware_settings_low_battery_scene_on_enter(void* context) {
     with_gui(instance->gui, {
         /* front layout setup */
         scene->front_status = status_view_alloc(instance->front_scene_window);
-        status_view_set_icon(scene->front_status, scene_preset->front_image_path);
+        status_view_set_icon(scene->front_status, scene_preset->front_image_path, false);
         status_view_set_primary_text(scene->front_status, scene_preset->front_text);
 
         /* back layout setup */
         scene->back_status = status_view_alloc(instance->back_scene_window);
-        status_view_set_icon(scene->back_status, SHARED_IMG_PATH("error_back_11x11.image"));
+        status_view_set_icon(scene->back_status, SHARED_IMG_PATH("error_back_11x11.image"), false);
         status_view_set_primary_text(scene->back_status, scene_preset->back_primary_text);
         status_view_set_auxiliary_text(scene->back_status, scene_preset->back_auxiliary_text);
     });
@@ -164,7 +164,7 @@ static const FirmwareSettingsLowBatteryScenePreset firmware_settings_low_battery
     [FirmwareSettingsLowBatteryScenePresetIdxUsbDisconnected] =
         {
             /* front layout */
-            .front_image_path = THIS_IMG_PATH("low_battery_front_8x8.image"),
+            .front_image_path = SHARED_IMG_PATH("low_battery_front_8x8.image"),
             .front_text = "Charge device up\nto 40% to update",
 
             /* back layout */

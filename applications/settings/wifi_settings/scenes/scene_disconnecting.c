@@ -23,11 +23,11 @@ static void wifi_scene_disconnecting_on_enter(void* context) {
 
     with_gui(instance->gui, {
         data->front_status = status_view_alloc(instance->front_scene_window);
-        status_view_set_icon(data->front_status, SHARED_ANIM_PATH("spinner_front_8x8.anim"));
+        status_view_set_icon(data->front_status, SHARED_ANIM_PATH("spinner_front_8x8.anim"), true);
         status_view_set_primary_text(data->front_status, "Disconnecting...");
 
         data->back_status = status_view_alloc(instance->back_scene_window);
-        status_view_set_icon(data->back_status, SHARED_ANIM_PATH("spinner_back_16x16.anim"));
+        status_view_set_icon(data->back_status, SHARED_ANIM_PATH("spinner_back_16x16.anim"), true);
         status_view_set_primary_text(data->back_status, "Disconnecting...");
     });
 
