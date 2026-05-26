@@ -26,7 +26,7 @@ static void wifi_scene_not_connected_on_enter(void* context) {
     with_gui(instance->gui, {
         data->front_view = status_view_alloc(instance->front_scene_window);
         status_view_set_primary_text(data->front_view, "Connect Wi-Fi via\nPC or BUSY App");
-        status_view_set_icon(data->front_view, IMG_PATH("wifi_front_gray_8x8.image"));
+        status_view_set_icon(data->front_view, IMG_PATH("wifi_front_gray_8x8.image"), false);
 
         GuiLayer* top_layer = gui_get_layer(instance->gui, GuiLayerIdSystem);
         Widget* top_back_layer_root = gui_layer_get_root_widget(top_layer, GuiDisplayIdBack);

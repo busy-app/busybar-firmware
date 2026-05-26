@@ -136,7 +136,7 @@ static void power_on_show_startup_message(PowerOnApp* instance) {
             Widget* root = gui_layer_get_root_widget(layer_main, display);
 
             StatusView* status_view = status_view_alloc(root);
-            status_view_set_icon(status_view, power_on_spinner_paths[display]);
+            status_view_set_icon(status_view, power_on_spinner_paths[display], true);
             status_view_set_primary_text(status_view, "Starting...");
 
             instance->status_views[display] = status_view;
