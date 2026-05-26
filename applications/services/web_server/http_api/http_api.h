@@ -1,7 +1,7 @@
 #pragma once
 #include "../web_server_i.h"
 
-#define API_VERSION {22, 0, 0}
+#define API_VERSION {22, 1, 0}
 
 // Access logging (also used by web_server.c for static-file requests)
 int http_api_extract_status(const struct mg_connection* conn);

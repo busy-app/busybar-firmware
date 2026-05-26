@@ -4,15 +4,107 @@
 
 #define TAG "HttpAudio"
 
-#define AUDIO_ASSETS_DIR  EXT_PATH("user_assets")
-#define FILE_NAME_LEN_MAX 32
+#define AUDIO_ASSETS_DIR      EXT_PATH("user_assets")
+#define FILE_NAME_LEN_MAX     32
+#define AUDIO_STOP_TIMEOUT_MS 30000
 
 typedef struct {
-    size_t len_remain;
-    void* file;
-} UploadClientCtx;
+    struct mg_connection* conn;
+    FuriPubSubSubscription* audio_event_sub;
+    struct mg_timer timeout_timer;
+} StopResponseContext;
 
-static bool api_audio_play_stop_callback(
+static void audio_stop_event_callback(const void* message, void* context) {
+    StopResponseContext* ctx = context;
+    furi_assert(ctx);
+
+    const AudioEvent* audio_event = (const AudioEvent*)message;
+    furi_assert(audio_event);
+
+    if(audio_event->type == AudioEventPlayEnd) {
+        mg_wakeup(web_srv_get_mgr(), ctx->conn->id, NULL, 0);
+    }
+}
+
+static void audio_stop_wakeup_callback(struct mg_connection* conn, void* data, size_t len) {
+    UNUSED(data);
+    UNUSED(len);
+    furi_assert(conn);
+    ConnectionContext* conn_ctx = (void*)conn->data;
+    StopResponseContext* ctx = conn_ctx->context;
+    furi_assert(ctx);
+
+    MG_REPLY_OK(conn);
+    conn->is_draining = true;
+}
+
+static void audio_stop_timeout(void* data) {
+    furi_assert(data);
+    StopResponseContext* ctx = data;
+
+    MG_REPLY_INTERNAL_ERROR(ctx->conn, "Audio stop timeout");
+    ctx->conn->is_draining = true;
+}
+
+static void audio_stop_close_callback(struct mg_connection* conn) {
+    furi_assert(conn);
+    ConnectionContext* conn_ctx = (void*)conn->data;
+    StopResponseContext* ctx = conn_ctx->context;
+    furi_assert(ctx);
+
+    mg_timer_free(&web_srv_get_mgr()->timers, &ctx->timeout_timer);
+
+    if(ctx->audio_event_sub) {
+        Audio* audio = furi_record_open(RECORD_AUDIO);
+        furi_pubsub_unsubscribe(audio_get_pubsub(audio), ctx->audio_event_sub);
+        furi_record_close(RECORD_AUDIO);
+    }
+
+    conn_ctx->on_wakeup = NULL;
+    conn_ctx->on_close = NULL;
+    conn_ctx->context = NULL;
+    free(ctx);
+}
+
+static void audio_stop_handler(struct mg_connection* conn) {
+    StopResponseContext* ctx = malloc(sizeof(StopResponseContext));
+    ctx->conn = conn;
+
+    ConnectionContext* conn_ctx = (void*)conn->data;
+    conn_ctx->on_close = audio_stop_close_callback;
+    conn_ctx->on_wakeup = audio_stop_wakeup_callback;
+    conn_ctx->context = ctx;
+
+    Audio* audio = furi_record_open(RECORD_AUDIO);
+    ctx->audio_event_sub =
+        furi_pubsub_subscribe(audio_get_pubsub(audio), audio_stop_event_callback, ctx);
+
+    bool result = audio_stop(audio);
+
+    if(!result) {
+        furi_pubsub_unsubscribe(audio_get_pubsub(audio), ctx->audio_event_sub);
+        furi_record_close(RECORD_AUDIO);
+        conn_ctx->on_wakeup = NULL;
+        conn_ctx->on_close = NULL;
+        conn_ctx->context = NULL;
+        free(ctx);
+        MG_REPLY_ERROR(conn, 410, "No audio is playing");
+        return;
+    }
+
+    furi_record_close(RECORD_AUDIO);
+
+    // Hold connection until AudioEventPlayEnd fires or timeout expires
+    mg_timer_init(
+        &web_srv_get_mgr()->timers,
+        &ctx->timeout_timer,
+        AUDIO_STOP_TIMEOUT_MS,
+        MG_TIMER_ONCE,
+        audio_stop_timeout,
+        ctx);
+}
+
+static bool api_audio_play_handler(
     FuriString* path,
     HttpMethod method,
     struct mg_connection* conn,
@@ -23,10 +115,7 @@ static bool api_audio_play_stop_callback(
     if(!IS_HTTP_ENDPOINT(path)) return false;
 
     if(method == HttpMethodDelete) {
-        Audio* audio = furi_record_open(RECORD_AUDIO);
-        audio_stop(audio);
-        furi_record_close(RECORD_AUDIO);
-        MG_REPLY_OK(conn);
+        audio_stop_handler(conn);
         return true;
     }
 
@@ -96,7 +185,7 @@ static bool api_audio_play_stop_callback(
     return true;
 }
 
-static bool api_audio_volume_callback(
+static bool api_audio_volume_handler(
     FuriString* path,
     HttpMethod method,
     struct mg_connection* conn,
@@ -173,13 +262,13 @@ static const HttpHandler api_audio_handlers[] = {
         .uri = "play",
         .method = HttpMethodPost | HttpMethodDelete,
         .type = HttpHandlerCustom,
-        .on_request = api_audio_play_stop_callback,
+        .on_request = api_audio_play_handler,
     },
     {
         .uri = "volume",
         .method = HttpMethodGet | HttpMethodPost,
         .type = HttpHandlerCustom,
-        .on_request = api_audio_volume_callback,
+        .on_request = api_audio_volume_handler,
     },
 };
 
