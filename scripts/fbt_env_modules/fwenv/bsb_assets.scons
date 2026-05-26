@@ -6,6 +6,7 @@ from fbt.version import get_git_commit_unix_timestamp
 import requests
 import hashlib
 import shutil
+import os
 
 def sha256sum(filename):
     try:
@@ -14,33 +15,44 @@ def sha256sum(filename):
     except OSError:
         return None
 
-def download_file(temp_out, dst_file, *_, src_url, src_url_sha256, **__):
+
+def download_file(build_output, src_tree_file, *_, src_url, src_url_sha256, **__):
     try:
         expected_sha = requests.get(src_url_sha256, timeout=10)
         expected_sha.raise_for_status()
         expected_sha = expected_sha.text.split(" ")[0]
 
-        if sha256sum(dst_file) == expected_sha:
-            print(f"File is up to date: {dst_file}")
-            shutil.copy(dst_file, temp_out)
+        if sha256sum(src_tree_file) == expected_sha:
+            print(f"File is up to date: {src_tree_file}")
+            shutil.copy(src_tree_file, build_output)
             return True
-        
+
         file = requests.get(src_url, timeout=10)
         file.raise_for_status()
 
-        with open(temp_out, "wb") as f:
+        with open(build_output, "wb") as f:
             f.write(file.content)
 
-        if sha256sum(temp_out) != expected_sha:
-            raise Exception(f"Downloaded file does not match digest: {dst_file}")
+        if sha256sum(build_output) != expected_sha:
+            raise Exception(f"Downloaded file does not match digest: {src_tree_file}")
 
-        print(f"Updated file to new version: {dst_file}")
-        shutil.copy(temp_out, dst_file) # deliberately update source tree too
+        # Copy back to the source tree so the updated cert can be committed.
+        # This leaves a dirty working tree in CI — commit or reset the file afterward.
+        shutil.copy(build_output, src_tree_file)
+        print(
+            f"WARNING: {src_tree_file} has been updated from {src_url}. Commit the change."
+        )
         return True
 
     except requests.RequestException:
-        print(f"Failed to download file: {dst_file}")
+        # Network unavailable — fall back to the existing source-tree cert if present.
+        if os.path.exists(src_tree_file):
+            print(f"Network unavailable; using existing cert: {src_tree_file}")
+            shutil.copy(src_tree_file, build_output)
+            return True
+        print(f"Failed to download cert and no local copy found: {src_tree_file}")
         return False
+
 
 fwenv.SetDefault(RESOURCES_ROOT=fwenv.Dir("${BUILD_DIR}/resources"))
 

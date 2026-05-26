@@ -6,7 +6,7 @@ EXPECTATION_TABLE=$1
 REPO_NAME=$2
 
 COMMIT="$(git rev-parse HEAD)"
-BRANCHES_W_COMMIT="$(git branch -r --contains $COMMIT)"
+BRANCHES_W_COMMIT="$(git branch -r --contains "$COMMIT")"
 
 EXPECTED_BRANCH=$(sed -n "s#^$REPO_NAME ##p" "$EXPECTATION_TABLE")
 
@@ -16,7 +16,7 @@ if [ "$EXPECTED_BRANCH" == "" ]; then
     exit 1
 fi
 
-if grep -P "$EXPECTED_BRANCH"'( |$)' <(echo $BRANCHES_W_COMMIT) > /dev/null; then
+if grep -qE '(^| )'"$EXPECTED_BRANCH"'( |$)' <<< "$BRANCHES_W_COMMIT"; then
     echo "  Correct branch ($EXPECTED_BRANCH)"
 else
     echo "  Incorrect branch (expected $EXPECTED_BRANCH)"
