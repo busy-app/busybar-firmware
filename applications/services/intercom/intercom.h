@@ -87,7 +87,7 @@ typedef void (*IntercomRxCallback)(const void* data, size_t data_size, void* con
  * Signals to the other chip that you are ready to accept messages on the
  * specified channel.
  * 
- * You may pass `NULL` to `rx_callback`, meaning you don't expect any data to
+ * You may pass @c NULL as @p rx_callback, meaning you don't expect any data to
  * arrive from the other side. If the other side does end up sending data to
  * you, the system will crash with a clear message.
  *
@@ -97,9 +97,9 @@ typedef void (*IntercomRxCallback)(const void* data, size_t data_size, void* con
  *          same chip.
  * 
  * @param[in] instance Intercom instance
- * @param[in] ch_id Channel ID
- * @param[in] rx_callback Data reception callback. May be NULL.
- * @param[in] context Context for provided callback. May be NULL.
+ * @param[in] channel_id Channel identifier from @ref IntercomChannelId
+ * @param[in] rx_callback Data reception callback. May be @c NULL.
+ * @param[in] context Context for provided callback. May be @c NULL.
  * 
  * @returns Pointer to the respective IntercomChannel instance
  */
@@ -111,7 +111,7 @@ IntercomChannel* intercom_channel_open(
 
 /**
  * @brief Transmit data through Intercom.
- * @pre intercom_channel_open
+ * @pre @p intercom_channel_open() needs to be called first.
  * 
  * The data will be automatically split into frames and sent asynchronously.
  * 

@@ -181,11 +181,9 @@ typedef struct {
 static BleWorker* ble_worker_instance = NULL;
 /*==============================================*/
 /**
- * @fn         ble_worker_echo_app_on_adv_report_event
  * @brief      invoked when advertise report event is received
  * @param[in]  adv_report, pointer to the received advertising report
  * @return     none.
- * @section description
  * This callback function updates the scanned remote devices list
  */
 static void ble_worker_on_adv_report_event(rsi_ble_event_adv_report_t* adv_report) {
@@ -226,12 +224,10 @@ static void ble_worker_on_adv_report_event(rsi_ble_event_adv_report_t* adv_repor
 /*==============================================*/
 
 /**
- * @fn         ble_worker_on_disconnect_event
  * @brief      invoked when disconnection event is received
  * @param[in]  resp_disconnect, disconnected remote device information
  * @param[in]  reason, reason for disconnection.
  * @return     none.
- * @section description
  * This callback function indicates disconnected device information and status
  */
 static void
@@ -247,12 +243,10 @@ static void
 }
 
 /**
- * @fn         ble_worker_phy_update_complete_event
  * @brief      invoked when disconnection event is received
  * @param[in]  resp_disconnect, disconnected remote device information
  * @param[in]  reason, reason for disconnection.
  * @return     none.
- * @section description
  * This Callback function indicates disconnected device information and status
  */
 static void ble_worker_phy_update_complete_event(
@@ -267,9 +261,7 @@ static void ble_worker_phy_update_complete_event(
 }
 
 /**
- * @fn         ble_worker_data_length_change_event
  * @brief      invoked when data length is set
- * @section description
  * This Callback function indicates data length is set
  */
 static void ble_worker_data_length_change_event(
@@ -284,11 +276,9 @@ static void ble_worker_data_length_change_event(
 }
 
 /**
- * @fn         ble_worker_on_enhance_conn_status_event
  * @brief      invoked when enhanced connection complete event is received
  * @param[out] resp_conn, connected remote device information
  * @return     none.
- * @section description
  * This callback function indicates the status of the connection
  */
 static void
@@ -327,11 +317,9 @@ static void rsi_ble_on_directed_adv_report_event(
 }
 /*==============================================*/
 /**
- * @fn         ble_worker_simple_peripheral_on_remote_features_event
  * @brief      invoked when LE remote features event is received.
  * @param[in] resp_conn, connected remote device information
  * @return     none.
- * @section description
  * This callback function indicates the status of the connection
  */
 void ble_worker_simple_peripheral_on_remote_features_event(
@@ -356,12 +344,10 @@ static void ble_worker_more_data_req_event(rsi_ble_event_le_dev_buf_ind_t* rsi_b
 
 /*==============================================*/
 /**
- * @fn         ble_worker_on_gatt_write_event
  * @brief      its invoked when write/notify/indication events are received.
  * @param[in]  event_id, it indicates write/notification event id.
  * @param[in]  rsi_ble_write, write event parameters.
  * @return     none.
- * @section description
  * This callback function is invoked when write/notify/indication events are received
  */
 static void
@@ -984,12 +970,10 @@ static int32_t ble_worker_thread_callback(void* context) {
 }
 
 /**
- * @fn         ble_worker_echo_app_prepare_128bit_uuid
  * @brief      this function is used to prepare the 128bit UUID
  * @param[in]  temp_service,received 128-bit service.
  * @param[out] temp_uuid,formed 128-bit service structure.
  * @return     none.
- * @section description
  * This function prepares the 128bit UUID
  */
 static void
@@ -1010,7 +994,6 @@ static void
 }
 
 /**
- * @fn         ble_worker_echo_app_add_char_serv_att
  * @brief      this function is used to add characteristic service attribute..
  * @param[in]  serv_handler, service handler.
  * @param[in]  handle, characteristic service attribute handle.
@@ -1018,7 +1001,6 @@ static void
  * @param[in]  att_val_handle, characteristic value handle
  * @param[in]  att_val_uuid, characteristic value uuid
  * @return     none.
- * @section description
  * This function is used at application to add characteristic attribute
  */
 static uint16_t ble_worker_add_char_serv_att(

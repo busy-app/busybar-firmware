@@ -27,6 +27,10 @@ SKIP_OPERATION_IDS: frozenset[str] = frozenset(
         "installFirmwareUpdate",
         "abortFirmwareDownload",
         "updateFirmware",
+        # Starts a stateful asynchronous update check; repeated valid calls may
+        # return 409 while a previous check is still running. Covered in
+        # test_api_update.py.
+        "checkFirmwareUpdate",
         # Changelog requires a specific version that exists on the device —
         # tested separately in test_api_update.py with a known version
         "getUpdateChangelog",

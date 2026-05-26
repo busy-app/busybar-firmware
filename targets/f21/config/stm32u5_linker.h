@@ -1,5 +1,5 @@
 /**
- * @file stm32wb55_linker.h
+ * @file stm32u5_linker.h
  *
  * Linker defined symbols. Used in various part of firmware to understand
  * hardware boundaries.

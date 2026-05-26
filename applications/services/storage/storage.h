@@ -492,6 +492,7 @@ const char* storage_file_get_error_desc(File* file);
  * @brief Format the SD Card.
  *
  * @param storage pointer to a storage API instance.
+ * @param path pointer to a zero-terminated string containing the path to the SD card.
  * @return FSE_OK if the card was successfully formatted, any other error code on failure.
  */
 FS_Error storage_sd_format(Storage* storage, const char* path);
