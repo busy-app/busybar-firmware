@@ -5,7 +5,6 @@ from urllib.parse import urlparse
 
 import allure
 import pytest
-import requests
 from bs4 import BeautifulSoup
 
 
@@ -268,7 +267,6 @@ class TestWebFrontendGzip:
     - Case C (uncompressed): return 200 for resources that are not compressed
     """
 
-    @allure.id("2740")
     @allure.title("BSB Front. No Accept-Encoding serves gzip (Case A)")
     @pytest.mark.frontend
     def test_no_accept_encoding_serves_gzip(self, web_base_url):
@@ -308,15 +306,13 @@ class TestWebFrontendGzip:
             decompressed = gzip_module.decompress(body).decode("utf-8", errors="replace")
             assert "html" in decompressed.lower(), "Decompressed response should contain HTML"
 
-    @allure.id("2741")
     @allure.title("BSB Front. Accept-Encoding: gzip serves gzip (Case B)")
     @pytest.mark.frontend
-    def test_explicit_gzip_serves_gzip(self, web_base_url):
+    def test_explicit_gzip_serves_gzip(self, web_session, web_base_url):
         """Explicit Accept-Encoding: gzip results in 200 with Content-Encoding: gzip."""
-        response = requests.get(
+        response = web_session.get(
             web_base_url,
             headers={"Accept-Encoding": "gzip"},
-            timeout=10,
         )
 
         with allure.step("Verify 200 response"):
@@ -329,17 +325,15 @@ class TestWebFrontendGzip:
                 response.headers.get("Content-Encoding", "").lower() == "gzip"
             ), f"Expected Content-Encoding: gzip, got: {response.headers.get('Content-Encoding')}"
 
-    @allure.id("2742")
     @allure.title(
         "BSB Front. Accept-Encoding: identity returns 406 for compressed asset (Case C)"
     )
     @pytest.mark.frontend
-    def test_identity_only_returns_406_for_compressed_asset(self, web_base_url):
+    def test_identity_only_returns_406_for_compressed_asset(self, web_session, web_base_url):
         """When gzip is excluded, a compressed-only asset returns 406 Not Acceptable."""
-        response = requests.get(
+        response = web_session.get(
             web_base_url,
             headers={"Accept-Encoding": "identity"},
-            timeout=10,
         )
 
         with allure.step("Verify 406 response"):
@@ -352,12 +346,11 @@ class TestWebFrontendGzip:
         "BSB Front. Accept-Encoding: identity serves uncompressed asset (Case C, uncompressed)"
     )
     @pytest.mark.frontend
-    def test_identity_only_serves_uncompressed_asset(self, web_base_url):
+    def test_identity_only_serves_uncompressed_asset(self, web_session, web_base_url):
         """When gzip is excluded, an uncompressed asset (e.g. .yaml) is served normally."""
-        response = requests.get(
+        response = web_session.get(
             f"{web_base_url}/openapi.yaml",
             headers={"Accept-Encoding": "identity"},
-            timeout=10,
         )
 
         with allure.step("Verify 200 response"):
