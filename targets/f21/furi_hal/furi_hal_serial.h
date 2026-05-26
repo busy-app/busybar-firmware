@@ -74,8 +74,6 @@ typedef void (*FuriHalSerialTxCallback)(
  *
  * @param handle Pointer to the serial handle.
  * @param baud_rate Baud rate.
- *      @arg min: 10UL
- *      @arg max: 20000000UL
  */
 void furi_hal_serial_init(FuriHalSerialHandle* handle, uint32_t baud_rate);
 
@@ -133,8 +131,6 @@ uint32_t furi_hal_serial_get_baud_rate(FuriHalSerialHandle* handle);
  *
  * @param handle Pointer to the serial handle.
  * @param baud_rate Baud rate.
- *      @arg min: 10UL
- *      @arg max: 20000000UL
  */
 void furi_hal_serial_set_baud_rate(FuriHalSerialHandle* handle, uint32_t baud_rate);
 

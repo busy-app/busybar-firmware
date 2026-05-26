@@ -1,5 +1,8 @@
+import hashlib
 import json
+import re
 import time
+import uuid
 from time import sleep
 from urllib.parse import urlsplit
 
@@ -233,7 +236,6 @@ class TestWifiAPI:
     @allure.title("WiFi regression: access key auth works over Wi-Fi API")
     @pytest.mark.api
     @pytest.mark.frontend
-    @pytest.mark.regression
     def test_api_wifi_access_key_after_connect(
         self,
         wifi_api: WifiAPI,
@@ -297,7 +299,6 @@ class TestWifiAPI:
     @allure.title("WiFi regression: connect → disconnect → scan x3")
     @pytest.mark.api
     @pytest.mark.frontend
-    @pytest.mark.regression
     def test_api_wifi_connect_disconnect_then_repeated_scan(self, wifi_api: WifiAPI):
         """Reproduces the UI flow: connect, disconnect, then repeatedly press
         'Select network' (= GET /api/wifi/networks).
@@ -350,3 +351,75 @@ class TestWifiAPI:
 
             if attempt < scan_attempts:
                 sleep(scan_pause)
+
+
+@allure.feature("5. Web Frontend")
+@allure.story("Wi-Fi / fetch")
+class TestWifiFetch:
+    """`fetch` CLI downloads a URL into device storage over the Wi-Fi link."""
+
+    _UPDATE_DIR = "https://update.busy.app/busybar-firmware/directory.json"
+
+    @allure.title("GET /api/wifi/status reports connected state with IP")
+    @pytest.mark.frontend
+    def test_wifi_status_after_connect(self, wifi_api):
+        if wifi_api.get_status().state != "connected":
+            connect_to_test_network_or_fail(wifi_api)
+        status = wifi_api.get_status()
+        assert status.state == "connected", status
+        assert status.ip_config and status.ip_config.address, (
+            f"no ip_config: {status.ip_config!r}"
+        )
+
+    @allure.title("CLI. fetch works with https")
+    @pytest.mark.cli
+    @pytest.mark.frontend
+    def test_cli_fetch_smoke(self, persistent_cli_connection, wifi_api):
+        if wifi_api.get_status().state != "connected":
+            connect_to_test_network_or_fail(wifi_api)
+
+        path = f"/ext/_test_fetch_{uuid.uuid4().hex[:8]}.json"
+        try:
+            out = persistent_cli_connection.execute_command(
+                f"fetch {self._UPDATE_DIR} {path}", timeout=60, slow_command=True,
+            )
+            assert "File successfully saved" in out, out
+        finally:
+            persistent_cli_connection.execute_command(f"storage remove {path}")
+
+    @allure.title("CLI. fetch + storage md5 matches runner-side md5")
+    @pytest.mark.cli
+    @pytest.mark.frontend
+    @pytest.mark.regression
+    @pytest.mark.external_service
+    def test_cli_fetch_md5_matches(self, persistent_cli_connection, wifi_api):
+        if wifi_api.get_status().state != "connected":
+            connect_to_test_network_or_fail(wifi_api)
+
+        directory = requests.get(self._UPDATE_DIR, timeout=10).json()
+        url = next(
+            f["url"]
+            for ch in directory["channels"]
+            for v in ch["versions"]
+            for f in v["files"]
+            if f["url"].endswith(".bin")
+        )
+        expected_md5 = hashlib.md5(requests.get(url, timeout=120).content).hexdigest()
+
+        path = f"/ext/_test_fetch_{uuid.uuid4().hex[:8]}.bin"
+        try:
+            out = persistent_cli_connection.execute_command(
+                f"fetch {url} {path}", timeout=300, slow_command=True,
+            )
+            assert "File successfully saved" in out, out
+
+            md5_out = persistent_cli_connection.execute_command(
+                f"storage md5 {path}", timeout=60, slow_command=True,
+            )
+            match = re.search(r"\b([0-9a-f]{32})\b", md5_out)
+            assert match, f"no md5 in `storage md5` output:\n{md5_out}"
+            assert match.group(1) == expected_md5, (
+                f"md5 mismatch: device={match.group(1)} runner={expected_md5}"
+            )
+        finally:
+            persistent_cli_connection.execute_command(f"storage remove {path}")

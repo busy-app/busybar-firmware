@@ -22,7 +22,7 @@ if [ -z "$FBT_NO_SYNC" ]; then
 
     CLONE_FLAGS="--jobs $NUM_GIT_THREADS"
     if [ -n "$FBT_GIT_SUBMODULE_SHALLOW" ]; then
-        CLONE_FLAGS="$CLONE_FLAGS --depth 1"
+        CLONE_FLAGS="$CLONE_FLAGS --depth 1 --filter=blob:none"
     fi
 
     git submodule update --init --recursive $CLONE_FLAGS
