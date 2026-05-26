@@ -166,6 +166,41 @@ class TestCLICommandsSession:
                     not persistent_cli_connection._in_sl_cli
                 ), "Should have exited 917 CLI mode"
 
+    @allure.title("CLI. Command sl_cli is exclusive (only one instance allowed).")
+    @pytest.mark.story_commands_check
+    @pytest.mark.cli
+    def test_cli_command_sl_cli_exclusive(
+        self, persistent_cli_connection, fresh_cli_connection
+    ):
+        """sl_cli is marked CliCommandFlagExclusive — a second concurrent
+        instance from another shell must be rejected with the run-once notice."""
+        first = persistent_cli_connection
+        second = fresh_cli_connection
+
+        with allure.step("Enter sl_cli on the first connection"):
+            welcome = first.enter_sl_cli()
+            assert (
+                "Welcome to BUSY Bar 917 Command Line Interface!" in welcome
+            ), "First sl_cli should enter 917 CLI"
+            assert first._in_sl_cli, "First connection should be in 917 CLI mode"
+
+        try:
+            with allure.step("Attempt sl_cli on a second connection — must be refused"):
+                second_response = second.execute_command("sl_cli", slow_command=True)
+                assert (
+                    "can only be run once" in second_response
+                ), f"Second sl_cli should be refused, got: {second_response!r}"
+                assert (
+                    "Welcome to BUSY Bar 917" not in second_response
+                ), "Second sl_cli must not enter 917 CLI"
+                assert (
+                    not second._in_sl_cli
+                ), "Second connection must not be marked as in 917 CLI"
+        finally:
+            with allure.step("Exit sl_cli on the first connection"):
+                first.exit_sl_cli()
+                assert not first._in_sl_cli, "First connection should exit 917 CLI mode"
+
     @allure.id("2041")
     @allure.title("CLI. Command Uptime.")
     @pytest.mark.story_commands_check

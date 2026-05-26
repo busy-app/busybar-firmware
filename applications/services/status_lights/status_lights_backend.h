@@ -1,6 +1,11 @@
 /**
  * @file status_lights_backend.h
  * @brief API for controlling Status Lights from f64 side.
+ *
+ * @cond BSB_MCU_SI917
+ *
+ * TODO: Doxygen warns about functions with the same names
+ *       but different signatures/docstrings
  */
 #pragma once
 
@@ -29,3 +34,5 @@ void status_lights_run_preset(StatusLights* instance, StatusLightsPreset preset,
 #ifdef __cplusplus
 }
 #endif
+
+/** @endcond BSB_MCU_SI917 */

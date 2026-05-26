@@ -23,14 +23,10 @@ TestDrawInDefaultState
     Busy timer stopped (NOT_STARTED).  Loader priority = 10
     (LOADER_DEFAULT_APP_PRIORITY).  All draws at priority >= 10 succeed.
 
-TestDrawWithRunningApp
-    Busy timer paused → loader priority = 10 (same value, but via a
-    different code path).  Verifies that draws below 10 are blocked.
-
 TestDrawBusyTimerTransitions
     Busy timer driven to active (priority 90) then paused / stopped.
     Verifies the full priority lifecycle:
-      active → draw-blocked-below-90 → pause/stop → draw-allowed
+      active → draw-blocked → pause/stop → draw-still-blocked
 
 TestDrawDisplayLifecycle
     Draw + clear + redraw sequences; multiple concurrent app_ids.
@@ -209,129 +205,6 @@ class TestDrawInDefaultState:
 
 
 @allure.feature("5. Web Frontend")
-@allure.story("Display Priority – Running App (paused timer)")
-class TestDrawWithRunningApp:
-    """
-    Tests with the busy timer *paused*, which calls
-    loader_set_priority(LOADER_DEFAULT_APP_PRIORITY=10).
-
-    Both NOT_STARTED and paused states result in priority 10, but paused
-    goes through a different code path (busy_scene_timer_update_matter).
-    This class specifically tests draws that are *below* that threshold.
-
-    The busy_timer_paused fixture puts the device in this state and restores
-    the original snapshot afterwards.
-    """
-
-    @allure.title("Draw at app priority (10) is allowed – >= semantics")
-    @pytest.mark.api
-    @pytest.mark.frontend
-    def test_equal_to_app_priority_allowed(
-        self, assets_api: AssetsAPI, busy_timer_paused
-    ):
-        """
-        priority=10 equals the running app's priority.  The firmware uses
-        >= for acceptance, so equal-priority draws must return 200 and
-        override whatever is on screen.
-        """
-        resp = _simple_draw(assets_api, priority=LOADER_DEFAULT_APP_PRIORITY)
-        assets_api.assert_status(resp, 200)
-
-    @allure.title("Draw at priority below running app (5 < 10) is blocked")
-    @pytest.mark.api
-    @pytest.mark.frontend
-    def test_below_app_priority_blocked(self, assets_api: AssetsAPI, busy_timer_paused):
-        """Any draw priority below the running app's priority (10) must return 409."""
-        resp = _simple_draw(assets_api, priority=5)
-        assets_api.assert_status(resp, 409)
-
-    @allure.title("Draw at minimum valid priority (1 < 10) is blocked by running app")
-    @pytest.mark.api
-    @pytest.mark.frontend
-    def test_minimum_priority_blocked_by_app(
-        self, assets_api: AssetsAPI, busy_timer_paused
-    ):
-        """priority=1 is valid but < 10, so it must be rejected with 409."""
-        resp = _simple_draw(assets_api, priority=1)
-        assets_api.assert_status(resp, 409)
-
-    @allure.title(
-        "Draw at DEFAULT_ELEMENT_PRIORITY (50 >= 10) succeeds with running app"
-    )
-    @pytest.mark.api
-    @pytest.mark.frontend
-    def test_default_priority_accepted_with_running_app(
-        self, assets_api: AssetsAPI, busy_timer_paused
-    ):
-        """priority=50 >= 10; draw must succeed even with a running app."""
-        resp = _simple_draw(assets_api, priority=DEFAULT_ELEMENT_PRIORITY)
-        assets_api.assert_status(resp, 200)
-
-    @allure.title(
-        "Draw at app priority (10) returns 200 after NOT_STARTED → paused transition [FW-832]"
-    )
-    @pytest.mark.skip(
-        reason="FW-832: loader priority stuck at 90 after NOT_STARTED → INFINITE/paused "
-        "snapshot — busy app restarts and misses notify_paused event from notify_initial_state"
-    )
-    @pytest.mark.api
-    @pytest.mark.frontend
-    def test_not_started_to_paused_priority_regression(
-        self,
-        assets_api: AssetsAPI,
-        api_session,
-        web_base_url: str,
-        busy_state_guard: dict,
-    ):
-        """
-        Regression test for FW-832.
-
-        When transitioning directly from NOT_STARTED to INFINITE/is_paused=True,
-        busy_timer_apply_snapshot calls busy_timer_start_app (restarts the app)
-        and then busy_timer_notify_initial_state. The scene may not have subscribed
-        to the pubsub yet when notify_initial_state fires, so the pause event is
-        missed. The loader priority stays at 90 (Work state default) instead of
-        dropping to 10, causing draws at priority=10 to get 409.
-
-        Expected: 200. Actual: 409 (until FW-832 is fixed).
-        """
-        import time as _time
-
-        settings = busy_state_guard.get("snapshot", {}).get("busy_bar_settings", {})
-
-        # Ensure NOT_STARTED state
-        stopped_body = {
-            "snapshot": {"type": "NOT_STARTED", "busy_bar_settings": settings},
-            "snapshot_timestamp_ms": max(
-                busy_state_guard.get("snapshot_timestamp_ms", 0),
-                int(_time.time() * 1000),
-            ) + 2000,
-        }
-        api_session.put(f"{web_base_url}/api/busy/snapshot", json=stopped_body, timeout=10).raise_for_status()
-        _time.sleep(1.0)
-
-        # Transition directly to paused INFINITE (the problematic path)
-        current = api_session.get(f"{web_base_url}/api/busy/snapshot", timeout=10).json()
-        paused_body = {
-            "snapshot": {
-                "type": "INFINITE",
-                "card_id": "00000000-0000-0000-0000-000000000001",
-                "is_paused": True,
-                "busy_bar_settings": settings,
-            },
-            "snapshot_timestamp_ms": max(
-                current.get("snapshot_timestamp_ms", 0),
-                int(_time.time() * 1000),
-            ) + 2000,
-        }
-        api_session.put(f"{web_base_url}/api/busy/snapshot", json=paused_body, timeout=10).raise_for_status()
-        _time.sleep(1.0)
-
-        resp = _simple_draw(assets_api, priority=LOADER_DEFAULT_APP_PRIORITY)
-        assets_api.assert_status(resp, 200)
-
-
-@allure.feature("5. Web Frontend")
 @allure.story("Display Priority – Busy Timer Transitions")
 class TestDrawBusyTimerTransitions:
     """
@@ -361,18 +234,14 @@ class TestDrawBusyTimerTransitions:
         resp = _simple_draw(assets_api, priority=DEFAULT_ELEMENT_PRIORITY)
         assets_api.assert_status(resp, 409)
 
-    @allure.title("Active busy timer allows draw at exactly BUSY priority (90 >= 90)")
+    @allure.title("Active busy timer forbids draw at any priority (even 100)")
     @pytest.mark.api
     @pytest.mark.frontend
     def test_active_timer_allows_equal_busy_priority(
         self, assets_api: AssetsAPI, busy_timer_active
     ):
-        """
-        priority=90 == loader priority=90.  With >= acceptance semantics,
-        equal-priority draw requests must succeed (200) and override the display.
-        """
-        resp = _simple_draw(assets_api, priority=LOADER_MAX_APP_PRIORITY)
-        assets_api.assert_status(resp, 200)
+        resp = _simple_draw(assets_api, priority=LOADER_MAX_PRIORITY)
+        assets_api.assert_status(resp, 409)
 
     @allure.title("Active busy timer blocks draw one below BUSY priority (89 < 90)")
     @pytest.mark.api
@@ -387,18 +256,15 @@ class TestDrawBusyTimerTransitions:
         resp = _simple_draw(assets_api, priority=LOADER_MAX_APP_PRIORITY - 1)
         assets_api.assert_status(resp, 409)
 
-    @allure.title("Pausing busy timer (prio → 10) allows default-priority draw (50)")
+    @allure.title("Pausing busy timer (prio → 10) still forbids default-priority draw (50)")
     @pytest.mark.api
     @pytest.mark.frontend
     def test_paused_timer_allows_default_priority(
         self, assets_api: AssetsAPI, busy_timer_paused
     ):
-        """
-        Pausing the timer calls loader_set_priority(10).
-        Draw at 50 must now succeed (50 >= 10).
-        """
+        """Even paused timers forbid the draw"""
         resp = _simple_draw(assets_api, priority=DEFAULT_ELEMENT_PRIORITY)
-        assets_api.assert_status(resp, 200)
+        assets_api.assert_status(resp, 409)
 
     @allure.title("Stopping timer (NOT_STARTED → prio 10) allows default draw (50)")
     @pytest.mark.api
@@ -479,11 +345,11 @@ class TestDrawBusyTimerTransitions:
             assets_api.assert_status(resp, 409)
 
         with allure.step(
-            "3. Pause timer (loader priority 10) → draw 50 must pass again (50 >= 10)"
+            "3. Pause timer → draw 50 must still not pass"
         ):
             _set("INFINITE", is_paused=True)
             resp = _simple_draw(assets_api, priority=DEFAULT_ELEMENT_PRIORITY)
-            assets_api.assert_status(resp, 200)
+            assets_api.assert_status(resp, 409)
 
 
 @allure.feature("5. Web Frontend")
@@ -575,10 +441,8 @@ class TestDrawDisplayLifecycle:
         self, assets_api: AssetsAPI, busy_timer_stopped
     ):
         """
-        The priority gate compares the HTTP draw priority against the *loader*
-        running-app priority (10 when idle), not against other API callers.
         Two different app_ids drawing at the same HTTP priority level must
-        both be accepted (>= semantics); the second call overrides the first.
+        not override each other. Whoever comes first gets priority.
         """
         app_a = "concurrent_a"
         app_b = "concurrent_b"
@@ -590,7 +454,7 @@ class TestDrawDisplayLifecycle:
         r_b = assets_api.draw_response(app_b, elem, priority=DEFAULT_ELEMENT_PRIORITY)
 
         assets_api.assert_status(r_a, 200)
-        assets_api.assert_status(r_b, 200)
+        assets_api.assert_status(r_b, 409)
 
         # Cleanup
         assets_api.clear_display()

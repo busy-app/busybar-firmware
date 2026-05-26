@@ -297,8 +297,8 @@ lv_theme_t* lv_theme_front_alloc(lv_display_t* disp) {
     FontRegistry* font_registry = furi_record_open(RECORD_FONT_REGISTRY);
 
     theme->base.disp = disp;
-    theme->base.font_small = &lv_font_busy_regular_5;
-    theme->base.font_normal = &lv_font_busy_regular_5;
+    theme->base.font_small = font_registry_load_font(font_registry, FONT_BUSY_REGULAR_5);
+    theme->base.font_normal = font_registry_load_font(font_registry, FONT_BUSY_REGULAR_5);
     theme->base.font_large = font_registry_load_font(font_registry, FONT_BUSY_REGULAR_7);
     theme->base.apply_cb = theme_apply_callback;
 

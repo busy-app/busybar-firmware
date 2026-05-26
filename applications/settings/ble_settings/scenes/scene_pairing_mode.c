@@ -60,12 +60,12 @@ static void scene_pairing_mode_on_enter(void* context) {
     with_gui(instance->gui, {
         /* front layout setup */
         data->front_status = status_view_alloc(instance->front_scene_window);
-        status_view_set_icon(data->front_status, ANIM_PATH("ble_pairing_8x8.anim"));
+        status_view_set_icon(data->front_status, ANIM_PATH("ble_pairing_8x8.anim"), true);
         status_view_set_primary_text(data->front_status, "Pairing mode...");
 
         /* back layout setup */
         data->back_status = status_view_alloc(instance->back_scene_window);
-        status_view_set_icon(data->back_status, IMG_PATH("ble_back_white_11x11.image"));
+        status_view_set_icon(data->back_status, IMG_PATH("ble_back_white_11x11.image"), false);
         status_view_set_primary_text(data->back_status, "Pairing mode...");
         status_view_set_auxiliary_text(
             data->back_status, furi_string_get_cstr(data->auxiliary_text_builder));

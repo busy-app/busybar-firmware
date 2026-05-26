@@ -15,6 +15,7 @@ extern "C" {
 #endif
 
 void furi_hal_info_get_api_version(uint16_t* major, uint16_t* minor);
+bool furi_hal_info_verify_crypto_enclave(void);
 
 /** Get device information
   *

@@ -62,7 +62,7 @@ jobs:
 
       - name: 'Update submodules'
         run: |
-          git submodule update --init --recursive --jobs="$(nproc)" scripts/toolchain fbt_layers/fbtng
+          git submodule update --init --depth 1 --filter=blob:none --recursive --jobs="$(nproc)" scripts/toolchain fbt_layers/fbtng
 
       - name: 'Download brick firmware package'
         run: |

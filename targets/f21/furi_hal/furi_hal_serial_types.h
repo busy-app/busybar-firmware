@@ -1,3 +1,7 @@
+/**
+ * @file furi_hal_serial_types.h
+ * @brief Target-specific serial types.
+ */
 #pragma once
 
 /**
@@ -21,13 +25,16 @@ typedef enum {
     FuriHalSerialDirectionTxRx = FuriHalSerialDirectionTx | FuriHalSerialDirectionRx,
 } FuriHalSerialDirection;
 
+/**
+ * @brief Enumeration of available hardware serial pins.
+ */
 typedef enum {
-    FuriHalSerialPinTx,
-    FuriHalSerialPinRx,
-    FuriHalSerialPinRts,
-    FuriHalSerialPinCts,
+    FuriHalSerialPinTx, /**< Transmit hardware pin */
+    FuriHalSerialPinRx, /**< Receive hardware pin */
+    FuriHalSerialPinRts, /**< Request to send hardware pin */
+    FuriHalSerialPinCts, /**< Clear to send hardware pin */
 
-    FuriHalSerialPinMax,
+    FuriHalSerialPinMax, /**< Special value, internal use */
 } FuriHalSerialPin;
 
 typedef enum {

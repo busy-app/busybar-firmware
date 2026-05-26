@@ -31,13 +31,15 @@ static void firmware_settings_check_result_scene_on_enter(void* context) {
     with_gui(instance->gui, {
         /* front layout setup */
         scene->front_status = status_view_alloc(instance->front_scene_window);
-        status_view_set_icon(scene->front_status, instance->check_result_preset.front_image_path);
+        status_view_set_icon(
+            scene->front_status, instance->check_result_preset.front_image_path, false);
         status_view_set_primary_text(
             scene->front_status, furi_string_get_cstr(instance->check_result_preset.front_text));
 
         /* back layout setup */
         scene->back_status = status_view_alloc(instance->back_scene_window);
-        status_view_set_icon(scene->back_status, instance->check_result_preset.back_image_path);
+        status_view_set_icon(
+            scene->back_status, instance->check_result_preset.back_image_path, false);
         status_view_set_primary_text(
             scene->back_status,
             furi_string_get_cstr(instance->check_result_preset.back_primary_text));

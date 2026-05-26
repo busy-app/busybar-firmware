@@ -2,7 +2,6 @@
 
 #include <formatters/sl_rps/sl_rps.h>
 #include <version/version.h>
-#include <furi.h>
 
 #include <sl_wifi.h>
 #include <rsi_bt_common_apis.h>
@@ -77,6 +76,10 @@ typedef struct {
 FURI_WEAK void furi_hal_info_get_api_version(uint16_t* major, uint16_t* minor) {
     *major = 0;
     *minor = 0;
+}
+
+FURI_WEAK bool furi_hal_info_verify_crypto_enclave(void) {
+    return false;
 }
 
 static FuriHalInfoNwp* furi_hal_info_nwp_alloc(void) {
@@ -440,6 +443,14 @@ void furi_hal_info_get(PropertyValueCallback out, char sep, void* context) {
             "m4",
             "debug",
             furi_hal_info_917_mbr->disable_m4_jtag ? "false" : "true");
+        property_value_out(
+            &property_context,
+            NULL,
+            3,
+            "sl",
+            "enclave",
+            "valid",
+            furi_hal_info_verify_crypto_enclave() ? "true" : "false");
         property_value_out(
             &property_context,
             NULL,
