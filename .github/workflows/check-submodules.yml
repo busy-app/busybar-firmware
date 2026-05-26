@@ -42,4 +42,4 @@ jobs:
 
       - name: 'Check submodule branches'
         run: |
-          bash scripts/check-submodules.sh
+          python3 scripts/check-submodules.py .github/expected-submodule-branches.txt
