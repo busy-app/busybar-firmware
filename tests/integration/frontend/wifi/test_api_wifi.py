@@ -10,7 +10,7 @@ import allure
 import pytest
 import requests
 
-from clients.api import APIError, TEST_WIFI_SSID, SettingsAPI, WifiAPI
+from clients.api import APIError, WIFI_SSID, SettingsAPI, WifiAPI
 from utils.logging_config import log_web_request
 
 
@@ -48,7 +48,7 @@ def connect_to_test_network_or_fail(wifi_api: WifiAPI, timeout: int = 30) -> Non
     if response.status_code != 200:
         body = response.text.strip() or "(empty body)"
         pytest.fail(
-            f"POST /api/wifi/connect to {TEST_WIFI_SSID!r} failed: "
+            f"POST /api/wifi/connect to {WIFI_SSID!r} failed: "
             f"HTTP {response.status_code} — {body}"
         )
     wait_for_wifi_state(wifi_api, ["connected"], timeout=timeout)
@@ -194,8 +194,8 @@ class TestWifiAPI:
 
         # Check that test network is in the list
         ssids = [network.ssid for network in response.networks]
-        if TEST_WIFI_SSID not in ssids:
-            pytest.skip(f"Test SSID not found in scan results: {TEST_WIFI_SSID}")
+        if WIFI_SSID not in ssids:
+            pytest.skip(f"Test SSID not found in scan results: {WIFI_SSID}")
 
     @allure.id("2661")
     @allure.title("POST /api/wifi/connect")
@@ -248,7 +248,7 @@ class TestWifiAPI:
             status = wifi_api.get_status()
             connected_to_test_network = (
                 status.state == "connected"
-                and (not TEST_WIFI_SSID or status.ssid in (None, TEST_WIFI_SSID))
+                and (not WIFI_SSID or status.ssid in (None, WIFI_SSID))
             )
             if not connected_to_test_network:
                 ensure_disconnected(wifi_api)

@@ -39,7 +39,7 @@ before running real tests.
 | `DAPLINK_U5_ID` / `DAPLINK_917_ID` | DAPLink serial numbers for reflash/reset |
 | `PROJECT_WORKSPACE` | Workspace path passed to the device flasher |
 | `CLOUD_BASE_URL` / `CLOUD_EMAIL` / `CLOUD_PASSWORD` | Cloud-linking tests |
-| `TEST_WIFI_SSID` / `TEST_WIFI_PASSWORD` / `TEST_WIFI_SECURITY` | Wi-Fi join tests |
+| `WIFI_SSID` / `WIFI_PASSWORD` / `WIFI_SECURITY` | Wi-Fi join tests |
 | `BLE_DEVICE_NAME` | BLE advertising name for `uses_ble` tests |
 | `SESSION_LOG_DIR` | Where crash detector & 503-incident logs are written |
 | `LOG_LEVEL` / `LOG_TO_FILE` | Optional logging overrides |
