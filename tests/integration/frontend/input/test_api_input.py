@@ -45,13 +45,13 @@ class TestInputWebSocketRegressions:
     def test_removed_input_websocket_api_does_not_upgrade(self, web_base_url):
         result = websocket_upgrade(websocket_url(web_base_url, "/api/input/ws"))
 
-        assert result.status_code != 101
-        assert result.status_code in {400, 404, 405}
+        assert result.status_code == 405
+        assert "POST" in result.headers.get("allow", "")
 
     @allure.title("Removed /api/input/ws plain HTTP endpoint is not available")
     def test_removed_input_websocket_plain_http_contract(self, api_session, web_base_url):
         response = api_session.get(f"{web_base_url}/api/input/ws", timeout=10)
 
-        assert response.status_code != 101
-        assert response.status_code in {400, 404, 405}
+        assert response.status_code == 405
+        assert "POST" in response.headers.get("Allow", "")
         assert "upgrade" not in response.headers.get("Connection", "").lower()

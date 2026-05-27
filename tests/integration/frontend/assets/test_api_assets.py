@@ -21,15 +21,43 @@ REQUIRED_SHARED_FONTS = [
 ]
 
 
+@pytest.fixture
+def low_volume(settings_api: SettingsAPI):
+    """Set volume to a low level (10) so audio tests don't blast the room."""
+    settings_api.set_volume(10)
+
+
+@pytest.fixture
+def asset_cleanup(assets_api: AssetsAPI):
+    """Track app_ids and delete their assets in teardown."""
+    app_ids: list[str] = []
+
+    def register(app_id: str) -> str:
+        app_ids.append(app_id)
+        return app_id
+
+    yield register
+
+    for registered_id in app_ids:
+        try:
+            assets_api.delete_assets(registered_id)
+        except requests.exceptions.RequestException as exc:
+            allure.attach(
+                f"Asset cleanup failed for {registered_id}: {exc}",
+                name="Asset Cleanup Error",
+                attachment_type=allure.attachment_type.TEXT,
+            )
+
+
 @allure.feature("5. Web Frontend")
 @allure.story("Assets")
-class TestAssetsAPI:
-    """Test cases for Assets API endpoints"""
+@pytest.mark.api
+@pytest.mark.frontend
+class TestAssetsManagement:
+    """Test cases for asset upload and deletion endpoints."""
 
     @allure.id("2651")
     @allure.title("POST /api/assets/upload")
-    @pytest.mark.api
-    @pytest.mark.frontend
     def test_api_assets_upload(self, assets_api: AssetsAPI):
         """Test POST /api/assets/upload endpoint"""
         test_app_id = "test_app"
@@ -40,18 +68,22 @@ class TestAssetsAPI:
 
     @allure.id("2652")
     @allure.title("DELETE /api/assets/upload")
-    @pytest.mark.api
-    @pytest.mark.frontend
     def test_api_assets_delete(self, assets_api: AssetsAPI):
         """Test DELETE /api/assets/upload endpoint"""
         test_app_id = "test_app"
 
         assets_api.delete_assets(test_app_id)
 
+
+@allure.feature("5. Web Frontend")
+@allure.story("Assets")
+@pytest.mark.api
+@pytest.mark.frontend
+class TestDisplayDraw:
+    """Test cases for display draw and clear endpoints."""
+
     @allure.id("2653")
     @allure.title("POST /api/display/draw")
-    @pytest.mark.api
-    @pytest.mark.frontend
     def test_api_display_draw(self, assets_api: AssetsAPI):
         """Test POST /api/display/draw endpoint"""
         elements = [
@@ -74,11 +106,11 @@ class TestAssetsAPI:
 
     @allure.id("2690")
     @allure.title("POST /api/display/draw (image)")
-    @pytest.mark.api
-    @pytest.mark.frontend
-    def test_api_display_draw_image(self, assets_api: AssetsAPI):
+    def test_api_display_draw_image(
+        self, assets_api: AssetsAPI, asset_cleanup
+    ):
         """Test POST /api/display/draw endpoint with image element"""
-        test_app_id = "test_display_img"
+        test_app_id = asset_cleanup("test_display_img")
         test_image_file = "img.png"
         image_path = ASSETS_DIR / test_image_file
 
@@ -92,156 +124,29 @@ class TestAssetsAPI:
                 test_app_id, test_image_file, image_content, timeout=5
             )
 
-        try:
-            sleep(5)
+        sleep(5)
 
-            elements = [
-                {
-                    "id": "img",
-                    "type": "image",
-                    "path": test_image_file,
-                    "x": 0,
-                    "y": 0,
-                }
-            ]
+        elements = [
+            {
+                "id": "img",
+                "type": "image",
+                "path": test_image_file,
+                "x": 0,
+                "y": 0,
+            }
+        ]
 
-            assets_api.draw(test_app_id, elements)
-            assets_api.clear_display()
-        finally:
-            try:
-                assets_api.delete_assets(test_app_id)
-            except requests.exceptions.RequestException as exc:
-                allure.attach(
-                    f"Asset cleanup failed: {exc}",
-                    name="Asset Cleanup Error",
-                    attachment_type=allure.attachment_type.TEXT,
-                )
+        assets_api.draw(test_app_id, elements)
+        assets_api.clear_display()
 
     @allure.id("2654")
     @allure.title("DELETE /api/display/draw")
-    @pytest.mark.api
-    @pytest.mark.frontend
     def test_api_display_clear(self, assets_api: AssetsAPI):
         """Test DELETE /api/display/draw endpoint"""
         assets_api.clear_display()
 
-    @allure.id("2655")
-    @allure.title("POST /api/audio/play")
-    @pytest.mark.api
-    @pytest.mark.frontend
-    def test_api_audio_play(self, assets_api: AssetsAPI, settings_api: SettingsAPI):
-        """Test POST /api/audio/play endpoint"""
-        test_app_id = "test_audio_play1"
-        test_audio_file = "smb_powerup.snd"
-        audio_path = ASSETS_DIR / test_audio_file
-        # Set volume to a low level for testing to avoid loud audio during test runs
-        settings_api.set_volume(10)
-
-        assert audio_path.exists(), f"Test audio file not found: {audio_path}"
-
-        with allure.step(f"Upload test audio: {test_audio_file}"):
-            with open(audio_path, "rb") as f:
-                audio_content = f.read()
-
-            assets_api.upload_asset(
-                test_app_id, test_audio_file, audio_content
-            )
-
-        try:
-            sleep(0.5)
-            assets_api.play_audio(test_app_id, test_audio_file)
-            sleep(2)
-            # 200 if audio is still playing; 410 if the file finished before stop was called
-            assets_api.delete_raw("/api/audio/play")
-        finally:
-            try:
-                assets_api.delete_assets(test_app_id)
-            except requests.exceptions.RequestException as exc:
-                allure.attach(
-                    f"Asset cleanup failed: {exc}",
-                    name="Asset Cleanup Error",
-                    attachment_type=allure.attachment_type.TEXT,
-                )
-
-    @allure.id("2656")
-    @allure.title("DELETE /api/audio/play")
-    @pytest.mark.api
-    @pytest.mark.frontend
-    def test_api_audio_stop(self, assets_api: AssetsAPI):
-        """Test DELETE /api/audio/play endpoint returns 410 when no audio is playing."""
-        response = assets_api.delete_raw("/api/audio/play")
-        assert response.status_code == 410
-
-    @allure.id("2657")
-    @allure.title("DELETE /api/audio/play while audio is playing")
-    @pytest.mark.api
-    @pytest.mark.frontend
-    def test_api_audio_stop_while_playing(
-        self, assets_api: AssetsAPI, settings_api: SettingsAPI
-    ):
-        """
-        Test that DELETE /api/audio/play returns 200 when audio is playing.
-
-        The connection is held by the server until AudioEventPlayEnd fires (async),
-        so this also verifies the async stop mechanism end-to-end.
-        Stop is issued during the 100ms holdoff period, exercising the holdoff
-        cancellation path added to audio.c.
-        """
-        test_app_id = "test_audio_stop_playing"
-        test_audio_file = "ping.snd"
-        audio_path = ASSETS_DIR / test_audio_file
-
-        settings_api.set_volume(10)
-        assert audio_path.exists(), f"Test audio file not found: {audio_path}"
-
-        with allure.step(f"Upload {test_audio_file}"):
-            with open(audio_path, "rb") as f:
-                assets_api.upload_asset(test_app_id, test_audio_file, f.read())
-
-        try:
-            with allure.step("Play audio"):
-                assets_api.play_audio(test_app_id, test_audio_file)
-
-            with allure.step("Stop audio while playing and assert 200"):
-                # Called within the 100ms holdoff window; the server holds the
-                # connection until PlayEnd fires, then responds 200.
-                assets_api.stop_audio()
-        finally:
-            try:
-                assets_api.delete_assets(test_app_id)
-            except requests.exceptions.RequestException as exc:
-                allure.attach(
-                    f"Asset cleanup failed: {exc}",
-                    name="Asset Cleanup Error",
-                    attachment_type=allure.attachment_type.TEXT,
-                )
-
-    @allure.id("2658")
-    @allure.title("POST /api/audio/play (stock_path)")
-    @pytest.mark.api
-    @pytest.mark.frontend
-    def test_api_audio_play_stock_path(
-        self, assets_api: AssetsAPI, settings_api: SettingsAPI
-    ):
-        """Test POST /api/audio/play with stock_path plays a built-in sound."""
-        settings_api.set_volume(10)
-
-        with allure.step("Play stock sound shared/volume_change.snd"):
-            response = assets_api.post_raw(
-                "/api/audio/play",
-                json={
-                    "application_name": "test_audio_stock",
-                    "stock_path": "shared/volume_change.snd",
-                },
-            )
-        assert response.status_code == 200
-
-        # cleanup — audio may already be done; either 200 or 410 is acceptable
-        assets_api.delete_raw("/api/audio/play")
     @allure.id("2672")
     @allure.title("POST /api/display/draw (malformed JSON)")
-    @pytest.mark.api
-    @pytest.mark.frontend
     def test_api_malformed_json(self, api_session, web_base_url):
         """Test API endpoints with malformed JSON"""
         malformed_json = '{"invalid": "json", "missing": quote}'
@@ -255,6 +160,128 @@ class TestAssetsAPI:
             )
 
         assert response.status_code == 400
+
+
+@allure.feature("5. Web Frontend")
+@allure.story("Assets")
+@pytest.mark.api
+@pytest.mark.frontend
+class TestAudioPlay:
+    """Test cases for audio playback control endpoints."""
+
+    @allure.id("2655")
+    @allure.title("POST /api/audio/play")
+    def test_api_audio_play(
+        self, assets_api: AssetsAPI, low_volume, asset_cleanup
+    ):
+        """Test POST /api/audio/play endpoint"""
+        test_app_id = asset_cleanup("test_audio_play1")
+        test_audio_file = "smb_powerup.snd"
+        audio_path = ASSETS_DIR / test_audio_file
+
+        assert audio_path.exists(), f"Test audio file not found: {audio_path}"
+
+        with allure.step(f"Upload test audio: {test_audio_file}"):
+            with open(audio_path, "rb") as f:
+                audio_content = f.read()
+
+            assets_api.upload_asset(
+                test_app_id, test_audio_file, audio_content
+            )
+
+        sleep(0.5)
+        assets_api.play_audio(test_app_id, test_audio_file)
+        sleep(2)
+        with allure.step("Stop audio if it is still playing"):
+            response = assets_api.stop_audio_raw()
+            assert response.status_code in {200, 410}
+
+    @allure.id("2656")
+    @allure.title("DELETE /api/audio/play")
+    def test_api_audio_stop(self, assets_api: AssetsAPI):
+        """Test DELETE /api/audio/play endpoint"""
+        with allure.step("Ensure audio is stopped"):
+            response = assets_api.stop_audio_raw()
+            assert response.status_code in {200, 410}
+
+        with allure.step("Stop audio while idle returns 410"):
+            response = assets_api.stop_audio_raw()
+            assert response.status_code == 410
+
+    @allure.title("DELETE /api/audio/play during holdoff period")
+    def test_api_audio_stop_holdoff_period(
+        self, assets_api: AssetsAPI, low_volume, asset_cleanup
+    ):
+        """
+        Test that DELETE /api/audio/play returns 200 when audio is playing.
+
+        The connection is held by the server until AudioEventPlayEnd fires (async),
+        so this also verifies the async stop mechanism end-to-end.
+        Stop is issued during the 100ms holdoff period, exercising the holdoff
+        cancellation path added to audio.c.
+        """
+        test_app_id = asset_cleanup("test_audio_stop_holdoff")
+        test_audio_file = "ping.snd"
+        audio_path = ASSETS_DIR / test_audio_file
+
+        assert audio_path.exists(), f"Test audio file not found: {audio_path}"
+
+        with allure.step(f"Upload {test_audio_file}"):
+            with open(audio_path, "rb") as f:
+                assets_api.upload_asset(test_app_id, test_audio_file, f.read())
+
+        with allure.step("Play audio"):
+            assets_api.play_audio(test_app_id, test_audio_file)
+
+        with allure.step("Stop audio within holdoff window and assert 200"):
+            # Called within the 100ms holdoff window; the server holds the
+            # connection until PlayEnd fires, then responds 200.
+            assets_api.stop_audio()
+
+    @allure.id("2657")
+    @allure.title("DELETE /api/audio/play while audio is playing")
+    @pytest.mark.regression
+    def test_api_audio_stop_while_playing(
+        self, assets_api: AssetsAPI, low_volume, asset_cleanup
+    ):
+        """
+        DELETE /api/audio/play returns 200 when audio is actively playing.
+
+        Uses a 10-second sample so stop is guaranteed to arrive mid-playback.
+        """
+        test_app_id = asset_cleanup("test_audio_stop_playing")
+        test_audio_file = "dooms_gate.snd"
+        audio_path = ASSETS_DIR / test_audio_file
+
+        assert audio_path.exists(), f"Test audio file not found: {audio_path}"
+
+        with allure.step(f"Upload {test_audio_file}"):
+            with open(audio_path, "rb") as f:
+                assets_api.upload_asset(test_app_id, test_audio_file, f.read())
+
+        with allure.step("Play audio"):
+            assets_api.play_audio(test_app_id, test_audio_file)
+        sleep(3)
+        with allure.step("Stop audio while playing and assert 200"):
+            result = assets_api.stop_audio()
+            assert result.result == "OK"
+
+    @allure.id("2658")
+    @allure.title("POST /api/audio/play (stock_path)")
+    def test_api_audio_play_stock_path(
+        self, assets_api: AssetsAPI, low_volume
+    ):
+        """Test POST /api/audio/play with stock_path plays a built-in sound."""
+        with allure.step("Play stock sound shared/volume_change.snd"):
+            result = assets_api.play_audio(
+                "test_audio_stock", stock_path="shared/volume_change.snd"
+            )
+        assert result.result == "OK"
+
+        # cleanup — audio may already be done; either 200 or 410 is acceptable
+        with allure.step("Stop audio if it is still playing"):
+            response = assets_api.stop_audio_raw()
+            assert response.status_code in {200, 410}
 
 
 @allure.feature("5. Web Frontend")

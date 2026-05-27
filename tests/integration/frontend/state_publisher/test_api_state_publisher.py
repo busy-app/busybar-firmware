@@ -7,11 +7,11 @@ from clients.api import InputAPI
 from clients.state_publisher import StatePublisherWebSocket, state_update_kinds
 from utils.simple_websocket import websocket_upgrade, websocket_url
 
+
 @allure.feature("5. Web Frontend")
 @allure.story("State Publisher")
 @pytest.mark.api
 @pytest.mark.frontend
-@pytest.mark.regression
 class TestStatePublisherRegressions:
 
     @allure.title("/api/status/ws upgrades to WebSocket (routing contract)")
@@ -42,8 +42,8 @@ class TestStatePublisherRegressions:
     def test_status_ws_plain_http_contract(self, api_session, web_base_url):
         response = api_session.get(f"{web_base_url}/api/status/ws", timeout=10)
 
-        assert response.status_code != 101
-        assert response.status_code in {400, 404, 405}
+        assert response.status_code == 405
+        assert "GET" in response.headers.get("Allow", "")
         assert "upgrade" not in response.headers.get("Connection", "").lower()
 
     @allure.title("/api/status/ws streams decodable BSB_State protobuf frames")

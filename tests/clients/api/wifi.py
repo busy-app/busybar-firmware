@@ -35,9 +35,9 @@ WifiSecurityMethod = Literal[
 # === Test Network Configuration ===
 # Can be overridden via environment variables
 
-TEST_WIFI_SSID = os.environ.get("TEST_WIFI_SSID", os.environ.get("WIFI_SSID", ""))
-TEST_WIFI_PASSWORD = os.environ.get("TEST_WIFI_PASSWORD", os.environ.get("WIFI_PASSWORD", ""))
-TEST_WIFI_SECURITY = os.environ.get("WIFI_SECURITY", "WPA2")
+WIFI_SSID = os.environ.get("WIFI_SSID", "")
+WIFI_PASSWORD = os.environ.get("WIFI_PASSWORD", "")
+WIFI_SECURITY = os.environ.get("WIFI_SECURITY", "WPA2")
 
 
 # === Response Models ===
@@ -187,15 +187,14 @@ class WifiAPI(BaseAPI):
         """
         Connect to the test WiFi network.
 
-        Uses TEST_WIFI_SSID, TEST_WIFI_PASSWORD, TEST_WIFI_SECURITY
-        which can be overridden via environment variables.
+        Uses WIFI_SSID, WIFI_PASSWORD, WIFI_SECURITY env vars.
 
         Returns:
             Raw response from connect API
         """
         return self.connect(
-            ssid=TEST_WIFI_SSID,
-            password=TEST_WIFI_PASSWORD,
-            security=TEST_WIFI_SECURITY,
+            ssid=WIFI_SSID,
+            password=WIFI_PASSWORD,
+            security=WIFI_SECURITY,
             timeout=timeout,
         )
