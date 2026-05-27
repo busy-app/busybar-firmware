@@ -46,7 +46,7 @@ jobs:
       - name: 'Download unit test package'
         run: |
           set -euo pipefail
-          URL="https://update.flipperzero.one/builds/busybar-firmware/${{ inputs.update_url }}"
+          URL="https://update.busy.app/builds/busybar-firmware/${{ inputs.update_url }}"
           echo "Using URL: $URL"
           curl --fail -L -o busybar-f${{ inputs.target }}-unittests.zip "$URL"
           unzip -q busybar-f${{ inputs.target }}-unittests.zip -d unittests
