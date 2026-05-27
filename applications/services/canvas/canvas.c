@@ -462,6 +462,7 @@ static void canvas_srv_queue_event_callback(FuriEventLoopObject* object, void* c
     } else if(event.type == CanvasSrvEventClear) {
         if(canvas->gui == NULL) {
             res = CanvasResultEmptyScreen;
+            res = CanvasResultOk;
         } else if(event.app_id && canvas->app_id) {
             bool id_match = (strcmp(event.app_id, canvas->app_id) == 0);
             if(id_match) {
