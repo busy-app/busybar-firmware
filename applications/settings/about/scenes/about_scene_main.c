@@ -52,7 +52,7 @@ static void about_scene_main_on_enter(void* context) {
             instance);
         submenu_add_item(
             data->front_menu,
-            "Open-source libs",
+            "Open-Source Libs",
             SceneEventLibsList,
             about_scene_main_menu_item_callback,
             instance);
@@ -63,7 +63,7 @@ static void about_scene_main_on_enter(void* context) {
         submenu_add_item(data->back_menu, "Firmware", SceneEventFirmware, NULL, instance);
         submenu_add_item(
             data->back_menu, "Compliance Info", SceneEventComplianceInfo, NULL, instance);
-        submenu_add_item(data->back_menu, "Open-source libs", SceneEventLibsList, NULL, instance);
+        submenu_add_item(data->back_menu, "Open-Source Libs", SceneEventLibsList, NULL, instance);
         submenu_set_selected_item_index(data->back_menu, data->menu_index);
     });
 }
