@@ -11,7 +11,7 @@
 
 #define TAG "HttpDisplay"
 
-#define DISPLAY_ASSETS_DIR EXT_PATH("user_assets")
+#define DISPLAY_ASSETS_DIR           EXT_PATH("user_assets")
 #define DISPLAY_API_DEFAULT_PRIORITY (50)
 
 static bool api_display_draw_parse_text_element(
