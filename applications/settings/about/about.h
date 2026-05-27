@@ -16,6 +16,7 @@
 #include <gui/modules/flex_layout.h>
 
 #include "scenes/about_scenes.h"
+#include "licenses.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -47,6 +48,8 @@ typedef struct {
     FlexLayout* back_container;
 
     NavBar* back_nav_bar;
+
+    size_t license_lib_index;
 } About;
 
 void about_send_custom_event(About* instance, uint32_t event);
@@ -54,6 +57,8 @@ void about_send_custom_event(About* instance, uint32_t event);
 void about_push_location(About* instance, const char* location_name);
 
 void about_pop_location(About* instance);
+
+void about_show_location(About* instance, bool visible);
 
 #ifdef __cplusplus
 }
