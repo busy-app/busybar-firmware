@@ -122,7 +122,6 @@ installs = [
     InstallAs(_dist_file("firmware", "bin"), fw_env["FW_BIN"][0]),
     # Updater artifacts
     InstallAs(_dist_file("updater", "elf"), u5_env["UPD_ENV"]["FW_ELF"][0]),
-    InstallAs(_dist_file("updater", "dfu"), u5_env["UPD_ENV"]["FW_DFU"][0]),
     InstallAs(_dist_file("updater", "bin"), u5_env["UPD_ENV"]["FW_BIN"][0]),
     # Silabs artifacts
     InstallAs(_dist_file("sil_firmware", "rps"), sil_env["FW_ENV"]["FW_RPS"][0]),
