@@ -742,12 +742,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/SuccessResponse"
-        "410":
-          description: Display is empty, nothing to clear
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
 
   /api/display/brightness:
     get:
