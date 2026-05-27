@@ -37,11 +37,16 @@ typedef struct {
     MatterCommissionedFabrics* fabrics;
 } MatterApiMessageGetFabrics;
 
+typedef struct {
+    MatterReboot reboot_mode;
+} MatterApiMessageFactoryReset;
+
 typedef union {
     MatterApiMessageSetSwitchState set_switch_state;
     MatterApiMessageSetSwitchStartupMode set_switch_startup_mode;
     MatterApiMessageStartCommissioning start_commissioning;
     MatterApiMessageGetFabrics get_fabrics;
+    MatterApiMessageFactoryReset factory_reset;
 } MatterApiMessageData;
 
 typedef struct {

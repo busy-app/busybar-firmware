@@ -346,6 +346,15 @@ static MatterStatus matter_get_commissioned_fabrics_api_message_handler(
     return MatterStatusOk;
 }
 
+static void matter_deferred_reboot(void* context) {
+    UNUSED(context);
+
+    Power* power = furi_record_open(RECORD_POWER);
+    power_reboot(power, PowerRebootNormal);
+    while(1)
+        ;
+}
+
 static MatterStatus
     matter_factory_reset_api_message_handler(Matter* instance, MatterApiMessageData* data) {
     UNUSED(data);
@@ -356,18 +365,19 @@ static MatterStatus
     MatterStatus status = matter_send_frame(instance, &frame);
     if(status != MatterStatusOk) return status;
 
-    MatterEvent event = {
-        .type = MatterEventTypeWillReboot,
-    };
-    furi_pubsub_publish(instance->pubsub, &event);
+    if(data->factory_reset.reboot_mode == MatterRebootAutomatically) {
+        MatterEvent event = {
+            .type = MatterEventTypeWillReboot,
+        };
+        furi_pubsub_publish(instance->pubsub, &event);
 
-    furi_delay_ms(REBOOT_TIMER_MS);
+        // this object leaks
+        // it's fine - it'll be freed by the ultimate garbage collector! a reset!
+        FuriTimer* timer = furi_timer_alloc(matter_deferred_reboot, FuriTimerTypeOnce, NULL);
+        furi_timer_start(timer, furi_ms_to_ticks(REBOOT_TIMER_MS));
+    }
 
-    Power* power = furi_record_open(RECORD_POWER);
-
-    power_reboot(power, PowerRebootNormal);
-    while(1)
-        ;
+    return MatterStatusOk;
 }
 
 static const MatterApiMessageHandler matter_api_message_handlers[MatterApiMessageTypeMax] = {
