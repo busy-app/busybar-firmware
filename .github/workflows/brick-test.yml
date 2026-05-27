@@ -39,7 +39,7 @@ jobs:
 
       - name: "Wait for normal firmware to be available"
         run: |
-          URL="https://update.flipperzero.one/builds/busybar-firmware/${{ inputs.normal_update_url }}"
+          URL="https://update.busy.app/builds/busybar-firmware/${{ inputs.normal_update_url }}"
           MAX_ATTEMPTS=30
           INTERVAL=30
           for i in $(seq 1 $MAX_ATTEMPTS); do
@@ -67,7 +67,7 @@ jobs:
       - name: 'Download brick firmware package'
         run: |
           set -euo pipefail
-          URL="https://update.flipperzero.one/builds/busybar-firmware/${{ inputs.brick_update_url }}"
+          URL="https://update.busy.app/builds/busybar-firmware/${{ inputs.brick_update_url }}"
           echo "Downloading brick firmware: $URL"
           curl --fail -L -o brick-package.zip "$URL"
           unzip -q brick-package.zip -d brick-firmware
@@ -95,7 +95,7 @@ jobs:
       - name: 'Download normal firmware'
         run: |
           set -euo pipefail
-          URL="https://update.flipperzero.one/builds/busybar-firmware/${{ inputs.normal_update_url }}"
+          URL="https://update.busy.app/builds/busybar-firmware/${{ inputs.normal_update_url }}"
           echo "Downloading normal firmware: $URL"
           curl --fail -L -o "normal-update.tgz" "$URL"
 

@@ -131,7 +131,8 @@ jobs:
           issue-number: ${{ github.event.pull_request.number }}
           body: |
             **Compiled f${{ matrix.target_spec }} firmware for commit `${{steps.names.outputs.commit_sha}}`:**
-            - [📦 Update package](https://update.flipperzero.one/builds/busybar-firmware/${{steps.names.outputs.branch_name}}/busybar-f${{steps.build-fw.outputs.u5_target_hw}}-update-${{steps.names.outputs.suffix}}.tar)
+            - [📦 Update package](https://update.busy.app/builds/busybar-firmware/${{steps.names.outputs.branch_name}}/busybar-f${{steps.build-fw.outputs.u5_target_hw}}-update-${{steps.names.outputs.suffix}}.tgz)
+            - [📁 Update files](https://update.busy.app/builds/busybar-firmware/${{steps.names.outputs.branch_name}}/?${{ github.run_id }})
             - [📊 Sil Size report](https://fw-reports-sil-bsb.flipp.dev/?branch=${{steps.names.outputs.branch_name}})
             - [📊 U5 Size report](https://fw-reports-bsb.flipp.dev/?branch=${{steps.names.outputs.branch_name}})
           edit-mode: replace

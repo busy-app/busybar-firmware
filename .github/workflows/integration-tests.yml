@@ -68,7 +68,7 @@ permissions:
 
 env:
   U5_HW_TARGET: ${{ inputs.target || '21' }}
-  FIRMWARE_BASE_URL: https://update.flipperzero.one/builds/busybar-firmware
+  FIRMWARE_BASE_URL: https://update.busy.app/builds/busybar-firmware
   PYTEST_FAILED_TEST_RETRIES: 1
 
 jobs:
@@ -109,7 +109,7 @@ jobs:
             # Strip absolute base if a full URL was pasted into the dispatch
             # input — downstream code expects a relative path.
             UPDATE_PATH="${UPDATE_PATH#"$FIRMWARE_BASE_URL"/}"
-            UPDATE_PATH="${UPDATE_PATH#https://update.flipperzero.one/builds/busybar-firmware/}"
+            UPDATE_PATH="${UPDATE_PATH#https://update.busy.app/builds/busybar-firmware/}"
             if [[ "$UPDATE_PATH" == http*://* ]]; then
               echo "ERROR: update_url points outside ${FIRMWARE_BASE_URL}: $UPDATE_URL_INPUT"
               exit 1

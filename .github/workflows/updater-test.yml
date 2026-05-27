@@ -40,7 +40,7 @@ jobs:
       - name: 'Download update package'
         run: |
           set -euo pipefail
-          URL="https://update.flipperzero.one/builds/busybar-firmware/${{ inputs.update_url }}"
+          URL="https://update.busy.app/builds/busybar-firmware/${{ inputs.update_url }}"
           echo "Using URL: $URL"
           curl --fail -L -o busybar-f${{ inputs.target }}-update.tgz "$URL"
 
@@ -111,7 +111,7 @@ jobs:
 
           echo "# Updater Tests" >> $GITHUB_STEP_SUMMARY
           echo "**Branch:** $BRANCH_NAME | **Commit:** \`${GITHUB_SHA::7}\`" >> $GITHUB_STEP_SUMMARY
-          echo "**Firmware:** https://update.flipperzero.one/builds/busybar-firmware/${{ inputs.update_url }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Firmware:** https://update.busy.app/builds/busybar-firmware/${{ inputs.update_url }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
           echo "| Step | Result |" >> $GITHUB_STEP_SUMMARY
