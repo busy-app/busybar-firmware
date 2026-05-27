@@ -146,14 +146,20 @@ MatterStatus matter_enable_commissioning(Matter* instance, MatterCommissioningIn
  */
 MatterStatus matter_get_commissioned_fabrics(Matter* instance, MatterCommissionedFabrics* fabrics);
 
+typedef enum {
+    MatterRebootAutomatically, //<! The Matter service will reboot the device on its own
+    MatterRebootManually, //<! The calling service promises to reboot the device later, when it's more appropriate
+} MatterReboot;
+
 /**
  * @brief Delete all Matter pairing data, then reboot on success
  *
  * @param[in,out] instance pointer to the service instance
+ * @param[in] reboot reboot mode, see `MatterReboot` enum
  *
  * @returns @c MatterStatus enum on error. @c MatterStatusOk is never returned.
  */
-MatterStatus matter_factory_reset(Matter* instance);
+MatterStatus matter_factory_reset(Matter* instance, MatterReboot reboot);
 
 /**
  * @brief Set the preferred certification config.
