@@ -343,6 +343,9 @@ static const struct {
     [CanvasResultLowPriority] = {409, "Not drawn due to low priority"},
     [CanvasResultEmptyScreen] = {400, "Nothing to display"},
 };
+_Static_assert(
+    COUNT_OF(draw_errors) == CanvasResultMax,
+    "draw_errors table must cover all CanvasResult values");
 
 static void api_display_canvas_draw(struct mg_connection* conn, struct mg_http_message* msg) {
     CanvasElementsArray_t elements_array;

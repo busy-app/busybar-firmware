@@ -69,6 +69,7 @@ struct CanvasSrv {
 };
 
 static void canvas_check_back_screen_empty(CanvasSrv* canvas) {
+    if(!canvas->gui) return;
     bool back_empty = true;
     CanvasWidgetsDict_it_t it;
     for(CanvasWidgetsDict_it(it, canvas->widgets); !CanvasWidgetsDict_end_p(it);
@@ -172,7 +173,7 @@ static bool is_in_power_off(CanvasSrv* canvas) {
 }
 
 static bool canvas_srv_check_elements_visible(CanvasElementsArray_t elements) {
-    size_t elemets_visible = 0;
+    size_t elements_visible = 0;
     CanvasElementsArray_it_t it;
     for(CanvasElementsArray_it(it, elements); !CanvasElementsArray_end_p(it);
         CanvasElementsArray_next(it)) {
@@ -183,9 +184,9 @@ static bool canvas_srv_check_elements_visible(CanvasElementsArray_t elements) {
                 continue;
             }
         }
-        elemets_visible++;
+        elements_visible++;
     }
-    return elemets_visible > 0;
+    return elements_visible > 0;
 }
 
 static void canvas_srv_clear_all(CanvasSrv* canvas) {
@@ -418,12 +419,16 @@ static void canvas_srv_queue_event_callback(FuriEventLoopObject* object, void* c
             }
 
             size_t current_priority = canvas->priority;
+            // same app can refresh at >= priority; a different app must use > priority to preempt
+            bool same_app = (canvas->gui != NULL) && canvas->app_id &&
+                            (strcmp(event.app_id, canvas->app_id) == 0);
             FURI_LOG_I(
                 "CanvasSrv",
                 "Received update event with priority %zu, current priority is %zu",
                 *event.priority,
                 current_priority);
-            if(*event.priority < current_priority) {
+            if(same_app ? (*event.priority < current_priority) :
+                          (*event.priority <= current_priority)) {
                 res = CanvasResultLowPriority;
                 break;
             }
@@ -503,9 +508,8 @@ static bool canvas_srv_input_callback(const InputEvent* event, void* context) {
         case InputKeyApps:
         case InputKeySettings: {
             CanvasSrvQueueEvent evt = {.type = CanvasSrvEventExit};
-            furi_check(
-                furi_message_queue_put(canvas->event_queue, &evt, FuriWaitForever) ==
-                FuriStatusOk);
+            // avoid blocking input thread holding gui lock
+            furi_message_queue_put(canvas->event_queue, &evt, 0);
             break;
         }
         default:
