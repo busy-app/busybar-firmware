@@ -32,40 +32,44 @@ static bool supervisor_is_tls_crypto_healthy(void) {
     bool is_healthy = false;
 
     do {
-        FuriHalCryptoKey* key = NULL;
-        FuriHalCryptoStatus status = furi_hal_crypto_storage_read(
-            &key,
-            FuriHalCryptoPartitionMain,
-            FuriHalCryptoKeyTypeEcdsaPriv256,
-            SUPERVISOR_CRYPTO_KEY_ID);
+        FuriHalCryptoStatus status;
+        static FuriHalCryptoKey* key;
+
+        if(key == NULL) {
+            status = furi_hal_crypto_storage_read(
+                &key,
+                FuriHalCryptoPartitionMain,
+                FuriHalCryptoKeyTypeEcdsaPriv256,
+                SUPERVISOR_CRYPTO_KEY_ID);
+
+            if(status != FuriHalCryptoStatusOk) {
+                // Special case: report good ealth if the key is not provisioned
+                if(status == FuriHalCryptoStatusNotFound) {
+                    is_healthy = true;
+                }
+
+                break;
+            }
+        }
+
+        FuriHalCryptoEcdsaSign* sign_ctx = NULL;
+        status = furi_hal_crypto_ecdsa_sign_init(&sign_ctx, FuriHalCryptoEcdsaModeSha256, key);
 
         if(status != FuriHalCryptoStatusOk) {
-            // Special case: report good health if the key is not provisioned
-            is_healthy = (status == FuriHalCryptoStatusNotFound);
             break;
         }
 
-        do {
-            FuriHalCryptoEcdsaSign* sign_ctx = NULL;
-            status = furi_hal_crypto_ecdsa_sign_init(&sign_ctx, FuriHalCryptoEcdsaModeSha256, key);
+        uint8_t message[SUPERVISOR_CRYPTO_TEST_MSG_LEN];
+        furi_hal_random_fill_buf(message, sizeof(message));
 
-            if(status != FuriHalCryptoStatusOk) {
-                break;
-            }
+        uint8_t signature[FURI_HAL_CRYPTO_ECDSA_MAX_SIGNATURE_SIZE];
+        size_t signature_len = sizeof(signature);
 
-            uint8_t message[SUPERVISOR_CRYPTO_TEST_MSG_LEN];
-            furi_hal_random_fill_buf(message, sizeof(message));
+        is_healthy = furi_hal_crypto_ecdsa_sign(
+                         sign_ctx, message, sizeof(message), signature, &signature_len) ==
+                     FuriHalCryptoStatusOk;
 
-            uint8_t signature[FURI_HAL_CRYPTO_ECDSA_MAX_SIGNATURE_SIZE];
-            size_t signature_len = sizeof(signature);
-
-            is_healthy = furi_hal_crypto_ecdsa_sign(
-                             sign_ctx, message, sizeof(message), signature, &signature_len) ==
-                         FuriHalCryptoStatusOk;
-
-            furi_hal_crypto_ecdsa_sign_deinit(sign_ctx);
-        } while(false);
-        furi_hal_crypto_key_free(key);
+        furi_hal_crypto_ecdsa_sign_deinit(sign_ctx);
     } while(false);
 
     return is_healthy;
