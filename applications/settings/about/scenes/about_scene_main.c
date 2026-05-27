@@ -101,6 +101,7 @@ static bool about_scene_main_on_event(const SceneManagerEvent* event, void* cont
             about_push_location(instance, "COMPLIANCE INFO");
             consumed = true;
         } else if(event->event == SceneEventLibsList) {
+            instance->license_lib_index = 0;
             scene_manager_next_scene(instance->scene_manager, SceneIdLibsList);
             about_push_location(instance, "OPEN-SOURCE LIBS");
             consumed = true;

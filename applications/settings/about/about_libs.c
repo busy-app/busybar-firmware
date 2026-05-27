@@ -1,20 +1,6 @@
-/**
- * @brief Used libraries information for About settings app
- */
+#include "about.h"
 
-#pragma once
-
-#include <furi.h>
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-static const struct {
-    const char* name;
-    const char* license;
-    const char* url;
-} about_libs_info[] = {
+static const AboutLibInfo about_libs_info[] = {
     {.name = "cJSON", .license = "MIT", .url = "https://github.com/DaveGamble/cJSON"},
     {.name = "FatFS", .license = "Custom, BSD-like", .url = "https://elm-chan.org/fsw/ff"},
     {.name = "FreeRTOS", .license = "MIT", .url = "https://www.freertos.org/"},
@@ -34,6 +20,11 @@ static const struct {
     {.name = "ZLib", .license = "ZLib", .url = "https://zlib.net/"},
 };
 
-#ifdef __cplusplus
+size_t about_get_libs_count(void) {
+    return COUNT_OF(about_libs_info);
 }
-#endif
+
+const AboutLibInfo* about_get_lib_info(size_t index) {
+    furi_check(index < COUNT_OF(about_libs_info));
+    return &about_libs_info[index];
+}

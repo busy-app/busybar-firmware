@@ -1,7 +1,5 @@
 #include "../about.h"
 #include <settings_helpers/gui_params.h>
-
-#include <gui/modules/var_item_list.h>
 #include <gui/modules/submenu.h>
 
 typedef enum {
@@ -30,14 +28,15 @@ static void about_scene_libs_list_on_enter(void* context) {
         data->front_menu = submenu_alloc(instance->front_scene_window);
         data->back_menu = submenu_alloc(instance->back_scene_window);
 
-        for(size_t i = 0; i < COUNT_OF(about_libs_info); i++) {
+        for(size_t i = 0; i < about_get_libs_count(); i++) {
+            const AboutLibInfo* lib_info = about_get_lib_info(i);
             submenu_add_item(
                 data->front_menu,
-                about_libs_info[i].name,
+                lib_info->name,
                 i,
                 about_scene_libs_list_menu_item_callback,
                 instance);
-            submenu_add_item(data->back_menu, about_libs_info[i].name, i, NULL, instance);
+            submenu_add_item(data->back_menu, lib_info->name, i, NULL, instance);
         }
         submenu_set_selected_item_index(data->front_menu, instance->license_lib_index);
         submenu_set_selected_item_index(data->back_menu, instance->license_lib_index);
@@ -65,11 +64,10 @@ static bool about_scene_libs_list_on_event(const SceneManagerEvent* event, void*
     bool consumed = false;
     if(event->type == SceneManagerEventTypeCustom) {
         if(event->event >= SceneEventLibSelectStart &&
-           event->event < SceneEventLibSelectStart + COUNT_OF(about_libs_info)) {
+           event->event < SceneEventLibSelectStart + about_get_libs_count()) {
             size_t lib_index = event->event - SceneEventLibSelectStart;
             instance->license_lib_index = lib_index;
             scene_manager_next_scene(instance->scene_manager, SceneIdLibInfo);
-            UNUSED(lib_index);
             consumed = true;
         }
     } else if(event->type == SceneManagerEventTypeBack) {

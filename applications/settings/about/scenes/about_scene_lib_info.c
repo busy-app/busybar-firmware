@@ -7,8 +7,6 @@
 #include <gui/modules/qr_code.h>
 #include <gui/widget_i.h>
 
-#include <furi_hal_version.h>
-
 #define GREY_TEXT_COLOR ((Color)COLOR_MAKE_RGB(0x88, 0x88, 0x88))
 
 typedef struct {
@@ -23,15 +21,15 @@ typedef struct {
 static void about_scene_lib_info_on_enter(void* context) {
     furi_assert(context);
     About* instance = context;
-    furi_assert(instance->license_lib_index < COUNT_OF(about_libs_info));
+    furi_assert(instance->license_lib_index < about_get_libs_count());
 
     AboutSceneLibInfo* scene =
         scene_manager_get_scene_data(instance->scene_manager, SceneIdLibInfo);
 
     about_show_location(instance, false);
 
-    FuriString* license_string = furi_string_alloc_printf(
-        "License: %s", about_libs_info[instance->license_lib_index].license);
+    const AboutLibInfo* lib_info = about_get_lib_info(instance->license_lib_index);
+    FuriString* license_string = furi_string_alloc_printf("License: %s", lib_info->license);
 
     with_gui(instance->gui, {
         scene->front_status_view = status_view_alloc(instance->front_scene_window);
@@ -53,7 +51,7 @@ static void about_scene_lib_info_on_enter(void* context) {
         widget_set_padding(flex_layout_get_base(scene->text_flex), 0, 0, 0, 0);
 
         scene->name_label = label_alloc(text_flex_base);
-        label_set_text(scene->name_label, about_libs_info[instance->license_lib_index].name);
+        label_set_text(scene->name_label, lib_info->name);
         label_set_font(scene->name_label, FONT_BUSY_REGULAR_9);
         widget_set_size_content(label_get_base(scene->name_label));
 
@@ -67,7 +65,7 @@ static void about_scene_lib_info_on_enter(void* context) {
 
         scene->qr_code = qr_code_alloc(info_flex_base);
         qr_code_set_size(scene->qr_code, 39);
-        qr_code_set_data(scene->qr_code, about_libs_info[instance->license_lib_index].url);
+        qr_code_set_data(scene->qr_code, lib_info->url);
         widget_set_size_content(qr_code_get_base(scene->qr_code));
         widget_set_padding(qr_code_get_base(scene->qr_code), 2, 2, 2, 2);
 
