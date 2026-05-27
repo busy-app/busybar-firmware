@@ -296,11 +296,6 @@ static bool api_wifi_parse_ip_config(
             break;
         }
 
-        if(!api_wifi_mg_json_get_str_key(ip_config_json, WIFI_JSON_KEY_IP_TYPE, buf, error_msg)) {
-            result = (ip_config->mgmt == WifiIpManagementDynamic);
-            break;
-        }
-
         if(ip_config->mgmt == WifiIpManagementDynamic) {
             result = true;
             break;

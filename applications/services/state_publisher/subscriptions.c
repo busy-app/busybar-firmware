@@ -384,14 +384,16 @@ static void power_pubsub_callback(const void* message, void* context) {
 }
 
 static void audio_pubsub_callback(const void* message, void* context) {
-    UNUSED(message);
     StatePublisher* instance = context;
+    const AudioEvent* event = message;
 
-    // dispatch because audio_get_volume cannot be called from audio task
-    Message msg = {
-        .type = MessageTypeAudioEvent,
-    };
-    state_publisher_send_message(instance, &msg);
+    if(event->type == AudioEventVolumeUpdate) {
+        // dispatch because audio_get_volume cannot be called from audio task
+        Message msg = {
+            .type = MessageTypeAudioEvent,
+        };
+        state_publisher_send_message(instance, &msg);
+    }
 }
 
 static BSB_State_StateUpdate* collect_device_name(const char* name) {

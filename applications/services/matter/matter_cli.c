@@ -169,7 +169,7 @@ static void matter_cli_cmd_reset(PipeSide* pipe, FuriString* args, void* context
     furi_assert(context);
     MatterCli* matter_cli = context;
 
-    matter_factory_reset(matter_cli->matter);
+    matter_factory_reset(matter_cli->matter, MatterRebootAutomatically);
 
     printf("Done. Device will reboot shortly.\r\n");
 }

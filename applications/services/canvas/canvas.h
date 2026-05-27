@@ -5,11 +5,22 @@
 #include <gui/gui.h>
 #include <gui/modules/countdown.h>
 #include <gui/modules/anim_player.h>
+#include <loader/loader.h>
 #include <time.h>
 
-#define RECORD_CANVAS "CANVAS"
+#define RECORD_CANVAS       "CANVAS"
+#define CANVAS_MAX_PRIORITY LOADER_MAX_PRIORITY
 
-typedef struct CanvasApp CanvasApp;
+typedef struct CanvasSrv CanvasSrv;
+
+typedef enum {
+    CanvasResultOk = 0,
+    CanvasResultBadParameters,
+    CanvasResultLowPriority,
+    CanvasResultEmptyScreen,
+
+    CanvasResultMax,
+} CanvasResult;
 
 typedef enum {
     CanvasElementTypeImage,
@@ -100,8 +111,8 @@ ARRAY_DEF(
         CLEAR(API_2(canvas_element_clear)),
         INIT_SET(API_6(canvas_element_clone))))
 
-bool canvas_show_elements(
-    CanvasApp* canvas,
+CanvasResult canvas_show_elements(
+    CanvasSrv* canvas,
     const char* app_id,
     size_t priority,
     CanvasElementsArray_t elements);
@@ -111,8 +122,8 @@ bool canvas_show_elements(
  * 
  * Deletes ALL elements (`app_id` is NULL) or elements related to a non-NULL
  * `app_id`. If no elements are left after this possibly selective delete, the
- * Canvas terminates itself.
+ * Canvas closes itself.
  */
-bool canvas_delete_elements(CanvasApp* canvas, const char* app_id);
+CanvasResult canvas_delete_elements(CanvasSrv* canvas, const char* app_id);
 
-bool canvas_get_app_id(CanvasApp* canvas, FuriString* string);
+CanvasResult canvas_get_app_id(CanvasSrv* canvas, FuriString* string);

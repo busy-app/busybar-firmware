@@ -6,7 +6,6 @@ import pytest
 @allure.story("Transport contract")
 @pytest.mark.api
 @pytest.mark.state_publisher
-@pytest.mark.regression
 class TestStatePublisherContract:
     @allure.title("State publisher transport emits parseable frames")
     def test_transport_connect_enable_receives_parseable_frame(self, state_publisher):

@@ -23,6 +23,7 @@ typedef struct Audio Audio;
 
 typedef enum {
     AudioEventVolumeUpdate,
+    AudioEventPlayEnd,
 } AudioEventType;
 
 typedef struct {
@@ -56,8 +57,9 @@ bool audio_play_file(Audio* instance, const char* file_name);
  * @brief Stop playing current audio from file.
  *
  * @param[in,out] instance pointer to the Audio instance
+ * @returns true if the audio is stopping, false if not playing
  */
-void audio_stop(Audio* instance);
+bool audio_stop(Audio* instance);
 
 /**
  * @brief Set the playback volume.

@@ -46,7 +46,7 @@ static void reset_matter_pairing(void) {
 
     if(furi_record_exists(RECORD_MATTER)) {
         Matter* matter = furi_record_open(RECORD_MATTER);
-        matter_factory_reset(matter);
+        matter_factory_reset(matter, MatterRebootManually);
         furi_record_close(RECORD_MATTER);
         printf("Matter pairing reset done\r\n");
     } else {

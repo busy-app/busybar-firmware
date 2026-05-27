@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: BUSY Bar HTTP API
   description: HTTP API for BUSY Bar web server
-  version: 22.0.0
+  version: 22.2.0
   contact:
     name: tbd
 
@@ -721,12 +721,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-        "503":
-          description: Failed to load canvas app
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
     delete:
       tags:
         - Assets
@@ -841,6 +835,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/SuccessResponse"
+        "410":
+          description: No audio is playing
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
         "500":
           description: Audio system error
           content:
@@ -2518,12 +2518,6 @@ components:
           properties:
             ip_method:
               $ref: "#/components/schemas/WifiIpMethod"
-            ip_type:
-              type: string
-              example: ipv4
-              enum:
-                - ipv4
-                - ipv6
             address:
               type: string
               example: 192.168.50.5

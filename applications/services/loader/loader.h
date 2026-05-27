@@ -8,12 +8,33 @@ extern "C" {
 #define RECORD_LOADER            "loader"
 #define LOADER_APPLICATIONS_NAME "Apps"
 
+/**
+ * @defgroup LoaderPriority Loader application priority
+ *
+ * The loader tracks a "priority" for the currently running application.  The
+ * canvas HTTP API (POST /api/display/draw) uses this value to decide whether
+ * an incoming draw request is allowed to update the display.
+ *
+ * Priority scale:
+ *   STUB (0)          – never gates draws; any draw priority beats it.
+ *   PASSTHROUGH (9)   – threshold that admits draws at ≥ DEFAULT (10);
+ *                       canvas empty-canvas check uses strict-less-than.
+ *   DEFAULT (10)      – set on app start; minimum priority for useful draws.
+ *   MAX_APP (90)      – maximum value accepted by loader_set_priority().
+ *   MAX / CANVAS_MAX (100) – HTTP API ceiling; values above → 400.
+ *   BLOCKING (101)    – above API ceiling; all HTTP draws rejected.
+ *
+ * @note Only the thread that owns the currently running app may call
+ *       loader_set_priority(); the loader verifies the caller's app-id.
+ * @{
+ */
 #define LOADER_MAX_PRIORITY         100
 #define LOADER_DEFAULT_APP_PRIORITY 10
 #define LOADER_MAX_APP_PRIORITY     90
-/** Priority 0 is reserved for system stub apps (e.g. poweroff, certain
- *  settings pages) that must never block HTTP draw requests. */
 #define LOADER_STUB_APP_PRIORITY    0
+#define LOADER_PASSTHROUGH_PRIORITY (LOADER_DEFAULT_APP_PRIORITY - 1)
+#define LOADER_BLOCKING_PRIORITY    (LOADER_MAX_PRIORITY + 1)
+/** @} */
 
 typedef struct Loader Loader;
 
@@ -100,22 +121,30 @@ bool loader_get_application_name(Loader* instance, FuriString* name);
 bool loader_send_signal(Loader* instance, uint32_t signal, void* arg);
 
 /**
- * @brief Sets the priority level for the currently running app
- * 
- * @param[in] instance pointer to the loader instance
- * @param[in] priority priority level to set. Max is `LOADER_MAX_PRIORITY`
- * 
- * @return `true` if set successfully, `false` if argument is out of range or
- *         the requesting thread does not belong to the running app
+ * @brief Set the priority level for the currently running app.
+ *
+ * The priority gates HTTP canvas draw requests: see the LoaderPriority group
+ * for the full scale and interaction rules.
+ *
+ * The call is synchronous and is processed by the loader task.  It succeeds
+ * only when an application is running **and** the calling thread belongs to
+ * that same application (verified by app-id comparison).
+ *
+ * @param[in] instance loader instance
+ * @param[in] priority new priority (0 … LOADER_BLOCKING_PRIORITY)
+ * @return true  priority was updated
+ * @return false no app is running, or the caller is not the running app
  */
 bool loader_set_priority(Loader* instance, size_t priority);
 
 /**
- * @brief Gets the priority level of the currently running app
- * 
- * @param[in] instance pointer to the loader instance
- * 
- * @return the active priority level, or `0` if no app is running
+ * @brief Get the priority level of the currently running app.
+ *
+ * The canvas service calls this on every draw request to compute the effective
+ * rejection threshold.  Returns 0 if no application is currently running.
+ *
+ * @param[in] instance loader instance
+ * @return Current app priority, or 0 if no app is running.
  */
 size_t loader_get_priority(Loader* instance);
 
