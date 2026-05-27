@@ -271,7 +271,7 @@ void busy_start_transition(BusyApp* instance) {
 void busy_set_priority(BusyApp* instance, bool is_active) {
     furi_assert(instance);
     loader_set_priority(
-        instance->loader, is_active ? LOADER_MAX_PRIORITY : (LOADER_DEFAULT_APP_PRIORITY - 1));
+        instance->loader, is_active ? LOADER_BLOCKING_PRIORITY : LOADER_PASSTHROUGH_PRIORITY);
 }
 
 void busy_set_front_display_blanking(BusyApp* instance, bool is_blanked) {

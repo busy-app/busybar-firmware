@@ -414,21 +414,25 @@ static void canvas_srv_queue_event_callback(FuriEventLoopObject* object, void* c
         furi_assert(event.priority);
 
         do {
-            if(canvas->gui == NULL) {
-                canvas->priority = loader_get_priority(canvas->loader);
-            }
+            size_t loader_prio = loader_get_priority(canvas->loader);
+            size_t current_priority = (canvas->gui == NULL || loader_prio > canvas->priority) ?
+                                          loader_prio :
+                                          canvas->priority;
 
-            size_t current_priority = canvas->priority;
-            // same app can refresh at >= priority; a different app must use > priority to preempt
             bool same_app = (canvas->gui != NULL) && canvas->app_id &&
                             (strcmp(event.app_id, canvas->app_id) == 0);
+            bool rejected;
+            if(canvas->gui == NULL || same_app) {
+                rejected = (*event.priority < current_priority);
+            } else {
+                rejected = (*event.priority <= current_priority);
+            }
             FURI_LOG_I(
                 "CanvasSrv",
                 "Received update event with priority %zu, current priority is %zu",
                 *event.priority,
                 current_priority);
-            if(same_app ? (*event.priority < current_priority) :
-                          (*event.priority <= current_priority)) {
+            if(rejected) {
                 res = CanvasResultLowPriority;
                 break;
             }

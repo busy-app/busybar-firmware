@@ -12,8 +12,7 @@
 #define TAG "HttpDisplay"
 
 #define DISPLAY_ASSETS_DIR EXT_PATH("user_assets")
-
-#define DEFAULT_ELEMENT_PRIORITY 50
+#define DISPLAY_API_DEFAULT_PRIORITY (50)
 
 static bool api_display_draw_parse_text_element(
     CanvasElement* canvas_element,
@@ -354,7 +353,7 @@ static void api_display_canvas_draw(struct mg_connection* conn, struct mg_http_m
     char* app_name = NULL;
     bool success = false;
     double json_num = 0;
-    int priority = DEFAULT_ELEMENT_PRIORITY;
+    int priority = DISPLAY_API_DEFAULT_PRIORITY;
 
     do {
         app_name = mg_json_get_str(msg->body, "$.application_name");
