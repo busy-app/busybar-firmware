@@ -76,22 +76,6 @@ static void about_scene_lib_info_on_enter(void* context) {
             FlexLayoutAlignSpaceBetween,
             FlexLayoutAlignCenter,
             FlexLayoutAlignCenter);
-
-        lv_obj_set_style_border_color(
-            TO_LV_OBJ(scene->license_label), lv_color_make(0xFF, 0xFF, 0xFF), 0);
-        lv_obj_set_style_border_width(TO_LV_OBJ(scene->license_label), 1, 0);
-
-        lv_obj_set_style_border_color(
-            TO_LV_OBJ(scene->name_label), lv_color_make(0xFF, 0xFF, 0xFF), 0);
-        lv_obj_set_style_border_width(TO_LV_OBJ(scene->name_label), 1, 0);
-
-        lv_obj_set_style_border_color(
-            TO_LV_OBJ(text_flex_base), lv_color_make(0x6F, 0x6F, 0x6F), 0);
-        lv_obj_set_style_border_width(TO_LV_OBJ(text_flex_base), 1, 0);
-
-        lv_obj_set_style_border_color(
-            TO_LV_OBJ(info_flex_base), lv_color_make(0x4F, 0x4F, 0x4F), 0);
-        lv_obj_set_style_border_width(TO_LV_OBJ(info_flex_base), 1, 0);
     });
 
     furi_string_free(license_string);
