@@ -8,19 +8,10 @@ typedef enum {
     BleGenericAttributeCharacterServiceChanged,
 } BleSrvGenericAttribute;
 
-#if defined(BSB_MCU_SI917)
-static bool ble_service_generic_attribute_init_917(void* object) {
+static bool ble_service_generic_attribute_init(void* object) {
     UNUSED(object);
-    BLE_LOG_W("Init!");
     return true;
 }
-#else
-static bool ble_service_generic_attribute_init_u5(void* object) {
-    UNUSED(object);
-    BLE_LOG_W("Init!");
-    return true;
-}
-#endif
 
 //==========================================================
 static const BleCharacteristicDescriptor generic_attribute_service_characteristics[] = {
@@ -41,10 +32,8 @@ const BleServiceDescriptor ble_service_generic_attribute = {
 #if defined(BSB_MCU_SI917)
     .uuid = {.Char_UUID_16 = 0x1801},
     .uuid_size = 2,
-    .init = ble_service_generic_attribute_init_917,
-#else
-    .init = ble_service_generic_attribute_init_u5,
 #endif
+    .init = ble_service_generic_attribute_init,
     .index = BleServiceIndexGenericAttribute,
     .init_method = BleServiceInitMethodRemote,
     .char_count = COUNT_OF(generic_attribute_service_characteristics),
