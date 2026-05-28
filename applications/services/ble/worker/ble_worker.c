@@ -636,12 +636,6 @@ static void ble_hw_config() {
         ble_worker_on_indicate_confirmation_event,
         NULL);
 
-    //! Set local name
-    status = rsi_bt_set_local_name((const uint8_t*)BLE_DEFAULT_LOCAL_NAME);
-    if(status != RSI_SUCCESS) {
-        BLE_LOG_W("Failed to set default local name, error code : 0x%08lx", status);
-    }
-
     ble_advertise_print_data(ble_worker_instance->advertise);
 
     status = rsi_ble_set_random_address_with_value(rsi_app_resp_get_dev_addr);

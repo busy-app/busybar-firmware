@@ -20,7 +20,6 @@ typedef struct {
     Ble* ble;
     Network* network;
     bool exit;
-    FuriString* debug;
 
     FuriMutex* session_lock;
     uint32_t current_request_num;
@@ -137,7 +136,6 @@ static int32_t ble_http_repeater_thread_handler(void* p) {
 
     mg_mgr_init(&ble_http_repeater->mgr);
     mg_wakeup_init(&ble_http_repeater->mgr);
-    ble_http_repeater->debug = furi_string_alloc();
 
     ble_http_repeater->conn =
         mg_connect(&ble_http_repeater->mgr, BLE_HTTP_HOST, ble_event_handler, ble_http_repeater);
@@ -148,7 +146,6 @@ static int32_t ble_http_repeater_thread_handler(void* p) {
     }
 
     // Cleanup
-    furi_string_free(ble_http_repeater->debug);
     FURI_LOG_D(TAG, "Ble repeater stopped");
     mg_mgr_free(&ble_http_repeater->mgr);
     network_deinit_current_thread(ble_http_repeater->network);
