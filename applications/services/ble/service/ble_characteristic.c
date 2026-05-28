@@ -99,9 +99,12 @@ static void ble_characteristic_set_data_common(
         instance->max_data_size = data_size;
     }
 
-    furi_assert(instance->max_data_size >= data_size);
-    memcpy(instance->data, data, data_size);
-    instance->data_size = data_size;
+    if(instance->max_data_size >= data_size) {
+        memcpy(instance->data, data, data_size);
+        instance->data_size = data_size;
+    } else {
+        BLE_LOG_W("%s - Unable to set data, wrong size!", instance->descriptor->name);
+    }
 }
 
 void ble_characteristic_set_data(
