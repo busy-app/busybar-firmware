@@ -38,9 +38,9 @@ from .system import (
 
 # WiFi API
 from .wifi import (
-    TEST_WIFI_PASSWORD,
-    TEST_WIFI_SECURITY,
-    TEST_WIFI_SSID,
+    WIFI_PASSWORD,
+    WIFI_SECURITY,
+    WIFI_SSID,
     WifiAPI,
     WifiConnectRequest,
     WifiNetwork,
@@ -155,9 +155,9 @@ __all__ = [
     "WifiNetworksResponse",
     "WifiResultResponse",
     "WifiConnectRequest",
-    "TEST_WIFI_SSID",
-    "TEST_WIFI_PASSWORD",
-    "TEST_WIFI_SECURITY",
+    "WIFI_SSID",
+    "WIFI_PASSWORD",
+    "WIFI_SECURITY",
     "StorageAPI",
     "StorageStatusResponse",
     "StorageItem",

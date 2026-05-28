@@ -233,15 +233,17 @@ if fwenv.get("IS_BASE_FIRMWARE", False):
     for converter in converters_shared:
         resources_dist += converter("#/assets/shared/", shared_assets_dir)
 
+    _openapi_yaml = fw_assets_env.Real(
+        app_assets_dir.File(
+            "#/applications/services/web_server/resources/apps_assets/web_server/www/openapi.yaml"
+        )
+    )
     swagger_files = fw_assets_env.SwaggerGenerator(
         app_assets_dir.File("web_server/www/docs/index.html"),
-        fw_assets_env.Real(
-            app_assets_dir.File(
-                "#/applications/services/web_server/resources/apps_assets/web_server/www/openapi.yaml"
-            )
-        ),
+        _openapi_yaml,
         SWAGGER_DIST_DIR=fw_assets_env.Dir("#assets/swagger").rdir(),
     )
+    fwenv["FW_OPENAPI_YAML"] = _openapi_yaml
     resources_dist.append(swagger_files)
 
     resources_dist.append(convert_web_assets("#assets/frontend-build/public", fwenv.Dir("${BUILD_DIR}/apps_assets/web_server/www")))

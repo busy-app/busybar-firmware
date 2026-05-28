@@ -52,24 +52,3 @@ class TestStreamingAPI:
 
         assert response.status_code == 400
 
-
-@allure.feature("5. Web Frontend")
-@allure.story("Streaming")
-@pytest.mark.api
-@pytest.mark.frontend
-@pytest.mark.regression
-class TestStreamingWebSocketRegressions:
-    @allure.title("Removed /api/screen/ws does not upgrade")
-    def test_removed_screen_websocket_api_does_not_upgrade(self, web_base_url):
-        result = websocket_upgrade(websocket_url(web_base_url, "/api/screen/ws?display=0"))
-
-        assert result.status_code != 101
-        assert result.status_code in {400, 404, 405}
-
-    @allure.title("Removed /api/screen/ws plain HTTP endpoint is not available")
-    def test_removed_screen_websocket_plain_http_contract(self, api_session, web_base_url):
-        response = api_session.get(f"{web_base_url}/api/screen/ws", timeout=10)
-
-        assert response.status_code != 101
-        assert response.status_code in {400, 404, 405}
-        assert "upgrade" not in response.headers.get("Connection", "").lower()

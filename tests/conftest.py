@@ -9,9 +9,6 @@ from typing import Iterator, Optional
 import allure
 import pytest
 import requests
-from dotenv import load_dotenv
-
-load_dotenv()
 
 from utils.logging_config import (
     get_cli_logger,
@@ -131,30 +128,6 @@ def _write_test_context(test_name: str, **extra) -> None:
     except Exception:
         pass
 
-
-# Validate critical environment variables
-def validate_environment():
-    """Validate that critical environment variables are available"""
-    required_vars = {
-        "CLI_HOST": os.getenv("CLI_HOST"),
-        "CLI_PORT": os.getenv("CLI_PORT"),
-        "WEB_BASE_URL": os.getenv("WEB_BASE_URL"),
-    }
-
-    missing_vars = [var for var, value in required_vars.items() if not value]
-    if missing_vars:
-        print(f"Warning: Missing environment variables: {', '.join(missing_vars)}")
-        print("Using default values. Check your .env file if tests fail.")
-
-    print("Test Configuration:")
-    print(f"  CLI_HOST: {os.getenv('CLI_HOST', 'Not set (will use default)')}")
-    print(f"  CLI_PORT: {os.getenv('CLI_PORT', 'Not set (will use default)')}")
-    print(f"  WEB_BASE_URL: {os.getenv('WEB_BASE_URL', 'Not set (will use default)')}")
-    print(f"  LOG_LEVEL: {os.getenv('LOG_LEVEL', 'INFO')}")
-
-
-# Validate environment on import
-validate_environment()
 
 # Setup logging
 logger = setup_logging(

@@ -186,20 +186,42 @@ class AssetsAPI(BaseAPI):
 
     # === Audio ===
 
-    def play_audio(self, app_name: str, path: str) -> AssetResultResponse:
+    def play_audio(
+        self,
+        app_name: str,
+        path: str | None = None,
+        *,
+        stock_path: str | None = None,
+    ) -> AssetResultResponse:
         """
         Play an audio file.
 
         Args:
             app_name: Application name
-            path: Audio file path (within app's assets directory)
+            path: Audio file path within the app's uploaded assets directory.
+            stock_path: Built-in firmware sound path (e.g. "shared/volume_change.snd").
+
+        Exactly one of `path` or `stock_path` must be provided.
         """
-        return self.post(
-            "/api/audio/play",
-            AssetResultResponse,
-            json={"application_name": app_name, "path": path},
-        )
+        if (path is None) == (stock_path is None):
+            raise ValueError("Provide exactly one of path or stock_path")
+
+        body: dict[str, str] = {"application_name": app_name}
+        if path is not None:
+            body["path"] = path
+        else:
+            body["stock_path"] = stock_path
+
+        return self.post("/api/audio/play", AssetResultResponse, json=body)
 
     def stop_audio(self) -> AssetResultResponse:
-        """Stop audio playback."""
+        """Stop active audio playback and validate a successful response."""
         return self.delete("/api/audio/play", AssetResultResponse)
+
+    def stop_audio_raw(self) -> requests.Response:
+        """Stop audio playback and return the raw response.
+
+        DELETE /api/audio/play returns 200 when audio was stopped and 410 when
+        no audio is playing.
+        """
+        return self.delete_raw("/api/audio/play")

@@ -120,6 +120,7 @@ logs/
 
 # Generated files
 requirements.txt
+tests/clients/state_pb/_generated/
 
 # Backup files
 *.backup
