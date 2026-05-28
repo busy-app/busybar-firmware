@@ -46,8 +46,8 @@ static DSTATUS driver_status(BYTE pdrv) {
   */
 static DRESULT driver_read(BYTE pdrv, BYTE* buff, DWORD sector, UINT count) {
     UNUSED(pdrv);
-    bool status = furi_hal_sdmmc_read_blocks((uint8_t*)buff, (uint32_t)(sector), count, 10000);
-    return status ? RES_OK : RES_ERROR;
+    FuriHalSdError status = furi_hal_sdmmc_read_blocks((uint8_t*)buff, (uint32_t)(sector), count, 10000);
+    return furi_hal_sdmmc_error_is_ok(status) ? RES_OK : RES_ERROR;
 }
 
 /**
@@ -60,8 +60,8 @@ static DRESULT driver_read(BYTE pdrv, BYTE* buff, DWORD sector, UINT count) {
   */
 static DRESULT driver_write(BYTE pdrv, const BYTE* buff, DWORD sector, UINT count) {
     UNUSED(pdrv);
-    bool status = furi_hal_sdmmc_write_blocks((uint8_t*)buff, (uint32_t)(sector), count, 10000);
-    return status ? RES_OK : RES_ERROR;
+    FuriHalSdError status = furi_hal_sdmmc_write_blocks((uint8_t*)buff, (uint32_t)(sector), count, 10000);
+    return furi_hal_sdmmc_error_is_ok(status) ? RES_OK : RES_ERROR;
 }
 
 /**
@@ -78,6 +78,17 @@ static DRESULT driver_ioctl(BYTE pdrv, BYTE cmd, void* buff) {
     DSTATUS status = driver_status(pdrv);
     if(status & STA_NOINIT) return RES_NOTRDY;
 
+
+    switch(cmd) {
+    case GET_SECTOR_COUNT:
+    case GET_SECTOR_SIZE:
+    case GET_BLOCK_SIZE:
+        if(!furi_hal_sdmmc_error_is_ok(furi_hal_sdmmc_get_card_info(&sd_info))) {
+            return RES_NOTRDY;
+        }
+        break;
+    }
+
     switch(cmd) {
     /* Make sure that no pending write process */
     case CTRL_SYNC:
@@ -86,21 +97,18 @@ static DRESULT driver_ioctl(BYTE pdrv, BYTE cmd, void* buff) {
 
     /* Get number of sectors on the disk (DWORD) */
     case GET_SECTOR_COUNT:
-        furi_hal_sdmmc_get_card_info(&sd_info);
         *(DWORD*)buff = sd_info.logical_block_count;
         res = RES_OK;
         break;
 
     /* Get R/W sector size (WORD) */
     case GET_SECTOR_SIZE:
-        furi_hal_sdmmc_get_card_info(&sd_info);
         *(WORD*)buff = sd_info.logical_block_size;
         res = RES_OK;
         break;
 
     /* Get erase block size in unit of sector (DWORD) */
     case GET_BLOCK_SIZE:
-        furi_hal_sdmmc_get_card_info(&sd_info);
         *(DWORD*)buff = sd_info.logical_block_size;
         res = RES_OK;
         break;
