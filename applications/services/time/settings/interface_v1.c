@@ -1,4 +1,5 @@
 #include "interface_v1.h"
+#include <utz/utz.h>
 
 #define IS_ENABLED_DEFAULT true
 
@@ -15,6 +16,8 @@
 #define RETRY_SYNC_INTERVAL_MIN     (5 * 60)
 #define RETRY_SYNC_INTERVAL_MAX     (60 * 60)
 #define RETRY_SYNC_INTERVAL_DEFAULT (10 * 60)
+
+#define TIME_DEFAULT_TIMEZONE "New York"
 
 #define TIME_FORMAT_DEFAULT TimeSettingTimeFormat24h
 
@@ -55,6 +58,12 @@ static bool
     return utz_get_zone_by_name(string, zone);
 }
 
+utz_zone_t time_default_timezone;
+
+void time_settings_v1_initialize(void) {
+    furi_check(utz_get_zone_by_name(TIME_DEFAULT_TIMEZONE, &time_default_timezone));
+}
+
 const SettingProviderSetting time_v1_settings[] = {
     [TimeSettingV1IdxIsEnabled] =
         {
@@ -84,7 +93,7 @@ const SettingProviderSetting time_v1_settings[] = {
                 &(const SettingProviderCustomInterface){
                     .serialize_callback = serialize_uzone,
                     .deserialize_callback = deserialize_uzone,
-                    .default_value = &utz_zone_default,
+                    .default_value = (const void*)&time_default_timezone,
                     .default_value_size = sizeof(utz_zone_default),
                 },
             .field_offset = offsetof(TimeSettingsV1, timezone),
