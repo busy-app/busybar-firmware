@@ -296,8 +296,12 @@ void ble_characteristic_register_update_callback(
     furi_assert(instance);
 
     if(callback) {
-        instance->update_cb = callback;
-        instance->update_ctx = ctx;
+        if(instance->update_cb == NULL) {
+            instance->update_cb = callback;
+            instance->update_ctx = ctx;
+        } else {
+            BLE_LOG_D("%s - update callback already set", instance->descriptor->name);
+        }
     } else {
         BLE_LOG_D("Reset update callback");
         instance->update_cb = NULL;
