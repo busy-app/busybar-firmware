@@ -52,7 +52,11 @@ jobs:
 
                 cd base
                 git submodule update --init --depth 1 --filter=blob:none --recursive --jobs="$(nproc)" scripts/toolchain fbt_layers/fbtng || (git lfs logs last && exit 1)
-                bash ./fbt openapi_spec
+                if ! bash ./fbt openapi_spec; then
+                  echo "WARNING: base repository does not support OpenAPI spec generation"
+                  mkdir -p fbt_layers/fbtng/build/f21-firmware-D
+                  cp applications/services/web_server/resources/apps_assets/web_server/www/openapi.yaml fbt_layers/fbtng/build/f21-firmware-D/
+                fi
 
             - name: Install oasdiff
               run: |
