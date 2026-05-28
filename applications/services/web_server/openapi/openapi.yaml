@@ -1,0 +1,73 @@
+openapi: 3.1.0
+info:
+  title: BUSY Bar HTTP API
+  description: HTTP API for BUSY Bar web server
+  version: 22.2.0
+  contact:
+    name: tbd
+
+security:
+  - ApiKeyAuth: []
+  - {}
+
+paths:
+  # PATHS_CONTENT_PLACEHOLDER #
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Token
+
+  schemas:
+    SuccessResponse:
+      type: object
+      properties:
+        result:
+          type: string
+          example: "OK"
+          description: Success status message
+      required:
+        - result
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error message
+        code:
+          type: integer
+          description: Error code
+      required:
+        - error
+      example:
+        error: "Invalid parameter"
+        code: 400
+
+    # SCHEMAS_CONTENT_PLACEHOLDER #
+
+tags:
+  - name: System
+    description: System information and control
+  - name: Time
+    description: Time-related methods
+  - name: Updater
+    description: Firmware update control
+  - name: Wi-Fi
+    description: Allows to operate with Wi-Fi
+  - name: Assets
+    description: Asset file management and display control
+  - name: Streaming
+    description: Screen streaming
+  - name: Settings
+    description: Device settings
+  - name: Input
+    description: Input events
+  - name: BLE
+    description: Allows to operate with BLE
+  - name: Account
+    description: Account linking and MQTT status
+  - name: Busy
+    description: BUSY timer control

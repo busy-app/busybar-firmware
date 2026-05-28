@@ -206,6 +206,9 @@ def update_certs(src_dir, dst_dir):
 
     return [fw_assets_env.Install(dst_dir.Dir("ca"), cert_file_downloaded)]
 
+def openapi_merge(src_dir, dst_file):
+    src_files = fwenv.GlobRecursive("*.yaml", src_dir)
+    return fw_assets_env.OpenapiMerge(dst_file, src_files)
 
 if fwenv.get("IS_BASE_FIRMWARE", False):
     app_assets_dir = fwenv.Dir("${BUILD_DIR}/apps_assets")
@@ -233,11 +236,13 @@ if fwenv.get("IS_BASE_FIRMWARE", False):
     for converter in converters_shared:
         resources_dist += converter("#/assets/shared/", shared_assets_dir)
 
-    _openapi_yaml = fw_assets_env.Real(
-        app_assets_dir.File(
-            "#/applications/services/web_server/resources/apps_assets/web_server/www/openapi.yaml"
-        )
+    _openapi_yaml = openapi_merge(
+        app_assets_dir.Dir(
+            "#/applications/services/web_server/openapi/"
+        ),
+        fwenv.File("${BUILD_DIR}/openapi.yaml")
     )
+    Install(app_assets_dir.Dir("web_server"), _openapi_yaml)
     swagger_files = fw_assets_env.SwaggerGenerator(
         app_assets_dir.File("web_server/www/docs/index.html"),
         _openapi_yaml,
