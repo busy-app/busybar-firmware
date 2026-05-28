@@ -19,7 +19,7 @@ concurrency:
 
 jobs:
     oasdiff:
-        runs-on: ubuntu-latest
+        runs-on: BsbShell
 
         steps:
             - name: Checkout current
