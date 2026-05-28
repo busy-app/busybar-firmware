@@ -19,7 +19,7 @@ concurrency:
 
 jobs:
     oasdiff:
-        runs-on: BsbShell
+        runs-on: ubuntu-latest
 
         steps:
             - name: Checkout current
@@ -35,6 +35,7 @@ jobs:
                   path: base
 
             - name: Build OpenAPI specifications
+              shell: bash
               run: |
                 ./fbt openapi_spec
                 cd base
