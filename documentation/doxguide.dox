@@ -1,0 +1,62 @@
+/**
+
+@page doxguide Docs HOWTO
+
+# Introduction
+
+The @bsb project uses [Doxygen](https://doxygen.nl) as its main means of creating and maintaining the documentation.
+
+For detailed info on using *Doxygen*, please refer to the [official manual](https://www.doxygen.nl/manual/).
+
+Below are some rules, conventions and tips and tricks relevant to the present documentation.
+
+# Building
+
+In order to build the documentation from the source, run: `./fbt doxygen` from the project root directory.
+
+The rendered HTML docs will be placed in the `documentation/doxygen/build` directory.
+
+To open the generated documentation in the default browser, run `./fbt doxy` from the project root directory.
+
+In case of any problems with the *Doxygen* markup (e.g. missing function parameters, mismatching labels, etc.) errors will be printed during the build process.
+
+# File structure
+
+## Source files
+
+The main way of documenting the source code in *Doxygen* is to place [specially formatted](https://www.doxygen.nl/manual/docblocks.html) comment blocks inside the header and source files.
+
+For general guidelines on *Doxygen* style, please see [Zephyr docs style guide](https://docs.zephyrproject.org/latest/contribute/style/doxygen.html) as a good example.
+
+In short:
+- Use `@command` instead of `\command` syntax
+- Use a `@file` [command](https://www.doxygen.nl/manual/commands.html#cmdfile) at the top of each file to be processed by *Doxygen*
+- Use function [parameter](https://www.doxygen.nl/manual/commands.html#cmdparam) directions (`[in]`, `[out]` or `[in,out]`)
+- Use [groups](https://www.doxygen.nl/manual/commands.html#cmdaddtogroup) to link related entities togeter (they will show up in the [topics](topics.html) section)
+- Use group nesting in order to provide additional structure to the topics section
+- Do NOT simply repeat the function signature in *Doxygen* blocks, provide some actual information instead
+
+## Standalone files
+
+Standalone files are [custom](https://www.doxygen.nl/manual/additional.html) `.dox` files which are found in the `documentation` folder in the project root directory.
+
+Their main purpose is to provide top-level structure for the documentation.
+
+According to *Doxygen* philosophy, all documentation must be as close to the source code as possible, so there will rarely be a need of creating a new standalone file.
+Instead, one should try to keep all code-related docs inside the respective source files and only reference them in standalone files as needed.
+
+Each standalone file must contan a single *Doxygen* [page](https://www.doxygen.nl/manual/commands.html#cmdpage). It may also include other files as [subpages](https://www.doxygen.nl/manual/commands.html#cmdsubpage) or [reference](https://www.doxygen.nl/manual/commands.html#cmdref) any other label or symbol in the project.
+
+## Description files
+
+Description files are [Markdown](https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax) files that are strategically placed inside some of the project folders.
+
+Their main purpose is to aid browsing the project on platforms like *GitHub* by **describing** the current directory the reader is at. Thus, they are usually called `README.md` in order to get the aforementioned sites to render and show them automatically upon entering a directory.
+
+# Sidebar
+
+The sidebar is a convenient and obvious place for newcomers to start, so its number of items should be kept to absolute minimum.
+
+Since any standalone file will appear in the sidebar as a separate entry, it usually should be referenced as a [subpage](https://www.doxygen.nl/manual/commands.html#cmdsubpage) in another file.
+
+*/
