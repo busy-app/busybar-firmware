@@ -1,9 +1,5 @@
 #include "generic_access_i.h"
 
-#if defined(BSB_MCU_U5)
-#include "device_name/device_name.h"
-#endif
-
 static const BleCharacteristicDescriptor generic_access_service_characteristics[] = {
     {
         .intercom_index = BleGenericAccessCharacterDeviceName,
@@ -12,8 +8,6 @@ static const BleCharacteristicDescriptor generic_access_service_characteristics[
         .uuid = {.Char_UUID_16 = 0x2A00},
         .uuid_size = 2,
         .char_properties = BLE_ATT_PROPERTY_READ,
-#else
-        .initial_data_size = DEVICE_NAME_MAX_SIZE,
 #endif
     },
     {

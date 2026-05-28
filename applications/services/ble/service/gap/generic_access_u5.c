@@ -27,12 +27,11 @@ static void ble_service_generic_access_update_device_name_char(BleServiceObject*
     FuriString* name = furi_string_alloc();
     ble_get_name_from_record(name);
 
-    const size_t name_size_terminated = furi_string_size(name) + 1;
-    char* buf = malloc(name_size_terminated);
+    char* buf = malloc(DEVICE_NAME_MAX_SIZE);
     memcpy(buf, furi_string_get_cstr(name), furi_string_size(name));
 
     BleCharacteristicObject* ch = instance->chars[BleGenericAccessCharacterDeviceName];
-    ble_characteristic_set_data(ch, buf, name_size_terminated);
+    ble_characteristic_set_data(ch, buf, DEVICE_NAME_MAX_SIZE);
     furi_string_free(name);
     free(buf);
 }
