@@ -485,8 +485,6 @@ const char* furi_hal_interrupt_get_name(uint8_t exception_number) {
     const IRQn_Type irqn = (IRQn_Type)((int32_t)exception_number - 16);
 
     switch(irqn) {
-    case Reset_IRQn:
-        return "Reset";
     case NonMaskableInt_IRQn:
         return "NMI";
     case HardFault_IRQn:
