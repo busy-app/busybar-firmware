@@ -34,6 +34,12 @@ jobs:
                   ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
                   path: base
 
+            - name: Build OpenAPI specifications
+              run: |
+                ./fbt openapi_spec
+                cd base
+                ./fbt openapi_spec
+
             - name: Install oasdiff
               run: |
                   curl -fsSL https://raw.githubusercontent.com/oasdiff/oasdiff/main/install.sh | sh
@@ -41,7 +47,7 @@ jobs:
             - name: Run oasdiff
               id: oasdiff
               env:
-                  OAS_PATH: applications/services/web_server/resources/apps_assets/web_server/www/openapi.yaml
+                  OAS_PATH: fbt_layers/fbtng/build/f21-firmware-D/openapi.yaml
               run: |
                   set -o pipefail
 
@@ -76,7 +82,7 @@ jobs:
             - name: Check version bump
               id: version_check
               env:
-                  OAS_PATH: applications/services/web_server/resources/apps_assets/web_server/www/openapi.yaml
+                  OAS_PATH: fbt_layers/fbtng/build/f21-firmware-D/openapi.yaml
                   HAS_BREAKING: ${{ steps.oasdiff.outputs.exit_code }}
                   HAS_CHANGES: ${{ steps.oasdiff.outputs.has_changes }}
               run: |

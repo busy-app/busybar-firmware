@@ -242,7 +242,8 @@ if fwenv.get("IS_BASE_FIRMWARE", False):
         ),
         fwenv.File("${BUILD_DIR}/openapi.yaml")
     )
-    Install(app_assets_dir.Dir("web_server"), _openapi_yaml)
+    Install(app_assets_dir.Dir("web_server/www"), _openapi_yaml)
+    Alias("openapi_spec", _openapi_yaml)
     swagger_files = fw_assets_env.SwaggerGenerator(
         app_assets_dir.File("web_server/www/docs/index.html"),
         _openapi_yaml,
