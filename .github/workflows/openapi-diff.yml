@@ -37,8 +37,21 @@ jobs:
             - name: Build OpenAPI specifications
               shell: bash
               run: |
+                set -euo pipefail
+                export FBT_GIT_SUBMODULE_SHALLOW=1
+
+                git lfs install --skip-smudge
+                if [[ -n "${GH_TOKEN:-}" ]]; then
+                  echo "https://x-access-token:${GH_TOKEN}@github.com" > ~/.git-credentials
+                  git config --global credential.helper 'store --file ~/.git-credentials'
+                fi
+                git config --global lfs.transfer.maxretries 3
+
+                git submodule update --init --depth 1 --filter=blob:none --recursive --jobs="$(nproc)" scripts/toolchain fbt_layers/fbtng || (git lfs logs last && exit 1)
                 ./fbt openapi_spec
+
                 cd base
+                git submodule update --init --depth 1 --filter=blob:none --recursive --jobs="$(nproc)" scripts/toolchain fbt_layers/fbtng || (git lfs logs last && exit 1)
                 ./fbt openapi_spec
 
             - name: Install oasdiff
