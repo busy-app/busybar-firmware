@@ -173,8 +173,8 @@ static bool api_wifi_get_networks_callback(
             cJSON_AddStringToObject(item, WIFI_JSON_KEY_SSID, results[i].ssid);
 
             WifiSecurityMode mode = results[i].security_mode;
-            const char* security_str =
-                (mode < WifiSecurityModeMax) ? security_modes[mode] : "Unknown";
+            const char* security_str = (mode < WifiSecurityModeMax) ? security_modes[mode] :
+                                                                      "Unknown";
             cJSON_AddStringToObject(item, WIFI_JSON_KEY_SECURITY, security_str);
             cJSON_AddNumberToObject(item, WIFI_JSON_KEY_RSSI, results[i].rssi);
             cJSON_AddItemToArray(array, item);
@@ -444,9 +444,9 @@ static bool api_wifi_get_status_callback(
         if(info.state == WifiStateConnected) {
             cJSON_AddStringToObject(response, WIFI_JSON_KEY_SSID, info.ssid);
 
-            const char* security_mode =
-                (info.security_mode < WifiSecurityModeMax) ? security_modes[info.security_mode] :
-                                                             "Unknown";
+            const char* security_mode = (info.security_mode < WifiSecurityModeMax) ?
+                                            security_modes[info.security_mode] :
+                                            "Unknown";
             cJSON_AddStringToObject(response, WIFI_JSON_KEY_SECURITY, security_mode);
 
             char bssid_str[32];
