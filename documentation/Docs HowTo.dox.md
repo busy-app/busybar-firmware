@@ -45,14 +45,21 @@ In short:
 - Use group nesting in order to provide additional structure to the Topics section.
 - Do not simply repeat the function signature in *Doxygen* blocks, instead provide some actual information.
 
+### Grouping
+
+Group labels should be in kebab case, e.g. `@defgroup my-awesome-group My awesome group`. Care must be taken to ensure that they do not conflict with page labels (see below).
+
 ## Standalone files
 
 Standalone files are hybrid [Markdown](https://www.doxygen.nl/manual/markdown.html) files with [custom](https://www.doxygen.nl/manual/additional.html) `.dox.md` extension. They are found in the `documentation` folder in the project root directory and their purpose is to provide top-level structure for the documentation.
 
+### Labeling
 Each standalone file must contan a title in the form of a Markdown top-level heading with a page label, e.g: `# My awesome page {#my-awesome-page}`. Page labels must be short, single word or several words in kebab case.
 
+### Hierarchy
 Standalone files may also include other files as [subpages](https://www.doxygen.nl/manual/commands.html#cmdsubpage) or [reference](https://www.doxygen.nl/manual/commands.html#cmdref) any other label or symbol in the project.
 
+### Scope
 According to *Doxygen* philosophy, all documentation must be as close to the source code as possible, so there will rarely be a need of creating a new standalone file.
 Instead, one should try to keep all code-related docs inside the respective source files and only reference them in standalone files as needed.
 
