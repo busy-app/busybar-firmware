@@ -10,13 +10,11 @@ Below are some rules, conventions and tips and tricks relevant to the present do
 
 # Building
 
-In order to build the documentation from the source, run: `./fbt doxygen` from the project root directory.
-
-The rendered HTML docs will be placed in the `documentation/doxygen/build` directory.
+To build the documentation from the source, run: `./fbt doxygen` from the project root directory. The rendered HTML files will be placed in the `documentation/doxygen/build` directory.
 
 To open the generated documentation in the default browser, run `./fbt doxy` from the project root directory.
 
-In case of any problems with the *Doxygen* markup (e.g. missing function parameters, mismatching labels, etc.) errors will be printed during the build process.
+If there were problems with the *Doxygen* markup (e.g. missing function parameters, mismatching labels, etc.) error messages will be printed during the build process.
 
 # General considerations
 
@@ -40,32 +38,27 @@ The main way of documenting the source code in *Doxygen* is to place [specially 
 For general guidelines on *Doxygen* style, please see [Zephyr docs style guide](https://docs.zephyrproject.org/latest/contribute/style/doxygen.html) as a good example.
 
 In short:
-- Use `@command` instead of `\command` syntax
-- Use a `@file` [command](https://www.doxygen.nl/manual/commands.html#cmdfile) at the top of each file to be processed by *Doxygen*
-- Use function [parameter](https://www.doxygen.nl/manual/commands.html#cmdparam) directions (`[in]`, `[out]` or `[in,out]`)
-- Use [groups](https://www.doxygen.nl/manual/commands.html#cmdaddtogroup) to link related entities togeter (they will show up in the [topics](topics.html) section)
-- Use group nesting in order to provide additional structure to the topics section
-- Do NOT simply repeat the function signature in *Doxygen* blocks, provide some actual information instead
+- Use `@command` instead of `\command` syntax.
+- Use a `@file` [command](https://www.doxygen.nl/manual/commands.html#cmdfile) at the top of each file to be processed by *Doxygen*.
+- Provide function [parameter](https://www.doxygen.nl/manual/commands.html#cmdparam) directions (`[in]`, `[out]` or `[in,out]`).
+- Use [groups](https://www.doxygen.nl/manual/commands.html#cmdaddtogroup) to link related entities togeter (they will show up in the [Topics](topics.html) section).
+- Use group nesting in order to provide additional structure to the Topics section.
+- Do not simply repeat the function signature in *Doxygen* blocks, instead provide some actual information.
 
 ## Standalone files
 
-Standalone files are essentially [Markdown](https://www.doxygen.nl/manual/markdown.html) files with [custom](https://www.doxygen.nl/manual/additional.html) `.dox.md` extension which are found in the `documentation` folder in the project root directory.
+Standalone files are hybrid [Markdown](https://www.doxygen.nl/manual/markdown.html) files with [custom](https://www.doxygen.nl/manual/additional.html) `.dox.md` extension. They are found in the `documentation` folder in the project root directory and their purpose is to provide top-level structure for the documentation.
 
-Their main purpose is to provide top-level structure for the documentation.
+Each standalone file must contan a title in the form of a Markdown top-level heading with a page label, e.g: `# My awesome page {#my-awesome-page}`. Page labels must be short, single word or several words in kebab case.
+
+Standalone files may also include other files as [subpages](https://www.doxygen.nl/manual/commands.html#cmdsubpage) or [reference](https://www.doxygen.nl/manual/commands.html#cmdref) any other label or symbol in the project.
 
 According to *Doxygen* philosophy, all documentation must be as close to the source code as possible, so there will rarely be a need of creating a new standalone file.
 Instead, one should try to keep all code-related docs inside the respective source files and only reference them in standalone files as needed.
 
-Each standalone file must contan a single *Doxygen* [page](https://www.doxygen.nl/manual/commands.html#cmdpage). It may also include other files as [subpages](https://www.doxygen.nl/manual/commands.html#cmdsubpage) or [reference](https://www.doxygen.nl/manual/commands.html#cmdref) any other label or symbol in the project.
-
-Page labels must be short, single or several words in kebab case. This is due to the following:
-- Rendered HTML pages get their file names from labels, so it is preferable to keep them short;
-- The number of pages will always be limited, so there is virtually no possibility of running out of short names;
-- Documented source code symbols are extremely unlikely to have the same naming patterns, which reduces the chance of a reference collision.
-
 ## Description files
 
-Description files are [Markdown](https://www.doxygen.nl/manual/markdown.html) files that are strategically placed inside some of the project folders.
+Description files are regular [Markdown](https://www.doxygen.nl/manual/markdown.html) files that are strategically placed inside some of the project folders.
 
 Their main purpose is to aid browsing the project on platforms like *GitHub* by **describing** the current directory the reader is at. Thus, they are usually called `README.md` in order to get the aforementioned sites to render and show them automatically upon entering a directory.
 
