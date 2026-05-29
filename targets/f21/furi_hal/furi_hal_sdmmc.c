@@ -318,51 +318,45 @@ typedef struct {
 
 static SdMmcDmaContext sdmmc_dma_context = {0};
 
-// static const FuriHalSdError stm32_sd_error_lookup[4] = {
-
-static _FuriHalSdError _translate_sd_error(uint32_t stm32_error) {
+static FuriHalSdError translate_sd_error(uint32_t stm32_error) {
     switch(stm32_error) {
-    case SDMMC_ERROR_NONE: return _FuriHalSdErrorNone;
-    case SDMMC_ERROR_DATA_CRC_FAIL: return _FuriHalSdErrorDataCrcFail;
-    case SDMMC_ERROR_DATA_TIMEOUT: return _FuriHalSdErrorDataTimeout;
-    case SDMMC_ERROR_TX_UNDERRUN: return _FuriHalSdErrorTxUnderrun;
-    case SDMMC_ERROR_RX_OVERRUN: return _FuriHalSdErrorRxOverrun;
-    case SDMMC_ERROR_ADDR_MISALIGNED: return _FuriHalSdErrorAddrMisaligned;
-    case SDMMC_ERROR_BLOCK_LEN_ERR: return _FuriHalSdErrorBlockLenErr;
-    case SDMMC_ERROR_ERASE_SEQ_ERR: return _FuriHalSdErrorEraseSeqErr;
-    case SDMMC_ERROR_BAD_ERASE_PARAM: return _FuriHalSdErrorBadEraseParam;
-    case SDMMC_ERROR_WRITE_PROT_VIOLATION: return _FuriHalSdErrorWriteProtViolation;
-    case SDMMC_ERROR_LOCK_UNLOCK_FAILED: return _FuriHalSdErrorLockUnlockFailed;
-    case SDMMC_ERROR_COM_CRC_FAILED: return _FuriHalSdErrorComCrcFailed;
-    case SDMMC_ERROR_ILLEGAL_CMD: return _FuriHalSdErrorIllegalCmd;
-    case SDMMC_ERROR_CARD_ECC_FAILED: return _FuriHalSdErrorCardEccFailed;
-    case SDMMC_ERROR_CC_ERR: return _FuriHalSdErrorCcErr;
-    case SDMMC_ERROR_GENERAL_UNKNOWN_ERR: return _FuriHalSdErrorGeneralUnknownErr;
-    case SDMMC_ERROR_STREAM_READ_UNDERRUN: return _FuriHalSdErrorStreamReadUnderrun;
-    case SDMMC_ERROR_STREAM_WRITE_OVERRUN: return _FuriHalSdErrorStreamWriteOverrun;
-    case SDMMC_ERROR_CID_CSD_OVERWRITE: return _FuriHalSdErrorCidCsdOverwrite;
-    case SDMMC_ERROR_WP_ERASE_SKIP: return _FuriHalSdErrorWpEraseSkip;
-    case SDMMC_ERROR_CARD_ECC_DISABLED: return _FuriHalSdErrorCardEccDisabled;
-    case SDMMC_ERROR_ERASE_RESET: return _FuriHalSdErrorEraseReset;
-    case SDMMC_ERROR_AKE_SEQ_ERR: return _FuriHalSdErrorAkeSeqErr;
-    case SDMMC_ERROR_INVALID_VOLTRANGE: return _FuriHalSdErrorInvalidVoltRange;
-    case SDMMC_ERROR_ADDR_OUT_OF_RANGE: return _FuriHalSdErrorAddrOutOfRange;
-    case SDMMC_ERROR_REQUEST_NOT_APPLICABLE: return _FuriHalSdErrorRequestNotApplicable;
-    case SDMMC_ERROR_INVALID_PARAMETER: return _FuriHalSdErrorParam;
-    case SDMMC_ERROR_UNSUPPORTED_FEATURE: return _FuriHalSdErrorUnsupportedFeature;
-    case SDMMC_ERROR_BUSY: return _FuriHalSdErrorBusy;
-    case SDMMC_ERROR_DMA: return _FuriHalSdErrorDma;
-    case SDMMC_ERROR_TIMEOUT: return _FuriHalSdErrorTimeout;
-    default: return _FuriHalSdErrorOther;
+    case SDMMC_ERROR_NONE: return FuriHalSdErrorNone;
+    case SDMMC_ERROR_DATA_CRC_FAIL: return FuriHalSdErrorDataCrcFail;
+    case SDMMC_ERROR_DATA_TIMEOUT: return FuriHalSdErrorDataTimeout;
+    case SDMMC_ERROR_TX_UNDERRUN: return FuriHalSdErrorTxUnderrun;
+    case SDMMC_ERROR_RX_OVERRUN: return FuriHalSdErrorRxOverrun;
+    case SDMMC_ERROR_ADDR_MISALIGNED: return FuriHalSdErrorAddrMisaligned;
+    case SDMMC_ERROR_BLOCK_LEN_ERR: return FuriHalSdErrorBlockLenErr;
+    case SDMMC_ERROR_ERASE_SEQ_ERR: return FuriHalSdErrorEraseSeqErr;
+    case SDMMC_ERROR_BAD_ERASE_PARAM: return FuriHalSdErrorBadEraseParam;
+    case SDMMC_ERROR_WRITE_PROT_VIOLATION: return FuriHalSdErrorWriteProtViolation;
+    case SDMMC_ERROR_LOCK_UNLOCK_FAILED: return FuriHalSdErrorLockUnlockFailed;
+    case SDMMC_ERROR_COM_CRC_FAILED: return FuriHalSdErrorComCrcFailed;
+    case SDMMC_ERROR_ILLEGAL_CMD: return FuriHalSdErrorIllegalCmd;
+    case SDMMC_ERROR_CARD_ECC_FAILED: return FuriHalSdErrorCardEccFailed;
+    case SDMMC_ERROR_CC_ERR: return FuriHalSdErrorCcErr;
+    case SDMMC_ERROR_GENERAL_UNKNOWN_ERR: return FuriHalSdErrorGeneralUnknownErr;
+    case SDMMC_ERROR_STREAM_READ_UNDERRUN: return FuriHalSdErrorStreamReadUnderrun;
+    case SDMMC_ERROR_STREAM_WRITE_OVERRUN: return FuriHalSdErrorStreamWriteOverrun;
+    case SDMMC_ERROR_CID_CSD_OVERWRITE: return FuriHalSdErrorCidCsdOverwrite;
+    case SDMMC_ERROR_WP_ERASE_SKIP: return FuriHalSdErrorWpEraseSkip;
+    case SDMMC_ERROR_CARD_ECC_DISABLED: return FuriHalSdErrorCardEccDisabled;
+    case SDMMC_ERROR_ERASE_RESET: return FuriHalSdErrorEraseReset;
+    case SDMMC_ERROR_AKE_SEQ_ERR: return FuriHalSdErrorAkeSeqErr;
+    case SDMMC_ERROR_INVALID_VOLTRANGE: return FuriHalSdErrorInvalidVoltRange;
+    case SDMMC_ERROR_ADDR_OUT_OF_RANGE: return FuriHalSdErrorAddrOutOfRange;
+    case SDMMC_ERROR_REQUEST_NOT_APPLICABLE: return FuriHalSdErrorRequestNotApplicable;
+    case SDMMC_ERROR_INVALID_PARAMETER: return FuriHalSdErrorParam;
+    case SDMMC_ERROR_UNSUPPORTED_FEATURE: return FuriHalSdErrorUnsupportedFeature;
+    case SDMMC_ERROR_BUSY: return FuriHalSdErrorBusy;
+    case SDMMC_ERROR_DMA: return FuriHalSdErrorDma;
+    case SDMMC_ERROR_TIMEOUT: return FuriHalSdErrorTimeout;
+    default: return FuriHalSdErrorOther;
     }
 }
 
-static FuriHalSdError translate_sd_error(uint32_t stm32_error) {
-    return (FuriHalSdError){_translate_sd_error(stm32_error)};
-}
-
 bool furi_hal_sdmmc_error_is_ok(FuriHalSdError e) {
-    return e.e == _FuriHalSdErrorNone;
+    return e == FuriHalSdErrorNone;
 }
 
 static void furi_hal_sdmmc_gpio_init(void) {
@@ -856,7 +850,7 @@ static FuriHalSdError sd_mmc_get_card_status(CardStatus* card_status) {
     if(!furi_hal_sdmmc_error_is_ok(status)) {
         /* Clear all the static flags */
         sdmmc_clear_static_flags();
-        FURI_LOG_E(TAG, "sdmmc_send_status_command failed with error 0x%08x", status.e);
+        FURI_LOG_E(TAG, "sdmmc_send_status_command failed with error 0x%08x", status);
     } else {
         card_status->data_bus_width = (uint8_t)((sd_status[0] & 0xC0U) >> 6U);
         card_status->secured_mode = (uint8_t)((sd_status[0] & 0x20U) >> 5U);
@@ -1019,7 +1013,7 @@ static FuriHalSdError sdmmc_config_wide_bus_operation(uint32_t sdmmc_clk) {
     if(!furi_hal_sdmmc_error_is_ok(status)) {
         /* Clear all the static flags */
         sdmmc_clear_static_flags();
-        FURI_LOG_E(TAG, "sdmmc_wide_bus_enable failed with error 0x%08x", status.e);
+        FURI_LOG_E(TAG, "sdmmc_wide_bus_enable failed with error 0x%08x", status);
         // return?
     }
 
@@ -1115,7 +1109,7 @@ static FuriHalSdError sdmmc_get_card_state(SdCardState* state) {
 
     FuriHalSdError status = sdmmc_send_status(&resp1);
     if(!furi_hal_sdmmc_error_is_ok(status)) {
-        FURI_LOG_E(TAG, "sdmmc_send_status failed with error 0x%08x", status.e);
+        FURI_LOG_E(TAG, "sdmmc_send_status failed with error 0x%08x", status);
         return status;
     }
 
@@ -1355,14 +1349,14 @@ static FuriHalSdError sdmmc_init_card_lowspeed(uint32_t sdmmc_clk) {
     // identify card operating voltage
     FuriHalSdError status = sdmmc_power_on();
     if(!furi_hal_sdmmc_error_is_ok(status)) {
-        FURI_LOG_E(TAG, "sdmmc_power_on failed with error 0x%08x", status.e);
+        FURI_LOG_E(TAG, "sdmmc_power_on failed with error 0x%08x", status);
         return status;
     }
 
     // initialize card
     status = sdmmc_init_card();
     if(!furi_hal_sdmmc_error_is_ok(status)) {
-        FURI_LOG_E(TAG, "sdmmc_init_card failed with error 0x%08x", status.e);
+        FURI_LOG_E(TAG, "sdmmc_init_card failed with error 0x%08x", status);
         return status;
     }
 
@@ -2113,14 +2107,14 @@ static FuriHalSdError sdmmc_init_mmc_lowspeed(uint32_t sdmmc_clk) {
     // identify card operating voltage
     FuriHalSdError status = sdmmc_mmc_power_on();
     if(!furi_hal_sdmmc_error_is_ok(status)) {
-        FURI_LOG_E(TAG, "sdmmc_mmc_power_on failed with error 0x%08x", status.e);
+        FURI_LOG_E(TAG, "sdmmc_mmc_power_on failed with error 0x%08x", status);
         return status;
     }
 
     // initialize card
     status = sdmmc_mmc_init_card();
     if(!furi_hal_sdmmc_error_is_ok(status)) {
-        FURI_LOG_E(TAG, "sdmmc_mmc_init_card failed with error 0x%08x", status.e);
+        FURI_LOG_E(TAG, "sdmmc_mmc_init_card failed with error 0x%08x", status);
         return status;
     }
 
@@ -2128,7 +2122,7 @@ static FuriHalSdError sdmmc_init_mmc_lowspeed(uint32_t sdmmc_clk) {
     status = translate_sd_error(SDMMC_CmdBlockLength(FURI_SDMMC_BLOCK, SD_BLOCKSIZE));
     if(!furi_hal_sdmmc_error_is_ok(status)) {
         sdmmc_clear_static_flags();
-        FURI_LOG_E(TAG, "SDMMC_CmdBlockLength failed with error 0x%08x", status.e);
+        FURI_LOG_E(TAG, "SDMMC_CmdBlockLength failed with error 0x%08x", status);
         return status;
     }
 
@@ -2304,7 +2298,7 @@ FuriHalSdError furi_hal_sdmmc_read_blocks(
                     "sdmmc_wait_for_transfer_state failed after DMA for %lu blocks at 0x%08lx: %u",
                     blocks_in_current_operation,
                     current_sd_block_address,
-                    status.e);
+                    status);
                 last_status = status;
             }
         } else {

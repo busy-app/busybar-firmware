@@ -40,79 +40,41 @@ typedef struct {
     uint16_t manufacturing_year; /*!< manufacturing year */
 } FuriHalSdInfo;
 
-typedef enum _FuriHalSdError {
-    _FuriHalSdErrorNone = 0,
-    _FuriHalSdErrorDataCrcFail,
-    _FuriHalSdErrorDataTimeout,
-    _FuriHalSdErrorTxUnderrun,
-    _FuriHalSdErrorRxOverrun,
-    _FuriHalSdErrorAddrMisaligned,
-    _FuriHalSdErrorBlockLenErr,
-    _FuriHalSdErrorEraseSeqErr,
-    _FuriHalSdErrorBadEraseParam,
-    _FuriHalSdErrorWriteProtViolation,
-    _FuriHalSdErrorLockUnlockFailed,
-    _FuriHalSdErrorComCrcFailed,
-    _FuriHalSdErrorIllegalCmd,
-    _FuriHalSdErrorCardEccFailed,
-    _FuriHalSdErrorCcErr,
-    _FuriHalSdErrorGeneralUnknownErr,
-    _FuriHalSdErrorStreamReadUnderrun,
-    _FuriHalSdErrorStreamWriteOverrun,
-    _FuriHalSdErrorCidCsdOverwrite,
-    _FuriHalSdErrorWpEraseSkip,
-    _FuriHalSdErrorCardEccDisabled,
-    _FuriHalSdErrorEraseReset,
-    _FuriHalSdErrorAkeSeqErr,
-    _FuriHalSdErrorInvalidVoltRange,
-    _FuriHalSdErrorAddrOutOfRange,
-    _FuriHalSdErrorRequestNotApplicable,
-    _FuriHalSdErrorParam,
-    _FuriHalSdErrorUnsupportedFeature,
-    _FuriHalSdErrorBusy,
-    _FuriHalSdErrorDma,
-    _FuriHalSdErrorTimeout,
-    _FuriHalSdErrorCardAbsent,
-    _FuriHalSdErrorOther,
-} _FuriHalSdError;
-
-typedef struct FuriHalSdError {
-    _FuriHalSdError e;
+typedef enum FuriHalSdError {
+    FuriHalSdErrorNone = 0,
+    FuriHalSdErrorDataCrcFail,
+    FuriHalSdErrorDataTimeout,
+    FuriHalSdErrorTxUnderrun,
+    FuriHalSdErrorRxOverrun,
+    FuriHalSdErrorAddrMisaligned,
+    FuriHalSdErrorBlockLenErr,
+    FuriHalSdErrorEraseSeqErr,
+    FuriHalSdErrorBadEraseParam,
+    FuriHalSdErrorWriteProtViolation,
+    FuriHalSdErrorLockUnlockFailed,
+    FuriHalSdErrorComCrcFailed,
+    FuriHalSdErrorIllegalCmd,
+    FuriHalSdErrorCardEccFailed,
+    FuriHalSdErrorCcErr,
+    FuriHalSdErrorGeneralUnknownErr,
+    FuriHalSdErrorStreamReadUnderrun,
+    FuriHalSdErrorStreamWriteOverrun,
+    FuriHalSdErrorCidCsdOverwrite,
+    FuriHalSdErrorWpEraseSkip,
+    FuriHalSdErrorCardEccDisabled,
+    FuriHalSdErrorEraseReset,
+    FuriHalSdErrorAkeSeqErr,
+    FuriHalSdErrorInvalidVoltRange,
+    FuriHalSdErrorAddrOutOfRange,
+    FuriHalSdErrorRequestNotApplicable,
+    FuriHalSdErrorParam,
+    FuriHalSdErrorUnsupportedFeature,
+    FuriHalSdErrorBusy,
+    FuriHalSdErrorDma,
+    FuriHalSdErrorTimeout,
+    FuriHalSdErrorCardAbsent,
+    FuriHalSdErrorOther,
 } FuriHalSdError;
-
-#define FuriHalSdErrorNone (FuriHalSdError){0}
-#define FuriHalSdErrorDataCrcFail (FuriHalSdError){_FuriHalSdErrorDataCrcFail}
-#define FuriHalSdErrorDataTimeout (FuriHalSdError){_FuriHalSdErrorDataTimeout}
-#define FuriHalSdErrorTxUnderrun (FuriHalSdError){_FuriHalSdErrorTxUnderrun}
-#define FuriHalSdErrorRxOverrun (FuriHalSdError){_FuriHalSdErrorRxOverrun}
-#define FuriHalSdErrorAddrMisaligned (FuriHalSdError){_FuriHalSdErrorAddrMisaligned}
-#define FuriHalSdErrorBlockLenErr (FuriHalSdError){_FuriHalSdErrorBlockLenErr}
-#define FuriHalSdErrorEraseSeqErr (FuriHalSdError){_FuriHalSdErrorEraseSeqErr}
-#define FuriHalSdErrorBadEraseParam (FuriHalSdError){_FuriHalSdErrorBadEraseParam}
-#define FuriHalSdErrorWriteProtViolation (FuriHalSdError){_FuriHalSdErrorWriteProtViolation}
-#define FuriHalSdErrorLockUnlockFailed (FuriHalSdError){_FuriHalSdErrorLockUnlockFailed}
-#define FuriHalSdErrorComCrcFailed (FuriHalSdError){_FuriHalSdErrorComCrcFailed}
-#define FuriHalSdErrorIllegalCmd (FuriHalSdError){_FuriHalSdErrorIllegalCmd}
-#define FuriHalSdErrorCardEccFailed (FuriHalSdError){_FuriHalSdErrorCardEccFailed}
-#define FuriHalSdErrorCcErr (FuriHalSdError){_FuriHalSdErrorCcErr}
-#define FuriHalSdErrorGeneralUnknownErr (FuriHalSdError){_FuriHalSdErrorGeneralUnknownErr}
-#define FuriHalSdErrorStreamReadUnderrun (FuriHalSdError){_FuriHalSdErrorStreamReadUnderrun}
-#define FuriHalSdErrorStreamWriteOverrun (FuriHalSdError){_FuriHalSdErrorStreamWriteOverrun}
-#define FuriHalSdErrorCidCsdOverwrite (FuriHalSdError){_FuriHalSdErrorCidCsdOverwrite}
-#define FuriHalSdErrorWpEraseSkip (FuriHalSdError){_FuriHalSdErrorWpEraseSkip}
-#define FuriHalSdErrorCardEccDisabled (FuriHalSdError){_FuriHalSdErrorCardEccDisabled}
-#define FuriHalSdErrorEraseReset (FuriHalSdError){_FuriHalSdErrorEraseReset}
-#define FuriHalSdErrorAkeSeqErr (FuriHalSdError){_FuriHalSdErrorAkeSeqErr}
-#define FuriHalSdErrorInvalidVoltRange (FuriHalSdError){_FuriHalSdErrorInvalidVoltRange}
-#define FuriHalSdErrorAddrOutOfRange (FuriHalSdError){_FuriHalSdErrorAddrOutOfRange}
-#define FuriHalSdErrorRequestNotApplicable (FuriHalSdError){_FuriHalSdErrorRequestNotApplicable}
-#define FuriHalSdErrorParam (FuriHalSdError){_FuriHalSdErrorParam}
-#define FuriHalSdErrorUnsupportedFeature (FuriHalSdError){_FuriHalSdErrorUnsupportedFeature}
-#define FuriHalSdErrorBusy (FuriHalSdError){_FuriHalSdErrorBusy}
-#define FuriHalSdErrorDma (FuriHalSdError){_FuriHalSdErrorDma}
-#define FuriHalSdErrorTimeout (FuriHalSdError){_FuriHalSdErrorTimeout}
-#define FuriHalSdErrorCardAbsent (FuriHalSdError){_FuriHalSdErrorCardAbsent}
-#define FuriHalSdErrorOther (FuriHalSdError){_FuriHalSdErrorOther}
 
 bool furi_hal_sdmmc_error_is_ok(FuriHalSdError e);
 
