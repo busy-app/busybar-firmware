@@ -252,6 +252,7 @@ static bool api_wifi_mg_json_get_str_key(
         }
 
         furi_string_set_str(output, mg_str);
+        free(mg_str);
         result = true;
 
     } while(false);

@@ -224,6 +224,7 @@ static bool api_display_draw_parse_anim_player_element(
 
         if((json_str = mg_json_get_str(json_element, "$.section"))) {
             canvas_element->anim_player.section = furi_string_alloc_set_str(json_str);
+            free(json_str);
         } else {
             canvas_element->anim_player.section =
                 furi_string_alloc_set_str(ANIM_FILE_DEFAULT_SECTION);
