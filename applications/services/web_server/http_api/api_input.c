@@ -11,8 +11,8 @@ static const struct {
     char* name;
     InputKey key;
 } input_keys[] = {
-    {"up", InputKeyDown},
-    {"down", InputKeyUp},
+    {"up", InputKeyUp},
+    {"down", InputKeyDown},
     {"ok", InputKeyOk},
     {"back", InputKeyBack},
     {"start", InputKeyStart},
