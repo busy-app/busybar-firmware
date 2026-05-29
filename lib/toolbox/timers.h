@@ -2,7 +2,7 @@
  * @file timers.h
  * @brief Low-level timers API.
  *
- * @see @ref simple_timers for more information.
+ * @see @ref simple-timers for more information.
  */
 #pragma once
 
@@ -16,21 +16,21 @@ extern "C" {
 #endif
 
 /**
- * @defgroup simple_timers Simple timers
+ * @defgroup simple-timers Simple timers
  *
  * Simple timers can be used for conveniently
  * storing points in time and then checking whether
  * a certain amount of time (timeout) has passed.
  *
- * @ref coarse_timers use the OS tick counter, so they
+ * @ref coarse-timers use the OS tick counter, so they
  * can only be used when an OS is running, and the precision
  * is limited to that of the OS ticks.
  *
- * @ref precise_timers use the CPU cycle counter and
+ * @ref precise-timers use the CPU cycle counter and
  * have microsecond resolution, however, the maximum timeout
  * is limited to several seconds, depending on the underlying
  * implementation and CPU frequency.
- * Unlike @ref coarse_timers, they can be used in critical sections and/or
+ * Unlike @ref coarse-timers, they can be used in critical sections and/or
  * when an OS is not running.
  *
  * Both timer types are only useful for measuring time and waiting.
@@ -50,7 +50,7 @@ extern "C" {
 typedef bool (*TimerConditionCallback)(void* context);
 
 /**
- * @defgroup coarse_timers Coarse timers
+ * @defgroup coarse-timers Coarse timers
  *
  * Timers with a single OS tick precision.
  * Can only be used when the scheduler is running.
@@ -92,10 +92,10 @@ uint32_t coarse_timer_get_elapsed(const CoarseTimer timer);
  */
 bool coarse_timer_is_expired(const CoarseTimer timer);
 
-/** @} coarse_timers */
+/** @} coarse-timers */
 
 /**
- * @defgroup precise_timers Precise timers
+ * @defgroup precise-timers Precise timers
  *
  * Timers with microsecond (&mu;s) precision.
  *
@@ -168,9 +168,9 @@ bool precise_timer_wait_for(
     TimerConditionCallback condition_cb,
     void* context);
 
-/** @} precise_timers */
+/** @} precise-timers */
 
-/** @} simple_timers */
+/** @} simple-timers */
 
 #ifdef __cplusplus
 }

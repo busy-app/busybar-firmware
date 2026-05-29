@@ -15,7 +15,8 @@ extern "C" {
 /**
  * @defgroup loader Loader service
  *
- * Loader is a system service that loads and manages @ref applications.
+ * Loader is a system @ref services "service" that
+ * loads and manages @ref applications "applications".
  *
  * @{
  */
@@ -24,7 +25,7 @@ extern "C" {
 #define LOADER_APPLICATIONS_NAME "Apps"
 
 /**
- * @defgroup loader_priority Loader application priority
+ * @defgroup loader-priority Loader application priority
  *
  * The loader tracks a "priority" for the currently running application.  The
  * canvas HTTP API (POST /api/display/draw) uses this value to decide whether
@@ -51,7 +52,7 @@ extern "C" {
 #define LOADER_PASSTHROUGH_PRIORITY (LOADER_DEFAULT_APP_PRIORITY - 1)
 #define LOADER_BLOCKING_PRIORITY    (LOADER_MAX_PRIORITY + 1)
 
-/** @} loader_priority */
+/** @} loader-priority */
 
 typedef struct Loader Loader;
 
