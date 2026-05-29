@@ -46,8 +46,9 @@ static DSTATUS driver_status(BYTE pdrv) {
   */
 static DRESULT driver_read(BYTE pdrv, BYTE* buff, DWORD sector, UINT count) {
     UNUSED(pdrv);
-    FuriHalSdError status = furi_hal_sdmmc_read_blocks((uint8_t*)buff, (uint32_t)(sector), count, 10000);
-    return furi_hal_sdmmc_error_is_ok(status) ? RES_OK : RES_ERROR;
+    FuriHalSdError status =
+        furi_hal_sdmmc_read_blocks((uint8_t*)buff, (uint32_t)(sector), count, 10000);
+    return (status == FuriHalSdErrorNone) ? RES_OK : RES_ERROR;
 }
 
 /**
@@ -60,8 +61,9 @@ static DRESULT driver_read(BYTE pdrv, BYTE* buff, DWORD sector, UINT count) {
   */
 static DRESULT driver_write(BYTE pdrv, const BYTE* buff, DWORD sector, UINT count) {
     UNUSED(pdrv);
-    FuriHalSdError status = furi_hal_sdmmc_write_blocks((uint8_t*)buff, (uint32_t)(sector), count, 10000);
-    return furi_hal_sdmmc_error_is_ok(status) ? RES_OK : RES_ERROR;
+    FuriHalSdError status =
+        furi_hal_sdmmc_write_blocks((uint8_t*)buff, (uint32_t)(sector), count, 10000);
+    return (status == FuriHalSdErrorNone) ? RES_OK : RES_ERROR;
 }
 
 /**
@@ -78,12 +80,11 @@ static DRESULT driver_ioctl(BYTE pdrv, BYTE cmd, void* buff) {
     DSTATUS status = driver_status(pdrv);
     if(status & STA_NOINIT) return RES_NOTRDY;
 
-
     switch(cmd) {
     case GET_SECTOR_COUNT:
     case GET_SECTOR_SIZE:
     case GET_BLOCK_SIZE:
-        if(!furi_hal_sdmmc_error_is_ok(furi_hal_sdmmc_get_card_info(&sd_info))) {
+        if(furi_hal_sdmmc_get_card_info(&sd_info) != FuriHalSdErrorNone) {
             return RES_NOTRDY;
         }
         break;

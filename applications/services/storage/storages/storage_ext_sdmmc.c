@@ -120,7 +120,7 @@ static FS_Error sd_card_info(StorageData* storage, SDInfo* sd_info) {
     FuriHalSdInfo info;
     FuriHalSdError status = furi_hal_sdmmc_get_card_info(&info);
 
-    if(furi_hal_sdmmc_error_is_ok(status)) {
+    if(status == FuriHalSdErrorNone) {
         sd_info->manufacturer_id = info.manufacturer_id;
         memcpy(sd_info->oem_id, info.oem_id, sizeof(info.oem_id));
         memcpy(sd_info->product_name, info.product_name, sizeof(info.product_name));
@@ -179,7 +179,7 @@ static FS_Error storage_ext_info(void* context, SDInfo* sd_info) {
 FS_Error storage_ext_init_bsp(void) {
     FS_Error error = FSE_NOT_READY;
     FuriHalSdError status = furi_hal_sdmmc_init_card();
-    if(furi_hal_sdmmc_error_is_ok(status)) {
+    if(status == FuriHalSdErrorNone) {
         error = FSE_OK;
     }
 

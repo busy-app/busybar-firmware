@@ -76,8 +76,6 @@ typedef enum FuriHalSdError {
     FuriHalSdErrorOther,
 } FuriHalSdError;
 
-bool furi_hal_sdmmc_error_is_ok(FuriHalSdError e);
-
 typedef void (*FuriHalSdMmcPresentCallback)(void* context);
 
 void furi_hal_sdmmc_init(bool have_rtos);
