@@ -154,7 +154,11 @@ static bool api_display_draw_parse_image_path(
         if(uploaded) {
             *file_path =
                 furi_string_alloc_printf("%s/%s/%s", DISPLAY_ASSETS_DIR, app_name, uploaded);
-
+            if(!mg_path_is_sane(mg_str(furi_string_get_cstr(*file_path)))) {
+                furi_string_free(*file_path);
+                *file_path = NULL;
+                break;
+            }
             result = true;
             break;
         }

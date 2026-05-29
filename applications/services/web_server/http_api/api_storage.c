@@ -3,6 +3,7 @@
 #include <desktop/desktop.h>
 #include <gui/gui.h>
 #include <toolbox/path.h>
+#include <cjson/cJSON.h>
 
 #define TAG "HttpStorage"
 
@@ -220,7 +221,7 @@ static bool api_storage_list_callback(
     FuriString* dir_path = furi_string_alloc();
     bool success = false;
 
-    FuriString* json_list = furi_string_alloc();
+    cJSON* list_array = cJSON_CreateArray();
 
     if(api_storage_parse_path_parameter(&msg->query, "path", dir_path)) {
         Storage* api = furi_record_open(RECORD_STORAGE);
@@ -229,22 +230,18 @@ static bool api_storage_list_callback(
             success = true;
             FileInfo fileinfo;
             char name[FILE_PATH_LEN_MAX];
-            bool is_first = true;
 
             while(storage_dir_read(file, &fileinfo, name, FILE_PATH_LEN_MAX)) {
-                if(!is_first) {
-                    furi_string_cat(json_list, ",");
-                }
-                is_first = false;
+                cJSON* entry = cJSON_CreateObject();
                 if(file_info_is_dir(&fileinfo)) {
-                    furi_string_cat_printf(json_list, "{\"type\":\"dir\",\"name\":\"%s\"}", name);
+                    cJSON_AddStringToObject(entry, "type", "dir");
+                    cJSON_AddStringToObject(entry, "name", name);
                 } else {
-                    furi_string_cat_printf(
-                        json_list,
-                        "{\"type\":\"file\",\"name\":\"%s\",\"size\":%lu}",
-                        name,
-                        (uint32_t)(fileinfo.size));
+                    cJSON_AddStringToObject(entry, "type", "file");
+                    cJSON_AddStringToObject(entry, "name", name);
+                    cJSON_AddNumberToObject(entry, "size", (double)(fileinfo.size));
                 }
+                cJSON_AddItemToArray(list_array, entry);
             }
         }
         storage_dir_close(file);
@@ -253,13 +250,18 @@ static bool api_storage_list_callback(
     }
 
     if(success) {
-        MG_REPLY_OK_BODY(conn, "{\"list\":[%s]}\n", furi_string_get_cstr(json_list));
+        cJSON* root = cJSON_CreateObject();
+        cJSON_AddItemToObject(root, "list", list_array);
+        char* json_str = cJSON_PrintUnformatted(root);
+        cJSON_Delete(root);
+        MG_REPLY_OK_BODY(conn, "%s\n", json_str);
+        free(json_str);
     } else {
+        cJSON_Delete(list_array);
         MG_REPLY_BAD_REQUEST(conn);
     }
 
     furi_string_free(dir_path);
-    furi_string_free(json_list);
 
     return true;
 }

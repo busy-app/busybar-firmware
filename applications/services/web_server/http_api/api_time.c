@@ -106,7 +106,7 @@ static void api_time_set_timezone(struct mg_connection* conn, struct mg_http_mes
             break;
         }
 
-        char timezone_str[48]; /* reasonably long */
+        char timezone_str[52]; /* spec pattern allows up to 51 chars + NUL */
         if(mg_http_get_var(&msg->query, "timezone", timezone_str, sizeof(timezone_str)) <= 0) {
             break;
         }

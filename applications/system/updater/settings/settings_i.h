@@ -9,4 +9,4 @@ bool updater_settings_reset(UpdaterSettings* settings);
 bool updater_settings_load(UpdaterSettings* settings);
 bool updater_settings_save(const UpdaterSettings* settings);
 
-const char* updater_settings_get_check_url_value(UpdaterSettings* settings);
+const char* updater_settings_get_check_url_value(const UpdaterSettings* settings);
