@@ -26,7 +26,7 @@ jobs:
       default_target_spec: ${{ env.DEFAULT_TARGET_SPEC }}
       bundle_target_spec: ${{ steps.set-url.outputs.target }}
       update_url: ${{ steps.set-url.outputs.update_url }}
-      marker_filter: ${{ steps.test-scope.outputs.marker_filter }}
+      run_regression: ${{ steps.test-scope.outputs.run_regression }}
 
     steps:
       - name: 'Wipe workspace'
@@ -67,15 +67,15 @@ jobs:
         if: matrix.target_spec == env.DEFAULT_TARGET_SPEC
         run: |
           set -euo pipefail
-          MARKER_FILTER="not regression"
+          RUN_REGRESSION=false
           if [[ "${{ github.event_name }}" == "pull_request" ]]; then
             COMMIT_MSG=$(git log -1 --format=%B HEAD)
             if echo "$COMMIT_MSG" | grep -qF '[run regression]'; then
-              MARKER_FILTER=""
-              echo "Found '[run regression]' in commit message — full regression suite will run"
+              RUN_REGRESSION=true
+              echo "Found '[run regression]' in commit message — regression suite will run as a separate job"
             fi
           fi
-          echo "marker_filter=${MARKER_FILTER}" >> "$GITHUB_OUTPUT"
+          echo "run_regression=${RUN_REGRESSION}" >> "$GITHUB_OUTPUT"
 
       - name: 'Build firmware artifacts'
         id: build-fw
@@ -186,7 +186,22 @@ jobs:
       commit_sha: ${{ github.event.pull_request.head.sha || github.sha }}
       update_url: ${{ needs.build.outputs.update_url }}
       target: ${{ needs.build.outputs.bundle_target_spec }}
-      marker_filter: ${{ needs.build.outputs.marker_filter }}
+      marker_filter: 'not regression'
+    secrets: inherit
+
+  pr-regression-tests:
+    needs: build
+    if: |
+      needs.build.result == 'success'
+      && needs.build.outputs.update_url != ''
+      && needs.build.outputs.run_regression == 'true'
+    uses: './.github/workflows/integration-tests.yml'
+    with:
+      branch_name: ${{ github.head_ref || github.ref_name }}
+      commit_sha: ${{ github.event.pull_request.head.sha || github.sha }}
+      update_url: ${{ needs.build.outputs.update_url }}
+      target: ${{ needs.build.outputs.bundle_target_spec }}
+      marker_filter: ''
     secrets: inherit
 
   regression-tests:
