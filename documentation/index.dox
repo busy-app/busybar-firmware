@@ -10,15 +10,16 @@ If you are looking for the user manual, please visit the [User Documentation](ht
 
 The documentation is divided into several sections. All of them are accessible from the sidebar on the left:
 
-- @ref quckstart -- Get things started
+- @ref quckstart -- Getting things started
 - @ref concepts -- General concepts
 - @ref hardware -- Physical foundation
 - @ref firmware -- Brains of the operation
 - @ref buildsystem -- Creating order from chaos
 - @ref contributing -- Contributing instructions
 
-These sections are all manually written. There are also a few automatically generated ones at the bottom of the sidebar:
+The above sections are manually written. There are also a few automatically generated ones at the bottom of the sidebar:
 
+- [Topics](topics.html) -- Grouped topics from the source code
 - [Data Structures](annotated.html) -- Every data structure in a list
 - [Files](files.html) -- Source file tree with easy navigation
 

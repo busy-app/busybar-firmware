@@ -20,6 +20,19 @@ To open the generated documentation in the default browser, run `./fbt doxy` fro
 
 In case of any problems with the *Doxygen* markup (e.g. missing function parameters, mismatching labels, etc.) errors will be printed during the build process.
 
+# General considerations
+
+When writing the free-form text, it is advised to follow these instructions:
+- The writing style must be neutral, without excessive jargon, jokes and overall wittiness.
+- The wording must be simple, concise and straight to the point.
+- If using an LLM, proof-read its output and make sure it is not overly verbose.
+- Prefer impersonal forms instead of first and second person, e.g.:
+    - *"It is required ..."* instead of *"You need ..."*
+    - *"It was implemented ..."* instead of *"I made ..."*
+- If an imperative form is needed, omit the pronouns, e.g.:
+    - *"Do X"* instead of *"You need to do X"*
+- Avoid using controversial terminology, if this does not reduce clarity.
+
 # File structure
 
 ## Source files
