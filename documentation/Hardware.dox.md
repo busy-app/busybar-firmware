@@ -1,1 +1,1 @@
-@page hardware Hardware
+# Hardware {#hardware}

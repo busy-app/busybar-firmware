@@ -1,5 +1,5 @@
-@page contributing Contributing
+# Contributing {#contributing}
 
 Instructions on contributing to the @bsb project.
 
-- @subpage doxguide -- Adding, improving and changing documentation
+- @subpage docs-howto -- Adding, improving and changing documentation

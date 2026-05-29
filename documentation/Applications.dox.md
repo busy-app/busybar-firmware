@@ -1,3 +1,3 @@
-@page applications Applications
+# Applications {#applications}
 
 Applications are described here

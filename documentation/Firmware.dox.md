@@ -1,1 +1,1 @@
-@page firmware Firmware
+# Firmware {#firmware}

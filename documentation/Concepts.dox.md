@@ -1,4 +1,4 @@
-@page concepts Concepts
+# Concepts {#concepts}
 
 Important concepts used in the BSB firmware.
 
