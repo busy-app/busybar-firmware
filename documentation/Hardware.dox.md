@@ -1,3 +1,1 @@
-/**
 @page hardware Hardware
-*/

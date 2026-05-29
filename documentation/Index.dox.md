@@ -1,5 +1,5 @@
-/**
 @mainpage notitle
+
 <h1>Welcome to @bsb Developer Documentation!</h1>
 
 ---
@@ -24,4 +24,3 @@ The above sections are manually written. There are also a few automatically gene
 - [Files](files.html) -- Source file tree with easy navigation
 
 These are generated from the source code and are useful for quickly finding the source code or API documentation for a particular function or data structure.
-*/

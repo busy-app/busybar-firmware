@@ -1,3 +1,1 @@
-/**
 @page buildsystem Buld system
-*/

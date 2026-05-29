@@ -1,4 +1,1 @@
-/**
 @page firmware Firmware
-
-*/

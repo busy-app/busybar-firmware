@@ -1,5 +1,3 @@
-/**
-
 @page doxguide Docs HOWTO
 
 # Introduction
@@ -51,7 +49,7 @@ In short:
 
 ## Standalone files
 
-Standalone files are [custom](https://www.doxygen.nl/manual/additional.html) `.dox` files which are found in the `documentation` folder in the project root directory.
+Standalone files are [custom](https://www.doxygen.nl/manual/additional.html) `.dox.md` files which are found in the `documentation` folder in the project root directory.
 
 Their main purpose is to provide top-level structure for the documentation.
 
@@ -76,5 +74,3 @@ Their main purpose is to aid browsing the project on platforms like *GitHub* by 
 The sidebar is a convenient and obvious place for newcomers to start, so its number of items should be kept to absolute minimum.
 
 Since any standalone file will appear in the sidebar as a separate entry, it usually should be referenced as a [subpage](https://www.doxygen.nl/manual/commands.html#cmdsubpage) in another file.
-
-*/
