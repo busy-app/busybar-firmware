@@ -8,6 +8,7 @@
 #include <furi_hal_rtc.h>
 #include <font_registry/fonts.h>
 #include <brightness_control/brightness_control.h>
+#include <lvgl.h>
 
 #define TAG "HttpDisplay"
 
@@ -187,6 +188,31 @@ static bool api_display_draw_parse_image_path(
     return result;
 }
 
+static bool api_display_validate_image(const char* file_path, GuiDisplayId display) {
+    lv_image_header_t header;
+    if(lv_image_decoder_get_info(file_path, &header) != LV_RESULT_OK) {
+        return false;
+    }
+
+    uint32_t display_width, display_height;
+    switch(display) {
+    case GuiDisplayIdFront:
+        display_width = FRONT_DISPLAY_W;
+        display_height = FRONT_DISPLAY_H;
+        break;
+
+    case GuiDisplayIdBack:
+        display_width = BACK_DISPLAY_W;
+        display_height = BACK_DISPLAY_H;
+        break;
+
+    default:
+        return false;
+    }
+
+    return (header.w <= display_width) && (header.h <= display_height);
+}
+
 static bool api_display_draw_parse_image_element(
     CanvasElement* canvas_element,
     const char* app_name,
@@ -195,8 +221,13 @@ static bool api_display_draw_parse_image_element(
 
     do {
         canvas_element->type = CanvasElementTypeImage;
+
         if(!api_display_draw_parse_image_path(
                &canvas_element->image.file_path, app_name, json_element, canvas_element->type))
+            break;
+
+        if(!api_display_validate_image(
+               furi_string_get_cstr(canvas_element->image.file_path), canvas_element->display))
             break;
 
         result = true;
