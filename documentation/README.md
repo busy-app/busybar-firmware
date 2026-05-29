@@ -1,5 +1,5 @@
 # Doxygen Documentation
 
-This file contains the documentation source.
+This directory contains the developer documentation source files.
 
-To read the developer documentation, visit https://busy.app/developer or run `./fbt doxy` from the repository root directory to build it locally.
+To view the developer documentation, visit https://busy.app/developer or run `./fbt doxy` from the repository root directory to build it locally.

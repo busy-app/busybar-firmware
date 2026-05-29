@@ -1,4 +1,4 @@
-@page doxguide Docs HOWTO
+@page doxguide Docs HowTo
 
 # Introduction
 
