@@ -49,7 +49,7 @@ In short:
 
 ## Standalone files
 
-Standalone files are [custom](https://www.doxygen.nl/manual/additional.html) `.dox.md` files which are found in the `documentation` folder in the project root directory.
+Standalone files are essentially [Markdown](https://www.doxygen.nl/manual/markdown.html) files with [custom](https://www.doxygen.nl/manual/additional.html) `.dox.md` extension which are found in the `documentation` folder in the project root directory.
 
 Their main purpose is to provide top-level structure for the documentation.
 
@@ -58,14 +58,14 @@ Instead, one should try to keep all code-related docs inside the respective sour
 
 Each standalone file must contan a single *Doxygen* [page](https://www.doxygen.nl/manual/commands.html#cmdpage). It may also include other files as [subpages](https://www.doxygen.nl/manual/commands.html#cmdsubpage) or [reference](https://www.doxygen.nl/manual/commands.html#cmdref) any other label or symbol in the project.
 
-Page labels must be short, single or several run-together words in lower case. This is due to the following:
+Page labels must be short, single or several words in kebab case. This is due to the following:
 - Rendered HTML pages get their file names from labels, so it is preferable to keep them short;
 - The number of pages will always be limited, so there is virtually no possibility of running out of short names;
 - Documented source code symbols are extremely unlikely to have the same naming patterns, which reduces the chance of a reference collision.
 
 ## Description files
 
-Description files are [Markdown](https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax) files that are strategically placed inside some of the project folders.
+Description files are [Markdown](https://www.doxygen.nl/manual/markdown.html) files that are strategically placed inside some of the project folders.
 
 Their main purpose is to aid browsing the project on platforms like *GitHub* by **describing** the current directory the reader is at. Thus, they are usually called `README.md` in order to get the aforementioned sites to render and show them automatically upon entering a directory.
 

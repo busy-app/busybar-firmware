@@ -1,3 +1,3 @@
-@page quckstart Quick start
+@page quick-start Quick Start
 
 Set up the development environment

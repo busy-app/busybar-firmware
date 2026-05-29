@@ -10,11 +10,11 @@ If you are looking for the user manual, please visit the [User Documentation](ht
 
 The documentation is divided into several sections. All of them are accessible from the sidebar on the left:
 
-- @ref quckstart -- Getting things started
+- @ref quick-start -- Getting things started
 - @ref concepts -- General concepts
 - @ref hardware -- Physical foundation
 - @ref firmware -- Brains of the operation
-- @ref buildsystem -- Creating order from chaos
+- @ref build-system -- Creating order from chaos
 - @ref contributing -- Contributing instructions
 
 The above sections are manually written. There are also a few automatically generated ones at the bottom of the sidebar:

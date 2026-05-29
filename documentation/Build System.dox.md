@@ -1,1 +1,1 @@
-@page buildsystem Buld system
+@page build-system Buld System
