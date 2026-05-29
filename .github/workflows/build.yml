@@ -214,3 +214,19 @@ jobs:
       target: ${{ needs.build.outputs.bundle_target_spec }}
       marker_filter: ''
     secrets: inherit
+
+  tests-passed:
+    needs: [integration-tests, regression-tests]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check that at least one test suite passed
+        run: |
+          smoke="${{ needs.integration-tests.result }}"
+          regression="${{ needs.regression-tests.result }}"
+          if [[ "$smoke" == "success" || "$regression" == "success" ]]; then
+            echo "Tests passed (smoke: $smoke, regression: $regression)"
+          else
+            echo "No test suite succeeded. smoke=$smoke, regression=$regression" >&2
+            exit 1
+          fi
