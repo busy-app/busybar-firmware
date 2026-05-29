@@ -142,8 +142,6 @@ runs:
 
     - name: Update submodules
       shell: bash
-      env:
-        GIT_TRACE: "1"
       run: |
         set -euo pipefail
         timeout 180 git submodule update --init --depth 1 --filter=blob:none --recursive --jobs="$(nproc)" scripts/toolchain fbt_layers/fbtng || {

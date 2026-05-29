@@ -12,6 +12,7 @@ env:
   FBT_GIT_SUBMODULE_SHALLOW: 0
   DEFAULT_TARGET_SPEC: 21_64
   FBT_TOOLCHAIN_PATH: /runner/_work
+  GIT_TRACE: ${{ vars.GIT_TRACE }}
 
 jobs:
   build:
@@ -42,16 +43,12 @@ jobs:
 
       - name: 'Checkout code'
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        env:
-          GIT_TRACE: "1"
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: 'Bootstrap tooling submodule'
-        env:
-          GIT_TRACE: "1"
         run: |
           timeout 180 git submodule update --init --depth 1 --filter=blob:none fbt_layers/fbtng
 
