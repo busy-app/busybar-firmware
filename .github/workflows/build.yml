@@ -16,6 +16,7 @@ env:
 jobs:
   build:
     runs-on: BsbShell
+    timeout-minutes: 30
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     strategy:
@@ -34,16 +35,25 @@ jobs:
           rm -f /home/runner/.gitconfig
           find ./ -mount -maxdepth 1 -exec rm -rf {} \;
 
+      - name: 'Configure Git'
+        run: |
+          git config --global http.lowSpeedLimit 100
+          git config --global http.lowSpeedTime 30
+
       - name: 'Checkout code'
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        env:
+          GIT_TRACE: "1"
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: 'Bootstrap tooling submodule'
+        env:
+          GIT_TRACE: "1"
         run: |
-          git submodule update --init --depth 1 --filter=blob:none fbt_layers/fbtng
+          timeout 180 git submodule update --init --depth 1 --filter=blob:none fbt_layers/fbtng
 
       - name: 'Get commit details'
         id: names
