@@ -49,6 +49,18 @@
 #define RSI_BLE_ATT_CONFIG_BITMAP (BLE_SECURITY_MODE)
 #endif
 
+typedef struct {
+    uint16_t handle;
+    size_t data_size;
+} BleDataHeader;
+
+typedef struct {
+    BleDataHeader header;
+    uint8_t data[];
+} BleDataItem;
+
+typedef BleDataItem* BleDataItemPtr;
+
 //===========================================================================================
 ///TODO:Remove this in future
 static BleWorker* ble_worker_instance = NULL;
@@ -138,13 +150,60 @@ bool ble_worker_stop_advertising() {
     return status == RSI_SUCCESS;
 }
 
+static bool ble_worker_send_item(BleWorker* instance, const BleDataItemPtr item) {
+    bool result = false;
+    do {
+        sl_status_t status = rsi_ble_notify_value(
+            instance->remote_dev_address, item->header.handle, item->header.data_size, item->data);
+
+        if(status == RSI_SUCCESS) {
+            result = true;
+            break;
+        }
+
+        if((int32_t)status != RSI_ERROR_BLE_DEV_BUF_FULL) {
+            BLE_LOG_W("Notify error: %08lX", status);
+            break;
+        }
+
+        if(furi_semaphore_acquire(instance->more_data_sem, 500) != FuriStatusOk) {
+            BLE_LOG_W("Notify timeout");
+            break;
+        }
+    } while(true);
+
+    return result;
+}
+
+void ble_worker_tx_queue_handler(FuriEventLoopObject* object, void* context) {
+    UNUSED(object);
+    furi_assert(context);
+    BleWorker* instance = context;
+
+    BleDataItemPtr item = NULL;
+    while(furi_message_queue_get(instance->tx_queue, &item, 0) == FuriStatusOk) {
+        ble_worker_send_item(instance, item);
+        free(item);
+        item = NULL;
+    }
+}
+
 static int32_t ble_worker_thread_callback(void* context) {
     BleWorker* instance = context;
     BLE_LOG_I("Worker Thread Start");
 
     instance->event_loop = furi_event_loop_alloc();
 
+    furi_event_loop_subscribe_message_queue(
+        instance->event_loop,
+        instance->tx_queue,
+        FuriEventLoopEventIn,
+        ble_worker_tx_queue_handler,
+        context);
+
     ble_incoming_nwp_event_processor_run(instance->event_proc, instance->event_loop);
+
+    furi_event_loop_unsubscribe(instance->event_loop, instance->tx_queue);
 
     furi_event_loop_free(instance->event_loop);
 
@@ -294,6 +353,9 @@ BleWorker* ble_worker_init(BleConnectionStateChanged connect_callback, void* ctx
     instance->thread =
         furi_thread_alloc_ex("BleWorker", 3072U, ble_worker_thread_callback, instance);
 
+    instance->more_data_sem = furi_semaphore_alloc(1, 0);
+    instance->tx_queue = furi_message_queue_alloc(20, sizeof(BleDataItemPtr));
+
     instance->indicate_error_canary = ble_debug_canary_alloc(BleCanaryTypeHitOnce);
 
     instance->on_connection_changed_cb = connect_callback;
@@ -325,7 +387,8 @@ BleWorker* ble_worker_init(BleConnectionStateChanged connect_callback, void* ctx
         BLE_LOG_I("Local device address %s", local_dev_addr);
     }
 
-    instance->event_proc = ble_incoming_nwp_event_processor_alloc(instance);
+    instance->event_proc = ble_incoming_nwp_event_processor_alloc(
+        instance, instance->more_data_sem, instance->indication_sem);
     //----------------------------------------------------------------------------------------------------------------
     //! Set local name
     status = rsi_bt_set_local_name((const uint8_t*)BLE_DEFAULT_LOCAL_NAME);
@@ -484,6 +547,7 @@ static inline bool ble_worker_indicate_chunk(
     bool result = false;
 
     do {
+        // BLE_LOG_W("%s %04X", __func__, handle);
         const uint8_t indication_retry_count = 4;
         ble_worker_instance->tx_pending_handle = handle;
         if(!ble_worker_indicate_retry(dev_addr, handle, data_size, data, indication_retry_count))
@@ -501,10 +565,20 @@ static inline bool ble_worker_indicate_chunk(
     return result;
 }
 
+// static inline bool ble_worker_set_chunk(uint16_t handle, uint16_t data_size, const uint8_t* data) {
+//     sl_status_t status = rsi_ble_set_local_att_value(handle, data_size, data);
+//     if(status != RSI_SUCCESS) BLE_LOG_W("Send fail %08lX", status);
+//     return status == RSI_SUCCESS;
+// }
+
 static inline bool ble_worker_set_chunk(uint16_t handle, uint16_t data_size, const uint8_t* data) {
-    sl_status_t status = rsi_ble_set_local_att_value(handle, data_size, data);
-    if(status != RSI_SUCCESS) BLE_LOG_W("Send fail %08lX", status);
-    return status == RSI_SUCCESS;
+    BleDataItemPtr item = malloc(sizeof(BleDataHeader) + data_size);
+    item->header.data_size = data_size;
+    item->header.handle = handle;
+    memcpy(item->data, data, data_size);
+
+    FuriStatus status = furi_message_queue_put(ble_worker_instance->tx_queue, &item, 250);
+    return status == FuriStatusOk;
 }
 
 static bool ble_worker_send_chunk(
@@ -533,7 +607,7 @@ void ble_worker_send(uint16_t handle, uint16_t data_size, const uint8_t* data, u
                                total_size;
 
         if(!ble_worker_send_chunk(handle, send_size, &data[index], cccd_value)) {
-            BLE_LOG_W("Tx terminated!");
+            BLE_LOG_W("[%04X] - Tx terminated!", handle);
             break;
         }
 

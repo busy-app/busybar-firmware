@@ -43,7 +43,9 @@ struct BleWorker {
     FuriThread* thread;
     FuriEventLoop* event_loop;
     BleIncomingNwpEventProcessor* event_proc;
+    FuriMessageQueue* tx_queue;
 
+    FuriSemaphore* more_data_sem;
     FuriSemaphore* receive_sem;
     FuriSemaphore* indication_sem;
     FuriTimer* retry_phy_timer;
