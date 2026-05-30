@@ -103,13 +103,16 @@ void ble_incoming_nwp_event_processor_spawn_event(
     furi_mutex_release(instance->lock);
 }
 
-BleIncomingNwpEventProcessor* ble_incoming_nwp_event_processor_alloc(void* context) {
+BleIncomingNwpEventProcessor* ble_incoming_nwp_event_processor_alloc(
+    void* context,
+    FuriSemaphore* transmit_sem,
+    FuriSemaphore* indicate_sem) {
     furi_assert(context);
     BleIncomingNwpEventProcessor* instance = malloc(sizeof(BleIncomingNwpEventProcessor));
     instance->event_queue = furi_message_queue_alloc(20, sizeof(BleIncomingNwpEvent*));
     instance->lock = furi_mutex_alloc(FuriMutexTypeNormal);
     instance->context = context;
-    ble_nwp_core_config_callbacks(instance);
+    ble_nwp_core_config_callbacks(instance, transmit_sem, indicate_sem);
 
     return instance;
 }

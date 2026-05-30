@@ -6,6 +6,8 @@
 #define BLE_LOG_NWP_EVENT_NOT_IMPLEMENTED() BLE_LOG_W("%s - not implemented!", __func__)
 
 static BleIncomingNwpEventProcessor* event_processor = NULL;
+static FuriSemaphore* indication = NULL;
+static FuriSemaphore* transmit = NULL;
 
 /**
  * @fn         rsi_ble_gap_on_adv_report_event
@@ -147,11 +149,7 @@ static void rsi_ble_gap_ext_on_le_more_data_request_event(
     rsi_ble_event_le_dev_buf_ind_t* rsi_ble_more_data_evt) {
     UNUSED(rsi_ble_more_data_evt);
 
-    ble_incoming_nwp_event_processor_spawn_event(
-        event_processor,
-        BleIncomingNwpEventTypeMoreDataRequest,
-        sizeof(rsi_ble_event_le_dev_buf_ind_t),
-        rsi_ble_more_data_evt);
+    if(transmit) furi_semaphore_release(transmit);
 
     return;
 }
@@ -343,11 +341,7 @@ static void rsi_ble_gatt_on_event_indicate_confirmation_event(
 
     if(event_status != 0) BLE_LOG_W("Indicate_CB: %d", event_status);
 
-    ble_incoming_nwp_event_processor_spawn_event(
-        event_processor,
-        BleIncomingNwpEventTypeIndicateConfirm,
-        sizeof(rsi_ble_set_att_resp_t),
-        rsi_ble_event_set_att_rsp);
+    if(indication) furi_semaphore_release(indication);
 }
 
 static void rsi_ble_gatt_on_event_prepare_write_resp_dummy(
@@ -438,10 +432,17 @@ static void rsi_ble_smp_on_sc_method_dummy(rsi_bt_event_sc_method_t* scmethod) {
     BLE_LOG_NWP_EVENT_NOT_IMPLEMENTED();
 }
 
-void ble_nwp_core_config_callbacks(BleIncomingNwpEventProcessor* instance) {
+void ble_nwp_core_config_callbacks(
+    BleIncomingNwpEventProcessor* instance,
+    FuriSemaphore* transmit_sem,
+    FuriSemaphore* indicate_sem) {
     furi_assert(instance);
+    furi_assert(transmit_sem);
+    furi_assert(indicate_sem);
 
     event_processor = instance;
+    indication = indicate_sem;
+    transmit = transmit_sem;
 
     rsi_ble_gap_register_callbacks(
         rsi_ble_gap_on_adv_report_event,

@@ -12,4 +12,7 @@
 #include "rsi_ble_common_config.h"
 #include "rsi_bt_common_apis.h"
 
-void ble_nwp_core_config_callbacks(BleIncomingNwpEventProcessor* instance);
+void ble_nwp_core_config_callbacks(
+    BleIncomingNwpEventProcessor* instance,
+    FuriSemaphore* transmit_sem,
+    FuriSemaphore* indicate_sem);

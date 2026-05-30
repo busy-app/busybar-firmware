@@ -125,13 +125,6 @@ bool ble_worker_event_handler_read_request_event(size_t dat_sz, void* data, void
             size_t data_size = ble_characteristic_get_data_size(ch);
             const void* data = ble_characteristic_get_data(ch);
 
-            BLE_LOG_I(
-                "Request: %04X, sz: %d off:%d t:%d",
-                read_request->handle,
-                data_size,
-                read_request->offset,
-                read_request->type);
-
             sl_status_t status = rsi_ble_gatt_read_response(
                 read_request->dev_addr,
                 read_request->type,
