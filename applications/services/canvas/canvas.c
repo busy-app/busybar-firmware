@@ -22,6 +22,7 @@ typedef struct {
         CanvasSrvEventClear,
         CanvasSrvEventExit,
         CanvasSrvEventGetAppId,
+        CanvasSrvEventReevaluatePriority,
     } type;
     FuriApiLock lock;
     CanvasResult* result;
@@ -55,6 +56,7 @@ DICT_DEF2(CanvasWidgetsDict, const char*, M_CSTR_DUP_OPLIST, CanvasWidget, M_POD
 
 static void canvas_screen_open(CanvasSrv* canvas);
 static void canvas_screen_close(CanvasSrv* canvas);
+static void canvas_loader_pubsub_callback(const void* message, void* context);
 
 struct CanvasSrv {
     FuriEventLoop* event_loop;
@@ -64,6 +66,7 @@ struct CanvasSrv {
     CanvasWidgetsDict_t widgets;
     DisplayMirror* display_mirror;
     Loader* loader;
+    FuriPubSubSubscription* loader_subscription;
     char* app_id;
     size_t priority;
 };
@@ -480,6 +483,15 @@ static void canvas_srv_queue_event_callback(FuriEventLoopObject* object, void* c
         canvas_srv_clear_all(canvas);
         res = CanvasResultOk;
 
+    } else if(event.type == CanvasSrvEventReevaluatePriority) {
+        if(canvas->gui != NULL) {
+            size_t loader_prio = loader_get_priority(canvas->loader);
+            if(canvas->priority < loader_prio) {
+                canvas_srv_clear_all(canvas);
+            }
+        }
+        res = CanvasResultOk;
+
     } else if(event.type == CanvasSrvEventGetAppId) {
         if(canvas->app_id) {
             furi_string_set_str(event.string, canvas->app_id);
@@ -581,6 +593,17 @@ static void canvas_screen_close(CanvasSrv* canvas) {
     }
 }
 
+static void canvas_loader_pubsub_callback(const void* message, void* context) {
+    furi_assert(message);
+    furi_assert(context);
+    const LoaderEvent* event = message;
+    if(event->type != LoaderEventTypePriorityChanged) return;
+
+    CanvasSrv* canvas = context;
+    CanvasSrvQueueEvent evt = {.type = CanvasSrvEventReevaluatePriority};
+    furi_message_queue_put(canvas->event_queue, &evt, 0);
+}
+
 static CanvasSrv* canvas_srv_alloc() {
     CanvasSrv* canvas = malloc(sizeof(CanvasSrv));
     canvas->event_loop = furi_event_loop_alloc();
@@ -596,6 +619,9 @@ static CanvasSrv* canvas_srv_alloc() {
 
     canvas->loader = furi_record_open(RECORD_LOADER);
     canvas->priority = 0;
+
+    canvas->loader_subscription = furi_pubsub_subscribe(
+        loader_get_pubsub(canvas->loader), canvas_loader_pubsub_callback, canvas);
 
     return canvas;
 }

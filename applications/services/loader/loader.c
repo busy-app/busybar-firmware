@@ -257,8 +257,9 @@ static void loader_start_internal_app(
     const FlipperInternalApplication* app,
     const char* args) {
     FURI_LOG_I(TAG, "Starting %s", app->name);
-    LoaderEvent event;
-    event.type = LoaderEventTypeApplicationBeforeLoad;
+    LoaderEvent event = {
+        .type = LoaderEventTypeApplicationBeforeLoad,
+    };
     furi_pubsub_publish(loader->pubsub, &event);
 
     // store args
@@ -462,6 +463,12 @@ static void loader_do_set_priority(Loader* loader, const LoaderMessage* message)
     message->bool_value->value = true;
     furi_assert(message->priority);
     loader->app.priority = *message->priority;
+
+    LoaderEvent event = {
+        .type = LoaderEventTypePriorityChanged,
+        .priority = loader->app.priority,
+    };
+    furi_pubsub_publish(loader->pubsub, &event);
 }
 
 static void loader_do_get_priority(Loader* loader, const LoaderMessage* message) {

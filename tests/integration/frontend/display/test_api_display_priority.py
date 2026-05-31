@@ -492,3 +492,187 @@ class TestDrawDisplayLifecycle:
 
         # Cleanup
         assets_api.clear_display()
+
+
+@allure.feature("5. Web Frontend")
+@allure.story("Display Priority – Reactive Eviction")
+class TestCanvasEvictionOnPriorityChange:
+    """
+    Regression tests for FW-XXX (calendar overlay + busy timer overlap).
+
+    When the loader priority rises above the priority of currently-displayed
+    canvas content (e.g. the busy timer transitions to active and raises
+    loader priority to LOADER_BLOCKING_PRIORITY), the canvas service must
+    evict that content so it does not visually overlap whatever the
+    higher-priority app renders next.
+
+    The fix lives in the canvas service: it subscribes to
+    LoaderEventTypePriorityChanged on the loader pubsub and clears its
+    widgets whenever the new loader priority would now reject a re-draw
+    of the current content.
+    """
+
+    @allure.title(
+        "Canvas content from app A is evicted when busy timer activates, "
+        "so app B can later draw at low priority"
+    )
+    @pytest.mark.api
+    @pytest.mark.frontend
+    def test_busy_active_evicts_existing_canvas_content(
+        self,
+        assets_api: AssetsAPI,
+        api_session,
+        web_base_url: str,
+        busy_state_guard: dict,
+    ):
+        """
+        Reproduces the calendar-event + start-busy bug:
+          1. Timer NOT_STARTED → loader priority is low.  App A draws at
+             priority=DEFAULT_ELEMENT_PRIORITY (50).  Accepted (200).
+          2. Timer goes INFINITE active → loader priority jumps to BLOCKING
+             (above LOADER_MAX_PRIORITY).  The canvas service must evict
+             app A's content reactively.
+          3. Timer back to NOT_STARTED → loader priority drops again.
+          4. Different app B draws at a *low* priority that would still be
+             below app A's old 50 if A's content were still on screen.
+             With the fix this succeeds (canvas empty, threshold low).
+             Without the fix this is rejected with 409.
+        """
+        import time as _time
+
+        app_a = "evict_test_a"
+        app_b = "evict_test_b"
+        elem = [
+            {"id": "e1", "type": "text", "text": "A", "timeout": 30, "font": "small"}
+        ]
+        # A low priority that would be rejected against a leftover priority-50
+        # canvas owned by a different app (rule: rejected = new <= current).
+        low_priority = LOADER_DEFAULT_APP_PRIORITY  # 10
+
+        def _set_busy(snapshot_type: str, is_paused: bool = False):
+            body_snapshot: dict
+            if snapshot_type == "NOT_STARTED":
+                body_snapshot = {"type": "NOT_STARTED"}
+            else:
+                body_snapshot = {
+                    "type": "INFINITE",
+                    "card_id": "00000000-0000-0000-0000-000000000001",
+                    "is_paused": is_paused,
+                }
+            current = api_session.get(f"{web_base_url}/api/busy/snapshot", timeout=10)
+            current.raise_for_status()
+            device_ts = current.json().get("snapshot_timestamp_ms", 0)
+            next_ts = max(device_ts, int(_time.time() * 1000)) + 2000
+            body_snapshot["busy_bar_settings"] = busy_state_guard.get(
+                "snapshot", {}
+            ).get("busy_bar_settings", {})
+            r = api_session.put(
+                f"{web_base_url}/api/busy/snapshot",
+                json={
+                    "snapshot": body_snapshot,
+                    "snapshot_timestamp_ms": next_ts,
+                },
+                timeout=10,
+            )
+            r.raise_for_status()
+            _time.sleep(1.0)
+
+        with allure.step("1. Stop timer; app A draws at priority 50 → 200"):
+            _set_busy("NOT_STARTED")
+            r_a = assets_api.draw_response(
+                app_a, elem, priority=DEFAULT_ELEMENT_PRIORITY
+            )
+            assets_api.assert_status(r_a, 200)
+
+        with allure.step(
+            "2. Activate timer → loader priority rises to BLOCKING; "
+            "canvas must evict app A's content reactively"
+        ):
+            _set_busy("INFINITE", is_paused=False)
+            # Give the loader pubsub event time to reach canvas and be
+            # processed off its message queue.
+            _time.sleep(0.5)
+
+        with allure.step("3. Stop timer → loader priority drops back to passthrough"):
+            _set_busy("NOT_STARTED")
+
+        with allure.step(
+            "4. Different app B draws at priority 10; succeeds only if "
+            "canvas was evicted in step 2"
+        ):
+            r_b = assets_api.draw_response(app_b, elem, priority=low_priority)
+            assets_api.assert_status(r_b, 200)
+
+        # Cleanup
+        assets_api.clear_display()
+
+    @allure.title(
+        "Eviction does not happen when new loader priority is still "
+        "below the displayed content's priority"
+    )
+    @pytest.mark.api
+    @pytest.mark.frontend
+    def test_priority_change_below_threshold_preserves_canvas(
+        self,
+        assets_api: AssetsAPI,
+        api_session,
+        web_base_url: str,
+        busy_state_guard: dict,
+    ):
+        """
+        Symmetric check: a priority-change event that does NOT raise loader
+        priority above the canvas content's priority must leave the canvas
+        alone.  Probe by trying to draw from a *different* app at a low
+        priority — this must still be rejected (409) because A's content
+        is still on screen at priority 50.
+        """
+        import time as _time
+
+        app_a = "evict_neg_a"
+        app_b = "evict_neg_b"
+        elem = [
+            {"id": "e1", "type": "text", "text": "A", "timeout": 30, "font": "small"}
+        ]
+
+        def _set_not_started():
+            current = api_session.get(f"{web_base_url}/api/busy/snapshot", timeout=10)
+            current.raise_for_status()
+            device_ts = current.json().get("snapshot_timestamp_ms", 0)
+            next_ts = max(device_ts, int(_time.time() * 1000)) + 2000
+            body = {
+                "snapshot": {
+                    "type": "NOT_STARTED",
+                    "busy_bar_settings": busy_state_guard.get("snapshot", {}).get(
+                        "busy_bar_settings", {}
+                    ),
+                },
+                "snapshot_timestamp_ms": next_ts,
+            }
+            r = api_session.put(
+                f"{web_base_url}/api/busy/snapshot", json=body, timeout=10
+            )
+            r.raise_for_status()
+            _time.sleep(1.0)
+
+        with allure.step("1. Timer stopped; app A draws at priority 50 → 200"):
+            _set_not_started()
+            r_a = assets_api.draw_response(
+                app_a, elem, priority=DEFAULT_ELEMENT_PRIORITY
+            )
+            assets_api.assert_status(r_a, 200)
+
+        with allure.step(
+            "2. Trigger a benign priority-change (re-set NOT_STARTED). "
+            "loader priority stays below canvas content's 50; canvas must NOT clear."
+        ):
+            _set_not_started()
+            _time.sleep(0.5)
+
+        with allure.step("3. App B at priority 10 must still be rejected (10 <= 50)"):
+            r_b = assets_api.draw_response(
+                app_b, elem, priority=LOADER_DEFAULT_APP_PRIORITY
+            )
+            assets_api.assert_status(r_b, 409)
+
+        # Cleanup
+        assets_api.clear_display()
