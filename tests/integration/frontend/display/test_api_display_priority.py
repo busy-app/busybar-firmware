@@ -498,7 +498,7 @@ class TestDrawDisplayLifecycle:
 @allure.story("Display Priority – Reactive Eviction")
 class TestCanvasEvictionOnPriorityChange:
     """
-    Regression tests for FW-XXX (calendar overlay + busy timer overlap).
+    Regression tests for FW-975 (calendar overlay + busy timer overlap).
 
     When the loader priority rises above the priority of currently-displayed
     canvas content (e.g. the busy timer transitions to active and raises
