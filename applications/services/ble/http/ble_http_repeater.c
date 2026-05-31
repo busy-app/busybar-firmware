@@ -181,7 +181,9 @@ static void ble_http_repeater_free(BleHttpRepeater* instance) {
     ble_uart_set_rx_callback(instance->ble, BleUartChannelNordic, NULL, NULL);
     ble_uart_set_tx_done_callback(instance->ble, BleUartChannelNordic, NULL, NULL);
     furi_thread_free(instance->thread);
+    furi_semaphore_free(instance->uart_conn_sync);
     furi_semaphore_free(instance->wait);
+    furi_mutex_free(instance->session_lock);
     furi_record_close(RECORD_NETWORK);
     free(instance);
 }

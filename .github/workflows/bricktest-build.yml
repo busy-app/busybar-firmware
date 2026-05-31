@@ -116,4 +116,4 @@ jobs:
     secrets: inherit
     concurrency:
       group: brick-tests-${{ github.workflow }}-${{ github.ref }}-${{ needs.brick-test-build.outputs.target }}
-      cancel-in-progress: true
+      cancel-in-progress: false

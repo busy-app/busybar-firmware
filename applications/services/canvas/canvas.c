@@ -560,6 +560,7 @@ static void canvas_screen_open(CanvasSrv* canvas) {
 }
 
 static void canvas_screen_close(CanvasSrv* canvas) {
+    if(!canvas->gui) return;
     with_gui(canvas->gui, {
         GuiLayer* input_layer = gui_get_layer(canvas->gui, GuiLayerIdSystem);
         gui_layer_remove_input_callback(input_layer, canvas_srv_input_callback);

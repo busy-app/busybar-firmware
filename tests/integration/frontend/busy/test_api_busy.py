@@ -6,8 +6,12 @@ import pytest
 import requests
 
 from clients.api import BusyAPI, StorageAPI, StreamingAPI
-from utils.busy_timer import STATE_SETTLE_S, WORK_CARD_UUID, next_timestamp
-
+from utils.busy_timer import (
+    STATE_SETTLE_S,
+    WORK_CARD_UUID,
+    next_timestamp,
+    wait_for_snapshot_type,
+)
 
 BUSY_THEME_ANIMS = {
     "back_soon": "back_soon_72x16.anim",
@@ -300,7 +304,7 @@ class TestBusyThemeRegressions:
         body["snapshot"]["is_paused"] = False
 
         assert busy_api.set_snapshot_raw(body).status_code == 200
-        time.sleep(STATE_SETTLE_S)
+        wait_for_snapshot_type(api_session, web_base_url, "SIMPLE")
 
         frame = streaming_api.get_screen_bytes(display=0)
         assert _front_frame_has_content(frame)
