@@ -43,7 +43,6 @@ static const BleWorkerEventHandler event_handlers[BleIncomingNwpEventTypeCount] 
     [BleIncomingNwpEventTypeWrite] = ble_worker_event_handler_write_event,
     [BleIncomingNwpEventTypeDataTransmit] = ble_worker_event_handler_dummy,
     [BleIncomingNwpEventTypeMtu] = ble_worker_event_handler_mtu,
-    [BleIncomingNwpEventTypeIndicateConfirm] = NULL,
 
     [BleIncomingNwpEventTypeSmpResponse] = ble_worker_event_handler_smp_response,
     [BleIncomingNwpEventTypeSmpEncryptStarted] = ble_worker_event_handler_smp_encrypt_started,

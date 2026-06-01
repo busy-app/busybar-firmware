@@ -9,15 +9,6 @@
 #define BLE_NORDIC_UART_TX_HANDLE  (0x001D)
 #define BLE_NORDIC_UART_CNT_HANDLE (0x001F)
 
-bool ble_worker_event_handler_indicate_confirm(size_t data_size, void* data, void* context) {
-    UNUSED(data_size);
-    UNUSED(data);
-    BLE_LOG_D("ble_worker_event_handler_indicate_confirm");
-    BleWorker* instance = context;
-    furi_semaphore_release(instance->indication_sem);
-    return true;
-}
-
 bool ble_worker_event_handler_mtu(size_t data_size, void* data, void* context) {
     BLE_LOG_I("ble_worker_event_handler_mtu");
 

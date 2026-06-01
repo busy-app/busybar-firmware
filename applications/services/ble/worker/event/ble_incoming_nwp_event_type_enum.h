@@ -17,7 +17,6 @@ typedef enum {
     BleIncomingNwpEventTypeWrite,
     BleIncomingNwpEventTypeDataTransmit,
     BleIncomingNwpEventTypeMtu,
-    BleIncomingNwpEventTypeIndicateConfirm,
 
     BleIncomingNwpEventTypeSmpResponse,
     BleIncomingNwpEventTypeSmpEncryptStarted,
