@@ -34,6 +34,7 @@ TestDrawDisplayLifecycle
 
 from __future__ import annotations
 
+import threading
 import time
 
 import allure
@@ -48,6 +49,8 @@ from clients.api.assets import (
     LOADER_STUB_APP_PRIORITY,
     DEFAULT_ELEMENT_PRIORITY,
 )
+from clients.api.streaming import StreamingAPI, raw_to_png
+from utils.busy_timer import next_timestamp, wait_for_snapshot_type
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -61,11 +64,75 @@ _APP_ID = "test_priority_app"
 _SIMPLE_ELEM = [
     {"id": "e1", "type": "text", "text": "hello", "timeout": 5, "font": "small"}
 ]
+_ON_CALL_ANIM = [
+    {
+        "id": "oncall",
+        "type": "animation",
+        "stock_path": "shared/on_call_72x16.anim",
+        "section": "loop",
+        "loop": True,
+        "timeout": 30,
+        "display": "front",
+    }
+]
 
 
 def _simple_draw(assets_api: AssetsAPI, priority: int | None = None):
     """Convenience: draw with _SIMPLE_ELEM, return raw requests.Response."""
     return assets_api.draw_response(_APP_ID, _SIMPLE_ELEM, priority=priority)
+
+
+def _capture_front_frames(
+    streaming_api: StreamingAPI,
+    *,
+    seconds: float = 2.0,
+    interval: float = 0.1,
+) -> list[bytes]:
+    """Capture a short front-display frame sequence."""
+    frames: list[bytes] = []
+    deadline = time.monotonic() + seconds
+    while time.monotonic() < deadline:
+        frames.append(streaming_api.get_screen_bytes(display=0))
+        time.sleep(interval)
+    return frames
+
+
+def _avg_abs_diff(left: bytes, right: bytes) -> float:
+    if len(left) != len(right):
+        return float("inf")
+    return sum(abs(a - b) for a, b in zip(left, right)) / len(left)
+
+
+def _assert_frames_match_reference(
+    reference: list[bytes],
+    actual: list[bytes],
+    *,
+    threshold: float = 8.0,
+) -> None:
+    """Each actual animation frame must look like some clean reference phase."""
+    worst_best = 0.0
+    for frame in actual:
+        best = min(_avg_abs_diff(frame, ref) for ref in reference)
+        worst_best = max(worst_best, best)
+
+    if worst_best > threshold:
+        for idx, frame in enumerate(reference[:3]):
+            allure.attach(
+                raw_to_png(frame, display=0),
+                name=f"reference_on_call_{idx}",
+                attachment_type=allure.attachment_type.PNG,
+            )
+        for idx, frame in enumerate(actual[:3]):
+            allure.attach(
+                raw_to_png(frame, display=0),
+                name=f"actual_after_redraw_{idx}",
+                attachment_type=allure.attachment_type.PNG,
+            )
+
+    assert worst_best <= threshold, (
+        f"On Call redraw visually differs from clean reference frames: "
+        f"worst_best_avg_diff={worst_best:.2f}, threshold={threshold}"
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -606,6 +673,164 @@ class TestCanvasEvictionOnPriorityChange:
 
         # Cleanup
         assets_api.clear_display()
+
+    @allure.title(
+        "On Call redraw immediately after stopping normal BUSY profile has no visual overlay"
+    )
+    @pytest.mark.api
+    @pytest.mark.frontend
+    def test_on_call_redraw_after_busy_stop_has_no_visual_overlay(
+        self,
+        assets_api: AssetsAPI,
+        streaming_api: StreamingAPI,
+        api_session,
+        web_base_url: str,
+        busy_state_guard: dict,
+    ):
+        """
+        Regression for a visual race:
+          1. Draw the stock On Call animation on Canvas and capture clean frames.
+          2. Start the normal BUSY profile from /api/busy/profiles/busy.
+          3. Stop BUSY and immediately redraw On Call from parallel HTTP calls.
+          4. The resulting frames must match one of the clean On Call phases.
+
+        Without the fix the API may still return 200, but the front display
+        contains a visual overlay/mix of BUSY and Canvas content.
+        """
+
+        app_name = "on_call"
+
+        def _draw_on_call() -> requests.Response:
+            return assets_api.draw_response(
+                app_name, _ON_CALL_ANIM, priority=DEFAULT_ELEMENT_PRIORITY
+            )
+
+        def _start_busy_profile() -> None:
+            profile = api_session.get(
+                f"{web_base_url}/api/busy/profiles/busy", timeout=10
+            )
+            profile.raise_for_status()
+            profile_doc = profile.json()
+            settings = profile_doc["timer_settings"]
+
+            if settings["type"] == "INFINITE":
+                snapshot = {
+                    "type": "INFINITE",
+                    "card_id": profile_doc["id"],
+                    "is_paused": False,
+                }
+                expected_type = "INFINITE"
+            elif settings["type"] == "SIMPLE":
+                snapshot = {
+                    "type": "SIMPLE",
+                    "card_id": profile_doc["id"],
+                    "time_left_ms": settings["total_time_ms"],
+                    "is_paused": False,
+                }
+                expected_type = "SIMPLE"
+            else:
+                work_ms = settings["interval_work_ms"]
+                snapshot = {
+                    "type": "INTERVAL",
+                    "card_id": profile_doc["id"],
+                    "current_interval": 0,
+                    "current_interval_time_total_ms": work_ms,
+                    "current_interval_time_left_ms": work_ms,
+                    "is_paused": False,
+                    "interval_settings": settings,
+                }
+                expected_type = "INTERVAL"
+
+            snapshot["busy_bar_settings"] = profile_doc["busy_bar_settings"]
+            body = {
+                "snapshot": snapshot,
+                "snapshot_timestamp_ms": next_timestamp(api_session, web_base_url),
+            }
+            response = api_session.put(
+                f"{web_base_url}/api/busy/snapshot", json=body, timeout=10
+            )
+            response.raise_for_status()
+            wait_for_snapshot_type(api_session, web_base_url, expected_type)
+
+        def _stop_busy_body() -> dict:
+            return {
+                "snapshot": {
+                    "type": "NOT_STARTED",
+                    "busy_bar_settings": busy_state_guard.get("snapshot", {}).get(
+                        "busy_bar_settings", {}
+                    ),
+                },
+                "snapshot_timestamp_ms": next_timestamp(api_session, web_base_url),
+            }
+
+        def _stop_and_redraw_at_once() -> requests.Response:
+            ready = threading.Event()
+            draw_response: list[requests.Response] = []
+            errors: list[BaseException] = []
+            stop_body = _stop_busy_body()
+
+            def _stop() -> None:
+                ready.wait()
+                try:
+                    with requests.Session() as session:
+                        session.headers.update(api_session.headers)
+                        response = session.put(
+                            f"{web_base_url}/api/busy/snapshot",
+                            json=stop_body,
+                            timeout=10,
+                        )
+                        response.raise_for_status()
+                except BaseException as exc:
+                    errors.append(exc)
+
+            def _draw() -> None:
+                ready.wait()
+                try:
+                    draw_response.append(_draw_on_call())
+                except BaseException as exc:
+                    errors.append(exc)
+
+            stop_thread = threading.Thread(target=_stop)
+            draw_thread = threading.Thread(target=_draw)
+            stop_thread.start()
+            draw_thread.start()
+            ready.set()
+            stop_thread.join()
+            draw_thread.join()
+
+            if errors:
+                raise errors[0]
+            assert draw_response, "Draw request did not complete"
+            return draw_response[0]
+
+        try:
+            with allure.step("1. Draw clean On Call animation and capture reference frames"):
+                stop_body = _stop_busy_body()
+                response = api_session.put(
+                    f"{web_base_url}/api/busy/snapshot", json=stop_body, timeout=10
+                )
+                response.raise_for_status()
+                wait_for_snapshot_type(api_session, web_base_url, "NOT_STARTED")
+
+                response = _draw_on_call()
+                assets_api.assert_status(response, 200)
+                time.sleep(2.0)
+                reference = _capture_front_frames(streaming_api, seconds=2.0)
+
+            with allure.step("2. Start normal BUSY profile and let it render"):
+                _start_busy_profile()
+                time.sleep(2.0)
+
+            with allure.step("3. Stop BUSY and immediately redraw On Call"):
+                response = _stop_and_redraw_at_once()
+                assets_api.assert_status(response, 200)
+                time.sleep(1.0)
+                actual = _capture_front_frames(streaming_api, seconds=2.0)
+
+            with allure.step("4. Verify final frames are clean On Call animation"):
+                _assert_frames_match_reference(reference, actual, threshold=8.0)
+        finally:
+            assets_api.clear_display()
 
     @allure.title(
         "Eviction does not happen when new loader priority is still "
