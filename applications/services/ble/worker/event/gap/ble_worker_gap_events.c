@@ -72,7 +72,7 @@ bool ble_worker_event_handler_disconnected(size_t data_size, void* data, void* c
         instance->rx_pending_handle = 0;
     }
 
-    ble_transmitter_indication_done(instance->transport);
+    ble_transmitter_reset(instance->transport);
 
     BleServiceEntryDict_it_t entry_iter;
     for(BleServiceEntryDict_it(entry_iter, instance->service_dict);

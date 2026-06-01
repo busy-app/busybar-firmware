@@ -87,6 +87,15 @@ bool ble_transmitter_set_chunk(
     return status == FuriStatusOk;
 }
 
+void ble_transmitter_set_reset(BleTransmitterGeneric* transport) {
+    BleTransmitterSetContext* instance = transport;
+
+    BleDataItemPtr item;
+    while(furi_message_queue_get(instance->tx_queue, &item, 0) == FuriStatusOk) {
+        free(item);
+    }
+}
+
 BleTransmitterGeneric* ble_transmitter_set_alloc() {
     BleTransmitterSetContext* instance = malloc(sizeof(BleTransmitterSetContext));
 

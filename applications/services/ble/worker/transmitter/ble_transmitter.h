@@ -15,6 +15,8 @@ bool ble_transmitter_send_chunk(
     const uint8_t* data,
     uint16_t cccd_value);
 
+void ble_transmitter_reset(BleTransmitter* instance);
+
 void ble_transmitter_indication_done(BleTransmitter* instance);
 void ble_transmitter_need_more_data(BleTransmitter* instance);
 

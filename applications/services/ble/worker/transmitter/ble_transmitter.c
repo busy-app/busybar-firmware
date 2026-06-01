@@ -17,6 +17,8 @@ typedef bool (*BleTransmitterHandlerSend)(
 
 typedef void (*BleTransmitterHandlerSendDone)(BleTransmitterGeneric* instance);
 
+typedef void (*BleTransmitterHandlerReset)(BleTransmitterGeneric* instance);
+
 typedef void (*BleTransmitterHandlerEventLoopSubscribe)(
     BleTransmitterGeneric* instance,
     FuriEventLoop* event_loop,
@@ -31,6 +33,7 @@ typedef struct {
     BleTransmitterHandlerFree free;
     BleTransmitterHandlerSend send;
     BleTransmitterHandlerSendDone done;
+    BleTransmitterHandlerReset reset;
     BleTransmitterHandlerEventLoopSubscribe subscribe;
     BleTransmitterHandlerEventLoopUnsubscribe unsubscribe;
 } BleTransmitterContract;
@@ -45,6 +48,7 @@ static const BleTransmitterContract ble_transmitters[BleTransmitterTypeCount] = 
             .free = ble_transmitter_indicate_free,
             .send = ble_transmitter_indicate_chunk,
             .done = ble_transmitter_indicate_done,
+            .reset = ble_transmitter_indicate_done,
             .subscribe = NULL,
             .unsubscribe = NULL,
         },
@@ -54,6 +58,7 @@ static const BleTransmitterContract ble_transmitters[BleTransmitterTypeCount] = 
             .free = ble_transmitter_set_free,
             .send = ble_transmitter_set_chunk,
             .done = ble_transmitter_set_more_data,
+            .reset = ble_transmitter_set_reset,
             .subscribe = ble_transmitter_set_subscribe,
             .unsubscribe = ble_transmitter_set_unsubscribe,
         },
@@ -110,6 +115,14 @@ void ble_transmitter_indication_done(BleTransmitter* instance) {
 void ble_transmitter_need_more_data(BleTransmitter* instance) {
     furi_assert(instance);
     ble_transmitter_done(instance, BleTransmitterTypeSet);
+}
+
+void ble_transmitter_reset(BleTransmitter* instance) {
+    furi_assert(instance);
+    for(uint8_t i = 0; i < BleTransmitterTypeCount; i++) {
+        if(ble_transmitters[i].reset == NULL) continue;
+        ble_transmitters[i].reset(instance->context[i]);
+    }
 }
 
 void ble_transmitter_subscribe(BleTransmitter* instance, FuriEventLoop* event_loop, void* context) {

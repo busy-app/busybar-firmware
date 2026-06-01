@@ -14,6 +14,8 @@ bool ble_transmitter_set_chunk(
 
 void ble_transmitter_set_more_data(BleTransmitterGeneric* transport);
 
+void ble_transmitter_set_reset(BleTransmitterGeneric* transport);
+
 void ble_transmitter_set_subscribe(
     BleTransmitterGeneric* transport,
     FuriEventLoop* event_loop,
