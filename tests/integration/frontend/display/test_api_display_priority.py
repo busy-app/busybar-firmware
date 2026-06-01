@@ -526,7 +526,7 @@ class TestCanvasEvictionOnPriorityChange:
         busy_state_guard: dict,
     ):
         """
-        Reproduces the calendar-event + start-busy bug:
+        Reproduces the canvas draw calls + start-busy bug:
           1. Timer NOT_STARTED → loader priority is low.  App A draws at
              priority=DEFAULT_ELEMENT_PRIORITY (50).  Accepted (200).
           2. Timer goes INFINITE active → loader priority jumps to BLOCKING
@@ -538,6 +538,7 @@ class TestCanvasEvictionOnPriorityChange:
              With the fix this succeeds (canvas empty, threshold low).
              Without the fix this is rejected with 409.
         """
+
         import time as _time
 
         app_a = "evict_test_a"
