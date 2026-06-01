@@ -206,6 +206,8 @@ bool do_it_now(void) {
 
 ```
 
+Note the `do ... while(false)` pattern, it is widely used throughout the @bsb firmware.
+
 #### Object orientation
 
 If a file `my_module.h` describes a class-like object, all of the method functions should have a `my_module_` prefix.
@@ -259,9 +261,6 @@ MyModule* my_module_alloc(void) {
     return instance;
 }
 ```
-
-
-Note the `do ... while(false)` pattern, it is widely used throughout the @bsb firmware.
 
 ### Python
 
