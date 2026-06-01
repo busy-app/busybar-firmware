@@ -16,6 +16,8 @@ Always try to make the code as clear and straightforward as possible. Avoid "cle
 
 Avoid comments unless it will greatly improve clarity. Most of the time a comment can be avoided by extracting a function or by a more descriptive variable name.
 
+If using an LLM, care must be taken to rephrase or remove the generated comments, as they tend to be overly verbose.
+
 ### Functions
 
 Functions must be relatively short and do *roughly* one thing. They must have descriptive names that make it clear what the function is doing.
