@@ -6,8 +6,7 @@
 #define BLE_LOG_NWP_EVENT_NOT_IMPLEMENTED() BLE_LOG_W("%s - not implemented!", __func__)
 
 static BleIncomingNwpEventProcessor* event_processor = NULL;
-static FuriSemaphore* indication = NULL;
-static FuriSemaphore* transmit = NULL;
+static BleTransmitter* transport = NULL;
 
 /**
  * @fn         rsi_ble_gap_on_adv_report_event
@@ -149,9 +148,7 @@ static void rsi_ble_gap_ext_on_le_more_data_request_event(
     rsi_ble_event_le_dev_buf_ind_t* rsi_ble_more_data_evt) {
     UNUSED(rsi_ble_more_data_evt);
 
-    if(transmit) furi_semaphore_release(transmit);
-
-    return;
+    if(transport) ble_transmitter_need_more_data(transport);
 }
 /*==============================================*/
 
@@ -341,7 +338,7 @@ static void rsi_ble_gatt_on_event_indicate_confirmation_event(
 
     if(event_status != 0) BLE_LOG_W("Indicate_CB: %d", event_status);
 
-    if(indication) furi_semaphore_release(indication);
+    if(transport) ble_transmitter_indication_done(transport);
 }
 
 static void rsi_ble_gatt_on_event_prepare_write_resp_dummy(
@@ -433,16 +430,13 @@ static void rsi_ble_smp_on_sc_method_dummy(rsi_bt_event_sc_method_t* scmethod) {
 }
 
 void ble_nwp_core_config_callbacks(
-    BleIncomingNwpEventProcessor* instance,
-    FuriSemaphore* transmit_sem,
-    FuriSemaphore* indicate_sem) {
-    furi_assert(instance);
-    furi_assert(transmit_sem);
-    furi_assert(indicate_sem);
+    BleIncomingNwpEventProcessor* event_processor_instance,
+    BleTransmitter* transport_instance) {
+    furi_assert(event_processor_instance);
+    furi_assert(transport_instance);
 
-    event_processor = instance;
-    indication = indicate_sem;
-    transmit = transmit_sem;
+    event_processor = event_processor_instance;
+    transport = transport_instance;
 
     rsi_ble_gap_register_callbacks(
         rsi_ble_gap_on_adv_report_event,
