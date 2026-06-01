@@ -53,9 +53,6 @@ static void api_busy_set_snapshot(struct mg_connection* conn, struct mg_http_mes
 
         BusyTimer* timer = furi_record_open(RECORD_BUSY_TIMER);
         busy_timer_set_snapshot(timer, &snapshot);
-        // Barrier: blocks until set_snapshot (and its loader_set_priority) is processed.
-        BusyTimerSnapshot current_snapshot;
-        busy_timer_get_snapshot(timer, &current_snapshot);
         furi_record_close(RECORD_BUSY_TIMER);
 
         success = true;

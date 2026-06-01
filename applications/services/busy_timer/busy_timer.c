@@ -601,7 +601,6 @@ static void busy_timer_apply_snapshot(BusyTimer* instance, const BusyTimerSnapsh
     instance->timer_config.mode = new_mode;
     instance->state = new_state;
 
-    // Eagerly sync loader priority so the HTTP barrier (get_snapshot) has happens-before for draws.
     Loader* loader = furi_record_open(RECORD_LOADER);
     loader_set_priority(
         loader,

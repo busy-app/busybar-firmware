@@ -139,6 +139,7 @@ typedef struct {
     uint32_t props_count;
     MqttQos qos;
     bool* is_success;
+    bool free_data;
 } MqttApiMessagePublish;
 
 typedef struct {
