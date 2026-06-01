@@ -12,6 +12,14 @@ After making any changes, the code must be formatted by running `./fbt format` f
 
 Always try to make the code as clear and straightforward as possible. Avoid "clever code", obscure language constructions or other kinds of obfuscation.
 
+### Comments
+
+Avoid comments unless it will greatly improve clarity. Most of the time a comment can be avoided by extracting a function or by more descriptive variable name.
+
+### Functions
+
+Functions must be relatively short and do *roughly* one thing. They must have descriptive names that make it clear what the function is doing.
+
 ## File structure
 
 ### General considerations
