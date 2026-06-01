@@ -273,6 +273,12 @@ static void loader_start_internal_app(
     loader->app.priority = LOADER_DEFAULT_APP_PRIORITY;
     furi_thread_set_appid(loader->app.thread, app->appid);
 
+    LoaderEvent prio_event = {
+        .type = LoaderEventTypePriorityChanged,
+        .priority = loader->app.priority,
+    };
+    furi_pubsub_publish(loader->pubsub, &prio_event);
+
     loader_start_app_thread(loader, app->flags);
 }
 
@@ -397,6 +403,12 @@ static void loader_app_closed_handler(Loader* loader, const LoaderMessage* messa
     loader->app.priority = 0;
 
     FURI_LOG_I(TAG, "Application stopped. Free heap: %zu", memmgr_get_free_heap());
+
+    LoaderEvent prio_event = {
+        .type = LoaderEventTypePriorityChanged,
+        .priority = 0,
+    };
+    furi_pubsub_publish(loader->pubsub, &prio_event);
 
     LoaderEvent event = {
         .type = LoaderEventTypeApplicationStopped,

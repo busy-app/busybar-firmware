@@ -28,6 +28,7 @@ typedef struct {
     CanvasResult* result;
     char* app_id;
     size_t* priority;
+    size_t loader_priority;
     FuriString* string;
     union {
         CanvasElementsArray_t elements;
@@ -484,11 +485,8 @@ static void canvas_srv_queue_event_callback(FuriEventLoopObject* object, void* c
         res = CanvasResultOk;
 
     } else if(event.type == CanvasSrvEventReevaluatePriority) {
-        if(canvas->gui != NULL) {
-            size_t loader_prio = loader_get_priority(canvas->loader);
-            if(canvas->priority < loader_prio) {
-                canvas_srv_clear_all(canvas);
-            }
+        if(canvas->gui != NULL && canvas->priority < event.loader_priority) {
+            canvas_srv_clear_all(canvas);
         }
         res = CanvasResultOk;
 
@@ -600,7 +598,10 @@ static void canvas_loader_pubsub_callback(const void* message, void* context) {
     if(event->type != LoaderEventTypePriorityChanged) return;
 
     CanvasSrv* canvas = context;
-    CanvasSrvQueueEvent evt = {.type = CanvasSrvEventReevaluatePriority};
+    CanvasSrvQueueEvent evt = {
+        .type = CanvasSrvEventReevaluatePriority,
+        .loader_priority = event->priority,
+    };
     furi_message_queue_put(canvas->event_queue, &evt, 0);
 }
 

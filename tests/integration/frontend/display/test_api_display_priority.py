@@ -676,3 +676,100 @@ class TestCanvasEvictionOnPriorityChange:
 
         # Cleanup
         assets_api.clear_display()
+
+    @allure.title(
+        "Priority drop after eviction does not spuriously clear the empty canvas"
+    )
+    @pytest.mark.api
+    @pytest.mark.frontend
+    def test_priority_drop_after_eviction_no_spurious_clear(
+        self,
+        assets_api: AssetsAPI,
+        api_session,
+        web_base_url: str,
+        busy_state_guard: dict,
+    ):
+        """
+        Validates the canvas->gui == NULL guard in the ReevaluatePriority handler.
+
+        When canvas content is evicted (ACTIVE, loader=101), canvas_screen_close
+        resets canvas->priority to 0.  If a subsequent priority-drop event
+        (NOT_STARTED, loader=9) were handled without the gui==NULL guard, the
+        condition "priority < loader_prio" would evaluate to "0 < 9 = TRUE"
+        and canvas_srv_clear_all would be called on an already-empty canvas.
+        The guard (canvas->gui != NULL) short-circuits this and keeps the
+        canvas in a consistent empty state so that a new draw is admitted.
+
+        Sequence:
+          1. Timer NOT_STARTED (loader=9).  App A draws at prio 50 → 200.
+          2. Timer ACTIVE (loader=101).  Canvas evicts A's content (50 < 101).
+             After clear, canvas->gui=NULL, canvas->priority=0.
+          3. Timer NOT_STARTED (loader=9).  ReevaluatePriority(9) arrives:
+             0 < 9 is TRUE but canvas->gui is NULL, so the guard fires and
+             canvas_srv_clear_all is NOT called on the empty canvas.
+          4. App B draws at prio 10 → 200.  Canvas is empty (loader_prio=9,
+             10 >= 9).
+        """
+        import time as _time
+
+        app_a = "evict_drop_a"
+        app_b = "evict_drop_b"
+        elem = [
+            {"id": "e1", "type": "text", "text": "A", "timeout": 30, "font": "small"}
+        ]
+
+        def _set_busy(snapshot_type: str, is_paused: bool = False):
+            if snapshot_type == "NOT_STARTED":
+                body_snapshot: dict = {"type": "NOT_STARTED"}
+            else:
+                body_snapshot = {
+                    "type": "INFINITE",
+                    "card_id": "00000000-0000-0000-0000-000000000001",
+                    "is_paused": is_paused,
+                }
+            current = api_session.get(f"{web_base_url}/api/busy/snapshot", timeout=10)
+            current.raise_for_status()
+            device_ts = current.json().get("snapshot_timestamp_ms", 0)
+            next_ts = max(device_ts, int(_time.time() * 1000)) + 2000
+            body_snapshot["busy_bar_settings"] = busy_state_guard.get(
+                "snapshot", {}
+            ).get("busy_bar_settings", {})
+            r = api_session.put(
+                f"{web_base_url}/api/busy/snapshot",
+                json={"snapshot": body_snapshot, "snapshot_timestamp_ms": next_ts},
+                timeout=10,
+            )
+            r.raise_for_status()
+            _time.sleep(1.0)
+
+        with allure.step("1. Timer stopped; app A draws at priority 50 → 200"):
+            _set_busy("NOT_STARTED")
+            r_a = assets_api.draw_response(
+                app_a, elem, priority=DEFAULT_ELEMENT_PRIORITY
+            )
+            assets_api.assert_status(r_a, 200)
+
+        with allure.step(
+            "2. Timer ACTIVE (loader=101) → canvas evicts app A's content; "
+            "canvas->gui=NULL, canvas->priority=0 after clear"
+        ):
+            _set_busy("INFINITE", is_paused=False)
+            _time.sleep(0.5)
+
+        with allure.step(
+            "3. Timer NOT_STARTED (loader=9) → ReevaluatePriority(9); "
+            "0 < 9 is TRUE but canvas->gui is NULL; guard fires, no spurious clear"
+        ):
+            _set_busy("NOT_STARTED")
+
+        with allure.step(
+            "4. App B draws at priority 10 → 200 "
+            "(canvas empty after step 2, loader_prio=9, 10 >= 9)"
+        ):
+            r_b = assets_api.draw_response(
+                app_b, elem, priority=LOADER_DEFAULT_APP_PRIORITY
+            )
+            assets_api.assert_status(r_b, 200)
+
+        # Cleanup
+        assets_api.clear_display()
