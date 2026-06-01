@@ -4,7 +4,7 @@ The libraries can be divided into two main categories: internal and third-party.
 
 Noteworthy internal libraries include:
 
-- `anim_file` - Support for animation files (see [assets/animations] for more info)
+- `anim_file` - Support for animation files (see [assets/animations](assets/animations) for more info)
 - `cli` - Bespoke command line interface support
 - `setting_provider` - JSON-based settings library (standard for BSB firmware)
 - `toolbox` - A collection of various small helper libraries
