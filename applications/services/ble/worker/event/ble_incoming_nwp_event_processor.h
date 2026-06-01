@@ -5,15 +5,13 @@
 
 typedef struct BleIncomingNwpEventProcessor BleIncomingNwpEventProcessor;
 
-///TODO: Cleanup this, remove semaphores
-BleIncomingNwpEventProcessor* ble_incoming_nwp_event_processor_alloc(
-    void* context,
-    FuriSemaphore* transmit_sem,
-    FuriSemaphore* indicate_sem);
+BleIncomingNwpEventProcessor* ble_incoming_nwp_event_processor_alloc(void* context);
 
-///TODO: event_loop should be from outside, or this should be replaced to
-///subscribe method
-void ble_incoming_nwp_event_processor_run(
+void ble_incoming_nwp_event_processor_subscribe(
+    BleIncomingNwpEventProcessor* instance,
+    FuriEventLoop* event_loop);
+
+void ble_incoming_nwp_event_processor_unsubscribe(
     BleIncomingNwpEventProcessor* instance,
     FuriEventLoop* event_loop);
 

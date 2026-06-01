@@ -1,7 +1,6 @@
 #include "ble_incoming_nwp_event_processor.h"
 #include "ble_incoming_nwp_event.h"
 
-#include "../_nwp_callbacks/ble_nwp_core_callbacks.h"
 #include "gap/ble_worker_gap_events.h"
 #include "gatt/ble_worker_gatt_events.h"
 #include "smp/ble_worker_smp_events.h"
@@ -44,7 +43,7 @@ static const BleWorkerEventHandler event_handlers[BleIncomingNwpEventTypeCount] 
     [BleIncomingNwpEventTypeWrite] = ble_worker_event_handler_write_event,
     [BleIncomingNwpEventTypeDataTransmit] = ble_worker_event_handler_dummy,
     [BleIncomingNwpEventTypeMtu] = ble_worker_event_handler_mtu,
-    [BleIncomingNwpEventTypeIndicateConfirm] = ble_worker_event_handler_indicate_confirm,
+    [BleIncomingNwpEventTypeIndicateConfirm] = NULL,
 
     [BleIncomingNwpEventTypeSmpResponse] = ble_worker_event_handler_smp_response,
     [BleIncomingNwpEventTypeSmpEncryptStarted] = ble_worker_event_handler_smp_encrypt_started,
@@ -55,7 +54,7 @@ static const BleWorkerEventHandler event_handlers[BleIncomingNwpEventTypeCount] 
         ble_worker_event_handler_adjust_connection_request,
 };
 
-static inline void ble_incoming_nwp_event_processor_set_run_gaurd(
+static inline void ble_incoming_nwp_event_processor_set_run_guard(
     BleIncomingNwpEventProcessor* instance,
     bool new_run) {
     furi_mutex_acquire(instance->lock, FuriWaitForever);
@@ -103,16 +102,12 @@ void ble_incoming_nwp_event_processor_spawn_event(
     furi_mutex_release(instance->lock);
 }
 
-BleIncomingNwpEventProcessor* ble_incoming_nwp_event_processor_alloc(
-    void* context,
-    FuriSemaphore* transmit_sem,
-    FuriSemaphore* indicate_sem) {
+BleIncomingNwpEventProcessor* ble_incoming_nwp_event_processor_alloc(void* context) {
     furi_assert(context);
     BleIncomingNwpEventProcessor* instance = malloc(sizeof(BleIncomingNwpEventProcessor));
     instance->event_queue = furi_message_queue_alloc(20, sizeof(BleIncomingNwpEvent*));
     instance->lock = furi_mutex_alloc(FuriMutexTypeNormal);
     instance->context = context;
-    ble_nwp_core_config_callbacks(instance, transmit_sem, indicate_sem);
 
     return instance;
 }
@@ -126,7 +121,7 @@ static void
     }
 }
 
-void ble_incoming_nwp_event_processor_run(
+void ble_incoming_nwp_event_processor_subscribe(
     BleIncomingNwpEventProcessor* instance,
     FuriEventLoop* event_loop) {
     furi_assert(instance);
@@ -140,12 +135,16 @@ void ble_incoming_nwp_event_processor_run(
         ble_incoming_nwp_event_processor_queue_handler,
         instance);
 
-    ble_incoming_nwp_event_processor_set_run_gaurd(instance, true);
+    ble_incoming_nwp_event_processor_set_run_guard(instance, true);
+}
 
-    furi_event_loop_run(instance->event_loop);
+void ble_incoming_nwp_event_processor_unsubscribe(
+    BleIncomingNwpEventProcessor* instance,
+    FuriEventLoop* event_loop) {
+    furi_assert(instance);
+    furi_assert(event_loop);
 
-    ble_incoming_nwp_event_processor_set_run_gaurd(instance, false);
+    ble_incoming_nwp_event_processor_set_run_guard(instance, false);
     ble_incoming_nwp_event_processor_flush_pending(instance);
-
     furi_event_loop_unsubscribe(instance->event_loop, instance->event_queue);
 }
