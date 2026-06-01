@@ -1,7 +1,7 @@
 #include "ble_incoming_nwp_event_processor.h"
 #include "ble_incoming_nwp_event.h"
 
-#include "_nwp_callbacks/ble_nwp_core_callbacks.h"
+#include "../_nwp_callbacks/ble_nwp_core_callbacks.h"
 #include "gap/ble_worker_gap_events.h"
 #include "gatt/ble_worker_gatt_events.h"
 #include "smp/ble_worker_smp_events.h"
