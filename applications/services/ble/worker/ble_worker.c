@@ -150,44 +150,6 @@ bool ble_worker_stop_advertising() {
     return status == RSI_SUCCESS;
 }
 
-static bool ble_worker_send_item(BleWorker* instance, const BleDataItemPtr item) {
-    bool result = false;
-    do {
-        sl_status_t status = rsi_ble_notify_value(
-            instance->remote_dev_address, item->header.handle, item->header.data_size, item->data);
-
-        if(status == RSI_SUCCESS) {
-            result = true;
-            break;
-        }
-
-        if((int32_t)status != RSI_ERROR_BLE_DEV_BUF_FULL) {
-            BLE_LOG_W("Notify error: %08lX", status);
-            break;
-        }
-
-        if(furi_semaphore_acquire(instance->more_data_sem, 500) != FuriStatusOk) {
-            BLE_LOG_W("Notify timeout");
-            break;
-        }
-    } while(true);
-
-    return result;
-}
-
-void ble_worker_tx_queue_handler(FuriEventLoopObject* object, void* context) {
-    UNUSED(object);
-    furi_assert(context);
-    BleWorker* instance = context;
-
-    BleDataItemPtr item = NULL;
-    while(furi_message_queue_get(instance->tx_queue, &item, 0) == FuriStatusOk) {
-        ble_worker_send_item(instance, item);
-        free(item);
-        item = NULL;
-    }
-}
-
 static int32_t ble_worker_thread_callback(void* context) {
     BleWorker* instance = context;
     BLE_LOG_I("Worker Thread Start");
@@ -353,14 +315,8 @@ BleWorker* ble_worker_init(BleConnectionStateChanged connect_callback, void* ctx
     instance->thread =
         furi_thread_alloc_ex("BleWorker", 3072U, ble_worker_thread_callback, instance);
 
-    instance->more_data_sem = furi_semaphore_alloc(1, 0);
-    instance->tx_queue = furi_message_queue_alloc(20, sizeof(BleDataItemPtr));
-
-    instance->indicate_error_canary = ble_debug_canary_alloc(BleCanaryTypeHitOnce);
-
     instance->on_connection_changed_cb = connect_callback;
     instance->on_connection_changed_ctx = ctx;
-    instance->indication_sem = furi_semaphore_alloc(1, 0);
     instance->receive_sem = furi_semaphore_alloc(1, 1);
     instance->max_payload_size = BLE_WORKER_MAX_MTU_SIZE - BLE_WORKER_ATTR_HEADER_SIZE;
     instance->security_data = ble_security_alloc();
@@ -512,92 +468,7 @@ void ble_worker_stop() {
     }
 }
 
-static inline bool ble_worker_indicate_retry(
-    const uint8_t* dev_addr,
-    uint16_t handle,
-    uint16_t data_size,
-    const uint8_t* data,
-    const uint8_t max_retries) {
-    uint8_t retry_count = 0;
-    int32_t status;
-    do {
-        status = rsi_ble_indicate_value(dev_addr, handle, data_size, data);
-        if(status == RSI_SUCCESS) break;
-
-        if(status == RSI_ERROR_BLE_ATT_CMD_IN_PROGRESS) {
-            furi_delay_ms(BLE_WORKER_INDICATE_RETRY_DELAY_MS);
-            ble_debug_canary_test_log(
-                ble_worker_instance->indicate_error_canary, TAG, "Indicate retry: %04X", handle);
-        }
-        retry_count += 1;
-    } while((status == RSI_ERROR_BLE_ATT_CMD_IN_PROGRESS) && (retry_count < max_retries));
-
-    if(status != RSI_SUCCESS) {
-        BLE_LOG_W("Indication failed: %08lX", status);
-    }
-
-    return status == RSI_SUCCESS;
-}
-
-static inline bool ble_worker_indicate_chunk(
-    const uint8_t* dev_addr,
-    uint16_t handle,
-    uint16_t data_size,
-    const uint8_t* data) {
-    bool result = false;
-
-    do {
-        // BLE_LOG_W("%s %04X", __func__, handle);
-        const uint8_t indication_retry_count = 4;
-        ble_worker_instance->tx_pending_handle = handle;
-        if(!ble_worker_indicate_retry(dev_addr, handle, data_size, data, indication_retry_count))
-            break;
-
-        if(furi_semaphore_acquire(ble_worker_instance->indication_sem, BLE_WORKER_TX_TIMEOUT_MS) !=
-           FuriStatusOk) {
-            BLE_LOG_W("Indicate timeout expired");
-            break;
-        }
-
-        ble_worker_instance->tx_pending_handle = 0;
-        result = true;
-    } while(false);
-    return result;
-}
-
-// static inline bool ble_worker_set_chunk(uint16_t handle, uint16_t data_size, const uint8_t* data) {
-//     sl_status_t status = rsi_ble_set_local_att_value(handle, data_size, data);
-//     if(status != RSI_SUCCESS) BLE_LOG_W("Send fail %08lX", status);
-//     return status == RSI_SUCCESS;
-// }
-
-static inline bool ble_worker_set_chunk(uint16_t handle, uint16_t data_size, const uint8_t* data) {
-    BleDataItemPtr item = malloc(sizeof(BleDataHeader) + data_size);
-    item->header.data_size = data_size;
-    item->header.handle = handle;
-    memcpy(item->data, data, data_size);
-
-    FuriStatus status = furi_message_queue_put(ble_worker_instance->tx_queue, &item, 250);
-    return status == FuriStatusOk;
-}
-
-static bool ble_worker_send_chunk(
-    uint16_t handle,
-    uint16_t data_size,
-    const uint8_t* data,
-    uint16_t cccd_value) {
-    BLE_LOG_D("Data_size: %d", data_size);
-
-    bool result = false;
-    if(ble_worker_instance->connected && BLE_CCCD_INDICATION_ENABLED(cccd_value)) {
-        result = ble_worker_indicate_chunk(
-            ble_worker_instance->remote_dev_address, handle, data_size, data);
-    } else {
-        result = ble_worker_set_chunk(handle, data_size, data);
-    }
-    return result;
-}
-
+///TODO: Part of device instance as ble_device_send
 void ble_worker_send(uint16_t handle, uint16_t data_size, const uint8_t* data, uint16_t cccd_value) {
     size_t index = 0;
     size_t total_size = data_size;
@@ -606,7 +477,15 @@ void ble_worker_send(uint16_t handle, uint16_t data_size, const uint8_t* data, u
                                ble_worker_instance->max_payload_size :
                                total_size;
 
-        if(!ble_worker_send_chunk(handle, send_size, &data[index], cccd_value)) {
+        bool send_result = ble_transmitter_send_chunk(
+            ble_worker_instance->transport,
+            ble_worker_instance->remote_dev_address,
+            handle,
+            send_size,
+            &data[index],
+            cccd_value);
+
+        if(!send_result) {
             BLE_LOG_W("[%04X] - Tx terminated!", handle);
             break;
         }

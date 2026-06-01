@@ -9,15 +9,7 @@
 
 #include "../util/ble_canary.h"
 
-#include "ble_config.h"
-#include <sl_status.h>
-#include <sl_wifi.h>
-#include <sl_wifi_callback_framework.h>
-
-#include "rsi_ble.h"
-#include "rsi_ble_apis.h"
-#include "rsi_ble_common_config.h"
-#include "rsi_bt_common_apis.h"
+#include "_nwp_callbacks/ble_nwp_core_callbacks.h"
 
 #include <m-dict.h>
 
@@ -43,19 +35,16 @@ struct BleWorker {
     FuriThread* thread;
     FuriEventLoop* event_loop;
     BleIncomingNwpEventProcessor* event_proc;
-    FuriMessageQueue* tx_queue;
+    BleTransmitter* transport;
 
-    FuriSemaphore* more_data_sem;
+    //----------------------------------------------------
+
     FuriSemaphore* receive_sem;
-    FuriSemaphore* indication_sem;
     FuriTimer* retry_phy_timer;
     uint8_t pairing_info_available;
     uint16_t rx_pending_handle;
-    uint16_t tx_pending_handle;
     ///TODO: this can be removed
     bool connected;
-
-    BleDebugCanary* indicate_error_canary;
 
     BleWorkerState state;
     uint16_t max_payload_size;

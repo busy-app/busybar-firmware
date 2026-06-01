@@ -72,11 +72,7 @@ bool ble_worker_event_handler_disconnected(size_t data_size, void* data, void* c
         instance->rx_pending_handle = 0;
     }
 
-    if(instance->tx_pending_handle) {
-        BLE_LOG_W("No Tx confirm!");
-        furi_semaphore_release(instance->indication_sem);
-        instance->tx_pending_handle = 0;
-    }
+    ble_transmitter_indication_done(instance->transport);
 
     BleServiceEntryDict_it_t entry_iter;
     for(BleServiceEntryDict_it(entry_iter, instance->service_dict);
@@ -104,8 +100,6 @@ bool ble_worker_event_handler_disconnected(size_t data_size, void* data, void* c
     memset(instance->str_remote_address, 0, BLE_REMOTE_ADDRESS_STRING_SIZE);
     instance->on_connection_changed_cb(
         instance->on_connection_changed_ctx, instance->connected, instance->str_remote_address);
-
-    ble_debug_canary_reset(instance->indicate_error_canary);
 
     return true;
 }
