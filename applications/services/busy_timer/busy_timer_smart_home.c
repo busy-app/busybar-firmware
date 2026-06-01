@@ -16,6 +16,8 @@ static void
         if(instance->is_timer_running) {
             const bool is_work = (event->state_changed.state == BusyTimerStateWork);
             switch_state = is_work ? MatterSwitchStateOn : MatterSwitchStateOff;
+        } else {
+            switch_state = MatterSwitchStateOff;
         }
 
     } else if(event_type == BusyTimerEventTypePaused) {
