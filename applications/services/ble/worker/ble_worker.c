@@ -156,16 +156,13 @@ static int32_t ble_worker_thread_callback(void* context) {
 
     instance->event_loop = furi_event_loop_alloc();
 
-    furi_event_loop_subscribe_message_queue(
-        instance->event_loop,
-        instance->tx_queue,
-        FuriEventLoopEventIn,
-        ble_worker_tx_queue_handler,
-        context);
+    ble_transmitter_subscribe(instance->transport, instance->event_loop, context);
+    ble_incoming_nwp_event_processor_subscribe(instance->event_proc, instance->event_loop);
 
-    ble_incoming_nwp_event_processor_run(instance->event_proc, instance->event_loop);
+    furi_event_loop_run(instance->event_loop);
 
-    furi_event_loop_unsubscribe(instance->event_loop, instance->tx_queue);
+    ble_incoming_nwp_event_processor_unsubscribe(instance->event_proc, instance->event_loop);
+    ble_transmitter_unsubscribe(instance->transport, instance->event_loop);
 
     furi_event_loop_free(instance->event_loop);
 
@@ -343,8 +340,9 @@ BleWorker* ble_worker_init(BleConnectionStateChanged connect_callback, void* ctx
         BLE_LOG_I("Local device address %s", local_dev_addr);
     }
 
-    instance->event_proc = ble_incoming_nwp_event_processor_alloc(
-        instance, instance->more_data_sem, instance->indication_sem);
+    instance->event_proc = ble_incoming_nwp_event_processor_alloc(instance);
+    instance->transport = ble_transmitter_alloc();
+    ble_nwp_core_config_callbacks(instance->event_proc, instance->transport);
     //----------------------------------------------------------------------------------------------------------------
     //! Set local name
     status = rsi_bt_set_local_name((const uint8_t*)BLE_DEFAULT_LOCAL_NAME);
