@@ -1,6 +1,7 @@
 #include "busy_timer_i.h"
 
 #include <furi_hal_rtc.h>
+#include <loader/loader.h>
 
 #ifdef BUSY_TIMER_TICK_DEBUG
 #define TIME_MAX_LEN (14)
@@ -599,6 +600,13 @@ static void busy_timer_apply_snapshot(BusyTimer* instance, const BusyTimerSnapsh
 
     instance->timer_config.mode = new_mode;
     instance->state = new_state;
+
+    // Eagerly sync loader priority so the HTTP barrier (get_snapshot) has happens-before for draws.
+    Loader* loader = furi_record_open(RECORD_LOADER);
+    loader_set_priority(
+        loader,
+        new_state != BusyTimerStateIdle ? LOADER_BLOCKING_PRIORITY : LOADER_PASSTHROUGH_PRIORITY);
+    furi_record_close(RECORD_LOADER);
 
     strcpy(instance->card_id, snapshot->common.card_id);
     instance->app_config = snapshot->app_config;
