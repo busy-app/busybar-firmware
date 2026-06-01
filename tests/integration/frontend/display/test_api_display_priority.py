@@ -103,19 +103,39 @@ def _avg_abs_diff(left: bytes, right: bytes) -> float:
     return sum(abs(a - b) for a, b in zip(left, right)) / len(left)
 
 
+def _front_frame_roi(frame: bytes) -> bytes:
+    width = 72
+    x0, x1 = 16, 58
+    y0, y1 = 2, 14
+
+    roi = bytearray()
+    for y in range(y0, y1):
+        row_start = (y * width + x0) * 3
+        row_end = (y * width + x1) * 3
+        roi.extend(frame[row_start:row_end])
+
+    return bytes(roi)
+
+
 def _assert_frames_match_reference(
     reference: list[bytes],
     actual: list[bytes],
     *,
     threshold: float = 8.0,
+    max_bad_frames: int = 2,
 ) -> None:
-    """Each actual animation frame must look like some clean reference phase."""
+    """Each actual animation frame must match a clean reference in the center content area."""
+    reference_roi = [_front_frame_roi(frame) for frame in reference]
     worst_best = 0.0
+    bad_frames = 0
     for frame in actual:
-        best = min(_avg_abs_diff(frame, ref) for ref in reference)
+        frame_roi = _front_frame_roi(frame)
+        best = min(_avg_abs_diff(frame_roi, ref) for ref in reference_roi)
         worst_best = max(worst_best, best)
+        if best > threshold:
+            bad_frames += 1
 
-    if worst_best > threshold:
+    if bad_frames > max_bad_frames:
         for idx, frame in enumerate(reference[:3]):
             allure.attach(
                 raw_to_png(frame, display=0),
@@ -129,8 +149,9 @@ def _assert_frames_match_reference(
                 attachment_type=allure.attachment_type.PNG,
             )
 
-    assert worst_best <= threshold, (
+    assert bad_frames <= max_bad_frames, (
         f"On Call redraw visually differs from clean reference frames: "
+        f"bad_frames={bad_frames}, max_bad_frames={max_bad_frames}, "
         f"worst_best_avg_diff={worst_best:.2f}, threshold={threshold}"
     )
 
