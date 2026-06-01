@@ -14,7 +14,7 @@ Always try to make the code as clear and straightforward as possible. Avoid "cle
 
 ### Comments
 
-Avoid comments unless it will greatly improve clarity. Most of the time a comment can be avoided by extracting a function or by more descriptive variable name.
+Avoid comments unless it will greatly improve clarity. Most of the time a comment can be avoided by extracting a function or by a more descriptive variable name.
 
 ### Functions
 
