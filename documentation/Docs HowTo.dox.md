@@ -1,5 +1,7 @@
 # Docs HowTo {#docs-howto}
 
+This is a stub page on contributing to the docs.
+
 # Introduction
 
 The @bsb project uses [Doxygen](https://doxygen.nl) as its main means of creating and maintaining the documentation.

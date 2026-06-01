@@ -2,7 +2,7 @@
 
 This is a stub page about the code style.
 
-## General considerations
+## Introduction
 
 ### Automatic formatting
 

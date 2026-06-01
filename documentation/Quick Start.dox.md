@@ -1,3 +1,3 @@
 # Quick Start {#quick-start}
 
-Set up the development environment
+This is a stub page about the quick start process.
