@@ -24,23 +24,12 @@ Functions must be relatively short and do *roughly* one thing. They must have de
 
 ## File structure
 
-### General considerations
-
 - File names should be as short as possible, but remain descriptive and unique for easy searching.
 - When modifying or extending an existing third-party library, adopt its code style when practical.
-
-### C/C++
-
 - Source and header files must be in *snake case*, e.g. `my_awesome_header.h, ingenious_source.c`
 - File names should not be overly generic, e.g. `my_app_settings.c` instead of `settings.c`
 
-### Python
-
-This section needs to be expanded.
-
 ## Programming conventions
-
-### C/C++
 
 #### Preferred case style
 
@@ -107,7 +96,7 @@ uint32_t my_container_get_count(const MyContainer* instance) {
 
 #### Control flow
 
-When possible, replace a `switch` with array indexing:
+Where possible, replace a `switch` with array indexing:
 
 ```C
 // Not ideal
@@ -218,6 +207,36 @@ bool do_it_now(void) {
 
 Note the `do ... while(false)` pattern, it is widely used throughout the @bsb firmware.
 
+#### Custom types
+
+Always define custom types explicitly using `typedef`. Avoid using anonymous inline types:
+
+```C
+// Not ideal
+struct {
+    int member_1;
+    char member_2[10];
+} my_variable;
+
+// Better
+typedef struct {
+    int member_1;
+    char member_2[10];
+} MyType;
+
+MyType my_variable;
+
+// ...
+
+// Not ideal
+void call_callback(void (*callback)(void*));
+
+// Better
+typedef void (*MyCallback)(void* context);
+
+void call_callback(MyCallback callback);
+```
+
 #### Object orientation
 
 If a file `my_module.h` describes a class-like object, all of the method functions should have a `my_module_` prefix.
@@ -271,7 +290,3 @@ MyModule* my_module_alloc(void) {
     return instance;
 }
 ```
-
-### Python
-
-This section needs to be expanded.
