@@ -35,3 +35,14 @@ void front_display_set_brightness(FrontDisplaySrv* instance, FrontDisplayBrightn
  * @param is_blanked blank the display if @c true, unblank otherwise
  */
 void front_display_set_blanked(FrontDisplaySrv* instance, bool is_blanked);
+
+/**
+ * @brief Enter or exit low-power sleep mode.
+ *
+ * Display power is completely shut down in sleep mode. 
+ * When exiting sleep mode, the display will be re-initialized, which may cause a delay before it starts showing content again.
+ *
+ * @param instance Pointer to the FrontDisplaySrv instance
+ * @param sleep enter sleep mode if @c true, exit sleep mode otherwise
+ */
+void front_display_sleep_mode(FrontDisplaySrv* instance, bool sleep);
