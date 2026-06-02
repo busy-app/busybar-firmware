@@ -369,7 +369,6 @@ static void canvas_draw_wakeup_callback(struct mg_connection* conn, void* data, 
     } else {
         MG_REPLY_OK(conn);
     }
-    conn->is_draining = true;
     free(ctx);
 }
 
