@@ -30,7 +30,9 @@ typedef struct {
 } NvmData;
 
 static_assert(FuriHalNvmFlagCount <= 32, "Too many NVM flags defined!");
-static_assert(offsetof(NvmData, version) == 24, "unexpected version offset, bsbversion.py should be updated");
+static_assert(
+    offsetof(NvmData, version) == 24,
+    "unexpected version offset, bsbversion.py should be updated");
 
 static volatile NvmData* nvm_storage = (NvmData*)(&__bkp_start__);
 
