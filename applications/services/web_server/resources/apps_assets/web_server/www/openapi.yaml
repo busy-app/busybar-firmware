@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: BUSY Bar HTTP API
   description: HTTP API for BUSY Bar web server
-  version: 22.2.0
+  version: 23.0.0
   contact:
     name: tbd
 
@@ -1392,6 +1392,7 @@ paths:
           required: true
           schema:
             type: string
+            format: date-time
             pattern: "^20[0-9]{2}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](Z|[+-]([01][0-9]|2[0-3])(:?[0-5][0-9])?)$"
           description: ISO 8601 timestamp (e.g., 2025-10-02T14:30:45+02:00 for local time or 2025-10-02T14:30:45Z for UTC)
           example: "2025-10-02T14:30:45+0100"
@@ -1863,11 +1864,13 @@ components:
         name:
           type: string
           minLength: 1
+          maxLength: 20
           pattern: "^[a-zA-Z0-9 !()_=+;:,.?'|@#$%^&*\\[\\]{}/\\\\\"<>-]+$"
           description: Device name (letters, digits, spaces and common punctuation; no backtick or tilde)
           example: "BUSY bar"
       required:
         - name
+      additionalProperties: false
       example:
         name: "BUSY bar"
 
