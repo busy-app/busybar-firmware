@@ -533,7 +533,7 @@ static void canvas_srv_queue_event_callback(FuriEventLoopObject* object, void* c
             res = CanvasResultOk;
         }
     } else if(event.type == CanvasSrvEventExit) {
-        canvas_srv_clear_all(canvas);
+        if(canvas->gui) canvas_srv_clear_all(canvas);
         res = CanvasResultOk;
 
     } else if(event.type == CanvasSrvEventReevaluatePriority) {
