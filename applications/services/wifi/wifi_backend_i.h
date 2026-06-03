@@ -22,7 +22,8 @@ struct Wifi {
     FuriSemaphore* tcpip_lock;
     FuriSemaphore* ipv6_ready_semaphore;
     struct netif netif;
-    uint32_t drop_count;
+    uint32_t tx_drop_count;
+    uint32_t rx_drop_count;
     WifiBackendState state;
     bool scan_in_progress;
 };

@@ -287,8 +287,9 @@ static void wifi_net_intercom_rx_callback(const void* data, size_t data_size, vo
         sl_wifi_send_raw_data_frame(SL_WIFI_CLIENT_INTERFACE, data, data_size);
 
     if(status != SL_STATUS_OK) {
-        ++instance->drop_count;
-        FURI_LOG_W(TAG, "Dropped packet (%lu total), reason: 0x%lX", instance->drop_count, status);
+        ++instance->tx_drop_count;
+        FURI_LOG_W(
+            TAG, "TX: Dropped packet (%lu total), reason: 0x%lX", instance->tx_drop_count, status);
     }
 }
 
