@@ -647,6 +647,7 @@ static void canvas_screen_close(CanvasSrv* canvas) {
         gui_layer_remove_input_callback(input_layer, canvas_srv_input_callback);
 
         mirror_card_free(canvas->display_mirror);
+        canvas->display_mirror = NULL;
         for(GuiDisplayId i = 0; i < GuiDisplayIdMax; i++) {
             widget_free(canvas->display[i]);
             canvas->display[i] = NULL;
