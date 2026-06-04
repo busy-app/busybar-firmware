@@ -58,6 +58,7 @@ BleDevice* ble_device_alloc(/*BleDeviceType*/) {
 
 void ble_device_free(BleDevice* instance) {
     furi_assert(instance);
+    ble_advertise_free(instance->advertise);
     ble_security_free(instance->security_data);
     ble_device_base_free(instance->base);
     free(instance);
