@@ -37,7 +37,7 @@ bool updater_settings_save(const UpdaterSettings* settings) {
     return is_successful;
 }
 
-const char* updater_settings_get_check_url_value(UpdaterSettings* settings) {
+const char* updater_settings_get_check_url_value(const UpdaterSettings* settings) {
     int default_key_comparison_result = strncmp(
         settings->check_url,
         UPDATER_SETTINGS_CHECK_URL_DEFAULT_ALIAS,

@@ -154,7 +154,11 @@ static bool api_display_draw_parse_image_path(
         if(uploaded) {
             *file_path =
                 furi_string_alloc_printf("%s/%s/%s", DISPLAY_ASSETS_DIR, app_name, uploaded);
-
+            if(!mg_path_is_sane(mg_str(furi_string_get_cstr(*file_path)))) {
+                furi_string_free(*file_path);
+                *file_path = NULL;
+                break;
+            }
             result = true;
             break;
         }
@@ -220,6 +224,7 @@ static bool api_display_draw_parse_anim_player_element(
 
         if((json_str = mg_json_get_str(json_element, "$.section"))) {
             canvas_element->anim_player.section = furi_string_alloc_set_str(json_str);
+            free(json_str);
         } else {
             canvas_element->anim_player.section =
                 furi_string_alloc_set_str(ANIM_FILE_DEFAULT_SECTION);
@@ -346,12 +351,51 @@ _Static_assert(
     COUNT_OF(draw_errors) == CanvasResultMax,
     "draw_errors table must cover all CanvasResult values");
 
+typedef struct {
+    unsigned long conn_id;
+    CanvasResult result;
+} CanvasDrawCtx;
+
+static void canvas_draw_wakeup_callback(struct mg_connection* conn, void* data, size_t len) {
+    UNUSED(data);
+    UNUSED(len);
+    ConnectionContext* conn_ctx = (void*)conn->data;
+    CanvasDrawCtx* ctx = conn_ctx->context;
+    conn_ctx->on_wakeup = NULL;
+    conn_ctx->on_close = NULL;
+    conn_ctx->context = NULL;
+    if(ctx->result != CanvasResultOk) {
+        MG_REPLY_ERROR(conn, draw_errors[ctx->result].code, draw_errors[ctx->result].message);
+    } else {
+        MG_REPLY_OK(conn);
+    }
+    free(ctx);
+}
+
+static void canvas_draw_close_callback(struct mg_connection* conn) {
+    ConnectionContext* conn_ctx = (void*)conn->data;
+    CanvasDrawCtx* ctx = conn_ctx->context;
+    ctx->conn_id = 0;
+    conn_ctx->on_wakeup = NULL;
+    conn_ctx->on_close = NULL;
+    conn_ctx->context = NULL;
+}
+
+static void canvas_draw_done_callback(CanvasResult result, void* ctx_ptr) {
+    CanvasDrawCtx* ctx = ctx_ptr;
+    if(ctx->conn_id) {
+        ctx->result = result;
+        mg_wakeup(web_srv_get_mgr(), ctx->conn_id, NULL, 0);
+    } else {
+        free(ctx);
+    }
+}
+
 static void api_display_canvas_draw(struct mg_connection* conn, struct mg_http_message* msg) {
     CanvasElementsArray_t elements_array;
     CanvasElementsArray_init(elements_array);
 
     char* app_name = NULL;
-    bool success = false;
     double json_num = 0;
     int priority = DISPLAY_API_DEFAULT_PRIORITY;
 
@@ -382,33 +426,36 @@ static void api_display_canvas_draw(struct mg_connection* conn, struct mg_http_m
 
         size_t offset = 0;
         struct mg_str element;
-        success = true;
+        bool ok = true;
         while((offset = mg_json_next(elements_obj, offset, NULL, &element)) > 0) {
-            success = api_display_draw_parse_element(elements_array, app_name, element);
-            if(!success) break;
+            ok = api_display_draw_parse_element(elements_array, app_name, element);
+            if(!ok) break;
         }
-
-        if(!success) {
+        if(!ok) {
             MG_REPLY_BAD_REQUEST(conn);
             break;
         }
-
         if(CanvasElementsArray_size(elements_array) == 0) {
             MG_REPLY_ERROR(conn, 400, "Elements array is empty");
             break;
         }
 
+        CanvasDrawCtx* ctx = malloc(sizeof(*ctx));
+        *ctx = (CanvasDrawCtx){.conn_id = conn->id};
+
+        ConnectionContext* conn_ctx = (void*)conn->data;
+        conn_ctx->on_wakeup = canvas_draw_wakeup_callback;
+        conn_ctx->on_close = canvas_draw_close_callback;
+        conn_ctx->context = ctx;
+
         CanvasSrv* canvas = furi_record_open(RECORD_CANVAS);
-        CanvasResult result = canvas_show_elements(canvas, app_name, priority, elements_array);
+        canvas_show_elements_async(
+            canvas, app_name, priority, elements_array, canvas_draw_done_callback, ctx);
         furi_record_close(RECORD_CANVAS);
 
-        if(result != CanvasResultOk) {
-            furi_assert(result < CanvasResultMax);
-            MG_REPLY_ERROR(conn, draw_errors[result].code, draw_errors[result].message);
-            break;
-        }
-
-        MG_REPLY_OK(conn);
+        CanvasElementsArray_clear(elements_array);
+        free(app_name);
+        return; // response delivered asynchronously via mg_wakeup
     } while(0);
 
     CanvasElementsArray_clear(elements_array);
