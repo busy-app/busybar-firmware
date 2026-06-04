@@ -87,7 +87,8 @@ bool ble_device_connection_close(BleDevice* instance) {
         BLE_LOG_W("Already disconnected");
     } else {
         ble_connection_free(instance->connection);
-        result = true;
+        instance->state = BleDeviceStateIdle;
+        result = ble_device_start(instance);
     }
 
     return result;

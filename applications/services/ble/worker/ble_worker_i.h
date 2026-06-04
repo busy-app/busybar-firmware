@@ -24,13 +24,6 @@ typedef struct {
 
 DICT_DEF2(BleServiceEntryDict, uint16_t, M_DEFAULT_OPLIST, BleServiceEntry, M_POD_OPLIST)
 
-typedef enum {
-    BleWorkerStateIdle,
-    BleWorkerStateAdvertising,
-    BleWorkerStateConnected,
-    BleWorkerStateError,
-} BleWorkerState;
-
 struct BleWorker {
     FuriThread* thread;
     FuriEventLoop* event_loop;
@@ -44,14 +37,9 @@ struct BleWorker {
     uint8_t pairing_info_available;
     uint16_t rx_pending_handle;
     ///TODO: this can be removed
-    bool connected;
 
-    BleWorkerState state;
     uint16_t max_payload_size;
-    uint8_t device_found;
     uint8_t conn_params_updated;
-    uint8_t remote_name[31];
-    uint8_t remote_addr_type;
     uint8_t remote_dev_str_addr[18];
     uint8_t remote_dev_bd_addr[6];
 

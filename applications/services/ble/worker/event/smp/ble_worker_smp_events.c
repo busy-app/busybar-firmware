@@ -72,10 +72,9 @@ bool ble_worker_event_handler_smp_ltk_request(size_t data_size, void* data, void
             BLE_LOG_W("ltk req reply cmd failed with reason = %lx", status);
         }
         BLE_LOG_I("Paired device");
+        bool connected = ble_device_is_connected(instance->device);
         instance->on_connection_changed_cb(
-            instance->on_connection_changed_ctx,
-            instance->connected,
-            instance->str_remote_address);
+            instance->on_connection_changed_ctx, connected, instance->str_remote_address);
 
         // ble_worker_spawn_event(
         //     instance->event_queue, BleWorkerEventTypeAdjustConnectionRequest, 0, NULL);
@@ -105,10 +104,9 @@ bool ble_worker_event_handler_smp_security_keys(size_t data_size, void* data, vo
             break;
         }
 
+        bool connected = ble_device_is_connected(instance->device);
         instance->on_connection_changed_cb(
-            instance->on_connection_changed_ctx,
-            instance->connected,
-            instance->str_remote_address);
+            instance->on_connection_changed_ctx, connected, instance->str_remote_address);
         BLE_LOG_I("Security keys saved");
     } while(false);
 

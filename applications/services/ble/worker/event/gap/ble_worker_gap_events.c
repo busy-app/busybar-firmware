@@ -13,7 +13,9 @@ bool ble_worker_event_handler_connected(size_t data_size, void* data, void* cont
     rsi_6byte_dev_address_to_ascii(instance->str_remote_address, resp_enh_conn->dev_addr);
     BLE_LOG_I("Connected, str_remote_address : %s", instance->str_remote_address);
 
-    instance->state = BleWorkerStateConnected;
+
+    bool result = ble_device_connection_open(instance->device, resp_enh_conn->dev_addr);
+
     ///TODO: Commented due to issues with connect to different phones remove when interaction logic will be finalized
     //! Setting MTU Exchange event
     // status =
@@ -24,12 +26,13 @@ bool ble_worker_event_handler_connected(size_t data_size, void* data, void* cont
     // } else {
     //     BLE_LOG_I("MTU sent");
     // }
-    instance->connected = true;
 #ifdef BLE_DEBUG_ADVERTISE_FORCE_PUBLIC
-    instance->on_connection_changed_cb(
-        instance->on_connection_changed_ctx, instance->connected, instance->str_remote_address);
+    if(result) {
+        instance->on_connection_changed_cb(
+            instance->on_connection_changed_ctx, result, instance->str_remote_address);
+    }
 #endif
-    return true;
+    return result;
 }
 
 bool ble_worker_event_handler_disconnected(size_t data_size, void* data, void* context) {
@@ -41,9 +44,9 @@ bool ble_worker_event_handler_disconnected(size_t data_size, void* data, void* c
     //! event invokes when disconnection was completed
     BLE_LOG_I("Disconnected, str_remote_address : %s", instance->str_remote_address);
 
-    instance->device_found = 0;
+    bool result = ble_device_connection_close(instance->device);
+
     instance->conn_params_updated = 0;
-    instance->connected = false;
     if(instance->rx_pending_handle) {
         BLE_LOG_W("Rx confirm not sent!");
         furi_semaphore_release(instance->receive_sem);
@@ -67,19 +70,13 @@ bool ble_worker_event_handler_disconnected(size_t data_size, void* data, void* c
         }
     }
 
-    //! start advertising
-    const rsi_bt_event_le_security_keys_t* rpa =
-        ble_security_get_rpa_data(instance->security_data);
-    instance->state =
-        ble_worker_start_advertising(instance->pairing_info_available, rpa, instance->advertise) ?
-            BleWorkerStateAdvertising :
-            BleWorkerStateError;
-
     memset(instance->str_remote_address, 0, BLE_REMOTE_ADDRESS_STRING_SIZE);
-    instance->on_connection_changed_cb(
-        instance->on_connection_changed_ctx, instance->connected, instance->str_remote_address);
 
-    return true;
+    bool connected = !result; //ble_device_is_connected(instance->device);
+    instance->on_connection_changed_cb(
+        instance->on_connection_changed_ctx, connected, instance->str_remote_address);
+
+    return result;
 }
 
 bool ble_worker_event_handler_phy_update_complete(size_t data_size, void* data, void* context) {
@@ -171,7 +168,8 @@ bool ble_worker_event_handler_exit(size_t data_size, void* data, void* context) 
     UNUSED(data);
     BleWorker* instance = context;
 
-    instance->state = ble_worker_stop_advertising() ? BleWorkerStateIdle : BleWorkerStateError;
+    ble_device_stop(instance->device);
+
     furi_event_loop_stop(instance->event_loop);
     return true;
 }
