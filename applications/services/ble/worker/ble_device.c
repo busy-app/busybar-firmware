@@ -68,15 +68,19 @@ bool ble_device_is_connected(BleDevice* instance) {
     return instance->connection != NULL;
 }
 
-bool ble_device_connection_open(BleDevice* instance, const uint8_t* const peer_address) {
+bool ble_device_connection_open(
+    BleDevice* instance,
+    BleDeviceAddressType type,
+    const uint8_t* peer_addr) {
     furi_assert(instance);
-    furi_assert(peer_address);
 
     bool result = false;
-    if(ble_device_is_connected(instance)) {
+    if(instance->state == BleDeviceStateConnected) {
         BLE_LOG_W("Already connected with remote");
     } else {
-        instance->connection = ble_connection_alloc(peer_address);
+        instance->connection = ble_connection_alloc(type, peer_addr);
+        instance->state = BleDeviceStateConnected;
+        BLE_LOG_W("%s - opened", __func__);
         result = true;
     }
 
@@ -87,10 +91,13 @@ bool ble_device_connection_close(BleDevice* instance) {
     furi_assert(instance);
     bool result = false;
 
-    if(!ble_device_is_connected(instance)) {
+    //!ble_device_is_connected(instance)
+    if(instance->state == BleDeviceStateIdle) {
         BLE_LOG_W("Already disconnected");
     } else {
         ble_connection_free(instance->connection);
+        instance->connection = NULL;
+
         instance->state = BleDeviceStateIdle;
         result = ble_device_start(instance);
     }
@@ -103,10 +110,13 @@ bool ble_device_disconnect(BleDevice* instance) {
 
     bool result = false;
     if(instance->state == BleDeviceStateConnected) {
-        const uint8_t* addr = ble_connection_get_peer_address(instance->connection);
+        BleDeviceBase* peer = ble_connection_get_peer(instance->connection);
+        const uint8_t* addr = ble_device_base_get_address(peer, BleDeviceAddressTypeOrigin);
 
         sl_status_t status = rsi_ble_disconnect((const int8_t*)addr);
-        if(status != RSI_SUCCESS) BLE_LOG_W("Failed to disconnect, error code : 0x%08lx", status);
+        if(status != RSI_SUCCESS) {
+            BLE_LOG_W("Failed to disconnect, error code : 0x%08lx", status);
+        }
 
         result = status == RSI_SUCCESS;
     } else if(instance->state != BleDeviceStateError) {
@@ -137,7 +147,6 @@ static bool ble_device_start_advertise_with_value(
     ble_adv.adv_channel_map = RSI_BLE_ADV_CHANNEL_MAP;
 
     rsi_ble_clear_acceptlist();
-    BLE_LOG_W("advertise_to_paired_only = %d", advertise_to_paired_only);
     if(advertise_to_paired_only) {
         rsi_ble_addto_acceptlist((int8_t*)key->Identity_addr, key->Identity_addr_type);
         ble_adv.filter_type = ALLOW_SCAN_REQ_ACCEPT_LIST_CONN_REQ_ACCEPT_LIST;

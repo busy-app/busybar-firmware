@@ -24,7 +24,11 @@ void ble_device_register_service();
 //CONNECTION handlers
 //----------------------------------------------------------------------------
 //Create BleDevice* remote instance inside of BsbDevice and stores parameters
-bool ble_device_connection_open(BleDevice* instance, const uint8_t* const peer_address);
+bool ble_device_connection_open(
+    BleDevice* instance,
+    BleDeviceAddressType type,
+    const uint8_t* peer_addr);
+
 bool ble_device_connection_close(BleDevice* instance);
 
 //Destroys BleDevice* remote instance inside of BsbDevice.
