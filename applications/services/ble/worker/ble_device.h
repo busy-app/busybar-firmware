@@ -24,6 +24,8 @@ void ble_device_register_service();
 //CONNECTION handlers
 //----------------------------------------------------------------------------
 //Create BleDevice* remote instance inside of BsbDevice and stores parameters
+BleConnectionContext* ble_device_get_connection_context(BleDevice* instance);
+
 bool ble_device_connection_open(
     BleDevice* instance,
     BleDeviceAddressType type,

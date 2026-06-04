@@ -63,6 +63,11 @@ void ble_device_free(BleDevice* instance) {
     free(instance);
 }
 
+BleConnectionContext* ble_device_get_connection_context(BleDevice* instance) {
+    furi_assert(instance);
+    return instance->connection;
+}
+
 ///TODO: Maybe Replace by checking state
 bool ble_device_is_connected(BleDevice* instance) {
     return instance->connection != NULL;
