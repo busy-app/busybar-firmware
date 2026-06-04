@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ble_connection.h"
 #include "ble_security.h"
 #include "ble_advertise.h"
 

@@ -2,8 +2,6 @@
 
 // #include "ble_advertise.h"
 // #include "ble_security.h"
-#include "ble_connection.h"
-#include "ble_device_common.h"
 
 #include "_nwp_callbacks/ble_nwp_headers.h"
 #include "../ble_common.h"
@@ -11,7 +9,7 @@
 #define TAG "BleDevice"
 
 struct BleDevice {
-    BleDeviceCommon base;
+    BleDeviceBase* base;
     BleDeviceState state;
 
     uint16_t mtu_size;
@@ -27,19 +25,24 @@ struct BleDevice {
 BleDevice* ble_device_alloc(/*BleDeviceType*/) {
     BleDevice* instance = malloc(sizeof(BleDevice));
     instance->state = BleDeviceStateIdle;
+    instance->base = ble_device_base_alloc(BleDeviceRoleRemote);
+
     instance->security_data = ble_security_alloc();
     if(!ble_security_init(instance->security_data)) {
         BLE_LOG_W("Device not paired");
     }
 
-    sl_status_t status = rsi_bt_get_local_device_address(instance->base.dev_addr);
+    uint8_t addr_buf[BLE_DEVICE_ADDRESS_LEN] = {0};
+    sl_status_t status = rsi_bt_get_local_device_address(addr_buf);
     if(status != RSI_SUCCESS) {
         BLE_LOG_W("Get local device address failed = 0x%08lx", status);
         instance->state = BleDeviceStateError;
+    } else {
+        ble_device_base_set_address(instance->base, BleDeviceAddressTypeOrigin, addr_buf);
     }
 
     ///We need this for advertising module. Without this, advertise doesn't want to work
-    status = rsi_ble_set_random_address_with_value(instance->base.dev_addr);
+    status = rsi_ble_set_random_address_with_value(addr_buf);
     if(status != RSI_SUCCESS) {
         BLE_LOG_W("Failed to set address: %08lX", status);
         instance->state = BleDeviceStateError;
@@ -56,6 +59,7 @@ BleDevice* ble_device_alloc(/*BleDeviceType*/) {
 void ble_device_free(BleDevice* instance) {
     furi_assert(instance);
     ble_security_free(instance->security_data);
+    ble_device_base_free(instance->base);
     free(instance);
 }
 
