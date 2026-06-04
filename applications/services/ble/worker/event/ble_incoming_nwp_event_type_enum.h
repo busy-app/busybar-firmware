@@ -3,7 +3,8 @@
 typedef enum {
     BleIncomingNwpEventTypeUnknown,
     BleIncomingNwpEventTypeExit,
-    BleIncomingNwpEventTypeAdvReport,
+    // BleIncomingNwpEventTypeSetName,
+
     BleIncomingNwpEventTypeConnected,
     BleIncomingNwpEventTypeDisconnected,
     BleIncomingNwpEventTypePhyUpdateComplete,

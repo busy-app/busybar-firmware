@@ -4,28 +4,6 @@
 
 #define TAG "BleGAPEvent"
 
-bool ble_worker_event_handler_advertise_report(size_t data_size, void* data, void* context) {
-    ///TODO: Think on this logic closer. Do we need it at all!
-    UNUSED(data_size);
-    BleWorker* instance = context;
-    if(instance->device_found == 0) {
-        rsi_ble_event_adv_report_t* adv_report = data;
-
-        memset(&instance->remote_name, 0, sizeof(instance->remote_name));
-        BT_LE_ADPacketExtract(
-            instance->remote_name, adv_report->adv_data, adv_report->adv_data_len);
-
-        instance->remote_addr_type = adv_report->dev_addr_type;
-        rsi_6byte_dev_address_to_ascii(
-            instance->remote_dev_str_addr, (uint8_t*)adv_report->dev_addr);
-        memcpy((int8_t*)instance->remote_dev_bd_addr, (uint8_t*)adv_report->dev_addr, 6);
-
-        instance->device_found = true;
-    }
-
-    return instance->device_found;
-}
-
 bool ble_worker_event_handler_connected(size_t data_size, void* data, void* context) {
     UNUSED(data_size);
     BleWorker* instance = context;

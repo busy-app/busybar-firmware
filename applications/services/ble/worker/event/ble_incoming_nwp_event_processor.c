@@ -29,7 +29,6 @@ bool ble_worker_event_handler_dummy(size_t data_size, void* data, void* context)
 static const BleWorkerEventHandler event_handlers[BleIncomingNwpEventTypeCount] = {
     [BleIncomingNwpEventTypeUnknown] = ble_worker_event_handler_dummy,
     [BleIncomingNwpEventTypeExit] = ble_worker_event_handler_exit,
-    [BleIncomingNwpEventTypeAdvReport] = ble_worker_event_handler_advertise_report,
     [BleIncomingNwpEventTypeConnected] = ble_worker_event_handler_connected,
     [BleIncomingNwpEventTypeDisconnected] = ble_worker_event_handler_disconnected,
     [BleIncomingNwpEventTypePhyUpdateComplete] = ble_worker_event_handler_phy_update_complete,

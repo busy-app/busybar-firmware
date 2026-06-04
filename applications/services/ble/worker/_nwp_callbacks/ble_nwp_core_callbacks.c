@@ -17,13 +17,8 @@ static BleTransmitter* transport = NULL;
  * This callback function updates the scanned remote devices list
  */
 static void rsi_ble_gap_on_adv_report_event(rsi_ble_event_adv_report_t* adv_report) {
-    BLE_LOG_W("ble_worker_on_adv_report_event");
-
-    ble_incoming_nwp_event_processor_spawn_event(
-        event_processor,
-        BleIncomingNwpEventTypeAdvReport,
-        sizeof(rsi_ble_event_adv_report_t),
-        adv_report);
+    UNUSED(adv_report);
+    BLE_LOG_NWP_EVENT_NOT_IMPLEMENTED();
 }
 
 /**
