@@ -36,7 +36,7 @@ struct BleWorker {
     FuriEventLoop* event_loop;
     BleIncomingNwpEventProcessor* event_proc;
     BleTransmitter* transport;
-
+    BleDevice* device;
     //----------------------------------------------------
 
     FuriSemaphore* receive_sem;
@@ -67,7 +67,6 @@ struct BleWorker {
     rsi_ble_event_mtu_t app_ble_mtu_event;
 
     BleSecurityData* security_data;
-    BleAdvertiseContext* advertise;
 
     BleServiceEntryDict_t service_dict;
     BleConnectionStateChanged on_connection_changed_cb;

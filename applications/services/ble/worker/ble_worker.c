@@ -11,16 +11,10 @@
 
 #define BLE_DEFAULT_LOCAL_NAME "BUSY Bar"
 
-#define BLE_WORKER_TX_TIMEOUT_MS           (1000)
-#define BLE_WORKER_INDICATE_RETRY_DELAY_MS (100)
-#define BLE_WORKER_RETRY_PHY_TIMEOUT_MS    (500)
-
 #define BLE_WORKER_LOCAL_DEV_ADDR_LEN 18 // Length of the local device address
 #define BLE_WORKER_MAX_MTU_SIZE       240
 
 #define UUID_SIZE 16
-
-#define BLE_WORKER_BT_HCI_COMMAND_DISALLOWED 0x4E0C
 
 #define BLE_CCCD_NOTIFICATION_ENABLED(cccd_value) ((cccd_value & 0x01) != 0)
 #define BLE_CCCD_INDICATION_ENABLED(cccd_value)   ((cccd_value & 0x02) != 0)
@@ -49,18 +43,6 @@
 #define RSI_BLE_ATT_CONFIG_BITMAP (BLE_SECURITY_MODE)
 #endif
 
-typedef struct {
-    uint16_t handle;
-    size_t data_size;
-} BleDataHeader;
-
-typedef struct {
-    BleDataHeader header;
-    uint8_t data[];
-} BleDataItem;
-
-typedef BleDataItem* BleDataItemPtr;
-
 //===========================================================================================
 ///TODO:Remove this in future
 static BleWorker* ble_worker_instance = NULL;
@@ -82,77 +64,11 @@ static void retry_phy_timer_callback(void* ctx) {
         instance->event_proc, BleIncomingNwpEventTypeDataLengthChange, 0, NULL);
 }
 //===========================================================================================
-bool ble_worker_start_advertising(
-    bool advertise_to_paired_only,
-    const rsi_bt_event_le_security_keys_t* key,
-    const BleAdvertiseContext* advertise) {
-    rsi_ble_req_adv_t ble_adv = {0};
-
-#ifdef BLE_DEBUG_ADVERTISE_FORCE_PUBLIC
-    BLE_LOG_W("Public advertise forced!");
-    advertise_to_paired_only = false;
-#endif
-
-    ble_adv.status = RSI_BLE_START_ADV;
-    ///TODO: This is blocked because it doesn't work on IPhone. It just doesn't see
-    ///BSB in case of direct advertise.
-    // ble_adv.adv_type = advertise_to_paired_only ? DIR_CONN_LOW_DUTY_CYCLE : UNDIR_CONN;
-    ble_adv.adv_type = UNDIR_CONN;
-
-    ble_adv.adv_int_min = RSI_BLE_ADV_INT_MIN;
-    ble_adv.adv_int_max = RSI_BLE_ADV_INT_MAX;
-    ble_adv.adv_channel_map = RSI_BLE_ADV_CHANNEL_MAP;
-
-    rsi_ble_clear_acceptlist();
-    if(advertise_to_paired_only) {
-        rsi_ble_addto_acceptlist((int8_t*)key->Identity_addr, key->Identity_addr_type);
-        ble_adv.filter_type = ALLOW_SCAN_REQ_ACCEPT_LIST_CONN_REQ_ACCEPT_LIST;
-        ble_adv.own_addr_type = LE_RESOLVABLE_RANDOM_ADDRESS;
-        memcpy(ble_adv.direct_addr, key->Identity_addr, 6);
-        ble_adv.direct_addr_type = key->Identity_addr_type;
-    } else {
-        ble_adv.filter_type = RSI_BLE_ADV_FILTER_TYPE;
-        ble_adv.own_addr_type = LE_PUBLIC_ADDRESS;
-    }
-
-    ble_advertise_refresh_data(advertise);
-
-    sl_status_t status = rsi_ble_start_advertising_with_values(&ble_adv);
-
-    if(status != RSI_SUCCESS) {
-        BLE_LOG_W("Failed to start advertising, error code : 0x%08lx", status);
-    } else {
-        BLE_LOG_I("Start advertising...");
-    }
-
-    return status == RSI_SUCCESS;
-}
-
-bool ble_worker_stop_advertising() {
-    sl_status_t status;
-    ///TODO: think of more reliable way of handling stop command when we are connected
-    if(ble_worker_instance->connected) {
-        status = rsi_ble_disconnect((int8_t*)ble_worker_instance->remote_dev_address);
-        if(status != RSI_SUCCESS)
-            BLE_LOG_W("Failed to disconnect, error code : 0x%08lx", status);
-        else
-            BLE_LOG_I("Disconnected");
-    }
-
-    status = rsi_ble_stop_advertising();
-
-    if(status != RSI_SUCCESS) {
-        BLE_LOG_W("Failed to stop advertising, error code : 0x%08lx", status);
-        status = RSI_SUCCESS;
-    } else
-        BLE_LOG_I("Stop advertising...");
-
-    return status == RSI_SUCCESS;
-}
 
 static int32_t ble_worker_thread_callback(void* context) {
     BleWorker* instance = context;
     BLE_LOG_I("Worker Thread Start");
+    ble_device_start(instance->device);
 
     instance->event_loop = furi_event_loop_alloc();
 
@@ -316,9 +232,12 @@ BleWorker* ble_worker_init(BleConnectionStateChanged connect_callback, void* ctx
     instance->on_connection_changed_ctx = ctx;
     instance->receive_sem = furi_semaphore_alloc(1, 1);
     instance->max_payload_size = BLE_WORKER_MAX_MTU_SIZE - BLE_WORKER_ATTR_HEADER_SIZE;
-    instance->security_data = ble_security_alloc();
-    instance->advertise = ble_advertise_alloc();
-    ble_advertise_set_name(instance->advertise, BLE_DEFAULT_LOCAL_NAME);
+
+    instance->device = ble_device_alloc();
+    ble_device_set_name(instance->device, BLE_DEFAULT_LOCAL_NAME);
+    ///TODO: this is to keep old code working
+    instance->security_data = ble_device_get_security_data(instance->device);
+    instance->pairing_info_available = ble_device_is_paired(instance->device);
 
     BleServiceEntryDict_init(instance->service_dict);
 
@@ -326,36 +245,11 @@ BleWorker* ble_worker_init(BleConnectionStateChanged connect_callback, void* ctx
         furi_timer_alloc(retry_phy_timer_callback, FuriTimerTypeOnce, instance);
 
     //----------------------------------------------------------------------------------------------------------------
-    static uint8_t rsi_app_resp_get_dev_addr[RSI_DEV_ADDR_LEN] = {0};
-    uint8_t local_dev_addr[BLE_WORKER_LOCAL_DEV_ADDR_LEN] = {0};
-
-    instance->pairing_info_available = ble_security_init(instance->security_data);
-
-    sl_status_t status = rsi_bt_get_local_device_address(rsi_app_resp_get_dev_addr);
-    if(status != RSI_SUCCESS) {
-        BLE_LOG_W("Get local device address failed = 0x%08lx", status);
-        furi_crash();
-    } else {
-        rsi_6byte_dev_address_to_ascii(local_dev_addr, rsi_app_resp_get_dev_addr);
-        BLE_LOG_I("Local device address %s", local_dev_addr);
-    }
 
     instance->event_proc = ble_incoming_nwp_event_processor_alloc(instance);
     instance->transport = ble_transmitter_alloc();
     ble_nwp_core_config_callbacks(instance->event_proc, instance->transport);
     //----------------------------------------------------------------------------------------------------------------
-    //! Set local name
-    status = rsi_bt_set_local_name((const uint8_t*)BLE_DEFAULT_LOCAL_NAME);
-    if(status != RSI_SUCCESS) {
-        BLE_LOG_W("Failed to set default local name, error code : 0x%08lx", status);
-    }
-
-    status = rsi_ble_set_random_address_with_value(rsi_app_resp_get_dev_addr);
-    if(status != RSI_SUCCESS) {
-        BLE_LOG_W("Failed to set address: %08lX", status);
-    }
-    //----------------------------------------------------------------------------------------------------------------
-    ble_advertise_print_data(instance->advertise);
 
     //Appearance adjustment
     uuid_t uuid = {0};
@@ -438,17 +332,7 @@ bool ble_worker_register_service(BleServiceObject* service) {
 
 void ble_worker_start() {
     do {
-        if(ble_worker_instance->state != BleWorkerStateIdle) {
-            BLE_LOG_W("BLE not in Idle state, skip advertise start");
-            break;
-        }
-
-        const rsi_bt_event_le_security_keys_t* rpa =
-            ble_security_get_rpa_data(ble_worker_instance->security_data);
-        ble_worker_start_advertising(
-            ble_worker_instance->pairing_info_available, rpa, ble_worker_instance->advertise);
-
-        ble_worker_instance->state = BleWorkerStateAdvertising;
+        ///TODO: Maybe some checks of thread state
         furi_thread_start(ble_worker_instance->thread);
     } while(false);
 }
@@ -510,43 +394,15 @@ void ble_worker_receive_confirm(uint16_t handle, uint8_t cccd_value) {
 }
 
 bool ble_worker_forget_pairing() {
-    if(ble_worker_instance->state == BleWorkerStateAdvertising) {
-        ble_worker_stop_advertising();
-    }
-
-    ble_security_rpa_disable();
-
-    bool result = ble_security_delete_data(ble_worker_instance->security_data);
-
-    ble_worker_instance->pairing_info_available = 0;
-
-    if(ble_worker_instance->state == BleWorkerStateAdvertising) {
-        ble_worker_start_advertising(false, NULL, ble_worker_instance->advertise);
-    }
-
-    if(result) BLE_LOG_I("Security data removed");
-    return result;
+    return ble_device_forget_paired(ble_worker_instance->device);
 }
 
 bool ble_worker_pairing_exists() {
-    return ble_security_pairing_present(ble_worker_instance->security_data);
+    return ble_device_is_paired(ble_worker_instance->device);
 }
 
 void ble_worker_set_name(const char* new_name) {
     furi_assert(new_name);
 
-    if(ble_worker_instance->state == BleWorkerStateAdvertising) {
-        ble_worker_stop_advertising();
-    }
-
-    ble_advertise_set_name(ble_worker_instance->advertise, new_name);
-
-    sl_status_t status = rsi_bt_set_local_name((const uint8_t*)new_name);
-    if(status != RSI_SUCCESS) {
-        BLE_LOG_W("Failed to set local name, error code : 0x%08lx", status);
-    }
-
-    if(ble_worker_instance->state == BleWorkerStateAdvertising) {
-        ble_worker_start_advertising(false, NULL, ble_worker_instance->advertise);
-    }
+    ble_device_set_name(ble_worker_instance->device, new_name);
 }

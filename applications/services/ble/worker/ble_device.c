@@ -14,7 +14,6 @@ struct BleDevice {
     BleDeviceCommon base;
     BleDeviceState state;
 
-    bool pairing_info_available;
     uint16_t mtu_size;
     uint16_t max_payload_size; // calculate from mtu
 
@@ -29,7 +28,9 @@ BleDevice* ble_device_alloc(/*BleDeviceType*/) {
     BleDevice* instance = malloc(sizeof(BleDevice));
     instance->state = BleDeviceStateIdle;
     instance->security_data = ble_security_alloc();
-    instance->pairing_info_available = ble_security_init(instance->security_data);
+    if(!ble_security_init(instance->security_data)) {
+        BLE_LOG_W("Device not paired");
+    }
 
     sl_status_t status = rsi_bt_get_local_device_address(instance->base.dev_addr);
     if(status != RSI_SUCCESS) {
@@ -63,7 +64,7 @@ bool ble_device_is_connected(BleDevice* instance) {
     return instance->connection != NULL;
 }
 
-bool ble_device_connect(BleDevice* instance, const uint8_t* const peer_address) {
+bool ble_device_connection_open(BleDevice* instance, const uint8_t* const peer_address) {
     furi_assert(instance);
     furi_assert(peer_address);
 
@@ -78,33 +79,38 @@ bool ble_device_connect(BleDevice* instance, const uint8_t* const peer_address) 
     return result;
 }
 
-bool ble_device_disconnect(BleDevice* instance) {
+bool ble_device_connection_close(BleDevice* instance) {
     furi_assert(instance);
-
     bool result = false;
+
     if(!ble_device_is_connected(instance)) {
         BLE_LOG_W("Already disconnected");
     } else {
         ble_connection_free(instance->connection);
         result = true;
     }
+
     return result;
 }
 
-void ble_device_set_name(BleDevice* instance, const char* name) {
+bool ble_device_disconnect(BleDevice* instance) {
     furi_assert(instance);
-    //! Set local name
-    sl_status_t status = rsi_bt_set_local_name((const uint8_t*)name);
-    if(status != RSI_SUCCESS) {
-        BLE_LOG_W("Failed to set default local name, error code : 0x%08lx", status);
+
+    bool result = false;
+    if(instance->state == BleDeviceStateConnected) {
+        const uint8_t* addr = ble_connection_get_peer_address(instance->connection);
+
+        sl_status_t status = rsi_ble_disconnect((const int8_t*)addr);
+        if(status != RSI_SUCCESS) BLE_LOG_W("Failed to disconnect, error code : 0x%08lx", status);
+
+        result = status == RSI_SUCCESS;
+    } else if(instance->state != BleDeviceStateError) {
+        result = true;
     }
-
-    ble_advertise_set_name(instance->advertise, name);
-
-    ble_advertise_print_data(instance->advertise);
+    return result;
 }
 
-static bool ble_start_advertise(
+static bool ble_device_start_advertise_with_value(
     bool advertise_to_paired_only,
     const rsi_bt_event_le_security_keys_t* key,
     const BleAdvertiseContext* advertise) {
@@ -151,26 +157,87 @@ static bool ble_start_advertise(
     return status == RSI_SUCCESS;
 }
 
-bool ble_device_start_advertise(BleDevice* instance) {
+static void ble_device_start_advertise(BleDevice* instance) {
+    const rsi_bt_event_le_security_keys_t* rpa =
+        ble_security_get_rpa_data(instance->security_data);
+    bool is_paired = ble_device_is_paired(instance);
+    instance->state = ble_device_start_advertise_with_value(is_paired, rpa, instance->advertise) ?
+                          BleDeviceStateAdvertising :
+                          BleDeviceStateError;
+}
+
+static bool ble_device_stop_advertise(BleDevice* instance) {
+    bool result = false;
+
+    if(instance->state == BleDeviceStateAdvertising) {
+        sl_status_t status = rsi_ble_stop_advertising();
+
+        if(status != RSI_SUCCESS) {
+            BLE_LOG_W("Failed to stop advertising, error code : 0x%08lx", status);
+        }
+
+        result = status == RSI_SUCCESS;
+    } else if(instance->state == BleDeviceStateConnected) {
+        BLE_LOG_W("Skip stop advertising, device is connected");
+        result = true;
+    }
+    return result;
+}
+
+bool ble_device_start(BleDevice* instance) {
     furi_assert(instance);
 
     if(instance->state == BleDeviceStateIdle) {
-        const rsi_bt_event_le_security_keys_t* rpa =
-            ble_security_get_rpa_data(instance->security_data);
-        instance->state =
-            ble_start_advertise(instance->pairing_info_available, rpa, instance->advertise) ?
-                BleDeviceStateAdvertising :
-                BleDeviceStateError;
+        ble_device_start_advertise(instance);
+        // const rsi_bt_event_le_security_keys_t* rpa =
+        //     ble_security_get_rpa_data(instance->security_data);
+        // instance->state = ble_device_start_advertise(
+        //                       instance->pairing_info_available, rpa, instance->advertise) ?
+        //                       BleDeviceStateAdvertising :
+        //                       BleDeviceStateError;
     } else {
-        BLE_LOG_W("BLE not in Idle state, skip advertise start");
+        BLE_LOG_W("BLE not in Idle state, skip start");
     }
 
     return instance->state == BleDeviceStateAdvertising;
 }
 
-// bool ble_device_stop_advertise(BleDevice* instance) {
+bool ble_device_stop(BleDevice* instance) {
+    furi_assert(instance);
 
-// }
+    bool result = false;
+    do {
+        if(!ble_device_disconnect(instance)) break;
+        if(!ble_device_stop_advertise(instance)) break;
+
+        instance->state = BleDeviceStateIdle;
+
+        result = true;
+    } while(false);
+    return result;
+}
+
+void ble_device_set_name(BleDevice* instance, const char* name) {
+    furi_assert(instance);
+
+    BleDeviceState prev_state = instance->state;
+
+    if(prev_state == BleDeviceStateAdvertising) {
+        ble_device_stop_advertise(instance);
+    }
+
+    // //! Set local name
+    sl_status_t status = rsi_bt_set_local_name((const uint8_t*)name);
+    if(status != RSI_SUCCESS) {
+        BLE_LOG_W("Failed to set default local name, error code : 0x%08lx", status);
+    }
+    ble_advertise_set_name(instance->advertise, name);
+
+    if(prev_state == BleDeviceStateAdvertising) {
+        ble_device_start_advertise(instance);
+    }
+    // ble_advertise_print_data(instance->advertise);
+}
 
 BleAdvertiseContext* ble_device_get_advertise_context(BleDevice* instance) {
     furi_assert(instance);
@@ -179,11 +246,30 @@ BleAdvertiseContext* ble_device_get_advertise_context(BleDevice* instance) {
 
 bool ble_device_is_paired(BleDevice* instance) {
     furi_assert(instance);
-    return instance->pairing_info_available;
+    return ble_security_pairing_present(instance->security_data);
+}
+
+bool ble_device_forget_paired(BleDevice* instance) {
+    furi_assert(instance);
+
+    BleDeviceState prev_state = instance->state;
+    if(prev_state == BleDeviceStateAdvertising) {
+        ble_device_stop_advertise(instance);
+    }
+
+    ble_security_rpa_disable();
+
+    bool result = ble_security_delete_data(instance->security_data);
+
+    if(prev_state == BleDeviceStateAdvertising) {
+        ble_device_start_advertise(instance);
+    }
+
+    if(result) BLE_LOG_I("Security data removed");
+    return result;
 }
 
 BleSecurityData* ble_device_get_security_data(BleDevice* instance) {
     furi_assert(instance);
     return instance->security_data;
 }
-// BleAdvertiseContext* advertise;

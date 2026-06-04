@@ -23,7 +23,8 @@ void ble_device_register_service();
 //CONNECTION handlers
 //----------------------------------------------------------------------------
 //Create BleDevice* remote instance inside of BsbDevice and stores parameters
-bool ble_device_connect(BleDevice* instance, const uint8_t* const peer_address);
+bool ble_device_connection_open(BleDevice* instance, const uint8_t* const peer_address);
+bool ble_device_connection_close(BleDevice* instance);
 
 //Destroys BleDevice* remote instance inside of BsbDevice.
 bool ble_device_disconnect(BleDevice* instance);
@@ -32,9 +33,13 @@ bool ble_device_is_connected(BleDevice* instance);
 
 void ble_device_set_name(BleDevice* instance, const char* name);
 
-bool ble_device_start_advertise(BleDevice* instance);
+bool ble_device_start(BleDevice* instance);
 
-bool ble_device_stop_advertise(BleDevice* instance);
+bool ble_device_stop(BleDevice* instance);
+
+//bool ble_device_start_advertise(BleDevice* instance);
+
+//bool ble_device_stop_advertise(BleDevice* instance);
 
 BleAdvertiseContext* ble_device_get_advertise_context(BleDevice* instance);
 // const BleAdvertiseContext*
@@ -64,7 +69,7 @@ void ble_device_pairing_begin(/*Pairing data*/);
 void ble_device_pairing_end();
 
 //Forgets paired device
-void ble_device_forget_paired(/*address*/);
+bool ble_device_forget_paired(BleDevice* instance);
 
 //Forgets all paired devices
 // void ble_device_forget_all();

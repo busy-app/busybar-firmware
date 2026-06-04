@@ -62,3 +62,8 @@ void ble_connection_free(BleConnectionContext* instance) {
     free(instance->peer);
     free(instance);
 }
+
+const uint8_t* ble_connection_get_peer_address(BleConnectionContext* instance) {
+    furi_assert(instance);
+    return instance->peer->dev_addr;
+}
