@@ -58,10 +58,8 @@ static bool
     return utz_get_zone_by_name(string, zone);
 }
 
-utz_zone_t time_default_timezone;
-
-bool time_v1_settings_default_timezone(void* container) {
-    return utz_get_zone_by_name(TIME_DEFAULT_TIMEZONE, container);
+void time_v1_settings_default_timezone(void* container) {
+    furi_check(utz_get_zone_by_name(TIME_DEFAULT_TIMEZONE, container));
 }
 
 const SettingProviderSetting time_v1_settings[] = {

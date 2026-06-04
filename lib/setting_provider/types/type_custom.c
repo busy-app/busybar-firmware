@@ -51,12 +51,7 @@ SETTING_RESET_DECLARATION(type_custom, json_node, setting, value) {
     }
 
     if(use_static_default) memcpy(default_value, interface->default_value, sizeof(default_value));
-    if(use_dynamic_default) {
-        if(!interface->default_value_callback(default_value)) {
-            furi_crash(
-                "`default_value_callback` of `SettingProviderCustomInterface` returned `false`.");
-        }
-    }
+    if(use_dynamic_default) interface->default_value_callback(default_value);
 
     FuriString* default_string_value = furi_string_alloc();
     furi_check(interface->serialize_callback(setting, default_value, default_string_value));
