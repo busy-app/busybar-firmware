@@ -9,7 +9,8 @@
 #include "wifi_config.h"
 #include "wifi_backend_util.h"
 
-#define EVENT_QUEUE_SIZE 4
+#define EVENT_QUEUE_SIZE       8
+#define EVENT_QUEUE_TIMEOUT_MS 200
 
 #define NUM_CONNECTION_ATTEMPTS 3
 #define SCAN_INTERVAL_S         5
@@ -276,9 +277,13 @@ static void wifi_intercom_rx_callback(const void* data, size_t data_size, void* 
 
     memcpy(&wifi_event.request_received, data, data_size);
 
-    furi_check(
-        furi_message_queue_put(instance->event_queue, &wifi_event, FuriWaitForever) ==
-        FuriStatusOk);
+    const FuriStatus status = furi_message_queue_put(
+        instance->event_queue, &wifi_event, furi_ms_to_ticks(EVENT_QUEUE_TIMEOUT_MS));
+
+    if(status != FuriStatusOk) {
+        furi_check(status == FuriStatusErrorTimeout);
+        FURI_LOG_E(TAG, "BUG: %s failed to deliver event", __FUNCTION__);
+    }
 }
 
 static void wifi_net_intercom_rx_callback(const void* data, size_t data_size, void* context) {
@@ -474,9 +479,13 @@ static sl_status_t wifi_scan_callback(
                 },
         };
 
-        furi_check(
-            furi_message_queue_put(instance->event_queue, &wifi_event, FuriWaitForever) ==
-            FuriStatusOk);
+        const FuriStatus status = furi_message_queue_put(
+            instance->event_queue, &wifi_event, furi_ms_to_ticks(EVENT_QUEUE_TIMEOUT_MS));
+
+        if(status != FuriStatusOk) {
+            furi_check(status == FuriStatusErrorTimeout);
+            FURI_LOG_E(TAG, "BUG: %s failed to deliver event", __FUNCTION__);
+        }
     }
 
     return ret;
@@ -507,9 +516,13 @@ static sl_status_t
                 },
         };
 
-        furi_check(
-            furi_message_queue_put(instance->event_queue, &wifi_event, FuriWaitForever) ==
-            FuriStatusOk);
+        const FuriStatus status = furi_message_queue_put(
+            instance->event_queue, &wifi_event, furi_ms_to_ticks(EVENT_QUEUE_TIMEOUT_MS));
+
+        if(status != FuriStatusOk) {
+            furi_check(status == FuriStatusErrorTimeout);
+            FURI_LOG_E(TAG, "BUG: %s failed to deliver event", __FUNCTION__);
+        }
     }
 
     return ret;
