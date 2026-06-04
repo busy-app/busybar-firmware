@@ -193,8 +193,6 @@ static void time_send_message(Time* instance, const TimeMessage* message) {
 }
 
 Time* time_alloc() {
-    time_settings_v1_initialize();
-
     Time* instance = malloc(sizeof(Time));
 
     instance->status = TimeStatusBoot;

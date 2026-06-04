@@ -26,5 +26,3 @@ typedef struct {
     int retry_sync_interval; /**< Interval between sync retry attempts on failure in seconds */
     TimeSettingTimeFormat time_format; /**< Display time format (24h or 12h) */
 } TimeSettingsV1;
-
-void time_settings_v1_initialize(void);

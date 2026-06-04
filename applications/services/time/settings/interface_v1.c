@@ -60,8 +60,8 @@ static bool
 
 utz_zone_t time_default_timezone;
 
-void time_settings_v1_initialize(void) {
-    furi_check(utz_get_zone_by_name(TIME_DEFAULT_TIMEZONE, &time_default_timezone));
+bool time_v1_settings_default_timezone(void* container) {
+    return utz_get_zone_by_name(TIME_DEFAULT_TIMEZONE, container);
 }
 
 const SettingProviderSetting time_v1_settings[] = {
@@ -93,8 +93,8 @@ const SettingProviderSetting time_v1_settings[] = {
                 &(const SettingProviderCustomInterface){
                     .serialize_callback = serialize_uzone,
                     .deserialize_callback = deserialize_uzone,
-                    .default_value = (const void*)&time_default_timezone,
-                    .default_value_size = sizeof(utz_zone_default),
+                    .default_value_callback = time_v1_settings_default_timezone,
+                    .default_value_size = sizeof(utz_zone_t),
                 },
             .field_offset = offsetof(TimeSettingsV1, timezone),
             .type = SettingProviderSettingTypeCustom,
