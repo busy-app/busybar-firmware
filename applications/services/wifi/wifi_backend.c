@@ -9,6 +9,8 @@
 #include "wifi_config.h"
 #include "wifi_backend_util.h"
 
+#define EVENT_QUEUE_SIZE 4
+
 #define NUM_CONNECTION_ATTEMPTS 3
 #define SCAN_INTERVAL_S         5
 #define BEACON_MISSED_COUNT     40
@@ -567,7 +569,7 @@ static Wifi* wifi_alloc(void) {
     Wifi* instance = malloc(sizeof(Wifi));
 
     instance->event_loop = furi_event_loop_alloc();
-    instance->event_queue = furi_message_queue_alloc(3, sizeof(WifiEvent));
+    instance->event_queue = furi_message_queue_alloc(EVENT_QUEUE_SIZE, sizeof(WifiEvent));
     instance->event_pubsub = furi_pubsub_alloc();
     instance->info_timer = furi_event_loop_timer_alloc(
         instance->event_loop, wifi_backend_info_callback, FuriEventLoopTimerTypePeriodic, instance);
