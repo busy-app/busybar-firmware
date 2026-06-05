@@ -377,10 +377,10 @@ static void power_pubsub_callback(const void* message, void* context) {
     StatePublisher* instance = context;
 
     // dispatch because power_get_info cannot be called from power task
-    Message msg = {
+    ControlMessage msg = {
         .type = MessageTypePowerEvent,
     };
-    state_publisher_send_message(instance, &msg);
+    state_publisher_send_control_message(instance, &msg);
 }
 
 static void audio_pubsub_callback(const void* message, void* context) {
@@ -389,10 +389,10 @@ static void audio_pubsub_callback(const void* message, void* context) {
 
     if(event->type == AudioEventVolumeUpdate) {
         // dispatch because audio_get_volume cannot be called from audio task
-        Message msg = {
+        ControlMessage msg = {
             .type = MessageTypeAudioEvent,
         };
-        state_publisher_send_message(instance, &msg);
+        state_publisher_send_control_message(instance, &msg);
     }
 }
 
@@ -423,10 +423,10 @@ static void matter_pubsub_callback(const void* message, void* context) {
     UNUSED(message);
     StatePublisher* instance = context;
 
-    Message msg = {
+    ControlMessage msg = {
         .type = MessageTypeMatterEvent,
     };
-    state_publisher_send_message(instance, &msg);
+    state_publisher_send_control_message(instance, &msg);
 }
 
 static void input_event_pubsub_callback(const void* message, void* context) {
@@ -507,30 +507,30 @@ static void busy_timer_pubsub_callback(const void* message, void* context) {
     UNUSED(message);
     StatePublisher* instance = context;
 
-    Message msg = {
+    ControlMessage msg = {
         .type = MessageTypeBusyTimer,
     };
-    state_publisher_send_message(instance, &msg);
+    state_publisher_send_control_message(instance, &msg);
 }
 
 static void busy_timer_profiles_pubsub_callback(const void* message, void* context) {
     UNUSED(message);
     StatePublisher* instance = context;
 
-    Message msg = {
+    ControlMessage msg = {
         .type = MessageTypeBusyTimerProfiles,
     };
-    state_publisher_send_message(instance, &msg);
+    state_publisher_send_control_message(instance, &msg);
 }
 
 static void ble_pubsub_callback(const void* message, void* context) {
     UNUSED(message);
     StatePublisher* instance = context;
 
-    Message msg = {
+    ControlMessage msg = {
         .type = MessageTypeBle,
     };
-    state_publisher_send_message(instance, &msg);
+    state_publisher_send_control_message(instance, &msg);
 }
 
 static BSB_State_StateUpdate* collect_time_settings(const TimeSettings* settings) {
@@ -752,8 +752,8 @@ static void updater_check_state_callback(const void* item, void* context) {
     StatePublisher* instance = context;
     const UpdaterCheckState* info = item;
 
-    Message msg = {.type = MessageTypeUpdaterCheckEvent, .updater_check_state = *info};
-    state_publisher_send_message(instance, &msg);
+    ControlMessage msg = {.type = MessageTypeUpdaterCheckEvent, .updater_check_state = *info};
+    state_publisher_send_control_message(instance, &msg);
 }
 
 static void updater_settings_state_callback(const void* item, void* context) {

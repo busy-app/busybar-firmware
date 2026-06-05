@@ -56,7 +56,8 @@ typedef struct Transport {
 
 struct StatePublisher {
     FuriEventLoop* event_loop;
-    FuriMessageQueue* message_queue;
+    FuriMessageQueue* control_queue; // queue of Message
+    FuriMessageQueue* publish_queue; // queue of PublishMessage
 
     FuriThreadId main_thread_id;
 
@@ -83,7 +84,6 @@ struct StatePublisher {
 };
 
 typedef enum {
-    MessageTypePublishUpdate,
     MessageTypeTransportResumed,
     MessageTypePowerEvent,
     MessageTypeAudioEvent,
@@ -100,13 +100,14 @@ typedef enum {
 typedef struct {
     MessageType type;
     union {
-        struct {
-            BSB_State_StateUpdate* data; // allocated on the heap
-            StreamFlag stream_flags;
-        } update;
         UpdaterCheckState updater_check_state;
     };
-} Message;
+} ControlMessage;
+
+typedef struct {
+    BSB_State_StateUpdate* data; // allocated on the heap
+    StreamFlag stream_flags;
+} PublishMessage;
 
 void state_publisher_subscribe(StatePublisher* instance);
 
@@ -127,4 +128,4 @@ void state_publisher_schedule_state_update(
     StatePublisher* instance,
     BSB_State_StateUpdate* update,
     StreamFlag flags);
-void state_publisher_send_message(StatePublisher* instance, const Message* message);
+void state_publisher_send_control_message(StatePublisher* instance, const ControlMessage* message);
