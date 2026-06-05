@@ -28,8 +28,6 @@ bool ble_event_handler_gap_connected(size_t data_size, void* data, void* context
 
     rsi_ble_event_enhance_conn_status_t* resp_enh_conn = data;
     memcpy(instance->remote_dev_address, resp_enh_conn->dev_addr, 6);
-    rsi_6byte_dev_address_to_ascii(instance->str_remote_address, resp_enh_conn->dev_addr);
-    BLE_LOG_I("Connected, str_remote_address : %s", instance->str_remote_address);
 
     ble_print_enh_conn_data(resp_enh_conn);
 
@@ -44,6 +42,13 @@ bool ble_event_handler_gap_connected(size_t data_size, void* data, void* context
         .latency = resp_enh_conn->conn_latency,
         .timeout = resp_enh_conn->supervision_timeout};
     ble_connection_set_timings(conn, &timings);
+
+    FuriString* addr = furi_string_alloc();
+    BleDeviceBase* peer = ble_connection_get_peer(conn);
+    ble_device_base_format_address(peer, BleDeviceAddressTypeOrigin, addr);
+    BLE_LOG_I("Connected, address : %s", furi_string_get_cstr(addr));
+
+    furi_string_free(addr);
 
     // const BleDeviceCommon* peer = ble_connection_get_peer()
     // ble_device_set_address
@@ -74,11 +79,15 @@ bool ble_event_handler_gap_disconnected(size_t data_size, void* data, void* cont
     BleWorker* instance = context;
 
     //! event invokes when disconnection was completed
-    BLE_LOG_I("Disconnected, str_remote_address : %s", instance->str_remote_address);
+    BleConnectionContext* conn = ble_device_get_connection_context(instance->device);
+    FuriString* addr = furi_string_alloc();
+    BleDeviceBase* peer = ble_connection_get_peer(conn);
+    ble_device_base_format_address(peer, BleDeviceAddressTypeOrigin, addr);
+    BLE_LOG_I("Disconnect, address : %s", furi_string_get_cstr(addr));
+    furi_string_free(addr);
 
     bool result = ble_device_connection_close(instance->device);
 
-    instance->conn_params_updated = 0;
     if(instance->rx_pending_handle) {
         BLE_LOG_W("Rx confirm not sent!");
         furi_semaphore_release(instance->receive_sem);
@@ -102,11 +111,9 @@ bool ble_event_handler_gap_disconnected(size_t data_size, void* data, void* cont
         }
     }
 
-    memset(instance->str_remote_address, 0, BLE_REMOTE_ADDRESS_STRING_SIZE);
-
     bool connected = !result; //ble_device_is_connected(instance->device);
-    instance->on_connection_changed_cb(
-        instance->on_connection_changed_ctx, connected, instance->str_remote_address);
+    uint8_t dummy[BLE_REMOTE_ADDRESS_STRING_SIZE] = {0};
+    instance->on_connection_changed_cb(instance->on_connection_changed_ctx, connected, dummy);
 
     return result;
 }
