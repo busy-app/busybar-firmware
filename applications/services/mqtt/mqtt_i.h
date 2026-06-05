@@ -48,7 +48,7 @@ typedef enum {
     MqttReasonGrantedQoS2,
     // Reason codes 0x4 ... 0x86 omitted for clarity
     MqttReasonNotAuthorized = 0x87,
-    // Reason codse 0x88 ... 0xA2 omitted for clarity
+    // Reason codes 0x88 ... 0xA2 omitted for clarity
 } MqttReason;
 
 typedef enum {
