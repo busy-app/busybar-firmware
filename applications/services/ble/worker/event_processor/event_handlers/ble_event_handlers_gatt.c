@@ -10,22 +10,21 @@
 #define BLE_NORDIC_UART_CNT_HANDLE (0x001F)
 
 bool ble_event_handler_gatt_mtu(size_t data_size, void* data, void* context) {
-    BLE_LOG_I("ble_event_handler_gatt_mtu");
+    UNUSED(data_size);
+    BLE_LOG_D("ble_event_handler_gatt_mtu");
 
     BleWorker* instance = context;
     rsi_ble_event_mtu_t* rsi_ble_mtu = data;
 
-    memcpy(&instance->app_ble_mtu_event, rsi_ble_mtu, data_size);
+    ///TODO: maybe settings of mtu should be done by connection instance instead of device
+    ///because in fact this parameter should be the same between both devices.
+    ble_device_set_mtu(instance->device, rsi_ble_mtu->mtu_size);
+    BLE_LOG_I("MTU size received from remote device is %u", rsi_ble_mtu->mtu_size);
 
-    BLE_LOG_I(
-        "MTU size received from remote device(%s) is %u",
-        instance->str_remote_address,
-        instance->app_ble_mtu_event.mtu_size);
-
-    instance->max_payload_size =
-        instance->app_ble_mtu_event.mtu_size - BLE_WORKER_ATTR_HEADER_SIZE;
+    instance->max_payload_size = ble_device_get_max_payload_TEMP(instance->device);
     BLE_LOG_I("Max payload size: %u", instance->max_payload_size);
 
+    ///TODO: Move this to some connection handler, but what???
     sl_status_t status = rsi_ble_set_wo_resp_notify_buf_info(
         instance->remote_dev_address, DLE_BUFFER_MODE, DLE_BUFFER_COUNT);
     if(status != RSI_SUCCESS) {
