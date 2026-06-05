@@ -47,20 +47,12 @@ struct BleWorker {
     ///TODO: this can be removed
 
     uint16_t max_payload_size;
-    uint8_t conn_params_updated;
-    uint8_t remote_dev_str_addr[18];
-    uint8_t remote_dev_bd_addr[6];
 
-    uint8_t str_remote_address[18];
     uint8_t remote_dev_address[6];
 
     rsi_ble_event_phy_update_t app_phy_update_complete;
     rsi_ble_event_data_length_update_t data_length_update;
     rsi_ble_event_conn_update_t event_conn_update_complete;
-
-    rsi_ble_event_remote_features_t remote_dev_feature;
-
-    rsi_ble_event_mtu_t app_ble_mtu_event;
 
     BleSecurityData* security_data;
 
