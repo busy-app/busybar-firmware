@@ -202,29 +202,15 @@ static bool
         return false;
     }
 
-    uint32_t display_width, display_height;
-    switch(display) {
-    case GuiDisplayIdFront:
-        display_width = FRONT_DISPLAY_W;
-        display_height = FRONT_DISPLAY_H;
-        break;
+    const GuiDisplayParameters* display_parameters = gui_display_get_parameters(display);
 
-    case GuiDisplayIdBack:
-        display_width = BACK_DISPLAY_W;
-        display_height = BACK_DISPLAY_H;
-        break;
-
-    default:
-        return false;
-    }
-
-    if(header.w > display_width || header.h > display_height) {
+    if(header.w > display_parameters->width || header.h > display_parameters->height) {
         furi_string_printf(
             error,
-            "Image %s exceeds display dimensions %" PRIu32 "x%" PRIu32 ".",
+            "Image %s exceeds display dimensions %zux%zu.",
             file_path,
-            display_width,
-            display_height);
+            display_parameters->width,
+            display_parameters->height);
         return false;
     }
 
