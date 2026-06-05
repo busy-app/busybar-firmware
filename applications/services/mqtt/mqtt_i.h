@@ -40,6 +40,17 @@
 #define TO_RAW_MESSAGE(msg)  ((struct mg_mqtt_message*)(msg))
 #define TO_MQTT_MESSAGE(msg) ((MqttMessage*)(msg))
 
+// Source: https://www.emqx.com/en/blog/mqtt5-new-features-reason-code-and-ack
+typedef enum {
+    MqttReasonSuccess = 0x0,
+    MqttReasonGrantedQoS0 = MqttReasonSuccess,
+    MqttReasonGrantedQoS1,
+    MqttReasonGrantedQoS2,
+    // Reason codes 0x4 ... 0x86 omitted for clarity
+    MqttReasonNotAuthorized = 0x87,
+    // Reason codse 0x88 ... 0xA2 omitted for clarity
+} MqttReason;
+
 typedef enum {
     MqttScopeDevice,
     MqttScopeSession,
@@ -208,6 +219,8 @@ bool mqtt_publish_internal(
     size_t data_size,
     const MqttProperty* props,
     uint32_t props_count);
+
+MqttReason mqtt_message_get_reason(const struct mg_mqtt_message* message);
 
 void mqtt_property_to_raw(const MqttProperty* property, struct mg_mqtt_prop* raw_property);
 

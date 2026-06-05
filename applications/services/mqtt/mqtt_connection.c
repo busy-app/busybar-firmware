@@ -273,6 +273,17 @@ static void mqtt_close_mg_event_handler(
     }
 }
 
+static void mqtt_handle_subscribe_error(Mqtt* instance, MqttReason reason) {
+    FURI_LOG_E(TAG, "Subscribe error 0x%02X", reason);
+
+    if((reason == MqttReasonNotAuthorized) && (instance->status == MqttStatusConnectedLinked)) {
+        FURI_LOG_W(TAG, "Outdated or invalid credentials, resetting");
+        mqtt_reset_saved_state(instance);
+    }
+
+    mqtt_connection_close(instance, false);
+}
+
 static void mqtt_mqtt_cmd_mg_event_handler(
     Mqtt* instance,
     struct mg_connection* connection,
@@ -280,14 +291,12 @@ static void mqtt_mqtt_cmd_mg_event_handler(
     const uint8_t cmd = message->cmd;
 
     if(cmd == MQTT_CMD_SUBACK) {
-        const size_t packet_len = message->dgram.len;
-        const uint8_t sub_reason = message->dgram.buf[packet_len - 1];
+        const MqttReason reason = mqtt_message_get_reason(message);
 
-        FURI_LOG_T(TAG, "MQTT SUBACK: 0x%02X", sub_reason);
+        FURI_LOG_T(TAG, "MQTT SUBACK: 0x%02X", reason);
 
-        if(sub_reason >= MqttQosMax) {
-            FURI_LOG_E(TAG, "Subscribe error 0x%02X", sub_reason);
-            mqtt_connection_close(instance, false);
+        if(reason > MqttReasonGrantedQoS2) {
+            mqtt_handle_subscribe_error(instance, reason);
         }
 
     } else if(cmd == MQTT_CMD_PINGRESP) {

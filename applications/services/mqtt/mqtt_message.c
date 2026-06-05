@@ -126,6 +126,11 @@ bool mqtt_message_get_integer_property(
     return success;
 }
 
+MqttReason mqtt_message_get_reason(const struct mg_mqtt_message* message) {
+    const struct mg_str dgram = message->dgram;
+    return dgram.buf[dgram.len - 1];
+}
+
 // https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901029
 static const MqttPropertyDesc mqtt_property_desc_table[MqttPropertyTypeMax] = {
     [MqttPropertyTypeExpiryInterval] =
