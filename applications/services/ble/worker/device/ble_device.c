@@ -3,8 +3,8 @@
 // #include "ble_advertise.h"
 // #include "ble_security.h"
 
-#include "_nwp_callbacks/ble_nwp_headers.h"
-#include "../ble_common.h"
+#include "../_nwp_callbacks/ble_nwp_headers.h"
+#include "../../ble_common.h"
 
 #define TAG "BleDevice"
 
