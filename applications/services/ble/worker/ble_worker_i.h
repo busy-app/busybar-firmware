@@ -2,9 +2,11 @@
 
 #include "ble_worker.h"
 
-#include "ble_security.h"
-#include "ble_advertise.h"
-#include "event/ble_incoming_nwp_event_processor.h"
+#include "device/ble_device.h"
+
+// #include "ble_security.h"
+// #include "ble_advertise.h"
+#include "event_processor/ble_incoming_nwp_event_processor.h"
 #include "../service/ble_service_i.h"
 
 #include "../util/ble_canary.h"
@@ -12,8 +14,14 @@
 #include "_nwp_callbacks/ble_nwp_core_callbacks.h"
 
 #include <m-dict.h>
+// #include <api_lock.h>
 
 #define BLE_WORKER_ATTR_HEADER_SIZE 3
+
+// typedef struct {
+//     FuriApiLock lock;
+//     void* data;
+// } SyncEventContext;
 
 typedef struct {
     ///TODO: for now this is ok, for future maybe it is worth to make each characteristic

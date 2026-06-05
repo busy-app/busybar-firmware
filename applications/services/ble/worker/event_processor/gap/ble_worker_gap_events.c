@@ -4,17 +4,49 @@
 
 #define TAG "BleGAPEvent"
 
+static void ble_print_enh_conn_data(const rsi_ble_event_enhance_conn_status_t* const info) {
+    uint8_t buf[18] = {0};
+    rsi_6byte_dev_address_to_ascii(buf, info->dev_addr);
+    BLE_LOG_W("Addr: %s type: %d role: %d", buf, info->dev_addr_type, info->role);
+
+    rsi_6byte_dev_address_to_ascii(buf, info->local_resolvlable_addr);
+    BLE_LOG_W("Local resolvable addr: %s", buf);
+
+    rsi_6byte_dev_address_to_ascii(buf, info->peer_resolvlable_addr);
+    BLE_LOG_W("Peer resolvable addr: %s", buf);
+
+    BLE_LOG_W(
+        "Interval: %d Latency: %d Timeout: %d",
+        info->conn_interval,
+        info->conn_latency,
+        info->supervision_timeout);
+}
+
 bool ble_worker_event_handler_connected(size_t data_size, void* data, void* context) {
     UNUSED(data_size);
     BleWorker* instance = context;
-    rsi_ble_event_enhance_conn_status_t* resp_enh_conn = data;
 
+    rsi_ble_event_enhance_conn_status_t* resp_enh_conn = data;
     memcpy(instance->remote_dev_address, resp_enh_conn->dev_addr, 6);
     rsi_6byte_dev_address_to_ascii(instance->str_remote_address, resp_enh_conn->dev_addr);
     BLE_LOG_I("Connected, str_remote_address : %s", instance->str_remote_address);
 
+    ble_print_enh_conn_data(resp_enh_conn);
 
-    bool result = ble_device_connection_open(instance->device, resp_enh_conn->dev_addr);
+    // BleDeviceAddressType type = resp_enh_conn->dev_addr_type ==
+    BLE_LOG_W("SET PROPER DEVICE ADDR TYPE!!");
+    BleDeviceAddressType type = BleDeviceAddressTypeOrigin;
+    bool result = ble_device_connection_open(instance->device, type, resp_enh_conn->dev_addr);
+
+    BleConnectionContext* conn = ble_device_get_connection_context(instance->device);
+    BleConnectionTimings timings = {
+        .interval = resp_enh_conn->conn_interval,
+        .latency = resp_enh_conn->conn_latency,
+        .timeout = resp_enh_conn->supervision_timeout};
+    ble_connection_set_timings(conn, &timings);
+
+    // const BleDeviceCommon* peer = ble_connection_get_peer()
+    // ble_device_set_address
 
     ///TODO: Commented due to issues with connect to different phones remove when interaction logic will be finalized
     //! Setting MTU Exchange event
@@ -173,6 +205,22 @@ bool ble_worker_event_handler_exit(size_t data_size, void* data, void* context) 
     furi_event_loop_stop(instance->event_loop);
     return true;
 }
+
+// bool ble_worker_event_set_name(size_t data_size, void* data, void* context) {
+//     BLE_LOG_I("ble_worker_event_set_name");
+//     UNUSED(data_size);
+
+//     SyncEventContext* ctx = data;
+//     BleWorker* instance = context;
+
+//     const char* name = ctx->data;
+//     BLE_LOG_I("NAME IN TREAD: %s", name);
+//     ble_device_set_name(instance->device, name);
+
+//     api_lock_unlock(ctx->lock);
+
+//     return true;
+// }
 
 bool ble_worker_event_handler_adjust_connection_request(
     size_t data_size,
