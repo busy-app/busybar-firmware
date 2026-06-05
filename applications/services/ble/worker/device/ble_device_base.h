@@ -22,6 +22,28 @@ typedef enum {
     BleDeviceAddressTypeCount,
 } BleDeviceAddressType;
 
+typedef enum {
+    //page 0
+    BleDeviceFeaturesLEEncryption = 0,
+    BleDeviceFeaturesConnectionParametersRequestProcedure = 1,
+    BleDeviceFeaturesExtendedRejectIndication = 2,
+    BleDeviceFeaturesPeripheralInitiatedFeaturesExchange = 3,
+    BleDeviceFeaturesLEPing = 4,
+    BleDeviceFeaturesLEDataPacketLengthExtension = 5,
+    BleDeviceFeaturesLLPrivacy = 6,
+    BleDeviceFeaturesExtendedScanningFilterPolicies = 7,
+
+    //page 1
+    BleDeviceFeaturesLE2MPhy = 8,
+    BleDeviceFeaturesStableModulationIndexTransmitter = 9,
+    BleDeviceFeaturesStableModulationIndexReceiver = 10,
+    BleDeviceFeaturesLECodedPhy = 11,
+    BleDeviceFeaturesLEExtendedAdvertising = 12,
+    BleDeviceFeaturesLEPeriodicAdvertising = 13,
+    BleDeviceFeaturesChannelSelectionAlgorithm2 = 14,
+    BleDeviceFeaturesLEPowerClass1 = 15,
+} BleDeviceFeatures;
+
 BleDeviceBase* ble_device_base_alloc(BleDeviceRole role);
 void ble_device_base_free(BleDeviceBase* instance);
 
@@ -36,3 +58,6 @@ void ble_device_base_format_address(
     BleDeviceBase* instance,
     BleDeviceAddressType type,
     FuriString* output);
+
+void ble_device_base_set_features(BleDeviceBase* instance, const uint8_t* features);
+bool ble_device_base_is_feature_supported(BleDeviceBase* instance, BleDeviceFeatures feature);

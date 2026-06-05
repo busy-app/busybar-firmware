@@ -175,12 +175,15 @@ bool ble_event_handler_gap_length_change(size_t data_size, void* data, void* con
 }
 
 bool ble_event_handler_gap_receive_remote_features(size_t data_size, void* data, void* context) {
-    BLE_LOG_I("ble_event_handler_gap_receive_remote_features");
-    BleWorker* instance = context;
-    memcpy(&instance->remote_dev_feature, data, data_size);
+    BLE_LOG_I("%s", __func__);
+    UNUSED(data_size);
+    rsi_ble_event_remote_features_t* features = data;
 
-    BLE_LOG_I(
-        "Feature received is 0x%04X", *(uint16_t*)instance->remote_dev_feature.remote_features);
+    BleWorker* instance = context;
+
+    BleConnectionContext* conn = ble_device_get_connection_context(instance->device);
+    BleDeviceBase* peer = ble_connection_get_peer(conn);
+    ble_device_base_set_features(peer, features->remote_features);
 
     return true;
 }

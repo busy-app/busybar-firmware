@@ -60,3 +60,16 @@ void ble_device_base_format_address(
         furi_string_cat_printf(output, format, addr_ptr[i]);
     }
 }
+
+void ble_device_base_set_features(BleDeviceBase* instance, const uint8_t* features) {
+    furi_assert(instance);
+    memcpy(instance->features, features, sizeof(instance->features));
+}
+
+bool ble_device_base_is_feature_supported(BleDeviceBase* instance, BleDeviceFeatures feature) {
+    furi_assert(instance);
+    const uint8_t byte = feature / 8;
+    const uint8_t bit = feature % 8;
+
+    return ((instance->features[byte] & (1 << bit)) != 0);
+}
