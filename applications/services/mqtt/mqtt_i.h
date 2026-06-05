@@ -40,7 +40,7 @@
 #define TO_RAW_MESSAGE(msg)  ((struct mg_mqtt_message*)(msg))
 #define TO_MQTT_MESSAGE(msg) ((MqttMessage*)(msg))
 
-// Source: https://www.emqx.com/en/blog/mqtt5-new-features-reason-code-and-ack
+// Source: https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901031
 typedef enum {
     MqttReasonSuccess = 0x0,
     MqttReasonGrantedQoS0 = MqttReasonSuccess,
