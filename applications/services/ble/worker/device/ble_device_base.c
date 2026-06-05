@@ -23,13 +23,16 @@ void ble_device_base_free(BleDeviceBase* instance) {
     free(instance);
 }
 
+static inline uint8_t*
+    ble_device_base_get_address_ptr(BleDeviceBase* instance, BleDeviceAddressType type) {
+    furi_assert(type != BleDeviceAddressTypeUnknown && type < BleDeviceAddressTypeCount);
+    return (type == BleDeviceAddressTypeResolvable) ? instance->resolvable_addr :
+                                                      instance->dev_addr;
+}
+
 const uint8_t* ble_device_base_get_address(BleDeviceBase* instance, BleDeviceAddressType type) {
     furi_assert(instance);
-    furi_assert(type != BleDeviceAddressTypeUnknown && type < BleDeviceAddressTypeCount);
-
-    uint8_t* addr_ptr = (type == BleDeviceAddressTypeResolvable) ? instance->resolvable_addr :
-                                                                   instance->dev_addr;
-    return addr_ptr;
+    return ble_device_base_get_address_ptr(instance, type);
 }
 
 void ble_device_base_set_address(
@@ -38,9 +41,22 @@ void ble_device_base_set_address(
     const uint8_t* const addr) {
     furi_assert(instance);
     furi_assert(addr);
-    furi_assert(type != BleDeviceAddressTypeUnknown && type < BleDeviceAddressTypeCount);
 
-    uint8_t* addr_ptr = (type == BleDeviceAddressTypeResolvable) ? instance->resolvable_addr :
-                                                                   instance->dev_addr;
+    uint8_t* addr_ptr = ble_device_base_get_address_ptr(instance, type);
     memcpy(addr_ptr, addr, BLE_DEVICE_ADDRESS_LEN);
+}
+
+void ble_device_base_format_address(
+    BleDeviceBase* instance,
+    BleDeviceAddressType type,
+    FuriString* output) {
+    furi_assert(instance);
+    furi_assert(output);
+
+    uint8_t* addr_ptr = ble_device_base_get_address_ptr(instance, type);
+
+    for(int8_t i = BLE_DEVICE_ADDRESS_LEN - 1; i >= 0; i--) {
+        const char* format = (i == 0) ? "%02X" : "%02X:";
+        furi_string_cat_printf(output, format, addr_ptr[i]);
+    }
 }
