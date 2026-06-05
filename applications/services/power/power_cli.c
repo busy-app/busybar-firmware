@@ -113,7 +113,7 @@ static void power_cli_charger_limit(PipeSide* pipe, FuriString* args) {
     Power* power = furi_record_open(RECORD_POWER);
 
     if(args_read_int_and_trim(args, &value)) {
-        if((value > 0) && (value <= POWER_CHARGE_CURRENT_MAX)) {
+        if((value >= 50) && (value <= 100)) {
             args_error = false;
             power_set_charge_limit(power, value);
         }
@@ -123,6 +123,7 @@ static void power_cli_charger_limit(PipeSide* pipe, FuriString* args) {
 
     if(args_error) {
         cli_print_usage("power ch_limit", "<percentage>", furi_string_get_cstr(args));
+        printf("\r\n    percentage: 50..100");
     }
 }
 

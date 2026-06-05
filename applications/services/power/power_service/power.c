@@ -208,10 +208,11 @@ static void power_set_charger_enable(Power* power, bool enable) {
 static void power_limit_battery_charge(Power* power) {
     furi_assert(power);
 
+    const size_t enable_hysteresis = 10;
+
     size_t limit = power->settings.charge_limit;
     if(limit == 100) return;
-
-    const size_t enable_hysteresis = 10;
+    if(limit <= enable_hysteresis) return;
 
     if(power->info.charge >= limit) {
         FURI_LOG_D(TAG, "Charge limit exceeded");
