@@ -34,7 +34,7 @@ BleConnectionContext*
 void ble_connection_free(BleConnectionContext* instance) {
     furi_assert(instance);
 
-    free(instance->peer);
+    ble_device_base_free(instance->peer);
     free(instance);
 }
 
