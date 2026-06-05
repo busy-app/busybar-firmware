@@ -1,4 +1,4 @@
-#include "ble_worker_gatt_events.h"
+#include "ble_event_handlers_gatt.h"
 
 #include "../../ble_worker_i.h"
 
@@ -9,8 +9,8 @@
 #define BLE_NORDIC_UART_TX_HANDLE  (0x001D)
 #define BLE_NORDIC_UART_CNT_HANDLE (0x001F)
 
-bool ble_worker_event_handler_mtu(size_t data_size, void* data, void* context) {
-    BLE_LOG_I("ble_worker_event_handler_mtu");
+bool ble_event_handler_gatt_mtu(size_t data_size, void* data, void* context) {
+    BLE_LOG_I("ble_event_handler_gatt_mtu");
 
     BleWorker* instance = context;
     rsi_ble_event_mtu_t* rsi_ble_mtu = data;
@@ -41,7 +41,7 @@ bool ble_worker_event_handler_mtu(size_t data_size, void* data, void* context) {
 }
 
 ///TODO: rework this shit to be less messy
-bool ble_worker_event_handler_write_event(size_t data_size, void* data, void* context) {
+bool ble_event_handler_gatt_write_event(size_t data_size, void* data, void* context) {
     UNUSED(data_size);
     BleWorker* instance = context;
 
@@ -101,7 +101,7 @@ bool ble_worker_event_handler_write_event(size_t data_size, void* data, void* co
     return true;
 }
 
-bool ble_worker_event_handler_read_request_event(size_t dat_sz, void* data, void* context) {
+bool ble_event_handler_gatt_read_request_event(size_t dat_sz, void* data, void* context) {
     UNUSED(dat_sz);
 
     BleWorker* instance = context;

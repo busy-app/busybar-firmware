@@ -1,9 +1,9 @@
 #include "ble_incoming_nwp_event_processor.h"
 #include "ble_incoming_nwp_event.h"
 
-#include "gap/ble_worker_gap_events.h"
-#include "gatt/ble_worker_gatt_events.h"
-#include "smp/ble_worker_smp_events.h"
+#include "event_handlers/ble_event_handlers_gap.h"
+#include "event_handlers/ble_event_handlers_gatt.h"
+#include "event_handlers/ble_event_handlers_smp.h"
 
 #include "../../ble_common.h"
 
@@ -19,7 +19,7 @@ struct BleIncomingNwpEventProcessor {
 
 typedef bool (*BleWorkerEventHandler)(size_t data_size, void* data, void* context);
 
-bool ble_worker_event_handler_dummy(size_t data_size, void* data, void* context) {
+bool ble_event_handler_dummy(size_t data_size, void* data, void* context) {
     UNUSED(data_size);
     UNUSED(data);
     UNUSED(context);
@@ -27,29 +27,28 @@ bool ble_worker_event_handler_dummy(size_t data_size, void* data, void* context)
 }
 
 static const BleWorkerEventHandler event_handlers[BleIncomingNwpEventTypeCount] = {
-    [BleIncomingNwpEventTypeUnknown] = ble_worker_event_handler_dummy,
-    [BleIncomingNwpEventTypeExit] = ble_worker_event_handler_exit,
-    [BleIncomingNwpEventTypeConnected] = ble_worker_event_handler_connected,
-    [BleIncomingNwpEventTypeDisconnected] = ble_worker_event_handler_disconnected,
-    [BleIncomingNwpEventTypePhyUpdateComplete] = ble_worker_event_handler_phy_update_complete,
-    [BleIncomingNwpEventTypeConnUpdate] = ble_worker_event_handler_connection_update,
-    [BleIncomingNwpEventTypeDataLengthChange] = ble_worker_event_handler_length_change,
+    [BleIncomingNwpEventTypeUnknown] = ble_event_handler_dummy,
+    [BleIncomingNwpEventTypeExit] = ble_event_handler_gap_exit,
+    [BleIncomingNwpEventTypeConnected] = ble_event_handler_gap_connected,
+    [BleIncomingNwpEventTypeDisconnected] = ble_event_handler_gap_disconnected,
+    [BleIncomingNwpEventTypePhyUpdateComplete] = ble_event_handler_gap_phy_update_complete,
+    [BleIncomingNwpEventTypeConnUpdate] = ble_event_handler_gap_connection_update,
+    [BleIncomingNwpEventTypeDataLengthChange] = ble_event_handler_gap_length_change,
 
-    [BleIncomingNwpEventTypeReceiveRemoteFeatures] =
-        ble_worker_event_handler_receive_remote_features,
-    [BleIncomingNwpEventTypeMoreDataRequest] = ble_worker_event_handler_more_data_request,
-    [BleIncomingNwpEventTypeReadRequest] = ble_worker_event_handler_read_request_event,
-    [BleIncomingNwpEventTypeWrite] = ble_worker_event_handler_write_event,
-    [BleIncomingNwpEventTypeDataTransmit] = ble_worker_event_handler_dummy,
-    [BleIncomingNwpEventTypeMtu] = ble_worker_event_handler_mtu,
+    [BleIncomingNwpEventTypeReceiveRemoteFeatures] = ble_event_handler_gap_receive_remote_features,
+    [BleIncomingNwpEventTypeMoreDataRequest] = ble_event_handler_gap_more_data_request,
+    [BleIncomingNwpEventTypeReadRequest] = ble_event_handler_gatt_read_request_event,
+    [BleIncomingNwpEventTypeWrite] = ble_event_handler_gatt_write_event,
+    [BleIncomingNwpEventTypeDataTransmit] = ble_event_handler_dummy,
+    [BleIncomingNwpEventTypeMtu] = ble_event_handler_gatt_mtu,
 
-    [BleIncomingNwpEventTypeSmpResponse] = ble_worker_event_handler_smp_response,
-    [BleIncomingNwpEventTypeSmpEncryptStarted] = ble_worker_event_handler_smp_encrypt_started,
-    [BleIncomingNwpEventTypeSmpLtkRequest] = ble_worker_event_handler_smp_ltk_request,
-    [BleIncomingNwpEventTypeSmpSecurityKeys] = ble_worker_event_handler_smp_security_keys,
-    [BleIncomingNwpEventTypeSmpPairingFailed] = ble_worker_event_handler_smp_pairing_failed,
+    [BleIncomingNwpEventTypeSmpResponse] = ble_event_handler_smp_response,
+    [BleIncomingNwpEventTypeSmpEncryptStarted] = ble_event_handler_smp_encrypt_started,
+    [BleIncomingNwpEventTypeSmpLtkRequest] = ble_event_handler_smp_ltk_request,
+    [BleIncomingNwpEventTypeSmpSecurityKeys] = ble_event_handler_smp_security_keys,
+    [BleIncomingNwpEventTypeSmpPairingFailed] = ble_event_handler_smp_pairing_failed,
     [BleIncomingNwpEventTypeAdjustConnectionRequest] =
-        ble_worker_event_handler_adjust_connection_request,
+        ble_event_handler_gap_adjust_connection_request,
 };
 
 static inline void ble_incoming_nwp_event_processor_set_run_guard(

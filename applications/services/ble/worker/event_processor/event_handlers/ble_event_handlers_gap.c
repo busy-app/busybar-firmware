@@ -1,4 +1,4 @@
-#include "ble_worker_gap_events.h"
+#include "ble_event_handlers_gap.h"
 
 #include "../../ble_worker_i.h"
 
@@ -22,7 +22,7 @@ static void ble_print_enh_conn_data(const rsi_ble_event_enhance_conn_status_t* c
         info->supervision_timeout);
 }
 
-bool ble_worker_event_handler_connected(size_t data_size, void* data, void* context) {
+bool ble_event_handler_gap_connected(size_t data_size, void* data, void* context) {
     UNUSED(data_size);
     BleWorker* instance = context;
 
@@ -67,7 +67,7 @@ bool ble_worker_event_handler_connected(size_t data_size, void* data, void* cont
     return result;
 }
 
-bool ble_worker_event_handler_disconnected(size_t data_size, void* data, void* context) {
+bool ble_event_handler_gap_disconnected(size_t data_size, void* data, void* context) {
     UNUSED(data_size);
     UNUSED(data);
 
@@ -111,8 +111,8 @@ bool ble_worker_event_handler_disconnected(size_t data_size, void* data, void* c
     return result;
 }
 
-bool ble_worker_event_handler_phy_update_complete(size_t data_size, void* data, void* context) {
-    BLE_LOG_I("ble_worker_event_handler_phy_update_complete");
+bool ble_event_handler_gap_phy_update_complete(size_t data_size, void* data, void* context) {
+    BLE_LOG_I("ble_event_handler_gap_phy_update_complete");
 
     BleWorker* instance = context;
     memcpy(&instance->app_phy_update_complete, data, data_size);
@@ -124,8 +124,8 @@ bool ble_worker_event_handler_phy_update_complete(size_t data_size, void* data, 
     return true;
 }
 
-bool ble_worker_event_handler_connection_update(size_t data_size, void* data, void* context) {
-    BLE_LOG_I("ble_worker_event_handler_connection_update");
+bool ble_event_handler_gap_connection_update(size_t data_size, void* data, void* context) {
+    BLE_LOG_I("ble_event_handler_gap_connection_update");
 
     BleWorker* instance = context;
     memcpy(&instance->event_conn_update_complete, data, data_size);
@@ -138,8 +138,8 @@ bool ble_worker_event_handler_connection_update(size_t data_size, void* data, vo
     return true;
 }
 
-bool ble_worker_event_handler_length_change(size_t data_size, void* data, void* context) {
-    BLE_LOG_I("ble_worker_event_handler_length_change");
+bool ble_event_handler_gap_length_change(size_t data_size, void* data, void* context) {
+    BLE_LOG_I("ble_event_handler_gap_length_change");
     BleWorker* instance = context;
     if(data_size > 0) memcpy(&instance->data_length_update, data, data_size);
 
@@ -174,8 +174,8 @@ bool ble_worker_event_handler_length_change(size_t data_size, void* data, void* 
     return result;
 }
 
-bool ble_worker_event_handler_receive_remote_features(size_t data_size, void* data, void* context) {
-    BLE_LOG_I("ble_worker_event_handler_receive_remote_features");
+bool ble_event_handler_gap_receive_remote_features(size_t data_size, void* data, void* context) {
+    BLE_LOG_I("ble_event_handler_gap_receive_remote_features");
     BleWorker* instance = context;
     memcpy(&instance->remote_dev_feature, data, data_size);
 
@@ -185,8 +185,8 @@ bool ble_worker_event_handler_receive_remote_features(size_t data_size, void* da
     return true;
 }
 
-bool ble_worker_event_handler_more_data_request(size_t data_size, void* data, void* context) {
-    BLE_LOG_W("ble_worker_event_handler_more_data_request");
+bool ble_event_handler_gap_more_data_request(size_t data_size, void* data, void* context) {
+    BLE_LOG_W("ble_event_handler_gap_more_data_request");
     UNUSED(data_size);
     UNUSED(data);
     UNUSED(context);
@@ -194,8 +194,8 @@ bool ble_worker_event_handler_more_data_request(size_t data_size, void* data, vo
 }
 //------------------------------------------------------------------------------------
 ///TODO: Move this handlers to commands folder
-bool ble_worker_event_handler_exit(size_t data_size, void* data, void* context) {
-    BLE_LOG_I("ble_worker_event_handler_exit");
+bool ble_event_handler_gap_exit(size_t data_size, void* data, void* context) {
+    BLE_LOG_I("ble_event_handler_gap_exit");
     UNUSED(data_size);
     UNUSED(data);
     BleWorker* instance = context;
@@ -222,13 +222,10 @@ bool ble_worker_event_handler_exit(size_t data_size, void* data, void* context) 
 //     return true;
 // }
 
-bool ble_worker_event_handler_adjust_connection_request(
-    size_t data_size,
-    void* data,
-    void* context) {
+bool ble_event_handler_gap_adjust_connection_request(size_t data_size, void* data, void* context) {
     UNUSED(data_size);
     UNUSED(data);
-    BLE_LOG_I("ble_worker_event_handler_adjust_connection_request");
+    BLE_LOG_I("ble_event_handler_gap_adjust_connection_request");
     BleWorker* instance = context;
 
     if(instance->remote_dev_feature.remote_features[0] & 0x20) {

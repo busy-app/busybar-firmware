@@ -1,5 +1,5 @@
 
-#include "ble_worker_smp_events.h"
+#include "ble_event_handlers_smp.h"
 
 #include "../../ble_worker_i.h"
 
@@ -12,10 +12,10 @@
 #define RSI_BLE_SMP_IO_CAPABILITY 0x03
 #endif
 
-bool ble_worker_event_handler_smp_response(size_t data_size, void* data, void* context) {
+bool ble_event_handler_smp_response(size_t data_size, void* data, void* context) {
     UNUSED(data_size);
     UNUSED(data);
-    BLE_LOG_I("ble_worker_event_handler_smp_response");
+    BLE_LOG_I("ble_event_handler_smp_response");
     BleWorker* instance = context;
     // rsi_bt_event_smp_resp_t* resp = data;
     // memcpy(&instance->rsi_bt_event_smp_resp, resp, data_size);
@@ -31,9 +31,9 @@ bool ble_worker_event_handler_smp_response(size_t data_size, void* data, void* c
     return true;
 }
 
-bool ble_worker_event_handler_smp_encrypt_started(size_t data_size, void* data, void* context) {
+bool ble_event_handler_smp_encrypt_started(size_t data_size, void* data, void* context) {
     UNUSED(data_size);
-    BLE_LOG_I("ble_worker_event_handler_smp_encrypt_started");
+    BLE_LOG_I("ble_event_handler_smp_encrypt_started");
     BleWorker* instance = context;
     rsi_bt_event_encryption_enabled_t* enc_enabled = data;
     ble_security_set_pairing_data(instance->security_data, enc_enabled);
@@ -49,10 +49,10 @@ bool ble_worker_event_handler_smp_encrypt_started(size_t data_size, void* data, 
     return true;
 }
 
-bool ble_worker_event_handler_smp_ltk_request(size_t data_size, void* data, void* context) {
+bool ble_event_handler_smp_ltk_request(size_t data_size, void* data, void* context) {
     UNUSED(data_size);
     UNUSED(data);
-    BLE_LOG_I("ble_worker_event_handler_smp_ltk_request");
+    BLE_LOG_I("ble_event_handler_smp_ltk_request");
     BleWorker* instance = context;
     // rsi_bt_event_smp_resp_t* resp = data;
     // memcpy(&instance->rsi_bt_event_smp_resp, resp, data_size);
@@ -89,9 +89,9 @@ bool ble_worker_event_handler_smp_ltk_request(size_t data_size, void* data, void
     return true;
 }
 
-bool ble_worker_event_handler_smp_security_keys(size_t data_size, void* data, void* context) {
+bool ble_event_handler_smp_security_keys(size_t data_size, void* data, void* context) {
     UNUSED(data_size);
-    BLE_LOG_I("ble_worker_event_handler_smp_security_keys");
+    BLE_LOG_I("ble_event_handler_smp_security_keys");
     BleWorker* instance = context;
     rsi_bt_event_le_security_keys_t* rsi_ble_event_le_security_keys = data;
     ble_security_set_rpa_data(instance->security_data, rsi_ble_event_le_security_keys);
@@ -113,10 +113,10 @@ bool ble_worker_event_handler_smp_security_keys(size_t data_size, void* data, vo
     return true;
 }
 
-bool ble_worker_event_handler_smp_pairing_failed(size_t data_size, void* data, void* context) {
+bool ble_event_handler_smp_pairing_failed(size_t data_size, void* data, void* context) {
     UNUSED(data_size);
     UNUSED(data);
-    BLE_LOG_I("ble_worker_event_handler_smp_pairing_failed");
+    BLE_LOG_I("ble_event_handler_smp_pairing_failed");
     BleWorker* instance = context;
 
     sl_status_t status = rsi_ble_disconnect((int8_t*)instance->remote_dev_address);
