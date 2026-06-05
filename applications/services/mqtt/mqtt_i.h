@@ -220,7 +220,7 @@ bool mqtt_publish_internal(
     const MqttProperty* props,
     uint32_t props_count);
 
-MqttReason mqtt_message_get_reason(const struct mg_mqtt_message* message);
+MqttReason mqtt_message_get_reason_code(const struct mg_mqtt_message* message);
 
 void mqtt_property_to_raw(const MqttProperty* property, struct mg_mqtt_prop* raw_property);
 

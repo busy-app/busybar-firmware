@@ -291,7 +291,7 @@ static void mqtt_mqtt_cmd_mg_event_handler(
     const uint8_t cmd = message->cmd;
 
     if(cmd == MQTT_CMD_SUBACK) {
-        const MqttReason reason = mqtt_message_get_reason(message);
+        const MqttReason reason = mqtt_message_get_reason_code(message);
 
         FURI_LOG_T(TAG, "MQTT SUBACK: 0x%02X", reason);
 

@@ -126,9 +126,21 @@ bool mqtt_message_get_integer_property(
     return success;
 }
 
-MqttReason mqtt_message_get_reason(const struct mg_mqtt_message* message) {
-    const struct mg_str dgram = message->dgram;
-    return dgram.buf[dgram.len - 1];
+MqttReason mqtt_message_get_reason_code(const struct mg_mqtt_message* message) {
+    MqttReason reason;
+
+    const uint8_t command = message->cmd;
+    const struct mg_str datagram = message->dgram;
+
+    if(command == MQTT_CMD_SUBACK) {
+        reason = datagram.buf[datagram.len - 1];
+
+    } else {
+        // TODO: Implement more command types as needed
+        furi_crash("No MQTT reason code spec for this command");
+    }
+
+    return reason;
 }
 
 // https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901029
