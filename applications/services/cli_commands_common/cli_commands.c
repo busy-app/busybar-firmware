@@ -95,7 +95,7 @@ void cli_command_top(PipeSide* pipe, FuriString* args, void* context) {
             "Threads: %zu, ISR Time: %0.2f%%, Uptime: %luh%lum%lus" ANSI_ERASE_LINE(
                 ANSI_ERASE_FROM_CURSOR_TO_END) "\r\n",
             furi_thread_list_size(thread_list),
-            (double)furi_thread_list_get_isr_time(thread_list),
+            (double)(furi_thread_list_get_isr_time(thread_list) * 100.),
             uptime / 60 / 60,
             uptime / 60 % 60,
             uptime % 60);
