@@ -4,6 +4,38 @@
 
 #define MY_CLASS WIDGET_CLASS
 
+#define WIDGET_SCROLLBAR_FADE_DELAY_MS    2000
+#define WIDGET_SCROLLBAR_FADE_DURATION_MS 350
+
+typedef struct {
+    lv_scrollbar_mode_t mode;
+    lv_dir_t scroll_direction;
+    lv_opa_t scroll_bar_opacity;
+} WidgetScrollBarSetup;
+
+static const WidgetScrollBarSetup widget_scrollbar_modes_map[] = {
+    [WidgetScrollBarModeOff] =
+        {
+            .mode = LV_SCROLLBAR_MODE_OFF,
+            .scroll_direction = LV_DIR_NONE,
+            .scroll_bar_opacity = LV_OPA_TRANSP,
+        },
+    [WidgetScrollBarModeOn] =
+        {
+            .mode = LV_SCROLLBAR_MODE_ON,
+            .scroll_direction = LV_DIR_VER,
+            .scroll_bar_opacity = LV_OPA_COVER,
+        },
+    [WidgetScrollBarModeAuto] =
+        {
+            .mode = LV_SCROLLBAR_MODE_AUTO,
+            .scroll_direction = LV_DIR_VER,
+            .scroll_bar_opacity = LV_OPA_TRANSP,
+        },
+};
+
+static_assert(COUNT_OF(widget_scrollbar_modes_map) == WidgetScrollBarModesCount);
+
 static bool widget_input_feed_default(Widget* instance, const InputEvent* event) {
     bool consumed = false;
 
@@ -27,14 +59,95 @@ static bool widget_input_feed_default(Widget* instance, const InputEvent* event)
     return consumed;
 }
 
-// LVGL-specific code
+/* LVGL-specific code */
+
+static void widget_scrollbar_fade_anim_callback(void* variable, int32_t value) {
+    lv_obj_set_style_bg_opa(variable, value, LV_PART_SCROLLBAR);
+}
+
+static void widget_scrollbar_show(lv_obj_t* obj) {
+    lv_anim_delete(obj, widget_scrollbar_fade_anim_callback);
+    lv_obj_set_style_bg_opa(obj, LV_OPA_COVER, LV_PART_SCROLLBAR);
+}
+
+static void widget_scrollbar_run_fade_out_anim(lv_obj_t* obj) {
+    lv_anim_t anim;
+    lv_anim_init(&anim);
+    lv_anim_set_var(&anim, obj);
+    lv_anim_set_values(&anim, LV_OPA_COVER, LV_OPA_TRANSP);
+    lv_anim_set_delay(&anim, WIDGET_SCROLLBAR_FADE_DELAY_MS);
+    lv_anim_set_duration(&anim, WIDGET_SCROLLBAR_FADE_DURATION_MS);
+    lv_anim_set_path_cb(&anim, lv_anim_path_ease_out);
+    lv_anim_set_exec_cb(&anim, widget_scrollbar_fade_anim_callback);
+    lv_anim_start(&anim);
+}
+
+static bool widget_scrollbar_is_visible(lv_obj_t* obj) {
+    lv_scrollbar_mode_t mode = lv_obj_get_scrollbar_mode(obj);
+
+    if(mode == LV_SCROLLBAR_MODE_OFF) return false;
+    if(lv_obj_get_style_bg_opa(obj, LV_PART_SCROLLBAR) < LV_OPA_MIN) return false;
+    if(mode == LV_SCROLLBAR_MODE_ON) return true;
+    if(lv_obj_get_scroll_top(obj) <= 0 && lv_obj_get_scroll_bottom(obj) <= 0) return false;
+
+    return true;
+}
+
+static void widget_draw_scrollbar_track(lv_obj_t* obj, lv_layer_t* layer) {
+    if(!widget_scrollbar_is_visible(obj)) return;
+
+    int32_t width = lv_obj_get_style_width(obj, LV_PART_SCROLLBAR);
+    int32_t pad_right = lv_obj_get_style_pad_right(obj, LV_PART_SCROLLBAR);
+    int32_t pad_top = lv_obj_get_style_pad_top(obj, LV_PART_SCROLLBAR);
+    int32_t pad_bottom = lv_obj_get_style_pad_bottom(obj, LV_PART_SCROLLBAR);
+
+    lv_area_t track_area = {
+        .x1 = obj->coords.x2 - pad_right - width + 1,
+        .y1 = obj->coords.y1 + pad_top,
+        .x2 = obj->coords.x2 - pad_right,
+        .y2 = obj->coords.y2 - pad_bottom,
+    };
+
+    lv_draw_rect_dsc_t track_dsc;
+    lv_draw_rect_dsc_init(&track_dsc);
+    track_dsc.bg_color = lv_obj_get_style_outline_color(obj, LV_PART_SCROLLBAR);
+    track_dsc.bg_opa = LV_OPA_MIX2(
+        lv_obj_get_style_bg_opa(obj, LV_PART_SCROLLBAR),
+        lv_obj_get_style_outline_opa(obj, LV_PART_SCROLLBAR));
+
+    lv_draw_rect(layer, &track_dsc, &track_area);
+}
+
+static void widget_lvgl_event_callback(const lv_obj_class_t* class_p, lv_event_t* e) {
+    lv_obj_t* obj = lv_event_get_current_target(e);
+
+    switch(lv_event_get_code(e)) {
+    case LV_EVENT_DRAW_POST:
+        widget_draw_scrollbar_track(obj, lv_event_get_layer(e));
+        break;
+
+    case LV_EVENT_SCROLL_BEGIN:
+    /* fall-through */
+    case LV_EVENT_SCROLL:
+        if(lv_obj_get_scrollbar_mode(obj) == LV_SCROLLBAR_MODE_AUTO) {
+            widget_scrollbar_show(obj);
+            widget_scrollbar_run_fade_out_anim(obj);
+        }
+        break;
+
+    default:
+        break;
+    }
+
+    lv_obj_event_base(class_p, e);
+}
 
 static void widget_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
     UNUSED(class_p);
     lv_obj_set_scrollbar_mode(obj, LV_SCROLLBAR_MODE_OFF);
 }
 
-// Public API
+/* Public API */
 
 static const AlignBitmask align_to_bitmask_lut[AlignMax] = {
     [AlignDefault] = AlignBitmaskTop | AlignBitmaskLeft,
@@ -189,14 +302,19 @@ void widget_move_to_background(Widget* instance) {
     lv_obj_move_background((lv_obj_t*)instance);
 }
 
-void widget_set_scrollbar_mode(Widget* instance, WidgetScrollBarMode scrollbar_mode) {
+void widget_set_scrollbar_mode(Widget* instance, WidgetScrollBarMode mode) {
     furi_check(instance);
-    furi_check(scrollbar_mode < WidgetScrollBarModeCount);
-    lv_obj_set_scrollbar_mode((lv_obj_t*)instance, (lv_scrollbar_mode_t)scrollbar_mode);
-    lv_obj_set_style_width((lv_obj_t*)instance, 1, LV_PART_SCROLLBAR);
-    lv_obj_set_scroll_dir(
-        (lv_obj_t*)instance,
-        (scrollbar_mode == WidgetScrollBarModeOff) ? LV_DIR_NONE : LV_DIR_VER);
+    furi_check(mode < WidgetScrollBarModesCount);
+
+    lv_obj_t* lv_object = TO_LV_OBJ(instance);
+
+    lv_anim_delete(lv_object, widget_scrollbar_fade_anim_callback);
+
+    const WidgetScrollBarSetup* setup = &widget_scrollbar_modes_map[mode];
+
+    lv_obj_set_scrollbar_mode(lv_object, setup->mode);
+    lv_obj_set_scroll_dir(lv_object, setup->scroll_direction);
+    lv_obj_set_style_bg_opa(lv_object, setup->scroll_bar_opacity, LV_PART_SCROLLBAR);
 }
 
 void widget_set_background_color(Widget* instance, Color color) {
@@ -232,7 +350,7 @@ WidgetBlendMode widget_get_blend_mode(const Widget* instance) {
     return (WidgetBlendMode)lv_obj_get_style_blend_mode(TO_LV_OBJ(instance), LV_PART_MAIN);
 }
 
-// Private API
+/* Private API */
 
 bool widget_input(Widget* instance, const InputEvent* event) {
     bool consumed = false;
@@ -287,11 +405,12 @@ void widget_style(Widget* instance, GuiDisplayId display_id) {
     }
 }
 
-// LVGL class descriptor
+/* LVGL class descriptor */
 
 const lv_obj_class_t widget_lvgl_class = {
     .base_class = &lv_obj_class,
     .constructor_cb = widget_lvgl_constructor,
+    .event_cb = widget_lvgl_event_callback,
     .name = "widget",
     .width_def = LV_PCT(100),
     .height_def = LV_PCT(100),

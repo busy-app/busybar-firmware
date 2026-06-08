@@ -8,7 +8,7 @@
 #define COLOR_FG_FOCUSED  lv_color_white()
 #define COLOR_FG_DISABLED lv_color_hex(0x444444)
 
-#define SCROLLBAR_WIDTH (3)
+#define SCROLLBAR_WIDTH (1)
 
 #define MENU_PAD_ALL (2)
 
@@ -93,6 +93,8 @@ static void style_init(my_theme_t* theme, FontRegistry* font_registry) {
     lv_style_set_bg_opa(&theme->styles.scrollbar, LV_OPA_COVER);
     lv_style_set_bg_color(&theme->styles.scrollbar, COLOR_FG_FOCUSED);
     lv_style_set_width(&theme->styles.scrollbar, SCROLLBAR_WIDTH);
+    lv_style_set_outline_opa(&theme->styles.scrollbar, LV_OPA_20);
+    lv_style_set_outline_color(&theme->styles.scrollbar, COLOR_FG_FOCUSED);
 
     lv_style_init(&theme->styles.menu);
     lv_style_set_pad_left(&theme->styles.menu, MENU_PAD_ALL);

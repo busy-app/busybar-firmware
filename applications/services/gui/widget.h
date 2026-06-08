@@ -59,13 +59,13 @@ typedef enum {
  */
 AlignBitmask widget_align_to_bitmask(Align align);
 
-/** Enumeration of possible scrollbar modes for widget */
+/** Enumeration of possible scrollbar modes for widget. */
 typedef enum {
-    WidgetScrollBarModeOff, /**< Never show scrollbars*/
-    WidgetScrollBarModeOn, /**< Always show scrollbars*/
-    WidgetScrollBarModeActive, /**< Show scroll bars when Widget is being scrolled*/
-    WidgetScrollBarModeAuto, /**< Show scroll bars when the content is large enough to be scrolled*/
-    WidgetScrollBarModeCount /**< Special value, not to be used in application code */
+    WidgetScrollBarModeOff, /**< Never show scrollbar */
+    WidgetScrollBarModeOn, /**< Always show scrollbar */
+    WidgetScrollBarModeAuto, /**< Show when content overflows and fade out after scroll ends */
+
+    WidgetScrollBarModesCount /**< Special value, not to be used in application code */
 } WidgetScrollBarMode;
 
 /** Enumeration of possible blend modes for widget */
@@ -290,9 +290,9 @@ void widget_move_to_background(Widget* instance);
  * @brief Set widget scrollbar mode.
  *
  * @param[in,out] instance pointer to the widget instance to be modified
- * @param[in] scrollbar_mode new scrollbar mode for widget
+ * @param[in] mode new scrollbar mode for widget
  */
-void widget_set_scrollbar_mode(Widget* instance, WidgetScrollBarMode scrollbar_mode);
+void widget_set_scrollbar_mode(Widget* instance, WidgetScrollBarMode mode);
 
 /**
  * @brief Set the background color and opacity of a Widget instance.

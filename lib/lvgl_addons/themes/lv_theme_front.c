@@ -10,7 +10,7 @@
 #define PROGRESS_BAR_FILL_COLOR_2 lv_color_hex(0x16A34A)
 #define PROGRESS_BAR_BG_COLOR     lv_color_hex(0x333333)
 
-#define SCROLLBAR_WIDTH (0)
+#define SCROLLBAR_WIDTH (1)
 
 #define MENU_SUBLABEL_MAX_WIDTH (26)
 
@@ -83,6 +83,8 @@ static void style_init(my_theme_t* theme, FontRegistry* font_registry) {
     lv_style_init(&theme->styles.scrollbar);
     lv_style_set_bg_opa(&theme->styles.scrollbar, LV_OPA_COVER);
     lv_style_set_bg_color(&theme->styles.scrollbar, COLOR_FG_FOCUSED);
+    lv_style_set_outline_opa(&theme->styles.scrollbar, LV_OPA_30);
+    lv_style_set_outline_color(&theme->styles.scrollbar, COLOR_FG_FOCUSED);
     lv_style_set_width(&theme->styles.scrollbar, SCROLLBAR_WIDTH);
 
     lv_style_init(&theme->styles.menu_item);
