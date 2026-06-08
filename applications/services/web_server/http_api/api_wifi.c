@@ -173,7 +173,9 @@ static bool api_wifi_get_networks_callback(
             cJSON_AddStringToObject(item, WIFI_JSON_KEY_SSID, results[i].ssid);
 
             WifiSecurityMode mode = results[i].security_mode;
-            cJSON_AddStringToObject(item, WIFI_JSON_KEY_SECURITY, security_modes[mode]);
+            const char* security_str = (mode < WifiSecurityModeMax) ? security_modes[mode] :
+                                                                      "Unknown";
+            cJSON_AddStringToObject(item, WIFI_JSON_KEY_SECURITY, security_str);
             cJSON_AddNumberToObject(item, WIFI_JSON_KEY_RSSI, results[i].rssi);
             cJSON_AddItemToArray(array, item);
         }
@@ -250,6 +252,7 @@ static bool api_wifi_mg_json_get_str_key(
         }
 
         furi_string_set_str(output, mg_str);
+        free(mg_str);
         result = true;
 
     } while(false);
@@ -321,10 +324,11 @@ static bool api_wifi_connect_parse_config(
             furi_string_printf(error_msg, "%s must not be empty", WIFI_JSON_KEY_SSID);
             break;
         }
-        strncpy(credentials->ssid, furi_string_get_cstr(buf), SSID_MAX_LEN);
+        strlcpy(credentials->ssid, furi_string_get_cstr(buf), sizeof(credentials->ssid));
 
         if(!api_wifi_mg_json_get_str_key(body, WIFI_JSON_KEY_PASSWORD, buf, error_msg)) break;
-        strncpy(credentials->passphrase, furi_string_get_cstr(buf), PASSPHRASE_MAX_LEN);
+        strlcpy(
+            credentials->passphrase, furi_string_get_cstr(buf), sizeof(credentials->passphrase));
 
         if(!api_wifi_mg_json_get_str_key(body, WIFI_JSON_KEY_SECURITY, buf, error_msg)) break;
         if(!api_wifi_get_security_mode_by_name(buf, &credentials->security_mode)) {
@@ -440,7 +444,9 @@ static bool api_wifi_get_status_callback(
         if(info.state == WifiStateConnected) {
             cJSON_AddStringToObject(response, WIFI_JSON_KEY_SSID, info.ssid);
 
-            const char* security_mode = security_modes[info.security_mode];
+            const char* security_mode = (info.security_mode < WifiSecurityModeMax) ?
+                                            security_modes[info.security_mode] :
+                                            "Unknown";
             cJSON_AddStringToObject(response, WIFI_JSON_KEY_SECURITY, security_mode);
 
             char bssid_str[32];

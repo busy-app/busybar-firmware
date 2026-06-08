@@ -26,6 +26,11 @@ static bool ble_service_command_handler_init(
     UNUSED(frame_type);
     bool result = false;
     do {
+        if(instance->config->init && !instance->config->init(instance)) {
+            BLE_LOG_W("%s - init failed", instance->config->name);
+            break;
+        }
+
         if(data_size == 0) {
             ble_service_set_error(instance, "Empty init data");
             break;

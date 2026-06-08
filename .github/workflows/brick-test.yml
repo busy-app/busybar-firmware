@@ -25,6 +25,7 @@ on:
 permissions:
   contents: read
   id-token: write
+  actions: read
 
 env:
   U5_HW_TARGET: ${{ inputs.target }}
@@ -38,8 +39,11 @@ jobs:
     steps:
 
       - name: "Wait for normal firmware to be available"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           URL="https://update.busy.app/builds/busybar-firmware/${{ inputs.normal_update_url }}"
+          COMMIT_SHA="${{ inputs.commit_sha }}"
           MAX_ATTEMPTS=30
           INTERVAL=30
           for i in $(seq 1 $MAX_ATTEMPTS); do
@@ -48,7 +52,22 @@ jobs:
               echo "Normal firmware available after $((i * INTERVAL))s"
               exit 0
             fi
-            echo "Attempt $i/$MAX_ATTEMPTS: HTTP $HTTP_CODE, waiting ${INTERVAL}s..."
+
+            BUILD_CONCLUSION=$(gh api \
+              "repos/${{ github.repository }}/actions/runs?head_sha=${COMMIT_SHA}&per_page=20" \
+              --jq '[.workflow_runs[] | select(.name == "Build")] | map(.conclusion) |
+                    if length == 0 then "pending"
+                    elif any(. == "success") then "success"
+                    elif any(. == "failure" or . == "cancelled" or . == "timed_out") then "failed"
+                    else "pending" end' \
+              2>/dev/null || echo "unknown")
+
+            if [ "$BUILD_CONCLUSION" = "failed" ]; then
+              echo "ERROR: Build workflow for commit ${COMMIT_SHA} has failed or been cancelled. Normal firmware will not become available."
+              exit 1
+            fi
+
+            echo "Attempt $i/$MAX_ATTEMPTS: HTTP $HTTP_CODE, Build: $BUILD_CONCLUSION, waiting ${INTERVAL}s..."
             sleep $INTERVAL
           done
           echo "ERROR: Firmware not available after $((MAX_ATTEMPTS * INTERVAL))s"

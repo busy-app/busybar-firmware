@@ -2,26 +2,7 @@
  * @file timers.h
  * @brief Low-level timers API.
  *
- * The timers found in this file can be used
- * as a convenient means for storing points in time
- * and then checking whether some amount of time
- * (timeout) has passed.
- *
- * CoarseTimer class uses the OS tick counter, so it
- * can only be used when an OS is running, and its precision
- * is limited to that of the OS ticks.
- *
- * PreciseTimer class uses the CPU cycle counter and
- * has microsecond resolution, however, its maximum timeout
- * is limited to several seconds, depending on the underlying
- * implementation and CPU frequency.
- * Additionally, it can be used in critical sections and/or
- * when an OS is not running.
- *
- * Both timer types are only useful for measuring time
- * and waiting, if a function needs to be called periodically,
- * consider using FuriEventLoopTimer if there is a FuriEventLoop
- * available, or a regular FuriTimer instead.
+ * @see @ref simple-timers for more information.
  */
 #pragma once
 
@@ -35,9 +16,27 @@ extern "C" {
 #endif
 
 /**
- * @defgroup GenericTimer Generic timer APIs
+ * @defgroup simple-timers Simple timers
  *
- * Applicable to both @ref CoarseTimer and @ref PreciseTimer types.
+ * Simple timers can be used for conveniently
+ * storing points in time and then checking whether
+ * a certain amount of time (timeout) has passed.
+ *
+ * @ref coarse-timers use the OS tick counter, so they
+ * can only be used when an OS is running, and the precision
+ * is limited to that of the OS ticks.
+ *
+ * @ref precise-timers use the CPU cycle counter and
+ * have microsecond resolution, however, the maximum timeout
+ * is limited to several seconds, depending on the underlying
+ * implementation and CPU frequency.
+ * Unlike @ref coarse-timers, they can be used in critical sections and/or
+ * when an OS is not running.
+ *
+ * Both timer types are only useful for measuring time and waiting.
+ * If a callback function needs to be called periodically,
+ * consider instead using FuriEventLoopTimer if there is
+ * a FuriEventLoop available, or a regular FuriTimer.
  *
  * @{
  */
@@ -50,10 +49,8 @@ extern "C" {
  */
 typedef bool (*TimerConditionCallback)(void* context);
 
-/** @} */
-
 /**
- * @defgroup CoarseTimer Coarse timer APIs
+ * @defgroup coarse-timers Coarse timers
  *
  * Timers with a single OS tick precision.
  * Can only be used when the scheduler is running.
@@ -95,12 +92,12 @@ uint32_t coarse_timer_get_elapsed(const CoarseTimer timer);
  */
 bool coarse_timer_is_expired(const CoarseTimer timer);
 
-/** @} */
+/** @} coarse-timers */
 
 /**
- * @defgroup PreciseTimer Precise timer APIs
+ * @defgroup precise-timers Precise timers
  *
- * Timers with MICROsecond precision.
+ * Timers with microsecond (&mu;s) precision.
  *
  * Can be used anytime anywhere (including critical sections),
  * but the maximum timeout is limited usually to
@@ -171,7 +168,9 @@ bool precise_timer_wait_for(
     TimerConditionCallback condition_cb,
     void* context);
 
-/** @} */
+/** @} precise-timers */
+
+/** @} simple-timers */
 
 #ifdef __cplusplus
 }
