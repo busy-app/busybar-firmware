@@ -6,6 +6,11 @@ static bool websrv_accesslog_level_is_valid(const SettingProviderSetting* settin
     return value >= 0 && value <= 3;
 }
 
+static bool ui_debug_mode_is_valid(const SettingProviderSetting* setting, int value) {
+    UNUSED(setting);
+    return value >= 0 && value <= 2;
+}
+
 static bool get_default_debug_enabled(void) {
     return furi_hal_nvm_is_flag_set(FuriHalNvmFlagDebug);
 }
@@ -41,6 +46,17 @@ const SettingProviderSetting sysctl_settings_v1[] = {
                 },
             .field_offset = offsetof(SysctlSettingsV1, debug_enabled),
             .type = SettingProviderSettingTypeBool,
+        },
+    [SysctlSettingsV1IdxUiDebugMode] =
+        {
+            .name = "ui_debug_mode",
+            .interface =
+                &(const SettingProviderIntInterface){
+                    .is_valid_callback = ui_debug_mode_is_valid,
+                    .default_value = 0,
+                },
+            .field_offset = offsetof(SysctlSettingsV1, ui_debug_mode),
+            .type = SettingProviderSettingTypeInt,
         },
 };
 

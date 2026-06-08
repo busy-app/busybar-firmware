@@ -9,6 +9,7 @@ path = [
     "scripts/**",
     "tests/**",
 
+    "fbt_layers/*",
     "lib/*",
     "assets/*",
     "assets/frontend/**",
