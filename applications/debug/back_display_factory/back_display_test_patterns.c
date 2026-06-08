@@ -20,11 +20,14 @@ static void back_display_pattern_update_checkerboard(Canvas* canvas, Color color
 }
 
 static void back_display_pattern_update_gradient_horizontal(Canvas* canvas, Color color) {
+    UNUSED(color);
     Widget* widget = canvas_get_base(canvas);
     canvas_set_line_width(canvas, 0);
 
     for(int32_t i = 0; i < 16; i++) {
-        canvas_set_fill_color(canvas, color);
+        uint8_t intensity = 255 * i / 15;
+        Color test_color = COLOR_MAKE_RGB(intensity, intensity, intensity);
+        canvas_set_fill_color(canvas, test_color);
         canvas_draw_rect(
             canvas,
             i * widget_get_width(widget) / 16,
@@ -36,11 +39,14 @@ static void back_display_pattern_update_gradient_horizontal(Canvas* canvas, Colo
 }
 
 static void back_display_pattern_update_gradient_vertical(Canvas* canvas, Color color) {
+    UNUSED(color);
     Widget* widget = canvas_get_base(canvas);
     canvas_set_line_width(canvas, 0);
 
     for(int32_t i = 0; i < 16; i++) {
-        canvas_set_fill_color(canvas, color);
+        uint8_t intensity = 255 * i / 15;
+        Color test_color = COLOR_MAKE_RGB(intensity, intensity, intensity);
+        canvas_set_fill_color(canvas, test_color);
         canvas_draw_rect(
             canvas,
             0,
