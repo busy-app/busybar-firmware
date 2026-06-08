@@ -612,13 +612,13 @@ static BSB_State_StateUpdate* collect_wifi_info(const WifiInfo* info) {
         update->state.wifi.which_wifi_state = BSB_State_Wifi_unknown_tag;
         break;
     case WifiStateDisconnected:
-        update->state.wifi.which_wifi_state = BSB_State_Wifi_disconnected_tag;
+        update->state.wifi.which_wifi_state = BSB_State_Wifi_inactive_tag;
         break;
     case WifiStateConnected:
     case WifiStateConnecting:
     case WifiStateDisconnecting:
     case WifiStateReconnecting: {
-        update->state.wifi.which_wifi_state = BSB_State_Wifi_connected_tag;
+        update->state.wifi.which_wifi_state = BSB_State_Wifi_active_tag;
 
         // status
         static const BSB_State_WifiConnectionStatus status_lookup[] = {
@@ -627,31 +627,31 @@ static BSB_State_StateUpdate* collect_wifi_info(const WifiInfo* info) {
             [WifiStateDisconnecting] = BSB_State_WifiConnectionStatus_DISCONNECTING,
             [WifiStateReconnecting] = BSB_State_WifiConnectionStatus_RECONNECTING,
         };
-        update->state.wifi.wifi_state.connected.status = status_lookup[info->state];
+        update->state.wifi.wifi_state.active.status = status_lookup[info->state];
 
         // SSID
         static_assert(
-            sizeof(update->state.wifi.wifi_state.connected.ssid) >
+            sizeof(update->state.wifi.wifi_state.active.ssid) >
             sizeof(void*)); // make sure it's an array
         strlcpy(
-            update->state.wifi.wifi_state.connected.ssid,
+            update->state.wifi.wifi_state.active.ssid,
             info->ssid,
-            sizeof(update->state.wifi.wifi_state.connected.ssid));
+            sizeof(update->state.wifi.wifi_state.active.ssid));
 
         // BSSID
         static_assert(
-            sizeof(update->state.wifi.wifi_state.connected.bssid) >
+            sizeof(update->state.wifi.wifi_state.active.bssid) >
             sizeof(void*)); // make sure it's an array
         wifi_format_bssid(
             info->bssid,
-            update->state.wifi.wifi_state.connected.bssid,
-            sizeof(update->state.wifi.wifi_state.connected.bssid));
+            update->state.wifi.wifi_state.active.bssid,
+            sizeof(update->state.wifi.wifi_state.active.bssid));
 
         // channel
-        update->state.wifi.wifi_state.connected.channel = info->channel;
+        update->state.wifi.wifi_state.active.channel = info->channel;
 
         // rssi
-        update->state.wifi.wifi_state.connected.rssi = info->rssi;
+        update->state.wifi.wifi_state.active.rssi = info->rssi;
 
         // security
         static const BSB_State_WifiSecurity security_lookup[] = {
@@ -665,7 +665,7 @@ static BSB_State_StateUpdate* collect_wifi_info(const WifiInfo* info) {
             [WifiSecurityModeUnsupported] = BSB_State_WifiSecurity_UNKNOWN,
         };
         static_assert(COUNT_OF(security_lookup) == WifiSecurityModeMax);
-        update->state.wifi.wifi_state.connected.security = security_lookup[info->security_mode];
+        update->state.wifi.wifi_state.active.security = security_lookup[info->security_mode];
 
         // IP
         convert_ip_config(&update->state.wifi, &info->ip_config);
