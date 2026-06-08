@@ -33,6 +33,15 @@ _fw_default_apps_config = {
         "basic_services",
         "recovery",
     ],
+    "factory_testing": [
+        "basic_services",
+        "extended_services",
+        "main_apps",
+        "settings",
+        "system_apps",
+        "debug_apps",
+        "back_display_factory",
+    ],
 }
 
 fw_apps_configs_option = find_variable_config(VARS, "FIRMWARE_APPS")

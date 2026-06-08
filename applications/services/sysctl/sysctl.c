@@ -38,6 +38,20 @@ void sysctl_set_websrv_accesslog_level(int level) {
     furi_mutex_release(s_state.mutex);
 }
 
+int sysctl_get_ui_debug_mode(void) {
+    furi_mutex_acquire(s_state.mutex, FuriWaitForever);
+    int value = s_state.settings.ui_debug_mode;
+    furi_mutex_release(s_state.mutex);
+    return value;
+}
+
+void sysctl_set_ui_debug_mode(int mode) {
+    furi_mutex_acquire(s_state.mutex, FuriWaitForever);
+    s_state.settings.ui_debug_mode = mode;
+    sysctl_settings_save(&s_state.settings);
+    furi_mutex_release(s_state.mutex);
+}
+
 void sysctl_on_system_start(void) {
     s_state.mutex = furi_mutex_alloc(FuriMutexTypeNormal);
     sysctl_settings_load(&s_state.settings);

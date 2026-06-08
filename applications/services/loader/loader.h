@@ -1,15 +1,31 @@
+/**
+ * @file loader.h
+ * @brief Loader service API.
+ *
+ * @see @ref loader for more information.
+ */
 #pragma once
+
 #include <furi.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+/**
+ * @defgroup loader Loader service
+ *
+ * Loader is a system @ref services "service" that
+ * loads and manages @ref applications "applications".
+ *
+ * @{
+ */
+
 #define RECORD_LOADER            "loader"
 #define LOADER_APPLICATIONS_NAME "Apps"
 
 /**
- * @defgroup LoaderPriority Loader application priority
+ * @defgroup loader-priority Loader application priority
  *
  * The loader tracks a "priority" for the currently running application.  The
  * canvas HTTP API (POST /api/display/draw) uses this value to decide whether
@@ -28,13 +44,15 @@ extern "C" {
  *       loader_set_priority(); the loader verifies the caller's app-id.
  * @{
  */
+
 #define LOADER_MAX_PRIORITY         100
 #define LOADER_DEFAULT_APP_PRIORITY 10
 #define LOADER_MAX_APP_PRIORITY     90
 #define LOADER_STUB_APP_PRIORITY    0
 #define LOADER_PASSTHROUGH_PRIORITY (LOADER_DEFAULT_APP_PRIORITY - 1)
 #define LOADER_BLOCKING_PRIORITY    (LOADER_MAX_PRIORITY + 1)
-/** @} */
+
+/** @} loader-priority */
 
 typedef struct Loader Loader;
 
@@ -149,6 +167,8 @@ bool loader_set_priority(Loader* instance, size_t priority);
  * @return Current app priority, or 0 if no app is running.
  */
 size_t loader_get_priority(Loader* instance);
+
+/** @} loader */
 
 #ifdef __cplusplus
 }
