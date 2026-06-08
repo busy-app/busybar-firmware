@@ -38,12 +38,12 @@
 #define MG_REPLY_OK_CLOSE(conn) \
     mg_http_reply(conn, 200, DEFAULT_JSON_HEADERS "Connection: close\r\n", RESPONSE_BODY_OK)
 
-#define MG_REPLY_ERROR_CLOSE(conn, code, ...)                                 \
-    mg_http_reply(                                                           \
-        conn,                                                                \
-        code,                                                                \
-        DEFAULT_JSON_HEADERS "Connection: close\r\n",                        \
-        "{\"error\":\"%s\"}\n",                                       \
+#define MG_REPLY_ERROR_CLOSE(conn, code, ...)         \
+    mg_http_reply(                                    \
+        conn,                                         \
+        code,                                         \
+        DEFAULT_JSON_HEADERS "Connection: close\r\n", \
+        "{\"error\":\"%s\"}\n",                       \
         M_IF_EMPTY(__VA_ARGS__)("failed", __VA_ARGS__))
 
 #define MG_REPLY_ERROR(conn, code, ...) \
