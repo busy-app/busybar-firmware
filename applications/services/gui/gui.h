@@ -37,6 +37,18 @@ typedef struct Gui Gui;
 typedef struct GuiLayer GuiLayer;
 
 /**
+ * @brief Display parameters descriptor.
+ *
+ * Holds the static geometry and buffer configuration for a physical display.
+ */
+typedef struct {
+    size_t width; /**< Display width in pixels. */
+    size_t height; /**< Display height in pixels. */
+    size_t bits_per_pixel; /**< Colour depth (bits per pixel). */
+    size_t buffer_size; /**< Frame buffer size in bytes. */
+} GuiDisplayParameters;
+
+/**
  * @brief Input callback function type.
  *
  * @param[in] event pointer to the input event that has occurred
@@ -68,7 +80,11 @@ void gui_lock(Gui* instance);
 void gui_unlock(Gui* instance);
 
 /**
- * @brief
+ * @brief Get a GUI layer by its identifier.
+ *
+ * @param[in,out] instance pointer to the Gui instance
+ * @param[in] layer_id identifier of the layer to retrieve
+ * @return pointer to the requested GuiLayer, or NULL on invalid arguments
  */
 GuiLayer* gui_get_layer(Gui* instance, GuiLayerId layer_id);
 
@@ -108,6 +124,15 @@ void gui_layer_remove_input_callback(GuiLayer* layer, GuiInputCallback callback)
  * @return pointer to the frame buffer
  */
 const uint8_t* gui_display_get_frame_buffer(Gui* instance, GuiDisplayId display_id);
+
+/**
+ * @brief Get the static parameters for a given display.
+ *
+ * @param[in] display_id identifier of the display to query
+ * @return pointer to the GuiDisplayParameters for the requested display
+ * @see GuiDisplayParameters
+ */
+const GuiDisplayParameters* gui_display_get_parameters(GuiDisplayId display_id);
 
 /**
  * @brief Shorthand for automatically locking and unlocking the GUI.

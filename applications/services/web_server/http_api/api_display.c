@@ -8,6 +8,7 @@
 #include <furi_hal_rtc.h>
 #include <font_registry/fonts.h>
 #include <brightness_control/brightness_control.h>
+#include <lvgl.h>
 
 #define TAG "HttpDisplay"
 
@@ -17,8 +18,11 @@
 static bool api_display_draw_parse_text_element(
     CanvasElement* canvas_element,
     const char* app_name,
-    struct mg_str json_element) {
+    struct mg_str json_element,
+    FuriString* error) {
     UNUSED(app_name);
+    UNUSED(error);
+
     bool result = false;
     do {
         canvas_element->type = CanvasElementTypeText;
@@ -98,8 +102,11 @@ static bool api_display_draw_parse_text_element(
 static bool api_display_draw_parse_countdown_element(
     CanvasElement* canvas_element,
     const char* app_name,
-    struct mg_str json_element) {
+    struct mg_str json_element,
+    FuriString* error) {
     UNUSED(app_name);
+    UNUSED(error);
+
     bool result = false;
     do {
         canvas_element->type = CanvasElementTypeCountdown;
@@ -197,16 +204,47 @@ static bool api_display_draw_parse_image_path(
     return result;
 }
 
+static bool
+    api_display_validate_image(const char* file_path, GuiDisplayId display, FuriString* error) {
+    lv_image_header_t header;
+    if(lv_image_decoder_get_info(file_path, &header) != LV_RESULT_OK) {
+        furi_string_printf(error, "Failed to decode image %s.", file_path);
+        return false;
+    }
+
+    const GuiDisplayParameters* display_parameters = gui_display_get_parameters(display);
+
+    if(header.w > display_parameters->width || header.h > display_parameters->height) {
+        furi_string_printf(
+            error,
+            "Image %s exceeds display dimensions %zux%zu.",
+            file_path,
+            display_parameters->width,
+            display_parameters->height);
+        return false;
+    }
+
+    return true;
+}
+
 static bool api_display_draw_parse_image_element(
     CanvasElement* canvas_element,
     const char* app_name,
-    struct mg_str json_element) {
+    struct mg_str json_element,
+    FuriString* error) {
     bool result = false;
 
     do {
         canvas_element->type = CanvasElementTypeImage;
+
         if(!api_display_draw_parse_image_path(
                &canvas_element->image.file_path, app_name, json_element, canvas_element->type))
+            break;
+
+        if(!api_display_validate_image(
+               furi_string_get_cstr(canvas_element->image.file_path),
+               canvas_element->display,
+               error))
             break;
 
         result = true;
@@ -218,7 +256,9 @@ static bool api_display_draw_parse_image_element(
 static bool api_display_draw_parse_anim_player_element(
     CanvasElement* canvas_element,
     const char* app_name,
-    struct mg_str json_element) {
+    struct mg_str json_element,
+    FuriString* error) {
+    UNUSED(error);
     bool result = false;
 
     do {
@@ -256,8 +296,11 @@ static bool api_display_draw_parse_anim_player_element(
     return result;
 }
 
-typedef bool (
-    *ApiDisplayElementTypeParser)(CanvasElement*, const char* app_name, struct mg_str element);
+typedef bool (*ApiDisplayElementTypeParser)(
+    CanvasElement*,
+    const char* app_name,
+    struct mg_str element,
+    FuriString* error);
 
 typedef struct {
     const char* type;
@@ -267,7 +310,8 @@ typedef struct {
 static bool api_display_draw_parse_element(
     CanvasElementsArray_t elements_array,
     char* app_name,
-    struct mg_str element) {
+    struct mg_str element,
+    FuriString* error) {
     bool success = false;
     char* element_type = NULL;
     CanvasElement* canvas_element = CanvasElementsArray_push_new(elements_array);
@@ -337,7 +381,7 @@ static bool api_display_draw_parse_element(
         for(size_t i = 0; i < COUNT_OF(element_parsers); i++) {
             const ApiDisplayElementTypeAssoc* association = &element_parsers[i];
             if(strcmp(element_type, association->type) == 0) {
-                success = association->parser(canvas_element, app_name, element);
+                success = association->parser(canvas_element, app_name, element, error);
                 break;
             }
         }
@@ -408,6 +452,7 @@ static void api_display_canvas_draw(struct mg_connection* conn, struct mg_http_m
     char* app_name = NULL;
     double json_num = 0;
     int priority = DISPLAY_API_DEFAULT_PRIORITY;
+    FuriString* error = furi_string_alloc();
 
     do {
         app_name = mg_json_get_str(msg->body, "$.application_name");
@@ -438,11 +483,12 @@ static void api_display_canvas_draw(struct mg_connection* conn, struct mg_http_m
         struct mg_str element;
         bool ok = true;
         while((offset = mg_json_next(elements_obj, offset, NULL, &element)) > 0) {
-            ok = api_display_draw_parse_element(elements_array, app_name, element);
+            ok = api_display_draw_parse_element(elements_array, app_name, element, error);
             if(!ok) break;
         }
         if(!ok) {
-            MG_REPLY_BAD_REQUEST(conn);
+            MG_REPLY_ERROR(
+                conn, 400, furi_string_empty(error) ? "Bad Request" : furi_string_get_cstr(error));
             break;
         }
         if(CanvasElementsArray_size(elements_array) == 0) {
@@ -469,6 +515,7 @@ static void api_display_canvas_draw(struct mg_connection* conn, struct mg_http_m
     } while(0);
 
     CanvasElementsArray_clear(elements_array);
+    furi_string_free(error);
     if(app_name) free(app_name);
 }
 

@@ -426,3 +426,28 @@ const uint8_t* gui_display_get_frame_buffer(Gui* gui, GuiDisplayId display_id) {
 
     return gui->displays[display_id].draw_buffer;
 }
+
+const GuiDisplayParameters* gui_display_get_parameters(GuiDisplayId display_id) {
+    furi_check(display_id < GuiDisplayIdMax);
+
+    static const GuiDisplayParameters display_parameters[] = {
+        [GuiDisplayIdFront] =
+            {
+                .width = FRONT_DISPLAY_W,
+                .height = FRONT_DISPLAY_H,
+                .bits_per_pixel = FRONT_DISPLAY_BPP,
+                .buffer_size = FRONT_DISPLAY_BUF_SIZE,
+            },
+        [GuiDisplayIdBack] =
+            {
+                .width = BACK_DISPLAY_W,
+                .height = BACK_DISPLAY_H,
+                .bits_per_pixel = BACK_DISPLAY_BPP,
+                .buffer_size = BACK_DISPLAY_BUF_SIZE,
+            },
+    };
+
+    static_assert(COUNT_OF(display_parameters) == GuiDisplayIdMax);
+
+    return &display_parameters[display_id];
+}
