@@ -16,18 +16,24 @@
 #include <font_registry/fonts.h>
 #include <back_display/back_display.h>
 
+#define CANVAS_DEFERRED_TIMEOUT_MS 1500U
+
 typedef struct {
     enum {
         CanvasSrvEventUpdate,
         CanvasSrvEventClear,
         CanvasSrvEventExit,
         CanvasSrvEventGetAppId,
+        CanvasSrvEventReevaluatePriority,
     } type;
     FuriApiLock lock;
     CanvasResult* result;
     char* app_id;
-    size_t* priority;
+    size_t priority;
+    size_t loader_priority;
     FuriString* string;
+    CanvasDrawCallback callback;
+    void* callback_ctx;
     union {
         CanvasElementsArray_t elements;
     };
@@ -55,17 +61,29 @@ DICT_DEF2(CanvasWidgetsDict, const char*, M_CSTR_DUP_OPLIST, CanvasWidget, M_POD
 
 static void canvas_screen_open(CanvasSrv* canvas);
 static void canvas_screen_close(CanvasSrv* canvas);
+static void canvas_loader_pubsub_callback(const void* message, void* context);
 
 struct CanvasSrv {
     FuriEventLoop* event_loop;
     FuriMessageQueue* event_queue;
     Gui* gui;
+    Widget* background[GuiDisplayIdMax];
     Widget* display[GuiDisplayIdMax];
     CanvasWidgetsDict_t widgets;
     DisplayMirror* display_mirror;
     Loader* loader;
+    FuriPubSubSubscription* loader_subscription;
     char* app_id;
     size_t priority;
+    struct {
+        bool pending;
+        char* app_id;
+        size_t priority;
+        CanvasElementsArray_t elements;
+        CanvasDrawCallback callback;
+        void* callback_ctx;
+    } deferred;
+    FuriEventLoopTimer* deferred_timer;
 };
 
 static void canvas_check_back_screen_empty(CanvasSrv* canvas) {
@@ -400,6 +418,67 @@ static bool canvas_update_all(CanvasSrv* canvas, CanvasElementsArray_t elements)
     return success;
 }
 
+static bool canvas_draw_rejected(CanvasSrv* canvas, const char* app_id, size_t priority) {
+    size_t loader_prio = loader_get_priority(canvas->loader);
+    size_t current_priority =
+        (canvas->gui == NULL || loader_prio > canvas->priority) ? loader_prio : canvas->priority;
+    bool same_app = (canvas->gui != NULL) && canvas->app_id &&
+                    (strcmp(app_id, canvas->app_id) == 0);
+    return (canvas->gui == NULL || same_app) ? (priority < current_priority) :
+                                               (priority <= current_priority);
+}
+
+static CanvasResult canvas_srv_do_draw(
+    CanvasSrv* canvas,
+    const char* app_id,
+    size_t priority,
+    CanvasElementsArray_t elements) {
+    if(canvas->gui == NULL) {
+        if(!canvas_srv_check_elements_visible(elements)) return CanvasResultEmptyScreen;
+        canvas_screen_open(canvas);
+    }
+    if(canvas->app_id) {
+        if(strcmp(app_id, canvas->app_id) != 0) {
+            canvas_widget_destroy_all(canvas);
+            CanvasWidgetsDict_reset(canvas->widgets);
+            free(canvas->app_id);
+            canvas->app_id = strdup(app_id);
+        }
+    } else {
+        canvas->app_id = strdup(app_id);
+    }
+    canvas->priority = priority;
+    return canvas_update_all(canvas, elements) ? CanvasResultOk : CanvasResultBadParameters;
+}
+
+static void canvas_deferred_drop(CanvasSrv* canvas) {
+    canvas->deferred.pending = false;
+    free(canvas->deferred.app_id);
+    canvas->deferred.app_id = NULL;
+    CanvasElementsArray_clear(canvas->deferred.elements);
+}
+
+static void canvas_deferred_complete(CanvasSrv* canvas, CanvasResult result) {
+    furi_event_loop_timer_stop(canvas->deferred_timer);
+    CanvasDrawCallback callback = canvas->deferred.callback;
+    void* callback_ctx = canvas->deferred.callback_ctx;
+    canvas_deferred_drop(canvas);
+    callback(result, callback_ctx);
+}
+
+static void canvas_deferred_try(CanvasSrv* canvas) {
+    if(!canvas->deferred.pending) return;
+    if(canvas_draw_rejected(canvas, canvas->deferred.app_id, canvas->deferred.priority)) return;
+
+    CanvasResult result = canvas_srv_do_draw(
+        canvas, canvas->deferred.app_id, canvas->deferred.priority, canvas->deferred.elements);
+    canvas_deferred_complete(canvas, result);
+}
+
+static void canvas_deferred_timeout(void* context) {
+    canvas_deferred_complete(context, CanvasResultLowPriority);
+}
+
 static void canvas_srv_queue_event_callback(FuriEventLoopObject* object, void* context) {
     furi_assert(context);
     CanvasSrv* canvas = context;
@@ -411,55 +490,32 @@ static void canvas_srv_queue_event_callback(FuriEventLoopObject* object, void* c
     CanvasResult res = CanvasResultOk;
 
     if(event.type == CanvasSrvEventUpdate) {
-        furi_assert(event.priority);
+        bool rejected = canvas_draw_rejected(canvas, event.app_id, event.priority);
 
-        do {
-            size_t loader_prio = loader_get_priority(canvas->loader);
-            size_t current_priority = (canvas->gui == NULL || loader_prio > canvas->priority) ?
-                                          loader_prio :
-                                          canvas->priority;
-
-            bool same_app = (canvas->gui != NULL) && canvas->app_id &&
-                            (strcmp(event.app_id, canvas->app_id) == 0);
-            bool rejected;
-            if(canvas->gui == NULL || same_app) {
-                rejected = (*event.priority < current_priority);
-            } else {
-                rejected = (*event.priority <= current_priority);
+        if(rejected && event.callback) {
+            if(canvas->deferred.pending) {
+                canvas_deferred_complete(canvas, CanvasResultLowPriority);
             }
-            FURI_LOG_I(
-                "CanvasSrv",
-                "Received update event with priority %zu, current priority is %zu",
-                *event.priority,
-                current_priority);
-            if(rejected) {
+
+            canvas->deferred.pending = true;
+            canvas->deferred.app_id = strdup(event.app_id);
+            canvas->deferred.priority = event.priority;
+            CanvasElementsArray_init_set(canvas->deferred.elements, event.elements);
+            canvas->deferred.callback = event.callback;
+            canvas->deferred.callback_ctx = event.callback_ctx;
+            furi_event_loop_timer_start(canvas->deferred_timer, CANVAS_DEFERRED_TIMEOUT_MS);
+        } else {
+            if(!rejected) {
+                res = canvas_srv_do_draw(canvas, event.app_id, event.priority, event.elements);
+            } else {
                 res = CanvasResultLowPriority;
-                break;
             }
 
-            if(canvas->gui == NULL) {
-                if(!canvas_srv_check_elements_visible(event.elements)) {
-                    res = CanvasResultEmptyScreen;
-                    break;
-                }
-                canvas_screen_open(canvas);
+            if(event.callback) {
+                event.callback(res, event.callback_ctx);
+                event.callback = NULL;
             }
-
-            if(canvas->app_id) {
-                bool new_id = (strcmp(event.app_id, canvas->app_id) != 0);
-                if(new_id) {
-                    canvas_widget_destroy_all(canvas);
-                    CanvasWidgetsDict_reset(canvas->widgets);
-                    free(canvas->app_id);
-                    canvas->app_id = strdup(event.app_id);
-                }
-            } else {
-                canvas->app_id = strdup(event.app_id);
-            }
-            canvas->priority = *event.priority;
-            res = canvas_update_all(canvas, event.elements) ? CanvasResultOk :
-                                                              CanvasResultBadParameters;
-        } while(0);
+        }
 
         CanvasElementsArray_clear(event.elements);
 
@@ -478,6 +534,13 @@ static void canvas_srv_queue_event_callback(FuriEventLoopObject* object, void* c
         }
     } else if(event.type == CanvasSrvEventExit) {
         canvas_srv_clear_all(canvas);
+        res = CanvasResultOk;
+
+    } else if(event.type == CanvasSrvEventReevaluatePriority) {
+        if(canvas->gui != NULL && canvas->priority < event.loader_priority) {
+            canvas_srv_clear_all(canvas);
+        }
+        canvas_deferred_try(canvas);
         res = CanvasResultOk;
 
     } else if(event.type == CanvasSrvEventGetAppId) {
@@ -531,15 +594,23 @@ static void canvas_screen_open(CanvasSrv* canvas) {
         GuiLayer* input_layer = gui_get_layer(canvas->gui, GuiLayerIdSystem);
         gui_layer_add_input_callback(input_layer, canvas_srv_input_callback, canvas);
 
-        GuiLayer* draw_layer = gui_get_layer(canvas->gui, GuiLayerIdMain);
+        GuiLayer* draw_layer = gui_get_layer(canvas->gui, GuiLayerIdTop);
         Color background = COLOR_MAKE_HEXA(0x000000FF);
         for(GuiDisplayId i = 0; i < GuiDisplayIdMax; i++) {
             Widget* root = gui_layer_get_root_widget(draw_layer, i);
             size_t root_w = widget_get_width(root);
             size_t root_h = widget_get_height(root);
 
+            canvas->background[i] = widget_alloc(root);
+            widget_set_background_color(canvas->background[i], background);
+            widget_set_pos(canvas->background[i], 0, 0);
+            widget_set_padding(canvas->background[i], 0, 0, 0, 0);
+            widget_set_margin(canvas->background[i], 0, 0, 0, 0);
+            widget_set_ignore_layout(canvas->background[i], true);
+            widget_set_size(canvas->background[i], root_w, root_h);
+            widget_set_max_size(canvas->background[i], root_w, root_h);
+
             canvas->display[i] = widget_alloc(root);
-            widget_set_background_color(canvas->display[i], background);
             widget_set_pos(canvas->display[i], 0, 0);
             widget_set_padding(canvas->display[i], 0, 0, 0, 0);
             widget_set_margin(canvas->display[i], 0, 0, 0, 0);
@@ -560,6 +631,7 @@ static void canvas_screen_open(CanvasSrv* canvas) {
 }
 
 static void canvas_screen_close(CanvasSrv* canvas) {
+    if(!canvas->gui) return;
     with_gui(canvas->gui, {
         GuiLayer* input_layer = gui_get_layer(canvas->gui, GuiLayerIdSystem);
         gui_layer_remove_input_callback(input_layer, canvas_srv_input_callback);
@@ -568,6 +640,8 @@ static void canvas_screen_close(CanvasSrv* canvas) {
         for(GuiDisplayId i = 0; i < GuiDisplayIdMax; i++) {
             widget_free(canvas->display[i]);
             canvas->display[i] = NULL;
+            widget_free(canvas->background[i]);
+            canvas->background[i] = NULL;
         }
     });
     furi_record_close(RECORD_GUI);
@@ -578,6 +652,20 @@ static void canvas_screen_close(CanvasSrv* canvas) {
         back_display_sleep_mode(back_display, true);
         furi_record_close(RECORD_BACK_DISPLAY);
     }
+}
+
+static void canvas_loader_pubsub_callback(const void* message, void* context) {
+    furi_assert(message);
+    furi_assert(context);
+    const LoaderEvent* event = message;
+    if(event->type != LoaderEventTypePriorityChanged) return;
+
+    CanvasSrv* canvas = context;
+    CanvasSrvQueueEvent evt = {
+        .type = CanvasSrvEventReevaluatePriority,
+        .loader_priority = event->priority,
+    };
+    furi_message_queue_put(canvas->event_queue, &evt, 0);
 }
 
 static CanvasSrv* canvas_srv_alloc() {
@@ -595,6 +683,15 @@ static CanvasSrv* canvas_srv_alloc() {
 
     canvas->loader = furi_record_open(RECORD_LOADER);
     canvas->priority = 0;
+
+    canvas->loader_subscription = furi_pubsub_subscribe(
+        loader_get_pubsub(canvas->loader), canvas_loader_pubsub_callback, canvas);
+
+    canvas->deferred.pending = false;
+    canvas->deferred.app_id = NULL;
+    CanvasElementsArray_init(canvas->deferred.elements);
+    canvas->deferred_timer = furi_event_loop_timer_alloc(
+        canvas->event_loop, canvas_deferred_timeout, FuriEventLoopTimerTypeOnce, canvas);
 
     return canvas;
 }
@@ -622,7 +719,7 @@ CanvasResult canvas_show_elements(
         .lock = api_lock_alloc_locked(),
         .type = CanvasSrvEventUpdate,
         .app_id = strdup(app_id),
-        .priority = &priority,
+        .priority = priority,
         .result = &res,
     };
 
@@ -631,6 +728,28 @@ CanvasResult canvas_show_elements(
 
     api_lock_wait_unlock_and_free(evt.lock);
     return res;
+}
+
+void canvas_show_elements_async(
+    CanvasSrv* canvas,
+    const char* app_id,
+    size_t priority,
+    CanvasElementsArray_t elements,
+    CanvasDrawCallback callback,
+    void* callback_ctx) {
+    furi_assert(canvas);
+    furi_assert(app_id);
+    furi_assert(callback);
+
+    CanvasSrvQueueEvent evt = {
+        .type = CanvasSrvEventUpdate,
+        .app_id = strdup(app_id),
+        .priority = priority,
+        .callback = callback,
+        .callback_ctx = callback_ctx,
+    };
+    CanvasElementsArray_init_set(evt.elements, elements);
+    furi_check(furi_message_queue_put(canvas->event_queue, &evt, FuriWaitForever) == FuriStatusOk);
 }
 
 CanvasResult canvas_delete_elements(CanvasSrv* canvas, const char* app_id) {

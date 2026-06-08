@@ -4,7 +4,6 @@
 #include "ble/service/ble_service.h"
 #include "http/ble_http_repeater.h"
 #include "streaming/ble_streaming.h"
-#include "device_name/device_name.h"
 
 #define TAG "BLE_U5"
 
@@ -47,53 +46,6 @@ static void ble_save_enabled_state(bool enabled) {
     ble_settings_save(&settings);
 }
 
-static void ble_on_name_change_callback(const void* message, void* context) {
-    UNUSED(message);
-    Ble* instance = context;
-    furi_event_loop_set_custom_event(instance->event_loop, BleEventTypeDeviceNameChanged);
-}
-
-static void ble_subscribe_on_name_change(Ble* instance) {
-    DeviceName* name_record = furi_record_open(RECORD_DEVICE_NAME);
-    FuriPubSub* pubsub = device_name_get_pubsub(name_record);
-    furi_pubsub_subscribe(pubsub, ble_on_name_change_callback, instance);
-    furi_record_close(RECORD_DEVICE_NAME);
-}
-
-static void ble_get_name_from_record(FuriString* output) {
-    DeviceName* name_record = furi_record_open(RECORD_DEVICE_NAME);
-    device_name_get(name_record, output);
-    furi_record_close(RECORD_DEVICE_NAME);
-}
-
-static bool ble_command_set_device_name_request(BleIntercomFrameGeneric* frame, void* context) {
-    BLE_LOG_D("BleCommandSetDeviceName request");
-
-    FuriString* name = furi_string_alloc();
-    ble_get_name_from_record(name);
-
-    size_t name_size = furi_string_size(name);
-    size_t new_msg_size = sizeof(BleIntercomFrameHeader) + name_size + 1;
-
-    BleIntercomFrameGeneric* name_frame = malloc(new_msg_size);
-    memcpy(&name_frame->header, &frame->header, sizeof(BleIntercomFrameHeader));
-    name_frame->header.command = BleCommandSetDeviceName;
-    name_frame->header.data_size = name_size + 1;
-    memcpy(name_frame->data, furi_string_get_cstr(name), name_size);
-
-    bool result = ble_command_request_process(name_frame, context);
-    free(name_frame);
-    free(name);
-    return result;
-}
-
-static bool ble_command_set_device_name_response(BleIntercomFrameGeneric* frame, void* context) {
-    BLE_LOG_D("BleCommandSetDeviceName response");
-    Ble* instance = context;
-    ble_command_unblock_with_result(instance, frame->header.result);
-    return true;
-}
-
 static void ble_service_init_wait_callback(BleServiceObject* service, bool result, void* ctx) {
     UNUSED(service);
     UNUSED(result);
@@ -107,7 +59,6 @@ static void ble_service_init_wait_callback(BleServiceObject* service, bool resul
 
     if(total_ready == BleServiceIndexCount) {
         instance->status = BleServiceStatusReady;
-        ble_subscribe_on_name_change(instance);
 
         ble_set_service_post_process_callback(instance, NULL);
 
@@ -138,6 +89,7 @@ static bool ble_command_init_request(BleIntercomFrameGeneric* frame, void* conte
 }
 
 static bool ble_command_init_response(BleIntercomFrameGeneric* frame, void* context) {
+    UNUSED(frame);
     BLE_LOG_D("BleCommandInit response");
     Ble* instance = context;
 
@@ -147,7 +99,7 @@ static bool ble_command_init_response(BleIntercomFrameGeneric* frame, void* cont
         ble_service_enqueue_init(instance->services[i]);
     }
 
-    return ble_command_set_device_name_request(frame, instance);
+    return true;
 }
 
 static bool ble_command_deinit_request(BleIntercomFrameGeneric* frame, void* context) {
@@ -375,11 +327,6 @@ const BleCommandItem ble_commands[BleCommandCount] = {
         {
             .request = ble_command_forget_pairing_request,
             .response = ble_command_forget_pairing_response,
-        },
-    [BleCommandSetDeviceName] =
-        {
-            .request = ble_command_set_device_name_request,
-            .response = ble_command_set_device_name_response,
         },
 };
 

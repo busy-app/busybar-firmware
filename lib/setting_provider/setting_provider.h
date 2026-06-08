@@ -103,7 +103,10 @@ typedef struct {
         const SettingProviderSetting* setting,
         const char* string,
         void* value); /**< Parse string to value */
-    const void* default_value; /**< Pointer to default value */
+    void (*default_value_callback)(
+        void* container); /**< Dynamic default value. If NULL, constant `default_value` is used. */
+    const void*
+        default_value; /**< Pointer to default value. If NULL, dynamic `default_value_callback` is used. */
     size_t default_value_size; /**< Size of default value in bytes */
 } SettingProviderCustomInterface;
 

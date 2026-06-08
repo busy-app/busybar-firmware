@@ -84,7 +84,7 @@ static bool busy_timer_snapshot_deserialize_snapshot_common(
             break;
         }
 
-        strcpy(common->card_id, str_val);
+        strlcpy(common->card_id, str_val, sizeof(common->card_id));
 
         item = cJSON_GetObjectItem(json, KEY_SNAPSHOT_COMMON_IS_PAUSED);
         if(!cJSON_IsBool(item)) {

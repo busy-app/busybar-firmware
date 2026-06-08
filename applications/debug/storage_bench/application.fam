@@ -1,9 +1,8 @@
 App(
     appid="storage_benchmark",
-    name="StorageBenchmark",
-    apptype=FlipperAppType.DEBUG,
+    name="storage_benchmark",
+    apptype=FlipperAppType.CLICMD,
     entry_point="storage_benchmark",
     stack_size=1024 * 4,
-    order=130,
     targets=["f20", "f21", "f22"],
 )

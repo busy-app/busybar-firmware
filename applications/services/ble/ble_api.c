@@ -141,8 +141,6 @@ void ble_uart_set_tx_done_callback(
 
 void ble_uart_set_session_callback(Ble* ble, BleDataUpdatedCallback session_update_cb, void* ctx) {
     furi_assert(ble);
-    furi_assert(session_update_cb);
-    furi_assert(ctx);
 
     BleServiceObject* service = ble->services[BleServiceIndexNordicUart];
     ble_service_register_update_callback(
