@@ -3,6 +3,7 @@
 #include <lvgl_addons/fs/lv_fs.h>
 #include <lvgl_addons/themes/lv_theme_front.h>
 #include <lvgl_addons/themes/lv_theme_back.h>
+#include <sysctl/sysctl.h>
 
 #define TAG "Gui"
 
@@ -245,6 +246,62 @@ static void gui_init_layers(Gui* instance) {
     }
 }
 
+static void gui_debug_overlay_draw_recursive(
+    lv_obj_t* obj,
+    lv_layer_t* layer,
+    lv_obj_t* overlay,
+    lv_draw_rect_dsc_t* rect) {
+    if(obj == overlay || lv_obj_has_flag(obj, LV_OBJ_FLAG_HIDDEN)) {
+        return;
+    }
+
+    if(lv_obj_get_parent(obj) != NULL) {
+        lv_area_t coords = {0};
+        lv_obj_get_coords(obj, &coords);
+        lv_draw_rect(layer, rect, &coords);
+    }
+
+    uint32_t child_cnt = lv_obj_get_child_count(obj);
+    for(uint32_t i = 0; i < child_cnt; i++) {
+        gui_debug_overlay_draw_recursive(lv_obj_get_child(obj, i), layer, overlay, rect);
+    }
+}
+
+static void gui_debug_overlay_draw_cb(lv_event_t* e) {
+    lv_obj_t* overlay = lv_event_get_user_data(e);
+    lv_layer_t* layer = lv_event_get_layer(e);
+    if(layer == NULL) return;
+
+    bool is_back_screen = layer->color_format == BACK_COLOR_FORMAT;
+
+    lv_draw_rect_dsc_t rect;
+    lv_draw_rect_dsc_init(&rect);
+
+    rect.bg_opa = LV_OPA_TRANSP;
+    rect.outline_width = 0;
+    rect.shadow_width = 0;
+
+    rect.border_width = 1;
+    rect.border_color = lv_color_hex(is_back_screen ? 0x808080 : 0x500000);
+    rect.border_opa = LV_OPA_50;
+
+    lv_obj_t* screen = lv_obj_get_screen(overlay);
+    gui_debug_overlay_draw_recursive(screen, layer, overlay, &rect);
+}
+
+static void gui_debug_overlay_alloc(lv_obj_t* screen) {
+    lv_obj_t* debug_overlay = lv_obj_create(screen);
+
+    lv_obj_remove_style_all(debug_overlay);
+    lv_obj_add_flag(debug_overlay, LV_OBJ_FLAG_FLOATING | LV_OBJ_FLAG_IGNORE_LAYOUT);
+    lv_obj_remove_flag(debug_overlay, LV_OBJ_FLAG_SCROLLABLE);
+
+    lv_obj_set_size(debug_overlay, LV_PCT(100), LV_PCT(100));
+    lv_obj_set_pos(debug_overlay, 0, 0);
+
+    lv_obj_add_event_cb(screen, gui_debug_overlay_draw_cb, LV_EVENT_DRAW_POST, debug_overlay);
+}
+
 static Gui* gui_alloc(void) {
     Gui* instance = malloc(sizeof(Gui));
     // Must be first to ensure that power subsystem is OK
@@ -273,6 +330,21 @@ static Gui* gui_alloc(void) {
     gui_init_back(&instance->displays[GuiDisplayIdBack]);
     gui_init_layers(instance);
     gui_init_input(instance);
+
+    // TODO: Make it configurable at runtime
+    int debug_level = 0;
+#ifdef SRV_SYSCTL
+    debug_level = sysctl_get_ui_debug_mode();
+#endif
+    if(debug_level == 1) {
+        gui_debug_overlay_alloc(gui_get_layer_root(instance, GuiDisplayIdBack, GuiLayerIdMain));
+        gui_debug_overlay_alloc(gui_get_layer_root(instance, GuiDisplayIdFront, GuiLayerIdMain));
+    } else if(debug_level == 2) {
+        for(GuiLayerId layer_id = 0; layer_id < GuiLayerIdMax; ++layer_id) {
+            gui_debug_overlay_alloc(gui_get_layer_root(instance, GuiDisplayIdBack, layer_id));
+            gui_debug_overlay_alloc(gui_get_layer_root(instance, GuiDisplayIdFront, layer_id));
+        }
+    }
 
     furi_record_create(RECORD_GUI, instance);
     return instance;

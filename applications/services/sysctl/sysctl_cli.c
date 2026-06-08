@@ -27,6 +27,27 @@ static bool sysctl_exec_debug(PipeSide* pipe, const char* arg) {
     return true;
 }
 
+static bool sysctl_exec_ui_debug(PipeSide* pipe, const char* arg) {
+    UNUSED(pipe);
+    int mode = 0;
+
+    if(strcmp(arg, "0") == 0) {
+        mode = 0;
+        printf("UI debug overlay disabled.");
+    } else if(strcmp(arg, "1") == 0) {
+        mode = 1;
+        printf("UI debug overlay enabled for main layer.");
+    } else if(strcmp(arg, "2") == 0) {
+        mode = 2;
+        printf("UI debug overlay enabled for all layers.");
+    } else {
+        return false;
+    }
+    printf(" Restart device for changes to take effect.");
+    sysctl_set_ui_debug_mode(mode);
+    return true;
+}
+
 static bool sysctl_exec_storage_bkp_unlock(PipeSide* pipe, const char* arg) {
     UNUSED(pipe);
     bool unlock;
@@ -90,6 +111,11 @@ typedef struct {
 
 static const SysctlCmd sysctl_cmds[] = {
     {"debug", "<1|0>", "enable/disable debug mode", sysctl_visible_always, sysctl_exec_debug},
+    {"ui_debug",
+     "<0|1|2>",
+     "configure UI debug overlay (0/1/2: off/main layer/all layers)",
+     sysctl_visible_always,
+     sysctl_exec_ui_debug},
 #ifdef SRV_CLI_SOCKET
     {"cli_wifi_enabled",
      "<1|0>",

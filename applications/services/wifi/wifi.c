@@ -5,6 +5,9 @@
 
 #include "wifi_state.h"
 
+#define RESPONSE_QUEUE_SIZE       (4)
+#define RESPONSE_QUEUE_TIMEOUT_MS (200)
+
 #define WIFI_REQUEST_TIMEOUT_MS (5000)
 
 static void wifi_intercom_state_callback(const void* item, void* context) {
@@ -26,8 +29,14 @@ static void wifi_intercom_rx_callback(const void* data, size_t data_size, void* 
     furi_assert(context);
 
     Wifi* instance = context;
-    furi_check(
-        furi_message_queue_put(instance->response_queue, data, FuriWaitForever) == FuriStatusOk);
+
+    const FuriStatus status = furi_message_queue_put(
+        instance->response_queue, data, furi_ms_to_ticks(RESPONSE_QUEUE_TIMEOUT_MS));
+
+    if(status != FuriStatusOk) {
+        furi_check(status == FuriStatusErrorTimeout);
+        FURI_LOG_E(TAG, "BUG: response queue overrun");
+    }
 }
 
 static void wifi_print_connection_info(Wifi* instance) {
@@ -339,7 +348,7 @@ static Wifi* wifi_alloc(void) {
 
     instance->event_loop = furi_event_loop_alloc();
     instance->override_queue = furi_message_queue_alloc(1, sizeof(WifiMessage));
-    instance->response_queue = furi_message_queue_alloc(3, sizeof(WifiResponse));
+    instance->response_queue = furi_message_queue_alloc(RESPONSE_QUEUE_SIZE, sizeof(WifiResponse));
     instance->api_semaphore = furi_semaphore_alloc(1, 1);
     instance->dhcp_semaphore = furi_semaphore_alloc(1, 0);
     instance->state = furi_state_alloc(sizeof(WifiInfo));

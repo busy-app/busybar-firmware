@@ -3,6 +3,8 @@
 #include <furi.h>
 
 typedef enum {
+    BleServiceIndexGenericAccess,
+    BleServiceIndexGenericAttribute,
     BleServiceIndexDeviceInfo,
     BleServiceIndexBattery,
     BleServiceIndexNordicUart,

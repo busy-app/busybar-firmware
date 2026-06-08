@@ -16,14 +16,14 @@ extern "C" {
 
 /** Enumeration of available display identifiers. */
 typedef enum {
-    GuiDisplayIdFront, /**< Front (main display) */
+    GuiDisplayIdFront = 0, /**< Front (main display) */
     GuiDisplayIdBack, /**< Back (greyscale) display */
     GuiDisplayIdMax, /**< Special value, equal to display number */
 } GuiDisplayId;
 
 /** Enumeration of available layer identifiers. */
 typedef enum {
-    GuiLayerIdSystem, /**< System layer - for displaying statuses and other persistent info */
+    GuiLayerIdSystem = 0, /**< System layer - for displaying statuses and other persistent info */
     GuiLayerIdTop, /**< Top layer - for displaying dialog windows and overlays */
     GuiLayerIdMain, /**< Main layer - for displaying regular applications */
     GuiLayerIdBottom, /**< Bottom layer - visible only if there is nothing on layers above it */
