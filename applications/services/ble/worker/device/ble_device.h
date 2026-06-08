@@ -3,6 +3,7 @@
 #include "ble_connection.h"
 #include "ble_security.h"
 #include "ble_advertise.h"
+#include "../transmitter/ble_transmitter.h"
 
 #include <furi.h>
 
@@ -15,7 +16,7 @@ typedef enum {
 
 typedef struct BleDevice BleDevice;
 
-BleDevice* ble_device_alloc(/*BleDeviceType and possibly address*/);
+BleDevice* ble_device_alloc(BleTransmitter* transmitter);
 void ble_device_free(BleDevice* instance);
 
 //Service register handlers
@@ -44,14 +45,7 @@ bool ble_device_start(BleDevice* instance);
 
 bool ble_device_stop(BleDevice* instance);
 
-//bool ble_device_start_advertise(BleDevice* instance);
-
-//bool ble_device_stop_advertise(BleDevice* instance);
-
 BleAdvertiseContext* ble_device_get_advertise_context(BleDevice* instance);
-// const BleAdvertiseContext*
-// //A
-// void ble_device_update_connection_begin();
 
 // //Stores new connection parameters if update was successful
 // void ble_device_update_connection_end();
@@ -80,3 +74,11 @@ bool ble_device_forget_paired(BleDevice* instance);
 
 //Forgets all paired devices
 // void ble_device_forget_all();
+
+//----------------------------------------------------------------------------
+void ble_device_send_data(
+    BleDevice* instance,
+    uint16_t handle,
+    uint16_t data_size,
+    const uint8_t* data,
+    uint16_t cccd_value);

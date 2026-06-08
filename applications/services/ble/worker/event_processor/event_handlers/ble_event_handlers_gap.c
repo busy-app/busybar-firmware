@@ -94,8 +94,6 @@ bool ble_event_handler_gap_disconnected(size_t data_size, void* data, void* cont
         instance->rx_pending_handle = 0;
     }
 
-    ble_transmitter_reset(instance->transport);
-
     BleServiceEntryDict_it_t entry_iter;
     for(BleServiceEntryDict_it(entry_iter, instance->service_dict);
         !BleServiceEntryDict_end_p(entry_iter);

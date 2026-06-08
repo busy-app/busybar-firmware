@@ -231,9 +231,14 @@ BleWorker* ble_worker_init(BleConnectionStateChanged connect_callback, void* ctx
     instance->on_connection_changed_cb = connect_callback;
     instance->on_connection_changed_ctx = ctx;
     instance->receive_sem = furi_semaphore_alloc(1, 1);
-    instance->max_payload_size = BLE_WORKER_MAX_MTU_SIZE - BLE_WORKER_ATTR_HEADER_SIZE;
+    //----------------------------------------------------------------------------------------------------------------
 
-    instance->device = ble_device_alloc();
+    instance->event_proc = ble_incoming_nwp_event_processor_alloc(instance);
+    instance->transport = ble_transmitter_alloc();
+    ble_nwp_core_config_callbacks(instance->event_proc, instance->transport);
+    //----------------------------------------------------------------------------------------------------------------
+
+    instance->device = ble_device_alloc(instance->transport);
     ble_device_set_name(instance->device, BLE_DEFAULT_LOCAL_NAME);
     ///TODO: this is to keep old code working
     instance->security_data = ble_device_get_security_data(instance->device);
@@ -243,13 +248,6 @@ BleWorker* ble_worker_init(BleConnectionStateChanged connect_callback, void* ctx
 
     instance->retry_phy_timer =
         furi_timer_alloc(retry_phy_timer_callback, FuriTimerTypeOnce, instance);
-
-    //----------------------------------------------------------------------------------------------------------------
-
-    instance->event_proc = ble_incoming_nwp_event_processor_alloc(instance);
-    instance->transport = ble_transmitter_alloc();
-    ble_nwp_core_config_callbacks(instance->event_proc, instance->transport);
-    //----------------------------------------------------------------------------------------------------------------
 
     //Appearance adjustment
     uuid_t uuid = {0};
@@ -350,31 +348,8 @@ void ble_worker_stop() {
     }
 }
 
-///TODO: Part of device instance as ble_device_send
 void ble_worker_send(uint16_t handle, uint16_t data_size, const uint8_t* data, uint16_t cccd_value) {
-    size_t index = 0;
-    size_t total_size = data_size;
-    while(total_size) {
-        size_t send_size = total_size > ble_worker_instance->max_payload_size ?
-                               ble_worker_instance->max_payload_size :
-                               total_size;
-
-        bool send_result = ble_transmitter_send_chunk(
-            ble_worker_instance->transport,
-            ble_worker_instance->remote_dev_address,
-            handle,
-            send_size,
-            &data[index],
-            cccd_value);
-
-        if(!send_result) {
-            BLE_LOG_W("[%04X] - Tx terminated!", handle);
-            break;
-        }
-
-        index += send_size;
-        total_size -= send_size;
-    }
+    ble_device_send_data(ble_worker_instance->device, handle, data_size, data, cccd_value);
 }
 
 void ble_worker_receive_confirm(uint16_t handle, uint8_t cccd_value) {

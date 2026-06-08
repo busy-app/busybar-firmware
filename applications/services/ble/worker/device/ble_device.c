@@ -8,6 +8,9 @@
 
 #define TAG "BleDevice"
 
+#define BLE_MAX_MTU_SIZE     (240)
+#define BLE_ATTR_HEADER_SIZE (3)
+
 struct BleDevice {
     BleDeviceBase* base;
     BleDeviceState state;
@@ -16,16 +19,23 @@ struct BleDevice {
     uint16_t max_payload_size; // calculate from mtu
 
     BleConnectionContext* connection;
+    BleDeviceBase* peer;
     // BleServiceEntryDict_t service_dict;
 
     BleSecurityData* security_data;
     BleAdvertiseContext* advertise;
+    BleTransmitter* transmitter;
 };
 
-BleDevice* ble_device_alloc(/*BleDeviceType*/) {
+BleDevice* ble_device_alloc(BleTransmitter* transmitter) {
+    furi_assert(transmitter);
     BleDevice* instance = malloc(sizeof(BleDevice));
+    instance->transmitter = transmitter;
     instance->state = BleDeviceStateIdle;
     instance->base = ble_device_base_alloc(BleDeviceRoleRemote);
+
+    instance->mtu_size = BLE_MAX_MTU_SIZE;
+    instance->max_payload_size = instance->mtu_size - BLE_ATTR_HEADER_SIZE;
 
     instance->security_data = ble_security_alloc();
     if(!ble_security_init(instance->security_data)) {
@@ -101,6 +111,7 @@ bool ble_device_connection_close(BleDevice* instance) {
     if(instance->state == BleDeviceStateIdle) {
         BLE_LOG_W("Already disconnected");
     } else {
+        ble_transmitter_reset(instance->transmitter);
         ble_connection_free(instance->connection);
         instance->connection = NULL;
 
@@ -292,4 +303,33 @@ bool ble_device_forget_paired(BleDevice* instance) {
 BleSecurityData* ble_device_get_security_data(BleDevice* instance) {
     furi_assert(instance);
     return instance->security_data;
+}
+
+void ble_device_send_data(
+    BleDevice* instance,
+    uint16_t handle,
+    uint16_t data_size,
+    const uint8_t* data,
+    uint16_t cccd_value) {
+    size_t index = 0;
+    size_t total_size = data_size;
+
+    if(instance->state != BleDeviceStateConnected) return;
+
+    const uint8_t* addr = ble_device_base_get_address(instance->peer, BleDeviceAddressTypeOrigin);
+    while(total_size) {
+        size_t send_size = total_size > instance->max_payload_size ? instance->max_payload_size :
+                                                                     total_size;
+
+        bool send_result = ble_transmitter_send_chunk(
+            instance->transmitter, addr, handle, send_size, &data[index], cccd_value);
+
+        if(!send_result) {
+            BLE_LOG_W("[%04X] - Tx terminated!", handle);
+            break;
+        }
+
+        index += send_size;
+        total_size -= send_size;
+    }
 }

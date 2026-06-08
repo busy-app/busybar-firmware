@@ -16,8 +16,6 @@
 #include <m-dict.h>
 // #include <api_lock.h>
 
-#define BLE_WORKER_ATTR_HEADER_SIZE 3
-
 // typedef struct {
 //     FuriApiLock lock;
 //     void* data;
@@ -45,8 +43,6 @@ struct BleWorker {
     uint8_t pairing_info_available;
     uint16_t rx_pending_handle;
     ///TODO: this can be removed
-
-    uint16_t max_payload_size;
 
     uint8_t remote_dev_address[6];
 
