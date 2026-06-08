@@ -8,6 +8,7 @@ typedef enum {
     SceneEventGeneral = AppEventSceneEventsStart,
     SceneEventFirmware,
     SceneEventComplianceInfo,
+    SceneEventLibsList,
 } SceneEvent;
 
 typedef struct {
@@ -52,6 +53,12 @@ static void about_scene_main_on_enter(void* context) {
             SceneEventComplianceInfo,
             about_scene_main_menu_item_callback,
             instance);
+        submenu_add_item(
+            data->front_menu,
+            "Open-Source Libs",
+            SceneEventLibsList,
+            about_scene_main_menu_item_callback,
+            instance);
         submenu_set_selected_item_index(data->front_menu, data->menu_index);
 
         data->back_menu = submenu_alloc(instance->back_scene_window);
@@ -59,6 +66,8 @@ static void about_scene_main_on_enter(void* context) {
         submenu_add_item(data->back_menu, "Firmware", NULL, SceneEventFirmware, NULL, instance);
         submenu_add_item(
             data->back_menu, "Compliance Info", NULL, SceneEventComplianceInfo, NULL, instance);
+        submenu_add_item(
+            data->back_menu, "Open-Source Libs", NULL, SceneEventLibsList, NULL, instance);
         submenu_set_selected_item_index(data->back_menu, data->menu_index);
     });
 }
@@ -94,6 +103,11 @@ static bool about_scene_main_on_event(const SceneManagerEvent* event, void* cont
         } else if(event->event == SceneEventComplianceInfo) {
             scene_manager_next_scene(instance->scene_manager, SceneIdCompliance);
             about_push_location(instance, "COMPLIANCE INFO");
+            consumed = true;
+        } else if(event->event == SceneEventLibsList) {
+            instance->license_lib_index = 0;
+            scene_manager_next_scene(instance->scene_manager, SceneIdLibsList);
+            about_push_location(instance, "OPEN-SOURCE LIBS");
             consumed = true;
         }
         data->menu_index = event->event;

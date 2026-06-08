@@ -86,7 +86,7 @@ static bool api_assets_delete_callback(
 
         Storage* fs_api = furi_record_open(RECORD_STORAGE);
         if(!storage_dir_exists(fs_api, furi_string_get_cstr(dir_path))) {
-            MG_REPLY_INTERNAL_ERROR(conn, "Assets missing");
+            MG_REPLY_ERROR(conn, 404, "Assets not found");
             furi_record_close(RECORD_STORAGE);
             break;
         }

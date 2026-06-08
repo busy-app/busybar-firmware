@@ -158,6 +158,9 @@ class TestTimeAPI:
             "2025/06/15 12:30:45",
             "12:30:45",
             "",
+            # Impossible calendar dates — valid format but invalid day for the month
+            "2090-02-31T19:09:35Z",  # February never has 31 days
+            "2025-04-31T12:00:00Z",  # April has only 30 days
         ],
     )
     def test_api_time_timestamp_post_invalid(

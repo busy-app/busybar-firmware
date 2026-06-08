@@ -26,9 +26,8 @@ typedef enum {
     BleEventTypeEnableOnStart = (1 << 1),
     BleEventTypeApiCommand = (1 << 2),
     BleEventTypeFrameReceived = (1 << 3),
-    BleEventTypeDeviceNameChanged = (1 << 4),
-    BleEventTypeIntercomInit = (1 << 5),
-    BleEventTypeIntercomDeinit = (1 << 6),
+    BleEventTypeIntercomInit = (1 << 4),
+    BleEventTypeIntercomDeinit = (1 << 5),
 } BleEventType;
 
 typedef void (

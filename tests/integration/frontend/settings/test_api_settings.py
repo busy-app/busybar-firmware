@@ -58,19 +58,38 @@ class TestNameAPI:
     @allure.issue("https://flipper.atlassian.net/browse/FW-407")
     @pytest.mark.api
     @pytest.mark.frontend
-    @pytest.mark.parametrize("test_name", [
-        # Empty/whitespace names
-        "",
-        " ",
-        "  ",
-        # Too long (over 20 characters)
-        "22 symbols length name",
-    ])
+    @pytest.mark.parametrize(
+        "test_name",
+        [
+            # Empty/whitespace names
+            "",
+            " ",
+            "  ",
+            # Too long: boundary is 20 characters
+            "21 chars, just over!!",  # 21 characters
+            "22 symbols length name",  # 22 characters
+        ],
+    )
     def test_api_name_post_invalid(self, settings_api: SettingsAPI, test_name):
         """Test POST /api/name endpoint with invalid data"""
         original_name = settings_api.get_name().name
 
         response = settings_api.set_name_raw(test_name)
+        assert response.status_code == 400
+
+        with allure.step("Verify name was not changed"):
+            assert settings_api.get_name().name == original_name
+
+    @allure.title("Name. POST /api/name (additional properties rejected)")
+    @pytest.mark.api
+    @pytest.mark.frontend
+    def test_api_name_post_additional_properties(self, settings_api: SettingsAPI):
+        """Test that POST /api/name rejects bodies with extra fields (additionalProperties: false)"""
+        original_name = settings_api.get_name().name
+
+        response = settings_api.post_raw(
+            "/api/name", json={"name": "ValidName", "extra": "field"}
+        )
         assert response.status_code == 400
 
         with allure.step("Verify name was not changed"):

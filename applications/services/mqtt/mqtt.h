@@ -2,7 +2,7 @@
  * @file mqtt.h
  * @brief MQTT & BUSY account service API.
  *
- * The MQTT service is responsible for the following:
+ * The MQTT service is responsible for:
  * - Initiating and managing connections to the remote MQTT broker,
  * - BUSY account handling (linking & unlinking),
  * - Subscribing and publishing to session topics (see below).
@@ -16,8 +16,8 @@
  * With the below API, subscription/publishing is only possible on the session topic.
  *
  * Internally, MQTT session topics have the following format:
- * - sessions/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee/down/v1/topic/name for subscriptions
- * - sessions/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee/up/v1/topic/name for publishing
+ * - `sessions/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee/down/v1/topic/name` for subscriptions
+ * - `sessions/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee/up/v1/topic/name` for publishing
  *
  * where `aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee` is a unique session identifier.
  *
@@ -25,7 +25,7 @@
  * This rule also applies to some MQTT message properties such as Response Topic (see below).
  *
  * Data lifetime:
- * - Output functions (e.g. mqtt_publish()) will block briefly until the provided data is copied and sent internally.
+ * - Output functions (e.g. @ref mqtt_publish) will block briefly until the provided data is copied and sent internally.
  * It is safe to delete the data afterwards.
  * - Data returned in callbacks is only valid inside the callback. No pointers should be stored upon exiting from it
  * and all necessary data must be copied to recipient-owned storage.
