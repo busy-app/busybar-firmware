@@ -50,6 +50,14 @@ for key, value in _fw_default_apps_config.items():
     fw_apps_configs_option.default[key] = value
 
 
+# Make the factory testing configuration the default build for this target
+fw_app_set_option = find_variable_config(VARS, "FIRMWARE_APP_SET")
+fw_app_set_option.default = "factory_testing"
+
+fw_loader_autostart_option = find_variable_config(VARS, "LOADER_AUTOSTART")
+fw_loader_autostart_option.default = "BackDisplayFactory"
+
+
 fw_appdirs_option = find_variable_config(VARS, "APPDIRS")
 assert isinstance(fw_appdirs_option.default, list)
 fw_appdirs_option.default.extend((("applications/system", True),))
