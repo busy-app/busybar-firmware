@@ -25,15 +25,11 @@ on:
 
   workflow_dispatch:
     inputs:
-      test_scope:
-        description: 'What to run. Default matches PR runs.'
+      marker_filter:
+        description: 'Pytest -m expression. Default runs smoke only; empty string runs full suite including regression.'
         required: false
-        type: choice
-        default: smoke
-        options:
-          - smoke
-          - full
-          - custom
+        type: string
+        default: 'not regression'
       commit_sha:
         description: 'Commit/ref to checkout. Empty uses the selected workflow ref.'
         required: false
@@ -54,11 +50,6 @@ on:
         required: false
         type: string
         default: '21'
-      marker_filter:
-        description: 'Pytest -m expression, used only when test_scope=custom. Empty runs everything.'
-        required: false
-        type: string
-        default: ''
 
 permissions:
   contents: read
@@ -74,9 +65,13 @@ env:
 jobs:
   integration-tests:
     runs-on: BusyBarTest
+    timeout-minutes: 90
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
+      # - name: 'Wipe workspace'
+      #   run: find ./ -mount -maxdepth 1 -exec rm -rf {} \;
+
       - name: 'Checkout code'
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
@@ -175,46 +170,23 @@ jobs:
           source scripts/toolchain/fbtenv.sh
           python3 scripts/testops.py sanity
 
-      - name: Set up Python 3.11
+      - name: Set up Python 3.12
         uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:
-          python-version: 3.11
+          python-version: '3.12'
           cache: 'pip'
           cache-dependency-path: tests/requirements.txt
 
       - name: Install test dependencies
         run: |
           python3 -m pip install --upgrade pip
-          pip install -r tests/requirements.txt
+          python3 -m pip install -r tests/requirements.txt
 
       - name: Resolve pytest marker filter
         id: pytest_filter
         env:
-          EVENT_NAME: ${{ github.event_name }}
-          MARKER_FILTER_INPUT: ${{ inputs.marker_filter }}
-          TEST_SCOPE: ${{ inputs.test_scope || 'smoke' }}
+          MARKER_FILTER: ${{ inputs.marker_filter }}
         run: |
-          set -euo pipefail
-          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
-            case "$TEST_SCOPE" in
-              smoke|"")
-                MARKER_FILTER="not regression"
-                ;;
-              full)
-                MARKER_FILTER=""
-                ;;
-              custom)
-                MARKER_FILTER="$MARKER_FILTER_INPUT"
-                ;;
-              *)
-                echo "ERROR: Unsupported test_scope: $TEST_SCOPE" >&2
-                exit 1
-                ;;
-            esac
-          else
-            MARKER_FILTER="$MARKER_FILTER_INPUT"
-          fi
-
           echo "marker_filter=$MARKER_FILTER" >> "$GITHUB_OUTPUT"
           if [ -n "$MARKER_FILTER" ]; then
             echo "Resolved pytest marker filter: $MARKER_FILTER"

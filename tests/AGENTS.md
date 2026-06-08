@@ -155,6 +155,7 @@ assert resp.status_code == 200, f"Expected 200, got {resp.status_code}: {resp.te
 
 ## Things to avoid
 
+- imports inside tests — if you need something, import it at the top and add a fixture if necessary.
 - `import requests` followed by `requests.get(...)` — use `web_session`.
 - Fabricated `@allure.id("xxxx")`.
 - Custom `requests.Session()` inside tests — use `web_session`.
@@ -165,6 +166,18 @@ assert resp.status_code == 200, f"Expected 200, got {resp.status_code}: {resp.te
   raw test instead.
 - New `conftest.py` at random depths — prefer extending the nearest existing
   one.
+
+## Anti-patterns
+
+- **Try not to use concurrency with threads to "reproduce a race."** Keep in mind firing two
+  HTTP requests from threads isn't deterministic (network + GI scheduling make the ordering random)
+  — it adds flakiness. If the repro is "stop, then immediately redraw", first try send the requests sequentially
+  with no wait between them. If you genuinely need concurrency, use the provided session, not a bare one. 
+- **never `except BaseException`**
+- **A similarity threshold is meaningless without a negative control.**
+- **Compare the region that matters, not the whole frame.**
+- **Reuse the snapshot helpers.**
+- **Avoid magic sleeps and magic numbers.**
 
 ## When the device is misbehaving
 

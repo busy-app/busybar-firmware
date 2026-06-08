@@ -232,6 +232,7 @@ void ble_service_enqueue_run(BleServiceObject* instance) {
 
     ble_service_enqueue_message(instance);
 }
+
 void ble_service_deinit(BleServiceObject* instance) {
     if(instance && ble_service_lock(instance)) {
         BLE_LOG_D("%s - ble_service_reset", instance->config->name);

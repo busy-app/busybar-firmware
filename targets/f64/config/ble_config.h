@@ -217,4 +217,6 @@
 #define RSI_BLE_MAX_DATA_LEN 20
 #endif
 
+#define BLE_SIMPLE_GATT 1
+
 #endif

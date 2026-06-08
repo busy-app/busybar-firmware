@@ -12,10 +12,12 @@ env:
   FBT_GIT_SUBMODULE_SHALLOW: 0
   DEFAULT_TARGET_SPEC: 21_64
   FBT_TOOLCHAIN_PATH: /runner/_work
+  GIT_TRACE: ${{ vars.GIT_TRACE }}
 
 jobs:
   build:
     runs-on: BsbShell
+    timeout-minutes: 30
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     strategy:
@@ -26,12 +28,18 @@ jobs:
       default_target_spec: ${{ env.DEFAULT_TARGET_SPEC }}
       bundle_target_spec: ${{ steps.set-url.outputs.target }}
       update_url: ${{ steps.set-url.outputs.update_url }}
+      run_regression: ${{ steps.test-scope.outputs.run_regression }}
 
     steps:
       - name: 'Wipe workspace'
         run: |
           rm -f /home/runner/.gitconfig
           find ./ -mount -maxdepth 1 -exec rm -rf {} \;
+
+      - name: 'Configure Git'
+        run: |
+          git config --global http.lowSpeedLimit 100
+          git config --global http.lowSpeedTime 30
 
       - name: 'Checkout code'
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -42,7 +50,7 @@ jobs:
 
       - name: 'Bootstrap tooling submodule'
         run: |
-          git submodule update --init --depth 1 --filter=blob:none fbt_layers/fbtng
+          timeout 180 git submodule update --init --depth 1 --filter=blob:none fbt_layers/fbtng
 
       - name: 'Get commit details'
         id: names
@@ -60,6 +68,21 @@ jobs:
           echo "event_type=$TYPE" >> "$GITHUB_OUTPUT"
           echo "build_profile=$PROFILE" >> "$GITHUB_OUTPUT"
           python3 fbt_layers/fbtng/scripts/get_env.py "--event_file=${{ github.event_path }}" "--type=$TYPE" || (cat "${{ github.event_path }}" && exit 1)
+
+      - name: 'Resolve test scope from commit message'
+        id: test-scope
+        if: matrix.target_spec == env.DEFAULT_TARGET_SPEC
+        run: |
+          set -euo pipefail
+          RUN_REGRESSION=false
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            COMMIT_MSG=$(git log -1 --format=%B HEAD)
+            if echo "$COMMIT_MSG" | grep -qF '[run regression]'; then
+              RUN_REGRESSION=true
+              echo "Found '[run regression]' in commit message — regression suite will run as a separate job"
+            fi
+          fi
+          echo "run_regression=${RUN_REGRESSION}" >> "$GITHUB_OUTPUT"
 
       - name: 'Build firmware artifacts'
         id: build-fw
@@ -164,12 +187,14 @@ jobs:
       needs.build.result == 'success'
       && needs.build.outputs.update_url != ''
       && !(github.ref_type == 'tag' && contains(github.ref_name, '-rc'))
+      && needs.build.outputs.run_regression != 'true'
     uses: './.github/workflows/integration-tests.yml'
     with:
       branch_name: ${{ github.head_ref || github.ref_name }}
       commit_sha: ${{ github.event.pull_request.head.sha || github.sha }}
       update_url: ${{ needs.build.outputs.update_url }}
       target: ${{ needs.build.outputs.bundle_target_spec }}
+      marker_filter: 'not regression'
     secrets: inherit
 
   regression-tests:
@@ -177,13 +202,31 @@ jobs:
     if: |
       needs.build.result == 'success'
       && needs.build.outputs.update_url != ''
-      && github.ref_type == 'tag'
-      && contains(github.ref_name, '-rc')
+      && (
+        needs.build.outputs.run_regression == 'true'
+        || (github.ref_type == 'tag' && contains(github.ref_name, '-rc'))
+      )
     uses: './.github/workflows/integration-tests.yml'
     with:
-      branch_name: ${{ github.ref_name }}
-      commit_sha: ${{ github.sha }}
+      branch_name: ${{ github.head_ref || github.ref_name }}
+      commit_sha: ${{ github.event.pull_request.head.sha || github.sha }}
       update_url: ${{ needs.build.outputs.update_url }}
       target: ${{ needs.build.outputs.bundle_target_spec }}
       marker_filter: ''
     secrets: inherit
+
+  tests-passed:
+    needs: [integration-tests, regression-tests]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check that at least one test suite passed
+        run: |
+          smoke="${{ needs.integration-tests.result }}"
+          regression="${{ needs.regression-tests.result }}"
+          if [[ "$smoke" == "success" || "$regression" == "success" ]]; then
+            echo "Tests passed (smoke: $smoke, regression: $regression)"
+          else
+            echo "No test suite succeeded. smoke=$smoke, regression=$regression" >&2
+            exit 1
+          fi
