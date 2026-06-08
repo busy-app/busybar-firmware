@@ -139,6 +139,16 @@ void nav_bar_set_header_text(NavBar* instance, const char* text) {
     }
 }
 
+void nav_bar_set_visible(NavBar* instance, bool visible) {
+    furi_check(instance);
+
+    if(visible) {
+        lv_obj_clear_flag(TO_LV_OBJ(instance), LV_OBJ_FLAG_HIDDEN);
+    } else {
+        lv_obj_add_flag(TO_LV_OBJ(instance), LV_OBJ_FLAG_HIDDEN);
+    }
+}
+
 void nav_bar_push_location(NavBar* instance, const char* location_name) {
     furi_check(instance);
     furi_check(location_name);

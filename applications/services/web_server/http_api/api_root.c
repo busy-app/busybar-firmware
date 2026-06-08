@@ -229,17 +229,15 @@ static void http_api_access_set_callback(
 
         if(mode_status <= 0) break;
 
-        if(mode_status > 0) {
-            if(strcmp(mode_str, "disabled") == 0) {
-                access_mode = ApiAccessDisabled;
-            } else if(strcmp(mode_str, "enabled") == 0) {
-                access_mode = ApiAccessEnabled;
-            } else if(strcmp(mode_str, "key") == 0) {
-                access_mode = ApiAccessKeyRequired;
-                if(key_status <= 0) break;
-            } else {
-                break;
-            }
+        if(strcmp(mode_str, "disabled") == 0) {
+            access_mode = ApiAccessDisabled;
+        } else if(strcmp(mode_str, "enabled") == 0) {
+            access_mode = ApiAccessEnabled;
+        } else if(strcmp(mode_str, "key") == 0) {
+            access_mode = ApiAccessKeyRequired;
+            if(key_status <= 0) break;
+        } else {
+            break;
         }
 
         if(key_status > 0) {

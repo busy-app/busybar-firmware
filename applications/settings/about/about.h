@@ -47,13 +47,27 @@ typedef struct {
     FlexLayout* back_container;
 
     NavBar* back_nav_bar;
+
+    size_t license_lib_index;
 } About;
+
+typedef struct {
+    const char* name;
+    const char* license;
+    const char* url;
+} AboutLibInfo;
 
 void about_send_custom_event(About* instance, uint32_t event);
 
 void about_push_location(About* instance, const char* location_name);
 
 void about_pop_location(About* instance);
+
+void about_show_location(About* instance, bool visible);
+
+size_t about_get_libs_count(void);
+
+const AboutLibInfo* about_get_lib_info(size_t index);
 
 #ifdef __cplusplus
 }

@@ -55,6 +55,14 @@ void nav_bar_set_header_image(NavBar* instance, const char* file_path);
 void nav_bar_set_header_text(NavBar* instance, const char* text);
 
 /**
+ * @brief Set the visibility of a NavBar instance.
+ *
+ * @param[in,out] instance pointer to the NavBar instance to be modified
+ * @param[in] visible boolean value indicating whether the NavBar should be visible
+ */
+void nav_bar_set_visible(NavBar* instance, bool visible);
+
+/**
  * @brief Add the next location to the NavBar breadcrumbs header.
  *
  * @param[in,out] instance pointer to the NavBar instance to be modified

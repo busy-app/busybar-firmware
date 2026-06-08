@@ -146,6 +146,10 @@ static bool api_audio_play_handler(
         if(uploaded_path) {
             file_path =
                 furi_string_alloc_printf("%s/%s/%s", AUDIO_ASSETS_DIR, app_name, uploaded_path);
+            if(!mg_path_is_sane(mg_str(furi_string_get_cstr(file_path)))) {
+                MG_REPLY_ERROR(conn, 400, "Invalid path");
+                break;
+            }
         }
 
         if(stock_path) {
