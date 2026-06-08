@@ -34,18 +34,23 @@ const lv_obj_class_t timer_indicator_lvgl_class;
 
 static void timer_indicator_apply_preset(TimerIndicator* instance);
 
-// LVGL-specific code
-
-static void timer_indicator_lvgl_anim_completed_callback(lv_anim_t* anim) {
-    furi_assert(anim);
-
-    TimerIndicator* instance = anim->var;
-    furi_assert(instance);
-
-    timer_indicator_apply_preset(instance);
-}
-
 // Implementation
+
+static void timer_indicator_bg_anim_frame_callback(
+    AnimPlayer* player,
+    const AnimFileFrameInfo* info,
+    void* context) {
+    furi_assert(player);
+    furi_assert(info);
+    furi_assert(context);
+
+    if(info->flags & AnimFileFrameFlagFinished) {
+        anim_player_set_frame_callback(player, NULL, NULL);
+
+        TimerIndicator* instance = context;
+        timer_indicator_apply_preset(instance);
+    }
+}
 
 static void timer_indicator_reset(TimerIndicator* instance) {
     if(instance->bg_anim) {
@@ -70,19 +75,8 @@ static void timer_indicator_start_transition(
     instance->bg_anim = anim_player_alloc(&instance->base);
     anim_player_set_source(instance->bg_anim, transition->anim_path);
     anim_player_set_section(instance->bg_anim, AnimFilePlayFlagNone, ANIM_FILE_DEFAULT_SECTION);
-
-    lv_anim_t anim;
-    lv_anim_init(&anim);
-
-    lv_anim_set_values(&anim, 0, 1);
-    lv_anim_set_duration(&anim, transition->duration_ms);
-
-    lv_anim_set_completed_cb(&anim, timer_indicator_lvgl_anim_completed_callback);
-    lv_anim_set_var(&anim, instance);
-
-    anim.early_apply = 0;
-
-    lv_anim_start(&anim);
+    anim_player_set_frame_callback(
+        instance->bg_anim, timer_indicator_bg_anim_frame_callback, instance);
 }
 
 static void timer_indicator_apply_bg_animation(TimerIndicator* instance) {
