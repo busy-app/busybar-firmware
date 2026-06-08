@@ -34,7 +34,7 @@ static void audio_stop_wakeup_callback(struct mg_connection* conn, void* data, s
     StopResponseContext* ctx = conn_ctx->context;
     furi_assert(ctx);
 
-    MG_REPLY_OK(conn);
+    MG_REPLY_OK_CLOSE(conn);
     conn->is_draining = true;
 }
 
@@ -42,7 +42,7 @@ static void audio_stop_timeout(void* data) {
     furi_assert(data);
     StopResponseContext* ctx = data;
 
-    MG_REPLY_INTERNAL_ERROR(ctx->conn, "Audio stop timeout");
+    MG_REPLY_ERROR_CLOSE(ctx->conn, 500, "Audio stop timeout");
     ctx->conn->is_draining = true;
 }
 

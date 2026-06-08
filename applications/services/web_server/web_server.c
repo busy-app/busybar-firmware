@@ -80,6 +80,7 @@ void http_reply_405_method_not_allowed(struct mg_connection* conn, HttpMethod al
         }
     }
     furi_string_cat(headers, "\r\n");
+    furi_string_cat(headers, "Connection: close\r\n");
     MG_REPLY_METHOD_NOT_ALLOWED(conn, furi_string_get_cstr(headers));
     furi_string_free(headers);
 }
@@ -179,6 +180,7 @@ static void http_upload_poll_callback(struct mg_connection* conn) {
 
     if(mg_timer_expired(&upload_ctx->timeout_stamp, HTTP_UPLOAD_IDLE_TIMEOUT_MS, mg_millis())) {
         FURI_LOG_E(TAG, "Connection data timeout (%lu)", conn->id);
+        MG_REPLY_ERROR_CLOSE(conn, 408, "Upload timeout");
         conn->is_draining = 1; // Force close hanging connection
     }
 }
@@ -208,7 +210,7 @@ void http_upload_start(
     upload_ctx->file = http_fs_get()->op(file_path, MG_FS_WRITE); // Open file for writing
 
     if(upload_ctx->file == NULL) {
-        MG_REPLY_INTERNAL_ERROR(conn, "Failed to open file for writing");
+        MG_REPLY_ERROR_CLOSE(conn, 500, "Failed to open file for writing");
         conn->is_draining = 1;
     }
 
