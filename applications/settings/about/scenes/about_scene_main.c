@@ -56,6 +56,7 @@ static void about_scene_main_on_enter(void* context) {
         submenu_add_item(
             data->front_menu,
             "Open-Source Libs",
+            NULL,
             SceneEventLibsList,
             about_scene_main_menu_item_callback,
             instance);
