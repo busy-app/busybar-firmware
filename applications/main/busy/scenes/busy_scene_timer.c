@@ -5,6 +5,8 @@
 #include "../widgets/timer_indicator.h"
 #include "../widgets/timer_label.h"
 
+#include "../helpers/animate.h"
+
 #include <inttypes.h>
 
 #define COUNTDOWN_THRESHOLD_S (3)
@@ -251,6 +253,16 @@ static void busy_scene_timer_update_timer_state(BusyApp* instance) {
         if(timer_indicator_preset) {
             timer_indicator_set_preset(
                 data->timer_indicator, timer_indicator_preset, timer_indicator_transition);
+        }
+
+        if(timer_indicator_transition) {
+            Widget* timer_label_base = timer_label_get_base(data->timer_label);
+
+            const int32_t start_pos = widget_get_width(timer_label_base);
+            const int32_t end_pos = 0;
+
+            animate_pos_x(
+                timer_label_base, start_pos, end_pos, timer_indicator_transition->duration_ms);
         }
 
         if(timer_label_preset) {
