@@ -82,7 +82,7 @@ static void gclk_tim_init(void) {
 static void gclk_tim_deinit(void) {
     furi_hal_bus_reset(FuriHalBusTIM8);
     furi_hal_bus_disable(FuriHalBusTIM8);
-    furi_hal_gpio_init_simple(&gpio_front_display_gclk, GpioModeInput);
+    furi_hal_gpio_init(&gpio_front_display_gclk, GpioModeInput, GpioPullDown, GpioSpeedLow);
 }
 
 static void scan_tim_init(void) {
@@ -135,7 +135,7 @@ static void scan_tim_init(void) {
 static void scan_tim_deinit(void) {
     furi_hal_bus_reset(FuriHalBusTIM5);
     furi_hal_bus_disable(FuriHalBusTIM5);
-    furi_hal_gpio_init_simple(&gpio_front_display_scan_latch, GpioModeInput);
+    furi_hal_gpio_init(&gpio_front_display_scan_latch, GpioModeInput, GpioPullDown, GpioSpeedLow);
 
     NVIC_DisableIRQ(TIM5_IRQn);
 }
@@ -269,8 +269,8 @@ static void spi_595_init(void) {
 static void spi_595_deinit(void) {
     furi_hal_bus_reset(FuriHalBusSPI2);
     furi_hal_bus_disable(FuriHalBusSPI2);
-    furi_hal_gpio_init_simple(&gpio_front_display_scan_clk, GpioModeInput);
-    furi_hal_gpio_init_simple(&gpio_front_display_scan_sdi, GpioModeInput);
+    furi_hal_gpio_init(&gpio_front_display_scan_clk, GpioModeInput, GpioPullDown, GpioSpeedLow);
+    furi_hal_gpio_init(&gpio_front_display_scan_sdi, GpioModeInput, GpioPullDown, GpioSpeedLow);
 }
 
 static void scan_dma_tc_irq(void* context) {

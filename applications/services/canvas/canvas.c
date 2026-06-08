@@ -15,6 +15,7 @@
 #include <lvgl.h>
 #include <font_registry/fonts.h>
 #include <back_display/back_display.h>
+#include <front_display/front_display.h>
 
 #define CANVAS_DEFERRED_TIMEOUT_MS 1500U
 
@@ -638,10 +639,13 @@ static void canvas_screen_open(CanvasSrv* canvas) {
     });
 
     if(is_in_power_off(canvas)) {
-        // FIXME: Back display was shut down in power_off, we need to turn it on
+        // FIXME: Displays were shut down in power_off, we need to turn them on
         BackDisplaySrv* back_display = furi_record_open(RECORD_BACK_DISPLAY);
+        FrontDisplaySrv* front_display = furi_record_open(RECORD_FRONT_DISPLAY);
         back_display_sleep_mode(back_display, false);
+        front_display_sleep_mode(front_display, false);
         furi_record_close(RECORD_BACK_DISPLAY);
+        furi_record_close(RECORD_FRONT_DISPLAY);
     }
 }
 
@@ -665,8 +669,11 @@ static void canvas_screen_close(CanvasSrv* canvas) {
     canvas->priority = 0;
     if(is_in_power_off(canvas)) {
         BackDisplaySrv* back_display = furi_record_open(RECORD_BACK_DISPLAY);
+        FrontDisplaySrv* front_display = furi_record_open(RECORD_FRONT_DISPLAY);
         back_display_sleep_mode(back_display, true);
+        front_display_sleep_mode(front_display, true);
         furi_record_close(RECORD_BACK_DISPLAY);
+        furi_record_close(RECORD_FRONT_DISPLAY);
     }
 }
 

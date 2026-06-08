@@ -37,6 +37,7 @@ struct FrontDisplaySrv {
     bool send_in_progress;
     bool need_update;
     bool is_blanked;
+    bool power_off_pending;
 
     uint8_t last_frame[FRONT_DISPLAY_FRAME_SIZE];
     uint8_t brightness_override;
@@ -48,6 +49,7 @@ typedef enum {
     FrontDisplayMessageTypeDrawEnd,
     FrontDisplayMessageTypeBrightness,
     FrontDisplayMessageTypeBlanking,
+    FrontDisplayMessageTypeSleep,
     FrontDisplayMessageTypeOn,
     FrontDisplayMessageTypeOff,
 } FrontDisplayMessageType;
@@ -58,7 +60,7 @@ typedef struct {
     union {
         const uint8_t* frame_buffer;
         uint8_t brightness; // Brightness value (0-100) or FRONT_DISPLAY_BRIGHTNESS_AUTO
-        bool is_blanked;
+        bool bool_param;
     };
 } FrontDisplayMessage;
 
@@ -93,7 +95,19 @@ void front_display_set_blanked(FrontDisplaySrv* instance, bool is_blanked) {
     const FrontDisplayMessage message = {
         .api_lock = NULL, // No need for API lock here
         .type = FrontDisplayMessageTypeBlanking,
-        .is_blanked = is_blanked,
+        .bool_param = is_blanked,
+    };
+
+    furi_check(
+        furi_message_queue_put(instance->message_queue, &message, FuriWaitForever) ==
+        FuriStatusOk);
+}
+
+void front_display_sleep_mode(FrontDisplaySrv* instance, bool sleep) {
+    const FrontDisplayMessage message = {
+        .api_lock = NULL, // No need for API lock here
+        .type = FrontDisplayMessageTypeSleep,
+        .bool_param = sleep,
     };
 
     furi_check(
@@ -218,6 +232,10 @@ static void front_display_message_queue_callback(FuriEventLoopObject* object, vo
         break;
     case FrontDisplayMessageTypeDrawEnd:
         display->send_in_progress = false;
+        if(display->power_off_pending) {
+            furi_hal_display_power_disable();
+            display->power_off_pending = false;
+        }
         FRONT_DISPLAY_DEBUG("Front display draw end");
         break;
     case FrontDisplayMessageTypeBrightness:
@@ -230,11 +248,25 @@ static void front_display_message_queue_callback(FuriEventLoopObject* object, vo
         display->need_update = true;
         break;
     case FrontDisplayMessageTypeBlanking:
-        front_display_handle_set_blanked(display, message.is_blanked);
+        front_display_handle_set_blanked(display, message.bool_param);
+        break;
+    case FrontDisplayMessageTypeSleep:
+        if((message.bool_param == true) && (display->enabled == true)) {
+            memset(display->last_frame, 0, FRONT_DISPLAY_FRAME_SIZE);
+            display->need_update = true;
+
+            front_display_scan_output_enable(false);
+            display->power_off_pending = true;
+        } else if(message.bool_param == false) {
+            furi_hal_display_power_enable();
+            if(display->power_off_pending) {
+                display->power_off_pending = false;
+            }
+        }
         break;
     case FrontDisplayMessageTypeOn:
         if(!display->enabled) {
-            FRONT_DISPLAY_DEBUG("Turning on front display");
+            FRONT_DISPLAY_DEBUG("Power turned on, reinitializing");
 
             front_display_power_reset();
             front_display_start(display);
@@ -242,10 +274,9 @@ static void front_display_message_queue_callback(FuriEventLoopObject* object, vo
             display->enabled = true;
             display->need_update = true; // Force an update after enabling
         }
-
         break;
     case FrontDisplayMessageTypeOff:
-        FRONT_DISPLAY_DEBUG("Turning off front display");
+        FRONT_DISPLAY_DEBUG("Power turned off");
         front_display_stop();
         display->enabled = false;
         display->send_in_progress = false;

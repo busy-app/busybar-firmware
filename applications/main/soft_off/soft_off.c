@@ -8,9 +8,11 @@
 #include <gui/modules/anim_player.h>
 
 #include <back_display/back_display.h>
+#include <front_display/front_display.h>
 
 typedef enum {
     SoftOffThreadFlagExit = 1 << 0,
+    SoftOffThreadFlagAnimationCompleted = 1 << 1,
 } SoftOffThreadFlag;
 
 static bool soft_off_signal_callback(uint32_t signal, void* arg, void* context) {
@@ -28,6 +30,20 @@ static bool soft_off_signal_callback(uint32_t signal, void* arg, void* context) 
     return false;
 }
 
+static void soft_off_animation_finished_callback(
+    AnimPlayer* anim_player,
+    const AnimFileFrameInfo* frame,
+    void* context) {
+    furi_assert(context);
+    UNUSED(anim_player);
+
+    if(frame->flags & AnimFileFrameFlagError) return;
+    if(!(frame->flags & AnimFileFrameFlagFinished)) return;
+
+    FuriThread* thread = context;
+    furi_thread_flags_set(thread, SoftOffThreadFlagAnimationCompleted);
+}
+
 int32_t soft_off_app(void* arg) {
     UNUSED(arg);
 
@@ -36,8 +52,10 @@ int32_t soft_off_app(void* arg) {
 
     Gui* gui = furi_record_open(RECORD_GUI);
     BackDisplaySrv* back_display = furi_record_open(RECORD_BACK_DISPLAY);
+    FrontDisplaySrv* front_display = furi_record_open(RECORD_FRONT_DISPLAY);
 
     back_display_sleep_mode(back_display, true);
+    // Turn off front display only after animation finish
 
     FuriThread* thread = furi_thread_get_current();
     furi_thread_set_signal_callback(thread, soft_off_signal_callback, thread);
@@ -49,18 +67,34 @@ int32_t soft_off_app(void* arg) {
 
         anim_player = anim_player_alloc(root);
         anim_player_set_source(anim_player, SOFT_OFF_ANIM_PATH("turn_off_72x16.anim"));
+        anim_player_set_frame_callback(anim_player, soft_off_animation_finished_callback, thread);
 
         anim_player_set_section(anim_player, AnimFilePlayFlagNone, ANIM_FILE_DEFAULT_SECTION);
     });
 
-    furi_thread_flags_wait(SoftOffThreadFlagExit, FuriFlagWaitAny, FuriWaitForever);
+    while(1) {
+        uint32_t flags = furi_thread_flags_wait(
+            SoftOffThreadFlagExit | SoftOffThreadFlagAnimationCompleted,
+            FuriFlagWaitAny,
+            FuriWaitForever);
+        furi_check((flags & FuriFlagError) == 0);
+        if(flags & SoftOffThreadFlagExit) {
+            break;
+        }
+        if(flags & SoftOffThreadFlagAnimationCompleted) {
+            front_display_sleep_mode(front_display, true);
+        }
+    }
     furi_thread_set_signal_callback(thread, NULL, NULL);
 
     with_gui(gui, { anim_player_free(anim_player); });
 
     back_display_sleep_mode(back_display, false);
+    front_display_sleep_mode(front_display, false);
 
     furi_record_close(RECORD_BACK_DISPLAY);
+    furi_record_close(RECORD_FRONT_DISPLAY);
+
     furi_record_close(RECORD_GUI);
     furi_record_close(RECORD_LOADER);
 

@@ -79,6 +79,16 @@ static const FrontDisplayTestColorData front_display_test_color[FrontDisplayTest
                     .b = 0xff,
                 },
         },
+    [FrontDisplayTestColorBlank] =
+        {
+            .name = "Black",
+            .color =
+                {
+                    .r = 0x00,
+                    .g = 0x00,
+                    .b = 0x00,
+                },
+        },
 };
 
 typedef void (*FrontDisplayTestPatternSet)(Canvas* canvas, Color color);
