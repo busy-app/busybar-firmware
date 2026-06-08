@@ -426,13 +426,7 @@ def build_crash_comment(flag_path: str, junit_xml: str | None = None) -> str | N
     return "\n".join(lines).rstrip() + "\n"
 
 
-def post_or_update_pr_comment(comment_body: str, marker: str):
-    pr_number = os.environ.get("PR_NUMBER", "")
-    repo = os.environ.get("GITHUB_REPOSITORY", "")
-    if not pr_number or not repo:
-        return
-
-    # Find existing comment
+def _find_pr_comment_id(repo: str, pr_number: str, marker: str) -> str:
     try:
         result = subprocess.run(
             [
@@ -443,10 +437,20 @@ def post_or_update_pr_comment(comment_body: str, marker: str):
         )
         existing_id = result.stdout.strip()
     except Exception:
-        existing_id = ""
+        return ""
+    return "" if existing_id == "null" else existing_id
+
+
+def post_or_update_pr_comment(comment_body: str, marker: str):
+    pr_number = os.environ.get("PR_NUMBER", "")
+    repo = os.environ.get("GITHUB_REPOSITORY", "")
+    if not pr_number or not repo:
+        return
+
+    existing_id = _find_pr_comment_id(repo, pr_number, marker)
 
     try:
-        if existing_id and existing_id != "null":
+        if existing_id:
             subprocess.run(
                 ["gh", "api", f"repos/{repo}/issues/comments/{existing_id}",
                  "-X", "PATCH", "-f", f"body={comment_body}"],
@@ -459,6 +463,26 @@ def post_or_update_pr_comment(comment_body: str, marker: str):
             )
     except Exception as e:
         print(f"Warning: failed to post PR comment: {e}", file=sys.stderr)
+
+
+def delete_pr_comment(marker: str):
+    """Remove a stale sticky comment (e.g. a crash report from a prior run)."""
+    pr_number = os.environ.get("PR_NUMBER", "")
+    repo = os.environ.get("GITHUB_REPOSITORY", "")
+    if not pr_number or not repo:
+        return
+
+    existing_id = _find_pr_comment_id(repo, pr_number, marker)
+    if not existing_id:
+        return
+
+    try:
+        subprocess.run(
+            ["gh", "api", f"repos/{repo}/issues/comments/{existing_id}", "-X", "DELETE"],
+            timeout=30,
+        )
+    except Exception as e:
+        print(f"Warning: failed to delete PR comment: {e}", file=sys.stderr)
 
 
 def main():
@@ -490,6 +514,10 @@ def main():
         crash_comment = build_crash_comment(crash_flag, junit_xml or None)
         if crash_comment:
             post_or_update_pr_comment(crash_comment, "### 🚨 Crash Detected")
+        else:
+            # No crash this run — clear any stale crash comment from a prior run
+            # so a green run does not leave an outdated 🚨 report hanging.
+            delete_pr_comment("### 🚨 Crash Detected")
 
 
 if __name__ == "__main__":

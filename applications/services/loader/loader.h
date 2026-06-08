@@ -49,11 +49,13 @@ typedef enum {
 typedef enum {
     LoaderEventTypeApplicationBeforeLoad,
     LoaderEventTypeApplicationLoadFailed,
-    LoaderEventTypeApplicationStopped
+    LoaderEventTypeApplicationStopped,
+    LoaderEventTypePriorityChanged,
 } LoaderEventType;
 
 typedef struct {
     LoaderEventType type;
+    size_t priority;
 } LoaderEvent;
 
 /**

@@ -111,11 +111,21 @@ ARRAY_DEF(
         CLEAR(API_2(canvas_element_clear)),
         INIT_SET(API_6(canvas_element_clone))))
 
+typedef void (*CanvasDrawCallback)(CanvasResult result, void* ctx);
+
 CanvasResult canvas_show_elements(
     CanvasSrv* canvas,
     const char* app_id,
     size_t priority,
     CanvasElementsArray_t elements);
+
+void canvas_show_elements_async(
+    CanvasSrv* canvas,
+    const char* app_id,
+    size_t priority,
+    CanvasElementsArray_t elements,
+    CanvasDrawCallback callback,
+    void* callback_ctx);
 
 /**
  * @brief Delete elements by filter and possibly terminate Canvas

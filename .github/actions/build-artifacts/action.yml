@@ -136,12 +136,18 @@ runs:
           git config credential.helper 'store --file ~/.git-credentials'
         fi
         git config lfs.transfer.maxretries 3
+        # Fail fast on stalled connections: 30s with no data = abort
+        git config --global http.lowSpeedLimit 100
+        git config --global http.lowSpeedTime 30
 
     - name: Update submodules
       shell: bash
       run: |
         set -euo pipefail
-        git submodule update --init --depth 1 --filter=blob:none --recursive --jobs="$(nproc)" scripts/toolchain fbt_layers/fbtng || (git lfs logs last && exit 1)
+        timeout 180 git submodule update --init --depth 1 --filter=blob:none --recursive --jobs="$(nproc)" scripts/toolchain fbt_layers/fbtng || {
+          git lfs logs last 2>/dev/null || true
+          exit 1
+        }
 
     - name: Build update package
       shell: bash
