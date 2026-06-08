@@ -80,6 +80,16 @@ static bool api_display_draw_parse_text_element(
             canvas_element->text.scroll_rate_cpm = (size_t)number;
         }
 
+        if(mg_json_get_num(json_element, "$.scroll_start_delay", &number)) {
+            if(number < -__DBL_EPSILON__) break; // < 0
+            canvas_element->text.scroll_start_delay = (size_t)number;
+        }
+
+        if(mg_json_get_num(json_element, "$.scroll_repeat_delay", &number)) {
+            if(number < -__DBL_EPSILON__) break; // < 0
+            canvas_element->text.scroll_repeat_delay = (size_t)number;
+        }
+
         result = true;
     } while(0);
     return result;
