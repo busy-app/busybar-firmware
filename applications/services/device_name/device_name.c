@@ -23,10 +23,6 @@ DeviceNameError device_name_validate(const char* name) {
         return DeviceNameErrorEmpty;
     }
 
-    if(strnlen(name, DEVICE_NAME_MAX_SIZE) > DEVICE_NAME_MAX_LENGTH) {
-        return DeviceNameErrorTooLong;
-    }
-
     bool only_contains_spaces = true;
 
     for(size_t i = 0; i < strlen(name); i++) {
@@ -41,6 +37,10 @@ DeviceNameError device_name_validate(const char* name) {
 
     if(only_contains_spaces) {
         return DeviceNameErrorOnlySpaces;
+    }
+
+    if(strnlen(name, DEVICE_NAME_MAX_SIZE) > DEVICE_NAME_MAX_LENGTH) {
+        return DeviceNameErrorTooLong;
     }
 
     return DeviceNameErrorNone;

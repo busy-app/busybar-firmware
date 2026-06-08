@@ -2463,7 +2463,7 @@ components:
           $ref: "#/components/schemas/WifiSecurityMethod"
         rssi:
           type: integer
-          example: 58
+          example: -58
 
     StatusResponse:
       type: object
