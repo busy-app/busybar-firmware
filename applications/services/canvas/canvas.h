@@ -56,6 +56,8 @@ typedef struct {
             Color color;
             size_t width;
             size_t scroll_rate_cpm;
+            size_t scroll_start_delay;
+            size_t scroll_repeat_delay;
         } text;
 
         struct {
