@@ -182,10 +182,9 @@ void furi_hal_pwm_deinit(void) {
     // Disable PWM clock
     furi_hal_bus_disable(FuriHalBusMCPWM_PCLK);
     // Deinit GPIO
-    //Todo: Deinit GPIO
-    furi_hal_gpio_init_simple(&gpio_pwm_red, GpioModeInput);
-    furi_hal_gpio_init_simple(&gpio_pwm_green, GpioModeInput);
-    furi_hal_gpio_init_simple(&gpio_pwm_blue, GpioModeInput);
+    furi_hal_gpio_init(&gpio_pwm_red, GpioModeInput, GpioPullDown, GpioSpeedLow);
+    furi_hal_gpio_init(&gpio_pwm_green, GpioModeInput, GpioPullDown, GpioSpeedLow);
+    furi_hal_gpio_init(&gpio_pwm_blue, GpioModeInput, GpioPullDown, GpioSpeedLow);
 }
 
 void furi_hal_pwm_start(void) {
@@ -199,18 +198,18 @@ void furi_hal_pwm_start(void) {
     mcpwm_start(MCPWM, FURI_HAL_PWM_CHANNEL_BLUE);
     // Initialise GPIO
     furi_hal_gpio_init_ex(
-        &gpio_pwm_red, GpioModeOutputPushPull, GpioPullNo, GpioSpeedHigh, GpioAltFn10PWM_0H);
+        &gpio_pwm_red, GpioModeOutputPushPull, GpioPullNo, GpioSpeedLow, GpioAltFn10PWM_0H);
     furi_hal_gpio_init_ex(
-        &gpio_pwm_green, GpioModeOutputPushPull, GpioPullNo, GpioSpeedHigh, GpioAltFn10PWM_2H);
+        &gpio_pwm_green, GpioModeOutputPushPull, GpioPullNo, GpioSpeedLow, GpioAltFn10PWM_2H);
     furi_hal_gpio_init_ex(
-        &gpio_pwm_blue, GpioModeOutputPushPull, GpioPullNo, GpioSpeedHigh, GpioAltFn10PWM_3H);
+        &gpio_pwm_blue, GpioModeOutputPushPull, GpioPullNo, GpioSpeedLow, GpioAltFn10PWM_3H);
 }
 
 void furi_hal_pwm_stop(void) {
     // Deinitialise GPIO
-    furi_hal_gpio_init_simple(&gpio_pwm_red, GpioModeInput);
-    furi_hal_gpio_init_simple(&gpio_pwm_green, GpioModeInput);
-    furi_hal_gpio_init_simple(&gpio_pwm_blue, GpioModeInput);
+    furi_hal_gpio_init(&gpio_pwm_red, GpioModeInput, GpioPullDown, GpioSpeedLow);
+    furi_hal_gpio_init(&gpio_pwm_green, GpioModeInput, GpioPullDown, GpioSpeedLow);
+    furi_hal_gpio_init(&gpio_pwm_blue, GpioModeInput, GpioPullDown, GpioSpeedLow);
     // Stop the PWM
     mcpwm_stop(MCPWM, FURI_HAL_PWM_CHANNEL_RED);
     mcpwm_stop(MCPWM, FURI_HAL_PWM_CHANNEL_GREEN);

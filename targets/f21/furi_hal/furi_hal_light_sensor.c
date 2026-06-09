@@ -24,3 +24,7 @@ bool furi_hal_light_sensor_read_raw(
 bool furi_hal_light_sensor_read_lux(FuriHalI2cBusHandle* handle, float* value) {
     return bh1730_read_lux(handle, value);
 }
+
+bool furi_hal_light_sensor_sleep(FuriHalI2cBusHandle* handle, bool sleep) {
+    return bh1730_sleep_mode(handle, sleep);
+}

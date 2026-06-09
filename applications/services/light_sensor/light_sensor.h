@@ -81,6 +81,14 @@ LightSensorLevel light_sensor_get_light_level(void);
  */
 bool light_sensor_get_raw_data(LightSensorLightWavelength wavelength, uint16_t* raw);
 
+/**
+ * @brief Enter low-power sleep mode.
+ *
+ * @param[in] sleep true - sleep mode, false - normal operation mode.
+ * @return True if successful, false otherwise.
+ */
+bool light_sensor_sleep(bool sleep);
+
 #ifdef __cplusplus
 }
 #endif

@@ -47,6 +47,15 @@ bool bh1730_read_raw_data1(FuriHalI2cBusHandle* handle, uint16_t* value);
  */
 bool bh1730_read_lux(FuriHalI2cBusHandle* handle, float* value);
 
+/** 
+ * @brief Switch BH1730 sensor into low-power sleep mode
+ *
+ * @param handle I2C bus handle
+ * @param sleep true - sleep mode, false - normal operation mode
+ * @return true on success, false otherwise
+ */
+bool bh1730_sleep_mode(FuriHalI2cBusHandle* handle, bool sleep);
+
 #ifdef __cplusplus
 }
 #endif
