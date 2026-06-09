@@ -62,6 +62,13 @@ bool ble_device_process_write_request(
     const size_t data_size,
     const void* data);
 
+bool ble_device_process_read_request(
+    BleDevice* instance,
+    uint8_t* addr,
+    uint8_t type,
+    uint16_t handle,
+    uint16_t offset);
+
 void ble_device_receive_confirm(BleDevice* instance, uint16_t handle, uint8_t cccd_value);
 //----------------------------------------------------------------------------
 //PAIRING SMP HANDLERS

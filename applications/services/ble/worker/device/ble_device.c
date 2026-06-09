@@ -385,3 +385,36 @@ void ble_device_receive_confirm(BleDevice* instance, uint16_t handle, uint8_t cc
     }
 }
 
+bool ble_device_process_read_request(
+    BleDevice* instance,
+    uint8_t* addr,
+    uint8_t type,
+    uint16_t handle,
+    uint16_t offset) {
+    furi_assert(instance);
+
+    const BleServiceRegistryEntry* entry =
+        ble_service_registry_get_service_entry(instance->registry, handle);
+
+    bool result = false;
+    if(entry) {
+        BleServiceObject* service = entry->service;
+        if(ble_service_lock(service)) {
+            BleCharacteristicObject* ch = service->chars[entry->char_index];
+            size_t data_size = ble_characteristic_get_data_size(ch);
+            const void* data = ble_characteristic_get_data(ch);
+
+            sl_status_t status = rsi_ble_gatt_read_response(
+                addr, type, handle, offset, data_size - offset, data + offset);
+
+            if(status != RSI_SUCCESS) {
+                BLE_LOG_W("Read response failed status: %08lX", status);
+            } else {
+                result = true;
+            }
+
+            ble_service_unlock(service);
+        }
+    }
+    return result;
+}
