@@ -29,13 +29,14 @@ static void account_scene_not_linked_menu_on_enter(void* context) {
         submenu_add_item(
             data->front_menu,
             "Get pairing code",
+            NULL,
             SceneEventMenuGetCode,
             account_scene_not_linked_menu_item_callback,
             instance);
 
         data->back_menu = submenu_alloc(instance->back_scene_window);
         submenu_add_item(
-            data->back_menu, "Get pairing code", SceneEventMenuGetCode, NULL, instance);
+            data->back_menu, "Get pairing code", NULL, SceneEventMenuGetCode, NULL, instance);
     });
 }
 

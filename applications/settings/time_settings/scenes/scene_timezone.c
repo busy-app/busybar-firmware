@@ -33,6 +33,7 @@ static void scene_timezone_fill_submenu(
         submenu_add_item(
             menu,
             furi_string_get_cstr(s),
+            NULL,
             i,
             do_set_callbacks ? scene_timezone_on_submenu_item : NULL,
             instance);

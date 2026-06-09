@@ -132,9 +132,8 @@ void label_set_text_align(Label* instance, TextAlign align);
  *
  * @param[in,out] instance pointer to the Label instance to be modified
  * @param[in] mode new long content mode for label
- * @param[in] duration animation duration in scrollable modes (milliseconds)
  */
-void label_set_long_content_mode(Label* instance, LabelLongContentMode mode, uint32_t duration);
+void label_set_long_content_mode(Label* instance, LabelLongContentMode mode);
 
 /**
  * @brief Set the initial delay before the long content animation starts.
@@ -159,16 +158,14 @@ void label_set_long_content_anim_start_delay(Label* instance, uint32_t delay);
 void label_set_long_content_anim_repeat_delay(Label* instance, uint32_t delay);
 
 /**
- * @brief Calculate scroll duration for `label_set_long_content_mode`.
- * 
- * @param[in] instance pointer to the Label instance
- * @param[in] rate_ppm scroll rate for off-screen text in pixels per minute
- * 
- * @note the label text and width should be set before calling this function.
- * 
- * @returns 
+ * @brief Set the scroll animation speed for a label.
+ *
+ * @warning Only valid for @c LabelLongContentModeScrollCircular.
+ *
+ * @param[in, out] instance pointer to the Label instance
+ * @param[in]      speed    scroll speed in pixels per minute (must be > 0)
  */
-uint32_t label_calculate_scroll_duration(const Label* instance, uint32_t rate_ppm);
+void label_set_long_content_anim_speed(Label* instance, uint32_t speed);
 
 /**
  * @brief Set font of label text.

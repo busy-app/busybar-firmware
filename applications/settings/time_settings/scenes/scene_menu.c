@@ -47,42 +47,42 @@ static void scene_menu_on_enter(void* context) {
     time_get_settings(instance->time, &time_settings);
 
     DateTime now = furi_hal_rtc_get_datetime().dt;
-    utz_offset_t _offset;
-    const char* letters = utz_get_current_offset(&time_settings.timezone, &now, &_offset);
+    const char* letters = utz_get_current_offset(&time_settings.timezone, &now, &(utz_offset_t){});
+
     char zone_abbr[8];
     snprintf(zone_abbr, sizeof(zone_abbr), time_settings.timezone.abrev_formatter, letters);
 
-    char front_tz_text[18];
-    snprintf(front_tz_text, sizeof(front_tz_text), "Time zone%7.7s>", zone_abbr);
-    char back_tz_text[26];
-    snprintf(back_tz_text, sizeof(back_tz_text), "Time zone %10.10s>", zone_abbr);
-    char front_time_format_text[19];
+    char tz_text[12];
+    snprintf(tz_text, sizeof(tz_text), "%s\u200A>", zone_abbr);
+
+    char time_format_text[10];
     snprintf(
-        front_time_format_text,
-        sizeof(front_time_format_text),
-        "Time format%6.6s>",
-        time_settings_format_names[time_settings.time_format]);
-    char back_time_format_text[25];
-    snprintf(
-        back_time_format_text,
-        sizeof(back_time_format_text),
-        "Time format%10.10s>",
+        time_format_text,
+        sizeof(time_format_text),
+        "%s\u200A>",
         time_settings_format_names[time_settings.time_format]);
 
     with_gui(instance->gui, {
         data->front_menu = submenu_alloc(instance->front_scene_window);
         submenu_add_item(
-            data->front_menu, front_tz_text, IdxTimeZone, scene_menu_on_submenu_item, instance);
+            data->front_menu,
+            "Time zone",
+            tz_text,
+            IdxTimeZone,
+            scene_menu_on_submenu_item,
+            instance);
         submenu_add_item(
             data->front_menu,
-            front_time_format_text,
+            "Time format",
+            time_format_text,
             IdxTimeFormat,
             scene_menu_on_submenu_item,
             instance);
 
         data->back_menu = submenu_alloc(instance->back_scene_window);
-        submenu_add_item(data->back_menu, back_tz_text, IdxTimeZone, NULL, instance);
-        submenu_add_item(data->back_menu, back_time_format_text, IdxTimeFormat, NULL, instance);
+        submenu_add_item(data->back_menu, "Time zone", tz_text, IdxTimeZone, NULL, instance);
+        submenu_add_item(
+            data->back_menu, "Time format", time_format_text, IdxTimeFormat, NULL, instance);
     });
 }
 
