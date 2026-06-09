@@ -65,7 +65,10 @@ static HttpMethod http_method_from_str(struct mg_http_message* msg) {
 #define HTTP_API_METHODS \
     ((HttpMethod)(HttpMethodGet | HttpMethodPost | HttpMethodPut | HttpMethodDelete))
 
-void http_reply_405_method_not_allowed(struct mg_connection* conn, HttpMethod allowed_methods, bool close) {
+void http_reply_405_method_not_allowed(
+    struct mg_connection* conn,
+    HttpMethod allowed_methods,
+    bool close) {
     if(allowed_methods & HttpMethodWebSocket) {
         allowed_methods = (HttpMethod)((allowed_methods & ~HttpMethodWebSocket) | HttpMethodGet);
     }
