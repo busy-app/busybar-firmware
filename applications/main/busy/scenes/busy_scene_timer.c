@@ -270,8 +270,11 @@ static void busy_scene_timer_update_timer_state(BusyApp* instance) {
 
             if(busy_scene_timer_has_label_tweaks(data)) {
                 timer_label_enable_background(data->timer_label, true);
-                timer_label_hide(data->timer_label, false);
-                furi_event_loop_timer_start(data->show_label_timer, TIMER_HIDDEN_TIME_MS);
+
+                if(data->prev_timer_mode != BusyTimerModeInfinite) {
+                    timer_label_hide(data->timer_label, false);
+                    furi_event_loop_timer_start(data->show_label_timer, TIMER_HIDDEN_TIME_MS);
+                }
 
             } else {
                 timer_label_enable_background(data->timer_label, false);
