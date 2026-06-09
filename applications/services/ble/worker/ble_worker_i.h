@@ -3,32 +3,12 @@
 #include "ble_worker.h"
 
 #include "device/ble_device.h"
-
-// #include "ble_security.h"
-// #include "ble_advertise.h"
 #include "event_processor/ble_incoming_nwp_event_processor.h"
 #include "../service/ble_service_i.h"
 
 #include "../util/ble_canary.h"
 
 #include "_nwp_callbacks/ble_nwp_core_callbacks.h"
-
-#include <m-dict.h>
-// #include <api_lock.h>
-
-// typedef struct {
-//     FuriApiLock lock;
-//     void* data;
-// } SyncEventContext;
-
-typedef struct {
-    ///TODO: for now this is ok, for future maybe it is worth to make each characteristic
-    /// know its own service.
-    BleServiceObject* service;
-    uint16_t char_index;
-} BleServiceEntry;
-
-DICT_DEF2(BleServiceEntryDict, uint16_t, M_DEFAULT_OPLIST, BleServiceEntry, M_POD_OPLIST)
 
 struct BleWorker {
     FuriThread* thread;
@@ -38,10 +18,8 @@ struct BleWorker {
     BleDevice* device;
     //----------------------------------------------------
 
-    FuriSemaphore* receive_sem;
     FuriTimer* retry_phy_timer;
     uint8_t pairing_info_available;
-    uint16_t rx_pending_handle;
     ///TODO: this can be removed
 
     uint8_t remote_dev_address[6];
@@ -52,7 +30,6 @@ struct BleWorker {
 
     BleSecurityData* security_data;
 
-    BleServiceEntryDict_t service_dict;
     BleConnectionStateChanged on_connection_changed_cb;
     void* on_connection_changed_ctx;
 };
