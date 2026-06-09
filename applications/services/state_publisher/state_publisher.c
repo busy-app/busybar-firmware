@@ -358,7 +358,10 @@ static uint32_t send_out(StatePublisher* instance, StreamFlag flags, bool heartb
     return min_sleep_time_ms;
 }
 
-static void record_update(StatePublisher* instance, StreamFlag flags, BSB_State_StateUpdate* update) {
+void state_publisher_store_state_update(
+    StatePublisher* instance,
+    BSB_State_StateUpdate* update,
+    StreamFlag flags) {
     SharedStateUpdate_t shared_update;
     SharedStateUpdate_init2(shared_update, update);
     if(is_sequential_update(update)) {
@@ -397,22 +400,20 @@ static void publish_queue_callback(FuriEventLoopObject* object, void* context) {
     UNUSED(object);
     StatePublisher* instance = context;
     PublishMessage message;
-    bool heartbeat = true;
     StreamFlag flags = 0;
     while(furi_message_queue_get(instance->publish_queue, &message, 0) == FuriStatusOk) {
         BSB_State_StateUpdate* update = message.data;
         flags |= message.stream_flags;
         if(update) {
-            record_update(instance, message.stream_flags, update);
-            heartbeat = false;
+            state_publisher_store_state_update(instance, update, message.stream_flags);
         }
     }
 
-    if(heartbeat) {
+    if(message.heartbeat) {
         flags = StreamFlagAll;
     }
 
-    uint32_t sleep_time_ms = send_out(instance, flags, heartbeat);
+    uint32_t sleep_time_ms = send_out(instance, flags, message.heartbeat);
 
     furi_event_loop_timer_start(instance->rate_limiter_timer, ms_to_ticks(sleep_time_ms));
 }
@@ -444,6 +445,7 @@ void state_publisher_schedule_state_update(
     PublishMessage msg = {
         .data = update,
         .stream_flags = flags,
+        .heartbeat = false,
     };
 
     FuriStatus queue_status = furi_message_queue_put(instance->publish_queue, &msg, 0);
@@ -455,7 +457,15 @@ void state_publisher_schedule_state_update(
 
 static void heartbeat_timer_callback(void* context) {
     StatePublisher* instance = context;
-    state_publisher_schedule_state_update(instance, NULL, StreamFlagAll);
+    PublishMessage msg = {
+        .heartbeat = true,
+    };
+
+    FuriStatus queue_status = furi_message_queue_put(instance->publish_queue, &msg, 0);
+
+    if(queue_status != FuriStatusOk) {
+        FURI_LOG_E(TAG, "Queue full, heartbeat dropped");
+    }
 }
 
 void state_publisher_send_complete_snapshot(
@@ -494,31 +504,43 @@ static int32_t fetch_thread_callback(void* context) {
     StatePublisher* instance = context;
     while(true) {
         uint32_t result = furi_event_flag_wait(
-            instance->fetch_flags, UINT32_MAX >> 1, FuriFlagWaitAny, FuriWaitForever);
+            instance->fetch_flags, FetchFlagAll, FuriFlagWaitAny, FuriWaitForever);
         furi_check((result & FuriFlagError) == 0);
         if(result & FetchFlagPowerEvent) {
-            state_publisher_publish_power(instance);
+            state_publisher_store_power(instance);
         }
         if(result & FetchFlagAudioEvent) {
-            state_publisher_publish_audio(instance);
+            state_publisher_store_audio(instance);
         }
         if(result & FetchFlagMatterEvent) {
-            state_publisher_publish_matter(instance);
+            state_publisher_store_matter(instance);
         }
         if(result & FetchFlagUpdaterCheckEvent) {
-            state_publisher_publish_update_check(instance);
+            state_publisher_store_update_check(instance);
         }
         if(result & FetchFlagBusyTimer) {
-            state_publisher_publish_busy_timer(instance);
+            state_publisher_store_busy_timer(instance);
         }
         if(result & FetchFlagBusyTimerProfiles) {
-            state_publisher_publish_busy_timer_profiles(instance);
+            state_publisher_store_busy_timer_profiles(instance);
         }
         if(result & FetchFlagAutoupdateEvent) {
-            state_publisher_publish_autoupdate(instance);
+            state_publisher_store_autoupdate(instance);
         }
         if(result & FetchFlagBle) {
-            state_publisher_publish_ble(instance);
+            state_publisher_store_ble(instance);
+        }
+
+        if(result) {
+            PublishMessage msg = {
+                .heartbeat = false,
+            };
+
+            FuriStatus queue_status = furi_message_queue_put(instance->publish_queue, &msg, 0);
+
+            if(queue_status != FuriStatusOk) {
+                FURI_LOG_E(TAG, "Queue full, update postponed");
+            }
         }
     }
     return 0;

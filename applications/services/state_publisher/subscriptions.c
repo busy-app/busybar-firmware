@@ -143,10 +143,10 @@ static BSB_State_StateUpdate* collect_power(StatePublisher* instance) {
     return update;
 }
 
-void state_publisher_publish_power(StatePublisher* instance) {
+void state_publisher_store_power(StatePublisher* instance) {
     BSB_State_StateUpdate* update = collect_power(instance);
 
-    state_publisher_schedule_state_update(instance, update, StreamFlagAll);
+    state_publisher_store_state_update(instance, update, StreamFlagAll);
 }
 
 static BSB_State_StateUpdate* collect_audio(StatePublisher* instance) {
@@ -161,10 +161,10 @@ static BSB_State_StateUpdate* collect_audio(StatePublisher* instance) {
     return update;
 }
 
-void state_publisher_publish_audio(StatePublisher* instance) {
+void state_publisher_store_audio(StatePublisher* instance) {
     BSB_State_StateUpdate* update = collect_audio(instance);
 
-    state_publisher_schedule_state_update(instance, update, StreamFlagAll);
+    state_publisher_store_state_update(instance, update, StreamFlagAll);
 }
 
 static BSB_State_StateUpdate* collect_matter(StatePublisher* instance) {
@@ -196,13 +196,13 @@ static BSB_State_StateUpdate* collect_matter(StatePublisher* instance) {
     return update;
 }
 
-void state_publisher_publish_matter(StatePublisher* instance) {
+void state_publisher_store_matter(StatePublisher* instance) {
     BSB_State_StateUpdate* update = collect_matter(instance);
 
-    state_publisher_schedule_state_update(instance, update, StreamFlagAll);
+    state_publisher_store_state_update(instance, update, StreamFlagAll);
 }
 
-void state_publisher_publish_update_check(StatePublisher* instance) {
+void state_publisher_store_update_check(StatePublisher* instance) {
     FuriState* check_state = updater_get_check_state(instance->updater);
     UpdaterCheckState info;
     furi_state_get(check_state, &info);
@@ -249,7 +249,7 @@ void state_publisher_publish_update_check(StatePublisher* instance) {
         furi_assert(false);
         break;
     }
-    state_publisher_schedule_state_update(instance, update, StreamFlagAll);
+    state_publisher_store_state_update(instance, update, StreamFlagAll);
 }
 
 static BSB_State_StateUpdate* collect_autoupdate(const UpdaterSettings* settings) {
@@ -263,11 +263,11 @@ static BSB_State_StateUpdate* collect_autoupdate(const UpdaterSettings* settings
     return update;
 }
 
-void state_publisher_publish_autoupdate(StatePublisher* instance) {
+void state_publisher_store_autoupdate(StatePublisher* instance) {
     UpdaterSettings settings;
     updater_get_settings(instance->updater, &settings);
     BSB_State_StateUpdate* update = collect_autoupdate(&settings);
-    state_publisher_schedule_state_update(instance, update, StreamFlagAll);
+    state_publisher_store_state_update(instance, update, StreamFlagAll);
 }
 
 static void set_json_from_text(BSB_Util_Json* json, const char* text) {
@@ -294,9 +294,9 @@ static BSB_State_StateUpdate* collect_busy_timer(StatePublisher* instance) {
     return update;
 }
 
-void state_publisher_publish_busy_timer(StatePublisher* instance) {
+void state_publisher_store_busy_timer(StatePublisher* instance) {
     BSB_State_StateUpdate* update = collect_busy_timer(instance);
-    state_publisher_schedule_state_update(instance, update, StreamFlagAll);
+    state_publisher_store_state_update(instance, update, StreamFlagAll);
 }
 
 static BSB_State_StateUpdate* collect_busy_timer_profiles(StatePublisher* instance) {
@@ -324,10 +324,10 @@ static BSB_State_StateUpdate* collect_busy_timer_profiles(StatePublisher* instan
     return update;
 }
 
-void state_publisher_publish_busy_timer_profiles(StatePublisher* instance) {
+void state_publisher_store_busy_timer_profiles(StatePublisher* instance) {
     BSB_State_StateUpdate* update = collect_busy_timer_profiles(instance);
 
-    state_publisher_schedule_state_update(instance, update, StreamFlagAll);
+    state_publisher_store_state_update(instance, update, StreamFlagAll);
 }
 
 // Can return NULL
@@ -368,10 +368,10 @@ static BSB_State_StateUpdate* collect_ble(StatePublisher* instance) {
     }
 }
 
-void state_publisher_publish_ble(StatePublisher* instance) {
+void state_publisher_store_ble(StatePublisher* instance) {
     BSB_State_StateUpdate* update = collect_ble(instance);
     if(update) {
-        state_publisher_schedule_state_update(instance, update, StreamFlagAll);
+        state_publisher_store_state_update(instance, update, StreamFlagAll);
     }
 }
 
