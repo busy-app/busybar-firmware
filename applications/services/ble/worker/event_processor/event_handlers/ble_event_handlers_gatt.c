@@ -35,56 +35,20 @@ bool ble_event_handler_gatt_mtu(size_t data_size, void* data, void* context) {
     return true;
 }
 
-///TODO: rework this shit to be less messy
 bool ble_event_handler_gatt_write_event(size_t data_size, void* data, void* context) {
     UNUSED(data_size);
+    bool result = false;
     BleWorker* instance = context;
 
-    rsi_ble_event_write_t* app_ble_write_event = data;
-
-    uint16_t handle = *(uint16_t*)app_ble_write_event->handle;
+    const rsi_ble_event_write_t* app_ble_write_event = data;
     if(app_ble_write_event->pkt_type == RSI_BLE_WRITE_REQUEST_EVENT) {
-        const void* data = app_ble_write_event->att_value;
-        const size_t data_size = app_ble_write_event->length;
-
-        BleServiceEntry* entry = BleServiceEntryDict_get(instance->service_dict, handle);
-
-        if(entry) {
-            if(furi_semaphore_acquire(instance->receive_sem, BLE_WORKER_RX_TIMEOUT_MS) ==
-               FuriStatusOk) {
-                BLE_LOG_D("Entry present");
-                BleServiceObject* service = entry->service;
-                if(ble_service_lock(service)) {
-                    BleCharacteristicObject* ch = service->chars[entry->char_index];
-
-                    if(ble_characteristic_is_cccd_handle(ch, handle)) {
-                        uint8_t ccd_val = *((uint8_t*)data);
-                        ble_characteristic_set_cccd_value(ch, ccd_val);
-                        sl_status_t status =
-                            ble_worker_write_response(instance->remote_dev_address, 0);
-
-                        if(status != RSI_SUCCESS) BLE_LOG_W("Response fail");
-                        if(handle == BLE_NORDIC_UART_TX_HANDLE) BLE_LOG_W("Subscribed!");
-
-                        furi_semaphore_release(instance->receive_sem);
-                    } else {
-                        furi_check(data_size > 0);
-                        instance->rx_pending_handle = handle;
-                        ble_characteristic_set_data(ch, data, data_size);
-                        ble_service_enqueue_run(service);
-                        if(handle == BLE_NORDIC_UART_CNT_HANDLE) BLE_LOG_W("Session modified!");
-                    }
-
-                    ble_service_unlock(service);
-                }
-            } else {
-                BLE_LOG_W("receive_sem timeout!");
-            }
-        } else {
-            BLE_LOG_W("Not found: %04X", handle);
-            sl_status_t status = ble_worker_write_response(instance->remote_dev_address, 0);
-            if(status != RSI_SUCCESS) BLE_LOG_W("Response fail");
-        }
+        const uint16_t handle = *(uint16_t*)app_ble_write_event->handle;
+        result = ble_device_process_write_request(
+            instance->device,
+            app_ble_write_event->dev_addr,
+            handle,
+            app_ble_write_event->length,
+            app_ble_write_event->att_value);
     } else if(app_ble_write_event->pkt_type == RSI_BLE_NOTIFICATION_EVENT) {
         BLE_LOG_W("Notification event");
     } else if(app_ble_write_event->pkt_type == RSI_BLE_INDICATION_EVENT) {
@@ -93,38 +57,21 @@ bool ble_event_handler_gatt_write_event(size_t data_size, void* data, void* cont
         BLE_LOG_W("CMD event");
     }
 
-    return true;
+    return result;
 }
 
-bool ble_event_handler_gatt_read_request_event(size_t dat_sz, void* data, void* context) {
-    UNUSED(dat_sz);
+bool ble_event_handler_gatt_read_request_event(size_t data_size, void* data, void* context) {
+    UNUSED(data_size);
 
     BleWorker* instance = context;
 
     rsi_ble_read_req_t* read_request = data;
 
-    BleServiceEntry* entry = BleServiceEntryDict_get(instance->service_dict, read_request->handle);
-    if(entry) {
-        BleServiceObject* service = entry->service;
-        if(ble_service_lock(service)) {
-            BleCharacteristicObject* ch = service->chars[entry->char_index];
-            size_t data_size = ble_characteristic_get_data_size(ch);
-            const void* data = ble_characteristic_get_data(ch);
-
-            sl_status_t status = rsi_ble_gatt_read_response(
-                read_request->dev_addr,
-                read_request->type,
-                read_request->handle,
-                read_request->offset,
-                data_size - read_request->offset,
-                data + read_request->offset);
-
-            if(status != RSI_SUCCESS) {
-                BLE_LOG_W("Read response failed status: %08lX", status);
-            }
-
-            ble_service_unlock(service);
-        }
-    }
-    return true;
+    bool result = ble_device_process_read_request(
+        instance->device,
+        read_request->dev_addr,
+        read_request->type,
+        read_request->handle,
+        read_request->offset);
+    return result;
 }

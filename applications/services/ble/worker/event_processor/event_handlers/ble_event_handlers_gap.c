@@ -88,27 +88,6 @@ bool ble_event_handler_gap_disconnected(size_t data_size, void* data, void* cont
 
     bool result = ble_device_connection_close(instance->device);
 
-    if(instance->rx_pending_handle) {
-        BLE_LOG_W("Rx confirm not sent!");
-        furi_semaphore_release(instance->receive_sem);
-        instance->rx_pending_handle = 0;
-    }
-
-    BleServiceEntryDict_it_t entry_iter;
-    for(BleServiceEntryDict_it(entry_iter, instance->service_dict);
-        !BleServiceEntryDict_end_p(entry_iter);
-        BleServiceEntryDict_next(entry_iter)) {
-        BleServiceEntryDict_itref_t* entry_ref = BleServiceEntryDict_ref(entry_iter);
-
-        BleServiceEntry* entry = &entry_ref->value;
-        BleServiceObject* service = entry->service;
-        if(ble_service_lock(service)) {
-            BleCharacteristicObject* ch = service->chars[entry->char_index];
-            ble_characteristic_set_cccd_value(ch, 0);
-            ble_service_unlock(service);
-        }
-    }
-
     bool connected = !result; //ble_device_is_connected(instance->device);
     uint8_t dummy[BLE_REMOTE_ADDRESS_STRING_SIZE] = {0};
     instance->on_connection_changed_cb(instance->on_connection_changed_ctx, connected, dummy);
