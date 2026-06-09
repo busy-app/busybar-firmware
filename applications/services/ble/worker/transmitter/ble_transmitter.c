@@ -38,9 +38,6 @@ typedef struct {
     BleTransmitterHandlerEventLoopUnsubscribe unsubscribe;
 } BleTransmitterContract;
 
-#define BLE_CCCD_NOTIFICATION_ENABLED(cccd_value) ((cccd_value & 0x01) != 0)
-#define BLE_CCCD_INDICATION_ENABLED(cccd_value)   ((cccd_value & 0x02) != 0)
-
 static const BleTransmitterContract ble_transmitters[BleTransmitterTypeCount] = {
     [BleTransmitterTypeIndication] =
         {

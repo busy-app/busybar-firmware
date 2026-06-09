@@ -48,10 +48,7 @@ bool ble_device_stop(BleDevice* instance);
 
 BleAdvertiseContext* ble_device_get_advertise_context(BleDevice* instance);
 
-// //Stores new connection parameters if update was successful
-// void ble_device_update_connection_end();
-
-// void ble_device_update_mtu();
+void ble_device_set_mtu(BleDevice* instance, uint16_t mtu);
 
 // void ble_device_update_remote_features(/*Address*/);
 //----------------------------------------------------------------------------

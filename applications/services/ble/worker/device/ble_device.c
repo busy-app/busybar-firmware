@@ -39,8 +39,7 @@ BleDevice* ble_device_alloc(BleTransmitter* transmitter) {
     instance->base = ble_device_base_alloc(BleDeviceRoleRemote);
     instance->registry = ble_service_registry_alloc();
 
-    instance->mtu_size = BLE_MAX_MTU_SIZE;
-    instance->max_payload_size = instance->mtu_size - BLE_ATTR_HEADER_SIZE;
+    ble_device_set_mtu(instance, BLE_MAX_MTU_SIZE);
 
     instance->security_data = ble_security_alloc();
     if(!ble_security_init(instance->security_data)) {
@@ -144,8 +143,8 @@ bool ble_device_disconnect(BleDevice* instance) {
 
     bool result = false;
     if(instance->state == BleDeviceStateConnected) {
-        BleDeviceBase* peer = ble_connection_get_peer(instance->connection);
-        const uint8_t* addr = ble_device_base_get_address(peer, BleDeviceAddressTypeOrigin);
+        const uint8_t* addr =
+            ble_device_base_get_address(instance->peer, BleDeviceAddressTypeOrigin);
 
         sl_status_t status = rsi_ble_disconnect((const int8_t*)addr);
         if(status != RSI_SUCCESS) {
@@ -263,6 +262,14 @@ bool ble_device_stop(BleDevice* instance) {
         result = true;
     } while(false);
     return result;
+}
+
+void ble_device_set_mtu(BleDevice* instance, uint16_t mtu) {
+    furi_assert(instance);
+
+    instance->mtu_size = mtu;
+    instance->max_payload_size = instance->mtu_size - BLE_ATTR_HEADER_SIZE;
+    BLE_LOG_I("MTU size: %u, max payload size: %u", mtu, instance->max_payload_size);
 }
 
 void ble_device_set_name(BleDevice* instance, const char* name) {

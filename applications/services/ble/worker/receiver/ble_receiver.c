@@ -7,10 +7,6 @@
 
 #define TAG "BleRecv"
 
-///TODO: move this in some common, because receiver also uses them
-#define BLE_CCCD_NOTIFICATION_ENABLED(cccd_value) ((cccd_value & 0x01) != 0)
-#define BLE_CCCD_INDICATION_ENABLED(cccd_value)   ((cccd_value & 0x02) != 0)
-
 struct BleReceiverContext {
     FuriSemaphore* receive_sem;
     uint16_t rx_pending_handle;
