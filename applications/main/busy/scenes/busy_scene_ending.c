@@ -104,7 +104,7 @@ static void busy_scene_ending_on_enter(void* context) {
         widget_set_align(summary_view_get_base(data->front_summary), AlignCenter);
 
         data->front_anim = anim_player_alloc(instance->front_window);
-        anim_player_set_source(data->front_anim, BUSY_ANIM_PATH("busy_ending_72x16.anim"));
+        anim_player_set_source(data->front_anim, BUSY_ANIM_PATH("ending_progress_72x16.anim"));
         anim_player_set_section(data->front_anim, AnimFilePlayFlagNone, ANIM_FILE_DEFAULT_SECTION);
         anim_player_set_frame_callback(
             data->front_anim, busy_scene_ending_anim_frame_callback, instance);
