@@ -40,6 +40,19 @@
 #define TO_RAW_MESSAGE(msg)  ((struct mg_mqtt_message*)(msg))
 #define TO_MQTT_MESSAGE(msg) ((MqttMessage*)(msg))
 
+// Source: https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901031
+typedef enum {
+    MqttReasonCodeSuccess = 0x0,
+    MqttReasonCodeGrantedQoS0 = MqttReasonCodeSuccess,
+    MqttReasonCodeGrantedQoS1,
+    MqttReasonCodeGrantedQoS2,
+    // Reason codes 0x4 ... 0x19 omitted for clarity
+    MqttReasonCodeUnspecifiedError = 0x80,
+    // Reason codes 0x81 ... 0x86 omitted for clarity
+    MqttReasonCodeNotAuthorized = 0x87,
+    // Reason codes 0x88 ... 0xA2 omitted for clarity
+} MqttReasonCode;
+
 typedef enum {
     MqttScopeDevice,
     MqttScopeSession,

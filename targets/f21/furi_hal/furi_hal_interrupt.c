@@ -7,12 +7,27 @@
 
 #define FURI_HAL_INTERRUPT_DEFAULT_PRIORITY (configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY + 5)
 
+#ifdef FURI_RAM_EXEC
+#define FURI_HAL_INTERRUPT_ACCOUNT_START()
+#define FURI_HAL_INTERRUPT_ACCOUNT_END()
+#else
+#define FURI_HAL_INTERRUPT_ACCOUNT_START() const uint32_t _isr_start = DWT->CYCCNT;
+#define FURI_HAL_INTERRUPT_ACCOUNT_END()                    \
+    const uint32_t _time_in_isr = DWT->CYCCNT - _isr_start; \
+    furi_hal_interrupt.counter_time_in_isr_total += _time_in_isr;
+#endif
+
 typedef struct {
     FuriHalInterruptISR isr;
     void* context;
 } FuriHalInterruptISRPair;
 
-FuriHalInterruptISRPair furi_hal_interrupt_isr[FuriHalInterruptIdMax] = {0};
+typedef struct {
+    FuriHalInterruptISRPair isr[FuriHalInterruptIdMax];
+    uint32_t counter_time_in_isr_total;
+} FuriHalInterrupt;
+
+static FuriHalInterrupt furi_hal_interrupt = {};
 
 const IRQn_Type furi_hal_interrupt_irqn[FuriHalInterruptIdMax] = {
     // SDMMC
@@ -78,8 +93,10 @@ const IRQn_Type furi_hal_interrupt_irqn[FuriHalInterruptIdMax] = {
 
 __attribute__((always_inline)) static inline void
     furi_hal_interrupt_call(FuriHalInterruptId index) {
-    furi_check(furi_hal_interrupt_isr[index].isr);
-    furi_hal_interrupt_isr[index].isr(furi_hal_interrupt_isr[index].context);
+    FURI_HAL_INTERRUPT_ACCOUNT_START();
+    furi_check(furi_hal_interrupt.isr[index].isr);
+    furi_hal_interrupt.isr[index].isr(furi_hal_interrupt.isr[index].context);
+    FURI_HAL_INTERRUPT_ACCOUNT_END();
 }
 
 __attribute__((always_inline)) static inline void
@@ -155,15 +172,15 @@ void furi_hal_interrupt_set_isr_ex(
 
     if(isr) {
         // Pre ISR set
-        furi_check(furi_hal_interrupt_isr[index].isr == NULL);
+        furi_check(furi_hal_interrupt.isr[index].isr == NULL);
     } else {
         // Pre ISR clear
         furi_hal_interrupt_disable(index);
         furi_hal_interrupt_clear_pending(index);
     }
 
-    furi_hal_interrupt_isr[index].isr = isr;
-    furi_hal_interrupt_isr[index].context = context;
+    furi_hal_interrupt.isr[index].isr = isr;
+    furi_hal_interrupt.isr[index].context = context;
     __DMB();
 
     if(isr) {
@@ -482,161 +499,290 @@ void FuriSysTick_Handler(void) {
 
 // Potential space-saver for updater build
 const char* furi_hal_interrupt_get_name(uint8_t exception_number) {
-    int32_t id = (int32_t)exception_number - 16;
+    const IRQn_Type irqn = (IRQn_Type)((int32_t)exception_number - 16);
 
-    switch(id) {
-    case -14:
+    switch(irqn) {
+    case NonMaskableInt_IRQn:
         return "NMI";
-    case -13:
+    case HardFault_IRQn:
         return "HardFault";
-    case -12:
+    case MemoryManagement_IRQn:
         return "MemMgmt";
-    case -11:
+    case BusFault_IRQn:
         return "BusFault";
-    case -10:
+    case UsageFault_IRQn:
         return "UsageFault";
-    case -5:
+    case SecureFault_IRQn:
+        return "SecureFault";
+    case SVCall_IRQn:
         return "SVC";
-    case -4:
+    case DebugMonitor_IRQn:
         return "DebugMon";
-    case -2:
+    case PendSV_IRQn:
         return "PendSV";
-    case -1:
+    case SysTick_IRQn:
         return "SysTick";
-    case 0:
+    case WWDG_IRQn:
         return "WWDG";
-    case 1:
+    case PVD_PVM_IRQn:
         return "PVD_PVM";
-    case 2:
+    case RTC_IRQn:
+        return "RTC";
+    case RTC_S_IRQn:
+        return "RTC_S";
+    case TAMP_IRQn:
         return "TAMP";
-    case 3:
-        return "RTC_WKUP";
-    case 4:
+    case RAMCFG_IRQn:
+        return "RAMCFG";
+    case FLASH_IRQn:
         return "FLASH";
-    case 5:
+    case FLASH_S_IRQn:
+        return "FLASH_S";
+    case GTZC_IRQn:
+        return "GTZC";
+    case RCC_IRQn:
         return "RCC";
-    case 6:
+    case RCC_S_IRQn:
+        return "RCC_S";
+    case EXTI0_IRQn:
         return "EXTI0";
-    case 7:
+    case EXTI1_IRQn:
         return "EXTI1";
-    case 8:
+    case EXTI2_IRQn:
         return "EXTI2";
-    case 9:
+    case EXTI3_IRQn:
         return "EXTI3";
-    case 10:
+    case EXTI4_IRQn:
         return "EXTI4";
-    case 11:
-        return "DMA1_Ch1";
-    case 12:
-        return "DMA1_Ch2";
-    case 13:
-        return "DMA1_Ch3";
-    case 14:
-        return "DMA1_Ch4";
-    case 15:
-        return "DMA1_Ch5";
-    case 16:
-        return "DMA1_Ch6";
-    case 17:
-        return "DMA1_Ch7";
-    case 18:
-        return "ADC1";
-    case 19:
-        return "USB_HP";
-    case 20:
-        return "USB_LP";
-    case 21:
-        return "C2SEV_PWR_C2H";
-    case 22:
-        return "COMP";
-    case 23:
-        return "EXTI9_5";
-    case 24:
+    case EXTI5_IRQn:
+        return "EXTI5";
+    case EXTI6_IRQn:
+        return "EXTI6";
+    case EXTI7_IRQn:
+        return "EXTI7";
+    case EXTI8_IRQn:
+        return "EXTI8";
+    case EXTI9_IRQn:
+        return "EXTI9";
+    case EXTI10_IRQn:
+        return "EXTI10";
+    case EXTI11_IRQn:
+        return "EXTI11";
+    case EXTI12_IRQn:
+        return "EXTI12";
+    case EXTI13_IRQn:
+        return "EXTI13";
+    case EXTI14_IRQn:
+        return "EXTI14";
+    case EXTI15_IRQn:
+        return "EXTI15";
+    case IWDG_IRQn:
+        return "IWDG";
+    case GPDMA1_Channel0_IRQn:
+        return "GPDMA1_Channel0";
+    case GPDMA1_Channel1_IRQn:
+        return "GPDMA1_Channel1";
+    case GPDMA1_Channel2_IRQn:
+        return "GPDMA1_Channel2";
+    case GPDMA1_Channel3_IRQn:
+        return "GPDMA1_Channel3";
+    case GPDMA1_Channel4_IRQn:
+        return "GPDMA1_Channel4";
+    case GPDMA1_Channel5_IRQn:
+        return "GPDMA1_Channel5";
+    case GPDMA1_Channel6_IRQn:
+        return "GPDMA1_Channel6";
+    case GPDMA1_Channel7_IRQn:
+        return "GPDMA1_Channel7";
+    case ADC1_2_IRQn:
+        return "ADC1_2";
+    case DAC1_IRQn:
+        return "DAC1";
+    case FDCAN1_IT0_IRQn:
+        return "FDCAN1_IT0";
+    case FDCAN1_IT1_IRQn:
+        return "FDCAN1_IT1";
+    case TIM1_BRK_IRQn:
         return "TIM1_BRK";
-    case 25:
-        return "TIM1_UP_TIM16";
-    case 26:
-        return "TIM1_TRG_COM_TIM17";
-    case 27:
+    case TIM1_UP_IRQn:
+        return "TIM1_UP";
+    case TIM1_TRG_COM_IRQn:
+        return "TIM1_TRG_COM";
+    case TIM1_CC_IRQn:
         return "TIM1_CC";
-    case 28:
+    case TIM2_IRQn:
         return "TIM2";
-    case 29:
-        return "PKA";
-    case 30:
+    case TIM3_IRQn:
+        return "TIM3";
+    case TIM4_IRQn:
+        return "TIM4";
+    case TIM5_IRQn:
+        return "TIM5";
+    case TIM6_IRQn:
+        return "TIM6";
+    case TIM7_IRQn:
+        return "TIM7";
+    case TIM8_BRK_IRQn:
+        return "TIM8_BRK";
+    case TIM8_UP_IRQn:
+        return "TIM8_UP";
+    case TIM8_TRG_COM_IRQn:
+        return "TIM8_TRG_COM";
+    case TIM8_CC_IRQn:
+        return "TIM8_CC";
+    case I2C1_EV_IRQn:
         return "I2C1_EV";
-    case 31:
+    case I2C1_ER_IRQn:
         return "I2C1_ER";
-    case 32:
-        return "I2C3_EV";
-    case 33:
-        return "I2C3_ER";
-    case 34:
+    case I2C2_EV_IRQn:
+        return "I2C2_EV";
+    case I2C2_ER_IRQn:
+        return "I2C2_ER";
+    case SPI1_IRQn:
         return "SPI1";
-    case 35:
+    case SPI2_IRQn:
         return "SPI2";
-    case 36:
+    case USART1_IRQn:
         return "USART1";
-    case 37:
+    case USART2_IRQn:
+        return "USART2";
+    case USART3_IRQn:
+        return "USART3";
+    case UART4_IRQn:
+        return "UART4";
+    case UART5_IRQn:
+        return "UART5";
+    case LPUART1_IRQn:
         return "LPUART1";
-    case 38:
-        return "SAI1";
-    case 39:
-        return "TSC";
-    case 40:
-        return "EXTI15_10";
-    case 41:
-        return "RTC_Alarm";
-    case 42:
-        return "CRS";
-    case 43:
-        return "PWR_SOTF_BLE";
-    case 44:
-        return "IPCC_C1_RX";
-    case 45:
-        return "IPCC_C1_TX";
-    case 46:
-        return "HSEM";
-    case 47:
+    case LPTIM1_IRQn:
         return "LPTIM1";
-    case 48:
+    case LPTIM2_IRQn:
         return "LPTIM2";
-    case 49:
-        return "LCD";
-    case 50:
-        return "QUADSPI";
-    case 51:
-        return "AES1";
-    case 52:
-        return "AES2";
-    case 53:
+    case TIM15_IRQn:
+        return "TIM15";
+    case TIM16_IRQn:
+        return "TIM16";
+    case TIM17_IRQn:
+        return "TIM17";
+    case COMP_IRQn:
+        return "COMP";
+    case OTG_HS_IRQn:
+        return "OTG_HS";
+    case CRS_IRQn:
+        return "CRS";
+    case FMC_IRQn:
+        return "FMC";
+    case OCTOSPI1_IRQn:
+        return "OCTOSPI1";
+    case PWR_S3WU_IRQn:
+        return "PWR_S3WU";
+    case SDMMC1_IRQn:
+        return "SDMMC1";
+    case SDMMC2_IRQn:
+        return "SDMMC2";
+    case GPDMA1_Channel8_IRQn:
+        return "GPDMA1_Channel8";
+    case GPDMA1_Channel9_IRQn:
+        return "GPDMA1_Channel9";
+    case GPDMA1_Channel10_IRQn:
+        return "GPDMA1_Channel10";
+    case GPDMA1_Channel11_IRQn:
+        return "GPDMA1_Channel11";
+    case GPDMA1_Channel12_IRQn:
+        return "GPDMA1_Channel12";
+    case GPDMA1_Channel13_IRQn:
+        return "GPDMA1_Channel13";
+    case GPDMA1_Channel14_IRQn:
+        return "GPDMA1_Channel14";
+    case GPDMA1_Channel15_IRQn:
+        return "GPDMA1_Channel15";
+    case I2C3_EV_IRQn:
+        return "I2C3_EV";
+    case I2C3_ER_IRQn:
+        return "I2C3_ER";
+    case SAI1_IRQn:
+        return "SAI1";
+    case SAI2_IRQn:
+        return "SAI2";
+    case TSC_IRQn:
+        return "TSC";
+    case RNG_IRQn:
         return "RNG";
-    case 54:
+    case FPU_IRQn:
         return "FPU";
-    case 55:
-        return "DMA2_Ch1";
-    case 56:
-        return "DMA2_Ch2";
-    case 57:
-        return "DMA2_Ch3";
-    case 58:
-        return "DMA2_Ch4";
-    case 59:
-        return "DMA2_Ch5";
-    case 60:
-        return "DMA2_Ch6";
-    case 61:
-        return "DMA2_Ch7";
-    case 62:
-        return "DMAMUX1_OVR";
+    case HASH_IRQn:
+        return "HASH";
+    case LPTIM3_IRQn:
+        return "LPTIM3";
+    case SPI3_IRQn:
+        return "SPI3";
+    case I2C4_ER_IRQn:
+        return "I2C4_ER";
+    case I2C4_EV_IRQn:
+        return "I2C4_EV";
+    case MDF1_FLT0_IRQn:
+        return "MDF1_FLT0";
+    case MDF1_FLT1_IRQn:
+        return "MDF1_FLT1";
+    case MDF1_FLT2_IRQn:
+        return "MDF1_FLT2";
+    case MDF1_FLT3_IRQn:
+        return "MDF1_FLT3";
+    case UCPD1_IRQn:
+        return "UCPD1";
+    case ICACHE_IRQn:
+        return "ICACHE";
+    case LPTIM4_IRQn:
+        return "LPTIM4";
+    case DCACHE1_IRQn:
+        return "DCACHE1";
+    case ADF1_IRQn:
+        return "ADF1";
+    case ADC4_IRQn:
+        return "ADC4";
+    case LPDMA1_Channel0_IRQn:
+        return "LPDMA1_Channel0";
+    case LPDMA1_Channel1_IRQn:
+        return "LPDMA1_Channel1";
+    case LPDMA1_Channel2_IRQn:
+        return "LPDMA1_Channel2";
+    case LPDMA1_Channel3_IRQn:
+        return "LPDMA1_Channel3";
+    case DMA2D_IRQn:
+        return "DMA2D";
+    case DCMI_PSSI_IRQn:
+        return "DCMI_PSSI";
+    case OCTOSPI2_IRQn:
+        return "OCTOSPI2";
+    case MDF1_FLT4_IRQn:
+        return "MDF1_FLT4";
+    case MDF1_FLT5_IRQn:
+        return "MDF1_FLT5";
+    case CORDIC_IRQn:
+        return "CORDIC";
+    case FMAC_IRQn:
+        return "FMAC";
+    case LSECSSD_IRQn:
+        return "LSECSSD";
+    case USART6_IRQn:
+        return "USART6";
+    case I2C5_ER_IRQn:
+        return "I2C5_ER";
+    case I2C5_EV_IRQn:
+        return "I2C5_EV";
+    case I2C6_ER_IRQn:
+        return "I2C6_ER";
+    case I2C6_EV_IRQn:
+        return "I2C6_EV";
+    case HSPI1_IRQn:
+        return "HSPI1";
     default:
         return NULL;
     }
 }
 
 uint32_t furi_hal_interrupt_get_time_in_isr_total(void) {
-    // return furi_hal_interrupt.counter_time_in_isr_total; // TODO
-    return 0;
+    return furi_hal_interrupt.counter_time_in_isr_total;
 }
 
 void furi_hal_interrupt_assert_valid_priority(void) {

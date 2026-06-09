@@ -104,6 +104,29 @@ static void power_cli_charger_on_off(PipeSide* pipe, FuriString* args) {
     }
 }
 
+static void power_cli_charger_limit(PipeSide* pipe, FuriString* args) {
+    UNUSED(pipe);
+
+    bool args_error = true;
+    int value = 0;
+
+    Power* power = furi_record_open(RECORD_POWER);
+
+    if(args_read_int_and_trim(args, &value)) {
+        if((value >= 50) && (value <= 100)) {
+            args_error = false;
+            power_set_charge_limit(power, value);
+        }
+    }
+
+    furi_record_close(RECORD_POWER);
+
+    if(args_error) {
+        cli_print_usage("power ch_limit", "<percentage>", furi_string_get_cstr(args));
+        printf("\r\n    percentage: 50..100");
+    }
+}
+
 static void power_cli_charger_current(PipeSide* pipe, FuriString* args) {
     UNUSED(pipe);
 
@@ -280,6 +303,7 @@ static void power_cli_info(PipeSide* pipe, FuriString* args) {
     property_value_out(&prop_ctx, "%u mA", 2, "USB", "current_limit", info.charge_ilim_usb);
 
     property_value_out(&prop_ctx, "%u", 2, "charger", "enabled", info.charge_enabled);
+    property_value_out(&prop_ctx, "%lu%%", 2, "charger", "level_limit", info.charge_level_limit);
     property_value_out(
         &prop_ctx, "%u mA", 2, "charger", "current_limit", info.charge_ilim_battery);
     property_value_out(&prop_ctx, "%.1fC", 2, "charger", "temperature", info.temperature_charger);
@@ -340,6 +364,11 @@ void power_cli_command(PipeSide* pipe, FuriString* args, void* context) {
 
         if(furi_string_cmp_str(cmd, "ch") == 0) {
             power_cli_charger_on_off(pipe, args);
+            break;
+        }
+
+        if(furi_string_cmp_str(cmd, "ch_limit") == 0) {
+            power_cli_charger_limit(pipe, args);
             break;
         }
 

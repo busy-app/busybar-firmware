@@ -33,7 +33,7 @@ from clients.api.assets import (
 )
 from clients.api import StreamingAPI
 
-_RENDER_SETTLE = 1.0  # seconds to wait after draw before capturing screenshot
+_RENDER_SETTLE = 0.5  # seconds to wait after draw before capturing screenshot
 _MISSING_IMAGE = "nonexistent/does_not_exist.image"
 _MISSING_ANIM = "nonexistent/does_not_exist.anim"
 _VALID_TEXT_FONTS = [
@@ -617,7 +617,7 @@ class TestImageElement:
         # 200 if the canvas app can process it; never 400 for valid schema
         assert resp.status_code != 400, f"Unexpected 400: {resp.text}"
 
-    @allure.title("Image with stock_path renders different pixels than missing asset")
+    @allure.title("Image with stock_path renders; missing asset is rejected with 400")
     @pytest.mark.api
     @pytest.mark.frontend
     def test_image_with_builtin(
@@ -626,11 +626,17 @@ class TestImageElement:
         valid_elem = {"id": "bi1", "type": "image", "stock_path": _BUILTIN_IMAGE, "timeout": 10}
         missing_elem = {"id": "bi1", "type": "image", "stock_path": _MISSING_IMAGE, "timeout": 10}
 
-        valid_screen = _capture_after_draw(assets_api, streaming_api, [valid_elem])
-        missing_screen = _capture_after_draw(assets_api, streaming_api, [missing_elem])
+        # A missing image asset fails decoder validation and is rejected with 400.
+        assets_api.assert_status(_draw(assets_api, [missing_elem]), 400)
 
-        assert valid_screen != missing_screen, (
-            f"stock_path {_BUILTIN_IMAGE!r} rendered same pixels as a missing asset — "
+        # The builtin image is accepted and renders non-blank pixels (vs a cleared display).
+        assets_api.clear_display()
+        time.sleep(_RENDER_SETTLE)
+        blank_screen = streaming_api.get_screen_bytes(display=0)
+        valid_screen = _capture_after_draw(assets_api, streaming_api, [valid_elem])
+
+        assert valid_screen != blank_screen, (
+            f"stock_path {_BUILTIN_IMAGE!r} rendered nothing — "
             "file may not exist on the device"
         )
 

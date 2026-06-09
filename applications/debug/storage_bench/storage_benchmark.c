@@ -1,3 +1,5 @@
+#include <cli/cli_command.h>
+#include <cli/cli_ansi.h>
 #include <storage/storage.h>
 #include <toolbox/dir_walk.h>
 #include <furi_hal.h>
@@ -8,11 +10,9 @@ typedef enum {
     StorageBenchmarkEventMount = 1 << 0,
 } StorageBenchmarkEvent;
 
-static void storage_benchmark_print_error(FS_Error error) {
-    FURI_LOG_E(TAG, "Storage error: %s\r\n", storage_error_get_desc(error));
+static void storage_printf_error(FS_Error error) {
+    printf(ANSI_FG_RED "Storage error: %s\r\n" ANSI_RESET, storage_error_get_desc(error));
 }
-
-#define BENCHMARK_PRINT(...) FURI_LOG_I(TAG, __VA_ARGS__)
 
 static void storage_benchmark_tree(Storage* storage) {
     DirWalk* dir_walk = dir_walk_alloc(storage);
@@ -22,26 +22,26 @@ static void storage_benchmark_tree(Storage* storage) {
     uint32_t total_files = 0;
     uint32_t total_dirs = 0;
 
-    BENCHMARK_PRINT("Listing /ext directory");
+    printf("Listing /ext directory\r\n");
 
     if(dir_walk_open(dir_walk, STORAGE_EXT_PATH_PREFIX)) {
         FileInfo fileinfo;
         while(dir_walk_read(dir_walk, name, &fileinfo) == DirWalkOK) {
             if(file_info_is_dir(&fileinfo)) {
-                // BENCHMARK_PRINT("\t[D] %s", furi_string_get_cstr(name));
+                // printf("\t[D] %s\r\n", furi_string_get_cstr(name));
                 total_dirs++;
             } else {
-                // BENCHMARK_PRINT(
-                //     "\t[F] %s %lub", furi_string_get_cstr(name), (uint32_t)(fileinfo.size));
+                // printf(
+                //     "\t[F] %s %lub\r\n", furi_string_get_cstr(name), (uint32_t)(fileinfo.size));
                 total_files++;
             }
         }
     } else {
-        storage_benchmark_print_error(dir_walk_get_error(dir_walk));
+        storage_printf_error(dir_walk_get_error(dir_walk));
     }
 
-    BENCHMARK_PRINT("Total files: %lu", total_files);
-    BENCHMARK_PRINT("Total directories: %lu", total_dirs);
+    printf("Total files: %lu\r\n", total_files);
+    printf("Total directories: %lu\r\n", total_dirs);
 
     furi_string_free(name);
     dir_walk_free(dir_walk);
@@ -53,7 +53,7 @@ static void storage_benchmark_file_write(Storage* storage, size_t blocks) {
     File* file = storage_file_alloc(storage);
 
     if(!storage_file_open(file, "/ext/benchmark.bin", FSAM_WRITE, FSOM_CREATE_ALWAYS)) {
-        FURI_LOG_E(TAG, "Failed to open file");
+        printf(ANSI_FG_RED "Failed to open file\r\n" ANSI_RESET);
         return;
     }
 
@@ -71,7 +71,10 @@ static void storage_benchmark_file_write(Storage* storage, size_t blocks) {
         size_t bytes_written = storage_file_write(file, buffer, buffer_size);
 
         if(bytes_written != buffer_size) {
-            FURI_LOG_E(TAG, "Tried to write %zu bytes, wrote %zu", buffer_size, bytes_written);
+            printf(
+                ANSI_FG_RED "Tried to write %zu bytes, wrote %zu\r\n" ANSI_RESET,
+                buffer_size,
+                bytes_written);
             error = true;
             break;
         }
@@ -80,14 +83,13 @@ static void storage_benchmark_file_write(Storage* storage, size_t blocks) {
     end = DWT->CYCCNT;
 
     if(error) {
-        FURI_LOG_E(TAG, "Failed to write %zu blocks", blocks);
+        printf(ANSI_FG_RED "Failed to write %zu blocks\r\n" ANSI_RESET, blocks);
     } else {
         float seconds =
             (float)(end - start) / furi_hal_cpu_get_cycles_per_us() / 1000000 / iterations;
         float speed_kb = (float)(buffer_size) / seconds / 1024;
-        FURI_LOG_I(
-            TAG,
-            "Write %zu bytes took %0.3f ms, speed %0.2f KiB/s (%0.2f MiB/s)",
+        printf(
+            "Write %zu bytes took %0.3f ms, speed %0.2f KiB/s (%0.2f MiB/s)\r\n",
             buffer_size,
             (double)seconds * 1000,
             (double)speed_kb,
@@ -103,7 +105,7 @@ static void storage_benchmark_file_read(Storage* storage, size_t blocks) {
 
     File* file = storage_file_alloc(storage);
     if(!storage_file_open(file, "/ext/benchmark.bin", FSAM_READ, FSOM_OPEN_EXISTING)) {
-        FURI_LOG_E(TAG, "Failed to open file");
+        printf(ANSI_FG_RED "Failed to open file\r\n" ANSI_RESET);
         return;
     }
 
@@ -118,7 +120,10 @@ static void storage_benchmark_file_read(Storage* storage, size_t blocks) {
         size_t bytes_read = storage_file_read(file, buffer, buffer_size);
 
         if(bytes_read != buffer_size) {
-            FURI_LOG_E(TAG, "Tried to read %zu bytes, read %zu", buffer_size, bytes_read);
+            printf(
+                ANSI_FG_RED "Tried to read %zu bytes, read %zu\r\n" ANSI_RESET,
+                buffer_size,
+                bytes_read);
             error = true;
             break;
         }
@@ -127,14 +132,13 @@ static void storage_benchmark_file_read(Storage* storage, size_t blocks) {
     end = DWT->CYCCNT;
 
     if(error) {
-        FURI_LOG_E(TAG, "Failed to read %zu blocks", blocks);
+        printf(ANSI_FG_RED "Failed to read %zu blocks\r\n" ANSI_RESET, blocks);
     } else {
         float seconds =
             (float)(end - start) / furi_hal_cpu_get_cycles_per_us() / 1000000 / iterations;
         float speed_kb = (float)(buffer_size) / seconds / 1024;
-        FURI_LOG_I(
-            TAG,
-            "Read %zu bytes took %0.3f ms, speed %0.2f KiB/s (%0.2f MiB/s)",
+        printf(
+            "Read %zu bytes took %0.3f ms, speed %0.2f KiB/s (%0.2f MiB/s)\r\n",
             buffer_size,
             (double)seconds * 1000,
             (double)speed_kb,
@@ -142,7 +146,11 @@ static void storage_benchmark_file_read(Storage* storage, size_t blocks) {
 
         for(size_t i = 0; i < buffer_size; i++) {
             if(buffer[i] != i % 256) {
-                FURI_LOG_E(TAG, "Data mismatch at address %zu: %u != %u", i, buffer[i], i % 256);
+                printf(
+                    ANSI_FG_RED "Data mismatch at address %zu: %u != %u\r\n" ANSI_RESET,
+                    i,
+                    buffer[i],
+                    i % 256);
                 break;
             }
         }
@@ -161,7 +169,7 @@ static void do_storage_benchmark(Storage* storage) {
     FS_Error err = storage_sd_status(storage, STORAGE_EXT_PATH_PREFIX);
 
     if(err == FSE_OK) {
-        FURI_LOG_I(TAG, "SD card is alive");
+        printf("SD card is alive\r\n");
         storage_benchmark_tree(storage);
         storage_benchmark_file(storage, 1);
         storage_benchmark_file(storage, 2);
@@ -172,17 +180,17 @@ static void do_storage_benchmark(Storage* storage) {
         storage_benchmark_file(storage, 128);
         storage_benchmark_file(storage, 256);
     } else {
-        FURI_LOG_E(TAG, "SD card is dead");
+        printf(ANSI_FG_RED "SD card is dead\r\n" ANSI_RESET);
         return;
     }
 }
 
-int32_t storage_benchmark(void* p) {
-    UNUSED(p);
+void storage_benchmark(PipeSide* pipe, FuriString* args, void* context) {
+    UNUSED(pipe);
+    UNUSED(args);
+    UNUSED(context);
 
     Storage* storage = furi_record_open(RECORD_STORAGE);
     do_storage_benchmark(storage);
     furi_record_close(RECORD_STORAGE);
-
-    return 0;
 }

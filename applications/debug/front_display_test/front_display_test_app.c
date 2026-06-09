@@ -75,7 +75,16 @@ static void
         instance->color = (instance->color == 0) ? FrontDisplayTestColorNum - 1 :
                                                    instance->color - 1;
     } else if(event == FrontDisplayTestAppEventDisplayPower) {
-        furi_hal_display_power_disable();
+        if(instance->power_on) {
+            FrontDisplaySrv* front_display = furi_record_open(RECORD_FRONT_DISPLAY);
+            front_display_sleep_mode(front_display, true);
+            furi_record_close(RECORD_FRONT_DISPLAY);
+        } else {
+            FrontDisplaySrv* front_display = furi_record_open(RECORD_FRONT_DISPLAY);
+            front_display_sleep_mode(front_display, false);
+            furi_record_close(RECORD_FRONT_DISPLAY);
+        }
+        instance->power_on = !instance->power_on;
     } else if(event == FrontDisplayTestAppEventExit) {
         furi_event_loop_stop(instance->event_loop);
     }
@@ -134,6 +143,7 @@ static FrontDisplayTestApp* front_display_test_app_alloc(void) {
 
     instance->pattern = FrontDisplayTestPatternChess;
     instance->color = FrontDisplayTestColorRed;
+    instance->power_on = true;
 
     front_display_test_app_update(instance);
     furi_event_loop_timer_start(instance->timer, 1000 / 60);
