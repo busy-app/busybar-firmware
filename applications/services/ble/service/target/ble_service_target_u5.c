@@ -131,3 +131,18 @@ bool ble_service_target_execute(
 
     return result;
 }
+
+bool ble_service_write_char_data_or_cccd_by_handle(
+    BleServiceObject* instance,
+    uint8_t index,
+    const uint16_t handle,
+    const void* data,
+    const size_t data_size) {
+    UNUSED(instance);
+    UNUSED(index);
+    UNUSED(handle);
+    UNUSED(data);
+    UNUSED(data_size);
+    BLE_LOG_W("%s - not implemented!", __func__);
+    return false;
+}
