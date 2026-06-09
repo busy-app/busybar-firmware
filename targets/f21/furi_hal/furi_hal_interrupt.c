@@ -7,12 +7,27 @@
 
 #define FURI_HAL_INTERRUPT_DEFAULT_PRIORITY (configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY + 5)
 
+#ifdef FURI_RAM_EXEC
+#define FURI_HAL_INTERRUPT_ACCOUNT_START()
+#define FURI_HAL_INTERRUPT_ACCOUNT_END()
+#else
+#define FURI_HAL_INTERRUPT_ACCOUNT_START() const uint32_t _isr_start = DWT->CYCCNT;
+#define FURI_HAL_INTERRUPT_ACCOUNT_END()                    \
+    const uint32_t _time_in_isr = DWT->CYCCNT - _isr_start; \
+    furi_hal_interrupt.counter_time_in_isr_total += _time_in_isr;
+#endif
+
 typedef struct {
     FuriHalInterruptISR isr;
     void* context;
 } FuriHalInterruptISRPair;
 
-FuriHalInterruptISRPair furi_hal_interrupt_isr[FuriHalInterruptIdMax] = {0};
+typedef struct {
+    FuriHalInterruptISRPair isr[FuriHalInterruptIdMax];
+    uint32_t counter_time_in_isr_total;
+} FuriHalInterrupt;
+
+static FuriHalInterrupt furi_hal_interrupt = {};
 
 const IRQn_Type furi_hal_interrupt_irqn[FuriHalInterruptIdMax] = {
     // SDMMC
@@ -78,8 +93,10 @@ const IRQn_Type furi_hal_interrupt_irqn[FuriHalInterruptIdMax] = {
 
 __attribute__((always_inline)) static inline void
     furi_hal_interrupt_call(FuriHalInterruptId index) {
-    furi_check(furi_hal_interrupt_isr[index].isr);
-    furi_hal_interrupt_isr[index].isr(furi_hal_interrupt_isr[index].context);
+    FURI_HAL_INTERRUPT_ACCOUNT_START();
+    furi_check(furi_hal_interrupt.isr[index].isr);
+    furi_hal_interrupt.isr[index].isr(furi_hal_interrupt.isr[index].context);
+    FURI_HAL_INTERRUPT_ACCOUNT_END();
 }
 
 __attribute__((always_inline)) static inline void
@@ -155,15 +172,15 @@ void furi_hal_interrupt_set_isr_ex(
 
     if(isr) {
         // Pre ISR set
-        furi_check(furi_hal_interrupt_isr[index].isr == NULL);
+        furi_check(furi_hal_interrupt.isr[index].isr == NULL);
     } else {
         // Pre ISR clear
         furi_hal_interrupt_disable(index);
         furi_hal_interrupt_clear_pending(index);
     }
 
-    furi_hal_interrupt_isr[index].isr = isr;
-    furi_hal_interrupt_isr[index].context = context;
+    furi_hal_interrupt.isr[index].isr = isr;
+    furi_hal_interrupt.isr[index].context = context;
     __DMB();
 
     if(isr) {
@@ -765,8 +782,7 @@ const char* furi_hal_interrupt_get_name(uint8_t exception_number) {
 }
 
 uint32_t furi_hal_interrupt_get_time_in_isr_total(void) {
-    // return furi_hal_interrupt.counter_time_in_isr_total; // TODO
-    return 0;
+    return furi_hal_interrupt.counter_time_in_isr_total;
 }
 
 void furi_hal_interrupt_assert_valid_priority(void) {

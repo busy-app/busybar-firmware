@@ -52,6 +52,7 @@ _fw_default_apps_config = {
         "basic_services",
         "intercom_services",
         "system_apps",
+        "debug_apps",
     ],
     "hwtest": [
         "basic_services",

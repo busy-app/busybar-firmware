@@ -5,16 +5,17 @@
 #include <gui/modules/anim_player.h>
 #include <gui/modules/label.h>
 #include <gui/modules/countdown.h>
+#include <gui/modules/mirror_card.h>
 #include <loader/loader.h>
 #include <m-dict.h>
 #include <toolbox/m_cstr_dup.h>
 #include <toolbox/api_lock.h>
 #include <furi_hal_rtc.h>
 #include "canvas.h"
-#include <gui/modules/front_display_mirror.h>
 #include <lvgl.h>
 #include <font_registry/fonts.h>
 #include <back_display/back_display.h>
+#include <front_display/front_display.h>
 
 #define CANVAS_DEFERRED_TIMEOUT_MS 1500U
 
@@ -70,7 +71,7 @@ struct CanvasSrv {
     Widget* background[GuiDisplayIdMax];
     Widget* display[GuiDisplayIdMax];
     CanvasWidgetsDict_t widgets;
-    DisplayMirror* display_mirror;
+    MirrorCard* display_mirror;
     Loader* loader;
     FuriPubSubSubscription* loader_subscription;
     char* app_id;
@@ -100,7 +101,7 @@ static void canvas_check_back_screen_empty(CanvasSrv* canvas) {
         }
     }
     with_gui(canvas->gui, {
-        widget_set_visible(display_mirror_get_base(canvas->display_mirror), back_empty);
+        widget_set_visible(mirror_card_get_base(canvas->display_mirror), back_empty);
     });
 }
 
@@ -264,6 +265,10 @@ static Widget* canvas_element_update_specific(
         }
         if(element->text.scroll_rate_cpm) {
             label_set_long_content_anim_speed(widget->text, element->text.scroll_rate_cpm);
+            label_set_long_content_anim_start_delay(
+                widget->text, element->text.scroll_start_delay);
+            label_set_long_content_anim_repeat_delay(
+                widget->text, element->text.scroll_repeat_delay);
             label_set_long_content_mode(widget->text, LabelLongContentModeScrollCircular);
         } else {
             label_set_long_content_mode(widget->text, LabelLongContentModeClip);
@@ -531,7 +536,7 @@ static void canvas_srv_queue_event_callback(FuriEventLoopObject* object, void* c
             res = CanvasResultOk;
         }
     } else if(event.type == CanvasSrvEventExit) {
-        canvas_srv_clear_all(canvas);
+        if(canvas->gui) canvas_srv_clear_all(canvas);
         res = CanvasResultOk;
 
     } else if(event.type == CanvasSrvEventReevaluatePriority) {
@@ -595,10 +600,13 @@ static void canvas_screen_open(CanvasSrv* canvas) {
         GuiLayer* draw_layer = gui_get_layer(canvas->gui, GuiLayerIdTop);
         Color background = COLOR_MAKE_HEXA(0x000000FF);
         for(GuiDisplayId i = 0; i < GuiDisplayIdMax; i++) {
-            Widget* root = gui_layer_get_root_widget(draw_layer, i);
-            size_t root_w = widget_get_width(root);
-            size_t root_h = widget_get_height(root);
+            // Get a size from main layer not to cover status bar on back display
+            Widget* main_layer_root =
+                gui_layer_get_root_widget(gui_get_layer(canvas->gui, GuiLayerIdMain), i);
+            size_t root_w = widget_get_width(main_layer_root);
+            size_t root_h = widget_get_height(main_layer_root);
 
+            Widget* root = gui_layer_get_root_widget(draw_layer, i);
             canvas->background[i] = widget_alloc(root);
             widget_set_background_color(canvas->background[i], background);
             widget_set_pos(canvas->background[i], 0, 0);
@@ -617,14 +625,24 @@ static void canvas_screen_open(CanvasSrv* canvas) {
             widget_set_size(canvas->display[i], root_w, root_h);
             widget_set_max_size(canvas->display[i], root_w, root_h);
         }
-        canvas->display_mirror = display_mirror_alloc(canvas->display[GuiDisplayIdBack]);
+        canvas->display_mirror = mirror_card_alloc(canvas->display[GuiDisplayIdBack]);
+        mirror_card_set_header_text(canvas->display_mirror, "ACTIVE");
+        mirror_card_set_show_footer(canvas->display_mirror, false);
+
+        Widget* mirror_base = mirror_card_get_base(canvas->display_mirror);
+        widget_set_align(mirror_base, AlignCenter);
+        widget_set_margin(mirror_base, 0, 0, 2, 2);
+        widget_set_visible(mirror_base, false);
     });
 
     if(is_in_power_off(canvas)) {
-        // FIXME: Back display was shut down in power_off, we need to turn it on
+        // FIXME: Displays were shut down in power_off, we need to turn them on
         BackDisplaySrv* back_display = furi_record_open(RECORD_BACK_DISPLAY);
+        FrontDisplaySrv* front_display = furi_record_open(RECORD_FRONT_DISPLAY);
         back_display_sleep_mode(back_display, false);
+        front_display_sleep_mode(front_display, false);
         furi_record_close(RECORD_BACK_DISPLAY);
+        furi_record_close(RECORD_FRONT_DISPLAY);
     }
 }
 
@@ -634,7 +652,8 @@ static void canvas_screen_close(CanvasSrv* canvas) {
         GuiLayer* input_layer = gui_get_layer(canvas->gui, GuiLayerIdSystem);
         gui_layer_remove_input_callback(input_layer, canvas_srv_input_callback);
 
-        display_mirror_free(canvas->display_mirror);
+        mirror_card_free(canvas->display_mirror);
+        canvas->display_mirror = NULL;
         for(GuiDisplayId i = 0; i < GuiDisplayIdMax; i++) {
             widget_free(canvas->display[i]);
             canvas->display[i] = NULL;
@@ -647,8 +666,11 @@ static void canvas_screen_close(CanvasSrv* canvas) {
     canvas->priority = 0;
     if(is_in_power_off(canvas)) {
         BackDisplaySrv* back_display = furi_record_open(RECORD_BACK_DISPLAY);
+        FrontDisplaySrv* front_display = furi_record_open(RECORD_FRONT_DISPLAY);
         back_display_sleep_mode(back_display, true);
+        front_display_sleep_mode(front_display, true);
         furi_record_close(RECORD_BACK_DISPLAY);
+        furi_record_close(RECORD_FRONT_DISPLAY);
     }
 }
 

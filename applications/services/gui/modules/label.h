@@ -136,6 +136,28 @@ void label_set_text_align(Label* instance, TextAlign align);
 void label_set_long_content_mode(Label* instance, LabelLongContentMode mode);
 
 /**
+ * @brief Set the initial delay before the long content animation starts.
+ *
+ * Only applies to scrollable modes (@c LabelLongContentModeScroll,
+ * @c LabelLongContentModeScrollCircular).
+ *
+ * @param[in,out] instance pointer to the Label instance to be modified
+ * @param[in] delay delay in milliseconds before the animation begins
+ */
+void label_set_long_content_anim_start_delay(Label* instance, uint32_t delay);
+
+/**
+ * @brief Set the pause duration between the long content animation repetitions.
+ *
+ * Only applies to scrollable modes (@c LabelLongContentModeScroll,
+ * @c LabelLongContentModeScrollCircular).
+ *
+ * @param[in,out] instance pointer to the Label instance to be modified
+ * @param[in] delay pause duration in milliseconds between successive scroll cycles
+ */
+void label_set_long_content_anim_repeat_delay(Label* instance, uint32_t delay);
+
+/**
  * @brief Set the scroll animation speed for a label.
  *
  * @warning Only valid for @c LabelLongContentModeScrollCircular.

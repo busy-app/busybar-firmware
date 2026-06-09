@@ -10,8 +10,11 @@ struct Label {
     Widget base;
     lv_obj_t* label;
     FuriString* text;
+
     FontRegistry* font_registry;
     const lv_font_t* loaded_font;
+
+    lv_anim_t long_content_anim_template;
 };
 
 const lv_obj_class_t label_lvgl_class;
@@ -49,8 +52,17 @@ static void label_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj)
     lv_obj_remove_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
 
     Label* instance = (Label*)obj;
+
     instance->font_registry = furi_record_open(RECORD_FONT_REGISTRY);
+
+    lv_anim_init(&instance->long_content_anim_template);
+    lv_anim_set_delay(&instance->long_content_anim_template, 0);
+    lv_anim_set_repeat_delay(&instance->long_content_anim_template, 0);
+    lv_anim_set_repeat_count(&instance->long_content_anim_template, LV_ANIM_REPEAT_INFINITE);
+
     instance->label = lv_label_create(obj);
+    lv_obj_set_style_anim(instance->label, &instance->long_content_anim_template, LV_PART_MAIN);
+
     instance->text = furi_string_alloc();
 }
 
@@ -161,6 +173,18 @@ void label_set_long_content_mode(Label* instance, LabelLongContentMode mode) {
     furi_check(mode < LabelLongContentModeCount);
 
     lv_label_set_long_mode(instance->label, (lv_label_long_mode_t)mode);
+}
+
+void label_set_long_content_anim_start_delay(Label* instance, uint32_t delay) {
+    furi_check(instance);
+
+    lv_anim_set_delay(&instance->long_content_anim_template, delay);
+}
+
+void label_set_long_content_anim_repeat_delay(Label* instance, uint32_t delay) {
+    furi_check(instance);
+
+    lv_anim_set_repeat_delay(&instance->long_content_anim_template, delay);
 }
 
 void label_set_long_content_anim_speed(Label* instance, uint32_t speed) {

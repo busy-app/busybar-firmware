@@ -40,7 +40,10 @@
 
 #define MG_REPLY_ERROR(conn, code, ...) \
     _MG_JSON_RESULT(                    \
-        conn, code, "{\"error\":\"%s\"}\n", M_IF_EMPTY(__VA_ARGS__)("failed", __VA_ARGS__))
+        conn,                           \
+        code,                           \
+        "{\"error\":\"%M\"}\n",         \
+        M_IF_EMPTY(__VA_ARGS__)(MG_ESC("failed"), MG_ESC(__VA_ARGS__)))
 
 #define MG_REPLY_BAD_REQUEST(conn)     MG_REPLY_ERROR(conn, 400, "Bad Request")
 #define MG_REPLY_NOT_FOUND(conn)       MG_REPLY_ERROR(conn, 404, "Not Found")
