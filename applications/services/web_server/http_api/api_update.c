@@ -335,7 +335,7 @@ static bool api_update_raw_hdr_callback(
 
     if(method == HttpMethodOptions) return false; // let MG_EV_HTTP_MSG respond with preflight
     if(method != HttpMethodPost) {
-        http_reply_405_method_not_allowed(conn, HttpMethodPost);
+        http_reply_405_method_not_allowed(conn, HttpMethodPost, true);
         conn->is_draining = 1;
         return true;
     }

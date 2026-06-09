@@ -219,7 +219,7 @@ static bool http_api_account_unlink(
         http_reply_cors_preflight(conn, HttpMethodDelete);
         return true;
     } else if(method != HttpMethodDelete) {
-        http_reply_405_method_not_allowed(conn, HttpMethodDelete);
+        http_reply_405_method_not_allowed(conn, HttpMethodDelete, false);
         return true;
     }
 

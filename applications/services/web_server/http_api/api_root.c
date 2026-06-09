@@ -555,7 +555,7 @@ bool http_api_root_callback(
         } else if(method == HttpMethodOptions) {
             http_reply_cors_preflight(conn, HttpMethodGet | HttpMethodPost);
         } else {
-            http_reply_405_method_not_allowed(conn, HttpMethodPost | HttpMethodGet);
+            http_reply_405_method_not_allowed(conn, HttpMethodPost | HttpMethodGet, false);
         }
         handled = true;
     } else {
