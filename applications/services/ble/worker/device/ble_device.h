@@ -4,6 +4,7 @@
 #include "ble_security.h"
 #include "ble_advertise.h"
 #include "../transmitter/ble_transmitter.h"
+#include "../../service/ble_service.h"
 
 #include <furi.h>
 
@@ -20,7 +21,7 @@ BleDevice* ble_device_alloc(BleTransmitter* transmitter);
 void ble_device_free(BleDevice* instance);
 
 //Service register handlers
-void ble_device_register_service();
+bool ble_device_register_service(BleDevice* instance, BleServiceObject* service);
 
 //CONNECTION handlers
 //----------------------------------------------------------------------------

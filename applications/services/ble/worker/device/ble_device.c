@@ -2,6 +2,7 @@
 
 // #include "ble_advertise.h"
 // #include "ble_security.h"
+#include "ble_service_registry.h"
 
 #include "../_nwp_callbacks/ble_nwp_headers.h"
 #include "../../ble_common.h"
@@ -20,6 +21,7 @@ struct BleDevice {
 
     BleConnectionContext* connection;
     BleDeviceBase* peer;
+    BleServiceRegistry* registry;
     // BleServiceEntryDict_t service_dict;
 
     BleSecurityData* security_data;
@@ -33,6 +35,7 @@ BleDevice* ble_device_alloc(BleTransmitter* transmitter) {
     instance->transmitter = transmitter;
     instance->state = BleDeviceStateIdle;
     instance->base = ble_device_base_alloc(BleDeviceRoleRemote);
+    instance->registry = ble_service_registry_alloc();
 
     instance->mtu_size = BLE_MAX_MTU_SIZE;
     instance->max_payload_size = instance->mtu_size - BLE_ATTR_HEADER_SIZE;
@@ -68,10 +71,17 @@ BleDevice* ble_device_alloc(BleTransmitter* transmitter) {
 
 void ble_device_free(BleDevice* instance) {
     furi_assert(instance);
+    ble_service_registry_free(instance->registry);
     ble_advertise_free(instance->advertise);
     ble_security_free(instance->security_data);
     ble_device_base_free(instance->base);
     free(instance);
+}
+
+bool ble_device_register_service(BleDevice* instance, BleServiceObject* service) {
+    furi_assert(instance);
+    furi_assert(service);
+    return ble_service_registry_add_service_entry(instance->registry, service);
 }
 
 BleConnectionContext* ble_device_get_connection_context(BleDevice* instance) {
@@ -116,6 +126,8 @@ bool ble_device_connection_close(BleDevice* instance) {
         instance->connection = NULL;
 
         instance->state = BleDeviceStateIdle;
+        ble_service_registry_reset_cccds(instance->registry);
+
         result = ble_device_start(instance);
     }
 
