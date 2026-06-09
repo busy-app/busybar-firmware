@@ -77,6 +77,23 @@ void power_charge_enable(Power* power, bool enable) {
     api_lock_wait_unlock_and_free(msg.lock);
 }
 
+void power_set_charge_limit(Power* power, uint32_t limit) {
+    furi_check(power);
+    furi_check(limit <= 100);
+
+    int32_t param = limit;
+
+    PowerMessage msg = {
+        .type = PowerMessageTypeSetChargeLimit,
+        .param_int = &param,
+        .lock = api_lock_alloc_locked(),
+    };
+
+    furi_check(
+        furi_message_queue_put(power->message_queue, &msg, FuriWaitForever) == FuriStatusOk);
+    api_lock_wait_unlock_and_free(msg.lock);
+}
+
 void power_set_charge_current(Power* power, uint32_t current_ma) {
     furi_check(power);
     furi_check(current_ma <= POWER_CHARGE_CURRENT_MAX);

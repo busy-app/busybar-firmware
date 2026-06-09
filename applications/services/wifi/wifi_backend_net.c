@@ -20,6 +20,8 @@
 #define MAX_TRANSFER_UNIT    (1500U)
 #define IP6_READY_TIMEOUT_MS (5000U)
 
+#define INTERCOM_TX_TIMEOUT_MS (200)
+
 static Wifi* instance;
 
 // Tcpip thread synchronisation
@@ -99,8 +101,12 @@ static void wifi_net_intercom_input(const uint8_t* data, uint16_t data_len) {
     furi_check(instance);
 
     const size_t tx_size =
-        intercom_tx(instance->intercom_ch_data, data, data_len, FuriWaitForever);
-    furi_check(tx_size == data_len);
+        intercom_tx(instance->intercom_ch_data, data, data_len, INTERCOM_TX_TIMEOUT_MS);
+
+    if(tx_size != data_len) {
+        ++instance->rx_drop_count;
+        FURI_LOG_W(TAG, "RX: Dropped packet (%lu total)", instance->tx_drop_count);
+    }
 }
 
 static void wifi_net_tcpip_netif_status_callback(struct netif* netif) {

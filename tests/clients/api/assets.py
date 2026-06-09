@@ -22,13 +22,16 @@ from .base import BaseAPI
 # Priority constants mirrored from loader.h
 LOADER_MAX_PRIORITY = 100
 LOADER_DEFAULT_APP_PRIORITY = 10  # any running app's baseline priority
-LOADER_MAX_APP_PRIORITY = 90  # busy app sets this while a work session is active
+LOADER_MAX_APP_PRIORITY = 90  # high app priority below the HTTP draw ceiling
 LOADER_STUB_APP_PRIORITY = 0  # poweroff / settings stub apps; always preemptable
+LOADER_PASSTHROUGH_PRIORITY = LOADER_DEFAULT_APP_PRIORITY - 1
+LOADER_BLOCKING_PRIORITY = LOADER_MAX_PRIORITY + 1
 DEFAULT_ELEMENT_PRIORITY = 50  # default priority used by the draw endpoint when omitted
 
 # Draw semantics: a POST /api/display/draw request is accepted when
 #   request_priority >= active_loader_priority
-# Equal-priority requests from a *different* app_name override the current display.
+# Equal-priority requests from a different app_name are rejected while the
+# previous app_name's canvas content is still visible.
 
 
 # === Response Models ===

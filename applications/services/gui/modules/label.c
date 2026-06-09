@@ -1,7 +1,8 @@
 #include "label.h"
 
 #include <gui/widget_i.h>
-#include <gui/gui_i.h>
+
+#include <lvgl_addons/extensions/lv_label_ext.h>
 
 #define MY_CLASS (&label_lvgl_class)
 
@@ -9,8 +10,11 @@ struct Label {
     Widget base;
     lv_obj_t* label;
     FuriString* text;
+
     FontRegistry* font_registry;
     const lv_font_t* loaded_font;
+
+    lv_anim_t long_content_anim_template;
 };
 
 const lv_obj_class_t label_lvgl_class;
@@ -48,8 +52,17 @@ static void label_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj)
     lv_obj_remove_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
 
     Label* instance = (Label*)obj;
+
     instance->font_registry = furi_record_open(RECORD_FONT_REGISTRY);
+
+    lv_anim_init(&instance->long_content_anim_template);
+    lv_anim_set_delay(&instance->long_content_anim_template, 0);
+    lv_anim_set_repeat_delay(&instance->long_content_anim_template, 0);
+    lv_anim_set_repeat_count(&instance->long_content_anim_template, LV_ANIM_REPEAT_INFINITE);
+
     instance->label = lv_label_create(obj);
+    lv_obj_set_style_anim(instance->label, &instance->long_content_anim_template, LV_PART_MAIN);
+
     instance->text = furi_string_alloc();
 }
 
@@ -155,32 +168,30 @@ void label_set_text_align(Label* instance, TextAlign align) {
     lv_obj_set_style_text_align((lv_obj_t*)instance, (lv_text_align_t)align, LV_PART_MAIN);
 }
 
-void label_set_long_content_mode(Label* instance, LabelLongContentMode mode, uint32_t duration) {
+void label_set_long_content_mode(Label* instance, LabelLongContentMode mode) {
     furi_check(instance);
     furi_check(mode < LabelLongContentModeCount);
 
-    lv_obj_set_style_anim_time(instance->label, duration, LV_PART_MAIN);
     lv_label_set_long_mode(instance->label, (lv_label_long_mode_t)mode);
 }
 
-uint32_t label_calculate_scroll_duration(const Label* instance, uint32_t rate_ppm) {
+void label_set_long_content_anim_start_delay(Label* instance, uint32_t delay) {
     furi_check(instance);
-    furi_check(rate_ppm > 0);
 
-    lv_obj_t* label = TO_LV_OBJ(instance);
-    lv_obj_update_layout(label);
+    lv_anim_set_delay(&instance->long_content_anim_template, delay);
+}
 
-    const char* text = furi_string_get_cstr(instance->text);
-    const lv_font_t* font = lv_obj_get_style_text_font(instance->label, LV_PART_MAIN);
-    int32_t letter_space = lv_obj_get_style_text_letter_space(label, LV_PART_MAIN);
-    int32_t text_width = lv_text_get_width(text, strlen(text), font, letter_space);
+void label_set_long_content_anim_repeat_delay(Label* instance, uint32_t delay) {
+    furi_check(instance);
 
-    int32_t space_width = lv_font_get_glyph_width(font, ' ', ' ');
-    int32_t gap_width = space_width * LV_LABEL_WAIT_CHAR_COUNT;
-    int32_t total_width = text_width + gap_width;
+    lv_anim_set_repeat_delay(&instance->long_content_anim_template, delay);
+}
 
-    size_t duration_ms = (total_width * 60 * 1000) / rate_ppm;
-    return duration_ms;
+void label_set_long_content_anim_speed(Label* instance, uint32_t speed) {
+    furi_check(instance);
+    furi_check(speed > 0);
+
+    lv_label_ext_set_anim_speed(instance->label, speed);
 }
 
 void label_set_font(Label* instance, const char* font_path) {

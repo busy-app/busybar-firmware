@@ -269,9 +269,10 @@ static void octospi_deinit(void) {
     furi_hal_bus_reset(FuriHalBusOCTOSPIM);
     furi_hal_bus_disable(FuriHalBusOCTOSPI1);
     furi_hal_bus_disable(FuriHalBusOCTOSPIM);
-    furi_hal_gpio_init_simple(&gpio_front_display_sdi_ospi_d0, GpioModeInput);
-    furi_hal_gpio_init_simple(&gpio_front_display_le_ospi_d1, GpioModeInput);
-    furi_hal_gpio_init_simple(&gpio_front_display_dclk_ospi_clk, GpioModeInput);
+    furi_hal_gpio_init(&gpio_front_display_sdi_ospi_d0, GpioModeInput, GpioPullDown, GpioSpeedLow);
+    furi_hal_gpio_init(&gpio_front_display_le_ospi_d1, GpioModeInput, GpioPullDown, GpioSpeedLow);
+    furi_hal_gpio_init(
+        &gpio_front_display_dclk_ospi_clk, GpioModeInput, GpioPullDown, GpioSpeedLow);
 }
 
 static FURI_ALWAYS_INLINE void led_driver_add_le_cmd(uint8_t* tx_data, LedDriverCommand cmd) {
@@ -504,6 +505,11 @@ void front_display_driver_init(uint8_t initial_brightness) {
     octospi_dma_init(&led_driver);
 
     front_display_driver_send_init(&led_driver);
+
+    led_driver_encode_empty_buffer(&led_driver);
+    octospi_send_buf_prepare(&led_driver, led_driver.spi_buf, sizeof(led_driver.spi_buf));
+    front_display_driver_send_buf_start();
+    octospi_wait_end(&led_driver);
 }
 
 void front_display_driver_deinit(void) {

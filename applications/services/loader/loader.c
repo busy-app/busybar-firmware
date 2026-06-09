@@ -257,8 +257,9 @@ static void loader_start_internal_app(
     const FlipperInternalApplication* app,
     const char* args) {
     FURI_LOG_I(TAG, "Starting %s", app->name);
-    LoaderEvent event;
-    event.type = LoaderEventTypeApplicationBeforeLoad;
+    LoaderEvent event = {
+        .type = LoaderEventTypeApplicationBeforeLoad,
+    };
     furi_pubsub_publish(loader->pubsub, &event);
 
     // store args
@@ -271,6 +272,12 @@ static void loader_start_internal_app(
         furi_thread_alloc_ex(app->name, app->stack_size, app->app, loader->app.args);
     loader->app.priority = LOADER_DEFAULT_APP_PRIORITY;
     furi_thread_set_appid(loader->app.thread, app->appid);
+
+    LoaderEvent prio_event = {
+        .type = LoaderEventTypePriorityChanged,
+        .priority = loader->app.priority,
+    };
+    furi_pubsub_publish(loader->pubsub, &prio_event);
 
     loader_start_app_thread(loader, app->flags);
 }
@@ -397,6 +404,12 @@ static void loader_app_closed_handler(Loader* loader, const LoaderMessage* messa
 
     FURI_LOG_I(TAG, "Application stopped. Free heap: %zu", memmgr_get_free_heap());
 
+    LoaderEvent prio_event = {
+        .type = LoaderEventTypePriorityChanged,
+        .priority = 0,
+    };
+    furi_pubsub_publish(loader->pubsub, &prio_event);
+
     LoaderEvent event = {
         .type = LoaderEventTypeApplicationStopped,
     };
@@ -462,6 +475,12 @@ static void loader_do_set_priority(Loader* loader, const LoaderMessage* message)
     message->bool_value->value = true;
     furi_assert(message->priority);
     loader->app.priority = *message->priority;
+
+    LoaderEvent event = {
+        .type = LoaderEventTypePriorityChanged,
+        .priority = loader->app.priority,
+    };
+    furi_pubsub_publish(loader->pubsub, &event);
 }
 
 static void loader_do_get_priority(Loader* loader, const LoaderMessage* message) {

@@ -30,19 +30,23 @@ static void wifi_scene_menu_on_enter(void* context) {
         submenu_add_item(
             data->front_menu,
             "View IP address",
+            NULL,
             SceneEventMenuInfo,
             wifi_scene_menu_item_callback,
             instance);
         submenu_add_item(
             data->front_menu,
             "Forget network",
+            NULL,
             SceneEventMenuForget,
             wifi_scene_menu_item_callback,
             instance);
 
         data->back_menu = submenu_alloc(instance->back_scene_window);
-        submenu_add_item(data->back_menu, "View IP address", SceneEventMenuInfo, NULL, instance);
-        submenu_add_item(data->back_menu, "Forget network", SceneEventMenuForget, NULL, instance);
+        submenu_add_item(
+            data->back_menu, "View IP address", NULL, SceneEventMenuInfo, NULL, instance);
+        submenu_add_item(
+            data->back_menu, "Forget network", NULL, SceneEventMenuForget, NULL, instance);
     });
 }
 

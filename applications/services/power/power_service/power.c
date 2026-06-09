@@ -194,6 +194,35 @@ static void power_handle_pd_update(Power* power, uint32_t voltage, uint32_t curr
     furi_hal_i2c_release(POWER_I2C);
 }
 
+static void power_set_charger_enable(Power* power, bool enable) {
+    furi_assert(power);
+
+    FURI_LOG_D(TAG, "Charger enable: %s", enable ? "true" : "false");
+
+    power->charger_enabled = enable;
+    furi_hal_i2c_acquire(POWER_I2C);
+    bq25798_charge_enable(POWER_I2C, power->charger_enabled);
+    furi_hal_i2c_release(POWER_I2C);
+}
+
+static void power_limit_battery_charge(Power* power) {
+    furi_assert(power);
+
+    const size_t enable_hysteresis = 10;
+
+    size_t limit = power->settings.charge_limit;
+    if(limit == 100) return;
+    if(limit <= enable_hysteresis) return;
+
+    if(power->info.charge >= limit) {
+        FURI_LOG_D(TAG, "Charge limit exceeded");
+        power_set_charger_enable(power, false);
+    } else if(power->info.charge <= (limit - enable_hysteresis)) {
+        FURI_LOG_D(TAG, "Discharge limit exceeded");
+        power_set_charger_enable(power, true);
+    }
+}
+
 static void power_message_callback(FuriEventLoopObject* object, void* context) {
     furi_assert(context);
     Power* power = context;
@@ -226,10 +255,15 @@ static void power_message_callback(FuriEventLoopObject* object, void* context) {
         break;
 
     case PowerMessageTypeChargeEnable:
-        power->charger_enabled = *(msg.param_bool);
-        furi_hal_i2c_acquire(POWER_I2C);
-        bq25798_charge_enable(POWER_I2C, power->charger_enabled);
-        furi_hal_i2c_release(POWER_I2C);
+        power_set_charger_enable(power, *(msg.param_bool));
+        break;
+
+    case PowerMessageTypeSetChargeLimit:
+#if defined(POWER_USE_SETTINGS)
+        power->settings.charge_limit = *(msg.param_int);
+        power_settings_save(&power->settings);
+        power_limit_battery_charge(power);
+#endif
         break;
 
     case PowerMessageTypeSetChargeCurrent:
@@ -457,6 +491,7 @@ static void power_update_info(Power* power) {
     if(power->info.charge != previous_charge) {
         PowerEvent pub_event = {.type = PowerEventChargeAmountUpdate};
         furi_pubsub_publish(power->event_pubsub, &pub_event);
+        power_limit_battery_charge(power);
     }
 
     power->info.is_full_charged = power_charger_is_charged(status.chg_stat);
@@ -473,6 +508,7 @@ static void power_update_info(Power* power) {
     power->info.charge_ilim_usb = power->input_current_limit;
     power->info.charge_ilim_battery = power->charger_current_limit;
     power->info.charge_enabled = power->charger_enabled;
+    power->info.charge_level_limit = power->settings.charge_limit;
 
     // do not init USB PD if we dont need it
     if(status.chg_stat == Bq25798ChargerStatusChargeStatFast ||
@@ -494,6 +530,13 @@ static void power_tick_callback(void* context) {
     Power* power = context;
 
     power_update_info(power);
+
+#if defined(POWER_USE_SETTINGS)
+    if(!power->settings_first_loaded && furi_record_exists(RECORD_STORAGE)) {
+        power_settings_load(&power->settings);
+        power->settings_first_loaded = true;
+    }
+#endif
 }
 
 static Power* power_alloc(void) {
@@ -508,6 +551,8 @@ static Power* power_alloc(void) {
     power->info.is_charging = false;
     power->info.charge = 0;
     power->charge_last = -1.f;
+
+    power->settings.charge_limit = 100;
 
     power->bat_cal = power_get_crude_calibration();
 
