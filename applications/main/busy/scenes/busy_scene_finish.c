@@ -74,7 +74,7 @@ static void busy_scene_finish_on_enter(void* context) {
         anim_player_set_source(data->front_anim, BUSY_ANIM_PATH("finished_confetti_72x16.anim"));
 
         data->front_summary = summary_label_alloc(instance->front_window);
-        widget_set_pos_y(summary_label_get_base(data->front_summary), 5);
+        widget_set_pos_y(summary_label_get_base(data->front_summary), 4);
         widget_set_align(summary_label_get_base(data->front_summary), AlignTopMid);
 
         data->front_prompt = prompt_overlay_alloc(instance->front_window);
