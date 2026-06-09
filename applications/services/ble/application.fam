@@ -17,6 +17,7 @@ App(
         "worker/event_processor/*.c",
         "worker/event_processor/event_handlers/*.c",
         "worker/transmitter/*.c",
+        "worker/receiver/*.c",
         "worker/device/*.c",
         "service/*.c",
         "service/target/ble_service_target_917.c",
