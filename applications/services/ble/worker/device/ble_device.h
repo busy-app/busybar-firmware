@@ -55,9 +55,14 @@ BleAdvertiseContext* ble_device_get_advertise_context(BleDevice* instance);
 
 // void ble_device_update_remote_features(/*Address*/);
 //----------------------------------------------------------------------------
-void ble_device_process_read_request();
+bool ble_device_process_write_request(
+    BleDevice* instance,
+    const uint8_t* remote_addr,
+    const uint16_t handle,
+    const size_t data_size,
+    const void* data);
 
-void ble_device_receive_confirm();
+void ble_device_receive_confirm(BleDevice* instance, uint16_t handle, uint8_t cccd_value);
 //----------------------------------------------------------------------------
 //PAIRING SMP HANDLERS
 

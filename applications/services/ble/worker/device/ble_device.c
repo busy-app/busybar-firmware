@@ -3,6 +3,7 @@
 // #include "ble_advertise.h"
 // #include "ble_security.h"
 #include "ble_service_registry.h"
+#include "../receiver/ble_receiver.h"
 
 #include "../_nwp_callbacks/ble_nwp_headers.h"
 #include "../../ble_common.h"
@@ -27,6 +28,7 @@ struct BleDevice {
     BleSecurityData* security_data;
     BleAdvertiseContext* advertise;
     BleTransmitter* transmitter;
+    BleReceiverContext* receiver;
 };
 
 BleDevice* ble_device_alloc(BleTransmitter* transmitter) {
@@ -105,8 +107,9 @@ bool ble_device_connection_open(
         BLE_LOG_W("Already connected with remote");
     } else {
         instance->connection = ble_connection_alloc(type, peer_addr);
+        instance->receiver = ble_receiver_alloc(peer_addr);
         instance->state = BleDeviceStateConnected;
-        BLE_LOG_W("%s - opened", __func__);
+        instance->peer = ble_connection_get_peer(instance->connection);
         result = true;
     }
 
@@ -123,7 +126,9 @@ bool ble_device_connection_close(BleDevice* instance) {
     } else {
         ble_transmitter_reset(instance->transmitter);
         ble_connection_free(instance->connection);
+        ble_receiver_free(instance->receiver);
         instance->connection = NULL;
+        instance->receiver = NULL;
 
         instance->state = BleDeviceStateIdle;
         ble_service_registry_reset_cccds(instance->registry);
@@ -345,3 +350,38 @@ void ble_device_send_data(
         total_size -= send_size;
     }
 }
+
+bool ble_device_process_write_request(
+    BleDevice* instance,
+    const uint8_t* remote_addr,
+    const uint16_t handle,
+    const size_t data_size,
+    const void* data) {
+    UNUSED(remote_addr);
+    furi_assert(instance);
+
+    const BleServiceRegistryEntry* entry =
+        ble_service_registry_get_service_entry(instance->registry, handle);
+
+    bool result = false;
+    if(entry) {
+        result = ble_receiver_process_write_request(
+            instance->receiver, entry->service, entry->char_index, handle, data_size, data);
+    } else {
+        BLE_LOG_W("Not found: %04X", handle);
+        // ble_receiver_transfer_confirm(BleReceiverContext *instance, uint16_t handle, uint8_t cccd_value)
+        // sl_status_t status = ble_worker_write_response(instance->remote_dev_address, 0);
+    }
+
+    return result;
+}
+
+void ble_device_receive_confirm(BleDevice* instance, uint16_t handle, uint8_t cccd_value) {
+    // sl_status_t status;
+    // bool connected = ble_device_is_connected(ble_worker_instance->device);
+
+    if(instance->state == BleDeviceStateConnected) {
+        ble_receiver_transfer_confirm(instance->receiver, handle, cccd_value);
+    }
+}
+
