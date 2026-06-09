@@ -39,11 +39,13 @@ def test_wifi_connect_disconnect_publishes(state_publisher_ws, wifi_api):
 
     connected_update = state_publisher_ws.wait_for(
         lambda u: u.WhichOneof("state") == "wifi"
-        and u.wifi.WhichOneof("wifi_state") == "connected",
+        and u.wifi.WhichOneof("wifi_state") == "active"
+        and u.wifi.active.status == 0,
         timeout=20.0,
     )
     assert connected_update.WhichOneof("state") == "wifi"
-    assert connected_update.wifi.WhichOneof("wifi_state") == "connected"
+    assert connected_update.wifi.WhichOneof("wifi_state") == "active"
+    assert connected_update.wifi.active.status == 0
 
     # --- disconnect ---
     state_publisher_ws.drain()
@@ -53,8 +55,8 @@ def test_wifi_connect_disconnect_publishes(state_publisher_ws, wifi_api):
 
     disconnected_update = state_publisher_ws.wait_for(
         lambda u: u.WhichOneof("state") == "wifi"
-        and u.wifi.WhichOneof("wifi_state") == "disconnected",
+        and u.wifi.WhichOneof("wifi_state") == "inactive",
         timeout=5.0,
     )
     assert disconnected_update.WhichOneof("state") == "wifi"
-    assert disconnected_update.wifi.WhichOneof("wifi_state") == "disconnected"
+    assert disconnected_update.wifi.WhichOneof("wifi_state") == "inactive"
