@@ -20,6 +20,8 @@ static const MessageHandler message_handlers[];
 
 static void heartbeat_timer_callback(void* context);
 static void rate_limiter_timer_callback(void* context);
+static void rate_limiter_timer_callback(void* context);
+static int32_t fetch_thread_callback(void* context);
 
 void screen_streamer_callback(
     GuiDisplayId display,
@@ -104,6 +106,11 @@ static StatePublisher* state_publisher_alloc(void) {
         SharedStateUpdateArray_init(t->seq_updates);
         SharedStateUpdateArray_init(t->state_updates);
     }
+
+    instance->fetch_flags = furi_event_flag_alloc();
+    instance->fetch_thread =
+        furi_thread_alloc_ex("StatePublisherFetch", 16 * 1024, fetch_thread_callback, instance);
+    furi_thread_start(instance->fetch_thread);
 
     state_publisher_subscribe(instance);
 
@@ -351,6 +358,41 @@ static uint32_t send_out(StatePublisher* instance, StreamFlag flags, bool heartb
     return min_sleep_time_ms;
 }
 
+static void record_update(StatePublisher* instance, StreamFlag flags, BSB_State_StateUpdate* update) {
+    SharedStateUpdate_t shared_update;
+    SharedStateUpdate_init2(shared_update, update);
+    if(is_sequential_update(update)) {
+        furi_mutex_acquire(instance->transports_mutex, FuriWaitForever);
+        for(size_t i = 0; i != MAX_TRANSPORTS; ++i) {
+            Transport* t = instance->transports + i;
+            if(t->valid && (t->flags & flags)) {
+                if(SharedStateUpdateArray_size(t->seq_updates) >= MAX_SEQ_UPDATES) {
+                    FURI_LOG_W(TAG, "Sequential updates full, dropping");
+                    SharedStateUpdateArray_reset(t->seq_updates);
+                }
+                SharedStateUpdateArray_push_back(t->seq_updates, shared_update);
+            }
+        }
+        furi_mutex_release(instance->transports_mutex);
+    } else {
+        furi_mutex_acquire(instance->transports_mutex, FuriWaitForever);
+        for(size_t i = 0; i != MAX_TRANSPORTS; ++i) {
+            Transport* t = instance->transports + i;
+            if(t->valid && (t->flags & flags)) {
+                size_t old_size = SharedStateUpdateArray_size(t->state_updates);
+                SharedStateUpdateArray_resize(
+                    t->state_updates, MAX(old_size, (size_t)update->which_state + 1));
+
+                SharedStateUpdate_t* cell =
+                    SharedStateUpdateArray_get(t->state_updates, update->which_state);
+                SharedStateUpdate_set(*cell, shared_update);
+            }
+        }
+        furi_mutex_release(instance->transports_mutex);
+    }
+    SharedStateUpdate_clear(shared_update);
+}
+
 static void publish_queue_callback(FuriEventLoopObject* object, void* context) {
     UNUSED(object);
     StatePublisher* instance = context;
@@ -361,38 +403,7 @@ static void publish_queue_callback(FuriEventLoopObject* object, void* context) {
         BSB_State_StateUpdate* update = message.data;
         flags |= message.stream_flags;
         if(update) {
-            SharedStateUpdate_t shared_update;
-            SharedStateUpdate_init2(shared_update, update);
-            if(is_sequential_update(update)) {
-                furi_mutex_acquire(instance->transports_mutex, FuriWaitForever);
-                for(size_t i = 0; i != MAX_TRANSPORTS; ++i) {
-                    Transport* t = instance->transports + i;
-                    if(t->valid && (t->flags & flags)) {
-                        if(SharedStateUpdateArray_size(t->seq_updates) >= MAX_SEQ_UPDATES) {
-                            FURI_LOG_W(TAG, "Sequential updates full, dropping");
-                            SharedStateUpdateArray_reset(t->seq_updates);
-                        }
-                        SharedStateUpdateArray_push_back(t->seq_updates, shared_update);
-                    }
-                }
-                furi_mutex_release(instance->transports_mutex);
-            } else {
-                furi_mutex_acquire(instance->transports_mutex, FuriWaitForever);
-                for(size_t i = 0; i != MAX_TRANSPORTS; ++i) {
-                    Transport* t = instance->transports + i;
-                    if(t->valid && (t->flags & flags)) {
-                        size_t old_size = SharedStateUpdateArray_size(t->state_updates);
-                        SharedStateUpdateArray_resize(
-                            t->state_updates, MAX(old_size, (size_t)update->which_state + 1));
-
-                        SharedStateUpdate_t* cell =
-                            SharedStateUpdateArray_get(t->state_updates, update->which_state);
-                        SharedStateUpdate_set(*cell, shared_update);
-                    }
-                }
-                furi_mutex_release(instance->transports_mutex);
-            }
-            SharedStateUpdate_clear(shared_update);
+            record_update(instance, message.stream_flags, update);
             heartbeat = false;
         }
     }
@@ -420,64 +431,8 @@ static bool handle_transport_resumed(StatePublisher* instance, const ControlMess
     return true;
 }
 
-static bool handle_power_event(StatePublisher* instance, const ControlMessage* message) {
-    furi_assert(message->type == MessageTypePowerEvent);
-    state_publisher_publish_power(instance);
-    return true;
-}
-
-static bool handle_audio_event(StatePublisher* instance, const ControlMessage* message) {
-    furi_assert(message->type == MessageTypeAudioEvent);
-    state_publisher_publish_audio(instance);
-    return true;
-}
-
-static bool handle_matter_event(StatePublisher* instance, const ControlMessage* message) {
-    furi_assert(message->type == MessageTypeMatterEvent);
-    state_publisher_publish_matter(instance);
-    return true;
-}
-
-static bool handle_updater_check_event(StatePublisher* instance, const ControlMessage* message) {
-    furi_assert(message->type == MessageTypeUpdaterCheckEvent);
-    state_publisher_publish_update_check(instance, &message->updater_check_state);
-    return true;
-}
-
-static bool handle_busy_timer(StatePublisher* instance, const ControlMessage* message) {
-    furi_assert(message->type == MessageTypeBusyTimer);
-    state_publisher_publish_busy_timer(instance);
-    return true;
-}
-
-static bool handle_busy_timer_profiles(StatePublisher* instance, const ControlMessage* message) {
-    furi_assert(message->type == MessageTypeBusyTimerProfiles);
-    state_publisher_publish_busy_timer_profiles(instance);
-    return true;
-}
-
-static bool handle_autoupdate_event(StatePublisher* instance, const ControlMessage* message) {
-    furi_assert(message->type == MessageTypeAutoupdateEvent);
-    state_publisher_publish_autoupdate(instance);
-    return true;
-}
-
-static bool handle_ble(StatePublisher* instance, const ControlMessage* message) {
-    furi_assert(message->type == MessageTypeBle);
-    state_publisher_publish_ble(instance);
-    return true;
-}
-
 static const MessageHandler message_handlers[] = {
     [MessageTypeTransportResumed] = handle_transport_resumed,
-    [MessageTypePowerEvent] = handle_power_event,
-    [MessageTypeAudioEvent] = handle_audio_event,
-    [MessageTypeMatterEvent] = handle_matter_event,
-    [MessageTypeUpdaterCheckEvent] = handle_updater_check_event,
-    [MessageTypeBusyTimer] = handle_busy_timer,
-    [MessageTypeBusyTimerProfiles] = handle_busy_timer_profiles,
-    [MessageTypeAutoupdateEvent] = handle_autoupdate_event,
-    [MessageTypeBle] = handle_ble,
 };
 
 static_assert(COUNT_OF(message_handlers) == MessageTypesCount);
@@ -533,4 +488,38 @@ void state_publisher_send_complete_snapshot(
     }
     free(state->updates);
     free(state);
+}
+
+static int32_t fetch_thread_callback(void* context) {
+    StatePublisher* instance = context;
+    while(true) {
+        uint32_t result = furi_event_flag_wait(
+            instance->fetch_flags, UINT32_MAX >> 1, FuriFlagWaitAny, FuriWaitForever);
+        furi_check((result & FuriFlagError) == 0);
+        if(result & FetchFlagPowerEvent) {
+            state_publisher_publish_power(instance);
+        }
+        if(result & FetchFlagAudioEvent) {
+            state_publisher_publish_audio(instance);
+        }
+        if(result & FetchFlagMatterEvent) {
+            state_publisher_publish_matter(instance);
+        }
+        if(result & FetchFlagUpdaterCheckEvent) {
+            state_publisher_publish_update_check(instance);
+        }
+        if(result & FetchFlagBusyTimer) {
+            state_publisher_publish_busy_timer(instance);
+        }
+        if(result & FetchFlagBusyTimerProfiles) {
+            state_publisher_publish_busy_timer_profiles(instance);
+        }
+        if(result & FetchFlagAutoupdateEvent) {
+            state_publisher_publish_autoupdate(instance);
+        }
+        if(result & FetchFlagBle) {
+            state_publisher_publish_ble(instance);
+        }
+    }
+    return 0;
 }

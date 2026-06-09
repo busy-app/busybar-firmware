@@ -202,7 +202,10 @@ void state_publisher_publish_matter(StatePublisher* instance) {
     state_publisher_schedule_state_update(instance, update, StreamFlagAll);
 }
 
-void state_publisher_publish_update_check(StatePublisher* instance, const UpdaterCheckState* info) {
+void state_publisher_publish_update_check(StatePublisher* instance) {
+    FuriState* check_state = updater_get_check_state(instance->updater);
+    UpdaterCheckState info;
+    furi_state_get(check_state, &info);
     BSB_State_StateUpdate* update = malloc(sizeof(BSB_State_StateUpdate));
     update->which_state = BSB_State_StateUpdate_update_check_tag;
 
@@ -212,9 +215,9 @@ void state_publisher_publish_update_check(StatePublisher* instance, const Update
         [UpdaterCheckEventNone] = BSB_Update_CheckEvent_NONE,
     };
     static_assert(COUNT_OF(check_event_lookup) == UpdaterCheckEventsCount);
-    update->state.update_check.event = check_event_lookup[info->event];
+    update->state.update_check.event = check_event_lookup[info.event];
 
-    switch(info->result) {
+    switch(info.result) {
     case UpdaterCheckResultAvailable: {
         update->state.update_check.which_status = BSB_Update_CheckState_available_tag;
         FuriString* version = furi_string_alloc();
@@ -377,10 +380,7 @@ static void power_pubsub_callback(const void* message, void* context) {
     StatePublisher* instance = context;
 
     // dispatch because power_get_info cannot be called from power task
-    ControlMessage msg = {
-        .type = MessageTypePowerEvent,
-    };
-    state_publisher_send_control_message(instance, &msg);
+    furi_event_flag_set(instance->fetch_flags, FetchFlagPowerEvent);
 }
 
 static void audio_pubsub_callback(const void* message, void* context) {
@@ -389,10 +389,7 @@ static void audio_pubsub_callback(const void* message, void* context) {
 
     if(event->type == AudioEventVolumeUpdate) {
         // dispatch because audio_get_volume cannot be called from audio task
-        ControlMessage msg = {
-            .type = MessageTypeAudioEvent,
-        };
-        state_publisher_send_control_message(instance, &msg);
+        furi_event_flag_set(instance->fetch_flags, FetchFlagAudioEvent);
     }
 }
 
@@ -423,10 +420,7 @@ static void matter_pubsub_callback(const void* message, void* context) {
     UNUSED(message);
     StatePublisher* instance = context;
 
-    ControlMessage msg = {
-        .type = MessageTypeMatterEvent,
-    };
-    state_publisher_send_control_message(instance, &msg);
+    furi_event_flag_set(instance->fetch_flags, FetchFlagMatterEvent);
 }
 
 static void input_event_pubsub_callback(const void* message, void* context) {
@@ -507,30 +501,21 @@ static void busy_timer_pubsub_callback(const void* message, void* context) {
     UNUSED(message);
     StatePublisher* instance = context;
 
-    ControlMessage msg = {
-        .type = MessageTypeBusyTimer,
-    };
-    state_publisher_send_control_message(instance, &msg);
+    furi_event_flag_set(instance->fetch_flags, FetchFlagBusyTimer);
 }
 
 static void busy_timer_profiles_pubsub_callback(const void* message, void* context) {
     UNUSED(message);
     StatePublisher* instance = context;
 
-    ControlMessage msg = {
-        .type = MessageTypeBusyTimerProfiles,
-    };
-    state_publisher_send_control_message(instance, &msg);
+    furi_event_flag_set(instance->fetch_flags, FetchFlagBusyTimerProfiles);
 }
 
 static void ble_pubsub_callback(const void* message, void* context) {
     UNUSED(message);
     StatePublisher* instance = context;
 
-    ControlMessage msg = {
-        .type = MessageTypeBle,
-    };
-    state_publisher_send_control_message(instance, &msg);
+    furi_event_flag_set(instance->fetch_flags, FetchFlagBle);
 }
 
 static BSB_State_StateUpdate* collect_time_settings(const TimeSettings* settings) {
@@ -749,11 +734,10 @@ static void updater_update_state_callback(const void* item, void* context) {
 }
 
 static void updater_check_state_callback(const void* item, void* context) {
+    UNUSED(item);
     StatePublisher* instance = context;
-    const UpdaterCheckState* info = item;
 
-    ControlMessage msg = {.type = MessageTypeUpdaterCheckEvent, .updater_check_state = *info};
-    state_publisher_send_control_message(instance, &msg);
+    furi_event_flag_set(instance->fetch_flags, FetchFlagUpdaterCheckEvent);
 }
 
 static void updater_settings_state_callback(const void* item, void* context) {

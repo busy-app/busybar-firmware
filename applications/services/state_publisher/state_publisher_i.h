@@ -58,8 +58,11 @@ struct StatePublisher {
     FuriEventLoop* event_loop;
     FuriMessageQueue* control_queue; // queue of Message
     FuriMessageQueue* publish_queue; // queue of PublishMessage
+    FuriEventFlag* fetch_flags;
 
     FuriThreadId main_thread_id;
+
+    FuriThread* fetch_thread;
 
     ScreenStreamer* screen_streamer_front;
 
@@ -85,17 +88,20 @@ struct StatePublisher {
 
 typedef enum {
     MessageTypeTransportResumed,
-    MessageTypePowerEvent,
-    MessageTypeAudioEvent,
-    MessageTypeMatterEvent,
-    MessageTypeUpdaterCheckEvent,
-    MessageTypeBusyTimer,
-    MessageTypeBusyTimerProfiles,
-    MessageTypeAutoupdateEvent,
-    MessageTypeBle,
 
     MessageTypesCount,
 } MessageType;
+
+typedef enum {
+    FetchFlagPowerEvent = (1 << 0),
+    FetchFlagAudioEvent = (1 << 1),
+    FetchFlagMatterEvent = (1 << 2),
+    FetchFlagUpdaterCheckEvent = (1 << 3),
+    FetchFlagBusyTimer = (1 << 4),
+    FetchFlagBusyTimerProfiles = (1 << 5),
+    FetchFlagAutoupdateEvent = (1 << 6),
+    FetchFlagBle = (1 << 7),
+} FetchFlag;
 
 typedef struct {
     MessageType type;
@@ -114,9 +120,7 @@ void state_publisher_subscribe(StatePublisher* instance);
 void state_publisher_publish_power(StatePublisher* instance);
 void state_publisher_publish_audio(StatePublisher* instance);
 void state_publisher_publish_matter(StatePublisher* instance);
-void state_publisher_publish_update_check(
-    StatePublisher* instance,
-    const UpdaterCheckState* check_state);
+void state_publisher_publish_update_check(StatePublisher* instance);
 void state_publisher_publish_busy_timer(StatePublisher* instance);
 void state_publisher_publish_busy_timer_profiles(StatePublisher* instance);
 void state_publisher_publish_autoupdate(StatePublisher* instance);
