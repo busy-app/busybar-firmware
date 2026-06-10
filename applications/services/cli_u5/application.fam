@@ -4,5 +4,5 @@ App(
     entry_point="cli_on_system_start",
     stack_size=512,
     targets=["f20", "f21", "f22"],
-    order=10,
+    order=20,
 )

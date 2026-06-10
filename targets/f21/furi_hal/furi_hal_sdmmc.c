@@ -72,40 +72,6 @@ AccessBits  Access Name     Operation
 #define SDMMC_CMD6_WRITE_BYTE_EXT_CSD(reg, value) \
     0x03000000U | SDMMC_CMD6_REG_VAL(reg, value, 0x00)
 
-typedef enum {
-    FuriHalSdErrorNone = SDMMC_ERROR_NONE,
-    FuriHalSdErrorDataCrcFail = SDMMC_ERROR_DATA_CRC_FAIL,
-    FuriHalSdErrorDataTimeout = SDMMC_ERROR_DATA_TIMEOUT,
-    FuriHalSdErrorTxUnderrun = SDMMC_ERROR_TX_UNDERRUN,
-    FuriHalSdErrorRxOverrun = SDMMC_ERROR_RX_OVERRUN,
-    FuriHalSdErrorAddrMisaligned = SDMMC_ERROR_ADDR_MISALIGNED,
-    FuriHalSdErrorBlockLenErr = SDMMC_ERROR_BLOCK_LEN_ERR,
-    FuriHalSdErrorEraseSeqErr = SDMMC_ERROR_ERASE_SEQ_ERR,
-    FuriHalSdErrorBadEraseParam = SDMMC_ERROR_BAD_ERASE_PARAM,
-    FuriHalSdErrorWriteProtViolation = SDMMC_ERROR_WRITE_PROT_VIOLATION,
-    FuriHalSdErrorLockUnlockFailed = SDMMC_ERROR_LOCK_UNLOCK_FAILED,
-    FuriHalSdErrorComCrcFailed = SDMMC_ERROR_COM_CRC_FAILED,
-    FuriHalSdErrorIllegalCmd = SDMMC_ERROR_ILLEGAL_CMD,
-    FuriHalSdErrorCardEccFailed = SDMMC_ERROR_CARD_ECC_FAILED,
-    FuriHalSdErrorCcErr = SDMMC_ERROR_CC_ERR,
-    FuriHalSdErrorGeneralUnknownErr = SDMMC_ERROR_GENERAL_UNKNOWN_ERR,
-    FuriHalSdErrorStreamReadUnderrun = SDMMC_ERROR_STREAM_READ_UNDERRUN,
-    FuriHalSdErrorStreamWriteOverrun = SDMMC_ERROR_STREAM_WRITE_OVERRUN,
-    FuriHalSdErrorCidCsdOverwrite = SDMMC_ERROR_CID_CSD_OVERWRITE,
-    FuriHalSdErrorWpEraseSkip = SDMMC_ERROR_WP_ERASE_SKIP,
-    FuriHalSdErrorCardEccDisabled = SDMMC_ERROR_CARD_ECC_DISABLED,
-    FuriHalSdErrorEraseReset = SDMMC_ERROR_ERASE_RESET,
-    FuriHalSdErrorAkeSeqErr = SDMMC_ERROR_AKE_SEQ_ERR,
-    FuriHalSdErrorInvalidVoltRange = SDMMC_ERROR_INVALID_VOLTRANGE,
-    FuriHalSdErrorAddrOutOfRange = SDMMC_ERROR_ADDR_OUT_OF_RANGE,
-    FuriHalSdErrorRequestNotApplicable = SDMMC_ERROR_REQUEST_NOT_APPLICABLE,
-    FuriHalSdErrorParam = SDMMC_ERROR_INVALID_PARAMETER,
-    FuriHalSdErrorUnsupportedFeature = SDMMC_ERROR_UNSUPPORTED_FEATURE,
-    FuriHalSdErrorBusy = SDMMC_ERROR_BUSY,
-    FuriHalSdErrorDma = SDMMC_ERROR_DMA,
-    FuriHalSdErrorTimeout = SDMMC_ERROR_TIMEOUT,
-} FuriHalSdError;
-
 typedef struct {
     uint8_t csd_struct; /*!< CSD structure */
     uint8_t sys_spec_version; /*!< System specification version */
@@ -344,13 +310,82 @@ typedef struct {
     size_t tx_size;
 
     volatile uint32_t state;
-    volatile FuriHalSdError error;
+    volatile uint32_t hal_error;
     FuriEventFlag* event;
     // For non-RTOS operation
     volatile uint32_t event_flags;
 } SdMmcDmaContext;
 
 static SdMmcDmaContext sdmmc_dma_context = {0};
+
+static FuriHalSdError translate_sd_error(uint32_t stm32_error) {
+    switch(stm32_error) {
+    case SDMMC_ERROR_NONE:
+        return FuriHalSdErrorNone;
+    case SDMMC_ERROR_DATA_CRC_FAIL:
+        return FuriHalSdErrorDataCrcFail;
+    case SDMMC_ERROR_DATA_TIMEOUT:
+        return FuriHalSdErrorDataTimeout;
+    case SDMMC_ERROR_TX_UNDERRUN:
+        return FuriHalSdErrorTxUnderrun;
+    case SDMMC_ERROR_RX_OVERRUN:
+        return FuriHalSdErrorRxOverrun;
+    case SDMMC_ERROR_ADDR_MISALIGNED:
+        return FuriHalSdErrorAddrMisaligned;
+    case SDMMC_ERROR_BLOCK_LEN_ERR:
+        return FuriHalSdErrorBlockLenErr;
+    case SDMMC_ERROR_ERASE_SEQ_ERR:
+        return FuriHalSdErrorEraseSeqErr;
+    case SDMMC_ERROR_BAD_ERASE_PARAM:
+        return FuriHalSdErrorBadEraseParam;
+    case SDMMC_ERROR_WRITE_PROT_VIOLATION:
+        return FuriHalSdErrorWriteProtViolation;
+    case SDMMC_ERROR_LOCK_UNLOCK_FAILED:
+        return FuriHalSdErrorLockUnlockFailed;
+    case SDMMC_ERROR_COM_CRC_FAILED:
+        return FuriHalSdErrorComCrcFailed;
+    case SDMMC_ERROR_ILLEGAL_CMD:
+        return FuriHalSdErrorIllegalCmd;
+    case SDMMC_ERROR_CARD_ECC_FAILED:
+        return FuriHalSdErrorCardEccFailed;
+    case SDMMC_ERROR_CC_ERR:
+        return FuriHalSdErrorCcErr;
+    case SDMMC_ERROR_GENERAL_UNKNOWN_ERR:
+        return FuriHalSdErrorGeneralUnknownErr;
+    case SDMMC_ERROR_STREAM_READ_UNDERRUN:
+        return FuriHalSdErrorStreamReadUnderrun;
+    case SDMMC_ERROR_STREAM_WRITE_OVERRUN:
+        return FuriHalSdErrorStreamWriteOverrun;
+    case SDMMC_ERROR_CID_CSD_OVERWRITE:
+        return FuriHalSdErrorCidCsdOverwrite;
+    case SDMMC_ERROR_WP_ERASE_SKIP:
+        return FuriHalSdErrorWpEraseSkip;
+    case SDMMC_ERROR_CARD_ECC_DISABLED:
+        return FuriHalSdErrorCardEccDisabled;
+    case SDMMC_ERROR_ERASE_RESET:
+        return FuriHalSdErrorEraseReset;
+    case SDMMC_ERROR_AKE_SEQ_ERR:
+        return FuriHalSdErrorAkeSeqErr;
+    case SDMMC_ERROR_INVALID_VOLTRANGE:
+        return FuriHalSdErrorInvalidVoltRange;
+    case SDMMC_ERROR_ADDR_OUT_OF_RANGE:
+        return FuriHalSdErrorAddrOutOfRange;
+    case SDMMC_ERROR_REQUEST_NOT_APPLICABLE:
+        return FuriHalSdErrorRequestNotApplicable;
+    case SDMMC_ERROR_INVALID_PARAMETER:
+        return FuriHalSdErrorParam;
+    case SDMMC_ERROR_UNSUPPORTED_FEATURE:
+        return FuriHalSdErrorUnsupportedFeature;
+    case SDMMC_ERROR_BUSY:
+        return FuriHalSdErrorBusy;
+    case SDMMC_ERROR_DMA:
+        return FuriHalSdErrorDma;
+    case SDMMC_ERROR_TIMEOUT:
+        return FuriHalSdErrorTimeout;
+    default:
+        return FuriHalSdErrorOther;
+    }
+}
 
 static void furi_hal_sdmmc_gpio_init(void) {
     // furi_hal_gpio_write(&gpio_sd_card_power_switch, 0);
@@ -484,13 +519,14 @@ static void furi_hal_sdmmc_card_disable_power(void) {
     // furi_hal_gpio_write(&gpio_sd_card_power_switch, 0);
 }
 
-static uint32_t sdmmc_power_on(void) {
-    uint32_t errorstate;
+FURI_CHECK_RETURN
+static FuriHalSdError sdmmc_power_on(void) {
+    uint32_t errorstate = SDMMC_ERROR_NONE;
 
     /* CMD0: GO_IDLE_STATE */
     errorstate = SDMMC_CmdGoIdleState(FURI_SDMMC_BLOCK);
-    if(errorstate != FuriHalSdErrorNone) {
-        return errorstate;
+    if(errorstate != SDMMC_ERROR_NONE) {
+        return translate_sd_error(errorstate);
     }
 
     /* CMD8: SEND_IF_COND: Command available only on V2.0 cards */
@@ -502,18 +538,21 @@ static uint32_t sdmmc_power_on(void) {
 
         /* CMD0: GO_IDLE_STATE */
         errorstate = SDMMC_CmdGoIdleState(FURI_SDMMC_BLOCK);
-        if(errorstate != FuriHalSdErrorNone) {
-            return errorstate;
+        if(errorstate != SDMMC_ERROR_NONE) {
+            return translate_sd_error(errorstate);
         }
-    } else {
+    } else if(errorstate == SDMMC_ERROR_NONE) {
         FURI_LOG_D(TAG, "Response to CMD8, assume SD card v2.x");
         sdmmc1.info.version = FuriHalSdVersion2;
 
         /* SEND CMD55 APP_CMD with RCA as 0 */
         errorstate = SDMMC_CmdAppCommand(FURI_SDMMC_BLOCK, 0);
-        if(errorstate != FuriHalSdErrorNone) {
+        if(errorstate != SDMMC_ERROR_NONE) {
             return FuriHalSdErrorUnsupportedFeature;
         }
+    } else {
+        FURI_LOG_E(TAG, "Error sending CMD8");
+        return translate_sd_error(errorstate);
     }
 
     uint32_t count = 0U;
@@ -524,15 +563,15 @@ static uint32_t sdmmc_power_on(void) {
     while((count < SDMMC_MAX_VOLT_TRIAL) && (!((response >> 31U) == 1U))) {
         /* SEND CMD55 APP_CMD with RCA as 0 */
         errorstate = SDMMC_CmdAppCommand(FURI_SDMMC_BLOCK, 0);
-        if(errorstate != FuriHalSdErrorNone) {
-            return errorstate;
+        if(errorstate != SDMMC_ERROR_NONE) {
+            return translate_sd_error(errorstate);
         }
 
         /* Send CMD41 */
         errorstate = SDMMC_CmdAppOperCommand(
             FURI_SDMMC_BLOCK,
             SDMMC_VOLTAGE_WINDOW_SD | SDMMC_HIGH_CAPACITY | SD_SWITCH_1_8V_CAPACITY);
-        if(errorstate != FuriHalSdErrorNone) {
+        if(errorstate != SDMMC_ERROR_NONE) {
             return FuriHalSdErrorUnsupportedFeature;
         }
 
@@ -579,7 +618,7 @@ static inline void sdmmc_enable_it(uint32_t it) {
     __SDMMC_ENABLE_IT(FURI_SDMMC_BLOCK, it);
 }
 
-static bool sdmmc_parse_csd(CardCSDInfo* info, uint32_t csd[4]) {
+static void sdmmc_parse_csd(CardCSDInfo* info, const uint32_t csd[4]) {
     info->csd_struct = (uint8_t)((csd[0] & 0xC0000000U) >> 30U);
     info->sys_spec_version = (uint8_t)((csd[0] & 0x3C000000U) >> 26U);
     info->reserved1 = (uint8_t)((csd[0] & 0x03000000U) >> 24U);
@@ -613,7 +652,7 @@ static bool sdmmc_parse_csd(CardCSDInfo* info, uint32_t csd[4]) {
     } else if(sdmmc1.info.type == FuriHalSdTypeMMCHighCapacity) {
         info->device_size = sdmmc1.ext_csd_reg.sec_count;
     } else {
-        furi_crash("Unknown SD/MMC type");
+        FURI_LOG_E(TAG, "Unknown SD/MMC type: %d", sdmmc1.info.type);
     }
 
     info->erase_gr_size = (uint8_t)((csd[2] & 0x00004000U) >> 14U);
@@ -634,11 +673,9 @@ static bool sdmmc_parse_csd(CardCSDInfo* info, uint32_t csd[4]) {
     info->ecc = (uint8_t)((csd[3] & 0x00000300U) >> 8U);
     info->csd_crc = (uint8_t)((csd[3] & 0x000000FEU) >> 1U);
     info->reserved4 = 1;
-
-    return true;
 }
 
-static void sdmmc_parse_info(FuriHalSdInfo* info, CardCSDInfo* csd, uint32_t cid[4]) {
+static void sdmmc_parse_info(FuriHalSdInfo* info, const CardCSDInfo* csd, const uint32_t cid[4]) {
     if(info->type == FuriHalSdTypeSC) {
         uint32_t block_count = (csd->device_size + 1U);
         block_count *= (1UL << ((csd->device_size_mul & 0x07U) + 2U));
@@ -681,8 +718,9 @@ static void sdmmc_parse_info(FuriHalSdInfo* info, CardCSDInfo* csd, uint32_t cid
     info->manufacturing_year = 2000 + (uint16_t)((cid[3] & 0x000FFF00U) >> 12U);
 }
 
-static uint32_t sdmmc_init_card(void) {
-    uint32_t errorstate;
+FURI_CHECK_RETURN
+static FuriHalSdError sdmmc_init_card(void) {
+    uint32_t errorstate = SDMMC_ERROR_NONE;
     uint16_t rca = 0U;
     PreciseTimer timer = precise_timer_create(SDMMC_CMDTIMEOUT * 1000U);
 
@@ -697,8 +735,8 @@ static uint32_t sdmmc_init_card(void) {
 
     /* Send CMD2 ALL_SEND_CID */
     errorstate = SDMMC_CmdSendCID(FURI_SDMMC_BLOCK);
-    if(errorstate != FuriHalSdErrorNone) {
-        return errorstate;
+    if(errorstate != SDMMC_ERROR_NONE) {
+        return translate_sd_error(errorstate);
     } else {
         /* Get Card identification number data */
         CID[0U] = SDMMC_GetResponse(FURI_SDMMC_BLOCK, SDMMC_RESP1);
@@ -711,8 +749,8 @@ static uint32_t sdmmc_init_card(void) {
     /* SD Card publishes its RCA. */
     while(rca == 0U) {
         errorstate = SDMMC_CmdSetRelAdd(FURI_SDMMC_BLOCK, &rca);
-        if(errorstate != FuriHalSdErrorNone) {
-            return errorstate;
+        if(errorstate != SDMMC_ERROR_NONE) {
+            return translate_sd_error(errorstate);
         }
         if(precise_timer_is_expired(timer)) {
             return FuriHalSdErrorTimeout;
@@ -724,8 +762,8 @@ static uint32_t sdmmc_init_card(void) {
 
     /* Send CMD9 SEND_CSD with argument as card's RCA */
     errorstate = SDMMC_CmdSendCSD(FURI_SDMMC_BLOCK, (uint32_t)(sdmmc1.card_rca << 16U));
-    if(errorstate != FuriHalSdErrorNone) {
-        return errorstate;
+    if(errorstate != SDMMC_ERROR_NONE) {
+        return translate_sd_error(errorstate);
     } else {
         /* Get Card Specific Data */
         CSD[0U] = SDMMC_GetResponse(FURI_SDMMC_BLOCK, SDMMC_RESP1);
@@ -735,28 +773,26 @@ static uint32_t sdmmc_init_card(void) {
     }
 
     /* Parse parameters */
-    if(!sdmmc_parse_csd(&sdmmc1.csd, CSD)) {
-        return FuriHalSdErrorTimeout;
-    }
+    sdmmc_parse_csd(&sdmmc1.csd, CSD);
 
     sdmmc_parse_info(&sdmmc1.info, &sdmmc1.csd, CID);
 
     /* Select the Card */
     errorstate =
         SDMMC_CmdSelDesel(FURI_SDMMC_BLOCK, (uint32_t)(((uint32_t)sdmmc1.card_rca) << 16U));
-    if(errorstate != FuriHalSdErrorNone) {
-        return errorstate;
+    if(errorstate != SDMMC_ERROR_NONE) {
+        return translate_sd_error(errorstate);
     }
 
     /* All cards are initialized */
     return FuriHalSdErrorNone;
 }
 
+FURI_CHECK_RETURN
 static FuriHalSdError sdmmc_send_status_command(uint32_t* pSDstatus) {
     SDMMC_DataInitTypeDef config = {0};
-    FuriHalSdError errorstate;
+    uint32_t errorstate = SDMMC_ERROR_NONE;
     PreciseTimer timer = precise_timer_create(SDMMC_REAL_DATATIMEOUT);
-    uint32_t count;
     uint32_t* data = pSDstatus;
 
     /* Check SD response */
@@ -767,16 +803,16 @@ static FuriHalSdError sdmmc_send_status_command(uint32_t* pSDstatus) {
 
     /* Set block size for card if it is not equal to current block size for card */
     errorstate = SDMMC_CmdBlockLength(FURI_SDMMC_BLOCK, 64U);
-    if(errorstate != FuriHalSdErrorNone) {
-        FURI_LOG_E(TAG, "SDMMC_CmdBlockLength failed with error 0x%08x", errorstate);
-        return errorstate;
+    if(errorstate != SDMMC_ERROR_NONE) {
+        FURI_LOG_E(TAG, "SDMMC_CmdBlockLength failed with error 0x%08lx", errorstate);
+        return translate_sd_error(errorstate);
     }
 
     /* Send CMD55 */
     errorstate = SDMMC_CmdAppCommand(FURI_SDMMC_BLOCK, (uint32_t)(sdmmc1.card_rca << 16U));
-    if(errorstate != FuriHalSdErrorNone) {
-        FURI_LOG_E(TAG, "SDMMC_CmdAppCommand failed with error 0x%08x", errorstate);
-        return errorstate;
+    if(errorstate != SDMMC_ERROR_NONE) {
+        FURI_LOG_E(TAG, "SDMMC_CmdAppCommand failed with error 0x%08lx", errorstate);
+        return translate_sd_error(errorstate);
     }
 
     /* Configure the SD DPSM (Data Path State Machine) */
@@ -790,16 +826,16 @@ static FuriHalSdError sdmmc_send_status_command(uint32_t* pSDstatus) {
 
     /* Send ACMD13 (SD_APP_STAUS)  with argument as card's RCA */
     errorstate = SDMMC_CmdStatusRegister(FURI_SDMMC_BLOCK);
-    if(errorstate != FuriHalSdErrorNone) {
-        FURI_LOG_E(TAG, "SDMMC_CmdStatusRegister failed with error 0x%08x", errorstate);
-        return errorstate;
+    if(errorstate != SDMMC_ERROR_NONE) {
+        FURI_LOG_E(TAG, "SDMMC_CmdStatusRegister failed with error 0x%08lx", errorstate);
+        return translate_sd_error(errorstate);
     }
 
     /* Get status data */
     while(!sdmmc_get_flags(
         SDMMC_FLAG_RXOVERR | SDMMC_FLAG_DCRCFAIL | SDMMC_FLAG_DTIMEOUT | SDMMC_FLAG_DATAEND)) {
         if(sdmmc_get_flags(SDMMC_FLAG_RXFIFOHF)) {
-            for(count = 0U; count < 8U; count++) {
+            for(uint32_t count = 0U; count < 8U; count++) {
                 *data = SDMMC_ReadFIFO(FURI_SDMMC_BLOCK);
                 data++;
             }
@@ -835,17 +871,14 @@ static FuriHalSdError sdmmc_send_status_command(uint32_t* pSDstatus) {
     return FuriHalSdErrorNone;
 }
 
-static bool sd_mmc_get_card_status(CardStatus* card_status) {
+FURI_CHECK_RETURN
+static FuriHalSdError sd_mmc_get_card_status(CardStatus* card_status) {
     uint32_t sd_status[16] = {0};
-    FuriHalSdError errorstate;
-    bool status = true;
-
-    errorstate = sdmmc_send_status_command(sd_status);
-    if(errorstate != FuriHalSdErrorNone) {
+    FuriHalSdError status = sdmmc_send_status_command(sd_status);
+    if(status != FuriHalSdErrorNone) {
         /* Clear all the static flags */
         sdmmc_clear_static_flags();
-        FURI_LOG_E(TAG, "sdmmc_send_status_command failed with error 0x%08x", errorstate);
-        status = false;
+        FURI_LOG_E(TAG, "sdmmc_send_status_command failed with error 0x%08x", status);
     } else {
         card_status->data_bus_width = (uint8_t)((sd_status[0] & 0xC0U) >> 6U);
         card_status->secured_mode = (uint8_t)((sd_status[0] & 0x20U) >> 5U);
@@ -867,37 +900,35 @@ static bool sd_mmc_get_card_status(CardStatus* card_status) {
     }
 
     /* Set Block Size for Card */
-    errorstate = SDMMC_CmdBlockLength(FURI_SDMMC_BLOCK, SD_BLOCKSIZE);
-    if(errorstate != FuriHalSdErrorNone) {
+    uint32_t errorstate = SDMMC_CmdBlockLength(FURI_SDMMC_BLOCK, SD_BLOCKSIZE);
+    if(errorstate != SDMMC_ERROR_NONE) {
         /* Clear all the static flags */
         sdmmc_clear_static_flags();
-        FURI_LOG_E(TAG, "SDMMC_CmdBlockLength failed with error 0x%08x", errorstate);
-        status = false;
+        FURI_LOG_E(TAG, "SDMMC_CmdBlockLength failed with error 0x%08lx", errorstate);
+        status = translate_sd_error(errorstate);
     }
 
     return status;
 }
 
+FURI_CHECK_RETURN
 static FuriHalSdError sdmmc_find_scr(uint32_t* p_scr) {
     SDMMC_DataInitTypeDef config = {0};
-    FuriHalSdError errorstate;
+    uint32_t errorstate = SDMMC_ERROR_NONE;
     PreciseTimer timer = precise_timer_create(SDMMC_REAL_DATATIMEOUT);
-    uint32_t index = 0U;
-    uint32_t tempscr[2U] = {0};
-    uint32_t* scr = p_scr;
 
     /* Set Block Size To 8 Bytes */
     errorstate = SDMMC_CmdBlockLength(FURI_SDMMC_BLOCK, 8U);
-    if(errorstate != FuriHalSdErrorNone) {
-        FURI_LOG_E(TAG, "SDMMC_CmdBlockLength failed with error 0x%08x", errorstate);
-        return errorstate;
+    if(errorstate != SDMMC_ERROR_NONE) {
+        FURI_LOG_E(TAG, "SDMMC_CmdBlockLength failed with error 0x%08lx", errorstate);
+        return translate_sd_error(errorstate);
     }
 
     /* Send CMD55 APP_CMD with argument as card's RCA */
     errorstate = SDMMC_CmdAppCommand(FURI_SDMMC_BLOCK, (uint32_t)((sdmmc1.card_rca) << 16U));
-    if(errorstate != FuriHalSdErrorNone) {
-        FURI_LOG_E(TAG, "SDMMC_CmdAppCommand failed with error 0x%08x", errorstate);
-        return errorstate;
+    if(errorstate != SDMMC_ERROR_NONE) {
+        FURI_LOG_E(TAG, "SDMMC_CmdAppCommand failed with error 0x%08lx", errorstate);
+        return translate_sd_error(errorstate);
     }
 
     config.DataTimeOut = SDMMC_REAL_DATATIMEOUT;
@@ -910,11 +941,14 @@ static FuriHalSdError sdmmc_find_scr(uint32_t* p_scr) {
 
     /* Send ACMD51 SD_APP_SEND_SCR with argument as 0 */
     errorstate = SDMMC_CmdSendSCR(FURI_SDMMC_BLOCK);
-    if(errorstate != FuriHalSdErrorNone) {
-        FURI_LOG_E(TAG, "SDMMC_CmdSendSCR failed with error 0x%08x", errorstate);
-        return errorstate;
+    if(errorstate != SDMMC_ERROR_NONE) {
+        FURI_LOG_E(TAG, "SDMMC_CmdSendSCR failed with error 0x%08lx", errorstate);
+        return translate_sd_error(errorstate);
     }
 
+    uint32_t* scr = p_scr;
+    uint32_t tempscr[2U] = {0};
+    uint32_t index = 0U;
     while(!sdmmc_get_flags(
         SDMMC_FLAG_RXOVERR | SDMMC_FLAG_DCRCFAIL | SDMMC_FLAG_DTIMEOUT | SDMMC_FLAG_DBCKEND |
         SDMMC_FLAG_DATAEND)) {
@@ -959,9 +993,9 @@ static FuriHalSdError sdmmc_find_scr(uint32_t* p_scr) {
     return FuriHalSdErrorNone;
 }
 
+FURI_CHECK_RETURN
 static FuriHalSdError sdmmc_wide_bus_enable(void) {
     uint32_t scr[2U] = {0};
-    FuriHalSdError errorstate;
 
     if((SDMMC_GetResponse(FURI_SDMMC_BLOCK, SDMMC_RESP1) & SDMMC_CARD_LOCKED) ==
        SDMMC_CARD_LOCKED) {
@@ -970,26 +1004,26 @@ static FuriHalSdError sdmmc_wide_bus_enable(void) {
     }
 
     /* Get SCR Register */
-    errorstate = sdmmc_find_scr(scr);
-    if(errorstate != FuriHalSdErrorNone) {
-        FURI_LOG_E(TAG, "sdmmc_find_scr failed with error 0x%08x", errorstate);
-        return errorstate;
+    FuriHalSdError status = sdmmc_find_scr(scr);
+    if(status != FuriHalSdErrorNone) {
+        return status;
     }
 
     /* If requested card supports wide bus operation */
     if((scr[1U] & SDMMC_WIDE_BUS_SUPPORT) != SDMMC_ALLZERO) {
         /* Send CMD55 APP_CMD with argument as card's RCA.*/
-        errorstate = SDMMC_CmdAppCommand(FURI_SDMMC_BLOCK, (uint32_t)(sdmmc1.card_rca << 16U));
-        if(errorstate != FuriHalSdErrorNone) {
-            FURI_LOG_E(TAG, "SDMMC_CmdAppCommand failed with error 0x%08x", errorstate);
-            return errorstate;
+        uint32_t errorstate =
+            SDMMC_CmdAppCommand(FURI_SDMMC_BLOCK, (uint32_t)(sdmmc1.card_rca << 16U));
+        if(errorstate != SDMMC_ERROR_NONE) {
+            FURI_LOG_E(TAG, "SDMMC_CmdAppCommand failed with error 0x%08lx", errorstate);
+            return translate_sd_error(errorstate);
         }
 
         /* Send ACMD6 APP_CMD with argument as 2 for wide bus mode */
         errorstate = SDMMC_CmdBusWidth(FURI_SDMMC_BLOCK, 2U);
-        if(errorstate != FuriHalSdErrorNone) {
-            FURI_LOG_E(TAG, "SDMMC_CmdBusWidth failed with error 0x%08x", errorstate);
-            return errorstate;
+        if(errorstate != SDMMC_ERROR_NONE) {
+            FURI_LOG_E(TAG, "SDMMC_CmdBusWidth failed with error 0x%08lx", errorstate);
+            return translate_sd_error(errorstate);
         }
 
         return FuriHalSdErrorNone;
@@ -998,20 +1032,18 @@ static FuriHalSdError sdmmc_wide_bus_enable(void) {
     }
 }
 
-static bool sdmmc_config_wide_bus_operation(uint32_t sdmmc_clk) {
+FURI_CHECK_RETURN
+static FuriHalSdError sdmmc_config_wide_bus_operation(uint32_t sdmmc_clk) {
     furi_assert(sdmmc_clk != 0U);
 
     SDMMC_InitTypeDef init = {0};
-    FuriHalSdError errorstate;
 
-    bool status = true;
-
-    errorstate = sdmmc_wide_bus_enable();
-    if(errorstate != FuriHalSdErrorNone) {
+    FuriHalSdError status = sdmmc_wide_bus_enable();
+    if(status != FuriHalSdErrorNone) {
         /* Clear all the static flags */
         sdmmc_clear_static_flags();
-        FURI_LOG_E(TAG, "sdmmc_wide_bus_enable failed with error 0x%08x", errorstate);
-        status = false;
+        FURI_LOG_E(TAG, "sdmmc_wide_bus_enable failed with error 0x%08x", status);
+        // return?
     }
 
     /* Configure the SDMMC peripheral */
@@ -1062,25 +1094,25 @@ static bool sdmmc_config_wide_bus_operation(uint32_t sdmmc_clk) {
     SDMMC_Init(FURI_SDMMC_BLOCK, init);
 
     /* Set Block Size for Card */
-    errorstate = SDMMC_CmdBlockLength(FURI_SDMMC_BLOCK, SD_BLOCKSIZE);
-    if(errorstate != FuriHalSdErrorNone) {
+    uint32_t errorstate = SDMMC_CmdBlockLength(FURI_SDMMC_BLOCK, SD_BLOCKSIZE);
+    if(errorstate != SDMMC_ERROR_NONE) {
         /* Clear all the static flags */
         sdmmc_clear_static_flags();
-        FURI_LOG_E(TAG, "SDMMC_CmdBlockLength failed with error 0x%08x", errorstate);
-        status = false;
+        FURI_LOG_E(TAG, "SDMMC_CmdBlockLength failed with error 0x%08lx", errorstate);
+        status = translate_sd_error(errorstate);
     }
 
     return status;
 }
 
+FURI_CHECK_RETURN
 static FuriHalSdError sdmmc_send_status(uint32_t* pCardStatus) {
-    FuriHalSdError errorstate;
-
     /* Send Status command */
-    errorstate = SDMMC_CmdSendStatus(FURI_SDMMC_BLOCK, (uint32_t)(sdmmc1.card_rca << 16U));
-    if(errorstate != FuriHalSdErrorNone) {
-        FURI_LOG_E(TAG, "SDMMC_CmdSendStatus failed with error 0x%08x", errorstate);
-        return errorstate;
+    uint32_t errorstate =
+        SDMMC_CmdSendStatus(FURI_SDMMC_BLOCK, (uint32_t)(sdmmc1.card_rca << 16U));
+    if(errorstate != SDMMC_ERROR_NONE) {
+        FURI_LOG_E(TAG, "SDMMC_CmdSendStatus failed with error 0x%08lx", errorstate);
+        return translate_sd_error(errorstate);
     }
 
     /* Get SD card status */
@@ -1101,40 +1133,44 @@ typedef enum {
     SdCardStateError = 0x000000FFU, /*!< Card response Error */
 } SdCardState;
 
-SdCardState sdmmc_get_card_state(void) {
-    SdCardState cardstate;
-    FuriHalSdError errorstate;
+FURI_CHECK_RETURN
+static FuriHalSdError sdmmc_get_card_state(SdCardState* state) {
     uint32_t resp1 = 0;
 
-    errorstate = sdmmc_send_status(&resp1);
-    if(errorstate != FuriHalSdErrorNone) {
-        FURI_LOG_E(TAG, "sdmmc_send_status failed with error 0x%08x", errorstate);
+    FuriHalSdError status = sdmmc_send_status(&resp1);
+    if(status != FuriHalSdErrorNone) {
+        FURI_LOG_E(TAG, "sdmmc_send_status failed with error 0x%08x", status);
+        return status;
     }
 
-    cardstate = ((resp1 >> 9U) & 0x0FU);
-    return cardstate;
+    *state = ((resp1 >> 9U) & 0x0FU);
+    return FuriHalSdErrorNone;
 }
 
-static bool sdmmc_wait_for_transfer_state(size_t timeout_ms) {
+FURI_CHECK_RETURN
+static FuriHalSdError sdmmc_wait_for_transfer_state(size_t timeout_ms) {
     // TODO: FW-889 Fix time units
     PreciseTimer timer = precise_timer_create(timeout_ms);
-    SdCardState card_state = sdmmc_get_card_state();
-    while(card_state != SdCardStateTransfer) {
+    FuriHalSdError status = FuriHalSdErrorNone;
+    SdCardState card_state = SdCardStateError;
+    status = sdmmc_get_card_state(&card_state);
+    while(status == FuriHalSdErrorNone && card_state != SdCardStateTransfer) {
         if(precise_timer_is_expired(timer)) {
             FURI_LOG_E(TAG, "sdmmc_get_card_state failed");
-            return false;
+            return FuriHalSdErrorTimeout;
         }
-        card_state = sdmmc_get_card_state();
+        status = sdmmc_get_card_state(&card_state);
     }
 
-    return true;
+    return status;
 }
 
-static bool sdmmc_read_blocks_dma(uint8_t* data, uint32_t address, uint32_t block_count) {
+FURI_CHECK_RETURN
+static FuriHalSdError
+    sdmmc_read_blocks_dma(uint8_t* data, uint32_t address, uint32_t block_count) {
     furi_assert(
         ((uint32_t)data & 0x03) == 0, "sdmmc_read_blocks_dma: data pointer is not aligned");
     SDMMC_DataInitTypeDef config = {0};
-    FuriHalSdError errorstate;
 
     /* Initialize data control register */
     FURI_SDMMC_BLOCK->DCTRL = 0U;
@@ -1161,6 +1197,7 @@ static bool sdmmc_read_blocks_dma(uint8_t* data, uint32_t address, uint32_t bloc
     FURI_SDMMC_BLOCK->IDMACTRL = SDMMC_ENABLE_IDMA_SINGLE_BUFF;
 
     /* Read Blocks in DMA mode */
+    uint32_t errorstate = SDMMC_ERROR_NONE;
     if(block_count > 1U) {
         sdmmc_dma_context.state = SdMmcDmaStateEnabled | SdMmcDmaStateRxMulti;
 
@@ -1173,25 +1210,26 @@ static bool sdmmc_read_blocks_dma(uint8_t* data, uint32_t address, uint32_t bloc
         errorstate = SDMMC_CmdReadSingleBlock(FURI_SDMMC_BLOCK, address);
     }
 
-    if(errorstate != FuriHalSdErrorNone) {
+    if(errorstate != SDMMC_ERROR_NONE) {
         /* Clear all the static flags */
         sdmmc_clear_static_flags();
-        FURI_LOG_E(TAG, "SDMMC_CmdReadSingle/MultiBlock failed with error 0x%08x", errorstate);
-        return false;
+        FURI_LOG_E(TAG, "SDMMC_CmdReadSingle/MultiBlock failed with error 0x%08lx", errorstate);
+        return translate_sd_error(errorstate);
     }
 
     /* Enable transfer interrupts */
     /* NB: SDMMC_IT_DATAEND is still set from successful command */
     sdmmc_enable_it(SDMMC_IT_DCRCFAIL | SDMMC_IT_DTIMEOUT | SDMMC_IT_RXOVERR | SDMMC_IT_DATAEND);
 
-    return true;
+    return FuriHalSdErrorNone;
 }
 
-static bool sdmmc_write_blocks_dma(const uint8_t* data, uint32_t address, uint32_t block_count) {
+FURI_CHECK_RETURN
+static FuriHalSdError
+    sdmmc_write_blocks_dma(const uint8_t* data, uint32_t address, uint32_t block_count) {
     furi_assert(
         ((uint32_t)data & 0x03) == 0, "sdmmc_write_blocks_dma: data pointer is not aligned");
     SDMMC_DataInitTypeDef config = {0};
-    FuriHalSdError errorstate;
 
     /* Initialize data control register */
     FURI_SDMMC_BLOCK->DCTRL = 0U;
@@ -1218,6 +1256,7 @@ static bool sdmmc_write_blocks_dma(const uint8_t* data, uint32_t address, uint32
     FURI_SDMMC_BLOCK->IDMACTRL = SDMMC_ENABLE_IDMA_SINGLE_BUFF;
 
     /* Write Blocks in Polling mode */
+    uint32_t errorstate = SDMMC_ERROR_NONE;
     if(block_count > 1U) {
         sdmmc_dma_context.state = SdMmcDmaStateEnabled | SdMmcDmaStateRxMulti;
 
@@ -1229,17 +1268,17 @@ static bool sdmmc_write_blocks_dma(const uint8_t* data, uint32_t address, uint32
         /* Write Single Block command */
         errorstate = SDMMC_CmdWriteSingleBlock(FURI_SDMMC_BLOCK, address);
     }
-    if(errorstate != FuriHalSdErrorNone) {
+    if(errorstate != SDMMC_ERROR_NONE) {
         /* Clear all the static flags */
         sdmmc_clear_static_flags();
-        FURI_LOG_E(TAG, "sdmmc_write_blocks_dma failed with error 0x%08x", errorstate);
-        return false;
+        FURI_LOG_E(TAG, "sdmmc_write_blocks_dma failed with error 0x%08lx", errorstate);
+        return translate_sd_error(errorstate);
     }
 
     /* Enable transfer interrupts */
     sdmmc_enable_it(SDMMC_IT_DCRCFAIL | SDMMC_IT_DTIMEOUT | SDMMC_IT_TXUNDERR | SDMMC_IT_DATAEND);
 
-    return true;
+    return FuriHalSdErrorNone;
 }
 
 static void sdmmc_irq_handler(void* ctx) {
@@ -1265,8 +1304,8 @@ static void sdmmc_irq_handler(void* ctx) {
             if(((sdmmc_dma_context.state & SdMmcDmaStateRxMulti) != 0U) ||
                ((sdmmc_dma_context.state & SdMmcDmaStateTxMulti) != 0U)) {
                 errorstate = SDMMC_CmdStopTransfer(FURI_SDMMC_BLOCK);
-                if(errorstate != FuriHalSdErrorNone) {
-                    sdmmc_dma_context.error |= errorstate;
+                if(errorstate != SDMMC_ERROR_NONE) {
+                    sdmmc_dma_context.hal_error |= errorstate;
                     furi_hal_sdmmc_event_set(SdMmcDmaEventError);
                 }
             }
@@ -1279,16 +1318,16 @@ static void sdmmc_irq_handler(void* ctx) {
                   SDMMC_FLAG_TXUNDERR)) {
         /* Set Error code */
         if(sdmmc_get_flags(SDMMC_IT_DCRCFAIL)) {
-            sdmmc_dma_context.error |= FuriHalSdErrorDataCrcFail;
+            sdmmc_dma_context.hal_error |= SDMMC_ERROR_DATA_CRC_FAIL;
         }
         if(sdmmc_get_flags(SDMMC_IT_DTIMEOUT)) {
-            sdmmc_dma_context.error |= FuriHalSdErrorDataTimeout;
+            sdmmc_dma_context.hal_error |= SDMMC_ERROR_DATA_TIMEOUT;
         }
         if(sdmmc_get_flags(SDMMC_IT_RXOVERR)) {
-            sdmmc_dma_context.error |= FuriHalSdErrorRxOverrun;
+            sdmmc_dma_context.hal_error |= SDMMC_ERROR_RX_OVERRUN;
         }
         if(sdmmc_get_flags(SDMMC_IT_TXUNDERR)) {
-            sdmmc_dma_context.error |= FuriHalSdErrorTxUnderrun;
+            sdmmc_dma_context.hal_error |= SDMMC_ERROR_TX_UNDERRUN;
         }
 
         /* Clear All flags */
@@ -1302,12 +1341,12 @@ static void sdmmc_irq_handler(void* ctx) {
         __SDMMC_CMDTRANS_DISABLE(FURI_SDMMC_BLOCK);
         FURI_SDMMC_BLOCK->DCTRL |= SDMMC_DCTRL_FIFORST;
         FURI_SDMMC_BLOCK->CMD |= SDMMC_CMD_CMDSTOP;
-        sdmmc_dma_context.error |= SDMMC_CmdStopTransfer(FURI_SDMMC_BLOCK);
+        sdmmc_dma_context.hal_error |= SDMMC_CmdStopTransfer(FURI_SDMMC_BLOCK);
         FURI_SDMMC_BLOCK->CMD &= ~(SDMMC_CMD_CMDSTOP);
         sdmmc_clear_flags(SDMMC_FLAG_DABORT);
 
         if((sdmmc_dma_context.state & SdMmcDmaStateEnabled) != 0U) {
-            if(sdmmc_dma_context.error != FuriHalSdErrorNone) {
+            if(sdmmc_dma_context.hal_error != SDMMC_ERROR_NONE) {
                 /* Disable Internal DMA */
                 FURI_SDMMC_BLOCK->IDMACTRL = SDMMC_DISABLE_IDMA;
                 furi_hal_sdmmc_event_set(SdMmcDmaEventError);
@@ -1316,7 +1355,8 @@ static void sdmmc_irq_handler(void* ctx) {
     }
 }
 
-static bool sdmmc_init_card_lowspeed(uint32_t sdmmc_clk) {
+FURI_CHECK_RETURN
+static FuriHalSdError sdmmc_init_card_lowspeed(uint32_t sdmmc_clk) {
     furi_assert(sdmmc_clk != 0U);
 
     // init params
@@ -1339,39 +1379,42 @@ static bool sdmmc_init_card_lowspeed(uint32_t sdmmc_clk) {
     furi_delay_us((1000000 * 74) / (sdmmc_clk / (2U * init.ClockDiv)));
 
     // identify card operating voltage
-    FuriHalSdError errorstate = sdmmc_power_on();
-    if(errorstate != FuriHalSdErrorNone) {
-        FURI_LOG_E(TAG, "sdmmc_power_on failed with error 0x%08x", errorstate);
-        return false;
+    FuriHalSdError status = sdmmc_power_on();
+    if(status != FuriHalSdErrorNone) {
+        FURI_LOG_E(TAG, "sdmmc_power_on failed with error 0x%08x", status);
+        return status;
     }
 
     // initialize card
-    errorstate = sdmmc_init_card();
-    if(errorstate != FuriHalSdErrorNone) {
-        FURI_LOG_E(TAG, "sdmmc_init_card failed with error 0x%08x", errorstate);
-        return false;
+    status = sdmmc_init_card();
+    if(status != FuriHalSdErrorNone) {
+        FURI_LOG_E(TAG, "sdmmc_init_card failed with error 0x%08x", status);
+        return status;
     }
 
     // set block size for card
-    errorstate = SDMMC_CmdBlockLength(FURI_SDMMC_BLOCK, SD_BLOCKSIZE);
-    if(errorstate != FuriHalSdErrorNone) {
+    uint32_t errorstate = SDMMC_CmdBlockLength(FURI_SDMMC_BLOCK, SD_BLOCKSIZE);
+    if(errorstate != SDMMC_ERROR_NONE) {
         sdmmc_clear_static_flags();
-        FURI_LOG_E(TAG, "SDMMC_CmdBlockLength failed with error 0x%08x", errorstate);
-        return false;
+        FURI_LOG_E(TAG, "SDMMC_CmdBlockLength failed with error 0x%08lx", errorstate);
+        return translate_sd_error(errorstate);
     }
 
-    return true;
+    return FuriHalSdErrorNone;
 }
 
-static bool sdmmc_init_sdcard(uint32_t sdmmc_clk) {
-    if(!sdmmc_init_card_lowspeed(sdmmc_clk)) {
+FURI_CHECK_RETURN
+static FuriHalSdError sdmmc_init_sdcard(uint32_t sdmmc_clk) {
+    FuriHalSdError status = sdmmc_init_card_lowspeed(sdmmc_clk);
+    if(status != FuriHalSdErrorNone) {
         FURI_LOG_E(TAG, "sdmmc_init_card failed");
-        return false;
+        return status;
     }
 
-    if(sd_mmc_get_card_status(&sdmmc1.status) != true) {
+    status = sd_mmc_get_card_status(&sdmmc1.status);
+    if(status != FuriHalSdErrorNone) {
         FURI_LOG_E(TAG, "sd_mmc_get_card_status failed");
-        return false;
+        return status;
     }
 
     /* Get Initial Card Speed from Card Status */
@@ -1386,27 +1429,29 @@ static bool sdmmc_init_sdcard(uint32_t sdmmc_clk) {
     }
 
     /* Configure the bus wide */
-    if(sdmmc_config_wide_bus_operation(sdmmc_clk) != true) {
+    status = sdmmc_config_wide_bus_operation(sdmmc_clk);
+    if(status != FuriHalSdErrorNone) {
         FURI_LOG_E(TAG, "sdmmc_config_wide_bus_operation failed");
-        return false;
+        return status;
     }
 
     /* Verify that SD card is ready to use after Initialization */
-    if(!sdmmc_wait_for_transfer_state(SDMMC_REAL_DATATIMEOUT)) {
+    status = sdmmc_wait_for_transfer_state(SDMMC_REAL_DATATIMEOUT);
+    if(status != FuriHalSdErrorNone) {
         FURI_LOG_E(TAG, "sdmmc_wait_for_transfer_state failed");
-        return false;
+        return status;
     }
 
-    return true;
+    return FuriHalSdErrorNone;
 }
 
 // emmc
+FURI_CHECK_RETURN
 static FuriHalSdError
     sdmmc_mmc_read_ext_csd(CardExtendedCSDRegister* ext_csd_reg, uint32_t timeout) {
     furi_check(ext_csd_reg);
 
     SDMMC_DataInitTypeDef config;
-    FuriHalSdError errorstate = FuriHalSdErrorNone;
     PreciseTimer timer = precise_timer_create(timeout);
     uint32_t count;
     uint32_t* tmp_buf;
@@ -1428,11 +1473,12 @@ static FuriHalSdError
     __SDMMC_CMDTRANS_ENABLE(FURI_SDMMC_BLOCK);
 
     /* Send ExtCSD Read command to Card */
-    errorstate = SDMMC_CmdSendEXTCSD(FURI_SDMMC_BLOCK, (uint32_t)(sdmmc1.card_rca << 16U));
-    if(errorstate != FuriHalSdErrorNone) {
+    uint32_t errorstate =
+        SDMMC_CmdSendEXTCSD(FURI_SDMMC_BLOCK, (uint32_t)(sdmmc1.card_rca << 16U));
+    if(errorstate != SDMMC_ERROR_NONE) {
         /* Clear all the static flags */
         sdmmc_clear_static_flags();
-        return errorstate;
+        return translate_sd_error(errorstate);
     }
 
     /* Poll on SDMMC flags */
@@ -1475,11 +1521,11 @@ static FuriHalSdError
     /* Clear the static data flags */
     sdmmc_clear_static_data_flags();
 
-    return errorstate;
+    return FuriHalSdErrorNone;
 }
 
+FURI_CHECK_RETURN
 static FuriHalSdError sdmmc_mmc_init_card(void) {
-    FuriHalSdError errorstate;
     uint16_t rca = 2U;
 
     uint32_t CSD[4] = {0};
@@ -1492,9 +1538,9 @@ static FuriHalSdError sdmmc_mmc_init_card(void) {
     }
 
     /* Send CMD2 ALL_SEND_CID */
-    errorstate = SDMMC_CmdSendCID(FURI_SDMMC_BLOCK);
-    if(errorstate != FuriHalSdErrorNone) {
-        return errorstate;
+    uint32_t errorstate = SDMMC_CmdSendCID(FURI_SDMMC_BLOCK);
+    if(errorstate != SDMMC_ERROR_NONE) {
+        return translate_sd_error(errorstate);
     }
 
     /* Get Card identification number data */
@@ -1506,8 +1552,8 @@ static FuriHalSdError sdmmc_mmc_init_card(void) {
     /* Send CMD3 SET_REL_ADDR with RCA = 2 (should be greater than 1) */
     /* MMC Card publishes its RCA. */
     errorstate = SDMMC_CmdSetRelAdd(FURI_SDMMC_BLOCK, &rca);
-    if(errorstate != FuriHalSdErrorNone) {
-        return errorstate;
+    if(errorstate != SDMMC_ERROR_NONE) {
+        return translate_sd_error(errorstate);
     }
 
     /* Get the SD card RCA */
@@ -1515,61 +1561,57 @@ static FuriHalSdError sdmmc_mmc_init_card(void) {
 
     /* Send CMD9 SEND_CSD with argument as card's RCA */
     errorstate = SDMMC_CmdSendCSD(FURI_SDMMC_BLOCK, (uint32_t)(sdmmc1.card_rca << 16U));
-    if(errorstate != FuriHalSdErrorNone) {
-        return errorstate;
-    } else {
-        /* Get Card Specific Data */
-        CSD[0U] = SDMMC_GetResponse(FURI_SDMMC_BLOCK, SDMMC_RESP1);
-        CSD[1U] = SDMMC_GetResponse(FURI_SDMMC_BLOCK, SDMMC_RESP2);
-        CSD[2U] = SDMMC_GetResponse(FURI_SDMMC_BLOCK, SDMMC_RESP3);
-        CSD[3U] = SDMMC_GetResponse(FURI_SDMMC_BLOCK, SDMMC_RESP4);
+    if(errorstate != SDMMC_ERROR_NONE) {
+        return translate_sd_error(errorstate);
     }
+    /* Get Card Specific Data */
+    CSD[0U] = SDMMC_GetResponse(FURI_SDMMC_BLOCK, SDMMC_RESP1);
+    CSD[1U] = SDMMC_GetResponse(FURI_SDMMC_BLOCK, SDMMC_RESP2);
+    CSD[2U] = SDMMC_GetResponse(FURI_SDMMC_BLOCK, SDMMC_RESP3);
+    CSD[3U] = SDMMC_GetResponse(FURI_SDMMC_BLOCK, SDMMC_RESP4);
 
     /* Select the Card */
     errorstate =
         SDMMC_CmdSelDesel(FURI_SDMMC_BLOCK, (uint32_t)(((uint32_t)sdmmc1.card_rca) << 16U));
-    if(errorstate != FuriHalSdErrorNone) {
-        return errorstate;
+    if(errorstate != SDMMC_ERROR_NONE) {
+        return translate_sd_error(errorstate);
     }
 
     /* While card is not ready for data and trial number for sending CMD13 is not exceeded */
     errorstate =
         SDMMC_CmdSendStatus(FURI_SDMMC_BLOCK, (uint32_t)(((uint32_t)sdmmc1.card_rca) << 16U));
-    if(errorstate != FuriHalSdErrorNone) {
-        return errorstate;
+    if(errorstate != SDMMC_ERROR_NONE) {
+        return translate_sd_error(errorstate);
     }
 
     /* Get Extended CSD parameters */
-    errorstate = sdmmc_mmc_read_ext_csd(&sdmmc1.ext_csd_reg, SDMMC_CMDTIMEOUT * 1000U);
-    if(errorstate != FuriHalSdErrorNone) {
-        return errorstate;
+    FuriHalSdError status = sdmmc_mmc_read_ext_csd(&sdmmc1.ext_csd_reg, SDMMC_CMDTIMEOUT * 1000U);
+    if(status != FuriHalSdErrorNone) {
+        return status;
     }
 
     /* Parse parameters */
-    if(!sdmmc_parse_csd(&sdmmc1.csd, CSD)) {
-        return FuriHalSdErrorTimeout;
-    }
+    sdmmc_parse_csd(&sdmmc1.csd, CSD);
 
     sdmmc_parse_info(&sdmmc1.info, &sdmmc1.csd, CID);
 
     /* While card is not ready for data and trial number for sending CMD13 is not exceeded */
     errorstate =
         SDMMC_CmdSendStatus(FURI_SDMMC_BLOCK, (uint32_t)(((uint32_t)sdmmc1.card_rca) << 16U));
-    if(errorstate != FuriHalSdErrorNone) {
-        return errorstate;
+    if(errorstate != SDMMC_ERROR_NONE) {
+        return translate_sd_error(errorstate);
     }
 
     /* All cards are initialized */
     return FuriHalSdErrorNone;
 }
 
+FURI_CHECK_RETURN
 static FuriHalSdError sdmmc_mmc_power_on(void) {
-    FuriHalSdError errorstate;
-
     /* CMD0: GO_IDLE_STATE */
-    errorstate = SDMMC_CmdGoIdleState(FURI_SDMMC_BLOCK);
-    if(errorstate != FuriHalSdErrorNone) {
-        return errorstate;
+    uint32_t errorstate = SDMMC_CmdGoIdleState(FURI_SDMMC_BLOCK);
+    if(errorstate != SDMMC_ERROR_NONE) {
+        return translate_sd_error(errorstate);
     }
 
     uint32_t count = 0U;
@@ -1583,8 +1625,8 @@ static FuriHalSdError sdmmc_mmc_power_on(void) {
 
         /* SEND CMD1 APP_CMD with voltage range as argument */
         errorstate = SDMMC_CmdOpCondition(FURI_SDMMC_BLOCK, EMMC_HIGH_VOLTAGE_RANGE);
-        if(errorstate != FuriHalSdErrorNone) {
-            return FuriHalSdErrorUnsupportedFeature;
+        if(errorstate != SDMMC_ERROR_NONE) {
+            return translate_sd_error(errorstate);
         }
 
         /* Get command response */
@@ -1609,12 +1651,9 @@ static FuriHalSdError sdmmc_mmc_power_on(void) {
     return FuriHalSdErrorNone;
 }
 
+FURI_CHECK_RETURN
 static FuriHalSdError sdmm_mmc_pwr_class_update(uint32_t wide, uint32_t speed) {
-    uint32_t count;
-    uint32_t response = 0U;
-    FuriHalSdError errorstate = FuriHalSdErrorNone;
     uint8_t power_class = sdmmc1.ext_csd_reg.power_class;
-    uint32_t supported_pwr_class;
     /*
             
             7.4.34 PWR_CL_ff_vvv [203:200] and PWR_CL_DDR_ff_vvv [239:238]  
@@ -1664,8 +1703,11 @@ static FuriHalSdError sdmm_mmc_pwr_class_update(uint32_t wide, uint32_t speed) {
                     15      >500mA      >600mA  
             */
 
+    FuriHalSdError status = FuriHalSdErrorNone;
+
     if((wide == SDMMC_BUS_WIDE_8B) || (wide == SDMMC_BUS_WIDE_4B)) {
         /* Get the supported PowerClass field of the Extended CSD register */
+        uint32_t supported_pwr_class;
         if(speed == SDMMC_SPEED_MODE_DDR) {
             /* Field PWR_CL_DDR_52_xxx [238 or 239] */
             supported_pwr_class = sdmmc1.ext_csd_reg.pwr_cl_ddr52_195;
@@ -1698,18 +1740,19 @@ static FuriHalSdError sdmm_mmc_pwr_class_update(uint32_t wide, uint32_t speed) {
             
             This field is 0 after power-on or software reset.
             */
-            errorstate = SDMMC_CmdSwitch(
+            uint32_t errorstate = SDMMC_CmdSwitch(
                 FURI_SDMMC_BLOCK,
                 SDMMC_CMD6_WRITE_BYTE_EXT_CSD(187, (supported_pwr_class & 0x0FU)));
 
-            if(errorstate == FuriHalSdErrorNone) {
+            if(errorstate == SDMMC_ERROR_NONE) {
                 /* While card is not ready for data and trial number for sending CMD13 is not exceeded */
-                count = SDMMC_MAX_TRIAL;
+                uint32_t count = SDMMC_MAX_TRIAL;
+                uint32_t response = 0U;
                 do {
                     errorstate = SDMMC_CmdSendStatus(
                         FURI_SDMMC_BLOCK, (uint32_t)(((uint32_t)sdmmc1.card_rca) << 16U));
-                    if(errorstate != FuriHalSdErrorNone) {
-                        break;
+                    if(errorstate != SDMMC_ERROR_NONE) {
+                        return translate_sd_error(errorstate);
                     }
 
                     /* Get command response */
@@ -1718,30 +1761,30 @@ static FuriHalSdError sdmm_mmc_pwr_class_update(uint32_t wide, uint32_t speed) {
                 } while(((response & 0x100U) == 0U) && (count != 0U));
 
                 /* Check the status after the switch command execution */
-                if((count != 0U) && (errorstate == FuriHalSdErrorNone)) {
+                if((count != 0U) && (errorstate == SDMMC_ERROR_NONE)) {
                     /* Check the bit SWITCH_ERROR of the device status */
                     if((response & 0x80U) != 0U) {
                         errorstate = SDMMC_ERROR_UNSUPPORTED_FEATURE;
                     }
+                    // TODO return?
                 } else if(count == 0U) {
                     errorstate = SDMMC_ERROR_TIMEOUT;
+                    // TODO return?
                 } else {
                     /* Nothing to do */
                 }
             }
-            //* Update the current power class */
-            errorstate = sdmmc_mmc_read_ext_csd(&sdmmc1.ext_csd_reg, SDMMC_CMDTIMEOUT * 1000U);
+            /* Update the current power class */
+            status = sdmmc_mmc_read_ext_csd(&sdmmc1.ext_csd_reg, SDMMC_CMDTIMEOUT * 1000U);
         }
     }
 
-    return errorstate;
+    return status;
 }
 
+FURI_CHECK_RETURN
 static FuriHalSdError sdmmc_mmc_high_speed(FunctionalState state, uint32_t sdmmc_clk) {
-    uint32_t errorstate = FuriHalSdErrorNone;
-    uint32_t response = 0U;
-    uint32_t count;
-    SDMMC_InitTypeDef init;
+    FuriHalSdError status = FuriHalSdErrorNone;
     /*
     7.4.44 HS_TIMING [185]
     Value   Timing Interface  
@@ -1750,36 +1793,37 @@ static FuriHalSdError sdmmc_mmc_high_speed(FunctionalState state, uint32_t sdmmc
     0x2     HS200  
     */
     if(((FURI_SDMMC_BLOCK->CLKCR & SDMMC_CLKCR_BUSSPEED) != 0U) && (state == DISABLE)) {
-        errorstate = sdmm_mmc_pwr_class_update(
+        status = sdmm_mmc_pwr_class_update(
             (FURI_SDMMC_BLOCK->CLKCR & SDMMC_CLKCR_WIDBUS), SDMMC_SPEED_MODE_DEFAULT);
-        if(errorstate != FuriHalSdErrorNone) {
-            return errorstate;
+        if(status != FuriHalSdErrorNone) {
+            return status;
         }
 
         /* Index : 185 - Value : 0 */
-        errorstate =
-            SDMMC_CmdSwitch(FURI_SDMMC_BLOCK, SDMMC_CMD6_WRITE_BYTE_EXT_CSD(185, 0)); //0x03B90000U
-    }
-
-    if(((FURI_SDMMC_BLOCK->CLKCR & SDMMC_CLKCR_BUSSPEED) == 0U) && (state != DISABLE)) {
-        errorstate = sdmm_mmc_pwr_class_update(
+        status = translate_sd_error(SDMMC_CmdSwitch(
+            FURI_SDMMC_BLOCK, SDMMC_CMD6_WRITE_BYTE_EXT_CSD(185, 0))); //0x03B90000U
+    } else if(((FURI_SDMMC_BLOCK->CLKCR & SDMMC_CLKCR_BUSSPEED) == 0U) && (state != DISABLE)) {
+        status = sdmm_mmc_pwr_class_update(
             (FURI_SDMMC_BLOCK->CLKCR & SDMMC_CLKCR_WIDBUS), SDMMC_SPEED_MODE_HIGH);
-        if(errorstate != FuriHalSdErrorNone) {
-            return errorstate;
+        if(status != FuriHalSdErrorNone) {
+            return status;
         }
 
         /* Index : 185 - Value : 1 */
-        errorstate =
-            SDMMC_CmdSwitch(FURI_SDMMC_BLOCK, SDMMC_CMD6_WRITE_BYTE_EXT_CSD(185, 1)); //0x03B90100U
+        status = translate_sd_error(SDMMC_CmdSwitch(
+            FURI_SDMMC_BLOCK, SDMMC_CMD6_WRITE_BYTE_EXT_CSD(185, 1))); //0x03B90100U
+    } else {
+        return FuriHalSdErrorNone;
     }
 
-    if(errorstate == FuriHalSdErrorNone) {
+    if(status == FuriHalSdErrorNone) {
         /* While card is not ready for data and trial number for sending CMD13 is not exceeded */
-        count = SDMMC_MAX_TRIAL;
+        uint32_t count = SDMMC_MAX_TRIAL;
+        uint32_t response = 0;
         do {
-            errorstate = SDMMC_CmdSendStatus(
-                FURI_SDMMC_BLOCK, (uint32_t)(((uint32_t)sdmmc1.card_rca) << 16U));
-            if(errorstate != FuriHalSdErrorNone) {
+            status = translate_sd_error(SDMMC_CmdSendStatus(
+                FURI_SDMMC_BLOCK, (uint32_t)(((uint32_t)sdmmc1.card_rca) << 16U)));
+            if(status != FuriHalSdErrorNone) {
                 break;
             }
 
@@ -1789,12 +1833,13 @@ static FuriHalSdError sdmmc_mmc_high_speed(FunctionalState state, uint32_t sdmmc
         } while(((response & 0x100U) == 0U) && (count != 0U));
 
         /* Check the status after the switch command execution */
-        if((count != 0U) && (errorstate == FuriHalSdErrorNone)) {
+        if((count != 0U) && (status == FuriHalSdErrorNone)) {
             /* Check the bit SWITCH_ERROR of the device status */
             if((response & 0x80U) != 0U) {
-                errorstate = SDMMC_ERROR_UNSUPPORTED_FEATURE;
+                status = FuriHalSdErrorUnsupportedFeature;
             } else {
                 /* Configure high speed */
+                SDMMC_InitTypeDef init;
                 init.ClockEdge = SDMMC_INIT_CLOCK_EDGE;
                 init.ClockPowerSave = SDMMC_CLOCK_POWER_SAVE;
                 init.BusWide = (FURI_SDMMC_BLOCK->CLKCR & SDMMC_CLKCR_WIDBUS);
@@ -1807,7 +1852,7 @@ static FuriHalSdError sdmmc_mmc_high_speed(FunctionalState state, uint32_t sdmmc
                     CLEAR_BIT(FURI_SDMMC_BLOCK->CLKCR, SDMMC_CLKCR_BUSSPEED);
                 } else {
                     if(sdmmc_clk == 0U) {
-                        errorstate = SDMMC_ERROR_INVALID_PARAMETER;
+                        status = FuriHalSdErrorParam;
                     } else {
                         if(sdmmc_clk <= MMC_HIGH_SPEED_FREQ) {
                             init.ClockDiv = 0;
@@ -1821,19 +1866,18 @@ static FuriHalSdError sdmmc_mmc_high_speed(FunctionalState state, uint32_t sdmmc
                 }
             }
         } else if(count == 0U) {
-            errorstate = SDMMC_ERROR_TIMEOUT;
+            status = FuriHalSdErrorTimeout;
         } else {
             /* Nothing to do */
         }
     }
 
-    return errorstate;
+    return status;
 }
 
+FURI_CHECK_RETURN
 static FuriHalSdError sdmmc_mmc_ddr_mode(FunctionalState state) {
-    FuriHalSdError errorstate = FuriHalSdErrorNone;
-    uint32_t response = 0U;
-    uint32_t count;
+    FuriHalSdError status = FuriHalSdErrorNone;
 
     /*
     7.4.45 BUS_WIDTH [183] 
@@ -1848,57 +1892,58 @@ static FuriHalSdError sdmmc_mmc_ddr_mode(FunctionalState state) {
     */
     if(((FURI_SDMMC_BLOCK->CLKCR & SDMMC_CLKCR_DDR) != 0U) && (state == DISABLE)) {
         if((FURI_SDMMC_BLOCK->CLKCR & SDMMC_CLKCR_WIDBUS_0) != 0U) {
-            errorstate = sdmm_mmc_pwr_class_update(SDMMC_BUS_WIDE_4B, SDMMC_SPEED_MODE_HIGH);
-            if(errorstate != FuriHalSdErrorNone) {
-                return errorstate;
+            status = sdmm_mmc_pwr_class_update(SDMMC_BUS_WIDE_4B, SDMMC_SPEED_MODE_HIGH);
+            if(status != FuriHalSdErrorNone) {
+                return status;
             }
 
             /* Index : 183 - Value : 1 */
-            errorstate = SDMMC_CmdSwitch(
-                FURI_SDMMC_BLOCK, SDMMC_CMD6_WRITE_BYTE_EXT_CSD(183, 1)); //0x03B70100U
+            status = translate_sd_error(SDMMC_CmdSwitch(
+                FURI_SDMMC_BLOCK, SDMMC_CMD6_WRITE_BYTE_EXT_CSD(183, 1))); //0x03B70100U
 
         } else {
-            errorstate = sdmm_mmc_pwr_class_update(SDMMC_BUS_WIDE_8B, SDMMC_SPEED_MODE_HIGH);
-            if(errorstate != FuriHalSdErrorNone) {
-                return errorstate;
+            status = sdmm_mmc_pwr_class_update(SDMMC_BUS_WIDE_8B, SDMMC_SPEED_MODE_HIGH);
+            if(status != FuriHalSdErrorNone) {
+                return status;
             }
 
             /* Index : 183 - Value : 2 */
-            errorstate = SDMMC_CmdSwitch(
-                FURI_SDMMC_BLOCK, SDMMC_CMD6_WRITE_BYTE_EXT_CSD(183, 2)); //0x03B70200U
+            status = translate_sd_error(SDMMC_CmdSwitch(
+                FURI_SDMMC_BLOCK, SDMMC_CMD6_WRITE_BYTE_EXT_CSD(183, 2))); //0x03B70200U
         }
-    }
-
-    if(((FURI_SDMMC_BLOCK->CLKCR & SDMMC_CLKCR_DDR) == 0U) && (state != DISABLE)) {
+    } else if(((FURI_SDMMC_BLOCK->CLKCR & SDMMC_CLKCR_DDR) == 0U) && (state != DISABLE)) {
         if((FURI_SDMMC_BLOCK->CLKCR & SDMMC_CLKCR_WIDBUS_0) != 0U) {
-            errorstate = sdmm_mmc_pwr_class_update(SDMMC_BUS_WIDE_4B, SDMMC_SPEED_MODE_DDR);
-            if(errorstate != FuriHalSdErrorNone) {
-                return errorstate;
+            status = sdmm_mmc_pwr_class_update(SDMMC_BUS_WIDE_4B, SDMMC_SPEED_MODE_DDR);
+            if(status != FuriHalSdErrorNone) {
+                return status;
             }
 
             /* Index : 183 - Value : 5 */
-            errorstate = SDMMC_CmdSwitch(
-                FURI_SDMMC_BLOCK, SDMMC_CMD6_WRITE_BYTE_EXT_CSD(183, 5)); //0x03B70500U
+            status = translate_sd_error(SDMMC_CmdSwitch(
+                FURI_SDMMC_BLOCK, SDMMC_CMD6_WRITE_BYTE_EXT_CSD(183, 5))); //0x03B70500U
 
         } else {
-            errorstate = sdmm_mmc_pwr_class_update(SDMMC_BUS_WIDE_8B, SDMMC_SPEED_MODE_DDR);
-            if(errorstate != FuriHalSdErrorNone) {
-                return errorstate;
+            status = sdmm_mmc_pwr_class_update(SDMMC_BUS_WIDE_8B, SDMMC_SPEED_MODE_DDR);
+            if(status != FuriHalSdErrorNone) {
+                return status;
             }
 
             /* Index : 183 - Value : 6 */
-            errorstate = SDMMC_CmdSwitch(
-                FURI_SDMMC_BLOCK, SDMMC_CMD6_WRITE_BYTE_EXT_CSD(183, 6)); //0x03B70600U
+            status = translate_sd_error(SDMMC_CmdSwitch(
+                FURI_SDMMC_BLOCK, SDMMC_CMD6_WRITE_BYTE_EXT_CSD(183, 6))); //0x03B70600U
         }
+    } else {
+        return FuriHalSdErrorNone;
     }
 
-    if(errorstate == FuriHalSdErrorNone) {
+    if(status == FuriHalSdErrorNone) {
         /* While card is not ready for data and trial number for sending CMD13 is not exceeded */
-        count = SDMMC_MAX_TRIAL;
+        uint32_t count = SDMMC_MAX_TRIAL;
+        uint32_t response = 0U;
         do {
-            errorstate = SDMMC_CmdSendStatus(
-                FURI_SDMMC_BLOCK, (uint32_t)(((uint32_t)sdmmc1.card_rca) << 16U));
-            if(errorstate != FuriHalSdErrorNone) {
+            status = translate_sd_error(SDMMC_CmdSendStatus(
+                FURI_SDMMC_BLOCK, (uint32_t)(((uint32_t)sdmmc1.card_rca) << 16U)));
+            if(status != FuriHalSdErrorNone) {
                 break;
             }
 
@@ -1908,10 +1953,10 @@ static FuriHalSdError sdmmc_mmc_ddr_mode(FunctionalState state) {
         } while(((response & 0x100U) == 0U) && (count != 0U));
 
         /* Check the status after the switch command execution */
-        if((count != 0U) && (errorstate == FuriHalSdErrorNone)) {
+        if((count != 0U) && (status == FuriHalSdErrorNone)) {
             /* Check the bit SWITCH_ERROR of the device status */
             if((response & 0x80U) != 0U) {
-                errorstate = SDMMC_ERROR_UNSUPPORTED_FEATURE;
+                status = FuriHalSdErrorUnsupportedFeature;
             } else {
                 /* Configure DDR mode */
                 if(state == DISABLE) {
@@ -1921,17 +1966,18 @@ static FuriHalSdError sdmmc_mmc_ddr_mode(FunctionalState state) {
                 }
             }
         } else if(count == 0U) {
-            errorstate = SDMMC_ERROR_TIMEOUT;
+            status = FuriHalSdErrorTimeout;
         } else {
             /* Nothing to do */
         }
     }
 
-    return errorstate;
+    return status;
 }
 
+FURI_CHECK_RETURN
 static FuriHalSdError sdmmc_mmc_config_speed_bus_mode(uint32_t sdmmc_clk) {
-    FuriHalSdError errorstate = FuriHalSdErrorNone;
+    FuriHalSdError status = FuriHalSdErrorNone;
 
     /* Field DEVICE_TYPE [196] of Extended CSD register */
     uint32_t device_type = sdmmc1.ext_csd_reg.device_type;
@@ -1949,54 +1995,50 @@ static FuriHalSdError sdmmc_mmc_config_speed_bus_mode(uint32_t sdmmc_clk) {
     // auto switch to high speed mode
     if(((FURI_SDMMC_BLOCK->CLKCR & SDMMC_CLKCR_WIDBUS) != 0U) && ((device_type & 0x04U) != 0U)) {
         /* High Speed DDR mode allowed */
-        errorstate = sdmmc_mmc_high_speed(ENABLE, sdmmc_clk);
-        if(errorstate != FuriHalSdErrorNone) {
-            return errorstate;
+        status = sdmmc_mmc_high_speed(ENABLE, sdmmc_clk);
+        if(status != FuriHalSdErrorNone) {
+            return status;
         } else {
             if((FURI_SDMMC_BLOCK->CLKCR & SDMMC_CLKCR_CLKDIV) != 0U) {
                 /* DDR mode not supported with CLKDIV = 0 */
-                errorstate = sdmmc_mmc_ddr_mode(ENABLE);
-                if(errorstate != FuriHalSdErrorNone) {
-                    return errorstate;
+                status = sdmmc_mmc_ddr_mode(ENABLE);
+                if(status != FuriHalSdErrorNone) {
+                    return status;
                 }
             }
         }
     } else if((device_type & 0x02U) != 0U) {
         /* High Speed mode allowed */
-        errorstate = sdmmc_mmc_high_speed(ENABLE, sdmmc_clk);
-        if(errorstate != FuriHalSdErrorNone) {
-            return errorstate;
+        status = sdmmc_mmc_high_speed(ENABLE, sdmmc_clk);
+        if(status != FuriHalSdErrorNone) {
+            return status;
         }
     } else {
         /* Nothing to do : keep current speed */
     }
 
     /* Verify that MMC card is ready to use after Speed mode switch*/
-    if(!sdmmc_wait_for_transfer_state(SDMMC_REAL_DATATIMEOUT)) {
-        return FuriHalSdErrorTimeout;
-    }
-
-    return errorstate;
+    status = sdmmc_wait_for_transfer_state(SDMMC_REAL_DATATIMEOUT);
+    return status;
 }
 
+FURI_CHECK_RETURN
 static FuriHalSdError sdmmc_mmc_wide_bus_mode(uint32_t wide_mode) {
-    uint32_t count;
     // SDMMC_InitTypeDef Init;
-    FuriHalSdError errorstate;
-    uint32_t response = 0U;
+    FuriHalSdError status;
 
     /* Check and update the power class if needed */
     if((FURI_SDMMC_BLOCK->CLKCR & SDMMC_CLKCR_BUSSPEED) != 0U) {
         if((FURI_SDMMC_BLOCK->CLKCR & SDMMC_CLKCR_DDR) != 0U) {
-            errorstate = sdmm_mmc_pwr_class_update(wide_mode, SDMMC_SPEED_MODE_DDR);
+            status = sdmm_mmc_pwr_class_update(wide_mode, SDMMC_SPEED_MODE_DDR);
         } else {
-            errorstate = sdmm_mmc_pwr_class_update(wide_mode, SDMMC_SPEED_MODE_HIGH);
+            status = sdmm_mmc_pwr_class_update(wide_mode, SDMMC_SPEED_MODE_HIGH);
         }
     } else {
-        errorstate = sdmm_mmc_pwr_class_update(wide_mode, SDMMC_SPEED_MODE_DEFAULT);
+        status = sdmm_mmc_pwr_class_update(wide_mode, SDMMC_SPEED_MODE_DEFAULT);
     }
 
-    if(errorstate == FuriHalSdErrorNone) {
+    if(status == FuriHalSdErrorNone) {
         /*
         7.4.45 BUS_WIDTH [183] 
         Value   Bus Width
@@ -2009,27 +2051,28 @@ static FuriHalSdError sdmmc_mmc_wide_bus_mode(uint32_t wide_mode) {
         7..255  Reserved
         */
         if(wide_mode == SDMMC_BUS_WIDE_8B) {
-            errorstate = SDMMC_CmdSwitch(
-                FURI_SDMMC_BLOCK, SDMMC_CMD6_WRITE_BYTE_EXT_CSD(183, 2)); //0x03B70200U
+            status = translate_sd_error(SDMMC_CmdSwitch(
+                FURI_SDMMC_BLOCK, SDMMC_CMD6_WRITE_BYTE_EXT_CSD(183, 2))); //0x03B70200U
         } else if(wide_mode == SDMMC_BUS_WIDE_4B) {
-            errorstate = SDMMC_CmdSwitch(
-                FURI_SDMMC_BLOCK, SDMMC_CMD6_WRITE_BYTE_EXT_CSD(183, 1)); //0x03B70100U
+            status = translate_sd_error(SDMMC_CmdSwitch(
+                FURI_SDMMC_BLOCK, SDMMC_CMD6_WRITE_BYTE_EXT_CSD(183, 1))); //0x03B70100U
         } else if(wide_mode == SDMMC_BUS_WIDE_1B) {
-            errorstate = SDMMC_CmdSwitch(
-                FURI_SDMMC_BLOCK, SDMMC_CMD6_WRITE_BYTE_EXT_CSD(183, 0)); //0x03B70000U
+            status = translate_sd_error(SDMMC_CmdSwitch(
+                FURI_SDMMC_BLOCK, SDMMC_CMD6_WRITE_BYTE_EXT_CSD(183, 0))); //0x03B70000U
         } else {
             /* wide_mode is not a valid argument*/
-            errorstate = FuriHalSdErrorParam;
+            status = FuriHalSdErrorParam;
         }
 
         /* Check for switch error and violation of the trial number of sending CMD 13 */
-        if(errorstate == FuriHalSdErrorNone) {
+        if(status == FuriHalSdErrorNone) {
             /* While card is not ready for data and trial number for sending CMD13 is not exceeded */
-            count = SDMMC_MAX_TRIAL;
+            uint32_t count = SDMMC_MAX_TRIAL;
+            uint32_t response = 0U;
             do {
-                errorstate = SDMMC_CmdSendStatus(
-                    FURI_SDMMC_BLOCK, (uint32_t)(((uint32_t)sdmmc1.card_rca) << 16U));
-                if(errorstate != FuriHalSdErrorNone) {
+                status = translate_sd_error(SDMMC_CmdSendStatus(
+                    FURI_SDMMC_BLOCK, (uint32_t)(((uint32_t)sdmmc1.card_rca) << 16U)));
+                if(status != FuriHalSdErrorNone) {
                     break;
                 }
 
@@ -2039,10 +2082,10 @@ static FuriHalSdError sdmmc_mmc_wide_bus_mode(uint32_t wide_mode) {
             } while(((response & 0x100U) == 0U) && (count != 0U));
 
             /* Check the status after the switch command execution */
-            if((count != 0U) && (errorstate == FuriHalSdErrorNone)) {
+            if((count != 0U) && (status == FuriHalSdErrorNone)) {
                 /* Check the bit SWITCH_ERROR of the device status */
                 if((response & 0x80U) != 0U) {
-                    errorstate = SDMMC_ERROR_GENERAL_UNKNOWN_ERR;
+                    status = FuriHalSdErrorGeneralUnknownErr;
                 } else {
                     /* Configure the SDMMC peripheral */
                     // Init = hmmc->Init;
@@ -2054,23 +2097,26 @@ static FuriHalSdError sdmmc_mmc_wide_bus_mode(uint32_t wide_mode) {
                     FURI_SDMMC_BLOCK->CLKCR = clkcr;
                 }
             } else if(count == 0U) {
-                errorstate = SDMMC_ERROR_TIMEOUT;
+                status = FuriHalSdErrorTimeout;
             } else {
                 /* Nothing to do */
             }
         }
     }
 
-    if(errorstate != FuriHalSdErrorNone) {
+    if(status != FuriHalSdErrorNone) {
         /* Clear all the static flags */
         sdmmc_clear_static_flags();
     }
 
-    return errorstate;
+    return status;
 }
 
-static bool sdmmc_init_mmc_lowspeed(uint32_t sdmmc_clk) {
-    furi_assert(sdmmc_clk != 0U);
+FURI_CHECK_RETURN
+static FuriHalSdError sdmmc_init_mmc_lowspeed(uint32_t sdmmc_clk) {
+    if(sdmmc_clk == 0U) {
+        return FuriHalSdErrorParam;
+    }
 
     // init params
     SDMMC_InitTypeDef init = {0};
@@ -2092,39 +2138,42 @@ static bool sdmmc_init_mmc_lowspeed(uint32_t sdmmc_clk) {
     furi_delay_us((1000000 * 74) / (sdmmc_clk / (2U * init.ClockDiv)));
 
     // identify card operating voltage
-    FuriHalSdError errorstate = sdmmc_mmc_power_on();
-    if(errorstate != FuriHalSdErrorNone) {
-        FURI_LOG_E(TAG, "sdmmc_mmc_power_on failed with error 0x%08x", errorstate);
-        return false;
+    FuriHalSdError status = sdmmc_mmc_power_on();
+    if(status != FuriHalSdErrorNone) {
+        FURI_LOG_E(TAG, "sdmmc_mmc_power_on failed with error 0x%08x", status);
+        return status;
     }
 
     // initialize card
-    errorstate = sdmmc_mmc_init_card();
-    if(errorstate != FuriHalSdErrorNone) {
-        FURI_LOG_E(TAG, "sdmmc_mmc_init_card failed with error 0x%08x", errorstate);
-        return false;
+    status = sdmmc_mmc_init_card();
+    if(status != FuriHalSdErrorNone) {
+        FURI_LOG_E(TAG, "sdmmc_mmc_init_card failed with error 0x%08x", status);
+        return status;
     }
 
     // set block size for card
-    errorstate = SDMMC_CmdBlockLength(FURI_SDMMC_BLOCK, SD_BLOCKSIZE);
-    if(errorstate != FuriHalSdErrorNone) {
+    status = translate_sd_error(SDMMC_CmdBlockLength(FURI_SDMMC_BLOCK, SD_BLOCKSIZE));
+    if(status != FuriHalSdErrorNone) {
         sdmmc_clear_static_flags();
-        FURI_LOG_E(TAG, "SDMMC_CmdBlockLength failed with error 0x%08x", errorstate);
-        return false;
+        FURI_LOG_E(TAG, "SDMMC_CmdBlockLength failed with error 0x%08x", status);
+        return status;
     }
 
-    return true;
+    return status;
 }
 
-static bool sdmmc_init_mmc(uint32_t sdmmc_clk) {
-    if(!sdmmc_init_mmc_lowspeed(sdmmc_clk)) {
+FURI_CHECK_RETURN
+static FuriHalSdError sdmmc_init_mmc(uint32_t sdmmc_clk) {
+    FuriHalSdError status = sdmmc_init_mmc_lowspeed(sdmmc_clk);
+    if(status != FuriHalSdErrorNone) {
         FURI_LOG_E(TAG, "sdmmc_init_mmc failed");
-        return false;
+        return status;
     }
 
-    if(sdmmc_mmc_wide_bus_mode(SDMMC_BUS_WIDE_4B) != FuriHalSdErrorNone) {
+    status = sdmmc_mmc_wide_bus_mode(SDMMC_BUS_WIDE_4B);
+    if(status != FuriHalSdErrorNone) {
         FURI_LOG_E(TAG, "sdmmc_mmc_wide_bus_mode failed");
-        return false;
+        return status;
     }
 
     // idk, what to set for eMMC?
@@ -2132,15 +2181,17 @@ static bool sdmmc_init_mmc(uint32_t sdmmc_clk) {
     // sdmmc1.info.version = FuriHalSdVersion2;
 
     /* Configure the bus wide */
-    if(sdmmc_mmc_config_speed_bus_mode(sdmmc_clk) != FuriHalSdErrorNone) {
+    status = sdmmc_mmc_config_speed_bus_mode(sdmmc_clk);
+    if(status != FuriHalSdErrorNone) {
         FURI_LOG_E(TAG, "sdmmc_mmc_config_speed_bus_mode failed");
-        return false;
+        return status;
     }
 
-    return true;
+    return status;
 }
 
-bool furi_hal_sdmmc_init_card(void) {
+FURI_CHECK_RETURN
+FuriHalSdError furi_hal_sdmmc_init_card(void) {
     sdmmc1.card_alive = false;
 
     // init sdmmc periph
@@ -2151,17 +2202,19 @@ bool furi_hal_sdmmc_init_card(void) {
 
     uint32_t sdmmc_clk = furi_hal_clock_get_freq(FuriHalClockHwSdMmc12);
 
-    if(sdmmc_init_mmc(sdmmc_clk)) {
+    FuriHalSdError status = sdmmc_init_mmc(sdmmc_clk);
+    if(status == FuriHalSdErrorNone) {
         sdmmc1.card_alive = true;
-        return true;
+        return status;
     } else {
-        FURI_LOG_E(TAG, "MMC init failed, trying SD card");
-        if(sdmmc_init_sdcard(sdmmc_clk)) {
+        FURI_LOG_I(TAG, "MMC init failed, trying SD card");
+        status = sdmmc_init_sdcard(sdmmc_clk);
+        if(status == FuriHalSdErrorNone) {
             sdmmc1.card_alive = true;
-            return true;
+            return status;
         } else {
             FURI_LOG_E(TAG, "SD card init failed");
-            return false;
+            return status;
         }
     }
 }
@@ -2175,18 +2228,18 @@ void furi_hal_sdmmc_deinit_card(void) {
     sdmmc1.card_alive = false;
 }
 
-bool furi_hal_sdmmc_read_blocks(
+FuriHalSdError furi_hal_sdmmc_read_blocks(
     uint8_t* buffer,
     uint32_t address,
     uint32_t count,
     size_t timeout_ms) {
     if(count == 0) {
-        return true;
+        return FuriHalSdErrorNone;
     }
 
     if((address + count) > (sdmmc1.info.logical_block_count)) {
         FURI_LOG_E(TAG, "Address out of range");
-        return false;
+        return FuriHalSdErrorParam;
     }
 
     const uint32_t CURRENT_BLOCK_SIZE = SD_BLOCKSIZE;
@@ -2207,6 +2260,7 @@ bool furi_hal_sdmmc_read_blocks(
     uint8_t* current_user_buffer_ptr = buffer;
     uint32_t current_sd_block_address = address;
     uint32_t remaining_blocks = count;
+    FuriHalSdError last_status = FuriHalSdErrorNone;
 
     while(remaining_blocks > 0) {
         uint8_t* dma_target_buffer;
@@ -2226,25 +2280,26 @@ bool furi_hal_sdmmc_read_blocks(
         }
 
         furi_hal_sdmmc_event_clear(SdMmcDmaEventComplete | SdMmcDmaEventError);
-        sdmmc_dma_context.error = FuriHalSdErrorNone; // Clear previous error for this operation
+        sdmmc_dma_context.hal_error = SDMMC_ERROR_NONE; // Clear previous error for this operation
 
-        bool dma_initiated_successfully = sdmmc_read_blocks_dma(
+        FuriHalSdError dma_status = sdmmc_read_blocks_dma(
             dma_target_buffer, current_sd_block_address, blocks_in_current_operation);
 
         uint32_t dma_event_flags = 0;
-        if(dma_initiated_successfully) {
+        bool current_operation_successful = dma_status == FuriHalSdErrorNone;
+        if(current_operation_successful) {
             dma_event_flags =
                 furi_hal_sdmmc_event_wait(SdMmcDmaEventComplete | SdMmcDmaEventError, timeout_ms);
         }
 
-        bool current_operation_successful = dma_initiated_successfully;
-        if(!dma_initiated_successfully) {
+        if(!current_operation_successful) {
             FURI_LOG_E(
                 TAG,
                 "sdmmc_read_blocks_dma call failed for %lu blocks at 0x%08lx",
                 blocks_in_current_operation,
                 current_sd_block_address);
             // sdmmc_dma_context.error might not be set by sdmmc_read_blocks_dma itself if it returns false early
+            last_status = dma_status;
         } else if(
             (dma_event_flags == FuriFlagErrorTimeout) || (dma_event_flags & SdMmcDmaEventError)) {
             if(dma_event_flags == FuriFlagErrorTimeout) {
@@ -2253,26 +2308,31 @@ bool furi_hal_sdmmc_read_blocks(
                     "DMA operation timeout for %lu blocks at 0x%08lx",
                     blocks_in_current_operation,
                     current_sd_block_address);
+                last_status = FuriHalSdErrorTimeout;
             } else { // SdMmcDmaEventError
                 FURI_LOG_E(
                     TAG,
-                    "DMA operation error 0x%08x for %lu blocks at 0x%08lx",
-                    sdmmc_dma_context.error, // Error should be set by IRQ handler
+                    "DMA operation error 0x%08lx for %lu blocks at 0x%08lx",
+                    sdmmc_dma_context.hal_error, // Error should be set by IRQ handler
                     blocks_in_current_operation,
                     current_sd_block_address);
+                last_status = translate_sd_error(sdmmc_dma_context.hal_error);
             }
             current_operation_successful = false;
         }
 
         if(current_operation_successful) {
             // If DMA start and event wait were OK, check card transfer state
-            current_operation_successful = sdmmc_wait_for_transfer_state(timeout_ms);
+            FuriHalSdError status = sdmmc_wait_for_transfer_state(timeout_ms);
+            current_operation_successful = status == FuriHalSdErrorNone;
             if(!current_operation_successful) {
                 FURI_LOG_E(
                     TAG,
-                    "sdmmc_wait_for_transfer_state failed after DMA for %lu blocks at 0x%08lx",
+                    "sdmmc_wait_for_transfer_state failed after DMA for %lu blocks at 0x%08lx: %u",
                     blocks_in_current_operation,
-                    current_sd_block_address);
+                    current_sd_block_address,
+                    status);
+                last_status = status;
             }
         } else {
             read_success = false;
@@ -2301,22 +2361,23 @@ bool furi_hal_sdmmc_read_blocks(
 
     if(!read_success) {
         sdmmc1.card_alive = false; // Mark card as potentially unusable
+        return last_status;
+    } else {
+        return FuriHalSdErrorNone;
     }
-
-    return read_success;
 }
 
-bool furi_hal_sdmmc_write_blocks(
+FuriHalSdError furi_hal_sdmmc_write_blocks(
     const uint8_t* buffer,
     uint32_t address,
     uint32_t count,
     size_t timeout_ms) {
     if(count == 0) {
-        return true;
+        return FuriHalSdErrorNone;
     }
     if((address + count) > (sdmmc1.info.logical_block_count)) {
         FURI_LOG_E(TAG, "Address out of range");
-        return false;
+        return FuriHalSdErrorParam;
     }
 
     const uint32_t CURRENT_BLOCK_SIZE = SD_BLOCKSIZE;
@@ -2337,6 +2398,7 @@ bool furi_hal_sdmmc_write_blocks(
     const uint8_t* current_user_buffer_ptr = buffer;
     uint32_t current_sd_block_address = address;
     uint32_t remaining_blocks = count;
+    FuriHalSdError last_status = FuriHalSdErrorNone;
 
     while(remaining_blocks > 0) {
         const uint8_t* dma_target_buffer;
@@ -2355,24 +2417,25 @@ bool furi_hal_sdmmc_write_blocks(
         }
 
         furi_hal_sdmmc_event_clear(SdMmcDmaEventComplete | SdMmcDmaEventError);
-        sdmmc_dma_context.error = FuriHalSdErrorNone; // Clear previous error for this operation
+        sdmmc_dma_context.hal_error = SDMMC_ERROR_NONE; // Clear previous error for this operation
 
-        bool dma_initiated_successfully = sdmmc_write_blocks_dma(
+        FuriHalSdError dma_status = sdmmc_write_blocks_dma(
             dma_target_buffer, current_sd_block_address, blocks_in_current_operation);
 
         uint32_t dma_event_flags = 0;
-        if(dma_initiated_successfully) {
+        bool current_operation_successful = dma_status == FuriHalSdErrorNone;
+        if(current_operation_successful) {
             dma_event_flags =
                 furi_hal_sdmmc_event_wait(SdMmcDmaEventComplete | SdMmcDmaEventError, timeout_ms);
         }
 
-        bool current_operation_successful = dma_initiated_successfully;
-        if(!dma_initiated_successfully) {
+        if(!current_operation_successful) {
             FURI_LOG_E(
                 TAG,
                 "sdmmc_write_blocks_dma call failed for %lu blocks at 0x%08lx",
                 blocks_in_current_operation,
                 current_sd_block_address);
+            last_status = dma_status;
             // sdmmc_dma_context.error might not be set by sdmmc_write_blocks_dma itself if it returns false early
         } else if(
             (dma_event_flags == FuriFlagErrorTimeout) || (dma_event_flags & SdMmcDmaEventError)) {
@@ -2382,26 +2445,30 @@ bool furi_hal_sdmmc_write_blocks(
                     "DMA operation timeout for %lu blocks at 0x%08lx",
                     blocks_in_current_operation,
                     current_sd_block_address);
+                last_status = FuriHalSdErrorTimeout;
             } else { // SdMmcDmaEventError
                 FURI_LOG_E(
                     TAG,
-                    "DMA operation error 0x%08x for %lu blocks at 0x%08lx",
-                    sdmmc_dma_context.error, // Error should be set by IRQ handler
+                    "DMA operation error 0x%08lx for %lu blocks at 0x%08lx",
+                    sdmmc_dma_context.hal_error, // Error should be set by IRQ handler
                     blocks_in_current_operation,
                     current_sd_block_address);
+                last_status = translate_sd_error(sdmmc_dma_context.hal_error);
             }
             current_operation_successful = false;
         }
 
         if(current_operation_successful) {
             // If DMA start and event wait were OK, check card transfer state
-            current_operation_successful = sdmmc_wait_for_transfer_state(timeout_ms);
+            FuriHalSdError status = sdmmc_wait_for_transfer_state(timeout_ms);
+            current_operation_successful = status == FuriHalSdErrorNone;
             if(!current_operation_successful) {
                 FURI_LOG_E(
                     TAG,
                     "sdmmc_wait_for_transfer_state failed after DMA for %lu blocks at 0x%08lx",
                     blocks_in_current_operation,
                     current_sd_block_address);
+                last_status = status;
             }
         } else {
             write_success = false;
@@ -2423,15 +2490,21 @@ bool furi_hal_sdmmc_write_blocks(
 
     if(!write_success) {
         sdmmc1.card_alive = false; // Mark card as potentially unusable
+        return last_status;
+    } else {
+        return FuriHalSdErrorNone;
     }
-
-    return write_success;
 }
 
-bool furi_hal_sdmmc_get_card_info(FuriHalSdInfo* info) {
+FuriHalSdError furi_hal_sdmmc_get_card_info(FuriHalSdInfo* info) {
     furi_check(info);
-    memcpy(info, &sdmmc1.info, sizeof(FuriHalSdInfo));
-    return true;
+
+    if(sdmmc1.card_alive) {
+        memcpy(info, &sdmmc1.info, sizeof(FuriHalSdInfo));
+        return FuriHalSdErrorNone;
+    } else {
+        return FuriHalSdErrorCardAbsent;
+    }
 }
 
 bool furi_hal_sd_alive(void) {

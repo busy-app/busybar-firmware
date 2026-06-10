@@ -37,4 +37,5 @@ typedef struct {
 
     FrontDisplayTestPattern pattern;
     FrontDisplayTestColor color;
+    bool power_on;
 } FrontDisplayTestApp;

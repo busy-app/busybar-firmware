@@ -70,12 +70,16 @@ static bool system_settings_scene_shut_down_confirm_on_event(
     bool consumed = false;
     if(event->type == SceneManagerEventTypeCustom) {
         if(event->event == SceneEventConfirm) {
+            FrontDisplaySrv* front_display = furi_record_open(RECORD_FRONT_DISPLAY);
+            front_display_sleep_mode(front_display, true);
             bool power_off_success = power_off(instance->power);
 
             if(!power_off_success) {
+                front_display_sleep_mode(front_display, false);
                 system_settings_pop_location(instance);
                 consumed = scene_manager_previous_scene(instance->scene_manager);
             }
+            furi_record_close(RECORD_FRONT_DISPLAY);
         } else if(event->event == SceneEventCancel) {
             system_settings_pop_location(instance);
             consumed = scene_manager_search_and_switch_to_previous_scene(

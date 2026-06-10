@@ -33,6 +33,7 @@ typedef enum {
     FrontDisplayTestColorCian,
     FrontDisplayTestColorPurple,
     FrontDisplayTestColorWhite,
+    FrontDisplayTestColorBlank,
 
     FrontDisplayTestColorNum,
 } FrontDisplayTestColor;

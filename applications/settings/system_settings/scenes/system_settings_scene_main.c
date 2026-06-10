@@ -34,27 +34,31 @@ static void system_settings_scene_main_on_enter(void* context) {
         submenu_add_item(
             data->front_menu,
             "Power",
+            NULL,
             SceneEventPower,
             system_settings_scene_main_menu_item_callback,
             instance);
         submenu_add_item(
             data->front_menu,
             "Debug",
+            NULL,
             SceneEventDebug,
             system_settings_scene_main_menu_item_callback,
             instance);
         submenu_add_item(
             data->front_menu,
             "Factory reset",
+            NULL,
             SceneEventFactoryReset,
             system_settings_scene_main_menu_item_callback,
             instance);
         submenu_set_selected_item_index(data->front_menu, data->menu_index);
 
         data->back_menu = submenu_alloc(instance->back_scene_window);
-        submenu_add_item(data->back_menu, "Power", SceneEventPower, NULL, instance);
-        submenu_add_item(data->back_menu, "Debug", SceneEventDebug, NULL, instance);
-        submenu_add_item(data->back_menu, "Factory reset", SceneEventFactoryReset, NULL, instance);
+        submenu_add_item(data->back_menu, "Power", NULL, SceneEventPower, NULL, instance);
+        submenu_add_item(data->back_menu, "Debug", NULL, SceneEventDebug, NULL, instance);
+        submenu_add_item(
+            data->back_menu, "Factory reset", NULL, SceneEventFactoryReset, NULL, instance);
         submenu_set_selected_item_index(data->back_menu, data->menu_index);
     });
 }

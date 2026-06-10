@@ -102,41 +102,66 @@ CrashTest* crash_test_alloc(void) {
     submenu_add_item(
         instance->submenu,
         "Read NULL",
+        NULL,
         CrashTestSubmenuReadNull,
         crash_test_submenu_callback,
         instance);
     submenu_add_item(
         instance->submenu,
         "Write NULL",
+        NULL,
         CrashTestSubmenuWriteNull,
         crash_test_submenu_callback,
         instance);
     submenu_add_item(
         instance->submenu,
         "Stack Overflow",
+        NULL,
         CrashTestSubmenuStackOverflow,
         crash_test_submenu_callback,
         instance);
     submenu_add_item(
-        instance->submenu, "Check", CrashTestSubmenuCheck, crash_test_submenu_callback, instance);
+        instance->submenu,
+        "Check",
+        NULL,
+        CrashTestSubmenuCheck,
+        crash_test_submenu_callback,
+        instance);
     submenu_add_item(
         instance->submenu,
         "Check with message",
+        NULL,
         CrashTestSubmenuCheckMessage,
         crash_test_submenu_callback,
         instance);
     submenu_add_item(
-        instance->submenu, "Assert", CrashTestSubmenuAssert, crash_test_submenu_callback, instance);
+        instance->submenu,
+        "Assert",
+        NULL,
+        CrashTestSubmenuAssert,
+        crash_test_submenu_callback,
+        instance);
     submenu_add_item(
         instance->submenu,
         "Assert with message",
+        NULL,
         CrashTestSubmenuAssertMessage,
         crash_test_submenu_callback,
         instance);
     submenu_add_item(
-        instance->submenu, "Crash", CrashTestSubmenuCrash, crash_test_submenu_callback, instance);
+        instance->submenu,
+        "Crash",
+        NULL,
+        CrashTestSubmenuCrash,
+        crash_test_submenu_callback,
+        instance);
     submenu_add_item(
-        instance->submenu, "Halt", CrashTestSubmenuHalt, crash_test_submenu_callback, instance);
+        instance->submenu,
+        "Halt",
+        NULL,
+        CrashTestSubmenuHalt,
+        crash_test_submenu_callback,
+        instance);
 
     return instance;
 }
