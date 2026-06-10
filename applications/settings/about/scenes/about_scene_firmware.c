@@ -54,21 +54,21 @@ static void about_scene_firmware_on_enter(void* context) {
         uptime_minutes % MINUTES_IN_HOUR);
 
     with_gui(instance->gui, {
-        widget_set_scrollbar_mode(instance->front_scene_window, WidgetScrollBarModeAuto);
-
         scene->front_label = label_alloc(instance->front_scene_window);
+        widget_set_padding(label_get_base(scene->front_label), 0, 2, 0, 0);
         label_set_inline_text_color_formatting(scene->front_label, true);
         label_set_text(scene->front_label, furi_string_get_cstr(firmware_info_string));
         label_set_font(scene->front_label, FONT_BUSY_REGULAR_5);
         label_set_line_spacing(scene->front_label, -2);
 
-        widget_set_scrollbar_mode(instance->back_scene_window, WidgetScrollBarModeAuto);
-
         scene->back_label = label_alloc(instance->back_scene_window);
-        widget_set_padding(label_get_base(scene->back_label), 2, 0, 0, 0);
+        widget_set_padding(label_get_base(scene->back_label), 2, 4, 0, 0);
         label_set_inline_text_color_formatting(scene->back_label, true);
         label_set_text(scene->back_label, furi_string_get_cstr(firmware_info_string));
         label_set_font(scene->back_label, FONT_BUSY_REGULAR_7);
+
+        widget_set_scrollbar_enabled(instance->front_scene_window, true);
+        widget_set_scrollbar_enabled(instance->back_scene_window, true);
     });
 
     furi_string_free(firmware_info_string);
@@ -82,10 +82,10 @@ static void about_scene_firmware_on_exit(void* context) {
 
     with_gui(instance->gui, {
         label_free(scene->front_label);
-        widget_set_scrollbar_mode(instance->front_scene_window, WidgetScrollBarModeOff);
+        widget_set_scrollbar_enabled(instance->front_scene_window, false);
 
         label_free(scene->back_label);
-        widget_set_scrollbar_mode(instance->back_scene_window, WidgetScrollBarModeOff);
+        widget_set_scrollbar_enabled(instance->back_scene_window, false);
     });
 }
 

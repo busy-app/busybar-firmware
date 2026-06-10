@@ -1,6 +1,6 @@
 #include "menu.h"
+#include "private/menu_base_i.h"
 
-#include <gui/widget_i.h>
 #include <gui/modules/anim_player_i.h>
 
 #include <lvgl/src/core/lv_obj_class_private.h>
@@ -12,13 +12,10 @@
 #define MY_SUBLABEL_CLASS      (&menu_sublabel_lvgl_class)
 #define MY_ARROW_CLASS         (&menu_arrow_lvgl_class)
 
-#define SCROLL_ANIM_DURATION_MS (0)
-
 #define ARROW_SYMBOL ">"
 
 struct Menu {
-    Widget base;
-    lv_group_t* group;
+    MenuBase base;
 };
 
 typedef struct {
@@ -40,16 +37,6 @@ const lv_obj_class_t menu_icon_animated_lvgl_class;
 const lv_obj_class_t menu_sublabel_lvgl_class;
 const lv_obj_class_t menu_arrow_lvgl_class;
 
-// TODO: Make it a universal fix
-static void menu_scroll_event_callback(lv_event_t* event) {
-    const lv_event_code_t code = lv_event_get_code(event);
-
-    if(code == LV_EVENT_SCROLL_BEGIN) {
-        lv_anim_t* anim = lv_event_get_scroll_anim(event);
-        if(anim) anim->duration = SCROLL_ANIM_DURATION_MS;
-    }
-}
-
 static bool menu_input_callback(Widget* widget, const InputEvent* event) {
     Menu* instance = (Menu*)widget;
 
@@ -57,15 +44,15 @@ static bool menu_input_callback(Widget* widget, const InputEvent* event) {
 
     if(event->type == InputTypeShort) {
         if(event->key == InputKeyUp) {
-            lv_group_focus_next(instance->group);
+            lv_group_focus_next(instance->base.group);
             consumed = true;
 
         } else if(event->key == InputKeyDown) {
-            lv_group_focus_prev(instance->group);
+            lv_group_focus_prev(instance->base.group);
             consumed = true;
 
         } else if(event->key == InputKeyOk || event->key == InputKeyStart) {
-            const MenuItem* item = (MenuItem*)lv_group_get_focused(instance->group);
+            const MenuItem* item = (MenuItem*)lv_group_get_focused(instance->base.group);
 
             if(item->callback) {
                 item->callback(item->index, item->context);
@@ -110,7 +97,7 @@ static lv_obj_t* menu_item_alloc(
     }
 
     lv_label_set_text(instance->label, label);
-    lv_group_add_obj(parent->group, obj);
+    lv_group_add_obj(parent->base.group, obj);
 
     if(sub_label) {
         if(strlen(sub_label)) {
@@ -120,24 +107,6 @@ static lv_obj_t* menu_item_alloc(
     }
 
     return obj;
-}
-
-static void menu_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
-    UNUSED(class_p);
-
-    lv_obj_set_flex_flow(obj, LV_FLEX_FLOW_COLUMN);
-    lv_obj_add_event_cb(obj, menu_scroll_event_callback, LV_EVENT_SCROLL_BEGIN, NULL);
-
-    Menu* instance = (Menu*)obj;
-    instance->group = lv_group_create();
-    lv_group_set_wrap(instance->group, false);
-}
-
-static void menu_lvgl_destructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
-    UNUSED(class_p);
-
-    Menu* instance = (Menu*)obj;
-    lv_group_delete(instance->group);
 }
 
 static void menu_item_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
@@ -245,11 +214,11 @@ uint32_t menu_get_selected_item_index(const Menu* instance) {
 
     uint32_t ret;
 
-    const lv_obj_t* focused = lv_group_get_focused(instance->group);
-    const uint32_t item_count = lv_group_get_obj_count(instance->group);
+    const lv_obj_t* focused = lv_group_get_focused(instance->base.group);
+    const uint32_t item_count = lv_group_get_obj_count(instance->base.group);
 
     for(ret = 0; ret < item_count; ++ret) {
-        if(focused == lv_group_get_obj_by_index(instance->group, ret)) {
+        if(focused == lv_group_get_obj_by_index(instance->base.group, ret)) {
             break;
         }
     }
@@ -259,8 +228,8 @@ uint32_t menu_get_selected_item_index(const Menu* instance) {
 
 void menu_set_selected_item_index(Menu* instance, uint32_t index) {
     furi_check(instance);
-    furi_check(index < lv_group_get_obj_count(instance->group));
-    lv_obj_t* target = lv_group_get_obj_by_index(instance->group, index);
+    furi_check(index < lv_group_get_obj_count(instance->base.group));
+    lv_obj_t* target = lv_group_get_obj_by_index(instance->base.group, index);
 
     lv_group_focus_obj(target);
 
@@ -273,9 +242,7 @@ void menu_set_selected_item_index(Menu* instance, uint32_t index) {
 // LVGL class descriptors
 
 const lv_obj_class_t menu_lvgl_class = {
-    .base_class = &widget_lvgl_class,
-    .constructor_cb = menu_lvgl_constructor,
-    .destructor_cb = menu_lvgl_destructor,
+    .base_class = &menu_base_lvgl_class,
     .name = "widget-menu",
     .width_def = LV_PCT(100),
     .height_def = LV_PCT(100),

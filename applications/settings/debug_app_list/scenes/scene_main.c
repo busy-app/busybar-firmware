@@ -46,6 +46,8 @@ static void scene_main_on_enter(void* context) {
                 submenu_add_item(
                     scene->submenus[display], debug_app->name, NULL, i, callback, app);
             }
+
+            widget_set_scrollbar_enabled(submenu_get_base(scene->submenus[display]), true);
         }
     });
 

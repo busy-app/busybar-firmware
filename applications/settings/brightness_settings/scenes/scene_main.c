@@ -123,6 +123,9 @@ static void scene_main_on_enter(void* context) {
         scene_main_fill_var_item_list(instance, &data->back_container, false);
 
         scene_main_filter_items(data);
+
+        widget_set_scrollbar_enabled(var_item_list_get_base(data->front_container.list), true);
+        widget_set_scrollbar_enabled(var_item_list_get_base(data->back_container.list), true);
     });
 
     Color color = COLOR_MAKE_RGB(0xFF, 0xFF, 0xFF);

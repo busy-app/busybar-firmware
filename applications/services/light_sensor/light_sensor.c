@@ -145,3 +145,7 @@ bool light_sensor_get_raw_data(LightSensorLightWavelength wavelength, uint16_t* 
 
     return result;
 }
+
+bool light_sensor_sleep(bool sleep) {
+    return furi_hal_light_sensor_sleep(LIGHT_SENSOR_I2C, sleep);
+}

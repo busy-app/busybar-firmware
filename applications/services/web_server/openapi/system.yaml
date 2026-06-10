@@ -1,0 +1,319 @@
+tags:
+- name: System
+  description: System information and control
+
+paths:
+  /api/version:
+    get:
+      tags:
+        - System
+      summary: Get API version information
+      description: Retrieves API version
+      operationId: getVersion
+      responses:
+        "200":
+          description: Version information retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VersionInfo"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/transport:
+    get:
+      tags:
+        - System
+      summary: Get device network connection info
+      description: Retrieves device transport type (usb/wifi)
+      operationId: getTransport
+      responses:
+        "200":
+          description: Information retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NetworkInterfaceInfo"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/status:
+    get:
+      tags:
+        - System
+      summary: Get device status
+      description: Get device status
+      operationId: getStatus
+      responses:
+        "200":
+          description: Information retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Status"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/status/device:
+    get:
+      tags:
+        - System
+      summary: Get device info
+      description: Get device info
+      operationId: getStatusDevice
+      responses:
+        "200":
+          description: Information retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusDevice"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/status/firmware:
+    get:
+      tags:
+        - System
+      summary: Get firmware info
+      description: Get firmware info
+      operationId: getStatusFirmware
+      responses:
+        "200":
+          description: Information retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusFirmware"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/status/system:
+    get:
+      tags:
+        - System
+      summary: Get system status
+      description: Get system status
+      operationId: getStatusSystem
+      responses:
+        "200":
+          description: Information retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusSystem"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/status/power:
+    get:
+      tags:
+        - System
+      summary: Get power status
+      description: Get power status
+      operationId: getStatusPower
+      responses:
+        "200":
+          description: Information retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusPower"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+schemas:
+  VersionInfo:
+    type: object
+    properties:
+      api_semver:
+        type: string
+        description: API SemVer
+        example: "0.0.0"
+    required:
+      - api_semver
+    example:
+      api_semver: "0.0.0"
+
+  NetworkInterfaceInfo:
+    type: object
+    properties:
+      type:
+        type: string
+        description: Connection type
+        enum: ["usb", "wifi"]
+        example: "usb"
+    required:
+      - type
+    example:
+      type: "usb"
+
+  Status:
+    type: object
+    properties:
+      device:
+        $ref: "#/components/schemas/StatusDevice"
+      firmware:
+        $ref: "#/components/schemas/StatusFirmware"
+      system:
+        $ref: "#/components/schemas/StatusSystem"
+      power:
+        $ref: "#/components/schemas/StatusPower"
+
+  StatusDevice:
+    type: object
+    properties:
+      serial_number:
+        type: string
+        description: Device serial number
+        example: "203638485431500400123456"
+      usb_mac:
+        type: string
+        description: MAC of USB ethernet device
+        example: "0c:fa:22:21:2a:31"
+      wifi_mac:
+        type: string
+        description: WIFI MAC
+        example: "0c:fa:22:21:2a:31"
+      ble_mac:
+        type: string
+        description: BLE MAC
+        example: "0c:fa:22:21:2a:31"
+      otp_valid:
+        type: boolean
+        description: Is OTP data valid
+        example: true
+      otp_model:
+        type: string
+        description: Device model code
+        example: "BB.1"
+      otp_timestamp:
+        type: integer
+        description: Production timestamp
+        example: 1767225600
+    required:
+      - serial_number
+      - usb_mac
+      - otp_valid
+
+  StatusFirmware:
+    type: object
+    properties:
+      version:
+        type: string
+        description: Firmware version
+        example: "1.0.0"
+      target:
+        type: integer
+        description: Firmware target code
+        example: 22
+      branch:
+        type: string
+        description: Git branch name
+        example: "main"
+      build_date:
+        type: string
+        description: Build date
+        example: "2024-01-01"
+      commit_hash:
+        type: string
+        description: Git commit hash (may include -dirty suffix)
+        example: "abc123def456-dirty"
+      nwp_version:
+        type: string
+        description: Radio firmware version
+        example: "1711.2.14.5.2.0.7"
+      matter_version:
+        type: string
+        description: Matter version
+        example: "1.0"
+    required:
+      - version
+      - target
+      - branch
+      - build_date
+      - commit_hash
+
+  StatusSystem:
+    type: object
+    properties:
+      api_semver:
+        type: string
+        description: API SemVer
+        example: "0.0.0"
+      uptime:
+        type: string
+        description: System uptime
+        example: "00d 00h 04m 13s"
+      boot_time:
+        type: integer
+        description: System boot timestamp
+        example: 1767225600
+      auto_update_enabled:
+        type: boolean
+        description: Is auto-update enabled
+        example: true
+    required:
+      - api_semver
+      - uptime
+      - boot_time
+      - auto_update_enabled
+
+  StatusPower:
+    type: object
+    properties:
+      state:
+        type: string
+        enum: [discharging, charging, charged]
+        description: Power state
+        example: "discharging"
+      battery_charge:
+        type: integer
+        description: Battery charge percent
+        example: 99
+      battery_voltage:
+        type: integer
+        description: Battery voltage in mV
+        example: 4183
+      battery_current:
+        type: integer
+        description: Battery current in mA
+        example: -180
+      usb_voltage:
+        type: integer
+        description: USB voltage in mV
+        example: 4843
+    required:
+      - state
+      - battery_charge
+      - battery_voltage
+      - battery_current
+      - usb_voltage

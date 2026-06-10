@@ -159,8 +159,6 @@ const TimerIndicatorTransition
             {
                 .anim_path = BUSY_ANIM_PATH("indicator_busy_transition_72x16.anim"),
                 .duration_ms = FRAMES_TO_MS(40),
-                .start_width_px = 70,
-                .end_width_px = 39,
             },
 };
 

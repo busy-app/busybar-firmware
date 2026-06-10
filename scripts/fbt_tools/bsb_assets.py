@@ -35,6 +35,7 @@ def generate(env):
         FONT_CONVERTER=env.Real("${FBT_SCRIPT_DIR}/ttf2font.py"),
         IMAGE_CONVERTER=env.Real("${FBT_SCRIPT_DIR}/image.py"),
         SWAGGER_GENERATOR=env.Real("${FBT_SCRIPT_DIR}/swagger.py"),
+        OPENAPI_GENERATOR=env.Real("${FBT_SCRIPT_DIR}/openapi_merge.py"),
         SWAGGER_DIST_DIR=env.Dir("swagger-dist"),
     )
 
@@ -48,6 +49,7 @@ def generate(env):
             SWAGGERCOMSTR="\tSWAG\t${TARGET}",
             GZIPCOMSTR="\tGZIP\t${TARGET}",
             COPYCOMSTR="\tCOPY\t${TARGET}",
+            OPENAPICOMSTR="\tOPENAPI\t${TARGET}",
         )
 
     env.Append(
@@ -146,6 +148,20 @@ def generate(env):
                 action=Action(
                     copy_action,
                     "${COPYCOMSTR}",
+                ),
+            ),
+            "OpenapiMerge": Builder(
+                action=Action(
+                    [
+                        [
+                            "${PYTHON3}",
+                            "${OPENAPI_GENERATOR}",
+                            "merge",
+                            "${TARGET}",
+                            "${SOURCES}",
+                        ],
+                    ],
+                    "${OPENAPICOMSTR}",
                 ),
             ),
         }

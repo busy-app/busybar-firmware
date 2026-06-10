@@ -31,7 +31,6 @@ static void about_scene_main_on_enter(void* context) {
 
     with_gui(instance->gui, {
         data->front_menu = submenu_alloc(instance->front_scene_window);
-
         submenu_add_item(
             data->front_menu,
             "General",
@@ -70,6 +69,9 @@ static void about_scene_main_on_enter(void* context) {
         submenu_add_item(
             data->back_menu, "Open-Source Libs", NULL, SceneEventLibsList, NULL, instance);
         submenu_set_selected_item_index(data->back_menu, data->menu_index);
+
+        widget_set_scrollbar_enabled(submenu_get_base(data->front_menu), true);
+        widget_set_scrollbar_enabled(submenu_get_base(data->back_menu), true);
     });
 }
 

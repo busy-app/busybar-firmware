@@ -75,6 +75,9 @@ static void scene_timezone_on_enter(void* context) {
 
         data->back_menu = submenu_alloc(instance->back_scene_window);
         scene_timezone_fill_submenu(instance, data->back_menu, &data->list, false, selected_index);
+
+        widget_set_scrollbar_enabled(submenu_get_base(data->front_menu), true);
+        widget_set_scrollbar_enabled(submenu_get_base(data->back_menu), true);
     });
 }
 
