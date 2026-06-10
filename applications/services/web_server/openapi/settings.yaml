@@ -1,3 +1,7 @@
+tags:
+- name: Settings
+  description: Device settings
+
 paths:
   /api/access:
     get:

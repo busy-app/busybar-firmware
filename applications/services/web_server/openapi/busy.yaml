@@ -1,3 +1,7 @@
+tags:
+- name: Busy
+  description: BUSY timer control
+
 paths:
   /api/busy/snapshot:
     get:

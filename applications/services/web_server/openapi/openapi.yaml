@@ -11,7 +11,7 @@ security:
   - {}
 
 paths:
-  # PATHS_CONTENT_PLACEHOLDER #
+  # {PATHS}
 
 components:
   securitySchemes:
@@ -46,28 +46,7 @@ components:
         error: "Invalid parameter"
         code: 400
 
-    # SCHEMAS_CONTENT_PLACEHOLDER #
+    # {SCHEMAS}
 
 tags:
-  - name: System
-    description: System information and control
-  - name: Time
-    description: Time-related methods
-  - name: Updater
-    description: Firmware update control
-  - name: Wi-Fi
-    description: Allows to operate with Wi-Fi
-  - name: Assets
-    description: Asset file management and display control
-  - name: Streaming
-    description: Screen streaming
-  - name: Settings
-    description: Device settings
-  - name: Input
-    description: Input events
-  - name: BLE
-    description: Allows to operate with BLE
-  - name: Account
-    description: Account linking and MQTT status
-  - name: Busy
-    description: BUSY timer control
+  # {TAGS}

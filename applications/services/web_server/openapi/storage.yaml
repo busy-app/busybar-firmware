@@ -1,3 +1,7 @@
+tags:
+- name: Storage
+  description: File storage operations
+
 paths:
   /api/storage/write:
     post:

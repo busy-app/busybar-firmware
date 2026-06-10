@@ -4,14 +4,20 @@ on:
     pull_request:
         types: [opened, synchronize]
         paths:
-            - "applications/services/web_server/resources/apps_assets/web_server/www/openapi.yaml"
+            - "applications/services/web_server/openapi/**"
             - "applications/services/web_server/http_api/http_api.h"
+            - "scripts/openapi_merge.py"
+            - "scripts/fbt_env_modules/fwenv/bsb_assets.scons"
+            - ".github/workflows/openapi-diff.yml"
     push:
         branches:
             - dev
         paths:
-            - "applications/services/web_server/resources/apps_assets/web_server/www/openapi.yaml"
+            - "applications/services/web_server/openapi/**"
             - "applications/services/web_server/http_api/http_api.h"
+            - "scripts/openapi_merge.py"
+            - "scripts/fbt_env_modules/fwenv/bsb_assets.scons"
+            - ".github/workflows/openapi-diff.yml"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -35,10 +41,13 @@ jobs:
                   path: base
 
             - name: Build OpenAPI specifications
+              id: build
               shell: bash
               run: |
                 set -euo pipefail
                 export FBT_GIT_SUBMODULE_SHALLOW=1
+
+                source scripts/toolchain/fbtenv.sh
 
                 git lfs install --skip-smudge
                 if [[ -n "${GH_TOKEN:-}" ]]; then
@@ -48,15 +57,28 @@ jobs:
                 git config --global lfs.transfer.maxretries 3
 
                 git submodule update --init --depth 1 --filter=blob:none --recursive --jobs="$(nproc)" scripts/toolchain fbt_layers/fbtng || (git lfs logs last && exit 1)
-                bash ./fbt openapi_spec
+                bash ./fbt openapi_dist
 
                 cd base
                 git submodule update --init --depth 1 --filter=blob:none --recursive --jobs="$(nproc)" scripts/toolchain fbt_layers/fbtng || (git lfs logs last && exit 1)
-                if ! bash ./fbt openapi_spec; then
-                  echo "WARNING: base repository does not support OpenAPI spec generation"
-                  mkdir -p fbt_layers/fbtng/build/f21-firmware-D
-                  cp applications/services/web_server/resources/apps_assets/web_server/www/openapi.yaml fbt_layers/fbtng/build/f21-firmware-D/
+                if ! bash ./fbt openapi_dist; then
+                  echo "WARNING: base repository does not support openapi_dist target"
+                  mkdir -p dist/f21
+                  cp applications/services/web_server/resources/apps_assets/web_server/www/openapi.yaml dist/f21/
                 fi
+
+                # Resolve OAS path independent of the target HW
+                OAS_PATH="$(echo dist/f[0-9]*/openapi.yaml)"
+                test -n "${OAS_PATH}" || { echo "ERROR: no openapi.yaml found under dist/f*/"; exit 1; }
+                test "$(echo ${OAS_PATH} | wc -w)" -eq 1 || { echo "ERROR: multiple openapi.yaml found: ${OAS_PATH}"; exit 1; }
+                echo "OAS_PATH=${OAS_PATH}" >> "${GITHUB_ENV}"
+
+            - name: Validate merged OpenAPI spec
+              shell: bash
+              run: |
+                set -euo pipefail
+                source scripts/toolchain/fbtenv.sh
+                python3 scripts/openapi_merge.py validate "${OAS_PATH}"
 
             - name: Install oasdiff
               run: |
@@ -64,8 +86,6 @@ jobs:
 
             - name: Run oasdiff
               id: oasdiff
-              env:
-                  OAS_PATH: fbt_layers/fbtng/build/f21-firmware-D/openapi.yaml
               run: |
                   set -o pipefail
 
@@ -100,7 +120,6 @@ jobs:
             - name: Check version bump
               id: version_check
               env:
-                  OAS_PATH: fbt_layers/fbtng/build/f21-firmware-D/openapi.yaml
                   HAS_BREAKING: ${{ steps.oasdiff.outputs.exit_code }}
                   HAS_CHANGES: ${{ steps.oasdiff.outputs.has_changes }}
               run: |

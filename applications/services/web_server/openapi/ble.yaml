@@ -1,3 +1,7 @@
+tags:
+- name: BLE
+  description: Allows to operate with BLE
+
 paths:
   /api/ble/enable:
     post:

@@ -1,3 +1,7 @@
+tags:
+- name: Input
+  description: Input events
+
 paths:
   /api/input:
     post:

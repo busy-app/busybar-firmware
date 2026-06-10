@@ -1,3 +1,7 @@
+tags:
+- name: Smart Home
+  description: Smart Home event handling
+
 paths:
   /api/smart_home/pairing:
     get:

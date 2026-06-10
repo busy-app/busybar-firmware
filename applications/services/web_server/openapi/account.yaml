@@ -1,3 +1,7 @@
+tags:
+- name: Account
+  description: Account linking and MQTT status
+
 paths:
   /api/account:
     delete:

@@ -1,3 +1,7 @@
+tags:
+- name: Assets
+  description: Asset file management and display control
+
 paths:
   /api/assets/upload:
     post:

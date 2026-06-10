@@ -1,3 +1,7 @@
+tags:
+- name: Wi-Fi
+  description: Allows to operate with Wi-Fi
+
 paths:
   /api/wifi/status:
     get:

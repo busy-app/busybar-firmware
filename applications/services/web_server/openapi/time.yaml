@@ -1,3 +1,7 @@
+tags:
+- name: Time
+  description: Time-related methods
+
 paths:
   /api/time:
     get:

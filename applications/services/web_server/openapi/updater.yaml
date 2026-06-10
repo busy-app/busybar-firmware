@@ -1,3 +1,7 @@
+tags:
+- name: Updater
+  description: Firmware update control
+
 paths:
   /api/update:
     post:

@@ -1,3 +1,7 @@
+tags:
+- name: Streaming
+  description: Screen streaming
+
 paths:
   /api/status/ws:
     get:

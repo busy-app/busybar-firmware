@@ -1,3 +1,7 @@
+tags:
+- name: System
+  description: System information and control
+
 paths:
   /api/version:
     get:

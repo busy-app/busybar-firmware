@@ -156,6 +156,7 @@ def generate(env):
                         [
                             "${PYTHON3}",
                             "${OPENAPI_GENERATOR}",
+                            "merge",
                             "${TARGET}",
                             "${SOURCES}",
                         ],
