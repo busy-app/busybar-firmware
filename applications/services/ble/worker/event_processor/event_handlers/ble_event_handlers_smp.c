@@ -41,18 +41,7 @@ bool ble_event_handler_smp_ltk_request(size_t data_size, void* data, void* conte
         if(!ble_device_send_encryption_response(instance->device)) break;
 
         if(ble_device_is_paired(instance->device)) {
-            bool connected = ble_device_is_connected(instance->device);
-            BleConnectionContext* conn = ble_device_get_connection_context(instance->device);
-            FuriString* addr = furi_string_alloc();
-            BleDeviceBase* peer = ble_connection_get_peer(conn);
-            ble_device_base_format_address(peer, BleDeviceAddressTypeOrigin, addr);
-            BLE_LOG_I("Paired device: %s", furi_string_get_cstr(addr));
-
-            instance->on_connection_changed_cb(
-                instance->on_connection_changed_ctx,
-                connected,
-                (const uint8_t*)furi_string_get_cstr(addr));
-            furi_string_free(addr);
+            ble_worker_invoke_connect_callback(instance);
         }
     } while(false);
     // ble_worker_spawn_event(
@@ -79,18 +68,7 @@ bool ble_event_handler_smp_security_keys(size_t data_size, void* data, void* con
 
         BLE_LOG_I("RPA keys saved");
 
-        bool connected = ble_device_is_connected(instance->device);
-
-        BleConnectionContext* conn = ble_device_get_connection_context(instance->device);
-        FuriString* addr = furi_string_alloc();
-        BleDeviceBase* peer = ble_connection_get_peer(conn);
-        ble_device_base_format_address(peer, BleDeviceAddressTypeOrigin, addr);
-
-        instance->on_connection_changed_cb(
-            instance->on_connection_changed_ctx,
-            connected,
-            (const uint8_t*)furi_string_get_cstr(addr));
-        furi_string_free(addr);
+        ble_worker_invoke_connect_callback(instance);
 
     } while(false);
 

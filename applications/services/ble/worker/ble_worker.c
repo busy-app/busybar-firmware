@@ -78,6 +78,23 @@ BleWorker* ble_worker_init(BleConnectionStateChanged connect_callback, void* ctx
     return instance;
 }
 
+void ble_worker_invoke_connect_callback(BleWorker* instance) {
+    FuriString* addr = furi_string_alloc();
+
+    BleConnectionContext* conn = ble_device_get_connection_context(instance->device);
+    BleDeviceBase* peer = ble_connection_get_peer(conn);
+    ble_device_base_format_address(peer, BleDeviceAddressTypeOrigin, addr);
+
+    instance->on_connection_changed_cb(
+        instance->on_connection_changed_ctx, true, (const uint8_t*)furi_string_get_cstr(addr));
+    furi_string_free(addr);
+}
+
+void ble_worker_invoke_disconnect_callback(BleWorker* instance) {
+    uint8_t dummy[BLE_REMOTE_ADDRESS_STRING_SIZE] = {0};
+    instance->on_connection_changed_cb(instance->on_connection_changed_ctx, false, dummy);
+}
+
 bool ble_worker_register_service(BleServiceObject* service) {
     return ble_device_register_service(ble_worker_instance->device, service);
 }

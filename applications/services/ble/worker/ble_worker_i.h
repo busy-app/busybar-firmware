@@ -15,3 +15,7 @@ struct BleWorker {
     BleConnectionStateChanged on_connection_changed_cb;
     void* on_connection_changed_ctx;
 };
+
+void ble_worker_invoke_connect_callback(BleWorker* instance);
+
+void ble_worker_invoke_disconnect_callback(BleWorker* instance);

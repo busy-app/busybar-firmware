@@ -47,7 +47,6 @@ bool ble_event_handler_gap_connected(size_t data_size, void* data, void* context
     BleDeviceBase* peer = ble_connection_get_peer(conn);
     ble_device_base_format_address(peer, BleDeviceAddressTypeOrigin, addr);
     BLE_LOG_I("Connected, address : %s", furi_string_get_cstr(addr));
-
     furi_string_free(addr);
 
     // const BleDeviceCommon* peer = ble_connection_get_peer()
@@ -65,8 +64,7 @@ bool ble_event_handler_gap_connected(size_t data_size, void* data, void* context
     // }
 #ifdef BLE_DEBUG_ADVERTISE_FORCE_PUBLIC
     if(result) {
-        instance->on_connection_changed_cb(
-            instance->on_connection_changed_ctx, result, instance->str_remote_address);
+        ble_worker_invoke_connect_callback(instance);
     }
 #endif
     return result;
@@ -88,9 +86,7 @@ bool ble_event_handler_gap_disconnected(size_t data_size, void* data, void* cont
 
     bool result = ble_device_connection_close(instance->device);
 
-    bool connected = !result; //ble_device_is_connected(instance->device);
-    uint8_t dummy[BLE_REMOTE_ADDRESS_STRING_SIZE] = {0};
-    instance->on_connection_changed_cb(instance->on_connection_changed_ctx, connected, dummy);
+    ble_worker_invoke_disconnect_callback(instance);
 
     return result;
 }
