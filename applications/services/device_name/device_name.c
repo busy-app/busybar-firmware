@@ -1,6 +1,7 @@
 #include "device_name_i.h"
 
 #include <cjson/cJSON.h>
+#include <device_info/device_info.h>
 
 #define DEVICE_NAME_MQTT_PREFIX "state"
 #define DEVICE_NAME_KEY         "name"
@@ -148,6 +149,22 @@ static void device_name_mqtt_events_pubsub_callback(const void* msg, void* conte
     }
 }
 
+static void device_name_adapter_for_device_info(
+    PropertyValueCallback print_callback,
+    char separator,
+    void* info_context,
+    void* print_context) {
+    DeviceName* instance = info_context;
+
+    FuriString* dev_name = furi_string_alloc();
+    device_name_get(instance, dev_name);
+
+    print_callback("name", furi_string_get_cstr(dev_name), true, print_context);
+    UNUSED(separator); // key consists of one part
+
+    furi_string_free(dev_name);
+}
+
 static DeviceName* device_name_alloc(void) {
     DeviceName* instance = malloc(sizeof(DeviceName));
 
@@ -169,6 +186,10 @@ static DeviceName* device_name_alloc(void) {
     instance->mqtt_events_pubsub = mqtt_get_pubsub(instance->mqtt);
     furi_pubsub_subscribe(
         instance->mqtt_events_pubsub, device_name_mqtt_events_pubsub_callback, instance);
+
+    DeviceInfo* dev_info = furi_record_open(RECORD_DEVICE_INFO);
+    device_info_register_segment(dev_info, device_name_adapter_for_device_info, instance);
+    furi_record_close(RECORD_DEVICE_INFO);
 
     furi_record_create(RECORD_DEVICE_NAME, instance);
 

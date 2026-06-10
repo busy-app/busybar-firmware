@@ -3,6 +3,7 @@
 #include <m-array.h>
 
 #include <intercom/intercom.h>
+#include <device_info/device_info.h>
 
 #include "sl_info_common_i.h"
 
@@ -47,12 +48,13 @@ static const char* sl_info_find_value(const SlInfo* instance, const char* key) {
 static void sl_info_output_values(
     const SlInfo* instance,
     PropertyValueCallback value_callback,
-    void* context) {
+    void* context,
+    bool output_is_last) {
     SlInfoItemVec_it_ct it;
     for(SlInfoItemVec_it(it, instance->items); !SlInfoItemVec_end_p(it); SlInfoItemVec_next(it)) {
         const SlInfoItem* item = SlInfoItemVec_cref(it);
         const bool is_last = SlInfoItemVec_last_p(it);
-        value_callback(item->key, item->value, is_last, context);
+        value_callback(item->key, item->value, output_is_last ? is_last : false, context);
     }
 }
 
@@ -72,6 +74,22 @@ static void sl_info_intercom_rx_callback(const void* data, size_t data_size, voi
     }
 }
 
+static void sl_info_adapter_for_device_info(
+    PropertyValueCallback print_callback,
+    char separator,
+    void* info_context,
+    void* print_context) {
+    SlInfo* instance = info_context;
+
+    if(instance && instance->is_ready) {
+        UNUSED(separator); // unfortunately, 917 has already decided on '_' for us! :C
+        sl_info_output_values(instance, print_callback, print_context, false);
+        print_callback("sl_intercom_status", "ok", true, print_context);
+    } else {
+        print_callback("sl_intercom_status", "error", true, print_context);
+    }
+}
+
 static void sl_info_wait_for_data(SlInfo* instance) {
     FURI_LOG_D(TAG, "Waiting for data...");
 
@@ -80,11 +98,20 @@ static void sl_info_wait_for_data(SlInfo* instance) {
         intercom, IntercomChannelIdSlInfo, sl_info_intercom_rx_callback, instance);
     // Not sending anything to the intercom channel
     UNUSED(info_channel);
+
+    DeviceInfo* dev_info = furi_record_open(RECORD_DEVICE_INFO);
+    device_info_unregister_segment(dev_info, sl_info_adapter_for_device_info);
+    device_info_register_segment(dev_info, sl_info_adapter_for_device_info, instance);
+    furi_record_close(RECORD_DEVICE_INFO);
 }
 
 static SlInfo* sl_info_alloc(void) {
     SlInfo* instance = malloc(sizeof(SlInfo));
     SlInfoItemVec_init(instance->items);
+
+    DeviceInfo* dev_info = furi_record_open(RECORD_DEVICE_INFO);
+    device_info_register_segment(dev_info, sl_info_adapter_for_device_info, NULL);
+    furi_record_close(RECORD_DEVICE_INFO);
 
     furi_record_create(RECORD_SL_INFO, instance);
     return instance;
@@ -134,7 +161,7 @@ SlInfoStatus sl_info_get_values(
             break;
         }
 
-        sl_info_output_values(instance, value_callback, context);
+        sl_info_output_values(instance, value_callback, context, true);
         status = SlInfoStatusOk;
 
     } while(false);

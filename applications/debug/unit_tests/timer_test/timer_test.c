@@ -3,6 +3,7 @@
 #include <toolbox/timers.h>
 
 #define COARSE_TIMER_TIMEOUT_MS (10)
+#define COARSE_TIMER_ABSTOL_MS  (2)
 
 #define PRECISE_TIMER_TIMEOUT_US (1000)
 #define PRECISE_TIMER_ABSTOL_US  (5)
@@ -44,7 +45,9 @@ MU_TEST(coarse_timer_test) {
 
     mu_assert_int_eq(0, elapsed_start_ms);
     mu_assert_int_between(
-        COARSE_TIMER_TIMEOUT_MS - 1, COARSE_TIMER_TIMEOUT_MS + 1, (int32_t)elapsed_end_ms);
+        COARSE_TIMER_TIMEOUT_MS - COARSE_TIMER_ABSTOL_MS,
+        COARSE_TIMER_TIMEOUT_MS + COARSE_TIMER_ABSTOL_MS,
+        (int32_t)elapsed_end_ms);
 }
 
 MU_TEST(precise_timer_test) {

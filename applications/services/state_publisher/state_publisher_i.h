@@ -56,9 +56,13 @@ typedef struct Transport {
 
 struct StatePublisher {
     FuriEventLoop* event_loop;
-    FuriMessageQueue* message_queue;
+    FuriMessageQueue* control_queue; // queue of Message
+    FuriMessageQueue* publish_queue; // queue of PublishMessage
+    FuriEventFlag* fetch_flags;
 
     FuriThreadId main_thread_id;
+
+    FuriThread* fetch_thread;
 
     ScreenStreamer* screen_streamer_front;
 
@@ -83,43 +87,60 @@ struct StatePublisher {
 };
 
 typedef enum {
-    MessageTypePublishUpdate,
     MessageTypeTransportResumed,
-    MessageTypePowerEvent,
-    MessageTypeAudioEvent,
-    MessageTypeMatterEvent,
-    MessageTypeUpdaterCheckEvent,
-    MessageTypeBusyTimer,
-    MessageTypeBusyTimerProfiles,
-    MessageTypeAutoupdateEvent,
-    MessageTypeBle,
 
     MessageTypesCount,
 } MessageType;
 
+typedef enum FetchBit {
+    FetchBitPowerEvent,
+    FetchBitAudioEvent,
+    FetchBitMatterEvent,
+    FetchBitUpdaterCheckEvent,
+    FetchBitBusyTimer,
+    FetchBitBusyTimerProfiles,
+    FetchBitAutoupdateEvent,
+    FetchBitBle,
+
+    FetchBitMax
+} FetchBit;
+
+typedef enum {
+    FetchFlagPowerEvent = (1 << FetchBitPowerEvent),
+    FetchFlagAudioEvent = (1 << FetchBitAudioEvent),
+    FetchFlagMatterEvent = (1 << FetchBitMatterEvent),
+    FetchFlagUpdaterCheckEvent = (1 << FetchBitUpdaterCheckEvent),
+    FetchFlagBusyTimer = (1 << FetchBitBusyTimer),
+    FetchFlagBusyTimerProfiles = (1 << FetchBitBusyTimerProfiles),
+    FetchFlagAutoupdateEvent = (1 << FetchBitAutoupdateEvent),
+    FetchFlagBle = (1 << FetchBitBle),
+
+    FetchFlagAll = ~(UINT32_MAX << FetchBitMax)
+} FetchFlag;
+
 typedef struct {
     MessageType type;
     union {
-        struct {
-            BSB_State_StateUpdate* data; // allocated on the heap
-            StreamFlag stream_flags;
-        } update;
         UpdaterCheckState updater_check_state;
     };
-} Message;
+} ControlMessage;
+
+typedef struct {
+    BSB_State_StateUpdate* data; // allocated on the heap
+    StreamFlag stream_flags;
+    bool heartbeat;
+} PublishMessage;
 
 void state_publisher_subscribe(StatePublisher* instance);
 
-void state_publisher_publish_power(StatePublisher* instance);
-void state_publisher_publish_audio(StatePublisher* instance);
-void state_publisher_publish_matter(StatePublisher* instance);
-void state_publisher_publish_update_check(
-    StatePublisher* instance,
-    const UpdaterCheckState* check_state);
-void state_publisher_publish_busy_timer(StatePublisher* instance);
-void state_publisher_publish_busy_timer_profiles(StatePublisher* instance);
-void state_publisher_publish_autoupdate(StatePublisher* instance);
-void state_publisher_publish_ble(StatePublisher* instance);
+void state_publisher_store_power(StatePublisher* instance);
+void state_publisher_store_audio(StatePublisher* instance);
+void state_publisher_store_matter(StatePublisher* instance);
+void state_publisher_store_update_check(StatePublisher* instance);
+void state_publisher_store_busy_timer(StatePublisher* instance);
+void state_publisher_store_busy_timer_profiles(StatePublisher* instance);
+void state_publisher_store_autoupdate(StatePublisher* instance);
+void state_publisher_store_ble(StatePublisher* instance);
 
 BSB_State_State* state_publisher_collect_all(StatePublisher* instance);
 
@@ -127,4 +148,10 @@ void state_publisher_schedule_state_update(
     StatePublisher* instance,
     BSB_State_StateUpdate* update,
     StreamFlag flags);
-void state_publisher_send_message(StatePublisher* instance, const Message* message);
+
+void state_publisher_store_state_update(
+    StatePublisher* instance,
+    BSB_State_StateUpdate* update,
+    StreamFlag flags);
+
+void state_publisher_send_control_message(StatePublisher* instance, const ControlMessage* message);

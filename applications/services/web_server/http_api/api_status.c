@@ -198,7 +198,7 @@ bool http_api_status_callback(
             return true;
         }
         if(method != HttpMethodGet) {
-            http_reply_405_method_not_allowed(conn, HttpMethodGet);
+            http_reply_405_method_not_allowed(conn, HttpMethodGet, false);
             return true;
         }
         FuriString* json_response = furi_string_alloc();
@@ -235,7 +235,7 @@ bool http_api_status_callback(
                 return true;
             }
             if(method != HttpMethodGet) {
-                http_reply_405_method_not_allowed(conn, HttpMethodGet);
+                http_reply_405_method_not_allowed(conn, HttpMethodGet, false);
                 return true;
             }
             FuriString* json_response = furi_string_alloc();
