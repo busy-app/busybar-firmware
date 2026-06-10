@@ -81,11 +81,12 @@ static void style_init(my_theme_t* theme, FontRegistry* font_registry) {
     lv_style_set_opa(&theme->styles.transparent_all, LV_OPA_TRANSP);
 
     lv_style_init(&theme->styles.scrollbar);
+    lv_style_set_width(&theme->styles.scrollbar, SCROLLBAR_WIDTH);
+    lv_style_set_length(&theme->styles.scrollbar, 3);
     lv_style_set_bg_opa(&theme->styles.scrollbar, LV_OPA_COVER);
     lv_style_set_bg_color(&theme->styles.scrollbar, COLOR_FG_FOCUSED);
-    lv_style_set_outline_opa(&theme->styles.scrollbar, LV_OPA_30);
+    lv_style_set_outline_opa(&theme->styles.scrollbar, LV_OPA_20);
     lv_style_set_outline_color(&theme->styles.scrollbar, COLOR_FG_FOCUSED);
-    lv_style_set_width(&theme->styles.scrollbar, SCROLLBAR_WIDTH);
 
     lv_style_init(&theme->styles.menu_item);
     lv_style_set_margin_top(&theme->styles.menu_item, -1);
@@ -100,18 +101,18 @@ static void style_init(my_theme_t* theme, FontRegistry* font_registry) {
     lv_style_set_max_width(&theme->styles.menu_sublabel, MENU_SUBLABEL_MAX_WIDTH);
 
     lv_style_init(&theme->styles.menu_arrow);
-    lv_style_set_pad_left(&theme->styles.menu_arrow, 1);
+    lv_style_set_pad_hor(&theme->styles.menu_arrow, 1);
     lv_style_set_text_font(&theme->styles.menu_arrow, theme->base.font_normal);
 
     lv_style_init(&theme->styles.submenu);
     lv_style_set_pad_row(&theme->styles.submenu, 1);
+    lv_style_set_pad_right(&theme->styles.submenu, 2);
 
     lv_style_init(&theme->styles.submenu_item);
     lv_style_set_margin_top(&theme->styles.submenu_item, -2);
 
     lv_style_init(&theme->styles.submenu_cursor);
-    lv_style_set_pad_left(&theme->styles.submenu_cursor, 1);
-    lv_style_set_pad_right(&theme->styles.submenu_cursor, 1);
+    lv_style_set_pad_hor(&theme->styles.submenu_cursor, 1);
     lv_style_set_text_font(&theme->styles.submenu_cursor, theme->base.font_normal);
 
     lv_style_init(&theme->styles.dialog);
@@ -157,13 +158,15 @@ static void style_init(my_theme_t* theme, FontRegistry* font_registry) {
 static void theme_apply_callback(lv_theme_t* th, lv_obj_t* obj) {
     my_theme_t* theme = (my_theme_t*)th;
 
+    if(lv_obj_has_class(obj, &widget_lvgl_class)) {
+        lv_obj_add_style(obj, &theme->styles.scrollbar, LV_PART_SCROLLBAR);
+    }
+
     if(lv_obj_get_parent(obj) == NULL) {
         lv_obj_add_style(obj, &theme->styles.screen, LV_PART_MAIN);
-        lv_obj_add_style(obj, &theme->styles.scrollbar, LV_PART_SCROLLBAR);
 
     } else if(lv_obj_check_type(obj, &lv_obj_class)) {
         lv_obj_add_style(obj, &theme->styles.normal, LV_PART_MAIN);
-        lv_obj_add_style(obj, &theme->styles.scrollbar, LV_PART_SCROLLBAR);
 
     } else if(lv_obj_check_type(obj, &lv_bar_class)) {
         lv_obj_add_style(obj, &theme->styles.normal, LV_PART_MAIN);
@@ -210,7 +213,6 @@ static void theme_apply_callback(lv_theme_t* th, lv_obj_t* obj) {
 
         lv_obj_add_style(obj, &theme->styles.normal, LV_PART_MAIN);
         lv_obj_add_style(obj, &theme->styles.submenu, LV_PART_MAIN);
-        lv_obj_add_style(obj, &theme->styles.scrollbar, LV_PART_SCROLLBAR);
 
     } else if(lv_obj_check_type(obj, &submenu_item_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.submenu_item, LV_PART_MAIN);
@@ -245,7 +247,6 @@ static void theme_apply_callback(lv_theme_t* th, lv_obj_t* obj) {
         lv_obj_set_scroll_snap_y(obj, LV_SCROLL_SNAP_CENTER);
 
         lv_obj_add_style(obj, &theme->styles.normal, LV_PART_MAIN);
-        lv_obj_add_style(obj, &theme->styles.scrollbar, LV_PART_SCROLLBAR);
 
     } else if(lv_obj_check_type(obj, &var_item_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.var_item, LV_PART_MAIN);
@@ -278,7 +279,6 @@ static void theme_apply_callback(lv_theme_t* th, lv_obj_t* obj) {
 #ifdef APP_BUSY
     } else if(lv_obj_check_type(obj, &countdown_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.focused, LV_PART_MAIN);
-        lv_obj_add_style(obj, &theme->styles.scrollbar, LV_PART_SCROLLBAR);
 
     } else if(lv_obj_check_type(obj, &theme_picker_arrow_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.submenu_cursor, LV_PART_MAIN);
