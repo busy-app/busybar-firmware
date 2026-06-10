@@ -21,14 +21,21 @@
 
 typedef bool (*WidgetInputCallback)(Widget* obj, const InputEvent* event);
 typedef void (*WidgetStyleCallback)(Widget* obj);
+typedef bool (*WidgetDrawScrollbarThumbCallback)(
+    lv_obj_t* obj,
+    lv_layer_t* layer,
+    const lv_area_t* track_area);
 
 typedef struct {
     WidgetInputCallback input_callback;
     WidgetStyleCallback style_callbacks[GuiDisplayIdMax];
+    WidgetDrawScrollbarThumbCallback draw_scrollbar_thumb;
 } WidgetClassData;
 
 struct Widget {
     lv_obj_t base;
+
+    bool is_scrollbar_enabled;
 };
 
 static_assert(offsetof(Widget, base) == 0);

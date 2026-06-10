@@ -7,41 +7,12 @@
 #define WIDGET_SCROLLBAR_FADE_DELAY_MS    2000
 #define WIDGET_SCROLLBAR_FADE_DURATION_MS 350
 
-typedef struct {
-    lv_scrollbar_mode_t mode;
-    lv_dir_t scroll_direction;
-    lv_opa_t scroll_bar_opacity;
-} WidgetScrollBarSetup;
-
-static const WidgetScrollBarSetup widget_scrollbar_modes_map[] = {
-    [WidgetScrollBarModeOff] =
-        {
-            .mode = LV_SCROLLBAR_MODE_OFF,
-            .scroll_direction = LV_DIR_NONE,
-            .scroll_bar_opacity = LV_OPA_TRANSP,
-        },
-    [WidgetScrollBarModeOn] =
-        {
-            .mode = LV_SCROLLBAR_MODE_ON,
-            .scroll_direction = LV_DIR_VER,
-            .scroll_bar_opacity = LV_OPA_COVER,
-        },
-    [WidgetScrollBarModeAuto] =
-        {
-            .mode = LV_SCROLLBAR_MODE_AUTO,
-            .scroll_direction = LV_DIR_VER,
-            .scroll_bar_opacity = LV_OPA_TRANSP,
-        },
-};
-
-static_assert(COUNT_OF(widget_scrollbar_modes_map) == WidgetScrollBarModesCount);
-
 static bool widget_input_feed_default(Widget* instance, const InputEvent* event) {
     bool consumed = false;
 
     lv_obj_t* obj = TO_LV_OBJ(instance);
 
-    if(lv_obj_get_scrollbar_mode(obj) != LV_SCROLLBAR_MODE_OFF) {
+    if(instance->is_scrollbar_enabled) {
         const int32_t delta = lv_display_get_vertical_resolution(lv_obj_get_display(obj)) / 8;
 
         if(event->type == InputTypeShort) {
@@ -61,40 +32,64 @@ static bool widget_input_feed_default(Widget* instance, const InputEvent* event)
 
 /* LVGL-specific code */
 
-static void widget_scrollbar_fade_anim_callback(void* variable, int32_t value) {
-    lv_obj_set_style_bg_opa(variable, value, LV_PART_SCROLLBAR);
+static void
+    widget_draw_scrollbar_track(lv_obj_t* obj, lv_layer_t* layer, const lv_area_t* track_area) {
+    lv_draw_rect_dsc_t track_dsc;
+    lv_draw_rect_dsc_init(&track_dsc);
+    track_dsc.bg_color = lv_obj_get_style_outline_color(obj, LV_PART_SCROLLBAR);
+    track_dsc.bg_opa = LV_OPA_MIX2(
+        lv_obj_get_style_bg_opa(obj, LV_PART_SCROLLBAR),
+        lv_obj_get_style_outline_opa(obj, LV_PART_SCROLLBAR));
+
+    lv_draw_rect(layer, &track_dsc, track_area);
 }
 
-static void widget_scrollbar_show(lv_obj_t* obj) {
-    lv_anim_delete(obj, widget_scrollbar_fade_anim_callback);
-    lv_obj_set_style_bg_opa(obj, LV_OPA_COVER, LV_PART_SCROLLBAR);
-}
+static bool widget_draw_scrollbar_thumb(
+    lv_obj_t* obj,
+    lv_layer_t* layer,
+    const lv_area_t* track_area,
+    int32_t scroll_top,
+    int32_t scroll_bottom) {
+    int32_t obj_height = lv_obj_get_height(obj);
+    int32_t scroll_height = scroll_top + scroll_bottom;
+    int32_t content_height = obj_height + scroll_height;
 
-static void widget_scrollbar_run_fade_out_anim(lv_obj_t* obj) {
-    lv_anim_t anim;
-    lv_anim_init(&anim);
-    lv_anim_set_var(&anim, obj);
-    lv_anim_set_values(&anim, LV_OPA_COVER, LV_OPA_TRANSP);
-    lv_anim_set_delay(&anim, WIDGET_SCROLLBAR_FADE_DELAY_MS);
-    lv_anim_set_duration(&anim, WIDGET_SCROLLBAR_FADE_DURATION_MS);
-    lv_anim_set_path_cb(&anim, lv_anim_path_ease_out);
-    lv_anim_set_exec_cb(&anim, widget_scrollbar_fade_anim_callback);
-    lv_anim_start(&anim);
-}
+    int32_t track_height = lv_area_get_height(track_area);
+    int32_t thumb_height = LV_MAX(
+        (track_height * obj_height) / content_height,
+        lv_obj_get_style_length(obj, LV_PART_SCROLLBAR));
 
-static bool widget_scrollbar_is_visible(lv_obj_t* obj) {
-    lv_scrollbar_mode_t mode = lv_obj_get_scrollbar_mode(obj);
+    lv_area_t thumb_area;
+    if(scroll_height > 0) {
+        int32_t thumb_y =
+            (((track_height - thumb_height) * scroll_top) + scroll_height - 1) / scroll_height;
 
-    if(mode == LV_SCROLLBAR_MODE_OFF) return false;
-    if(lv_obj_get_style_bg_opa(obj, LV_PART_SCROLLBAR) < LV_OPA_MIN) return false;
-    if(mode == LV_SCROLLBAR_MODE_ON) return true;
-    if(lv_obj_get_scroll_top(obj) <= 0 && lv_obj_get_scroll_bottom(obj) <= 0) return false;
+        lv_area_set(
+            &thumb_area,
+            track_area->x1,
+            track_area->y1 + thumb_y,
+            track_area->x2,
+            track_area->y1 + thumb_y + thumb_height - 1);
+    } else {
+        lv_area_copy(&thumb_area, track_area);
+    }
+
+    lv_draw_rect_dsc_t thumb_dsc;
+    lv_draw_rect_dsc_init(&thumb_dsc);
+    thumb_dsc.bg_color = lv_obj_get_style_bg_color(obj, LV_PART_SCROLLBAR);
+    thumb_dsc.bg_opa = lv_obj_get_style_bg_opa(obj, LV_PART_SCROLLBAR);
+    thumb_dsc.radius = lv_obj_get_style_radius(obj, LV_PART_SCROLLBAR);
+
+    lv_draw_rect(layer, &thumb_dsc, &thumb_area);
 
     return true;
 }
 
-static void widget_draw_scrollbar_track(lv_obj_t* obj, lv_layer_t* layer) {
-    if(!widget_scrollbar_is_visible(obj)) return;
+static void widget_draw_scrollbar(lv_obj_t* obj, lv_layer_t* layer) {
+    int32_t scroll_top = lv_obj_get_scroll_top(obj);
+    int32_t scroll_bottom = lv_obj_get_scroll_bottom(obj);
+
+    if(scroll_top <= 0 && scroll_bottom <= 0) return;
 
     int32_t width = lv_obj_get_style_width(obj, LV_PART_SCROLLBAR);
     int32_t pad_right = lv_obj_get_style_pad_right(obj, LV_PART_SCROLLBAR);
@@ -108,32 +103,60 @@ static void widget_draw_scrollbar_track(lv_obj_t* obj, lv_layer_t* layer) {
         .y2 = obj->coords.y2 - pad_bottom,
     };
 
-    lv_draw_rect_dsc_t track_dsc;
-    lv_draw_rect_dsc_init(&track_dsc);
-    track_dsc.bg_color = lv_obj_get_style_outline_color(obj, LV_PART_SCROLLBAR);
-    track_dsc.bg_opa = LV_OPA_MIX2(
-        lv_obj_get_style_bg_opa(obj, LV_PART_SCROLLBAR),
-        lv_obj_get_style_outline_opa(obj, LV_PART_SCROLLBAR));
+    widget_draw_scrollbar_track(obj, layer, &track_area);
 
-    lv_draw_rect(layer, &track_dsc, &track_area);
+    const lv_obj_class_t* lv_class = lv_obj_get_class(obj);
+    for(; lv_class && lv_class != &lv_obj_class; lv_class = lv_class->base_class) {
+        const WidgetClassData* class_data = lv_class->user_data;
+        if(class_data && class_data->draw_scrollbar_thumb) {
+            if(class_data->draw_scrollbar_thumb(obj, layer, &track_area)) {
+                return;
+            }
+
+            break;
+        }
+    }
+
+    widget_draw_scrollbar_thumb(obj, layer, &track_area, scroll_top, scroll_bottom);
+}
+
+static void widget_scrollbar_fade_anim_callback(void* variable, int32_t value) {
+    lv_obj_set_style_bg_opa(variable, value, LV_PART_SCROLLBAR);
+}
+
+static void widget_scrollbar_show(lv_obj_t* obj) {
+    lv_obj_set_style_bg_opa(obj, LV_OPA_COVER, LV_PART_SCROLLBAR);
+
+    lv_anim_t fade_anim;
+    lv_anim_init(&fade_anim);
+    lv_anim_set_var(&fade_anim, obj);
+    lv_anim_set_values(&fade_anim, LV_OPA_COVER, LV_OPA_TRANSP);
+    lv_anim_set_delay(&fade_anim, WIDGET_SCROLLBAR_FADE_DELAY_MS);
+    lv_anim_set_duration(&fade_anim, WIDGET_SCROLLBAR_FADE_DURATION_MS);
+    lv_anim_set_path_cb(&fade_anim, lv_anim_path_ease_out);
+    lv_anim_set_exec_cb(&fade_anim, widget_scrollbar_fade_anim_callback);
+    lv_anim_start(&fade_anim);
 }
 
 static void widget_lvgl_event_callback(const lv_obj_class_t* class_p, lv_event_t* e) {
     lv_obj_t* obj = lv_event_get_current_target(e);
+    Widget* instance = (Widget*)obj;
 
     switch(lv_event_get_code(e)) {
     case LV_EVENT_DRAW_POST:
-        widget_draw_scrollbar_track(obj, lv_event_get_layer(e));
+        if(instance->is_scrollbar_enabled) {
+            widget_draw_scrollbar(obj, lv_event_get_layer(e));
+        }
         break;
 
     case LV_EVENT_SCROLL_BEGIN:
     /* fall-through */
-    case LV_EVENT_SCROLL:
-        if(lv_obj_get_scrollbar_mode(obj) == LV_SCROLLBAR_MODE_AUTO) {
+    case LV_EVENT_SCROLL: {
+        if(instance->is_scrollbar_enabled) {
             widget_scrollbar_show(obj);
-            widget_scrollbar_run_fade_out_anim(obj);
         }
         break;
+    }
 
     default:
         break;
@@ -144,7 +167,12 @@ static void widget_lvgl_event_callback(const lv_obj_class_t* class_p, lv_event_t
 
 static void widget_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
     UNUSED(class_p);
+
+    Widget* instance = (Widget*)obj;
+
     lv_obj_set_scrollbar_mode(obj, LV_SCROLLBAR_MODE_OFF);
+
+    instance->is_scrollbar_enabled = false;
 }
 
 /* Public API */
@@ -302,19 +330,13 @@ void widget_move_to_background(Widget* instance) {
     lv_obj_move_background((lv_obj_t*)instance);
 }
 
-void widget_set_scrollbar_mode(Widget* instance, WidgetScrollBarMode mode) {
+void widget_set_scrollbar_enabled(Widget* instance, bool is_enabled) {
     furi_check(instance);
-    furi_check(mode < WidgetScrollBarModesCount);
 
-    lv_obj_t* lv_object = TO_LV_OBJ(instance);
+    lv_anim_delete(TO_LV_OBJ(instance), widget_scrollbar_fade_anim_callback);
+    lv_obj_set_style_bg_opa(TO_LV_OBJ(instance), LV_OPA_TRANSP, LV_PART_SCROLLBAR);
 
-    lv_anim_delete(lv_object, widget_scrollbar_fade_anim_callback);
-
-    const WidgetScrollBarSetup* setup = &widget_scrollbar_modes_map[mode];
-
-    lv_obj_set_scrollbar_mode(lv_object, setup->mode);
-    lv_obj_set_scroll_dir(lv_object, setup->scroll_direction);
-    lv_obj_set_style_bg_opa(lv_object, setup->scroll_bar_opacity, LV_PART_SCROLLBAR);
+    instance->is_scrollbar_enabled = is_enabled;
 }
 
 void widget_set_background_color(Widget* instance, Color color) {
@@ -356,13 +378,11 @@ bool widget_input(Widget* instance, const InputEvent* event) {
     bool consumed = false;
 
     do {
-        lv_obj_t* lv_object = TO_LV_OBJ(instance);
-
-        if(lv_obj_has_flag(lv_object, LV_OBJ_FLAG_HIDDEN)) {
+        if(lv_obj_has_flag(TO_LV_OBJ(instance), LV_OBJ_FLAG_HIDDEN)) {
             break;
         }
 
-        const lv_obj_class_t* lv_class = lv_obj_get_class(lv_object);
+        const lv_obj_class_t* lv_class = lv_obj_get_class(TO_LV_OBJ(instance));
         const WidgetClassData* class_data = lv_class->user_data;
         if(class_data && class_data->input_callback) {
             consumed = class_data->input_callback(instance, event);
@@ -370,10 +390,10 @@ bool widget_input(Widget* instance, const InputEvent* event) {
             if(consumed) break;
         }
 
-        const uint32_t child_count = lv_obj_get_child_count(lv_object);
+        const uint32_t child_count = lv_obj_get_child_count(TO_LV_OBJ(instance));
 
         for(uint32_t i = 0; i < child_count; ++i) {
-            lv_obj_t* child = lv_obj_get_child(lv_object, i);
+            lv_obj_t* child = lv_obj_get_child(TO_LV_OBJ(instance), i);
 
             if(IS_WIDGET_CLASS(child)) {
                 // Recursion should not be a problem
