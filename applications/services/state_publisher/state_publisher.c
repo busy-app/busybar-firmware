@@ -20,7 +20,6 @@ static const MessageHandler message_handlers[];
 
 static void heartbeat_timer_callback(void* context);
 static void rate_limiter_timer_callback(void* context);
-static void rate_limiter_timer_callback(void* context);
 static int32_t fetch_thread_callback(void* context);
 
 void screen_streamer_callback(
@@ -71,7 +70,7 @@ static StatePublisher* state_publisher_alloc(void) {
     instance->control_queue =
         furi_message_queue_alloc(MAX_CONTROL_MESSAGES, sizeof(ControlMessage));
     instance->publish_queue =
-        furi_message_queue_alloc(MAX_CONTROL_MESSAGES, sizeof(PublishMessage));
+        furi_message_queue_alloc(MAX_PUBLISH_MESSAGES, sizeof(PublishMessage));
     instance->main_thread_id = furi_thread_get_current_id();
 
     furi_event_loop_subscribe_message_queue(
@@ -401,19 +400,23 @@ static void publish_queue_callback(FuriEventLoopObject* object, void* context) {
     StatePublisher* instance = context;
     PublishMessage message;
     StreamFlag flags = 0;
+    bool heartbeat = false;
     while(furi_message_queue_get(instance->publish_queue, &message, 0) == FuriStatusOk) {
         BSB_State_StateUpdate* update = message.data;
         flags |= message.stream_flags;
         if(update) {
             state_publisher_store_state_update(instance, update, message.stream_flags);
         }
+        if(message.heartbeat) {
+            heartbeat = true;
+        }
     }
 
-    if(message.heartbeat) {
+    if(heartbeat) {
         flags = StreamFlagAll;
     }
 
-    uint32_t sleep_time_ms = send_out(instance, flags, message.heartbeat);
+    uint32_t sleep_time_ms = send_out(instance, flags, heartbeat);
 
     furi_event_loop_timer_start(instance->rate_limiter_timer, ms_to_ticks(sleep_time_ms));
 }
