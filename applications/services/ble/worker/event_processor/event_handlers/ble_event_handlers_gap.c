@@ -161,7 +161,7 @@ bool ble_event_handler_gap_adjust_connection_request(size_t data_size, void* dat
     BLE_LOG_I("%s", __func__);
     BleWorker* instance = context;
     BleConnectionContext* conn = ble_device_get_connection_context(instance->device);
-    bool all_done = ble_connection_update_phy_and_data_length_by_timer(conn);
+    bool all_done = (conn != NULL) && ble_connection_update_phy_and_data_length_by_timer(conn);
     if(!all_done) {
         furi_event_loop_timer_start(instance->update_param_timer, 500);
     }
