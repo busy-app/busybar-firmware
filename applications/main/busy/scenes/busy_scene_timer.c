@@ -12,6 +12,8 @@
 #define TIMER_HIDDEN_TIME_MS (S_TO_MS(15))
 #define TIMER_SHOWN_TIME_MS  (S_TO_MS(5))
 
+#define TRANSITION_CLEAR_TIME_MS (100)
+
 typedef struct {
     TimerIndicator* timer_indicator;
     TimerLabel* timer_label;
@@ -145,7 +147,7 @@ static void busy_scene_timer_update_tick(BusyApp* instance) {
 static void busy_scene_timer_update_priority(BusyApp* instance) {
     const BusySceneTimer* data =
         scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdTimer);
-    bool is_active = (data->timer_state == BusyTimerStateWork) && !data->is_paused;
+    bool is_active = data->timer_state != BusyTimerStateIdle;
     busy_set_priority(instance, is_active);
 }
 
@@ -271,11 +273,36 @@ static void busy_scene_timer_update_timer_state(BusyApp* instance) {
     busy_scene_timer_update_front_display_blanking(instance);
 }
 
+static void busy_scene_timer_clear_transition(BusyApp* instance) {
+    bool was_cleared = false;
+
+    with_gui(instance->gui, {
+        Widget* transition_overlay = transition_overlay_get_base(instance->transition_overlay);
+
+        if(widget_is_visible(transition_overlay)) {
+            widget_set_visible(transition_overlay, false);
+            was_cleared = true;
+        }
+    });
+
+    if(was_cleared) {
+        // Small delay for the Gui to redraw the background
+        furi_delay_ms(TRANSITION_CLEAR_TIME_MS);
+    }
+}
+
 static void busy_scene_timer_handle_pause(BusyApp* instance) {
     const BusySceneTimer* data =
         scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdTimer);
 
     const bool is_paused = data->is_paused;
+
+    if(is_paused) {
+        // NOTE: Special case where the pause overlay is shown immediately
+        // after entering the scene (e.g. when restoring the timer from stored snapshot).
+        // Needed for the theme background to be visible through the pause overlay.
+        busy_scene_timer_clear_transition(instance);
+    }
 
     with_gui(instance->gui, {
         pause_overlay_show(data->pause_overlay, is_paused);

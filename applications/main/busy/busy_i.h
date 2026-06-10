@@ -111,6 +111,24 @@ void busy_prepare_transition(BusyApp* instance, BusyTransitionType type);
 
 void busy_start_transition(BusyApp* instance);
 
+/**
+ * @brief Adjust the loader priority to reflect the busy-timer activity state.
+ *
+ * Inactive (false): sets LOADER_PASSTHROUGH_PRIORITY so that HTTP canvas
+ *   draw requests at DEFAULT priority (10) are accepted (canvas uses a
+ *   strict-less-than comparison for empty-canvas draws).
+ * Active (true): sets LOADER_BLOCKING_PRIORITY (= LOADER_MAX_PRIORITY + 1)
+ *   so that every valid HTTP draw request (max API priority = 100) is
+ *   unconditionally rejected while the timer is running.
+ *
+ * Called from:
+ *   busy_scene_start_on_enter  → false (idle/start)
+ *   busy_scene_timer_on_exit   → false (returning to start)
+ *   busy_scene_timer_update_priority → mirrors timer running state
+ *
+ * @param[in] instance busy app instance
+ * @param[in] active   true while the timer is actively running
+ */
 void busy_set_priority(BusyApp* instance, bool active);
 
 void busy_set_front_display_blanking(BusyApp* instance, bool is_blanked);
@@ -123,9 +141,7 @@ bool busy_return_to_start_scene(BusyApp* instance);
 
 void busy_exit(BusyApp* instance);
 
-void busy_load_app_config(BusyApp* instance);
-
-void busy_apply_app_config(BusyApp* instance);
+void busy_set_app_config(BusyApp* instance, const BusyAppConfig* app_config);
 
 void busy_get_timer_preset(BusyApp* instance, BusyTimerPreset* timer_preset);
 

@@ -38,9 +38,9 @@ from .system import (
 
 # WiFi API
 from .wifi import (
-    TEST_WIFI_PASSWORD,
-    TEST_WIFI_SECURITY,
-    TEST_WIFI_SSID,
+    WIFI_PASSWORD,
+    WIFI_SECURITY,
+    WIFI_SSID,
     WifiAPI,
     WifiConnectRequest,
     WifiNetwork,
@@ -69,6 +69,7 @@ from .assets import (
 # Account API
 from .account import (
     AccountAPI,
+    AccountBackend,
     AccountInfoResponse,
     AccountLinkResponse,
     AccountProfileResponse,
@@ -154,9 +155,9 @@ __all__ = [
     "WifiNetworksResponse",
     "WifiResultResponse",
     "WifiConnectRequest",
-    "TEST_WIFI_SSID",
-    "TEST_WIFI_PASSWORD",
-    "TEST_WIFI_SECURITY",
+    "WIFI_SSID",
+    "WIFI_PASSWORD",
+    "WIFI_SECURITY",
     "StorageAPI",
     "StorageStatusResponse",
     "StorageItem",
@@ -167,6 +168,7 @@ __all__ = [
     "DisplayElement",
     "DisplayDrawRequest",
     "AccountAPI",
+    "AccountBackend",
     "AccountInfoResponse",
     "AccountStatusResponse",
     "AccountProfileResponse",

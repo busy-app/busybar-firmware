@@ -20,7 +20,6 @@ typedef enum {
 #if defined(BSB_MCU_SI917)
 static bool ble_service_device_info_init_917(void* object) {
     UNUSED(object);
-    BLE_LOG_W("device_info_init_917");
     return true;
 }
 #else

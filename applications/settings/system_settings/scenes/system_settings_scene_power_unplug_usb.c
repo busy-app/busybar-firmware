@@ -45,13 +45,13 @@ static void system_settings_scene_power_unplug_usb_on_enter(void* context) {
 
     static const char* const images[GuiDisplayIdMax] = {
         [GuiDisplayIdFront] = SETTINGS_IMG_PATH("warning_front_8x8.image"),
-        [GuiDisplayIdBack] = SETTINGS_IMG_PATH("error_back_11x11.image"),
+        [GuiDisplayIdBack] = SHARED_IMG_PATH("error_back_11x11.image"),
     };
 
     with_gui(instance->gui, {
         for(GuiDisplayId disp = 0; disp < GuiDisplayIdMax; disp++) {
             scene->statuses[disp] = status_view_alloc(windows[disp]);
-            status_view_set_icon(scene->statuses[disp], images[disp]);
+            status_view_set_icon(scene->statuses[disp], images[disp], false);
             status_view_set_primary_text(scene->statuses[disp], "Unplug USB cable\nto continue");
         }
     });

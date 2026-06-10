@@ -9,6 +9,9 @@
 #include "wifi_config.h"
 #include "wifi_backend_util.h"
 
+#define EVENT_QUEUE_SIZE       8
+#define EVENT_QUEUE_TIMEOUT_MS 200
+
 #define NUM_CONNECTION_ATTEMPTS 3
 #define SCAN_INTERVAL_S         5
 #define BEACON_MISSED_COUNT     40
@@ -174,13 +177,14 @@ static sl_status_t wifi_connect_request_handler(
 
     do {
         const WifiCredentials* credentials = &request->connect_request.credentials;
+        const WifiSecurityMode security_mode = credentials->security_mode;
 
         // Initialise client profile
         sl_net_wifi_client_profile_t profile = {
             .config =
                 {
-                    .security = wifi_encode_security_mode(credentials->security_mode),
-                    .credential_id = SL_NET_DEFAULT_WIFI_CLIENT_CREDENTIAL_ID,
+                    .security = wifi_encode_security_mode(security_mode),
+                    .credential_id = wifi_get_credential_id(security_mode),
                 },
         };
 
@@ -195,9 +199,9 @@ static sl_status_t wifi_connect_request_handler(
             break;
         }
 
-        if(credentials->security_mode != WifiSecurityModeOpen) {
+        if(security_mode != WifiSecurityModeOpen) {
             status = sl_net_set_credential(
-                SL_NET_DEFAULT_WIFI_CLIENT_CREDENTIAL_ID,
+                wifi_get_credential_id(security_mode),
                 // TODO: Other passphrase types than PSK?
                 SL_NET_WIFI_PSK,
                 credentials->passphrase,
@@ -273,9 +277,13 @@ static void wifi_intercom_rx_callback(const void* data, size_t data_size, void* 
 
     memcpy(&wifi_event.request_received, data, data_size);
 
-    furi_check(
-        furi_message_queue_put(instance->event_queue, &wifi_event, FuriWaitForever) ==
-        FuriStatusOk);
+    const FuriStatus status = furi_message_queue_put(
+        instance->event_queue, &wifi_event, furi_ms_to_ticks(EVENT_QUEUE_TIMEOUT_MS));
+
+    if(status != FuriStatusOk) {
+        furi_check(status == FuriStatusErrorTimeout);
+        FURI_LOG_E(TAG, "BUG: %s failed to deliver event", __FUNCTION__);
+    }
 }
 
 static void wifi_net_intercom_rx_callback(const void* data, size_t data_size, void* context) {
@@ -286,8 +294,9 @@ static void wifi_net_intercom_rx_callback(const void* data, size_t data_size, vo
         sl_wifi_send_raw_data_frame(SL_WIFI_CLIENT_INTERFACE, data, data_size);
 
     if(status != SL_STATUS_OK) {
-        ++instance->drop_count;
-        FURI_LOG_W(TAG, "Dropped packet (%lu total), reason: 0x%lX", instance->drop_count, status);
+        ++instance->tx_drop_count;
+        FURI_LOG_W(
+            TAG, "TX: Dropped packet (%lu total), reason: 0x%lX", instance->tx_drop_count, status);
     }
 }
 
@@ -470,9 +479,13 @@ static sl_status_t wifi_scan_callback(
                 },
         };
 
-        furi_check(
-            furi_message_queue_put(instance->event_queue, &wifi_event, FuriWaitForever) ==
-            FuriStatusOk);
+        const FuriStatus status = furi_message_queue_put(
+            instance->event_queue, &wifi_event, furi_ms_to_ticks(EVENT_QUEUE_TIMEOUT_MS));
+
+        if(status != FuriStatusOk) {
+            furi_check(status == FuriStatusErrorTimeout);
+            FURI_LOG_E(TAG, "BUG: %s failed to deliver event", __FUNCTION__);
+        }
     }
 
     return ret;
@@ -503,9 +516,13 @@ static sl_status_t
                 },
         };
 
-        furi_check(
-            furi_message_queue_put(instance->event_queue, &wifi_event, FuriWaitForever) ==
-            FuriStatusOk);
+        const FuriStatus status = furi_message_queue_put(
+            instance->event_queue, &wifi_event, furi_ms_to_ticks(EVENT_QUEUE_TIMEOUT_MS));
+
+        if(status != FuriStatusOk) {
+            furi_check(status == FuriStatusErrorTimeout);
+            FURI_LOG_E(TAG, "BUG: %s failed to deliver event", __FUNCTION__);
+        }
     }
 
     return ret;
@@ -565,7 +582,7 @@ static Wifi* wifi_alloc(void) {
     Wifi* instance = malloc(sizeof(Wifi));
 
     instance->event_loop = furi_event_loop_alloc();
-    instance->event_queue = furi_message_queue_alloc(3, sizeof(WifiEvent));
+    instance->event_queue = furi_message_queue_alloc(EVENT_QUEUE_SIZE, sizeof(WifiEvent));
     instance->event_pubsub = furi_pubsub_alloc();
     instance->info_timer = furi_event_loop_timer_alloc(
         instance->event_loop, wifi_backend_info_callback, FuriEventLoopTimerTypePeriodic, instance);

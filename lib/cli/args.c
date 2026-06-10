@@ -23,7 +23,7 @@ bool args_read_int_and_trim(FuriString* args, int* value) {
     }
 
     int32_t temp;
-    if(strint_to_int32(furi_string_get_cstr(args), NULL, &temp, 10) == StrintParseNoError) {
+    if(strint_to_int32(furi_string_get_cstr(args), NULL, &temp, 0) == StrintParseNoError) {
         *value = temp;
         furi_string_right(args, cmd_length);
         furi_string_trim(args);

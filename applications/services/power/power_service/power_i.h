@@ -1,6 +1,7 @@
 #pragma once
 
 #include "power.h"
+#include "settings/settings_i.h"
 #include <furi_hal.h>
 #include <toolbox/api_lock.h>
 
@@ -71,6 +72,7 @@ typedef enum {
     PowerMessageTypeIsUsbConnected,
     PowerMessageTypeIsBatteryReady,
     PowerMessageTypeChargeEnable,
+    PowerMessageTypeSetChargeLimit,
     PowerMessageTypeSetChargeCurrent,
     PowerMessageTypePdGetInfo,
     PowerMessageTypePdRequest,
@@ -129,8 +131,14 @@ struct Power {
     bool tried_to_load_storage_cal;
 
     float charge_last;
+    bool settings_first_loaded;
+    PowerSettings settings;
 
 #ifndef FURI_RAM_EXEC
     bool shipping_mode_wait;
 #endif
 };
+
+#if defined(SRV_STORAGE) && !defined(FURI_RAM_EXEC)
+#define POWER_USE_SETTINGS
+#endif

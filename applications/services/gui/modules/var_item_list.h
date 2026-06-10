@@ -34,7 +34,7 @@ typedef void (*VarItemChangeCallback)(VarItem* item, void* context);
 /**
  * @brief Create a new VarItemList instance.
  *
- * @param[in,out] view_port pointer to the parent Widget instance
+ * @param[in,out] parent pointer to the parent Widget instance
  *
  * @returns pointer to the newly created VarItemList instance
  */
@@ -83,6 +83,7 @@ VarItem* var_item_list_add_timebox(
  *
  * @param[in,out] instance pointer to the VarItemList instance to be modified
  * @param[in] label zero-terminated string containing the item label
+ * @param[in] suffix zero-terminated string containing the item suffix (may be @c NULL)
  * @param[in] min minimum allowed value
  * @param[in] max maximum allowed value
  * @param[in] step step or increment
@@ -105,6 +106,7 @@ VarItem* var_item_list_add_spinbox(
  *
  * @param[in,out] instance pointer to the VarItemList instance to be modified
  * @param[in] label zero-terminated string containing the item label
+ * @param[in] suffix zero-terminated string containing the item suffix (may be @c NULL)
  * @param[in] choice_text pointer to an array of zero-terminated strings containing choice labels
  * @param[in] choice_count number of elements in the choice_text array
  * @param[in] callback pointer to the function to call upon value being changed
@@ -125,6 +127,7 @@ VarItem* var_item_list_add_selector(
  *
  * @param[in,out] instance pointer to the VarItemList instance to be modified
  * @param[in] label zero-terminated string containing the item label
+ * @param[in] suffix zero-terminated string containing the item suffix (may be @c NULL)
  * @param[in] choice_key_val pointer to an array of VarItemKeyValue structures
  * @param[in] choice_count number of elements in the choice_text array
  * @param[in] callback pointer to the function to call upon value being changed
@@ -164,7 +167,7 @@ VarItem* var_item_list_add_switch(
  * - Selector: set the current choice index
  * - Switch: set the current state (0 or 1)
  *
- * @param[in,out] instance pointer to the item to be modified
+ * @param[in,out] item pointer to the item to be modified
  * @param[in] value value to be set
  */
 void var_item_set_value(VarItem* item, int32_t value);
@@ -175,7 +178,7 @@ void var_item_set_value(VarItem* item, int32_t value);
  * This function has a different meaning depending on the item type:
  * - VarItemKeyValue: set the current choice index
  *
- * @param[in,out] instance pointer to the item to be modified
+ * @param[in,out] item pointer to the item to be modified
  * @param[in] choice_key_val pointer to the array of VarItemKeyValue structures
  * @param[in] value value to be set
  */
@@ -193,7 +196,7 @@ void var_item_set_value_key_value(
  * - Selector: get the current choice index
  * - Switch: get the current state (0 or 1)
  *
- * @param[in] instance pointer to the item to be queried
+ * @param[in] item pointer to the item to be queried
  * @returns current item value
  */
 int32_t var_item_get_value(const VarItem* item);
@@ -201,7 +204,7 @@ int32_t var_item_get_value(const VarItem* item);
 /**
  * @brief Set extra item behaviours via flags.
  *
- * @param[in,out] instance pointer to the item to be modified
+ * @param[in,out] item pointer to the item to be modified
  * @param[in] flags a bitmask of flags to be set (will replace current one)
  */
 void var_item_set_flags(VarItem* item, uint32_t flags);

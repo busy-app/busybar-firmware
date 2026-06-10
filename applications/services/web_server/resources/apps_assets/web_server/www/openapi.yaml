@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: BUSY Bar HTTP API
   description: HTTP API for BUSY Bar web server
-  version: 21.0.0
+  version: 23.1.0
   contact:
     name: tbd
 
@@ -721,12 +721,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-        "503":
-          description: Failed to load canvas app
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
     delete:
       tags:
         - Assets
@@ -841,6 +835,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/SuccessResponse"
+        "410":
+          description: No audio is playing
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
         "500":
           description: Audio system error
           content:
@@ -1392,6 +1392,7 @@ paths:
           required: true
           schema:
             type: string
+            format: date-time
             pattern: "^20[0-9]{2}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](Z|[+-]([01][0-9]|2[0-3])(:?[0-5][0-9])?)$"
           description: ISO 8601 timestamp (e.g., 2025-10-02T14:30:45+02:00 for local time or 2025-10-02T14:30:45Z for UTC)
           example: "2025-10-02T14:30:45+0100"
@@ -1863,11 +1864,13 @@ components:
         name:
           type: string
           minLength: 1
+          maxLength: 20
           pattern: "^[a-zA-Z0-9 !()_=+;:,.?'|@#$%^&*\\[\\]{}/\\\\\"<>-]+$"
           description: Device name (letters, digits, spaces and common punctuation; no backtick or tilde)
           example: "BUSY bar"
       required:
         - name
+      additionalProperties: false
       example:
         name: "BUSY bar"
 
@@ -2012,10 +2015,12 @@ components:
             y: 10
             type: text
             text: "Hello, World! Long text"
-            font: medium
+            font: normal
             color: "#FFFFFFFF"
             width: 72
             scroll_rate: 1000
+            scroll_start_delay: 1000
+            scroll_repeat_delay: 2500
             display: front
           - id: "1"
             timeout: 6
@@ -2111,10 +2116,14 @@ components:
               type: string
               description: One of the available fonts to display the text in
               enum:
+                - tiny
                 - small
-                - medium
-                - medium_condensed
-                - big
+                - normal
+                - condensed
+                - bold
+                - large
+                - extra_large
+                - global
             color:
               type: string
               description: "Color to display the text in, in #RRGGBBAA format"
@@ -2128,6 +2137,14 @@ components:
               type: integer
               minimum: 0
               description: Scroll rate in pixels per minute
+            scroll_start_delay:
+              type: integer
+              minimum: 0
+              description: Delay in milliseconds before the scroll animation begins
+            scroll_repeat_delay:
+              type: integer
+              minimum: 0
+              description: Pause duration in milliseconds between successive scroll cycles
 
     ImageElement:
       allOf:
@@ -2446,7 +2463,7 @@ components:
           $ref: "#/components/schemas/WifiSecurityMethod"
         rssi:
           type: integer
-          example: 58
+          example: -58
 
     StatusResponse:
       type: object
@@ -2514,12 +2531,6 @@ components:
           properties:
             ip_method:
               $ref: "#/components/schemas/WifiIpMethod"
-            ip_type:
-              type: string
-              example: ipv4
-              enum:
-                - ipv4
-                - ipv6
             address:
               type: string
               example: 192.168.50.5

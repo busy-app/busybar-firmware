@@ -56,6 +56,7 @@ static void matter_scene_on_enter(void* context) {
             submenu_add_item(
                 scene->submenus[display],
                 "Pair device",
+                NULL,
                 SceneSubmenuIndexPairing,
                 add_callback ? matter_scene_submenu_item_callback : NULL,
                 app);
@@ -64,6 +65,7 @@ static void matter_scene_on_enter(void* context) {
                 submenu_add_item(
                     scene->submenus[display],
                     "Forget all pairings",
+                    NULL,
                     SceneSubmenuIndexReset,
                     add_callback ? matter_scene_submenu_item_callback : NULL,
                     app);
@@ -101,7 +103,7 @@ static bool matter_scene_on_event(const SceneManagerEvent* event, void* context)
             if(scene->menu_idx == SceneSubmenuIndexPairing) {
                 scene_manager_next_scene(app->scene_manager, SceneIdPairing);
             } else if(scene->menu_idx == SceneSubmenuIndexReset) {
-                matter_factory_reset(app->matter);
+                matter_factory_reset(app->matter, MatterRebootAutomatically);
             } else {
                 furi_crash();
             }

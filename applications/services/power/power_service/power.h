@@ -67,6 +67,7 @@ typedef struct {
 
     uint32_t charge_ilim_usb;
     uint32_t charge_ilim_battery;
+    uint32_t charge_level_limit;
 
     struct {
         Bq25798ChargerStatus charger_status;
@@ -97,6 +98,7 @@ bool power_is_usb_connected(Power* power);
 bool power_is_battery_ready(Power* power);
 void power_get_info(Power* power, PowerInfo* info);
 void power_charge_enable(Power* power, bool enable);
+void power_set_charge_limit(Power* power, uint32_t limit);
 void power_set_charge_current(Power* power, uint32_t current_ma);
 void power_get_pd_info(Power* power, PowerPdInfo* info);
 void power_set_pd_mode(Power* power, uint32_t voltage_mv);

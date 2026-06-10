@@ -11,8 +11,8 @@ static const struct {
     char* name;
     InputKey key;
 } input_keys[] = {
-    {"up", InputKeyDown},
-    {"down", InputKeyUp},
+    {"up", InputKeyUp},
+    {"down", InputKeyDown},
     {"ok", InputKeyOk},
     {"back", InputKeyBack},
     {"start", InputKeyStart},
@@ -45,7 +45,7 @@ bool http_api_input_callback(
 
         Input* input = furi_record_open(RECORD_INPUT);
         for(size_t i = 0; i < COUNT_OF(input_keys); i++) {
-            if(strncmp(input_keys[i].name, key_name, var_len) == 0) {
+            if(strcmp(input_keys[i].name, key_name) == 0) {
                 input_key_toggle(input, input_keys[i].key);
                 success = true;
                 break;

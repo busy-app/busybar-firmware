@@ -1,6 +1,4 @@
 #include "http_api.h"
-#include <loader/loader.h>
-#include <desktop/desktop.h>
 #include <gui/gui.h>
 #include <toolbox/path.h>
 #include <toolbox/value_index.h>
@@ -10,18 +8,21 @@
 #include <furi_hal_rtc.h>
 #include <font_registry/fonts.h>
 #include <brightness_control/brightness_control.h>
+#include <lvgl.h>
 
 #define TAG "HttpDisplay"
 
-#define DISPLAY_ASSETS_DIR EXT_PATH("user_assets")
-
-#define DEFAULT_ELEMENT_PRIORITY 50
+#define DISPLAY_ASSETS_DIR           EXT_PATH("user_assets")
+#define DISPLAY_API_DEFAULT_PRIORITY (50)
 
 static bool api_display_draw_parse_text_element(
     CanvasElement* canvas_element,
     const char* app_name,
-    struct mg_str json_element) {
+    struct mg_str json_element,
+    FuriString* error) {
     UNUSED(app_name);
+    UNUSED(error);
+
     bool result = false;
     do {
         canvas_element->type = CanvasElementTypeText;
@@ -32,18 +33,29 @@ static bool api_display_draw_parse_text_element(
 
         char* font_name = mg_json_get_str(json_element, "$.font");
         if(!font_name) break;
+
         static const char* const font_names[] = {
+            "tiny",
             "small",
-            "medium",
-            "medium_condensed",
-            "big",
+            "normal",
+            "condensed",
+            "bold",
+            "large",
+            "extra_large",
+            "global",
         };
+
         static const char* const font_paths[] = {
+            FONT_BUSY_TINY,
             FONT_BUSY_REGULAR_5,
             FONT_BUSY_REGULAR_7,
             FONT_BUSY_CONDENSED_7,
+            FONT_BUSY_BOLD_7,
+            FONT_BUSY_REGULAR_9,
             FONT_BUSY_BOLD_10,
+            FONT_LANA_PIXEL_REGULAR_11,
         };
+
         const char* font_path =
             value_index_map_string(font_names, font_paths, COUNT_OF(font_names), font_name);
         if(strcmp(font_path, font_paths[0]) == 0 && strcmp(font_name, font_names[0]) != 0) {
@@ -72,6 +84,16 @@ static bool api_display_draw_parse_text_element(
             canvas_element->text.scroll_rate_cpm = (size_t)number;
         }
 
+        if(mg_json_get_num(json_element, "$.scroll_start_delay", &number)) {
+            if(number < -__DBL_EPSILON__) break; // < 0
+            canvas_element->text.scroll_start_delay = (size_t)number;
+        }
+
+        if(mg_json_get_num(json_element, "$.scroll_repeat_delay", &number)) {
+            if(number < -__DBL_EPSILON__) break; // < 0
+            canvas_element->text.scroll_repeat_delay = (size_t)number;
+        }
+
         result = true;
     } while(0);
     return result;
@@ -80,8 +102,11 @@ static bool api_display_draw_parse_text_element(
 static bool api_display_draw_parse_countdown_element(
     CanvasElement* canvas_element,
     const char* app_name,
-    struct mg_str json_element) {
+    struct mg_str json_element,
+    FuriString* error) {
     UNUSED(app_name);
+    UNUSED(error);
+
     bool result = false;
     do {
         canvas_element->type = CanvasElementTypeCountdown;
@@ -146,7 +171,11 @@ static bool api_display_draw_parse_image_path(
         if(uploaded) {
             *file_path =
                 furi_string_alloc_printf("%s/%s/%s", DISPLAY_ASSETS_DIR, app_name, uploaded);
-
+            if(!mg_path_is_sane(mg_str(furi_string_get_cstr(*file_path)))) {
+                furi_string_free(*file_path);
+                *file_path = NULL;
+                break;
+            }
             result = true;
             break;
         }
@@ -175,16 +204,47 @@ static bool api_display_draw_parse_image_path(
     return result;
 }
 
+static bool
+    api_display_validate_image(const char* file_path, GuiDisplayId display, FuriString* error) {
+    lv_image_header_t header;
+    if(lv_image_decoder_get_info(file_path, &header) != LV_RESULT_OK) {
+        furi_string_printf(error, "Failed to decode image %s.", file_path);
+        return false;
+    }
+
+    const GuiDisplayParameters* display_parameters = gui_display_get_parameters(display);
+
+    if(header.w > display_parameters->width || header.h > display_parameters->height) {
+        furi_string_printf(
+            error,
+            "Image %s exceeds display dimensions %zux%zu.",
+            file_path,
+            display_parameters->width,
+            display_parameters->height);
+        return false;
+    }
+
+    return true;
+}
+
 static bool api_display_draw_parse_image_element(
     CanvasElement* canvas_element,
     const char* app_name,
-    struct mg_str json_element) {
+    struct mg_str json_element,
+    FuriString* error) {
     bool result = false;
 
     do {
         canvas_element->type = CanvasElementTypeImage;
+
         if(!api_display_draw_parse_image_path(
                &canvas_element->image.file_path, app_name, json_element, canvas_element->type))
+            break;
+
+        if(!api_display_validate_image(
+               furi_string_get_cstr(canvas_element->image.file_path),
+               canvas_element->display,
+               error))
             break;
 
         result = true;
@@ -196,7 +256,9 @@ static bool api_display_draw_parse_image_element(
 static bool api_display_draw_parse_anim_player_element(
     CanvasElement* canvas_element,
     const char* app_name,
-    struct mg_str json_element) {
+    struct mg_str json_element,
+    FuriString* error) {
+    UNUSED(error);
     bool result = false;
 
     do {
@@ -212,6 +274,7 @@ static bool api_display_draw_parse_anim_player_element(
 
         if((json_str = mg_json_get_str(json_element, "$.section"))) {
             canvas_element->anim_player.section = furi_string_alloc_set_str(json_str);
+            free(json_str);
         } else {
             canvas_element->anim_player.section =
                 furi_string_alloc_set_str(ANIM_FILE_DEFAULT_SECTION);
@@ -233,8 +296,11 @@ static bool api_display_draw_parse_anim_player_element(
     return result;
 }
 
-typedef bool (
-    *ApiDisplayElementTypeParser)(CanvasElement*, const char* app_name, struct mg_str element);
+typedef bool (*ApiDisplayElementTypeParser)(
+    CanvasElement*,
+    const char* app_name,
+    struct mg_str element,
+    FuriString* error);
 
 typedef struct {
     const char* type;
@@ -244,7 +310,8 @@ typedef struct {
 static bool api_display_draw_parse_element(
     CanvasElementsArray_t elements_array,
     char* app_name,
-    struct mg_str element) {
+    struct mg_str element,
+    FuriString* error) {
     bool success = false;
     char* element_type = NULL;
     CanvasElement* canvas_element = CanvasElementsArray_push_new(elements_array);
@@ -314,7 +381,7 @@ static bool api_display_draw_parse_element(
         for(size_t i = 0; i < COUNT_OF(element_parsers); i++) {
             const ApiDisplayElementTypeAssoc* association = &element_parsers[i];
             if(strcmp(element_type, association->type) == 0) {
-                success = association->parser(canvas_element, app_name, element);
+                success = association->parser(canvas_element, app_name, element, error);
                 break;
             }
         }
@@ -325,28 +392,57 @@ static bool api_display_draw_parse_element(
     return success;
 }
 
-static bool api_display_draw_check_elements_visible(CanvasElementsArray_t elements) {
-    size_t elemets_visible = 0;
-    CanvasElementsArray_it_t it;
-    for(CanvasElementsArray_it(it, elements); !CanvasElementsArray_end_p(it);
-        CanvasElementsArray_next(it)) {
-        const CanvasElement* item = CanvasElementsArray_cref(it);
-        if(item->display_until > 0) {
-            time_t current_stamp = furi_hal_rtc_get_timestamp();
-            if(MAX(0, item->display_until - current_stamp) == 0) {
-                continue;
-            }
-        }
-        elemets_visible++;
+static const struct {
+    uint32_t code;
+    const char* message;
+} draw_errors[CanvasResultMax] = {
+    [CanvasResultOk] = {0, NULL},
+    [CanvasResultBadParameters] = {400, "Bad request"},
+    [CanvasResultLowPriority] = {409, "Not drawn due to low priority"},
+    [CanvasResultEmptyScreen] = {400, "Nothing to display"},
+};
+_Static_assert(
+    COUNT_OF(draw_errors) == CanvasResultMax,
+    "draw_errors table must cover all CanvasResult values");
+
+typedef struct {
+    unsigned long conn_id;
+    CanvasResult result;
+} CanvasDrawCtx;
+
+static void canvas_draw_wakeup_callback(struct mg_connection* conn, void* data, size_t len) {
+    UNUSED(data);
+    UNUSED(len);
+    ConnectionContext* conn_ctx = (void*)conn->data;
+    CanvasDrawCtx* ctx = conn_ctx->context;
+    conn_ctx->on_wakeup = NULL;
+    conn_ctx->on_close = NULL;
+    conn_ctx->context = NULL;
+    if(ctx->result != CanvasResultOk) {
+        MG_REPLY_ERROR(conn, draw_errors[ctx->result].code, draw_errors[ctx->result].message);
+    } else {
+        MG_REPLY_OK(conn);
     }
-    return elemets_visible > 0;
+    free(ctx);
 }
 
-static size_t api_display_active_priority(void) {
-    Loader* loader = furi_record_open(RECORD_LOADER);
-    size_t priority = loader_get_priority(loader);
-    furi_record_close(RECORD_LOADER);
-    return priority;
+static void canvas_draw_close_callback(struct mg_connection* conn) {
+    ConnectionContext* conn_ctx = (void*)conn->data;
+    CanvasDrawCtx* ctx = conn_ctx->context;
+    ctx->conn_id = 0;
+    conn_ctx->on_wakeup = NULL;
+    conn_ctx->on_close = NULL;
+    conn_ctx->context = NULL;
+}
+
+static void canvas_draw_done_callback(CanvasResult result, void* ctx_ptr) {
+    CanvasDrawCtx* ctx = ctx_ptr;
+    if(ctx->conn_id) {
+        ctx->result = result;
+        mg_wakeup(web_srv_get_mgr(), ctx->conn_id, NULL, 0);
+    } else {
+        free(ctx);
+    }
 }
 
 static void api_display_canvas_draw(struct mg_connection* conn, struct mg_http_message* msg) {
@@ -354,9 +450,9 @@ static void api_display_canvas_draw(struct mg_connection* conn, struct mg_http_m
     CanvasElementsArray_init(elements_array);
 
     char* app_name = NULL;
-    bool success = false;
     double json_num = 0;
-    int priority = DEFAULT_ELEMENT_PRIORITY;
+    int priority = DISPLAY_API_DEFAULT_PRIORITY;
+    FuriString* error = furi_string_alloc();
 
     do {
         app_name = mg_json_get_str(msg->body, "$.application_name");
@@ -372,7 +468,7 @@ static void api_display_canvas_draw(struct mg_connection* conn, struct mg_http_m
             MG_REPLY_ERROR(conn, 400, "Priority must be >= 1");
             break;
         }
-        if((size_t)priority > LOADER_MAX_PRIORITY) {
+        if((size_t)priority > CANVAS_MAX_PRIORITY) {
             MG_REPLY_ERROR(conn, 400, "Priority must be <= 100");
             break;
         }
@@ -385,57 +481,41 @@ static void api_display_canvas_draw(struct mg_connection* conn, struct mg_http_m
 
         size_t offset = 0;
         struct mg_str element;
-        success = true;
+        bool ok = true;
         while((offset = mg_json_next(elements_obj, offset, NULL, &element)) > 0) {
-            success = api_display_draw_parse_element(elements_array, app_name, element);
-            if(!success) break;
+            ok = api_display_draw_parse_element(elements_array, app_name, element, error);
+            if(!ok) break;
         }
-
-        if(!success) {
-            MG_REPLY_BAD_REQUEST(conn);
+        if(!ok) {
+            MG_REPLY_ERROR(
+                conn, 400, furi_string_empty(error) ? "Bad Request" : furi_string_get_cstr(error));
             break;
         }
-
         if(CanvasElementsArray_size(elements_array) == 0) {
             MG_REPLY_ERROR(conn, 400, "Elements array is empty");
             break;
         }
 
-        size_t active_priority = api_display_active_priority();
-        if((size_t)priority < active_priority) {
-            MG_REPLY_ERROR(conn, 409, "Not drawn due to low priority");
-            break;
-        }
+        CanvasDrawCtx* ctx = malloc(sizeof(*ctx));
+        *ctx = (CanvasDrawCtx){.conn_id = conn->id};
 
-        bool canvas_running = furi_record_exists(RECORD_CANVAS);
-        if(!canvas_running) {
-            if(!api_display_draw_check_elements_visible(elements_array)) {
-                MG_REPLY_ERROR(conn, 400, "Nothing to display");
-                break;
-            }
-            Desktop* desktop = furi_record_open(RECORD_DESKTOP);
-            if(desktop_replace_current_app(desktop, "canvas", "")) {
-                canvas_running = true;
-            } else {
-                MG_REPLY_ERROR(conn, 503, "Failed to load canvas app");
-            }
-            furi_record_close(RECORD_DESKTOP);
-            if(!canvas_running) break;
-        }
+        ConnectionContext* conn_ctx = (void*)conn->data;
+        conn_ctx->on_wakeup = canvas_draw_wakeup_callback;
+        conn_ctx->on_close = canvas_draw_close_callback;
+        conn_ctx->context = ctx;
 
-        CanvasApp* canvas = furi_record_open(RECORD_CANVAS);
-        bool shown = canvas_show_elements(canvas, app_name, priority, elements_array);
+        CanvasSrv* canvas = furi_record_open(RECORD_CANVAS);
+        canvas_show_elements_async(
+            canvas, app_name, priority, elements_array, canvas_draw_done_callback, ctx);
         furi_record_close(RECORD_CANVAS);
 
-        if(!shown) {
-            MG_REPLY_BAD_REQUEST(conn);
-            break;
-        }
-
-        MG_REPLY_OK(conn);
+        CanvasElementsArray_clear(elements_array);
+        free(app_name);
+        return; // response delivered asynchronously via mg_wakeup
     } while(0);
 
     CanvasElementsArray_clear(elements_array);
+    furi_string_free(error);
     if(app_name) free(app_name);
 }
 
@@ -445,20 +525,15 @@ static void api_display_canvas_clear(struct mg_connection* conn, struct mg_http_
         mg_http_get_var(&msg->query, "application_name", app_name_buf, sizeof(app_name_buf));
     const char* app_name = (app_name_len >= 1) ? app_name_buf : NULL;
 
-    FuriString* loader_app_name = furi_string_alloc();
-    Loader* loader = furi_record_open(RECORD_LOADER);
+    CanvasSrv* canvas = furi_record_open(RECORD_CANVAS);
+    CanvasResult res = canvas_delete_elements(canvas, app_name);
+    furi_record_close(RECORD_CANVAS);
 
-    if(loader_get_application_name(loader, loader_app_name)) {
-        if(furi_string_cmp(loader_app_name, "Canvas") == 0) {
-            CanvasApp* canvas = furi_record_open(RECORD_CANVAS);
-            canvas_delete_elements(canvas, app_name);
-            furi_record_close(RECORD_CANVAS);
-        }
+    if(res == CanvasResultOk) {
+        MG_REPLY_OK(conn);
+    } else {
+        MG_REPLY_BAD_REQUEST(conn);
     }
-
-    furi_record_close(RECORD_LOADER);
-    MG_REPLY_OK(conn);
-    furi_string_free(loader_app_name);
 }
 
 static bool api_display_draw_callback(

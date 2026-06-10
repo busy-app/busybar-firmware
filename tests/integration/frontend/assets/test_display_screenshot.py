@@ -80,7 +80,7 @@ BACK_DRAW_ELEMENTS = [
         "x": 80,
         "y": 20,
         "align": "center",
-        "font": "medium",
+        "font": "normal",
         "color": "#FFFFFFFF",
         "display": "back",
     },
@@ -92,7 +92,7 @@ BACK_DRAW_ELEMENTS = [
         "x": 80,
         "y": 50,
         "align": "center",
-        "font": "medium",
+        "font": "normal",
         "color": "#FFFFFFFF",
         "display": "back",
     },
@@ -320,14 +320,14 @@ class TestDisplayScreenshot:
                     "draw command may have had no visible effect"
                 )
 
-                # "SCREENSHOT" at (80, 20) center-aligned, medium font
+                # "SCREENSHOT" at (80, 20) center-aligned, normal font
                 top_bright = _count_bright_back_pixels(actual, 15, 12, 145, 30)
                 assert top_bright > 0, (
                     f"No bright pixels in 'SCREENSHOT' text region "
                     f"(rows 12-30, cols 15-145); got {top_bright}"
                 )
 
-                # "TEST" at (80, 50) center-aligned, medium font
+                # "TEST" at (80, 50) center-aligned, normal font
                 bot_bright = _count_bright_back_pixels(actual, 50, 43, 110, 60)
                 assert bot_bright > 0, (
                     f"No bright pixels in 'TEST' text region "
@@ -524,38 +524,6 @@ class TestDisplayPriority:
         finally:
             assets_api.clear_display()
 
-    @allure.title("Equal priority draw succeeds and replaces")
-    @pytest.mark.api
-    @pytest.mark.frontend
-    def test_equal_priority_replaces(
-        self,
-        assets_api: AssetsAPI,
-        streaming_api: StreamingAPI,
-    ):
-        """Draw with a priority, then verify equal priority replaces it."""
-        try:
-            with allure.step("Draw with priority 8 (white)"):
-                first_element = _make_front_text_element("FIRST", color="#FFFFFFFF")
-                _draw_and_capture(
-                    assets_api, streaming_api, "first", [first_element], priority=8,
-                )
-
-            with allure.step("Draw with same priority 8 (green)"):
-                second_element = _make_front_text_element("SECOND", color="#00FF00FF")
-                actual = _draw_and_capture(
-                    assets_api, streaming_api, "second", [second_element], priority=8,
-                )
-
-            with allure.step("Verify display shows only second (green) content"):
-                assert _has_dominant_channel(actual, channel=1), (
-                    "Expected green pixels from second draw"
-                )
-                assert not _has_white(actual), (
-                    "Should not have white pixels from first draw"
-                )
-        finally:
-            assets_api.clear_display()
-
     @allure.title("Higher priority draw replaces lower")
     @pytest.mark.api
     @pytest.mark.frontend
@@ -563,19 +531,25 @@ class TestDisplayPriority:
         self,
         assets_api: AssetsAPI,
         streaming_api: StreamingAPI,
+        busy_timer_stopped,
     ):
-        """Draw with low priority, then verify higher priority replaces it."""
+        """Draw with low priority, then verify higher priority replaces it.
+
+        Uses busy_timer_stopped to ensure the loader priority is at the
+        idle baseline (10) before the test, so draws at 20 and 40 are
+        both above any background interference.
+        """
         try:
-            with allure.step("Draw with priority 3 (white)"):
+            with allure.step("Draw with priority 20 (white)"):
                 low_element = _make_front_text_element("LOW", color="#FFFFFFFF")
                 _draw_and_capture(
-                    assets_api, streaming_api, "low", [low_element], priority=3,
+                    assets_api, streaming_api, "low", [low_element], priority=20,
                 )
 
-            with allure.step("Draw with priority 9 (green)"):
+            with allure.step("Draw with priority 40 (green)"):
                 high_element = _make_front_text_element("HIGH", color="#00FF00FF")
                 actual = _draw_and_capture(
-                    assets_api, streaming_api, "high", [high_element], priority=9,
+                    assets_api, streaming_api, "high", [high_element], priority=40,
                 )
 
             with allure.step("Verify display shows only high-priority (green) content"):

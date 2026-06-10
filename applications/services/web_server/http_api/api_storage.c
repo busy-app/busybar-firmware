@@ -3,15 +3,11 @@
 #include <desktop/desktop.h>
 #include <gui/gui.h>
 #include <toolbox/path.h>
+#include <cjson/cJSON.h>
 
 #define TAG "HttpStorage"
 
 #define FILE_PATH_LEN_MAX 64
-
-typedef struct {
-    size_t len_remain;
-    void* file;
-} WriteClientCtx;
 
 static bool api_storage_parse_path_parameter(
     struct mg_str* params_str,
@@ -32,62 +28,11 @@ static bool api_storage_parse_path_parameter(
         furi_string_left(path, furi_string_size(path) - 1);
     }
 
+    if(!mg_path_is_sane(mg_str(furi_string_get_cstr(path)))) {
+        return false;
+    }
+
     return furi_string_start_with(path, STORAGE_EXT_PATH_PREFIX);
-}
-
-static void api_storage_write_data_callback(struct mg_connection* conn, struct mg_iobuf* data) {
-    ConnectionContext* conn_ctx = (void*)conn->data;
-    WriteClientCtx* write_ctx = conn_ctx->context;
-
-    bool do_close_file = false;
-
-    if(write_ctx == NULL) return;
-    if(write_ctx->file == NULL) return;
-
-    if((data->len > 0) && (write_ctx->file)) {
-        // Write file chunk
-        size_t write_len = MIN(data->len, write_ctx->len_remain);
-        if(http_fs_get()->wr(write_ctx->file, data->buf, write_len) != write_len) {
-            FURI_LOG_E(TAG, "Failed to write file chunk");
-            MG_REPLY_INTERNAL_ERROR(conn, "Failed to write file chunk");
-            do_close_file = true;
-        } else {
-            write_ctx->len_remain -= write_len;
-            FURI_LOG_T(
-                TAG,
-                "Wrote %zu bytes to file, remaining %zu bytes",
-                write_len,
-                write_ctx->len_remain);
-        }
-    }
-
-    if(write_ctx->len_remain == 0) {
-        MG_REPLY_OK(conn);
-        do_close_file = true; // End of write
-    }
-
-    if(do_close_file) { // error or end of write
-        FURI_LOG_I(TAG, "Closing file after write data");
-        if(write_ctx->file) {
-            http_fs_get()->cl(write_ctx->file);
-            write_ctx->file = NULL;
-        }
-        conn->is_draining = 1; // Drain connection
-    }
-    data->len = 0;
-}
-
-static void api_storage_write_close_callback(struct mg_connection* conn) {
-    ConnectionContext* conn_ctx = (void*)conn->data;
-    WriteClientCtx* write_ctx = conn_ctx->context;
-    if(write_ctx->file) {
-        http_fs_get()->cl(write_ctx->file);
-        write_ctx->file = NULL;
-    }
-    free(write_ctx);
-    conn_ctx->on_close = NULL;
-    conn_ctx->raw.on_data = NULL;
-    conn_ctx->context = NULL;
 }
 
 static bool api_storage_write_headers_callback(
@@ -103,47 +48,20 @@ static bool api_storage_write_headers_callback(
 
     FuriString* file_path = furi_string_alloc();
     if(api_storage_parse_path_parameter(&msg->query, "path", file_path)) {
-        FURI_LOG_I(
-            TAG, "Write len = %u path = %s", msg->body.len, furi_string_get_cstr(file_path));
-        // Create write context
-        WriteClientCtx* write_ctx = malloc(sizeof(WriteClientCtx));
-        write_ctx->len_remain = msg->body.len;
-        write_ctx->file = NULL;
-
-        // Assign callbacks
-        ConnectionContext* conn_ctx = (void*)conn->data;
-        conn_ctx->on_close = api_storage_write_close_callback;
-        conn_ctx->raw.on_data = api_storage_write_data_callback;
-        conn_ctx->context = write_ctx;
-
-        const char* path_temp = furi_string_get_cstr(file_path);
-        http_fs_get()->rm(path_temp); // Delete file if it exists
-        FuriString* dir_path = furi_string_alloc();
-        path_extract_dirname(path_temp, dir_path);
-        http_fs_get()->mkd(furi_string_get_cstr(dir_path));
-        furi_string_free(dir_path);
-        write_ctx->file = http_fs_get()->op(path_temp, MG_FS_WRITE); // Open file for writing
-
-        if(write_ctx->file == NULL) {
-            MG_REPLY_INTERNAL_ERROR(conn, "Failed to open file for writing");
-            conn->is_draining = 1;
-        }
+        http_upload_start(conn, msg, furi_string_get_cstr(file_path));
     } else {
-        MG_REPLY_BAD_REQUEST(conn);
-        conn->is_draining = 1;
-        ConnectionContext* conn_ctx = (void*)conn->data;
-        conn_ctx->context = NULL;
+        MG_REPLY_ERROR_CLOSE(conn, 400, "Bad Request");
     }
 
     furi_string_free(file_path);
 
-    mg_iobuf_del(&conn->recv, 0, msg->head.len); // Delete HTTP headers
-    conn->pfn = NULL; // Silence HTTP protocol handler, we'll use MG_EV_READ
-
-    // Also handle possible data in the buffer
-    api_storage_write_data_callback(conn, &conn->recv);
-
     return true;
+}
+
+static bool api_storage_filename_is_header_safe(const FuriString* filename) {
+    return furi_string_search_char(filename, '"', 0) == FURI_STRING_FAILURE &&
+           furi_string_search_char(filename, '\r', 0) == FURI_STRING_FAILURE &&
+           furi_string_search_char(filename, '\n', 0) == FURI_STRING_FAILURE;
 }
 
 static bool api_storage_read_callback(
@@ -168,6 +86,12 @@ static bool api_storage_read_callback(
     if(success) {
         FuriString* filename = furi_string_alloc();
         path_extract_filename(file_path, filename, false);
+        if(!api_storage_filename_is_header_safe(filename)) {
+            furi_string_free(filename);
+            furi_string_free(file_path);
+            MG_REPLY_BAD_REQUEST(conn);
+            return true;
+        }
         FuriString* content_header = furi_string_alloc_printf(
             "Content-Disposition: attachment; filename=\"%s\"\r\n",
             furi_string_get_cstr(filename));
@@ -296,7 +220,7 @@ static bool api_storage_list_callback(
     FuriString* dir_path = furi_string_alloc();
     bool success = false;
 
-    FuriString* json_list = furi_string_alloc();
+    cJSON* list_array = cJSON_CreateArray();
 
     if(api_storage_parse_path_parameter(&msg->query, "path", dir_path)) {
         Storage* api = furi_record_open(RECORD_STORAGE);
@@ -305,22 +229,18 @@ static bool api_storage_list_callback(
             success = true;
             FileInfo fileinfo;
             char name[FILE_PATH_LEN_MAX];
-            bool is_first = true;
 
             while(storage_dir_read(file, &fileinfo, name, FILE_PATH_LEN_MAX)) {
-                if(!is_first) {
-                    furi_string_cat(json_list, ",");
-                }
-                is_first = false;
+                cJSON* entry = cJSON_CreateObject();
                 if(file_info_is_dir(&fileinfo)) {
-                    furi_string_cat_printf(json_list, "{\"type\":\"dir\",\"name\":\"%s\"}", name);
+                    cJSON_AddStringToObject(entry, "type", "dir");
+                    cJSON_AddStringToObject(entry, "name", name);
                 } else {
-                    furi_string_cat_printf(
-                        json_list,
-                        "{\"type\":\"file\",\"name\":\"%s\",\"size\":%lu}",
-                        name,
-                        (uint32_t)(fileinfo.size));
+                    cJSON_AddStringToObject(entry, "type", "file");
+                    cJSON_AddStringToObject(entry, "name", name);
+                    cJSON_AddNumberToObject(entry, "size", (double)(fileinfo.size));
                 }
+                cJSON_AddItemToArray(list_array, entry);
             }
         }
         storage_dir_close(file);
@@ -329,13 +249,18 @@ static bool api_storage_list_callback(
     }
 
     if(success) {
-        MG_REPLY_OK_BODY(conn, "{\"list\":[%s]}\n", furi_string_get_cstr(json_list));
+        cJSON* root = cJSON_CreateObject();
+        cJSON_AddItemToObject(root, "list", list_array);
+        char* json_str = cJSON_PrintUnformatted(root);
+        cJSON_Delete(root);
+        MG_REPLY_OK_BODY(conn, "%s\n", json_str);
+        free(json_str);
     } else {
+        cJSON_Delete(list_array);
         MG_REPLY_BAD_REQUEST(conn);
     }
 
     furi_string_free(dir_path);
-    furi_string_free(json_list);
 
     return true;
 }

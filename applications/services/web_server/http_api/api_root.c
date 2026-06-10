@@ -229,17 +229,15 @@ static void http_api_access_set_callback(
 
         if(mode_status <= 0) break;
 
-        if(mode_status > 0) {
-            if(strcmp(mode_str, "disabled") == 0) {
-                access_mode = ApiAccessDisabled;
-            } else if(strcmp(mode_str, "enabled") == 0) {
-                access_mode = ApiAccessEnabled;
-            } else if(strcmp(mode_str, "key") == 0) {
-                access_mode = ApiAccessKeyRequired;
-                if(key_status <= 0) break;
-            } else {
-                break;
-            }
+        if(strcmp(mode_str, "disabled") == 0) {
+            access_mode = ApiAccessDisabled;
+        } else if(strcmp(mode_str, "enabled") == 0) {
+            access_mode = ApiAccessEnabled;
+        } else if(strcmp(mode_str, "key") == 0) {
+            access_mode = ApiAccessKeyRequired;
+            if(key_status <= 0) break;
+        } else {
+            break;
         }
 
         if(key_status > 0) {
@@ -268,6 +266,9 @@ static bool http_api_is_access_allowed(
     HttpMethod method,
     struct mg_connection* conn,
     struct mg_http_message* msg) {
+    // CORS preflight requests cannot carry credentials; always allow
+    if(method == HttpMethodOptions) return true;
+
     for(size_t i = 0; i < COUNT_OF(api_access_whitelist); i++) {
         if(furi_string_equal(path, api_access_whitelist[i].uri) &&
            (method & api_access_whitelist[i].method)) {
@@ -342,17 +343,17 @@ static bool http_api_is_version_allowed(
 
         struct mg_str major_ver_str;
         if(!mg_span(*request_semver, &major_ver_str, NULL, '.')) {
-            MG_REPLY_BAD_REQUEST(conn);
+            MG_REPLY_ERROR_CLOSE(conn, 400, "Bad Request");
             return false;
         }
 
         if(!mg_str_to_num(major_ver_str, 10, &major_ver, sizeof(major_ver))) {
-            MG_REPLY_BAD_REQUEST(conn);
+            MG_REPLY_ERROR_CLOSE(conn, 400, "Bad Request");
             return false;
         }
 
         if(major_ver != api_ver[0]) {
-            MG_REPLY_INVALID_VERSION(conn);
+            MG_REPLY_ERROR_CLOSE(conn, 405, "Incompatible API version");
             return false;
         }
     }
@@ -447,7 +448,7 @@ static const HttpHandler handlers_api_root[] = {
     },
     {
         .uri = "screen",
-        .method = HttpMethodAny,
+        .method = HttpMethodGet,
         .type = HttpHandlerCustom,
         .on_request = http_api_streaming_single_frame_callback,
     },
@@ -551,8 +552,10 @@ bool http_api_root_callback(
             http_api_access_get_callback(context, conn);
         } else if(method == HttpMethodPost) {
             http_api_access_set_callback(context, conn, msg);
+        } else if(method == HttpMethodOptions) {
+            http_reply_cors_preflight(conn, HttpMethodGet | HttpMethodPost);
         } else {
-            http_reply_405_method_not_allowed(conn, HttpMethodPost | HttpMethodGet);
+            http_reply_405_method_not_allowed(conn, HttpMethodPost | HttpMethodGet, false);
         }
         handled = true;
     } else {
@@ -571,15 +574,10 @@ bool http_api_root_hdr_callback(
     void* ctx) {
     ApiRootCtx* context = ctx;
 
-    if(method == HttpMethodOptions) {
-        MG_REPLY_OPTIONS(conn);
-        http_api_log_access(conn, msg, 200);
-        MG_CLOSE_AFTER_HEADERS(conn, msg);
-        return true;
-    }
+    // OPTIONS preflights fall through to MG_EV_HTTP_MSG for http_reply_cors_preflight()
 
     if(!http_api_is_access_allowed(context, path, method, conn, msg)) {
-        MG_REPLY_FORBIDDEN(conn);
+        MG_REPLY_ERROR_CLOSE(conn, 403, "Forbidden");
         http_api_log_access(conn, msg, 403);
         MG_CLOSE_AFTER_HEADERS(conn, msg);
         return true;

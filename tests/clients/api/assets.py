@@ -22,13 +22,16 @@ from .base import BaseAPI
 # Priority constants mirrored from loader.h
 LOADER_MAX_PRIORITY = 100
 LOADER_DEFAULT_APP_PRIORITY = 10  # any running app's baseline priority
-LOADER_MAX_APP_PRIORITY = 90  # busy app sets this while a work session is active
+LOADER_MAX_APP_PRIORITY = 90  # high app priority below the HTTP draw ceiling
 LOADER_STUB_APP_PRIORITY = 0  # poweroff / settings stub apps; always preemptable
+LOADER_PASSTHROUGH_PRIORITY = LOADER_DEFAULT_APP_PRIORITY - 1
+LOADER_BLOCKING_PRIORITY = LOADER_MAX_PRIORITY + 1
 DEFAULT_ELEMENT_PRIORITY = 50  # default priority used by the draw endpoint when omitted
 
 # Draw semantics: a POST /api/display/draw request is accepted when
 #   request_priority >= active_loader_priority
-# Equal-priority requests from a *different* app_name override the current display.
+# Equal-priority requests from a different app_name are rejected while the
+# previous app_name's canvas content is still visible.
 
 
 # === Response Models ===
@@ -186,20 +189,42 @@ class AssetsAPI(BaseAPI):
 
     # === Audio ===
 
-    def play_audio(self, app_name: str, path: str) -> AssetResultResponse:
+    def play_audio(
+        self,
+        app_name: str,
+        path: str | None = None,
+        *,
+        stock_path: str | None = None,
+    ) -> AssetResultResponse:
         """
         Play an audio file.
 
         Args:
             app_name: Application name
-            path: Audio file path
+            path: Audio file path within the app's uploaded assets directory.
+            stock_path: Built-in firmware sound path (e.g. "shared/volume_change.snd").
+
+        Exactly one of `path` or `stock_path` must be provided.
         """
-        return self.post(
-            "/api/audio/play",
-            AssetResultResponse,
-            params={"application_name": app_name, "path": path},
-        )
+        if (path is None) == (stock_path is None):
+            raise ValueError("Provide exactly one of path or stock_path")
+
+        body: dict[str, str] = {"application_name": app_name}
+        if path is not None:
+            body["path"] = path
+        else:
+            body["stock_path"] = stock_path
+
+        return self.post("/api/audio/play", AssetResultResponse, json=body)
 
     def stop_audio(self) -> AssetResultResponse:
-        """Stop audio playback."""
+        """Stop active audio playback and validate a successful response."""
         return self.delete("/api/audio/play", AssetResultResponse)
+
+    def stop_audio_raw(self) -> requests.Response:
+        """Stop audio playback and return the raw response.
+
+        DELETE /api/audio/play returns 200 when audio was stopped and 410 when
+        no audio is playing.
+        """
+        return self.delete_raw("/api/audio/play")

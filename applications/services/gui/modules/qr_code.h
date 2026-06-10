@@ -53,7 +53,7 @@ void qr_code_set_size(QRCode* instance, int32_t size);
  * @brief Generate and show a QR code.
  *
  * @param[in,out] instance pointer to the QRCode instance to be modified
- * @param[in] file_path zero-terminated string containing the text to be shown
+ * @param[in] data zero-terminated string containing the text to be shown
  * 
  * @warning `qr_code_set_size` must have been called beforehand.
  */

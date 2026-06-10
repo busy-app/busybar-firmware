@@ -47,6 +47,7 @@ Widget* progress_view_get_base(ProgressView* instance);
  * @param[in,out] instance pointer to the ProgressView instance to be modified
  * @param[in] interval_idx numerical index of the current interval
  * @param[in] cycles_count total count of timer cycles
+ * @param[in] wait_next whether to play a waiting animation after the main transition
  */
 void progress_view_set_progress(
     ProgressView* instance,

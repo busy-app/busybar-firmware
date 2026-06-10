@@ -206,12 +206,9 @@ static MatterSettings* matter_settings_alloc(void) {
         instance);
 
     if(!furi_record_exists(RECORD_MATTER_SETTINGS_STATUS_ACK)) {
-        MatterStatusAck* status_ack = malloc(sizeof(MatterStatusAck));
-        furi_record_create(RECORD_MATTER_SETTINGS_STATUS_ACK, status_ack);
-        instance->status_ack = status_ack;
-    } else {
-        instance->status_ack = furi_record_open(RECORD_MATTER_SETTINGS_STATUS_ACK);
+        furi_record_create(RECORD_MATTER_SETTINGS_STATUS_ACK, malloc(sizeof(MatterStatusAck)));
     }
+    instance->status_ack = furi_record_open(RECORD_MATTER_SETTINGS_STATUS_ACK);
 
     matter_settings_set_initial_scenes(instance);
 
@@ -239,6 +236,7 @@ static void matter_settings_free(MatterSettings* instance) {
     furi_record_close(RECORD_BACK_DISPLAY);
     furi_record_close(RECORD_STATUS_LIGHTS);
     furi_record_close(RECORD_BRIGHTNESS_CONTROL);
+    furi_record_close(RECORD_MATTER_SETTINGS_STATUS_ACK);
 
     furi_event_loop_unsubscribe(instance->event_loop, instance->input_queue);
     furi_event_loop_unsubscribe(instance->event_loop, instance->event_queue);

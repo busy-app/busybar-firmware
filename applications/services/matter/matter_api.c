@@ -67,12 +67,14 @@ MatterStatus matter_set_switch_startup_mode(Matter* instance, MatterSwitchStartu
     return matter_api_send_message(instance, &api_message);
 }
 
-MatterStatus matter_factory_reset(Matter* instance) {
+MatterStatus matter_factory_reset(Matter* instance, MatterReboot reboot) {
     furi_check(instance);
 
     MatterApiMessage api_message = {
         .type = MatterApiMessageTypeFactoryReset,
-    };
+        .data.factory_reset = {
+            .reboot_mode = reboot,
+        }};
 
     return matter_api_send_message(instance, &api_message);
 }

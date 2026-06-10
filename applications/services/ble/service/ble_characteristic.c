@@ -90,17 +90,24 @@ static bool ble_characteristic_set_data_common(
     furi_assert(data);
     furi_assert(data_size > 0);
 
-    bool result = furi_semaphore_acquire(instance->lock, BLE_CHAR_LOCK_TIMEOUT_MS) == FuriStatusOk;
-    if(result) {
+    bool result = false;
+    do {
+        if(furi_semaphore_acquire(instance->lock, BLE_CHAR_LOCK_TIMEOUT_MS) != FuriStatusOk) break;
+
         if(instance->data == NULL && instance->descriptor->initial_data_size == 0) {
             instance->data = malloc(data_size);
             instance->max_data_size = data_size;
         }
 
-        furi_assert(instance->max_data_size >= data_size);
+        if(instance->max_data_size < data_size) {
+            BLE_LOG_W("%s - Unable to set data, wrong size!", instance->descriptor->name);
+            break;
+        }
+
         memcpy(instance->data, data, data_size);
         instance->data_size = data_size;
-    }
+        result = true;
+    } while(false);
 
     return result;
 }
@@ -301,8 +308,12 @@ void ble_characteristic_register_update_callback(
     furi_assert(instance);
 
     if(callback) {
-        instance->update_cb = callback;
-        instance->update_ctx = ctx;
+        if(instance->update_cb == NULL) {
+            instance->update_cb = callback;
+            instance->update_ctx = ctx;
+        } else {
+            BLE_LOG_D("%s - update callback already set", instance->descriptor->name);
+        }
     } else {
         BLE_LOG_D("Reset update callback");
         instance->update_cb = NULL;

@@ -129,9 +129,14 @@ static void nvm_test_write_command(PipeSide* pipe, FuriString* args, void* conte
     static const char* usage = "Usage: write <key> <hex data>\r\n";
 
     do {
-        uint32_t key;
-        if(!args_read_int_and_trim(args, (int*)&key)) {
+        int key;
+        if(!args_read_int_and_trim(args, &key)) {
             printf("%s", usage);
+            break;
+        }
+
+        if(key < 0) {
+            printf("Key can't be negative\r\n");
             break;
         }
 
@@ -157,11 +162,11 @@ static void nvm_test_write_command(PipeSide* pipe, FuriString* args, void* conte
         }
 
         if(!nvm_write(instance->nvm, key, data, data_len)) {
-            printf("Failed to write %zu bytes to key 0x%lX\r\n", data_len, key);
+            printf("Failed to write %zu bytes to key 0x%lX\r\n", data_len, (uint32_t)key);
             break;
         }
 
-        printf("Wrote %zu bytes to key 0x%lX\r\n", data_len, key);
+        printf("Wrote %zu bytes to key 0x%lX\r\n", data_len, (uint32_t)key);
 
     } while(false);
 }
@@ -175,15 +180,20 @@ static void nvm_test_read_command(PipeSide* pipe, FuriString* args, void* contex
     static const char* usage = "Usage: read <key>\r\n";
 
     do {
-        uint32_t key;
-        if(!args_read_int_and_trim(args, (int*)&key)) {
+        int key;
+        if(!args_read_int_and_trim(args, &key)) {
             printf("%s", usage);
+            break;
+        }
+
+        if(key < 0) {
+            printf("Key can't be negative\r\n");
             break;
         }
 
         size_t data_len;
         if(!nvm_exists(instance->nvm, key, &data_len)) {
-            printf("Failed to find key 0x%lX\r\n", key);
+            printf("Failed to find key 0x%lX\r\n", (uint32_t)key);
             break;
         }
 
@@ -192,7 +202,7 @@ static void nvm_test_read_command(PipeSide* pipe, FuriString* args, void* contex
         uint8_t data[MAX_DATA_LEN];
 
         if(!nvm_read(instance->nvm, key, data, data_len)) {
-            printf("Failed to read %zu bytes from key 0x%lX\r\n", data_len, key);
+            printf("Failed to read %zu bytes from key 0x%lX\r\n", data_len, (uint32_t)key);
             break;
         }
 
@@ -216,23 +226,28 @@ static void nvm_test_del_command(PipeSide* pipe, FuriString* args, void* context
     static const char* usage = "Usage: del <key>\r\n";
 
     do {
-        uint32_t key;
-        if(!args_read_int_and_trim(args, (int*)&key)) {
+        int key;
+        if(!args_read_int_and_trim(args, &key)) {
             printf("%s", usage);
             break;
         }
 
+        if(key < 0) {
+            printf("Key can't be negative\r\n");
+            break;
+        }
+
         if(!nvm_exists(instance->nvm, key, NULL)) {
-            printf("Failed to find key 0x%lX\r\n", key);
+            printf("Failed to find key 0x%lX\r\n", (uint32_t)key);
             break;
         }
 
         if(!nvm_delete(instance->nvm, key)) {
-            printf("Failed to delete key 0x%lX\r\n", key);
+            printf("Failed to delete key 0x%lX\r\n", (uint32_t)key);
             break;
         }
 
-        printf("Deleted key 0x%lX\r\n", key);
+        printf("Deleted key 0x%lX\r\n", (uint32_t)key);
 
     } while(false);
 }

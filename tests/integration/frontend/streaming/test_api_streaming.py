@@ -2,6 +2,7 @@ import allure
 import pytest
 
 from clients.api import StreamingAPI
+from utils.simple_websocket import websocket_upgrade, websocket_url
 
 
 @allure.feature("5. Web Frontend")
@@ -50,3 +51,4 @@ class TestStreamingAPI:
         response = streaming_api.get_screen(display=2)
 
         assert response.status_code == 400
+

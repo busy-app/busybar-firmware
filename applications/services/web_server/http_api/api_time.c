@@ -5,6 +5,7 @@
 #include <datetime.h>
 #include <furi.h>
 #include <tzutil.h>
+#include <utz/zones.h>
 
 #define TAG "HttpTime"
 
@@ -21,8 +22,11 @@ static bool api_time_get_timestamp_callback(
     UNUSED(ctx);
 
     if(!IS_HTTP_ENDPOINT(path)) return false;
-    if(method != HttpMethodGet) {
-        http_reply_405_method_not_allowed(conn, HttpMethodGet);
+    if(method == HttpMethodOptions) {
+        http_reply_cors_preflight(conn, HttpMethodGet);
+        return true;
+    } else if(method != HttpMethodGet) {
+        http_reply_405_method_not_allowed(conn, HttpMethodGet, false);
         return true;
     }
 
@@ -103,7 +107,7 @@ static void api_time_set_timezone(struct mg_connection* conn, struct mg_http_mes
             break;
         }
 
-        char timezone_str[48]; /* reasonably long */
+        char timezone_str[UTZ_MAX_ZONE_NAME_LEN + 1];
         if(mg_http_get_var(&msg->query, "timezone", timezone_str, sizeof(timezone_str)) <= 0) {
             break;
         }

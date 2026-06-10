@@ -273,9 +273,17 @@ static void audio_message_queue_callback(FuriEventLoopObject* object, void* cont
     } else if(msg.type == AudioMessageTypeStop) {
         if(instance->sai_running) {
             instance->fade_direction = AudioFadeDirectionOut;
+            result = true;
+        } else if(instance->play_holdoff_running) {
+            // SAI never started; cancel the holdoff and signal play end immediately
+            furi_event_loop_timer_stop(instance->play_holdoff);
+            instance->play_holdoff_running = false;
+            if(!instance->enable_holders) furi_hal_sai_disable_amplifier();
+            AudioEvent pub_event = {.type = AudioEventPlayEnd};
+            furi_pubsub_publish(instance->event_pubsub, &pub_event);
+            result = true;
         }
         furi_string_reset(instance->queued_file);
-        result = true;
 
     } else if(msg.type == AudioMessageTypeSetVolume) {
         instance->volume = msg.set_volume;
@@ -343,6 +351,9 @@ static void audio_custom_event_callback(uint32_t events, void* context) {
     if(should_stop) {
         audio_sai_stop(instance);
         storage_file_close(instance->file);
+
+        AudioEvent pub_event = {.type = AudioEventPlayEnd};
+        furi_pubsub_publish(instance->event_pubsub, &pub_event);
 
         audio_do_load_queued_file(instance);
     }
@@ -412,14 +423,20 @@ bool audio_play_file(Audio* instance, const char* file_name) {
     return result;
 }
 
-void audio_stop(Audio* instance) {
+bool audio_stop(Audio* instance) {
     furi_check(instance);
+
+    bool result;
 
     const AudioMessage msg = {
         .type = AudioMessageTypeStop,
+        .lock = api_lock_alloc_locked(),
+        .result = &result,
     };
 
     audio_send_message(instance, &msg);
+
+    return result;
 }
 
 void audio_set_volume(Audio* instance, float volume) {

@@ -7,6 +7,10 @@ import pytest
 from clients.api import BaseAPI, InputAPI, SettingsAPI, StorageAPI, StreamingAPI
 
 
+def _allow_set(response) -> set[str]:
+    return {item.strip() for item in response.headers.get("Allow", "").split(",") if item.strip()}
+
+
 @allure.feature("5. Web Frontend")
 @allure.story("Common")
 class TestAPIErrorHandling:
@@ -161,4 +165,40 @@ class TestAPIAuthentication:
         with allure.step("Access protected endpoint with valid auth"):
             response = api_auth_session.get(f"{web_base_url}/api/status", timeout=10)
 
+            assert response.status_code == 200
+
+
+@allure.feature("5. Web Frontend")
+@allure.story("Common")
+@pytest.mark.api
+@pytest.mark.frontend
+@pytest.mark.regression
+class TestAPIContractRegressions:
+    @allure.title("GET /api/transport returns current connection type")
+    def test_transport_endpoint_returns_usb_or_wifi(self, api_session, web_base_url):
+        api = BaseAPI(api_session, web_base_url)
+        response = api.get_raw("/api/transport")
+
         assert response.status_code == 200
+        body = response.json()
+        assert set(body) == {"type"}
+        assert body["type"] in {"usb", "wifi"}
+
+    @allure.title("405 responses include exact Allow header")
+    @pytest.mark.parametrize(
+        "method,endpoint,expected",
+        [
+            ("post", "/api/transport", {"GET"}),
+            ("delete", "/api/update/autoupdate", {"GET", "POST"}),
+            ("put", "/api/smart_home/pairing", {"GET", "POST", "DELETE"}),
+            ("post", "/api/screen", {"GET"}),
+            ("put", "/api/assets/upload", {"POST", "DELETE"}),
+        ],
+    )
+    def test_405_allow_header(self, api_session, web_base_url, method, endpoint, expected):
+        api = BaseAPI(api_session, web_base_url)
+        kwargs = {"params": {"display": 0}} if endpoint == "/api/screen" else {}
+        response = getattr(api, f"{method}_raw")(endpoint, **kwargs)
+
+        assert response.status_code == 405
+        assert _allow_set(response) == expected

@@ -2,6 +2,7 @@
 
 #include <cli/cli_command.h>
 #include <cli/args.h>
+#include <path.h>
 
 typedef struct {
     bool help;
@@ -49,6 +50,7 @@ void fontstat_cli_command_entry(PipeSide* pipe, FuriString* args_string, void* c
 
     FontRegistry* registry = furi_record_open(RECORD_FONT_REGISTRY);
     FuriString* output_buffer = furi_string_alloc();
+    FuriString* filename_buffer = furi_string_alloc();
 
     furi_check(furi_mutex_acquire(registry->mutex, FuriWaitForever) == FuriStatusOk);
 
@@ -59,18 +61,22 @@ void fontstat_cli_command_entry(PipeSide* pipe, FuriString* args_string, void* c
         FontRegistryLoadedFont* font = &registry->loaded_fonts[i];
         total_estimated_memory_size += font->value.estimated_memory_size;
 
+        path_extract_filename_no_ext(font->key, filename_buffer);
+
         furi_string_cat_printf(
             output_buffer,
-            "%-50s %4zu %8zu\r\n",
-            font->key,
+            "%-35s %4zu %8zu\r\n",
+            furi_string_get_cstr(filename_buffer),
             font->value.references,
             font->value.estimated_memory_size);
     }
 
     furi_check(furi_mutex_release(registry->mutex) == FuriStatusOk);
 
+    furi_string_free(filename_buffer);
+
     printf("Loaded: %zu fonts, %zu bytes\r\n", fonts_count, total_estimated_memory_size);
-    printf("%-50s %4s %8s\r\n", "Font", "Refs", "Size");
+    printf("%-35s %4s %8s\r\n", "Font", "Refs", "Size");
     printf("%s", furi_string_get_cstr(output_buffer));
 
     furi_string_free(output_buffer);

@@ -22,6 +22,7 @@ App(
         "power_srv",
         "status_bar",
         "brightness_control",
+        "device_info",
     ],
     targets=["f20", "f21", "f22"],
 )
@@ -74,7 +75,7 @@ App(
         "nvm",
         "matter",
         "startup_dfu_hook",
-        "crash_cmd",
+        "device_info",
     ],
     targets=["f64", "f65"],
 )

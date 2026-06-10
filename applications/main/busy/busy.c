@@ -42,8 +42,7 @@ static void busy_api_queue_callback(FuriEventLoopObject* object, void* context) 
         const BusyApiMessageType type = message.type;
 
         if(type == BusyApiMessageTypeSetConfig) {
-            instance->config = *message.data.set_config.config;
-            busy_apply_app_config(instance);
+            busy_set_app_config(instance, message.data.set_config.config);
 
         } else if(type == BusyApiMessageTypeShowTimer) {
             const BusyAppSceneId scene_id =
@@ -183,13 +182,14 @@ static BusyApp* busy_alloc(const char* arg) {
         busy_api_queue_callback,
         instance);
 
+    furi_record_create(RECORD_BUSY_APP, instance);
+
+    audio_enable(instance->audio);
+
     if(instance->run_mode == BusyAppRunModeNormal) {
         scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdStart);
     }
 
-    audio_enable(instance->audio);
-
-    furi_record_create(RECORD_BUSY_APP, instance);
     return instance;
 }
 
@@ -271,7 +271,7 @@ void busy_start_transition(BusyApp* instance) {
 void busy_set_priority(BusyApp* instance, bool is_active) {
     furi_assert(instance);
     loader_set_priority(
-        instance->loader, is_active ? LOADER_MAX_APP_PRIORITY : LOADER_DEFAULT_APP_PRIORITY);
+        instance->loader, is_active ? LOADER_BLOCKING_PRIORITY : LOADER_PASSTHROUGH_PRIORITY);
 }
 
 void busy_set_front_display_blanking(BusyApp* instance, bool is_blanked) {
@@ -307,18 +307,12 @@ void busy_exit(BusyApp* instance) {
     furi_event_loop_stop(instance->event_loop);
 }
 
-void busy_load_app_config(BusyApp* instance) {
+void busy_set_app_config(BusyApp* instance, const BusyAppConfig* app_config) {
     furi_assert(instance);
 
-    BusyTimerPreset timer_preset;
-    busy_get_timer_preset(instance, &timer_preset);
-    instance->config = timer_preset.app_config;
-}
+    instance->config = *app_config;
 
-void busy_apply_app_config(BusyApp* instance) {
-    furi_assert(instance);
-
-    if(!busy_theme_read(instance->theme, instance->config.theme_name)) {
+    if(!busy_theme_read(instance->theme, app_config->theme_name)) {
         FURI_LOG_W(TAG, "Setting default theme");
         busy_theme_set_default(instance->theme);
     }

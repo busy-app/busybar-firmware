@@ -4,6 +4,7 @@ import allure
 import pytest
 
 from clients.api import AccountAPI
+from clients.api.account import AccountBackend
 
 
 @allure.feature("5. Web Frontend")
@@ -31,6 +32,7 @@ class TestAccountInfoAPI:
 
 @allure.feature("5. Web Frontend")
 @allure.story("Account")
+@pytest.mark.uses_si917
 class TestAccountStatusAPI:
     """Test cases for Account Status (MQTT) API endpoint"""
 
@@ -47,81 +49,108 @@ class TestAccountStatusAPI:
 
 @allure.feature("5. Web Frontend")
 @allure.story("Account")
-class TestAccountProfileAPI:
-    """Test cases for Account Profile (MQTT backend) API endpoints"""
+@pytest.mark.uses_si917
+class TestAccountBackendAPI:
+    """Test cases for MQTT backend configuration API endpoints (FW-881)."""
 
     @allure.id("3488")
-    @allure.title("GET /api/account/profile")
+    @allure.title("GET /api/account/backend")
     @pytest.mark.api
     @pytest.mark.frontend
-    def test_api_account_profile_get(self, account_api: AccountAPI):
-        """Test GET /api/account/profile endpoint"""
-        response = account_api.get_profile()
+    def test_api_account_backend_get(self, account_api: AccountAPI):
+        """Test GET /api/account/backend returns a valid AccountBackend structure."""
+        response = account_api.get_backend()
 
-        assert response.profile in ["dev", "prod", "local", "custom"]
-
-        if response.profile == "custom":
-            assert response.custom_url
+        # Structure validated by pydantic
+        assert response.server_url
+        assert response.client_cert_type in ["default", "custom", "none"]
+        assert isinstance(response.ignore_server_cert, bool)
 
     @allure.id("3487")
-    @allure.title("POST /api/account/profile")
+    @allure.title("PUT /api/account/backend (custom URL)")
     @pytest.mark.api
     @pytest.mark.frontend
-    @pytest.mark.parametrize("profile", ["dev", "prod"])
-    def test_api_account_profile_post(self, account_api: AccountAPI, profile):
-        """Test POST /api/account/profile endpoint"""
-        with allure.step("Get current profile to restore later"):
-            original = account_api.get_profile()
-            allure.attach(
-                json.dumps({"profile": original.profile, "custom_url": original.custom_url}, indent=2),
-                name="Original Profile",
-                attachment_type=allure.attachment_type.JSON
-            )
-
-        account_api.set_profile(profile)
-
-        with allure.step("Verify profile was updated"):
-            verify = account_api.get_profile()
-            assert verify.profile == profile
-
-        # Restore original profile
-        if original.profile != profile:
-            with allure.step(f"Restore original profile: {original.profile}"):
-                account_api.set_profile(original.profile, original.custom_url)
-
-    @allure.id("3835")
-    @allure.title("POST /api/account/profile (custom)")
-    @pytest.mark.api
-    @pytest.mark.frontend
-    def test_api_account_profile_post_custom(self, account_api: AccountAPI):
-        """Test POST /api/account/profile endpoint with custom URL"""
+    def test_api_account_backend_put_custom_url(self, account_api: AccountAPI):
+        """Test PUT /api/account/backend with a custom server URL."""
         custom_url = "mqtts://mqtt.example.com:8883"
 
-        with allure.step("Get current profile to restore later"):
-            original = account_api.get_profile()
+        with allure.step("Capture original config"):
+            original = account_api.get_backend()
+            allure.attach(
+                json.dumps(original.model_dump(), indent=2),
+                name="Original Backend Config",
+                attachment_type=allure.attachment_type.JSON,
+            )
 
-        account_api.set_profile("custom", custom_url)
+        new_config = AccountBackend(
+            server_url=custom_url,
+            client_cert_type="default",
+            ignore_server_cert=False,
+        )
+        account_api.set_backend(new_config)
 
-        with allure.step("Verify custom profile was set"):
-            verify = account_api.get_profile()
-            assert verify.profile == "custom"
-            assert verify.custom_url == custom_url
+        with allure.step("Verify config was updated"):
+            verify = account_api.get_backend()
+            assert verify.server_url == custom_url
 
-        # Restore original profile
-        if original.profile:
-            with allure.step(f"Restore original profile: {original.profile}"):
-                account_api.set_profile(original.profile, original.custom_url)
+        with allure.step("Restore original config"):
+            account_api.set_backend(original)
 
-    @allure.id("3836")
-    @allure.title("POST /api/account/profile (invalid)")
+    @allure.id("3835")
+    @allure.title("PUT /api/account/backend (default)")
     @pytest.mark.api
     @pytest.mark.frontend
-    @pytest.mark.parametrize("profile", ["invalid", "", "production", "development"])
-    def test_api_account_profile_post_invalid(self, account_api: AccountAPI, profile):
-        """Test POST /api/account/profile endpoint with invalid profile"""
-        response = account_api.set_profile_raw(profile)
+    def test_api_account_backend_put_default(self, account_api: AccountAPI):
+        """Test PUT /api/account/backend with server_url='default'."""
+        with allure.step("Capture original config"):
+            original = account_api.get_backend()
 
-        assert response.status_code == 400
+        account_api.set_backend(
+            AccountBackend(
+                server_url="default",
+                client_cert_type="default",
+                ignore_server_cert=False,
+            )
+        )
+
+        with allure.step("Verify default was set"):
+            verify = account_api.get_backend()
+            assert verify.server_url == "default"
+
+        with allure.step("Restore original config"):
+            account_api.set_backend(original)
+
+    @allure.id("3836")
+    @allure.title("PUT /api/account/backend (invalid)")
+    @pytest.mark.api
+    @pytest.mark.frontend
+    @pytest.mark.parametrize(
+        "payload,reason",
+        [
+            ({}, "missing all required fields"),
+            (
+                {"server_url": "default"},
+                "missing client_cert_type and ignore_server_cert",
+            ),
+            (
+                {
+                    "server_url": "default",
+                    "client_cert_type": "invalid",
+                    "ignore_server_cert": False,
+                },
+                "invalid client_cert_type value",
+            ),
+        ],
+    )
+    def test_api_account_backend_put_invalid(
+        self, account_api: AccountAPI, payload, reason
+    ):
+        """Test PUT /api/account/backend with invalid payloads returns 400."""
+        response = account_api.set_backend_raw(payload)
+
+        assert (
+            response.status_code == 400
+        ), f"Expected 400 for payload {payload!r} ({reason}), got {response.status_code}"
 
 
 @allure.feature("5. Web Frontend")
@@ -154,7 +183,7 @@ class TestAccountLinkAPI:
         # Validated by pydantic
         assert response.code
         assert len(response.code) > 0
-        assert response.expires_at > 1577836800  # After year 2020
+        assert response.expires_at > 1577836800
 
 
 @allure.feature("5. Web Frontend")

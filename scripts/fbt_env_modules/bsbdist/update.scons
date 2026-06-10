@@ -18,12 +18,14 @@ sil_env = SIL_ENV
 fw_env = u5_env["FW_ENV"]
 
 # Environment with update bundle builder, configured with common bundle parameters
+_fw_version_json = fw_env.get("FW_VERSION_JSON")
 bundle_env = dist_env.Clone(
     tools=["bsb_update_bundle"],
     BUNDLE_TARGET_HW=u5_env.subst("$TARGET_HW"),
     BUNDLE_STAGE=u5_env["UPD_ENV"]["FW_BIN"][0],
     BUNDLE_DFU=fw_env["FW_DFU"][0],
     BUNDLE_SIL_FW=sil_env["FW_ENV"]["FW_RPS"][0],
+    **({"BUNDLE_VERSION_JSON": _fw_version_json} if _fw_version_json else {}),
 )
 
 # Common dependencies shared by all bundle variants
@@ -31,6 +33,7 @@ base_deps = [
     u5_env["UPD_ENV"]["FW_BIN"],
     fw_env["FW_DFU"],
     sil_env["FW_ENV"]["FW_RPS"],
+    *([_fw_version_json] if _fw_version_json else []),
 ]
 
 # --- Full update bundle (with resources + radio firmware) ---
@@ -111,7 +114,6 @@ def _dist_file(name, ext):
 
 installs = [
     # Update bundles
-    InstallAs(_dist_file("update", "tar"), update_tar),
     InstallAs(_dist_file("update", "tgz"), update_tgz),
     InstallAs(_dist_file("bkp", "tgz"), update_bkp_tgz),
     # U5 firmware artifacts
@@ -120,24 +122,13 @@ installs = [
     InstallAs(_dist_file("firmware", "bin"), fw_env["FW_BIN"][0]),
     # Updater artifacts
     InstallAs(_dist_file("updater", "elf"), u5_env["UPD_ENV"]["FW_ELF"][0]),
-    InstallAs(_dist_file("updater", "dfu"), u5_env["UPD_ENV"]["FW_DFU"][0]),
     InstallAs(_dist_file("updater", "bin"), u5_env["UPD_ENV"]["FW_BIN"][0]),
     # Silabs artifacts
     InstallAs(_dist_file("sil_firmware", "rps"), sil_env["FW_ENV"]["FW_RPS"][0]),
     InstallAs(_dist_file("sil_firmware", "elf"), sil_env["FW_ENV"]["FW_ELF"][0]),
     InstallAs(_dist_file("sil_nwp", "rps"), sil_env["FW_ENV"]["SI917_NWP_STACK"]),
+    InstallAs(_dist_file("openapi", "yaml"), fw_env["FW_OPENAPI_YAML"]),
 ]
-
-# Resources zip
-zip_env = dist_env.Clone(tools=["zip"])
-resources_zip = zip_env.Zip(
-    _dist_file("resources", "zip"),
-    fw_env["RESOURCES_ROOT"],
-    ZIPROOT=fw_env["RESOURCES_ROOT"],
-)
-Depends(resources_zip, fw_env["FW_RESOURCES_MANIFEST"])
-Alias("resources_dist", resources_zip)
-installs.append(resources_zip)
 
 Default(installs)
 
@@ -247,7 +238,6 @@ if sil_sign_keystore or service_signing_enabled:
     )
 
     signed_installs = [
-        InstallAs(_dist_file("update_signed", "tar"), signed_update_tar),
         InstallAs(_dist_file("update_signed", "tgz"), signed_update_tgz),
         InstallAs(_dist_file("bkp_signed", "tgz"), signed_bkp_tgz),
         InstallAs(_dist_file("sil_firmware_signed", "rps"), signed_fw_rps),
@@ -255,3 +245,6 @@ if sil_sign_keystore or service_signing_enabled:
     ]
 
     dist_env.Alias("dist_signed", signed_installs)
+
+    bundle_env.FlashOverHttp("flash_usb_signed", signed_update_tgz)
+    bundle_env.FlashOverHttp("flash_usb_signed_tar", signed_update_tar)

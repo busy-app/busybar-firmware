@@ -29,12 +29,14 @@ static void account_scene_linked_menu_on_enter(void* context) {
         submenu_add_item(
             data->front_menu,
             "Unlink account",
+            NULL,
             SceneEventMenuUnlink,
             account_scene_linked_menu_item_callback,
             instance);
 
         data->back_menu = submenu_alloc(instance->back_scene_window);
-        submenu_add_item(data->back_menu, "Unlink account", SceneEventMenuUnlink, NULL, instance);
+        submenu_add_item(
+            data->back_menu, "Unlink account", NULL, SceneEventMenuUnlink, NULL, instance);
     });
 }
 
