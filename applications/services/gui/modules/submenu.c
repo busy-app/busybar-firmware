@@ -1,5 +1,5 @@
 #include "submenu.h"
-#include "menu_base_i.h"
+#include "private/menu_base_i.h"
 
 #include <gui/modules/label.h>
 
