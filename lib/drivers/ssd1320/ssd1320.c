@@ -111,6 +111,7 @@ static void ssd1320_send_init_sequence(const uint8_t* init_table, size_t table_l
 }
 
 void ssd1320_sleep_mode(bool sleep) {
+    furi_hal_gpio_write(&gpio_back_display_vcc_en, !sleep);
     uint8_t power_cmd = sleep ? Cmd1320_DisplayOff : Cmd1320_DisplayOn;
     ssd1320_send_command(&furi_hal_spi_bus_handle_back_display, &power_cmd, 1);
 }

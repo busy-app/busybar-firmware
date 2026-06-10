@@ -1,0 +1,48 @@
+tags:
+- name: Input
+  description: Input events
+
+paths:
+  /api/input:
+    post:
+      tags:
+        - Input
+      summary: Send input event
+      description: Send single key press event
+      operationId: setInputKey
+      parameters:
+        - name: key
+          in: query
+          required: true
+          schema:
+            type: string
+            enum:
+              [
+                "up",
+                "down",
+                "ok",
+                "back",
+                "start",
+                "busy",
+                "custom",
+                "off",
+                "apps",
+                "settings",
+              ]
+          description: Key name
+          example: "ok"
+      responses:
+        "200":
+          description: Input event sent successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Invalid request data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+schemas:

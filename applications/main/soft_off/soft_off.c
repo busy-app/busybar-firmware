@@ -9,6 +9,7 @@
 
 #include <back_display/back_display.h>
 #include <front_display/front_display.h>
+#include <light_sensor/light_sensor.h>
 
 typedef enum {
     SoftOffThreadFlagExit = 1 << 0,
@@ -83,6 +84,7 @@ int32_t soft_off_app(void* arg) {
         }
         if(flags & SoftOffThreadFlagAnimationCompleted) {
             front_display_sleep_mode(front_display, true);
+            light_sensor_sleep(true);
         }
     }
     furi_thread_set_signal_callback(thread, NULL, NULL);
@@ -91,6 +93,7 @@ int32_t soft_off_app(void* arg) {
 
     back_display_sleep_mode(back_display, false);
     front_display_sleep_mode(front_display, false);
+    light_sensor_sleep(false);
 
     furi_record_close(RECORD_BACK_DISPLAY);
     furi_record_close(RECORD_FRONT_DISPLAY);

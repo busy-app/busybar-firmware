@@ -5,19 +5,18 @@
 #define MY_CLASS (&summary_view_lvgl_class)
 
 #define COLOR_GREY_1 0x4F4B4B
-#define COLOR_GREY_2 0X3B3939
+#define COLOR_GREY_2 0X2C2C2C
 
-#define COLOR_RED_1 0xFF001D
-#define COLOR_RED_2 0x680000
+#define COLOR_RED_1 0xF4001D
+#define COLOR_RED_2 0x580000
 
 #define ELEMENT_HEIGHT    (7)
 #define ELEMENT_COUNT_MAX (10UL)
 
 #define SUMMARY_VIEW_MAX_WIDTH (70)
 
-#define ELEMENT_ANIM_DURATION_MS  (500)
-#define SEQUENCE_ANIM_DURATION_MS (1000)
-#define SEQUENCE_ANIM_DELAY_MS    (500)
+#define ELEMENT_ANIM_DURATION_MS (340UL)
+#define SEQUENCE_ANIM_DELAY_MS   (500UL)
 
 struct SummaryView {
     Widget base;
@@ -121,11 +120,25 @@ static void summary_view_add_element(SummaryView* instance, uint32_t element_idx
     instance->elements[element_idx] = element;
 }
 
+static uint32_t summary_view_get_sequence_duration(const SummaryView* instance) {
+    uint32_t duration = 0;
+
+    for(uint32_t i = 0; i < instance->elements_count; ++i) {
+        if(i == 0) {
+            duration += SEQUENCE_ANIM_DELAY_MS;
+        } else {
+            duration += MAX(ELEMENT_ANIM_DURATION_MS / i, ELEMENT_ANIM_DURATION_MS / 4);
+        }
+    }
+
+    return duration;
+}
+
 static void summary_view_start_sequence(SummaryView* instance) {
     lv_anim_t anim;
     lv_anim_init(&anim);
     lv_anim_set_delay(&anim, SEQUENCE_ANIM_DELAY_MS);
-    lv_anim_set_duration(&anim, SEQUENCE_ANIM_DURATION_MS);
+    lv_anim_set_duration(&anim, summary_view_get_sequence_duration(instance));
     lv_anim_set_early_apply(&anim, false);
     lv_anim_set_values(&anim, 0, instance->elements_count - 1);
     lv_anim_set_path_cb(&anim, lv_anim_path_ease_in);
@@ -158,6 +171,7 @@ Widget* summary_view_get_base(SummaryView* instance) {
 
 void summary_view_set_cycles_count(SummaryView* instance, uint32_t cycles_count) {
     furi_check(instance);
+    furi_check(cycles_count);
 
     instance->elements_count = MIN(cycles_count, ELEMENT_COUNT_MAX);
 

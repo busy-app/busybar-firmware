@@ -4,14 +4,20 @@ on:
     pull_request:
         types: [opened, synchronize]
         paths:
-            - "applications/services/web_server/resources/apps_assets/web_server/www/openapi.yaml"
+            - "applications/services/web_server/openapi/**"
             - "applications/services/web_server/http_api/http_api.h"
+            - "scripts/openapi_merge.py"
+            - "scripts/fbt_env_modules/fwenv/bsb_assets.scons"
+            - ".github/workflows/openapi-diff.yml"
     push:
         branches:
             - dev
         paths:
-            - "applications/services/web_server/resources/apps_assets/web_server/www/openapi.yaml"
+            - "applications/services/web_server/openapi/**"
             - "applications/services/web_server/http_api/http_api.h"
+            - "scripts/openapi_merge.py"
+            - "scripts/fbt_env_modules/fwenv/bsb_assets.scons"
+            - ".github/workflows/openapi-diff.yml"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -34,14 +40,45 @@ jobs:
                   ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
                   path: base
 
+            - name: Build OpenAPI specifications
+              id: build
+              shell: bash
+              run: |
+                set -euo pipefail
+
+                git lfs install --skip-smudge
+
+                git submodule update --init --depth 1 --filter=blob:none --jobs="$(nproc)" scripts/toolchain fbt_layers/fbtng
+                source scripts/toolchain/fbtenv.sh
+                bash ./fbt openapi_dist
+
+                cd base
+                git submodule update --init --depth 1 --filter=blob:none --jobs="$(nproc)" scripts/toolchain fbt_layers/fbtng
+                if ! bash ./fbt openapi_dist; then
+                  echo "WARNING: base repository does not support openapi_dist target"
+                  mkdir -p dist/f21
+                  cp applications/services/web_server/resources/apps_assets/web_server/www/openapi.yaml dist/f21/
+                fi
+
+                # Resolve OAS path independent of the target HW
+                OAS_PATH="$(echo dist/f[0-9]*/openapi.yaml)"
+                test -n "${OAS_PATH}" || { echo "ERROR: no openapi.yaml found under dist/f*/"; exit 1; }
+                test "$(echo ${OAS_PATH} | wc -w)" -eq 1 || { echo "ERROR: multiple openapi.yaml found: ${OAS_PATH}"; exit 1; }
+                echo "OAS_PATH=${OAS_PATH}" >> "${GITHUB_ENV}"
+
+            - name: Validate merged OpenAPI spec
+              shell: bash
+              run: |
+                set -euo pipefail
+                source scripts/toolchain/fbtenv.sh
+                python3 scripts/openapi_merge.py validate "${OAS_PATH}"
+
             - name: Install oasdiff
               run: |
                   curl -fsSL https://raw.githubusercontent.com/oasdiff/oasdiff/main/install.sh | sh
 
             - name: Run oasdiff
               id: oasdiff
-              env:
-                  OAS_PATH: applications/services/web_server/resources/apps_assets/web_server/www/openapi.yaml
               run: |
                   set -o pipefail
 
@@ -76,7 +113,6 @@ jobs:
             - name: Check version bump
               id: version_check
               env:
-                  OAS_PATH: applications/services/web_server/resources/apps_assets/web_server/www/openapi.yaml
                   HAS_BREAKING: ${{ steps.oasdiff.outputs.exit_code }}
                   HAS_CHANGES: ${{ steps.oasdiff.outputs.has_changes }}
               run: |

@@ -1,0 +1,110 @@
+tags:
+- name: BLE
+  description: Allows to operate with BLE
+
+paths:
+  /api/ble/enable:
+    post:
+      tags:
+        - BLE
+      summary: Enable BLE
+      description: Enables BLE module and starts advertising
+      parameters: []
+      responses:
+        "200":
+          description: BLE enabled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "503":
+          description: Unable to start BLE
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/ble/disable:
+    post:
+      tags:
+        - BLE
+      summary: Disable BLE
+      description: Stops advertising
+      parameters: []
+      responses:
+        "200":
+          description: BLE disabled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "503":
+          description: Unable to stop BLE
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/ble/pairing:
+    delete:
+      tags:
+        - BLE
+      summary: Remove pairing
+      description: Remove pairing with previous device
+      parameters: []
+      responses:
+        "200":
+          description: Pairing removed, now device is discoverable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "503":
+          description: Failed to remove because BLE is not initialized or pairing was already removed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/ble/status:
+    get:
+      tags:
+        - BLE
+      description: Returns current BLE status
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BleStatusResponse"
+        "503":
+          description: Failed to get BLE status, because of an error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+schemas:
+  BleStatusResponse:
+    type: object
+    properties:
+      status:
+        type: string
+        enum:
+          [
+            "reset",
+            "initialization",
+            "disabled",
+            "enabled",
+            "connectable",
+            "connected",
+            "internal error",
+          ]
+        example: connected
+      address:
+        type: string
+        description: Remote device address. Only present when status is "connected".
+        example: 50:DA:D6:FE:DD:A9
+    required:
+      - status

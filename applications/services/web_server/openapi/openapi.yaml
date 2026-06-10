@@ -1,0 +1,52 @@
+openapi: 3.1.0
+info:
+  title: BUSY Bar HTTP API
+  description: HTTP API for BUSY Bar web server
+  version: 23.2.0
+  contact:
+    name: tbd
+
+security:
+  - ApiKeyAuth: []
+  - {}
+
+paths:
+  # {PATHS}
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Token
+
+  schemas:
+    SuccessResponse:
+      type: object
+      properties:
+        result:
+          type: string
+          example: "OK"
+          description: Success status message
+      required:
+        - result
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error message
+        code:
+          type: integer
+          description: Error code
+      required:
+        - error
+      example:
+        error: "Invalid parameter"
+        code: 400
+
+    # {SCHEMAS}
+
+tags:
+  # {TAGS}

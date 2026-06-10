@@ -247,7 +247,7 @@ static uint32_t busy_timer_calc_remaining_time(const BusyTimer* instance) {
     const BusyTimerMode timer_mode = config->mode;
 
     if(timer_mode == BusyTimerModeInfinite) {
-        interval_s = 0;
+        interval_s = UINT32_MAX;
 
     } else if(timer_mode == BusyTimerModeSimple) {
         const BusyTimerSimpleConfig* simple = &config->simple;

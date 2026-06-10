@@ -1,0 +1,156 @@
+tags:
+- name: Smart Home
+  description: Smart Home event handling
+
+paths:
+  /api/smart_home/pairing:
+    get:
+      tags:
+        - Smart home
+      summary: Smart home commissioning status
+      operationId: getSmartHomeCommissioningStatus
+      parameters: []
+      responses:
+        "200":
+          description: Successfully got smart home commissioning status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SmartHomePairingInfo"
+    post:
+      tags:
+        - Smart home
+      summary: Link device to a smart home
+      operationId: startSmartHomePairing
+      parameters: []
+      responses:
+        "200":
+          description: Successfully started smart home pairing
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SmartHomePairingPayload"
+        "503":
+          description: Internal smart home service is broken
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      tags:
+        - Smart home
+      summary: Erase all smart home links
+      parameters: []
+      responses:
+        "200":
+          description: Successfully erased all smart home pairing info, device restart is needed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "503":
+          description: Internal smart home service is broken
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/smart_home/switch:
+    get:
+      tags:
+        - Smart home
+      summary: Get state of emulated smart home switch
+      parameters: []
+      responses:
+        "200":
+          description: Successfully got state of emulated smart home switch
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SmartHomeSwitchState"
+        "503":
+          description: Internal smart home service is broken
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    post:
+      tags:
+        - Smart home
+      summary: Set state of emulated smart home switch
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SmartHomeSwitchState"
+      responses:
+        "200":
+          description: Successfully set state of emulated smart home switch
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "503":
+          description: Internal smart home service is broken
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+schemas:
+  SmartHomePairingInfo:
+    type: object
+    properties:
+      fabric_count:
+        type: integer
+        example: 1
+        description: 'Number of smart homes (Matter "fabrics") that this device is paired with ("commissioned into")'
+      latest_pairing_status:
+        type: object
+        properties:
+          value:
+            type: string
+            enum:
+              - never_started
+              - started
+              - completed_successfully
+              - failed
+            description: 'Latest state of smart home pairing (Matter "commissioning") process. Note: "never_started" only refers to the current power cycle of the device; this status is not recorded across reboots.'
+            example: "completed_successfully"
+          timestamp:
+            type: integer
+            description: "UTC Unix second timestamp of latest state update. Only present when a status update has occurred."
+            example: 1769436711
+  SmartHomePairingPayload:
+    type: object
+    description: Set of information for pairing with a Matter smart home
+    properties:
+      available_until:
+        type: string
+        description: 'Pairing with ("commissioning into") a Matter smart home using the provided payload is possible before this UTC Unix millisecond timestamp. Note: it''s a number in a string.'
+        example: "1769437579000"
+      qr_code:
+        type: string
+        description: 'Payload of the QR code for pairing with ("commissioning into") a smart home'
+        example: "MT:YNDA0-O913..VV7I000"
+      manual_code:
+        type: string
+        description: 'Manual code for pairing with ("commissioning into") a smart home'
+        example: "1155-360-0377"
+  SmartHomeSwitchState:
+    type: object
+    properties:
+      state:
+        type: boolean
+        description: "State of emulated switch."
+        example: false
+      startup:
+        type: string
+        enum:
+          - "off"
+          - "on"
+          - toggle
+          - last
+        description: "State of emulated switch on startup. Never sent by the server, but can be specified by the client."

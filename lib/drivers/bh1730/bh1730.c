@@ -59,6 +59,37 @@ bool bh1730_init(FuriHalI2cBusHandle* handle) {
     return success;
 }
 
+bool bh1730_sleep_mode(FuriHalI2cBusHandle* handle, bool sleep) {
+    furi_check(handle);
+
+    furi_hal_i2c_acquire(handle);
+    Bh1730RegControl ctrl = {0};
+    if(!furi_hal_i2c_read_reg_8(
+           handle,
+           BH1730_I2C_ADDRESS,
+           BH1730_COMMAND_WRITE | BH1730_REG_CONTROL,
+           (uint8_t*)&ctrl,
+           BH1730_I2C_TIMEOUT)) {
+        furi_hal_i2c_release(handle);
+        return false;
+    }
+
+    ctrl.POWER = !sleep;
+    if(!furi_hal_i2c_write_reg_8(
+           handle,
+           BH1730_I2C_ADDRESS,
+           BH1730_COMMAND_WRITE | BH1730_REG_CONTROL,
+           *(uint8_t*)&ctrl,
+           BH1730_I2C_TIMEOUT)) {
+        furi_hal_i2c_release(handle);
+        return false;
+    }
+
+    furi_hal_i2c_release(handle);
+
+    return true;
+}
+
 static bool bh1730_read_raw_data(FuriHalI2cBusHandle* handle, uint16_t* value, uint8_t reg) {
     furi_check(handle);
     furi_check(value);

@@ -1,0 +1,174 @@
+tags:
+- name: Account
+  description: Account linking and MQTT status
+
+paths:
+  /api/account:
+    delete:
+      tags:
+        - Account
+      summary: Unlink device from account
+      description: Removes account linking data
+      operationId: unlinkAccount
+      responses:
+        "200":
+          description: Done successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /api/account/link:
+    post:
+      tags:
+        - Account
+      summary: Link device to account
+      description: Requests account link PIN. Works only if device is connected to MQTT and is not linked to account
+      operationId: linkAccount
+      responses:
+        "200":
+          description: Data retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountLink"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/account/info:
+    get:
+      tags:
+        - Account
+      summary: Get linked account info
+      description: Retrieves linked account data
+      operationId: getAccountInfo
+      responses:
+        "200":
+          description: Data retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountInfo"
+
+  /api/account/status:
+    get:
+      tags:
+        - Account
+      summary: Get MQTT status info
+      description: Retrieves MQTT status
+      operationId: getAccountStatus
+      responses:
+        "200":
+          description: Data retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountStatus"
+
+  /api/account/backend:
+    get:
+      tags:
+        - Account
+      summary: Get MQTT configuration
+      description: Retrieves MQTT backend configuration
+      operationId: getAccountBackend
+      responses:
+        "200":
+          description: Data retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountBackend"
+    put:
+      tags:
+        - Account
+      summary: Set MQTT configuration
+      description: Sets MQTT backend configuration
+      operationId: setAccountBackend
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AccountBackend"
+      responses:
+        "200":
+          description: Set successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+schemas:
+  AccountLink:
+    type: object
+    properties:
+      code:
+        type: string
+        example: "ABCD"
+      expires_at:
+        type: integer
+        example: 1761060863
+
+  AccountInfo:
+    type: object
+    properties:
+      linked:
+        type: boolean
+        example: true
+      id:
+        type: string
+        example: "12345678-9abc-def0-1234-56789abcdef0"
+      email:
+        type: string
+        example: "name@example.com"
+      user_id:
+        type: string
+        example: "12345678-9abc-def0-1234-56789abcdef0"
+
+  AccountStatus:
+    type: object
+    properties:
+      status:
+        type: string
+        example: "connected"
+        enum: ["error", "disconnected", "connected"]
+
+  AccountBackend:
+    type: object
+    properties:
+      server_url:
+        type: string
+        description: MQTT server url to connect to
+        examples:
+          - "default"
+          - "mqtts://mqtt.example.com:8883"
+      client_cert_type:
+        type: string
+        description: Client certificate type to use
+        examples:
+          - "default"
+          - "custom"
+        enum:
+          - "default"
+          - "custom"
+          - "none"
+      ignore_server_cert:
+        type: boolean
+        description: Whether to ignore the server certificate
+        examples:
+          - false
+    required:
+      - server_url
+      - client_cert_type
+      - ignore_server_cert

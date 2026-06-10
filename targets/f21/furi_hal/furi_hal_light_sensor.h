@@ -46,6 +46,15 @@ bool furi_hal_light_sensor_read_raw(
  */
 bool furi_hal_light_sensor_read_lux(FuriHalI2cBusHandle* handle, float* value);
 
+/** 
+ * @brief Switch light sensor into low-power sleep mode
+ *
+ * @param handle I2C bus handle
+ * @param sleep true - sleep mode, false - normal operation mode
+ * @return true on success, false otherwise
+ */
+bool furi_hal_light_sensor_sleep(FuriHalI2cBusHandle* handle, bool sleep);
+
 #ifdef __cplusplus
 }
 #endif

@@ -1,0 +1,311 @@
+tags:
+- name: Storage
+  description: File storage operations
+
+paths:
+  /api/storage/write:
+    post:
+      tags:
+        - Storage
+      summary: Upload file to internal storage
+      description: Uploads a file to a specified path
+      operationId: writeStorageFile
+      parameters:
+        - name: path
+          in: query
+          required: true
+          schema:
+            type: string
+            pattern: "^/ext(/[a-zA-Z0-9._\\-]*)*$"
+          description: Path for the uploaded file
+          example: "/ext/test.png"
+      requestBody:
+        required: true
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+              description: File data to upload as raw binary content
+      responses:
+        "200":
+          description: File uploaded successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Invalid parameters or upload failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "413":
+          description: File too large
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/storage/read:
+    get:
+      tags:
+        - Storage
+      summary: Download file from internal storage
+      description: Downloads a file from a specified path
+      operationId: readStorageFile
+      parameters:
+        - name: path
+          in: query
+          required: true
+          schema:
+            type: string
+            pattern: "^/ext(/[a-zA-Z0-9._\\-]*)*$"
+          description: Path to the file
+          example: "/ext/test.png"
+      responses:
+        "200":
+          description: File downloaded successfully
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+                description: File data as raw binary content
+        "400":
+          description: Invalid parameters or file not exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/storage/list:
+    get:
+      tags:
+        - Storage
+      summary: List files on internal storage
+      operationId: listStorageFiles
+      parameters:
+        - name: path
+          in: query
+          required: true
+          schema:
+            type: string
+            pattern: "^/ext(/[a-zA-Z0-9._\\-]*)*$"
+          description: Path to the file
+          example: "/ext"
+      responses:
+        "200":
+          description: Directory contents read successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StorageList"
+        "400":
+          description: Invalid parameters or directory does not exist
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/storage/remove:
+    delete:
+      tags:
+        - Storage
+      summary: Remove a file on internal storage
+      description: Removes a file with a specified path
+      operationId: removeStorageFile
+      parameters:
+        - name: path
+          in: query
+          required: true
+          schema:
+            type: string
+            pattern: "^/ext(/[a-zA-Z0-9._\\-]*)*$"
+          description: Path of a file to remove
+          example: "/ext/test.png"
+      responses:
+        "200":
+          description: File deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Invalid path or deletion failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/storage/mkdir:
+    post:
+      tags:
+        - Storage
+      summary: Create a directory on internal storage
+      description: Creates a new directory with a specified path
+      operationId: createStorageDir
+      parameters:
+        - name: path
+          in: query
+          required: true
+          schema:
+            type: string
+            pattern: "^/ext(/[a-zA-Z0-9._\\-]*)*$"
+          description: Path to a new directory
+          example: "/ext/newdir"
+      responses:
+        "200":
+          description: Directory created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Invalid path or creation failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/storage/rename:
+    post:
+      tags:
+        - Storage
+      summary: Rename/move a file
+      description: Moves a file to a new location
+      operationId: RenameStorageFile
+      parameters:
+        - name: path
+          in: query
+          required: true
+          schema:
+            type: string
+            pattern: "^/ext(/[a-zA-Z0-9._\\-]*)*$"
+          description: Old location path
+          example: "/ext/old_name.txt"
+        - name: new_path
+          in: query
+          required: true
+          schema:
+            type: string
+            pattern: "^/ext(/[a-zA-Z0-9._\\-]*)*$"
+          description: New location path
+          example: "/ext/new_name.txt"
+      responses:
+        "200":
+          description: Renamed successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Invalid path or operation failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/storage/status:
+    get:
+      tags:
+        - Storage
+      summary: Show storage usage
+      operationId: getStorageStatus
+      responses:
+        "200":
+          description: Storage status queried successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StorageStatus"
+        "400":
+          description: Invalid parameters or storage doesn't exist
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+schemas:
+  StorageList:
+    type: object
+    properties:
+      list:
+        type: array
+        items:
+          $ref: "#/components/schemas/StorageListElement"
+        description: Array of elements to display
+    required:
+      - list
+    example:
+      list:
+        - type: "file"
+          name: "test.png"
+          size: 65535
+        - type: "dir"
+          name: "assets"
+
+  StorageStatus:
+    type: object
+    properties:
+      used_bytes:
+        type: integer
+        example: 123456
+      free_bytes:
+        type: integer
+        example: 654321
+      total_bytes:
+        type: integer
+        description: "Total size of the partition"
+        example: 777777
+
+  StorageListElement:
+    type: object
+    required:
+      - type
+      - name
+    properties:
+      type:
+        type: string
+        enum: [file, dir]
+        description: Element type
+      name:
+        type: string
+        pattern: "^[^\\x00-\\x1F\\\\/:*?\"<>|]+$"
+        description: File or directory name
+    discriminator:
+      propertyName: type
+      mapping:
+        file: "#/components/schemas/StorageFileElement"
+        dir: "#/components/schemas/StorageDirElement"
+
+  StorageFileElement:
+    allOf:
+      - $ref: "#/components/schemas/StorageListElement"
+      - type: object
+        required:
+          - size
+        properties:
+          size:
+            type: integer
+            description: File size in bytes
+
+  StorageDirElement:
+    allOf:
+      - $ref: "#/components/schemas/StorageListElement"
+      - type: object
+
+  BinaryUpload:
+    type: string
+    format: binary
+    description: Binary data upload
+
+  FileUpload:
+    type: object
+    properties:
+      file:
+        type: string
+        format: binary
+        description: File to upload
+    required:
+      - file

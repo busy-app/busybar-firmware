@@ -1,0 +1,233 @@
+tags:
+- name: Settings
+  description: Device settings
+
+paths:
+  /api/access:
+    get:
+      tags:
+        - Settings
+      summary: Get HTTP API access over Wi-Fi configuration
+      description: Get HTTP API access over Wi-Fi configuration
+      operationId: getHttpAccess
+      responses:
+        "200":
+          description: Information retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HttpAccessInfo"
+    post:
+      tags:
+        - Settings
+      summary: Set HTTP API access over Wi-Fi configuration
+      description: Set HTTP API access over Wi-Fi configuration
+      operationId: setHttpAccess
+      parameters:
+        - name: mode
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: ["disabled", "enabled", "key"]
+          description: Access mode
+          example: "key"
+        - name: key
+          in: query
+          required: false
+          schema:
+            type: string
+            pattern: "^[0-9]{4,10}$"
+          description: Access key (4-10 digits length). Required when mode is "key".
+          example: "12345678"
+      responses:
+        "200":
+          description: Set successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Invalid request data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/name:
+    get:
+      tags:
+        - Settings
+      summary: Get current device name
+      description: Get current device name
+      responses:
+        "200":
+          description: Information retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NameInfo"
+
+    post:
+      tags:
+        - Settings
+      summary: Set new device name
+      description: Set new device name
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NameInfo"
+      responses:
+        "200":
+          description: New name successfully set
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Invalid name parameter, or failed to store new name
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /api/display/brightness:
+    get:
+      tags:
+        - Settings
+      summary: Get display brightness
+      description: Get brightness value for displays
+      operationId: getDisplayBrightness
+      responses:
+        "200":
+          description: Information retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DisplayBrightnessInfo"
+    post:
+      tags:
+        - Settings
+      summary: Set display brightness
+      description: |
+        Set brightness for one or both displays
+      operationId: setDisplayBrightness
+      parameters:
+        - name: value
+          in: query
+          required: true
+          schema:
+            type: string
+            pattern: "^(auto|[0-9]{1,2}|100)$"
+          description: Displays brightness (0-100/auto)
+          example: "50"
+      responses:
+        "200":
+          description: Brightness set successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Invalid request data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/audio/volume:
+    get:
+      tags:
+        - Settings
+      summary: Get audio volume
+      description: Get audio volume value
+      operationId: getAudioVolume
+      responses:
+        "200":
+          description: Information retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AudioVolumeInfo"
+    post:
+      tags:
+        - Settings
+      summary: Set audio volume
+      description: Set audio volume value
+      operationId: setAudioVolume
+      parameters:
+        - name: volume
+          in: query
+          required: true
+          schema:
+            type: number
+          description: Audio volume (0-100)
+          example: 50
+        - name: silent
+          in: query
+          required: false
+          schema:
+            type: integer
+            enum: [0, 1]
+          description: Set volume silently (0 - play volume change sound(default), 1 - do not play sound)
+          example: 1
+      responses:
+        "200":
+          description: Volume set successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Invalid request data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+schemas:
+  HttpAccessInfo:
+    type: object
+    properties:
+      mode:
+        type: string
+        enum: ["disabled", "enabled", "key"]
+        description: Access mode
+        example: "key"
+      key_valid:
+        type: boolean
+        description: Access key was set and is valid
+        example: true
+
+  NameInfo:
+    type: object
+    properties:
+      name:
+        type: string
+        minLength: 1
+        maxLength: 20
+        pattern: "^[a-zA-Z0-9 !()_=+;:,.?'|@#$%^&*\\[\\]{}/\\\\\"<>-]+$"
+        description: Device name (letters, digits, spaces and common punctuation; no backtick or tilde)
+        example: "BUSY bar"
+    required:
+      - name
+    additionalProperties: false
+    example:
+      name: "BUSY bar"
+
+  DisplayBrightnessInfo:
+    type: object
+    properties:
+      value:
+        type: string
+        description: Displays brightness (0-100/auto)
+        example: "auto"
+
+  AudioVolumeInfo:
+    type: object
+    properties:
+      volume:
+        type: number
+        description: Audio volume value (0-100)
+        example: 50
