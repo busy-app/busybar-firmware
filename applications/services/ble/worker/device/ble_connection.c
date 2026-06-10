@@ -1,4 +1,9 @@
 #include "ble_connection.h"
+#include "../_nwp_callbacks/ble_nwp_headers.h"
+
+#include "../../ble_common.h"
+
+#define TAG "BleConnection"
 
 struct BleConnectionContext {
     BleConnectionTimings timings;
@@ -7,6 +12,8 @@ struct BleConnectionContext {
     BlePhy RxPhy;
 
     BleDeviceBase* peer;
+    bool phy_update_done;
+    bool length_update_done;
 };
 
 BleConnectionContext*
@@ -61,6 +68,7 @@ void ble_connection_set_data_length(
     furi_assert(instance);
     furi_assert(data_length);
     memcpy(&instance->data_length_params, data_length, sizeof(BleConnectionDataLength));
+    instance->length_update_done = true;
 }
 
 const BlePhy* ble_connection_get_tx_phy(BleConnectionContext* instance) {
@@ -80,6 +88,66 @@ void ble_connection_set_phy(
     furi_assert(instance);
     instance->TxPhy.value = tx_phy;
     instance->RxPhy.value = rx_phy;
+    instance->phy_update_done = true;
+}
+
+#define disallowed  (0x4E0C)
+#define max_retries (4)
+
+void request_2m_phy_retry(const uint8_t* addr) {
+    BLE_LOG_I("%s", __func__);
+    sl_status_t status;
+    uint8_t retry_count = 0;
+    do {
+        status = rsi_ble_setphy((const int8_t*)addr, TX_PHY_RATE, RX_PHY_RATE, CODDED_PHY_RATE);
+        if(status == RSI_SUCCESS) break;
+    } while(status == disallowed && (retry_count < max_retries));
+
+    if(status != RSI_SUCCESS) {
+        BLE_LOG_W("Failed to set phy, error code : 0x%08lx", status);
+    } else {
+        BLE_LOG_I("PHY set done");
+    }
+}
+
+bool ble_connection_update_phy_and_data_length_by_timer(BleConnectionContext* instance) {
+    furi_assert(instance);
+
+    bool all_updates_done = instance->phy_update_done && instance->length_update_done;
+
+    do {
+        if(all_updates_done) {
+            BLE_LOG_W("all_updates_done = 1");
+            break;
+        }
+
+        BleDeviceBase* peer = instance->peer;
+        bool Phy2M_supported =
+            ble_device_base_is_feature_supported(peer, BleDeviceFeaturesLE2MPhy);
+
+        const uint8_t* addr = ble_device_base_get_address(peer, BleDeviceAddressTypeOrigin);
+        if(!instance->phy_update_done && Phy2M_supported) {
+            request_2m_phy_retry(addr);
+            break;
+        }
+
+        bool length_extension_supported = ble_device_base_is_feature_supported(
+            peer, BleDeviceFeaturesLEDataPacketLengthExtension);
+        if(!instance->length_update_done && length_extension_supported) {
+            BLE_LOG_I("Update data length");
+            sl_status_t status = rsi_ble_set_data_len((uint8_t*)addr, TX_LEN, TX_TIME);
+            if(status != RSI_SUCCESS) {
+                BLE_LOG_W("\n Set data length cmd failed with error code = %lx \n", status);
+            } else {
+                BLE_LOG_I("Length set DONE!");
+            }
+
+            break;
+        }
+
+    } while(false);
+
+    return all_updates_done;
 }
 // typedef enum {
 //     BleConnectionParameterTypeTimingLatency,

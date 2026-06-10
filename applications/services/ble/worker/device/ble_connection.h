@@ -37,6 +37,8 @@ void ble_connection_free(BleConnectionContext* instance);
 
 BleDeviceBase* ble_connection_get_peer(BleConnectionContext* instance);
 
+bool ble_connection_update_phy_and_data_length_by_timer(BleConnectionContext* instance);
+
 const BleConnectionTimings* ble_connection_get_timings(BleConnectionContext* instance);
 void ble_connection_set_timings(
     BleConnectionContext* instance,
