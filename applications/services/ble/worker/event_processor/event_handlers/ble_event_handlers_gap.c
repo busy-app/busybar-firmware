@@ -110,16 +110,25 @@ bool ble_event_handler_gap_phy_update_complete(size_t data_size, void* data, voi
 }
 
 bool ble_event_handler_gap_connection_update(size_t data_size, void* data, void* context) {
-    BLE_LOG_I("ble_event_handler_gap_connection_update");
+    UNUSED(data_size);
+    BLE_LOG_I("%s", __func__);
+
+    rsi_ble_event_conn_update_t* con_upd = data;
 
     BleWorker* instance = context;
-    memcpy(&instance->event_conn_update_complete, data, data_size);
+    BleConnectionContext* conn = ble_device_get_connection_context(instance->device);
+    BleConnectionTimings timings = {
+        .interval = con_upd->conn_interval,
+        .latency = con_upd->conn_latency,
+        .timeout = con_upd->timeout,
+    };
+    ble_connection_set_timings(conn, &timings);
 
     BLE_LOG_I(
         "Connection parameters update completed \r\n Connection interval = %d, Latency = %d, Supervision Timeout = %d",
-        instance->event_conn_update_complete.conn_interval,
-        instance->event_conn_update_complete.conn_latency,
-        instance->event_conn_update_complete.timeout);
+        con_upd->conn_interval,
+        con_upd->conn_latency,
+        con_upd->timeout);
     return true;
 }
 
