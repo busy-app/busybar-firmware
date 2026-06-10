@@ -3,14 +3,17 @@
 #include <furi.h>
 #include <furi_hal_debug.h>
 #include <furi_hal_bus.h>
+#include <version/version.h>
 
 #include <stm32u5xx_ll_pwr.h>
 #include <stm32u5_linker.h>
 
+#include <assert.h>
+
 #define TAG "FuriHalNvm"
 
 #define NVM_MAGIC   0xB00B0005
-#define NVM_VERSION 0x00000001
+#define NVM_VERSION 0x00000002
 
 typedef struct {
     uint32_t magic;
@@ -23,9 +26,13 @@ typedef struct {
     FuriHalNvmBootMode boot_mode;
     uint32_t fault_data;
     uint32_t switch_pos;
+    const Version* version;
 } NvmData;
 
-_Static_assert(FuriHalNvmFlagCount <= 32, "Too many NVM flags defined!");
+static_assert(FuriHalNvmFlagCount <= 32, "Too many NVM flags defined!");
+static_assert(
+    offsetof(NvmData, version) == 24,
+    "unexpected version offset, bsbversion.py should be updated");
 
 static volatile NvmData* nvm_storage = (NvmData*)(&__bkp_start__);
 
@@ -86,6 +93,9 @@ void furi_hal_nvm_init_early(void) {
     if(!furi_hal_nvm_is_valid()) {
         furi_hal_nvm_reset();
     }
+
+    // Set pointer to version struct for debugging
+    nvm_storage->version = version_get();
 
     if(furi_hal_nvm_is_flag_set(FuriHalNvmFlagDebug)) {
         furi_hal_debug_enable();

@@ -31,27 +31,31 @@ static void system_settings_scene_power_menu_on_enter(void* context) {
         submenu_add_item(
             data->front_menu,
             "Shut down",
+            NULL,
             SceneEventShutDown,
             system_settings_scene_power_menu_menu_item_callback,
             instance);
         submenu_add_item(
             data->front_menu,
             "Restart device",
+            NULL,
             SceneEventRestart,
             system_settings_scene_power_menu_menu_item_callback,
             instance);
         submenu_add_item(
             data->front_menu,
             "Info",
+            NULL,
             SceneEventInfo,
             system_settings_scene_power_menu_menu_item_callback,
             instance);
         submenu_set_selected_item_index(data->front_menu, data->menu_index);
 
         data->back_menu = submenu_alloc(instance->back_scene_window);
-        submenu_add_item(data->back_menu, "Shut down", SceneEventShutDown, NULL, instance);
-        submenu_add_item(data->back_menu, "Restart device", SceneEventRestart, NULL, instance);
-        submenu_add_item(data->back_menu, "Info", SceneEventInfo, NULL, instance);
+        submenu_add_item(data->back_menu, "Shut down", NULL, SceneEventShutDown, NULL, instance);
+        submenu_add_item(
+            data->back_menu, "Restart device", NULL, SceneEventRestart, NULL, instance);
+        submenu_add_item(data->back_menu, "Info", NULL, SceneEventInfo, NULL, instance);
         submenu_set_selected_item_index(data->back_menu, data->menu_index);
     });
 }

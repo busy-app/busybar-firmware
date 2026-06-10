@@ -65,7 +65,10 @@ static HttpMethod http_method_from_str(struct mg_http_message* msg) {
 #define HTTP_API_METHODS \
     ((HttpMethod)(HttpMethodGet | HttpMethodPost | HttpMethodPut | HttpMethodDelete))
 
-void http_reply_405_method_not_allowed(struct mg_connection* conn, HttpMethod allowed_methods) {
+void http_reply_405_method_not_allowed(
+    struct mg_connection* conn,
+    HttpMethod allowed_methods,
+    bool close) {
     if(allowed_methods & HttpMethodWebSocket) {
         allowed_methods = (HttpMethod)((allowed_methods & ~HttpMethodWebSocket) | HttpMethodGet);
     }
@@ -80,6 +83,9 @@ void http_reply_405_method_not_allowed(struct mg_connection* conn, HttpMethod al
         }
     }
     furi_string_cat(headers, "\r\n");
+    if(close) {
+        furi_string_cat(headers, "Connection: close\r\n");
+    }
     MG_REPLY_METHOD_NOT_ALLOWED(conn, furi_string_get_cstr(headers));
     furi_string_free(headers);
 }
@@ -179,6 +185,7 @@ static void http_upload_poll_callback(struct mg_connection* conn) {
 
     if(mg_timer_expired(&upload_ctx->timeout_stamp, HTTP_UPLOAD_IDLE_TIMEOUT_MS, mg_millis())) {
         FURI_LOG_E(TAG, "Connection data timeout (%lu)", conn->id);
+        MG_REPLY_ERROR_CLOSE(conn, 408, "Upload timeout");
         conn->is_draining = 1; // Force close hanging connection
     }
 }
@@ -208,7 +215,7 @@ void http_upload_start(
     upload_ctx->file = http_fs_get()->op(file_path, MG_FS_WRITE); // Open file for writing
 
     if(upload_ctx->file == NULL) {
-        MG_REPLY_INTERNAL_ERROR(conn, "Failed to open file for writing");
+        MG_REPLY_ERROR_CLOSE(conn, 500, "Failed to open file for writing");
         conn->is_draining = 1;
     }
 
@@ -448,7 +455,7 @@ bool http_handle_request(
                 break;
             }
             if(method == HttpMethodUnknown) {
-                http_reply_405_method_not_allowed(conn, inst->handler->method);
+                http_reply_405_method_not_allowed(conn, inst->handler->method, false);
                 handled = true;
                 break;
             }
@@ -456,7 +463,7 @@ bool http_handle_request(
                 if(method == HttpMethodOptions) {
                     http_reply_cors_preflight(conn, inst->handler->method);
                 } else {
-                    http_reply_405_method_not_allowed(conn, inst->handler->method);
+                    http_reply_405_method_not_allowed(conn, inst->handler->method, false);
                 }
                 handled = true;
                 break;
@@ -499,7 +506,7 @@ bool http_handle_headers(
                 break;
             }
             if(method == HttpMethodUnknown) {
-                http_reply_405_method_not_allowed(conn, inst->handler->method);
+                http_reply_405_method_not_allowed(conn, inst->handler->method, true);
                 MG_CLOSE_AFTER_HEADERS(conn, msg);
                 handled = true;
                 break;
@@ -507,7 +514,7 @@ bool http_handle_headers(
             if(!(method & inst->handler->method)) {
                 // OPTIONS preflight: let http_handle_request (MG_EV_HTTP_MSG) respond
                 if(method != HttpMethodOptions) {
-                    http_reply_405_method_not_allowed(conn, inst->handler->method);
+                    http_reply_405_method_not_allowed(conn, inst->handler->method, true);
                     MG_CLOSE_AFTER_HEADERS(conn, msg);
                     handled = true;
                 }

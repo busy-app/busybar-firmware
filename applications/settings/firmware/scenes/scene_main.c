@@ -34,6 +34,7 @@ static void firmware_settings_main_scene_on_enter(void* context) {
         submenu_add_item(
             scene->front_submenu,
             "Check for update",
+            NULL,
             FirmwareSettingsMainSceneEventCheckForUpdate,
             firmware_settings_main_scene_submenu_callback,
             instance);
@@ -41,14 +42,15 @@ static void firmware_settings_main_scene_on_enter(void* context) {
         submenu_add_item(
             scene->front_submenu,
             "Settings",
+            NULL,
             FirmwareSettingsMainSceneEventSettings,
             firmware_settings_main_scene_submenu_callback,
             instance);
 
         /* back layout setup */
         scene->back_submenu = submenu_alloc(instance->back_scene_window);
-        submenu_add_item(scene->back_submenu, "Check for update", 0, NULL, NULL);
-        submenu_add_item(scene->back_submenu, "Settings", 0, NULL, NULL);
+        submenu_add_item(scene->back_submenu, "Check for update", NULL, 0, NULL, NULL);
+        submenu_add_item(scene->back_submenu, "Settings", NULL, 0, NULL, NULL);
     });
 }
 

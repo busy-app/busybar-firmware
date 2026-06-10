@@ -343,17 +343,17 @@ static bool http_api_is_version_allowed(
 
         struct mg_str major_ver_str;
         if(!mg_span(*request_semver, &major_ver_str, NULL, '.')) {
-            MG_REPLY_BAD_REQUEST(conn);
+            MG_REPLY_ERROR_CLOSE(conn, 400, "Bad Request");
             return false;
         }
 
         if(!mg_str_to_num(major_ver_str, 10, &major_ver, sizeof(major_ver))) {
-            MG_REPLY_BAD_REQUEST(conn);
+            MG_REPLY_ERROR_CLOSE(conn, 400, "Bad Request");
             return false;
         }
 
         if(major_ver != api_ver[0]) {
-            MG_REPLY_INVALID_VERSION(conn);
+            MG_REPLY_ERROR_CLOSE(conn, 405, "Incompatible API version");
             return false;
         }
     }
@@ -555,7 +555,7 @@ bool http_api_root_callback(
         } else if(method == HttpMethodOptions) {
             http_reply_cors_preflight(conn, HttpMethodGet | HttpMethodPost);
         } else {
-            http_reply_405_method_not_allowed(conn, HttpMethodPost | HttpMethodGet);
+            http_reply_405_method_not_allowed(conn, HttpMethodPost | HttpMethodGet, false);
         }
         handled = true;
     } else {
@@ -577,7 +577,7 @@ bool http_api_root_hdr_callback(
     // OPTIONS preflights fall through to MG_EV_HTTP_MSG for http_reply_cors_preflight()
 
     if(!http_api_is_access_allowed(context, path, method, conn, msg)) {
-        MG_REPLY_FORBIDDEN(conn);
+        MG_REPLY_ERROR_CLOSE(conn, 403, "Forbidden");
         http_api_log_access(conn, msg, 403);
         MG_CLOSE_AFTER_HEADERS(conn, msg);
         return true;

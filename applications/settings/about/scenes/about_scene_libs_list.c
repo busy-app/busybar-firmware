@@ -33,10 +33,11 @@ static void about_scene_libs_list_on_enter(void* context) {
             submenu_add_item(
                 data->front_menu,
                 lib_info->name,
+                NULL,
                 i,
                 about_scene_libs_list_menu_item_callback,
                 instance);
-            submenu_add_item(data->back_menu, lib_info->name, i, NULL, instance);
+            submenu_add_item(data->back_menu, lib_info->name, NULL, i, NULL, instance);
         }
         submenu_set_selected_item_index(data->front_menu, instance->license_lib_index);
         submenu_set_selected_item_index(data->back_menu, instance->license_lib_index);
