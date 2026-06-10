@@ -1,10 +1,8 @@
-#include "menu_base.h"
-
 #include "../../widget_i.h"
 
-struct MenuBase {
+typedef struct {
     Widget base;
     lv_group_t* group;
-};
+} MenuBase;
 
 extern const lv_obj_class_t menu_base_lvgl_class;

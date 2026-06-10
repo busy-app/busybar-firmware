@@ -76,27 +76,6 @@ static void menu_base_lvgl_destructor(const lv_obj_class_t* class_p, lv_obj_t* o
     lv_group_delete(instance->group);
 }
 
-MenuBase* menu_base_alloc(Widget* parent) {
-    furi_check(parent);
-
-    lv_obj_t* obj = lv_obj_class_create_obj(MY_CLASS, TO_LV_OBJ(parent));
-    lv_obj_class_init_obj(obj);
-
-    return (MenuBase*)obj;
-}
-
-void menu_base_free(MenuBase* instance) {
-    furi_check(instance);
-
-    lv_obj_delete((lv_obj_t*)instance);
-}
-
-Widget* menu_base_get_base(MenuBase* instance) {
-    furi_check(instance);
-
-    return (Widget*)instance;
-}
-
 const lv_obj_class_t menu_base_lvgl_class = {
     .base_class = &widget_lvgl_class,
     .constructor_cb = menu_base_lvgl_constructor,
