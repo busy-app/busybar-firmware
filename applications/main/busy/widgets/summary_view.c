@@ -15,8 +15,8 @@
 
 #define SUMMARY_VIEW_MAX_WIDTH (70)
 
-#define ELEMENT_ANIM_DURATION_MS  (340UL)
-#define SEQUENCE_ANIM_DELAY_MS    (500UL)
+#define ELEMENT_ANIM_DURATION_MS (340UL)
+#define SEQUENCE_ANIM_DELAY_MS   (500UL)
 
 struct SummaryView {
     Widget base;
