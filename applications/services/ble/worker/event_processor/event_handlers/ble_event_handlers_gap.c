@@ -124,12 +124,23 @@ bool ble_event_handler_gap_connection_update(size_t data_size, void* data, void*
 }
 
 bool ble_event_handler_gap_length_change(size_t data_size, void* data, void* context) {
-    BLE_LOG_I("ble_event_handler_gap_length_change");
-    BleWorker* instance = context;
-    if(data_size > 0) memcpy(&instance->data_length_update, data, data_size);
+    UNUSED(data_size);
+    BLE_LOG_I("%s", __func__);
+    rsi_ble_event_data_length_update_t* rsi_len = data;
 
-    UNUSED(instance);
-    bool result = false;
+    BleWorker* instance = context;
+    BleConnectionContext* conn = ble_device_get_connection_context(instance->device);
+
+    BleConnectionDataLength len = {
+        .MaxRxOctets = rsi_len->MaxRxOctets,
+        .MaxTxOctets = rsi_len->MaxTxOctets,
+        .MaxRxTime = rsi_len->MaxRxTime,
+        .MaxTxTime = rsi_len->MaxTxTime,
+    };
+
+    ble_connection_set_data_length(conn, &len);
+
+    // bool result = false;
     // if(instance->remote_dev_feature.remote_features[1] & 0x01) {
     //     BLE_LOG_I("[BLEWorkerEvtDataLengthChange] rsi_ble_setphy");
     //     sl_status_t status = rsi_ble_setphy(
@@ -156,7 +167,7 @@ bool ble_event_handler_gap_length_change(size_t data_size, void* data, void* con
     //     BLE_LOG_W("[BLEWorkerEvtDataLengthChange] 2M Phy not supported");
     // }
 
-    return result;
+    return true;
 }
 
 bool ble_event_handler_gap_receive_remote_features(size_t data_size, void* data, void* context) {

@@ -24,7 +24,6 @@ struct BleWorker {
 
     uint8_t remote_dev_address[6];
 
-    rsi_ble_event_data_length_update_t data_length_update;
     rsi_ble_event_conn_update_t event_conn_update_complete;
 
     BleSecurityData* security_data;
