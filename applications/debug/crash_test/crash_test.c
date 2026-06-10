@@ -3,7 +3,7 @@
 
 #include <gui/gui.h>
 #include <gui/view_dispatcher.h>
-#include <gui/modules/submenu.h>
+#include <gui/modules/menus/submenu.h>
 
 #define TAG "CrashTest"
 

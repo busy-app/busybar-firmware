@@ -1,6 +1,6 @@
 #include "../matter_settings_i.h"
 
-#include <gui/modules/submenu.h>
+#include <gui/modules/menus/submenu.h>
 #include <gui/modules/status_view.h>
 
 typedef enum {

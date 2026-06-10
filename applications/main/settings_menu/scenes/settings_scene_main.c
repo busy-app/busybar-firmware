@@ -3,7 +3,7 @@
 #include <applications.h>
 #include <settings_helpers/app_desc.h>
 
-#include <gui/modules/menu.h>
+#include <gui/modules/menus/menu.h>
 
 typedef enum {
     SceneCustomEventMenuItemClicked = SettingsCustomEventSceneEventsStart,

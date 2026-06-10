@@ -2,7 +2,7 @@
 #include "../models/brightness.h"
 #include <settings_helpers/gui_params.h>
 
-#include <gui/modules/var_item_list.h>
+#include <gui/modules/menus/var_item_list.h>
 
 #define MANUAL_BRIGHTNESS_DEFAULT_VALUE 50
 

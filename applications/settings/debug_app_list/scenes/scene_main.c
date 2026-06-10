@@ -2,7 +2,7 @@
 
 #include <applications.h>
 #include <desktop/desktop.h>
-#include <gui/modules/submenu.h>
+#include <gui/modules/menus/submenu.h>
 #include <settings_helpers/gui_params.h>
 
 typedef enum {

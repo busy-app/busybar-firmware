@@ -4,7 +4,7 @@
 #include "../app_list.h"
 
 #include <desktop/desktop.h>
-#include <gui/modules/menu.h>
+#include <gui/modules/menus/menu.h>
 
 typedef enum {
     SceneCustomEventMenuItemClicked = AppsMenuCustomEventSceneEventsStart,

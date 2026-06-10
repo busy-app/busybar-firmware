@@ -1,7 +1,8 @@
 #include "../time_settings.h"
 #include <settings_helpers/gui_params.h>
 
-#include <gui/modules/submenu.h>
+#include <gui/modules/menus/submenu.h>
+
 #include <tzutil.h>
 #include <furi.h>
 #include <furi_hal_rtc.h>

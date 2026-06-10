@@ -2,7 +2,7 @@
 #include "scenes/apps_menu_scenes.h"
 
 #include <storage/storage.h>
-#include <gui/modules/submenu.h>
+#include <gui/modules/menus/submenu.h>
 
 #define TAG "AppsMenu"
 

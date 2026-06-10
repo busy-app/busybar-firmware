@@ -1,7 +1,7 @@
 #include <furi.h>
 
 #include <gui/gui.h>
-#include <gui/modules/var_item_list.h>
+#include <gui/modules/menus/var_item_list.h>
 
 #define TAG "GuiTest"
 

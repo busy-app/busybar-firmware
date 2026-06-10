@@ -1,7 +1,7 @@
 #include "../clock_i.h"
 #include "../widgets/clock_view.h"
 
-#include <gui/modules/menu.h>
+#include <gui/modules/menus/menu.h>
 #include <gui/modules/anim_menu.h>
 #include <gui/modules/overlap_fader.h>
 #include <gui/modules/mirror_card.h>

@@ -1,8 +1,8 @@
 #include "../account_settings_i.h"
 #include <settings_helpers/gui_params.h>
 
-#include <gui/modules/var_item_list.h>
-#include <gui/modules/submenu.h>
+#include <gui/modules/menus/var_item_list.h>
+#include <gui/modules/menus/submenu.h>
 
 typedef enum {
     SceneEventMenuGetCode = AppEventSceneEventsStart,
