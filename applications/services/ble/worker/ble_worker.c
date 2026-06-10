@@ -26,6 +26,8 @@
 // Uncomment macro below in order to force ble advertising with public address only
 // #define BLE_DEBUG_ADVERTISE_FORCE_PUBLIC
 
+#define BLE_WORKER_WRITE_RESPONSE_BY_NWP
+
 #define BLE_WORKER_LOG_TX
 
 #ifdef BLE_WORKER_LOG_TX
@@ -179,6 +181,15 @@ typedef struct {
 
 //==========================================================
 static BleWorker* ble_worker_instance = NULL;
+
+static int32_t rsi_ble_gatt_write_response_dummy(uint8_t* dev_addr, uint8_t type);
+
+#ifdef BLE_WORKER_WRITE_RESPONSE_BY_NWP
+#define ble_worker_write_response(dev_addr, type) rsi_ble_gatt_write_response_dummy(dev_addr, type)
+#else
+#define ble_worker_write_response(dev_addr, type) rsi_ble_gatt_write_response(dev_addr, type)
+#endif
+
 /*==============================================*/
 /**
  * @brief      invoked when advertise report event is received
@@ -625,12 +636,6 @@ static void ble_hw_config() {
         ble_worker_on_indicate_confirmation_event,
         NULL);
 
-    //! Set local name
-    status = rsi_bt_set_local_name((const uint8_t*)BLE_DEFAULT_LOCAL_NAME);
-    if(status != RSI_SUCCESS) {
-        BLE_LOG_W("Failed to set default local name, error code : 0x%08lx", status);
-    }
-
     ble_advertise_print_data(ble_worker_instance->advertise);
 
     status = rsi_ble_set_random_address_with_value(rsi_app_resp_get_dev_addr);
@@ -638,6 +643,14 @@ static void ble_hw_config() {
         BLE_LOG_W("Failed to set address: %08lX", status);
     }
 }
+
+#ifdef BLE_WORKER_WRITE_RESPONSE_BY_NWP
+static int32_t rsi_ble_gatt_write_response_dummy(uint8_t* dev_addr, uint8_t type) {
+    UNUSED(dev_addr);
+    UNUSED(type);
+    return RSI_SUCCESS;
+}
+#endif
 
 static int32_t ble_worker_thread_callback(void* context) {
     BleWorker* instance = context;
@@ -675,7 +688,7 @@ static int32_t ble_worker_thread_callback(void* context) {
                             if(ble_characteristic_is_cccd_handle(ch, handle)) {
                                 uint8_t ccd_val = *((uint8_t*)data);
                                 ble_characteristic_set_cccd_value(ch, ccd_val);
-                                status = rsi_ble_gatt_write_response(
+                                status = ble_worker_write_response(
                                     ble_worker_instance->remote_dev_address, 0);
                                 if(handle == BLE_NORDIC_UART_TX_HANDLE) BLE_LOG_W("Subscribed!");
 
@@ -696,8 +709,7 @@ static int32_t ble_worker_thread_callback(void* context) {
                     }
                 } else {
                     BLE_LOG_W("Not found: %04X", handle);
-                    status =
-                        rsi_ble_gatt_write_response(ble_worker_instance->remote_dev_address, 0);
+                    status = ble_worker_write_response(ble_worker_instance->remote_dev_address, 0);
                 }
             } else if(instance->app_ble_write_event.pkt_type == RSI_BLE_NOTIFICATION_EVENT) {
                 BLE_LOG_W("Notification event");
@@ -1143,18 +1155,6 @@ void ble_worker_init(BleConnectionStateChanged connect_callback, void* ctx) {
 
     ble_hw_config();
 
-    //Appearance adjustment
-    uuid_t uuid = {0};
-    uuid.size = 2;
-    uuid.val.val16 = 0x2A01;
-    uint16_t value_handle = 0;
-    if(ble_find_characteristic_value_handle_by_uuid(&uuid, 0x001E, &value_handle)) {
-        uint16_t data = 0x00C0;
-        BLE_LOG_D("Handle found: %04X", value_handle);
-        sl_status_t status = rsi_ble_set_local_att_value(value_handle, 2, (uint8_t*)&data);
-        UNUSED(status);
-        BLE_LOG_D("Status: %lX", status);
-    }
     //---------------------------------------
 }
 
@@ -1358,7 +1358,7 @@ void ble_worker_receive_confirm(uint16_t handle, uint8_t cccd_value) {
     if(ble_worker_instance->connected && BLE_CCCD_INDICATION_ENABLED(cccd_value)) {
         status = rsi_ble_indicate_confirm(ble_worker_instance->remote_dev_address);
     } else {
-        status = rsi_ble_gatt_write_response(ble_worker_instance->remote_dev_address, 0);
+        status = ble_worker_write_response(ble_worker_instance->remote_dev_address, 0);
     }
 
     furi_assert(handle == ble_worker_instance->rx_pending_handle);
@@ -1399,11 +1399,6 @@ void ble_worker_set_name(const char* new_name) {
     }
 
     ble_advertise_set_name(ble_worker_instance->advertise, new_name);
-
-    sl_status_t status = rsi_bt_set_local_name((const uint8_t*)new_name);
-    if(status != RSI_SUCCESS) {
-        BLE_LOG_W("Failed to set local name, error code : 0x%08lx", status);
-    }
 
     if(ble_worker_instance->state == BleWorkerStateAdvertising) {
         ble_worker_start_advertising(false, NULL, ble_worker_instance->advertise);

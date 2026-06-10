@@ -2,6 +2,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <furi/core/common_defines.h>
 
 typedef enum {
     FuriHalSdVersion1,
@@ -39,26 +40,66 @@ typedef struct {
     uint16_t manufacturing_year; /*!< manufacturing year */
 } FuriHalSdInfo;
 
+typedef enum FuriHalSdError {
+    FuriHalSdErrorNone = 0,
+    FuriHalSdErrorDataCrcFail,
+    FuriHalSdErrorDataTimeout,
+    FuriHalSdErrorTxUnderrun,
+    FuriHalSdErrorRxOverrun,
+    FuriHalSdErrorAddrMisaligned,
+    FuriHalSdErrorBlockLenErr,
+    FuriHalSdErrorEraseSeqErr,
+    FuriHalSdErrorBadEraseParam,
+    FuriHalSdErrorWriteProtViolation,
+    FuriHalSdErrorLockUnlockFailed,
+    FuriHalSdErrorComCrcFailed,
+    FuriHalSdErrorIllegalCmd,
+    FuriHalSdErrorCardEccFailed,
+    FuriHalSdErrorCcErr,
+    FuriHalSdErrorGeneralUnknownErr,
+    FuriHalSdErrorStreamReadUnderrun,
+    FuriHalSdErrorStreamWriteOverrun,
+    FuriHalSdErrorCidCsdOverwrite,
+    FuriHalSdErrorWpEraseSkip,
+    FuriHalSdErrorCardEccDisabled,
+    FuriHalSdErrorEraseReset,
+    FuriHalSdErrorAkeSeqErr,
+    FuriHalSdErrorInvalidVoltRange,
+    FuriHalSdErrorAddrOutOfRange,
+    FuriHalSdErrorRequestNotApplicable,
+    FuriHalSdErrorParam,
+    FuriHalSdErrorUnsupportedFeature,
+    FuriHalSdErrorBusy,
+    FuriHalSdErrorDma,
+    FuriHalSdErrorTimeout,
+    FuriHalSdErrorCardAbsent,
+    FuriHalSdErrorOther,
+} FuriHalSdError;
+
 typedef void (*FuriHalSdMmcPresentCallback)(void* context);
 
 void furi_hal_sdmmc_init(bool have_rtos);
 
-bool furi_hal_sdmmc_init_card(void);
+FURI_CHECK_RETURN
+FuriHalSdError furi_hal_sdmmc_init_card(void);
 
 void furi_hal_sdmmc_deinit_card(void);
 
-bool furi_hal_sdmmc_read_blocks(
+FURI_CHECK_RETURN
+FuriHalSdError furi_hal_sdmmc_read_blocks(
     uint8_t* buffer,
     uint32_t address,
     uint32_t count,
     size_t timeout_ms_per_block);
 
-bool furi_hal_sdmmc_write_blocks(
+FURI_CHECK_RETURN
+FuriHalSdError furi_hal_sdmmc_write_blocks(
     const uint8_t* buffer,
     uint32_t address,
     uint32_t count,
     size_t timeout_ms);
 
-bool furi_hal_sdmmc_get_card_info(FuriHalSdInfo* info);
+FURI_CHECK_RETURN
+FuriHalSdError furi_hal_sdmmc_get_card_info(FuriHalSdInfo* info);
 
 bool furi_hal_sd_alive(void);

@@ -61,7 +61,7 @@ static bool platform_boot_update_mount_fs(void) {
         DWORD free_clst;
         FATFS* ret_fs;
 
-        if(!furi_hal_sdmmc_init_card()) {
+        if(furi_hal_sdmmc_init_card() != FuriHalSdErrorNone) {
             break;
         }
 

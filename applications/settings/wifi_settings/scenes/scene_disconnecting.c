@@ -6,12 +6,7 @@
 typedef struct {
     StatusView* front_status;
     StatusView* back_status;
-    bool forget_done;
 } SceneDisconnecting;
-
-typedef enum {
-    SceneEventForgetDone = AppEventSceneEventsStart,
-} SceneEvent;
 
 static void wifi_scene_disconnecting_on_enter(void* context) {
     furi_assert(context);
@@ -19,7 +14,6 @@ static void wifi_scene_disconnecting_on_enter(void* context) {
     WifiSettings* instance = context;
     SceneDisconnecting* data =
         scene_manager_get_scene_data(instance->scene_manager, SceneIdDisconnecting);
-    data->forget_done = false;
 
     with_gui(instance->gui, {
         data->front_status = status_view_alloc(instance->front_scene_window);
@@ -31,12 +25,8 @@ static void wifi_scene_disconnecting_on_enter(void* context) {
         status_view_set_primary_text(data->back_status, "Disconnecting...");
     });
 
-    WifiModelState wifi_state = wifi_model_get_state(instance->model);
-    if(wifi_state == WifiModelStateNotConfigured || wifi_state == WifiModelStateConnected) {
-        wifi_model_forget(instance->model);
-        data->forget_done = true;
-        wifi_settings_send_custom_event(instance, SceneEventForgetDone);
-    }
+    wifi_model_forget(instance->model);
+    desktop_replace_current_app(instance->desktop, MAIN_SETTINGS_APP, THIS_SETTINGS_APP);
 }
 
 static void wifi_scene_disconnecting_on_exit(void* context) {
@@ -53,40 +43,10 @@ static void wifi_scene_disconnecting_on_exit(void* context) {
 }
 
 static bool wifi_scene_disconnecting_on_event(const SceneManagerEvent* event, void* context) {
-    furi_assert(context);
+    UNUSED(event);
+    UNUSED(context);
 
-    WifiSettings* instance = context;
-    SceneDisconnecting* data =
-        scene_manager_get_scene_data(instance->scene_manager, SceneIdDisconnecting);
-
-    bool consumed = false;
-    if(event->type == SceneManagerEventTypeCustom) {
-        switch(event->event) {
-        case SceneEventForgetDone:
-            desktop_replace_current_app(instance->desktop, MAIN_SETTINGS_APP, THIS_SETTINGS_APP);
-            break;
-        case AppEventWifiStateChange:
-            if(!data->forget_done) {
-                WifiModelState wifi_state = wifi_model_get_state(instance->model);
-                if(wifi_state == WifiModelStateNotConfigured ||
-                   wifi_state == WifiModelStateConnected) {
-                    wifi_model_forget(instance->model);
-                    data->forget_done = true;
-                    desktop_replace_current_app(
-                        instance->desktop, MAIN_SETTINGS_APP, THIS_SETTINGS_APP);
-                }
-            }
-            consumed = true;
-            break;
-        default:
-            break;
-        }
-    } else if(event->type == SceneManagerEventTypeBack) {
-        desktop_replace_current_app(instance->desktop, MAIN_SETTINGS_APP, THIS_SETTINGS_APP);
-        consumed = true;
-    }
-
-    return consumed;
+    return true;
 }
 
 const Scene wifi_scene_disconnecting = {

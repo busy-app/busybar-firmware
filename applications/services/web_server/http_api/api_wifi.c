@@ -176,7 +176,7 @@ static bool api_wifi_get_networks_callback(
             const char* security_str = (mode < WifiSecurityModeMax) ? security_modes[mode] :
                                                                       "Unknown";
             cJSON_AddStringToObject(item, WIFI_JSON_KEY_SECURITY, security_str);
-            cJSON_AddNumberToObject(item, WIFI_JSON_KEY_RSSI, results[i].rssi);
+            cJSON_AddNumberToObject(item, WIFI_JSON_KEY_RSSI, -results[i].rssi);
             cJSON_AddItemToArray(array, item);
         }
 

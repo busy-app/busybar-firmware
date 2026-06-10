@@ -257,6 +257,8 @@ schemas:
           color: "#FFFFFFFF"
           width: 72
           scroll_rate: 1000
+          scroll_start_delay: 1000
+          scroll_repeat_delay: 2500
           display: front
         - id: "1"
           timeout: 6
@@ -373,6 +375,14 @@ schemas:
             type: integer
             minimum: 0
             description: Scroll rate in pixels per minute
+          scroll_start_delay:
+            type: integer
+            minimum: 0
+            description: Delay in milliseconds before the scroll animation begins
+          scroll_repeat_delay:
+            type: integer
+            minimum: 0
+            description: Pause duration in milliseconds between successive scroll cycles
 
   ImageElement:
     allOf:

@@ -367,7 +367,9 @@ class OpenOCDReset:
         self._logger.info("Resetting device via OpenOCD...")
 
         lock_file = os.environ.get("OPENOCD_LOCK_FILE")
-        lock_prefix = f"flock --timeout 120 {lock_file} " if lock_file else ""
+        lock_timeout = 120
+        lock_prefix = f"flock --timeout {lock_timeout} {lock_file} " if lock_file else ""
+        command_timeout = lock_timeout + 30 if lock_file else 30
 
         serial_opt = f'-c "adapter serial {self.serial}" ' if self.serial else ""
         reset_cmd = (
@@ -390,7 +392,7 @@ class OpenOCDReset:
                 executable="/bin/bash",
                 capture_output=True,
                 text=True,
-                timeout=30,
+                timeout=command_timeout,
                 cwd=self.firmware_dir,
             )
             if "reset run" in result.stderr or result.returncode == 0:

@@ -91,6 +91,23 @@ def _front_frame_has_content(frame: bytes) -> bool:
     return any(frame)
 
 
+def _wait_for_front_frame_content(
+    streaming_api: StreamingAPI,
+    *,
+    display: int = 0,
+    attempts: int = 15,
+    poll_interval_s: float = 0.2,
+) -> bytes:
+    """Retry screen capture until the front display contains non-zero pixels."""
+    last_frame = b""
+    for _ in range(attempts):
+        last_frame = streaming_api.get_screen_bytes(display=display)
+        if _front_frame_has_content(last_frame):
+            return last_frame
+        time.sleep(poll_interval_s)
+    return last_frame
+
+
 @allure.feature("5. Web Frontend")
 @allure.story("Busy Timer")
 class TestBusySnapshotAPI:
@@ -306,7 +323,7 @@ class TestBusyThemeRegressions:
         assert busy_api.set_snapshot_raw(body).status_code == 200
         wait_for_snapshot_type(api_session, web_base_url, "SIMPLE")
 
-        frame = streaming_api.get_screen_bytes(display=0)
+        frame = _wait_for_front_frame_content(streaming_api, display=0)
         assert _front_frame_has_content(frame)
 
 

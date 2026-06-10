@@ -99,14 +99,6 @@ static void ble_custom_event_callback(uint32_t events, void* context) {
                 BLE_COMMAND_INVOKE_RETRY_TIMEOUT);
         }
 
-        if(events & BleEventTypeDeviceNameChanged) {
-            ble_invoke_retry_command_on_internal_event(
-                instance,
-                BleCommandSetDeviceName,
-                BleEventTypeDeviceNameChanged,
-                BLE_COMMAND_INVOKE_RETRY_TIMEOUT);
-        }
-
         if(events & BleEventTypeInitOnStart) {
             ble_invoke_retry_command_on_internal_event(
                 instance,

@@ -52,6 +52,7 @@ _fw_default_apps_config = {
         "basic_services",
         "intercom_services",
         "system_apps",
+        "debug_apps",
     ],
     "hwtest": [
         "basic_services",
@@ -68,6 +69,11 @@ _fw_default_apps_config = {
     "recovery": [
         "basic_services",
         "intercom_services",
+    ],
+    "factory_testing": [
+        "basic_services",
+        "intercom_services",
+        "system_apps",
     ],
 }
 

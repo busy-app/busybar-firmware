@@ -16,14 +16,12 @@
 #include <loader/loader.h>
 #include <cli/args.h>
 #include <cli/cli_commands.h>
-#include <furi_hal_info.h>
 #include <intercom/intercom.h>
 #include <cli/cli_registry.h>
 #include <cli/cli_ansi.h>
 #include <applications.h>
 #include <storage/storage_backup.h>
-#include <device_name/device_name.h>
-#include <sl_info/sl_info.h>
+#include <device_info/device_info.h>
 
 #include "cli_debug_mode.h"
 
@@ -58,38 +56,14 @@ static void
     printf("%-30s: %s\r\n", key, value);
 }
 
-static void cli_command_device_info_print_name() {
-    FuriString* name = furi_string_alloc();
-#ifdef SRV_NAME
-    DeviceName* device_name = furi_record_open(RECORD_DEVICE_NAME);
-    device_name_get(device_name, name);
-    furi_record_close(RECORD_DEVICE_NAME);
-#else // SRV_NAME
-    furi_string_set_str(name, "BUSY Bar");
-#endif // SRV_NAME
-    cli_command_device_info_callback("name", furi_string_get_cstr(name), false, NULL);
-    furi_string_free(name);
-}
-
 static void cli_command_device_info(PipeSide* pipe, FuriString* args, void* context) {
     UNUSED(pipe);
     UNUSED(args);
     UNUSED(context);
 
-    cli_command_device_info_print_name();
-    furi_hal_info_get(cli_command_device_info_callback, '_', NULL);
-#ifdef SRV_SL_INFO
-    const SlInfo* sl_info = furi_record_open(RECORD_SL_INFO);
-    const SlInfoStatus sl_info_status =
-        sl_info_get_values(sl_info, cli_command_device_info_callback, NULL);
-    furi_record_close(RECORD_SL_INFO);
-#else // SRV_SL_INFO
-    const SlInfoStatus sl_info_status = SlInfoStatusNotReady;
-#endif // SRV_SL_INFO
-    printf(
-        "%-30s: %s\r\n",
-        "sl_intercom_status",
-        (sl_info_status == SlInfoStatusOk) ? "ok" : "error");
+    DeviceInfo* dev_info = furi_record_open(RECORD_DEVICE_INFO);
+    device_info_query(dev_info, cli_command_device_info_callback, '_', NULL);
+    furi_record_close(RECORD_DEVICE_INFO);
 }
 
 static void cli_commands_init(CliRegistry* registry) {

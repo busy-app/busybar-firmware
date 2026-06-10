@@ -65,6 +65,10 @@ from utils.busy_timer import (
 
 _APP_ID = "test_priority_app"
 
+# Smallest real shared image on the device; image elements are validated by the
+# decoder, so a draw payload must reference an asset that exists and fits the display.
+_BUILTIN_IMAGE = "shared/checkmark_front_8x8.image"
+
 # The simplest valid element that can be included in any draw request.
 # NOTE: `font` is required by the firmware text-element parser even though
 # the OpenAPI schema marks it as optional with a default value.
@@ -672,16 +676,16 @@ class TestDrawDisplayLifecycle:
     ):
         """
         A draw request may contain text, image, and anim elements together.
-        Verify the server accepts a mixed payload without a 400.
-        (Image and anim assets may not exist on the device, but the server
-        should still attempt the draw and return 200 or 500, not 400.)
+        Verify the server accepts a valid mixed payload without a 400.
+        (The image asset must exist and fit the display — image elements are now
+        validated by the decoder, so a missing/oversized image is rejected with 400.)
         """
         elements = [
             {"id": "txt", "type": "text", "text": "hi", "timeout": 5, "font": "small"},
             {
                 "id": "img",
                 "type": "image",
-                "path": "does_not_exist.png",
+                "stock_path": _BUILTIN_IMAGE,
                 "x": 0,
                 "y": 0,
                 "timeout": 5,
