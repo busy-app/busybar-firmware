@@ -46,8 +46,8 @@ static const BleWorkerEventHandler event_handlers[BleIncomingNwpEventTypeCount] 
     [BleIncomingNwpEventTypeSmpLtkRequest] = ble_event_handler_smp_ltk_request,
     [BleIncomingNwpEventTypeSmpSecurityKeys] = ble_event_handler_smp_security_keys,
     [BleIncomingNwpEventTypeSmpPairingFailed] = ble_event_handler_smp_pairing_failed,
-    [BleIncomingNwpEventTypeAdjustConnectionRequest] = NULL,
-    // ble_event_handler_gap_adjust_connection_request,
+    [BleIncomingNwpEventTypeAdjustConnectionRequest] =
+        ble_event_handler_gap_adjust_connection_request,
 };
 
 static inline void ble_incoming_nwp_event_processor_set_run_guard(

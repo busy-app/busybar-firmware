@@ -61,6 +61,8 @@ bool ble_event_handler_gap_disconnected(size_t data_size, void* data, void* cont
     BLE_LOG_I("Disconnect, address : %s", furi_string_get_cstr(addr));
     furi_string_free(addr);
 
+    furi_event_loop_timer_stop(instance->update_param_timer);
+
     bool result = ble_device_connection_close(instance->device);
 
     ble_worker_invoke_disconnect_callback(instance);
@@ -153,39 +155,15 @@ bool ble_event_handler_gap_exit(size_t data_size, void* data, void* context) {
     return true;
 }
 
-// bool ble_worker_event_set_name(size_t data_size, void* data, void* context) {
-//     BLE_LOG_I("ble_worker_event_set_name");
-//     UNUSED(data_size);
-
-//     SyncEventContext* ctx = data;
-//     BleWorker* instance = context;
-
-//     const char* name = ctx->data;
-//     BLE_LOG_I("NAME IN TREAD: %s", name);
-//     ble_device_set_name(instance->device, name);
-
-//     api_lock_unlock(ctx->lock);
-
-//     return true;
-// }
-
-///TODO: Check do we need this at all after fix for double response
-// bool ble_event_handler_gap_adjust_connection_request(size_t data_size, void* data, void* context) {
-//     UNUSED(data_size);
-//     UNUSED(data);
-//     BLE_LOG_I("ble_event_handler_gap_adjust_connection_request");
-//     BleWorker* instance = context;
-
-//     if(instance->remote_dev_feature.remote_features[0] & 0x20) {
-//         BLE_LOG_I("[BLEWorkerReconfigure] rsi_ble_set_data_len");
-//         sl_status_t status = rsi_ble_set_data_len(instance->remote_dev_address, TX_LEN, TX_TIME);
-//         if(status != RSI_SUCCESS) {
-//             BLE_LOG_W("Failed to set data length, error code : 0x%08lx", status);
-//         } else
-//             BLE_LOG_I("LEN set done");
-//     } else {
-//         ble_incoming_nwp_event_processor_spawn_event(
-//             instance->event_proc, BleIncomingNwpEventTypeDataLengthChange, 0, NULL);
-//     }
-//     return true;
-// }
+bool ble_event_handler_gap_adjust_connection_request(size_t data_size, void* data, void* context) {
+    UNUSED(data_size);
+    UNUSED(data);
+    BLE_LOG_I("%s", __func__);
+    BleWorker* instance = context;
+    BleConnectionContext* conn = ble_device_get_connection_context(instance->device);
+    bool all_done = ble_connection_update_phy_and_data_length_by_timer(conn);
+    if(!all_done) {
+        furi_event_loop_timer_start(instance->update_param_timer, 500);
+    }
+    return true;
+}
