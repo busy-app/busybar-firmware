@@ -3,5 +3,6 @@ App(
     apptype=FlipperAppType.STARTUP,
     entry_point="cli_on_system_start",
     stack_size=512,
+    order=20,
     targets=["f64", "f65"],
 )

@@ -3,5 +3,6 @@ App(
     apptype=FlipperAppType.STARTUP,
     entry_point="device_info_on_system_start",
     stack_size=1024,
+    order=10,
     targets=["f20", "f21", "f22", "f64", "f65"],
 )
