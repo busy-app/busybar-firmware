@@ -335,12 +335,6 @@ BleSecurityData* ble_device_get_security_data(BleDevice* instance) {
 void ble_device_response_pairing_capabilities(BleDevice* instance) {
     furi_assert(instance);
 
-    BLE_LOG_I("%s", __func__);
-
-    if(ble_device_is_paired(instance)) {
-        BLE_LOG_W("Device is already paired!");
-    }
-
     const uint8_t* addr = ble_device_base_get_address(instance->peer, BleDeviceAddressTypeOrigin);
     sl_status_t status = rsi_ble_smp_pair_response(
         (uint8_t*)addr, BLE_DEVICE_SMP_IO_CAPABILITY, BLE_DEVICE_MITM_REQ);
@@ -348,7 +342,50 @@ void ble_device_response_pairing_capabilities(BleDevice* instance) {
     if(status != SL_STATUS_OK) {
         BLE_LOG_W("Failed to send pairing capabilities: %lX", status);
     }
-    // instance->pairing_info_available = 0;
+}
+
+static bool ble_device_send_encryption_resp(
+    const uint8_t* addr,
+    uint8_t response_type,
+    const uint8_t* localltk) {
+    sl_status_t status = rsi_ble_ltk_req_reply((uint8_t*)addr, response_type, localltk);
+    if(status != RSI_SUCCESS) {
+        BLE_LOG_W("Encryption response failed: %08lX", status);
+    }
+    return status == RSI_SUCCESS;
+}
+
+bool ble_device_send_encryption_response(BleDevice* instance) {
+    furi_assert(instance);
+
+    uint8_t response_type = 0;
+    const uint8_t* local_ltk = NULL;
+
+    if(ble_security_pairing_present(instance->security_data)) {
+        const rsi_bt_event_encryption_enabled_t* encrypt_keys =
+            ble_security_get_pairing_data(instance->security_data);
+
+        response_type = (1 | encrypt_keys->enabled | (encrypt_keys->sc_enable << 7));
+        local_ltk = encrypt_keys->localltk;
+    } else {
+        BLE_LOG_I("Not paired device");
+    }
+
+    const uint8_t* addr = ble_device_base_get_address(instance->peer, BleDeviceAddressTypeOrigin);
+    return ble_device_send_encryption_resp(addr, response_type, local_ltk);
+}
+
+void ble_device_handle_encryption_start(
+    BleDevice* instance,
+    rsi_bt_event_encryption_enabled_t* encryption_data) {
+    if(!ble_security_pairing_present(instance->security_data)) {
+        ble_security_set_pairing_data(instance->security_data, encryption_data);
+        if(ble_security_save_data(instance->security_data))
+            BLE_LOG_I("Security data saved");
+        else
+            BLE_LOG_W("Failed to save Security");
+    } else
+        BLE_LOG_I("Encryption start with previously paired device");
 }
 
 void ble_device_send_data(

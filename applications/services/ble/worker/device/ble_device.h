@@ -74,11 +74,12 @@ BleSecurityData* ble_device_get_security_data(BleDevice* instance);
 bool ble_device_is_paired(BleDevice* instance);
 
 void ble_device_response_pairing_capabilities(BleDevice* instance);
-//Starts pairing process on smp request
-void ble_device_pairing_begin(/*Pairing data*/);
 
-//Finish pairing on encryption started
-void ble_device_pairing_end();
+bool ble_device_send_encryption_response(BleDevice* instance);
+
+void ble_device_handle_encryption_start(
+    BleDevice* instance,
+    rsi_bt_event_encryption_enabled_t* encryption_data);
 
 //Forgets paired device
 bool ble_device_forget_paired(BleDevice* instance);
