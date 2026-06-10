@@ -2,7 +2,7 @@
 #include <settings_helpers/gui_params.h>
 #include <furi_hal_rtc.h>
 
-#include <gui/modules/menus/submenu.h>
+#include <gui/modules/submenu.h>
 
 #define TAG "TIME_MENU"
 

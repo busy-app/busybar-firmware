@@ -1,7 +1,7 @@
 #include "../wifi_settings_i.h"
 #include <settings_helpers/gui_params.h>
 
-#include <gui/modules/menus/submenu.h>
+#include <gui/modules/submenu.h>
 
 #include <wifi/wifi.h>
 

@@ -1,6 +1,6 @@
 #include "../firmware_i.h"
 
-#include <gui/modules/menus/var_item_list.h>
+#include <gui/modules/var_item_list.h>
 
 #include <furi_hal_nvm.h>
 

@@ -1,6 +1,6 @@
 #include "../busy_i.h"
 
-#include <gui/modules/menus/var_item_list.h>
+#include <gui/modules/var_item_list.h>
 
 #define ITEM_LABEL_ENABLE "Trigger smart\nhome"
 

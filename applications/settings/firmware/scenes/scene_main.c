@@ -1,6 +1,6 @@
 #include "../firmware_i.h"
 
-#include <gui/modules/menus/submenu.h>
+#include <gui/modules/submenu.h>
 
 typedef enum {
     FirmwareSettingsMainSceneEventCheckForUpdate = FirmwareSettingsEventSceneEventsStart,

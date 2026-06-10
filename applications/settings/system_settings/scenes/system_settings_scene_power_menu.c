@@ -1,7 +1,7 @@
 
 #include "../system_settings.h"
 
-#include <gui/modules/menus/submenu.h>
+#include <gui/modules/submenu.h>
 
 typedef enum {
     SceneEventShutDown = AppEventSceneEventsStart,
