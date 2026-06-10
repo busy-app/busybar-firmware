@@ -82,6 +82,15 @@ size_t ble_characteristic_get_data_size(BleCharacteristicObject* instance) {
     return instance->data_size;
 }
 
+static inline void ble_characteristic_initial_size_check_alloc(
+    BleCharacteristicObject* instance,
+    const size_t data_size) {
+    if(instance->data == NULL && instance->descriptor->initial_data_size == 0) {
+        instance->data = malloc(data_size);
+        instance->max_data_size = data_size;
+    }
+}
+
 static bool ble_characteristic_set_data_common(
     BleCharacteristicObject* instance,
     const void* data,
@@ -92,12 +101,12 @@ static bool ble_characteristic_set_data_common(
 
     bool result = false;
     do {
-        if(furi_semaphore_acquire(instance->lock, BLE_CHAR_LOCK_TIMEOUT_MS) != FuriStatusOk) break;
-
-        if(instance->data == NULL && instance->descriptor->initial_data_size == 0) {
-            instance->data = malloc(data_size);
-            instance->max_data_size = data_size;
+        if(furi_semaphore_acquire(instance->lock, BLE_CHAR_LOCK_TIMEOUT_MS) != FuriStatusOk) {
+            BLE_LOG_W("%s - Lock failed!", instance->descriptor->name);
+            break;
         }
+
+        ble_characteristic_initial_size_check_alloc(instance, data_size);
 
         if(instance->max_data_size < data_size) {
             BLE_LOG_W("%s - Unable to set data, wrong size!", instance->descriptor->name);
