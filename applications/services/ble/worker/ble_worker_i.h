@@ -4,11 +4,6 @@
 
 #include "device/ble_device.h"
 #include "event_processor/ble_incoming_nwp_event_processor.h"
-#include "../service/ble_service_i.h"
-
-#include "../util/ble_canary.h"
-
-#include "_nwp_callbacks/ble_nwp_core_callbacks.h"
 
 struct BleWorker {
     FuriThread* thread;
@@ -16,25 +11,7 @@ struct BleWorker {
     BleIncomingNwpEventProcessor* event_proc;
     BleTransmitter* transport;
     BleDevice* device;
-    //----------------------------------------------------
-
-    FuriTimer* retry_phy_timer;
-    uint8_t pairing_info_available;
-    ///TODO: this can be removed
-
-    uint8_t remote_dev_address[6];
-
-    BleSecurityData* security_data;
 
     BleConnectionStateChanged on_connection_changed_cb;
     void* on_connection_changed_ctx;
 };
-
-bool ble_worker_start_advertising(
-    bool advertise_to_paired_only,
-    const rsi_bt_event_le_security_keys_t* key,
-    const BleAdvertiseContext* advertise);
-
-bool ble_worker_stop_advertising();
-
-int32_t ble_worker_write_response(uint8_t* dev_addr, uint8_t type);

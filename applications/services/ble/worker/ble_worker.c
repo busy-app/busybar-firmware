@@ -1,4 +1,7 @@
 #include "ble_worker_i.h"
+
+#include "_nwp_callbacks/ble_nwp_core_callbacks.h"
+
 #include <furi.h>
 
 #include "ble_worker_util.h"
@@ -14,13 +17,6 @@
 //===========================================================================================
 ///TODO:Remove this in future
 static BleWorker* ble_worker_instance = NULL;
-//===========================================================================================
-
-static void retry_phy_timer_callback(void* ctx) {
-    BleWorker* instance = ctx;
-    ble_incoming_nwp_event_processor_spawn_event(
-        instance->event_proc, BleIncomingNwpEventTypeDataLengthChange, 0, NULL);
-}
 //===========================================================================================
 
 static int32_t ble_worker_thread_callback(void* context) {
@@ -62,12 +58,6 @@ BleWorker* ble_worker_init(BleConnectionStateChanged connect_callback, void* ctx
 
     instance->device = ble_device_alloc(instance->transport);
     ble_device_set_name(instance->device, BLE_DEFAULT_LOCAL_NAME);
-    ///TODO: this is to keep old code working
-    instance->security_data = ble_device_get_security_data(instance->device);
-    instance->pairing_info_available = ble_device_is_paired(instance->device);
-
-    instance->retry_phy_timer =
-        furi_timer_alloc(retry_phy_timer_callback, FuriTimerTypeOnce, instance);
 
     //Appearance adjustment
     uuid_t uuid = {0};

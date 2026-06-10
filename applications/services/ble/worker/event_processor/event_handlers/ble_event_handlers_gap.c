@@ -4,6 +4,7 @@
 
 #define TAG "BleGAPEvent"
 
+///TODO: Remove this
 static void ble_print_enh_conn_data(const rsi_ble_event_enhance_conn_status_t* const info) {
     uint8_t buf[18] = {0};
     rsi_6byte_dev_address_to_ascii(buf, info->dev_addr);
@@ -27,7 +28,6 @@ bool ble_event_handler_gap_connected(size_t data_size, void* data, void* context
     BleWorker* instance = context;
 
     rsi_ble_event_enhance_conn_status_t* resp_enh_conn = data;
-    memcpy(instance->remote_dev_address, resp_enh_conn->dev_addr, 6);
 
     ble_print_enh_conn_data(resp_enh_conn);
 
@@ -230,22 +230,23 @@ bool ble_event_handler_gap_exit(size_t data_size, void* data, void* context) {
 //     return true;
 // }
 
-bool ble_event_handler_gap_adjust_connection_request(size_t data_size, void* data, void* context) {
-    UNUSED(data_size);
-    UNUSED(data);
-    BLE_LOG_I("ble_event_handler_gap_adjust_connection_request");
-    BleWorker* instance = context;
+///TODO: Check do we need this at all after fix for double response
+// bool ble_event_handler_gap_adjust_connection_request(size_t data_size, void* data, void* context) {
+//     UNUSED(data_size);
+//     UNUSED(data);
+//     BLE_LOG_I("ble_event_handler_gap_adjust_connection_request");
+//     BleWorker* instance = context;
 
-    if(instance->remote_dev_feature.remote_features[0] & 0x20) {
-        BLE_LOG_I("[BLEWorkerReconfigure] rsi_ble_set_data_len");
-        sl_status_t status = rsi_ble_set_data_len(instance->remote_dev_address, TX_LEN, TX_TIME);
-        if(status != RSI_SUCCESS) {
-            BLE_LOG_W("Failed to set data length, error code : 0x%08lx", status);
-        } else
-            BLE_LOG_I("LEN set done");
-    } else {
-        ble_incoming_nwp_event_processor_spawn_event(
-            instance->event_proc, BleIncomingNwpEventTypeDataLengthChange, 0, NULL);
-    }
-    return true;
-}
+//     if(instance->remote_dev_feature.remote_features[0] & 0x20) {
+//         BLE_LOG_I("[BLEWorkerReconfigure] rsi_ble_set_data_len");
+//         sl_status_t status = rsi_ble_set_data_len(instance->remote_dev_address, TX_LEN, TX_TIME);
+//         if(status != RSI_SUCCESS) {
+//             BLE_LOG_W("Failed to set data length, error code : 0x%08lx", status);
+//         } else
+//             BLE_LOG_I("LEN set done");
+//     } else {
+//         ble_incoming_nwp_event_processor_spawn_event(
+//             instance->event_proc, BleIncomingNwpEventTypeDataLengthChange, 0, NULL);
+//     }
+//     return true;
+// }

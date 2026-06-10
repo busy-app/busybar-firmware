@@ -21,16 +21,17 @@ bool ble_event_handler_gatt_mtu(size_t data_size, void* data, void* context) {
     ble_device_set_mtu(instance->device, rsi_ble_mtu->mtu_size);
 
     ///TODO: Move this to some connection handler, but what???
-    sl_status_t status = rsi_ble_set_wo_resp_notify_buf_info(
-        instance->remote_dev_address, DLE_BUFFER_MODE, DLE_BUFFER_COUNT);
-    if(status != RSI_SUCCESS) {
-        BLE_LOG_W("Failed to set the buffer configuration mode, error: 0x%08lx", status);
-    } else {
-        BLE_LOG_I(
-            "Buffer configuration done for notify and set_att cmds buf mode = %d , max buff count =%d",
-            DLE_BUFFER_MODE,
-            DLE_BUFFER_COUNT);
-    }
+    BLE_LOG_W("SKIP notify buf setup");
+    // sl_status_t status = rsi_ble_set_wo_resp_notify_buf_info(
+    //     instance->remote_dev_address, DLE_BUFFER_MODE, DLE_BUFFER_COUNT);
+    // if(status != RSI_SUCCESS) {
+    //     BLE_LOG_W("Failed to set the buffer configuration mode, error: 0x%08lx", status);
+    // } else {
+    //     BLE_LOG_I(
+    //         "Buffer configuration done for notify and set_att cmds buf mode = %d , max buff count =%d",
+    //         DLE_BUFFER_MODE,
+    //         DLE_BUFFER_COUNT);
+    // }
 
     return true;
 }
