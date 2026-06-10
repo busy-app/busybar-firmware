@@ -60,6 +60,8 @@ bool bh1730_init(FuriHalI2cBusHandle* handle) {
 }
 
 bool bh1730_sleep_mode(FuriHalI2cBusHandle* handle, bool sleep) {
+    furi_check(handle);
+
     furi_hal_i2c_acquire(handle);
     Bh1730RegControl ctrl = {0};
     if(!furi_hal_i2c_read_reg_8(

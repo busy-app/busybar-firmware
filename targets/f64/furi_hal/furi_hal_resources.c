@@ -68,7 +68,9 @@ const GpioPin gpio_sw_ok = {.type = GpioTypeUulp, .pin = 1};
 
 static const GpioPin* unused_pins[] = {
     &gpio_6,
+#ifndef FURI_HAL_CLOCK_MCO
     &gpio_12,
+#endif
     &gpio_25,
     &gpio_26,
     &gpio_27,
@@ -79,7 +81,6 @@ static const GpioPin* unused_pins[] = {
     &gpio_49,
     &gpio_52,
     &gpio_57,
-    &gpio_ulp_2,
     // pin30 and JTAG pins are pulled up by default
 };
 
@@ -153,6 +154,7 @@ static void furi_hal_resources_init_input_pins(GpioMode mode) {
     }
 }
 
+// Pull up all unused pins to prevent floating inputs and possibly reduce power consumption
 static void furi_hal_resources_pull_unused_pins(void) {
     for(size_t i = 0; i < COUNT_OF(unused_pins); i++) {
         furi_hal_gpio_init(unused_pins[i], GpioModeInput, GpioPullUp, GpioSpeedLow);

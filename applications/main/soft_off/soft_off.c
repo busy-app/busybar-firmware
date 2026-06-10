@@ -14,7 +14,6 @@
 typedef enum {
     SoftOffThreadFlagExit = 1 << 0,
     SoftOffThreadFlagAnimationCompleted = 1 << 1,
-    SoftOffThreadFlagDebugToggle = 1 << 2,
 } SoftOffThreadFlag;
 
 static bool soft_off_signal_callback(uint32_t signal, void* arg, void* context) {
