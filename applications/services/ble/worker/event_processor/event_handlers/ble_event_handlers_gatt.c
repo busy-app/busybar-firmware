@@ -50,6 +50,10 @@ bool ble_event_handler_gatt_write_event(size_t data_size, void* data, void* cont
             handle,
             app_ble_write_event->length,
             app_ble_write_event->att_value);
+
+        if(handle == BLE_NORDIC_UART_TX_HANDLE) BLE_LOG_W("Subscribed!");
+        if(handle == BLE_NORDIC_UART_CNT_HANDLE) BLE_LOG_W("Session modified!");
+
     } else if(app_ble_write_event->pkt_type == RSI_BLE_NOTIFICATION_EVENT) {
         BLE_LOG_W("Notification event");
     } else if(app_ble_write_event->pkt_type == RSI_BLE_INDICATION_EVENT) {
