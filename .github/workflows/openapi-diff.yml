@@ -47,8 +47,6 @@ jobs:
                 set -euo pipefail
                 export FBT_GIT_SUBMODULE_SHALLOW=1
 
-                source scripts/toolchain/fbtenv.sh
-
                 git lfs install --skip-smudge
                 if [[ -n "${GH_TOKEN:-}" ]]; then
                   echo "https://x-access-token:${GH_TOKEN}@github.com" > ~/.git-credentials
@@ -57,6 +55,7 @@ jobs:
                 git config --global lfs.transfer.maxretries 3
 
                 git submodule update --init --depth 1 --filter=blob:none --recursive --jobs="$(nproc)" scripts/toolchain fbt_layers/fbtng || (git lfs logs last && exit 1)
+                source scripts/toolchain/fbtenv.sh
                 bash ./fbt openapi_dist
 
                 cd base
@@ -77,7 +76,6 @@ jobs:
               shell: bash
               run: |
                 set -euo pipefail
-                source scripts/toolchain/fbtenv.sh
                 python3 scripts/openapi_merge.py validate "${OAS_PATH}"
 
             - name: Install oasdiff
