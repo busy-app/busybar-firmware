@@ -1,6 +1,7 @@
 #include <gui/gui_i.h>
 #include <gui/modules/status_view.h>
 
+#include <loader/loader.h>
 #include <intercom/intercom.h>
 #include <matter/matter.h>
 
@@ -350,13 +351,42 @@ static int32_t supervisor_get_topmost_warning(Supervisor* instance) {
     return (idx < COUNT_OF(supervisor_warnings)) ? (int32_t)idx : -1;
 }
 
+static bool is_in_power_off(void) {
+    FuriString* current_app_name = furi_string_alloc();
+
+    Loader* loader = furi_record_open(RECORD_LOADER);
+    loader_get_application_name(loader, current_app_name);
+    bool result = furi_string_equal(current_app_name, "Software Power Off");
+    furi_record_close(RECORD_LOADER);
+
+    furi_string_free(current_app_name);
+    return result;
+}
+
 static void supervisor_update_warning(Supervisor* instance, SupervisorWarningType type, bool add) {
     furi_check(type < COUNT_OF(supervisor_warnings));
 
     if(add) {
+        // FIXME: Displays were shut down in power_off, we need to turn them on
+        if((instance->active_warnings == 0) && (is_in_power_off())) {
+            BackDisplaySrv* back_display = furi_record_open(RECORD_BACK_DISPLAY);
+            FrontDisplaySrv* front_display = furi_record_open(RECORD_FRONT_DISPLAY);
+            back_display_sleep_mode(back_display, false);
+            front_display_sleep_mode(front_display, false);
+            furi_record_close(RECORD_BACK_DISPLAY);
+            furi_record_close(RECORD_FRONT_DISPLAY);
+        }
         instance->active_warnings |= (1 << type);
     } else {
         instance->active_warnings &= ~(1 << type);
+        if((instance->active_warnings == 0) && (is_in_power_off())) {
+            BackDisplaySrv* back_display = furi_record_open(RECORD_BACK_DISPLAY);
+            FrontDisplaySrv* front_display = furi_record_open(RECORD_FRONT_DISPLAY);
+            back_display_sleep_mode(back_display, true);
+            front_display_sleep_mode(front_display, true);
+            furi_record_close(RECORD_BACK_DISPLAY);
+            furi_record_close(RECORD_FRONT_DISPLAY);
+        }
     }
 
     int32_t topmost_warning_idx = supervisor_get_topmost_warning(instance);
