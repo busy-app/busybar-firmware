@@ -5,28 +5,13 @@
 
 #define TAG "BleSMPEvent"
 
-#define MITM_REQ 1
-
-#ifdef RSI_BLE_SMP_IO_CAPABILITY
-#undef RSI_BLE_SMP_IO_CAPABILITY
-#define RSI_BLE_SMP_IO_CAPABILITY 0x03
-#endif
-
 bool ble_event_handler_smp_response(size_t data_size, void* data, void* context) {
     UNUSED(data_size);
     UNUSED(data);
-    BLE_LOG_I("ble_event_handler_smp_response");
+    BLE_LOG_I("%s", __func__);
+
     BleWorker* instance = context;
-    // rsi_bt_event_smp_resp_t* resp = data;
-    // memcpy(&instance->rsi_bt_event_smp_resp, resp, data_size);
-
-    sl_status_t status = rsi_ble_smp_pair_response(
-        instance->remote_dev_address, RSI_BLE_SMP_IO_CAPABILITY, MITM_REQ);
-
-    if(status != SL_STATUS_OK) {
-        BLE_LOG_W("Passkey Status: %lX", status);
-    }
-    instance->pairing_info_available = 0;
+    ble_device_response_pairing_capabilities(instance->device);
 
     return true;
 }

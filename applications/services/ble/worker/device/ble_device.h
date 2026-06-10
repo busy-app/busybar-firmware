@@ -73,6 +73,7 @@ void ble_device_receive_confirm(BleDevice* instance, uint16_t handle, uint8_t cc
 BleSecurityData* ble_device_get_security_data(BleDevice* instance);
 bool ble_device_is_paired(BleDevice* instance);
 
+void ble_device_response_pairing_capabilities(BleDevice* instance);
 //Starts pairing process on smp request
 void ble_device_pairing_begin(/*Pairing data*/);
 

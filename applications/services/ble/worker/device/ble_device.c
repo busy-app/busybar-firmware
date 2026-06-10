@@ -13,6 +13,9 @@
 #define BLE_MAX_MTU_SIZE     (240)
 #define BLE_ATTR_HEADER_SIZE (3)
 
+#define BLE_DEVICE_MITM_REQ          (1)
+#define BLE_DEVICE_SMP_IO_CAPABILITY (0x03)
+
 struct BleDevice {
     BleDeviceBase* base;
     BleDeviceState state;
@@ -327,6 +330,25 @@ bool ble_device_forget_paired(BleDevice* instance) {
 BleSecurityData* ble_device_get_security_data(BleDevice* instance) {
     furi_assert(instance);
     return instance->security_data;
+}
+
+void ble_device_response_pairing_capabilities(BleDevice* instance) {
+    furi_assert(instance);
+
+    BLE_LOG_I("%s", __func__);
+
+    if(ble_device_is_paired(instance)) {
+        BLE_LOG_W("Device is already paired!");
+    }
+
+    const uint8_t* addr = ble_device_base_get_address(instance->peer, BleDeviceAddressTypeOrigin);
+    sl_status_t status = rsi_ble_smp_pair_response(
+        (uint8_t*)addr, BLE_DEVICE_SMP_IO_CAPABILITY, BLE_DEVICE_MITM_REQ);
+
+    if(status != SL_STATUS_OK) {
+        BLE_LOG_W("Failed to send pairing capabilities: %lX", status);
+    }
+    // instance->pairing_info_available = 0;
 }
 
 void ble_device_send_data(
