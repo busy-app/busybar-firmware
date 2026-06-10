@@ -96,15 +96,16 @@ bool ble_event_handler_gap_disconnected(size_t data_size, void* data, void* cont
 }
 
 bool ble_event_handler_gap_phy_update_complete(size_t data_size, void* data, void* context) {
-    BLE_LOG_I("ble_event_handler_gap_phy_update_complete");
+    UNUSED(data_size);
+    BLE_LOG_I("%s", __func__);
+
+    rsi_ble_event_phy_update_t* new_phy = data;
 
     BleWorker* instance = context;
-    memcpy(&instance->app_phy_update_complete, data, data_size);
+    BleConnectionContext* conn = ble_device_get_connection_context(instance->device);
+    ble_connection_set_phy(conn, new_phy->TxPhy, new_phy->RxPhy);
 
-    BLE_LOG_I(
-        "Tx Phy rate = 0x%x  and Rx Phy rate = 0x%x",
-        instance->app_phy_update_complete.TxPhy,
-        instance->app_phy_update_complete.RxPhy);
+    BLE_LOG_I("Tx Phy rate = 0x%x and Rx Phy rate = 0x%x", new_phy->TxPhy, new_phy->RxPhy);
     return true;
 }
 

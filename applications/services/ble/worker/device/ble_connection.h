@@ -48,7 +48,9 @@ void ble_connection_set_data_length(
     const BleConnectionDataLength* const data_length);
 
 const BlePhy* ble_connection_get_tx_phy(BleConnectionContext* instance);
-void ble_connection_set_tx_phy(BleConnectionContext* instance, const uint8_t value);
 
 const BlePhy* ble_connection_get_rx_phy(BleConnectionContext* instance);
-void ble_connection_set_rx_phy(BleConnectionContext* instance, const uint8_t value);
+void ble_connection_set_phy(
+    BleConnectionContext* instance,
+    const uint8_t tx_phy,
+    const uint8_t rx_phy);

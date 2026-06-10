@@ -68,21 +68,19 @@ const BlePhy* ble_connection_get_tx_phy(BleConnectionContext* instance) {
     return &instance->TxPhy;
 }
 
-void ble_connection_set_tx_phy(BleConnectionContext* instance, const uint8_t value) {
-    furi_assert(instance);
-    instance->TxPhy.value = value;
-}
-
 const BlePhy* ble_connection_get_rx_phy(BleConnectionContext* instance) {
     furi_assert(instance);
     return &instance->TxPhy;
 }
 
-void ble_connection_set_rx_phy(BleConnectionContext* instance, const uint8_t value) {
+void ble_connection_set_phy(
+    BleConnectionContext* instance,
+    const uint8_t tx_phy,
+    const uint8_t rx_phy) {
     furi_assert(instance);
-    instance->TxPhy.value = value;
+    instance->TxPhy.value = tx_phy;
+    instance->RxPhy.value = rx_phy;
 }
-
 // typedef enum {
 //     BleConnectionParameterTypeTimingLatency,
 
