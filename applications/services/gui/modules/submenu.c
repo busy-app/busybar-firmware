@@ -109,11 +109,6 @@ static void submenu_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* ob
     lv_anim_set_repeat_count(&instance->item_anim_template, LV_ANIM_REPEAT_INFINITE);
 }
 
-static void submenu_lvgl_destructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
-    UNUSED(class_p);
-    UNUSED(obj);
-}
-
 static void submenu_item_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
     UNUSED(class_p);
 
@@ -235,7 +230,6 @@ void submenu_set_selected_item_index(Submenu* instance, uint32_t index) {
 const lv_obj_class_t submenu_lvgl_class = {
     .base_class = &menu_base_lvgl_class,
     .constructor_cb = submenu_lvgl_constructor,
-    .destructor_cb = submenu_lvgl_destructor,
     .name = "widget-submenu",
     .width_def = LV_PCT(100),
     .height_def = LV_PCT(100),

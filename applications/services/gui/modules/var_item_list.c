@@ -75,6 +75,8 @@ const lv_obj_class_t var_item_arrow_lvgl_class;
 
 static void var_item_editor_clear_choices(VarItemEditor* instance);
 
+// LVGL-specific code
+
 // VarItem
 
 static void var_item_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {

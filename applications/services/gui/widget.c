@@ -30,7 +30,7 @@ static bool widget_input_feed_default(Widget* instance, const InputEvent* event)
     return consumed;
 }
 
-/* LVGL-specific code */
+// LVGL-specific code
 
 static void
     widget_draw_scrollbar_track(lv_obj_t* obj, lv_layer_t* layer, const lv_area_t* track_area) {
@@ -175,7 +175,7 @@ static void widget_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj
     instance->is_scrollbar_enabled = false;
 }
 
-/* Public API */
+// Public API
 
 static const AlignBitmask align_to_bitmask_lut[AlignMax] = {
     [AlignDefault] = AlignBitmaskTop | AlignBitmaskLeft,
@@ -372,17 +372,19 @@ WidgetBlendMode widget_get_blend_mode(const Widget* instance) {
     return (WidgetBlendMode)lv_obj_get_style_blend_mode(TO_LV_OBJ(instance), LV_PART_MAIN);
 }
 
-/* Private API */
+// Private API
 
 bool widget_input(Widget* instance, const InputEvent* event) {
     bool consumed = false;
 
     do {
-        if(lv_obj_has_flag(TO_LV_OBJ(instance), LV_OBJ_FLAG_HIDDEN)) {
+        lv_obj_t* lv_object = TO_LV_OBJ(instance);
+
+        if(lv_obj_has_flag(lv_object, LV_OBJ_FLAG_HIDDEN)) {
             break;
         }
 
-        const lv_obj_class_t* lv_class = lv_obj_get_class(TO_LV_OBJ(instance));
+        const lv_obj_class_t* lv_class = lv_obj_get_class(lv_object);
         const WidgetClassData* class_data = lv_class->user_data;
         if(class_data && class_data->input_callback) {
             consumed = class_data->input_callback(instance, event);
@@ -390,10 +392,10 @@ bool widget_input(Widget* instance, const InputEvent* event) {
             if(consumed) break;
         }
 
-        const uint32_t child_count = lv_obj_get_child_count(TO_LV_OBJ(instance));
+        const uint32_t child_count = lv_obj_get_child_count(lv_object);
 
         for(uint32_t i = 0; i < child_count; ++i) {
-            lv_obj_t* child = lv_obj_get_child(TO_LV_OBJ(instance), i);
+            lv_obj_t* child = lv_obj_get_child(lv_object, i);
 
             if(IS_WIDGET_CLASS(child)) {
                 // Recursion should not be a problem
@@ -425,7 +427,7 @@ void widget_style(Widget* instance, GuiDisplayId display_id) {
     }
 }
 
-/* LVGL class descriptor */
+// LVGL class descriptor
 
 const lv_obj_class_t widget_lvgl_class = {
     .base_class = &lv_obj_class,
