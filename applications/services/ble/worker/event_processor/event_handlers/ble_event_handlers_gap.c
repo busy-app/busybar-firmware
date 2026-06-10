@@ -4,35 +4,12 @@
 
 #define TAG "BleGAPEvent"
 
-///TODO: Remove this
-static void ble_print_enh_conn_data(const rsi_ble_event_enhance_conn_status_t* const info) {
-    uint8_t buf[18] = {0};
-    rsi_6byte_dev_address_to_ascii(buf, info->dev_addr);
-    BLE_LOG_W("Addr: %s type: %d role: %d", buf, info->dev_addr_type, info->role);
-
-    rsi_6byte_dev_address_to_ascii(buf, info->local_resolvlable_addr);
-    BLE_LOG_W("Local resolvable addr: %s", buf);
-
-    rsi_6byte_dev_address_to_ascii(buf, info->peer_resolvlable_addr);
-    BLE_LOG_W("Peer resolvable addr: %s", buf);
-
-    BLE_LOG_W(
-        "Interval: %d Latency: %d Timeout: %d",
-        info->conn_interval,
-        info->conn_latency,
-        info->supervision_timeout);
-}
-
 bool ble_event_handler_gap_connected(size_t data_size, void* data, void* context) {
     UNUSED(data_size);
     BleWorker* instance = context;
 
     rsi_ble_event_enhance_conn_status_t* resp_enh_conn = data;
 
-    ble_print_enh_conn_data(resp_enh_conn);
-
-    // BleDeviceAddressType type = resp_enh_conn->dev_addr_type ==
-    BLE_LOG_W("SET PROPER DEVICE ADDR TYPE!!");
     BleDeviceAddressType type = BleDeviceAddressTypeOrigin;
     bool result = ble_device_connection_open(instance->device, type, resp_enh_conn->dev_addr);
 
@@ -145,33 +122,6 @@ bool ble_event_handler_gap_length_change(size_t data_size, void* data, void* con
 
     ble_connection_set_data_length(conn, &len);
 
-    // bool result = false;
-    // if(instance->remote_dev_feature.remote_features[1] & 0x01) {
-    //     BLE_LOG_I("[BLEWorkerEvtDataLengthChange] rsi_ble_setphy");
-    //     sl_status_t status = rsi_ble_setphy(
-    //         (int8_t*)instance->remote_dev_address, TX_PHY_RATE, RX_PHY_RATE, CODDED_PHY_RATE);
-    //     if(status != RSI_SUCCESS) {
-    //         if(status == BLE_WORKER_BT_HCI_COMMAND_DISALLOWED) {
-    //             //retry the same command
-    //             BLE_LOG_W("Retry setphy");
-    //             furi_timer_start(
-    //                 instance->retry_phy_timer, furi_ms_to_ticks(BLE_WORKER_RETRY_PHY_TIMEOUT_MS));
-    //         } else {
-    //             BLE_LOG_W("Failed to set phy, error code : 0x%08lx", status);
-    //         }
-    //     } else {
-    //         BLE_LOG_I(
-    //             "PHY set done max_tx_octets: %d\r\nMax_tx_time: %d\r\nMax_rx_octets: %d\r\nMax_rx_time: %d",
-    //             instance->data_length_update.MaxTxOctets,
-    //             instance->data_length_update.MaxTxTime,
-    //             instance->data_length_update.MaxRxOctets,
-    //             instance->data_length_update.MaxRxTime);
-    //         result = true;
-    //     }
-    // } else {
-    //     BLE_LOG_W("[BLEWorkerEvtDataLengthChange] 2M Phy not supported");
-    // }
-
     return true;
 }
 
@@ -189,13 +139,6 @@ bool ble_event_handler_gap_receive_remote_features(size_t data_size, void* data,
     return true;
 }
 
-bool ble_event_handler_gap_more_data_request(size_t data_size, void* data, void* context) {
-    BLE_LOG_W("ble_event_handler_gap_more_data_request");
-    UNUSED(data_size);
-    UNUSED(data);
-    UNUSED(context);
-    return false;
-}
 //------------------------------------------------------------------------------------
 ///TODO: Move this handlers to commands folder
 bool ble_event_handler_gap_exit(size_t data_size, void* data, void* context) {

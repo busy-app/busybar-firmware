@@ -3,7 +3,6 @@
 typedef enum {
     BleIncomingNwpEventTypeUnknown,
     BleIncomingNwpEventTypeExit,
-    // BleIncomingNwpEventTypeSetName,
 
     BleIncomingNwpEventTypeConnected,
     BleIncomingNwpEventTypeDisconnected,
@@ -13,7 +12,6 @@ typedef enum {
 
     BleIncomingNwpEventTypeReceiveRemoteFeatures,
     BleIncomingNwpEventTypeReadRequest,
-    BleIncomingNwpEventTypeMoreDataRequest,
 
     BleIncomingNwpEventTypeWrite,
     BleIncomingNwpEventTypeDataTransmit,

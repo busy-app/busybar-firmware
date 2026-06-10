@@ -36,7 +36,6 @@ static const BleWorkerEventHandler event_handlers[BleIncomingNwpEventTypeCount] 
     [BleIncomingNwpEventTypeDataLengthChange] = ble_event_handler_gap_length_change,
 
     [BleIncomingNwpEventTypeReceiveRemoteFeatures] = ble_event_handler_gap_receive_remote_features,
-    [BleIncomingNwpEventTypeMoreDataRequest] = ble_event_handler_gap_more_data_request,
     [BleIncomingNwpEventTypeReadRequest] = ble_event_handler_gatt_read_request_event,
     [BleIncomingNwpEventTypeWrite] = ble_event_handler_gatt_write_event,
     [BleIncomingNwpEventTypeDataTransmit] = ble_event_handler_dummy,

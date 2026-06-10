@@ -284,11 +284,6 @@ void ble_device_set_name(BleDevice* instance, const char* name) {
         ble_device_stop_advertise(instance);
     }
 
-    // //! Set local name
-    sl_status_t status = rsi_bt_set_local_name((const uint8_t*)name);
-    if(status != RSI_SUCCESS) {
-        BLE_LOG_W("Failed to set default local name, error code : 0x%08lx", status);
-    }
     ble_advertise_set_name(instance->advertise, name);
 
     if(prev_state == BleDeviceStateAdvertising) {
