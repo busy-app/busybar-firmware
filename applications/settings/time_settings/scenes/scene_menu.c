@@ -83,6 +83,9 @@ static void scene_menu_on_enter(void* context) {
         submenu_add_item(data->back_menu, "Time zone", tz_text, IdxTimeZone, NULL, instance);
         submenu_add_item(
             data->back_menu, "Time format", time_format_text, IdxTimeFormat, NULL, instance);
+
+        widget_set_scrollbar_enabled(submenu_get_base(data->front_menu), true);
+        widget_set_scrollbar_enabled(submenu_get_base(data->back_menu), true);
     });
 }
 

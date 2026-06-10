@@ -59,7 +59,7 @@ static void about_scene_compliance_on_enter(void* context) {
         widget_set_padding(flex_layout_get_base(scene->info_flex), 2, 0, 0, 0);
 
         Widget* info_flex_base = flex_layout_get_base(scene->info_flex);
-        widget_set_scrollbar_mode(info_flex_base, WidgetScrollBarModeAuto);
+        widget_set_scrollbar_enabled(info_flex_base, true);
 
         scene->compliance_info_label = label_alloc(info_flex_base);
         label_set_inline_text_color_formatting(scene->compliance_info_label, true);

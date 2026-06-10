@@ -60,6 +60,9 @@ static void system_settings_scene_main_on_enter(void* context) {
         submenu_add_item(
             data->back_menu, "Factory reset", NULL, SceneEventFactoryReset, NULL, instance);
         submenu_set_selected_item_index(data->back_menu, data->menu_index);
+
+        widget_set_scrollbar_enabled(submenu_get_base(data->front_menu), true);
+        widget_set_scrollbar_enabled(submenu_get_base(data->back_menu), true);
     });
 }
 

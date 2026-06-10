@@ -70,6 +70,8 @@ static void matter_scene_on_enter(void* context) {
                     add_callback ? matter_scene_submenu_item_callback : NULL,
                     app);
             }
+
+            widget_set_scrollbar_enabled(submenu_get_base(scene->submenus[display]), true);
         }
     });
 

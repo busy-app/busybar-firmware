@@ -73,6 +73,9 @@ static void settings_scene_main_on_enter(void* context) {
 
         menu_set_selected_item_index(data->front_menu, passed_index);
         menu_set_selected_item_index(data->back_menu, passed_index);
+
+        widget_set_scrollbar_enabled(menu_get_base(data->front_menu), true);
+        widget_set_scrollbar_enabled(menu_get_base(data->back_menu), true);
     });
 
     instance->launching_subapp = NULL;

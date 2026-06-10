@@ -67,8 +67,6 @@ static void menu_base_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* 
 
     instance->group = lv_group_create();
     lv_group_set_wrap(instance->group, false);
-
-    instance->base.is_scrollbar_enabled = true;
 }
 
 static void menu_base_lvgl_destructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {

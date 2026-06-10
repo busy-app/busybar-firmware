@@ -175,6 +175,8 @@ GuiTestApp* gui_test_alloc(void) {
 
         item = var_item_list_add_switch(
             instance->var_list, "Switch", gui_test_switch_changed_callback, NULL);
+
+        widget_set_scrollbar_enabled(var_item_list_get_base(instance->var_list), true);
     });
 
     return instance;

@@ -29,7 +29,7 @@ static void
         power_get_temperature_battery_celsius(info.temperature_battery));
     furi_string_cat_printf(info_str, GREY_TEXT("USB volt:") " %.2fV\n", info.voltage_usb / 1000.f);
     furi_string_cat_printf(
-        info_str, GREY_TEXT("USB current:") " %.2fA\n", info.current_usb / 1000.f);
+        info_str, GREY_TEXT("USB current:") " %.2fA", info.current_usb / 1000.f);
 }
 
 static void system_settings_power_info_update(void* context) {
@@ -62,7 +62,7 @@ static void system_settings_scene_power_info_on_enter(void* context) {
 
     with_gui(instance->gui, {
         for(GuiDisplayId disp = 0; disp < GuiDisplayIdMax; disp++) {
-            widget_set_scrollbar_mode(windows[disp], WidgetScrollBarModeAuto);
+            widget_set_scrollbar_enabled(windows[disp], true);
             scene->power_info[disp] = label_alloc(windows[disp]);
             label_set_inline_text_color_formatting(scene->power_info[disp], true);
             system_settings_power_info_update_data(instance, scene->power_info_str);

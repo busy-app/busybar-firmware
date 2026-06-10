@@ -51,6 +51,9 @@ static void firmware_settings_main_scene_on_enter(void* context) {
         scene->back_submenu = submenu_alloc(instance->back_scene_window);
         submenu_add_item(scene->back_submenu, "Check for update", NULL, 0, NULL, NULL);
         submenu_add_item(scene->back_submenu, "Settings", NULL, 0, NULL, NULL);
+
+        widget_set_scrollbar_enabled(submenu_get_base(scene->front_submenu), true);
+        widget_set_scrollbar_enabled(submenu_get_base(scene->back_submenu), true);
     });
 }
 

@@ -88,6 +88,9 @@ static void clock_scene_setup_on_enter(void* context) {
         VarItem* back_blink_colons_item =
             var_item_list_add_switch(scene->back_list, "Colon blink", NULL, NULL);
         var_item_set_value(back_blink_colons_item, instance->settings.blink_colons);
+
+        widget_set_scrollbar_enabled(var_item_list_get_base(scene->front_list), true);
+        widget_set_scrollbar_enabled(var_item_list_get_base(scene->back_list), true);
     });
 }
 

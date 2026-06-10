@@ -251,6 +251,11 @@ static void busy_scene_setup_timer_on_enter(void* context) {
         }
 
         busy_scene_setup_timer_filter_items(data);
+
+        widget_set_scrollbar_enabled(
+            var_item_list_get_base(data->containers[GuiDisplayIdFront].list), true);
+        widget_set_scrollbar_enabled(
+            var_item_list_get_base(data->containers[GuiDisplayIdBack].list), true);
     });
 }
 

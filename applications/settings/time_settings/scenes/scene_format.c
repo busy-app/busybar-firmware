@@ -57,6 +57,9 @@ static void scene_format_on_enter(void* context) {
             NULL,
             instance);
         var_item_set_value(item, time_settings.time_format);
+
+        widget_set_scrollbar_enabled(var_item_list_get_base(data->front_list), true);
+        widget_set_scrollbar_enabled(var_item_list_get_base(data->back_list), true);
     });
 }
 

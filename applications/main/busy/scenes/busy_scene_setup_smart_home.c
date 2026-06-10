@@ -35,6 +35,9 @@ static void busy_scene_setup_smart_home_on_enter(void* context) {
         var_item_set_value(item, is_smart_home_enabled);
         // Saving the last item to get its value later
         data->saved_item = item;
+
+        widget_set_scrollbar_enabled(var_item_list_get_base(data->front_list), true);
+        widget_set_scrollbar_enabled(var_item_list_get_base(data->back_list), true);
     });
 }
 
