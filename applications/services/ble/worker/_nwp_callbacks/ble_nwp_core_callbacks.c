@@ -8,28 +8,11 @@
 static BleIncomingNwpEventProcessor* event_processor = NULL;
 static BleTransmitter* transport = NULL;
 
-/**
- * @fn         rsi_ble_gap_on_adv_report_event
- * @brief      invoked when advertise report event is received
- * @param[in]  adv_report, pointer to the received advertising report
- * @return     none.
- * @section description
- * This callback function updates the scanned remote devices list
- */
 static void rsi_ble_gap_on_adv_report_event(rsi_ble_event_adv_report_t* adv_report) {
     UNUSED(adv_report);
     BLE_LOG_NWP_EVENT_NOT_IMPLEMENTED();
 }
 
-/**
- * @fn         ble_worker_on_disconnect_event
- * @brief      invoked when disconnection event is received
- * @param[in]  resp_disconnect, disconnected remote device information
- * @param[in]  reason, reason for disconnection.
- * @return     none.
- * @section description
- * This callback function indicates disconnected device information and status
- */
 static void
     rsi_ble_gap_on_disconnect_event(rsi_ble_event_disconnect_t* resp_disconnect, uint16_t reason) {
     UNUSED(reason);
@@ -46,15 +29,6 @@ static void rsi_ble_gap_event_le_ping_time_expired_event_dummy(
     BLE_LOG_NWP_EVENT_NOT_IMPLEMENTED();
 }
 
-/**
- * @fn         ble_worker_phy_update_complete_event
- * @brief      invoked when disconnection event is received
- * @param[in]  resp_disconnect, disconnected remote device information
- * @param[in]  reason, reason for disconnection.
- * @return     none.
- * @section description
- * This Callback function indicates disconnected device information and status
- */
 static void rsi_ble_gap_on_phy_update_complete_event(
     rsi_ble_event_phy_update_t* rsi_ble_event_phy_update_complete) {
     ble_incoming_nwp_event_processor_spawn_event(
@@ -64,12 +38,6 @@ static void rsi_ble_gap_on_phy_update_complete_event(
         rsi_ble_event_phy_update_complete);
 }
 
-/**
- * @fn         ble_worker_data_length_change_event
- * @brief      invoked when data length is set
- * @section description
- * This Callback function indicates data length is set
- */
 static void rsi_ble_gap_on_data_length_update_event(
     rsi_ble_event_data_length_update_t* rsi_ble_data_length_update) {
     ble_incoming_nwp_event_processor_spawn_event(
@@ -79,14 +47,6 @@ static void rsi_ble_gap_on_data_length_update_event(
         rsi_ble_data_length_update);
 }
 
-/**
- * @fn         ble_worker_on_enhance_conn_status_event
- * @brief      invoked when enhanced connection complete event is received
- * @param[out] resp_conn, connected remote device information
- * @return     none.
- * @section description
- * This callback function indicates the status of the connection
- */
 static void
     rsi_ble_gap_on_enhance_connect_event(rsi_ble_event_enhance_conn_status_t* resp_enh_conn) {
     ble_incoming_nwp_event_processor_spawn_event(
@@ -122,14 +82,6 @@ static void rsi_ble_gap_on_directed_adv_report_event_dummy(
     BLE_LOG_NWP_EVENT_NOT_IMPLEMENTED();
 }
 
-/**
- * @fn         ble_worker_simple_peripheral_on_remote_features_event
- * @brief      invoked when LE remote features event is received.
- * @param[in] resp_conn, connected remote device information
- * @return     none.
- * @section description
- * This callback function indicates the status of the connection
- */
 void rsi_ble_gap_ext_on_remote_features_event(
     rsi_ble_event_remote_features_t* rsi_ble_event_remote_features) {
     ble_incoming_nwp_event_processor_spawn_event(
@@ -145,7 +97,6 @@ static void rsi_ble_gap_ext_on_le_more_data_request_event(
 
     if(transport) ble_transmitter_need_more_data(transport);
 }
-/*==============================================*/
 
 static void rsi_ble_gatt_profiles_list_resp_event_dummy(
     uint16_t resp_status,
@@ -203,15 +154,6 @@ static void rsi_ble_gatt_write_resp_event_dummy(uint16_t resp_status, uint16_t r
     BLE_LOG_NWP_EVENT_NOT_IMPLEMENTED();
 }
 
-/**
- * @fn         ble_worker_on_gatt_write_event
- * @brief      its invoked when write/notify/indication events are received.
- * @param[in]  event_id, it indicates write/notification event id.
- * @param[in]  rsi_ble_write, write event parameters.
- * @return     none.
- * @section description
- * This callback function is invoked when write/notify/indication events are received
- */
 static void rsi_ble_gatt_on_write_event(uint16_t event_id, rsi_ble_event_write_t* rsi_ble_write) {
     UNUSED(event_id);
 
@@ -343,7 +285,6 @@ static void rsi_ble_gatt_on_event_prepare_write_resp_dummy(
     UNUSED(rsi_ble_event_prepare_write);
     BLE_LOG_NWP_EVENT_NOT_IMPLEMENTED();
 }
-/*==============================================*/
 
 static void rsi_ble_smp_on_request_dummy(rsi_bt_event_smp_req_t* remote_dev_address) {
     UNUSED(remote_dev_address);

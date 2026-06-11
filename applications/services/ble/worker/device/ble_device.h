@@ -24,8 +24,6 @@ void ble_device_free(BleDevice* instance);
 bool ble_device_register_service(BleDevice* instance, BleServiceObject* service);
 
 //CONNECTION handlers
-//----------------------------------------------------------------------------
-//Create BleDevice* remote instance inside of BsbDevice and stores parameters
 BleConnectionContext* ble_device_get_connection_context(BleDevice* instance);
 
 bool ble_device_connection_open(
@@ -35,7 +33,6 @@ bool ble_device_connection_open(
 
 bool ble_device_connection_close(BleDevice* instance);
 
-//Destroys BleDevice* remote instance inside of BsbDevice.
 bool ble_device_disconnect(BleDevice* instance);
 
 bool ble_device_is_connected(BleDevice* instance);
@@ -50,7 +47,6 @@ BleAdvertiseContext* ble_device_get_advertise_context(BleDevice* instance);
 
 void ble_device_set_mtu(BleDevice* instance, uint16_t mtu);
 
-// void ble_device_update_remote_features(/*Address*/);
 //----------------------------------------------------------------------------
 bool ble_device_process_write_request(
     BleDevice* instance,
@@ -69,7 +65,6 @@ bool ble_device_process_read_request(
 void ble_device_receive_confirm(BleDevice* instance, uint16_t handle, uint8_t cccd_value);
 //----------------------------------------------------------------------------
 //PAIRING SMP HANDLERS
-
 BleSecurityData* ble_device_get_security_data(BleDevice* instance);
 bool ble_device_is_paired(BleDevice* instance);
 
@@ -81,7 +76,6 @@ void ble_device_handle_encryption_start(
     BleDevice* instance,
     rsi_bt_event_encryption_enabled_t* encryption_data);
 
-//Forgets paired device
 bool ble_device_forget_paired(BleDevice* instance);
 
 //Forgets all paired devices
