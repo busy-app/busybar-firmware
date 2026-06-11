@@ -24,6 +24,7 @@ typedef enum {
     MatterStatusFsError,
     MatterStatusBadConfig,
     MatterStatusUnprovisioned,
+    MatterStatusUnknownError,
     MatterStatusMax,
 } MatterStatus;
 
