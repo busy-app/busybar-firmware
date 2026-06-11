@@ -680,10 +680,55 @@ function onClickItem (item: StorageListElement, event: MouseEvent) {
     return;
   }
 
-  selectedItems.value.clear();
-  if (item.type === 'dir') {
-    list(`${currentPath.value}/${item.name}`);
+  if (selectedItems.value.size > 1 && selectedItems.value.has(item.name)) {
+    const target = event.currentTarget as HTMLElement | null;
+    if (!target) {
+      return;
+    }
+
+    target.dispatchEvent(new MouseEvent('contextmenu', {
+      bubbles: true,
+      cancelable: true,
+      button: 2,
+      buttons: 2,
+      clientX: event.clientX,
+      clientY: event.clientY,
+      ctrlKey: event.ctrlKey,
+      metaKey: event.metaKey,
+      shiftKey: event.shiftKey,
+      altKey: event.altKey
+    }));
+    return;
   }
+
+  if (item.type === 'dir') {
+    selectedItems.value.clear();
+    list(`${currentPath.value}/${item.name}`);
+    return;
+  }
+
+  if (selectedItems.value.size <= 1 || !selectedItems.value.has(item.name)) {
+    selectedItems.value.clear();
+    selectedItems.value.add(item.name);
+  }
+
+  const target = event.currentTarget as HTMLElement | null;
+  if (!target) {
+    return;
+  }
+
+  target.dispatchEvent(new MouseEvent('contextmenu', {
+    bubbles: true,
+    cancelable: true,
+    button: 2,
+    buttons: 2,
+    clientX: event.clientX,
+    clientY: event.clientY,
+    ctrlKey: event.ctrlKey,
+    metaKey: event.metaKey,
+    shiftKey: event.shiftKey,
+    altKey: event.altKey
+  }));
 }
 
 function getItemClass (item: StorageListElement, index: number) {
