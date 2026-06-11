@@ -446,6 +446,22 @@ void ble_device_receive_confirm(BleDevice* instance, uint16_t handle, uint8_t cc
     }
 }
 
+static inline bool ble_device_gatt_read_response(
+    uint8_t* dev_addr,
+    uint8_t read_type,
+    uint16_t handle,
+    uint16_t offset,
+    uint16_t length,
+    const uint8_t* p_data) {
+    sl_status_t status =
+        rsi_ble_gatt_read_response(dev_addr, read_type, handle, offset, length, p_data);
+
+    if(status != RSI_SUCCESS) {
+        BLE_LOG_W("Read response failed status: %08lX", status);
+    }
+    return status == RSI_SUCCESS;
+}
+
 bool ble_device_process_read_request(
     BleDevice* instance,
     uint8_t* addr,
@@ -465,13 +481,11 @@ bool ble_device_process_read_request(
             size_t data_size = ble_characteristic_get_data_size(ch);
             const void* data = ble_characteristic_get_data(ch);
 
-            sl_status_t status = rsi_ble_gatt_read_response(
-                addr, type, handle, offset, data_size - offset, data + offset);
-
-            if(status != RSI_SUCCESS) {
-                BLE_LOG_W("Read response failed status: %08lX", status);
+            if(offset < data_size) {
+                result = ble_device_gatt_read_response(
+                    addr, type, handle, offset, data_size - offset, data + offset);
             } else {
-                result = true;
+                BLE_LOG_W("Wrong offset");
             }
 
             ble_service_unlock(service);
