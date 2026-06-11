@@ -4,6 +4,8 @@
 #include <furi_hal_version.h>
 #include <power/power_service/power.h>
 
+#include <toolbox/timers.h>
+
 #define TAG "Matter"
 
 #define API_QUEUE_SIZE (4)
@@ -143,35 +145,31 @@ static MatterStatus matter_process_response(
 static MatterStatus matter_wait_for_response(Matter* instance, MatterApiMessage* api_message) {
     MatterStatus status;
 
-    uint32_t timeout_ticks = furi_ms_to_ticks(RESPONSE_TIMEOUT_MS);
-    const uint32_t start_ticks = furi_get_tick();
+    CoarseTimer timeout_timer = coarse_timer_create(RESPONSE_TIMEOUT_MS);
 
-    for(;;) {
+    do {
         MatterIntercomFrame response;
 
+        const uint32_t elapsed_ms = coarse_timer_get_elapsed(timeout_timer);
+        if(elapsed_ms > RESPONSE_TIMEOUT_MS) {
+            status = MatterStatusTimeout;
+            break;
+        }
+
+        const uint32_t timeout_remaining_ticks =
+            furi_ms_to_ticks(RESPONSE_TIMEOUT_MS - elapsed_ms);
+
         const FuriStatus rx_status =
-            furi_message_queue_get(instance->rx_queue, &response, timeout_ticks);
+            furi_message_queue_get(instance->rx_queue, &response, timeout_remaining_ticks);
 
         if(rx_status != FuriStatusOk) {
-            furi_check(
-                (rx_status == FuriStatusErrorTimeout) || (rx_status == FuriStatusErrorResource));
             status = MatterStatusTimeout;
             break;
         }
 
         status = matter_process_response(instance, api_message, &response);
-        if(status != STATUS_WAIT_FOR_RESPONSE) {
-            break;
-        }
 
-        const uint32_t elapsed_ticks = furi_get_tick() - start_ticks;
-        if(elapsed_ticks > timeout_ticks) {
-            status = MatterStatusTimeout;
-            break;
-        }
-
-        timeout_ticks -= elapsed_ticks;
-    }
+    } while(status != STATUS_WAIT_FOR_RESPONSE);
 
     return status;
 }
