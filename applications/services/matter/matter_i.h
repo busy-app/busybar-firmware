@@ -58,7 +58,6 @@ typedef struct {
 
 struct Matter {
     FuriEventLoop* event_loop;
-    FuriEventLoopTimer* timeout_timer;
     FuriMessageQueue* api_queue;
     FuriMessageQueue* rx_queue;
     FuriPubSub* pubsub;
