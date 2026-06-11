@@ -2,7 +2,7 @@
 
 #include "ble_connection.h"
 #include "ble_security.h"
-#include "../transmitter/ble_transmitter.h"
+#include "../transport/ble_transmitter.h"
 #include "../../service/ble_service.h"
 
 #include <furi.h>

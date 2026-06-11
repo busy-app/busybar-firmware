@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../event_processor/ble_incoming_nwp_event_processor.h"
-#include "../transmitter/ble_transmitter.h"
+#include "../transport/ble_transmitter.h"
 
 #include "ble_nwp_headers.h"
 

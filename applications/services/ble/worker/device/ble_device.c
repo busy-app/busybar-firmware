@@ -2,7 +2,7 @@
 
 #include "ble_advertise.h"
 #include "ble_service_registry.h"
-#include "../receiver/ble_receiver.h"
+#include "../transport/ble_receiver.h"
 
 #include "../_nwp_callbacks/ble_nwp_headers.h"
 #include "../../ble_common.h"
