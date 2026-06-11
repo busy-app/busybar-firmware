@@ -103,6 +103,7 @@ bool ble_device_connection_open(
     BleDeviceAddressType type,
     const uint8_t* peer_addr) {
     furi_assert(instance);
+    furi_assert(peer_addr);
 
     bool result = false;
     if(instance->state == BleDeviceStateConnected) {
