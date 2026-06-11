@@ -86,19 +86,9 @@ void ble_connection_set_phy(
     instance->phy_update_done = true;
 }
 
-#define disallowed  (0x4E0C)
-#define max_retries (4)
-
 void request_2m_phy_retry(const uint8_t* addr) {
-    BLE_LOG_I("%s", __func__);
-    sl_status_t status;
-    uint8_t retry_count = 0;
-    do {
-        status = rsi_ble_setphy((const int8_t*)addr, TX_PHY_RATE, RX_PHY_RATE, CODDED_PHY_RATE);
-        if(status == RSI_SUCCESS) break;
-        retry_count++;
-    } while(status == disallowed && (retry_count < max_retries));
-
+    sl_status_t status =
+        rsi_ble_setphy((const int8_t*)addr, TX_PHY_RATE, RX_PHY_RATE, CODDED_PHY_RATE);
     if(status != RSI_SUCCESS) {
         BLE_LOG_W("Failed to set phy, error code : 0x%08lx", status);
     } else {
