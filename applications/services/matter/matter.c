@@ -141,33 +141,37 @@ static MatterStatus matter_process_response(
 }
 
 static MatterStatus matter_wait_for_response(Matter* instance, MatterApiMessage* api_message) {
-    MatterStatus status = STATUS_WAIT_FOR_RESPONSE;
+    MatterStatus status;
 
     uint32_t timeout_ticks = furi_ms_to_ticks(RESPONSE_TIMEOUT_MS);
     const uint32_t start_ticks = furi_get_tick();
 
-    do {
+    for(;;) {
         MatterIntercomFrame response;
 
         const FuriStatus rx_status =
             furi_message_queue_get(instance->rx_queue, &response, timeout_ticks);
 
         if(rx_status != FuriStatusOk) {
-            furi_check(rx_status == FuriStatusErrorTimeout);
+            furi_check(
+                (rx_status == FuriStatusErrorTimeout) || (rx_status == FuriStatusErrorResource));
             status = MatterStatusTimeout;
             break;
         }
 
         status = matter_process_response(instance, api_message, &response);
+        if(status != STATUS_WAIT_FOR_RESPONSE) {
+            break;
+        }
 
         const uint32_t elapsed_ticks = furi_get_tick() - start_ticks;
-        if(elapsed_ticks >= timeout_ticks) {
+        if(elapsed_ticks > timeout_ticks) {
+            status = MatterStatusTimeout;
             break;
         }
 
         timeout_ticks -= elapsed_ticks;
-
-    } while(status == STATUS_WAIT_FOR_RESPONSE);
+    }
 
     return status;
 }
@@ -228,9 +232,14 @@ static MatterStatus matter_backend_ready_response_handler(
     const MatterIntercomFrame* response) {
     UNUSED(instance);
     UNUSED(response);
-    furi_check(api_message);
-    return (api_message->type == MatterApiMessageTypeInitBackend) ? MatterStatusOk :
-                                                                    MatterStatusError;
+
+    MatterStatus status = MatterStatusError;
+
+    if((api_message != NULL) && (api_message->type == MatterApiMessageTypeInitBackend)) {
+        status = MatterStatusOk;
+    }
+
+    return status;
 }
 
 static MatterStatus matter_switch_state_response_handler(
@@ -256,11 +265,10 @@ static MatterStatus matter_pairing_codes_response_handler(
     MatterApiMessage* api_message,
     const MatterIntercomFrame* response) {
     UNUSED(instance);
-    furi_check(api_message);
 
     MatterStatus status = MatterStatusError;
 
-    if(api_message->type == MatterApiMessageTypeStartCommissioning) {
+    if((api_message != NULL) && (api_message->type == MatterApiMessageTypeStartCommissioning)) {
         const MatterIntercomPairingCodesFrame* pairing_codes_frame = &response->codes;
         MatterCommissioningInfo* info = api_message->data.start_commissioning.info;
 
