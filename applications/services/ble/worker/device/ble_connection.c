@@ -78,7 +78,7 @@ const BlePhy* ble_connection_get_tx_phy(BleConnectionContext* instance) {
 
 const BlePhy* ble_connection_get_rx_phy(BleConnectionContext* instance) {
     furi_assert(instance);
-    return &instance->TxPhy;
+    return &instance->RxPhy;
 }
 
 void ble_connection_set_phy(
