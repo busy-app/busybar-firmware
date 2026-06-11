@@ -1,3 +1,81 @@
-* @hedger @DrZlo13 @gornekich @nminaylov @Skorpionm @gsurkov
+* @hedger @DrZlo13 @gsurkov
 # Code owners for specific files or directories
 tests/ @ssecsd @iMalkav
+
+/assets/frontend/ @hedger @Slipn3r
+/assets/frontend-build/ @hedger @Slipn3r
+
+/applications/main/busy/ @hedger @DrZlo13 @gsurkov
+/applications/main/clock/ @hedger @vanyww @gsurkov
+/applications/main/power_on/ @hedger @gsurkov @vanyww @nminaylov
+/applications/main/settings_menu/ @hedger @DrZlo13 @gsurkov @vanyww
+/applications/main/soft_off/ @hedger @DrZlo13 @gsurkov @nminaylov
+
+/applications/services/audio/ @hedger @DrZlo13 @gsurkov @portasynthinca3
+/applications/services/back_display/ @hedger @DrZlo13 @gsurkov @nminaylov
+/applications/services/ble/ @hedger @gsurkov @RebornedBrain
+/applications/services/brightness_control/ @hedger @vanyww @imihajlow
+/applications/services/busy_timer/ @hedger @vanyww @imihajlow @gsurkov
+/applications/services/canvas/ @hedger @gsurkov @portasynthinca3 @nminaylov
+/applications/services/cli*/ @hedger @gsurkov @portasynthinca3
+/applications/services/desktop/ @hedger @DrZlo13 @gsurkov
+/applications/services/device_info/ @hedger @portasynthinca3
+/applications/services/device_name/ @hedger @portasynthinca3 @gornekich
+/applications/services/font_registry/ @hedger @gsurkov @vanyww
+/applications/services/front_display/ @hedger @gsurkov @nminaylov
+/applications/services/gui/ @hedger @gsurkov
+/applications/services/input/ @hedger @gsurkov
+/applications/services/intercom/ @hedger @DrZlo13 @gsurkov
+/applications/services/light_sensor/ @hedger @nminaylov @imihajlow
+/applications/services/loader/ @hedger @DrZlo13 @gsurkov
+/applications/services/lottie/ @hedger @DrZlo13 @gsurkov
+/applications/services/matter/ @hedger @gsurkov @portasynthinca3
+/applications/services/mqtt/ @hedger @gsurkov @nminaylov
+/applications/services/network/ @hedger @gsurkov @nminaylov
+/applications/services/nvm/ @hedger @gsurkov
+/applications/services/power/ @hedger @DrZlo13 @nminaylov @portasynthinca3
+/applications/services/recovery/ @hedger
+/applications/services/sl_info/ @hedger @gsurkov
+/applications/services/state_publisher/ @hedger @imihajlow @vanyww
+/applications/services/status_bar/ @hedger @vanyww
+/applications/services/status_lights/ @hedger @gsurkov @vanyww
+/applications/services/storage/ @hedger @DrZlo13 @imihajlow
+/applications/services/supervisor/ @hedger @DrZlo13 @vanyww
+/applications/services/time/ @hedger @Skorpionm @portasynthinca3
+/applications/services/tls_crypto/ @hedger @gsurkov @nminaylov @imihajlow
+/applications/services/usb_network/ @hedger @gsurkov @nminaylov
+/applications/services/web_server/ @hedger @gsurkov @nminaylov
+/applications/services/wifi/ @hedger @gsurkov
+
+/applications/settings/about/ @hedger @gornekich
+/applications/settings/account_settings/ @hedger @nminaylov
+/applications/settings/ble_settings/ @hedger @RebornedBrain
+/applications/settings/brightness_settings/ @hedger @imihajlow
+/applications/settings/firmware/ @hedger @vanyww @nminaylov
+/applications/settings/matter_settings/ @hedger @portasynthinca3
+/applications/settings/sound_settings/ @hedger @portasynthinca3
+/applications/settings/system_settings/ @hedger @gornekich
+/applications/settings/time_settings/ @hedger @imihajlow @portasynthinca3
+/applications/settings/wifi_settings/ @hedger @nminaylov
+
+/applications/system/apps_menu/ @hedger @gsurkov
+/applications/system/crypto*/ @hedger @gsurkov @Skorpionm @imihajlow
+/applications/system/fetch/ @hedger @Skorpionm
+/applications/system/tar/ @hedger @Skorpionm @imihajlow
+/applications/system/updater/ @hedger @Skorpionm @vanyww
+
+/targets/ @hedger @DrZlo13 @gsurkov @Skorpionm @nminaylov
+
+/lib/anim_file/ @hedger @portasynthinca3
+/lib/cli/ @hedger @gsurkov @portasynthinca3
+/lib/containers/ @hedger @portasynthinca3
+/lib/drivers/ @hedger @DrZlo13 @gsurkov @nminaylov
+/lib/lvgl_addons/ @hedger @gsurkov @vanyww @nminaylov @portasynthinca3
+/lib/matter_glue/ @hedger @gsurkov @portasynthinca3 @imihajlow
+/lib/mbedtls_patch/ @hedger @nminaylov
+/lib/netstat/ @hedger @portasynthinca3
+/lib/network/ @hedger @gsurkov @nminaylov
+/lib/setting_provider/ @hedger @vanyww
+/lib/settings_helpers/ @hedger @vanyww @nminaylov @portasynthinca3
+/lib/sl_glue/ @hedger @gsurkov @Skorpionm
+/lib/toolbox/ @hedger @gsurkov @vanyww @nminaylov @portasynthinca3
