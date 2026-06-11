@@ -196,7 +196,7 @@ static MatterStatus matter_backend_ready_response_handler(
     UNUSED(instance);
     UNUSED(response);
     return (api_message->type == MatterApiMessageTypeInitBackend) ? MatterStatusOk :
-                                                                    MatterStatusUnknownError;
+                                                                    MatterStatusError;
 }
 
 static MatterStatus matter_switch_state_response_handler(
@@ -223,7 +223,7 @@ static MatterStatus matter_pairing_codes_response_handler(
     const MatterIntercomFrame* response) {
     UNUSED(instance);
 
-    MatterStatus status = MatterStatusUnknownError;
+    MatterStatus status = MatterStatusError;
 
     if(api_message->type == MatterApiMessageTypeStartCommissioning) {
         const MatterIntercomPairingCodesFrame* pairing_codes_frame = &response->codes;
