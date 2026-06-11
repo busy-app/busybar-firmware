@@ -55,11 +55,11 @@ static void clock_scene_clock_on_enter(void* context) {
         mirror_card_set_show_footer(scene->back_card, false);
         widget_set_align(mirror_card_get_base(scene->back_card), AlignCenter);
         widget_set_margin(mirror_card_get_base(scene->back_card), 0, 0, 2, 2);
+
+        transition_overlay_start(instance->front_transition_overlay);
     });
 
     free(time_settings);
-
-    transition_overlay_start(instance->front_transition_overlay);
 }
 
 static void clock_scene_clock_on_exit(void* context) {
