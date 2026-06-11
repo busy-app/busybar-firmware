@@ -125,10 +125,11 @@ void ble_characteristic_set_data(
     BleCharacteristicObject* instance,
     const void* data,
     const size_t data_size) {
-    if(ble_characteristic_set_data_common(instance, data, data_size))
+    if(ble_characteristic_set_data_common(instance, data, data_size)) {
         instance->state = BleCharacteristicStateModifiedLocal;
-    else
+    } else {
         BLE_LOG_W("%s - local set data failed!", instance->descriptor->name);
+    }
 }
 
 static void ble_characteristic_set_data_from_remote(
@@ -144,8 +145,9 @@ static void ble_characteristic_set_data_from_remote(
         if(instance->update_cb) {
             instance->update_cb(data_size, instance->data, instance->update_ctx);
         }
-    } else
+    } else {
         BLE_LOG_W("%s - remote set data failed!", instance->descriptor->name);
+    }
 }
 
 void ble_characteristic_tx_done(BleCharacteristicObject* instance) {

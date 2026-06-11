@@ -150,25 +150,3 @@ bool ble_connection_update_phy_and_data_length_by_timer(BleConnectionContext* in
 
     return all_updates_done;
 }
-// typedef enum {
-//     BleConnectionParameterTypeTimingLatency,
-
-// } BleConnectionParameterType;
-
-// typedef struct {
-//     BleConnectionParameterType type;
-//     size_t data_size;
-//     void* data;
-// } BleConnectionParameter;
-
-// typedef void (*BleConnectionParamSetter)(void* data, size_t data_size);
-// typedef void (*BleConnectionParamGetter)(void* data, size_t data_size);
-
-// void ble_connection_update_parameters(
-//     BleConnectionContext* instance,
-//     size_t params_count,
-//     const BleConnectionParameter* const params) {
-//     furi_assert(instance);
-//     furi_assert(params_count);
-//     furi_assert(params_count);
-// }
