@@ -101,6 +101,7 @@ void request_2m_phy_retry(const uint8_t* addr) {
     do {
         status = rsi_ble_setphy((const int8_t*)addr, TX_PHY_RATE, RX_PHY_RATE, CODDED_PHY_RATE);
         if(status == RSI_SUCCESS) break;
+        retry_count++;
     } while(status == disallowed && (retry_count < max_retries));
 
     if(status != RSI_SUCCESS) {
