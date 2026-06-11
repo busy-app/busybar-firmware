@@ -13,6 +13,8 @@
 #define RESPONSE_TIMEOUT_MS (5000)
 #define REBOOT_TIMER_MS     (2500)
 
+#define STATUS_WAIT_FOR_RESPONSE ((MatterStatus)MatterStatusExWaitForResponse)
+
 #define DEFAULT_HARDWARE_VERSION        4
 #define DEFAULT_HARDWARE_VERSION_STRING "4.F22.B7.C2"
 
@@ -38,7 +40,7 @@ static MatterStatus matter_get_error_status_or_wait_for_response(MatterStatus st
     MatterStatus new_status;
 
     if(status == MatterStatusOk) {
-        new_status = (MatterStatus)MatterStatusExWaitForResponse;
+        new_status = STATUS_WAIT_FOR_RESPONSE;
     } else {
         new_status = status;
     }
@@ -75,7 +77,7 @@ static void matter_api_queue_callback(FuriEventLoopObject* object, void* context
 
         status = matter_api_message_handlers[message_type](instance, &api_message.data);
 
-        if(status == (MatterStatus)MatterStatusExWaitForResponse) {
+        if(status == STATUS_WAIT_FOR_RESPONSE) {
             status = matter_wait_for_response(instance, &api_message);
         }
 
@@ -113,7 +115,7 @@ static MatterStatus matter_send_frame(Matter* instance, const MatterIntercomFram
 }
 
 static MatterStatus matter_wait_for_response(Matter* instance, MatterApiMessage* api_message) {
-    MatterStatus status = (MatterStatus)MatterStatusExWaitForResponse;
+    MatterStatus status = STATUS_WAIT_FOR_RESPONSE;
 
     do {
         MatterIntercomFrame response;
@@ -132,7 +134,7 @@ static MatterStatus matter_wait_for_response(Matter* instance, MatterApiMessage*
             status = response_handler(instance, api_message, &response);
         }
 
-    } while(status == (MatterStatus)MatterStatusExWaitForResponse);
+    } while(status == STATUS_WAIT_FOR_RESPONSE);
 
     return status;
 }
@@ -212,7 +214,7 @@ static MatterStatus matter_switch_state_response_handler(
         furi_state_set(instance->switch_state, &new_switch_state);
     }
 
-    return (MatterStatus)MatterStatusExWaitForResponse;
+    return STATUS_WAIT_FOR_RESPONSE;
 }
 
 static MatterStatus matter_pairing_codes_response_handler(
@@ -267,7 +269,7 @@ static MatterStatus matter_commissioning_status_response_handler(
 
     furi_pubsub_publish(instance->pubsub, &event);
 
-    return (MatterStatus)MatterStatusExWaitForResponse;
+    return STATUS_WAIT_FOR_RESPONSE;
 }
 
 static MatterStatus matter_fabric_count_response_handler(
@@ -278,7 +280,7 @@ static MatterStatus matter_fabric_count_response_handler(
     const MatterIntercomFabricCountUpdateFrame* fabric_count = &response->fabric_count;
     instance->fabrics.count = fabric_count->fabric_count;
 
-    return (MatterStatus)MatterStatusExWaitForResponse;
+    return STATUS_WAIT_FOR_RESPONSE;
 }
 
 static const MatterResponseHandler matter_response_handlers[MatterIntercomFrameTypeMax] = {

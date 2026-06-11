@@ -65,7 +65,7 @@ MatterStatus matter_set_switch_startup_mode(Matter* instance, MatterSwitchStartu
         .data.set_switch_startup_mode.mode = mode,
     };
 
-    return matter_api_send_message(instance, &api_message);
+    return matter_api_send_message_async(instance, &api_message);
 }
 
 MatterStatus matter_factory_reset(Matter* instance, MatterReboot reboot) {
@@ -77,7 +77,7 @@ MatterStatus matter_factory_reset(Matter* instance, MatterReboot reboot) {
             .reboot_mode = reboot,
         }};
 
-    return matter_api_send_message(instance, &api_message);
+    return matter_api_send_message_async(instance, &api_message);
 }
 
 MatterStatus matter_enable_commissioning(Matter* instance, MatterCommissioningInfo* info) {
