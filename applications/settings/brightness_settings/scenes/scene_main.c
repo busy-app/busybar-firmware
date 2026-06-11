@@ -106,7 +106,8 @@ static void scene_main_fill_var_item_list(
     container->items[VarItemListIdBrightness] = brightness_item;
 }
 
-static void update_var_item_values(const SettingsSceneBrightness* data, VarItemListContainer* container) {
+static void
+    update_var_item_values(const SettingsSceneBrightness* data, VarItemListContainer* container) {
     var_item_list_exit_edit_mode(container->list, false);
     var_item_set_value(container->items[VarItemListIdMode], data->mode);
     if(data->mode == BrightnessModeManual) {

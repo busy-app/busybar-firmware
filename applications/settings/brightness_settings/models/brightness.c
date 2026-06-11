@@ -29,7 +29,10 @@ void brightness_model_free(BrightnessModel* model) {
     free(model);
 }
 
-void brightness_model_set_callback(BrightnessModel* model, BrightnessModelBrightnessChangedCallback callback, void *context) {
+void brightness_model_set_callback(
+    BrightnessModel* model,
+    BrightnessModelBrightnessChangedCallback callback,
+    void* context) {
     model->callback = callback;
     model->callback_context = context;
     if(model->state_sub) {
@@ -91,8 +94,9 @@ static void state_callback(const void* item, void* context) {
     const BrightnessControlState* state = item;
     BrightnessModel* model = context;
 
-    BrightnessMode mode = state->mode == BrightnessControlBrightnessModeAuto ? BrightnessModeAuto : BrightnessModeManual;
+    BrightnessMode mode = state->mode == BrightnessControlBrightnessModeAuto ?
+                              BrightnessModeAuto :
+                              BrightnessModeManual;
 
     model->callback(mode, state->brightness_setting, model->callback_context);
 }
-
