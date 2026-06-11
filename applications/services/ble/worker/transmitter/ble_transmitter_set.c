@@ -84,6 +84,11 @@ bool ble_transmitter_set_chunk(
     memcpy(item->data, data, data_size);
 
     FuriStatus status = furi_message_queue_put(instance->tx_queue, &item, 250);
+
+    if(status != FuriStatusOk) {
+        BLE_LOG_W("[%04X] - failed to put in queue", handle);
+        free(item);
+    }
     return status == FuriStatusOk;
 }
 
