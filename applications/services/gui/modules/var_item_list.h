@@ -212,6 +212,7 @@ void var_item_set_flags(VarItem* item, uint32_t flags);
 /**
  * @brief Exit edit mode and return to item selection mode.
  *
+ * @param[in,out] instance pointer to the VarItemList instance which contains the edited item
  * @param[in] apply_changes if false, VarItemChangeCallback will not be called
  */
 void var_item_list_exit_edit_mode(VarItemList* instance, bool apply_changes);
