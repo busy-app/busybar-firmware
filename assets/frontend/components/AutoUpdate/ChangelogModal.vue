@@ -6,6 +6,7 @@
     :show-close-button="true"
     :title="`Firmware update available (${firmwareStore.autoUpdate.availableVersion})`"
     wide
+    sticky-actions
     :primary-action-props="{
       label: 'Start update',
       loading: firmwareStore.autoUpdate.stage === UpdateStage.LOADING,
@@ -25,4 +26,5 @@
 
 <script lang="ts" setup>
 const firmwareStore = useFirmwareStore();
+console.log(firmwareStore.autoUpdate.changelog);
 </script>
