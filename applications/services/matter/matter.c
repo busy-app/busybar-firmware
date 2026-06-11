@@ -195,6 +195,7 @@ static MatterStatus matter_backend_ready_response_handler(
     const MatterIntercomFrame* response) {
     UNUSED(instance);
     UNUSED(response);
+    furi_check(api_message);
     return (api_message->type == MatterApiMessageTypeInitBackend) ? MatterStatusOk :
                                                                     MatterStatusError;
 }
@@ -222,6 +223,7 @@ static MatterStatus matter_pairing_codes_response_handler(
     MatterApiMessage* api_message,
     const MatterIntercomFrame* response) {
     UNUSED(instance);
+    furi_check(api_message);
 
     MatterStatus status = MatterStatusError;
 
