@@ -331,7 +331,7 @@
                   variant="solid"
                   square
                   size="xs"
-                  :icon="selectedTextShape ? 'i-bi-move' : 'i-bi-resize-alt'"
+                  :icon="selectedTextShape ? 'i-bi-move' : 'i-bi-resize'"
                   class="pointer-events-auto absolute rounded-full"
                   :style="selectionHandleStyle"
                   @pointerdown.stop.prevent="es.handleSelectionHandlePointerDown"
