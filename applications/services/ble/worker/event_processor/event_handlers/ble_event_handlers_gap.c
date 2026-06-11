@@ -4,6 +4,8 @@
 
 #define TAG "BleGAPEvent"
 
+#define BLE_ADJUST_CONNECTION_PARAMETERS_TIMEOUT (500)
+
 bool ble_event_handler_gap_connected(size_t data_size, void* data, void* context) {
     UNUSED(data_size);
     BleWorker* instance = context;
@@ -163,7 +165,8 @@ bool ble_event_handler_gap_adjust_connection_request(size_t data_size, void* dat
     BleConnectionContext* conn = ble_device_get_connection_context(instance->device);
     bool all_done = (conn != NULL) && ble_connection_update_phy_and_data_length_by_timer(conn);
     if(!all_done) {
-        furi_event_loop_timer_start(instance->update_param_timer, 500);
+        furi_event_loop_timer_start(
+            instance->update_param_timer, BLE_ADJUST_CONNECTION_PARAMETERS_TIMEOUT);
     }
     return true;
 }
