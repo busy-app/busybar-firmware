@@ -106,6 +106,9 @@ static void busy_scene_setup_on_enter(void* context) {
             NULL);
 
         menu_set_selected_item_index(data->back_menu, data->menu_idx);
+
+        widget_set_scrollbar_enabled(menu_get_base(data->front_menu), true);
+        widget_set_scrollbar_enabled(menu_get_base(data->back_menu), true);
     });
 }
 

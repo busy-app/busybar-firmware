@@ -57,6 +57,9 @@ static void system_settings_scene_power_menu_on_enter(void* context) {
             data->back_menu, "Restart device", NULL, SceneEventRestart, NULL, instance);
         submenu_add_item(data->back_menu, "Info", NULL, SceneEventInfo, NULL, instance);
         submenu_set_selected_item_index(data->back_menu, data->menu_index);
+
+        widget_set_scrollbar_enabled(submenu_get_base(data->front_menu), true);
+        widget_set_scrollbar_enabled(submenu_get_base(data->back_menu), true);
     });
 }
 

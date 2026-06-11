@@ -145,6 +145,9 @@ static void firmware_settings_scene_settings_on_enter(void* context) {
                 NULL);
             var_item_set_value(back_check_channel_item, channel_idx);
         }
+
+        widget_set_scrollbar_enabled(var_item_list_get_base(scene->front_list), true);
+        widget_set_scrollbar_enabled(var_item_list_get_base(scene->back_list), true);
     });
 }
 

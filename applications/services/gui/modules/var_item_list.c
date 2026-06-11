@@ -1,6 +1,5 @@
 #include "var_item_list.h"
-
-#include <gui/widget_i.h>
+#include "private/menu_base_i.h"
 
 #include <lvgl/src/core/lv_obj_class_private.h>
 #include <lvgl/src/widgets/label/lv_label_private.h>
@@ -15,8 +14,6 @@
 #define SYM_CURSOR_ARROW     "▶" // U+25B6
 #define SYM_EDIT_ARROW_LEFT  "‹" // U+2039
 #define SYM_EDIT_ARROW_RIGHT "›" // U+203A
-
-#define SCROLL_ANIM_DURATION_MS (0)
 
 #define CHECK_RANGE_AND_STEP(min, max, step)                                               \
     do {                                                                                   \
@@ -62,8 +59,7 @@ struct VarItem {
 };
 
 struct VarItemList {
-    Widget base;
-    lv_group_t* group;
+    MenuBase base;
     VarItemEditor* edited;
 };
 
@@ -80,36 +76,6 @@ const lv_obj_class_t var_item_arrow_lvgl_class;
 static void var_item_editor_clear_choices(VarItemEditor* instance);
 
 // LVGL-specific code
-
-// TODO: Make it a universal fix
-static void var_item_list_scroll_event_callback(lv_event_t* event) {
-    const lv_event_code_t code = lv_event_get_code(event);
-
-    if(code == LV_EVENT_SCROLL_BEGIN) {
-        lv_anim_t* anim = lv_event_get_scroll_anim(event);
-        if(anim) anim->duration = SCROLL_ANIM_DURATION_MS;
-    }
-}
-
-// VarItemList
-
-static void var_item_list_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
-    LV_UNUSED(class_p);
-
-    lv_obj_set_flex_flow(obj, LV_FLEX_FLOW_COLUMN);
-    lv_obj_add_event_cb(obj, var_item_list_scroll_event_callback, LV_EVENT_SCROLL_BEGIN, NULL);
-
-    VarItemList* instance = (VarItemList*)obj;
-    instance->group = lv_group_create();
-    lv_group_set_wrap(instance->group, false);
-}
-
-static void var_item_list_lvgl_destructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
-    LV_UNUSED(class_p);
-
-    VarItemList* instance = (VarItemList*)obj;
-    lv_group_delete(instance->group);
-}
 
 // VarItem
 
@@ -381,7 +347,7 @@ static bool var_item_list_input_callback(Widget* widget, const InputEvent* event
             if(instance->edited) {
                 var_item_editor_increment(instance->edited);
             } else {
-                lv_group_focus_next(instance->group);
+                lv_group_focus_next(instance->base.group);
             }
 
             consumed = true;
@@ -390,7 +356,7 @@ static bool var_item_list_input_callback(Widget* widget, const InputEvent* event
             if(instance->edited) {
                 var_item_editor_decrement(instance->edited);
             } else {
-                lv_group_focus_prev(instance->group);
+                lv_group_focus_prev(instance->base.group);
             }
 
             consumed = true;
@@ -403,7 +369,7 @@ static bool var_item_list_input_callback(Widget* widget, const InputEvent* event
                 instance->edited = NULL;
 
             } else {
-                VarItem* item = (VarItem*)lv_group_get_focused(instance->group);
+                VarItem* item = (VarItem*)lv_group_get_focused(instance->base.group);
                 editor = item->editor;
 
                 var_item_editor_set_edited(editor, true);
@@ -442,7 +408,7 @@ static VarItem* var_item_alloc(
     VarItem* instance = (VarItem*)obj;
     lv_label_set_text(instance->label, label);
 
-    lv_group_add_obj(parent->group, obj);
+    lv_group_add_obj(parent->base.group, obj);
 
     VarItemEditor* editor = instance->editor;
     editor->callback = callback;
@@ -630,9 +596,7 @@ void var_item_set_flags(VarItem* item, uint32_t flags) {
 // LVGL classes
 
 const lv_obj_class_t var_item_list_lvgl_class = {
-    .base_class = &widget_lvgl_class,
-    .constructor_cb = var_item_list_lvgl_constructor,
-    .destructor_cb = var_item_list_lvgl_destructor,
+    .base_class = &menu_base_lvgl_class,
     .name = "widget-var-item-list",
     .width_def = LV_PCT(100),
     .height_def = LV_PCT(100),

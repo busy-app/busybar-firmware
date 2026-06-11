@@ -8,7 +8,7 @@
 #define COLOR_FG_FOCUSED  lv_color_white()
 #define COLOR_FG_DISABLED lv_color_hex(0x444444)
 
-#define SCROLLBAR_WIDTH (3)
+#define SCROLLBAR_WIDTH (1)
 
 #define MENU_PAD_ALL (2)
 
@@ -90,15 +90,19 @@ static void style_init(my_theme_t* theme, FontRegistry* font_registry) {
     lv_style_set_text_opa(&theme->styles.transparent, LV_OPA_TRANSP);
 
     lv_style_init(&theme->styles.scrollbar);
+    lv_style_set_width(&theme->styles.scrollbar, SCROLLBAR_WIDTH);
+    lv_style_set_pad_right(&theme->styles.scrollbar, 1);
+    lv_style_set_length(&theme->styles.scrollbar, 5);
     lv_style_set_bg_opa(&theme->styles.scrollbar, LV_OPA_COVER);
     lv_style_set_bg_color(&theme->styles.scrollbar, COLOR_FG_FOCUSED);
-    lv_style_set_width(&theme->styles.scrollbar, SCROLLBAR_WIDTH);
+    lv_style_set_outline_opa(&theme->styles.scrollbar, LV_OPA_COVER);
+    lv_style_set_outline_color(&theme->styles.scrollbar, COLOR_FG_DISABLED);
 
     lv_style_init(&theme->styles.menu);
     lv_style_set_pad_left(&theme->styles.menu, MENU_PAD_ALL);
     lv_style_set_pad_top(&theme->styles.menu, MENU_PAD_ALL);
     lv_style_set_pad_row(&theme->styles.menu, MENU_PAD_ALL);
-    lv_style_set_pad_right(&theme->styles.menu, MENU_PAD_ALL + SCROLLBAR_WIDTH * 2);
+    lv_style_set_pad_right(&theme->styles.menu, MENU_PAD_ALL + 4);
 
     lv_style_init(&theme->styles.menu_item);
     lv_style_set_pad_hor(&theme->styles.menu_item, MENU_ITEM_PAD_HOR);
@@ -204,13 +208,15 @@ static void style_init(my_theme_t* theme, FontRegistry* font_registry) {
 static void theme_apply_callback(lv_theme_t* th, lv_obj_t* obj) {
     my_theme_t* theme = (my_theme_t*)th;
 
+    if(lv_obj_has_class(obj, &widget_lvgl_class)) {
+        lv_obj_add_style(obj, &theme->styles.scrollbar, LV_PART_SCROLLBAR);
+    }
+
     if(lv_obj_get_parent(obj) == NULL) {
         lv_obj_add_style(obj, &theme->styles.screen, LV_PART_MAIN);
-        lv_obj_add_style(obj, &theme->styles.scrollbar, LV_PART_SCROLLBAR);
 
     } else if(lv_obj_check_type(obj, &lv_obj_class)) {
         lv_obj_add_style(obj, &theme->styles.normal, LV_PART_MAIN);
-        lv_obj_add_style(obj, &theme->styles.scrollbar, LV_PART_SCROLLBAR);
 
     } else if(lv_obj_check_type(obj, &lv_bar_class)) {
         lv_obj_add_style(obj, &theme->styles.normal, LV_PART_MAIN);
@@ -218,15 +224,12 @@ static void theme_apply_callback(lv_theme_t* th, lv_obj_t* obj) {
 
     } else if(lv_obj_check_type(obj, &widget_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.normal, LV_PART_MAIN);
-        lv_obj_add_style(obj, &theme->styles.scrollbar, LV_PART_SCROLLBAR);
 
     } else if(lv_obj_check_type(obj, &label_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.focused, LV_PART_MAIN);
-        lv_obj_add_style(obj, &theme->styles.scrollbar, LV_PART_SCROLLBAR);
 
     } else if(lv_obj_check_type(obj, &menu_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.menu, LV_PART_MAIN);
-        lv_obj_add_style(obj, &theme->styles.scrollbar, LV_PART_SCROLLBAR);
 
     } else if(lv_obj_check_type(obj, &menu_item_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.normal, LV_PART_MAIN);
@@ -248,7 +251,6 @@ static void theme_apply_callback(lv_theme_t* th, lv_obj_t* obj) {
 
     } else if(lv_obj_check_type(obj, &submenu_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.menu, LV_PART_MAIN);
-        lv_obj_add_style(obj, &theme->styles.scrollbar, LV_PART_SCROLLBAR);
 
     } else if(lv_obj_check_type(obj, &submenu_item_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.normal, LV_PART_MAIN);
@@ -260,7 +262,6 @@ static void theme_apply_callback(lv_theme_t* th, lv_obj_t* obj) {
 
     } else if(lv_obj_check_type(obj, &var_item_list_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.menu, LV_PART_MAIN);
-        lv_obj_add_style(obj, &theme->styles.scrollbar, LV_PART_SCROLLBAR);
 
     } else if(lv_obj_check_type(obj, &var_item_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.normal, LV_PART_MAIN);
@@ -321,7 +322,6 @@ static void theme_apply_callback(lv_theme_t* th, lv_obj_t* obj) {
 #ifdef APP_BUSY
     } else if(lv_obj_check_type(obj, &countdown_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.focused, LV_PART_MAIN);
-        lv_obj_add_style(obj, &theme->styles.scrollbar, LV_PART_SCROLLBAR);
 
     } else if(lv_obj_check_type(obj, &theme_picker_arrow_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.submenu_cursor, LV_PART_MAIN);

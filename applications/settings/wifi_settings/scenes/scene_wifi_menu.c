@@ -47,6 +47,9 @@ static void wifi_scene_menu_on_enter(void* context) {
             data->back_menu, "View IP address", NULL, SceneEventMenuInfo, NULL, instance);
         submenu_add_item(
             data->back_menu, "Forget network", NULL, SceneEventMenuForget, NULL, instance);
+
+        widget_set_scrollbar_enabled(submenu_get_base(data->front_menu), true);
+        widget_set_scrollbar_enabled(submenu_get_base(data->back_menu), true);
     });
 }
 

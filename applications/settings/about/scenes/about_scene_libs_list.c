@@ -39,8 +39,12 @@ static void about_scene_libs_list_on_enter(void* context) {
                 instance);
             submenu_add_item(data->back_menu, lib_info->name, NULL, i, NULL, instance);
         }
+
         submenu_set_selected_item_index(data->front_menu, instance->license_lib_index);
         submenu_set_selected_item_index(data->back_menu, instance->license_lib_index);
+
+        widget_set_scrollbar_enabled(submenu_get_base(data->front_menu), true);
+        widget_set_scrollbar_enabled(submenu_get_base(data->back_menu), true);
     });
 }
 
