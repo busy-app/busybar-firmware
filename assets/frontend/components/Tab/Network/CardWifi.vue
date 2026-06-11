@@ -574,13 +574,13 @@ function wifiIconByRssi (rssi: WifiNetwork['rssi']): string {
   if (!rssi) {
     return 'i-bi-wifi-1';
   }
-  if (rssi < 60) {
+  if (rssi > -60) {
     return 'i-bi-wifi-4';
   }
-  if (rssi < 70) {
+  if (rssi > -70) {
     return 'i-bi-wifi-3';
   }
-  if (rssi < 80) {
+  if (rssi > -80) {
     return 'i-bi-wifi-2';
   }
   return 'i-bi-wifi-2';
