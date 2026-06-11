@@ -117,10 +117,14 @@ static MatterStatus matter_send_frame(Matter* instance, const MatterIntercomFram
 static MatterStatus matter_wait_for_response(Matter* instance, MatterApiMessage* api_message) {
     MatterStatus status = STATUS_WAIT_FOR_RESPONSE;
 
+    uint32_t timeout_ticks = furi_ms_to_ticks(RESPONSE_TIMEOUT_MS);
+    const uint32_t start_ticks = furi_get_tick();
+
     do {
         MatterIntercomFrame response;
-        const FuriStatus rx_status = furi_message_queue_get(
-            instance->rx_queue, &response, furi_ms_to_ticks(RESPONSE_TIMEOUT_MS));
+
+        const FuriStatus rx_status =
+            furi_message_queue_get(instance->rx_queue, &response, timeout_ticks);
 
         if(rx_status != FuriStatusOk) {
             furi_check(rx_status == FuriStatusErrorTimeout);
@@ -129,10 +133,16 @@ static MatterStatus matter_wait_for_response(Matter* instance, MatterApiMessage*
         }
 
         MatterResponseHandler response_handler = matter_response_handlers[response.type];
-
         if(response_handler) {
             status = response_handler(instance, api_message, &response);
         }
+
+        const uint32_t elapsed_ticks = furi_get_tick() - start_ticks;
+        if(elapsed_ticks >= timeout_ticks) {
+            break;
+        }
+
+        timeout_ticks -= elapsed_ticks;
 
     } while(status == STATUS_WAIT_FOR_RESPONSE);
 
