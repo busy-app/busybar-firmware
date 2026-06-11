@@ -25,6 +25,8 @@ typedef enum {
     MatterStatusExMax,
 } MatterStatusEx;
 
+// Function prototypes and forward declarations
+
 typedef MatterStatus (*MatterApiMessageHandler)(Matter* instance, MatterApiMessageData* data);
 static const MatterApiMessageHandler matter_api_message_handlers[MatterApiMessageTypeMax];
 
@@ -37,6 +39,13 @@ static const MatterResponseHandler matter_response_handlers[MatterIntercomFrameT
 static MatterStatus matter_process_api_message(Matter* instance, MatterApiMessage* api_message);
 
 static MatterStatus matter_wait_for_response(Matter* instance, MatterApiMessage* api_message);
+
+static MatterStatus matter_process_response(
+    Matter* instance,
+    MatterApiMessage* api_message,
+    const MatterIntercomFrame* response);
+
+// Implementation
 
 static MatterStatus matter_get_error_status_or_wait_for_response(MatterStatus status) {
     MatterStatus new_status;
@@ -94,16 +103,9 @@ static void matter_rx_queue_callback(FuriEventLoopObject* object, void* context)
     Matter* instance = context;
     furi_assert(object == instance->rx_queue);
 
-    MatterIntercomFrame frame;
-    furi_check(furi_message_queue_get(instance->rx_queue, &frame, 0) == FuriStatusOk);
-
-    const MatterIntercomFrameType frame_type = frame.type;
-    furi_assert(frame_type < MatterIntercomFrameTypeMax);
-
-    const MatterResponseHandler response_handler = matter_response_handlers[frame_type];
-
-    if(response_handler) {
-        response_handler(instance, NULL, &frame);
+    MatterIntercomFrame response;
+    while(furi_message_queue_get(instance->rx_queue, &response, 0) == FuriStatusOk) {
+        matter_process_response(instance, NULL, &response);
     }
 }
 
@@ -118,6 +120,24 @@ static MatterStatus matter_process_api_message(Matter* instance, MatterApiMessag
     furi_assert(message_type < MatterApiMessageTypeMax);
 
     return matter_api_message_handlers[message_type](instance, &api_message->data);
+}
+
+static MatterStatus matter_process_response(
+    Matter* instance,
+    MatterApiMessage* api_message,
+    const MatterIntercomFrame* response) {
+    MatterStatus status = MatterStatusError;
+
+    const MatterIntercomFrameType response_type = response->type;
+    furi_check(response_type < MatterIntercomFrameTypeMax);
+
+    MatterResponseHandler response_handler = matter_response_handlers[response_type];
+
+    if(response_handler) {
+        status = response_handler(instance, api_message, response);
+    }
+
+    return status;
 }
 
 static MatterStatus matter_wait_for_response(Matter* instance, MatterApiMessage* api_message) {
@@ -138,10 +158,7 @@ static MatterStatus matter_wait_for_response(Matter* instance, MatterApiMessage*
             break;
         }
 
-        MatterResponseHandler response_handler = matter_response_handlers[response.type];
-        if(response_handler) {
-            status = response_handler(instance, api_message, &response);
-        }
+        status = matter_process_response(instance, api_message, &response);
 
         const uint32_t elapsed_ticks = furi_get_tick() - start_ticks;
         if(elapsed_ticks >= timeout_ticks) {
