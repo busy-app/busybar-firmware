@@ -2,7 +2,6 @@
 
 #include "ble_connection.h"
 #include "ble_security.h"
-#include "ble_advertise.h"
 #include "../transmitter/ble_transmitter.h"
 #include "../../service/ble_service.h"
 
@@ -42,8 +41,6 @@ void ble_device_set_name(BleDevice* instance, const char* name);
 bool ble_device_start(BleDevice* instance);
 
 bool ble_device_stop(BleDevice* instance);
-
-BleAdvertiseContext* ble_device_get_advertise_context(BleDevice* instance);
 
 void ble_device_set_mtu(BleDevice* instance, uint16_t mtu);
 

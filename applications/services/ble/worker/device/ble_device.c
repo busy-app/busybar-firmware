@@ -1,7 +1,6 @@
 #include "ble_device.h"
 
-// #include "ble_advertise.h"
-// #include "ble_security.h"
+#include "ble_advertise.h"
 #include "ble_service_registry.h"
 #include "../receiver/ble_receiver.h"
 
@@ -26,7 +25,6 @@ struct BleDevice {
     BleConnectionContext* connection;
     BleDeviceBase* peer;
     BleServiceRegistry* registry;
-    // BleServiceEntryDict_t service_dict;
 
     BleSecurityData* security_data;
     BleAdvertiseContext* advertise;
@@ -93,7 +91,6 @@ BleConnectionContext* ble_device_get_connection_context(BleDevice* instance) {
     return instance->connection;
 }
 
-///TODO: Maybe Replace by checking state
 bool ble_device_is_connected(BleDevice* instance) {
     return instance->connection != NULL;
 }
@@ -123,7 +120,6 @@ bool ble_device_connection_close(BleDevice* instance) {
     furi_assert(instance);
     bool result = false;
 
-    //!ble_device_is_connected(instance)
     if(instance->state == BleDeviceStateIdle) {
         BLE_LOG_W("Already disconnected");
     } else {
@@ -240,12 +236,6 @@ bool ble_device_start(BleDevice* instance) {
 
     if(instance->state == BleDeviceStateIdle) {
         ble_device_start_advertise(instance);
-        // const rsi_bt_event_le_security_keys_t* rpa =
-        //     ble_security_get_rpa_data(instance->security_data);
-        // instance->state = ble_device_start_advertise(
-        //                       instance->pairing_info_available, rpa, instance->advertise) ?
-        //                       BleDeviceStateAdvertising :
-        //                       BleDeviceStateError;
     } else {
         BLE_LOG_W("BLE not in Idle state, skip start");
     }
@@ -439,9 +429,6 @@ bool ble_device_process_write_request(
 }
 
 void ble_device_receive_confirm(BleDevice* instance, uint16_t handle, uint8_t cccd_value) {
-    // sl_status_t status;
-    // bool connected = ble_device_is_connected(ble_worker_instance->device);
-
     if(instance->state == BleDeviceStateConnected) {
         ble_receiver_transfer_confirm(instance->receiver, handle, cccd_value);
     }

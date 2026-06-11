@@ -27,11 +27,6 @@ BleConnectionContext*
     return instance;
 }
 
-// void ble_connection_update_timings(BleConnectionContext* instance) {
-//     furi_assert(instance);
-
-// }
-
 void ble_connection_free(BleConnectionContext* instance) {
     furi_assert(instance);
 
@@ -118,7 +113,7 @@ bool ble_connection_update_phy_and_data_length_by_timer(BleConnectionContext* in
 
     do {
         if(all_updates_done) {
-            BLE_LOG_W("all_updates_done = 1");
+            BLE_LOG_I("all_updates_done = 1");
             break;
         }
 
@@ -135,12 +130,11 @@ bool ble_connection_update_phy_and_data_length_by_timer(BleConnectionContext* in
         bool length_extension_supported = ble_device_base_is_feature_supported(
             peer, BleDeviceFeaturesLEDataPacketLengthExtension);
         if(!instance->length_update_done && length_extension_supported) {
-            BLE_LOG_I("Update data length");
             sl_status_t status = rsi_ble_set_data_len((uint8_t*)addr, TX_LEN, TX_TIME);
             if(status != RSI_SUCCESS) {
                 BLE_LOG_W("\n Set data length cmd failed with error code = %lx \n", status);
             } else {
-                BLE_LOG_I("Length set DONE!");
+                BLE_LOG_I("Length set done");
             }
 
             break;

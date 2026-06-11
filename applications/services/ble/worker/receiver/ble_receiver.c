@@ -26,17 +26,8 @@ void ble_receiver_free(BleReceiverContext* instance) {
     free(instance);
 }
 
-///TODO: Get rid of another option, so only m4 will be able to maintain responses
-#define BLE_WORKER_MAINTAIN_CHARACTERISTICS
-
 static int32_t ble_receiver_write_response(uint8_t* dev_addr, uint8_t type) {
-#ifdef BLE_WORKER_MAINTAIN_CHARACTERISTICS
     return rsi_ble_gatt_write_response(dev_addr, type);
-#else
-    UNUSED(dev_addr);
-    UNUSED(type);
-    return RSI_SUCCESS;
-#endif
 }
 
 typedef void (*BleReceiverConfirmHandler)(uint8_t* addr, uint8_t type);

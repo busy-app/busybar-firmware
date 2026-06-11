@@ -21,7 +21,7 @@ static BleWorker* ble_worker_instance = NULL;
 
 static void connection_update_callback(void* context) {
     BleWorker* instance = context;
-    BLE_LOG_W("%s", __func__);
+    BLE_LOG_I("%s", __func__);
     ble_incoming_nwp_event_processor_spawn_event(
         instance->event_proc, BleIncomingNwpEventTypeAdjustConnectionRequest, 0, NULL);
 }
