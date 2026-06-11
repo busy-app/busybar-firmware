@@ -1,9 +1,9 @@
 #include "ble_incoming_nwp_event_processor.h"
 #include "ble_incoming_nwp_event.h"
 
-#include "event_handlers/ble_event_handlers_gap.h"
-#include "event_handlers/ble_event_handlers_gatt.h"
-#include "event_handlers/ble_event_handlers_smp.h"
+#include "ble_event_handlers_gap.h"
+#include "ble_event_handlers_gatt.h"
+#include "ble_event_handlers_smp.h"
 
 #include "../../ble_common.h"
 

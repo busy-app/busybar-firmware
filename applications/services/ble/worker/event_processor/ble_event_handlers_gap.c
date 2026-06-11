@@ -1,6 +1,6 @@
 #include "ble_event_handlers_gap.h"
 
-#include "../../ble_worker_i.h"
+#include "../ble_worker_i.h"
 
 #define TAG "BleGAPEvent"
 

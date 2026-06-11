@@ -1,7 +1,7 @@
 
 #include "ble_event_handlers_smp.h"
 
-#include "../../ble_worker_i.h"
+#include "../ble_worker_i.h"
 
 #define TAG "BleSMPEvent"
 

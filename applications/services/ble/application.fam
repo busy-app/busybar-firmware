@@ -15,7 +15,6 @@ App(
         "worker/*.c",
         "worker/_nwp_callbacks/*.c",
         "worker/event_processor/*.c",
-        "worker/event_processor/event_handlers/*.c",
         "worker/transport/*.c",
         "worker/device/*.c",
         "service/*.c",
