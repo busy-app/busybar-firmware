@@ -91,11 +91,11 @@ static void clock_scene_main_on_enter(void* context) {
             ClockSceneMainEventSetup,
             clock_scene_main_menu_callback,
             instance);
+
+        transition_overlay_start(instance->front_transition_overlay);
     });
 
     free(time_settings);
-
-    transition_overlay_start(instance->front_transition_overlay);
 }
 
 static void clock_scene_main_on_exit(void* context) {
