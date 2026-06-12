@@ -1048,6 +1048,10 @@ watch(() => route.query.path, async queryPath => {
     await list('/ext', { syncUrl: true, replaceUrl: true });
   }
 }, { immediate: true });
+
+onBeforeUnmount(() => {
+  router.replace({ query: { ...route.query, path: undefined } });
+});
 </script>
 
 <style scoped>
