@@ -1,4 +1,4 @@
-import type Konva from 'konva';
+import Konva from 'konva';
 import { defineStore } from 'pinia';
 import { cloneShape } from '@/util/drawTool';
 
