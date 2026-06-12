@@ -105,11 +105,9 @@
       >
         <template #body>
           <div class="flex items-center gap-4 py-4">
-            <CircularProgress
-              v-model="indeterminateProgressModel"
-              size="32px"
-              :thickness="0.25"
-              class="animate-spin"
+            <UIcon
+              name="i-busy-loader"
+              class="size-6 text-muted animate-spin"
             />
             <div>Restarting BUSY Bar...</div>
           </div>
@@ -149,7 +147,6 @@ function onMatterLinkModalClose () {
 
 const showMatterDeleteModal = ref(false);
 const showRebootingModal = ref(false);
-const indeterminateProgressModel = ref(60);
 
 async function deleteMatterPairings () {
   await matterStore.deleteAllPairings();
