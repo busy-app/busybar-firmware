@@ -11,6 +11,7 @@
 #define API_QUEUE_SIZE (4)
 #define RX_QUEUE_SIZE  (4)
 
+#define INTERCOM_TIMEOUT_MS (2000)
 #define REQUEST_TIMEOUT_MS  (5000)
 #define RESPONSE_TIMEOUT_MS (5000)
 #define REBOOT_TIMER_MS     (2500)
@@ -132,9 +133,10 @@ static bool matter_open_intercom_channel(Matter* instance) {
     FuriStateSub* intercom_sub =
         furi_state_subscribe(intercom_state, matter_intercom_state_callback, sem);
 
-    if(furi_semaphore_acquire(sem, REQUEST_TIMEOUT_MS) == FuriStatusOk) {
+    if(furi_semaphore_acquire(sem, INTERCOM_TIMEOUT_MS) == FuriStatusOk) {
         instance->intercom_ch = intercom_channel_open(
             instance->intercom, IntercomChannelIdMatter, matter_intercom_rx_callback, instance);
+
         success = true;
     }
 
