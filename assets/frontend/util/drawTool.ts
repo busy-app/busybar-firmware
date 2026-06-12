@@ -23,11 +23,13 @@ export const DEFAULT_TEXT_COLOR = '#ffffff';
 export const DEFAULT_TEXT_FONT_ID = 'busy_regular_7px';
 export const DEFAULT_STATUS_FILE_NAME = 'New status';
 export const DRAW_TOOL_EXPORT_PIXEL_SIZE = 8;
+export const DRAW_TOOL_PIXEL_ART_MAX_DIMENSION = 72;
 export const DRAW_TOOL_DISPLAY_APPLICATION_NAME = 'draw_tool';
 export const DRAW_TOOL_TEMP_FILE_NAME = 'temp.png';
 export const DRAW_TOOL_SAVE_DIR = '/ext/user_assets/draw_tool';
 
 let drawToolShapeIdCounter = 0;
+const pixelArtImageSourceCache = new WeakMap<HTMLImageElement, HTMLCanvasElement>();
 
 export type KonvaRef<T extends Konva.Node> = {
   getNode: () => T;
@@ -85,6 +87,7 @@ export interface ImageShape extends ShapeBase {
   type: 'image';
   fileName: string;
   image: HTMLImageElement;
+  pixelArt?: boolean;
 }
 
 export interface TextShape extends ShapeBase {
@@ -261,6 +264,46 @@ export function pixelateImageData (sourceImageData: ImageData, pixelSize: number
   }
 
   return outputImageData;
+}
+
+export function isPixelArtImageSource (image: Pick<HTMLImageElement, 'width' | 'height'>): boolean {
+  return image.width <= DRAW_TOOL_PIXEL_ART_MAX_DIMENSION || image.height <= DRAW_TOOL_PIXEL_ART_MAX_DIMENSION;
+}
+
+export function isPixelArtImageShape (shape: Pick<ImageShape, 'image' | 'pixelArt'>): boolean {
+  if (shape.pixelArt !== undefined) {
+    return shape.pixelArt;
+  }
+
+  return isPixelArtImageSource(shape.image);
+}
+
+export function getRenderedImageSource (shape: ImageShape): HTMLImageElement | HTMLCanvasElement {
+  if (!isPixelArtImageShape(shape)) {
+    return shape.image;
+  }
+
+  const cachedSource = pixelArtImageSourceCache.get(shape.image);
+
+  if (cachedSource) {
+    return cachedSource;
+  }
+
+  const renderCanvas = document.createElement('canvas');
+  renderCanvas.width = shape.image.width * DRAW_TOOL_EXPORT_PIXEL_SIZE;
+  renderCanvas.height = shape.image.height * DRAW_TOOL_EXPORT_PIXEL_SIZE;
+
+  const context = renderCanvas.getContext('2d');
+
+  if (!context) {
+    return shape.image;
+  }
+
+  context.imageSmoothingEnabled = false;
+  context.drawImage(shape.image, 0, 0, renderCanvas.width, renderCanvas.height);
+  pixelArtImageSourceCache.set(shape.image, renderCanvas);
+
+  return renderCanvas;
 }
 
 export function areShapesEqual (left: EditorShape, right: EditorShape): boolean {
@@ -475,15 +518,34 @@ export function getDisplayRectConfig (shape: RectShape) {
 }
 
 export function getDisplayImageConfig (shape: ImageShape) {
+  const isPixelArt = isPixelArtImageShape(shape);
+
   return {
     x: shape.x,
     y: shape.y,
     width: shape.width,
     height: shape.height,
     rotation: shape.rotation,
-    image: shape.image,
+    image: getRenderedImageSource(shape),
     listening: false,
-    imageSmoothingEnabled: false,
+    imageSmoothingEnabled: !isPixelArt,
+    perfectDrawEnabled: false
+  };
+}
+
+export function getExportImageConfig (shape: ImageShape) {
+  return {
+    id: shape.id,
+    x: shape.x,
+    y: shape.y,
+    width: shape.width,
+    height: shape.height,
+    rotation: shape.rotation,
+    image: getRenderedImageSource(shape),
+    opacity: 1,
+    draggable: true,
+    dragBoundFunc: getDragBoundPosition,
+    imageSmoothingEnabled: !isPixelArtImageShape(shape),
     perfectDrawEnabled: false
   };
 }
@@ -532,11 +594,11 @@ export function getImageConfig (shape: ImageShape) {
     width: shape.width,
     height: shape.height,
     rotation: shape.rotation,
-    image: shape.image,
+    image: getRenderedImageSource(shape),
     opacity: 0,
     draggable: true,
     dragBoundFunc: getDragBoundPosition,
-    imageSmoothingEnabled: false,
+    imageSmoothingEnabled: !isPixelArtImageShape(shape),
     perfectDrawEnabled: false
   };
 }

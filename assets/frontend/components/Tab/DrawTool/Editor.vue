@@ -200,7 +200,7 @@
                   <VGroup :config="displayShapesGroupConfig">
                     <template
                       v-for="shape in es.shapes"
-                      :key="`${shape.id}-display`"
+                      :key="shape.id"
                     >
                       <VRect
                         v-if="shape.type === 'rect'"
@@ -941,11 +941,8 @@ import {
   Transformer as VTransformer
 } from 'vue-konva';
 import drawToolIconsData from '@/generated/drawTool/icons.json';
-import {
-  DRAW_TOOL_EXPORT_PIXEL_SIZE,
-  pixelateImageData,
-  type TransformerBox
-} from '@/util/drawTool';
+import { DRAW_TOOL_EXPORT_PIXEL_SIZE, pixelateImageData } from '@/util/drawTool';
+import type { TransformerBox } from '@/util/drawTool';
 import type { DisplayDrawParams } from '@busy-app/busy-lib';
 
 type DrawToolIcon = {
@@ -1731,14 +1728,14 @@ async function insertImage () {
 
   try {
     const imageElement = await loadImageFile(es.imageUploadFile);
+    const pixelArt = es.imageUploadFile.type === 'image/svg+xml' ? false : undefined;
 
-    es.addImageShape(imageElement, es.imageUploadFile.name);
+    es.addImageShape(imageElement, es.imageUploadFile.name, { pixelArt });
     es.resetImageUploadModal();
-  } catch (error) {
+  } catch {
     toast.add({
       id: 'draw-tool-image-error',
       title: 'Failed to load image',
-      description: error instanceof Error ? error.message : String(error),
       icon: 'i-bi-alert',
       color: 'error',
       duration: 0,
@@ -1797,7 +1794,7 @@ async function insertDrawToolIcon (icon: ResolvedDrawToolIcon) {
   try {
     const imageElement = await loadImageFromUrl(icon.src);
 
-    es.addImageShape(imageElement, icon.fileName);
+    es.addImageShape(imageElement, icon.fileName, { pixelArt: false });
     isIconTooltipOpen.value = false;
     isIconTooltipSuppressed.value = true;
     isIconPickerOpen.value = false;
@@ -1860,7 +1857,7 @@ function buildExportLayer (scale = 1): Konva.Layer {
       return;
     }
 
-    displayGroup.add(new Konva.Image(getDisplayImageConfig(shape)));
+    displayGroup.add(new Konva.Image(getExportImageConfig(shape)));
   });
 
   if (displayGroup.getChildren().length) {
@@ -1880,6 +1877,30 @@ function buildExportLayer (scale = 1): Konva.Layer {
   }
 
   return layer;
+}
+
+function captureExportSourceCanvas () {
+  let exportStage: Konva.Stage | null = null;
+  let exportContainer: HTMLDivElement | null = null;
+
+  try {
+    const exportCellSize = Math.max(1, stageMetrics.value.cellSize);
+    const exportSurface = createExportStage(
+      WORKSPACE_WIDTH * exportCellSize,
+      WORKSPACE_HEIGHT * exportCellSize
+    );
+    exportStage = exportSurface.stage;
+    exportContainer = exportSurface.container;
+
+    const layer = buildExportLayer(exportCellSize);
+    exportStage.add(layer);
+    layer.draw();
+
+    return exportStage.toCanvas({ pixelRatio: 1 });
+  } finally {
+    exportStage?.destroy();
+    exportContainer?.remove();
+  }
 }
 
 function buildLogicalExportCanvas (sourceImageData: ImageData) {
@@ -1915,30 +1936,6 @@ function buildLogicalExportCanvas (sourceImageData: ImageData) {
   logicalContext.putImageData(logicalImageData, 0, 0);
 
   return logicalCanvas;
-}
-
-function captureExportSourceCanvas () {
-  let exportStage: Konva.Stage | null = null;
-  let exportContainer: HTMLDivElement | null = null;
-
-  try {
-    const exportCellSize = Math.max(1, stageMetrics.value.cellSize);
-    const exportSurface = createExportStage(
-      WORKSPACE_WIDTH * exportCellSize,
-      WORKSPACE_HEIGHT * exportCellSize
-    );
-    exportStage = exportSurface.stage;
-    exportContainer = exportSurface.container;
-
-    const layer = buildExportLayer(exportCellSize);
-    exportStage.add(layer);
-    layer.draw();
-
-    return exportStage.toCanvas({ pixelRatio: 1 });
-  } finally {
-    exportStage?.destroy();
-    exportContainer?.remove();
-  }
 }
 
 function createExportImageData () {
