@@ -1,6 +1,10 @@
 
 #include "ble_transmitter_i.h"
 
+#define BLE_TX_QUEUE_SIZE            (20)
+#define BLE_TX_QUEUE_PUT_TIMEOUT     (300)
+#define BLE_TRANSMIT_FAILURE_TIMEOUT (500)
+
 typedef struct {
     FuriMessageQueue* tx_queue;
     FuriSemaphore* more_data_sem;
@@ -41,10 +45,12 @@ static bool
             break;
         }
 
-        if(furi_semaphore_acquire(instance->more_data_sem, 500) != FuriStatusOk) {
+        if(furi_semaphore_acquire(instance->more_data_sem, BLE_TRANSMIT_FAILURE_TIMEOUT) !=
+           FuriStatusOk) {
             BLE_LOG_W("Notify timeout");
             break;
         }
+
     } while(true);
 
     return result;
@@ -83,7 +89,8 @@ bool ble_transmitter_set_chunk(
     memcpy(item->header.remote_dev_address, dev_addr, sizeof(item->header.remote_dev_address));
     memcpy(item->data, data, data_size);
 
-    FuriStatus status = furi_message_queue_put(instance->tx_queue, &item, 250);
+    FuriStatus status =
+        furi_message_queue_put(instance->tx_queue, &item, BLE_TX_QUEUE_PUT_TIMEOUT);
 
     if(status != FuriStatusOk) {
         BLE_LOG_W("[%04X] - failed to put in queue", handle);
@@ -105,7 +112,7 @@ BleTransmitterGeneric* ble_transmitter_set_alloc() {
     BleTransmitterSetContext* instance = malloc(sizeof(BleTransmitterSetContext));
 
     instance->more_data_sem = furi_semaphore_alloc(1, 0);
-    instance->tx_queue = furi_message_queue_alloc(20, sizeof(BleDataItemPtr));
+    instance->tx_queue = furi_message_queue_alloc(BLE_TX_QUEUE_SIZE, sizeof(BleDataItemPtr));
 
     return instance;
 }
