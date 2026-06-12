@@ -22,6 +22,7 @@ export const DEFAULT_TEXT_VALUE = 'text';
 export const DEFAULT_TEXT_COLOR = '#ffffff';
 export const DEFAULT_TEXT_FONT_ID = 'busy_regular_7px';
 export const DEFAULT_STATUS_FILE_NAME = 'New status';
+export const DRAW_TOOL_EXPORT_PIXEL_SIZE = 8;
 export const DRAW_TOOL_DISPLAY_APPLICATION_NAME = 'draw_tool';
 export const DRAW_TOOL_TEMP_FILE_NAME = 'temp.png';
 export const DRAW_TOOL_SAVE_DIR = '/ext/user_assets/draw_tool';
@@ -190,6 +191,76 @@ export function cloneShape<T extends EditorShape> (shape: T): T {
   return {
     ...shape
   };
+}
+
+export function pixelateImageData (sourceImageData: ImageData, pixelSize: number): ImageData {
+  const blockSize = Math.max(1, Math.ceil(pixelSize));
+  const { width, height, data } = sourceImageData;
+  const outputImageData = new ImageData(width, height);
+  const nBinsX = Math.ceil(width / blockSize);
+  const nBinsY = Math.ceil(height / blockSize);
+
+  for (let xBin = 0; xBin < nBinsX; xBin += 1) {
+    for (let yBin = 0; yBin < nBinsY; yBin += 1) {
+      let red = 0;
+      let green = 0;
+      let blue = 0;
+      let alpha = 0;
+      let pixelsInBin = 0;
+      const xBinStart = xBin * blockSize;
+      const xBinEnd = xBinStart + blockSize;
+      const yBinStart = yBin * blockSize;
+      const yBinEnd = yBinStart + blockSize;
+
+      for (let x = xBinStart; x < xBinEnd; x += 1) {
+        if (x >= width) {
+          continue;
+        }
+
+        for (let y = yBinStart; y < yBinEnd; y += 1) {
+          if (y >= height) {
+            continue;
+          }
+
+          const pixelIndex = ((width * y) + x) * 4;
+          red += data[pixelIndex + 0];
+          green += data[pixelIndex + 1];
+          blue += data[pixelIndex + 2];
+          alpha += data[pixelIndex + 3];
+          pixelsInBin += 1;
+        }
+      }
+
+      if (!pixelsInBin) {
+        continue;
+      }
+
+      red = red / pixelsInBin;
+      green = green / pixelsInBin;
+      blue = blue / pixelsInBin;
+      alpha = alpha / pixelsInBin;
+
+      for (let x = xBinStart; x < xBinEnd; x += 1) {
+        if (x >= width) {
+          continue;
+        }
+
+        for (let y = yBinStart; y < yBinEnd; y += 1) {
+          if (y >= height) {
+            continue;
+          }
+
+          const pixelIndex = ((width * y) + x) * 4;
+          outputImageData.data[pixelIndex + 0] = red;
+          outputImageData.data[pixelIndex + 1] = green;
+          outputImageData.data[pixelIndex + 2] = blue;
+          outputImageData.data[pixelIndex + 3] = alpha;
+        }
+      }
+    }
+  }
+
+  return outputImageData;
 }
 
 export function areShapesEqual (left: EditorShape, right: EditorShape): boolean {
