@@ -210,7 +210,7 @@ static MatterStatus matter_wait_for_response(Matter* instance, MatterApiMessage*
 
         status = matter_process_response(instance, api_message, &response);
 
-    } while(status != STATUS_WAIT_FOR_RESPONSE);
+    } while(status == STATUS_WAIT_FOR_RESPONSE);
 
     return status;
 }
