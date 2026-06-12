@@ -67,6 +67,8 @@ bool ble_device_is_paired(BleDevice* instance);
 
 void ble_device_response_pairing_capabilities(BleDevice* instance);
 
+void ble_device_request_pairing(BleDevice* instance);
+
 bool ble_device_send_encryption_response(BleDevice* instance);
 
 void ble_device_handle_encryption_start(

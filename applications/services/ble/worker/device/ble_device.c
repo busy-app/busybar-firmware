@@ -330,6 +330,18 @@ void ble_device_response_pairing_capabilities(BleDevice* instance) {
     }
 }
 
+void ble_device_request_pairing(BleDevice* instance) {
+    furi_assert(instance);
+    BLE_LOG_I("Request pairing...");
+    const uint8_t* addr = ble_device_base_get_address(instance->peer, BleDeviceAddressTypeOrigin);
+    sl_status_t status = rsi_ble_smp_pair_request(
+        (uint8_t*)addr, BLE_DEVICE_SMP_IO_CAPABILITY, BLE_DEVICE_MITM_REQ);
+
+    if(status != RSI_SUCCESS) {
+        BLE_LOG_W("Request pairing failed: %08lX", status);
+    }
+}
+
 static bool ble_device_send_encryption_resp(
     const uint8_t* addr,
     uint8_t response_type,

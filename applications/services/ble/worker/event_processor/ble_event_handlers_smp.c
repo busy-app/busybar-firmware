@@ -44,10 +44,10 @@ bool ble_event_handler_smp_ltk_request(size_t data_size, void* data, void* conte
 
         if(ble_device_is_paired(instance->device)) {
             ble_worker_invoke_connect_callback(instance);
+        } else {
+            ble_device_request_pairing(instance->device);
         }
     } while(false);
-    // ble_worker_spawn_event(
-    //     instance->event_queue, BleWorkerEventTypeAdjustConnectionRequest, 0, NULL);
 
     return true;
 }
