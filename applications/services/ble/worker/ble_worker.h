@@ -3,10 +3,12 @@
 
 #define BLE_REMOTE_ADDRESS_STRING_SIZE (18)
 
+typedef struct BleWorker BleWorker;
+
 typedef void (
     *BleConnectionStateChanged)(void* context, bool connected, const uint8_t* remote_dev_address);
 
-void ble_worker_init(BleConnectionStateChanged connect_callback, void* ctx);
+BleWorker* ble_worker_init(BleConnectionStateChanged connect_callback, void* ctx);
 
 bool ble_worker_register_service(BleServiceObject* service);
 

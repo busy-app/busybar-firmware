@@ -19,6 +19,8 @@ typedef struct {
     uint8_t data[];
 } BleCommand;
 
+#else
+#include "worker/ble_worker.h"
 #endif
 
 typedef enum {
@@ -55,6 +57,8 @@ struct Ble {
     FuriMutex* current_command_lock;
     BleCommand* current_command;
     size_t current_command_size;
+#else
+    BleWorker* worker;
 #endif
     BleServicePostProcessCallback service_post_process_callback;
 };

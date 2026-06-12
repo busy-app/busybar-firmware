@@ -163,6 +163,12 @@ input[aria-invalid="true"] {
   --glass-ring-outer: var(--ui-error);
 }
 
+article > h1 {
+  @apply text-3xl font-bold mb-4;
+}
+article > h2 {
+  @apply text-2xl font-bold mb-3;
+}
 article > ul {
   list-style-type: disc;
   padding-left: 1.25rem;

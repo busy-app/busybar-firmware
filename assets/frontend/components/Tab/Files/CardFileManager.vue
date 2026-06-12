@@ -143,7 +143,7 @@
             color="neutral"
             square
             :loading="loading.list"
-            @click="list(currentPath)"
+            @click="list(currentPath, { syncUrl: false })"
           />
         </UTooltip>
       </div>
@@ -380,6 +380,8 @@ import type { StorageListElement, StorageFileElement } from '@busy-app/busy-lib'
 import type { ContextMenuItem } from '@nuxt/ui';
 
 const deviceStore = useDeviceStore();
+const route = useRoute();
+const router = useRouter();
 
 const loading = ref({
   list: false,
@@ -408,6 +410,29 @@ interface InputMenuItem {
 }
 const inputMenuItems = ref<InputMenuItem[]>([]);
 const highlightedItemIndex = ref(0);
+
+function getQueryPath (queryPath: string | string[] | null | undefined): string | null {
+  if (Array.isArray(queryPath)) {
+    return queryPath[0] || null;
+  }
+
+  return typeof queryPath === 'string' && queryPath.length > 0 ? queryPath : null;
+}
+
+function resolveStoragePath (path: string | null | undefined): string {
+  const trimmedPath = path?.trim() || '';
+  if (trimmedPath === '') {
+    return '/ext';
+  }
+
+  let normalizedPath = trimmedPath;
+  if (!normalizedPath.startsWith('/ext')) {
+    normalizedPath = normalizedPath.startsWith('/') ? `/ext${normalizedPath}` : `/ext/${normalizedPath}`;
+  }
+
+  normalizedPath = normalizedPath.replace(/\/+$/, '');
+  return normalizedPath.length > 0 ? normalizedPath : '/ext';
+}
 
 function normalizePath (path: string): string {
   if (path.startsWith('/ext')) {
@@ -478,29 +503,35 @@ const selectedItems = ref<Set<string>>(new Set());
 const isSelecting = ref(false);
 const selectStartIndex = ref(-1);
 
-async function list (path: string) {
-  selectedItems.value.clear();
-  loading.value.list = true;
-  await deviceStore.busyBar.StorageListGet({ path })
-    .then(result => {
-      if (!result.list) {
-        throw new Error('Empty response');
-      }
-      const files = result.list.filter(e => e.type === 'file').sort((a, b) => b.name < a.name ? 1 : -1);
-      const dirs = result.list.filter(e => e.type === 'dir').sort((a, b) => b.name < a.name ? 1 : -1);
-      currentDir.value = [...dirs, ...files];
-    })
-    .then(() => {
-      updatePath(path);
-    })
-    .catch(async error => {
-      await handleHTTPError(error, `Couldn't list directory ${currentPath.value}`);
-      return [];
-    })
-    .finally(() => loading.value.list = false);
+interface ListOptions {
+  syncUrl?: boolean;
+  replaceUrl?: boolean;
+  errorNotificationTimeout?: number;
 }
 
-function updatePath (newValue: string) {
+async function list (path: string, options: ListOptions = {}) {
+  selectedItems.value.clear();
+  loading.value.list = true;
+  try {
+    const result = await deviceStore.busyBar.StorageListGet({ path });
+    if (!result.list) {
+      throw new Error('Empty response');
+    }
+
+    const files = result.list.filter(e => e.type === 'file').sort((a, b) => b.name < a.name ? 1 : -1);
+    const dirs = result.list.filter(e => e.type === 'dir').sort((a, b) => b.name < a.name ? 1 : -1);
+    currentDir.value = [...dirs, ...files];
+    updatePath(path, options);
+    return true;
+  } catch (error) {
+    await handleHTTPError(error, `Couldn't list directory ${path}`, false, options.errorNotificationTimeout);
+    return false;
+  } finally {
+    loading.value.list = false;
+  }
+}
+
+function updatePath (newValue: string, options: ListOptions = {}) {
   currentPath.value = newValue;
 
   const slicedPath = normalizePath(newValue);
@@ -509,6 +540,18 @@ function updatePath (newValue: string) {
   inputMenuItems.value = currentDir.value
     .filter(e => e.type === 'dir')
     .map(d => ({ path: `${slicedPath}${slicedPath.endsWith('/') ? '' : '/'}${d.name}`, name: d.name }));
+
+  if (options.syncUrl === false) {
+    return;
+  }
+
+  const currentQueryPath = getQueryPath(route.query.path);
+  if (currentQueryPath === newValue) {
+    return;
+  }
+
+  const navigation = options.replaceUrl ? router.replace : router.push;
+  void navigation({ query: { ...route.query, path: newValue } });
 }
 
 async function toParentDir () {
@@ -637,10 +680,55 @@ function onClickItem (item: StorageListElement, event: MouseEvent) {
     return;
   }
 
-  selectedItems.value.clear();
-  if (item.type === 'dir') {
-    list(`${currentPath.value}/${item.name}`);
+  if (selectedItems.value.size > 1 && selectedItems.value.has(item.name)) {
+    const target = event.currentTarget as HTMLElement | null;
+    if (!target) {
+      return;
+    }
+
+    target.dispatchEvent(new MouseEvent('contextmenu', {
+      bubbles: true,
+      cancelable: true,
+      button: 2,
+      buttons: 2,
+      clientX: event.clientX,
+      clientY: event.clientY,
+      ctrlKey: event.ctrlKey,
+      metaKey: event.metaKey,
+      shiftKey: event.shiftKey,
+      altKey: event.altKey
+    }));
+    return;
   }
+
+  if (item.type === 'dir') {
+    selectedItems.value.clear();
+    list(`${currentPath.value}/${item.name}`);
+    return;
+  }
+
+  if (selectedItems.value.size <= 1 || !selectedItems.value.has(item.name)) {
+    selectedItems.value.clear();
+    selectedItems.value.add(item.name);
+  }
+
+  const target = event.currentTarget as HTMLElement | null;
+  if (!target) {
+    return;
+  }
+
+  target.dispatchEvent(new MouseEvent('contextmenu', {
+    bubbles: true,
+    cancelable: true,
+    button: 2,
+    buttons: 2,
+    clientX: event.clientX,
+    clientY: event.clientY,
+    ctrlKey: event.ctrlKey,
+    metaKey: event.metaKey,
+    shiftKey: event.shiftKey,
+    altKey: event.altKey
+  }));
 }
 
 function getItemClass (item: StorageListElement, index: number) {
@@ -743,7 +831,7 @@ async function remove () {
     loading.value.remove = false;
     showDeleteModal.value = false;
     selectedItems.value.clear();
-    return list(currentPath.value);
+    return list(currentPath.value, { syncUrl: false });
   }
 
   if (!itemToDelete.value?.fullPath) {
@@ -773,7 +861,7 @@ async function remove () {
     })
     .finally(() => loading.value.remove = false);
 
-  return list(currentPath.value);
+  return list(currentPath.value, { syncUrl: false });
 }
 
 const showUploadModal = ref(false);
@@ -834,7 +922,7 @@ async function uploadFiles () {
     }
   }
 
-  await list(currentPath.value);
+  await list(currentPath.value, { syncUrl: false });
 
   loading.value.write = false;
 }
@@ -897,10 +985,14 @@ async function mkdir () {
     })
     .finally(() => loading.value.mkdir = false);
 
-  await list(currentPath.value);
+  await list(currentPath.value, { syncUrl: false });
 }
 
 const fileListContainer = ref<HTMLElement | null>(null);
+
+async function refreshCurrentPath () {
+  await list(currentPath.value, { syncUrl: false });
+}
 
 function onGlobalClick (event: MouseEvent) {
   if (selectedItems.value.size === 0) {
@@ -924,18 +1016,41 @@ function onGlobalClick (event: MouseEvent) {
   selectedItems.value.clear();
 }
 
-async function init () {
-  await list(currentPath.value);
-}
-
 onMounted(async () => {
-  await init();
-  window.addEventListener('device-reconnected', init);
+  window.addEventListener('device-reconnected', refreshCurrentPath);
   window.addEventListener('click', onGlobalClick);
 });
 onBeforeUnmount(() => {
-  window.removeEventListener('device-reconnected', init);
+  window.removeEventListener('device-reconnected', refreshCurrentPath);
   window.removeEventListener('click', onGlobalClick);
+});
+
+watch(() => route.query.path, async queryPath => {
+  const rawPath = getQueryPath(queryPath);
+
+  if (!rawPath) {
+    await list('/ext', { syncUrl: false });
+    return;
+  }
+
+  const requestedPath = resolveStoragePath(rawPath);
+
+  if (requestedPath === '/ext') {
+    router.replace({ query: { ...route.query, path: undefined } });
+  }
+
+  if (requestedPath === currentPath.value && currentDir.value.length > 0) {
+    return;
+  }
+
+  const success = await list(requestedPath, { syncUrl: false, errorNotificationTimeout: 0 });
+  if (!success && requestedPath !== '/ext') {
+    await list('/ext', { syncUrl: true, replaceUrl: true });
+  }
+}, { immediate: true });
+
+onBeforeUnmount(() => {
+  router.replace({ query: { ...route.query, path: undefined } });
 });
 </script>
 

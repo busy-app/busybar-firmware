@@ -1,5 +1,5 @@
 #include "soft_off/storage_macros.h"
-
+#include "soft_off.h"
 #include <furi.h>
 
 #include <loader/loader.h>
@@ -48,6 +48,8 @@ static void soft_off_animation_finished_callback(
 int32_t soft_off_app(void* arg) {
     UNUSED(arg);
 
+    furi_record_create(RECORD_POWEROFF, NULL);
+
     Loader* loader = furi_record_open(RECORD_LOADER);
     loader_set_priority(loader, 0);
 
@@ -87,6 +89,7 @@ int32_t soft_off_app(void* arg) {
             light_sensor_sleep(true);
         }
     }
+    furi_record_destroy(RECORD_POWEROFF);
     furi_thread_set_signal_callback(thread, NULL, NULL);
 
     with_gui(gui, { anim_player_free(anim_player); });
