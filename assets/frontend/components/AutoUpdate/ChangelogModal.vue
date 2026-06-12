@@ -26,5 +26,4 @@
 
 <script lang="ts" setup>
 const firmwareStore = useFirmwareStore();
-console.log(firmwareStore.autoUpdate.changelog);
 </script>
