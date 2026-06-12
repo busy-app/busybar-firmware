@@ -61,6 +61,18 @@ static MatterStatus matter_get_error_status_or_wait_for_response(MatterStatus st
     return new_status;
 }
 
+static void matter_intercom_state_callback(const void* item, void* context) {
+    furi_assert(item);
+    furi_assert(context);
+
+    FuriSemaphore* sem = context;
+    const IntercomStatus intercom_status = *(IntercomStatus*)item;
+
+    if(intercom_status == IntercomStatusOk) {
+        furi_check(furi_semaphore_release(sem) == FuriStatusOk);
+    }
+}
+
 static void matter_intercom_rx_callback(const void* data, size_t data_size, void* context) {
     furi_check(data);
     furi_check(data_size == sizeof(MatterIntercomFrame));
@@ -111,10 +123,37 @@ static void matter_rx_queue_callback(FuriEventLoopObject* object, void* context)
     }
 }
 
+static bool matter_open_intercom_channel(Matter* instance) {
+    bool success = false;
+
+    FuriSemaphore* sem = furi_semaphore_alloc(1, 0);
+
+    FuriState* intercom_state = intercom_get_state(instance->intercom);
+    FuriStateSub* intercom_sub =
+        furi_state_subscribe(intercom_state, matter_intercom_state_callback, sem);
+
+    if(furi_semaphore_acquire(sem, REQUEST_TIMEOUT_MS) == FuriStatusOk) {
+        instance->intercom_ch = intercom_channel_open(
+            instance->intercom, IntercomChannelIdMatter, matter_intercom_rx_callback, instance);
+        success = true;
+    }
+
+    furi_state_unsubscribe(intercom_sub);
+    furi_semaphore_free(sem);
+
+    return success;
+}
+
 static MatterStatus matter_send_frame(Matter* instance, const MatterIntercomFrame* frame) {
-    const size_t tx_size =
-        intercom_tx(instance->intercom_ch, frame, sizeof(MatterIntercomFrame), REQUEST_TIMEOUT_MS);
-    return (tx_size == sizeof(MatterIntercomFrame)) ? MatterStatusOk : MatterStatusTimeout;
+    MatterStatus status = MatterStatusError;
+
+    if(instance->intercom_ch != NULL) {
+        const size_t tx_size = intercom_tx(
+            instance->intercom_ch, frame, sizeof(MatterIntercomFrame), REQUEST_TIMEOUT_MS);
+        status = (tx_size == sizeof(MatterIntercomFrame)) ? MatterStatusOk : MatterStatusTimeout;
+    }
+
+    return status;
 }
 
 static MatterStatus matter_process_api_message(Matter* instance, MatterApiMessage* api_message) {
@@ -340,10 +379,12 @@ static MatterStatus
     UNUSED(data);
     MatterStatus status;
 
-    instance->intercom_ch = intercom_channel_open(
-        instance->intercom, IntercomChannelIdMatter, matter_intercom_rx_callback, instance);
-
     do {
+        if(!matter_open_intercom_channel(instance)) {
+            status = MatterStatusError;
+            break;
+        }
+
         MatterIntercomFrame frame = {};
         frame.type = MatterIntercomFrameTypeInitialization;
 
