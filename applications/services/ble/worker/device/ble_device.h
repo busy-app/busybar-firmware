@@ -32,6 +32,8 @@ bool ble_device_connection_open(
 
 bool ble_device_connection_close(BleDevice* instance);
 
+void ble_device_connection_update(BleDevice* instance, FuriEventLoop* event_loop);
+
 bool ble_device_disconnect(BleDevice* instance);
 
 bool ble_device_is_connected(BleDevice* instance);

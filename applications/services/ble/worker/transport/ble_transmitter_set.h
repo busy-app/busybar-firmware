@@ -5,6 +5,8 @@
 BleTransmitterGeneric* ble_transmitter_set_alloc();
 void ble_transmitter_set_free(BleTransmitterGeneric* transport);
 
+void ble_transmitter_set_enable(BleTransmitterGeneric* transport);
+
 bool ble_transmitter_set_chunk(
     BleTransmitterGeneric* transport,
     const uint8_t* dev_addr,

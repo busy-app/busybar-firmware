@@ -8,6 +8,7 @@
 typedef struct {
     FuriMessageQueue* tx_queue;
     FuriSemaphore* more_data_sem;
+    bool enabled;
 } BleTransmitterSetContext;
 
 typedef struct {
@@ -70,11 +71,10 @@ static void ble_transmitter_tx_queue_handler(FuriEventLoopObject* object, void* 
     }
 }
 
-// static inline bool ble_worker_set_chunk(uint16_t handle, uint16_t data_size, const uint8_t* data) {
-//     sl_status_t status = rsi_ble_set_local_att_value(handle, data_size, data);
-//     if(status != RSI_SUCCESS) BLE_LOG_W("Send fail %08lX", status);
-//     return status == RSI_SUCCESS;
-// }
+void ble_transmitter_set_enable(BleTransmitterGeneric* transport) {
+    BleTransmitterSetContext* instance = transport;
+    instance->enabled = true;
+}
 
 bool ble_transmitter_set_chunk(
     BleTransmitterGeneric* transport,
@@ -83,6 +83,12 @@ bool ble_transmitter_set_chunk(
     const uint16_t data_size,
     const uint8_t* data) {
     BleTransmitterSetContext* instance = transport;
+
+    if(!instance->enabled) {
+        BLE_LOG_W("Notification drop");
+        return false;
+    }
+
     BleDataItemPtr item = malloc(sizeof(BleDataHeader) + data_size);
     item->header.data_size = data_size;
     item->header.handle = handle;
@@ -106,6 +112,7 @@ void ble_transmitter_set_reset(BleTransmitterGeneric* transport) {
     while(furi_message_queue_get(instance->tx_queue, &item, 0) == FuriStatusOk) {
         free(item);
     }
+    instance->enabled = false;
 }
 
 BleTransmitterGeneric* ble_transmitter_set_alloc() {
