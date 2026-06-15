@@ -29,7 +29,7 @@ bool ble_event_handler_smp_encrypt_started(size_t data_size, void* data, void* c
     rsi_bt_event_encryption_enabled_t* enc_enabled = data;
     ble_device_handle_encryption_start(instance->device, enc_enabled);
 
-    furi_event_loop_timer_start(instance->update_param_timer, 100);
+    ble_device_connection_update(instance->device, instance->event_loop);
     return true;
 }
 
