@@ -5,6 +5,27 @@
 
 #define TAG "BleConnection"
 
+#define BLE_ADJUST_CONNECTION_PARAMETERS_RETRY_COUNT (10)
+#define BLE_ADJUST_CONNECTION_PARAMETERS_TIMEOUT     (500)
+
+typedef enum {
+    BleConnectionCommandUpdatePhy,
+    BleConnectionCommandUpdateDataLength,
+    BleConnectionCommandEnableNwpDLE,
+    BleConnectionCommandCount
+} BleConnectionCommand;
+
+typedef union {
+    struct {
+        bool phy_2m_update_done : 1;
+        bool length_update_done : 1;
+        bool dle_done           : 1;
+    } feature;
+    uint8_t value;
+} BleConnectionUpdateStatus;
+
+typedef void (*BleConnectionCommandHandler)(BleConnectionContext* instance);
+
 struct BleConnectionContext {
     BleConnectionTimings timings;
     BleConnectionDataLength data_length_params;
@@ -12,9 +33,16 @@ struct BleConnectionContext {
     BlePhy RxPhy;
 
     BleDeviceBase* peer;
-    bool phy_update_done;
-    bool length_update_done;
+
+    BleConnectionUpdateStatus current_status;
+    BleConnectionCommand next_update_command;
+    uint8_t update_param_retry_count;
+    FuriEventLoopTimer* update_param_timer;
+    BleConnectionUpdateParamtersDoneCallback done_cb;
+    void* done_ctx;
 };
+
+static void connection_update_callback(void* context);
 
 BleConnectionContext*
     ble_connection_alloc(BleDeviceAddressType type, const uint8_t* const peer_address) {
@@ -29,6 +57,11 @@ BleConnectionContext*
 
 void ble_connection_free(BleConnectionContext* instance) {
     furi_assert(instance);
+
+    if(instance->update_param_timer) {
+        furi_event_loop_timer_stop(instance->update_param_timer);
+        furi_event_loop_timer_free(instance->update_param_timer);
+    }
 
     ble_device_base_free(instance->peer);
     free(instance);
@@ -63,7 +96,8 @@ void ble_connection_set_data_length(
     furi_assert(instance);
     furi_assert(data_length);
     memcpy(&instance->data_length_params, data_length, sizeof(BleConnectionDataLength));
-    instance->length_update_done = true;
+    BLE_LOG_I("Length set done");
+    instance->current_status.feature.length_update_done = true;
 }
 
 const BlePhy* ble_connection_get_tx_phy(BleConnectionContext* instance) {
@@ -83,54 +117,132 @@ void ble_connection_set_phy(
     furi_assert(instance);
     instance->TxPhy.value = tx_phy;
     instance->RxPhy.value = rx_phy;
-    instance->phy_update_done = true;
+
+    BLE_LOG_I("PHY set done");
+    instance->current_status.feature.phy_2m_update_done = instance->TxPhy.flags.phy_le_2m;
 }
 
-void request_2m_phy_retry(const uint8_t* addr) {
+static void ble_connection_command_udpate_phy(BleConnectionContext* instance) {
+    BleDeviceBase* peer = instance->peer;
+    do {
+        if(!ble_device_base_is_feature_supported(peer, BleDeviceFeaturesLE2MPhy)) {
+            BLE_LOG_W("2MPhy not supported, skip");
+            instance->next_update_command = BleConnectionCommandUpdateDataLength;
+            break;
+        }
+
+        if(instance->current_status.feature.phy_2m_update_done) {
+            BLE_LOG_I("2MPhy already, skip");
+            instance->next_update_command = BleConnectionCommandUpdateDataLength;
+            break;
+        }
+
+        const uint8_t* addr = ble_device_base_get_address(peer, BleDeviceAddressTypeOrigin);
+        sl_status_t status =
+            rsi_ble_setphy((const int8_t*)addr, TX_PHY_RATE, RX_PHY_RATE, CODDED_PHY_RATE);
+        if(status != RSI_SUCCESS) {
+            BLE_LOG_W("Failed to set phy, error code : 0x%08lx", status);
+            break;
+        }
+
+        instance->next_update_command = BleConnectionCommandUpdateDataLength;
+    } while(false);
+}
+
+static void ble_connection_command_udpate_data_length(BleConnectionContext* instance) {
+    BleDeviceBase* peer = instance->peer;
+    do {
+        if(!ble_device_base_is_feature_supported(
+               peer, BleDeviceFeaturesLEDataPacketLengthExtension)) {
+            instance->next_update_command = BleConnectionCommandEnableNwpDLE;
+            break;
+        }
+
+        if(instance->current_status.feature.length_update_done) {
+            BLE_LOG_I("Length already set, skip");
+            instance->next_update_command = BleConnectionCommandEnableNwpDLE;
+            break;
+        }
+
+        const uint8_t* addr = ble_device_base_get_address(peer, BleDeviceAddressTypeOrigin);
+        sl_status_t status = rsi_ble_set_data_len((uint8_t*)addr, TX_LEN, TX_TIME);
+        if(status != RSI_SUCCESS) {
+            BLE_LOG_W("\n Set data length cmd failed with error code = %lx \n", status);
+            break;
+        }
+
+        instance->next_update_command = BleConnectionCommandEnableNwpDLE;
+    } while(false);
+}
+
+static void ble_connection_command_enable_nwp_dle(BleConnectionContext* instance) {
+    BleDeviceBase* peer = instance->peer;
+
+    if(instance->current_status.feature.dle_done) {
+        BLE_LOG_I("Dle already set, goto start");
+        instance->next_update_command = BleConnectionCommandUpdatePhy;
+        return;
+    }
+
+    const uint8_t* addr = ble_device_base_get_address(peer, BleDeviceAddressTypeOrigin);
     sl_status_t status =
-        rsi_ble_setphy((const int8_t*)addr, TX_PHY_RATE, RX_PHY_RATE, CODDED_PHY_RATE);
+        rsi_ble_set_wo_resp_notify_buf_info(addr, DLE_BUFFER_MODE, DLE_BUFFER_COUNT);
     if(status != RSI_SUCCESS) {
-        BLE_LOG_W("Failed to set phy, error code : 0x%08lx", status);
+        BLE_LOG_W("Failed to set the buffer configuration mode, error: 0x%08lx", status);
     } else {
-        BLE_LOG_I("PHY set done");
+        BLE_LOG_I(
+            "Buffer configuration done for notify and set_att cmds buf mode = %d , max buff count =%d",
+            DLE_BUFFER_MODE,
+            DLE_BUFFER_COUNT);
+        instance->current_status.feature.dle_done = true;
     }
 }
 
-bool ble_connection_update_phy_and_data_length_by_timer(BleConnectionContext* instance) {
+static const BleConnectionCommandHandler commands[BleConnectionCommandCount] = {
+    [BleConnectionCommandUpdatePhy] = ble_connection_command_udpate_phy,
+    [BleConnectionCommandUpdateDataLength] = ble_connection_command_udpate_data_length,
+    [BleConnectionCommandEnableNwpDLE] = ble_connection_command_enable_nwp_dle,
+};
+
+static void connection_update_callback(void* context) {
+    BleConnectionContext* instance = context;
+    BLE_LOG_I("%s", __func__);
+
+    BleConnectionCommandHandler handler = commands[instance->next_update_command];
+    handler(instance);
+
+    bool all_updates_done = instance->current_status.value == 0x07;
+    if(all_updates_done) {
+        instance->done_cb(instance->done_ctx);
+    } else {
+        instance->update_param_retry_count += 1;
+
+        if(instance->update_param_retry_count == BLE_ADJUST_CONNECTION_PARAMETERS_RETRY_COUNT) {
+            BLE_LOG_W("Max retry count exceeded");
+        } else {
+            furi_event_loop_timer_start(
+                instance->update_param_timer, BLE_ADJUST_CONNECTION_PARAMETERS_TIMEOUT);
+        }
+    }
+}
+
+void ble_connection_start_update_parameters(
+    BleConnectionContext* instance,
+    FuriEventLoop* event_loop,
+    BleConnectionUpdateParamtersDoneCallback done_cb,
+    void* context) {
     furi_assert(instance);
+    furi_assert(event_loop);
+    furi_assert(done_cb);
+    furi_assert(context);
 
-    bool all_updates_done = instance->phy_update_done && instance->length_update_done;
-
-    do {
-        if(all_updates_done) {
-            BLE_LOG_I("all_updates_done = 1");
-            break;
-        }
-
-        BleDeviceBase* peer = instance->peer;
-        bool Phy2M_supported =
-            ble_device_base_is_feature_supported(peer, BleDeviceFeaturesLE2MPhy);
-
-        const uint8_t* addr = ble_device_base_get_address(peer, BleDeviceAddressTypeOrigin);
-        if(!instance->phy_update_done && Phy2M_supported) {
-            request_2m_phy_retry(addr);
-            break;
-        }
-
-        bool length_extension_supported = ble_device_base_is_feature_supported(
-            peer, BleDeviceFeaturesLEDataPacketLengthExtension);
-        if(!instance->length_update_done && length_extension_supported) {
-            sl_status_t status = rsi_ble_set_data_len((uint8_t*)addr, TX_LEN, TX_TIME);
-            if(status != RSI_SUCCESS) {
-                BLE_LOG_W("\n Set data length cmd failed with error code = %lx \n", status);
-            } else {
-                BLE_LOG_I("Length set done");
-            }
-
-            break;
-        }
-
-    } while(false);
-
-    return all_updates_done;
+    if(instance->update_param_timer == NULL) {
+        instance->update_param_timer = furi_event_loop_timer_alloc(
+            event_loop, connection_update_callback, FuriEventLoopTimerTypeOnce, instance);
+        instance->done_cb = done_cb;
+        instance->done_ctx = context;
+        instance->next_update_command = BleConnectionCommandUpdatePhy;
+        ///TODO: prepare max supported feature value here
+        connection_update_callback(instance);
+    }
 }
