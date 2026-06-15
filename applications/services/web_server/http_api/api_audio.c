@@ -239,6 +239,7 @@ static bool api_audio_volume_handler(
 
             if(value_present) {
                 if((volume > 100) || (volume < 0)) break;
+                FURI_LOG_D(TAG, "HTTP Volume = %d", volume);
                 Audio* audio = furi_record_open(RECORD_AUDIO);
                 audio_set_volume(audio, (float)volume / 100.f);
                 if(!silent) {
