@@ -6,7 +6,7 @@ paths:
   /api/smart_home/pairing:
     get:
       tags:
-        - Smart home
+        - Smart Home
       summary: Smart home commissioning status
       operationId: getSmartHomeCommissioningStatus
       parameters: []
@@ -19,7 +19,7 @@ paths:
                 $ref: "#/components/schemas/SmartHomePairingInfo"
     post:
       tags:
-        - Smart home
+        - Smart Home
       summary: Link device to a smart home
       operationId: startSmartHomePairing
       parameters: []
@@ -38,7 +38,7 @@ paths:
                 $ref: "#/components/schemas/Error"
     delete:
       tags:
-        - Smart home
+        - Smart Home
       summary: Erase all smart home links
       parameters: []
       responses:
@@ -58,7 +58,7 @@ paths:
   /api/smart_home/switch:
     get:
       tags:
-        - Smart home
+        - Smart Home
       summary: Get state of emulated smart home switch
       parameters: []
       responses:
@@ -76,7 +76,7 @@ paths:
                 $ref: "#/components/schemas/Error"
     post:
       tags:
-        - Smart home
+        - Smart Home
       summary: Set state of emulated smart home switch
       parameters: []
       requestBody:
