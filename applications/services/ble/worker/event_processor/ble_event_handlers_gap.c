@@ -4,8 +4,6 @@
 
 #define TAG "BleGAPEvent"
 
-#define BLE_ADJUST_CONNECTION_PARAMETERS_TIMEOUT (500)
-
 bool ble_event_handler_gap_connected(size_t data_size, void* data, void* context) {
     UNUSED(data_size);
     BleWorker* instance = context;
@@ -62,8 +60,6 @@ bool ble_event_handler_gap_disconnected(size_t data_size, void* data, void* cont
     ble_device_base_format_address(peer, BleDeviceAddressTypeOrigin, addr);
     BLE_LOG_I("Disconnect, address : %s", furi_string_get_cstr(addr));
     furi_string_free(addr);
-
-    furi_event_loop_timer_stop(instance->update_param_timer);
 
     bool result = ble_device_connection_close(instance->device);
 
@@ -154,19 +150,5 @@ bool ble_event_handler_gap_exit(size_t data_size, void* data, void* context) {
     ble_device_stop(instance->device);
 
     furi_event_loop_stop(instance->event_loop);
-    return true;
-}
-
-bool ble_event_handler_gap_adjust_connection_request(size_t data_size, void* data, void* context) {
-    UNUSED(data_size);
-    UNUSED(data);
-    BLE_LOG_I("%s", __func__);
-    BleWorker* instance = context;
-    BleConnectionContext* conn = ble_device_get_connection_context(instance->device);
-    bool all_done = (conn != NULL) && ble_connection_update_phy_and_data_length_by_timer(conn);
-    if(!all_done) {
-        furi_event_loop_timer_start(
-            instance->update_param_timer, BLE_ADJUST_CONNECTION_PARAMETERS_TIMEOUT);
-    }
     return true;
 }

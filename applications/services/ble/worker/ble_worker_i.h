@@ -11,7 +11,6 @@ struct BleWorker {
     BleIncomingNwpEventProcessor* event_proc;
     BleTransmitter* transport;
     BleDevice* device;
-    FuriEventLoopTimer* update_param_timer;
 
     BleConnectionStateChanged on_connection_changed_cb;
     void* on_connection_changed_ctx;

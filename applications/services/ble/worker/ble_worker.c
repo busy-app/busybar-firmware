@@ -19,13 +19,6 @@
 static BleWorker* ble_worker_instance = NULL;
 //===========================================================================================
 
-static void connection_update_callback(void* context) {
-    BleWorker* instance = context;
-    BLE_LOG_I("%s", __func__);
-    ble_incoming_nwp_event_processor_spawn_event(
-        instance->event_proc, BleIncomingNwpEventTypeAdjustConnectionRequest, 0, NULL);
-}
-
 static int32_t ble_worker_thread_callback(void* context) {
     BleWorker* instance = context;
     BLE_LOG_I("Worker Thread Start");
@@ -36,12 +29,8 @@ static int32_t ble_worker_thread_callback(void* context) {
     ble_transmitter_subscribe(instance->transport, instance->event_loop, context);
     ble_incoming_nwp_event_processor_subscribe(instance->event_proc, instance->event_loop);
 
-    instance->update_param_timer = furi_event_loop_timer_alloc(
-        instance->event_loop, connection_update_callback, FuriEventLoopTimerTypeOnce, instance);
-
     furi_event_loop_run(instance->event_loop);
 
-    furi_event_loop_timer_free(instance->update_param_timer);
     ble_incoming_nwp_event_processor_unsubscribe(instance->event_proc, instance->event_loop);
     ble_transmitter_unsubscribe(instance->transport, instance->event_loop);
 
