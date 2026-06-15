@@ -196,6 +196,7 @@ static void ble_connection_command_enable_nwp_dle(BleConnectionContext* instance
             DLE_BUFFER_MODE,
             DLE_BUFFER_COUNT);
         instance->current_status.feature.dle_done = true;
+        instance->next_update_command = BleConnectionCommandUpdatePhy;
     }
 }
 
@@ -220,6 +221,7 @@ static void connection_update_callback(void* context) {
 
         if(instance->update_param_retry_count == BLE_ADJUST_CONNECTION_PARAMETERS_RETRY_COUNT) {
             BLE_LOG_W("Max retry count exceeded");
+            instance->done_cb(instance->done_ctx);
         } else {
             furi_event_loop_timer_start(
                 instance->update_param_timer, BLE_ADJUST_CONNECTION_PARAMETERS_TIMEOUT);
