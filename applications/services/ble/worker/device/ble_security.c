@@ -319,9 +319,13 @@ bool ble_security_rpa_disable() {
 bool ble_security_init(BleSecurityData* instance) {
     furi_assert(instance);
 
-    ble_security_load_data(instance);
+    bool pairing_present = false;
+    if(ble_security_load_data(instance)) {
+        pairing_present = ble_security_pairing_present(instance);
+    }
+
     ble_security_rpa_init(instance);
-    return ble_security_pairing_present(instance);
+    return pairing_present;
 }
 
 bool ble_security_pairing_present(BleSecurityData* security) {
