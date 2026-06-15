@@ -5,6 +5,7 @@
 typedef enum {
     FirmwareSettingsMainSceneEventCheckForUpdate = FirmwareSettingsEventSceneEventsStart,
     FirmwareSettingsMainSceneEventSettings,
+    FirmwareSettingsMainSceneEventVersionInfo,
 } FirmwareSettingsMainSceneEvent;
 
 typedef struct {
@@ -41,6 +42,14 @@ static void firmware_settings_main_scene_on_enter(void* context) {
 
         submenu_add_item(
             scene->front_submenu,
+            "Version info",
+            NULL,
+            FirmwareSettingsMainSceneEventVersionInfo,
+            firmware_settings_main_scene_submenu_callback,
+            instance);
+
+        submenu_add_item(
+            scene->front_submenu,
             "Settings",
             NULL,
             FirmwareSettingsMainSceneEventSettings,
@@ -50,6 +59,7 @@ static void firmware_settings_main_scene_on_enter(void* context) {
         /* back layout setup */
         scene->back_submenu = submenu_alloc(instance->back_scene_window);
         submenu_add_item(scene->back_submenu, "Check for update", NULL, 0, NULL, NULL);
+        submenu_add_item(scene->back_submenu, "Version info", NULL, 0, NULL, NULL);
         submenu_add_item(scene->back_submenu, "Settings", NULL, 0, NULL, NULL);
 
         widget_set_scrollbar_enabled(submenu_get_base(scene->front_submenu), true);
@@ -85,6 +95,14 @@ static bool firmware_settings_main_scene_on_event(const SceneManagerEvent* event
 
             with_gui(instance->gui, {
                 nav_bar_push_location(instance->back_nav_bar, "SETTINGS");
+            });
+            return true;
+
+        case FirmwareSettingsMainSceneEventVersionInfo:
+            scene_manager_next_scene(instance->scene_manager, FirmwareSettingsSceneIdxVersionInfo);
+
+            with_gui(instance->gui, {
+                nav_bar_push_location(instance->back_nav_bar, "VERSION INFO");
             });
             return true;
 
