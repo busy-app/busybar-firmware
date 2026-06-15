@@ -35,6 +35,7 @@ struct BleConnectionContext {
     BleDeviceBase* peer;
 
     BleConnectionUpdateStatus current_status;
+    BleConnectionUpdateStatus expected_status;
     BleConnectionCommand next_update_command;
     uint8_t update_param_retry_count;
     FuriEventLoopTimer* update_param_timer;
@@ -211,7 +212,7 @@ static void connection_update_callback(void* context) {
     BleConnectionCommandHandler handler = commands[instance->next_update_command];
     handler(instance);
 
-    bool all_updates_done = instance->current_status.value == 0x07;
+    bool all_updates_done = instance->current_status.value == instance->expected_status.value;
     if(all_updates_done) {
         instance->done_cb(instance->done_ctx);
     } else {
@@ -224,6 +225,16 @@ static void connection_update_callback(void* context) {
                 instance->update_param_timer, BLE_ADJUST_CONNECTION_PARAMETERS_TIMEOUT);
         }
     }
+}
+
+static void ble_connection_get_update_expected_status(BleConnectionContext* instance) {
+    instance->expected_status.feature.phy_2m_update_done =
+        ble_device_base_is_feature_supported(instance->peer, BleDeviceFeaturesLE2MPhy);
+
+    instance->expected_status.feature.length_update_done = ble_device_base_is_feature_supported(
+        instance->peer, BleDeviceFeaturesLEDataPacketLengthExtension);
+
+    instance->expected_status.feature.dle_done = true;
 }
 
 void ble_connection_start_update_parameters(
@@ -242,7 +253,9 @@ void ble_connection_start_update_parameters(
         instance->done_cb = done_cb;
         instance->done_ctx = context;
         instance->next_update_command = BleConnectionCommandUpdatePhy;
-        ///TODO: prepare max supported feature value here
+
+        ble_connection_get_update_expected_status(instance);
+
         connection_update_callback(instance);
     }
 }
