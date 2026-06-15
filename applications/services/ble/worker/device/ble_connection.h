@@ -2,7 +2,7 @@
 
 #include "ble_device_base.h"
 
-typedef void (*BleConnectionUpdateParamtersDoneCallback)(void* ctx);
+typedef void (*BleConnectionUpdateParametersDoneCallback)(void* ctx);
 
 typedef struct {
     uint16_t interval;
@@ -62,5 +62,5 @@ void ble_connection_set_phy(
 void ble_connection_start_update_parameters(
     BleConnectionContext* instance,
     FuriEventLoop* event_loop,
-    BleConnectionUpdateParamtersDoneCallback done_cb,
+    BleConnectionUpdateParametersDoneCallback done_cb,
     void* ctx);

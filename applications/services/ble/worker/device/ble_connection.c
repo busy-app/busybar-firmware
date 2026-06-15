@@ -38,7 +38,7 @@ struct BleConnectionContext {
     BleConnectionCommand next_update_command;
     uint8_t update_param_retry_count;
     FuriEventLoopTimer* update_param_timer;
-    BleConnectionUpdateParamtersDoneCallback done_cb;
+    BleConnectionUpdateParametersDoneCallback done_cb;
     void* done_ctx;
 };
 
@@ -122,7 +122,7 @@ void ble_connection_set_phy(
     instance->current_status.feature.phy_2m_update_done = instance->TxPhy.flags.phy_le_2m;
 }
 
-static void ble_connection_command_udpate_phy(BleConnectionContext* instance) {
+static void ble_connection_command_update_phy(BleConnectionContext* instance) {
     BleDeviceBase* peer = instance->peer;
     do {
         if(!ble_device_base_is_feature_supported(peer, BleDeviceFeaturesLE2MPhy)) {
@@ -149,7 +149,7 @@ static void ble_connection_command_udpate_phy(BleConnectionContext* instance) {
     } while(false);
 }
 
-static void ble_connection_command_udpate_data_length(BleConnectionContext* instance) {
+static void ble_connection_command_update_data_length(BleConnectionContext* instance) {
     BleDeviceBase* peer = instance->peer;
     do {
         if(!ble_device_base_is_feature_supported(
@@ -199,8 +199,8 @@ static void ble_connection_command_enable_nwp_dle(BleConnectionContext* instance
 }
 
 static const BleConnectionCommandHandler commands[BleConnectionCommandCount] = {
-    [BleConnectionCommandUpdatePhy] = ble_connection_command_udpate_phy,
-    [BleConnectionCommandUpdateDataLength] = ble_connection_command_udpate_data_length,
+    [BleConnectionCommandUpdatePhy] = ble_connection_command_update_phy,
+    [BleConnectionCommandUpdateDataLength] = ble_connection_command_update_data_length,
     [BleConnectionCommandEnableNwpDLE] = ble_connection_command_enable_nwp_dle,
 };
 
@@ -229,7 +229,7 @@ static void connection_update_callback(void* context) {
 void ble_connection_start_update_parameters(
     BleConnectionContext* instance,
     FuriEventLoop* event_loop,
-    BleConnectionUpdateParamtersDoneCallback done_cb,
+    BleConnectionUpdateParametersDoneCallback done_cb,
     void* context) {
     furi_assert(instance);
     furi_assert(event_loop);
