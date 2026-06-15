@@ -162,7 +162,10 @@ static void api_smart_home_switch_set(struct mg_connection* conn, struct mg_http
         if(!has_switch_state && !has_switch_startup) break;
 
         if(has_switch_state) {
-            if(!matter_set_switch_state(matter, switch_state)) {
+            const MatterSwitchState switch_val = switch_state ? MatterSwitchStateOn :
+                                                                MatterSwitchStateOff;
+
+            if(matter_set_switch_state(matter, switch_val) != MatterStatusOk) {
                 matter_request_error = true;
                 break;
             }
@@ -179,7 +182,7 @@ static void api_smart_home_switch_set(struct mg_connection* conn, struct mg_http
                 switch_startup, switch_startup_modes, COUNT_OF(switch_startup_modes));
             furi_assert(startup < MatterSwitchStartupModeMAX);
 
-            if(!matter_set_switch_startup_mode(matter, startup)) {
+            if(matter_set_switch_startup_mode(matter, startup) != MatterStatusOk) {
                 matter_request_error = true;
                 break;
             }

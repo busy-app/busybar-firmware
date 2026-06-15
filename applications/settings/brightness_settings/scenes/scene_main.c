@@ -9,9 +9,11 @@
 typedef enum {
     SceneEventModeChanged = AppEventSceneEventsStart,
     SceneEventBrightnessChanged,
+    SceneEventDataChangedExternally,
 } SceneEvent;
 
 typedef enum {
+    VarItemListIdMode,
     VarItemListIdBrightness,
 
     VarItemListIdsCount,
@@ -88,6 +90,7 @@ static void scene_main_fill_var_item_list(
         instance);
 
     var_item_set_value(mode_item, data->mode);
+    container->items[VarItemListIdMode] = mode_item;
 
     VarItem* brightness_item = var_item_list_add_spinbox(
         container->list,
@@ -101,6 +104,27 @@ static void scene_main_fill_var_item_list(
 
     var_item_set_value(brightness_item, data->brightness);
     container->items[VarItemListIdBrightness] = brightness_item;
+}
+
+static void
+    update_var_item_values(const SettingsSceneBrightness* data, VarItemListContainer* container) {
+    var_item_list_exit_edit_mode(container->list, false);
+    var_item_set_value(container->items[VarItemListIdMode], data->mode);
+    if(data->mode == BrightnessModeManual) {
+        var_item_set_value(container->items[VarItemListIdBrightness], data->brightness);
+    } else {
+        var_item_focus(container->items[VarItemListIdMode]);
+    }
+}
+
+static void brightness_changed_callback(BrightnessMode mode, uint8_t value, void* context) {
+    BrightnessSettings* instance = context;
+    SettingsSceneBrightness* data =
+        scene_manager_get_scene_data(instance->scene_manager, SceneIdMain);
+
+    if(mode != data->mode || value != data->brightness) {
+        brightness_settings_send_custom_event(instance, SceneEventDataChangedExternally);
+    }
 }
 
 static void scene_main_on_enter(void* context) {
@@ -130,12 +154,16 @@ static void scene_main_on_enter(void* context) {
 
     Color color = COLOR_MAKE_RGB(0xFF, 0xFF, 0xFF);
     status_lights_run_preset(instance->status_lights, StatusLightsPresetStaticColor, color);
+    brightness_model_set_callback(instance->model, brightness_changed_callback, instance);
 }
 
 static void scene_main_on_exit(void* context) {
     furi_assert(context);
 
     BrightnessSettings* instance = context;
+
+    brightness_model_set_callback(instance->model, NULL, NULL);
+
     SettingsSceneBrightness* data =
         scene_manager_get_scene_data(instance->scene_manager, SceneIdMain);
 
@@ -169,6 +197,17 @@ static bool scene_main_on_event(const SceneManagerEvent* event, void* context) {
 
         case SceneEventBrightnessChanged:
             brightness_model_set(instance->model, data->brightness);
+            consumed = true;
+            break;
+
+        case SceneEventDataChangedExternally:
+            data->mode = brightness_model_get_mode(instance->model);
+            data->brightness = brightness_model_get(instance->model);
+            with_gui(instance->gui, {
+                update_var_item_values(data, &data->front_container);
+                update_var_item_values(data, &data->back_container);
+                scene_main_filter_items(data);
+            });
             consumed = true;
             break;
 

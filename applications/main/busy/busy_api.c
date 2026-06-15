@@ -1,10 +1,14 @@
 #include "busy_i.h"
 
+static void busy_api_send_message_async(BusyApp* instance, const BusyApiMessage* message) {
+    furi_check(
+        furi_message_queue_put(instance->api_queue, message, FuriWaitForever) == FuriStatusOk);
+}
+
 static void busy_api_send_message(BusyApp* instance, BusyApiMessage* message) {
     message->lock = api_lock_alloc_locked();
 
-    furi_check(
-        furi_message_queue_put(instance->api_queue, message, FuriWaitForever) == FuriStatusOk);
+    busy_api_send_message_async(instance, message);
 
     api_lock_wait_unlock_and_free(message->lock);
 }
@@ -38,5 +42,5 @@ void busy_request_exit(BusyApp* instance) {
         .type = BusyApiMessageTypeRequestExit,
     };
 
-    busy_api_send_message(instance, &message);
+    busy_api_send_message_async(instance, &message);
 }

@@ -23,8 +23,16 @@ typedef enum {
     BrightnessModesCount,
 } BrightnessMode;
 
+typedef void (
+    *BrightnessModelBrightnessChangedCallback)(BrightnessMode mode, uint8_t value, void* context);
+
 BrightnessModel* brightness_model_alloc(void);
 void brightness_model_free(BrightnessModel* model);
+
+void brightness_model_set_callback(
+    BrightnessModel* model,
+    BrightnessModelBrightnessChangedCallback callback,
+    void* context);
 
 void brightness_model_set_auto_mode(BrightnessModel* model);
 BrightnessMode brightness_model_get_mode(BrightnessModel* model);

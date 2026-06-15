@@ -18,13 +18,17 @@ extern "C" {
 /** Spec paragraph 5.1.4 says 21. We also add a maximum of 5 hyphens. */
 #define MATTER_MAN_CODE_LEN_MAX (26)
 
+/**
+ * @brief Command execution status.
+ */
 typedef enum {
-    MatterStatusOk,
-    MatterStatusTimeout,
-    MatterStatusFsError,
-    MatterStatusBadConfig,
-    MatterStatusUnprovisioned,
-    MatterStatusMax,
+    MatterStatusOk, /**< Command executed, no error occurred */
+    MatterStatusError, /**< An unknown error has occurred */
+    MatterStatusTimeout, /**< The command is taking too long */
+    MatterStatusFsError, /**< Filesystem error (e.g. file not found) */
+    MatterStatusBadConfig, /**< Config file format error (e.g. corrupt file) */
+    MatterStatusUnprovisioned, /**< Matter credentials are not present on this device */
+    MatterStatusMax, /**< Special value, internal use */
 } MatterStatus;
 
 /**
