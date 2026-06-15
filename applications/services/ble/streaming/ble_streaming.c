@@ -128,6 +128,8 @@ static inline void ble_stream_process_pending_frame(BleStreaming* instance) {
         SharedByteArray_clear(instance->data);
 
         furi_mutex_release(instance->lock);
+    } else {
+        SharedByteArray_clear(instance->data);
     }
 }
 
