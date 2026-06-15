@@ -18,6 +18,7 @@
 static const char* mqtt_http_proxy_method_names[MqttHttpProxyMethodIdMax] = {
     [MqttHttpProxyMethodIdGet] = "GET",
     [MqttHttpProxyMethodIdPost] = "POST",
+    [MqttHttpProxyMethodIdPut] = "PUT",
     [MqttHttpProxyMethodIdDelete] = "DELETE",
 };
 
@@ -25,6 +26,30 @@ static const MqttHttpProxyBlocklistEntry mqtt_http_proxy_blocklist[] = {
     {
         .name = "update",
         .id = MqttHttpProxyMethodIdPost,
+    },
+    {
+        .name = "account",
+        .id = MqttHttpProxyMethodIdDelete,
+    },
+    {
+        .name = "account/link",
+        .id = MqttHttpProxyMethodIdPost,
+    },
+    {
+        .name = "account/backend",
+        .id = MqttHttpProxyMethodIdPut,
+    },
+    {
+        .name = "wifi/connect",
+        .id = MqttHttpProxyMethodIdPost,
+    },
+    {
+        .name = "wifi/disconnect",
+        .id = MqttHttpProxyMethodIdPost,
+    },
+    {
+        .name = "wifi/networks",
+        .id = MqttHttpProxyMethodIdGet,
     },
 };
 

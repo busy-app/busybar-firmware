@@ -22,7 +22,6 @@ typedef enum {
     BleIncomingNwpEventTypeSmpLtkRequest,
     BleIncomingNwpEventTypeSmpSecurityKeys,
     BleIncomingNwpEventTypeSmpPairingFailed,
-    BleIncomingNwpEventTypeAdjustConnectionRequest,
 
     BleIncomingNwpEventTypeCount,
 } BleIncomingNwpEventType;

@@ -2,10 +2,19 @@
 
 #define MATTER_API_TIMEOUT_MS (5000)
 
-static void
-    matter_api_send_message_internal(Matter* instance, const MatterApiMessage* api_message) {
-    instance->api_message = *api_message;
-    furi_event_loop_set_custom_event(instance->event_loop, MatterCustomEventRequest);
+static MatterStatus
+    matter_api_send_message_async(Matter* instance, const MatterApiMessage* api_message) {
+    MatterStatus status = MatterStatusOk;
+
+    const FuriStatus queue_status = furi_message_queue_put(
+        instance->api_queue, api_message, furi_ms_to_ticks(MATTER_API_TIMEOUT_MS));
+
+    if(queue_status != FuriStatusOk) {
+        furi_check(queue_status == FuriStatusErrorTimeout);
+        status = MatterStatusTimeout;
+    }
+
+    return status;
 }
 
 static MatterStatus matter_api_send_message(Matter* instance, MatterApiMessage* api_message) {
@@ -14,23 +23,15 @@ static MatterStatus matter_api_send_message(Matter* instance, MatterApiMessage* 
     api_message->status = &status;
     api_message->lock = api_lock_alloc_locked();
 
-    const FuriStatus sem_status =
-        furi_semaphore_acquire(instance->api_semaphore, furi_ms_to_ticks(MATTER_API_TIMEOUT_MS));
+    status = matter_api_send_message_async(instance, api_message);
 
-    if(sem_status == FuriStatusOk) {
-        matter_api_send_message_internal(instance, api_message);
+    if(status == MatterStatusOk) {
         api_lock_wait_unlock_and_free(api_message->lock);
     } else {
-        status = MatterStatusTimeout;
         api_lock_free(api_message->lock);
     }
 
     return status;
-}
-
-static void matter_api_reset_message(MatterApiMessage* api_message) {
-    memset(api_message, 0, sizeof(MatterApiMessage));
-    api_message->type = MatterApiMessageTypeMax;
 }
 
 // =========  Message-based access API (private) =========
@@ -40,7 +41,7 @@ void matter_init_backend(Matter* instance) {
         .type = MatterApiMessageTypeInitBackend,
     };
 
-    matter_api_send_message_internal(instance, &api_message);
+    matter_api_send_message_async(instance, &api_message);
 }
 
 // =========  Message-based access API (public) =========
@@ -53,7 +54,7 @@ MatterStatus matter_set_switch_state(Matter* instance, MatterSwitchState switch_
         .data.set_switch_state.state = switch_state,
     };
 
-    return matter_api_send_message(instance, &api_message);
+    return matter_api_send_message_async(instance, &api_message);
 }
 
 MatterStatus matter_set_switch_startup_mode(Matter* instance, MatterSwitchStartupMode mode) {
@@ -64,7 +65,7 @@ MatterStatus matter_set_switch_startup_mode(Matter* instance, MatterSwitchStartu
         .data.set_switch_startup_mode.mode = mode,
     };
 
-    return matter_api_send_message(instance, &api_message);
+    return matter_api_send_message_async(instance, &api_message);
 }
 
 MatterStatus matter_factory_reset(Matter* instance, MatterReboot reboot) {
@@ -76,7 +77,7 @@ MatterStatus matter_factory_reset(Matter* instance, MatterReboot reboot) {
             .reboot_mode = reboot,
         }};
 
-    return matter_api_send_message(instance, &api_message);
+    return matter_api_send_message_async(instance, &api_message);
 }
 
 MatterStatus matter_enable_commissioning(Matter* instance, MatterCommissioningInfo* info) {
@@ -128,33 +129,4 @@ MatterStatus
 
     *cert_info = instance->cert_config;
     return MatterStatusOk;
-}
-
-// Internal API
-
-bool matter_api_is_waiting_for_response(Matter* instance, MatterApiMessageType message_type) {
-    return instance->api_message.type == message_type;
-}
-
-void matter_api_unlock(Matter* instance, MatterStatus status) {
-    MatterApiMessage* api_message = &instance->api_message;
-    furi_assert(api_message->type < MatterApiMessageTypeMax);
-
-    if(api_message->status) {
-        *api_message->status = status;
-    }
-
-    if(api_message->lock) {
-        api_lock_unlock(api_message->lock);
-    }
-
-    matter_api_reset_message(api_message);
-
-    furi_check(furi_semaphore_release(instance->api_semaphore) == FuriStatusOk);
-}
-
-void matter_api_unlock_and_cancel_timeout(Matter* instance, MatterStatus status) {
-    furi_assert(instance);
-    furi_event_loop_timer_stop(instance->timeout_timer);
-    matter_api_unlock(instance, status);
 }

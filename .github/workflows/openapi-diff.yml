@@ -27,51 +27,60 @@ jobs:
     oasdiff:
         runs-on: ubuntu-latest
 
+        env:
+            OAPI_DIR: applications/services/web_server/openapi
+            OAS_OUT: dist/openapi.yaml
+
         steps:
             - name: Checkout current
               uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
               with:
                   ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
-                  fetch-depth: 2
+                  sparse-checkout: |
+                    scripts/openapi_merge.py
+                    scripts/flipper/app.py
+                    applications/services/web_server/openapi/
+                    applications/services/web_server/http_api/http_api.h
+                  sparse-checkout-cone-mode: false
 
             - name: Checkout base
               uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
               with:
                   ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
                   path: base
+                  sparse-checkout: |
+                    scripts/openapi_merge.py
+                    scripts/flipper/app.py
+                    applications/services/web_server/openapi/
+                    applications/services/web_server/http_api/http_api.h
+                  sparse-checkout-cone-mode: false
 
-            - name: Build OpenAPI specifications
-              id: build
+            - name: Install Python dependencies
+              run: pip3 install pyyaml colorlog
+
+            - name: Build current spec
               shell: bash
               run: |
                 set -euo pipefail
+                mkdir -p dist
+                python3 scripts/openapi_merge.py merge \
+                  "${OAS_OUT}" \
+                  "${OAPI_DIR}/"*.yaml
+                python3 scripts/openapi_merge.py validate "${OAS_OUT}"
 
-                git lfs install --skip-smudge
-
-                git submodule update --init --depth 1 --filter=blob:none --jobs="$(nproc)" scripts/toolchain fbt_layers/fbtng
-                source scripts/toolchain/fbtenv.sh
-                bash ./fbt openapi_dist
-
-                cd base
-                git submodule update --init --depth 1 --filter=blob:none --jobs="$(nproc)" scripts/toolchain fbt_layers/fbtng
-                if ! bash ./fbt openapi_dist; then
-                  echo "WARNING: base repository does not support openapi_dist target"
-                  mkdir -p dist/f21
-                  cp applications/services/web_server/resources/apps_assets/web_server/www/openapi.yaml dist/f21/
+            - name: Build base spec
+              shell: bash
+              run: |
+                set -euo pipefail
+                mkdir -p base/dist
+                if python3 base/scripts/openapi_merge.py merge \
+                     "base/${OAS_OUT}" \
+                     "base/${OAPI_DIR}/"*.yaml 2>/dev/null; then
+                  python3 base/scripts/openapi_merge.py validate "base/${OAS_OUT}"
+                else
+                  echo "WARNING: base does not support openapi_merge; copying from source"
+                  cp "base/${OAPI_DIR}/openapi.yaml" "base/${OAS_OUT}"
                 fi
-
-                # Resolve OAS path independent of the target HW
-                OAS_PATH="$(echo dist/f[0-9]*/openapi.yaml)"
-                test -n "${OAS_PATH}" || { echo "ERROR: no openapi.yaml found under dist/f*/"; exit 1; }
-                test "$(echo ${OAS_PATH} | wc -w)" -eq 1 || { echo "ERROR: multiple openapi.yaml found: ${OAS_PATH}"; exit 1; }
-                echo "OAS_PATH=${OAS_PATH}" >> "${GITHUB_ENV}"
-
-            - name: Validate merged OpenAPI spec
-              shell: bash
-              run: |
-                set -euo pipefail
-                source scripts/toolchain/fbtenv.sh
-                python3 scripts/openapi_merge.py validate "${OAS_PATH}"
 
             - name: Install oasdiff
               run: |
@@ -82,7 +91,7 @@ jobs:
               run: |
                   set -o pipefail
 
-                  SUMMARY="$(oasdiff summary --exclude-elements description,summary,examples "base/$OAS_PATH" "$OAS_PATH" 2>&1)" || true
+                  SUMMARY="$(oasdiff summary --exclude-elements description,summary,examples "base/${OAS_OUT}" "${OAS_OUT}" 2>&1)" || true
                   echo 'summary<<EOF' >> "$GITHUB_OUTPUT"
                   echo "$SUMMARY" >> "$GITHUB_OUTPUT"
                   echo 'EOF' >> "$GITHUB_OUTPUT"
@@ -94,18 +103,18 @@ jobs:
                     echo "has_changes=false" >> "$GITHUB_OUTPUT"
                   fi
 
-                  if oasdiff breaking -o ERR --format markdown "base/$OAS_PATH" "$OAS_PATH" > breaking.md 2>&1; then
+                  if oasdiff breaking -o ERR --format markdown "base/${OAS_OUT}" "${OAS_OUT}" > breaking.md 2>&1; then
                     echo "exit_code=0" >> "$GITHUB_OUTPUT"
                   else
                     echo "exit_code=$?" >> "$GITHUB_OUTPUT"
                   fi
 
-                  CHANGELOG="$(oasdiff changelog --format markdown "base/$OAS_PATH" "$OAS_PATH" 2>&1 | sed -E 's/(^|[^#])#([0-9]+)/\1`#\2`/g')" || true
+                  CHANGELOG="$(oasdiff changelog --format markdown "base/${OAS_OUT}" "${OAS_OUT}" 2>&1 | sed -E 's/(^|[^#])#([0-9]+)/\1`#\2`/g')" || true
                   echo 'changelog<<EOF' >> "$GITHUB_OUTPUT"
                   echo "$CHANGELOG" >> "$GITHUB_OUTPUT"
                   echo 'EOF' >> "$GITHUB_OUTPUT"
 
-                  REPORT_MD="$(oasdiff diff --format markdown --exclude-elements description,summary,examples "base/$OAS_PATH" "$OAS_PATH" 2>&1 | sed -E 's/(^|[^#])#([0-9]+)/\1`#\2`/g')" || true
+                  REPORT_MD="$(oasdiff diff --format markdown --exclude-elements description,summary,examples "base/${OAS_OUT}" "${OAS_OUT}" 2>&1 | sed -E 's/(^|[^#])#([0-9]+)/\1`#\2`/g')" || true
                   echo 'report_md<<EOF' >> "$GITHUB_OUTPUT"
                   echo "$REPORT_MD" >> "$GITHUB_OUTPUT"
                   echo 'EOF' >> "$GITHUB_OUTPUT"
@@ -116,8 +125,8 @@ jobs:
                   HAS_BREAKING: ${{ steps.oasdiff.outputs.exit_code }}
                   HAS_CHANGES: ${{ steps.oasdiff.outputs.has_changes }}
               run: |
-                  BASE_VERSION=$(grep -m1 '^  version:' "base/$OAS_PATH" | sed 's/.*version: *//; s/["'\'']*//g')
-                  CURR_VERSION=$(grep -m1 '^  version:' "$OAS_PATH" | sed 's/.*version: *//; s/["'\'']*//g')
+                  BASE_VERSION=$(grep -m1 'version:' "base/${OAS_OUT}" | sed 's/.*version: *//; s/[^0-9.]//g')
+                  CURR_VERSION=$(grep -m1 'version:' "${OAS_OUT}" | sed 's/.*version: *//; s/[^0-9.]//g')
 
                   echo "base_version=$BASE_VERSION" >> "$GITHUB_OUTPUT"
                   echo "current_version=$CURR_VERSION" >> "$GITHUB_OUTPUT"

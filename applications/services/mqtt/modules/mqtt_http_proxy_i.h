@@ -7,6 +7,7 @@
 typedef enum {
     MqttHttpProxyMethodIdGet,
     MqttHttpProxyMethodIdPost,
+    MqttHttpProxyMethodIdPut,
     MqttHttpProxyMethodIdDelete,
     MqttHttpProxyMethodIdMax,
 } MqttHttpProxyMethodId;

@@ -2,6 +2,8 @@
 
 #include "ble_device_base.h"
 
+typedef void (*BleConnectionUpdateParametersDoneCallback)(void* ctx);
+
 typedef struct {
     uint16_t interval;
     uint16_t latency;
@@ -56,3 +58,9 @@ void ble_connection_set_phy(
     BleConnectionContext* instance,
     const uint8_t tx_phy,
     const uint8_t rx_phy);
+
+void ble_connection_start_update_parameters(
+    BleConnectionContext* instance,
+    FuriEventLoop* event_loop,
+    BleConnectionUpdateParametersDoneCallback done_cb,
+    void* ctx);

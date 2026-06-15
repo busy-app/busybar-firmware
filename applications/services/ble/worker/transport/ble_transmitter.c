@@ -140,3 +140,9 @@ void ble_transmitter_unsubscribe(BleTransmitter* instance, FuriEventLoop* event_
         ble_transmitters[i].unsubscribe(instance->context[i], event_loop);
     }
 }
+
+void ble_transmitter_enable_notifications(BleTransmitter* instance) {
+    furi_assert(instance);
+    BLE_LOG_I("Notifications enabled");
+    ble_transmitter_set_enable(instance->context[BleTransmitterTypeSet]);
+}

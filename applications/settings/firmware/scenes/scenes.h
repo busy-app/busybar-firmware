@@ -5,6 +5,7 @@
 typedef enum {
     FirmwareSettingsSceneIdxMain,
     FirmwareSettingsSceneIdxSettings,
+    FirmwareSettingsSceneIdxVersionInfo,
     FirmwareSettingsSceneIdxCheck,
     FirmwareSettingsSceneIdxCheckResult,
     FirmwareSettingsSceneIdxDialog,

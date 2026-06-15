@@ -7,6 +7,8 @@ typedef struct BleTransmitter BleTransmitter;
 BleTransmitter* ble_transmitter_alloc();
 void ble_transmitter_free(BleTransmitter* instance);
 
+void ble_transmitter_enable_notifications(BleTransmitter* instance);
+
 bool ble_transmitter_send_chunk(
     BleTransmitter* instance,
     const uint8_t* dev_addr,

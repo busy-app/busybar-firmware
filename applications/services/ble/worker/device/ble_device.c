@@ -138,6 +138,19 @@ bool ble_device_connection_close(BleDevice* instance) {
     return result;
 }
 
+static void ble_device_connection_update_done(void* context) {
+    BleDevice* instance = context;
+    ble_transmitter_enable_notifications(instance->transmitter);
+}
+
+void ble_device_connection_update(BleDevice* instance, FuriEventLoop* event_loop) {
+    furi_assert(instance);
+    furi_assert(event_loop);
+
+    ble_connection_start_update_parameters(
+        instance->connection, event_loop, ble_device_connection_update_done, instance);
+}
+
 bool ble_device_disconnect(BleDevice* instance) {
     furi_assert(instance);
 
@@ -327,6 +340,18 @@ void ble_device_response_pairing_capabilities(BleDevice* instance) {
 
     if(status != SL_STATUS_OK) {
         BLE_LOG_W("Failed to send pairing capabilities: %lX", status);
+    }
+}
+
+void ble_device_request_pairing(BleDevice* instance) {
+    furi_assert(instance);
+    BLE_LOG_I("Request pairing...");
+    const uint8_t* addr = ble_device_base_get_address(instance->peer, BleDeviceAddressTypeOrigin);
+    sl_status_t status = rsi_ble_smp_pair_request(
+        (uint8_t*)addr, BLE_DEVICE_SMP_IO_CAPABILITY, BLE_DEVICE_MITM_REQ);
+
+    if(status != RSI_SUCCESS) {
+        BLE_LOG_W("Request pairing failed: %08lX", status);
     }
 }
 

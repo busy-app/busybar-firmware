@@ -11,4 +11,3 @@ bool ble_event_handler_gap_length_change(size_t data_size, void* data, void* con
 bool ble_event_handler_gap_receive_remote_features(size_t data_size, void* data, void* context);
 
 bool ble_event_handler_gap_exit(size_t data_size, void* data, void* context);
-bool ble_event_handler_gap_adjust_connection_request(size_t data_size, void* data, void* context);

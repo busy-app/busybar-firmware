@@ -29,7 +29,7 @@ bool ble_event_handler_smp_encrypt_started(size_t data_size, void* data, void* c
     rsi_bt_event_encryption_enabled_t* enc_enabled = data;
     ble_device_handle_encryption_start(instance->device, enc_enabled);
 
-    furi_event_loop_timer_start(instance->update_param_timer, 100);
+    ble_device_connection_update(instance->device, instance->event_loop);
     return true;
 }
 
@@ -44,10 +44,10 @@ bool ble_event_handler_smp_ltk_request(size_t data_size, void* data, void* conte
 
         if(ble_device_is_paired(instance->device)) {
             ble_worker_invoke_connect_callback(instance);
+        } else {
+            ble_device_request_pairing(instance->device);
         }
     } while(false);
-    // ble_worker_spawn_event(
-    //     instance->event_queue, BleWorkerEventTypeAdjustConnectionRequest, 0, NULL);
 
     return true;
 }

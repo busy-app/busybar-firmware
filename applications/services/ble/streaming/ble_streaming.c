@@ -87,6 +87,8 @@ static void ble_stream_state_publisher_callback(const SharedByteArray_t data, vo
         SharedByteArray_init_set(instance->data, data);
         furi_event_loop_set_custom_event(instance->event_loop, BleStreamingEventFramePending);
         furi_mutex_release(instance->lock);
+    } else {
+        FURI_LOG_W(TAG, "%s no lock", __func__);
     }
 }
 
@@ -157,6 +159,11 @@ static int32_t ble_streaming_thread(void* context) {
     furi_event_loop_set_custom_event_callback(
         instance->event_loop, ble_streaming_event_loop_callback, instance);
 
+    ///TODO: Remove this when Ble streaming could be started from other side
+    ///when connection parameters will be updated
+    furi_delay_ms(5000);
+    FURI_LOG_D(TAG, "Stream start");
+
     furi_event_loop_run(instance->event_loop);
 
     ble_stream_state_publisher_unsubscribe(instance);
@@ -192,7 +199,6 @@ static void ble_streaming_start(BleStreaming* instance) {
     furi_mutex_acquire(instance->lock, FuriWaitForever);
 
     if(!instance->run) {
-        FURI_LOG_D(TAG, "Stream start");
         instance->run = true;
         furi_thread_start(instance->thread);
     }

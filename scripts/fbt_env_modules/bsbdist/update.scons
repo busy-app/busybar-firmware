@@ -127,10 +127,14 @@ installs = [
     InstallAs(_dist_file("sil_firmware", "rps"), sil_env["FW_ENV"]["FW_RPS"][0]),
     InstallAs(_dist_file("sil_firmware", "elf"), sil_env["FW_ENV"]["FW_ELF"][0]),
     InstallAs(_dist_file("sil_nwp", "rps"), sil_env["FW_ENV"]["SI917_NWP_STACK"]),
-    InstallAs(_dist_file("openapi", "yaml"), fw_env["FW_OPENAPI_YAML"]),
 ]
 
+_openapi_dist = InstallAs(_dist_file("openapi", "yaml"), fw_env["FW_OPENAPI_YAML"])
+installs.append(_openapi_dist)
+
 Default(installs)
+
+dist_env.Alias("openapi_dist", _openapi_dist)
 
 dist_env.Alias("update_bundle", update_tar)
 dist_env.Alias("dist", installs)

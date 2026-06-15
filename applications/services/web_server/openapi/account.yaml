@@ -9,6 +9,7 @@ paths:
         - Account
       summary: Unlink device from account
       description: Removes account linking data
+      x-local-only: true
       operationId: unlinkAccount
       responses:
         "200":
@@ -24,6 +25,7 @@ paths:
         - Account
       summary: Link device to account
       description: Requests account link PIN. Works only if device is connected to MQTT and is not linked to account
+      x-local-only: true
       operationId: linkAccount
       responses:
         "200":
@@ -88,6 +90,7 @@ paths:
         - Account
       summary: Set MQTT configuration
       description: Sets MQTT backend configuration
+      x-local-only: true
       operationId: setAccountBackend
       requestBody:
         required: true

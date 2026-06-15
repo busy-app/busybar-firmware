@@ -16,8 +16,15 @@ extern "C" {
 
 typedef struct VolumeModel VolumeModel;
 
+typedef void (*VolumeModelVolumeChangedCallback)(void* context);
+
 VolumeModel* volume_model_alloc(void);
 void volume_model_free(VolumeModel* model);
+
+void volume_model_set_callback(
+    VolumeModel* model,
+    VolumeModelVolumeChangedCallback callback,
+    void* context);
 
 void volume_model_set(VolumeModel* model, uint8_t volume);
 uint8_t volume_model_get(VolumeModel* model);
