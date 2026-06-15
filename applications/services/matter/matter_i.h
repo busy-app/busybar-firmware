@@ -58,14 +58,12 @@ typedef struct {
 
 struct Matter {
     FuriEventLoop* event_loop;
-    FuriEventLoopTimer* timeout_timer;
-    FuriSemaphore* api_semaphore;
+    FuriMessageQueue* api_queue;
     FuriMessageQueue* rx_queue;
     FuriPubSub* pubsub;
     FuriState* switch_state;
     Intercom* intercom;
     IntercomChannel* intercom_ch;
-    MatterApiMessage api_message;
     MatterCommissionedFabrics fabrics;
     MatterCertificationConfig cert_config;
 };
@@ -73,12 +71,6 @@ struct Matter {
 // matter_api.c
 
 void matter_init_backend(Matter* instance);
-
-bool matter_api_is_waiting_for_response(Matter* instance, MatterApiMessageType message_type);
-
-void matter_api_unlock(Matter* instance, MatterStatus status);
-
-void matter_api_unlock_and_cancel_timeout(Matter* instance, MatterStatus status);
 
 // matter_certification.c
 

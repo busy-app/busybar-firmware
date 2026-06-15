@@ -53,7 +53,13 @@ class SmartHomeSwitchState(BaseModel):
 class SmartHomeResultResponse(BaseModel):
     """Generic smart home operation result."""
 
-    result: str
+    result: Literal["OK"]
+
+
+class SmartHomeErrorResponse(BaseModel):
+    """Generic smart home error response."""
+
+    error: str
 
 
 # === API Client ===
@@ -79,22 +85,36 @@ class SmartHomeAPI(BaseAPI):
         """Start smart home pairing. Returns payload or 503 error."""
         return self.post_raw("/api/smart_home/pairing", data=b"")
 
-    def erase_pairing(self):
+    def erase_pairing(self) -> SmartHomeResultResponse:
         """Erase all smart home pairing info."""
-        return self.delete_raw("/api/smart_home/pairing")
+        return self.delete(
+            "/api/smart_home/pairing", SmartHomeResultResponse
+        )
 
     def get_switch_state(self) -> SmartHomeSwitchState:
         """Get smart home switch state."""
         return self.get("/api/smart_home/switch", SmartHomeSwitchState)
 
-    def set_switch_state(self, state: bool):
+    def set_switch_state(
+        self, state: bool, startup: str = None
+    ):
         """
-        Set smart home switch state.
+        Set smart home switch state and/or startup mode.
 
         Args:
             state: Switch state (true/false)
+            startup: Optional startup mode: "off", "on", "toggle", "last"
         """
-        return self.post_raw(
-            "/api/smart_home/switch",
-            json={"state": state},
-        )
+        body = {"state": state}
+        if startup is not None:
+            body["startup"] = startup
+        return self.post_raw("/api/smart_home/switch", json=body)
+
+    def set_switch_startup(self, startup: str):
+        """
+        Set smart home switch startup mode only.
+
+        Args:
+            startup: Startup mode: "off", "on", "toggle", "last"
+        """
+        return self.post_raw("/api/smart_home/switch", json={"startup": startup})

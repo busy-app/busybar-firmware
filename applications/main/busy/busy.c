@@ -66,7 +66,9 @@ static void busy_api_queue_callback(FuriEventLoopObject* object, void* context) 
             furi_crash("Invalid BusyApiMessageType value");
         }
 
-        api_lock_unlock(message.lock);
+        if(message.lock) {
+            api_lock_unlock(message.lock);
+        }
     }
 }
 

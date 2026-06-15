@@ -53,8 +53,20 @@ const firmwareStore = useFirmwareStore();
 const wifiStore = useWifiStore();
 const stateStreamStore = useStateStreamStore();
 const configStore = useConfigStore();
+const route = useRoute();
+const tabStore = useTabStore();
 
 const shouldLoadDefaultPage = ref(false);
+function hasPathQuery (): boolean {
+  const queryPath = route.query.path;
+
+  if (Array.isArray(queryPath)) {
+    return queryPath.some(value => typeof value === 'string' && value.length > 0);
+  }
+
+  return typeof queryPath === 'string' && queryPath.length > 0;
+}
+
 async function init () {
   try {
     await deviceStore.fetchDeviceName(true);
@@ -77,6 +89,11 @@ async function init () {
     }
 
     await initStateStream();
+
+    if (hasPathQuery()) {
+      tabStore.showHiddenTabs = true;
+      tabStore.currentTab = 'files';
+    }
   } catch (error) {
     if ((error as { status: number })?.status === 403) {
       return await navigateTo('/login');

@@ -593,6 +593,22 @@ void var_item_set_flags(VarItem* item, uint32_t flags) {
     var_item_editor_update(editor);
 }
 
+void var_item_list_exit_edit_mode(VarItemList* instance, bool apply_changes) {
+    VarItemEditor* editor = instance->edited;
+
+    if(editor) {
+        var_item_editor_set_edited(instance->edited, false);
+        instance->edited = NULL;
+
+        if(apply_changes && editor->callback) {
+            editor->callback(var_item_editor_get_item(editor), editor->context);
+        }
+    }
+}
+
+void var_item_focus(VarItem* item) {
+    lv_group_focus_obj((lv_obj_t*)item);
+}
 // LVGL classes
 
 const lv_obj_class_t var_item_list_lvgl_class = {

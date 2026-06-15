@@ -8,7 +8,8 @@
 
 typedef enum {
     SceneEventVolumeChanged = AppEventSceneEventsStart,
-    SceneEventBackPressed
+    SceneEventBackPressed,
+    SceneEventVolumeChangedExternally,
 } SceneEvent;
 
 typedef struct {
@@ -17,6 +18,11 @@ typedef struct {
 
     _Atomic uint8_t volume;
 } SettingsSceneSound;
+
+static void volume_changed_callback(void* context) {
+    SoundSettings* instance = context;
+    sound_settings_send_custom_event(instance, SceneEventVolumeChangedExternally);
+}
 
 static bool scene_main_input_callback(const InputEvent* event, void* context) {
     furi_assert(event);
@@ -98,6 +104,7 @@ static void scene_main_on_enter(void* context) {
         slider_view_add_level_image(
             data->back_slider, 0, IMG_PATH("speaker_back_mute_11x11.image"));
     });
+    volume_model_set_callback(instance->model, volume_changed_callback, instance);
 }
 
 static void scene_main_on_exit(void* context) {
@@ -105,6 +112,8 @@ static void scene_main_on_exit(void* context) {
 
     SoundSettings* instance = context;
     SettingsSceneSound* data = scene_manager_get_scene_data(instance->scene_manager, SceneIdMain);
+
+    volume_model_set_callback(instance->model, NULL, NULL);
 
     with_gui(instance->gui, {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
@@ -117,10 +126,16 @@ static void scene_main_on_exit(void* context) {
     audio_disable(instance->audio);
 }
 
+static void update_gui(const SettingsSceneSound* data, SliderView* slider) {
+    slider_view_set_value(slider, data->volume);
+}
+
 static bool scene_main_on_event(const SceneManagerEvent* event, void* context) {
     furi_assert(context);
 
     SoundSettings* instance = context;
+
+    SettingsSceneSound* data = scene_manager_get_scene_data(instance->scene_manager, SceneIdMain);
 
     bool consumed = false;
     if(event->type == SceneManagerEventTypeCustom) {
@@ -140,6 +155,19 @@ static bool scene_main_on_event(const SceneManagerEvent* event, void* context) {
             scene_manager_handle_back_event(instance->scene_manager);
             consumed = true;
             break;
+
+        case SceneEventVolumeChangedExternally: {
+            uint8_t new_volume = volume_model_get(instance->model);
+            if(data->volume != new_volume) {
+                data->volume = new_volume;
+                with_gui(instance->gui, {
+                    update_gui(data, data->front_slider);
+                    update_gui(data, data->back_slider);
+                });
+            }
+            consumed = true;
+            break;
+        }
 
         default:
             break;

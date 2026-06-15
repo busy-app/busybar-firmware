@@ -4,6 +4,9 @@
 
 struct VolumeModel {
     Audio* audio;
+    VolumeModelVolumeChangedCallback callback;
+    void* callback_context;
+    FuriPubSubSubscription* subscription;
 };
 
 static uint8_t volume_to_model(float volume) {
@@ -14,16 +17,46 @@ static float volume_from_model(uint8_t volume) {
     return (float)volume / 100.f;
 }
 
+static void pubsub_callback(const void* message, void* context) {
+    VolumeModel* model = context;
+    const AudioEvent* event = message;
+    if(event->type == AudioEventVolumeUpdate) {
+        model->callback(model->callback_context);
+    }
+}
+
 VolumeModel* volume_model_alloc(void) {
     VolumeModel* model = malloc(sizeof(VolumeModel));
     model->audio = furi_record_open(RECORD_AUDIO);
+    model->callback = NULL;
+    model->callback_context = NULL;
+    model->subscription = NULL;
     return model;
 }
 
 void volume_model_free(VolumeModel* model) {
     furi_assert(model);
+    if(model->subscription) {
+        furi_pubsub_unsubscribe(audio_get_pubsub(model->audio), model->subscription);
+    }
     furi_record_close(RECORD_AUDIO);
     free(model);
+}
+
+void volume_model_set_callback(
+    VolumeModel* model,
+    VolumeModelVolumeChangedCallback callback,
+    void* context) {
+    if(model->subscription) {
+        furi_pubsub_unsubscribe(audio_get_pubsub(model->audio), model->subscription);
+        model->subscription = NULL;
+    }
+    model->callback = callback;
+    model->callback_context = context;
+    if(callback) {
+        model->subscription =
+            furi_pubsub_subscribe(audio_get_pubsub(model->audio), pubsub_callback, model);
+    }
 }
 
 void volume_model_set(VolumeModel* model, uint8_t volume) {
