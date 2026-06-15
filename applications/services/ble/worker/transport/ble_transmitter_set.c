@@ -8,6 +8,7 @@
 typedef struct {
     FuriMessageQueue* tx_queue;
     FuriSemaphore* more_data_sem;
+    bool send_buffer_error;
     bool enabled;
 } BleTransmitterSetContext;
 
@@ -49,6 +50,7 @@ static bool
         if(furi_semaphore_acquire(instance->more_data_sem, BLE_TRANSMIT_FAILURE_TIMEOUT) !=
            FuriStatusOk) {
             BLE_LOG_W("Notify timeout");
+            instance->send_buffer_error = true;
             break;
         }
 
@@ -64,8 +66,9 @@ static void ble_transmitter_tx_queue_handler(FuriEventLoopObject* object, void* 
 
     BleDataItemPtr item = NULL;
     while(furi_message_queue_get(instance->tx_queue, &item, 0) == FuriStatusOk) {
-        ///TODO: process return value
-        ble_transmitter_send_item(instance, item);
+        if(!instance->send_buffer_error) {
+            ble_transmitter_send_item(instance, item);
+        }
         free(item);
         item = NULL;
     }
@@ -113,6 +116,7 @@ void ble_transmitter_set_reset(BleTransmitterGeneric* transport) {
         free(item);
     }
     instance->enabled = false;
+    instance->send_buffer_error = false;
 }
 
 BleTransmitterGeneric* ble_transmitter_set_alloc() {
@@ -138,6 +142,10 @@ void ble_transmitter_set_more_data(BleTransmitterGeneric* transport) {
     BleTransmitterSetContext* instance = transport;
 
     furi_semaphore_release(instance->more_data_sem);
+    if(instance->send_buffer_error) {
+        instance->send_buffer_error = false;
+        BLE_LOG_W("Restore more data");
+    }
 }
 
 void ble_transmitter_set_subscribe(
