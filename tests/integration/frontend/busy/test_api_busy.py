@@ -3,7 +3,6 @@ import time
 
 import allure
 import pytest
-import requests
 
 from clients.api import BusyAPI, StorageAPI, StreamingAPI
 from utils.busy_timer import (
@@ -537,14 +536,14 @@ class TestBusySnapshotRegressions:
         updated = busy_api.get_snapshot()
         assert updated.snapshot["busy_bar_settings"] == settings
 
-    @allure.title("Paused BUSY SIMPLE snapshot is restored after reset")
-    def test_busy_timer_paused_simple_snapshot_persists_after_reset(
+    @allure.title("Paused BUSY SIMPLE snapshot is restored after reboot")
+    def test_busy_timer_paused_simple_snapshot_persists_after_reboot(
         self,
         busy_api: BusyAPI,
         api_session,
         web_base_url,
         busy_state_guard,
-        device_flasher,
+        persistent_cli_connection,
     ):
         settings = _current_busy_settings(busy_state_guard)
         expected_time_left_ms = 123000
@@ -556,15 +555,15 @@ class TestBusySnapshotRegressions:
 
         assert busy_api.set_snapshot_raw(body).status_code == 200
         time.sleep(STATE_SETTLE_S)
-        assert device_flasher.reset_and_wait(wait_timeout=90, reset_interval=15)
 
-        session = requests.Session()
-        session.headers.update({"Accept": "application/json"})
-        response = session.get(f"{web_base_url}/api/busy/snapshot", timeout=10)
-        assert response.status_code == 200
+        with allure.step("Reboot device via CLI and wait for API"):
+            assert persistent_cli_connection.reboot_and_wait_for_api(
+                web_base_url, timeout=90
+            ), "Device did not come back after CLI reboot"
 
-        restored = response.json()
-        assert restored["snapshot_timestamp_ms"] == body["snapshot_timestamp_ms"]
-        assert restored["snapshot"]["type"] == "SIMPLE"
-        assert restored["snapshot"]["is_paused"] is True
-        assert restored["snapshot"]["time_left_ms"] == expected_time_left_ms
+        with allure.step("Verify snapshot persisted after reboot"):
+            updated = busy_api.get_snapshot()
+            assert updated.snapshot_timestamp_ms == body["snapshot_timestamp_ms"]
+            assert updated.snapshot["type"] == "SIMPLE"
+            assert updated.snapshot["is_paused"] is True
+            assert updated.snapshot["time_left_ms"] == expected_time_left_ms
