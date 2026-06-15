@@ -97,20 +97,16 @@ static void furi_qei_irq_callback(void* context) {
 
 void furi_hal_qei_init(void) {
     furi_hal_gpio_init_ex(
-        &gpio_encoder_a, GpioModeInput, GpioPullUp, GpioSpeedHigh, GpioAltFn6SOCPERH_ON_ULP_GPIO_9);
+        &gpio_encoder_a, GpioModeInput, GpioPullUp, GpioSpeedLow, GpioAltFn6SOCPERH_ON_ULP_GPIO_9);
     // Init virtual (multiplexed) pins
     furi_hal_gpio_init_ex(
-        &gpio_i_encoder_a, GpioModeInput, GpioPullNo, GpioSpeedHigh, GpioAltFn3QEI_PHA);
+        &gpio_i_encoder_a, GpioModeInput, GpioPullNo, GpioSpeedLow, GpioAltFn3QEI_PHA);
 
     furi_hal_gpio_init_ex(
-        &gpio_encoder_b,
-        GpioModeInput,
-        GpioPullUp,
-        GpioSpeedHigh,
-        GpioAltFn6SOCPERH_ON_ULP_GPIO_10);
+        &gpio_encoder_b, GpioModeInput, GpioPullUp, GpioSpeedLow, GpioAltFn6SOCPERH_ON_ULP_GPIO_10);
     // Init virtual (multiplexed) pins
     furi_hal_gpio_init_ex(
-        &gpio_i_encoder_b, GpioModeInput, GpioPullNo, GpioSpeedHigh, GpioAltFn3QEI_PHB);
+        &gpio_i_encoder_b, GpioModeInput, GpioPullNo, GpioSpeedLow, GpioAltFn3QEI_PHB);
 
     // Enable QEI clock
     furi_hal_bus_enable(FuriHalBusQEI_PCLK);

@@ -3,6 +3,7 @@ App(
     name="Software Power Off",
     apptype=FlipperAppType.SYSTEM,
     entry_point="soft_off_app",
+    cdefines=["APP_POWEROFF"],
     requires=["gui"],
     stack_size=2 * 1024,
     targets=["f20", "f21", "f22"],

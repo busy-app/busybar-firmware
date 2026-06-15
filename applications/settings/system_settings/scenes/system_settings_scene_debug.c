@@ -70,6 +70,9 @@ static void system_settings_scene_debug_on_enter(void* context) {
 
         data->back_list = var_item_list_alloc(instance->back_scene_window);
         system_settings_scene_debug_fill_var_item_list(instance, data->back_list, false);
+
+        widget_set_scrollbar_enabled(var_item_list_get_base(data->front_list), true);
+        widget_set_scrollbar_enabled(var_item_list_get_base(data->back_list), true);
     });
 }
 

@@ -1,6 +1,6 @@
 #include "ble_service_config.h"
-#include "gap/generic_access.h"
-#include "gatt/generic_attribute.h"
+#include "gap_and_gatt/generic_access.h"
+#include "gap_and_gatt/generic_attribute.h"
 #include "device_info/ble_service_device_info.h"
 #include "battery/ble_service_battery.h"
 #include "uart/ble_service_uart.h"

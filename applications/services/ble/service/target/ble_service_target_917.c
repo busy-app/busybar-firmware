@@ -137,3 +137,32 @@ bool ble_service_target_execute(
 
     return result;
 }
+
+bool ble_service_write_char_data_or_cccd_by_handle(
+    BleServiceObject* instance,
+    uint8_t index,
+    const uint16_t handle,
+    const void* data,
+    const size_t data_size) {
+    furi_assert(instance);
+    furi_assert(index < instance->config->char_count);
+    furi_assert(data);
+    furi_assert(data_size > 0);
+    furi_assert(handle > instance->handle);
+
+    bool cccd_modified = false;
+    if(ble_service_lock(instance)) {
+        BleCharacteristicObject* ch = instance->chars[index];
+
+        if(ble_characteristic_is_cccd_handle(ch, handle)) {
+            uint8_t ccd_val = *((uint8_t*)data);
+            ble_characteristic_set_cccd_value(ch, ccd_val); //INVOKE cccd_update callback
+            cccd_modified = true;
+        } else {
+            ble_characteristic_set_data(ch, data, data_size);
+            ble_service_enqueue_run(instance);
+        }
+        ble_service_unlock(instance);
+    }
+    return cccd_modified;
+}

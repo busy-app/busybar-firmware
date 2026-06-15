@@ -1,5 +1,5 @@
 #include "soft_off/storage_macros.h"
-
+#include "soft_off.h"
 #include <furi.h>
 
 #include <loader/loader.h>
@@ -9,6 +9,7 @@
 
 #include <back_display/back_display.h>
 #include <front_display/front_display.h>
+#include <light_sensor/light_sensor.h>
 
 typedef enum {
     SoftOffThreadFlagExit = 1 << 0,
@@ -47,6 +48,8 @@ static void soft_off_animation_finished_callback(
 int32_t soft_off_app(void* arg) {
     UNUSED(arg);
 
+    furi_record_create(RECORD_POWEROFF, NULL);
+
     Loader* loader = furi_record_open(RECORD_LOADER);
     loader_set_priority(loader, 0);
 
@@ -83,14 +86,17 @@ int32_t soft_off_app(void* arg) {
         }
         if(flags & SoftOffThreadFlagAnimationCompleted) {
             front_display_sleep_mode(front_display, true);
+            light_sensor_sleep(true);
         }
     }
+    furi_record_destroy(RECORD_POWEROFF);
     furi_thread_set_signal_callback(thread, NULL, NULL);
 
     with_gui(gui, { anim_player_free(anim_player); });
 
     back_display_sleep_mode(back_display, false);
     front_display_sleep_mode(front_display, false);
+    light_sensor_sleep(false);
 
     furi_record_close(RECORD_BACK_DISPLAY);
     furi_record_close(RECORD_FRONT_DISPLAY);

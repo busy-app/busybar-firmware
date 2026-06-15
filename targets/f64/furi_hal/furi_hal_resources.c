@@ -12,7 +12,7 @@ const GpioPin gpio_6 = {.type = GpioTypeHp, .pin = 6};
 const GpioPin gpio_pwm_red = {.type = GpioTypeHp, .pin = 7};
 const GpioPin gpio_ulp_uart_rx = {.type = GpioTypeHp, .pin = 8};
 const GpioPin gpio_ulp_uart_tx = {.type = GpioTypeHp, .pin = 9};
-const GpioPin gpio_10 = {.type = GpioTypeHp, .pin = 10};
+const GpioPin gpio_u5_swclk = {.type = GpioTypeHp, .pin = 10};
 const GpioPin gpio_pwm_green = {.type = GpioTypeHp, .pin = 11};
 const GpioPin gpio_12 = {.type = GpioTypeHp, .pin = 12};
 const GpioPin gpio_pwm_blue = {.type = GpioTypeHp, .pin = 15};
@@ -22,10 +22,10 @@ const GpioPin gpio_27 = {.type = GpioTypeHp, .pin = 27};
 const GpioPin gpio_28 = {.type = GpioTypeHp, .pin = 28};
 const GpioPin gpio_29 = {.type = GpioTypeHp, .pin = 29};
 const GpioPin gpio_30 = {.type = GpioTypeHp, .pin = 30};
-const GpioPin gpio_46 = {.type = GpioTypeHp, .pin = 40};
-const GpioPin gpio_47 = {.type = GpioTypeHp, .pin = 40};
-const GpioPin gpio_48 = {.type = GpioTypeHp, .pin = 40};
-const GpioPin gpio_49 = {.type = GpioTypeHp, .pin = 40};
+const GpioPin gpio_46 = {.type = GpioTypeHp, .pin = 46};
+const GpioPin gpio_u5_swdio = {.type = GpioTypeHp, .pin = 47};
+const GpioPin gpio_48 = {.type = GpioTypeHp, .pin = 48};
+const GpioPin gpio_49 = {.type = GpioTypeHp, .pin = 49};
 const GpioPin gpio_sw_busy = {.type = GpioTypeHp, .pin = 50};
 const GpioPin gpio_sw_settings = {.type = GpioTypeHp, .pin = 51};
 const GpioPin gpio_52 = {.type = GpioTypeHp, .pin = 52};
@@ -65,6 +65,24 @@ const GpioPin gpio_sw_off = {.type = GpioTypeUulp, .pin = 0};
 const GpioPin gpio_sw_back = {.type = GpioTypeUulp, .pin = 3};
 const GpioPin gpio_sw_start_pause = {.type = GpioTypeUulp, .pin = 2};
 const GpioPin gpio_sw_ok = {.type = GpioTypeUulp, .pin = 1};
+
+static const GpioPin* unused_pins[] = {
+    &gpio_6,
+#ifndef FURI_HAL_CLOCK_MCO
+    &gpio_12,
+#endif
+    &gpio_25,
+    &gpio_26,
+    &gpio_27,
+    &gpio_28,
+    &gpio_29,
+    &gpio_46,
+    &gpio_48,
+    &gpio_49,
+    &gpio_52,
+    &gpio_57,
+    // pin30 and JTAG pins are pulled up by default
+};
 
 const InputPin input_pins[] = {
     {
@@ -136,6 +154,13 @@ static void furi_hal_resources_init_input_pins(GpioMode mode) {
     }
 }
 
+// Pull up all unused pins to prevent floating inputs and possibly reduce power consumption
+static void furi_hal_resources_pull_unused_pins(void) {
+    for(size_t i = 0; i < COUNT_OF(unused_pins); i++) {
+        furi_hal_gpio_init(unused_pins[i], GpioModeInput, GpioPullUp, GpioSpeedLow);
+    }
+}
+
 void furi_hal_resources_init_early(void) {
     // Enable GPIO clock
     furi_hal_bus_enable(FuriHalBusEGPIO_CLK);
@@ -146,6 +171,7 @@ void furi_hal_resources_init_early(void) {
     // Control ULP GPIO pads from M4
     PADSELECTION_1 = PADSELECTION1_ALL_M4;
 
+    furi_hal_resources_pull_unused_pins();
     furi_hal_resources_init_input_pins(GpioModeInput);
 }
 

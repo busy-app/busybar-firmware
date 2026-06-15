@@ -92,6 +92,7 @@
     "sdk_symbols": "api_symbols.csv",
     "variables_sconscript": "fbt_conf/stm32u595_vars.scons",
     "platform_desc": "../../scripts/debug/platforms/stm32u595.json",
+    "platform_debug_extensions": "../../scripts/debug/platforms/stm32u5/debug_extensions",
     "rtos_flavor": "freertos-cm33-ntz",
     "lib_modules": [
         "stb",

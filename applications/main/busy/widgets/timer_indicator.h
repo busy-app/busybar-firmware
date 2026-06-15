@@ -45,8 +45,6 @@ typedef struct {
 typedef struct {
     const char* anim_path;
     uint32_t duration_ms;
-    uint32_t start_width_px;
-    uint32_t end_width_px;
 } TimerIndicatorTransition;
 
 /**

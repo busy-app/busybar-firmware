@@ -111,7 +111,7 @@ static void mqtt_link_timeout(void* data) {
     furi_assert(data);
     MqttLinkContext* link_ctx = data;
 
-    MG_REPLY_INTERNAL_ERROR(link_ctx->conn, "PIN request timeout");
+    MG_REPLY_ERROR_CLOSE(link_ctx->conn, 500, "PIN request timeout");
     link_ctx->conn->is_draining = true;
 }
 
@@ -128,7 +128,12 @@ static void mqtt_link_wakeup_callback(struct mg_connection* conn, void* data, si
     furi_string_cat_printf(json_str, "\"%s\":\"%s\",", "code", link_ctx->pin);
     furi_string_cat_printf(json_str, "\"%s\":%lu", "expires_at", link_ctx->pin_expires_at);
 
-    MG_REPLY_OK_BODY(conn, "{%s}\n", furi_string_get_cstr(json_str));
+    mg_http_reply(
+        conn,
+        200,
+        DEFAULT_JSON_HEADERS "Connection: close\r\n",
+        "{%s}\n",
+        furi_string_get_cstr(json_str));
     furi_string_free(json_str);
     conn->is_draining = true;
 }
@@ -214,7 +219,7 @@ static bool http_api_account_unlink(
         http_reply_cors_preflight(conn, HttpMethodDelete);
         return true;
     } else if(method != HttpMethodDelete) {
-        http_reply_405_method_not_allowed(conn, HttpMethodDelete);
+        http_reply_405_method_not_allowed(conn, HttpMethodDelete, false);
         return true;
     }
 

@@ -50,8 +50,7 @@ static bool api_storage_write_headers_callback(
     if(api_storage_parse_path_parameter(&msg->query, "path", file_path)) {
         http_upload_start(conn, msg, furi_string_get_cstr(file_path));
     } else {
-        MG_REPLY_BAD_REQUEST(conn);
-        MG_CLOSE_AFTER_HEADERS(conn, msg);
+        MG_REPLY_ERROR_CLOSE(conn, 400, "Bad Request");
     }
 
     furi_string_free(file_path);

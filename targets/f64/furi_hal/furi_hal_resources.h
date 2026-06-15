@@ -31,7 +31,7 @@ extern const GpioPin gpio_6;
 extern const GpioPin gpio_pwm_red;
 extern const GpioPin gpio_ulp_uart_rx;
 extern const GpioPin gpio_ulp_uart_tx;
-extern const GpioPin gpio_10;
+extern const GpioPin gpio_u5_swclk;
 extern const GpioPin gpio_pwm_green;
 extern const GpioPin gpio_12;
 extern const GpioPin gpio_pwm_blue;
@@ -42,7 +42,7 @@ extern const GpioPin gpio_28;
 extern const GpioPin gpio_29;
 extern const GpioPin gpio_30;
 extern const GpioPin gpio_46;
-extern const GpioPin gpio_47;
+extern const GpioPin gpio_u5_swdio;
 extern const GpioPin gpio_48;
 extern const GpioPin gpio_49;
 extern const GpioPin gpio_sw_busy;
@@ -71,7 +71,7 @@ extern const GpioPin gpio_i_uart1_tx; /**< Not available on the package, interna
 /* ULP GPIO pins */
 extern const GpioPin gpio_ulp_0;
 extern const GpioPin gpio_u5_irq;
-extern const GpioPin gpio_ulp_2;
+extern const GpioPin gpio_ulp_2; /**< Internal use, multiplexed to gpio_ulp_uart_rx */
 extern const GpioPin gpio_ulp_i_3; /**< Not available on the package, internal use only */
 extern const GpioPin gpio_ulp_4;
 extern const GpioPin gpio_ulp_5;

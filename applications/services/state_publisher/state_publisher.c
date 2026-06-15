@@ -8,17 +8,19 @@
 
 #include <time/time.h>
 
-#define MAX_MESSAGES             64
-#define MESSAGE_QUEUE_TIMEOUT_MS 3000
+#define MAX_CONTROL_MESSAGES             64
+#define MAX_PUBLISH_MESSAGES             16
+#define CONTROL_MESSAGE_QUEUE_TIMEOUT_MS 3000
 
 #define HEARTBEAT_INTERVAL_MS 991
 
-typedef bool (*MessageHandler)(StatePublisher* instance, const Message* message);
+typedef bool (*MessageHandler)(StatePublisher* instance, const ControlMessage* message);
 
 static const MessageHandler message_handlers[];
 
 static void heartbeat_timer_callback(void* context);
 static void rate_limiter_timer_callback(void* context);
+static int32_t fetch_thread_callback(void* context);
 
 void screen_streamer_callback(
     GuiDisplayId display,
@@ -26,25 +28,27 @@ void screen_streamer_callback(
     uint8_t stream_flags,
     void* context);
 
-static void message_queue_callback(FuriEventLoopObject* object, void* context) {
+static void publish_queue_callback(FuriEventLoopObject* object, void* context);
+
+static void control_queue_callback(FuriEventLoopObject* object, void* context) {
     UNUSED(object);
 
     StatePublisher* instance = context;
 
-    Message message;
-    furi_check(furi_message_queue_get(instance->message_queue, &message, 0) == FuriStatusOk);
+    ControlMessage message;
+    furi_check(furi_message_queue_get(instance->control_queue, &message, 0) == FuriStatusOk);
 
     message_handlers[message.type](instance, &message);
 }
 
-void state_publisher_send_message(StatePublisher* instance, const Message* message) {
+void state_publisher_send_control_message(StatePublisher* instance, const ControlMessage* message) {
     if(furi_thread_get_current_id() == instance->main_thread_id) {
         message_handlers[message->type](instance, message);
         return;
     }
 
     FuriStatus queue_status = furi_message_queue_put(
-        instance->message_queue, message, furi_ms_to_ticks(MESSAGE_QUEUE_TIMEOUT_MS));
+        instance->control_queue, message, furi_ms_to_ticks(CONTROL_MESSAGE_QUEUE_TIMEOUT_MS));
 
     if(queue_status != FuriStatusOk) {
         FURI_LOG_E(TAG, "Failed to put an item into message queue.");
@@ -63,14 +67,24 @@ static StatePublisher* state_publisher_alloc(void) {
     StatePublisher* instance = malloc(sizeof(StatePublisher));
 
     instance->event_loop = furi_event_loop_alloc();
-    instance->message_queue = furi_message_queue_alloc(MAX_MESSAGES, sizeof(Message));
+    instance->control_queue =
+        furi_message_queue_alloc(MAX_CONTROL_MESSAGES, sizeof(ControlMessage));
+    instance->publish_queue =
+        furi_message_queue_alloc(MAX_PUBLISH_MESSAGES, sizeof(PublishMessage));
     instance->main_thread_id = furi_thread_get_current_id();
 
     furi_event_loop_subscribe_message_queue(
         instance->event_loop,
-        instance->message_queue,
+        instance->control_queue,
         FuriEventLoopEventIn,
-        message_queue_callback,
+        control_queue_callback,
+        instance);
+
+    furi_event_loop_subscribe_message_queue(
+        instance->event_loop,
+        instance->publish_queue,
+        FuriEventLoopEventIn,
+        publish_queue_callback,
         instance);
 
     instance->heartbeat_timer = furi_event_loop_timer_alloc(
@@ -91,6 +105,11 @@ static StatePublisher* state_publisher_alloc(void) {
         SharedStateUpdateArray_init(t->seq_updates);
         SharedStateUpdateArray_init(t->state_updates);
     }
+
+    instance->fetch_flags = furi_event_flag_alloc();
+    instance->fetch_thread =
+        furi_thread_alloc_ex("StatePublisherFetch", 16 * 1024, fetch_thread_callback, instance);
+    furi_thread_start(instance->fetch_thread);
 
     state_publisher_subscribe(instance);
 
@@ -178,10 +197,10 @@ void state_publisher_set_paused(
     furi_mutex_release(instance->transports_mutex);
 
     if(!paused && was_paused) {
-        Message msg = {
+        ControlMessage msg = {
             .type = MessageTypeTransportResumed,
         };
-        state_publisher_send_message(instance, &msg);
+        state_publisher_send_control_message(instance, &msg);
     }
 }
 
@@ -338,53 +357,68 @@ static uint32_t send_out(StatePublisher* instance, StreamFlag flags, bool heartb
     return min_sleep_time_ms;
 }
 
-static bool handle_publish_update(StatePublisher* instance, const Message* message) {
-    furi_assert(message->type == MessageTypePublishUpdate);
-    BSB_State_StateUpdate* update = message->update.data;
-    StreamFlag flags = message->update.stream_flags;
-    bool heartbeat = false;
-    if(update) {
-        SharedStateUpdate_t shared_update;
-        SharedStateUpdate_init2(shared_update, update);
-        if(is_sequential_update(update)) {
-            furi_mutex_acquire(instance->transports_mutex, FuriWaitForever);
-            for(size_t i = 0; i != MAX_TRANSPORTS; ++i) {
-                Transport* t = instance->transports + i;
-                if(t->valid && (t->flags & flags)) {
-                    if(SharedStateUpdateArray_size(t->seq_updates) >= MAX_SEQ_UPDATES) {
-                        FURI_LOG_W(TAG, "Sequential updates full, dropping");
-                        SharedStateUpdateArray_reset(t->seq_updates);
-                    }
-                    SharedStateUpdateArray_push_back(t->seq_updates, shared_update);
+void state_publisher_store_state_update(
+    StatePublisher* instance,
+    BSB_State_StateUpdate* update,
+    StreamFlag flags) {
+    SharedStateUpdate_t shared_update;
+    SharedStateUpdate_init2(shared_update, update);
+    if(is_sequential_update(update)) {
+        furi_mutex_acquire(instance->transports_mutex, FuriWaitForever);
+        for(size_t i = 0; i != MAX_TRANSPORTS; ++i) {
+            Transport* t = instance->transports + i;
+            if(t->valid && (t->flags & flags)) {
+                if(SharedStateUpdateArray_size(t->seq_updates) >= MAX_SEQ_UPDATES) {
+                    FURI_LOG_W(TAG, "Sequential updates full, dropping");
+                    SharedStateUpdateArray_reset(t->seq_updates);
                 }
+                SharedStateUpdateArray_push_back(t->seq_updates, shared_update);
             }
-            furi_mutex_release(instance->transports_mutex);
-        } else {
-            furi_mutex_acquire(instance->transports_mutex, FuriWaitForever);
-            for(size_t i = 0; i != MAX_TRANSPORTS; ++i) {
-                Transport* t = instance->transports + i;
-                if(t->valid && (t->flags & flags)) {
-                    size_t old_size = SharedStateUpdateArray_size(t->state_updates);
-                    SharedStateUpdateArray_resize(
-                        t->state_updates, MAX(old_size, (size_t)update->which_state + 1));
-
-                    SharedStateUpdate_t* cell =
-                        SharedStateUpdateArray_get(t->state_updates, update->which_state);
-                    SharedStateUpdate_set(*cell, shared_update);
-                }
-            }
-            furi_mutex_release(instance->transports_mutex);
         }
-        SharedStateUpdate_clear(shared_update);
+        furi_mutex_release(instance->transports_mutex);
     } else {
-        heartbeat = true;
+        furi_mutex_acquire(instance->transports_mutex, FuriWaitForever);
+        for(size_t i = 0; i != MAX_TRANSPORTS; ++i) {
+            Transport* t = instance->transports + i;
+            if(t->valid && (t->flags & flags)) {
+                size_t old_size = SharedStateUpdateArray_size(t->state_updates);
+                SharedStateUpdateArray_resize(
+                    t->state_updates, MAX(old_size, (size_t)update->which_state + 1));
+
+                SharedStateUpdate_t* cell =
+                    SharedStateUpdateArray_get(t->state_updates, update->which_state);
+                SharedStateUpdate_set(*cell, shared_update);
+            }
+        }
+        furi_mutex_release(instance->transports_mutex);
+    }
+    SharedStateUpdate_clear(shared_update);
+}
+
+static void publish_queue_callback(FuriEventLoopObject* object, void* context) {
+    UNUSED(object);
+    StatePublisher* instance = context;
+    PublishMessage message;
+    StreamFlag flags = 0;
+    bool heartbeat = false;
+    while(furi_message_queue_get(instance->publish_queue, &message, 0) == FuriStatusOk) {
+        BSB_State_StateUpdate* update = message.data;
+        flags |= message.stream_flags;
+        if(update) {
+            state_publisher_store_state_update(instance, update, message.stream_flags);
+        }
+        if(message.heartbeat) {
+            heartbeat = true;
+        }
+    }
+
+    if(heartbeat) {
+        flags = StreamFlagAll;
     }
 
     uint32_t sleep_time_ms = send_out(instance, flags, heartbeat);
 
     furi_event_loop_timer_start(instance->rate_limiter_timer, ms_to_ticks(sleep_time_ms));
-
-    return true;
 }
 
 static void rate_limiter_timer_callback(void* context) {
@@ -394,72 +428,15 @@ static void rate_limiter_timer_callback(void* context) {
     furi_event_loop_timer_start(instance->rate_limiter_timer, ms_to_ticks(sleep_time_ms));
 }
 
-static bool handle_transport_resumed(StatePublisher* instance, const Message* message) {
+static bool handle_transport_resumed(StatePublisher* instance, const ControlMessage* message) {
     furi_assert(message->type == MessageTypeTransportResumed);
 
     send_out(instance, StreamFlagAll, false);
     return true;
 }
 
-static bool handle_power_event(StatePublisher* instance, const Message* message) {
-    furi_assert(message->type == MessageTypePowerEvent);
-    state_publisher_publish_power(instance);
-    return true;
-}
-
-static bool handle_audio_event(StatePublisher* instance, const Message* message) {
-    furi_assert(message->type == MessageTypeAudioEvent);
-    state_publisher_publish_audio(instance);
-    return true;
-}
-
-static bool handle_matter_event(StatePublisher* instance, const Message* message) {
-    furi_assert(message->type == MessageTypeMatterEvent);
-    state_publisher_publish_matter(instance);
-    return true;
-}
-
-static bool handle_updater_check_event(StatePublisher* instance, const Message* message) {
-    furi_assert(message->type == MessageTypeUpdaterCheckEvent);
-    state_publisher_publish_update_check(instance, &message->updater_check_state);
-    return true;
-}
-
-static bool handle_busy_timer(StatePublisher* instance, const Message* message) {
-    furi_assert(message->type == MessageTypeBusyTimer);
-    state_publisher_publish_busy_timer(instance);
-    return true;
-}
-
-static bool handle_busy_timer_profiles(StatePublisher* instance, const Message* message) {
-    furi_assert(message->type == MessageTypeBusyTimerProfiles);
-    state_publisher_publish_busy_timer_profiles(instance);
-    return true;
-}
-
-static bool handle_autoupdate_event(StatePublisher* instance, const Message* message) {
-    furi_assert(message->type == MessageTypeAutoupdateEvent);
-    state_publisher_publish_autoupdate(instance);
-    return true;
-}
-
-static bool handle_ble(StatePublisher* instance, const Message* message) {
-    furi_assert(message->type == MessageTypeBle);
-    state_publisher_publish_ble(instance);
-    return true;
-}
-
 static const MessageHandler message_handlers[] = {
-    [MessageTypePublishUpdate] = handle_publish_update,
     [MessageTypeTransportResumed] = handle_transport_resumed,
-    [MessageTypePowerEvent] = handle_power_event,
-    [MessageTypeAudioEvent] = handle_audio_event,
-    [MessageTypeMatterEvent] = handle_matter_event,
-    [MessageTypeUpdaterCheckEvent] = handle_updater_check_event,
-    [MessageTypeBusyTimer] = handle_busy_timer,
-    [MessageTypeBusyTimerProfiles] = handle_busy_timer_profiles,
-    [MessageTypeAutoupdateEvent] = handle_autoupdate_event,
-    [MessageTypeBle] = handle_ble,
 };
 
 static_assert(COUNT_OF(message_handlers) == MessageTypesCount);
@@ -468,20 +445,30 @@ void state_publisher_schedule_state_update(
     StatePublisher* instance,
     BSB_State_StateUpdate* update,
     StreamFlag flags) {
-    Message msg = {
-        .type = MessageTypePublishUpdate,
-        .update =
-            {
-                .data = update,
-                .stream_flags = flags,
-            },
+    PublishMessage msg = {
+        .data = update,
+        .stream_flags = flags,
+        .heartbeat = false,
     };
-    state_publisher_send_message(instance, &msg);
+
+    FuriStatus queue_status = furi_message_queue_put(instance->publish_queue, &msg, 0);
+
+    if(queue_status != FuriStatusOk) {
+        FURI_LOG_E(TAG, "Queue full, update dropped");
+    }
 }
 
 static void heartbeat_timer_callback(void* context) {
     StatePublisher* instance = context;
-    state_publisher_schedule_state_update(instance, NULL, StreamFlagAll);
+    PublishMessage msg = {
+        .heartbeat = true,
+    };
+
+    FuriStatus queue_status = furi_message_queue_put(instance->publish_queue, &msg, 0);
+
+    if(queue_status != FuriStatusOk) {
+        FURI_LOG_E(TAG, "Queue full, heartbeat dropped");
+    }
 }
 
 void state_publisher_send_complete_snapshot(
@@ -514,4 +501,50 @@ void state_publisher_send_complete_snapshot(
     }
     free(state->updates);
     free(state);
+}
+
+static int32_t fetch_thread_callback(void* context) {
+    StatePublisher* instance = context;
+    while(true) {
+        uint32_t result = furi_event_flag_wait(
+            instance->fetch_flags, FetchFlagAll, FuriFlagWaitAny, FuriWaitForever);
+        furi_check((result & FuriFlagError) == 0);
+        if(result & FetchFlagPowerEvent) {
+            state_publisher_store_power(instance);
+        }
+        if(result & FetchFlagAudioEvent) {
+            state_publisher_store_audio(instance);
+        }
+        if(result & FetchFlagMatterEvent) {
+            state_publisher_store_matter(instance);
+        }
+        if(result & FetchFlagUpdaterCheckEvent) {
+            state_publisher_store_update_check(instance);
+        }
+        if(result & FetchFlagBusyTimer) {
+            state_publisher_store_busy_timer(instance);
+        }
+        if(result & FetchFlagBusyTimerProfiles) {
+            state_publisher_store_busy_timer_profiles(instance);
+        }
+        if(result & FetchFlagAutoupdateEvent) {
+            state_publisher_store_autoupdate(instance);
+        }
+        if(result & FetchFlagBle) {
+            state_publisher_store_ble(instance);
+        }
+
+        if(result) {
+            PublishMessage msg = {
+                .heartbeat = false,
+            };
+
+            FuriStatus queue_status = furi_message_queue_put(instance->publish_queue, &msg, 0);
+
+            if(queue_status != FuriStatusOk) {
+                FURI_LOG_E(TAG, "Queue full, update postponed");
+            }
+        }
+    }
+    return 0;
 }

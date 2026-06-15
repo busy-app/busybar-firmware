@@ -351,7 +351,7 @@ def pytest_runtest_teardown(item, nextitem):
 
 
 def _probe_api_health(
-    base_url: str, session: Optional[requests.Session] = None
+    base_url: str, session: Optional[requests.Session] = None, retries: int = 3
 ) -> Optional[str]:
     """Cheap HTTP liveness probe for /api/version.
 
@@ -362,19 +362,38 @@ def _probe_api_health(
     reuse the same connection. Avoid `Connection: close`: on the device-side
     lwIP stack that can make the firmware the active TCP closer and keep TCP
     PCBs occupied long enough to trip the PR #699 overload guard.
+
+    Retries up to *retries* times on ConnectionError (e.g. ConnectionResetError
+    after a debug-probe reset where TCP is open but the HTTP event loop hasn't
+    started yet). Non-connection errors and HTTP error codes are not retried.
     """
     own_session = session is None
     probe_session = session or requests.Session()
+
+    last_error: Optional[str] = None
     try:
-        with probe_session.get(f"{base_url}/api/version", timeout=2.0) as response:
-            if response.status_code != 200:
-                return f"HTTP {response.status_code}"
-    except requests.RequestException as exc:
-        return f"{type(exc).__name__}: {exc}"
+        for attempt in range(retries):
+            try:
+                with probe_session.get(
+                    f"{base_url}/api/version", timeout=2.0
+                ) as response:
+                    if response.status_code != 200:
+                        return f"HTTP {response.status_code}"
+                # Success — clear error, return.
+                last_error = None
+                break
+            except requests.ConnectionError as exc:
+                last_error = f"{type(exc).__name__}: {exc}"
+                if attempt < retries - 1:
+                    time.sleep(0.5 * (attempt + 1))
+            except requests.RequestException as exc:
+                last_error = f"{type(exc).__name__}: {exc}"
+                break
     finally:
         if own_session:
             probe_session.close()
-    return None
+
+    return last_error
 
 
 def _pre_test_reset_reason(device_flasher, web_base_url: str, web_session) -> Optional[str]:

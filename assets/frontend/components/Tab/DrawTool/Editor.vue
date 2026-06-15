@@ -200,7 +200,7 @@
                   <VGroup :config="displayShapesGroupConfig">
                     <template
                       v-for="shape in es.shapes"
-                      :key="`${shape.id}-display`"
+                      :key="shape.id"
                     >
                       <VRect
                         v-if="shape.type === 'rect'"
@@ -331,7 +331,7 @@
                   variant="solid"
                   square
                   size="xs"
-                  :icon="selectedTextShape ? 'i-bi-move' : 'i-bi-resize-alt'"
+                  :icon="selectedTextShape ? 'i-bi-move' : 'i-bi-resize'"
                   class="pointer-events-auto absolute rounded-full"
                   :style="selectionHandleStyle"
                   @pointerdown.stop.prevent="es.handleSelectionHandlePointerDown"
@@ -941,6 +941,7 @@ import {
   Transformer as VTransformer
 } from 'vue-konva';
 import drawToolIconsData from '@/generated/drawTool/icons.json';
+import { DRAW_TOOL_EXPORT_PIXEL_SIZE, pixelateImageData } from '@/util/drawTool';
 import type { TransformerBox } from '@/util/drawTool';
 import type { DisplayDrawParams } from '@busy-app/busy-lib';
 
@@ -1727,14 +1728,14 @@ async function insertImage () {
 
   try {
     const imageElement = await loadImageFile(es.imageUploadFile);
+    const pixelArt = es.imageUploadFile.type === 'image/svg+xml' ? false : undefined;
 
-    es.addImageShape(imageElement, es.imageUploadFile.name);
+    es.addImageShape(imageElement, es.imageUploadFile.name, { pixelArt });
     es.resetImageUploadModal();
-  } catch (error) {
+  } catch {
     toast.add({
       id: 'draw-tool-image-error',
       title: 'Failed to load image',
-      description: error instanceof Error ? error.message : String(error),
       icon: 'i-bi-alert',
       color: 'error',
       duration: 0,
@@ -1793,7 +1794,7 @@ async function insertDrawToolIcon (icon: ResolvedDrawToolIcon) {
   try {
     const imageElement = await loadImageFromUrl(icon.src);
 
-    es.addImageShape(imageElement, icon.fileName);
+    es.addImageShape(imageElement, icon.fileName, { pixelArt: false });
     isIconTooltipOpen.value = false;
     isIconTooltipSuppressed.value = true;
     isIconPickerOpen.value = false;
@@ -1817,6 +1818,10 @@ function buildExportLayer (scale = 1): Konva.Layer {
     scaleX: scale,
     scaleY: scale
   });
+  const displayGroup = new Konva.Group({
+    listening: false,
+    perfectDrawEnabled: false
+  });
 
   if (hasVisibleBackgroundColor.value) {
     layer.add(new Konva.Rect({
@@ -1832,7 +1837,7 @@ function buildExportLayer (scale = 1): Konva.Layer {
 
   es.shapes.forEach(shape => {
     if (shape.type === 'rect') {
-      layer.add(new Konva.Rect({
+      displayGroup.add(new Konva.Rect({
         x: shape.x,
         y: shape.y,
         width: shape.width,
@@ -1847,23 +1852,17 @@ function buildExportLayer (scale = 1): Konva.Layer {
     }
 
     if (shape.type === 'text') {
-      layer.add(new Konva.Text(getDisplayTextConfig(shape)));
+      displayGroup.add(new Konva.Text(getDisplayTextConfig(shape)));
 
       return;
     }
 
-    layer.add(new Konva.Image({
-      x: shape.x,
-      y: shape.y,
-      width: shape.width,
-      height: shape.height,
-      rotation: shape.rotation,
-      image: shape.image,
-      listening: false,
-      imageSmoothingEnabled: false,
-      perfectDrawEnabled: false
-    }));
+    displayGroup.add(new Konva.Image(getExportImageConfig(shape)));
   });
+
+  if (displayGroup.getChildren().length) {
+    layer.add(displayGroup);
+  }
 
   if (hasVisibleBorderColor.value) {
     createBorderPixelConfigs(
@@ -1880,82 +1879,76 @@ function buildExportLayer (scale = 1): Konva.Layer {
   return layer;
 }
 
-function parseRgbaKey (key: string) {
-  const [red, green, blue, alpha] = key.split(',').map(Number);
+function captureExportSourceCanvas () {
+  let exportStage: Konva.Stage | null = null;
+  let exportContainer: HTMLDivElement | null = null;
 
-  return { red, green, blue, alpha };
-}
+  try {
+    const exportCellSize = Math.max(1, stageMetrics.value.cellSize);
+    const exportSurface = createExportStage(
+      WORKSPACE_WIDTH * exportCellSize,
+      WORKSPACE_HEIGHT * exportCellSize
+    );
+    exportStage = exportSurface.stage;
+    exportContainer = exportSurface.container;
 
-function getDominantCellColor (
-  pixels: Uint8ClampedArray,
-  sourceWidth: number,
-  startX: number,
-  startY: number,
-  cellSize: number
-) {
-  let dominantKey = '0,0,0,0';
-  let dominantCount = 0;
-  const colorCounts = new Map<string, number>();
+    const layer = buildExportLayer(exportCellSize);
+    exportStage.add(layer);
+    layer.draw();
 
-  for (let y = startY; y < startY + cellSize; y += 1) {
-    for (let x = startX; x < startX + cellSize; x += 1) {
-      const pixelIndex = ((y * sourceWidth) + x) * 4;
-      const colorKey = [
-        pixels[pixelIndex],
-        pixels[pixelIndex + 1],
-        pixels[pixelIndex + 2],
-        pixels[pixelIndex + 3]
-      ].join(',');
-      const nextCount = (colorCounts.get(colorKey) || 0) + 1;
-
-      colorCounts.set(colorKey, nextCount);
-
-      if (nextCount > dominantCount) {
-        dominantKey = colorKey;
-        dominantCount = nextCount;
-      }
-    }
+    return exportStage.toCanvas({ pixelRatio: 1 });
+  } finally {
+    exportStage?.destroy();
+    exportContainer?.remove();
   }
-
-  return parseRgbaKey(dominantKey);
 }
 
-function buildLogicalExportCanvas (sourceCanvas: HTMLCanvasElement, cellSize: number) {
-  const sourceContext = sourceCanvas.getContext('2d', { willReadFrequently: true });
+function buildLogicalExportCanvas (sourceImageData: ImageData) {
   const logicalCanvas = document.createElement('canvas');
   const logicalContext = logicalCanvas.getContext('2d');
 
   logicalCanvas.width = WORKSPACE_WIDTH;
   logicalCanvas.height = WORKSPACE_HEIGHT;
 
-  if (!sourceContext || !logicalContext) {
+  if (!logicalContext) {
     throw new Error('Could not create export canvas context');
   }
 
-  const sourceImageData = sourceContext.getImageData(0, 0, sourceCanvas.width, sourceCanvas.height);
   const logicalImageData = logicalContext.createImageData(WORKSPACE_WIDTH, WORKSPACE_HEIGHT);
+  const cellWidth = sourceImageData.width / WORKSPACE_WIDTH;
+  const cellHeight = sourceImageData.height / WORKSPACE_HEIGHT;
 
   for (let y = 0; y < WORKSPACE_HEIGHT; y += 1) {
+    const sampleY = Math.min(sourceImageData.height - 1, Math.max(0, Math.round((y + 0.5) * cellHeight - 0.5)));
+
     for (let x = 0; x < WORKSPACE_WIDTH; x += 1) {
-      const dominantColor = getDominantCellColor(
-        sourceImageData.data,
-        sourceImageData.width,
-        x * cellSize,
-        y * cellSize,
-        cellSize
-      );
+      const sampleX = Math.min(sourceImageData.width - 1, Math.max(0, Math.round((x + 0.5) * cellWidth - 0.5)));
+      const sourcePixelIndex = ((sampleY * sourceImageData.width) + sampleX) * 4;
       const logicalPixelIndex = ((y * WORKSPACE_WIDTH) + x) * 4;
 
-      logicalImageData.data[logicalPixelIndex] = dominantColor.red;
-      logicalImageData.data[logicalPixelIndex + 1] = dominantColor.green;
-      logicalImageData.data[logicalPixelIndex + 2] = dominantColor.blue;
-      logicalImageData.data[logicalPixelIndex + 3] = dominantColor.alpha;
+      logicalImageData.data[logicalPixelIndex] = sourceImageData.data[sourcePixelIndex];
+      logicalImageData.data[logicalPixelIndex + 1] = sourceImageData.data[sourcePixelIndex + 1];
+      logicalImageData.data[logicalPixelIndex + 2] = sourceImageData.data[sourcePixelIndex + 2];
+      logicalImageData.data[logicalPixelIndex + 3] = sourceImageData.data[sourcePixelIndex + 3];
     }
   }
 
   logicalContext.putImageData(logicalImageData, 0, 0);
 
   return logicalCanvas;
+}
+
+function createExportImageData () {
+  const sourceCanvas = captureExportSourceCanvas();
+  const sourceContext = sourceCanvas.getContext('2d', { willReadFrequently: true });
+
+  if (!sourceContext) {
+    throw new Error('Could not read export canvas pixels');
+  }
+
+  const sourceImageData = sourceContext.getImageData(0, 0, sourceCanvas.width, sourceCanvas.height);
+
+  return pixelateImageData(sourceImageData, DRAW_TOOL_EXPORT_PIXEL_SIZE);
 }
 
 function createStatusTimestamp (date = new Date()) {
@@ -1980,30 +1973,10 @@ function createNextStatusFileName () {
 }
 
 function renderExportPngDataUrl () {
-  let exportStage: Konva.Stage | null = null;
-  let exportContainer: HTMLDivElement | null = null;
+  const exportImageData = createExportImageData();
+  const logicalCanvas = buildLogicalExportCanvas(exportImageData);
 
-  try {
-    const exportCellSize = Math.max(1, stageMetrics.value.cellSize);
-    const exportSurface = createExportStage(
-      WORKSPACE_WIDTH * exportCellSize,
-      WORKSPACE_HEIGHT * exportCellSize
-    );
-    exportStage = exportSurface.stage;
-    exportContainer = exportSurface.container;
-
-    const layer = buildExportLayer(exportCellSize);
-    exportStage.add(layer);
-    layer.draw();
-
-    const sourceCanvas = exportStage.toCanvas({ pixelRatio: 1 });
-    const logicalCanvas = buildLogicalExportCanvas(sourceCanvas, exportCellSize);
-
-    return logicalCanvas.toDataURL('image/png');
-  } finally {
-    exportStage?.destroy();
-    exportContainer?.remove();
-  }
+  return logicalCanvas.toDataURL('image/png');
 }
 
 async function createExportPngFile (fileName: string) {

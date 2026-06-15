@@ -1,0 +1,200 @@
+tags:
+- name: Wi-Fi
+  description: Allows to operate with Wi-Fi
+
+paths:
+  /api/wifi/status:
+    get:
+      tags:
+        - Wi-Fi
+      description: Returns current Wi-Fi status
+      parameters: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusResponse"
+
+  /api/wifi/connect:
+    post:
+      tags:
+        - Wi-Fi
+      description: Attempts to connect to Wi-Fi using config
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ConnectRequestConfig"
+      responses:
+        "200":
+          description: Network connection established
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Already connected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/wifi/disconnect:
+    post:
+      tags:
+        - Wi-Fi
+      description: Disconnects from Wi-Fi
+      parameters: []
+      responses:
+        "200":
+          description: Network connection terminated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Already disconnected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/wifi/networks:
+    get:
+      tags:
+        - Wi-Fi
+      operationId: getWifiNetworks
+      description: Scans environment for available Wi-Fi networks
+      parameters: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NetworkResponse"
+        "400":
+          description: Scan not possible when connected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+schemas:
+  ConnectRequestConfig:
+    type: object
+    properties:
+      ssid:
+        type: string
+        example: Your_WIFI_SSID
+      password:
+        type: string
+        example: Your_WIFI_Pass
+      security:
+        $ref: "#/components/schemas/WifiSecurityMethod"
+      ip_config:
+        type: object
+        properties:
+          ip_method:
+            $ref: "#/components/schemas/WifiIpMethod"
+          address:
+            type: string
+            example: 192.168.50.5
+          mask:
+            type: string
+            example: 255.255.255.0
+          gateway:
+            type: string
+            example: 192.168.50.1
+
+  NetworkResponse:
+    type: object
+    properties:
+      count:
+        type: integer
+        example: 1
+      networks:
+        type: array
+        items:
+          $ref: "#/components/schemas/Network"
+
+  WifiSecurityMethod:
+    type: string
+    example: "WPA3"
+    enum: [Open, WPA, WPA2, WEP, WPA/WPA2, WPA3, WPA2/WPA3, Unsupported]
+
+  WifiIpMethod:
+    type: string
+    example: "dhcp"
+    enum: ["dhcp", "static"]
+
+  WifiIpType:
+    type: string
+    example: "ipv4"
+    enum: ["ipv4", "ipv6"]
+
+  Network:
+    type: object
+    properties:
+      ssid:
+        type: string
+        example: "42"
+      security:
+        $ref: "#/components/schemas/WifiSecurityMethod"
+      rssi:
+        type: integer
+        example: -58
+
+  StatusResponse:
+    type: object
+    description: |
+      Wi-Fi status. Only `state` is always present.
+      Fields `ssid`, `bssid`, `channel`, `rssi`, `security`, and `ip_config` are only included when state is "connected".
+    required:
+      - state
+    properties:
+      state:
+        type: string
+        example: disconnected
+        enum:
+          - unknown
+          - disconnected
+          - connected
+          - connecting
+          - disconnecting
+          - reconnecting
+      ssid:
+        type: string
+        description: Only present when connected
+        example: Your_WIFI_SSID
+      bssid:
+        type: string
+        description: Only present when connected
+        pattern: "^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$"
+        example: "EC:5A:00:0B:55:1D"
+      channel:
+        type: integer
+        description: Only present when connected
+        example: 3
+      rssi:
+        type: integer
+        description: Only present when connected
+        example: -43
+      security:
+        description: Only present when connected
+        $ref: "#/components/schemas/WifiSecurityMethod"
+      ip_config:
+        type: object
+        description: Only present when connected
+        properties:
+          ip_method:
+            $ref: "#/components/schemas/WifiIpMethod"
+          ip_type:
+            $ref: "#/components/schemas/WifiIpType"
+          address:
+            type: string
+            example: 192.168.50.5

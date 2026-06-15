@@ -26,4 +26,7 @@ void vPortSuppressTicksAndSleep(TickType_t expected_idle_ticks) {
         __WFI();
         return;
     }
+
+    // Low-power mode is not implemented yet, so just WFI here
+    __WFI();
 }

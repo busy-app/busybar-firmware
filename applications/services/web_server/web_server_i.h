@@ -38,6 +38,14 @@
 #define MG_REPLY_OK_CLOSE(conn) \
     mg_http_reply(conn, 200, DEFAULT_JSON_HEADERS "Connection: close\r\n", RESPONSE_BODY_OK)
 
+#define MG_REPLY_ERROR_CLOSE(conn, code, ...)         \
+    mg_http_reply(                                    \
+        conn,                                         \
+        code,                                         \
+        DEFAULT_JSON_HEADERS "Connection: close\r\n", \
+        "{\"error\":\"%s\"}\n",                       \
+        M_IF_EMPTY(__VA_ARGS__)("failed", __VA_ARGS__))
+
 #define MG_REPLY_ERROR(conn, code, ...) \
     _MG_JSON_RESULT(                    \
         conn,                           \
@@ -171,7 +179,10 @@ void http_handler_remove(HttpHandlersList_t list, const HttpHandler* handler);
 
 void http_handler_remove_all(HttpHandlersList_t list);
 
-void http_reply_405_method_not_allowed(struct mg_connection* conn, HttpMethod allowed_methods);
+void http_reply_405_method_not_allowed(
+    struct mg_connection* conn,
+    HttpMethod allowed_methods,
+    bool close);
 void http_reply_cors_preflight(struct mg_connection* conn, HttpMethod allowed_methods);
 
 void http_upload_start(

@@ -169,7 +169,7 @@ static bool
                 "Update not allowed: %s", updater_get_status_string(session_start_status));
 
             FURI_LOG_E(TAG, furi_string_get_cstr(error_string));
-            MG_REPLY_ERROR(conn, 400, furi_string_get_cstr(error_string));
+            MG_REPLY_ERROR_CLOSE(conn, 400, furi_string_get_cstr(error_string));
 
             furi_string_free(error_string);
             break;
@@ -183,7 +183,7 @@ static bool
                 "Update bundle unpack failed: %s", updater_get_status_string(unpack_tar_status));
 
             FURI_LOG_E(TAG, furi_string_get_cstr(error_string));
-            MG_REPLY_ERROR(conn, 400, furi_string_get_cstr(error_string));
+            MG_REPLY_ERROR_CLOSE(conn, 400, furi_string_get_cstr(error_string));
 
             furi_string_free(error_string);
             break;
@@ -197,7 +197,7 @@ static bool
                 updater_get_status_string(installation_prepare_status));
 
             FURI_LOG_E(TAG, furi_string_get_cstr(error_string));
-            MG_REPLY_ERROR(conn, 400, furi_string_get_cstr(error_string));
+            MG_REPLY_ERROR_CLOSE(conn, 400, furi_string_get_cstr(error_string));
 
             furi_string_free(error_string);
             break;
@@ -205,8 +205,11 @@ static bool
 
         FURI_LOG_I(TAG, "Device will reboot...");
 
-        MG_REPLY_OK_BODY(
-            conn, "{\"result\":\"OK\",\"message\":\"Update accepted. System will reboot.\"}\n");
+        mg_http_reply(
+            conn,
+            200,
+            DEFAULT_JSON_HEADERS "Connection: close\r\n",
+            "{\"result\":\"OK\",\"message\":\"Update accepted. System will reboot.\"}\n");
 
         conn->is_draining = 1;
 
@@ -228,6 +231,7 @@ static void api_update_on_data_cb(struct mg_connection* conn, struct mg_iobuf* i
 
     if(!update_ctx || !update_ctx->file_save) {
         FURI_LOG_E(TAG, "on_data: Context or file saver invalid/closed. Draining.");
+        MG_REPLY_ERROR_CLOSE(conn, 500, "Update context invalid");
         mg_iobuf_del(io, 0, io->len); // Consume data to prevent further calls
         conn->is_draining = 1; // Mark connection to be closed
         return;
@@ -250,7 +254,7 @@ static void api_update_on_data_cb(struct mg_connection* conn, struct mg_iobuf* i
                 "on_data: Received more data than expected. Expected %zu, got %zu more.",
                 update_ctx->total_file_size,
                 (update_ctx->received_file_size + data_len) - update_ctx->total_file_size);
-            MG_REPLY_PAYLOAD_TOO_LARGE(conn);
+            MG_REPLY_ERROR_CLOSE(conn, 413, "Payload Too Large");
             conn->is_draining = 1;
             mg_iobuf_del(io, 0, io->len);
             return;
@@ -259,7 +263,7 @@ static void api_update_on_data_cb(struct mg_connection* conn, struct mg_iobuf* i
         if(!fetch_file_save_write(update_ctx->file_save, io->buf, data_len)) {
             FURI_LOG_E(
                 TAG, "on_data: Failed to write data to temp TAR file. Wrote %zu bytes.", data_len);
-            MG_REPLY_INTERNAL_ERROR(conn, "Failed to save update package (write error).");
+            MG_REPLY_ERROR_CLOSE(conn, 500, "Failed to save update package (write error).");
             conn->is_draining = 1;
             mg_iobuf_del(io, 0, io->len);
             return;
@@ -309,6 +313,7 @@ static void api_update_on_poll_cb(struct mg_connection* conn) {
 
     if(mg_timer_expired(&update_ctx->timeout_stamp, UPDATE_UPLOAD_IDLE_TIMEOUT_MS, mg_millis())) {
         FURI_LOG_E(TAG, "Connection data timeout (%lu)", conn->id);
+        MG_REPLY_ERROR_CLOSE(conn, 408, "Upload timeout");
         conn->is_draining = 1; // Force close hanging connection
     }
 }
@@ -330,14 +335,14 @@ static bool api_update_raw_hdr_callback(
 
     if(method == HttpMethodOptions) return false; // let MG_EV_HTTP_MSG respond with preflight
     if(method != HttpMethodPost) {
-        http_reply_405_method_not_allowed(conn, HttpMethodPost);
+        http_reply_405_method_not_allowed(conn, HttpMethodPost, true);
         conn->is_draining = 1;
         return true;
     }
 
     if(msg->body.len == 0) {
         FURI_LOG_W(TAG, "on_headers: Content-Length is 0 or missing/invalid. No file to upload?");
-        MG_REPLY_BAD_REQUEST(conn);
+        MG_REPLY_ERROR_CLOSE(conn, 400, "Bad Request");
         conn->is_draining = 1;
         return true;
     }
@@ -356,7 +361,7 @@ static bool api_update_raw_hdr_callback(
             "on_headers: File size %zu exceeds max %u.",
             update_ctx->total_file_size,
             MAX_UPLOAD_FILE_SIZE);
-        MG_REPLY_PAYLOAD_TOO_LARGE(conn);
+        MG_REPLY_ERROR_CLOSE(conn, 413, "Payload Too Large");
         conn->is_draining = 1;
         return true;
     }
@@ -374,7 +379,7 @@ static bool api_update_raw_hdr_callback(
             TAG,
             "on_headers: Failed to initialize file saver for: %s",
             UPDATER_DEFAULT_DOWNLOAD_PATH);
-        MG_REPLY_INTERNAL_ERROR(conn, "Failed to save update package (file init error).");
+        MG_REPLY_ERROR_CLOSE(conn, 500, "Failed to save update package (file init error).");
         conn->is_draining = 1;
         return true;
     }

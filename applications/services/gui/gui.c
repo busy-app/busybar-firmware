@@ -346,6 +346,8 @@ static Gui* gui_alloc(void) {
         }
     }
 
+    furi_thread_set_current_priority(FuriThreadPriorityHigh);
+
     furi_record_create(RECORD_GUI, instance);
     return instance;
 }

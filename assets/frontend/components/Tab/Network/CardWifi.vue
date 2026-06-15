@@ -27,7 +27,7 @@
       #subtitle
     >
       <div
-        v-if="connected"
+        v-if="connected && !reconnecting"
         data-id="network-section-wifi-status-connected"
         class="flex items-center gap-2 text-primary"
       >
@@ -133,7 +133,7 @@
     </template>
 
     <div
-      v-if="connected"
+      v-if="connected && !reconnecting"
       class="flex justify-between items-center"
     >
       <div>IP Address</div>
@@ -534,7 +534,7 @@ async function forgetNetwork () {
 
 const connected = computed(() => wifiStore.wifi?.state === 'connected');
 const connecting = computed(() => wifiStore.wifi?.state === 'connecting');
-const reconnecting = computed(() => wifiStore.wifi?.state === 'reconnecting');
+const reconnecting = computed(() => wifiStore.wifi?.state === 'reconnecting' || (wifiStore.wifi.channel === 0 && wifiStore.wifi.rssi === 0));
 
 const reconnectTimeout = ref<NodeJS.Timeout | null>(null);
 const RECONNECT_TIMEOUT_DURATION = 10000;
@@ -542,7 +542,7 @@ const showOffline = ref(false);
 function setReconnectTimeout () {
   if (!reconnectTimeout.value) {
     reconnectTimeout.value = setTimeout(() => {
-      if (wifiStore.wifi?.state === 'reconnecting') {
+      if (wifiStore.wifi?.state === 'reconnecting' || (wifiStore.wifi.channel === 0 && wifiStore.wifi.rssi === 0)) {
         showOffline.value = true;
       }
       reconnectTimeout.value = null;
@@ -574,13 +574,13 @@ function wifiIconByRssi (rssi: WifiNetwork['rssi']): string {
   if (!rssi) {
     return 'i-bi-wifi-1';
   }
-  if (rssi < 60) {
+  if (rssi > -60) {
     return 'i-bi-wifi-4';
   }
-  if (rssi < 70) {
+  if (rssi > -70) {
     return 'i-bi-wifi-3';
   }
-  if (rssi < 80) {
+  if (rssi > -80) {
     return 'i-bi-wifi-2';
   }
   return 'i-bi-wifi-2';

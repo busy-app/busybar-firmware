@@ -16,6 +16,8 @@
 #include <font_registry/fonts.h>
 #include <back_display/back_display.h>
 #include <front_display/front_display.h>
+#include <light_sensor/light_sensor.h>
+#include <soft_off/soft_off.h>
 
 #define CANVAS_DEFERRED_TIMEOUT_MS 1500U
 
@@ -179,16 +181,6 @@ static void canvas_widget_destroy_all(CanvasSrv* canvas) {
         CanvasWidget* widget = &itref->value;
         canvas_widget_destroy(canvas, widget);
     }
-}
-
-static bool is_in_power_off(CanvasSrv* canvas) {
-    FuriString* current_app_name = furi_string_alloc();
-
-    loader_get_application_name(canvas->loader, current_app_name);
-    bool result = furi_string_equal(current_app_name, "Software Power Off");
-
-    furi_string_free(current_app_name);
-    return result;
 }
 
 static bool canvas_srv_check_elements_visible(CanvasElementsArray_t elements) {
@@ -591,6 +583,22 @@ static bool canvas_srv_input_callback(const InputEvent* event, void* context) {
     return true;
 }
 
+static void canvas_override_power_off(bool state) {
+#ifdef APP_POWEROFF
+    if(furi_record_exists(RECORD_POWEROFF)) {
+        BackDisplaySrv* back_display = furi_record_open(RECORD_BACK_DISPLAY);
+        FrontDisplaySrv* front_display = furi_record_open(RECORD_FRONT_DISPLAY);
+        back_display_sleep_mode(back_display, !state);
+        front_display_sleep_mode(front_display, !state);
+        light_sensor_sleep(!state);
+        furi_record_close(RECORD_BACK_DISPLAY);
+        furi_record_close(RECORD_FRONT_DISPLAY);
+    }
+#else
+    UNUSED(state);
+#endif
+}
+
 static void canvas_screen_open(CanvasSrv* canvas) {
     canvas->gui = furi_record_open(RECORD_GUI);
     with_gui(canvas->gui, {
@@ -635,15 +643,7 @@ static void canvas_screen_open(CanvasSrv* canvas) {
         widget_set_visible(mirror_base, false);
     });
 
-    if(is_in_power_off(canvas)) {
-        // FIXME: Displays were shut down in power_off, we need to turn them on
-        BackDisplaySrv* back_display = furi_record_open(RECORD_BACK_DISPLAY);
-        FrontDisplaySrv* front_display = furi_record_open(RECORD_FRONT_DISPLAY);
-        back_display_sleep_mode(back_display, false);
-        front_display_sleep_mode(front_display, false);
-        furi_record_close(RECORD_BACK_DISPLAY);
-        furi_record_close(RECORD_FRONT_DISPLAY);
-    }
+    canvas_override_power_off(true);
 }
 
 static void canvas_screen_close(CanvasSrv* canvas) {
@@ -664,14 +664,7 @@ static void canvas_screen_close(CanvasSrv* canvas) {
     furi_record_close(RECORD_GUI);
     canvas->gui = NULL;
     canvas->priority = 0;
-    if(is_in_power_off(canvas)) {
-        BackDisplaySrv* back_display = furi_record_open(RECORD_BACK_DISPLAY);
-        FrontDisplaySrv* front_display = furi_record_open(RECORD_FRONT_DISPLAY);
-        back_display_sleep_mode(back_display, true);
-        front_display_sleep_mode(front_display, true);
-        furi_record_close(RECORD_BACK_DISPLAY);
-        furi_record_close(RECORD_FRONT_DISPLAY);
-    }
+    canvas_override_power_off(false);
 }
 
 static void canvas_loader_pubsub_callback(const void* message, void* context) {

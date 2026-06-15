@@ -5,6 +5,8 @@
 #include "../widgets/timer_indicator.h"
 #include "../widgets/timer_label.h"
 
+#include "../helpers/animate.h"
+
 #include <inttypes.h>
 
 #define COUNTDOWN_THRESHOLD_S (3)
@@ -30,6 +32,7 @@ typedef struct {
     bool is_custom_theme;
     bool is_paused;
     bool is_force_ended;
+    bool is_mode_transition;
 } BusySceneTimer;
 
 static bool busy_scene_timer_input_callback(const InputEvent* event, void* context) {
@@ -159,8 +162,10 @@ static void busy_scene_timer_update_front_display_blanking(BusyApp* instance) {
 }
 
 static void busy_scene_timer_update_timer_mode(BusyApp* instance) {
-    const BusySceneTimer* data =
+    BusySceneTimer* data =
         scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdTimer);
+
+    data->is_mode_transition = (data->prev_timer_mode == BusyTimerModeInfinite);
 
     with_gui(instance->gui, {
         if(data->timer_mode == BusyTimerModeInfinite) {
@@ -208,15 +213,8 @@ static const TimerIndicatorTransition*
     const TimerIndicatorTransition* ret = NULL;
 
     if(!busy_scene_timer_has_label_tweaks(data)) {
-        if(data->timer_state == BusyTimerStateWork) {
-            const BusyTimerMode timer_mode = data->timer_mode;
-
-            if(timer_mode == BusyTimerModeSimple || timer_mode == BusyTimerModeInterval) {
-                if(data->prev_timer_mode == BusyTimerModeInfinite) {
-                    ret = &busy_timer_indicator_transitions
-                              [BusyTimerIndicatorTransitionTypeInfToSimple];
-                }
-            }
+        if(data->is_mode_transition) {
+            ret = &busy_timer_indicator_transitions[BusyTimerIndicatorTransitionTypeInfToSimple];
         }
     }
 
@@ -253,13 +251,26 @@ static void busy_scene_timer_update_timer_state(BusyApp* instance) {
                 data->timer_indicator, timer_indicator_preset, timer_indicator_transition);
         }
 
+        if(timer_indicator_transition) {
+            Widget* timer_label_base = timer_label_get_base(data->timer_label);
+
+            const int32_t start_pos = widget_get_width(timer_label_base);
+            const int32_t end_pos = 0;
+
+            animate_pos_x(
+                timer_label_base, start_pos, end_pos, timer_indicator_transition->duration_ms);
+        }
+
         if(timer_label_preset) {
             timer_label_set_preset(data->timer_label, timer_label_preset);
 
             if(busy_scene_timer_has_label_tweaks(data)) {
                 timer_label_enable_background(data->timer_label, true);
-                timer_label_hide(data->timer_label, false);
-                furi_event_loop_timer_start(data->show_label_timer, TIMER_HIDDEN_TIME_MS);
+
+                if(!data->is_mode_transition) {
+                    timer_label_hide(data->timer_label, false);
+                    furi_event_loop_timer_start(data->show_label_timer, TIMER_HIDDEN_TIME_MS);
+                }
 
             } else {
                 timer_label_enable_background(data->timer_label, false);
@@ -292,7 +303,7 @@ static void busy_scene_timer_clear_transition(BusyApp* instance) {
 }
 
 static void busy_scene_timer_handle_pause(BusyApp* instance) {
-    const BusySceneTimer* data =
+    BusySceneTimer* data =
         scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdTimer);
 
     const bool is_paused = data->is_paused;
@@ -310,8 +321,15 @@ static void busy_scene_timer_handle_pause(BusyApp* instance) {
         timer_indicator_enable_animations(data->timer_indicator, !is_paused);
 
         if(!is_paused && busy_scene_timer_has_label_tweaks(data)) {
-            furi_event_loop_timer_start(data->show_label_timer, TIMER_HIDDEN_TIME_MS);
-            timer_label_hide(data->timer_label, true);
+            if(!data->is_mode_transition) {
+                furi_event_loop_timer_start(data->show_label_timer, TIMER_HIDDEN_TIME_MS);
+                timer_label_hide(data->timer_label, true);
+            } else {
+                // HACK: BusyTimerEventTypePaused event is the last one to be emitted
+                // in busy_timer_notify_initial_state(), reset ongoing transition flag here
+                data->is_mode_transition = false;
+            }
+
         } else {
             furi_event_loop_timer_stop(data->show_label_timer);
         }
@@ -487,6 +505,7 @@ static void busy_scene_timer_on_enter(void* context) {
         data->pause_overlay = pause_overlay_alloc(instance->front_window);
 
         widget_set_align(timer_label_get_base(data->timer_label), AlignTopRight);
+        timer_label_hide(data->timer_label, false);
 
         widget_set_visible(mirror_card_get_base(instance->timer_card), true);
         mirror_card_set_show_header(instance->timer_card, true);

@@ -1,5 +1,6 @@
 import Konva from 'konva';
 import { defineStore } from 'pinia';
+import { cloneShape } from '@/util/drawTool';
 
 type OverlayControlPosition = {
   x: number;
@@ -778,9 +779,15 @@ export const useDrawToolEditorStore = defineStore('drawToolEditor', () => {
     pushHistorySnapshot();
   }
 
-  function addImageShape (image: HTMLImageElement, fileName: string) {
+  function addImageShape (
+    image: HTMLImageElement,
+    fileName: string,
+    options: { pixelArt?: boolean } = {}
+  ) {
     const height = WORKSPACE_HEIGHT;
-    const width = Math.max(1, Math.round((image.width / image.height) * height));
+    const pixelArt = options.pixelArt ?? isPixelArtImageSource(image);
+    const nextHeight = pixelArt ? image.height : height;
+    const nextWidth = pixelArt ? image.width : Math.max(1, Math.round((image.width / image.height) * nextHeight));
 
     const imageShape: ImageShape = {
       id: createShapeId(),
@@ -788,10 +795,11 @@ export const useDrawToolEditorStore = defineStore('drawToolEditor', () => {
       fileName,
       x: 0,
       y: 0,
-      width,
-      height,
+      width: nextWidth,
+      height: nextHeight,
       rotation: 0,
-      image
+      image,
+      pixelArt
     };
 
     shapes.value.push(imageShape);
