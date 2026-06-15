@@ -244,18 +244,6 @@ if fwenv.get("IS_BASE_FIRMWARE", False):
     )
     Install(app_assets_dir.Dir("web_server/www"), _openapi_yaml)
     Alias("openapi_spec", _openapi_yaml)
-    # Compute dist flavour if not already set (shared with update.scons)
-    if "DIST_FLAVOR" not in fwenv:
-        fwenv["DIST_FLAVOR"] = "".join(
-            ["C" if fwenv.get("COMPACT", False) else "", "D" if fwenv.get("DEBUG", False) else ""]
-        )
-
-    _openapi_dist_dir = "${PROJECT_ROOT}/dist/${F_TARGET_HW}"
-    if fwenv["DIST_FLAVOR"]:
-        _openapi_dist_dir += f"-{fwenv['DIST_FLAVOR']}"
-    _openapi_dist_path = fwenv.File(f"{_openapi_dist_dir}/openapi.yaml")
-    _openapi_dist = InstallAs(_openapi_dist_path, _openapi_yaml)
-    Alias("openapi_dist", _openapi_dist)
     swagger_files = fw_assets_env.SwaggerGenerator(
         app_assets_dir.File("web_server/www/docs/index.html"),
         _openapi_yaml,
