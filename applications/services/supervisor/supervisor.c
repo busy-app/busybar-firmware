@@ -1,7 +1,7 @@
 #include <gui/gui_i.h>
 #include <gui/modules/status_view.h>
 
-#include <soft_off/soft_off.h>
+#include <low_power/low_power.h>
 #include <intercom/intercom.h>
 #include <matter/matter.h>
 
@@ -46,6 +46,7 @@ struct Supervisor {
     Intercom* intercom;
     Matter* matter;
     Gui* gui;
+    LowPower* low_power;
 
     StatusView* status_views[GuiDisplayIdMax];
 
@@ -351,34 +352,18 @@ static int32_t supervisor_get_topmost_warning(Supervisor* instance) {
     return (idx < COUNT_OF(supervisor_warnings)) ? (int32_t)idx : -1;
 }
 
-static void override_power_off(bool state) {
-#ifdef APP_POWEROFF
-    if(furi_record_exists(RECORD_POWEROFF)) {
-        BackDisplaySrv* back_display = furi_record_open(RECORD_BACK_DISPLAY);
-        FrontDisplaySrv* front_display = furi_record_open(RECORD_FRONT_DISPLAY);
-        back_display_sleep_mode(back_display, !state);
-        front_display_sleep_mode(front_display, !state);
-        furi_record_close(RECORD_BACK_DISPLAY);
-        furi_record_close(RECORD_FRONT_DISPLAY);
-    }
-#else
-    UNUSED(state);
-#endif
-}
-
 static void supervisor_update_warning(Supervisor* instance, SupervisorWarningType type, bool add) {
     furi_check(type < COUNT_OF(supervisor_warnings));
 
     if(add) {
-        // FIXME: Displays were shut down in power_off, we need to turn them on
         if(instance->active_warnings == 0) {
-            override_power_off(true);
+            low_power_lock(instance->low_power);
         }
         instance->active_warnings |= (1 << type);
     } else {
         instance->active_warnings &= ~(1 << type);
         if(instance->active_warnings == 0) {
-            override_power_off(false);
+            low_power_unlock(instance->low_power);
         }
     }
 
@@ -634,6 +619,7 @@ int32_t supervisor_start(void* argument) {
     instance->intercom = furi_record_open(RECORD_INTERCOM);
     instance->matter = furi_record_open(RECORD_MATTER);
     instance->gui = furi_record_open(RECORD_GUI);
+    instance->low_power = furi_record_open(RECORD_LOW_POWER);
 
     instance->displayed_warning = NULL;
 
