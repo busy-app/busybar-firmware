@@ -58,12 +58,13 @@ static inline uint16_t ble_streaming_get_total_chunks_count(const size_t data_si
     return count;
 }
 
-static void
+static bool
     ble_streaming_send_data(BleStreaming* instance, const uint8_t* data, size_t data_size) {
     size_t index = 0;
 
     instance->send_buf.header.num = 0;
     instance->send_buf.header.count = ble_streaming_get_total_chunks_count(data_size);
+    bool result = false;
     while(data_size && instance->run) {
         size_t send_size = data_size > BLE_STREAMING_MAX_DATA_SIZE ? BLE_STREAMING_MAX_DATA_SIZE :
                                                                      data_size;
@@ -78,11 +79,13 @@ static void
             furi_semaphore_acquire(instance->wait_tx, BLE_STREAM_WAIT_TX_TIMEOUT_MS);
         if(status != FuriStatusOk) break;
 
+        result = true;
         memset(instance->send_buf.data, 0, BLE_STREAMING_MAX_DATA_SIZE);
         data_size -= send_size;
         index += send_size;
         instance->send_buf.header.num += 1;
     }
+    return result;
 }
 
 static void ble_stream_state_publisher_callback(const SharedByteArray_t data, void* context) {
