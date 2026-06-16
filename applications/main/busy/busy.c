@@ -196,10 +196,7 @@ static BusyApp* busy_alloc(const char* arg) {
 }
 
 static void busy_free(BusyApp* instance) {
-    while(!furi_record_destroy(RECORD_BUSY_APP)) {
-        // Workaround: wait before all users close the record
-        furi_delay_ms(1);
-    }
+    furi_record_destroy(RECORD_BUSY_APP);
 
     audio_disable(instance->audio);
 
