@@ -104,6 +104,8 @@ static bool ble_command_init_response(BleIntercomFrameGeneric* frame, void* cont
 
 static bool ble_command_deinit_request(BleIntercomFrameGeneric* frame, void* context) {
     BLE_LOG_D("BleCommandDeinit request");
+    Ble* instance = context;
+    ble_streaming_update(instance->streaming, BleServiceStatusError);
     return ble_command_deinit_process(frame, context);
 }
 
