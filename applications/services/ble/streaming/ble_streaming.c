@@ -32,6 +32,7 @@ struct BleStreaming {
     BleStreamingData send_buf;
     FuriMutex* lock;
     FuriSemaphore* wait_tx;
+    StatePublisher* state_publisher;
     StatePublisherTransportHandle handle;
     FuriEventLoop* event_loop;
     FuriThread* thread;
@@ -93,7 +94,7 @@ static void ble_stream_state_publisher_callback(const SharedByteArray_t data, vo
 }
 
 static inline void ble_stream_state_publisher_subscribe(BleStreaming* instance) {
-    StatePublisher* state_publisher = furi_record_open(RECORD_STATE_PUBLISHER);
+    instance->state_publisher = furi_record_open(RECORD_STATE_PUBLISHER);
 
     RateLimiterLimit limit = {
         .period_ms = BLE_STREAM_RATE_LIMITER_PERIOD_MS,
@@ -101,20 +102,18 @@ static inline void ble_stream_state_publisher_subscribe(BleStreaming* instance) 
     };
 
     instance->handle = state_publisher_add_transport(
-        state_publisher,
+        instance->state_publisher,
         StatePublisherTransportClassBLE,
         BLE_STREAM_FRAME_PERIOD_MS,
         limit,
         ble_stream_state_publisher_callback,
         instance);
-
-    furi_record_close(RECORD_STATE_PUBLISHER);
 }
 
 static inline void ble_stream_state_publisher_unsubscribe(BleStreaming* instance) {
-    StatePublisher* state_publisher = furi_record_open(RECORD_STATE_PUBLISHER);
-    state_publisher_del_transport(state_publisher, instance->handle);
+    state_publisher_del_transport(instance->state_publisher, instance->handle);
     furi_record_close(RECORD_STATE_PUBLISHER);
+    instance->state_publisher = NULL;
     instance->handle = STATE_PUBLISHER_TRANSPORT_HANDLE_INVALID;
 }
 
