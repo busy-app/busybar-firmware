@@ -66,9 +66,7 @@ static void busy_api_queue_callback(FuriEventLoopObject* object, void* context) 
             furi_crash("Invalid BusyApiMessageType value");
         }
 
-        if(message.lock) {
-            api_lock_unlock(message.lock);
-        }
+        busy_api_unlock_message(&message, BusyStatusOk);
     }
 }
 
@@ -184,9 +182,9 @@ static BusyApp* busy_alloc(const char* arg) {
         busy_api_queue_callback,
         instance);
 
-    furi_record_create(RECORD_BUSY_APP, instance);
-
     audio_enable(instance->audio);
+
+    furi_record_create(RECORD_BUSY_APP, instance);
 
     if(instance->run_mode == BusyAppRunModeNormal) {
         scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdStart);
@@ -196,6 +194,7 @@ static BusyApp* busy_alloc(const char* arg) {
 }
 
 static void busy_free(BusyApp* instance) {
+    busy_api_abort_pending_messages(instance);
     furi_record_destroy(RECORD_BUSY_APP);
 
     audio_disable(instance->audio);

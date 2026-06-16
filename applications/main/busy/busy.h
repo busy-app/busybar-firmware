@@ -1,3 +1,7 @@
+/**
+ * @file busy.h
+ * @brief BUSY application -- frontend for the @ref BusyTimer service.
+ */
 #pragma once
 
 #include "busy_common.h"
@@ -34,13 +38,22 @@
 extern "C" {
 #endif
 
+/**
+ * @brief Enumeration of possible statuses returned by the BusyApp APIs.
+ */
+typedef enum {
+    BusyStatusOk, /**< Command executed normally, no error occurred */
+    BusyStatusAborted, /**< Command was aborted (e.g. when app was exiting) */
+    BusyStatusTimeout, /**< Command was taking too long to execute */
+} BusyStatus;
+
 typedef struct BusyApp BusyApp;
 
-void busy_set_config(BusyApp* instance, const BusyAppConfig* config);
+BusyStatus busy_set_config(BusyApp* instance, const BusyAppConfig* config);
 
-void busy_show_timer(BusyApp* instance);
+BusyStatus busy_show_timer(BusyApp* instance);
 
-void busy_request_exit(BusyApp* instance);
+BusyStatus busy_request_exit(BusyApp* instance);
 
 #ifdef __cplusplus
 }
