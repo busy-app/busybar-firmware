@@ -8,11 +8,7 @@ App(
         "helpers/fkermit.c",
     ],
     entry_point="update_cli_command",
-    requires=[
-        "storage", 
-        "updater", 
-        "cli_commands_target_specific"
-    ],
+    requires=["storage", "updater", "cli_commands_target_specific"],
 )
 
 App(
@@ -21,17 +17,11 @@ App(
     apptype=FlipperAppType.SERVICE,
     sources=[
         "update_executor/update_executor.c",
-        "update_executor/worker/update_task.c",
-        "update_executor/worker/update_task_general.c",
-        "update_executor/scenes/scene_failure.c",
-        "update_executor/scenes/scene_install.c",
-        "update_executor/scenes/scene_reboot.c",
-        "update_executor/scenes/scene_success.c",
-        "update_executor/scenes/scenes.c",
+        "update_executor/worker/*.c",
+        "update_executor/scenes/*.c",
         "sl_updater/sl_updater.c",
         "helpers/fkermit.c",
-        "session/nwp_session.c",
-        "session/session_config.c",
+        "session/*.c",
     ],
     entry_point="update_executor_srv",
     requires=[
@@ -52,13 +42,11 @@ App(
         "updater.c",
         "updater_normal.c",
         "updater_recovery.c",
-        "settings/interface_v2.c",
-        "settings/settings.c",
+        "settings/*.c",
         "helpers/rps.c",
         "helpers/update_parser.c",
-        "update_checker/update_checker.c",
-        "session/nwp_session.c",
-        "session/session_config.c",
+        "update_checker/*.c",
+        "session/*.c",
     ],
     entry_point="updater_srv",
     requires=[
@@ -77,10 +65,7 @@ App(
     apptype=FlipperAppType.STARTUP,
     sources=[
         "update_ui/update_ui.c",
-        "update_ui/scenes/scene_download.c",
-        "update_ui/scenes/scene_failure.c",
-        "update_ui/scenes/scene_prepare.c",
-        "update_ui/scenes/scenes.c",
+        "update_ui/scenes/*.c",
     ],
     entry_point="update_ui_startup",
     requires=[

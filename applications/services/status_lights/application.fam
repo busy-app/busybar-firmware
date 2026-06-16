@@ -11,10 +11,7 @@ App(
     sources=[
         "status_lights_backend.c",
         "status_lights_preset_defs.c",
-        "presets/fade.c",
-        "presets/static_color.c",
-        "presets/blink.c",
-        "presets/rainbow_gradient.c",
+        "presets/*.c",
     ],
 )
 
