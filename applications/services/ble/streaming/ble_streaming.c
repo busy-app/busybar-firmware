@@ -28,7 +28,9 @@ typedef struct FURI_PACKED {
 
 typedef enum {
     BleStreamingEventFramePending = (1 << 0),
-    BleStreamingEventFrameExit = (1 << 1)
+    BleStreamingEventIncreaseFramePeriod = (1 << 1),
+    BleStreamingEventDecreaseFramePeriod = (1 << 2),
+    BleStreamingEventFrameExit = (1 << 3)
 } BleStreamingEvent;
 
 struct BleStreaming {
