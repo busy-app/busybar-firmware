@@ -55,12 +55,14 @@ static void system_settings_scene_factory_reset_confirm_on_enter(void* context) 
             (Color)COLOR_MAKE_RGB(0xED, 0x00, 0x18),
             (Color)COLOR_MAKE_RGB(0xFF, 0xFF, 0xFF));
         dialog_set_options(data->front_dialog, "Reset", "Cancel");
+        dialog_select_option(data->front_dialog, 1);
         dialog_set_callback(
             data->front_dialog, system_settings_scene_factory_reset_confirm_callback, instance);
 
         data->back_dialog = dialog_alloc(instance->back_scene_window);
         dialog_set_text(data->back_dialog, "Reset the device? All user\ndata will be erased");
         dialog_set_options(data->back_dialog, "Reset", "Cancel");
+        dialog_select_option(data->back_dialog, 1);
     });
 }
 
