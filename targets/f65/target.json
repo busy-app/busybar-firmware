@@ -1,3 +1,7 @@
 {
-    "inherit": "f64"
+    "inherit": "f64",
+    "sources": [
+        "*/*.c",
+        "f64:!furi_hal/furi_hal_resources_device.c"
+    ]
 }
