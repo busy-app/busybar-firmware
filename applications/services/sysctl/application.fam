@@ -2,7 +2,11 @@ App(
     appid="sysctl",
     apptype=FlipperAppType.STARTUP,
     entry_point="sysctl_on_system_start",
-    sources=["sysctl.c", "settings/*.c"],
+    sources=[
+        "sysctl.c", 
+        "settings/sysctl_settings.c", 
+        "settings/sysctl_settings_interface_v1.c",
+    ],
     provides=["sysctl_cmd"],
     stack_size=2 * 1024,
     order=35,
