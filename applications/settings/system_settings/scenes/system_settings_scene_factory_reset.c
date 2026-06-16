@@ -39,21 +39,22 @@ static void system_settings_scene_factory_reset_on_enter(void* context) {
         }
     });
 
-    furi_delay_ms(REBOOT_TIMER_MS);
-
-    Updater* updater = furi_record_open(RECORD_UPDATER);
-    UpdaterStatus update_status = updater_session_start(updater);
-    while(update_status != UpdaterStatusOk) {
+    UpdaterStatus update_status = updater_session_start(instance->updater);
+    while(update_status == UpdaterStatusBusy) {
         furi_delay_ms(WAIT_UPDATE_UNLOCK_MS);
-        update_status = updater_session_start(updater);
+        update_status = updater_session_start(instance->updater);
     }
-    factory_reset_perform(updater, false);
 
-    updater_session_stop(updater);
-    furi_record_close(RECORD_UPDATER);
+    if(update_status == UpdaterStatusOk) {
+        furi_delay_ms(REBOOT_TIMER_MS);
+        factory_reset_perform(instance->updater, false);
+        updater_session_stop(instance->updater);
 
-    while(true)
-        ;
+        while(true)
+            ;
+    } else if(update_status == UpdaterStatusBatteryLow) {
+        scene_manager_replace_current_scene(instance->scene_manager, SceneIdLowBattery);
+    }
 }
 
 static void system_settings_scene_factory_reset_on_exit(void* context) {

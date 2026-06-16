@@ -87,7 +87,11 @@ static bool system_settings_scene_factory_reset_confirm_on_event(
     bool consumed = false;
     if(event->type == SceneManagerEventTypeCustom) {
         if(event->event == SceneEventConfirm) {
-            scene_manager_next_scene(instance->scene_manager, SceneIdFactoryReset);
+            SceneId scene_id =
+                (updater_get_allowance_status(instance->updater) != UpdaterStatusBatteryLow) ?
+                    SceneIdFactoryReset :
+                    SceneIdLowBattery;
+            scene_manager_next_scene(instance->scene_manager, scene_id);
             consumed = true;
         } else if(event->event == SceneEventCancel) {
             system_settings_pop_location(instance);
