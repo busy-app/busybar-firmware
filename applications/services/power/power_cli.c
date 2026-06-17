@@ -327,6 +327,7 @@ static void power_cli_command_print_usage(void) {
     printf("\tboot\t - reboot to DFU bootloader\r\n");
     printf("\tch\t - charge on/off\r\n");
     printf("\tch_current\t - charge current limit\r\n");
+    printf("\tch_limit\t - charge percentage limit\r\n");
     printf("\tpd_info\t - USB PD info\r\n");
     printf("\tpd_set\t - Request USB PD profile\r\n");
 }

@@ -234,7 +234,7 @@ static UpdaterStatus updater_do_installation_apply(Updater* instance, UpdaterMes
     FURI_LOG_D(TAG, "Boot mode set to \"update\", device will reboot...");
 
     furi_delay_ms(UPDATE_INSTALLATION_APPLY_REBOOT_DELAY);
-    furi_hal_power_reset();
+    power_reboot(instance->power, PowerRebootNormalU5);
 
     furi_crash();
 }
