@@ -41,6 +41,9 @@ static void system_settings_scene_power_scene_restart_confirm_on_enter(void* con
         dialog_set_options(data->front_dialog, "Restart", "Cancel");
         dialog_set_options(data->back_dialog, "Restart", "Cancel");
 
+        dialog_select_option(data->front_dialog, 1);
+        dialog_select_option(data->back_dialog, 1);
+
         dialog_set_callback(
             data->front_dialog, system_settings_scene_power_restart_confirm_callback, instance);
     });
