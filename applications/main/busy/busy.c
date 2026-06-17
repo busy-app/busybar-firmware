@@ -195,6 +195,7 @@ static BusyApp* busy_alloc(const char* arg) {
 
 static void busy_free(BusyApp* instance) {
     busy_api_abort_pending_messages(instance);
+
     furi_record_destroy(RECORD_BUSY_APP);
 
     audio_disable(instance->audio);
