@@ -10,6 +10,7 @@ extern const Scene system_settings_scene_power_info;
 extern const Scene system_settings_scene_debug;
 extern const Scene system_settings_scene_factory_reset_confirm;
 extern const Scene system_settings_scene_factory_reset;
+extern const Scene system_settings_internal_scene_low_battery;
 
 const Scene* const system_settings_scenes[SceneIdsCount] = {
     [SceneIdMain] = &system_settings_scene_main,
@@ -25,4 +26,5 @@ const Scene* const system_settings_scenes[SceneIdsCount] = {
 
     [SceneIdFactoryResetConfirm] = &system_settings_scene_factory_reset_confirm,
     [SceneIdFactoryReset] = &system_settings_scene_factory_reset,
+    [SceneIdLowBattery] = &system_settings_internal_scene_low_battery,
 };
