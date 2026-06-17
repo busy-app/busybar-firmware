@@ -116,6 +116,7 @@ struct BusyTimer {
     FuriMessageQueue* api_queue;
     FuriPubSub* event_pubsub;
     FuriPubSub* profiles_pubsub;
+    FuriPubSub* snapshot_pubsub;
     Mqtt* mqtt;
     Matter* matter;
     MatterSwitchState matter_switch_state;

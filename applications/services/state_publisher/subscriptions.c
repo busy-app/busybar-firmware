@@ -22,7 +22,7 @@ static void audio_pubsub_callback(const void* message, void* context);
 static void device_name_pubsub_callback(const void* message, void* context);
 static void matter_pubsub_callback(const void* message, void* context);
 static void input_event_pubsub_callback(const void* message, void* context);
-static void busy_timer_pubsub_callback(const void* message, void* context);
+static void busy_timer_snapshot_pubsub_callback(const void* message, void* context);
 static void busy_timer_profiles_pubsub_callback(const void* message, void* context);
 static void ble_pubsub_callback(const void* message, void* context);
 
@@ -78,8 +78,8 @@ void state_publisher_subscribe(StatePublisher* instance) {
     }
     {
         instance->busy_timer = furi_record_open(RECORD_BUSY_TIMER);
-        FuriPubSub* pubsub = busy_timer_get_pubsub(instance->busy_timer);
-        furi_pubsub_subscribe(pubsub, busy_timer_pubsub_callback, instance);
+        FuriPubSub* pubsub = busy_timer_get_snapshot_pubsub(instance->busy_timer);
+        furi_pubsub_subscribe(pubsub, busy_timer_snapshot_pubsub_callback, instance);
 
         pubsub = busy_timer_get_profiles_pubsub(instance->busy_timer);
         furi_pubsub_subscribe(pubsub, busy_timer_profiles_pubsub_callback, instance);
@@ -497,7 +497,7 @@ static void input_event_pubsub_callback(const void* message, void* context) {
     state_publisher_schedule_state_update(instance, update, StreamFlagAll);
 }
 
-static void busy_timer_pubsub_callback(const void* message, void* context) {
+static void busy_timer_snapshot_pubsub_callback(const void* message, void* context) {
     UNUSED(message);
     StatePublisher* instance = context;
 

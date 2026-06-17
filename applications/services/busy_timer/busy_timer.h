@@ -93,6 +93,8 @@ FuriPubSub* busy_timer_get_pubsub(const BusyTimer* instance);
 
 FuriPubSub* busy_timer_get_profiles_pubsub(const BusyTimer* instance);
 
+FuriPubSub* busy_timer_get_snapshot_pubsub(const BusyTimer* instance);
+
 void busy_timer_start(BusyTimer* instance, BusyTimerProfileId profile_id);
 
 void busy_timer_stop(BusyTimer* instance);

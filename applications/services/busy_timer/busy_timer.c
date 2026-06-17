@@ -528,6 +528,7 @@ static void busy_timer_schedule_publish_last_known_snapshot(BusyTimer* instance)
 
     ++instance->snapshot_update_count;
     furi_event_loop_timer_start(instance->snapshot_timer, DEBOUNCE_TIMER_DELAY_MS);
+    furi_pubsub_publish(instance->snapshot_pubsub, NULL);
 }
 
 static void
@@ -849,6 +850,11 @@ FuriPubSub* busy_timer_get_profiles_pubsub(const BusyTimer* instance) {
     return instance->profiles_pubsub;
 }
 
+FuriPubSub* busy_timer_get_snapshot_pubsub(const BusyTimer* instance) {
+    furi_check(instance);
+    return instance->snapshot_pubsub;
+}
+
 // Message handlers
 
 static void
@@ -1083,6 +1089,7 @@ static BusyTimer* busy_timer_alloc(void) {
     instance->api_queue = furi_message_queue_alloc(API_QUEUE_SIZE, sizeof(BusyTimerApiMessage));
     instance->event_pubsub = furi_pubsub_alloc();
     instance->profiles_pubsub = furi_pubsub_alloc();
+    instance->snapshot_pubsub = furi_pubsub_alloc();
     instance->mqtt = furi_record_open(RECORD_MQTT);
 
     furi_event_loop_subscribe_message_queue(
