@@ -44,6 +44,7 @@
 #define AUDIO_CONFIG_FILE APP_DATA_PATH("audio.json")
 
 typedef enum {
+    AudioBufferIndexNone = 0,
     AudioBufferIndexPing = (1UL << FuriHalSaiEventHalfTransfer),
     AudioBufferIndexPong = (1UL << FuriHalSaiEventTransferComplete),
     AudioBufferIndexBoth = (AudioBufferIndexPing | AudioBufferIndexPong),
@@ -333,6 +334,9 @@ static void audio_custom_event_callback(uint32_t events, void* context) {
     furi_assert(context);
     Audio* instance = context;
     AudioBufferIndex buffer_index = events;
+
+    /* event loop may re-arm its notify flag after event bits were already drained */
+    if(buffer_index == AudioBufferIndexNone) return;
 
     bool should_stop = false;
 
