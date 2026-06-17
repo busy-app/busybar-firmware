@@ -31,6 +31,7 @@ App(
     name="sl_cli",
     targets=["f20", "f21", "f22"],
     apptype=FlipperAppType.CLICMD,
+    flags=["Exclusive"],
     entry_point="cli_command_sl_cli",
     sources=["cli/cli_command_sl_cli.c"],
 )
