@@ -133,6 +133,11 @@ static inline void ble_stream_state_publisher_unsubscribe(BleStreaming* instance
 static void ble_stream_set_frame_period(BleStreaming* instance, int16_t step) {
     uint32_t new_period = instance->period_ms + step;
 
+    if(instance->state_publisher == NULL) {
+        FURI_LOG_W(TAG, "No state_publisher");
+        return;
+    }
+
     if(new_period >= BLE_STREAM_RATE_LIMITER_PERIOD_MS_MIN &&
        new_period <= BLE_STREAM_RATE_LIMITER_PERIOD_MS_MAX) {
         instance->period_ms = new_period;
