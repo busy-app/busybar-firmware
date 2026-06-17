@@ -153,12 +153,12 @@ static const FirmwareSettingsLowBatteryScenePreset firmware_settings_low_battery
     [FirmwareSettingsLowBatteryScenePresetIdxUsbConnected] =
         {
             /* front layout */
-            .front_image_path = THIS_IMG_PATH("charging_battery_front_8x8.image"),
-            .front_text = "Update will start\nat 40% charge",
+            .front_image_path = SHARED_IMG_PATH("charging_battery_front_8x8.image"),
+            .front_text = "Charging to 40%\nto start update",
 
             /* back layout */
             .back_primary_text = "Battery charging...",
-            .back_auxiliary_text = "Update will start at 40%",
+            .back_auxiliary_text = "You can start update at 40%",
         },
 
     [FirmwareSettingsLowBatteryScenePresetIdxUsbDisconnected] =
