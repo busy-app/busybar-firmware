@@ -128,11 +128,13 @@ bool ble_device_connection_close(BleDevice* instance) {
         ble_receiver_free(instance->receiver);
         instance->connection = NULL;
         instance->receiver = NULL;
-
-        instance->state = BleDeviceStateIdle;
         ble_service_registry_reset_cccds(instance->registry);
 
-        result = ble_device_start(instance);
+        if(instance->state != BleDeviceStateStopping) {
+            instance->state = BleDeviceStateIdle;
+            result = ble_device_start(instance);
+        } else
+            result = true;
     }
 
     return result;
@@ -169,6 +171,11 @@ bool ble_device_disconnect(BleDevice* instance) {
         result = true;
     }
     return result;
+}
+
+BleDeviceState ble_device_get_state(BleDevice* instance) {
+    furi_assert(instance);
+    return instance->state;
 }
 
 static bool ble_device_start_advertise_with_value(
@@ -229,7 +236,7 @@ static void ble_device_start_advertise(BleDevice* instance) {
 static bool ble_device_stop_advertise(BleDevice* instance) {
     bool result = false;
 
-    if(instance->state == BleDeviceStateAdvertising) {
+    if(instance->state == BleDeviceStateAdvertising || instance->state == BleDeviceStateStopping) {
         sl_status_t status = rsi_ble_stop_advertising();
 
         if(status != RSI_SUCCESS) {
@@ -258,16 +265,16 @@ bool ble_device_start(BleDevice* instance) {
 
 bool ble_device_stop(BleDevice* instance) {
     furi_assert(instance);
-
     bool result = false;
-    do {
-        if(!ble_device_disconnect(instance)) break;
-        if(!ble_device_stop_advertise(instance)) break;
-
+    if(instance->state == BleDeviceStateConnected) {
+        result = ble_device_disconnect(instance);
+        instance->state = result ? BleDeviceStateStopping : BleDeviceStateError;
+        result = false;
+    } else {
+        ble_device_stop_advertise(instance);
         instance->state = BleDeviceStateIdle;
-
         result = true;
-    } while(false);
+    }
     return result;
 }
 

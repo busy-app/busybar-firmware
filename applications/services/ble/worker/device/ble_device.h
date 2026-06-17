@@ -11,6 +11,7 @@ typedef enum {
     BleDeviceStateIdle,
     BleDeviceStateAdvertising,
     BleDeviceStateConnected,
+    BleDeviceStateStopping,
     BleDeviceStateError,
 } BleDeviceState;
 
@@ -37,6 +38,8 @@ void ble_device_connection_update(BleDevice* instance, FuriEventLoop* event_loop
 bool ble_device_disconnect(BleDevice* instance);
 
 bool ble_device_is_connected(BleDevice* instance);
+
+BleDeviceState ble_device_get_state(BleDevice* instance);
 
 void ble_device_set_name(BleDevice* instance, const char* name);
 
