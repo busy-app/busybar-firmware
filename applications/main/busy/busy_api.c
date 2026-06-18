@@ -1,7 +1,6 @@
 #include "busy_i.h"
 
-#define BUSY_API_TIMEOUT_MS      (1000)
-#define BUSY_API_GRACE_PERIOD_MS (100)
+#define BUSY_API_TIMEOUT_MS (1000)
 
 static BusyStatus busy_api_send_message_async(BusyApp* instance, const BusyApiMessage* message) {
     BusyStatus api_status;
@@ -49,14 +48,7 @@ void busy_api_unlock_message(BusyApiMessage* api_message, BusyStatus status) {
 void busy_api_abort_pending_messages(BusyApp* instance) {
     BusyApiMessage api_message;
 
-    for(;;) {
-        const FuriStatus status = furi_message_queue_get(
-            instance->api_queue, &api_message, furi_ms_to_ticks(BUSY_API_GRACE_PERIOD_MS));
-
-        if(status != FuriStatusOk) {
-            break;
-        }
-
+    while(furi_message_queue_get(instance->api_queue, &api_message, 0) == FuriStatusOk) {
         busy_api_unlock_message(&api_message, BusyStatusAborted);
     }
 }
