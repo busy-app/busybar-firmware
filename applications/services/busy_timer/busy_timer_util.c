@@ -33,24 +33,21 @@ void busy_timer_start_app(const BusyAppConfig* app_config) {
     // NOTE: Waiting for Desktop before attempting to look for the app record
     Desktop* desktop = furi_record_open(RECORD_DESKTOP);
 
-    BusyApp* busy_app;
+    bool success = false;
 
-    for(;;) {
-        busy_app = furi_record_open_ex(RECORD_BUSY_APP, BUSY_APP_WAIT_TIME_TICKS);
+    do {
+        BusyApp* busy_app = furi_record_open_ex(RECORD_BUSY_APP, BUSY_APP_WAIT_TIME_TICKS);
 
         if(busy_app == NULL) {
             busy_timer_app_lauch(desktop);
             continue;
         }
 
-        if(busy_timer_app_show_timer(busy_app, app_config)) {
-            break;
-        }
-    }
+        success = busy_timer_app_show_timer(busy_app, app_config);
 
-    if(busy_app) {
         furi_record_close(RECORD_BUSY_APP);
-    }
+
+    } while(!success);
 
     furi_record_close(RECORD_DESKTOP);
 }
