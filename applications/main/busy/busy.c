@@ -3,6 +3,10 @@
 
 #define BUSY_NAV_BAR_HEIGHT 20
 
+#define INPUT_QUEUE_SIZE 8
+#define EVENT_QUEUE_SIZE 8
+#define API_QUEUE_SIZE   4
+
 static void busy_input_queue_callback(FuriEventLoopObject* object, void* context) {
     furi_assert(context);
 
@@ -108,9 +112,9 @@ static BusyApp* busy_alloc(const char* arg) {
     BusyApp* instance = malloc(sizeof(BusyApp));
 
     instance->event_loop = furi_event_loop_alloc();
-    instance->input_queue = furi_message_queue_alloc(8, sizeof(InputEvent));
-    instance->event_queue = furi_message_queue_alloc(8, sizeof(uint32_t));
-    instance->api_queue = furi_message_queue_alloc(1, sizeof(BusyApiMessage));
+    instance->input_queue = furi_message_queue_alloc(INPUT_QUEUE_SIZE, sizeof(InputEvent));
+    instance->event_queue = furi_message_queue_alloc(EVENT_QUEUE_SIZE, sizeof(uint32_t));
+    instance->api_queue = furi_message_queue_alloc(API_QUEUE_SIZE, sizeof(BusyApiMessage));
     instance->scene_manager = scene_manager_alloc(busy_scenes, BusyAppSceneIdMax, instance);
     instance->busy_timer = furi_record_open(RECORD_BUSY_TIMER);
     instance->audio = furi_record_open(RECORD_AUDIO);
