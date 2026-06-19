@@ -46,11 +46,21 @@ void busy_api_unlock_message(BusyApiMessage* api_message, BusyStatus status) {
 }
 
 void busy_api_abort_pending_messages(BusyApp* instance) {
+    FURI_CRITICAL_ENTER();
+
     BusyApiMessage api_message;
 
     while(furi_message_queue_get(instance->api_queue, &api_message, 0) == FuriStatusOk) {
         busy_api_unlock_message(&api_message, BusyStatusAborted);
     }
+
+    memset(&api_message, 0, sizeof(api_message));
+
+    while(furi_message_queue_put(instance->api_queue, &api_message, 0) == FuriStatusOk) {
+        // HACK: Fill up the queue so that it cannot receive any more messages
+    }
+
+    FURI_CRITICAL_EXIT();
 }
 
 BusyStatus busy_set_config(BusyApp* instance, const BusyAppConfig* config) {
