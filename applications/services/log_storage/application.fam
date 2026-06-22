@@ -9,3 +9,13 @@ App(
     sdk_headers=["log_storage.h"],
     sources=["log_storage.c"],
 )
+
+App(
+    appid="log_storage_cli",
+    name="log_dump",
+    apptype=FlipperAppType.CLICMD,
+    entry_point="log_storage_cli_command_entry",
+    sources=["log_storage_cli.c"],
+    requires=["log_storage"],
+    targets=["f20", "f21", "f22"],
+)
