@@ -549,11 +549,6 @@ static void busy_timer_apply_snapshot(BusyTimer* instance, const BusyTimerSnapsh
         return;
     }
 
-    if(!busy_timer_snapshot_is_valid(snapshot)) {
-        FURI_LOG_W(TAG, "Ignoring invalid snapshot with timestamp %llu", snapshot_timestamp_ms);
-        return;
-    }
-
     busy_timer_stop_timer(instance);
 
     BusyTimerMode new_mode;
