@@ -41,7 +41,6 @@ typedef struct {
  * @brief Adds a service to be announced to the local network
  * 
  * @param[inout] discovery Discovery service
- * @param[in] txt Extra info (served as a TXT record), called later when needed
  * @param[in] info Service info to be announced
  * @param[inout] context Context for `DynamicInfo` callback. May be NULL
  */
