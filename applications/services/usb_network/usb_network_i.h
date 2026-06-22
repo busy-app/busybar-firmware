@@ -9,12 +9,15 @@
 
 #include "settings/usb_network_settings.h"
 
+#include <discovery/discovery.h>
+
 #define USB_NET_IPERF
 
 struct UsbNetwork {
     struct netif netif;
     DhcpServerConfig dhcp_config;
     UsbNetworkSettings settings;
+    Discovery* discovery;
 };
 
 void usb_network_up(void);

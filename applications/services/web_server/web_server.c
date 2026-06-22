@@ -5,12 +5,14 @@
 #include <sysctl/sysctl.h>
 #include <netstat/netstat.h>
 #include <toolbox/path.h>
+#include <discovery/discovery.h>
 
 #define TAG "HttpSrv"
 
 typedef struct {
     HttpHandlersList_t handlers;
     struct mg_mgr mgr; // Event manager
+    Discovery* discovery;
 } WebServer;
 
 static WebServer srv = {0};
@@ -535,6 +537,12 @@ bool http_handle_headers(
     return handled;
 }
 
+static void web_srv_discovery_txt(DiscoveryRequest* request, void* context) {
+    UNUSED(context);
+
+    discovery_request_feed_txt(request, "path=/");
+}
+
 int32_t web_srv_start(void* p) {
     UNUSED(p);
 
@@ -553,6 +561,16 @@ int32_t web_srv_start(void* p) {
     // Setup listener
     mg_http_listen(&srv.mgr, "http://0.0.0.0", http_event_handler, &srv);
 
+    srv.discovery = furi_record_open(RECORD_DISCOVERY);
+    static const DiscoveryInfo discovery_info = {
+        .name = "httpd",
+        .service = "_http",
+        .transport = DiscoveryTransportTcp,
+        .port = 80,
+        .txt = web_srv_discovery_txt,
+    };
+    discovery_service_add(srv.discovery, &discovery_info, &srv);
+
     // Event loop
     while(1) {
         mg_mgr_poll(&srv.mgr, 1000);
@@ -565,6 +583,7 @@ int32_t web_srv_start(void* p) {
 
     network_deinit_current_thread(network);
     furi_record_close(RECORD_NETWORK);
+    furi_record_close(RECORD_DISCOVERY);
 
     return 0;
 }
