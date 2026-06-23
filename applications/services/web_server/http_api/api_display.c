@@ -316,7 +316,6 @@ static bool
                 [RectangleFillSolid] = "solid",
                 [RectangleFillGradientH] = "gradient_h",
                 [RectangleFillGradientV] = "gradient_v",
-                [RectangleFillGradientRadial] = "gradient_radial",
             };
             fill = value_index_string(fill_type, fill_types, COUNT_OF(fill_types));
             free(fill_type);
