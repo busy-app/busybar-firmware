@@ -10,7 +10,6 @@
 #include <lwip/netif.h>
 
 #include <intercom/intercom.h>
-#include <discovery/discovery.h>
 
 #define TAG "WifiSrv"
 
@@ -58,7 +57,6 @@ struct Wifi {
     struct netif netif;
     WifiMessage api_message;
     WifiRequest request;
-    Discovery* discovery;
 };
 
 // API management

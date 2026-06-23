@@ -346,8 +346,6 @@ static void wifi_generate_dhcp_hostname(Wifi* instance) {
 static Wifi* wifi_alloc(void) {
     Wifi* instance = malloc(sizeof(Wifi));
 
-    instance->discovery = furi_record_open(RECORD_DISCOVERY);
-
     instance->event_loop = furi_event_loop_alloc();
     instance->override_queue = furi_message_queue_alloc(1, sizeof(WifiMessage));
     instance->response_queue = furi_message_queue_alloc(RESPONSE_QUEUE_SIZE, sizeof(WifiResponse));

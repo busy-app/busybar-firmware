@@ -57,21 +57,6 @@ void discovery_service_add(Discovery* discovery, const DiscoveryInfo* info, void
  */
 void discovery_request_feed_txt(DiscoveryRequest* request, const char* txt);
 
-// =======================
-// API for network drivers
-// =======================
-
-/**
- * @brief Broadcasts initial announcements on the provided network interface
- * 
- * If this is the first time that this function is called for this interface,
- * performs some internal initialization.
- * 
- * @param[inout] discovery Discovery
- * @param[in] netif Network interface handle
- */
-void discovery_netif_up(Discovery* discovery, struct netif* netif);
-
 #ifdef __cplusplus
 }
 #endif

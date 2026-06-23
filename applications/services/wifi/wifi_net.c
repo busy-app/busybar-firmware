@@ -164,8 +164,6 @@ bool wifi_net_up(Wifi* instance, const WifiIpConfig* ip_config) {
         }
     }
 
-    discovery_netif_up(instance->discovery, netif);
-
     return success;
 }
 
