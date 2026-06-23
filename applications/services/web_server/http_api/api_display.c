@@ -316,6 +316,7 @@ static bool
                 [RectangleFillSolid] = "solid",
                 [RectangleFillGradientH] = "gradient_h",
                 [RectangleFillGradientV] = "gradient_v",
+                [RectangleFillGradientRadial] = "gradient_radial",
             };
             fill = value_index_string(fill_type, fill_types, COUNT_OF(fill_types));
             free(fill_type);
@@ -466,7 +467,7 @@ static bool api_display_draw_parse_element(
                 [AlignBottomMid] = "bottom_mid",
                 [AlignBottomRight] = "bottom_right",
             };
-            size_t align = value_index_string(alignment, alignments, COUNT_OF(alignments));
+            int32_t align = value_index_string(alignment, alignments, COUNT_OF(alignments));
             canvas_element->align = align;
             free(alignment);
             if(align <= 0) break;
