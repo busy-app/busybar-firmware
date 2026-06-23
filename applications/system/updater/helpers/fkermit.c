@@ -213,8 +213,8 @@ KermitPacket* kermit_create_packet(
     memcpy(packet->data + sizeof(header), data, length);
 
     KermitPacketFooter footer = {
-        // Skip the marks
-        .checksum = kermit_checksum(packet->data + 1, packet->sz - 2),
+        // Block check sums Len..Data (Mark, Check, End excluded)
+        .checksum = kermit_checksum(packet->data + 1, packet->sz - 3),
         .end = KERMIT_PACKET_END,
     };
     memcpy(packet->data + sizeof(header) + length, &footer, sizeof(footer));
@@ -248,8 +248,8 @@ KermitPacket* kermit_create_ext_packet(
     memcpy(packet->data + sizeof(header), data, length);
 
     KermitPacketFooter footer = {
-        // Skip the marks
-        .checksum = kermit_checksum(packet->data + 1, packet->sz - 2),
+        // Block check sums Len..Data (Mark, Check, End excluded)
+        .checksum = kermit_checksum(packet->data + 1, packet->sz - 3),
         .end = KERMIT_PACKET_END,
     };
     memcpy(packet->data + sizeof(header) + length, &footer, sizeof(footer));
