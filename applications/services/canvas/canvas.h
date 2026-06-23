@@ -10,6 +10,7 @@
 
 #define RECORD_CANVAS       "CANVAS"
 #define CANVAS_MAX_PRIORITY LOADER_MAX_PRIORITY
+#define CANVAS_MAX_ELEMENTS 100
 
 typedef struct CanvasSrv CanvasSrv;
 
@@ -18,6 +19,7 @@ typedef enum {
     CanvasResultBadParameters,
     CanvasResultLowPriority,
     CanvasResultEmptyScreen,
+    CanvasResultTooManyElements,
 
     CanvasResultMax,
 } CanvasResult;
@@ -27,6 +29,9 @@ typedef enum {
     CanvasElementTypeAnimPlayer,
     CanvasElementTypeText,
     CanvasElementTypeCountdown,
+    CanvasElementTypeRectangle,
+
+    CanvasElementTypeMax,
 } CanvasElementType;
 
 typedef struct {
@@ -66,6 +71,23 @@ typedef struct {
             CountdownDirection direction;
             CountdownShowHour hours;
         } countdown;
+
+        struct {
+            size_t width;
+            size_t height;
+            size_t radius;
+            size_t border_width;
+            enum {
+                RectangleFillNone,
+                RectangleFillSolid,
+                RectangleFillGradientH,
+                RectangleFillGradientV,
+
+                RectangleFillMax,
+            } fill;
+            Color fill_color[2];
+            Color border_color;
+        } rectangle;
     };
 } CanvasElement;
 
