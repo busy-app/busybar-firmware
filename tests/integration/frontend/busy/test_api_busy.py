@@ -388,7 +388,7 @@ class TestBusySnapshotRegressions:
         assert updated.snapshot["type"] == "SIMPLE"
         assert 0 < updated.snapshot["time_left_ms"] <= 240000
 
-    @allure.title("BUSY timer rejects snapshots more than 15 seconds in the future")
+    @allure.title("BUSY timer rejects snapshots more than 60 seconds in the future")
     def test_busy_timer_future_snapshot_is_rejected(
         self, busy_api: BusyAPI, api_session, web_base_url, busy_state_guard
     ):

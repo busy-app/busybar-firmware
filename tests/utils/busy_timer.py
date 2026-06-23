@@ -19,8 +19,8 @@ WORK_CARD_UUID = "00000000-0000-0000-0000-000000000001"
 TS_ADVANCE_MS = 2000
 TS_MIN_ADVANCE_MS = 1
 
-# Firmware rejects snapshots more than 15 seconds ahead of RTC.
-TS_MAX_FUTURE_MS = 15000
+# Firmware rejects snapshots more than 60 seconds ahead of RTC.
+TS_MAX_FUTURE_MS = 60 * 1000
 TS_FUTURE_WAIT_TIMEOUT_S = 20.0
 TS_FUTURE_POLL_INTERVAL_S = 0.1
 

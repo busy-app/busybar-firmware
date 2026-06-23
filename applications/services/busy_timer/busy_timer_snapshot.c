@@ -19,7 +19,7 @@
 #define KEY_SNAPSHOT_INTERVAL_CURRENT_LEFT  "current_interval_time_left_ms"
 #define KEY_SNAPSHOT_INTERVAL_SETTINGS      "interval_settings"
 
-#define TIMESTAMP_TOLERANCE_MS (S_TO_MS(15))
+#define TIMESTAMP_TOLERANCE_MS (M_TO_MS(1))
 
 static const char* const snapshot_type_values[BusyTimerSnapshotTypeMax] = {
     [BusyTimerSnapshotTypeNotStarted] = "NOT_STARTED",
