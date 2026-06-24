@@ -352,7 +352,6 @@ static bool kermit_feed_byte(Kermit* kermit, uint8_t c) {
 
     case KermitPacketStateWaitContents:
         KERMIT_LOG("Packet sz: %ld, rem rxlen: %d", rx->contents->sz, rx->len);
-        furi_check(rx->len >= 0);
         furi_check(rx->contents->sz - rx->len < rx->contents->sz);
 
         if(c == KERMIT_PACKET_END) {
