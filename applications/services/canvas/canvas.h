@@ -47,12 +47,14 @@ typedef struct {
     union {
         struct {
             FuriString* file_path;
+            uint8_t opacity;
         } image;
 
         struct {
             FuriString* file_path;
             FuriString* section;
             AnimFilePlayFlag flags;
+            uint8_t opacity;
         } anim_player;
 
         struct {

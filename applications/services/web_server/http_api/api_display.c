@@ -244,6 +244,10 @@ static bool api_display_draw_parse_image_element(
     do {
         canvas_element->type = CanvasElementTypeImage;
 
+        long opacity = mg_json_get_long(json_element, "$.opacity", 100);
+        if(opacity < 0 || opacity > 100) break;
+        canvas_element->image.opacity = opacity * 255 / 100;
+
         if(!api_display_draw_parse_image_path(
                &canvas_element->image.file_path, app_name, json_element, canvas_element->type))
             break;
@@ -295,6 +299,10 @@ static bool api_display_draw_parse_anim_player_element(
         if(mg_json_get_bool(json_element, "$.await_previous_end", &json_bool)) {
             if(json_bool) canvas_element->anim_player.flags |= AnimFilePlayFlagFinishCurrent;
         }
+
+        long opacity = mg_json_get_long(json_element, "$.opacity", 100);
+        if(opacity < 0 || opacity > 100) break;
+        canvas_element->anim_player.opacity = opacity * 255 / 100;
 
         canvas_element->type = CanvasElementTypeAnimPlayer;
         result = true;

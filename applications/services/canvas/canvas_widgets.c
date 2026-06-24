@@ -8,6 +8,8 @@ static Widget*
         widget->image = image_alloc(root);
     }
     image_set_source_no_cache(widget->image, furi_string_get_cstr(element->image.file_path));
+    image_set_opacity(widget->image, element->image.opacity);
+
     return image_get_base(widget->image);
 }
 
@@ -28,7 +30,10 @@ static Widget*
             element->anim_player.flags,
             furi_string_get_cstr(element->anim_player.section));
     }
-    return anim_player_get_base(widget->anim_player);
+
+    Widget* base = anim_player_get_base(widget->anim_player);
+    widget_set_opacity(base, element->anim_player.opacity);
+    return base;
 }
 
 static void canvas_anim_player_delete(CanvasWidget* widget) {
