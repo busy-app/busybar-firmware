@@ -389,21 +389,29 @@ schemas:
     allOf:
       - $ref: "#/components/schemas/DisplayElement"
       - type: object
-        oneOf:
-          - required:
-              - path
-            properties:
-              path:
-                type: string
-                pattern: "^[a-zA-Z0-9._/-]+$"
-                description: Path to the image file in the app's assets
-          - required:
-              - stock_path
-            properties:
-              stock_path:
-                type: string
-                pattern: "shared/[a-z0-9_.]+$"
-                description: Stock image file name
+        allOf:
+          - oneOf:
+            - required:
+                - path
+              properties:
+                path:
+                  type: string
+                  pattern: "^[a-zA-Z0-9._/-]+$"
+                  description: Path to the image file in the app's assets
+            - required:
+                - stock_path
+              properties:
+                stock_path:
+                  type: string
+                  pattern: "shared/[a-z0-9_.]+$"
+                  description: Stock image file name
+          - properties:
+              opacity:
+                type: integer
+                minimum: 0
+                maximum: 100
+                description: Opacity of the image in percentage (0-100)
+                default: 100
 
   AnimationElement:
     allOf:
@@ -433,6 +441,12 @@ schemas:
               section:
                 type: string
                 description: Name of the section to play back. Specifying "default" selects the entire animation.
+              opacity:
+                type: integer
+                minimum: 0
+                maximum: 100
+                description: Opacity of the animated image in percentage (0-100)
+                default: 100
 
   CountdownElement:
     allOf:
