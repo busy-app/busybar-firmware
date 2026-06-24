@@ -147,7 +147,7 @@ void usb_network_up(void) {
     usb_network_dhcp_start(usb_network);
     UNLOCK_TCPIP_CORE();
 
-    with_furi_state(usb_network->info, UsbNetworkInfo * info, {
+    with_furi_state(usb_network->state, UsbNetworkInfo * info, {
         info->state = UsbNetworkStateUp;
     });
 }
@@ -163,7 +163,7 @@ void usb_network_down(void) {
     netif_set_down(netif);
     UNLOCK_TCPIP_CORE();
 
-    with_furi_state(usb_network->info, UsbNetworkInfo * info, {
+    with_furi_state(usb_network->state, UsbNetworkInfo * info, {
         info->state = UsbNetworkStateDown;
     });
 }
@@ -238,15 +238,15 @@ bool usb_network_is_dhcp_addr(UsbNetwork* instance, const uint8_t* addr) {
     return result;
 }
 
-FuriState* usb_network_get_info(UsbNetwork* usb_network) {
+FuriState* usb_network_get_state(UsbNetwork* usb_network) {
     furi_check(usb_network);
-    return usb_network->info;
+    return usb_network->state;
 }
 
 static UsbNetwork* usb_network_alloc(void) {
     UsbNetwork* instance = malloc(sizeof(UsbNetwork));
 
-    instance->info = furi_state_alloc(sizeof(UsbNetworkInfo));
+    instance->state = furi_state_alloc(sizeof(UsbNetworkInfo));
 
     usb_network_settings_load(&instance->settings);
     usb_network_init_netif(instance);

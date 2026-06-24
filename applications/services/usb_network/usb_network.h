@@ -29,7 +29,7 @@ bool usb_network_is_dhcp_addr(UsbNetwork* usb_network, const uint8_t* addr);
  * 
  * @param[inout] usb_network Service instance
  */
-FuriState* usb_network_get_info(UsbNetwork* usb_network);
+FuriState* usb_network_get_state(UsbNetwork* usb_network);
 
 #ifdef __cplusplus
 }

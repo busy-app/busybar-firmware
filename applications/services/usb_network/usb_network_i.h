@@ -15,7 +15,7 @@ struct UsbNetwork {
     struct netif netif;
     DhcpServerConfig dhcp_config;
     UsbNetworkSettings settings;
-    FuriState* info;
+    FuriState* state;
 };
 
 void usb_network_up(void);

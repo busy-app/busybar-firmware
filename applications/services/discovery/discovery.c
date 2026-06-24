@@ -280,7 +280,7 @@ static void discovery_subscribe_to_network_drivers(Discovery* discovery) {
 
     furi_state_subscribe(wifi_get_state(discovery->wifi), discovery_wifi_event, discovery);
     furi_state_subscribe(
-        usb_network_get_info(discovery->usb_network), discovery_usb_network_event, discovery);
+        usb_network_get_state(discovery->usb_network), discovery_usb_network_event, discovery);
 }
 
 // ===============

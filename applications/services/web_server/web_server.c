@@ -12,7 +12,6 @@
 typedef struct {
     HttpHandlersList_t handlers;
     struct mg_mgr mgr; // Event manager
-    Discovery* discovery;
 } WebServer;
 
 static WebServer srv = {0};
@@ -543,6 +542,23 @@ static void web_srv_discovery_txt(DiscoveryRequest* request, void* context) {
     discovery_request_feed_txt(request, "path=/");
 }
 
+static void web_srv_discovery_init(WebServer* server) {
+    furi_assert(server);
+
+    Discovery* discovery = furi_record_open(RECORD_DISCOVERY);
+
+    static const DiscoveryInfo discovery_info = {
+        .name = "httpd",
+        .service = "_http",
+        .transport = DiscoveryTransportTcp,
+        .port = 80,
+        .txt = web_srv_discovery_txt,
+    };
+    discovery_service_add(discovery, &discovery_info, &srv);
+
+    furi_record_close(RECORD_DISCOVERY);
+}
+
 int32_t web_srv_start(void* p) {
     UNUSED(p);
 
@@ -561,15 +577,7 @@ int32_t web_srv_start(void* p) {
     // Setup listener
     mg_http_listen(&srv.mgr, "http://0.0.0.0", http_event_handler, &srv);
 
-    srv.discovery = furi_record_open(RECORD_DISCOVERY);
-    static const DiscoveryInfo discovery_info = {
-        .name = "httpd",
-        .service = "_http",
-        .transport = DiscoveryTransportTcp,
-        .port = 80,
-        .txt = web_srv_discovery_txt,
-    };
-    discovery_service_add(srv.discovery, &discovery_info, &srv);
+    web_srv_discovery_init(&srv);
 
     // Event loop
     while(1) {
@@ -583,7 +591,6 @@ int32_t web_srv_start(void* p) {
 
     network_deinit_current_thread(network);
     furi_record_close(RECORD_NETWORK);
-    furi_record_close(RECORD_DISCOVERY);
 
     return 0;
 }
