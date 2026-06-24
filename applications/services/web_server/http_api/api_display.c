@@ -137,10 +137,10 @@ static bool api_display_draw_parse_countdown_element(
             [CountdownDirectionTimeLeft] = "time_left",
             [CountdownDirectionTimeSince] = "time_since",
         };
-        int32_t direction_temp =
+        size_t direction_temp =
             value_index_string(direction_str, direction_lut, COUNT_OF(direction_lut));
         free(direction_str);
-        if(direction_temp < 0 || direction_temp >= CountdownDirectionMAX) break;
+        if(direction_temp >= CountdownDirectionMAX) break;
         canvas_element->countdown.direction = direction_temp;
 
         char* hours_str = mg_json_get_str(json_element, "$.show_hours");
@@ -149,9 +149,9 @@ static bool api_display_draw_parse_countdown_element(
             [CountdownShowHourWhenNonZero] = "when_non_zero",
             [CountdownShowHourAlways] = "always",
         };
-        int32_t hours_temp = value_index_string(hours_str, hours_lut, COUNT_OF(hours_lut));
+        size_t hours_temp = value_index_string(hours_str, hours_lut, COUNT_OF(hours_lut));
         free(hours_str);
-        if(hours_temp < 0 || hours_temp >= CountdownShowHourMAX) break;
+        if(hours_temp >= CountdownShowHourMAX) break;
         canvas_element->countdown.hours = hours_temp;
 
         result = true;
@@ -309,7 +309,7 @@ static bool
 
     do {
         char* fill_type = mg_json_get_str(json_element, "$.fill");
-        int32_t fill = RectangleFillNone;
+        size_t fill = RectangleFillNone;
         if(fill_type) {
             static const char* const fill_types[] = {
                 [RectangleFillNone] = "none",
@@ -319,7 +319,7 @@ static bool
             };
             fill = value_index_string(fill_type, fill_types, COUNT_OF(fill_types));
             free(fill_type);
-            if(fill < 0) break;
+            if(fill >= COUNT_OF(fill_types)) break;
         }
 
         Color fill_color[2] = {
@@ -466,10 +466,10 @@ static bool api_display_draw_parse_element(
                 [AlignBottomMid] = "bottom_mid",
                 [AlignBottomRight] = "bottom_right",
             };
-            int32_t align = value_index_string(alignment, alignments, COUNT_OF(alignments));
+            size_t align = value_index_string(alignment, alignments, COUNT_OF(alignments));
             canvas_element->align = align;
             free(alignment);
-            if(align <= 0) break;
+            if(align >= COUNT_OF(alignments)) break;
         } else {
             canvas_element->align = AlignDefault;
         }

@@ -1,9 +1,9 @@
 #include "value_index.h"
 #include <furi.h>
 
-int32_t value_index_int32(const int32_t value, const int32_t values[], size_t values_count) {
+size_t value_index_int32(const int32_t value, const int32_t values[], size_t values_count) {
     furi_check(values);
-    int32_t index = -1;
+    size_t index = values_count;
 
     for(size_t i = 0; i < values_count; i++) {
         if(value == values[i]) {
@@ -15,9 +15,9 @@ int32_t value_index_int32(const int32_t value, const int32_t values[], size_t va
     return index;
 }
 
-int32_t value_index_uint32(const uint32_t value, const uint32_t values[], size_t values_count) {
+size_t value_index_uint32(const uint32_t value, const uint32_t values[], size_t values_count) {
     furi_check(values);
-    int32_t index = -1;
+    size_t index = values_count;
 
     for(size_t i = 0; i < values_count; i++) {
         if(value == values[i]) {
@@ -29,9 +29,9 @@ int32_t value_index_uint32(const uint32_t value, const uint32_t values[], size_t
     return index;
 }
 
-int32_t value_index_float(const float value, const float values[], size_t values_count) {
+size_t value_index_float(const float value, const float values[], size_t values_count) {
     furi_check(values);
-    int32_t index = -1;
+    size_t index = values_count;
 
     for(size_t i = 0; i < values_count; i++) {
         const float epsilon = fabsf(values[i] * 0.01f);
@@ -44,9 +44,9 @@ int32_t value_index_float(const float value, const float values[], size_t values
     return index;
 }
 
-int32_t value_index_bool(const bool value, const bool values[], size_t values_count) {
+size_t value_index_bool(const bool value, const bool values[], size_t values_count) {
     furi_check(values);
-    int32_t index = -1;
+    size_t index = values_count;
 
     for(size_t i = 0; i < values_count; i++) {
         if(value == values[i]) {
@@ -58,7 +58,7 @@ int32_t value_index_bool(const bool value, const bool values[], size_t values_co
     return index;
 }
 
-int32_t value_index_string(const char* value, const char* const values[], size_t values_count) {
+size_t value_index_string(const char* value, const char* const values[], size_t values_count) {
     furi_check(value);
     furi_check(values);
 
@@ -68,7 +68,7 @@ int32_t value_index_string(const char* value, const char* const values[], size_t
         if(strcmp(value, element) == 0) return i;
     }
 
-    return -1;
+    return values_count;
 }
 
 const char* value_index_map_string(
@@ -81,7 +81,7 @@ const char* value_index_map_string(
     furi_check(count > 0);
     furi_check(input);
 
-    int32_t index = value_index_string(input, src_array, count);
-    if(index < 0) return NULL;
+    size_t index = value_index_string(input, src_array, count);
+    if(index == count) return NULL;
     return dst_array[index];
 }

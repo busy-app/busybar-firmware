@@ -52,9 +52,9 @@ bool mqtt_config_deserialize_raw(MqttConfig* config, const cJSON* json) {
         }
 
         const char* cert_type_str = cJSON_GetStringValue(item);
-        int32_t cert_type = value_index_string(
+        size_t cert_type = value_index_string(
             cert_type_str, mqtt_config_client_cert_types, COUNT_OF(mqtt_config_client_cert_types));
-        if(cert_type < 0 || cert_type >= MqttClientCertTypeMax) {
+        if(cert_type >= MqttClientCertTypeMax) {
             break;
         }
 
