@@ -117,7 +117,7 @@ const TimerIndicatorPreset busy_timer_indicator_presets[BusyTimerIndicatorTypeMa
                 },
             .progress_config =
                 {
-                    .lottie_path = BUSY_LOTTIE_PATH("progress_busy_41x16.json"),
+                    // .anim_path = BUSY_ANIM_PATH("progress_busy_41x16.anim"),
                     .direction = TimerIndicatorProgressDirectionHorizontal,
                     .end_offset_px = 38,
                 },
@@ -134,7 +134,7 @@ const TimerIndicatorPreset busy_timer_indicator_presets[BusyTimerIndicatorTypeMa
                 },
             .progress_config =
                 {
-                    .lottie_path = BUSY_LOTTIE_PATH("progress_rest_41x16.json"),
+                    // .anim_path = BUSY_ANIM_PATH("progress_rest_41x16.anim"),
                     .direction = TimerIndicatorProgressDirectionVertical,
                     .end_offset_px = 22,
                 },

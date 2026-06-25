@@ -26,7 +26,7 @@ typedef struct {
 } TimerIndicatorBgConfig;
 
 typedef struct {
-    const char* lottie_path;
+    const char* anim_path;
     TimerIndicatorProgressDirection direction;
     uint8_t start_offset_px;
     uint8_t end_offset_px;

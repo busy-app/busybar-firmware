@@ -441,7 +441,7 @@ static void busy_scene_timer_apply_theme(BusyApp* instance) {
         } else if(bg_type == BusyThemeFileTypeAnim) {
             data->custom_preset.background_config.anim_path = info.bg_path;
         } else if(bg_type == BusyThemeFileTypeLottieAnim) {
-            data->custom_preset.progress_config.lottie_path = info.bg_path;
+            data->custom_preset.progress_config.anim_path = info.bg_path;
         } else {
             furi_crash("Invalid BusyThemeFileType value");
         }
