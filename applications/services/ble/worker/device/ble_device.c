@@ -95,6 +95,27 @@ bool ble_device_is_connected(BleDevice* instance) {
     return instance->connection != NULL;
 }
 
+static void ble_device_start_advertise(BleDevice* instance) {
+    const rsi_bt_event_le_security_keys_t* rpa =
+        ble_security_get_rpa_data(instance->security_data);
+    bool is_paired = ble_device_is_paired(instance);
+    instance->state = ble_advertise_start(instance->advertise, is_paired, rpa) ?
+                          BleDeviceStateAdvertising :
+                          BleDeviceStateError;
+}
+
+static bool ble_device_stop_advertise(BleDevice* instance) {
+    bool result = false;
+
+    if(instance->state == BleDeviceStateAdvertising) {
+        result = ble_advertise_stop(instance->advertise);
+    } else if(instance->state == BleDeviceStateConnected) {
+        BLE_LOG_W("Skip stop advertising, device is connected");
+        result = true;
+    }
+    return result;
+}
+
 bool ble_device_connection_open(
     BleDevice* instance,
     BleDeviceAddressType type,
@@ -128,10 +149,12 @@ bool ble_device_connection_close(BleDevice* instance) {
         ble_receiver_free(instance->receiver);
         instance->connection = NULL;
         instance->receiver = NULL;
-
-        instance->state = BleDeviceStateIdle;
         ble_service_registry_reset_cccds(instance->registry);
 
+        instance->state = BleDeviceStateAdvertising;
+        ble_device_stop_advertise(instance);
+
+        instance->state = BleDeviceStateIdle;
         result = ble_device_start(instance);
     }
 
@@ -166,79 +189,6 @@ bool ble_device_disconnect(BleDevice* instance) {
 
         result = status == RSI_SUCCESS;
     } else if(instance->state != BleDeviceStateError) {
-        result = true;
-    }
-    return result;
-}
-
-static bool ble_device_start_advertise_with_value(
-    bool advertise_to_paired_only,
-    const rsi_bt_event_le_security_keys_t* key,
-    const BleAdvertiseContext* advertise) {
-    rsi_ble_req_adv_t ble_adv = {0};
-
-#ifdef BLE_DEBUG_ADVERTISE_FORCE_PUBLIC
-    BLE_LOG_W("Public advertise forced!");
-    advertise_to_paired_only = false;
-#endif
-
-    ble_adv.status = RSI_BLE_START_ADV;
-    ///TODO: This is blocked because it doesn't work on IPhone. It just doesn't see
-    ///BSB in case of direct advertise.
-    // ble_adv.adv_type = advertise_to_paired_only ? DIR_CONN_LOW_DUTY_CYCLE : UNDIR_CONN;
-    ble_adv.adv_type = UNDIR_CONN;
-
-    ble_adv.adv_int_min = RSI_BLE_ADV_INT_MIN;
-    ble_adv.adv_int_max = RSI_BLE_ADV_INT_MAX;
-    ble_adv.adv_channel_map = RSI_BLE_ADV_CHANNEL_MAP;
-
-    rsi_ble_clear_acceptlist();
-    if(advertise_to_paired_only) {
-        rsi_ble_addto_acceptlist((int8_t*)key->Identity_addr, key->Identity_addr_type);
-        ble_adv.filter_type = ALLOW_SCAN_REQ_ACCEPT_LIST_CONN_REQ_ACCEPT_LIST;
-        ble_adv.own_addr_type = LE_RESOLVABLE_RANDOM_ADDRESS;
-        memcpy(ble_adv.direct_addr, key->Identity_addr, 6);
-        ble_adv.direct_addr_type = key->Identity_addr_type;
-    } else {
-        ble_adv.filter_type = RSI_BLE_ADV_FILTER_TYPE;
-        ble_adv.own_addr_type = LE_PUBLIC_ADDRESS;
-    }
-
-    ble_advertise_refresh_data(advertise);
-
-    sl_status_t status = rsi_ble_start_advertising_with_values(&ble_adv);
-
-    if(status != RSI_SUCCESS) {
-        BLE_LOG_W("Failed to start advertising, error code : 0x%08lx", status);
-    } else {
-        BLE_LOG_I("Start advertising...");
-    }
-
-    return status == RSI_SUCCESS;
-}
-
-static void ble_device_start_advertise(BleDevice* instance) {
-    const rsi_bt_event_le_security_keys_t* rpa =
-        ble_security_get_rpa_data(instance->security_data);
-    bool is_paired = ble_device_is_paired(instance);
-    instance->state = ble_device_start_advertise_with_value(is_paired, rpa, instance->advertise) ?
-                          BleDeviceStateAdvertising :
-                          BleDeviceStateError;
-}
-
-static bool ble_device_stop_advertise(BleDevice* instance) {
-    bool result = false;
-
-    if(instance->state == BleDeviceStateAdvertising) {
-        sl_status_t status = rsi_ble_stop_advertising();
-
-        if(status != RSI_SUCCESS) {
-            BLE_LOG_W("Failed to stop advertising, error code : 0x%08lx", status);
-        }
-
-        result = status == RSI_SUCCESS;
-    } else if(instance->state == BleDeviceStateConnected) {
-        BLE_LOG_W("Skip stop advertising, device is connected");
         result = true;
     }
     return result;
