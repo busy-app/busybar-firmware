@@ -74,12 +74,14 @@ static void timer_indicator_apply_bg_animation(TimerIndicator* instance) {
     }
 }
 
-static void timer_indicator_apply_progress_lottie(TimerIndicator* instance) {
+static void timer_indicator_apply_progress_animation(TimerIndicator* instance) {
     const TimerIndicatorProgressConfig* config = &instance->current_preset->progress_config;
 
     if(config->anim_path) {
         instance->progress_anim = anim_player_alloc(&instance->base);
         anim_player_set_source(instance->progress_anim, config->anim_path);
+
+        timer_indicator_set_progress(instance, 0);
     }
 }
 
@@ -95,7 +97,7 @@ static void timer_indicator_apply_fg_image(TimerIndicator* instance) {
 static void timer_indicator_apply_preset(TimerIndicator* instance) {
     timer_indicator_reset(instance);
     timer_indicator_apply_bg_animation(instance);
-    timer_indicator_apply_progress_lottie(instance);
+    timer_indicator_apply_progress_animation(instance);
     timer_indicator_apply_fg_image(instance);
 }
 
