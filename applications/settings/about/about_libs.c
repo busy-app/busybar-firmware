@@ -14,7 +14,6 @@ static const AboutLibInfo about_libs_info[] = {
     {.name = "M*LIB", .license = "MIT", .url = "https://github.com/P-p-H-d/mlib"},
     {.name = "Mongoose", .license = "GPLv2+", .url = "https://mongoose.ws/"},
     {.name = "Nanopb", .license = "ZLib", .url = "https://jpa.kapsi.fi/nanopb/"},
-    {.name = "ThorVG", .license = "MIT", .url = "https://www.thorvg.org/"},
     {.name = "TinyUSB", .license = "MIT", .url = "https://www.tinyusb.org/"},
     {.name = "utz", .license = "MIT", .url = "https://github.com/evq/utz"},
     {.name = "ZLib", .license = "ZLib", .url = "https://zlib.net/"},
