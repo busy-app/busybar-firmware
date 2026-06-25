@@ -27,6 +27,7 @@ typedef struct {
 
 typedef struct {
     const char* anim_path;
+    const char* mask_path;
     TimerIndicatorProgressDirection direction;
     int8_t start_offset_px;
     int8_t end_offset_px;

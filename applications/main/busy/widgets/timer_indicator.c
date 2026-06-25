@@ -10,6 +10,7 @@ struct TimerIndicator {
     Widget base;
     AnimPlayer* bg_anim;
     AnimPlayer* progress_anim;
+    Image* progress_mask;
     Image* fg_image;
     const TimerIndicatorPreset* current_preset;
 };
@@ -47,6 +48,10 @@ static void timer_indicator_reset(TimerIndicator* instance) {
         anim_player_free(instance->progress_anim);
         instance->progress_anim = NULL;
     }
+    if(instance->progress_mask) {
+        image_free(instance->progress_mask);
+        instance->progress_mask = NULL;
+    }
     if(instance->fg_image) {
         image_free(instance->fg_image);
         instance->fg_image = NULL;
@@ -80,8 +85,16 @@ static void timer_indicator_apply_progress_animation(TimerIndicator* instance) {
     if(config->anim_path) {
         instance->progress_anim = anim_player_alloc(&instance->base);
         anim_player_set_source(instance->progress_anim, config->anim_path);
+    }
+}
 
-        timer_indicator_set_progress(instance, 0);
+static void timer_indicator_apply_progress_mask(TimerIndicator* instance) {
+    const TimerIndicatorProgressConfig* config = &instance->current_preset->progress_config;
+
+    if(config->mask_path) {
+        instance->progress_mask = image_alloc(&instance->base);
+        image_set_source(instance->progress_mask, config->mask_path);
+        widget_set_blend_mode(image_get_base(instance->progress_mask), WidgetBlendModeMultiply);
     }
 }
 
@@ -96,9 +109,13 @@ static void timer_indicator_apply_fg_image(TimerIndicator* instance) {
 
 static void timer_indicator_apply_preset(TimerIndicator* instance) {
     timer_indicator_reset(instance);
+
     timer_indicator_apply_bg_animation(instance);
     timer_indicator_apply_progress_animation(instance);
+    timer_indicator_apply_progress_mask(instance);
     timer_indicator_apply_fg_image(instance);
+
+    timer_indicator_set_progress(instance, 0);
 }
 
 // Public API

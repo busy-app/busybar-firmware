@@ -118,6 +118,7 @@ const TimerIndicatorPreset busy_timer_indicator_presets[BusyTimerIndicatorTypeMa
             .progress_config =
                 {
                     .anim_path = BUSY_ANIM_PATH("progress_busy_41x16.anim"),
+                    .mask_path = BUSY_IMG_PATH("indicator_mask_41x16.image"),
                     .direction = TimerIndicatorProgressDirectionHorizontal,
                     .start_offset_px = -38,
                     .end_offset_px = 0,
@@ -136,6 +137,7 @@ const TimerIndicatorPreset busy_timer_indicator_presets[BusyTimerIndicatorTypeMa
             .progress_config =
                 {
                     .anim_path = BUSY_ANIM_PATH("progress_rest_41x16.anim"),
+                    .mask_path = BUSY_IMG_PATH("indicator_mask_41x16.image"),
                     .direction = TimerIndicatorProgressDirectionVertical,
                     .start_offset_px = -4,
                     .end_offset_px = 20,
