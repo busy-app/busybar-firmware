@@ -40,7 +40,17 @@ static volatile bool nvm_was_reset;
 
 static bool furi_hal_nvm_is_valid(void) {
     const volatile NvmHeader* header = &nvm_storage->header;
-    return (header->magic == NVM_MAGIC) && (header->version == NVM_VERSION);
+    return (header->magic == NVM_MAGIC) && (header->version <= NVM_VERSION);
+}
+
+static void furi_hal_nvm_migrate(void) {
+    if(nvm_storage->header.version == 1) {
+        nvm_storage->header.version = NVM_VERSION;
+        nvm_storage->version = version_get();
+    } else {
+        FURI_LOG_W(TAG, "Unknown NVM version %lu, resetting NVM", nvm_storage->header.version);
+        furi_hal_nvm_reset();
+    }
 }
 
 void furi_hal_nvm_reset(void) {
@@ -92,6 +102,10 @@ void furi_hal_nvm_init_early(void) {
 
     if(!furi_hal_nvm_is_valid()) {
         furi_hal_nvm_reset();
+    }
+
+    if(nvm_storage->header.version < NVM_VERSION) {
+        furi_hal_nvm_migrate();
     }
 
     // Set pointer to version struct for debugging
