@@ -117,9 +117,10 @@ const TimerIndicatorPreset busy_timer_indicator_presets[BusyTimerIndicatorTypeMa
                 },
             .progress_config =
                 {
-                    // .anim_path = BUSY_ANIM_PATH("progress_busy_41x16.anim"),
+                    .anim_path = BUSY_ANIM_PATH("progress_busy_41x16.anim"),
                     .direction = TimerIndicatorProgressDirectionHorizontal,
-                    .end_offset_px = 38,
+                    .start_offset_px = -38,
+                    .end_offset_px = 0,
                 },
             .foreground_config =
                 {
@@ -134,9 +135,10 @@ const TimerIndicatorPreset busy_timer_indicator_presets[BusyTimerIndicatorTypeMa
                 },
             .progress_config =
                 {
-                    // .anim_path = BUSY_ANIM_PATH("progress_rest_41x16.anim"),
+                    .anim_path = BUSY_ANIM_PATH("progress_rest_41x16.anim"),
                     .direction = TimerIndicatorProgressDirectionVertical,
-                    .end_offset_px = 22,
+                    .start_offset_px = -4,
+                    .end_offset_px = 20,
                 },
             .foreground_config =
                 {

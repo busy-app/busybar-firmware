@@ -28,8 +28,8 @@ typedef struct {
 typedef struct {
     const char* anim_path;
     TimerIndicatorProgressDirection direction;
-    uint8_t start_offset_px;
-    uint8_t end_offset_px;
+    int8_t start_offset_px;
+    int8_t end_offset_px;
 } TimerIndicatorProgressConfig;
 
 typedef struct {
