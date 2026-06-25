@@ -18,3 +18,7 @@ psa_status_t mbedtls_psa_external_get_random(
 
     return PSA_SUCCESS;
 }
+
+FURI_WEAK void mbedtls_debug_set_threshold(int threshold) {
+    UNUSED(threshold);
+}
