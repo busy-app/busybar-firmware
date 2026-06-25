@@ -90,6 +90,7 @@ struct Kermit {
     const KermitIo* io;
     void* io_context;
     KermitRx rx;
+    KermitPacket* last_packet;
     KermitFileTransferState file_transfer_state;
 };
 
@@ -264,9 +265,11 @@ void kermit_reset_state(Kermit* kermit) {
     kermit->max_packet_length = KERMIT_PACKET_MAX_LENGTH;
     kermit->max_ext_packet_length = KERMIT_PACKET_EXT_MAX_LENGTH;
 
-    if(kermit->rx.contents) {
-        kermit_packet_free(kermit->rx.contents);
-    }
+    kermit_packet_free(kermit->rx.contents);
+    kermit->rx.contents = NULL;
+
+    kermit_packet_free(kermit->last_packet);
+    kermit->last_packet = NULL;
 
     memset(&kermit->rx, 0, sizeof(KermitRx));
     kermit->rx.state = KermitPacketStateWaitMark;
@@ -282,6 +285,8 @@ Kermit* kermit_alloc(const KermitIo* io, void* context) {
     kermit->io_context = context;
 
     kermit->rx.contents = NULL;
+    kermit->last_packet = NULL;
+
     kermit_reset_state(kermit);
 
     return kermit;
@@ -414,14 +419,10 @@ bool kermit_feed_serial_data(Kermit* kermit, const uint8_t* data, size_t length)
     return true;
 }
 
-static bool kermit_tx_and_release_packet(Kermit* kermit, KermitPacket* packet) {
+static bool kermit_tx_packet(Kermit* kermit, const KermitPacket* packet) {
     furi_check(packet);
 
-    bool success =
-        (kermit->io->comms_send(kermit->io_context, packet->data, packet->sz) == packet->sz);
-
-    kermit_packet_free(packet);
-    return success;
+    return (kermit->io->comms_send(kermit->io_context, packet->data, packet->sz) == packet->sz);
 }
 
 bool kermit_start(Kermit* kermit, const uint8_t timeout_seconds) {
@@ -451,7 +452,13 @@ bool kermit_start(Kermit* kermit, const uint8_t timeout_seconds) {
     KermitPacket* init_packet = kermit_create_packet(
         kermit, KermitPacketTypeInit, (uint8_t*)&init_packet_data, sizeof(init_packet_data));
 
-    return kermit_tx_and_release_packet(kermit, init_packet);
+    if(kermit_tx_packet(kermit, init_packet)) {
+        kermit->last_packet = init_packet;
+        return true;
+    }
+
+    kermit_packet_free(init_packet);
+    return false;
 }
 
 static bool kermit_parse_session_params(Kermit* kermit) {
@@ -559,6 +566,10 @@ static bool kermit_process_packet(Kermit* kermit) {
     switch(kermit->rx.type) {
     case KermitPacketTypeAck:
         KERMIT_LOG("ACK received, state: %d", kermit->file_transfer_state);
+
+        kermit_packet_free(kermit->last_packet);
+        kermit->last_packet = NULL;
+
         switch(kermit->file_transfer_state) {
         case KermitFileTransferStateSyncParams:
             kermit->file_transfer_state = KermitFileTransferStateSendFileData;
@@ -591,7 +602,14 @@ static bool kermit_process_packet(Kermit* kermit) {
         break;
 
     case KermitPacketTypeNak:
-        FURI_LOG_E(TAG, "NAK received");
+        FURI_LOG_W(TAG, "NAK received, retransmitting last packet");
+        if(kermit->last_packet) {
+            response_packet = kermit->last_packet;
+            kermit->last_packet = NULL;
+        } else {
+            FURI_LOG_E(TAG, "NAK received with no packet to retransmit");
+            rx_packet_is_sane = false;
+        }
         break;
 
     default:
@@ -599,13 +617,20 @@ static bool kermit_process_packet(Kermit* kermit) {
         break;
     }
 
-    bool tx_failed = false;
+    bool tx_sent = false;
     if(response_packet) {
-        tx_failed = !kermit_tx_and_release_packet(kermit, response_packet);
+        if(kermit_tx_packet(kermit, response_packet)) {
+            kermit->last_packet = response_packet;
+            tx_sent = true;
+        } else {
+            kermit_packet_free(response_packet);
+        }
+
+        response_packet = NULL;
     }
 
     kermit_packet_free(kermit->rx.contents);
     kermit->rx.contents = NULL;
 
-    return rx_packet_is_sane && response_packet && !tx_failed;
+    return rx_packet_is_sane && tx_sent;
 }
