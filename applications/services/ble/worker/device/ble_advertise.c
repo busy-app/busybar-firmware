@@ -5,7 +5,7 @@
 
 #define TAG "BleAdvertise"
 
-#define BLE_ADVERTISE_PACKET_MAX_SIZE (31)
+#define BLE_ADVERTISE_PACKET_MAX_SIZE (251)
 
 typedef struct FURI_PACKED {
     uint8_t length;
@@ -34,17 +34,29 @@ typedef struct FURI_PACKED {
 
 typedef struct FURI_PACKED {
     BleAdvertiseByteData flags;
+    BleAdvertiseServiceClassUUID service_class;
+} BleAdvertiseConfigAnonymous;
+
+typedef struct FURI_PACKED {
+    BleAdvertiseConfigAnonymous anonymous;
     BleAdvertiseWordData appearance;
     BleAdvertiseWordData manufacturer;
-    BleAdvertiseServiceClassUUID service_class;
     BleAdvertiseLocalName local_name;
-} BleAdvertiseConfig;
+} BleAdvertiseConfigPublic;
 
-static const BleAdvertiseConfig advertise_config_template = {
-    .flags =
+static const BleAdvertiseConfigPublic advertise_config_template = {
+    .anonymous =
         {
-            .header = {.length = 2, .type = 1},
-            .data = 6,
+            .flags =
+                {
+                    .header = {.length = 2, .type = 1},
+                    .data = 6,
+                },
+            .service_class =
+                {
+                    .header = {.type = 0x02, .length = 3},
+                    .data = 0x308A,
+                },
         },
     .appearance =
         {
@@ -55,11 +67,6 @@ static const BleAdvertiseConfig advertise_config_template = {
         {
             .header = {.type = 0xFF, .length = 3},
             .data = 0x0E29,
-        },
-    .service_class =
-        {
-            .header = {.type = 0x02, .length = 3},
-            .data = 0x308A,
         },
     .local_name =
         {
