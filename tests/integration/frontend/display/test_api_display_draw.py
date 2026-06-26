@@ -541,7 +541,7 @@ class TestCountdownElement:
     @allure.title("Unrecognised direction → 400")
     @pytest.mark.api
     @pytest.mark.frontend
-    def test_unrecognised_direction_accepted(
+    def test_unrecognised_direction_rejected(
         self, assets_api: AssetsAPI, busy_timer_stopped
     ):
         elem = _countdown(direction="backward")
@@ -559,7 +559,7 @@ class TestCountdownElement:
     @allure.title("Unrecognised show_hours → 400")
     @pytest.mark.api
     @pytest.mark.frontend
-    def test_unrecognised_show_hours_accepted(
+    def test_unrecognised_show_hours_rejected(
         self, assets_api: AssetsAPI, busy_timer_stopped
     ):
         elem = _countdown(show_hours="never")
