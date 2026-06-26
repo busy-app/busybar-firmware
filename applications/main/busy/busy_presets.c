@@ -139,8 +139,8 @@ const TimerIndicatorPreset busy_timer_indicator_presets[BusyTimerIndicatorTypeMa
                     .anim_path = BUSY_ANIM_PATH("progress_rest_41x16.anim"),
                     .mask_path = BUSY_IMG_PATH("indicator_mask_41x16.image"),
                     .direction = TimerIndicatorProgressDirectionVertical,
-                    .start_offset_px = -4,
-                    .end_offset_px = 20,
+                    .start_offset_px = -6,
+                    .end_offset_px = 22,
                 },
             .foreground_config =
                 {
