@@ -29,8 +29,10 @@ static void static_color_run(StaticColor* instance, Color* color) {
 }
 
 const StatusLightsPresetBase status_lights_preset_static_color = {
-    .period_ms = 1000,
     .alloc = (StatusLightsPresetAlloc)static_color_alloc,
     .free = (StatusLightsPresetFree)static_color_free,
     .run = (StatusLightsPresetRun)static_color_run,
+    .period_ms = 1000,
+    .repeat_count = REPEAT_INFINITE,
+    .override_brightness = false,
 };

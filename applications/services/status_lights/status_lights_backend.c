@@ -27,6 +27,7 @@ struct StatusLights {
 
     Color active_color;
     float brightness;
+    uint32_t repeat_counter;
 };
 
 static const CommandHandler command_handlers[];
@@ -73,7 +74,18 @@ static void status_lights_run_pattern(void* context) {
     instance->preset_api->run(instance->preset_instance, &base_color);
     instance->active_color = base_color;
 
-    status_lights_set_output(base_color, instance->brightness);
+    float brightness = instance->preset_api->override_brightness ? 1.f : instance->brightness;
+    status_lights_set_output(base_color, brightness);
+
+    if(instance->preset_api->repeat_count > 0) {
+        instance->repeat_counter++;
+        if(instance->repeat_counter >= instance->preset_api->repeat_count) {
+            instance->preset_api->free(instance->preset_instance);
+            instance->preset_instance = NULL;
+            furi_event_loop_timer_stop(instance->timer);
+            furi_hal_pwm_stop();
+        }
+    }
 }
 
 static void status_lights_message_queue_callback(FuriEventLoopObject* object, void* context) {
@@ -212,7 +224,7 @@ static void
         furi_hal_pwm_start();
 
         instance->preset_instance = instance->preset_api->alloc(&command->run_preset.color);
-
+        instance->repeat_counter = 0;
         furi_event_loop_timer_start(instance->timer, instance->preset_api->period_ms);
         status_lights_run_pattern(instance);
 

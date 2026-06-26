@@ -33,8 +33,10 @@ static void fade_run(Fade* instance, Color* color) {
 }
 
 const StatusLightsPresetBase status_lights_preset_fade = {
-    .period_ms = 10,
     .alloc = (StatusLightsPresetAlloc)fade_alloc,
     .free = (StatusLightsPresetFree)fade_free,
     .run = (StatusLightsPresetRun)fade_run,
+    .period_ms = 10,
+    .repeat_count = REPEAT_INFINITE,
+    .override_brightness = false,
 };

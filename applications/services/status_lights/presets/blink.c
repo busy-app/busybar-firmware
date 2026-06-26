@@ -32,8 +32,19 @@ static void blink_run(Blink* instance, Color* color) {
 }
 
 const StatusLightsPresetBase status_lights_preset_blink = {
-    .period_ms = 500,
     .alloc = (StatusLightsPresetAlloc)blink_alloc,
     .free = (StatusLightsPresetFree)blink_free,
     .run = (StatusLightsPresetRun)blink_run,
+    .period_ms = 500,
+    .repeat_count = REPEAT_INFINITE,
+    .override_brightness = false,
+};
+
+const StatusLightsPresetBase status_lights_preset_notification = {
+    .alloc = (StatusLightsPresetAlloc)blink_alloc,
+    .free = (StatusLightsPresetFree)blink_free,
+    .run = (StatusLightsPresetRun)blink_run,
+    .period_ms = 500,
+    .repeat_count = 6, // 6 tick periods -> 3 blinks
+    .override_brightness = true,
 };

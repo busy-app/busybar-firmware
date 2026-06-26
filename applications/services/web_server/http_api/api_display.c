@@ -8,6 +8,7 @@
 #include <furi_hal_rtc.h>
 #include <font_registry/fonts.h>
 #include <brightness_control/brightness_control.h>
+#include <status_lights/status_lights.h>
 #include <lvgl.h>
 
 #define TAG "HttpDisplay"
@@ -537,6 +538,8 @@ _Static_assert(
 typedef struct {
     unsigned long conn_id;
     CanvasResult result;
+    Color led_color;
+    bool blink_led;
 } CanvasDrawCtx;
 
 static void canvas_draw_wakeup_callback(struct mg_connection* conn, void* data, size_t len) {
@@ -550,6 +553,12 @@ static void canvas_draw_wakeup_callback(struct mg_connection* conn, void* data, 
     if(ctx->result != CanvasResultOk) {
         MG_REPLY_ERROR(conn, draw_errors[ctx->result].code, draw_errors[ctx->result].message);
     } else {
+        if(ctx->blink_led) {
+            StatusLights* status_lights = furi_record_open(RECORD_STATUS_LIGHTS);
+            status_lights_run_preset(
+                status_lights, StatusLightsPresetNotification, ctx->led_color);
+            furi_record_close(RECORD_STATUS_LIGHTS);
+        }
         MG_REPLY_OK(conn);
     }
     free(ctx);
@@ -602,6 +611,20 @@ static void api_display_canvas_draw(struct mg_connection* conn, struct mg_http_m
             break;
         }
 
+        bool blink_led = false;
+        Color led_color;
+        char* led_color_hex = mg_json_get_str(msg->body, "$.led_notification_color");
+        if(led_color_hex) {
+            bool color_parsed = color_parse_hexa_string(led_color_hex, &led_color);
+            free(led_color_hex);
+            if(!color_parsed) {
+                MG_REPLY_ERROR(conn, 400, "Invalid LED notification color");
+                break;
+            } else {
+                blink_led = true;
+            }
+        }
+
         struct mg_str elements_obj = mg_json_get_tok(msg->body, "$.elements");
         if(!elements_obj.buf || elements_obj.len < 2 || elements_obj.buf[0] != '[') {
             MG_REPLY_ERROR(conn, 400, "Missing or invalid elements array");
@@ -633,7 +656,11 @@ static void api_display_canvas_draw(struct mg_connection* conn, struct mg_http_m
         }
 
         CanvasDrawCtx* ctx = malloc(sizeof(*ctx));
-        *ctx = (CanvasDrawCtx){.conn_id = conn->id};
+        *ctx = (CanvasDrawCtx){
+            .conn_id = conn->id,
+            .blink_led = blink_led,
+            .led_color = led_color,
+        };
 
         ConnectionContext* conn_ctx = (void*)conn->data;
         conn_ctx->on_wakeup = canvas_draw_wakeup_callback;

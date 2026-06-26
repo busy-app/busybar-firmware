@@ -522,18 +522,12 @@ class TestDrawBusyTimerTransitions:
                     "card_id": "00000000-0000-0000-0000-000000000001",
                     "is_paused": is_paused,
                 }
-            # Always fetch the device's current timestamp and advance it so the
-            # snapshot is not rejected as stale/own by busy_timer.
-            current = api_session.get(f"{web_base_url}/api/busy/snapshot", timeout=10)
-            current.raise_for_status()
-            device_ts = current.json().get("snapshot_timestamp_ms", 0)
-            next_ts = max(device_ts, int(time.time() * 1000)) + 2000
             body_snapshot["busy_bar_settings"] = busy_state_guard.get(
                 "snapshot", {}
             ).get("busy_bar_settings", {})
             body = {
                 "snapshot": body_snapshot,
-                "snapshot_timestamp_ms": next_ts,
+                "snapshot_timestamp_ms": next_timestamp(api_session, web_base_url),
             }
             r = api_session.put(
                 f"{web_base_url}/api/busy/snapshot", json=body, timeout=10

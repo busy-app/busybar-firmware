@@ -7,6 +7,7 @@ import pytest
 from clients.api import BusyAPI, StorageAPI, StreamingAPI
 from utils.busy_timer import (
     STATE_SETTLE_S,
+    TS_MAX_FUTURE_MS,
     WORK_CARD_UUID,
     next_timestamp,
     wait_for_snapshot_type,
@@ -386,6 +387,31 @@ class TestBusySnapshotRegressions:
         assert updated.snapshot_timestamp_ms == current.snapshot_timestamp_ms
         assert updated.snapshot["type"] == "SIMPLE"
         assert 0 < updated.snapshot["time_left_ms"] <= 240000
+
+    @allure.title("BUSY timer rejects snapshots more than 60 seconds in the future")
+    def test_busy_timer_future_snapshot_is_rejected(
+        self, busy_api: BusyAPI, api_session, web_base_url, busy_state_guard
+    ):
+        settings = _current_busy_settings(busy_state_guard)
+        baseline = _simple_snapshot(
+            next_timestamp(api_session, web_base_url), settings, time_left_ms=240000
+        )
+        assert busy_api.set_snapshot_raw(baseline).status_code == 200
+        time.sleep(STATE_SETTLE_S)
+        before = busy_api.get_snapshot()
+
+        future_ts = int(time.time() * 1000) + TS_MAX_FUTURE_MS + 15000
+        future = _infinite_snapshot(future_ts, settings)
+        response = busy_api.set_snapshot_raw(future)
+        assert response.status_code == 400, (
+            "Expected BUSY snapshot parser to reject timestamps more than "
+            f"{TS_MAX_FUTURE_MS}ms in the future, got {response.status_code}: "
+            f"{response.text[:200]}"
+        )
+
+        after = busy_api.get_snapshot()
+        assert after.snapshot_timestamp_ms == before.snapshot_timestamp_ms
+        assert after.snapshot == before.snapshot
 
     @allure.title("BUSY timer invalid semantic snapshots do not change current state")
     @pytest.mark.parametrize(

@@ -17,6 +17,12 @@ WORK_CARD_UUID = "00000000-0000-0000-0000-000000000001"
 # How far (ms) ahead of the device's last-known timestamp we stamp new snapshots.
 # busy_timer rejects any snapshot whose timestamp <= last_known_snapshot.timestamp_ms.
 TS_ADVANCE_MS = 2000
+TS_MIN_ADVANCE_MS = 1
+
+# Firmware rejects snapshots more than 60 seconds ahead of RTC.
+TS_MAX_FUTURE_MS = 60 * 1000
+TS_FUTURE_WAIT_TIMEOUT_S = 20.0
+TS_FUTURE_POLL_INTERVAL_S = 0.1
 
 # Time (seconds) to wait after setting a busy timer snapshot so the busy app
 # processes the state change and updates the loader priority.  0.3 s was too
@@ -31,10 +37,33 @@ def get_snapshot(session: requests.Session, base_url: str) -> dict:
 
 
 def next_timestamp(session: requests.Session, base_url: str) -> int:
-    """Return a timestamp strictly greater than whatever the device currently holds."""
-    current = get_snapshot(session, base_url)
-    device_ts = current.get("snapshot_timestamp_ms", 0)
-    return max(device_ts, int(time.time() * 1000)) + TS_ADVANCE_MS
+    """Return a valid timestamp strictly greater than the current device snapshot.
+
+    The firmware rejects snapshots from more than 15 seconds in the future. If
+    the current device snapshot is already close to that limit, advance it by
+    the smallest possible amount instead of pushing the test state past the
+    accepted future window.
+    """
+    deadline = time.monotonic() + TS_FUTURE_WAIT_TIMEOUT_S
+
+    while True:
+        current = get_snapshot(session, base_url)
+        device_ts = current.get("snapshot_timestamp_ms", 0)
+        now_ms = int(time.time() * 1000)
+        future_limit_ms = now_ms + TS_MAX_FUTURE_MS
+
+        candidate = max(device_ts + TS_MIN_ADVANCE_MS, now_ms + TS_ADVANCE_MS)
+        if candidate <= future_limit_ms:
+            return candidate
+
+        if time.monotonic() >= deadline:
+            raise AssertionError(
+                "Cannot build a fresh BUSY snapshot timestamp within the "
+                f"{TS_MAX_FUTURE_MS}ms future limit: "
+                f"device_ts={device_ts}, now_ms={now_ms}"
+            )
+
+        time.sleep(TS_FUTURE_POLL_INTERVAL_S)
 
 
 def set_snapshot(session: requests.Session, base_url: str, body: dict) -> None:
