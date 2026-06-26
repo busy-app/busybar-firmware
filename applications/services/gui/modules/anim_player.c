@@ -90,7 +90,11 @@ Widget* anim_player_get_base(AnimPlayer* instance) {
     return (Widget*)instance;
 }
 
-bool anim_player_set_source(AnimPlayer* instance, const char* file_path) {
+static bool anim_player_set_source_internal(
+    AnimPlayer* instance,
+    const char* file_path,
+    size_t width,
+    size_t height) {
     furi_check(instance);
 
     bool path_given = !!file_path;
@@ -114,15 +118,14 @@ bool anim_player_set_source(AnimPlayer* instance, const char* file_path) {
         if(!instance->file) break;
 
         AnimFileInfo info = anim_file_info(instance->file);
-        instance->canvas_buf = realloc(instance->canvas_buf, info.out_buffer_size);
-        anim_file_set_out_buf(instance->file, instance->canvas_buf);
+        width = width ? width : info.width;
+        height = height ? height : info.height;
+        size_t buffer_size = width * height * ANIM_FILE_OUT_BYTES_PER_PIXEL;
+        instance->canvas_buf = realloc(instance->canvas_buf, buffer_size);
+        anim_file_set_out_buf(instance->file, width, height, instance->canvas_buf);
 
         lv_canvas_set_buffer(
-            instance->canvas,
-            instance->canvas_buf,
-            info.width,
-            info.height,
-            LV_COLOR_FORMAT_RGB888);
+            instance->canvas, instance->canvas_buf, width, height, LV_COLOR_FORMAT_ARGB8888);
 
         anim_player_set_section(instance, AnimFilePlayFlagLoop, ANIM_FILE_DEFAULT_SECTION);
 
@@ -141,6 +144,31 @@ bool anim_player_set_source(AnimPlayer* instance, const char* file_path) {
     }
 
     return loaded_successfully;
+}
+
+bool anim_player_set_source(AnimPlayer* instance, const char* path) {
+    furi_check(instance);
+    furi_check(path);
+    return anim_player_set_source_internal(instance, path, 0, 0);
+}
+
+bool anim_player_set_source_sheet(
+    AnimPlayer* instance,
+    const char* path,
+    size_t width,
+    size_t height) {
+    furi_check(instance);
+    furi_check(path);
+    furi_check(width);
+    furi_check(height);
+    return anim_player_set_source_internal(instance, path, width, height);
+}
+
+bool anim_player_set_cutout_pos(AnimPlayer* instance, float x, float y) {
+    furi_check(instance);
+    if(!instance->file) return false;
+    anim_file_set_cutout(instance->file, x, y);
+    return true;
 }
 
 AnimFile* anim_player_get_file(AnimPlayer* instance) {

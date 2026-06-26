@@ -1,5 +1,18 @@
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#include <furi.h>
+
+typedef struct {
+    uint8_t* first_pixel;
+    int byte_width;
+    int height;
+    size_t byte_stride;
+} DspImageBuffer;
+
 /**
  * @brief Applies a one pole low-pass filter to the input signal.
  *
@@ -9,3 +22,62 @@
  * @return The filtered output sample.
  */
 float dsp_low_pass(float input, float prev_output, float alpha);
+
+/**
+ * @brief Normalize a 2-dimensional kernel
+ * 
+ * After normalization, the sum of all elements is 1.
+ * 
+ * @param[in] kernel_sz Size of one axis of the kernel.
+ * @param[inout] kernel Input and result (2-dimensional array of size
+ *                      `kernel_sz` x `kernel_sz`)
+ */
+void dsp_2d_kernel_normalize(size_t kernel_sz, float kernel[kernel_sz][kernel_sz]);
+
+/**
+ * @brief Calculate a 2-dimensional kernel for a sub-pixel translation operation.
+ * 
+ * The resulting kernel is already normalized. The range of acceptable `x` and
+ * `y` values is `+/- floor(kernel_sz) / 2`. E.g., for a kernel size of 3, the
+ * maximum shift is `+/-1.0` pixels on either axis.
+ * 
+ * To perform the shift operation, call `dsp_2d_kernel_apply`.
+ * 
+ * @param[in] kernel_sz Size of one axis of the kernel. Can't be less than 3,
+ *                      must be odd.
+ * @param[out] kernel Result (2-dimensional array of size `kernel_sz` x
+ *                    `kernel_sz`)
+ * @param[in] x X-axis translation amount
+ * @param[in] y Y-axis translation amount
+ */
+void dsp_2d_kernel_subpixel_translate(
+    size_t kernel_sz,
+    float kernel[kernel_sz][kernel_sz],
+    float x,
+    float y);
+
+/**
+ * @brief Apply a 2-dimensional kernel to part of an image
+ * 
+ * @param[in] kernel_sz Size of one axis of the kernel. Can't be less than 3,
+ *                      must be odd.
+ * @param[in] kernel Normalized kernel (2-dimensional array of size `kernel_sz`
+ *                   x `kernel_sz`)
+ * @param[in] src Descriptor for source buffer
+ * @param[in] dst Descriptor for destination buffer
+ * @param[in] n_chans Number of color channels per pixel
+ * @param[in] offs_x X-axis offset of destination window relative to source sheet
+ * @param[in] offs_y Y-axis offset of destination window relative to source sheet
+ */
+void dsp_2d_kernel_apply(
+    size_t kernel_sz,
+    float kernel[kernel_sz][kernel_sz],
+    DspImageBuffer src,
+    DspImageBuffer dst,
+    size_t n_chans,
+    int offs_x,
+    int offs_y);
+
+#ifdef __cplusplus
+}
+#endif

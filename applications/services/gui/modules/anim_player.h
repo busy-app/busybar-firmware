@@ -49,6 +49,34 @@ Widget* anim_player_get_base(AnimPlayer* instance);
 bool anim_player_set_source(AnimPlayer* instance, const char* path);
 
 /**
+ * @brief Loads the animation file at the specified path, but only ever displays
+ * a rectangular cutout of it
+ * 
+ * @param[in,out] instance Widget instance
+ * @param[in] path File path
+ * @param[in] width Cutout width
+ * @param[in] height Cutout height
+ * 
+ * @returns `true` = operation successful
+ */
+bool anim_player_set_source_sheet(
+    AnimPlayer* instance,
+    const char* path,
+    size_t width,
+    size_t height);
+
+/**
+ * @brief Sets the position of the cutout, if it's smaller than the sheet
+ * 
+ * @param[inout] instance Widget instance
+ * @param[in] x X-axis coordinate of cutout (may be out of bounds or non-whole)
+ * @param[in] Y Y-axis coordinate of cutout (may be out of bounds or non-whole)
+ * 
+ * @returns `true` = operation successful
+ */
+bool anim_player_set_cutout_pos(AnimPlayer* instance, float x, float y);
+
+/**
  * @brief Sets the current section to be played back, using a section name
  * 
  * @param[in] instance `AnimPlayer` instance
