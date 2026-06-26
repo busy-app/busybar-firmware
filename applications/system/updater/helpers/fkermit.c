@@ -150,7 +150,7 @@ static KermitPacket* kermit_packet_alloc(size_t data_size) {
     return packet;
 }
 
-void kermit_packet_free(KermitPacket* packet) {
+static void kermit_packet_free(KermitPacket* packet) {
     if(!packet) {
         return;
     }
@@ -160,25 +160,25 @@ void kermit_packet_free(KermitPacket* packet) {
 
 // Kermit protocol conversion functions
 
-FURI_ALWAYS_INLINE uint8_t kermit_tochar(uint8_t value) {
+FURI_ALWAYS_INLINE static uint8_t kermit_tochar(uint8_t value) {
 #if KERMIT_DEBUG
     furi_check(value <= 94);
 #endif
     return value + 32;
 }
 
-FURI_ALWAYS_INLINE uint8_t kermit_fromchar(uint8_t value) {
+FURI_ALWAYS_INLINE static uint8_t kermit_fromchar(uint8_t value) {
 #if KERMIT_DEBUG
     furi_check(value >= 32);
 #endif
     return value - 32;
 }
 
-FURI_ALWAYS_INLINE uint8_t kermit_ctl(uint8_t value) {
+FURI_ALWAYS_INLINE static uint8_t kermit_ctl(uint8_t value) {
     return value ^ 64;
 }
 
-uint8_t kermit_checksum(const uint8_t* data, size_t length) {
+static uint8_t kermit_checksum(const uint8_t* data, size_t length) {
     uint32_t sum = 0;
     for(size_t i = 0; i < length; i++) {
         sum += data[i];
@@ -193,7 +193,7 @@ static FURI_ALWAYS_INLINE uint8_t kermit_next_seq(uint8_t seq) {
 
 // Kermit packet creation functions
 
-KermitPacket* kermit_create_packet(
+static KermitPacket* kermit_create_packet(
     Kermit* kermit,
     const KermitPacketType packet_type,
     const uint8_t* data,
@@ -224,7 +224,7 @@ KermitPacket* kermit_create_packet(
     return packet;
 }
 
-KermitPacket* kermit_create_ext_packet(
+static KermitPacket* kermit_create_ext_packet(
     Kermit* kermit,
     const KermitPacketType packet_type,
     const uint8_t* data,
