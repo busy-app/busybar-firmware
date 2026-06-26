@@ -345,6 +345,11 @@ void widget_set_background_color(Widget* instance, Color color) {
     lv_obj_set_style_bg_opa((lv_obj_t*)instance, (lv_opa_t)(color.a), LV_PART_MAIN);
 }
 
+void widget_set_opacity(Widget* instance, uint8_t opacity) {
+    furi_check(instance);
+    lv_obj_set_style_opa((lv_obj_t*)instance, (lv_opa_t)opacity, LV_PART_MAIN);
+}
+
 void widget_set_padding(Widget* instance, int32_t left, int32_t right, int32_t top, int32_t bottom) {
     furi_check(instance);
     lv_obj_set_style_pad_left((lv_obj_t*)instance, left, LV_PART_MAIN);

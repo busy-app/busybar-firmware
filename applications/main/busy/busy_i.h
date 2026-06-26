@@ -74,6 +74,7 @@ typedef union {
 typedef struct {
     BusyApiMessageType type;
     BusyApiMessageData data;
+    BusyStatus* status;
     FuriApiLock lock;
 } BusyApiMessage;
 
@@ -150,3 +151,7 @@ void busy_set_timer_preset(BusyApp* instance, BusyTimerPreset* timer_preset);
 const BusyAppGlobalPreset* busy_get_global_preset(const BusyApp* instance);
 
 BusyTimerProfileId busy_get_profile_id(const BusyApp* instance);
+
+void busy_api_unlock_message(BusyApiMessage* api_message, BusyStatus status);
+
+void busy_api_abort_pending_messages(BusyApp* instance);

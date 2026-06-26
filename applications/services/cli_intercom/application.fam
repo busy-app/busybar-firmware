@@ -7,4 +7,31 @@ App(
     stack_size=2 * 1024,
     targets=["f20", "f21", "f22", "f64", "f65"],
     order=1,
+    provides=["cli_sl_cli_metapackage"],
+    sources=["cli_intercom.c"],
+)
+
+App(
+    appid="cli_sl_cli_metapackage",
+    name="Includes sl_cli command on u5 only",
+    apptype=FlipperAppType.METAPACKAGE,
+    targets=["f20", "f21", "f22"],
+    provides=["cli_sl_cli"],
+)
+App(
+    appid="cli_sl_cli_metapackage",
+    name="Includes sl_cli command on u5 only",
+    apptype=FlipperAppType.METAPACKAGE,
+    targets=["f64", "f65"],
+    provides=[],
+)
+
+App(
+    appid="cli_sl_cli",
+    name="sl_cli",
+    targets=["f20", "f21", "f22"],
+    apptype=FlipperAppType.CLICMD,
+    flags=["Exclusive"],
+    entry_point="cli_command_sl_cli",
+    sources=["cli/cli_command_sl_cli.c"],
 )

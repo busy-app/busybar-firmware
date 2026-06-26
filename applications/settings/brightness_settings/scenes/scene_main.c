@@ -108,12 +108,16 @@ static void scene_main_fill_var_item_list(
 
 static void
     update_var_item_values(const SettingsSceneBrightness* data, VarItemListContainer* container) {
-    var_item_list_exit_edit_mode(container->list, false);
     var_item_set_value(container->items[VarItemListIdMode], data->mode);
     if(data->mode == BrightnessModeManual) {
         var_item_set_value(container->items[VarItemListIdBrightness], data->brightness);
     } else {
-        var_item_focus(container->items[VarItemListIdMode]);
+        VarItem* mode_item = container->items[VarItemListIdMode];
+        if(var_item_list_exit_edit_mode(container->list, false)) {
+            var_item_list_enter_edit_mode(container->list, mode_item);
+        } else {
+            var_item_focus(mode_item);
+        }
     }
 }
 

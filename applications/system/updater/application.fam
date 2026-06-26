@@ -75,4 +75,14 @@ App(
     stack_size=1 * 1024,
     order=320,
     targets=["f20", "f21", "f22"],
+    provides=["cli_factory_reset"],
+)
+
+App(
+    appid="cli_factory_reset",
+    name="factory_reset",
+    targets=["f20", "f21", "f22"],
+    apptype=FlipperAppType.CLICMD,
+    entry_point="cli_command_factory_reset",
+    sources=["cli/cli_command_factory_reset.c"],
 )

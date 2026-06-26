@@ -15,6 +15,8 @@
 #define NVM_MAGIC   0xB00B0005
 #define NVM_VERSION 0x00000002
 
+#define NVM_MIGRATION_IDX(source_version) ((source_version) - 1)
+
 typedef struct {
     uint32_t magic;
     uint32_t version;
@@ -29,6 +31,11 @@ typedef struct {
     const Version* version;
 } NvmData;
 
+typedef struct {
+    void (*migrate_callback)(volatile NvmData* nvm, const void* context);
+    const void* context;
+} NvmMigration;
+
 static_assert(FuriHalNvmFlagCount <= 32, "Too many NVM flags defined!");
 static_assert(
     offsetof(NvmData, version) == 24,
@@ -38,9 +45,23 @@ static volatile NvmData* nvm_storage = (NvmData*)(&__bkp_start__);
 
 static volatile bool nvm_was_reset;
 
+static const NvmMigration nvm_migrations[];
+
 static bool furi_hal_nvm_is_valid(void) {
     const volatile NvmHeader* header = &nvm_storage->header;
-    return (header->magic == NVM_MAGIC) && (header->version == NVM_VERSION);
+    return (header->magic == NVM_MAGIC) && (header->version != 0);
+}
+
+static void furi_hal_nvm_migrate(uint32_t source_version) {
+    for(uint32_t version = source_version; version < NVM_VERSION; version++) {
+        const NvmMigration* migration = &nvm_migrations[NVM_MIGRATION_IDX(version)];
+
+        if(migration->migrate_callback) {
+            migration->migrate_callback(nvm_storage, migration->context);
+        }
+    }
+
+    nvm_storage->header.version = NVM_VERSION;
 }
 
 void furi_hal_nvm_reset(void) {
@@ -90,7 +111,11 @@ void furi_hal_nvm_init_early(void) {
     while(LL_PWR_IsEnabledBkUpAccess() == 0U) {
     }
 
-    if(!furi_hal_nvm_is_valid()) {
+    if(furi_hal_nvm_is_valid()) {
+        if(nvm_storage->header.version < NVM_VERSION) {
+            furi_hal_nvm_migrate(nvm_storage->header.version);
+        }
+    } else {
         furi_hal_nvm_reset();
     }
 
@@ -124,3 +149,15 @@ void furi_hal_nvm_store_switch_pos(uint32_t pos) {
 uint32_t furi_hal_nvm_get_switch_pos(void) {
     return nvm_storage->switch_pos;
 }
+
+static void furi_hal_nvm_migrate_to_v2(volatile NvmData* nvm, const void* context) {
+    UNUSED(context);
+
+    nvm->version = version_get();
+}
+
+static const NvmMigration nvm_migrations[] = {
+    [NVM_MIGRATION_IDX(1)] = {.migrate_callback = furi_hal_nvm_migrate_to_v2, .context = NULL},
+};
+
+static_assert(COUNT_OF(nvm_migrations) == NVM_VERSION - 1, "Some NVM data migrations are missing.");

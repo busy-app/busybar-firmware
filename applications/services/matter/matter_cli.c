@@ -368,39 +368,35 @@ void matter_cli_command(PipeSide* pipe, FuriString* args, void* context) {
     cli_registry_add_command(
         matter_cli->commands,
         "switch",
-        CliCommandFlagParallelSafe | CliCommandFlagUseShellThread,
+        CliCommandFlagUseShellThread,
         matter_cli_cmd_switch,
         matter_cli);
     cli_registry_add_command(
         matter_cli->commands,
         "startup",
-        CliCommandFlagParallelSafe | CliCommandFlagUseShellThread,
+        CliCommandFlagUseShellThread,
         matter_cli_cmd_startup,
         matter_cli);
     cli_registry_add_command(
         matter_cli->commands,
         "reset",
-        CliCommandFlagParallelSafe | CliCommandFlagUseShellThread,
+        CliCommandFlagUseShellThread,
         matter_cli_cmd_reset,
         matter_cli);
     cli_registry_add_command(
         matter_cli->commands,
         "comm",
-        CliCommandFlagParallelSafe | CliCommandFlagUseShellThread,
+        CliCommandFlagUseShellThread,
         matter_cli_cmd_comm,
         matter_cli);
     cli_registry_add_command(
         matter_cli->commands,
         "fabrics",
-        CliCommandFlagParallelSafe | CliCommandFlagUseShellThread,
+        CliCommandFlagUseShellThread,
         matter_cli_cmd_fabrics,
         matter_cli);
     cli_registry_add_command(
-        matter_cli->commands,
-        "cd",
-        CliCommandFlagParallelSafe | CliCommandFlagUseShellThread,
-        matter_cli_cmd_cd,
-        matter_cli);
+        matter_cli->commands, "cd", CliCommandFlagUseShellThread, matter_cli_cmd_cd, matter_cli);
 
     cli_shell_start(matter_cli->shell);
     cli_shell_join(matter_cli->shell);
