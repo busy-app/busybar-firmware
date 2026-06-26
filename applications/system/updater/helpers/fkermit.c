@@ -71,7 +71,8 @@ typedef struct {
     KermitPacketState state;
     uint8_t seq;
     uint8_t len;
-    uint16_t checksum;
+    uint32_t sum;
+    uint8_t checksum;
 } KermitRx;
 
 typedef enum {
@@ -178,13 +179,17 @@ FURI_ALWAYS_INLINE static uint8_t kermit_ctl(uint8_t value) {
     return value ^ 64;
 }
 
+FURI_ALWAYS_INLINE static uint8_t kermit_checksum_fold(uint32_t sum) {
+    return (sum + ((sum & 0xC0) >> 6)) & 0x3F;
+}
+
 static uint8_t kermit_checksum(const uint8_t* data, size_t length) {
     uint32_t sum = 0;
     for(size_t i = 0; i < length; i++) {
         sum += data[i];
     }
 
-    return kermit_tochar((sum + ((sum & 0xC0) >> 6)) & 0x3F);
+    return kermit_tochar(kermit_checksum_fold(sum));
 }
 
 static FURI_ALWAYS_INLINE uint8_t kermit_next_seq(uint8_t seq) {
@@ -339,18 +344,21 @@ static bool kermit_feed_byte(Kermit* kermit, uint8_t c) {
         }
         // seq + type + check go to separate fields in reassembly
         rx->len -= 3;
+        rx->sum = c;
         rx->state = KermitPacketStateWaitSeq;
         rx->contents = kermit_packet_alloc(rx->len);
         break;
 
     case KermitPacketStateWaitSeq:
         rx->seq = kermit_fromchar(c);
+        rx->sum += c;
         KERMIT_LOG("Packet seq: %d", rx->seq);
         rx->state = KermitPacketStateWaitType;
         break;
 
     case KermitPacketStateWaitType:
         rx->type = c;
+        rx->sum += c;
         KERMIT_LOG("Packet type: %c", c);
         rx->state = rx->len ? KermitPacketStateWaitContents : KermitPacketStateWaitChecksum;
         break;
@@ -365,6 +373,7 @@ static bool kermit_feed_byte(Kermit* kermit, uint8_t c) {
         }
 
         rx->contents->data[rx->contents->sz - rx->len] = c;
+        rx->sum += c;
         rx->len--;
         if(rx->len == 0) {
             KERMIT_LOG("Received all expected data");
@@ -373,10 +382,7 @@ static bool kermit_feed_byte(Kermit* kermit, uint8_t c) {
         break;
 
     case KermitPacketStateWaitChecksum:
-        rx->checksum = kermit_fromchar(c);
-        // todo: validate?
-        // challenging, because we do not store header fields right next to the data
-        UNUSED(rx->checksum);
+        rx->checksum = c;
         rx->state = KermitPacketStateWaitEnd;
         break;
 
@@ -386,6 +392,15 @@ static bool kermit_feed_byte(Kermit* kermit, uint8_t c) {
             rx->state = KermitPacketStateError;
             return false;
         }
+
+        if(kermit_tochar(kermit_checksum_fold(rx->sum)) != rx->checksum) {
+            FURI_LOG_E(TAG, "Checksum mismatch");
+            kermit_packet_free(rx->contents);
+            rx->contents = NULL;
+            rx->state = KermitPacketStateWaitMark;
+            break;
+        }
+
         result = kermit_process_packet(kermit);
 
         kermit_packet_free(rx->contents);
