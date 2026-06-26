@@ -118,6 +118,7 @@ static void status_view_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t
     lv_obj_set_style_text_color(instance->primary_label, lv_color_white(), LV_PART_MAIN);
     lv_obj_set_width(instance->primary_label, LV_PCT(100));
     lv_label_set_long_mode(instance->primary_label, LV_LABEL_LONG_WRAP);
+    lv_obj_set_style_max_height(instance->primary_label, LV_PCT(100), 0);
     lv_obj_add_flag(instance->primary_label, LV_OBJ_FLAG_HIDDEN);
 
     instance->auxiliary_label = lv_label_create(instance->label_container);
