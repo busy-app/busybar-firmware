@@ -346,7 +346,7 @@ static LoaderStatus loader_start_internal(
         }
 
         status = loader_make_status_error(
-            LoaderStatusErrorUnknownApp, error_message, "Application \"%s\" not found", name);
+            LoaderStatusErrorUnknownApp, error_message, "App not found \"%s\"", name);
 
     } while(false);
 
