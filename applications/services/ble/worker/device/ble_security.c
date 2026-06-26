@@ -10,9 +10,12 @@
 #define TAG "BleSecurity"
 
 struct BleSecurityData {
+    uint8_t version;
     rsi_bt_event_le_security_keys_t irk;
     rsi_bt_event_encryption_enabled_t ltk;
 };
+
+#define BLE_SECURITY_VERSION 1
 
 #define BLE_SECURITY_RPA_ENABLE         1
 #define BLE_SECURITY_RPA_DISABLE        0
@@ -92,6 +95,8 @@ static void ble_security_format_encryption_data(
 }
 
 static void ble_security_log_keys(const BleSecurityData* security) {
+    BLE_LOG_I("Version: %d", security->version);
+
     FuriString* buf = furi_string_alloc();
     ble_security_format_rpa_data(buf, &security->irk);
     BLE_LOG_I("Privacy:\r\n%s", furi_string_get_cstr(buf));
@@ -193,6 +198,7 @@ bool ble_security_delete_data(BleSecurityData* security) {
     furi_record_close(RECORD_NVM);
 
     memset(security, 0, sizeof(BleSecurityData));
+    security->version = BLE_SECURITY_VERSION;
 
     return result;
 }
@@ -313,9 +319,13 @@ bool ble_security_rpa_disable() {
 bool ble_security_init(BleSecurityData* instance) {
     furi_assert(instance);
 
-    ble_security_load_data(instance);
+    bool pairing_present = false;
+    if(ble_security_load_data(instance)) {
+        pairing_present = ble_security_pairing_present(instance);
+    }
+
     ble_security_rpa_init(instance);
-    return ble_security_pairing_present(instance);
+    return pairing_present;
 }
 
 bool ble_security_pairing_present(BleSecurityData* security) {
@@ -326,7 +336,9 @@ bool ble_security_pairing_present(BleSecurityData* security) {
 }
 
 BleSecurityData* ble_security_alloc() {
-    return malloc(sizeof(BleSecurityData));
+    BleSecurityData* instance = malloc(sizeof(BleSecurityData));
+    instance->version = BLE_SECURITY_VERSION;
+    return instance;
 }
 
 void ble_security_free(BleSecurityData* instance) {
