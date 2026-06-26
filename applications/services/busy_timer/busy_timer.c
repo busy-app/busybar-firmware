@@ -540,6 +540,11 @@ static void
     furi_event_loop_timer_start(instance->profile_timer, DEBOUNCE_TIMER_DELAY_MS);
 }
 
+static void busy_timer_capture_and_publish_snapshot(BusyTimer* instance) {
+    busy_timer_capture_snapshot(instance);
+    busy_timer_schedule_publish_last_known_snapshot(instance);
+}
+
 static void busy_timer_apply_snapshot(BusyTimer* instance, const BusyTimerSnapshot* snapshot) {
     const time_t snapshot_timestamp_ms = snapshot->timestamp_ms;
 
@@ -789,8 +794,7 @@ void busy_timer_start_internal(BusyTimer* instance) {
         FURI_LOG_I(TAG, "Resumed");
     }
 
-    busy_timer_capture_snapshot(instance);
-    busy_timer_schedule_publish_last_known_snapshot(instance);
+    busy_timer_capture_and_publish_snapshot(instance);
 }
 
 void busy_timer_stop_internal(BusyTimer* instance) {
@@ -801,8 +805,7 @@ void busy_timer_stop_internal(BusyTimer* instance) {
 
         FURI_LOG_I(TAG, "Stopped");
 
-        busy_timer_capture_snapshot(instance);
-        busy_timer_schedule_publish_last_known_snapshot(instance);
+        busy_timer_capture_and_publish_snapshot(instance);
     }
 }
 
@@ -818,16 +821,14 @@ void busy_timer_toggle_internal(BusyTimer* instance) {
 
     busy_timer_notify_paused(instance);
 
-    busy_timer_capture_snapshot(instance);
-    busy_timer_schedule_publish_last_known_snapshot(instance);
+    busy_timer_capture_and_publish_snapshot(instance);
 }
 
 void busy_timer_skip_internal(BusyTimer* instance) {
     if(busy_timer_is_running(instance)) {
         busy_timer_next_state(instance, true);
 
-        busy_timer_capture_snapshot(instance);
-        busy_timer_schedule_publish_last_known_snapshot(instance);
+        busy_timer_capture_and_publish_snapshot(instance);
 
         FURI_LOG_I(TAG, "Skipped");
     }
@@ -880,6 +881,7 @@ static void
         if(add_time_minutes > 0) {
             // Special case: start a Simple timer
             busy_timer_infinite_to_simple(instance);
+            busy_timer_capture_and_publish_snapshot(instance);
         }
         return;
     }
@@ -920,8 +922,7 @@ static void
     busy_timer_start_timer(instance);
     busy_timer_notify_tick(instance);
 
-    busy_timer_capture_snapshot(instance);
-    busy_timer_schedule_publish_last_known_snapshot(instance);
+    busy_timer_capture_and_publish_snapshot(instance);
 
     FURI_LOG_I(TAG, "Interval override");
 }
@@ -943,8 +944,7 @@ static void
     UNUSED(data);
 
     if(instance->state == BusyTimerStateIdle) {
-        busy_timer_capture_snapshot(instance);
-        busy_timer_schedule_publish_last_known_snapshot(instance);
+        busy_timer_capture_and_publish_snapshot(instance);
 
         FURI_LOG_I(TAG, "Finalized");
     }
