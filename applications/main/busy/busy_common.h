@@ -1,3 +1,7 @@
+/**
+ * @file busy_common.h
+ * @brief Common BUSY application defines and variables.
+ */
 #pragma once
 
 #include <stdbool.h>

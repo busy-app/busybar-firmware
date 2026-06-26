@@ -1,19 +1,12 @@
 #include <furi.h>
-#include <storage/storage.h>
 #include <gui/gui.h>
-#include <gui/modules/image.h>
-#include <gui/modules/anim_player.h>
-#include <gui/modules/label.h>
-#include <gui/modules/countdown.h>
 #include <gui/modules/mirror_card.h>
 #include <loader/loader.h>
 #include <m-dict.h>
 #include <toolbox/m_cstr_dup.h>
 #include <toolbox/api_lock.h>
 #include <furi_hal_rtc.h>
-#include "canvas.h"
-#include <lvgl.h>
-#include <font_registry/fonts.h>
+#include "canvas_i.h"
 #include <back_display/back_display.h>
 #include <front_display/front_display.h>
 #include <light_sensor/light_sensor.h>
@@ -41,24 +34,6 @@ typedef struct {
         CanvasElementsArray_t elements;
     };
 } CanvasSrvQueueEvent;
-
-typedef struct {
-    CanvasSrv* canvas;
-    char* id;
-} CanvasWidgetTimeoutContext;
-
-typedef struct {
-    FuriEventLoopTimer* timeout_timer;
-    CanvasWidgetTimeoutContext* timeout_context;
-    CanvasElementType type;
-    GuiDisplayId display;
-    union {
-        Image* image;
-        AnimPlayer* anim_player;
-        Label* text;
-        Countdown* countdown;
-    };
-} CanvasWidget;
 
 DICT_DEF2(CanvasWidgetsDict, const char*, M_CSTR_DUP_OPLIST, CanvasWidget, M_POD_OPLIST);
 
@@ -118,21 +93,7 @@ static void canvas_element_timeout(void* context) {
 
     furi_event_loop_timer_free(widget->timeout_timer);
 
-    with_gui(canvas->gui, {
-        if(widget->type == CanvasElementTypeImage) {
-            furi_assert(widget->image);
-            image_free(widget->image);
-        } else if(widget->type == CanvasElementTypeAnimPlayer) {
-            furi_assert(widget->anim_player);
-            anim_player_free(widget->anim_player);
-        } else if(widget->type == CanvasElementTypeText) {
-            furi_assert(widget->text);
-            label_free(widget->text);
-        } else if(widget->type == CanvasElementTypeCountdown) {
-            furi_assert(widget->countdown);
-            countdown_free(widget->countdown);
-        }
-    });
+    with_gui(canvas->gui, { canvas_widget_delete(widget); });
 
     CanvasWidgetsDict_erase(canvas->widgets, id);
     free(id);
@@ -148,7 +109,7 @@ static void canvas_element_timeout(void* context) {
     }
 }
 
-static void canvas_widget_destroy(CanvasSrv* canvas, CanvasWidget* widget) {
+static void canvas_element_destroy(CanvasSrv* canvas, CanvasWidget* widget) {
     furi_assert(canvas);
     furi_assert(widget);
 
@@ -160,26 +121,16 @@ static void canvas_widget_destroy(CanvasSrv* canvas, CanvasWidget* widget) {
         free(widget->timeout_context);
     }
 
-    with_gui(canvas->gui, {
-        if(widget->type == CanvasElementTypeImage) {
-            image_free(widget->image);
-        } else if(widget->type == CanvasElementTypeAnimPlayer) {
-            anim_player_free(widget->anim_player);
-        } else if(widget->type == CanvasElementTypeText) {
-            label_free(widget->text);
-        } else if(widget->type == CanvasElementTypeCountdown) {
-            countdown_free(widget->countdown);
-        }
-    });
+    with_gui(canvas->gui, { canvas_widget_delete(widget); });
 }
 
-static void canvas_widget_destroy_all(CanvasSrv* canvas) {
+static void canvas_element_destroy_all(CanvasSrv* canvas) {
     CanvasWidgetsDict_it_t it;
     for(CanvasWidgetsDict_it(it, canvas->widgets); !CanvasWidgetsDict_end_p(it);
         CanvasWidgetsDict_next(it)) {
         CanvasWidgetsDict_itref_t* itref = CanvasWidgetsDict_ref(it);
         CanvasWidget* widget = &itref->value;
-        canvas_widget_destroy(canvas, widget);
+        canvas_element_destroy(canvas, widget);
     }
 }
 
@@ -203,7 +154,7 @@ static bool canvas_srv_check_elements_visible(CanvasElementsArray_t elements) {
 static void canvas_srv_clear_all(CanvasSrv* canvas) {
     furi_assert(canvas);
 
-    canvas_widget_destroy_all(canvas);
+    canvas_element_destroy_all(canvas);
     CanvasWidgetsDict_reset(canvas->widgets);
 
     canvas_check_back_screen_empty(canvas);
@@ -213,128 +164,11 @@ static void canvas_srv_clear_all(CanvasSrv* canvas) {
     }
 }
 
-static Widget* canvas_element_update_specific(
-    CanvasWidget* widget,
-    Widget* root,
-    const CanvasElement* element) {
-    furi_assert(widget);
-    furi_assert(root);
-    furi_assert(element);
-
-    if(widget->type == CanvasElementTypeImage) {
-        if(!widget->image) {
-            widget->image = image_alloc(root);
-        }
-        image_set_source_no_cache(widget->image, furi_string_get_cstr(element->image.file_path));
-        return image_get_base(widget->image);
-
-    } else if(widget->type == CanvasElementTypeAnimPlayer) {
-        if(!widget->anim_player) {
-            widget->anim_player = anim_player_alloc(root);
-        }
-        if(anim_player_set_source(
-               widget->anim_player, furi_string_get_cstr(element->anim_player.file_path))) {
-            anim_player_set_section(
-                widget->anim_player,
-                element->anim_player.flags,
-                furi_string_get_cstr(element->anim_player.section));
-        }
-        return anim_player_get_base(widget->anim_player);
-
-    } else if(widget->type == CanvasElementTypeText) {
-        if(!widget->text) {
-            widget->text = label_alloc(root);
-        }
-        label_set_text(widget->text, element->text.text_str);
-        label_set_font(widget->text, element->text.font_path);
-        label_set_text_color(widget->text, element->text.color);
-
-        Widget* base = label_get_base(widget->text);
-        if(element->text.width) {
-            widget_set_width(base, element->text.width);
-        } else {
-            widget_set_width_content(base);
-        }
-        if(element->text.scroll_rate_cpm) {
-            label_set_long_content_anim_speed(widget->text, element->text.scroll_rate_cpm);
-            label_set_long_content_anim_start_delay(
-                widget->text, element->text.scroll_start_delay);
-            label_set_long_content_anim_repeat_delay(
-                widget->text, element->text.scroll_repeat_delay);
-            label_set_long_content_mode(widget->text, LabelLongContentModeScrollCircular);
-        } else {
-            label_set_long_content_mode(widget->text, LabelLongContentModeClip);
-        }
-        return base;
-
-    } else if(widget->type == CanvasElementTypeCountdown) {
-        if(!widget->countdown) {
-            widget->countdown = countdown_alloc(root);
-        }
-        countdown_set_text_color(widget->countdown, element->countdown.color);
-        countdown_set_text_font(widget->countdown, FONT_BUSY_SUPERSCRIPT_7);
-        countdown_begin(
-            widget->countdown,
-            element->countdown.timestamp,
-            element->countdown.direction,
-            element->countdown.hours);
-        return countdown_get_base(widget->countdown);
-
-    } else {
-        furi_crash();
-    }
-}
-
-/**
- * LVGL applies `pos_x` and `pos_y` relative to the anchor point selected by
- * `Align`. We want alignment to behave like in Flipper Zero: the anchor point
- * is always relative to the top left of the screen, and the object is then
- * aligned relative to this anchor point.
- */
-static void canvas_element_reanchor(Widget* root, Align align, int32_t* x, int32_t* y) {
-    furi_assert(root);
-    furi_assert(x);
-    furi_assert(y);
-
-    int32_t disp_width = widget_get_max_width(root);
-    int32_t disp_height = widget_get_max_height(root);
-    AlignBitmask align_bm = widget_align_to_bitmask(align);
-
-    furi_assert(disp_width > 0);
-    furi_assert(disp_height > 0);
-
-    int32_t lvgl_anchor_x;
-    if(align_bm & AlignBitmaskLeft) lvgl_anchor_x = 0;
-    if(align_bm & AlignBitmaskHorCenter) lvgl_anchor_x = disp_width / 2;
-    if(align_bm & AlignBitmaskRight) lvgl_anchor_x = disp_width;
-
-    int32_t lvgl_anchor_y;
-    if(align_bm & AlignBitmaskTop) lvgl_anchor_y = 0;
-    if(align_bm & AlignBitmaskVerCenter) lvgl_anchor_y = disp_height / 2;
-    if(align_bm & AlignBitmaskBottom) lvgl_anchor_y = disp_height;
-
-    *x -= lvgl_anchor_x;
-    *y -= lvgl_anchor_y;
-}
-
-static void
-    canvas_element_update_generic(Widget* base, Widget* root, const CanvasElement* element) {
-    furi_assert(base);
-    furi_assert(element);
-
-    int32_t x = element->x;
-    int32_t y = element->y;
-    canvas_element_reanchor(root, element->align, &x, &y);
-
-    widget_set_align(base, element->align);
-    widget_set_pos(base, x, y);
-}
-
 static bool canvas_element_update(CanvasSrv* canvas, const CanvasElement* element) {
     CanvasWidget* widget_old = CanvasWidgetsDict_get(canvas->widgets, element->id);
     CanvasWidget widget = {0};
     if(widget_old) {
-        if(widget_old->type != element->type) {
+        if((widget_old->type != element->type) || (widget_old->display != element->display)) {
             return false;
         }
         memcpy(&widget, widget_old, sizeof(CanvasWidget));
@@ -352,7 +186,7 @@ static bool canvas_element_update(CanvasSrv* canvas, const CanvasElement* elemen
 
     if(effective_timeout == 0) {
         if(widget_old) {
-            canvas_widget_destroy(canvas, widget_old);
+            canvas_element_destroy(canvas, widget_old);
             CanvasWidgetsDict_erase(canvas->widgets, element->id);
             return true;
         }
@@ -362,8 +196,7 @@ static bool canvas_element_update(CanvasSrv* canvas, const CanvasElement* elemen
             widget.display = element->display;
             furi_assert(element->display < GuiDisplayIdMax);
             Widget* root = canvas->display[element->display];
-            Widget* base = canvas_element_update_specific(&widget, root, element);
-            canvas_element_update_generic(base, root, element);
+            canvas_widget_update(&widget, root, element);
         });
 
         if((effective_timeout > 0) || (widget.timeout_timer)) {
@@ -394,15 +227,19 @@ static bool canvas_element_update(CanvasSrv* canvas, const CanvasElement* elemen
     return true;
 }
 
-static bool canvas_update_all(CanvasSrv* canvas, CanvasElementsArray_t elements) {
-    bool success = true;
+static CanvasResult canvas_update_all(CanvasSrv* canvas, CanvasElementsArray_t elements) {
+    CanvasResult result = CanvasResultOk;
 
     CanvasElementsArray_it_t it;
     for(CanvasElementsArray_it(it, elements); !CanvasElementsArray_end_p(it);
         CanvasElementsArray_next(it)) {
         const CanvasElement* item = CanvasElementsArray_cref(it);
         if(!canvas_element_update(canvas, item)) {
-            success = false;
+            result = CanvasResultBadParameters;
+            break;
+        }
+        if(CanvasWidgetsDict_size(canvas->widgets) > CANVAS_MAX_ELEMENTS) {
+            result = CanvasResultTooManyElements;
             break;
         }
     }
@@ -410,7 +247,7 @@ static bool canvas_update_all(CanvasSrv* canvas, CanvasElementsArray_t elements)
     if(CanvasWidgetsDict_empty_p(canvas->widgets)) {
         canvas_screen_close(canvas);
     }
-    return success;
+    return result;
 }
 
 static bool canvas_draw_rejected(CanvasSrv* canvas, const char* app_id, size_t priority) {
@@ -434,7 +271,7 @@ static CanvasResult canvas_srv_do_draw(
     }
     if(canvas->app_id) {
         if(strcmp(app_id, canvas->app_id) != 0) {
-            canvas_widget_destroy_all(canvas);
+            canvas_element_destroy_all(canvas);
             CanvasWidgetsDict_reset(canvas->widgets);
             free(canvas->app_id);
             canvas->app_id = strdup(app_id);
@@ -443,7 +280,7 @@ static CanvasResult canvas_srv_do_draw(
         canvas->app_id = strdup(app_id);
     }
     canvas->priority = priority;
-    return canvas_update_all(canvas, elements) ? CanvasResultOk : CanvasResultBadParameters;
+    return canvas_update_all(canvas, elements);
 }
 
 static void canvas_deferred_drop(CanvasSrv* canvas) {
