@@ -15,10 +15,8 @@ void cli_command_update_debug_mode(void) {
     // Check if debug is enabled
     if(furi_hal_nvm_is_flag_set(FuriHalNvmFlagDebug)) {
         // Re-register debug commands
-        cli_registry_add_command(
-            registry, "gpio", CliCommandFlagParallelSafe, cli_command_gpio, NULL);
-        cli_registry_add_command(
-            registry, "otp", CliCommandFlagParallelSafe, cli_command_otp, NULL);
+        cli_registry_add_command(registry, "gpio", CliCommandFlagDefault, cli_command_gpio, NULL);
+        cli_registry_add_command(registry, "otp", CliCommandFlagDefault, cli_command_otp, NULL);
     } else {
         // Remove debug commands
         cli_registry_delete_command(registry, "gpio");

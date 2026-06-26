@@ -12,7 +12,7 @@ extern "C" {
 
 typedef enum {
     CliCommandFlagDefault = 0, /**< Default */
-    CliCommandFlagParallelSafe = (1 << 0), /**< Safe to run in parallel with other apps */
+    CliCommandFlagParallelUnsafe = (1 << 0), /**< Unsafe to run in parallel with other apps */
     CliCommandFlagInsomniaSafe = (1 << 1), /**< Safe to run with insomnia mode on */
     CliCommandFlagDontAttachStdio = (1 << 2), /**< Do no attach I/O pipe to thread stdio */
     CliCommandFlagUseShellThread =
