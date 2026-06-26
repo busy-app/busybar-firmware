@@ -29,9 +29,6 @@
 
 #define DHCP_INIT_ATTEMPTS (10)
 
-#define MDNS_TXT_DATA "path=/"
-#define MDNS_HOSTNAME "busybar"
-
 #define TAG "UsbNet"
 
 static UsbNetwork* usb_network = NULL;
@@ -77,15 +74,6 @@ static err_t usb_network_netif_init_callback(struct netif* netif) {
     return ERR_OK;
 }
 
-static void usb_network_mdns_txt_callback(struct mdns_service* service, void* txt_userdata) {
-    UNUSED(txt_userdata);
-    const err_t res = mdns_resp_add_service_txtitem(service, MDNS_TXT_DATA, strlen(MDNS_TXT_DATA));
-
-    if(res != ERR_OK) {
-        FURI_LOG_E(TAG, "mdns add service txt failed");
-    }
-}
-
 static void usb_network_dhcp_init(UsbNetwork* instance) {
     DhcpServerConfig* dhcp_config = &instance->dhcp_config;
 
@@ -116,20 +104,6 @@ static void usb_network_dhcp_stop(UsbNetwork* instance) {
     dhserv_deinit();
 }
 
-static void usb_network_mdns_init(UsbNetwork* instance) {
-    struct netif* netif = &instance->netif;
-
-    mdns_resp_init();
-    // TODO: use device name as the hostname ?
-    mdns_resp_add_netif(netif, MDNS_HOSTNAME);
-    mdns_resp_add_service(
-        netif, "httpd", "_http", DNSSD_PROTO_TCP, 80, usb_network_mdns_txt_callback, NULL);
-}
-
-static void usb_network_mdns_start(UsbNetwork* instance) {
-    mdns_resp_announce(&instance->netif);
-}
-
 static void usb_network_netif_set_hw_address(struct netif* netif) {
     memcpy(netif->hwaddr, furi_hal_version_get_usb_mac(), ETH_HWADDR_LEN);
     netif->hwaddr[5] ^= 0x01;
@@ -154,7 +128,6 @@ static void usb_network_init_netif(UsbNetwork* instance) {
 #endif
 
     usb_network_dhcp_init(instance);
-    usb_network_mdns_init(instance);
 
 #ifdef USB_NET_IPERF
     lwiperf_start_tcp_server_default(NULL, NULL);
@@ -172,8 +145,11 @@ void usb_network_up(void) {
     netif_set_link_up(netif);
 
     usb_network_dhcp_start(usb_network);
-    usb_network_mdns_start(usb_network);
     UNLOCK_TCPIP_CORE();
+
+    with_furi_state(usb_network->state, UsbNetworkInfo * info, {
+        info->state = UsbNetworkStateUp;
+    });
 }
 
 void usb_network_down(void) {
@@ -186,6 +162,10 @@ void usb_network_down(void) {
     netif_set_link_down(netif);
     netif_set_down(netif);
     UNLOCK_TCPIP_CORE();
+
+    with_furi_state(usb_network->state, UsbNetworkInfo * info, {
+        info->state = UsbNetworkStateDown;
+    });
 }
 
 bool usb_network_rx(const uint8_t* data, uint16_t data_size) {
@@ -258,8 +238,15 @@ bool usb_network_is_dhcp_addr(UsbNetwork* instance, const uint8_t* addr) {
     return result;
 }
 
+FuriState* usb_network_get_state(UsbNetwork* usb_network) {
+    furi_check(usb_network);
+    return usb_network->state;
+}
+
 static UsbNetwork* usb_network_alloc(void) {
     UsbNetwork* instance = malloc(sizeof(UsbNetwork));
+
+    instance->state = furi_state_alloc(sizeof(UsbNetworkInfo));
 
     usb_network_settings_load(&instance->settings);
     usb_network_init_netif(instance);

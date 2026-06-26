@@ -59,6 +59,7 @@ App(
         "busy_timer",
         "sl_info",
         "state_publisher",
+        "discovery",
     ],
     targets=["f20", "f21", "f22"],
 )
