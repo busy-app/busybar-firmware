@@ -16,12 +16,10 @@
 // =====
 
 typedef struct {
-    Discovery* discovery;
     struct netif* netif;
 } DiscoveryInterface;
 
 typedef struct {
-    Discovery* discovery;
     DiscoveryInfo info;
     void* context;
 } DiscoveryService;
@@ -96,6 +94,13 @@ static const char* discovery_device_name_to_hostname(const char* dev_name, FuriS
         }
     }
 
+    if(furi_string_empty(buffer)) {
+        if(strcmp(dev_name, DEVICE_NAME_DEFAULT) == 0) {
+            furi_crash("Default device name has no alphanumeric characters");
+        }
+        return discovery_device_name_to_hostname(DEVICE_NAME_DEFAULT, buffer);
+    }
+
     return furi_string_get_cstr(buffer);
 }
 
@@ -110,7 +115,6 @@ static void discovery_txt_adapter(struct mdns_service* lwip_srv, void* context) 
 
     DiscoveryService* service = context;
     DiscoveryRequest request = {
-        .discovery = service->discovery,
         .service = lwip_srv,
     };
 
@@ -209,7 +213,6 @@ static void discovery_netif_up(Discovery* discovery, NetworkNetif netif_id) {
     DiscoveryInterface* interface = &discovery->interfaces[netif_id];
 
     if(!interface->netif) {
-        interface->discovery = discovery;
         interface->netif = netif;
 
         FuriString* hostname_furi = furi_string_alloc();
@@ -328,7 +331,6 @@ void discovery_service_add(Discovery* discovery, const DiscoveryInfo* info, void
     discovery_lock(discovery);
 
     DiscoveryService* service = DiscoveryServices_push_new(discovery->services);
-    service->discovery = discovery;
     service->info = *info;
     service->context = context;
 
