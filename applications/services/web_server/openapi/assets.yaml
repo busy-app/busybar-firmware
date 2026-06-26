@@ -239,6 +239,7 @@ schemas:
             - $ref: "#/components/schemas/ImageElement"
             - $ref: "#/components/schemas/AnimationElement"
             - $ref: "#/components/schemas/CountdownElement"
+            - $ref: "#/components/schemas/RectangleElement"
         description: Array of elements to display
     required:
       - application_name
@@ -297,7 +298,7 @@ schemas:
         description: The element will be hidden when system time reaches the specified Unix timestamp (in seconds). Mutually exclusive with timeout.
       type:
         type: string
-        enum: [text, image, animation, countdown]
+        enum: [text, image, animation, countdown, rectangle]
         description: Type of display element
       x:
         type: integer
@@ -336,7 +337,7 @@ schemas:
         image: "#/components/schemas/ImageElement"
         animation: "#/components/schemas/AnimationElement"
         countdown: "#/components/schemas/CountdownElement"
-
+        rectangle: "#/components/schemas/RectangleElement"
   TextElement:
     allOf:
       - $ref: "#/components/schemas/DisplayElement"
@@ -388,21 +389,29 @@ schemas:
     allOf:
       - $ref: "#/components/schemas/DisplayElement"
       - type: object
-        oneOf:
-          - required:
-              - path
-            properties:
-              path:
-                type: string
-                pattern: "^[a-zA-Z0-9._/-]+$"
-                description: Path to the image file in the app's assets
-          - required:
-              - stock_path
-            properties:
-              stock_path:
-                type: string
-                pattern: "shared/[a-z0-9_.]+$"
-                description: Stock image file name
+        allOf:
+          - oneOf:
+            - required:
+                - path
+              properties:
+                path:
+                  type: string
+                  pattern: "^[a-zA-Z0-9._/-]+$"
+                  description: Path to the image file in the app's assets
+            - required:
+                - stock_path
+              properties:
+                stock_path:
+                  type: string
+                  pattern: "shared/[a-z0-9_.]+$"
+                  description: Stock image file name
+          - properties:
+              opacity:
+                type: integer
+                minimum: 0
+                maximum: 100
+                description: Opacity of the image in percentage (0-100)
+                default: 100
 
   AnimationElement:
     allOf:
@@ -432,6 +441,12 @@ schemas:
               section:
                 type: string
                 description: Name of the section to play back. Specifying "default" selects the entire animation.
+              opacity:
+                type: integer
+                minimum: 0
+                maximum: 100
+                description: Opacity of the animated image in percentage (0-100)
+                default: 100
 
   CountdownElement:
     allOf:
@@ -460,6 +475,51 @@ schemas:
             enum: [when_non_zero, always]
             description: When to show the hours position
   
+  RectangleElement:
+    allOf:
+      - $ref: "#/components/schemas/DisplayElement"
+      - type: object
+        required:
+          - width
+          - height
+        properties:
+          width:
+            type: integer
+            minimum: 1
+            description: Width of the rectangle in pixels
+          height:
+            type: integer
+            minimum: 1
+            description: Height of the rectangle in pixels
+          radius:
+            type: integer
+            minimum: 0
+            description: Corner radius of the rectangle in pixels (0 for sharp corners)
+          fill:
+            type: string
+            enum: [none, solid, gradient_h, gradient_v]
+            description: Fill style of the rectangle
+            default: none
+          fill_colors:
+            type: array
+            minItems: 1
+            maxItems: 2
+            items:
+              type: string
+              pattern: "^#[a-fA-F0-9]{8}$"
+            description: Colors used for filling the rectangle. For solid fill, provide one color. For gradient fill, provide two colors.
+            default: ["#FFFFFFFF", "#00000000"]
+          border_width:
+            type: integer
+            minimum: 0
+            description: Width of the rectangle border in pixels (0 for no border)
+            default: 1
+          border_color:
+            type: string
+            pattern: "^#[a-fA-F0-9]{8}$"
+            description: "Color of the rectangle border in #RRGGBBAA format"
+            default: "#FFFFFFFF"
+
   PlayAudio:
     type: object
     allOf:

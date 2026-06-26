@@ -57,6 +57,14 @@ bool image_set_source(Image* instance, const char* file_path);
  */
 bool image_set_source_no_cache(Image* instance, const char* file_path);
 
+/**
+ * @brief Set the opacity of an Image instance.
+ *
+ * @param[in,out] instance pointer to the Image instance to be modified
+ * @param[in] opacity new opacity value (0-255)
+ */
+void image_set_opacity(Image* instance, uint8_t opacity);
+
 #ifdef __cplusplus
 }
 #endif
