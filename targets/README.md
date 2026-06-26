@@ -29,4 +29,4 @@
 | Target | Pairs with | Note |
 | ------ | ---------- | ---- |
 | `f64`  | `f20`, `f21` | |
-| `f65`  | `f22` | No changes compared to `f64`. |
+| `f65`  | `f22` | DFU enter button is `OK` (was `Start`). |
