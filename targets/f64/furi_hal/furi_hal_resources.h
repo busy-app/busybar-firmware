@@ -91,6 +91,10 @@ extern const GpioPin gpio_sw_ok;
 extern const InputPin input_pins[];
 extern const size_t input_pins_count;
 
+/* DFU enter button */
+extern const InputButton dfu_boot_button;
+extern const InputButtonMask dfu_boot_button_mask;
+
 void furi_hal_resources_init_early(void);
 
 void furi_hal_resources_deinit_early(void);

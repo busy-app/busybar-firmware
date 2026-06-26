@@ -12,10 +12,10 @@
 #define DFU_WARN_TIMEOUT_MS 3000
 
 typedef enum {
-    StartupDfuHookFlagStartRelease = 1 << 0,
+    StartupDfuHookFlagButtonRelease = 1 << 0,
     StartupDfuHookFlagIntercomSync = 1 << 1,
 
-    StartupDfuHookFlagAny = StartupDfuHookFlagStartRelease | StartupDfuHookFlagIntercomSync
+    StartupDfuHookFlagAny = StartupDfuHookFlagButtonRelease | StartupDfuHookFlagIntercomSync
 } StartupDfuHookFlag;
 
 typedef enum {
@@ -44,9 +44,9 @@ static void startup_dfu_hook_input_events_callback(const void* message, void* co
     FuriThreadId thread_id = context;
 
     if(event->device == InputDeviceButton) {
-        if(event->button_event.button == InputButtonStart &&
+        if(event->button_event.button == dfu_boot_button &&
            event->button_event.action == InputActionRelease) {
-            furi_thread_flags_set(thread_id, StartupDfuHookFlagStartRelease);
+            furi_thread_flags_set(thread_id, StartupDfuHookFlagButtonRelease);
         }
     }
 }
@@ -139,7 +139,7 @@ static void startup_dfu_hook_teardown(StartupDfuHook* instance) {
 static bool startup_dfu_hook_should_run(const StartupDfuHook* instance) {
     // TODO [FW-503]: use furi_state
     const InputAbsoluteState input_state = input_get_absolute_state(instance->input);
-    return (input_state.buttons & InputButtonMaskStart);
+    return (input_state.buttons & dfu_boot_button_mask);
 }
 
 void startup_dfu_hook_on_system_start(void) {
