@@ -23,7 +23,7 @@ static bool busy_timer_app_show_timer(BusyApp* busy_app, const BusyAppConfig* ap
     return success;
 }
 
-static void busy_timer_app_lauch(Desktop* desktop) {
+static void busy_timer_app_launch(Desktop* desktop) {
     while(!desktop_replace_current_app(desktop, "busy", BUSY_APP_TIMER_MODE)) {
         furi_delay_tick(2);
     }
@@ -39,7 +39,7 @@ void busy_timer_start_app(const BusyAppConfig* app_config) {
         BusyApp* busy_app = furi_record_open_ex(RECORD_BUSY_APP, BUSY_APP_WAIT_TIME_TICKS);
 
         if(busy_app == NULL) {
-            busy_timer_app_lauch(desktop);
+            busy_timer_app_launch(desktop);
             continue;
         }
 
