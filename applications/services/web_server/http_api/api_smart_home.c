@@ -178,9 +178,13 @@ static void api_smart_home_switch_set(struct mg_connection* conn, struct mg_http
                 [MatterSwitchStartupModeToggle] = "toggle",
                 [MatterSwitchStartupModeLast] = "last",
             };
-            MatterSwitchStartupMode startup = value_index_string(
+            size_t startup_idx = value_index_string(
                 switch_startup, switch_startup_modes, COUNT_OF(switch_startup_modes));
-            furi_assert(startup < MatterSwitchStartupModeMAX);
+            if(startup_idx >= MatterSwitchStartupModeMAX) {
+                matter_request_error = true;
+                break;
+            }
+            MatterSwitchStartupMode startup = startup_idx;
 
             if(matter_set_switch_startup_mode(matter, startup) != MatterStatusOk) {
                 matter_request_error = true;

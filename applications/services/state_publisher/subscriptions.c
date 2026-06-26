@@ -23,7 +23,6 @@ static void device_name_pubsub_callback(const void* message, void* context);
 static void matter_pubsub_callback(const void* message, void* context);
 static void input_event_pubsub_callback(const void* message, void* context);
 static void busy_timer_pubsub_callback(const void* message, void* context);
-static void busy_timer_profiles_pubsub_callback(const void* message, void* context);
 static void ble_pubsub_callback(const void* message, void* context);
 
 void state_publisher_subscribe(StatePublisher* instance) {
@@ -80,9 +79,6 @@ void state_publisher_subscribe(StatePublisher* instance) {
         instance->busy_timer = furi_record_open(RECORD_BUSY_TIMER);
         FuriPubSub* pubsub = busy_timer_get_pubsub(instance->busy_timer);
         furi_pubsub_subscribe(pubsub, busy_timer_pubsub_callback, instance);
-
-        pubsub = busy_timer_get_profiles_pubsub(instance->busy_timer);
-        furi_pubsub_subscribe(pubsub, busy_timer_profiles_pubsub_callback, instance);
     }
     {
         instance->ble = furi_record_open(RECORD_BLE);
@@ -498,17 +494,19 @@ static void input_event_pubsub_callback(const void* message, void* context) {
 }
 
 static void busy_timer_pubsub_callback(const void* message, void* context) {
-    UNUSED(message);
+    const BusyTimerEvent* event = message;
     StatePublisher* instance = context;
 
-    furi_event_flag_set(instance->fetch_flags, FetchFlagBusyTimer);
-}
-
-static void busy_timer_profiles_pubsub_callback(const void* message, void* context) {
-    UNUSED(message);
-    StatePublisher* instance = context;
-
-    furi_event_flag_set(instance->fetch_flags, FetchFlagBusyTimerProfiles);
+    switch(event->type) {
+    case BusyTimerEventTypeSnapshotCreated:
+        furi_event_flag_set(instance->fetch_flags, FetchFlagBusyTimer);
+        break;
+    case BusyTimerEventTypeProfileChanged:
+        furi_event_flag_set(instance->fetch_flags, FetchFlagBusyTimerProfiles);
+        break;
+    default:
+        break;
+    }
 }
 
 static void ble_pubsub_callback(const void* message, void* context) {

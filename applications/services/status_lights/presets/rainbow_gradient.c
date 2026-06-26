@@ -32,8 +32,10 @@ void rainbow_gradient_run(RainbowGradient* instance, Color* color) {
 }
 
 const StatusLightsPresetBase status_lights_preset_rainbow_gradient = {
-    .period_ms = 16,
     .alloc = (StatusLightsPresetAlloc)rainbow_gradient_alloc,
     .free = (StatusLightsPresetFree)rainbow_gradient_free,
     .run = (StatusLightsPresetRun)rainbow_gradient_run,
+    .period_ms = 16,
+    .repeat_count = REPEAT_INFINITE,
+    .override_brightness = false,
 };
