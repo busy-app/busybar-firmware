@@ -23,6 +23,7 @@ App(
         "status_bar",
         "brightness_control",
         "device_info",
+        "log_storage",
     ],
     targets=["f20", "f21", "f22"],
 )
