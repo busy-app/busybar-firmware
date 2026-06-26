@@ -6,6 +6,7 @@ extern const StatusLightsPresetBase status_lights_preset_static_color;
 extern const StatusLightsPresetBase status_lights_preset_rainbow_gradient;
 extern const StatusLightsPresetBase status_lights_preset_fade;
 extern const StatusLightsPresetBase status_lights_preset_blink;
+extern const StatusLightsPresetBase status_lights_preset_notification;
 
 const StatusLightsPresetBase* const status_lights_preset_list[StatusLightsPresetsCount] = {
     [StatusLightsPresetOff] = NULL,
@@ -13,4 +14,5 @@ const StatusLightsPresetBase* const status_lights_preset_list[StatusLightsPreset
     [StatusLightsPresetRainbowGradient] = &status_lights_preset_rainbow_gradient,
     [StatusLightsPresetFade] = &status_lights_preset_fade,
     [StatusLightsPresetBlink] = &status_lights_preset_blink,
+    [StatusLightsPresetNotification] = &status_lights_preset_notification,
 };

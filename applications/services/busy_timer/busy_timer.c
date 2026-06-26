@@ -177,7 +177,6 @@ static void
     };
 
     furi_pubsub_publish(instance->event_pubsub, &event);
-    furi_pubsub_publish(instance->profiles_pubsub, &event);
 }
 
 static void busy_timer_notify_snapshot_created(const BusyTimer* instance) {
@@ -186,7 +185,7 @@ static void busy_timer_notify_snapshot_created(const BusyTimer* instance) {
     FURI_LOG_D(TAG, "Snapshot created with timestamp: %llu", snapshot->timestamp_ms);
 
     BusyTimerEvent event = {
-        .type = BusyTimerEventTypeProfileChanged,
+        .type = BusyTimerEventTypeSnapshotCreated,
         .snapshot_created =
             {
                 .snapshot = *snapshot,
@@ -540,17 +539,17 @@ static void
     furi_event_loop_timer_start(instance->profile_timer, DEBOUNCE_TIMER_DELAY_MS);
 }
 
+static void busy_timer_capture_and_publish_snapshot(BusyTimer* instance) {
+    busy_timer_capture_snapshot(instance);
+    busy_timer_schedule_publish_last_known_snapshot(instance);
+}
+
 static void busy_timer_apply_snapshot(BusyTimer* instance, const BusyTimerSnapshot* snapshot) {
     const time_t snapshot_timestamp_ms = snapshot->timestamp_ms;
 
     if(snapshot_timestamp_ms <= instance->last_known_snapshot.timestamp_ms) {
         // Ignore snapshots that are older than the last known one
         FURI_LOG_D(TAG, "Ignoring stale/own snapshot with timestamp %llu", snapshot_timestamp_ms);
-        return;
-    }
-
-    if(!busy_timer_snapshot_is_valid(snapshot)) {
-        FURI_LOG_W(TAG, "Ignoring invalid snapshot with timestamp %llu", snapshot_timestamp_ms);
         return;
     }
 
@@ -789,8 +788,7 @@ void busy_timer_start_internal(BusyTimer* instance) {
         FURI_LOG_I(TAG, "Resumed");
     }
 
-    busy_timer_capture_snapshot(instance);
-    busy_timer_schedule_publish_last_known_snapshot(instance);
+    busy_timer_capture_and_publish_snapshot(instance);
 }
 
 void busy_timer_stop_internal(BusyTimer* instance) {
@@ -801,8 +799,7 @@ void busy_timer_stop_internal(BusyTimer* instance) {
 
         FURI_LOG_I(TAG, "Stopped");
 
-        busy_timer_capture_snapshot(instance);
-        busy_timer_schedule_publish_last_known_snapshot(instance);
+        busy_timer_capture_and_publish_snapshot(instance);
     }
 }
 
@@ -818,16 +815,14 @@ void busy_timer_toggle_internal(BusyTimer* instance) {
 
     busy_timer_notify_paused(instance);
 
-    busy_timer_capture_snapshot(instance);
-    busy_timer_schedule_publish_last_known_snapshot(instance);
+    busy_timer_capture_and_publish_snapshot(instance);
 }
 
 void busy_timer_skip_internal(BusyTimer* instance) {
     if(busy_timer_is_running(instance)) {
         busy_timer_next_state(instance, true);
 
-        busy_timer_capture_snapshot(instance);
-        busy_timer_schedule_publish_last_known_snapshot(instance);
+        busy_timer_capture_and_publish_snapshot(instance);
 
         FURI_LOG_I(TAG, "Skipped");
     }
@@ -842,11 +837,6 @@ const char** busy_timer_get_mode_names(void) {
 FuriPubSub* busy_timer_get_pubsub(const BusyTimer* instance) {
     furi_check(instance);
     return instance->event_pubsub;
-}
-
-FuriPubSub* busy_timer_get_profiles_pubsub(const BusyTimer* instance) {
-    furi_check(instance);
-    return instance->profiles_pubsub;
 }
 
 // Message handlers
@@ -880,6 +870,7 @@ static void
         if(add_time_minutes > 0) {
             // Special case: start a Simple timer
             busy_timer_infinite_to_simple(instance);
+            busy_timer_capture_and_publish_snapshot(instance);
         }
         return;
     }
@@ -920,8 +911,7 @@ static void
     busy_timer_start_timer(instance);
     busy_timer_notify_tick(instance);
 
-    busy_timer_capture_snapshot(instance);
-    busy_timer_schedule_publish_last_known_snapshot(instance);
+    busy_timer_capture_and_publish_snapshot(instance);
 
     FURI_LOG_I(TAG, "Interval override");
 }
@@ -943,8 +933,7 @@ static void
     UNUSED(data);
 
     if(instance->state == BusyTimerStateIdle) {
-        busy_timer_capture_snapshot(instance);
-        busy_timer_schedule_publish_last_known_snapshot(instance);
+        busy_timer_capture_and_publish_snapshot(instance);
 
         FURI_LOG_I(TAG, "Finalized");
     }
@@ -1082,7 +1071,6 @@ static BusyTimer* busy_timer_alloc(void) {
         instance);
     instance->api_queue = furi_message_queue_alloc(API_QUEUE_SIZE, sizeof(BusyTimerApiMessage));
     instance->event_pubsub = furi_pubsub_alloc();
-    instance->profiles_pubsub = furi_pubsub_alloc();
     instance->mqtt = furi_record_open(RECORD_MQTT);
 
     furi_event_loop_subscribe_message_queue(

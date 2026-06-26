@@ -55,7 +55,7 @@ struct SlUpdater {
     Si917BootloaderMode bootloader_mode;
     Storage* storage;
     File* firmware_file;
-    kermit_t* kermit;
+    Kermit* kermit;
     SlUpdaterProgressCallback progress_callback;
     void* progress_callback_context;
 };
@@ -116,7 +116,7 @@ static int32_t kermit_comms_send(void* context, const uint8_t* buffer, size_t le
     return length;
 }
 
-static const kermit_io_t kermit_io = {
+static const KermitIo kermit_io = {
     .src_file_read = kermit_src_file_read,
     .comms_send = kermit_comms_send,
 };
