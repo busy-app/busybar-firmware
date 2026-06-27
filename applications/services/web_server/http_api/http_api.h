@@ -1,7 +1,7 @@
 #pragma once
 #include "../web_server_i.h"
 
-#define API_VERSION {24, 1, 0}
+#define API_VERSION {24, 2, 0}
 
 // Access logging (also used by web_server.c for static-file requests)
 int http_api_extract_status(const struct mg_connection* conn);
@@ -159,6 +159,14 @@ bool http_api_time_callback(
 
 // Name
 bool http_api_name_callback(
+    FuriString* path,
+    HttpMethod method,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx);
+
+// Log Dump
+bool http_api_log_dump_callback(
     FuriString* path,
     HttpMethod method,
     struct mg_connection* conn,
