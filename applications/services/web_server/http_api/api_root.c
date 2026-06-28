@@ -475,6 +475,12 @@ static const HttpHandler handlers_api_root[] = {
         .on_request = http_api_name_callback,
     },
     {
+        .uri = "log_dump",
+        .method = HttpMethodPost,
+        .type = HttpHandlerCustom,
+        .on_request = http_api_log_dump_callback,
+    },
+    {
         .uri = "account",
         .method = HttpMethodAny,
         .type = HttpHandlerCustom,

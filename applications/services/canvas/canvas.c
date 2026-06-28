@@ -10,7 +10,7 @@
 #include <back_display/back_display.h>
 #include <front_display/front_display.h>
 #include <light_sensor/light_sensor.h>
-#include <soft_off/soft_off.h>
+#include <low_power/low_power.h>
 
 #define CANVAS_DEFERRED_TIMEOUT_MS 1500U
 
@@ -62,6 +62,7 @@ struct CanvasSrv {
         void* callback_ctx;
     } deferred;
     FuriEventLoopTimer* deferred_timer;
+    LowPower* low_power;
 };
 
 static void canvas_check_back_screen_empty(CanvasSrv* canvas) {
@@ -420,22 +421,6 @@ static bool canvas_srv_input_callback(const InputEvent* event, void* context) {
     return true;
 }
 
-static void canvas_override_power_off(bool state) {
-#ifdef APP_POWEROFF
-    if(furi_record_exists(RECORD_POWEROFF)) {
-        BackDisplaySrv* back_display = furi_record_open(RECORD_BACK_DISPLAY);
-        FrontDisplaySrv* front_display = furi_record_open(RECORD_FRONT_DISPLAY);
-        back_display_sleep_mode(back_display, !state);
-        front_display_sleep_mode(front_display, !state);
-        light_sensor_sleep(!state);
-        furi_record_close(RECORD_BACK_DISPLAY);
-        furi_record_close(RECORD_FRONT_DISPLAY);
-    }
-#else
-    UNUSED(state);
-#endif
-}
-
 static void canvas_screen_open(CanvasSrv* canvas) {
     canvas->gui = furi_record_open(RECORD_GUI);
     with_gui(canvas->gui, {
@@ -480,7 +465,7 @@ static void canvas_screen_open(CanvasSrv* canvas) {
         widget_set_visible(mirror_base, false);
     });
 
-    canvas_override_power_off(true);
+    low_power_lock(canvas->low_power);
 }
 
 static void canvas_screen_close(CanvasSrv* canvas) {
@@ -501,7 +486,7 @@ static void canvas_screen_close(CanvasSrv* canvas) {
     furi_record_close(RECORD_GUI);
     canvas->gui = NULL;
     canvas->priority = 0;
-    canvas_override_power_off(false);
+    low_power_unlock(canvas->low_power);
 }
 
 static void canvas_loader_pubsub_callback(const void* message, void* context) {
@@ -533,6 +518,8 @@ static CanvasSrv* canvas_srv_alloc() {
 
     canvas->loader = furi_record_open(RECORD_LOADER);
     canvas->priority = 0;
+
+    canvas->low_power = furi_record_open(RECORD_LOW_POWER);
 
     canvas->loader_subscription = furi_pubsub_subscribe(
         loader_get_pubsub(canvas->loader), canvas_loader_pubsub_callback, canvas);

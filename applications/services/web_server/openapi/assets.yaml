@@ -230,6 +230,13 @@ schemas:
           work session = 90. The draw API only accepts values 1–100; 0 is
           reserved for internal use.
         default: 50
+      led_notification_color:
+        type: string
+        pattern: "^#[a-fA-F0-9]{8}$"
+        description: >-
+          Color to blink the status LED, in #RRGGBBAA format. 
+          If not specified, the LED will not blink.
+        example: "#FF0000FF"
       elements:
         type: array
         minItems: 1
@@ -246,6 +253,7 @@ schemas:
       - elements
     example:
       application_name: "my_app"
+      led_notification_color: "#FF0000FF"
       elements:
         - id: "0"
           timeout: 10

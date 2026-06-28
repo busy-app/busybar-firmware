@@ -177,7 +177,6 @@ static void
     };
 
     furi_pubsub_publish(instance->event_pubsub, &event);
-    furi_pubsub_publish(instance->profiles_pubsub, &event);
 }
 
 static void busy_timer_notify_snapshot_created(const BusyTimer* instance) {
@@ -186,7 +185,7 @@ static void busy_timer_notify_snapshot_created(const BusyTimer* instance) {
     FURI_LOG_D(TAG, "Snapshot created with timestamp: %llu", snapshot->timestamp_ms);
 
     BusyTimerEvent event = {
-        .type = BusyTimerEventTypeProfileChanged,
+        .type = BusyTimerEventTypeSnapshotCreated,
         .snapshot_created =
             {
                 .snapshot = *snapshot,
@@ -554,11 +553,6 @@ static void busy_timer_apply_snapshot(BusyTimer* instance, const BusyTimerSnapsh
         return;
     }
 
-    if(!busy_timer_snapshot_is_valid(snapshot)) {
-        FURI_LOG_W(TAG, "Ignoring invalid snapshot with timestamp %llu", snapshot_timestamp_ms);
-        return;
-    }
-
     busy_timer_stop_timer(instance);
 
     BusyTimerMode new_mode;
@@ -845,11 +839,6 @@ FuriPubSub* busy_timer_get_pubsub(const BusyTimer* instance) {
     return instance->event_pubsub;
 }
 
-FuriPubSub* busy_timer_get_profiles_pubsub(const BusyTimer* instance) {
-    furi_check(instance);
-    return instance->profiles_pubsub;
-}
-
 // Message handlers
 
 static void
@@ -1082,7 +1071,6 @@ static BusyTimer* busy_timer_alloc(void) {
         instance);
     instance->api_queue = furi_message_queue_alloc(API_QUEUE_SIZE, sizeof(BusyTimerApiMessage));
     instance->event_pubsub = furi_pubsub_alloc();
-    instance->profiles_pubsub = furi_pubsub_alloc();
     instance->mqtt = furi_record_open(RECORD_MQTT);
 
     furi_event_loop_subscribe_message_queue(

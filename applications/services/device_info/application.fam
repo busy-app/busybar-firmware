@@ -5,4 +5,15 @@ App(
     stack_size=1024,
     order=10,
     targets=["f20", "f21", "f22", "f64", "f65"],
+    provides=["cli_device_info"],
+    sources=["device_info.c"],
+)
+
+App(
+    appid="cli_device_info",
+    name="device_info",
+    targets=["f20", "f21", "f22", "f64", "f65"],
+    apptype=FlipperAppType.CLICMD,
+    entry_point="cli_command_device_info",
+    sources=["cli/cli_command_device_info.c"],
 )
