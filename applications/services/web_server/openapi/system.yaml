@@ -150,6 +150,31 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /api/log_dump:
+    post:
+      tags:
+        - System
+      summary: Dump captured log
+      description: Snapshot the in-memory log buffer to a file (defaults to /ext/dump.log)
+      operationId: dumpLog
+      parameters:
+        - name: path
+          in: query
+          required: false
+          description: Destination file path (defaults to /ext/dump.log)
+          schema:
+            type: string
+          example: "/ext/dump.log"
+      responses:
+        "200":
+          description: Log dumped successfully
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
 schemas:
   VersionInfo:
     type: object

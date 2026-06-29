@@ -24,7 +24,7 @@ const sl_wifi_device_configuration_t wifi_config_client = {
             .oper_mode = SL_SI91X_CLIENT_MODE,
             .coex_mode = SL_SI91X_WLAN_BLE_MODE,
             .feature_bit_map =
-                (SL_SI91X_FEAT_SECURITY_OPEN | SL_SI91X_FEAT_SECURITY_PSK | BIT(21) |
+                (SL_SI91X_FEAT_SECURITY_OPEN | SL_SI91X_FEAT_SECURITY_PSK | BIT(21) | BIT(22) |
                  SL_SI91X_FEAT_AGGREGATION | SL_SI91X_FEAT_ULP_GPIO_BASED_HANDSHAKE |
                  SL_SI91X_FEAT_DEV_TO_HOST_ULP_GPIO_1),
             .tcp_ip_feature_bit_map =

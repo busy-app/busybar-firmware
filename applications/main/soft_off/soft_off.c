@@ -1,15 +1,11 @@
 #include "soft_off/storage_macros.h"
-#include "soft_off.h"
 #include <furi.h>
 
 #include <loader/loader.h>
 
 #include <gui/gui.h>
 #include <gui/modules/anim_player.h>
-
-#include <back_display/back_display.h>
-#include <front_display/front_display.h>
-#include <light_sensor/light_sensor.h>
+#include <low_power/low_power.h>
 
 typedef enum {
     SoftOffThreadFlagExit = 1 << 0,
@@ -47,18 +43,11 @@ static void soft_off_animation_finished_callback(
 
 int32_t soft_off_app(void* arg) {
     UNUSED(arg);
-
-    furi_record_create(RECORD_POWEROFF, NULL);
-
     Loader* loader = furi_record_open(RECORD_LOADER);
     loader_set_priority(loader, 0);
 
     Gui* gui = furi_record_open(RECORD_GUI);
-    BackDisplaySrv* back_display = furi_record_open(RECORD_BACK_DISPLAY);
-    FrontDisplaySrv* front_display = furi_record_open(RECORD_FRONT_DISPLAY);
-
-    back_display_sleep_mode(back_display, true);
-    // Turn off front display only after animation finish
+    LowPower* low_power = furi_record_open(RECORD_LOW_POWER);
 
     FuriThread* thread = furi_thread_get_current();
     furi_thread_set_signal_callback(thread, soft_off_signal_callback, thread);
@@ -85,24 +74,15 @@ int32_t soft_off_app(void* arg) {
             break;
         }
         if(flags & SoftOffThreadFlagAnimationCompleted) {
-            front_display_sleep_mode(front_display, true);
-            light_sensor_sleep(true);
+            low_power_unlock(low_power);
         }
     }
-    furi_record_destroy(RECORD_POWEROFF);
-    furi_thread_set_signal_callback(thread, NULL, NULL);
-
     with_gui(gui, { anim_player_free(anim_player); });
-
-    back_display_sleep_mode(back_display, false);
-    front_display_sleep_mode(front_display, false);
-    light_sensor_sleep(false);
-
-    furi_record_close(RECORD_BACK_DISPLAY);
-    furi_record_close(RECORD_FRONT_DISPLAY);
+    low_power_lock(low_power);
 
     furi_record_close(RECORD_GUI);
     furi_record_close(RECORD_LOADER);
+    furi_record_close(RECORD_LOW_POWER);
 
     return 0;
 }

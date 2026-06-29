@@ -1,0 +1,21 @@
+App(
+    appid="log_storage",
+    apptype=FlipperAppType.STARTUP,
+    entry_point="log_storage_on_system_start",
+    stack_size=2 * 1024,
+    order=125,
+    provides=["log_storage_cli"],
+    targets=["f20", "f21", "f22"],
+    sdk_headers=["log_storage.h"],
+    sources=["log_storage.c"],
+)
+
+App(
+    appid="log_storage_cli",
+    name="log_dump",
+    apptype=FlipperAppType.CLICMD,
+    entry_point="log_storage_cli_command_entry",
+    sources=["log_storage_cli.c"],
+    requires=["log_storage"],
+    targets=["f20", "f21", "f22"],
+)

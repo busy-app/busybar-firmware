@@ -2,6 +2,7 @@
 #include "busy_timer_common_i.h"
 
 #include <furi.h>
+#include <furi_hal_rtc.h>
 
 #define KEY_SNAPSHOT  "snapshot"
 #define KEY_TIMESTAMP "snapshot_timestamp_ms"
@@ -17,6 +18,8 @@
 #define KEY_SNAPSHOT_INTERVAL_CURRENT_TOTAL "current_interval_time_total_ms"
 #define KEY_SNAPSHOT_INTERVAL_CURRENT_LEFT  "current_interval_time_left_ms"
 #define KEY_SNAPSHOT_INTERVAL_SETTINGS      "interval_settings"
+
+#define TIMESTAMP_TOLERANCE_MS (M_TO_MS(1))
 
 static const char* const snapshot_type_values[BusyTimerSnapshotTypeMax] = {
     [BusyTimerSnapshotTypeNotStarted] = "NOT_STARTED",
@@ -246,6 +249,46 @@ static bool
     return success;
 }
 
+static bool busy_timer_snapshot_is_valid_timestamp(time_t timestamp_ms) {
+    bool is_valid = true;
+
+    const time_t now_timestamp_ms = furi_hal_rtc_get_timestamp_ms();
+
+    if(timestamp_ms > now_timestamp_ms) {
+        if(timestamp_ms - now_timestamp_ms > TIMESTAMP_TOLERANCE_MS) {
+            is_valid = false;
+        }
+    }
+
+    return is_valid;
+}
+
+static bool busy_timer_snapshot_is_valid_interval_state(const BusyTimerIntervalState* state) {
+    bool is_valid = false;
+
+    do {
+        if(state->index > (BUSY_TIMER_CYCLE_COUNT_MAX * 2) - 2) {
+            break;
+        }
+
+        if(state->time_left_ms > state->time_total_ms) {
+            break;
+        }
+
+        const bool is_rest = state->index % 2;
+        const uint32_t upper_bound_ms = is_rest ? M_TO_MS(BUSY_TIMER_REST_TIME_MAX_MN) :
+                                                  M_TO_MS(BUSY_TIMER_WORK_TIME_MAX_MN);
+
+        if(state->time_left_ms > upper_bound_ms) {
+            break;
+        }
+
+        is_valid = true;
+    } while(false);
+
+    return is_valid;
+}
+
 // Internal functions
 
 bool busy_timer_snapshot_serialize_raw(const BusyTimerSnapshot* snapshot, cJSON* json) {
@@ -293,6 +336,10 @@ bool busy_timer_snapshot_deserialize_raw(BusyTimerSnapshot* snapshot, const cJSO
 
         snapshot->timestamp_ms = cJSON_GetNumberValue(item);
 
+        if(!busy_timer_snapshot_is_valid(snapshot)) {
+            break;
+        }
+
         success = true;
     } while(false);
 
@@ -331,6 +378,10 @@ bool busy_timer_snapshot_is_valid(const BusyTimerSnapshot* snapshot) {
     bool is_valid = false;
 
     do {
+        if(!busy_timer_snapshot_is_valid_timestamp(snapshot->timestamp_ms)) {
+            break;
+        }
+
         const BusyTimerSnapshotType type = snapshot->type;
 
         if(type == BusyTimerSnapshotTypeNotStarted) {
@@ -361,19 +412,7 @@ bool busy_timer_snapshot_is_valid(const BusyTimerSnapshot* snapshot) {
                 break;
             }
 
-            const BusyTimerIntervalState* state = &interval->state;
-            if(state->index > (BUSY_TIMER_CYCLE_COUNT_MAX * 2) - 2) {
-                break;
-            }
-            if(state->time_left_ms > state->time_total_ms) {
-                break;
-            }
-
-            const bool is_rest = state->index % 2;
-            const uint32_t upper_bound_ms = is_rest ? M_TO_MS(BUSY_TIMER_REST_TIME_MAX_MN) :
-                                                      M_TO_MS(BUSY_TIMER_WORK_TIME_MAX_MN);
-
-            if(state->time_left_ms > upper_bound_ms) {
+            if(!busy_timer_snapshot_is_valid_interval_state(&interval->state)) {
                 break;
             }
 
