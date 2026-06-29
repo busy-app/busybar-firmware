@@ -8,6 +8,7 @@
 #include <furi_hal_rtc.h>
 #include <font_registry/fonts.h>
 #include <brightness_control/brightness_control.h>
+#include <status_lights/status_lights.h>
 #include <lvgl.h>
 
 #define TAG "HttpDisplay"
@@ -58,6 +59,10 @@ static bool api_display_draw_parse_text_element(
 
         const char* font_path =
             value_index_map_string(font_names, font_paths, COUNT_OF(font_names), font_name);
+        if(!font_path) {
+            free(font_name);
+            break;
+        }
         if(strcmp(font_path, font_paths[0]) == 0 && strcmp(font_name, font_names[0]) != 0) {
             // Unknown font name mapped to default — reject
             free(font_name);
@@ -133,9 +138,11 @@ static bool api_display_draw_parse_countdown_element(
             [CountdownDirectionTimeLeft] = "time_left",
             [CountdownDirectionTimeSince] = "time_since",
         };
-        canvas_element->countdown.direction =
+        size_t direction_temp =
             value_index_string(direction_str, direction_lut, COUNT_OF(direction_lut));
         free(direction_str);
+        if(direction_temp >= CountdownDirectionMAX) break;
+        canvas_element->countdown.direction = direction_temp;
 
         char* hours_str = mg_json_get_str(json_element, "$.show_hours");
         if(!hours_str) break;
@@ -143,9 +150,10 @@ static bool api_display_draw_parse_countdown_element(
             [CountdownShowHourWhenNonZero] = "when_non_zero",
             [CountdownShowHourAlways] = "always",
         };
-        canvas_element->countdown.hours =
-            value_index_string(hours_str, hours_lut, COUNT_OF(hours_lut));
+        size_t hours_temp = value_index_string(hours_str, hours_lut, COUNT_OF(hours_lut));
         free(hours_str);
+        if(hours_temp >= CountdownShowHourMAX) break;
+        canvas_element->countdown.hours = hours_temp;
 
         result = true;
     } while(0);
@@ -237,6 +245,10 @@ static bool api_display_draw_parse_image_element(
     do {
         canvas_element->type = CanvasElementTypeImage;
 
+        long opacity = mg_json_get_long(json_element, "$.opacity", 100);
+        if(opacity < 0 || opacity > 100) break;
+        canvas_element->image.opacity = opacity * 255 / 100;
+
         if(!api_display_draw_parse_image_path(
                &canvas_element->image.file_path, app_name, json_element, canvas_element->type))
             break;
@@ -289,7 +301,123 @@ static bool api_display_draw_parse_anim_player_element(
             if(json_bool) canvas_element->anim_player.flags |= AnimFilePlayFlagFinishCurrent;
         }
 
+        long opacity = mg_json_get_long(json_element, "$.opacity", 100);
+        if(opacity < 0 || opacity > 100) break;
+        canvas_element->anim_player.opacity = opacity * 255 / 100;
+
         canvas_element->type = CanvasElementTypeAnimPlayer;
+        result = true;
+    } while(0);
+
+    return result;
+}
+
+static bool
+    api_display_draw_parse_rect_fill(CanvasElement* canvas_element, struct mg_str json_element) {
+    bool result = false;
+
+    do {
+        char* fill_type = mg_json_get_str(json_element, "$.fill");
+        size_t fill = RectangleFillNone;
+        if(fill_type) {
+            static const char* const fill_types[] = {
+                [RectangleFillNone] = "none",
+                [RectangleFillSolid] = "solid",
+                [RectangleFillGradientH] = "gradient_h",
+                [RectangleFillGradientV] = "gradient_v",
+            };
+            fill = value_index_string(fill_type, fill_types, COUNT_OF(fill_types));
+            free(fill_type);
+            if(fill >= COUNT_OF(fill_types)) break;
+        }
+
+        Color fill_color[2] = {
+            (Color)COLOR_MAKE_HEXA(0xFFFFFFFF), (Color)COLOR_MAKE_HEXA(0x00000000)};
+        bool color_parsed[2] = {false, false};
+
+        char* color_hex = mg_json_get_str(json_element, "$.fill_colors[0]");
+        if(color_hex) {
+            color_parsed[0] = color_parse_hexa_string(color_hex, &fill_color[0]);
+            free(color_hex);
+            if(!color_parsed[0]) break;
+        }
+        color_hex = mg_json_get_str(json_element, "$.fill_colors[1]");
+        if(color_hex) {
+            color_parsed[1] = color_parse_hexa_string(color_hex, &fill_color[1]);
+            free(color_hex);
+            if(!color_parsed[1]) break;
+        }
+
+        if(fill == RectangleFillGradientH || fill == RectangleFillGradientV) {
+            // Gradient fill requires two colors or defaults to white and black
+            if(color_parsed[0] != color_parsed[1]) break;
+        } else if(fill == RectangleFillSolid) {
+            // Solid fill requires only one color or defaults to white
+            if(color_parsed[1]) break;
+        }
+
+        canvas_element->rectangle.fill = fill;
+        canvas_element->rectangle.fill_color[0] = fill_color[0];
+        canvas_element->rectangle.fill_color[1] = fill_color[1];
+        result = true;
+    } while(0);
+
+    return result;
+}
+
+static bool
+    api_display_draw_parse_rect_border(CanvasElement* canvas_element, struct mg_str json_element) {
+    bool result = false;
+
+    do {
+        long border_width = mg_json_get_long(json_element, "$.border_width", 1);
+        long radius = mg_json_get_long(json_element, "$.radius", 0);
+        if(border_width < 0 || radius < 0) break;
+
+        Color border_color = (Color)COLOR_MAKE_HEXA(0xFFFFFFFF);
+        char* color_hex = mg_json_get_str(json_element, "$.border_color");
+        if(color_hex) {
+            bool color_parsed = color_parse_hexa_string(color_hex, &border_color);
+            free(color_hex);
+            if(!color_parsed) break;
+        }
+
+        canvas_element->rectangle.radius = radius;
+        canvas_element->rectangle.border_width = border_width;
+        canvas_element->rectangle.border_color = border_color;
+        result = true;
+    } while(0);
+
+    return result;
+}
+
+static bool api_display_draw_parse_rectangle_element(
+    CanvasElement* canvas_element,
+    const char* app_name,
+    struct mg_str json_element,
+    FuriString* error) {
+    UNUSED(app_name);
+    UNUSED(error);
+    bool result = false;
+
+    do {
+        long width = mg_json_get_long(json_element, "$.width", -1);
+        long height = mg_json_get_long(json_element, "$.height", -1);
+        if(width <= 0 || height <= 0) {
+            break;
+        }
+        canvas_element->rectangle.width = width;
+        canvas_element->rectangle.height = height;
+
+        if(!api_display_draw_parse_rect_fill(canvas_element, json_element)) {
+            break;
+        }
+
+        if(!api_display_draw_parse_rect_border(canvas_element, json_element)) {
+            break;
+        }
+
+        canvas_element->type = CanvasElementTypeRectangle;
         result = true;
     } while(0);
 
@@ -350,7 +478,7 @@ static bool api_display_draw_parse_element(
             size_t align = value_index_string(alignment, alignments, COUNT_OF(alignments));
             canvas_element->align = align;
             free(alignment);
-            if(align == 0) break;
+            if(align >= COUNT_OF(alignments)) break;
         } else {
             canvas_element->align = AlignDefault;
         }
@@ -376,6 +504,7 @@ static bool api_display_draw_parse_element(
             {"text", api_display_draw_parse_text_element},
             {"image", api_display_draw_parse_image_element},
             {"animation", api_display_draw_parse_anim_player_element},
+            {"rectangle", api_display_draw_parse_rectangle_element},
             {"countdown", api_display_draw_parse_countdown_element},
         };
         for(size_t i = 0; i < COUNT_OF(element_parsers); i++) {
@@ -400,6 +529,7 @@ static const struct {
     [CanvasResultBadParameters] = {400, "Bad request"},
     [CanvasResultLowPriority] = {409, "Not drawn due to low priority"},
     [CanvasResultEmptyScreen] = {400, "Nothing to display"},
+    [CanvasResultTooManyElements] = {400, "Elements number limit exceeded"},
 };
 _Static_assert(
     COUNT_OF(draw_errors) == CanvasResultMax,
@@ -408,6 +538,8 @@ _Static_assert(
 typedef struct {
     unsigned long conn_id;
     CanvasResult result;
+    Color led_color;
+    bool blink_led;
 } CanvasDrawCtx;
 
 static void canvas_draw_wakeup_callback(struct mg_connection* conn, void* data, size_t len) {
@@ -421,6 +553,12 @@ static void canvas_draw_wakeup_callback(struct mg_connection* conn, void* data, 
     if(ctx->result != CanvasResultOk) {
         MG_REPLY_ERROR(conn, draw_errors[ctx->result].code, draw_errors[ctx->result].message);
     } else {
+        if(ctx->blink_led) {
+            StatusLights* status_lights = furi_record_open(RECORD_STATUS_LIGHTS);
+            status_lights_run_preset(
+                status_lights, StatusLightsPresetNotification, ctx->led_color);
+            furi_record_close(RECORD_STATUS_LIGHTS);
+        }
         MG_REPLY_OK(conn);
     }
     free(ctx);
@@ -473,6 +611,20 @@ static void api_display_canvas_draw(struct mg_connection* conn, struct mg_http_m
             break;
         }
 
+        bool blink_led = false;
+        Color led_color;
+        char* led_color_hex = mg_json_get_str(msg->body, "$.led_notification_color");
+        if(led_color_hex) {
+            bool color_parsed = color_parse_hexa_string(led_color_hex, &led_color);
+            free(led_color_hex);
+            if(!color_parsed) {
+                MG_REPLY_ERROR(conn, 400, "Invalid LED notification color");
+                break;
+            } else {
+                blink_led = true;
+            }
+        }
+
         struct mg_str elements_obj = mg_json_get_tok(msg->body, "$.elements");
         if(!elements_obj.buf || elements_obj.len < 2 || elements_obj.buf[0] != '[') {
             MG_REPLY_ERROR(conn, 400, "Missing or invalid elements array");
@@ -482,9 +634,16 @@ static void api_display_canvas_draw(struct mg_connection* conn, struct mg_http_m
         size_t offset = 0;
         struct mg_str element;
         bool ok = true;
+        size_t elements_count = 0;
         while((offset = mg_json_next(elements_obj, offset, NULL, &element)) > 0) {
             ok = api_display_draw_parse_element(elements_array, app_name, element, error);
             if(!ok) break;
+            elements_count++;
+            if(elements_count > CANVAS_MAX_ELEMENTS) {
+                furi_string_printf(error, "%s", draw_errors[CanvasResultTooManyElements].message);
+                ok = false;
+                break;
+            }
         }
         if(!ok) {
             MG_REPLY_ERROR(
@@ -497,7 +656,11 @@ static void api_display_canvas_draw(struct mg_connection* conn, struct mg_http_m
         }
 
         CanvasDrawCtx* ctx = malloc(sizeof(*ctx));
-        *ctx = (CanvasDrawCtx){.conn_id = conn->id};
+        *ctx = (CanvasDrawCtx){
+            .conn_id = conn->id,
+            .blink_led = blink_led,
+            .led_color = led_color,
+        };
 
         ConnectionContext* conn_ctx = (void*)conn->data;
         conn_ctx->on_wakeup = canvas_draw_wakeup_callback;

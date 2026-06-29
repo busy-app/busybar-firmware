@@ -166,6 +166,7 @@ def web_session() -> Iterator[requests.Session]:
         if "timeout" not in kwargs:
             kwargs["timeout"] = 10
         method = args[0] if args else kwargs.get("method", "GET")
+        method_upper = str(method).upper()
         url = args[1] if len(args) > 1 else kwargs.get("url", "")
         params = kwargs.get("params", {})
         if params:
@@ -176,6 +177,20 @@ def web_session() -> Iterator[requests.Session]:
         start_time = time.time()
         try:
             response = original_request(*args, **kwargs)
+            return response
+        except requests.ConnectionError as exc:
+            error = exc
+            if method_upper not in {"GET", "HEAD", "OPTIONS"}:
+                raise
+            logger.warning(
+                "Retrying %s %s after connection error: %s",
+                method_upper,
+                url,
+                exc,
+            )
+            session.close()
+            response = original_request(*args, **kwargs)
+            error = None
             return response
         except requests.RequestException as exc:
             error = exc

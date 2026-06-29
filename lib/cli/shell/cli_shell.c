@@ -227,8 +227,8 @@ void cli_shell_execute_command(CliShell* cli_shell, FuriString* command) {
             break;
         }
 
-#ifdef CLI_PLATFORM_SUPPORTS_EXT_CMDS
         // load external command
+#ifdef CLI_PLATFORM_SUPPORTS_EXT_CMDS
         if(command_data.flags & CliCommandFlagExternal) {
             const CliCommandExternalConfig* ext_config = cli_shell->ext_config;
             plugin_manager = plugin_manager_alloc(
@@ -259,8 +259,11 @@ void cli_shell_execute_command(CliShell* cli_shell, FuriString* command) {
             // external commands have to run in an external thread
             furi_check(!(command_data.flags & CliCommandFlagUseShellThread));
         }
+#endif
 
-        lock loader if(!(command_data.flags & CliCommandFlagParallelSafe)) {
+        // lock loader
+#ifdef SRV_LOADER
+        if(command_data.flags & CliCommandFlagParallelUnsafe) {
             loader_locked = loader_lock(loader);
             if(!loader_locked) {
                 printf(ANSI_FG_RED
@@ -462,23 +465,11 @@ static void cli_shell_init(CliShell* shell) {
     shell->registries[CliShellRegistryIdBuiltinCommands] = builtin_registry;
 
     cli_registry_add_command(
-        builtin_registry,
-        "help",
-        CliCommandFlagUseShellThread | CliCommandFlagParallelSafe,
-        cli_command_help,
-        shell);
+        builtin_registry, "help", CliCommandFlagUseShellThread, cli_command_help, shell);
     cli_registry_add_command(
-        builtin_registry,
-        "?",
-        CliCommandFlagUseShellThread | CliCommandFlagParallelSafe,
-        cli_command_help,
-        shell);
+        builtin_registry, "?", CliCommandFlagUseShellThread, cli_command_help, shell);
     cli_registry_add_command(
-        builtin_registry,
-        "exit",
-        CliCommandFlagUseShellThread | CliCommandFlagParallelSafe,
-        cli_command_exit,
-        shell);
+        builtin_registry, "exit", CliCommandFlagUseShellThread, cli_command_exit, shell);
 
 #ifdef CLI_PLATFORM_SUPPORTS_EXT_CMDS
     if(shell->ext_config) {

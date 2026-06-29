@@ -3,6 +3,10 @@
 
 #define BUSY_NAV_BAR_HEIGHT 20
 
+#define INPUT_QUEUE_SIZE 8
+#define EVENT_QUEUE_SIZE 8
+#define API_QUEUE_SIZE   4
+
 static void busy_input_queue_callback(FuriEventLoopObject* object, void* context) {
     furi_assert(context);
 
@@ -66,9 +70,7 @@ static void busy_api_queue_callback(FuriEventLoopObject* object, void* context) 
             furi_crash("Invalid BusyApiMessageType value");
         }
 
-        if(message.lock) {
-            api_lock_unlock(message.lock);
-        }
+        busy_api_unlock_message(&message, BusyStatusOk);
     }
 }
 
@@ -110,9 +112,9 @@ static BusyApp* busy_alloc(const char* arg) {
     BusyApp* instance = malloc(sizeof(BusyApp));
 
     instance->event_loop = furi_event_loop_alloc();
-    instance->input_queue = furi_message_queue_alloc(8, sizeof(InputEvent));
-    instance->event_queue = furi_message_queue_alloc(8, sizeof(uint32_t));
-    instance->api_queue = furi_message_queue_alloc(1, sizeof(BusyApiMessage));
+    instance->input_queue = furi_message_queue_alloc(INPUT_QUEUE_SIZE, sizeof(InputEvent));
+    instance->event_queue = furi_message_queue_alloc(EVENT_QUEUE_SIZE, sizeof(uint32_t));
+    instance->api_queue = furi_message_queue_alloc(API_QUEUE_SIZE, sizeof(BusyApiMessage));
     instance->scene_manager = scene_manager_alloc(busy_scenes, BusyAppSceneIdMax, instance);
     instance->busy_timer = furi_record_open(RECORD_BUSY_TIMER);
     instance->audio = furi_record_open(RECORD_AUDIO);
@@ -184,9 +186,9 @@ static BusyApp* busy_alloc(const char* arg) {
         busy_api_queue_callback,
         instance);
 
-    furi_record_create(RECORD_BUSY_APP, instance);
-
     audio_enable(instance->audio);
+
+    furi_record_create(RECORD_BUSY_APP, instance);
 
     if(instance->run_mode == BusyAppRunModeNormal) {
         scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdStart);
@@ -196,10 +198,9 @@ static BusyApp* busy_alloc(const char* arg) {
 }
 
 static void busy_free(BusyApp* instance) {
-    while(!furi_record_destroy(RECORD_BUSY_APP)) {
-        // Workaround: wait before all users close the record
-        furi_delay_ms(1);
-    }
+    busy_api_abort_pending_messages(instance);
+
+    furi_record_destroy(RECORD_BUSY_APP);
 
     audio_disable(instance->audio);
 

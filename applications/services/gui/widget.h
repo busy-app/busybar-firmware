@@ -294,6 +294,14 @@ void widget_set_scrollbar_enabled(Widget* instance, bool is_enabled);
 void widget_set_background_color(Widget* instance, Color color);
 
 /**
+ * @brief Set the global opacity of a Widget instance.
+ *
+ * @param[in,out] instance pointer to the Widget instance to be modified
+ * @param[in] opacity new opacity value (0-255)
+ */
+void widget_set_opacity(Widget* instance, uint8_t opacity);
+
+/**
  * @brief Set the padding for a Widget instance.
  *
  * @param[in,out] instance pointer to the Widget instance to be modified
