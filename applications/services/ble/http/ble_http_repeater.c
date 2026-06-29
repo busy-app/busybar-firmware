@@ -18,7 +18,6 @@ typedef struct {
     FuriSemaphore* wait;
     FuriSemaphore* uart_conn_sync;
     Ble* ble;
-    Network* network;
     bool exit;
 
     FuriMutex* session_lock;
@@ -132,7 +131,8 @@ static void ble_event_handler(struct mg_connection* conn, int ev, void* ev_data)
 
 static int32_t ble_http_repeater_thread_handler(void* p) {
     UNUSED(p);
-    network_init_current_thread(ble_http_repeater->network);
+    Network* network = furi_record_open(RECORD_NETWORK);
+    network_init_current_thread(network);
 
     mg_mgr_init(&ble_http_repeater->mgr);
     mg_wakeup_init(&ble_http_repeater->mgr);
@@ -148,7 +148,8 @@ static int32_t ble_http_repeater_thread_handler(void* p) {
     // Cleanup
     FURI_LOG_D(TAG, "Ble repeater stopped");
     mg_mgr_free(&ble_http_repeater->mgr);
-    network_deinit_current_thread(ble_http_repeater->network);
+    network_deinit_current_thread(network);
+    furi_record_close(RECORD_NETWORK);
 
     return 0;
 }
@@ -182,16 +183,12 @@ static void ble_http_repeater_free(BleHttpRepeater* instance) {
     furi_semaphore_free(instance->uart_conn_sync);
     furi_semaphore_free(instance->wait);
     furi_mutex_free(instance->session_lock);
-    furi_record_close(RECORD_NETWORK);
     free(instance);
 }
 
 void ble_http_repeater_init() {
     furi_assert(ble_http_init_mutex == NULL);
     ble_http_init_mutex = furi_mutex_alloc(FuriMutexTypeNormal);
-
-    Network* network = furi_record_open(RECORD_NETWORK);
-    network_init_current_thread(network);
 }
 
 void ble_http_repeater_start(Ble* ble) {
