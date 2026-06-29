@@ -4,10 +4,12 @@
 
 #include "device/ble_device.h"
 #include "event_processor/ble_incoming_nwp_event_processor.h"
+#include <api_lock.h>
 
 struct BleWorker {
     FuriThread* thread;
     FuriEventLoop* event_loop;
+    FuriApiLock api_lock;
     BleIncomingNwpEventProcessor* event_proc;
     BleTransmitter* transport;
     BleDevice* device;
