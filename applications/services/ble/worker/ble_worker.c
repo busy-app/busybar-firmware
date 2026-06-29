@@ -116,6 +116,9 @@ void ble_worker_receive_confirm(uint16_t handle, uint8_t cccd_value) {
 }
 
 bool ble_worker_forget_pairing() {
+    if(ble_device_is_connected(ble_worker_instance->device)) {
+        ble_device_disconnect(ble_worker_instance->device);
+    }
     return ble_device_forget_paired(ble_worker_instance->device);
 }
 

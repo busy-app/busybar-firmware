@@ -63,7 +63,13 @@ bool ble_event_handler_gap_disconnected(size_t data_size, void* data, void* cont
 
     bool result = ble_device_connection_close(instance->device);
 
-    ble_worker_invoke_disconnect_callback(instance);
+    BleDeviceState state = ble_device_get_state(instance->device);
+    if(state == BleDeviceStateStopping) {
+        ble_incoming_nwp_event_processor_spawn_event(
+            instance->event_proc, BleIncomingNwpEventTypeExit, 0, NULL);
+    } else {
+        ble_worker_invoke_disconnect_callback(instance);
+    }
 
     return result;
 }
@@ -147,8 +153,8 @@ bool ble_event_handler_gap_exit(size_t data_size, void* data, void* context) {
     UNUSED(data);
     BleWorker* instance = context;
 
-    ble_device_stop(instance->device);
-
-    furi_event_loop_stop(instance->event_loop);
+    if(ble_device_stop(instance->device)) {
+        furi_event_loop_stop(instance->event_loop);
+    }
     return true;
 }
