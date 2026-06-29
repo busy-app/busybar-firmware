@@ -127,7 +127,7 @@ static SettingsApp* settings_alloc(void* app_arg) {
 
     if(instance->launching_subapp) {
         static const uint32_t scenes[] = {SettingsAppSceneIdStart, SettingsAppSceneIdMain};
-        scene_manager_set_initial_scenes(instance->scene_manager, scenes, COUNT_OF(scenes));
+        scene_manager_next_scenes(instance->scene_manager, scenes, COUNT_OF(scenes));
     } else {
         scene_manager_next_scene(instance->scene_manager, SettingsAppSceneIdStart);
     }

@@ -145,7 +145,7 @@ static AppsMenu* apps_menu_alloc(void* launching_application) {
 
     if(instance->launching_application) {
         static const uint32_t scenes[] = {AppsMenuSceneIdStart, AppsMenuSceneIdMain};
-        scene_manager_set_initial_scenes(instance->scene_manager, scenes, COUNT_OF(scenes));
+        scene_manager_next_scenes(instance->scene_manager, scenes, COUNT_OF(scenes));
     } else {
         scene_manager_next_scene(instance->scene_manager, AppsMenuSceneIdStart);
     }
