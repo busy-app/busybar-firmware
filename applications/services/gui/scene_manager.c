@@ -155,6 +155,23 @@ SceneData* scene_manager_get_scene_data(const SceneManager* instance, uint32_t s
     return instance->scene_data[scene_id];
 }
 
+void scene_manager_set_initial_scenes(
+    SceneManager* instance,
+    const uint32_t* scene_ids,
+    size_t scene_ids_count) {
+    furi_check(instance);
+    furi_check(scene_ids_count > 0);
+    furi_check(SceneIdStack_size(instance->scene_id_stack) == 0);
+
+    for(size_t i = 0; i < scene_ids_count; ++i) {
+        furi_check(scene_ids[i] < instance->scene_count);
+        SceneIdStack_push_back(instance->scene_id_stack, scene_ids[i]);
+    }
+
+    const Scene* next_scene = scene_manager_get_current_scene(instance);
+    next_scene->enter_callback(instance->context);
+}
+
 void scene_manager_next_scene(SceneManager* instance, uint32_t scene_id) {
     furi_check(instance);
     furi_check(scene_id < instance->scene_count);
