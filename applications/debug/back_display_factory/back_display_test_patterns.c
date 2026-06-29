@@ -57,34 +57,6 @@ static void back_display_pattern_update_gradient_vertical(Canvas* canvas, Color 
     }
 }
 
-static void back_display_pattern_update_tearing_vertical(Canvas* canvas, Color color) {
-    Widget* widget = canvas_get_base(canvas);
-    canvas_set_line_color(canvas, color);
-
-    static int32_t x = 0;
-
-    canvas_draw_rect(canvas, x, 0, 10, widget_get_height(widget), true);
-
-    x += 5;
-    if(x >= widget_get_width(widget)) {
-        x = 0;
-    }
-}
-
-static void back_display_pattern_update_tearing_horizontal(Canvas* canvas, Color color) {
-    Widget* widget = canvas_get_base(canvas);
-    canvas_set_line_color(canvas, color);
-
-    static int32_t y = 0;
-
-    canvas_draw_rect(canvas, 0, y, widget_get_width(widget), 10, true);
-
-    y += 5;
-    if(y >= widget_get_height(widget)) {
-        y = 0;
-    }
-}
-
 typedef struct {
     void (*draw)(Canvas* canvas, Color color);
     const char* name;
@@ -94,19 +66,13 @@ typedef struct {
 static const BackDisplayTestPatternInfo back_display_test_patterns[BackDisplayPatternMax] = {
     [BackDisplayPatternFillWhite] = {back_display_pattern_update_fill, "Fill White", 255},
     [BackDisplayPatternFillBlack] = {back_display_pattern_update_fill, "Fill Black", 0},
-    [BackDisplayPatternFillGray25] = {back_display_pattern_update_fill, "Fill Gray 25", 64},
     [BackDisplayPatternFillGray50] = {back_display_pattern_update_fill, "Fill Gray 50", 128},
-    [BackDisplayPatternFillGray75] = {back_display_pattern_update_fill, "Fill Gray 75", 192},
     [BackDisplayPatternCheckerboard] =
         {back_display_pattern_update_checkerboard, "Checkerboard", 255},
     [BackDisplayPatternGradientHorizontal] =
         {back_display_pattern_update_gradient_horizontal, "Gradient Horizontal", 255},
     [BackDisplayPatternGradientVertical] =
         {back_display_pattern_update_gradient_vertical, "Gradient Vertical", 255},
-    [BackDisplayPatternTearingVertical] =
-        {back_display_pattern_update_tearing_vertical, "Tearing Vertical", 255},
-    [BackDisplayPatternTearingHorizontal] =
-        {back_display_pattern_update_tearing_horizontal, "Tearing Horizontal", 255},
 };
 
 void back_display_pattern_update(Canvas* canvas, BackDisplayPattern pattern) {

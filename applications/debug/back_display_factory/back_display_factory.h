@@ -12,14 +12,10 @@ extern "C" {
 typedef enum {
     BackDisplayPatternFillWhite,
     BackDisplayPatternFillBlack,
-    BackDisplayPatternFillGray25,
     BackDisplayPatternFillGray50,
-    BackDisplayPatternFillGray75,
     BackDisplayPatternCheckerboard,
     BackDisplayPatternGradientHorizontal,
     BackDisplayPatternGradientVertical,
-    BackDisplayPatternTearingVertical,
-    BackDisplayPatternTearingHorizontal,
 
     BackDisplayPatternMax,
 } BackDisplayPattern;
