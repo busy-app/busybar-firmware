@@ -28,7 +28,7 @@ float dsp_low_pass(float input, float prev_output, float alpha);
  * @brief Calculate a 2-dimensional kernel for a sub-pixel translation operation.
  * 
  * The resulting kernel is already normalized. The range of acceptable `x` and
- * `y` values is `+/- floor(kernel_sz) / 2`. E.g., for a kernel size of 3, the
+ * `y` values is `+/- (kernel_sz - 1) / 2`. E.g., for a kernel size of 3, the
  * maximum shift is `+/-1.0` pixels on either axis.
  * 
  * To perform the shift operation, call `dsp_2d_kernel_apply`.

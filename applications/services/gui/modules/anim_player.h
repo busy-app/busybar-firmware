@@ -70,7 +70,7 @@ bool anim_player_set_source_sheet(
  * 
  * @param[inout] instance Widget instance
  * @param[in] x X-axis coordinate of cutout (may be out of bounds or non-whole)
- * @param[in] Y Y-axis coordinate of cutout (may be out of bounds or non-whole)
+ * @param[in] y Y-axis coordinate of cutout (may be out of bounds or non-whole)
  * 
  * @returns `true` = operation successful
  */
