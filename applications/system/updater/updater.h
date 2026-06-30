@@ -8,6 +8,7 @@
 #include "settings/settings.h"
 
 #include <furi.h>
+#include <toolbox/update_lib/update_manifest.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -327,6 +328,18 @@ void updater_resume_autoupdates(Updater* instance);
  * @return     Version string
  */
 const char* updater_get_active_version(void);
+
+/** Get the device's active firmware protection flags
+ *
+ * Computes a bitmask of active UpdateManifestSecurityFlag bits from the
+ * wireless co-processor (Si917) NWP/M4 signature and encryption state.
+ *
+ * @param[out] flags Pointer to receive the security flags bitmask
+ *                   (see UpdateManifestSecurityFlag in update_manifest.h)
+ * @return     true if the info source is ready and the flags are valid,
+ *             false if it is not ready yet (*flags is set to 0)
+ */
+bool updater_get_active_security_flags(uint32_t* flags);
 
 /** Get the current updater settings
  *

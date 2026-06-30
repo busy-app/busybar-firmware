@@ -28,7 +28,7 @@ static const SlInfoSecurityMapping sl_security_mappings[] = {
     {"sl_m4_encrypt", "true", UpdateManifestSecurityFlagM4Encrypted},
 };
 
-static bool updater_get_device_security_flags(uint32_t* flags_out) {
+bool updater_get_active_security_flags(uint32_t* flags_out) {
     uint32_t device_flags = 0;
     bool is_ready = true;
     const SlInfo* sl_info = furi_record_open(RECORD_SL_INFO);
@@ -64,7 +64,7 @@ static UpdaterStatus updater_verify_security_flags(const UpdateManifest* manifes
     const uint32_t manifest_flags = updater_manifest_get_security_flags(manifest);
 
     uint32_t device_flags = 0;
-    if(!updater_get_device_security_flags(&device_flags)) {
+    if(!updater_get_active_security_flags(&device_flags)) {
         FURI_LOG_W(TAG, "SL info not ready, skipping security check");
         return UpdaterStatusOk;
     }
@@ -81,6 +81,11 @@ static UpdaterStatus updater_verify_security_flags(const UpdateManifest* manifes
 
     FURI_LOG_I(TAG, "Security flags OK (0x%lx)", manifest_flags);
     return UpdaterStatusOk;
+}
+#else // SRV_SL_INFO
+bool updater_get_active_security_flags(uint32_t* flags_out) {
+    *flags_out = 0;
+    return false;
 }
 #endif // SRV_SL_INFO
 
