@@ -94,6 +94,14 @@ jobs:
           signing_service_url: ${{ secrets.SI917_SIGN_SERVICE_URL }}
           signing_service_token: ${{ secrets.SI917_SIGN_SERVICE_TOKEN }}
           signing_service_profile: ${{ secrets.SI917_SIGN_SERVICE_PROFILE }}
+          
+          ###
+          # firmware_app_set: "factory_testing"
+          # extra_fbt_args: "FIRMWARE_APP_SET=factory_testing LOADER_AUTOSTART=BackDisplayFactory"
+          # NB: --options path is resolved by SCons relative to its cwd (fbt runs scons with `-C fbt_layers/fbtng`),
+          # so the repo-root opts file must be referenced as ../../<file>. A bare name is silently ignored.
+          extra_fbt_args: "--options=../../fbt_factory_oled_opts.py"
+
 
       - name: 'Upload build artifacts'
         if: ${{ !github.event.pull_request.head.repo.fork && steps.build-fw.outcome == 'success' }}
