@@ -143,10 +143,11 @@ static AppsMenu* apps_menu_alloc(void* launching_application) {
             instance->back_container, instance->back_scene_window, 1);
     });
 
-    scene_manager_next_scene(instance->scene_manager, AppsMenuSceneIdStart);
-
     if(instance->launching_application) {
-        scene_manager_next_scene(instance->scene_manager, AppsMenuSceneIdMain);
+        static const uint32_t scenes[] = {AppsMenuSceneIdStart, AppsMenuSceneIdMain};
+        scene_manager_next_scenes(instance->scene_manager, scenes, COUNT_OF(scenes));
+    } else {
+        scene_manager_next_scene(instance->scene_manager, AppsMenuSceneIdStart);
     }
 
     return instance;

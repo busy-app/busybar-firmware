@@ -75,6 +75,22 @@ static bool status_get_device(FuriString* json_str, ApiStatusCtx* context) {
             json_str, ",\"otp_timestamp\":%lu", furi_hal_version_get_hw_timestamp());
     }
 
+    uint32_t security_flags;
+    const char* firmware_security = "unknown";
+    if(updater_get_active_security_flags(&security_flags)) {
+        bool is_nwp_signed = security_flags & UpdateManifestSecurityFlagNwpSigned;
+        bool is_m4_signed = security_flags & UpdateManifestSecurityFlagM4Signed;
+
+        if(is_nwp_signed && is_m4_signed) {
+            firmware_security = "secure";
+        } else if(!is_nwp_signed && !is_m4_signed) {
+            firmware_security = "insecure";
+        } else {
+            firmware_security = "other";
+        }
+    }
+    furi_string_cat_printf(json_str, ",\"firmware_security\":\"%s\"", firmware_security);
+
     furi_string_cat_printf(json_str, "}");
     furi_string_free(temp_str);
     return true;

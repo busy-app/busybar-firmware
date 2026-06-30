@@ -60,6 +60,7 @@ App(
         "sl_info",
         "state_publisher",
         "discovery",
+        "low_power",
     ],
     targets=["f20", "f21", "f22"],
 )

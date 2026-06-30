@@ -1,0 +1,9 @@
+App(
+    appid="low_power",
+    name="LowPowerSrv",
+    apptype=FlipperAppType.SERVICE,
+    entry_point="low_power_srv",
+    stack_size=1 * 1024,
+    order=330,
+    targets=["f20", "f21", "f22"],
+)

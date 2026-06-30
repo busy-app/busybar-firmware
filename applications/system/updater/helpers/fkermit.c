@@ -71,7 +71,8 @@ typedef struct {
     KermitPacketState state;
     uint8_t seq;
     uint8_t len;
-    uint16_t checksum;
+    uint32_t sum;
+    uint8_t checksum;
 } KermitRx;
 
 typedef enum {
@@ -90,6 +91,7 @@ struct Kermit {
     const KermitIo* io;
     void* io_context;
     KermitRx rx;
+    KermitPacket* last_packet;
     KermitFileTransferState file_transfer_state;
 };
 
@@ -149,7 +151,7 @@ static KermitPacket* kermit_packet_alloc(size_t data_size) {
     return packet;
 }
 
-void kermit_packet_free(KermitPacket* packet) {
+static void kermit_packet_free(KermitPacket* packet) {
     if(!packet) {
         return;
     }
@@ -159,31 +161,35 @@ void kermit_packet_free(KermitPacket* packet) {
 
 // Kermit protocol conversion functions
 
-FURI_ALWAYS_INLINE uint8_t kermit_tochar(uint8_t value) {
+FURI_ALWAYS_INLINE static uint8_t kermit_tochar(uint8_t value) {
 #if KERMIT_DEBUG
     furi_check(value <= 94);
 #endif
     return value + 32;
 }
 
-FURI_ALWAYS_INLINE uint8_t kermit_fromchar(uint8_t value) {
+FURI_ALWAYS_INLINE static uint8_t kermit_fromchar(uint8_t value) {
 #if KERMIT_DEBUG
     furi_check(value >= 32);
 #endif
     return value - 32;
 }
 
-FURI_ALWAYS_INLINE uint8_t kermit_ctl(uint8_t value) {
+FURI_ALWAYS_INLINE static uint8_t kermit_ctl(uint8_t value) {
     return value ^ 64;
 }
 
-uint8_t kermit_checksum(const uint8_t* data, size_t length) {
+FURI_ALWAYS_INLINE static uint8_t kermit_checksum_fold(uint32_t sum) {
+    return (sum + ((sum & 0xC0) >> 6)) & 0x3F;
+}
+
+static uint8_t kermit_checksum(const uint8_t* data, size_t length) {
     uint32_t sum = 0;
     for(size_t i = 0; i < length; i++) {
         sum += data[i];
     }
 
-    return kermit_tochar((sum + ((sum & 0xC0) >> 6)) & 0x3F);
+    return kermit_tochar(kermit_checksum_fold(sum));
 }
 
 static FURI_ALWAYS_INLINE uint8_t kermit_next_seq(uint8_t seq) {
@@ -192,7 +198,7 @@ static FURI_ALWAYS_INLINE uint8_t kermit_next_seq(uint8_t seq) {
 
 // Kermit packet creation functions
 
-KermitPacket* kermit_create_packet(
+static KermitPacket* kermit_create_packet(
     Kermit* kermit,
     const KermitPacketType packet_type,
     const uint8_t* data,
@@ -213,8 +219,8 @@ KermitPacket* kermit_create_packet(
     memcpy(packet->data + sizeof(header), data, length);
 
     KermitPacketFooter footer = {
-        // Skip the marks
-        .checksum = kermit_checksum(packet->data + 1, packet->sz - 2),
+        // Block check sums Len..Data (Mark, Check, End excluded)
+        .checksum = kermit_checksum(packet->data + 1, packet->sz - 3),
         .end = KERMIT_PACKET_END,
     };
     memcpy(packet->data + sizeof(header) + length, &footer, sizeof(footer));
@@ -223,7 +229,7 @@ KermitPacket* kermit_create_packet(
     return packet;
 }
 
-KermitPacket* kermit_create_ext_packet(
+static KermitPacket* kermit_create_ext_packet(
     Kermit* kermit,
     const KermitPacketType packet_type,
     const uint8_t* data,
@@ -248,8 +254,8 @@ KermitPacket* kermit_create_ext_packet(
     memcpy(packet->data + sizeof(header), data, length);
 
     KermitPacketFooter footer = {
-        // Skip the marks
-        .checksum = kermit_checksum(packet->data + 1, packet->sz - 2),
+        // Block check sums Len..Data (Mark, Check, End excluded)
+        .checksum = kermit_checksum(packet->data + 1, packet->sz - 3),
         .end = KERMIT_PACKET_END,
     };
     memcpy(packet->data + sizeof(header) + length, &footer, sizeof(footer));
@@ -264,9 +270,11 @@ void kermit_reset_state(Kermit* kermit) {
     kermit->max_packet_length = KERMIT_PACKET_MAX_LENGTH;
     kermit->max_ext_packet_length = KERMIT_PACKET_EXT_MAX_LENGTH;
 
-    if(kermit->rx.contents) {
-        kermit_packet_free(kermit->rx.contents);
-    }
+    kermit_packet_free(kermit->rx.contents);
+    kermit->rx.contents = NULL;
+
+    kermit_packet_free(kermit->last_packet);
+    kermit->last_packet = NULL;
 
     memset(&kermit->rx, 0, sizeof(KermitRx));
     kermit->rx.state = KermitPacketStateWaitMark;
@@ -282,6 +290,8 @@ Kermit* kermit_alloc(const KermitIo* io, void* context) {
     kermit->io_context = context;
 
     kermit->rx.contents = NULL;
+    kermit->last_packet = NULL;
+
     kermit_reset_state(kermit);
 
     return kermit;
@@ -334,25 +344,27 @@ static bool kermit_feed_byte(Kermit* kermit, uint8_t c) {
         }
         // seq + type + check go to separate fields in reassembly
         rx->len -= 3;
+        rx->sum = c;
         rx->state = KermitPacketStateWaitSeq;
         rx->contents = kermit_packet_alloc(rx->len);
         break;
 
     case KermitPacketStateWaitSeq:
         rx->seq = kermit_fromchar(c);
+        rx->sum += c;
         KERMIT_LOG("Packet seq: %d", rx->seq);
         rx->state = KermitPacketStateWaitType;
         break;
 
     case KermitPacketStateWaitType:
         rx->type = c;
+        rx->sum += c;
         KERMIT_LOG("Packet type: %c", c);
         rx->state = rx->len ? KermitPacketStateWaitContents : KermitPacketStateWaitChecksum;
         break;
 
     case KermitPacketStateWaitContents:
         KERMIT_LOG("Packet sz: %ld, rem rxlen: %d", rx->contents->sz, rx->len);
-        furi_check(rx->len >= 0);
         furi_check(rx->contents->sz - rx->len < rx->contents->sz);
 
         if(c == KERMIT_PACKET_END) {
@@ -361,6 +373,7 @@ static bool kermit_feed_byte(Kermit* kermit, uint8_t c) {
         }
 
         rx->contents->data[rx->contents->sz - rx->len] = c;
+        rx->sum += c;
         rx->len--;
         if(rx->len == 0) {
             KERMIT_LOG("Received all expected data");
@@ -369,10 +382,7 @@ static bool kermit_feed_byte(Kermit* kermit, uint8_t c) {
         break;
 
     case KermitPacketStateWaitChecksum:
-        rx->checksum = kermit_fromchar(c);
-        // todo: validate?
-        // challenging, because we do not store header fields right next to the data
-        UNUSED(rx->checksum);
+        rx->checksum = c;
         rx->state = KermitPacketStateWaitEnd;
         break;
 
@@ -382,6 +392,15 @@ static bool kermit_feed_byte(Kermit* kermit, uint8_t c) {
             rx->state = KermitPacketStateError;
             return false;
         }
+
+        if(kermit_tochar(kermit_checksum_fold(rx->sum)) != rx->checksum) {
+            FURI_LOG_E(TAG, "Checksum mismatch");
+            kermit_packet_free(rx->contents);
+            rx->contents = NULL;
+            rx->state = KermitPacketStateWaitMark;
+            break;
+        }
+
         result = kermit_process_packet(kermit);
 
         kermit_packet_free(rx->contents);
@@ -415,14 +434,10 @@ bool kermit_feed_serial_data(Kermit* kermit, const uint8_t* data, size_t length)
     return true;
 }
 
-static bool kermit_tx_and_release_packet(Kermit* kermit, KermitPacket* packet) {
+static bool kermit_tx_packet(Kermit* kermit, const KermitPacket* packet) {
     furi_check(packet);
 
-    bool success =
-        (kermit->io->comms_send(kermit->io_context, packet->data, packet->sz) == packet->sz);
-
-    kermit_packet_free(packet);
-    return success;
+    return (kermit->io->comms_send(kermit->io_context, packet->data, packet->sz) == packet->sz);
 }
 
 bool kermit_start(Kermit* kermit, const uint8_t timeout_seconds) {
@@ -452,7 +467,13 @@ bool kermit_start(Kermit* kermit, const uint8_t timeout_seconds) {
     KermitPacket* init_packet = kermit_create_packet(
         kermit, KermitPacketTypeInit, (uint8_t*)&init_packet_data, sizeof(init_packet_data));
 
-    return kermit_tx_and_release_packet(kermit, init_packet);
+    if(kermit_tx_packet(kermit, init_packet)) {
+        kermit->last_packet = init_packet;
+        return true;
+    }
+
+    kermit_packet_free(init_packet);
+    return false;
 }
 
 static bool kermit_parse_session_params(Kermit* kermit) {
@@ -560,6 +581,10 @@ static bool kermit_process_packet(Kermit* kermit) {
     switch(kermit->rx.type) {
     case KermitPacketTypeAck:
         KERMIT_LOG("ACK received, state: %d", kermit->file_transfer_state);
+
+        kermit_packet_free(kermit->last_packet);
+        kermit->last_packet = NULL;
+
         switch(kermit->file_transfer_state) {
         case KermitFileTransferStateSyncParams:
             kermit->file_transfer_state = KermitFileTransferStateSendFileData;
@@ -592,7 +617,14 @@ static bool kermit_process_packet(Kermit* kermit) {
         break;
 
     case KermitPacketTypeNak:
-        FURI_LOG_E(TAG, "NAK received");
+        FURI_LOG_W(TAG, "NAK received, retransmitting last packet");
+        if(kermit->last_packet) {
+            response_packet = kermit->last_packet;
+            kermit->last_packet = NULL;
+        } else {
+            FURI_LOG_E(TAG, "NAK received with no packet to retransmit");
+            rx_packet_is_sane = false;
+        }
         break;
 
     default:
@@ -600,13 +632,20 @@ static bool kermit_process_packet(Kermit* kermit) {
         break;
     }
 
-    bool tx_failed = false;
+    bool tx_sent = false;
     if(response_packet) {
-        tx_failed = !kermit_tx_and_release_packet(kermit, response_packet);
+        if(kermit_tx_packet(kermit, response_packet)) {
+            kermit->last_packet = response_packet;
+            tx_sent = true;
+        } else {
+            kermit_packet_free(response_packet);
+        }
+
+        response_packet = NULL;
     }
 
     kermit_packet_free(kermit->rx.contents);
     kermit->rx.contents = NULL;
 
-    return rx_packet_is_sane && response_packet && !tx_failed;
+    return rx_packet_is_sane && tx_sent;
 }

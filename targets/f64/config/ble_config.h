@@ -217,6 +217,13 @@
 #define RSI_BLE_MAX_DATA_LEN 20
 #endif
 
-#define BLE_SIMPLE_GATT 1
+#define BLE_SIMPLE_GATT         1
+/*=======================================================================*/
+// Extended Advertising parameters
+/*=======================================================================*/
+#define RSI_BLE_ENABLE_ADV_EXTN 1
+
+// default number of Advertising sets in extended advertising (Max value = 15)
+#define RSI_BLE_AE_MAX_ADV_SETS 1
 
 #endif
