@@ -214,8 +214,19 @@ void var_item_set_flags(VarItem* item, uint32_t flags);
  *
  * @param[in,out] instance pointer to the VarItemList instance which contains the edited item
  * @param[in] apply_changes if false, VarItemChangeCallback will not be called
+ * @returns true if an item was being edited, false otherwise
  */
-void var_item_list_exit_edit_mode(VarItemList* instance, bool apply_changes);
+bool var_item_list_exit_edit_mode(VarItemList* instance, bool apply_changes);
+
+/**
+ * @brief Focus an item and enter edit mode on it.
+ *
+ * If another item is being edited, it is exited first.
+ *
+ * @param[in,out] instance pointer to the VarItemList instance which contains the item
+ * @param[in] item item to focus and edit
+ */
+void var_item_list_enter_edit_mode(VarItemList* instance, VarItem* item);
 
 /**
  * @brief Focus on a list item.

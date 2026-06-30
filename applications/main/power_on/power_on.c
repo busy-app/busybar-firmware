@@ -206,6 +206,8 @@ static PowerOnApp* power_on_app_alloc(void) {
 }
 
 static void power_on_app_free(PowerOnApp* instance) {
+    furi_thread_set_signal_callback(furi_thread_get_current(), NULL, NULL);
+
     furi_timer_free(instance->shutdown_timer);
 
     with_gui(instance->gui, {

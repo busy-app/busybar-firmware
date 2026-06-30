@@ -538,18 +538,15 @@ class TestCountdownElement:
         resp = _draw(assets_api, [elem])
         assets_api.assert_status(resp, 400)
 
-    @allure.title("Unrecognised direction silently falls back to first enum value")
+    @allure.title("Unrecognised direction → 400")
     @pytest.mark.api
     @pytest.mark.frontend
-    def test_unrecognised_direction_accepted(
+    def test_unrecognised_direction_rejected(
         self, assets_api: AssetsAPI, busy_timer_stopped
     ):
-        """value_index_string returns 0 for unknown strings, which maps to
-        CountdownDirectionTimeLeft. The firmware does NOT reject unknown
-        direction values (unlike font, which checks for index 0)."""
         elem = _countdown(direction="backward")
         resp = _draw(assets_api, [elem])
-        assets_api.assert_status(resp, 200)
+        assets_api.assert_status(resp, 400)
 
     @allure.title("direction=time_since accepted")
     @pytest.mark.api
@@ -559,17 +556,15 @@ class TestCountdownElement:
         resp = _draw(assets_api, [elem])
         assets_api.assert_status(resp, 200)
 
-    @allure.title("Unrecognised show_hours silently falls back to first enum value")
+    @allure.title("Unrecognised show_hours → 400")
     @pytest.mark.api
     @pytest.mark.frontend
-    def test_unrecognised_show_hours_accepted(
+    def test_unrecognised_show_hours_rejected(
         self, assets_api: AssetsAPI, busy_timer_stopped
     ):
-        """Same as direction: value_index_string returns 0 for unknown
-        strings, mapping to CountdownShowHourWhenNonZero. No rejection."""
         elem = _countdown(show_hours="never")
         resp = _draw(assets_api, [elem])
-        assets_api.assert_status(resp, 200)
+        assets_api.assert_status(resp, 400)
 
     @allure.title("show_hours=always accepted")
     @pytest.mark.api

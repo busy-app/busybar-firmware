@@ -24,7 +24,7 @@ const sl_wifi_device_configuration_t wifi_config_client = {
             .oper_mode = SL_SI91X_CLIENT_MODE,
             .coex_mode = SL_SI91X_WLAN_BLE_MODE,
             .feature_bit_map =
-                (SL_SI91X_FEAT_SECURITY_OPEN | SL_SI91X_FEAT_SECURITY_PSK | BIT(21) |
+                (SL_SI91X_FEAT_SECURITY_OPEN | SL_SI91X_FEAT_SECURITY_PSK | BIT(21) | BIT(22) |
                  SL_SI91X_FEAT_AGGREGATION | SL_SI91X_FEAT_ULP_GPIO_BASED_HANDSHAKE |
                  SL_SI91X_FEAT_DEV_TO_HOST_ULP_GPIO_1),
             .tcp_ip_feature_bit_map =
@@ -79,7 +79,13 @@ const sl_wifi_device_configuration_t wifi_config_client = {
 #if BLE_SIMPLE_GATT
                  | SL_SI91X_BLE_GATT_INIT
 #endif
-                 ),
+#if RSI_BLE_ENABLE_ADV_EXTN
+                 | SL_SI91X_BLE_ENABLE_ADV_EXTN
+#endif
+#if RSI_BLE_AE_MAX_ADV_SETS
+                 | SL_SI91X_BLE_AE_MAX_ADV_SETS(RSI_BLE_AE_MAX_ADV_SETS)
+#endif
+                     ),
             .config_feature_bit_map = SL_SI91X_FEAT_SLEEP_GPIO_SEL_BITMAP,
         },
     .ta_pool =

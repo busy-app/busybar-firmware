@@ -12,18 +12,19 @@ extern "C" {
 
 typedef enum {
     CliCommandFlagDefault = 0, /**< Default */
-    CliCommandFlagParallelSafe = (1 << 0), /**< Safe to run in parallel with other apps */
+    CliCommandFlagParallelUnsafe = (1 << 0), /**< Unsafe to run in parallel with other apps */
     CliCommandFlagInsomniaSafe = (1 << 1), /**< Safe to run with insomnia mode on */
     CliCommandFlagDontAttachStdio = (1 << 2), /**< Do no attach I/O pipe to thread stdio */
     CliCommandFlagUseShellThread =
         (1
          << 3), /**< Don't start a separate thread to run the command in. Incompatible with DontAttachStdio */
-
-    // internal flags (do not set them yourselves!)
-
-    CliCommandFlagExternal = (1 << 4), /**< The command comes from a .fal file */
     CliCommandFlagExclusive =
-        (1 << 5), /**< Only one instance of the command can be run at a time */
+        (1 << 4), /**< Only one instance of the command can be run at a time */
+
+    // internal use flags (do not set them yourselves!)
+    // only to be set inside CLI shell code
+
+    CliCommandFlagExternal = (1 << 5), /**< The command comes from a .fal file */
 } CliCommandFlag;
 
 typedef struct PipeSide PipeSide;

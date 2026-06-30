@@ -5,7 +5,7 @@
 
 #define TAG "BleAPI"
 
-#define BLE_API_LOCK_TIMEOUT (100)
+#define BLE_API_LOCK_TIMEOUT (200)
 
 ///TODO: Rework command mechanism to reduce complexity
 static void ble_send_message(

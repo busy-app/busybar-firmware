@@ -1,5 +1,7 @@
 #pragma once
 
+#include "../_nwp_callbacks/ble_nwp_headers.h"
+
 #include <furi.h>
 
 /**
@@ -22,17 +24,26 @@ void ble_advertise_free(BleAdvertiseContext* instance);
  * @brief Set new name, which will be used for advertise
  *
  * @param instance of advertise context
- * @param new_name which will be used for advertise. Max_length = Advertise_pack_max_length - Used_space.
- * If name exceeds max_length it will be trimmed like "Name..." 
- * Now Max_length = 31 - 17 = 14
+ * @param new_name which will be used for advertise.
  */
 void ble_advertise_set_name(BleAdvertiseContext* instance, const char* new_name);
 
 /**
- * @brief Refresh advertise config on 2nd core
+ * @brief Start advertise
+ * @param instance of advertise context
+ * @param advertise_to_paired_only if device is paired it will result in anonymous advertise config
+ * @param key RPA key structure used to configure accept list when pairing is present
+ */
+bool ble_advertise_start(
+    BleAdvertiseContext* instance,
+    bool advertise_to_paired_only,
+    const rsi_bt_event_le_security_keys_t* key);
+
+/**
+ * @brief Stop advertise
  * @param instance of advertise context
  */
-void ble_advertise_refresh_data(const BleAdvertiseContext* instance);
+bool ble_advertise_stop(BleAdvertiseContext* instance);
 
 /**
  * @brief Print current config into logs

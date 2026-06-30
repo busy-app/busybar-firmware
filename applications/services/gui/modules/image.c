@@ -69,6 +69,12 @@ bool image_set_source_no_cache(Image* instance, const char* file_path) {
     return image_set_source(instance, file_path);
 }
 
+void image_set_opacity(Image* instance, uint8_t opacity) {
+    furi_check(instance);
+
+    lv_obj_set_style_image_opa(instance->image, opacity, LV_PART_MAIN);
+}
+
 // LVGL class descriptor
 
 const lv_obj_class_t image_lvgl_class = {

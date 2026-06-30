@@ -29,6 +29,7 @@ static int32_t ble_worker_thread_callback(void* context) {
     ble_transmitter_subscribe(instance->transport, instance->event_loop, context);
     ble_incoming_nwp_event_processor_subscribe(instance->event_proc, instance->event_loop);
 
+    api_lock_unlock(instance->api_lock);
     furi_event_loop_run(instance->event_loop);
 
     ble_incoming_nwp_event_processor_unsubscribe(instance->event_proc, instance->event_loop);
@@ -46,6 +47,7 @@ BleWorker* ble_worker_init(BleConnectionStateChanged connect_callback, void* ctx
     BleWorker* instance = malloc(sizeof(BleWorker));
     instance->thread =
         furi_thread_alloc_ex("BleWorker", 3072U, ble_worker_thread_callback, instance);
+    instance->api_lock = api_lock_alloc_locked();
 
     instance->on_connection_changed_cb = connect_callback;
     instance->on_connection_changed_ctx = ctx;
@@ -88,10 +90,12 @@ bool ble_worker_register_service(BleServiceObject* service) {
 }
 
 void ble_worker_start() {
-    do {
-        ///TODO: Maybe some checks of thread state
-        furi_thread_start(ble_worker_instance->thread);
-    } while(false);
+    FuriThreadState state = furi_thread_get_state(ble_worker_instance->thread);
+    if(state == FuriThreadStateRunning) return;
+
+    api_lock_relock(ble_worker_instance->api_lock);
+    furi_thread_start(ble_worker_instance->thread);
+    api_lock_wait_unlock(ble_worker_instance->api_lock);
 }
 
 void ble_worker_stop() {
@@ -116,6 +120,9 @@ void ble_worker_receive_confirm(uint16_t handle, uint8_t cccd_value) {
 }
 
 bool ble_worker_forget_pairing() {
+    if(ble_device_is_connected(ble_worker_instance->device)) {
+        ble_device_disconnect(ble_worker_instance->device);
+    }
     return ble_device_forget_paired(ble_worker_instance->device);
 }
 
