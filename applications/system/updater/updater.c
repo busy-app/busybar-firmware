@@ -84,8 +84,7 @@ static UpdaterStatus updater_verify_security_flags(const UpdateManifest* manifes
 }
 #else // SRV_SL_INFO
 bool updater_get_active_security_flags(uint32_t* flags_out) {
-    UNUSED(flags_out);
-
+    *flags_out = 0;
     return false;
 }
 #endif // SRV_SL_INFO
