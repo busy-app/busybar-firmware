@@ -6,24 +6,6 @@ float dsp_low_pass(float input, float prev_output, float alpha) {
     return alpha * prev_output + (1.0f - alpha) * input;
 }
 
-void dsp_2d_kernel_normalize(size_t kernel_sz, float kernel[kernel_sz][kernel_sz]) {
-    furi_assert(kernel_sz);
-    furi_assert(kernel);
-
-    float sum = 0.0f;
-    for(size_t y = 0; y < kernel_sz; y++) {
-        for(size_t x = 0; x < kernel_sz; x++) {
-            sum += kernel[y][x];
-        }
-    }
-
-    for(size_t y = 0; y < kernel_sz; y++) {
-        for(size_t x = 0; x < kernel_sz; x++) {
-            kernel[y][x] /= sum;
-        }
-    }
-}
-
 void dsp_2d_kernel_subpixel_translate(
     size_t kernel_sz,
     float kernel[kernel_sz][kernel_sz],
@@ -92,41 +74,38 @@ void dsp_2d_kernel_apply(
     float kernel[kernel_sz][kernel_sz],
     DspImageBuffer src,
     DspImageBuffer dst,
-    size_t n_chans,
     int offs_x,
     int offs_y) {
     furi_assert(kernel_sz);
     furi_assert((kernel_sz % 2) == 1);
     furi_assert(kernel);
-    furi_assert(n_chans);
 
-    furi_assert(dst.byte_width <= src.byte_width);
+    furi_assert(dst.width <= src.width);
     furi_assert(dst.height <= src.height);
+    furi_assert(dst.channels == src.channels);
 
+    size_t n_chans = src.channels;
     int kernel_mid = kernel_sz / 2;
 
     // https://en.wikipedia.org/wiki/Kernel_(image_processing)#Convolution
 
-    int dst_px_width = dst.byte_width / (int)n_chans;
-
-    for(int dst_y = 0; dst_y < dst.height; dst_y++) {
-        for(int dst_x = 0; dst_x < dst_px_width; dst_x++) {
+    for(int dst_y = 0; dst_y < (int)dst.height; dst_y++) {
+        for(int dst_x = 0; dst_x < (int)dst.width; dst_x++) {
             for(size_t chan = 0; chan < n_chans; chan++) {
                 float sum = 0.0f;
 
-                int px_width = src.byte_width / n_chans;
                 int src_y = dst_y - kernel_mid + offs_y;
                 int src_x = dst_x - kernel_mid + offs_x;
                 const uint8_t* src_buf =
-                    &src.first_pixel[(src_y * src.byte_stride) + (src_x * n_chans) + chan];
-                size_t src_buf_line_stride = src.byte_stride - (kernel_sz * n_chans);
+                    &src.first_pixel[(src_y * src.stride * src.channels) + (src_x * n_chans) + chan];
+                size_t src_buf_line_stride = (src.stride * src.channels) - (kernel_sz * n_chans);
 
                 const float* kernel_flat = (float*)kernel;
 
                 for(int k_y = 0; k_y < (int)kernel_sz; k_y++) {
                     for(int k_x = 0; k_x < (int)kernel_sz; k_x++) {
-                        bool is_in_bounds = (src_x >= 0) && (src_y >= 0) && (src_x < px_width) &&
-                                            (src_y < src.height);
+                        bool is_in_bounds = (src_x >= 0) && (src_y >= 0) &&
+                                            (src_x < (int)src.width) && (src_y < (int)src.height);
 
                         float value = is_in_bounds ? *src_buf : 0.0f;
                         sum += value * *kernel_flat;
@@ -140,7 +119,7 @@ void dsp_2d_kernel_apply(
                     src_buf += src_buf_line_stride;
                 }
 
-                size_t buf_idx = (dst_y * dst.byte_stride) + (dst_x * n_chans) + chan;
+                size_t buf_idx = (dst_y * dst.stride * dst.channels) + (dst_x * n_chans) + chan;
                 dst.first_pixel[buf_idx] = CLAMP((int)sum, UINT8_MAX, 0);
             }
         }

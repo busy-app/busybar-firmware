@@ -8,9 +8,10 @@ extern "C" {
 
 typedef struct {
     uint8_t* first_pixel;
-    int byte_width;
-    int height;
-    size_t byte_stride;
+    size_t width;
+    size_t stride;
+    size_t height;
+    size_t channels;
 } DspImageBuffer;
 
 /**
@@ -22,17 +23,6 @@ typedef struct {
  * @return The filtered output sample.
  */
 float dsp_low_pass(float input, float prev_output, float alpha);
-
-/**
- * @brief Normalize a 2-dimensional kernel
- * 
- * After normalization, the sum of all elements is 1.
- * 
- * @param[in] kernel_sz Size of one axis of the kernel.
- * @param[inout] kernel Input and result (2-dimensional array of size
- *                      `kernel_sz` x `kernel_sz`)
- */
-void dsp_2d_kernel_normalize(size_t kernel_sz, float kernel[kernel_sz][kernel_sz]);
 
 /**
  * @brief Calculate a 2-dimensional kernel for a sub-pixel translation operation.
@@ -65,7 +55,6 @@ void dsp_2d_kernel_subpixel_translate(
  *                   x `kernel_sz`)
  * @param[in] src Descriptor for source buffer
  * @param[in] dst Descriptor for destination buffer
- * @param[in] n_chans Number of color channels per pixel
  * @param[in] offs_x X-axis offset of destination window relative to source sheet
  * @param[in] offs_y Y-axis offset of destination window relative to source sheet
  */
@@ -74,7 +63,6 @@ void dsp_2d_kernel_apply(
     float kernel[kernel_sz][kernel_sz],
     DspImageBuffer src,
     DspImageBuffer dst,
-    size_t n_chans,
     int offs_x,
     int offs_y);
 

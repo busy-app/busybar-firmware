@@ -79,7 +79,7 @@ extern "C" {
  * @brief Color format. Applies to the entire animation.
  */
 typedef enum FURI_PACKED {
-    AnimFileColorFormatBgr888, //<! Each pixel is (in order) blue, then green, then alpha
+    AnimFileColorFormatBgr888, //<! Each pixel is (in order) blue, then green, then red
     AnimFileColorFormatGray4, //<! 2 px in byte: hi nibble = earlier pixel, lo nibble = later pixel
     AnimFileColorFormatBgra8888, //<! Each pixel is (in order) blue, then green, then red, then alpha
     AnimFileColorFormatMAX,

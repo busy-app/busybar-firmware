@@ -148,7 +148,6 @@ static bool anim_player_set_source_internal(
 
 bool anim_player_set_source(AnimPlayer* instance, const char* path) {
     furi_check(instance);
-    furi_check(path);
     return anim_player_set_source_internal(instance, path, 0, 0);
 }
 
@@ -158,7 +157,6 @@ bool anim_player_set_source_sheet(
     size_t width,
     size_t height) {
     furi_check(instance);
-    furi_check(path);
     furi_check(width);
     furi_check(height);
     return anim_player_set_source_internal(instance, path, width, height);

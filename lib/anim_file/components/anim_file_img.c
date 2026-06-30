@@ -195,17 +195,18 @@ static bool anim_file_img_cut_part(AnimFile* anim, const uint8_t* source, uint8_
         img->cutout_kernel,
         (DspImageBuffer){
             .first_pixel = (uint8_t*)source,
-            .byte_width = info->width * ANIM_FILE_OUT_BYTES_PER_PIXEL,
-            .byte_stride = info->width * ANIM_FILE_OUT_BYTES_PER_PIXEL,
+            .width = info->width,
+            .stride = info->width,
             .height = info->height,
+            .channels = ANIM_FILE_OUT_BYTES_PER_PIXEL,
         },
         (DspImageBuffer){
             .first_pixel = dest,
-            .byte_width = img->cutout_w * ANIM_FILE_OUT_BYTES_PER_PIXEL,
-            .byte_stride = img->cutout_w * ANIM_FILE_OUT_BYTES_PER_PIXEL,
+            .width = img->cutout_w,
+            .stride = img->cutout_w,
             .height = img->cutout_h,
+            .channels = ANIM_FILE_OUT_BYTES_PER_PIXEL,
         },
-        ANIM_FILE_OUT_BYTES_PER_PIXEL,
         img->cutout_x,
         img->cutout_y);
 
