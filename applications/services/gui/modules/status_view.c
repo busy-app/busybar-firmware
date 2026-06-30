@@ -39,7 +39,14 @@ static void status_view_style_front(Widget* widget) {
         LV_FLEX_ALIGN_CENTER);
     lv_obj_set_style_pad_column(TO_LV_OBJ(instance->internal_container), 2, LV_PART_MAIN);
 
+    lv_obj_set_flex_align(
+        TO_LV_OBJ(instance->label_container),
+        LV_FLEX_ALIGN_CENTER,
+        LV_FLEX_ALIGN_CENTER,
+        LV_FLEX_ALIGN_CENTER);
     lv_obj_set_style_pad_row(instance->label_container, -2, LV_PART_MAIN);
+    lv_obj_set_flex_grow(instance->label_container, 1);
+    lv_obj_set_height(instance->label_container, LV_PCT(100));
 
     lv_obj_set_style_text_font(instance->primary_label, instance->primary_font, LV_PART_MAIN);
     lv_obj_set_style_text_line_space(instance->primary_label, -2, LV_PART_MAIN);
@@ -58,7 +65,7 @@ static void status_view_style_back(Widget* widget) {
     lv_obj_set_flex_flow(TO_LV_OBJ(instance->internal_container), LV_FLEX_FLOW_COLUMN);
     lv_obj_set_flex_align(
         TO_LV_OBJ(instance->internal_container),
-        LV_FLEX_ALIGN_CENTER,
+        LV_FLEX_ALIGN_END,
         LV_FLEX_ALIGN_CENTER,
         LV_FLEX_ALIGN_CENTER);
     lv_obj_set_style_pad_hor(TO_LV_OBJ(instance->internal_container), 2, LV_PART_MAIN);
@@ -68,13 +75,12 @@ static void status_view_style_back(Widget* widget) {
     lv_obj_set_style_pad_top(instance->icon_static_box, 2, LV_PART_MAIN);
     lv_obj_set_style_pad_right(instance->icon_static_box, 3, LV_PART_MAIN);
     lv_obj_set_style_pad_bottom(instance->icon_static_box, 3, LV_PART_MAIN);
+    lv_obj_set_align(instance->icon_static_box, LV_ALIGN_BOTTOM_MID);
 
     lv_obj_set_flex_align(
-        instance->label_container,
-        LV_FLEX_ALIGN_CENTER,
-        LV_FLEX_ALIGN_CENTER,
-        LV_FLEX_ALIGN_CENTER);
+        instance->label_container, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
     lv_obj_set_style_pad_row(instance->label_container, 2, LV_PART_MAIN);
+    lv_obj_set_height(instance->label_container, LV_PCT(50));
 
     lv_obj_set_style_text_font(instance->primary_label, instance->primary_font, LV_PART_MAIN);
     lv_obj_set_style_text_align(instance->primary_label, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
@@ -105,11 +111,14 @@ static void status_view_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t
     lv_obj_add_flag(TO_LV_OBJ(instance->icon_animated), LV_OBJ_FLAG_HIDDEN);
 
     instance->label_container = lv_obj_create(TO_LV_OBJ(instance->internal_container));
-    lv_obj_set_size(instance->label_container, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
+    lv_obj_set_width(instance->label_container, LV_PCT(100));
     lv_obj_set_flex_flow(instance->label_container, LV_FLEX_FLOW_COLUMN);
 
     instance->primary_label = lv_label_create(instance->label_container);
     lv_obj_set_style_text_color(instance->primary_label, lv_color_white(), LV_PART_MAIN);
+    lv_obj_set_width(instance->primary_label, LV_PCT(100));
+    lv_label_set_long_mode(instance->primary_label, LV_LABEL_LONG_WRAP);
+    lv_obj_set_style_max_height(instance->primary_label, LV_PCT(100), 0);
     lv_obj_add_flag(instance->primary_label, LV_OBJ_FLAG_HIDDEN);
 
     instance->auxiliary_label = lv_label_create(instance->label_container);
