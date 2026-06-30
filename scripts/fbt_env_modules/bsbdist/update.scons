@@ -73,6 +73,49 @@ min_update_tgz = bundle_env.CompressBundle(
 bundle_env.FlashOverHttp("flash_usb_min", min_update_tgz)
 bundle_env.FlashOverHttp("flash_usb_min_tar", min_update_tar)
 
+# --- U5-only update bundles (no SI917) ---
+
+update_stm_min_env = bundle_env.Clone(
+    BUNDLE_SIL_FW="",
+)
+
+update_stm_min_stm_deps = [
+    u5_env["UPD_ENV"]["FW_BIN"],
+    fw_env["FW_DFU"],
+]
+
+update_stm_env = update_stm_min_env.Clone(
+    BUNDLE_RESOURCES=fw_env["RESOURCES_ROOT"],
+)
+
+update_stm_tar = update_stm_env.UpdateBundle(
+    fw_env.File("${BUILD_DIR}/update_stm_${F_TARGET_HW}"),
+    [],
+)
+Depends(update_stm_tar, update_stm_min_stm_deps + [fw_env["FW_RESOURCES_MANIFEST"]])
+
+update_stm_tgz = bundle_env.CompressBundle(
+    fw_env.File("${BUILD_DIR}/update_stm_${F_TARGET_HW}.tgz"),
+    update_stm_tar,
+)
+
+bundle_env.FlashOverHttp("flash_usb_stm", update_stm_tgz)
+bundle_env.FlashOverHttp("flash_usb_stm_tar", update_stm_tgz)
+
+update_stm_min_tar = update_stm_min_env.UpdateBundle(
+    fw_env.File("${BUILD_DIR}/update_stm_min_${F_TARGET_HW}"),
+    [],
+)
+Depends(update_stm_min_tar, update_stm_min_stm_deps)
+
+update_stm_min_tgz = bundle_env.CompressBundle(
+    fw_env.File("${BUILD_DIR}/update_stm_min_${F_TARGET_HW}.tgz"),
+    update_stm_min_tar,
+)
+
+bundle_env.FlashOverHttp("flash_usb_stm_min", update_stm_min_tgz)
+bundle_env.FlashOverHttp("flash_usb_stm_min_tar", update_stm_min_tgz)
+
 # --- Recovery bundle (with resources + radio firmware + bkp resources) ---
 
 bkp_env = full_env.Clone(
