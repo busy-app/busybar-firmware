@@ -80,10 +80,13 @@ static size_t parse_opt(const char* args, size_t args_len, const char* opts, Par
 }
 
 static size_t parse_posarg(const char* args, size_t args_len, ParsedOption* out) {
-    UNUSED(args);
-    UNUSED(args_len);
-    UNUSED(out);
-    return 0;
+    const size_t len = parse_optval(args, args_len, &out->optval);
+
+    if(len > 0) {
+        out->opt = 0;
+    }
+
+    return len;
 }
 
 bool getopts(FuriString* args, const char* opts, OptionCallback callback, void* context) {
