@@ -21,6 +21,7 @@ env.Append(
         File("strint.h"),
         File("timer.h"),
         File("value_index.h"),
+        File("getopt.h"),
     ],
 )
 
@@ -40,6 +41,7 @@ sources = [
     "strint.c",
     "timers.c",
     "value_index.c",
+    "getopt.c",
 ]
 
 lib = libenv.StaticLibrary("${FW_LIB_NAME}", sources)
