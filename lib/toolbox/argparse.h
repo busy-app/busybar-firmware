@@ -1,3 +1,7 @@
+/**
+ * @file argparse.h
+ * @brief Command line argument parsing library.
+ */
 #pragma once
 
 #include <core/string.h>

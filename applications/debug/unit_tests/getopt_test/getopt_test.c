@@ -1,6 +1,6 @@
 #include "../unit_tests.h"
 
-#include <toolbox/getopt.h>
+#include <toolbox/argparse.h>
 
 #define OPT_A "a"
 #define OPT_B "b"
