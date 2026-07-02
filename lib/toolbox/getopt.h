@@ -4,4 +4,4 @@
 
 typedef void (*OptionCallback)(char opt, const char* optarg, void* context);
 
-bool getopts(FuriString* args, const char* opts, OptionCallback callback, void* context);
+bool parse_args(FuriString* args, const char* opts, OptionCallback callback, void* context);

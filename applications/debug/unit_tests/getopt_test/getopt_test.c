@@ -131,16 +131,16 @@ static void getopt_test_posarg_only_option_callback(char opt, const char* optval
 MU_TEST(getopt_empty_test) {
     FuriString* args = furi_string_alloc();
 
-    mu_check(getopts(args, "", getopt_test_option_callback, NULL));
-    mu_check(getopts(args, OPTS_ALL, getopt_test_option_callback, NULL));
+    mu_check(parse_args(args, "", getopt_test_option_callback, NULL));
+    mu_check(parse_args(args, OPTS_ALL, getopt_test_option_callback, NULL));
 
     furi_string_set(args, ARGS_SPACE);
 
-    mu_check(getopts(args, "", getopt_test_option_callback, NULL));
-    mu_check(getopts(args, OPTS_ALL, getopt_test_option_callback, NULL));
+    mu_check(parse_args(args, "", getopt_test_option_callback, NULL));
+    mu_check(parse_args(args, OPTS_ALL, getopt_test_option_callback, NULL));
 
     furi_string_set(args, ARGS_SIMPLE);
-    mu_check(!getopts(args, "", getopt_test_option_callback, NULL));
+    mu_check(!parse_args(args, "", getopt_test_option_callback, NULL));
 
     furi_string_free(args);
 }
@@ -149,7 +149,7 @@ MU_TEST(getopt_simple_test) {
     GetoptTestContext context = {0};
     FuriString* args = furi_string_alloc_set(ARGS_SIMPLE);
 
-    mu_check(getopts(args, OPTS_ALL, getopt_test_option_callback, &context));
+    mu_check(parse_args(args, OPTS_ALL, getopt_test_option_callback, &context));
     mu_assert_int_eq(6, context.run_count);
 
     furi_string_free(args);
@@ -159,7 +159,7 @@ MU_TEST(getopt_mixed_test) {
     GetoptTestContext context = {0};
     FuriString* args = furi_string_alloc_set(ARGS_WITH_POSARGS);
 
-    mu_check(getopts(args, OPTS_ALL, getopt_test_posarg_option_callback, &context));
+    mu_check(parse_args(args, OPTS_ALL, getopt_test_posarg_option_callback, &context));
     mu_assert_int_eq(6, context.run_count);
 
     furi_string_free(args);
@@ -169,7 +169,7 @@ MU_TEST(getopt_quoted_test) {
     GetoptTestContext context = {0};
     FuriString* args = furi_string_alloc_set(ARGS_WITH_QUOTES);
 
-    mu_check(getopts(args, OPTS_ALL, getopt_test_quoted_option_callback, &context));
+    mu_check(parse_args(args, OPTS_ALL, getopt_test_quoted_option_callback, &context));
     mu_assert_int_eq(6, context.run_count);
 
     furi_string_free(args);
@@ -179,7 +179,7 @@ MU_TEST(getopt_posarg_test) {
     GetoptTestContext context = {0};
     FuriString* args = furi_string_alloc_set(ARGS_POSARG_ONLY);
 
-    mu_check(getopts(args, "", getopt_test_posarg_only_option_callback, &context));
+    mu_check(parse_args(args, "", getopt_test_posarg_only_option_callback, &context));
     mu_assert_int_eq(3, context.run_count);
 
     furi_string_free(args);

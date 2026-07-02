@@ -9,9 +9,9 @@ typedef struct {
     const char* optarg;
 } ParsedOption;
 
-static const char getopt_space_chars[] = " \n\r\t";
-static const char getopt_reserved_chars[] = ":\"'\0";
-static const char getopt_quote_chars[] = "\"'";
+static const char quote_chars[] = "\"'";
+static const char space_chars[] = " \n\r\t";
+static const char reserved_chars[] = ":\"'\0";
 
 static bool is_option_argument_required(const char* opts) {
     return (strlen(opts) != 0) && (opts[1] == ':');
@@ -20,10 +20,10 @@ static bool is_option_argument_required(const char* opts) {
 static size_t parse_option_argument(const char* args, const char** out) {
     size_t consumed_len = 0;
 
-    const size_t start_offset = strspn(args, getopt_space_chars);
+    const size_t start_offset = strspn(args, space_chars);
     const char* start = args + start_offset;
 
-    const char* opening_quote = strchr(getopt_quote_chars, *start);
+    const char* opening_quote = strchr(quote_chars, *start);
 
     if(opening_quote != NULL) {
         start += CHAR_OFFSET;
@@ -34,7 +34,7 @@ static size_t parse_option_argument(const char* args, const char** out) {
         }
 
     } else {
-        consumed_len = strcspn(start, getopt_space_chars) + start_offset;
+        consumed_len = strcspn(start, space_chars) + start_offset;
     }
 
     *out = start;
@@ -47,7 +47,7 @@ static size_t parse_option(const char* args, const char* opts, ParsedOption* out
 
     do {
         const char opt = *args;
-        if(strchr(getopt_reserved_chars, opt) != NULL) {
+        if(strchr(reserved_chars, opt) != NULL) {
             break;
         }
 
@@ -93,7 +93,7 @@ static size_t parse_positional_arg(const char* args, ParsedOption* out) {
     return consumed_len;
 }
 
-bool getopts(FuriString* args, const char* opts, OptionCallback callback, void* context) {
+bool parse_args(FuriString* args, const char* opts, OptionCallback callback, void* context) {
     furi_check(args);
     furi_check(opts);
     furi_check(callback);
@@ -103,7 +103,7 @@ bool getopts(FuriString* args, const char* opts, OptionCallback callback, void* 
     const size_t args_len = furi_string_size(args);
 
     for(size_t i = 0; i < args_len; ++i) {
-        if(strchr(getopt_space_chars, furi_string_get_char(args, i)) != NULL) {
+        if(strchr(space_chars, furi_string_get_char(args, i)) != NULL) {
             continue;
         }
 
