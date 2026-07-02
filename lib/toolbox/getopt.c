@@ -7,6 +7,8 @@ typedef struct {
     const char* optval;
 } ParsedOption;
 
+static const char getopt_reserved_chars[] = ":\"'\0";
+
 static size_t parse_optval(const char* args, size_t args_len, const char** out) {
     size_t len = 0;
 
@@ -35,20 +37,18 @@ static size_t parse_opt(const char* args, size_t args_len, const char* opts, Par
             break;
         }
 
+        const char opt = args[0];
+        if(strchr(getopt_reserved_chars, opt) != NULL) {
+            break;
+        }
+
         const size_t opts_len = strlen(opts);
         if(opts_len == 0) {
             break;
         }
 
-        const char* opt_ptr = strchr(opts, args[0]);
+        const char* opt_ptr = strchr(opts, opt);
         if(opt_ptr == NULL) {
-            // Option not in list
-            break;
-        }
-
-        const char opt = *opt_ptr;
-        if(opt == ':') {
-            // Malformed option: -: is not allowed
             break;
         }
 
