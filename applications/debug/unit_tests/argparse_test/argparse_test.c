@@ -48,6 +48,10 @@
 
 #define ARGS_POSARG_ONLY "\t " POSARG_1 " " POSARG_4 " \"" POSARG_4 "\""
 
+#define ARGS_MISSING_OPTARG ARG_CONCAT(OPT_A, "") " " ARG_CONCAT(OPT_B, "")
+
+#define ARGS_UNKNOWN_OPTS ARG_CONCAT("X", "") " " ARG_CONCAT("Y", "") ARG_CONCAT("Z", "")
+
 #define FIRST_CHAR(str) (str[0])
 
 typedef struct {
@@ -140,7 +144,7 @@ MU_TEST(argparse_empty_test) {
     mu_check(parse_args(args, OPTS_ALL, argparse_test_option_callback, NULL));
 
     furi_string_set(args, ARGS_SIMPLE);
-    mu_check(!parse_args(args, "", argparse_test_option_callback, NULL));
+    mu_check(!parse_args(args, NULL, argparse_test_option_callback, NULL));
 
     furi_string_free(args);
 }
@@ -185,12 +189,23 @@ MU_TEST(argparse_posarg_test) {
     furi_string_free(args);
 }
 
+MU_TEST(argparse_error_test) {
+    FuriString* args = furi_string_alloc_set(ARGS_MISSING_OPTARG);
+    mu_check(!parse_args(args, OPTS_ALL, argparse_test_option_callback, NULL));
+
+    furi_string_set(args, ARGS_UNKNOWN_OPTS);
+    mu_check(!parse_args(args, OPTS_ALL, argparse_test_option_callback, NULL));
+
+    furi_string_free(args);
+}
+
 MU_TEST_SUITE(argparse_test_suite) {
     MU_RUN_TEST(argparse_empty_test);
     MU_RUN_TEST(argparse_simple_test);
     MU_RUN_TEST(argparse_mixed_test);
     MU_RUN_TEST(argparse_quoted_test);
     MU_RUN_TEST(argparse_posarg_test);
+    MU_RUN_TEST(argparse_error_test);
 }
 
 int run_minunit_argparse_test(void) {
