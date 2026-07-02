@@ -9,23 +9,26 @@ typedef struct {
 
 static const char getopt_space_chars[] = " \n\r\t";
 static const char getopt_reserved_chars[] = ":\"'\0";
+static const char getopt_quote_chars[] = "\"'";
 
 static size_t parse_optval(const char* args, const char** out) {
+    const char* start;
+
     size_t len = strspn(args, getopt_space_chars);
+    const char* opening_quote = strchr(getopt_quote_chars, args[len]);
 
-    const char first_char = args[len];
-    const bool is_quoted = (first_char == '"') || (first_char == '\'');
+    if(opening_quote != NULL) {
+        start = &args[len + 1];
 
-    if(is_quoted) {
-        ++len;
-    }
+        const char* closing_quote = strchr(start, *opening_quote);
+        if(closing_quote != NULL) {
+            len = (size_t)(closing_quote - args);
+        } else {
+            len = 0;
+        }
 
-    const char* start = &args[len];
-
-    if(is_quoted) {
-        const char* closing_quote = strchr(start, first_char);
-        len = closing_quote ? (size_t)(closing_quote - args) : 0;
     } else {
+        start = &args[len];
         len += strcspn(start, getopt_space_chars);
     }
 
