@@ -6,18 +6,18 @@
 
 typedef struct {
     char opt;
-    const char* optval;
+    const char* optarg;
 } ParsedOption;
 
 static const char getopt_space_chars[] = " \n\r\t";
 static const char getopt_reserved_chars[] = ":\"'\0";
 static const char getopt_quote_chars[] = "\"'";
 
-static bool is_optval_required(const char* opts) {
+static bool is_option_argument_required(const char* opts) {
     return (strlen(opts) != 0) && (opts[1] == ':');
 }
 
-static size_t parse_optval(const char* args, const char** out) {
+static size_t parse_option_argument(const char* args, const char** out) {
     size_t consumed_len = 0;
 
     const size_t start_offset = strspn(args, getopt_space_chars);
@@ -42,7 +42,7 @@ static size_t parse_optval(const char* args, const char** out) {
     return consumed_len;
 }
 
-static size_t parse_opt(const char* args, const char* opts, ParsedOption* out) {
+static size_t parse_option(const char* args, const char* opts, ParsedOption* out) {
     size_t consumed_len = 0;
 
     do {
@@ -62,10 +62,10 @@ static size_t parse_opt(const char* args, const char* opts, ParsedOption* out) {
 
         consumed_len += CHAR_OFFSET;
 
-        const char* optval = NULL;
+        const char* optarg = NULL;
 
-        if(is_optval_required(matched_opt)) {
-            const size_t optval_len = parse_optval(args + consumed_len, &optval);
+        if(is_option_argument_required(matched_opt)) {
+            const size_t optval_len = parse_option_argument(args + consumed_len, &optarg);
 
             if(optval_len == 0) {
                 consumed_len = 0;
@@ -76,15 +76,15 @@ static size_t parse_opt(const char* args, const char* opts, ParsedOption* out) {
         }
 
         out->opt = opt;
-        out->optval = optval;
+        out->optarg = optarg;
 
     } while(false);
 
     return consumed_len;
 }
 
-static size_t parse_posarg(const char* args, ParsedOption* out) {
-    const size_t consumed_len = parse_optval(args, &out->optval);
+static size_t parse_positional_arg(const char* args, ParsedOption* out) {
+    const size_t consumed_len = parse_option_argument(args, &out->optarg);
 
     if(consumed_len > 0) {
         out->opt = 0;
@@ -107,15 +107,14 @@ bool getopts(FuriString* args, const char* opts, OptionCallback callback, void* 
             continue;
         }
 
-        ParsedOption opt;
-
         size_t consumed_len;
+        ParsedOption option;
 
         if(furi_string_get_char(args, i) == '-') {
             i += CHAR_OFFSET;
-            consumed_len = parse_opt(furi_string_get_cstr(args) + i, opts, &opt);
+            consumed_len = parse_option(furi_string_get_cstr(args) + i, opts, &option);
         } else {
-            consumed_len = parse_posarg(furi_string_get_cstr(args) + i, &opt);
+            consumed_len = parse_positional_arg(furi_string_get_cstr(args) + i, &option);
         }
 
         if(consumed_len == 0) {
@@ -126,7 +125,7 @@ bool getopts(FuriString* args, const char* opts, OptionCallback callback, void* 
         i += consumed_len;
         furi_string_set_char(args, i, 0);
 
-        callback(opt.opt, opt.optval, context);
+        callback(option.opt, option.optarg, context);
     }
 
     return success;
