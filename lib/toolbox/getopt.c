@@ -11,6 +11,10 @@ static const char getopt_space_chars[] = " \n\r\t";
 static const char getopt_reserved_chars[] = ":\"'\0";
 static const char getopt_quote_chars[] = "\"'";
 
+static bool is_optval_required(const char* opts) {
+    return strlen(opts) > 0 && opts[1] == ':';
+}
+
 static size_t parse_optval(const char* args, const char** out) {
     const char* start;
 
@@ -46,28 +50,23 @@ static size_t parse_opt(const char* args, const char* opts, ParsedOption* out) {
             break;
         }
 
-        const size_t opts_len = strlen(opts);
-        if(opts_len == 0) {
+        if(strlen(opts) == 0) {
             break;
         }
 
-        const char* opt_ptr = strchr(opts, opt);
-        if(opt_ptr == NULL) {
+        const char* matched_opt = strchr(opts, opt);
+        if(matched_opt == NULL) {
             break;
         }
+
+        len = 1;
 
         const char* optval = NULL;
 
-        opt_ptr++;
-        len++;
-
-        const size_t l = opt_ptr - opts;
-
-        if((l < opts_len) && (*opt_ptr == ':')) {
-            const size_t optval_len = parse_optval(args + len, &optval);
+        if(is_optval_required(matched_opt)) {
+            const size_t optval_len = parse_optval(&args[len], &optval);
 
             if(optval_len == 0) {
-                // Required value is missing
                 len = 0;
                 break;
             }
