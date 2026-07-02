@@ -63,7 +63,7 @@ static size_t parse_opt(const char* args, const char* opts, ParsedOption* out) {
         const char* optval = NULL;
 
         if(is_optval_required(matched_opt)) {
-            const size_t optval_len = parse_optval(&args[len], &optval);
+            const size_t optval_len = parse_optval(args + len, &optval);
 
             if(optval_len == 0) {
                 len = 0;

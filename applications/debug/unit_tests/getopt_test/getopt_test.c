@@ -23,31 +23,42 @@
 #define POSARG_1 "lorem"
 #define POSARG_2 "ipsum"
 #define POSARG_3 "This \t is another \tstring with\t spaces"
+#define POSARG_4 "https://my.awesome.site.link/endpoint?param=hello:999"
 
 #define ARG(opt, optval)        "-" opt " " optval
 #define ARG_TAB(opt, optval)    "-" opt "\t" optval
 #define ARG_CONCAT(opt, optval) "-" opt optval
+
+#define ARGS_SPACE " \n  \t  \r   \n  \t\t\t "
 
 #define ARGS_SIMPLE                                                       \
     ARG(OPT_A, OPTVAL_A)                                                  \
     " " ARG_TAB(OPT_B, OPTVAL_B) " " ARG_CONCAT(OPT_C, OPTVAL_C) " " ARG( \
         OPT_D, OPTVAL_D) " " ARG(OPT_E, OPTVAL_E) " " ARG(OPT_F, OPTVAL_F)
 
-#define ARGS_WITH_POSARGS                                                                        \
-    ARG(OPT_A, OPTVAL_A)                                                                         \
-    " " POSARG_1 "\t" ARG(OPT_B, OPTVAL_B) " \t " POSARG_2 " " ARG(OPT_C, OPTVAL_C) " " POSARG_1 \
-                                                                                    " \t "
-#define ARGS_WITH_QUOTES                                                                          \
-    ARG(OPT_A, "\"" OPTVAL_A "\"")                                                                \
-    " " ARG(OPT_G, "\"" OPTVAL_G "\"") " \"" POSARG_3 "\" " ARG(OPT_B, "'" OPTVAL_B "'") " " ARG( \
-        OPT_G, "'" OPTVAL_G "'") " '" POSARG_3 "' "
+#define ARGS_WITH_POSARGS                                                                   \
+    ARG(OPT_A, OPTVAL_A)                                                                    \
+    " " POSARG_1 "\t" ARG_CONCAT(OPT_B, OPTVAL_B) " \t " POSARG_2                           \
+                                                  " " ARG_TAB(OPT_C, OPTVAL_C) " " POSARG_1 \
+                                                                               " \t "
+#define ARGS_WITH_QUOTES                                                \
+    ARG_TAB(OPT_A, "\"" OPTVAL_A "\"")                                  \
+    " " ARG(OPT_G, "\"" OPTVAL_G "\"") " \"" POSARG_3 "\" " ARG_CONCAT( \
+        OPT_B, "'" OPTVAL_B "'") " " ARG(OPT_G, "'" OPTVAL_G "'") " '" POSARG_3 "' "
+
+#define ARGS_POSARG_ONLY "\t " POSARG_1 " " POSARG_4 " \"" POSARG_4 "\""
 
 #define FIRST_CHAR(str) (str[0])
 
-static void* getopt_test_context = (void*)(0xfeedcafe);
+typedef struct {
+    uint32_t run_count;
+} GetoptTestContext;
 
 static void getopt_test_option_callback(char opt, const char* optval, void* context) {
-    mu_assert_pointers_eq(context, getopt_test_context);
+    mu_assert_not_null(context);
+
+    GetoptTestContext* ctx = context;
+    ++ctx->run_count;
 
     if(opt == FIRST_CHAR(OPT_A)) {
         mu_assert_string_eq(OPTVAL_A, optval);
@@ -62,12 +73,15 @@ static void getopt_test_option_callback(char opt, const char* optval, void* cont
     } else if(opt == FIRST_CHAR(OPT_F)) {
         mu_assert_null(optval);
     } else {
-        mu_assert(false, "Invalid option");
+        mu_fail("Invalid option");
     }
 }
 
 static void getopt_test_posarg_option_callback(char opt, const char* optval, void* context) {
-    mu_assert_pointers_eq(context, getopt_test_context);
+    mu_assert_not_null(context);
+
+    GetoptTestContext* ctx = context;
+    ++ctx->run_count;
 
     if(opt == FIRST_CHAR(OPT_A)) {
         mu_assert_string_eq(OPTVAL_A, optval);
@@ -78,12 +92,15 @@ static void getopt_test_posarg_option_callback(char opt, const char* optval, voi
     } else if(opt == 0) {
         mu_check((strcmp(optval, POSARG_1) == 0) || (strcmp(optval, POSARG_2) == 0));
     } else {
-        mu_assert(false, "Invalid option");
+        mu_fail("Invalid option");
     }
 }
 
 static void getopt_test_quoted_option_callback(char opt, const char* optval, void* context) {
-    mu_assert_pointers_eq(context, getopt_test_context);
+    mu_assert_not_null(context);
+
+    GetoptTestContext* ctx = context;
+    ++ctx->run_count;
 
     if(opt == FIRST_CHAR(OPT_A)) {
         mu_assert_string_eq(OPTVAL_A, optval);
@@ -94,12 +111,30 @@ static void getopt_test_quoted_option_callback(char opt, const char* optval, voi
     } else if(opt == 0) {
         mu_assert_string_eq(POSARG_3, optval);
     } else {
-        mu_assert(false, "Invalid option");
+        mu_fail("Invalid option");
+    }
+}
+
+static void getopt_test_posarg_only_option_callback(char opt, const char* optval, void* context) {
+    mu_assert_not_null(context);
+
+    GetoptTestContext* ctx = context;
+    ++ctx->run_count;
+
+    if(opt == 0) {
+        mu_check((strcmp(optval, POSARG_1) == 0) || (strcmp(optval, POSARG_4) == 0));
+    } else {
+        mu_fail("Invalid option");
     }
 }
 
 MU_TEST(getopt_empty_test) {
     FuriString* args = furi_string_alloc();
+
+    mu_check(getopts(args, "", getopt_test_option_callback, NULL));
+    mu_check(getopts(args, OPTS_ALL, getopt_test_option_callback, NULL));
+
+    furi_string_set(args, ARGS_SPACE);
 
     mu_check(getopts(args, "", getopt_test_option_callback, NULL));
     mu_check(getopts(args, OPTS_ALL, getopt_test_option_callback, NULL));
@@ -111,25 +146,41 @@ MU_TEST(getopt_empty_test) {
 }
 
 MU_TEST(getopt_simple_test) {
+    GetoptTestContext context = {0};
     FuriString* args = furi_string_alloc_set(ARGS_SIMPLE);
 
-    mu_check(getopts(args, OPTS_ALL, getopt_test_option_callback, getopt_test_context));
+    mu_check(getopts(args, OPTS_ALL, getopt_test_option_callback, &context));
+    mu_assert_int_eq(6, context.run_count);
 
     furi_string_free(args);
 }
 
-MU_TEST(getopt_posarg_test) {
+MU_TEST(getopt_mixed_test) {
+    GetoptTestContext context = {0};
     FuriString* args = furi_string_alloc_set(ARGS_WITH_POSARGS);
 
-    mu_check(getopts(args, OPTS_ALL, getopt_test_posarg_option_callback, getopt_test_context));
+    mu_check(getopts(args, OPTS_ALL, getopt_test_posarg_option_callback, &context));
+    mu_assert_int_eq(6, context.run_count);
 
     furi_string_free(args);
 }
 
 MU_TEST(getopt_quoted_test) {
+    GetoptTestContext context = {0};
     FuriString* args = furi_string_alloc_set(ARGS_WITH_QUOTES);
 
-    mu_check(getopts(args, OPTS_ALL, getopt_test_quoted_option_callback, getopt_test_context));
+    mu_check(getopts(args, OPTS_ALL, getopt_test_quoted_option_callback, &context));
+    mu_assert_int_eq(6, context.run_count);
+
+    furi_string_free(args);
+}
+
+MU_TEST(getopt_posarg_test) {
+    GetoptTestContext context = {0};
+    FuriString* args = furi_string_alloc_set(ARGS_POSARG_ONLY);
+
+    mu_check(getopts(args, "", getopt_test_posarg_only_option_callback, &context));
+    mu_assert_int_eq(3, context.run_count);
 
     furi_string_free(args);
 }
@@ -137,8 +188,9 @@ MU_TEST(getopt_quoted_test) {
 MU_TEST_SUITE(getopt_test_suite) {
     MU_RUN_TEST(getopt_empty_test);
     MU_RUN_TEST(getopt_simple_test);
-    MU_RUN_TEST(getopt_posarg_test);
+    MU_RUN_TEST(getopt_mixed_test);
     MU_RUN_TEST(getopt_quoted_test);
+    MU_RUN_TEST(getopt_posarg_test);
 }
 
 int run_minunit_getopt_test(void) {
