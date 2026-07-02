@@ -131,12 +131,12 @@ static void argparse_test_posarg_option_callback(char opt, const char* optval, v
 MU_TEST(argparse_empty_test) {
     FuriString* args = furi_string_alloc();
 
-    mu_check(parse_args(args, "", argparse_test_option_callback, NULL));
+    mu_check(parse_args(args, NULL, argparse_test_option_callback, NULL));
     mu_check(parse_args(args, OPTS_ALL, argparse_test_option_callback, NULL));
 
     furi_string_set(args, ARGS_SPACE);
 
-    mu_check(parse_args(args, "", argparse_test_option_callback, NULL));
+    mu_check(parse_args(args, NULL, argparse_test_option_callback, NULL));
     mu_check(parse_args(args, OPTS_ALL, argparse_test_option_callback, NULL));
 
     furi_string_set(args, ARGS_SIMPLE);
@@ -179,7 +179,7 @@ MU_TEST(argparse_posarg_test) {
     ArgparseTestContext context = {0};
     FuriString* args = furi_string_alloc_set(ARGS_POSARG_ONLY);
 
-    mu_check(parse_args(args, "", argparse_test_posarg_option_callback, &context));
+    mu_check(parse_args(args, NULL, argparse_test_posarg_option_callback, &context));
     mu_assert_int_eq(3, context.run_count);
 
     furi_string_free(args);

@@ -46,12 +46,12 @@ static size_t parse_option(const char* args, const char* opts, ParsedOption* out
     size_t consumed_len = 0;
 
     do {
-        const char opt = *args;
-        if(strchr(reserved_chars, opt) != NULL) {
+        if((opts == NULL) || (strlen(opts) == 0)) {
             break;
         }
 
-        if(strlen(opts) == 0) {
+        const char opt = *args;
+        if(strchr(reserved_chars, opt) != NULL) {
             break;
         }
 
@@ -95,7 +95,6 @@ static size_t parse_positional_arg(const char* args, ParsedOption* out) {
 
 bool parse_args(FuriString* args, const char* opts, OptionCallback callback, void* context) {
     furi_check(args);
-    furi_check(opts);
     furi_check(callback);
 
     bool success = true;
