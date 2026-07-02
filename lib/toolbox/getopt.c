@@ -12,40 +12,39 @@ static const char getopt_reserved_chars[] = ":\"'\0";
 static const char getopt_quote_chars[] = "\"'";
 
 static bool is_optval_required(const char* opts) {
-    return strlen(opts) > 0 && opts[1] == ':';
+    return (strlen(opts) != 0) && (opts[1] == ':');
 }
 
 static size_t parse_optval(const char* args, const char** out) {
-    const char* start;
+    size_t consumed_len = 0;
 
-    size_t len = strspn(args, getopt_space_chars);
-    const char* opening_quote = strchr(getopt_quote_chars, args[len]);
+    const size_t start_offset = strspn(args, getopt_space_chars);
+    const char* start = args + start_offset;
+
+    const char* opening_quote = strchr(getopt_quote_chars, *start);
 
     if(opening_quote != NULL) {
-        start = &args[len + 1];
+        start = start + 1;
 
         const char* closing_quote = strchr(start, *opening_quote);
         if(closing_quote != NULL) {
-            len = closing_quote - args;
-        } else {
-            len = 0;
+            consumed_len = closing_quote - args;
         }
 
     } else {
-        start = &args[len];
-        len += strcspn(start, getopt_space_chars);
+        consumed_len = strcspn(start, getopt_space_chars) + start_offset;
     }
 
     *out = start;
 
-    return len;
+    return consumed_len;
 }
 
 static size_t parse_opt(const char* args, const char* opts, ParsedOption* out) {
     size_t len = 0;
 
     do {
-        const char opt = args[0];
+        const char opt = *args;
         if(strchr(getopt_reserved_chars, opt) != NULL) {
             break;
         }
