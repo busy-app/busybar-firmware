@@ -18,11 +18,26 @@ static size_t parse_optval(const char* args, size_t args_len, const char** out) 
         }
     }
 
+    const char first_char = args[len];
+    const bool is_quoted = (first_char == '"') || (first_char == '\'');
+
+    if(is_quoted) {
+        ++len;
+    }
+
     *out = &args[len];
 
-    for(; len < args_len; ++len) {
-        if(isspace((int)args[len])) {
-            break;
+    if(is_quoted) {
+        for(; len < args_len; ++len) {
+            if(args[len] == first_char) {
+                break;
+            }
+        }
+    } else {
+        for(; len < args_len; ++len) {
+            if(isspace((int)args[len])) {
+                break;
+            }
         }
     }
 
