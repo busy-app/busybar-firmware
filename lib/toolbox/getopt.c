@@ -7,16 +7,11 @@ typedef struct {
     const char* optval;
 } ParsedOption;
 
+static const char getopt_space_chars[] = " \n\r\t";
 static const char getopt_reserved_chars[] = ":\"'\0";
 
-static size_t parse_optval(const char* args, size_t args_len, const char** out) {
-    size_t len = 0;
-
-    for(; len < args_len; ++len) {
-        if(!isspace((int)args[len])) {
-            break;
-        }
-    }
+static size_t parse_optval(const char* args, const char** out) {
+    size_t len = strspn(args, getopt_space_chars);
 
     const char first_char = args[len];
     const bool is_quoted = (first_char == '"') || (first_char == '\'');
@@ -25,33 +20,24 @@ static size_t parse_optval(const char* args, size_t args_len, const char** out) 
         ++len;
     }
 
-    *out = &args[len];
+    const char* start = &args[len];
 
     if(is_quoted) {
-        for(; len < args_len; ++len) {
-            if(args[len] == first_char) {
-                break;
-            }
-        }
+        const char* closing_quote = strchr(start, first_char);
+        len = closing_quote ? (size_t)(closing_quote - args) : 0;
     } else {
-        for(; len < args_len; ++len) {
-            if(isspace((int)args[len])) {
-                break;
-            }
-        }
+        len += strcspn(start, getopt_space_chars);
     }
+
+    *out = start;
 
     return len;
 }
 
-static size_t parse_opt(const char* args, size_t args_len, const char* opts, ParsedOption* out) {
+static size_t parse_opt(const char* args, const char* opts, ParsedOption* out) {
     size_t len = 0;
 
     do {
-        if(args_len == 0) {
-            break;
-        }
-
         const char opt = args[0];
         if(strchr(getopt_reserved_chars, opt) != NULL) {
             break;
@@ -75,7 +61,7 @@ static size_t parse_opt(const char* args, size_t args_len, const char* opts, Par
         const size_t l = opt_ptr - opts;
 
         if((l < opts_len) && (*opt_ptr == ':')) {
-            const size_t optval_len = parse_optval(args + len, args_len - len, &optval);
+            const size_t optval_len = parse_optval(args + len, &optval);
 
             if(optval_len == 0) {
                 // Required value is missing
@@ -94,8 +80,8 @@ static size_t parse_opt(const char* args, size_t args_len, const char* opts, Par
     return len;
 }
 
-static size_t parse_posarg(const char* args, size_t args_len, ParsedOption* out) {
-    const size_t len = parse_optval(args, args_len, &out->optval);
+static size_t parse_posarg(const char* args, ParsedOption* out) {
+    const size_t len = parse_optval(args, &out->optval);
 
     if(len > 0) {
         out->opt = 0;
@@ -114,7 +100,7 @@ bool getopts(FuriString* args, const char* opts, OptionCallback callback, void* 
     const size_t args_len = furi_string_size(args);
 
     for(size_t i = 0; i < args_len; ++i) {
-        if(isspace((int)furi_string_get_char(args, i))) {
+        if(strchr(getopt_space_chars, furi_string_get_char(args, i)) != NULL) {
             continue;
         }
 
@@ -124,9 +110,9 @@ bool getopts(FuriString* args, const char* opts, OptionCallback callback, void* 
 
         if(furi_string_get_char(args, i) == '-') {
             ++i;
-            consumed_len = parse_opt(furi_string_get_cstr(args) + i, args_len - i, opts, &opt);
+            consumed_len = parse_opt(furi_string_get_cstr(args) + i, opts, &opt);
         } else {
-            consumed_len = parse_posarg(furi_string_get_cstr(args) + i, args_len - i, &opt);
+            consumed_len = parse_posarg(furi_string_get_cstr(args) + i, &opt);
         }
 
         if(consumed_len == 0) {
