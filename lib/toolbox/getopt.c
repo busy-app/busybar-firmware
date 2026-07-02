@@ -22,7 +22,7 @@ static size_t parse_optval(const char* args, const char** out) {
 
         const char* closing_quote = strchr(start, *opening_quote);
         if(closing_quote != NULL) {
-            len = (size_t)(closing_quote - args);
+            len = closing_quote - args;
         } else {
             len = 0;
         }
