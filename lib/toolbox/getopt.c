@@ -2,6 +2,8 @@
 
 #include <core/check.h>
 
+#define CHAR_OFFSET (1)
+
 typedef struct {
     char opt;
     const char* optval;
@@ -24,7 +26,7 @@ static size_t parse_optval(const char* args, const char** out) {
     const char* opening_quote = strchr(getopt_quote_chars, *start);
 
     if(opening_quote != NULL) {
-        start = start + 1;
+        start += CHAR_OFFSET;
 
         const char* closing_quote = strchr(start, *opening_quote);
         if(closing_quote != NULL) {
@@ -41,7 +43,7 @@ static size_t parse_optval(const char* args, const char** out) {
 }
 
 static size_t parse_opt(const char* args, const char* opts, ParsedOption* out) {
-    size_t len = 0;
+    size_t consumed_len = 0;
 
     do {
         const char opt = *args;
@@ -58,19 +60,19 @@ static size_t parse_opt(const char* args, const char* opts, ParsedOption* out) {
             break;
         }
 
-        len = 1;
+        consumed_len += CHAR_OFFSET;
 
         const char* optval = NULL;
 
         if(is_optval_required(matched_opt)) {
-            const size_t optval_len = parse_optval(args + len, &optval);
+            const size_t optval_len = parse_optval(args + consumed_len, &optval);
 
             if(optval_len == 0) {
-                len = 0;
+                consumed_len = 0;
                 break;
             }
 
-            len += optval_len;
+            consumed_len += optval_len;
         }
 
         out->opt = opt;
@@ -78,17 +80,17 @@ static size_t parse_opt(const char* args, const char* opts, ParsedOption* out) {
 
     } while(false);
 
-    return len;
+    return consumed_len;
 }
 
 static size_t parse_posarg(const char* args, ParsedOption* out) {
-    const size_t len = parse_optval(args, &out->optval);
+    const size_t consumed_len = parse_optval(args, &out->optval);
 
-    if(len > 0) {
+    if(consumed_len > 0) {
         out->opt = 0;
     }
 
-    return len;
+    return consumed_len;
 }
 
 bool getopts(FuriString* args, const char* opts, OptionCallback callback, void* context) {
@@ -110,7 +112,7 @@ bool getopts(FuriString* args, const char* opts, OptionCallback callback, void* 
         size_t consumed_len;
 
         if(furi_string_get_char(args, i) == '-') {
-            ++i;
+            i += CHAR_OFFSET;
             consumed_len = parse_opt(furi_string_get_cstr(args) + i, opts, &opt);
         } else {
             consumed_len = parse_posarg(furi_string_get_cstr(args) + i, &opt);
