@@ -347,12 +347,9 @@ static FrontDisplaySrv* front_display_alloc(void) {
     instance->power = furi_record_open(RECORD_POWER);
 
     front_display_power_pin_init(instance);
-    instance->enabled = true;
 
-    // Enable display only if the battery is ready
-    if(power_is_battery_ready(instance->power)) {
-        front_display_start(instance);
-    }
+    front_display_start(instance);
+    instance->enabled = true;
 
     furi_record_create(RECORD_FRONT_DISPLAY, instance);
     return instance;
