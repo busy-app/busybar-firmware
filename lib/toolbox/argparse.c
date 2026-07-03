@@ -130,7 +130,10 @@ bool parse_args(FuriString* args, const char* opts, OptionCallback callback, voi
         }
 
         i += consumed_len;
-        furi_string_set_char(args, i, 0);
+
+        if(i < args_len) {
+            furi_string_set_char(args, i, 0);
+        }
 
         callback(option.opt, option.optarg, context);
     }
