@@ -76,14 +76,15 @@ static Fetch* fetch_alloc() {
     instance->error = false;
     instance->buffer_rx = furi_stream_buffer_alloc(1024 * 4, 1);
     instance->status_queue = furi_message_queue_alloc(10, sizeof(FetchClientStatus));
-
     instance->fetch_client = fetch_client_alloc();
+    instance->file_save = fetch_file_save_alloc();
     fetch_client_set_context(instance->fetch_client, instance);
 
     return instance;
 }
 
 static void fetch_free(Fetch* instance) {
+    fetch_file_save_free(instance->file_save);
     fetch_client_free(instance->fetch_client);
     furi_stream_buffer_free(instance->buffer_rx);
     furi_message_queue_free(instance->status_queue);
@@ -101,10 +102,9 @@ static bool fetch_url(PipeSide* pipe, const FetchParams* params) {
     const char* output_path = params->output_path;
 
     if(output_path != NULL) {
-        instance->file_save = fetch_file_save_alloc(output_path);
-
-        if(!instance->file_save) {
+        if(!fetch_file_save_open(instance->file_save, FetchFileSaveFlagNone, output_path)) {
             printf(ANSI_FG_RED "Error: Failed to open file %s\r\n" ANSI_RESET, output_path);
+            fetch_free(instance);
             return ret;
         }
 
@@ -115,6 +115,9 @@ static bool fetch_url(PipeSide* pipe, const FetchParams* params) {
 
     } else {
         fetch_client_set_callback_raw_data(instance->fetch_client, fetch_client_callback_raw_data);
+    }
+
+    if(params->is_full_output) {
         fetch_client_set_callback_header(instance->fetch_client, fetch_client_callback_header);
     }
 
@@ -198,7 +201,7 @@ static bool fetch_url(PipeSide* pipe, const FetchParams* params) {
     printf("\r\n");
 
     // If saving to file, close and report
-    if(instance->file_save) {
+    if(params->output_path) {
         if(!instance->error) {
             printf(ANSI_FG_GREEN "File successfully saved to %s\r\n" ANSI_RESET, output_path);
             ret = true;
@@ -206,8 +209,6 @@ static bool fetch_url(PipeSide* pipe, const FetchParams* params) {
             fetch_file_save_remove(instance->file_save);
             printf(ANSI_FG_RED "Error: Failed to save file to %s\r\n" ANSI_RESET, output_path);
         }
-        fetch_file_save_free(instance->file_save);
-        instance->file_save = NULL;
     }
 
     fetch_free(instance);

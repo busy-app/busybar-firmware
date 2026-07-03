@@ -73,6 +73,7 @@ FetchLoader* fetch_loader_alloc(void) {
     instance->status_queue = furi_message_queue_alloc(10, sizeof(FetchClientStatus));
     instance->state_msg = furi_stream_buffer_alloc(512, 1);
     instance->fetch_client = fetch_client_alloc();
+    instance->file_save = fetch_file_save_alloc();
     instance->thread = NULL;
     instance->error = false;
     instance->stop_requested = false;
@@ -90,14 +91,15 @@ void fetch_loader_free(FetchLoader* instance) {
     furi_check(instance);
     furi_check(!furi_semaphore_get_space(instance->is_processing_semaphore));
     furi_check(!instance->thread);
-    furi_check(!instance->file_save);
 
+    fetch_file_save_free(instance->file_save);
     fetch_client_free(instance->fetch_client);
     furi_message_queue_free(instance->status_queue);
     furi_string_free(instance->url);
     furi_string_free(instance->path);
     furi_semaphore_free(instance->is_processing_semaphore);
     furi_stream_buffer_free(instance->state_msg);
+
     free(instance);
 }
 
@@ -158,8 +160,9 @@ static int32_t fetch_loader_thread_callback(void* context) {
 
     FuriString* path = instance->path;
     FuriString* url = instance->url;
-    instance->file_save = fetch_file_save_alloc(furi_string_get_cstr(path));
-    if(!instance->file_save) {
+
+    if(!fetch_file_save_open(
+           instance->file_save, FetchFileSaveFlagNone, furi_string_get_cstr(path))) {
         FURI_LOG_E(TAG, "Failed to open file %s", furi_string_get_cstr(path));
         return 0;
     }
@@ -210,8 +213,6 @@ static int32_t fetch_loader_thread_callback(void* context) {
     }
 
     // exit thread when done
-    fetch_file_save_free(instance->file_save);
-    instance->file_save = NULL;
     FURI_LOG_D(TAG, "Stopping thread");
 
     return 0;

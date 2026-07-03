@@ -120,7 +120,7 @@ static HttpUpdateHandlerCtx* alloc_raw_update_context() {
     HttpUpdateHandlerCtx* ctx = malloc(sizeof(HttpUpdateHandlerCtx));
     ctx->storage = furi_record_open(RECORD_STORAGE);
     ctx->updater = furi_record_open(RECORD_UPDATER);
-    ctx->file_save = NULL; // Will be allocated in header callback after validation
+    ctx->file_save = fetch_file_save_alloc();
 
     ctx->original_thread_priority = furi_thread_get_current_priority();
 
@@ -367,12 +367,10 @@ static bool api_update_raw_hdr_callback(
     }
     FURI_LOG_I(TAG, "on_headers: Expecting file of size: %zu bytes", update_ctx->total_file_size);
 
-    // Allocate file saver (creates directory, removes existing file, opens for writing)
-    update_ctx->file_save = fetch_file_save_alloc_nonblocking(UPDATER_DEFAULT_DOWNLOAD_PATH);
-
     furi_thread_set_current_priority(FuriThreadPriorityLow);
 
-    if(!update_ctx->file_save) {
+    if(!fetch_file_save_open(
+           update_ctx->file_save, FetchFileSaveFlagNonblocking, UPDATER_DEFAULT_DOWNLOAD_PATH)) {
         FURI_LOG_E(
             TAG,
             "on_headers: Failed to initialize file saver for: %s",

@@ -10,108 +10,84 @@ struct FetchFileSave {
 
 #define TAG "FetchFileSave"
 
-static FetchFileSave*
-    fetch_file_save_alloc_internal(const char* file_path, FS_OpenMode open_mode) {
-    furi_check(file_path);
-
+FetchFileSave* fetch_file_save_alloc(void) {
     FetchFileSave* instance = malloc(sizeof(FetchFileSave));
 
-    bool ret = false;
-
     instance->storage = furi_record_open(RECORD_STORAGE);
-    instance->file_path = furi_string_alloc_set(file_path);
     instance->file_handle = storage_file_alloc(instance->storage);
+    instance->file_path = furi_string_alloc();
 
-    FuriString* path = furi_string_alloc();
-
-    do {
-        // Ensure staging directory exists
-        path_extract_dirname(furi_string_get_cstr(instance->file_path), path);
-
-        if(!(strncmp(
-                 furi_string_get_cstr(path),
-                 STORAGE_EXT_PATH_PREFIX,
-                 strlen(STORAGE_EXT_PATH_PREFIX)) == 0 ||
-             strncmp(
-                 furi_string_get_cstr(path),
-                 STORAGE_BACKUP_PATH_PREFIX,
-                 strlen(STORAGE_BACKUP_PATH_PREFIX)) == 0)) {
-            FURI_LOG_E(
-                TAG,
-                "File path must be within %s or %s: %s",
-                STORAGE_EXT_PATH_PREFIX,
-                STORAGE_BACKUP_PATH_PREFIX,
-                furi_string_get_cstr(path));
-            break;
-        }
-
-        if(path_recursive_create_dir(instance->storage, path) != FSE_OK) {
-            FURI_LOG_E(TAG, "Failed to create directory: %s", furi_string_get_cstr(path));
-            break;
-        }
-
-        // Ensure existing file is removed
-        if(storage_file_exists(instance->storage, furi_string_get_cstr(instance->file_path))) {
-            if(!storage_simply_remove(
-                   instance->storage, furi_string_get_cstr(instance->file_path)) != FSE_OK) {
-                FURI_LOG_E(
-                    TAG,
-                    "Failed to remove existing temporary file: %s",
-                    furi_string_get_cstr(instance->file_path));
-                break;
-            }
-        }
-
-        // Create and open file for writing
-        if(!storage_file_open(
-               instance->file_handle,
-               furi_string_get_cstr(instance->file_path),
-               FSAM_WRITE,
-               open_mode)) {
-            FURI_LOG_E(
-                TAG,
-                "Failed to open file for writing: %s",
-                furi_string_get_cstr(instance->file_path));
-            break;
-        }
-        FURI_LOG_D(TAG, "Created file at: %s", furi_string_get_cstr(instance->file_path));
-        ret = true;
-    } while(0);
-
-    if(!ret) {
-        fetch_file_save_free(instance);
-        return NULL;
-    }
-
-    furi_string_free(path);
     return instance;
-}
-
-FetchFileSave* fetch_file_save_alloc(const char* file_path) {
-    return fetch_file_save_alloc_internal(file_path, FSOM_CREATE_ALWAYS);
-}
-
-FetchFileSave* fetch_file_save_alloc_nonblocking(const char* file_path) {
-    return fetch_file_save_alloc_internal(file_path, FSOM_CREATE_ALWAYS | FSOM_NONBLOCKING);
 }
 
 void fetch_file_save_free(FetchFileSave* instance) {
     furi_check(instance);
     furi_check(instance->storage);
-    furi_check(instance->file_path);
-
-    if(storage_file_is_open(instance->file_handle)) {
-        storage_file_close(instance->file_handle);
-    }
-    storage_file_free(instance->file_handle);
 
     furi_string_free(instance->file_path);
-    furi_record_close(RECORD_STORAGE);
+    storage_file_free(instance->file_handle);
 
     free(instance);
+
+    furi_record_close(RECORD_STORAGE);
 }
 
-bool fetch_file_save_write(FetchFileSave* instance, uint8_t* data, size_t size) {
+bool fetch_file_save_open(FetchFileSave* instance, FetchFileSaveFlag flags, const char* file_path) {
+    furi_check(instance);
+    furi_check(file_path);
+
+    bool ret = false;
+
+    FuriString* basedir = furi_string_alloc();
+
+    do {
+        path_extract_dirname(file_path, basedir);
+
+        const bool is_valid_prefix =
+            (furi_string_start_with(basedir, STORAGE_EXT_PATH_PREFIX) ||
+             furi_string_start_with(basedir, STORAGE_BACKUP_PATH_PREFIX));
+
+        if(!is_valid_prefix) {
+            FURI_LOG_E(
+                TAG,
+                "File path must be within %s or %s: %s",
+                STORAGE_EXT_PATH_PREFIX,
+                STORAGE_BACKUP_PATH_PREFIX,
+                furi_string_get_cstr(basedir));
+            break;
+        }
+
+        if(path_recursive_create_dir(instance->storage, basedir) != FSE_OK) {
+            FURI_LOG_E(TAG, "Failed to create directory: %s", furi_string_get_cstr(basedir));
+            break;
+        }
+
+        if(!storage_simply_remove(instance->storage, file_path) != FSE_OK) {
+            FURI_LOG_E(TAG, "Failed to remove existing temporary file: %s", file_path);
+            break;
+        }
+
+        const FS_OpenMode open_mode =
+            FSOM_CREATE_ALWAYS | ((flags & FetchFileSaveFlagNonblocking) ? FSOM_NONBLOCKING : 0);
+
+        if(!storage_file_open(instance->file_handle, file_path, FSAM_WRITE, open_mode)) {
+            FURI_LOG_E(TAG, "Failed to open file for writing: %s", file_path);
+            break;
+        }
+
+        furi_string_set(instance->file_path, file_path);
+
+        FURI_LOG_D(TAG, "Created file at: %s", file_path);
+
+        ret = true;
+    } while(false);
+
+    furi_string_free(basedir);
+
+    return ret;
+}
+
+bool fetch_file_save_write(FetchFileSave* instance, const void* data, size_t size) {
     furi_check(instance);
     furi_check(data);
     furi_check(size > 0);
@@ -121,7 +97,7 @@ bool fetch_file_save_write(FetchFileSave* instance, uint8_t* data, size_t size) 
         return false;
     }
 
-    size_t written = storage_file_write(instance->file_handle, data, size);
+    const size_t written = storage_file_write(instance->file_handle, data, size);
     if(written != size) {
         FURI_LOG_E(TAG, "Failed to write all data to file. Wrote %zu of %zu", written, size);
         return false;
@@ -133,19 +109,16 @@ bool fetch_file_save_write(FetchFileSave* instance, uint8_t* data, size_t size) 
 void fetch_file_save_remove(FetchFileSave* instance) {
     furi_check(instance);
     furi_check(instance->storage);
-    furi_check(instance->file_path);
 
     if(storage_file_is_open(instance->file_handle)) {
         storage_file_close(instance->file_handle);
     }
 
-    if(storage_file_exists(instance->storage, furi_string_get_cstr(instance->file_path))) {
-        if(!storage_simply_remove(instance->storage, furi_string_get_cstr(instance->file_path)) !=
-           FSE_OK) {
-            FURI_LOG_E(
-                TAG, "Failed to remove file: %s", furi_string_get_cstr(instance->file_path));
-        } else {
-            FURI_LOG_D(TAG, "Removed file: %s", furi_string_get_cstr(instance->file_path));
-        }
+    const char* file_path = furi_string_get_cstr(instance->file_path);
+
+    if(storage_simply_remove(instance->storage, file_path)) {
+        FURI_LOG_D(TAG, "Removed file: %s", file_path);
+    } else {
+        FURI_LOG_E(TAG, "Failed to remove file: %s", file_path);
     }
 }
