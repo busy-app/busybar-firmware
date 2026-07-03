@@ -12,7 +12,7 @@ def _update_bundle_action(target, source, env):
         env.subst("${UPDATE_BUNDLE_SCRIPT}"),
         "--target",
         env.subst("${BUNDLE_TARGET_HW}"),
-        "--output-tar",
+        "--output-tgz",
         target[0].abspath,
     ]
 
@@ -36,20 +36,6 @@ def _update_bundle_action(target, source, env):
                     args.extend([cli_arg, resolved])
 
     return subprocess.run(args).returncode
-
-
-def CompressBundle(env, target, source):
-    """Create a .tgz by gzipping a .tar bundle."""
-    from SCons.Script import Move
-
-    return env.Command(
-        target,
-        source,
-        action=[
-            ["${PYTHON3}", "-m", "gzip", "--best", "${SOURCE}"],
-            Move("${TARGET}", "${SOURCE}.gz"),
-        ],
-    )
 
 
 def FlashOverHttp(env, name, source):
@@ -86,12 +72,11 @@ def generate(env):
                     _update_bundle_action,
                     "${UPDATEBUNDLECOMSTR}",
                 ),
-                suffix=".tar",
+                suffix=".tgz",
             ),
         }
     )
 
-    env.AddMethod(CompressBundle)
     env.AddMethod(FlashOverHttp)
 
 

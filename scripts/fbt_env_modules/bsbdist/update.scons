@@ -43,35 +43,23 @@ full_env = bundle_env.Clone(
     BUNDLE_SIL_RADIO_FW=dist_env.Real(sil_env["SI917_NWP_STACK"]),
 )
 
-update_tar = full_env.UpdateBundle(
-    fw_env.File("${BUILD_DIR}/update_${F_TARGET_HW}"),
+update_tgz = full_env.UpdateBundle(
+    fw_env.File("${BUILD_DIR}/update_${F_TARGET_HW}.tgz"),
     [],
 )
-Depends(update_tar, base_deps + [fw_env["FW_RESOURCES_MANIFEST"]])
-
-update_tgz = bundle_env.CompressBundle(
-    fw_env.File("${BUILD_DIR}/update_${F_TARGET_HW}.tgz"),
-    update_tar,
-)
+Depends(update_tgz, base_deps + [fw_env["FW_RESOURCES_MANIFEST"]])
 
 bundle_env.FlashOverHttp("flash_usb", update_tgz)
-bundle_env.FlashOverHttp("flash_usb_tar", update_tar)
 
 # --- Minimal update bundle (no resources, no radio firmware) ---
 
-min_update_tar = bundle_env.UpdateBundle(
-    fw_env.File("${BUILD_DIR}/min_update_${F_TARGET_HW}"),
+min_update_tgz = bundle_env.UpdateBundle(
+    fw_env.File("${BUILD_DIR}/min_update_${F_TARGET_HW}.tgz"),
     [],
 )
-Depends(min_update_tar, base_deps)
-
-min_update_tgz = bundle_env.CompressBundle(
-    fw_env.File("${BUILD_DIR}/min_update_${F_TARGET_HW}.tgz"),
-    min_update_tar,
-)
+Depends(min_update_tgz, base_deps)
 
 bundle_env.FlashOverHttp("flash_usb_min", min_update_tgz)
-bundle_env.FlashOverHttp("flash_usb_min_tar", min_update_tar)
 
 # --- U5-only update bundles (no SI917) ---
 
@@ -88,33 +76,21 @@ update_stm_env = update_stm_min_env.Clone(
     BUNDLE_RESOURCES=fw_env["RESOURCES_ROOT"],
 )
 
-update_stm_tar = update_stm_env.UpdateBundle(
-    fw_env.File("${BUILD_DIR}/update_stm_${F_TARGET_HW}"),
+update_stm_tgz = update_stm_env.UpdateBundle(
+    fw_env.File("${BUILD_DIR}/update_stm_${F_TARGET_HW}.tgz"),
     [],
 )
-Depends(update_stm_tar, update_stm_min_stm_deps + [fw_env["FW_RESOURCES_MANIFEST"]])
-
-update_stm_tgz = bundle_env.CompressBundle(
-    fw_env.File("${BUILD_DIR}/update_stm_${F_TARGET_HW}.tgz"),
-    update_stm_tar,
-)
+Depends(update_stm_tgz, update_stm_min_stm_deps + [fw_env["FW_RESOURCES_MANIFEST"]])
 
 bundle_env.FlashOverHttp("flash_usb_stm", update_stm_tgz)
-bundle_env.FlashOverHttp("flash_usb_stm_tar", update_stm_tgz)
 
-update_stm_min_tar = update_stm_min_env.UpdateBundle(
-    fw_env.File("${BUILD_DIR}/update_stm_min_${F_TARGET_HW}"),
+update_stm_min_tgz = update_stm_min_env.UpdateBundle(
+    fw_env.File("${BUILD_DIR}/update_stm_min_${F_TARGET_HW}.tgz"),
     [],
 )
-Depends(update_stm_min_tar, update_stm_min_stm_deps)
-
-update_stm_min_tgz = bundle_env.CompressBundle(
-    fw_env.File("${BUILD_DIR}/update_stm_min_${F_TARGET_HW}.tgz"),
-    update_stm_min_tar,
-)
+Depends(update_stm_min_tgz, update_stm_min_stm_deps)
 
 bundle_env.FlashOverHttp("flash_usb_stm_min", update_stm_min_tgz)
-bundle_env.FlashOverHttp("flash_usb_stm_min_tar", update_stm_min_tgz)
 
 # --- Recovery bundle (with resources + radio firmware + bkp resources) ---
 
@@ -122,18 +98,13 @@ bkp_env = full_env.Clone(
     BUNDLE_BKP_RESOURCES=fw_env["BKP_RESOURCES_ROOT"],
 )
 
-bkp_tar = bkp_env.UpdateBundle(
-    fw_env.File("${BUILD_DIR}/bkp_${F_TARGET_HW}"),
+update_bkp_tgz = bkp_env.UpdateBundle(
+    fw_env.File("${BUILD_DIR}/bkp_${F_TARGET_HW}.tgz"),
     [],
 )
 Depends(
-    bkp_tar,
+    update_bkp_tgz,
     base_deps + [fw_env["FW_RESOURCES_MANIFEST"], fw_env["FW_BKP_RESOURCES"]],
-)
-
-update_bkp_tgz = bundle_env.CompressBundle(
-    fw_env.File("${BUILD_DIR}/bkp_${F_TARGET_HW}.tgz"),
-    bkp_tar,
 )
 
 # --- Dist folder ---
@@ -179,7 +150,7 @@ Default(installs)
 
 dist_env.Alias("openapi_dist", _openapi_dist)
 
-dist_env.Alias("update_bundle", update_tar)
+dist_env.Alias("update_bundle", update_tgz)
 dist_env.Alias("dist", installs)
 
 # --- Signed builds (local keystore signing or signing-service signing) ---
@@ -245,18 +216,13 @@ if sil_sign_keystore or service_signing_enabled:
         ),
     )
 
-    signed_update_tar = signed_bundle_env.UpdateBundle(
-        fw_env.File("${BUILD_DIR}/update_signed_${F_TARGET_HW}"),
+    signed_update_tgz = signed_bundle_env.UpdateBundle(
+        fw_env.File("${BUILD_DIR}/update_signed_${F_TARGET_HW}.tgz"),
         [],
     )
     Depends(
-        signed_update_tar,
+        signed_update_tgz,
         base_deps + [fw_env["FW_RESOURCES_MANIFEST"], signed_fw_rps, signed_nwp_rps],
-    )
-
-    signed_update_tgz = bundle_env.CompressBundle(
-        fw_env.File("${BUILD_DIR}/update_signed_${F_TARGET_HW}.tgz"),
-        signed_update_tar,
     )
 
     # Signed recovery bundle (full + bkp resources + signed Silabs firmwares)
@@ -264,12 +230,12 @@ if sil_sign_keystore or service_signing_enabled:
         BUNDLE_BKP_RESOURCES=fw_env["BKP_RESOURCES_ROOT"],
     )
 
-    signed_bkp_tar = signed_bkp_env.UpdateBundle(
-        fw_env.File("${BUILD_DIR}/bkp_signed_${F_TARGET_HW}"),
+    signed_bkp_tgz = signed_bkp_env.UpdateBundle(
+        fw_env.File("${BUILD_DIR}/bkp_signed_${F_TARGET_HW}.tgz"),
         [],
     )
     Depends(
-        signed_bkp_tar,
+        signed_bkp_tgz,
         base_deps
         + [
             fw_env["FW_RESOURCES_MANIFEST"],
@@ -277,11 +243,6 @@ if sil_sign_keystore or service_signing_enabled:
             signed_fw_rps,
             signed_nwp_rps,
         ],
-    )
-
-    signed_bkp_tgz = bundle_env.CompressBundle(
-        fw_env.File("${BUILD_DIR}/bkp_signed_${F_TARGET_HW}.tgz"),
-        signed_bkp_tar,
     )
 
     signed_installs = [
@@ -294,4 +255,3 @@ if sil_sign_keystore or service_signing_enabled:
     dist_env.Alias("dist_signed", signed_installs)
 
     bundle_env.FlashOverHttp("flash_usb_signed", signed_update_tgz)
-    bundle_env.FlashOverHttp("flash_usb_signed_tar", signed_update_tar)
