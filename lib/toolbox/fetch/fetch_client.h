@@ -15,13 +15,13 @@ typedef void (*FetchClientCallbackHeader)(uint8_t* data, size_t data_size, void*
 typedef void (*FetchClientCallbackError)(const char* error, void* context);
 typedef void (*FetchClientCallbackStatus)(FetchClientStatus status, void* context);
 
-/* 
+/*
 * Allocates a FetchClient instance.
 * @returns Pointer to the allocated FetchClient instance.
 */
 FetchClient* fetch_client_alloc(void);
 
-/* 
+/*
 * Free FetchClient instance. The instance must not be processing.
 * @param[in] instance Pointer to the FetchClient instance to free.
 */
@@ -30,9 +30,9 @@ void fetch_client_free(FetchClient* instance);
 /*
 * Starts the fetch process with the given URL.
 * @param[in] instance Pointer to the FetchClient instance.
-* @param[in] url Pointer to the FuriString containing the URL to fetch.
+* @param[in] url Pointer to the zero-terminated string containing the URL to fetch.
 */
-void fetch_client_run(FetchClient* instance, FuriString* url);
+void fetch_client_run(FetchClient* instance, const char* url);
 
 /*
 * Checks if the fetch process is done.

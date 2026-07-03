@@ -331,11 +331,11 @@ void fetch_client_free(FetchClient* instance) {
     free(instance);
 }
 
-void fetch_client_run(FetchClient* instance, FuriString* url) {
+void fetch_client_run(FetchClient* instance, const char* url) {
     furi_check(instance);
     furi_check(!furi_semaphore_get_space(instance->is_processing_semaphore));
 
-    furi_string_set(instance->url, furi_string_get_cstr(url));
+    furi_string_set(instance->url, url);
 
     furi_semaphore_acquire(instance->is_processing_semaphore, FuriWaitForever);
     instance->thread = furi_thread_alloc_ex(

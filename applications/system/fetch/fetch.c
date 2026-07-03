@@ -1,12 +1,20 @@
-#include "fetch.h"
 #include <toolbox/fetch/fetch_client.h>
 #include <toolbox/fetch/fetch_file_save.h>
+#include <toolbox/argparse.h>
 
 #include <furi.h>
-#include <cli/args.h>
 #include <cli/cli_ansi.h>
+#include <cli/cli_command.h>
 
 #define TAG "Fetch"
+
+typedef struct {
+    const char* url;
+    const char* output_path;
+    const char* request_method;
+    const char* request_body;
+    bool is_full_output;
+} FetchParams;
 
 typedef struct {
     FuriStreamBuffer* buffer_rx;
@@ -55,29 +63,16 @@ static void fetch_client_callback_error(const char* error, void* context) {
     instance->error = true;
 }
 
-void fetch_client_callback_status(FetchClientStatus status, void* context) {
+static void fetch_client_callback_status(FetchClientStatus status, void* context) {
     furi_assert(context);
     Fetch* instance = context;
     furi_assert(instance);
     furi_message_queue_put(instance->status_queue, &status, FuriWaitForever);
 }
 
-bool fetch_url(PipeSide* pipe, FuriString* url, FuriString* args, void* context) {
-    UNUSED(context);
-    UNUSED(pipe);
-
-    bool ret = false;
-    size_t pos = furi_string_search_str(url, "://", 0);
-    if(pos == FURI_STRING_FAILURE) {
-        FuriString* url_temp = furi_string_alloc_printf("http://%s", furi_string_get_cstr(url));
-        furi_string_set(url, url_temp);
-        furi_string_free(url_temp);
-    }
-
-    FuriString* path = furi_string_alloc();
-    args_read_string_and_trim(args, path);
-
+static Fetch* fetch_alloc() {
     Fetch* instance = malloc(sizeof(Fetch));
+
     instance->error = false;
     instance->buffer_rx = furi_stream_buffer_alloc(1024 * 4, 1);
     instance->status_queue = furi_message_queue_alloc(10, sizeof(FetchClientStatus));
@@ -85,17 +80,31 @@ bool fetch_url(PipeSide* pipe, FuriString* url, FuriString* args, void* context)
     instance->fetch_client = fetch_client_alloc();
     fetch_client_set_context(instance->fetch_client, instance);
 
-    if(furi_string_size(path)) {
-        instance->file_save = fetch_file_save_alloc(path);
+    return instance;
+}
+
+static void fetch_free(Fetch* instance) {
+    fetch_client_free(instance->fetch_client);
+    furi_stream_buffer_free(instance->buffer_rx);
+    furi_message_queue_free(instance->status_queue);
+
+    free(instance);
+}
+
+static bool fetch_url(PipeSide* pipe, const FetchParams* params) {
+    UNUSED(pipe);
+
+    bool ret = false;
+
+    Fetch* instance = fetch_alloc();
+
+    const char* output_path = params->output_path;
+
+    if(output_path != NULL) {
+        instance->file_save = fetch_file_save_alloc(output_path);
+
         if(!instance->file_save) {
-            printf(
-                ANSI_FG_RED "Error: Failed to open file %s\r\n" ANSI_RESET,
-                furi_string_get_cstr(path));
-            fetch_client_free(instance->fetch_client);
-            furi_stream_buffer_free(instance->buffer_rx);
-            furi_message_queue_free(instance->status_queue);
-            furi_string_free(path);
-            free(instance);
+            printf(ANSI_FG_RED "Error: Failed to open file %s\r\n" ANSI_RESET, output_path);
             return ret;
         }
 
@@ -111,7 +120,7 @@ bool fetch_url(PipeSide* pipe, FuriString* url, FuriString* args, void* context)
 
     fetch_client_set_callback_error(instance->fetch_client, fetch_client_callback_error);
 
-    fetch_client_run(instance->fetch_client, url);
+    fetch_client_run(instance->fetch_client, params->url);
 
     const char spin_chars[] = "|/-\\";
     uint8_t spin_chars_index = 0;
@@ -191,50 +200,76 @@ bool fetch_url(PipeSide* pipe, FuriString* url, FuriString* args, void* context)
     // If saving to file, close and report
     if(instance->file_save) {
         if(!instance->error) {
-            printf(
-                ANSI_FG_GREEN "File successfully saved to %s\r\n" ANSI_RESET,
-                furi_string_get_cstr(path));
+            printf(ANSI_FG_GREEN "File successfully saved to %s\r\n" ANSI_RESET, output_path);
             ret = true;
         } else {
             fetch_file_save_remove(instance->file_save);
-            printf(
-                ANSI_FG_RED "Error: Failed to save file to %s\r\n" ANSI_RESET,
-                furi_string_get_cstr(path));
+            printf(ANSI_FG_RED "Error: Failed to save file to %s\r\n" ANSI_RESET, output_path);
         }
         fetch_file_save_free(instance->file_save);
         instance->file_save = NULL;
     }
 
-    fetch_client_free(instance->fetch_client);
-    furi_stream_buffer_free(instance->buffer_rx);
-    furi_message_queue_free(instance->status_queue);
-    furi_string_free(path);
+    fetch_free(instance);
+
     return ret;
 }
 
-bool fetch_download_file(FuriString* url, FuriString* path) {
-    FuriString* path_temp = furi_string_alloc();
-    furi_string_set(path_temp, path);
-    bool result = fetch_url(NULL, url, path_temp, NULL);
-    furi_string_free(path_temp);
-    return result;
+static void fetch_command_print_usage(void) {
+    printf("Usage:\r\n"
+           "\tfetch [options] <url>\r\n"
+           "Options:\r\n"
+           "\t-o Output file path\r\n"
+           "\t-d HTTP POST/PUT data\r\n"
+           "\t-H Custom header(s)\r\n"
+           "\t-X Request method\r\n"
+           "\t-v Enable full output\r\n");
 }
 
-static void fetch_command_print_usage(void) {
-    printf("Usage:\r\n");
-    printf(
-        "\tfetch <url> [path]\t : url - http(s)://example.com[:port], path - /ext or /bkp /local file path to save response\r\n");
+static void fetch_option_callback(char opt, const char* optarg, void* context) {
+    furi_assert(context);
+    FetchParams* params = context;
+
+    if(opt == '\0') {
+        params->url = optarg;
+    } else if(opt == 'o') {
+        params->output_path = optarg;
+    } else if(opt == 'd') {
+        params->request_body = optarg;
+    } else if(opt == 'H') {
+        // TODO: Headers
+    } else if(opt == 'X') {
+        params->request_body = optarg;
+    } else if(opt == 'v') {
+        params->is_full_output = true;
+    }
+}
+
+static bool fetch_validate_params(const FetchParams* params) {
+    bool is_valid = false;
+
+    do {
+        if(params->url == NULL) {
+            printf("Error: no url specified\r\n\n");
+            break;
+        }
+
+        is_valid = true;
+
+    } while(false);
+
+    return is_valid;
 }
 
 void fetch_command(PipeSide* pipe, FuriString* args, void* context) {
-    FuriString* url = furi_string_alloc();
-    do {
-        if(!args_read_string_and_trim(args, url)) {
-            fetch_command_print_usage();
-            break;
-        } else {
-            fetch_url(pipe, url, args, context);
-        }
-    } while(false);
-    furi_string_free(url);
+    UNUSED(context);
+
+    FetchParams params = {0};
+
+    if(parse_args(args, "o:d:H:X:v", fetch_option_callback, &params) &&
+       fetch_validate_params(&params)) {
+        fetch_url(pipe, &params);
+    } else {
+        fetch_command_print_usage();
+    }
 }

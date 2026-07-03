@@ -158,13 +158,13 @@ static int32_t fetch_loader_thread_callback(void* context) {
 
     FuriString* path = instance->path;
     FuriString* url = instance->url;
-    instance->file_save = fetch_file_save_alloc(path);
+    instance->file_save = fetch_file_save_alloc(furi_string_get_cstr(path));
     if(!instance->file_save) {
         FURI_LOG_E(TAG, "Failed to open file %s", furi_string_get_cstr(path));
         return 0;
     }
 
-    fetch_client_run(instance->fetch_client, url);
+    fetch_client_run(instance->fetch_client, furi_string_get_cstr(url));
 
     FetchClientStatus status;
     while(!fetch_client_is_processing_done(instance->fetch_client) ||

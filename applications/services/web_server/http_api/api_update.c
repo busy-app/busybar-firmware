@@ -368,9 +368,7 @@ static bool api_update_raw_hdr_callback(
     FURI_LOG_I(TAG, "on_headers: Expecting file of size: %zu bytes", update_ctx->total_file_size);
 
     // Allocate file saver (creates directory, removes existing file, opens for writing)
-    FuriString* temp_path = furi_string_alloc_set(UPDATER_DEFAULT_DOWNLOAD_PATH);
-    update_ctx->file_save = fetch_file_save_alloc_nonblocking(temp_path);
-    furi_string_free(temp_path);
+    update_ctx->file_save = fetch_file_save_alloc_nonblocking(UPDATER_DEFAULT_DOWNLOAD_PATH);
 
     furi_thread_set_current_priority(FuriThreadPriorityLow);
 

@@ -11,7 +11,7 @@ struct FetchFileSave {
 #define TAG "FetchFileSave"
 
 static FetchFileSave*
-    fetch_file_save_alloc_internal(FuriString* file_path, FS_OpenMode open_mode) {
+    fetch_file_save_alloc_internal(const char* file_path, FS_OpenMode open_mode) {
     furi_check(file_path);
 
     FetchFileSave* instance = malloc(sizeof(FetchFileSave));
@@ -19,7 +19,7 @@ static FetchFileSave*
     bool ret = false;
 
     instance->storage = furi_record_open(RECORD_STORAGE);
-    instance->file_path = furi_string_alloc_set(furi_string_get_cstr(file_path));
+    instance->file_path = furi_string_alloc_set(file_path);
     instance->file_handle = storage_file_alloc(instance->storage);
 
     FuriString* path = furi_string_alloc();
@@ -87,11 +87,11 @@ static FetchFileSave*
     return instance;
 }
 
-FetchFileSave* fetch_file_save_alloc(FuriString* file_path) {
+FetchFileSave* fetch_file_save_alloc(const char* file_path) {
     return fetch_file_save_alloc_internal(file_path, FSOM_CREATE_ALWAYS);
 }
 
-FetchFileSave* fetch_file_save_alloc_nonblocking(FuriString* file_path) {
+FetchFileSave* fetch_file_save_alloc_nonblocking(const char* file_path) {
     return fetch_file_save_alloc_internal(file_path, FSOM_CREATE_ALWAYS | FSOM_NONBLOCKING);
 }
 
