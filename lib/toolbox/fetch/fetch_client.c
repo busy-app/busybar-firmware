@@ -40,6 +40,7 @@ struct FetchClient {
     FetchClientCallbackHeader callback_header;
     FetchClientCallbackError callback_error;
     FetchClientCallbackStatus callback_status;
+    FetchClientCallbackDone callback_done;
     void* context;
 };
 
@@ -255,6 +256,11 @@ static void
         furi_thread_free(thread);
         instance->thread = NULL;
         FETCH_CLIENT_INFO(TAG, "Stop");
+
+        if(instance->callback_done) {
+            instance->callback_done(instance->context);
+        }
+
         furi_semaphore_release(instance->is_processing_semaphore);
     }
 }
@@ -380,4 +386,9 @@ void fetch_client_set_callback_error(FetchClient* instance, FetchClientCallbackE
 void fetch_client_set_callback_status(FetchClient* instance, FetchClientCallbackStatus callback) {
     furi_check(instance);
     instance->callback_status = callback;
+}
+
+void fetch_client_set_callback_done(FetchClient* instance, FetchClientCallbackDone callback) {
+    furi_check(instance);
+    instance->callback_done = callback;
 }
