@@ -8,6 +8,8 @@
 
 #define TAG "Fetch"
 
+#define PROGRESS_BAR_SEGMENT_COUNT (20)
+
 typedef struct {
     const char* url;
     const char* output_path;
@@ -79,6 +81,58 @@ static void fetch_client_callback_done(void* context) {
     furi_event_loop_stop(instance->event_loop);
 }
 
+static void fetch_print_download_progress(const FetchClientStatus* status) {
+    const char* units_str;
+    size_t multiplier;
+
+    if(status->total_download_size > 2048) {
+        multiplier = 1024;
+        units_str = "KiB";
+
+    } else {
+        multiplier = 1;
+        units_str = "B";
+    }
+
+    const size_t download_size = status->received_download_size / multiplier;
+    const size_t total_size = status->total_download_size / multiplier;
+
+    const size_t download_percent = (download_size * 100) / total_size;
+
+    printf(ANSI_BG_GREEN ANSI_FG_BLACK "\rDownloaded: [%3zu%%]" ANSI_RESET " [", download_percent);
+
+    const size_t num_segments = (download_size * PROGRESS_BAR_SEGMENT_COUNT) / total_size;
+
+    for(size_t i = 0; i < num_segments; i++) {
+        putchar('=');
+    }
+
+    for(size_t i = num_segments; i < PROGRESS_BAR_SEGMENT_COUNT; i++) {
+        putchar(' ');
+    }
+
+    const float download_speed = status->speed_bytes_per_sec / 1024.0f;
+
+    printf(
+        "] %8.2f KiB/s, %zu%s/%zu%s        ",
+        download_speed,
+        download_size,
+        units_str,
+        total_size,
+        units_str);
+}
+
+static void fetch_print_download_progress_simple(const FetchClientStatus* status) {
+    const float download_speed = status->speed_bytes_per_sec / 1024.0f;
+    const size_t download_size = status->received_download_size / 1024;
+
+    printf(
+        ANSI_BG_GREEN ANSI_FG_BLACK "\rDownloaded: " ANSI_RESET
+                                    "%8.2fKiB/s, Total: %zuKiB        ",
+        download_speed,
+        download_size);
+}
+
 static void fetch_status_queue_callback(FuriEventLoopObject* obj, void* context) {
     furi_assert(context);
 
@@ -86,55 +140,12 @@ static void fetch_status_queue_callback(FuriEventLoopObject* obj, void* context)
     furi_assert(obj == instance->status_queue);
 
     FetchClientStatus status;
+
     while(furi_message_queue_get(instance->status_queue, &status, 0) == FuriStatusOk) {
-        if(status.total_download_size) {
-            const char* units_str;
-
-            if(status.total_download_size > 2048) {
-                status.received_download_size /= 1024;
-                status.total_download_size /= 1024;
-                units_str = "KiB";
-
-            } else {
-                units_str = "B";
-            }
-
-            const size_t download_percent =
-                (status.received_download_size * 100) / status.total_download_size;
-
-            printf(
-                ANSI_BG_GREEN ANSI_FG_BLACK "\rDownloaded: [%3zu%%]" ANSI_RESET " [",
-                download_percent);
-
-            const size_t bars = (status.received_download_size * 20) / status.total_download_size;
-
-            for(size_t i = 0; i < bars; i++) {
-                printf("=");
-            }
-
-            for(size_t i = bars; i < 20; i++) {
-                printf(" ");
-            }
-
-            const float download_speed = (float)status.speed_bytes_per_sec / 1024.0f;
-
-            printf(
-                "] %8.2f KiB/s, %zu%s/%zu%s        ",
-                download_speed,
-                status.received_download_size,
-                units_str,
-                status.total_download_size,
-                units_str);
-
+        if(status.total_download_size != 0) {
+            fetch_print_download_progress(&status);
         } else {
-            const float download_speed = (float)status.speed_bytes_per_sec / 1024.0f;
-            const size_t total_size = status.received_download_size / 1024;
-
-            printf(
-                ANSI_BG_GREEN ANSI_FG_BLACK "\rDownloaded: " ANSI_RESET
-                                            "%8.2fKiB/s, Total: %zuKiB        ",
-                download_speed,
-                total_size);
+            fetch_print_download_progress_simple(&status);
         }
 
         fflush(stdout);
@@ -159,7 +170,7 @@ static void fetch_stream_buffer_rx_callback(FuriEventLoopObject* obj, void* cont
             if(!iscntrl(c) || isspace(c)) {
                 printf("%c", c);
             } else {
-                printf(" [%02x] ", c);
+                printf("\\x%02x", c);
             }
 
             fflush(stdout);
