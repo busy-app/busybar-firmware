@@ -1119,7 +1119,7 @@ bool storage_simply_mkpath(Storage* storage, const char* path) {
     const size_t path_len = strlen(path);
 
     FuriString* tmp = furi_string_alloc();
-    furi_string_reserve(tmp, path_len);
+    furi_string_reserve(tmp, path_len + 1);
 
     for(size_t i = 0; i < path_len;) {
         const char* sep = strchr(path + i, '/');
