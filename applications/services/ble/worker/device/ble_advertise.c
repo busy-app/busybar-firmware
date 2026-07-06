@@ -5,7 +5,8 @@
 
 #define TAG "BleAdvertise"
 
-#define BLE_ADVERTISE_PACKET_MAX_SIZE (31U)
+#define BLE_ADVERTISE_PACKET_MAX_SIZE      (31U)
+#define BLE_ADVERTISE_DATA_TYPE_LOCAL_NAME (0x09)
 
 #define BLE_ADVERTISE_HANDLE                     0x00
 #define BLE_ADVERTISE_FILTER_POLICY_ALLOW_ALL    0x00
@@ -111,9 +112,6 @@ static_assert(sizeof(advertise_config_template) <= BLE_ADVERTISE_PACKET_MAX_SIZE
 
 struct BleAdvertiseContext {
     FuriMutex* lock;
-    size_t actual_size;
-    void* advertise_config;
-
     BleAdvertiseLocalName* local_name;
 };
 
@@ -121,20 +119,14 @@ BleAdvertiseContext* ble_advertise_alloc() {
     BleAdvertiseContext* instance = malloc(sizeof(BleAdvertiseContext));
 
     instance->lock = furi_mutex_alloc(FuriMutexTypeNormal);
-    instance->actual_size = sizeof(advertise_config_template);
-    instance->advertise_config = malloc(BLE_ADVERTISE_PACKET_MAX_SIZE);
-    memcpy(
-        instance->advertise_config, &advertise_config_template, sizeof(advertise_config_template));
-
     instance->local_name = malloc(BLE_ADVERTISE_PACKET_MAX_SIZE);
-    instance->local_name->header.type = 0x09;
+    instance->local_name->header.type = BLE_ADVERTISE_DATA_TYPE_LOCAL_NAME;
     return instance;
 }
 
 void ble_advertise_free(BleAdvertiseContext* instance) {
     furi_assert(instance);
     furi_mutex_free(instance->lock);
-    free(instance->advertise_config);
     free(instance->local_name);
     free(instance);
 }
@@ -175,9 +167,9 @@ static void ble_advertise_refresh_data(const BleAdvertiseContext* instance, bool
     ble_ae_data.adv_handle = BLE_ADVERTISE_HANDLE;
     ble_ae_data.operation = BLE_ADVERTISE_DATA_OPERATION_COMPLETE;
     ble_ae_data.frag_pref = BLE_ADVERTISE_DATA_FRAGMENTATION_NOT_ALLOWED;
-    ble_ae_data.data_len = !paired ? sizeof(advertise_config_template) :
+    ble_ae_data.data_len = !paired ? sizeof(BleAdvertiseConfigPublic) :
                                      sizeof(BleAdvertiseConfigAnonymous);
-    memcpy(ble_ae_data.data, instance->advertise_config, ble_ae_data.data_len);
+    memcpy(ble_ae_data.data, &advertise_config_template, ble_ae_data.data_len);
 
     sl_status_t status = rsi_ble_set_ae_data(&ble_ae_data);
     if(status != RSI_SUCCESS) {
@@ -310,7 +302,7 @@ void ble_advertise_print_data(const BleAdvertiseContext* instance) {
 
     furi_mutex_acquire(instance->lock, FuriWaitForever);
 
-    const BleAdvertiseConfigPublic* const config = instance->advertise_config;
+    const BleAdvertiseConfigPublic* const config = &advertise_config_template;
 
     BLE_LOG_I("Flags: %d", config->anonymous.flags.data);
     BLE_LOG_I("Appearance: %04X", config->appearance.data);
