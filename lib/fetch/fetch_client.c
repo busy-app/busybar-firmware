@@ -24,7 +24,7 @@ struct FetchClient {
     struct mg_mgr mgr;
     FuriSemaphore* done_poll_semaphore;
     FuriSemaphore* finished_semaphore;
-    FuriString* url;
+    const FetchClientRequest* request;
     FetchClientStatus status;
 
     uint32_t started_raw_ticks;
@@ -118,44 +118,70 @@ static FURI_ALWAYS_INLINE void fetch_client_switching_to_raw_protocol(
     conn->pfn = NULL; // Silence HTTP protocol handler, we'll use MG_EV_READ
 }
 
+static bool fetch_clien_init_tls(FetchClient* instance, struct mg_connection* conn, struct mg_str hostname) {
+    bool success = false;
+
+    struct mg_str ca_data =
+        mg_file_read((struct mg_fs*)http_fs_get(), FETCH_CLIENT_CA_BUNDLE_PATH);
+
+    if(ca_data.buf != NULL && ca_data.len > 0) {
+        const struct mg_tls_opts opts = {
+            .ca = ca_data,
+            .name = hostname,
+        };
+
+        mg_tls_init(conn, &opts);
+
+        success = true;
+
+    } else {
+        FETCH_CLIENT_ERROR(
+            TAG, "Failed to read CA bundle from %s", FETCH_CLIENT_CA_BUNDLE_PATH);
+
+        if(instance->callback_error) {
+            instance->callback_error(
+                "Failed to read CA certificate bundle", instance->context);
+        }
+
+        conn->is_draining = 1;
+    }
+
+    if(ca_data.buf != NULL) {
+        free(ca_data.buf);
+    }
+
+    return success;
+}
+
 static FURI_ALWAYS_INLINE void
     fetch_client_connect_event(FetchClient* instance, struct mg_connection* conn) {
-    const struct mg_str name = mg_url_host(furi_string_get_cstr(instance->url));
+    const FetchClientRequest* request = instance->request;
+    furi_assert(request);
 
-    if(mg_url_is_ssl(furi_string_get_cstr(instance->url))) {
-        struct mg_str ca_data =
-            mg_file_read((struct mg_fs*)http_fs_get(), FETCH_CLIENT_CA_BUNDLE_PATH);
-
-        if(ca_data.buf != NULL && ca_data.len > 0) {
-            const struct mg_tls_opts opts = {.ca = ca_data, .name = name};
-            mg_tls_init(conn, &opts);
-            free(ca_data.buf);
-        } else {
-            FETCH_CLIENT_ERROR(
-                TAG, "Failed to read CA bundle from %s", FETCH_CLIENT_CA_BUNDLE_PATH);
-            if(instance->callback_error) {
-                instance->callback_error(
-                    "Failed to read CA certificate bundle", instance->context);
-            }
-            // Free the buffer if it was allocated but empty
-            if(ca_data.buf != NULL) {
-                free(ca_data.buf);
-            }
-            conn->is_draining = 1;
-            return;
-        }
+    const char* url = request->url;
+    const struct mg_str hostname = mg_url_host(url);
+    if(mg_url_is_ssl(url) && !fetch_clien_init_tls(instance, conn, hostname)) {
+        return;
     }
+
+    const char* method = request->method;
+    if(method == NULL) {
+        method = "GET";
+    }
+
+    const char* uri = mg_url_uri(url);
 
     mg_printf(
         conn,
-        "GET %s HTTP/1.0\r\n"
+        "%s %s HTTP/1.0\r\n"
         "Host: %.*s\r\n"
         "User-Agent: %s\r\n"
         "Accept: */*\r\n"
         "Connection: close\r\n\r\n",
-        mg_url_uri(furi_string_get_cstr(instance->url)),
-        name.len,
-        name.buf,
+        method,
+        uri,
+        hostname.len,
+        hostname.buf,
         FETCH_CLIENT_USER_AGENT);
 }
 
@@ -284,7 +310,7 @@ static int32_t fetch_client_thread_callback(void* context) {
     mg_mgr_init(&instance->mgr);
 
     struct mg_connection* conn = mg_http_connect(
-        &instance->mgr, furi_string_get_cstr(instance->url), fetch_client_mg_handler, instance);
+        &instance->mgr, instance->request->url, fetch_client_mg_handler, instance);
 
     if(conn != NULL) {
         instance->activity_timer = coarse_timer_create(FETCH_CLIENT_INACTIVITY_TIMEOUT_MS);
@@ -328,7 +354,6 @@ static int32_t fetch_client_thread_callback(void* context) {
 FetchClient* fetch_client_alloc(void) {
     FetchClient* instance = malloc(sizeof(FetchClient));
 
-    instance->url = furi_string_alloc();
     instance->status.total_download_size = 0;
     instance->status.received_download_size = 0;
     instance->status.speed_bytes_per_sec = 0;
@@ -342,7 +367,6 @@ void fetch_client_free(FetchClient* instance) {
     furi_check(instance);
     furi_check(furi_semaphore_get_space(instance->finished_semaphore) == 0);
 
-    furi_string_free(instance->url);
     furi_semaphore_free(instance->done_poll_semaphore);
     furi_semaphore_free(instance->finished_semaphore);
     free(instance);
@@ -354,7 +378,7 @@ void fetch_client_start(FetchClient* instance, const FetchClientRequest* request
 
     furi_check(furi_semaphore_acquire(instance->finished_semaphore, 0) == FuriStatusOk);
 
-    furi_string_set(instance->url, request->url ? request->url : "GET");
+    instance->request = request;
 
     FuriThread* thread = furi_thread_alloc_ex(
         "FetchClient", FETCH_CLIENT_THREAD_STACK_SIZE, fetch_client_thread_callback, instance);

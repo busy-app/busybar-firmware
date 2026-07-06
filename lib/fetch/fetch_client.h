@@ -42,6 +42,10 @@ void fetch_client_free(FetchClient* instance);
 
 /**
 * Starts the fetch process with the given URL.
+*
+* @warning The data pointed to by the @p request parameter
+*          must NOT be deleted until the FetchClient instance finishes.
+*
 * @param[in] instance Pointer to the FetchClient instance.
 * @param[in] request Pointer to the request to be executed.
 */
