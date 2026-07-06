@@ -10,6 +10,13 @@
 typedef struct FetchClient FetchClient;
 
 typedef struct {
+    const char* url;
+    const char* method;
+    const char** headers;
+    uint32_t headers_count;
+} FetchClientRequest;
+
+typedef struct {
     size_t total_download_size;
     size_t received_download_size;
     uint32_t speed_bytes_per_sec;
@@ -19,7 +26,7 @@ typedef void (*FetchClientCallbackRawData)(uint8_t* data, size_t data_size, void
 typedef void (*FetchClientCallbackHeader)(uint8_t* data, size_t data_size, void* context);
 typedef void (*FetchClientCallbackError)(const char* error, void* context);
 typedef void (*FetchClientCallbackStatus)(FetchClientStatus status, void* context);
-typedef void (*FetchClientCallbackDone)(void* context);
+typedef void (*FetchClientCallbackFinished)(void* context);
 
 /**
 * Allocates a FetchClient instance.
@@ -36,22 +43,22 @@ void fetch_client_free(FetchClient* instance);
 /**
 * Starts the fetch process with the given URL.
 * @param[in] instance Pointer to the FetchClient instance.
-* @param[in] url Pointer to the zero-terminated string containing the URL to fetch.
+* @param[in] request Pointer to the request to be executed.
 */
-void fetch_client_start(FetchClient* instance, const char* url);
+void fetch_client_start(FetchClient* instance, const FetchClientRequest* request);
+
+/**
+* Stop the ongoing request and mark it as done.
+* @param[in] instance Pointer to the FetchClient instance.
+*/
+void fetch_client_stop(FetchClient* instance);
 
 /**
 * Checks if the fetch process is done.
 * @param[in] instance Pointer to the FetchClient instance.
 * @return true if the fetch process is done, false otherwise.
 */
-bool fetch_client_is_processing_done(FetchClient* instance);
-
-/**
-* Forces the fetch process to be marked as done.
-* @param[in] instance Pointer to the FetchClient instance.
-*/
-void fetch_client_forced_done(FetchClient* instance);
+bool fetch_client_is_finished(FetchClient* instance);
 
 /**
 * Sets the context for the FetchClient instance.
@@ -93,4 +100,6 @@ void fetch_client_set_callback_status(FetchClient* instance, FetchClientCallback
 * @param[in] instance Pointer to the FetchClient instance.
 * @param[in] callback Function pointer to the callback function.
 */
-void fetch_client_set_callback_done(FetchClient* instance, FetchClientCallbackDone callback);
+void fetch_client_set_callback_finished(
+    FetchClient* instance,
+    FetchClientCallbackFinished callback);

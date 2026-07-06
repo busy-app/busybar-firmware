@@ -107,8 +107,8 @@ void fetch_loader_free(FetchLoader* instance) {
 void fetch_loader_forced_done(FetchLoader* instance) {
     furi_check(instance);
 
-    if(!fetch_client_is_processing_done(instance->fetch_client)) {
-        fetch_client_forced_done(instance->fetch_client);
+    if(!fetch_client_is_finished(instance->fetch_client)) {
+        fetch_client_stop(instance->fetch_client);
         int timeout = FETCH_LOADER_WAIT_FORCED_DONE_MS;
         FURI_LOG_D(TAG, "Waiting for fetch client to stop...");
         instance->stop_requested = true;
@@ -159,19 +159,21 @@ static int32_t fetch_loader_thread_callback(void* context) {
         furi_string_free(state_str);
     }
 
-    FuriString* path = instance->path;
-    FuriString* url = instance->url;
+    const char* path = furi_string_get_cstr(instance->path);
 
-    if(!fetch_file_save_open(
-           instance->file_save, FetchFileSaveFlagNone, furi_string_get_cstr(path))) {
-        FURI_LOG_E(TAG, "Failed to open file %s", furi_string_get_cstr(path));
+    if(!fetch_file_save_open(instance->file_save, FetchFileSaveFlagNone, path)) {
+        FURI_LOG_E(TAG, "Failed to open file %s", path);
         return 0;
     }
 
-    fetch_client_start(instance->fetch_client, furi_string_get_cstr(url));
+    const FetchClientRequest request = {
+        .url = furi_string_get_cstr(instance->url),
+    };
+
+    fetch_client_start(instance->fetch_client, &request);
 
     FetchClientStatus status;
-    while(!fetch_client_is_processing_done(instance->fetch_client) ||
+    while(!fetch_client_is_finished(instance->fetch_client) ||
           furi_stream_buffer_bytes_available(instance->state_msg)) {
         if(furi_message_queue_get(instance->status_queue, &status, 200) == FuriStatusOk) {
             FURI_LOG_D(
@@ -207,7 +209,7 @@ static int32_t fetch_loader_thread_callback(void* context) {
     }
 
     if(!instance->error && !instance->stop_requested) {
-        FURI_LOG_D(TAG, "File download complete to %s", furi_string_get_cstr(path));
+        FURI_LOG_D(TAG, "File download complete to %s", path);
     } else {
         fetch_file_save_remove(instance->file_save);
         FURI_LOG_E(TAG, "Error occurred during download");

@@ -13,10 +13,9 @@
 #define PROGRESS_BAR_SEGMENT_COUNT (20)
 
 typedef struct {
-    const char* url;
-    const char* output_path;
-    const char* request_method;
+    FetchClientRequest request;
     const char* request_body;
+    const char* output_path;
     bool is_full_output;
 } FetchParams;
 
@@ -43,7 +42,7 @@ static void fetch_client_callback_file_write_data(uint8_t* data, size_t data_siz
         const size_t bytes_written = storage_file_write(instance->output_file, data, data_size);
 
         if(bytes_written != data_size) {
-            fetch_client_forced_done(instance->fetch_client);
+            fetch_client_stop(instance->fetch_client);
             instance->is_error = true;
         }
 
@@ -81,7 +80,7 @@ static void fetch_client_callback_status(FetchClientStatus status, void* context
     furi_message_queue_put(instance->status_queue, &status, FuriWaitForever);
 }
 
-static void fetch_client_callback_done(void* context) {
+static void fetch_client_callback_finished(void* context) {
     furi_assert(context);
     Fetch* instance = context;
 
@@ -194,7 +193,7 @@ static Fetch* fetch_alloc() {
 
     fetch_client_set_context(instance->fetch_client, instance);
     fetch_client_set_callback_error(instance->fetch_client, fetch_client_callback_error);
-    fetch_client_set_callback_done(instance->fetch_client, fetch_client_callback_done);
+    fetch_client_set_callback_finished(instance->fetch_client, fetch_client_callback_finished);
 
     furi_event_loop_subscribe_message_queue(
         instance->event_loop,
@@ -265,7 +264,7 @@ static void fetch_run(const FetchParams* params) {
             fetch_client_set_callback_header(instance->fetch_client, fetch_client_callback_header);
         }
 
-        fetch_client_start(instance->fetch_client, params->url);
+        fetch_client_start(instance->fetch_client, &params->request);
         furi_event_loop_run(instance->event_loop);
 
     } while(false);
@@ -288,16 +287,18 @@ static void fetch_option_callback(char opt, const char* optarg, void* context) {
     furi_assert(context);
     FetchParams* params = context;
 
+    FetchClientRequest* request = &params->request;
+
     if(opt == '\0') {
-        params->url = optarg;
-    } else if(opt == 'o') {
-        params->output_path = optarg;
+        request->url = optarg;
+    } else if(opt == 'H') {
+        request->headers[request->headers_count++] = optarg;
+    } else if(opt == 'X') {
+        request->method = optarg;
     } else if(opt == 'd') {
         params->request_body = optarg;
-    } else if(opt == 'H') {
-        // TODO: Headers
-    } else if(opt == 'X') {
-        params->request_method = optarg;
+    } else if(opt == 'o') {
+        params->output_path = optarg;
     } else if(opt == 'v') {
         params->is_full_output = true;
     }
@@ -307,7 +308,7 @@ static bool fetch_validate_params(const FetchParams* params) {
     bool is_valid = false;
 
     do {
-        if(params->url == NULL) {
+        if(params->request.url == NULL) {
             printf("Error: no url specified\r\n\n");
             break;
         }
