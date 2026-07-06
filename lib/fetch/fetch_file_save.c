@@ -32,7 +32,7 @@ void fetch_file_save_free(FetchFileSave* instance) {
     furi_record_close(RECORD_STORAGE);
 }
 
-bool fetch_file_save_open(FetchFileSave* instance, FetchFileSaveFlag flags, const char* file_path) {
+bool fetch_file_save_open(FetchFileSave* instance, const char* file_path) {
     furi_check(instance);
     furi_check(file_path);
 
@@ -67,10 +67,11 @@ bool fetch_file_save_open(FetchFileSave* instance, FetchFileSaveFlag flags, cons
             break;
         }
 
-        const FS_OpenMode open_mode =
-            FSOM_CREATE_ALWAYS | ((flags & FetchFileSaveFlagNonblocking) ? FSOM_NONBLOCKING : 0);
-
-        if(!storage_file_open(instance->file_handle, file_path, FSAM_WRITE, open_mode)) {
+        if(!storage_file_open(
+               instance->file_handle,
+               file_path,
+               FSAM_WRITE,
+               FSOM_CREATE_ALWAYS | FSOM_NONBLOCKING)) {
             FURI_LOG_E(TAG, "Failed to open file for writing: %s", file_path);
             break;
         }

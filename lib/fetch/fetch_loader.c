@@ -161,7 +161,7 @@ static int32_t fetch_loader_thread_callback(void* context) {
 
     const char* path = furi_string_get_cstr(instance->path);
 
-    if(!fetch_file_save_open(instance->file_save, FetchFileSaveFlagNone, path)) {
+    if(!fetch_file_save_open(instance->file_save, path)) {
         FURI_LOG_E(TAG, "Failed to open file %s", path);
         return 0;
     }

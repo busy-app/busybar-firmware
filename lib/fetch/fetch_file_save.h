@@ -7,11 +7,6 @@
 
 typedef struct FetchFileSave FetchFileSave;
 
-typedef enum {
-    FetchFileSaveFlagNone = 0,
-    FetchFileSaveFlagNonblocking = 1 << 0,
-} FetchFileSaveFlag;
-
 /**
 * Allocates a FetchFileSave instance.
 * @returns Pointer to the allocated FetchFileSave instance
@@ -29,7 +24,7 @@ void fetch_file_save_free(FetchFileSave* instance);
  * @param[in,out] instance Pointer to the FetchFileSave instance to open.
  * @returns @c true if the file could be opened, @c false otherwise
  */
-bool fetch_file_save_open(FetchFileSave* instance, FetchFileSaveFlag flags, const char* file_path);
+bool fetch_file_save_open(FetchFileSave* instance, const char* file_path);
 
 /**
 * Write chunk data to the file.

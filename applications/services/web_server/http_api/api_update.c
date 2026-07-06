@@ -369,8 +369,7 @@ static bool api_update_raw_hdr_callback(
 
     furi_thread_set_current_priority(FuriThreadPriorityLow);
 
-    if(!fetch_file_save_open(
-           update_ctx->file_save, FetchFileSaveFlagNonblocking, UPDATER_DEFAULT_DOWNLOAD_PATH)) {
+    if(!fetch_file_save_open(update_ctx->file_save, UPDATER_DEFAULT_DOWNLOAD_PATH)) {
         FURI_LOG_E(
             TAG,
             "on_headers: Failed to initialize file saver for: %s",
