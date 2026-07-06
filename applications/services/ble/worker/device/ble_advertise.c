@@ -45,6 +45,11 @@
 ///TODO: Must be 0x01 or 0x03 for filtering by acceptlist, but it doesn't work on silabs side
 #define BLE_ADVERTISE_SCAN_FILTER_POLICY 0x00
 
+typedef enum {
+    BleAdvertiseAeDataTypeAdvertise = AE_ADV_DATA,
+    BleAdvertiseAeDataTypeScanResponse = 0x03
+} BleAdvertiseAeDataType;
+
 typedef struct FURI_PACKED {
     uint8_t length;
     uint8_t type;
@@ -157,41 +162,42 @@ void ble_advertise_set_name(BleAdvertiseContext* instance, const char* new_name)
     furi_mutex_release(instance->lock);
 }
 
+static void ble_advertise_set_ae_data(
+    const BleAdvertiseAeDataType type,
+    const uint8_t size,
+    const void* data) {
+    rsi_ble_ae_data_t ble_ae_data = {0};
+
+    ble_ae_data.type = type;
+    ble_ae_data.adv_handle = BLE_ADVERTISE_HANDLE;
+    ble_ae_data.operation = BLE_ADVERTISE_DATA_OPERATION_COMPLETE;
+    ble_ae_data.frag_pref = BLE_ADVERTISE_DATA_FRAGMENTATION_NOT_ALLOWED;
+    ble_ae_data.data_len = size;
+    if(size > 0) {
+        memcpy(ble_ae_data.data, data, ble_ae_data.data_len);
+    }
+
+    sl_status_t status = rsi_ble_set_ae_data(&ble_ae_data);
+    if(status != RSI_SUCCESS) {
+        const char* type_name = type == BleAdvertiseAeDataTypeScanResponse ? "scan response" :
+                                                                             "advertise";
+        BLE_LOG_W("set %s data failed with 0x%lX", type_name, status);
+    }
+}
+
 static void ble_advertise_refresh_data(const BleAdvertiseContext* instance, bool paired) {
     furi_assert(instance);
     furi_mutex_acquire(instance->lock, FuriWaitForever);
 
-    rsi_ble_ae_data_t ble_ae_data = {0};
+    const size_t adv_size = !paired ? sizeof(BleAdvertiseConfigPublic) :
+                                      sizeof(BleAdvertiseConfigAnonymous);
+    ble_advertise_set_ae_data(
+        BleAdvertiseAeDataTypeAdvertise, adv_size, &advertise_config_template);
 
-    ble_ae_data.type = AE_ADV_DATA;
-    ble_ae_data.adv_handle = BLE_ADVERTISE_HANDLE;
-    ble_ae_data.operation = BLE_ADVERTISE_DATA_OPERATION_COMPLETE;
-    ble_ae_data.frag_pref = BLE_ADVERTISE_DATA_FRAGMENTATION_NOT_ALLOWED;
-    ble_ae_data.data_len = !paired ? sizeof(BleAdvertiseConfigPublic) :
-                                     sizeof(BleAdvertiseConfigAnonymous);
-    memcpy(ble_ae_data.data, &advertise_config_template, ble_ae_data.data_len);
+    const size_t scan_size =
+        !paired ? (sizeof(BleAdvertiseHeader) + instance->local_name->header.length) : 0;
+    ble_advertise_set_ae_data(BleAdvertiseAeDataTypeScanResponse, scan_size, instance->local_name);
 
-    sl_status_t status = rsi_ble_set_ae_data(&ble_ae_data);
-    if(status != RSI_SUCCESS) {
-        BLE_LOG_W("set ae data failed with 0x%lX", status);
-    }
-
-    memset(&ble_ae_data, 0, sizeof(rsi_ble_ae_data_t));
-
-    ble_ae_data.type = 0x03;
-    ble_ae_data.adv_handle = BLE_ADVERTISE_HANDLE;
-    ble_ae_data.operation = BLE_ADVERTISE_DATA_OPERATION_COMPLETE;
-    ble_ae_data.frag_pref = BLE_ADVERTISE_DATA_FRAGMENTATION_NOT_ALLOWED;
-
-    if(!paired) {
-        ble_ae_data.data_len = sizeof(BleAdvertiseHeader) + instance->local_name->header.length;
-        memcpy(ble_ae_data.data, instance->local_name, ble_ae_data.data_len);
-    }
-
-    status = rsi_ble_set_ae_data(&ble_ae_data);
-    if(status != RSI_SUCCESS) {
-        BLE_LOG_W("set ae data for scan failed with 0x%lX", status);
-    }
     furi_mutex_release(instance->lock);
 }
 
@@ -207,7 +213,7 @@ static void ble_advertise_set_scan_params() {
 
     sl_status_t status = rsi_ble_ae_set_scan_params(&ae_set_scan_params);
     if(status != RSI_SUCCESS) {
-        BLE_LOG_W("Set ae scan params failed with 0x%lX", status);
+        BLE_LOG_W("set ae scan params failed with 0x%lX", status);
     }
 }
 
