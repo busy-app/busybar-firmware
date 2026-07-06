@@ -24,21 +24,23 @@ void anim_file_img_init(AnimFile* anim, uint8_t* cutout_buffer, size_t width, si
     const AnimFileHeader* file_hdr = &anim->meta.header;
     AnimFileImg* img = &anim->img;
 
-    furi_check(!img->encoded_buffer);
-    furi_check(!img->packed_buffer);
-    furi_check(!img->sheet_buffer);
-    furi_check(!img->cutout_buffer);
-
-    if(file_hdr->max_encoded_length) {
+    if(!img->encoded_buffer && file_hdr->max_encoded_length) {
         img->encoded_buffer = malloc(file_hdr->max_encoded_length);
     }
-    if(file_hdr->color_format != AnimFileColorFormatBgra8888) {
+
+    if(!img->packed_buffer && (file_hdr->color_format != AnimFileColorFormatBgra8888)) {
         img->packed_buffer = malloc(anim_file_img_packed_length(file_hdr));
     }
-    if((width < file_hdr->width) || (height < file_hdr->height)) {
-        img->sheet_buffer =
-            malloc(file_hdr->width * file_hdr->height * ANIM_FILE_OUT_BYTES_PER_PIXEL);
+
+    bool sheet_buffer_needed = (width < file_hdr->width) || (height < file_hdr->height);
+    if(sheet_buffer_needed) {
+        size_t sheet_buf_size = file_hdr->width * file_hdr->height * ANIM_FILE_OUT_BYTES_PER_PIXEL;
+        img->sheet_buffer = realloc(img->sheet_buffer, sheet_buf_size);
+    } else {
+        free(img->sheet_buffer);
+        img->sheet_buffer = NULL;
     }
+
     img->cutout_buffer = cutout_buffer;
     img->cutout_w = width;
     img->cutout_h = height;
@@ -61,6 +63,7 @@ static uint8_t* anim_file_img_sheet_buffer(AnimFile* anim) {
     AnimFileImg* img = &anim->img;
 
     if((img->cutout_w < file_hdr->width) || (img->cutout_h < file_hdr->height)) {
+        furi_assert(img->sheet_buffer);
         return img->sheet_buffer;
     }
 
@@ -75,6 +78,7 @@ static uint8_t* anim_file_img_packed_buffer(AnimFile* anim, size_t* size) {
 
     if(file_hdr->color_format != AnimFileColorFormatBgra8888) {
         if(size) *size = anim_file_img_packed_length(file_hdr);
+        furi_assert(img->packed_buffer);
         return img->packed_buffer;
     }
 
@@ -94,6 +98,7 @@ uint8_t* anim_file_img_encoded_buffer(AnimFile* anim, AnimFileFrameEncoding enco
                 "Invalid file header: frame_hdr.encoding is non-Raw but max_encoded_length is 0");
             return NULL;
         }
+        furi_assert(img->encoded_buffer);
         return img->encoded_buffer;
     }
 
@@ -218,8 +223,8 @@ void anim_file_img_set_cutout(AnimFile* anim, float x, float y) {
 
     AnimFileImg* img = &anim->img;
 
-    img->cutout_x = (int)ceilf(x);
-    img->cutout_y = (int)ceilf(y);
+    img->cutout_x = (int)floorf(x);
+    img->cutout_y = (int)floorf(y);
 
     dsp_2d_kernel_subpixel_translate(
         ANIM_FILE_IMG_KERNEL_SZ, img->cutout_kernel, img->cutout_x - x, img->cutout_y - y);

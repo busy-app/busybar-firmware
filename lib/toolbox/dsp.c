@@ -15,26 +15,24 @@ void dsp_2d_kernel_subpixel_translate(
     furi_assert((kernel_sz % 2) == 1);
     furi_assert(kernel);
 
-    memset(kernel, 0, sizeof(float) * kernel_sz * kernel_sz);
-    int center = kernel_sz / 2;
+    const int center = kernel_sz / 2;
+    const int max_offset = kernel_sz - 1;
 
-    furi_assert(fabsf(x) < (center + EPSILON));
-    furi_assert(fabsf(y) < (center + EPSILON));
-
-    int sign(float f) {
-        if(f > EPSILON) return +1;
-        return -1;
-    }
+    furi_assert(fabsf(x) < (max_offset + EPSILON));
+    furi_assert(fabsf(y) < (max_offset + EPSILON));
 
     /**
      * Sign is reversed:
      * To offset an image by 1 pixel downwards, the kernel needs to take one
      * pixel upwards from the source image.
      */
-    float* middle = &kernel[center][center];
-    float* y_axis = &kernel[center - sign(y)][center];
-    float* x_axis = &kernel[center][center - sign(x)];
-    float* diagonal = &kernel[center - sign(y)][center - sign(x)];
+    const int y_offset = (fabsf(y) > EPSILON) ? -floorf(y) : +1;
+    const int x_offset = (fabsf(x) > EPSILON) ? -floorf(x) : +1;
+
+    float* const middle = &kernel[center][center];
+    float* const y_axis = &kernel[center + y_offset][center];
+    float* const x_axis = &kernel[center][center + x_offset];
+    float* const diagonal = &kernel[center + y_offset][center + x_offset];
 
     /**
      * Start with an "identity" (no-op) kernel:
@@ -42,6 +40,7 @@ void dsp_2d_kernel_subpixel_translate(
      * 0.00  1.00  0.00
      * 0.00  0.00  0.00
      */
+    memset(kernel, 0, sizeof(float) * kernel_sz * kernel_sz);
     *middle = 1.0f;
 
     /**
@@ -84,11 +83,16 @@ void dsp_2d_kernel_apply(
     furi_assert(dst.height <= src.height);
     furi_assert(dst.channels == src.channels);
 
-    size_t n_chans = src.channels;
-    int kernel_mid = kernel_sz / 2;
+    const size_t n_chans = src.channels;
+    const int kernel_mid = kernel_sz / 2;
 
     // https://en.wikipedia.org/wiki/Kernel_(image_processing)#Convolution
 
+    /**
+     * Some initial/step values are precomputed before a loop and then
+     * incremented inside it, instead of being recomputed on the fly via
+     * multiplication. That's faster by about 9x, but less readble. Sorry.
+     */
     for(int dst_y = 0; dst_y < (int)dst.height; dst_y++) {
         for(int dst_x = 0; dst_x < (int)dst.width; dst_x++) {
             for(size_t chan = 0; chan < n_chans; chan++) {

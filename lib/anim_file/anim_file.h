@@ -81,7 +81,7 @@ typedef struct {
  * animation will be shown. This cutout of the animation can be moved around
  * with `anim_file_set_cutout`.
  * 
- * @warning Once set, cannot be changed
+ * The buffer will not be touched until the next call to `anim_file_frame`.
  * 
  * @param[in] anim `AnimFile` instance
  * @param[in] width Buffer width in pixels
@@ -133,8 +133,8 @@ bool FURI_WARN_UNUSED
  * Can only be used (and only makes sense) in case the output buffer is smaller
  * than the animation file.
  * 
- * Supports non-whole (sub-pixel), negative and otherwise out-of-bounds
- * coordinates. Solid black will be rendered in the out-of-bounds parts.
+ * Supports non-integer (sub-pixel), negative and otherwise out-of-bounds
+ * coordinates. Transparent black will be rendered in the out-of-bounds parts.
  * 
  * @note The new values will be applied on the next non-identical frame.
  * 
@@ -142,7 +142,7 @@ bool FURI_WARN_UNUSED
  * @param[in] x X-coordinate of the top-left corner of the cutout
  * @param[in] x Y-coordinate of the top-left corner of the cutout
  */
-void anim_file_set_cutout(AnimFile* anim, float x, float y);
+void anim_file_set_offset(AnimFile* anim, float x, float y);
 
 /**
  * @brief The name that when provided to `anim_file_set_section` specifies the

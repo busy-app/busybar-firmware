@@ -112,7 +112,7 @@ bool FURI_WARN_UNUSED
     return false;
 }
 
-void anim_file_set_cutout(AnimFile* anim, float x, float y) {
+void anim_file_set_offset(AnimFile* anim, float x, float y) {
     furi_check(anim);
-    anim_file_img_set_cutout(anim, x, y);
+    anim_file_img_set_cutout(anim, -x, -y);
 }
