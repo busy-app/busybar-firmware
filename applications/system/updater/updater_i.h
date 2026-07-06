@@ -6,7 +6,7 @@
 #include <storage/storage.h>
 #include <power/power_service/power.h>
 
-#include <toolbox/fetch/fetch_loader.h>
+#include <fetch/fetch_loader.h>
 #include <toolbox/api_lock.h>
 
 #define TAG "Updater"

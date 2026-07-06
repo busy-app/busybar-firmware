@@ -1,8 +1,9 @@
 #include "fetch_loader.h"
 
 #include <storage/storage.h>
-#include <toolbox/fetch/fetch_client.h>
-#include <toolbox/fetch/fetch_file_save.h>
+
+#include "fetch_client.h"
+#include "fetch_file_save.h"
 
 #define TAG "FetchLoader"
 

@@ -2,7 +2,7 @@
 #include "../updater_paths.h"
 #include "../helpers/update_parser.h"
 
-#include <toolbox/fetch/fetch_loader.h>
+#include <fetch/fetch_loader.h>
 
 #define TAG "UpdateChecker"
 

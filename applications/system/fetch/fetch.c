@@ -5,7 +5,7 @@
 
 #include <storage/storage.h>
 
-#include <toolbox/fetch/fetch_client.h>
+#include <fetch/fetch_client.h>
 #include <toolbox/argparse.h>
 
 #define TAG "Fetch"

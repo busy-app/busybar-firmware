@@ -35,6 +35,7 @@ for libname in [
     "zlib",
     "utz",
     "proto",
+    "fetch",
     ## SI917
     "sl_glue",
     "simplicity_sdk",

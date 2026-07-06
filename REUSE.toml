@@ -20,6 +20,7 @@ path = [
     "lib/cli/**",
     "lib/containers/**",
     "lib/drivers/**",
+    "lib/fetch/**",
     "lib/firmware_applications_si917/**",
     "lib/firmware_applications_u5/**",
     "lib/flipper_application/**",
