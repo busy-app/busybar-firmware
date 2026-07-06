@@ -57,8 +57,10 @@ bool fetch_file_save_open(FetchFileSave* instance, const char* file_path) {
             break;
         }
 
-        if(path_recursive_create_dir(instance->storage, basedir) != FSE_OK) {
-            FURI_LOG_E(TAG, "Failed to create directory: %s", furi_string_get_cstr(basedir));
+        const char* basedir_str = furi_string_get_cstr(basedir);
+
+        if(!storage_simply_mkpath(instance->storage, basedir_str)) {
+            FURI_LOG_E(TAG, "Failed to create directory: %s", basedir_str);
             break;
         }
 

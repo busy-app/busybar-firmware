@@ -6,7 +6,6 @@
 #include <cli/cli_status.h>
 
 #include <toolbox/tar/tar_archive.h>
-#include <toolbox/path.h>
 
 #define TAG "Tar"
 
@@ -114,7 +113,7 @@ bool tar_extract_files_cli(FuriString* path, FuriString* args) {
     Storage* storage = furi_record_open(RECORD_STORAGE);
     TarArchive* archive = tar_archive_alloc(storage);
     do {
-        if(path_recursive_create_dir(storage, args) != FSE_OK) {
+        if(!storage_simply_mkpath(storage, furi_string_get_cstr(args))) {
             printf(
                 ANSI_FG_RED "Error: Failed to create directory: %s\r\n" ANSI_RESET,
                 furi_string_get_cstr(args));
