@@ -1121,7 +1121,7 @@ bool storage_simply_mkpath(Storage* storage, const char* path) {
     FuriString* tmp = furi_string_alloc();
     furi_string_reserve(tmp, path_len + 1);
 
-    for(size_t i = 0; i < path_len;) {
+    for(size_t i = 1; i < path_len;) {
         const char* sep = strchr(path + i, '/');
 
         size_t subpath_len;
@@ -1131,13 +1131,11 @@ bool storage_simply_mkpath(Storage* storage, const char* path) {
             subpath_len = path_len;
         }
 
-        if(subpath_len > 0) {
-            furi_string_set_strn(tmp, path, subpath_len);
+        furi_string_set_strn(tmp, path, subpath_len);
 
-            if(!storage_simply_mkdir(storage, furi_string_get_cstr(tmp))) {
-                success = false;
-                break;
-            }
+        if(!storage_simply_mkdir(storage, furi_string_get_cstr(tmp))) {
+            success = false;
+            break;
         }
 
         i = subpath_len + 1;
