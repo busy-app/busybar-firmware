@@ -1,5 +1,7 @@
 from enum import IntFlag
 
+from SCons.Errors import UserError
+
 Import("U5_ENV", "SIL_ENV", "DIST_ENV")
 
 
@@ -150,7 +152,7 @@ service_signing_enabled = all(
 )
 
 if service_signing_configured and not service_signing_enabled:
-    raise ValueError(
+    raise UserError(
         "SI917 signing service requires SI917_SIGN_SERVICE_URL, "
         "SI917_SIGN_SERVICE_TOKEN, and SI917_SIGN_SERVICE_PROFILE"
     )
@@ -203,15 +205,38 @@ if sil_sign_keystore or service_signing_enabled:
 
     dist_env.Alias("dist_signed", signed_installs)
 
-# --- flash_usb: single USB-update target driven by component flags ---
+# --- flash_usb targets: presets are defaults; component flags override them ---
 
-if any(isinstance(t, str) and "flash_usb" in t for t in BUILD_TARGETS):
-    flash_usb_tgz = _update_bundle(
-        "flash_usb",
-        use_resources=GetOption("flash_resources") is not False,
-        use_sil_m4=GetOption("flash_sil_m4") is True,
-        use_sil_nwp=GetOption("flash_sil_nwp") is True,
-        signed=GetOption("flash_signed") is True,
+_FLASH_USB_PRESETS = {
+    "flash_usb":      {"use_resources": True,  "use_sil_m4": False, "use_sil_nwp": False},
+    "flash_usb_full": {"use_resources": True,  "use_sil_m4": True,  "use_sil_nwp": True},
+    "flash_usb_min":  {"use_resources": False, "use_sil_m4": False, "use_sil_nwp": False},
+    "flash_usb_main": {"use_resources": False, "use_sil_m4": True,  "use_sil_nwp": False},
+}
+
+_flash_usb_targets = [n for n in _FLASH_USB_PRESETS if n in BUILD_TARGETS]
+if _flash_usb_targets:
+    if len(_flash_usb_targets) > 1:
+        raise UserError(
+            "Only one flash_usb preset may be built at a time; got: "
+            + ", ".join(sorted(_flash_usb_targets))
+        )
+    
+    _name = _flash_usb_targets[0]
+    _params = dict(_FLASH_USB_PRESETS[_name])
+    _params["signed"] = GetOption("flash_signed") is True
+    _params.update(
+        (k, v)
+        for k, v in {
+            "use_resources": GetOption("flash_resources"),
+            "use_sil_m4": GetOption("flash_sil_m4"),
+            "use_sil_nwp": GetOption("flash_sil_nwp"),
+        }.items()
+        if v is not None
     )
+    
+    _preset_tgz = _update_bundle("flash_usb", **_params)
+    bundle_env.FlashOverHttp(_name, _preset_tgz)
 
-    bundle_env.FlashOverHttp("flash_usb", flash_usb_tgz)
+# `fbt -c` cleans update_tgz; also remove the flash_usb bundle then
+Clean(update_tgz, fw_env.File("${BUILD_DIR}/flash_usb_${F_TARGET_HW}.tgz"))
