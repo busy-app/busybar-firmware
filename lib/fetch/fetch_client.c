@@ -148,7 +148,11 @@ static FURI_ALWAYS_INLINE void
 
     mg_printf(
         conn,
-        "GET %s HTTP/1.0\r\nHost: %.*s\r\nUser-Agent: %s\r\nAccept: */*\r\n\r\n",
+        "GET %s HTTP/1.0\r\n"
+        "Host: %.*s\r\n"
+        "User-Agent: %s\r\n"
+        "Accept: */*\r\n"
+        "Connection: close\r\n\r\n",
         mg_url_uri(furi_string_get_cstr(instance->url)),
         name.len,
         name.buf,
