@@ -170,13 +170,18 @@ static void fetch_stream_buffer_rx_callback(FuriEventLoopObject* obj, void* cont
             const char c = buffer[i];
 
             if(!iscntrl(c) || isspace(c)) {
-                printf("%c", c);
+                putchar(c);
+
+                if(c == '\n') {
+                    putchar('\r');
+                }
+
             } else {
                 printf("\\x%02x", c);
             }
-
-            fflush(stdout);
         }
+
+        fflush(stdout);
 
     } while(bytes_read != 0);
 }
