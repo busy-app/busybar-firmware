@@ -168,7 +168,7 @@ static int32_t fetch_loader_thread_callback(void* context) {
         return 0;
     }
 
-    fetch_client_run(instance->fetch_client, furi_string_get_cstr(url));
+    fetch_client_start(instance->fetch_client, furi_string_get_cstr(url));
 
     FetchClientStatus status;
     while(!fetch_client_is_processing_done(instance->fetch_client) ||

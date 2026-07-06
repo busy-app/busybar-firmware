@@ -3,7 +3,9 @@
  */
 #pragma once
 
-#include <furi.h>
+#include <stdint.h>
+#include <stddef.h>
+#include <stdbool.h>
 
 typedef struct FetchClient FetchClient;
 
@@ -36,7 +38,7 @@ void fetch_client_free(FetchClient* instance);
 * @param[in] instance Pointer to the FetchClient instance.
 * @param[in] url Pointer to the zero-terminated string containing the URL to fetch.
 */
-void fetch_client_run(FetchClient* instance, const char* url);
+void fetch_client_start(FetchClient* instance, const char* url);
 
 /**
 * Checks if the fetch process is done.

@@ -337,7 +337,7 @@ void fetch_client_free(FetchClient* instance) {
     free(instance);
 }
 
-void fetch_client_run(FetchClient* instance, const char* url) {
+void fetch_client_start(FetchClient* instance, const char* url) {
     furi_check(instance);
     furi_check(!furi_semaphore_get_space(instance->is_processing_semaphore));
 

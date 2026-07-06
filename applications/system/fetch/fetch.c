@@ -265,7 +265,7 @@ static void fetch_run(const FetchParams* params) {
             fetch_client_set_callback_header(instance->fetch_client, fetch_client_callback_header);
         }
 
-        fetch_client_run(instance->fetch_client, params->url);
+        fetch_client_start(instance->fetch_client, params->url);
         furi_event_loop_run(instance->event_loop);
 
     } while(false);
