@@ -1125,11 +1125,10 @@ bool storage_simply_mkpath(Storage* storage, const char* path) {
         const char* sep = strchr(path + i, '/');
 
         size_t subpath_len;
-
-        if(sep == NULL) {
-            subpath_len = path_len;
-        } else {
+        if(sep != NULL) {
             subpath_len = sep - path;
+        } else {
+            subpath_len = path_len;
         }
 
         if(subpath_len > 0) {
