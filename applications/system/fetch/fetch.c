@@ -297,7 +297,7 @@ static void fetch_option_callback(char opt, const char* optarg, void* context) {
     } else if(opt == 'H') {
         // TODO: Headers
     } else if(opt == 'X') {
-        params->request_body = optarg;
+        params->request_method = optarg;
     } else if(opt == 'v') {
         params->is_full_output = true;
     }
