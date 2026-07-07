@@ -332,7 +332,7 @@ static bool fetch_validate_params(const FetchParams* params) {
 
     do {
         if(params->request.url == NULL) {
-            printf("Error: no url specified\r\n\n");
+            printf("Error: no url specified\r\n");
             break;
         }
 
@@ -353,11 +353,10 @@ void fetch_command(PipeSide* pipe, FuriString* args, void* context) {
         FetchParams params = {0};
 
         if(!parse_args(args, "o:d:H:X:v", fetch_option_callback, &params)) {
-            // TODO: Error message
+            printf("Error: invalid arguments\r\n");
             break;
         }
         if(!fetch_validate_params(&params)) {
-            // TODO: Error message
             break;
         }
 
