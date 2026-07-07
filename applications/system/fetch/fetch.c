@@ -14,7 +14,6 @@
 
 typedef struct {
     FetchClientRequest request;
-    const char* request_body;
     const char* output_path;
     bool is_full_output;
 } FetchParams;
@@ -301,7 +300,7 @@ static void fetch_option_callback(char opt, const char* optarg, void* context) {
     } else if(opt == 'X') {
         request->method = optarg;
     } else if(opt == 'd') {
-        params->request_body = optarg;
+        request->body = optarg;
     } else if(opt == 'o') {
         params->output_path = optarg;
     } else if(opt == 'v') {

@@ -14,6 +14,7 @@ typedef struct {
     const char* method;
     const char** headers;
     uint32_t headers_count;
+    const char* body;
 } FetchClientRequest;
 
 typedef struct {

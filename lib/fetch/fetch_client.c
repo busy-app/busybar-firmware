@@ -118,7 +118,10 @@ static FURI_ALWAYS_INLINE void fetch_client_switching_to_raw_protocol(
     conn->pfn = NULL; // Silence HTTP protocol handler, we'll use MG_EV_READ
 }
 
-static bool fetch_clien_init_tls(FetchClient* instance, struct mg_connection* conn, struct mg_str hostname) {
+static bool fetch_client_init_tls(
+    FetchClient* instance,
+    struct mg_connection* conn,
+    struct mg_str hostname) {
     bool success = false;
 
     struct mg_str ca_data =
@@ -135,12 +138,10 @@ static bool fetch_clien_init_tls(FetchClient* instance, struct mg_connection* co
         success = true;
 
     } else {
-        FETCH_CLIENT_ERROR(
-            TAG, "Failed to read CA bundle from %s", FETCH_CLIENT_CA_BUNDLE_PATH);
+        FETCH_CLIENT_ERROR(TAG, "Failed to read CA bundle from %s", FETCH_CLIENT_CA_BUNDLE_PATH);
 
         if(instance->callback_error) {
-            instance->callback_error(
-                "Failed to read CA certificate bundle", instance->context);
+            instance->callback_error("Failed to read CA certificate bundle", instance->context);
         }
 
         conn->is_draining = 1;
@@ -153,36 +154,80 @@ static bool fetch_clien_init_tls(FetchClient* instance, struct mg_connection* co
     return success;
 }
 
+static bool fetch_client_init_connection(FetchClient* instance, struct mg_connection* conn) {
+    bool success = true;
+
+    const char* url = instance->request->url;
+
+    if(mg_url_is_ssl(url)) {
+        success = fetch_client_init_tls(instance, conn, mg_url_host(url));
+    }
+
+    return success;
+}
+
+static void fetch_client_send_request_method(
+    const FetchClientRequest* request,
+    struct mg_connection* conn) {
+    const char* method = request->method;
+    const char* uri = mg_url_uri(request->url);
+
+    if(method == NULL) {
+        method = "GET";
+    }
+
+    mg_printf(conn, "%s %s HTTP/1.0\r\n", method, uri);
+}
+
+static void fetch_client_send_request_headers(
+    const FetchClientRequest* request,
+    struct mg_connection* conn) {
+    const struct mg_str hostname = mg_url_host(request->url);
+
+    mg_printf(
+        conn,
+        "Host: %.*s\r\n"
+        "User-Agent: %s\r\n"
+        "Accept: */*\r\n"
+        "Connection: close\r\n",
+        hostname.len,
+        hostname.buf,
+        FETCH_CLIENT_USER_AGENT);
+
+    if(request->body != NULL) {
+        mg_printf(conn, "Content-length: %u\r\n", strlen(request->body));
+    }
+}
+
+static void fetch_client_send_extra_request_headers(
+    const FetchClientRequest* request,
+    struct mg_connection* conn) {
+    UNUSED(request);
+    UNUSED(conn);
+
+    mg_send(conn, "\r\n", 2);
+}
+
+static void
+    fetch_client_send_request_body(const FetchClientRequest* request, struct mg_connection* conn) {
+    const char* body = request->body;
+
+    if(body != NULL) {
+        mg_send(conn, body, strlen(body));
+    }
+}
+
 static FURI_ALWAYS_INLINE void
     fetch_client_connect_event(FetchClient* instance, struct mg_connection* conn) {
     const FetchClientRequest* request = instance->request;
     furi_assert(request);
 
-    const char* url = request->url;
-    const struct mg_str hostname = mg_url_host(url);
-    if(mg_url_is_ssl(url) && !fetch_clien_init_tls(instance, conn, hostname)) {
-        return;
+    if(fetch_client_init_connection(instance, conn)) {
+        fetch_client_send_request_method(request, conn);
+        fetch_client_send_request_headers(request, conn);
+        fetch_client_send_extra_request_headers(request, conn);
+        fetch_client_send_request_body(request, conn);
     }
-
-    const char* method = request->method;
-    if(method == NULL) {
-        method = "GET";
-    }
-
-    const char* uri = mg_url_uri(url);
-
-    mg_printf(
-        conn,
-        "%s %s HTTP/1.0\r\n"
-        "Host: %.*s\r\n"
-        "User-Agent: %s\r\n"
-        "Accept: */*\r\n"
-        "Connection: close\r\n\r\n",
-        method,
-        uri,
-        hostname.len,
-        hostname.buf,
-        FETCH_CLIENT_USER_AGENT);
 }
 
 static FURI_ALWAYS_INLINE void
@@ -309,8 +354,8 @@ static int32_t fetch_client_thread_callback(void* context) {
 
     mg_mgr_init(&instance->mgr);
 
-    struct mg_connection* conn = mg_http_connect(
-        &instance->mgr, instance->request->url, fetch_client_mg_handler, instance);
+    struct mg_connection* conn =
+        mg_http_connect(&instance->mgr, instance->request->url, fetch_client_mg_handler, instance);
 
     if(conn != NULL) {
         instance->activity_timer = coarse_timer_create(FETCH_CLIENT_INACTIVITY_TIMEOUT_MS);
