@@ -11,15 +11,9 @@ typedef struct FetchLoader FetchLoader;
 extern "C" {
 #endif
 
-typedef enum {
-    FetchLoaderDoneStatusSuccess,
-    FetchLoaderDoneStatusFailure,
-    FetchLoaderDoneStatusAbort,
-} FetchLoaderDoneStatus;
-
 typedef void (*FetchLoaderProgressCallback)(const FetchProgress* progress, void* context);
-typedef void (*FetchLoaderStateCallback)(const char* error, void* context);
-typedef void (*FetchLoaderDoneCallback)(FetchLoaderDoneStatus done_status, void* context);
+typedef void (*FetchLoaderStateCallback)(const char* message, void* context);
+typedef void (*FetchLoaderDoneCallback)(FetchStatus status, void* context);
 
 FetchLoader* fetch_loader_alloc(void);
 

@@ -28,13 +28,13 @@ struct UpdateChecker {
     void* done_callback_context;
 };
 
-static void directory_load_done_callback(FetchLoaderDoneStatus done_status, void* context) {
+static void directory_load_done_callback(FetchStatus done_status, void* context) {
     UpdateChecker* instance = context;
 
     furi_thread_flags_set(
         furi_thread_get_id(instance->thread),
-        (done_status == FetchLoaderDoneStatusSuccess) ? ThreadFlagDirectoryLoadSuccess :
-                                                        ThreadFlagDirectoryLoadFailure);
+        (done_status == FetchStatusOk) ? ThreadFlagDirectoryLoadSuccess :
+                                         ThreadFlagDirectoryLoadFailure);
 }
 
 static int32_t thread_callback(void* context) {

@@ -182,20 +182,20 @@ static void download_state_callback(const char* state, void* context) {
     furi_state_release(instance->update_state);
 }
 
-static void download_done_callback(FetchLoaderDoneStatus done_status, void* context) {
+static void download_done_callback(FetchStatus done_status, void* context) {
     Updater* instance = context;
 
     UpdaterStatus update_status;
     switch(done_status) {
-    case FetchLoaderDoneStatusSuccess:
+    case FetchStatusOk:
         update_status = UpdaterStatusOk;
         break;
 
-    case FetchLoaderDoneStatusFailure:
+    case FetchStatusError:
         update_status = UpdaterStatusDownloadFailure;
         break;
 
-    case FetchLoaderDoneStatusAbort:
+    case FetchStatusAborted:
         update_status = UpdaterStatusDownloadAbort;
         break;
 
