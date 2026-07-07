@@ -2,6 +2,25 @@
 
 #define TAG "Intercom"
 
+#if defined INTERCOM_DISABLE_VERSION_CHECK
+#define INTERCOM_CONTROL_STRING "intercom"
+#elif defined INTERCOM_FORCE_VERSION
+#define INTERCOM_CONTROL_STRING INTERCOM_FORCE_VERSION
+#else
+#include <version.h>
+#endif
+
+const char* intercom_get_version_string(void) {
+    const char* str;
+#if defined INTERCOM_DISABLE_VERSION_CHECK || defined INTERCOM_FORCE_VERSION
+    str = INTERCOM_CONTROL_STRING;
+#else
+    const Version* version = version_get();
+    str = version_get_githash(version);
+#endif
+    return str;
+}
+
 // Called in ISR context
 static void intercom_serial_tx_callback(
     FuriHalSerialHandle* handle,
