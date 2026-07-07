@@ -10,16 +10,16 @@
 
 #define TAG "Fetch"
 
-#define FETCH_CLIENT_INACTIVITY_TIMEOUT_MS (5 * 1000)
+#define FETCH_INACTIVITY_TIMEOUT_MS (5 * 1000)
 
-//#define FETCH_CLIENT_DEBUG
+//#define FETCH_DEBUG
 
-#ifdef FETCH_CLIENT_DEBUG
-#define FETCH_CLIENT_INFO(...)  FURI_LOG_I(__VA_ARGS__)
-#define FETCH_CLIENT_ERROR(...) FURI_LOG_E(__VA_ARGS__)
+#ifdef FETCH_DEBUG
+#define FETCH_LOG_I(...) FURI_LOG_I(__VA_ARGS__)
+#define FETCH_LOG_E(...) FURI_LOG_E(__VA_ARGS__)
 #else
-#define FETCH_CLIENT_INFO(...)
-#define FETCH_CLIENT_ERROR(...)
+#define FETCH_LOG_I(...)
+#define FETCH_LOG_E(...)
 #endif
 
 struct Fetch {
@@ -53,9 +53,9 @@ static uint32_t fetch_calc_download_speed(size_t size_delta, uint32_t start_time
 
 static void fetch_on_close(struct mg_connection* conn) {
     FetchConnectionContext* conn_ctx = (FetchConnectionContext*)conn->data;
-    Fetch* instance = (Fetch*)conn_ctx->context;
+    Fetch* instance = conn_ctx->context;
 
-    FETCH_CLIENT_INFO(TAG, "on_close");
+    FETCH_LOG_I(TAG, "on_close");
 
     instance->status.speed_bytes_per_sec = fetch_calc_download_speed(
         instance->status.received_download_size, instance->started_download_ticks);
@@ -71,13 +71,14 @@ static void fetch_on_close(struct mg_connection* conn) {
 }
 
 static void fetch_update_on_data_cb(struct mg_connection* conn, struct mg_iobuf* io) {
-    FetchConnectionContext* conn_ctx = (FetchConnectionContext*)conn->data;
-    Fetch* instance = (Fetch*)conn_ctx->context;
+    const FetchConnectionContext* conn_ctx = (FetchConnectionContext*)conn->data;
+
+    Fetch* instance = conn_ctx->context;
     furi_assert(instance);
 
-    FETCH_CLIENT_INFO(TAG, "on_data: Received %zu bytes", io->len);
+    FETCH_LOG_I(TAG, "on_data: Received %zu bytes", io->len);
 
-    instance->activity_timer = coarse_timer_create(FETCH_CLIENT_INACTIVITY_TIMEOUT_MS);
+    instance->activity_timer = coarse_timer_create(FETCH_INACTIVITY_TIMEOUT_MS);
 
     instance->status.received_download_size += io->len;
     instance->delta_received_bytes += io->len;
@@ -105,14 +106,19 @@ static void fetch_update_on_data_cb(struct mg_connection* conn, struct mg_iobuf*
 static FURI_ALWAYS_INLINE void
     fetch_switching_to_raw_protocol(struct mg_connection* conn, struct mg_http_message* msg) {
     FetchConnectionContext* conn_ctx = (FetchConnectionContext*)conn->data;
-    Fetch* instance = (Fetch*)conn->fn_data;
+
+    Fetch* instance = conn->fn_data;
     conn_ctx->context = instance;
 
-    FETCH_CLIENT_INFO(TAG, "body size: %d", (int)msg->body.len);
+    const int32_t body_length = (int32_t)msg->body.len;
+    FETCH_LOG_I(TAG, "body size: %ld", body_length);
+
     instance->started_raw_ticks = furi_get_tick();
     instance->started_download_ticks = instance->started_raw_ticks;
 
-    if((int)msg->body.len != -1) instance->status.total_download_size = msg->body.len;
+    if(body_length != -1) {
+        instance->status.total_download_size = body_length;
+    }
 
     // Set up raw data handlers
     conn_ctx->on_data = fetch_update_on_data_cb;
@@ -125,8 +131,7 @@ static FURI_ALWAYS_INLINE void
 static bool fetch_init_tls(Fetch* instance, struct mg_connection* conn, struct mg_str hostname) {
     bool success = false;
 
-    struct mg_str ca_data =
-        mg_file_read((struct mg_fs*)http_fs_get(), FETCH_CLIENT_CA_BUNDLE_PATH);
+    struct mg_str ca_data = mg_file_read(http_fs_get(), FETCH_CA_BUNDLE_PATH);
 
     if(ca_data.buf != NULL && ca_data.len > 0) {
         const struct mg_tls_opts opts = {
@@ -139,7 +144,7 @@ static bool fetch_init_tls(Fetch* instance, struct mg_connection* conn, struct m
         success = true;
 
     } else {
-        FETCH_CLIENT_ERROR(TAG, "Failed to read CA bundle from %s", FETCH_CLIENT_CA_BUNDLE_PATH);
+        FETCH_LOG_E(TAG, "Failed to read CA bundle from %s", FETCH_CA_BUNDLE_PATH);
 
         if(instance->callback_error) {
             instance->callback_error(
@@ -190,7 +195,7 @@ static void fetch_send_request_headers(const FetchRequest* request, struct mg_co
         "Connection: close\r\n",
         hostname.len,
         hostname.buf,
-        FETCH_CLIENT_USER_AGENT);
+        FETCH_USER_AGENT);
 
     const uint32_t body_length = request->body.length;
 
@@ -231,17 +236,17 @@ static FURI_ALWAYS_INLINE void fetch_connect_event(Fetch* instance, struct mg_co
 
 static FURI_ALWAYS_INLINE void
     fetch_http_msg_event(Fetch* instance, struct mg_connection* conn, void* ev_data) {
-    struct mg_http_message* msg = (struct mg_http_message*)ev_data;
-    FetchConnectionContext* conn_ctx = (void*)conn->data;
-    if(conn_ctx->on_data == NULL) { // Skip raw connections
-        FuriString* path = furi_string_alloc_printf("%.*s", msg->uri.len, msg->uri.buf);
+#ifndef FETCH_DEBUG
+    UNUSED(ev_data);
+#else
+    const FetchConnectionContext* conn_ctx = (FetchConnectionContext*)conn->data;
+    struct mg_http_message* msg = ev_data;
 
-        FETCH_CLIENT_INFO(TAG, "Data received: %.*s", (int)msg->message.len, msg->message.buf);
-        FETCH_CLIENT_INFO(TAG, "Path: %s", furi_string_get_cstr(path));
-
-        furi_string_free(path);
+    if(conn_ctx->on_data == NULL) {
+        FETCH_LOG_I(TAG, "Data received: %.*s", msg->message.len, msg->message.buf);
+        FETCH_LOG_I(TAG, "Path: %.*s", msg->uri.len, msg->uri.buf);
     }
-
+#endif
     conn->is_draining = 1;
     instance->is_running = false;
 }
@@ -249,11 +254,9 @@ static FURI_ALWAYS_INLINE void
 static FURI_ALWAYS_INLINE void
     fetch_http_hdrs_event(Fetch* instance, struct mg_connection* conn, void* ev_data) {
     struct mg_http_message* msg = (struct mg_http_message*)ev_data;
-    FuriString* path = furi_string_alloc_printf("%.*s", msg->uri.len, msg->uri.buf);
 
-    FETCH_CLIENT_INFO(TAG, "Headers received: %.*s", (int)msg->message.len, msg->message.buf);
-    FETCH_CLIENT_INFO(TAG, "Path: %s", furi_string_get_cstr(path));
-    furi_string_free(path);
+    FETCH_LOG_I(TAG, "Headers received: %.*s", msg->message.len, msg->message.buf);
+    FETCH_LOG_I(TAG, "Path: %.*s", msg->uri.len, msg->uri.buf);
 
     if(instance->callback_header) {
         instance->callback_header(msg->head.buf, msg->head.len, instance->callback_context);
@@ -264,9 +267,12 @@ static FURI_ALWAYS_INLINE void
 
 static FURI_ALWAYS_INLINE void fetch_read_event(Fetch* instance, struct mg_connection* conn) {
     UNUSED(instance);
-    FETCH_CLIENT_INFO(TAG, "MG_EV_READ");
+
+    FETCH_LOG_I(TAG, "MG_EV_READ");
+
     if(!conn->is_websocket) {
         FetchConnectionContext* conn_ctx = (void*)conn->data;
+
         if(conn_ctx->on_data) {
             conn_ctx->on_data(conn, &conn->recv);
         }
@@ -274,8 +280,10 @@ static FURI_ALWAYS_INLINE void fetch_read_event(Fetch* instance, struct mg_conne
 }
 
 static FURI_ALWAYS_INLINE void fetch_close_event(Fetch* instance, struct mg_connection* conn) {
-    FETCH_CLIENT_INFO(TAG, "MG_EV_CLOSE");
-    FetchConnectionContext* conn_ctx = (void*)conn->data;
+    FETCH_LOG_I(TAG, "MG_EV_CLOSE");
+
+    const FetchConnectionContext* conn_ctx = (FetchConnectionContext*)conn->data;
+
     if(conn_ctx->on_close) {
         conn_ctx->on_close(conn);
     }
@@ -287,10 +295,11 @@ static FURI_ALWAYS_INLINE void fetch_close_event(Fetch* instance, struct mg_conn
 static FURI_ALWAYS_INLINE void
     fetch_error_event(Fetch* instance, struct mg_connection* conn, void* ev_data) {
     UNUSED(conn);
-    FETCH_CLIENT_ERROR(TAG, "Error occurred: %s", (char*)ev_data);
+
+    FETCH_LOG_E(TAG, "Error occurred: %s", (const char*)ev_data);
 
     if(instance->callback_error) {
-        instance->callback_error((const char*)ev_data, instance->callback_context);
+        instance->callback_error(ev_data, instance->callback_context);
     }
 
     instance->is_running = false;
@@ -312,7 +321,7 @@ static void fetch_mg_handler(struct mg_connection* conn, int event, void* ev_dat
     } else if(event == MG_EV_ERROR) {
         fetch_error_event(instance, conn, ev_data);
     } else if(event == MG_EV_TLS_HS) {
-        FETCH_CLIENT_INFO(TAG, "TLS handshake successful");
+        FETCH_LOG_I(TAG, "TLS handshake successful");
     }
 }
 
@@ -324,7 +333,7 @@ static void fetch_thread_state_callback(FuriThread* thread, FuriThreadState stat
     if(state == FuriThreadStateStopped) {
         furi_assert(!instance->is_finished);
 
-        FETCH_CLIENT_INFO(TAG, "Stop");
+        FETCH_LOG_I(TAG, "Stop");
 
         if(instance->callback_finished) {
             instance->callback_finished(instance->callback_context);
@@ -340,14 +349,14 @@ static int32_t fetch_thread_callback(void* context) {
     furi_assert(context);
     Fetch* instance = context;
 
-    FETCH_CLIENT_INFO(TAG, "Start");
+    FETCH_LOG_I(TAG, "Start");
 
     instance->is_running = true;
 
     Network* network = furi_record_open(RECORD_NETWORK);
     network_init_current_thread(network);
 
-#ifdef FETCH_CLIENT_DEBUG
+#ifdef FETCH_DEBUG
     mg_log_set(MG_LL_VERBOSE);
 #endif
 
@@ -357,11 +366,11 @@ static int32_t fetch_thread_callback(void* context) {
         mg_http_connect(&instance->mgr, instance->request->url, fetch_mg_handler, instance);
 
     if(conn != NULL) {
-        instance->activity_timer = coarse_timer_create(FETCH_CLIENT_INACTIVITY_TIMEOUT_MS);
+        instance->activity_timer = coarse_timer_create(FETCH_INACTIVITY_TIMEOUT_MS);
 
         while(instance->is_running) {
             if(coarse_timer_is_expired(instance->activity_timer)) {
-                FETCH_CLIENT_ERROR(TAG, "Inactivity timeout");
+                FETCH_LOG_E(TAG, "Inactivity timeout");
 
                 if(instance->callback_error) {
                     instance->callback_error("Inactivity timeout", instance->callback_context);
@@ -372,16 +381,16 @@ static int32_t fetch_thread_callback(void* context) {
             }
 
             if(instance->is_force_stop) {
-                FETCH_CLIENT_INFO(TAG, "Force stopped");
+                FETCH_LOG_I(TAG, "Force stopped");
                 conn->is_draining = 1;
-                FETCH_CLIENT_INFO(TAG, "Connection closed");
+                FETCH_LOG_I(TAG, "Connection closed");
             }
 
             mg_mgr_poll(&instance->mgr, 1000);
         }
 
     } else {
-        FETCH_CLIENT_ERROR(TAG, "Failed to connect to server");
+        FETCH_LOG_E(TAG, "Failed to connect to server");
     }
 
     mg_mgr_free(&instance->mgr);
@@ -389,18 +398,13 @@ static int32_t fetch_thread_callback(void* context) {
     network_deinit_current_thread(network);
     furi_record_close(RECORD_NETWORK);
 
-    FETCH_CLIENT_INFO(TAG, "Stopping thread");
+    FETCH_LOG_I(TAG, "Stopping thread");
 
     return 0;
 }
 
 Fetch* fetch_alloc(void) {
     Fetch* instance = malloc(sizeof(Fetch));
-
-    instance->status.total_download_size = 0;
-    instance->status.received_download_size = 0;
-    instance->status.speed_bytes_per_sec = 0;
-
     return instance;
 }
 
@@ -423,12 +427,12 @@ void fetch_start(Fetch* instance, const FetchRequest* request) {
 
     instance->request = request;
 
-    FuriThread* thread = furi_thread_alloc_ex(
-        "Fetch", FETCH_CLIENT_THREAD_STACK_SIZE, fetch_thread_callback, instance);
+    FuriThread* thread =
+        furi_thread_alloc_ex("Fetch", FETCH_THREAD_STACK_SIZE, fetch_thread_callback, instance);
     furi_thread_set_state_context(thread, instance);
     furi_thread_set_state_callback(thread, fetch_thread_state_callback);
 
-    FETCH_CLIENT_INFO(TAG, "Starting thread");
+    FETCH_LOG_I(TAG, "Starting thread");
 
     furi_thread_start(thread);
 }
