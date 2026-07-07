@@ -9,6 +9,11 @@ def _instantiate_vars():
             help="Set for insecure (non-secure-boot) Si917 devices; disables key wrapping during provisioning",
             default=True,
         ),
+        (
+            "INTERCOM_FORCE_VERSION",
+            "Force intercom handshake version string (overrides the default git-hash based check)",
+            "",
+        ),
     )
     return vars
 
