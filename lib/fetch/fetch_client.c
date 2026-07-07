@@ -2,8 +2,6 @@
 #include "fetch_client_i.h"
 
 #include <storage/storage.h>
-
-#include <toolbox/path.h>
 #include <toolbox/timers.h>
 
 #define TAG "FetchClient"
@@ -194,26 +192,30 @@ static void fetch_client_send_request_headers(
         hostname.buf,
         FETCH_CLIENT_USER_AGENT);
 
-    if(request->body != NULL) {
-        mg_printf(conn, "Content-length: %u\r\n", strlen(request->body));
+    const uint32_t body_lenght = request->body.length;
+
+    if(body_lenght > 0) {
+        mg_printf(conn, "Content-length: %u\r\n", body_lenght);
     }
 }
 
 static void fetch_client_send_extra_request_headers(
     const FetchClientRequest* request,
     struct mg_connection* conn) {
-    UNUSED(request);
-    UNUSED(conn);
+    for(uint32_t i = 0; i < request->headers.count; ++i) {
+        mg_printf(conn, "%s\r\n", request->headers.data[i]);
+    }
 
     mg_send(conn, "\r\n", 2);
 }
 
 static void
     fetch_client_send_request_body(const FetchClientRequest* request, struct mg_connection* conn) {
-    const char* body = request->body;
+    const char* body_data = request->body.data;
+    const uint32_t body_length = request->body.length;
 
-    if(body != NULL) {
-        mg_send(conn, body, strlen(body));
+    if(body_data != NULL && body_length > 0) {
+        mg_send(conn, body_data, body_length);
     }
 }
 
@@ -379,7 +381,6 @@ static int32_t fetch_client_thread_callback(void* context) {
             }
 
             mg_mgr_poll(&instance->mgr, 1000);
-            furi_thread_yield();
         }
 
     } else {

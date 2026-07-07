@@ -296,11 +296,12 @@ static void fetch_option_callback(char opt, const char* optarg, void* context) {
     if(opt == '\0') {
         request->url = optarg;
     } else if(opt == 'H') {
-        request->headers[request->headers_count++] = optarg;
+        request->headers.data[request->headers.count++] = optarg;
     } else if(opt == 'X') {
         request->method = optarg;
     } else if(opt == 'd') {
-        request->body = optarg;
+        request->body.data = optarg;
+        request->body.length = strlen(optarg);
     } else if(opt == 'o') {
         params->output_path = optarg;
     } else if(opt == 'v') {

@@ -10,11 +10,20 @@
 typedef struct FetchClient FetchClient;
 
 typedef struct {
+    const char** data;
+    uint32_t count;
+} FetchClientRequestHeaders;
+
+typedef struct {
+    const void* data;
+    uint32_t length;
+} FetchClientRequestBody;
+
+typedef struct {
     const char* url;
     const char* method;
-    const char** headers;
-    uint32_t headers_count;
-    const char* body;
+    FetchClientRequestHeaders headers;
+    FetchClientRequestBody body;
 } FetchClientRequest;
 
 typedef struct {
@@ -44,8 +53,8 @@ void fetch_client_free(FetchClient* instance);
 /**
 * Starts the fetch process with the given URL.
 *
-* @warning The data pointed to by the @p request parameter
-*          must NOT be deleted until the FetchClient instance finishes.
+* @warning The data pointed to by the @p request parameter and its members
+*          must stay valid until the FetchClient instance finishes.
 *
 * @param[in] instance Pointer to the FetchClient instance.
 * @param[in] request Pointer to the request to be executed.
