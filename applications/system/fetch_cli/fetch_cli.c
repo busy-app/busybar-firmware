@@ -132,7 +132,7 @@ static void fetch_cli_print_download_progress_simple(const FetchStatus* status) 
     printf("\rDownloaded: %8.2fKiB/s, %zuKiB/?KiB", download_speed, download_size);
 }
 
-static void fetch_callback_status(const FetchStatus* status, void* context) {
+static void fetch_progress_callback(const FetchStatus* status, void* context) {
     UNUSED(context);
 
     if(status->total_download_size != 0) {
@@ -172,7 +172,7 @@ static bool fetch_cli_prepare_file_output(FetchCli* instance, const char* file_p
 
     if(success) {
         fetch_set_callback_raw_data(instance->fetch, fetch_file_out_callback);
-        fetch_set_callback_status(instance->fetch, fetch_callback_status);
+        fetch_set_callback_status(instance->fetch, fetch_progress_callback);
 
     } else {
         printf("Error: Failed to open file for writing: %s\r\n", file_path);
