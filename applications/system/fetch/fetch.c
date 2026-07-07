@@ -12,6 +12,10 @@
 
 #define PROGRESS_BAR_SEGMENT_COUNT (20)
 
+typedef enum {
+    FetchCustomEventFinished = 1UL << 0,
+} FetchCustomEvent;
+
 typedef struct {
     FetchClientRequest request;
     const char* output_path;
@@ -83,7 +87,7 @@ static void fetch_client_callback_finished(void* context) {
     furi_assert(context);
     Fetch* instance = context;
 
-    furi_event_loop_stop(instance->event_loop);
+    furi_event_loop_set_custom_event(instance->event_loop, FetchCustomEventFinished);
 }
 
 static void fetch_print_download_progress(const FetchClientStatus* status) {
@@ -185,6 +189,15 @@ static void fetch_stream_buffer_rx_callback(FuriEventLoopObject* obj, void* cont
     } while(bytes_read != 0);
 }
 
+static void fetch_custom_event_callback(uint32_t events, void* context) {
+    furi_assert(context);
+    Fetch* instance = context;
+
+    if(events == FetchCustomEventFinished) {
+        furi_event_loop_stop(instance->event_loop);
+    }
+}
+
 static Fetch* fetch_alloc() {
     Fetch* instance = malloc(sizeof(Fetch));
 
@@ -212,6 +225,9 @@ static Fetch* fetch_alloc() {
         FuriEventLoopEventIn,
         fetch_stream_buffer_rx_callback,
         instance);
+
+    furi_event_loop_set_custom_event_callback(
+        instance->event_loop, fetch_custom_event_callback, instance);
 
     return instance;
 }
