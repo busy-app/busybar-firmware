@@ -38,10 +38,10 @@ typedef struct {
     uint32_t speed_bytes_per_sec;
 } FetchStatus;
 
-typedef void (*FetchCallbackRawData)(uint8_t* data, size_t data_size, void* context);
-typedef void (*FetchCallbackHeader)(uint8_t* data, size_t data_size, void* context);
+typedef void (*FetchCallbackRawData)(const void* data, size_t data_size, void* context);
+typedef void (*FetchCallbackHeader)(const void* data, size_t data_size, void* context);
 typedef void (*FetchCallbackError)(const char* error, void* context);
-typedef void (*FetchCallbackStatus)(FetchStatus status, void* context);
+typedef void (*FetchCallbackStatus)(const FetchStatus* status, void* context);
 typedef void (*FetchCallbackFinished)(void* context);
 
 /**
@@ -120,9 +120,7 @@ void fetch_set_callback_status(Fetch* instance, FetchCallbackStatus callback);
 * @param[in] instance Pointer to the Fetch instance.
 * @param[in] callback Function pointer to the callback function.
 */
-void fetch_set_callback_finished(
-    Fetch* instance,
-    FetchCallbackFinished callback);
+void fetch_set_callback_finished(Fetch* instance, FetchCallbackFinished callback);
 
 #ifdef __cplusplus
 }

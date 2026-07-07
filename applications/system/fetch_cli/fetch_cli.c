@@ -32,13 +32,13 @@ typedef struct {
     bool is_error;
 } FetchCli;
 
-static void fetch_callback_raw_data(uint8_t* data, size_t data_size, void* context) {
+static void fetch_callback_raw_data(const void* data, size_t data_size, void* context) {
     furi_assert(context);
     FetchCli* instance = context;
     furi_stream_buffer_send(instance->buffer_rx, data, data_size, FuriWaitForever);
 }
 
-static void fetch_callback_file_write_data(uint8_t* data, size_t data_size, void* context) {
+static void fetch_callback_file_write_data(const void* data, size_t data_size, void* context) {
     furi_assert(context);
     FetchCli* instance = context;
 
@@ -55,7 +55,7 @@ static void fetch_callback_file_write_data(uint8_t* data, size_t data_size, void
     }
 }
 
-static void fetch_callback_header(uint8_t* data, size_t data_size, void* context) {
+static void fetch_callback_header(const void* data, size_t data_size, void* context) {
     furi_assert(context);
     FetchCli* instance = context;
     furi_stream_buffer_send(instance->buffer_rx, data, data_size, FuriWaitForever);
@@ -77,11 +77,11 @@ static void fetch_callback_error(const char* error, void* context) {
     instance->is_error = true;
 }
 
-static void fetch_callback_status(FetchStatus status, void* context) {
+static void fetch_callback_status(const FetchStatus* status, void* context) {
     furi_assert(context);
     FetchCli* instance = context;
 
-    furi_message_queue_put(instance->status_queue, &status, FuriWaitForever);
+    furi_message_queue_put(instance->status_queue, status, FuriWaitForever);
 }
 
 static void fetch_callback_finished(void* context) {
@@ -253,8 +253,7 @@ static bool fetch_cli_prepare_file_output(FetchCli* instance, const char* file_p
         instance->output_file, file_path, FSAM_WRITE, FSOM_CREATE_ALWAYS | FSOM_NONBLOCKING);
 
     if(success) {
-        fetch_set_callback_raw_data(
-            instance->fetch, fetch_callback_file_write_data);
+        fetch_set_callback_raw_data(instance->fetch, fetch_callback_file_write_data);
         fetch_set_callback_status(instance->fetch, fetch_callback_status);
 
     } else {

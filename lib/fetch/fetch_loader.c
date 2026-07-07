@@ -34,7 +34,8 @@ struct FetchLoader {
 
 //########## Fetch Client Callbacks ##########
 
-static void fetch_loader_callback_file_write_data(uint8_t* data, size_t data_size, void* context) {
+static void
+    fetch_loader_callback_file_write_data(const void* data, size_t data_size, void* context) {
     furi_assert(context);
     FetchLoader* instance = context;
     furi_assert(instance->file_save);
@@ -45,11 +46,11 @@ static void fetch_loader_callback_file_write_data(uint8_t* data, size_t data_siz
     }
 }
 
-void fetch_loader_callback_status(FetchStatus status, void* context) {
+void fetch_loader_callback_status(const FetchStatus* status, void* context) {
     furi_assert(context);
     FetchLoader* instance = context;
     furi_assert(instance);
-    furi_message_queue_put(instance->status_queue, &status, FuriWaitForever);
+    furi_message_queue_put(instance->status_queue, status, FuriWaitForever);
 }
 
 static void fetch_loader_callback_state(const char* error, void* context) {
@@ -80,8 +81,7 @@ FetchLoader* fetch_loader_alloc(void) {
     instance->stop_requested = false;
 
     fetch_set_callback_context(instance->fetch, instance);
-    fetch_set_callback_raw_data(
-        instance->fetch, fetch_loader_callback_file_write_data);
+    fetch_set_callback_raw_data(instance->fetch, fetch_loader_callback_file_write_data);
     fetch_set_callback_status(instance->fetch, fetch_loader_callback_status);
     fetch_set_callback_error(instance->fetch, fetch_loader_callback_state);
 
