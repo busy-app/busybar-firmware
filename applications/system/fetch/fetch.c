@@ -312,7 +312,9 @@ static void fetch_option_callback(char opt, const char* optarg, void* context) {
     if(opt == '\0') {
         request->url = optarg;
     } else if(opt == 'H') {
-        request->headers.data[request->headers.count++] = optarg;
+        if(request->headers.count < FETCH_HEADERS_COUNT_MAX) {
+            request->headers.data[request->headers.count++] = optarg;
+        }
     } else if(opt == 'X') {
         request->method = optarg;
     } else if(opt == 'd') {

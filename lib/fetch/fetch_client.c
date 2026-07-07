@@ -421,6 +421,8 @@ void fetch_client_free(FetchClient* instance) {
 void fetch_client_start(FetchClient* instance, const FetchClientRequest* request) {
     furi_check(instance);
     furi_check(request);
+    furi_check(request->url);
+    furi_check(request->headers.count < FETCH_HEADERS_COUNT_MAX);
 
     furi_check(furi_semaphore_acquire(instance->finished_semaphore, 0) == FuriStatusOk);
 

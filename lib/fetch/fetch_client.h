@@ -7,10 +7,12 @@
 #include <stddef.h>
 #include <stdbool.h>
 
+#define FETCH_HEADERS_COUNT_MAX (10)
+
 typedef struct FetchClient FetchClient;
 
 typedef struct {
-    const char** data;
+    const char* data[FETCH_HEADERS_COUNT_MAX];
     uint32_t count;
 } FetchClientRequestHeaders;
 
