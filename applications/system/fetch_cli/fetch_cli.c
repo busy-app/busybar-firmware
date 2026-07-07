@@ -5,7 +5,8 @@
 
 #include <storage/storage.h>
 
-#include <fetch/fetch_client.h>
+#include <fetch/fetch.h>
+
 #include <toolbox/argparse.h>
 
 #define TAG "FetchCli"
@@ -17,7 +18,7 @@ typedef enum {
 } FetchCliCustomEvent;
 
 typedef struct {
-    FetchClientRequest request;
+    FetchRequest request;
     const char* output_path;
     bool is_full_output;
 } FetchCliParams;
@@ -25,19 +26,19 @@ typedef struct {
 typedef struct {
     FuriEventLoop* event_loop;
     FuriStreamBuffer* buffer_rx;
-    FetchClient* fetch_client;
+    Fetch* fetch;
     FuriMessageQueue* status_queue;
     File* output_file;
     bool is_error;
 } FetchCli;
 
-static void fetch_client_callback_raw_data(uint8_t* data, size_t data_size, void* context) {
+static void fetch_callback_raw_data(uint8_t* data, size_t data_size, void* context) {
     furi_assert(context);
     FetchCli* instance = context;
     furi_stream_buffer_send(instance->buffer_rx, data, data_size, FuriWaitForever);
 }
 
-static void fetch_client_callback_file_write_data(uint8_t* data, size_t data_size, void* context) {
+static void fetch_callback_file_write_data(uint8_t* data, size_t data_size, void* context) {
     furi_assert(context);
     FetchCli* instance = context;
 
@@ -45,7 +46,7 @@ static void fetch_client_callback_file_write_data(uint8_t* data, size_t data_siz
         const size_t bytes_written = storage_file_write(instance->output_file, data, data_size);
 
         if(bytes_written != data_size) {
-            fetch_client_stop(instance->fetch_client);
+            fetch_stop(instance->fetch);
             instance->is_error = true;
         }
 
@@ -54,13 +55,13 @@ static void fetch_client_callback_file_write_data(uint8_t* data, size_t data_siz
     }
 }
 
-static void fetch_client_callback_header(uint8_t* data, size_t data_size, void* context) {
+static void fetch_callback_header(uint8_t* data, size_t data_size, void* context) {
     furi_assert(context);
     FetchCli* instance = context;
     furi_stream_buffer_send(instance->buffer_rx, data, data_size, FuriWaitForever);
 }
 
-static void fetch_client_callback_error(const char* error, void* context) {
+static void fetch_callback_error(const char* error, void* context) {
     furi_assert(context);
     FetchCli* instance = context;
 
@@ -76,21 +77,21 @@ static void fetch_client_callback_error(const char* error, void* context) {
     instance->is_error = true;
 }
 
-static void fetch_client_callback_status(FetchClientStatus status, void* context) {
+static void fetch_callback_status(FetchStatus status, void* context) {
     furi_assert(context);
     FetchCli* instance = context;
 
     furi_message_queue_put(instance->status_queue, &status, FuriWaitForever);
 }
 
-static void fetch_client_callback_finished(void* context) {
+static void fetch_callback_finished(void* context) {
     furi_assert(context);
     FetchCli* instance = context;
 
     furi_event_loop_set_custom_event(instance->event_loop, FetchCliCustomEventFinished);
 }
 
-static void fetch_cli_print_download_progress(const FetchClientStatus* status) {
+static void fetch_cli_print_download_progress(const FetchStatus* status) {
     const char* units_str;
     size_t multiplier;
 
@@ -131,7 +132,7 @@ static void fetch_cli_print_download_progress(const FetchClientStatus* status) {
         units_str);
 }
 
-static void fetch_cli_print_download_progress_simple(const FetchClientStatus* status) {
+static void fetch_cli_print_download_progress_simple(const FetchStatus* status) {
     const float download_speed = status->speed_bytes_per_sec / 1024.0f;
     const size_t download_size = status->received_download_size / 1024;
 
@@ -144,7 +145,7 @@ static void fetch_cli_status_queue_callback(FuriEventLoopObject* obj, void* cont
     FetchCli* instance = context;
     furi_assert(obj == instance->status_queue);
 
-    FetchClientStatus status;
+    FetchStatus status;
 
     while(furi_message_queue_get(instance->status_queue, &status, 0) == FuriStatusOk) {
         if(status.total_download_size != 0) {
@@ -203,14 +204,14 @@ static FetchCli* fetch_cli_alloc() {
 
     instance->event_loop = furi_event_loop_alloc();
     instance->buffer_rx = furi_stream_buffer_alloc(1024 * 4, 1);
-    instance->status_queue = furi_message_queue_alloc(10, sizeof(FetchClientStatus));
-    instance->fetch_client = fetch_client_alloc();
+    instance->status_queue = furi_message_queue_alloc(10, sizeof(FetchStatus));
+    instance->fetch = fetch_alloc();
     instance->output_file = storage_file_alloc(furi_record_open(RECORD_STORAGE));
     instance->is_error = false;
 
-    fetch_client_set_context(instance->fetch_client, instance);
-    fetch_client_set_callback_error(instance->fetch_client, fetch_client_callback_error);
-    fetch_client_set_callback_finished(instance->fetch_client, fetch_client_callback_finished);
+    fetch_set_callback_context(instance->fetch, instance);
+    fetch_set_callback_error(instance->fetch, fetch_callback_error);
+    fetch_set_callback_finished(instance->fetch, fetch_callback_finished);
 
     furi_event_loop_subscribe_message_queue(
         instance->event_loop,
@@ -237,7 +238,7 @@ static void fetch_cli_free(FetchCli* instance) {
     furi_event_loop_unsubscribe(instance->event_loop, instance->buffer_rx);
 
     storage_file_free(instance->output_file);
-    fetch_client_free(instance->fetch_client);
+    fetch_free(instance->fetch);
     furi_stream_buffer_free(instance->buffer_rx);
     furi_message_queue_free(instance->status_queue);
     furi_event_loop_free(instance->event_loop);
@@ -252,9 +253,9 @@ static bool fetch_cli_prepare_file_output(FetchCli* instance, const char* file_p
         instance->output_file, file_path, FSAM_WRITE, FSOM_CREATE_ALWAYS | FSOM_NONBLOCKING);
 
     if(success) {
-        fetch_client_set_callback_raw_data(
-            instance->fetch_client, fetch_client_callback_file_write_data);
-        fetch_client_set_callback_status(instance->fetch_client, fetch_client_callback_status);
+        fetch_set_callback_raw_data(
+            instance->fetch, fetch_callback_file_write_data);
+        fetch_set_callback_status(instance->fetch, fetch_callback_status);
 
     } else {
         printf("Error: Failed to open file for writing: %s\r\n", file_path);
@@ -264,7 +265,7 @@ static bool fetch_cli_prepare_file_output(FetchCli* instance, const char* file_p
 }
 
 static void fetch_cli_prepare_standard_output(FetchCli* instance) {
-    fetch_client_set_callback_raw_data(instance->fetch_client, fetch_client_callback_raw_data);
+    fetch_set_callback_raw_data(instance->fetch, fetch_callback_raw_data);
 }
 
 static void fetch_cli_run(const FetchCliParams* params) {
@@ -281,10 +282,10 @@ static void fetch_cli_run(const FetchCliParams* params) {
         }
 
         if(params->is_full_output) {
-            fetch_client_set_callback_header(instance->fetch_client, fetch_client_callback_header);
+            fetch_set_callback_header(instance->fetch, fetch_callback_header);
         }
 
-        fetch_client_start(instance->fetch_client, &params->request);
+        fetch_start(instance->fetch, &params->request);
         furi_event_loop_run(instance->event_loop);
 
     } while(false);
@@ -307,7 +308,7 @@ static void fetch_cli_option_callback(char opt, const char* optarg, void* contex
     furi_assert(context);
     FetchCliParams* params = context;
 
-    FetchClientRequest* request = &params->request;
+    FetchRequest* request = &params->request;
 
     if(opt == '\0') {
         request->url = optarg;

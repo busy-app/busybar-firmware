@@ -2,7 +2,7 @@
 
 #include <storage/storage.h>
 
-#include "fetch_client.h"
+#include "fetch.h"
 #include "fetch_file_save.h"
 
 #define TAG "FetchLoader"
@@ -17,7 +17,7 @@ struct FetchLoader {
     FuriSemaphore* is_processing_semaphore;
     FuriString* url;
     FuriString* path;
-    FetchClient* fetch_client;
+    Fetch* fetch;
     FetchFileSave* file_save;
     FuriMessageQueue* status_queue;
     FuriStreamBuffer* state_msg;
@@ -45,7 +45,7 @@ static void fetch_loader_callback_file_write_data(uint8_t* data, size_t data_siz
     }
 }
 
-void fetch_loader_callback_status(FetchClientStatus status, void* context) {
+void fetch_loader_callback_status(FetchStatus status, void* context) {
     furi_assert(context);
     FetchLoader* instance = context;
     furi_assert(instance);
@@ -71,19 +71,19 @@ FetchLoader* fetch_loader_alloc(void) {
     instance->url = furi_string_alloc();
     instance->path = furi_string_alloc();
     instance->is_processing_semaphore = furi_semaphore_alloc(1, 1);
-    instance->status_queue = furi_message_queue_alloc(10, sizeof(FetchClientStatus));
+    instance->status_queue = furi_message_queue_alloc(10, sizeof(FetchStatus));
     instance->state_msg = furi_stream_buffer_alloc(512, 1);
-    instance->fetch_client = fetch_client_alloc();
+    instance->fetch = fetch_alloc();
     instance->file_save = fetch_file_save_alloc();
     instance->thread = NULL;
     instance->error = false;
     instance->stop_requested = false;
 
-    fetch_client_set_context(instance->fetch_client, instance);
-    fetch_client_set_callback_raw_data(
-        instance->fetch_client, fetch_loader_callback_file_write_data);
-    fetch_client_set_callback_status(instance->fetch_client, fetch_loader_callback_status);
-    fetch_client_set_callback_error(instance->fetch_client, fetch_loader_callback_state);
+    fetch_set_callback_context(instance->fetch, instance);
+    fetch_set_callback_raw_data(
+        instance->fetch, fetch_loader_callback_file_write_data);
+    fetch_set_callback_status(instance->fetch, fetch_loader_callback_status);
+    fetch_set_callback_error(instance->fetch, fetch_loader_callback_state);
 
     return instance;
 }
@@ -94,7 +94,7 @@ void fetch_loader_free(FetchLoader* instance) {
     furi_check(!instance->thread);
 
     fetch_file_save_free(instance->file_save);
-    fetch_client_free(instance->fetch_client);
+    fetch_free(instance->fetch);
     furi_message_queue_free(instance->status_queue);
     furi_string_free(instance->url);
     furi_string_free(instance->path);
@@ -107,8 +107,8 @@ void fetch_loader_free(FetchLoader* instance) {
 void fetch_loader_forced_done(FetchLoader* instance) {
     furi_check(instance);
 
-    if(!fetch_client_is_finished(instance->fetch_client)) {
-        fetch_client_stop(instance->fetch_client);
+    if(!fetch_is_finished(instance->fetch)) {
+        fetch_stop(instance->fetch);
         int timeout = FETCH_LOADER_WAIT_FORCED_DONE_MS;
         FURI_LOG_D(TAG, "Waiting for fetch client to stop...");
         instance->stop_requested = true;
@@ -166,14 +166,14 @@ static int32_t fetch_loader_thread_callback(void* context) {
         return 0;
     }
 
-    const FetchClientRequest request = {
+    const FetchRequest request = {
         .url = furi_string_get_cstr(instance->url),
     };
 
-    fetch_client_start(instance->fetch_client, &request);
+    fetch_start(instance->fetch, &request);
 
-    FetchClientStatus status;
-    while(!fetch_client_is_finished(instance->fetch_client) ||
+    FetchStatus status;
+    while(!fetch_is_finished(instance->fetch) ||
           furi_stream_buffer_bytes_available(instance->state_msg)) {
         if(furi_message_queue_get(instance->status_queue, &status, 200) == FuriStatusOk) {
             FURI_LOG_D(

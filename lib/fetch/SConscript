@@ -8,7 +8,7 @@ env.Append(
         Dir(".").srcnode(),
     ],
     SDK_HEADERS=[
-        File("fetch_client.h"),
+        File("fetch.h"),
         File("fetch_file_save.h"),
         File("fetch_loader.h"),
     ],
