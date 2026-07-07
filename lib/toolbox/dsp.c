@@ -1,7 +1,5 @@
 #include "dsp.h"
 
-#define EPSILON 0.001f // 1/4th of the minimum RGB value
-
 float dsp_low_pass(float input, float prev_output, float alpha) {
     return alpha * prev_output + (1.0f - alpha) * input;
 }
@@ -18,16 +16,16 @@ void dsp_2d_kernel_subpixel_translate(
     const int center = kernel_sz / 2;
     const int max_offset = kernel_sz - 1;
 
-    furi_assert(fabsf(x) < (max_offset + EPSILON));
-    furi_assert(fabsf(y) < (max_offset + EPSILON));
+    furi_assert(fabsf(x) < (max_offset + DSP_EPSILON));
+    furi_assert(fabsf(y) < (max_offset + DSP_EPSILON));
 
     /**
      * Sign is reversed:
      * To offset an image by 1 pixel downwards, the kernel needs to take one
      * pixel upwards from the source image.
      */
-    const int y_offset = (fabsf(y) > EPSILON) ? -floorf(y) : +1;
-    const int x_offset = (fabsf(x) > EPSILON) ? -floorf(x) : +1;
+    const int y_offset = (fabsf(y) > DSP_EPSILON) ? -floorf(y) : +1;
+    const int x_offset = (fabsf(x) > DSP_EPSILON) ? -floorf(x) : +1;
 
     float* const middle = &kernel[center][center];
     float* const y_axis = &kernel[center + y_offset][center];

@@ -30,11 +30,10 @@ static void anim_player_resize_canvas(AnimPlayer* player, size_t width, size_t h
     furi_assert(player);
 
     if(!player->file) return;
-    if((width == player->canvas_w) && (height == player->canvas_h)) return;
 
     AnimFileInfo file_info = anim_file_info(player->file);
-    width = MIN(width, file_info.width);
-    height = MIN(height, file_info.height);
+    width = CLAMP(width, file_info.width, 1ULL);
+    height = CLAMP(height, file_info.height, 1ULL);
 
     size_t buffer_size = width * height * ANIM_FILE_OUT_BYTES_PER_PIXEL;
     player->canvas_buf = realloc(player->canvas_buf, buffer_size);
@@ -74,6 +73,10 @@ static void anim_player_lvgl_destructor(const lv_obj_class_t* class_p, lv_obj_t*
     if(instance->file) anim_file_free(instance->file);
     if(instance->file_path) free(instance->file_path);
     if(instance->canvas_buf) free(instance->canvas_buf);
+
+    instance->file = NULL;
+    instance->file_path = NULL;
+    instance->canvas_buf = NULL;
 
     furi_record_close(RECORD_STORAGE);
 }

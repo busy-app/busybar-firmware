@@ -76,7 +76,7 @@ AnimFileInfo anim_file_info(const AnimFile* anim) {
 void anim_file_set_out_buf(AnimFile* anim, size_t width, size_t height, void* buffer) {
     furi_check(anim);
     furi_check(buffer);
-    anim_file_img_init(anim, buffer, width, height);
+    anim_file_img_init(anim, buffer, width, height, false);
 }
 
 AnimFileFrameInfo anim_file_frame(AnimFile* anim) {
@@ -115,4 +115,5 @@ bool FURI_WARN_UNUSED
 void anim_file_set_offset(AnimFile* anim, float x, float y) {
     furi_check(anim);
     anim_file_img_set_cutout(anim, -x, -y);
+    anim_file_seq_redraw_current_frame(anim);
 }

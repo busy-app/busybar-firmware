@@ -96,3 +96,11 @@ AnimFileFrameFlag anim_file_seq_load_current_frame(AnimFile* anim) {
 
     return flags;
 }
+
+void anim_file_seq_redraw_current_frame(AnimFile* anim) {
+    furi_assert(anim);
+
+    AnimFileSeq* seq = &anim->seq;
+
+    anim_file_img_full_decode(anim, &seq->frame_hdr);
+}

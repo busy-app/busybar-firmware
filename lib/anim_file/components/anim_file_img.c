@@ -17,7 +17,12 @@ size_t anim_file_img_packed_length(const AnimFileHeader* file_hdr) {
     }
 }
 
-void anim_file_img_init(AnimFile* anim, uint8_t* cutout_buffer, size_t width, size_t height) {
+void anim_file_img_init(
+    AnimFile* anim,
+    uint8_t* cutout_buffer,
+    size_t width,
+    size_t height,
+    bool force_sheet_buffer) {
     furi_assert(anim);
     furi_assert(cutout_buffer);
 
@@ -32,7 +37,8 @@ void anim_file_img_init(AnimFile* anim, uint8_t* cutout_buffer, size_t width, si
         img->packed_buffer = malloc(anim_file_img_packed_length(file_hdr));
     }
 
-    bool sheet_buffer_needed = (width < file_hdr->width) || (height < file_hdr->height);
+    bool sheet_buffer_needed = (width < file_hdr->width) || (height < file_hdr->height) ||
+                               force_sheet_buffer;
     if(sheet_buffer_needed) {
         size_t sheet_buf_size = file_hdr->width * file_hdr->height * ANIM_FILE_OUT_BYTES_PER_PIXEL;
         img->sheet_buffer = realloc(img->sheet_buffer, sheet_buf_size);
@@ -54,16 +60,19 @@ void anim_file_img_deinit(AnimFile* anim) {
     if(img->sheet_buffer) free(img->sheet_buffer);
     if(img->packed_buffer) free(img->packed_buffer);
     if(img->encoded_buffer) free(img->encoded_buffer);
+
+    img->cutout_buffer = NULL;
+    img->sheet_buffer = NULL;
+    img->packed_buffer = NULL;
+    img->encoded_buffer = NULL;
 }
 
 static uint8_t* anim_file_img_sheet_buffer(AnimFile* anim) {
     furi_assert(anim);
 
-    const AnimFileHeader* file_hdr = &anim->meta.header;
     AnimFileImg* img = &anim->img;
 
-    if((img->cutout_w < file_hdr->width) || (img->cutout_h < file_hdr->height)) {
-        furi_assert(img->sheet_buffer);
+    if(img->sheet_buffer) {
         return img->sheet_buffer;
     }
 
@@ -228,6 +237,14 @@ void anim_file_img_set_cutout(AnimFile* anim, float x, float y) {
 
     dsp_2d_kernel_subpixel_translate(
         ANIM_FILE_IMG_KERNEL_SZ, img->cutout_kernel, img->cutout_x - x, img->cutout_y - y);
+
+    bool nonzero_offset = (fabsf(x) > DSP_EPSILON) || (fabsf(y) > DSP_EPSILON);
+    bool sheet_buffer_present = !!img->sheet_buffer;
+
+    if(nonzero_offset && !sheet_buffer_present) {
+        // force-allocate the sheet buffer
+        anim_file_img_init(anim, img->cutout_buffer, img->cutout_w, img->cutout_h, true);
+    }
 }
 
 bool anim_file_img_full_decode(AnimFile* anim, const AnimFileFrameHeader* frame_hdr) {

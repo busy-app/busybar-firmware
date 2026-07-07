@@ -32,7 +32,12 @@ typedef struct {
  */
 size_t anim_file_img_packed_length(const AnimFileHeader* file_hdr);
 
-void anim_file_img_init(AnimFile* anim, uint8_t* cutout_buffer, size_t width, size_t height);
+void anim_file_img_init(
+    AnimFile* anim,
+    uint8_t* cutout_buffer,
+    size_t width,
+    size_t height,
+    bool force_sheet_buffer);
 
 void anim_file_img_deinit(AnimFile* anim);
 

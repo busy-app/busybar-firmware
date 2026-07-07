@@ -6,6 +6,8 @@ extern "C" {
 
 #include <furi.h>
 
+#define DSP_EPSILON 0.001f // 1/4th of the minimum RGB value
+
 typedef struct {
     uint8_t* first_pixel;
     size_t width;
