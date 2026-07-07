@@ -20,8 +20,6 @@
 
 struct FetchClient {
     struct mg_mgr mgr;
-    FuriSemaphore* done_poll_semaphore;
-    FuriSemaphore* finished_semaphore;
     const FetchClientRequest* request;
     FetchClientStatus status;
 
@@ -30,14 +28,17 @@ struct FetchClient {
     size_t delta_received_bytes;
     uint32_t count_receive_packets;
     CoarseTimer activity_timer;
-    bool is_force_stop;
 
     FetchClientCallbackRawData callback_raw_data;
     FetchClientCallbackHeader callback_header;
     FetchClientCallbackError callback_error;
     FetchClientCallbackStatus callback_status;
     FetchClientCallbackFinished callback_finished;
-    void* context;
+    void* callback_context;
+
+    _Atomic bool is_running;
+    _Atomic bool is_force_stop;
+    _Atomic bool is_finished;
 };
 
 static void fetch_client_on_close(struct mg_connection* conn) {
@@ -52,13 +53,13 @@ static void fetch_client_on_close(struct mg_connection* conn) {
                     furi_kernel_get_tick_frequency()));
 
     if(instance->callback_status) {
-        instance->callback_status(instance->status, instance->context);
+        instance->callback_status(instance->status, instance->callback_context);
     }
 
-    // Clear callbacks
     conn_ctx->raw.on_data = NULL;
     conn_ctx->on_close = NULL;
-    furi_semaphore_release(instance->done_poll_semaphore);
+
+    instance->is_running = false;
 }
 
 static void fetch_client_update_on_data_cb(struct mg_connection* conn, struct mg_iobuf* io) {
@@ -83,13 +84,13 @@ static void fetch_client_update_on_data_cb(struct mg_connection* conn, struct mg
         instance->started_raw_ticks = furi_get_tick();
 
         if(instance->callback_status) {
-            instance->callback_status(instance->status, instance->context);
+            instance->callback_status(instance->status, instance->callback_context);
         }
         instance->delta_received_bytes = 0;
     }
 
     if(instance->callback_raw_data) {
-        instance->callback_raw_data((uint8_t*)io->buf, io->len, instance->context);
+        instance->callback_raw_data((uint8_t*)io->buf, io->len, instance->callback_context);
     }
 
     mg_iobuf_del(io, 0, io->len); // Consume all data from buffer
@@ -139,7 +140,8 @@ static bool fetch_client_init_tls(
         FETCH_CLIENT_ERROR(TAG, "Failed to read CA bundle from %s", FETCH_CLIENT_CA_BUNDLE_PATH);
 
         if(instance->callback_error) {
-            instance->callback_error("Failed to read CA certificate bundle", instance->context);
+            instance->callback_error(
+                "Failed to read CA certificate bundle", instance->callback_context);
         }
 
         conn->is_draining = 1;
@@ -246,7 +248,7 @@ static FURI_ALWAYS_INLINE void
     }
 
     conn->is_draining = 1;
-    furi_semaphore_release(instance->done_poll_semaphore);
+    instance->is_running = false;
 }
 
 static FURI_ALWAYS_INLINE void
@@ -259,7 +261,8 @@ static FURI_ALWAYS_INLINE void
     furi_string_free(path);
 
     if(instance->callback_header) {
-        instance->callback_header((uint8_t*)msg->head.buf, msg->head.len, instance->context);
+        instance->callback_header(
+            (uint8_t*)msg->head.buf, msg->head.len, instance->callback_context);
     }
 
     fetch_client_switching_to_raw_protocol(conn, msg);
@@ -286,7 +289,7 @@ static FURI_ALWAYS_INLINE void
     }
 
     conn->is_draining = 1;
-    furi_semaphore_release(instance->done_poll_semaphore);
+    instance->is_running = false;
 }
 
 static FURI_ALWAYS_INLINE void
@@ -295,10 +298,10 @@ static FURI_ALWAYS_INLINE void
     FETCH_CLIENT_ERROR(TAG, "Error occurred: %s", (char*)ev_data);
 
     if(instance->callback_error) {
-        instance->callback_error((const char*)ev_data, instance->context);
+        instance->callback_error((const char*)ev_data, instance->callback_context);
     }
 
-    furi_semaphore_release(instance->done_poll_semaphore);
+    instance->is_running = false;
 }
 
 static void fetch_client_mg_handler(struct mg_connection* conn, int event, void* ev_data) {
@@ -328,13 +331,15 @@ static void
     FetchClient* instance = context;
 
     if(state == FuriThreadStateStopped) {
+        furi_assert(!instance->is_finished);
+
         FETCH_CLIENT_INFO(TAG, "Stop");
 
         if(instance->callback_finished) {
-            instance->callback_finished(instance->context);
+            instance->callback_finished(instance->callback_context);
         }
 
-        furi_check(furi_semaphore_release(instance->finished_semaphore) == FuriStatusOk);
+        instance->is_finished = true;
 
         furi_thread_free(thread);
     }
@@ -345,7 +350,8 @@ static int32_t fetch_client_thread_callback(void* context) {
     FetchClient* instance = context;
 
     FETCH_CLIENT_INFO(TAG, "Start");
-    furi_check(furi_semaphore_acquire(instance->done_poll_semaphore, 0) == FuriStatusOk);
+
+    instance->is_running = true;
 
     Network* network = furi_record_open(RECORD_NETWORK);
     network_init_current_thread(network);
@@ -362,12 +368,12 @@ static int32_t fetch_client_thread_callback(void* context) {
     if(conn != NULL) {
         instance->activity_timer = coarse_timer_create(FETCH_CLIENT_INACTIVITY_TIMEOUT_MS);
 
-        while(furi_semaphore_acquire(instance->done_poll_semaphore, 0) != FuriStatusOk) {
+        while(instance->is_running) {
             if(coarse_timer_is_expired(instance->activity_timer)) {
                 FETCH_CLIENT_ERROR(TAG, "Inactivity timeout");
 
                 if(instance->callback_error) {
-                    instance->callback_error("Inactivity timeout", instance->context);
+                    instance->callback_error("Inactivity timeout", instance->callback_context);
                 }
 
                 conn->is_draining = 1;
@@ -403,28 +409,26 @@ FetchClient* fetch_client_alloc(void) {
     instance->status.total_download_size = 0;
     instance->status.received_download_size = 0;
     instance->status.speed_bytes_per_sec = 0;
-    instance->finished_semaphore = furi_semaphore_alloc(1, 1);
-    instance->done_poll_semaphore = furi_semaphore_alloc(1, 1);
 
     return instance;
 }
 
 void fetch_client_free(FetchClient* instance) {
     furi_check(instance);
-    furi_check(furi_semaphore_get_space(instance->finished_semaphore) == 0);
+    furi_check(instance->is_finished);
+    furi_check(!instance->is_running);
 
-    furi_semaphore_free(instance->done_poll_semaphore);
-    furi_semaphore_free(instance->finished_semaphore);
     free(instance);
 }
 
 void fetch_client_start(FetchClient* instance, const FetchClientRequest* request) {
     furi_check(instance);
+    furi_assert(!instance->is_finished);
+    furi_assert(!instance->is_running);
+
     furi_check(request);
     furi_check(request->url);
     furi_check(request->headers.count < FETCH_HEADERS_COUNT_MAX);
-
-    furi_check(furi_semaphore_acquire(instance->finished_semaphore, 0) == FuriStatusOk);
 
     instance->request = request;
 
@@ -445,12 +449,12 @@ void fetch_client_stop(FetchClient* instance) {
 
 bool fetch_client_is_finished(FetchClient* instance) {
     furi_check(instance);
-    return !furi_semaphore_get_space(instance->finished_semaphore);
+    return instance->is_finished;
 }
 
 void fetch_client_set_context(FetchClient* instance, void* context) {
     furi_check(instance);
-    instance->context = context;
+    instance->callback_context = context;
 }
 
 void fetch_client_set_callback_raw_data(FetchClient* instance, FetchClientCallbackRawData callback) {
