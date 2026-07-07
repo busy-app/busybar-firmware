@@ -42,7 +42,8 @@ static int32_t thread_callback(void* context) {
     const char* url = furi_string_get_cstr(instance->url);
 
     FetchLoader* directory_loader = fetch_loader_alloc();
-    fetch_loader_set_done_callback(directory_loader, directory_load_done_callback, instance);
+    fetch_loader_set_callback_context(directory_loader, instance);
+    fetch_loader_set_done_callback(directory_loader, directory_load_done_callback);
 
     FURI_LOG_D(
         TAG, "Downloading directory file from %s to %s...", url, UPDATER_CHECK_DIRECTORY_PATH);

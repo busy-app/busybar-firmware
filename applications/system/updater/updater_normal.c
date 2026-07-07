@@ -162,7 +162,7 @@ UpdaterStatus updater_internal_do_check_for_update(Updater* instance, UpdaterMes
     return (is_check_start_successful) ? UpdaterStatusOk : UpdaterStatusBusy;
 }
 
-static void download_status_callback(const FetchStatus* status, void* context) {
+static void download_status_callback(const FetchProgress* status, void* context) {
     Updater* instance = context;
 
     UpdaterUpdateState* update_state = furi_state_acquire(instance->update_state);
@@ -221,10 +221,10 @@ UpdaterStatus updater_internal_do_download(Updater* instance, UpdaterMessage* me
 
     instance->download_loader = fetch_loader_alloc();
 
-    fetch_loader_set_status_callback(
-        instance->download_loader, download_status_callback, instance);
-    fetch_loader_set_state_callback(instance->download_loader, download_state_callback, instance);
-    fetch_loader_set_done_callback(instance->download_loader, download_done_callback, instance);
+    fetch_loader_set_callback_context(instance->download_loader, instance);
+    fetch_loader_set_progress_callback(instance->download_loader, download_status_callback);
+    fetch_loader_set_state_callback(instance->download_loader, download_state_callback);
+    fetch_loader_set_done_callback(instance->download_loader, download_done_callback);
 
     fetch_loader_start(instance->download_loader, url, path);
 

@@ -84,11 +84,11 @@ static void fetch_callback_error(const char* error, void* context) {
     instance->is_error = true;
 }
 
-static void fetch_cli_print_download_progress(const FetchStatus* status) {
+static void fetch_cli_print_download_progress(const FetchProgress* progress) {
     const char* units_str;
     size_t multiplier;
 
-    if(status->total_download_size > 2048) {
+    if(progress->total_download_size > 2048) {
         multiplier = 1024;
         units_str = "KiB";
 
@@ -97,8 +97,8 @@ static void fetch_cli_print_download_progress(const FetchStatus* status) {
         units_str = "B";
     }
 
-    const size_t download_size = status->received_download_size / multiplier;
-    const size_t total_size = status->total_download_size / multiplier;
+    const size_t download_size = progress->received_download_size / multiplier;
+    const size_t total_size = progress->total_download_size / multiplier;
 
     const size_t download_percent = (download_size * 100) / total_size;
 
@@ -114,7 +114,7 @@ static void fetch_cli_print_download_progress(const FetchStatus* status) {
         putchar(' ');
     }
 
-    const float download_speed = status->speed_bytes_per_sec / 1024.0f;
+    const float download_speed = progress->speed_bytes_per_sec / 1024.0f;
 
     printf(
         "] %8.2f KiB/s, %zu%s/%zu%s",
@@ -125,20 +125,20 @@ static void fetch_cli_print_download_progress(const FetchStatus* status) {
         units_str);
 }
 
-static void fetch_cli_print_download_progress_simple(const FetchStatus* status) {
-    const float download_speed = status->speed_bytes_per_sec / 1024.0f;
-    const size_t download_size = status->received_download_size / 1024;
+static void fetch_cli_print_download_progress_simple(const FetchProgress* progress) {
+    const float download_speed = progress->speed_bytes_per_sec / 1024.0f;
+    const size_t download_size = progress->received_download_size / 1024;
 
     printf("\rDownloaded: %8.2fKiB/s, %zuKiB/?KiB", download_speed, download_size);
 }
 
-static void fetch_progress_callback(const FetchStatus* status, void* context) {
+static void fetch_progress_callback(const FetchProgress* progress, void* context) {
     UNUSED(context);
 
-    if(status->total_download_size != 0) {
-        fetch_cli_print_download_progress(status);
+    if(progress->total_download_size != 0) {
+        fetch_cli_print_download_progress(progress);
     } else {
-        fetch_cli_print_download_progress_simple(status);
+        fetch_cli_print_download_progress_simple(progress);
     }
 
     fflush(stdout);
@@ -152,7 +152,7 @@ static FetchCli* fetch_cli_alloc() {
     instance->is_error = false;
 
     fetch_set_callback_context(instance->fetch, instance);
-    fetch_set_callback_error(instance->fetch, fetch_callback_error);
+    fetch_set_error_callback(instance->fetch, fetch_callback_error);
 
     return instance;
 }
@@ -171,8 +171,8 @@ static bool fetch_cli_prepare_file_output(FetchCli* instance, const char* file_p
         instance->output_file, file_path, FSAM_WRITE, FSOM_CREATE_ALWAYS | FSOM_NONBLOCKING);
 
     if(success) {
-        fetch_set_callback_raw_data(instance->fetch, fetch_file_out_callback);
-        fetch_set_callback_status(instance->fetch, fetch_progress_callback);
+        fetch_set_rx_data_callback(instance->fetch, fetch_file_out_callback);
+        fetch_set_progress_callback(instance->fetch, fetch_progress_callback);
 
     } else {
         printf("Error: Failed to open file for writing: %s\r\n", file_path);
@@ -182,7 +182,7 @@ static bool fetch_cli_prepare_file_output(FetchCli* instance, const char* file_p
 }
 
 static void fetch_cli_prepare_standard_output(FetchCli* instance) {
-    fetch_set_callback_raw_data(instance->fetch, fetch_console_out_callback);
+    fetch_set_rx_data_callback(instance->fetch, fetch_console_out_callback);
 }
 
 static void fetch_cli_run(const FetchCliParams* params) {
@@ -199,7 +199,7 @@ static void fetch_cli_run(const FetchCliParams* params) {
         }
 
         if(params->is_full_output) {
-            fetch_set_callback_header(instance->fetch, fetch_headers_callback);
+            fetch_set_header_callback(instance->fetch, fetch_headers_callback);
         }
 
         fetch_exec(instance->fetch, &params->request);

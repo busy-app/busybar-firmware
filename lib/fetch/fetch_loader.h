@@ -17,32 +17,27 @@ typedef enum {
     FetchLoaderDoneStatusAbort,
 } FetchLoaderDoneStatus;
 
-typedef void (*FetchLoaderCallbackStatus)(const FetchStatus* status, void* context);
-typedef void (*FetchLoaderCallbackState)(const char* state, void* context);
-typedef void (*FetchLoaderCallbackDone)(FetchLoaderDoneStatus done_status, void* context);
+typedef void (*FetchLoaderProgressCallback)(const FetchProgress* progress, void* context);
+typedef void (*FetchLoaderStateCallback)(const char* error, void* context);
+typedef void (*FetchLoaderDoneCallback)(FetchLoaderDoneStatus done_status, void* context);
 
 FetchLoader* fetch_loader_alloc(void);
 
 void fetch_loader_free(FetchLoader* instance);
 
-void fetch_loader_start(FetchLoader* instance, const char* url, const char* path);
+void fetch_loader_start(FetchLoader* instance, const char* remote_url, const char* file_path);
 
 void fetch_loader_stop(FetchLoader* instance);
 
-void fetch_loader_set_status_callback(
-    FetchLoader* instance,
-    FetchLoaderCallbackStatus callback,
-    void* context);
+void fetch_loader_set_callback_context(FetchLoader* instance, void* context);
 
-void fetch_loader_set_state_callback(
+void fetch_loader_set_progress_callback(
     FetchLoader* instance,
-    FetchLoaderCallbackState callback,
-    void* context);
+    FetchLoaderProgressCallback callback);
 
-void fetch_loader_set_done_callback(
-    FetchLoader* instance,
-    FetchLoaderCallbackDone callback,
-    void* context);
+void fetch_loader_set_state_callback(FetchLoader* instance, FetchLoaderStateCallback callback);
+
+void fetch_loader_set_done_callback(FetchLoader* instance, FetchLoaderDoneCallback callback);
 
 #ifdef __cplusplus
 }

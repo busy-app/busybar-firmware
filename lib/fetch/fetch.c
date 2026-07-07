@@ -25,7 +25,7 @@
 struct Fetch {
     struct mg_mgr mgr;
     const FetchRequest* request;
-    FetchStatus status;
+    FetchProgress status;
 
     uint32_t started_raw_ticks;
     uint32_t started_download_ticks;
@@ -33,10 +33,10 @@ struct Fetch {
     uint32_t count_receive_packets;
     CoarseTimer activity_timer;
 
-    FetchCallbackRawData callback_raw_data;
-    FetchCallbackHeader callback_header;
-    FetchCallbackError callback_error;
-    FetchCallbackStatus callback_status;
+    FetchRxDataCallback callback_raw_data;
+    FetchHeaderCallback callback_header;
+    FetchErrorCallback callback_error;
+    FetchProgressCallback callback_status;
     void* callback_context;
 
     _Atomic bool is_running;
@@ -402,22 +402,22 @@ void fetch_set_callback_context(Fetch* instance, void* context) {
     instance->callback_context = context;
 }
 
-void fetch_set_callback_raw_data(Fetch* instance, FetchCallbackRawData callback) {
+void fetch_set_rx_data_callback(Fetch* instance, FetchRxDataCallback callback) {
     furi_check(instance);
     instance->callback_raw_data = callback;
 }
 
-void fetch_set_callback_header(Fetch* instance, FetchCallbackHeader callback) {
+void fetch_set_header_callback(Fetch* instance, FetchHeaderCallback callback) {
     furi_check(instance);
     instance->callback_header = callback;
 }
 
-void fetch_set_callback_error(Fetch* instance, FetchCallbackError callback) {
+void fetch_set_error_callback(Fetch* instance, FetchErrorCallback callback) {
     furi_check(instance);
     instance->callback_error = callback;
 }
 
-void fetch_set_callback_status(Fetch* instance, FetchCallbackStatus callback) {
+void fetch_set_progress_callback(Fetch* instance, FetchProgressCallback callback) {
     furi_check(instance);
     instance->callback_status = callback;
 }
