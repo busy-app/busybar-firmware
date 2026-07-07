@@ -37,12 +37,10 @@ struct Fetch {
     FetchCallbackHeader callback_header;
     FetchCallbackError callback_error;
     FetchCallbackStatus callback_status;
-    FetchCallbackFinished callback_finished;
     void* callback_context;
 
     _Atomic bool is_running;
     _Atomic bool is_force_stop;
-    _Atomic bool is_finished;
 };
 
 static uint32_t fetch_calc_download_speed(size_t size_delta, uint32_t start_timestamp_ticks) {
@@ -325,31 +323,27 @@ static void fetch_mg_handler(struct mg_connection* conn, int event, void* ev_dat
     }
 }
 
-//########## Thread callbacks ##########
-static void fetch_thread_state_callback(FuriThread* thread, FuriThreadState state, void* context) {
-    furi_assert(thread);
-    Fetch* instance = context;
-
-    if(state == FuriThreadStateStopped) {
-        furi_assert(!instance->is_finished);
-
-        FETCH_LOG_I(TAG, "Stop");
-
-        if(instance->callback_finished) {
-            instance->callback_finished(instance->callback_context);
-        }
-
-        instance->is_finished = true;
-
-        furi_thread_free(thread);
-    }
+Fetch* fetch_alloc(void) {
+    Fetch* instance = malloc(sizeof(Fetch));
+    return instance;
 }
 
-static int32_t fetch_thread_callback(void* context) {
-    furi_assert(context);
-    Fetch* instance = context;
+void fetch_free(Fetch* instance) {
+    furi_check(instance);
+    furi_check(!instance->is_running);
 
-    FETCH_LOG_I(TAG, "Start");
+    free(instance);
+}
+
+void fetch_exec(Fetch* instance, const FetchRequest* request) {
+    furi_check(instance);
+    furi_check(!instance->is_running);
+
+    furi_check(request);
+    furi_check(request->url);
+    furi_check(request->headers.count < FETCH_HEADERS_COUNT_MAX);
+
+    instance->request = request;
     instance->is_running = true;
 
     Network* network = furi_record_open(RECORD_NETWORK);
@@ -396,65 +390,11 @@ static int32_t fetch_thread_callback(void* context) {
 
     network_deinit_current_thread(network);
     furi_record_close(RECORD_NETWORK);
-
-    return 0;
-}
-
-Fetch* fetch_alloc(void) {
-    Fetch* instance = malloc(sizeof(Fetch));
-    return instance;
-}
-
-void fetch_free(Fetch* instance) {
-    furi_check(instance);
-    furi_check(!instance->is_running);
-
-    free(instance);
-}
-
-void fetch_start(Fetch* instance, const FetchRequest* request) {
-    furi_check(instance);
-    furi_assert(!instance->is_finished);
-    furi_assert(!instance->is_running);
-
-    furi_check(request);
-    furi_check(request->url);
-    furi_check(request->headers.count < FETCH_HEADERS_COUNT_MAX);
-
-    instance->request = request;
-
-    FuriThread* thread =
-        furi_thread_alloc_ex("Fetch", FETCH_THREAD_STACK_SIZE, fetch_thread_callback, instance);
-    furi_thread_set_state_context(thread, instance);
-    furi_thread_set_state_callback(thread, fetch_thread_state_callback);
-
-    FETCH_LOG_I(TAG, "Starting thread");
-
-    furi_thread_start(thread);
-}
-
-void fetch_exec(Fetch* instance, const FetchRequest* request) {
-    furi_check(instance);
-    furi_assert(!instance->is_finished);
-    furi_assert(!instance->is_running);
-
-    furi_check(request);
-    furi_check(request->url);
-    furi_check(request->headers.count < FETCH_HEADERS_COUNT_MAX);
-
-    instance->request = request;
-
-    fetch_thread_callback(instance);
 }
 
 void fetch_stop(Fetch* instance) {
     furi_check(instance);
     instance->is_force_stop = true;
-}
-
-bool fetch_is_finished(Fetch* instance) {
-    furi_check(instance);
-    return instance->is_finished;
 }
 
 void fetch_set_callback_context(Fetch* instance, void* context) {
@@ -480,9 +420,4 @@ void fetch_set_callback_error(Fetch* instance, FetchCallbackError callback) {
 void fetch_set_callback_status(Fetch* instance, FetchCallbackStatus callback) {
     furi_check(instance);
     instance->callback_status = callback;
-}
-
-void fetch_set_callback_finished(Fetch* instance, FetchCallbackFinished callback) {
-    furi_check(instance);
-    instance->callback_finished = callback;
 }

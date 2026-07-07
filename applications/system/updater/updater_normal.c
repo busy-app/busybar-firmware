@@ -162,7 +162,7 @@ UpdaterStatus updater_internal_do_check_for_update(Updater* instance, UpdaterMes
     return (is_check_start_successful) ? UpdaterStatusOk : UpdaterStatusBusy;
 }
 
-static void download_status_callback(const FetchLoaderStatus* status, void* context) {
+static void download_status_callback(const FetchStatus* status, void* context) {
     Updater* instance = context;
 
     UpdaterUpdateState* update_state = furi_state_acquire(instance->update_state);
@@ -173,12 +173,12 @@ static void download_status_callback(const FetchLoaderStatus* status, void* cont
     furi_state_release(instance->update_state);
 }
 
-static void download_state_callback(const FuriString* state, void* context) {
+static void download_state_callback(const char* state, void* context) {
     Updater* instance = context;
 
     UpdaterUpdateState* update_state = furi_state_acquire(instance->update_state);
     update_state->event = UpdaterUpdateEventDetailChange;
-    strncpy(update_state->detail, furi_string_get_cstr(state), sizeof(update_state->detail));
+    strlcpy(update_state->detail, state, sizeof(update_state->detail));
     furi_state_release(instance->update_state);
 }
 
@@ -226,13 +226,13 @@ UpdaterStatus updater_internal_do_download(Updater* instance, UpdaterMessage* me
     fetch_loader_set_state_callback(instance->download_loader, download_state_callback, instance);
     fetch_loader_set_done_callback(instance->download_loader, download_done_callback, instance);
 
-    fetch_loader_run(instance->download_loader, url, path);
+    fetch_loader_start(instance->download_loader, url, path);
 
     DownloadQueueMessage download_message;
     furi_message_queue_get(instance->download_queue, &download_message, FuriWaitForever);
 
     if(download_message.is_abort_request) {
-        fetch_loader_forced_done(instance->download_loader);
+        fetch_loader_stop(instance->download_loader);
 
         do {
             furi_message_queue_get(instance->download_queue, &download_message, FuriWaitForever);

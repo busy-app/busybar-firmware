@@ -3,9 +3,7 @@
  */
 #pragma once
 
-#include <stdint.h>
-#include <stddef.h>
-#include <stdbool.h>
+#include "fetch_common.h"
 
 #define FETCH_HEADERS_COUNT_MAX (10)
 
@@ -32,17 +30,10 @@ typedef struct {
     FetchRequestBody body;
 } FetchRequest;
 
-typedef struct {
-    size_t total_download_size;
-    size_t received_download_size;
-    uint32_t speed_bytes_per_sec;
-} FetchStatus;
-
 typedef void (*FetchCallbackRawData)(const void* data, size_t data_size, void* context);
 typedef void (*FetchCallbackHeader)(const void* data, size_t data_size, void* context);
 typedef void (*FetchCallbackError)(const char* error, void* context);
 typedef void (*FetchCallbackStatus)(const FetchStatus* status, void* context);
-typedef void (*FetchCallbackFinished)(void* context);
 
 /**
 * Allocates a Fetch instance.
@@ -73,30 +64,10 @@ void fetch_free(Fetch* instance);
 void fetch_exec(Fetch* instance, const FetchRequest* request);
 
 /**
- * @brief Start the fetch process in a separate thread.
- *
- * The callbacks will be executed in the fetch thread's context.
- *
- * @warning The data pointed to by the @p request parameter and its members
- *          must stay valid until the Fetch instance finishes.
- *
- * @param[in] instance Pointer to the Fetch instance.
- * @param[in] request Pointer to the request to be executed.
- */
-void fetch_start(Fetch* instance, const FetchRequest* request);
-
-/**
 * Stop the ongoing request and mark it as done.
 * @param[in] instance Pointer to the Fetch instance.
 */
 void fetch_stop(Fetch* instance);
-
-/**
-* Checks if the fetch process is done.
-* @param[in] instance Pointer to the Fetch instance.
-* @return true if the fetch process is done, false otherwise.
-*/
-bool fetch_is_finished(Fetch* instance);
 
 /**
 * Sets the context for the Fetch instance.
@@ -132,13 +103,6 @@ void fetch_set_callback_error(Fetch* instance, FetchCallbackError callback);
 * @param[in] callback Function pointer to the callback function.
 */
 void fetch_set_callback_status(Fetch* instance, FetchCallbackStatus callback);
-
-/**
-* Sets the callback for finish notification.
-* @param[in] instance Pointer to the Fetch instance.
-* @param[in] callback Function pointer to the callback function.
-*/
-void fetch_set_callback_finished(Fetch* instance, FetchCallbackFinished callback);
 
 #ifdef __cplusplus
 }

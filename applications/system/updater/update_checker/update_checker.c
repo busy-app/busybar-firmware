@@ -46,7 +46,7 @@ static int32_t thread_callback(void* context) {
 
     FURI_LOG_D(
         TAG, "Downloading directory file from %s to %s...", url, UPDATER_CHECK_DIRECTORY_PATH);
-    fetch_loader_run(directory_loader, url, UPDATER_CHECK_DIRECTORY_PATH);
+    fetch_loader_start(directory_loader, url, UPDATER_CHECK_DIRECTORY_PATH);
 
     uint32_t flags = furi_thread_flags_wait(
         ThreadFlagDirectoryLoadSuccess | ThreadFlagDirectoryLoadFailure,
