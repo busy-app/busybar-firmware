@@ -47,9 +47,8 @@ struct Fetch {
 
 static uint32_t fetch_calc_download_speed(size_t size_delta, uint32_t start_timestamp_ticks) {
     const uint32_t delta_ticks = furi_get_tick() - start_timestamp_ticks + 1;
-    const uint32_t delta_ms = delta_ticks / furi_kernel_get_tick_frequency();
-
-    return (float)size_delta / (float)delta_ms;
+    const float delta_s = (float)delta_ticks / furi_kernel_get_tick_frequency();
+    return size_delta / delta_s;
 }
 
 static void fetch_on_close(struct mg_connection* conn) {
