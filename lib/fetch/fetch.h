@@ -57,14 +57,32 @@ Fetch* fetch_alloc(void);
 void fetch_free(Fetch* instance);
 
 /**
-* Starts the fetch process with the given URL.
-*
-* @warning The data pointed to by the @p request parameter and its members
-*          must stay valid until the Fetch instance finishes.
-*
-* @param[in] instance Pointer to the Fetch instance.
-* @param[in] request Pointer to the request to be executed.
-*/
+ * @brief Execute the fetch process in the current thread.
+ *
+ * This call will block the calling thread
+ * until the fetch process is complete.
+ *
+ * The callbacks will be executed in the calling thread's context.
+ *
+ * @warning The caller must ensure that at least 8 KB of stack
+ *          is available within the context.
+ *
+ * @param[in] instance Pointer to the Fetch instance.
+ * @param[in] request Pointer to the request to be executed.
+ */
+void fetch_exec(Fetch* instance, const FetchRequest* request);
+
+/**
+ * @brief Start the fetch process in a separate thread.
+ *
+ * The callbacks will be executed in the fetch thread's context.
+ *
+ * @warning The data pointed to by the @p request parameter and its members
+ *          must stay valid until the Fetch instance finishes.
+ *
+ * @param[in] instance Pointer to the Fetch instance.
+ * @param[in] request Pointer to the request to be executed.
+ */
 void fetch_start(Fetch* instance, const FetchRequest* request);
 
 /**

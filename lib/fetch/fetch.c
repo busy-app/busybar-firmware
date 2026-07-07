@@ -350,7 +350,6 @@ static int32_t fetch_thread_callback(void* context) {
     Fetch* instance = context;
 
     FETCH_LOG_I(TAG, "Start");
-
     instance->is_running = true;
 
     Network* network = furi_record_open(RECORD_NETWORK);
@@ -398,8 +397,6 @@ static int32_t fetch_thread_callback(void* context) {
     network_deinit_current_thread(network);
     furi_record_close(RECORD_NETWORK);
 
-    FETCH_LOG_I(TAG, "Stopping thread");
-
     return 0;
 }
 
@@ -410,7 +407,6 @@ Fetch* fetch_alloc(void) {
 
 void fetch_free(Fetch* instance) {
     furi_check(instance);
-    furi_check(instance->is_finished);
     furi_check(!instance->is_running);
 
     free(instance);
@@ -435,6 +431,20 @@ void fetch_start(Fetch* instance, const FetchRequest* request) {
     FETCH_LOG_I(TAG, "Starting thread");
 
     furi_thread_start(thread);
+}
+
+void fetch_exec(Fetch* instance, const FetchRequest* request) {
+    furi_check(instance);
+    furi_assert(!instance->is_finished);
+    furi_assert(!instance->is_running);
+
+    furi_check(request);
+    furi_check(request->url);
+    furi_check(request->headers.count < FETCH_HEADERS_COUNT_MAX);
+
+    instance->request = request;
+
+    fetch_thread_callback(instance);
 }
 
 void fetch_stop(Fetch* instance) {
