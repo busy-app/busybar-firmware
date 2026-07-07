@@ -18,7 +18,7 @@ env.Replace(PROJECT_ROOT=Dir("../..").srcnode())
 # INTERCOM_FORCE_VERSION: pin the intercom handshake control string
 _intercom_force_version = env.subst("$INTERCOM_FORCE_VERSION")
 if _intercom_force_version:
-    env.Append(PROJECT_DEFINES=[f'INTERCOM_FORCE_VERSION="{_intercom_force_version}"'])
+    env.Append(PROJECT_DEFINES=[f'INTERCOM_FORCE_VERSION=\\\"{_intercom_force_version}\\\"'])
 
 
 # Register all modules in fbt_env_modules as dist and fw env components

@@ -38,7 +38,7 @@ def _update_bundle_action(target, source, env):
     return subprocess.run(args).returncode
 
 
-def FlashOverHttp(env, name, source):
+def FlashOverHttp(env, name, source, intercom_version=None):
     """Create a flash-over-HTTP phony target."""
     return env.PhonyTarget(
         name,
@@ -48,6 +48,7 @@ def FlashOverHttp(env, name, source):
                 "${UPDATE_OVER_HTTP_SCRIPT}",
                 "--file",
                 "${SOURCE}",
+                *(["--intercom-version", intercom_version] if intercom_version else []),
             ]
         ],
         source=source,

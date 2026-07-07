@@ -236,7 +236,8 @@ if _flash_usb_targets:
     )
     
     _preset_tgz = _update_bundle("flash_usb", **_params)
-    bundle_env.FlashOverHttp(_name, _preset_tgz)
+    _intercom_force_version = None if _params.get("use_sil_m4") else bundle_env.subst("$INTERCOM_FORCE_VERSION")
+    bundle_env.FlashOverHttp(_name, _preset_tgz, intercom_version=_intercom_force_version)
 
 # `fbt -c` cleans update_tgz; also remove the flash_usb bundle then
 Clean(update_tgz, fw_env.File("${BUILD_DIR}/flash_usb_${F_TARGET_HW}.tgz"))
