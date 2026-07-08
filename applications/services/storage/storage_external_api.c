@@ -2,7 +2,7 @@
 #include <core/record.h>
 #include <storage/storage.h>
 #include <storage/storage_i.h> // IWYU pragma: keep
-#include <storage/util/dir_walk.h>
+#include <storage_utils/dir_walk.h>
 #include <storage/storage_message.h>
 #include <toolbox/stream/file_stream.h>
 #include <toolbox/path.h>

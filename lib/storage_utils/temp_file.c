@@ -1,6 +1,6 @@
 #include "temp_file.h"
 
-#include "../storage.h"
+#include <storage/storage.h>
 
 #include <toolbox/path.h>
 

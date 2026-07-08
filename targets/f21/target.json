@@ -139,7 +139,8 @@
         "containers",
         "anim_file",
         "utz",
-        "fetch"
+        "fetch",
+        "storage_utils"
     ],
     "fw_modules": [
         "fw_elf",

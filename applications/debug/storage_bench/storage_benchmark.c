@@ -1,7 +1,7 @@
 #include <cli/cli_command.h>
 #include <cli/cli_ansi.h>
 #include <storage/storage.h>
-#include <storage/util/dir_walk.h>
+#include <storage_utils/dir_walk.h>
 #include <furi_hal.h>
 
 #define TAG "StorageBenchmark"
