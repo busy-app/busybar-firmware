@@ -1,10 +1,7 @@
 #include "http_api.h" // Should contain ConnectionContext and other common defs
 
 #include <furi.h>
-#include <furi_hal_power.h>
-#include <toolbox/path.h>
 
-#include <storage/storage.h>
 #include <fetch/fetch_file_save.h>
 #include <applications/system/updater/updater.h>
 #include <applications/system/updater/updater_paths.h>
