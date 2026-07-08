@@ -134,6 +134,7 @@ static void free_raw_update_context(HttpUpdateHandlerCtx* ctx) {
     furi_thread_set_current_priority(ctx->original_thread_priority);
 
     if(ctx->update_file) {
+        temp_file_remove(ctx->update_file);
         temp_file_free(ctx->update_file);
         ctx->update_file = NULL;
     }
@@ -275,7 +276,6 @@ static void api_update_on_data_cb(struct mg_connection* conn, struct mg_iobuf* i
         FURI_LOG_I(TAG, "on_data: All data received (%zu bytes)", update_ctx->received_file_size);
         update_ctx->file_fully_received = true;
 
-        temp_file_set_keep(update_ctx->update_file, true);
         temp_file_free(update_ctx->update_file);
         update_ctx->update_file = NULL;
 

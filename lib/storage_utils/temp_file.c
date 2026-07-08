@@ -2,32 +2,33 @@
 
 #include <toolbox/path.h>
 
+#define FILE_ACCESS_MODE (FSAM_WRITE)
+#define FILE_OPEN_MODE   (FSOM_CREATE_ALWAYS | FSOM_NONBLOCKING)
+
 struct TempFile {
     Storage* storage;
     File* file;
     FuriString* file_path;
-    bool is_keep;
 };
 
-static bool temp_file_cleanup(TempFile* instance) {
-    bool success = false;
+static bool temp_file_close_internal(TempFile* instance) {
+    bool success = true;
 
-    do {
-        if(storage_file_is_open(instance->file)) {
-            if(!storage_file_close(instance->file)) {
-                break;
-            }
-        }
+    if(storage_file_is_open(instance->file)) {
+        success = storage_file_close(instance->file);
+    }
 
-        if(!(furi_string_empty(instance->file_path) || instance->is_keep)) {
-            const char* file_path = furi_string_get_cstr(instance->file_path);
-            if(!storage_simply_remove(instance->storage, file_path)) {
-                break;
-            }
-        }
+    return success;
+}
 
-        success = true;
-    } while(false);
+static bool temp_file_remove_internal(TempFile* instance) {
+    bool success = true;
+
+    const FuriString* file_path = instance->file_path;
+
+    if(!furi_string_empty(file_path)) {
+        success = storage_simply_remove(instance->storage, furi_string_get_cstr(file_path));
+    }
 
     return success;
 }
@@ -47,7 +48,7 @@ TempFile* temp_file_alloc(Storage* storage) {
 void temp_file_free(TempFile* instance) {
     furi_check(instance);
 
-    temp_file_cleanup(instance);
+    temp_file_close_internal(instance);
 
     furi_string_free(instance->file_path);
     storage_file_free(instance->file);
@@ -66,7 +67,7 @@ bool temp_file_create(TempFile* instance, const char* path) {
     FuriString* tmp = furi_string_alloc();
 
     do {
-        if(!temp_file_cleanup(instance)) {
+        if(!temp_file_close_internal(instance)) {
             break;
         }
 
@@ -78,8 +79,7 @@ bool temp_file_create(TempFile* instance, const char* path) {
             break;
         }
 
-        if(!storage_file_open(
-               instance->file, path, FSAM_WRITE, FSOM_CREATE_ALWAYS | FSOM_NONBLOCKING)) {
+        if(!storage_file_open(instance->file, path, FILE_ACCESS_MODE, FILE_OPEN_MODE)) {
             break;
         }
 
@@ -104,7 +104,7 @@ bool temp_file_write(TempFile* instance, const void* data, size_t data_len) {
     return success;
 }
 
-void temp_file_set_keep(TempFile* instance, bool keep) {
+bool temp_file_remove(TempFile* instance) {
     furi_check(instance);
-    instance->is_keep = keep;
+    return temp_file_close_internal(instance) && temp_file_remove_internal(instance);
 }

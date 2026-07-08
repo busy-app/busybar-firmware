@@ -160,13 +160,17 @@ static int32_t fetch_loader_thread_callback(void* context) {
 
     fetch_exec(instance->fetch, &request);
 
-    if(instance->is_error_occurred) {
-        FURI_LOG_E(TAG, "Error occurred during download");
-    } else if(instance->is_stop_requested) {
-        FURI_LOG_W(TAG, "Download aborted");
-    } else {
+    if(!(instance->is_error_occurred || instance->is_stop_requested)) {
         FURI_LOG_D(TAG, "File download complete to %s", path);
-        temp_file_set_keep(instance->file, true);
+
+    } else {
+        if(instance->is_error_occurred) {
+            FURI_LOG_E(TAG, "Error occurred during download");
+        } else {
+            FURI_LOG_W(TAG, "Download aborted");
+        }
+
+        temp_file_remove(instance->file);
     }
 
     FURI_LOG_D(TAG, "Stopping thread");
