@@ -1,7 +1,10 @@
 #include "fetch_loader.h"
 
+#include <furi.h>
+
+#include <storage/util/temp_file.h>
+
 #include "fetch.h"
-#include "fetch_file_save.h"
 
 #define TAG "FetchLoader"
 
@@ -12,7 +15,7 @@ struct FetchLoader {
     FuriString* file_path;
 
     Fetch* fetch;
-    FetchFileSave* file_save;
+    TempFile* file;
 
     FetchLoaderProgressCallback progress_callback;
     FetchLoaderStateCallback state_callback;
@@ -33,11 +36,14 @@ static void fetch_file_out_callback(const void* data, size_t data_size, void* co
     furi_assert(context);
     FetchLoader* instance = context;
 
-    FetchFileSave* file_save = instance->file_save;
-    furi_assert(file_save);
-
     if(data_size > 0) {
-        fetch_file_save_write(file_save, data, data_size);
+        if(!temp_file_write(instance->file, data, data_size)) {
+            fetch_stop(instance->fetch);
+
+            FURI_LOG_E(TAG, "Failed to write to output file");
+            instance->is_error_occurred = true;
+        }
+
     } else {
         FURI_LOG_W(TAG, "No data received for file write");
     }
@@ -75,7 +81,7 @@ FetchLoader* fetch_loader_alloc(void) {
     instance->remote_url = furi_string_alloc();
     instance->file_path = furi_string_alloc();
     instance->fetch = fetch_alloc();
-    instance->file_save = fetch_file_save_alloc();
+    instance->file = temp_file_alloc();
 
     fetch_set_callback_context(instance->fetch, instance);
     fetch_set_rx_data_callback(instance->fetch, fetch_file_out_callback);
@@ -88,7 +94,7 @@ FetchLoader* fetch_loader_alloc(void) {
 void fetch_loader_free(FetchLoader* instance) {
     furi_check(instance);
 
-    fetch_file_save_free(instance->file_save);
+    temp_file_free(instance->file);
     fetch_free(instance->fetch);
     furi_string_free(instance->remote_url);
     furi_string_free(instance->file_path);
@@ -135,14 +141,16 @@ static int32_t fetch_loader_thread_callback(void* context) {
 
     FURI_LOG_D(TAG, "Start");
 
-    fetch_loader_notify_state(instance, "Connecting to server...");
+    fetch_loader_notify_state(instance, "Creating output file...");
 
     const char* path = furi_string_get_cstr(instance->file_path);
 
-    if(!fetch_file_save_open(instance->file_save, path)) {
+    if(!temp_file_create(instance->file, path)) {
         FURI_LOG_E(TAG, "Failed to open file %s", path);
         return 0;
     }
+
+    fetch_loader_notify_state(instance, "Connecting to server...");
 
     const FetchRequest request = {
         .url = furi_string_get_cstr(instance->remote_url),
@@ -152,14 +160,11 @@ static int32_t fetch_loader_thread_callback(void* context) {
 
     if(instance->is_error_occurred) {
         FURI_LOG_E(TAG, "Error occurred during download");
-        fetch_file_save_remove(instance->file_save);
-
     } else if(instance->is_stop_requested) {
         FURI_LOG_W(TAG, "Download aborted");
-        fetch_file_save_remove(instance->file_save);
-
     } else {
         FURI_LOG_D(TAG, "File download complete to %s", path);
+        temp_file_set_keep(instance->file, true);
     }
 
     FURI_LOG_D(TAG, "Stopping thread");

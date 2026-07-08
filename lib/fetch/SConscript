@@ -9,7 +9,6 @@ env.Append(
     ],
     SDK_HEADERS=[
         File("fetch.h"),
-        File("fetch_file_save.h"),
         File("fetch_loader.h"),
     ],
 )
