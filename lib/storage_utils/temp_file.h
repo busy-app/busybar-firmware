@@ -1,7 +1,6 @@
 #pragma once
 
-#include <stddef.h>
-#include <stdbool.h>
+#include <storage/storage.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -9,7 +8,7 @@ extern "C" {
 
 typedef struct TempFile TempFile;
 
-TempFile* temp_file_alloc(void);
+TempFile* temp_file_alloc(Storage* storage);
 
 void temp_file_free(TempFile* instance);
 

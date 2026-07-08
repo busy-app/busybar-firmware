@@ -1,7 +1,5 @@
 #include "temp_file.h"
 
-#include <storage/storage.h>
-
 #include <toolbox/path.h>
 
 struct TempFile {
@@ -34,11 +32,13 @@ static bool temp_file_cleanup(TempFile* instance) {
     return success;
 }
 
-TempFile* temp_file_alloc(void) {
+TempFile* temp_file_alloc(Storage* storage) {
+    furi_check(storage);
+
     TempFile* instance = malloc(sizeof(TempFile));
 
-    instance->storage = furi_record_open(RECORD_STORAGE);
-    instance->file = storage_file_alloc(instance->storage);
+    instance->storage = storage;
+    instance->file = storage_file_alloc(storage);
     instance->file_path = furi_string_alloc();
 
     return instance;

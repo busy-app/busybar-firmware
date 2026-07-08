@@ -81,7 +81,7 @@ FetchLoader* fetch_loader_alloc(void) {
     instance->remote_url = furi_string_alloc();
     instance->file_path = furi_string_alloc();
     instance->fetch = fetch_alloc();
-    instance->file = temp_file_alloc();
+    instance->file = temp_file_alloc(furi_record_open(RECORD_STORAGE));
 
     fetch_set_callback_context(instance->fetch, instance);
     fetch_set_rx_data_callback(instance->fetch, fetch_file_out_callback);
@@ -100,6 +100,8 @@ void fetch_loader_free(FetchLoader* instance) {
     furi_string_free(instance->file_path);
 
     free(instance);
+
+    furi_record_close(RECORD_STORAGE);
 }
 
 void fetch_loader_stop(FetchLoader* instance) {

@@ -118,7 +118,7 @@ static HttpUpdateHandlerCtx* alloc_raw_update_context() {
     HttpUpdateHandlerCtx* ctx = malloc(sizeof(HttpUpdateHandlerCtx));
     ctx->storage = furi_record_open(RECORD_STORAGE);
     ctx->updater = furi_record_open(RECORD_UPDATER);
-    ctx->update_file = temp_file_alloc();
+    ctx->update_file = temp_file_alloc(ctx->storage);
 
     ctx->original_thread_priority = furi_thread_get_current_priority();
 
