@@ -33,6 +33,7 @@ path = [
     "lib/setting_provider/**",
     "lib/settings_helpers/**",
     "lib/stb/*",
+    "lib/storage_utils/*",
     "lib/toolbox/**",
     "lib/sl_glue/**",
 ]
