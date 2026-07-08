@@ -7,8 +7,6 @@ LIB_DIR = "toolbox"
 env.Append(
     SDK_HEADERS=[
         File(f"{LIB_DIR}/compress.h"),
-        File(f"{LIB_DIR}/dir_walk.h"),
-        File(f"{LIB_DIR}/path.h"),
         File(f"{LIB_DIR}/stream/buffered_file_stream.h"),
         File(f"{LIB_DIR}/stream/file_stream.h"),
         File(f"{LIB_DIR}/stream/stream.h"),
@@ -23,9 +21,7 @@ libenv.ApplyLibFlags()
 
 sources = [
     f"{LIB_DIR}/compress.c",
-    f"{LIB_DIR}/dir_walk.c",
     f"{LIB_DIR}/json_helper.c",
-    f"{LIB_DIR}/path.c",
     f"{LIB_DIR}/tzutil.c",
 ]
 

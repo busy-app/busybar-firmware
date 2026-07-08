@@ -15,6 +15,7 @@ App(
         "storage_sd_api.c",
         "storage_posix_api.c",
         "storages/storage_ext_sdmmc.c",
+        "util/dir_walk.c",
         "util/temp_file.c",
     ],
     targets=["f20", "f21", "f22"],
