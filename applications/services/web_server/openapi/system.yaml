@@ -155,16 +155,16 @@ paths:
       tags:
         - System
       summary: Dump captured log
-      description: Snapshot the in-memory log buffer to a file (defaults to /ext/dump.log)
+      description: Snapshot the in-memory log buffer to a file (defaults to /ext/log.txt)
       operationId: dumpLog
       parameters:
         - name: path
           in: query
           required: false
-          description: Destination file path (defaults to /ext/dump.log)
+          description: Destination file path (defaults to /ext/log.txt)
           schema:
             type: string
-          example: "/ext/dump.log"
+          example: "/ext/log.txt"
       responses:
         "200":
           description: Log dumped successfully
