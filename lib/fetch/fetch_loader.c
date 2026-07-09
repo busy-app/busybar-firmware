@@ -8,6 +8,7 @@
 
 #define TAG "FetchLoader"
 
+#define FETCH_LOADER_THREAD_NAME       TAG
 #define FETCH_LOADER_THREAD_STACK_SIZE 8192
 
 struct FetchLoader {
@@ -26,9 +27,36 @@ struct FetchLoader {
     _Atomic bool is_stop_requested;
 };
 
-static void fetch_loader_notify_state(FetchLoader* instance, const char* message) {
+static FetchStatus fetch_loader_get_status(const FetchLoader* instance) {
+    FetchStatus status;
+
+    if(instance->is_stop_requested) {
+        status = FetchStatusAborted;
+    } else if(instance->is_error_occurred) {
+        status = FetchStatusError;
+    } else {
+        status = FetchStatusOk;
+    }
+
+    return status;
+}
+
+static void fetch_loader_notify_state(const FetchLoader* instance, const char* message) {
     if(instance->state_callback) {
         instance->state_callback(message, instance->callback_context);
+    }
+}
+
+static void
+    fetch_loader_notify_progress(const FetchLoader* instance, const FetchProgress* progress) {
+    if(instance->progress_callback) {
+        instance->progress_callback(progress, instance->callback_context);
+    }
+}
+
+static void fetch_loader_notify_done(const FetchLoader* instance, FetchStatus status) {
+    if(instance->done_callback) {
+        instance->done_callback(status, instance->callback_context);
     }
 }
 
@@ -49,20 +77,18 @@ static void fetch_file_out_callback(const void* data, size_t data_size, void* co
     }
 }
 
-void fetch_progress_callback(const FetchProgress* status, void* context) {
+void fetch_progress_callback(const FetchProgress* progress, void* context) {
     furi_assert(context);
     FetchLoader* instance = context;
 
     FURI_LOG_D(
         TAG,
         "Status: %zu/%zu %lu",
-        status->received_download_size,
-        status->total_download_size,
-        status->speed_bytes_per_sec);
+        progress->received_download_size,
+        progress->total_download_size,
+        progress->speed_bytes_per_sec);
 
-    if(instance->progress_callback) {
-        instance->progress_callback(status, instance->callback_context);
-    }
+    fetch_loader_notify_progress(instance, progress);
 }
 
 static void fetch_error_callback(const char* error, void* context) {
@@ -111,28 +137,41 @@ void fetch_loader_stop(FetchLoader* instance) {
     fetch_stop(instance->fetch);
 }
 
+static bool fetch_loader_prepare(FetchLoader* instance) {
+    const char* file_path = furi_string_get_cstr(instance->file_path);
+    const bool success = temp_file_create(instance->file, file_path);
+
+    if(!success) {
+        FURI_LOG_E(TAG, "Failed to create file %s", file_path);
+    }
+
+    return success;
+}
+
+static void fetch_loader_finalize(FetchLoader* instance) {
+    const char* file_path = furi_string_get_cstr(instance->file_path);
+
+    if(!(instance->is_error_occurred || instance->is_stop_requested)) {
+        FURI_LOG_D(TAG, "File download complete to %s", file_path);
+
+    } else {
+        temp_file_remove(instance->file);
+
+        if(instance->is_error_occurred) {
+            FURI_LOG_E(TAG, "Error occurred during download");
+        } else {
+            FURI_LOG_W(TAG, "Download aborted");
+        }
+    }
+}
+
 static void
     fetch_loader_thread_state_callback(FuriThread* thread, FuriThreadState state, void* context) {
     furi_assert(thread);
     FetchLoader* instance = context;
 
     if(state == FuriThreadStateStopped) {
-        FURI_LOG_D(TAG, "Stop");
-
-        if(instance->done_callback) {
-            FetchStatus status;
-
-            if(instance->is_stop_requested) {
-                status = FetchStatusAborted;
-            } else if(instance->is_error_occurred) {
-                status = FetchStatusError;
-            } else {
-                status = FetchStatusOk;
-            }
-
-            instance->done_callback(status, instance->callback_context);
-        }
-
+        fetch_loader_notify_done(instance, fetch_loader_get_status(instance));
         furi_thread_free(thread);
     }
 }
@@ -141,39 +180,17 @@ static int32_t fetch_loader_thread_callback(void* context) {
     furi_assert(context);
     FetchLoader* instance = context;
 
-    FURI_LOG_D(TAG, "Start");
+    if(fetch_loader_prepare(instance)) {
+        fetch_loader_notify_state(instance, "Connecting to server...");
 
-    fetch_loader_notify_state(instance, "Creating output file...");
+        const FetchRequest request = {
+            .url = furi_string_get_cstr(instance->remote_url),
+        };
 
-    const char* path = furi_string_get_cstr(instance->file_path);
+        fetch_exec(instance->fetch, &request);
 
-    if(!temp_file_create(instance->file, path)) {
-        FURI_LOG_E(TAG, "Failed to open file %s", path);
-        return 0;
+        fetch_loader_finalize(instance);
     }
-
-    fetch_loader_notify_state(instance, "Connecting to server...");
-
-    const FetchRequest request = {
-        .url = furi_string_get_cstr(instance->remote_url),
-    };
-
-    fetch_exec(instance->fetch, &request);
-
-    if(!(instance->is_error_occurred || instance->is_stop_requested)) {
-        FURI_LOG_D(TAG, "File download complete to %s", path);
-
-    } else {
-        if(instance->is_error_occurred) {
-            FURI_LOG_E(TAG, "Error occurred during download");
-        } else {
-            FURI_LOG_W(TAG, "Download aborted");
-        }
-
-        temp_file_remove(instance->file);
-    }
-
-    FURI_LOG_D(TAG, "Stopping thread");
 
     return 0;
 }
@@ -185,11 +202,13 @@ void fetch_loader_start(FetchLoader* instance, const char* remote_url, const cha
     furi_string_set(instance->file_path, file_path);
 
     FuriThread* thread = furi_thread_alloc_ex(
-        "FetchLoader", FETCH_LOADER_THREAD_STACK_SIZE, fetch_loader_thread_callback, instance);
+        FETCH_LOADER_THREAD_NAME,
+        FETCH_LOADER_THREAD_STACK_SIZE,
+        fetch_loader_thread_callback,
+        instance);
+
     furi_thread_set_state_context(thread, instance);
     furi_thread_set_state_callback(thread, fetch_loader_thread_state_callback);
-
-    FURI_LOG_D(TAG, "Starting thread");
 
     furi_thread_start(thread);
 }
