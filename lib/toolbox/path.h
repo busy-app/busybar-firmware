@@ -40,7 +40,7 @@ void path_extract_extension(FuriString* path, char* ext, size_t ext_len_max);
  * @brief Extract last path component
  * 
  * @param path path string
- * @param filename output string. Must be initialized before.
+ * @param basename output string. Must be initialized before.
  */
 void path_extract_basename(const char* path, FuriString* basename);
 
@@ -48,7 +48,7 @@ void path_extract_basename(const char* path, FuriString* basename);
  * @brief Extract path, except for last component
  * 
  * @param path path string
- * @param filename output string. Must be initialized before.
+ * @param dirname output string. Must be initialized before.
  */
 void path_extract_dirname(const char* path, FuriString* dirname);
 
