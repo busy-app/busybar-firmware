@@ -3,7 +3,6 @@
  */
 
 #include "anim_file_i.h"
-#include <toolbox/dsp.h>
 
 AnimFile* FURI_WARN_UNUSED anim_file_alloc(Storage* storage, const char* path) {
     furi_check(storage);

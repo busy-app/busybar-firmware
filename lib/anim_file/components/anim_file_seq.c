@@ -1,5 +1,4 @@
 #include <anim_file_i.h>
-#include <toolbox/dsp.h>
 
 void anim_file_seq_new_active(AnimFile* anim, const AnimFileRange* range, AnimFileFrameFlag flags) {
     furi_assert(anim);
