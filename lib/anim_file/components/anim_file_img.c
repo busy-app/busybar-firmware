@@ -174,7 +174,6 @@ static bool
     AnimFileImg* img = &anim->img;
 
     if(file_hdr->color_format == AnimFileColorFormatGray4) {
-        size_t dest_idx = 0;
         for(size_t i = 0; i < src_len; i++) {
             uint8_t left_px = source[i] & 0xF0;
             uint8_t right_px = source[i] << 4;
@@ -187,7 +186,6 @@ static bool
             dest[6] = right_px;
             dest[7] = 255;
 
-            dest_idx += 6;
             dest += 6;
         }
 
