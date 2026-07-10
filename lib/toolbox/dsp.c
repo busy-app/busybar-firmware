@@ -133,45 +133,42 @@ void dsp_2d_kernel_apply(
 
             for(size_t ky = 0; ky < kernel_sz; ky++) {
                 for(size_t kx = 0; kx < kernel_sz; kx++) {
-                    register uint32_t px, krnl;
+                    register uint32_t px = *(src_px)++;
+                    register uint32_t krnl = *(kernel_ptr)++;
+
                     __asm__ volatile(
-                        // load pixel and increment pointer
-                        "ldmia %[src_px]!, {%[px]}\n" // Load Multiple, Increment After
                         // unpack 4 channels into 4 registers
                         "uxtb %[b], %[px], ror #0\n" // Unsigned Extend Byte
                         "uxtb %[g], %[px], ror #8\n"
                         "uxtb %[r], %[px], ror #16\n"
                         "uxtb %[a], %[px], ror #24\n"
-                        // load kernel and increment pointer
-                        "ldmia %[kernel_ptr]!, {%[krnl]}\n"
                         // multiply kernel and source pixel, add to destination pixel running sum
                         "smlabb %[ab], %[b], %[krnl], %[ab]\n" // Signed Multiply-Accumulate Bottom with Bottom halfwords
                         "smlabb %[ag], %[g], %[krnl], %[ag]\n"
                         "smlabb %[ar], %[r], %[krnl], %[ar]\n"
                         "smlabb %[aa], %[a], %[krnl], %[aa]\n"
                         :
-                        // temporaries used in assembly snippet, marked as outputs to ask the compiler to allocate registers for us
-                        [b] "=r"(b),
-                        [g] "=r"(g),
-                        [r] "=r"(r),
-                        [a] "=r"(a),
                         // both input and output
-                        [ab] "+r"(ab),
-                        [ag] "+r"(ag),
-                        [ar] "+r"(ar),
-                        [aa] "+r"(aa),
-                        // pointers which will be changed
-                        [src_px] "+r"(src_px),
-                        [kernel_ptr] "+r"(kernel_ptr),
-                        // also internal temporaries
-                        [px] "=r"(px),
-                        [krnl] "=r"(krnl));
+                        [ab] "+&r"(ab),
+                        [ag] "+&r"(ag),
+                        [ar] "+&r"(ar),
+                        [aa] "+&r"(aa),
+                        // temporaries
+                        [b] "=&r"(b),
+                        [g] "=&r"(g),
+                        [r] "=&r"(r),
+                        [a] "=&r"(a)
+                        :
+                        // inputs
+                        [px] "r"(px),
+                        [krnl] "r"(krnl));
                 }
 
                 src_px += src.stride - kernel_sz;
             }
 
             register uint32_t px;
+
             __asm__ volatile(
                 // pack 8-bit values into 32-bit, while diving by 256
                 "bfi %[px], %[aa], #16, #16\n" // Bitfield Insert
@@ -179,19 +176,17 @@ void dsp_2d_kernel_apply(
                 "bfi %[px], %[ag], #0, #16\n"
                 "lsr %[ab], %[ab], #8\n" // Logical Shift Left
                 "bfi %[px], %[ab], #0, #8\n"
-                // store and increment
-                "stmia %[dst_px]!, {%[px]}\n" // Store Multiple, Increment After
                 :
-                // input only, marked as input-output to force the compiler to allocate a different register for the other ones;
-                // normally it assumes that we do all reads before we do all writes, and allocates the same register for, say "ab" and "px", which we don't want
-                [ab] "+r"(ab),
-                [ag] "+r"(ag),
-                [ar] "+r"(ar),
-                [aa] "+r"(aa),
-                // pointer which will be changed
-                [dst_px] "+r"(dst_px),
                 // internal temporary
-                [px] "=r"(px));
+                [px] "=&r"(px)
+                :
+                // input only
+                [ab] "r"(ab),
+                [ag] "r"(ag),
+                [ar] "r"(ar),
+                [aa] "r"(aa));
+
+            *(dst_px++) = px;
 
             src_px -= kernel_sz * src.stride - 1;
         }
