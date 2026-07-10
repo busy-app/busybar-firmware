@@ -202,7 +202,7 @@ static void fetch_cli_run(const FetchCliParams* params) {
             fetch_set_header_callback(instance->fetch, fetch_headers_callback);
         }
 
-        fetch_exec(instance->fetch, &params->request);
+        fetch_run(instance->fetch, &params->request);
 
     } while(false);
 

@@ -187,7 +187,7 @@ static int32_t fetch_loader_thread_callback(void* context) {
             .url = furi_string_get_cstr(instance->remote_url),
         };
 
-        fetch_exec(instance->fetch, &request);
+        fetch_run(instance->fetch, &request);
 
         fetch_loader_finalize(instance);
     }

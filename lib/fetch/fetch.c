@@ -25,7 +25,7 @@
 struct Fetch {
     struct mg_mgr mgr;
     const FetchRequest* request;
-    FetchProgress status;
+    FetchProgress progress;
 
     uint32_t started_raw_ticks;
     uint32_t started_download_ticks;
@@ -33,10 +33,10 @@ struct Fetch {
     uint32_t count_receive_packets;
     CoarseTimer activity_timer;
 
-    FetchRxDataCallback callback_raw_data;
-    FetchHeaderCallback callback_header;
-    FetchErrorCallback callback_error;
-    FetchProgressCallback callback_status;
+    FetchRxDataCallback rx_data_callback;
+    FetchHeaderCallback header_callback;
+    FetchErrorCallback error_callback;
+    FetchProgressCallback progress_callback;
     void* callback_context;
 
     _Atomic bool is_running;
@@ -55,11 +55,11 @@ static void fetch_on_close(struct mg_connection* conn) {
 
     FETCH_LOG_I(TAG, "on_close");
 
-    instance->status.speed_bytes_per_sec = fetch_calc_download_speed(
-        instance->status.received_download_size, instance->started_download_ticks);
+    instance->progress.speed_bytes_per_sec = fetch_calc_download_speed(
+        instance->progress.received_download_size, instance->started_download_ticks);
 
-    if(instance->callback_status) {
-        instance->callback_status(&instance->status, instance->callback_context);
+    if(instance->progress_callback) {
+        instance->progress_callback(&instance->progress, instance->callback_context);
     }
 
     conn_ctx->on_data = NULL;
@@ -78,24 +78,24 @@ static void fetch_update_on_data_cb(struct mg_connection* conn, struct mg_iobuf*
 
     instance->activity_timer = coarse_timer_create(FETCH_INACTIVITY_TIMEOUT_MS);
 
-    instance->status.received_download_size += io->len;
+    instance->progress.received_download_size += io->len;
     instance->delta_received_bytes += io->len;
     instance->count_receive_packets++;
 
     if((instance->count_receive_packets % (12 * 8)) == 0) {
-        instance->status.speed_bytes_per_sec =
+        instance->progress.speed_bytes_per_sec =
             fetch_calc_download_speed(instance->delta_received_bytes, instance->started_raw_ticks);
 
         instance->started_raw_ticks = furi_get_tick();
 
-        if(instance->callback_status) {
-            instance->callback_status(&instance->status, instance->callback_context);
+        if(instance->progress_callback) {
+            instance->progress_callback(&instance->progress, instance->callback_context);
         }
         instance->delta_received_bytes = 0;
     }
 
-    if(instance->callback_raw_data) {
-        instance->callback_raw_data(io->buf, io->len, instance->callback_context);
+    if(instance->rx_data_callback) {
+        instance->rx_data_callback(io->buf, io->len, instance->callback_context);
     }
 
     mg_iobuf_del(io, 0, io->len); // Consume all data from buffer
@@ -115,7 +115,7 @@ static FURI_ALWAYS_INLINE void
     instance->started_download_ticks = instance->started_raw_ticks;
 
     if(body_length != -1) {
-        instance->status.total_download_size = body_length;
+        instance->progress.total_download_size = body_length;
     }
 
     // Set up raw data handlers
@@ -144,8 +144,8 @@ static bool fetch_init_tls(Fetch* instance, struct mg_connection* conn, struct m
     } else {
         FETCH_LOG_E(TAG, "Failed to read CA bundle from %s", FETCH_CA_BUNDLE_PATH);
 
-        if(instance->callback_error) {
-            instance->callback_error(
+        if(instance->error_callback) {
+            instance->error_callback(
                 "Failed to read CA certificate bundle", instance->callback_context);
         }
 
@@ -256,8 +256,8 @@ static FURI_ALWAYS_INLINE void
     FETCH_LOG_I(TAG, "Headers received: %.*s", msg->message.len, msg->message.buf);
     FETCH_LOG_I(TAG, "Path: %.*s", msg->uri.len, msg->uri.buf);
 
-    if(instance->callback_header) {
-        instance->callback_header(msg->head.buf, msg->head.len, instance->callback_context);
+    if(instance->header_callback) {
+        instance->header_callback(msg->head.buf, msg->head.len, instance->callback_context);
     }
 
     fetch_switching_to_raw_protocol(conn, msg);
@@ -296,8 +296,8 @@ static FURI_ALWAYS_INLINE void
 
     FETCH_LOG_E(TAG, "Error occurred: %s", (const char*)ev_data);
 
-    if(instance->callback_error) {
-        instance->callback_error(ev_data, instance->callback_context);
+    if(instance->error_callback) {
+        instance->error_callback(ev_data, instance->callback_context);
     }
 
     instance->is_running = false;
@@ -335,7 +335,7 @@ void fetch_free(Fetch* instance) {
     free(instance);
 }
 
-void fetch_exec(Fetch* instance, const FetchRequest* request) {
+void fetch_run(Fetch* instance, const FetchRequest* request) {
     furi_check(instance);
     furi_check(!instance->is_running);
 
@@ -365,8 +365,8 @@ void fetch_exec(Fetch* instance, const FetchRequest* request) {
             if(coarse_timer_is_expired(instance->activity_timer)) {
                 FETCH_LOG_E(TAG, "Inactivity timeout");
 
-                if(instance->callback_error) {
-                    instance->callback_error("Inactivity timeout", instance->callback_context);
+                if(instance->error_callback) {
+                    instance->error_callback("Inactivity timeout", instance->callback_context);
                 }
 
                 conn->is_draining = 1;
@@ -404,20 +404,20 @@ void fetch_set_callback_context(Fetch* instance, void* context) {
 
 void fetch_set_rx_data_callback(Fetch* instance, FetchRxDataCallback callback) {
     furi_check(instance);
-    instance->callback_raw_data = callback;
+    instance->rx_data_callback = callback;
 }
 
 void fetch_set_header_callback(Fetch* instance, FetchHeaderCallback callback) {
     furi_check(instance);
-    instance->callback_header = callback;
+    instance->header_callback = callback;
 }
 
 void fetch_set_error_callback(Fetch* instance, FetchErrorCallback callback) {
     furi_check(instance);
-    instance->callback_error = callback;
+    instance->error_callback = callback;
 }
 
 void fetch_set_progress_callback(Fetch* instance, FetchProgressCallback callback) {
     furi_check(instance);
-    instance->callback_status = callback;
+    instance->progress_callback = callback;
 }

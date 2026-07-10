@@ -103,7 +103,7 @@ Fetch* fetch_alloc(void);
 void fetch_free(Fetch* instance);
 
 /**
- * @brief Execute the fetch process in the current thread.
+ * @brief Run the fetch process in the current thread.
  *
  * This call will block the calling thread
  * until the fetch process is complete.
@@ -116,7 +116,7 @@ void fetch_free(Fetch* instance);
  * @param[in,out] instance Pointer to the Fetch instance.
  * @param[in] request Pointer to the request to be executed.
  */
-void fetch_exec(Fetch* instance, const FetchRequest* request);
+void fetch_run(Fetch* instance, const FetchRequest* request);
 
 /**
  * @brief Request the ongoing fetch process to stop.
