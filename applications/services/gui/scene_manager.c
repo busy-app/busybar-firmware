@@ -160,6 +160,7 @@ void scene_manager_next_scenes(
     const uint32_t* scene_ids,
     size_t scene_ids_count) {
     furi_check(instance);
+    furi_check(scene_ids);
     furi_check(scene_ids_count > 0);
 
     const Scene* current_scene = scene_manager_get_current_scene(instance);

@@ -244,10 +244,21 @@ schemas:
         type: integer
         description: Production timestamp
         example: 1767225600
+      firmware_security:
+        type: string
+        description: >
+          Summary of firmware signature protection derived from the wireless
+          coprocessor (Si917) NWP and M4 signature state. "secure" - both NWP
+          and M4 firmware signature verification active; "insecure" - neither
+          active; "other" - mixed state (exactly one active); "unknown" -
+          coprocessor info not ready yet.
+        enum: ["secure", "insecure", "other", "unknown"]
+        example: "secure"
     required:
       - serial_number
       - usb_mac
       - otp_valid
+      - firmware_security
 
   StatusFirmware:
     type: object

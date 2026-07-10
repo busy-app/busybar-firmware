@@ -55,16 +55,15 @@ BleWorker* ble_worker_init(BleConnectionStateChanged connect_callback, void* ctx
 
     instance->event_proc = ble_incoming_nwp_event_processor_alloc(instance);
     instance->transport = ble_transmitter_alloc();
-    ble_nwp_core_config_callbacks(instance->event_proc, instance->transport);
-    //----------------------------------------------------------------------------------------------------------------
 
     instance->device = ble_device_alloc(instance->transport);
     ble_device_set_name(instance->device, BLE_DEFAULT_LOCAL_NAME);
 
-    //---------------------------------------
+    ble_nwp_core_config_callbacks(instance->event_proc, instance->transport);
+    //----------------------------------------------------------------------------------------------------------------
+
     ///TODO:Remove this in future
     ble_worker_instance = instance;
-    //---------------------------------------
     return instance;
 }
 
