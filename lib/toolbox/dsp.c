@@ -66,6 +66,73 @@ void dsp_2d_kernel_subpixel_translate(
     *x_axis *= 1 - fabsf(y);
 }
 
+static uint32_t dsp_2d_kernel_iteration(
+    const uint32_t* source,
+    size_t stride,
+    size_t kernel_sz,
+    const int32_t* kernel) {
+    // temporary unpacked channel
+    register uint32_t chan;
+    // destination accumulators
+    register uint32_t ab = 0, ag = 0, ar = 0, aa = 0;
+
+    register size_t ky = kernel_sz;
+    while(ky--) {
+        register size_t kx = kernel_sz;
+        while(kx--) {
+            register uint32_t px = *(source++);
+            register uint32_t krnl = *(kernel++);
+
+            __asm__ volatile(
+                // 1. extract blue channel; 2. add to corresponding running sum
+                "uxtb %[chan], %[px], ror #0\n" // Unsigned Extend Byte
+                "smlabb %[ab], %[chan], %[krnl], %[ab]\n" // Signed Multiply-Accumulate Bottom with Bottom halfwords
+                // repeat for other channels:
+                "uxtb %[chan], %[px], ror #8\n"
+                "smlabb %[ag], %[chan], %[krnl], %[ag]\n"
+                "uxtb %[chan], %[px], ror #16\n"
+                "smlabb %[ar], %[chan], %[krnl], %[ar]\n"
+                "uxtb %[chan], %[px], ror #24\n"
+                "smlabb %[aa], %[chan], %[krnl], %[aa]\n"
+                :
+                // both input and output
+                [ab] "+&r"(ab),
+                [ag] "+&r"(ag),
+                [ar] "+&r"(ar),
+                [aa] "+&r"(aa),
+                // temporary register
+                [chan] "=&r"(chan)
+                :
+                // inputs
+                [px] "r"(px),
+                [krnl] "r"(krnl));
+        }
+
+        source += stride;
+    }
+
+    register uint32_t px;
+
+    __asm__ volatile(
+        // pack 8-bit values into 32-bit, while diving by 256
+        "bfi %[px], %[aa], #16, #16\n" // Bitfield Insert
+        "bfi %[px], %[ar], #8, #16\n"
+        "bfi %[px], %[ag], #0, #16\n"
+        "lsr %[ab], %[ab], #8\n" // Logical Shift Left
+        "bfi %[px], %[ab], #0, #8\n"
+        :
+        // internal temporary
+        [px] "=&r"(px)
+        :
+        // input only
+        [ab] "r"(ab),
+        [ag] "r"(ag),
+        [ar] "r"(ar),
+        [aa] "r"(aa));
+
+    return px;
+}
+
 void dsp_2d_kernel_apply(
     size_t kernel_sz,
     const float* kernel,
@@ -125,70 +192,9 @@ void dsp_2d_kernel_apply(
                            (((offs_y - kernel_mid + dst_y) * src.stride) + (offs_x - kernel_mid));
 
         for(int dst_x = safe_x1; dst_x < safe_x2; dst_x++) {
-            register const int32_t* kernel_ptr = (const int32_t*)kernel_fixedpoint;
-            // temporary unpacked channels
-            register uint32_t b, g, r, a;
-            // destination accumulators
-            register uint32_t ab = 0, ag = 0, ar = 0, aa = 0;
-
-            for(size_t ky = 0; ky < kernel_sz; ky++) {
-                for(size_t kx = 0; kx < kernel_sz; kx++) {
-                    register uint32_t px = *(src_px)++;
-                    register uint32_t krnl = *(kernel_ptr)++;
-
-                    __asm__ volatile(
-                        // unpack 4 channels into 4 registers
-                        "uxtb %[b], %[px], ror #0\n" // Unsigned Extend Byte
-                        "uxtb %[g], %[px], ror #8\n"
-                        "uxtb %[r], %[px], ror #16\n"
-                        "uxtb %[a], %[px], ror #24\n"
-                        // multiply kernel and source pixel, add to destination pixel running sum
-                        "smlabb %[ab], %[b], %[krnl], %[ab]\n" // Signed Multiply-Accumulate Bottom with Bottom halfwords
-                        "smlabb %[ag], %[g], %[krnl], %[ag]\n"
-                        "smlabb %[ar], %[r], %[krnl], %[ar]\n"
-                        "smlabb %[aa], %[a], %[krnl], %[aa]\n"
-                        :
-                        // both input and output
-                        [ab] "+&r"(ab),
-                        [ag] "+&r"(ag),
-                        [ar] "+&r"(ar),
-                        [aa] "+&r"(aa),
-                        // temporaries
-                        [b] "=&r"(b),
-                        [g] "=&r"(g),
-                        [r] "=&r"(r),
-                        [a] "=&r"(a)
-                        :
-                        // inputs
-                        [px] "r"(px),
-                        [krnl] "r"(krnl));
-                }
-
-                src_px += src.stride - kernel_sz;
-            }
-
-            register uint32_t px;
-
-            __asm__ volatile(
-                // pack 8-bit values into 32-bit, while diving by 256
-                "bfi %[px], %[aa], #16, #16\n" // Bitfield Insert
-                "bfi %[px], %[ar], #8, #16\n"
-                "bfi %[px], %[ag], #0, #16\n"
-                "lsr %[ab], %[ab], #8\n" // Logical Shift Left
-                "bfi %[px], %[ab], #0, #8\n"
-                :
-                // internal temporary
-                [px] "=&r"(px)
-                :
-                // input only
-                [ab] "r"(ab),
-                [ag] "r"(ag),
-                [ar] "r"(ar),
-                [aa] "r"(aa));
-
-            *(dst_px++) = px;
-
-            src_px -= kernel_sz * src.stride - 1;
+            *(dst_px++) = dsp_2d_kernel_iteration(
+                src_px, src.stride - kernel_sz, kernel_sz, kernel_fixedpoint);
+            src_px++;
         }
     }
 }
