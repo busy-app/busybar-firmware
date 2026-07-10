@@ -1,5 +1,4 @@
 #include "fetch.h"
-#include "fetch_i.h"
 
 #include <network/network.h>
 #include <storage/storage.h>
@@ -11,6 +10,15 @@
 #define TAG "Fetch"
 
 #define FETCH_INACTIVITY_TIMEOUT_MS (5 * 1000)
+
+#define FETCH_CA_BUNDLE_PATH EXT_PATH("apps_assets/shared/ca/cacert.pem")
+
+#define FETCH_USER_AGENT                         \
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) " \
+    "AppleWebKit/537.36 (KHTML, like Gecko) "    \
+    "Chrome/138.0.0.0 Safari/537.36"
+
+#define FETCH_THREAD_STACK_SIZE (8 * 1024)
 
 //#define FETCH_DEBUG
 
@@ -49,65 +57,14 @@ static uint32_t fetch_calc_download_speed(size_t size_delta, uint32_t start_time
     return size_delta / delta_s;
 }
 
-static void fetch_on_close(struct mg_connection* conn) {
-    FetchConnectionContext* conn_ctx = (FetchConnectionContext*)conn->data;
-    Fetch* instance = conn_ctx->context;
-
-    FETCH_LOG_I(TAG, "on_close");
-
-    instance->progress.speed_bytes_per_sec = fetch_calc_download_speed(
-        instance->progress.received_download_size, instance->started_download_ticks);
-
-    if(instance->progress_callback) {
-        instance->progress_callback(&instance->progress, instance->callback_context);
-    }
-
-    conn_ctx->on_data = NULL;
-    conn_ctx->on_close = NULL;
-
-    instance->is_running = false;
+static void fetch_consume_rx_data(struct mg_connection* conn, size_t length) {
+    mg_iobuf_del(&conn->recv, 0, length);
 }
 
-static void fetch_update_on_data_cb(struct mg_connection* conn, struct mg_iobuf* io) {
-    const FetchConnectionContext* conn_ctx = (FetchConnectionContext*)conn->data;
-
-    Fetch* instance = conn_ctx->context;
-    furi_assert(instance);
-
-    FETCH_LOG_I(TAG, "on_data: Received %zu bytes", io->len);
-
-    instance->activity_timer = coarse_timer_create(FETCH_INACTIVITY_TIMEOUT_MS);
-
-    instance->progress.received_download_size += io->len;
-    instance->delta_received_bytes += io->len;
-    instance->count_receive_packets++;
-
-    if((instance->count_receive_packets % (12 * 8)) == 0) {
-        instance->progress.speed_bytes_per_sec =
-            fetch_calc_download_speed(instance->delta_received_bytes, instance->started_raw_ticks);
-
-        instance->started_raw_ticks = furi_get_tick();
-
-        if(instance->progress_callback) {
-            instance->progress_callback(&instance->progress, instance->callback_context);
-        }
-        instance->delta_received_bytes = 0;
-    }
-
-    if(instance->rx_data_callback) {
-        instance->rx_data_callback(io->buf, io->len, instance->callback_context);
-    }
-
-    mg_iobuf_del(io, 0, io->len); // Consume all data from buffer
-}
-
-static FURI_ALWAYS_INLINE void
-    fetch_switching_to_raw_protocol(struct mg_connection* conn, struct mg_http_message* msg) {
-    FetchConnectionContext* conn_ctx = (FetchConnectionContext*)conn->data;
-
-    Fetch* instance = conn->fn_data;
-    conn_ctx->context = instance;
-
+static void fetch_switch_to_raw_protocol(
+    Fetch* instance,
+    struct mg_connection* conn,
+    const struct mg_http_message* msg) {
     const int32_t body_length = (int32_t)msg->body.len;
     FETCH_LOG_I(TAG, "body size: %ld", body_length);
 
@@ -118,12 +75,11 @@ static FURI_ALWAYS_INLINE void
         instance->progress.total_download_size = body_length;
     }
 
-    // Set up raw data handlers
-    conn_ctx->on_data = fetch_update_on_data_cb;
-    conn_ctx->on_close = fetch_on_close;
-
-    mg_iobuf_del(&conn->recv, 0, msg->head.len); // Delete HTTP headers
-    conn->pfn = NULL; // Silence HTTP protocol handler, we'll use MG_EV_READ
+    fetch_consume_rx_data(conn, msg->head.len);
+    /* Mongoose will detach the protocol-specific function automatically
+     * after the received data has been altered in the header callback.
+     * Here it is done preemptively for good measure. */
+    conn->pfn = NULL;
 }
 
 static bool fetch_init_tls(Fetch* instance, struct mg_connection* conn, struct mg_str hostname) {
@@ -251,7 +207,7 @@ static FURI_ALWAYS_INLINE void
 
 static FURI_ALWAYS_INLINE void
     fetch_http_hdrs_event(Fetch* instance, struct mg_connection* conn, void* ev_data) {
-    struct mg_http_message* msg = (struct mg_http_message*)ev_data;
+    const struct mg_http_message* msg = ev_data;
 
     FETCH_LOG_I(TAG, "Headers received: %.*s", msg->message.len, msg->message.buf);
     FETCH_LOG_I(TAG, "Path: %.*s", msg->uri.len, msg->uri.buf);
@@ -260,30 +216,50 @@ static FURI_ALWAYS_INLINE void
         instance->header_callback(msg->head.buf, msg->head.len, instance->callback_context);
     }
 
-    fetch_switching_to_raw_protocol(conn, msg);
+    fetch_switch_to_raw_protocol(instance, conn, msg);
 }
 
 static FURI_ALWAYS_INLINE void fetch_read_event(Fetch* instance, struct mg_connection* conn) {
-    UNUSED(instance);
-
     FETCH_LOG_I(TAG, "MG_EV_READ");
 
-    if(!conn->is_websocket) {
-        FetchConnectionContext* conn_ctx = (void*)conn->data;
+    struct mg_iobuf* recv = &conn->recv;
+    const size_t recv_len = recv->len;
 
-        if(conn_ctx->on_data) {
-            conn_ctx->on_data(conn, &conn->recv);
+    FETCH_LOG_I(TAG, "Received %zu bytes", recv_len);
+
+    instance->activity_timer = coarse_timer_create(FETCH_INACTIVITY_TIMEOUT_MS);
+    instance->progress.received_download_size += recv_len;
+    instance->delta_received_bytes += recv_len;
+    instance->count_receive_packets++;
+
+    if((instance->count_receive_packets % (12 * 8)) == 0) {
+        instance->progress.speed_bytes_per_sec =
+            fetch_calc_download_speed(instance->delta_received_bytes, instance->started_raw_ticks);
+
+        instance->started_raw_ticks = furi_get_tick();
+
+        if(instance->progress_callback) {
+            instance->progress_callback(&instance->progress, instance->callback_context);
         }
+
+        instance->delta_received_bytes = 0;
     }
+
+    if(instance->rx_data_callback) {
+        instance->rx_data_callback(recv->buf, recv_len, instance->callback_context);
+    }
+
+    fetch_consume_rx_data(conn, recv_len);
 }
 
 static FURI_ALWAYS_INLINE void fetch_close_event(Fetch* instance, struct mg_connection* conn) {
     FETCH_LOG_I(TAG, "MG_EV_CLOSE");
 
-    const FetchConnectionContext* conn_ctx = (FetchConnectionContext*)conn->data;
+    instance->progress.speed_bytes_per_sec = fetch_calc_download_speed(
+        instance->progress.received_download_size, instance->started_download_ticks);
 
-    if(conn_ctx->on_close) {
-        conn_ctx->on_close(conn);
+    if(instance->progress_callback) {
+        instance->progress_callback(&instance->progress, instance->callback_context);
     }
 
     conn->is_draining = 1;
