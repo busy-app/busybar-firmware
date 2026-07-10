@@ -33,18 +33,27 @@ void anim_file_img_init(
         img->encoded_buffer = malloc(file_hdr->max_encoded_length);
     }
 
-    if(!img->packed_buffer && (file_hdr->color_format != AnimFileColorFormatBgra8888)) {
-        img->packed_buffer = malloc(anim_file_img_packed_length(file_hdr));
-    }
-
     bool sheet_buffer_needed = (width < file_hdr->width) || (height < file_hdr->height) ||
                                force_sheet_buffer;
-    if(sheet_buffer_needed) {
-        size_t sheet_buf_size = file_hdr->width * file_hdr->height * ANIM_FILE_OUT_BYTES_PER_PIXEL;
-        img->sheet_buffer = realloc(img->sheet_buffer, sheet_buf_size);
-    } else {
+    if(sheet_buffer_needed && !img->sheet_buffer) {
+        size_t margin = ANIM_FILE_IMG_KERNEL_SZ - 1;
+        size_t sheet_buf_size = (file_hdr->width + margin) * (file_hdr->height + margin) *
+                                ANIM_FILE_OUT_BYTES_PER_PIXEL;
+        img->sheet_buffer = malloc(sheet_buf_size);
+    }
+    if(!sheet_buffer_needed && img->sheet_buffer) {
         free(img->sheet_buffer);
         img->sheet_buffer = NULL;
+    }
+
+    bool packed_buffer_needed = (file_hdr->color_format != AnimFileColorFormatBgra8888) ||
+                                sheet_buffer_needed;
+    if(packed_buffer_needed && !img->packed_buffer) {
+        img->packed_buffer = malloc(anim_file_img_packed_length(file_hdr));
+    }
+    if(!packed_buffer_needed && img->packed_buffer) {
+        free(img->packed_buffer);
+        img->packed_buffer = NULL;
     }
 
     img->cutout_buffer = cutout_buffer;
@@ -85,7 +94,7 @@ static uint8_t* anim_file_img_packed_buffer(AnimFile* anim, size_t* size) {
     const AnimFileHeader* file_hdr = &anim->meta.header;
     AnimFileImg* img = &anim->img;
 
-    if(file_hdr->color_format != AnimFileColorFormatBgra8888) {
+    if((file_hdr->color_format != AnimFileColorFormatBgra8888) || img->sheet_buffer) {
         if(size) *size = anim_file_img_packed_length(file_hdr);
         furi_assert(img->packed_buffer);
         return img->packed_buffer;
@@ -162,7 +171,7 @@ static bool
     furi_assert(dest);
 
     const AnimFileHeader* file_hdr = &anim->meta.header;
-    furi_assert(file_hdr->color_format != AnimFileColorFormatBgra8888);
+    AnimFileImg* img = &anim->img;
 
     if(file_hdr->color_format == AnimFileColorFormatGray4) {
         size_t dest_idx = 0;
@@ -191,6 +200,22 @@ static bool
             dest += 4;
             source += 3;
         }
+
+    } else if(file_hdr->color_format == AnimFileColorFormatBgra8888) {
+        furi_assert(img->sheet_buffer);
+
+        const size_t margin = ANIM_FILE_IMG_KERNEL_SZ / 2;
+        const size_t w_with_margin = file_hdr->width + (2 * margin);
+        const size_t h_with_margin = file_hdr->height + (2 * margin);
+
+        memset(dest, 0, w_with_margin * h_with_margin * sizeof(uint32_t));
+
+        uint32_t* dst_start = (uint32_t*)dest + (w_with_margin + margin);
+        uint32_t* src_start = (uint32_t*)source;
+        for(size_t y = 0; y < file_hdr->height; y++) {
+            size_t line_size = file_hdr->width * sizeof(uint32_t);
+            memcpy(dst_start + (y * w_with_margin), src_start + (y * file_hdr->width), line_size);
+        }
     }
 
     return true;
@@ -204,13 +229,16 @@ static bool anim_file_img_cut_part(AnimFile* anim, const uint8_t* source, uint8_
     const AnimFileInfo* info = &anim->meta.info;
     AnimFileImg* img = &anim->img;
 
+    const size_t margin = ANIM_FILE_IMG_KERNEL_SZ / 2;
+    const size_t w_with_margin = info->width + (2 * margin);
+
     dsp_2d_kernel_apply(
         ANIM_FILE_IMG_KERNEL_SZ,
-        img->cutout_kernel,
+        (const float*)img->cutout_kernel,
         (DspImageBuffer){
-            .first_pixel = (uint8_t*)source,
+            .first_pixel = (uint8_t*)((uint32_t*)source + ((w_with_margin) + margin)),
             .width = info->width,
-            .stride = info->width,
+            .stride = w_with_margin,
             .height = info->height,
             .channels = ANIM_FILE_OUT_BYTES_PER_PIXEL,
         },

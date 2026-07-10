@@ -55,14 +55,15 @@ void dsp_2d_kernel_subpixel_translate(
  *                      must be odd.
  * @param[in] kernel Normalized kernel (2-dimensional array of size `kernel_sz`
  *                   x `kernel_sz`)
- * @param[in] src Descriptor for source buffer
+ * @param[in] src Descriptor for source buffer. Must have a black margin around
+ *                the image of size `kernel_sz / 2`.
  * @param[in] dst Descriptor for destination buffer
  * @param[in] offs_x X-axis offset of destination window relative to source sheet
  * @param[in] offs_y Y-axis offset of destination window relative to source sheet
  */
 void dsp_2d_kernel_apply(
     size_t kernel_sz,
-    float kernel[kernel_sz][kernel_sz],
+    const float* kernel,
     DspImageBuffer src,
     DspImageBuffer dst,
     int offs_x,

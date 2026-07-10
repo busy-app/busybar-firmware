@@ -68,7 +68,7 @@ void dsp_2d_kernel_subpixel_translate(
 
 void dsp_2d_kernel_apply(
     size_t kernel_sz,
-    float kernel[kernel_sz][kernel_sz],
+    const float* kernel,
     DspImageBuffer src,
     DspImageBuffer dst,
     int offs_x,
@@ -79,51 +79,121 @@ void dsp_2d_kernel_apply(
 
     furi_assert(dst.width <= src.width);
     furi_assert(dst.height <= src.height);
-    furi_assert(dst.channels == src.channels);
+    furi_assert(dst.channels == 4);
+    furi_assert(src.channels == 4);
 
-    const size_t n_chans = src.channels;
     const int kernel_mid = kernel_sz / 2;
+
+    int32_t kernel_fixedpoint[kernel_sz * kernel_sz];
+    for(size_t i = 0; i < COUNT_OF(kernel_fixedpoint); i++) {
+        kernel_fixedpoint[i] = kernel[i] * 256.0f;
+    }
+
+    for(size_t y = 0; y < dst.height; y++) {
+        uint32_t* line_start = (uint32_t*)dst.first_pixel + (y * dst.stride);
+        memset(line_start, 0, dst.width * sizeof(uint32_t));
+    }
+
+    /**
+     * +--------------+   <-- Source sheet
+     * |              |
+     * |         +----------------------+   <-- Destination cutout
+     * |         |xxxx|                 |
+     * |         |xxxx| <-- Safe area   |
+     * |         |xxxx|                 |
+     * |         |xxxx|                 |
+     * +---------|----+                 |
+     *           |                      |
+     *           +----------------------+
+     */
+
+    const int src_x1_in_dst_coordinate_system = -offs_x;
+    const int src_x2_in_dst_coordinate_system = src_x1_in_dst_coordinate_system + src.width;
+    const int src_y1_in_dst_coordinate_system = -offs_y;
+    const int src_y2_in_dst_coordinate_system = src_y1_in_dst_coordinate_system + src.height;
+
+    const int safe_x1 = MAX(src_x1_in_dst_coordinate_system, 0);
+    const int safe_x2 = MIN(src_x2_in_dst_coordinate_system, (int)dst.width);
+    const int safe_y1 = MAX(src_y1_in_dst_coordinate_system, 0);
+    const int safe_y2 = MIN(src_y2_in_dst_coordinate_system, (int)dst.height);
 
     // https://en.wikipedia.org/wiki/Kernel_(image_processing)#Convolution
 
-    /**
-     * Some initial/step values are precomputed before a loop and then
-     * incremented inside it, instead of being recomputed on the fly via
-     * multiplication. That's faster by about 9x, but less readble. Sorry.
-     */
-    for(int dst_y = 0; dst_y < (int)dst.height; dst_y++) {
-        for(int dst_x = 0; dst_x < (int)dst.width; dst_x++) {
-            for(size_t chan = 0; chan < n_chans; chan++) {
-                float sum = 0.0f;
+    for(int dst_y = safe_y1; dst_y < safe_y2; dst_y++) {
+        uint32_t* dst_px = (uint32_t*)dst.first_pixel + (dst_y * dst.stride);
+        uint32_t* src_px = (uint32_t*)src.first_pixel +
+                           (((offs_y - kernel_mid + dst_y) * src.stride) + (offs_x - kernel_mid));
 
-                int src_y = dst_y - kernel_mid + offs_y;
-                int src_x = dst_x - kernel_mid + offs_x;
-                const uint8_t* src_buf =
-                    &src.first_pixel[(src_y * src.stride * src.channels) + (src_x * n_chans) + chan];
-                size_t src_buf_line_stride = (src.stride * src.channels) - (kernel_sz * n_chans);
+        for(int dst_x = safe_x1; dst_x < safe_x2; dst_x++) {
+            register const int32_t* kernel_ptr = (const int32_t*)kernel_fixedpoint;
+            // temporary unpacked channels
+            register uint32_t b, g, r, a;
+            // destination accumulators
+            register uint32_t ab = 0, ag = 0, ar = 0, aa = 0;
 
-                const float* kernel_flat = (float*)kernel;
-
-                for(int k_y = 0; k_y < (int)kernel_sz; k_y++) {
-                    for(int k_x = 0; k_x < (int)kernel_sz; k_x++) {
-                        bool is_in_bounds = (src_x >= 0) && (src_y >= 0) &&
-                                            (src_x < (int)src.width) && (src_y < (int)src.height);
-
-                        float value = is_in_bounds ? *src_buf : 0.0f;
-                        sum += value * *kernel_flat;
-
-                        src_x++;
-                        src_buf += n_chans;
-                        kernel_flat++;
-                    }
-                    src_y++;
-                    src_x -= kernel_sz;
-                    src_buf += src_buf_line_stride;
+            for(size_t ky = 0; ky < kernel_sz; ky++) {
+                for(size_t kx = 0; kx < kernel_sz; kx++) {
+                    register uint32_t px, krnl;
+                    __asm__ volatile(
+                        // load pixel and increment pointer
+                        "ldmia %[src_px]!, {%[px]}\n" // Load Multiple, Increment After
+                        // unpack 4 channels into 4 registers
+                        "uxtb %[b], %[px], ror #0\n" // Unsigned Extend Byte
+                        "uxtb %[g], %[px], ror #8\n"
+                        "uxtb %[r], %[px], ror #16\n"
+                        "uxtb %[a], %[px], ror #24\n"
+                        // load kernel and increment pointer
+                        "ldmia %[kernel_ptr]!, {%[krnl]}\n"
+                        // multiply kernel and source pixel, add to destination pixel running sum
+                        "smlabb %[ab], %[b], %[krnl], %[ab]\n" // Signed Multiply-Accumulate Bottom with Bottom halfwords
+                        "smlabb %[ag], %[g], %[krnl], %[ag]\n"
+                        "smlabb %[ar], %[r], %[krnl], %[ar]\n"
+                        "smlabb %[aa], %[a], %[krnl], %[aa]\n"
+                        :
+                        // temporaries used in assembly snippet, marked as outputs to ask the compiler to allocate registers for us
+                        [b] "=r"(b),
+                        [g] "=r"(g),
+                        [r] "=r"(r),
+                        [a] "=r"(a),
+                        // both input and output
+                        [ab] "+r"(ab),
+                        [ag] "+r"(ag),
+                        [ar] "+r"(ar),
+                        [aa] "+r"(aa),
+                        // pointers which will be changed
+                        [src_px] "+r"(src_px),
+                        [kernel_ptr] "+r"(kernel_ptr),
+                        // also internal temporaries
+                        [px] "=r"(px),
+                        [krnl] "=r"(krnl));
                 }
 
-                size_t buf_idx = (dst_y * dst.stride * dst.channels) + (dst_x * n_chans) + chan;
-                dst.first_pixel[buf_idx] = CLAMP((int)sum, UINT8_MAX, 0);
+                src_px += src.stride - kernel_sz;
             }
+
+            register uint32_t px;
+            __asm__ volatile(
+                // pack 8-bit values into 32-bit, while diving by 256
+                "bfi %[px], %[aa], #16, #16\n" // Bitfield Insert
+                "bfi %[px], %[ar], #8, #16\n"
+                "bfi %[px], %[ag], #0, #16\n"
+                "lsr %[ab], %[ab], #8\n" // Logical Shift Left
+                "bfi %[px], %[ab], #0, #8\n"
+                // store and increment
+                "stmia %[dst_px]!, {%[px]}\n" // Store Multiple, Increment After
+                :
+                // input only, marked as input-output to force the compiler to allocate a different register for the other ones;
+                // normally it assumes that we do all reads before we do all writes, and allocates the same register for, say "ab" and "px", which we don't want
+                [ab] "+r"(ab),
+                [ag] "+r"(ag),
+                [ar] "+r"(ar),
+                [aa] "+r"(aa),
+                // pointer which will be changed
+                [dst_px] "+r"(dst_px),
+                // internal temporary
+                [px] "=r"(px));
+
+            src_px -= kernel_sz * src.stride - 1;
         }
     }
 }
