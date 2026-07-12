@@ -17,12 +17,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/VersionInfo"
-        "500":
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
 
   /api/transport:
     get:
@@ -38,12 +32,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/NetworkInterfaceInfo"
-        "500":
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
 
   /api/status:
     get:
