@@ -137,7 +137,7 @@ static void http_upload_data_callback(struct mg_connection* conn, struct mg_iobu
         size_t write_len = MIN(data->len, upload_ctx->len_remain);
         if(http_fs_get()->wr(upload_ctx->file, data->buf, write_len) != write_len) {
             FURI_LOG_E(TAG, "Failed to write file chunk");
-            MG_REPLY_INTERNAL_ERROR(conn, "Failed to write file chunk");
+            MG_REPLY_ERROR(conn, 508, "Failed to write file chunk");
             do_close_file = true;
         } else {
             upload_ctx->len_remain -= write_len;
@@ -186,7 +186,7 @@ static void http_upload_poll_callback(struct mg_connection* conn) {
 
     if(mg_timer_expired(&upload_ctx->timeout_stamp, HTTP_UPLOAD_IDLE_TIMEOUT_MS, mg_millis())) {
         FURI_LOG_E(TAG, "Connection data timeout (%lu)", conn->id);
-        MG_REPLY_ERROR_CLOSE(conn, 408, "Upload timeout");
+        MG_REPLY_TIMEOUT(conn, "Upload timeout");
         conn->is_draining = 1; // Force close hanging connection
     }
 }
@@ -216,7 +216,7 @@ void http_upload_start(
     upload_ctx->file = http_fs_get()->op(file_path, MG_FS_WRITE); // Open file for writing
 
     if(upload_ctx->file == NULL) {
-        MG_REPLY_ERROR_CLOSE(conn, 500, "Failed to open file for writing");
+        MG_REPLY_ERROR_CLOSE(conn, 508, "Failed to open file for writing");
         conn->is_draining = 1;
     }
 

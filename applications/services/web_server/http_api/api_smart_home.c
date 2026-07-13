@@ -21,7 +21,7 @@ static void
     furi_record_close(RECORD_MATTER);
 
     if(status != MatterStatusOk) {
-        MG_REPLY_ERROR(conn, 503, "Smart home unavailable");
+        MG_REPLY_SERVICE_UNAVAILABLE(conn, "Smart home unavailable");
         return;
     }
 
@@ -82,7 +82,7 @@ static void
         success = true;
     } while(0);
 
-    if(!success) MG_REPLY_ERROR(conn, 503, "Smart home unavailable");
+    if(!success) MG_REPLY_SERVICE_UNAVAILABLE(conn, "Smart home unavailable");
 }
 
 static void api_smart_home_factory_reset(struct mg_connection* conn, struct mg_http_message* msg) {
@@ -95,7 +95,7 @@ static void api_smart_home_factory_reset(struct mg_connection* conn, struct mg_h
     if(matter_status == MatterStatusOk) {
         MG_REPLY_OK(conn);
     } else {
-        MG_REPLY_ERROR(conn, 503, "Smart home unavailable");
+        MG_REPLY_SERVICE_UNAVAILABLE(conn, "Smart home unavailable");
     }
 }
 
@@ -131,7 +131,7 @@ static void api_smart_home_switch_get(struct mg_connection* conn, struct mg_http
     furi_record_close(RECORD_MATTER);
 
     if(switch_state == MatterSwitchStateUnknown) {
-        MG_REPLY_ERROR(conn, 503, "Smart home unavailable");
+        MG_REPLY_SERVICE_UNAVAILABLE(conn, "Smart home unavailable");
         return;
     }
 
@@ -202,7 +202,7 @@ static void api_smart_home_switch_set(struct mg_connection* conn, struct mg_http
         MG_REPLY_OK(conn);
     } else {
         if(matter_request_error) {
-            MG_REPLY_ERROR(conn, 503, "Smart home unavailable");
+            MG_REPLY_SERVICE_UNAVAILABLE(conn, "Smart home unavailable");
         } else {
             MG_REPLY_BAD_REQUEST(conn);
         }

@@ -47,8 +47,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Status"
-        "500":
-          description: Internal server error
+        "503":
+          description: Failed to retrieve status
           content:
             application/json:
               schema:
@@ -68,8 +68,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/StatusDevice"
-        "500":
-          description: Internal server error
+        "503":
+          description: Failed to retrieve status
           content:
             application/json:
               schema:
@@ -89,8 +89,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/StatusFirmware"
-        "500":
-          description: Internal server error
+        "503":
+          description: Failed to retrieve status
           content:
             application/json:
               schema:
@@ -110,8 +110,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/StatusSystem"
-        "500":
-          description: Internal server error
+        "503":
+          description: Failed to retrieve status
           content:
             application/json:
               schema:
@@ -131,8 +131,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/StatusPower"
-        "500":
-          description: Internal server error
+        "503":
+          description: Failed to retrieve status
           content:
             application/json:
               schema:
@@ -156,8 +156,8 @@ paths:
       responses:
         "200":
           description: Log dumped successfully
-        "500":
-          description: Internal server error
+        "508":
+          description: Failed to dump logs
           content:
             application/json:
               schema:

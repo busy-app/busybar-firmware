@@ -26,7 +26,7 @@ bool http_api_log_dump_callback(
     if(is_successful) {
         MG_REPLY_OK(conn);
     } else {
-        MG_REPLY_INTERNAL_ERROR(conn, "Failed to dump logs.");
+        MG_REPLY_ERROR(conn, 508, "Failed to dump logs.");
     }
 
     return true;

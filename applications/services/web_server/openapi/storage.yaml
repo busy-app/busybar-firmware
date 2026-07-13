@@ -46,6 +46,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+        "508":
+          description: Failed to write uploaded file
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 
   /api/storage/read:
     get:
