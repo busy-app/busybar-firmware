@@ -187,9 +187,10 @@ void dsp_2d_kernel_apply(
     // https://en.wikipedia.org/wiki/Kernel_(image_processing)#Convolution
 
     for(int dst_y = safe_y1; dst_y < safe_y2; dst_y++) {
-        uint32_t* dst_px = (uint32_t*)dst.first_pixel + (dst_y * dst.stride);
-        uint32_t* src_px = (uint32_t*)src.first_pixel +
-                           (((offs_y - kernel_mid + dst_y) * src.stride) + (offs_x - kernel_mid));
+        uint32_t* dst_px = (uint32_t*)dst.first_pixel + ((dst_y * dst.stride) + safe_x1);
+        uint32_t* src_px =
+            (uint32_t*)src.first_pixel +
+            (((offs_y - kernel_mid + dst_y) * src.stride) + (offs_x - kernel_mid) + safe_x1);
 
         for(int dst_x = safe_x1; dst_x < safe_x2; dst_x++) {
             *(dst_px++) = dsp_2d_kernel_iteration(
