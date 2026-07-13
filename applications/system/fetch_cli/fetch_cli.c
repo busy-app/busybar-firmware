@@ -34,7 +34,7 @@ static void fetch_cli_console_out(const char* data, size_t data_size) {
     for(size_t i = 0; i < data_size; i++) {
         const char c = data[i];
 
-        if(!iscntrl(c) || isspace(c)) {
+        if(isprint(c) || isspace(c)) {
             putchar(c);
 
             if(c == '\n') {
