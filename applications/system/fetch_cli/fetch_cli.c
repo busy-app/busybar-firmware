@@ -217,31 +217,36 @@ static void fetch_cli_finalize_file_ouput(FetchCli* instance) {
     }
 }
 
-static void fetch_cli_run(const FetchCliParams* params) {
-    FetchCli* instance = fetch_cli_alloc();
+static bool fetch_cli_prepare(FetchCli* instance, const FetchCliParams* params) {
+    bool success = true;
 
-    do {
-        if(params->output_path != NULL) {
-            if(!fetch_cli_prepare_file_output(instance, params->output_path)) {
-                break;
-            }
+    if(params->is_full_output) {
+        fetch_set_header_callback(instance->fetch, fetch_headers_callback);
+    }
 
-        } else {
-            fetch_cli_prepare_standard_output(instance);
-        }
+    if(params->output_path != NULL) {
+        success = fetch_cli_prepare_file_output(instance, params->output_path);
+    } else {
+        fetch_cli_prepare_standard_output(instance);
+    }
 
-        if(params->is_full_output) {
-            fetch_set_header_callback(instance->fetch, fetch_headers_callback);
-        }
+    return success;
+}
 
-        fetch_run(instance->fetch, &params->request);
-
-    } while(false);
-
+static void fetch_cli_finalize(FetchCli* instance, const FetchCliParams* params) {
     if(params->output_path != NULL) {
         fetch_cli_finalize_file_ouput(instance);
     }
+}
 
+static void fetch_cli_run(const FetchCliParams* params) {
+    FetchCli* instance = fetch_cli_alloc();
+
+    if(fetch_cli_prepare(instance, params)) {
+        fetch_run(instance->fetch, &params->request);
+    }
+
+    fetch_cli_finalize(instance, params);
     fetch_cli_free(instance);
 }
 
