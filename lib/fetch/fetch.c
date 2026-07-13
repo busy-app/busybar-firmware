@@ -18,10 +18,6 @@
     "AppleWebKit/537.36 (KHTML, like Gecko) "    \
     "Chrome/138.0.0.0 Safari/537.36"
 
-#define FETCH_THREAD_STACK_SIZE (8 * 1024)
-
-//#define FETCH_DEBUG
-
 #ifdef FETCH_DEBUG
 #define FETCH_LOG_I(...) FURI_LOG_I(__VA_ARGS__)
 #define FETCH_LOG_E(...) FURI_LOG_E(__VA_ARGS__)
@@ -76,7 +72,7 @@ static void fetch_switch_to_raw_protocol(
     }
 
     fetch_consume_rx_data(conn, msg->head.len);
-    /* Mongoose will detach the protocol-specific function automatically
+    /* Mongoose will detach the protocol handler function automatically
      * after the received data has been altered in the header callback.
      * Here it is done preemptively for good measure. */
     conn->pfn = NULL;
@@ -189,27 +185,10 @@ static FURI_ALWAYS_INLINE void fetch_connect_event(Fetch* instance, struct mg_co
 }
 
 static FURI_ALWAYS_INLINE void
-    fetch_http_msg_event(Fetch* instance, struct mg_connection* conn, void* ev_data) {
-#ifndef FETCH_DEBUG
-    UNUSED(ev_data);
-#else
-    const FetchConnectionContext* conn_ctx = (FetchConnectionContext*)conn->data;
-    struct mg_http_message* msg = ev_data;
-
-    if(conn_ctx->on_data == NULL) {
-        FETCH_LOG_I(TAG, "Data received: %.*s", msg->message.len, msg->message.buf);
-        FETCH_LOG_I(TAG, "Path: %.*s", msg->uri.len, msg->uri.buf);
-    }
-#endif
-    conn->is_draining = 1;
-    instance->is_running = false;
-}
-
-static FURI_ALWAYS_INLINE void
     fetch_http_hdrs_event(Fetch* instance, struct mg_connection* conn, void* ev_data) {
     const struct mg_http_message* msg = ev_data;
 
-    FETCH_LOG_I(TAG, "Headers received: %.*s", msg->message.len, msg->message.buf);
+    FETCH_LOG_I(TAG, "MG_EV_HTTP_HDRS: %.*s", msg->message.len, msg->message.buf);
     FETCH_LOG_I(TAG, "Path: %.*s", msg->uri.len, msg->uri.buf);
 
     if(instance->header_callback) {
@@ -221,6 +200,11 @@ static FURI_ALWAYS_INLINE void
 
 static FURI_ALWAYS_INLINE void fetch_read_event(Fetch* instance, struct mg_connection* conn) {
     FETCH_LOG_I(TAG, "MG_EV_READ");
+
+    if(conn->pfn) {
+        // Ignore read events if the protocol handler function is still set
+        return;
+    }
 
     struct mg_iobuf* recv = &conn->recv;
     const size_t recv_len = recv->len;
@@ -267,7 +251,7 @@ static FURI_ALWAYS_INLINE void fetch_close_event(Fetch* instance, struct mg_conn
 }
 
 static FURI_ALWAYS_INLINE void
-    fetch_error_event(Fetch* instance, struct mg_connection* conn, void* ev_data) {
+    fetch_error_event(Fetch* instance, struct mg_connection* conn, const void* ev_data) {
     UNUSED(conn);
 
     FETCH_LOG_E(TAG, "Error occurred: %s", (const char*)ev_data);
@@ -284,10 +268,10 @@ static void fetch_mg_handler(struct mg_connection* conn, int event, void* ev_dat
 
     if(event == MG_EV_CONNECT) {
         fetch_connect_event(instance, conn);
-    } else if(event == MG_EV_HTTP_MSG) {
-        fetch_http_msg_event(instance, conn, ev_data);
     } else if(event == MG_EV_HTTP_HDRS) {
         fetch_http_hdrs_event(instance, conn, ev_data);
+    } else if(event == MG_EV_HTTP_MSG) {
+        FURI_LOG_W(TAG, "BUG: MG_EV_HTTP_MSG should never happen");
     } else if(event == MG_EV_READ) {
         fetch_read_event(instance, conn);
     } else if(event == MG_EV_CLOSE) {
