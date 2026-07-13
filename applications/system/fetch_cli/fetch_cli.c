@@ -27,6 +27,7 @@ typedef struct {
 typedef struct {
     Fetch* fetch;
     TempFile* output_file;
+    int32_t progress_len;
     bool is_error;
 } FetchCli;
 
@@ -83,7 +84,9 @@ static void fetch_callback_error(const char* error, void* context) {
     instance->is_error = true;
 }
 
-static void fetch_cli_print_download_progress(const FetchProgress* progress) {
+static int32_t fetch_cli_print_download_progress(const FetchProgress* progress) {
+    int32_t print_len = 0;
+
     const char* units_str;
     size_t multiplier;
 
@@ -101,7 +104,7 @@ static void fetch_cli_print_download_progress(const FetchProgress* progress) {
 
     const size_t download_percent = (download_size * 100) / total_size;
 
-    printf("\rDownloaded: %3zu%% [", download_percent);
+    print_len += printf("\rDownloaded: %3zu%% [", download_percent);
 
     const size_t num_segments = (download_size * PROGRESS_BAR_SEGMENT_COUNT) / total_size;
 
@@ -113,32 +116,57 @@ static void fetch_cli_print_download_progress(const FetchProgress* progress) {
         putchar(' ');
     }
 
+    print_len += num_segments;
+
     const float download_speed = progress->speed_bytes_per_sec / 1024.0f;
 
-    printf(
-        "] %8.2f KiB/s, %zu%s/%zu%s",
+    print_len += printf(
+        "] %8.2f KiB/s, %zu %s/%zu %s",
         download_speed,
         download_size,
         units_str,
         total_size,
         units_str);
+
+    return print_len;
 }
 
-static void fetch_cli_print_download_progress_simple(const FetchProgress* progress) {
+static int32_t fetch_cli_print_download_progress_simple(const FetchProgress* progress) {
     const float download_speed = progress->speed_bytes_per_sec / 1024.0f;
     const size_t download_size = progress->received_download_size / 1024;
 
-    printf("\rDownloaded: %8.2fKiB/s, %zuKiB/?KiB", download_speed, download_size);
+    return printf("\rDownloaded: %8.2fKiB/s, %zuKiB/?KiB", download_speed, download_size);
+}
+
+static void fetch_cli_print_download_progress_space(FetchCli* instance, int32_t print_len) {
+    if(print_len < 0) {
+        return;
+    }
+
+    const int32_t delta = instance->progress_len - print_len;
+
+    if(delta > 0) {
+        for(int32_t i = 0; i < delta; ++i) {
+            putchar(' ');
+        }
+    }
+
+    instance->progress_len = print_len;
 }
 
 static void fetch_progress_callback(const FetchProgress* progress, void* context) {
-    UNUSED(context);
+    furi_assert(context);
+    FetchCli* instance = context;
+
+    int32_t print_len;
 
     if(progress->total_download_size != 0) {
-        fetch_cli_print_download_progress(progress);
+        print_len = fetch_cli_print_download_progress(progress);
     } else {
-        fetch_cli_print_download_progress_simple(progress);
+        print_len = fetch_cli_print_download_progress_simple(progress);
     }
+
+    fetch_cli_print_download_progress_space(instance, print_len);
 
     fflush(stdout);
 }
