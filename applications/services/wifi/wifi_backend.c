@@ -352,7 +352,7 @@ static void wifi_scan_finished_event_handler(Wifi* instance, const WifiScanFinis
                 const sl_wifi_extended_scan_result_t* result_in = &scan_results[i];
                 WifiScanResult* result_out = &response.scan_results.data[i];
 
-                strncpy(result_out->ssid, (const char*)result_in->ssid, SSID_MAX_LEN);
+                strlcpy(result_out->ssid, (const char*)result_in->ssid, SSID_MAX_LEN);
                 result_out->security_mode = wifi_decode_security_mode(result_in->security_mode);
                 result_out->rssi = result_in->rssi;
             }
