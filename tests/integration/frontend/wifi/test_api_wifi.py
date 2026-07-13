@@ -381,7 +381,7 @@ class TestWifiFetch:
         path = f"/ext/_test_fetch_{uuid.uuid4().hex[:8]}.json"
         try:
             out = persistent_cli_connection.execute_command(
-                f"fetch {self._UPDATE_DIR} {path}", timeout=60, slow_command=True,
+                f"fetch {self._UPDATE_DIR} -o {path}", timeout=60, slow_command=True,
             )
             assert "File successfully saved" in out, out
         finally:
