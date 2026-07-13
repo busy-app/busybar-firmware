@@ -4,6 +4,7 @@
 #include <cli/cli_command.h>
 
 #include <storage/storage.h>
+#include <storage_utils/temp_file.h>
 
 #include <fetch/fetch.h>
 
@@ -25,7 +26,7 @@ typedef struct {
 
 typedef struct {
     Fetch* fetch;
-    File* output_file;
+    TempFile* output_file;
     bool is_error;
 } FetchCli;
 
@@ -58,9 +59,7 @@ static void fetch_file_out_callback(const void* data, size_t data_size, void* co
     FetchCli* instance = context;
 
     if(data_size > 0) {
-        const size_t bytes_written = storage_file_write(instance->output_file, data, data_size);
-
-        if(bytes_written != data_size) {
+        if(!temp_file_write(instance->output_file, data, data_size)) {
             fetch_stop(instance->fetch);
             instance->is_error = true;
         }
@@ -148,7 +147,7 @@ static FetchCli* fetch_cli_alloc() {
     FetchCli* instance = malloc(sizeof(FetchCli));
 
     instance->fetch = fetch_alloc();
-    instance->output_file = storage_file_alloc(furi_record_open(RECORD_STORAGE));
+    instance->output_file = temp_file_alloc(furi_record_open(RECORD_STORAGE));
     instance->is_error = false;
 
     fetch_set_callback_context(instance->fetch, instance);
@@ -158,7 +157,7 @@ static FetchCli* fetch_cli_alloc() {
 }
 
 static void fetch_cli_free(FetchCli* instance) {
-    storage_file_free(instance->output_file);
+    temp_file_free(instance->output_file);
     fetch_free(instance->fetch);
 
     free(instance);
@@ -167,8 +166,7 @@ static void fetch_cli_free(FetchCli* instance) {
 }
 
 static bool fetch_cli_prepare_file_output(FetchCli* instance, const char* file_path) {
-    const bool success = storage_file_open(
-        instance->output_file, file_path, FSAM_WRITE, FSOM_CREATE_ALWAYS | FSOM_NONBLOCKING);
+    const bool success = temp_file_create(instance->output_file, file_path);
 
     if(success) {
         fetch_set_rx_data_callback(instance->fetch, fetch_file_out_callback);
@@ -183,6 +181,12 @@ static bool fetch_cli_prepare_file_output(FetchCli* instance, const char* file_p
 
 static void fetch_cli_prepare_standard_output(FetchCli* instance) {
     fetch_set_rx_data_callback(instance->fetch, fetch_console_out_callback);
+}
+
+static void fetch_cli_finalize_file_ouput(FetchCli* instance) {
+    if(instance->is_error) {
+        temp_file_remove(instance->output_file);
+    }
 }
 
 static void fetch_cli_run(const FetchCliParams* params) {
@@ -205,6 +209,10 @@ static void fetch_cli_run(const FetchCliParams* params) {
         fetch_run(instance->fetch, &params->request);
 
     } while(false);
+
+    if(params->output_path != NULL) {
+        fetch_cli_finalize_file_ouput(instance);
+    }
 
     fetch_cli_free(instance);
 }
