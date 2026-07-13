@@ -90,3 +90,15 @@ while the device is connected via USB and its virtual ethernet interface is init
 - `targets`             - Firmware targets: platform specific code
 
 Also, see `ReadMe.md` files inside those directories for further details.
+
+## Documentation
+
+The full developer documentation lives in the [documentation](documentation/) folder:
+
+- [Quick Start](documentation/Quick%20Start.dox.md)
+- [Build System](documentation/Build%20System.dox.md)
+- [Hardware](documentation/Hardware.dox.md)
+- [Concepts](documentation/Concepts.dox.md)
+- [Contributing](documentation/Contributing.dox.md)
+
+To build and view the rendered documentation, run `./fbt doxy`.
