@@ -2,28 +2,46 @@
 
 ## Cloning
 
-Make sure you have enough space and clone the source code:
+Ensure there is enough free disk space and clone the source code:
 
 ```shell
 git clone --recursive https://github.com/flipperdevices/bsb-firmware.git
 ```
+
+## VS Code integration
+
+Run the following to generate the project configuration in the `.vscode` folder:
+
+```shell
+./fbt vscode_dist
+```
+
+Then open the workspace file (`.vscode/fbt.code-workspace`) in VS Code (File > Open Workspace from File...) and pick a build task from the `Ctrl+Shift+B` menu. See the [Build System documentation](documentation/Build%20System.dox.md) for additional options, such as selecting a language server.
 
 ## Building
 
 Control which firmware gets built by passing `TARGET_HW` to the fbt call:
 
 ```shell
-# Replace XX with 20 for Main firmware (U5), 64 for Wireless firmware (SI917)
+# Replace XX with 22 for Main firmware (U5), 65 for Wireless firmware (SI917)
 ./fbt TARGET_HW=XX
 ```
 
-You can store the `TARGET_HW` (and other commandline variables) variable in `fbt_options_local.py` to avoid passing it each time. The file must be in `fbt_layers/fbtng/` directory and does not exist by default. Example content:
+The `TARGET_HW` variable (and other commandline variables) can be stored in `fbt_options_local.py` to avoid passing it each time. The file must be in `fbt_layers/fbtng/` directory and does not exist by default. Example content:
 
 ```python
-TARGET_HW = 20
+TARGET_HW = 22
 ```
 
 ## Flashing
+
+### Using USB
+
+With the device connected via USB and its virtual ethernet interface initialised, the firmware can be flashed with:
+
+```shell
+./fbt flash_usb
+```
 
 ### Using an in-circuit debugger (Main firmware only)
 
@@ -66,7 +84,7 @@ while the device is connected via USB and its virtual ethernet interface is init
 - `assets`              - Assets used by applications and services
 - `documentation`       - Documentation generation system configs and input files
 - `fbt_layers`          - Build system layers
-- `lib`                 - Our and 3rd party libraries, drivers, tools and etc...
+- `lib`                 - Custom and third-party libraries, drivers and tools
 - `site_scons`          - Build system configuration and modules
 - `scripts`             - Supplementary scripts and various python libraries
 - `targets`             - Firmware targets: platform specific code
