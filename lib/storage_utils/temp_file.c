@@ -54,8 +54,6 @@ void temp_file_free(TempFile* instance) {
     storage_file_free(instance->file);
 
     free(instance);
-
-    furi_record_close(RECORD_STORAGE);
 }
 
 bool temp_file_create(TempFile* instance, const char* path) {
