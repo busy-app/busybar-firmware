@@ -111,8 +111,6 @@ For example, to flash everything except the resources:
 # Command-line parameters {#command-line-parameters}
 
 - `--options optionfile.py` (default `fbt_options.py`) — load a file with multiple configuration values.
-- `--extra-int-apps=app1,app2` — force the listed applications to be built as part of the firmware.
-- `--extra-ext-apps=app1,app2` — force the listed applications to be built as standalone `.elf` files.
 - `--extra-define=A --extra-define=B=C` — extra global defines passed to the C/C++ compiler; can be specified multiple times.
 - `--proxy-env=VAR1,VAR2` — additional environment variables to forward to child SCons processes.
 

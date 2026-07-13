@@ -5,7 +5,7 @@
 Ensure there is enough free disk space and clone the source code:
 
 ```shell
-git clone --recursive https://github.com/flipperdevices/bsb-firmware.git
+git clone --recursive https://github.com/busy-app/busybar-firmware.git
 ```
 
 ## VS Code integration
@@ -45,30 +45,15 @@ With the device connected via USB and its virtual ethernet interface initialised
 
 ### Using an in-circuit debugger (Main firmware only)
 
-Connect an ST-Link or a CMSIS-DAP compatible debugger to its respective pins on the BSB debug board and run:
+The SWD interface is not accessible on an assembled device — it has to be partially disassembled and the BSB debug board attached. Connect an ST-Link or a CMSIS-DAP compatible debugger to the SWD pins on the debug board and run:
 
 ```shell
 ./fbt flash
 ```
 
-### Using a serial bootloader (Wireless firmware only)
-
-The following steps need to be done only once:
-
-1. Connect a USB to UART adapter to the respective pins on the BSB debug board,
-2. Add the following line to `fbt_layers/fbtng/fbt_options_local.py`: `SI917_PORT="/dev/your/serial/port"` (replace it with the actual device path).
-
-The following steps need to be done each time the firmware needs to be flashed:
-
-1. Run `./fbt flash`, ensure that "Waiting for target" message is showing,
-2. Press and hold the `917_RST` button, then press and hold the `917_BOOT` button,
-3. Release the `917_RST` button whilst still holding the `917_BOOT` button,
-4. Once the process has been started, release the `917_BOOT` button as well,
-5. Wait until the "Firmware has been flashed" message shows and briefly press the `917_RST` button again.
-
 ### Resource provisioning
 
-Resource files are required for correct firmware operation.
+Resource files are required for correct firmware operation. They are included by default when flashing with `./fbt flash_usb`, so this step is only needed when the firmware was flashed separately (e.g. via a debugger).
 
 To build and upload the resources, run
 
@@ -93,12 +78,15 @@ Also, see `ReadMe.md` files inside those directories for further details.
 
 ## Documentation
 
-The full developer documentation lives in the [documentation](documentation/) folder:
+The developer documentation is authored as Doxygen sources in the [documentation](documentation/) folder. Render and view it by running `./fbt doxy`.
+
+### Documentation sources
+
+The sources are `.dox.md` files, which are best read in the rendered Doxygen output. They can also be browsed directly:
 
 - [Quick Start](documentation/Quick%20Start.dox.md)
-- [Build System](documentation/Build%20System.dox.md)
-- [Hardware](documentation/Hardware.dox.md)
 - [Concepts](documentation/Concepts.dox.md)
+- [Hardware](documentation/Hardware.dox.md)
+- [Firmware](documentation/Firmware.dox.md)
+- [Build System](documentation/Build%20System.dox.md)
 - [Contributing](documentation/Contributing.dox.md)
-
-To build and view the rendered documentation, run `./fbt doxy`.
