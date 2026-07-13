@@ -18,6 +18,9 @@
     "AppleWebKit/537.36 (KHTML, like Gecko) "    \
     "Chrome/138.0.0.0 Safari/537.36"
 
+#define HTTP_PREFIX  "http://"
+#define HTTPS_PREFIX "https://"
+
 #ifdef FETCH_DEBUG
 #define FETCH_LOG_I(...) FURI_LOG_I(__VA_ARGS__)
 #define FETCH_LOG_E(...) FURI_LOG_E(__VA_ARGS__)
@@ -283,6 +286,18 @@ static void fetch_mg_handler(struct mg_connection* conn, int event, void* ev_dat
     }
 }
 
+static void fetch_get_request_url(FuriString* url, const FetchRequest* request) {
+    const char* src_url = request->url;
+
+    if((strncmp(src_url, HTTP_PREFIX, strlen(HTTP_PREFIX)) != 0) &&
+       (strncmp(src_url, HTTPS_PREFIX, strlen(HTTPS_PREFIX)) != 0)) {
+        FURI_LOG_D(TAG, "No protocol prefix given, assuming http");
+        furi_string_set(url, HTTP_PREFIX);
+    }
+
+    furi_string_cat(url, src_url);
+}
+
 Fetch* fetch_alloc(void) {
     Fetch* instance = malloc(sizeof(Fetch));
     return instance;
@@ -309,6 +324,9 @@ void fetch_run(Fetch* instance, const FetchRequest* request) {
     Network* network = furi_record_open(RECORD_NETWORK);
     network_init_current_thread(network);
 
+    FuriString* url = furi_string_alloc();
+    fetch_get_request_url(url, request);
+
 #ifdef FETCH_DEBUG
     mg_log_set(MG_LL_VERBOSE);
 #endif
@@ -316,7 +334,7 @@ void fetch_run(Fetch* instance, const FetchRequest* request) {
     mg_mgr_init(&instance->mgr);
 
     struct mg_connection* conn =
-        mg_http_connect(&instance->mgr, instance->request->url, fetch_mg_handler, instance);
+        mg_http_connect(&instance->mgr, furi_string_get_cstr(url), fetch_mg_handler, instance);
 
     if(conn != NULL) {
         instance->activity_timer = coarse_timer_create(FETCH_INACTIVITY_TIMEOUT_MS);
@@ -347,6 +365,8 @@ void fetch_run(Fetch* instance, const FetchRequest* request) {
     }
 
     mg_mgr_free(&instance->mgr);
+
+    furi_string_free(url);
 
     network_deinit_current_thread(network);
     furi_record_close(RECORD_NETWORK);
