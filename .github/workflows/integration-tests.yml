@@ -21,12 +21,12 @@ on:
         required: false
         type: string
         default: 'not regression'
-        description: 'Pytest -m marker expression. Empty string runs everything.'
+        description: 'Pytest -m marker expression. Empty string or "all" runs everything.'
 
   workflow_dispatch:
     inputs:
       marker_filter:
-        description: 'Pytest -m expression. Default runs smoke only; empty string runs full suite including regression.'
+        description: 'Pytest -m expression. Default runs smoke only; "all" runs the full suite including regression.'
         required: false
         type: string
         default: 'not regression'
@@ -187,9 +187,31 @@ jobs:
         env:
           MARKER_FILTER: ${{ inputs.marker_filter }}
         run: |
-          echo "marker_filter=$MARKER_FILTER" >> "$GITHUB_OUTPUT"
-          if [ -n "$MARKER_FILTER" ]; then
-            echo "Resolved pytest marker filter: $MARKER_FILTER"
+          # Normalize the requested marker filter before it reaches pytest.
+          #
+          # GitHub substitutes the input *default* when a workflow_dispatch field
+          # is left blank, so clearing the field cannot express "run everything".
+          # Use the explicit `all` sentinel for the full suite instead.
+          #
+          # We also tolerate stray surrounding quotes/whitespace (e.g. a literal
+          # `""` typed into the form) which would otherwise reach pytest as an
+          # invalid `-m` expression and abort the run with exit code 4.
+          filter="$MARKER_FILTER"
+          # strip leading/trailing whitespace
+          filter="$(printf '%s' "$filter" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
+          # strip a single pair of surrounding double quotes
+          case "$filter" in
+            \"*\") filter="${filter#\"}"; filter="${filter%\"}" ;;
+          esac
+          # treat empty / all (case-insensitive) as "no filter" (full suite)
+          shopt -s nocasematch
+          if [ -z "$filter" ] || [[ "$filter" == "all" ]]; then
+            filter=""
+          fi
+          shopt -u nocasematch
+          echo "marker_filter=$filter" >> "$GITHUB_OUTPUT"
+          if [ -n "$filter" ]; then
+            echo "Resolved pytest marker filter: $filter"
           else
             echo "Resolved pytest marker filter: <empty> (full suite)"
           fi
