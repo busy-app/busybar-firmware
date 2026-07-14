@@ -14,7 +14,7 @@ lib/matter_zap        origin/dev
 lib/microtar          origin/master
 # lib/mongoose          origin/master  # upstream vendor pin, not on branch tip
 lib/nanopb            origin/maintenance_0.4
-lib/simplicity_sdk    origin/sisdk-2025.12.3
+lib/simplicity_sdk    origin/bsb
 # lib/stb/stb_repo      origin/master  # upstream vendor pin, not on branch tip
 # lib/thorvg            origin/main  # upstream vendor pin, not on branch tip
 lib/tinyusb           origin/ncm_packet_filter

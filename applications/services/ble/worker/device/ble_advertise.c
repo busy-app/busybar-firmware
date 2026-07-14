@@ -5,7 +5,8 @@
 
 #define TAG "BleAdvertise"
 
-#define BLE_ADVERTISE_PACKET_MAX_SIZE (251)
+#define BLE_ADVERTISE_PACKET_MAX_SIZE      (31U)
+#define BLE_ADVERTISE_DATA_TYPE_LOCAL_NAME (0x09)
 
 #define BLE_ADVERTISE_HANDLE                     0x00
 #define BLE_ADVERTISE_FILTER_POLICY_ALLOW_ALL    0x00
@@ -18,22 +19,36 @@
 #define BLE_ADVERTISE_INTERVAL_MIN               0x100
 #define BLE_ADVERTISE_INTERVAL_MAX               0x200
 #define BLE_ADVERTISE_CHANNEL_MAP                0x07
-#define BLE_SCAN_REQUEST_NOTIFICATION_ENABLE     0x01
+#define BLE_SCAN_REQUEST_NOTIFICATION_DISABLE    0x00
 
 #define BLE_ADVERTISE_CONNECTABLE        (1 << 0)
-#define BLE_ADVERTISE_SCANNABLE          (0 << 1)
+#define BLE_ADVERTISE_SCANNABLE          (1 << 1)
 #define BLE_ADVERTISE_LOW_DUTY_DIR_CONN  (0 << 2)
 #define BLE_ADVERTISE_HIGH_DUTY_DIR_CONN (0 << 3)
-#define BLE_ADVERTISE_LEGACY             (0 << 4)
+#define BLE_ADVERTISE_LEGACY             (1 << 4)
 #define BLE_ADVERTISE_ANONYMOUS          (0 << 5)
 #define BLE_ADVERTISE_TX_WR_PWR          (0 << 6)
-#define BLE_ADVERTISE_EVENT_PROP                                                             \
+
+#define BLE_ADVERTISE_CONNECTABLE_SCANNABLE_EVENT_PROP                                       \
     (BLE_ADVERTISE_CONNECTABLE | BLE_ADVERTISE_SCANNABLE | BLE_ADVERTISE_LOW_DUTY_DIR_CONN | \
      BLE_ADVERTISE_HIGH_DUTY_DIR_CONN | BLE_ADVERTISE_LEGACY | BLE_ADVERTISE_ANONYMOUS |     \
      BLE_ADVERTISE_TX_WR_PWR)
 
-#define BLE_ADVERTISE_DATA_OPERATION_COMPLETE    0x03
-#define BLE_ADVERTISE_DATA_FRAGMENTATION_ALLOWED 0x00
+#define BLE_ADVERTISE_DATA_OPERATION_COMPLETE        0x03
+#define BLE_ADVERTISE_DATA_FRAGMENTATION_NOT_ALLOWED 0x01
+
+#define BLE_ADVERTISE_SCAN_TYPE_ACTIVE 0x01
+#define PRI_PHY_LE_AE_SCAN_INTERVAL    0x100
+#define PRI_PHY_LE_AE_SCAN_WINDOW      0x50
+#define BLE_ADVERTISE_SCAN_PHY_1M      0x00
+
+///TODO: Must be 0x01 or 0x03 for filtering by acceptlist, but it doesn't work on silabs side
+#define BLE_ADVERTISE_SCAN_FILTER_POLICY 0x00
+
+typedef enum {
+    BleAdvertiseAeDataTypeAdvertise = AE_ADV_DATA,
+    BleAdvertiseAeDataTypeScanResponse = 0x03
+} BleAdvertiseAeDataType;
 
 typedef struct FURI_PACKED {
     uint8_t length;
@@ -69,7 +84,6 @@ typedef struct FURI_PACKED {
     BleAdvertiseConfigAnonymous anonymous;
     BleAdvertiseWordData appearance;
     BleAdvertiseWordData manufacturer;
-    BleAdvertiseLocalName local_name;
 } BleAdvertiseConfigPublic;
 
 static const BleAdvertiseConfigPublic advertise_config_template = {
@@ -96,10 +110,6 @@ static const BleAdvertiseConfigPublic advertise_config_template = {
             .header = {.type = 0xFF, .length = 3},
             .data = 0x0E29,
         },
-    .local_name =
-        {
-            .header = {.type = 0x9, .length = 0},
-        },
 };
 
 static_assert(sizeof(advertise_config_template) <= BLE_ADVERTISE_PACKET_MAX_SIZE);
@@ -107,25 +117,22 @@ static_assert(sizeof(advertise_config_template) <= BLE_ADVERTISE_PACKET_MAX_SIZE
 
 struct BleAdvertiseContext {
     FuriMutex* lock;
-    size_t actual_size;
-    void* advertise_config;
+    BleAdvertiseLocalName* local_name;
 };
 
 BleAdvertiseContext* ble_advertise_alloc() {
     BleAdvertiseContext* instance = malloc(sizeof(BleAdvertiseContext));
 
     instance->lock = furi_mutex_alloc(FuriMutexTypeNormal);
-    instance->actual_size = sizeof(advertise_config_template);
-    instance->advertise_config = malloc(BLE_ADVERTISE_PACKET_MAX_SIZE);
-    memcpy(
-        instance->advertise_config, &advertise_config_template, sizeof(advertise_config_template));
+    instance->local_name = malloc(BLE_ADVERTISE_PACKET_MAX_SIZE);
+    instance->local_name->header.type = BLE_ADVERTISE_DATA_TYPE_LOCAL_NAME;
     return instance;
 }
 
 void ble_advertise_free(BleAdvertiseContext* instance) {
     furi_assert(instance);
     furi_mutex_free(instance->lock);
-    free(instance->advertise_config);
+    free(instance->local_name);
     free(instance);
 }
 
@@ -136,7 +143,7 @@ void ble_advertise_set_name(BleAdvertiseContext* instance, const char* new_name)
     furi_mutex_acquire(instance->lock, FuriWaitForever);
 
     FuriString* name = furi_string_alloc_set_str(new_name);
-    const size_t free_space = BLE_ADVERTISE_PACKET_MAX_SIZE - sizeof(advertise_config_template);
+    const size_t free_space = BLE_ADVERTISE_PACKET_MAX_SIZE - sizeof(BleAdvertiseHeader);
 
     if(furi_string_size(name) > free_space) {
         furi_string_left(name, free_space - 3);
@@ -146,36 +153,68 @@ void ble_advertise_set_name(BleAdvertiseContext* instance, const char* new_name)
     const size_t name_size = furi_string_size(name);
     BLE_LOG_I("New device name: %s, size: %d", furi_string_get_cstr(name), name_size);
 
-    BleAdvertiseConfigPublic* const config = instance->advertise_config;
-    config->local_name.header.length = name_size + 1;
-    memset(config->local_name.data, 0, free_space);
-    memcpy(config->local_name.data, furi_string_get_cstr(name), name_size);
+    instance->local_name->header.length = name_size + 1;
+    memset(instance->local_name->data, 0, free_space);
+    memcpy(instance->local_name->data, furi_string_get_cstr(name), name_size);
 
-    instance->actual_size = sizeof(advertise_config_template) + name_size;
     furi_string_free(name);
 
     furi_mutex_release(instance->lock);
+}
+
+static void ble_advertise_set_ae_data(
+    const BleAdvertiseAeDataType type,
+    const uint8_t size,
+    const void* data) {
+    rsi_ble_ae_data_t ble_ae_data = {0};
+
+    ble_ae_data.type = type;
+    ble_ae_data.adv_handle = BLE_ADVERTISE_HANDLE;
+    ble_ae_data.operation = BLE_ADVERTISE_DATA_OPERATION_COMPLETE;
+    ble_ae_data.frag_pref = BLE_ADVERTISE_DATA_FRAGMENTATION_NOT_ALLOWED;
+    ble_ae_data.data_len = size;
+    if(size > 0) {
+        memcpy(ble_ae_data.data, data, ble_ae_data.data_len);
+    }
+
+    sl_status_t status = rsi_ble_set_ae_data(&ble_ae_data);
+    if(status != RSI_SUCCESS) {
+        const char* type_name = type == BleAdvertiseAeDataTypeScanResponse ? "scan response" :
+                                                                             "advertise";
+        BLE_LOG_W("set %s data failed with 0x%lX", type_name, status);
+    }
 }
 
 static void ble_advertise_refresh_data(const BleAdvertiseContext* instance, bool paired) {
     furi_assert(instance);
     furi_mutex_acquire(instance->lock, FuriWaitForever);
 
-    rsi_ble_ae_data_t ble_ae_data = {0};
+    const size_t adv_size = !paired ? sizeof(BleAdvertiseConfigPublic) :
+                                      sizeof(BleAdvertiseConfigAnonymous);
+    ble_advertise_set_ae_data(
+        BleAdvertiseAeDataTypeAdvertise, adv_size, &advertise_config_template);
 
-    ble_ae_data.type = AE_ADV_DATA;
-    ble_ae_data.adv_handle = BLE_ADVERTISE_HANDLE;
-    ble_ae_data.operation = BLE_ADVERTISE_DATA_OPERATION_COMPLETE;
-    ble_ae_data.frag_pref = BLE_ADVERTISE_DATA_FRAGMENTATION_ALLOWED;
-    ble_ae_data.data_len = !paired ? instance->actual_size : sizeof(BleAdvertiseConfigAnonymous);
-    memcpy(ble_ae_data.data, instance->advertise_config, ble_ae_data.data_len);
-
-    sl_status_t status = rsi_ble_set_ae_data(&ble_ae_data);
-    if(status != RSI_SUCCESS) {
-        BLE_LOG_W("set ae data failed with 0x%lX", status);
-    }
+    const size_t scan_size =
+        !paired ? (sizeof(BleAdvertiseHeader) + instance->local_name->header.length) : 0;
+    ble_advertise_set_ae_data(BleAdvertiseAeDataTypeScanResponse, scan_size, instance->local_name);
 
     furi_mutex_release(instance->lock);
+}
+
+static void ble_advertise_set_scan_params() {
+    rsi_ble_ae_set_scan_params_t ae_set_scan_params = {0};
+
+    ae_set_scan_params.own_addr_type = LE_PUBLIC_ADDRESS;
+    ae_set_scan_params.scanning_filter_policy = BLE_ADVERTISE_SCAN_FILTER_POLICY;
+    ae_set_scan_params.scanning_phys = BLE_ADVERTISE_SCAN_PHY_1M;
+    ae_set_scan_params.ScanParams[0].ScanType = BLE_ADVERTISE_SCAN_TYPE_ACTIVE;
+    ae_set_scan_params.ScanParams[0].ScanInterval = PRI_PHY_LE_AE_SCAN_INTERVAL;
+    ae_set_scan_params.ScanParams[0].ScanWindow = PRI_PHY_LE_AE_SCAN_WINDOW;
+
+    sl_status_t status = rsi_ble_ae_set_scan_params(&ae_set_scan_params);
+    if(status != RSI_SUCCESS) {
+        BLE_LOG_W("set ae scan params failed with 0x%lX", status);
+    }
 }
 
 static void ble_advertise_set_extended_params(
@@ -187,7 +226,7 @@ static void ble_advertise_set_extended_params(
     rsi_ble_ae_adv_params_t ble_ae_params = {0};
 
     ble_ae_params.adv_handle = BLE_ADVERTISE_HANDLE;
-    ble_ae_params.adv_event_prop = BLE_ADVERTISE_EVENT_PROP;
+    ble_ae_params.adv_event_prop = BLE_ADVERTISE_CONNECTABLE_SCANNABLE_EVENT_PROP;
     ble_ae_params.primary_adv_intterval_min = BLE_ADVERTISE_INTERVAL_MIN;
     ble_ae_params.primary_adv_intterval_max = BLE_ADVERTISE_INTERVAL_MAX;
     ble_ae_params.primary_adv_chnl_map = BLE_ADVERTISE_CHANNEL_MAP;
@@ -196,7 +235,7 @@ static void ble_advertise_set_extended_params(
     ble_ae_params.sec_adv_phy = BLE_ADVERTISE_SECONDARY_PHY;
     ble_ae_params.sec_adv_max_skip = BLE_ADVERTISE_SECONDARY_MAX_SKIP;
     ble_ae_params.adv_sid = BLE_ADVERTISE_SID;
-    ble_ae_params.scan_req_notify_enable = BLE_SCAN_REQUEST_NOTIFICATION_ENABLE; //TODO: Try 0 here
+    ble_ae_params.scan_req_notify_enable = BLE_SCAN_REQUEST_NOTIFICATION_DISABLE;
 
     if(!advertise_to_paired_only) {
         ble_ae_params.own_addr_type = LE_PUBLIC_ADDRESS;
@@ -240,6 +279,7 @@ bool ble_advertise_start(
     furi_assert(key);
 
     ble_advertise_set_extended_params(key, advertise_to_paired_only);
+    ble_advertise_set_scan_params();
 
     ble_advertise_refresh_data(instance, advertise_to_paired_only);
 
@@ -268,13 +308,15 @@ void ble_advertise_print_data(const BleAdvertiseContext* instance) {
 
     furi_mutex_acquire(instance->lock, FuriWaitForever);
 
-    const BleAdvertiseConfigPublic* const config = instance->advertise_config;
+    const BleAdvertiseConfigPublic* const config = &advertise_config_template;
 
     BLE_LOG_I("Flags: %d", config->anonymous.flags.data);
     BLE_LOG_I("Appearance: %04X", config->appearance.data);
     BLE_LOG_I("Manufacturer: %04X", config->manufacturer.data);
     BLE_LOG_I(
-        "Local name: %s, size: %d", config->local_name.data, config->local_name.header.length);
+        "Local name: %s, size: %d",
+        instance->local_name->data,
+        instance->local_name->header.length);
 
     furi_mutex_release(instance->lock);
 }

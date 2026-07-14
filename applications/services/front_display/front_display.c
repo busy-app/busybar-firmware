@@ -33,6 +33,7 @@ struct FrontDisplaySrv {
     FuriEventLoop* event_loop;
     FuriEventLoopTimer* transition_timer;
     FuriMessageQueue* message_queue;
+    FuriPubSubSubscription* power_subscription;
     bool enabled;
     bool send_in_progress;
     bool need_update;
@@ -52,6 +53,7 @@ typedef enum {
     FrontDisplayMessageTypeSleep,
     FrontDisplayMessageTypeOn,
     FrontDisplayMessageTypeOff,
+    FrontDisplayMessageTypeBatteryReady,
 } FrontDisplayMessageType;
 
 typedef struct {
@@ -139,6 +141,22 @@ static void front_display_power_irq_callback(void* context) {
     };
 
     furi_check(furi_message_queue_put(instance->message_queue, &message, 0) == FuriStatusOk);
+}
+
+static void front_display_power_event_callback(const void* message, void* context) {
+    furi_assert(message);
+    furi_assert(context);
+
+    const PowerEvent* event = message;
+    FrontDisplaySrv* instance = context;
+
+    if(event->type == PowerEventBatteryPresent) {
+        FrontDisplayMessage msg = {
+            .api_lock = NULL,
+            .type = FrontDisplayMessageTypeBatteryReady,
+        };
+        furi_check(furi_message_queue_put(instance->message_queue, &msg, 0) == FuriStatusOk);
+    }
 }
 
 static void front_display_power_pin_init(FrontDisplaySrv* instance) {
@@ -281,6 +299,21 @@ static void front_display_message_queue_callback(FuriEventLoopObject* object, vo
         display->enabled = false;
         display->send_in_progress = false;
         break;
+    case FrontDisplayMessageTypeBatteryReady:
+        FRONT_DISPLAY_DEBUG("Battery ready, initializing display");
+
+        if(display->power_subscription) {
+            furi_pubsub_unsubscribe(power_get_pubsub(display->power), display->power_subscription);
+            display->power_subscription = NULL;
+        }
+
+        if(!display->enabled) {
+            front_display_power_reset();
+            front_display_start(display);
+            display->enabled = true;
+            display->need_update = true;
+        }
+        break;
     }
 
     if(message.api_lock) {
@@ -347,11 +380,15 @@ static FrontDisplaySrv* front_display_alloc(void) {
     instance->power = furi_record_open(RECORD_POWER);
 
     front_display_power_pin_init(instance);
-    instance->enabled = true;
 
-    // Enable display only if the battery is ready
+    instance->power_subscription = furi_pubsub_subscribe(
+        power_get_pubsub(instance->power), front_display_power_event_callback, instance);
+
     if(power_is_battery_ready(instance->power)) {
         front_display_start(instance);
+        instance->enabled = true;
+        furi_pubsub_unsubscribe(power_get_pubsub(instance->power), instance->power_subscription);
+        instance->power_subscription = NULL;
     }
 
     furi_record_create(RECORD_FRONT_DISPLAY, instance);
