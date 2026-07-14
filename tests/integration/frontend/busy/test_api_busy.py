@@ -9,6 +9,7 @@ from utils.busy_timer import (
     STATE_SETTLE_S,
     TS_MAX_FUTURE_MS,
     WORK_CARD_UUID,
+    device_now_ms,
     next_timestamp,
     wait_for_snapshot_type,
 )
@@ -400,7 +401,11 @@ class TestBusySnapshotRegressions:
         time.sleep(STATE_SETTLE_S)
         before = busy_api.get_snapshot()
 
-        future_ts = int(time.time() * 1000) + TS_MAX_FUTURE_MS + 15000
+        # anchor to the device RTC: the firmware checks the window against its own
+        # clock, so a host-clock timestamp lands inside the window whenever the RTC
+        # runs ahead of the runner — and the device would accept what we expect it
+        # to reject
+        future_ts = device_now_ms(api_session, web_base_url) + TS_MAX_FUTURE_MS + 15000
         future = _infinite_snapshot(future_ts, settings)
         response = busy_api.set_snapshot_raw(future)
         assert response.status_code == 400, (

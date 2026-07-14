@@ -29,6 +29,12 @@ ANSI_RE = re.compile(r"\x1b\[[0-9;?]*[A-Za-z]")
 SOUND_FILE = "/ext/apps_assets/busy/sounds/countdown_tick.snd"
 IMAGE_FILE = "/ext/apps_assets/shared/images/dt_apple_red.image"
 
+# The only commands debug mode adds to `?` — `cli_command_update_debug_mode()` in
+# cli_u5/cli_commands.c registers exactly these two. `factory_reset` is listed either
+# way (it is destructive, not debug-gated), and `sysctl storage_bkp_unlock` is gated
+# inside `sysctl`, not in the top-level list.
+DEBUG_ONLY_COMMANDS = {"gpio", "otp"}
+
 TEXT_PAYLOAD = b"hello-busybar"
 # Printable bytes only: the CLI runs over telnetlib, which swallows NUL/0x11 and
 # escapes 0xFF, so a full 0..255 blob would not survive the round-trip intact.
@@ -67,6 +73,13 @@ def sl_cli():
         if cli._in_sl_cli:
             cli.exit_sl_cli()
         cli.disconnect()
+
+
+def command_set(cli):
+    """The command names `?` lists, as a set."""
+    response = cli.execute_command("?", timeout=20)
+    listing = response.split("Available commands:")[1].split("Find out more")[0]
+    return set(listing.split())
 
 
 def resync(cli):
@@ -243,11 +256,11 @@ class TestCLIReadOnlyCommands:
     def test_sysctl_debug_toggle(self, persistent_cli_connection):
         # the device must be left in debug mode (see the cli_debug fixture), so check
         # the disable path first and always come back to enabled
+        # what the flag actually gates is checked in TestCLIDebugGatedCommands
         cli = persistent_cli_connection
         try:
             off = cli.execute_command("sysctl debug 0")
             assert "Debug disabled" in off, off
-            assert "gpio" not in cli.execute_command("?"), "gpio still listed with debug off"
         finally:
             on = cli.execute_command("sysctl debug 1")
             assert "Debug enabled" in on, on
@@ -359,18 +372,44 @@ class TestCLISystemCommands:
 @allure.story("All Commands Coverage")
 @pytest.mark.regression
 class TestCLIDebugGatedCommands:
-    """Level 1 — commands that only exist while debug mode is on (`cli_debug` fixture).
+    """Level 1 — debug mode and what it gates (the `cli_debug` fixture keeps it on).
 
-    `sysctl debug` re-registers them right away, no reboot needed. Only the read-only
-    and usage paths: `gpio <pin> <0|1>` drives real hardware, `otp program` burns fuses
-    and `factory_reset` (bare) wipes the device — all L3.
+    `sysctl debug` re-registers the gated commands right away, no reboot needed. Only
+    the read-only and usage paths are exercised: `gpio <pin> <0|1>` drives real
+    hardware, `otp program` burns fuses and a bare `factory_reset` wipes the device —
+    all L3.
     """
 
-    @allure.title("CLI. Debug-gated commands are listed with debug on.")
-    def test_debug_commands_listed(self, persistent_cli_connection):
-        response = persistent_cli_connection.execute_command("?", timeout=20)
-        for command in ("gpio", "otp", "factory_reset"):
-            assert command in response, f"{command} missing with debug on: {response!r}"
+    @allure.title("CLI. Debug mode adds exactly the debug-gated commands to `?`.")
+    def test_debug_command_list_diff(self, persistent_cli_connection):
+        cli = persistent_cli_connection
+        try:
+            cli.execute_command("sysctl debug 0")
+            without_debug = command_set(cli)
+        finally:
+            cli.execute_command("sysctl debug 1")
+        with_debug = command_set(cli)
+
+        assert with_debug - without_debug == DEBUG_ONLY_COMMANDS, (
+            "debug mode should add exactly "
+            f"{sorted(DEBUG_ONLY_COMMANDS)}, it added {sorted(with_debug - without_debug)}"
+        )
+        assert not without_debug - with_debug, (
+            "debug mode must not hide commands, "
+            f"it removed {sorted(without_debug - with_debug)}"
+        )
+
+    @allure.title("CLI. Command sysctl gates storage_bkp_unlock behind debug mode.")
+    def test_sysctl_debug_gated_subcommand(self, persistent_cli_connection):
+        # storage_bkp_unlock is gated inside `sysctl` itself (sysctl_visible_debug),
+        # so it never shows up in the top-level `?` diff above
+        cli = persistent_cli_connection
+        try:
+            cli.execute_command("sysctl debug 0")
+            assert "storage_bkp_unlock" not in cli.execute_command("sysctl")
+        finally:
+            cli.execute_command("sysctl debug 1")
+        assert "storage_bkp_unlock" in cli.execute_command("sysctl")
 
     @allure.title("CLI. Command gpio (usage).")
     def test_gpio_usage(self, persistent_cli_connection):
