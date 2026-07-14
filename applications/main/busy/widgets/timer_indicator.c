@@ -169,9 +169,9 @@ void timer_indicator_set_progress(TimerIndicator* instance, float progress) {
         const float offset = delta + config->start_offset_px;
 
         if(progress_dir == TimerIndicatorProgressDirectionHorizontal) {
-            widget_set_pos_x(anim_player_get_base(instance->progress_anim), offset);
+            anim_player_set_offset(instance->progress_anim, offset, 0);
         } else if(progress_dir == TimerIndicatorProgressDirectionVertical) {
-            widget_set_pos_y(anim_player_get_base(instance->progress_anim), offset);
+            anim_player_set_offset(instance->progress_anim, 0, offset);
         } else {
             furi_crash("Invalid TimerIndicatorProgressDirection value");
         }
