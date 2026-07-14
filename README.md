@@ -6,7 +6,7 @@
         src="/.github/assets/light_theme_banner.png">
 </picture>
 
-# Busy Status Bar Firmware
+# BUSY Bar Firmware
 
 ## Cloning
 
@@ -28,18 +28,13 @@ Then open the workspace file (`.vscode/fbt.code-workspace`) in VS Code (File > O
 
 ## Building
 
-Control which firmware gets built by passing `TARGET_HW` to the fbt call:
+To build the firmware, run:
 
 ```shell
-# Replace XX with 22 for Main firmware (U5), 65 for Wireless firmware (SI917)
-./fbt TARGET_HW=XX
+./fbt
 ```
 
-The `TARGET_HW` variable (and other commandline variables) can be stored in `fbt_options_local.py` to avoid passing it each time. The file must be in `fbt_layers/fbtng/` directory and does not exist by default. Example content:
-
-```python
-TARGET_HW = 22
-```
+The build output is placed in the `dist/` folder. See the [Build System documentation](documentation/Build%20System.dox.md) for hardware target selection and other build options.
 
 ## Flashing
 

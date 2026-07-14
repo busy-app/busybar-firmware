@@ -24,11 +24,15 @@ The following environment variables control basic `fbt` behavior:
 
 # Invoking FBT
 
-To build, call `fbt` with the desired configuration variables and targets:
+Specifying `TARGET_HW` builds only the requested firmware target:
 
 ```shell
 ./fbt TARGET_HW=22
 ```
+
+To build the update package, run `./fbt` without `TARGET_HW` (or `./fbt dist`); both the U5 and Si917 firmwares are built and bundled into the `dist/` folder.
+
+The hardware variants can be overridden with `U5_TARGET_HW` and `SIL_TARGET_HW` variables (e.g. `./fbt U5_TARGET_HW=22 SIL_TARGET_HW=65`).
 
 To clean the build products for the specified targets (similar to `make clean`), add the `-c` option.
 
@@ -70,9 +74,9 @@ On-device debugging requires a supported SWD probe. `fbt` auto-detects the attac
 - `flash_usb` — build, upload and install the firmware to the device over USB. See [Flashing over USB](#flashing-usb) below.
 - `resources` — build the U5 resources and their manifest.
 - `resources_upload` — build and upload the resources to the U5 device over USB (requires the device's virtual ethernet interface to be initialised).
-- `debug` — build and flash the firmware, then attach GDB with the firmware's `.elf` loaded.
+- `debug` — build and flash the firmware, then attach GDB with the firmware's `.elf` loaded. Requires `TARGET_HW` to select the MCU to attach to.
+- `debug_other` — attach GDB without loading a `.elf`, allowing external `.elf` files to be added manually with `add-symbol-file`. Requires `TARGET_HW` to select the MCU to attach to.
 - `lint`, `format` — run `clang-format` on the C/C++ sources to check and reformat them according to `.clang-format` (see @ref code-style for the full style guide). Extra arguments can be passed with `ARGS="..."`.
-- `lint_py`, `format_py` — run [black](https://black.readthedocs.io/) on the Python sources and build system files.
 - `doxygen` — generate the documentation. The `doxy` target additionally opens the generated documentation in a web browser.
 - `vscode_dist`, `subl_dist` — generate project configuration for VS Code and Sublime Text respectively.
 
@@ -92,6 +96,8 @@ Each preset is a separate target. Only one preset may be built at a time.
 | `flash_usb_full`  |     yes      |        yes        |           yes            |
 | `flash_usb_min`   |     no       |        no         |           no             |
 | `flash_usb_main`  |     no       |        yes        |           no             |
+
+On production devices, only the U5 firmware can be flashed — the Si917 firmware must be signed (secure boot), so any preset that includes the Si917 M4/NWP components requires signed images (see the `--signed` flag).
 
 ## Component flags
 
@@ -125,6 +131,8 @@ A `fbt_options_local.py` file (placed in `fbt_layers/fbtng/`, not created by def
 Notable options:
 
 - `TARGET_HW` — hardware target. `22` for the Main firmware (U5), `65` for the Wireless firmware (SI917). See @ref hardware for details on the hardware targets.
+- `U5_TARGET_HW` (default `22`) — U5 hardware variant for the combined dist build (used when `TARGET_HW` is not set).
+- `SIL_TARGET_HW` (default `65`) — Si917 hardware variant for the combined dist build.
 - `DEBUG` (default `1`) — enable a debug build.
 - `COMPACT` (default `0`) — optimize for size.
 - `DIST_SUFFIX` — suffix for binaries produced by `dist` targets (default `local`).
