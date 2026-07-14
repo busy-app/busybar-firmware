@@ -80,7 +80,7 @@ paths:
     put:
       tags:
         - Busy
-      summary: Set BUSY time profile
+      summary: Set BUSY timer profile
       description: Sets the BUSY timer profile under specified slot
       operationId: setBusyProfile
       parameters:
