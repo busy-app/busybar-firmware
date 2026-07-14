@@ -52,7 +52,7 @@
 	url = https://github.com/thorvg/thorvg.git
 [submodule "lib/matter_zap"]
 	path = lib/matter_zap
-	url = https://github.com/flipperdevices/bsb-matter-zap.git
+	url = https://github.com/busy-app/busybar-matter-zap.git
 [submodule "lib/zlib"]
 	path = lib/zlib
 	url = https://github.com/madler/zlib.git
@@ -61,7 +61,7 @@
 	url = https://github.com/nothings/stb
 [submodule "assets/proto"]
 	path = assets/proto
-	url = https://github.com/flipperdevices/bsb-protobuf.git
+	url = https://github.com/busy-app/busybar-protobuf.git
 [submodule "documentation/doxygen/doxygen-awesome-css"]
 	path = documentation/doxygen/doxygen-awesome-css
 	url = https://github.com/jothepro/doxygen-awesome-css.git
