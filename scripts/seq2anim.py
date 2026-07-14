@@ -103,14 +103,20 @@ class FileFrame:
         packed = bytearray()
 
         if mode == "rgb888":
-            for i in range(0, len(frame), 3):
-                packed.extend([frame[i + 2], frame[i + 1], frame[i]])
+            # actually BGR888
+            for i in range(0, len(frame), 4):
+                packed.extend([frame[i + 2], frame[i + 1], frame[i + 0]])
         
         elif mode == "gray4":
-            for i in range(0, len(frame), 6):
-                px1 = frame[i] & 0xF0
-                px2 = frame[i + 3] & 0xF0
+            for i in range(0, len(frame), 8):
+                px1 = frame[i + 0] & 0xF0
+                px2 = frame[i + 4] & 0xF0
                 packed.append(px1 | (px2 >> 4))
+        
+        elif mode == "argb8888":
+            # actually BGRA8888
+            for i in range(0, len(frame), 4):
+                packed.extend([frame[i + 2], frame[i + 1], frame[i + 0], frame[i + 3]])
         
         else:
             raise NotImplemented
@@ -120,7 +126,7 @@ class FileFrame:
     @staticmethod
     def encode(frame: bytes, mode: str) -> Self:
         raw = frame
-        blk_size = 3 if mode == "rgb888" else 1
+        blk_size = {"rgb888": 3, "gray4": 1, "argb8888": 4}[mode]
         rle_encoded = rle.compress(frame, blk_size)
 
         if len(rle_encoded) < len(raw):
@@ -150,7 +156,7 @@ class BSBAnimConverter:
 
         for i, frame in enumerate(frames):
             with Image.open(frame) as frame:
-                frame = frame.convert("RGB")
+                frame = frame.convert("RGBA")
                 if size and frame.size != size:
                     raise ConversionError(f"frame {i} has a different size than previous frames")
                 size = frame.size
@@ -211,7 +217,7 @@ class BSBAnimConverter:
         # 4. assemble header and write data
         assert size
         width, height = size
-        color_fmt_map = {"rgb888": 0, "gray4": 1}
+        color_fmt_map = {"rgb888": 0, "gray4": 1, "argb8888": 2}
         header = Header(
             flags=0,
             width=width,
@@ -254,9 +260,9 @@ class BSBAnimConverter:
         if "fps" not in meta:
             raise ConversionError(f"Invalid meta.json: must have 'fps'")
         if "color_mode" not in meta:
-            raise ConversionError(f"Invalid meta.json: must have 'color_mode' (either 'rgb888' or 'gray4')")
-        if meta["color_mode"] not in ["rgb888", "gray4"]:
-            raise ConversionError(f"Invalid meta.json: 'color_mode' must be one of: 'rgb888', 'gray4'")
+            raise ConversionError(f"Invalid meta.json: must have 'color_mode' ('argb8888', 'rgb888' or 'gray4')")
+        if meta["color_mode"] not in ["argb8888", "rgb888", "gray4"]:
+            raise ConversionError(f"Invalid meta.json: 'color_mode' must be one of: 'argb8888', 'rgb888' or 'gray4'")
         if "sections" not in meta:
             raise ConversionError(f"Invalid meta.json: must have 'sections' (even an empty array is fine)")
         
