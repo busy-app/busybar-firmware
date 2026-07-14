@@ -21,8 +21,8 @@ def _instantiate_vars():
 commandline_vars = _instantiate_vars()
 
 commandline_vars.AddVariables(
-    ("SIL_TARGET_HW", "Target definition for Silabs chip", "64"),
-    ("U5_TARGET_HW", "Target definition for STM32U5 chip", "21"),
+    ("SIL_TARGET_HW", "Target definition for Silabs chip", "65"),
+    ("U5_TARGET_HW", "Target definition for STM32U5 chip", "22"),
 )
 
 _TARGET_OPTIONS = {
