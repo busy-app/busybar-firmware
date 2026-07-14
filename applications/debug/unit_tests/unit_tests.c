@@ -10,7 +10,7 @@ static uint32_t unit_tests_get_index(const FuriString* args) {
     uint32_t index = UNIT_TEST_COUNT;
 
     if(strint_to_uint32(furi_string_get_cstr(args), NULL, &index, 0) == StrintParseNoError) {
-        MIN(index, UNIT_TEST_COUNT);
+        index = MIN(index, UNIT_TEST_COUNT);
     }
 
     return index;
