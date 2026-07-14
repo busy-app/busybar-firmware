@@ -65,7 +65,7 @@ def _update_bundle(name, use_resources, use_sil_m4, use_sil_nwp, signed=False, b
         overrides["BUNDLE_SIL_RADIO_FW"] = sil_radio
         dependencies.append(sil_radio)
 
-    if signed and signed_fw_rps and (use_sil_m4 or use_sil_nwp):
+    if signed and signed_fw_rps:
         overrides["BUNDLE_SECURITY_FLAGS"] = str(
             int(UpdateManifestSecurityFlag.NwpSigned | UpdateManifestSecurityFlag.M4Signed)
         )
