@@ -10,17 +10,6 @@
 #include <version.h>
 #endif
 
-const char* intercom_get_version_string(void) {
-    const char* str;
-#if defined INTERCOM_DISABLE_VERSION_CHECK || defined INTERCOM_FORCE_VERSION
-    str = INTERCOM_CONTROL_STRING;
-#else
-    const Version* version = version_get();
-    str = version_get_githash(version);
-#endif
-    return str;
-}
-
 // Called in ISR context
 static void intercom_serial_tx_callback(
     FuriHalSerialHandle* handle,
@@ -249,6 +238,17 @@ IntercomChannel* intercom_channel_open(
     intercom_meta_activate_channel(instance, channel_id);
 
     return channel;
+}
+
+const char* intercom_get_version_string(void) {
+    const char* str;
+#if defined INTERCOM_DISABLE_VERSION_CHECK || defined INTERCOM_FORCE_VERSION
+    str = INTERCOM_CONTROL_STRING;
+#else
+    const Version* version = version_get();
+    str = version_get_githash(version);
+#endif
+    return str;
 }
 
 FuriState* intercom_get_state(const Intercom* instance) {
