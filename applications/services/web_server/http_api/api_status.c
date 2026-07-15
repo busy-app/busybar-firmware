@@ -6,6 +6,7 @@
 #include <toolbox/hex.h>
 #include <sl_info/sl_info.h>
 #include <applications/system/updater/updater.h>
+#include <applications/services/intercom/intercom.h>
 
 #define TAG "HttpStatus"
 
@@ -118,6 +119,8 @@ static bool status_get_firmware(FuriString* json_str, ApiStatusCtx* context) {
         ",\"commit_hash\":\"%s%s\"",
         version_get_githash(firmware_version),
         version_get_dirty_flag(firmware_version) ? "-dirty" : "");
+    furi_string_cat_printf(
+        json_str, ",\"intercom_version\":\"%s\"", intercom_get_version_string());
 
     status_append_sl_firmware_info(json_str);
 

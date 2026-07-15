@@ -1,4 +1,5 @@
 from pathlib import Path
+from urllib.parse import urlsplit
 
 import requests
 from flipper.app import App
@@ -79,10 +80,53 @@ class Main(App):
             help="URL to send the update to (default: http://10.0.4.20/api/update)",
             default="http://10.0.4.20/api/update",
         )
+        self.parser.add_argument(
+            "--intercom-version",
+            required=False,
+            default=None,
+            help="Expected intercom version; abort if device intercom_version doesn't match",
+        )
         self.parser.set_defaults(func=self.main)
+
+    def _check_intercom_version(self, url, expected):
+        parts = urlsplit(url)
+        status_url = f"{parts.scheme}://{parts.netloc}/api/status/firmware"
+        self.logger.info("Checking device intercom version at %s", status_url)
+
+        try:
+            response = requests.get(status_url, timeout=5)
+            response.raise_for_status()
+        except requests.RequestException as exc:
+            self.logger.error("Cannot reach device at %s: %s", status_url, exc)
+            return False
+
+        try:
+            device_version = response.json().get("intercom_version", "")
+        except ValueError:
+            self.logger.error("Unexpected response from device at %s", status_url)
+            return False
+
+        if device_version == "intercom":
+            self.logger.info("Device has intercom version checking disabled, skipping check")
+            return True
+
+        if device_version != expected:
+            self.logger.error(
+                "Intercom version mismatch: device=%r expected=%r",
+                device_version,
+                expected,
+            )
+            return False
+        
+        self.logger.info("Intercom version OK: %s", device_version)
+        return True
 
     def main(self):
         args = self.args
+
+        if args.intercom_version:
+            if not self._check_intercom_version(args.url, args.intercom_version):
+                return 1
 
         file_path = Path(args.file)
         try:
