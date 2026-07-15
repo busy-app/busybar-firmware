@@ -97,7 +97,7 @@ Each preset is a separate target. Only one preset may be built at a time.
 | `flash_usb_min`   |     no       |        no         |           no             |
 | `flash_usb_main`  |     no       |        yes        |           no             |
 
-On production devices, only the U5 firmware can be flashed — the Si917 firmware must be signed (secure boot), so any preset that includes the Si917 M4/NWP components requires signed images (see the `--signed` flag).
+On secured production devices, only the U5 firmware can be flashed — the Si917 firmware must be signed (secure boot), so flashing any Si917 M4/NWP components requires the `--signed` flag (see below).
 
 ## Component flags
 
@@ -106,7 +106,7 @@ The presets define defaults that can be overridden with component flags. The fla
 - `--resources` / `--no-resources` — include or exclude the U5 resources.
 - `--sil-m4` / `--no-sil-m4` — include or exclude the Si917 M4 firmware.
 - `--sil-nwp` / `--no-sil-nwp` — include or exclude the Si917 NWP radio firmware.
-- `--signed` / `--unsigned` — use signed or unsigned Si917 images.
+- `--signed` / `--unsigned` — mark the bundle as suitable for secured (production/secure-boot) devices. If the Si917 firmware is included in the bundle, sign it.
 
 For example, to flash everything except the resources:
 

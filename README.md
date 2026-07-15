@@ -43,7 +43,7 @@ The build output is placed in the `dist/` folder. See the [Build System document
 With the device connected via USB and its virtual ethernet interface initialised, the firmware can be flashed with:
 
 ```shell
-./fbt flash_usb
+./fbt flash_usb --signed
 ```
 
 ### Using an in-circuit debugger (Main firmware only)
