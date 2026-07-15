@@ -283,6 +283,10 @@ schemas:
         type: string
         description: Git commit hash (may include -dirty suffix)
         example: "abc123def456-dirty"
+      intercom_version:
+        type: string
+        description: Intercom handshake version string (forced version, git hash, or "intercom" if check disabled)
+        example: "abc123de"
       nwp_version:
         type: string
         description: Radio firmware version
@@ -297,6 +301,7 @@ schemas:
       - branch
       - build_date
       - commit_hash
+      - intercom_version
 
   StatusSystem:
     type: object
