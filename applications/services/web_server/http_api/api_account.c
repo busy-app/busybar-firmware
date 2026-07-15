@@ -111,7 +111,7 @@ static void mqtt_link_timeout(void* data) {
     furi_assert(data);
     MqttLinkContext* link_ctx = data;
 
-    MG_REPLY_SERVICE_UNAVAILABLE(link_ctx->conn, "PIN request timeout");
+    MG_REPLY_ERROR_CLOSE(link_ctx->conn, 503, "PIN request timeout");
     link_ctx->conn->is_draining = true;
 }
 

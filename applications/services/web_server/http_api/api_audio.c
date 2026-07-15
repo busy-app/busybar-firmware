@@ -42,7 +42,7 @@ static void audio_stop_timeout(void* data) {
     furi_assert(data);
     StopResponseContext* ctx = data;
 
-    MG_REPLY_SERVICE_UNAVAILABLE(ctx->conn, "Audio stop timeout");
+    MG_REPLY_ERROR_CLOSE(ctx->conn, 503, "Audio stop timeout");
     ctx->conn->is_draining = true;
 }
 

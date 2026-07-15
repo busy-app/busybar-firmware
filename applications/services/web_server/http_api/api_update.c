@@ -231,7 +231,7 @@ static void api_update_on_data_cb(struct mg_connection* conn, struct mg_iobuf* i
 
     if(!update_ctx || !update_ctx->file_save) {
         FURI_LOG_E(TAG, "on_data: Context or file saver invalid/closed. Draining.");
-        MG_REPLY_CONFLICT(conn, "Update context invalid");
+        MG_REPLY_ERROR_CLOSE(conn, 409, "Update context invalid");
         mg_iobuf_del(io, 0, io->len); // Consume data to prevent further calls
         conn->is_draining = 1; // Mark connection to be closed
         return;
