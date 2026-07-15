@@ -240,7 +240,7 @@ if _flash_usb_targets:
     
     _name = _flash_usb_targets[0]
     _params = dict(_FLASH_USB_PRESETS[_name])
-    _params["signed"] = GetOption("flash_signed") is True
+    _params["signed"] = GetOption("flash_signed") is not False
     _params.update(
         (k, v)
         for k, v in {
