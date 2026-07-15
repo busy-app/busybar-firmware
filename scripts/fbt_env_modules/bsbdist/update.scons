@@ -48,24 +48,38 @@ def _update_bundle(name, use_resources, use_sil_m4, use_sil_nwp, signed=False, b
         dependencies.append(fw_env["FW_BKP_RESOURCES"])
 
     if use_sil_m4:
+        if signed and signed_fw_rps is None:
+            raise UserError(
+                "--signed with Si917 M4 firmware in the bundle requires signing to be "
+                "configured. Provide SI917_SIGN_KEYSTORE, or all of "
+                "SI917_SIGN_SERVICE_URL, SI917_SIGN_SERVICE_TOKEN, and "
+                "SI917_SIGN_SERVICE_PROFILE."
+            )
         sil_fw = (
             signed_fw_rps[0]
-            if signed and signed_fw_rps
+            if signed
             else sil_env["FW_ENV"]["FW_RPS"][0]
         )
         overrides["BUNDLE_SIL_FW"] = sil_fw
         dependencies.append(sil_fw)
 
     if use_sil_nwp:
+        if signed and signed_nwp_rps is None:
+            raise UserError(
+                "--signed with Si917 NWP firmware in the bundle requires signing to be "
+                "configured. Provide SI917_SIGN_KEYSTORE, or all of "
+                "SI917_SIGN_SERVICE_URL, SI917_SIGN_SERVICE_TOKEN, and "
+                "SI917_SIGN_SERVICE_PROFILE."
+            )
         sil_radio = (
             signed_nwp_rps[0]
-            if signed and signed_nwp_rps
+            if signed
             else dist_env.Real(sil_env["SI917_NWP_STACK"])
         )
         overrides["BUNDLE_SIL_RADIO_FW"] = sil_radio
         dependencies.append(sil_radio)
 
-    if signed and signed_fw_rps:
+    if signed:
         overrides["BUNDLE_SECURITY_FLAGS"] = str(
             int(UpdateManifestSecurityFlag.NwpSigned | UpdateManifestSecurityFlag.M4Signed)
         )
@@ -157,6 +171,8 @@ if service_signing_configured and not service_signing_enabled:
         "SI917_SIGN_SERVICE_TOKEN, and SI917_SIGN_SERVICE_PROFILE"
     )
 
+signed_fw_rps = None
+signed_nwp_rps = None
 if sil_sign_keystore or service_signing_enabled:
     sign_env = dist_env.Clone(
         tools=["fwsign_silabs"],
