@@ -140,7 +140,7 @@ bool FURI_WARN_UNUSED
  * 
  * @param[inout] anim `AnimFile` instance
  * @param[in] x X-coordinate of the top-left corner of the cutout
- * @param[in] x Y-coordinate of the top-left corner of the cutout
+ * @param[in] y Y-coordinate of the top-left corner of the cutout
  */
 void anim_file_set_offset(AnimFile* anim, float x, float y);
 

@@ -101,6 +101,8 @@ void anim_file_seq_redraw_current_frame(AnimFile* anim) {
 
     AnimFileSeq* seq = &anim->seq;
 
+    if(!seq->loaded_file_frame) return;
+
     if(!storage_file_seek(anim->file, seq->loaded_file_frame + sizeof(AnimFileFrameHeader), true)) {
         ANIM_FILE_ERR("Failed to seek frame");
         return;

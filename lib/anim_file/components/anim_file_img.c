@@ -186,7 +186,7 @@ static bool
             dest[6] = right_px;
             dest[7] = 255;
 
-            dest += 6;
+            dest += 8;
         }
 
     } else if(file_hdr->color_format == AnimFileColorFormatBgr888) {
@@ -201,7 +201,9 @@ static bool
 
     } else if(file_hdr->color_format == AnimFileColorFormatBgra8888) {
         furi_assert(img->sheet_buffer);
+    }
 
+    if(img->sheet_buffer) {
         const size_t margin = ANIM_FILE_IMG_KERNEL_SZ / 2;
         const size_t w_with_margin = file_hdr->width + (2 * margin);
         const size_t h_with_margin = file_hdr->height + (2 * margin);
