@@ -1,3 +1,6 @@
+from fbt.util import safe_add_option
+
+
 def _instantiate_vars():
     vars = SConscript("site_scons/commandline.scons")
     vars.AddVariables(
@@ -6,6 +9,11 @@ def _instantiate_vars():
             help="Set for insecure (non-secure-boot) Si917 devices; disables key wrapping during provisioning",
             default=True,
         ),
+        (
+            "INTERCOM_FORCE_VERSION",
+            "Force intercom handshake version string (overrides the default git-hash based check)",
+            "",
+        ),
     )
     return vars
 
@@ -13,9 +21,27 @@ def _instantiate_vars():
 commandline_vars = _instantiate_vars()
 
 commandline_vars.AddVariables(
-    ("SIL_TARGET_HW", "Target definition for Silabs chip", "64"),
-    ("U5_TARGET_HW", "Target definition for STM32U5 chip", "21"),
+    ("SIL_TARGET_HW", "Target definition for Silabs chip", "65"),
+    ("U5_TARGET_HW", "Target definition for STM32U5 chip", "22"),
 )
+
+_TARGET_OPTIONS = {
+    "flash_usb": [
+        ("--resources",    {"dest": "flash_resources", "action": "store_true",  "help": "Include U5 resources"}),
+        ("--no-resources", {"dest": "flash_resources", "action": "store_false", "help": "Exclude U5 resources"}),
+        ("--sil-m4",       {"dest": "flash_sil_m4",    "action": "store_true",  "help": "Include Si917 M4 firmware"}),
+        ("--no-sil-m4",    {"dest": "flash_sil_m4",    "action": "store_false", "help": "Exclude Si917 M4 firmware"}),
+        ("--sil-nwp",      {"dest": "flash_sil_nwp",   "action": "store_true",  "help": "Include Si917 NWP radio firmware"}),
+        ("--no-sil-nwp",   {"dest": "flash_sil_nwp",   "action": "store_false", "help": "Exclude Si917 NWP radio firmware"}),
+        ("--signed",       {"dest": "flash_signed",    "action": "store_true",  "help": "Use signed Si917 images"}),
+        ("--unsigned",     {"dest": "flash_signed",    "action": "store_false", "help": "Use unsigned Si917 images"}),
+    ],
+}
+
+for _target, _options in _TARGET_OPTIONS.items():
+    if any(isinstance(t, str) and _target in t for t in BUILD_TARGETS):
+        for _opt, _optkw in _options:
+            safe_add_option(_opt, **_optkw)
 
 ###################
 
