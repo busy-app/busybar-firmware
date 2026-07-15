@@ -5,9 +5,8 @@
 #include <storage/storage.h>
 #include <assets_images.h>
 
-#define TAG             "AnimPlayer"
-#define MY_CLASS        (&anim_player_lvgl_class)
-#define BYTES_PER_PIXEL 3
+#define TAG      "AnimPlayer"
+#define MY_CLASS (&anim_player_lvgl_class)
 
 // ==================
 // Internal functions
@@ -116,7 +115,7 @@ AnimPlayer* anim_player_alloc(Widget* parent) {
     lv_obj_t* obj = lv_obj_class_create_obj(MY_CLASS, (lv_obj_t*)parent);
     lv_obj_class_init_obj(obj);
 
-    lv_obj_add_event_cb(obj, anim_player_lvgl_event, LV_EVENT_ALL, parent);
+    lv_obj_add_event_cb(obj, anim_player_lvgl_event, LV_EVENT_SIZE_CHANGED, NULL);
 
     AnimPlayer* instance = (AnimPlayer*)obj;
     return instance;
