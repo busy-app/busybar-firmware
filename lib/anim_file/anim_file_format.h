@@ -7,13 +7,31 @@
  *     consecutive display frames.
  *   - Section: User-selectable named range of display frame indices.
  *   - Chunk: part of the file. There's a Sections chunk and a Frames chunk.
- *   - Color buffer: Plain Rgb888 buffer that LVGL accepts directly.
- *   - Packed buffer: Either Rgb888 or Gray4 buffer. Gray4 has to be unpacked
- *     into a Color buffer, Rgb888 can be used directly.
+ * 
+ * Visualized buffer types and conversion pipeline:
+ * 
+ * +---------+  anim_file_img_decode   +--------+   anim_file_img_unpack 
+ * | Encoded | ----------------------> | Packed | -----------------------\
+ * +---------+                         +--------+                        |
+ *  Maybe RLE                      Maybe non-ARGB8888                    |
+ *                                                                       |
+ * /---------------------------------------------------------------------/
+ * |
+ * |     +-------+  anim_file_img_cut_part   +--------+  given to application
+ * \---> | Sheet | ------------------------> | Cutout | ---------------------->
+ *       +-------+                           +--------+
+ *      Maybe bigger
+ *      than target
+ * 
+ * Buffer types:
+ *   - Cutout buffer: Just the rectangular cutout that the application needs.
+ *   - Sheet buffer: Plain Bgra8888 buffer that LVGL accepts directly, but may
+ *     be larger, while the application needs just a rectangular part of the
+ *     entire picture.
+ *   - Packed buffer: Color format other than Bgra8888 (Bgr888 or Gray4). Has to
+ *     be converted into Bgra8888 (unpacked).
  *   - Encoded buffer: Either RLE-encoded or plain packed buffer. RLE has to be
  *     decoded into a Packed buffer.
- * 
- * All integers are little-endian.
  * 
  * Visualized file layout:
  * 
@@ -45,6 +63,8 @@
  * 
  * There must always be a section named "default", covering the entire range of
  * Display Frames.
+ * 
+ * All integers are little-endian.
  */
 
 #pragma once
@@ -59,8 +79,9 @@ extern "C" {
  * @brief Color format. Applies to the entire animation.
  */
 typedef enum FURI_PACKED {
-    AnimFileColorFormatRgb888, //<! Each pixel is (in order) red, then green, the blue
+    AnimFileColorFormatBgr888, //<! Each pixel is (in order) blue, then green, then red
     AnimFileColorFormatGray4, //<! 2 px in byte: hi nibble = earlier pixel, lo nibble = later pixel
+    AnimFileColorFormatBgra8888, //<! Each pixel is (in order) blue, then green, then red, then alpha
     AnimFileColorFormatMAX,
 } AnimFileColorFormat;
 static_assert(sizeof(AnimFileColorFormat) == sizeof(uint8_t));
@@ -116,7 +137,7 @@ typedef struct FURI_PACKED {
  */
 typedef enum FURI_PACKED {
     AnimFileFrameEncodingRaw, //<! Plain pixels encoded according to `AnimFileColorFormat`
-    AnimFileFrameEncodingRle, //<! Run-length encoding of `Raw` data implemented by `toolbox/rle_encode`. `blk_size` parameter is 3 for `AnimFileColorFormatRgb888`, and 1 for `AnimFileColorFormatGray4`.
+    AnimFileFrameEncodingRle, //<! Run-length encoding of `Raw` data implemented by `toolbox/rle_encode`. `blk_size` parameter is 3 for `Bgr888`, 1 for `Gray4`, and 4 for `Bgra8888`
     AnimFileFrameEncodingMAX,
 } AnimFileFrameEncoding;
 static_assert(sizeof(AnimFileFrameEncoding) == sizeof(uint8_t));

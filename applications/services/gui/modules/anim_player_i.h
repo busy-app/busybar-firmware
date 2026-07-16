@@ -5,6 +5,7 @@ struct AnimPlayer {
     Widget base;
     lv_obj_t* canvas;
     uint8_t* canvas_buf;
+    size_t canvas_w, canvas_h;
 
     lv_timer_t* timer;
 
