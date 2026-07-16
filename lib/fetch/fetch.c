@@ -82,6 +82,16 @@ static void fetch_switch_to_raw_protocol(
     conn->pfn = NULL;
 }
 
+static void fetch_raise_error(Fetch* instance, const char* error_message) {
+    FETCH_LOG_E(TAG, "Error: %s", error_message);
+
+    if(instance->error_callback) {
+        instance->error_callback(error_message, instance->callback_context);
+    }
+
+    instance->is_error_occurred = true;
+}
+
 static bool fetch_init_tls(Fetch* instance, struct mg_connection* conn, struct mg_str hostname) {
     bool success = false;
 
@@ -98,14 +108,7 @@ static bool fetch_init_tls(Fetch* instance, struct mg_connection* conn, struct m
         success = true;
 
     } else {
-        FETCH_LOG_E(TAG, "Failed to read CA bundle from %s", FETCH_CA_BUNDLE_PATH);
-
-        if(instance->error_callback) {
-            instance->error_callback(
-                "Failed to read CA certificate bundle", instance->callback_context);
-        }
-
-        conn->is_draining = 1;
+        fetch_raise_error(instance, "Failed to read CA certificate bundle");
     }
 
     if(ca_data.buf != NULL) {
@@ -185,6 +188,9 @@ static FURI_ALWAYS_INLINE void fetch_connect_event(Fetch* instance, struct mg_co
         fetch_send_request_headers(request, conn);
         fetch_send_extra_request_headers(request, conn);
         fetch_send_request_body(request, conn);
+
+    } else {
+        conn->is_draining = 1;
     }
 }
 
@@ -266,14 +272,8 @@ static FURI_ALWAYS_INLINE void
         error_msg = "Unknown error";
     }
 
-    FETCH_LOG_E(TAG, "Error occurred: %s", error_msg);
-
-    if(instance->error_callback) {
-        instance->error_callback(error_msg, instance->callback_context);
-    }
-
+    fetch_raise_error(instance, error_msg);
     instance->is_running = false;
-    instance->is_error_occurred = true;
 }
 
 static void fetch_mg_handler(struct mg_connection* conn, int event, void* ev_data) {
@@ -365,14 +365,8 @@ FetchStatus fetch_run(Fetch* instance, const FetchRequest* request) {
 
         while(instance->is_running) {
             if(coarse_timer_is_expired(instance->activity_timer)) {
-                FETCH_LOG_E(TAG, "Inactivity timeout");
-
-                if(instance->error_callback) {
-                    instance->error_callback("Inactivity timeout", instance->callback_context);
-                }
-
+                fetch_raise_error(instance, "Inactivity timeout");
                 conn->is_draining = 1;
-                instance->is_error_occurred = true;
                 break;
             }
 
@@ -386,7 +380,7 @@ FetchStatus fetch_run(Fetch* instance, const FetchRequest* request) {
         }
 
     } else {
-        FETCH_LOG_E(TAG, "Failed to connect to server");
+        fetch_raise_error(instance, "Failed to connect to server");
     }
 
     mg_mgr_free(&instance->mgr);
