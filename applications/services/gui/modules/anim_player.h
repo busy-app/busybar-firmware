@@ -49,6 +49,17 @@ Widget* anim_player_get_base(AnimPlayer* instance);
 bool anim_player_set_source(AnimPlayer* instance, const char* path);
 
 /**
+ * @brief Moves the animation within its widget's viewport
+ * 
+ * @param[inout] instance Widget instance
+ * @param[in] x X-axis coordinate (may be out of bounds or non-integer)
+ * @param[in] y Y-axis coordinate (may be out of bounds or non-integer)
+ * 
+ * @returns `true` = operation successful
+ */
+bool anim_player_set_offset(AnimPlayer* instance, float x, float y);
+
+/**
  * @brief Sets the current section to be played back, using a section name
  * 
  * @param[in] instance `AnimPlayer` instance

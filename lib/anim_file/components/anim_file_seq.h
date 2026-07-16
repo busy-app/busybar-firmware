@@ -29,6 +29,8 @@ size_t anim_file_seq_disp_frame_idx(AnimFile* anim);
 
 AnimFileFrameFlag anim_file_seq_load_current_frame(AnimFile* anim);
 
+void anim_file_seq_redraw_current_frame(AnimFile* anim);
+
 #ifdef __cplusplus
 }
 #endif

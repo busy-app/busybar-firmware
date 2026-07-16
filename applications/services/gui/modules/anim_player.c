@@ -5,9 +5,8 @@
 #include <storage/storage.h>
 #include <assets_images.h>
 
-#define TAG             "AnimPlayer"
-#define MY_CLASS        (&anim_player_lvgl_class)
-#define BYTES_PER_PIXEL 3
+#define TAG      "AnimPlayer"
+#define MY_CLASS (&anim_player_lvgl_class)
 
 // ==================
 // Internal functions
@@ -26,6 +25,25 @@ static void anim_player_timer_cb(lv_timer_t* timer) {
     if(instance->frame_cb) instance->frame_cb(instance, &info, instance->frame_cb_context);
 }
 
+static void anim_player_resize_canvas(AnimPlayer* player, size_t width, size_t height) {
+    furi_assert(player);
+
+    if(!player->file) return;
+
+    AnimFileInfo file_info = anim_file_info(player->file);
+    width = CLAMP(width, file_info.width, 1ULL);
+    height = CLAMP(height, file_info.height, 1ULL);
+
+    size_t buffer_size = width * height * ANIM_FILE_OUT_BYTES_PER_PIXEL;
+    player->canvas_buf = realloc(player->canvas_buf, buffer_size);
+    player->canvas_w = width;
+    player->canvas_h = height;
+    anim_file_set_out_buf(player->file, width, height, player->canvas_buf);
+
+    lv_canvas_set_buffer(
+        player->canvas, player->canvas_buf, width, height, LV_COLOR_FORMAT_ARGB8888);
+}
+
 // ==========
 // LVGL class
 // ==========
@@ -36,6 +54,8 @@ static void anim_player_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t
     AnimPlayer* instance = (AnimPlayer*)obj;
     instance->canvas = lv_canvas_create(obj);
     instance->storage = furi_record_open(RECORD_STORAGE);
+
+    lv_obj_set_size(instance->canvas, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
 
     instance->timer = lv_timer_create(anim_player_timer_cb, UINT32_MAX, obj);
     lv_timer_set_user_data(instance->timer, instance);
@@ -49,11 +69,30 @@ static void anim_player_lvgl_destructor(const lv_obj_class_t* class_p, lv_obj_t*
     AnimPlayer* instance = (AnimPlayer*)obj;
     lv_timer_delete(instance->timer);
 
-    if(instance->canvas_buf) free(instance->canvas_buf);
-    if(instance->file_path) free(instance->file_path);
     if(instance->file) anim_file_free(instance->file);
+    if(instance->file_path) free(instance->file_path);
+    if(instance->canvas_buf) free(instance->canvas_buf);
+
+    instance->file = NULL;
+    instance->file_path = NULL;
+    instance->canvas_buf = NULL;
 
     furi_record_close(RECORD_STORAGE);
+}
+
+static void anim_player_lvgl_event(lv_event_t* event) {
+    furi_assert(event);
+
+    lv_event_code_t code = lv_event_get_code(event);
+    AnimPlayer* player = (AnimPlayer*)lv_event_get_target_obj(event);
+    lv_obj_t* lv_base = TO_LV_OBJ(&player->base);
+
+    if(code == LV_EVENT_SIZE_CHANGED) {
+        int32_t width = lv_obj_get_width(lv_base);
+        int32_t height = lv_obj_get_height(lv_base);
+
+        anim_player_resize_canvas(player, width, height);
+    }
 }
 
 const lv_obj_class_t anim_player_lvgl_class = {
@@ -75,6 +114,8 @@ AnimPlayer* anim_player_alloc(Widget* parent) {
 
     lv_obj_t* obj = lv_obj_class_create_obj(MY_CLASS, (lv_obj_t*)parent);
     lv_obj_class_init_obj(obj);
+
+    lv_obj_add_event_cb(obj, anim_player_lvgl_event, LV_EVENT_SIZE_CHANGED, NULL);
 
     AnimPlayer* instance = (AnimPlayer*)obj;
     return instance;
@@ -114,15 +155,7 @@ bool anim_player_set_source(AnimPlayer* instance, const char* file_path) {
         if(!instance->file) break;
 
         AnimFileInfo info = anim_file_info(instance->file);
-        instance->canvas_buf = realloc(instance->canvas_buf, info.out_buffer_size);
-        anim_file_set_out_buf(instance->file, instance->canvas_buf);
-
-        lv_canvas_set_buffer(
-            instance->canvas,
-            instance->canvas_buf,
-            info.width,
-            info.height,
-            LV_COLOR_FORMAT_RGB888);
+        anim_player_resize_canvas(instance, info.width, info.height);
 
         anim_player_set_section(instance, AnimFilePlayFlagLoop, ANIM_FILE_DEFAULT_SECTION);
 
@@ -141,6 +174,13 @@ bool anim_player_set_source(AnimPlayer* instance, const char* file_path) {
     }
 
     return loaded_successfully;
+}
+
+bool anim_player_set_offset(AnimPlayer* instance, float x, float y) {
+    furi_check(instance);
+    if(!instance->file) return false;
+    anim_file_set_offset(instance->file, x, y);
+    return true;
 }
 
 AnimFile* anim_player_get_file(AnimPlayer* instance) {

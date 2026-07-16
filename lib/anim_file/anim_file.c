@@ -36,8 +36,6 @@ AnimFile* FURI_WARN_UNUSED anim_file_alloc(Storage* storage, const char* path) {
                             .width = header.width,
                             .height = header.height,
                             .frames = header.display_frame_count,
-                            .out_buffer_size =
-                                header.width * header.height * ANIM_FILE_OUT_BYTES_PER_PIXEL,
                         },
                     .color_format = header.color_format,
                     .sections = sections_chunk,
@@ -75,10 +73,10 @@ AnimFileInfo anim_file_info(const AnimFile* anim) {
     return anim->meta.info;
 }
 
-void anim_file_set_out_buf(AnimFile* anim, void* buffer) {
+void anim_file_set_out_buf(AnimFile* anim, size_t width, size_t height, void* buffer) {
     furi_check(anim);
     furi_check(buffer);
-    anim_file_img_init(anim, buffer);
+    anim_file_img_init(anim, buffer, width, height, false);
 }
 
 AnimFileFrameInfo anim_file_frame(AnimFile* anim) {
@@ -112,4 +110,10 @@ bool FURI_WARN_UNUSED
         return true;
     }
     return false;
+}
+
+void anim_file_set_offset(AnimFile* anim, float x, float y) {
+    furi_check(anim);
+    anim_file_img_set_cutout(anim, -x, -y);
+    anim_file_seq_redraw_current_frame(anim);
 }
