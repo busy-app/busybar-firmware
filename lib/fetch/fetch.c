@@ -322,6 +322,15 @@ static FetchStatus fetch_get_status(const Fetch* instance) {
     return status;
 }
 
+static void fetch_reset(Fetch* instance) {
+    memset(&instance->progress, 0, sizeof(FetchProgress));
+
+    instance->delta_received_bytes = 0;
+    instance->count_receive_packets = 0;
+    instance->is_error_occurred = false;
+    instance->is_stop_requested = false;
+}
+
 Fetch* fetch_alloc(void) {
     Fetch* instance = malloc(sizeof(Fetch));
     return instance;
@@ -342,7 +351,7 @@ FetchStatus fetch_run(Fetch* instance, const FetchRequest* request) {
     furi_check(request->url);
     furi_check(request->headers.count < FETCH_HEADERS_COUNT_MAX);
 
-    instance->request = request;
+    fetch_reset(instance);
 
     Network* network = furi_record_open(RECORD_NETWORK);
     network_init_current_thread(network);
@@ -360,7 +369,9 @@ FetchStatus fetch_run(Fetch* instance, const FetchRequest* request) {
         mg_http_connect(&instance->mgr, furi_string_get_cstr(url), fetch_mg_handler, instance);
 
     if(conn != NULL) {
+        instance->request = request;
         instance->activity_timer = coarse_timer_create(FETCH_INACTIVITY_TIMEOUT_MS);
+
         instance->is_running = true;
 
         while(instance->is_running) {
