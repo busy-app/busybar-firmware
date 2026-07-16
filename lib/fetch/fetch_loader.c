@@ -143,6 +143,7 @@ static bool fetch_loader_prepare(FetchLoader* instance) {
 
     if(!success) {
         FURI_LOG_E(TAG, "Failed to create file %s", file_path);
+        instance->is_error_occurred = true;
     }
 
     return success;
