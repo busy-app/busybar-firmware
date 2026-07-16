@@ -46,8 +46,9 @@ struct Fetch {
     FetchProgressCallback progress_callback;
     void* callback_context;
 
-    _Atomic bool is_running;
-    _Atomic bool is_force_stop;
+    bool is_running;
+    bool is_error_occurred;
+    _Atomic bool is_stop_requested;
 };
 
 static uint32_t fetch_calc_download_speed(size_t size_delta, uint32_t start_timestamp_ticks) {
@@ -257,13 +258,22 @@ static FURI_ALWAYS_INLINE void
     fetch_error_event(Fetch* instance, struct mg_connection* conn, const void* ev_data) {
     UNUSED(conn);
 
-    FETCH_LOG_E(TAG, "Error occurred: %s", (const char*)ev_data);
+    const char* error_msg;
+
+    if(ev_data != NULL) {
+        error_msg = ev_data;
+    } else {
+        error_msg = "Unknown error";
+    }
+
+    FETCH_LOG_E(TAG, "Error occurred: %s", error_msg);
 
     if(instance->error_callback) {
-        instance->error_callback(ev_data, instance->callback_context);
+        instance->error_callback(error_msg, instance->callback_context);
     }
 
     instance->is_running = false;
+    instance->is_error_occurred = true;
 }
 
 static void fetch_mg_handler(struct mg_connection* conn, int event, void* ev_data) {
@@ -298,6 +308,20 @@ static void fetch_get_request_url(FuriString* url, const FetchRequest* request) 
     furi_string_cat(url, src_url);
 }
 
+static FetchStatus fetch_get_status(const Fetch* instance) {
+    FetchStatus status;
+
+    if(instance->is_error_occurred) {
+        status = FetchStatusError;
+    } else if (instance->is_stop_requested) {
+        status = FetchStatusAborted;
+    } else {
+        status = FetchStatusOk;
+    }
+
+    return status;
+}
+
 Fetch* fetch_alloc(void) {
     Fetch* instance = malloc(sizeof(Fetch));
     return instance;
@@ -310,7 +334,7 @@ void fetch_free(Fetch* instance) {
     free(instance);
 }
 
-void fetch_run(Fetch* instance, const FetchRequest* request) {
+FetchStatus fetch_run(Fetch* instance, const FetchRequest* request) {
     furi_check(instance);
     furi_check(!instance->is_running);
 
@@ -348,10 +372,11 @@ void fetch_run(Fetch* instance, const FetchRequest* request) {
                 }
 
                 conn->is_draining = 1;
+                instance->is_error_occurred = true;
                 break;
             }
 
-            if(instance->is_force_stop) {
+            if(instance->is_stop_requested) {
                 FETCH_LOG_I(TAG, "Force stopped");
                 conn->is_draining = 1;
                 FETCH_LOG_I(TAG, "Connection closed");
@@ -370,11 +395,13 @@ void fetch_run(Fetch* instance, const FetchRequest* request) {
 
     network_deinit_current_thread(network);
     furi_record_close(RECORD_NETWORK);
+
+    return fetch_get_status(instance);
 }
 
 void fetch_stop(Fetch* instance) {
     furi_check(instance);
-    instance->is_force_stop = true;
+    instance->is_stop_requested = true;
 }
 
 void fetch_set_callback_context(Fetch* instance, void* context) {

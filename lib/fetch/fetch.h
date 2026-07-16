@@ -115,8 +115,9 @@ void fetch_free(Fetch* instance);
  *
  * @param[in,out] instance Pointer to the Fetch instance.
  * @param[in] request Pointer to the request to be executed.
+ * @returns @c FetchStatusOk on success, any other @ref FetchStatus value otherwise
  */
-void fetch_run(Fetch* instance, const FetchRequest* request);
+FetchStatus fetch_run(Fetch* instance, const FetchRequest* request);
 
 /**
  * @brief Request the ongoing fetch process to stop.
