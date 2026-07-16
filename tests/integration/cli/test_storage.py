@@ -150,13 +150,14 @@ class TestCLIStorageMutating:
     @allure.title("CLI. Command log_dump.")
     def test_log_dump(self, persistent_cli_connection):
         cli = persistent_cli_connection
+        path = "/ext/dump.txt"
         try:
             response = cli.execute_command("log_dump", timeout=15, slow_command=True)
-            assert "Log successfully saved to /ext/dump.log" in response, response
-            stat = cli.execute_command("storage stat /ext/dump.log")
+            assert f"Log successfully saved to {path}" in response, response
+            stat = cli.execute_command(f"storage stat {path}")
             assert re.search(r"size:\s*[1-9]\d*b", stat), f"empty log dump: {stat!r}"
         finally:
-            cli.execute_command("storage remove /ext/dump.log")
+            cli.execute_command(f"storage remove {path}")
 
     @allure.title("CLI. Command storage_benchmark.")
     @pytest.mark.regression  # heavy, noisy SD benchmark (write+read every block size)
