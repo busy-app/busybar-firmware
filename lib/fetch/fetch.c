@@ -313,7 +313,7 @@ static FetchStatus fetch_get_status(const Fetch* instance) {
 
     if(instance->is_error_occurred) {
         status = FetchStatusError;
-    } else if (instance->is_stop_requested) {
+    } else if(instance->is_stop_requested) {
         status = FetchStatusAborted;
     } else {
         status = FetchStatusOk;
