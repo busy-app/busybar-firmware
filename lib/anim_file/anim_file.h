@@ -13,7 +13,7 @@ extern "C" {
 
 typedef struct AnimFile AnimFile;
 
-#define ANIM_FILE_OUT_BYTES_PER_PIXEL 3
+#define ANIM_FILE_OUT_BYTES_PER_PIXEL 4
 
 /**
  * @brief Loads an `AnimFile` from the specified path
@@ -39,7 +39,6 @@ typedef struct {
     size_t height;
     size_t fps;
     size_t frames;
-    size_t out_buffer_size; //<! Always `width * height * ANIM_FILE_OUT_BYTES_PER_PIXEL`
 } AnimFileInfo;
 
 /**
@@ -77,12 +76,19 @@ typedef struct {
 /**
  * @brief Sets the output canvas buffer
  * 
- * @warning Once set, cannot be changed
+ * If the provided buffer is smaller than the animation (as indicated in
+ * `info.width` and `info.height`), only the the top-left corner of the
+ * animation will be shown. This cutout of the animation can be moved around
+ * with `anim_file_set_cutout`.
+ * 
+ * The buffer will not be touched until the next call to `anim_file_frame`.
  * 
  * @param[in] anim `AnimFile` instance
- * @param[out] buffer RGB888 buffer of size `info.out_buffer_size`
+ * @param[in] width Buffer width in pixels
+ * @param[in] height Buffer height in pixels
+ * @param[out] buffer BGRA8888 buffer of size `width * height * ANIM_FILE_OUT_BYTES_PER_PIXEL`
  */
-void anim_file_set_out_buf(AnimFile* anim, void* buffer);
+void anim_file_set_out_buf(AnimFile* anim, size_t width, size_t height, void* buffer);
 
 /**
  * @brief Draws the next frame of the animation onto a canvas buffer
@@ -120,6 +126,23 @@ typedef enum {
  */
 bool FURI_WARN_UNUSED
     anim_file_set_section(AnimFile* anim, AnimFilePlayFlag flags, const char* name);
+
+/**
+ * @brief Changes which part of the animation will be in the output buffer
+ * 
+ * Can only be used (and only makes sense) in case the output buffer is smaller
+ * than the animation file.
+ * 
+ * Supports non-integer (sub-pixel), negative and otherwise out-of-bounds
+ * coordinates. Transparent black will be rendered in the out-of-bounds parts.
+ * 
+ * @note The new values will be applied on the next non-identical frame.
+ * 
+ * @param[inout] anim `AnimFile` instance
+ * @param[in] x X-coordinate of the top-left corner of the cutout
+ * @param[in] y Y-coordinate of the top-left corner of the cutout
+ */
+void anim_file_set_offset(AnimFile* anim, float x, float y);
 
 /**
  * @brief The name that when provided to `anim_file_set_section` specifies the
