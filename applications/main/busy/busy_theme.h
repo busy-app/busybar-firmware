@@ -23,7 +23,6 @@ typedef struct BusyTheme BusyTheme;
 typedef enum {
     BusyThemeFileTypeImage,
     BusyThemeFileTypeAnim,
-    BusyThemeFileTypeLottieAnim,
     BusyThemeFileTypeMax,
 } BusyThemeFileType;
 
