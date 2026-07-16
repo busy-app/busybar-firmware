@@ -15,6 +15,10 @@
 
 #include <core/string.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * @brief Option callback function type.
  *
@@ -56,3 +60,7 @@ typedef void (*OptionCallback)(char opt, const char* optarg, void* context);
  * @returns @c true on success, @c false otherwise
  */
 bool parse_args(FuriString* args, const char* opts, OptionCallback callback, void* context);
+
+#ifdef __cplusplus
+}
+#endif
