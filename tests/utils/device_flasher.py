@@ -175,11 +175,9 @@ class DeviceFlasher:
     def _check_tcp_port(self, timeout: float = 2.0) -> bool:
         """Check whether the device accepts TCP connections on port 80."""
         try:
-            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            sock.settimeout(timeout)
-            result = sock.connect_ex((self.device_ip, 80))
-            sock.close()
-            return result == 0
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+                sock.settimeout(timeout)
+                return sock.connect_ex((self.device_ip, 80)) == 0
         except socket.error:
             return False
 

@@ -82,14 +82,14 @@ class SimpleCLIConnection:
                     return ""
             try:
                 self.logger.debug(f"Executing command: {repr(command)}")
+                # Drop whatever a previous (timed-out) command left in the buffer
+                # *before* writing, instead of reading up to the echo afterwards:
+                # a read-to-echo can silently consume the real response when the
+                # device echoes differently. `_clean_response()` strips the echo.
+                stale = self.tn.read_very_eager()
+                if stale:
+                    self.logger.debug(f"Discarded {len(stale)} stale bytes")
                 self.tn.write(f"{command}\r\n".encode("utf-8"))
-
-                try:
-                    self.tn.read_until(
-                        command.encode("utf-8"), timeout=max(timeout, 5.0)
-                    )
-                except (EOFError, OSError):
-                    pass
 
                 if command.strip() == "device_info":
                     response_str = self.tn.read_until(prompt, timeout=5.0).decode(
@@ -290,7 +290,14 @@ class SimpleCLIConnection:
         session = requests.Session()
         session.headers.update({"User-Agent": "BSB-AutoTest/1.0"})
         try:
+            # Without a baseline the loop below can never confirm the reboot,
+            # so retry a transient HTTP glitch before committing to it.
             before = self._read_boot_time(base_url, session)
+            for _ in range(3):
+                if before is not None:
+                    break
+                time.sleep(1.0)
+                before = self._read_boot_time(base_url, session)
 
             self.logger.info("Sending `power reboot sw`...")
             try:

@@ -109,10 +109,20 @@ def read_chunks(cli, path, chunk_size):
     """
     buffer = b""
 
-    def fill(until):
+    def fill(until, timeout=30.0):
         nonlocal buffer
+        deadline = time.monotonic() + timeout
         while not until():
-            buffer += cli.tn.read_some()
+            chunk = cli.tn.read_eager()  # non-blocking; raises EOFError when closed
+            if chunk:
+                buffer += chunk
+                deadline = time.monotonic() + timeout
+            elif time.monotonic() > deadline:
+                raise TimeoutError(
+                    f"storage read_chunks {path}: no data for {timeout}s"
+                )
+            else:
+                time.sleep(0.05)
 
     cli.tn.write(f"storage read_chunks {path} {chunk_size}\r".encode("utf-8"))
     cli.tn.read_until(b"Size: ", timeout=5)

@@ -18,7 +18,7 @@ pytestmark = pytest.mark.cli
 @allure.feature("6. CLI")
 @allure.story("Commands Check")
 class TestCLIFetch:
-    """fetch` against an HTTP server served from the test host itself.
+    """`fetch` against an HTTP server served from the test host itself.
 
     The device reaches the host over the same link the CLI runs on, so bind the
     server to the local end of the telnet socket — no bench configuration needed.
