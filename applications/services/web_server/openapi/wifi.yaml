@@ -16,6 +16,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/StatusResponse"
+        "503":
+          description: Wi-Fi operation failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 
   /api/wifi/connect:
     post:
@@ -43,6 +49,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+        "503":
+          description: Wi-Fi operation failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 
   /api/wifi/disconnect:
     post:
@@ -60,6 +72,12 @@ paths:
                 $ref: "#/components/schemas/SuccessResponse"
         "400":
           description: Already disconnected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "503":
+          description: Wi-Fi operation failed
           content:
             application/json:
               schema:
@@ -82,6 +100,12 @@ paths:
                 $ref: "#/components/schemas/NetworkResponse"
         "400":
           description: Scan not possible when connected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "503":
+          description: Wi-Fi operation failed
           content:
             application/json:
               schema:

@@ -55,6 +55,18 @@ typedef enum {
 } IntercomChannelId;
 
 /**
+ * @brief Get the intercom version string.
+ *
+ * Returns the version string used for the chip-to-chip handshake.
+ * By default this is the firmware git hash; if INTERCOM_FORCE_VERSION
+ * is defined at build time, it is that value; if INTERCOM_DISABLE_VERSION_CHECK
+ * is defined, it is "intercom".
+ *
+ * @returns Version string.
+ */
+const char* intercom_get_version_string(void);
+
+/**
  * @brief Get the state object that supports change notifications
  *
  * The received FuriState object will have an underlying type of IntercomStatus.

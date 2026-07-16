@@ -1,0 +1,9 @@
+App(
+    appid="anim_test",
+    name="AnimTest",
+    apptype=FlipperAppType.DEBUG,
+    entry_point="anim_test_app",
+    stack_size=2 * 1024,
+    targets=["f20", "f21", "f22"],
+    requires=["gui"],
+)

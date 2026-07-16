@@ -40,6 +40,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+        "503":
+          description: PIN request timeout
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 
   /api/account/info:
     get:
@@ -85,6 +91,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/AccountBackend"
+        "503":
+          description: Failed to serialize MQTT configuration
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
     put:
       tags:
         - Account

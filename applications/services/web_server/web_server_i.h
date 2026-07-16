@@ -58,12 +58,16 @@
 #define MG_REPLY_FORBIDDEN(conn)       MG_REPLY_ERROR(conn, 403, "Forbidden")
 #define MG_REPLY_INVALID_VERSION(conn) MG_REPLY_ERROR(conn, 405, "Incompatible API version")
 
-#define MG_REPLY_PAYLOAD_TOO_LARGE(conn, ...) \
-    MG_REPLY_ERROR(conn, 413, M_IF_EMPTY(__VA_ARGS__)("Payload Too Large", (__VA_ARGS__)))
+#define MG_REPLY_TIMEOUT(conn, ...) \
+    MG_REPLY_ERROR_CLOSE(conn, 408, M_IF_EMPTY(__VA_ARGS__)("Request Timeout", __VA_ARGS__))
+#define MG_REPLY_CONFLICT(conn, ...) \
+    MG_REPLY_ERROR(conn, 409, M_IF_EMPTY(__VA_ARGS__)("Conflict", __VA_ARGS__))
 
-#define _MG_REPLY_INTERNAL_ERROR(conn, msg) MG_REPLY_ERROR(conn, 500, msg)
-#define MG_REPLY_INTERNAL_ERROR(conn, ...) \
-    _MG_REPLY_INTERNAL_ERROR(conn, M_IF_EMPTY(__VA_ARGS__)("failed", (__VA_ARGS__)))
+#define MG_REPLY_PAYLOAD_TOO_LARGE(conn, ...) \
+    MG_REPLY_ERROR(conn, 413, M_IF_EMPTY(__VA_ARGS__)("Payload Too Large", __VA_ARGS__))
+
+#define MG_REPLY_SERVICE_UNAVAILABLE(conn, ...) \
+    MG_REPLY_ERROR(conn, 503, M_IF_EMPTY(__VA_ARGS__)("Service Unavailable", __VA_ARGS__))
 
 #define MG_REPLY_OVERLOADED(conn) MG_REPLY_ERROR(conn, 508, "Resource Limit Reached")
 

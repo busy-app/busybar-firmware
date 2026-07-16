@@ -13,6 +13,7 @@ App(
         # "led_indicator",
         # "time_test",
         "dummy",
+        "anim_test",
     ],
     targets=["f20", "f21", "f22"],
 )

@@ -12,11 +12,21 @@ After making any changes, the code must be formatted by running `./fbt format` f
 
 Always try to make the code as clear and straightforward as possible. Avoid "clever code", obscure language constructions or other kinds of obfuscation.
 
+#### Changes to existing code
+
+Only make the changes in existing code that are necessary to implement the feature or to fix a bug. Do NOT make changes in existing code that are related to style or personal preference, as this drastically increases noise during review.
+
+Style-related corrections for existing code should be carried out via separate pull requests where possible.
+
 ### Comments
 
 Avoid comments unless it will greatly improve clarity. Most of the time a comment can be avoided by extracting a function or by a more descriptive variable name.
 
 If using an LLM, care must be taken to rephrase or remove the generated comments, as they tend to be overly verbose.
+
+#### Comment style
+
+Both C++ `// This is a comment` and ANSI C style `/* This is a comment */` comments can be used. The latter should be preferred for multi-line comments.
 
 ### Functions
 

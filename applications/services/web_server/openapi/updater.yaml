@@ -32,14 +32,20 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+        "409":
+          description: Upload received on a closed or invalid update context.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
         "413":
           description: Update package too large.
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-        "500":
-          description: Internal server error during update process.
+        "508":
+          description: Failed to save the update package.
           content:
             application/json:
               schema:
@@ -65,7 +71,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-        "500":
+        "503":
           description: Failed to start update check
           content:
             application/json:
@@ -157,14 +163,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-        "500":
-          description: Failed to start background installation
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
         "503":
-          description: Battery too low for update
+          description: Battery too low or installation failed to start
           content:
             application/json:
               schema:
@@ -199,12 +199,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/AutoupdateSettings"
-        "500":
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
     post:
       tags:
         - Updater
@@ -230,7 +224,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-        "500":
+        "503":
           description: Failed to apply settings
           content:
             application/json:

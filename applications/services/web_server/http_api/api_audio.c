@@ -42,7 +42,7 @@ static void audio_stop_timeout(void* data) {
     furi_assert(data);
     StopResponseContext* ctx = data;
 
-    MG_REPLY_ERROR_CLOSE(ctx->conn, 500, "Audio stop timeout");
+    MG_REPLY_ERROR_CLOSE(ctx->conn, 503, "Audio stop timeout");
     ctx->conn->is_draining = true;
 }
 
@@ -177,7 +177,7 @@ static bool api_audio_play_handler(
         if(success) {
             MG_REPLY_OK(conn);
         } else {
-            MG_REPLY_ERROR(conn, 500, "Failed to play audio");
+            MG_REPLY_ERROR(conn, 404, "Failed to play audio");
         }
     } while(0);
 
